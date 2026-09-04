@@ -1,0 +1,88 @@
+# Development stack: cp .env.example .env && docker compose up
+#
+# One bind mount of the repository root into a single dev image; node_modules
+# live in named volumes so the mount never shadows them. packages/shared exists
+# once — both apps consume it through the workspace symlink.
+
+x-dev-image: &dev-image
+  image: clinic-dev:local
+  build:
+    context: .
+    dockerfile: docker/dev.Dockerfile
+
+# The single bind mount of the whole workspace, plus named volumes layered on
+# top of it so host directories never shadow container-installed dependencies.
+x-dev-volumes: &dev-volumes
+  - .:/repo
+  - root-node-modules:/repo/node_modules
+  - api-node-modules:/repo/apps/api/node_modules
+  - web-node-modules:/repo/apps/web/node_modules
+  - shared-node-modules:/repo/packages/shared/node_modules
+  # Build output stays container-side too, so a container build never drops
+  # root-owned dist/ directories into the developer's working tree.
+  - api-dist:/repo/apps/api/dist
+  - shared-dist:/repo/packages/shared/dist
+  - pnpm-store:/pnpm/store
+  - dev-state:/var/lib/clinic-dev
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks: [clinic]
+
+  api:
+    <<: *dev-image
+    command: ["dev-api.sh"]
+    env_file: .env
+    ports:
+      - "${API_PORT:-3000}:3000"
+    volumes: *dev-volumes
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "/usr/local/bin/api-healthcheck.js"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+    networks: [clinic]
+
+  web:
+    <<: *dev-image
+    command: ["dev-web.sh"]
+    env_file: .env
+    ports:
+      - "${WEB_PORT:-5173}:5173"
+    volumes: *dev-volumes
+    depends_on:
+      api:
+        condition: service_started
+    networks: [clinic]
+
+volumes:
+  postgres-data:
+  root-node-modules:
+  api-node-modules:
+  web-node-modules:
+  shared-node-modules:
+  api-dist:
+  shared-dist:
+  pnpm-store:
+  dev-state:
+
+networks:
+  clinic:
+    driver: bridge

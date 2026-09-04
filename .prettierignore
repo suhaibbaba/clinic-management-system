@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+pnpm-lock.yaml
+apps/api/drizzle
+
+# Project specifications, kept exactly as authored.
+CLAUDE.md
+ROLES.md
