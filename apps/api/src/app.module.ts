@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
 
-import { AppConfigModule } from './config/config.module';
-import { DatabaseModule } from './database/database.module';
-import { HealthModule } from './health/health.module';
+import { AppConfigModule } from '@api/config/config.module';
+import { DatabaseModule } from '@api/database/database.module';
+import { HealthModule } from '@api/health/health.module';
 
 /**
  * Root module. One Nest module per domain module is added here as the phases in

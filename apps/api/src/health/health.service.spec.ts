@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { healthResponseSchema } from '@clinic/shared';
 
-import { DATABASE, type Database } from '../database/database.module';
-import { HealthService } from './health.service';
+import { DATABASE, type Database } from '@api/database/database.module';
+import { HealthService } from '@api/health/health.service';
 
 describe('HealthService', () => {
   // The degraded path logs the probe failure on purpose; keep test output clean.

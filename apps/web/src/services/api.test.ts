@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiError, fetchHealth } from './api';
+import { ApiError, fetchHealth } from '@web/services/api';
 
 const healthPayload = {
   status: 'ok',

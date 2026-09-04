@@ -4,7 +4,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
 
-import { validateEnv } from '../config/env.schema';
+import { validateEnv } from '@api/config/env.schema';
 
 /**
  * Standalone migration runner. Production containers run this before the API

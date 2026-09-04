@@ -5,6 +5,10 @@
     "moduleResolution": "Node",
     "outDir": "./dist",
     "rootDir": "./",
+    "baseUrl": ".",
+    "paths": {
+      "@api/*": ["src/*"]
+    },
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "types": ["node", "jest"]

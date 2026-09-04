@@ -1,2 +1,2 @@
-export * from './enums';
-export * from './schemas/health';
+export * from '@shared/enums';
+export * from '@shared/schemas/health';

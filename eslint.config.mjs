@@ -31,6 +31,20 @@ export default tseslint.config(
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+      // Imports use the per-package alias (@api/, @web/, @shared/) rather than
+      // walking up the tree, so a file can move without rewriting its imports.
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../*', './*'],
+              message:
+                'Use the package alias instead of a relative path: @api/… in apps/api, @web/… in apps/web, @shared/… in packages/shared.',
+            },
+          ],
+        },
+      ],
       // Money is never a float and IDs are strings — but where numbers do appear,
       // keep implicit coercion out of the codebase.
       eqeqeq: ['error', 'smart'],
@@ -47,6 +61,14 @@ export default tseslint.config(
       '@typescript-eslint/consistent-type-imports': 'off',
       // Nest modules are legitimately empty classes.
       '@typescript-eslint/no-extraneous-class': 'off',
+    },
+  },
+
+  {
+    // Config files at a package root legitimately reference sibling paths.
+    files: ['**/*.config.{ts,mts,mjs,js}', 'eslint.config.mjs'],
+    rules: {
+      'no-restricted-imports': 'off',
     },
   },
 

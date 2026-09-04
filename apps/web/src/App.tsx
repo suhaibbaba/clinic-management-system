@@ -1,8 +1,8 @@
 import { useEffect, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { isRtl } from './i18n';
-import { HealthPage } from './pages/HealthPage';
+import { isRtl } from '@web/i18n';
+import { HealthPage } from '@web/pages/HealthPage';
 
 export function App(): JSX.Element {
   const { i18n } = useTranslation();

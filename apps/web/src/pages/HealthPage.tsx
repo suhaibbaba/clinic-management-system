@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { fetchHealth } from '../services/api';
+import { fetchHealth } from '@web/services/api';
 
 /**
  * The only page in the skeleton: it proves the full wiring — React → TanStack

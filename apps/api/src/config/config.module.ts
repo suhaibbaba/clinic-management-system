@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { validateEnv } from './env.schema';
+import { validateEnv } from '@api/config/env.schema';
 
 /**
  * Global config module. Inject `ConfigService<Env, true>` and read values with

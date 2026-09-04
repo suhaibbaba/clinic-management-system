@@ -98,7 +98,7 @@ Docker is the supported path, but the workspace runs natively too (Node 22 + pnp
 ```bash
 pnpm install
 pnpm build                                  # builds packages/shared first
-pnpm --filter @clinic/api start:dev         # needs a reachable DATABASE_URL
+pnpm --filter @clinic/api dev               # needs a reachable DATABASE_URL
 pnpm --filter @clinic/web dev
 ```
 
@@ -118,6 +118,12 @@ CI runs exactly these on every pull request, and additionally builds both Docker
 
 ## Conventions
 
+- **Imports use a per-package alias, never a relative path.** `@api/…` in `apps/api`,
+  `@web/…` in `apps/web`, `@shared/…` in `packages/shared`, and `@clinic/shared` for the
+  shared package itself. ESLint fails the build on a relative import, so a file can move
+  without rewriting the imports around it. The aliases are compiled away: `tsc-alias`
+  rewrites the emitted JavaScript and declarations to relative paths, so nothing resolves
+  aliases at runtime and the production image needs no loader or extra dependency.
 - **Commits follow [Conventional Commits](https://www.conventionalcommits.org/)**, scoped by
   domain module: `feat(billing): add payment ledger`, `fix(api): scope patients by clinic`,
   `chore(deps): bump drizzle-orm`. Code, comments, commit messages and API contracts are in

@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import type { HealthResponse } from '@clinic/shared';
 
-import { HealthService } from './health.service';
+import { HealthService } from '@api/health/health.service';
 
 /**
  * Thin controller (CLAUDE.md) — all logic lives in the service.

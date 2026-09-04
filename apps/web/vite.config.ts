@@ -5,6 +5,8 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 const sharedSrc = fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url));
+const appSrc = fileURLToPath(new URL('./src', import.meta.url));
+const sharedSrcDir = fileURLToPath(new URL('../../packages/shared/src', import.meta.url));
 
 /** Inotify does not reliably cross a Docker bind mount; poll when asked to. */
 const usePolling = process.env['CHOKIDAR_USEPOLLING'] === 'true';
@@ -12,9 +14,16 @@ const usePolling = process.env['CHOKIDAR_USEPOLLING'] === 'true';
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    // Resolve the workspace package to its TypeScript source so that editing
-    // packages/shared hot-reloads the app without a separate build step.
-    alias: { '@clinic/shared': sharedSrc },
+    alias: {
+      // Mirrors the `paths` mappings in tsconfig.json.
+      '@web': appSrc,
+      // The shared package is compiled from source here, so its own alias has
+      // to resolve in this context too.
+      '@shared': sharedSrcDir,
+      // Resolve the workspace package to its TypeScript source so that editing
+      // packages/shared hot-reloads the app without a separate build step.
+      '@clinic/shared': sharedSrc,
+    },
   },
   server: {
     host: true,

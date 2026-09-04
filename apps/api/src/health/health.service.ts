@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { healthResponseSchema, type HealthResponse } from '@clinic/shared';
 import { sql } from 'drizzle-orm';
 
-import type { Env } from '../config/env.schema';
-import { DATABASE, type Database } from '../database/database.module';
+import type { Env } from '@api/config/env.schema';
+import { DATABASE, type Database } from '@api/database/database.module';
 
 @Injectable()
 export class HealthService {
