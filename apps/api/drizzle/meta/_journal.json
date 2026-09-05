@@ -8,6 +8,13 @@
       "when": 1788585918776,
       "tag": "0000_core_module",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788597179885,
+      "tag": "0001_patients_module",
+      "breakpoints": true
     }
   ]
 }

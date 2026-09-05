@@ -42,6 +42,43 @@ services:
       start_period: 10s
     networks: [clinic]
 
+  # S3-compatible object storage for X-rays and documents. Production uses
+  # Cloudflare R2; this is the same API locally, so nothing in the dev stack
+  # needs real R2 credentials. `createbuckets` makes the bucket and exits.
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY_ID:-clinic_dev_access_key}
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_ACCESS_KEY:-clinic_dev_secret_key}
+    ports:
+      - "${STORAGE_PORT:-9000}:9000"
+      - "${STORAGE_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks: [clinic]
+
+  createbuckets:
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint:
+      - sh
+      - -c
+      - |
+        mc alias set local http://minio:9000 "$${STORAGE_ACCESS_KEY_ID}" "$${STORAGE_SECRET_ACCESS_KEY}"
+        mc mb --ignore-existing "local/$${STORAGE_BUCKET}"
+    env_file: .env
+    networks: [clinic]
+
   api:
     <<: *dev-image
     command: ["dev-api.sh"]
@@ -52,6 +89,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "node", "/usr/local/bin/api-healthcheck.js"]
       interval: 15s
@@ -74,6 +113,7 @@ services:
 
 volumes:
   postgres-data:
+  minio-data:
   root-node-modules:
   api-node-modules:
   web-node-modules:

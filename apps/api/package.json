@@ -23,6 +23,8 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1127.0",
+    "@aws-sdk/s3-request-presigner": "^3.1127.0",
     "@clinic/shared": "workspace:*",
     "@fastify/cookie": "^10.0.1",
     "@nestjs/common": "^11.1.6",

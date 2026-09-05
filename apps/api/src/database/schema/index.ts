@@ -10,3 +10,4 @@
  *  - balances and stock quantities are computed from append-only ledger tables
  */
 export * from '@api/database/schema/core';
+export * from '@api/database/schema/patients';

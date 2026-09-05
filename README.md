@@ -19,13 +19,19 @@ production — runs in containers; Node and pnpm are never installed on the host
 cp .env.example .env && docker compose up
 ```
 
-That is the whole setup. It starts PostgreSQL, the API and the web app:
+That is the whole setup. It starts PostgreSQL, MinIO, the API and the web app:
 
-| Service    | URL                                        |
-| ---------- | ------------------------------------------ |
-| Web app    | http://localhost:5173                      |
-| API        | http://localhost:3000 (health: `/health`)  |
-| PostgreSQL | `localhost:5432` (credentials from `.env`) |
+| Service       | URL                                        |
+| ------------- | ------------------------------------------ |
+| Web app       | http://localhost:5173                      |
+| API           | http://localhost:3000 (health: `/health`)  |
+| PostgreSQL    | `localhost:5432` (credentials from `.env`) |
+| MinIO (S3)    | `localhost:9000` (credentials from `.env`) |
+| MinIO console | http://localhost:9001                      |
+
+MinIO stands in for Cloudflare R2, so X-rays and documents work locally with no R2
+account: the bucket is created on first boot and the API talks to it through the same
+presigned-URL flow it uses in production. Point `STORAGE_*` at R2 to deploy.
 
 The web app's landing page calls the API's `/health` endpoint through the `/api` proxy and
 renders the result in Arabic — if it shows the database as connected, the whole stack is wired up.
@@ -56,9 +62,10 @@ docker compose up
 docker compose exec api pnpm seed
 ```
 
-Creates one clinic, the dental specialty and one account per role, then prints the
-credentials. It is idempotent, so re-running it is safe. The accounts and the password
-are documented in `.env.example`.
+Creates one clinic, the dental specialty, one account per role, a dental procedure
+catalog and ten patients with medical histories, visits, procedures on FDI teeth and a
+treatment plan — then prints the credentials. It is idempotent, so re-running it is safe.
+The accounts and the password are documented in `.env.example`.
 
 Sign in with either the phone or the email:
 
@@ -107,6 +114,61 @@ scoped to the caller's clinic, taken from the token — no endpoint accepts a `c
 | `GET`    | `/audit-log`            | admin                                 |
 
 The audit log has no write endpoint by design — it is immutable.
+
+### Patients
+
+Every clinical endpoint is admin + doctor unless the table says otherwise. A receptionist
+and a technician receive `PatientPublicView`; a receptionist never receives attachment
+data of any kind (ROLES.md field rules).
+
+| Method   | Path                                              | Roles                                |
+| -------- | ------------------------------------------------- | ------------------------------------ |
+| `GET`    | `/patients`                                       | any (search: name, phone, file no.)  |
+| `GET`    | `/patients/:id`                                   | any (view chosen by role)            |
+| `POST`   | `/patients`                                       | admin, doctor, receptionist          |
+| `PATCH`  | `/patients/:id`                                   | admin, doctor, receptionist          |
+| `DELETE` | `/patients/:id`                                   | admin (soft delete)                  |
+| `GET`    | `/patients/:patientId/medical-history`            | admin, doctor                        |
+| `PATCH`  | `/patients/:patientId/medical-history`            | admin, doctor                        |
+| `GET`    | `/patients/:patientId/allergy-flags`              | admin, doctor, technician            |
+| `GET`    | `/patients/:patientId/teeth/:fdi`                 | admin, doctor                        |
+| `GET`    | `/patients/:patientId/timeline`                   | admin, doctor, receptionist          |
+| `GET`    | `/patients/:patientId/attachments`                | admin, doctor                        |
+| `POST`   | `/patients/:patientId/attachments/presign-upload` | admin, doctor                        |
+| `POST`   | `/patients/:patientId/attachments/confirm`        | admin, doctor                        |
+| `GET`    | `/attachments/:id`                                | admin, doctor (signed URL)           |
+| `DELETE` | `/attachments/:id`                                | admin (soft delete)                  |
+| `GET`    | `/visits`, `/visits/:id`                          | admin, doctor                        |
+| `POST`   | `/visits`                                         | admin, doctor                        |
+| `PATCH`  | `/visits/:id`                                     | admin, doctor                        |
+| `DELETE` | `/visits/:id`                                     | admin (soft delete)                  |
+| `GET`    | `/performed-procedures`                           | admin, doctor, technician (lab-only) |
+| `GET`    | `/performed-procedures/:id`                       | admin, doctor                        |
+| `POST`   | `/performed-procedures`                           | admin, doctor                        |
+| `PATCH`  | `/performed-procedures/:id`                       | admin, doctor                        |
+| `DELETE` | `/performed-procedures/:id`                       | admin (soft delete)                  |
+| `GET`    | `/treatment-plans`, `/treatment-plans/:id`        | admin, doctor                        |
+| `POST`   | `/treatment-plans`                                | admin, doctor                        |
+| `PATCH`  | `/treatment-plans/:id`                            | admin, doctor                        |
+| `DELETE` | `/treatment-plans/:id`                            | admin (soft delete)                  |
+| `POST`   | `/treatment-plans/:id/items`                      | admin, doctor                        |
+| `PATCH`  | `/plan-items/:id`                                 | admin, doctor                        |
+| `DELETE` | `/plan-items/:id`                                 | admin (soft delete)                  |
+| `POST`   | `/plan-items/:id/convert`                         | admin, doctor                        |
+| `GET`    | `/prescriptions`, `/prescriptions/:id`            | admin, doctor                        |
+| `POST`   | `/prescriptions`                                  | admin, doctor                        |
+| `PATCH`  | `/prescriptions/:id`                              | admin, doctor                        |
+| `DELETE` | `/prescriptions/:id`                              | admin (soft delete)                  |
+| `GET`    | `/procedure-catalog`, `/procedure-catalog/:id`    | any (receptionist: names + prices)   |
+| `POST`   | `/procedure-catalog`                              | admin                                |
+| `PATCH`  | `/procedure-catalog/:id`                          | admin                                |
+| `DELETE` | `/procedure-catalog/:id`                          | admin (soft delete)                  |
+
+Uploads are two steps so bytes never pass through the API: `presign-upload` returns a
+short-lived PUT URL under a key the API builds, the client uploads straight to storage,
+then `confirm` records the metadata — reading size and content type back from the bucket
+rather than trusting the request. Reads return a signed GET that expires with
+`STORAGE_DOWNLOAD_URL_TTL_SECONDS`; the object key never leaves the API.
 
 ## Web app
 

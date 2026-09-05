@@ -9,8 +9,14 @@ export const AUDIT_KEY = 'audit';
  *               `id` of the response body, which is how creates are covered
  *  - `clinic`   the caller's own clinic, for singleton routes such as
  *               `PATCH /clinic` that carry no id at all
+ *  - `patient`  the `:patientId` route parameter, for rows that are a
+ *               singleton per patient such as the medical history
+ *  - `response` the `id` of the response body only, for routes whose `:id`
+ *               names a different entity than the one being written — e.g.
+ *               `POST /plan-items/:id/convert`, which creates a performed
+ *               procedure
  */
-export type AuditEntityIdSource = 'route' | 'clinic';
+export type AuditEntityIdSource = 'route' | 'clinic' | 'patient' | 'response';
 
 export interface AuditMetadata {
   /** Table name of the affected row, e.g. `users`. */

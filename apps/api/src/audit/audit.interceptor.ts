@@ -52,8 +52,7 @@ export class AuditInterceptor implements NestInterceptor {
     }
 
     const loader = this.registry.get(metadata.entity);
-    const knownEntityId =
-      metadata.entityIdSource === 'clinic' ? actor.clinicId : request.params?.['id'];
+    const knownEntityId = resolveEntityId(metadata, actor.clinicId, request.params);
 
     // Snapshot before the handler runs: for an update or a soft delete this is
     // the only moment the previous state is still readable.
@@ -85,6 +84,28 @@ export class AuditInterceptor implements NestInterceptor {
         ),
       ),
     );
+  }
+}
+
+/**
+ * The id known before the handler runs. `response` deliberately yields nothing,
+ * so the id is taken from the result — such a route always creates a row, which
+ * has no previous state to snapshot anyway.
+ */
+function resolveEntityId(
+  metadata: AuditMetadata,
+  clinicId: string,
+  params: Record<string, string> | undefined,
+): string | undefined {
+  switch (metadata.entityIdSource) {
+    case 'clinic':
+      return clinicId;
+    case 'patient':
+      return params?.['patientId'];
+    case 'response':
+      return undefined;
+    default:
+      return params?.['id'];
   }
 }
 
