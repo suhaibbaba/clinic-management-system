@@ -6,13 +6,14 @@ import {
   Badge,
   Button,
   EmptyState,
+  Icon,
   Input,
   PageHeader,
   Select,
   Switch,
   Table,
-  useToast,
   type Column,
+  useToast,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { useUpdateUser, useUsers } from '@web/features/users/queries';
@@ -87,6 +88,7 @@ export function UsersPage(): JSX.Element {
         render: (row) => (
           <div className="flex items-center gap-2">
             <Button
+              icon={<Icon name="edit" />}
               size="sm"
               variant="secondary"
               onClick={() => {
@@ -96,7 +98,12 @@ export function UsersPage(): JSX.Element {
             >
               {t('common.edit')}
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setResetUser(row)}>
+            <Button
+              icon={<Icon name="key" />}
+              size="sm"
+              variant="ghost"
+              onClick={() => setResetUser(row)}
+            >
               {t('users.resetPassword')}
             </Button>
           </div>
@@ -115,6 +122,7 @@ export function UsersPage(): JSX.Element {
         subtitle="users.subtitle"
         actions={
           <Button
+            icon={<Icon name="user-plus" />}
             onClick={() => {
               setFormUser(null);
               setFormOpen(true);
@@ -161,6 +169,7 @@ export function UsersPage(): JSX.Element {
             hint="users.emptyHint"
             action={
               <Button
+                icon={<Icon name="user-plus" />}
                 onClick={() => {
                   setFormUser(null);
                   setFormOpen(true);

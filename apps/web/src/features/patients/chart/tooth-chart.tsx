@@ -239,7 +239,13 @@ function Tooth({
             })
       }
       aria-current={selected ? 'true' : undefined}
-      className="cursor-pointer outline-none [&:focus-visible_.tooth-ring]:opacity-100"
+      className={cn(
+        'cursor-pointer outline-none transition-opacity duration-150',
+        '[&:focus-visible_.tooth-ring]:opacity-100',
+        // The hover ring is the same ring the selection uses, at half
+        // strength: a tooth is a button, and nothing else on the chart says so.
+        '[&:hover_.tooth-ring]:opacity-60',
+      )}
       onClick={() => onSelect(geometry.tooth)}
       onKeyDown={(event) => onKeyDown(event, geometry)}
       onMouseEnter={() => onHoverChange(geometry.tooth)}
@@ -320,7 +326,7 @@ function Tooltip({
       dir="rtl"
       // Physical centring on purpose — `left` and `translate-x` are unaffected
       // by direction, so the bubble sits on the tooth either way.
-      className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[130%] whitespace-nowrap rounded-md bg-ink px-2 py-1 text-label text-ink-inverse shadow-lg"
+      className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[130%] whitespace-nowrap rounded-control bg-ink px-2.5 py-1 text-label text-ink-inverse shadow-float"
       style={{ left, top }}
     >
       <span className="font-semibold" dir="ltr">

@@ -283,9 +283,12 @@ boundary, and every screen assumes it can be refused.
 plus a shared `ScheduleEditor`. They are RTL-correct by construction: logical properties
 (`ms-*`, `text-start`, `border-e`) rather than left/right, so nothing needs an RTL override.
 
-Icons are drawn in `icon.tsx` rather than installed — one 24px grid, one stroke width, and
-only the two dozen glyphs the design actually uses, instead of a package that ships hundreds
-to render a dozen.
+Icons come from lucide, behind a wrapper in `icon.tsx` that fixes the size (18px, or 20px for
+a lone icon) and the stroke (1.75). The wrapper is the point: lucide takes both per call site,
+which is exactly how a set drifts into one screen at 16/2 and the next at 20/1.5. Names go
+through an `IconName` union rather than importing lucide directly, so the vocabulary is a list
+you can read and swapping the set again is one file. The one hand-drawn glyph is the tooth,
+which lucide does not have.
 
 ### Colour
 
@@ -366,6 +369,18 @@ sizes declared in `theme.css`, and tailwind-merge cannot know that — it reads 
 as colours and silently drops whichever colour class came first. `lib/cn.ts`
 declares the scale to fix it and `lib/cn.test.ts` keeps it fixed. **A new `--text-*`
 token has to be added in both places.**
+
+### Language
+
+Arabic is the default. The account menu in the header switches to English, which changes the
+strings, writes the choice to `localStorage`, and flips `dir`/`lang` on `<html>` — on the
+document element rather than a React wrapper, because dialogs, drawers and menus portal to
+`document.body` and would otherwise open left-to-right inside an Arabic app.
+
+The direction is applied **before** the language change, not after: changing the language is
+what re-renders the tree, and direction-relative icons read `dir` as they render. The other
+order repaints the whole app with the previous direction and leaves every "forward" chevron
+pointing backwards. `i18n/language.test.ts` guards that ordering.
 
 ### Storybook
 

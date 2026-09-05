@@ -93,7 +93,7 @@ export function TreatmentPlansTab({
   }
 
   if (plans.isError) {
-    return <EmptyState title="errors.generic" hint="treatmentPlans.loadFailed" />;
+    return <EmptyState icon="alert" title="errors.generic" hint="treatmentPlans.loadFailed" />;
   }
 
   const ordered = [...(plans.data ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -188,11 +188,19 @@ export function TreatmentPlansTab({
         </div>
 
         {ordered.length === 0 && (
-          <EmptyState title="treatmentPlans.empty" hint="treatmentPlans.emptyHint" />
+          <EmptyState
+            icon="clipboard"
+            title="treatmentPlans.empty"
+            hint="treatmentPlans.emptyHint"
+          />
         )}
 
         {ordered.length > 0 && visible.length === 0 && (
-          <EmptyState title="treatmentPlans.noneInFilter" hint="treatmentPlans.noneInFilterHint" />
+          <EmptyState
+            icon="search"
+            title="treatmentPlans.noneInFilter"
+            hint="treatmentPlans.noneInFilterHint"
+          />
         )}
 
         {visible.map((plan) => {
@@ -277,6 +285,7 @@ export function TreatmentPlansTab({
                         {item.status === TREATMENT_PLAN_ITEM_STATUS.PLANNED && (
                           <>
                             <Button
+                              icon={<Icon name="check" />}
                               variant="secondary"
                               size="sm"
                               disabled={convertItem.isPending}
@@ -285,6 +294,7 @@ export function TreatmentPlansTab({
                               {t('treatmentPlans.convert')}
                             </Button>
                             <Button
+                              icon={<Icon name="x" />}
                               variant="ghost"
                               size="sm"
                               onClick={() => void handleCancelItem(item)}
@@ -321,6 +331,7 @@ export function TreatmentPlansTab({
                       />
                     </div>
                     <Button
+                      icon={<Icon name="check" />}
                       variant="secondary"
                       size="sm"
                       disabled={addItem.isPending || !newItemProcedure}
@@ -328,12 +339,22 @@ export function TreatmentPlansTab({
                     >
                       {t('common.save')}
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setAddingTo(null)}>
+                    <Button
+                      icon={<Icon name="x" />}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setAddingTo(null)}
+                    >
                       {t('common.cancel')}
                     </Button>
                   </div>
                 ) : (
-                  <Button variant="secondary" size="sm" onClick={() => setAddingTo(plan.id)}>
+                  <Button
+                    icon={<Icon name="plus" />}
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setAddingTo(plan.id)}
+                  >
                     {t('treatmentPlans.addItem')}
                   </Button>
                 )}

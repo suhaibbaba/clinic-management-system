@@ -9,7 +9,7 @@ import {
 import { useRef, useState, type ChangeEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, EmptyState, Input, Select, useToast } from '@web/components/ui';
+import { Badge, Button, EmptyState, Icon, Input, Select, useToast } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { canDelete, canManageAttachments } from '@web/features/patients/permissions';
 import {
@@ -96,10 +96,16 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
 
       {attachments.isPending && <p className="text-value text-ink-muted">{t('common.loading')}</p>}
 
-      {attachments.isError && <EmptyState title="errors.generic" hint="imaging.loadFailed" />}
+      {attachments.isError && (
+        <EmptyState icon="alert" title="errors.generic" hint="imaging.loadFailed" />
+      )}
 
       {attachments.data?.length === 0 && (
-        <EmptyState title="imaging.empty" hint={canUpload ? 'imaging.emptyHint' : undefined} />
+        <EmptyState
+          icon="image"
+          title="imaging.empty"
+          hint={canUpload ? 'imaging.emptyHint' : undefined}
+        />
       )}
 
       {attachments.data && attachments.data.length > 0 && (
@@ -173,6 +179,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
           {t('imaging.type')}
         </label>
         <Select
+          placeholder={t('common.placeholders.selectType')}
           id="upload-type"
           value={type}
           onChange={(event) => setType(event.target.value as AttachmentType)}
@@ -205,7 +212,11 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
         onChange={(event) => void handleFile(event)}
       />
 
-      <Button disabled={upload.isPending} onClick={() => inputRef.current?.click()}>
+      <Button
+        icon={<Icon name="upload" />}
+        isLoading={upload.isPending}
+        onClick={() => inputRef.current?.click()}
+      >
         {t(upload.isPending ? 'imaging.uploading' : 'imaging.upload')}
       </Button>
 
@@ -289,6 +300,7 @@ function ImageCard({
 
         {canRemove && (
           <Button
+            icon={<Icon name="trash" />}
             variant="ghost"
             size="sm"
             disabled={remove.isPending}

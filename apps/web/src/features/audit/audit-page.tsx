@@ -7,6 +7,7 @@ import {
   Button,
   Card,
   EmptyState,
+  Icon,
   Input,
   Modal,
   PageHeader,
@@ -86,7 +87,12 @@ export function AuditPage(): JSX.Element {
         key: 'changes',
         header: 'audit.changes',
         render: (row) => (
-          <Button size="sm" variant="ghost" onClick={() => setSelected(row)}>
+          <Button
+            icon={<Icon name="file" />}
+            size="sm"
+            variant="ghost"
+            onClick={() => setSelected(row)}
+          >
             {t('audit.viewChanges')}
           </Button>
         ),
@@ -150,6 +156,7 @@ export function AuditPage(): JSX.Element {
         <label className="flex flex-col gap-1 text-label text-ink-muted">
           {t('audit.fromDate')}
           <Input
+            adornment="calendar"
             type="date"
             className="w-44"
             value={from}
@@ -163,6 +170,7 @@ export function AuditPage(): JSX.Element {
         <label className="flex flex-col gap-1 text-label text-ink-muted">
           {t('audit.toDate')}
           <Input
+            adornment="calendar"
             type="date"
             className="w-44"
             value={to}
@@ -179,7 +187,7 @@ export function AuditPage(): JSX.Element {
         rows={data?.items ?? []}
         rowKey={(row) => row.id}
         isLoading={query.isPending}
-        empty={<EmptyState title="audit.empty" hint="audit.emptyHint" />}
+        empty={<EmptyState icon="clipboard" title="audit.empty" hint="audit.emptyHint" />}
         {...(data && {
           pagination: {
             page: data.page,

@@ -141,7 +141,9 @@ export function OverduePage(): JSX.Element {
         rows={overdue.data?.items ?? []}
         rowKey={(row) => row.patientId}
         isLoading={overdue.isPending}
-        empty={<EmptyState title="billing.overdueEmpty" hint="billing.overdueEmptyHint" />}
+        empty={
+          <EmptyState icon="money" title="billing.overdueEmpty" hint="billing.overdueEmptyHint" />
+        }
         pagination={{
           page,
           totalPages: overdue.data?.totalPages ?? 0,

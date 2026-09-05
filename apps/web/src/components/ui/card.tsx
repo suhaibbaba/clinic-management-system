@@ -14,6 +14,12 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   readonly tone?: CardTone | undefined;
   /** Drops the built-in padding for cards that manage their own (tables). */
   readonly flush?: boolean | undefined;
+  /**
+   * Marks the card as something you click. It then lifts to `shadow-float` on
+   * hover and takes a pointer — an affordance a plain card must not have, or
+   * every card on the page looks clickable and none of them reads as such.
+   */
+  readonly interactive?: boolean | undefined;
   readonly children: ReactNode;
 }
 
@@ -32,6 +38,7 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 export function Card({
   tone = 'default',
   flush = false,
+  interactive = false,
   className,
   children,
   ...props
@@ -39,8 +46,14 @@ export function Card({
   return (
     <div
       className={cn(
-        'rounded-card bg-surface shadow-card',
+        // Border *and* shadow: on an off-white ground the shadow alone leaves
+        // a card's edge ambiguous where it falls across something the same
+        // lightness as itself.
+        'rounded-card border border-line-card bg-surface shadow-card',
+        'transition-[box-shadow,background-color,border-color] duration-150',
         !flush && 'p-5',
+        interactive &&
+          'cursor-pointer hover:border-primary-200 hover:shadow-float focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
         tone === 'selected' &&
           'bg-selected outline-[1.5px] -outline-offset-[1.5px] outline-selected-line',
         className,

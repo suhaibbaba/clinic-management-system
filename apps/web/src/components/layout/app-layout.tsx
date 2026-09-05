@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 import { Logo } from '@web/components/brand/logo';
-import { Avatar, Button, Icon, SearchField } from '@web/components/ui';
+import { UserMenu } from '@web/components/layout/user-menu';
+import { Button, Icon, SearchField } from '@web/components/ui';
 import { visibleNavItems } from '@web/app/navigation';
 import { useSession } from '@web/features/auth/session';
 import { cn } from '@web/lib/cn';
@@ -63,7 +64,7 @@ export function AppLayout(): JSX.Element {
       <nav
         aria-label={t('nav.menu')}
         className={cn(
-          'shrink-0 rounded-card bg-surface p-3 shadow-panel md:w-60',
+          'shrink-0 rounded-card border border-line-card bg-surface p-3 shadow-card md:w-60',
           'md:sticky md:top-5 md:h-[calc(100vh-2.5rem)] md:overflow-y-auto',
           mobileOpen ? 'block' : 'hidden md:block',
         )}
@@ -81,10 +82,12 @@ export function AppLayout(): JSX.Element {
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-3 rounded-panel px-3 py-2.5 text-value transition-colors',
+                    'group flex cursor-pointer items-center gap-3 rounded-panel px-3 py-2.5 text-value',
+                    'transition-[background-color,color,box-shadow] duration-150',
+                    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
                     isActive
                       ? 'bg-surface font-semibold text-ink shadow-pill'
-                      : 'text-ink-muted hover:bg-sunken hover:text-ink',
+                      : 'text-ink-muted hover:bg-inset hover:text-ink',
                   )
                 }
               >
@@ -97,11 +100,14 @@ export function AppLayout(): JSX.Element {
                     */}
                     <span
                       className={cn(
-                        'inline-flex size-8 shrink-0 items-center justify-center rounded-panel transition-colors',
-                        isActive ? 'bg-primary-600 text-ink-inverse' : 'bg-sunken text-ink-muted',
+                        'inline-flex size-8 shrink-0 items-center justify-center rounded-panel',
+                        'transition-colors duration-150',
+                        isActive
+                          ? 'bg-primary-600 text-ink-inverse'
+                          : 'bg-sunken text-ink-muted group-hover:text-ink',
                       )}
                     >
-                      <Icon name={item.icon} className="size-[18px]" />
+                      <Icon name={item.icon} />
                     </span>
                     {t(item.label)}
                   </>
@@ -113,13 +119,14 @@ export function AppLayout(): JSX.Element {
       </nav>
 
       <div className="flex min-w-0 flex-1 flex-col gap-4 md:gap-5">
-        <header className="flex items-center gap-3 rounded-card bg-surface p-3 shadow-panel">
+        <header className="flex items-center gap-3 rounded-card border border-line-card bg-surface p-3 shadow-card">
           <Button
             variant="ghost"
             size="sm"
             className="md:hidden"
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((open) => !open)}
+            icon={<Icon name="menu" />}
           >
             {t('nav.menu')}
           </Button>
@@ -143,30 +150,7 @@ export function AppLayout(): JSX.Element {
 
           <div className="ms-auto flex items-center gap-2">
             <NotificationBell />
-
-            {user && (
-              <div className="flex items-center gap-2.5 rounded-pill bg-surface py-1 ps-1 pe-3 shadow-pill">
-                <Avatar name={user.name} />
-                <span className="hidden min-w-0 flex-col leading-tight sm:flex">
-                  <span className="truncate text-label font-semibold text-ink">{user.name}</span>
-                  <span className="truncate text-label text-ink-subtle">
-                    {t(`roles.${user.role}`)}
-                  </span>
-                </span>
-                <Icon name="chevron-down" className="size-4 text-ink-subtle" />
-              </div>
-            )}
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => void logout()}
-              icon={<Icon name="logout" className="size-[18px]" />}
-              aria-label={t('nav.logout')}
-              title={t('nav.logout')}
-            >
-              <span className="hidden lg:inline">{t('nav.logout')}</span>
-            </Button>
+            {user && <UserMenu user={user} onLogout={() => void logout()} />}
           </div>
         </header>
 
@@ -195,11 +179,13 @@ function NotificationBell(): JSX.Element {
       aria-label={t('nav.notificationsEmpty')}
       title={t('nav.notificationsEmpty')}
       className={cn(
-        'relative inline-flex size-10 items-center justify-center rounded-pill',
-        'text-ink-subtle transition-colors hover:bg-sunken disabled:cursor-not-allowed',
+        'relative inline-flex size-10 cursor-pointer items-center justify-center rounded-pill',
+        'text-ink-subtle transition-colors duration-150 hover:bg-inset hover:text-ink',
+        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
+        'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent',
       )}
     >
-      <Icon name="bell" />
+      <Icon name="bell" size="md" />
     </button>
   );
 }

@@ -11,7 +11,7 @@ import { useEffect, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Input, Select, useToast } from '@web/components/ui';
+import { Button, FormField, Icon, Input, Select, useToast } from '@web/components/ui';
 import { useCreateUser, useUpdateUser } from '@web/features/users/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 import { Modal } from '@web/components/ui/modal';
@@ -92,10 +92,15 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
       title={isEdit ? 'users.edit' : 'users.create'}
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          <Button form="user-form" type="submit" isLoading={isSubmitting}>
+          <Button
+            icon={<Icon name="check" />}
+            form="user-form"
+            type="submit"
+            isLoading={isSubmitting}
+          >
             {t('common.save')}
           </Button>
         </>
@@ -103,11 +108,19 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
     >
       <form id="user-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
         <FormField label="users.name" htmlFor="user-name" error={errors.name}>
-          <Input id="user-name" hasError={errors.name !== undefined} {...register('name')} />
+          <Input
+            placeholder={t('common.placeholders.fullName')}
+            adornment="user"
+            id="user-name"
+            hasError={errors.name !== undefined}
+            {...register('name')}
+          />
         </FormField>
 
         <FormField label="users.phone" htmlFor="user-phone" error={errors.phone}>
           <Input
+            placeholder={t('common.placeholders.phone')}
+            adornment="phone"
             id="user-phone"
             inputMode="tel"
             hasError={errors.phone !== undefined}
@@ -123,6 +136,8 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
           errorKey={errors.email ? 'errors.validation.invalidEmail' : undefined}
         >
           <Input
+            placeholder={t('common.placeholders.email')}
+            adornment="mail"
             id="user-email"
             type="email"
             hasError={errors.email !== undefined}
@@ -150,6 +165,7 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
             errorKey={errors.password ? 'errors.validation.passwordMin' : undefined}
           >
             <Input
+              placeholder={t('common.placeholders.password')}
               id="user-password"
               type="password"
               autoComplete="new-password"

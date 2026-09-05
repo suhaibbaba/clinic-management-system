@@ -57,7 +57,9 @@ export function StatCard({
   className,
 }: StatCardProps): JSX.Element {
   return (
-    <div className={cn('rounded-card bg-surface p-5 shadow-card', className)}>
+    <div
+      className={cn('rounded-card border border-line-card bg-surface p-5 shadow-card', className)}
+    >
       <div className="flex items-center gap-2.5">
         <span
           className={cn(

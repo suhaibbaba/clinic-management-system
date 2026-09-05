@@ -56,7 +56,7 @@ export function ChartTab({ patientId }: { patientId: string }): JSX.Element {
   }
 
   if (procedures.isError) {
-    return <EmptyState title="errors.generic" hint="chart.loadFailed" />;
+    return <EmptyState icon="alert" title="errors.generic" hint="chart.loadFailed" />;
   }
 
   const role = user?.role;
@@ -98,7 +98,7 @@ export function ChartTab({ patientId }: { patientId: string }): JSX.Element {
 
       {/* A new patient still gets a chart — every tooth healthy — with a line
           saying so, rather than an empty box in place of the thing to click. */}
-      {!hasHistory && <EmptyState title="chart.empty" hint="chart.emptyHint" />}
+      {!hasHistory && <EmptyState icon="tooth" title="chart.empty" hint="chart.emptyHint" />}
 
       <div className="flex flex-col gap-3">
         <ToothChart

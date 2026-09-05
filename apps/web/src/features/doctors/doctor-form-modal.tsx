@@ -2,7 +2,7 @@ import { USER_ROLE, type Doctor, type WeeklySchedule } from '@clinic/shared';
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Input, Modal, Select, useToast } from '@web/components/ui';
+import { Button, FormField, Icon, Input, Modal, Select, useToast } from '@web/components/ui';
 import { ScheduleEditor } from '@web/components/schedule-editor';
 import { useCreateDoctor, useSpecialties, useUpdateDoctor } from '@web/features/doctors/queries';
 import { useUsers } from '@web/features/users/queries';
@@ -102,10 +102,15 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
       title={isEdit ? 'doctors.edit' : 'doctors.create'}
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          <Button disabled={!canSubmit} isLoading={isSaving} onClick={() => void submit()}>
+          <Button
+            icon={<Icon name="check" />}
+            disabled={!canSubmit}
+            isLoading={isSaving}
+            onClick={() => void submit()}
+          >
             {t('common.save')}
           </Button>
         </>
@@ -136,6 +141,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
 
         <FormField label="doctors.duration" htmlFor="doctor-duration" hint="doctors.durationUnit">
           <Input
+            placeholder={t('common.placeholders.minutes')}
             id="doctor-duration"
             type="number"
             min={5}

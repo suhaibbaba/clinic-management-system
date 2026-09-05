@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes, JSX, ReactNode } from 'react';
 
+import { Icon } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -22,19 +23,17 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
  * such competition, so "save" is unmistakable wherever it appears.
  */
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary:
-    'bg-neutral-900 text-ink-inverse shadow-pill hover:bg-neutral-800 focus-visible:outline-neutral-900',
+  primary: 'bg-neutral-900 text-ink-inverse shadow-pill hover:bg-neutral-800 active:bg-neutral-900',
   secondary:
-    'bg-surface text-ink ring-1 ring-inset ring-line-strong hover:bg-sunken focus-visible:outline-ink-muted',
-  ghost:
-    'bg-transparent text-ink-muted hover:bg-sunken hover:text-ink focus-visible:outline-ink-subtle',
-  danger:
-    'bg-danger-600 text-ink-inverse shadow-pill hover:bg-danger-700 focus-visible:outline-danger-600',
+    'bg-surface text-ink ring-1 ring-inset ring-line-strong hover:bg-inset active:bg-sunken',
+  ghost: 'bg-transparent text-ink-muted hover:bg-inset hover:text-ink active:bg-sunken',
+  danger: 'bg-danger-600 text-ink-inverse shadow-pill hover:bg-danger-700 active:bg-danger-800',
 };
 
 const SIZES: Record<ButtonSize, string> = {
-  sm: 'h-9 px-3.5 text-label gap-1.5',
-  md: 'h-11 px-5 text-value gap-2',
+  // 8px icon gap at both sizes — an icon and its label are one object.
+  sm: 'h-9 px-3.5 text-label gap-2',
+  md: 'h-10 px-5 text-value gap-2',
 };
 
 export function Button({
@@ -52,9 +51,16 @@ export function Button({
     <button
       type={type}
       className={cn(
-        'inline-flex items-center justify-center rounded-control font-medium transition-colors',
-        'focus-visible:outline-2 focus-visible:outline-offset-2',
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex cursor-pointer items-center justify-center rounded-control font-medium',
+        // One duration for every colour, shadow and transform change in the
+        // app; `active:scale-[0.98]` is the press, small enough to feel like
+        // the button gives rather than like the layout moved.
+        'transition-[background-color,box-shadow,transform,color] duration-150 ease-out',
+        'active:scale-[0.98]',
+        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
+        'disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none',
+        // A disabled button must not still look like it responds.
+        'disabled:active:scale-100 disabled:hover:bg-inherit',
         VARIANTS[variant],
         SIZES[size],
         className,
@@ -68,11 +74,7 @@ export function Button({
   );
 }
 
+/** The loading state of a submit button: lucide's spinner, spun. */
 function Spinner(): JSX.Element {
-  return (
-    <span
-      aria-hidden="true"
-      className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-    />
-  );
+  return <Icon name="spinner" className="animate-spin" />;
 }

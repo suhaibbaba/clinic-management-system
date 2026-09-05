@@ -10,6 +10,9 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Icon } from '@web/components/ui/icon';
+import { cn } from '@web/lib/cn';
+
 type ToastTone = 'success' | 'error';
 
 interface ToastMessage {
@@ -78,16 +81,36 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
                 dismiss(message.id);
               }
             }}
-            className={[
-              'rounded-panel px-4 py-3 text-value shadow-pop ring-1',
-              message.tone === 'success'
-                ? 'bg-surface text-ink ring-line'
-                : 'bg-danger-50 text-danger-800 ring-danger-200',
-            ].join(' ')}
+            className={cn(
+              // The accent bar is a border on the start edge, so it mirrors
+              // with the language along with everything else.
+              'flex items-start gap-2.5 overflow-hidden rounded-panel border-s-4 bg-surface',
+              'px-4 py-3 text-value shadow-float ring-1 ring-line-card',
+              message.tone === 'success' ? 'border-s-success-500' : 'border-s-danger-500',
+            )}
           >
-            <ToastPrimitive.Description>
+            <Icon
+              name={message.tone === 'success' ? 'check' : 'error'}
+              className={cn(
+                'mt-0.5',
+                message.tone === 'success' ? 'text-success-600' : 'text-danger-600',
+              )}
+            />
+
+            <ToastPrimitive.Description className="flex-1 text-ink">
               {t(message.messageKey, message.values ?? {})}
             </ToastPrimitive.Description>
+
+            <ToastPrimitive.Close
+              aria-label={t('common.close')}
+              className={cn(
+                'shrink-0 cursor-pointer rounded-control p-1 text-ink-subtle',
+                'transition-colors duration-150 hover:bg-inset hover:text-ink',
+                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
+              )}
+            >
+              <Icon name="x" className="size-4" />
+            </ToastPrimitive.Close>
           </ToastPrimitive.Root>
         ))}
 

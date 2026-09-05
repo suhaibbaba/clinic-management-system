@@ -2,7 +2,7 @@ import type { PerformedProcedure, Visit } from '@clinic/shared';
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, EmptyState, useToast } from '@web/components/ui';
+import { Badge, Button, EmptyState, Icon, useToast } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { useDoctors } from '@web/features/doctors/queries';
 import {
@@ -77,7 +77,7 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
   }
 
   if (visits.isError) {
-    return <EmptyState title="errors.generic" hint="visits.loadFailed" />;
+    return <EmptyState icon="alert" title="errors.generic" hint="visits.loadFailed" />;
   }
 
   const ordered = [...(visits.data ?? [])].sort((a, b) => b.visitDate.localeCompare(a.visitDate));
@@ -107,6 +107,7 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
           {t('visits.count', { count: ordered.length })}
         </h2>
         <Button
+          icon={<Icon name="plus" />}
           size="sm"
           onClick={() => {
             setEditingVisit(null);
@@ -117,7 +118,9 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
         </Button>
       </div>
 
-      {ordered.length === 0 && <EmptyState title="visits.empty" hint="visits.emptyHint" />}
+      {ordered.length === 0 && (
+        <EmptyState icon="calendar" title="visits.empty" hint="visits.emptyHint" />
+      )}
 
       <ol className="flex flex-col gap-4">
         {ordered.map((visit) => {
@@ -137,6 +140,7 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
                 </div>
 
                 <Button
+                  icon={<Icon name="edit" />}
                   variant="ghost"
                   size="sm"
                   onClick={() => {
@@ -163,6 +167,7 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
 
                   {!showingForm && (
                     <Button
+                      icon={<Icon name="plus" />}
                       variant="secondary"
                       size="sm"
                       onClick={() => setProcedureFor({ visitId: visit.id, procedure: null })}
@@ -200,6 +205,7 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
                             {t(`chart.procedureStatus.${procedure.status}`)}
                           </Badge>
                           <Button
+                            icon={<Icon name="edit" />}
                             variant="ghost"
                             size="sm"
                             onClick={() => setProcedureFor({ visitId: visit.id, procedure })}

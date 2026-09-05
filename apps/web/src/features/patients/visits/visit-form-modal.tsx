@@ -3,7 +3,16 @@ import { useEffect, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Input, Modal, Select, useToast } from '@web/components/ui';
+import {
+  Button,
+  FormField,
+  Icon,
+  Input,
+  Modal,
+  Select,
+  Textarea,
+  useToast,
+} from '@web/components/ui';
 import { useSaveVisit } from '@web/features/patients/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -136,10 +145,15 @@ export function VisitFormModal({
       size="lg"
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          <Button type="submit" form="visit-form" disabled={isSubmitting}>
+          <Button
+            icon={<Icon name="check" />}
+            type="submit"
+            form="visit-form"
+            isLoading={isSubmitting}
+          >
             {t(isSubmitting ? 'common.saving' : 'common.save')}
           </Button>
         </>
@@ -155,41 +169,47 @@ export function VisitFormModal({
         </FormField>
 
         <FormField label="visits.date" htmlFor="visit-date" error={errors.visitDate}>
-          <Input id="visit-date" type="datetime-local" dir="ltr" {...register('visitDate')} />
+          <Input
+            adornment="calendar"
+            id="visit-date"
+            type="datetime-local"
+            dir="ltr"
+            {...register('visitDate')}
+          />
         </FormField>
 
         <FormField label="visits.complaint" htmlFor="visit-complaint" error={errors.complaint}>
-          <textarea
+          <Textarea
+            placeholder={t('common.placeholders.complaint')}
             id="visit-complaint"
             rows={2}
-            className="w-full rounded-control border border-line-strong px-3 py-2 text-value text-start focus:outline-2 focus:outline-primary-600"
             {...register('complaint', { setValueAs: (v) => (v === '' ? null : v) })}
           />
         </FormField>
 
         <FormField label="visits.examination" htmlFor="visit-exam" error={errors.examination}>
-          <textarea
+          <Textarea
+            placeholder={t('common.placeholders.examination')}
             id="visit-exam"
             rows={3}
-            className="w-full rounded-control border border-line-strong px-3 py-2 text-value text-start focus:outline-2 focus:outline-primary-600"
             {...register('examination', { setValueAs: (v) => (v === '' ? null : v) })}
           />
         </FormField>
 
         <FormField label="visits.diagnosis" htmlFor="visit-diagnosis" error={errors.diagnosis}>
-          <textarea
+          <Textarea
+            placeholder={t('common.placeholders.diagnosis')}
             id="visit-diagnosis"
             rows={2}
-            className="w-full rounded-control border border-line-strong px-3 py-2 text-value text-start focus:outline-2 focus:outline-primary-600"
             {...register('diagnosis', { setValueAs: (v) => (v === '' ? null : v) })}
           />
         </FormField>
 
         <FormField label="visits.notes" htmlFor="visit-notes" error={errors.notes} optional>
-          <textarea
+          <Textarea
+            placeholder={t('common.placeholders.visitNotes')}
             id="visit-notes"
             rows={2}
-            className="w-full rounded-control border border-line-strong px-3 py-2 text-value text-start focus:outline-2 focus:outline-primary-600"
             {...register('notes', { setValueAs: (v) => (v === '' ? null : v) })}
           />
         </FormField>

@@ -6,6 +6,7 @@ import {
   Badge,
   Button,
   EmptyState,
+  Icon,
   Input,
   PageHeader,
   Table,
@@ -64,6 +65,7 @@ export function DoctorsPage(): JSX.Element {
       render: (row) =>
         isAdmin || row.userId === user?.id ? (
           <Button
+            icon={<Icon name="edit" />}
             size="sm"
             variant="secondary"
             onClick={() => {
@@ -89,6 +91,7 @@ export function DoctorsPage(): JSX.Element {
         actions={
           isAdmin ? (
             <Button
+              icon={<Icon name="user-plus" />}
               onClick={() => {
                 setFormDoctor(null);
                 setFormOpen(true);
@@ -118,7 +121,7 @@ export function DoctorsPage(): JSX.Element {
         rows={data?.items ?? []}
         rowKey={(row) => row.id}
         isLoading={query.isPending}
-        empty={<EmptyState title="doctors.empty" hint="doctors.emptyHint" />}
+        empty={<EmptyState icon="stethoscope" title="doctors.empty" hint="doctors.emptyHint" />}
         {...(data && {
           pagination: {
             page: data.page,

@@ -146,11 +146,13 @@ export function SurfaceSelector({
               aria-pressed={selected}
               onClick={() => toggle(surface)}
               className={cn(
-                'rounded-control border px-2 py-1 text-label font-medium transition-colors',
+                'cursor-pointer rounded-control border px-2.5 py-1 text-label font-medium',
+                'transition-[background-color,border-color,transform] duration-150 active:scale-95',
+                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
                 selected
                   ? 'border-primary-600 bg-primary-600 text-ink-inverse'
-                  : 'border-line-strong bg-surface text-ink hover:bg-canvas',
-                readOnly && 'cursor-default opacity-90 hover:bg-surface',
+                  : 'border-line-strong bg-surface text-ink hover:border-primary-300 hover:bg-inset',
+                readOnly && 'cursor-default opacity-90 hover:bg-surface active:scale-100',
               )}
             >
               {t(`chart.surfaces.${surface}`)}
