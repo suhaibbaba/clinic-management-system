@@ -5,18 +5,22 @@ host-level nginx. This stack therefore ships **no reverse proxy and no TLS**,
 and **nothing it publishes listens on a public interface** — every published
 port binds to `127.0.0.1` and the host nginx reaches it over loopback.
 
-|                  |                                                            |
-| ---------------- | ---------------------------------------------------------- |
-| Web app          | <https://clinic-sandbox.organza-moda.com>                  |
-| API              | <https://clinic-sandbox.organza-moda.com/api>              |
-| S3 (MinIO)       | <https://clinic-sandbox-s3.organza-moda.com>               |
-| Server directory | `/opt/clinic/sandbox`                                      |
-| Compose project  | `clinic-sandbox`                                           |
-| Images           | `ghcr.io/<owner>/clinic-api`, `ghcr.io/<owner>/clinic-web` |
+|                  |                                                                 |
+| ---------------- | --------------------------------------------------------------- |
+| Web app          | <https://clinic-sandbox.organza-moda.com>                       |
+| API              | <https://clinic-sandbox.organza-moda.com/api>                   |
+| S3 (MinIO)       | <https://clinic-sandbox-s3.organza-moda.com>                    |
+| Server directory | `/opt/clinic/sandbox`                                           |
+| Compose project  | `clinic-sandbox`                                                |
+| Images           | built on the server: `clinic-sandbox-api`, `clinic-sandbox-web` |
 
 ```
-push to main ─▶ build & push images to GHCR ─▶ scp compose file ─▶ pull & up -d ─▶ curl /api/health
+push to main ─▶ ssh ─▶ git reset --hard origin/main ─▶ compose build ─▶ up -d ─▶ curl /api/health
 ```
+
+There is no registry in the loop. The VPS holds this repository at
+`/opt/clinic/sandbox` and builds both images in place, so a deploy is a
+fast-forward of that checkout followed by a rebuild.
 
 ## Port map
 
@@ -47,8 +51,7 @@ Repository → Settings → Secrets and variables → Actions.
 | `SANDBOX_SSH_KEY`  | yes      | **Private** key, PEM, whole file including the header and footer lines |
 | `SANDBOX_SSH_PORT` | no       | SSH port; defaults to 22                                               |
 
-No registry secret is needed: the build job authenticates to GHCR with the
-automatic `GITHUB_TOKEN`.
+No registry secret is needed — nothing is pushed or pulled from a registry.
 
 Generate a deploy key for this purpose only, rather than reusing a personal one:
 
@@ -58,31 +61,7 @@ ssh-copy-id -i ~/.ssh/clinic_sandbox.pub <user>@<host>   # public half onto the 
 cat ~/.ssh/clinic_sandbox                                # private half into SANDBOX_SSH_KEY
 ```
 
-## 2. GHCR package visibility (one-time, manual)
-
-The repository is public, but **packages pushed to GHCR start out private**, and
-the `GITHUB_TOKEN` the workflow uses cannot change package visibility — that
-needs an owner-level admin action. Do it once, after the first successful build:
-
-1. <https://github.com/users/suhaibbaba/packages> (or the organisation's
-   Packages tab)
-2. open `clinic-api` → **Package settings** → **Danger Zone** → **Change
-   visibility** → **Public**
-3. repeat for `clinic-web`
-
-Until then the server cannot `docker compose pull`. If the packages are
-deliberately kept private, log the server in once instead — with a PAT that has
-`read:packages` only:
-
-```bash
-echo '<PAT>' | docker login ghcr.io -u <github-username> --password-stdin
-```
-
-Also worth doing once per package: **Package settings → Manage Actions access →
-add this repository with `Write`**, so the workflow keeps push rights if the
-package is ever detached from the repo.
-
-## 3. Server prerequisites
+## 2. Server prerequisites
 
 ### Docker
 
@@ -92,19 +71,38 @@ docker compose version
 id -nG <user> | grep docker   # the deploy user must be in the docker group
 ```
 
-### Directory and environment file
+### The repository, cloned at `/opt/clinic/sandbox`
+
+The images are built on the server, so the server needs the sources. The deploy
+does `git fetch origin main && git reset --hard origin/main` in this directory
+and refuses to run if it is not a git checkout.
 
 ```bash
-sudo mkdir -p /opt/clinic/sandbox
-sudo chown <user>:<user> /opt/clinic/sandbox
+sudo mkdir -p /opt/clinic
+sudo chown <user>:<user> /opt/clinic
+
+git clone https://github.com/suhaibbaba/clinic-management-system.git /opt/clinic/sandbox
+cd /opt/clinic/sandbox
+git checkout main
 ```
 
-Copy [`.env.sandbox.example`](./.env.sandbox.example) from this repository to
-`/opt/clinic/sandbox/.env`, then fill in real values:
+The repository is public, so a read-only HTTPS clone needs no credentials on the
+server. The deploy only ever reads from the remote — it never pushes — and it
+holds no local commits, which is why the reset can be hard.
+
+Build resources are worth a thought on a shared box: the first build compiles
+the whole workspace twice (once per image) and wants roughly 2 GB of free RAM
+and a few GB of disk. Later builds reuse Docker's layer cache and are much
+quicker, but `docker image prune -f` at the end of each deploy is what stops the
+superseded layers accumulating.
+
+### Environment file
 
 ```bash
-$EDITOR /opt/clinic/sandbox/.env
-chmod 600 /opt/clinic/sandbox/.env
+cd /opt/clinic/sandbox
+cp .env.sandbox.example .env
+chmod 600 .env
+$EDITOR .env
 ```
 
 ```bash
@@ -116,6 +114,9 @@ This one file is read twice: as `env_file` for the containers, and as Compose's
 project `.env` for the `${...}` substitutions in the compose file. It is created
 by hand, never by CI, and never committed — the deploy fails with a pointer back
 here if it is missing.
+
+`.env` is gitignored, so it sits inside the checkout without ever being tracked
+and the deploy's `git reset --hard` leaves it alone.
 
 `DATABASE_URL` embeds `POSTGRES_PASSWORD`; change both together or the API will
 not connect.
@@ -217,59 +218,93 @@ Two consequences:
   case. If the host firewall blocks the hairpin, add a `hosts:` mapping on the
   api service pointing the S3 hostname at the host's own address.
 
-## 4. Deploying
+## 3. Deploying
 
 Automatic on every push to `main`, and on demand from **Actions → Deploy sandbox
 → Run workflow**.
 
-By hand on the server:
+By hand on the server — the same three steps the workflow runs:
 
 ```bash
 cd /opt/clinic/sandbox
-docker compose -p clinic-sandbox pull
-docker compose -p clinic-sandbox up -d
+git pull origin main
+
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml build --pull
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml up -d --remove-orphans
+docker image prune -f
 ```
+
+Pass `-f docker-compose.sandbox.yml` to every compose call. Without it Compose
+picks up `docker-compose.yml` — the development stack — which is a different set
+of services on different ports.
+
+`--pull` refreshes the base images, so a rebuild also picks up security updates
+to `node:22-alpine` and `nginx:alpine` instead of sitting on whatever was cached
+the first time. Drop it if you only want to rebuild the application layers.
 
 The API container runs Drizzle migrations to completion before it starts
 listening, so the sandbox never serves traffic against an un-migrated database.
 With `SEED_ON_BOOT=true` in `.env` it also runs the seed, which is idempotent.
 
-### Rolling back
-
-Every build is tagged with its commit SHA as well as `sandbox`. Pin one:
+To rebuild one service only:
 
 ```bash
-cd /opt/clinic/sandbox
-sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=<full-40-char-sha>/' .env
-docker compose -p clinic-sandbox pull
-docker compose -p clinic-sandbox up -d
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml build api
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml up -d api
 ```
 
-Set `IMAGE_TAG=sandbox` again to resume following `main`. Note that migrations
-only ever roll forward — rolling the images back does not roll the schema back.
+### Rolling back
 
-## 5. Logs and status
+Which build is running is decided by which commit is checked out, so a rollback
+is a checkout and a rebuild:
 
 ```bash
 cd /opt/clinic/sandbox
+git fetch origin main
+git checkout <sha>            # detached HEAD is expected and fine here
 
-docker compose -p clinic-sandbox ps
-docker compose -p clinic-sandbox logs -f            # everything
-docker compose -p clinic-sandbox logs -f api        # one service
-docker compose -p clinic-sandbox logs --tail=200 api
-docker compose -p clinic-sandbox logs -f backup     # next scheduled dump
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml build
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml up -d --remove-orphans
+```
+
+`git checkout main` and rebuild to come back. Nothing is pinned in `.env`, so
+the next deploy from Actions resets the checkout to `origin/main` and undoes the
+rollback — hold a rollback by not deploying, or by reverting the offending
+commit on `main` so the two agree.
+
+Migrations only ever roll forward: checking the code out at an older commit does
+not roll the schema back. If the bad deploy migrated the database, restore a
+dump as well (section 5).
+
+## 4. Logs and status
+
+```bash
+cd /opt/clinic/sandbox
+alias dc='docker compose -p clinic-sandbox -f docker-compose.sandbox.yml'
+
+dc ps
+dc logs -f            # everything
+dc logs -f api        # one service
+dc logs --tail=200 api
+dc logs -f backup     # next scheduled dump
+
+# Which commit is deployed.
+git log -1 --oneline
 
 # Health, from the server and from outside.
 curl -s http://127.0.0.1:15000/health
 curl -s https://clinic-sandbox.organza-moda.com/api/health
 
 # A psql shell (the database has no host port; go in through the container).
-docker compose -p clinic-sandbox exec postgres \
+dc exec postgres \
   psql -U "$(grep -E '^POSTGRES_USER=' .env | cut -d= -f2)" \
        -d "$(grep -E '^POSTGRES_DB=' .env | cut -d= -f2)"
 ```
 
-## 6. Backups
+The alias is only for this section's brevity; the commands elsewhere are written
+out in full.
+
+## 5. Backups
 
 The `backup` service dumps the database every night at `BACKUP_AT_UTC`
 (default 02:15 UTC) into the `clinic_backups` volume as
@@ -280,13 +315,13 @@ The `backup` service dumps the database every night at `BACKUP_AT_UTC`
 cd /opt/clinic/sandbox
 
 # What is stored.
-docker compose -p clinic-sandbox exec backup ls -lh /backups
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml exec backup ls -lh /backups
 
 # Take one now, off-schedule.
-docker compose -p clinic-sandbox run --rm backup once
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml run --rm backup once
 
 # Copy a dump off the server.
-docker compose -p clinic-sandbox cp backup:/backups/clinic-20260905-021500.sql.gz .
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml cp backup:/backups/clinic-20260905-021500.sql.gz .
 ```
 
 Dumps live in a Docker volume on the same disk as the database, so they survive
@@ -313,49 +348,55 @@ user=$(grep -E '^POSTGRES_USER=' .env | cut -d= -f2)
 db=$(grep -E '^POSTGRES_DB=' .env | cut -d= -f2)
 
 # 1. Stop the writers, leave postgres up.
-docker compose -p clinic-sandbox stop api web
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml stop api web
 
 # 2. Take a dump of the current state first — restores go wrong.
-docker compose -p clinic-sandbox run --rm backup once
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml run --rm backup once
 
 # 3. Drop and recreate the schema, then load the dump.
-docker compose -p clinic-sandbox exec postgres \
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml exec postgres \
   psql -U "$user" -d "$db" -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
 
-docker compose -p clinic-sandbox exec -T postgres \
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml exec -T postgres \
   sh -c "gunzip -c /backups/clinic-20260905-021500.sql.gz | psql -U '$user' -d '$db'"
 
 # 4. Back up.
-docker compose -p clinic-sandbox start api web
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml start api web
 curl -s https://clinic-sandbox.organza-moda.com/api/health
 ```
 
 Step 3's second command needs the dump visible to the `postgres` container. It
 is not mounted there by default — either add `clinic_backups:/backups:ro` to the
-postgres service, or pipe from the host:
+postgres service (the compose file is on the server now, so that is a local
+edit; commit it if you want it to survive the next deploy's reset), or pipe from
+the host:
 
 ```bash
-docker compose -p clinic-sandbox cp backup:/backups/clinic-20260905-021500.sql.gz /tmp/restore.sql.gz
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml cp backup:/backups/clinic-20260905-021500.sql.gz /tmp/restore.sql.gz
 gunzip -c /tmp/restore.sql.gz | \
-  docker compose -p clinic-sandbox exec -T postgres psql -U "$user" -d "$db"
+  docker compose -p clinic-sandbox -f docker-compose.sandbox.yml exec -T postgres psql -U "$user" -d "$db"
 rm -f /tmp/restore.sql.gz
 ```
 
 The API applies any migrations the restored dump predates on its next start.
 
-## 7. Troubleshooting
+## 6. Troubleshooting
 
-| Symptom                                           | Cause                                                                              |
-| ------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Deploy fails: `missing /opt/clinic/sandbox/.env`  | Step 3 was skipped                                                                 |
-| `docker compose pull` → `denied` / `unauthorized` | GHCR packages still private — section 2                                            |
-| `502` from nginx                                  | Container down or not yet healthy: `docker compose -p clinic-sandbox ps`           |
-| Healthcheck step fails with `"database":"down"`   | `DATABASE_URL` and `POSTGRES_PASSWORD` disagree, or postgres failed to start       |
-| Uploads fail with `SignatureDoesNotMatch`         | The S3 block rewrites `Host`, or `STORAGE_ENDPOINT` is not the public hostname     |
-| Uploads fail with `413`                           | `client_max_body_size` on the S3 server block                                      |
-| Presigned URL times out from the browser          | DNS for `clinic-sandbox-s3.organza-moda.com` or the S3 block is missing            |
-| API logs `getaddrinfo ENOTFOUND` for the S3 host  | Container cannot resolve the public hostname — see "Why the S3 hostname is public" |
-| Port already in use on 15000/15080/15900          | Another project took it; these are fixed, so free the port rather than changing it |
+| Symptom                                          | Cause                                                                                                  |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| Deploy fails: `missing /opt/clinic/sandbox/.env` | Section 2 was skipped                                                                                  |
+| Deploy fails: `not a git checkout`               | `/opt/clinic/sandbox` is not a clone of this repository — section 2                                    |
+| Deploy fails during `build`                      | Read the step's log: it is a real build error, the same one `pnpm build` would give                    |
+| Build killed, or the box goes unresponsive       | Out of RAM. Give the VPS swap, or build one service at a time                                          |
+| `no configuration file provided`                 | A compose call without `-f docker-compose.sandbox.yml`                                                 |
+| Compose acts on the wrong services               | Same cause: a bare call picks up `docker-compose.yml`, the development stack                           |
+| `502` from nginx                                 | Container down or not yet healthy: `docker compose -p clinic-sandbox -f docker-compose.sandbox.yml ps` |
+| Healthcheck step fails with `"database":"down"`  | `DATABASE_URL` and `POSTGRES_PASSWORD` disagree, or postgres failed to start                           |
+| Uploads fail with `SignatureDoesNotMatch`        | The S3 block rewrites `Host`, or `STORAGE_ENDPOINT` is not the public hostname                         |
+| Uploads fail with `413`                          | `client_max_body_size` on the S3 server block                                                          |
+| Presigned URL times out from the browser         | DNS for `clinic-sandbox-s3.organza-moda.com` or the S3 block is missing                                |
+| API logs `getaddrinfo ENOTFOUND` for the S3 host | Container cannot resolve the public hostname — see "Why the S3 hostname is public"                     |
+| Port already in use on 15000/15080/15900         | Another project took it; these are fixed, so free the port rather than changing it                     |
 
 **No credentials belong in this file, in the repository, or in a workflow log.**
 Everything secret lives in `/opt/clinic/sandbox/.env` on the server and in

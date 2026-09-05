@@ -1,8 +1,8 @@
 # Sandbox stack for the shared VPS.
 #
 #   cd /opt/clinic/sandbox
-#   docker compose -p clinic-sandbox pull
-#   docker compose -p clinic-sandbox up -d
+#   docker compose -p clinic-sandbox -f docker-compose.sandbox.yml build --pull
+#   docker compose -p clinic-sandbox -f docker-compose.sandbox.yml up -d
 #
 # This stack terminates nothing and proxies nothing. TLS and the public
 # hostnames are the host-level nginx's job (it already fronts other projects on
@@ -16,7 +16,10 @@
 #   127.0.0.1:15900 -> minio :9000   (S3 API only; the console is not published)
 #   postgres          — no host port at all, internal network only
 #
-# Images come from GHCR and are built by .github/workflows/deploy-sandbox.yml.
+# The api and web images are built on the server from this checkout — the VPS
+# holds the repository at /opt/clinic/sandbox, so this file sits at the root of
+# its own build context and there is no registry in the loop at all.
+#
 # Everything else — passwords, secrets, hostnames — comes from
 # /opt/clinic/sandbox/.env, which is also the file Compose reads for the
 # ${...} substitutions below. See .env.sandbox.example.
@@ -85,7 +88,13 @@ services:
     networks: [clinic]
 
   api:
-    image: ghcr.io/${GHCR_OWNER:-suhaibbaba}/clinic-api:${IMAGE_TAG:-sandbox}
+    # Built here from the checkout. The context is the repository root — the
+    # whole pnpm workspace is one build context, so packages/shared is never
+    # duplicated per app.
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    image: clinic-sandbox-api
     restart: unless-stopped
     env_file: .env
     ports:
@@ -117,7 +126,10 @@ services:
     networks: [clinic]
 
   web:
-    image: ghcr.io/${GHCR_OWNER:-suhaibbaba}/clinic-web:${IMAGE_TAG:-sandbox}
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    image: clinic-sandbox-web
     restart: unless-stopped
     ports:
       - "127.0.0.1:15080:80"
@@ -129,8 +141,8 @@ services:
     networks: [clinic]
 
   # Nightly pg_dump into the clinic_backups volume, keeping the last 7 days.
-  # The script is inline rather than a mounted file because the deploy copies
-  # only this compose file to the server.
+  # The script is inline rather than a mounted file so the backup schedule
+  # travels with the stack definition and needs no extra image.
   backup:
     image: postgres:17-alpine
     restart: unless-stopped
