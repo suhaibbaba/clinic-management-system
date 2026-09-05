@@ -35,17 +35,16 @@ body,
 }
 
 /*
- * The page ground: a soft vertical wash between the two tinted blues, fixed so
- * it does not slide under a long list. `background-color` is set as well as the
- * gradient — a gradient is a background *image*, and it is the colour that
- * shows while the paint is still arriving and that the browser uses for
- * overscroll.
+ * The page ground: one flat off-white.
+ *
+ * It was a vertical wash between two tinted blues. At this lightness a
+ * gradient has nothing left to say — the two ends would differ by less than
+ * the banding of an 8-bit display — so it is a single colour, and the cards'
+ * shadows do the separating.
  */
 body {
   margin: 0;
   background-color: var(--color-canvas);
-  background-image: linear-gradient(180deg, var(--color-canvas) 0%, var(--color-canvas-deep) 100%);
-  background-attachment: fixed;
   color: var(--color-ink);
   font-family: var(--font-sans);
   line-height: 1.6;

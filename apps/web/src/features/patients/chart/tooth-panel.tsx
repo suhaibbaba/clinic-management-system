@@ -90,7 +90,7 @@ export function ToothPanel({
           the history below it.
         */}
         {summary && (
-          <section className="rounded-card bg-canvas p-4 shadow-pop">
+          <section className="rounded-card bg-inset p-4 shadow-pop">
             <div className="flex items-center gap-3">
               <span
                 dir="ltr"
@@ -202,7 +202,7 @@ function ProcedureRow({
   const { t } = useTranslation();
 
   return (
-    <li className="rounded-panel bg-canvas p-3">
+    <li className="rounded-panel bg-inset p-3">
       <div className="flex items-start justify-between gap-2">
         <span className="text-value font-medium text-ink">
           {name ?? t('chart.panel.procedure')}

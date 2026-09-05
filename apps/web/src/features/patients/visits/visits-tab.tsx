@@ -181,7 +181,7 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
                     {visitProcedures.map((procedure) => (
                       <li
                         key={procedure.id}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-canvas px-3 py-2"
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-inset px-3 py-2"
                       >
                         {/* Flex, not a margin: the tooth number is an LTR
                             isolate inside RTL text, and a gap is the only

@@ -107,19 +107,22 @@
   /*
    * Surfaces, lightest to deepest.
    *
-   * The app sits on a tinted ground rather than a gray one: `canvas` and
-   * `canvas-deep` are the two ends of the page gradient, and every piece of
-   * content floats above them on white `surface` cards. Both were derived by
-   * taking the intended lightness and chroma onto the logo blue's own hue
-   * (OKLCH −114.10°), which is what makes the ground read as *this* brand's
-   * blue at 4% chroma rather than as a generic cool gray.
+   * `canvas` is the page ground: an off-white, flat, with only a whisper of
+   * the logo blue's hue left in it (OKLCH −114.10° at 0.4% chroma). It is
+   * barely a colour, which is the point — content floats above it on white
+   * `surface` cards, and the tinted shadows are what separate the two.
    *
-   * `sunken` stays neutral: it is for insets and disabled controls, which are
-   * absences of surface rather than part of the ground.
+   * `inset` is where the brand tint went. A block nested inside a white card
+   * — a day's hours, a plan item, one row of a diff — needs to be visibly
+   * *inside* something, and doing that with a tint rather than another border
+   * is what keeps the app calm. It carries the chroma the page used to.
+   *
+   * `sunken` stays neutral: it is for disabled controls and the tracks behind
+   * segmented controls, which are absences of surface rather than groupings.
    */
   --color-surface: #ffffff;
-  --color-canvas: #eef4fa;
-  --color-canvas-deep: #e3edf7;
+  --color-canvas: #f9fbfd;
+  --color-inset: #eef4fa;
   --color-sunken: var(--color-neutral-100);
 
   /*

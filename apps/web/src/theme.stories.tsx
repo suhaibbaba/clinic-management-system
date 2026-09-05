@@ -125,7 +125,9 @@ export const Semantic: Story = {
         {[
           '--color-surface',
           '--color-canvas',
+          '--color-inset',
           '--color-sunken',
+          '--color-selected',
           '--color-line',
           '--color-line-strong',
           '--color-ink',

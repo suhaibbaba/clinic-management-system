@@ -47,7 +47,7 @@ function AttachmentThumbnail({ attachment }: { attachment: Attachment }): JSX.El
 
   return (
     <figure className="flex flex-col gap-1">
-      <div className="flex aspect-square items-center justify-center overflow-hidden rounded-control border border-line bg-canvas">
+      <div className="flex aspect-square items-center justify-center overflow-hidden rounded-control border border-line bg-inset">
         {isPending && <span className="text-label text-ink-subtle">{t('common.loading')}</span>}
 
         {isError && <span className="text-label text-danger-500">{t('errors.generic')}</span>}

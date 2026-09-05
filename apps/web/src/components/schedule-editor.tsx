@@ -44,7 +44,7 @@ export function ScheduleEditor({
         return (
           <div
             key={weekday}
-            className="rounded-panel bg-canvas p-3"
+            className="rounded-panel bg-inset p-3"
             data-testid={`schedule-day-${weekday}`}
           >
             <div className="flex flex-wrap items-center justify-between gap-2">

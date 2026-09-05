@@ -244,7 +244,7 @@ function ImageCard({
 
   return (
     <figure className="flex flex-col gap-1.5 rounded-card bg-surface shadow-card p-2">
-      <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md bg-canvas">
+      <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md bg-inset">
         {isPending && <span className="text-label text-ink-subtle">{t('common.loading')}</span>}
 
         {data?.downloadUrl &&

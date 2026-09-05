@@ -79,7 +79,7 @@ export function ValueDiff({ oldValue, newValue }: ValueDiffProps): JSX.Element {
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-value">
         <thead>
-          <tr className="bg-canvas">
+          <tr className="bg-inset">
             <th
               scope="col"
               className="px-3 py-2 text-start text-label font-semibold text-ink-muted"

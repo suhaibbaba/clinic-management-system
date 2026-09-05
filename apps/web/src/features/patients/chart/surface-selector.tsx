@@ -149,7 +149,7 @@ export function SurfaceSelector({
                 'rounded-control border px-2 py-1 text-label font-medium transition-colors',
                 selected
                   ? 'border-primary-600 bg-primary-600 text-ink-inverse'
-                  : 'border-line-strong bg-surface text-ink hover:bg-canvas',
+                  : 'border-line-strong bg-surface text-ink hover:bg-inset',
                 readOnly && 'cursor-default opacity-90 hover:bg-surface',
               )}
             >

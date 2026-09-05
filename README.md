@@ -328,16 +328,21 @@ Colour is only part of the system. `theme.css` also holds the geometry, the
 shadows and the type scale, so "looks like the rest of the app" is something a
 component says in one class.
 
-Content never touches the page ground. The ground is a soft vertical wash between
-two brand-tinted blues (`canvas` → `canvas-deep`), and everything else floats
-above it on white cards. Those two blues are not picked by eye either: they are
-the intended lightness and chroma taken onto the logo blue's own OKLCH hue, which
-is why the page reads as _this_ brand's blue rather than as a generic cool gray.
+Content never touches the page ground. The ground is a flat off-white (`canvas`)
+carrying only a whisper of the logo blue's hue, and everything else floats above
+it on white `surface` cards — the shadows are what separate the two.
+
+The brand tint did not disappear, it moved. `inset` is the tinted block used for
+anything nested _inside_ a card: a day's opening hours, a plan item, one row of a
+diff. Doing that with a tint rather than another border is what keeps a dense
+screen calm, and it is where the ground's old colour still earns its keep.
+`sunken` stays neutral, for disabled controls and the track behind a segmented
+control — absences of surface rather than groupings.
 
 Radii step down with nesting so a list item never fights the card around it —
 card `16px` → panel `12px` → control `10px` → pill. Shadows are large-blur,
-low-opacity and **tinted with the primary**: a gray shadow on a blue ground reads
-as dirt, a blue one reads as depth. Each is a 1px contact edge plus a wide
+low-opacity and **tinted with the primary**, not black: a gray shadow reads as
+dirt, a faintly blue one reads as depth. Each is a 1px contact edge plus a wide
 diffuse pool.
 
 The repeating patterns are components, not conventions:
