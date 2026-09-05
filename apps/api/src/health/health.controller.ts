@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import type { HealthResponse } from '@clinic/shared';
 
+import { Public } from '@api/common/decorators/public.decorator';
 import { HealthService } from '@api/health/health.service';
 
 /**
@@ -11,6 +12,7 @@ import { HealthService } from '@api/health/health.service';
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
+  @Public()
   @Get()
   check(): Promise<HealthResponse> {
     return this.healthService.check();

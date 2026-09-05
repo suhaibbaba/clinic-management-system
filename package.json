@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "seed": "pnpm --filter @clinic/api seed"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

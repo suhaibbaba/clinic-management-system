@@ -4,8 +4,9 @@ Multi-clinic, multi-specialty clinic management system. Arabic (RTL) web UI, Nes
 PostgreSQL. See [CLAUDE.md](./CLAUDE.md) for architecture rules and [ROLES.md](./ROLES.md)
 for the authorization spec.
 
-> **Status: skeleton.** This repository currently contains the monorepo, tooling and
-> Docker setup only — no domain module (patients, billing, appointments, …) is scaffolded yet.
+> **Status: core module, part 1.** Clinics, specialties, users/roles, doctors, auth and the
+> audit log are implemented. The remaining domain modules (patients, billing, appointments, …)
+> are not scaffolded yet.
 
 ## Requirements
 
@@ -49,14 +50,63 @@ docker compose run --rm --no-deps api pnpm install
 docker compose up
 ```
 
+### Seeding
+
+```bash
+docker compose exec api pnpm seed
+```
+
+Creates one clinic, the dental specialty and one account per role, then prints the
+credentials. It is idempotent, so re-running it is safe. The accounts and the password
+are documented in `.env.example`.
+
+Sign in with either the phone or the email:
+
+```bash
+curl -X POST http://localhost:3000/auth/login \
+  -H 'content-type: application/json' \
+  -d '{"identifier":"admin@clinic.local","password":"ChangeMe123!"}'
+```
+
 ### Running commands inside the stack
 
 ```bash
 docker compose exec api pnpm --filter @clinic/api test
 docker compose exec api pnpm --filter @clinic/api db:generate   # generate a migration
 docker compose exec api node dist/database/migrate.js           # apply migrations
+docker compose exec api pnpm seed
 docker compose exec web pnpm --filter @clinic/web test
 ```
+
+## API
+
+All endpoints require a bearer access token except those marked public. Every request is
+scoped to the caller's clinic, taken from the token — no endpoint accepts a `clinic_id`.
+
+| Method   | Path                    | Roles                                 |
+| -------- | ----------------------- | ------------------------------------- |
+| `GET`    | `/health`               | public                                |
+| `POST`   | `/auth/login`           | public                                |
+| `POST`   | `/auth/refresh`         | public                                |
+| `POST`   | `/auth/logout`          | public                                |
+| `GET`    | `/me`                   | any                                   |
+| `POST`   | `/me/change-password`   | any                                   |
+| `GET`    | `/clinic`               | any                                   |
+| `PATCH`  | `/clinic`               | admin                                 |
+| `GET`    | `/doctors`              | any                                   |
+| `GET`    | `/doctors/:id`          | any                                   |
+| `POST`   | `/doctors`              | admin                                 |
+| `PATCH`  | `/doctors/:id`          | admin                                 |
+| `PATCH`  | `/doctors/:id/schedule` | admin, or the doctor who owns the row |
+| `DELETE` | `/doctors/:id`          | admin (soft delete)                   |
+| `GET`    | `/users`                | admin                                 |
+| `GET`    | `/users/:id`            | admin                                 |
+| `POST`   | `/users`                | admin                                 |
+| `PATCH`  | `/users/:id`            | admin                                 |
+| `DELETE` | `/users/:id`            | admin (soft delete)                   |
+| `GET`    | `/audit-log`            | admin                                 |
+
+The audit log has no write endpoint by design — it is immutable.
 
 ## Production
 
@@ -112,6 +162,14 @@ pnpm exec prettier --check . # formatting
 pnpm typecheck               # tsc --noEmit, strict, every package
 pnpm test                    # Jest (api) + Vitest (web)
 pnpm build                   # all workspaces
+```
+
+The API tests run against a real PostgreSQL rather than mocks, so clinic scoping, the
+audit writes and the auth flow are exercised for real. They need `DATABASE_URL`, which
+the stack already provides:
+
+```bash
+docker compose exec api pnpm --filter @clinic/api test
 ```
 
 CI runs exactly these on every pull request, and additionally builds both Docker images.

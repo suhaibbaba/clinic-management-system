@@ -7,12 +7,13 @@
     "rootDir": "./",
     "baseUrl": ".",
     "paths": {
-      "@api/*": ["src/*"]
+      "@api/*": ["src/*"],
+      "@test/*": ["test/*"]
     },
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "types": ["node", "jest"]
   },
-  "include": ["src/**/*.ts", "drizzle.config.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "drizzle.config.ts"],
   "exclude": ["dist", "node_modules"]
 }
