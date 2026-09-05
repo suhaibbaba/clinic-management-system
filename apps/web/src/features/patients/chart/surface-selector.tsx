@@ -146,7 +146,7 @@ export function SurfaceSelector({
               aria-pressed={selected}
               onClick={() => toggle(surface)}
               className={cn(
-                'rounded-md border px-2 py-1 text-xs font-medium transition-colors',
+                'rounded-control border px-2 py-1 text-label font-medium transition-colors',
                 selected
                   ? 'border-primary-600 bg-primary-600 text-ink-inverse'
                   : 'border-line-strong bg-surface text-ink hover:bg-canvas',

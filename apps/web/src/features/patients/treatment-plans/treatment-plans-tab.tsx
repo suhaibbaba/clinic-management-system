@@ -1,5 +1,6 @@
 import {
   TREATMENT_PLAN_ITEM_STATUS,
+  TREATMENT_PLAN_STATUSES,
   type PatientClinicalView,
   type TreatmentPlan,
   type TreatmentPlanItem,
@@ -7,7 +8,16 @@ import {
 import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, EmptyState, Select, useToast } from '@web/components/ui';
+import {
+  Badge,
+  Button,
+  EmptyState,
+  EntityCard,
+  Icon,
+  SegmentedControl,
+  Select,
+  useToast,
+} from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { useClinic } from '@web/features/clinic/queries';
 import { useDoctors } from '@web/features/doctors/queries';
@@ -23,6 +33,16 @@ import {
 import { PlanPrint } from '@web/features/patients/treatment-plans/plan-print';
 import { planRemaining, planTotal } from '@web/features/patients/treatment-plans/plan-total';
 import { errorMessageKey } from '@web/lib/api-error';
+
+/**
+ * The plan-status filter, with `all` in front of the real statuses.
+ *
+ * Built from the shared enum rather than typed out, so a status added to the
+ * state machine appears here on the next build instead of being quietly
+ * unfilterable.
+ */
+const PLAN_FILTERS = ['all', ...TREATMENT_PLAN_STATUSES] as const;
+type PlanFilter = (typeof PLAN_FILTERS)[number];
 
 /**
  * Treatment plans: what has been quoted, in the order it will be carried out.
@@ -53,6 +73,7 @@ export function TreatmentPlansTab({
   const updateItem = useUpdatePlanItem(patientId);
   const convertItem = useConvertPlanItem(patientId);
 
+  const [statusFilter, setStatusFilter] = useState<PlanFilter>('all');
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [newItemProcedure, setNewItemProcedure] = useState('');
   /** Which plan the print sheet is currently rendering. */
@@ -68,7 +89,7 @@ export function TreatmentPlansTab({
     doctors.data?.items.find((doctor) => doctor.id === id)?.user.name ?? '—';
 
   if (plans.isPending) {
-    return <p className="text-sm text-ink-muted">{t('common.loading')}</p>;
+    return <p className="text-value text-ink-muted">{t('common.loading')}</p>;
   }
 
   if (plans.isError) {
@@ -76,6 +97,7 @@ export function TreatmentPlansTab({
   }
 
   const ordered = [...(plans.data ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const visible = ordered.filter((plan) => statusFilter === 'all' || plan.status === statusFilter);
 
   const handleCreatePlan = async (): Promise<void> => {
     const doctorId = doctors.data?.items[0]?.id;
@@ -144,11 +166,23 @@ export function TreatmentPlansTab({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-ink">
-            {t('treatmentPlans.count', { count: ordered.length })}
-          </h2>
-          <Button size="sm" onClick={() => void handleCreatePlan()}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <SegmentedControl
+            label={t('treatmentPlans.filterByStatus')}
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={PLAN_FILTERS.map((filter) => ({
+              value: filter,
+              label: filter === 'all' ? t('common.all') : t(`treatmentPlans.planStatus.${filter}`),
+              count: ordered.filter((plan) => filter === 'all' || plan.status === filter).length,
+            }))}
+          />
+
+          <Button
+            size="sm"
+            onClick={() => void handleCreatePlan()}
+            icon={<Icon name="plus" className="size-4" />}
+          >
             {t('treatmentPlans.create')}
           </Button>
         </div>
@@ -157,31 +191,64 @@ export function TreatmentPlansTab({
           <EmptyState title="treatmentPlans.empty" hint="treatmentPlans.emptyHint" />
         )}
 
-        {ordered.map((plan) => {
+        {ordered.length > 0 && visible.length === 0 && (
+          <EmptyState title="treatmentPlans.noneInFilter" hint="treatmentPlans.noneInFilterHint" />
+        )}
+
+        {visible.map((plan) => {
           const items = [...(plan.items ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
+          // Progress is work *done*: an item that became a real procedure.
+          // Cancelled items are neither done nor outstanding, so they leave
+          // the denominator rather than counting as unfinished forever.
+          const live = items.filter((item) => item.status !== TREATMENT_PLAN_ITEM_STATUS.CANCELLED);
+          const converted = live.filter(
+            (item) => item.status === TREATMENT_PLAN_ITEM_STATUS.CONVERTED,
+          );
 
           return (
-            <article key={plan.id} className="rounded-lg border border-line bg-surface p-4">
-              <header className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <h3 className="text-sm font-semibold text-ink">{plan.title}</h3>
-                  <p className="mt-0.5 text-xs text-ink-muted">
-                    {t('visits.doctor')}: {doctorName(plan.doctorId)}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Badge tone={planTone(plan.status)}>
-                    {t(`treatmentPlans.planStatus.${plan.status}`)}
-                  </Badge>
-                  <Button variant="secondary" size="sm" onClick={() => print(plan)}>
-                    {t('treatmentPlans.print')}
-                  </Button>
-                </div>
-              </header>
-
+            <EntityCard
+              key={plan.id}
+              icon="clipboard"
+              title={plan.title}
+              subtitle={`${t('visits.doctor')}: ${doctorName(plan.doctorId)}`}
+              status={{
+                label: t(`treatmentPlans.planStatus.${plan.status}`),
+                tone: planTone(plan.status),
+              }}
+              {...(live.length > 0 && {
+                progress: {
+                  value: converted.length,
+                  total: live.length,
+                  label: t('treatmentPlans.progressLabel'),
+                  caption: t('treatmentPlans.progressCaption', {
+                    done: converted.length,
+                    total: live.length,
+                  }),
+                },
+              })}
+              {...(showPrices &&
+                items.length > 0 && {
+                  meta: [
+                    {
+                      label: t('treatmentPlans.total'),
+                      value: `${planTotal(items)} ${currency}`,
+                      ltr: true,
+                    },
+                    {
+                      label: t('treatmentPlans.remaining'),
+                      value: `${planRemaining(items)} ${currency}`,
+                      ltr: true,
+                    },
+                  ],
+                })}
+              action={{
+                label: t('treatmentPlans.print'),
+                icon: 'file',
+                onClick: () => print(plan),
+              }}
+            >
               {items.length === 0 ? (
-                <p className="mt-3 text-xs text-ink-muted">{t('treatmentPlans.noItems')}</p>
+                <p className="mt-3 text-label text-ink-muted">{t('treatmentPlans.noItems')}</p>
               ) : (
                 <ol className="mt-3 flex flex-col gap-1.5">
                   {items.map((item, index) => (
@@ -189,8 +256,8 @@ export function TreatmentPlansTab({
                       key={item.id}
                       className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-canvas px-3 py-2"
                     >
-                      <span className="flex items-center gap-2 text-sm text-ink">
-                        <span className="text-xs text-ink-subtle" dir="ltr">
+                      <span className="flex items-center gap-2 text-value text-ink">
+                        <span className="text-label text-ink-subtle" dir="ltr">
                           {index + 1}
                         </span>
                         {catalogName(item.procedureId)}
@@ -198,7 +265,7 @@ export function TreatmentPlansTab({
 
                       <span className="flex flex-wrap items-center gap-2">
                         {showPrices && (
-                          <span className="text-sm text-ink-muted" dir="ltr">
+                          <span className="text-value text-ink-muted" dir="ltr">
                             {item.estimatedPrice} {currency}
                           </span>
                         )}
@@ -210,6 +277,7 @@ export function TreatmentPlansTab({
                         {item.status === TREATMENT_PLAN_ITEM_STATUS.PLANNED && (
                           <>
                             <Button
+                              variant="secondary"
                               size="sm"
                               disabled={convertItem.isPending}
                               onClick={() => void handleConvert(item)}
@@ -231,30 +299,13 @@ export function TreatmentPlansTab({
                 </ol>
               )}
 
-              {showPrices && items.length > 0 && (
-                <dl className="mt-3 flex flex-wrap justify-end gap-x-6 gap-y-1 border-t border-line pt-3 text-sm">
-                  <div className="flex gap-2">
-                    <dt className="text-ink-muted">{t('treatmentPlans.total')}</dt>
-                    <dd className="font-semibold text-ink" dir="ltr">
-                      {planTotal(items)} {currency}
-                    </dd>
-                  </div>
-                  <div className="flex gap-2">
-                    <dt className="text-ink-muted">{t('treatmentPlans.remaining')}</dt>
-                    <dd className="font-medium text-ink" dir="ltr">
-                      {planRemaining(items)} {currency}
-                    </dd>
-                  </div>
-                </dl>
-              )}
-
-              <div className="mt-3 border-t border-line pt-3">
+              <div className="mt-4">
                 {addingTo === plan.id ? (
                   <div className="flex flex-wrap items-end gap-2">
                     <div className="min-w-56 flex-1">
                       <label
                         htmlFor={`add-item-${plan.id}`}
-                        className="mb-1 block text-xs text-ink-muted"
+                        className="mb-1 block text-label text-ink-muted"
                       >
                         {t('chart.panel.procedure')}
                       </label>
@@ -270,6 +321,7 @@ export function TreatmentPlansTab({
                       />
                     </div>
                     <Button
+                      variant="secondary"
                       size="sm"
                       disabled={addItem.isPending || !newItemProcedure}
                       onClick={() => void handleAddItem(plan.id)}
@@ -286,7 +338,7 @@ export function TreatmentPlansTab({
                   </Button>
                 )}
               </div>
-            </article>
+            </EntityCard>
           );
         })}
       </div>

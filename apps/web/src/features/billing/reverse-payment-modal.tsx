@@ -85,7 +85,7 @@ export function ReversePaymentModal({
         onSubmit={onSubmit}
         noValidate
       >
-        <p className="text-sm text-ink-muted">
+        <p className="text-value text-ink-muted">
           {t('billing.reverseExplainer')}
           {payment && (
             <>

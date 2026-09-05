@@ -144,7 +144,7 @@ export function ToothChart({
     <div
       dir="ltr"
       ref={containerRef}
-      className="overflow-x-auto rounded-lg border border-chart-border bg-chart-surface p-2"
+      className="overflow-x-auto rounded-card border border-chart-border bg-chart-surface p-2"
     >
       {/* The tooltip is positioned inside this box so it tracks the tooth when
           the chart is scrolled sideways on a narrow screen. */}
@@ -320,7 +320,7 @@ function Tooltip({
       dir="rtl"
       // Physical centring on purpose — `left` and `translate-x` are unaffected
       // by direction, so the bubble sits on the tooth either way.
-      className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[130%] whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs text-ink-inverse shadow-lg"
+      className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[130%] whitespace-nowrap rounded-md bg-ink px-2 py-1 text-label text-ink-inverse shadow-lg"
       style={{ left, top }}
     >
       <span className="font-semibold" dir="ltr">
@@ -341,7 +341,7 @@ function Tooltip({
 export function ToothChartSkeleton(): JSX.Element {
   return (
     <div
-      className="w-full max-w-3xl animate-pulse rounded-lg bg-sunken"
+      className="w-full max-w-3xl animate-pulse rounded-card bg-sunken"
       style={{ aspectRatio: `${CHART_VIEWBOX.width} / ${CHART_VIEWBOX.height}` }}
       aria-hidden="true"
     />

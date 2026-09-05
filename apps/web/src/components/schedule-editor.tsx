@@ -44,7 +44,7 @@ export function ScheduleEditor({
         return (
           <div
             key={weekday}
-            className="rounded-md border border-line bg-surface p-3"
+            className="rounded-panel bg-canvas p-3"
             data-testid={`schedule-day-${weekday}`}
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -57,12 +57,12 @@ export function ScheduleEditor({
                     replaceDay({ weekday, ranges: checked ? [{ ...DEFAULT_RANGE }] : [] })
                   }
                 />
-                <span className="text-sm font-medium text-ink">
+                <span className="text-value font-medium text-ink">
                   {t(`schedule.weekday.${weekday}`)}
                 </span>
               </div>
 
-              <span className="text-xs text-ink-muted">
+              <span className="text-label text-ink-muted">
                 {isWorking ? t('schedule.working') : t('schedule.off')}
               </span>
             </div>
@@ -72,7 +72,7 @@ export function ScheduleEditor({
                 {day.ranges.map((range, index) => (
                   // Intervals have no id; their position is their identity.
                   <div key={`${weekday}-${index}`} className="flex flex-wrap items-center gap-2">
-                    <label className="text-xs text-ink-muted">
+                    <label className="text-label text-ink-muted">
                       {t('schedule.from')}
                       <Input
                         type="time"
@@ -90,7 +90,7 @@ export function ScheduleEditor({
                       />
                     </label>
 
-                    <label className="text-xs text-ink-muted">
+                    <label className="text-label text-ink-muted">
                       {t('schedule.to')}
                       <Input
                         type="time"

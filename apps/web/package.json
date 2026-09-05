@@ -2,7 +2,7 @@
   "name": "@clinic/web",
   "version": "0.1.0",
   "private": true,
-  "description": "Clinic management system web app \u2014 React + Vite, RTL Arabic UI.",
+  "description": "Clinic management system web app — React + Vite, RTL Arabic UI.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@clinic/shared": "workspace:*",
+    "@fontsource/ibm-plex-sans-arabic": "^5.3.0",
     "@hookform/resolvers": "^5.9.1",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-label": "^2.1.15",

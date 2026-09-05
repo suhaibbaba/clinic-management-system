@@ -147,7 +147,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
         </FormField>
 
         <div>
-          <p className="mb-2 text-sm font-medium text-ink">{t('doctors.schedule')}</p>
+          <p className="mb-2 text-value font-medium text-ink">{t('doctors.schedule')}</p>
           <ScheduleEditor value={schedule} onChange={setSchedule} />
         </div>
       </div>

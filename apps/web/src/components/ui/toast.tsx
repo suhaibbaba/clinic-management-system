@@ -79,7 +79,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               }
             }}
             className={[
-              'rounded-md px-4 py-3 text-sm shadow-lg ring-1',
+              'rounded-panel px-4 py-3 text-value shadow-pop ring-1',
               message.tone === 'success'
                 ? 'bg-surface text-ink ring-line'
                 : 'bg-danger-50 text-danger-800 ring-danger-200',

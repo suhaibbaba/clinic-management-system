@@ -12,10 +12,10 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps): JSX.E
   const { t } = useTranslation();
 
   return (
-    <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
+    <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
       <div>
-        <h1 className="text-xl font-semibold text-ink">{t(title)}</h1>
-        {subtitle !== undefined && <p className="mt-1 text-sm text-ink-muted">{t(subtitle)}</p>}
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">{t(title)}</h1>
+        {subtitle !== undefined && <p className="mt-1 text-value text-ink-muted">{t(subtitle)}</p>}
       </div>
 
       {actions !== undefined && <div className="flex items-center gap-2">{actions}</div>}

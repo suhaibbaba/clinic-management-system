@@ -57,7 +57,7 @@ export function ClinicPage(): JSX.Element {
   };
 
   if (clinic.isPending) {
-    return <p className="text-sm text-ink-muted">{t('common.loading')}</p>;
+    return <p className="text-value text-ink-muted">{t('common.loading')}</p>;
   }
 
   return (
@@ -75,7 +75,7 @@ export function ClinicPage(): JSX.Element {
       />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-lg border border-line bg-surface p-4">
+        <section className="rounded-card bg-surface shadow-card p-4">
           <div className="flex flex-col gap-4">
             <FormField label="clinic.name" htmlFor="clinic-name">
               <Input
@@ -128,29 +128,29 @@ export function ClinicPage(): JSX.Element {
           </div>
 
           <div className="mt-6 border-t border-line pt-4">
-            <p className="text-sm font-medium text-ink">{t('clinic.logo')}</p>
+            <p className="text-value font-medium text-ink">{t('clinic.logo')}</p>
             <div className="mt-2 flex items-center gap-3">
               <div
                 aria-label={t('clinic.logoPlaceholder')}
-                className="flex size-16 shrink-0 items-center justify-center rounded-md border border-dashed border-line-strong text-2xl text-ink-subtle"
+                className="flex size-16 shrink-0 items-center justify-center rounded-control border border-dashed border-line-strong text-2xl text-ink-subtle"
               >
                 &#9633;
               </div>
 
               <div className="flex flex-col items-start gap-1">
-                <p className="text-xs text-ink-muted">{t('clinic.logoPlaceholder')}</p>
+                <p className="text-label text-ink-muted">{t('clinic.logoPlaceholder')}</p>
                 {/* R2 presigned upload is wired up with the attachments work. */}
                 <Button variant="secondary" size="sm" disabled title={t('clinic.logoComingSoon')}>
                   {t('clinic.uploadLogo')}
                 </Button>
-                <p className="text-xs text-ink-subtle">{t('clinic.logoComingSoon')}</p>
+                <p className="text-label text-ink-subtle">{t('clinic.logoComingSoon')}</p>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="rounded-lg border border-line bg-surface p-4">
-          <p className="mb-3 text-sm font-medium text-ink">{t('clinic.workingHours')}</p>
+        <section className="rounded-card bg-surface shadow-card p-4">
+          <p className="mb-3 text-value font-medium text-ink">{t('clinic.workingHours')}</p>
           <ScheduleEditor value={workingHours} onChange={setWorkingHours} disabled={!canEdit} />
         </section>
       </div>

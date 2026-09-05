@@ -1,9 +1,17 @@
-import type { OverduePatient } from '@clinic/shared';
+import { addMoney, type Money as MoneyAmount, type OverduePatient } from '@clinic/shared';
 import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { Badge, EmptyState, PageHeader, Table, type Column } from '@web/components/ui';
+import {
+  Badge,
+  EmptyState,
+  PageHeader,
+  StatCard,
+  StatRow,
+  Table,
+  type Column,
+} from '@web/components/ui';
 import { Money } from '@web/features/billing/money';
 import { useOverduePatients } from '@web/features/billing/queries';
 import { useClinic } from '@web/features/clinic/queries';
@@ -26,6 +34,23 @@ export function OverduePage(): JSX.Element {
   const overdue = useOverduePatients({ page, limit: PAGE_SIZE });
   const currency = clinic.data?.currency;
 
+  /*
+   * The KPI row is computed from the page in hand, and says so.
+   *
+   * The API paginates this list and returns no aggregate, so a total across
+   * every overdue patient is not available here. Summing one page and calling
+   * it "the clinic's outstanding debt" would be a wrong number on a financial
+   * screen, which is worse than no number — so the caption states the scope
+   * and the count comes from the server's `total`, which is exact.
+   */
+  const rows = overdue.data?.items ?? [];
+  const pageTotal = rows.reduce<MoneyAmount>((sum, row) => addMoney(sum, row.balance), '0.00');
+  const worst = rows.reduce<OverduePatient | undefined>(
+    (top, row) => (top === undefined || Number(row.balance) > Number(top.balance) ? row : top),
+    undefined,
+  );
+  const neverPaid = rows.filter((row) => row.lastPaymentAt === null).length;
+
   const columns: readonly Column<OverduePatient>[] = [
     {
       key: 'patient',
@@ -35,7 +60,7 @@ export function OverduePage(): JSX.Element {
           <Link to={`/patients/${row.patientId}`} className="font-medium text-primary-700">
             {row.fullName}
           </Link>
-          <span className="text-xs text-ink-muted" dir="ltr">
+          <span className="text-label text-ink-muted" dir="ltr">
             {row.fileNumber}
           </span>
         </span>
@@ -77,6 +102,39 @@ export function OverduePage(): JSX.Element {
   return (
     <div className="flex flex-col gap-5">
       <PageHeader title="billing.overdueTitle" subtitle="billing.overdueSubtitle" />
+
+      {rows.length > 0 && (
+        <StatRow>
+          <StatCard
+            icon="users"
+            tone="primary"
+            label={t('billing.kpi.patients')}
+            value={overdue.data?.total ?? 0}
+            caption={t('billing.kpi.patientsCaption')}
+          />
+          <StatCard
+            icon="money"
+            tone="danger"
+            label={t('billing.kpi.outstanding')}
+            value={<Money amount={pageTotal} currency={currency} />}
+            caption={t('billing.kpi.thisPage')}
+          />
+          <StatCard
+            icon="trend-up"
+            tone="warning"
+            label={t('billing.kpi.largest')}
+            value={<Money amount={worst?.balance ?? '0.00'} currency={currency} />}
+            caption={worst?.fullName ?? ''}
+          />
+          <StatCard
+            icon="alert"
+            tone={neverPaid > 0 ? 'danger' : 'success'}
+            label={t('billing.kpi.neverPaid')}
+            value={neverPaid}
+            caption={t('billing.kpi.thisPage')}
+          />
+        </StatRow>
+      )}
 
       <Table
         columns={columns}

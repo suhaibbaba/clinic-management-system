@@ -54,16 +54,16 @@ export function PatientPage(): JSX.Element {
       {/* First, and before the record itself has loaded. */}
       <AllergyBanner patientId={id} />
 
-      <header className="rounded-lg border border-line bg-surface px-5 py-4">
-        {patient.isPending && <p className="text-sm text-ink-muted">{t('common.loading')}</p>}
+      <header className="rounded-card bg-surface shadow-card px-5 py-4">
+        {patient.isPending && <p className="text-value text-ink-muted">{t('common.loading')}</p>}
 
-        {patient.isError && <p className="text-sm text-danger-600">{t('errors.notFound')}</p>}
+        {patient.isError && <p className="text-value text-danger-600">{t('errors.notFound')}</p>}
 
         {patient.data && (
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-lg font-semibold text-ink">{patient.data.fullName}</h1>
-              <dl className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-muted">
+              <dl className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-value text-ink-muted">
                 <div className="flex gap-1">
                   <dt>{t('patients.fileNumber')}:</dt>
                   <dd dir="ltr">{patient.data.fileNumber}</dd>
@@ -88,7 +88,17 @@ export function PatientPage(): JSX.Element {
         )}
       </header>
 
-      <div role="tablist" aria-label={t('patients.tabs.label')} className="flex flex-wrap gap-1">
+      {/*
+        Styled as the segmented control, but still real tabs — these switch
+        panels rather than filter a list, so `tablist`/`tab`/`tabpanel` is what
+        they are and what a screen reader is told. `SegmentedControl` is a
+        radio group and would announce the wrong thing here.
+      */}
+      <div
+        role="tablist"
+        aria-label={t('patients.tabs.label')}
+        className="inline-flex max-w-full flex-wrap items-center gap-1 rounded-pill bg-sunken p-1"
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -99,10 +109,11 @@ export function PatientPage(): JSX.Element {
             aria-controls={`panel-${tab.id}`}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+              'rounded-pill px-3.5 py-1.5 text-value font-medium transition-colors',
+              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
               activeTab === tab.id
-                ? 'bg-primary-600 text-ink-inverse'
-                : 'bg-surface text-ink hover:bg-sunken',
+                ? 'bg-surface text-ink shadow-pill'
+                : 'text-ink-muted hover:text-ink',
             )}
           >
             {t(tab.label)}
@@ -114,7 +125,7 @@ export function PatientPage(): JSX.Element {
         role="tabpanel"
         id={`panel-${activeTab}`}
         aria-labelledby={`tab-${activeTab}`}
-        className="rounded-lg border border-line bg-surface p-4"
+        className="min-w-0"
       >
         {activeTab === 'chart' && <ChartTab patientId={id} />}
         {activeTab === 'visits' && <VisitsTab patientId={id} />}

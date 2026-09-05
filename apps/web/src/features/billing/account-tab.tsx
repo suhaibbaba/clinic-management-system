@@ -2,7 +2,16 @@ import { LEDGER_ENTRY_KIND, type PatientView, type StatementEntry } from '@clini
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, EmptyState, Input, Table, useToast, type Column } from '@web/components/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  Input,
+  Table,
+  type Column,
+  useToast,
+} from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { downloadStatement, openReceipt } from '@web/features/billing/documents';
 import { Money } from '@web/features/billing/money';
@@ -75,7 +84,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
           {entry.description || t(`billing.kinds.${entry.kind}`)}
           {entry.isReversal && <Badge tone="warning">{t('billing.reversal')}</Badge>}
           {entry.receiptNumber !== null && (
-            <span className="text-xs text-ink-muted" dir="ltr">
+            <span className="text-label text-ink-muted" dir="ltr">
               #{String(entry.receiptNumber).padStart(6, '0')}
             </span>
           )}
@@ -122,17 +131,19 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
 
   return (
     <div className="flex flex-col gap-4">
-      <section className="flex flex-wrap items-end justify-between gap-4 rounded-lg border border-line bg-canvas px-4 py-3">
+      <Card className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <span className="block text-xs text-ink-muted">{t('billing.outstanding')}</span>
+          <span className="block text-label font-medium text-ink-muted">
+            {t('billing.outstanding')}
+          </span>
           <Money
             amount={balance.data?.balance ?? '0.00'}
             currency={currency}
             signed
-            className="text-2xl font-semibold"
+            className="text-kpi font-semibold tabular-nums"
           />
           {balance.data?.lastPaymentAt && (
-            <span className="mt-1 block text-xs text-ink-muted">
+            <span className="mt-1 block text-label text-ink-muted">
               {t('billing.lastPayment')}:{' '}
               <span dir="ltr">{formatDate(balance.data.lastPaymentAt)}</span>
             </span>
@@ -152,14 +163,14 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
             {t('billing.downloadStatement')}
           </Button>
         </div>
-      </section>
+      </Card>
 
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-xs text-ink-muted">
+      <Card className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1 text-label text-ink-muted">
           {t('billing.from')}
           <Input type="date" dir="ltr" value={from} onChange={(e) => setFrom(e.target.value)} />
         </label>
-        <label className="flex flex-col gap-1 text-xs text-ink-muted">
+        <label className="flex flex-col gap-1 text-label text-ink-muted">
           {t('billing.to')}
           <Input type="date" dir="ltr" value={to} onChange={(e) => setTo(e.target.value)} />
         </label>
@@ -174,10 +185,10 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
             {t('common.reset')}
           </Button>
         )}
-      </div>
+      </Card>
 
       {statement.data && Number(statement.data.openingBalance) !== 0 && (
-        <p className="text-sm text-ink-muted">
+        <p className="text-value text-ink-muted">
           {t('billing.openingBalance')}:{' '}
           <Money amount={statement.data.openingBalance} currency={currency} />
         </p>

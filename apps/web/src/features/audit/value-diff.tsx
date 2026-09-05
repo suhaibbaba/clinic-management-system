@@ -51,7 +51,7 @@ function Value({
       dir="ltr"
       className={[
         'inline-block max-w-[20rem] overflow-x-auto whitespace-pre-wrap break-all rounded',
-        'px-1.5 py-0.5 text-left font-mono text-xs',
+        'px-1.5 py-0.5 text-left font-mono text-label',
         tone === 'before' ? 'bg-danger-50 text-danger-800' : 'bg-success-50 text-success-800',
       ].join(' ')}
     >
@@ -72,21 +72,30 @@ export function ValueDiff({ oldValue, newValue }: ValueDiffProps): JSX.Element {
     .filter((row) => row.before !== row.after);
 
   if (rows.length === 0) {
-    return <p className="text-sm text-ink-muted">{t('audit.noChanges')}</p>;
+    return <p className="text-value text-ink-muted">{t('audit.noChanges')}</p>;
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-sm">
+      <table className="w-full border-collapse text-value">
         <thead>
           <tr className="bg-canvas">
-            <th scope="col" className="px-3 py-2 text-start text-xs font-semibold text-ink-muted">
+            <th
+              scope="col"
+              className="px-3 py-2 text-start text-label font-semibold text-ink-muted"
+            >
               {t('audit.changes')}
             </th>
-            <th scope="col" className="px-3 py-2 text-start text-xs font-semibold text-ink-muted">
+            <th
+              scope="col"
+              className="px-3 py-2 text-start text-label font-semibold text-ink-muted"
+            >
               {t('audit.oldValue')}
             </th>
-            <th scope="col" className="px-3 py-2 text-start text-xs font-semibold text-ink-muted">
+            <th
+              scope="col"
+              className="px-3 py-2 text-start text-label font-semibold text-ink-muted"
+            >
               {t('audit.newValue')}
             </th>
           </tr>

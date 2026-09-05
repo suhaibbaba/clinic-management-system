@@ -21,7 +21,9 @@
     "yes": "نعم",
     "no": "لا",
     "reset": "إعادة تعيين",
-    "delete": "حذف"
+    "delete": "حذف",
+    "filters": "عوامل التصفية",
+    "viewAll": "عرض الكل"
   },
   "pagination": {
     "previous": "السابق",
@@ -38,7 +40,9 @@
     "profile": "حسابي",
     "logout": "تسجيل الخروج",
     "patients": "المرضى",
-    "overdue": "الأرصدة المتأخرة"
+    "overdue": "الأرصدة المتأخرة",
+    "searchPatients": "ابحث عن مريض…",
+    "notificationsEmpty": "لا توجد إشعارات"
   },
   "roles": {
     "admin": "مدير",
@@ -311,7 +315,8 @@
       "attachments": "الصور الشعاعية",
       "noAttachments": "لا توجد صور لهذا السن",
       "openFile": "فتح الملف",
-      "recorded": "تم تسجيل المعالجة"
+      "recorded": "تم تسجيل المعالجة",
+      "procedureCount": "{{count}} معالجة"
     }
   },
   "visits": {
@@ -369,7 +374,12 @@
       "planned": "مخطّط",
       "converted": "منفّذ",
       "cancelled": "ملغى"
-    }
+    },
+    "filterByStatus": "تصفية حسب الحالة",
+    "noneInFilter": "لا توجد خطط بهذه الحالة",
+    "noneInFilterHint": "غيّر التصفية لعرض خطط أخرى.",
+    "progressLabel": "تقدّم الخطة",
+    "progressCaption": "نُفّذ {{done}} من {{total}}"
   },
   "imaging": {
     "type": "النوع",
@@ -443,6 +453,14 @@
     "overdueEmpty": "لا توجد أرصدة متأخرة",
     "overdueEmptyHint": "كل الأرصدة المستحقة ضمن المدة المسموحة.",
     "daysAgo": "منذ {{count}} يوم",
-    "neverPaid": "لم يسدّد بعد"
+    "neverPaid": "لم يسدّد بعد",
+    "kpi": {
+      "patients": "مرضى متأخرون",
+      "patientsCaption": "إجمالي العيادة",
+      "outstanding": "إجمالي المتأخرات",
+      "largest": "أعلى رصيد",
+      "neverPaid": "لم يدفعوا مطلقاً",
+      "thisPage": "في هذه الصفحة"
+    }
   }
 }

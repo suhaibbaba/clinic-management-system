@@ -55,13 +55,13 @@ export function LoginPage(): JSX.Element {
 
   return (
     <main className="flex min-h-full items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm rounded-lg border border-line bg-surface p-6 shadow-sm">
+      <div className="w-full max-w-md rounded-card bg-surface p-8 shadow-panel">
         {/* The one place the mark is shown at size; the clinic name sits in the
             heading below it, so the mark itself is decorative. */}
         <Logo size="lg" className="mx-auto mb-6" />
 
-        <h1 className="text-lg font-semibold text-ink">{t('auth.loginTitle')}</h1>
-        <p className="mt-1 text-sm text-ink-muted">{t('auth.loginSubtitle')}</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">{t('auth.loginTitle')}</h1>
+        <p className="mt-1 text-value text-ink-muted">{t('auth.loginSubtitle')}</p>
 
         <form className="mt-6 flex flex-col gap-4" onSubmit={onSubmit} noValidate>
           <FormField label="auth.identifier" htmlFor="identifier" error={errors.identifier}>
@@ -89,12 +89,15 @@ export function LoginPage(): JSX.Element {
           </FormField>
 
           {formErrorKey !== null && (
-            <p role="alert" className="rounded-md bg-danger-50 px-3 py-2 text-sm text-danger-700">
+            <p
+              role="alert"
+              className="rounded-panel bg-danger-50 px-3.5 py-2.5 text-value text-danger-700"
+            >
               {t(formErrorKey)}
             </p>
           )}
 
-          <Button type="submit" isLoading={isSubmitting} className="mt-2 w-full">
+          <Button type="submit" isLoading={isSubmitting} className="mt-2 h-12 w-full">
             {isSubmitting ? t('auth.submitting') : t('auth.submit')}
           </Button>
         </form>

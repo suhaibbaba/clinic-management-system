@@ -40,8 +40,8 @@ export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element
       <span aria-hidden="true" className="text-lg leading-none">
         ⚠
       </span>
-      <span className="text-sm font-semibold text-danger-800">{t('patients.allergies')}:</span>
-      <span className="text-sm text-danger-700">{data.allergies.join('، ')}</span>
+      <span className="text-value font-semibold text-danger-800">{t('patients.allergies')}:</span>
+      <span className="text-value text-danger-700">{data.allergies.join('، ')}</span>
     </div>
   );
 }

@@ -24,7 +24,7 @@ export function ToothAttachments({
   const { t } = useTranslation();
 
   if (attachments.length === 0) {
-    return <p className="text-sm text-ink-muted">{t('chart.panel.noAttachments')}</p>;
+    return <p className="text-value text-ink-muted">{t('chart.panel.noAttachments')}</p>;
   }
 
   return (
@@ -47,10 +47,10 @@ function AttachmentThumbnail({ attachment }: { attachment: Attachment }): JSX.El
 
   return (
     <figure className="flex flex-col gap-1">
-      <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md border border-line bg-canvas">
-        {isPending && <span className="text-xs text-ink-subtle">{t('common.loading')}</span>}
+      <div className="flex aspect-square items-center justify-center overflow-hidden rounded-control border border-line bg-canvas">
+        {isPending && <span className="text-label text-ink-subtle">{t('common.loading')}</span>}
 
-        {isError && <span className="text-xs text-danger-500">{t('errors.generic')}</span>}
+        {isError && <span className="text-label text-danger-500">{t('errors.generic')}</span>}
 
         {data?.downloadUrl && isImage && (
           <img
@@ -66,7 +66,7 @@ function AttachmentThumbnail({ attachment }: { attachment: Attachment }): JSX.El
             href={data.downloadUrl}
             target="_blank"
             rel="noreferrer"
-            className="px-1 text-center text-xs text-primary-600 underline"
+            className="px-1 text-center text-label text-primary-600 underline"
           >
             {t('chart.panel.openFile')}
           </a>

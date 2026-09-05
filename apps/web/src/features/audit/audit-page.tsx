@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Badge,
   Button,
+  Card,
   EmptyState,
   Input,
   Modal,
@@ -100,7 +101,7 @@ export function AuditPage(): JSX.Element {
     <>
       <PageHeader title="audit.title" subtitle="audit.subtitle" />
 
-      <div className="mb-4 flex flex-wrap items-end gap-3">
+      <Card className="mb-4 flex flex-wrap items-end gap-3">
         <Select
           className="w-44"
           aria-label={t('audit.filterEntity')}
@@ -146,7 +147,7 @@ export function AuditPage(): JSX.Element {
           }}
         />
 
-        <label className="flex flex-col gap-1 text-xs text-ink-muted">
+        <label className="flex flex-col gap-1 text-label text-ink-muted">
           {t('audit.fromDate')}
           <Input
             type="date"
@@ -159,7 +160,7 @@ export function AuditPage(): JSX.Element {
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-xs text-ink-muted">
+        <label className="flex flex-col gap-1 text-label text-ink-muted">
           {t('audit.toDate')}
           <Input
             type="date"
@@ -171,7 +172,7 @@ export function AuditPage(): JSX.Element {
             }}
           />
         </label>
-      </div>
+      </Card>
 
       <Table
         columns={columns}
