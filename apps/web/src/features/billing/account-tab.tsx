@@ -6,9 +6,9 @@ import {
   Badge,
   Button,
   Card,
+  DateRangePicker,
   EmptyState,
   Icon,
-  Input,
   Table,
   type Column,
   useToast,
@@ -80,6 +80,8 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
     {
       key: 'description',
       header: 'billing.columns.description',
+      // The card's title: what the line *is*, before what it cost.
+      primary: true,
       render: (entry) => (
         <span className="flex flex-wrap items-center gap-2">
           {entry.description || t(`billing.kinds.${entry.kind}`)}
@@ -95,12 +97,14 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
     {
       key: 'charge',
       header: 'billing.columns.charge',
+      align: 'numeric',
       render: (entry) =>
         entry.kind === LEDGER_ENTRY_KIND.CHARGE ? <Money amount={entry.amount} /> : null,
     },
     {
       key: 'payment',
       header: 'billing.columns.payment',
+      align: 'numeric',
       render: (entry) =>
         entry.kind === LEDGER_ENTRY_KIND.PAYMENT ? (
           <Money amount={entry.amount.replace('-', '')} />
@@ -109,11 +113,15 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
     {
       key: 'balance',
       header: 'billing.columns.balance',
+      // The running balance is the point of a statement, so it stays on the
+      // card at every width — it is never the column that gets dropped.
+      align: 'numeric',
       render: (entry) => <Money amount={entry.runningBalance} className="font-medium" />,
     },
     {
       key: 'actions',
       header: 'common.actions',
+      actions: true,
       render: (entry) =>
         entry.kind === LEDGER_ENTRY_KIND.PAYMENT && !entry.isReversal ? (
           <span className="flex gap-2">
@@ -179,23 +187,16 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
 
       <Card className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1 text-label text-ink-muted">
-          {t('billing.from')}
-          <Input
-            adornment="calendar"
-            type="date"
-            dir="ltr"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-label text-ink-muted">
-          {t('billing.to')}
-          <Input
-            adornment="calendar"
-            type="date"
-            dir="ltr"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
+          {t('billing.period')}
+          <DateRangePicker
+            id="statement-period"
+            className="w-64"
+            label={t('billing.period')}
+            value={{ from, to }}
+            onChange={(range) => {
+              setFrom(range.from);
+              setTo(range.to);
+            }}
           />
         </label>
         {(from || to) && (

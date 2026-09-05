@@ -47,8 +47,14 @@
       "selectMethod": "Select a payment method",
       "selectType": "Select an attachment type",
       "date": "dd/mm/yyyy",
-      "time": "--:--"
-    }
+      "time": "--:--",
+      "dateRange": "Choose a period"
+    },
+    "clear": "Clear",
+    "today": "Today",
+    "done": "Done",
+    "openCalendar": "Open the calendar",
+    "openTimes": "Choose a time"
   },
   "pagination": {
     "previous": "Previous",
@@ -201,7 +207,8 @@
       "users": "User",
       "doctors": "Doctor",
       "clinics": "Clinic"
-    }
+    },
+    "period": "Period"
   },
   "profile": {
     "title": "My account",
@@ -363,7 +370,8 @@
     "procedureUpdated": "Procedure updated",
     "empty": "No visits recorded",
     "emptyHint": "Record this patient's first visit.",
-    "loadFailed": "Could not load visits."
+    "loadFailed": "Could not load visits.",
+    "time": "Time"
   },
   "treatmentPlans": {
     "create": "New plan",
@@ -488,6 +496,7 @@
       "largest": "Largest balance",
       "neverPaid": "Never paid",
       "thisPage": "On this page"
-    }
+    },
+    "period": "Period"
   }
 }

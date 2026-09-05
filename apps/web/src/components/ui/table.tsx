@@ -1,16 +1,36 @@
 import type { JSX, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Icon } from '@web/components/ui/icon';
 import { Button } from '@web/components/ui/button';
+import { Icon } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
+import { useIsMobile } from '@web/lib/use-media-query';
 
 export interface Column<TRow> {
   readonly key: string;
-  /** i18n key for the header cell. */
+  /** i18n key for the header cell — the same string labels the mobile card. */
   readonly header: string;
   readonly render: (row: TRow) => ReactNode;
   readonly className?: string | undefined;
+  /**
+   * Dropped from the mobile card. For columns that are context on a wide
+   * screen and noise on a narrow one: an internal id, a file number already
+   * implied by the row you tapped.
+   */
+  readonly hideOnMobile?: boolean | undefined;
+  /**
+   * The card's title line on mobile: rendered bold across the full width with
+   * no label, because a patient's name does not need to be captioned "name".
+   * At most one column should claim this.
+   */
+  readonly primary?: boolean | undefined;
+  /**
+   * The row's actions. On mobile they leave the label/value grid and sit as a
+   * button row at the foot of the card.
+   */
+  readonly actions?: boolean | undefined;
+  /** Numeric values: lining, tabular figures so columns of money line up. */
+  readonly align?: 'start' | 'end' | 'numeric' | undefined;
 }
 
 export interface TableProps<TRow> {
@@ -21,6 +41,14 @@ export interface TableProps<TRow> {
   /** Rendered in place of the table body when there are no rows. */
   empty?: ReactNode | undefined;
   pagination?: PaginationProps | undefined;
+  /**
+   * Makes the whole row activate. On mobile the card itself becomes the
+   * target, which is the point — a 44px button inside a card is a small thing
+   * to hit when the card is right there.
+   */
+  onRowClick?: ((row: TRow) => void) | undefined;
+  /** Names a row for screen readers when the whole row is clickable. */
+  rowLabel?: ((row: TRow) => string) | undefined;
 }
 
 export interface PaginationProps {
@@ -30,9 +58,29 @@ export interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
+const alignClass = (align: Column<never>['align']): string =>
+  align === 'numeric' ? 'text-end tabular-nums' : align === 'end' ? 'text-end' : 'text-start';
+
 /**
- * Table with optional pagination. Cells are `text-start`, so columns align to
- * the reading direction and the whole table mirrors in RTL without overrides.
+ * One table, two shapes.
+ *
+ * Above `md` it is a real `<table>`. Below it, each row becomes a card whose
+ * body is a two-column grid: the column's own header on one side, that row's
+ * value on the other. In RTL that puts labels on the right and values on the
+ * left, which falls out of `text-start`/`text-end` rather than being arranged.
+ *
+ * Both shapes are driven by the *same* `columns` array, which is the whole
+ * reason this lives in one component: a label rendered on a card has to be the
+ * label in the header above it, and the only way to guarantee that is for
+ * there to be one string. A per-screen mobile fork would have had six copies
+ * of every header, drifting one rename at a time.
+ *
+ * Only one shape is rendered at a time, chosen by a media query. Rendering
+ * both and hiding one with `md:hidden` was simpler and wrong: `display: none`
+ * hides a thing visually but the duplicate is still in the document, so a
+ * screen reader reads every row twice and any `id` inside a cell exists twice.
+ * The query is read through `useSyncExternalStore`, which returns its snapshot
+ * during the first render — so there is no flash of the wrong shape either.
  */
 export function Table<TRow>({
   columns,
@@ -41,11 +89,112 @@ export function Table<TRow>({
   isLoading = false,
   empty,
   pagination,
+  onRowClick,
+  rowLabel,
 }: TableProps<TRow>): JSX.Element {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
 
   if (!isLoading && rows.length === 0 && empty !== undefined) {
     return <>{empty}</>;
+  }
+
+  const mobileColumns = columns.filter((column) => column.hideOnMobile !== true);
+  const primary = mobileColumns.find((column) => column.primary === true);
+  const actions = mobileColumns.find((column) => column.actions === true);
+  const detail = mobileColumns.filter(
+    (column) => column.primary !== true && column.actions !== true,
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        {/* ── One card per row ──────────────────────────────────────── */}
+        <div className="flex flex-col gap-3">
+          {isLoading && <CardSkeleton rows={detail.length || 3} />}
+
+          {!isLoading &&
+            rows.map((row) => {
+              // Rendered up front: a row action is often conditional — only a
+              // payment has a receipt — and an empty actions block still draws
+              // its divider and padding, leaving a hairline under nothing.
+              const rowActions = actions?.render(row) ?? null;
+
+              const body = (
+                <>
+                  {primary && (
+                    <p className="mb-3 text-value font-semibold text-ink">{primary.render(row)}</p>
+                  )}
+
+                  {/*
+                  No column gap: the row divider is drawn on the two cells, so
+                  a gap between them leaves a visible break in the middle of
+                  every hairline. The label pads its own end instead.
+                */}
+                  <dl className="grid grid-cols-[auto_1fr]">
+                    {detail.map((column, index) => (
+                      <div key={column.key} className="contents">
+                        <dt
+                          className={cn(
+                            'py-2.5 text-start text-label text-ink-muted',
+                            index > 0 && 'border-t border-line',
+                          )}
+                        >
+                          {t(column.header)}
+                        </dt>
+                        <dd
+                          className={cn(
+                            'py-2.5 text-value text-ink',
+                            alignClass(column.align),
+                            index > 0 && 'border-t border-line',
+                          )}
+                        >
+                          {column.render(row)}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  {rowActions !== null && (
+                    <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-line pt-3">
+                      {rowActions}
+                    </div>
+                  )}
+                </>
+              );
+
+              const cardClass =
+                'rounded-card border border-line-card bg-surface p-4 text-start shadow-card transition-[box-shadow,border-color] duration-150';
+
+              return onRowClick === undefined ? (
+                <div key={rowKey(row)} className={cardClass}>
+                  {body}
+                </div>
+              ) : (
+                <button
+                  key={rowKey(row)}
+                  type="button"
+                  onClick={() => onRowClick(row)}
+                  {...(rowLabel && { 'aria-label': rowLabel(row) })}
+                  className={cn(
+                    cardClass,
+                    'w-full cursor-pointer hover:border-primary-200 hover:shadow-float',
+                    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
+                  )}
+                >
+                  {body}
+                </button>
+              );
+            })}
+        </div>
+
+        {pagination !== undefined && (
+          <div className="mt-3 rounded-card border border-line-card bg-surface shadow-card">
+            <Pagination {...pagination} />
+          </div>
+        )}
+      </>
+    );
   }
 
   return (
@@ -59,7 +208,8 @@ export function Table<TRow>({
                   key={column.key}
                   scope="col"
                   className={cn(
-                    'h-12 whitespace-nowrap border-b border-line px-5 text-start text-label font-semibold text-ink-muted',
+                    'h-12 whitespace-nowrap border-b border-line px-5 text-label font-semibold text-ink-muted',
+                    alignClass(column.align),
                     column.className,
                   )}
                 >
@@ -82,12 +232,22 @@ export function Table<TRow>({
               rows.map((row) => (
                 <tr
                   key={rowKey(row)}
-                  className="h-12 transition-colors duration-150 hover:bg-inset"
+                  {...(onRowClick && {
+                    onClick: () => onRowClick(row),
+                    className: 'h-12 cursor-pointer transition-colors duration-150 hover:bg-inset',
+                  })}
+                  {...(!onRowClick && {
+                    className: 'h-12 transition-colors duration-150 hover:bg-inset',
+                  })}
                 >
                   {columns.map((column) => (
                     <td
                       key={column.key}
-                      className={cn('px-5 py-2.5 text-start align-middle', column.className)}
+                      className={cn(
+                        'px-5 py-2.5 align-middle',
+                        alignClass(column.align),
+                        column.className,
+                      )}
                     >
                       {column.render(row)}
                     </td>
@@ -100,6 +260,43 @@ export function Table<TRow>({
 
       {pagination !== undefined && <Pagination {...pagination} />}
     </div>
+  );
+}
+
+/**
+ * The loading state in card shape.
+ *
+ * It mirrors the card's own grid — a title line and `rows` label/value rows —
+ * so the skeleton occupies about the height the content will, and the page
+ * does not jump when the data lands.
+ */
+function CardSkeleton({ rows }: { readonly rows: number }): JSX.Element {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <span className="sr-only" role="status">
+        {t('common.loading')}
+      </span>
+
+      {[0, 1, 2].map((card) => (
+        <div
+          key={card}
+          aria-hidden="true"
+          className="animate-pulse rounded-card border border-line-card bg-surface p-4 shadow-card"
+        >
+          <div className="mb-3 h-4 w-1/2 rounded-pill bg-sunken" />
+          <div className="flex flex-col gap-3">
+            {Array.from({ length: rows }, (_, row) => (
+              <div key={row} className="flex items-center justify-between gap-4">
+                <div className="h-3 w-20 rounded-pill bg-sunken" />
+                <div className="h-3 w-24 rounded-pill bg-sunken" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </>
   );
 }
 

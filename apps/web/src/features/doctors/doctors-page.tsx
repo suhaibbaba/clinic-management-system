@@ -43,7 +43,7 @@ export function DoctorsPage(): JSX.Element {
 
   const columns = useMemo<Column<Doctor>[]>(() => {
     const base: Column<Doctor>[] = [
-      { key: 'name', header: 'users.name', render: (row) => row.user.name },
+      { key: 'name', header: 'users.name', primary: true, render: (row) => row.user.name },
       { key: 'phone', header: 'users.phone', render: (row) => row.user.phone },
       {
         key: 'specialty',
@@ -55,13 +55,20 @@ export function DoctorsPage(): JSX.Element {
         header: 'doctors.duration',
         render: (row) => `${row.defaultAppointmentDurationMinutes} ${t('doctors.durationUnit')}`,
       },
-      { key: 'schedule', header: 'doctors.schedule', render: summariseSchedule },
+      {
+        key: 'schedule',
+        header: 'doctors.schedule',
+        // A week of opening hours on one line is unreadable at 375px.
+        hideOnMobile: true,
+        render: summariseSchedule,
+      },
     ];
 
     // A doctor may edit their own schedule; an admin may edit anyone's.
     base.push({
       key: 'actions',
       header: 'common.actions',
+      actions: true,
       render: (row) =>
         isAdmin || row.userId === user?.id ? (
           <Button

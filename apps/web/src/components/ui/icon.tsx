@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  Clock,
   Coins,
   CreditCard,
   FileText,
@@ -76,6 +77,7 @@ export type IconName =
   | 'chevron-end'
   | 'chevron-start'
   | 'clipboard'
+  | 'clock'
   | 'coins'
   | 'edit'
   | 'error'
@@ -130,6 +132,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   'chevron-end': ChevronRight,
   'chevron-start': ChevronLeft,
   clipboard: ClipboardList,
+  clock: Clock,
   coins: Coins,
   edit: Pencil,
   error: XCircle,

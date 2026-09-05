@@ -55,7 +55,7 @@ export function UsersPage(): JSX.Element {
 
   const columns = useMemo<Column<User>[]>(
     () => [
-      { key: 'name', header: 'users.name', render: (row) => row.name },
+      { key: 'name', header: 'users.name', primary: true, render: (row) => row.name },
       { key: 'phone', header: 'users.phone', render: (row) => row.phone },
       { key: 'email', header: 'users.email', render: (row) => row.email ?? '—' },
       {
@@ -81,10 +81,17 @@ export function UsersPage(): JSX.Element {
           </div>
         ),
       },
-      { key: 'createdAt', header: 'audit.when', render: (row) => formatDate(row.createdAt) },
+      {
+        key: 'createdAt',
+        header: 'audit.when',
+        // Housekeeping detail; the account itself is what a phone is for.
+        hideOnMobile: true,
+        render: (row) => formatDate(row.createdAt),
+      },
       {
         key: 'actions',
         header: 'common.actions',
+        actions: true,
         render: (row) => (
           <div className="flex items-center gap-2">
             <Button

@@ -207,6 +207,19 @@
   --text-kpi--line-height: 2.25rem;
 
   /*
+   * The size every focusable field renders at, and the reason it is its own
+   * token rather than `text-value`.
+   *
+   * iOS Safari zooms the page when a field smaller than 16px takes focus, and
+   * it does not zoom back out. On a booking screen that means every tap into
+   * an input leaves the clinic looking at a magnified fragment of the page.
+   * The visual size of a control is therefore not a free choice: 16px is a
+   * floor, and `field-size.test.ts` fails the build if any field drops under.
+   */
+  --text-field: 1rem; /* 16px — never lower */
+  --text-field--line-height: 1.5rem;
+
+  /*
    * Motion. One duration for everything that changes colour, shadow or
    * position (150ms), and the two menu animations built on it.
    *

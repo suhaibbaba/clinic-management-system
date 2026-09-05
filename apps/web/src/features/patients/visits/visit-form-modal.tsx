@@ -1,16 +1,17 @@
 import { createVisitSchema, type CreateVisitInput, type Doctor, type Visit } from '@clinic/shared';
 import { useEffect, type JSX } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import {
   Button,
+  DatePicker,
   FormField,
   Icon,
-  Input,
   Modal,
   Select,
   Textarea,
+  TimePicker,
   useToast,
 } from '@web/components/ui';
 import { useSaveVisit } from '@web/features/patients/queries';
@@ -25,12 +26,24 @@ interface VisitFormModalProps {
   visit: Visit | null;
 }
 
-/** `<input type="datetime-local">` wants a local `YYYY-MM-DDTHH:mm`, not an instant. */
+/**
+ * The form holds a visit's moment as local wall-clock `YYYY-MM-DDTHH:mm`,
+ * which is what the two pickers edit as a date half and a time half.
+ */
 function toLocalInput(iso: string): string {
   const date = new Date(iso);
   const offset = date.getTimezoneOffset() * 60_000;
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
+
+/** Splits that value for the two controls, defaulting the time to the hour. */
+const splitLocal = (value: string): { date: string; time: string } => {
+  const [date = '', time = ''] = value.split('T');
+  return { date, time: time.slice(0, 5) };
+};
+
+const joinLocal = (date: string, time: string): string =>
+  date === '' ? '' : `${date}T${time === '' ? '09:00' : time}`;
 
 /** What the form holds: the same fields, with the date as local wall-clock time. */
 type VisitFormValues = Omit<CreateVisitInput, 'visitDate'> & { visitDate: string };
@@ -61,6 +74,7 @@ export function VisitFormModal({
     setError,
     getValues,
     formState: { errors, isSubmitting },
+    control,
   } = useForm<VisitFormValues>();
 
   useEffect(() => {
@@ -168,13 +182,38 @@ export function VisitFormModal({
           />
         </FormField>
 
+        {/*
+          One instant, two controls: a date and a quarter-hour time. Kept as a
+          single `visitDate` field so the schema and the API are unchanged —
+          the split is presentation, and the value is rejoined on every edit.
+        */}
         <FormField label="visits.date" htmlFor="visit-date" error={errors.visitDate}>
-          <Input
-            adornment="calendar"
-            id="visit-date"
-            type="datetime-local"
-            dir="ltr"
-            {...register('visitDate')}
+          <Controller
+            control={control}
+            name="visitDate"
+            render={({ field }) => {
+              const { date, time } = splitLocal(field.value ?? '');
+
+              return (
+                <div className="flex flex-wrap gap-2">
+                  <DatePicker
+                    id="visit-date"
+                    className="min-w-40 flex-1"
+                    label={t('visits.date')}
+                    value={date}
+                    hasError={errors.visitDate !== undefined}
+                    onChange={(next) => field.onChange(joinLocal(next, time))}
+                  />
+                  <TimePicker
+                    id="visit-time"
+                    className="w-32"
+                    label={t('visits.time')}
+                    value={time}
+                    onChange={(next) => field.onChange(joinLocal(date, next))}
+                  />
+                </div>
+              );
+            }}
           />
         </FormField>
 

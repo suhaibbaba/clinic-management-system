@@ -1,10 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createPatientSchema, GENDERS, type CreatePatientInput } from '@clinic/shared';
 import { useEffect, type JSX } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Input, Modal, Select, useToast } from '@web/components/ui';
+import {
+  Button,
+  DatePicker,
+  FormField,
+  Icon,
+  Input,
+  Modal,
+  Select,
+  useToast,
+} from '@web/components/ui';
 import { useCreatePatient } from '@web/features/patients/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -37,6 +46,7 @@ export function PatientFormModal({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
+    control,
   } = useForm<CreatePatientInput>({ resolver: zodResolver(createPatientSchema) });
 
   useEffect(() => {
@@ -105,13 +115,23 @@ export function PatientFormModal({
           error={errors.dateOfBirth}
           optional
         >
-          {/* Gregorian, as CLAUDE.md requires; the native picker mirrors correctly. */}
-          <Input
-            adornment="calendar"
-            id="patient-dob"
-            type="date"
-            dir="ltr"
-            {...register('dateOfBirth', { setValueAs: (value) => (value === '' ? null : value) })}
+          {/*
+            A date of birth is typed far more often than it is picked — nobody
+            pages back sixty years of months — so the field leads and the
+            calendar is there for the times it helps.
+          */}
+          <Controller
+            control={control}
+            name="dateOfBirth"
+            render={({ field }) => (
+              <DatePicker
+                id="patient-dob"
+                label={t('patients.dateOfBirth')}
+                value={field.value ?? ''}
+                hasError={errors.dateOfBirth !== undefined}
+                onChange={(value) => field.onChange(value === '' ? null : value)}
+              />
+            )}
           />
         </FormField>
 

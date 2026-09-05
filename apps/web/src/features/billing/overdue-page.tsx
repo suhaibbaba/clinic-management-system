@@ -55,6 +55,7 @@ export function OverduePage(): JSX.Element {
     {
       key: 'patient',
       header: 'billing.columns.patient',
+      primary: true,
       render: (row) => (
         <span className="flex flex-col">
           <Link to={`/patients/${row.patientId}`} className="font-medium text-primary-700">
@@ -69,6 +70,7 @@ export function OverduePage(): JSX.Element {
     {
       key: 'balance',
       header: 'billing.columns.balance',
+      align: 'numeric',
       render: (row) => <Money amount={row.balance} currency={currency} className="font-medium" />,
     },
     {
