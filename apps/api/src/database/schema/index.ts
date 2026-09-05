@@ -11,3 +11,4 @@
  */
 export * from '@api/database/schema/core';
 export * from '@api/database/schema/patients';
+export * from '@api/database/schema/billing';

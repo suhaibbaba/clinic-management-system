@@ -13,12 +13,12 @@ import {
 import { desc, eq, inArray, sql, type SQL } from 'drizzle-orm';
 
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
+import { ChargesService } from '@api/billing/charges.service';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
+import { DATABASE, type Database, type DatabaseExecutor } from '@api/database/database.module';
 import { chartMarks, doctors, performedProcedures, specialties } from '@api/database/schema';
-import { BillingEventsService } from '@api/patients/billing-events.service';
 import { PatientAccessService } from '@api/patients/patient-access.service';
 import { ProcedureCatalogService } from '@api/patients/procedure-catalog.service';
 
@@ -34,7 +34,7 @@ export class ProceduresService implements OnModuleInit {
     private readonly scope: ClinicScopeService,
     private readonly patientAccess: PatientAccessService,
     private readonly catalog: ProcedureCatalogService,
-    private readonly billing: BillingEventsService,
+    private readonly charges: ChargesService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
   ) {}
 
@@ -133,45 +133,50 @@ export class ProceduresService implements OnModuleInit {
 
     await this.assertMarksMatchSpecialty(actor.clinicId, catalogItem.specialtyId, input.chartMarks);
 
-    const [row] = await this.db
-      .insert(performedProcedures)
-      .values({
+    // One transaction: the procedure, its chart marks and the charge it raises
+    // commit together or not at all. A procedure without its charge would be
+    // work nobody is ever billed for, and there is no way to detect it later.
+    return this.db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(performedProcedures)
+        .values({
+          clinicId: actor.clinicId,
+          patientId: input.patientId,
+          visitId: input.visitId ?? null,
+          doctorId: input.doctorId,
+          procedureId: input.procedureId,
+          price,
+          discount: input.discount,
+          discountReason: input.discountReason ?? null,
+          status: input.status,
+          planItemId: options.planItemId ?? null,
+          performedAt: input.performedAt ? new Date(input.performedAt) : new Date(),
+          notes: input.notes ?? null,
+          createdBy: actor.id,
+          updatedBy: actor.id,
+        })
+        .returning();
+
+      /* istanbul ignore next -- insert ... returning always yields a row. */
+      if (!row) {
+        throw new Error('Failed to create performed procedure');
+      }
+
+      const marks = await this.replaceMarks(tx, actor, row.id, input.chartMarks);
+
+      await this.charges.onProcedureRecorded(tx, {
         clinicId: actor.clinicId,
-        patientId: input.patientId,
-        visitId: input.visitId ?? null,
-        doctorId: input.doctorId,
-        procedureId: input.procedureId,
-        price,
-        discount: input.discount,
-        discountReason: input.discountReason ?? null,
-        status: input.status,
-        planItemId: options.planItemId ?? null,
-        performedAt: input.performedAt ? new Date(input.performedAt) : new Date(),
-        notes: input.notes ?? null,
-        createdBy: actor.id,
-        updatedBy: actor.id,
-      })
-      .returning();
+        patientId: row.patientId,
+        performedProcedureId: row.id,
+        price: row.price,
+        discount: row.discount,
+        discountReason: row.discountReason,
+        status: row.status,
+        actorId: actor.id,
+      });
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
-    if (!row) {
-      throw new Error('Failed to create performed procedure');
-    }
-
-    const marks = await this.replaceMarks(actor, row.id, input.chartMarks);
-
-    this.billing.onProcedureRecorded({
-      clinicId: actor.clinicId,
-      patientId: row.patientId,
-      performedProcedureId: row.id,
-      procedureId: row.procedureId,
-      price: row.price,
-      discount: row.discount,
-      discountReason: row.discountReason,
-      actorId: actor.id,
+      return toProcedure(row, marks);
     });
-
-    return toProcedure(row, marks);
   }
 
   async update(
@@ -200,82 +205,103 @@ export class ProceduresService implements OnModuleInit {
       );
     }
 
-    const [row] = await this.db
-      .update(performedProcedures)
-      .set({
-        ...(input.visitId !== undefined && { visitId: input.visitId ?? null }),
-        ...(input.doctorId !== undefined && { doctorId: input.doctorId }),
-        ...(input.procedureId !== undefined && { procedureId: input.procedureId }),
-        ...(input.price !== undefined && { price: input.price }),
-        ...(input.discount !== undefined && { discount: input.discount }),
-        ...(input.discountReason !== undefined && {
-          discountReason: input.discountReason ?? null,
-        }),
-        ...(input.status !== undefined && { status: input.status }),
-        ...(input.performedAt !== undefined && { performedAt: new Date(input.performedAt) }),
-        ...(input.notes !== undefined && { notes: input.notes ?? null }),
-        updatedAt: new Date(),
-        updatedBy: actor.id,
-      })
-      .where(this.scope.where(performedProcedures, actor.clinicId, eq(performedProcedures.id, id)))
-      .returning();
+    return this.db.transaction(async (tx) => {
+      const [row] = await tx
+        .update(performedProcedures)
+        .set({
+          ...(input.visitId !== undefined && { visitId: input.visitId ?? null }),
+          ...(input.doctorId !== undefined && { doctorId: input.doctorId }),
+          ...(input.procedureId !== undefined && { procedureId: input.procedureId }),
+          ...(input.price !== undefined && { price: input.price }),
+          ...(input.discount !== undefined && { discount: input.discount }),
+          ...(input.discountReason !== undefined && {
+            discountReason: input.discountReason ?? null,
+          }),
+          ...(input.status !== undefined && { status: input.status }),
+          ...(input.performedAt !== undefined && { performedAt: new Date(input.performedAt) }),
+          ...(input.notes !== undefined && { notes: input.notes ?? null }),
+          updatedAt: new Date(),
+          updatedBy: actor.id,
+        })
+        .where(
+          this.scope.where(performedProcedures, actor.clinicId, eq(performedProcedures.id, id)),
+        )
+        .returning();
 
-    /* istanbul ignore next -- the row was just loaded. */
-    if (!row) {
-      throw new Error('Failed to update performed procedure');
-    }
+      /* istanbul ignore next -- the row was just loaded. */
+      if (!row) {
+        throw new Error('Failed to update performed procedure');
+      }
 
-    const marks = input.chartMarks
-      ? await this.replaceMarks(actor, row.id, input.chartMarks)
-      : ((await this.marksFor(actor.clinicId, [row.id])).get(row.id) ?? []);
+      const marks = input.chartMarks
+        ? await this.replaceMarks(tx, actor, row.id, input.chartMarks)
+        : ((await this.marksFor(actor.clinicId, [row.id])).get(row.id) ?? []);
 
-    if (input.price !== undefined || input.discount !== undefined) {
-      this.billing.onProcedureAmended({
-        clinicId: actor.clinicId,
-        patientId: row.patientId,
-        performedProcedureId: row.id,
-        procedureId: row.procedureId,
-        price: row.price,
-        discount: row.discount,
-        discountReason: row.discountReason,
-        actorId: actor.id,
-      });
-    }
+      // What the patient owes is derived from price, discount and status, so a
+      // change to any of them re-bills. Never an update: the charge in force is
+      // reversed and the new figure appended (CLAUDE.md decision 2).
+      const rebills =
+        row.price !== existing.price ||
+        row.discount !== existing.discount ||
+        row.status !== existing.status;
 
-    return toProcedure(row, marks);
+      if (rebills) {
+        await this.charges.onProcedureAmended(tx, {
+          clinicId: actor.clinicId,
+          patientId: row.patientId,
+          performedProcedureId: row.id,
+          price: row.price,
+          discount: row.discount,
+          discountReason: row.discountReason,
+          status: row.status,
+          actorId: actor.id,
+        });
+      }
+
+      return toProcedure(row, marks);
+    });
   }
 
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.scope.findOneOrFail<ProcedureRow>(performedProcedures, actor.clinicId, id);
     const now = new Date();
 
-    await this.db
-      .update(performedProcedures)
-      .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
-      .where(this.scope.where(performedProcedures, actor.clinicId, eq(performedProcedures.id, id)));
+    await this.db.transaction(async (tx) => {
+      await tx
+        .update(performedProcedures)
+        .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
+        .where(
+          this.scope.where(performedProcedures, actor.clinicId, eq(performedProcedures.id, id)),
+        );
 
-    // Marks have no meaning without their procedure.
-    await this.db
-      .update(chartMarks)
-      .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
-      .where(this.scope.where(chartMarks, actor.clinicId, eq(chartMarks.performedProcedureId, id)));
+      // Marks have no meaning without their procedure.
+      await tx
+        .update(chartMarks)
+        .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
+        .where(
+          this.scope.where(chartMarks, actor.clinicId, eq(chartMarks.performedProcedureId, id)),
+        );
 
-    this.billing.onProcedureReversed({
-      clinicId: actor.clinicId,
-      performedProcedureId: id,
-      actorId: actor.id,
+      // The charge is not deleted with it — it is reversed, so the money that
+      // was once owed stays visible on the statement alongside its correction.
+      await this.charges.onProcedureReversed(tx, {
+        clinicId: actor.clinicId,
+        performedProcedureId: id,
+        actorId: actor.id,
+      });
     });
   }
 
   /** Marks are owned by their procedure, so a write replaces the whole set. */
   private async replaceMarks(
+    tx: DatabaseExecutor,
     actor: AuthenticatedUser,
     procedureId: string,
     marks: readonly CreateChartMarkInput[],
   ): Promise<ChartMark[]> {
     const now = new Date();
 
-    await this.db
+    await tx
       .update(chartMarks)
       .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
       .where(
@@ -290,7 +316,7 @@ export class ProceduresService implements OnModuleInit {
       return [];
     }
 
-    const rows = await this.db
+    const rows = await tx
       .insert(chartMarks)
       .values(
         marks.map((mark) => ({

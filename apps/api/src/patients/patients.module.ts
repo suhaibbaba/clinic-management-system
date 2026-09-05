@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 
+import { BillingModule } from '@api/billing/billing.module';
+
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import {
   AttachmentsController,
   PatientAttachmentsController,
 } from '@api/patients/attachments.controller';
 import { AttachmentsService } from '@api/patients/attachments.service';
-import { BillingEventsService } from '@api/patients/billing-events.service';
 import { MedicalHistoriesController } from '@api/patients/medical-histories.controller';
 import { MedicalHistoriesService } from '@api/patients/medical-histories.service';
 import { PatientAccessService } from '@api/patients/patient-access.service';
@@ -38,6 +39,7 @@ import { VisitsService } from '@api/patients/visits.service';
  * pulled forward rather than duplicated.
  */
 @Module({
+  imports: [BillingModule],
   controllers: [
     PatientsController,
     MedicalHistoriesController,
@@ -65,7 +67,6 @@ import { VisitsService } from '@api/patients/visits.service';
     TimelineService,
     PrescriptionsService,
     ProcedureCatalogService,
-    BillingEventsService,
   ],
   exports: [PatientAccessService, PatientsService, ProcedureCatalogService],
 })

@@ -3,6 +3,7 @@ export * from '@shared/enums';
 export * from '@shared/schemas/attachments';
 export * from '@shared/schemas/audit';
 export * from '@shared/schemas/auth';
+export * from '@shared/schemas/billing';
 export * from '@shared/schemas/chart-marks';
 export * from '@shared/schemas/clinics';
 export * from '@shared/schemas/common';

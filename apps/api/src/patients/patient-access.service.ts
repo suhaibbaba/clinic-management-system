@@ -51,4 +51,16 @@ export class PatientAccessService {
   static seesClinicalData(role: UserRole): boolean {
     return role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR;
   }
+
+  /**
+   * Whether the caller may see what a patient owes.
+   *
+   * ROLES.md lists `balance` on `PatientPublicView`, which goes to both the
+   * receptionist and the technician — but the field rules say a technician
+   * response must never carry financial patient data. The narrower rule wins,
+   * so the technician is the one role that sees no money.
+   */
+  static seesFinancialData(role: UserRole): boolean {
+    return role !== USER_ROLE.TECHNICIAN;
+  }
 }
