@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["vite/client"],
+    "paths": {
+      "@web/*": ["./src/*"],
+      /* The web app compiles the shared package's source, so it must resolve
+         that package's own alias too. */
+      "@shared/*": ["../../packages/shared/src/*"],
+      /* The web app consumes the shared package straight from source: Vite
+         compiles it, so an edit in packages/shared hot-reloads the browser. */
+      "@clinic/shared": ["../../packages/shared/src/index.ts"]
+    }
+  },
+  "include": ["src", "vite.config.ts"]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@clinic/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Zod schemas, shared types, enums and constants used by both the API and the web app.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput & tsc-alias -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "tsc-alias": "^1.9.4",
+    "typescript": "^5.9.3",
+    "zod": "^4.1.13"
+  }
+}

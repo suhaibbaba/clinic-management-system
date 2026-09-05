@@ -1,0 +1,20 @@
+{
+  "app": {
+    "title": "Clinic Management System"
+  },
+  "health": {
+    "title": "System status",
+    "loading": "Checking system status…",
+    "error": "Could not reach the API",
+    "api": "API",
+    "database": "Database",
+    "version": "Version",
+    "checkedAt": "Checked at",
+    "status": {
+      "ok": "Operational",
+      "degraded": "Degraded",
+      "up": "Connected",
+      "down": "Unreachable"
+    }
+  }
+}
