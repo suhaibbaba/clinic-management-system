@@ -20,7 +20,8 @@
     "optional": "اختياري",
     "yes": "نعم",
     "no": "لا",
-    "reset": "إعادة تعيين"
+    "reset": "إعادة تعيين",
+    "delete": "حذف"
   },
   "pagination": {
     "previous": "السابق",
@@ -35,7 +36,8 @@
     "clinic": "إعدادات العيادة",
     "audit": "سجل التدقيق",
     "profile": "حسابي",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "patients": "المرضى"
   },
   "roles": {
     "admin": "مدير",
@@ -233,7 +235,26 @@
       "billing": "الحساب المالي",
       "comingSoon": "هذا القسم قيد التطوير",
       "comingSoonHint": "سيتوفّر مع الوحدة الخاصة به."
-    }
+    },
+    "title": "المرضى",
+    "subtitle": "ابحث عن مريض بالاسم أو رقم الهاتف أو رقم الملف.",
+    "search": "بحث",
+    "searchPlaceholder": "الاسم، رقم الهاتف، أو رقم الملف…",
+    "create": "مريض جديد",
+    "created": "تم تسجيل المريض",
+    "openFile": "فتح الملف",
+    "fullName": "الاسم الكامل",
+    "dateOfBirth": "تاريخ الميلاد",
+    "gender": "الجنس",
+    "male": "ذكر",
+    "female": "أنثى",
+    "address": "العنوان",
+    "emergencyContactName": "جهة اتصال للطوارئ",
+    "emergencyContactPhone": "هاتف الطوارئ",
+    "empty": "لا يوجد مرضى مسجّلون بعد",
+    "emptyHint": "ابدأ بتسجيل أول مريض.",
+    "noMatches": "لا توجد نتائج مطابقة",
+    "noMatchesHint": "جرّب اسمًا آخر أو جزءًا من رقم الهاتف."
   },
   "chart": {
     "title": "مخطط الأسنان",
@@ -292,5 +313,86 @@
       "openFile": "فتح الملف",
       "recorded": "تم تسجيل المعالجة"
     }
+  },
+  "visits": {
+    "create": "تسجيل زيارة",
+    "edit": "تعديل الزيارة",
+    "created": "تم تسجيل الزيارة",
+    "updated": "تم تحديث الزيارة",
+    "count": "{{count}} زيارة",
+    "date": "تاريخ الزيارة",
+    "doctor": "الطبيب",
+    "complaint": "الشكوى",
+    "examination": "الفحص السريري",
+    "diagnosis": "التشخيص",
+    "notes": "ملاحظات",
+    "procedures": "المعالجات المنفّذة",
+    "noProcedures": "لا توجد معالجات مسجّلة في هذه الزيارة",
+    "procedureUpdated": "تم تحديث المعالجة",
+    "empty": "لا توجد زيارات مسجّلة",
+    "emptyHint": "سجّل أول زيارة لهذا المريض.",
+    "loadFailed": "تعذّر تحميل الزيارات."
+  },
+  "treatmentPlans": {
+    "create": "خطة جديدة",
+    "created": "تم إنشاء الخطة",
+    "defaultTitle": "خطة معالجة",
+    "count": "{{count}} خطة",
+    "plan": "الخطة",
+    "empty": "لا توجد خطط علاجية",
+    "emptyHint": "أنشئ خطة وأضف إليها المعالجات المقترحة.",
+    "loadFailed": "تعذّر تحميل الخطط العلاجية.",
+    "noItems": "لا توجد بنود في هذه الخطة",
+    "addItem": "إضافة بند",
+    "itemAdded": "تمت إضافة البند",
+    "itemCancelled": "تم إلغاء البند",
+    "cancelItem": "إلغاء",
+    "convert": "تحويل إلى معالجة",
+    "converted": "تم تحويل البند إلى معالجة",
+    "needsDoctor": "لا يوجد طبيب مسجّل في العيادة",
+    "status": "الحالة",
+    "estimatedPrice": "السعر التقديري",
+    "total": "الإجمالي التقديري",
+    "remaining": "المتبقّي",
+    "print": "طباعة",
+    "printTitle": "خطة معالجة",
+    "printDisclaimer": "الأسعار تقديرية وقابلة للتعديل حسب ما تستدعيه الحالة أثناء المعالجة.",
+    "signatureDoctor": "توقيع الطبيب",
+    "signaturePatient": "توقيع المريض",
+    "planStatus": {
+      "draft": "مسوّدة",
+      "active": "فعّالة",
+      "completed": "مكتملة",
+      "cancelled": "ملغاة"
+    },
+    "itemStatus": {
+      "planned": "مخطّط",
+      "converted": "منفّذ",
+      "cancelled": "ملغى"
+    }
+  },
+  "imaging": {
+    "type": "النوع",
+    "tooth": "السن",
+    "invalidTooth": "رقم سن غير صالح",
+    "upload": "رفع صورة",
+    "uploading": "جارٍ الرفع…",
+    "uploaded": "تم رفع الصورة",
+    "uploadHint": "JPEG أو PNG أو WebP أو TIFF أو DICOM أو PDF، بحد أقصى ٥٠ ميغابايت.",
+    "tooLarge": "حجم الملف يتجاوز الحد المسموح",
+    "unsupportedType": "نوع الملف غير مدعوم",
+    "deleted": "تم حذف الصورة",
+    "empty": "لا توجد صور لهذا المريض",
+    "emptyHint": "ارفع أول صورة شعاعية.",
+    "loadFailed": "تعذّر تحميل الصور.",
+    "types": {
+      "xray_panoramic": "بانوراما",
+      "xray_periapical": "ذروية",
+      "xray_bitewing": "عضّية",
+      "cbct": "طبقي مخروطي",
+      "clinical_photo": "صورة سريرية",
+      "document": "مستند"
+    },
+    "filterTooth": "تصفية حسب السن"
   }
 }

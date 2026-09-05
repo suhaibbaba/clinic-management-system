@@ -20,7 +20,8 @@
     "optional": "Optional",
     "yes": "Yes",
     "no": "No",
-    "reset": "Reset"
+    "reset": "Reset",
+    "delete": "Delete"
   },
   "pagination": {
     "previous": "Previous",
@@ -35,7 +36,8 @@
     "clinic": "Clinic settings",
     "audit": "Audit log",
     "profile": "My account",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "patients": "Patients"
   },
   "roles": {
     "admin": "Admin",
@@ -233,7 +235,26 @@
       "billing": "Billing",
       "comingSoon": "This section is not built yet",
       "comingSoonHint": "It arrives with its own module."
-    }
+    },
+    "title": "Patients",
+    "subtitle": "Find a patient by name, phone or file number.",
+    "search": "Search",
+    "searchPlaceholder": "Name, phone, or file number…",
+    "create": "New patient",
+    "created": "Patient registered",
+    "openFile": "Open file",
+    "fullName": "Full name",
+    "dateOfBirth": "Date of birth",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "address": "Address",
+    "emergencyContactName": "Emergency contact",
+    "emergencyContactPhone": "Emergency phone",
+    "empty": "No patients registered yet",
+    "emptyHint": "Start by registering the first patient.",
+    "noMatches": "No matching patients",
+    "noMatchesHint": "Try another name or part of a phone number."
   },
   "chart": {
     "title": "Tooth chart",
@@ -292,5 +313,86 @@
       "openFile": "Open file",
       "recorded": "Procedure recorded"
     }
+  },
+  "visits": {
+    "create": "Record a visit",
+    "edit": "Edit visit",
+    "created": "Visit recorded",
+    "updated": "Visit updated",
+    "count": "{{count}} visits",
+    "date": "Visit date",
+    "doctor": "Doctor",
+    "complaint": "Complaint",
+    "examination": "Examination",
+    "diagnosis": "Diagnosis",
+    "notes": "Notes",
+    "procedures": "Procedures performed",
+    "noProcedures": "Nothing recorded during this visit",
+    "procedureUpdated": "Procedure updated",
+    "empty": "No visits recorded",
+    "emptyHint": "Record this patient's first visit.",
+    "loadFailed": "Could not load visits."
+  },
+  "treatmentPlans": {
+    "create": "New plan",
+    "created": "Plan created",
+    "defaultTitle": "Treatment plan",
+    "count": "{{count}} plans",
+    "plan": "Plan",
+    "empty": "No treatment plans",
+    "emptyHint": "Create a plan and add the proposed procedures to it.",
+    "loadFailed": "Could not load treatment plans.",
+    "noItems": "This plan has no items",
+    "addItem": "Add item",
+    "itemAdded": "Item added",
+    "itemCancelled": "Item cancelled",
+    "cancelItem": "Cancel",
+    "convert": "Convert to procedure",
+    "converted": "Item converted to a procedure",
+    "needsDoctor": "No doctor is registered in this clinic",
+    "status": "Status",
+    "estimatedPrice": "Estimated price",
+    "total": "Estimated total",
+    "remaining": "Remaining",
+    "print": "Print",
+    "printTitle": "Treatment plan",
+    "printDisclaimer": "Prices are estimates and may change as treatment requires.",
+    "signatureDoctor": "Doctor's signature",
+    "signaturePatient": "Patient's signature",
+    "planStatus": {
+      "draft": "Draft",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "itemStatus": {
+      "planned": "Planned",
+      "converted": "Converted",
+      "cancelled": "Cancelled"
+    }
+  },
+  "imaging": {
+    "type": "Type",
+    "tooth": "Tooth",
+    "invalidTooth": "Not a valid tooth number",
+    "upload": "Upload image",
+    "uploading": "Uploading…",
+    "uploaded": "Image uploaded",
+    "uploadHint": "JPEG, PNG, WebP, TIFF, DICOM or PDF, up to 50 MB.",
+    "tooLarge": "File is larger than the limit",
+    "unsupportedType": "Unsupported file type",
+    "deleted": "Image deleted",
+    "empty": "No images for this patient",
+    "emptyHint": "Upload the first X-ray.",
+    "loadFailed": "Could not load images.",
+    "types": {
+      "xray_panoramic": "Panoramic",
+      "xray_periapical": "Periapical",
+      "xray_bitewing": "Bitewing",
+      "cbct": "CBCT",
+      "clinical_photo": "Clinical photo",
+      "document": "Document"
+    },
+    "filterTooth": "Filter by tooth"
   }
 }

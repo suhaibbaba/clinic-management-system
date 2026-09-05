@@ -9,6 +9,7 @@ import { LoginPage } from '@web/features/auth/login-page';
 import { ClinicPage } from '@web/features/clinic/clinic-page';
 import { DoctorsPage } from '@web/features/doctors/doctors-page';
 import { PatientPage } from '@web/features/patients/patient-page';
+import { PatientsPage } from '@web/features/patients/patients-page';
 import { ProfilePage } from '@web/features/profile/profile-page';
 import { UsersPage } from '@web/features/users/users-page';
 
@@ -39,7 +40,9 @@ export function AppRoutes(): JSX.Element {
           </RequireAuth>
         }
       >
-        <Route index element={<Navigate to="/doctors" replace />} />
+        <Route index element={<Navigate to="/patients" replace />} />
+        {/* Every role may look a patient up; the columns differ by role. */}
+        <Route path="/patients" element={<PatientsPage />} />
         <Route path="/doctors" element={<DoctorsPage />} />
         <Route path="/clinic" element={<ClinicPage />} />
         <Route path="/profile" element={<ProfilePage />} />

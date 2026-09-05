@@ -10,7 +10,10 @@ import {
   type PerformedProcedure,
   type ProcedureCatalogItem,
   type ToothHistory,
+  type TreatmentPlan,
+  type TreatmentPlanItem,
   type User,
+  type Visit,
 } from '@clinic/shared';
 
 export const CLINIC_ID = '11111111-1111-4111-8111-111111111111';
@@ -167,5 +170,88 @@ export function makeToothHistory(
     marks: makeProcedure(tooth).chartMarks ?? [],
     attachments: [] as Attachment[],
     ...overrides,
+  };
+}
+
+export function makeVisit(overrides: Partial<Visit> = {}): Visit {
+  return {
+    id: '88888888-8888-4888-8888-888888888888',
+    clinicId: CLINIC_ID,
+    patientId: PATIENT_ID,
+    doctorId: DOCTOR_ID,
+    visitDate: '2026-02-01T09:00:00.000Z',
+    complaint: 'ألم عند المضغ',
+    examination: 'نخر عميق على السطح الإطباقي',
+    diagnosis: 'التهاب لب سني عكوس',
+    notes: null,
+    createdAt: '2026-02-01T09:00:00.000Z',
+    updatedAt: '2026-02-01T09:00:00.000Z',
+    ...overrides,
+  };
+}
+
+export function makePlanItem(overrides: Partial<TreatmentPlanItem> = {}): TreatmentPlanItem {
+  return {
+    id: '99999999-9999-4999-8999-999999999999',
+    clinicId: CLINIC_ID,
+    treatmentPlanId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    procedureId: makeCatalogItem().id,
+    estimatedPrice: '60.00',
+    sortOrder: 0,
+    status: 'planned',
+    notes: null,
+    createdAt: '2026-02-01T09:00:00.000Z',
+    updatedAt: '2026-02-01T09:00:00.000Z',
+    ...overrides,
+  };
+}
+
+export function makeTreatmentPlan(overrides: Partial<TreatmentPlan> = {}): TreatmentPlan {
+  return {
+    id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    clinicId: CLINIC_ID,
+    patientId: PATIENT_ID,
+    doctorId: DOCTOR_ID,
+    title: 'خطة معالجة لثوية',
+    status: 'active',
+    notes: null,
+    createdAt: '2026-02-01T09:00:00.000Z',
+    updatedAt: '2026-02-01T09:00:00.000Z',
+    items: [makePlanItem()],
+    ...overrides,
+  };
+}
+
+export function makeAttachment(overrides: Partial<Attachment> = {}): Attachment {
+  return {
+    id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    clinicId: CLINIC_ID,
+    patientId: PATIENT_ID,
+    visitId: null,
+    type: 'xray_periapical',
+    filename: 'periapical-46.png',
+    mime: 'image/png',
+    sizeBytes: 2048,
+    tooth: 46,
+    note: null,
+    createdAt: '2026-02-01T09:00:00.000Z',
+    updatedAt: '2026-02-01T09:00:00.000Z',
+    ...overrides,
+  };
+}
+
+export function makeClinic() {
+  return {
+    id: CLINIC_ID,
+    name: 'عيادة النور',
+    logoKey: null,
+    phone: '+963110000000',
+    email: 'info@clinic.local',
+    address: 'دمشق، سوريا',
+    currency: 'USD',
+    workingHours: [],
+    settings: {},
+    createdAt: '2026-01-01T09:00:00.000Z',
+    updatedAt: '2026-01-01T09:00:00.000Z',
   };
 }
