@@ -174,16 +174,41 @@ rather than trusting the request. Reads return a signed GET that expires with
 
 Sign in at http://localhost:5173 with any seeded account. Screens, all Arabic and RTL:
 
-| Screen          | Route        | Who                                                               |
-| --------------- | ------------ | ----------------------------------------------------------------- |
-| Login           | `/login`     | anyone                                                            |
-| Doctors         | `/doctors`   | every role reads; admin writes; a doctor edits their own schedule |
-| Clinic settings | `/clinic`    | every role reads; admin edits                                     |
-| Users           | `/users`     | admin                                                             |
-| Audit log       | `/audit-log` | admin                                                             |
-| My account      | `/profile`   | every role                                                        |
+| Screen          | Route           | Who                                                               |
+| --------------- | --------------- | ----------------------------------------------------------------- |
+| Login           | `/login`        | anyone                                                            |
+| Doctors         | `/doctors`      | every role reads; admin writes; a doctor edits their own schedule |
+| Clinic settings | `/clinic`       | every role reads; admin edits                                     |
+| Users           | `/users`        | admin                                                             |
+| Audit log       | `/audit-log`    | admin                                                             |
+| My account      | `/profile`      | every role                                                        |
+| Patient file    | `/patients/:id` | admin and doctor; other roles are redirected away                 |
 
 Screenshots of each one live in [`docs/screenshots/`](./docs/screenshots).
+
+There is no patients list yet, so the patient file is reached by URL. The seeded patient with
+the fullest chart is file number `00001`:
+
+```bash
+docker compose exec postgres \
+  psql -U clinic -d clinic -tAc "select id from patients where file_number = '00001'"
+```
+
+### Tooth chart
+
+`/patients/:id` opens on an interactive FDI chart — 32 permanent teeth, 20 deciduous behind a
+toggle — drawn as one SVG with no charting library. A tooth's colour is **derived** from its
+procedures on every render, never stored: the procedure's status decides while work is planned
+or under way, and the catalog item's `chart_outcome` decides once it is done.
+
+Every tooth is a real button: arrow keys walk the arches, up and down cross between them,
+Enter opens the panel, and each tooth's accessible name states its condition in words — colour
+is never the only signal. Selecting a tooth opens a drawer with that tooth's history, a
+five-zone surface picker, and (for admin and doctor) prices and X-rays.
+
+The chart is pinned left-to-right inside the RTL page. It is anatomy drawn from the
+clinician's point of view, with the patient's right on the viewer's left; mirroring it with the
+page would put the wrong side of the mouth on the wrong side of the screen.
 
 The access token is held in memory only and the refresh token in an httpOnly cookie, so a
 reload silently re-authenticates and no script can read either. A 401 triggers one refresh and

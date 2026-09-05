@@ -1,5 +1,8 @@
 {
-  "app": { "title": "نظام إدارة العيادة", "shortTitle": "العيادة" },
+  "app": {
+    "title": "نظام إدارة العيادة",
+    "shortTitle": "العيادة"
+  },
   "common": {
     "save": "حفظ",
     "saving": "جارٍ الحفظ…",
@@ -155,8 +158,16 @@
     "empty": "لا توجد سجلات",
     "emptyHint": "ستظهر هنا التعديلات فور حدوثها",
     "systemUser": "النظام",
-    "actions": { "create": "إنشاء", "update": "تعديل", "delete": "حذف" },
-    "entities": { "users": "مستخدم", "doctors": "طبيب", "clinics": "عيادة" }
+    "actions": {
+      "create": "إنشاء",
+      "update": "تعديل",
+      "delete": "حذف"
+    },
+    "entities": {
+      "users": "مستخدم",
+      "doctors": "طبيب",
+      "clinics": "عيادة"
+    }
   },
   "profile": {
     "title": "حسابي",
@@ -196,6 +207,90 @@
     "database": "قاعدة البيانات",
     "version": "الإصدار",
     "checkedAt": "وقت الفحص",
-    "status": { "ok": "يعمل", "degraded": "يعمل جزئيًا", "up": "متصلة", "down": "غير متصلة" }
+    "status": {
+      "ok": "يعمل",
+      "degraded": "يعمل جزئيًا",
+      "up": "متصلة",
+      "down": "غير متصلة"
+    }
+  },
+  "patients": {
+    "fileNumber": "رقم الملف",
+    "age": "العمر",
+    "years": "{{count}} سنة",
+    "phone": "رقم الهاتف",
+    "balance": "الرصيد",
+    "balancePending": "يُحتسب مع وحدة الفوترة",
+    "allergies": "تحسّس",
+    "tabs": {
+      "label": "أقسام ملف المريض",
+      "chart": "مخطط الأسنان",
+      "visits": "الزيارات",
+      "treatmentPlans": "الخطط العلاجية",
+      "attachments": "الصور والمرفقات",
+      "prescriptions": "الوصفات",
+      "timeline": "الخط الزمني",
+      "billing": "الحساب المالي",
+      "comingSoon": "هذا القسم قيد التطوير",
+      "comingSoonHint": "سيتوفّر مع الوحدة الخاصة به."
+    }
+  },
+  "chart": {
+    "title": "مخطط الأسنان",
+    "legend": "دليل الألوان",
+    "dentition": "نوع الإطباق",
+    "permanent": "أسنان دائمة",
+    "deciduous": "أسنان لبنية",
+    "keyboardHint": "استخدم الأسهم للتنقّل بين الأسنان و Enter لفتح التفاصيل.",
+    "empty": "لا توجد معالجات مسجّلة بعد",
+    "emptyHint": "جميع الأسنان تظهر سليمة. اختر سنًّا لتسجيل أول معالجة.",
+    "loadFailed": "تعذّر تحميل معالجات المريض.",
+    "toothLabel": "السن {{tooth}} — {{state}}",
+    "toothLabelWithCount": "السن {{tooth}} — {{state}}، {{count}} معالجة",
+    "states": {
+      "healthy": "سليم",
+      "planned": "نخر / مخطّط",
+      "in_progress": "قيد المعالجة",
+      "filling": "حشوة",
+      "root_canal": "معالجة لبية",
+      "crown": "تاج",
+      "implant": "زرعة",
+      "bridge": "جسر",
+      "missing": "مفقود"
+    },
+    "surfaces": {
+      "legend": "سطوح السن",
+      "M": "إنسي",
+      "D": "وحشي",
+      "O": "إطباقي",
+      "B": "دهليزي",
+      "L": "لساني"
+    },
+    "procedureStatus": {
+      "planned": "مخطّط",
+      "in_progress": "قيد التنفيذ",
+      "done": "منجز"
+    },
+    "panel": {
+      "title": "السن",
+      "description": "تفاصيل السن المحدّد ومعالجاته.",
+      "history": "سجلّ المعالجات",
+      "noProcedures": "لا توجد معالجات على هذا السن",
+      "addProcedure": "تسجيل معالجة",
+      "procedure": "المعالجة",
+      "selectProcedure": "اختر المعالجة",
+      "doctor": "الطبيب",
+      "status": "الحالة",
+      "surfaces": "السطوح",
+      "price": "السعر",
+      "discount": "الحسم",
+      "discountReason": "سبب الحسم",
+      "discountNeedsReason": "الحسم يتطلّب ذكر السبب",
+      "date": "التاريخ",
+      "attachments": "الصور الشعاعية",
+      "noAttachments": "لا توجد صور لهذا السن",
+      "openFile": "فتح الملف",
+      "recorded": "تم تسجيل المعالجة"
+    }
   }
 }

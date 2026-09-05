@@ -1,0 +1,2 @@
+CREATE TYPE "public"."procedure_outcome" AS ENUM('filling', 'root_canal', 'crown', 'implant', 'bridge', 'missing');--> statement-breakpoint
+ALTER TABLE "procedure_catalog" ADD COLUMN "chart_outcome" "procedure_outcome";

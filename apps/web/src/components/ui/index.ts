@@ -1,5 +1,6 @@
 export { Badge, type BadgeTone } from '@web/components/ui/badge';
 export { Button, type ButtonProps } from '@web/components/ui/button';
+export { Drawer } from '@web/components/ui/drawer';
 export { EmptyState } from '@web/components/ui/empty-state';
 export { FormField } from '@web/components/ui/form-field';
 export { Input } from '@web/components/ui/input';

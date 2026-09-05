@@ -213,5 +213,84 @@
       "up": "Connected",
       "down": "Unreachable"
     }
+  },
+  "patients": {
+    "fileNumber": "File number",
+    "age": "Age",
+    "years": "{{count}} years",
+    "phone": "Phone",
+    "balance": "Balance",
+    "balancePending": "Computed with the billing module",
+    "allergies": "Allergies",
+    "tabs": {
+      "label": "Patient file sections",
+      "chart": "Tooth chart",
+      "visits": "Visits",
+      "treatmentPlans": "Treatment plans",
+      "attachments": "Attachments",
+      "prescriptions": "Prescriptions",
+      "timeline": "Timeline",
+      "billing": "Billing",
+      "comingSoon": "This section is not built yet",
+      "comingSoonHint": "It arrives with its own module."
+    }
+  },
+  "chart": {
+    "title": "Tooth chart",
+    "legend": "Colour key",
+    "dentition": "Dentition",
+    "permanent": "Permanent",
+    "deciduous": "Deciduous",
+    "keyboardHint": "Arrow keys move between teeth, Enter opens the details.",
+    "empty": "Nothing recorded yet",
+    "emptyHint": "Every tooth reads as healthy. Pick one to record the first procedure.",
+    "loadFailed": "Could not load this patient's procedures.",
+    "toothLabel": "Tooth {{tooth}} — {{state}}",
+    "toothLabelWithCount": "Tooth {{tooth}} — {{state}}, {{count}} procedures",
+    "states": {
+      "healthy": "Healthy",
+      "planned": "Caries / planned",
+      "in_progress": "In progress",
+      "filling": "Filling",
+      "root_canal": "Root canal",
+      "crown": "Crown",
+      "implant": "Implant",
+      "bridge": "Bridge",
+      "missing": "Missing"
+    },
+    "surfaces": {
+      "legend": "Tooth surfaces",
+      "M": "Mesial",
+      "D": "Distal",
+      "O": "Occlusal",
+      "B": "Buccal",
+      "L": "Lingual"
+    },
+    "procedureStatus": {
+      "planned": "Planned",
+      "in_progress": "In progress",
+      "done": "Done"
+    },
+    "panel": {
+      "title": "Tooth",
+      "description": "Details and procedures for the selected tooth.",
+      "history": "Procedure history",
+      "noProcedures": "Nothing recorded on this tooth",
+      "addProcedure": "Record a procedure",
+      "procedure": "Procedure",
+      "selectProcedure": "Select a procedure",
+      "doctor": "Doctor",
+      "status": "Status",
+      "surfaces": "Surfaces",
+      "price": "Price",
+      "discount": "Discount",
+      "discountReason": "Discount reason",
+      "discountNeedsReason": "A discount requires a reason",
+      "date": "Date",
+      "attachments": "X-rays",
+      "noAttachments": "No images for this tooth",
+      "openFile": "Open file",
+      "recorded": "Procedure recorded"
+    }
   }
 }

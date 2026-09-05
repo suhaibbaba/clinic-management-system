@@ -130,6 +130,70 @@ export const PERFORMED_PROCEDURE_STATUSES = [
   PERFORMED_PROCEDURE_STATUS.DONE,
 ] as const;
 
+/**
+ * What an interactive chart shows for one location — a tooth in a dental
+ * chart, and the same idea for whatever a future specialty charts.
+ *
+ * A location's state is *derived*, never stored: it comes from the performed
+ * procedures recorded against it (see `PROCEDURE_OUTCOME` below), so it cannot
+ * drift out of step with the record the way a stored status would.
+ */
+export const TOOTH_STATE = {
+  /** Nothing recorded. */
+  HEALTHY: 'healthy',
+  /** Caries or any procedure planned but not started. */
+  PLANNED: 'planned',
+  IN_PROGRESS: 'in_progress',
+  FILLING: 'filling',
+  ROOT_CANAL: 'root_canal',
+  CROWN: 'crown',
+  IMPLANT: 'implant',
+  BRIDGE: 'bridge',
+  MISSING: 'missing',
+} as const satisfies Record<string, string>;
+export type ToothState = EnumValue<typeof TOOTH_STATE>;
+
+export const TOOTH_STATES = [
+  TOOTH_STATE.HEALTHY,
+  TOOTH_STATE.PLANNED,
+  TOOTH_STATE.IN_PROGRESS,
+  TOOTH_STATE.FILLING,
+  TOOTH_STATE.ROOT_CANAL,
+  TOOTH_STATE.CROWN,
+  TOOTH_STATE.IMPLANT,
+  TOOTH_STATE.BRIDGE,
+  TOOTH_STATE.MISSING,
+] as const;
+
+/**
+ * What a *completed* procedure leaves behind on the chart, classified per
+ * catalog item rather than guessed from its name.
+ *
+ * This is configuration, not a code branch (CLAUDE.md architecture decision 1):
+ * a clinic that adds "veneer" to its catalog picks the outcome it charts as,
+ * and no client has to learn a new procedure name. A catalog item with no
+ * outcome — an examination, a cleaning, an X-ray — leaves the tooth as it was.
+ */
+export const PROCEDURE_OUTCOME = {
+  FILLING: TOOTH_STATE.FILLING,
+  ROOT_CANAL: TOOTH_STATE.ROOT_CANAL,
+  CROWN: TOOTH_STATE.CROWN,
+  IMPLANT: TOOTH_STATE.IMPLANT,
+  BRIDGE: TOOTH_STATE.BRIDGE,
+  /** Extractions: the tooth is gone. */
+  MISSING: TOOTH_STATE.MISSING,
+} as const satisfies Record<string, ToothState>;
+export type ProcedureOutcome = EnumValue<typeof PROCEDURE_OUTCOME>;
+
+export const PROCEDURE_OUTCOMES = [
+  PROCEDURE_OUTCOME.FILLING,
+  PROCEDURE_OUTCOME.ROOT_CANAL,
+  PROCEDURE_OUTCOME.CROWN,
+  PROCEDURE_OUTCOME.IMPLANT,
+  PROCEDURE_OUTCOME.BRIDGE,
+  PROCEDURE_OUTCOME.MISSING,
+] as const;
+
 /** Medical images and documents attached to a patient file. */
 export const ATTACHMENT_TYPE = {
   XRAY_PANORAMIC: 'xray_panoramic',

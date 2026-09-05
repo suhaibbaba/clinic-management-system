@@ -176,6 +176,50 @@ describe('Patient clinical records (e2e)', () => {
     });
   });
 
+  describe('chart outcome', () => {
+    it('round-trips the classification the chart colours a tooth by', async () => {
+      const response = await context.app.inject({
+        method: 'GET',
+        url: `/procedure-catalog/${fixtures.catalogId}`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toMatchObject({ chartOutcome: 'filling' });
+    });
+
+    it('accepts a procedure that charts nothing', async () => {
+      const response = await context.app.inject({
+        method: 'POST',
+        url: '/procedure-catalog',
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: {
+          specialtyId: clinic.specialtyId,
+          code: `CLEAN-${Date.now()}`,
+          nameAr: 'تنظيف وتقليح',
+          nameEn: 'Scaling',
+          defaultPrice: '40.00',
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      // An examination or a cleaning leaves the tooth as it was.
+      expect((response.json() as { chartOutcome: unknown }).chartOutcome).toBeNull();
+    });
+
+    it('rejects an outcome the chart cannot show', async () => {
+      const response = await context.app.inject({
+        method: 'PATCH',
+        url: `/procedure-catalog/${fixtures.catalogId}`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: { chartOutcome: 'healthy' },
+      });
+
+      // `healthy` is a tooth state, never something a procedure produces.
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
   describe('tooth history', () => {
     let historyPatientId: string;
 

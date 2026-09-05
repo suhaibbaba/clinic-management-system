@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import { CHART_TYPE, USER_ROLE } from '@clinic/shared';
+import { CHART_TYPE, PROCEDURE_OUTCOME, USER_ROLE } from '@clinic/shared';
 
 import { auth, type TestClinic, type TestContext } from '@test/helpers/test-app';
 
@@ -46,6 +46,7 @@ export async function seedClinicFixtures(
       nameAr: 'حشوة تجميلية',
       nameEn: 'Composite filling',
       defaultPrice: '60.00',
+      chartOutcome: PROCEDURE_OUTCOME.FILLING,
     },
   });
 
