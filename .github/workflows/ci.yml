@@ -104,6 +104,9 @@ jobs:
           cp .env.example .env
           docker compose config --quiet
           docker compose -f docker-compose.prod.yml config --quiet
+          # The sandbox stack is deployed from this file verbatim, so a typo in
+          # it would only ever surface on the server.
+          docker compose -f docker-compose.sandbox.yml config --quiet
 
       # Both images build from the repository root as a single context, so the
       # workspace (and packages/shared) is never duplicated per app.
