@@ -2,7 +2,7 @@
   "name": "@clinic/api",
   "version": "0.1.0",
   "private": true,
-  "description": "Clinic management system API \u2014 NestJS on the Fastify adapter.",
+  "description": "Clinic management system API — NestJS on the Fastify adapter.",
   "main": "dist/main.js",
   "files": [
     "dist",
@@ -17,6 +17,7 @@
     "test:watch": "jest --watch",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node dist/database/migrate.js",
+    "seed": "node dist/database/seed.js",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "clean": "rm -rf dist"
@@ -26,9 +27,11 @@
     "@nestjs/common": "^11.1.6",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.6",
+    "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-fastify": "^11.1.6",
+    "@node-rs/argon2": "^2.2.0",
     "drizzle-orm": "^0.44.6",
-    "nestjs-zod": "^4.3.1",
+    "nestjs-zod": "^5.5.0",
     "postgres": "^3.4.7",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
@@ -52,23 +55,30 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
+    "rootDir": ".",
+    "testRegex": ".*\\.(spec|e2e-spec)\\.ts$",
     "transform": {
       "^.+\\.ts$": [
         "ts-jest",
         {
-          "tsconfig": "<rootDir>/../tsconfig.json"
+          "tsconfig": "<rootDir>/tsconfig.json"
         }
       ]
     },
-    "collectCoverageFrom": [
-      "**/*.ts"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
     "moduleNameMapper": {
-      "^@api/(.*)$": "<rootDir>/$1"
-    }
+      "^@api/(.*)$": "<rootDir>/src/$1",
+      "^@test/(.*)$": "<rootDir>/test/$1"
+    },
+    "collectCoverageFrom": [
+      "src/**/*.ts"
+    ],
+    "coverageDirectory": "coverage",
+    "testEnvironment": "node",
+    "maxWorkers": 1,
+    "globalSetup": "<rootDir>/test/global-setup.ts",
+    "setupFiles": [
+      "<rootDir>/test/jest.setup.ts"
+    ],
+    "testTimeout": 30000
   }
 }

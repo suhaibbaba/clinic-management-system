@@ -13,6 +13,28 @@ jobs:
   quality:
     name: Lint, typecheck, build, test
     runs-on: ubuntu-latest
+
+    # The API tests run against a real Postgres so clinic scoping, the audit
+    # writes and the auth flow are exercised end to end rather than mocked.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: clinic
+          POSTGRES_PASSWORD: clinic_test_password
+          POSTGRES_DB: clinic_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U clinic -d clinic_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://clinic:clinic_test_password@localhost:5432/clinic_test
+      JWT_SECRET: ci-only-jwt-secret-value-at-least-32-characters
+
     steps:
       - uses: actions/checkout@v4
 
@@ -48,6 +70,23 @@ jobs:
   docker:
     name: Docker images
     runs-on: ubuntu-latest
+
+    # Used by the smoke test below, which boots the built API image for real.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: clinic
+          POSTGRES_PASSWORD: clinic_test_password
+          POSTGRES_DB: clinic_smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U clinic -d clinic_smoke"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - uses: actions/checkout@v4
 
@@ -67,9 +106,43 @@ jobs:
           context: .
           file: docker/api.Dockerfile
           push: false
+          load: true
           tags: clinic-api:ci
           cache-from: type=gha,scope=api
           cache-to: type=gha,scope=api,mode=max
+
+      # Building the image proves it compiles; running it proves the Alpine
+      # runtime actually works — in particular that argon2's musl native binding
+      # loads, which a build alone would never catch.
+      - name: Smoke-test the API image
+        run: |
+          set -euo pipefail
+          docker run -d --name api-smoke --network host \
+            -e DATABASE_URL=postgres://clinic:clinic_test_password@localhost:5432/clinic_smoke \
+            -e JWT_SECRET=ci-only-jwt-secret-value-at-least-32-characters \
+            clinic-api:ci sh -c "node dist/database/migrate.js && node dist/main.js"
+
+          for _ in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/health >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+
+          echo "--- /health ---"
+          curl -fsS http://localhost:3000/health | tee /tmp/health.json
+          grep -q '"database":"up"' /tmp/health.json
+
+          # A 401 rather than a 500 means argon2 hashed the decoy password
+          # natively instead of the module failing to load.
+          echo "--- login rejects unknown credentials ---"
+          status=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:3000/auth/login \
+            -H 'content-type: application/json' \
+            -d '{"identifier":"nobody@example.com","password":"whatever123"}')
+          echo "login status: $status"
+          test "$status" = "401"
+
+      - name: API container logs
+        if: always()
+        run: docker logs api-smoke || true
 
       - name: Build web image
         uses: docker/build-push-action@v6

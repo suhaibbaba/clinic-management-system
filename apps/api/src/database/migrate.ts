@@ -17,7 +17,7 @@ async function main(): Promise<void> {
     process.env['MIGRATIONS_FOLDER'] ?? join(__dirname, '..', '..', 'drizzle');
 
   // A single, non-pooled connection: migrations must not run concurrently.
-  const client = postgres(env.DATABASE_URL, { max: 1 });
+  const client = postgres(env.DATABASE_URL, { max: 1, onnotice: () => {} });
 
   try {
     await migrate(drizzle(client), { migrationsFolder });

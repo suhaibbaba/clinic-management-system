@@ -33,6 +33,18 @@ export const envSchema = z.object({
 
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'log', 'debug', 'verbose']).default('log'),
 
+  /**
+   * Signing key for access tokens. Must be replaced per environment — the value
+   * in .env.example is a development placeholder, not a secret.
+   */
+  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
+  /** Access tokens are short-lived; the refresh token carries the session. */
+  JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().max(86_400).default(900),
+  JWT_REFRESH_TTL_DAYS: z.coerce.number().int().positive().max(365).default(30),
+
+  /** Password given to every account created by `pnpm seed`. Development only. */
+  SEED_PASSWORD: z.string().min(8).default('ChangeMe123!'),
+
   /** Reported by /health so a running build can be identified. */
   APP_VERSION: z.string().min(1).default('0.1.0'),
 });
