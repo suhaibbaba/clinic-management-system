@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { CHART_TYPES } from '@shared/enums';
+import { paginationQuerySchema } from '@shared/schemas/common';
 
 /**
  * A clinic's specialty. `code` is free text validated against the known
@@ -30,3 +31,8 @@ export const specialtySummarySchema = specialtySchema.pick({
   chartType: true,
 });
 export type SpecialtySummary = z.infer<typeof specialtySummarySchema>;
+
+export const listSpecialtiesQuerySchema = paginationQuerySchema.extend({
+  isActive: z.stringbool().optional(),
+});
+export type ListSpecialtiesQuery = z.infer<typeof listSpecialtiesQuerySchema>;

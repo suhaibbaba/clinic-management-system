@@ -6,6 +6,7 @@ import { hash } from '@node-rs/argon2';
 import { CHART_TYPE, SPECIALTY_CODE, USER_ROLE, USER_ROLES, type UserRole } from '@clinic/shared';
 
 import { AppModule } from '@api/app.module';
+import { registerFastifyPlugins } from '@api/bootstrap';
 import { DATABASE, POSTGRES_CLIENT, type Database } from '@api/database/database.module';
 import { clinics, specialties, users } from '@api/database/schema';
 
@@ -51,6 +52,10 @@ export async function createTestContext(): Promise<TestContext> {
   const app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter(), {
     logger: false,
   });
+
+  // Same plugin set as the production bootstrap, so the harness exercises the
+  // real wiring rather than a subset of it.
+  await registerFastifyPlugins(app);
 
   await app.init();
   await app.getHttpAdapter().getInstance().ready();

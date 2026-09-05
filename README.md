@@ -4,9 +4,9 @@ Multi-clinic, multi-specialty clinic management system. Arabic (RTL) web UI, Nes
 PostgreSQL. See [CLAUDE.md](./CLAUDE.md) for architecture rules and [ROLES.md](./ROLES.md)
 for the authorization spec.
 
-> **Status: core module, part 1.** Clinics, specialties, users/roles, doctors, auth and the
-> audit log are implemented. The remaining domain modules (patients, billing, appointments, …)
-> are not scaffolded yet.
+> **Status: core module.** Clinics, specialties, users/roles, doctors, auth and the audit log
+> are implemented on the API, with the matching Arabic RTL screens on the web. The remaining
+> domain modules (patients, billing, appointments, …) are not scaffolded yet.
 
 ## Requirements
 
@@ -107,6 +107,36 @@ scoped to the caller's clinic, taken from the token — no endpoint accepts a `c
 | `GET`    | `/audit-log`            | admin                                 |
 
 The audit log has no write endpoint by design — it is immutable.
+
+## Web app
+
+Sign in at http://localhost:5173 with any seeded account. Screens, all Arabic and RTL:
+
+| Screen          | Route        | Who                                                               |
+| --------------- | ------------ | ----------------------------------------------------------------- |
+| Login           | `/login`     | anyone                                                            |
+| Doctors         | `/doctors`   | every role reads; admin writes; a doctor edits their own schedule |
+| Clinic settings | `/clinic`    | every role reads; admin edits                                     |
+| Users           | `/users`     | admin                                                             |
+| Audit log       | `/audit-log` | admin                                                             |
+| My account      | `/profile`   | every role                                                        |
+
+Screenshots of each one live in [`docs/screenshots/`](./docs/screenshots).
+
+The access token is held in memory only and the refresh token in an httpOnly cookie, so a
+reload silently re-authenticates and no script can read either. A 401 triggers one refresh and
+a replay of the original request; if that fails the app returns to the login screen.
+
+Sidebar entries and routes are filtered by role, which is presentation only — the API is the
+boundary, and every screen assumes it can be refused.
+
+### Base components
+
+`apps/web/src/components/ui` holds the pieces every later feature reuses: `Button`, `Input`,
+`Select`, `Table` (with `Pagination`), `Modal`, `ToastProvider`/`useToast`, `FormField`,
+`PageHeader`, `EmptyState`, `Badge` and `Switch`, plus a shared `ScheduleEditor`. They are
+RTL-correct by construction: logical properties (`ms-*`, `text-start`, `border-e`) rather than
+left/right, so nothing needs an RTL override.
 
 ## Production
 
