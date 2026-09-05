@@ -37,7 +37,8 @@
     "audit": "سجل التدقيق",
     "profile": "حسابي",
     "logout": "تسجيل الخروج",
-    "patients": "المرضى"
+    "patients": "المرضى",
+    "overdue": "الأرصدة المتأخرة"
   },
   "roles": {
     "admin": "مدير",
@@ -222,7 +223,6 @@
     "years": "{{count}} سنة",
     "phone": "رقم الهاتف",
     "balance": "الرصيد",
-    "balancePending": "يُحتسب مع وحدة الفوترة",
     "allergies": "تحسّس",
     "tabs": {
       "label": "أقسام ملف المريض",
@@ -394,5 +394,55 @@
       "document": "مستند"
     },
     "filterTooth": "تصفية حسب السن"
+  },
+  "billing": {
+    "outstanding": "الرصيد المستحق",
+    "dueToday": "مستحق اليوم",
+    "lastPayment": "آخر دفعة",
+    "recordPayment": "تسجيل دفعة",
+    "recordAndPrint": "تسجيل وطباعة الإيصال",
+    "paymentRecorded": "تم تسجيل الدفعة",
+    "amount": "المبلغ",
+    "method": "طريقة الدفع",
+    "note": "ملاحظات",
+    "methods": {
+      "cash": "نقداً",
+      "card": "بطاقة",
+      "transfer": "حوالة"
+    },
+    "receipt": "الإيصال",
+    "reverse": "إلغاء الدفعة",
+    "reversal": "قيد عكسي",
+    "reversePayment": "إلغاء دفعة",
+    "reverseExplainer": "لا تُحذف الدفعة، بل يُسجَّل قيد معاكس لها يبقى ظاهرًا في الكشف. المبلغ:",
+    "reason": "سبب الإلغاء",
+    "confirmReversal": "تأكيد الإلغاء",
+    "paymentReversed": "تم تسجيل القيد العكسي",
+    "downloadStatement": "تنزيل كشف الحساب",
+    "from": "من تاريخ",
+    "to": "إلى تاريخ",
+    "openingBalance": "رصيد أول المدة",
+    "empty": "لا توجد حركات مالية",
+    "emptyHint": "تظهر هنا الأعمال المنفَّذة والدفعات المسجَّلة.",
+    "kinds": {
+      "charge": "مبلغ مستحق",
+      "payment": "دفعة"
+    },
+    "columns": {
+      "date": "التاريخ",
+      "description": "البيان",
+      "charge": "مدين",
+      "payment": "دائن",
+      "balance": "الرصيد",
+      "patient": "المريض",
+      "lastPayment": "آخر دفعة",
+      "phone": "رقم الهاتف"
+    },
+    "overdueTitle": "الأرصدة المتأخرة",
+    "overdueSubtitle": "مرضى عليهم رصيد ولم يسدّدوا خلال المدة المحدّدة في إعدادات العيادة.",
+    "overdueEmpty": "لا توجد أرصدة متأخرة",
+    "overdueEmptyHint": "كل الأرصدة المستحقة ضمن المدة المسموحة.",
+    "daysAgo": "منذ {{count}} يوم",
+    "neverPaid": "لم يسدّد بعد"
   }
 }

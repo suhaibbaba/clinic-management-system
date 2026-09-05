@@ -5,6 +5,9 @@ import { useNavigate } from 'react-router-dom';
 
 import { Button, EmptyState, Input, PageHeader, Table, type Column } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
+import { Money } from '@web/features/billing/money';
+import { canSeeBilling } from '@web/features/billing/permissions';
+import { useClinic } from '@web/features/clinic/queries';
 import { PatientFormModal } from '@web/features/patients/patient-form-modal';
 import { canCreatePatient, seesClinicalPatientFields } from '@web/features/patients/permissions';
 import { usePatients } from '@web/features/patients/queries';
@@ -42,6 +45,9 @@ export function PatientsPage(): JSX.Element {
 
   const debouncedSearch = useDebounced(search);
   const showClinical = user ? seesClinicalPatientFields(user.role) : false;
+  const showBalance = user ? canSeeBilling(user.role) : false;
+  const clinic = useClinic();
+  const currency = clinic.data?.currency;
 
   const query = usePatients({
     page,
@@ -87,6 +93,22 @@ export function PatientsPage(): JSX.Element {
       });
     }
 
+    // ROLES.md lists `balance` on `PatientPublicView`, and the API computes it
+    // for every role but the technician — so the column exists exactly when
+    // the response carries it.
+    if (showBalance) {
+      base.push({
+        key: 'balance',
+        header: 'patients.balance',
+        render: (row) =>
+          row.balance === undefined ? (
+            '—'
+          ) : (
+            <Money amount={row.balance} currency={currency} signed />
+          ),
+      });
+    }
+
     base.push({
       key: 'actions',
       header: 'common.actions',
@@ -98,7 +120,7 @@ export function PatientsPage(): JSX.Element {
     });
 
     return base;
-  }, [showClinical, navigate, t]);
+  }, [showClinical, showBalance, currency, navigate, t]);
 
   const canCreate = user ? canCreatePatient(user.role) : false;
   const isSearching = search.trim() !== '';

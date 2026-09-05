@@ -8,11 +8,14 @@ import { ageInYears } from '@web/features/patients/patient-page';
 import ar from '@web/i18n/locales/ar.json';
 import { authTokens } from '@web/lib/auth-tokens';
 import {
+  makeBalance,
   makeCatalogItem,
+  makeClinic,
   makeDoctor,
   makePatient,
   makeProcedure,
   makeProfile,
+  makeStatement,
   makeToothHistory,
   paginated,
   PATIENT_ID,
@@ -37,6 +40,9 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse | unkno
       body: paginated([makeProcedure(46, { procedureId: CATALOG.id })]),
     },
     'GET /procedure-catalog': { status: 200, body: paginated([CATALOG]) },
+    'GET /clinic': { status: 200, body: makeClinic() },
+    [`GET /patients/${PATIENT_ID}/balance`]: { status: 200, body: makeBalance() },
+    [`GET /patients/${PATIENT_ID}/statement`]: { status: 200, body: makeStatement() },
     [`GET /patients/${PATIENT_ID}/teeth/46`]: { status: 200, body: makeToothHistory(46) },
     [`GET /patients/${PATIENT_ID}/teeth/16`]: {
       status: 200,
@@ -81,20 +87,30 @@ describe('Patient page', () => {
       expect(await findChart()).toBeInTheDocument();
     });
 
-    it.each([USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
-      'redirects %s away from the patient file',
-      async (role) => {
-        await renderPatientPage(role);
+    it('redirects a technician away from the patient file', async () => {
+      await renderPatientPage(USER_ROLE.TECHNICIAN);
 
-        // Sent to the default screen — the patients list, which they may read —
-        // rather than shown what they cannot open: naming the record would
-        // confirm it exists.
-        expect(await screen.findByRole('heading', { name: ar.patients.title })).toBeVisible();
+      // Sent to the default screen — the patients list, which they may read —
+      // rather than shown what they cannot open: naming the record would
+      // confirm it exists.
+      expect(await screen.findByRole('heading', { name: ar.patients.title })).toBeVisible();
 
-        expect(screen.queryByRole('group', { name: ar.chart.title })).not.toBeInTheDocument();
-        expect(screen.queryByText(makePatient().fullName)).not.toBeInTheDocument();
-      },
-    );
+      expect(screen.queryByRole('group', { name: ar.chart.title })).not.toBeInTheDocument();
+      expect(screen.queryByText(makePatient().fullName)).not.toBeInTheDocument();
+    });
+
+    it('opens the file for a receptionist with the account tab only', async () => {
+      await renderPatientPage(USER_ROLE.RECEPTIONIST);
+
+      // Taking payments is their job, so they reach the file — but the clinical
+      // tabs are not theirs, and the API would refuse them anyway.
+      expect(await screen.findByRole('tab', { name: ar.patients.tabs.billing })).toBeVisible();
+      expect(screen.queryByRole('tab', { name: ar.patients.tabs.chart })).not.toBeInTheDocument();
+      expect(screen.queryByRole('tab', { name: ar.patients.tabs.visits })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('tab', { name: ar.patients.tabs.attachments }),
+      ).not.toBeInTheDocument();
+    });
   });
 
   describe('header', () => {
@@ -103,7 +119,12 @@ describe('Patient page', () => {
 
       expect(await screen.findByText('00001')).toBeInTheDocument();
       expect(screen.getByText('+963931000001')).toBeInTheDocument();
-      expect(screen.getByText(ar.patients.balancePending)).toBeInTheDocument();
+    });
+
+    it('shows the balance the ledger computed', async () => {
+      await renderPatientPage(USER_ROLE.DOCTOR);
+
+      expect(await screen.findByText('100.00 USD')).toBeInTheDocument();
     });
 
     it('computes whole years, not part ones', () => {

@@ -103,28 +103,32 @@ describe('Patients list', () => {
       ).toBeInTheDocument();
     });
 
-    it.each([USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
-      'gives %s the public-view columns only',
-      async (role) => {
-        await renderList(role);
+    it.each([
+      // ROLES.md lists `balance` on the public view, but the field rules keep
+      // financial data out of a technician's response entirely — so only the
+      // receptionist gets the column.
+      [USER_ROLE.RECEPTIONIST, true],
+      [USER_ROLE.TECHNICIAN, false],
+    ])('gives %s the public-view columns only', async (role, withBalance) => {
+      await renderList(role as UserRole);
 
-        await screen.findByText(PATIENTS[0]!.fullName);
+      await screen.findByText(PATIENTS[0]!.fullName);
 
-        const headers = screen
-          .getAllByRole('columnheader')
-          .map((header) => header.textContent?.trim());
+      const headers = screen
+        .getAllByRole('columnheader')
+        .map((header) => header.textContent?.trim());
 
-        expect(headers).toEqual([
-          ar.patients.fileNumber,
-          ar.patients.fullName,
-          ar.patients.phone,
-          ar.patients.age,
-          ar.common.actions,
-        ]);
-        // The address is in the fixture but never in a public-view response.
-        expect(screen.queryByText('المالكي، دمشق')).not.toBeInTheDocument();
-      },
-    );
+      expect(headers).toEqual([
+        ar.patients.fileNumber,
+        ar.patients.fullName,
+        ar.patients.phone,
+        ar.patients.age,
+        ...(withBalance ? [ar.patients.balance] : []),
+        ar.common.actions,
+      ]);
+      // The address is in the fixture but never in a public-view response.
+      expect(screen.queryByText('المالكي، دمشق')).not.toBeInTheDocument();
+    });
   });
 
   describe('registering a patient', () => {

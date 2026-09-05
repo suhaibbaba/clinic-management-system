@@ -17,6 +17,11 @@ export interface NavItem {
  */
 export const NAV_ITEMS: readonly NavItem[] = [
   { to: '/patients', label: 'nav.patients', roles: USER_ROLES },
+  {
+    to: '/billing/overdue',
+    label: 'nav.overdue',
+    roles: [USER_ROLE.ADMIN, USER_ROLE.RECEPTIONIST],
+  },
   { to: '/doctors', label: 'nav.doctors', roles: USER_ROLES },
   { to: '/clinic', label: 'nav.clinic', roles: USER_ROLES },
   { to: '/users', label: 'nav.users', roles: [USER_ROLE.ADMIN] },

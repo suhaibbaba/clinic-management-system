@@ -1,6 +1,9 @@
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { USER_ROLE } from '@clinic/shared';
+
+import { useSession } from '@web/features/auth/session';
 import { useAllergyFlags } from '@web/features/patients/queries';
 
 /**
@@ -14,10 +17,16 @@ import { useAllergyFlags } from '@web/features/patients/queries';
  * The data comes from the narrow allergy-flags endpoint rather than the full
  * medical history: it is all this needs, and it is the one medical read a
  * technician is also allowed (ROLES.md).
+ *
+ * A receptionist gets no medical history at all, allergies included, so the
+ * query is not made rather than made and refused — a 403 in the console on
+ * every patient they open teaches everyone to ignore 403s.
  */
 export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element | null {
   const { t } = useTranslation();
-  const { data } = useAllergyFlags(patientId);
+  const { user } = useSession();
+  const mayRead = user !== null && user.role !== USER_ROLE.RECEPTIONIST;
+  const { data } = useAllergyFlags(patientId, mayRead);
 
   if (!data?.hasAllergies) {
     return null;

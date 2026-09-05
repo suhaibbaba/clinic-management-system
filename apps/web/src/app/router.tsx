@@ -6,6 +6,7 @@ import { AppLayout } from '@web/components/layout/app-layout';
 import { AuditPage } from '@web/features/audit/audit-page';
 import { RequireAuth, RequireRole } from '@web/features/auth/guards';
 import { LoginPage } from '@web/features/auth/login-page';
+import { OverduePage } from '@web/features/billing/overdue-page';
 import { ClinicPage } from '@web/features/clinic/clinic-page';
 import { DoctorsPage } from '@web/features/doctors/doctors-page';
 import { PatientPage } from '@web/features/patients/patient-page';
@@ -16,12 +17,18 @@ import { UsersPage } from '@web/features/users/users-page';
 const ADMIN_ONLY = [USER_ROLE.ADMIN] as const;
 
 /**
- * The patient file shows procedures, chart marks and attachments, which
- * ROLES.md gives to admin and doctor. A technician's read is limited to
- * lab-linked rows, which this screen cannot express, and a receptionist has
- * none of it — both are turned away here as well as by the API.
+ * The patient file.
+ *
+ * Its clinical tabs are admin and doctor only, but a receptionist opens the
+ * same file for the account tab — taking payments is their job (ROLES.md
+ * billing matrix) — and the page shows them nothing else. A technician has no
+ * reason to be here at all: no clinical detail they may read, and never any
+ * financial data.
  */
-const CLINICAL = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR] as const;
+const PATIENT_FILE = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST] as const;
+
+/** Overdue balances: admin and receptionist (ROLES.md billing matrix). */
+const BILLING = [USER_ROLE.ADMIN, USER_ROLE.RECEPTIONIST] as const;
 
 /**
  * Routes mirror the sidebar, and admin-only pages carry the same role check —
@@ -50,8 +57,17 @@ export function AppRoutes(): JSX.Element {
         <Route
           path="/patients/:id"
           element={
-            <RequireRole roles={CLINICAL} redirectTo="/">
+            <RequireRole roles={PATIENT_FILE} redirectTo="/">
               <PatientPage />
+            </RequireRole>
+          }
+        />
+
+        <Route
+          path="/billing/overdue"
+          element={
+            <RequireRole roles={BILLING} redirectTo="/">
+              <OverduePage />
             </RequireRole>
           }
         />

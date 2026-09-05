@@ -37,7 +37,8 @@
     "audit": "Audit log",
     "profile": "My account",
     "logout": "Sign out",
-    "patients": "Patients"
+    "patients": "Patients",
+    "overdue": "Overdue balances"
   },
   "roles": {
     "admin": "Admin",
@@ -222,7 +223,6 @@
     "years": "{{count}} years",
     "phone": "Phone",
     "balance": "Balance",
-    "balancePending": "Computed with the billing module",
     "allergies": "Allergies",
     "tabs": {
       "label": "Patient file sections",
@@ -394,5 +394,55 @@
       "document": "Document"
     },
     "filterTooth": "Filter by tooth"
+  },
+  "billing": {
+    "outstanding": "Outstanding balance",
+    "dueToday": "Due today",
+    "lastPayment": "Last payment",
+    "recordPayment": "Record payment",
+    "recordAndPrint": "Record and print receipt",
+    "paymentRecorded": "Payment recorded",
+    "amount": "Amount",
+    "method": "Method",
+    "note": "Note",
+    "methods": {
+      "cash": "Cash",
+      "card": "Card",
+      "transfer": "Transfer"
+    },
+    "receipt": "Receipt",
+    "reverse": "Reverse payment",
+    "reversal": "Reversing entry",
+    "reversePayment": "Reverse payment",
+    "reverseExplainer": "The payment is not deleted — an opposite entry is recorded and both stay on the statement. Amount:",
+    "reason": "Reason",
+    "confirmReversal": "Confirm reversal",
+    "paymentReversed": "Reversing entry recorded",
+    "downloadStatement": "Download statement",
+    "from": "From",
+    "to": "To",
+    "openingBalance": "Opening balance",
+    "empty": "No ledger entries",
+    "emptyHint": "Completed work and recorded payments appear here.",
+    "kinds": {
+      "charge": "Charge",
+      "payment": "Payment"
+    },
+    "columns": {
+      "date": "Date",
+      "description": "Description",
+      "charge": "Debit",
+      "payment": "Credit",
+      "balance": "Balance",
+      "patient": "Patient",
+      "lastPayment": "Last payment",
+      "phone": "Phone"
+    },
+    "overdueTitle": "Overdue balances",
+    "overdueSubtitle": "Patients who owe money and have not paid within the clinic's window.",
+    "overdueEmpty": "No overdue balances",
+    "overdueEmptyHint": "Every outstanding balance is inside the allowed window.",
+    "daysAgo": "{{count}} days ago",
+    "neverPaid": "Never paid"
   }
 }

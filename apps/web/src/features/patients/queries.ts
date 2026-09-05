@@ -61,10 +61,11 @@ export function usePatient(id: string): UseQueryResult<PatientClinicalView> {
   return useQuery({ queryKey: [PATIENT_KEY, id], queryFn: () => patientsApi.get(id) });
 }
 
-export function useAllergyFlags(id: string): UseQueryResult<AllergyFlags> {
+export function useAllergyFlags(id: string, enabled = true): UseQueryResult<AllergyFlags> {
   return useQuery({
     queryKey: [PATIENT_ALLERGIES_KEY, id],
     queryFn: () => patientsApi.allergyFlags(id),
+    enabled,
   });
 }
 

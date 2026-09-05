@@ -4,11 +4,12 @@ Multi-clinic, multi-specialty clinic management system. Arabic (RTL) web UI, Nes
 PostgreSQL. See [CLAUDE.md](./CLAUDE.md) for architecture rules and [ROLES.md](./ROLES.md)
 for the authorization spec.
 
-> **Status: core and patients.** Clinics, specialties, users/roles, doctors, auth and the audit
-> log are implemented, as is the patient record — medical history, visits, procedures and chart
-> marks, treatment plans, X-rays, prescriptions and the merged timeline — with Arabic RTL
-> screens for all of it. Billing and appointments are next; the patient file's last three tabs
-> are placeholders until they land.
+> **Status: core, patients and billing.** Clinics, specialties, users/roles, doctors, auth and
+> the audit log are implemented, as is the patient record — medical history, visits, procedures
+> and chart marks, treatment plans, X-rays, prescriptions and the merged timeline — and the
+> money: charges, payments, statements, printable receipts and overdue balances. Arabic RTL
+> screens for all of it. Appointments are next; the patient file's prescriptions and timeline
+> tabs are placeholders until they land.
 
 ## Requirements
 
@@ -172,20 +173,59 @@ then `confirm` records the metadata — reading size and content type back from 
 rather than trusting the request. Reads return a signed GET that expires with
 `STORAGE_DOWNLOAD_URL_TTL_SECONDS`; the object key never leaves the API.
 
+### Billing
+
+Money is a ledger, never a field. `charges` and `payments` are append-only, and every balance
+is `sum(charges) − sum(payments)` computed by a SQL aggregate on read — there is no stored
+balance anywhere, and no endpoint accepts one.
+
+A charge is written in the **same transaction** as the performed procedure that causes it, so a
+procedure and its charge can never disagree. Re-pricing or removing a procedure does not touch
+the original charge: it writes a reversing entry (the negative of it, pointing back through
+`reverses_id`) and, where there is still something to bill, a new charge beside it. A payment
+is corrected the same way, by an admin, and nothing is ever updated or deleted.
+
+| Method   | Path                                 | Roles                                        |
+| -------- | ------------------------------------ | -------------------------------------------- |
+| `GET`    | `/patients/:patientId/balance`       | admin, doctor, receptionist                  |
+| `GET`    | `/patients/:patientId/statement`     | admin, doctor, receptionist                  |
+| `GET`    | `/patients/:patientId/statement.pdf` | admin, doctor, receptionist                  |
+| `GET`    | `/payments`, `/payments/:id`         | admin, doctor, receptionist                  |
+| `GET`    | `/payments/:id/receipt`              | admin, doctor, receptionist (PDF)            |
+| `POST`   | `/payments`                          | admin, receptionist                          |
+| `POST`   | `/payments/:id/reverse`              | admin                                        |
+| `DELETE` | `/payments/:id`                      | admin (writes the reversal, deletes nothing) |
+| `GET`    | `/billing/overdue`                   | admin, receptionist                          |
+
+A technician sees none of it: ROLES.md lists `balance` on `PatientPublicView`, but its field
+rules forbid financial patient data in a technician response, and the narrower rule wins — the
+field is absent from their patient payload rather than sent as null.
+
+Receipt numbers are per clinic and gapless. They come from a `clinic_counters` row bumped
+inside the payment's own transaction, not a Postgres sequence: `nextval` does not roll back, so
+a failed payment would burn a number out of a document series the clinic has to account for.
+
+Statements and receipts are PDFs rendered by pdf-lib with Amiri embedded — no headless browser,
+because the API is meant to run beside Postgres on one small VPS. Arabic is shaped in-repo into
+Unicode presentation forms and ordered by `bidi-js`, and technical values (a phone number, a
+date range) are drawn as explicit left-to-right islands. See
+[`docs/screenshots/billing-statement-pdf.png`](./docs/screenshots/billing-statement-pdf.png).
+
 ## Web app
 
 Sign in at http://localhost:5173 with any seeded account. Screens, all Arabic and RTL:
 
-| Screen          | Route           | Who                                                               |
-| --------------- | --------------- | ----------------------------------------------------------------- |
-| Login           | `/login`        | anyone                                                            |
-| Doctors         | `/doctors`      | every role reads; admin writes; a doctor edits their own schedule |
-| Clinic settings | `/clinic`       | every role reads; admin edits                                     |
-| Users           | `/users`        | admin                                                             |
-| Audit log       | `/audit-log`    | admin                                                             |
-| My account      | `/profile`      | every role                                                        |
-| Patients        | `/patients`     | every role; the columns shown depend on the role                  |
-| Patient file    | `/patients/:id` | admin and doctor; other roles are redirected away                 |
+| Screen           | Route              | Who                                                               |
+| ---------------- | ------------------ | ----------------------------------------------------------------- |
+| Login            | `/login`           | anyone                                                            |
+| Doctors          | `/doctors`         | every role reads; admin writes; a doctor edits their own schedule |
+| Clinic settings  | `/clinic`          | every role reads; admin edits                                     |
+| Users            | `/users`           | admin                                                             |
+| Audit log        | `/audit-log`       | admin                                                             |
+| My account       | `/profile`         | every role                                                        |
+| Patients         | `/patients`        | every role; the columns shown depend on the role                  |
+| Patient file     | `/patients/:id`    | admin, doctor; a receptionist sees the account tab only           |
+| Overdue balances | `/billing/overdue` | admin and receptionist                                            |
 
 Screenshots of each one live in [`docs/screenshots/`](./docs/screenshots).
 
