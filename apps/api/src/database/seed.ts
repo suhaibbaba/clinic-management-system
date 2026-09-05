@@ -72,7 +72,7 @@ const ACCOUNTS: readonly SeedAccount[] = [
 async function main(): Promise<void> {
   const env = validateEnv(process.env);
 
-  if (env.NODE_ENV === 'production') {
+  if (env.NODE_ENV === 'production' && process.env.SEED_ON_BOOT !== 'true') {
     throw new Error('Refusing to seed a production database');
   }
 
