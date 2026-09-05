@@ -382,21 +382,57 @@ The API applies any migrations the restored dump predates on its next start.
 
 ## 6. Troubleshooting
 
-| Symptom                                          | Cause                                                                                                  |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| Deploy fails: `missing /opt/clinic/sandbox/.env` | Section 2 was skipped                                                                                  |
-| Deploy fails: `not a git checkout`               | `/opt/clinic/sandbox` is not a clone of this repository — section 2                                    |
-| Deploy fails during `build`                      | Read the step's log: it is a real build error, the same one `pnpm build` would give                    |
-| Build killed, or the box goes unresponsive       | Out of RAM. Give the VPS swap, or build one service at a time                                          |
-| `no configuration file provided`                 | A compose call without `-f docker-compose.sandbox.yml`                                                 |
-| Compose acts on the wrong services               | Same cause: a bare call picks up `docker-compose.yml`, the development stack                           |
-| `502` from nginx                                 | Container down or not yet healthy: `docker compose -p clinic-sandbox -f docker-compose.sandbox.yml ps` |
-| Healthcheck step fails with `"database":"down"`  | `DATABASE_URL` and `POSTGRES_PASSWORD` disagree, or postgres failed to start                           |
-| Uploads fail with `SignatureDoesNotMatch`        | The S3 block rewrites `Host`, or `STORAGE_ENDPOINT` is not the public hostname                         |
-| Uploads fail with `413`                          | `client_max_body_size` on the S3 server block                                                          |
-| Presigned URL times out from the browser         | DNS for `clinic-sandbox-s3.organza-moda.com` or the S3 block is missing                                |
-| API logs `getaddrinfo ENOTFOUND` for the S3 host | Container cannot resolve the public hostname — see "Why the S3 hostname is public"                     |
-| Port already in use on 15000/15080/15900         | Another project took it; these are fixed, so free the port rather than changing it                     |
+| Symptom                                                     | Cause                                                                                                  |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Deploy fails: `missing /opt/clinic/sandbox/.env`            | Section 2 was skipped                                                                                  |
+| Deploy fails: `not a git checkout`                          | `/opt/clinic/sandbox` is not a clone of this repository — section 2                                    |
+| Deploy fails during `build`                                 | Read the step's log: it is a real build error, the same one `pnpm build` would give                    |
+| Build killed, or the box goes unresponsive                  | Out of RAM. Give the VPS swap, or build one service at a time                                          |
+| `no configuration file provided`                            | A compose call without `-f docker-compose.sandbox.yml`                                                 |
+| Compose acts on the wrong services                          | Same cause: a bare call picks up `docker-compose.yml`, the development stack                           |
+| `502` from nginx                                            | Container down or not yet healthy: `docker compose -p clinic-sandbox -f docker-compose.sandbox.yml ps` |
+| Deploy fails: `container clinic-sandbox-api-1 is unhealthy` | The API container exited on boot — see below                                                           |
+| Healthcheck step fails with `"database":"down"`             | `DATABASE_URL` and `POSTGRES_PASSWORD` disagree, or postgres failed to start                           |
+| Uploads fail with `SignatureDoesNotMatch`                   | The S3 block rewrites `Host`, or `STORAGE_ENDPOINT` is not the public hostname                         |
+| Uploads fail with `413`                                     | `client_max_body_size` on the S3 server block                                                          |
+| Presigned URL times out from the browser                    | DNS for `clinic-sandbox-s3.organza-moda.com` or the S3 block is missing                                |
+| API logs `getaddrinfo ENOTFOUND` for the S3 host            | Container cannot resolve the public hostname — see "Why the S3 hostname is public"                     |
+| Port already in use on 15000/15080/15900                    | Another project took it; these are fixed, so free the port rather than changing it                     |
+
+### When the API container will not start
+
+`up -d` waits for the api service to become healthy, so a container that exits
+on boot surfaces as `dependency failed to start: container clinic-sandbox-api-1
+is unhealthy` — with `web` never starting. The deploy job dumps the api and
+postgres logs on failure; the same thing by hand:
+
+```bash
+cd /opt/clinic/sandbox
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml ps -a
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml logs --tail=80 api
+```
+
+The container runs `migrate → (seed) → serve` under `set -e`, so it exits on the
+first failure and the last lines of that log name it. The usual causes, in order
+of how often they bite:
+
+| In the log                                               | Fix                                                                                                                                         |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `password authentication failed for user "clinic"`       | `DATABASE_URL` still carries the placeholder password while `POSTGRES_PASSWORD` was changed. They embed the same secret twice — change both |
+| `Invalid environment variables:` followed by field names | A value in `.env` is missing or malformed; the API refuses to boot rather than half-configure itself                                        |
+| `getaddrinfo ENOTFOUND postgres`                         | `DATABASE_URL` points somewhere other than the `postgres` service name                                                                      |
+| A seed error                                             | Set `SEED_ON_BOOT=false` to get the API up, then investigate the seed separately                                                            |
+
+Changing `POSTGRES_PASSWORD` after the first boot does **not** change the
+password Postgres already stored in `clinic_pg_data` — the volume was
+initialised with the old one. Either put it back, or drop the volume and start
+clean, which on a sandbox is usually the quicker answer:
+
+```bash
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml down
+docker volume rm clinic-sandbox_clinic_pg_data
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml up -d
+```
 
 **No credentials belong in this file, in the repository, or in a workflow log.**
 Everything secret lives in `/opt/clinic/sandbox/.env` on the server and in
