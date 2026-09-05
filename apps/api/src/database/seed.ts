@@ -12,6 +12,7 @@ import postgres from 'postgres';
 
 import { validateEnv } from '@api/config/env.schema';
 import { clinics, doctors, specialties, users } from '@api/database/schema';
+import { seedPatients } from '@api/database/seed-patients';
 
 /**
  * Development seed: one clinic, the dental specialty, and one account per role.
@@ -94,11 +95,21 @@ async function main(): Promise<void> {
     }
 
     const doctorAccount = created.find((entry) => entry.account.role === USER_ROLE.DOCTOR);
-    if (doctorAccount) {
-      await upsertDoctor(db, clinic.id, doctorAccount.id, specialty.id);
+    const adminAccount = created.find((entry) => entry.account.role === USER_ROLE.ADMIN);
+    let seededPatients = 0;
+
+    if (doctorAccount && adminAccount) {
+      const doctorId = await upsertDoctor(db, clinic.id, doctorAccount.id, specialty.id);
+
+      seededPatients = await seedPatients(db, {
+        clinicId: clinic.id,
+        specialtyId: specialty.id,
+        doctorId,
+        actorId: adminAccount.id,
+      });
     }
 
-    report(clinic.name, created, env.SEED_PASSWORD);
+    report(clinic.name, created, env.SEED_PASSWORD, seededPatients);
   } finally {
     await client.end();
   }
@@ -217,7 +228,7 @@ async function upsertDoctor(
   clinicId: string,
   userId: string,
   specialtyId: string,
-): Promise<void> {
+): Promise<string> {
   const [existing] = await db
     .select({ id: doctors.id })
     .from(doctors)
@@ -225,24 +236,34 @@ async function upsertDoctor(
     .limit(1);
 
   if (existing) {
-    return;
+    return existing.id;
   }
 
-  await db.insert(doctors).values({
-    clinicId,
-    userId,
-    specialtyId,
-    weeklySchedule: WEEKDAY_HOURS,
-    defaultAppointmentDurationMinutes: 30,
-    createdBy: userId,
-    updatedBy: userId,
-  });
+  const [row] = await db
+    .insert(doctors)
+    .values({
+      clinicId,
+      userId,
+      specialtyId,
+      weeklySchedule: WEEKDAY_HOURS,
+      defaultAppointmentDurationMinutes: 30,
+      createdBy: userId,
+      updatedBy: userId,
+    })
+    .returning({ id: doctors.id });
+
+  if (!row) {
+    throw new Error('Failed to create the seed doctor');
+  }
+
+  return row.id;
 }
 
 function report(
   clinicName: string,
   created: { account: SeedAccount; id: string }[],
   password: string,
+  seededPatients: number,
 ): void {
   const lines = [
     '',
@@ -255,6 +276,10 @@ function report(
     ),
     '',
     `  password (all accounts): ${password}`,
+    '',
+    seededPatients > 0
+      ? `Seeded ${seededPatients} patients with histories, visits, procedures and a treatment plan.`
+      : 'Patient data already present — left untouched.',
     '',
     'Development credentials only — change SEED_PASSWORD before any shared environment.',
     '',

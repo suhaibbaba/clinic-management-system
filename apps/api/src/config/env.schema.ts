@@ -49,6 +49,26 @@ export const envSchema = z.object({
    */
   AUTH_COOKIE_PATH: z.string().min(1).default('/'),
 
+  /* ---------------------------- Object storage --------------------------- */
+
+  /**
+   * S3-compatible endpoint. Cloudflare R2 in production, MinIO in the dev
+   * stack — the API only ever speaks the S3 API, so nothing needs real R2
+   * credentials to run locally.
+   */
+  STORAGE_ENDPOINT: z.string().regex(/^https?:\/\/.+/, 'STORAGE_ENDPOINT must be a URL'),
+  /** R2 ignores the region but the SDK requires one; `auto` is R2's convention. */
+  STORAGE_REGION: z.string().min(1).default('auto'),
+  STORAGE_BUCKET: z.string().min(1),
+  STORAGE_ACCESS_KEY_ID: z.string().min(1),
+  STORAGE_SECRET_ACCESS_KEY: z.string().min(1),
+  /** MinIO needs path-style addressing; R2 does not. */
+  STORAGE_FORCE_PATH_STYLE: z.stringbool().default(false),
+  /** Presigned upload URLs are single-use in practice and short-lived. */
+  STORAGE_UPLOAD_URL_TTL_SECONDS: z.coerce.number().int().positive().max(3600).default(300),
+  /** Medical images are never public; every read is a fresh short-lived URL. */
+  STORAGE_DOWNLOAD_URL_TTL_SECONDS: z.coerce.number().int().positive().max(3600).default(300),
+
   /** Password given to every account created by `pnpm seed`. Development only. */
   SEED_PASSWORD: z.string().min(8).default('ChangeMe123!'),
 

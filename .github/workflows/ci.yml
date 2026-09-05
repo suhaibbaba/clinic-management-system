@@ -34,6 +34,13 @@ jobs:
     env:
       DATABASE_URL: postgres://clinic:clinic_test_password@localhost:5432/clinic_test
       JWT_SECRET: ci-only-jwt-secret-value-at-least-32-characters
+      # Presigning is offline, so the storage tests need a configured client but
+      # no bucket to talk to; the one networked call is stubbed in the suite.
+      STORAGE_ENDPOINT: http://localhost:9000
+      STORAGE_BUCKET: clinic-test-files
+      STORAGE_ACCESS_KEY_ID: ci_access_key
+      STORAGE_SECRET_ACCESS_KEY: ci_secret_key
+      STORAGE_FORCE_PATH_STYLE: "true"
 
     steps:
       - uses: actions/checkout@v4
@@ -120,6 +127,11 @@ jobs:
           docker run -d --name api-smoke --network host \
             -e DATABASE_URL=postgres://clinic:clinic_test_password@localhost:5432/clinic_smoke \
             -e JWT_SECRET=ci-only-jwt-secret-value-at-least-32-characters \
+            -e STORAGE_ENDPOINT=http://localhost:9000 \
+            -e STORAGE_BUCKET=clinic-smoke-files \
+            -e STORAGE_ACCESS_KEY_ID=ci_access_key \
+            -e STORAGE_SECRET_ACCESS_KEY=ci_secret_key \
+            -e STORAGE_FORCE_PATH_STYLE=true \
             clinic-api:ci sh -c "node dist/database/migrate.js && node dist/main.js"
 
           for _ in $(seq 1 30); do

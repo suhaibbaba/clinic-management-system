@@ -75,6 +75,107 @@ export const AUDIT_ACTIONS = [
   AUDIT_ACTION.DELETE,
 ] as const;
 
+/** Patient sex as recorded on the file. */
+export const GENDER = {
+  MALE: 'male',
+  FEMALE: 'female',
+} as const satisfies Record<string, string>;
+export type Gender = EnumValue<typeof GENDER>;
+
+export const GENDERS = [GENDER.MALE, GENDER.FEMALE] as const;
+
+/** Lifecycle of a treatment plan. */
+export const TREATMENT_PLAN_STATUS = {
+  DRAFT: 'draft',
+  ACTIVE: 'active',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+} as const satisfies Record<string, string>;
+export type TreatmentPlanStatus = EnumValue<typeof TREATMENT_PLAN_STATUS>;
+
+export const TREATMENT_PLAN_STATUSES = [
+  TREATMENT_PLAN_STATUS.DRAFT,
+  TREATMENT_PLAN_STATUS.ACTIVE,
+  TREATMENT_PLAN_STATUS.COMPLETED,
+  TREATMENT_PLAN_STATUS.CANCELLED,
+] as const;
+
+/**
+ * A plan item is `converted` exactly once, when it becomes a performed
+ * procedure. Transitions are validated in the service (CLAUDE.md decision 7).
+ */
+export const TREATMENT_PLAN_ITEM_STATUS = {
+  PLANNED: 'planned',
+  CONVERTED: 'converted',
+  CANCELLED: 'cancelled',
+} as const satisfies Record<string, string>;
+export type TreatmentPlanItemStatus = EnumValue<typeof TREATMENT_PLAN_ITEM_STATUS>;
+
+export const TREATMENT_PLAN_ITEM_STATUSES = [
+  TREATMENT_PLAN_ITEM_STATUS.PLANNED,
+  TREATMENT_PLAN_ITEM_STATUS.CONVERTED,
+  TREATMENT_PLAN_ITEM_STATUS.CANCELLED,
+] as const;
+
+export const PERFORMED_PROCEDURE_STATUS = {
+  PLANNED: 'planned',
+  IN_PROGRESS: 'in_progress',
+  DONE: 'done',
+} as const satisfies Record<string, string>;
+export type PerformedProcedureStatus = EnumValue<typeof PERFORMED_PROCEDURE_STATUS>;
+
+export const PERFORMED_PROCEDURE_STATUSES = [
+  PERFORMED_PROCEDURE_STATUS.PLANNED,
+  PERFORMED_PROCEDURE_STATUS.IN_PROGRESS,
+  PERFORMED_PROCEDURE_STATUS.DONE,
+] as const;
+
+/** Medical images and documents attached to a patient file. */
+export const ATTACHMENT_TYPE = {
+  XRAY_PANORAMIC: 'xray_panoramic',
+  XRAY_PERIAPICAL: 'xray_periapical',
+  XRAY_BITEWING: 'xray_bitewing',
+  CBCT: 'cbct',
+  CLINICAL_PHOTO: 'clinical_photo',
+  DOCUMENT: 'document',
+} as const satisfies Record<string, string>;
+export type AttachmentType = EnumValue<typeof ATTACHMENT_TYPE>;
+
+export const ATTACHMENT_TYPES = [
+  ATTACHMENT_TYPE.XRAY_PANORAMIC,
+  ATTACHMENT_TYPE.XRAY_PERIAPICAL,
+  ATTACHMENT_TYPE.XRAY_BITEWING,
+  ATTACHMENT_TYPE.CBCT,
+  ATTACHMENT_TYPE.CLINICAL_PHOTO,
+  ATTACHMENT_TYPE.DOCUMENT,
+] as const;
+
+/** Kinds of entry the merged patient timeline can contain. */
+export const TIMELINE_ENTRY_TYPE = {
+  VISIT: 'visit',
+  PROCEDURE: 'procedure',
+  ATTACHMENT: 'attachment',
+  PRESCRIPTION: 'prescription',
+  TREATMENT_PLAN: 'treatment_plan',
+  /** Reserved for the appointments module. */
+  APPOINTMENT: 'appointment',
+  /** Reserved for the billing module. */
+  PAYMENT: 'payment',
+  CHARGE: 'charge',
+} as const satisfies Record<string, string>;
+export type TimelineEntryType = EnumValue<typeof TIMELINE_ENTRY_TYPE>;
+
+export const TIMELINE_ENTRY_TYPES = [
+  TIMELINE_ENTRY_TYPE.VISIT,
+  TIMELINE_ENTRY_TYPE.PROCEDURE,
+  TIMELINE_ENTRY_TYPE.ATTACHMENT,
+  TIMELINE_ENTRY_TYPE.PRESCRIPTION,
+  TIMELINE_ENTRY_TYPE.TREATMENT_PLAN,
+  TIMELINE_ENTRY_TYPE.APPOINTMENT,
+  TIMELINE_ENTRY_TYPE.PAYMENT,
+  TIMELINE_ENTRY_TYPE.CHARGE,
+] as const;
+
 /** Placeholder — filled in by the `appointments` module. */
 export const APPOINTMENT_STATUS = {} as const satisfies Record<string, string>;
 export type AppointmentStatus = EnumValue<typeof APPOINTMENT_STATUS>;

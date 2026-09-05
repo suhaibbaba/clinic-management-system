@@ -12,13 +12,15 @@ import { AppConfigModule } from '@api/config/config.module';
 import { DatabaseModule } from '@api/database/database.module';
 import { DoctorsModule } from '@api/doctors/doctors.module';
 import { HealthModule } from '@api/health/health.module';
+import { PatientsModule } from '@api/patients/patients.module';
 import { SpecialtiesModule } from '@api/specialties/specialties.module';
+import { StorageModule } from '@api/storage/storage.module';
 import { UsersModule } from '@api/users/users.module';
 
 /**
  * Root module. Domain modules are added here as the phases in CLAUDE.md are
- * built; this is the `core` module (clinics, specialties, doctors, users/roles,
- * settings, audit log).
+ * built: `core` (clinics, specialties, doctors, users/roles, settings, audit
+ * log) and `patients` (the patient record and everything attached to it).
  */
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { UsersModule } from '@api/users/users.module';
     DoctorsModule,
     ClinicsModule,
     SpecialtiesModule,
+    StorageModule,
+    PatientsModule,
   ],
   providers: [
     // Global validation: every DTO is a Zod schema from @clinic/shared wrapped
