@@ -1,23 +1,70 @@
-import type { JSX, ReactNode } from 'react';
+import {
+  Activity,
+  AlertTriangle,
+  Bell,
+  CalendarDays,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Coins,
+  CreditCard,
+  FileText,
+  Globe,
+  Image as ImageIcon,
+  Info,
+  KeyRound,
+  Languages,
+  Loader2,
+  LogIn,
+  LogOut,
+  Mail,
+  Menu,
+  Pencil,
+  Phone,
+  Plus,
+  Printer,
+  RotateCcw,
+  Search,
+  Settings,
+  Shield,
+  Stethoscope,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
+  Upload,
+  User,
+  UserPlus,
+  Users,
+  X,
+  XCircle,
+  type LucideIcon,
+} from 'lucide-react';
+import type { JSX } from 'react';
 
 import { cn } from '@web/lib/cn';
 
 /**
- * The app's icons, drawn rather than installed.
+ * The app's icons: lucide, behind a wrapper that fixes size and stroke.
  *
- * An icon set is a dependency that ships hundreds of glyphs to render a dozen,
- * and CLAUDE.md rules out weight without justification. These are the ones the
- * design actually uses, on one 24px grid with one stroke width, so they sit
- * together on a row without any looking heavier than its neighbours.
+ * The wrapper is the point. Lucide's own components take `size` and
+ * `strokeWidth` per call site, which is exactly how an icon set drifts — one
+ * screen at 16/2, the next at 20/1.5, and a toolbar where every glyph has a
+ * different weight. Everything here is 18px at stroke 1.75 unless a caller
+ * asks for the one larger step, so a row of icons reads as one family.
+ *
+ * Names are indirected through `IconName` rather than importing lucide at each
+ * call site, so the vocabulary is a list one can read, swapping the icon set
+ * again is one file, and no screen can quietly introduce a 400th glyph.
  *
  * Every icon is `currentColor` and decorative: an icon here never carries
- * meaning on its own, so it is `aria-hidden` and the label beside it is what
- * the screen reader announces. Where an icon is the only content — a circular
- * action button — the button carries the accessible name, not the glyph.
+ * meaning on its own, so it is `aria-hidden` and the label beside it is what a
+ * screen reader announces. Where an icon is the only content — a circular
+ * action button — the *button* carries the accessible name, not the glyph.
  *
- * Nothing here is mirrored for RTL except the direction arrows, which are
- * chosen by the caller: a chevron that means "forward" is a different glyph in
- * Arabic, but a bell is a bell.
+ * Nothing is mirrored for RTL automatically. `chevron-start`/`chevron-end` are
+ * named by reading order and resolve per direction at render; a bell is a bell.
  */
 export type IconName =
   | 'activity'
@@ -30,164 +77,134 @@ export type IconName =
   | 'chevron-start'
   | 'clipboard'
   | 'coins'
+  | 'edit'
+  | 'error'
   | 'file'
   | 'gear'
+  | 'globe'
   | 'image'
+  | 'info'
+  | 'language'
+  | 'login'
   | 'logout'
+  | 'mail'
+  | 'menu'
   | 'money'
+  | 'phone'
   | 'plus'
+  | 'print'
+  | 'reset'
+  | 'key'
   | 'search'
   | 'shield'
+  | 'spinner'
   | 'stethoscope'
   | 'tooth'
+  | 'trash'
   | 'trend-down'
   | 'trend-up'
+  | 'upload'
   | 'user'
+  | 'user-plus'
   | 'users'
   | 'x';
 
-const PATHS: Record<IconName, ReactNode> = {
-  activity: <path d="M3 12h4l3 8 4-16 3 8h4" />,
-  alert: (
-    <>
-      <path d="M12 3.6 2.7 19.2a1.4 1.4 0 0 0 1.2 2.1h16.2a1.4 1.4 0 0 0 1.2-2.1L12 3.6Z" />
-      <path d="M12 9.5v4.2M12 17.3h.01" />
-    </>
-  ),
-  bell: (
-    <>
-      <path d="M18 8.6a6 6 0 1 0-12 0c0 5-2.1 6.4-2.1 6.4h16.2S18 13.6 18 8.6Z" />
-      <path d="M13.7 19a2 2 0 0 1-3.4 0" />
-    </>
-  ),
-  calendar: (
-    <>
-      <rect x="3.2" y="4.8" width="17.6" height="16" rx="2.6" />
-      <path d="M3.2 9.8h17.6M8.4 2.8v4M15.6 2.8v4" />
-    </>
-  ),
-  check: <path d="M4.8 12.6l4.6 4.6L19.2 7.4" />,
-  'chevron-down': <path d="M6 9.5 12 15.5 18 9.5" />,
-  'chevron-end': <path d="M15 6 9 12l6 6" />,
-  'chevron-start': <path d="M9 6l6 6-6 6" />,
-  clipboard: (
-    <>
-      <path d="M9 4.4H7.4a2 2 0 0 0-2 2v12.4a2 2 0 0 0 2 2h9.2a2 2 0 0 0 2-2V6.4a2 2 0 0 0-2-2H15" />
-      <rect x="9" y="2.6" width="6" height="3.6" rx="1.2" />
-      <path d="M9 11.4h6M9 15.4h4" />
-    </>
-  ),
-  coins: (
-    <>
-      <ellipse cx="12" cy="6.6" rx="7.4" ry="3.2" />
-      <path d="M4.6 6.6v5.2c0 1.8 3.3 3.2 7.4 3.2s7.4-1.4 7.4-3.2V6.6" />
-      <path d="M4.6 11.8v5.2c0 1.8 3.3 3.2 7.4 3.2s7.4-1.4 7.4-3.2v-5.2" />
-    </>
-  ),
-  file: (
-    <>
-      <path d="M13.6 2.8H7.4a2 2 0 0 0-2 2v14.4a2 2 0 0 0 2 2h9.2a2 2 0 0 0 2-2V8l-5-5.2Z" />
-      <path d="M13.4 2.9V8h4.9M8.8 13h6.4M8.8 16.6h4.4" />
-    </>
-  ),
-  gear: (
-    <>
-      <circle cx="12" cy="12" r="3.1" />
-      <path d="M19.5 14.4a1.5 1.5 0 0 0 .3 1.7l.1.1a1.8 1.8 0 1 1-2.6 2.6l-.1-.1a1.5 1.5 0 0 0-1.7-.3 1.5 1.5 0 0 0-.9 1.4v.2a1.8 1.8 0 1 1-3.6 0v-.1a1.5 1.5 0 0 0-1-1.4 1.5 1.5 0 0 0-1.7.3l-.1.1a1.8 1.8 0 1 1-2.6-2.6l.1-.1a1.5 1.5 0 0 0 .3-1.7 1.5 1.5 0 0 0-1.4-.9h-.2a1.8 1.8 0 1 1 0-3.6h.1a1.5 1.5 0 0 0 1.4-1 1.5 1.5 0 0 0-.3-1.7l-.1-.1a1.8 1.8 0 1 1 2.6-2.6l.1.1a1.5 1.5 0 0 0 1.7.3h.1a1.5 1.5 0 0 0 .9-1.4v-.2a1.8 1.8 0 1 1 3.6 0v.1a1.5 1.5 0 0 0 .9 1.4 1.5 1.5 0 0 0 1.7-.3l.1-.1a1.8 1.8 0 1 1 2.6 2.6l-.1.1a1.5 1.5 0 0 0-.3 1.7v.1a1.5 1.5 0 0 0 1.4.9h.2a1.8 1.8 0 1 1 0 3.6h-.1a1.5 1.5 0 0 0-1.4.9Z" />
-    </>
-  ),
-  image: (
-    <>
-      <rect x="3.2" y="4.4" width="17.6" height="15.2" rx="2.6" />
-      <circle cx="8.6" cy="9.8" r="1.7" />
-      <path d="m3.8 17.4 4.8-4.6a2 2 0 0 1 2.7 0l5.6 5.4M15 13.4l1.6-1.5a2 2 0 0 1 2.7 0l1.5 1.4" />
-    </>
-  ),
-  logout: (
-    <>
-      <path d="M9.6 20.4H6.2a2 2 0 0 1-2-2V5.6a2 2 0 0 1 2-2h3.4" />
-      <path d="M15.2 16.4 19.6 12l-4.4-4.4M19.2 12H9.4" />
-    </>
-  ),
-  money: (
-    <>
-      <rect x="2.6" y="5.6" width="18.8" height="12.8" rx="2.4" />
-      <circle cx="12" cy="12" r="2.8" />
-      <path d="M6.4 9.6v4.8M17.6 9.6v4.8" />
-    </>
-  ),
-  plus: <path d="M12 5.4v13.2M5.4 12h13.2" />,
-  search: (
-    <>
-      <circle cx="11" cy="11" r="6.6" />
-      <path d="m20 20-4.3-4.3" />
-    </>
-  ),
-  shield: (
-    <>
-      <path d="M12 2.8 4.6 6v6c0 4.6 3.1 8.4 7.4 9.4 4.3-1 7.4-4.8 7.4-9.4V6L12 2.8Z" />
-      <path d="m9.2 11.8 2 2 3.6-3.6" />
-    </>
-  ),
-  stethoscope: (
-    <>
-      <path d="M5.2 3.2v5.2a4.2 4.2 0 0 0 8.4 0V3.2" />
-      <path d="M3.6 3.2h3.2M12 3.2h3.2" />
-      <path d="M9.4 12.6v2.6a4.6 4.6 0 0 0 9.2 0v-2" />
-      <circle cx="18.8" cy="11.2" r="2.2" />
-    </>
-  ),
-  tooth: (
-    <path d="M12 3.2c-4.2 0-6.8 2.5-6.8 6.3 0 3.4 1.7 5.5 2.5 8.9.5 1.7 1.8 2.1 2.6 1.2.8-.9.8-3.8 1.7-3.8s.9 2.9 1.7 3.8c.8.9 2.1.5 2.6-1.2.8-3.4 2.5-5.5 2.5-8.9 0-3.8-2.6-6.3-6.8-6.3Z" />
-  ),
-  'trend-down': (
-    <>
-      <path d="M3.4 7.6 10 14.2l3.4-3.4 7.2 7.2" />
-      <path d="M15.4 18h5.2v-5.2" />
-    </>
-  ),
-  'trend-up': (
-    <>
-      <path d="M3.4 16.4 10 9.8l3.4 3.4 7.2-7.2" />
-      <path d="M15.4 6h5.2v5.2" />
-    </>
-  ),
-  user: (
-    <>
-      <circle cx="12" cy="8" r="3.8" />
-      <path d="M4.8 20.4a7.4 7.4 0 0 1 14.4 0" />
-    </>
-  ),
-  users: (
-    <>
-      <circle cx="9.4" cy="8" r="3.6" />
-      <path d="M2.8 20.2a6.8 6.8 0 0 1 13.2 0" />
-      <path d="M16.4 4.8a3.6 3.6 0 0 1 0 6.9M17.8 14.4a6 6 0 0 1 3.6 5.8" />
-    </>
-  ),
-  x: <path d="M6 6l12 12M18 6 6 18" />,
+const ToothGlyph: LucideIcon = ((props) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" {...props}>
+    <path
+      d="M12 3.4c-4.1 0-6.7 2.5-6.7 6.2 0 3.4 1.7 5.4 2.5 8.7.5 1.7 1.8 2.1 2.6 1.2.8-.9.8-3.7 1.6-3.7s.8 2.8 1.6 3.7c.8.9 2.1.5 2.6-1.2.8-3.3 2.5-5.3 2.5-8.7 0-3.7-2.6-6.2-6.7-6.2Z"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+)) as LucideIcon;
+
+const ICONS: Record<IconName, LucideIcon> = {
+  activity: Activity,
+  alert: AlertTriangle,
+  bell: Bell,
+  calendar: CalendarDays,
+  check: Check,
+  'chevron-down': ChevronDown,
+  // Resolved per direction below — these are the LTR defaults.
+  'chevron-end': ChevronRight,
+  'chevron-start': ChevronLeft,
+  clipboard: ClipboardList,
+  coins: Coins,
+  edit: Pencil,
+  error: XCircle,
+  file: FileText,
+  gear: Settings,
+  globe: Globe,
+  image: ImageIcon,
+  info: Info,
+  language: Languages,
+  login: LogIn,
+  logout: LogOut,
+  mail: Mail,
+  menu: Menu,
+  money: CreditCard,
+  phone: Phone,
+  plus: Plus,
+  print: Printer,
+  key: KeyRound,
+  reset: RotateCcw,
+  search: Search,
+  shield: Shield,
+  spinner: Loader2,
+  stethoscope: Stethoscope,
+  // Lucide has no tooth, and a dental app needs one. Drawn on the same 24px
+  // grid so it sits at the same weight as its neighbours; the stroke width and
+  // colour come from the wrapper like every other glyph.
+  tooth: ToothGlyph,
+  trash: Trash2,
+  'trend-down': TrendingDown,
+  'trend-up': TrendingUp,
+  upload: Upload,
+  user: User,
+  'user-plus': UserPlus,
+  users: Users,
+  x: X,
+};
+
+/**
+ * Direction-relative chevrons.
+ *
+ * "Forward" is a left-pointing arrow in Arabic and a right-pointing one in
+ * English, so these two cannot be fixed glyphs. Read from the document rather
+ * than from a hook: an icon is rendered in tables and menus far from any
+ * provider, and `dir` is set on `<html>` the moment the language changes.
+ */
+const DIRECTIONAL: Partial<
+  Record<IconName, { readonly rtl: LucideIcon; readonly ltr: LucideIcon }>
+> = {
+  'chevron-end': { rtl: ChevronLeft, ltr: ChevronRight },
+  'chevron-start': { rtl: ChevronRight, ltr: ChevronLeft },
 };
 
 export interface IconProps {
   readonly name: IconName;
-  /** Sizing and colour only — an icon has no colour of its own. */
+  /**
+   * `sm` (18px) is the default and covers buttons, menus and inputs. `md`
+   * (20px) is for a lone icon that has to hold its own — a nav chip, an icon
+   * button with no text. There is deliberately no third size.
+   */
+  readonly size?: 'sm' | 'md' | undefined;
+  /** Sizing overrides and colour only — an icon has no colour of its own. */
   readonly className?: string | undefined;
 }
 
-export function Icon({ name, className }: IconProps): JSX.Element {
+export function Icon({ name, size = 'sm', className }: IconProps): JSX.Element {
+  const directional = DIRECTIONAL[name];
+  const isRtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
+  const Glyph = directional ? (isRtl ? directional.rtl : directional.ltr) : ICONS[name];
+
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.7}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+    <Glyph
       aria-hidden="true"
       focusable="false"
-      className={cn('size-5 shrink-0', className)}
-    >
-      {PATHS[name]}
-    </svg>
+      strokeWidth={1.75}
+      className={cn('shrink-0', size === 'md' ? 'size-5' : 'size-[18px]', className)}
+    />
   );
 }

@@ -167,7 +167,9 @@ export function PatientsPage(): JSX.Element {
         subtitle="patients.subtitle"
         actions={
           canCreate ? (
-            <Button onClick={() => setCreateOpen(true)}>{t('patients.create')}</Button>
+            <Button icon={<Icon name="user-plus" />} onClick={() => setCreateOpen(true)}>
+              {t('patients.create')}
+            </Button>
           ) : undefined
         }
       />
@@ -202,7 +204,9 @@ export function PatientsPage(): JSX.Element {
             hint={isSearching ? 'patients.noMatchesHint' : 'patients.emptyHint'}
             action={
               canCreate && !isSearching ? (
-                <Button onClick={() => setCreateOpen(true)}>{t('patients.create')}</Button>
+                <Button icon={<Icon name="user-plus" />} onClick={() => setCreateOpen(true)}>
+                  {t('patients.create')}
+                </Button>
               ) : undefined
             }
           />

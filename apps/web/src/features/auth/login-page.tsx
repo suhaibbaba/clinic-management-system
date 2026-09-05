@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Logo } from '@web/components/brand/logo';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
-import { Button, FormField, Input } from '@web/components/ui';
+import { Button, FormField, Icon, Input } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { ApiError, errorMessageKey } from '@web/lib/api-error';
 
@@ -55,7 +55,7 @@ export function LoginPage(): JSX.Element {
 
   return (
     <main className="flex min-h-full items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md rounded-card bg-surface p-8 shadow-panel">
+      <div className="w-full max-w-md rounded-card border border-line-card bg-surface p-8 shadow-card">
         {/* The one place the mark is shown at size; the clinic name sits in the
             heading below it, so the mark itself is decorative. */}
         <Logo size="lg" className="mx-auto mb-6" />
@@ -66,6 +66,8 @@ export function LoginPage(): JSX.Element {
         <form className="mt-6 flex flex-col gap-4" onSubmit={onSubmit} noValidate>
           <FormField label="auth.identifier" htmlFor="identifier" error={errors.identifier}>
             <Input
+              placeholder={t('common.placeholders.identifier')}
+              adornment="user"
               id="identifier"
               autoComplete="username"
               hasError={errors.identifier !== undefined}
@@ -80,6 +82,7 @@ export function LoginPage(): JSX.Element {
             errorKey={errors.password ? 'errors.validation.passwordMin' : undefined}
           >
             <Input
+              placeholder={t('common.placeholders.password')}
               id="password"
               type="password"
               autoComplete="current-password"
@@ -97,7 +100,12 @@ export function LoginPage(): JSX.Element {
             </p>
           )}
 
-          <Button type="submit" isLoading={isSubmitting} className="mt-2 h-12 w-full">
+          <Button
+            icon={<Icon name="login" />}
+            type="submit"
+            isLoading={isSubmitting}
+            className="mt-2 h-12 w-full"
+          >
             {isSubmitting ? t('auth.submitting') : t('auth.submit')}
           </Button>
         </form>

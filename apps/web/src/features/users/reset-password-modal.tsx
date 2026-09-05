@@ -4,7 +4,7 @@ import { useEffect, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Input, Modal, useToast } from '@web/components/ui';
+import { Button, FormField, Icon, Input, Modal, useToast } from '@web/components/ui';
 import { useResetUserPassword } from '@web/features/users/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -61,10 +61,15 @@ export function ResetPasswordModal({
       titleValues={{ name: user?.name ?? '' }}
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          <Button form="reset-password-form" type="submit" isLoading={isSubmitting}>
+          <Button
+            icon={<Icon name="check" />}
+            form="reset-password-form"
+            type="submit"
+            isLoading={isSubmitting}
+          >
             {t('common.save')}
           </Button>
         </>
@@ -78,6 +83,7 @@ export function ResetPasswordModal({
           errorKey={errors.newPassword ? 'errors.validation.passwordMin' : undefined}
         >
           <Input
+            placeholder={t('common.placeholders.password')}
             id="reset-password"
             type="password"
             autoComplete="new-password"

@@ -109,11 +109,12 @@ export function PatientPage(): JSX.Element {
             aria-controls={`panel-${tab.id}`}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              'rounded-pill px-3.5 py-1.5 text-value font-medium transition-colors',
+              'cursor-pointer rounded-pill px-3.5 py-1.5 text-value font-medium',
+              'transition-[background-color,color,box-shadow,transform] duration-150 active:scale-95',
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
               activeTab === tab.id
                 ? 'bg-surface text-ink shadow-pill'
-                : 'text-ink-muted hover:text-ink',
+                : 'text-ink-muted hover:bg-surface/60 hover:text-ink',
             )}
           >
             {t(tab.label)}
@@ -136,7 +137,11 @@ export function PatientPage(): JSX.Element {
         {activeTab === 'billing' && <AccountTab patientId={id} patient={patient.data} />}
 
         {PLACEHOLDER_TABS.includes(activeTab) && (
-          <EmptyState title="patients.tabs.comingSoon" hint="patients.tabs.comingSoonHint" />
+          <EmptyState
+            icon="clipboard"
+            title="patients.tabs.comingSoon"
+            hint="patients.tabs.comingSoonHint"
+          />
         )}
       </div>
     </div>

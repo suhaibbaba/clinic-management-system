@@ -1,5 +1,6 @@
 import { USER_ROLE, type UserRole } from '@clinic/shared';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import { AppRoutes } from '@web/app/router';
@@ -56,7 +57,22 @@ describe('Sidebar navigation', () => {
     await renderAs(USER_ROLE.RECEPTIONIST);
 
     expect(screen.getByText(ar.roles.receptionist)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: ar.nav.logout })).toBeInTheDocument();
+  });
+
+  /*
+   * Signing out lives behind the account menu now. The menu is what a user has
+   * to get through to reach it, so the test opens it rather than reaching for
+   * a button that is no longer on the page.
+   */
+  it('offers profile, both languages and sign-out behind the account menu', async () => {
+    await renderAs(USER_ROLE.RECEPTIONIST);
+
+    await userEvent.click(screen.getByRole('button', { name: new RegExp(ar.roles.receptionist) }));
+
+    expect(await screen.findByRole('menuitem', { name: ar.nav.profile })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'العربية' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'English' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: ar.nav.logout })).toBeInTheDocument();
   });
 
   it('refuses an admin-only route to a non-admin who types its URL', async () => {

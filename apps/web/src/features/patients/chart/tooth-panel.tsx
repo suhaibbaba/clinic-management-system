@@ -2,7 +2,7 @@ import type { Doctor, PerformedProcedure, ProcedureCatalogItem, UserRole } from 
 import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, Drawer, EmptyState } from '@web/components/ui';
+import { Badge, Button, Drawer, EmptyState, Icon } from '@web/components/ui';
 import {
   AddProcedureForm,
   type NewProcedureInput,
@@ -90,7 +90,7 @@ export function ToothPanel({
           the history below it.
         */}
         {summary && (
-          <section className="rounded-card bg-canvas p-4 shadow-pop">
+          <section className="rounded-card bg-canvas p-4 shadow-float">
             <div className="flex items-center gap-3">
               <span
                 dir="ltr"
@@ -127,7 +127,12 @@ export function ToothPanel({
             <h3 className="text-value font-semibold text-ink">{t('chart.panel.history')}</h3>
 
             {canAdd && !adding && (
-              <Button size="sm" variant="secondary" onClick={() => setAdding(true)}>
+              <Button
+                icon={<Icon name="plus" />}
+                size="sm"
+                variant="secondary"
+                onClick={() => setAdding(true)}
+              >
                 {t('chart.panel.addProcedure')}
               </Button>
             )}
@@ -136,7 +141,9 @@ export function ToothPanel({
           {isPending && <p className="text-value text-ink-muted">{t('common.loading')}</p>}
           {isError && <p className="text-value text-danger-600">{t('errors.generic')}</p>}
 
-          {data && data.procedures.length === 0 && <EmptyState title="chart.panel.noProcedures" />}
+          {data && data.procedures.length === 0 && (
+            <EmptyState icon="tooth" title="chart.panel.noProcedures" />
+          )}
 
           {data && data.procedures.length > 0 && (
             <ol className="flex flex-col gap-2">

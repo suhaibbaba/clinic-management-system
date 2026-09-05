@@ -52,6 +52,54 @@ body {
 }
 
 /*
+ * Text selection, tinted with the brand rather than the browser's default
+ * blue — which on this palette is a *different* blue, and reads as a rendering
+ * glitch next to everything else.
+ */
+::selection {
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-900);
+}
+
+/*
+ * Scrollbars inside panels: thin, in the app's own greys, and only visible
+ * once there is something to scroll.
+ *
+ * WebKit only, deliberately. Firefox's `scrollbar-width`/`scrollbar-color` are
+ * applied here too, but they are the whole extent of what it allows; the
+ * rounded thumb below is a progressive enhancement rather than a requirement,
+ * and a platform scrollbar is never *wrong*, only less quiet.
+ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-neutral-300) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-neutral-300);
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-neutral-400);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/*
  * Latin digits inside Arabic text: file numbers, phone numbers and times stay
  * readable and copy-pasteable.
  */

@@ -2,7 +2,7 @@ import type { DaySchedule, WeeklySchedule } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Input, Switch } from '@web/components/ui';
+import { Button, Icon, Input, Switch } from '@web/components/ui';
 
 const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6] as const;
 const DEFAULT_RANGE = { start: '09:00', end: '17:00' } as const;
@@ -75,6 +75,7 @@ export function ScheduleEditor({
                     <label className="text-label text-ink-muted">
                       {t('schedule.from')}
                       <Input
+                        adornment="calendar"
                         type="time"
                         className="ms-2 inline-block w-32"
                         disabled={disabled}
@@ -93,6 +94,7 @@ export function ScheduleEditor({
                     <label className="text-label text-ink-muted">
                       {t('schedule.to')}
                       <Input
+                        adornment="calendar"
                         type="time"
                         className="ms-2 inline-block w-32"
                         disabled={disabled}
@@ -110,6 +112,7 @@ export function ScheduleEditor({
 
                     {!disabled && day.ranges.length > 1 && (
                       <Button
+                        icon={<Icon name="trash" />}
                         size="sm"
                         variant="ghost"
                         onClick={() =>
@@ -128,6 +131,7 @@ export function ScheduleEditor({
                 {!disabled && (
                   <div>
                     <Button
+                      icon={<Icon name="plus" />}
                       size="sm"
                       variant="secondary"
                       onClick={() =>

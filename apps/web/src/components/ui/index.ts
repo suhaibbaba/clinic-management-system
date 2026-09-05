@@ -2,6 +2,14 @@ export { Avatar } from '@web/components/ui/avatar';
 export { Badge, type BadgeTone } from '@web/components/ui/badge';
 export { Button, type ButtonProps } from '@web/components/ui/button';
 export { Card, CardHeader, type CardTone } from '@web/components/ui/card';
+export {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@web/components/ui/dropdown-menu';
 export { Drawer } from '@web/components/ui/drawer';
 export { EmptyState } from '@web/components/ui/empty-state';
 export { EntityCard, EntityGrid, type EntityCardMeta } from '@web/components/ui/entity-card';
@@ -16,5 +24,6 @@ export { SegmentedControl, type SegmentOption } from '@web/components/ui/segment
 export { Select, type SelectOption } from '@web/components/ui/select';
 export { StatCard, StatRow, type StatTone } from '@web/components/ui/stat-card';
 export { Switch } from '@web/components/ui/switch';
+export { Textarea } from '@web/components/ui/textarea';
 export { Pagination, Table, type Column } from '@web/components/ui/table';
 export { ToastProvider, useToast } from '@web/components/ui/toast';

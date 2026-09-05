@@ -23,7 +23,32 @@
     "reset": "Reset",
     "delete": "Delete",
     "filters": "Filters",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "placeholders": {
+      "identifier": "09XXXXXXXX or name@clinic.com",
+      "password": "••••••••",
+      "fullName": "e.g. Ahmad Khaled Al-Hasan",
+      "phone": "09XXXXXXXX",
+      "email": "name@clinic.com",
+      "address": "City, district, street",
+      "emergencyName": "A relative or companion",
+      "currency": "USD",
+      "amount": "0.00",
+      "note": "Write your notes here…",
+      "reason": "State the reason",
+      "minutes": "30",
+      "complaint": "What is the patient complaining of?",
+      "examination": "Clinical examination findings…",
+      "diagnosis": "Working diagnosis…",
+      "visitNotes": "Further notes on the visit…",
+      "discountReason": "Reason for the discount",
+      "selectDoctor": "Select a doctor",
+      "selectStatus": "Select a status",
+      "selectMethod": "Select a payment method",
+      "selectType": "Select an attachment type",
+      "date": "dd/mm/yyyy",
+      "time": "--:--"
+    }
   },
   "pagination": {
     "previous": "Previous",
@@ -42,7 +67,9 @@
     "patients": "Patients",
     "overdue": "Overdue balances",
     "searchPatients": "Search patients…",
-    "notificationsEmpty": "No notifications"
+    "notificationsEmpty": "No notifications",
+    "language": "Language",
+    "account": "Account"
   },
   "roles": {
     "admin": "Admin",

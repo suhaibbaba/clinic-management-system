@@ -4,7 +4,7 @@ import { useEffect, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Input, Modal, Select, useToast } from '@web/components/ui';
+import { Button, FormField, Icon, Input, Modal, Select, useToast } from '@web/components/ui';
 import { openReceipt } from '@web/features/billing/documents';
 import { useCreatePayment } from '@web/features/billing/queries';
 import { errorMessageKey } from '@web/lib/api-error';
@@ -75,10 +75,15 @@ export function PaymentModal({
       title="billing.recordPayment"
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          <Button type="submit" form="payment-form" disabled={isSubmitting}>
+          <Button
+            icon={<Icon name="check" />}
+            type="submit"
+            form="payment-form"
+            isLoading={isSubmitting}
+          >
             {t(isSubmitting ? 'common.saving' : 'billing.recordAndPrint')}
           </Button>
         </>
@@ -88,6 +93,7 @@ export function PaymentModal({
         <FormField label="billing.amount" htmlFor="payment-amount" error={errors.amount}>
           <div className="flex items-center gap-2">
             <Input
+              placeholder={t('common.placeholders.amount')}
               id="payment-amount"
               dir="ltr"
               inputMode="decimal"
@@ -100,6 +106,7 @@ export function PaymentModal({
 
         <FormField label="billing.method" htmlFor="payment-method" error={errors.method}>
           <Select
+            placeholder={t('common.placeholders.selectMethod')}
             id="payment-method"
             options={PAYMENT_METHODS.map((method) => ({
               value: method,
@@ -111,6 +118,7 @@ export function PaymentModal({
 
         <FormField label="billing.note" htmlFor="payment-note" error={errors.note} optional>
           <Input
+            placeholder={t('common.placeholders.note')}
             id="payment-note"
             {...register('note', { setValueAs: (value) => (value === '' ? null : value) })}
           />

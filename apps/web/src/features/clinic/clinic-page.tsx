@@ -2,7 +2,7 @@ import { USER_ROLE, type WeeklySchedule } from '@clinic/shared';
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Input, PageHeader, useToast } from '@web/components/ui';
+import { Button, FormField, Icon, Input, PageHeader, useToast } from '@web/components/ui';
 import { ScheduleEditor } from '@web/components/schedule-editor';
 import { useSession } from '@web/features/auth/session';
 import { useClinic, useUpdateClinic } from '@web/features/clinic/queries';
@@ -67,7 +67,11 @@ export function ClinicPage(): JSX.Element {
         subtitle={canEdit ? 'clinic.subtitle' : 'clinic.readOnly'}
         actions={
           canEdit ? (
-            <Button isLoading={updateClinic.isPending} onClick={() => void save()}>
+            <Button
+              icon={<Icon name="check" />}
+              isLoading={updateClinic.isPending}
+              onClick={() => void save()}
+            >
               {t('common.save')}
             </Button>
           ) : undefined
@@ -79,6 +83,7 @@ export function ClinicPage(): JSX.Element {
           <div className="flex flex-col gap-4">
             <FormField label="clinic.name" htmlFor="clinic-name">
               <Input
+                placeholder={t('common.placeholders.fullName')}
                 id="clinic-name"
                 value={name}
                 disabled={!canEdit}
@@ -88,6 +93,8 @@ export function ClinicPage(): JSX.Element {
 
             <FormField label="clinic.phone" htmlFor="clinic-phone" optional>
               <Input
+                placeholder={t('common.placeholders.phone')}
+                adornment="phone"
                 id="clinic-phone"
                 inputMode="tel"
                 value={phone}
@@ -98,6 +105,8 @@ export function ClinicPage(): JSX.Element {
 
             <FormField label="clinic.email" htmlFor="clinic-email" optional>
               <Input
+                placeholder={t('common.placeholders.email')}
+                adornment="mail"
                 id="clinic-email"
                 type="email"
                 value={email}
@@ -108,6 +117,7 @@ export function ClinicPage(): JSX.Element {
 
             <FormField label="clinic.address" htmlFor="clinic-address" optional>
               <Input
+                placeholder={t('common.placeholders.address')}
                 id="clinic-address"
                 value={address}
                 disabled={!canEdit}
@@ -117,6 +127,7 @@ export function ClinicPage(): JSX.Element {
 
             <FormField label="clinic.currency" htmlFor="clinic-currency" hint="clinic.currencyHint">
               <Input
+                placeholder={t('common.placeholders.currency')}
                 id="clinic-currency"
                 maxLength={3}
                 className="w-32 uppercase"
@@ -140,7 +151,13 @@ export function ClinicPage(): JSX.Element {
               <div className="flex flex-col items-start gap-1">
                 <p className="text-label text-ink-muted">{t('clinic.logoPlaceholder')}</p>
                 {/* R2 presigned upload is wired up with the attachments work. */}
-                <Button variant="secondary" size="sm" disabled title={t('clinic.logoComingSoon')}>
+                <Button
+                  icon={<Icon name="upload" />}
+                  variant="secondary"
+                  size="sm"
+                  disabled
+                  title={t('clinic.logoComingSoon')}
+                >
                   {t('clinic.uploadLogo')}
                 </Button>
                 <p className="text-label text-ink-subtle">{t('clinic.logoComingSoon')}</p>

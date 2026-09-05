@@ -4,7 +4,7 @@ import type { JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, FormField, Input, PageHeader, useToast } from '@web/components/ui';
+import { Badge, Button, FormField, Icon, Input, PageHeader, useToast } from '@web/components/ui';
 import { authApi } from '@web/features/auth/api';
 import { useSession } from '@web/features/auth/session';
 import { ApiError, errorMessageKey } from '@web/lib/api-error';
@@ -75,6 +75,7 @@ export function ProfilePage(): JSX.Element {
               errorKey={errors.currentPassword ? 'errors.validation.passwordMin' : undefined}
             >
               <Input
+                placeholder={t('common.placeholders.password')}
                 id="current-password"
                 type="password"
                 autoComplete="current-password"
@@ -96,6 +97,7 @@ export function ProfilePage(): JSX.Element {
               }
             >
               <Input
+                placeholder={t('common.placeholders.password')}
                 id="new-password"
                 type="password"
                 autoComplete="new-password"
@@ -104,7 +106,12 @@ export function ProfilePage(): JSX.Element {
               />
             </FormField>
 
-            <Button type="submit" isLoading={isSubmitting} className="self-start">
+            <Button
+              icon={<Icon name="key" />}
+              type="submit"
+              isLoading={isSubmitting}
+              className="self-start"
+            >
               {t('profile.changePassword')}
             </Button>
           </form>

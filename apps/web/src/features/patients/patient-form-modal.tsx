@@ -4,7 +4,7 @@ import { useEffect, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Input, Modal, Select, useToast } from '@web/components/ui';
+import { Button, FormField, Icon, Input, Modal, Select, useToast } from '@web/components/ui';
 import { useCreatePatient } from '@web/features/patients/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -63,10 +63,15 @@ export function PatientFormModal({
       title="patients.create"
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          <Button type="submit" form="patient-form" disabled={isSubmitting}>
+          <Button
+            icon={<Icon name="check" />}
+            type="submit"
+            form="patient-form"
+            isLoading={isSubmitting}
+          >
             {t(isSubmitting ? 'common.saving' : 'common.save')}
           </Button>
         </>
@@ -74,11 +79,19 @@ export function PatientFormModal({
     >
       <form id="patient-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
         <FormField label="patients.fullName" htmlFor="patient-name" error={errors.fullName}>
-          <Input id="patient-name" hasError={Boolean(errors.fullName)} {...register('fullName')} />
+          <Input
+            placeholder={t('common.placeholders.fullName')}
+            adornment="user"
+            id="patient-name"
+            hasError={Boolean(errors.fullName)}
+            {...register('fullName')}
+          />
         </FormField>
 
         <FormField label="patients.phone" htmlFor="patient-phone" error={errors.phone}>
           <Input
+            placeholder={t('common.placeholders.phone')}
+            adornment="phone"
             id="patient-phone"
             dir="ltr"
             hasError={Boolean(errors.phone)}
@@ -94,6 +107,7 @@ export function PatientFormModal({
         >
           {/* Gregorian, as CLAUDE.md requires; the native picker mirrors correctly. */}
           <Input
+            adornment="calendar"
             id="patient-dob"
             type="date"
             dir="ltr"
@@ -117,6 +131,7 @@ export function PatientFormModal({
           optional
         >
           <Input
+            placeholder={t('common.placeholders.address')}
             id="patient-address"
             {...register('address', { setValueAs: (value) => (value === '' ? null : value) })}
           />
@@ -129,6 +144,8 @@ export function PatientFormModal({
           optional
         >
           <Input
+            placeholder={t('common.placeholders.emergencyName')}
+            adornment="user"
             id="patient-emergency-name"
             {...register('emergencyContactName', {
               setValueAs: (value) => (value === '' ? null : value),
@@ -143,6 +160,8 @@ export function PatientFormModal({
           optional
         >
           <Input
+            placeholder={t('common.placeholders.phone')}
+            adornment="phone"
             id="patient-emergency-phone"
             dir="ltr"
             {...register('emergencyContactPhone', {

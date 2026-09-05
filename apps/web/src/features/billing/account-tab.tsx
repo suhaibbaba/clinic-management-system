@@ -7,6 +7,7 @@ import {
   Button,
   Card,
   EmptyState,
+  Icon,
   Input,
   Table,
   type Column,
@@ -116,11 +117,19 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
       render: (entry) =>
         entry.kind === LEDGER_ENTRY_KIND.PAYMENT && !entry.isReversal ? (
           <span className="flex gap-2">
-            <Button variant="ghost" onClick={() => void print(() => openReceipt(entry.id))}>
+            <Button
+              icon={<Icon name="print" />}
+              variant="ghost"
+              onClick={() => void print(() => openReceipt(entry.id))}
+            >
               {t('billing.receipt')}
             </Button>
             {role && canReversePayment(role) && (
-              <Button variant="ghost" onClick={() => setReversing(entry)}>
+              <Button
+                icon={<Icon name="reset" />}
+                variant="ghost"
+                onClick={() => setReversing(entry)}
+              >
                 {t('billing.reverse')}
               </Button>
             )}
@@ -152,9 +161,12 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
 
         <div className="flex flex-wrap gap-2">
           {role && canRecordPayment(role) && (
-            <Button onClick={() => setPaying(true)}>{t('billing.recordPayment')}</Button>
+            <Button icon={<Icon name="money" />} onClick={() => setPaying(true)}>
+              {t('billing.recordPayment')}
+            </Button>
           )}
           <Button
+            icon={<Icon name="file" />}
             variant="secondary"
             onClick={() =>
               void print(() => downloadStatement(patientId, patient?.fileNumber ?? '', query))
@@ -168,14 +180,27 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
       <Card className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1 text-label text-ink-muted">
           {t('billing.from')}
-          <Input type="date" dir="ltr" value={from} onChange={(e) => setFrom(e.target.value)} />
+          <Input
+            adornment="calendar"
+            type="date"
+            dir="ltr"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+          />
         </label>
         <label className="flex flex-col gap-1 text-label text-ink-muted">
           {t('billing.to')}
-          <Input type="date" dir="ltr" value={to} onChange={(e) => setTo(e.target.value)} />
+          <Input
+            adornment="calendar"
+            type="date"
+            dir="ltr"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+          />
         </label>
         {(from || to) && (
           <Button
+            icon={<Icon name="reset" />}
             variant="ghost"
             onClick={() => {
               setFrom('');
@@ -199,7 +224,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
         rows={statement.data?.entries ?? []}
         rowKey={(entry) => entry.id}
         isLoading={statement.isPending}
-        empty={<EmptyState title="billing.empty" hint="billing.emptyHint" />}
+        empty={<EmptyState icon="money" title="billing.empty" hint="billing.emptyHint" />}
       />
 
       <PaymentModal

@@ -23,7 +23,32 @@
     "reset": "إعادة تعيين",
     "delete": "حذف",
     "filters": "عوامل التصفية",
-    "viewAll": "عرض الكل"
+    "viewAll": "عرض الكل",
+    "placeholders": {
+      "identifier": "09XXXXXXXX أو name@clinic.com",
+      "password": "••••••••",
+      "fullName": "مثال: أحمد خالد الحسن",
+      "phone": "09XXXXXXXX",
+      "email": "name@clinic.com",
+      "address": "المدينة، الحي، الشارع",
+      "emergencyName": "اسم قريب أو مرافق",
+      "currency": "USD",
+      "amount": "0.00",
+      "note": "اكتب ملاحظاتك هنا…",
+      "reason": "اذكر سبب العملية",
+      "minutes": "30",
+      "complaint": "ما الذي يشكو منه المريض؟",
+      "examination": "نتائج الفحص السريري…",
+      "diagnosis": "التشخيص المبدئي…",
+      "visitNotes": "ملاحظات إضافية على الزيارة…",
+      "discountReason": "سبب الحسم",
+      "selectDoctor": "اختر الطبيب",
+      "selectStatus": "اختر الحالة",
+      "selectMethod": "اختر طريقة الدفع",
+      "selectType": "اختر نوع المرفق",
+      "date": "يوم/شهر/سنة",
+      "time": "--:--"
+    }
   },
   "pagination": {
     "previous": "السابق",
@@ -42,7 +67,9 @@
     "patients": "المرضى",
     "overdue": "الأرصدة المتأخرة",
     "searchPatients": "ابحث عن مريض…",
-    "notificationsEmpty": "لا توجد إشعارات"
+    "notificationsEmpty": "لا توجد إشعارات",
+    "language": "تغيير اللغة",
+    "account": "الحساب"
   },
   "roles": {
     "admin": "مدير",

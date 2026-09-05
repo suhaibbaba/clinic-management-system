@@ -58,10 +58,13 @@ export function SegmentedControl<TValue extends string>({
             aria-checked={isSelected}
             onClick={() => onChange(option.value)}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-pill px-3.5 py-1.5 text-label font-medium',
-              'transition-colors focus-visible:outline-2 focus-visible:outline-offset-2',
-              'focus-visible:outline-primary-600',
-              isSelected ? 'bg-surface text-ink shadow-pill' : 'text-ink-muted hover:text-ink',
+              'inline-flex cursor-pointer items-center gap-1.5 rounded-pill px-3.5 py-1.5',
+              'text-label font-medium',
+              'transition-[background-color,color,box-shadow,transform] duration-150 active:scale-95',
+              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
+              isSelected
+                ? 'bg-surface text-ink shadow-pill'
+                : 'text-ink-muted hover:bg-surface/60 hover:text-ink',
             )}
           >
             {option.label}

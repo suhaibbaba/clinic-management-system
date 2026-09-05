@@ -8,7 +8,7 @@ import { useEffect, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Input, Modal, useToast } from '@web/components/ui';
+import { Button, FormField, Icon, Input, Modal, useToast } from '@web/components/ui';
 import { Money } from '@web/features/billing/money';
 import { useReversePayment } from '@web/features/billing/queries';
 import { errorMessageKey } from '@web/lib/api-error';
@@ -70,10 +70,15 @@ export function ReversePaymentModal({
       title="billing.reversePayment"
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          <Button type="submit" form="reverse-payment-form" disabled={isSubmitting}>
+          <Button
+            icon={<Icon name="check" />}
+            type="submit"
+            form="reverse-payment-form"
+            isLoading={isSubmitting}
+          >
             {t(isSubmitting ? 'common.saving' : 'billing.confirmReversal')}
           </Button>
         </>
@@ -96,7 +101,12 @@ export function ReversePaymentModal({
         </p>
 
         <FormField label="billing.reason" htmlFor="reverse-reason" error={errors.reason}>
-          <Input id="reverse-reason" hasError={Boolean(errors.reason)} {...register('reason')} />
+          <Input
+            placeholder={t('common.placeholders.reason')}
+            id="reverse-reason"
+            hasError={Boolean(errors.reason)}
+            {...register('reason')}
+          />
         </FormField>
       </form>
     </Modal>

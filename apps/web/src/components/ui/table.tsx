@@ -1,6 +1,7 @@
 import type { JSX, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Icon } from '@web/components/ui/icon';
 import { Button } from '@web/components/ui/button';
 import { cn } from '@web/lib/cn';
 
@@ -48,7 +49,7 @@ export function Table<TRow>({
   }
 
   return (
-    <div className="overflow-hidden rounded-card bg-surface shadow-card">
+    <div className="overflow-hidden rounded-card border border-line-card bg-surface shadow-card">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-value">
           <thead>
@@ -58,7 +59,7 @@ export function Table<TRow>({
                   key={column.key}
                   scope="col"
                   className={cn(
-                    'whitespace-nowrap border-b border-line px-5 py-3.5 text-start text-label font-semibold text-ink-muted',
+                    'h-12 whitespace-nowrap border-b border-line px-5 text-start text-label font-semibold text-ink-muted',
                     column.className,
                   )}
                 >
@@ -79,11 +80,14 @@ export function Table<TRow>({
 
             {!isLoading &&
               rows.map((row) => (
-                <tr key={rowKey(row)} className="transition-colors hover:bg-primary-50/60">
+                <tr
+                  key={rowKey(row)}
+                  className="h-12 transition-colors duration-150 hover:bg-inset"
+                >
                   {columns.map((column) => (
                     <td
                       key={column.key}
-                      className={cn('px-5 py-3.5 text-start align-middle', column.className)}
+                      className={cn('px-5 py-2.5 text-start align-middle', column.className)}
                     >
                       {column.render(row)}
                     </td>
@@ -116,6 +120,7 @@ export function Pagination({
 
       <div className="flex items-center gap-2">
         <Button
+          icon={<Icon name="chevron-start" />}
           size="sm"
           variant="secondary"
           disabled={page <= 1}
@@ -129,6 +134,7 @@ export function Pagination({
         </span>
 
         <Button
+          icon={<Icon name="chevron-end" />}
           size="sm"
           variant="secondary"
           disabled={page >= totalPages}

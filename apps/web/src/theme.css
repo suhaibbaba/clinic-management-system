@@ -137,9 +137,14 @@
   --color-ink-subtle: var(--color-neutral-500);
   --color-ink-inverse: #ffffff;
 
-  /* Lines. `line` separates, `line-strong` encloses an input. */
+  /*
+   * Lines. `line` separates, `line-strong` encloses an input, and `line-card`
+   * is the hairline around a card — a blue-tinted gray, so a card has an edge
+   * even where its shadow falls on something the same lightness as itself.
+   */
   --color-line: var(--color-neutral-200);
   --color-line-strong: var(--color-neutral-300);
+  --color-line-card: #dfe6ee;
 
   /*
    * IBM Plex Sans Arabic, self-hosted (see index.css). Self-hosted rather
@@ -176,14 +181,18 @@
   --radius-control: 10px;
   --radius-pill: 9999px;
 
-  /* Cards at rest on the ground. */
-  --shadow-card: 0 1px 2px rgba(4, 66, 107, 0.04), 0 10px 24px -12px rgba(4, 66, 107, 0.14);
-  /* Sidebar, top bar, and anything that must read as a layer above content. */
-  --shadow-panel: 0 1px 2px rgba(4, 66, 107, 0.05), 0 16px 36px -18px rgba(4, 66, 107, 0.2);
+  /*
+   * Two elevations, tinted with the primary rather than black — a gray shadow
+   * on this ground reads as dirt, a faintly blue one reads as depth.
+   *
+   * `card` is rest: every card, the sidebar and the top bar. `float` is
+   * anything that has left the page — a dropdown, a modal, a popover, and a
+   * clickable card while the pointer is on it. Nothing sits flat.
+   */
+  --shadow-card: 0 1px 3px rgb(49 108 156 / 0.06), 0 8px 24px rgb(49 108 156 / 0.08);
+  --shadow-float: 0 4px 6px rgb(49 108 156 / 0.05), 0 16px 40px rgb(49 108 156 / 0.14);
   /* Small floating things: an active nav pill, a segmented-control thumb. */
-  --shadow-pill: 0 1px 2px rgba(4, 66, 107, 0.06), 0 4px 10px -4px rgba(4, 66, 107, 0.16);
-  /* Popovers and dialogs — the only shadow allowed to be obvious. */
-  --shadow-pop: 0 2px 4px rgba(4, 66, 107, 0.06), 0 24px 48px -20px rgba(4, 66, 107, 0.3);
+  --shadow-pill: 0 1px 2px rgb(49 108 156 / 0.08), 0 4px 10px -4px rgb(49 108 156 / 0.16);
 
   /*
    * Type. Labels are small and muted, values are a size up and solid, and a
@@ -196,6 +205,44 @@
   --text-value--line-height: 1.4rem;
   --text-kpi: 2rem; /* 32px — the number on a stat card */
   --text-kpi--line-height: 2.25rem;
+
+  /*
+   * Motion. One duration for everything that changes colour, shadow or
+   * position (150ms), and the two menu animations built on it.
+   *
+   * Written as tokens rather than installed: `tailwindcss-animate` exists to
+   * provide `animate-in`/`zoom-in-95`, and pulling in a plugin for two
+   * keyframes is the kind of weight CLAUDE.md rules out.
+   */
+  --animate-menu-in: menu-in 150ms ease-out;
+  --animate-menu-out: menu-out 150ms ease-in;
+}
+
+/*
+ * A menu grows out of its trigger rather than appearing from nowhere: Radix
+ * sets the transform origin to the corner it actually opened from, and these
+ * scale from there.
+ */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes menu-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
 }
 
 /*

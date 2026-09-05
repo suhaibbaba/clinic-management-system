@@ -12,7 +12,7 @@ import {
 import { useEffect, useId, useState, type FormEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Input, Select } from '@web/components/ui';
+import { Button, FormField, Icon, Input, Select } from '@web/components/ui';
 import {
   SurfaceSelector,
   type SelectableSurface,
@@ -213,10 +213,16 @@ export function ProcedureForm({
       )}
 
       <div className="flex items-center justify-end gap-2">
-        <Button type="button" variant="secondary" size="sm" onClick={onCancel}>
+        <Button
+          icon={<Icon name="x" />}
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={onCancel}
+        >
           {t('common.cancel')}
         </Button>
-        <Button type="submit" size="sm" disabled={submitting}>
+        <Button icon={<Icon name="check" />} type="submit" size="sm" disabled={submitting}>
           {t(submitting ? 'common.saving' : 'common.save')}
         </Button>
       </div>

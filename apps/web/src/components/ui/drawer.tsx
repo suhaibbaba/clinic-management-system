@@ -41,14 +41,14 @@ export function Drawer({
         <Dialog.Content
           dir="rtl"
           className={cn(
-            'fixed inset-y-0 end-0 z-50 flex w-full max-w-md flex-col bg-surface shadow-pop',
+            'fixed inset-y-0 end-0 z-50 flex w-full max-w-md flex-col bg-surface shadow-float',
             'border-s border-line',
           )}
         >
           <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
             <Dialog.Title className="text-lg font-semibold text-ink">{title}</Dialog.Title>
             <Dialog.Close
-              className="rounded-control px-2 py-1 text-label text-ink-muted transition-colors hover:bg-sunken"
+              className="cursor-pointer rounded-control px-2 py-1 text-label text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
               aria-label={t('common.close')}
             >
               ✕
