@@ -80,6 +80,34 @@ jobs:
             # disk fills with every previous build's layers.
             docker image prune -f
 
+      # Without this a deploy that dies inside a container leaves the operator
+      # with one line — "dependency failed to start: container ... is
+      # unhealthy" — and no way to see what the container actually said. Only
+      # api and postgres are dumped: they are what fails, and this log is
+      # public, so the fewer services piped into it the better.
+      - name: Container logs on failure
+        if: failure()
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SANDBOX_HOST }}
+          username: ${{ secrets.SANDBOX_USER }}
+          key: ${{ secrets.SANDBOX_SSH_KEY }}
+          port: ${{ secrets.SANDBOX_SSH_PORT || 22 }}
+          # Best-effort: a missing service must not abort the rest of the dump.
+          script_stop: false
+          script: |
+            cd ${{ env.REMOTE_DIR }} || exit 0
+
+            echo "───────── container states ─────────"
+            docker compose -p ${{ env.COMPOSE_PROJECT }} -f docker-compose.sandbox.yml ps -a || true
+
+            for service in api postgres; do
+              echo
+              echo "───────── ${service} ─────────"
+              docker compose -p ${{ env.COMPOSE_PROJECT }} -f docker-compose.sandbox.yml \
+                logs --tail=80 --no-color "${service}" || true
+            done
+
       # From the runner, over the public hostname: this proves the whole path
       # works — host nginx, TLS, the web container's /api proxy and the API's
       # database connection — not just that a container started.
