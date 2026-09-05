@@ -306,10 +306,16 @@ and every fill/ink pair was checked for AA contrast in both light and dark mode 
 written down.
 
 The logo is one file, `apps/web/src/assets/logo.svg`, imported by `components/brand/logo.tsx`
-and used at three sizes: the login page, the sidebar header and the print letterhead on
-receipts and printable plans. Replacing the brand mark is `cp your-logo.svg
+and used at three sizes: the login page, the sidebar header and the browser-printed
+letterhead on treatment plans. Replacing the brand mark is `cp your-logo.svg
 apps/web/src/assets/logo.svg` — no code change. The favicon (`apps/web/public/favicon.svg`)
 is a separate square lockup, since a wide logo is unreadable at 16px.
+
+Receipts and statements are PDFs built server-side, so they cannot import that file. The API
+keeps the mark's geometry in `apps/api/src/billing/pdf/brand-mark.ts` and draws it with
+pdf-lib. That is a second copy on purpose, and `test/brand-mark.spec.ts` reads the web logo
+and fails if the two drift apart — so replacing the logo tells you the printed letterhead
+needs the new paths instead of quietly printing the old mark for months.
 
 ### Storybook
 

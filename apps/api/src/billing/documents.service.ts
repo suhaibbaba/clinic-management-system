@@ -11,6 +11,7 @@ import { eq } from 'drizzle-orm';
 
 import { LedgerService } from '@api/billing/ledger.service';
 import { toPayment } from '@api/billing/payments.service';
+import { BRAND_MARK, MARK_VIEWBOX } from '@api/billing/pdf/brand-mark';
 import { DOCUMENT_STRINGS } from '@api/billing/pdf/document-strings';
 import { A4, RtlPdf } from '@api/billing/pdf/pdf-builder';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
@@ -173,6 +174,11 @@ export class DocumentsService {
   }
 
   private drawLetterhead(pdf: RtlPdf, clinic: Letterhead): void {
+    // The mark, then the clinic's own name: the sheet is the clinic's, and the
+    // brand sits above it rather than in place of it. Both are centred so a
+    // long Arabic name and a short one produce the same letterhead.
+    pdf.mark(BRAND_MARK, MARK_VIEWBOX);
+
     pdf.text(clinic.name, { size: 18, weight: 'bold', align: 'centre', gap: 4 });
 
     if (clinic.contact) {

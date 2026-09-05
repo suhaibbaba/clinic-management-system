@@ -2,9 +2,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import fontkit from '@pdf-lib/fontkit';
-import { PDFDocument, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
+import { LineCapStyle, PDFDocument, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
 
 import { visualRuns, type TextDirection } from '@api/billing/pdf/arabic-text';
+import type { MarkPath } from '@api/billing/pdf/brand-mark';
 
 /**
  * A very small right-to-left document builder over pdf-lib.
@@ -186,6 +187,40 @@ export class RtlPdf {
 
   space(amount: number): void {
     this.cursor -= amount;
+  }
+
+  /**
+   * The brand mark, centred, scaled to `size` points tall.
+   *
+   * The cursor is a baseline, so a line of text sits *above* it: `text` draws
+   * at the cursor and the glyphs rise about `size` points from there. The mark
+   * takes the same band — pdf-lib anchors an SVG path at its top-left, keeping
+   * SVG's downward y, so its top goes a full `size` above the cursor. Drawing
+   * it at the cursor instead would put the mark where the next line's letters
+   * are about to be, which is exactly the collision this avoids.
+   */
+  mark(paths: readonly MarkPath[], viewBox: number, size = 34): void {
+    const scale = size / viewBox;
+    const x = (this.page.getWidth() - size) / 2;
+    const top = this.cursor + size;
+
+    for (const path of paths) {
+      this.page.drawSvgPath(path.d, {
+        x,
+        y: top,
+        scale,
+        // pdf-lib fills with black unless told otherwise, which would turn a
+        // stroked-only path into a solid blob.
+        ...(path.fill && { color: rgb(...path.fill) }),
+        ...(path.stroke && {
+          borderColor: rgb(...path.stroke),
+          borderWidth: (path.strokeWidth ?? 1) * scale,
+          borderLineCap: LineCapStyle.Round,
+        }),
+      });
+    }
+
+    this.cursor -= size + 8;
   }
 
   rule(colour: [number, number, number] = [0.75, 0.75, 0.75]): void {
