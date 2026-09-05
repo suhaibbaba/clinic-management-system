@@ -47,7 +47,7 @@ export function DropdownMenuContent({
         align={align}
         sideOffset={8}
         className={cn(
-          'z-50 min-w-56 rounded-panel border border-line-card bg-surface p-1.5 shadow-float',
+          'z-50 min-w-56 rounded-panel bg-surface p-1.5 shadow-float',
           // 150ms fade + scale out of the corner the menu actually opened
           // from, rather than appearing from nowhere. Radix computes that
           // origin and hands it over as a custom property.

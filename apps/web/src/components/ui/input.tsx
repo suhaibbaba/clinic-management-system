@@ -43,7 +43,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         '[&::-webkit-calendar-picker-indicator]:opacity-60',
         '[&::-webkit-calendar-picker-indicator]:hover:opacity-100',
         adornment !== undefined && 'ps-10',
-        hasError ? 'border-danger-400 focus:border-danger-500' : 'border-line-strong',
+        hasError ? 'border-danger-500' : 'border-line',
         className,
       )}
       {...props}

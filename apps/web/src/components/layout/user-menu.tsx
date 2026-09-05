@@ -48,16 +48,14 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          'group flex cursor-pointer items-center gap-2.5 rounded-pill bg-surface py-1 ps-1 pe-3',
-          'shadow-pill transition-[background-color,box-shadow] duration-150',
-          'hover:bg-inset hover:shadow-float',
-          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
-          'data-[state=open]:bg-inset data-[state=open]:shadow-float',
+          'group flex w-full cursor-pointer items-center gap-2.5 rounded-control p-2',
+          'transition-colors duration-150 hover:bg-inset',
+          'data-[state=open]:bg-inset',
         )}
       >
         <Avatar name={user.name} />
 
-        <span className="hidden min-w-0 flex-col leading-tight text-start sm:flex">
+        <span className="flex min-w-0 flex-1 flex-col leading-tight text-start">
           <span className="truncate text-label font-semibold text-ink">{user.name}</span>
           <span className="truncate text-label text-ink-subtle">{t(`roles.${user.role}`)}</span>
         </span>
@@ -71,7 +69,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
         />
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent>
+      <DropdownMenuContent align="start">
         <DropdownMenuItem icon="user" onSelect={() => void navigate('/profile')}>
           {t('nav.profile')}
         </DropdownMenuItem>

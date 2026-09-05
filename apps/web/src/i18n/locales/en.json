@@ -75,7 +75,8 @@
     "searchPatients": "Search patients…",
     "notificationsEmpty": "No notifications",
     "language": "Language",
-    "account": "Account"
+    "account": "Account",
+    "breadcrumb": "Breadcrumb"
   },
   "roles": {
     "admin": "Admin",
@@ -292,7 +293,9 @@
     "empty": "No patients registered yet",
     "emptyHint": "Start by registering the first patient.",
     "noMatches": "No matching patients",
-    "noMatchesHint": "Try another name or part of a phone number."
+    "noMatchesHint": "Try another name or part of a phone number.",
+    "filterByBalance": "Filter by balance",
+    "owing": "Owing"
   },
   "chart": {
     "title": "Tooth chart",

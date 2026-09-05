@@ -58,7 +58,10 @@ export function OverduePage(): JSX.Element {
       primary: true,
       render: (row) => (
         <span className="flex flex-col">
-          <Link to={`/patients/${row.patientId}`} className="font-medium text-primary-700">
+          <Link
+            to={`/patients/${row.patientId}`}
+            className="font-medium text-primary-600 transition-colors duration-150 hover:text-primary-700"
+          >
             {row.fullName}
           </Link>
           <span className="text-label text-ink-muted" dir="ltr">
@@ -71,7 +74,11 @@ export function OverduePage(): JSX.Element {
       key: 'balance',
       header: 'billing.columns.balance',
       align: 'numeric',
-      render: (row) => <Money amount={row.balance} currency={currency} className="font-medium" />,
+      // Every row on this page is money owed, so every balance takes the red.
+      // The rule is about the value, not the screen it happens to be on.
+      render: (row) => (
+        <Money amount={row.balance} currency={currency} className="font-semibold text-danger-600" />
+      ),
     },
     {
       key: 'lastPayment',
@@ -94,7 +101,11 @@ export function OverduePage(): JSX.Element {
       key: 'phone',
       header: 'billing.columns.phone',
       render: (row) => (
-        <a href={`tel:${row.phone}`} dir="ltr" className="text-primary-700">
+        <a
+          href={`tel:${row.phone}`}
+          dir="ltr"
+          className="text-primary-600 transition-colors duration-150 hover:text-primary-700"
+        >
           {row.phone}
         </a>
       ),

@@ -4,13 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import {
-  Badge,
+  Avatar,
   Button,
-  Card,
   EmptyState,
   Icon,
   PageHeader,
   SearchField,
+  SegmentedControl,
   Table,
   type Column,
 } from '@web/components/ui';
@@ -22,6 +22,7 @@ import { PatientFormModal } from '@web/features/patients/patient-form-modal';
 import { canCreatePatient, seesClinicalPatientFields } from '@web/features/patients/permissions';
 import { usePatients } from '@web/features/patients/queries';
 import { ageInYears } from '@web/features/patients/patient-page';
+import { cn } from '@web/lib/cn';
 import { useDebounced } from '@web/lib/use-debounced';
 
 const PAGE_SIZE = 10;
@@ -68,6 +69,14 @@ export function PatientsPage(): JSX.Element {
     setPage(1);
   };
   const [createOpen, setCreateOpen] = useState(false);
+  /*
+   * The Owing filter narrows the page in hand rather than asking the server:
+   * the API takes no balance filter, and inventing a client-side "all
+   * patients who owe" over one page would be a wrong answer wearing a
+   * confident label. The segment says which of *these* rows to show, and the
+   * count beside it stays the server's total.
+   */
+  const [owingOnly, setOwingOnly] = useState(false);
 
   const debouncedSearch = useDebounced(search);
   const showClinical = user ? seesClinicalPatientFields(user.role) : false;
@@ -84,20 +93,24 @@ export function PatientsPage(): JSX.Element {
   const columns = useMemo<Column<PatientView>[]>(() => {
     const base: Column<PatientView>[] = [
       {
-        key: 'fileNumber',
-        header: 'patients.fileNumber',
-        render: (row) => (
-          <span dir="ltr" className="font-mono text-label tabular-nums text-ink-muted">
-            {row.fileNumber}
-          </span>
-        ),
-      },
-      {
         key: 'fullName',
         header: 'patients.fullName',
-        // The card's title: a patient's name needs no caption.
+        // The card's title on a phone; on a wide screen, the identity cell:
+        // a tinted initial, the name, and the file number as its caption.
+        // Two columns collapsed into one — the file number never needed a
+        // header of its own, it needed to be under the name it belongs to.
         primary: true,
-        render: (row) => <span className="font-medium text-ink">{row.fullName}</span>,
+        render: (row) => (
+          <span className="flex items-center gap-3">
+            <Avatar name={row.fullName} tintKey={row.id} />
+            <span className="flex min-w-0 flex-col leading-tight">
+              <span className="truncate font-semibold text-ink">{row.fullName}</span>
+              <span dir="ltr" className="text-label tabular-nums text-ink-subtle">
+                {row.fileNumber}
+              </span>
+            </span>
+          </span>
+        ),
       },
       {
         key: 'phone',
@@ -135,12 +148,23 @@ export function PatientsPage(): JSX.Element {
         key: 'balance',
         header: 'patients.balance',
         align: 'numeric',
-        render: (row) =>
-          row.balance === undefined ? (
-            '—'
-          ) : (
-            <Money amount={row.balance} currency={currency} signed />
-          ),
+        render: (row) => {
+          if (row.balance === undefined) {
+            return '—';
+          }
+
+          // Nothing owed is not news: it recedes. Something owed is the one
+          // thing on this page that earns the red.
+          const owes = Number(row.balance) > 0;
+
+          return (
+            <Money
+              amount={row.balance}
+              currency={currency}
+              className={owes ? 'font-semibold text-danger-600' : 'text-ink-subtle'}
+            />
+          );
+        },
       });
     }
 
@@ -149,14 +173,18 @@ export function PatientsPage(): JSX.Element {
       header: 'common.actions',
       actions: true,
       render: (row) => (
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
+          type="button"
           onClick={() => navigate(`/patients/${row.id}`)}
-          icon={<Icon name="chevron-end" className="size-4" />}
+          className={cn(
+            'inline-flex cursor-pointer items-center gap-0.5 rounded-control px-1 py-0.5',
+            'text-value font-medium text-primary-600',
+            'transition-colors duration-150 hover:text-primary-700',
+          )}
         >
           {t('patients.openFile')}
-        </Button>
+          <Icon name="chevron-end" className="size-4" />
+        </button>
       ),
     });
 
@@ -165,9 +193,12 @@ export function PatientsPage(): JSX.Element {
 
   const canCreate = user ? canCreatePatient(user.role) : false;
   const isSearching = search.trim() !== '';
+  const rows = (query.data?.items ?? []).filter(
+    (row) => !owingOnly || Number(row.balance ?? '0') > 0,
+  );
 
   return (
-    <div className="flex flex-col gap-5">
+    <div>
       <PageHeader
         title="patients.title"
         subtitle="patients.subtitle"
@@ -180,28 +211,42 @@ export function PatientsPage(): JSX.Element {
         }
       />
 
-      {/* Search first: this screen exists to answer "where is this patient?". */}
-      <Card>
-        <div className="flex flex-wrap items-center gap-3">
-          <SearchField
-            className="min-w-0 flex-1"
-            label={t('patients.search')}
-            placeholder={t('patients.searchPlaceholder')}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
+      {/*
+        Search and filter sit on the page, not on a card of their own: a
+        toolbar is chrome, and giving it a white surface makes it read as
+        content with a heading missing.
+      */}
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <SearchField
+          className="min-w-0 flex-1 sm:max-w-sm"
+          label={t('patients.search')}
+          placeholder={t('patients.searchPlaceholder')}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
 
-          {query.data !== undefined && (
-            <Badge tone={isSearching ? 'info' : 'neutral'}>
-              {t('pagination.total', { total: query.data.total })}
-            </Badge>
-          )}
-        </div>
-      </Card>
+        {showBalance && (
+          <SegmentedControl
+            label={t('patients.filterByBalance')}
+            value={owingOnly ? 'owing' : 'all'}
+            onChange={(next) => setOwingOnly(next === 'owing')}
+            options={[
+              { value: 'all', label: t('common.all') },
+              { value: 'owing', label: t('patients.owing') },
+            ]}
+          />
+        )}
+
+        {query.data !== undefined && (
+          <span className="ms-auto text-label text-ink-subtle">
+            {t('pagination.total', { total: query.data.total })}
+          </span>
+        )}
+      </div>
 
       <Table
         columns={columns}
-        rows={query.data?.items ?? []}
+        rows={rows}
         rowKey={(row) => row.id}
         isLoading={query.isPending}
         empty={

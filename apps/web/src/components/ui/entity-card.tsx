@@ -71,7 +71,7 @@ export function EntityCard({
   return (
     <article
       className={cn(
-        'flex flex-col rounded-card border border-line-card bg-surface p-5 shadow-card',
+        'flex flex-col rounded-card bg-surface p-5 shadow-card',
         'transition-[box-shadow,background-color,border-color] duration-150',
         action !== undefined && 'hover:border-primary-200 hover:shadow-float',
         isSelected && 'bg-selected outline-[1.5px] -outline-offset-[1.5px] outline-selected-line',
@@ -133,10 +133,9 @@ export function EntityCard({
             title={action.label}
             className={cn(
               'inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-pill',
-              'bg-neutral-900 text-ink-inverse shadow-pill hover:bg-neutral-800',
+              'bg-primary-600 text-ink-inverse hover:bg-primary-700',
               'transition-[background-color,transform] duration-150 active:scale-95',
-              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
-              'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',
+              'disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100',
             )}
           >
             <Icon name={action.icon ?? 'chevron-end'} className="size-[18px]" />

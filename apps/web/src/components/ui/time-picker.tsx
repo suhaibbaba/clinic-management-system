@@ -136,7 +136,6 @@ export function TimePicker({
             className={cn(
               'absolute inset-y-0 end-0 flex cursor-pointer items-center pe-3 text-ink-subtle',
               'transition-colors duration-150 hover:text-ink',
-              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
               'disabled:cursor-not-allowed',
             )}
           >
@@ -159,7 +158,6 @@ export function TimePicker({
               className={cn(
                 'flex w-full cursor-pointer items-center justify-between rounded-control px-3 py-2',
                 'text-start text-value tabular-nums transition-colors duration-150',
-                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
                 slot === value ? 'bg-primary-600 text-ink-inverse' : 'text-ink hover:bg-inset',
               )}
             >

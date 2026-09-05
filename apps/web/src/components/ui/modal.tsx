@@ -45,7 +45,7 @@ export function Modal({
             'fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2',
             size === 'lg' ? 'max-w-2xl' : 'max-w-md',
             // Column layout so the body scrolls and the footer stays reachable.
-            'flex max-h-[calc(100vh-4rem)] flex-col rounded-card border border-line-card bg-surface p-6 shadow-float',
+            'flex max-h-[calc(100vh-4rem)] flex-col rounded-card bg-surface p-6 shadow-float',
           )}
         >
           <Dialog.Title className="text-lg font-semibold text-ink">

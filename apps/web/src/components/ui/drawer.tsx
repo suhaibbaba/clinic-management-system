@@ -48,7 +48,7 @@ export function Drawer({
           <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
             <Dialog.Title className="text-lg font-semibold text-ink">{title}</Dialog.Title>
             <Dialog.Close
-              className="cursor-pointer rounded-control px-2 py-1 text-label text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+              className="cursor-pointer rounded-control px-2 py-1 text-label text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink"
               aria-label={t('common.close')}
             >
               ✕

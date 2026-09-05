@@ -51,7 +51,7 @@ export function PopoverSheet({
           <DialogPrimitive.Content
             className={cn(
               'fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto',
-              'rounded-t-card border border-line-card bg-surface p-4 pb-8 shadow-float',
+              'rounded-t-card bg-surface p-4 pb-8 shadow-float',
               'data-[state=open]:animate-menu-in data-[state=closed]:animate-menu-out',
             )}
           >
@@ -65,7 +65,6 @@ export function PopoverSheet({
                 className={cn(
                   'cursor-pointer rounded-control p-1.5 text-ink-muted',
                   'transition-colors duration-150 hover:bg-inset hover:text-ink',
-                  'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
                 )}
               >
                 <Icon name="x" />
@@ -94,7 +93,7 @@ export function PopoverSheet({
           sideOffset={8}
           aria-label={title}
           className={cn(
-            'z-50 rounded-card border border-line-card bg-surface p-3 shadow-float',
+            'z-50 rounded-card bg-surface p-3 shadow-float',
             'origin-(--radix-popover-content-transform-origin)',
             'data-[state=open]:animate-menu-in data-[state=closed]:animate-menu-out',
           )}

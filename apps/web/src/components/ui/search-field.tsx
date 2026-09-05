@@ -32,8 +32,8 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
 ) {
   return (
     <div className={cn('relative', className)}>
-      <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3.5 text-ink-subtle">
-        <Icon name="search" className="size-[18px]" />
+      <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-ink-subtle">
+        <Icon name="search" className="size-4" />
       </span>
 
       <input
@@ -41,9 +41,11 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
         type="search"
         aria-label={label}
         className={cn(
-          'block h-11 w-full rounded-pill border border-line bg-surface ps-11 text-start text-field text-ink',
-          'transition-colors placeholder:text-ink-subtle',
-          'focus:border-primary-500 focus:outline-2 focus:outline-offset-0 focus:outline-primary-600',
+          // A fill rather than a border: the field is a shape cut out of the
+          // page, which is what keeps a toolbar from turning into a row of
+          // outlined boxes.
+          'chrome-field block h-10 w-full rounded-control ps-10 text-start text-field text-ink',
+          'transition-colors duration-150 placeholder:text-ink-subtle',
           '[&::-webkit-search-decoration]:appearance-none [&::-webkit-search-cancel-button]:appearance-none',
           shortcut === undefined ? 'pe-4' : 'pe-14',
         )}
