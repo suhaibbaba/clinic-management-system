@@ -21,7 +21,9 @@
     "yes": "Yes",
     "no": "No",
     "reset": "Reset",
-    "delete": "Delete"
+    "delete": "Delete",
+    "filters": "Filters",
+    "viewAll": "View all"
   },
   "pagination": {
     "previous": "Previous",
@@ -38,7 +40,9 @@
     "profile": "My account",
     "logout": "Sign out",
     "patients": "Patients",
-    "overdue": "Overdue balances"
+    "overdue": "Overdue balances",
+    "searchPatients": "Search patients…",
+    "notificationsEmpty": "No notifications"
   },
   "roles": {
     "admin": "Admin",
@@ -311,7 +315,8 @@
       "attachments": "X-rays",
       "noAttachments": "No images for this tooth",
       "openFile": "Open file",
-      "recorded": "Procedure recorded"
+      "recorded": "Procedure recorded",
+      "procedureCount": "{{count}} procedures"
     }
   },
   "visits": {
@@ -369,7 +374,12 @@
       "planned": "Planned",
       "converted": "Converted",
       "cancelled": "Cancelled"
-    }
+    },
+    "filterByStatus": "Filter by status",
+    "noneInFilter": "No plans with this status",
+    "noneInFilterHint": "Change the filter to see other plans.",
+    "progressLabel": "Plan progress",
+    "progressCaption": "{{done}} of {{total}} carried out"
   },
   "imaging": {
     "type": "Type",
@@ -443,6 +453,14 @@
     "overdueEmpty": "No overdue balances",
     "overdueEmptyHint": "Every outstanding balance is inside the allowed window.",
     "daysAgo": "{{count}} days ago",
-    "neverPaid": "Never paid"
+    "neverPaid": "Never paid",
+    "kpi": {
+      "patients": "Overdue patients",
+      "patientsCaption": "Across the clinic",
+      "outstanding": "Outstanding total",
+      "largest": "Largest balance",
+      "neverPaid": "Never paid",
+      "thisPage": "On this page"
+    }
   }
 }

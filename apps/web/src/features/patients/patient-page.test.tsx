@@ -172,7 +172,8 @@ describe('Patient page', () => {
       await renderPatientPage(USER_ROLE.DOCTOR);
       await findChart();
 
-      await userEvent.click(screen.getByRole('button', { name: ar.chart.deciduous }));
+      // The dentition switch is a radio group: one of two, exactly one chosen.
+      await userEvent.click(screen.getByRole('radio', { name: ar.chart.deciduous }));
 
       expect(await screen.findByRole('button', { name: /\b55\b/ })).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /\b18\b/ })).not.toBeInTheDocument();

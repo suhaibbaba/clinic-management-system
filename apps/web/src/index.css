@@ -1,6 +1,27 @@
 @import 'tailwindcss';
 
 /*
+ * IBM Plex Sans Arabic, self-hosted.
+ *
+ * Only the two subsets this app renders — Arabic for the UI, Latin for names,
+ * phone numbers and money codes — at the four weights the design uses. The
+ * whole family is 1.3 MB; this is 268 KB, and the browser fetches only the
+ * faces a page actually paints.
+ *
+ * Self-hosted rather than pulled from a font CDN: a clinic app should not tell
+ * a third party which of its screens a receptionist opened, and a VPS with no
+ * outbound network should still render correctly.
+ */
+@import '@fontsource/ibm-plex-sans-arabic/arabic-400.css';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-500.css';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-600.css';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-700.css';
+@import '@fontsource/ibm-plex-sans-arabic/latin-400.css';
+@import '@fontsource/ibm-plex-sans-arabic/latin-500.css';
+@import '@fontsource/ibm-plex-sans-arabic/latin-600.css';
+@import '@fontsource/ibm-plex-sans-arabic/latin-700.css';
+
+/*
  * Every colour, font and chart token in this app lives in one file. Nothing
  * else names a colour — see theme.css for the scales, the semantic aliases and
  * the contrast budget they were built against.
@@ -13,9 +34,18 @@ body,
   height: 100%;
 }
 
+/*
+ * The page ground: a soft vertical wash between the two tinted blues, fixed so
+ * it does not slide under a long list. `background-color` is set as well as the
+ * gradient — a gradient is a background *image*, and it is the colour that
+ * shows while the paint is still arriving and that the browser uses for
+ * overscroll.
+ */
 body {
   margin: 0;
-  background: var(--color-canvas);
+  background-color: var(--color-canvas);
+  background-image: linear-gradient(180deg, var(--color-canvas) 0%, var(--color-canvas-deep) 100%);
+  background-attachment: fixed;
   color: var(--color-ink);
   font-family: var(--font-sans);
   line-height: 1.6;

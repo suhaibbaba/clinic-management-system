@@ -48,17 +48,17 @@ export function Table<TRow>({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-line bg-surface">
+    <div className="overflow-hidden rounded-card bg-surface shadow-card">
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
-          <thead className="bg-canvas">
+        <table className="w-full border-collapse text-value">
+          <thead>
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
                   className={cn(
-                    'whitespace-nowrap px-4 py-3 text-start text-xs font-semibold text-ink-muted',
+                    'whitespace-nowrap border-b border-line px-5 py-3.5 text-start text-label font-semibold text-ink-muted',
                     column.className,
                   )}
                 >
@@ -79,11 +79,11 @@ export function Table<TRow>({
 
             {!isLoading &&
               rows.map((row) => (
-                <tr key={rowKey(row)} className="hover:bg-canvas">
+                <tr key={rowKey(row)} className="transition-colors hover:bg-primary-50/60">
                   {columns.map((column) => (
                     <td
                       key={column.key}
-                      className={cn('px-4 py-3 text-start align-middle', column.className)}
+                      className={cn('px-5 py-3.5 text-start align-middle', column.className)}
                     >
                       {column.render(row)}
                     </td>
@@ -109,10 +109,10 @@ export function Pagination({
 
   return (
     <nav
-      className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-3"
+      className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-5 py-3.5"
       aria-label={t('pagination.next')}
     >
-      <p className="text-xs text-ink-muted">{t('pagination.total', { total })}</p>
+      <p className="text-label text-ink-muted">{t('pagination.total', { total })}</p>
 
       <div className="flex items-center gap-2">
         <Button
@@ -124,7 +124,7 @@ export function Pagination({
           {t('pagination.previous')}
         </Button>
 
-        <span className="text-xs text-ink-muted">
+        <span className="text-label text-ink-muted">
           {t('pagination.page', { page, totalPages: Math.max(totalPages, 1) })}
         </span>
 

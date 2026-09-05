@@ -82,16 +82,49 @@ export function ToothPanel({
       }
     >
       <div className="flex flex-col gap-6">
-        {summary && summary.surfaces.length > 0 && (
-          <section className="flex flex-col gap-2">
-            <h3 className="text-sm font-semibold text-ink">{t('chart.panel.surfaces')}</h3>
-            <SurfaceSelector value={summary.surfaces} readOnly />
+        {/*
+          The intro card: what this tooth *is*, before the list of what has
+          been done to it. It floats on a tinted ground inside the drawer —
+          the same "detail card over a surface" idea used elsewhere — so the
+          summary reads as a distinct answer rather than as the first row of
+          the history below it.
+        */}
+        {summary && (
+          <section className="rounded-card bg-canvas p-4 shadow-pop">
+            <div className="flex items-center gap-3">
+              <span
+                dir="ltr"
+                className="inline-flex size-12 shrink-0 items-center justify-center rounded-panel bg-surface font-mono text-lg font-semibold text-ink shadow-pill"
+              >
+                {tooth}
+              </span>
+
+              <div className="min-w-0">
+                <p className="text-label text-ink-muted">{t('chart.panel.title')}</p>
+                <p className="text-value font-semibold text-ink">
+                  {t(toothStateLabelKey(summary.state))}
+                </p>
+              </div>
+
+              <Badge className="ms-auto" tone={summary.surfaces.length > 0 ? 'info' : 'neutral'}>
+                {t('chart.panel.procedureCount', { count: data?.procedures.length ?? 0 })}
+              </Badge>
+            </div>
+
+            {summary.surfaces.length > 0 && (
+              <div className="mt-4 border-t border-line pt-4">
+                <h3 className="mb-2 text-label font-medium text-ink-muted">
+                  {t('chart.panel.surfaces')}
+                </h3>
+                <SurfaceSelector value={summary.surfaces} readOnly />
+              </div>
+            )}
           </section>
         )}
 
         <section className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-ink">{t('chart.panel.history')}</h3>
+            <h3 className="text-value font-semibold text-ink">{t('chart.panel.history')}</h3>
 
             {canAdd && !adding && (
               <Button size="sm" variant="secondary" onClick={() => setAdding(true)}>
@@ -100,8 +133,8 @@ export function ToothPanel({
             )}
           </div>
 
-          {isPending && <p className="text-sm text-ink-muted">{t('common.loading')}</p>}
-          {isError && <p className="text-sm text-danger-600">{t('errors.generic')}</p>}
+          {isPending && <p className="text-value text-ink-muted">{t('common.loading')}</p>}
+          {isError && <p className="text-value text-danger-600">{t('errors.generic')}</p>}
 
           {data && data.procedures.length === 0 && <EmptyState title="chart.panel.noProcedures" />}
 
@@ -125,8 +158,10 @@ export function ToothPanel({
         </section>
 
         {adding && tooth !== null && (
-          <section className="rounded-lg border border-line bg-canvas p-4">
-            <h3 className="mb-3 text-sm font-semibold text-ink">{t('chart.panel.addProcedure')}</h3>
+          <section className="rounded-panel bg-sunken p-4">
+            <h3 className="mb-3 text-value font-semibold text-ink">
+              {t('chart.panel.addProcedure')}
+            </h3>
             <AddProcedureForm
               tooth={tooth}
               role={role}
@@ -144,7 +179,7 @@ export function ToothPanel({
 
         {showAttachments && (
           <section className="flex flex-col gap-2">
-            <h3 className="text-sm font-semibold text-ink">{t('chart.panel.attachments')}</h3>
+            <h3 className="text-value font-semibold text-ink">{t('chart.panel.attachments')}</h3>
             {data && <ToothAttachments attachments={data.attachments} />}
           </section>
         )}
@@ -167,15 +202,17 @@ function ProcedureRow({
   const { t } = useTranslation();
 
   return (
-    <li className="rounded-md border border-line bg-surface p-3">
+    <li className="rounded-panel bg-canvas p-3">
       <div className="flex items-start justify-between gap-2">
-        <span className="text-sm font-medium text-ink">{name ?? t('chart.panel.procedure')}</span>
+        <span className="text-value font-medium text-ink">
+          {name ?? t('chart.panel.procedure')}
+        </span>
         <Badge tone={statusTone(procedure.status)}>
           {t(`chart.procedureStatus.${procedure.status}`)}
         </Badge>
       </div>
 
-      <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-ink-muted">
+      <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-label text-ink-muted">
         <div className="flex gap-1">
           <dt>{t('chart.panel.date')}:</dt>
           <dd dir="ltr">{formatDate(procedure.performedAt)}</dd>

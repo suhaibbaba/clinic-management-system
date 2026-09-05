@@ -1,9 +1,19 @@
 import type { PatientClinicalView, PatientView } from '@clinic/shared';
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { Button, EmptyState, Input, PageHeader, Table, type Column } from '@web/components/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  Icon,
+  PageHeader,
+  SearchField,
+  Table,
+  type Column,
+} from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
 import { canSeeBilling } from '@web/features/billing/permissions';
@@ -39,8 +49,24 @@ export function PatientsPage(): JSX.Element {
   const navigate = useNavigate();
   const { user } = useSession();
 
-  const [search, setSearch] = useState('');
+  /*
+   * The URL owns the search term, rather than a `useState` seeded from it.
+   *
+   * The top bar navigates here with `?q=`, and when the user is *already* on
+   * this screen that navigation does not remount the page — a state copy
+   * seeded once at mount would silently ignore it. Reading the param directly
+   * means there is only one answer to "what is being searched", and it also
+   * makes a search reloadable, shareable and back-button-able for free.
+   */
   const [page, setPage] = useState(1);
+  const [params, setParams] = useSearchParams();
+  const search = params.get('q') ?? '';
+  const setSearch = (next: string): void => {
+    setParams(next.trim() === '' ? {} : { q: next }, { replace: true });
+    // A new search starts at the first page; page 3 of the old results is
+    // meaningless for the new ones.
+    setPage(1);
+  };
   const [createOpen, setCreateOpen] = useState(false);
 
   const debouncedSearch = useDebounced(search);
@@ -61,7 +87,7 @@ export function PatientsPage(): JSX.Element {
         key: 'fileNumber',
         header: 'patients.fileNumber',
         render: (row) => (
-          <span dir="ltr" className="font-mono text-xs">
+          <span dir="ltr" className="font-mono text-label tabular-nums text-ink-muted">
             {row.fileNumber}
           </span>
         ),
@@ -74,7 +100,11 @@ export function PatientsPage(): JSX.Element {
       {
         key: 'phone',
         header: 'patients.phone',
-        render: (row) => <span dir="ltr">{row.phone}</span>,
+        render: (row) => (
+          <span dir="ltr" className="tabular-nums">
+            {row.phone}
+          </span>
+        ),
       },
       {
         key: 'age',
@@ -113,7 +143,12 @@ export function PatientsPage(): JSX.Element {
       key: 'actions',
       header: 'common.actions',
       render: (row) => (
-        <Button variant="ghost" size="sm" onClick={() => navigate(`/patients/${row.id}`)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(`/patients/${row.id}`)}
+          icon={<Icon name="chevron-end" className="size-4" />}
+        >
           {t('patients.openFile')}
         </Button>
       ),
@@ -138,24 +173,23 @@ export function PatientsPage(): JSX.Element {
       />
 
       {/* Search first: this screen exists to answer "where is this patient?". */}
-      <div className="rounded-lg border border-line bg-surface p-4">
-        <label htmlFor="patient-search" className="mb-1.5 block text-sm font-medium text-ink">
-          {t('patients.search')}
-        </label>
-        <Input
-          id="patient-search"
-          type="search"
-          className="h-12 text-base"
-          placeholder={t('patients.searchPlaceholder')}
-          value={search}
-          onChange={(event) => {
-            setSearch(event.target.value);
-            // A new search starts at the first page; page 3 of the old results
-            // is meaningless for the new ones.
-            setPage(1);
-          }}
-        />
-      </div>
+      <Card>
+        <div className="flex flex-wrap items-center gap-3">
+          <SearchField
+            className="min-w-0 flex-1"
+            label={t('patients.search')}
+            placeholder={t('patients.searchPlaceholder')}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+
+          {query.data !== undefined && (
+            <Badge tone={isSearching ? 'info' : 'neutral'}>
+              {t('pagination.total', { total: query.data.total })}
+            </Badge>
+          )}
+        </div>
+      </Card>
 
       <Table
         columns={columns}

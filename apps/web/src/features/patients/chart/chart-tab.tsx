@@ -1,7 +1,7 @@
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { EmptyState, useToast } from '@web/components/ui';
+import { EmptyState, SegmentedControl, useToast } from '@web/components/ui';
 import { useDoctors } from '@web/features/doctors/queries';
 import type { Dentition } from '@web/features/patients/chart/fdi-layout';
 import type { NewProcedureInput } from '@web/features/patients/chart/add-procedure-form';
@@ -16,7 +16,6 @@ import {
 } from '@web/features/patients/queries';
 import { useSession } from '@web/features/auth/session';
 import { errorMessageKey } from '@web/lib/api-error';
-import { cn } from '@web/lib/cn';
 
 /**
  * The chart tab: fetches what colours the teeth, and owns the selection.
@@ -78,33 +77,23 @@ export function ChartTab({ patientId }: { patientId: string }): JSX.Element {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div
-          role="group"
-          aria-label={t('chart.dentition')}
-          className="inline-flex overflow-hidden rounded-md border border-line-strong"
-        >
-          {(['permanent', 'deciduous'] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              aria-pressed={dentition === option}
-              onClick={() => {
-                setDentition(option);
-                setSelectedTooth(null);
-              }}
-              className={cn(
-                'px-3 py-1.5 text-sm font-medium transition-colors',
-                dentition === option
-                  ? 'bg-primary-600 text-ink-inverse'
-                  : 'bg-surface text-ink hover:bg-canvas',
-              )}
-            >
-              {t(`chart.${option}`)}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          label={t('chart.dentition')}
+          value={dentition}
+          onChange={(next) => {
+            setDentition(next);
+            // The deciduous arch has no tooth 27; keeping a selection across
+            // the switch would leave the panel describing a tooth that is not
+            // on screen.
+            setSelectedTooth(null);
+          }}
+          options={(['permanent', 'deciduous'] as const).map((option) => ({
+            value: option,
+            label: t(`chart.${option}`),
+          }))}
+        />
 
-        <p className="text-xs text-ink-muted">{t('chart.keyboardHint')}</p>
+        <p className="text-label text-ink-muted">{t('chart.keyboardHint')}</p>
       </div>
 
       {/* A new patient still gets a chart — every tooth healthy — with a line

@@ -46,10 +46,10 @@ export function ProfilePage(): JSX.Element {
       <PageHeader title="profile.title" subtitle="profile.subtitle" />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-lg border border-line bg-surface p-4">
-          <h2 className="text-sm font-medium text-ink">{t('profile.details')}</h2>
+        <section className="rounded-card bg-surface shadow-card p-4">
+          <h2 className="text-value font-medium text-ink">{t('profile.details')}</h2>
 
-          <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+          <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-value">
             <dt className="text-ink-muted">{t('users.name')}</dt>
             <dd className="font-medium text-ink">{user?.name}</dd>
 
@@ -64,8 +64,8 @@ export function ProfilePage(): JSX.Element {
           </dl>
         </section>
 
-        <section className="rounded-lg border border-line bg-surface p-4">
-          <h2 className="text-sm font-medium text-ink">{t('profile.changePassword')}</h2>
+        <section className="rounded-card bg-surface shadow-card p-4">
+          <h2 className="text-value font-medium text-ink">{t('profile.changePassword')}</h2>
 
           <form className="mt-3 flex flex-col gap-4" onSubmit={onSubmit} noValidate>
             <FormField

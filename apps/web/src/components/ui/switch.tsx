@@ -36,7 +36,7 @@ export function Switch({
     >
       <SwitchPrimitive.Thumb
         className={cn(
-          'block size-5 rounded-full bg-surface shadow transition-transform',
+          'block size-5 rounded-full bg-surface shadow-pill transition-transform',
           'absolute top-0.5 start-0.5',
           checked ? 'rtl:-translate-x-5 ltr:translate-x-5' : 'translate-x-0',
         )}

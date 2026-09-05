@@ -94,7 +94,7 @@ export function PaymentModal({
               hasError={Boolean(errors.amount)}
               {...register('amount')}
             />
-            {currency && <span className="text-sm text-ink-muted">{currency}</span>}
+            {currency && <span className="text-value text-ink-muted">{currency}</span>}
           </div>
         </FormField>
 

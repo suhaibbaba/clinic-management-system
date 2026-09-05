@@ -277,12 +277,17 @@ boundary, and every screen assumes it can be refused.
 ### Base components
 
 `apps/web/src/components/ui` holds the pieces every later feature reuses: `Button`, `Input`,
-`Select`, `Table` (with `Pagination`), `Modal`, `ToastProvider`/`useToast`, `FormField`,
-`PageHeader`, `EmptyState`, `Badge` and `Switch`, plus a shared `ScheduleEditor`. They are
-RTL-correct by construction: logical properties (`ms-*`, `text-start`, `border-e`) rather than
-left/right, so nothing needs an RTL override.
+`Select`, `SearchField`, `Table` (with `Pagination`), `Modal`, `Drawer`,
+`ToastProvider`/`useToast`, `FormField`, `PageHeader`, `EmptyState`, `Badge`, `Switch`,
+`Card`, `StatCard`, `SegmentedControl`, `EntityCard`, `ProgressBar`, `Avatar` and `Icon`,
+plus a shared `ScheduleEditor`. They are RTL-correct by construction: logical properties
+(`ms-*`, `text-start`, `border-e`) rather than left/right, so nothing needs an RTL override.
 
-### Theme and design language
+Icons are drawn in `icon.tsx` rather than installed — one 24px grid, one stroke width, and
+only the two dozen glyphs the design actually uses, instead of a package that ships hundreds
+to render a dozen.
+
+### Colour
 
 Every colour in the web app comes from `apps/web/src/theme.css`. It is the single source of
 truth: components use token utilities (`bg-surface`, `text-ink`, `border-line`,
@@ -316,6 +321,51 @@ keeps the mark's geometry in `apps/api/src/billing/pdf/brand-mark.ts` and draws 
 pdf-lib. That is a second copy on purpose, and `test/brand-mark.spec.ts` reads the web logo
 and fails if the two drift apart — so replacing the logo tells you the printed letterhead
 needs the new paths instead of quietly printing the old mark for months.
+
+### Layout, elevation and type
+
+Colour is only part of the system. `theme.css` also holds the geometry, the
+shadows and the type scale, so "looks like the rest of the app" is something a
+component says in one class.
+
+Content never touches the page ground. The ground is a soft vertical wash between
+two brand-tinted blues (`canvas` → `canvas-deep`), and everything else floats
+above it on white cards. Those two blues are not picked by eye either: they are
+the intended lightness and chroma taken onto the logo blue's own OKLCH hue, which
+is why the page reads as _this_ brand's blue rather than as a generic cool gray.
+
+Radii step down with nesting so a list item never fights the card around it —
+card `16px` → panel `12px` → control `10px` → pill. Shadows are large-blur,
+low-opacity and **tinted with the primary**: a gray shadow on a blue ground reads
+as dirt, a blue one reads as depth. Each is a 1px contact edge plus a wide
+diffuse pool.
+
+The repeating patterns are components, not conventions:
+
+| Pattern                   | Component                   | Where                        |
+| ------------------------- | --------------------------- | ---------------------------- |
+| KPI row                   | `StatRow` + `StatCard`      | overdue balances             |
+| Filter pills              | `SegmentedControl`          | plan statuses, dentition     |
+| Entity card with progress | `EntityCard` + `EntityGrid` | treatment plans              |
+| Selection state           | `Card tone="selected"`      | anywhere "which one" matters |
+| Floating detail card      | —                           | the tooth panel's summary    |
+
+Colour keeps its jobs separate. Blue is progress bars, active nav and selection
+tints. Green is success and small accents only. **Primary buttons are near-black**,
+because a blue button among all that blue reads as one more selected thing rather
+than as the action on the page. Status badges are a soft tint, a coloured dot and
+coloured text — never a solid fill, since a grid of entity cards is mostly badges
+and a row of saturated pills turns a calm page into a warning light.
+
+Type is IBM Plex Sans Arabic, self-hosted (Arabic + Latin, four weights, 268 KB) so
+no page view is announced to a font CDN. Money and KPI figures use `tabular-nums`,
+so digits do not shift width as data refreshes.
+
+One trap worth knowing about: `text-label`, `text-value` and `text-kpi` are font
+sizes declared in `theme.css`, and tailwind-merge cannot know that — it reads them
+as colours and silently drops whichever colour class came first. `lib/cn.ts`
+declares the scale to fix it and `lib/cn.test.ts` keeps it fixed. **A new `--text-*`
+token has to be added in both places.**
 
 ### Storybook
 

@@ -13,17 +13,28 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: ReactNode | undefined;
 }
 
+/*
+ * The primary action is near-black, not blue.
+ *
+ * Blue is doing a lot of work in this design already — progress bars, active
+ * nav, selection tints — and a blue button in among them reads as one more
+ * selected thing rather than as the one action on the page. Near-black has no
+ * such competition, so "save" is unmistakable wherever it appears.
+ */
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-primary-600 text-ink-inverse hover:bg-primary-700 focus-visible:outline-primary-600',
+  primary:
+    'bg-neutral-900 text-ink-inverse shadow-pill hover:bg-neutral-800 focus-visible:outline-neutral-900',
   secondary:
-    'bg-surface text-ink ring-1 ring-inset ring-line-strong hover:bg-canvas focus-visible:outline-ink-muted',
-  ghost: 'bg-transparent text-ink hover:bg-sunken focus-visible:outline-ink-subtle',
-  danger: 'bg-danger-600 text-ink-inverse hover:bg-danger-700 focus-visible:outline-danger-600',
+    'bg-surface text-ink ring-1 ring-inset ring-line-strong hover:bg-sunken focus-visible:outline-ink-muted',
+  ghost:
+    'bg-transparent text-ink-muted hover:bg-sunken hover:text-ink focus-visible:outline-ink-subtle',
+  danger:
+    'bg-danger-600 text-ink-inverse shadow-pill hover:bg-danger-700 focus-visible:outline-danger-600',
 };
 
 const SIZES: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3 text-sm gap-1.5',
-  md: 'h-10 px-4 text-sm gap-2',
+  sm: 'h-9 px-3.5 text-label gap-1.5',
+  md: 'h-11 px-5 text-value gap-2',
 };
 
 export function Button({
@@ -41,7 +52,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        'inline-flex items-center justify-center rounded-md font-medium transition-colors',
+        'inline-flex items-center justify-center rounded-control font-medium transition-colors',
         'focus-visible:outline-2 focus-visible:outline-offset-2',
         'disabled:cursor-not-allowed disabled:opacity-50',
         VARIANTS[variant],

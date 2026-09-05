@@ -104,10 +104,31 @@
  * change lands here and nowhere else.
  */
 @theme static {
-  /* Surfaces, lightest to deepest. */
+  /*
+   * Surfaces, lightest to deepest.
+   *
+   * The app sits on a tinted ground rather than a gray one: `canvas` and
+   * `canvas-deep` are the two ends of the page gradient, and every piece of
+   * content floats above them on white `surface` cards. Both were derived by
+   * taking the intended lightness and chroma onto the logo blue's own hue
+   * (OKLCH −114.10°), which is what makes the ground read as *this* brand's
+   * blue at 4% chroma rather than as a generic cool gray.
+   *
+   * `sunken` stays neutral: it is for insets and disabled controls, which are
+   * absences of surface rather than part of the ground.
+   */
   --color-surface: #ffffff;
-  --color-canvas: var(--color-neutral-50);
+  --color-canvas: #eef4fa;
+  --color-canvas-deep: #e3edf7;
   --color-sunken: var(--color-neutral-100);
+
+  /*
+   * Selection. A soft primary tint with a strong-enough edge to be seen
+   * without a fill: `selected-line` is drawn at 1.5px, so it needs the 3:1
+   * a UI boundary needs, not the 1.2:1 a background tint gets away with.
+   */
+  --color-selected: #e4f2ff;
+  --color-selected-line: var(--color-primary-500);
 
   /* Text. `ink` is body copy, `ink-muted` is secondary, `ink-subtle` is for
      placeholders and disabled text — never for anything that must be read. */
@@ -120,9 +141,61 @@
   --color-line: var(--color-neutral-200);
   --color-line-strong: var(--color-neutral-300);
 
+  /*
+   * IBM Plex Sans Arabic, self-hosted (see index.css). Self-hosted rather
+   * than from a font CDN: a clinic's browser should not be announcing every
+   * page view to a third party, and the four weights of the two subsets the
+   * app actually uses come to 268 KB.
+   */
   --font-sans:
-    'Segoe UI', system-ui, -apple-system, 'Noto Naskh Arabic', 'Noto Sans Arabic', Tahoma,
-    sans-serif;
+    'IBM Plex Sans Arabic', 'Segoe UI', system-ui, -apple-system, 'Noto Naskh Arabic',
+    'Noto Sans Arabic', Tahoma, sans-serif;
+}
+
+/*
+ * ── Geometry, elevation and type ─────────────────────────────────────────
+ *
+ * The other half of the design language: a card is not just white, it is
+ * white at a particular radius with a particular shadow. Naming those makes
+ * "this looks like the rest of the app" something a component can express in
+ * one class instead of five, and makes changing the whole app's softness a
+ * one-line edit here.
+ *
+ * Radii step down with nesting, so a list item inside a card never looks like
+ * it is fighting the card's own corner:
+ *   card 16 → panel 12 → control 10 → pill ∞
+ *
+ * Shadows are large-blur, low-opacity and *tinted with the primary* rather
+ * than black. A gray shadow on a blue-tinted ground reads as dirt; a blue one
+ * reads as depth. Each is a two-part shadow — a 1px contact edge that keeps
+ * the card's boundary crisp, plus a wide diffuse pool that does the floating.
+ */
+@theme static {
+  --radius-card: 16px;
+  --radius-panel: 12px;
+  --radius-control: 10px;
+  --radius-pill: 9999px;
+
+  /* Cards at rest on the ground. */
+  --shadow-card: 0 1px 2px rgba(4, 66, 107, 0.04), 0 10px 24px -12px rgba(4, 66, 107, 0.14);
+  /* Sidebar, top bar, and anything that must read as a layer above content. */
+  --shadow-panel: 0 1px 2px rgba(4, 66, 107, 0.05), 0 16px 36px -18px rgba(4, 66, 107, 0.2);
+  /* Small floating things: an active nav pill, a segmented-control thumb. */
+  --shadow-pill: 0 1px 2px rgba(4, 66, 107, 0.06), 0 4px 10px -4px rgba(4, 66, 107, 0.16);
+  /* Popovers and dialogs — the only shadow allowed to be obvious. */
+  --shadow-pop: 0 2px 4px rgba(4, 66, 107, 0.06), 0 24px 48px -20px rgba(4, 66, 107, 0.3);
+
+  /*
+   * Type. Labels are small and muted, values are a size up and solid, and a
+   * KPI number is large enough to be read across a reception desk. The line
+   * heights are set here too, so a heading never needs a second class.
+   */
+  --text-label: 0.8125rem; /* 13px — field labels, captions, meta rows */
+  --text-label--line-height: 1.15rem;
+  --text-value: 0.9375rem; /* 15px — the value beside a label */
+  --text-value--line-height: 1.4rem;
+  --text-kpi: 2rem; /* 32px — the number on a stat card */
+  --text-kpi--line-height: 2.25rem;
 }
 
 /*

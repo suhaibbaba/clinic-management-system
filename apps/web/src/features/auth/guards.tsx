@@ -9,7 +9,7 @@ function FullPageMessage({ messageKey }: { messageKey: string }): JSX.Element {
   const { t } = useTranslation();
 
   return (
-    <div className="flex min-h-full items-center justify-center p-8 text-sm text-ink-muted">
+    <div className="flex min-h-full items-center justify-center p-8 text-value text-ink-muted">
       {t(messageKey)}
     </div>
   );

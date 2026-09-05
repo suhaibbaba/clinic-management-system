@@ -33,7 +33,7 @@ export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.El
 
   return (
     <div className="text-end">
-      <span className="block text-xs text-ink-muted">{t('patients.balance')}</span>
+      <span className="block text-label text-ink-muted">{t('patients.balance')}</span>
 
       {balance.isPending ? (
         <span className="block text-lg font-semibold text-ink-subtle">—</span>
