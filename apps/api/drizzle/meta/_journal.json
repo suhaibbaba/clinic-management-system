@@ -15,6 +15,13 @@
       "when": 1788597179885,
       "tag": "0001_patients_module",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788599984566,
+      "tag": "0002_procedure_chart_outcome",
+      "breakpoints": true
     }
   ]
 }

@@ -1,10 +1,13 @@
 import {
   CHART_TYPE,
+  PROCEDURE_OUTCOME,
   GENDER,
   PERFORMED_PROCEDURE_STATUS,
   TREATMENT_PLAN_ITEM_STATUS,
   TREATMENT_PLAN_STATUS,
   type Gender,
+  type PerformedProcedureStatus,
+  type ProcedureOutcome,
   type ToothLocation,
 } from '@clinic/shared';
 import type { drizzle } from 'drizzle-orm/postgres-js';
@@ -35,19 +38,89 @@ interface CatalogSeed {
   readonly nameAr: string;
   readonly nameEn: string;
   readonly defaultPrice: string;
+  /** What the chart shows once it is done; null for procedures that chart nothing. */
+  readonly chartOutcome: ProcedureOutcome | null;
 }
 
 /** A small dental catalog — prices in the clinic's currency, as strings. */
 const CATALOG: readonly CatalogSeed[] = [
-  { code: 'EXAM', nameAr: 'كشف وفحص', nameEn: 'Examination', defaultPrice: '15.00' },
-  { code: 'CLEAN', nameAr: 'تنظيف وتقليح', nameEn: 'Scaling & polishing', defaultPrice: '40.00' },
-  { code: 'FILL-C', nameAr: 'حشوة تجميلية', nameEn: 'Composite filling', defaultPrice: '60.00' },
-  { code: 'FILL-A', nameAr: 'حشوة أملغم', nameEn: 'Amalgam filling', defaultPrice: '45.00' },
-  { code: 'RCT', nameAr: 'معالجة لبية', nameEn: 'Root canal treatment', defaultPrice: '180.00' },
-  { code: 'CROWN-Z', nameAr: 'تاج زيركون', nameEn: 'Zirconia crown', defaultPrice: '250.00' },
-  { code: 'EXT', nameAr: 'قلع بسيط', nameEn: 'Simple extraction', defaultPrice: '50.00' },
-  { code: 'EXT-S', nameAr: 'قلع جراحي', nameEn: 'Surgical extraction', defaultPrice: '120.00' },
-  { code: 'XRAY-P', nameAr: 'صورة بانوراما', nameEn: 'Panoramic X-ray', defaultPrice: '25.00' },
+  {
+    code: 'EXAM',
+    nameAr: 'كشف وفحص',
+    nameEn: 'Examination',
+    defaultPrice: '15.00',
+    chartOutcome: null,
+  },
+  {
+    code: 'CLEAN',
+    nameAr: 'تنظيف وتقليح',
+    nameEn: 'Scaling & polishing',
+    defaultPrice: '40.00',
+    chartOutcome: null,
+  },
+  {
+    code: 'FILL-C',
+    nameAr: 'حشوة تجميلية',
+    nameEn: 'Composite filling',
+    defaultPrice: '60.00',
+    chartOutcome: PROCEDURE_OUTCOME.FILLING,
+  },
+  {
+    code: 'FILL-A',
+    nameAr: 'حشوة أملغم',
+    nameEn: 'Amalgam filling',
+    defaultPrice: '45.00',
+    chartOutcome: PROCEDURE_OUTCOME.FILLING,
+  },
+  {
+    code: 'RCT',
+    nameAr: 'معالجة لبية',
+    nameEn: 'Root canal treatment',
+    defaultPrice: '180.00',
+    chartOutcome: PROCEDURE_OUTCOME.ROOT_CANAL,
+  },
+  {
+    code: 'CROWN-Z',
+    nameAr: 'تاج زيركون',
+    nameEn: 'Zirconia crown',
+    defaultPrice: '250.00',
+    chartOutcome: PROCEDURE_OUTCOME.CROWN,
+  },
+  {
+    code: 'BRIDGE-3',
+    nameAr: 'جسر ثلاثي',
+    nameEn: 'Three-unit bridge',
+    defaultPrice: '600.00',
+    chartOutcome: PROCEDURE_OUTCOME.BRIDGE,
+  },
+  {
+    code: 'IMPL',
+    nameAr: 'زرعة سنية',
+    nameEn: 'Dental implant',
+    defaultPrice: '700.00',
+    chartOutcome: PROCEDURE_OUTCOME.IMPLANT,
+  },
+  {
+    code: 'EXT',
+    nameAr: 'قلع بسيط',
+    nameEn: 'Simple extraction',
+    defaultPrice: '50.00',
+    chartOutcome: PROCEDURE_OUTCOME.MISSING,
+  },
+  {
+    code: 'EXT-S',
+    nameAr: 'قلع جراحي',
+    nameEn: 'Surgical extraction',
+    defaultPrice: '120.00',
+    chartOutcome: PROCEDURE_OUTCOME.MISSING,
+  },
+  {
+    code: 'XRAY-P',
+    nameAr: 'صورة بانوراما',
+    nameEn: 'Panoramic X-ray',
+    defaultPrice: '25.00',
+    chartOutcome: null,
+  },
 ];
 
 interface PatientSeed {
@@ -375,29 +448,152 @@ export async function seedPatients(db: Db, ctx: PatientsSeedContext): Promise<nu
         performedAt: daysAgo(5),
         ...audit,
       },
+      // The rest give patient 00001 a chart with every state on it, which is
+      // what makes the tooth chart worth opening on a fresh database.
+      {
+        clinicId: ctx.clinicId,
+        patientId: patientId('00001'),
+        visitId: null,
+        doctorId: ctx.doctorId,
+        procedureId: catalogId('RCT'),
+        price: priceOf('RCT'),
+        status: PERFORMED_PROCEDURE_STATUS.DONE,
+        performedAt: daysAgo(120),
+        ...audit,
+      },
+      {
+        clinicId: ctx.clinicId,
+        patientId: patientId('00001'),
+        visitId: null,
+        doctorId: ctx.doctorId,
+        procedureId: catalogId('CROWN-Z'),
+        price: priceOf('CROWN-Z'),
+        status: PERFORMED_PROCEDURE_STATUS.DONE,
+        performedAt: daysAgo(110),
+        ...audit,
+      },
+      {
+        clinicId: ctx.clinicId,
+        patientId: patientId('00001'),
+        visitId: null,
+        doctorId: ctx.doctorId,
+        procedureId: catalogId('EXT'),
+        price: priceOf('EXT'),
+        status: PERFORMED_PROCEDURE_STATUS.DONE,
+        performedAt: daysAgo(300),
+        ...audit,
+      },
+      {
+        clinicId: ctx.clinicId,
+        patientId: patientId('00001'),
+        visitId: null,
+        doctorId: ctx.doctorId,
+        procedureId: catalogId('IMPL'),
+        price: priceOf('IMPL'),
+        status: PERFORMED_PROCEDURE_STATUS.DONE,
+        performedAt: daysAgo(60),
+        ...audit,
+      },
+      {
+        clinicId: ctx.clinicId,
+        patientId: patientId('00001'),
+        visitId: null,
+        doctorId: ctx.doctorId,
+        procedureId: catalogId('BRIDGE-3'),
+        price: priceOf('BRIDGE-3'),
+        status: PERFORMED_PROCEDURE_STATUS.DONE,
+        performedAt: daysAgo(45),
+        ...audit,
+      },
+      {
+        clinicId: ctx.clinicId,
+        patientId: patientId('00001'),
+        visitId: null,
+        doctorId: ctx.doctorId,
+        procedureId: catalogId('FILL-A'),
+        price: priceOf('FILL-A'),
+        status: PERFORMED_PROCEDURE_STATUS.IN_PROGRESS,
+        performedAt: daysAgo(2),
+        ...audit,
+      },
+      {
+        clinicId: ctx.clinicId,
+        patientId: patientId('00001'),
+        visitId: null,
+        doctorId: ctx.doctorId,
+        procedureId: catalogId('FILL-C'),
+        price: priceOf('FILL-C'),
+        status: PERFORMED_PROCEDURE_STATUS.PLANNED,
+        performedAt: daysAgo(1),
+        ...audit,
+      },
     ])
-    .returning({ id: performedProcedures.id, procedureId: performedProcedures.procedureId });
+    .returning({
+      id: performedProcedures.id,
+      patientId: performedProcedures.patientId,
+      procedureId: performedProcedures.procedureId,
+      status: performedProcedures.status,
+    });
 
-  // FDI numbering: 46 lower-right first molar, 36 lower-left first molar,
-  // 38 lower-left third molar, 26 upper-left first molar.
-  const marks: [string, ToothLocation][] = [
-    [procedureRows[0]?.id ?? '', toothMark(46, ['O', 'D'])],
-    [procedureRows[2]?.id ?? '', toothMark(38, [])],
-    [procedureRows[3]?.id ?? '', toothMark(26, ['O'])],
+  /*
+   * Which teeth each procedure was performed on.
+   *
+   * Matched by patient, catalog code and status rather than by position in the
+   * insert: `returning()` does not promise to hand rows back in the order they
+   * were sent, so indexing into it silently attaches marks to the wrong
+   * procedures — which is exactly what it did before this was keyed by identity.
+   *
+   * FDI numbering: 16/17/18 upper-right molars, 21 an upper-left incisor,
+   * 24–26 upper-left, 36 lower-left first molar, 46/47 lower-right molars.
+   * Together they give patient 00001 one tooth in every state the chart can
+   * show.
+   */
+  const markPlan: {
+    file: string;
+    code: string;
+    status: PerformedProcedureStatus;
+    teeth: ToothLocation[];
+  }[] = [
+    { file: '00001', code: 'FILL-C', status: 'done', teeth: [toothMark(46, ['O', 'D'])] },
+    { file: '00005', code: 'EXT', status: 'done', teeth: [toothMark(38, [])] },
+    { file: '00008', code: 'RCT', status: 'in_progress', teeth: [toothMark(26, ['O'])] },
+    { file: '00001', code: 'RCT', status: 'done', teeth: [toothMark(16, ['O'])] },
+    { file: '00001', code: 'CROWN-Z', status: 'done', teeth: [toothMark(17, [])] },
+    { file: '00001', code: 'EXT', status: 'done', teeth: [toothMark(18, [])] },
+    { file: '00001', code: 'IMPL', status: 'done', teeth: [toothMark(36, [])] },
+    {
+      file: '00001',
+      code: 'BRIDGE-3',
+      status: 'done',
+      teeth: [toothMark(24, []), toothMark(25, []), toothMark(26, [])],
+    },
+    { file: '00001', code: 'FILL-A', status: 'in_progress', teeth: [toothMark(47, ['O', 'B'])] },
+    { file: '00001', code: 'FILL-C', status: 'planned', teeth: [toothMark(21, ['M'])] },
   ];
 
-  await db.insert(chartMarks).values(
-    marks
-      .filter(([procedureId]) => procedureId !== '')
-      .map(([performedProcedureId, location]) => ({
-        clinicId: ctx.clinicId,
-        performedProcedureId,
-        chartType: CHART_TYPE.TOOTH_FDI,
-        location,
-        tooth: location.tooth,
-        ...audit,
-      })),
-  );
+  const markValues = markPlan.flatMap((entry) => {
+    const procedure = procedureRows.find(
+      (row) =>
+        row.patientId === patientId(entry.file) &&
+        row.procedureId === catalogId(entry.code) &&
+        row.status === entry.status,
+    );
+
+    if (!procedure) {
+      throw new Error(`Seeded procedure ${entry.code} (${entry.status}) is missing`);
+    }
+
+    return entry.teeth.map((location) => ({
+      clinicId: ctx.clinicId,
+      performedProcedureId: procedure.id,
+      chartType: CHART_TYPE.TOOTH_FDI,
+      location,
+      tooth: location.tooth,
+      ...audit,
+    }));
+  });
+
+  await db.insert(chartMarks).values(markValues);
 
   const [plan] = await db
     .insert(treatmentPlans)
@@ -483,6 +679,7 @@ async function upsertCatalog(
         nameAr: item.nameAr,
         nameEn: item.nameEn,
         defaultPrice: item.defaultPrice,
+        chartOutcome: item.chartOutcome,
         createdBy: ctx.actorId,
         updatedBy: ctx.actorId,
       })),

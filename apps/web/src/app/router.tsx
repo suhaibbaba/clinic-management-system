@@ -8,10 +8,19 @@ import { RequireAuth, RequireRole } from '@web/features/auth/guards';
 import { LoginPage } from '@web/features/auth/login-page';
 import { ClinicPage } from '@web/features/clinic/clinic-page';
 import { DoctorsPage } from '@web/features/doctors/doctors-page';
+import { PatientPage } from '@web/features/patients/patient-page';
 import { ProfilePage } from '@web/features/profile/profile-page';
 import { UsersPage } from '@web/features/users/users-page';
 
 const ADMIN_ONLY = [USER_ROLE.ADMIN] as const;
+
+/**
+ * The patient file shows procedures, chart marks and attachments, which
+ * ROLES.md gives to admin and doctor. A technician's read is limited to
+ * lab-linked rows, which this screen cannot express, and a receptionist has
+ * none of it — both are turned away here as well as by the API.
+ */
+const CLINICAL = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR] as const;
 
 /**
  * Routes mirror the sidebar, and admin-only pages carry the same role check —
@@ -34,6 +43,15 @@ export function AppRoutes(): JSX.Element {
         <Route path="/doctors" element={<DoctorsPage />} />
         <Route path="/clinic" element={<ClinicPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+
+        <Route
+          path="/patients/:id"
+          element={
+            <RequireRole roles={CLINICAL} redirectTo="/">
+              <PatientPage />
+            </RequireRole>
+          }
+        />
 
         <Route
           path="/users"

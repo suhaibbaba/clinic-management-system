@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { PROCEDURE_OUTCOMES } from '@shared/enums';
 import { moneySchema } from '@shared/schemas/money';
 import { paginationQuerySchema } from '@shared/schemas/common';
 
@@ -17,6 +18,11 @@ export const procedureCatalogItemSchema = z.object({
   nameAr: z.string(),
   nameEn: z.string(),
   defaultPrice: moneySchema,
+  /**
+   * What this procedure leaves on the chart once it is done. Null for
+   * procedures that chart nothing — an examination, a cleaning, an X-ray.
+   */
+  chartOutcome: z.enum(PROCEDURE_OUTCOMES).nullable(),
   isActive: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -42,6 +48,7 @@ const catalogWritableFields = {
   nameAr: z.string().trim().min(1).max(160),
   nameEn: z.string().trim().min(1).max(160),
   defaultPrice: moneySchema,
+  chartOutcome: z.enum(PROCEDURE_OUTCOMES).nullish(),
   isActive: z.boolean(),
 };
 

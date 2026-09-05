@@ -2,6 +2,7 @@ import {
   ATTACHMENT_TYPES,
   GENDERS,
   PERFORMED_PROCEDURE_STATUSES,
+  PROCEDURE_OUTCOMES,
   TREATMENT_PLAN_ITEM_STATUSES,
   TREATMENT_PLAN_STATUSES,
   type AttachmentMime,
@@ -42,6 +43,7 @@ export const performedProcedureStatusEnum = pgEnum(
   PERFORMED_PROCEDURE_STATUSES,
 );
 export const attachmentTypeEnum = pgEnum('attachment_type', ATTACHMENT_TYPES);
+export const procedureOutcomeEnum = pgEnum('procedure_outcome', PROCEDURE_OUTCOMES);
 
 /* -------------------------------------------------------------------------- */
 /* Shared column groups                                                        */
@@ -91,6 +93,13 @@ export const procedureCatalog = pgTable(
     nameAr: text('name_ar').notNull(),
     nameEn: text('name_en').notNull(),
     defaultPrice: money('default_price').notNull(),
+    /**
+     * What the interactive chart shows once this procedure is done. Null for
+     * procedures that chart nothing. Classified here rather than inferred from
+     * the name, so a clinic can add a procedure without a client change
+     * (CLAUDE.md architecture decision 1).
+     */
+    chartOutcome: procedureOutcomeEnum('chart_outcome'),
     isActive: boolean('is_active').notNull().default(true),
     ...auditColumns,
     ...softDeleteColumn,

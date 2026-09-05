@@ -19,6 +19,78 @@
     sans-serif;
 }
 
+/*
+ * Interactive-chart palette, one colour per tooth state. Which state a tooth is
+ * in is decided in `features/patients/chart/tooth-state.ts`; this is only where
+ * the hues live, next to the rest of the design tokens.
+ *
+ * Plain custom properties rather than `@theme`: they are read through `var()`
+ * in inline SVG attributes, never as utility classes, and `@theme` cannot be
+ * nested in a media query — declaring the dark set inside one would hoist it
+ * and apply it to everybody.
+ *
+ * Nine hues cannot all be told apart at a glance by everyone, so colour is
+ * never the only channel: every tooth's accessible name and its tooltip state
+ * the condition in words, and the legend pairs each swatch with its label.
+ */
+:root {
+  --color-tooth-healthy: #ffffff;
+  --color-tooth-healthy-line: #94a3b8;
+  --color-tooth-planned: #ef4444;
+  --color-tooth-in-progress: #f59e0b;
+  --color-tooth-filling: #3b82f6;
+  --color-tooth-root-canal: #8b5cf6;
+  --color-tooth-crown: #b45309;
+  --color-tooth-implant: #64748b;
+  --color-tooth-bridge: #14b8a6;
+  --color-tooth-missing: transparent;
+  --color-tooth-missing-line: #94a3b8;
+
+  /* Ink on a filled tooth, and the chart's own surfaces. */
+  --color-tooth-ink: #ffffff;
+  --color-tooth-ink-muted: #475569;
+
+  /*
+   * The chart's own canvas. Only the chart is themed for now, so it carries its
+   * own surface: without one, a dark-mode viewer would get dark teeth floating
+   * on a light card, which reads as a bug rather than a theme.
+   */
+  --color-chart-surface: #ffffff;
+  --color-chart-border: #e5e7eb;
+  --color-chart-text: #6b7280;
+  --color-chart-guide: #e2e8f0;
+}
+
+/*
+ * Dark mode follows the viewer's system setting: the app has no theme switch
+ * yet, so only the chart tokens are redefined — the rest of the surface keeps
+ * its light palette until a switch exists to drive it. The dark values are
+ * lighter rather than darker, so contrast against a dark surface holds.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-tooth-healthy: #334155;
+    --color-tooth-healthy-line: #64748b;
+    --color-tooth-planned: #f87171;
+    --color-tooth-in-progress: #fbbf24;
+    --color-tooth-filling: #60a5fa;
+    --color-tooth-root-canal: #a78bfa;
+    --color-tooth-crown: #d97706;
+    --color-tooth-implant: #94a3b8;
+    --color-tooth-bridge: #2dd4bf;
+    --color-tooth-missing: transparent;
+    --color-tooth-missing-line: #64748b;
+
+    --color-tooth-ink: #0f172a;
+    --color-tooth-ink-muted: #cbd5e1;
+
+    --color-chart-surface: #0f172a;
+    --color-chart-border: #1e293b;
+    --color-chart-text: #94a3b8;
+    --color-chart-guide: #1e293b;
+  }
+}
+
 html,
 body,
 #root {

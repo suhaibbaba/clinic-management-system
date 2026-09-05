@@ -38,9 +38,18 @@ export function RequireAuth({ children }: { children: ReactNode }): JSX.Element 
  */
 export function RequireRole({
   roles,
+  redirectTo,
   children,
 }: {
   roles: readonly UserRole[];
+  /**
+   * Where to send a role that may not be here. Without it the guard explains
+   * the refusal in place, which suits a page reached from a menu the role can
+   * see. Deep links into another role's records — a patient file, say — are
+   * better redirected: there is nothing on the page for them, and naming what
+   * they cannot open only confirms that the record exists.
+   */
+  redirectTo?: string | undefined;
   children: ReactNode;
 }): JSX.Element {
   const { user, hasRole } = useSession();
@@ -50,7 +59,11 @@ export function RequireRole({
   }
 
   if (!hasRole(...roles)) {
-    return <FullPageMessage messageKey="errors.forbidden" />;
+    return redirectTo !== undefined ? (
+      <Navigate to={redirectTo} replace />
+    ) : (
+      <FullPageMessage messageKey="errors.forbidden" />
+    );
   }
 
   return <>{children}</>;
