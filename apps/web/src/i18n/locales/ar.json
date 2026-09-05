@@ -47,8 +47,14 @@
       "selectMethod": "اختر طريقة الدفع",
       "selectType": "اختر نوع المرفق",
       "date": "يوم/شهر/سنة",
-      "time": "--:--"
-    }
+      "time": "--:--",
+      "dateRange": "اختر مدة"
+    },
+    "clear": "مسح",
+    "today": "اليوم",
+    "done": "تم",
+    "openCalendar": "فتح التقويم",
+    "openTimes": "اختيار الوقت"
   },
   "pagination": {
     "previous": "السابق",
@@ -201,7 +207,8 @@
       "users": "مستخدم",
       "doctors": "طبيب",
       "clinics": "عيادة"
-    }
+    },
+    "period": "المدة"
   },
   "profile": {
     "title": "حسابي",
@@ -363,7 +370,8 @@
     "procedureUpdated": "تم تحديث المعالجة",
     "empty": "لا توجد زيارات مسجّلة",
     "emptyHint": "سجّل أول زيارة لهذا المريض.",
-    "loadFailed": "تعذّر تحميل الزيارات."
+    "loadFailed": "تعذّر تحميل الزيارات.",
+    "time": "الوقت"
   },
   "treatmentPlans": {
     "create": "خطة جديدة",
@@ -488,6 +496,7 @@
       "largest": "أعلى رصيد",
       "neverPaid": "لم يدفعوا مطلقاً",
       "thisPage": "في هذه الصفحة"
-    }
+    },
+    "period": "المدة"
   }
 }

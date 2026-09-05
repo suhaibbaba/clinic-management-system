@@ -95,6 +95,8 @@ export function PatientsPage(): JSX.Element {
       {
         key: 'fullName',
         header: 'patients.fullName',
+        // The card's title: a patient's name needs no caption.
+        primary: true,
         render: (row) => <span className="font-medium text-ink">{row.fullName}</span>,
       },
       {
@@ -118,6 +120,8 @@ export function PatientsPage(): JSX.Element {
     if (showClinical) {
       base.push({
         key: 'address',
+        // Long, wraps badly, and rarely the reason anyone opens this list.
+        hideOnMobile: true,
         header: 'patients.address',
         render: (row) => (isClinicalView(row) ? (row.address ?? '—') : '—'),
       });
@@ -130,6 +134,7 @@ export function PatientsPage(): JSX.Element {
       base.push({
         key: 'balance',
         header: 'patients.balance',
+        align: 'numeric',
         render: (row) =>
           row.balance === undefined ? (
             '—'
@@ -142,6 +147,7 @@ export function PatientsPage(): JSX.Element {
     base.push({
       key: 'actions',
       header: 'common.actions',
+      actions: true,
       render: (row) => (
         <Button
           variant="ghost"

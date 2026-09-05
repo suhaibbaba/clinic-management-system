@@ -41,7 +41,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
         type="search"
         aria-label={label}
         className={cn(
-          'block h-11 w-full rounded-pill border border-line bg-surface ps-11 text-start text-value text-ink',
+          'block h-11 w-full rounded-pill border border-line bg-surface ps-11 text-start text-field text-ink',
           'transition-colors placeholder:text-ink-subtle',
           'focus:border-primary-500 focus:outline-2 focus:outline-offset-0 focus:outline-primary-600',
           '[&::-webkit-search-decoration]:appearance-none [&::-webkit-search-cancel-button]:appearance-none',

@@ -6,9 +6,9 @@ import {
   Badge,
   Button,
   Card,
+  DateRangePicker,
   EmptyState,
   Icon,
-  Input,
   Modal,
   PageHeader,
   Select,
@@ -81,11 +81,14 @@ export function AuditPage(): JSX.Element {
       {
         key: 'entity',
         header: 'audit.entity',
+        // What was touched leads the card; who and when follow it.
+        primary: true,
         render: (row) => t(`audit.entities.${row.entity}`, { defaultValue: row.entity }),
       },
       {
         key: 'changes',
         header: 'audit.changes',
+        actions: true,
         render: (row) => (
           <Button
             icon={<Icon name="file" />}
@@ -153,29 +156,21 @@ export function AuditPage(): JSX.Element {
           }}
         />
 
+        {/*
+          One range rather than two dates: the pair is only ever meaningful
+          together, and two independent fields let you ask for a window that
+          runs backwards.
+        */}
         <label className="flex flex-col gap-1 text-label text-ink-muted">
-          {t('audit.fromDate')}
-          <Input
-            adornment="calendar"
-            type="date"
-            className="w-44"
-            value={from}
-            onChange={(event) => {
-              setFrom(event.target.value);
-              resetPage();
-            }}
-          />
-        </label>
-
-        <label className="flex flex-col gap-1 text-label text-ink-muted">
-          {t('audit.toDate')}
-          <Input
-            adornment="calendar"
-            type="date"
-            className="w-44"
-            value={to}
-            onChange={(event) => {
-              setTo(event.target.value);
+          {t('audit.period')}
+          <DateRangePicker
+            id="audit-period"
+            className="w-64"
+            label={t('audit.period')}
+            value={{ from, to }}
+            onChange={(range) => {
+              setFrom(range.from);
+              setTo(range.to);
               resetPage();
             }}
           />

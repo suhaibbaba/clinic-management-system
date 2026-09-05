@@ -2,7 +2,7 @@ import type { DaySchedule, WeeklySchedule } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Icon, Input, Switch } from '@web/components/ui';
+import { Button, Icon, Switch, TimePicker } from '@web/components/ui';
 
 const WEEKDAYS = [0, 1, 2, 3, 4, 5, 6] as const;
 const DEFAULT_RANGE = { start: '09:00', end: '17:00' } as const;
@@ -74,17 +74,17 @@ export function ScheduleEditor({
                   <div key={`${weekday}-${index}`} className="flex flex-wrap items-center gap-2">
                     <label className="text-label text-ink-muted">
                       {t('schedule.from')}
-                      <Input
-                        adornment="calendar"
-                        type="time"
+                      <TimePicker
+                        id={`${weekday}-${index}-start`}
+                        label={t('schedule.from')}
                         className="ms-2 inline-block w-32"
                         disabled={disabled}
                         value={range.start}
-                        onChange={(event) =>
+                        onChange={(value) =>
                           replaceDay({
                             weekday,
                             ranges: day.ranges.map((item, position) =>
-                              position === index ? { ...item, start: event.target.value } : item,
+                              position === index ? { ...item, start: value } : item,
                             ),
                           })
                         }
@@ -93,17 +93,17 @@ export function ScheduleEditor({
 
                     <label className="text-label text-ink-muted">
                       {t('schedule.to')}
-                      <Input
-                        adornment="calendar"
-                        type="time"
+                      <TimePicker
+                        id={`${weekday}-${index}-end`}
+                        label={t('schedule.to')}
                         className="ms-2 inline-block w-32"
                         disabled={disabled}
                         value={range.end}
-                        onChange={(event) =>
+                        onChange={(value) =>
                           replaceDay({
                             weekday,
                             ranges: day.ranges.map((item, position) =>
-                              position === index ? { ...item, end: event.target.value } : item,
+                              position === index ? { ...item, end: value } : item,
                             ),
                           })
                         }

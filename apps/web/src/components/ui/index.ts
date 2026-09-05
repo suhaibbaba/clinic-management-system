@@ -1,7 +1,10 @@
 export { Avatar } from '@web/components/ui/avatar';
 export { Badge, type BadgeTone } from '@web/components/ui/badge';
 export { Button, type ButtonProps } from '@web/components/ui/button';
+export { Calendar } from '@web/components/ui/calendar';
 export { Card, CardHeader, type CardTone } from '@web/components/ui/card';
+export { DatePicker, fromIsoDate, parseTypedDate, toIsoDate } from '@web/components/ui/date-picker';
+export { DateRangePicker, type DateRange } from '@web/components/ui/date-range-picker';
 export {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,4 +29,5 @@ export { StatCard, StatRow, type StatTone } from '@web/components/ui/stat-card';
 export { Switch } from '@web/components/ui/switch';
 export { Textarea } from '@web/components/ui/textarea';
 export { Pagination, Table, type Column } from '@web/components/ui/table';
+export { isValidTime, TimePicker, timeSlots } from '@web/components/ui/time-picker';
 export { ToastProvider, useToast } from '@web/components/ui/toast';

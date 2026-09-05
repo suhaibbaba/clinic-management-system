@@ -370,6 +370,57 @@ as colours and silently drops whichever colour class came first. `lib/cn.ts`
 declares the scale to fix it and `lib/cn.test.ts` keeps it fixed. **A new `--text-*`
 token has to be added in both places.**
 
+### Tables on a phone
+
+`Table` is one component with two shapes. Above `md` it is a real `<table>`. Below it, each row
+becomes a card: a bold title line, then a two-column grid pairing each column's own header with
+that row's value — labels on the right in Arabic, values on the left, hairline between rows.
+
+Both shapes are driven by the same `columns` array, which is the point of keeping it in one
+component: a label on a card has to be the label in the header above it, and the only way to
+guarantee that is for there to be one string. Columns carry the flags that shape the card:
+
+| Flag               | Effect                                                       |
+| ------------------ | ------------------------------------------------------------ |
+| `primary`          | The card's title line — bold, full width, no label           |
+| `hideOnMobile`     | Dropped from the card; still in the table                    |
+| `actions`          | A button row at the foot of the card, not a label/value pair |
+| `align: 'numeric'` | End-aligned with tabular figures, on both shapes             |
+
+Only one shape is rendered at a time, chosen through `useIsMobile()`. Rendering both and hiding
+one with `md:hidden` was the first attempt and was wrong: `display: none` hides a duplicate
+visually but leaves it in the document, so a screen reader reads every row twice and any `id`
+inside a cell exists twice. The query is read with `useSyncExternalStore`, whose snapshot is
+available during the first render — so there is no flash of the wrong shape either.
+
+### Dates and times
+
+`DatePicker`, `TimePicker` and `DateRangePicker` replace every `<input type="date">` and
+`type="time"`. The native controls looked different in each browser, put their picker button on
+the wrong side in Arabic, could not be themed, and showed `mm/dd/yyyy` to an Arabic clinic
+because the format follows the _browser's_ locale rather than the app's.
+
+They are react-day-picker and date-fns inside our own popover. **Arabic month and weekday names,
+Latin digits** — the clinic writes Gregorian dates with Western digits everywhere else, and the
+formatters are passed explicitly rather than left to the library's locale-aware defaults, which
+could start emitting `٠١٢` on a locale-data update.
+
+Typing is the fast path, not a fallback: nobody enters a date of birth by paging back sixty
+years. Text is committed only when it parses to a real date, so `12/0` leaves the value alone
+and `31/02` is rejected rather than rolling into March.
+
+`PopoverSheet` gives them a popover on a wide screen and a bottom sheet on a phone. Those are two
+Radix primitives, not one re-positioned with CSS — Radix puts its positioning on a wrapper a
+consumer cannot style, so the CSS version came out as a clipped strip beside the field.
+
+### iOS zoom
+
+Every focusable field renders at `text-field` — 16px, defined in `theme.css`. Below that, iOS
+Safari zooms the page in when a field takes focus and does not zoom back out, so a receptionist
+tapping the search box is left looking at a magnified fragment of the page. It is a floor, and
+the kind of rule a later "make this tighter" change breaks silently, so
+`components/ui/field-size.test.ts` fails the build if any field drops under it.
+
 ### Language
 
 Arabic is the default. The account menu in the header switches to English, which changes the
