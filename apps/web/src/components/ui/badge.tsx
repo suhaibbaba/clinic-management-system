@@ -5,11 +5,11 @@ import { cn } from '@web/lib/cn';
 export type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'info';
 
 const TONES: Record<BadgeTone, string> = {
-  neutral: 'bg-gray-100 text-gray-700',
-  success: 'bg-green-100 text-green-800',
-  warning: 'bg-amber-100 text-amber-800',
-  danger: 'bg-red-100 text-red-800',
-  info: 'bg-brand-100 text-brand-700',
+  neutral: 'bg-sunken text-ink',
+  success: 'bg-success-100 text-success-800',
+  warning: 'bg-warning-100 text-warning-800',
+  danger: 'bg-danger-100 text-danger-800',
+  info: 'bg-primary-100 text-primary-700',
 };
 
 export function Badge({

@@ -69,7 +69,7 @@ export function PatientsPage(): JSX.Element {
       {
         key: 'fullName',
         header: 'patients.fullName',
-        render: (row) => <span className="font-medium text-gray-900">{row.fullName}</span>,
+        render: (row) => <span className="font-medium text-ink">{row.fullName}</span>,
       },
       {
         key: 'phone',
@@ -138,8 +138,8 @@ export function PatientsPage(): JSX.Element {
       />
 
       {/* Search first: this screen exists to answer "where is this patient?". */}
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
-        <label htmlFor="patient-search" className="mb-1.5 block text-sm font-medium text-gray-800">
+      <div className="rounded-lg border border-line bg-surface p-4">
+        <label htmlFor="patient-search" className="mb-1.5 block text-sm font-medium text-ink">
           {t('patients.search')}
         </label>
         <Input

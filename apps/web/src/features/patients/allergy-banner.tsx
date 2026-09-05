@@ -35,13 +35,13 @@ export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element
   return (
     <div
       role="alert"
-      className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-red-300 bg-red-50 px-4 py-3"
+      className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-danger-300 bg-danger-50 px-4 py-3"
     >
       <span aria-hidden="true" className="text-lg leading-none">
         ⚠
       </span>
-      <span className="text-sm font-semibold text-red-800">{t('patients.allergies')}:</span>
-      <span className="text-sm text-red-700">{data.allergies.join('، ')}</span>
+      <span className="text-sm font-semibold text-danger-800">{t('patients.allergies')}:</span>
+      <span className="text-sm text-danger-700">{data.allergies.join('، ')}</span>
     </div>
   );
 }

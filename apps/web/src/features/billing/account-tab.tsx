@@ -75,7 +75,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
           {entry.description || t(`billing.kinds.${entry.kind}`)}
           {entry.isReversal && <Badge tone="warning">{t('billing.reversal')}</Badge>}
           {entry.receiptNumber !== null && (
-            <span className="text-xs text-gray-500" dir="ltr">
+            <span className="text-xs text-ink-muted" dir="ltr">
               #{String(entry.receiptNumber).padStart(6, '0')}
             </span>
           )}
@@ -122,9 +122,9 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
 
   return (
     <div className="flex flex-col gap-4">
-      <section className="flex flex-wrap items-end justify-between gap-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+      <section className="flex flex-wrap items-end justify-between gap-4 rounded-lg border border-line bg-canvas px-4 py-3">
         <div>
-          <span className="block text-xs text-gray-500">{t('billing.outstanding')}</span>
+          <span className="block text-xs text-ink-muted">{t('billing.outstanding')}</span>
           <Money
             amount={balance.data?.balance ?? '0.00'}
             currency={currency}
@@ -132,7 +132,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
             className="text-2xl font-semibold"
           />
           {balance.data?.lastPaymentAt && (
-            <span className="mt-1 block text-xs text-gray-500">
+            <span className="mt-1 block text-xs text-ink-muted">
               {t('billing.lastPayment')}:{' '}
               <span dir="ltr">{formatDate(balance.data.lastPaymentAt)}</span>
             </span>
@@ -155,11 +155,11 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
       </section>
 
       <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-xs text-gray-600">
+        <label className="flex flex-col gap-1 text-xs text-ink-muted">
           {t('billing.from')}
           <Input type="date" dir="ltr" value={from} onChange={(e) => setFrom(e.target.value)} />
         </label>
-        <label className="flex flex-col gap-1 text-xs text-gray-600">
+        <label className="flex flex-col gap-1 text-xs text-ink-muted">
           {t('billing.to')}
           <Input type="date" dir="ltr" value={to} onChange={(e) => setTo(e.target.value)} />
         </label>
@@ -177,7 +177,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
       </div>
 
       {statement.data && Number(statement.data.openingBalance) !== 0 && (
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-ink-muted">
           {t('billing.openingBalance')}:{' '}
           <Money amount={statement.data.openingBalance} currency={currency} />
         </p>

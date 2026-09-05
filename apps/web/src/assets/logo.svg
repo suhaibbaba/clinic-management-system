@@ -1,0 +1,27 @@
+<!--
+  PLACEHOLDER brand mark — replace this file with the real logo.
+
+  This exact path is what the app imports, so swapping in the real artwork is
+  a file replacement and needs no code change:
+
+      cp your-logo.svg apps/web/src/assets/logo.svg
+
+  Any viewBox works; every placement sizes the mark by CSS, never by the
+  file's own width/height. Colours here are the brand values from
+  apps/web/src/theme.css — a brand asset is the one place a hex may live
+  outside that file, because an SVG cannot read CSS custom properties from
+  the page when it is used as a favicon or embedded in print.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-hidden="true">
+  <path
+    d="M24 4C14 4 8 10 8 19c0 8 4 13 6 21 1 4 4 5 6 3 2-2 2-9 4-9s2 7 4 9c2 2 5 1 6-3 2-8 6-13 6-21 0-9-6-15-16-15Z"
+    fill="#316C9C"
+  />
+  <path
+    d="M17 13c2-2 5-3 8-3"
+    fill="none"
+    stroke="#4EC191"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+</svg>

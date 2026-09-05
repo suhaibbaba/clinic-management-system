@@ -28,7 +28,7 @@ export function Money({ amount, currency, className, signed = false }: MoneyProp
       dir="ltr"
       className={cn(
         'inline-block tabular-nums',
-        signed && !zero && (negative ? 'text-emerald-700' : 'text-red-700'),
+        signed && !zero && (negative ? 'text-success-700' : 'text-danger-700'),
         className,
       )}
     >

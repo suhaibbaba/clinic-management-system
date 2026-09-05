@@ -32,10 +32,10 @@ export function OverduePage(): JSX.Element {
       header: 'billing.columns.patient',
       render: (row) => (
         <span className="flex flex-col">
-          <Link to={`/patients/${row.patientId}`} className="font-medium text-brand-700">
+          <Link to={`/patients/${row.patientId}`} className="font-medium text-primary-700">
             {row.fullName}
           </Link>
-          <span className="text-xs text-gray-500" dir="ltr">
+          <span className="text-xs text-ink-muted" dir="ltr">
             {row.fileNumber}
           </span>
         </span>
@@ -67,7 +67,7 @@ export function OverduePage(): JSX.Element {
       key: 'phone',
       header: 'billing.columns.phone',
       render: (row) => (
-        <a href={`tel:${row.phone}`} dir="ltr" className="text-brand-700">
+        <a href={`tel:${row.phone}`} dir="ltr" className="text-primary-700">
           {row.phone}
         </a>
       ),

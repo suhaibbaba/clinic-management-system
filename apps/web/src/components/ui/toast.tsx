@@ -81,8 +81,8 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
             className={[
               'rounded-md px-4 py-3 text-sm shadow-lg ring-1',
               message.tone === 'success'
-                ? 'bg-white text-gray-900 ring-gray-200'
-                : 'bg-red-50 text-red-800 ring-red-200',
+                ? 'bg-surface text-ink ring-line'
+                : 'bg-danger-50 text-danger-800 ring-danger-200',
             ].join(' ')}
           >
             <ToastPrimitive.Description>

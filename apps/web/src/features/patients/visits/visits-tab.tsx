@@ -73,7 +73,7 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
     catalog.data?.find((item) => item.id === id)?.nameAr ?? t('chart.panel.procedure');
 
   if (visits.isPending) {
-    return <p className="text-sm text-gray-500">{t('common.loading')}</p>;
+    return <p className="text-sm text-ink-muted">{t('common.loading')}</p>;
   }
 
   if (visits.isError) {
@@ -103,7 +103,7 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-gray-800">
+        <h2 className="text-sm font-semibold text-ink">
           {t('visits.count', { count: ordered.length })}
         </h2>
         <Button
@@ -125,13 +125,13 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
           const showingForm = procedureFor?.visitId === visit.id;
 
           return (
-            <li key={visit.id} className="rounded-lg border border-gray-200 bg-white p-4">
+            <li key={visit.id} className="rounded-lg border border-line bg-surface p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900" dir="ltr">
+                  <p className="text-sm font-semibold text-ink" dir="ltr">
                     {formatDateTime(visit.visitDate)}
                   </p>
-                  <p className="mt-0.5 text-xs text-gray-500">
+                  <p className="mt-0.5 text-xs text-ink-muted">
                     {t('visits.doctor')}: {doctorName(visit.doctorId)}
                   </p>
                 </div>
@@ -155,9 +155,9 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
                 <Field label="visits.notes" value={visit.notes} />
               </dl>
 
-              <section className="mt-4 border-t border-gray-100 pt-3">
+              <section className="mt-4 border-t border-line pt-3">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
                     {t('visits.procedures')}
                   </h3>
 
@@ -173,7 +173,7 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
                 </div>
 
                 {visitProcedures.length === 0 && !showingForm && (
-                  <p className="mt-2 text-xs text-gray-500">{t('visits.noProcedures')}</p>
+                  <p className="mt-2 text-xs text-ink-muted">{t('visits.noProcedures')}</p>
                 )}
 
                 {visitProcedures.length > 0 && (
@@ -181,15 +181,15 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
                     {visitProcedures.map((procedure) => (
                       <li
                         key={procedure.id}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-gray-50 px-3 py-2"
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-canvas px-3 py-2"
                       >
                         {/* Flex, not a margin: the tooth number is an LTR
                             isolate inside RTL text, and a gap is the only
                             spacing that survives that reliably. */}
-                        <span className="flex items-center gap-2 text-sm text-gray-900">
+                        <span className="flex items-center gap-2 text-sm text-ink">
                           {catalogName(procedure.procedureId)}
                           {toothLabel(procedure) && (
-                            <span className="text-xs text-gray-500" dir="ltr">
+                            <span className="text-xs text-ink-muted" dir="ltr">
                               {toothLabel(procedure)}
                             </span>
                           )}
@@ -213,7 +213,7 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
                 )}
 
                 {showingForm && (
-                  <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                  <div className="mt-3 rounded-lg border border-line bg-canvas p-3">
                     {user && (
                       <ProcedureForm
                         role={user.role}
@@ -267,11 +267,11 @@ function Field({
 
   return (
     <div>
-      <dt className="text-xs text-gray-500">{t(label)}</dt>
+      <dt className="text-xs text-ink-muted">{t(label)}</dt>
       <dd
         className={cn(
           'mt-0.5 whitespace-pre-wrap text-sm',
-          emphasise ? 'font-medium text-gray-900' : 'text-gray-700',
+          emphasise ? 'font-medium text-ink' : 'text-ink',
         )}
       >
         {value}

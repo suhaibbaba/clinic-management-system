@@ -7,3 +7,4 @@ apps/api/drizzle
 # Project specifications, kept exactly as authored.
 CLAUDE.md
 ROLES.md
+storybook-static

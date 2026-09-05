@@ -48,17 +48,17 @@ export function Table<TRow>({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+    <div className="overflow-hidden rounded-lg border border-line bg-surface">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
-          <thead className="bg-gray-50">
+          <thead className="bg-canvas">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
                   className={cn(
-                    'whitespace-nowrap px-4 py-3 text-start text-xs font-semibold text-gray-600',
+                    'whitespace-nowrap px-4 py-3 text-start text-xs font-semibold text-ink-muted',
                     column.className,
                   )}
                 >
@@ -68,10 +68,10 @@ export function Table<TRow>({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-line">
             {isLoading && (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={columns.length} className="px-4 py-8 text-center text-ink-muted">
                   {t('common.loading')}
                 </td>
               </tr>
@@ -79,7 +79,7 @@ export function Table<TRow>({
 
             {!isLoading &&
               rows.map((row) => (
-                <tr key={rowKey(row)} className="hover:bg-gray-50">
+                <tr key={rowKey(row)} className="hover:bg-canvas">
                   {columns.map((column) => (
                     <td
                       key={column.key}
@@ -109,10 +109,10 @@ export function Pagination({
 
   return (
     <nav
-      className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 px-4 py-3"
+      className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-3"
       aria-label={t('pagination.next')}
     >
-      <p className="text-xs text-gray-500">{t('pagination.total', { total })}</p>
+      <p className="text-xs text-ink-muted">{t('pagination.total', { total })}</p>
 
       <div className="flex items-center gap-2">
         <Button
@@ -124,7 +124,7 @@ export function Pagination({
           {t('pagination.previous')}
         </Button>
 
-        <span className="text-xs text-gray-600">
+        <span className="text-xs text-ink-muted">
           {t('pagination.page', { page, totalPages: Math.max(totalPages, 1) })}
         </span>
 

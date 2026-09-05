@@ -11,6 +11,7 @@ export default tseslint.config(
   {
     ignores: [
       '**/dist/**',
+      '**/storybook-static/**',
       '**/coverage/**',
       '**/node_modules/**',
       'apps/api/drizzle/**',

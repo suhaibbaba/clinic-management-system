@@ -43,7 +43,7 @@ function Value({
   children: string | null;
 }): JSX.Element {
   if (children === null) {
-    return <span className="text-gray-400">—</span>;
+    return <span className="text-ink-subtle">—</span>;
   }
 
   return (
@@ -52,7 +52,7 @@ function Value({
       className={[
         'inline-block max-w-[20rem] overflow-x-auto whitespace-pre-wrap break-all rounded',
         'px-1.5 py-0.5 text-left font-mono text-xs',
-        tone === 'before' ? 'bg-red-50 text-red-800' : 'bg-green-50 text-green-800',
+        tone === 'before' ? 'bg-danger-50 text-danger-800' : 'bg-success-50 text-success-800',
       ].join(' ')}
     >
       {children}
@@ -72,29 +72,29 @@ export function ValueDiff({ oldValue, newValue }: ValueDiffProps): JSX.Element {
     .filter((row) => row.before !== row.after);
 
   if (rows.length === 0) {
-    return <p className="text-sm text-gray-500">{t('audit.noChanges')}</p>;
+    return <p className="text-sm text-ink-muted">{t('audit.noChanges')}</p>;
   }
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-sm">
         <thead>
-          <tr className="bg-gray-50">
-            <th scope="col" className="px-3 py-2 text-start text-xs font-semibold text-gray-600">
+          <tr className="bg-canvas">
+            <th scope="col" className="px-3 py-2 text-start text-xs font-semibold text-ink-muted">
               {t('audit.changes')}
             </th>
-            <th scope="col" className="px-3 py-2 text-start text-xs font-semibold text-gray-600">
+            <th scope="col" className="px-3 py-2 text-start text-xs font-semibold text-ink-muted">
               {t('audit.oldValue')}
             </th>
-            <th scope="col" className="px-3 py-2 text-start text-xs font-semibold text-gray-600">
+            <th scope="col" className="px-3 py-2 text-start text-xs font-semibold text-ink-muted">
               {t('audit.newValue')}
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-line">
           {rows.map((row) => (
             <tr key={row.key}>
-              <td className="px-3 py-2 text-start font-medium text-gray-700">{row.key}</td>
+              <td className="px-3 py-2 text-start font-medium text-ink">{row.key}</td>
               <td className="px-3 py-2 text-start">
                 <Value tone="before">{row.before}</Value>
               </td>

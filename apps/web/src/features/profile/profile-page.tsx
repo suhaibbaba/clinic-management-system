@@ -46,26 +46,26 @@ export function ProfilePage(): JSX.Element {
       <PageHeader title="profile.title" subtitle="profile.subtitle" />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-lg border border-gray-200 bg-white p-4">
-          <h2 className="text-sm font-medium text-gray-800">{t('profile.details')}</h2>
+        <section className="rounded-lg border border-line bg-surface p-4">
+          <h2 className="text-sm font-medium text-ink">{t('profile.details')}</h2>
 
           <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
-            <dt className="text-gray-500">{t('users.name')}</dt>
-            <dd className="font-medium text-gray-900">{user?.name}</dd>
+            <dt className="text-ink-muted">{t('users.name')}</dt>
+            <dd className="font-medium text-ink">{user?.name}</dd>
 
-            <dt className="text-gray-500">{t('users.phone')}</dt>
-            <dd className="font-medium text-gray-900">{user?.phone}</dd>
+            <dt className="text-ink-muted">{t('users.phone')}</dt>
+            <dd className="font-medium text-ink">{user?.phone}</dd>
 
-            <dt className="text-gray-500">{t('users.email')}</dt>
-            <dd className="font-medium text-gray-900">{user?.email ?? '—'}</dd>
+            <dt className="text-ink-muted">{t('users.email')}</dt>
+            <dd className="font-medium text-ink">{user?.email ?? '—'}</dd>
 
-            <dt className="text-gray-500">{t('users.role')}</dt>
+            <dt className="text-ink-muted">{t('users.role')}</dt>
             <dd>{user && <Badge tone="info">{t(`roles.${user.role}`)}</Badge>}</dd>
           </dl>
         </section>
 
-        <section className="rounded-lg border border-gray-200 bg-white p-4">
-          <h2 className="text-sm font-medium text-gray-800">{t('profile.changePassword')}</h2>
+        <section className="rounded-lg border border-line bg-surface p-4">
+          <h2 className="text-sm font-medium text-ink">{t('profile.changePassword')}</h2>
 
           <form className="mt-3 flex flex-col gap-4" onSubmit={onSubmit} noValidate>
             <FormField

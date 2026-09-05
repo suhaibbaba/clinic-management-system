@@ -1,0 +1,230 @@
+/*
+ * Brand theme — the single source of truth for colour in this app.
+ *
+ * Nothing outside this file names a colour. Components use the semantic
+ * utilities below (`bg-canvas`, `text-ink-muted`, `border-line`) or a scale
+ * step (`bg-primary-600`); no component carries a raw hex, an inline `style`
+ * colour, or a stock Tailwind palette class such as `text-gray-500`.
+ *
+ * ── How the scales were built ────────────────────────────────────────────
+ *
+ * Every scale shares one perceptual lightness ramp in OKLCH, so `primary-600`
+ * and `success-600` carry the same visual weight and can be swapped without
+ * re-checking contrast. Step 600 is pinned to the logo blue's own lightness
+ * (OKLCH L 0.5146), which is what lets #316C9C land on the scale exactly
+ * rather than near it.
+ *
+ * Chroma follows a bell across the ramp: the tints fade towards paper so a
+ * 50/100 background reads as a surface rather than as colour, and the shades
+ * are gamut-mapped by reducing chroma — never by clamping channels, which
+ * drags a deep green 12° towards yellow and a deep red towards brown.
+ *
+ * ── Contrast on white ────────────────────────────────────────────────────
+ *
+ *   step   50   100   200   300   400   500   600   700   800   900
+ *   ratio 1.07  1.17  1.35  1.68  2.36  3.6   5.3+  7.5+ 10.2+ 13.2+
+ *
+ * So: 600 and 700 are the text and button shades (AA needs 4.5); 500 is the
+ * lightest usable for large text and UI edges (AA needs 3.0); 400 and below
+ * are backgrounds, fills and decoration only.
+ */
+
+@theme static {
+  /* Primary — the logo blue. The whole UI's chrome. */
+  --color-primary-50: #f1f8ff;
+  --color-primary-100: #e1f0fd;
+  --color-primary-200: #c9e1f7;
+  --color-primary-300: #a9cded;
+  --color-primary-400: #7bafdc;
+  --color-primary-500: #518dc0;
+  --color-primary-600: #316c9c;
+  --color-primary-700: #175584;
+  --color-primary-800: #04426b;
+  --color-primary-900: #003153;
+
+  /*
+   * Success — the logo green. Success states and small accents ONLY: active
+   * indicators, positive balances, restored teeth on the chart. Never a second
+   * primary; nothing structural is green.
+   */
+  --color-success-50: #edfbf4;
+  --color-success-100: #dcf4e8;
+  --color-success-200: #c0e8d4;
+  --color-success-300: #9bd8ba;
+  --color-success-400: #4ec191;
+  --color-success-500: #219f71;
+  --color-success-600: #007b54;
+  --color-success-700: #006142;
+  --color-success-800: #004b32;
+  --color-success-900: #003824;
+
+  /* Danger — a warm red, hue pulled towards orange so it sits beside the
+     cool primary without the two vibrating against each other. */
+  --color-danger-50: #fff4f3;
+  --color-danger-100: #ffe7e4;
+  --color-danger-200: #ffd1ca;
+  --color-danger-300: #fdb2a8;
+  --color-danger-400: #ef877c;
+  --color-danger-500: #d25e53;
+  --color-danger-600: #ad3b34;
+  --color-danger-700: #91231e;
+  --color-danger-800: #770f0f;
+  --color-danger-900: #5d0305;
+
+  /* Warning — amber. */
+  --color-warning-50: #fff6ea;
+  --color-warning-100: #faebd8;
+  --color-warning-200: #f2d9b9;
+  --color-warning-300: #e6c190;
+  --color-warning-400: #d29e55;
+  --color-warning-500: #b57a11;
+  --color-warning-600: #8c5c00;
+  --color-warning-700: #6f4800;
+  --color-warning-800: #573700;
+  --color-warning-900: #412800;
+
+  /* Neutral — warm gray. Backgrounds read as paper, not as concrete. */
+  --color-neutral-50: #f7f7f6;
+  --color-neutral-100: #eeedec;
+  --color-neutral-200: #dfdddb;
+  --color-neutral-300: #cac7c5;
+  --color-neutral-400: #aca8a5;
+  --color-neutral-500: #8a8783;
+  --color-neutral-600: #6a6763;
+  --color-neutral-700: #54514d;
+  --color-neutral-800: #413e3b;
+  --color-neutral-900: #302e2b;
+}
+
+/*
+ * ── Semantic aliases ─────────────────────────────────────────────────────
+ *
+ * What components actually use. A component says what a colour *is for*
+ * (`text-ink-muted`) rather than which step it happens to be, so a palette
+ * change lands here and nowhere else.
+ */
+@theme static {
+  /* Surfaces, lightest to deepest. */
+  --color-surface: #ffffff;
+  --color-canvas: var(--color-neutral-50);
+  --color-sunken: var(--color-neutral-100);
+
+  /* Text. `ink` is body copy, `ink-muted` is secondary, `ink-subtle` is for
+     placeholders and disabled text — never for anything that must be read. */
+  --color-ink: var(--color-neutral-900);
+  --color-ink-muted: var(--color-neutral-600);
+  --color-ink-subtle: var(--color-neutral-500);
+  --color-ink-inverse: #ffffff;
+
+  /* Lines. `line` separates, `line-strong` encloses an input. */
+  --color-line: var(--color-neutral-200);
+  --color-line-strong: var(--color-neutral-300);
+
+  --font-sans:
+    'Segoe UI', system-ui, -apple-system, 'Noto Naskh Arabic', 'Noto Sans Arabic', Tahoma,
+    sans-serif;
+}
+
+/*
+ * ── Interactive chart ────────────────────────────────────────────────────
+ *
+ * One colour per tooth state, re-derived from the scales above so the chart
+ * reads as part of the same brand rather than a stock nine-hue rainbow.
+ *
+ * The mapping is semantic, not decorative:
+ *   · still to do        → danger (needs treatment), warning (in progress)
+ *   · restored in enamel → primary; the deeper the work, the deeper the blue
+ *   · crowned            → pale gold, which is what a crown looks like
+ *   · bridged            → success, the one state that earns the logo green:
+ *                          a finished restoration spanning a gap
+ *   · implant            → neutral, the colour of titanium
+ *
+ * Only five hues exist in this brand and seven teeth states need filling, so
+ * primary and warning each carry two — separated by lightness, not by hue.
+ * Every pair below was measured: the tooth number clears 4.5:1 against its
+ * fill, and every outline clears 3.0:1 against the chart surface, in both
+ * light and dark mode.
+ *
+ * Plain custom properties rather than `@theme`: they are read through `var()`
+ * in SVG attributes, never as utility classes, and `@theme` cannot be nested
+ * in a media query — declaring the dark set inside one would hoist it and
+ * apply it to everybody.
+ *
+ * Colour is never the only channel: every tooth's accessible name and its
+ * tooltip state the condition in words, the legend pairs each swatch with its
+ * label, and a missing tooth is dashed rather than merely differently tinted.
+ */
+:root {
+  --color-tooth-healthy: #f7f7f6;
+  --color-tooth-healthy-line: #8a8783;
+  --color-tooth-planned: #ad3b34;
+  --color-tooth-in-progress: #8c5c00;
+  --color-tooth-filling: #316c9c;
+  --color-tooth-root-canal: #04426b;
+  --color-tooth-crown: #e6c190;
+  --color-tooth-crown-line: #6f4800;
+  --color-tooth-bridge: #4ec191;
+  --color-tooth-bridge-line: #006142;
+  --color-tooth-implant: #6a6763;
+  --color-tooth-missing: transparent;
+  --color-tooth-missing-line: #8a8783;
+
+  /* Ink on a tooth: white on a saturated fill, dark on the pale crown and
+     bridge fills, muted where the tooth is unfilled. */
+  --color-tooth-ink: #ffffff;
+  --color-tooth-ink-dark: #302e2b;
+  --color-tooth-ink-muted: #6a6763;
+
+  /* The chart's own canvas, so it is themed even where the app is not. */
+  --chart-surface: #ffffff;
+  --chart-border: #dfdddb;
+  --chart-text: #6a6763;
+  --chart-guide: #dfdddb;
+}
+
+/*
+ * The chart surfaces again, as @theme aliases over the raw layer above. This
+ * indirection is what lets the same four colours be both utility classes
+ * (`bg-chart-surface`) and `var()` references inside SVG attributes, while
+ * still being redefinable in the dark-mode media query — which @theme itself
+ * cannot be.
+ */
+@theme static {
+  --color-chart-surface: var(--chart-surface);
+  --color-chart-border: var(--chart-border);
+  --color-chart-text: var(--chart-text);
+  --color-chart-guide: var(--chart-guide);
+}
+
+/*
+ * Dark mode follows the viewer's system setting: the app has no theme switch
+ * yet, so only the chart tokens are redefined — the rest of the surface keeps
+ * its light palette until a switch exists to drive it. Every fill moves up its
+ * own scale rather than to a new hue, so the brand survives the inversion, and
+ * the ink flips to dark because every dark-mode fill is a tint.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-tooth-healthy: #413e3b;
+    --color-tooth-healthy-line: #8a8783;
+    --color-tooth-planned: #ef877c;
+    --color-tooth-in-progress: #d29e55;
+    --color-tooth-filling: #7bafdc;
+    --color-tooth-root-canal: #a9cded;
+    --color-tooth-crown: #f2d9b9;
+    --color-tooth-crown-line: #b57a11;
+    --color-tooth-bridge: #9bd8ba;
+    --color-tooth-bridge-line: #219f71;
+    --color-tooth-implant: #aca8a5;
+    --color-tooth-missing-line: #8a8783;
+
+    --color-tooth-ink: #302e2b;
+    --color-tooth-ink-dark: #302e2b;
+    --color-tooth-ink-muted: #cac7c5;
+
+    --chart-surface: #302e2b;
+    --chart-border: #54514d;
+    --chart-text: #cac7c5;
+    --chart-guide: #54514d;
+  }
+}

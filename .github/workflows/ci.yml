@@ -72,6 +72,12 @@ jobs:
       - name: Test
         run: pnpm test
 
+      # The design-language catalogue renders the real components against the
+      # real theme, so a broken story means a broken component. Cheap to build,
+      # and it stops the stories rotting quietly.
+      - name: Build Storybook
+        run: pnpm --filter @clinic/web build-storybook
+
   docker:
     name: Docker images
     runs-on: ubuntu-latest

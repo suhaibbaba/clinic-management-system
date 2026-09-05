@@ -282,6 +282,57 @@ boundary, and every screen assumes it can be refused.
 RTL-correct by construction: logical properties (`ms-*`, `text-start`, `border-e`) rather than
 left/right, so nothing needs an RTL override.
 
+### Theme and design language
+
+Every colour in the web app comes from `apps/web/src/theme.css`. It is the single source of
+truth: components use token utilities (`bg-surface`, `text-ink`, `border-line`,
+`text-primary-700`) and never a raw hex, an `rgb()`, a stock Tailwind palette class or an
+inline `style` colour. `src/theme.test.ts` enforces that across the whole source tree, so a
+stray `#316C9C` fails the suite rather than quietly forking the palette.
+
+The scales are derived from the logo, not picked by eye: brand blue `#316C9C` and brand green
+`#4EC191` are converted to OKLCH, and each 50–900 step is generated on one shared perceptual
+lightness ramp, then gamut-mapped back into sRGB by reducing chroma along the hue line. All
+five families — `primary`, `success`, `danger`, `warning`, `neutral` — therefore carry equal
+visual weight at the same step, and `600`/`700` pass WCAG AA on white for text and buttons.
+
+Green is a **success and accent** colour only — active indicators, positive balances, one
+tooth state — never a second primary. Semantic aliases (`surface`, `canvas`, `sunken`, `ink`,
+`ink-muted`, `line`, …) sit on top of the scales so a component states its intent rather than
+a shade, and dark mode re-points those aliases instead of touching components.
+
+The tooth chart's state colours are part of the same system: each state maps to a scale step,
+and every fill/ink pair was checked for AA contrast in both light and dark mode before it was
+written down.
+
+The logo is one file, `apps/web/src/assets/logo.svg`, imported by `components/brand/logo.tsx`
+and used at three sizes: the login page, the sidebar header and the browser-printed
+letterhead on treatment plans. Replacing the brand mark is `cp your-logo.svg
+apps/web/src/assets/logo.svg` — no code change. The favicon (`apps/web/public/favicon.svg`)
+is a separate square lockup, since a wide logo is unreadable at 16px.
+
+Receipts and statements are PDFs built server-side, so they cannot import that file. The API
+keeps the mark's geometry in `apps/api/src/billing/pdf/brand-mark.ts` and draws it with
+pdf-lib. That is a second copy on purpose, and `test/brand-mark.spec.ts` reads the web logo
+and fails if the two drift apart — so replacing the logo tells you the printed letterhead
+needs the new paths instead of quietly printing the old mark for months.
+
+### Storybook
+
+```bash
+pnpm --filter @clinic/web storybook          # dev, http://localhost:6006
+pnpm --filter @clinic/web build-storybook    # static build, also run in CI
+```
+
+Storybook is the catalogue for the design language: the full palette with live hex values and
+contrast ratios, the semantic tokens, the tooth-chart states, and every base component in both
+RTL and LTR via the direction toolbar. The palette stories read the tokens back out of the
+stylesheet at runtime, so the catalogue is generated from `theme.css` and cannot drift from
+it. `addon-a11y` runs in `error` mode, so a contrast or ARIA regression fails the story.
+
+It is a devDependency of `apps/web` only — it is never installed into an image and adds
+nothing to the production bundle or the VPS's memory footprint.
+
 ## Production
 
 ```bash
@@ -360,7 +411,8 @@ the stack already provides:
 docker compose exec api pnpm --filter @clinic/api test
 ```
 
-CI runs exactly these on every pull request, and additionally builds both Docker images.
+CI runs exactly these on every pull request, and additionally builds Storybook and both
+Docker images.
 
 ## Conventions
 

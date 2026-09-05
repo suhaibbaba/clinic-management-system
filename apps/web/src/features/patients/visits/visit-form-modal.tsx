@@ -162,7 +162,7 @@ export function VisitFormModal({
           <textarea
             id="visit-complaint"
             rows={2}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-start focus:outline-2 focus:outline-brand-600"
+            className="w-full rounded-md border border-line-strong px-3 py-2 text-sm text-start focus:outline-2 focus:outline-primary-600"
             {...register('complaint', { setValueAs: (v) => (v === '' ? null : v) })}
           />
         </FormField>
@@ -171,7 +171,7 @@ export function VisitFormModal({
           <textarea
             id="visit-exam"
             rows={3}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-start focus:outline-2 focus:outline-brand-600"
+            className="w-full rounded-md border border-line-strong px-3 py-2 text-sm text-start focus:outline-2 focus:outline-primary-600"
             {...register('examination', { setValueAs: (v) => (v === '' ? null : v) })}
           />
         </FormField>
@@ -180,7 +180,7 @@ export function VisitFormModal({
           <textarea
             id="visit-diagnosis"
             rows={2}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-start focus:outline-2 focus:outline-brand-600"
+            className="w-full rounded-md border border-line-strong px-3 py-2 text-sm text-start focus:outline-2 focus:outline-primary-600"
             {...register('diagnosis', { setValueAs: (v) => (v === '' ? null : v) })}
           />
         </FormField>
@@ -189,7 +189,7 @@ export function VisitFormModal({
           <textarea
             id="visit-notes"
             rows={2}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-start focus:outline-2 focus:outline-brand-600"
+            className="w-full rounded-md border border-line-strong px-3 py-2 text-sm text-start focus:outline-2 focus:outline-primary-600"
             {...register('notes', { setValueAs: (v) => (v === '' ? null : v) })}
           />
         </FormField>
