@@ -15,6 +15,7 @@ import {
   createUserSchema,
   idParamSchema,
   listUsersQuerySchema,
+  resetUserPasswordSchema,
   updateUserSchema,
   USER_ROLE,
   type Paginated,
@@ -30,6 +31,7 @@ import { USERS_ENTITY, UsersService } from '@api/users/users.service';
 
 class CreateUserDto extends createZodDto(createUserSchema) {}
 class UpdateUserDto extends createZodDto(updateUserSchema) {}
+class ResetUserPasswordDto extends createZodDto(resetUserPasswordSchema) {}
 class ListUsersQueryDto extends createZodDto(listUsersQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
@@ -71,6 +73,21 @@ export class UsersController {
     @Body() body: UpdateUserDto,
   ): Promise<User> {
     return this.usersService.update(actor, params.id, body);
+  }
+
+  /**
+   * Not marked `@Audit(...)`: the trail records old and new values and a
+   * password has none that may be stored, so the service writes an explicit
+   * "password was reset" entry instead.
+   */
+  @Post(':id/reset-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async resetPassword(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: ResetUserPasswordDto,
+  ): Promise<void> {
+    await this.usersService.resetPassword(actor, params.id, body.newPassword);
   }
 
   /** Soft delete. */

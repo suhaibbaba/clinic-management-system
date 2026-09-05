@@ -3,9 +3,9 @@ import { and, eq, isNull, or, sql } from 'drizzle-orm';
 import type {
   AuthenticatedUserProfile,
   ChangePasswordInput,
+  IssuedSession,
   LoginInput,
   LoginResponse,
-  AuthTokens,
 } from '@clinic/shared';
 
 import { PasswordService } from '@api/auth/password.service';
@@ -32,7 +32,7 @@ export class AuthService {
     private readonly tokenService: TokenService,
   ) {}
 
-  async login(input: LoginInput): Promise<LoginResponse> {
+  async login(input: LoginInput): Promise<LoginResponse & IssuedSession> {
     const user = await this.findByIdentifier(input.identifier);
 
     if (!user) {
@@ -65,7 +65,7 @@ export class AuthService {
    * Presenting an already-revoked token means it was captured and replayed, so
    * the whole family is revoked and the session ends.
    */
-  async refresh(presentedToken: string): Promise<AuthTokens> {
+  async refresh(presentedToken: string): Promise<IssuedSession> {
     const stored = await this.tokenService.findByToken(presentedToken);
 
     if (!stored) {
@@ -142,7 +142,7 @@ export class AuthService {
     await this.tokenService.revokeAllForUser(actor.id);
   }
 
-  private async issueTokens(user: UserRow): Promise<AuthTokens> {
+  private async issueTokens(user: UserRow): Promise<IssuedSession> {
     const issued = await this.tokenService.issueRefreshToken(user);
 
     return {

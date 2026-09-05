@@ -6,15 +6,17 @@ import {
   type OnModuleInit,
 } from '@nestjs/common';
 import { and, count, desc, eq, ilike, isNull, ne, or, sql, type SQL } from 'drizzle-orm';
-import type {
-  CreateUserInput,
-  ListUsersQuery,
-  Paginated,
-  UpdateUserInput,
-  User,
+import {
+  AUDIT_ACTION,
+  type CreateUserInput,
+  type ListUsersQuery,
+  type Paginated,
+  type UpdateUserInput,
+  type User,
 } from '@clinic/shared';
 
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
+import { AuditService } from '@api/audit/audit.service';
 import { PasswordService } from '@api/auth/password.service';
 import { TokenService } from '@api/auth/token.service';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
@@ -49,6 +51,7 @@ export class UsersService implements OnModuleInit {
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly auditService: AuditService,
   ) {}
 
   onModuleInit(): void {
@@ -175,6 +178,34 @@ export class UsersService implements OnModuleInit {
     }
 
     return toUser(row);
+  }
+
+  /**
+   * Admin resets another user's password. Every session for that user is
+   * revoked, and the reset is recorded in the audit trail — the password itself
+   * has no value that may be stored, so only the fact is written.
+   */
+  async resetPassword(actor: AuthenticatedUser, id: string, newPassword: string): Promise<void> {
+    const target = await this.findInClinicOrFail(actor.clinicId, id);
+
+    const passwordHash = await this.passwordService.hash(newPassword);
+
+    await this.db
+      .update(users)
+      .set({ passwordHash, updatedAt: new Date(), updatedBy: actor.id })
+      .where(this.scope.where(users, actor.clinicId, eq(users.id, id)));
+
+    await this.tokenService.revokeAllForUser(id);
+
+    await this.auditService.record({
+      clinicId: actor.clinicId,
+      userId: actor.id,
+      action: AUDIT_ACTION.UPDATE,
+      entity: USERS_ENTITY,
+      entityId: target.id,
+      oldValue: null,
+      newValue: { passwordReset: true },
+    });
   }
 
   /** Soft delete — nothing is ever hard-deleted (CLAUDE.md). */

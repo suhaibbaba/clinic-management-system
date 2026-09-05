@@ -1,60 +1,42 @@
-:root {
-  --color-bg: #f6f7f9;
+@import 'tailwindcss';
+
+/*
+ * Design tokens. One neutral palette plus a single brand hue — enough for the
+ * whole admin surface without a UI kit.
+ */
+@theme {
+  --color-brand-50: #eef6ff;
+  --color-brand-100: #d9eaff;
+  --color-brand-500: #2f6fed;
+  --color-brand-600: #1f57c9;
+  --color-brand-700: #1a469f;
+
   --color-surface: #ffffff;
-  --color-text: #1f2933;
-  --color-muted: #6b7280;
-  --color-ok: #067647;
-  --color-bad: #b42318;
-  color-scheme: light;
+  --color-canvas: #f6f7f9;
+
+  --font-sans:
+    'Segoe UI', system-ui, -apple-system, 'Noto Naskh Arabic', 'Noto Sans Arabic', Tahoma,
+    sans-serif;
 }
 
-* {
-  box-sizing: border-box;
+html,
+body,
+#root {
+  height: 100%;
 }
 
 body {
   margin: 0;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: system-ui, 'Segoe UI', Tahoma, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-gray-900);
+  font-family: var(--font-sans);
   line-height: 1.6;
 }
 
-.page {
-  margin: 0 auto;
-  max-width: 40rem;
-  padding: 3rem 1.5rem;
-}
-
-.card {
-  background: var(--color-surface);
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  padding: 1.25rem 1.5rem;
-}
-
-dl {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.5rem 1.5rem;
-  margin: 0;
-}
-
-dt {
-  color: var(--color-muted);
-}
-
-dd {
-  margin: 0;
-  font-weight: 600;
-}
-
-dd[data-status='ok'],
-dd[data-status='up'] {
-  color: var(--color-ok);
-}
-
-dd[data-status='degraded'],
-dd[data-status='down'] {
-  color: var(--color-bad);
+/*
+ * Latin digits inside Arabic text: file numbers, phone numbers and times stay
+ * readable and copy-pasteable.
+ */
+:root {
+  font-variant-numeric: lining-nums tabular-nums;
 }

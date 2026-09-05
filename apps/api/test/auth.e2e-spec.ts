@@ -1,5 +1,6 @@
 import { USER_ROLE } from '@clinic/shared';
 
+import { REFRESH_COOKIE_NAME } from '@api/auth/refresh-cookie';
 import {
   auth,
   createTestContext,
@@ -28,6 +29,15 @@ describe('Auth (e2e)', () => {
       payload: { identifier, password },
     });
 
+  /** The refresh cookie the API set on a response, if any. */
+  const refreshCookie = (response: { cookies: unknown[] }) =>
+    (
+      response.cookies as { name: string; value: string; httpOnly?: boolean; sameSite?: string }[]
+    ).find((cookie) => cookie.name === REFRESH_COOKIE_NAME);
+
+  /** Replays a refresh cookie the way a browser would. */
+  const withCookie = (token: string) => ({ cookie: `${REFRESH_COOKIE_NAME}=${token}` });
+
   describe('login', () => {
     it('issues an access and a refresh token for a valid phone', async () => {
       const response = await login(clinic.phones[USER_ROLE.ADMIN]);
@@ -39,7 +49,14 @@ describe('Auth (e2e)', () => {
         user: { role: USER_ROLE.ADMIN, clinicId: clinic.id },
       });
       expect(typeof body.accessToken).toBe('string');
-      expect(typeof body.refreshToken).toBe('string');
+
+      // The refresh token is set as an httpOnly cookie and must never appear
+      // in the body, so JavaScript on the page cannot read it.
+      expect(body.refreshToken).toBeUndefined();
+      const cookie = refreshCookie(response);
+      expect(cookie?.httpOnly).toBe(true);
+      expect(cookie?.sameSite?.toLowerCase()).toBe('lax');
+      expect(typeof cookie?.value).toBe('string');
     });
 
     it('never returns the password hash', async () => {
@@ -70,18 +87,21 @@ describe('Auth (e2e)', () => {
   });
 
   describe('refresh', () => {
-    it('rotates the refresh token and returns a working access token', async () => {
-      const first = (await login(clinic.phones[USER_ROLE.DOCTOR])).json();
+    it('rotates the refresh cookie and returns a working access token', async () => {
+      const loggedIn = await login(clinic.phones[USER_ROLE.DOCTOR]);
+      const firstToken = refreshCookie(loggedIn)?.value ?? '';
 
       const refreshed = await context.app.inject({
         method: 'POST',
         url: '/auth/refresh',
-        payload: { refreshToken: first.refreshToken },
+        headers: withCookie(firstToken),
+        payload: {},
       });
 
       expect(refreshed.statusCode).toBe(200);
       const body = refreshed.json();
-      expect(body.refreshToken).not.toBe(first.refreshToken);
+      expect(body.refreshToken).toBeUndefined();
+      expect(refreshCookie(refreshed)?.value).not.toBe(firstToken);
 
       const profile = await context.app.inject({
         method: 'GET',
@@ -94,20 +114,22 @@ describe('Auth (e2e)', () => {
     });
 
     it('revokes the whole session when a rotated token is replayed', async () => {
-      const first = (await login(clinic.phones[USER_ROLE.RECEPTIONIST])).json();
+      const loggedIn = await login(clinic.phones[USER_ROLE.RECEPTIONIST]);
+      const firstToken = refreshCookie(loggedIn)?.value ?? '';
 
-      const rotated = (
-        await context.app.inject({
-          method: 'POST',
-          url: '/auth/refresh',
-          payload: { refreshToken: first.refreshToken },
-        })
-      ).json();
+      const rotated = await context.app.inject({
+        method: 'POST',
+        url: '/auth/refresh',
+        headers: withCookie(firstToken),
+        payload: {},
+      });
+      const rotatedToken = refreshCookie(rotated)?.value ?? '';
 
       const replay = await context.app.inject({
         method: 'POST',
         url: '/auth/refresh',
-        payload: { refreshToken: first.refreshToken },
+        headers: withCookie(firstToken),
+        payload: {},
       });
 
       expect(replay.statusCode).toBe(401);
@@ -116,10 +138,34 @@ describe('Auth (e2e)', () => {
       const afterReuse = await context.app.inject({
         method: 'POST',
         url: '/auth/refresh',
-        payload: { refreshToken: rotated.refreshToken },
+        headers: withCookie(rotatedToken),
+        payload: {},
       });
 
       expect(afterReuse.statusCode).toBe(401);
+    });
+
+    it('still accepts a refresh token in the body for non-browser clients', async () => {
+      const loggedIn = await login(clinic.phones[USER_ROLE.ADMIN]);
+      const token = refreshCookie(loggedIn)?.value ?? '';
+
+      const refreshed = await context.app.inject({
+        method: 'POST',
+        url: '/auth/refresh',
+        payload: { refreshToken: token },
+      });
+
+      expect(refreshed.statusCode).toBe(200);
+    });
+
+    it('rejects a refresh with neither cookie nor body token', async () => {
+      const response = await context.app.inject({
+        method: 'POST',
+        url: '/auth/refresh',
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(400);
     });
 
     it('rejects an unknown refresh token', async () => {
@@ -134,27 +180,33 @@ describe('Auth (e2e)', () => {
   });
 
   describe('logout', () => {
-    it('revokes the refresh token and is idempotent', async () => {
-      const session = (await login(clinic.phones[USER_ROLE.TECHNICIAN])).json();
+    it('revokes the refresh token, clears the cookie and is idempotent', async () => {
+      const loggedIn = await login(clinic.phones[USER_ROLE.TECHNICIAN]);
+      const token = refreshCookie(loggedIn)?.value ?? '';
 
       const first = await context.app.inject({
         method: 'POST',
         url: '/auth/logout',
-        payload: { refreshToken: session.refreshToken },
+        headers: withCookie(token),
+        payload: {},
       });
       const second = await context.app.inject({
         method: 'POST',
         url: '/auth/logout',
-        payload: { refreshToken: session.refreshToken },
+        headers: withCookie(token),
+        payload: {},
       });
 
       expect(first.statusCode).toBe(204);
       expect(second.statusCode).toBe(204);
+      // An empty value with a past expiry is how a cookie is deleted.
+      expect(refreshCookie(first)?.value).toBe('');
 
       const refreshAfterLogout = await context.app.inject({
         method: 'POST',
         url: '/auth/refresh',
-        payload: { refreshToken: session.refreshToken },
+        headers: withCookie(token),
+        payload: {},
       });
 
       expect(refreshAfterLogout.statusCode).toBe(401);
@@ -188,7 +240,9 @@ describe('Auth (e2e)', () => {
   describe('change password', () => {
     it('changes the password and revokes existing sessions', async () => {
       const phone = clinic.phones[USER_ROLE.TECHNICIAN];
-      const session = (await login(phone)).json();
+      const loggedIn = await login(phone);
+      const session = loggedIn.json();
+      const sessionToken = refreshCookie(loggedIn)?.value ?? '';
       const newPassword = 'RotatedPassword456!';
 
       const changed = await context.app.inject({
@@ -206,7 +260,8 @@ describe('Auth (e2e)', () => {
       const refreshAfterChange = await context.app.inject({
         method: 'POST',
         url: '/auth/refresh',
-        payload: { refreshToken: session.refreshToken },
+        headers: withCookie(sessionToken),
+        payload: {},
       });
       expect(refreshAfterChange.statusCode).toBe(401);
     });

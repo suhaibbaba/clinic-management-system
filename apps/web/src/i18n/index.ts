@@ -12,9 +12,9 @@ const RTL_LANGUAGES = new Set(['ar']);
 export const isRtl = (language: string): boolean => RTL_LANGUAGES.has(language.split('-')[0] ?? '');
 
 /**
- * Arabic is the default and only shipped language for now (CLAUDE.md);
- * English resources are wired up so adding it later is a config change.
- * UI strings never live in components — always `t('some.key')`.
+ * Arabic is the default and only shipped language for now (CLAUDE.md); English
+ * resources are wired up so adding it later is a config change. UI strings never
+ * live in components — always `t('some.key')`.
  */
 void i18n.use(initReactI18next).init({
   resources: {

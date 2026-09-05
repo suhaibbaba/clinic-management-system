@@ -57,6 +57,15 @@ export const updateUserSchema = z
   .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
+/**
+ * Admin resetting another user's password. Separate from `changePasswordSchema`
+ * because an admin does not know the current one.
+ */
+export const resetUserPasswordSchema = z.object({
+  newPassword: passwordSchema,
+});
+export type ResetUserPasswordInput = z.infer<typeof resetUserPasswordSchema>;
+
 export const listUsersQuerySchema = paginationQuerySchema.extend({
   role: z.enum(USER_ROLES).optional(),
   isActive: z.stringbool().optional(),

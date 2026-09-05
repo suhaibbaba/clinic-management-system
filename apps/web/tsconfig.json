@@ -11,6 +11,7 @@
     "types": ["vite/client"],
     "paths": {
       "@web/*": ["./src/*"],
+      "@test/*": ["./test/*"],
       /* The web app compiles the shared package's source, so it must resolve
          that package's own alias too. */
       "@shared/*": ["../../packages/shared/src/*"],
@@ -19,5 +20,5 @@
       "@clinic/shared": ["../../packages/shared/src/index.ts"]
     }
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "test", "vite.config.ts"]
 }

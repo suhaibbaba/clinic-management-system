@@ -1,18 +1,15 @@
-import { useEffect, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { JSX } from 'react';
+import { BrowserRouter } from 'react-router-dom';
 
-import { isRtl } from '@web/i18n';
-import { HealthPage } from '@web/pages/HealthPage';
+import { AppProviders } from '@web/app/providers';
+import { AppRoutes } from '@web/app/router';
 
 export function App(): JSX.Element {
-  const { i18n } = useTranslation();
-
-  // Keep the document direction in sync with the active language. The initial
-  // value is already `dir="rtl"` in index.html so the first paint is correct.
-  useEffect(() => {
-    document.documentElement.lang = i18n.language;
-    document.documentElement.dir = isRtl(i18n.language) ? 'rtl' : 'ltr';
-  }, [i18n.language]);
-
-  return <HealthPage />;
+  return (
+    <BrowserRouter>
+      <AppProviders>
+        <AppRoutes />
+      </AppProviders>
+    </BrowserRouter>
+  );
 }

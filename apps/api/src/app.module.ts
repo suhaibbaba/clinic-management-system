@@ -12,6 +12,7 @@ import { AppConfigModule } from '@api/config/config.module';
 import { DatabaseModule } from '@api/database/database.module';
 import { DoctorsModule } from '@api/doctors/doctors.module';
 import { HealthModule } from '@api/health/health.module';
+import { SpecialtiesModule } from '@api/specialties/specialties.module';
 import { UsersModule } from '@api/users/users.module';
 
 /**
@@ -29,6 +30,7 @@ import { UsersModule } from '@api/users/users.module';
     UsersModule,
     DoctorsModule,
     ClinicsModule,
+    SpecialtiesModule,
   ],
   providers: [
     // Global validation: every DTO is a Zod schema from @clinic/shared wrapped

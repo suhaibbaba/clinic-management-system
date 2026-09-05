@@ -42,6 +42,13 @@ export const envSchema = z.object({
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().max(86_400).default(900),
   JWT_REFRESH_TTL_DAYS: z.coerce.number().int().positive().max(365).default(30),
 
+  /**
+   * Path the refresh-token cookie is scoped to, as the *browser* sees it. The
+   * web app reaches the API through a same-origin `/api` proxy, so the default
+   * covers every deployment without coupling the API to the proxy prefix.
+   */
+  AUTH_COOKIE_PATH: z.string().min(1).default('/'),
+
   /** Password given to every account created by `pnpm seed`. Development only. */
   SEED_PASSWORD: z.string().min(8).default('ChangeMe123!'),
 
