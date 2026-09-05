@@ -68,7 +68,7 @@ export function TreatmentPlansTab({
     doctors.data?.items.find((doctor) => doctor.id === id)?.user.name ?? '—';
 
   if (plans.isPending) {
-    return <p className="text-sm text-gray-500">{t('common.loading')}</p>;
+    return <p className="text-sm text-ink-muted">{t('common.loading')}</p>;
   }
 
   if (plans.isError) {
@@ -145,7 +145,7 @@ export function TreatmentPlansTab({
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-gray-800">
+          <h2 className="text-sm font-semibold text-ink">
             {t('treatmentPlans.count', { count: ordered.length })}
           </h2>
           <Button size="sm" onClick={() => void handleCreatePlan()}>
@@ -161,11 +161,11 @@ export function TreatmentPlansTab({
           const items = [...(plan.items ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
 
           return (
-            <article key={plan.id} className="rounded-lg border border-gray-200 bg-white p-4">
+            <article key={plan.id} className="rounded-lg border border-line bg-surface p-4">
               <header className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900">{plan.title}</h3>
-                  <p className="mt-0.5 text-xs text-gray-500">
+                  <h3 className="text-sm font-semibold text-ink">{plan.title}</h3>
+                  <p className="mt-0.5 text-xs text-ink-muted">
                     {t('visits.doctor')}: {doctorName(plan.doctorId)}
                   </p>
                 </div>
@@ -181,16 +181,16 @@ export function TreatmentPlansTab({
               </header>
 
               {items.length === 0 ? (
-                <p className="mt-3 text-xs text-gray-500">{t('treatmentPlans.noItems')}</p>
+                <p className="mt-3 text-xs text-ink-muted">{t('treatmentPlans.noItems')}</p>
               ) : (
                 <ol className="mt-3 flex flex-col gap-1.5">
                   {items.map((item, index) => (
                     <li
                       key={item.id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-gray-50 px-3 py-2"
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-canvas px-3 py-2"
                     >
-                      <span className="flex items-center gap-2 text-sm text-gray-900">
-                        <span className="text-xs text-gray-400" dir="ltr">
+                      <span className="flex items-center gap-2 text-sm text-ink">
+                        <span className="text-xs text-ink-subtle" dir="ltr">
                           {index + 1}
                         </span>
                         {catalogName(item.procedureId)}
@@ -198,7 +198,7 @@ export function TreatmentPlansTab({
 
                       <span className="flex flex-wrap items-center gap-2">
                         {showPrices && (
-                          <span className="text-sm text-gray-600" dir="ltr">
+                          <span className="text-sm text-ink-muted" dir="ltr">
                             {item.estimatedPrice} {currency}
                           </span>
                         )}
@@ -232,29 +232,29 @@ export function TreatmentPlansTab({
               )}
 
               {showPrices && items.length > 0 && (
-                <dl className="mt-3 flex flex-wrap justify-end gap-x-6 gap-y-1 border-t border-gray-100 pt-3 text-sm">
+                <dl className="mt-3 flex flex-wrap justify-end gap-x-6 gap-y-1 border-t border-line pt-3 text-sm">
                   <div className="flex gap-2">
-                    <dt className="text-gray-500">{t('treatmentPlans.total')}</dt>
-                    <dd className="font-semibold text-gray-900" dir="ltr">
+                    <dt className="text-ink-muted">{t('treatmentPlans.total')}</dt>
+                    <dd className="font-semibold text-ink" dir="ltr">
                       {planTotal(items)} {currency}
                     </dd>
                   </div>
                   <div className="flex gap-2">
-                    <dt className="text-gray-500">{t('treatmentPlans.remaining')}</dt>
-                    <dd className="font-medium text-gray-700" dir="ltr">
+                    <dt className="text-ink-muted">{t('treatmentPlans.remaining')}</dt>
+                    <dd className="font-medium text-ink" dir="ltr">
                       {planRemaining(items)} {currency}
                     </dd>
                   </div>
                 </dl>
               )}
 
-              <div className="mt-3 border-t border-gray-100 pt-3">
+              <div className="mt-3 border-t border-line pt-3">
                 {addingTo === plan.id ? (
                   <div className="flex flex-wrap items-end gap-2">
                     <div className="min-w-56 flex-1">
                       <label
                         htmlFor={`add-item-${plan.id}`}
-                        className="mb-1 block text-xs text-gray-600"
+                        className="mb-1 block text-xs text-ink-muted"
                       >
                         {t('chart.panel.procedure')}
                       </label>

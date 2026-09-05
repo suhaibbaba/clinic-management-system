@@ -14,8 +14,8 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps): JSX.E
   return (
     <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">{t(title)}</h1>
-        {subtitle !== undefined && <p className="mt-1 text-sm text-gray-500">{t(subtitle)}</p>}
+        <h1 className="text-xl font-semibold text-ink">{t(title)}</h1>
+        {subtitle !== undefined && <p className="mt-1 text-sm text-ink-muted">{t(subtitle)}</p>}
       </div>
 
       {actions !== undefined && <div className="flex items-center gap-2">{actions}</div>}

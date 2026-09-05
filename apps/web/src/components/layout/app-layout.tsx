@@ -3,6 +3,7 @@ import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet } from 'react-router-dom';
 
+import { Logo } from '@web/components/brand/logo';
 import { Badge, Button } from '@web/components/ui';
 import { visibleNavItems } from '@web/app/navigation';
 import { useSession } from '@web/features/auth/session';
@@ -23,7 +24,7 @@ export function AppLayout(): JSX.Element {
 
   return (
     <div className="flex min-h-full flex-col">
-      <header className="flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3">
+      <header className="flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -34,13 +35,14 @@ export function AppLayout(): JSX.Element {
           >
             {t('nav.menu')}
           </Button>
-          <span className="text-sm font-semibold text-gray-900">{t('app.title')}</span>
+          <Logo size="sm" />
+          <span className="text-sm font-semibold text-ink">{t('app.title')}</span>
         </div>
 
         <div className="flex items-center gap-3">
           {user && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-700">{user.name}</span>
+              <span className="text-sm text-ink">{user.name}</span>
               <Badge tone={user.role === USER_ROLE.ADMIN ? 'info' : 'neutral'}>
                 {t(`roles.${user.role}`)}
               </Badge>
@@ -57,7 +59,7 @@ export function AppLayout(): JSX.Element {
         <nav
           aria-label={t('nav.menu')}
           className={cn(
-            'border-b border-gray-200 bg-white p-3 md:w-56 md:border-b-0 md:border-e',
+            'border-b border-line bg-surface p-3 md:w-56 md:border-b-0 md:border-e',
             mobileOpen ? 'block' : 'hidden md:block',
           )}
         >
@@ -71,8 +73,8 @@ export function AppLayout(): JSX.Element {
                     cn(
                       'block rounded-md px-3 py-2 text-sm transition-colors',
                       isActive
-                        ? 'bg-brand-50 font-medium text-brand-700'
-                        : 'text-gray-700 hover:bg-gray-100',
+                        ? 'bg-primary-50 font-medium text-primary-700'
+                        : 'text-ink hover:bg-sunken',
                     )
                   }
                 >

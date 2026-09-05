@@ -39,17 +39,17 @@ export function FormField({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor={htmlFor} className="text-sm font-medium text-gray-800">
+      <Label htmlFor={htmlFor} className="text-sm font-medium text-ink">
         {t(label)}
-        {optional && <span className="ms-1 text-xs text-gray-400">({t('common.optional')})</span>}
+        {optional && <span className="ms-1 text-xs text-ink-subtle">({t('common.optional')})</span>}
       </Label>
 
       {children}
 
-      {hint !== undefined && !messageKey && <p className="text-xs text-gray-500">{t(hint)}</p>}
+      {hint !== undefined && !messageKey && <p className="text-xs text-ink-muted">{t(hint)}</p>}
 
       {messageKey !== undefined && (
-        <p id={errorId} role="alert" className={cn('text-xs text-red-600')}>
+        <p id={errorId} role="alert" className={cn('text-xs text-danger-600')}>
           {t(messageKey)}
         </p>
       )}

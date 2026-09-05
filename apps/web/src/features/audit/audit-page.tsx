@@ -146,7 +146,7 @@ export function AuditPage(): JSX.Element {
           }}
         />
 
-        <label className="flex flex-col gap-1 text-xs text-gray-600">
+        <label className="flex flex-col gap-1 text-xs text-ink-muted">
           {t('audit.fromDate')}
           <Input
             type="date"
@@ -159,7 +159,7 @@ export function AuditPage(): JSX.Element {
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-xs text-gray-600">
+        <label className="flex flex-col gap-1 text-xs text-ink-muted">
           {t('audit.toDate')}
           <Input
             type="date"

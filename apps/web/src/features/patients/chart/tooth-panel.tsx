@@ -84,14 +84,14 @@ export function ToothPanel({
       <div className="flex flex-col gap-6">
         {summary && summary.surfaces.length > 0 && (
           <section className="flex flex-col gap-2">
-            <h3 className="text-sm font-semibold text-gray-800">{t('chart.panel.surfaces')}</h3>
+            <h3 className="text-sm font-semibold text-ink">{t('chart.panel.surfaces')}</h3>
             <SurfaceSelector value={summary.surfaces} readOnly />
           </section>
         )}
 
         <section className="flex flex-col gap-2">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-gray-800">{t('chart.panel.history')}</h3>
+            <h3 className="text-sm font-semibold text-ink">{t('chart.panel.history')}</h3>
 
             {canAdd && !adding && (
               <Button size="sm" variant="secondary" onClick={() => setAdding(true)}>
@@ -100,8 +100,8 @@ export function ToothPanel({
             )}
           </div>
 
-          {isPending && <p className="text-sm text-gray-500">{t('common.loading')}</p>}
-          {isError && <p className="text-sm text-red-600">{t('errors.generic')}</p>}
+          {isPending && <p className="text-sm text-ink-muted">{t('common.loading')}</p>}
+          {isError && <p className="text-sm text-danger-600">{t('errors.generic')}</p>}
 
           {data && data.procedures.length === 0 && <EmptyState title="chart.panel.noProcedures" />}
 
@@ -125,10 +125,8 @@ export function ToothPanel({
         </section>
 
         {adding && tooth !== null && (
-          <section className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <h3 className="mb-3 text-sm font-semibold text-gray-800">
-              {t('chart.panel.addProcedure')}
-            </h3>
+          <section className="rounded-lg border border-line bg-canvas p-4">
+            <h3 className="mb-3 text-sm font-semibold text-ink">{t('chart.panel.addProcedure')}</h3>
             <AddProcedureForm
               tooth={tooth}
               role={role}
@@ -146,7 +144,7 @@ export function ToothPanel({
 
         {showAttachments && (
           <section className="flex flex-col gap-2">
-            <h3 className="text-sm font-semibold text-gray-800">{t('chart.panel.attachments')}</h3>
+            <h3 className="text-sm font-semibold text-ink">{t('chart.panel.attachments')}</h3>
             {data && <ToothAttachments attachments={data.attachments} />}
           </section>
         )}
@@ -169,17 +167,15 @@ function ProcedureRow({
   const { t } = useTranslation();
 
   return (
-    <li className="rounded-md border border-gray-200 bg-white p-3">
+    <li className="rounded-md border border-line bg-surface p-3">
       <div className="flex items-start justify-between gap-2">
-        <span className="text-sm font-medium text-gray-900">
-          {name ?? t('chart.panel.procedure')}
-        </span>
+        <span className="text-sm font-medium text-ink">{name ?? t('chart.panel.procedure')}</span>
         <Badge tone={statusTone(procedure.status)}>
           {t(`chart.procedureStatus.${procedure.status}`)}
         </Badge>
       </div>
 
-      <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-gray-500">
+      <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-ink-muted">
         <div className="flex gap-1">
           <dt>{t('chart.panel.date')}:</dt>
           <dd dir="ltr">{formatDate(procedure.performedAt)}</dd>

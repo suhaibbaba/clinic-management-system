@@ -24,7 +24,7 @@ export function ToothAttachments({
   const { t } = useTranslation();
 
   if (attachments.length === 0) {
-    return <p className="text-sm text-gray-500">{t('chart.panel.noAttachments')}</p>;
+    return <p className="text-sm text-ink-muted">{t('chart.panel.noAttachments')}</p>;
   }
 
   return (
@@ -47,10 +47,10 @@ function AttachmentThumbnail({ attachment }: { attachment: Attachment }): JSX.El
 
   return (
     <figure className="flex flex-col gap-1">
-      <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-50">
-        {isPending && <span className="text-xs text-gray-400">{t('common.loading')}</span>}
+      <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md border border-line bg-canvas">
+        {isPending && <span className="text-xs text-ink-subtle">{t('common.loading')}</span>}
 
-        {isError && <span className="text-xs text-red-500">{t('errors.generic')}</span>}
+        {isError && <span className="text-xs text-danger-500">{t('errors.generic')}</span>}
 
         {data?.downloadUrl && isImage && (
           <img
@@ -66,14 +66,14 @@ function AttachmentThumbnail({ attachment }: { attachment: Attachment }): JSX.El
             href={data.downloadUrl}
             target="_blank"
             rel="noreferrer"
-            className="px-1 text-center text-xs text-brand-600 underline"
+            className="px-1 text-center text-xs text-primary-600 underline"
           >
             {t('chart.panel.openFile')}
           </a>
         )}
       </div>
 
-      <figcaption className="truncate text-[11px] text-gray-500" title={attachment.filename}>
+      <figcaption className="truncate text-[11px] text-ink-muted" title={attachment.filename}>
         {formatDate(attachment.createdAt)}
       </figcaption>
     </figure>

@@ -166,7 +166,7 @@ export function ProcedureForm({
       {/* Surfaces only mean something once a tooth is in play. */}
       {tooth !== undefined && (
         <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-gray-800">{t('chart.panel.surfaces')}</span>
+          <span className="text-sm font-medium text-ink">{t('chart.panel.surfaces')}</span>
           <SurfaceSelector value={surfaces} onChange={setSurfaces} />
         </div>
       )}
@@ -207,7 +207,7 @@ export function ProcedureForm({
       )}
 
       {error && (
-        <p role="alert" className="text-xs text-red-600">
+        <p role="alert" className="text-xs text-danger-600">
           {t(error)}
         </p>
       )}

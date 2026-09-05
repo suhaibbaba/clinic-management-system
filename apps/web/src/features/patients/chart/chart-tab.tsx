@@ -81,7 +81,7 @@ export function ChartTab({ patientId }: { patientId: string }): JSX.Element {
         <div
           role="group"
           aria-label={t('chart.dentition')}
-          className="inline-flex overflow-hidden rounded-md border border-gray-300"
+          className="inline-flex overflow-hidden rounded-md border border-line-strong"
         >
           {(['permanent', 'deciduous'] as const).map((option) => (
             <button
@@ -95,8 +95,8 @@ export function ChartTab({ patientId }: { patientId: string }): JSX.Element {
               className={cn(
                 'px-3 py-1.5 text-sm font-medium transition-colors',
                 dentition === option
-                  ? 'bg-brand-500 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50',
+                  ? 'bg-primary-600 text-ink-inverse'
+                  : 'bg-surface text-ink hover:bg-canvas',
               )}
             >
               {t(`chart.${option}`)}
@@ -104,7 +104,7 @@ export function ChartTab({ patientId }: { patientId: string }): JSX.Element {
           ))}
         </div>
 
-        <p className="text-xs text-gray-500">{t('chart.keyboardHint')}</p>
+        <p className="text-xs text-ink-muted">{t('chart.keyboardHint')}</p>
       </div>
 
       {/* A new patient still gets a chart — every tooth healthy — with a line

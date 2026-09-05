@@ -97,6 +97,8 @@ export function SurfaceSelector({
       <svg
         viewBox={`-1 -1 ${BOX + 2} ${BOX + 2}`}
         className="size-32 select-none"
+        // `direction` has no Tailwind utility and React's SVG types have no
+        // `dir` prop; it is layout, not colour, so an inline style is right.
         style={{ direction: 'ltr' }}
         aria-hidden="true"
         focusable="false"
@@ -110,8 +112,8 @@ export function SurfaceSelector({
               <polygon
                 points={zone.points}
                 className={cn(
-                  'stroke-gray-300 transition-colors',
-                  selected ? 'fill-brand-500' : 'fill-white',
+                  'stroke-line-strong transition-colors',
+                  selected ? 'fill-primary-600' : 'fill-ink-inverse',
                 )}
                 strokeWidth={1.5}
               />
@@ -122,7 +124,7 @@ export function SurfaceSelector({
                 dominantBaseline="central"
                 className={cn(
                   'text-[13px] font-semibold',
-                  selected ? 'fill-white' : 'fill-gray-500',
+                  selected ? 'fill-ink-inverse' : 'fill-ink-muted',
                 )}
               >
                 {surface}
@@ -146,9 +148,9 @@ export function SurfaceSelector({
               className={cn(
                 'rounded-md border px-2 py-1 text-xs font-medium transition-colors',
                 selected
-                  ? 'border-brand-600 bg-brand-500 text-white'
-                  : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
-                readOnly && 'cursor-default opacity-90 hover:bg-white',
+                  ? 'border-primary-600 bg-primary-600 text-ink-inverse'
+                  : 'border-line-strong bg-surface text-ink hover:bg-canvas',
+                readOnly && 'cursor-default opacity-90 hover:bg-surface',
               )}
             >
               {t(`chart.surfaces.${surface}`)}

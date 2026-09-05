@@ -54,16 +54,16 @@ export function PatientPage(): JSX.Element {
       {/* First, and before the record itself has loaded. */}
       <AllergyBanner patientId={id} />
 
-      <header className="rounded-lg border border-gray-200 bg-white px-5 py-4">
-        {patient.isPending && <p className="text-sm text-gray-500">{t('common.loading')}</p>}
+      <header className="rounded-lg border border-line bg-surface px-5 py-4">
+        {patient.isPending && <p className="text-sm text-ink-muted">{t('common.loading')}</p>}
 
-        {patient.isError && <p className="text-sm text-red-600">{t('errors.notFound')}</p>}
+        {patient.isError && <p className="text-sm text-danger-600">{t('errors.notFound')}</p>}
 
         {patient.data && (
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">{patient.data.fullName}</h1>
-              <dl className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-sm text-gray-600">
+              <h1 className="text-lg font-semibold text-ink">{patient.data.fullName}</h1>
+              <dl className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-sm text-ink-muted">
                 <div className="flex gap-1">
                   <dt>{t('patients.fileNumber')}:</dt>
                   <dd dir="ltr">{patient.data.fileNumber}</dd>
@@ -101,8 +101,8 @@ export function PatientPage(): JSX.Element {
             className={cn(
               'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
               activeTab === tab.id
-                ? 'bg-brand-500 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100',
+                ? 'bg-primary-600 text-ink-inverse'
+                : 'bg-surface text-ink hover:bg-sunken',
             )}
           >
             {t(tab.label)}
@@ -114,7 +114,7 @@ export function PatientPage(): JSX.Element {
         role="tabpanel"
         id={`panel-${activeTab}`}
         aria-labelledby={`tab-${activeTab}`}
-        className="rounded-lg border border-gray-200 bg-white p-4"
+        className="rounded-lg border border-line bg-surface p-4"
       >
         {activeTab === 'chart' && <ChartTab patientId={id} />}
         {activeTab === 'visits' && <VisitsTab patientId={id} />}

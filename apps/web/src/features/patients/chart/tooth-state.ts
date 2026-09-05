@@ -65,10 +65,23 @@ interface ToothStateStyle {
   readonly dashed: boolean;
 }
 
+/** A saturated fill that carries white ink and needs no separate outline. */
 const FILLED = (token: string): ToothStateStyle => ({
   fill: `var(--color-tooth-${token})`,
   stroke: `var(--color-tooth-${token})`,
   ink: 'var(--color-tooth-ink)',
+  dashed: false,
+});
+
+/**
+ * A pale fill, which needs two things a saturated one does not: a darker
+ * outline so the tooth still has an edge against the chart surface, and dark
+ * ink so the tooth number stays legible on it.
+ */
+const PALE = (token: string): ToothStateStyle => ({
+  fill: `var(--color-tooth-${token})`,
+  stroke: `var(--color-tooth-${token}-line)`,
+  ink: 'var(--color-tooth-ink-dark)',
   dashed: false,
 });
 
@@ -88,9 +101,9 @@ export const TOOTH_STATE_STYLES: Record<ToothState, ToothStateStyle> = {
   [TOOTH_STATE.IN_PROGRESS]: FILLED('in-progress'),
   [TOOTH_STATE.FILLING]: FILLED('filling'),
   [TOOTH_STATE.ROOT_CANAL]: FILLED('root-canal'),
-  [TOOTH_STATE.CROWN]: FILLED('crown'),
+  [TOOTH_STATE.CROWN]: PALE('crown'),
   [TOOTH_STATE.IMPLANT]: FILLED('implant'),
-  [TOOTH_STATE.BRIDGE]: FILLED('bridge'),
+  [TOOTH_STATE.BRIDGE]: PALE('bridge'),
   [TOOTH_STATE.MISSING]: {
     fill: 'var(--color-tooth-missing)',
     stroke: 'var(--color-tooth-missing-line)',

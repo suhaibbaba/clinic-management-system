@@ -57,7 +57,7 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-44">
-          <label htmlFor="imaging-type" className="mb-1 block text-xs text-gray-600">
+          <label htmlFor="imaging-type" className="mb-1 block text-xs text-ink-muted">
             {t('imaging.type')}
           </label>
           <Select
@@ -73,7 +73,7 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
         </div>
 
         <div className="w-32">
-          <label htmlFor="imaging-tooth" className="mb-1 block text-xs text-gray-600">
+          <label htmlFor="imaging-tooth" className="mb-1 block text-xs text-ink-muted">
             {t('imaging.filterTooth')}
           </label>
           <Input
@@ -88,13 +88,13 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
         </div>
 
         {toothFilter !== '' && !toothIsValid && (
-          <p role="alert" className="text-xs text-red-600">
+          <p role="alert" className="text-xs text-danger-600">
             {t('imaging.invalidTooth')}
           </p>
         )}
       </div>
 
-      {attachments.isPending && <p className="text-sm text-gray-500">{t('common.loading')}</p>}
+      {attachments.isPending && <p className="text-sm text-ink-muted">{t('common.loading')}</p>}
 
       {attachments.isError && <EmptyState title="errors.generic" hint="imaging.loadFailed" />}
 
@@ -167,9 +167,9 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
   };
 
   return (
-    <div className="flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4">
+    <div className="flex flex-wrap items-end gap-3 rounded-lg border border-line bg-surface p-4">
       <div className="min-w-44">
-        <label htmlFor="upload-type" className="mb-1 block text-xs text-gray-600">
+        <label htmlFor="upload-type" className="mb-1 block text-xs text-ink-muted">
           {t('imaging.type')}
         </label>
         <Select
@@ -184,7 +184,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
       </div>
 
       <div className="w-28">
-        <label htmlFor="upload-tooth" className="mb-1 block text-xs text-gray-600">
+        <label htmlFor="upload-tooth" className="mb-1 block text-xs text-ink-muted">
           {t('imaging.tooth')}
         </label>
         <Input
@@ -209,7 +209,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
         {t(upload.isPending ? 'imaging.uploading' : 'imaging.upload')}
       </Button>
 
-      <p className="text-xs text-gray-500">{t('imaging.uploadHint')}</p>
+      <p className="text-xs text-ink-muted">{t('imaging.uploadHint')}</p>
     </div>
   );
 }
@@ -243,9 +243,9 @@ function ImageCard({
   };
 
   return (
-    <figure className="flex flex-col gap-1.5 rounded-lg border border-gray-200 bg-white p-2">
-      <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md bg-gray-50">
-        {isPending && <span className="text-xs text-gray-400">{t('common.loading')}</span>}
+    <figure className="flex flex-col gap-1.5 rounded-lg border border-line bg-surface p-2">
+      <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md bg-canvas">
+        {isPending && <span className="text-xs text-ink-subtle">{t('common.loading')}</span>}
 
         {data?.downloadUrl &&
           (isImage ? (
@@ -262,7 +262,7 @@ function ImageCard({
               href={data.downloadUrl}
               target="_blank"
               rel="noreferrer"
-              className="px-2 text-center text-xs text-brand-600 underline"
+              className="px-2 text-center text-xs text-primary-600 underline"
             >
               {t('chart.panel.openFile')}
             </a>
@@ -270,7 +270,7 @@ function ImageCard({
       </div>
 
       <figcaption className="flex flex-col gap-1">
-        <span className="truncate text-xs font-medium text-gray-800" title={attachment.filename}>
+        <span className="truncate text-xs font-medium text-ink" title={attachment.filename}>
           {attachment.filename}
         </span>
 
@@ -283,7 +283,7 @@ function ImageCard({
           )}
         </span>
 
-        <span className="text-[11px] text-gray-500" dir="ltr">
+        <span className="text-[11px] text-ink-muted" dir="ltr">
           {formatDate(attachment.createdAt)}
         </span>
 

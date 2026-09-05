@@ -23,11 +23,7 @@ export function ToothLegend(): JSX.Element {
         const style = TOOTH_STATE_STYLES[state];
 
         return (
-          <li
-            key={state}
-            className="flex items-center gap-1.5 text-xs"
-            style={{ color: 'var(--color-chart-text)' }}
-          >
+          <li key={state} className="flex items-center gap-1.5 text-chart-text text-xs">
             <span
               aria-hidden="true"
               className="inline-block size-3.5 shrink-0 rounded-sm border"

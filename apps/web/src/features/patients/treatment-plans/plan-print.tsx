@@ -2,8 +2,9 @@ import type { Clinic, ProcedureCatalogItem, TreatmentPlan } from '@clinic/shared
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { PrintLetterhead } from '@web/components/brand/print-letterhead';
+
 import { planRemaining, planTotal } from '@web/features/patients/treatment-plans/plan-total';
-import { formatDate } from '@web/lib/format';
 
 interface PlanPrintProps {
   readonly plan: TreatmentPlan;
@@ -43,17 +44,7 @@ export function PlanPrint({
 
   return (
     <div className="print-sheet" dir="rtl" lang="ar">
-      <header className="print-letterhead">
-        <div>
-          <h1 className="print-clinic-name">{clinic?.name ?? ''}</h1>
-          <p className="print-clinic-contact">
-            {[clinic?.phone, clinic?.address].filter(Boolean).join(' · ')}
-          </p>
-        </div>
-        <p className="print-issued" dir="ltr">
-          {formatDate(new Date().toISOString())}
-        </p>
-      </header>
+      <PrintLetterhead clinic={clinic} />
 
       <h2 className="print-title">{t('treatmentPlans.printTitle')}</h2>
 
