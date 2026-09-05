@@ -300,6 +300,20 @@ docker compose -f docker-compose.prod.yml logs -f
 docker compose -f docker-compose.prod.yml down
 ```
 
+## Sandbox
+
+A deployed sandbox tracks `main` at
+<https://clinic-sandbox.organza-moda.com>. Pushing to `main` builds both images,
+pushes them to GHCR tagged with the commit SHA and `sandbox`, deploys them over SSH with
+`docker-compose.sandbox.yml`, and fails the run unless `/api/health` reports healthy
+afterwards.
+
+It runs on a shared VPS behind a host-level nginx, so the stack itself carries no reverse
+proxy and no TLS and publishes every port to `127.0.0.1` only. Server prerequisites, the
+nginx blocks, the required GitHub secrets and how to restore a backup are in
+[DEPLOY.md](./DEPLOY.md); the environment template is
+[`.env.sandbox.example`](./.env.sandbox.example).
+
 ## Repository layout
 
 ```

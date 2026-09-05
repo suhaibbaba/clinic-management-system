@@ -1,0 +1,209 @@
+# Sandbox stack for the shared VPS.
+#
+#   cd /opt/clinic/sandbox
+#   docker compose -p clinic-sandbox pull
+#   docker compose -p clinic-sandbox up -d
+#
+# This stack terminates nothing and proxies nothing. TLS and the public
+# hostnames are the host-level nginx's job (it already fronts other projects on
+# this machine), so **every published port binds to 127.0.0.1** and the host
+# nginx reaches them over the loopback interface. Nothing here may listen on
+# 0.0.0.0 — see DEPLOY.md for the server blocks that sit in front.
+#
+# Port map, fixed because the machine is shared:
+#   127.0.0.1:15000 -> api   :3000
+#   127.0.0.1:15080 -> web   :80
+#   127.0.0.1:15900 -> minio :9000   (S3 API only; the console is not published)
+#   postgres          — no host port at all, internal network only
+#
+# Images come from GHCR and are built by .github/workflows/deploy-sandbox.yml.
+# Everything else — passwords, secrets, hostnames — comes from
+# /opt/clinic/sandbox/.env, which is also the file Compose reads for the
+# ${...} substitutions below. See .env.sandbox.example.
+
+name: clinic-sandbox
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - clinic_pg_data:/var/lib/postgresql/data
+    # Deliberately no `ports`: the database is reachable only from this
+    # project's network, never from the host or the internet.
+    healthcheck:
+      test: ["CMD-SHELL", 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks: [clinic]
+
+  # S3-compatible storage for X-rays and documents. Only the S3 API port is
+  # published; the MinIO console has no host port and is not exposed publicly.
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY_ID:?STORAGE_ACCESS_KEY_ID is required}
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_ACCESS_KEY:?STORAGE_SECRET_ACCESS_KEY is required}
+      # No MINIO_SERVER_URL: the API does the signing, and MinIO validates a
+      # signature against the Host header of the request it receives. As long as
+      # the host nginx passes Host through unchanged, presigned URLs for the
+      # public hostname verify here without MinIO being told about it.
+    ports:
+      - "127.0.0.1:15900:9000"
+    volumes:
+      - clinic_minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks: [clinic]
+
+  # One-shot: creates the bucket if it does not exist, then exits. Talks to
+  # MinIO over the internal network rather than the public hostname, so a
+  # deploy works before DNS or the nginx block is in place.
+  createbuckets:
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    env_file: .env
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint:
+      - sh
+      - -c
+      - |
+        set -e
+        mc alias set local http://minio:9000 "$${STORAGE_ACCESS_KEY_ID}" "$${STORAGE_SECRET_ACCESS_KEY}"
+        mc mb --ignore-existing "local/$${STORAGE_BUCKET}"
+    restart: "no"
+    networks: [clinic]
+
+  api:
+    image: ghcr.io/${GHCR_OWNER:-suhaibbaba}/clinic-api:${IMAGE_TAG:-sandbox}
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "127.0.0.1:15000:3000"
+    # Migrations run to completion before the server listens, so the sandbox
+    # never serves traffic against an un-migrated database. SEED_ON_BOOT=true
+    # additionally runs the seed, which is idempotent and safe to repeat.
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        node dist/database/migrate.js
+        if [ "$${SEED_ON_BOOT:-false}" = "true" ]; then
+          node dist/database/seed.js
+        fi
+        exec node dist/main.js
+    depends_on:
+      postgres:
+        condition: service_healthy
+      createbuckets:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "/usr/local/bin/api-healthcheck.js"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    networks: [clinic]
+
+  web:
+    image: ghcr.io/${GHCR_OWNER:-suhaibbaba}/clinic-web:${IMAGE_TAG:-sandbox}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:15080:80"
+    # The image's own nginx serves the built SPA and proxies /api/ to the api
+    # service, so the host nginx has a single upstream to point at.
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [clinic]
+
+  # Nightly pg_dump into the clinic_backups volume, keeping the last 7 days.
+  # The script is inline rather than a mounted file because the deploy copies
+  # only this compose file to the server.
+  backup:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - clinic_backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # `$0` is set to a label so an argument appended by `docker compose run`
+    # lands in `$1` — that is how the on-demand `once` mode below is reached.
+    entrypoint:
+      - sh
+      - -c
+      - |
+        set -eu
+
+        dump() {
+          stamp=$$(date -u +%Y%m%d-%H%M%S)
+          file="/backups/clinic-$${stamp}.sql.gz"
+          echo "[backup] dumping to $${file}"
+          PGPASSWORD="$${POSTGRES_PASSWORD}" pg_dump \
+            --host=postgres --username="$${POSTGRES_USER}" --dbname="$${POSTGRES_DB}" \
+            --no-owner --no-privileges | gzip -9 > "$${file}.part"
+          mv "$${file}.part" "$${file}"
+          echo "[backup] wrote $$(du -h "$${file}" | cut -f1)"
+
+          # Retention: keep the last 7 days. Partial files from an interrupted
+          # dump are swept with them.
+          find /backups -name 'clinic-*.sql.gz*' -mtime +$${BACKUP_KEEP_DAYS:-7} \
+            -exec rm -f {} + || true
+        }
+
+        # `once` runs a single dump and exits — that is the on-demand backup
+        # documented in DEPLOY.md.
+        if [ "$${1:-}" = "once" ]; then
+          dump
+          exit 0
+        fi
+
+        at="$${BACKUP_AT_UTC:-02:15}"
+        hh=$${at%%:*}
+        mm=$${at##*:}
+        # Strip a leading zero: POSIX arithmetic reads "08" and "09" as invalid
+        # octal, which would take the loop down every night at eight or nine.
+        hh=$${hh#0}
+        mm=$${mm#0}
+        target=$$(( $${hh:-0} * 3600 + $${mm:-0} * 60 ))
+
+        echo "[backup] nightly at $${at} UTC, keeping $${BACKUP_KEEP_DAYS:-7} days"
+
+        while true; do
+          # The epoch is UTC-aligned, so this is seconds since UTC midnight —
+          # no date parsing, which busybox does not do reliably.
+          now=$$(( $$(date -u +%s) % 86400 ))
+          delay=$$(( target - now ))
+          if [ "$$delay" -le 0 ]; then
+            delay=$$(( delay + 86400 ))
+          fi
+
+          echo "[backup] next run in $${delay}s"
+          sleep "$$delay"
+
+          dump || echo "[backup] FAILED — will retry tomorrow"
+        done
+      - backup
+    networks: [clinic]
+
+volumes:
+  clinic_pg_data:
+  clinic_minio_data:
+  clinic_backups:
+
+networks:
+  clinic:
+    driver: bridge
