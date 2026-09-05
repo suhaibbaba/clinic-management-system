@@ -33,5 +33,33 @@ export const canSeePrices = isClinical;
 /**
  * X-rays and documents. ROLES.md is explicit that a receptionist response never
  * carries an attachment key or URL, and the API enforces it.
+ *
+ * A technician's read is limited to lab-linked attachments; nothing is
+ * lab-linked until the labs module exists, so they are kept out of the imaging
+ * tab entirely rather than shown an empty grid they cannot act on.
  */
 export const canSeeAttachments = isClinical;
+
+/** Uploading and removing images: the same roles that may write the record. */
+export const canManageAttachments = isClinical;
+
+/**
+ * Only an admin deletes. ROLES.md global rule 5: nothing is hard-deleted, and
+ * only an admin may soft-delete a medical or financial record.
+ */
+export const canDelete = (role: UserRole): boolean => role === USER_ROLE.ADMIN;
+
+/**
+ * The patients list itself. Every role reads it — a receptionist registers
+ * patients, a technician looks one up — but the columns differ: the API hands
+ * the last two `PatientPublicView`, so the table only ever renders what it was
+ * given.
+ */
+export const canCreatePatient = (role: UserRole): boolean => role !== USER_ROLE.TECHNICIAN;
+
+/**
+ * Whether this caller receives the clinical view of a patient. Drives which
+ * columns the list can show, so the table never advertises a field the
+ * response does not carry.
+ */
+export const seesClinicalPatientFields = isClinical;

@@ -4,9 +4,11 @@ Multi-clinic, multi-specialty clinic management system. Arabic (RTL) web UI, Nes
 PostgreSQL. See [CLAUDE.md](./CLAUDE.md) for architecture rules and [ROLES.md](./ROLES.md)
 for the authorization spec.
 
-> **Status: core module.** Clinics, specialties, users/roles, doctors, auth and the audit log
-> are implemented on the API, with the matching Arabic RTL screens on the web. The remaining
-> domain modules (patients, billing, appointments, …) are not scaffolded yet.
+> **Status: core and patients.** Clinics, specialties, users/roles, doctors, auth and the audit
+> log are implemented, as is the patient record — medical history, visits, procedures and chart
+> marks, treatment plans, X-rays, prescriptions and the merged timeline — with Arabic RTL
+> screens for all of it. Billing and appointments are next; the patient file's last three tabs
+> are placeholders until they land.
 
 ## Requirements
 
@@ -182,17 +184,14 @@ Sign in at http://localhost:5173 with any seeded account. Screens, all Arabic an
 | Users           | `/users`        | admin                                                             |
 | Audit log       | `/audit-log`    | admin                                                             |
 | My account      | `/profile`      | every role                                                        |
+| Patients        | `/patients`     | every role; the columns shown depend on the role                  |
 | Patient file    | `/patients/:id` | admin and doctor; other roles are redirected away                 |
 
 Screenshots of each one live in [`docs/screenshots/`](./docs/screenshots).
 
-There is no patients list yet, so the patient file is reached by URL. The seeded patient with
-the fullest chart is file number `00001`:
-
-```bash
-docker compose exec postgres \
-  psql -U clinic -d clinic -tAc "select id from patients where file_number = '00001'"
-```
+The patients list is search-first: one box over name, phone and file number, searched on the
+server and debounced. A receptionist and a technician get the `PatientPublicView` columns — the
+API hands them that shape, so the clinical columns are absent rather than hidden.
 
 ### Tooth chart
 
@@ -209,6 +208,24 @@ five-zone surface picker, and (for admin and doctor) prices and X-rays.
 The chart is pinned left-to-right inside the RTL page. It is anatomy drawn from the
 clinician's point of view, with the patient's right on the viewer's left; mirroring it with the
 page would put the wrong side of the mouth on the wrong side of the screen.
+
+### Patient file tabs
+
+| Tab                              | What it does                                                                                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Tooth chart                      | The interactive FDI chart described above.                                                                                                             |
+| Visits                           | One card per encounter — complaint, examination, diagnosis — with the procedures carried out during it listed inside and editable there.               |
+| Treatment plans                  | Ordered items with a quoted total, per-item statuses, one-way conversion into a performed procedure, and a printable quote on the clinic's letterhead. |
+| Imaging                          | Grid of X-rays and documents. Uploads go presign → straight to storage → confirm; each thumbnail asks for its own short-lived signed URL.              |
+| Prescriptions, timeline, billing | Placeholders until their modules land.                                                                                                                 |
+
+Recording a procedure uses one form wherever it is done — from a tooth on the chart, or from a
+visit. What differs is the context the caller already knows (a tooth, a visit, or neither),
+which is passed in rather than asked for again.
+
+The printable quote is the same component that is on screen, hidden by print CSS until the
+browser asks for print. One source of truth means the printed sheet cannot drift from the one
+the patient was shown.
 
 The access token is held in memory only and the refresh token in an httpOnly cookie, so a
 reload silently re-authenticates and no script can read either. A 401 triggers one refresh and

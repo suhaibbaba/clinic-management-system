@@ -5,7 +5,10 @@ import { useParams } from 'react-router-dom';
 import { Badge, EmptyState } from '@web/components/ui';
 import { AllergyBanner } from '@web/features/patients/allergy-banner';
 import { ChartTab } from '@web/features/patients/chart/chart-tab';
+import { ImagingTab } from '@web/features/patients/imaging/imaging-tab';
 import { usePatient } from '@web/features/patients/queries';
+import { TreatmentPlansTab } from '@web/features/patients/treatment-plans/treatment-plans-tab';
+import { VisitsTab } from '@web/features/patients/visits/visits-tab';
 import { cn } from '@web/lib/cn';
 
 /**
@@ -24,6 +27,9 @@ const TABS = [
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
+
+/** Tabs still waiting on the module that fills them. */
+const PLACEHOLDER_TABS: readonly TabId[] = ['prescriptions', 'timeline', 'billing'];
 
 export function PatientPage(): JSX.Element {
   const { t } = useTranslation();
@@ -105,9 +111,14 @@ export function PatientPage(): JSX.Element {
         aria-labelledby={`tab-${activeTab}`}
         className="rounded-lg border border-gray-200 bg-white p-4"
       >
-        {activeTab === 'chart' ? (
-          <ChartTab patientId={id} />
-        ) : (
+        {activeTab === 'chart' && <ChartTab patientId={id} />}
+        {activeTab === 'visits' && <VisitsTab patientId={id} />}
+        {activeTab === 'treatmentPlans' && (
+          <TreatmentPlansTab patientId={id} patient={patient.data} />
+        )}
+        {activeTab === 'attachments' && <ImagingTab patientId={id} />}
+
+        {PLACEHOLDER_TABS.includes(activeTab) && (
           <EmptyState title="patients.tabs.comingSoon" hint="patients.tabs.comingSoonHint" />
         )}
       </div>

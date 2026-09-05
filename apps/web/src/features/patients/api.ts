@@ -1,12 +1,29 @@
 import type {
   AllergyFlags,
   Attachment,
+  ConfirmAttachmentUploadInput,
+  CreatePatientInput,
   CreatePerformedProcedureInput,
+  CreateTreatmentPlanInput,
+  CreateTreatmentPlanItemInput,
+  CreateVisitInput,
+  ListAttachmentsQuery,
+  ListPatientsQuery,
   Paginated,
   PatientClinicalView,
+  PatientView,
   PerformedProcedure,
+  PresignAttachmentUploadInput,
+  PresignAttachmentUploadResponse,
   ProcedureCatalogItem,
   ToothHistory,
+  TreatmentPlan,
+  TreatmentPlanItem,
+  UpdatePerformedProcedureInput,
+  UpdateTreatmentPlanInput,
+  UpdateTreatmentPlanItemInput,
+  UpdateVisitInput,
+  Visit,
 } from '@clinic/shared';
 
 import { apiRequest } from '@web/lib/api-client';
@@ -37,6 +54,20 @@ async function fetchAllPages<TItem>(
 }
 
 export const patientsApi = {
+  /**
+   * The list every role may read. The response shape is decided by the caller's
+   * role server-side — a receptionist or a technician receives
+   * `PatientPublicView`, so this is typed as the union rather than the
+   * clinical view (ROLES.md field-level security).
+   */
+  list: (query: Partial<ListPatientsQuery>): Promise<Paginated<PatientView>> =>
+    apiRequest('/patients', {
+      query: { page: query.page, limit: query.limit, search: query.search },
+    }),
+
+  create: (body: CreatePatientInput): Promise<PatientClinicalView> =>
+    apiRequest('/patients', { method: 'POST', body }),
+
   get: (id: string): Promise<PatientClinicalView> => apiRequest(`/patients/${id}`),
 
   /**
@@ -68,4 +99,98 @@ export const patientsApi = {
 
   createProcedure: (body: CreatePerformedProcedureInput): Promise<PerformedProcedure> =>
     apiRequest('/performed-procedures', { method: 'POST', body }),
+
+  updateProcedure: (id: string, body: UpdatePerformedProcedureInput): Promise<PerformedProcedure> =>
+    apiRequest(`/performed-procedures/${id}`, { method: 'PATCH', body }),
+
+  /* -------------------------------------------------------------------- */
+  /* Visits                                                                */
+  /* -------------------------------------------------------------------- */
+
+  visits: (patientId: string): Promise<Visit[]> =>
+    fetchAllPages((page) =>
+      apiRequest<Paginated<Visit>>('/visits', {
+        query: { patientId, page, limit: PAGE_LIMIT },
+      }),
+    ),
+
+  createVisit: (body: CreateVisitInput): Promise<Visit> =>
+    apiRequest('/visits', { method: 'POST', body }),
+
+  updateVisit: (id: string, body: UpdateVisitInput): Promise<Visit> =>
+    apiRequest(`/visits/${id}`, { method: 'PATCH', body }),
+
+  /* -------------------------------------------------------------------- */
+  /* Treatment plans                                                       */
+  /* -------------------------------------------------------------------- */
+
+  treatmentPlans: (patientId: string): Promise<TreatmentPlan[]> =>
+    fetchAllPages((page) =>
+      apiRequest<Paginated<TreatmentPlan>>('/treatment-plans', {
+        query: { patientId, page, limit: PAGE_LIMIT },
+      }),
+    ),
+
+  createTreatmentPlan: (body: CreateTreatmentPlanInput): Promise<TreatmentPlan> =>
+    apiRequest('/treatment-plans', { method: 'POST', body }),
+
+  updateTreatmentPlan: (id: string, body: UpdateTreatmentPlanInput): Promise<TreatmentPlan> =>
+    apiRequest(`/treatment-plans/${id}`, { method: 'PATCH', body }),
+
+  addPlanItem: (planId: string, body: CreateTreatmentPlanItemInput): Promise<TreatmentPlanItem> =>
+    apiRequest(`/treatment-plans/${planId}/items`, { method: 'POST', body }),
+
+  updatePlanItem: (
+    itemId: string,
+    body: UpdateTreatmentPlanItemInput,
+  ): Promise<TreatmentPlanItem> => apiRequest(`/plan-items/${itemId}`, { method: 'PATCH', body }),
+
+  /** Turns a quoted item into work actually carried out. */
+  convertPlanItem: (itemId: string): Promise<PerformedProcedure> =>
+    apiRequest(`/plan-items/${itemId}/convert`, { method: 'POST', body: {} }),
+
+  /* -------------------------------------------------------------------- */
+  /* Attachments                                                           */
+  /* -------------------------------------------------------------------- */
+
+  attachments: (
+    patientId: string,
+    query: Partial<ListAttachmentsQuery> = {},
+  ): Promise<Attachment[]> =>
+    fetchAllPages((page) =>
+      apiRequest<Paginated<Attachment>>(`/patients/${patientId}/attachments`, {
+        query: { page, limit: PAGE_LIMIT, type: query.type, tooth: query.tooth },
+      }),
+    ),
+
+  presignUpload: (
+    patientId: string,
+    body: PresignAttachmentUploadInput,
+  ): Promise<PresignAttachmentUploadResponse> =>
+    apiRequest(`/patients/${patientId}/attachments/presign-upload`, { method: 'POST', body }),
+
+  confirmUpload: (patientId: string, body: ConfirmAttachmentUploadInput): Promise<Attachment> =>
+    apiRequest(`/patients/${patientId}/attachments/confirm`, { method: 'POST', body }),
+
+  deleteAttachment: (id: string): Promise<void> =>
+    apiRequest(`/attachments/${id}`, { method: 'DELETE' }),
 };
+
+/**
+ * Uploads the bytes straight to storage.
+ *
+ * Deliberately not `apiRequest`: this is a presigned PUT to the object store,
+ * which must not carry the API's bearer token, and the body is the file itself
+ * rather than JSON.
+ */
+export async function uploadToStorage(uploadUrl: string, file: File): Promise<void> {
+  const response = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: { 'content-type': file.type },
+    body: file,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Upload failed with status ${response.status}`);
+  }
+}
