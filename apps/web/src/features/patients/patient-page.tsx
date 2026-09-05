@@ -2,10 +2,15 @@ import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { Badge, EmptyState } from '@web/components/ui';
+import { EmptyState } from '@web/components/ui';
+import { useSession } from '@web/features/auth/session';
+import { AccountTab } from '@web/features/billing/account-tab';
+import { PatientBalanceCard } from '@web/features/billing/patient-balance-card';
+import { canSeeBilling } from '@web/features/billing/permissions';
 import { AllergyBanner } from '@web/features/patients/allergy-banner';
 import { ChartTab } from '@web/features/patients/chart/chart-tab';
 import { ImagingTab } from '@web/features/patients/imaging/imaging-tab';
+import { canViewChart } from '@web/features/patients/permissions';
 import { usePatient } from '@web/features/patients/queries';
 import { TreatmentPlansTab } from '@web/features/patients/treatment-plans/treatment-plans-tab';
 import { VisitsTab } from '@web/features/patients/visits/visits-tab';
@@ -17,24 +22,30 @@ import { cn } from '@web/lib/cn';
  * here so the shape of the file is visible from the start.
  */
 const TABS = [
-  { id: 'chart', label: 'patients.tabs.chart' },
-  { id: 'visits', label: 'patients.tabs.visits' },
-  { id: 'treatmentPlans', label: 'patients.tabs.treatmentPlans' },
-  { id: 'attachments', label: 'patients.tabs.attachments' },
-  { id: 'prescriptions', label: 'patients.tabs.prescriptions' },
-  { id: 'timeline', label: 'patients.tabs.timeline' },
-  { id: 'billing', label: 'patients.tabs.billing' },
+  { id: 'chart', label: 'patients.tabs.chart', clinical: true },
+  { id: 'visits', label: 'patients.tabs.visits', clinical: true },
+  { id: 'treatmentPlans', label: 'patients.tabs.treatmentPlans', clinical: true },
+  { id: 'attachments', label: 'patients.tabs.attachments', clinical: true },
+  { id: 'prescriptions', label: 'patients.tabs.prescriptions', clinical: true },
+  { id: 'timeline', label: 'patients.tabs.timeline', clinical: true },
+  { id: 'billing', label: 'patients.tabs.billing', clinical: false },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];
 
 /** Tabs still waiting on the module that fills them. */
-const PLACEHOLDER_TABS: readonly TabId[] = ['prescriptions', 'timeline', 'billing'];
+const PLACEHOLDER_TABS: readonly TabId[] = ['prescriptions', 'timeline'];
 
 export function PatientPage(): JSX.Element {
   const { t } = useTranslation();
+  const { user } = useSession();
   const { id = '' } = useParams();
-  const [activeTab, setActiveTab] = useState<TabId>('chart');
+
+  // A receptionist reaches this page for the account only, so the clinical
+  // tabs are not merely disabled — they are not part of their file at all.
+  const role = user?.role;
+  const tabs = TABS.filter((tab) => (tab.clinical ? role && canViewChart(role) : true));
+  const [activeTab, setActiveTab] = useState<TabId>(tabs[0]?.id ?? 'billing');
 
   const patient = usePatient(id);
 
@@ -72,19 +83,13 @@ export function PatientPage(): JSX.Element {
               </dl>
             </div>
 
-            {/* A balance is sum(charges) − sum(payments) and there is no ledger
-                yet, so this names the field without inventing a number. */}
-            <div className="text-end">
-              <span className="block text-xs text-gray-500">{t('patients.balance')}</span>
-              <span className="block text-lg font-semibold text-gray-400">—</span>
-              <Badge tone="neutral">{t('patients.balancePending')}</Badge>
-            </div>
+            {role && canSeeBilling(role) && <PatientBalanceCard patientId={id} />}
           </div>
         )}
       </header>
 
       <div role="tablist" aria-label={t('patients.tabs.label')} className="flex flex-wrap gap-1">
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             type="button"
@@ -117,6 +122,7 @@ export function PatientPage(): JSX.Element {
           <TreatmentPlansTab patientId={id} patient={patient.data} />
         )}
         {activeTab === 'attachments' && <ImagingTab patientId={id} />}
+        {activeTab === 'billing' && <AccountTab patientId={id} patient={patient.data} />}
 
         {PLACEHOLDER_TABS.includes(activeTab) && (
           <EmptyState title="patients.tabs.comingSoon" hint="patients.tabs.comingSoonHint" />

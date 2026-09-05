@@ -53,3 +53,16 @@ export function endOfNextDayIso(value: string): string | undefined {
   date.setDate(date.getDate() + 1);
   return date.toISOString();
 }
+
+/**
+ * Money for display: the amount exactly as the API sent it, plus the clinic's
+ * currency code.
+ *
+ * No `Intl.NumberFormat`: the value is a `numeric(10,2)` string and must never
+ * pass through a float, and an Arabic locale would rewrite the digits and wrap
+ * them in bidi marks. Render it inside `dir="ltr"` so a minus sign stays on the
+ * left where it belongs.
+ */
+export function formatMoney(amount: string, currency?: string): string {
+  return currency ? `${amount} ${currency}` : amount;
+}

@@ -1,12 +1,19 @@
 import {
   CHART_TYPE,
+  LEDGER_ENTRY_KIND,
+  PAYMENT_METHOD,
   PERFORMED_PROCEDURE_STATUS,
   PROCEDURE_OUTCOME,
   USER_ROLE,
   type AuthenticatedUserProfile,
   type Attachment,
   type Doctor,
+  type OverduePatient,
+  type PatientBalance,
   type PatientClinicalView,
+  type Payment,
+  type Statement,
+  type StatementEntry,
   type PerformedProcedure,
   type ProcedureCatalogItem,
   type ToothHistory,
@@ -253,5 +260,84 @@ export function makeClinic() {
     settings: {},
     createdAt: '2026-01-01T09:00:00.000Z',
     updatedAt: '2026-01-01T09:00:00.000Z',
+  };
+}
+
+export const PAYMENT_ID = '66666666-6666-4666-8666-666666666666';
+
+export function makeBalance(overrides: Partial<PatientBalance> = {}): PatientBalance {
+  return {
+    patientId: PATIENT_ID,
+    charged: '150.00',
+    paid: '50.00',
+    balance: '100.00',
+    lastPaymentAt: '2026-09-01T10:00:00.000Z',
+    ...overrides,
+  };
+}
+
+export function makeStatementEntry(overrides: Partial<StatementEntry> = {}): StatementEntry {
+  return {
+    id: '77777777-7777-4777-8777-777777777777',
+    kind: LEDGER_ENTRY_KIND.CHARGE,
+    occurredAt: '2026-08-20T09:00:00.000Z',
+    description: 'حشوة تجميلية',
+    amount: '150.00',
+    runningBalance: '150.00',
+    receiptNumber: null,
+    isReversal: false,
+    ...overrides,
+  };
+}
+
+export function makeStatement(overrides: Partial<Statement> = {}): Statement {
+  return {
+    patientId: PATIENT_ID,
+    from: null,
+    to: null,
+    openingBalance: '0.00',
+    closingBalance: '100.00',
+    entries: [
+      makeStatementEntry(),
+      makeStatementEntry({
+        id: PAYMENT_ID,
+        kind: LEDGER_ENTRY_KIND.PAYMENT,
+        occurredAt: '2026-09-01T10:00:00.000Z',
+        description: 'دفعة على الحساب',
+        amount: '-50.00',
+        runningBalance: '100.00',
+        receiptNumber: 12,
+      }),
+    ],
+    ...overrides,
+  };
+}
+
+export function makePayment(overrides: Partial<Payment> = {}): Payment {
+  return {
+    id: PAYMENT_ID,
+    clinicId: CLINIC_ID,
+    patientId: PATIENT_ID,
+    amount: '50.00',
+    method: PAYMENT_METHOD.CASH,
+    note: null,
+    receiptNumber: 12,
+    reversesId: null,
+    receivedBy: null,
+    createdAt: '2026-09-01T10:00:00.000Z',
+    ...overrides,
+  };
+}
+
+export function makeOverduePatient(overrides: Partial<OverduePatient> = {}): OverduePatient {
+  return {
+    patientId: PATIENT_ID,
+    fileNumber: '00001',
+    fullName: 'أحمد خالد الحسن',
+    phone: '+963931000001',
+    balance: '300.00',
+    lastPaymentAt: '2026-06-01T10:00:00.000Z',
+    daysSinceLastPayment: 96,
+    ...overrides,
   };
 }

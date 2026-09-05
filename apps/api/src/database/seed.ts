@@ -12,6 +12,7 @@ import postgres from 'postgres';
 
 import { validateEnv } from '@api/config/env.schema';
 import { clinics, doctors, specialties, users } from '@api/database/schema';
+import { seedBilling } from '@api/database/seed-billing';
 import { seedPatients } from '@api/database/seed-patients';
 
 /**
@@ -97,6 +98,7 @@ async function main(): Promise<void> {
     const doctorAccount = created.find((entry) => entry.account.role === USER_ROLE.DOCTOR);
     const adminAccount = created.find((entry) => entry.account.role === USER_ROLE.ADMIN);
     let seededPatients = 0;
+    let seededCharges = 0;
 
     if (doctorAccount && adminAccount) {
       const doctorId = await upsertDoctor(db, clinic.id, doctorAccount.id, specialty.id);
@@ -107,9 +109,14 @@ async function main(): Promise<void> {
         doctorId,
         actorId: adminAccount.id,
       });
+
+      seededCharges = await seedBilling(db, {
+        clinicId: clinic.id,
+        actorId: adminAccount.id,
+      });
     }
 
-    report(clinic.name, created, env.SEED_PASSWORD, seededPatients);
+    report(clinic.name, created, env.SEED_PASSWORD, seededPatients, seededCharges);
   } finally {
     await client.end();
   }
@@ -264,6 +271,7 @@ function report(
   created: { account: SeedAccount; id: string }[],
   password: string,
   seededPatients: number,
+  seededCharges: number,
 ): void {
   const lines = [
     '',
@@ -280,6 +288,9 @@ function report(
     seededPatients > 0
       ? `Seeded ${seededPatients} patients with histories, visits, procedures and a treatment plan.`
       : 'Patient data already present — left untouched.',
+    seededCharges > 0
+      ? `Billed ${seededCharges} procedures and recorded payments — file 00005 is left overdue.`
+      : 'Billing data already present — left untouched.',
     '',
     'Development credentials only — change SEED_PASSWORD before any shared environment.',
     '',

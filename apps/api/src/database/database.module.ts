@@ -13,6 +13,16 @@ export const POSTGRES_CLIENT = Symbol('POSTGRES_CLIENT');
 
 export type Database = PostgresJsDatabase<typeof schema>;
 
+/**
+ * Anything a query can run on: the pool, or an open transaction.
+ *
+ * Services that must be composable into a caller's transaction take this
+ * rather than injecting the database themselves — a charge and the procedure
+ * that caused it have to commit or roll back together.
+ */
+export type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
+export type DatabaseExecutor = Database | Transaction;
+
 @Global()
 @Module({
   providers: [

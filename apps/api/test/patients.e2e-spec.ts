@@ -167,6 +167,8 @@ describe('Patients (e2e)', () => {
     });
 
     it('strips the clinical fields for a receptionist and a technician', async () => {
+      const publicFields = ['dateOfBirth', 'fileNumber', 'fullName', 'id', 'phone'];
+
       for (const role of [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN]) {
         const response = await context.app.inject({
           method: 'GET',
@@ -177,8 +179,11 @@ describe('Patients (e2e)', () => {
         expect(response.statusCode).toBe(200);
 
         const body = response.json() as Record<string, unknown>;
+
+        // The receptionist also gets the computed balance; the technician does
+        // not, because ROLES.md keeps financial data out of their responses.
         expect(Object.keys(body).sort()).toEqual(
-          ['dateOfBirth', 'fileNumber', 'fullName', 'id', 'phone'].sort(),
+          (role === USER_ROLE.RECEPTIONIST ? [...publicFields, 'balance'] : publicFields).sort(),
         );
         expect(body).not.toHaveProperty('address');
         expect(body).not.toHaveProperty('notes');

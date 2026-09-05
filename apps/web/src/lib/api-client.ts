@@ -133,6 +133,35 @@ export async function apiRequest<TResult>(
   return parse<TResult>(response);
 }
 
+/**
+ * Fetches a binary document — a receipt or a statement PDF.
+ *
+ * These endpoints need the same bearer token and the same refresh-on-401 as
+ * any other call, which is why the browser cannot simply follow a link to
+ * them.
+ */
+export async function apiDownload(path: string, query?: RequestOptions['query']): Promise<Blob> {
+  const options: RequestOptions = query ? { query } : {};
+  let response = await send(path, options);
+
+  if (response.status === 401) {
+    const refreshed = await refreshSession();
+
+    if (!refreshed) {
+      authTokens.notifySessionEnded();
+      throw new ApiError(401);
+    }
+
+    response = await send(path, options);
+  }
+
+  if (!response.ok) {
+    throw new ApiError(response.status);
+  }
+
+  return response.blob();
+}
+
 /** Restores a session on a cold page load. Safe to call when signed out. */
 export async function restoreSession(): Promise<boolean> {
   return refreshSession();

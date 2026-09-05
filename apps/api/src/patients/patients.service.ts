@@ -1,6 +1,7 @@
 import { ConflictException, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
 import type {
   CreatePatientInput,
+  Money,
   ListPatientsQuery,
   Paginated,
   PatientClinicalView,
@@ -12,6 +13,7 @@ import type {
 import { desc, eq, or, sql, type SQL } from 'drizzle-orm';
 
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
+import { LedgerService } from '@api/billing/ledger.service';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
@@ -31,6 +33,7 @@ export class PatientsService implements OnModuleInit {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
+    private readonly ledger: LedgerService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
   ) {}
 
@@ -86,16 +89,29 @@ export class PatientsService implements OnModuleInit {
         .where(where),
     ]);
 
+    // One aggregate for the whole page rather than one per row.
+    const balances = PatientAccessService.seesFinancialData(actor.role)
+      ? await this.ledger.balancesFor(
+          actor.clinicId,
+          rows.map((row) => row.id),
+        )
+      : new Map<string, Money>();
+
     return toPaginated(
-      rows.map((row) => toRoleView(row, actor.role)),
+      rows.map((row) => toRoleView(row, actor.role, balances.get(row.id))),
       totals?.value ?? 0,
       query,
     );
   }
 
+  /** The patient header, balance included — computed, never stored. */
   async findOne(actor: AuthenticatedUser, id: string): Promise<PatientView> {
     const row = await this.scope.findOneOrFail<PatientRow>(patients, actor.clinicId, id);
-    return toRoleView(row, actor.role);
+    const balance = PatientAccessService.seesFinancialData(actor.role)
+      ? (await this.ledger.balanceFor(actor.clinicId, row.id)).balance
+      : undefined;
+
+    return toRoleView(row, actor.role, balance);
   }
 
   async create(actor: AuthenticatedUser, input: CreatePatientInput): Promise<PatientView> {
@@ -244,8 +260,14 @@ function toPublicView(row: PatientRow): PatientPublicView {
  * The response shape is chosen by role, not by endpoint
  * (ROLES.md enforcement step 5).
  */
-export function toRoleView(row: PatientRow, role: UserRole): PatientView {
-  return PatientAccessService.seesClinicalData(role) ? toClinicalView(row) : toPublicView(row);
+export function toRoleView(row: PatientRow, role: UserRole, balance?: Money): PatientView {
+  const view = PatientAccessService.seesClinicalData(role)
+    ? toClinicalView(row)
+    : toPublicView(row);
+
+  // Absent rather than null for a technician: ROLES.md forbids financial
+  // patient data in their responses, and an explicit null is still a field.
+  return balance === undefined ? view : { ...view, balance };
 }
 
 function isUniqueViolation(error: unknown): boolean {

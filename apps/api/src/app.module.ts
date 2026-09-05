@@ -5,6 +5,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { AuditInterceptor } from '@api/audit/audit.interceptor';
 import { AuditModule } from '@api/audit/audit.module';
 import { AuthModule } from '@api/auth/auth.module';
+import { BillingModule } from '@api/billing/billing.module';
 import { ClinicsModule } from '@api/clinics/clinics.module';
 import { JwtAuthGuard } from '@api/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@api/common/guards/roles.guard';
@@ -20,7 +21,8 @@ import { UsersModule } from '@api/users/users.module';
 /**
  * Root module. Domain modules are added here as the phases in CLAUDE.md are
  * built: `core` (clinics, specialties, doctors, users/roles, settings, audit
- * log) and `patients` (the patient record and everything attached to it).
+ * log), `patients` (the patient record and everything attached to it) and
+ * `billing` (the charge and payment ledgers).
  */
 @Module({
   imports: [
@@ -35,6 +37,7 @@ import { UsersModule } from '@api/users/users.module';
     SpecialtiesModule,
     StorageModule,
     PatientsModule,
+    BillingModule,
   ],
   providers: [
     // Global validation: every DTO is a Zod schema from @clinic/shared wrapped

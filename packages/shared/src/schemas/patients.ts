@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { GENDERS } from '@shared/enums';
 import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
+import { signedMoneySchema } from '@shared/schemas/money';
 import { phoneSchema } from '@shared/schemas/users';
 
 /** `:patientId` route parameter of every patient-nested route. */
@@ -37,23 +38,29 @@ export const patientClinicalViewSchema = z.object({
   notes: z.string().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
+  /** sum(charges) − sum(payments), computed on read and never stored. */
+  balance: signedMoneySchema.optional(),
 });
 export type PatientClinicalView = z.infer<typeof patientClinicalViewSchema>;
 
 /**
  * ROLES.md `PatientPublicView` — what a receptionist or technician receives.
  *
- * The spec lists a balance here; it is computed from the charge and payment
- * ledgers, which the billing module introduces, so the field is added with that
- * module rather than stored on the patient (CLAUDE.md: never store a balance).
+ * `balance` is present for a receptionist and absent for a technician: the
+ * matrix lists the field on this view, but the field rules say a technician
+ * response must never include financial patient data, and the narrower rule
+ * wins. It is computed from the ledgers on every read and stored nowhere
+ * (CLAUDE.md: never store a balance).
  */
-export const patientPublicViewSchema = patientClinicalViewSchema.pick({
-  id: true,
-  fileNumber: true,
-  fullName: true,
-  phone: true,
-  dateOfBirth: true,
-});
+export const patientPublicViewSchema = patientClinicalViewSchema
+  .pick({
+    id: true,
+    fileNumber: true,
+    fullName: true,
+    phone: true,
+    dateOfBirth: true,
+  })
+  .extend({ balance: signedMoneySchema.optional() });
 export type PatientPublicView = z.infer<typeof patientPublicViewSchema>;
 
 /** Either shape, depending on the caller's role. */

@@ -214,6 +214,35 @@ export const ATTACHMENT_TYPES = [
   ATTACHMENT_TYPE.DOCUMENT,
 ] as const;
 
+/** How a payment reached the clinic. */
+export const PAYMENT_METHOD = {
+  CASH: 'cash',
+  CARD: 'card',
+  TRANSFER: 'transfer',
+} as const satisfies Record<string, string>;
+export type PaymentMethod = EnumValue<typeof PAYMENT_METHOD>;
+
+export const PAYMENT_METHODS = [
+  PAYMENT_METHOD.CASH,
+  PAYMENT_METHOD.CARD,
+  PAYMENT_METHOD.TRANSFER,
+] as const;
+
+/**
+ * What a ledger line is.
+ *
+ * The ledger is append-only: a mistake is corrected with a reversing entry
+ * carrying the opposite amount, never by editing the original
+ * (CLAUDE.md architecture decision 2).
+ */
+export const LEDGER_ENTRY_KIND = {
+  CHARGE: 'charge',
+  PAYMENT: 'payment',
+} as const satisfies Record<string, string>;
+export type LedgerEntryKind = EnumValue<typeof LEDGER_ENTRY_KIND>;
+
+export const LEDGER_ENTRY_KINDS = [LEDGER_ENTRY_KIND.CHARGE, LEDGER_ENTRY_KIND.PAYMENT] as const;
+
 /** Kinds of entry the merged patient timeline can contain. */
 export const TIMELINE_ENTRY_TYPE = {
   VISIT: 'visit',
