@@ -1,9 +1,10 @@
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { Logo } from '@web/components/brand/logo';
 import { Breadcrumb } from '@web/components/layout/breadcrumb';
+import { NavDrawer } from '@web/components/layout/nav-drawer';
 import { UserMenu } from '@web/components/layout/user-menu';
 import { Button, Icon } from '@web/components/ui';
 import { visibleNavItems } from '@web/app/navigation';
@@ -25,9 +26,16 @@ import { cn } from '@web/lib/cn';
 export function AppLayout(): JSX.Element {
   const { t } = useTranslation();
   const { user, logout } = useSession();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const { pathname } = useLocation();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const items = visibleNavItems(user?.role);
+
+  // Navigating closes the drawer. Doing it here rather than in each row's
+  // onClick also covers the back button and any link inside the page.
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
 
   /*
    * `/` focuses the page's own search.
@@ -61,12 +69,12 @@ export function AppLayout(): JSX.Element {
 
   return (
     <div className="flex min-h-full flex-col md:flex-row">
+      {/* Desktop: a permanent rail. */}
       <aside
         className={cn(
-          'chrome-sidebar z-30 shrink-0 md:w-[250px]',
+          'chrome-sidebar z-30 hidden shrink-0 md:block md:w-[250px]',
           'md:sticky md:top-0 md:h-screen md:overflow-y-auto',
-          'border-b border-line md:border-b-0 md:border-e',
-          mobileOpen ? 'block' : 'hidden md:block',
+          'md:border-e md:border-line',
         )}
       >
         <div className="flex h-full flex-col px-3 py-4">
@@ -77,32 +85,8 @@ export function AppLayout(): JSX.Element {
             </span>
           </div>
 
-          <nav aria-label={t('nav.menu')} className="min-w-0 flex-1">
-            <ul className="flex flex-col gap-0.5">
-              {items.map((item) => (
-                <li key={item.to}>
-                  <NavLink
-                    to={item.to}
-                    onClick={() => setMobileOpen(false)}
-                    className={({ isActive }) =>
-                      cn(
-                        'flex cursor-pointer items-center gap-3 rounded-control px-3 py-2 text-value',
-                        'transition-colors duration-150',
-                        isActive
-                          ? 'chrome-active font-semibold text-ink'
-                          : 'text-ink hover:bg-inset',
-                      )
-                    }
-                  >
-                    <Icon name={item.icon} className="text-primary-600" />
-                    <span className="truncate">{t(item.label)}</span>
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <NavList items={items} />
 
-          {/* The account block is pinned at the foot of the rail. */}
           {user && (
             <div className="mt-6 border-t border-line pt-3">
               <UserMenu user={user} onLogout={() => void logout()} />
@@ -111,15 +95,31 @@ export function AppLayout(): JSX.Element {
         </div>
       </aside>
 
+      {/* Mobile: the same list, in a drawer over the page. */}
+      <NavDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        title={t('app.title')}
+        closeLabel={t('common.close')}
+      >
+        <NavList items={items} />
+
+        {user && (
+          <div className="mt-4 border-t border-line pt-3">
+            <UserMenu user={user} onLogout={() => void logout()} />
+          </div>
+        )}
+      </NavDrawer>
+
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="chrome-bar sticky top-0 z-20 border-b border-line">
           <div className="flex h-14 items-center gap-3 px-4 md:px-8">
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden"
-              aria-expanded={mobileOpen}
-              onClick={() => setMobileOpen((open) => !open)}
+              className="-ms-2 md:hidden"
+              aria-expanded={drawerOpen}
+              onClick={() => setDrawerOpen(true)}
               icon={<Icon name="menu" />}
               aria-label={t('nav.menu')}
             />
@@ -132,13 +132,43 @@ export function AppLayout(): JSX.Element {
           </div>
         </header>
 
-        <main className="min-w-0 flex-1 px-4 py-8 md:px-8">
+        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
           <div className="mx-auto w-full max-w-[1180px]">
             <Outlet />
           </div>
         </main>
       </div>
     </div>
+  );
+}
+
+/** The nav rows, shared by the desktop rail and the mobile drawer. */
+function NavList({ items }: { readonly items: ReturnType<typeof visibleNavItems> }): JSX.Element {
+  const { t } = useTranslation();
+
+  return (
+    <nav aria-label={t('nav.menu')} className="min-w-0 flex-1">
+      <ul className="flex flex-col gap-0.5">
+        {items.map((item) => (
+          <li key={item.to}>
+            <NavLink
+              to={item.to}
+              className={({ isActive }) =>
+                cn(
+                  // 44px tall: a nav row is the most-tapped target in the app.
+                  'flex min-h-11 cursor-pointer items-center gap-3 rounded-control px-3 py-2',
+                  'text-value transition-colors duration-150',
+                  isActive ? 'chrome-active font-semibold text-ink' : 'text-ink hover:bg-inset',
+                )
+              }
+            >
+              <Icon name={item.icon} className="text-primary-600" />
+              <span className="truncate">{t(item.label)}</span>
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 

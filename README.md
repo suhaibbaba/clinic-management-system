@@ -327,11 +327,24 @@ Type is Inter for Latin and IBM Plex Sans Arabic for Arabic, both bundled and ne
 Inter leads the stack, so Arabic falls through to Plex with no per-element font switching. Body
 tracking is `-0.01em`, page titles `-0.03em` at 34px/700.
 
-The sidebar and top bar are frosted (`backdrop-filter: blur(20px) saturate(1.8)`) with an
-`@supports` fallback — without one, a browser lacking backdrop-filter shows a 72%-opaque bar with
-text scrolling visibly behind it. The focus ring is declared once, globally, rather than per
-component: fourteen components each carrying their own outline utility is fourteen chances for one
-to be 1px, a different blue, or missing.
+The sidebar and top bar are frosted (`backdrop-filter: blur(20px) saturate(1.8)`) **from `md` up
+only**, over an opaque base. On a phone the bar is 56px of the viewport sitting directly on the
+content, and at 72% opacity the breadcrumb ends up reading over a phone number scrolling behind it.
+A bar is opaque first and frosted second.
+
+The focus ring is declared once, globally, rather than per component: fourteen components each
+carrying their own outline utility is fourteen chances for one to be 1px, a different blue, or
+missing.
+
+### Mobile
+
+Below `md` the sidebar becomes a real drawer (`NavDrawer`, over Radix Dialog): it slides in from the
+inline start — the right in Arabic — over a scrim, traps focus, and closes on Escape, on the scrim
+and on navigating. It does **not** simply unhide the rail and push the page down, which is what it
+did first and which meant scrolling past seven nav rows to get back to the content.
+
+Page titles step 34px → 26px, page CTAs go full width, toolbars stack, KPI cards go two-up, and
+table rows become label/value cards with the label at the reading start and the value at the end.
 
 ### Storybook
 

@@ -216,32 +216,39 @@ export function PatientsPage(): JSX.Element {
         toolbar is chrome, and giving it a white surface makes it read as
         content with a heading missing.
       */}
-      <div className="mb-5 flex flex-wrap items-center gap-3">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        {/*
+          Its own line on a phone. Sharing one with the filter and the count
+          left the placeholder clipped mid-word at 390px, which is the width
+          this app is most often used at.
+        */}
         <SearchField
-          className="min-w-0 flex-1 sm:max-w-sm"
+          className="w-full min-w-0 sm:max-w-sm sm:flex-1"
           label={t('patients.search')}
           placeholder={t('patients.searchPlaceholder')}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
 
-        {showBalance && (
-          <SegmentedControl
-            label={t('patients.filterByBalance')}
-            value={owingOnly ? 'owing' : 'all'}
-            onChange={(next) => setOwingOnly(next === 'owing')}
-            options={[
-              { value: 'all', label: t('common.all') },
-              { value: 'owing', label: t('patients.owing') },
-            ]}
-          />
-        )}
+        <div className="flex items-center justify-between gap-3 sm:ms-auto">
+          {showBalance && (
+            <SegmentedControl
+              label={t('patients.filterByBalance')}
+              value={owingOnly ? 'owing' : 'all'}
+              onChange={(next) => setOwingOnly(next === 'owing')}
+              options={[
+                { value: 'all', label: t('common.all') },
+                { value: 'owing', label: t('patients.owing') },
+              ]}
+            />
+          )}
 
-        {query.data !== undefined && (
-          <span className="ms-auto text-label text-ink-subtle">
-            {t('pagination.total', { total: query.data.total })}
-          </span>
-        )}
+          {query.data !== undefined && (
+            <span className="shrink-0 text-label text-ink-subtle">
+              {t('pagination.total', { total: query.data.total })}
+            </span>
+          )}
+        </div>
       </div>
 
       <Table

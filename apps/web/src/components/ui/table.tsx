@@ -131,7 +131,7 @@ export function Table<TRow>({
                   a gap between them leaves a visible break in the middle of
                   every hairline. The label pads its own end instead.
                 */}
-                  <dl className="grid grid-cols-[auto_1fr]">
+                  <dl className="grid grid-cols-[minmax(5.5rem,auto)_1fr]">
                     {detail.map((column, index) => (
                       <div key={column.key} className="contents">
                         <dt

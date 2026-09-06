@@ -75,7 +75,7 @@ export function StatCard({
       </p>
 
       {(caption !== undefined || delta !== undefined) && (
-        <div className="mt-1.5 flex items-center gap-2">
+        <div className="mt-1 flex flex-wrap items-center gap-x-2">
           {delta !== undefined && (
             <span
               className={cn(
@@ -90,7 +90,9 @@ export function StatCard({
               {delta.text}
             </span>
           )}
-          {caption !== undefined && <span className="text-label text-ink-subtle">{caption}</span>}
+          {caption !== undefined && (
+            <span className="min-w-0 truncate text-label text-ink-subtle">{caption}</span>
+          )}
         </div>
       )}
     </div>
@@ -104,5 +106,7 @@ export function StatCard({
  * KPI row is the same shape everywhere it appears.
  */
 export function StatRow({ children }: { readonly children: ReactNode }): JSX.Element {
-  return <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{children}</div>;
+  // Two up on a phone. Four full-width cards is 1300px of scrolling before
+  // the data they summarise, which inverts what a summary is for.
+  return <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">{children}</div>;
 }
