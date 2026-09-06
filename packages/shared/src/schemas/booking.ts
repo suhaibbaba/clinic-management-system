@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+import {
+  BOOKING_NAME_LENGTH,
+  BOOKING_PHONE_LENGTH,
+  BOOKING_PHONE_PATTERN,
+} from '@shared/constants/booking';
 import { BOOKING_CONFIRMATION_MODE, BOOKING_CONFIRMATION_MODES } from '@shared/enums';
 import { isoDateSchema, slotSchema } from '@shared/schemas/appointments';
 import { timeOfDaySchema, uuidSchema } from '@shared/schemas/common';
@@ -101,16 +106,20 @@ export type PublicSlots = z.infer<typeof publicSlotsSchema>;
 /**
  * Local phone numbers, loosely. Deliberately permissive: rejecting a real
  * number is worse than accepting a fake one, which the OTP catches anyway.
+ *
+ * The bounds and the pattern come from `constants/booking`, which the public
+ * booking page also uses — one definition of "a usable phone number", checked
+ * on the form for the patient's sake and here for real.
  */
 export const bookingPhoneSchema = z
   .string()
   .trim()
-  .min(6)
-  .max(32)
-  .regex(/^[+\d][\d\s-]*$/, 'Expected a phone number');
+  .min(BOOKING_PHONE_LENGTH.min)
+  .max(BOOKING_PHONE_LENGTH.max)
+  .regex(BOOKING_PHONE_PATTERN, 'Expected a phone number');
 
 export const createBookingSchema = z.object({
-  fullName: z.string().trim().min(2).max(160),
+  fullName: z.string().trim().min(BOOKING_NAME_LENGTH.min).max(BOOKING_NAME_LENGTH.max),
   phone: bookingPhoneSchema,
   doctorId: uuidSchema,
   startsAt: z.iso.datetime(),

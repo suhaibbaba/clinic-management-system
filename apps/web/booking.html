@@ -1,0 +1,26 @@
+<!doctype html>
+<!--
+  The public booking page.
+
+  A second entry, not a route of the app: a patient opening a WhatsApp link on
+  a phone should download a booking form, not a clinic management system.
+-->
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- `viewport-fit=cover` so the sticky footer can clear the home indicator. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- Brand blue, primary-600 in apps/web/src/theme.css. -->
+    <meta name="theme-color" content="#316C9C" />
+    <!-- A booking link is pasted into chats; this is what the preview reads. -->
+    <meta name="description" content="احجز موعدك في العيادة إلكترونياً خلال دقيقة." />
+    <!-- Nothing here should reach a search index: the URL names a clinic. -->
+    <meta name="robots" content="noindex" />
+    <title>حجز موعد</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/booking/main.tsx"></script>
+  </body>
+</html>

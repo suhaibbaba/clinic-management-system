@@ -3,7 +3,7 @@ import { fileURLToPath, URL } from 'node:url';
 
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 
 const sharedSrc = fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url));
 const sharedSrcDir = fileURLToPath(new URL('../../packages/shared/src', import.meta.url));
@@ -12,8 +12,39 @@ const appSrc = fileURLToPath(new URL('./src', import.meta.url));
 /** Inotify does not reliably cross a Docker bind mount; poll when asked to. */
 const usePolling = process.env['CHOKIDAR_USEPOLLING'] === 'true';
 
+/**
+ * `/book/…` serves the booking entry in development.
+ *
+ * nginx does this in production (see docker/nginx.conf). Without the same
+ * rewrite here, `/book/al-nour` in `pnpm dev` would 404 and the only way to
+ * see the page would be `/booking.html`, which is not the URL anyone is ever
+ * sent — so the thing under test would not be the thing that ships.
+ *
+ * `/booking/…` is matched only at `/booking/manage/…`, the path the API writes
+ * into the confirmation SMS. Anything wider swallows the dashboard's own
+ * routes: `/booking/pending` briefly rendered the public page, which then read
+ * "pending" as a clinic name and told reception the clinic did not exist.
+ */
+function bookingEntryDevServer(): Plugin {
+  return {
+    name: 'clinic-booking-entry',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use((request, _response, next) => {
+        const path = (request.url ?? '').split('?')[0] ?? '';
+
+        if (/^\/book(\/|$)|^\/booking\/manage(\/|$)/.test(path)) {
+          request.url = '/booking.html';
+        }
+
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), bookingEntryDevServer()],
   resolve: {
     alias: {
       // Mirrors the `paths` mappings in tsconfig.json.
@@ -43,6 +74,20 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      /*
+       * Two entries, two bundles.
+       *
+       * They share nothing but the CSS tokens and the logo, which is the whole
+       * point: the public booking page has its own JavaScript budget (checked
+       * in CI by `scripts/check-booking-bundle.mjs`) and must never grow a
+       * dependency because the dashboard did.
+       */
+      input: {
+        index: fileURLToPath(new URL('./index.html', import.meta.url)),
+        booking: fileURLToPath(new URL('./booking.html', import.meta.url)),
+      },
+    },
   },
   test: {
     environment: 'jsdom',

@@ -72,6 +72,13 @@ jobs:
       - name: Test
         run: pnpm test
 
+      # The public booking page is a separate bundle with its own budget: it is
+      # opened from a WhatsApp link on mobile data, and the way it gets heavy is
+      # one innocuous import of a dashboard component. `pnpm build` above already
+      # produced dist/, so this only weighs it.
+      - name: Check the booking bundle size
+        run: pnpm --filter @clinic/web size:booking
+
       # The design-language catalogue renders the real components against the
       # real theme, so a broken story means a broken component. Cheap to build,
       # and it stops the stories rotting quietly.

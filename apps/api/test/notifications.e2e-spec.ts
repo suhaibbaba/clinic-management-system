@@ -2,12 +2,14 @@ import {
   APPOINTMENT_STATUS,
   BOOKING_CONFIRMATION_MODE,
   DEFAULT_NOTIFICATION_TEMPLATES,
-  instantFromLocal,
-  localDate,
   NOTIFICATION_CHANNEL,
   NOTIFICATION_STATUS,
   NOTIFICATION_TEMPLATE,
   USER_ROLE,
+  addDays,
+  instantFromLocal,
+  localDate,
+  localWeekday,
 } from '@clinic/shared';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
@@ -31,12 +33,22 @@ const TIME_ZONE = 'Asia/Damascus';
 const HOUR = 3_600_000;
 const MINUTE = 60_000;
 
-/** The next Monday, the one day the fixture doctor works. */
+/**
+ * The next Monday **in the clinic's own zone**.
+ *
+ * Stepping a UTC date forward is wrong for three hours out of every day: at
+ * 22:00 UTC on a Sunday it is already Monday in Damascus, so "one day ahead"
+ * lands on Tuesday and the fixture schedule does not apply — which turned this
+ * whole suite red every evening. Walking local dates is right at every hour.
+ */
 function nextMonday(): string {
-  const today = new Date();
-  const shift = (8 - today.getUTCDay()) % 7 || 7;
+  let date = localDate(new Date(), TIME_ZONE);
 
-  return localDate(new Date(today.getTime() + shift * 86_400_000), TIME_ZONE);
+  do {
+    date = addDays(date, 1);
+  } while (localWeekday(date, TIME_ZONE) !== 1);
+
+  return date;
 }
 
 describe('Notifications and schedulers (e2e)', () => {

@@ -8,7 +8,7 @@ import {
   type AppointmentType,
   type WaitingListPriority,
 } from '@clinic/shared';
-import { and, asc, eq, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull } from 'drizzle-orm';
 import type { drizzle } from 'drizzle-orm/postgres-js';
 
 import { appointments, patients, waitingList } from '@api/database/schema';
@@ -291,6 +291,47 @@ const WAITING: readonly SeedWaitingEntry[] = [
   },
 ];
 
+interface SeedOnlineBooking {
+  readonly fullName: string;
+  readonly phone: string;
+  readonly dayOffset: number;
+  readonly time: string;
+  readonly doctor: number;
+  readonly reason: string;
+}
+
+/**
+ * Two bookings that came in from the public page overnight.
+ *
+ * They exist so the pending-confirmation screen and the badge beside it have
+ * something to show on a fresh database — an empty screen teaches nobody what
+ * it is for. Both are `requested`, which is what the booking page creates and
+ * what reception has to answer, and both carry a patient record with **no
+ * `created_by`**: nobody at the desk made it, which is exactly what marks the
+ * row "data not verified".
+ *
+ * One is for today, so the calendar's own "online bookings today" tile is not
+ * a zero either.
+ */
+const ONLINE_BOOKINGS: readonly SeedOnlineBooking[] = [
+  {
+    fullName: 'ريم العلي',
+    phone: '+963944123456',
+    dayOffset: 0,
+    time: '16:30',
+    doctor: 0,
+    reason: 'ألم في الضرس الخلفي',
+  },
+  {
+    fullName: 'باسل حمدان',
+    phone: '+963955987654',
+    dayOffset: 2,
+    time: '12:00',
+    doctor: 1,
+    reason: 'تنظيف وتبييض',
+  },
+];
+
 /**
  * Appointments and a waiting list for the seeded clinic.
  *
@@ -377,7 +418,67 @@ export async function seedAppointments(
     })),
   );
 
-  return { appointments: SCHEDULE.length, waiting: WAITING.length };
+  await seedOnlineBookings(db, ctx, today);
+
+  return { appointments: SCHEDULE.length + ONLINE_BOOKINGS.length, waiting: WAITING.length };
+}
+
+/**
+ * The public page's own rows, created the way the booking service creates them.
+ *
+ * Deliberately not through `seedPatients`: these records must look like what a
+ * stranger's booking leaves behind — a name, a phone, the Arabic note the
+ * booking service writes, and no `created_by` — because that absence is what
+ * the reception screen reads to flag the row.
+ */
+async function seedOnlineBookings(
+  db: Db,
+  ctx: AppointmentsSeedContext,
+  today: string,
+): Promise<void> {
+  const [lastFileNumber] = await db
+    .select({ value: patients.fileNumber })
+    .from(patients)
+    .where(eq(patients.clinicId, ctx.clinicId))
+    .orderBy(desc(patients.fileNumber))
+    .limit(1);
+
+  let next = Number(lastFileNumber?.value ?? '0');
+
+  for (const booking of ONLINE_BOOKINGS) {
+    next += 1;
+
+    const [patient] = await db
+      .insert(patients)
+      .values({
+        clinicId: ctx.clinicId,
+        fileNumber: String(next).padStart(5, '0'),
+        fullName: booking.fullName,
+        phone: booking.phone,
+        notes: 'أُنشئ من الحجز الإلكتروني — لم يُتحقق من الهوية بعد',
+      })
+      .returning({ id: patients.id });
+
+    /* istanbul ignore next -- insert ... returning always yields a row. */
+    if (!patient) {
+      throw new Error('Failed to seed the online-booking patient');
+    }
+
+    await db.insert(appointments).values({
+      clinicId: ctx.clinicId,
+      patientId: patient.id,
+      doctorId: ctx.doctorIds[booking.doctor % ctx.doctorIds.length] ?? '',
+      startsAt: instantFromLocal(
+        shiftDate(today, booking.dayOffset),
+        toMinuteOfDay(booking.time),
+        ctx.timeZone,
+      ),
+      durationMinutes: 30,
+      type: APPOINTMENT_TYPE.CHECKUP,
+      status: APPOINTMENT_STATUS.REQUESTED,
+      reason: booking.reason,
+    });
+  }
 }
 
 const toMinuteOfDay = (time: string): number => {

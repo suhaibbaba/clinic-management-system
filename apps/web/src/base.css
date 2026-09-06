@@ -1,0 +1,149 @@
+/*
+ * Base rules shared by both entries: the signed-in dashboard and the public
+ * booking page.
+ *
+ * Split out of `index.css` when the booking page arrived. That page loads on a
+ * phone from a WhatsApp link and ships its own, much smaller bundle, but it is
+ * the same product — the same ground, the same focus ring, the same bidi
+ * isolation, the same lining numerals. Two copies of these rules would drift
+ * apart on the first change, and the drift would show as a booking page that
+ * looks *almost* like the app.
+ *
+ * What stayed behind in `index.css`: the frosted chrome and the print sheet,
+ * which belong to the signed-in shell alone.
+ */
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* The page ground: one flat grey. Everything readable floats on white above it. */
+body {
+  margin: 0;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  /* Tight tracking through the body is what makes the family read as one. */
+  letter-spacing: var(--tracking-body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+ * Arabic inside a Latin run, or a Latin phone number inside an Arabic one.
+ * `isolate` stops the bidi algorithm reordering the text around it, which is
+ * what otherwise drags a trailing comma or a plus sign to the wrong end.
+ */
+.bidi-auto {
+  unicode-bidi: isolate;
+}
+
+.bidi-rtl {
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+
+/*
+ * Someone who asked their system to reduce motion means it. Transitions
+ * collapse to something instant rather than to nothing, so a state change is
+ * still perceptible.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * Text selection, tinted with the brand rather than the browser's default
+ * blue — which on this palette is a *different* blue, and reads as a rendering
+ * glitch next to everything else.
+ */
+::selection {
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-900);
+}
+
+/*
+ * The focus ring, once, for everything.
+ *
+ * `:focus-visible` only, so a pointer click never paints one, and declared
+ * here rather than per component — fourteen components each carrying their own
+ * outline utility is fourteen chances for one of them to be 1px, a different
+ * blue, or missing. A component that needs a different offset overrides this;
+ * nothing needs to opt in.
+ *
+ * 3px of primary-500, which clears the 3:1 a focus indicator needs against
+ * both white and the grey ground while staying softer than the 600.
+ */
+:focus-visible {
+  outline: 3px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/*
+ * Fields are the one exception, and they take the ring on their own edge.
+ *
+ * A text input already turns its border blue on focus; a 3px halo floating
+ * 2px outside that border reads as two concentric rings around one box, which
+ * is what the field looked like before. At `0` offset the outline lands flush
+ * on the border and the two read as a single 3px edge.
+ */
+:where(input, textarea, select):focus-visible {
+  outline-width: 2px;
+  outline-offset: 0;
+}
+
+/*
+ * Scrollbars inside panels: thin, in the app's own greys, and only visible
+ * once there is something to scroll.
+ *
+ * WebKit only, deliberately. Firefox's `scrollbar-width`/`scrollbar-color` are
+ * applied here too, but they are the whole extent of what it allows; the
+ * rounded thumb below is a progressive enhancement rather than a requirement,
+ * and a platform scrollbar is never *wrong*, only less quiet.
+ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-neutral-300) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-neutral-300);
+  border: 2px solid transparent;
+  border-radius: var(--radius-pill);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-neutral-400);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/*
+ * Latin digits inside Arabic text: file numbers, phone numbers and times stay
+ * readable and copy-pasteable.
+ */
+:root {
+  font-variant-numeric: lining-nums tabular-nums;
+}
