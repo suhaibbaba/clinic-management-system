@@ -110,9 +110,9 @@ export function AuditPage(): JSX.Element {
     <>
       <PageHeader title="audit.title" subtitle="audit.subtitle" />
 
-      <Card className="mb-4 flex flex-wrap items-end gap-3">
+      <Card className="mb-4 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:items-end">
         <Select
-          className="w-44"
+          className="w-full sm:w-44"
           aria-label={t('audit.filterEntity')}
           placeholder={t('common.all')}
           options={ENTITIES.map((value) => ({
@@ -127,7 +127,7 @@ export function AuditPage(): JSX.Element {
         />
 
         <Select
-          className="w-40"
+          className="w-full sm:w-40"
           aria-label={t('audit.filterAction')}
           placeholder={t('common.all')}
           options={AUDIT_ACTIONS.map((value) => ({
@@ -142,7 +142,7 @@ export function AuditPage(): JSX.Element {
         />
 
         <Select
-          className="w-52"
+          className="w-full sm:w-52"
           aria-label={t('audit.filterUser')}
           placeholder={t('common.all')}
           options={(users.data?.items ?? []).map((user) => ({
@@ -161,11 +161,11 @@ export function AuditPage(): JSX.Element {
           together, and two independent fields let you ask for a window that
           runs backwards.
         */}
-        <label className="flex flex-col gap-1 text-label text-ink-muted">
+        <label className="flex w-full flex-col gap-1 text-label text-ink-muted sm:w-auto">
           {t('audit.period')}
           <DateRangePicker
             id="audit-period"
-            className="w-64"
+            className="w-full sm:w-64"
             label={t('audit.period')}
             value={{ from, to }}
             onChange={(range) => {

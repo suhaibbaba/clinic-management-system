@@ -144,11 +144,17 @@ export function ToothChart({
     <div
       dir="ltr"
       ref={containerRef}
-      className="overflow-x-auto rounded-card border border-chart-border bg-chart-surface p-2"
+      className="rounded-card border border-chart-border bg-chart-surface p-2 sm:overflow-x-auto"
     >
       {/* The tooltip is positioned inside this box so it tracks the tooth when
           the chart is scrolled sideways on a narrow screen. */}
-      <div className="relative w-full min-w-[520px] max-w-3xl">
+      {/*
+        The SVG has a viewBox, so it scales. A 520px floor made sense to keep
+        tooth targets tappable, but at 390px it chopped the arch in half and
+        left a horizontal scrollbar inside a card — the whole mouth is the
+        thing being read here, so below `sm` it shrinks to fit instead.
+      */}
+      <div className="relative w-full max-w-3xl sm:min-w-[520px]">
         <svg
           viewBox={`${CHART_VIEWBOX.x} ${CHART_VIEWBOX.y} ${CHART_VIEWBOX.width} ${CHART_VIEWBOX.height}`}
           role="group"

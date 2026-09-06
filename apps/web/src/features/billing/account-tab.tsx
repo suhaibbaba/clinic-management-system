@@ -186,11 +186,11 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
       </Card>
 
       <Card className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-label text-ink-muted">
+        <label className="flex w-full flex-col gap-1 text-label text-ink-muted sm:w-auto">
           {t('billing.period')}
           <DateRangePicker
             id="statement-period"
-            className="w-64"
+            className="w-full sm:w-64"
             label={t('billing.period')}
             value={{ from, to }}
             onChange={(range) => {

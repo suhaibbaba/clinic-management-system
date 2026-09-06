@@ -120,6 +120,19 @@ export function Table<TRow>({
               // its divider and padding, leaving a hairline under nothing.
               const rowActions = actions?.render(row) ?? null;
 
+              /*
+               * A row whose value renders nothing is dropped from the card.
+               *
+               * On the wide shape an empty cell holds a column open and the
+               * grid stays aligned; on a card it is a labelled row with
+               * nothing after the label — every charge line in a statement
+               * showed an empty "credit", and every payment an empty "debit".
+               */
+              const shown = detail.filter((column) => {
+                const value = column.render(row);
+                return value !== null && value !== undefined && value !== false && value !== '';
+              });
+
               const body = (
                 <>
                   {primary && (
@@ -132,7 +145,7 @@ export function Table<TRow>({
                   every hairline. The label pads its own end instead.
                 */}
                   <dl className="grid grid-cols-[minmax(5.5rem,auto)_1fr]">
-                    {detail.map((column, index) => (
+                    {shown.map((column, index) => (
                       <div key={column.key} className="contents">
                         <dt
                           className={cn(
