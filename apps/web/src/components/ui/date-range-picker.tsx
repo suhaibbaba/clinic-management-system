@@ -66,7 +66,6 @@ export function DateRangePicker({
             'flex h-10 w-full cursor-pointer items-center justify-between gap-3 rounded-control',
             'border border-line-strong bg-surface ps-3.5 pe-3 text-start text-field',
             'transition-[border-color,box-shadow] duration-150 hover:border-primary-300',
-            'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
             from || to ? 'text-ink' : 'text-ink-subtle',
             className,
           )}

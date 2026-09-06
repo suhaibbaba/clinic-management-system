@@ -75,7 +75,8 @@
     "searchPatients": "ابحث عن مريض…",
     "notificationsEmpty": "لا توجد إشعارات",
     "language": "تغيير اللغة",
-    "account": "الحساب"
+    "account": "الحساب",
+    "breadcrumb": "مسار التنقل"
   },
   "roles": {
     "admin": "مدير",
@@ -292,7 +293,9 @@
     "empty": "لا يوجد مرضى مسجّلون بعد",
     "emptyHint": "ابدأ بتسجيل أول مريض.",
     "noMatches": "لا توجد نتائج مطابقة",
-    "noMatchesHint": "جرّب اسمًا آخر أو جزءًا من رقم الهاتف."
+    "noMatchesHint": "جرّب اسمًا آخر أو جزءًا من رقم الهاتف.",
+    "filterByBalance": "تصفية حسب الرصيد",
+    "owing": "عليهم رصيد"
   },
   "chart": {
     "title": "مخطط الأسنان",

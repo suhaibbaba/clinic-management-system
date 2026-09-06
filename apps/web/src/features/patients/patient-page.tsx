@@ -111,7 +111,6 @@ export function PatientPage(): JSX.Element {
             className={cn(
               'cursor-pointer rounded-pill px-3.5 py-1.5 text-value font-medium',
               'transition-[background-color,color,box-shadow,transform] duration-150 active:scale-95',
-              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
               activeTab === tab.id
                 ? 'bg-surface text-ink shadow-pill'
                 : 'text-ink-muted hover:bg-surface/60 hover:text-ink',

@@ -118,14 +118,18 @@ describe('Patients list', () => {
         .getAllByRole('columnheader')
         .map((header) => header.textContent?.trim());
 
+      // The file number has no column of its own any more — it is the caption
+      // under the name, in the same cell — so it is asserted as content below
+      // rather than as a header.
       expect(headers).toEqual([
-        ar.patients.fileNumber,
         ar.patients.fullName,
         ar.patients.phone,
         ar.patients.age,
         ...(withBalance ? [ar.patients.balance] : []),
         ar.common.actions,
       ]);
+      expect(screen.getAllByText(PATIENTS[0]!.fileNumber).length).toBeGreaterThan(0);
+
       // The address is in the fixture but never in a public-view response.
       expect(screen.queryByText('المالكي، دمشق')).not.toBeInTheDocument();
     });

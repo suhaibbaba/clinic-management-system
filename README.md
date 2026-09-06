@@ -290,148 +290,48 @@ through an `IconName` union rather than importing lucide directly, so the vocabu
 you can read and swapping the set again is one file. The one hand-drawn glyph is the tooth,
 which lucide does not have.
 
-### Colour
+### The design system
 
-Every colour in the web app comes from `apps/web/src/theme.css`. It is the single source of
-truth: components use token utilities (`bg-surface`, `text-ink`, `border-line`,
-`text-primary-700`) and never a raw hex, an `rgb()`, a stock Tailwind palette class or an
-inline `style` colour. `src/theme.test.ts` enforces that across the whole source tree, so a
-stray `#316C9C` fails the suite rather than quietly forking the palette.
+`apps/web/src/theme.css` holds all of it — colour, geometry, elevation and type. A light warm-grey
+ground, white cards with no borders, one blue for everything actionable, one red for money owed:
 
-The scales are derived from the logo, not picked by eye: brand blue `#316C9C` and brand green
-`#4EC191` are converted to OKLCH, and each 50–900 step is generated on one shared perceptual
-lightness ramp, then gamut-mapped back into sRGB by reducing chroma along the hue line. All
-five families — `primary`, `success`, `danger`, `warning`, `neutral` — therefore carry equal
-visual weight at the same step, and `600`/`700` pass WCAG AA on white for text and buttons.
+|                    |                                  |
+| ------------------ | -------------------------------- |
+| ground `#F5F5F7`   | card `#FFFFFF`                   |
+| ink `#1D1D1F`      | secondary `#86868B`              |
+| hairline `#E8E8ED` | blue `#0071E3` (hover `#0060C2`) |
+| red `#E8402A`      |                                  |
 
-Green is a **success and accent** colour only — active indicators, positive balances, one
-tooth state — never a second primary. Semantic aliases (`surface`, `canvas`, `sunken`, `ink`,
-`ink-muted`, `line`, …) sit on top of the scales so a component states its intent rather than
-a shade, and dark mode re-points those aliases instead of touching components.
+The scales around those are generated rather than picked: one shared perceptual lightness ramp in
+OKLCH with `#0071E3` pinned at `primary-600` and `#0060C2` at `700`, so a tint of the blue carries
+the same weight as a tint of the red. Out-of-gamut steps are mapped back into sRGB by reducing
+chroma along the hue line, never by clamping channels.
 
-The tooth chart's state colours are part of the same system: each state maps to a scale step,
-and every fill/ink pair was checked for AA contrast in both light and dark mode before it was
-written down.
+**One accent.** If it is blue it is clickable — buttons, links, active nav, focus rings. Red is
+outstanding balances and destructive actions. Nothing else on a page fills with a colour. The one
+exception is the tooth chart, and deliberately: nine conditions cannot be encoded in one hue, and a
+tooth fill is data rather than an action.
 
-The logo is one file, `apps/web/src/assets/logo.svg`, imported by `components/brand/logo.tsx`
-and used at three sizes: the login page, the sidebar header and the browser-printed
-letterhead on treatment plans. Replacing the brand mark is `cp your-logo.svg
-apps/web/src/assets/logo.svg` — no code change. The favicon (`apps/web/public/favicon.svg`)
-is a separate square lockup, since a wide logo is unreadable at 16px.
+**Two colours have an AA-safe twin.** `#86868B` is 3.62 on white and `#E8402A` is 4.04 — both under
+the 4.5 a 13px table header or a 15px balance needs. So `ink-subtle` is `#86868B` exactly, for
+placeholders and decoration, and `ink-muted` (`#6E6E73`) carries secondary text that has to be
+_read_; likewise `danger-500` is `#E8402A` for fills and `danger-600` is what a balance is written
+in. Using the named value everywhere would put a clinic's overdue figures below the legibility
+floor.
 
-Receipts and statements are PDFs built server-side, so they cannot import that file. The API
-keeps the mark's geometry in `apps/api/src/billing/pdf/brand-mark.ts` and draws it with
-pdf-lib. That is a second copy on purpose, and `test/brand-mark.spec.ts` reads the web logo
-and fails if the two drift apart — so replacing the logo tells you the printed letterhead
-needs the new paths instead of quietly printing the old mark for months.
+Geometry: cards `18px`, panels `12px`, controls `10px`, buttons a full pill. Cards carry a shadow
+and **no border** — a hairline belongs between rows inside a card, and drawing one around the card
+as well doubles every edge on the page.
 
-### Layout, elevation and type
+Type is Inter for Latin and IBM Plex Sans Arabic for Arabic, both bundled and neither hotlinked.
+Inter leads the stack, so Arabic falls through to Plex with no per-element font switching. Body
+tracking is `-0.01em`, page titles `-0.03em` at 34px/700.
 
-Colour is only part of the system. `theme.css` also holds the geometry, the
-shadows and the type scale, so "looks like the rest of the app" is something a
-component says in one class.
-
-Content never touches the page ground. The ground is a soft vertical wash between
-two brand-tinted blues (`canvas` → `canvas-deep`), and everything else floats
-above it on white cards. Those two blues are not picked by eye either: they are
-the intended lightness and chroma taken onto the logo blue's own OKLCH hue, which
-is why the page reads as _this_ brand's blue rather than as a generic cool gray.
-
-Radii step down with nesting so a list item never fights the card around it —
-card `16px` → panel `12px` → control `10px` → pill. Shadows are large-blur,
-low-opacity and **tinted with the primary**: a gray shadow on a blue ground reads
-as dirt, a blue one reads as depth. Each is a 1px contact edge plus a wide
-diffuse pool.
-
-The repeating patterns are components, not conventions:
-
-| Pattern                   | Component                   | Where                        |
-| ------------------------- | --------------------------- | ---------------------------- |
-| KPI row                   | `StatRow` + `StatCard`      | overdue balances             |
-| Filter pills              | `SegmentedControl`          | plan statuses, dentition     |
-| Entity card with progress | `EntityCard` + `EntityGrid` | treatment plans              |
-| Selection state           | `Card tone="selected"`      | anywhere "which one" matters |
-| Floating detail card      | —                           | the tooth panel's summary    |
-
-Colour keeps its jobs separate. Blue is progress bars, active nav and selection
-tints. Green is success and small accents only. **Primary buttons are near-black**,
-because a blue button among all that blue reads as one more selected thing rather
-than as the action on the page. Status badges are a soft tint, a coloured dot and
-coloured text — never a solid fill, since a grid of entity cards is mostly badges
-and a row of saturated pills turns a calm page into a warning light.
-
-Type is IBM Plex Sans Arabic, self-hosted (Arabic + Latin, four weights, 268 KB) so
-no page view is announced to a font CDN. Money and KPI figures use `tabular-nums`,
-so digits do not shift width as data refreshes.
-
-One trap worth knowing about: `text-label`, `text-value` and `text-kpi` are font
-sizes declared in `theme.css`, and tailwind-merge cannot know that — it reads them
-as colours and silently drops whichever colour class came first. `lib/cn.ts`
-declares the scale to fix it and `lib/cn.test.ts` keeps it fixed. **A new `--text-*`
-token has to be added in both places.**
-
-### Tables on a phone
-
-`Table` is one component with two shapes. Above `md` it is a real `<table>`. Below it, each row
-becomes a card: a bold title line, then a two-column grid pairing each column's own header with
-that row's value — labels on the right in Arabic, values on the left, hairline between rows.
-
-Both shapes are driven by the same `columns` array, which is the point of keeping it in one
-component: a label on a card has to be the label in the header above it, and the only way to
-guarantee that is for there to be one string. Columns carry the flags that shape the card:
-
-| Flag               | Effect                                                       |
-| ------------------ | ------------------------------------------------------------ |
-| `primary`          | The card's title line — bold, full width, no label           |
-| `hideOnMobile`     | Dropped from the card; still in the table                    |
-| `actions`          | A button row at the foot of the card, not a label/value pair |
-| `align: 'numeric'` | End-aligned with tabular figures, on both shapes             |
-
-Only one shape is rendered at a time, chosen through `useIsMobile()`. Rendering both and hiding
-one with `md:hidden` was the first attempt and was wrong: `display: none` hides a duplicate
-visually but leaves it in the document, so a screen reader reads every row twice and any `id`
-inside a cell exists twice. The query is read with `useSyncExternalStore`, whose snapshot is
-available during the first render — so there is no flash of the wrong shape either.
-
-### Dates and times
-
-`DatePicker`, `TimePicker` and `DateRangePicker` replace every `<input type="date">` and
-`type="time"`. The native controls looked different in each browser, put their picker button on
-the wrong side in Arabic, could not be themed, and showed `mm/dd/yyyy` to an Arabic clinic
-because the format follows the _browser's_ locale rather than the app's.
-
-They are react-day-picker and date-fns inside our own popover. **Arabic month and weekday names,
-Latin digits** — the clinic writes Gregorian dates with Western digits everywhere else, and the
-formatters are passed explicitly rather than left to the library's locale-aware defaults, which
-could start emitting `٠١٢` on a locale-data update.
-
-Typing is the fast path, not a fallback: nobody enters a date of birth by paging back sixty
-years. Text is committed only when it parses to a real date, so `12/0` leaves the value alone
-and `31/02` is rejected rather than rolling into March.
-
-`PopoverSheet` gives them a popover on a wide screen and a bottom sheet on a phone. Those are two
-Radix primitives, not one re-positioned with CSS — Radix puts its positioning on a wrapper a
-consumer cannot style, so the CSS version came out as a clipped strip beside the field.
-
-### iOS zoom
-
-Every focusable field renders at `text-field` — 16px, defined in `theme.css`. Below that, iOS
-Safari zooms the page in when a field takes focus and does not zoom back out, so a receptionist
-tapping the search box is left looking at a magnified fragment of the page. It is a floor, and
-the kind of rule a later "make this tighter" change breaks silently, so
-`components/ui/field-size.test.ts` fails the build if any field drops under it.
-
-### Language
-
-Arabic is the default. The account menu in the header switches to English, which changes the
-strings, writes the choice to `localStorage`, and flips `dir`/`lang` on `<html>` — on the
-document element rather than a React wrapper, because dialogs, drawers and menus portal to
-`document.body` and would otherwise open left-to-right inside an Arabic app.
-
-The direction is applied **before** the language change, not after: changing the language is
-what re-renders the tree, and direction-relative icons read `dir` as they render. The other
-order repaints the whole app with the previous direction and leaves every "forward" chevron
-pointing backwards. `i18n/language.test.ts` guards that ordering.
+The sidebar and top bar are frosted (`backdrop-filter: blur(20px) saturate(1.8)`) with an
+`@supports` fallback — without one, a browser lacking backdrop-filter shows a 72%-opaque bar with
+text scrolling visibly behind it. The focus ring is declared once, globally, rather than per
+component: fourteen components each carrying their own outline utility is fourteen chances for one
+to be 1px, a different blue, or missing.
 
 ### Storybook
 

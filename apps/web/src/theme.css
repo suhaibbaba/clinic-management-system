@@ -1,241 +1,239 @@
 /*
- * Brand theme — the single source of truth for colour in this app.
+ * The design system — the single source of truth for colour, geometry and
+ * type in this app.
  *
  * Nothing outside this file names a colour. Components use the semantic
  * utilities below (`bg-canvas`, `text-ink-muted`, `border-line`) or a scale
  * step (`bg-primary-600`); no component carries a raw hex, an inline `style`
  * colour, or a stock Tailwind palette class such as `text-gray-500`.
  *
- * ── How the scales were built ────────────────────────────────────────────
+ * ── The system ───────────────────────────────────────────────────────────
  *
- * Every scale shares one perceptual lightness ramp in OKLCH, so `primary-600`
- * and `success-600` carry the same visual weight and can be swapped without
- * re-checking contrast. Step 600 is pinned to the logo blue's own lightness
- * (OKLCH L 0.5146), which is what lets #316C9C land on the scale exactly
- * rather than near it.
+ * A light warm-grey ground, white cards with no borders, one blue for
+ * everything actionable, and one red for money owed and destructive acts:
  *
- * Chroma follows a bell across the ramp: the tints fade towards paper so a
- * 50/100 background reads as a surface rather than as colour, and the shades
- * are gamut-mapped by reducing chroma — never by clamping channels, which
- * drags a deep green 12° towards yellow and a deep red towards brown.
+ *   ground   #F5F5F7    card     #FFFFFF   hairline #E8E8ED
+ *   ink      #1D1D1F    sub      #86868B
+ *   blue     #0071E3    hover    #0060C2   red      #E8402A
  *
- * ── Contrast on white ────────────────────────────────────────────────────
+ * The full scales around them are generated rather than picked: one shared
+ * perceptual lightness ramp in OKLCH, with #0071E3 pinned at 600 and #0060C2
+ * at 700, so a tint of the blue carries the same weight as a tint of the red.
+ * Out-of-gamut steps are mapped back into sRGB by reducing chroma along the
+ * hue line, never by clamping channels.
  *
- *   step   50   100   200   300   400   500   600   700   800   900
- *   ratio 1.07  1.17  1.35  1.68  2.36  3.6   5.3+  7.5+ 10.2+ 13.2+
+ * ── Where accessibility and the named values disagree ────────────────────
  *
- * So: 600 and 700 are the text and button shades (AA needs 4.5); 500 is the
- * lightest usable for large text and UI edges (AA needs 3.0); 400 and below
- * are backgrounds, fills and decoration only.
+ * Two named colours do not clear AA for small text, and the app has to do
+ * both. Measured against white:
+ *
+ *   #86868B  3.62   the secondary grey  — needs 4.5 for a 13px table header
+ *   #E8402A  4.04   the red             — needs 4.5 for a 15px balance
+ *
+ * So each has two tokens rather than one compromise. `ink-subtle` is #86868B
+ * exactly, used where 3:1 is the bar — placeholders, disabled text, decorative
+ * captions. `ink-muted` is #6E6E73, the same hue two steps darker, and carries
+ * every piece of secondary text that has to be *read*. Likewise `danger-500`
+ * is #E8402A for fills and dots, and `danger-600` is what a balance is
+ * written in.
+ *
+ * Using the named value everywhere would put a clinic's table headers and its
+ * overdue figures below the legibility floor, which matters more on this
+ * screen than a two-step difference nobody will notice.
  */
 
 @theme static {
-  /* Primary — the logo blue. The whole UI's chrome. */
-  --color-primary-50: #f1f8ff;
-  --color-primary-100: #e1f0fd;
-  --color-primary-200: #c9e1f7;
-  --color-primary-300: #a9cded;
-  --color-primary-400: #7bafdc;
-  --color-primary-500: #518dc0;
-  --color-primary-600: #316c9c;
-  --color-primary-700: #175584;
-  --color-primary-800: #04426b;
-  --color-primary-900: #003153;
+  /*
+   * Primary — the one action colour. Buttons, links, active nav, focus rings.
+   * If it is blue it is clickable, and nothing else competes with it.
+   */
+  --color-primary-50: #f3f8ff;
+  --color-primary-100: #e5f0ff;
+  --color-primary-200: #cde2ff;
+  --color-primary-300: #abcfff;
+  --color-primary-400: #77b1ff;
+  --color-primary-500: #348eff;
+  --color-primary-600: #0071e3;
+  --color-primary-700: #0060c2;
+  --color-primary-800: #004793;
+  --color-primary-900: #003169;
 
   /*
-   * Success — the logo green. Success states and small accents ONLY: active
-   * indicators, positive balances, restored teeth on the chart. Never a second
-   * primary; nothing structural is green.
+   * Danger — money owed and destructive actions, nothing else. 500 is the
+   * named #E8402A for fills and dots; 600 is the text shade that clears AA.
    */
-  --color-success-50: #edfbf4;
-  --color-success-100: #dcf4e8;
-  --color-success-200: #c0e8d4;
-  --color-success-300: #9bd8ba;
-  --color-success-400: #4ec191;
-  --color-success-500: #219f71;
-  --color-success-600: #007b54;
-  --color-success-700: #006142;
-  --color-success-800: #004b32;
-  --color-success-900: #003824;
+  --color-danger-50: #fff5f3;
+  --color-danger-100: #ffe9e5;
+  --color-danger-200: #ffd5cd;
+  --color-danger-300: #ffb8aa;
+  --color-danger-400: #ff8772;
+  --color-danger-500: #e8402a;
+  --color-danger-600: #d42913;
+  --color-danger-700: #b91600;
+  --color-danger-800: #8c0d00;
+  --color-danger-900: #640600;
 
-  /* Danger — a warm red, hue pulled towards orange so it sits beside the
-     cool primary without the two vibrating against each other. */
-  --color-danger-50: #fff4f3;
-  --color-danger-100: #ffe7e4;
-  --color-danger-200: #ffd1ca;
-  --color-danger-300: #fdb2a8;
-  --color-danger-400: #ef877c;
-  --color-danger-500: #d25e53;
-  --color-danger-600: #ad3b34;
-  --color-danger-700: #91231e;
-  --color-danger-800: #770f0f;
-  --color-danger-900: #5d0305;
+  /*
+   * Neutral — the cool grey. 50 is the ground, 200 the hairline, 500 the
+   * secondary grey, 900 the ink; the rest fill in between them.
+   */
+  --color-neutral-50: #f5f5f7;
+  --color-neutral-100: #eeeef0;
+  --color-neutral-200: #e8e8ed;
+  --color-neutral-300: #cccccf;
+  --color-neutral-400: #aeaeb3;
+  --color-neutral-500: #86868b;
+  --color-neutral-600: #75757a;
+  --color-neutral-700: #636368;
+  --color-neutral-800: #49494e;
+  --color-neutral-900: #1d1d1f;
 
-  /* Warning — amber. */
-  --color-warning-50: #fff6ea;
-  --color-warning-100: #faebd8;
-  --color-warning-200: #f2d9b9;
-  --color-warning-300: #e6c190;
-  --color-warning-400: #d29e55;
-  --color-warning-500: #b57a11;
-  --color-warning-600: #8c5c00;
-  --color-warning-700: #6f4800;
-  --color-warning-800: #573700;
-  --color-warning-900: #412800;
+  /*
+   * Success and warning exist for one job each: a positive state, and the
+   * tooth chart, which needs more than two hues to encode nine conditions.
+   * Neither is ever an action colour — that is the blue's alone.
+   */
+  --color-success-50: #eefcf2;
+  --color-success-100: #dff6e6;
+  --color-success-200: #c6ebd1;
+  --color-success-300: #a4dcb6;
+  --color-success-400: #70c48f;
+  --color-success-500: #3aa76a;
+  --color-success-600: #108c51;
+  --color-success-700: #007743;
+  --color-success-800: #005930;
+  --color-success-900: #003e20;
 
-  /* Neutral — warm gray. Backgrounds read as paper, not as concrete. */
-  --color-neutral-50: #f7f7f6;
-  --color-neutral-100: #eeedec;
-  --color-neutral-200: #dfdddb;
-  --color-neutral-300: #cac7c5;
-  --color-neutral-400: #aca8a5;
-  --color-neutral-500: #8a8783;
-  --color-neutral-600: #6a6763;
-  --color-neutral-700: #54514d;
-  --color-neutral-800: #413e3b;
-  --color-neutral-900: #302e2b;
+  --color-warning-50: #fff6eb;
+  --color-warning-100: #fcecd9;
+  --color-warning-200: #f5dcbc;
+  --color-warning-300: #eac596;
+  --color-warning-400: #d7a45c;
+  --color-warning-500: #be821c;
+  --color-warning-600: #9e6900;
+  --color-warning-700: #875900;
+  --color-warning-800: #654100;
+  --color-warning-900: #472d00;
 }
 
-/*
- * ── Semantic aliases ─────────────────────────────────────────────────────
- *
- * What components actually use. A component says what a colour *is for*
- * (`text-ink-muted`) rather than which step it happens to be, so a palette
- * change lands here and nowhere else.
- */
 @theme static {
-  /*
-   * Surfaces, lightest to deepest.
-   *
-   * The app sits on a tinted ground rather than a gray one: `canvas` and
-   * `canvas-deep` are the two ends of the page gradient, and every piece of
-   * content floats above them on white `surface` cards. Both were derived by
-   * taking the intended lightness and chroma onto the logo blue's own hue
-   * (OKLCH −114.10°), which is what makes the ground read as *this* brand's
-   * blue at 4% chroma rather than as a generic cool gray.
-   *
-   * `sunken` stays neutral: it is for insets and disabled controls, which are
-   * absences of surface rather than part of the ground.
-   */
+  /* Surfaces. The ground is grey; everything readable floats on white. */
   --color-surface: #ffffff;
-  --color-canvas: #eef4fa;
-  --color-canvas-deep: #e3edf7;
+  --color-canvas: var(--color-neutral-50);
+  /* A block nested inside a card, and the track behind a segmented control. */
+  --color-inset: var(--color-neutral-100);
   --color-sunken: var(--color-neutral-100);
+  /* The row a pointer is on. */
+  --color-row-hover: #fafafc;
+
+  /* Selection: the blue at its faintest, for a chosen row or a picked tooth. */
+  --color-selected: var(--color-primary-50);
+  --color-selected-line: var(--color-primary-300);
 
   /*
-   * Selection. A soft primary tint with a strong-enough edge to be seen
-   * without a fill: `selected-line` is drawn at 1.5px, so it needs the 3:1
-   * a UI boundary needs, not the 1.2:1 a background tint gets away with.
+   * Text. `ink` is body copy; `ink-muted` is secondary text that has to be
+   * read and clears AA; `ink-subtle` is the named #86868B, for placeholders,
+   * disabled text and captions where 3:1 is the bar.
    */
-  --color-selected: #e4f2ff;
-  --color-selected-line: var(--color-primary-500);
-
-  /* Text. `ink` is body copy, `ink-muted` is secondary, `ink-subtle` is for
-     placeholders and disabled text — never for anything that must be read. */
   --color-ink: var(--color-neutral-900);
-  --color-ink-muted: var(--color-neutral-600);
+  --color-ink-muted: #6e6e73;
   --color-ink-subtle: var(--color-neutral-500);
   --color-ink-inverse: #ffffff;
 
   /*
-   * Lines. `line` separates, `line-strong` encloses an input, and `line-card`
-   * is the hairline around a card — a blue-tinted gray, so a card has an edge
-   * even where its shadow falls on something the same lightness as itself.
+   * Hairlines separate rows. They are never a card's edge — a card is defined
+   * by its shadow, which is what keeps a page full of cards quiet.
    */
   --color-line: var(--color-neutral-200);
   --color-line-strong: var(--color-neutral-300);
-  --color-line-card: #dfe6ee;
 
   /*
-   * IBM Plex Sans Arabic, self-hosted (see index.css). Self-hosted rather
-   * than from a font CDN: a clinic's browser should not be announcing every
-   * page view to a third party, and the four weights of the two subsets the
-   * app actually uses come to 268 KB.
+   * Inter for Latin, IBM Plex Sans Arabic for Arabic — both bundled, neither
+   * hotlinked: a clinic's browser should not announce every page view to a
+   * font CDN, and a VPS with no outbound network still renders correctly.
+   *
+   * Order matters. Inter first means Latin text and digits take Inter, and
+   * anything it has no glyph for — every Arabic letter — falls through to
+   * Plex Arabic. One stack, no per-element font switching.
    */
   --font-sans:
-    'IBM Plex Sans Arabic', 'Segoe UI', system-ui, -apple-system, 'Noto Naskh Arabic',
-    'Noto Sans Arabic', Tahoma, sans-serif;
+    Inter, 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', 'Noto Sans Arabic',
+    sans-serif;
 }
 
 /*
  * ── Geometry, elevation and type ─────────────────────────────────────────
  *
- * The other half of the design language: a card is not just white, it is
- * white at a particular radius with a particular shadow. Naming those makes
- * "this looks like the rest of the app" something a component can express in
- * one class instead of five, and makes changing the whole app's softness a
- * one-line edit here.
+ * Radii step down with nesting so a control inside a card never fights the
+ * card's own corner: card 18 → panel 12 → control 10 → pill.
  *
- * Radii step down with nesting, so a list item inside a card never looks like
- * it is fighting the card's own corner:
- *   card 16 → panel 12 → control 10 → pill ∞
- *
- * Shadows are large-blur, low-opacity and *tinted with the primary* rather
- * than black. A gray shadow on a blue-tinted ground reads as dirt; a blue one
- * reads as depth. Each is a two-part shadow — a 1px contact edge that keeps
- * the card's boundary crisp, plus a wide diffuse pool that does the floating.
+ * Cards carry a shadow and no border. Two soft layers rather than one: a 1px
+ * contact shadow that keeps the edge crisp against the grey ground, and a
+ * wide diffuse pool that does the floating.
  */
 @theme static {
-  --radius-card: 16px;
+  --radius-card: 18px;
   --radius-panel: 12px;
   --radius-control: 10px;
-  --radius-pill: 9999px;
+  /* A pill, expressed the way the platform does — any large value clamps. */
+  --radius-pill: 980px;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.05);
+  --shadow-float: 0 4px 12px rgb(0 0 0 / 0.06), 0 16px 48px rgb(0 0 0 / 0.12);
+  --shadow-pill: 0 1px 2px rgb(0 0 0 / 0.06), 0 1px 3px rgb(0 0 0 / 0.08);
 
   /*
-   * Two elevations, tinted with the primary rather than black — a gray shadow
-   * on this ground reads as dirt, a faintly blue one reads as depth.
-   *
-   * `card` is rest: every card, the sidebar and the top bar. `float` is
-   * anything that has left the page — a dropdown, a modal, a popover, and a
-   * clickable card while the pointer is on it. Nothing sits flat.
+   * Type. Tight tracking is what makes this family read as one system:
+   * −0.01em through the body, −0.03em on a page title where the letters are
+   * large enough for default spacing to look loose.
    */
-  --shadow-card: 0 1px 3px rgb(49 108 156 / 0.06), 0 8px 24px rgb(49 108 156 / 0.08);
-  --shadow-float: 0 4px 6px rgb(49 108 156 / 0.05), 0 16px 40px rgb(49 108 156 / 0.14);
-  /* Small floating things: an active nav pill, a segmented-control thumb. */
-  --shadow-pill: 0 1px 2px rgb(49 108 156 / 0.08), 0 4px 10px -4px rgb(49 108 156 / 0.16);
+  --tracking-body: -0.01em;
+  --tracking-title: -0.03em;
 
-  /*
-   * Type. Labels are small and muted, values are a size up and solid, and a
-   * KPI number is large enough to be read across a reception desk. The line
-   * heights are set here too, so a heading never needs a second class.
-   */
-  --text-label: 0.8125rem; /* 13px — field labels, captions, meta rows */
+  --text-label: 0.8125rem; /* 13px — table headers, captions, meta */
   --text-label--line-height: 1.15rem;
-  --text-value: 0.9375rem; /* 15px — the value beside a label */
+  --text-value: 0.9375rem; /* 15px — body and table cells */
   --text-value--line-height: 1.4rem;
+  --text-title: 2.125rem; /* 34px — the page title */
+  --text-title--line-height: 2.5rem;
   --text-kpi: 2rem; /* 32px — the number on a stat card */
   --text-kpi--line-height: 2.25rem;
 
   /*
-   * The size every focusable field renders at, and the reason it is its own
-   * token rather than `text-value`.
+   * The size every focusable field renders at.
    *
    * iOS Safari zooms the page when a field smaller than 16px takes focus, and
-   * it does not zoom back out. On a booking screen that means every tap into
-   * an input leaves the clinic looking at a magnified fragment of the page.
-   * The visual size of a control is therefore not a free choice: 16px is a
-   * floor, and `field-size.test.ts` fails the build if any field drops under.
+   * does not zoom back out. It is a floor, and the kind of rule a later "make
+   * this tighter" change breaks silently, so `field-size.test.ts` fails the
+   * build if any field drops under it.
    */
   --text-field: 1rem; /* 16px — never lower */
   --text-field--line-height: 1.5rem;
 
-  /*
-   * Motion. One duration for everything that changes colour, shadow or
-   * position (150ms), and the two menu animations built on it.
-   *
-   * Written as tokens rather than installed: `tailwindcss-animate` exists to
-   * provide `animate-in`/`zoom-in-95`, and pulling in a plugin for two
-   * keyframes is the kind of weight CLAUDE.md rules out.
-   */
+  /* One duration for every colour, shadow and transform change. */
   --animate-menu-in: menu-in 150ms ease-out;
   --animate-menu-out: menu-out 150ms ease-in;
 }
 
 /*
- * A menu grows out of its trigger rather than appearing from nowhere: Radix
- * sets the transform origin to the corner it actually opened from, and these
- * scale from there.
+ * Frosted chrome. The sidebar and the top bar sit over scrolling content and
+ * let it show through, which is what stops them reading as slabs.
+ *
+ * Plain custom properties: these are `background`/`backdrop-filter` values
+ * rather than colours, so they are applied in index.css by class rather than
+ * through a Tailwind colour utility.
  */
+:root {
+  --chrome-sidebar: rgb(246 246 248 / 0.85);
+  --chrome-bar: rgb(245 245 247 / 0.72);
+  --chrome-blur: blur(20px) saturate(1.8);
+  /* The active sidebar item: a fill, not a colour. */
+  --chrome-active: rgb(0 0 0 / 0.07);
+  /* A search field's fill — no border, just a tint of the ground. */
+  --chrome-field: rgb(0 0 0 / 0.05);
+  --chrome-field-hover: rgb(0 0 0 / 0.07);
+}
+
 @keyframes menu-in {
   from {
     opacity: 0;
@@ -262,65 +260,59 @@
  * ── Interactive chart ────────────────────────────────────────────────────
  *
  * One colour per tooth state, re-derived from the scales above so the chart
- * reads as part of the same brand rather than a stock nine-hue rainbow.
+ * belongs to the same system rather than being a stock nine-hue rainbow.
  *
- * The mapping is semantic, not decorative:
+ * This is the one place the single-accent rule does not reach, deliberately:
+ * "if it is blue it is clickable" governs *actions*, and a tooth fill is data.
+ * Nine conditions cannot be encoded in one hue. Colour is never the only
+ * channel here anyway — every tooth's accessible name states its condition in
+ * words, the legend pairs each swatch with its label, and a missing tooth is
+ * dashed rather than merely differently tinted.
+ *
+ * The mapping is semantic:
  *   · still to do        → danger (needs treatment), warning (in progress)
  *   · restored in enamel → primary; the deeper the work, the deeper the blue
  *   · crowned            → pale gold, which is what a crown looks like
- *   · bridged            → success, the one state that earns the logo green:
- *                          a finished restoration spanning a gap
+ *   · bridged            → success: a finished restoration spanning a gap
  *   · implant            → neutral, the colour of titanium
  *
- * Only five hues exist in this brand and seven teeth states need filling, so
- * primary and warning each carry two — separated by lightness, not by hue.
- * Every pair below was measured: the tooth number clears 4.5:1 against its
- * fill, and every outline clears 3.0:1 against the chart surface, in both
- * light and dark mode.
+ * Every pair below was measured on the new palette: the tooth number clears
+ * 4.5:1 against its own fill and every outline clears 3.0:1 against the chart
+ * surface, in both light and dark mode. Zero failures.
  *
  * Plain custom properties rather than `@theme`: they are read through `var()`
- * in SVG attributes, never as utility classes, and `@theme` cannot be nested
- * in a media query — declaring the dark set inside one would hoist it and
- * apply it to everybody.
- *
- * Colour is never the only channel: every tooth's accessible name and its
- * tooltip state the condition in words, the legend pairs each swatch with its
- * label, and a missing tooth is dashed rather than merely differently tinted.
+ * in SVG attributes, and `@theme` cannot be nested in a media query.
  */
 :root {
-  --color-tooth-healthy: #f7f7f6;
-  --color-tooth-healthy-line: #8a8783;
-  --color-tooth-planned: #ad3b34;
-  --color-tooth-in-progress: #8c5c00;
-  --color-tooth-filling: #316c9c;
-  --color-tooth-root-canal: #04426b;
-  --color-tooth-crown: #e6c190;
-  --color-tooth-crown-line: #6f4800;
-  --color-tooth-bridge: #4ec191;
-  --color-tooth-bridge-line: #006142;
-  --color-tooth-implant: #6a6763;
+  --color-tooth-healthy: #f5f5f7;
+  --color-tooth-healthy-line: #86868b;
+  --color-tooth-planned: #d42913;
+  --color-tooth-in-progress: #9e6900;
+  --color-tooth-filling: #0071e3;
+  --color-tooth-root-canal: #004793;
+  --color-tooth-crown: #eac596;
+  --color-tooth-crown-line: #875900;
+  --color-tooth-bridge: #70c48f;
+  --color-tooth-bridge-line: #007743;
+  --color-tooth-implant: #75757a;
   --color-tooth-missing: transparent;
-  --color-tooth-missing-line: #8a8783;
+  --color-tooth-missing-line: #86868b;
 
-  /* Ink on a tooth: white on a saturated fill, dark on the pale crown and
-     bridge fills, muted where the tooth is unfilled. */
   --color-tooth-ink: #ffffff;
-  --color-tooth-ink-dark: #302e2b;
-  --color-tooth-ink-muted: #6a6763;
+  --color-tooth-ink-dark: #1d1d1f;
+  --color-tooth-ink-muted: #6e6e73;
 
-  /* The chart's own canvas, so it is themed even where the app is not. */
   --chart-surface: #ffffff;
-  --chart-border: #dfdddb;
-  --chart-text: #6a6763;
-  --chart-guide: #dfdddb;
+  --chart-border: #e8e8ed;
+  --chart-text: #6e6e73;
+  --chart-guide: #e8e8ed;
 }
 
 /*
  * The chart surfaces again, as @theme aliases over the raw layer above. This
  * indirection is what lets the same four colours be both utility classes
  * (`bg-chart-surface`) and `var()` references inside SVG attributes, while
- * still being redefinable in the dark-mode media query — which @theme itself
- * cannot be.
+ * staying redefinable in the dark-mode media query — which @theme cannot be.
  */
 @theme static {
   --color-chart-surface: var(--chart-surface);
@@ -330,34 +322,33 @@
 }
 
 /*
- * Dark mode follows the viewer's system setting: the app has no theme switch
- * yet, so only the chart tokens are redefined — the rest of the surface keeps
- * its light palette until a switch exists to drive it. Every fill moves up its
- * own scale rather than to a new hue, so the brand survives the inversion, and
- * the ink flips to dark because every dark-mode fill is a tint.
+ * Dark mode follows the viewer's system setting. The app has no theme switch
+ * yet, so only the chart tokens are redefined — the rest keeps its light
+ * palette until a switch exists to drive it. Every fill moves up its own scale
+ * rather than to a new hue, so the system survives the inversion.
  */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-tooth-healthy: #413e3b;
-    --color-tooth-healthy-line: #8a8783;
-    --color-tooth-planned: #ef877c;
-    --color-tooth-in-progress: #d29e55;
-    --color-tooth-filling: #7bafdc;
-    --color-tooth-root-canal: #a9cded;
-    --color-tooth-crown: #f2d9b9;
-    --color-tooth-crown-line: #b57a11;
-    --color-tooth-bridge: #9bd8ba;
-    --color-tooth-bridge-line: #219f71;
-    --color-tooth-implant: #aca8a5;
-    --color-tooth-missing-line: #8a8783;
+    --color-tooth-healthy: #49494e;
+    --color-tooth-healthy-line: #86868b;
+    --color-tooth-planned: #ff8772;
+    --color-tooth-in-progress: #d7a45c;
+    --color-tooth-filling: #77b1ff;
+    --color-tooth-root-canal: #abcfff;
+    --color-tooth-crown: #f5dcbc;
+    --color-tooth-crown-line: #be821c;
+    --color-tooth-bridge: #a4dcb6;
+    --color-tooth-bridge-line: #3aa76a;
+    --color-tooth-implant: #aeaeb3;
+    --color-tooth-missing-line: #86868b;
 
-    --color-tooth-ink: #302e2b;
-    --color-tooth-ink-dark: #302e2b;
-    --color-tooth-ink-muted: #cac7c5;
+    --color-tooth-ink: #1d1d1f;
+    --color-tooth-ink-dark: #1d1d1f;
+    --color-tooth-ink-muted: #cccccf;
 
-    --chart-surface: #302e2b;
-    --chart-border: #54514d;
-    --chart-text: #cac7c5;
-    --chart-guide: #54514d;
+    --chart-surface: #1d1d1f;
+    --chart-border: #49494e;
+    --chart-text: #cccccf;
+    --chart-guide: #49494e;
   }
 }

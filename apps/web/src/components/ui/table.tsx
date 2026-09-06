@@ -164,7 +164,7 @@ export function Table<TRow>({
               );
 
               const cardClass =
-                'rounded-card border border-line-card bg-surface p-4 text-start shadow-card transition-[box-shadow,border-color] duration-150';
+                'rounded-card bg-surface p-4 text-start shadow-card transition-shadow duration-150';
 
               return onRowClick === undefined ? (
                 <div key={rowKey(row)} className={cardClass}>
@@ -176,11 +176,7 @@ export function Table<TRow>({
                   type="button"
                   onClick={() => onRowClick(row)}
                   {...(rowLabel && { 'aria-label': rowLabel(row) })}
-                  className={cn(
-                    cardClass,
-                    'w-full cursor-pointer hover:border-primary-200 hover:shadow-float',
-                    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
-                  )}
+                  className={cn(cardClass, 'w-full cursor-pointer hover:shadow-float')}
                 >
                   {body}
                 </button>
@@ -189,7 +185,7 @@ export function Table<TRow>({
         </div>
 
         {pagination !== undefined && (
-          <div className="mt-3 rounded-card border border-line-card bg-surface shadow-card">
+          <div className="mt-3 rounded-card bg-surface shadow-card">
             <Pagination {...pagination} />
           </div>
         )}
@@ -198,7 +194,7 @@ export function Table<TRow>({
   }
 
   return (
-    <div className="overflow-hidden rounded-card border border-line-card bg-surface shadow-card">
+    <div className="overflow-hidden rounded-card bg-surface shadow-card">
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-value">
           <thead>
@@ -208,7 +204,8 @@ export function Table<TRow>({
                   key={column.key}
                   scope="col"
                   className={cn(
-                    'h-12 whitespace-nowrap border-b border-line px-5 text-label font-semibold text-ink-muted',
+                    // Headers are the secondary grey at 13px, not shouted.
+                    'whitespace-nowrap border-b border-line px-[22px] py-3 text-label font-medium text-ink-muted',
                     alignClass(column.align),
                     column.className,
                   )}
@@ -234,17 +231,17 @@ export function Table<TRow>({
                   key={rowKey(row)}
                   {...(onRowClick && {
                     onClick: () => onRowClick(row),
-                    className: 'h-12 cursor-pointer transition-colors duration-150 hover:bg-inset',
+                    className: 'cursor-pointer transition-colors duration-150 hover:bg-row-hover',
                   })}
                   {...(!onRowClick && {
-                    className: 'h-12 transition-colors duration-150 hover:bg-inset',
+                    className: 'transition-colors duration-150 hover:bg-row-hover',
                   })}
                 >
                   {columns.map((column) => (
                     <td
                       key={column.key}
                       className={cn(
-                        'px-5 py-2.5 align-middle',
+                        'px-[22px] py-3.5 align-middle',
                         alignClass(column.align),
                         column.className,
                       )}
@@ -283,7 +280,7 @@ function CardSkeleton({ rows }: { readonly rows: number }): JSX.Element {
         <div
           key={card}
           aria-hidden="true"
-          className="animate-pulse rounded-card border border-line-card bg-surface p-4 shadow-card"
+          className="animate-pulse rounded-card bg-surface p-4 shadow-card"
         >
           <div className="mb-3 h-4 w-1/2 rounded-pill bg-sunken" />
           <div className="flex flex-col gap-3">
@@ -310,7 +307,7 @@ export function Pagination({
 
   return (
     <nav
-      className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-5 py-3.5"
+      className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-[22px] py-3.5"
       aria-label={t('pagination.next')}
     >
       <p className="text-label text-ink-muted">{t('pagination.total', { total })}</p>

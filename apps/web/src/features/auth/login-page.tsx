@@ -55,7 +55,7 @@ export function LoginPage(): JSX.Element {
 
   return (
     <main className="flex min-h-full items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md rounded-card border border-line-card bg-surface p-8 shadow-card">
+      <div className="w-full max-w-md rounded-card bg-surface p-8 shadow-card">
         {/* The one place the mark is shown at size; the clinic name sits in the
             heading below it, so the mark itself is decorative. */}
         <Logo size="lg" className="mx-auto mb-6" />

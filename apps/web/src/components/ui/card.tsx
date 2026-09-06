@@ -46,14 +46,13 @@ export function Card({
   return (
     <div
       className={cn(
-        // Border *and* shadow: on an off-white ground the shadow alone leaves
-        // a card's edge ambiguous where it falls across something the same
-        // lightness as itself.
-        'rounded-card border border-line-card bg-surface shadow-card',
+        // Shadow, never a border. A hairline belongs between rows *inside* a
+        // card; drawing one around the card as well doubles every edge on the
+        // page and is what makes an admin screen look like a spreadsheet.
+        'rounded-card bg-surface shadow-card',
         'transition-[box-shadow,background-color,border-color] duration-150',
         !flush && 'p-5',
-        interactive &&
-          'cursor-pointer hover:border-primary-200 hover:shadow-float focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
+        interactive && 'cursor-pointer hover:shadow-float',
         tone === 'selected' &&
           'bg-selected outline-[1.5px] -outline-offset-[1.5px] outline-selected-line',
         className,

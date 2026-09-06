@@ -26,10 +26,11 @@ export interface SegmentedControlProps<TValue extends string> {
  * these, and exactly one" to a screen reader. Arrow keys then move the
  * selection natively, in the reading direction, with no key handling here.
  *
- * The selected pill is white on the sunken track with a soft shadow — the same
- * "floating" idea as a card, one size down. It is deliberately *not* a blue
- * fill: a row of filters is chrome, and colouring the active one would give a
- * filter more weight than the data it filters.
+ * Styled as the platform's own segmented control: a grey groove with the
+ * chosen segment raised out of it in white. Deliberately *not* a blue fill —
+ * a row of filters is chrome, and colouring one would give a filter more
+ * weight than the data it filters, in the one place the page has reserved for
+ * its single action colour.
  */
 export function SegmentedControl<TValue extends string>({
   options,
@@ -43,7 +44,7 @@ export function SegmentedControl<TValue extends string>({
       role="radiogroup"
       aria-label={label}
       className={cn(
-        'inline-flex max-w-full flex-wrap items-center gap-1 rounded-pill bg-sunken p-1',
+        'inline-flex max-w-full flex-wrap items-center gap-0.5 rounded-control bg-inset p-0.5',
         className,
       )}
     >
@@ -58,21 +59,19 @@ export function SegmentedControl<TValue extends string>({
             aria-checked={isSelected}
             onClick={() => onChange(option.value)}
             className={cn(
-              'inline-flex cursor-pointer items-center gap-1.5 rounded-pill px-3.5 py-1.5',
-              'text-label font-medium',
-              'transition-[background-color,color,box-shadow,transform] duration-150 active:scale-95',
-              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
+              'inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[8px] px-3.5',
+              'text-label transition-[background-color,color,box-shadow] duration-150',
               isSelected
-                ? 'bg-surface text-ink shadow-pill'
-                : 'text-ink-muted hover:bg-surface/60 hover:text-ink',
+                ? 'bg-surface font-semibold text-ink shadow-pill'
+                : 'font-medium text-ink-muted hover:text-ink',
             )}
           >
             {option.label}
             {option.count !== undefined && (
               <span
                 className={cn(
-                  'rounded-pill px-1.5 text-label tabular-nums',
-                  isSelected ? 'bg-primary-50 text-primary-700' : 'text-ink-subtle',
+                  'text-label tabular-nums',
+                  isSelected ? 'text-ink-muted' : 'text-ink-subtle',
                 )}
                 dir="ltr"
               >

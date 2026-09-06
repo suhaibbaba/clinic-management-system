@@ -132,7 +132,6 @@ export function DatePicker({
             className={cn(
               'absolute inset-y-0 end-0 flex cursor-pointer items-center pe-3 text-ink-subtle',
               'transition-colors duration-150 hover:text-ink',
-              'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
               'disabled:cursor-not-allowed',
             )}
           >

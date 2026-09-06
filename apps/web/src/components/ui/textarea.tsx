@@ -32,7 +32,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
         'transition-[border-color,box-shadow,background-color] duration-150',
         'focus:border-primary-500 focus:outline-2 focus:outline-offset-0 focus:outline-primary-600',
         'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-subtle',
-        hasError ? 'border-danger-400 focus:border-danger-500' : 'border-line-strong',
+        hasError ? 'border-danger-500' : 'border-line',
         className,
       )}
       {...props}

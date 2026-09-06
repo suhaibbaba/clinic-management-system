@@ -85,7 +85,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               // The accent bar is a border on the start edge, so it mirrors
               // with the language along with everything else.
               'flex items-start gap-2.5 overflow-hidden rounded-panel border-s-4 bg-surface',
-              'px-4 py-3 text-value shadow-float ring-1 ring-line-card',
+              'px-4 py-3 text-value shadow-float',
               message.tone === 'success' ? 'border-s-success-500' : 'border-s-danger-500',
             )}
           >
@@ -106,7 +106,6 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               className={cn(
                 'shrink-0 cursor-pointer rounded-control p-1 text-ink-subtle',
                 'transition-colors duration-150 hover:bg-inset hover:text-ink',
-                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
               )}
             >
               <Icon name="x" className="size-4" />

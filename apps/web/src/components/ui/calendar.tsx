@@ -60,13 +60,11 @@ export function Calendar(props: CalendarProps): JSX.Element {
         button_previous: cn(
           'inline-flex size-8 cursor-pointer items-center justify-center rounded-control',
           'text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink',
-          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
           'disabled:cursor-not-allowed disabled:opacity-40',
         ),
         button_next: cn(
           'inline-flex size-8 cursor-pointer items-center justify-center rounded-control',
           'text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink',
-          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
           'disabled:cursor-not-allowed disabled:opacity-40',
         ),
         chevron: 'size-4 fill-current',
@@ -79,7 +77,6 @@ export function Calendar(props: CalendarProps): JSX.Element {
           'inline-flex size-9 cursor-pointer items-center justify-center rounded-control',
           'text-value tabular-nums transition-colors duration-150',
           'hover:bg-inset',
-          'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600',
         ),
         selected:
           '[&_button]:bg-primary-600 [&_button]:text-ink-inverse [&_button]:hover:bg-primary-700',
