@@ -112,6 +112,49 @@ export const TOOTH_STATE_STYLES: Record<ToothState, ToothStateStyle> = {
   },
 };
 
+/**
+ * Which part of the tooth a state describes.
+ *
+ * This is what lets one tooth carry two conditions honestly: 16 with a root
+ * canal *and* a crown is drawn with a dark blue root under a gold crown, which
+ * is what the mouth looks like. Before the shapes were split, the precedence
+ * order picked one of the two and the other simply vanished from the chart.
+ *
+ * `whole` states paint both halves: a planned treatment, work under way, and
+ * an absent tooth are facts about the tooth, not about one end of it.
+ */
+export type ToothArea = 'crown' | 'root' | 'whole';
+
+export const TOOTH_STATE_AREA: Record<ToothState, ToothArea> = {
+  [TOOTH_STATE.HEALTHY]: 'whole',
+  [TOOTH_STATE.PLANNED]: 'whole',
+  [TOOTH_STATE.IN_PROGRESS]: 'whole',
+  [TOOTH_STATE.MISSING]: 'whole',
+  // A filling is in the crown, a canal is in the root — and a crown, a bridge
+  // retainer and an implant post are each named after the half they occupy.
+  [TOOTH_STATE.FILLING]: 'crown',
+  [TOOTH_STATE.CROWN]: 'crown',
+  [TOOTH_STATE.BRIDGE]: 'crown',
+  [TOOTH_STATE.ROOT_CANAL]: 'root',
+  [TOOTH_STATE.IMPLANT]: 'root',
+};
+
+/**
+ * The state that paints one half of a tooth: the most significant state that
+ * belongs to that half, or that belongs to the whole tooth.
+ *
+ * Falls back to healthy, so a tooth with only a crown recorded still has a
+ * root drawn in the healthy fill rather than an unpainted hole.
+ */
+export function areaState(summary: ToothSummary, area: 'crown' | 'root'): ToothState {
+  return (
+    summary.states.find((state) => {
+      const stateArea = TOOTH_STATE_AREA[state];
+      return stateArea === area || stateArea === 'whole';
+    }) ?? TOOTH_STATE.HEALTHY
+  );
+}
+
 /** i18n key for a state's label, used by the chart, legend and tooltip alike. */
 export const toothStateLabelKey = (state: ToothState): string => `chart.states.${state}`;
 

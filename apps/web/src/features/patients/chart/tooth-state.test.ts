@@ -1,13 +1,20 @@
-import { PERFORMED_PROCEDURE_STATUS, PROCEDURE_OUTCOME, TOOTH_STATE } from '@clinic/shared';
+import {
+  PERFORMED_PROCEDURE_STATUS,
+  PROCEDURE_OUTCOME,
+  TOOTH_STATE,
+  type ToothState,
+} from '@clinic/shared';
 import { describe, expect, it } from 'vitest';
 
 import {
+  areaState,
   deriveToothSummaries,
   dominantState,
   procedureToothState,
   TOOTH_STATE_PRECEDENCE,
   TOOTH_STATE_STYLES,
   type OutcomeLookup,
+  type ToothSummary,
 } from '@web/features/patients/chart/tooth-state';
 import { makeProcedure, makeCatalogItem } from '@test/helpers/fixtures';
 
@@ -200,6 +207,46 @@ describe('tooth state derivation', () => {
       );
 
       expect(summaries.get(46)?.state).toBe(TOOTH_STATE.FILLING);
+    });
+  });
+
+  describe('areaState', () => {
+    const summary = (states: readonly ToothState[]): ToothSummary => ({
+      tooth: 16,
+      state: states[0]!,
+      states,
+      surfaces: [],
+      procedureCount: states.length,
+    });
+
+    it('gives the root and the crown their own states', () => {
+      // The pair the single-fill chart could not draw: precedence put the
+      // crown on top and the canal underneath it disappeared.
+      const both = summary([TOOTH_STATE.CROWN, TOOTH_STATE.ROOT_CANAL]);
+
+      expect(areaState(both, 'root')).toBe(TOOTH_STATE.ROOT_CANAL);
+      expect(areaState(both, 'crown')).toBe(TOOTH_STATE.CROWN);
+    });
+
+    it('leaves the other half healthy rather than unpainted', () => {
+      const crownOnly = summary([TOOTH_STATE.CROWN]);
+
+      expect(areaState(crownOnly, 'root')).toBe(TOOTH_STATE.HEALTHY);
+    });
+
+    it('paints both halves for a state that is about the whole tooth', () => {
+      const planned = summary([TOOTH_STATE.PLANNED]);
+
+      expect(areaState(planned, 'root')).toBe(TOOTH_STATE.PLANNED);
+      expect(areaState(planned, 'crown')).toBe(TOOTH_STATE.PLANNED);
+    });
+
+    it('lets a whole-tooth state outrank a half-tooth one, in precedence order', () => {
+      // Work under way on a crowned tooth: the tooth is in progress, and
+      // saying so on the crown matters more than the crown that is there.
+      const working = summary([TOOTH_STATE.IN_PROGRESS, TOOTH_STATE.CROWN]);
+
+      expect(areaState(working, 'crown')).toBe(TOOTH_STATE.IN_PROGRESS);
     });
   });
 });
