@@ -55,21 +55,34 @@ const liveRows = sql`deleted_at is null`;
 /* -------------------------------------------------------------------------- */
 
 /** The tenant. Every other table carries `clinic_id`. */
-export const clinics = pgTable('clinics', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  name: text('name').notNull(),
-  /** R2 object key — never a public URL. */
-  logoKey: text('logo_key'),
-  phone: text('phone'),
-  email: text('email'),
-  address: text('address'),
-  /** ISO-4217. Money columns are `numeric(10,2)` and never floats. */
-  currency: varchar('currency', { length: 3 }).notNull().default('USD'),
-  workingHours: jsonb('working_hours').$type<WeeklySchedule>().notNull().default([]),
-  settings: jsonb('settings').$type<Record<string, unknown>>().notNull().default({}),
-  ...auditColumns,
-  ...softDeleteColumn,
-});
+export const clinics = pgTable(
+  'clinics',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    /**
+     * The clinic's handle in a public booking URL.
+     *
+     * A slug rather than the id, because the booking link is printed on cards
+     * and read aloud over the phone — and because a URL carrying a primary key
+     * invites walking the key space. Unique across the system, since the public
+     * routes carry no other clinic hint.
+     */
+    slug: text('slug').notNull(),
+    /** R2 object key — never a public URL. */
+    logoKey: text('logo_key'),
+    phone: text('phone'),
+    email: text('email'),
+    address: text('address'),
+    /** ISO-4217. Money columns are `numeric(10,2)` and never floats. */
+    currency: varchar('currency', { length: 3 }).notNull().default('USD'),
+    workingHours: jsonb('working_hours').$type<WeeklySchedule>().notNull().default([]),
+    settings: jsonb('settings').$type<Record<string, unknown>>().notNull().default({}),
+    ...auditColumns,
+    ...softDeleteColumn,
+  },
+  (table) => [uniqueIndex('clinics_slug_uniq').on(table.slug).where(liveRows)],
+);
 
 /**
  * A clinic's specialties. `code` is text, not a Postgres enum, so adding a

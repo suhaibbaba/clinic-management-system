@@ -74,6 +74,41 @@ export const envSchema = z.object({
 
   /** Reported by /health so a running build can be identified. */
   APP_VERSION: z.string().min(1).default('0.1.0'),
+
+  /* ---------------------------- Notifications --------------------------- */
+
+  /**
+   * Which provider actually sends.
+   *
+   * `log` is the default everywhere, sandbox included: it writes the message to
+   * `notifications_log` and to the application log and sends nothing. That is
+   * what makes this module runnable with no credentials at all, and it is the
+   * behaviour every test relies on.
+   *
+   * `http` posts to `NOTIFICATIONS_HTTP_URL`, which is generic enough for a
+   * local SMS gateway or the WhatsApp Business API. Neither is integrated here.
+   */
+  NOTIFICATIONS_PROVIDER: z.enum(['log', 'http']).default('log'),
+  NOTIFICATIONS_HTTP_URL: z.string().url().optional(),
+  /** Sent as `Authorization: Bearer …` when present. */
+  NOTIFICATIONS_HTTP_TOKEN: z.string().optional(),
+  NOTIFICATIONS_HTTP_TIMEOUT_MS: z.coerce.number().int().min(500).max(30_000).default(5_000),
+
+  /* ------------------------------- Booking ------------------------------ */
+
+  /**
+   * Signs the opaque booking tokens in a manage link.
+   *
+   * Separate from `JWT_SECRET` on purpose: a booking token is handed to an
+   * anonymous stranger over SMS and lives for weeks, where an access token is
+   * short-lived and belongs to a signed-in member of staff. One key compromised
+   * must not be the other. Falls back to `JWT_SECRET` only so a development
+   * environment boots without a second variable.
+   */
+  BOOKING_TOKEN_SECRET: z.string().min(32).optional(),
+
+  /** Public origin the manage link points at, e.g. https://clinic.example. */
+  PUBLIC_BASE_URL: z.string().url().default('http://localhost:5173'),
 });
 
 export type Env = z.infer<typeof envSchema>;

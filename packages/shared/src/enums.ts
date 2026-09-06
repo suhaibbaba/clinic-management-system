@@ -403,3 +403,91 @@ export type LabOrderStatus = EnumValue<typeof LAB_ORDER_STATUS>;
 /** Placeholder — filled in by the `inventory` module (purchase / consume / adjust). */
 export const STOCK_MOVEMENT_TYPE = {} as const satisfies Record<string, string>;
 export type StockMovementType = EnumValue<typeof STOCK_MOVEMENT_TYPE>;
+
+/* -------------------------------------------------------------------------- */
+/* Notifications                                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * How a message reaches a patient.
+ *
+ * Both are "a short text to a phone number", which is why one abstraction
+ * covers them: the difference is the transport, and the transport is a
+ * provider's problem rather than a caller's.
+ */
+export const NOTIFICATION_CHANNEL = {
+  WHATSAPP: 'whatsapp',
+  SMS: 'sms',
+} as const satisfies Record<string, string>;
+export type NotificationChannel = EnumValue<typeof NOTIFICATION_CHANNEL>;
+
+export const NOTIFICATION_CHANNELS = [
+  NOTIFICATION_CHANNEL.WHATSAPP,
+  NOTIFICATION_CHANNEL.SMS,
+] as const;
+
+/**
+ * Every message the clinic sends, by name.
+ *
+ * A closed list rather than free text: the template is what a clinic edits, so
+ * a typo in a key would silently send nothing, and the reminder scheduler
+ * dedupes on exactly this value.
+ */
+export const NOTIFICATION_TEMPLATE = {
+  BOOKING_OTP: 'booking_otp',
+  BOOKING_CONFIRMED: 'booking_confirmed',
+  REMINDER_24H: 'reminder_24h',
+  REMINDER_2H: 'reminder_2h',
+  BOOKING_CANCELLED: 'booking_cancelled',
+} as const satisfies Record<string, string>;
+export type NotificationTemplate = EnumValue<typeof NOTIFICATION_TEMPLATE>;
+
+export const NOTIFICATION_TEMPLATES = [
+  NOTIFICATION_TEMPLATE.BOOKING_OTP,
+  NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED,
+  NOTIFICATION_TEMPLATE.REMINDER_24H,
+  NOTIFICATION_TEMPLATE.REMINDER_2H,
+  NOTIFICATION_TEMPLATE.BOOKING_CANCELLED,
+] as const;
+
+/**
+ * What happened to one message.
+ *
+ * `queued` is the state a row is written in before the provider is called, so
+ * a provider that throws still leaves a trace — a send that vanishes is the
+ * one failure mode a notification log exists to prevent.
+ */
+export const NOTIFICATION_STATUS = {
+  QUEUED: 'queued',
+  SENT: 'sent',
+  FAILED: 'failed',
+} as const satisfies Record<string, string>;
+export type NotificationStatus = EnumValue<typeof NOTIFICATION_STATUS>;
+
+export const NOTIFICATION_STATUSES = [
+  NOTIFICATION_STATUS.QUEUED,
+  NOTIFICATION_STATUS.SENT,
+  NOTIFICATION_STATUS.FAILED,
+] as const;
+
+/* -------------------------------------------------------------------------- */
+/* Public booking                                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * How a booking a patient made themselves becomes a real appointment.
+ *
+ * `otp` confirms it with a code sent to the phone that made it; `manual`
+ * leaves it `requested` for reception to ring back. Both exist because a
+ * clinic without an SMS gateway still wants online booking.
+ */
+export const BOOKING_CONFIRMATION_MODE = {
+  OTP: 'otp',
+  MANUAL: 'manual',
+} as const satisfies Record<string, string>;
+export type BookingConfirmationMode = EnumValue<typeof BOOKING_CONFIRMATION_MODE>;
+
+export const BOOKING_CONFIRMATION_MODES = [
+  BOOKING_CONFIRMATION_MODE.OTP,
+  BOOKING_CONFIRMATION_MODE.MANUAL,
+] as const;
