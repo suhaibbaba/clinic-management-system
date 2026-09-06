@@ -75,7 +75,8 @@
     "notificationsEmpty": "No notifications",
     "language": "Language",
     "account": "Account",
-    "breadcrumb": "Breadcrumb"
+    "breadcrumb": "Breadcrumb",
+    "appointments": "Appointments"
   },
   "roles": {
     "admin": "Admin",
@@ -507,5 +508,118 @@
       "thisPage": "On this page"
     },
     "period": "Period"
+  },
+  "appointments": {
+    "title": "Appointments",
+    "subtitle": "The clinic's internal calendar",
+    "create": "New appointment",
+    "edit": "Edit appointment",
+    "today": "Today",
+    "previous": "Previous",
+    "next": "Next",
+    "day": "Day",
+    "week": "Week",
+    "allDoctors": "All doctors",
+    "doctor": "Doctor",
+    "patient": "Patient",
+    "date": "Date",
+    "time": "Time",
+    "duration": "Duration",
+    "durationMinutes": "{{count}} min",
+    "type": "Type",
+    "reason": "Reason for the visit",
+    "notes": "Notes",
+    "status": "Status",
+    "empty": "No appointments on this day",
+    "emptyHint": "Book the first one from “New appointment”.",
+    "emptyWeek": "No appointments this week",
+    "loadFailed": "Could not load the calendar.",
+    "created": "Appointment booked",
+    "updated": "Appointment updated",
+    "moved": "Appointment moved",
+    "conflict": "That time is already booked for this doctor",
+    "statuses": {
+      "requested": "Awaiting confirmation",
+      "confirmed": "Confirmed",
+      "arrived": "Arrived",
+      "in_progress": "In progress",
+      "completed": "Completed",
+      "no_show": "No show",
+      "cancelled": "Cancelled"
+    },
+    "types": {
+      "checkup": "Check-up",
+      "treatment": "Treatment",
+      "followup": "Follow-up",
+      "emergency": "Emergency"
+    },
+    "actions": {
+      "confirm": "Confirm",
+      "arrived": "Patient arrived",
+      "start": "Start treatment",
+      "complete": "Complete",
+      "noShow": "No show",
+      "cancel": "Cancel appointment",
+      "openVisit": "Open a visit",
+      "openFile": "Open the patient file",
+      "reschedule": "Edit appointment"
+    },
+    "cancel": {
+      "title": "Cancel appointment",
+      "reason": "Reason for cancelling",
+      "reasonPlaceholder": "Patient called off, clash with another booking…",
+      "confirm": "Confirm cancellation",
+      "done": "Appointment cancelled"
+    },
+    "visit": {
+      "created": "Visit opened",
+      "existing": "This appointment already has a visit"
+    },
+    "slots": {
+      "label": "Available times",
+      "hint": "Computed from the doctor's hours and the clinic's, minus what is booked.",
+      "none": "No times available",
+      "clinic_closed": "The clinic is closed on this day",
+      "doctor_off": "This doctor is not working on this day",
+      "fully_booked": "Fully booked",
+      "chooseDoctorAndDate": "Choose a doctor and a date to see the times",
+      "taken": "Taken",
+      "day_over": "The day is over"
+    },
+    "ribbon": {
+      "title": "Today's appointments",
+      "none": "Nothing left today",
+      "upcoming": "Next up",
+      "seeAll": "See the whole day"
+    },
+    "kpi": {
+      "today": "Today's appointments",
+      "arrived": "Arrived",
+      "remaining": "Remaining",
+      "waiting": "Waiting list",
+      "attendance": "Attendance",
+      "attendanceCaption": "of today's appointments"
+    },
+    "waiting": {
+      "title": "Waiting list",
+      "add": "Add to the waiting list",
+      "empty": "Nobody is waiting",
+      "priority": "Priority",
+      "priorities": {
+        "normal": "Normal",
+        "high": "High",
+        "urgent": "Urgent"
+      },
+      "anyDoctor": "Any doctor",
+      "promote": "Book a slot",
+      "resolve": "Remove from the list",
+      "added": "Added to the waiting list",
+      "promoted": "Appointment booked",
+      "resolved": "Removed from the list",
+      "waitingSince": "Waiting since {{time}}"
+    },
+    "grid": {
+      "dragHint": "Drag an appointment to change its time."
+    }
   }
 }

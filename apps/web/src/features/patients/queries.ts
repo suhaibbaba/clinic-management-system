@@ -58,7 +58,13 @@ export function useCreatePatient() {
 }
 
 export function usePatient(id: string): UseQueryResult<PatientClinicalView> {
-  return useQuery({ queryKey: [PATIENT_KEY, id], queryFn: () => patientsApi.get(id) });
+  return useQuery({
+    queryKey: [PATIENT_KEY, id],
+    queryFn: () => patientsApi.get(id),
+    // `GET /patients/` is a 400, every time. A component that has no id yet is
+    // mid-render, not in error, so it should not be firing a doomed request.
+    enabled: id !== '',
+  });
 }
 
 export function useAllergyFlags(id: string, enabled = true): UseQueryResult<AllergyFlags> {

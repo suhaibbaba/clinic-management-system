@@ -75,7 +75,8 @@
     "notificationsEmpty": "لا توجد إشعارات",
     "language": "تغيير اللغة",
     "account": "الحساب",
-    "breadcrumb": "مسار التنقل"
+    "breadcrumb": "مسار التنقل",
+    "appointments": "المواعيد"
   },
   "roles": {
     "admin": "مدير",
@@ -507,5 +508,118 @@
       "thisPage": "في هذه الصفحة"
     },
     "period": "المدة"
+  },
+  "appointments": {
+    "title": "المواعيد",
+    "subtitle": "تقويم العيادة الداخلي",
+    "create": "موعد جديد",
+    "edit": "تعديل الموعد",
+    "today": "اليوم",
+    "previous": "السابق",
+    "next": "التالي",
+    "day": "يوم",
+    "week": "أسبوع",
+    "allDoctors": "كل الأطباء",
+    "doctor": "الطبيب",
+    "patient": "المريض",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "duration": "المدة",
+    "durationMinutes": "{{count}} دقيقة",
+    "type": "نوع الموعد",
+    "reason": "سبب الزيارة",
+    "notes": "ملاحظات",
+    "status": "الحالة",
+    "empty": "لا مواعيد في هذا اليوم",
+    "emptyHint": "احجز أول موعد من زر «موعد جديد».",
+    "emptyWeek": "لا مواعيد في هذا الأسبوع",
+    "loadFailed": "تعذّر تحميل التقويم.",
+    "created": "تم حجز الموعد",
+    "updated": "تم تحديث الموعد",
+    "moved": "تم نقل الموعد",
+    "conflict": "هذا الوقت محجوز لهذا الطبيب",
+    "statuses": {
+      "requested": "بانتظار التأكيد",
+      "confirmed": "مؤكَّد",
+      "arrived": "وصل المريض",
+      "in_progress": "قيد المعالجة",
+      "completed": "منجز",
+      "no_show": "لم يحضر",
+      "cancelled": "ملغى"
+    },
+    "types": {
+      "checkup": "فحص",
+      "treatment": "معالجة",
+      "followup": "مراجعة",
+      "emergency": "طارئ"
+    },
+    "actions": {
+      "confirm": "تأكيد",
+      "arrived": "جاء المريض",
+      "start": "بدء المعالجة",
+      "complete": "إنهاء",
+      "noShow": "لم يحضر",
+      "cancel": "إلغاء الموعد",
+      "openVisit": "تحويل لزيارة",
+      "openFile": "فتح ملف المريض",
+      "reschedule": "تعديل الموعد"
+    },
+    "cancel": {
+      "title": "إلغاء الموعد",
+      "reason": "سبب الإلغاء",
+      "reasonPlaceholder": "اعتذر المريض، تعارض في المواعيد…",
+      "confirm": "تأكيد الإلغاء",
+      "done": "تم إلغاء الموعد"
+    },
+    "visit": {
+      "created": "تم فتح الزيارة",
+      "existing": "لهذا الموعد زيارة مفتوحة"
+    },
+    "slots": {
+      "label": "الأوقات المتاحة",
+      "hint": "تُحسب من دوام الطبيب وساعات العيادة ناقص المحجوز.",
+      "none": "لا أوقات متاحة",
+      "clinic_closed": "العيادة مغلقة في هذا اليوم",
+      "doctor_off": "الطبيب غير متفرّغ في هذا اليوم",
+      "fully_booked": "اليوم محجوز بالكامل",
+      "chooseDoctorAndDate": "اختر الطبيب والتاريخ لعرض الأوقات",
+      "taken": "محجوز",
+      "day_over": "انتهى دوام اليوم"
+    },
+    "ribbon": {
+      "title": "مواعيد اليوم",
+      "none": "لا مواعيد متبقّية اليوم",
+      "upcoming": "القادمة",
+      "seeAll": "عرض اليوم كاملاً"
+    },
+    "kpi": {
+      "today": "مواعيد اليوم",
+      "arrived": "وصلوا",
+      "remaining": "متبقّية",
+      "waiting": "قائمة الانتظار",
+      "attendance": "نسبة الحضور",
+      "attendanceCaption": "من مواعيد اليوم"
+    },
+    "waiting": {
+      "title": "قائمة الانتظار",
+      "add": "إضافة إلى الانتظار",
+      "empty": "لا أحد في الانتظار",
+      "priority": "الأولوية",
+      "priorities": {
+        "normal": "عادي",
+        "high": "مرتفع",
+        "urgent": "عاجل"
+      },
+      "anyDoctor": "أي طبيب",
+      "promote": "حجز موعد",
+      "resolve": "إزالة من القائمة",
+      "added": "تمت الإضافة إلى قائمة الانتظار",
+      "promoted": "تم حجز موعد للمريض",
+      "resolved": "تمت إزالة الاسم من القائمة",
+      "waitingSince": "بالانتظار منذ {{time}}"
+    },
+    "grid": {
+      "dragHint": "اسحب الموعد لتغيير وقته."
+    }
   }
 }

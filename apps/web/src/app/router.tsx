@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AppLayout } from '@web/components/layout/app-layout';
+import { AppointmentsPage } from '@web/features/appointments/appointments-page';
 import { AuditPage } from '@web/features/audit/audit-page';
 import { RequireAuth, RequireRole } from '@web/features/auth/guards';
 import { LoginPage } from '@web/features/auth/login-page';
@@ -50,6 +51,8 @@ export function AppRoutes(): JSX.Element {
         <Route index element={<Navigate to="/patients" replace />} />
         {/* Every role may look a patient up; the columns differ by role. */}
         <Route path="/patients" element={<PatientsPage />} />
+        {/* Reading the calendar is open to every role. */}
+        <Route path="/appointments" element={<AppointmentsPage />} />
         <Route path="/doctors" element={<DoctorsPage />} />
         <Route path="/clinic" element={<ClinicPage />} />
         <Route path="/profile" element={<ProfilePage />} />

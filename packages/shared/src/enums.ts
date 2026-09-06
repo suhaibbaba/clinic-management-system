@@ -269,9 +269,132 @@ export const TIMELINE_ENTRY_TYPES = [
   TIMELINE_ENTRY_TYPE.CHARGE,
 ] as const;
 
-/** Placeholder — filled in by the `appointments` module. */
-export const APPOINTMENT_STATUS = {} as const satisfies Record<string, string>;
+/**
+ * Why the patient is coming. Drives nothing but the label and the default
+ * duration a clinic may configure later — it is not a permission or a price.
+ */
+export const APPOINTMENT_TYPE = {
+  CHECKUP: 'checkup',
+  TREATMENT: 'treatment',
+  FOLLOWUP: 'followup',
+  EMERGENCY: 'emergency',
+} as const satisfies Record<string, string>;
+export type AppointmentType = EnumValue<typeof APPOINTMENT_TYPE>;
+
+export const APPOINTMENT_TYPES = [
+  APPOINTMENT_TYPE.CHECKUP,
+  APPOINTMENT_TYPE.TREATMENT,
+  APPOINTMENT_TYPE.FOLLOWUP,
+  APPOINTMENT_TYPE.EMERGENCY,
+] as const;
+
+/**
+ * Where an appointment is in its life.
+ *
+ * `requested` exists for the public booking module: a slot a patient picked
+ * themselves is not a commitment until reception or an OTP confirms it. An
+ * appointment reception books directly starts at `confirmed`.
+ */
+export const APPOINTMENT_STATUS = {
+  REQUESTED: 'requested',
+  CONFIRMED: 'confirmed',
+  ARRIVED: 'arrived',
+  IN_PROGRESS: 'in_progress',
+  COMPLETED: 'completed',
+  NO_SHOW: 'no_show',
+  CANCELLED: 'cancelled',
+} as const satisfies Record<string, string>;
 export type AppointmentStatus = EnumValue<typeof APPOINTMENT_STATUS>;
+
+export const APPOINTMENT_STATUSES = [
+  APPOINTMENT_STATUS.REQUESTED,
+  APPOINTMENT_STATUS.CONFIRMED,
+  APPOINTMENT_STATUS.ARRIVED,
+  APPOINTMENT_STATUS.IN_PROGRESS,
+  APPOINTMENT_STATUS.COMPLETED,
+  APPOINTMENT_STATUS.NO_SHOW,
+  APPOINTMENT_STATUS.CANCELLED,
+] as const;
+
+/**
+ * The state machine, as data (CLAUDE.md architecture decision 7).
+ *
+ * Read it as "from → the states it may become". The services validate against
+ * this table and nothing else, so the rules are reviewable in one place rather
+ * than spread across seven endpoints.
+ *
+ * Two rules are worth stating out loud because they are the ones a UI would
+ * otherwise quietly break:
+ *
+ *  - **`completed` is only reachable from `arrived` or `in_progress`.** A
+ *    completed appointment is a claim that the patient was seen; allowing it
+ *    straight from `confirmed` would let a no-show be marked done.
+ *  - **The terminal states are terminal.** Completed, cancelled and no-show
+ *    have no way out. Correcting one is a new appointment, not an edit, which
+ *    is the same reasoning the ledgers use for a reversing entry.
+ */
+export const APPOINTMENT_STATUS_TRANSITIONS = {
+  [APPOINTMENT_STATUS.REQUESTED]: [APPOINTMENT_STATUS.CONFIRMED, APPOINTMENT_STATUS.CANCELLED],
+  [APPOINTMENT_STATUS.CONFIRMED]: [
+    APPOINTMENT_STATUS.ARRIVED,
+    APPOINTMENT_STATUS.NO_SHOW,
+    APPOINTMENT_STATUS.CANCELLED,
+  ],
+  [APPOINTMENT_STATUS.ARRIVED]: [
+    APPOINTMENT_STATUS.IN_PROGRESS,
+    APPOINTMENT_STATUS.COMPLETED,
+    APPOINTMENT_STATUS.NO_SHOW,
+    APPOINTMENT_STATUS.CANCELLED,
+  ],
+  [APPOINTMENT_STATUS.IN_PROGRESS]: [APPOINTMENT_STATUS.COMPLETED, APPOINTMENT_STATUS.CANCELLED],
+  [APPOINTMENT_STATUS.COMPLETED]: [],
+  [APPOINTMENT_STATUS.NO_SHOW]: [],
+  [APPOINTMENT_STATUS.CANCELLED]: [],
+} as const satisfies Record<AppointmentStatus, readonly AppointmentStatus[]>;
+
+/** Whether one status may become another. The only test any service runs. */
+export function canTransitionAppointment(from: AppointmentStatus, to: AppointmentStatus): boolean {
+  return (APPOINTMENT_STATUS_TRANSITIONS[from] as readonly AppointmentStatus[]).includes(to);
+}
+
+/**
+ * Statuses that still occupy the doctor's time.
+ *
+ * A cancelled or missed appointment frees its slot — which is why the database
+ * exclusion constraint and the availability computation both exclude exactly
+ * these two, and why they are listed here once rather than twice.
+ */
+export const APPOINTMENT_RELEASED_STATUSES = [
+  APPOINTMENT_STATUS.CANCELLED,
+  APPOINTMENT_STATUS.NO_SHOW,
+] as const;
+
+export const occupiesSlot = (status: AppointmentStatus): boolean =>
+  !(APPOINTMENT_RELEASED_STATUSES as readonly AppointmentStatus[]).includes(status);
+
+/**
+ * How urgent a walk-in is. Ordered, and stored as text rather than a number so
+ * the list can be read without a legend.
+ */
+export const WAITING_LIST_PRIORITY = {
+  NORMAL: 'normal',
+  HIGH: 'high',
+  URGENT: 'urgent',
+} as const satisfies Record<string, string>;
+export type WaitingListPriority = EnumValue<typeof WAITING_LIST_PRIORITY>;
+
+export const WAITING_LIST_PRIORITIES = [
+  WAITING_LIST_PRIORITY.NORMAL,
+  WAITING_LIST_PRIORITY.HIGH,
+  WAITING_LIST_PRIORITY.URGENT,
+] as const;
+
+/** Most urgent first — the order the panel and the promote picker use. */
+export const WAITING_LIST_PRIORITY_RANK: Record<WaitingListPriority, number> = {
+  [WAITING_LIST_PRIORITY.URGENT]: 0,
+  [WAITING_LIST_PRIORITY.HIGH]: 1,
+  [WAITING_LIST_PRIORITY.NORMAL]: 2,
+};
 
 /** Placeholder — filled in by the `labs` module (draft → sent → ready → received → fitted). */
 export const LAB_ORDER_STATUS = {} as const satisfies Record<string, string>;
