@@ -382,22 +382,24 @@ The API applies any migrations the restored dump predates on its next start.
 
 ## 6. Troubleshooting
 
-| Symptom                                                     | Cause                                                                                                  |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Deploy fails: `missing /opt/clinic/sandbox/.env`            | Section 2 was skipped                                                                                  |
-| Deploy fails: `not a git checkout`                          | `/opt/clinic/sandbox` is not a clone of this repository — section 2                                    |
-| Deploy fails during `build`                                 | Read the step's log: it is a real build error, the same one `pnpm build` would give                    |
-| Build killed, or the box goes unresponsive                  | Out of RAM. Give the VPS swap, or build one service at a time                                          |
-| `no configuration file provided`                            | A compose call without `-f docker-compose.sandbox.yml`                                                 |
-| Compose acts on the wrong services                          | Same cause: a bare call picks up `docker-compose.yml`, the development stack                           |
-| `502` from nginx                                            | Container down or not yet healthy: `docker compose -p clinic-sandbox -f docker-compose.sandbox.yml ps` |
-| Deploy fails: `container clinic-sandbox-api-1 is unhealthy` | The API container exited on boot — see below                                                           |
-| Healthcheck step fails with `"database":"down"`             | `DATABASE_URL` and `POSTGRES_PASSWORD` disagree, or postgres failed to start                           |
-| Uploads fail with `SignatureDoesNotMatch`                   | The S3 block rewrites `Host`, or `STORAGE_ENDPOINT` is not the public hostname                         |
-| Uploads fail with `413`                                     | `client_max_body_size` on the S3 server block                                                          |
-| Presigned URL times out from the browser                    | DNS for `clinic-sandbox-s3.organza-moda.com` or the S3 block is missing                                |
-| API logs `getaddrinfo ENOTFOUND` for the S3 host            | Container cannot resolve the public hostname — see "Why the S3 hostname is public"                     |
-| Port already in use on 15000/15080/15900                    | Another project took it; these are fixed, so free the port rather than changing it                     |
+| Symptom                                                     | Cause                                                                                                                      |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Deploy fails: `never accepted a TCP connection on port 22`  | The VPS was unreachable for six minutes. Check the host is up and that nothing (firewall, fail2ban) is dropping the runner |
+| Deploy fails: `dial tcp …:22: i/o timeout`                  | An older run, before the workflow waited for port 22 — re-run it                                                           |
+| Deploy fails: `missing /opt/clinic/sandbox/.env`            | Section 2 was skipped                                                                                                      |
+| Deploy fails: `not a git checkout`                          | `/opt/clinic/sandbox` is not a clone of this repository — section 2                                                        |
+| Deploy fails during `build`                                 | Read the step's log: it is a real build error, the same one `pnpm build` would give                                        |
+| Build killed, or the box goes unresponsive                  | Out of RAM. Give the VPS swap, or build one service at a time                                                              |
+| `no configuration file provided`                            | A compose call without `-f docker-compose.sandbox.yml`                                                                     |
+| Compose acts on the wrong services                          | Same cause: a bare call picks up `docker-compose.yml`, the development stack                                               |
+| `502` from nginx                                            | Container down or not yet healthy: `docker compose -p clinic-sandbox -f docker-compose.sandbox.yml ps`                     |
+| Deploy fails: `container clinic-sandbox-api-1 is unhealthy` | The API container exited on boot — see below                                                                               |
+| Healthcheck step fails with `"database":"down"`             | `DATABASE_URL` and `POSTGRES_PASSWORD` disagree, or postgres failed to start                                               |
+| Uploads fail with `SignatureDoesNotMatch`                   | The S3 block rewrites `Host`, or `STORAGE_ENDPOINT` is not the public hostname                                             |
+| Uploads fail with `413`                                     | `client_max_body_size` on the S3 server block                                                                              |
+| Presigned URL times out from the browser                    | DNS for `clinic-sandbox-s3.organza-moda.com` or the S3 block is missing                                                    |
+| API logs `getaddrinfo ENOTFOUND` for the S3 host            | Container cannot resolve the public hostname — see "Why the S3 hostname is public"                                         |
+| Port already in use on 15000/15080/15900                    | Another project took it; these are fixed, so free the port rather than changing it                                         |
 
 ### When the API container will not start
 
