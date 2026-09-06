@@ -37,21 +37,103 @@ body,
   height: 100%;
 }
 
-/*
- * The page ground: a soft vertical wash between the two tinted blues, fixed so
- * it does not slide under a long list. `background-color` is set as well as the
- * gradient — a gradient is a background *image*, and it is the colour that
- * shows while the paint is still arriving and that the browser uses for
- * overscroll.
- */
+/* The page ground: one flat grey. Everything readable floats on white above it. */
 body {
   margin: 0;
   background-color: var(--color-canvas);
-  background-image: linear-gradient(180deg, var(--color-canvas) 0%, var(--color-canvas-deep) 100%);
-  background-attachment: fixed;
   color: var(--color-ink);
   font-family: var(--font-sans);
-  line-height: 1.6;
+  /* Tight tracking through the body is what makes the family read as one. */
+  letter-spacing: var(--tracking-body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+ * Frosted chrome: the sidebar and the top bar let content show through them.
+ *
+ * Written as classes rather than utilities because `backdrop-filter` needs its
+ * background and its filter to travel together — split across two utilities
+ * they drift apart the first time one is overridden.
+ *
+ * The opaque base is not a nicety. An earlier revision had only the
+ * translucent rule, and where it did not apply the sticky bar had *no*
+ * background at all: content scrolled visibly through the header and the
+ * breadcrumb sat on top of a phone number. A bar is opaque first and frosted
+ * second.
+ */
+.chrome-sidebar,
+.chrome-bar {
+  background-color: var(--color-canvas);
+}
+
+/*
+ * Frosting is a desktop effect here, from `md` up.
+ *
+ * On a phone the bar is 56px of the viewport and sits directly on top of the
+ * content — at 72% opacity the breadcrumb ends up reading over a phone number
+ * scrolling underneath it, which is confusing rather than pretty. There is no
+ * sidebar beside it on a phone to give it context either. Solid.
+ */
+@media (min-width: 768px) {
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .chrome-sidebar {
+      background-color: var(--chrome-sidebar);
+      -webkit-backdrop-filter: var(--chrome-blur);
+      backdrop-filter: var(--chrome-blur);
+    }
+
+    .chrome-bar {
+      background-color: var(--chrome-bar);
+      -webkit-backdrop-filter: var(--chrome-blur);
+      backdrop-filter: var(--chrome-blur);
+    }
+  }
+}
+
+/* The active sidebar row: a fill, never a colour. */
+.chrome-active {
+  background-color: var(--chrome-active);
+}
+
+/* A search field: a tint of the ground, no border. */
+.chrome-field {
+  background-color: var(--chrome-field);
+}
+
+.chrome-field:hover {
+  background-color: var(--chrome-field-hover);
+}
+
+/*
+ * Arabic inside a Latin run, or a Latin phone number inside an Arabic one.
+ * `isolate` stops the bidi algorithm reordering the text around it, which is
+ * what otherwise drags a trailing comma or a plus sign to the wrong end.
+ */
+.bidi-auto {
+  unicode-bidi: isolate;
+}
+
+.bidi-rtl {
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+
+/*
+ * Someone who asked their system to reduce motion means it. Transitions
+ * collapse to something instant rather than to nothing, so a state change is
+ * still perceptible.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /*

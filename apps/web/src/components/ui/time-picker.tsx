@@ -119,8 +119,12 @@ export function TimePicker({
             onChange={(event) => commit(event.target.value)}
             onClick={(event) => event.stopPropagation()}
             className={cn(
-              'block h-10 w-full rounded-control border bg-surface ps-3.5 pe-10',
-              'text-start text-field text-ink tabular-nums placeholder:text-ink-subtle',
+              // `dir="ltr"` on the field flips what `ps`/`pe` mean relative
+              // to the page, so these are physical on purpose: the icon is
+              // pinned right and the text is padded away from it, in both
+              // page directions.
+              'block h-10 w-full rounded-control border bg-surface pl-3.5 pr-10',
+              'text-left text-field text-ink tabular-nums placeholder:text-ink-subtle',
               'transition-[border-color,box-shadow] duration-150',
               'focus:border-primary-500 focus:outline-2 focus:outline-offset-0 focus:outline-primary-600',
               'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-subtle',
@@ -134,7 +138,7 @@ export function TimePicker({
             aria-label={t('common.openTimes')}
             onClick={() => setOpen(true)}
             className={cn(
-              'absolute inset-y-0 end-0 flex cursor-pointer items-center pe-3 text-ink-subtle',
+              'absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-ink-subtle',
               'transition-colors duration-150 hover:text-ink',
               'disabled:cursor-not-allowed',
             )}

@@ -122,6 +122,27 @@ describe('Table', () => {
     expect(opened).toEqual(['2']);
   });
 
+  it('drops a card row whose value renders nothing', () => {
+    setViewport(true);
+    const sparse: readonly Column<Row>[] = [
+      { key: 'name', header: 'patients.fullName', primary: true, render: (row) => row.name },
+      // A statement's credit column: present on every row, filled on some.
+      {
+        key: 'balance',
+        header: 'patients.balance',
+        render: (row) => (row.balance === '0.00' ? null : row.balance),
+      },
+    ];
+
+    const { container } = render(<Table columns={sparse} rows={ROWS} rowKey={(row) => row.id} />);
+    const [first, second] = container.querySelectorAll('dl');
+
+    // Row one has a balance and gets the row; row two has none and does not,
+    // rather than showing a label with nothing after it.
+    expect(within(first as HTMLElement).getByText(ar.patients.balance)).toBeInTheDocument();
+    expect(within(second as HTMLElement).queryByText(ar.patients.balance)).toBeNull();
+  });
+
   it('shows a card-shaped skeleton while loading', () => {
     setViewport(true);
     const { container } = render(

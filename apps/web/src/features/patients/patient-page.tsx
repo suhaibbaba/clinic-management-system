@@ -97,7 +97,14 @@ export function PatientPage(): JSX.Element {
       <div
         role="tablist"
         aria-label={t('patients.tabs.label')}
-        className="inline-flex max-w-full flex-wrap items-center gap-1 rounded-pill bg-sunken p-1"
+        className={cn(
+          // One scrolling row on a phone. Seven tabs in a wrapping pill came
+          // out as three ragged lines that pushed the content 120px down the
+          // page; a tab strip that scrolls is what every mobile OS does.
+          'flex items-center gap-1 rounded-pill bg-inset p-1',
+          'max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+          'sm:inline-flex sm:flex-wrap sm:overflow-visible',
+        )}
       >
         {tabs.map((tab) => (
           <button
@@ -109,7 +116,7 @@ export function PatientPage(): JSX.Element {
             aria-controls={`panel-${tab.id}`}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              'cursor-pointer rounded-pill px-3.5 py-1.5 text-value font-medium',
+              'shrink-0 cursor-pointer rounded-pill px-3.5 py-1.5 text-value font-medium',
               'transition-[background-color,color,box-shadow,transform] duration-150 active:scale-95',
               activeTab === tab.id
                 ? 'bg-surface text-ink shadow-pill'
