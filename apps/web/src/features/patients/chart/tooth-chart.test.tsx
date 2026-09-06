@@ -17,7 +17,7 @@ function renderChart(
 ) {
   const onSelect = vi.fn();
 
-  render(
+  const view = render(
     <ToothChart
       dentition="permanent"
       summaries={summaries}
@@ -26,7 +26,7 @@ function renderChart(
     />,
   );
 
-  return { onSelect };
+  return { onSelect, container: view.container };
 }
 
 const tooth = (fdi: number): HTMLElement =>
@@ -210,6 +210,14 @@ describe('ToothChart', () => {
   });
 
   describe('anatomy', () => {
+    it('draws the midline the quadrants are read against', () => {
+      const { container } = renderChart();
+
+      // Left of it is the patient's right (quadrants 1 and 4), right of it the
+      // patient's left. Without it "the fifth one" has two answers.
+      expect(container.querySelector('[data-chart-midline]')).not.toBeNull();
+    });
+
     it('draws an upper molar with three roots and a lower one with two', () => {
       renderChart();
 

@@ -179,13 +179,33 @@ export function ToothChart({
       <div
         role="group"
         aria-label={t('chart.title')}
-        className="mx-auto w-max min-w-full sm:[--tooth-w:38px] md:[--tooth-w:44px] lg:[--tooth-w:52px]"
+        className="relative mx-auto w-max min-w-full sm:[--tooth-w:38px] md:[--tooth-w:44px] lg:[--tooth-w:52px]"
       >
+        {/*
+          The midline, the way an FDI chart draws it.
+
+          It is the reference every quadrant is read against: everything left
+          of it is the patient's right (quadrants 1 and 4), everything right of
+          it is the patient's left. Without it "the fifth one" is ambiguous —
+          fifth from which end? — which is the question the number is supposed
+          to have already answered.
+
+          Positioned at 50% rather than counted in teeth: both rows hold the
+          same number and are centred in the same box, so the container's
+          middle *is* the midline, and it stays there when the chart scrolls or
+          the dentition changes from 32 teeth to 20.
+        */}
+        <span
+          aria-hidden="true"
+          data-chart-midline
+          className="pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-chart-guide"
+        />
+
         {renderRow(upper)}
 
         {/* The occlusal line: where the two arches meet, and the axis the
             numbers of both rows label towards. */}
-        <div className="mx-[8%] my-1 border-t border-dashed border-chart-guide" />
+        <div className="my-1 border-t border-chart-guide" />
 
         {renderRow(lower)}
       </div>
