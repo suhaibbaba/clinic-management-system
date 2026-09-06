@@ -12,6 +12,7 @@ import postgres from 'postgres';
 
 import { validateEnv } from '@api/config/env.schema';
 import { clinics, doctors, specialties, users } from '@api/database/schema';
+import { seedAppointments } from '@api/database/seed-appointments';
 import { seedBilling } from '@api/database/seed-billing';
 import { seedPatients } from '@api/database/seed-patients';
 
@@ -26,8 +27,13 @@ import { seedPatients } from '@api/database/seed-patients';
 
 const CLINIC_NAME = 'Al Nour Dental Clinic';
 
-/** Mon–Fri 09:00–17:00 with a 13:00–14:00 break, expressed as two ranges. */
-const WEEKDAY_HOURS: WeeklySchedule = [1, 2, 3, 4, 5].map((weekday) => ({
+/**
+ * Sunday–Thursday, 09:00–17:00, with a 13:00–14:00 break expressed as two
+ * ranges. That is the working week in Damascus, where the seeded clinic is —
+ * a Monday–Friday default would show the calendar closed on the two busiest
+ * days and open on the weekend.
+ */
+const WEEKDAY_HOURS: WeeklySchedule = [0, 1, 2, 3, 4].map((weekday) => ({
   weekday,
   ranges: [
     { start: '09:00', end: '13:00' },
@@ -67,7 +73,18 @@ const ACCOUNTS: readonly SeedAccount[] = [
     phone: '+963100000004',
     email: 'technician@clinic.local',
   },
+  // A second doctor, so the calendar's day view has two columns to draw and
+  // the availability endpoint has two schedules to answer for.
+  {
+    role: USER_ROLE.DOCTOR,
+    name: 'Dr. Samer Nassar',
+    phone: '+963100000005',
+    email: 'doctor2@clinic.local',
+  },
 ];
+
+/** The zone the clinic's opening hours are expressed in (see `clinicScheduleSettings`). */
+const CLINIC_TIME_ZONE = 'Asia/Damascus';
 
 async function main(): Promise<void> {
   const env = validateEnv(process.env);
@@ -95,18 +112,23 @@ async function main(): Promise<void> {
       created.push({ account, id });
     }
 
-    const doctorAccount = created.find((entry) => entry.account.role === USER_ROLE.DOCTOR);
+    const doctorAccounts = created.filter((entry) => entry.account.role === USER_ROLE.DOCTOR);
+    const [doctorAccount] = doctorAccounts;
     const adminAccount = created.find((entry) => entry.account.role === USER_ROLE.ADMIN);
     let seededPatients = 0;
     let seededCharges = 0;
+    let seededAppointments = 0;
 
     if (doctorAccount && adminAccount) {
-      const doctorId = await upsertDoctor(db, clinic.id, doctorAccount.id, specialty.id);
+      const doctorIds: string[] = [];
+      for (const entry of doctorAccounts) {
+        doctorIds.push(await upsertDoctor(db, clinic.id, entry.id, specialty.id));
+      }
 
       seededPatients = await seedPatients(db, {
         clinicId: clinic.id,
         specialtyId: specialty.id,
-        doctorId,
+        doctorId: doctorIds[0] ?? '',
         actorId: adminAccount.id,
       });
 
@@ -114,9 +136,24 @@ async function main(): Promise<void> {
         clinicId: clinic.id,
         actorId: adminAccount.id,
       });
+
+      const calendar = await seedAppointments(db, {
+        clinicId: clinic.id,
+        doctorIds,
+        actorId: adminAccount.id,
+        timeZone: CLINIC_TIME_ZONE,
+      });
+      seededAppointments = calendar.appointments;
     }
 
-    report(clinic.name, created, env.SEED_PASSWORD, seededPatients, seededCharges);
+    report(
+      clinic.name,
+      created,
+      env.SEED_PASSWORD,
+      seededPatients,
+      seededCharges,
+      seededAppointments,
+    );
   } finally {
     await client.end();
   }
@@ -142,7 +179,7 @@ async function upsertClinic(db: ReturnType<typeof drizzle>): Promise<{ id: strin
       address: 'Damascus, Syria',
       currency: 'USD',
       workingHours: WEEKDAY_HOURS,
-      settings: {},
+      settings: { timezone: CLINIC_TIME_ZONE, holidays: [] },
     })
     .returning({ id: clinics.id, name: clinics.name });
 
@@ -272,6 +309,7 @@ function report(
   password: string,
   seededPatients: number,
   seededCharges: number,
+  seededAppointments: number,
 ): void {
   const lines = [
     '',
@@ -291,6 +329,9 @@ function report(
     seededCharges > 0
       ? `Billed ${seededCharges} procedures and recorded payments — file 00005 is left overdue.`
       : 'Billing data already present — left untouched.',
+    seededAppointments > 0
+      ? `Booked ${seededAppointments} appointments across this week for both doctors, plus a waiting list.`
+      : 'Appointment data already present — left untouched.',
     '',
     'Development credentials only — change SEED_PASSWORD before any shared environment.',
     '',

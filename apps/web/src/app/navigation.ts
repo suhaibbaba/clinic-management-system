@@ -21,6 +21,9 @@ export interface NavItem {
  */
 export const NAV_ITEMS: readonly NavItem[] = [
   { to: '/patients', label: 'nav.patients', roles: USER_ROLES, icon: 'users' },
+  // The calendar is `R` for every role (ROLES.md); who may *write* to it is
+  // settled inside the page and, really, by the API.
+  { to: '/appointments', label: 'nav.appointments', roles: USER_ROLES, icon: 'calendar' },
   {
     to: '/billing/overdue',
     label: 'nav.overdue',

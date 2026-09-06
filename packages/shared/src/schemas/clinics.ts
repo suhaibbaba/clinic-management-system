@@ -13,6 +13,30 @@ import { settingsSchema, weeklyScheduleSchema } from '@shared/schemas/common';
 export const CURRENCIES = ['USD', 'ILS'] as const;
 export type Currency = (typeof CURRENCIES)[number];
 
+/**
+ * The scheduling keys inside `clinics.settings`.
+ *
+ * In the free-form settings blob rather than in columns of their own because
+ * they are configuration a clinic edits, not data other tables reference —
+ * and because adding one is then a line here rather than a migration. Parsed
+ * with `clinicScheduleSettings` so an absent or malformed blob degrades to the
+ * defaults instead of taking the calendar down.
+ */
+export const clinicScheduleSettingsSchema = z.object({
+  /** IANA zone the clinic's opening hours are expressed in. */
+  timezone: z.string().min(1).default('Asia/Damascus'),
+  /** Dates the clinic is shut regardless of the weekly schedule. */
+  holidays: z.array(z.iso.date()).default([]),
+});
+export type ClinicScheduleSettings = z.infer<typeof clinicScheduleSettingsSchema>;
+
+/** Never throws: unreadable settings must not stop the calendar from loading. */
+export function clinicScheduleSettings(settings: unknown): ClinicScheduleSettings {
+  const parsed = clinicScheduleSettingsSchema.safeParse(settings ?? {});
+
+  return parsed.success ? parsed.data : { timezone: 'Asia/Damascus', holidays: [] };
+}
+
 export const clinicSchema = z.object({
   id: z.uuid(),
   name: z.string(),
