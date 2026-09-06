@@ -16,7 +16,6 @@ import {
 import { and, eq, gte, lt, ne, notInArray } from 'drizzle-orm';
 
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { appointments, clinics, doctors } from '@api/database/schema';
 import { computeDaySlots, toTimeOfDay, type BusyInterval } from '@api/appointments/slots';
@@ -52,9 +51,12 @@ const rangesFor = (schedule: WeeklySchedule, weekday: number): readonly TimeRang
  * opening hours and its holidays, minus the appointments already booked — and
  * is never stored (CLAUDE.md architecture decision 6).
  *
- * Reading is open to every role: reception books, a doctor checks their own
- * day, and a technician looking at the calendar sees the same thing. Nothing
- * here is medical or financial.
+ * Every method takes a **clinic id**, not a caller. Reading availability is
+ * open to every role — reception books, a doctor checks their own day, a
+ * technician looking at the calendar sees the same thing — and it is also what
+ * the anonymous public booking page asks for, which has no caller at all.
+ * Nothing here is medical or financial, so there is nothing for an identity to
+ * gate; the clinic is the only scope that matters.
  */
 @Injectable()
 export class AvailabilityService {
@@ -63,8 +65,8 @@ export class AvailabilityService {
     private readonly scope: ClinicScopeService,
   ) {}
 
-  async forDay(actor: AuthenticatedUser, query: AvailabilityQuery): Promise<Availability> {
-    const context = await this.loadContext(actor, query);
+  async forDay(clinicId: string, query: AvailabilityQuery): Promise<Availability> {
+    const context = await this.loadContext(clinicId, query);
 
     const computation = computeDaySlots({
       clinicRanges: context.clinicRanges,
@@ -97,20 +99,17 @@ export class AvailabilityService {
    * Everything the pure computation needs, in one place.
    *
    * Exposed so the appointments service can reuse it to answer "is this exact
-   * time bookable?" without a second copy of the loading logic — and so public
-   * booking can later call it with a clinic id instead of an actor.
+   * time bookable?" without a second copy of the loading logic, and so the
+   * public booking module can call it from an anonymous endpoint.
    */
-  async loadContext(
-    actor: AuthenticatedUser,
-    query: AvailabilityQuery,
-  ): Promise<DayAvailabilityContext> {
+  async loadContext(clinicId: string, query: AvailabilityQuery): Promise<DayAvailabilityContext> {
     const [doctor] = await this.db
       .select({
         weeklySchedule: doctors.weeklySchedule,
         defaultDuration: doctors.defaultAppointmentDurationMinutes,
       })
       .from(doctors)
-      .where(this.scope.where(doctors, actor.clinicId, eq(doctors.id, query.doctorId)))
+      .where(this.scope.where(doctors, clinicId, eq(doctors.id, query.doctorId)))
       .limit(1);
 
     if (!doctor) {
@@ -120,7 +119,7 @@ export class AvailabilityService {
     const [clinic] = await this.db
       .select({ workingHours: clinics.workingHours, settings: clinics.settings })
       .from(clinics)
-      .where(eq(clinics.id, actor.clinicId))
+      .where(eq(clinics.id, clinicId))
       .limit(1);
 
     /* istanbul ignore next -- the caller's clinic always exists. */
@@ -137,7 +136,7 @@ export class AvailabilityService {
       clinicRanges: rangesFor(clinic.workingHours, weekday),
       doctorRanges: rangesFor(doctor.weeklySchedule, weekday),
       isHoliday: settings.holidays.includes(query.date),
-      busy: await this.busyIntervals(actor, query, timeZone),
+      busy: await this.busyIntervals(clinicId, query, timeZone),
       durationMinutes: query.durationMinutes ?? doctor.defaultDuration,
     };
   }
@@ -155,7 +154,7 @@ export class AvailabilityService {
    * indexed `starts_at` column to use `appointments_doctor_starts_idx`.
    */
   private async busyIntervals(
-    actor: AuthenticatedUser,
+    clinicId: string,
     query: AvailabilityQuery,
     timeZone: string,
   ): Promise<BusyInterval[]> {
@@ -168,7 +167,7 @@ export class AvailabilityService {
       .where(
         this.scope.where(
           appointments,
-          actor.clinicId,
+          clinicId,
           and(
             eq(appointments.doctorId, query.doctorId),
             gte(appointments.startsAt, windowStart),

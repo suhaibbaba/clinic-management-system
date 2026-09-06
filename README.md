@@ -4,12 +4,16 @@ Multi-clinic, multi-specialty clinic management system. Arabic (RTL) web UI, Nes
 PostgreSQL. See [CLAUDE.md](./CLAUDE.md) for architecture rules and [ROLES.md](./ROLES.md)
 for the authorization spec.
 
-> **Status: core, patients and billing.** Clinics, specialties, users/roles, doctors, auth and
-> the audit log are implemented, as is the patient record — medical history, visits, procedures
-> and chart marks, treatment plans, X-rays, prescriptions and the merged timeline — and the
-> money: charges, payments, statements, printable receipts and overdue balances. Arabic RTL
-> screens for all of it. Appointments are next; the patient file's prescriptions and timeline
-> tabs are placeholders until they land.
+> **Status: core, patients, billing, appointments, public booking and notifications.**
+> Clinics, specialties, users/roles, doctors, auth and the audit log are implemented, as is
+> the patient record — medical history, visits, procedures and chart marks, treatment plans,
+> X-rays, prescriptions and the merged timeline — the money (charges, payments, statements,
+> printable receipts and overdue balances) and the calendar, with conflicts prevented by a
+> database constraint rather than a check. Arabic RTL screens for all of it. The newest layer
+> is backend-only for now: anonymous patients can book through `/public/booking/:clinicSlug`
+> and confirm by OTP, and every message goes out through a `NotificationsService` whose
+> default provider writes to `notifications_log` and sends nothing. The public booking page
+> itself is next.
 
 ## Requirements
 

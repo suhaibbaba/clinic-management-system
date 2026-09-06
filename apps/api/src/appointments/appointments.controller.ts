@@ -96,7 +96,7 @@ export class AppointmentsController {
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: AvailabilityQueryDto,
   ): Promise<Availability> {
-    return this.availabilityService.forDay(actor, query);
+    return this.availabilityService.forDay(actor.clinicId, query);
   }
 
   @Get(':id')

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import { Test } from '@nestjs/testing';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+import { ThrottlerStorage } from '@nestjs/throttler';
 import { hash } from '@node-rs/argon2';
 import { CHART_TYPE, SPECIALTY_CODE, USER_ROLE, USER_ROLES, type UserRole } from '@clinic/shared';
 
@@ -31,6 +32,8 @@ function testPasswordHash(): Promise<string> {
 /** One isolated tenant: a clinic, a specialty and one account per role. */
 export interface TestClinic {
   readonly id: string;
+  /** Handle for the public booking routes, which carry no other clinic hint. */
+  readonly slug: string;
   readonly specialtyId: string;
   readonly userIds: Record<UserRole, string>;
   readonly phones: Record<UserRole, string>;
@@ -43,6 +46,15 @@ export interface TestContext {
   login(phone: string): Promise<string>;
   /** Creates a fresh, fully isolated clinic. */
   createClinic(): Promise<TestClinic>;
+  /**
+   * Forgets the rate-limit counters.
+   *
+   * The public booking routes allow five bookings a minute per address, which
+   * is right for the internet and far too few for a suite that books a dozen
+   * times in a second — every test would otherwise inherit the previous one's
+   * budget. The suite that asserts throttling simply does not call this.
+   */
+  resetThrottle(): void;
   close(): Promise<void>;
 }
 
@@ -86,8 +98,9 @@ export async function createTestContext(): Promise<TestContext> {
 
       const [clinic] = await db
         .insert(clinics)
-        .values({ name: `Test Clinic ${suffix}` })
-        .returning({ id: clinics.id });
+        // The slug is unique system-wide, so each isolated clinic needs its own.
+        .values({ name: `Test Clinic ${suffix}`, slug: `test-${suffix}` })
+        .returning({ id: clinics.id, slug: clinics.slug });
 
       if (!clinic) {
         throw new Error('Failed to create the test clinic');
@@ -133,7 +146,15 @@ export async function createTestContext(): Promise<TestContext> {
         phones[role] = phone;
       }
 
-      return { id: clinic.id, specialtyId: specialty.id, userIds, phones };
+      return { id: clinic.id, slug: clinic.slug, specialtyId: specialty.id, userIds, phones };
+    },
+
+    resetThrottle(): void {
+      const storage = app.get<{ storage?: Map<string, unknown> }>(ThrottlerStorage, {
+        strict: false,
+      });
+
+      storage?.storage?.clear();
     },
 
     async close(): Promise<void> {

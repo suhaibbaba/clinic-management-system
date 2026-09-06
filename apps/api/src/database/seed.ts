@@ -1,6 +1,9 @@
 import { hash } from '@node-rs/argon2';
 import {
+  BOOKING_CONFIRMATION_MODE,
   CHART_TYPE,
+  DEFAULT_NOTIFICATION_TEMPLATES,
+  NOTIFICATION_CHANNEL,
   SPECIALTY_CODE,
   USER_ROLE,
   type UserRole,
@@ -26,6 +29,8 @@ import { seedPatients } from '@api/database/seed-patients';
  */
 
 const CLINIC_NAME = 'Al Nour Dental Clinic';
+/** The clinic's handle in a public booking URL: /public/booking/al-nour. */
+const CLINIC_SLUG = 'al-nour';
 
 /**
  * Sunday–Thursday, 09:00–17:00, with a 13:00–14:00 break expressed as two
@@ -85,6 +90,37 @@ const ACCOUNTS: readonly SeedAccount[] = [
 
 /** The zone the clinic's opening hours are expressed in (see `clinicScheduleSettings`). */
 const CLINIC_TIME_ZONE = 'Asia/Damascus';
+
+/**
+ * Everything the clinic's `settings` blob holds today.
+ *
+ * Booking is on and in OTP mode, so `pnpm seed` produces a database the public
+ * flow can be exercised against end to end — the log provider is the default,
+ * so the code lands in `notifications_log` and needs no gateway.
+ *
+ * The message bodies are the Arabic defaults, written out rather than left
+ * implicit: a clinic edits these, and having them present in settings is what
+ * makes it obvious they are editable.
+ */
+const CLINIC_SETTINGS = {
+  timezone: CLINIC_TIME_ZONE,
+  holidays: [] as string[],
+  booking: {
+    enabled: true,
+    maxDaysAhead: 30,
+    minHoursBefore: 2,
+    confirmationMode: BOOKING_CONFIRMATION_MODE.OTP,
+    holdMinutes: 15,
+    maxActivePerPhone: 3,
+  },
+  notifications: {
+    enabled: true,
+    channel: NOTIFICATION_CHANNEL.SMS,
+    remind24h: true,
+    remind2h: true,
+    templates: { ...DEFAULT_NOTIFICATION_TEMPLATES },
+  },
+};
 
 async function main(): Promise<void> {
   const env = validateEnv(process.env);
@@ -174,12 +210,13 @@ async function upsertClinic(db: ReturnType<typeof drizzle>): Promise<{ id: strin
     .insert(clinics)
     .values({
       name: CLINIC_NAME,
+      slug: CLINIC_SLUG,
       phone: '+963110000000',
       email: 'info@clinic.local',
       address: 'Damascus, Syria',
       currency: 'USD',
       workingHours: WEEKDAY_HOURS,
-      settings: { timezone: CLINIC_TIME_ZONE, holidays: [] },
+      settings: CLINIC_SETTINGS,
     })
     .returning({ id: clinics.id, name: clinics.name });
 

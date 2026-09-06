@@ -36,6 +36,13 @@
       "when": 1788703223701,
       "tag": "0004_appointments_module",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788713646910,
+      "tag": "0005_booking_and_notifications",
+      "breakpoints": true
     }
   ]
 }

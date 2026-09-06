@@ -106,7 +106,7 @@ $EDITOR .env
 ```
 
 ```bash
-openssl rand -base64 48   # JWT_SECRET
+openssl rand -base64 48   # JWT_SECRET, BOOKING_TOKEN_SECRET
 openssl rand -hex 24      # POSTGRES_PASSWORD, STORAGE_SECRET_ACCESS_KEY
 ```
 
