@@ -76,7 +76,9 @@
     "language": "تغيير اللغة",
     "account": "الحساب",
     "breadcrumb": "مسار التنقل",
-    "appointments": "المواعيد"
+    "appointments": "المواعيد",
+    "pendingBookings": "حجوزات بانتظار التأكيد",
+    "waitingCount": "{{count}} بانتظار التأكيد"
   },
   "roles": {
     "admin": "مدير",
@@ -598,7 +600,9 @@
       "remaining": "متبقّية",
       "waiting": "قائمة الانتظار",
       "attendance": "نسبة الحضور",
-      "attendanceCaption": "من مواعيد اليوم"
+      "attendanceCaption": "من مواعيد اليوم",
+      "onlineToday": "حجوزات إلكترونية اليوم",
+      "onlineTodayCaption": "بانتظار ردّ الاستقبال"
     },
     "waiting": {
       "title": "قائمة الانتظار",
@@ -620,6 +624,36 @@
     },
     "grid": {
       "dragHint": "اسحب الموعد لتغيير وقته."
+    }
+  },
+  "booking": {
+    "pending": {
+      "title": "حجوزات بانتظار التأكيد",
+      "subtitle": "الحجوزات التي وصلت من صفحة الحجز الإلكتروني ولم يتم الردّ عليها بعد.",
+      "columns": {
+        "patient": "المريض",
+        "phone": "الهاتف",
+        "doctor": "الطبيب",
+        "slot": "الموعد المطلوب",
+        "requestedAt": "وقت الطلب",
+        "actions": "إجراءات"
+      },
+      "unverified": "بيانات غير مكتملة",
+      "confirm": "تأكيد",
+      "reject": "رفض",
+      "confirmed": "تم تأكيد الحجز وإبلاغ المريض",
+      "rejected": "تم رفض الحجز وإبلاغ المريض",
+      "rejectTitle": "رفض الحجز",
+      "rejectBody": "سيتم إلغاء الموعد وإرسال رسالة إلى المريض بالسبب.",
+      "reasonLabel": "سبب الرفض",
+      "empty": "لا توجد حجوزات بانتظار التأكيد",
+      "emptyHint": "كل ما وصل من صفحة الحجز تمّت معالجته.",
+      "kpi": {
+        "waiting": "بانتظار التأكيد",
+        "waitingCaption": "كل الحجوزات غير المؤكدة",
+        "today": "مواعيد اليوم",
+        "todayCaption": "من هذه الصفحة"
+      }
     }
   }
 }

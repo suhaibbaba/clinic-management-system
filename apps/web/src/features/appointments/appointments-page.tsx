@@ -14,6 +14,7 @@ import {
   useToast,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
+import { seesPendingBookings, usePendingBookings } from '@web/features/booking/queries';
 import { useClinic } from '@web/features/clinic/queries';
 import { useDoctors } from '@web/features/doctors/queries';
 import { AgendaList } from '@web/features/appointments/agenda-list';
@@ -104,6 +105,17 @@ export function AppointmentsPage(): JSX.Element {
   });
 
   const waiting = useWaitingList({ limit: 1 });
+
+  /*
+   * Today's online bookings, for the front desk.
+   *
+   * The one number on this page that is not in the calendar feed already: a
+   * booking sitting in `requested` for today is somebody who thinks they have
+   * an appointment and whom nobody has answered. `limit: 1` because only the
+   * total is wanted.
+   */
+  const frontDesk = seesPendingBookings(user?.role);
+  const onlineToday = usePendingBookings({ from: todayIso(), to: todayIso(), limit: 1 }, frontDesk);
 
   const appointments = calendar.data?.appointments ?? [];
   const selected = appointments.find((entry) => entry.id === selectedId);
@@ -234,6 +246,15 @@ export function AppointmentsPage(): JSX.Element {
             value={todayStats.attendance === null ? '—' : `${todayStats.attendance}%`}
             caption={t('appointments.kpi.attendanceCaption')}
           />
+          {frontDesk && (
+            <StatCard
+              icon="globe"
+              tone={(onlineToday.data?.total ?? 0) > 0 ? 'warning' : 'primary'}
+              label={t('appointments.kpi.onlineToday')}
+              value={onlineToday.data?.total ?? 0}
+              caption={t('appointments.kpi.onlineTodayCaption')}
+            />
+          )}
         </StatRow>
       </div>
 

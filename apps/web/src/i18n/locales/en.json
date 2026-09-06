@@ -76,7 +76,9 @@
     "language": "Language",
     "account": "Account",
     "breadcrumb": "Breadcrumb",
-    "appointments": "Appointments"
+    "appointments": "Appointments",
+    "pendingBookings": "Pending bookings",
+    "waitingCount": "{{count}} awaiting confirmation"
   },
   "roles": {
     "admin": "Admin",
@@ -598,7 +600,9 @@
       "remaining": "Remaining",
       "waiting": "Waiting list",
       "attendance": "Attendance",
-      "attendanceCaption": "of today's appointments"
+      "attendanceCaption": "of today's appointments",
+      "onlineToday": "Online bookings today",
+      "onlineTodayCaption": "Waiting for the front desk"
     },
     "waiting": {
       "title": "Waiting list",
@@ -620,6 +624,36 @@
     },
     "grid": {
       "dragHint": "Drag an appointment to change its time."
+    }
+  },
+  "booking": {
+    "pending": {
+      "title": "Pending bookings",
+      "subtitle": "Bookings that came in from the public page and nobody has answered yet.",
+      "columns": {
+        "patient": "Patient",
+        "phone": "Phone",
+        "doctor": "Doctor",
+        "slot": "Requested slot",
+        "requestedAt": "Requested at",
+        "actions": "Actions"
+      },
+      "unverified": "Data not verified",
+      "confirm": "Confirm",
+      "reject": "Reject",
+      "confirmed": "Booking confirmed and the patient told",
+      "rejected": "Booking rejected and the patient told",
+      "rejectTitle": "Reject the booking",
+      "rejectBody": "The appointment is cancelled and the patient is sent the reason.",
+      "reasonLabel": "Reason",
+      "empty": "Nothing waiting to be confirmed",
+      "emptyHint": "Everything from the booking page has been dealt with.",
+      "kpi": {
+        "waiting": "Awaiting confirmation",
+        "waitingCaption": "Every unconfirmed booking",
+        "today": "Today's slots",
+        "todayCaption": "On this page"
+      }
     }
   }
 }
