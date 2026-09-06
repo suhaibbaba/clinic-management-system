@@ -33,7 +33,16 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   ref,
 ) {
   return (
-    <div className="relative">
+    /*
+     * `className` sizes the *wrapper*, and the field fills it.
+     *
+     * The chevron is positioned against this element, so putting a width on
+     * the `<select>` instead left the two at different widths: a `w-56`
+     * currency field on a full-width row drew its arrow four hundred pixels
+     * to the right of the box it belongs to. Every caller passes width or
+     * margin here, which is a property of the control as a whole anyway.
+     */
+    <div className={cn('relative', className)}>
       <select
         ref={ref}
         aria-invalid={hasError || undefined}
@@ -41,10 +50,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
           'block h-10 w-full cursor-pointer appearance-none rounded-control border bg-surface',
           'ps-3.5 pe-10 text-start text-field text-ink',
           'transition-[border-color,box-shadow,background-color] duration-150',
-          'focus:border-primary-500 focus:outline-2 focus:outline-offset-0 focus:outline-primary-600',
+          'focus:border-primary-500',
           'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-subtle',
           hasError ? 'border-danger-500' : 'border-line',
-          className,
         )}
         {...props}
       >

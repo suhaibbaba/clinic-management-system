@@ -6,7 +6,7 @@ import {
   type Attachment,
   type AttachmentType,
 } from '@clinic/shared';
-import { useRef, useState, type ChangeEvent, type JSX } from 'react';
+import { useRef, useState, type ChangeEvent, type DragEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge, Button, EmptyState, Icon, Input, Select, useToast } from '@web/components/ui';
@@ -19,6 +19,7 @@ import {
   useUploadAttachment,
 } from '@web/features/patients/queries';
 import { errorMessageKey } from '@web/lib/api-error';
+import { cn } from '@web/lib/cn';
 import { formatDate } from '@web/lib/format';
 
 /**
@@ -58,7 +59,9 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-44">
           <label htmlFor="imaging-type" className="mb-1 block text-label text-ink-muted">
-            {t('imaging.type')}
+            {/* Not "Type": the uploader above has a field by that name, and two
+                identical labels on one screen is a guess about which is which. */}
+            {t('imaging.filterType')}
           </label>
           <Select
             id="imaging-type"
@@ -101,11 +104,11 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
       )}
 
       {attachments.data?.length === 0 && (
-        <EmptyState
-          icon="image"
-          title="imaging.empty"
-          hint={canUpload ? 'imaging.emptyHint' : undefined}
-        />
+        // The hint says where images will appear, not how to add one. The
+        // drop zone above already says "add an X-ray" in bigger type thirty
+        // pixels higher, and for someone without upload rights "upload the
+        // first X-ray" was advice they cannot take.
+        <EmptyState icon="image" title="imaging.empty" hint="imaging.emptyHint" />
       )}
 
       {attachments.data && attachments.data.length > 0 && (
@@ -135,25 +138,18 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
 
   const [type, setType] = useState<AttachmentType>('xray_periapical');
   const [tooth, setTooth] = useState('');
+  const [isOver, setIsOver] = useState(false);
 
-  const handleFile = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
+  const send = async (file: File): Promise<void> => {
     // Checked here so an oversized or unsupported file never starts a round
     // trip; the API checks the stored object again, which is the real gate.
     if (file.size > MAX_ATTACHMENT_BYTES) {
       toast.error('imaging.tooLarge');
-      event.target.value = '';
       return;
     }
 
     if (!ALLOWED_ATTACHMENT_MIME_TYPES.some((allowed) => allowed === file.type)) {
       toast.error('imaging.unsupportedType');
-      event.target.value = '';
       return;
     }
 
@@ -166,61 +162,119 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
       setTooth('');
     } catch (error) {
       toast.error(errorMessageKey(error));
-    } finally {
-      // Lets the same file be picked again after a failure.
-      event.target.value = '';
+    }
+  };
+
+  const handleFile = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const file = event.target.files?.[0];
+
+    if (file) {
+      await send(file);
+    }
+
+    // Lets the same file be picked again after a failure.
+    event.target.value = '';
+  };
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>): void => {
+    event.preventDefault();
+    setIsOver(false);
+
+    const file = event.dataTransfer.files.item(0);
+
+    if (file) {
+      void send(file);
     }
   };
 
   return (
-    <div className="flex flex-wrap items-end gap-3 rounded-card bg-surface p-5 shadow-card">
-      <div className="min-w-44">
-        <label htmlFor="upload-type" className="mb-1 block text-label text-ink-muted">
-          {t('imaging.type')}
-        </label>
-        <Select
-          placeholder={t('common.placeholders.selectType')}
-          id="upload-type"
-          value={type}
-          onChange={(event) => setType(event.target.value as AttachmentType)}
-          options={ATTACHMENT_TYPES.map((value) => ({
-            value,
-            label: t(`imaging.types.${value}`),
-          }))}
-        />
+    <div className="rounded-card bg-surface p-5 shadow-card">
+      {/*
+        What the file is, before the file itself: both fields are sent with the
+        upload, and a drop zone that fires the moment a file lands has to have
+        them answered already.
+      */}
+      <div className="mb-4 flex flex-wrap items-end gap-3">
+        <div className="min-w-44 flex-1 sm:flex-none">
+          <label htmlFor="upload-type" className="mb-1 block text-label text-ink-muted">
+            {t('imaging.type')}
+          </label>
+          <Select
+            placeholder={t('common.placeholders.selectType')}
+            id="upload-type"
+            value={type}
+            onChange={(event) => setType(event.target.value as AttachmentType)}
+            options={ATTACHMENT_TYPES.map((value) => ({
+              value,
+              label: t(`imaging.types.${value}`),
+            }))}
+          />
+        </div>
+
+        <div className="w-28">
+          <label htmlFor="upload-tooth" className="mb-1 block text-label text-ink-muted">
+            {t('imaging.tooth')}
+          </label>
+          <Input
+            id="upload-tooth"
+            dir="ltr"
+            inputMode="numeric"
+            placeholder="46"
+            value={tooth}
+            onChange={(event) => setTooth(event.target.value)}
+          />
+        </div>
       </div>
 
-      <div className="w-28">
-        <label htmlFor="upload-tooth" className="mb-1 block text-label text-ink-muted">
-          {t('imaging.tooth')}
-        </label>
-        <Input
-          id="upload-tooth"
-          dir="ltr"
-          inputMode="numeric"
-          placeholder="46"
-          value={tooth}
-          onChange={(event) => setTooth(event.target.value)}
-        />
-      </div>
+      {/*
+        A drop zone rather than a button in a row of filters.
+        
+        The upload used to be one `sm` button sitting between a type select and
+        a tooth box, which read as a third filter — "I can't find the place to
+        push X-rays" was the entirely fair verdict. A dashed target with the
+        action written on it is what every other app has taught people to look
+        for, and dragging a file onto it is how a scan actually arrives.
 
-      <input
-        ref={inputRef}
-        type="file"
-        className="sr-only"
-        accept={ALLOWED_ATTACHMENT_MIME_TYPES.join(',')}
-        onChange={(event) => void handleFile(event)}
-      />
-
-      <Button
-        icon={<Icon name="upload" />}
-        isLoading={upload.isPending}
-        onClick={() => inputRef.current?.click()}
+        Not a `<button>`: it contains one, and a button inside a button is not
+        valid HTML. The keyboard path is the button in the middle.
+      */}
+      <div
+        onDragOver={(event) => {
+          event.preventDefault();
+          setIsOver(true);
+        }}
+        onDragLeave={() => setIsOver(false)}
+        onDrop={handleDrop}
+        className={cn(
+          'flex flex-col items-center gap-2 rounded-panel border-2 border-dashed px-4 py-8 text-center',
+          'transition-colors duration-150',
+          isOver ? 'border-primary-500 bg-primary-50' : 'border-line-strong bg-inset/40',
+        )}
       >
-        {t(upload.isPending ? 'imaging.uploading' : 'imaging.upload')}
-      </Button>
+        <Icon name="upload" className="size-7 text-ink-subtle" />
 
-      <p className="text-label text-ink-muted">{t('imaging.uploadHint')}</p>
+        <p className="text-value font-semibold text-ink">{t('imaging.uploadTitle')}</p>
+        <p className="text-label text-ink-muted">{t('imaging.dropHint')}</p>
+
+        <input
+          ref={inputRef}
+          type="file"
+          className="sr-only"
+          accept={ALLOWED_ATTACHMENT_MIME_TYPES.join(',')}
+          onChange={(event) => void handleFile(event)}
+        />
+
+        <Button
+          className="mt-2"
+          icon={<Icon name="upload" />}
+          isLoading={upload.isPending}
+          onClick={() => inputRef.current?.click()}
+        >
+          {t(upload.isPending ? 'imaging.uploading' : 'imaging.upload')}
+        </Button>
+
+        <p className="mt-1 text-label text-ink-subtle">{t('imaging.uploadHint')}</p>
+      </div>
     </div>
   );
 }

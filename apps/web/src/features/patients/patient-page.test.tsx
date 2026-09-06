@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { AppRoutes } from '@web/app/router';
-import { ageInYears } from '@web/features/patients/patient-page';
+import { ageInYears } from '@web/features/patients/age';
 import ar from '@web/i18n/locales/ar.json';
 import { authTokens } from '@web/lib/auth-tokens';
 import {
@@ -57,6 +57,14 @@ async function renderPatientPage(role: UserRole, overrides = {}) {
   const api = mockApi(handlers(role, overrides));
   renderWithProviders(<AppRoutes />, { route: `/patients/${PATIENT_ID}` });
   return api;
+}
+
+/** A date of birth that is eight years old whenever the suite happens to run. */
+function childDateOfBirth(): string {
+  const born = new Date();
+  born.setFullYear(born.getFullYear() - 8);
+
+  return born.toISOString().slice(0, 10);
 }
 
 const toothButton = (fdi: number) =>
@@ -168,8 +176,13 @@ describe('Patient page', () => {
       expect(tooth).toHaveAttribute('data-state', 'filling');
     });
 
-    it('switches between adult and child dentition', async () => {
-      await renderPatientPage(USER_ROLE.DOCTOR);
+    it('switches between adult and child dentition for a child', async () => {
+      await renderPatientPage(USER_ROLE.DOCTOR, {
+        [`GET /patients/${PATIENT_ID}`]: {
+          status: 200,
+          body: makePatient({ dateOfBirth: childDateOfBirth() }),
+        },
+      });
       await findChart();
 
       // The dentition switch is a radio group: one of two, exactly one chosen.
@@ -177,6 +190,29 @@ describe('Patient page', () => {
 
       expect(await screen.findByRole('button', { name: /\b55\b/ })).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /\b18\b/ })).not.toBeInTheDocument();
+    });
+
+    it('does not offer a baby-teeth chart for an adult', async () => {
+      // The fixture patient was born in 1988; nobody needs to be asked whether
+      // to chart their deciduous arch.
+      await renderPatientPage(USER_ROLE.DOCTOR);
+      await findChart();
+
+      expect(screen.queryByRole('radio', { name: ar.chart.deciduous })).not.toBeInTheDocument();
+    });
+
+    it('keeps the switch for an adult who has a deciduous tooth on file', async () => {
+      // A retained deciduous tooth is rare and real, and the chart must never
+      // become unable to show a tooth it holds a procedure for.
+      await renderPatientPage(USER_ROLE.DOCTOR, {
+        'GET /performed-procedures': {
+          status: 200,
+          body: paginated([makeProcedure(55, { procedureId: CATALOG.id })]),
+        },
+      });
+      await findChart();
+
+      expect(screen.getByRole('radio', { name: ar.chart.deciduous })).toBeInTheDocument();
     });
 
     it('opens the panel with that tooth’s history', async () => {

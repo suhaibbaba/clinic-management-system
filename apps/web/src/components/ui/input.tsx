@@ -35,7 +35,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       className={cn(
         'block h-10 w-full rounded-control border bg-surface px-3.5 text-start text-field text-ink',
         'transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-ink-subtle',
-        'focus:border-primary-500 focus:outline-2 focus:outline-offset-0 focus:outline-primary-600',
+        'focus:border-primary-500',
         'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-subtle',
         // The native calendar/clock picker: same ink as the field's own icons,
         // and a pointer, because it is a button.

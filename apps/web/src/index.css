@@ -164,6 +164,19 @@ body {
 }
 
 /*
+ * Fields are the one exception, and they take the ring on their own edge.
+ *
+ * A text input already turns its border blue on focus; a 3px halo floating
+ * 2px outside that border reads as two concentric rings around one box, which
+ * is what the field looked like before. At `0` offset the outline lands flush
+ * on the border and the two read as a single 3px edge.
+ */
+:where(input, textarea, select):focus-visible {
+  outline-width: 2px;
+  outline-offset: 0;
+}
+
+/*
  * Scrollbars inside panels: thin, in the app's own greys, and only visible
  * once there is something to scroll.
  *

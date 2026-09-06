@@ -23,6 +23,7 @@ import {
   type ToothSummary,
 } from '@web/features/patients/chart/tooth-state';
 import { cn } from '@web/lib/cn';
+import { documentDirection } from '@web/lib/direction';
 
 export interface ToothChartProps {
   readonly dentition: Dentition;
@@ -329,7 +330,7 @@ function Tooltip({
       // accessible name, so a screen reader is not told them twice.
       aria-hidden="true"
       // The text follows the page even though the chart around it does not.
-      dir="rtl"
+      dir={documentDirection()}
       // Physical centring on purpose — `left` and `translate-x` are unaffected
       // by direction, so the bubble sits on the tooth either way.
       className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[130%] whitespace-nowrap rounded-control bg-ink px-2.5 py-1 text-label text-ink-inverse shadow-float"

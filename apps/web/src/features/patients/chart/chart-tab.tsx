@@ -1,3 +1,4 @@
+import { isDeciduousTooth } from '@clinic/shared';
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -15,6 +16,7 @@ import {
   usePatientProcedures,
 } from '@web/features/patients/queries';
 import { useSession } from '@web/features/auth/session';
+import { ageInYears } from '@web/features/patients/age';
 import { errorMessageKey } from '@web/lib/api-error';
 
 /**
@@ -24,7 +26,24 @@ import { errorMessageKey } from '@web/lib/api-error';
  * because a tooth's state is the pair of them: the procedure says how far along
  * it is, the catalog says what it charts as when finished.
  */
-export function ChartTab({ patientId }: { patientId: string }): JSX.Element {
+/**
+ * The age past which a deciduous chart is noise.
+ *
+ * The last baby teeth are normally shed around twelve, so from thirteen a
+ * patient has one dentition and being asked to choose between two is a
+ * question with a wrong answer available. It is a default, not a rule: a
+ * retained deciduous tooth already charted brings the toggle back, below.
+ */
+const PERMANENT_DENTITION_AGE = 13;
+
+export function ChartTab({
+  patientId,
+  dateOfBirth,
+}: {
+  readonly patientId: string;
+  /** ISO date, or null when the file has no date of birth. */
+  readonly dateOfBirth?: string | null | undefined;
+}): JSX.Element {
   const { t } = useTranslation();
   const { user } = useSession();
   const toast = useToast();
@@ -46,6 +65,18 @@ export function ChartTab({ patientId }: { patientId: string }): JSX.Element {
     () => deriveToothSummaries(procedures.data ?? [], outcomes),
     [procedures.data, outcomes],
   );
+
+  /*
+   * Whether this patient has two dentitions worth showing.
+   *
+   * An unknown date of birth keeps the toggle: the alternative is hiding half
+   * the chart from a child whose birthday nobody typed in. So does a deciduous
+   * tooth already on the file, which is what a retained one looks like — the
+   * chart must never become unable to show a tooth it has a procedure for.
+   */
+  const age = dateOfBirth ? ageInYears(dateOfBirth) : null;
+  const hasDeciduousHistory = [...summaries.keys()].some(isDeciduousTooth);
+  const showDentitionToggle = age === null || age < PERMANENT_DENTITION_AGE || hasDeciduousHistory;
 
   if (procedures.isPending || catalog.isPending) {
     return (
@@ -77,23 +108,27 @@ export function ChartTab({ patientId }: { patientId: string }): JSX.Element {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <SegmentedControl
-          label={t('chart.dentition')}
-          value={dentition}
-          onChange={(next) => {
-            setDentition(next);
-            // The deciduous arch has no tooth 27; keeping a selection across
-            // the switch would leave the panel describing a tooth that is not
-            // on screen.
-            setSelectedTooth(null);
-          }}
-          options={(['permanent', 'deciduous'] as const).map((option) => ({
-            value: option,
-            label: t(`chart.${option}`),
-          }))}
-        />
+        {showDentitionToggle && (
+          <SegmentedControl
+            label={t('chart.dentition')}
+            value={dentition}
+            onChange={(next) => {
+              setDentition(next);
+              // The deciduous arch has no tooth 27; keeping a selection across
+              // the switch would leave the panel describing a tooth that is not
+              // on screen.
+              setSelectedTooth(null);
+            }}
+            options={(['permanent', 'deciduous'] as const).map((option) => ({
+              value: option,
+              label: t(`chart.${option}`),
+            }))}
+          />
+        )}
 
-        <p className="text-label text-ink-muted">{t('chart.keyboardHint')}</p>
+        {/* `ms-auto`, so the hint stays at the far end whether or not the
+            toggle beside it exists. */}
+        <p className="ms-auto text-label text-ink-muted">{t('chart.keyboardHint')}</p>
       </div>
 
       {/* A new patient still gets a chart — every tooth healthy — with a line

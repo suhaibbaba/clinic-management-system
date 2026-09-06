@@ -32,7 +32,6 @@
       "email": "name@clinic.com",
       "address": "City, district, street",
       "emergencyName": "A relative or companion",
-      "currency": "USD",
       "amount": "0.00",
       "note": "Write your notes here…",
       "reason": "State the reason",
@@ -169,7 +168,11 @@
     "email": "Email",
     "address": "Address",
     "currency": "Currency",
-    "currencyHint": "Three-letter code, e.g. USD",
+    "currencyHint": "Shown beside every figure in the system",
+    "currencies": {
+      "USD": "US dollar",
+      "ILS": "Israeli shekel"
+    },
     "workingHours": "Opening hours",
     "logo": "Clinic logo",
     "uploadLogo": "Upload logo",
@@ -268,7 +271,7 @@
       "chart": "Tooth chart",
       "visits": "Visits",
       "treatmentPlans": "Treatment plans",
-      "attachments": "Attachments",
+      "attachments": "X-rays & files",
       "prescriptions": "Prescriptions",
       "timeline": "Timeline",
       "billing": "Billing",
@@ -423,6 +426,8 @@
     "type": "Type",
     "tooth": "Tooth",
     "invalidTooth": "Not a valid tooth number",
+    "uploadTitle": "Add an X-ray or a document",
+    "dropHint": "Drag a file here, or choose one from your device",
     "upload": "Upload image",
     "uploading": "Uploading…",
     "uploaded": "Image uploaded",
@@ -431,7 +436,6 @@
     "unsupportedType": "Unsupported file type",
     "deleted": "Image deleted",
     "empty": "No images for this patient",
-    "emptyHint": "Upload the first X-ray.",
     "loadFailed": "Could not load images.",
     "types": {
       "xray_panoramic": "Panoramic",
@@ -441,7 +445,9 @@
       "clinical_photo": "Clinical photo",
       "document": "Document"
     },
-    "filterTooth": "Filter by tooth"
+    "filterTooth": "Filter by tooth",
+    "filterType": "Filter by type",
+    "emptyHint": "Uploaded images and documents appear here."
   },
   "billing": {
     "outstanding": "Outstanding balance",

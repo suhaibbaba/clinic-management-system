@@ -22,6 +22,7 @@ export { Input } from '@web/components/ui/input';
 export { Modal } from '@web/components/ui/modal';
 export { PageHeader } from '@web/components/ui/page-header';
 export { ProgressBar, type ProgressTone } from '@web/components/ui/progress-bar';
+export { RowAction, type RowActionTone } from '@web/components/ui/row-action';
 export { SearchField } from '@web/components/ui/search-field';
 export { SegmentedControl, type SegmentOption } from '@web/components/ui/segmented-control';
 export { Select, type SelectOption } from '@web/components/ui/select';

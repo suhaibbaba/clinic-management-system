@@ -9,6 +9,7 @@ import {
   EmptyState,
   Icon,
   PageHeader,
+  RowAction,
   SearchField,
   SegmentedControl,
   Table,
@@ -21,8 +22,7 @@ import { useClinic } from '@web/features/clinic/queries';
 import { PatientFormModal } from '@web/features/patients/patient-form-modal';
 import { canCreatePatient, seesClinicalPatientFields } from '@web/features/patients/permissions';
 import { usePatients } from '@web/features/patients/queries';
-import { ageInYears } from '@web/features/patients/patient-page';
-import { cn } from '@web/lib/cn';
+import { ageInYears } from '@web/features/patients/age';
 import { useDebounced } from '@web/lib/use-debounced';
 
 const PAGE_SIZE = 10;
@@ -173,18 +173,10 @@ export function PatientsPage(): JSX.Element {
       header: 'common.actions',
       actions: true,
       render: (row) => (
-        <button
-          type="button"
-          onClick={() => navigate(`/patients/${row.id}`)}
-          className={cn(
-            'inline-flex cursor-pointer items-center gap-0.5 rounded-control px-1 py-0.5',
-            'text-value font-medium text-primary-600',
-            'transition-colors duration-150 hover:text-primary-700',
-          )}
-        >
+        <RowAction onClick={() => navigate(`/patients/${row.id}`)}>
           {t('patients.openFile')}
           <Icon name="chevron-end" className="size-4" />
-        </button>
+        </RowAction>
       ),
     });
 
@@ -223,8 +215,9 @@ export function PatientsPage(): JSX.Element {
           this app is most often used at.
         */}
         <SearchField
-          className="w-full min-w-0 sm:max-w-sm sm:flex-1"
+          className="w-full min-w-0 sm:max-w-md sm:flex-1"
           label={t('patients.search')}
+          shortcut="/"
           placeholder={t('patients.searchPlaceholder')}
           value={search}
           onChange={(event) => setSearch(event.target.value)}

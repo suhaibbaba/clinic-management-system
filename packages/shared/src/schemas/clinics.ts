@@ -2,6 +2,17 @@ import { z } from 'zod';
 
 import { settingsSchema, weeklyScheduleSchema } from '@shared/schemas/common';
 
+/**
+ * The currencies a clinic may be billed in, as ISO-4217 codes.
+ *
+ * A closed list rather than any three letters: money is formatted, printed on
+ * receipts and totalled per clinic, and a typo ("USE") would have quietly
+ * relabelled every figure in the system. Adding one is a line here plus its
+ * label in the i18n files.
+ */
+export const CURRENCIES = ['USD', 'ILS'] as const;
+export type Currency = (typeof CURRENCIES)[number];
+
 export const clinicSchema = z.object({
   id: z.uuid(),
   name: z.string(),
@@ -10,7 +21,13 @@ export const clinicSchema = z.object({
   phone: z.string().nullable(),
   email: z.string().nullable(),
   address: z.string().nullable(),
-  /** ISO-4217 code. Money itself is `numeric(10,2)`, handled as strings. */
+  /**
+   * ISO-4217 code. Money itself is `numeric(10,2)`, handled as strings.
+   *
+   * Read as a plain string, not as the enum: a clinic row stored before the
+   * list existed must still parse, or the settings screen it would be fixed on
+   * is the one screen that fails to load.
+   */
   currency: z.string(),
   workingHours: weeklyScheduleSchema,
   settings: settingsSchema,
@@ -26,11 +43,8 @@ export const updateClinicSchema = z
     phone: z.string().trim().max(32).nullish(),
     email: z.email().max(255).nullish(),
     address: z.string().trim().max(500).nullish(),
-    currency: z
-      .string()
-      .trim()
-      .length(3)
-      .regex(/^[A-Z]{3}$/, 'Expected a three-letter ISO-4217 code'),
+    /** Writes are held to the list, even though reads are not. */
+    currency: z.enum(CURRENCIES),
     workingHours: weeklyScheduleSchema,
     settings: settingsSchema,
   })

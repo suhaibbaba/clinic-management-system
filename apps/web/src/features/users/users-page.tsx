@@ -3,12 +3,14 @@ import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
+  Avatar,
   Badge,
   Button,
   EmptyState,
   Icon,
-  Input,
   PageHeader,
+  RowAction,
+  SearchField,
   Select,
   Switch,
   Table,
@@ -55,9 +57,42 @@ export function UsersPage(): JSX.Element {
 
   const columns = useMemo<Column<User>[]>(
     () => [
-      { key: 'name', header: 'users.name', primary: true, render: (row) => row.name },
-      { key: 'phone', header: 'users.phone', render: (row) => row.phone },
-      { key: 'email', header: 'users.email', render: (row) => row.email ?? '—' },
+      {
+        key: 'name',
+        header: 'users.name',
+        primary: true,
+        // Name and email in one identity cell, the way the patients list does
+        // it. Two columns for one person is what pushed "Reset password" off
+        // the right-hand edge of the card at 1440px.
+        render: (row) => (
+          <span className="flex items-center gap-3">
+            <Avatar name={row.name} tintKey={row.id} />
+            <span className="flex min-w-0 flex-col leading-tight">
+              <span className="truncate font-semibold text-ink">{row.name}</span>
+              {row.email !== null && row.email !== undefined && (
+                <span className="truncate text-label text-ink-subtle">{row.email}</span>
+              )}
+            </span>
+          </span>
+        ),
+      },
+      {
+        key: 'phone',
+        header: 'users.phone',
+        render: (row) => (
+          <span dir="ltr" className="tabular-nums">
+            {row.phone}
+          </span>
+        ),
+      },
+      // Dropped from the wide shape — it is the caption under the name there —
+      // but kept as its own labelled row on a card, where there is no caption.
+      {
+        key: 'email',
+        header: 'users.email',
+        hideOnDesktop: true,
+        render: (row) => row.email ?? '—',
+      },
       {
         key: 'role',
         header: 'users.role',
@@ -75,9 +110,12 @@ export function UsersPage(): JSX.Element {
               onCheckedChange={() => void toggleActive(row)}
               label={row.isActive ? t('users.deactivate') : t('users.activate')}
             />
-            <Badge tone={row.isActive ? 'success' : 'neutral'}>
+            {/* Plain text, not a badge: a switch that is on beside a green pill
+                reading "Active" states the same fact twice, in the width of
+                two columns. */}
+            <span className="text-label text-ink-muted">
               {row.isActive ? t('users.active') : t('users.inactive')}
-            </Badge>
+            </span>
           </div>
         ),
       },
@@ -93,26 +131,21 @@ export function UsersPage(): JSX.Element {
         header: 'common.actions',
         actions: true,
         render: (row) => (
-          <div className="flex items-center gap-2">
-            <Button
+          <div className="flex items-center gap-4">
+            <RowAction
               icon={<Icon name="edit" />}
-              size="sm"
-              variant="secondary"
               onClick={() => {
                 setFormUser(row);
                 setFormOpen(true);
               }}
             >
               {t('common.edit')}
-            </Button>
-            <Button
-              icon={<Icon name="key" />}
-              size="sm"
-              variant="ghost"
-              onClick={() => setResetUser(row)}
-            >
+            </RowAction>
+            {/* The second action on the row, so grey until it is pointed at:
+                two blues in one cell and neither is the one to press. */}
+            <RowAction icon={<Icon name="key" />} tone="quiet" onClick={() => setResetUser(row)}>
               {t('users.resetPassword')}
-            </Button>
+            </RowAction>
           </div>
         ),
       },
@@ -140,11 +173,14 @@ export function UsersPage(): JSX.Element {
         }
       />
 
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <Input
-          className="w-64"
+      {/* The same toolbar shape as every other list: the app's search field,
+          then the filters, on their own line at 390px. */}
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <SearchField
+          className="w-full min-w-0 sm:max-w-md sm:flex-1"
+          label={t('common.search')}
+          shortcut="/"
           placeholder={t('users.searchPlaceholder')}
-          aria-label={t('common.search')}
           value={search}
           onChange={(event) => {
             setSearch(event.target.value);
@@ -153,7 +189,7 @@ export function UsersPage(): JSX.Element {
         />
 
         <Select
-          className="w-48"
+          className="w-full sm:ms-auto sm:w-48"
           aria-label={t('users.filterRole')}
           placeholder={t('common.all')}
           options={USER_ROLES.map((value) => ({ value, label: t(`roles.${value}`) }))}
