@@ -1,4 +1,4 @@
-import { TOOTH_STATE } from '@clinic/shared';
+import { TOOTH_STATE, type ToothState } from '@clinic/shared';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -17,7 +17,7 @@ function renderChart(
 ) {
   const onSelect = vi.fn();
 
-  render(
+  const view = render(
     <ToothChart
       dentition="permanent"
       summaries={summaries}
@@ -26,11 +26,32 @@ function renderChart(
     />,
   );
 
-  return { onSelect };
+  return { onSelect, container: view.container };
 }
 
 const tooth = (fdi: number): HTMLElement =>
   screen.getByRole('button', { name: new RegExp(`\\b${fdi}\\b`) });
+
+/** The CSS variables the chart paints with, so a test names a token not a hue. */
+const TOKEN = {
+  crown: 'var(--color-tooth-crown)',
+  rootCanal: 'var(--color-tooth-root-canal)',
+};
+
+/** A summary map with one tooth carrying the given states, most significant first. */
+const charted = (fdi: number, states: readonly ToothState[]): Map<number, ToothSummary> =>
+  new Map([
+    [
+      fdi,
+      {
+        tooth: fdi,
+        state: states[0]!,
+        states,
+        surfaces: [],
+        procedureCount: states.length,
+      },
+    ],
+  ]);
 
 describe('ToothChart', () => {
   it('renders every tooth as a button', () => {
@@ -181,23 +202,88 @@ describe('ToothChart', () => {
   });
 
   it('shows a missing tooth with a dashed outline, not colour alone', () => {
-    const summaries = new Map<number, ToothSummary>([
-      [
-        18,
-        {
-          tooth: 18,
-          state: TOOTH_STATE.MISSING,
-          states: [TOOTH_STATE.MISSING],
-          surfaces: [],
-          procedureCount: 1,
-        },
-      ],
-    ]);
+    renderChart(charted(18, [TOOTH_STATE.MISSING]));
 
-    renderChart(summaries);
+    const button = tooth(18);
+    expect(button.querySelector('[stroke-dasharray]')).not.toBeNull();
+    expect(button).toHaveAccessibleName(new RegExp(ar.chart.states.missing));
+  });
 
-    const group = tooth(18);
-    expect(group.querySelector('path')).toHaveAttribute('stroke-dasharray');
-    expect(group).toHaveAccessibleName(new RegExp(ar.chart.states.missing));
+  describe('anatomy', () => {
+    it('draws the midline the quadrants are read against', () => {
+      const { container } = renderChart();
+
+      // Left of it is the patient's right (quadrants 1 and 4), right of it the
+      // patient's left. Without it "the fifth one" has two answers.
+      expect(container.querySelector('[data-chart-midline]')).not.toBeNull();
+    });
+
+    it('draws an upper molar with three roots and a lower one with two', () => {
+      renderChart();
+
+      // Four paths for an upper molar: three roots and a crown.
+      expect(tooth(16).querySelectorAll('path')).toHaveLength(4);
+      // Three for a lower one: two roots and a crown.
+      expect(tooth(46).querySelectorAll('path')).toHaveLength(3);
+      // Two for an incisor.
+      expect(tooth(11).querySelectorAll('path')).toHaveLength(2);
+    });
+
+    it('paints the root and the crown of one tooth differently', () => {
+      // The case the old single-fill chart could not show: a canal *under* a
+      // crown. Precedence used to pick one and drop the other.
+      renderChart(charted(16, [TOOTH_STATE.CROWN, TOOTH_STATE.ROOT_CANAL]));
+
+      const paths = [...tooth(16).querySelectorAll('path')];
+      const fills = paths.map((path) => path.getAttribute('fill'));
+
+      // Three roots in the canal colour, then the crown in its own.
+      expect(fills.slice(0, 3)).toEqual(Array.from({ length: 3 }, () => TOKEN.rootCanal));
+      expect(fills[3]).toBe(TOKEN.crown);
+    });
+
+    it('replaces the root of an implant with a post rather than colouring it', () => {
+      renderChart(charted(36, [TOOTH_STATE.IMPLANT, TOOTH_STATE.CROWN]));
+
+      const button = tooth(36);
+      // The threads are the tell: no other tooth draws lines inside itself.
+      expect(button.querySelectorAll('line').length).toBeGreaterThan(0);
+      // ...and the crown above it is still painted as a crown.
+      const crown = [...button.querySelectorAll('path')].at(-1);
+      expect(crown).toHaveAttribute('fill', TOKEN.crown);
+    });
+
+    it('joins adjacent bridged teeth with one bar', () => {
+      const summaries = new Map<number, ToothSummary>([
+        ...charted(24, [TOOTH_STATE.BRIDGE]),
+        ...charted(25, [TOOTH_STATE.BRIDGE]),
+        ...charted(26, [TOOTH_STATE.BRIDGE]),
+      ]);
+
+      renderChart(summaries);
+
+      const bar = (fdi: number) => {
+        const rect = tooth(fdi).querySelector('rect');
+        return {
+          from: Number(rect?.getAttribute('x')),
+          to: Number(rect?.getAttribute('x')) + Number(rect?.getAttribute('width')),
+        };
+      };
+
+      // Every bar but the first starts before its own tooth's box (x < 0) so
+      // it overlaps the one reaching towards it. Getting that wrong drew the
+      // appliance with a hairline gap between two of the teeth it joins, which
+      // is exactly what a bridge is not.
+      expect(bar(24)).toEqual({ from: 8, to: 54 });
+      expect(bar(25)).toEqual({ from: -6, to: 54 });
+      expect(bar(26)).toEqual({ from: -6, to: 40 });
+
+      // The box is 48 wide, so each pair overlaps rather than meeting.
+      expect(bar(24).to).toBeGreaterThan(48);
+      expect(bar(25).from).toBeLessThan(0);
+
+      // A bridged tooth on its own is not a bridge span.
+      expect(tooth(34).querySelector('rect')).toBeNull();
+    });
   });
 });
