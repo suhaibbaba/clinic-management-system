@@ -32,7 +32,6 @@
       "email": "name@clinic.com",
       "address": "المدينة، الحي، الشارع",
       "emergencyName": "اسم قريب أو مرافق",
-      "currency": "USD",
       "amount": "0.00",
       "note": "اكتب ملاحظاتك هنا…",
       "reason": "اذكر سبب العملية",
@@ -169,7 +168,11 @@
     "email": "البريد الإلكتروني",
     "address": "العنوان",
     "currency": "العملة",
-    "currencyHint": "رمز مكوّن من ثلاثة أحرف، مثل USD",
+    "currencyHint": "تُعرض مع كل مبلغ في النظام",
+    "currencies": {
+      "USD": "الدولار الأمريكي",
+      "ILS": "الشيكل الإسرائيلي"
+    },
     "workingHours": "أوقات العمل",
     "logo": "شعار العيادة",
     "uploadLogo": "رفع الشعار",
@@ -268,7 +271,7 @@
       "chart": "مخطط الأسنان",
       "visits": "الزيارات",
       "treatmentPlans": "الخطط العلاجية",
-      "attachments": "الصور والمرفقات",
+      "attachments": "الأشعة والمرفقات",
       "prescriptions": "الوصفات",
       "timeline": "الخط الزمني",
       "billing": "الحساب المالي",
@@ -423,6 +426,8 @@
     "type": "النوع",
     "tooth": "السن",
     "invalidTooth": "رقم سن غير صالح",
+    "uploadTitle": "أضف صورة شعاعية أو مستنداً",
+    "dropHint": "اسحب الملف إلى هنا، أو اختره من جهازك",
     "upload": "رفع صورة",
     "uploading": "جارٍ الرفع…",
     "uploaded": "تم رفع الصورة",
@@ -431,7 +436,6 @@
     "unsupportedType": "نوع الملف غير مدعوم",
     "deleted": "تم حذف الصورة",
     "empty": "لا توجد صور لهذا المريض",
-    "emptyHint": "ارفع أول صورة شعاعية.",
     "loadFailed": "تعذّر تحميل الصور.",
     "types": {
       "xray_panoramic": "بانوراما",
@@ -441,7 +445,9 @@
       "clinical_photo": "صورة سريرية",
       "document": "مستند"
     },
-    "filterTooth": "تصفية حسب السن"
+    "filterTooth": "تصفية حسب السن",
+    "filterType": "تصفية حسب النوع",
+    "emptyHint": "الصور والمستندات المرفوعة تظهر هنا."
   },
   "billing": {
     "outstanding": "الرصيد المستحق",

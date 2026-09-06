@@ -2,11 +2,12 @@ import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { EmptyState } from '@web/components/ui';
+import { Avatar, EmptyState } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { AccountTab } from '@web/features/billing/account-tab';
 import { PatientBalanceCard } from '@web/features/billing/patient-balance-card';
 import { canSeeBilling } from '@web/features/billing/permissions';
+import { ageInYears } from '@web/features/patients/age';
 import { AllergyBanner } from '@web/features/patients/allergy-banner';
 import { ChartTab } from '@web/features/patients/chart/chart-tab';
 import { ImagingTab } from '@web/features/patients/imaging/imaging-tab';
@@ -51,41 +52,67 @@ export function PatientPage(): JSX.Element {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* First, and before the record itself has loaded. */}
-      <AllergyBanner patientId={id} />
+      {/*
+        The file's identity line, not a card.
 
-      <header className="rounded-card bg-surface shadow-card px-5 py-4">
+        It was a full-width white slab with a name at one edge and a balance at
+        the other and a hole in between; on a wide screen the two facts it
+        carried were a screen apart. As a plain header row — avatar, name, the
+        rest of the identity as one quiet line under it — it says the same
+        things in a third of the height, and the white surfaces below it are
+        left to mean "content".
+      */}
+      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         {patient.isPending && <p className="text-value text-ink-muted">{t('common.loading')}</p>}
 
         {patient.isError && <p className="text-value text-danger-600">{t('errors.notFound')}</p>}
 
         {patient.data && (
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-lg font-semibold text-ink">{patient.data.fullName}</h1>
-              <dl className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-value text-ink-muted">
-                <div className="flex gap-1">
-                  <dt>{t('patients.fileNumber')}:</dt>
-                  <dd dir="ltr">{patient.data.fileNumber}</dd>
-                </div>
-                <div className="flex gap-1">
-                  <dt>{t('patients.age')}:</dt>
-                  <dd>
-                    {patient.data.dateOfBirth
-                      ? t('patients.years', { count: ageInYears(patient.data.dateOfBirth) })
-                      : '—'}
-                  </dd>
-                </div>
-                <div className="flex gap-1">
-                  <dt>{t('patients.phone')}:</dt>
-                  <dd dir="ltr">{patient.data.phone}</dd>
-                </div>
+          <div className="flex min-w-0 items-center gap-3">
+            <Avatar name={patient.data.fullName} tintKey={id} className="size-11 text-value" />
+
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <h1 className="truncate text-xl font-semibold tracking-tight text-ink">
+                  {patient.data.fullName}
+                </h1>
+                {/* Beside the name it qualifies, and it appears the moment its
+                    own query lands rather than waiting on the record. */}
+                <AllergyBanner patientId={id} />
+              </div>
+
+              {/*
+                One line, dot-separated. Three labelled pairs spread across a
+                row read as a form; the labels are only there for a screen
+                reader, which is what `sr-only` on the `dt` is for.
+              */}
+              <dl className="mt-0.5 flex flex-wrap items-center gap-x-2 text-label text-ink-muted">
+                <dt className="sr-only">{t('patients.fileNumber')}</dt>
+                <dd dir="ltr" className="tabular-nums">
+                  {patient.data.fileNumber}
+                </dd>
+
+                <span aria-hidden="true">·</span>
+
+                <dt className="sr-only">{t('patients.age')}</dt>
+                <dd>
+                  {patient.data.dateOfBirth
+                    ? t('patients.years', { count: ageInYears(patient.data.dateOfBirth) })
+                    : '—'}
+                </dd>
+
+                <span aria-hidden="true">·</span>
+
+                <dt className="sr-only">{t('patients.phone')}</dt>
+                <dd dir="ltr" className="tabular-nums">
+                  {patient.data.phone}
+                </dd>
               </dl>
             </div>
-
-            {role && canSeeBilling(role) && <PatientBalanceCard patientId={id} />}
           </div>
         )}
+
+        {patient.data && role && canSeeBilling(role) && <PatientBalanceCard patientId={id} />}
       </header>
 
       {/*
@@ -103,7 +130,11 @@ export function PatientPage(): JSX.Element {
           // page; a tab strip that scrolls is what every mobile OS does.
           'flex items-center gap-1 rounded-pill bg-inset p-1',
           'max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-          'sm:inline-flex sm:flex-wrap sm:overflow-visible',
+          // `self-start` as well as `inline-flex`: the strip sits in a column
+          // flex container, where `align-items: stretch` pulls an inline-flex
+          // child to the full width anyway — which drew the pill as a grey bar
+          // across the page with the tabs bunched at one end.
+          'sm:inline-flex sm:flex-wrap sm:self-start sm:overflow-visible',
         )}
       >
         {tabs.map((tab) => (
@@ -134,7 +165,9 @@ export function PatientPage(): JSX.Element {
         aria-labelledby={`tab-${activeTab}`}
         className="min-w-0"
       >
-        {activeTab === 'chart' && <ChartTab patientId={id} />}
+        {activeTab === 'chart' && (
+          <ChartTab patientId={id} dateOfBirth={patient.data?.dateOfBirth} />
+        )}
         {activeTab === 'visits' && <VisitsTab patientId={id} />}
         {activeTab === 'treatmentPlans' && (
           <TreatmentPlansTab patientId={id} patient={patient.data} />
@@ -152,17 +185,4 @@ export function PatientPage(): JSX.Element {
       </div>
     </div>
   );
-}
-
-/** Whole years since a `YYYY-MM-DD` date of birth. */
-export function ageInYears(dateOfBirth: string, now: Date = new Date()): number {
-  const born = new Date(`${dateOfBirth}T00:00:00`);
-  let age = now.getFullYear() - born.getFullYear();
-
-  const monthDelta = now.getMonth() - born.getMonth();
-  if (monthDelta < 0 || (monthDelta === 0 && now.getDate() < born.getDate())) {
-    age -= 1;
-  }
-
-  return age;
 }

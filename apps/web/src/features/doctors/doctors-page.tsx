@@ -7,8 +7,9 @@ import {
   Button,
   EmptyState,
   Icon,
-  Input,
   PageHeader,
+  RowAction,
+  SearchField,
   Table,
   type Column,
 } from '@web/components/ui';
@@ -71,17 +72,15 @@ export function DoctorsPage(): JSX.Element {
       actions: true,
       render: (row) =>
         isAdmin || row.userId === user?.id ? (
-          <Button
+          <RowAction
             icon={<Icon name="edit" />}
-            size="sm"
-            variant="secondary"
             onClick={() => {
               setFormDoctor(row);
               setFormOpen(true);
             }}
           >
             {isAdmin ? t('common.edit') : t('doctors.editSchedule')}
-          </Button>
+          </RowAction>
         ) : null,
     });
 
@@ -110,11 +109,12 @@ export function DoctorsPage(): JSX.Element {
         }
       />
 
-      <div className="mb-4">
-        <Input
-          className="w-64"
+      <div className="mb-5">
+        <SearchField
+          className="w-full min-w-0 sm:max-w-md"
+          label={t('common.search')}
+          shortcut="/"
           placeholder={t('doctors.searchPlaceholder')}
-          aria-label={t('common.search')}
           value={search}
           onChange={(event) => {
             setSearch(event.target.value);

@@ -19,6 +19,16 @@ export interface Column<TRow> {
    */
   readonly hideOnMobile?: boolean | undefined;
   /**
+   * The mirror image: dropped from the wide table, kept on the card. For a
+   * field the wide shape folds into another cell — an email printed as the
+   * caption under a name — and which therefore has nowhere to live on a card
+   * unless it is declared again as its own labelled row.
+   *
+   * A column may set one of these or the other; setting both would declare a
+   * column that never renders.
+   */
+  readonly hideOnDesktop?: boolean | undefined;
+  /**
    * The card's title line on mobile: rendered bold across the full width with
    * no label, because a patient's name does not need to be captioned "name".
    * At most one column should claim this.
@@ -99,6 +109,7 @@ export function Table<TRow>({
     return <>{empty}</>;
   }
 
+  const wideColumns = columns.filter((column) => column.hideOnDesktop !== true);
   const mobileColumns = columns.filter((column) => column.hideOnMobile !== true);
   const primary = mobileColumns.find((column) => column.primary === true);
   const actions = mobileColumns.find((column) => column.actions === true);
@@ -212,7 +223,7 @@ export function Table<TRow>({
         <table className="w-full border-collapse text-value">
           <thead>
             <tr>
-              {columns.map((column) => (
+              {wideColumns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
@@ -232,7 +243,7 @@ export function Table<TRow>({
           <tbody className="divide-y divide-line">
             {isLoading && (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-8 text-center text-ink-muted">
+                <td colSpan={wideColumns.length} className="px-4 py-8 text-center text-ink-muted">
                   {t('common.loading')}
                 </td>
               </tr>
@@ -250,7 +261,7 @@ export function Table<TRow>({
                     className: 'transition-colors duration-150 hover:bg-row-hover',
                   })}
                 >
-                  {columns.map((column) => (
+                  {wideColumns.map((column) => (
                     <td
                       key={column.key}
                       className={cn(

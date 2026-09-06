@@ -3,6 +3,7 @@ import type { JSX, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@web/lib/cn';
+import { documentDirection } from '@web/lib/direction';
 
 export interface DrawerProps {
   open: boolean;
@@ -39,7 +40,7 @@ export function Drawer({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-ink/40" />
         <Dialog.Content
-          dir="rtl"
+          dir={documentDirection()}
           className={cn(
             'fixed inset-y-0 end-0 z-50 flex w-full max-w-md flex-col bg-surface shadow-float',
             'border-s border-line',

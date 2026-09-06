@@ -1,12 +1,15 @@
-import { USER_ROLE, type WeeklySchedule } from '@clinic/shared';
+import { CURRENCIES, USER_ROLE, type Currency, type WeeklySchedule } from '@clinic/shared';
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Input, PageHeader, useToast } from '@web/components/ui';
+import { Button, FormField, Icon, Input, PageHeader, Select, useToast } from '@web/components/ui';
 import { ScheduleEditor } from '@web/components/schedule-editor';
 import { useSession } from '@web/features/auth/session';
 import { useClinic, useUpdateClinic } from '@web/features/clinic/queries';
 import { errorMessageKey } from '@web/lib/api-error';
+
+const isCurrency = (value: string): value is Currency =>
+  (CURRENCIES as readonly string[]).includes(value);
 
 /** Admin edits; every other role sees the same screen read-only (ROLES.md). */
 export function ClinicPage(): JSX.Element {
@@ -22,7 +25,7 @@ export function ClinicPage(): JSX.Element {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
-  const [currency, setCurrency] = useState('');
+  const [currency, setCurrency] = useState<Currency>(CURRENCIES[0]);
   const [workingHours, setWorkingHours] = useState<WeeklySchedule>([]);
 
   useEffect(() => {
@@ -36,7 +39,9 @@ export function ClinicPage(): JSX.Element {
     setPhone(data.phone ?? '');
     setEmail(data.email ?? '');
     setAddress(data.address ?? '');
-    setCurrency(data.currency);
+    // A clinic saved before the list existed can hold anything; keep the
+    // select on a value it actually offers rather than showing a blank box.
+    setCurrency(isCurrency(data.currency) ? data.currency : CURRENCIES[0]);
     setWorkingHours(data.workingHours);
   }, [clinic.data]);
 
@@ -47,7 +52,7 @@ export function ClinicPage(): JSX.Element {
         phone: phone === '' ? null : phone,
         email: email === '' ? null : email,
         address: address === '' ? null : address,
-        currency: currency.toUpperCase(),
+        currency,
         workingHours,
       });
       toast.success('clinic.updated');
@@ -126,14 +131,18 @@ export function ClinicPage(): JSX.Element {
             </FormField>
 
             <FormField label="clinic.currency" htmlFor="clinic-currency" hint="clinic.currencyHint">
-              <Input
-                placeholder={t('common.placeholders.currency')}
+              <Select
                 id="clinic-currency"
-                maxLength={3}
-                className="w-32 uppercase"
+                className="w-56"
                 value={currency}
                 disabled={!canEdit}
-                onChange={(event) => setCurrency(event.target.value)}
+                options={CURRENCIES.map((code) => ({
+                  value: code,
+                  // "US dollar (USD)" — the code alone is what appears beside
+                  // every figure, so it stays visible next to the name.
+                  label: `${t(`clinic.currencies.${code}`)} (${code})`,
+                }))}
+                onChange={(event) => setCurrency(event.target.value as Currency)}
               />
             </FormField>
           </div>

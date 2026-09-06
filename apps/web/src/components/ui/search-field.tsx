@@ -47,7 +47,8 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
           'chrome-field block h-10 w-full rounded-control ps-10 text-start text-field text-ink',
           'transition-colors duration-150 placeholder:text-ink-subtle',
           '[&::-webkit-search-decoration]:appearance-none [&::-webkit-search-cancel-button]:appearance-none',
-          shortcut === undefined ? 'pe-4' : 'pe-14',
+          // The chip is desktop-only, so the room made for it is too.
+          shortcut === undefined ? 'pe-4' : 'pe-4 md:pe-14',
         )}
         {...props}
       />
@@ -57,7 +58,10 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
           aria-hidden="true"
           dir="ltr"
           className={cn(
-            'pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3',
+            // Hidden on a phone: there is no keyboard to press it with, and a
+            // chip promising a key nobody can reach is just clutter in a field
+            // that is already short at 390px.
+            'pointer-events-none absolute inset-y-0 end-0 hidden items-center pe-3 md:flex',
             'text-ink-subtle',
           )}
         >

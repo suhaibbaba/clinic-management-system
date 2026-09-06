@@ -3,6 +3,7 @@ import type { JSX, ReactNode } from 'react';
 
 import { Icon, type IconName } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
+import { documentDirection } from '@web/lib/direction';
 
 /**
  * The app's dropdown menu, over Radix.
@@ -24,10 +25,9 @@ import { cn } from '@web/lib/cn';
  * `document.body`, outside any `dir` wrapper in the tree.
  */
 export function DropdownMenu({ children }: { readonly children: ReactNode }): JSX.Element {
-  const dir =
-    typeof document !== 'undefined' && document.documentElement.dir === 'rtl' ? 'rtl' : 'ltr';
-
-  return <DropdownMenuPrimitive.Root dir={dir}>{children}</DropdownMenuPrimitive.Root>;
+  return (
+    <DropdownMenuPrimitive.Root dir={documentDirection()}>{children}</DropdownMenuPrimitive.Root>
+  );
 }
 
 export const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;

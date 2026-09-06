@@ -3,6 +3,7 @@ import type { JSX, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@web/lib/cn';
+import { documentDirection } from '@web/lib/direction';
 
 export interface ModalProps {
   open: boolean;
@@ -38,7 +39,11 @@ export function Modal({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-ink/40" />
         <Dialog.Content
-          dir="rtl"
+          // The dialog renders on `document.body`, so it inherits the page's
+          // direction — but only as long as nothing pins it. It used to say
+          // `rtl` outright, which left every form in the English UI with its
+          // labels, its field icons and its button icons on the right.
+          dir={documentDirection()}
           className={cn(
             // Physical centring: `translate-x` is not mirrored in RTL, so the
             // logical `start-*` variant would push the dialog off centre.
