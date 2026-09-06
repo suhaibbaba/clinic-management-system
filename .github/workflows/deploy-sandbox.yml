@@ -33,6 +33,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # The VPS is shared, and twice now a deploy has died before it began:
+      # `dial tcp …:22: i/o timeout`, exactly 30 seconds in, with a manual
+      # re-run minutes later working unchanged. The box was simply not
+      # answering on 22 for about a minute.
+      #
+      # So knock on the port first. A blip becomes a pause instead of a failed
+      # deploy of a commit that is already on main, and a real outage becomes a
+      # message that says the server never answered — rather than a stack trace
+      # from a tool that got as far as reading its own version.
+      - name: Wait for the VPS to accept SSH
+        env:
+          SSH_HOST: ${{ secrets.SANDBOX_HOST }}
+          SSH_PORT: ${{ secrets.SANDBOX_SSH_PORT || 22 }}
+        run: |
+          set -uo pipefail
+
+          for attempt in $(seq 1 30); do
+            # Bash's own /dev/tcp: no netcat, no assumptions about the image.
+            if timeout 5 bash -c "cat < /dev/null > /dev/tcp/${SSH_HOST}/${SSH_PORT}" 2>/dev/null; then
+              echo "accepted a connection after ${attempt} attempt(s)"
+              exit 0
+            fi
+
+            echo "attempt ${attempt}: no answer yet"
+            sleep 10
+          done
+
+          echo "::error::the sandbox VPS never accepted a TCP connection on port ${SSH_PORT} — 30 attempts over about six minutes"
+          exit 1
+
       # Everything happens on the server: it already has the sources, and the
       # secrets that configure them live in /opt/clinic/sandbox/.env, which is
       # created once by hand and never touched by CI (see DEPLOY.md).
@@ -44,6 +74,9 @@ jobs:
           key: ${{ secrets.SANDBOX_SSH_KEY }}
           port: ${{ secrets.SANDBOX_SSH_PORT || 22 }}
           script_stop: true
+          # The dial itself, not the script: the default 30s is what expired on
+          # a machine that was busy rather than gone.
+          timeout: 60s
           # A build on a shared VPS is slower than a registry pull, and the
           # first one has no layer cache at all.
           command_timeout: 30m
@@ -87,12 +120,17 @@ jobs:
       # public, so the fewer services piped into it the better.
       - name: Container logs on failure
         if: failure()
+        # A dump that cannot reach the server must not add a second, louder
+        # failure on top of the real one — the job is already red, and the
+        # first error is the one worth reading.
+        continue-on-error: true
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SANDBOX_HOST }}
           username: ${{ secrets.SANDBOX_USER }}
           key: ${{ secrets.SANDBOX_SSH_KEY }}
           port: ${{ secrets.SANDBOX_SSH_PORT || 22 }}
+          timeout: 60s
           # Best-effort: a missing service must not abort the rest of the dump.
           script_stop: false
           script: |
