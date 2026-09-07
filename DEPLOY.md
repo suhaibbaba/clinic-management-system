@@ -24,15 +24,27 @@ There is no registry in the loop. The VPS holds this repository at
 `/opt/clinic/sandbox` and builds both images in place, so a deploy is a move of
 that checkout followed by a rebuild.
 
-**The trigger is the tag, not the push.** Every merge to main is a release
-(`.github/workflows/release.yml`): the minor version goes up, the bump lands as
-a `chore(release)` commit, and that commit is tagged. Deploying on the push to
-main instead would race that bump by a few seconds and land a build reporting
-the previous version about half the time — and the version is on the settings
-screen, so it has to be true.
+**The release starts the deploy; the tag landing does not.** Every merge to
+main is a release (`.github/workflows/release.yml`): the minor version goes up,
+the bump lands as a `chore(release)` commit, that commit is tagged, and the
+release then starts this workflow at that tag with `gh workflow run`.
 
-A manual `workflow_dispatch` still deploys the head of `main`, for when a
-release is not what you want on there.
+It has to ask, rather than let the tag trigger it. A push made with
+`GITHUB_TOKEN` — including that tag — does not start a workflow run, which is
+deliberate on GitHub's part and stops workflows looping; `workflow_dispatch` is
+the documented exception. The first release found this the hard way: v1.0.0 was
+published and nothing deployed.
+
+Deploying the release rather than the push to main is what keeps the version
+honest — the bump lands a few seconds after the merge commit, and a deploy
+racing it would report the previous version about half the time.
+
+A manual run deploys whatever ref you start it from: the head of `main` by
+default, or an older tag to roll back.
+
+**If a release is published and the sandbox does not move**, the deploy was
+never started — check the Release run, then start `Deploy sandbox` by hand at
+that tag.
 
 ## Port map
 

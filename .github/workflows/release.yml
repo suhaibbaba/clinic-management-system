@@ -32,6 +32,8 @@ jobs:
 
     permissions:
       contents: write
+      # `gh workflow run` below, which is how the deploy is started.
+      actions: write
 
     steps:
       # Full history and tags: the script asks whether the current version is
@@ -40,12 +42,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
-
+      # No pnpm and no dependency cache: this job installs nothing, and every
+      # script it runs uses node builtins and git. `cache: pnpm` here failed
+      # the first release outright — the post-run cache save has no store to
+      # find, and reports that as an error after the release has been made.
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
 
       - name: Work out the version
         id: version
@@ -55,7 +58,7 @@ jobs:
       # manifests and a TypeScript constant, and a release that ships them out
       # of step is exactly what `version:check` exists to catch.
       - name: Check the version is consistent
-        run: pnpm version:check
+        run: node scripts/sync-version.mjs --check
 
       - name: Commit, tag and push
         env:
@@ -109,3 +112,21 @@ jobs:
           } > notes.md
 
           gh release create "v${VERSION}" --title "v${VERSION}" --notes-file notes.md
+
+      # The deploy is asked for, not triggered.
+      #
+      # A push made with GITHUB_TOKEN — including the tag pushed above — does
+      # not start a workflow run. That is deliberate on GitHub's part, it stops
+      # workflows looping, and it means a `push: tags` trigger can never see a
+      # tag that CI itself created: the first release proved it by publishing
+      # v1.0.0 and deploying nothing.
+      #
+      # `workflow_dispatch` is the documented exception to that rule, so the
+      # release starts the deploy explicitly, at the tag it just made. The
+      # deploy still has its own `workflow_dispatch` for a manual run, and
+      # still deploys whatever ref it is given.
+      - name: Deploy the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: gh workflow run deploy-sandbox.yml --ref "v${VERSION}"

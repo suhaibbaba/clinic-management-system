@@ -7,15 +7,20 @@ name: Deploy sandbox
 # commit and rebuild the two images in place. The runner never builds an image
 # and never pushes one anywhere.
 #
-# The trigger is the tag rather than the push to main, because the version is
-# in the source: every merge produces a `chore(release)` commit a few seconds
-# after the merge commit, and deploying on the push would race that bump —
-# landing a build that reports the previous version about half the time.
-# Deploying the tag is the deterministic answer, and it also makes "what is on
-# the sandbox" a release rather than a commit.
+# This is started **by the Release workflow**, once it has tagged, and it is
+# handed that tag to deploy. It is not triggered by the tag landing: a push
+# made with GITHUB_TOKEN does not start a workflow run, so a `push: tags`
+# trigger would never fire for a tag that CI created — which is exactly what
+# happened on the first release, publishing v1.0.0 and deploying nothing.
 #
-# `workflow_dispatch` still deploys the head of main, for the times a release
-# is not what you want on there.
+# Deploying the release rather than the push to main is what keeps the version
+# honest: the `chore(release)` bump lands a few seconds after the merge commit,
+# and a deploy racing that would report the previous version about half the
+# time. The version is on the settings screen, so it has to be true.
+#
+# The `push: tags` trigger is kept for a tag pushed by a person, which does
+# start a run. A manual run deploys whatever ref you start it from — the head
+# of main by default, or an older tag to roll back.
 #
 # The VPS is shared with other projects, so this workflow only ever touches
 # /opt/clinic/sandbox and the `clinic-sandbox` compose project. It installs no
