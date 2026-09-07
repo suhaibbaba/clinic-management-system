@@ -63,8 +63,9 @@ interface SeedOrder {
   readonly patient: number;
   readonly doctor: number;
   readonly teeth: readonly number[];
+  /** Codes on the clinic's `lab_material` and `lab_shade` lists. */
   readonly material: string;
-  readonly shade: string;
+  readonly shade: string | null;
   readonly status: LabOrderStatus;
   /** Days from today; negative is the past. */
   readonly sentDays: number | null;
@@ -88,7 +89,7 @@ const ORDERS: readonly SeedOrder[] = [
     patient: 0,
     doctor: 0,
     teeth: [26],
-    material: 'زيركون',
+    material: 'zirconia',
     shade: 'A2',
     status: LAB_ORDER_STATUS.DRAFT,
     sentDays: null,
@@ -101,7 +102,7 @@ const ORDERS: readonly SeedOrder[] = [
     patient: 1,
     doctor: 0,
     teeth: [36],
-    material: 'خزف على معدن',
+    material: 'pfm',
     shade: 'A3',
     status: LAB_ORDER_STATUS.SENT,
     sentDays: -2,
@@ -114,7 +115,7 @@ const ORDERS: readonly SeedOrder[] = [
     patient: 2,
     doctor: 1,
     teeth: [14, 15, 16],
-    material: 'زيركون',
+    material: 'zirconia',
     shade: 'B1',
     status: LAB_ORDER_STATUS.SENT,
     sentDays: -12,
@@ -127,8 +128,8 @@ const ORDERS: readonly SeedOrder[] = [
     patient: 3,
     doctor: 0,
     teeth: [11, 12, 21, 22],
-    material: 'إيماكس',
-    shade: 'BL2',
+    material: 'emax',
+    shade: 'B1',
     status: LAB_ORDER_STATUS.READY,
     sentDays: -6,
     expectedDays: 1,
@@ -139,7 +140,7 @@ const ORDERS: readonly SeedOrder[] = [
     patient: 4,
     doctor: 1,
     teeth: [],
-    material: 'أكريل حراري',
+    material: 'acrylic',
     shade: 'A3',
     status: LAB_ORDER_STATUS.RECEIVED,
     sentDays: -14,
@@ -151,7 +152,7 @@ const ORDERS: readonly SeedOrder[] = [
     patient: 5,
     doctor: 0,
     teeth: [46],
-    material: 'زيركون',
+    material: 'zirconia',
     shade: 'A2',
     status: LAB_ORDER_STATUS.FITTED,
     sentDays: -20,
@@ -164,7 +165,7 @@ const ORDERS: readonly SeedOrder[] = [
     patient: 6,
     doctor: 1,
     teeth: [24],
-    material: 'زيركون',
+    material: 'zirconia',
     shade: 'A1',
     status: LAB_ORDER_STATUS.RETURNED,
     sentDays: -9,
@@ -178,8 +179,8 @@ const ORDERS: readonly SeedOrder[] = [
     patient: 7,
     doctor: 0,
     teeth: [],
-    material: 'أكريل شفاف',
-    shade: '—',
+    material: 'acrylic',
+    shade: null,
     status: LAB_ORDER_STATUS.CANCELLED,
     sentDays: null,
     expectedDays: null,

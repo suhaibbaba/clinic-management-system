@@ -1,8 +1,9 @@
 import { z } from 'zod';
 
-import { LEDGER_ENTRY_KINDS, PAYMENT_METHODS } from '@shared/enums';
+import { LEDGER_ENTRY_KINDS } from '@shared/enums';
 import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
 import { moneySchema, signedMoneySchema } from '@shared/schemas/money';
+import { lookupCodeSchema } from '@shared/schemas/lookups';
 
 /**
  * The money ledger.
@@ -37,7 +38,7 @@ export const paymentSchema = z.object({
   clinicId: uuidSchema,
   patientId: uuidSchema,
   amount: signedMoneySchema,
-  method: z.enum(PAYMENT_METHODS),
+  method: lookupCodeSchema,
   note: z.string().nullable(),
   /** Gapless per clinic; a reversal reuses no number of its own. */
   receiptNumber: z.number().int().positive().nullable(),
@@ -51,7 +52,7 @@ export type Payment = z.infer<typeof paymentSchema>;
 export const createPaymentSchema = z.object({
   patientId: uuidSchema,
   amount: moneySchema.refine((value) => Number(value) > 0, 'A payment must be greater than zero'),
-  method: z.enum(PAYMENT_METHODS),
+  method: lookupCodeSchema,
   note: z.string().trim().max(500).nullish(),
 });
 export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;

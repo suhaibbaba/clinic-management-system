@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { ITEM_CATEGORIES, ITEM_UNITS, MOVEMENT_TYPE, MOVEMENT_TYPES } from '@shared/enums';
+import { MOVEMENT_TYPE, MOVEMENT_TYPES } from '@shared/enums';
 import { isoDateSchema } from '@shared/schemas/appointments';
 import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
 import { moneySchema, signedMoneySchema } from '@shared/schemas/money';
@@ -9,6 +9,7 @@ import {
   quantitySchema,
   signedQuantitySchema,
 } from '@shared/schemas/quantity';
+import { lookupCodeSchema } from '@shared/schemas/lookups';
 
 /**
  * The store cupboard.
@@ -83,9 +84,9 @@ export const inventoryItemSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
   nameAr: z.string(),
-  category: z.enum(ITEM_CATEGORIES),
+  category: lookupCodeSchema,
   /** Fixed for the item's life: it is what makes its movements summable. */
-  unit: z.enum(ITEM_UNITS),
+  unit: lookupCodeSchema,
   /** The level at which the clinic wants to be told to reorder. */
   minQuantity: quantitySchema,
   defaultSupplierId: uuidSchema.nullable(),
@@ -121,8 +122,8 @@ export type InventoryItemRow = z.infer<typeof inventoryItemRowSchema>;
 
 const itemWritableFields = {
   nameAr: z.string().trim().min(2).max(160),
-  category: z.enum(ITEM_CATEGORIES),
-  unit: z.enum(ITEM_UNITS),
+  category: lookupCodeSchema,
+  unit: lookupCodeSchema,
   minQuantity: quantitySchema.optional(),
   defaultSupplierId: uuidSchema.nullish(),
   notes: z.string().trim().max(2000).nullish(),
@@ -147,7 +148,7 @@ export type UpdateInventoryItemInput = z.infer<typeof updateInventoryItemSchema>
 
 export const listInventoryItemsQuerySchema = paginationQuerySchema.extend({
   search: z.string().trim().max(160).optional(),
-  category: z.enum(ITEM_CATEGORIES).optional(),
+  category: lookupCodeSchema.optional(),
   supplierId: uuidSchema.optional(),
   /** Only what needs reordering. */
   low: z.coerce.boolean().optional(),
@@ -312,8 +313,8 @@ export type InventoryAlerts = z.infer<typeof inventoryAlertsSchema>;
 export const shoppingListLineSchema = z.object({
   itemId: uuidSchema,
   nameAr: z.string(),
-  category: z.enum(ITEM_CATEGORIES),
-  unit: z.enum(ITEM_UNITS),
+  category: lookupCodeSchema,
+  unit: lookupCodeSchema,
   quantity: signedQuantitySchema,
   minQuantity: quantitySchema,
   suggested: quantitySchema,
@@ -332,7 +333,7 @@ export const supplierStatementLineSchema = z.object({
   occurredAt: z.iso.datetime(),
   itemId: uuidSchema,
   itemName: z.string(),
-  unit: z.enum(ITEM_UNITS),
+  unit: lookupCodeSchema,
   quantity: signedQuantitySchema,
   unitPrice: moneySchema.nullable(),
   /** quantity × unit price, or null when the purchase carried no price. */

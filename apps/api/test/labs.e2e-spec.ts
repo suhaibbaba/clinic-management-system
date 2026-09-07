@@ -95,7 +95,7 @@ describe('Labs (e2e)', () => {
         doctorId: fixtures.doctorId,
         workTypeId: crownId,
         teeth: [26],
-        material: 'زيركون',
+        material: 'zirconia',
         shade: 'A2',
         ...overrides,
       },

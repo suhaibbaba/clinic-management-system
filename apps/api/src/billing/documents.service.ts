@@ -1,9 +1,10 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
+  LOOKUP_LIST,
+  documentSettings,
   LEDGER_ENTRY_KIND,
   toMinorUnits,
   type Money,
-  type PaymentMethod,
   type Statement,
   type StatementQuery,
 } from '@clinic/shared';
@@ -12,7 +13,13 @@ import { eq } from 'drizzle-orm';
 import { LedgerService } from '@api/billing/ledger.service';
 import { toPayment } from '@api/billing/payments.service';
 import { BRAND_MARK, MARK_VIEWBOX } from '@api/billing/pdf/brand-mark';
-import { DOCUMENT_STRINGS } from '@api/billing/pdf/document-strings';
+import {
+  documentDirection,
+  documentStrings,
+  type DocumentLanguage,
+  type DocumentStrings,
+} from '@api/billing/pdf/document-strings';
+import { LookupsService } from '@api/lookups/lookups.service';
 import { A4, RtlPdf } from '@api/billing/pdf/pdf-builder';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
@@ -32,6 +39,8 @@ interface Letterhead {
   readonly name: string;
   readonly contact: string;
   readonly currency: string;
+  /** The clinic's own document language — never the reader's. */
+  readonly language: DocumentLanguage;
 }
 
 /**
@@ -47,6 +56,7 @@ interface Letterhead {
 export class DocumentsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
+    private readonly lookups: LookupsService,
     private readonly scope: ClinicScopeService,
     private readonly patientAccess: PatientAccessService,
     private readonly ledger: LedgerService,
@@ -73,8 +83,11 @@ export class DocumentsService {
     const isReversal = reversesId !== null;
     const reversedNumber = reversesId === null ? null : await this.receiptNumberOf(reversesId);
 
-    const strings = DOCUMENT_STRINGS.receipt;
-    const pdf = await RtlPdf.create({ width: A4.width, height: A4.height / 2 });
+    const strings = documentStrings(clinic.language).receipt;
+    const pdf = await RtlPdf.create({
+      size: { width: A4.width, height: A4.height / 2 },
+      direction: documentDirection(clinic.language),
+    });
 
     this.drawLetterhead(pdf, clinic);
     pdf.text(isReversal ? strings.reversalTitle : strings.title, {
@@ -95,7 +108,14 @@ export class DocumentsService {
     pdf.field(strings.patient, patient.fullName);
     pdf.field(strings.fileNumber, patient.fileNumber, LTR);
     pdf.field(strings.amount, formatAmount(payment.amount, clinic.currency), LTR);
-    pdf.field(strings.method, DOCUMENT_STRINGS.methods[payment.method as PaymentMethod]);
+    // What *this* clinic calls this method, in the document's language — the
+    // payment methods are an editable list now, so there is no map to read.
+    const methods = await this.lookups.labels(
+      actor.clinicId,
+      LOOKUP_LIST.PAYMENT_METHOD,
+      clinic.language,
+    );
+    pdf.field(strings.method, methods.get(payment.method) ?? payment.method);
 
     if (payment.note) {
       pdf.field(strings.note, payment.note);
@@ -119,8 +139,8 @@ export class DocumentsService {
     const clinic = await this.letterhead(actor.clinicId);
     const statement = await this.ledger.statementFor(actor.clinicId, patientId, query);
 
-    const strings = DOCUMENT_STRINGS.statement;
-    const pdf = await RtlPdf.create();
+    const strings = documentStrings(clinic.language).statement;
+    const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
     this.drawLetterhead(pdf, clinic);
     pdf.text(strings.title, { size: 16, weight: 'bold', align: 'centre', gap: 14 });
@@ -154,7 +174,7 @@ export class DocumentsService {
 
           return [
             formatDate(entry.occurredAt),
-            description || describeKind(entry.kind),
+            description || describeKind(entry.kind, strings),
             entry.kind === LEDGER_ENTRY_KIND.CHARGE ? formatPlain(entry.amount) : '',
             entry.kind === LEDGER_ENTRY_KIND.PAYMENT ? formatPlain(negateText(minor)) : '',
             formatPlain(entry.runningBalance),
@@ -201,6 +221,7 @@ export class DocumentsService {
         phone: clinics.phone,
         address: clinics.address,
         currency: clinics.currency,
+        settings: clinics.settings,
       })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
@@ -215,6 +236,7 @@ export class DocumentsService {
       name: row.name,
       contact: [row.phone, row.address].filter(Boolean).join(' — '),
       currency: row.currency,
+      language: documentSettings(row.settings).language,
     };
   }
 
@@ -229,10 +251,11 @@ export class DocumentsService {
   }
 }
 
-function describeKind(kind: Statement['entries'][number]['kind']): string {
-  return kind === LEDGER_ENTRY_KIND.PAYMENT
-    ? DOCUMENT_STRINGS.statement.columns.payment
-    : DOCUMENT_STRINGS.statement.columns.charge;
+function describeKind(
+  kind: Statement['entries'][number]['kind'],
+  strings: DocumentStrings['statement'],
+): string {
+  return kind === LEDGER_ENTRY_KIND.PAYMENT ? strings.columns.payment : strings.columns.charge;
 }
 
 /**

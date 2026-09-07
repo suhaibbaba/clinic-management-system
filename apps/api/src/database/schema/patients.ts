@@ -1,8 +1,6 @@
 import {
-  ATTACHMENT_TYPES,
   GENDERS,
   PERFORMED_PROCEDURE_STATUSES,
-  PROCEDURE_OUTCOMES,
   TREATMENT_PLAN_ITEM_STATUSES,
   TREATMENT_PLAN_STATUSES,
   type AttachmentMime,
@@ -42,8 +40,6 @@ export const performedProcedureStatusEnum = pgEnum(
   'performed_procedure_status',
   PERFORMED_PROCEDURE_STATUSES,
 );
-export const attachmentTypeEnum = pgEnum('attachment_type', ATTACHMENT_TYPES);
-export const procedureOutcomeEnum = pgEnum('procedure_outcome', PROCEDURE_OUTCOMES);
 
 /* -------------------------------------------------------------------------- */
 /* Shared column groups                                                        */
@@ -99,7 +95,11 @@ export const procedureCatalog = pgTable(
      * the name, so a clinic can add a procedure without a client change
      * (CLAUDE.md architecture decision 1).
      */
-    chartOutcome: procedureOutcomeEnum('chart_outcome'),
+    /**
+     * What this procedure leaves on the chart: a `tooth_state` lookup code,
+     * so a clinic that adds "فينير" can chart it.
+     */
+    chartOutcome: text('chart_outcome'),
     isActive: boolean('is_active').notNull().default(true),
     ...auditColumns,
     ...softDeleteColumn,
@@ -368,7 +368,8 @@ export const attachments = pgTable(
       .notNull()
       .references(() => patients.id),
     visitId: uuid('visit_id').references(() => visits.id),
-    type: attachmentTypeEnum('type').notNull(),
+    /** An `attachment_type` lookup code. */
+    type: text('type').notNull(),
     r2Key: text('r2_key').notNull(),
     filename: text('filename').notNull(),
     mime: text('mime').$type<AttachmentMime>().notNull(),

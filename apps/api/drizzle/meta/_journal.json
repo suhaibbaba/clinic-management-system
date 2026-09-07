@@ -57,6 +57,13 @@
       "when": 1788803924465,
       "tag": "0007_inventory_module",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788808228318,
+      "tag": "0008_lookup_options",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { ITEM_CATEGORIES, ITEM_UNITS, MOVEMENT_TYPES } from '@clinic/shared';
+import { MOVEMENT_TYPES } from '@clinic/shared';
 import {
   boolean,
   date,
@@ -14,8 +14,6 @@ import {
 import { clinics } from '@api/database/schema/core';
 import { patients, performedProcedures } from '@api/database/schema/patients';
 
-export const itemCategoryEnum = pgEnum('item_category', ITEM_CATEGORIES);
-export const itemUnitEnum = pgEnum('item_unit', ITEM_UNITS);
 export const movementTypeEnum = pgEnum('movement_type', MOVEMENT_TYPES);
 
 const auditColumns = {
@@ -95,8 +93,9 @@ export const inventoryItems = pgTable(
       .notNull()
       .references(() => clinics.id),
     nameAr: text('name_ar').notNull(),
-    category: itemCategoryEnum('category').notNull(),
-    unit: itemUnitEnum('unit').notNull(),
+    /** `item_category` and `item_unit` lookup codes, editable per clinic. */
+    category: text('category').notNull(),
+    unit: text('unit').notNull(),
     minQuantity: quantity('min_quantity').notNull().default('0'),
     /** Who this is normally bought from — prefilled on a purchase, never forced. */
     defaultSupplierId: uuid('default_supplier_id').references(() => suppliers.id),

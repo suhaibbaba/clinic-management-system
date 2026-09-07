@@ -13,6 +13,7 @@ import {
   clinicScheduleSettings,
   DEFAULT_TIME_ZONE,
   instantFromLocal,
+  LOOKUP_LIST,
   occupiesSlot,
   type Appointment,
   type AppointmentStatus,
@@ -36,6 +37,7 @@ import { DATABASE, type Database } from '@api/database/database.module';
 import { appointments, clinics, doctors, patients, users, visits } from '@api/database/schema';
 import { PatientAccessService } from '@api/patients/patient-access.service';
 import { toVisit } from '@api/patients/visits.service';
+import { LookupsService } from '@api/lookups/lookups.service';
 
 type AppointmentRow = typeof appointments.$inferSelect;
 
@@ -90,6 +92,7 @@ function isOverlapConflict(error: unknown): boolean {
 export class AppointmentsService implements OnModuleInit {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
+    private readonly lookups: LookupsService,
     private readonly scope: ClinicScopeService,
     private readonly patientAccess: PatientAccessService,
     private readonly access: AppointmentAccessService,
@@ -211,6 +214,9 @@ export class AppointmentsService implements OnModuleInit {
     actor: AuthenticatedUser,
     input: CreateAppointmentInput,
   ): Promise<CalendarAppointment> {
+    // Only codes on this clinic's own list — the schema cannot know them.
+    await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.APPOINTMENT_TYPE, input.type);
+
     await this.patientAccess.requirePatientId(actor, input.patientId);
     await this.access.requireOwnCalendar(actor, input.doctorId);
 
@@ -246,6 +252,8 @@ export class AppointmentsService implements OnModuleInit {
     id: string,
     input: UpdateAppointmentInput,
   ): Promise<CalendarAppointment> {
+    await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.APPOINTMENT_TYPE, input.type);
+
     const existing = await this.scope.findOneOrFail<AppointmentRow>(
       appointments,
       actor.clinicId,

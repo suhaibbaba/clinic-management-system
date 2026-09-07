@@ -1,10 +1,8 @@
-import { PAYMENT_METHODS } from '@clinic/shared';
 import { sql } from 'drizzle-orm';
 import {
   index,
   integer,
   numeric,
-  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -14,8 +12,6 @@ import {
 
 import { clinics, users } from '@api/database/schema/core';
 import { patients, performedProcedures } from '@api/database/schema/patients';
-
-export const paymentMethodEnum = pgEnum('payment_method', PAYMENT_METHODS);
 
 const auditColumns = {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -109,7 +105,8 @@ export const payments = pgTable(
       .notNull()
       .references(() => patients.id),
     amount: money('amount').notNull(),
-    method: paymentMethodEnum('method').notNull(),
+    /** A `payment_method` lookup code — a clinic may add "شيك". */
+    method: text('method').notNull(),
     note: text('note'),
     /** Null on a reversal: it is documented by the receipt it cancels. */
     receiptNumber: integer('receipt_number'),

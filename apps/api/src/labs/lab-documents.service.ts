@@ -1,5 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
+  documentSettings,
   LAB_STATEMENT_ENTRY_KIND,
   type LabStatement,
   type Money,
@@ -8,7 +9,11 @@ import {
 import { eq } from 'drizzle-orm';
 
 import { BRAND_MARK, MARK_VIEWBOX } from '@api/billing/pdf/brand-mark';
-import { DOCUMENT_STRINGS } from '@api/billing/pdf/document-strings';
+import {
+  documentDirection,
+  documentStrings,
+  type DocumentLanguage,
+} from '@api/billing/pdf/document-strings';
 import { RtlPdf } from '@api/billing/pdf/pdf-builder';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
@@ -23,6 +28,7 @@ interface Letterhead {
   readonly name: string;
   readonly contact: string;
   readonly currency: string;
+  readonly language: DocumentLanguage;
 }
 
 /**
@@ -69,8 +75,8 @@ export class LabDocumentsService {
     }
 
     const clinic = await this.letterhead(actor.clinicId);
-    const strings = DOCUMENT_STRINGS.labOrder;
-    const pdf = await RtlPdf.create();
+    const strings = documentStrings(clinic.language).labOrder;
+    const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
     this.drawLetterhead(pdf, clinic);
     pdf.text(strings.title, { size: 16, weight: 'bold', align: 'centre', gap: 14 });
@@ -112,8 +118,8 @@ export class LabDocumentsService {
     const clinic = await this.letterhead(actor.clinicId);
     const statement = await this.ledger.statementFor(actor.clinicId, labId, query);
 
-    const strings = DOCUMENT_STRINGS.labStatement;
-    const pdf = await RtlPdf.create();
+    const strings = documentStrings(clinic.language).labStatement;
+    const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
     this.drawLetterhead(pdf, clinic);
     pdf.text(strings.title, { size: 16, weight: 'bold', align: 'centre', gap: 14 });
@@ -188,6 +194,7 @@ export class LabDocumentsService {
         phone: clinics.phone,
         address: clinics.address,
         currency: clinics.currency,
+        settings: clinics.settings,
       })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
@@ -202,6 +209,7 @@ export class LabDocumentsService {
       name: row.name,
       contact: [row.phone, row.address].filter(Boolean).join(' — '),
       currency: row.currency,
+      language: documentSettings(row.settings).language,
     };
   }
 }

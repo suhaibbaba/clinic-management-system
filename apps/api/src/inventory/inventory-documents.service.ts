@@ -1,13 +1,19 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { LOOKUP_LIST, documentSettings } from '@clinic/shared';
 import { eq } from 'drizzle-orm';
 
 import { BRAND_MARK, MARK_VIEWBOX } from '@api/billing/pdf/brand-mark';
-import { DOCUMENT_STRINGS } from '@api/billing/pdf/document-strings';
+import {
+  documentDirection,
+  documentStrings,
+  type DocumentLanguage,
+} from '@api/billing/pdf/document-strings';
 import { RtlPdf } from '@api/billing/pdf/pdf-builder';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { clinics } from '@api/database/schema';
 import { InventoryReportsService } from '@api/inventory/inventory-reports.service';
+import { LookupsService } from '@api/lookups/lookups.service';
 
 /** Technical values read left to right even inside an Arabic document. */
 const LTR = { dir: 'ltr' } as const;
@@ -26,14 +32,17 @@ export class InventoryDocumentsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly reports: InventoryReportsService,
+    private readonly lookups: LookupsService,
   ) {}
 
   async shoppingList(actor: AuthenticatedUser): Promise<Buffer> {
     const clinic = await this.letterhead(actor.clinicId);
     const list = await this.reports.shoppingList(actor);
-    const strings = DOCUMENT_STRINGS.shoppingList;
+    // Units are an editable list: the sheet prints what this clinic calls them.
+    const units = await this.lookups.labels(actor.clinicId, LOOKUP_LIST.ITEM_UNIT, clinic.language);
+    const strings = documentStrings(clinic.language).shoppingList;
 
-    const pdf = await RtlPdf.create();
+    const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
     pdf.mark(BRAND_MARK, MARK_VIEWBOX);
     pdf.text(clinic.name, { size: 18, weight: 'bold', align: 'centre', gap: 4 });
@@ -66,7 +75,7 @@ export class InventoryDocumentsService {
         ],
         list.lines.map((line) => [
           line.nameAr,
-          DOCUMENT_STRINGS.units[line.unit],
+          units.get(line.unit) ?? line.unit,
           line.quantity,
           line.minQuantity,
           line.suggested,
@@ -85,9 +94,16 @@ export class InventoryDocumentsService {
     return pdf.save();
   }
 
-  private async letterhead(clinicId: string): Promise<{ name: string; contact: string }> {
+  private async letterhead(
+    clinicId: string,
+  ): Promise<{ name: string; contact: string; language: DocumentLanguage }> {
     const [row] = await this.db
-      .select({ name: clinics.name, phone: clinics.phone, address: clinics.address })
+      .select({
+        name: clinics.name,
+        phone: clinics.phone,
+        address: clinics.address,
+        settings: clinics.settings,
+      })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
       .limit(1);
@@ -100,6 +116,7 @@ export class InventoryDocumentsService {
     return {
       name: row.name,
       contact: [row.phone, row.address].filter(Boolean).join(' — '),
+      language: documentSettings(row.settings).language,
     };
   }
 }

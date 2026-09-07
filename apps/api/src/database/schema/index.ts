@@ -16,3 +16,4 @@ export * from '@api/database/schema/appointments';
 export * from '@api/database/schema/notifications';
 export * from '@api/database/schema/labs';
 export * from '@api/database/schema/inventory';
+export * from '@api/database/schema/lookups';

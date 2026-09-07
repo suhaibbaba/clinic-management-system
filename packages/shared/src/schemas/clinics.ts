@@ -37,6 +37,30 @@ export function clinicScheduleSettings(settings: unknown): ClinicScheduleSetting
   return parsed.success ? parsed.data : { timezone: 'Asia/Damascus', holidays: [] };
 }
 
+/**
+ * How the clinic's printed documents are produced, in `clinics.settings.documents`.
+ *
+ * The language here is the *clinic's*, not the reader's: a receipt is a
+ * document of the practice, filed and handed to patients, and it should not
+ * change language because a locum had the interface switched to English for
+ * the afternoon. Same lenient parse as the other settings blocks.
+ */
+export const documentSettingsSchema = z.object({
+  language: z.enum(['ar', 'en']).default('ar'),
+});
+export type DocumentSettings = z.infer<typeof documentSettingsSchema>;
+
+export function documentSettings(settings: unknown): DocumentSettings {
+  const raw =
+    typeof settings === 'object' && settings !== null
+      ? (settings as Record<string, unknown>)['documents']
+      : undefined;
+
+  const parsed = documentSettingsSchema.safeParse(raw ?? {});
+
+  return parsed.success ? parsed.data : { language: 'ar' };
+}
+
 export const clinicSchema = z.object({
   id: z.uuid(),
   name: z.string(),

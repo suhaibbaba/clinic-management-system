@@ -3,11 +3,11 @@ import { z } from 'zod';
 import {
   APPOINTMENT_STATUSES,
   APPOINTMENT_TYPE,
-  APPOINTMENT_TYPES,
   WAITING_LIST_PRIORITIES,
   WAITING_LIST_PRIORITY,
 } from '@shared/enums';
 import { paginationQuerySchema, timeOfDaySchema, uuidSchema } from '@shared/schemas/common';
+import { lookupCodeSchema } from '@shared/schemas/lookups';
 
 /** `YYYY-MM-DD`, the wire format for a calendar day everywhere in the app. */
 export const isoDateSchema = z.iso.date();
@@ -34,7 +34,7 @@ export const appointmentSchema = z.object({
   durationMinutes: durationMinutesSchema,
   /** Computed, never stored: `startsAt` plus the duration. */
   endsAt: z.iso.datetime(),
-  type: z.enum(APPOINTMENT_TYPES),
+  type: lookupCodeSchema,
   status: z.enum(APPOINTMENT_STATUSES),
   reason: z.string().nullable(),
   notes: z.string().nullable(),
@@ -80,7 +80,7 @@ const appointmentWritableFields = {
   doctorId: uuidSchema,
   startsAt: z.iso.datetime(),
   durationMinutes: durationMinutesSchema,
-  type: z.enum(APPOINTMENT_TYPES),
+  type: lookupCodeSchema,
   reason: z.string().trim().max(500).nullish(),
   notes: z.string().trim().max(2000).nullish(),
 };
@@ -91,7 +91,7 @@ export const createAppointmentSchema = z.object({
   /** Falls back to the doctor's own configured appointment length. */
   durationMinutes: durationMinutesSchema.optional(),
   /** Most bookings are a check-up; the form defaults to it. */
-  type: z.enum(APPOINTMENT_TYPES).default(APPOINTMENT_TYPE.CHECKUP),
+  type: lookupCodeSchema.default(APPOINTMENT_TYPE.CHECKUP),
   /**
    * Omitted by reception, whose booking *is* the confirmation. Public booking
    * will pass `requested` instead, which is why it is settable at all.
@@ -248,6 +248,6 @@ export const promoteWaitingListEntrySchema = z.object({
   doctorId: uuidSchema,
   startsAt: z.iso.datetime(),
   durationMinutes: durationMinutesSchema.optional(),
-  type: z.enum(APPOINTMENT_TYPES).optional(),
+  type: lookupCodeSchema.optional(),
 });
 export type PromoteWaitingListEntryInput = z.infer<typeof promoteWaitingListEntrySchema>;
