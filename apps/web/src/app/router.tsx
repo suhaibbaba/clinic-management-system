@@ -11,6 +11,9 @@ import { OverduePage } from '@web/features/billing/overdue-page';
 import { PendingBookingsPage } from '@web/features/booking/pending-bookings-page';
 import { ClinicPage } from '@web/features/clinic/clinic-page';
 import { DoctorsPage } from '@web/features/doctors/doctors-page';
+import { InventoryPage } from '@web/features/inventory/inventory-page';
+import { ShoppingListPage } from '@web/features/inventory/shopping-list-page';
+import { SuppliersPage } from '@web/features/inventory/suppliers-page';
 import { LabOrdersPage } from '@web/features/labs/lab-orders-page';
 import { LabPage } from '@web/features/labs/lab-page';
 import { LabsPage } from '@web/features/labs/labs-page';
@@ -43,6 +46,15 @@ const BILLING = [USER_ROLE.ADMIN, USER_ROLE.RECEPTIONIST] as const;
  * own start page. The API refuses them either way.
  */
 const LABS = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN] as const;
+
+/**
+ * The inventory module.
+ *
+ * The same three roles, for the same reason: a receptionist appears in no row
+ * of the ROLES.md inventory matrix. The technician is the primary persona here
+ * — it is their cupboard — and a doctor reads it and records what they used.
+ */
+const INVENTORY = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN] as const;
 
 /** Answering online bookings is front-desk work, and the API says so too. */
 const FRONT_DESK = [USER_ROLE.ADMIN, USER_ROLE.RECEPTIONIST] as const;
@@ -114,6 +126,33 @@ export function AppRoutes(): JSX.Element {
           element={
             <RequireRole roles={LABS} redirectTo="/">
               <LabOrdersPage />
+            </RequireRole>
+          }
+        />
+
+        <Route
+          path="/inventory"
+          element={
+            <RequireRole roles={INVENTORY} redirectTo="/">
+              <InventoryPage />
+            </RequireRole>
+          }
+        />
+
+        <Route
+          path="/inventory/shopping-list"
+          element={
+            <RequireRole roles={INVENTORY} redirectTo="/">
+              <ShoppingListPage />
+            </RequireRole>
+          }
+        />
+
+        <Route
+          path="/suppliers"
+          element={
+            <RequireRole roles={INVENTORY} redirectTo="/">
+              <SuppliersPage />
             </RequireRole>
           }
         />

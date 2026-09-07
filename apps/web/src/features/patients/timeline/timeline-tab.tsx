@@ -20,6 +20,7 @@ const ICONS: Record<TimelineEntryType, IconName> = {
   [TIMELINE_ENTRY_TYPE.PRESCRIPTION]: 'file',
   [TIMELINE_ENTRY_TYPE.TREATMENT_PLAN]: 'clipboard',
   [TIMELINE_ENTRY_TYPE.LAB_ORDER]: 'coins',
+  [TIMELINE_ENTRY_TYPE.SUPPLY]: 'clipboard',
   [TIMELINE_ENTRY_TYPE.APPOINTMENT]: 'calendar',
   [TIMELINE_ENTRY_TYPE.PAYMENT]: 'money',
   [TIMELINE_ENTRY_TYPE.CHARGE]: 'money',
@@ -127,6 +128,22 @@ function Detail({ entry }: { readonly entry: TimelineEntry }): JSX.Element | nul
             {teeth.join(' · ')}
           </span>
         )}
+      </p>
+    );
+  }
+
+  if (entry.type === TIMELINE_ENTRY_TYPE.SUPPLY) {
+    // What was used, in its own unit — the ledger's minus sign is an
+    // accounting detail, not part of the story.
+    const quantity = entry.detail['quantity'] as string | undefined;
+    const unit = entry.detail['unit'] as string | undefined;
+
+    return (
+      <p className="mt-0.5 text-label text-ink-muted">
+        <span dir="ltr" className="tabular-nums">
+          {quantity}
+        </span>{' '}
+        {unit ? t(`inventory.units.${unit}`) : ''}
       </p>
     );
   }

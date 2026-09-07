@@ -1,10 +1,12 @@
-import type { PerformedProcedure, Visit } from '@clinic/shared';
+import type { PatientClinicalView, PerformedProcedure, Visit } from '@clinic/shared';
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge, Button, EmptyState, Icon, useToast } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { useDoctors } from '@web/features/doctors/queries';
+import { ConsumeForVisit } from '@web/features/inventory/consume-for-visit';
+import { canConsumeStock } from '@web/features/inventory/permissions';
 import {
   ProcedureForm,
   type ProcedureFormValues,
@@ -30,7 +32,14 @@ import { cn } from '@web/lib/cn';
  * what happened in it. The same procedure also appears on the chart, coloured
  * by the tooth it touched; these are two views of one record, not two records.
  */
-export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
+export function VisitsTab({
+  patientId,
+  patient,
+}: {
+  patientId: string;
+  /** Fills the consumption's patient link without a second lookup. */
+  patient?: PatientClinicalView | undefined;
+}): JSX.Element {
   const { t } = useTranslation();
   const { user } = useSession();
   const toast = useToast();
@@ -39,6 +48,8 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
   const procedures = usePatientProcedures(patientId);
   const catalog = useProcedureCatalog();
   const doctors = useDoctors({ limit: 100 });
+
+  const [consumingFor, setConsumingFor] = useState<string | null>(null);
 
   const createProcedure = useCreateProcedure(patientId);
   const updateProcedure = useUpdateProcedure(patientId);
@@ -139,17 +150,34 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
                   </p>
                 </div>
 
-                <Button
-                  icon={<Icon name="edit" />}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setEditingVisit(visit);
-                    setFormOpen(true);
-                  }}
-                >
-                  {t('common.edit')}
-                </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Recording what was used, from where it was used. The
+                      alternative is a technician reconstructing a day's
+                      consumption from memory, which is how a stock count stops
+                      matching the cupboard. */}
+                  {canConsumeStock(user?.role) && (
+                    <Button
+                      icon={<Icon name="clipboard" />}
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setConsumingFor(visit.id)}
+                    >
+                      {t('inventory.movement.consumeFromVisit')}
+                    </Button>
+                  )}
+
+                  <Button
+                    icon={<Icon name="edit" />}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditingVisit(visit);
+                      setFormOpen(true);
+                    }}
+                  >
+                    {t('common.edit')}
+                  </Button>
+                </div>
               </div>
 
               <dl className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -244,6 +272,12 @@ export function VisitsTab({ patientId }: { patientId: string }): JSX.Element {
           );
         })}
       </ol>
+
+      <ConsumeForVisit
+        open={consumingFor !== null}
+        onClose={() => setConsumingFor(null)}
+        patient={patient}
+      />
 
       <VisitFormModal
         open={formOpen}

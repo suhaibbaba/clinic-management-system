@@ -257,6 +257,8 @@ export const TIMELINE_ENTRY_TYPE = {
   CHARGE: 'charge',
   /** Work sent to a lab for this patient — a crown, a denture, a guard. */
   LAB_ORDER: 'lab_order',
+  /** Stock used on this patient — an anaesthetic ampoule, a filling capsule. */
+  SUPPLY: 'supply',
 } as const satisfies Record<string, string>;
 export type TimelineEntryType = EnumValue<typeof TIMELINE_ENTRY_TYPE>;
 
@@ -270,6 +272,7 @@ export const TIMELINE_ENTRY_TYPES = [
   TIMELINE_ENTRY_TYPE.PAYMENT,
   TIMELINE_ENTRY_TYPE.CHARGE,
   TIMELINE_ENTRY_TYPE.LAB_ORDER,
+  TIMELINE_ENTRY_TYPE.SUPPLY,
 ] as const;
 
 /**
@@ -588,3 +591,87 @@ export const LAB_ORDER_AWAITING_STATUSES = [LAB_ORDER_STATUS.SENT, LAB_ORDER_STA
 
 export const awaitingLab = (status: LabOrderStatus): boolean =>
   (LAB_ORDER_AWAITING_STATUSES as readonly LabOrderStatus[]).includes(status);
+
+/* -------------------------------------------------------------------------- */
+/* Inventory                                                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * What kind of thing an item is.
+ *
+ * Four categories rather than a free-text field, because each one behaves
+ * differently in the alerts a clinic actually acts on: a medication has an
+ * expiry that matters clinically, a consumable runs out, a tool is counted and
+ * sterilised rather than consumed. Deliberately not dental-specific — a
+ * clinic of any specialty buys gloves and anaesthetic (CLAUDE.md: no
+ * dental-only logic outside the dental configuration).
+ */
+export const ITEM_CATEGORY = {
+  MEDICATION: 'medication',
+  CONSUMABLE: 'consumable',
+  TOOL: 'tool',
+  STERILIZATION: 'sterilization',
+} as const satisfies Record<string, string>;
+export type ItemCategory = EnumValue<typeof ITEM_CATEGORY>;
+
+export const ITEM_CATEGORIES = [
+  ITEM_CATEGORY.MEDICATION,
+  ITEM_CATEGORY.CONSUMABLE,
+  ITEM_CATEGORY.TOOL,
+  ITEM_CATEGORY.STERILIZATION,
+] as const;
+
+/**
+ * How an item is counted.
+ *
+ * The unit is a label on a number, never a conversion: a box is not six
+ * pieces here, because the clinic that buys a box of 100 gloves and the one
+ * that buys a box of 50 would both be wrong. An item is counted in exactly one
+ * unit for its whole life, which is what makes `sum(quantity)` meaningful.
+ */
+export const ITEM_UNIT = {
+  PIECE: 'piece',
+  BOX: 'box',
+  PACK: 'pack',
+  ML: 'ml',
+  G: 'g',
+  AMPOULE: 'ampoule',
+} as const satisfies Record<string, string>;
+export type ItemUnit = EnumValue<typeof ITEM_UNIT>;
+
+export const ITEM_UNITS = [
+  ITEM_UNIT.PIECE,
+  ITEM_UNIT.BOX,
+  ITEM_UNIT.PACK,
+  ITEM_UNIT.ML,
+  ITEM_UNIT.G,
+  ITEM_UNIT.AMPOULE,
+] as const;
+
+/**
+ * Why the quantity moved.
+ *
+ * The sign is not free: a purchase adds, a consumption subtracts, and only an
+ * adjustment may go either way — which is why an adjustment is the one type
+ * that must say why. The type is therefore not decoration on a signed number;
+ * it is what the number is allowed to be, and the service enforces the pairing.
+ */
+export const MOVEMENT_TYPE = {
+  PURCHASE: 'purchase',
+  CONSUME: 'consume',
+  ADJUST: 'adjust',
+} as const satisfies Record<string, string>;
+export type MovementType = EnumValue<typeof MOVEMENT_TYPE>;
+
+export const MOVEMENT_TYPES = [
+  MOVEMENT_TYPE.PURCHASE,
+  MOVEMENT_TYPE.CONSUME,
+  MOVEMENT_TYPE.ADJUST,
+] as const;
+
+/** Which way a movement of this type may point. `null` is "either way". */
+export const MOVEMENT_SIGN: Record<MovementType, 1 | -1 | null> = {
+  [MOVEMENT_TYPE.PURCHASE]: 1,
+  [MOVEMENT_TYPE.CONSUME]: -1,
+  [MOVEMENT_TYPE.ADJUST]: null,
+};

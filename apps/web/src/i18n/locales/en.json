@@ -80,7 +80,9 @@
     "pendingBookings": "Pending bookings",
     "waitingCount": "{{count}} awaiting confirmation",
     "labs": "Labs",
-    "labOrders": "Lab orders"
+    "labOrders": "Lab orders",
+    "inventory": "Inventory",
+    "suppliers": "Suppliers"
   },
   "roles": {
     "admin": "Admin",
@@ -317,7 +319,8 @@
         "lab_order": "Lab work",
         "appointment": "Appointment",
         "payment": "Payment",
-        "charge": "Charge"
+        "charge": "Charge",
+        "supply": "Supplies"
       }
     }
   },
@@ -848,6 +851,189 @@
         "received": "Received",
         "fitted": "Fitted",
         "audit": "Audit trail ({{count}})"
+      }
+    }
+  },
+  "inventory": {
+    "title": "Inventory",
+    "subtitle": "Supplies, tools and what is left of them",
+    "search": "Search items",
+    "searchPlaceholder": "Item name",
+    "filterCategory": "Category",
+    "filterLow": "Below minimum",
+    "filterExpiring": "Expiring",
+    "empty": "No items yet",
+    "emptyHint": "Add what the clinic keeps to start tracking quantities",
+    "addItem": "Add item",
+    "editItem": "Edit item",
+    "minimum": "Minimum",
+    "notes": "Notes",
+    "stockBar": "{{quantity}} in stock against a minimum of {{minimum}}",
+    "columns": {
+      "item": "Item",
+      "category": "Category",
+      "quantity": "In stock",
+      "expiry": "Next expiry"
+    },
+    "categories": {
+      "medication": "Medication",
+      "consumable": "Consumable",
+      "tool": "Tool",
+      "sterilization": "Sterilisation"
+    },
+    "units": {
+      "piece": "piece",
+      "box": "box",
+      "pack": "pack",
+      "ml": "ml",
+      "g": "g",
+      "ampoule": "ampoule"
+    },
+    "movements": {
+      "purchase": "Purchase",
+      "consume": "Use",
+      "adjust": "Adjustment"
+    },
+    "flags": {
+      "low": "Low",
+      "expiring": "Expiring",
+      "expired": "Expired"
+    },
+    "alerts": {
+      "low": "{{count}} items below their minimum",
+      "lowHint": "At or under the level somebody set for reordering",
+      "expiring": "{{count}} items need attention",
+      "expiringHint": "Going off within {{days}} days, or already gone",
+      "showAll": "Show all ({{count}})"
+    },
+    "drawer": {
+      "description": "Item details and movements"
+    },
+    "batches": {
+      "title": "Batches",
+      "empty": "No batches recorded",
+      "unlabelled": "No lot number",
+      "unbatched": "Held against no batch",
+      "assumption": "Assumes the oldest stock goes first — the batch expiring soonest — unless a movement names its batch."
+    },
+    "history": {
+      "title": "Movements",
+      "empty": "Nothing recorded yet",
+      "when": "Date",
+      "reversal": "Reversal",
+      "reversed": "Reversed",
+      "reverse": "Reverse",
+      "reverseTitle": "Reverse this movement",
+      "reverseDescription": "The original stays exactly as it is; the opposite entry is written beside it."
+    },
+    "item": {
+      "newTitle": "New item",
+      "editTitle": "Edit item",
+      "created": "Item added",
+      "updated": "Item saved",
+      "name": "Item name",
+      "category": "Category",
+      "unit": "Unit",
+      "unitLocked": "Fixed after creation: every movement is a number in this unit",
+      "minQuantity": "Minimum",
+      "minHint": "Reaching it puts the item in the alerts and on the shopping list",
+      "supplier": "Default supplier",
+      "active": "Active"
+    },
+    "movement": {
+      "onHand": "In stock now",
+      "quantity": "Quantity",
+      "unitPrice": "Unit price",
+      "supplier": "Supplier",
+      "selectSupplier": "Choose a supplier",
+      "item": "Item",
+      "selectItem": "Choose an item",
+      "batchNo": "Lot number",
+      "expiry": "Expiry",
+      "patient": "Patient",
+      "note": "Note",
+      "reason": "Reason",
+      "reasonHint": "It stays on the record — an adjustment has no other explanation",
+      "reasonPlaceholder": "e.g. monthly count, two missing",
+      "direction": "Direction",
+      "directions": {
+        "add": "Add to stock",
+        "remove": "Take off stock"
+      },
+      "linkedToProcedure": "This use will be linked to the treatment and the patient.",
+      "notAllowed": "Your role cannot record this kind of movement.",
+      "consumeFromVisit": "Record supplies",
+      "consumeFromVisitDescription": "Pick what was used in this visit; it is recorded on the patient's file.",
+      "reversed": "Reversing entry recorded",
+      "action": {
+        "purchase": "Purchase",
+        "consume": "Use",
+        "adjust": "Adjust"
+      },
+      "title": {
+        "purchase": "Purchase — {{item}}",
+        "consume": "Use — {{item}}",
+        "adjust": "Adjust — {{item}}"
+      },
+      "description": {
+        "purchase": "Adds to stock, and the price appears on the supplier's statement.",
+        "consume": "Comes off stock. Naming a patient puts it on their file.",
+        "adjust": "For correcting a count. The reason is required and stays on the record."
+      },
+      "submit": {
+        "purchase": "Record purchase",
+        "consume": "Record use",
+        "adjust": "Record adjustment"
+      },
+      "recorded": {
+        "purchase": "Purchase recorded",
+        "consume": "Use recorded",
+        "adjust": "Adjustment recorded"
+      }
+    },
+    "shoppingList": {
+      "title": "Shopping list",
+      "subtitle": "What is below its minimum, and how much to order",
+      "action": "Shopping list",
+      "print": "Print list",
+      "current": "In stock",
+      "suggested": "Suggested",
+      "empty": "Nothing below its minimum",
+      "emptyHint": "Everything is within its levels — nothing to order",
+      "note": "Suggested = twice the minimum less what is in stock; a starting figure only"
+    },
+    "suppliers": {
+      "title": "Suppliers",
+      "subtitle": "Who the clinic buys from, and what has been spent",
+      "add": "Add supplier",
+      "newTitle": "New supplier",
+      "editTitle": "Edit supplier",
+      "created": "Supplier added",
+      "updated": "Supplier saved",
+      "name": "Supplier",
+      "phone": "Phone",
+      "contact": "Contact person",
+      "items": "Items",
+      "purchased": "Total purchases",
+      "state": "State",
+      "actions": "Actions",
+      "active": "Active",
+      "inactive": "Inactive",
+      "search": "Search suppliers",
+      "searchPlaceholder": "Supplier or contact name",
+      "empty": "No suppliers yet",
+      "emptyHint": "Add suppliers so purchases can be attributed to them",
+      "statement": {
+        "title": "Purchases — {{supplier}}",
+        "range": "Period",
+        "date": "Date",
+        "item": "Item",
+        "quantity": "Quantity",
+        "unitPrice": "Unit price",
+        "total": "Total",
+        "periodTotal": "Period total",
+        "empty": "No purchases in this period",
+        "emptyHint": "Every purchase from this supplier appears here"
       }
     }
   }
