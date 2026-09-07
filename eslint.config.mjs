@@ -168,6 +168,32 @@ export default tseslint.config(
   },
 
   {
+    /*
+     * The visual QA sweep and the end-to-end smoke run.
+     *
+     * They sit outside every workspace — they drive the whole product, not one
+     * package — so there is no `@web/…` alias to import the shared screen
+     * catalogue through, and half of `qa-screens.mjs` is a function that is
+     * serialised into the browser and therefore names browser globals.
+     */
+    files: ['scripts/qa-screens.mjs', 'scripts/qa/**/*.mjs', 'tests/e2e/**/*.ts'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        document: 'readonly',
+        fetch: 'readonly',
+        getComputedStyle: 'readonly',
+        process: 'readonly',
+        window: 'readonly',
+      },
+    },
+    rules: {
+      'no-console': 'off',
+      'no-restricted-imports': 'off',
+    },
+  },
+
+  {
     files: ['**/*.spec.ts', '**/*.test.ts'],
     rules: {
       'no-console': 'off',

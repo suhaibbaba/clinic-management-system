@@ -92,6 +92,94 @@ jobs:
       - name: Build Storybook
         run: pnpm --filter @clinic/web build-storybook
 
+  e2e:
+    name: End-to-end smoke (RTL phone, LTR desktop)
+    runs-on: ubuntu-latest
+
+    # The smoke run drives the real product: a browser, the built bundle, the
+    # API, and a seeded database. It is the only check that can see a screen
+    # that renders blank, a route a role is wrongly bounced off, or a page that
+    # scrolls sideways on a phone — none of which a unit test can reach.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: clinic
+          POSTGRES_PASSWORD: clinic_test_password
+          POSTGRES_DB: clinic_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U clinic -d clinic_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://clinic:clinic_test_password@localhost:5432/clinic_e2e
+      JWT_SECRET: ci-only-jwt-secret-value-at-least-32-characters
+      STORAGE_ENDPOINT: http://localhost:9000
+      STORAGE_BUCKET: clinic-e2e-files
+      STORAGE_ACCESS_KEY_ID: ci_access_key
+      STORAGE_SECRET_ACCESS_KEY: ci_secret_key
+      STORAGE_FORCE_PATH_STYLE: "true"
+      CORS_ORIGIN: http://127.0.0.1:4173
+      HOST: 127.0.0.1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build all workspaces
+        run: pnpm build
+
+      - name: Migrate and seed
+        run: |
+          node apps/api/dist/database/migrate.js
+          node apps/api/dist/database/seed.js
+
+      # The built bundle behind `vite preview`, not the dev server: the dev
+      # server's overlay hides the very failures this run is looking for, and
+      # what ships is the build.
+      - name: Start the API and the web preview
+        run: |
+          node apps/api/dist/main.js &
+          pnpm --filter @clinic/web exec vite preview --host 127.0.0.1 --port 4173 &
+
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/health >/dev/null 2>&1 \
+              && curl -fsS http://127.0.0.1:4173/ >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+
+          curl -fsS http://127.0.0.1:3000/health >/dev/null
+          curl -fsS http://127.0.0.1:4173/ >/dev/null
+
+      - name: Smoke-test every screen, each role, both directions
+        run: pnpm test:e2e
+
+      - name: Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
   docker:
     name: Docker images
     runs-on: ubuntu-latest

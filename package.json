@@ -15,10 +15,13 @@
     "version:sync": "node scripts/sync-version.mjs",
     "version:check": "node scripts/sync-version.mjs --check",
     "test": "pnpm -r test",
-    "seed": "pnpm --filter @clinic/api seed"
+    "seed": "pnpm --filter @clinic/api seed",
+    "qa:screens": "node scripts/qa-screens.mjs",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "^1.63.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.6.2",
