@@ -1,11 +1,21 @@
 name: Deploy sandbox
 
-# push to main -> build on the server -> healthcheck.
+# a vX.Y.Z tag -> build that tag on the server -> healthcheck.
 #
 # There is no registry in this pipeline. The VPS holds the repository at
-# /opt/clinic/sandbox, so a deploy is: fast-forward that checkout to origin/main
-# and rebuild the two images in place. The runner never builds an image and
-# never pushes one anywhere.
+# /opt/clinic/sandbox, so a deploy is: move that checkout to the released
+# commit and rebuild the two images in place. The runner never builds an image
+# and never pushes one anywhere.
+#
+# The trigger is the tag rather than the push to main, because the version is
+# in the source: every merge produces a `chore(release)` commit a few seconds
+# after the merge commit, and deploying on the push would race that bump —
+# landing a build that reports the previous version about half the time.
+# Deploying the tag is the deterministic answer, and it also makes "what is on
+# the sandbox" a release rather than a commit.
+#
+# `workflow_dispatch` still deploys the head of main, for the times a release
+# is not what you want on there.
 #
 # The VPS is shared with other projects, so this workflow only ever touches
 # /opt/clinic/sandbox and the `clinic-sandbox` compose project. It installs no
@@ -13,7 +23,7 @@ name: Deploy sandbox
 # reaches this stack over 127.0.0.1.
 on:
   push:
-    branches: [main]
+    tags: ["v*"]
   workflow_dispatch:
 
 # Never let two deploys reach the server at once, and never cancel one
@@ -67,8 +77,13 @@ jobs:
       # secrets that configure them live in /opt/clinic/sandbox/.env, which is
       # created once by hand and never touched by CI (see DEPLOY.md).
       - name: Build and restart the stack
+        env:
+          # A tag name on a release, `main` on a manual run. Forwarded rather
+          # than interpolated into the script, so a ref never becomes shell.
+          DEPLOY_REF: ${{ github.ref_name }}
         uses: appleboy/ssh-action@v1.2.0
         with:
+          envs: DEPLOY_REF
           host: ${{ secrets.SANDBOX_HOST }}
           username: ${{ secrets.SANDBOX_USER }}
           key: ${{ secrets.SANDBOX_SSH_KEY }}
@@ -90,11 +105,22 @@ jobs:
             }
 
             # Hard reset rather than merge: the server holds no local commits,
-            # and a deploy must land exactly what is on main. `.env` is
+            # and a deploy must land exactly the released commit. `.env` is
             # gitignored, so it survives this untouched.
-            git fetch origin main
-            git reset --hard origin/main
-            echo "deploying $(git rev-parse --short HEAD)"
+            #
+            # `--force` on the tag fetch because a tag is only ever written
+            # once here, but a re-run of a deleted-and-remade tag must not fail
+            # on "would clobber existing tag" halfway through a deploy.
+            git fetch origin main --tags --force
+
+            if git rev-parse -q --verify "refs/tags/${DEPLOY_REF}" >/dev/null; then
+              target="refs/tags/${DEPLOY_REF}"
+            else
+              target="origin/${DEPLOY_REF}"
+            fi
+
+            git reset --hard "$target"
+            echo "deploying ${DEPLOY_REF} ($(git rev-parse --short HEAD))"
 
             # Fail loudly rather than booting a stack with empty passwords.
             test -f .env || { echo "missing ${{ env.REMOTE_DIR }}/.env — see DEPLOY.md"; exit 1; }

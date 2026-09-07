@@ -1,6 +1,6 @@
 {
   "name": "@clinic/web",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Clinic management system web app — React + Vite, RTL Arabic UI.",
   "type": "module",

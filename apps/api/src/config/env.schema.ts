@@ -72,9 +72,6 @@ export const envSchema = z.object({
   /** Password given to every account created by `pnpm seed`. Development only. */
   SEED_PASSWORD: z.string().min(8).default('ChangeMe123!'),
 
-  /** Reported by /health so a running build can be identified. */
-  APP_VERSION: z.string().min(1).default('0.1.0'),
-
   /* ---------------------------- Notifications --------------------------- */
 
   /**

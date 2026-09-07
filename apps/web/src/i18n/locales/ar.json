@@ -192,7 +192,11 @@
     "logoUpdated": "تم تحديث الشعار",
     "logoRemoved": "تم حذف الشعار",
     "logoTooLarge": "حجم الصورة يتجاوز ٢ ميغابايت",
-    "logoUnsupported": "نوع الصورة غير مدعوم: استخدم PNG أو JPG أو WebP"
+    "logoUnsupported": "نوع الصورة غير مدعوم: استخدم PNG أو JPG أو WebP",
+    "about": "عن البرنامج",
+    "version": "الإصدار",
+    "apiVersion": "إصدار الخادم",
+    "versionMismatch": "الصفحة المفتوحة أقدم من الخادم — أعد تحميل الصفحة"
   },
   "audit": {
     "title": "سجل التدقيق",
