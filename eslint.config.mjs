@@ -158,7 +158,7 @@ export default tseslint.config(
 
   {
     // Plain Node scripts that run outside a bundler or the Nest runtime.
-    files: ['docker/**/*.js', 'apps/web/scripts/**/*.mjs'],
+    files: ['docker/**/*.js', 'scripts/**/*.mjs', 'apps/web/scripts/**/*.mjs'],
     languageOptions: {
       globals: { console: 'readonly', fetch: 'readonly', process: 'readonly' },
     },

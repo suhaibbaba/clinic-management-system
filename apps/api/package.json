@@ -1,6 +1,6 @@
 {
   "name": "@clinic/api",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Clinic management system API — NestJS on the Fastify adapter.",
   "main": "dist/main.js",

@@ -1,5 +1,6 @@
 import {
   ALLOWED_CLINIC_LOGO_MIME_TYPES,
+  APP_VERSION,
   CURRENCIES,
   MAX_CLINIC_LOGO_BYTES,
   USER_ROLE,
@@ -12,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, FormField, Icon, Input, PageHeader, Select, useToast } from '@web/components/ui';
 import { ScheduleEditor } from '@web/components/schedule-editor';
 import { useSession } from '@web/features/auth/session';
+import { useApiVersion } from '@web/features/clinic/api-version';
 import {
   useClinic,
   useRemoveClinicLogo,
@@ -169,6 +171,8 @@ export function ClinicPage(): JSX.Element {
           <p className="mb-3 text-value font-medium text-ink">{t('clinic.workingHours')}</p>
           <ScheduleEditor value={workingHours} onChange={setWorkingHours} disabled={!canEdit} />
         </section>
+
+        <AboutSection />
       </div>
     </>
   );
@@ -290,5 +294,53 @@ function LogoField({
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * Which build this is — the thing somebody reads out over the phone when they
+ * report a problem.
+ *
+ * Every role sees it: a version is not a permission, and the person on the
+ * phone is as likely to be the receptionist as the admin.
+ *
+ * The number is the bundle's own, baked in at build time. The API's is shown
+ * **only when the two disagree**, which is the case worth surfacing: a browser
+ * still holding the previous bundle after a deploy. When they agree, a second
+ * identical number would be noise.
+ */
+function AboutSection(): JSX.Element {
+  const { t } = useTranslation();
+  const api = useApiVersion();
+
+  const apiVersion = api.data?.version;
+  const mismatched = apiVersion !== undefined && apiVersion !== APP_VERSION;
+
+  return (
+    <section className="rounded-card bg-surface shadow-card p-4">
+      <p className="mb-3 text-value font-medium text-ink">{t('clinic.about')}</p>
+
+      <dl className="flex flex-col gap-2">
+        <div className="flex items-baseline justify-between gap-4">
+          <dt className="text-label text-ink-muted">{t('clinic.version')}</dt>
+          <dd dir="ltr" className="font-mono text-value text-ink">
+            v{APP_VERSION}
+          </dd>
+        </div>
+
+        {mismatched && (
+          <div className="flex items-baseline justify-between gap-4">
+            <dt className="text-label text-ink-muted">{t('clinic.apiVersion')}</dt>
+            <dd dir="ltr" className="font-mono text-value text-warning-700">
+              v{apiVersion}
+            </dd>
+          </div>
+        )}
+      </dl>
+
+      {mismatched && (
+        <p className="mt-2 text-label text-ink-subtle">{t('clinic.versionMismatch')}</p>
+      )}
+    </section>
   );
 }

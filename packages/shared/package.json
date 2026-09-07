@@ -1,6 +1,6 @@
 {
   "name": "@clinic/shared",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Zod schemas, shared types, enums and constants used by both the API and the web app.",
   "main": "./dist/index.js",
