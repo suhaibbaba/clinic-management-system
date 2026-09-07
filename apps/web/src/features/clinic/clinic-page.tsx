@@ -1,6 +1,5 @@
 import {
   ALLOWED_CLINIC_LOGO_MIME_TYPES,
-  APP_VERSION,
   CURRENCIES,
   MAX_CLINIC_LOGO_BYTES,
   USER_ROLE,
@@ -13,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Button, FormField, Icon, Input, PageHeader, Select, useToast } from '@web/components/ui';
 import { ScheduleEditor } from '@web/components/schedule-editor';
 import { useSession } from '@web/features/auth/session';
-import { useApiVersion } from '@web/features/clinic/api-version';
+import { useApiVersion, WEB_VERSION } from '@web/features/clinic/api-version';
 import {
   useClinic,
   useRemoveClinicLogo,
@@ -314,7 +313,7 @@ function AboutSection(): JSX.Element {
   const api = useApiVersion();
 
   const apiVersion = api.data?.version;
-  const mismatched = apiVersion !== undefined && apiVersion !== APP_VERSION;
+  const mismatched = apiVersion !== undefined && apiVersion !== WEB_VERSION;
 
   return (
     <section className="rounded-card bg-surface shadow-card p-4">
@@ -324,7 +323,7 @@ function AboutSection(): JSX.Element {
         <div className="flex items-baseline justify-between gap-4">
           <dt className="text-label text-ink-muted">{t('clinic.version')}</dt>
           <dd dir="ltr" className="font-mono text-value text-ink">
-            v{APP_VERSION}
+            v{WEB_VERSION}
           </dd>
         </div>
 

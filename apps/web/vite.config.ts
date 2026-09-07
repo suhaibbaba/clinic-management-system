@@ -1,4 +1,6 @@
 /// <reference types="vitest/config" />
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 
 import tailwindcss from '@tailwindcss/vite';
@@ -43,7 +45,45 @@ function bookingEntryDevServer(): Plugin {
   };
 }
 
+/**
+ * The version, inlined into the bundle.
+ *
+ * A browser cannot be told this later — there is no runtime configuration in a
+ * static SPA — so it is baked in here and the settings screen reads the
+ * constant. `VITE_APP_VERSION` is what the deploy passes in as a build arg;
+ * the git fallback is for `pnpm dev`, where there is a checkout to ask.
+ *
+ * Inside the Docker build there is neither: `.git` is excluded from the build
+ * context, which is exactly why the deploy passes the answer in rather than
+ * letting the image guess. `0.0.0-dev` is then the honest answer, and it looks
+ * like one.
+ */
+function appVersion(): string {
+  const passedIn = process.env['VITE_APP_VERSION'];
+
+  if (passedIn) {
+    return passedIn;
+  }
+
+  try {
+    const manifest = fileURLToPath(new URL('../../package.json', import.meta.url));
+    const { version } = JSON.parse(readFileSync(manifest, 'utf8')) as { version: string };
+    const [major, minor] = version.split('.');
+    const count = execFileSync('git', ['rev-list', '--count', 'HEAD'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+
+    return `${major}.${minor}.${count}`;
+  } catch {
+    return '0.0.0-dev';
+  }
+}
+
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion()),
+  },
   plugins: [react(), tailwindcss(), bookingEntryDevServer()],
   resolve: {
     alias: {

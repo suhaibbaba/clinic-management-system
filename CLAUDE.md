@@ -80,10 +80,11 @@ packages/
 ### Language
 - Code, comments, commits, API: English. UI strings: Arabic via i18n. Commits: conventional commits (`feat(billing): ...`).
 
-### Versioning & releases
-- **Every merge to `main` is a release**: `.github/workflows/release.yml` bumps the **minor** version, tags `vX.Y.Z`, and publishes a GitHub Release. The sandbox deploys that tag, so what is running always reports its own version.
-- The root `package.json` is the version. `scripts/sync-version.mjs` writes it into the three workspace manifests and into `APP_VERSION` in `packages/shared`, which is what both apps display; `version.spec.ts` fails the build if any copy drifts. Never read a version from the environment — one somebody can forget to set is worse than none, because it gets believed.
-- **To cut a major**, set the version in the pull request. A version with no tag yet is released as written rather than bumped, so the merge releases exactly what you asked for.
+### Versioning
+- The version is **`<major>.<minor>` from the root `package.json` plus the repository's commit count** — `1.0` and 312 commits is `1.0.312`. It is resolved by the deploy (`scripts/app-version.mjs`, mirrored in shell for a VPS without node) and never stored: nothing bumps a file, nothing tags, nothing commits back to the branch. Every commit that reaches `main` is a new version, for free.
+- **Major and minor are the human decision** and live in the root `package.json`; the third number says which build this is. Its patch field is ignored.
+- The images cannot work it out — `.git` is not in the Docker build context — so it is **passed in**: `APP_VERSION` as an environment variable to the API, `VITE_APP_VERSION` as a build arg to the web, which inlines it. Anything started without them reports `0.0.0-dev`, which is the honest answer and looks like one.
+- The API serves it at `/version`; the web shows it on the settings screen and shows the API's beside it **only when they differ**, which is how a browser holding a stale bundle announces itself.
 
 ## Never
 - hardcode a user-facing choice list — it belongs in `lookup_options` (see architecture decision 8); a status that drives a state machine is the exception, and stays an enum

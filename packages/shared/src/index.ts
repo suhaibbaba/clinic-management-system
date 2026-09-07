@@ -32,4 +32,3 @@ export * from '@shared/schemas/tooth-history';
 export * from '@shared/schemas/treatment-plans';
 export * from '@shared/schemas/users';
 export * from '@shared/schemas/visits';
-export * from '@shared/version';

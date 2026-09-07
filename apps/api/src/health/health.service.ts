@@ -1,14 +1,24 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { APP_VERSION, healthResponseSchema, type HealthResponse } from '@clinic/shared';
+import { ConfigService } from '@nestjs/config';
+import { healthResponseSchema, type HealthResponse } from '@clinic/shared';
 import { sql } from 'drizzle-orm';
 
+import type { Env } from '@api/config/env.schema';
 import { DATABASE, type Database } from '@api/database/database.module';
 
 @Injectable()
 export class HealthService {
   private readonly logger = new Logger(HealthService.name);
 
-  constructor(@Inject(DATABASE) private readonly db: Database) {}
+  constructor(
+    @Inject(DATABASE) private readonly db: Database,
+    private readonly config: ConfigService<Env, true>,
+  ) {}
+
+  /** What the deploy resolved from the commit count, or the dev default. */
+  version(): string {
+    return this.config.get('APP_VERSION', { infer: true });
+  }
 
   /**
    * Liveness + database connectivity. The response is validated with the same
@@ -21,9 +31,7 @@ export class HealthService {
     return healthResponseSchema.parse({
       status: database === 'up' ? 'ok' : 'degraded',
       database,
-      // The build's own version, not the environment's: a version somebody
-      // can forget to export is a number that gets believed and is wrong.
-      version: APP_VERSION,
+      version: this.version(),
       timestamp: new Date().toISOString(),
       uptimeSeconds: Math.round(process.uptime()),
     } satisfies HealthResponse);
