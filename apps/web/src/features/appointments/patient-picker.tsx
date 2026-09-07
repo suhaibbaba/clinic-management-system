@@ -1,7 +1,7 @@
 import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Avatar, Icon, SearchField } from '@web/components/ui';
+import { Avatar, Icon, Ltr, SearchField } from '@web/components/ui';
 import { usePatients } from '@web/features/patients/queries';
 import { useDebounced } from '@web/lib/use-debounced';
 import { cn } from '@web/lib/cn';
@@ -49,11 +49,9 @@ export function PatientPicker({ value, onChange, id }: PatientPickerProps): JSX.
     return (
       <div className="flex items-center gap-3 rounded-control border border-line bg-inset px-3 py-2">
         <Avatar name={value.fullName} tintKey={value.id} />
-        <span className="flex min-w-0 flex-1 flex-col leading-tight">
+        <span className="flex min-w-0 flex-1 flex-col leading-snug">
           <span className="truncate text-value font-medium text-ink">{value.fullName}</span>
-          <span dir="ltr" className="truncate text-label tabular-nums text-ink-subtle">
-            {value.phone}
-          </span>
+          <Ltr className="truncate text-label tabular-nums text-ink-subtle">{value.phone}</Ltr>
         </span>
         <button
           type="button"
@@ -97,11 +95,11 @@ export function PatientPicker({ value, onChange, id }: PatientPickerProps): JSX.
                 )}
               >
                 <Avatar name={patient.fullName} tintKey={patient.id} />
-                <span className="flex min-w-0 flex-col leading-tight">
+                <span className="flex min-w-0 flex-col leading-snug">
                   <span className="truncate text-value text-ink">{patient.fullName}</span>
-                  <span dir="ltr" className="truncate text-label tabular-nums text-ink-subtle">
+                  <Ltr className="truncate text-label tabular-nums text-ink-subtle">
                     {patient.fileNumber} · {patient.phone}
-                  </span>
+                  </Ltr>
                 </span>
               </button>
             </li>

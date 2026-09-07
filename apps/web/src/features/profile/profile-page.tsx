@@ -4,7 +4,16 @@ import type { JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, FormField, Icon, Input, PageHeader, useToast } from '@web/components/ui';
+import {
+  Badge,
+  Button,
+  FormField,
+  Icon,
+  Input,
+  Ltr,
+  PageHeader,
+  useToast,
+} from '@web/components/ui';
 import { authApi } from '@web/features/auth/api';
 import { useSession } from '@web/features/auth/session';
 import { ApiError, errorMessageKey } from '@web/lib/api-error';
@@ -54,10 +63,14 @@ export function ProfilePage(): JSX.Element {
             <dd className="font-medium text-ink">{user?.name}</dd>
 
             <dt className="text-ink-muted">{t('users.phone')}</dt>
-            <dd className="font-medium text-ink">{user?.phone}</dd>
+            <Ltr as="dd" className="font-medium text-ink">
+              {user?.phone}
+            </Ltr>
 
             <dt className="text-ink-muted">{t('users.email')}</dt>
-            <dd className="font-medium text-ink">{user?.email ?? '—'}</dd>
+            <Ltr as="dd" className="font-medium text-ink">
+              {user?.email ?? '—'}
+            </Ltr>
 
             <dt className="text-ink-muted">{t('users.role')}</dt>
             <dd>{user && <Badge tone="info">{t(`roles.${user.role}`)}</Badge>}</dd>

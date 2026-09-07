@@ -3,7 +3,7 @@ import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { Badge, EmptyState, PageHeader, Table, type Column } from '@web/components/ui';
+import { Badge, EmptyState, Ltr, PageHeader, Table, type Column } from '@web/components/ui';
 import { minutesOf, toTimeLabel, todayIso } from '@web/features/appointments/calendar-time';
 import { setClinicTimeZone } from '@web/features/appointments/clinic-zone';
 import { useAppointments } from '@web/features/appointments/queries';
@@ -77,10 +77,8 @@ export function ConfirmedBookings(): JSX.Element {
       header: 'booking.pending.columns.slot',
       render: (row) => (
         <span className="flex flex-wrap items-center gap-2">
-          <span dir="ltr">{formatDate(row.startsAt)}</span>
-          <span dir="ltr" className="font-medium tabular-nums">
-            {toTimeLabel(minutesOf(row.startsAt))}
-          </span>
+          <Ltr>{formatDate(row.startsAt)}</Ltr>
+          <Ltr className="font-medium tabular-nums">{toTimeLabel(minutesOf(row.startsAt))}</Ltr>
         </span>
       ),
     },

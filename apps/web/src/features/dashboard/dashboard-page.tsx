@@ -7,6 +7,7 @@ import {
   Badge,
   EmptyState,
   Icon,
+  Ltr,
   PageHeader,
   StatCard,
   Table,
@@ -169,9 +170,7 @@ function TodaySchedule({
       key: 'time',
       header: 'dashboard.schedule.time',
       render: (row) => (
-        <span dir="ltr" className="font-semibold tabular-nums">
-          {toTimeLabel(minutesOf(row.startsAt))}
-        </span>
+        <Ltr className="font-semibold tabular-nums">{toTimeLabel(minutesOf(row.startsAt))}</Ltr>
       ),
     },
     {

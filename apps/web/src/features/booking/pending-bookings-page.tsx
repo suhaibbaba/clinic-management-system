@@ -7,6 +7,7 @@ import {
   Button,
   EmptyState,
   FormField,
+  Ltr,
   Modal,
   PageHeader,
   RowAction,
@@ -14,8 +15,8 @@ import {
   StatRow,
   Table,
   Textarea,
-  useToast,
   type Column,
+  useToast,
 } from '@web/components/ui';
 import { toTimeLabel, minutesOf } from '@web/features/appointments/calendar-time';
 import { setClinicTimeZone } from '@web/features/appointments/clinic-zone';
@@ -130,10 +131,8 @@ export function PendingBookingsPage(): JSX.Element {
       header: 'booking.pending.columns.slot',
       render: (row) => (
         <span className="flex flex-wrap items-center gap-2">
-          <span dir="ltr">{formatDate(row.startsAt)}</span>
-          <span dir="ltr" className="font-medium tabular-nums">
-            {toTimeLabel(minutesOf(row.startsAt))}
-          </span>
+          <Ltr>{formatDate(row.startsAt)}</Ltr>
+          <Ltr className="font-medium tabular-nums">{toTimeLabel(minutesOf(row.startsAt))}</Ltr>
         </span>
       ),
     },
@@ -141,7 +140,7 @@ export function PendingBookingsPage(): JSX.Element {
       key: 'requestedAt',
       header: 'booking.pending.columns.requestedAt',
       hideOnMobile: true,
-      render: (row) => <span dir="ltr">{formatDateTime(row.createdAt)}</span>,
+      render: (row) => <Ltr>{formatDateTime(row.createdAt)}</Ltr>,
     },
     {
       key: 'actions',

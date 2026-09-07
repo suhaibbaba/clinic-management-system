@@ -122,6 +122,7 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
             placeholder={t('common.placeholders.phone')}
             adornment="phone"
             id="user-phone"
+            dir="ltr"
             inputMode="tel"
             hasError={errors.phone !== undefined}
             {...register('phone')}
@@ -151,7 +152,7 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
           <Select
             id="user-role"
             options={roleOptions}
-            placeholder={t('users.filterRole')}
+            placeholder={t('users.selectRole')}
             hasError={errors.role !== undefined}
             {...register('role')}
           />

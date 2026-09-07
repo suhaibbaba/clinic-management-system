@@ -8,6 +8,7 @@ import {
   Button,
   EmptyState,
   Icon,
+  Ltr,
   PageHeader,
   RowAction,
   SearchField,
@@ -67,7 +68,7 @@ export function UsersPage(): JSX.Element {
         render: (row) => (
           <span className="flex items-center gap-3">
             <Avatar name={row.name} tintKey={row.id} />
-            <span className="flex min-w-0 flex-col leading-tight">
+            <span className="flex min-w-0 flex-col leading-snug">
               <span className="truncate font-semibold text-ink">{row.name}</span>
               {row.email !== null && row.email !== undefined && (
                 <span className="truncate text-label text-ink-subtle">{row.email}</span>
@@ -79,11 +80,7 @@ export function UsersPage(): JSX.Element {
       {
         key: 'phone',
         header: 'users.phone',
-        render: (row) => (
-          <span dir="ltr" className="tabular-nums">
-            {row.phone}
-          </span>
-        ),
+        render: (row) => <Ltr className="tabular-nums">{row.phone}</Ltr>,
       },
       // Dropped from the wide shape — it is the caption under the name there —
       // but kept as its own labelled row on a card, where there is no caption.

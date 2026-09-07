@@ -14,6 +14,7 @@ import {
   FormField,
   Icon,
   Input,
+  Ltr,
   Modal,
   Select,
   useToast,
@@ -106,9 +107,9 @@ export function WaitingListPanel({
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="truncate text-value font-medium text-ink">{entry.patientName}</p>
-                  <p dir="ltr" className="truncate text-label tabular-nums text-ink-subtle">
+                  <Ltr as="p" className="truncate text-label tabular-nums text-ink-subtle">
                     {entry.patientPhone}
-                  </p>
+                  </Ltr>
                 </div>
                 <Badge tone={PRIORITY_TONE[entry.priority] ?? 'neutral'}>
                   {t(`appointments.waiting.priorities.${entry.priority}`)}

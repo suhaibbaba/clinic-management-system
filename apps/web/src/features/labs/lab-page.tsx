@@ -10,6 +10,7 @@ import {
   DateRangePicker,
   EmptyState,
   Icon,
+  Ltr,
   SegmentedControl,
   StatCard,
   StatRow,
@@ -64,7 +65,7 @@ export function LabPage(): JSX.Element {
           written here rather than through `PageHeader`. */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h1 className="truncate text-[1.625rem] font-bold leading-tight tracking-[-0.03em] text-ink sm:text-title">
+          <h1 className="truncate text-[1.625rem] font-bold leading-[1.3] tracking-[-0.03em] text-ink sm:text-title">
             {lab.data?.name ?? '…'}
           </h1>
           <p className="mt-1 text-value text-ink-muted">
@@ -285,7 +286,7 @@ function StatementTab({
     {
       key: 'date',
       header: 'labs.statement.date',
-      render: (row) => <span dir="ltr">{formatDate(row.occurredAt)}</span>,
+      render: (row) => <Ltr>{formatDate(row.occurredAt)}</Ltr>,
     },
     {
       key: 'description',

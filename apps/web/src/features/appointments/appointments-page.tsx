@@ -6,6 +6,7 @@ import {
   Button,
   EmptyState,
   Icon,
+  Ltr,
   PageHeader,
   SegmentedControl,
   Select,
@@ -284,7 +285,13 @@ export function AppointmentsPage(): JSX.Element {
             aria-label={t('appointments.next')}
             onClick={() => step(1)}
           />
-          <span className="ms-1 text-value font-medium text-ink">{label}</span>
+          {/*
+            One island, not two dates in an Arabic line. `06/09 – 12/09` is a
+            single left-to-right run: read as ordinary text in an RTL
+            paragraph, the neutral dash let the algorithm swap its two halves
+            and the toolbar announced the week as `12/09 – 06/09`.
+          */}
+          <Ltr className="ms-1 text-value font-medium text-ink">{label}</Ltr>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 sm:ms-auto">

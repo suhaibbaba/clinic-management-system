@@ -104,6 +104,7 @@ export function PatientFormModal({
             adornment="phone"
             id="patient-phone"
             dir="ltr"
+            inputMode="tel"
             hasError={Boolean(errors.phone)}
             {...register('phone')}
           />
@@ -184,6 +185,7 @@ export function PatientFormModal({
             adornment="phone"
             id="patient-emergency-phone"
             dir="ltr"
+            inputMode="tel"
             {...register('emergencyContactPhone', {
               setValueAs: (value) => (value === '' ? null : value),
             })}

@@ -13,6 +13,7 @@ import {
   Button,
   EmptyState,
   Icon,
+  Ltr,
   PageHeader,
   RowAction,
   Switch,
@@ -201,9 +202,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
                 <span className="block truncate text-value text-ink">
                   {lookupLabel(option, i18n.language)}
                 </span>
-                <span className="block truncate text-label text-ink-subtle" dir="ltr">
-                  {option.code}
-                </span>
+                <Ltr className="truncate text-label text-ink-subtle">{option.code}</Ltr>
               </span>
 
               {option.isSystem && <Badge tone="neutral">{t('lookups.system')}</Badge>}

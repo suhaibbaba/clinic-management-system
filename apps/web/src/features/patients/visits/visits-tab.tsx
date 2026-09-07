@@ -2,7 +2,7 @@ import type { PatientClinicalView, PerformedProcedure, Visit } from '@clinic/sha
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, EmptyState, Icon, useToast } from '@web/components/ui';
+import { Badge, Button, EmptyState, Icon, Ltr, useToast } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { useDoctors } from '@web/features/doctors/queries';
 import { ConsumeForVisit } from '@web/features/inventory/consume-for-visit';
@@ -142,9 +142,9 @@ export function VisitsTab({
             <li key={visit.id} className="rounded-card bg-surface shadow-card p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <p className="text-value font-semibold text-ink" dir="ltr">
+                  <Ltr as="p" className="text-value font-semibold text-ink">
                     {formatDateTime(visit.visitDate)}
-                  </p>
+                  </Ltr>
                   <p className="mt-0.5 text-label text-ink-muted">
                     {t('visits.doctor')}: {doctorName(visit.doctorId)}
                   </p>
@@ -222,9 +222,7 @@ export function VisitsTab({
                         <span className="flex items-center gap-2 text-value text-ink">
                           {catalogName(procedure.procedureId)}
                           {toothLabel(procedure) && (
-                            <span className="text-label text-ink-muted" dir="ltr">
-                              {toothLabel(procedure)}
-                            </span>
+                            <Ltr className="text-label text-ink-muted">{toothLabel(procedure)}</Ltr>
                           )}
                         </span>
 

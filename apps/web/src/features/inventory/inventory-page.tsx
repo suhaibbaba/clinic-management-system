@@ -8,6 +8,7 @@ import {
   Button,
   EmptyState,
   Icon,
+  Ltr,
   PageHeader,
   ProgressBar,
   SearchField,
@@ -102,9 +103,9 @@ export function InventoryPage(): JSX.Element {
       render: (row) =>
         row.nearestExpiry ? (
           <span className="flex flex-wrap items-center gap-1.5">
-            <span dir="ltr" className={row.isExpired ? 'text-danger-600' : undefined}>
+            <Ltr className={row.isExpired ? 'text-danger-600' : undefined}>
               {formatDate(row.nearestExpiry)}
-            </span>
+            </Ltr>
             {row.isExpired && <Badge tone="danger">{t('inventory.flags.expired')}</Badge>}
             {row.isExpiring && <Badge tone="warning">{t('inventory.flags.expiring')}</Badge>}
           </span>
@@ -224,9 +225,7 @@ function StockCell({ item }: { readonly item: InventoryItemRow }): JSX.Element {
   return (
     <span className="flex min-w-28 flex-col gap-1">
       <span className="flex items-baseline gap-1.5">
-        <span dir="ltr" className="font-medium tabular-nums text-ink">
-          {item.quantity}
-        </span>
+        <Ltr className="font-medium tabular-nums text-ink">{item.quantity}</Ltr>
         <span className="text-label text-ink-muted">{unitLabel(item.unit)}</span>
         {item.isLow && (
           <Badge tone="danger" className="ms-auto">
@@ -246,7 +245,7 @@ function StockCell({ item }: { readonly item: InventoryItemRow }): JSX.Element {
       />
 
       <span className="text-label text-ink-subtle">
-        {t('inventory.minimum')}: <span dir="ltr">{item.minQuantity}</span>
+        {t('inventory.minimum')}: <Ltr>{item.minQuantity}</Ltr>
       </span>
     </span>
   );

@@ -198,6 +198,20 @@ const DIRECTIONAL: Partial<
   'chevron-start': { rtl: ChevronRight, ltr: ChevronLeft },
 };
 
+/**
+ * Glyphs that are a direction, with no mirrored twin to swap in.
+ *
+ * `log-in` and `log-out` are an arrow going through a doorway: the arrow says
+ * "onwards" and "away", which in Arabic point the other way, and lucide ships
+ * one of each rather than a pair. So these are flipped on the horizontal axis
+ * instead — the same thing the platform does with a back arrow.
+ *
+ * Everything else stays as drawn. A magnifier, a printer, a clock and a
+ * refresh arrow are objects rather than directions, and mirroring them makes
+ * an interface look like it was translated by a machine.
+ */
+const MIRRORED: ReadonlySet<IconName> = new Set(['login', 'logout']);
+
 export interface IconProps {
   readonly name: IconName;
   /**
@@ -220,7 +234,12 @@ export function Icon({ name, size = 'sm', className }: IconProps): JSX.Element {
       aria-hidden="true"
       focusable="false"
       strokeWidth={1.75}
-      className={cn('shrink-0', size === 'md' ? 'size-5' : 'size-[18px]', className)}
+      className={cn(
+        'shrink-0',
+        size === 'md' ? 'size-5' : 'size-[18px]',
+        isRtl && MIRRORED.has(name) && '-scale-x-100',
+        className,
+      )}
     />
   );
 }

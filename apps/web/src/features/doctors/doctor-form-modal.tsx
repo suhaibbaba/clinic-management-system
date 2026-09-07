@@ -48,9 +48,18 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
     setSchedule(doctor?.weeklySchedule ?? []);
   }, [open, doctor]);
 
+  /*
+   * `\u2068`/`\u2069` — FIRST STRONG ISOLATE and POP DIRECTIONAL ISOLATE.
+   *
+   * An `<option>` is text, not markup: there is no span to put `dir` on, so
+   * the isolation has to be in the string itself. Without it the bidi
+   * algorithm reads "Dr. Layla Haddad — +963931000002" inside an Arabic select
+   * and hands the dash and the leading plus to the paragraph's direction,
+   * which renders the line as "963931000002+ — Dr. Layla Haddad".
+   */
   const userOptions = (doctorUsers.data?.items ?? []).map((user) => ({
     value: user.id,
-    label: `${user.name} — ${user.phone}`,
+    label: `\u2068${user.name}\u2069 — \u2068${user.phone}\u2069`,
   }));
 
   const specialtyOptions = (specialties.data?.items ?? []).map((specialty) => ({

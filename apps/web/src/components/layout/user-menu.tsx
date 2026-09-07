@@ -16,6 +16,7 @@ import { Icon } from '@web/components/ui/icon';
 import { WEB_VERSION } from '@web/features/clinic/api-version';
 import { changeLanguage, LANGUAGES, type Language } from '@web/i18n/language';
 import { cn } from '@web/lib/cn';
+import { Ltr } from '@web/components/ui/ltr';
 
 const LANGUAGE_LABELS: Record<Language, string> = {
   ar: 'العربية', // i18n-allow: a language is named in its own script, never translated
@@ -59,7 +60,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
       >
         <Avatar name={user.name} />
 
-        <span className="flex min-w-0 flex-1 flex-col leading-tight text-start">
+        <span className="flex min-w-0 flex-1 flex-col leading-snug text-start">
           <span className="truncate text-label font-semibold text-ink">{user.name}</span>
           <span className="truncate text-label text-ink-subtle">{t(`roles.${user.role}`)}</span>
         </span>
@@ -114,10 +115,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
           order between "sign out" and the edge of the menu.
         */}
         <p className="px-2 py-1.5 text-label text-ink-subtle">
-          <span>{t('clinic.version')}</span>{' '}
-          <span dir="ltr" className="font-mono">
-            v{WEB_VERSION}
-          </span>
+          <span>{t('clinic.version')}</span> <Ltr className="font-mono">v{WEB_VERSION}</Ltr>
         </p>
       </DropdownMenuContent>
     </DropdownMenu>

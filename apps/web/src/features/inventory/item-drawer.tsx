@@ -15,6 +15,7 @@ import {
   Drawer,
   EmptyState,
   Icon,
+  Ltr,
   Modal,
   Textarea,
   useToast,
@@ -113,25 +114,21 @@ export function ItemDrawer({
               <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-value">
                 <Field label={t('inventory.columns.quantity')}>
                   <span className="flex items-baseline gap-1.5">
-                    <span dir="ltr" className="font-semibold tabular-nums">
-                      {row.quantity}
-                    </span>
+                    <Ltr className="font-semibold tabular-nums">{row.quantity}</Ltr>
                     <span className="text-label text-ink-muted">{unitLabel(row.unit)}</span>
                   </span>
                 </Field>
                 <Field label={t('inventory.minimum')}>
-                  <span dir="ltr" className="tabular-nums">
-                    {row.minQuantity}
-                  </span>
+                  <Ltr className="tabular-nums">{row.minQuantity}</Ltr>
                 </Field>
                 {row.supplierName && (
                   <Field label={t('inventory.movement.supplier')}>{row.supplierName}</Field>
                 )}
                 {row.nearestExpiry && (
                   <Field label={t('inventory.columns.expiry')}>
-                    <span dir="ltr" className={row.isExpired ? 'text-danger-600' : undefined}>
+                    <Ltr className={row.isExpired ? 'text-danger-600' : undefined}>
                       {formatDate(row.nearestExpiry)}
-                    </span>
+                    </Ltr>
                   </Field>
                 )}
                 {row.notes && <Field label={t('inventory.notes')}>{row.notes}</Field>}
@@ -210,21 +207,19 @@ function Batches({
               )}
             >
               <span className="flex flex-wrap items-baseline gap-2">
-                <span dir="ltr" className="text-label font-medium text-ink">
+                <Ltr className="text-label font-medium text-ink">
                   {batch.batchNo ?? t('inventory.batches.unlabelled')}
-                </span>
+                </Ltr>
                 {batch.expiryDate && (
-                  <span dir="ltr" className="text-label text-ink-muted">
-                    {formatDate(batch.expiryDate)}
-                  </span>
+                  <Ltr className="text-label text-ink-muted">{formatDate(batch.expiryDate)}</Ltr>
                 )}
                 {batch.isExpired && <Badge tone="danger">{t('inventory.flags.expired')}</Badge>}
                 {batch.isExpiring && <Badge tone="warning">{t('inventory.flags.expiring')}</Badge>}
               </span>
 
-              <span dir="ltr" className="text-label tabular-nums text-ink">
+              <Ltr className="text-label tabular-nums text-ink">
                 {batch.remaining} / {batch.quantity}
-              </span>
+              </Ltr>
             </li>
           ))}
         </ul>
@@ -233,9 +228,7 @@ function Batches({
       {Number(unbatched) > 0 && (
         <p className="flex items-baseline justify-between text-label text-ink-muted">
           <span>{t('inventory.batches.unbatched')}</span>
-          <span dir="ltr" className="tabular-nums">
-            {unbatched}
-          </span>
+          <Ltr className="tabular-nums">{unbatched}</Ltr>
         </p>
       )}
 
@@ -305,37 +298,36 @@ function History({
               </span>
 
               <span className="flex items-baseline gap-3">
-                <span
-                  dir="ltr"
+                <Ltr
                   className={cn(
                     'font-medium tabular-nums',
                     movement.quantity.startsWith('-') ? 'text-danger-600' : 'text-success-700',
                   )}
                 >
                   {movement.quantity.startsWith('-') ? movement.quantity : `+${movement.quantity}`}
-                </span>
+                </Ltr>
                 {/* What the item stood at after this movement — the column that
                     makes the history explain the number at the top. */}
-                <span dir="ltr" className="text-label tabular-nums text-ink-muted">
+                <Ltr className="text-label tabular-nums text-ink-muted">
                   → {movement.runningQuantity}
-                </span>
+                </Ltr>
               </span>
             </div>
 
             <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-label text-ink-muted">
               <div className="flex gap-1">
                 <dt className="sr-only">{t('inventory.history.when')}</dt>
-                <dd dir="ltr">{formatDateTime(movement.createdAt)}</dd>
+                <Ltr as="dd">{formatDateTime(movement.createdAt)}</Ltr>
               </div>
 
               {movement.createdByName && <dd>{movement.createdByName}</dd>}
               {movement.supplierName && <dd>{movement.supplierName}</dd>}
-              {movement.batchNo && <dd dir="ltr">{movement.batchNo}</dd>}
+              {movement.batchNo && <Ltr as="dd">{movement.batchNo}</Ltr>}
 
               {movement.unitPrice && (
-                <dd dir="ltr">
+                <Ltr as="dd">
                   <Money amount={movement.unitPrice} currency={clinic.data?.currency} />
-                </dd>
+                </Ltr>
               )}
             </dl>
 

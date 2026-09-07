@@ -44,7 +44,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
           // A fill rather than a border: the field is a shape cut out of the
           // page, which is what keeps a toolbar from turning into a row of
           // outlined boxes.
-          'chrome-field block h-10 w-full rounded-control ps-10 text-start text-field text-ink',
+          'chrome-field block h-11 w-full rounded-control ps-10 text-start text-field text-ink sm:h-10',
           'transition-colors duration-150 placeholder:text-ink-subtle',
           '[&::-webkit-search-decoration]:appearance-none [&::-webkit-search-cancel-button]:appearance-none',
           // The chip is desktop-only, so the room made for it is too.
@@ -56,7 +56,6 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
       {shortcut !== undefined && (
         <span
           aria-hidden="true"
-          dir="ltr"
           className={cn(
             // Hidden on a phone: there is no keyboard to press it with, and a
             // chip promising a key nobody can reach is just clutter in a field

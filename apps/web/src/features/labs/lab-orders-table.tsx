@@ -2,7 +2,7 @@ import type { LabOrderRow } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, EmptyState, Table, type Column } from '@web/components/ui';
+import { Badge, EmptyState, Ltr, Table, type Column } from '@web/components/ui';
 import { Money } from '@web/features/billing/money';
 import { useClinic } from '@web/features/clinic/queries';
 import { LAB_ORDER_STATUS_STYLES } from '@web/features/labs/status';
@@ -45,9 +45,7 @@ export function LabOrdersTable({
             {row.workTypeName ?? t('labs.orders.custom')}
           </span>
           {row.teeth.length > 0 && (
-            <span dir="ltr" className="text-label text-ink-muted tabular-nums">
-              {row.teeth.join(' · ')}
-            </span>
+            <Ltr className="text-label text-ink-muted tabular-nums">{row.teeth.join(' · ')}</Ltr>
           )}
         </span>
       ),
@@ -58,9 +56,7 @@ export function LabOrdersTable({
       render: (row) => (
         <span className="flex flex-col">
           <span>{row.patientName}</span>
-          <span dir="ltr" className="text-label text-ink-muted">
-            {row.patientFileNumber}
-          </span>
+          <Ltr className="text-label text-ink-muted">{row.patientFileNumber}</Ltr>
         </span>
       ),
     },
@@ -89,7 +85,7 @@ export function LabOrdersTable({
       key: 'expected',
       header: 'labs.orders.columns.expected',
       hideOnMobile: true,
-      render: (row) => (row.expectedAt ? <span dir="ltr">{formatDate(row.expectedAt)}</span> : '—'),
+      render: (row) => (row.expectedAt ? <Ltr>{formatDate(row.expectedAt)}</Ltr> : '—'),
     },
     {
       key: 'price',

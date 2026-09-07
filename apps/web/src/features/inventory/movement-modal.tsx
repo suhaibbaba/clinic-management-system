@@ -13,6 +13,7 @@ import {
   DatePicker,
   FormField,
   Input,
+  Ltr,
   Modal,
   Select,
   Textarea,
@@ -176,9 +177,7 @@ export function MovementModal({
         <div className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2">
           <span className="text-label text-ink-muted">{t('inventory.movement.onHand')}</span>
           <span className="flex items-baseline gap-1.5">
-            <span dir="ltr" className="font-semibold tabular-nums text-ink">
-              {item.quantity}
-            </span>
+            <Ltr className="font-semibold tabular-nums text-ink">{item.quantity}</Ltr>
             <span className="text-label text-ink-muted">{unitLabel(item.unit)}</span>
           </span>
         </div>

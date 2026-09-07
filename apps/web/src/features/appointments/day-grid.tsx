@@ -14,6 +14,7 @@ import {
   toTimeLabel,
 } from '@web/features/appointments/calendar-time';
 import { cn } from '@web/lib/cn';
+import { Ltr } from '@web/components/ui/ltr';
 
 export interface DayGridProps {
   /** One column each. A doctor sees a single column: their own. */
@@ -219,14 +220,12 @@ function AppointmentBlock({
       )}
       style={position}
     >
-      <span className="block truncate text-[11px] font-semibold leading-tight">
+      <span className="block truncate text-[11px] font-semibold leading-snug">
         {appointment.patientName}
       </span>
-      <span className="block truncate text-[10px] leading-tight opacity-80">
-        <span dir="ltr" className="tabular-nums">
-          {toTimeLabel(minutesOf(appointment.startsAt))}
-        </span>{' '}
-        · {typeLabel(appointment.type)}
+      <span className="block truncate text-[10px] leading-snug opacity-80">
+        <Ltr className="tabular-nums">{toTimeLabel(minutesOf(appointment.startsAt))}</Ltr> ·{' '}
+        {typeLabel(appointment.type)}
       </span>
     </button>
   );

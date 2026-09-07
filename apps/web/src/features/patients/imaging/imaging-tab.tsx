@@ -9,7 +9,7 @@ import {
 import { useRef, useState, type ChangeEvent, type DragEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, EmptyState, Icon, Input, Select, useToast } from '@web/components/ui';
+import { Badge, Button, EmptyState, Icon, Input, Ltr, Select, useToast } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { useLookupLabels, useLookupOptions } from '@web/features/lookups/queries';
 import { canDelete, canManageAttachments } from '@web/features/patients/permissions';
@@ -341,14 +341,12 @@ function ImageCard({
           <Badge tone="neutral">{attachmentTypeLabel(attachment.type)}</Badge>
           {attachment.tooth !== null && (
             <Badge tone="info">
-              <span dir="ltr">{attachment.tooth}</span>
+              <Ltr>{attachment.tooth}</Ltr>
             </Badge>
           )}
         </span>
 
-        <span className="text-[11px] text-ink-muted" dir="ltr">
-          {formatDate(attachment.createdAt)}
-        </span>
+        <Ltr className="text-[11px] text-ink-muted">{formatDate(attachment.createdAt)}</Ltr>
 
         {canRemove && (
           <Button

@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Icon } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
+import { documentDirection } from '@web/lib/direction';
 
 type ToastTone = 'success' | 'error';
 
@@ -69,7 +70,17 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
 
   return (
     <ToastContext.Provider value={api}>
-      <ToastPrimitive.Provider swipeDirection="left" duration={5000}>
+      {/*
+        The toast sits in the bottom *start* corner — the right-hand side of an
+        Arabic page — so the gesture that throws it away goes towards the
+        nearest edge, which is the right in RTL and the left in LTR. Pinned to
+        "left", an Arabic user swiped a toast across the whole screen to
+        dismiss it, or more often gave up and waited for it to time out.
+      */}
+      <ToastPrimitive.Provider
+        swipeDirection={documentDirection() === 'rtl' ? 'right' : 'left'}
+        duration={5000}
+      >
         {children}
 
         {messages.map((message) => (

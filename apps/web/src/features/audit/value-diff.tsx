@@ -51,7 +51,9 @@ function Value({
       dir="ltr"
       className={[
         'inline-block max-w-[20rem] overflow-x-auto whitespace-pre-wrap break-all rounded',
-        'px-1.5 py-0.5 text-left font-mono text-label',
+        // `text-start` inside the LTR box above is the same edge as
+        // `text-left`, and keeps physical alignment out of the codebase.
+        'px-1.5 py-0.5 text-start font-mono text-label',
         tone === 'before' ? 'bg-danger-50 text-danger-800' : 'bg-success-50 text-success-800',
       ].join(' ')}
     >

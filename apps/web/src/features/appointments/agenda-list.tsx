@@ -2,7 +2,7 @@ import { LOOKUP_LIST, type CalendarAppointment } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, EmptyState, Icon } from '@web/components/ui';
+import { Badge, EmptyState, Icon, Ltr } from '@web/components/ui';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from '@web/features/appointments/status';
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
@@ -57,9 +57,9 @@ export function AgendaList({ appointments, onOpen, showDoctor }: AgendaListProps
 
               <span className="flex min-w-0 flex-1 flex-col gap-1">
                 <span className="flex items-center gap-2">
-                  <span dir="ltr" className="text-value font-semibold tabular-nums text-ink">
+                  <Ltr className="text-value font-semibold tabular-nums text-ink">
                     {toTimeLabel(minutesOf(appointment.startsAt))}
-                  </span>
+                  </Ltr>
                   <Badge tone={style.tone}>{t(statusLabelKey(appointment.status))}</Badge>
                 </span>
 

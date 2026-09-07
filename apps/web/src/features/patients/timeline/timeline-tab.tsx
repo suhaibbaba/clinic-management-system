@@ -8,7 +8,7 @@ import {
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, EmptyState, Icon, type IconName } from '@web/components/ui';
+import { Badge, EmptyState, Icon, Ltr, type IconName } from '@web/components/ui';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { LAB_ORDER_STATUS_STYLES } from '@web/features/labs/status';
 import { usePatientTimeline } from '@web/features/patients/queries';
@@ -93,9 +93,9 @@ function Row({ entry }: { readonly entry: TimelineEntry }): JSX.Element {
         <Detail entry={entry} />
       </div>
 
-      <span dir="ltr" className="shrink-0 text-label tabular-nums text-ink-subtle">
+      <Ltr className="shrink-0 text-label tabular-nums text-ink-subtle">
         {formatDate(entry.occurredAt)}
-      </span>
+      </Ltr>
     </div>
   );
 }
@@ -126,11 +126,7 @@ function Detail({ entry }: { readonly entry: TimelineEntry }): JSX.Element | nul
     return (
       <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-label text-ink-muted">
         {labName}
-        {teeth.length > 0 && (
-          <span dir="ltr" className="tabular-nums">
-            {teeth.join(' · ')}
-          </span>
-        )}
+        {teeth.length > 0 && <Ltr className="tabular-nums">{teeth.join(' · ')}</Ltr>}
       </p>
     );
   }
@@ -143,10 +139,7 @@ function Detail({ entry }: { readonly entry: TimelineEntry }): JSX.Element | nul
 
     return (
       <p className="mt-0.5 text-label text-ink-muted">
-        <span dir="ltr" className="tabular-nums">
-          {quantity}
-        </span>{' '}
-        {unitLabel(unit ?? null)}
+        <Ltr className="tabular-nums">{quantity}</Ltr> {unitLabel(unit ?? null)}
       </p>
     );
   }

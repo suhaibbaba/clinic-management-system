@@ -14,6 +14,7 @@ import {
   DateRangePicker,
   EmptyState,
   Icon,
+  Ltr,
   PageHeader,
   SearchField,
   Table,
@@ -73,14 +74,7 @@ export function SuppliersPage(): JSX.Element {
       key: 'phone',
       header: 'inventory.suppliers.phone',
       hideOnMobile: true,
-      render: (row) =>
-        row.phone ? (
-          <span dir="ltr" className="tabular-nums">
-            {row.phone}
-          </span>
-        ) : (
-          '—'
-        ),
+      render: (row) => (row.phone ? <Ltr className="tabular-nums">{row.phone}</Ltr> : '—'),
     },
     {
       key: 'items',
@@ -204,7 +198,7 @@ function Statement({
     {
       key: 'date',
       header: 'inventory.suppliers.statement.date',
-      render: (row) => <span dir="ltr">{formatDate(row.occurredAt)}</span>,
+      render: (row) => <Ltr>{formatDate(row.occurredAt)}</Ltr>,
     },
     {
       key: 'item',
@@ -213,11 +207,7 @@ function Statement({
       render: (row) => (
         <span className="flex flex-wrap items-center gap-2">
           <span>{row.itemName}</span>
-          {row.batchNo && (
-            <span dir="ltr" className="text-label text-ink-muted">
-              {row.batchNo}
-            </span>
-          )}
+          {row.batchNo && <Ltr className="text-label text-ink-muted">{row.batchNo}</Ltr>}
           {row.isReversal && <Badge tone="neutral">{t('inventory.history.reversal')}</Badge>}
         </span>
       ),
@@ -228,7 +218,7 @@ function Statement({
       align: 'numeric',
       render: (row) => (
         <span className="flex items-baseline justify-end gap-1.5">
-          <span dir="ltr">{row.quantity}</span>
+          <Ltr>{row.quantity}</Ltr>
           <span className="text-label text-ink-muted">{unitLabel(row.unit)}</span>
         </span>
       ),
