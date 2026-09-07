@@ -170,6 +170,35 @@ export class TimelineService {
           from treatment_plans tp
           where tp.clinic_id = ${clinicId} and tp.patient_id = ${patientId} and tp.deleted_at is null`;
 
+      case TIMELINE_ENTRY_TYPE.LAB_ORDER:
+        /*
+         * Dated by when the work was **sent**, falling back to when it was
+         * drafted: a crown enters the patient's story on the day it left the
+         * building, which is also the day it started costing money.
+         *
+         * Money is cast to text so it never round-trips through a JSON number.
+         */
+        return sql`
+          select lo.id,
+                 ${TIMELINE_ENTRY_TYPE.LAB_ORDER}::text as type,
+                 coalesce(lo.sent_at, lo.created_at) as occurred_at,
+                 coalesce(lwt.name_ar, 'عمل مخبري') as title,
+                 jsonb_build_object(
+                   'labOrderId', lo.id,
+                   'labId', lo.lab_id,
+                   'labName', l.name,
+                   'doctorId', lo.doctor_id,
+                   'status', lo.status,
+                   'teeth', lo.teeth,
+                   'shade', lo.shade,
+                   'price', lo.price::text
+                 ) as detail
+          from lab_orders lo
+          join labs l on l.id = lo.lab_id
+          left join lab_work_types lwt on lwt.id = lo.work_type_id
+          where lo.clinic_id = ${clinicId} and lo.patient_id = ${patientId}
+            and lo.deleted_at is null`;
+
       // TODO(appointments) / TODO(billing): these tables do not exist yet, so a
       // receptionist — whose timeline is exactly these two types — currently
       // receives an empty page rather than anything they may not see.
@@ -200,6 +229,7 @@ export function allowedTypes(role: UserRole): TimelineEntryType[] {
         TIMELINE_ENTRY_TYPE.APPOINTMENT,
         TIMELINE_ENTRY_TYPE.PAYMENT,
         TIMELINE_ENTRY_TYPE.CHARGE,
+        TIMELINE_ENTRY_TYPE.LAB_ORDER,
       ];
     case USER_ROLE.RECEPTIONIST:
       return [

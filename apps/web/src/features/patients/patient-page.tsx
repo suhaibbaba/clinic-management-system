@@ -13,6 +13,7 @@ import { ChartTab } from '@web/features/patients/chart/chart-tab';
 import { ImagingTab } from '@web/features/patients/imaging/imaging-tab';
 import { canViewChart } from '@web/features/patients/permissions';
 import { usePatient } from '@web/features/patients/queries';
+import { TimelineTab } from '@web/features/patients/timeline/timeline-tab';
 import { TreatmentPlansTab } from '@web/features/patients/treatment-plans/treatment-plans-tab';
 import { VisitsTab } from '@web/features/patients/visits/visits-tab';
 import { cn } from '@web/lib/cn';
@@ -35,7 +36,7 @@ const TABS = [
 type TabId = (typeof TABS)[number]['id'];
 
 /** Tabs still waiting on the module that fills them. */
-const PLACEHOLDER_TABS: readonly TabId[] = ['prescriptions', 'timeline'];
+const PLACEHOLDER_TABS: readonly TabId[] = ['prescriptions'];
 
 export function PatientPage(): JSX.Element {
   const { t } = useTranslation();
@@ -166,13 +167,14 @@ export function PatientPage(): JSX.Element {
         className="min-w-0"
       >
         {activeTab === 'chart' && (
-          <ChartTab patientId={id} dateOfBirth={patient.data?.dateOfBirth} />
+          <ChartTab patientId={id} dateOfBirth={patient.data?.dateOfBirth} patient={patient.data} />
         )}
         {activeTab === 'visits' && <VisitsTab patientId={id} />}
         {activeTab === 'treatmentPlans' && (
           <TreatmentPlansTab patientId={id} patient={patient.data} />
         )}
         {activeTab === 'attachments' && <ImagingTab patientId={id} />}
+        {activeTab === 'timeline' && <TimelineTab patientId={id} />}
         {activeTab === 'billing' && <AccountTab patientId={id} patient={patient.data} />}
 
         {PLACEHOLDER_TABS.includes(activeTab) && (

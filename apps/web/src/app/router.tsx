@@ -11,6 +11,9 @@ import { OverduePage } from '@web/features/billing/overdue-page';
 import { PendingBookingsPage } from '@web/features/booking/pending-bookings-page';
 import { ClinicPage } from '@web/features/clinic/clinic-page';
 import { DoctorsPage } from '@web/features/doctors/doctors-page';
+import { LabOrdersPage } from '@web/features/labs/lab-orders-page';
+import { LabPage } from '@web/features/labs/lab-page';
+import { LabsPage } from '@web/features/labs/labs-page';
 import { PatientPage } from '@web/features/patients/patient-page';
 import { PatientsPage } from '@web/features/patients/patients-page';
 import { ProfilePage } from '@web/features/profile/profile-page';
@@ -31,6 +34,15 @@ const PATIENT_FILE = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST]
 
 /** Overdue balances: admin and receptionist (ROLES.md billing matrix). */
 const BILLING = [USER_ROLE.ADMIN, USER_ROLE.RECEPTIONIST] as const;
+
+/**
+ * The labs module.
+ *
+ * A receptionist appears in no row of the ROLES.md labs matrix, so they have
+ * neither a nav entry nor a route — typing the URL lands them back on their
+ * own start page. The API refuses them either way.
+ */
+const LABS = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN] as const;
 
 /** Answering online bookings is front-desk work, and the API says so too. */
 const FRONT_DESK = [USER_ROLE.ADMIN, USER_ROLE.RECEPTIONIST] as const;
@@ -75,6 +87,33 @@ export function AppRoutes(): JSX.Element {
           element={
             <RequireRole roles={FRONT_DESK} redirectTo="/">
               <PendingBookingsPage />
+            </RequireRole>
+          }
+        />
+
+        <Route
+          path="/labs"
+          element={
+            <RequireRole roles={LABS} redirectTo="/">
+              <LabsPage />
+            </RequireRole>
+          }
+        />
+
+        <Route
+          path="/labs/:id"
+          element={
+            <RequireRole roles={LABS} redirectTo="/">
+              <LabPage />
+            </RequireRole>
+          }
+        />
+
+        <Route
+          path="/lab-orders"
+          element={
+            <RequireRole roles={LABS} redirectTo="/">
+              <LabOrdersPage />
             </RequireRole>
           }
         />

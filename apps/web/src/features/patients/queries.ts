@@ -16,6 +16,7 @@ import type {
   PerformedProcedure,
   PresignAttachmentUploadInput,
   ProcedureCatalogItem,
+  TimelineEntry,
   ToothHistory,
   TreatmentPlan,
   UpdatePerformedProcedureInput,
@@ -35,6 +36,7 @@ export const PATIENTS_KEY = 'patients';
 export const PATIENT_VISITS_KEY = 'patient-visits';
 export const PATIENT_PLANS_KEY = 'patient-treatment-plans';
 export const PATIENT_ATTACHMENTS_KEY = 'patient-attachments';
+export const PATIENT_TIMELINE_KEY = 'patient-timeline';
 
 export function usePatients(
   query: Partial<ListPatientsQuery>,
@@ -356,5 +358,14 @@ export function useDeleteAttachment(patientId: string) {
     mutationFn: (id: string) => patientsApi.deleteAttachment(id),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [PATIENT_ATTACHMENTS_KEY, patientId] }),
+  });
+}
+
+/** The merged patient stream — visits, procedures, images, lab work. */
+export function usePatientTimeline(patientId: string): UseQueryResult<Paginated<TimelineEntry>> {
+  return useQuery({
+    queryKey: [PATIENT_TIMELINE_KEY, patientId],
+    queryFn: () => patientsApi.timeline(patientId, { limit: 50 }),
+    enabled: patientId !== '',
   });
 }

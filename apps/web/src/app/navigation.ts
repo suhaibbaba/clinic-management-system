@@ -47,6 +47,20 @@ export const NAV_ITEMS: readonly NavItem[] = [
     roles: [USER_ROLE.ADMIN, USER_ROLE.RECEPTIONIST],
     icon: 'money',
   },
+  // The labs matrix in ROLES.md lists admin, doctor and technician — and
+  // nobody else, which is why a receptionist never sees these two.
+  {
+    to: '/lab-orders',
+    label: 'nav.labOrders',
+    roles: [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
+    icon: 'clipboard',
+  },
+  {
+    to: '/labs',
+    label: 'nav.labs',
+    roles: [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
+    icon: 'coins',
+  },
   { to: '/doctors', label: 'nav.doctors', roles: USER_ROLES, icon: 'stethoscope' },
   { to: '/clinic', label: 'nav.clinic', roles: USER_ROLES, icon: 'gear' },
   { to: '/users', label: 'nav.users', roles: [USER_ROLE.ADMIN], icon: 'shield' },

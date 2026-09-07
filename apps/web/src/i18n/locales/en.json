@@ -78,7 +78,9 @@
     "breadcrumb": "Breadcrumb",
     "appointments": "Appointments",
     "pendingBookings": "Pending bookings",
-    "waitingCount": "{{count}} awaiting confirmation"
+    "waitingCount": "{{count}} awaiting confirmation",
+    "labs": "Labs",
+    "labOrders": "Lab orders"
   },
   "roles": {
     "admin": "Admin",
@@ -301,7 +303,23 @@
     "noMatches": "No matching patients",
     "noMatchesHint": "Try another name or part of a phone number.",
     "filterByBalance": "Filter by balance",
-    "owing": "Owing"
+    "owing": "Owing",
+    "timeline": {
+      "empty": "Nothing on the file yet",
+      "emptyHint": "Visits, treatments, images and lab work will appear here",
+      "loadFailed": "Could not load the timeline",
+      "types": {
+        "visit": "Visit",
+        "procedure": "Treatment",
+        "attachment": "Image",
+        "prescription": "Prescription",
+        "treatment_plan": "Treatment plan",
+        "lab_order": "Lab work",
+        "appointment": "Appointment",
+        "payment": "Payment",
+        "charge": "Charge"
+      }
+    }
   },
   "chart": {
     "title": "Tooth chart",
@@ -653,6 +671,183 @@
         "waitingCaption": "Every unconfirmed booking",
         "today": "Today's slots",
         "todayCaption": "On this page"
+      }
+    }
+  },
+  "labs": {
+    "title": "Labs",
+    "subtitle": "The dental laboratories the clinic works with",
+    "add": "Add lab",
+    "addTitle": "New lab",
+    "editTitle": "Edit lab",
+    "created": "Lab added",
+    "updated": "Lab saved",
+    "search": "Search labs",
+    "searchPlaceholder": "Lab name or contact person",
+    "empty": "No labs yet",
+    "emptyHint": "Add the lab the clinic works with to start sending work to it",
+    "inactive": "Inactive",
+    "owing": "Balance due",
+    "settled": "Settled",
+    "sendToLab": "Send to lab",
+    "card": {
+      "balance": "Balance",
+      "open": "Open orders",
+      "phone": "Phone",
+      "view": "Open lab"
+    },
+    "fields": {
+      "name": "Lab name",
+      "phone": "Phone",
+      "address": "Address",
+      "contactPerson": "Contact person",
+      "notes": "Notes"
+    },
+    "kpi": {
+      "owed": "Total due",
+      "owedCaption": "What the clinic owes across all labs",
+      "open": "Open orders",
+      "openCaption": "Work still at the lab",
+      "balance": "Balance due",
+      "balanceCaption": "Sent work minus payments",
+      "owedTotal": "Work value",
+      "owedTotalCaption": "Counted once sent; only cancelling drops it",
+      "paid": "Paid"
+    },
+    "tabs": {
+      "label": "Lab sections",
+      "orders": "Orders",
+      "prices": "Price list",
+      "statement": "Statement"
+    },
+    "prices": {
+      "name": "Work type",
+      "price": "Price",
+      "state": "State",
+      "actions": "Actions",
+      "active": "Active",
+      "inactive": "Inactive",
+      "add": "Add work type",
+      "addTitle": "New work type",
+      "editTitle": "Edit work type",
+      "saved": "Price list saved",
+      "empty": "No prices yet",
+      "emptyHint": "Add the work types and their prices so a doctor can pick one",
+      "snapshotNote": "The price is copied onto an order when it is placed; changing the list never rewrites earlier work"
+    },
+    "payment": {
+      "action": "Record payment",
+      "title": "Payment to {{lab}}",
+      "description": "Payments are ledger entries, never edited; an admin corrects one with a reversing entry.",
+      "currentBalance": "Current balance",
+      "amount": "Amount",
+      "method": "Method",
+      "note": "Note",
+      "submit": "Record payment",
+      "recorded": "Payment recorded"
+    },
+    "statement": {
+      "date": "Date",
+      "description": "Description",
+      "owed": "Owed",
+      "paid": "Paid",
+      "balance": "Balance",
+      "opening": "Opening balance",
+      "closing": "Closing balance",
+      "range": "Period",
+      "print": "Print statement",
+      "reversal": "Reversal",
+      "empty": "Nothing yet",
+      "emptyHint": "Orders and payments will appear here",
+      "kind": {
+        "order": "Lab work",
+        "payment": "Payment"
+      }
+    },
+    "status": {
+      "draft": "Draft",
+      "sent": "Sent",
+      "ready": "Ready",
+      "received": "Received",
+      "fitted": "Fitted",
+      "returned": "Returned",
+      "cancelled": "Cancelled"
+    },
+    "actions": {
+      "send": "Send to lab",
+      "ready": "Mark ready",
+      "receive": "Receive",
+      "fit": "Fit",
+      "return": "Return to lab",
+      "cancel": "Cancel order"
+    },
+    "orders": {
+      "title": "Lab orders",
+      "subtitle": "Every order and where it has got to",
+      "add": "New order",
+      "search": "Search orders",
+      "searchPlaceholder": "Patient name or work type",
+      "filterLab": "Lab",
+      "filterStatus": "Status",
+      "overdue": "Overdue",
+      "overdueFilter": "Overdue ({{count}})",
+      "columnEmpty": "Nothing here",
+      "custom": "Custom work",
+      "empty": "No orders yet",
+      "emptyHint": "Orders will appear here as they are placed",
+      "columns": {
+        "work": "Work",
+        "patient": "Patient",
+        "lab": "Lab",
+        "status": "Status",
+        "expected": "Expected",
+        "price": "Price"
+      }
+    },
+    "order": {
+      "newTitle": "New lab order",
+      "editTitle": "Edit order",
+      "description": "An order is saved as a draft first, and becomes owed when it is sent.",
+      "submit": "Save order",
+      "created": "Order created",
+      "updated": "Order saved",
+      "moved": "Order updated",
+      "returned": "Sent back to the lab",
+      "patient": "Patient",
+      "lab": "Lab",
+      "selectLab": "Choose a lab",
+      "workType": "Work type",
+      "selectWorkType": "Choose the work",
+      "workTypeHint": "Sets the price copied onto the order",
+      "doctor": "Doctor",
+      "selectDoctor": "Choose a doctor",
+      "expected": "Expected",
+      "teeth": "Teeth",
+      "toothHint": "Type an FDI tooth number and press Enter",
+      "toothInvalid": "Not a valid tooth number",
+      "removeTooth": "Remove tooth {{tooth}}",
+      "shade": "Shade",
+      "material": "Material",
+      "price": "Price",
+      "instructions": "Instructions for the lab",
+      "instructionsPlaceholder": "What exactly is needed",
+      "print": "Print order sheet",
+      "openFile": "Patient file",
+      "attachments": "Attachments",
+      "addAttachment": "Add attachment",
+      "noAttachments": "No attachments",
+      "attachmentAdded": "Attachment added",
+      "returnTitle": "Return to the lab",
+      "returnDescription": "The reason is recorded on the order and stays on its record.",
+      "returnReason": "Reason",
+      "returnReasonPlaceholder": "e.g. the shade does not match",
+      "history": {
+        "title": "Order history",
+        "created": "Created",
+        "sent": "Sent",
+        "received": "Received",
+        "fitted": "Fitted",
+        "audit": "Audit trail ({{count}})"
       }
     }
   }

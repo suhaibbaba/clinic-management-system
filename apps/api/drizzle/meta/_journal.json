@@ -43,6 +43,13 @@
       "when": 1788713646910,
       "tag": "0005_booking_and_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788800277831,
+      "tag": "0006_labs_module",
+      "breakpoints": true
     }
   ]
 }

@@ -78,7 +78,9 @@
     "breadcrumb": "مسار التنقل",
     "appointments": "المواعيد",
     "pendingBookings": "حجوزات بانتظار التأكيد",
-    "waitingCount": "{{count}} بانتظار التأكيد"
+    "waitingCount": "{{count}} بانتظار التأكيد",
+    "labs": "المختبرات",
+    "labOrders": "أعمال المختبرات"
   },
   "roles": {
     "admin": "مدير",
@@ -301,7 +303,23 @@
     "noMatches": "لا توجد نتائج مطابقة",
     "noMatchesHint": "جرّب اسمًا آخر أو جزءًا من رقم الهاتف.",
     "filterByBalance": "تصفية حسب الرصيد",
-    "owing": "عليهم رصيد"
+    "owing": "عليهم رصيد",
+    "timeline": {
+      "empty": "لا توجد أحداث بعد",
+      "emptyHint": "ستظهر هنا الزيارات والعلاجات والصور والأعمال المخبرية",
+      "loadFailed": "تعذّر تحميل السجل",
+      "types": {
+        "visit": "زيارة",
+        "procedure": "علاج",
+        "attachment": "صورة",
+        "prescription": "وصفة",
+        "treatment_plan": "خطة علاج",
+        "lab_order": "عمل مخبري",
+        "appointment": "موعد",
+        "payment": "دفعة",
+        "charge": "فاتورة"
+      }
+    }
   },
   "chart": {
     "title": "مخطط الأسنان",
@@ -653,6 +671,183 @@
         "waitingCaption": "كل الحجوزات غير المؤكدة",
         "today": "مواعيد اليوم",
         "todayCaption": "من هذه الصفحة"
+      }
+    }
+  },
+  "labs": {
+    "title": "المختبرات",
+    "subtitle": "مخابر الأسنان التي تتعامل معها العيادة",
+    "add": "إضافة مختبر",
+    "addTitle": "مختبر جديد",
+    "editTitle": "تعديل بيانات المختبر",
+    "created": "تمت إضافة المختبر",
+    "updated": "تم حفظ بيانات المختبر",
+    "search": "بحث في المختبرات",
+    "searchPlaceholder": "اسم المختبر أو الشخص المسؤول",
+    "empty": "لا توجد مختبرات",
+    "emptyHint": "أضف المختبر الذي تتعامل معه العيادة لتتمكن من إرسال الأعمال إليه",
+    "inactive": "متوقف",
+    "owing": "عليها مستحقات",
+    "settled": "لا مستحقات",
+    "sendToLab": "أرسل للمختبر",
+    "card": {
+      "balance": "الرصيد",
+      "open": "أعمال جارية",
+      "phone": "الهاتف",
+      "view": "فتح المختبر"
+    },
+    "fields": {
+      "name": "اسم المختبر",
+      "phone": "الهاتف",
+      "address": "العنوان",
+      "contactPerson": "الشخص المسؤول",
+      "notes": "ملاحظات"
+    },
+    "kpi": {
+      "owed": "إجمالي المستحقات",
+      "owedCaption": "ما تدين به العيادة لكل المختبرات",
+      "open": "أعمال جارية",
+      "openCaption": "أعمال ما زالت لدى المختبر",
+      "balance": "الرصيد المستحق",
+      "balanceCaption": "قيمة الأعمال المرسلة ناقص المدفوع",
+      "owedTotal": "قيمة الأعمال",
+      "owedTotalCaption": "تُحتسب من لحظة الإرسال؛ لا يخرجها إلا الإلغاء",
+      "paid": "المدفوع"
+    },
+    "tabs": {
+      "label": "أقسام صفحة المختبر",
+      "orders": "الأعمال",
+      "prices": "قائمة الأسعار",
+      "statement": "كشف الحساب"
+    },
+    "prices": {
+      "name": "نوع العمل",
+      "price": "السعر",
+      "state": "الحالة",
+      "actions": "إجراءات",
+      "active": "مفعّل",
+      "inactive": "متوقف",
+      "add": "إضافة نوع عمل",
+      "addTitle": "نوع عمل جديد",
+      "editTitle": "تعديل نوع العمل",
+      "saved": "تم حفظ قائمة الأسعار",
+      "empty": "لا توجد أسعار",
+      "emptyHint": "أضف أنواع الأعمال وأسعارها ليختارها الطبيب عند الإرسال",
+      "snapshotNote": "يُنسخ السعر إلى الطلب لحظة إنشائه؛ تعديل القائمة لا يغيّر أعمالاً سابقة"
+    },
+    "payment": {
+      "action": "تسجيل دفعة",
+      "title": "دفعة إلى {{lab}}",
+      "description": "الدفعات قيود لا تُعدَّل؛ التصحيح يكون بقيد عكسي من المدير.",
+      "currentBalance": "الرصيد الحالي",
+      "amount": "المبلغ",
+      "method": "طريقة الدفع",
+      "note": "ملاحظة",
+      "submit": "تسجيل الدفعة",
+      "recorded": "تم تسجيل الدفعة"
+    },
+    "statement": {
+      "date": "التاريخ",
+      "description": "البيان",
+      "owed": "مستحق",
+      "paid": "مدفوع",
+      "balance": "الرصيد",
+      "opening": "رصيد أول المدة",
+      "closing": "رصيد آخر المدة",
+      "range": "الفترة",
+      "print": "طباعة الكشف",
+      "reversal": "قيد عكسي",
+      "empty": "لا توجد حركات",
+      "emptyHint": "ستظهر هنا الأعمال والدفعات",
+      "kind": {
+        "order": "عمل مخبري",
+        "payment": "دفعة"
+      }
+    },
+    "status": {
+      "draft": "مسودة",
+      "sent": "أُرسل",
+      "ready": "جاهز",
+      "received": "استُلم",
+      "fitted": "رُكّب",
+      "returned": "أُعيد",
+      "cancelled": "ملغى"
+    },
+    "actions": {
+      "send": "إرسال إلى المختبر",
+      "ready": "تعليم كجاهز",
+      "receive": "استلام",
+      "fit": "تركيب",
+      "return": "إعادة للمختبر",
+      "cancel": "إلغاء الطلب"
+    },
+    "orders": {
+      "title": "أعمال المختبرات",
+      "subtitle": "كل عمل مرسل وأين وصل",
+      "add": "طلب عمل جديد",
+      "search": "بحث في الأعمال",
+      "searchPlaceholder": "اسم المريض أو نوع العمل",
+      "filterLab": "المختبر",
+      "filterStatus": "الحالة",
+      "overdue": "متأخر",
+      "overdueFilter": "المتأخرة ({{count}})",
+      "columnEmpty": "لا شيء هنا",
+      "custom": "عمل مخصص",
+      "empty": "لا توجد أعمال",
+      "emptyHint": "ستظهر هنا الأعمال فور إنشائها",
+      "columns": {
+        "work": "العمل",
+        "patient": "المريض",
+        "lab": "المختبر",
+        "status": "الحالة",
+        "expected": "التاريخ المتوقع",
+        "price": "السعر"
+      }
+    },
+    "order": {
+      "newTitle": "طلب عمل مخبري",
+      "editTitle": "تعديل الطلب",
+      "description": "يُحفظ الطلب أولاً كمسودة، ويصبح مستحقاً على العيادة عند إرساله.",
+      "submit": "حفظ الطلب",
+      "created": "تم إنشاء الطلب",
+      "updated": "تم حفظ الطلب",
+      "moved": "تم تحديث حالة الطلب",
+      "returned": "أُعيد العمل إلى المختبر",
+      "patient": "المريض",
+      "lab": "المختبر",
+      "selectLab": "اختر المختبر",
+      "workType": "نوع العمل",
+      "selectWorkType": "اختر نوع العمل",
+      "workTypeHint": "يحدد السعر المنسوخ إلى الطلب",
+      "doctor": "الطبيب",
+      "selectDoctor": "اختر الطبيب",
+      "expected": "التاريخ المتوقع",
+      "teeth": "الأسنان",
+      "toothHint": "اكتب رقم السن بنظام FDI ثم اضغط Enter",
+      "toothInvalid": "رقم سن غير صالح",
+      "removeTooth": "إزالة السن {{tooth}}",
+      "shade": "اللون",
+      "material": "المادة",
+      "price": "السعر",
+      "instructions": "تعليمات للمختبر",
+      "instructionsPlaceholder": "تفاصيل العمل المطلوب",
+      "print": "طباعة ورقة الطلب",
+      "openFile": "ملف المريض",
+      "attachments": "المرفقات",
+      "addAttachment": "إضافة مرفق",
+      "noAttachments": "لا توجد مرفقات",
+      "attachmentAdded": "تمت إضافة المرفق",
+      "returnTitle": "إعادة العمل إلى المختبر",
+      "returnDescription": "يُسجَّل السبب على الطلب ويبقى في سجله.",
+      "returnReason": "سبب الإعادة",
+      "returnReasonPlaceholder": "مثال: اللون لا يطابق",
+      "history": {
+        "title": "سِجل الطلب",
+        "created": "أُنشئ",
+        "sent": "أُرسل",
+        "received": "استُلم",
+        "fitted": "رُكّب",
+        "audit": "سجل التدقيق ({{count}})"
       }
     }
   }

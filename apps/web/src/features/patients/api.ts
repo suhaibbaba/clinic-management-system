@@ -9,6 +9,7 @@ import type {
   CreateVisitInput,
   ListAttachmentsQuery,
   ListPatientsQuery,
+  ListTimelineQuery,
   Paginated,
   PatientClinicalView,
   PatientView,
@@ -16,6 +17,7 @@ import type {
   PresignAttachmentUploadInput,
   PresignAttachmentUploadResponse,
   ProcedureCatalogItem,
+  TimelineEntry,
   ToothHistory,
   TreatmentPlan,
   TreatmentPlanItem,
@@ -174,6 +176,23 @@ export const patientsApi = {
 
   deleteAttachment: (id: string): Promise<void> =>
     apiRequest(`/attachments/${id}`, { method: 'DELETE' }),
+
+  /* -------------------------------------------------------------------- */
+  /* Timeline                                                              */
+  /* -------------------------------------------------------------------- */
+
+  /**
+   * One merged stream over everything attached to the patient. Which entry
+   * types come back is decided by the caller's role, not by this query
+   * (ROLES.md patients matrix).
+   */
+  timeline: (
+    patientId: string,
+    query: Partial<ListTimelineQuery> = {},
+  ): Promise<Paginated<TimelineEntry>> =>
+    apiRequest(`/patients/${patientId}/timeline`, {
+      query: { page: query.page, limit: query.limit ?? 50, type: query.type },
+    }),
 };
 
 /**

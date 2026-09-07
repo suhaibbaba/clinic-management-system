@@ -1,0 +1,230 @@
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  LAB_STATEMENT_ENTRY_KIND,
+  type LabStatement,
+  type Money,
+  type StatementQuery,
+} from '@clinic/shared';
+import { eq } from 'drizzle-orm';
+
+import { BRAND_MARK, MARK_VIEWBOX } from '@api/billing/pdf/brand-mark';
+import { DOCUMENT_STRINGS } from '@api/billing/pdf/document-strings';
+import { RtlPdf } from '@api/billing/pdf/pdf-builder';
+import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
+import { DATABASE, type Database } from '@api/database/database.module';
+import { clinics, doctors, labWorkTypes, labs, patients, users } from '@api/database/schema';
+import { labOrders } from '@api/database/schema';
+import { LabLedgerService } from '@api/labs/lab-ledger.service';
+
+/** Technical values read left to right even inside an Arabic document. */
+const LTR = { dir: 'ltr' } as const;
+
+interface Letterhead {
+  readonly name: string;
+  readonly contact: string;
+  readonly currency: string;
+}
+
+/**
+ * The two things the labs module prints: the sheet that goes out with the work,
+ * and the statement the clinic settles against.
+ *
+ * Both are built with the billing module's `RtlPdf` — the Arabic shaping, the
+ * bidi ordering and the embedded font are hard enough once. No headless
+ * browser: the API is meant to run on a cheap VPS (CLAUDE.md target infra).
+ *
+ * The order sheet carries the patient's **first name only**. It leaves the
+ * building in a box with a plaster model and is handled by people who are not
+ * clinic staff; the technician needs to tell one case from another, which a
+ * first name and an order number do, and nothing more than that is theirs to
+ * know.
+ */
+@Injectable()
+export class LabDocumentsService {
+  constructor(
+    @Inject(DATABASE) private readonly db: Database,
+    private readonly ledger: LabLedgerService,
+  ) {}
+
+  async orderSheet(actor: AuthenticatedUser, orderId: string): Promise<Buffer> {
+    const [row] = await this.db
+      .select({
+        order: labOrders,
+        patientName: patients.fullName,
+        doctorName: users.name,
+        labName: labs.name,
+        workTypeName: labWorkTypes.nameAr,
+      })
+      .from(labOrders)
+      .innerJoin(patients, eq(patients.id, labOrders.patientId))
+      .innerJoin(labs, eq(labs.id, labOrders.labId))
+      .innerJoin(doctors, eq(doctors.id, labOrders.doctorId))
+      .innerJoin(users, eq(users.id, doctors.userId))
+      .leftJoin(labWorkTypes, eq(labWorkTypes.id, labOrders.workTypeId))
+      .where(eq(labOrders.id, orderId))
+      .limit(1);
+
+    if (!row || row.order.clinicId !== actor.clinicId || row.order.deletedAt !== null) {
+      throw new NotFoundException('Resource not found');
+    }
+
+    const clinic = await this.letterhead(actor.clinicId);
+    const strings = DOCUMENT_STRINGS.labOrder;
+    const pdf = await RtlPdf.create();
+
+    this.drawLetterhead(pdf, clinic);
+    pdf.text(strings.title, { size: 16, weight: 'bold', align: 'centre', gap: 14 });
+
+    pdf.field(strings.lab, row.labName);
+    pdf.field(strings.number, shortId(row.order.id), LTR);
+    pdf.field(strings.date, formatDate(new Date().toISOString()), LTR);
+    pdf.space(6);
+
+    // First name only — see the class comment.
+    pdf.field(strings.patient, firstName(row.patientName));
+    pdf.field(strings.doctor, row.doctorName);
+    pdf.space(6);
+
+    pdf.field(strings.workType, row.workTypeName ?? '—');
+    pdf.field(strings.teeth, row.order.teeth.length > 0 ? row.order.teeth.join('، ') : '—', LTR);
+    pdf.field(strings.material, row.order.material ?? '—');
+    pdf.field(strings.shade, row.order.shade ?? '—', LTR);
+    pdf.field(
+      strings.expected,
+      row.order.expectedAt ? formatDate(row.order.expectedAt.toISOString()) : '—',
+      LTR,
+    );
+
+    if (row.order.instructions) {
+      pdf.space(8);
+      pdf.text(strings.instructions, { size: 12, weight: 'bold', gap: 4 });
+      pdf.text(row.order.instructions, { size: 11 });
+    }
+
+    pdf.space(28);
+    pdf.rule();
+    pdf.text(`${strings.signature}: ____________________`, { size: 10 });
+
+    return pdf.save();
+  }
+
+  async statement(actor: AuthenticatedUser, labId: string, query: StatementQuery): Promise<Buffer> {
+    const clinic = await this.letterhead(actor.clinicId);
+    const statement = await this.ledger.statementFor(actor.clinicId, labId, query);
+
+    const strings = DOCUMENT_STRINGS.labStatement;
+    const pdf = await RtlPdf.create();
+
+    this.drawLetterhead(pdf, clinic);
+    pdf.text(strings.title, { size: 16, weight: 'bold', align: 'centre', gap: 14 });
+
+    pdf.field(strings.lab, statement.labName);
+    pdf.field(statement.from ? strings.period : strings.periodUntil, formatPeriod(statement), LTR);
+    pdf.field(strings.printedAt, formatDate(new Date().toISOString()), LTR);
+    pdf.space(8);
+    pdf.field(strings.openingBalance, formatAmount(statement.openingBalance, clinic.currency), LTR);
+    pdf.space(6);
+
+    if (statement.entries.length === 0) {
+      pdf.text(strings.empty, { size: 11 });
+    } else {
+      pdf.table(
+        [
+          { width: 1.4, header: strings.columns.date },
+          { width: 3.4, header: strings.columns.description },
+          { width: 1.2, header: strings.columns.order, align: 'end' },
+          { width: 1.2, header: strings.columns.payment, align: 'end' },
+          { width: 1.4, header: strings.columns.balance, align: 'end' },
+        ],
+        statement.entries.map((entry) => {
+          const isPayment = entry.kind === LAB_STATEMENT_ENTRY_KIND.PAYMENT;
+          const description = entry.isReversal
+            ? `${entry.description} (${strings.reversal})`.trim()
+            : entry.description;
+
+          return [
+            formatDate(entry.occurredAt),
+            description || (isPayment ? strings.columns.payment : strings.columns.order),
+            isPayment ? '' : entry.amount,
+            // Payments are stored negated in the statement's arithmetic; the
+            // column shows what was handed over, which is the positive of it.
+            isPayment ? entry.amount.replace('-', '') : '',
+            entry.runningBalance,
+          ];
+        }),
+      );
+    }
+
+    pdf.space(10);
+    pdf.rule();
+    pdf.field(strings.closingBalance, formatAmount(statement.closingBalance, clinic.currency), {
+      size: 13,
+      dir: 'ltr',
+    });
+
+    return pdf.save();
+  }
+
+  private drawLetterhead(pdf: RtlPdf, clinic: Letterhead): void {
+    pdf.mark(BRAND_MARK, MARK_VIEWBOX);
+    pdf.text(clinic.name, { size: 18, weight: 'bold', align: 'centre', gap: 4 });
+
+    if (clinic.contact) {
+      pdf.text(clinic.contact, {
+        size: 9,
+        align: 'centre',
+        colour: [0.35, 0.35, 0.35],
+        dir: 'ltr',
+      });
+    }
+
+    pdf.rule();
+  }
+
+  private async letterhead(clinicId: string): Promise<Letterhead> {
+    const [row] = await this.db
+      .select({
+        name: clinics.name,
+        phone: clinics.phone,
+        address: clinics.address,
+        currency: clinics.currency,
+      })
+      .from(clinics)
+      .where(eq(clinics.id, clinicId))
+      .limit(1);
+
+    /* istanbul ignore next -- the caller's own clinic always exists. */
+    if (!row) {
+      throw new NotFoundException('Resource not found');
+    }
+
+    return {
+      name: row.name,
+      contact: [row.phone, row.address].filter(Boolean).join(' — '),
+      currency: row.currency,
+    };
+  }
+}
+
+/** Enough of the id to match a box to a record, short enough to read aloud. */
+const shortId = (id: string): string => id.slice(0, 8).toUpperCase();
+
+/** "أحمد" out of "أحمد خالد الحسن". */
+const firstName = (fullName: string): string => fullName.trim().split(/\s+/)[0] ?? fullName;
+
+function formatDate(iso: string): string {
+  const date = new Date(iso);
+  const pad = (value: number): string => String(value).padStart(2, '0');
+
+  return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())}`;
+}
+
+function formatPeriod(statement: LabStatement): string {
+  const to = statement.to ? formatDate(statement.to) : formatDate(new Date().toISOString());
+
+  return statement.from ? `${formatDate(statement.from)} – ${to}` : to;
+}
+
+function formatAmount(amount: Money, currency: string): string {
+  return `${amount} ${currency}`;
+}
