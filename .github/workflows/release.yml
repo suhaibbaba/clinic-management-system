@@ -97,10 +97,15 @@ jobs:
             heading='Changes'
           fi
 
+          # `-n 50` rather than `| head -50`: under `pipefail`, head closing the
+          # pipe early kills git with SIGPIPE and the step exits 141 — which is
+          # exactly what the first release, with the whole history in range,
+          # would have done.
           {
             echo "## ${heading}"
             echo
-            git log --no-merges --pretty=format:'- %s' "$range" | head -50
+            git log --no-merges -n 50 --pretty=format:'- %s' \
+              --invert-grep --grep='^chore(release):' "$range"
           } > notes.md
 
           gh release create "v${VERSION}" --title "v${VERSION}" --notes-file notes.md
