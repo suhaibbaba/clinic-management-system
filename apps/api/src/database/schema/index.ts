@@ -14,3 +14,4 @@ export * from '@api/database/schema/patients';
 export * from '@api/database/schema/billing';
 export * from '@api/database/schema/appointments';
 export * from '@api/database/schema/notifications';
+export * from '@api/database/schema/labs';

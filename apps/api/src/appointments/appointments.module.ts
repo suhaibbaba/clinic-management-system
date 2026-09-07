@@ -18,8 +18,8 @@ import { PatientsModule } from '@api/patients/patients.module';
  * belongs to a patient, and the 404-not-403 rule for a patient from another
  * clinic is written once there.
  *
- * `AvailabilityService` is exported because public booking will need exactly
- * this service from its own `@Public()` controller, with none of the rest.
+ * `AvailabilityService` is exported because public booking needs exactly this
+ * service from its own `@Public()` controller, with none of the rest.
  */
 @Module({
   imports: [DatabaseModule, AuditModule, PatientsModule],
@@ -31,6 +31,9 @@ import { PatientsModule } from '@api/patients/patients.module';
     AvailabilityService,
     WaitingListService,
   ],
-  exports: [AvailabilityService, AppointmentsService],
+  // `AppointmentAccessService` is exported for the labs module: "a doctor
+  // manages their own" is the same rule for a crown as for an appointment, and
+  // one definition of it beats two that drift.
+  exports: [AvailabilityService, AppointmentsService, AppointmentAccessService],
 })
 export class AppointmentsModule {}

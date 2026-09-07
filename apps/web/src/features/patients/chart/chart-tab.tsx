@@ -1,4 +1,4 @@
-import { isDeciduousTooth } from '@clinic/shared';
+import { isDeciduousTooth, type PatientClinicalView } from '@clinic/shared';
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -16,6 +16,8 @@ import {
   usePatientProcedures,
 } from '@web/features/patients/queries';
 import { useSession } from '@web/features/auth/session';
+import { OrderFormModal, type LabOrderDefaults } from '@web/features/labs/order-form-modal';
+import { canCreateLabOrder } from '@web/features/labs/permissions';
 import { ageInYears } from '@web/features/patients/age';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -39,10 +41,13 @@ const PERMANENT_DENTITION_AGE = 13;
 export function ChartTab({
   patientId,
   dateOfBirth,
+  patient,
 }: {
   readonly patientId: string;
   /** ISO date, or null when the file has no date of birth. */
   readonly dateOfBirth?: string | null | undefined;
+  /** Fills the lab order's patient without a second lookup. */
+  readonly patient?: PatientClinicalView | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -50,6 +55,7 @@ export function ChartTab({
 
   const [dentition, setDentition] = useState<Dentition>('permanent');
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
+  const [labOrder, setLabOrder] = useState<LabOrderDefaults | undefined>();
 
   const procedures = usePatientProcedures(patientId);
   const catalog = useProcedureCatalog();
@@ -161,8 +167,33 @@ export function ChartTab({
           submitting={createProcedure.isPending}
           onClose={() => setSelectedTooth(null)}
           onRecord={handleRecord}
+          {...(canCreateLabOrder(role) && {
+            onSendToLab: (input: { teeth: number[]; performedProcedureId?: string }) =>
+              setLabOrder({
+                teeth: input.teeth,
+                ...(input.performedProcedureId && {
+                  performedProcedureId: input.performedProcedureId,
+                }),
+                ...(patient && {
+                  patient: {
+                    id: patient.id,
+                    fullName: patient.fullName,
+                    phone: patient.phone,
+                    fileNumber: patient.fileNumber,
+                  },
+                }),
+              }),
+          })}
         />
       )}
+
+      {/* Raised from the chart, so the tooth — and the treatment that needs the
+          work, when it started from a procedure — are already on the form. */}
+      <OrderFormModal
+        open={labOrder !== undefined}
+        onOpenChange={(open) => !open && setLabOrder(undefined)}
+        defaults={labOrder}
+      />
     </div>
   );
 }

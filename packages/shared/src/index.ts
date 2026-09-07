@@ -13,6 +13,7 @@ export * from '@shared/schemas/clinics';
 export * from '@shared/schemas/common';
 export * from '@shared/schemas/doctors';
 export * from '@shared/schemas/health';
+export * from '@shared/schemas/labs';
 export * from '@shared/schemas/medical-histories';
 export * from '@shared/schemas/money';
 export * from '@shared/schemas/notifications';

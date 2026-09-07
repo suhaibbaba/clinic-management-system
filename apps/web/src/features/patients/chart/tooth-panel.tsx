@@ -28,6 +28,13 @@ export interface ToothPanelProps {
   readonly submitting: boolean;
   readonly onClose: () => void;
   readonly onRecord: (input: NewProcedureInput) => void;
+  /**
+   * Sends this tooth's work to a lab, with the tooth — and, from a procedure
+   * row, the treatment it belongs to — already filled in. Absent for roles
+   * that may not raise an order.
+   */
+  readonly onSendToLab?:
+    ((input: { teeth: number[]; performedProcedureId?: string }) => void) | undefined;
 }
 
 /**
@@ -49,6 +56,7 @@ export function ToothPanel({
   submitting,
   onClose,
   onRecord,
+  onSendToLab,
 }: ToothPanelProps): JSX.Element {
   const { t } = useTranslation();
   const [adding, setAdding] = useState(false);
@@ -123,19 +131,34 @@ export function ToothPanel({
         )}
 
         <section className="flex flex-col gap-2">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-value font-semibold text-ink">{t('chart.panel.history')}</h3>
 
-            {canAdd && !adding && (
-              <Button
-                icon={<Icon name="plus" />}
-                size="sm"
-                variant="secondary"
-                onClick={() => setAdding(true)}
-              >
-                {t('chart.panel.addProcedure')}
-              </Button>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* The crown starts here far more often than on the lab board:
+                  the tooth is already chosen, so the order opens with it in. */}
+              {onSendToLab && tooth !== null && (
+                <Button
+                  icon={<Icon name="clipboard" />}
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => onSendToLab({ teeth: [tooth] })}
+                >
+                  {t('labs.sendToLab')}
+                </Button>
+              )}
+
+              {canAdd && !adding && (
+                <Button
+                  icon={<Icon name="plus" />}
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setAdding(true)}
+                >
+                  {t('chart.panel.addProcedure')}
+                </Button>
+              )}
+            </div>
           </div>
 
           {isPending && <p className="text-value text-ink-muted">{t('common.loading')}</p>}
@@ -158,6 +181,11 @@ export function ToothPanel({
                       doctors.find((doctor) => doctor.id === procedure.doctorId)?.user.name
                     }
                     showPrice={showPrices}
+                    {...(onSendToLab &&
+                      tooth !== null && {
+                        onSendToLab: () =>
+                          onSendToLab({ teeth: [tooth], performedProcedureId: procedure.id }),
+                      })}
                   />
                 ))}
             </ol>
@@ -200,11 +228,13 @@ function ProcedureRow({
   name,
   doctorName,
   showPrice,
+  onSendToLab,
 }: {
   procedure: PerformedProcedure;
   name: string | undefined;
   doctorName: string | undefined;
   showPrice: boolean;
+  onSendToLab?: (() => void) | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
 
@@ -247,6 +277,12 @@ function ProcedureRow({
           </div>
         )}
       </dl>
+
+      {onSendToLab && (
+        <Button className="mt-2" size="sm" variant="ghost" onClick={onSendToLab}>
+          {t('labs.sendToLab')}
+        </Button>
+      )}
     </li>
   );
 }

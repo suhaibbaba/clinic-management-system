@@ -17,6 +17,7 @@ import { validateEnv } from '@api/config/env.schema';
 import { clinics, doctors, specialties, users } from '@api/database/schema';
 import { seedAppointments } from '@api/database/seed-appointments';
 import { seedBilling } from '@api/database/seed-billing';
+import { seedLabs } from '@api/database/seed-labs';
 import { seedPatients } from '@api/database/seed-patients';
 
 /**
@@ -154,6 +155,7 @@ async function main(): Promise<void> {
     let seededPatients = 0;
     let seededCharges = 0;
     let seededAppointments = 0;
+    let seededLabOrders = 0;
 
     if (doctorAccount && adminAccount) {
       const doctorIds: string[] = [];
@@ -173,6 +175,13 @@ async function main(): Promise<void> {
         actorId: adminAccount.id,
       });
 
+      const lab = await seedLabs(db, {
+        clinicId: clinic.id,
+        doctorIds,
+        actorId: adminAccount.id,
+      });
+      seededLabOrders = lab.orders;
+
       const calendar = await seedAppointments(db, {
         clinicId: clinic.id,
         doctorIds,
@@ -189,6 +198,7 @@ async function main(): Promise<void> {
       seededPatients,
       seededCharges,
       seededAppointments,
+      seededLabOrders,
     );
   } finally {
     await client.end();
@@ -347,6 +357,7 @@ function report(
   seededPatients: number,
   seededCharges: number,
   seededAppointments: number,
+  seededLabOrders: number,
 ): void {
   const lines = [
     '',
@@ -369,6 +380,9 @@ function report(
     seededAppointments > 0
       ? `Booked ${seededAppointments} appointments across this week for both doctors, plus a waiting list.`
       : 'Appointment data already present — left untouched.',
+    seededLabOrders > 0
+      ? `Sent ${seededLabOrders} orders to two labs — one is overdue, one came back — with part of the bill paid.`
+      : 'Lab data already present — left untouched.',
     '',
     'Development credentials only — change SEED_PASSWORD before any shared environment.',
     '',

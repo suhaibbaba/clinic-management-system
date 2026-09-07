@@ -255,6 +255,8 @@ export const TIMELINE_ENTRY_TYPE = {
   /** Reserved for the billing module. */
   PAYMENT: 'payment',
   CHARGE: 'charge',
+  /** Work sent to a lab for this patient — a crown, a denture, a guard. */
+  LAB_ORDER: 'lab_order',
 } as const satisfies Record<string, string>;
 export type TimelineEntryType = EnumValue<typeof TIMELINE_ENTRY_TYPE>;
 
@@ -267,6 +269,7 @@ export const TIMELINE_ENTRY_TYPES = [
   TIMELINE_ENTRY_TYPE.APPOINTMENT,
   TIMELINE_ENTRY_TYPE.PAYMENT,
   TIMELINE_ENTRY_TYPE.CHARGE,
+  TIMELINE_ENTRY_TYPE.LAB_ORDER,
 ] as const;
 
 /**
@@ -396,10 +399,6 @@ export const WAITING_LIST_PRIORITY_RANK: Record<WaitingListPriority, number> = {
   [WAITING_LIST_PRIORITY.NORMAL]: 2,
 };
 
-/** Placeholder — filled in by the `labs` module (draft → sent → ready → received → fitted). */
-export const LAB_ORDER_STATUS = {} as const satisfies Record<string, string>;
-export type LabOrderStatus = EnumValue<typeof LAB_ORDER_STATUS>;
-
 /** Placeholder — filled in by the `inventory` module (purchase / consume / adjust). */
 export const STOCK_MOVEMENT_TYPE = {} as const satisfies Record<string, string>;
 export type StockMovementType = EnumValue<typeof STOCK_MOVEMENT_TYPE>;
@@ -491,3 +490,101 @@ export const BOOKING_CONFIRMATION_MODES = [
   BOOKING_CONFIRMATION_MODE.OTP,
   BOOKING_CONFIRMATION_MODE.MANUAL,
 ] as const;
+
+/* -------------------------------------------------------------------------- */
+/* Labs                                                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Where a piece of lab work has got to.
+ *
+ * The happy path is a straight line — drafted, sent to the lab, made, come
+ * back, fitted in the patient's mouth — and the two ways off it are the two
+ * things that actually go wrong: work that comes back wrong goes `returned`
+ * and then out again, and an order nobody has sent yet can simply be
+ * `cancelled`.
+ */
+export const LAB_ORDER_STATUS = {
+  DRAFT: 'draft',
+  SENT: 'sent',
+  READY: 'ready',
+  RECEIVED: 'received',
+  FITTED: 'fitted',
+  RETURNED: 'returned',
+  CANCELLED: 'cancelled',
+} as const satisfies Record<string, string>;
+export type LabOrderStatus = EnumValue<typeof LAB_ORDER_STATUS>;
+
+export const LAB_ORDER_STATUSES = [
+  LAB_ORDER_STATUS.DRAFT,
+  LAB_ORDER_STATUS.SENT,
+  LAB_ORDER_STATUS.READY,
+  LAB_ORDER_STATUS.RECEIVED,
+  LAB_ORDER_STATUS.FITTED,
+  LAB_ORDER_STATUS.RETURNED,
+  LAB_ORDER_STATUS.CANCELLED,
+] as const;
+
+/**
+ * The whole state machine, in one table (CLAUDE.md architecture decision 7).
+ *
+ * `returned` is reachable from every state in which the clinic physically has
+ * the work or is waiting for it — ready, received, fitted — because a crown
+ * that does not seat is discovered at any of those moments, and it goes back
+ * to `sent` when the lab takes it away again. `cancelled` is only reachable
+ * before the work exists: once a lab has started, the clinic owes for it, and
+ * the way out is a return, not a cancellation.
+ */
+export const LAB_ORDER_STATUS_TRANSITIONS = {
+  [LAB_ORDER_STATUS.DRAFT]: [LAB_ORDER_STATUS.SENT, LAB_ORDER_STATUS.CANCELLED],
+  [LAB_ORDER_STATUS.SENT]: [LAB_ORDER_STATUS.READY, LAB_ORDER_STATUS.CANCELLED],
+  [LAB_ORDER_STATUS.READY]: [LAB_ORDER_STATUS.RECEIVED, LAB_ORDER_STATUS.RETURNED],
+  [LAB_ORDER_STATUS.RECEIVED]: [LAB_ORDER_STATUS.FITTED, LAB_ORDER_STATUS.RETURNED],
+  [LAB_ORDER_STATUS.FITTED]: [LAB_ORDER_STATUS.RETURNED],
+  /** Back out to the lab, which is the only reason the state exists. */
+  [LAB_ORDER_STATUS.RETURNED]: [LAB_ORDER_STATUS.SENT],
+  [LAB_ORDER_STATUS.CANCELLED]: [],
+} as const satisfies Record<LabOrderStatus, readonly LabOrderStatus[]>;
+
+/** Whether one status may become another. The only test the service runs. */
+export function canTransitionLabOrder(from: LabOrderStatus, to: LabOrderStatus): boolean {
+  return (LAB_ORDER_STATUS_TRANSITIONS[from] as readonly LabOrderStatus[]).includes(to);
+}
+
+/**
+ * Whether an order is money the clinic owes the lab.
+ *
+ * **An order counts from the moment it is sent, and stops counting only if it
+ * is cancelled.** That is the whole rule, and it is here rather than in a SQL
+ * string so the balance, the statement and the screens cannot disagree.
+ *
+ * The consequences are deliberate. A `draft` is a note to self and costs
+ * nothing. A `returned` crown keeps counting: the lab did the work, the clinic
+ * still owes for it, and remaking it is the lab's problem — if the two agree
+ * otherwise, the correction is a credit line, not a disappearing charge.
+ * `cancelled` is only reachable before the work exists (see the transition
+ * table), which is exactly why it is the one status that can take an order out
+ * of the balance without an entry to explain it.
+ */
+export const LAB_ORDER_BILLABLE_STATUSES = [
+  LAB_ORDER_STATUS.SENT,
+  LAB_ORDER_STATUS.READY,
+  LAB_ORDER_STATUS.RECEIVED,
+  LAB_ORDER_STATUS.FITTED,
+  LAB_ORDER_STATUS.RETURNED,
+] as const;
+
+export const countsTowardLabBalance = (status: LabOrderStatus): boolean =>
+  (LAB_ORDER_BILLABLE_STATUSES as readonly LabOrderStatus[]).includes(status);
+
+/**
+ * Statuses in which the clinic is still waiting for the lab.
+ *
+ * What "overdue" is measured against: an order past its expected date that has
+ * not come back yet. Once it is received nobody is waiting, however late it
+ * was.
+ */
+export const LAB_ORDER_AWAITING_STATUSES = [LAB_ORDER_STATUS.SENT, LAB_ORDER_STATUS.READY] as const;
+
+export const awaitingLab = (status: LabOrderStatus): boolean =>
+  (LAB_ORDER_AWAITING_STATUSES as readonly LabOrderStatus[]).includes(status);
