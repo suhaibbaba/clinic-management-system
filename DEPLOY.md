@@ -15,12 +15,24 @@ port binds to `127.0.0.1` and the host nginx reaches it over loopback.
 | Images           | built on the server: `clinic-sandbox-api`, `clinic-sandbox-web` |
 
 ```
-push to main ─▶ ssh ─▶ git reset --hard origin/main ─▶ compose build ─▶ up -d ─▶ curl /api/health
+merge to main ─▶ Release: bump the minor, tag vX.Y.Z
+                        │
+    vX.Y.Z ─▶ ssh ─▶ git reset --hard refs/tags/vX.Y.Z ─▶ compose build ─▶ up -d ─▶ curl /api/health
 ```
 
 There is no registry in the loop. The VPS holds this repository at
-`/opt/clinic/sandbox` and builds both images in place, so a deploy is a
-fast-forward of that checkout followed by a rebuild.
+`/opt/clinic/sandbox` and builds both images in place, so a deploy is a move of
+that checkout followed by a rebuild.
+
+**The trigger is the tag, not the push.** Every merge to main is a release
+(`.github/workflows/release.yml`): the minor version goes up, the bump lands as
+a `chore(release)` commit, and that commit is tagged. Deploying on the push to
+main instead would race that bump by a few seconds and land a build reporting
+the previous version about half the time — and the version is on the settings
+screen, so it has to be true.
+
+A manual `workflow_dispatch` still deploys the head of `main`, for when a
+release is not what you want on there.
 
 ## Port map
 
@@ -74,8 +86,9 @@ id -nG <user> | grep docker   # the deploy user must be in the docker group
 ### The repository, cloned at `/opt/clinic/sandbox`
 
 The images are built on the server, so the server needs the sources. The deploy
-does `git fetch origin main && git reset --hard origin/main` in this directory
-and refuses to run if it is not a git checkout.
+does `git fetch origin main --tags --force` and then resets hard to the tag it
+was triggered by (or to `origin/main` on a manual run) in this directory, and
+refuses to run if it is not a git checkout.
 
 ```bash
 sudo mkdir -p /opt/clinic
@@ -268,9 +281,13 @@ docker compose -p clinic-sandbox -f docker-compose.sandbox.yml up -d --remove-or
 ```
 
 `git checkout main` and rebuild to come back. Nothing is pinned in `.env`, so
-the next deploy from Actions resets the checkout to `origin/main` and undoes the
-rollback — hold a rollback by not deploying, or by reverting the offending
-commit on `main` so the two agree.
+the next deploy from Actions resets the checkout to the tag it is deploying and
+undoes the rollback — hold a rollback by not merging, or by reverting the
+offending commit on `main`, which releases and deploys the revert.
+
+Rolling back to a _release_ is `git reset --hard refs/tags/vX.Y.Z` and a
+rebuild, and `git tag --list 'v*'` on the server lists what there is to go back
+to.
 
 Migrations only ever roll forward: checking the code out at an older commit does
 not roll the schema back. If the bad deploy migrated the database, restore a
@@ -288,8 +305,9 @@ dc logs -f api        # one service
 dc logs --tail=200 api
 dc logs -f backup     # next scheduled dump
 
-# Which commit is deployed.
-git log -1 --oneline
+# Which release is deployed. The same version is on the settings screen and in
+# /api/health, and all three saying the same thing is the point of the tag.
+git describe --tags --exact-match 2>/dev/null || git log -1 --oneline
 
 # Health, from the server and from outside.
 curl -s http://127.0.0.1:15000/health

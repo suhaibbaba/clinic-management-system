@@ -80,6 +80,11 @@ packages/
 ### Language
 - Code, comments, commits, API: English. UI strings: Arabic via i18n. Commits: conventional commits (`feat(billing): ...`).
 
+### Versioning & releases
+- **Every merge to `main` is a release**: `.github/workflows/release.yml` bumps the **minor** version, tags `vX.Y.Z`, and publishes a GitHub Release. The sandbox deploys that tag, so what is running always reports its own version.
+- The root `package.json` is the version. `scripts/sync-version.mjs` writes it into the three workspace manifests and into `APP_VERSION` in `packages/shared`, which is what both apps display; `version.spec.ts` fails the build if any copy drifts. Never read a version from the environment — one somebody can forget to set is worse than none, because it gets believed.
+- **To cut a major**, set the version in the pull request. A version with no tag yet is released as written rather than bumped, so the merge releases exactly what you asked for.
+
 ## Never
 - hardcode a user-facing choice list — it belongs in `lookup_options` (see architecture decision 8); a status that drives a state machine is the exception, and stays an enum
 - write a user-facing string in a component — every word comes from the locale files, in both languages
