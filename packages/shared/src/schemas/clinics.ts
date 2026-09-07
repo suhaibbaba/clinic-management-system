@@ -61,11 +61,74 @@ export function documentSettings(settings: unknown): DocumentSettings {
   return parsed.success ? parsed.data : { language: 'ar' };
 }
 
+/* -------------------------------------------------------------------------- */
+/* The clinic's logo                                                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * 2 MB, which is a generous letterhead logo and a poor place to keep a scan.
+ *
+ * Small on purpose: this image is fetched on every page load and drawn into
+ * every PDF the clinic prints, so the cost of a careless 12-megapixel upload
+ * is paid over and over rather than once.
+ */
+export const MAX_CLINIC_LOGO_BYTES = 2 * 1024 * 1024;
+
+/**
+ * Images only, and only the three every browser and pdf-lib both read.
+ *
+ * No SVG: it is a document that can carry script, and this one is rendered
+ * inside the app's own origin. No TIFF or PDF either — a logo is displayed,
+ * not archived.
+ */
+export const ALLOWED_CLINIC_LOGO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
+
+export const clinicLogoMimeSchema = z.enum(ALLOWED_CLINIC_LOGO_MIME_TYPES);
+export type ClinicLogoMime = z.infer<typeof clinicLogoMimeSchema>;
+
+export const presignClinicLogoSchema = z.object({
+  filename: z.string().trim().min(1).max(255),
+  mime: clinicLogoMimeSchema,
+  sizeBytes: z.number().int().positive().max(MAX_CLINIC_LOGO_BYTES),
+});
+export type PresignClinicLogoInput = z.infer<typeof presignClinicLogoSchema>;
+
+export const presignClinicLogoResponseSchema = z.object({
+  /** Opaque to the client; it is echoed back on confirm. */
+  key: z.string(),
+  uploadUrl: z.url(),
+  expiresAt: z.iso.datetime(),
+  maxSizeBytes: z.number().int().positive(),
+});
+export type PresignClinicLogoResponse = z.infer<typeof presignClinicLogoResponseSchema>;
+
+/** Called once the client has PUT the object; the API reads the bytes back. */
+export const confirmClinicLogoSchema = z.object({
+  key: z.string().trim().min(1).max(512),
+});
+export type ConfirmClinicLogoInput = z.infer<typeof confirmClinicLogoSchema>;
+
+/**
+ * The clinic's name and mark, before anybody has signed in.
+ *
+ * What the login screen needs and nothing else: no phone, no address, no
+ * indication of how many clinics this deployment serves. `name` is null when
+ * the answer is not a single clinic, and the screen then shows the product's
+ * own mark — the same fallback it shows for a clinic that never uploaded one.
+ */
+export const clinicBrandingSchema = z.object({
+  name: z.string().nullable(),
+  logoUrl: z.url().nullable(),
+});
+export type ClinicBranding = z.infer<typeof clinicBrandingSchema>;
+
 export const clinicSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   /** R2 object key — never a public URL (CLAUDE.md files & images). */
   logoKey: z.string().nullable(),
+  /** Short-lived signed URL for `logoKey`, minted per response. */
+  logoUrl: z.url().nullable(),
   phone: z.string().nullable(),
   email: z.string().nullable(),
   address: z.string().nullable(),
@@ -87,7 +150,6 @@ export type Clinic = z.infer<typeof clinicSchema>;
 export const updateClinicSchema = z
   .object({
     name: z.string().trim().min(2).max(160),
-    logoKey: z.string().trim().max(512).nullish(),
     phone: z.string().trim().max(32).nullish(),
     email: z.email().max(255).nullish(),
     address: z.string().trim().max(500).nullish(),

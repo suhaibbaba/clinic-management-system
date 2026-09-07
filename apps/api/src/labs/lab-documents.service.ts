@@ -1,6 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
-  documentSettings,
   LAB_STATEMENT_ENTRY_KIND,
   type LabStatement,
   type Money,
@@ -8,28 +7,17 @@ import {
 } from '@clinic/shared';
 import { eq } from 'drizzle-orm';
 
-import { BRAND_MARK, MARK_VIEWBOX } from '@api/billing/pdf/brand-mark';
-import {
-  documentDirection,
-  documentStrings,
-  type DocumentLanguage,
-} from '@api/billing/pdf/document-strings';
+import { documentDirection, documentStrings } from '@api/billing/pdf/document-strings';
+import { LetterheadService } from '@api/billing/pdf/letterhead.service';
 import { RtlPdf } from '@api/billing/pdf/pdf-builder';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
-import { clinics, doctors, labWorkTypes, labs, patients, users } from '@api/database/schema';
+import { doctors, labWorkTypes, labs, patients, users } from '@api/database/schema';
 import { labOrders } from '@api/database/schema';
 import { LabLedgerService } from '@api/labs/lab-ledger.service';
 
 /** Technical values read left to right even inside an Arabic document. */
 const LTR = { dir: 'ltr' } as const;
-
-interface Letterhead {
-  readonly name: string;
-  readonly contact: string;
-  readonly currency: string;
-  readonly language: DocumentLanguage;
-}
 
 /**
  * The two things the labs module prints: the sheet that goes out with the work,
@@ -49,6 +37,7 @@ interface Letterhead {
 export class LabDocumentsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
+    private readonly letterheads: LetterheadService,
     private readonly ledger: LabLedgerService,
   ) {}
 
@@ -74,11 +63,11 @@ export class LabDocumentsService {
       throw new NotFoundException('Resource not found');
     }
 
-    const clinic = await this.letterhead(actor.clinicId);
+    const clinic = await this.letterheads.load(actor.clinicId);
     const strings = documentStrings(clinic.language).labOrder;
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
-    this.drawLetterhead(pdf, clinic);
+    await this.letterheads.draw(pdf, clinic);
     pdf.text(strings.title, { size: 16, weight: 'bold', align: 'centre', gap: 14 });
 
     pdf.field(strings.lab, row.labName);
@@ -115,13 +104,13 @@ export class LabDocumentsService {
   }
 
   async statement(actor: AuthenticatedUser, labId: string, query: StatementQuery): Promise<Buffer> {
-    const clinic = await this.letterhead(actor.clinicId);
+    const clinic = await this.letterheads.load(actor.clinicId);
     const statement = await this.ledger.statementFor(actor.clinicId, labId, query);
 
     const strings = documentStrings(clinic.language).labStatement;
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
-    this.drawLetterhead(pdf, clinic);
+    await this.letterheads.draw(pdf, clinic);
     pdf.text(strings.title, { size: 16, weight: 'bold', align: 'centre', gap: 14 });
 
     pdf.field(strings.lab, statement.labName);
@@ -169,48 +158,6 @@ export class LabDocumentsService {
     });
 
     return pdf.save();
-  }
-
-  private drawLetterhead(pdf: RtlPdf, clinic: Letterhead): void {
-    pdf.mark(BRAND_MARK, MARK_VIEWBOX);
-    pdf.text(clinic.name, { size: 18, weight: 'bold', align: 'centre', gap: 4 });
-
-    if (clinic.contact) {
-      pdf.text(clinic.contact, {
-        size: 9,
-        align: 'centre',
-        colour: [0.35, 0.35, 0.35],
-        dir: 'ltr',
-      });
-    }
-
-    pdf.rule();
-  }
-
-  private async letterhead(clinicId: string): Promise<Letterhead> {
-    const [row] = await this.db
-      .select({
-        name: clinics.name,
-        phone: clinics.phone,
-        address: clinics.address,
-        currency: clinics.currency,
-        settings: clinics.settings,
-      })
-      .from(clinics)
-      .where(eq(clinics.id, clinicId))
-      .limit(1);
-
-    /* istanbul ignore next -- the caller's own clinic always exists. */
-    if (!row) {
-      throw new NotFoundException('Resource not found');
-    }
-
-    return {
-      name: row.name,
-      contact: [row.phone, row.address].filter(Boolean).join(' — '),
-      currency: row.currency,
-      language: documentSettings(row.settings).language,
-    };
   }
 }
 

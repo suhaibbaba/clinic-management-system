@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import fontkit from '@pdf-lib/fontkit';
-import { LineCapStyle, PDFDocument, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
+import { LineCapStyle, PDFDocument, rgb, type PDFFont, type PDFImage, type PDFPage } from 'pdf-lib';
 
 import { visualRuns, type TextDirection } from '@api/billing/pdf/arabic-text';
 import type { MarkPath, MarkViewBox } from '@api/billing/pdf/brand-mark';
@@ -254,6 +254,55 @@ export class RtlPdf {
     }
 
     this.cursor -= size + 8;
+  }
+
+  /**
+   * The clinic's own uploaded logo, centred and scaled to `size` points tall.
+   *
+   * Returns false — drawing nothing and moving the cursor nowhere — when the
+   * bytes are not something pdf-lib can embed, so the caller falls back to the
+   * built-in mark. A logo the printer cannot read must cost a mark on the
+   * sheet, never a receipt the clinic cannot hand over.
+   */
+  async image(bytes: Buffer, mime: string, size = 34): Promise<boolean> {
+    const embedded = await this.embed(bytes, mime);
+
+    if (!embedded) {
+      return false;
+    }
+
+    const scale = size / embedded.height;
+    const width = embedded.width * scale;
+
+    this.page.drawImage(embedded, {
+      x: (this.page.getWidth() - width) / 2,
+      // Unlike an SVG path, an image is anchored at its bottom-left, so the
+      // cursor is where it stands rather than where its top goes.
+      y: this.cursor,
+      width,
+      height: size,
+    });
+
+    this.cursor -= size + 8;
+
+    return true;
+  }
+
+  private async embed(bytes: Buffer, mime: string): Promise<PDFImage | undefined> {
+    try {
+      if (mime === 'image/png') {
+        return await this.doc.embedPng(bytes);
+      }
+      if (mime === 'image/jpeg') {
+        return await this.doc.embedJpg(bytes);
+      }
+    } catch {
+      // A file that says PNG and is not: same outcome as an unsupported type.
+      return undefined;
+    }
+
+    // pdf-lib embeds PNG and JPEG only; WebP is fine on screen and not here.
+    return undefined;
   }
 
   rule(colour: [number, number, number] = [0.75, 0.75, 0.75]): void {
