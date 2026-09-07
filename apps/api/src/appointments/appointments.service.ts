@@ -443,6 +443,8 @@ export class AppointmentsService implements OnModuleInit {
         patientName: patients.fullName,
         patientPhone: patients.phone,
         patientFileNumber: patients.fileNumber,
+        // A patient nobody on staff created came in through public booking.
+        patientUnverified: sql<boolean>`${patients.createdBy} is null`,
         doctorName: users.name,
       })
       .from(appointments)
@@ -511,6 +513,7 @@ interface CalendarRow {
   readonly patientName: string;
   readonly patientPhone: string;
   readonly patientFileNumber: string;
+  readonly patientUnverified: boolean;
   readonly doctorName: string;
 }
 
@@ -520,6 +523,7 @@ export function toCalendarAppointment(row: CalendarRow): CalendarAppointment {
     patientName: row.patientName,
     patientPhone: row.patientPhone,
     patientFileNumber: row.patientFileNumber,
+    patientUnverified: row.patientUnverified,
     doctorName: row.doctorName,
   };
 }

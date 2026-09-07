@@ -1,4 +1,11 @@
-import { instantFromLocal, localDate, USER_ROLE, type UserRole } from '@clinic/shared';
+import {
+  USER_ROLE,
+  addDays,
+  instantFromLocal,
+  localDate,
+  localWeekday,
+  type UserRole,
+} from '@clinic/shared';
 import { eq } from 'drizzle-orm';
 
 import { clinics, users } from '@api/database/schema';
@@ -12,11 +19,22 @@ import { auth, createTestContext, type TestClinic, type TestContext } from '@tes
 
 const TIME_ZONE = 'Asia/Damascus';
 
+/**
+ * The next Monday **in the clinic's own zone**.
+ *
+ * Stepping a UTC date forward is wrong for three hours out of every day: at
+ * 22:00 UTC on a Sunday it is already Monday in Damascus, so "one day ahead"
+ * lands on Tuesday and the fixture schedule does not apply — which turned this
+ * whole suite red every evening. Walking local dates is right at every hour.
+ */
 function nextMonday(): string {
-  const today = new Date();
-  const shift = (8 - today.getUTCDay()) % 7 || 7;
+  let date = localDate(new Date(), TIME_ZONE);
 
-  return localDate(new Date(today.getTime() + shift * 86_400_000), TIME_ZONE);
+  do {
+    date = addDays(date, 1);
+  } while (localWeekday(date, TIME_ZONE) !== 1);
+
+  return date;
 }
 
 /**

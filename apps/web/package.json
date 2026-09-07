@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
+    "size:booking": "node scripts/check-booking-bundle.mjs",
     "test:watch": "vitest",
     "clean": "rm -rf dist",
     "storybook": "storybook dev -p 6006 --no-open",

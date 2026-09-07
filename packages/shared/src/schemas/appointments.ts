@@ -62,6 +62,17 @@ export const calendarAppointmentSchema = appointmentSchema.extend({
   patientPhone: z.string(),
   patientFileNumber: z.string(),
   doctorName: z.string(),
+  /**
+   * The patient record was created by the public booking page, not by anyone
+   * at the desk — nobody has seen their ID yet.
+   *
+   * It is `created_by IS NULL` on the patient, which is a fact rather than a
+   * flag someone has to remember to set: public booking attributes the record
+   * to nobody on purpose, because attributing it to a member of staff would be
+   * a lie in the audit trail. Reception needs it to know whose data still has
+   * to be completed on arrival.
+   */
+  patientUnverified: z.boolean(),
 });
 export type CalendarAppointment = z.infer<typeof calendarAppointmentSchema>;
 

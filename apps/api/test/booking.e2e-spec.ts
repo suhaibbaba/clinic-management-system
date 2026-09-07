@@ -1,12 +1,13 @@
 import {
-  addDays,
   APPOINTMENT_STATUS,
   BOOKING_CONFIRMATION_MODE,
-  instantFromLocal,
-  localDate,
   NOTIFICATION_CHANNEL,
   NOTIFICATION_TEMPLATE,
   USER_ROLE,
+  addDays,
+  instantFromLocal,
+  localDate,
+  localWeekday,
 } from '@clinic/shared';
 import { and, desc, eq, sql } from 'drizzle-orm';
 
@@ -32,12 +33,22 @@ const TIME_ZONE = 'Asia/Damascus';
 const FIRST_SLOT_MINUTE = 9 * 60;
 const SLOTS_PER_DAY = 16;
 
-/** The next Monday, so the fixture schedule (Monday 09:00–17:00) applies. */
+/**
+ * The next Monday **in the clinic's own zone**.
+ *
+ * Stepping a UTC date forward is wrong for three hours out of every day: at
+ * 22:00 UTC on a Sunday it is already Monday in Damascus, so "one day ahead"
+ * lands on Tuesday and the fixture schedule does not apply — which turned this
+ * whole suite red every evening. Walking local dates is right at every hour.
+ */
 function nextMonday(): string {
-  const today = new Date();
-  const shift = (8 - today.getUTCDay()) % 7 || 7;
+  let date = localDate(new Date(), TIME_ZONE);
 
-  return localDate(new Date(today.getTime() + shift * 86_400_000), TIME_ZONE);
+  do {
+    date = addDays(date, 1);
+  } while (localWeekday(date, TIME_ZONE) !== 1);
+
+  return date;
 }
 
 const localDateOf = (startsAt: string): string => localDate(new Date(startsAt), TIME_ZONE);
@@ -715,6 +726,91 @@ describe('Public booking (e2e)', () => {
           })
         ).statusCode,
       ).toBe(403);
+    });
+
+    it('confirms a booking and tells the patient', async () => {
+      const token = await held();
+      const appointmentId = appointmentIdOf(token);
+
+      const response = await context.app.inject({
+        method: 'PATCH',
+        url: `/appointments/pending-confirmation/${appointmentId}/confirm`,
+        headers: auth(receptionToken),
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect((response.json() as { status: string }).status).toBe(APPOINTMENT_STATUS.CONFIRMED);
+
+      // The patient is not in the building: a confirmation nobody sends is a
+      // patient who does not know they have an appointment.
+      const [sent] = await context.db
+        .select({ vars: notificationsLog.vars })
+        .from(notificationsLog)
+        .where(
+          and(
+            eq(notificationsLog.appointmentId, appointmentId),
+            eq(notificationsLog.template, NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED),
+          ),
+        );
+
+      expect(sent).toBeDefined();
+      // And with a working manage link, exactly as the OTP path would have.
+      expect(sent?.vars['link']).toContain('/booking/manage/v1.');
+    });
+
+    it('rejects a booking with a reason, and sends it', async () => {
+      const token = await held();
+      const appointmentId = appointmentIdOf(token);
+
+      const response = await context.app.inject({
+        method: 'PATCH',
+        url: `/appointments/pending-confirmation/${appointmentId}/reject`,
+        headers: auth(receptionToken),
+        payload: { reason: 'الطبيب في إجازة ذلك اليوم' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toMatchObject({
+        status: APPOINTMENT_STATUS.CANCELLED,
+        cancelledReason: 'الطبيب في إجازة ذلك اليوم',
+      });
+
+      const [sent] = await context.db
+        .select({ id: notificationsLog.id })
+        .from(notificationsLog)
+        .where(
+          and(
+            eq(notificationsLog.appointmentId, appointmentId),
+            eq(notificationsLog.template, NOTIFICATION_TEMPLATE.BOOKING_CANCELLED),
+          ),
+        );
+
+      expect(sent).toBeDefined();
+    });
+
+    it('will not reject without saying why', async () => {
+      const appointmentId = appointmentIdOf(await held());
+
+      const response = await context.app.inject({
+        method: 'PATCH',
+        url: `/appointments/pending-confirmation/${appointmentId}/reject`,
+        headers: auth(receptionToken),
+        payload: { reason: '' },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('is closed to a doctor, like the list itself', async () => {
+      const appointmentId = appointmentIdOf(await held());
+
+      const response = await context.app.inject({
+        method: 'PATCH',
+        url: `/appointments/pending-confirmation/${appointmentId}/confirm`,
+        headers: auth(doctorToken),
+      });
+
+      expect(response.statusCode).toBe(403);
     });
 
     it('needs a token like any internal endpoint', async () => {

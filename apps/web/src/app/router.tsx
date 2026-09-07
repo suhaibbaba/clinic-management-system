@@ -8,6 +8,7 @@ import { AuditPage } from '@web/features/audit/audit-page';
 import { RequireAuth, RequireRole } from '@web/features/auth/guards';
 import { LoginPage } from '@web/features/auth/login-page';
 import { OverduePage } from '@web/features/billing/overdue-page';
+import { PendingBookingsPage } from '@web/features/booking/pending-bookings-page';
 import { ClinicPage } from '@web/features/clinic/clinic-page';
 import { DoctorsPage } from '@web/features/doctors/doctors-page';
 import { PatientPage } from '@web/features/patients/patient-page';
@@ -30,6 +31,9 @@ const PATIENT_FILE = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST]
 
 /** Overdue balances: admin and receptionist (ROLES.md billing matrix). */
 const BILLING = [USER_ROLE.ADMIN, USER_ROLE.RECEPTIONIST] as const;
+
+/** Answering online bookings is front-desk work, and the API says so too. */
+const FRONT_DESK = [USER_ROLE.ADMIN, USER_ROLE.RECEPTIONIST] as const;
 
 /**
  * Routes mirror the sidebar, and admin-only pages carry the same role check —
@@ -62,6 +66,15 @@ export function AppRoutes(): JSX.Element {
           element={
             <RequireRole roles={PATIENT_FILE} redirectTo="/">
               <PatientPage />
+            </RequireRole>
+          }
+        />
+
+        <Route
+          path="/appointments/pending"
+          element={
+            <RequireRole roles={FRONT_DESK} redirectTo="/">
+              <PendingBookingsPage />
             </RequireRole>
           }
         />

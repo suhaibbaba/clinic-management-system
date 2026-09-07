@@ -9,6 +9,7 @@ import { UserMenu } from '@web/components/layout/user-menu';
 import { Button, Icon } from '@web/components/ui';
 import { visibleNavItems } from '@web/app/navigation';
 import { useSession } from '@web/features/auth/session';
+import { seesPendingBookings, usePendingBookingsCount } from '@web/features/booking/queries';
 import { cn } from '@web/lib/cn';
 
 /**
@@ -30,6 +31,17 @@ export function AppLayout(): JSX.Element {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const items = visibleNavItems(user?.role);
+
+  /*
+   * The one number in the chrome.
+   *
+   * Online bookings are the only thing in the app that arrives while nobody is
+   * looking — everything else happens because somebody at the desk did it — so
+   * it is the only thing that earns a badge. Asked for once here and handed to
+   * both copies of the nav list, rather than fetched twice.
+   */
+  const pendingBookings = usePendingBookingsCount(seesPendingBookings(user?.role));
+  const badges = { pendingBookings } as const;
 
   // Navigating closes the drawer. Doing it here rather than in each row's
   // onClick also covers the back button and any link inside the page.
@@ -85,7 +97,7 @@ export function AppLayout(): JSX.Element {
             </span>
           </div>
 
-          <NavList items={items} />
+          <NavList items={items} badges={badges} />
 
           {user && (
             <div className="mt-6 border-t border-line pt-3">
@@ -102,7 +114,7 @@ export function AppLayout(): JSX.Element {
         title={t('app.title')}
         closeLabel={t('common.close')}
       >
-        <NavList items={items} />
+        <NavList items={items} badges={badges} />
 
         {user && (
           <div className="mt-4 border-t border-line pt-3">
@@ -143,7 +155,13 @@ export function AppLayout(): JSX.Element {
 }
 
 /** The nav rows, shared by the desktop rail and the mobile drawer. */
-function NavList({ items }: { readonly items: ReturnType<typeof visibleNavItems> }): JSX.Element {
+function NavList({
+  items,
+  badges,
+}: {
+  readonly items: ReturnType<typeof visibleNavItems>;
+  readonly badges: Readonly<Record<'pendingBookings', number>>;
+}): JSX.Element {
   const { t } = useTranslation();
 
   return (
@@ -164,6 +182,18 @@ function NavList({ items }: { readonly items: ReturnType<typeof visibleNavItems>
             >
               <Icon name={item.icon} className="text-primary-600" />
               <span className="truncate">{t(item.label)}</span>
+
+              {item.badge && badges[item.badge] > 0 && (
+                <span
+                  // The count is read out as part of the link, so the row
+                  // announces "pending bookings, 3" rather than a bare number
+                  // floating after it.
+                  aria-label={t('nav.waitingCount', { count: badges[item.badge] })}
+                  className="ms-auto min-w-6 rounded-pill bg-primary-600 px-1.5 py-0.5 text-center text-label font-semibold text-ink-inverse tabular-nums"
+                >
+                  {badges[item.badge]}
+                </span>
+              )}
             </NavLink>
           </li>
         ))}

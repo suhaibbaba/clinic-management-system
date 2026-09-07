@@ -10,6 +10,14 @@ export interface NavItem {
   readonly roles: readonly UserRole[];
   /** Decorative — the label beside it is what is announced. */
   readonly icon: IconName;
+  /**
+   * Names a count the sidebar draws beside the label.
+   *
+   * A badge is a promise that something is waiting, so there is exactly one
+   * and it is fed by a real query — see `AppLayout`. A decorative dot would
+   * train everyone to ignore the real one.
+   */
+  readonly badge?: 'pendingBookings';
 }
 
 /**
@@ -24,6 +32,15 @@ export const NAV_ITEMS: readonly NavItem[] = [
   // The calendar is `R` for every role (ROLES.md); who may *write* to it is
   // settled inside the page and, really, by the API.
   { to: '/appointments', label: 'nav.appointments', roles: USER_ROLES, icon: 'calendar' },
+  // Online bookings nobody has answered yet. Reception's job (ROLES.md
+  // appointments row); a doctor's own calendar already shows what concerns them.
+  {
+    to: '/appointments/pending',
+    label: 'nav.pendingBookings',
+    roles: [USER_ROLE.RECEPTIONIST],
+    icon: 'clock',
+    badge: 'pendingBookings',
+  },
   {
     to: '/billing/overdue',
     label: 'nav.overdue',
