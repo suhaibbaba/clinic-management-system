@@ -93,5 +93,19 @@ export const listPatientsQuerySchema = paginationQuerySchema.extend({
   /** Matches the file number, the name or the phone. */
   search: z.string().trim().min(1).max(120).optional(),
   gender: z.enum(GENDERS).optional(),
+  /**
+   * Only patients who owe money.
+   *
+   * The balance is an aggregate over the ledgers, never a column, so this is
+   * a `having` rather than a `where` — but it has to be the *server's*
+   * question all the same. Narrowing the page in hand would answer "which of
+   * these twenty owe" while looking like it answered "who owes", which on a
+   * financial screen is a wrong number wearing a confident label.
+   *
+   * A role that is not served balances at all (the technician, ROLES.md field
+   * rules) is not served this filter either — the API ignores it rather than
+   * leaking the fact through a row count.
+   */
+  hasBalance: z.stringbool().optional(),
 });
 export type ListPatientsQuery = z.infer<typeof listPatientsQuerySchema>;

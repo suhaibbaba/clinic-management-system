@@ -29,10 +29,10 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse | unkno
   } as Record<string, MockResponse>;
 }
 
-async function renderList(role: UserRole, overrides = {}) {
+async function renderList(role: UserRole, overrides = {}, route = '/patients') {
   authTokens.clear();
   const api = mockApi(handlers(role, overrides));
-  renderWithProviders(<AppRoutes />, { route: '/patients' });
+  renderWithProviders(<AppRoutes />, { route });
   await screen.findByRole('heading', { name: ar.patients.title });
   return api;
 }
@@ -103,35 +103,83 @@ describe('Patients list', () => {
       ).toBeInTheDocument();
     });
 
-    it.each([
-      // ROLES.md lists `balance` on the public view, but the field rules keep
-      // financial data out of a technician's response entirely — so only the
-      // receptionist gets the column.
-      [USER_ROLE.RECEPTIONIST, true],
-      [USER_ROLE.TECHNICIAN, false],
-    ])('gives %s the public-view columns only', async (role, withBalance) => {
-      await renderList(role as UserRole);
+    /*
+     * The technician is absent from this table on purpose: this screen is no
+     * longer part of their application at all, and the guard that turns them
+     * away is asserted in `app-layout.test.tsx`. What the API would hand them
+     * if they asked anyway is a question for `patients-permissions.e2e-spec`,
+     * which is where the field rules are actually enforced.
+     */
+    it.each([[USER_ROLE.RECEPTIONIST, true]])(
+      'gives %s the public-view columns only',
+      async (role, withBalance) => {
+        await renderList(role as UserRole);
 
-      await screen.findByText(PATIENTS[0]!.fullName);
+        await screen.findByText(PATIENTS[0]!.fullName);
 
-      const headers = screen
-        .getAllByRole('columnheader')
-        .map((header) => header.textContent?.trim());
+        const headers = screen
+          .getAllByRole('columnheader')
+          .map((header) => header.textContent?.trim());
 
-      // The file number has no column of its own any more — it is the caption
-      // under the name, in the same cell — so it is asserted as content below
-      // rather than as a header.
-      expect(headers).toEqual([
-        ar.patients.fullName,
-        ar.patients.phone,
-        ar.patients.age,
-        ...(withBalance ? [ar.patients.balance] : []),
-        ar.common.actions,
-      ]);
-      expect(screen.getAllByText(PATIENTS[0]!.fileNumber).length).toBeGreaterThan(0);
+        // The file number has no column of its own any more — it is the caption
+        // under the name, in the same cell — so it is asserted as content below
+        // rather than as a header.
+        expect(headers).toEqual([
+          ar.patients.fullName,
+          ar.patients.phone,
+          ar.patients.age,
+          ...(withBalance ? [ar.patients.balance] : []),
+          ar.common.actions,
+        ]);
+        expect(screen.getAllByText(PATIENTS[0]!.fileNumber).length).toBeGreaterThan(0);
 
-      // The address is in the fixture but never in a public-view response.
-      expect(screen.queryByText('المالكي، دمشق')).not.toBeInTheDocument();
+        // The address is in the fixture but never in a public-view response.
+        expect(screen.queryByText('المالكي، دمشق')).not.toBeInTheDocument();
+      },
+    );
+  });
+
+  /**
+   * The filter that replaced the standalone overdue screen.
+   *
+   * It has to be *the server's* filter and it has to be in the URL: the
+   * dashboard's overdue card links straight here, and the retired
+   * `/billing/overdue` redirects here, so a filter that lived in component
+   * state could not have taken that page's place.
+   */
+  describe('the owing filter', () => {
+    it('asks the server when the address arrives with it', async () => {
+      const api = await renderList(USER_ROLE.RECEPTIONIST, {}, '/patients?filter=balance');
+
+      await waitFor(() =>
+        expect(searchCalls(api).some((call) => call.url.includes('hasBalance=true'))).toBe(true),
+      );
+    });
+
+    it('puts it in the address when the segment is chosen, and takes it out again', async () => {
+      const api = await renderList(USER_ROLE.RECEPTIONIST);
+
+      await userEvent.click(screen.getByRole('radio', { name: ar.patients.owing }));
+
+      await waitFor(() =>
+        expect(searchCalls(api).some((call) => call.url.includes('hasBalance=true'))).toBe(true),
+      );
+      expect(window.location.search).toBe('');
+
+      await userEvent.click(screen.getByRole('radio', { name: ar.common.all }));
+
+      await waitFor(() => {
+        const last = searchCalls(api).at(-1);
+        expect(last?.url).not.toContain('hasBalance');
+      });
+    });
+
+    it('is never offered to a role the API serves no balances to', async () => {
+      // The doctor sees balances, so the segment is there; the technician has
+      // no route to this page at all (see `app-layout.test.tsx`).
+      await renderList(USER_ROLE.DOCTOR);
+
+      expect(screen.getByRole('radio', { name: ar.patients.owing })).toBeInTheDocument();
     });
   });
 
@@ -140,13 +188,6 @@ describe('Patients list', () => {
       await renderList(USER_ROLE.RECEPTIONIST);
 
       expect(screen.getAllByRole('button', { name: ar.patients.create }).length).toBeGreaterThan(0);
-    });
-
-    it('hides it from a technician, whose access is read-only', async () => {
-      await renderList(USER_ROLE.TECHNICIAN);
-
-      await screen.findByText(PATIENTS[0]!.fullName);
-      expect(screen.queryByRole('button', { name: ar.patients.create })).not.toBeInTheDocument();
     });
 
     it('sends what the form collected and opens the new file', async () => {

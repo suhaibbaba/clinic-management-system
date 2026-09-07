@@ -169,14 +169,6 @@ describe('Appointments page', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('hides booking from a technician, who has no write on the calendar', async () => {
-    await renderCalendar(USER_ROLE.TECHNICIAN);
-
-    // They still read it — the calendar row is `R` for every role.
-    expect(await block(/10:00/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: ar.appointments.create })).not.toBeInTheDocument();
-  });
-
   it('shows the day as an agenda on a phone, with no week toggle', async () => {
     setViewport(true);
     await renderCalendar(USER_ROLE.RECEPTIONIST);

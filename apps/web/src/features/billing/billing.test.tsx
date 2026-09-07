@@ -1,5 +1,5 @@
 import { USER_ROLE, type UserRole } from '@clinic/shared';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -9,7 +9,6 @@ import { authTokens } from '@web/lib/auth-tokens';
 import {
   makeBalance,
   makeClinic,
-  makeOverduePatient,
   makePatient,
   makePayment,
   makeProfile,
@@ -36,7 +35,6 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse> = {}) 
     [`GET /patients/${PATIENT_ID}/balance`]: { status: 200, body: makeBalance() },
     [`GET /patients/${PATIENT_ID}/statement`]: { status: 200, body: makeStatement() },
     'POST /payments': { status: 201, body: makePayment() },
-    'GET /billing/overdue': { status: 200, body: paginated([makeOverduePatient()]) },
     ...overrides,
   } as Record<string, MockResponse>;
 }
@@ -158,33 +156,38 @@ describe('Billing', () => {
     });
   });
 
-  describe('overdue balances', () => {
-    const renderOverdue = async (role: UserRole) => {
+  /**
+   * The standalone overdue screen is gone; the address is not.
+   *
+   * It was one filter of the patients list wearing a page's clothes, and the
+   * list can now ask the server the same question — so the page went and the
+   * link somebody bookmarked lands on the filter that replaced it, rather
+   * than on a dashboard with a shrug.
+   */
+  describe('the retired overdue screen', () => {
+    it('carries its old address to the patients list, already filtered', async () => {
       authTokens.clear();
-      const api = mockApi(handlers(role));
+      const api = mockApi(handlers(USER_ROLE.RECEPTIONIST));
       renderWithProviders(<AppRoutes />, { route: '/billing/overdue' });
-      return api;
-    };
-
-    it('lists the debtor, the balance, the last payment and the phone', async () => {
-      await renderOverdue(USER_ROLE.RECEPTIONIST);
-
-      const link = await screen.findByRole('link', { name: 'أحمد خالد الحسن' });
-      const row = link.closest('tr') as HTMLElement;
-
-      expect(link).toHaveAttribute('href', `/patients/${PATIENT_ID}`);
-      expect(within(row).getByText('300.00 USD')).toBeInTheDocument();
-      expect(within(row).getByText(ar.billing.daysAgo.replace('{{count}}', '96'))).toBeVisible();
-      expect(within(row).getByRole('link', { name: '+963931000001' })).toBeInTheDocument();
-    });
-
-    it('turns a doctor away — the matrix gives it to admin and reception', async () => {
-      await renderOverdue(USER_ROLE.DOCTOR);
 
       expect(await screen.findByRole('heading', { name: ar.patients.title })).toBeVisible();
-      expect(
-        screen.queryByRole('heading', { name: ar.billing.overdueTitle }),
-      ).not.toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: ar.patients.owing })).toBeChecked();
+
+      await waitFor(() =>
+        expect(
+          api.calls.some(
+            (call) => call.url.includes('/patients?') && call.url.includes('hasBalance=true'),
+          ),
+        ).toBe(true),
+      );
+    });
+
+    it('sends a doctor there too — they read balances, just not that page', async () => {
+      authTokens.clear();
+      mockApi(handlers(USER_ROLE.DOCTOR));
+      renderWithProviders(<AppRoutes />, { route: '/billing/overdue' });
+
+      expect(await screen.findByRole('heading', { name: ar.patients.title })).toBeVisible();
     });
   });
 });

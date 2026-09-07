@@ -8,7 +8,12 @@ import { Breadcrumb } from '@web/components/layout/breadcrumb';
 import { NavDrawer } from '@web/components/layout/nav-drawer';
 import { UserMenu } from '@web/components/layout/user-menu';
 import { Button, Icon } from '@web/components/ui';
-import { visibleNavItems } from '@web/app/navigation';
+import {
+  NAV_SETTINGS,
+  visibleNavItems,
+  visibleSettingsItems,
+  type NavItem,
+} from '@web/app/navigation';
 import { useSession } from '@web/features/auth/session';
 import { seesPendingBookings, usePendingBookingsCount } from '@web/features/booking/queries';
 import { cn } from '@web/lib/cn';
@@ -34,6 +39,7 @@ export function AppLayout(): JSX.Element {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const items = visibleNavItems(user?.role);
+  const settings = visibleSettingsItems(user?.role);
 
   /*
    * The one number in the chrome.
@@ -100,7 +106,7 @@ export function AppLayout(): JSX.Element {
             </span>
           </div>
 
-          <NavList items={items} badges={badges} />
+          <NavList items={items} settings={settings} badges={badges} />
 
           {user && (
             <div className="mt-6 border-t border-line pt-3">
@@ -117,7 +123,7 @@ export function AppLayout(): JSX.Element {
         title={t('app.title')}
         closeLabel={t('common.close')}
       >
-        <NavList items={items} badges={badges} />
+        <NavList items={items} settings={settings} badges={badges} />
 
         {user && (
           <div className="mt-4 border-t border-line pt-3">
@@ -160,9 +166,11 @@ export function AppLayout(): JSX.Element {
 /** The nav rows, shared by the desktop rail and the mobile drawer. */
 function NavList({
   items,
+  settings,
   badges,
 }: {
-  readonly items: ReturnType<typeof visibleNavItems>;
+  readonly items: readonly NavItem[];
+  readonly settings: readonly NavItem[];
   readonly badges: Readonly<Record<'pendingBookings', number>>;
 }): JSX.Element {
   const { t } = useTranslation();
@@ -171,37 +179,120 @@ function NavList({
     <nav aria-label={t('nav.menu')} className="min-w-0 flex-1">
       <ul className="flex flex-col gap-0.5">
         {items.map((item) => (
-          <li key={item.to}>
-            <NavLink
-              to={item.to}
-              className={({ isActive }) =>
-                cn(
-                  // 44px tall: a nav row is the most-tapped target in the app.
-                  'flex min-h-11 cursor-pointer items-center gap-3 rounded-control px-3 py-2',
-                  'text-value transition-colors duration-150',
-                  isActive ? 'chrome-active font-semibold text-ink' : 'text-ink hover:bg-inset',
-                )
-              }
-            >
-              <Icon name={item.icon} className="text-primary-600" />
-              <span className="truncate">{t(item.label)}</span>
-
-              {item.badge && badges[item.badge] > 0 && (
-                <span
-                  // The count is read out as part of the link, so the row
-                  // announces "pending bookings, 3" rather than a bare number
-                  // floating after it.
-                  aria-label={t('nav.waitingCount', { count: badges[item.badge] })}
-                  className="ms-auto min-w-6 rounded-pill bg-primary-600 px-1.5 py-0.5 text-center text-label font-semibold text-ink-inverse tabular-nums"
-                >
-                  {badges[item.badge]}
-                </span>
-              )}
-            </NavLink>
-          </li>
+          <NavRow key={item.to} item={item} badges={badges} />
         ))}
       </ul>
+
+      {settings.length > 0 && <SettingsGroup items={settings} />}
     </nav>
+  );
+}
+
+/** One row of the sidebar, in either half of it. */
+function NavRow({
+  item,
+  badges,
+  nested = false,
+}: {
+  readonly item: NavItem;
+  readonly badges: Readonly<Record<'pendingBookings', number>>;
+  readonly nested?: boolean;
+}): JSX.Element {
+  const { t } = useTranslation();
+  const count = item.badge ? badges[item.badge] : 0;
+
+  return (
+    <li>
+      <NavLink
+        to={item.to}
+        className={({ isActive }) =>
+          cn(
+            // 44px tall: a nav row is the most-tapped target in the app.
+            'flex min-h-11 cursor-pointer items-center gap-3 rounded-control px-3 py-2',
+            'text-value transition-colors duration-150',
+            // Indented under the group's own row, so the hierarchy is visible
+            // without a second border or a background.
+            nested && 'ms-3',
+            isActive ? 'chrome-active font-semibold text-ink' : 'text-ink hover:bg-inset',
+          )
+        }
+      >
+        <Icon name={item.icon} className={cn(nested ? 'text-ink-subtle' : 'text-primary-600')} />
+        <span className="truncate">{t(item.label)}</span>
+
+        {count > 0 && (
+          <span
+            // The count is read out as part of the link, so the row announces
+            // "appointments, 3 waiting" rather than a bare number floating
+            // after it.
+            aria-label={t('nav.waitingCount', { count })}
+            className="ms-auto min-w-6 rounded-pill bg-danger-600 px-1.5 py-0.5 text-center text-label font-semibold text-ink-inverse tabular-nums"
+          >
+            {count}
+          </span>
+        )}
+      </NavLink>
+    </li>
+  );
+}
+
+/**
+ * The settings drawer at the foot of the sidebar.
+ *
+ * Collapsed by default and *not* remembered between sessions: these are the
+ * screens somebody opens on the day they set the clinic up and then twice a
+ * year, and a group that reopens itself every morning because it was opened
+ * once in March defeats the point of collapsing it.
+ *
+ * It does open by itself when one of its own pages is showing — arriving on
+ * the audit log from a link and finding the group shut would leave the sidebar
+ * disagreeing with the page.
+ */
+function SettingsGroup({ items }: { readonly items: readonly NavItem[] }): JSX.Element {
+  const { t } = useTranslation();
+  const { pathname } = useLocation();
+  const holdsCurrent = items.some(
+    (item) => pathname === item.to || pathname.startsWith(`${item.to}/`),
+  );
+  const [open, setOpen] = useState(holdsCurrent);
+
+  // Navigating into the group opens it; navigating out leaves it as the user
+  // left it, because closing a drawer somebody just opened is rude.
+  useEffect(() => {
+    if (holdsCurrent) {
+      setOpen(true);
+    }
+  }, [holdsCurrent]);
+
+  return (
+    <div className="mt-1">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="nav-settings"
+        onClick={() => setOpen((current) => !current)}
+        className={cn(
+          'flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-control px-3 py-2',
+          'text-value text-ink transition-colors duration-150 hover:bg-inset',
+        )}
+      >
+        <Icon name={NAV_SETTINGS.icon} className="text-primary-600" />
+        <span className="truncate">{t(NAV_SETTINGS.label)}</span>
+        <Icon
+          name="chevron-down"
+          className={cn(
+            'ms-auto text-ink-subtle transition-transform duration-150',
+            open && 'rotate-180',
+          )}
+        />
+      </button>
+
+      <ul id="nav-settings" hidden={!open} className="mt-0.5 flex flex-col gap-0.5">
+        {items.map((item) => (
+          <NavRow key={item.to} item={item} badges={{ pendingBookings: 0 }} nested />
+        ))}
+      </ul>
+    </div>
   );
 }
 

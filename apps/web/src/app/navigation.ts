@@ -20,75 +20,101 @@ export interface NavItem {
   readonly badge?: 'pendingBookings';
 }
 
+export interface NavGroup {
+  /** i18n key for the group's own row. */
+  readonly label: string;
+  readonly icon: IconName;
+  readonly items: readonly NavItem[];
+}
+
 /**
- * Sidebar entries, mapped straight onto the ROLES.md core matrix.
+ * The sidebar.
  *
- * Hiding an item is cosmetic — the API is the real boundary — but the same
- * table also drives the route guards, so a hidden page is not reachable by
+ * Six rows, in the order a day runs: what is happening now, who it is
+ * happening to, when, and then the two stores of things. Everything that is
+ * set up once and rarely touched — accounts, lists, the audit trail — is
+ * folded into one collapsed group at the bottom, so the list people navigate
+ * with is the list of places they actually go.
+ *
+ * The account itself is not here at all: it lives in the menu on the avatar,
+ * which is where every application of this shape puts it, and where somebody
+ * looks for "sign out" without being told.
+ *
+ * Hiding a row is cosmetic — the API is the real boundary — but the same
+ * table drives the route guards, so a hidden section is not reachable by
  * typing its URL either.
  */
 export const NAV_ITEMS: readonly NavItem[] = [
-  { to: '/patients', label: 'nav.patients', roles: USER_ROLES, icon: 'users' },
-  // The calendar is `R` for every role (ROLES.md); who may *write* to it is
-  // settled inside the page and, really, by the API.
-  { to: '/appointments', label: 'nav.appointments', roles: USER_ROLES, icon: 'calendar' },
-  // Online bookings nobody has answered yet. Reception's job (ROLES.md
-  // appointments row); a doctor's own calendar already shows what concerns them.
+  // Everyone lands here, and every role has a dashboard row in ROLES.md; what
+  // differs is which figures the response carries, not who may look.
+  { to: '/dashboard', label: 'nav.dashboard', roles: USER_ROLES, icon: 'activity' },
   {
-    to: '/appointments/pending',
-    label: 'nav.pendingBookings',
-    roles: [USER_ROLE.RECEPTIONIST],
-    icon: 'clock',
+    to: '/patients',
+    label: 'nav.patients',
+    roles: [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST],
+    icon: 'users',
+  },
+  {
+    to: '/appointments',
+    label: 'nav.appointments',
+    roles: [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST],
+    icon: 'calendar',
+    // Online bookings are the only thing in this app that arrives while nobody
+    // is looking, so the count sits on the section that answers them.
     badge: 'pendingBookings',
-  },
-  {
-    to: '/billing/overdue',
-    label: 'nav.overdue',
-    roles: [USER_ROLE.ADMIN, USER_ROLE.RECEPTIONIST],
-    icon: 'money',
-  },
-  // The labs matrix in ROLES.md lists admin, doctor and technician — and
-  // nobody else, which is why a receptionist never sees these two.
-  {
-    to: '/lab-orders',
-    label: 'nav.labOrders',
-    roles: [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
-    icon: 'clipboard',
   },
   {
     to: '/labs',
     label: 'nav.labs',
     roles: [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
-    icon: 'coins',
-  },
-  // The technician's own screen — the cupboard is theirs to keep — which is
-  // why it sits above the shared entries rather than at the bottom with them.
-  {
-    to: '/inventory',
-    label: 'nav.inventory',
-    roles: [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
     icon: 'clipboard',
   },
   {
-    to: '/suppliers',
-    label: 'nav.suppliers',
+    to: '/inventory',
+    label: 'nav.inventory',
     roles: [USER_ROLE.TECHNICIAN],
-    icon: 'users',
+    icon: 'package',
   },
-  { to: '/doctors', label: 'nav.doctors', roles: USER_ROLES, icon: 'stethoscope' },
-  { to: '/clinic', label: 'nav.clinic', roles: USER_ROLES, icon: 'gear' },
-  // The lists every dropdown in the app is drawn from. Settings, so admin
-  // only (ROLES.md core matrix, "Clinic settings, templates").
-  { to: '/clinic/lists', label: 'nav.lists', roles: [USER_ROLE.ADMIN], icon: 'list' },
-  { to: '/users', label: 'nav.users', roles: [USER_ROLE.ADMIN], icon: 'shield' },
-  { to: '/audit-log', label: 'nav.audit', roles: [USER_ROLE.ADMIN], icon: 'clipboard' },
-  { to: '/profile', label: 'nav.profile', roles: USER_ROLES, icon: 'user' },
 ];
 
-export function visibleNavItems(role: UserRole | undefined): readonly NavItem[] {
-  if (!role) {
-    return [];
-  }
+/**
+ * The settings drawer at the bottom of the sidebar.
+ *
+ * Collapsed by default: these are the screens somebody opens on the day they
+ * set the clinic up and then twice a year, and five permanent rows of them
+ * push the five rows people use every day off a laptop screen.
+ *
+ * Clinic details and the doctors list are readable by every role (ROLES.md
+ * core matrix) and their routes still are — this only decides who is *offered*
+ * the group, and offering a settings drawer to a receptionist who may change
+ * nothing in it is an invitation to a locked door.
+ */
+export const NAV_SETTINGS: NavGroup = {
+  label: 'nav.settings',
+  icon: 'gear',
+  items: [
+    { to: '/clinic', label: 'nav.clinic', roles: [USER_ROLE.ADMIN], icon: 'building' },
+    { to: '/doctors', label: 'nav.doctors', roles: [USER_ROLE.ADMIN], icon: 'stethoscope' },
+    { to: '/users', label: 'nav.users', roles: [USER_ROLE.ADMIN], icon: 'shield' },
+    // The lists every dropdown in the app is drawn from.
+    { to: '/clinic/lists', label: 'nav.lists', roles: [USER_ROLE.ADMIN], icon: 'list' },
+    { to: '/audit-log', label: 'nav.audit', roles: [USER_ROLE.ADMIN], icon: 'clipboard' },
+  ],
+};
 
-  return NAV_ITEMS.filter((item) => role === USER_ROLE.ADMIN || item.roles.includes(role));
+const visible = (items: readonly NavItem[], role: UserRole): readonly NavItem[] =>
+  items.filter((item) => role === USER_ROLE.ADMIN || item.roles.includes(role));
+
+export function visibleNavItems(role: UserRole | undefined): readonly NavItem[] {
+  return role ? visible(NAV_ITEMS, role) : [];
 }
+
+export function visibleSettingsItems(role: UserRole | undefined): readonly NavItem[] {
+  return role ? visible(NAV_SETTINGS.items, role) : [];
+}
+
+/**
+ * Every nav destination, flattened — what the breadcrumb reads to name the
+ * section a URL belongs to, regardless of which half of the sidebar it is in.
+ */
+export const ALL_NAV_ITEMS: readonly NavItem[] = [...NAV_ITEMS, ...NAV_SETTINGS.items];

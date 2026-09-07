@@ -65,25 +65,23 @@
     "menu": "Menu",
     "users": "Users",
     "doctors": "Doctors",
-    "clinic": "Clinic settings",
+    "clinic": "Clinic details",
     "audit": "Audit log",
     "profile": "My account",
     "logout": "Sign out",
     "patients": "Patients",
-    "overdue": "Overdue balances",
     "searchPatients": "Search patients…",
     "notificationsEmpty": "No notifications",
     "language": "Language",
     "account": "Account",
     "breadcrumb": "Breadcrumb",
     "appointments": "Appointments",
-    "pendingBookings": "Pending bookings",
     "waitingCount": "{{count}} awaiting confirmation",
     "labs": "Labs",
-    "labOrders": "Lab orders",
     "inventory": "Inventory",
-    "suppliers": "Suppliers",
-    "lists": "Lists"
+    "lists": "Lists",
+    "dashboard": "Dashboard",
+    "settings": "Clinic settings"
   },
   "roles": {
     "admin": "Admin",
@@ -625,6 +623,18 @@
     },
     "grid": {
       "dragHint": "Drag an appointment to change its time."
+    },
+    "tabs": {
+      "label": "Appointment views",
+      "all": "All",
+      "pending": "Awaiting confirmation",
+      "confirmed": "Confirmed"
+    },
+    "confirmed": {
+      "title": "Confirmed appointments",
+      "subtitle": "Settled appointments from today onwards",
+      "empty": "No confirmed appointments coming up",
+      "emptyHint": "Every appointment you confirm appears here until its day"
     }
   },
   "booking": {
@@ -832,6 +842,11 @@
         "fitted": "Fitted",
         "audit": "Audit trail ({{count}})"
       }
+    },
+    "section": {
+      "label": "Lab views",
+      "orders": "Work in progress",
+      "directory": "Labs"
     }
   },
   "inventory": {
@@ -1001,6 +1016,11 @@
         "empty": "No purchases in this period",
         "emptyHint": "Every purchase from this supplier appears here"
       }
+    },
+    "section": {
+      "label": "Inventory views",
+      "stock": "Stock",
+      "suppliers": "Suppliers"
     }
   },
   "lookups": {
@@ -1047,6 +1067,28 @@
       "item_unit": "The units inventory is counted in",
       "payment_method": "How payments are taken, and how labs are paid",
       "frequent_drug": "The drugs offered first when writing a prescription"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Today at the clinic, at a glance",
+    "failed": "Today's summary could not be loaded — try refreshing",
+    "kpi": {
+      "today": "Today's appointments",
+      "pending": "Awaiting confirmation",
+      "pendingCaption": "Online bookings nobody has answered",
+      "overdue": "Overdue balances",
+      "overdueCaption": "{{count}} patients"
+    },
+    "schedule": {
+      "title": "Today's schedule",
+      "seeAll": "All appointments",
+      "time": "Time",
+      "patient": "Patient",
+      "doctor": "Doctor",
+      "status": "Status",
+      "empty": "Nothing booked today",
+      "emptyHint": "Appointments booked for today appear here"
     }
   }
 }

@@ -200,6 +200,8 @@ is corrected the same way, by an admin, and nothing is ever updated or deleted.
 | `POST`   | `/payments/:id/reverse`              | admin                                        |
 | `DELETE` | `/payments/:id`                      | admin (writes the reversal, deletes nothing) |
 | `GET`    | `/billing/overdue`                   | admin, receptionist                          |
+| `GET`    | `/patients?hasBalance=true`          | every role but technician (filter ignored)   |
+| `GET`    | `/dashboard/summary`                 | every role; the figures differ by role       |
 
 A technician sees none of it: ROLES.md lists `balance` on `PatientPublicView`, but its field
 rules forbid financial patient data in a technician response, and the narrower rule wins — the
@@ -219,23 +221,60 @@ date range) are drawn as explicit left-to-right islands. See
 
 Sign in at http://localhost:5173 with any seeded account. Screens, all Arabic and RTL:
 
-| Screen           | Route              | Who                                                               |
-| ---------------- | ------------------ | ----------------------------------------------------------------- |
-| Login            | `/login`           | anyone                                                            |
-| Doctors          | `/doctors`         | every role reads; admin writes; a doctor edits their own schedule |
-| Clinic settings  | `/clinic`          | every role reads; admin edits                                     |
-| Users            | `/users`           | admin                                                             |
-| Audit log        | `/audit-log`       | admin                                                             |
-| My account       | `/profile`         | every role                                                        |
-| Patients         | `/patients`        | every role; the columns shown depend on the role                  |
-| Patient file     | `/patients/:id`    | admin, doctor; a receptionist sees the account tab only           |
-| Overdue balances | `/billing/overdue` | admin and receptionist                                            |
+The sidebar is five sections and a collapsed settings group; the account and sign-out live in
+the menu on the avatar, not in the nav.
 
-Screenshots of each one live in [`docs/screenshots/`](./docs/screenshots).
+| Screen       | Route                    | Who                                                     |
+| ------------ | ------------------------ | ------------------------------------------------------- |
+| Login        | `/login`                 | anyone                                                  |
+| Dashboard    | `/dashboard`             | every role — where signing in lands                     |
+| Patients     | `/patients`              | admin, doctor, receptionist                             |
+| Patient file | `/patients/:id`          | admin, doctor; a receptionist sees the account tab only |
+| Appointments | `/appointments`          | admin, doctor, receptionist                             |
+| Labs         | `/labs`                  | admin, doctor, technician                               |
+| Inventory    | `/inventory`             | admin, technician                                       |
+| Settings     | `/clinic`, `/doctors`, … | admin                                                   |
+| My account   | `/profile`               | every role                                              |
+
+Four sections are two panels each, selected by a query parameter so every panel keeps an
+address somebody can link to or bookmark:
+
+| Section         | Tabs                                              |
+| --------------- | ------------------------------------------------- |
+| `/appointments` | `?status=` — the calendar, `pending`, `confirmed` |
+| `/labs`         | `?tab=` — `orders` (the board), `directory`       |
+| `/inventory`    | `?tab=` — `stock`, `suppliers`                    |
+| `/patients`     | `?filter=balance` — only the patients who owe     |
+
+The addresses those panels used to have (`/appointments/pending`, `/lab-orders`, `/suppliers`,
+`/billing/overdue`) still resolve: each redirects to the tab or filter that replaced it, so a
+bookmark lands where the page went rather than on a dashboard with a shrug.
+
+Screenshots of each one live in [`docs/screenshots/`](./docs/screenshots):
+[the dashboard](./docs/screenshots/nav-dashboard-admin.png),
+[the settings group open](./docs/screenshots/nav-settings-open.png),
+[the booking queue as a tab](./docs/screenshots/nav-appointments-pending.png),
+[the labs directory as a tab](./docs/screenshots/nav-labs-directory.png),
+[a technician's dashboard](./docs/screenshots/nav-dashboard-technician.png) — one card, no money —
+and [the nav on a phone](./docs/screenshots/nav-drawer-phone.png).
 
 The patients list is search-first: one box over name, phone and file number, searched on the
-server and debounced. A receptionist and a technician get the `PatientPublicView` columns — the
-API hands them that shape, so the clinical columns are absent rather than hidden.
+server and debounced. Its owing filter is the server's too — a balance is an aggregate, not a
+column, so narrowing the page in hand would answer "which of these ten owe" while looking like
+it answered "who owes". A receptionist gets the `PatientPublicView` columns — the API hands
+them that shape, so the clinical columns are absent rather than hidden.
+
+### Dashboard
+
+One request, `GET /dashboard/summary`, carries all four things the landing page draws: today's
+appointment count, the day's schedule, the online bookings nobody has answered, and what the
+clinic is owed past its overdue window. Each card is a link to the rows behind it.
+
+Nothing on it is a new source of truth — the schedule is the calendar's own query, the queue is
+reception's filtered read, the overdue figure is the overdue service's aggregate — so a card
+can never disagree with the page it links to. Which figures a caller gets is decided in the
+response rather than on the screen: a technician's carries no money and a doctor's no booking
+queue, matching their ROLES.md rows.
 
 ### Tooth chart
 

@@ -63,3 +63,24 @@ export const canCreatePatient = (role: UserRole): boolean => role !== USER_ROLE.
  * response does not carry.
  */
 export const seesClinicalPatientFields = isClinical;
+
+/**
+ * Who may open a patient's file.
+ *
+ * Admin and doctor for the clinical tabs; a receptionist for the account tab,
+ * because taking payments is their job (ROLES.md billing matrix). A technician
+ * has no reason to be in a patient's file at all: no clinical detail they may
+ * read, and never any financial data.
+ *
+ * The route guard is built from this list, and so is every link that would
+ * lead to it — a name rendered as a link to a page the reader will be bounced
+ * off is worse than the same name in plain text.
+ */
+export const PATIENT_FILE_ROLES = [
+  USER_ROLE.ADMIN,
+  USER_ROLE.DOCTOR,
+  USER_ROLE.RECEPTIONIST,
+] as const;
+
+export const canOpenPatientFile = (role: UserRole | undefined): boolean =>
+  role !== undefined && (PATIENT_FILE_ROLES as readonly UserRole[]).includes(role);

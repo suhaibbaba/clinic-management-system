@@ -1,4 +1,5 @@
 import {
+  APPOINTMENT_STATUS,
   CHART_TYPE,
   LOOKUP_LIST_KEYS,
   SYSTEM_LOOKUPS,
@@ -9,6 +10,8 @@ import {
   USER_ROLE,
   type AuthenticatedUserProfile,
   type Attachment,
+  type CalendarAppointment,
+  type DashboardSummary,
   type Doctor,
   type OverduePatient,
   type PatientBalance,
@@ -60,8 +63,21 @@ export function makeUser(overrides: Partial<User> = {}): User {
   };
 }
 
-export function paginated<TItem>(items: TItem[]) {
-  return { items, page: 1, limit: 10, total: items.length, totalPages: 1 };
+/**
+ * A page of results.
+ *
+ * `total` defaults to what was passed, and can be overridden — a badge fed by
+ * `limit: 1` reads the total off a page of one row, so a fixture that could
+ * only ever report `items.length` could not stand in for it.
+ */
+export function paginated<TItem>(items: TItem[], overrides: { total?: number } = {}) {
+  return {
+    items,
+    page: 1,
+    limit: 10,
+    total: overrides.total ?? items.length,
+    totalPages: 1,
+  };
 }
 
 export const PATIENT_ID = '44444444-4444-4444-8444-444444444444';
@@ -343,6 +359,64 @@ export function makeOverduePatient(overrides: Partial<OverduePatient> = {}): Ove
     balance: '300.00',
     lastPaymentAt: '2026-06-01T10:00:00.000Z',
     daysSinceLastPayment: 96,
+    ...overrides,
+  };
+}
+
+export const APPOINTMENT_ID = '66666666-6666-4666-8666-666666666666';
+
+/**
+ * One row of the calendar.
+ *
+ * `startsAt` is a real instant rather than a fixed string so a test can say
+ * "today at ten" without knowing what today is; the clinic's zone is what
+ * turns it back into a wall-clock time on screen.
+ */
+export function makeCalendarAppointment(
+  overrides: Partial<CalendarAppointment> = {},
+): CalendarAppointment {
+  const startsAt = overrides.startsAt ?? '2026-09-07T10:00:00.000Z';
+
+  return {
+    id: APPOINTMENT_ID,
+    clinicId: CLINIC_ID,
+    patientId: PATIENT_ID,
+    doctorId: DOCTOR_ID,
+    startsAt,
+    durationMinutes: 30,
+    endsAt: new Date(new Date(startsAt).getTime() + 30 * 60_000).toISOString(),
+    type: 'checkup',
+    status: APPOINTMENT_STATUS.CONFIRMED,
+    reason: null,
+    notes: null,
+    visitId: null,
+    cancelledReason: null,
+    patientName: 'أحمد خالد الحسن',
+    patientPhone: '+963931000001',
+    patientFileNumber: '00001',
+    patientUnverified: false,
+    doctorName: 'ليلى حداد',
+    createdAt: startsAt,
+    updatedAt: startsAt,
+    ...overrides,
+  };
+}
+
+/**
+ * The landing page's aggregate, with every figure present.
+ *
+ * The API omits the ones a role may not read, so a test for role shaping
+ * builds the narrower response by passing `undefined` for a field rather than
+ * by reaching for a second fixture.
+ */
+export function makeDashboardSummary(overrides: Partial<DashboardSummary> = {}): DashboardSummary {
+  return {
+    date: '2026-09-07',
+    appointmentsToday: 3,
+    pendingBookings: 2,
+    overdueTotal: '450.00',
+    overduePatients: 4,
+    schedule: [],
     ...overrides,
   };
 }

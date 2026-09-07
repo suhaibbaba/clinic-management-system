@@ -11,6 +11,7 @@ export * from '@shared/schemas/billing';
 export * from '@shared/schemas/chart-marks';
 export * from '@shared/schemas/clinics';
 export * from '@shared/schemas/common';
+export * from '@shared/schemas/dashboard';
 export * from '@shared/schemas/doctors';
 export * from '@shared/schemas/health';
 export * from '@shared/schemas/inventory';

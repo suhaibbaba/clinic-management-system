@@ -30,6 +30,6 @@ import { PatientAccessService } from '@api/patients/patient-access.service';
     OverdueService,
     DocumentsService,
   ],
-  exports: [ChargesService, LedgerService],
+  exports: [ChargesService, LedgerService, OverdueService],
 })
 export class BillingModule {}

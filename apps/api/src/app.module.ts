@@ -15,6 +15,7 @@ import { ClinicsModule } from '@api/clinics/clinics.module';
 import { JwtAuthGuard } from '@api/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@api/common/guards/roles.guard';
 import { AppConfigModule } from '@api/config/config.module';
+import { DashboardModule } from '@api/dashboard/dashboard.module';
 import { DatabaseModule } from '@api/database/database.module';
 import { DoctorsModule } from '@api/doctors/doctors.module';
 import { HealthModule } from '@api/health/health.module';
@@ -66,6 +67,7 @@ import { UsersModule } from '@api/users/users.module';
     InventoryModule,
     NotificationsModule,
     BookingModule,
+    DashboardModule,
   ],
   providers: [
     // Global validation: every DTO is a Zod schema from @clinic/shared wrapped

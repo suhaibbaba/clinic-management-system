@@ -27,6 +27,12 @@ import { useDebounced } from '@web/lib/use-debounced';
 
 const PAGE_SIZE = 10;
 
+/**
+ * `?filter=balance` — the address the dashboard's overdue card and the
+ * retired standalone overdue screen both point at.
+ */
+const BALANCE_FILTER = 'balance';
+
 /** True when the response carries the clinical fields, not just the public ones. */
 function isClinicalView(patient: PatientView): patient is PatientClinicalView {
   return 'gender' in patient;
@@ -63,20 +69,41 @@ export function PatientsPage(): JSX.Element {
   const [params, setParams] = useSearchParams();
   const search = params.get('q') ?? '';
   const setSearch = (next: string): void => {
-    setParams(next.trim() === '' ? {} : { q: next }, { replace: true });
+    // The balance filter survives a search: "who owes, called Ahmad" is a
+    // question, and dropping half of it on the first keystroke is not.
+    setParams(
+      {
+        ...(next.trim() !== '' && { q: next }),
+        ...(params.get('filter') === BALANCE_FILTER && { filter: BALANCE_FILTER }),
+      },
+      { replace: true },
+    );
     // A new search starts at the first page; page 3 of the old results is
     // meaningless for the new ones.
     setPage(1);
   };
   const [createOpen, setCreateOpen] = useState(false);
   /*
-   * The Owing filter narrows the page in hand rather than asking the server:
-   * the API takes no balance filter, and inventing a client-side "all
-   * patients who owe" over one page would be a wrong answer wearing a
-   * confident label. The segment says which of *these* rows to show, and the
-   * count beside it stays the server's total.
+   * The Owing filter, in the URL and asked of the server.
+   *
+   * In the URL because the dashboard's overdue card links straight to it and
+   * the old standalone overdue screen redirects here — a filter nobody can
+   * link to could not have replaced a page. Asked of the server because a
+   * balance is an aggregate rather than a column: narrowing the page in hand
+   * would answer "which of these ten owe" while looking like it answered "who
+   * owes", and page two would be page two of everybody.
    */
-  const [owingOnly, setOwingOnly] = useState(false);
+  const owingOnly = params.get('filter') === BALANCE_FILTER;
+  const setOwingOnly = (next: boolean): void => {
+    setParams(
+      {
+        ...(search.trim() !== '' && { q: search }),
+        ...(next && { filter: BALANCE_FILTER }),
+      },
+      { replace: true },
+    );
+    setPage(1);
+  };
 
   const debouncedSearch = useDebounced(search);
   const showClinical = user ? seesClinicalPatientFields(user.role) : false;
@@ -88,6 +115,9 @@ export function PatientsPage(): JSX.Element {
     page,
     limit: PAGE_SIZE,
     ...(debouncedSearch.trim() !== '' && { search: debouncedSearch.trim() }),
+    // Only for the roles the API serves balances to; for a technician the
+    // parameter is ignored on both sides.
+    ...(owingOnly && showBalance && { hasBalance: true }),
   });
 
   const columns = useMemo<Column<PatientView>[]>(() => {
@@ -185,9 +215,7 @@ export function PatientsPage(): JSX.Element {
 
   const canCreate = user ? canCreatePatient(user.role) : false;
   const isSearching = search.trim() !== '';
-  const rows = (query.data?.items ?? []).filter(
-    (row) => !owingOnly || Number(row.balance ?? '0') > 0,
-  );
+  const rows = query.data?.items ?? [];
 
   return (
     <div>
