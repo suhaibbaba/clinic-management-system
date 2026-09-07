@@ -2,6 +2,7 @@ import type { JSX, ReactNode } from 'react';
 
 import { Icon, type IconName } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
+import { Ltr } from '@web/components/ui/ltr';
 
 export type StatTone = 'primary' | 'success' | 'warning' | 'danger' | 'neutral';
 export type DeltaDirection = 'up' | 'down';
@@ -70,9 +71,16 @@ export function StatCard({
         <span className="text-label font-medium text-ink-muted">{label}</span>
       </div>
 
-      <p className="mt-4 text-kpi font-semibold tabular-nums text-ink" dir="ltr">
+      {/*
+        Two cards fit across a phone, which leaves about 133px of card for the
+        figure — and `200.00 USD` at 32px is 170px of it. It wrapped, so a
+        balance was drawn as two lines with the currency stranded on the
+        second. A step down below `sm` is the whole fix; the number is still
+        the largest thing on the card, which is what the size was for.
+      */}
+      <Ltr as="p" className="mt-4 text-[1.375rem] font-semibold text-ink sm:text-kpi">
         {value}
-      </p>
+      </Ltr>
 
       {(caption !== undefined || delta !== undefined) && (
         <div className="mt-1 flex flex-wrap items-center gap-x-2">
@@ -91,7 +99,7 @@ export function StatCard({
             </span>
           )}
           {caption !== undefined && (
-            <span className="min-w-0 truncate text-label text-ink-subtle">{caption}</span>
+            <span className="min-w-0 line-clamp-2 text-label text-ink-subtle">{caption}</span>
           )}
         </div>
       )}

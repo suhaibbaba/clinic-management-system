@@ -2,6 +2,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import type { JSX, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Icon } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
 import { documentDirection } from '@web/lib/direction';
 
@@ -49,10 +50,18 @@ export function Drawer({
           <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
             <Dialog.Title className="text-lg font-semibold text-ink">{title}</Dialog.Title>
             <Dialog.Close
-              className="cursor-pointer rounded-control px-2 py-1 text-label text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink"
+              className={cn(
+                // The same 44px close as the navigation drawer's, and the same
+                // glyph: this one was a bare "✕" character in a 27px box, so
+                // it was both the smallest target on the screen and the one
+                // control in the app drawn in a font rather than in the icon
+                // set.
+                'inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-pill',
+                'text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink',
+              )}
               aria-label={t('common.close')}
             >
-              ✕
+              <Icon name="x" />
             </Dialog.Close>
           </div>
 

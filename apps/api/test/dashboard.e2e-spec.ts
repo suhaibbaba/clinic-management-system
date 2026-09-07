@@ -147,7 +147,7 @@ describe('Dashboard (e2e)', () => {
           procedureId: fixtures.catalogId,
           tooth: 16,
         }),
-        status: PERFORMED_PROCEDURE_STATUS.COMPLETED,
+        status: PERFORMED_PROCEDURE_STATUS.DONE,
         price: '250.00',
       },
     });
@@ -205,7 +205,7 @@ describe('Dashboard (e2e)', () => {
           procedureId: fixtures.catalogId,
           tooth: 26,
         }),
-        status: PERFORMED_PROCEDURE_STATUS.COMPLETED,
+        status: PERFORMED_PROCEDURE_STATUS.DONE,
         price: '400.00',
       },
     });

@@ -27,7 +27,13 @@ body {
   font-family: var(--font-sans);
   /* Tight tracking through the body is what makes the family read as one. */
   letter-spacing: var(--tracking-body);
-  line-height: 1.55;
+  /*
+   * 1.65, for Arabic. Latin reads comfortably from about 1.5; Arabic at the
+   * same ratio puts the descender of one line into the marks above the next,
+   * and the difference is the whole reason a page of Arabic set at Latin
+   * leading looks cramped without anyone being able to say why.
+   */
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

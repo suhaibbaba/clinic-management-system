@@ -108,6 +108,7 @@
     "phone": "Phone",
     "email": "Email",
     "role": "Role",
+    "selectRole": "Select a role",
     "status": "Status",
     "active": "Active",
     "inactive": "Inactive",
