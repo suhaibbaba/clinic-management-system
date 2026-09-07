@@ -1,8 +1,9 @@
-import type { CalendarAppointment, Doctor } from '@clinic/shared';
+import { LOOKUP_LIST, type CalendarAppointment, type Doctor } from '@clinic/shared';
 import { useRef, useState, type DragEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { APPOINTMENT_STATUS_STYLES, typeLabelKey } from '@web/features/appointments/status';
+import { APPOINTMENT_STATUS_STYLES } from '@web/features/appointments/status';
+import { useLookupLabels } from '@web/features/lookups/queries';
 import {
   blockPosition,
   GRID_START_MINUTE,
@@ -192,6 +193,7 @@ function AppointmentBlock({
   onOpen,
 }: BlockProps): JSX.Element {
   const { t } = useTranslation();
+  const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
   const style = APPOINTMENT_STATUS_STYLES[appointment.status];
   const position = blockPosition(appointment);
 
@@ -224,7 +226,7 @@ function AppointmentBlock({
         <span dir="ltr" className="tabular-nums">
           {toTimeLabel(minutesOf(appointment.startsAt))}
         </span>{' '}
-        · {t(typeLabelKey(appointment.type))}
+        · {typeLabel(appointment.type)}
       </span>
     </button>
   );

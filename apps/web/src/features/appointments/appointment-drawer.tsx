@@ -1,9 +1,10 @@
-import { APPOINTMENT_STATUS, type CalendarAppointment } from '@clinic/shared';
+import { LOOKUP_LIST, APPOINTMENT_STATUS, type CalendarAppointment } from '@clinic/shared';
 import { useState, type JSX, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { Badge, Button, Drawer, Icon, Modal, Textarea, useToast } from '@web/components/ui';
+import { useLookupLabels } from '@web/features/lookups/queries';
 import { useSession } from '@web/features/auth/session';
 import {
   useAppointmentStep,
@@ -16,7 +17,6 @@ import {
   APPOINTMENT_STATUS_STYLES,
   CANCELLABLE_STATUSES,
   statusLabelKey,
-  typeLabelKey,
 } from '@web/features/appointments/status';
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
 import { errorMessageKey } from '@web/lib/api-error';
@@ -43,6 +43,7 @@ export function AppointmentDrawer({
   onEdit,
 }: AppointmentDrawerProps): JSX.Element | null {
   const { t } = useTranslation();
+  const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
   const { user } = useSession();
   const toast = useToast();
   const navigate = useNavigate();
@@ -184,7 +185,7 @@ export function AppointmentDrawer({
         <div className="flex flex-col gap-5">
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={style.tone}>{t(statusLabelKey(status))}</Badge>
-            <Badge>{t(typeLabelKey(appointment.type))}</Badge>
+            <Badge>{typeLabel(appointment.type)}</Badge>
             {appointment.visitId && (
               <Badge tone="success">{t('appointments.visit.existing')}</Badge>
             )}

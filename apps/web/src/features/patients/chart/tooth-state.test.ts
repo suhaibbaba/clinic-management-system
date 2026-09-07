@@ -1,4 +1,5 @@
 import {
+  LOOKUP_LIST,
   PERFORMED_PROCEDURE_STATUS,
   PROCEDURE_OUTCOME,
   TOOTH_STATE,
@@ -8,15 +9,37 @@ import { describe, expect, it } from 'vitest';
 
 import {
   areaState,
+  buildToothStates,
   deriveToothSummaries,
-  dominantState,
   procedureToothState,
-  TOOTH_STATE_PRECEDENCE,
-  TOOTH_STATE_STYLES,
   type OutcomeLookup,
+  type ToothStates,
   type ToothSummary,
 } from '@web/features/patients/chart/tooth-state';
-import { makeProcedure, makeCatalogItem } from '@test/helpers/fixtures';
+import { makeCatalogItem, makeLookupBundle, makeProcedure } from '@test/helpers/fixtures';
+
+/**
+ * The clinic's own list, exactly as it is seeded — so what these tests assert
+ * about precedence, halves and colours is what a real chart does, not what a
+ * hand-written fixture allows.
+ */
+const STATES: ToothStates = buildToothStates(
+  makeLookupBundle()[LOOKUP_LIST.TOOTH_STATE] ?? [],
+  'ar',
+);
+
+/** The same list with a state this clinic invented, in its own colour. */
+const VENEER = 'veneer';
+const WITH_CUSTOM: ToothStates = buildToothStates(
+  makeLookupBundle({
+    [LOOKUP_LIST.TOOTH_STATE]: [
+      { code: VENEER, nameAr: 'وجه تجميلي', nameEn: 'Veneer', color: '#7c3aed' },
+    ],
+  })[LOOKUP_LIST.TOOTH_STATE] ?? [],
+  'ar',
+);
+
+const dominantState = (states: readonly string[]): string => STATES.dominant(states);
 
 const CATALOG = {
   filling: 'catalog-filling',
@@ -93,8 +116,14 @@ describe('tooth state derivation', () => {
   });
 
   describe('precedence', () => {
-    it('covers every state exactly once', () => {
-      expect([...TOOTH_STATE_PRECEDENCE].sort()).toEqual(Object.values(TOOTH_STATE).sort());
+    it("covers every state on the clinic's list, exactly once", () => {
+      expect([...STATES.precedence].sort()).toEqual(Object.values(TOOTH_STATE).sort());
+    });
+
+    /* A clinic's own state is a restoration: below active work, above healthy. */
+    it('ranks a state the clinic added below work under way and above healthy', () => {
+      expect(WITH_CUSTOM.dominant([VENEER, TOOTH_STATE.IN_PROGRESS])).toBe(TOOTH_STATE.IN_PROGRESS);
+      expect(WITH_CUSTOM.dominant([VENEER, TOOTH_STATE.HEALTHY])).toBe(VENEER);
     });
 
     it('falls back to healthy when nothing is recorded', () => {
@@ -129,20 +158,62 @@ describe('tooth state derivation', () => {
   describe('colour map', () => {
     it('has an entry for every state', () => {
       for (const state of Object.values(TOOTH_STATE)) {
-        expect(TOOTH_STATE_STYLES[state]).toBeDefined();
+        expect(STATES.info(state).style).toBeDefined();
       }
     });
 
     it('marks only a missing tooth with a dashed outline', () => {
-      const dashed = Object.values(TOOTH_STATE).filter((state) => TOOTH_STATE_STYLES[state].dashed);
+      const dashed = Object.values(TOOTH_STATE).filter((state) => STATES.info(state).style.dashed);
 
       expect(dashed).toEqual([TOOTH_STATE.MISSING]);
     });
 
     it('gives every state a distinct fill', () => {
-      const fills = Object.values(TOOTH_STATE).map((state) => TOOTH_STATE_STYLES[state].fill);
+      const fills = Object.values(TOOTH_STATE).map((state) => STATES.info(state).style.fill);
 
       expect(new Set(fills).size).toBe(fills.length);
+    });
+
+    /*
+     * The point of the whole exercise: a clinic adds a state with a colour in
+     * settings and the chart paints it, with no entry in any map here.
+     */
+    it('paints a state the clinic added in the colour they chose', () => {
+      expect(WITH_CUSTOM.info(VENEER).style).toMatchObject({
+        fill: '#7c3aed',
+        stroke: '#7c3aed',
+        dashed: false,
+      });
+    });
+
+    it('picks readable ink for it, so the tooth number does not vanish', () => {
+      const light = buildToothStates(
+        makeLookupBundle({
+          [LOOKUP_LIST.TOOTH_STATE]: [{ code: 'pale', nameAr: 'فاتح', color: '#fef9c3' }],
+        })[LOOKUP_LIST.TOOTH_STATE] ?? [],
+        'ar',
+      );
+
+      expect(light.info('pale').style.ink).toBe('var(--color-tooth-ink-dark)');
+      expect(WITH_CUSTOM.info(VENEER).style.ink).toBe('var(--color-tooth-ink)');
+    });
+
+    it('gives a custom state no special shape, and paints the whole tooth', () => {
+      expect(WITH_CUSTOM.info(VENEER)).toMatchObject({ area: 'whole', shape: undefined });
+    });
+
+    it("names it in the reader's language", () => {
+      const english = buildToothStates(
+        makeLookupBundle({
+          [LOOKUP_LIST.TOOTH_STATE]: [
+            { code: VENEER, nameAr: 'وجه تجميلي', nameEn: 'Veneer', color: '#7c3aed' },
+          ],
+        })[LOOKUP_LIST.TOOTH_STATE] ?? [],
+        'en',
+      );
+
+      expect(english.info(VENEER).label).toBe('Veneer');
+      expect(WITH_CUSTOM.info(VENEER).label).toBe('وجه تجميلي');
     });
   });
 
@@ -154,6 +225,7 @@ describe('tooth state derivation', () => {
           makeProcedure(46, { id: 'b', procedureId: CATALOG.crown }),
         ],
         OUTCOMES,
+        STATES,
       );
 
       const tooth = summaries.get(46);
@@ -169,13 +241,13 @@ describe('tooth state derivation', () => {
         { ...other.chartMarks![0]!, location: { tooth: 46, surfaces: ['M', 'O'] } },
       ];
 
-      const tooth = deriveToothSummaries([withSurfaces, other], OUTCOMES).get(46);
+      const tooth = deriveToothSummaries([withSurfaces, other], OUTCOMES, STATES).get(46);
 
       expect([...(tooth?.surfaces ?? [])].sort()).toEqual(['M', 'O']);
     });
 
     it('leaves a tooth out entirely when nothing touched it', () => {
-      const summaries = deriveToothSummaries([makeProcedure(46)], OUTCOMES);
+      const summaries = deriveToothSummaries([makeProcedure(46)], OUTCOMES, STATES);
 
       expect(summaries.has(11)).toBe(false);
     });
@@ -184,6 +256,7 @@ describe('tooth state derivation', () => {
       const summaries = deriveToothSummaries(
         [makeProcedure(46, { procedureId: CATALOG.cleaning })],
         OUTCOMES,
+        STATES,
       );
 
       // The tooth is not coloured, but the panel must still show the cleaning.
@@ -196,7 +269,7 @@ describe('tooth state derivation', () => {
     it('ignores a procedure with no chart mark at all', () => {
       const wholeMouth = makeProcedure(46, { chartMarks: [] });
 
-      expect(deriveToothSummaries([wholeMouth], OUTCOMES).size).toBe(0);
+      expect(deriveToothSummaries([wholeMouth], OUTCOMES, STATES).size).toBe(0);
     });
 
     it('reads the outcome straight off a catalog item', () => {
@@ -204,6 +277,7 @@ describe('tooth state derivation', () => {
       const summaries = deriveToothSummaries(
         [makeProcedure(46, { procedureId: item.id })],
         new Map([[item.id, item.chartOutcome]]),
+        STATES,
       );
 
       expect(summaries.get(46)?.state).toBe(TOOTH_STATE.FILLING);
@@ -224,21 +298,21 @@ describe('tooth state derivation', () => {
       // crown on top and the canal underneath it disappeared.
       const both = summary([TOOTH_STATE.CROWN, TOOTH_STATE.ROOT_CANAL]);
 
-      expect(areaState(both, 'root')).toBe(TOOTH_STATE.ROOT_CANAL);
-      expect(areaState(both, 'crown')).toBe(TOOTH_STATE.CROWN);
+      expect(areaState(both, 'root', STATES)).toBe(TOOTH_STATE.ROOT_CANAL);
+      expect(areaState(both, 'crown', STATES)).toBe(TOOTH_STATE.CROWN);
     });
 
     it('leaves the other half healthy rather than unpainted', () => {
       const crownOnly = summary([TOOTH_STATE.CROWN]);
 
-      expect(areaState(crownOnly, 'root')).toBe(TOOTH_STATE.HEALTHY);
+      expect(areaState(crownOnly, 'root', STATES)).toBe(TOOTH_STATE.HEALTHY);
     });
 
     it('paints both halves for a state that is about the whole tooth', () => {
       const planned = summary([TOOTH_STATE.PLANNED]);
 
-      expect(areaState(planned, 'root')).toBe(TOOTH_STATE.PLANNED);
-      expect(areaState(planned, 'crown')).toBe(TOOTH_STATE.PLANNED);
+      expect(areaState(planned, 'root', STATES)).toBe(TOOTH_STATE.PLANNED);
+      expect(areaState(planned, 'crown', STATES)).toBe(TOOTH_STATE.PLANNED);
     });
 
     it('lets a whole-tooth state outrank a half-tooth one, in precedence order', () => {
@@ -246,7 +320,7 @@ describe('tooth state derivation', () => {
       // saying so on the crown matters more than the crown that is there.
       const working = summary([TOOTH_STATE.IN_PROGRESS, TOOTH_STATE.CROWN]);
 
-      expect(areaState(working, 'crown')).toBe(TOOTH_STATE.IN_PROGRESS);
+      expect(areaState(working, 'crown', STATES)).toBe(TOOTH_STATE.IN_PROGRESS);
     });
   });
 });

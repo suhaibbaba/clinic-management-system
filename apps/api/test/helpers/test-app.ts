@@ -10,6 +10,7 @@ import { AppModule } from '@api/app.module';
 import { registerFastifyPlugins } from '@api/bootstrap';
 import { DATABASE, POSTGRES_CLIENT, type Database } from '@api/database/database.module';
 import { clinics, specialties, users } from '@api/database/schema';
+import { ensureSystemLookups } from '@api/database/system-lookups';
 
 export const TEST_PASSWORD = 'TestPassword123!';
 
@@ -105,6 +106,10 @@ export async function createTestContext(): Promise<TestContext> {
       if (!clinic) {
         throw new Error('Failed to create the test clinic');
       }
+
+      // The choice lists are rows now, and the services check codes against
+      // them — a clinic without them has dropdowns that refuse every value.
+      await ensureSystemLookups(db, clinic.id);
 
       const [specialty] = await db
         .insert(specialties)

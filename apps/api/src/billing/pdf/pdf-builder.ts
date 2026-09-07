@@ -2,10 +2,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import fontkit from '@pdf-lib/fontkit';
-import { LineCapStyle, PDFDocument, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
+import { LineCapStyle, PDFDocument, rgb, type PDFFont, type PDFImage, type PDFPage } from 'pdf-lib';
 
 import { visualRuns, type TextDirection } from '@api/billing/pdf/arabic-text';
-import type { MarkPath } from '@api/billing/pdf/brand-mark';
+import type { MarkPath, MarkViewBox } from '@api/billing/pdf/brand-mark';
 
 /**
  * A very small right-to-left document builder over pdf-lib.
@@ -65,9 +65,23 @@ export class RtlPdf {
     private readonly bold: PDFFont,
     private page: PDFPage,
     private cursor: number,
+    /**
+     * Which edge the sheet is anchored to.
+     *
+     * An Arabic receipt starts at the right and its table's first column is
+     * the rightmost; the English one is the mirror image. Every position in
+     * this class is expressed against `this.start` and `this.end` rather than
+     * against left and right, so one flag turns the whole document round —
+     * and the per-line `dir` islands (a phone number, a date range) keep
+     * working exactly as they did in either mode.
+     */
+    private readonly pageDir: TextDirection,
   ) {}
 
-  static async create(size: { width: number; height: number } = A4): Promise<RtlPdf> {
+  static async create(
+    options: { size?: { width: number; height: number }; direction?: TextDirection } = {},
+  ): Promise<RtlPdf> {
+    const size = options.size ?? A4;
     const doc = await PDFDocument.create();
     doc.registerFontkit(fontkit);
 
@@ -75,7 +89,22 @@ export class RtlPdf {
     const bold = await doc.embedFont(readFileSync(FONTS.bold), EMBED_OPTIONS);
     const page = doc.addPage([size.width, size.height]);
 
-    return new RtlPdf(doc, regular, bold, page, size.height - MARGIN);
+    return new RtlPdf(doc, regular, bold, page, size.height - MARGIN, options.direction ?? 'rtl');
+  }
+
+  /** The edge a line begins at: the right on an Arabic sheet, the left on an English one. */
+  private get startEdge(): number {
+    return this.pageDir === 'rtl' ? this.right : this.left;
+  }
+
+  /** Signed direction of travel across the page. */
+  private get flow(): 1 | -1 {
+    return this.pageDir === 'rtl' ? -1 : 1;
+  }
+
+  /** The document's own base direction, for callers that lay out their own lines. */
+  get direction(): TextDirection {
+    return this.pageDir;
   }
 
   get y(): number {
@@ -167,10 +196,10 @@ export class RtlPdf {
     const width = this.widthOf(value, size, options.weight, options.dir);
 
     const x =
-      options.align === 'end'
-        ? this.left
-        : options.align === 'centre'
-          ? (this.page.getWidth() - width) / 2
+      options.align === 'centre'
+        ? (this.page.getWidth() - width) / 2
+        : (options.align === 'end') === (this.pageDir === 'rtl')
+          ? this.left
           : this.right - width;
 
     this.drawLine(value, {
@@ -199,15 +228,19 @@ export class RtlPdf {
    * it at the cursor instead would put the mark where the next line's letters
    * are about to be, which is exactly the collision this avoids.
    */
-  mark(paths: readonly MarkPath[], viewBox: number, size = 34): void {
-    const scale = size / viewBox;
-    const x = (this.page.getWidth() - size) / 2;
+  mark(paths: readonly MarkPath[], viewBox: MarkViewBox, size = 34): void {
+    // Fit by height and centre by whatever width that leaves: a mark is as
+    // tall as the band it sits in, and its own proportions decide the rest.
+    const scale = size / viewBox.height;
+    const x = (this.page.getWidth() - viewBox.width * scale) / 2;
     const top = this.cursor + size;
 
     for (const path of paths) {
       this.page.drawSvgPath(path.d, {
-        x,
-        y: top,
+        // The paths keep the artwork's own coordinates, so the box's origin is
+        // subtracted here rather than baked into every number in the file.
+        x: x - viewBox.x * scale,
+        y: top - viewBox.y * scale,
         scale,
         // pdf-lib fills with black unless told otherwise, which would turn a
         // stroked-only path into a solid blob.
@@ -223,6 +256,55 @@ export class RtlPdf {
     this.cursor -= size + 8;
   }
 
+  /**
+   * The clinic's own uploaded logo, centred and scaled to `size` points tall.
+   *
+   * Returns false — drawing nothing and moving the cursor nowhere — when the
+   * bytes are not something pdf-lib can embed, so the caller falls back to the
+   * built-in mark. A logo the printer cannot read must cost a mark on the
+   * sheet, never a receipt the clinic cannot hand over.
+   */
+  async image(bytes: Buffer, mime: string, size = 34): Promise<boolean> {
+    const embedded = await this.embed(bytes, mime);
+
+    if (!embedded) {
+      return false;
+    }
+
+    const scale = size / embedded.height;
+    const width = embedded.width * scale;
+
+    this.page.drawImage(embedded, {
+      x: (this.page.getWidth() - width) / 2,
+      // Unlike an SVG path, an image is anchored at its bottom-left, so the
+      // cursor is where it stands rather than where its top goes.
+      y: this.cursor,
+      width,
+      height: size,
+    });
+
+    this.cursor -= size + 8;
+
+    return true;
+  }
+
+  private async embed(bytes: Buffer, mime: string): Promise<PDFImage | undefined> {
+    try {
+      if (mime === 'image/png') {
+        return await this.doc.embedPng(bytes);
+      }
+      if (mime === 'image/jpeg') {
+        return await this.doc.embedJpg(bytes);
+      }
+    } catch {
+      // A file that says PNG and is not: same outcome as an unsupported type.
+      return undefined;
+    }
+
+    // pdf-lib embeds PNG and JPEG only; WebP is fine on screen and not here.
+    return undefined;
+  }
+
   rule(colour: [number, number, number] = [0.75, 0.75, 0.75]): void {
     this.page.drawLine({
       start: { x: this.left, y: this.cursor },
@@ -233,23 +315,27 @@ export class RtlPdf {
     this.cursor -= 12;
   }
 
-  /** `label: value` on one right-aligned line, the label in bold. */
+  /** `label: value` on one line, anchored to the sheet's starting edge. */
   field(label: string, value: string, options: { size?: number; dir?: TextDirection } = {}): void {
     const size = options.size ?? 11;
-    const dir = options.dir ?? 'rtl';
+    const dir = options.dir ?? this.pageDir;
     const labelText = `${label}: `;
     const labelWidth = this.widthOf(labelText, size, 'bold');
-
-    this.drawLine(labelText, { x: this.right - labelWidth, y: this.cursor, size, weight: 'bold' });
-
     const valueWidth = this.widthOf(value, size, 'regular', dir);
-    this.drawLine(value, { x: this.right - labelWidth - valueWidth, y: this.cursor, size, dir });
+
+    const labelX = this.pageDir === 'rtl' ? this.right - labelWidth : this.left;
+    const valueX =
+      this.pageDir === 'rtl' ? this.right - labelWidth - valueWidth : this.left + labelWidth;
+
+    this.drawLine(labelText, { x: labelX, y: this.cursor, size, weight: 'bold' });
+    this.drawLine(value, { x: valueX, y: this.cursor, size, dir });
 
     this.cursor -= size + 5;
   }
 
   /**
-   * A table whose first column starts at the right edge.
+   * A table whose first column sits at the sheet's starting edge — the right
+   * on an Arabic sheet, the left on an English one.
    *
    * Rows break onto a new page rather than being split across one.
    */
@@ -259,17 +345,30 @@ export class RtlPdf {
     const widths = columns.map((column) => (column.width / total) * usable);
 
     const drawRow = (cells: readonly string[], weight: 'regular' | 'bold'): void => {
-      let x = this.right;
+      let x = this.startEdge;
 
       cells.forEach((cell, index) => {
         const columnWidth = widths[index] ?? 0;
         const align = columns[index]?.align ?? 'start';
         const cellWidth = this.widthOf(cell, size, weight);
-        // `start` is the right edge on an RTL sheet; `end` the left.
-        const cellX = align === 'end' ? x - columnWidth + 4 : x - cellWidth - 4;
 
-        this.drawLine(cell, { x: cellX, y: this.cursor, size, weight });
-        x -= columnWidth;
+        /*
+         * `start` hugs the edge the row began at, `end` the far side of the
+         * column — which is the right edge in Arabic and the left in English,
+         * and is what keeps a column of figures aligned under its header
+         * either way.
+         */
+        const cellX =
+          this.pageDir === 'rtl'
+            ? align === 'end'
+              ? x - columnWidth + 4
+              : x - cellWidth - 4
+            : align === 'end'
+              ? x + columnWidth - cellWidth - 4
+              : x + 4;
+
+        this.drawLine(cell, { x: cellX, y: this.cursor, size, weight, dir: this.pageDir });
+        x += columnWidth * this.flow;
       });
 
       this.cursor -= size + 8;

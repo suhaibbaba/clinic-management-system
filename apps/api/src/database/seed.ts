@@ -15,6 +15,7 @@ import postgres from 'postgres';
 
 import { validateEnv } from '@api/config/env.schema';
 import { clinics, doctors, specialties, users } from '@api/database/schema';
+import { ensureSystemLookups } from '@api/database/system-lookups';
 import { seedAppointments } from '@api/database/seed-appointments';
 import { seedBilling } from '@api/database/seed-billing';
 import { seedInventory } from '@api/database/seed-inventory';
@@ -142,6 +143,9 @@ async function main(): Promise<void> {
     });
 
     const clinic = await upsertClinic(db);
+    // Before anything that stores a code: the dropdowns are rows now, and a
+    // seeded appointment of type `checkup` needs the row that names it.
+    await ensureSystemLookups(db, clinic.id);
     const specialty = await upsertSpecialty(db, clinic.id);
 
     const created: { account: SeedAccount; id: string }[] = [];

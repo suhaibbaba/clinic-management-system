@@ -63,9 +63,11 @@ describe('design tokens', () => {
 
     const offenders = FILES.filter((file) => inlineColour.test(file.source))
       .map((file) => file.path)
-      // The legend swatch paints itself from the tooth-state token map, which
-      // is the single source — the value is per-state, so it cannot be a class.
-      .filter((path) => path !== join('features', 'patients', 'chart', 'tooth-legend.tsx'));
+      // The one swatch component, shared by the chart's legend and the
+      // settings screen, paints itself from the tooth-state style map — the
+      // single source. The value is per state, and half the states are the
+      // clinic's own, so it cannot be a class.
+      .filter((path) => path !== join('features', 'patients', 'chart', 'tooth-swatch.tsx'));
 
     expect(offenders).toEqual([]);
   });

@@ -11,6 +11,7 @@ import {
   canTransitionLabOrder,
   LAB_ORDER_AWAITING_STATUSES,
   LAB_ORDER_STATUS,
+  LOOKUP_LIST,
   USER_ROLE,
   type CreateLabOrderInput,
   type LabOrder,
@@ -39,6 +40,7 @@ import {
 } from '@api/database/schema';
 import { LabWorkTypesService } from '@api/labs/lab-work-types.service';
 import { LabsService } from '@api/labs/labs.service';
+import { LookupsService } from '@api/lookups/lookups.service';
 
 type OrderRow = typeof labOrders.$inferSelect;
 
@@ -88,6 +90,7 @@ const TRANSITION_ROLES: Record<LabOrderStatus, readonly string[]> = {
 export class LabOrdersService implements OnModuleInit {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
+    private readonly lookups: LookupsService,
     private readonly scope: ClinicScopeService,
     private readonly labsService: LabsService,
     private readonly workTypes: LabWorkTypesService,
@@ -206,6 +209,10 @@ export class LabOrdersService implements OnModuleInit {
    * ends up making it for the wrong one.
    */
   async create(actor: AuthenticatedUser, input: CreateLabOrderInput): Promise<LabOrderRow> {
+    // Only codes on this clinic's own list — the schema cannot know them.
+    await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.LAB_MATERIAL, input.material);
+    await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.LAB_SHADE, input.shade);
+
     await this.labsService.requireRow(actor.clinicId, input.labId);
     await this.access.requireOwnCalendar(actor, input.doctorId);
     await this.requirePatient(actor.clinicId, input.patientId);
@@ -273,6 +280,9 @@ export class LabOrdersService implements OnModuleInit {
     id: string,
     input: UpdateLabOrderInput,
   ): Promise<LabOrderRow> {
+    await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.LAB_MATERIAL, input.material);
+    await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.LAB_SHADE, input.shade);
+
     const existing = await this.requireRow(actor.clinicId, id);
     await this.requireOwnOrder(actor, existing);
 

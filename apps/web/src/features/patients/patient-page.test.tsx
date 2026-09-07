@@ -1,4 +1,4 @@
-import { USER_ROLE, type UserRole } from '@clinic/shared';
+import { LOOKUP_LIST, SYSTEM_LOOKUPS, USER_ROLE, type UserRole } from '@clinic/shared';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -81,6 +81,10 @@ const findChart = () => screen.findByRole('group', { name: ar.chart.title });
  */
 const toothState = (fdi: number): string | null | undefined =>
   document.querySelector(`[data-tooth="${fdi}"]`)?.getAttribute('data-state');
+
+/** What the seeded `tooth_state` list calls a code, in Arabic. */
+const toothStateName = (code: string): string =>
+  SYSTEM_LOOKUPS[LOOKUP_LIST.TOOTH_STATE].find((row) => row.code === code)?.nameAr ?? code;
 
 describe('Patient page', () => {
   beforeEach(() => {
@@ -170,7 +174,7 @@ describe('Patient page', () => {
       await renderPatientPage(USER_ROLE.DOCTOR);
 
       const tooth = await screen.findByRole('button', {
-        name: new RegExp(`46 — ${ar.chart.states.filling}`),
+        name: new RegExp(`46 — ${toothStateName('filling')}`),
       });
 
       expect(tooth).toHaveAttribute('data-state', 'filling');

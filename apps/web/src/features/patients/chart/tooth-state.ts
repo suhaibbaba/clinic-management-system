@@ -1,11 +1,19 @@
 import {
+  LOOKUP_LIST,
+  lookupLabel,
   PERFORMED_PROCEDURE_STATUS,
   TOOTH_STATE,
-  TOOTH_STATES,
+  type LookupOption,
   type PerformedProcedure,
   type ProcedureOutcome,
+  type ToothArea,
+  type ToothChartBehaviour,
   type ToothState,
 } from '@clinic/shared';
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { useLookupList } from '@web/features/lookups/queries';
 
 /**
  * How a tooth gets its colour.
@@ -19,9 +27,12 @@ import {
  *  - the catalog item's **chart outcome**: what a finished procedure leaves
  *    behind — a filling, a crown, an extraction
  *
- * Nothing here reads a procedure's name, so a clinic can add "veneer" to its
- * catalog, classify it as a crown, and the chart colours it without a code
- * change (CLAUDE.md architecture decision 1).
+ * The states themselves are the clinic's `tooth_state` list, not a fixed set:
+ * a clinic adds "veneer" with a colour in settings and the chart paints it,
+ * with no code change and no deploy. What stays in code is the handful of
+ * built-in codes the drawing itself is written against — a missing tooth is a
+ * dashed outline, an implant is a post, a bridge is a bar between crowns — and
+ * those rows cannot be deleted, which is what makes reading them safe.
  */
 
 /**
@@ -36,8 +47,11 @@ import {
  * is under way or waiting, because that is what the appointment is about.
  * Finished restorations rank last: they are history, and the panel lists every
  * one of them in full whatever the tooth is coloured.
+ *
+ * A clinic's own states are restorations too, so they slot in with the rest of
+ * the finished work, in the order the clinic put them in — see `precedenceOf`.
  */
-export const TOOTH_STATE_PRECEDENCE: readonly ToothState[] = [
+const BUILTIN_PRECEDENCE: readonly string[] = [
   TOOTH_STATE.IMPLANT,
   TOOTH_STATE.BRIDGE,
   TOOTH_STATE.MISSING,
@@ -46,7 +60,6 @@ export const TOOTH_STATE_PRECEDENCE: readonly ToothState[] = [
   TOOTH_STATE.CROWN,
   TOOTH_STATE.ROOT_CANAL,
   TOOTH_STATE.FILLING,
-  TOOTH_STATE.HEALTHY,
 ];
 
 /**
@@ -54,7 +67,7 @@ export const TOOTH_STATE_PRECEDENCE: readonly ToothState[] = [
  * than hex values so light and dark mode are decided by the stylesheet — the
  * component never branches on a theme.
  */
-interface ToothStateStyle {
+export interface ToothStateStyle {
   /** Interior colour. */
   readonly fill: string;
   /** Outline colour; distinct only where the fill alone would not read. */
@@ -86,11 +99,15 @@ const PALE = (token: string): ToothStateStyle => ({
 });
 
 /**
- * The colour map. One entry per state, and the only place a state is turned
- * into a colour — the chart, the legend, the tooltip and the panel all read it,
- * so they can never disagree.
+ * The theme's own palette, for the states that ship with the system.
+ *
+ * These are deliberately not hex values on the lookup rows: they are the pair
+ * of colours the stylesheet defines for light and for dark mode, and freezing
+ * one of them into the database would make the chart unreadable in the other.
+ * An admin who picks a colour for one of these rows overrides this — their
+ * choice wins, in both modes, which is what picking a colour means.
  */
-export const TOOTH_STATE_STYLES: Record<ToothState, ToothStateStyle> = {
+export const BUILTIN_STYLES: Record<string, ToothStateStyle> = {
   [TOOTH_STATE.HEALTHY]: {
     fill: 'var(--color-tooth-healthy)',
     stroke: 'var(--color-tooth-healthy-line)',
@@ -112,32 +129,133 @@ export const TOOTH_STATE_STYLES: Record<ToothState, ToothStateStyle> = {
   },
 };
 
-/**
- * Which part of the tooth a state describes.
- *
- * This is what lets one tooth carry two conditions honestly: 16 with a root
- * canal *and* a crown is drawn with a dark blue root under a gold crown, which
- * is what the mouth looks like. Before the shapes were split, the precedence
- * order picked one of the two and the other simply vanished from the chart.
- *
- * `whole` states paint both halves: a planned treatment, work under way, and
- * an absent tooth are facts about the tooth, not about one end of it.
- */
-export type ToothArea = 'crown' | 'root' | 'whole';
+/** What the chart falls back to for a code with no row and no built-in style. */
+const UNKNOWN_STYLE: ToothStateStyle = BUILTIN_STYLES[TOOTH_STATE.HEALTHY] as ToothStateStyle;
 
-export const TOOTH_STATE_AREA: Record<ToothState, ToothArea> = {
-  [TOOTH_STATE.HEALTHY]: 'whole',
-  [TOOTH_STATE.PLANNED]: 'whole',
-  [TOOTH_STATE.IN_PROGRESS]: 'whole',
-  [TOOTH_STATE.MISSING]: 'whole',
-  // A filling is in the crown, a canal is in the root — and a crown, a bridge
-  // retainer and an implant post are each named after the half they occupy.
-  [TOOTH_STATE.FILLING]: 'crown',
-  [TOOTH_STATE.CROWN]: 'crown',
-  [TOOTH_STATE.BRIDGE]: 'crown',
-  [TOOTH_STATE.ROOT_CANAL]: 'root',
-  [TOOTH_STATE.IMPLANT]: 'root',
-};
+/**
+ * A colour the clinic picked, turned into a full style.
+ *
+ * The ink is chosen by the colour's own brightness rather than by asking for a
+ * second colour: nobody setting up "veneer" should have to think about label
+ * contrast, and getting it wrong makes the tooth number vanish.
+ */
+function customStyle(colour: string): ToothStateStyle {
+  return {
+    fill: colour,
+    stroke: colour,
+    ink: isLight(colour) ? 'var(--color-tooth-ink-dark)' : 'var(--color-tooth-ink)',
+    dashed: false,
+  };
+}
+
+/** Rec. 601 luma, which is close enough to decide black text or white. */
+function isLight(colour: string): boolean {
+  const hex = colour.trim().replace('#', '');
+  const full =
+    hex.length === 3
+      ? [...hex].map((channel) => channel + channel).join('')
+      : hex.slice(0, 6).padEnd(6, '0');
+  const value = Number.parseInt(full, 16);
+
+  /* istanbul ignore next -- the colour picker cannot produce a non-hex value. */
+  if (Number.isNaN(value)) {
+    return false;
+  }
+
+  const [r, g, b] = [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62;
+}
+
+/** Everything the chart needs about one state, colour and shape together. */
+export interface ToothStateInfo {
+  readonly code: string;
+  /** In the reader's language, from the clinic's own row. */
+  readonly label: string;
+  readonly style: ToothStateStyle;
+  readonly area: ToothArea;
+  /** Set only on the built-in states the drawing is written against. */
+  readonly shape: ToothChartBehaviour['shape'];
+}
+
+/**
+ * The clinic's tooth states, resolved: colour, shape, label and precedence.
+ *
+ * One object rather than four exported maps, because every one of them has to
+ * agree about the same list — and because it is what a component receives when
+ * the list is data rather than a constant.
+ */
+export interface ToothStates {
+  /** Never undefined: a code with no row still draws, in the neutral style. */
+  info(code: string): ToothStateInfo;
+  /** In the order the clinic arranged them, for the legend. */
+  readonly all: readonly ToothStateInfo[];
+  /** Every code, most significant first. */
+  readonly precedence: readonly string[];
+  /** The most significant of several states. */
+  dominant(codes: readonly string[]): string;
+}
+
+const HEALTHY = TOOTH_STATE.HEALTHY;
+
+export function buildToothStates(options: readonly LookupOption[], language: string): ToothStates {
+  const infos = options.map((option): ToothStateInfo => {
+    const behaviour = chartBehaviour(option.meta);
+
+    return {
+      code: option.code,
+      label: lookupLabel(option, language),
+      style: option.color
+        ? customStyle(option.color)
+        : (BUILTIN_STYLES[option.code] ?? UNKNOWN_STYLE),
+      // A custom state paints the whole tooth: the chart cannot know that
+      // somebody's new "veneer" belongs on the crown, and guessing would put
+      // it in the wrong place.
+      area: behaviour?.area ?? 'whole',
+      shape: behaviour?.shape,
+    };
+  });
+
+  const byCode = new Map(infos.map((info) => [info.code, info]));
+
+  const custom = infos
+    .map((info) => info.code)
+    .filter((code) => code !== HEALTHY && !BUILTIN_PRECEDENCE.includes(code));
+
+  const precedence = [...BUILTIN_PRECEDENCE, ...custom, HEALTHY];
+
+  return {
+    info: (code) =>
+      byCode.get(code) ?? {
+        code,
+        label: code,
+        style: UNKNOWN_STYLE,
+        area: 'whole',
+        shape: undefined,
+      },
+    all: infos,
+    precedence,
+    dominant: (codes) => precedence.find((candidate) => codes.includes(candidate)) ?? HEALTHY,
+  };
+}
+
+/** Reads the chart's half of a tooth-state row's `meta`, if it has one. */
+function chartBehaviour(meta: unknown): ToothChartBehaviour | undefined {
+  const behaviour = (meta as { chartBehavior?: unknown } | null)?.chartBehavior;
+
+  return typeof behaviour === 'object' && behaviour !== null
+    ? (behaviour as ToothChartBehaviour)
+    : undefined;
+}
+
+/** The clinic's states, from the cached lookup bundle, in the reader's language. */
+export function useToothStates(): ToothStates {
+  const options = useLookupList(LOOKUP_LIST.TOOTH_STATE);
+  const { i18n } = useTranslation();
+  const language = i18n.language;
+
+  return useMemo(() => buildToothStates(options, language), [options, language]);
+}
 
 /**
  * The state that paints one half of a tooth: the most significant state that
@@ -146,17 +264,27 @@ export const TOOTH_STATE_AREA: Record<ToothState, ToothArea> = {
  * Falls back to healthy, so a tooth with only a crown recorded still has a
  * root drawn in the healthy fill rather than an unpainted hole.
  */
-export function areaState(summary: ToothSummary, area: 'crown' | 'root'): ToothState {
+export function areaState(
+  summary: ToothSummary,
+  area: 'crown' | 'root',
+  states: ToothStates,
+): string {
   return (
     summary.states.find((state) => {
-      const stateArea = TOOTH_STATE_AREA[state];
+      const stateArea = states.info(state).area;
       return stateArea === area || stateArea === 'whole';
-    }) ?? TOOTH_STATE.HEALTHY
+    }) ?? HEALTHY
   );
 }
 
-/** i18n key for a state's label, used by the chart, legend and tooltip alike. */
-export const toothStateLabelKey = (state: ToothState): string => `chart.states.${state}`;
+/** True when the tooth carries a state the drawing has a special shape for. */
+export function hasShape(
+  summary: ToothSummary,
+  shape: NonNullable<ToothChartBehaviour['shape']>,
+  states: ToothStates,
+): boolean {
+  return summary.states.some((state) => states.info(state).shape === shape);
+}
 
 /** Everything the chart knows about one tooth. */
 export interface ToothSummary {
@@ -195,17 +323,6 @@ export function procedureToothState(
   return outcomes.get(procedure.procedureId) ?? null;
 }
 
-/** The most significant of several states (see `TOOTH_STATE_PRECEDENCE`). */
-export function dominantState(states: readonly ToothState[]): ToothState {
-  for (const candidate of TOOTH_STATE_PRECEDENCE) {
-    if (states.includes(candidate)) {
-      return candidate;
-    }
-  }
-
-  return TOOTH_STATE.HEALTHY;
-}
-
 /**
  * Folds a patient's procedures into one summary per tooth.
  *
@@ -217,6 +334,7 @@ export function dominantState(states: readonly ToothState[]): ToothState {
 export function deriveToothSummaries(
   procedures: readonly PerformedProcedure[],
   outcomes: OutcomeLookup,
+  states: ToothStates,
 ): Map<number, ToothSummary> {
   const byTooth = new Map<number, { states: ToothState[]; surfaces: Set<string>; count: number }>();
 
@@ -253,8 +371,10 @@ export function deriveToothSummaries(
   for (const [tooth, entry] of byTooth) {
     summaries.set(tooth, {
       tooth,
-      state: dominantState(entry.states),
-      states: TOOTH_STATE_PRECEDENCE.filter((state) => entry.states.includes(state)),
+      state: states.dominant(entry.states),
+      // Precedence order, so the crown/root split reads the most significant
+      // state for each half first.
+      states: states.precedence.filter((state) => entry.states.includes(state)),
       surfaces: [...entry.surfaces],
       procedureCount: entry.count,
     });
@@ -267,12 +387,9 @@ export function deriveToothSummaries(
 export function healthyTooth(tooth: number): ToothSummary {
   return {
     tooth,
-    state: TOOTH_STATE.HEALTHY,
-    states: [TOOTH_STATE.HEALTHY],
+    state: HEALTHY,
+    states: [HEALTHY],
     surfaces: [],
     procedureCount: 0,
   };
 }
-
-/** States in the order the legend lists them: the precedence order, reversed. */
-export const LEGEND_STATES: readonly ToothState[] = TOOTH_STATES;

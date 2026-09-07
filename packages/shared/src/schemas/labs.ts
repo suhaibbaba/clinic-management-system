@@ -1,10 +1,11 @@
 import { z } from 'zod';
 
 import { isFdiTooth } from '@shared/constants/dental';
-import { LAB_ORDER_STATUSES, PAYMENT_METHODS } from '@shared/enums';
+import { LAB_ORDER_STATUSES } from '@shared/enums';
 import { isoDateSchema } from '@shared/schemas/appointments';
 import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
 import { moneySchema, signedMoneySchema } from '@shared/schemas/money';
+import { lookupCodeSchema } from '@shared/schemas/lookups';
 
 /**
  * The dental laboratory: the outside workshop that makes crowns, bridges and
@@ -114,8 +115,9 @@ export const labOrderSchema = z.object({
   /** The treatment that needs it, when the order came from one. */
   performedProcedureId: uuidSchema.nullable(),
   workTypeId: uuidSchema.nullable(),
-  material: z.string().nullable(),
-  shade: z.string().nullable(),
+  /** Both are codes on the clinic's own `lab_material` / `lab_shade` lists. */
+  material: lookupCodeSchema.nullable(),
+  shade: lookupCodeSchema.nullable(),
   teeth: labTeethSchema,
   instructions: z.string().nullable(),
   /**
@@ -160,8 +162,8 @@ export const createLabOrderSchema = z.object({
   doctorId: uuidSchema,
   performedProcedureId: uuidSchema.nullish(),
   workTypeId: uuidSchema.nullish(),
-  material: z.string().trim().max(160).nullish(),
-  shade: z.string().trim().max(60).nullish(),
+  material: lookupCodeSchema.nullish(),
+  shade: lookupCodeSchema.nullish(),
   teeth: labTeethSchema.optional(),
   instructions: z.string().trim().max(2000).nullish(),
   /** Omitted takes the work type's list price. */
@@ -243,7 +245,7 @@ export const labPaymentSchema = z.object({
   clinicId: uuidSchema,
   labId: uuidSchema,
   amount: signedMoneySchema,
-  method: z.enum(PAYMENT_METHODS),
+  method: lookupCodeSchema,
   note: z.string().nullable(),
   reversesId: uuidSchema.nullable(),
   paidBy: uuidSchema.nullable(),
@@ -254,7 +256,7 @@ export type LabPayment = z.infer<typeof labPaymentSchema>;
 export const createLabPaymentSchema = z.object({
   labId: uuidSchema,
   amount: moneySchema.refine((value) => Number(value) > 0, 'A payment must be greater than zero'),
-  method: z.enum(PAYMENT_METHODS),
+  method: lookupCodeSchema,
   note: z.string().trim().max(500).nullish(),
 });
 export type CreateLabPaymentInput = z.infer<typeof createLabPaymentSchema>;

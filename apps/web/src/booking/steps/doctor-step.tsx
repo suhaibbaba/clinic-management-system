@@ -14,7 +14,7 @@ import type { AsyncState } from '@web/booking/use-async';
  * only reason to draw one. The honorific is stripped in both languages.
  */
 const initial = (name: string): string => {
-  const stripped = name.replace(/^\s*(?:د\.|dr\.?)\s*/i, '').trim();
+  const stripped = name.replace(/^\s*(?:د\.|dr\.?)\s*/i, '').trim(); // i18n-allow: an honorific being matched in stored data, not text on screen
 
   return (stripped[0] ?? name[0] ?? '').toUpperCase();
 };

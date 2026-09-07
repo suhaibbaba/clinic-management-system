@@ -1,4 +1,4 @@
-import { APPOINTMENT_STATUSES, APPOINTMENT_TYPES, WAITING_LIST_PRIORITIES } from '@clinic/shared';
+import { APPOINTMENT_STATUSES, WAITING_LIST_PRIORITIES } from '@clinic/shared';
 import { sql } from 'drizzle-orm';
 import { index, integer, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
@@ -9,7 +9,6 @@ import { patients, visits } from '@api/database/schema/patients';
 /* Enums                                                                       */
 /* -------------------------------------------------------------------------- */
 
-export const appointmentTypeEnum = pgEnum('appointment_type', APPOINTMENT_TYPES);
 export const appointmentStatusEnum = pgEnum('appointment_status', APPOINTMENT_STATUSES);
 export const waitingListPriorityEnum = pgEnum('waiting_list_priority', WAITING_LIST_PRIORITIES);
 
@@ -63,7 +62,12 @@ export const appointments = pgTable(
       .references(() => doctors.id),
     startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
     durationMinutes: integer('duration_minutes').notNull().default(30),
-    type: appointmentTypeEnum('type').notNull().default('checkup'),
+    /**
+     * A `lookup_options` code from the `appointment_type` list, not an enum:
+     * a clinic adds "استشارة" without a migration. The *status* beside it stays
+     * an enum — that one drives the transition table.
+     */
+    type: text('type').notNull().default('checkup'),
     status: appointmentStatusEnum('status').notNull().default('confirmed'),
     reason: text('reason'),
     notes: text('notes'),

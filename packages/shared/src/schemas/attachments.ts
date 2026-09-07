@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-import { ATTACHMENT_TYPES } from '@shared/enums';
 import { isFdiTooth } from '@shared/constants/dental';
 import { paginationQuerySchema } from '@shared/schemas/common';
+import { lookupCodeSchema } from '@shared/schemas/lookups';
 
 /** Upload ceiling per file; CBCT volumes are the reason it is not smaller. */
 export const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024;
@@ -30,7 +30,7 @@ export const attachmentSchema = z.object({
   clinicId: z.uuid(),
   patientId: z.uuid(),
   visitId: z.uuid().nullable(),
-  type: z.enum(ATTACHMENT_TYPES),
+  type: lookupCodeSchema,
   filename: z.string(),
   mime: attachmentMimeSchema,
   sizeBytes: z.number().int().positive(),
@@ -48,7 +48,7 @@ export const presignAttachmentUploadSchema = z.object({
   filename: z.string().trim().min(1).max(255),
   mime: attachmentMimeSchema,
   sizeBytes: z.number().int().positive().max(MAX_ATTACHMENT_BYTES),
-  type: z.enum(ATTACHMENT_TYPES),
+  type: lookupCodeSchema,
 });
 export type PresignAttachmentUploadInput = z.infer<typeof presignAttachmentUploadSchema>;
 
@@ -67,7 +67,7 @@ export type PresignAttachmentUploadResponse = z.infer<typeof presignAttachmentUp
  */
 export const confirmAttachmentUploadSchema = z.object({
   key: z.string().trim().min(1).max(512),
-  type: z.enum(ATTACHMENT_TYPES),
+  type: lookupCodeSchema,
   filename: z.string().trim().min(1).max(255),
   visitId: z.uuid().nullish(),
   tooth: z.number().int().refine(isFdiTooth, 'Not a valid FDI tooth number').nullish(),
@@ -77,7 +77,7 @@ export type ConfirmAttachmentUploadInput = z.infer<typeof confirmAttachmentUploa
 
 export const listAttachmentsQuerySchema = paginationQuerySchema.extend({
   visitId: z.uuid().optional(),
-  type: z.enum(ATTACHMENT_TYPES).optional(),
+  type: lookupCodeSchema.optional(),
   tooth: z.coerce.number().int().optional(),
 });
 export type ListAttachmentsQuery = z.infer<typeof listAttachmentsQuerySchema>;

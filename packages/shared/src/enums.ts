@@ -138,6 +138,16 @@ export const PERFORMED_PROCEDURE_STATUSES = [
  * procedures recorded against it (see `PROCEDURE_OUTCOME` below), so it cannot
  * drift out of step with the record the way a stored status would.
  */
+/**
+ * The tooth states the **chart itself** knows how to draw.
+ *
+ * These are codes, not the list: the live list is `lookup_options` under
+ * `tooth_state`, which a clinic edits (CLAUDE.md — a user-facing choice list is
+ * always data). What stays here is the handful the drawing code names directly
+ * — an implant has a post, a missing tooth is an outline — plus the codes the
+ * seed writes. A state a clinic adds paints the whole tooth in its own colour
+ * and needs no entry here.
+ */
 export const TOOTH_STATE = {
   /** Nothing recorded. */
   HEALTHY: 'healthy',
@@ -151,19 +161,11 @@ export const TOOTH_STATE = {
   BRIDGE: 'bridge',
   MISSING: 'missing',
 } as const satisfies Record<string, string>;
-export type ToothState = EnumValue<typeof TOOTH_STATE>;
-
-export const TOOTH_STATES = [
-  TOOTH_STATE.HEALTHY,
-  TOOTH_STATE.PLANNED,
-  TOOTH_STATE.IN_PROGRESS,
-  TOOTH_STATE.FILLING,
-  TOOTH_STATE.ROOT_CANAL,
-  TOOTH_STATE.CROWN,
-  TOOTH_STATE.IMPLANT,
-  TOOTH_STATE.BRIDGE,
-  TOOTH_STATE.MISSING,
-] as const;
+/**
+ * A `tooth_state` lookup code. Open by design: the built-in ones are above,
+ * and a clinic may add its own.
+ */
+export type ToothState = string;
 
 /**
  * What a *completed* procedure leaves behind on the chart, classified per
@@ -183,16 +185,8 @@ export const PROCEDURE_OUTCOME = {
   /** Extractions: the tooth is gone. */
   MISSING: TOOTH_STATE.MISSING,
 } as const satisfies Record<string, ToothState>;
-export type ProcedureOutcome = EnumValue<typeof PROCEDURE_OUTCOME>;
-
-export const PROCEDURE_OUTCOMES = [
-  PROCEDURE_OUTCOME.FILLING,
-  PROCEDURE_OUTCOME.ROOT_CANAL,
-  PROCEDURE_OUTCOME.CROWN,
-  PROCEDURE_OUTCOME.IMPLANT,
-  PROCEDURE_OUTCOME.BRIDGE,
-  PROCEDURE_OUTCOME.MISSING,
-] as const;
+/** Any `tooth_state` code — including one this clinic invented. */
+export type ProcedureOutcome = ToothState;
 
 /** Medical images and documents attached to a patient file. */
 export const ATTACHMENT_TYPE = {
@@ -203,16 +197,8 @@ export const ATTACHMENT_TYPE = {
   CLINICAL_PHOTO: 'clinical_photo',
   DOCUMENT: 'document',
 } as const satisfies Record<string, string>;
-export type AttachmentType = EnumValue<typeof ATTACHMENT_TYPE>;
-
-export const ATTACHMENT_TYPES = [
-  ATTACHMENT_TYPE.XRAY_PANORAMIC,
-  ATTACHMENT_TYPE.XRAY_PERIAPICAL,
-  ATTACHMENT_TYPE.XRAY_BITEWING,
-  ATTACHMENT_TYPE.CBCT,
-  ATTACHMENT_TYPE.CLINICAL_PHOTO,
-  ATTACHMENT_TYPE.DOCUMENT,
-] as const;
+/** An `attachment_type` lookup code. */
+export type AttachmentType = string;
 
 /** How a payment reached the clinic. */
 export const PAYMENT_METHOD = {
@@ -220,13 +206,8 @@ export const PAYMENT_METHOD = {
   CARD: 'card',
   TRANSFER: 'transfer',
 } as const satisfies Record<string, string>;
-export type PaymentMethod = EnumValue<typeof PAYMENT_METHOD>;
-
-export const PAYMENT_METHODS = [
-  PAYMENT_METHOD.CASH,
-  PAYMENT_METHOD.CARD,
-  PAYMENT_METHOD.TRANSFER,
-] as const;
+/** A `payment_method` lookup code. */
+export type PaymentMethod = string;
 
 /**
  * What a ledger line is.
@@ -285,14 +266,8 @@ export const APPOINTMENT_TYPE = {
   FOLLOWUP: 'followup',
   EMERGENCY: 'emergency',
 } as const satisfies Record<string, string>;
-export type AppointmentType = EnumValue<typeof APPOINTMENT_TYPE>;
-
-export const APPOINTMENT_TYPES = [
-  APPOINTMENT_TYPE.CHECKUP,
-  APPOINTMENT_TYPE.TREATMENT,
-  APPOINTMENT_TYPE.FOLLOWUP,
-  APPOINTMENT_TYPE.EMERGENCY,
-] as const;
+/** An `appointment_type` lookup code — the *status* beside it stays an enum. */
+export type AppointmentType = string;
 
 /**
  * Where an appointment is in its life.
@@ -612,14 +587,8 @@ export const ITEM_CATEGORY = {
   TOOL: 'tool',
   STERILIZATION: 'sterilization',
 } as const satisfies Record<string, string>;
-export type ItemCategory = EnumValue<typeof ITEM_CATEGORY>;
-
-export const ITEM_CATEGORIES = [
-  ITEM_CATEGORY.MEDICATION,
-  ITEM_CATEGORY.CONSUMABLE,
-  ITEM_CATEGORY.TOOL,
-  ITEM_CATEGORY.STERILIZATION,
-] as const;
+/** An `item_category` lookup code. */
+export type ItemCategory = string;
 
 /**
  * How an item is counted.
@@ -637,16 +606,13 @@ export const ITEM_UNIT = {
   G: 'g',
   AMPOULE: 'ampoule',
 } as const satisfies Record<string, string>;
-export type ItemUnit = EnumValue<typeof ITEM_UNIT>;
-
-export const ITEM_UNITS = [
-  ITEM_UNIT.PIECE,
-  ITEM_UNIT.BOX,
-  ITEM_UNIT.PACK,
-  ITEM_UNIT.ML,
-  ITEM_UNIT.G,
-  ITEM_UNIT.AMPOULE,
-] as const;
+/**
+ * An `item_unit` lookup code.
+ *
+ * Still fixed for an item's life — every movement is a number *in* this unit —
+ * but which units exist is the clinic's business.
+ */
+export type ItemUnit = string;
 
 /**
  * Why the quantity moved.

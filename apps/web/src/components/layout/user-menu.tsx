@@ -17,7 +17,7 @@ import { changeLanguage, LANGUAGES, type Language } from '@web/i18n/language';
 import { cn } from '@web/lib/cn';
 
 const LANGUAGE_LABELS: Record<Language, string> = {
-  ar: 'العربية',
+  ar: 'العربية', // i18n-allow: a language is named in its own script, never translated
   en: 'English',
 };
 

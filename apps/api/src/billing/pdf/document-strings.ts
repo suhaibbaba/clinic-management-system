@@ -1,12 +1,21 @@
 /**
- * Arabic wording for the printed documents.
+ * Wording for the printed documents, in both languages.
  *
  * A receipt is rendered on the server, so its labels cannot come from the web
- * app's i18n files. They are collected here for the same reason those files
- * exist: one place to read the wording, and no Arabic scattered through the
- * services that decide what a document says.
+ * app's i18n files — but it follows the same rule those files exist for: no
+ * language scattered through the services that decide what a document says,
+ * and nothing on a printed page that only exists in one language.
+ *
+ * Which one a clinic gets is its own setting (`settings.documents.language`),
+ * not the language of whoever pressed print: a receipt is a document of the
+ * clinic, and a practice that files everything in Arabic should not end up
+ * with an English one because a locum had the interface switched over.
+ *
+ * The three code-keyed maps that used to live here — payment methods, item
+ * categories, units — are gone. Those are editable lists now, so a document
+ * reads them from `lookup_options` and prints what this clinic calls them.
  */
-export const DOCUMENT_STRINGS = {
+const AR = {
   receipt: {
     title: 'إيصال قبض',
     number: 'رقم الإيصال',
@@ -96,23 +105,107 @@ export const DOCUMENT_STRINGS = {
     empty: 'لا توجد مواد تحت الحد الأدنى',
     signature: 'توقيع المسؤول',
   },
-  categories: {
-    medication: 'أدوية',
-    consumable: 'مستهلكات',
-    tool: 'أدوات',
-    sterilization: 'تعقيم',
+};
+
+/**
+ * The same shape in English, key for key.
+ *
+ * Typed as `typeof AR` so the compiler refuses a document string that exists
+ * in one language and not the other — the printed equivalent of the i18n
+ * guard that fails CI on a missing key.
+ */
+const EN: typeof AR = {
+  receipt: {
+    title: 'Payment receipt',
+    number: 'Receipt no.',
+    date: 'Date',
+    patient: 'Patient',
+    fileNumber: 'File no.',
+    amount: 'Amount',
+    method: 'Method',
+    note: 'Notes',
+    balanceAfter: 'Balance after payment',
+    reversalTitle: 'Reversal receipt',
+    reversalOf: 'Reverses receipt no.',
+    signature: 'Signature',
   },
-  units: {
-    piece: 'قطعة',
-    box: 'علبة',
-    pack: 'رزمة',
-    ml: 'مل',
-    g: 'غ',
-    ampoule: 'أمبولة',
+  statement: {
+    title: 'Account statement',
+    patient: 'Patient',
+    fileNumber: 'File no.',
+    period: 'Period',
+    periodUntil: 'Period to',
+    openingBalance: 'Opening balance',
+    closingBalance: 'Balance due',
+    printedAt: 'Printed',
+    columns: {
+      date: 'Date',
+      description: 'Description',
+      charge: 'Charge',
+      payment: 'Payment',
+      balance: 'Balance',
+    },
+    reversal: 'Reversal',
+    empty: 'No entries in this period',
   },
-  methods: {
-    cash: 'نقداً',
-    card: 'بطاقة',
-    transfer: 'حوالة',
+  labOrder: {
+    title: 'Laboratory work order',
+    number: 'Order no.',
+    lab: 'Laboratory',
+    date: 'Date',
+    patient: 'Patient',
+    doctor: 'Doctor',
+    workType: 'Work',
+    teeth: 'Teeth',
+    material: 'Material',
+    shade: 'Shade',
+    expected: 'Expected',
+    instructions: 'Instructions',
+    signature: 'Received by',
   },
-} as const;
+  labStatement: {
+    title: 'Laboratory statement',
+    lab: 'Laboratory',
+    period: 'Period',
+    periodUntil: 'Period to',
+    openingBalance: 'Opening balance',
+    closingBalance: 'Balance due to the laboratory',
+    printedAt: 'Printed',
+    columns: {
+      date: 'Date',
+      description: 'Description',
+      order: 'Owed',
+      payment: 'Paid',
+      balance: 'Balance',
+    },
+    reversal: 'Reversal',
+    empty: 'No entries in this period',
+  },
+  shoppingList: {
+    title: 'Shopping list',
+    printedAt: 'Printed',
+    note: 'Suggested quantities reach twice the minimum — a guide, not an order.',
+    columns: {
+      item: 'Item',
+      unit: 'Unit',
+      current: 'In stock',
+      minimum: 'Minimum',
+      suggested: 'Suggested',
+      supplier: 'Supplier',
+    },
+    empty: 'Nothing below its minimum',
+    signature: 'Signature',
+  },
+};
+
+/** Which language a clinic's documents are printed in. */
+export type DocumentLanguage = 'ar' | 'en';
+
+export type DocumentStrings = typeof AR;
+
+export const documentStrings = (language: DocumentLanguage): DocumentStrings =>
+  language === 'en' ? EN : AR;
+
+/** The page direction that goes with a document language. */
+export const documentDirection = (language: DocumentLanguage): 'rtl' | 'ltr' =>
+  language === 'en' ? 'ltr' : 'rtl';

@@ -1,4 +1,4 @@
-import { USER_ROLE } from '@clinic/shared';
+import { LOOKUP_LIST, SYSTEM_LOOKUPS, USER_ROLE } from '@clinic/shared';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -60,6 +60,10 @@ async function openTab(tab: string, overrides = {}) {
   await userEvent.click(screen.getByRole('tab', { name: tab }));
   return api;
 }
+
+/** What the seeded `attachment_type` list calls a code, in Arabic. */
+const attachmentTypeName = (code: string): string =>
+  SYSTEM_LOOKUPS[LOOKUP_LIST.ATTACHMENT_TYPE].find((row) => row.code === code)?.nameAr ?? code;
 
 describe('Visits tab', () => {
   beforeEach(() => authTokens.clear());
@@ -258,8 +262,9 @@ describe('Imaging tab', () => {
     expect(caption).not.toBeNull();
 
     // Scoped to the card: the type also appears in the filter and upload menus.
+    // The name is the clinic's own list row, not an i18n key.
     expect(
-      within(caption as HTMLElement).getByText(ar.imaging.types.xray_periapical),
+      within(caption as HTMLElement).getByText(attachmentTypeName('xray_periapical')),
     ).toBeInTheDocument();
     expect(within(caption as HTMLElement).getByText('46')).toBeInTheDocument();
   });

@@ -82,7 +82,8 @@
     "labs": "Labs",
     "labOrders": "Lab orders",
     "inventory": "Inventory",
-    "suppliers": "Suppliers"
+    "suppliers": "Suppliers",
+    "lists": "Lists"
   },
   "roles": {
     "admin": "Admin",
@@ -183,10 +184,15 @@
     "workingHours": "Opening hours",
     "logo": "Clinic logo",
     "uploadLogo": "Upload logo",
-    "logoPlaceholder": "No logo uploaded",
-    "logoComingSoon": "File upload is not enabled yet",
+    "logoPlaceholder": "No logo",
     "updated": "Settings saved",
-    "readOnly": "Read only — editing is available to admins"
+    "readOnly": "Read only — editing is available to admins",
+    "logoHint": "A PNG, JPG or WebP image up to 2 MB — shown in the sidebar, on the sign-in page and at the top of every printed document",
+    "replaceLogo": "Replace logo",
+    "logoUpdated": "Logo updated",
+    "logoRemoved": "Logo removed",
+    "logoTooLarge": "The image is larger than 2 MB",
+    "logoUnsupported": "Unsupported image type: use PNG, JPG or WebP"
   },
   "audit": {
     "title": "Audit log",
@@ -336,17 +342,6 @@
     "loadFailed": "Could not load this patient's procedures.",
     "toothLabel": "Tooth {{tooth}} — {{state}}",
     "toothLabelWithCount": "Tooth {{tooth}} — {{state}}, {{count}} procedures",
-    "states": {
-      "healthy": "Healthy",
-      "planned": "Caries / planned",
-      "in_progress": "In progress",
-      "filling": "Filling",
-      "root_canal": "Root canal",
-      "crown": "Crown",
-      "implant": "Implant",
-      "bridge": "Bridge",
-      "missing": "Missing"
-    },
     "surfaces": {
       "legend": "Tooth surfaces",
       "M": "Mesial",
@@ -461,14 +456,6 @@
     "deleted": "Image deleted",
     "empty": "No images for this patient",
     "loadFailed": "Could not load images.",
-    "types": {
-      "xray_panoramic": "Panoramic",
-      "xray_periapical": "Periapical",
-      "xray_bitewing": "Bitewing",
-      "cbct": "CBCT",
-      "clinical_photo": "Clinical photo",
-      "document": "Document"
-    },
     "filterTooth": "Filter by tooth",
     "filterType": "Filter by type",
     "emptyHint": "Uploaded images and documents appear here."
@@ -483,11 +470,6 @@
     "amount": "Amount",
     "method": "Method",
     "note": "Note",
-    "methods": {
-      "cash": "Cash",
-      "card": "Card",
-      "transfer": "Transfer"
-    },
     "receipt": "Receipt",
     "reverse": "Reverse payment",
     "reversal": "Reversing entry",
@@ -569,12 +551,6 @@
       "completed": "Completed",
       "no_show": "No show",
       "cancelled": "Cancelled"
-    },
-    "types": {
-      "checkup": "Check-up",
-      "treatment": "Treatment",
-      "followup": "Follow-up",
-      "emergency": "Emergency"
     },
     "actions": {
       "confirm": "Confirm",
@@ -875,20 +851,6 @@
       "quantity": "In stock",
       "expiry": "Next expiry"
     },
-    "categories": {
-      "medication": "Medication",
-      "consumable": "Consumable",
-      "tool": "Tool",
-      "sterilization": "Sterilisation"
-    },
-    "units": {
-      "piece": "piece",
-      "box": "box",
-      "pack": "pack",
-      "ml": "ml",
-      "g": "g",
-      "ampoule": "ampoule"
-    },
     "movements": {
       "purchase": "Purchase",
       "consume": "Use",
@@ -1035,6 +997,52 @@
         "empty": "No purchases in this period",
         "emptyHint": "Every purchase from this supplier appears here"
       }
+    }
+  },
+  "lookups": {
+    "title": "Lists",
+    "subtitle": "The options that fill the dropdowns across the app",
+    "pickList": "Choose a list",
+    "add": "Add option",
+    "empty": "No options in this list yet",
+    "newTitle": "New option",
+    "editTitle": "Edit option",
+    "nameAr": "Arabic name",
+    "nameEn": "English name",
+    "color": "Colour",
+    "colorHint": "The colour this option is painted with on the tooth chart",
+    "code": "Code",
+    "codeHint": "The code cannot be changed: saved records refer to it",
+    "active": "Active",
+    "system": "Built-in",
+    "systemHint": "The app relies on this option: its name and colour can change, it cannot be deleted or switched off",
+    "created": "Option added",
+    "updated": "Option saved",
+    "deleted": "Option deleted",
+    "confirmDelete": "Delete “{{name}}” from this list?",
+    "lists": {
+      "tooth_state": "Tooth states",
+      "lab_work_type": "Lab work types",
+      "lab_material": "Lab materials",
+      "lab_shade": "Shades",
+      "attachment_type": "Attachment types",
+      "appointment_type": "Appointment types",
+      "item_category": "Item categories",
+      "item_unit": "Units",
+      "payment_method": "Payment methods",
+      "frequent_drug": "Frequent drugs"
+    },
+    "hints": {
+      "tooth_state": "What the tooth chart paints, and what a finished procedure leaves behind",
+      "lab_work_type": "The kinds of work ordered from labs; prices stay per lab",
+      "lab_material": "What lab work is made from",
+      "lab_shade": "The shade guide this clinic works to",
+      "attachment_type": "How images and documents are filed on a patient",
+      "appointment_type": "The kinds of appointment on the calendar",
+      "item_category": "How inventory items are grouped",
+      "item_unit": "The units inventory is counted in",
+      "payment_method": "How payments are taken, and how labs are paid",
+      "frequent_drug": "The drugs offered first when writing a prescription"
     }
   }
 }

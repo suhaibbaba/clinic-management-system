@@ -1,4 +1,5 @@
 import {
+  LOOKUP_LIST,
   MOVEMENT_TYPE,
   type InventoryItemRow,
   type MovementType,
@@ -18,8 +19,8 @@ import {
   useToast,
 } from '@web/components/ui';
 import { PatientPicker, type PickedPatient } from '@web/features/appointments/patient-picker';
+import { useLookupLabels } from '@web/features/lookups/queries';
 import { useSession } from '@web/features/auth/session';
-import { unitLabel } from '@web/features/inventory/display';
 import {
   canAdjustStock,
   canConsumeStock,
@@ -73,6 +74,7 @@ export function MovementModal({
   performedProcedureId,
 }: MovementModalProps): JSX.Element | null {
   const { t } = useTranslation();
+  const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const toast = useToast();
   const { user } = useSession();
 
@@ -177,7 +179,7 @@ export function MovementModal({
             <span dir="ltr" className="font-semibold tabular-nums text-ink">
               {item.quantity}
             </span>
-            <span className="text-label text-ink-muted">{t(unitLabel(item.unit))}</span>
+            <span className="text-label text-ink-muted">{unitLabel(item.unit)}</span>
           </span>
         </div>
 
@@ -198,7 +200,7 @@ export function MovementModal({
         <FormField
           label="inventory.movement.quantity"
           htmlFor="movement-quantity"
-          hint={t(unitLabel(item.unit))}
+          hint={unitLabel(item.unit)}
           required
         >
           <Input

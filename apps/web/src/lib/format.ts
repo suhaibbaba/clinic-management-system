@@ -1,9 +1,19 @@
+import i18n from '@web/i18n';
+
 /**
- * Gregorian dates with Arabic labels (CLAUDE.md). `ar` alone would select the
- * Islamic calendar in some runtimes, so the Gregorian calendar is pinned
- * explicitly and Latin digits are kept for legibility in tables.
+ * Gregorian dates, in the reader's language (CLAUDE.md).
+ *
+ * Two things are pinned rather than left to the locale, in both languages: the
+ * **Gregorian calendar**, because `ar` alone selects the Islamic one in some
+ * runtimes and a clinic's appointment book is Gregorian; and **Latin digits**,
+ * because a column of ٠٨/٠٥/٢٠٢٦ is unreadable next to file numbers and money,
+ * which are Latin whatever the interface says.
+ *
+ * What does follow the language is everything else — the order of the parts,
+ * and the month and weekday names anywhere they are spelled out.
  */
-const DATE_LOCALE = 'ar-SY-u-ca-gregory-nu-latn';
+const dateLocale = (): string =>
+  i18n.language.startsWith('en') ? 'en-GB-u-ca-gregory-nu-latn' : 'ar-SY-u-ca-gregory-nu-latn';
 
 /**
  * The Arabic locale interleaves RIGHT-TO-LEFT MARKs between the parts of a
@@ -18,7 +28,7 @@ const stripBidiMarks = (value: string): string => value.replace(/[\u200e\u200f]/
 
 export function formatDateTime(iso: string): string {
   return stripBidiMarks(
-    new Date(iso).toLocaleString(DATE_LOCALE, {
+    new Date(iso).toLocaleString(dateLocale(), {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -30,7 +40,7 @@ export function formatDateTime(iso: string): string {
 
 export function formatDate(iso: string): string {
   return stripBidiMarks(
-    new Date(iso).toLocaleDateString(DATE_LOCALE, {
+    new Date(iso).toLocaleDateString(dateLocale(), {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -65,4 +75,15 @@ export function endOfNextDayIso(value: string): string | undefined {
  */
 export function formatMoney(amount: string, currency?: string): string {
   return currency ? `${amount} ${currency}` : amount;
+}
+
+/**
+ * Joins names for display — "أحمد، ليلى، سامر" or "Ahmad, Layla, Samer".
+ *
+ * The separator is punctuation, and Arabic's is not the Latin comma: writing
+ * `join(', ')` in an Arabic sentence is the same class of mistake as writing
+ * the words themselves in the wrong script, only quieter.
+ */
+export function formatList(items: readonly string[]): string {
+  return items.join(i18n.language.startsWith('en') ? ', ' : '، ');
 }

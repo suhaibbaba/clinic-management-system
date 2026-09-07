@@ -1,13 +1,12 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { Injectable } from '@nestjs/common';
+import { LOOKUP_LIST } from '@clinic/shared';
 
-import { BRAND_MARK, MARK_VIEWBOX } from '@api/billing/pdf/brand-mark';
-import { DOCUMENT_STRINGS } from '@api/billing/pdf/document-strings';
+import { documentDirection, documentStrings } from '@api/billing/pdf/document-strings';
+import { LetterheadService } from '@api/billing/pdf/letterhead.service';
 import { RtlPdf } from '@api/billing/pdf/pdf-builder';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { clinics } from '@api/database/schema';
 import { InventoryReportsService } from '@api/inventory/inventory-reports.service';
+import { LookupsService } from '@api/lookups/lookups.service';
 
 /** Technical values read left to right even inside an Arabic document. */
 const LTR = { dir: 'ltr' } as const;
@@ -24,30 +23,21 @@ const LTR = { dir: 'ltr' } as const;
 @Injectable()
 export class InventoryDocumentsService {
   constructor(
-    @Inject(DATABASE) private readonly db: Database,
     private readonly reports: InventoryReportsService,
+    private readonly letterheads: LetterheadService,
+    private readonly lookups: LookupsService,
   ) {}
 
   async shoppingList(actor: AuthenticatedUser): Promise<Buffer> {
-    const clinic = await this.letterhead(actor.clinicId);
+    const clinic = await this.letterheads.load(actor.clinicId);
     const list = await this.reports.shoppingList(actor);
-    const strings = DOCUMENT_STRINGS.shoppingList;
+    // Units are an editable list: the sheet prints what this clinic calls them.
+    const units = await this.lookups.labels(actor.clinicId, LOOKUP_LIST.ITEM_UNIT, clinic.language);
+    const strings = documentStrings(clinic.language).shoppingList;
 
-    const pdf = await RtlPdf.create();
+    const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
-    pdf.mark(BRAND_MARK, MARK_VIEWBOX);
-    pdf.text(clinic.name, { size: 18, weight: 'bold', align: 'centre', gap: 4 });
-
-    if (clinic.contact) {
-      pdf.text(clinic.contact, {
-        size: 9,
-        align: 'centre',
-        colour: [0.35, 0.35, 0.35],
-        dir: 'ltr',
-      });
-    }
-
-    pdf.rule();
+    await this.letterheads.draw(pdf, clinic);
     pdf.text(strings.title, { size: 16, weight: 'bold', align: 'centre', gap: 14 });
     pdf.field(strings.printedAt, formatDate(list.generatedAt), LTR);
     pdf.space(8);
@@ -66,7 +56,7 @@ export class InventoryDocumentsService {
         ],
         list.lines.map((line) => [
           line.nameAr,
-          DOCUMENT_STRINGS.units[line.unit],
+          units.get(line.unit) ?? line.unit,
           line.quantity,
           line.minQuantity,
           line.suggested,
@@ -83,24 +73,6 @@ export class InventoryDocumentsService {
     pdf.text(`${strings.signature}: ____________________`, { size: 10 });
 
     return pdf.save();
-  }
-
-  private async letterhead(clinicId: string): Promise<{ name: string; contact: string }> {
-    const [row] = await this.db
-      .select({ name: clinics.name, phone: clinics.phone, address: clinics.address })
-      .from(clinics)
-      .where(eq(clinics.id, clinicId))
-      .limit(1);
-
-    /* istanbul ignore next -- the caller's own clinic always exists. */
-    if (!row) {
-      throw new NotFoundException('Resource not found');
-    }
-
-    return {
-      name: row.name,
-      contact: [row.phone, row.address].filter(Boolean).join(' — '),
-    };
   }
 }
 

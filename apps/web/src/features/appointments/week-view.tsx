@@ -1,9 +1,10 @@
-import type { CalendarAppointment } from '@clinic/shared';
+import { LOOKUP_LIST, type CalendarAppointment } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { EmptyState } from '@web/components/ui';
-import { APPOINTMENT_STATUS_STYLES, typeLabelKey } from '@web/features/appointments/status';
+import { useLookupLabels } from '@web/features/lookups/queries';
+import { APPOINTMENT_STATUS_STYLES } from '@web/features/appointments/status';
 import {
   minutesOf,
   toIsoDate,
@@ -34,6 +35,7 @@ export interface WeekViewProps {
  */
 export function WeekView({ date, appointments, onOpen, onPickDay }: WeekViewProps): JSX.Element {
   const { t } = useTranslation();
+  const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
   const days = weekDates(date);
   const today = toIsoDate(new Date());
 
@@ -101,7 +103,7 @@ export function WeekView({ date, appointments, onOpen, onPickDay }: WeekViewProp
                         {appointment.patientName}
                       </span>
                       <span className="block truncate text-[10px] leading-tight opacity-80">
-                        {t(typeLabelKey(appointment.type))}
+                        {typeLabel(appointment.type)}
                       </span>
                     </button>
                   );

@@ -7,6 +7,7 @@ import { Icon } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { useAllergyFlags } from '@web/features/patients/queries';
 import { cn } from '@web/lib/cn';
+import { formatList } from '@web/lib/format';
 
 /**
  * Allergies, at the top of the patient file and before anything else.
@@ -52,7 +53,7 @@ export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element
     >
       <Icon name="alert" className="size-4 shrink-0 text-danger-600" />
       <span className="font-medium">{t('patients.allergies')}:</span>
-      <span>{data.allergies.join('، ')}</span>
+      <span>{formatList(data.allergies)}</span>
     </span>
   );
 }

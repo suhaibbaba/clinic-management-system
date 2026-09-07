@@ -6,6 +6,7 @@ import {
   type OnModuleInit,
 } from '@nestjs/common';
 import {
+  LOOKUP_LIST,
   type CreatePaymentInput,
   type ListPaymentsQuery,
   type Paginated,
@@ -22,6 +23,7 @@ import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database, type DatabaseExecutor } from '@api/database/database.module';
 import { clinicCounters, payments } from '@api/database/schema';
 import { PatientAccessService } from '@api/patients/patient-access.service';
+import { LookupsService } from '@api/lookups/lookups.service';
 
 type PaymentRow = typeof payments.$inferSelect;
 
@@ -39,6 +41,7 @@ export const PAYMENTS_ENTITY = 'payments';
 export class PaymentsService implements OnModuleInit {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
+    private readonly lookups: LookupsService,
     private readonly scope: ClinicScopeService,
     private readonly patientAccess: PatientAccessService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
@@ -94,6 +97,8 @@ export class PaymentsService implements OnModuleInit {
    */
   async create(actor: AuthenticatedUser, input: CreatePaymentInput): Promise<Payment> {
     await this.patientAccess.requirePatientId(actor, input.patientId);
+    // The methods are an editable list: only this clinic's own count.
+    await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.PAYMENT_METHOD, input.method);
 
     return this.db.transaction(async (tx) => {
       const receiptNumber = await nextReceiptNumber(tx, actor.clinicId);

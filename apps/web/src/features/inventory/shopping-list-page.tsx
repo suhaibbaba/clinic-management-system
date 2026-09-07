@@ -1,4 +1,4 @@
-import type { ShoppingListLine } from '@clinic/shared';
+import { LOOKUP_LIST, type ShoppingListLine } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,7 +12,8 @@ import {
   type Column,
 } from '@web/components/ui';
 import { inventoryApi } from '@web/features/inventory/api';
-import { CATEGORY_TONES, categoryLabel, unitLabel } from '@web/features/inventory/display';
+import { useLookupLabels } from '@web/features/lookups/queries';
+import { categoryTone } from '@web/features/inventory/display';
 import { useShoppingList } from '@web/features/inventory/queries';
 import { formatDate } from '@web/lib/format';
 
@@ -27,6 +28,8 @@ import { formatDate } from '@web/lib/format';
  */
 export function ShoppingListPage(): JSX.Element {
   const { t } = useTranslation();
+  const categoryLabel = useLookupLabels(LOOKUP_LIST.ITEM_CATEGORY);
+  const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const list = useShoppingList();
 
   const columns: readonly Column<ShoppingListLine>[] = [
@@ -48,7 +51,7 @@ export function ShoppingListPage(): JSX.Element {
       header: 'inventory.columns.category',
       hideOnMobile: true,
       render: (row) => (
-        <Badge tone={CATEGORY_TONES[row.category]}>{t(categoryLabel(row.category))}</Badge>
+        <Badge tone={categoryTone(row.category)}>{categoryLabel(row.category)}</Badge>
       ),
     },
     {
@@ -77,7 +80,7 @@ export function ShoppingListPage(): JSX.Element {
           <span dir="ltr" className="font-semibold text-ink">
             {row.suggested}
           </span>
-          <span className="text-label text-ink-muted">{t(unitLabel(row.unit))}</span>
+          <span className="text-label text-ink-muted">{unitLabel(row.unit)}</span>
         </span>
       ),
     },

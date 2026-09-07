@@ -1,4 +1,9 @@
-import type { SupplierStatement, SupplierStatementLine, SupplierSummary } from '@clinic/shared';
+import {
+  LOOKUP_LIST,
+  type SupplierStatement,
+  type SupplierStatementLine,
+  type SupplierSummary,
+} from '@clinic/shared';
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -15,9 +20,9 @@ import {
   type Column,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
+import { useLookupLabels } from '@web/features/lookups/queries';
 import { Money } from '@web/features/billing/money';
 import { useClinic } from '@web/features/clinic/queries';
-import { unitLabel } from '@web/features/inventory/display';
 import { canManageInventory } from '@web/features/inventory/permissions';
 import { useSuppliers, useSupplierStatement } from '@web/features/inventory/queries';
 import { SupplierFormModal } from '@web/features/inventory/supplier-form-modal';
@@ -179,6 +184,7 @@ function Statement({
   readonly onClose: () => void;
 }): JSX.Element {
   const { t } = useTranslation();
+  const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const clinic = useClinic();
 
   const [from, setFrom] = useState('');
@@ -223,7 +229,7 @@ function Statement({
       render: (row) => (
         <span className="flex items-baseline justify-end gap-1.5">
           <span dir="ltr">{row.quantity}</span>
-          <span className="text-label text-ink-muted">{t(unitLabel(row.unit))}</span>
+          <span className="text-label text-ink-muted">{unitLabel(row.unit)}</span>
         </span>
       ),
     },

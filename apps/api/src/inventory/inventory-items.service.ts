@@ -1,5 +1,6 @@
 import { ConflictException, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
 import {
+  LOOKUP_LIST,
   type CreateInventoryItemInput,
   type InventoryItem,
   type InventoryItemRow,
@@ -18,6 +19,7 @@ import { DATABASE, type Database } from '@api/database/database.module';
 import { inventoryItems, suppliers } from '@api/database/schema';
 import { isLowStock, normalise, StockService, type ItemStock } from '@api/inventory/stock.service';
 import { SuppliersService } from '@api/inventory/suppliers.service';
+import { LookupsService } from '@api/lookups/lookups.service';
 
 type ItemRow = typeof inventoryItems.$inferSelect;
 
@@ -36,6 +38,7 @@ export const INVENTORY_ITEMS_ENTITY = 'inventory_items';
 export class InventoryItemsService implements OnModuleInit {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
+    private readonly lookups: LookupsService,
     private readonly scope: ClinicScopeService,
     private readonly stock: StockService,
     private readonly suppliersService: SuppliersService,
@@ -161,6 +164,9 @@ export class InventoryItemsService implements OnModuleInit {
 
   async create(actor: AuthenticatedUser, input: CreateInventoryItemInput): Promise<InventoryItem> {
     await this.assertNameIsFree(actor.clinicId, input.nameAr);
+    // Only codes on this clinic's own list — the schema cannot know them.
+    await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ITEM_CATEGORY, input.category);
+    await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ITEM_UNIT, input.unit);
 
     if (input.defaultSupplierId) {
       await this.suppliersService.requireRow(actor.clinicId, input.defaultSupplierId);
@@ -204,6 +210,11 @@ export class InventoryItemsService implements OnModuleInit {
     if (input.nameAr) {
       await this.assertNameIsFree(actor.clinicId, input.nameAr, id);
     }
+    await this.lookups.assertOptionalCode(
+      actor.clinicId,
+      LOOKUP_LIST.ITEM_CATEGORY,
+      input.category,
+    );
     if (input.defaultSupplierId) {
       await this.suppliersService.requireRow(actor.clinicId, input.defaultSupplierId);
     }

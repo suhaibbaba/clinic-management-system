@@ -1,11 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, type RenderResult } from '@testing-library/react';
+import type { LookupBundle } from '@clinic/shared';
 import type { ReactElement } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 
 import { ToastProvider } from '@web/components/ui';
 import { SessionProvider } from '@web/features/auth/session';
+import { lookupBundleKey } from '@web/features/lookups/queries';
+import { makeLookupBundle } from '@test/helpers/fixtures';
 import '@web/i18n';
 
 /** No retries and no caching between tests, so each one starts clean. */
@@ -22,13 +25,34 @@ export interface RenderOptions {
   route?: string;
   /** Wrap in SessionProvider — the default; disable to test it in isolation. */
   withSession?: boolean;
+  /**
+   * The clinic's editable lists, pre-seeded into the cache.
+   *
+   * Every dropdown in the app reads these, so the default is the same set a
+   * clinic is seeded with — a component under test should not have to know
+   * that its `<Select>` is fed by a query. Pass a bundle to add a list option
+   * the clinic invented and see how the screen draws it.
+   */
+  lookups?: LookupBundle;
 }
 
 export function renderWithProviders(
   ui: ReactElement,
-  { route = '/', withSession = true }: RenderOptions = {},
+  { route = '/', withSession = true, lookups = makeLookupBundle() }: RenderOptions = {},
 ): RenderResult {
   const client = createTestQueryClient();
+
+  /*
+   * As defaults rather than as cache entries: the test client collects
+   * anything with no observer the moment it is written, and these are written
+   * before the component that reads them has mounted.
+   */
+  for (const includeInactive of [false, true]) {
+    client.setQueryDefaults(lookupBundleKey(includeInactive), {
+      initialData: lookups,
+      staleTime: Infinity,
+    });
+  }
 
   const tree = (
     <QueryClientProvider client={client}>

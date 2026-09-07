@@ -1,4 +1,4 @@
-import { LAB_ORDER_STATUSES, PAYMENT_METHODS } from '@clinic/shared';
+import { LAB_ORDER_STATUSES } from '@clinic/shared';
 import {
   boolean,
   index,
@@ -17,13 +17,6 @@ import { clinics, doctors, users } from '@api/database/schema/core';
 import { patients, performedProcedures } from '@api/database/schema/patients';
 
 export const labOrderStatusEnum = pgEnum('lab_order_status', LAB_ORDER_STATUSES);
-
-/**
- * `payment_method` already exists — the billing module declares it — so this
- * one is referenced rather than redeclared. Two enums with the same name is a
- * migration that cannot be applied twice.
- */
-const labPaymentMethodEnum = pgEnum('payment_method', PAYMENT_METHODS);
 
 const auditColumns = {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -215,7 +208,8 @@ export const labPayments = pgTable(
       .references(() => labs.id),
     /** Signed: a reversing entry carries the negative of what it cancels. */
     amount: money('amount').notNull(),
-    method: labPaymentMethodEnum('method').notNull(),
+    /** The same `payment_method` lookup list the patient ledger reads. */
+    method: text('method').notNull(),
     note: text('note'),
     reversesId: uuid('reverses_id'),
     /** Back-pointer, set on the original when its reversal is written. */

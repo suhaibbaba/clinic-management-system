@@ -1,4 +1,4 @@
-import { APPOINTMENT_TYPE, APPOINTMENT_TYPES, type CalendarAppointment } from '@clinic/shared';
+import { APPOINTMENT_TYPE, LOOKUP_LIST, type CalendarAppointment } from '@clinic/shared';
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -13,6 +13,7 @@ import {
   useToast,
 } from '@web/components/ui';
 import { useDoctors } from '@web/features/doctors/queries';
+import { useLookupOptions } from '@web/features/lookups/queries';
 import {
   useAvailability,
   useCreateAppointment,
@@ -20,7 +21,6 @@ import {
 } from '@web/features/appointments/queries';
 import { PatientPicker, type PickedPatient } from '@web/features/appointments/patient-picker';
 import { SlotPicker } from '@web/features/appointments/slot-picker';
-import { typeLabelKey } from '@web/features/appointments/status';
 import { toIsoDate, todayIso } from '@web/features/appointments/calendar-time';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -53,6 +53,7 @@ export function AppointmentFormModal({
   defaults,
 }: AppointmentFormModalProps): JSX.Element {
   const { t } = useTranslation();
+  const typeOptions = useLookupOptions(LOOKUP_LIST.APPOINTMENT_TYPE);
   const toast = useToast();
 
   const doctors = useDoctors({ limit: 100 });
@@ -130,7 +131,7 @@ export function AppointmentFormModal({
             doctorId,
             startsAt,
             durationMinutes: Number(durationMinutes),
-            type: type as (typeof APPOINTMENT_TYPES)[number],
+            type,
             reason: reason.trim() === '' ? null : reason.trim(),
             notes: notes.trim() === '' ? null : notes.trim(),
           },
@@ -146,7 +147,7 @@ export function AppointmentFormModal({
           doctorId,
           startsAt,
           durationMinutes: Number(durationMinutes),
-          type: type as (typeof APPOINTMENT_TYPES)[number],
+          type,
           reason: reason.trim() === '' ? null : reason.trim(),
           notes: notes.trim() === '' ? null : notes.trim(),
         });
@@ -217,10 +218,7 @@ export function AppointmentFormModal({
             <Select
               id="appointment-type"
               value={type}
-              options={APPOINTMENT_TYPES.map((value) => ({
-                value,
-                label: t(typeLabelKey(value)),
-              }))}
+              options={typeOptions}
               onChange={(event) => setType(event.target.value)}
             />
           </FormField>

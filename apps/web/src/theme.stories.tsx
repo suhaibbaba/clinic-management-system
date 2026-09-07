@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useEffect, useState, type JSX } from 'react';
 
-import { TOOTH_STATE_STYLES, toothStateLabelKey } from '@web/features/patients/chart/tooth-state';
+import { BUILTIN_STYLES } from '@web/features/patients/chart/tooth-state';
 
 /**
  * The design language, read from the running stylesheet.
@@ -155,7 +155,7 @@ export const ToothChartStates: Story = {
       </header>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-        {Object.entries(TOOTH_STATE_STYLES).map(([state, style]) => (
+        {Object.entries(BUILTIN_STYLES).map(([state, style]) => (
           <div key={state} className="flex flex-col gap-2">
             <div
               className="flex h-16 items-center justify-center rounded-md border-2"
@@ -169,10 +169,9 @@ export const ToothChartStates: Story = {
                 46
               </span>
             </div>
-            <span className="text-xs text-ink">{state}</span>
-            <span className="font-mono text-[11px] text-ink-subtle">
-              {toothStateLabelKey(state as keyof typeof TOOTH_STATE_STYLES)}
-            </span>
+            {/* The code, not the label: a clinic's own name for it is data,
+                and this page catalogues the theme rather than a clinic. */}
+            <span className="font-mono text-xs text-ink">{state}</span>
           </div>
         ))}
       </div>

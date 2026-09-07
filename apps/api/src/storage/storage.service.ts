@@ -24,6 +24,11 @@ export interface SignedDownload {
   readonly expiresAt: Date;
 }
 
+export interface FetchedObject {
+  readonly bytes: Buffer;
+  readonly mime: string;
+}
+
 export interface StoredObject {
   readonly sizeBytes: number;
   readonly mime: string | undefined;
@@ -82,6 +87,24 @@ export class StorageService implements OnApplicationShutdown {
     return key.startsWith(`clinic/${clinicId}/patients/${patientId}/`);
   }
 
+  /**
+   * `clinic/{clinicId}/branding/{uuid}-{filename}` — the clinic's own images.
+   *
+   * Beside the patients prefix rather than inside it, so nothing that walks a
+   * patient's files can reach the letterhead and nothing that checks a
+   * patient's ownership accidentally passes a branding key.
+   */
+  buildClinicObjectKey(input: { clinicId: string; category: string; filename: string }): string {
+    const safeName = sanitiseFilename(input.filename);
+
+    return `clinic/${input.clinicId}/${input.category}/${randomUUID()}-${safeName}`;
+  }
+
+  /** True when the key is this clinic's own, outside any patient's folder. */
+  isClinicKeyOwnedBy(key: string, clinicId: string, category: string): boolean {
+    return key.startsWith(`clinic/${clinicId}/${category}/`);
+  }
+
   async createUploadUrl(key: string, mime: string): Promise<SignedUpload> {
     const ttl = this.config.get('STORAGE_UPLOAD_URL_TTL_SECONDS', { infer: true });
 
@@ -123,6 +146,31 @@ export class StorageService implements OnApplicationShutdown {
       );
 
       return { sizeBytes: result.ContentLength ?? 0, mime: result.ContentType };
+    } catch (error: unknown) {
+      if (isNotFound(error)) {
+        return null;
+      }
+
+      throw error;
+    }
+  }
+
+  /**
+   * The object's bytes, for the one caller that needs them in-process: the PDF
+   * writer, which has to embed the clinic's logo rather than link to it.
+   *
+   * Everything else hands out a signed URL and lets the client fetch it. This
+   * is deliberately not a general-purpose read — a medical image must not
+   * start travelling through the API when a signed GET already exists.
+   */
+  async getObject(key: string): Promise<FetchedObject | null> {
+    try {
+      const result = await this.client.send(
+        new GetObjectCommand({ Bucket: this.bucket, Key: key }),
+      );
+      const bytes = await result.Body?.transformToByteArray();
+
+      return bytes ? { bytes: Buffer.from(bytes), mime: result.ContentType ?? '' } : null;
     } catch (error: unknown) {
       if (isNotFound(error)) {
         return null;

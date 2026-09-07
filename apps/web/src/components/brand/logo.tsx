@@ -1,4 +1,4 @@
-import type { JSX } from 'react';
+import { useState, type JSX } from 'react';
 
 import logoUrl from '@web/assets/logo.svg';
 import { cn } from '@web/lib/cn';
@@ -8,6 +8,11 @@ import { cn } from '@web/lib/cn';
  *
  * One component for every placement, so the artwork is referenced from exactly
  * one import and swapping `assets/logo.svg` needs no code change anywhere.
+ *
+ * A clinic that has uploaded its own logo gets that one instead — pass `src`
+ * — and the bundled mark is the fallback until they do, or when the signed URL
+ * fails to load. Fallback on error and not only on absence: a URL that expired
+ * between the response and the render must show a mark, not a broken image.
  *
  * Sizes are named rather than free-form: a logo that each screen scales to
  * taste stops being a logo. The file's own width and height are ignored — the
@@ -26,6 +31,8 @@ const SIZES: Record<LogoSize, string> = {
 
 export interface LogoProps {
   size?: LogoSize | undefined;
+  /** The clinic's own logo; the bundled mark is used when it is absent. */
+  src?: string | null | undefined;
   className?: string | undefined;
   /**
    * The mark is decorative wherever the clinic's name is already on screen
@@ -35,13 +42,19 @@ export interface LogoProps {
   alt?: string | undefined;
 }
 
-export function Logo({ size = 'md', className, alt }: LogoProps): JSX.Element {
+export function Logo({ size = 'md', src, className, alt }: LogoProps): JSX.Element {
+  const [failed, setFailed] = useState(false);
+  const own = src && !failed ? src : null;
+
   return (
     <img
-      src={logoUrl}
+      src={own ?? logoUrl}
       alt={alt ?? ''}
       {...(alt === undefined && { 'aria-hidden': true })}
-      className={cn(SIZES[size], 'shrink-0', className)}
+      {...(own && { onError: () => setFailed(true) })}
+      // `contain` only matters for an uploaded logo: the bundled mark already
+      // fits its box, and someone else's does not have to.
+      className={cn(SIZES[size], 'shrink-0', own && 'object-contain', className)}
     />
   );
 }

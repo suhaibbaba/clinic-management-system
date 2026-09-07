@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import {
   formatMinorUnits,
+  LOOKUP_LIST,
   toMinorUnits,
   type CreateLabPaymentInput,
   type LabPayment,
@@ -24,6 +25,7 @@ import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { labPayments } from '@api/database/schema';
 import { LabsService } from '@api/labs/labs.service';
+import { LookupsService } from '@api/lookups/lookups.service';
 
 type PaymentRow = typeof labPayments.$inferSelect;
 
@@ -47,6 +49,7 @@ export const LAB_PAYMENTS_ENTITY = 'lab_payments';
 export class LabPaymentsService implements OnModuleInit {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
+    private readonly lookups: LookupsService,
     private readonly scope: ClinicScopeService,
     private readonly labsService: LabsService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
@@ -93,6 +96,8 @@ export class LabPaymentsService implements OnModuleInit {
 
   async create(actor: AuthenticatedUser, input: CreateLabPaymentInput): Promise<LabPayment> {
     await this.labsService.requireRow(actor.clinicId, input.labId);
+    // Only codes on this clinic's own list — the schema cannot know them.
+    await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.PAYMENT_METHOD, input.method);
 
     const [row] = await this.db
       .insert(labPayments)

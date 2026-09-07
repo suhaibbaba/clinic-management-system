@@ -1,4 +1,5 @@
 import {
+  LOOKUP_LIST,
   MOVEMENT_TYPE,
   type ItemBatch,
   type MovementType,
@@ -19,15 +20,10 @@ import {
   useToast,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
+import { useLookupLabels } from '@web/features/lookups/queries';
 import { Money } from '@web/features/billing/money';
 import { useClinic } from '@web/features/clinic/queries';
-import {
-  CATEGORY_TONES,
-  categoryLabel,
-  MOVEMENT_TONES,
-  movementLabel,
-  unitLabel,
-} from '@web/features/inventory/display';
+import { categoryTone, MOVEMENT_TONES, movementLabel } from '@web/features/inventory/display';
 import { ItemFormModal } from '@web/features/inventory/item-form-modal';
 import { MovementModal, mayRecord } from '@web/features/inventory/movement-modal';
 import { canManageInventory, canReverseMovement } from '@web/features/inventory/permissions';
@@ -58,6 +54,8 @@ export function ItemDrawer({
   readonly onClose: () => void;
 }): JSX.Element | null {
   const { t } = useTranslation();
+  const categoryLabel = useLookupLabels(LOOKUP_LIST.ITEM_CATEGORY);
+  const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const { user } = useSession();
   const navigate = useNavigate();
 
@@ -88,9 +86,7 @@ export function ItemDrawer({
         title={
           <span className="flex flex-wrap items-center gap-2">
             {row?.nameAr ?? '…'}
-            {row && (
-              <Badge tone={CATEGORY_TONES[row.category]}>{t(categoryLabel(row.category))}</Badge>
-            )}
+            {row && <Badge tone={categoryTone(row.category)}>{categoryLabel(row.category)}</Badge>}
             {row?.isLow && <Badge tone="danger">{t('inventory.flags.low')}</Badge>}
           </span>
         }
@@ -120,7 +116,7 @@ export function ItemDrawer({
                     <span dir="ltr" className="font-semibold tabular-nums">
                       {row.quantity}
                     </span>
-                    <span className="text-label text-ink-muted">{t(unitLabel(row.unit))}</span>
+                    <span className="text-label text-ink-muted">{unitLabel(row.unit)}</span>
                   </span>
                 </Field>
                 <Field label={t('inventory.minimum')}>

@@ -1,9 +1,9 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
+  LOOKUP_LIST,
   LEDGER_ENTRY_KIND,
   toMinorUnits,
   type Money,
-  type PaymentMethod,
   type Statement,
   type StatementQuery,
 } from '@clinic/shared';
@@ -11,13 +11,18 @@ import { eq } from 'drizzle-orm';
 
 import { LedgerService } from '@api/billing/ledger.service';
 import { toPayment } from '@api/billing/payments.service';
-import { BRAND_MARK, MARK_VIEWBOX } from '@api/billing/pdf/brand-mark';
-import { DOCUMENT_STRINGS } from '@api/billing/pdf/document-strings';
+import {
+  documentDirection,
+  documentStrings,
+  type DocumentStrings,
+} from '@api/billing/pdf/document-strings';
+import { LetterheadService } from '@api/billing/pdf/letterhead.service';
+import { LookupsService } from '@api/lookups/lookups.service';
 import { A4, RtlPdf } from '@api/billing/pdf/pdf-builder';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
-import { clinics, payments } from '@api/database/schema';
+import { payments } from '@api/database/schema';
 import { PatientAccessService } from '@api/patients/patient-access.service';
 
 /**
@@ -27,12 +32,6 @@ import { PatientAccessService } from '@api/patients/patient-access.service';
  * bidi algorithm swapping the two ends of a date range.
  */
 const LTR = { dir: 'ltr' } as const;
-
-interface Letterhead {
-  readonly name: string;
-  readonly contact: string;
-  readonly currency: string;
-}
 
 /**
  * The printable documents: a receipt for every payment, and a patient
@@ -47,6 +46,8 @@ interface Letterhead {
 export class DocumentsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
+    private readonly letterheads: LetterheadService,
+    private readonly lookups: LookupsService,
     private readonly scope: ClinicScopeService,
     private readonly patientAccess: PatientAccessService,
     private readonly ledger: LedgerService,
@@ -66,17 +67,20 @@ export class DocumentsService {
 
     const payment = toPayment(row);
     const patient = await this.patientAccess.requirePatient(actor, payment.patientId);
-    const clinic = await this.letterhead(actor.clinicId);
+    const clinic = await this.letterheads.load(actor.clinicId);
     const balance = await this.ledger.balanceFor(actor.clinicId, payment.patientId);
 
     const reversesId = payment.reversesId;
     const isReversal = reversesId !== null;
     const reversedNumber = reversesId === null ? null : await this.receiptNumberOf(reversesId);
 
-    const strings = DOCUMENT_STRINGS.receipt;
-    const pdf = await RtlPdf.create({ width: A4.width, height: A4.height / 2 });
+    const strings = documentStrings(clinic.language).receipt;
+    const pdf = await RtlPdf.create({
+      size: { width: A4.width, height: A4.height / 2 },
+      direction: documentDirection(clinic.language),
+    });
 
-    this.drawLetterhead(pdf, clinic);
+    await this.letterheads.draw(pdf, clinic);
     pdf.text(isReversal ? strings.reversalTitle : strings.title, {
       size: 16,
       weight: 'bold',
@@ -95,7 +99,14 @@ export class DocumentsService {
     pdf.field(strings.patient, patient.fullName);
     pdf.field(strings.fileNumber, patient.fileNumber, LTR);
     pdf.field(strings.amount, formatAmount(payment.amount, clinic.currency), LTR);
-    pdf.field(strings.method, DOCUMENT_STRINGS.methods[payment.method as PaymentMethod]);
+    // What *this* clinic calls this method, in the document's language — the
+    // payment methods are an editable list now, so there is no map to read.
+    const methods = await this.lookups.labels(
+      actor.clinicId,
+      LOOKUP_LIST.PAYMENT_METHOD,
+      clinic.language,
+    );
+    pdf.field(strings.method, methods.get(payment.method) ?? payment.method);
 
     if (payment.note) {
       pdf.field(strings.note, payment.note);
@@ -116,13 +127,13 @@ export class DocumentsService {
     query: StatementQuery,
   ): Promise<Buffer> {
     const patient = await this.patientAccess.requirePatient(actor, patientId);
-    const clinic = await this.letterhead(actor.clinicId);
+    const clinic = await this.letterheads.load(actor.clinicId);
     const statement = await this.ledger.statementFor(actor.clinicId, patientId, query);
 
-    const strings = DOCUMENT_STRINGS.statement;
-    const pdf = await RtlPdf.create();
+    const strings = documentStrings(clinic.language).statement;
+    const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
-    this.drawLetterhead(pdf, clinic);
+    await this.letterheads.draw(pdf, clinic);
     pdf.text(strings.title, { size: 16, weight: 'bold', align: 'centre', gap: 14 });
 
     pdf.field(strings.patient, patient.fullName);
@@ -154,7 +165,7 @@ export class DocumentsService {
 
           return [
             formatDate(entry.occurredAt),
-            description || describeKind(entry.kind),
+            description || describeKind(entry.kind, strings),
             entry.kind === LEDGER_ENTRY_KIND.CHARGE ? formatPlain(entry.amount) : '',
             entry.kind === LEDGER_ENTRY_KIND.PAYMENT ? formatPlain(negateText(minor)) : '',
             formatPlain(entry.runningBalance),
@@ -173,51 +184,6 @@ export class DocumentsService {
     return pdf.save();
   }
 
-  private drawLetterhead(pdf: RtlPdf, clinic: Letterhead): void {
-    // The mark, then the clinic's own name: the sheet is the clinic's, and the
-    // brand sits above it rather than in place of it. Both are centred so a
-    // long Arabic name and a short one produce the same letterhead.
-    pdf.mark(BRAND_MARK, MARK_VIEWBOX);
-
-    pdf.text(clinic.name, { size: 18, weight: 'bold', align: 'centre', gap: 4 });
-
-    if (clinic.contact) {
-      pdf.text(clinic.contact, {
-        size: 9,
-        align: 'centre',
-        colour: [0.35, 0.35, 0.35],
-        // A phone number keeps its leading `+` on the left, as it is dialled.
-        dir: 'ltr',
-      });
-    }
-
-    pdf.rule();
-  }
-
-  private async letterhead(clinicId: string): Promise<Letterhead> {
-    const [row] = await this.db
-      .select({
-        name: clinics.name,
-        phone: clinics.phone,
-        address: clinics.address,
-        currency: clinics.currency,
-      })
-      .from(clinics)
-      .where(eq(clinics.id, clinicId))
-      .limit(1);
-
-    /* istanbul ignore next -- the caller's own clinic always exists. */
-    if (!row) {
-      throw new NotFoundException('Resource not found');
-    }
-
-    return {
-      name: row.name,
-      contact: [row.phone, row.address].filter(Boolean).join(' — '),
-      currency: row.currency,
-    };
-  }
-
   private async receiptNumberOf(paymentId: string): Promise<number | null> {
     const [row] = await this.db
       .select({ receiptNumber: payments.receiptNumber })
@@ -229,10 +195,11 @@ export class DocumentsService {
   }
 }
 
-function describeKind(kind: Statement['entries'][number]['kind']): string {
-  return kind === LEDGER_ENTRY_KIND.PAYMENT
-    ? DOCUMENT_STRINGS.statement.columns.payment
-    : DOCUMENT_STRINGS.statement.columns.charge;
+function describeKind(
+  kind: Statement['entries'][number]['kind'],
+  strings: DocumentStrings['statement'],
+): string {
+  return kind === LEDGER_ENTRY_KIND.PAYMENT ? strings.columns.payment : strings.columns.charge;
 }
 
 /**

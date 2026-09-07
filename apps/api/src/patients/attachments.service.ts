@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import {
   ALLOWED_ATTACHMENT_MIME_TYPES,
+  LOOKUP_LIST,
   MAX_ATTACHMENT_BYTES,
   USER_ROLE,
   type Attachment,
@@ -27,6 +28,7 @@ import { DATABASE, type Database } from '@api/database/database.module';
 import { attachments, visits } from '@api/database/schema';
 import { PatientAccessService } from '@api/patients/patient-access.service';
 import { StorageService } from '@api/storage/storage.service';
+import { LookupsService } from '@api/lookups/lookups.service';
 
 type AttachmentRow = typeof attachments.$inferSelect;
 
@@ -44,6 +46,7 @@ export const ATTACHMENTS_ENTITY = 'attachments';
 export class AttachmentsService implements OnModuleInit {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
+    private readonly lookups: LookupsService,
     private readonly scope: ClinicScopeService,
     private readonly patientAccess: PatientAccessService,
     private readonly storage: StorageService,
@@ -126,6 +129,9 @@ export class AttachmentsService implements OnModuleInit {
     input: PresignAttachmentUploadInput,
   ): Promise<PresignAttachmentUploadResponse> {
     await this.patientAccess.requirePatientId(actor, patientId);
+    // The type is a clinic-editable list now, and it becomes part of the object
+    // key below — so it is checked before anything is signed.
+    await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ATTACHMENT_TYPE, input.type);
 
     const key = this.storage.buildPatientObjectKey({
       clinicId: actor.clinicId,
@@ -155,6 +161,7 @@ export class AttachmentsService implements OnModuleInit {
     input: ConfirmAttachmentUploadInput,
   ): Promise<Attachment> {
     await this.patientAccess.requirePatientId(actor, patientId);
+    await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ATTACHMENT_TYPE, input.type);
 
     if (!this.storage.isKeyOwnedBy(input.key, actor.clinicId, patientId)) {
       throw new BadRequestException('This key does not belong to this patient');

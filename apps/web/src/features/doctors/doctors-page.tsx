@@ -16,6 +16,7 @@ import {
 import { useSession } from '@web/features/auth/session';
 import { DoctorFormModal } from '@web/features/doctors/doctor-form-modal';
 import { useDoctors } from '@web/features/doctors/queries';
+import { formatList } from '@web/lib/format';
 
 const PAGE_SIZE = 10;
 
@@ -39,7 +40,7 @@ export function DoctorsPage(): JSX.Element {
       return t('schedule.off');
     }
 
-    return workingDays.map((day) => t(`schedule.weekday.${day.weekday}`)).join('، ');
+    return formatList(workingDays.map((day) => t(`schedule.weekday.${day.weekday}`)));
   };
 
   const columns = useMemo<Column<Doctor>[]>(() => {

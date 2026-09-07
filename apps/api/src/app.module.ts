@@ -20,6 +20,8 @@ import { DoctorsModule } from '@api/doctors/doctors.module';
 import { HealthModule } from '@api/health/health.module';
 import { InventoryModule } from '@api/inventory/inventory.module';
 import { LabsModule } from '@api/labs/labs.module';
+import { LookupsModule } from '@api/lookups/lookups.module';
+import { PdfModule } from '@api/billing/pdf/pdf.module';
 import { NotificationsModule } from '@api/notifications/notifications.module';
 import { PatientsModule } from '@api/patients/patients.module';
 import { SpecialtiesModule } from '@api/specialties/specialties.module';
@@ -58,6 +60,8 @@ import { UsersModule } from '@api/users/users.module';
     PatientsModule,
     BillingModule,
     AppointmentsModule,
+    LookupsModule,
+    PdfModule,
     LabsModule,
     InventoryModule,
     NotificationsModule,

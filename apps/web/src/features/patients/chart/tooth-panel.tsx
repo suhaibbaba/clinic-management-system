@@ -9,7 +9,7 @@ import {
 } from '@web/features/patients/chart/add-procedure-form';
 import { SurfaceSelector } from '@web/features/patients/chart/surface-selector';
 import { ToothAttachments } from '@web/features/patients/chart/tooth-attachments';
-import { toothStateLabelKey, type ToothSummary } from '@web/features/patients/chart/tooth-state';
+import { useToothStates, type ToothSummary } from '@web/features/patients/chart/tooth-state';
 import {
   canRecordProcedure,
   canSeeAttachments,
@@ -59,6 +59,7 @@ export function ToothPanel({
   onSendToLab,
 }: ToothPanelProps): JSX.Element {
   const { t } = useTranslation();
+  const states = useToothStates();
   const [adding, setAdding] = useState(false);
 
   const { data, isPending, isError } = useToothHistory(patientId, tooth);
@@ -85,7 +86,7 @@ export function ToothPanel({
           <span dir="ltr" className="font-mono">
             {tooth}
           </span>
-          {summary && <Badge tone="neutral">{t(toothStateLabelKey(summary.state))}</Badge>}
+          {summary && <Badge tone="neutral">{states.info(summary.state).label}</Badge>}
         </span>
       }
     >
@@ -110,7 +111,7 @@ export function ToothPanel({
               <div className="min-w-0">
                 <p className="text-label text-ink-muted">{t('chart.panel.title')}</p>
                 <p className="text-value font-semibold text-ink">
-                  {t(toothStateLabelKey(summary.state))}
+                  {states.info(summary.state).label}
                 </p>
               </div>
 

@@ -17,6 +17,7 @@ import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { procedureCatalog, specialties } from '@api/database/schema';
+import { LookupsService } from '@api/lookups/lookups.service';
 
 type CatalogRow = typeof procedureCatalog.$inferSelect;
 
@@ -32,6 +33,7 @@ export type CatalogView = ProcedureCatalogItem | ProcedureCatalogPriceView;
 export class ProcedureCatalogService implements OnModuleInit {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
+    private readonly lookups: LookupsService,
     private readonly scope: ClinicScopeService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
   ) {}
@@ -103,6 +105,9 @@ export class ProcedureCatalogService implements OnModuleInit {
     actor: AuthenticatedUser,
     input: CreateProcedureCatalogItemInput,
   ): Promise<CatalogView> {
+    // Only codes on this clinic's own list — the schema cannot know them.
+    await this.lookups.assertChartOutcome(actor.clinicId, input.chartOutcome);
+
     await this.requireSpecialty(actor, input.specialtyId);
     await this.assertCodeIsFree(actor.clinicId, input.code);
 
@@ -135,6 +140,8 @@ export class ProcedureCatalogService implements OnModuleInit {
     id: string,
     input: UpdateProcedureCatalogItemInput,
   ): Promise<CatalogView> {
+    await this.lookups.assertChartOutcome(actor.clinicId, input.chartOutcome);
+
     await this.requireRow(actor.clinicId, id);
 
     if (input.specialtyId) {

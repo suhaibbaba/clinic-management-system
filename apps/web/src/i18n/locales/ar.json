@@ -82,7 +82,8 @@
     "labs": "المختبرات",
     "labOrders": "أعمال المختبرات",
     "inventory": "المستودع",
-    "suppliers": "المورّدون"
+    "suppliers": "المورّدون",
+    "lists": "القوائم"
   },
   "roles": {
     "admin": "مدير",
@@ -182,11 +183,16 @@
     },
     "workingHours": "أوقات العمل",
     "logo": "شعار العيادة",
-    "uploadLogo": "رفع الشعار",
-    "logoPlaceholder": "لم يتم رفع شعار",
-    "logoComingSoon": "رفع الملفات غير مفعّل بعد",
+    "uploadLogo": "رفع شعار",
+    "logoPlaceholder": "لا يوجد شعار",
     "updated": "تم حفظ الإعدادات",
-    "readOnly": "العرض فقط — التعديل متاح للمدير"
+    "readOnly": "العرض فقط — التعديل متاح للمدير",
+    "logoHint": "صورة PNG أو JPG أو WebP، بحد أقصى ٢ ميغابايت — تظهر في القائمة الجانبية وصفحة الدخول وأعلى كل مستند مطبوع",
+    "replaceLogo": "تغيير الشعار",
+    "logoUpdated": "تم تحديث الشعار",
+    "logoRemoved": "تم حذف الشعار",
+    "logoTooLarge": "حجم الصورة يتجاوز ٢ ميغابايت",
+    "logoUnsupported": "نوع الصورة غير مدعوم: استخدم PNG أو JPG أو WebP"
   },
   "audit": {
     "title": "سجل التدقيق",
@@ -336,17 +342,6 @@
     "loadFailed": "تعذّر تحميل معالجات المريض.",
     "toothLabel": "السن {{tooth}} — {{state}}",
     "toothLabelWithCount": "السن {{tooth}} — {{state}}، {{count}} معالجة",
-    "states": {
-      "healthy": "سليم",
-      "planned": "نخر / مخطّط",
-      "in_progress": "قيد المعالجة",
-      "filling": "حشوة",
-      "root_canal": "معالجة لبية",
-      "crown": "تاج",
-      "implant": "زرعة",
-      "bridge": "جسر",
-      "missing": "مفقود"
-    },
     "surfaces": {
       "legend": "سطوح السن",
       "M": "إنسي",
@@ -461,14 +456,6 @@
     "deleted": "تم حذف الصورة",
     "empty": "لا توجد صور لهذا المريض",
     "loadFailed": "تعذّر تحميل الصور.",
-    "types": {
-      "xray_panoramic": "بانوراما",
-      "xray_periapical": "ذروية",
-      "xray_bitewing": "عضّية",
-      "cbct": "طبقي مخروطي",
-      "clinical_photo": "صورة سريرية",
-      "document": "مستند"
-    },
     "filterTooth": "تصفية حسب السن",
     "filterType": "تصفية حسب النوع",
     "emptyHint": "الصور والمستندات المرفوعة تظهر هنا."
@@ -483,11 +470,6 @@
     "amount": "المبلغ",
     "method": "طريقة الدفع",
     "note": "ملاحظات",
-    "methods": {
-      "cash": "نقداً",
-      "card": "بطاقة",
-      "transfer": "حوالة"
-    },
     "receipt": "الإيصال",
     "reverse": "إلغاء الدفعة",
     "reversal": "قيد عكسي",
@@ -569,12 +551,6 @@
       "completed": "منجز",
       "no_show": "لم يحضر",
       "cancelled": "ملغى"
-    },
-    "types": {
-      "checkup": "فحص",
-      "treatment": "معالجة",
-      "followup": "مراجعة",
-      "emergency": "طارئ"
     },
     "actions": {
       "confirm": "تأكيد",
@@ -875,20 +851,6 @@
       "quantity": "المتوفر",
       "expiry": "أقرب انتهاء"
     },
-    "categories": {
-      "medication": "أدوية",
-      "consumable": "مستهلكات",
-      "tool": "أدوات",
-      "sterilization": "تعقيم"
-    },
-    "units": {
-      "piece": "قطعة",
-      "box": "علبة",
-      "pack": "رزمة",
-      "ml": "مل",
-      "g": "غ",
-      "ampoule": "أمبولة"
-    },
     "movements": {
       "purchase": "شراء",
       "consume": "صرف",
@@ -1035,6 +997,52 @@
         "empty": "لا توجد مشتريات في هذه الفترة",
         "emptyHint": "ستظهر هنا كل عمليات الشراء من هذا المورّد"
       }
+    }
+  },
+  "lookups": {
+    "title": "القوائم",
+    "subtitle": "الخيارات التي تظهر في قوائم البرنامج المنسدلة",
+    "pickList": "اختر قائمة",
+    "add": "إضافة خيار",
+    "empty": "لا توجد خيارات في هذه القائمة بعد",
+    "newTitle": "خيار جديد",
+    "editTitle": "تعديل الخيار",
+    "nameAr": "الاسم بالعربية",
+    "nameEn": "الاسم بالإنجليزية",
+    "color": "اللون",
+    "colorHint": "اللون الذي يُرسم به هذا الخيار على مخطط الأسنان",
+    "code": "الرمز",
+    "codeHint": "لا يمكن تعديل الرمز: السجلات المحفوظة تشير إليه",
+    "active": "مفعّل",
+    "system": "أساسي",
+    "systemHint": "خيار يعتمد عليه البرنامج: يمكن تغيير اسمه ولونه، ولا يمكن حذفه أو تعطيله",
+    "created": "تمت إضافة الخيار",
+    "updated": "تم حفظ الخيار",
+    "deleted": "تم حذف الخيار",
+    "confirmDelete": "حذف «{{name}}» من هذه القائمة؟",
+    "lists": {
+      "tooth_state": "حالات الأسنان",
+      "lab_work_type": "أنواع أعمال المختبر",
+      "lab_material": "مواد المختبر",
+      "lab_shade": "درجات اللون",
+      "attachment_type": "أنواع المرفقات",
+      "appointment_type": "أنواع المواعيد",
+      "item_category": "فئات المواد",
+      "item_unit": "وحدات القياس",
+      "payment_method": "طرق الدفع",
+      "frequent_drug": "الأدوية الشائعة"
+    },
+    "hints": {
+      "tooth_state": "ما يُرسم على مخطط الأسنان، وما تتركه المعالجة المنتهية",
+      "lab_work_type": "أنواع الأعمال التي تُطلب من المختبرات؛ الأسعار تبقى لكل مختبر",
+      "lab_material": "المواد التي تُصنع منها أعمال المختبر",
+      "lab_shade": "درجات لون الأسنان المعتمدة في العيادة",
+      "attachment_type": "تصنيف الصور والمستندات في ملف المريض",
+      "appointment_type": "أنواع المواعيد في التقويم",
+      "item_category": "تصنيف مواد المستودع",
+      "item_unit": "وحدات قياس مواد المستودع",
+      "payment_method": "طرق استلام الدفعات ودفعها للمختبرات",
+      "frequent_drug": "الأدوية المقترحة عند كتابة وصفة"
     }
   }
 }
