@@ -61,6 +61,20 @@ export const NAV_ITEMS: readonly NavItem[] = [
     roles: [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
     icon: 'coins',
   },
+  // The technician's own screen — the cupboard is theirs to keep — which is
+  // why it sits above the shared entries rather than at the bottom with them.
+  {
+    to: '/inventory',
+    label: 'nav.inventory',
+    roles: [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
+    icon: 'clipboard',
+  },
+  {
+    to: '/suppliers',
+    label: 'nav.suppliers',
+    roles: [USER_ROLE.TECHNICIAN],
+    icon: 'users',
+  },
   { to: '/doctors', label: 'nav.doctors', roles: USER_ROLES, icon: 'stethoscope' },
   { to: '/clinic', label: 'nav.clinic', roles: USER_ROLES, icon: 'gear' },
   { to: '/users', label: 'nav.users', roles: [USER_ROLE.ADMIN], icon: 'shield' },

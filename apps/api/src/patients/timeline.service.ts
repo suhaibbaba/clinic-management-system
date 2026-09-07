@@ -199,6 +199,38 @@ export class TimelineService {
           where lo.clinic_id = ${clinicId} and lo.patient_id = ${patientId}
             and lo.deleted_at is null`;
 
+      case TIMELINE_ENTRY_TYPE.SUPPLY:
+        /*
+         * Stock used on this patient.
+         *
+         * Only consumptions that name a patient reach here — most stock is
+         * used on nobody in particular, and a bottle of disinfectant is not an
+         * event in anybody's file. The quantity is shown as a magnitude with
+         * its unit: the ledger stores it negative, but "2 ampoules" is what
+         * happened, not "-2", and `trim_scale` drops the ledger's three
+         * decimals so it reads as 48 rather than 48.000.
+         *
+         * No `--` comments inside these fragments: they are concatenated into
+         * one `union all`, and a line comment would swallow whatever followed.
+         */
+        return sql`
+          select sm.id,
+                 ${TIMELINE_ENTRY_TYPE.SUPPLY}::text as type,
+                 sm.created_at as occurred_at,
+                 ii.name_ar as title,
+                 jsonb_build_object(
+                   'movementId', sm.id,
+                   'itemId', ii.id,
+                   'category', ii.category,
+                   'unit', ii.unit,
+                   'quantity', trim_scale(abs(sm.quantity))::text,
+                   'performedProcedureId', sm.performed_procedure_id
+                 ) as detail
+          from stock_movements sm
+          join inventory_items ii on ii.id = sm.item_id
+          where sm.clinic_id = ${clinicId} and sm.patient_id = ${patientId}
+            and sm.type = 'consume'`;
+
       // TODO(appointments) / TODO(billing): these tables do not exist yet, so a
       // receptionist — whose timeline is exactly these two types — currently
       // receives an empty page rather than anything they may not see.
@@ -230,6 +262,7 @@ export function allowedTypes(role: UserRole): TimelineEntryType[] {
         TIMELINE_ENTRY_TYPE.PAYMENT,
         TIMELINE_ENTRY_TYPE.CHARGE,
         TIMELINE_ENTRY_TYPE.LAB_ORDER,
+        TIMELINE_ENTRY_TYPE.SUPPLY,
       ];
     case USER_ROLE.RECEPTIONIST:
       return [

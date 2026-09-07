@@ -18,6 +18,7 @@ import { AppConfigModule } from '@api/config/config.module';
 import { DatabaseModule } from '@api/database/database.module';
 import { DoctorsModule } from '@api/doctors/doctors.module';
 import { HealthModule } from '@api/health/health.module';
+import { InventoryModule } from '@api/inventory/inventory.module';
 import { LabsModule } from '@api/labs/labs.module';
 import { NotificationsModule } from '@api/notifications/notifications.module';
 import { PatientsModule } from '@api/patients/patients.module';
@@ -58,6 +59,7 @@ import { UsersModule } from '@api/users/users.module';
     BillingModule,
     AppointmentsModule,
     LabsModule,
+    InventoryModule,
     NotificationsModule,
     BookingModule,
   ],
