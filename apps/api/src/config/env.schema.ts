@@ -72,6 +72,21 @@ export const envSchema = z.object({
   /** Password given to every account created by `pnpm seed`. Development only. */
   SEED_PASSWORD: z.string().min(8).default('ChangeMe123!'),
 
+  /**
+   * `<major>.<minor>.<commit count>`, resolved by the deploy and passed in.
+   *
+   * From the environment because the image cannot work it out: `.git` is not
+   * in the Docker build context, so the commit count has to arrive from
+   * outside. Not a number anybody types — `scripts/app-version.mjs` computes
+   * it and the deploy exports it — which is what makes an environment variable
+   * acceptable here at all.
+   *
+   * The default marks a build that was never deployed: a hand-run container or
+   * `pnpm dev`, where 0.0.0 is the honest answer rather than a version that
+   * looks real.
+   */
+  APP_VERSION: z.string().min(1).default('0.0.0-dev'),
+
   /* ---------------------------- Notifications --------------------------- */
 
   /**

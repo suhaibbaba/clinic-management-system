@@ -1,24 +1,29 @@
-import { healthResponseSchema, type HealthResponse } from '@clinic/shared';
+import { versionResponseSchema, type VersionResponse } from '@clinic/shared';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import { apiRequest } from '@web/lib/api-client';
 
+/** This bundle's version, fixed when it was built (`vite.config.ts`). */
+export const WEB_VERSION = __APP_VERSION__;
+
 /**
  * What version the API is actually running.
  *
- * The bundle carries its own `APP_VERSION`, baked in at build time, and that
- * is the number the settings screen shows. This is the other half: a browser
- * holding yesterday's bundle after a deploy will report yesterday's version
- * quite confidently, and the only way to notice is to ask the server what it
- * thinks. `/health` is public and already carries it.
+ * Both numbers come from the same deploy, so they agree — until they do not,
+ * and the case where they do not is the one worth showing: a browser holding
+ * yesterday's bundle after a deploy will report yesterday's version quite
+ * confidently, and asking the server is the only way to notice.
  *
- * Never retried and cached for the session: this is a footnote, and a settings
- * page that spins because a footnote is slow would be a worse page.
+ * `/version` rather than `/health`: this is one string, and a settings screen
+ * should not run a database probe to read it.
+ *
+ * Never retried and cached for the session — a footnote that spins would be a
+ * worse footnote.
  */
-export function useApiVersion(): UseQueryResult<HealthResponse> {
+export function useApiVersion(): UseQueryResult<VersionResponse> {
   return useQuery({
-    queryKey: ['health'],
-    queryFn: async () => healthResponseSchema.parse(await apiRequest('/health')),
+    queryKey: ['version'],
+    queryFn: async () => versionResponseSchema.parse(await apiRequest('/version')),
     staleTime: Infinity,
     retry: false,
   });

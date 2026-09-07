@@ -97,6 +97,11 @@ services:
     image: clinic-sandbox-api
     restart: unless-stopped
     env_file: .env
+    environment:
+      # Resolved by the deploy from the commit count — `.git` is not in the
+      # build context, so the image cannot work it out for itself. Absent on a
+      # hand-run `docker compose up`, which is why the API has a fallback.
+      APP_VERSION: ${APP_VERSION:-}
     ports:
       - "127.0.0.1:15000:3000"
     # Migrations run to completion before the server listens, so the sandbox
@@ -129,6 +134,11 @@ services:
     build:
       context: .
       dockerfile: docker/web.Dockerfile
+      args:
+        # Inlined into the bundle at build time: a browser cannot be told the
+        # version later. This is what makes the settings screen able to
+        # disagree with /api/version, which is the whole point of showing both.
+        VITE_APP_VERSION: ${APP_VERSION:-}
     image: clinic-sandbox-web
     restart: unless-stopped
     ports:

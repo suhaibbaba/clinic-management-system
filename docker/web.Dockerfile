@@ -37,6 +37,12 @@ FROM deps AS build
 ARG VITE_API_BASE_URL=/api
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
+# The deploy resolves this from the commit count and passes it in. Empty on a
+# plain `docker build`, and the Vite config falls back to asking git — which
+# answers 0 here, because `.git` is not in the build context.
+ARG VITE_APP_VERSION=
+ENV VITE_APP_VERSION=${VITE_APP_VERSION}
+
 COPY . .
 
 RUN pnpm --filter @clinic/web... build

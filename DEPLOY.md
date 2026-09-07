@@ -15,24 +15,34 @@ port binds to `127.0.0.1` and the host nginx reaches it over loopback.
 | Images           | built on the server: `clinic-sandbox-api`, `clinic-sandbox-web` |
 
 ```
-merge to main ─▶ Release: bump the minor, tag vX.Y.Z
-                        │
-    vX.Y.Z ─▶ ssh ─▶ git reset --hard refs/tags/vX.Y.Z ─▶ compose build ─▶ up -d ─▶ curl /api/health
+push to main ─▶ ssh ─▶ git reset --hard origin/main ─▶ resolve APP_VERSION
+                            ─▶ compose build ─▶ up -d ─▶ curl /api/health
 ```
 
+**The version is worked out here, on the server, and is not stored anywhere.**
+It is `<major>.<minor>` from the root `package.json` plus the repository's
+commit count — `1.0` and 312 commits reads as `1.0.312` — so it goes up on its
+own with every commit that reaches `main`. Nothing bumps a file, nothing tags,
+and nothing commits back to the branch, so there is no release commit for a
+deploy to race.
+
+`scripts/app-version.mjs` is the reference implementation and the deploy uses
+it when the VPS has node; the workflow mirrors it in `awk` for when it does
+not. Both are checked against each other by `app-version.spec.ts`.
+
+Two consequences worth knowing:
+
+- **The clone must not be shallow.** A shallow clone reports a commit count of
+  1 forever, so the deploy unshallows before asking.
+- **The number is passed in, not discovered.** `.git` is excluded from the
+  Docker build context, so neither image can work it out: the API takes
+  `APP_VERSION` as an environment variable and the web takes it as a build arg
+  and inlines it. A container started by hand, with neither set, honestly
+  reports `0.0.0-dev`.
+
 There is no registry in the loop. The VPS holds this repository at
-`/opt/clinic/sandbox` and builds both images in place, so a deploy is a move of
-that checkout followed by a rebuild.
-
-**The trigger is the tag, not the push.** Every merge to main is a release
-(`.github/workflows/release.yml`): the minor version goes up, the bump lands as
-a `chore(release)` commit, and that commit is tagged. Deploying on the push to
-main instead would race that bump by a few seconds and land a build reporting
-the previous version about half the time — and the version is on the settings
-screen, so it has to be true.
-
-A manual `workflow_dispatch` still deploys the head of `main`, for when a
-release is not what you want on there.
+`/opt/clinic/sandbox` and builds both images in place, so a deploy is a
+fast-forward of that checkout followed by a rebuild.
 
 ## Port map
 
@@ -86,9 +96,8 @@ id -nG <user> | grep docker   # the deploy user must be in the docker group
 ### The repository, cloned at `/opt/clinic/sandbox`
 
 The images are built on the server, so the server needs the sources. The deploy
-does `git fetch origin main --tags --force` and then resets hard to the tag it
-was triggered by (or to `origin/main` on a manual run) in this directory, and
-refuses to run if it is not a git checkout.
+does `git fetch origin main && git reset --hard origin/main` in this directory
+and refuses to run if it is not a git checkout.
 
 ```bash
 sudo mkdir -p /opt/clinic
@@ -281,13 +290,9 @@ docker compose -p clinic-sandbox -f docker-compose.sandbox.yml up -d --remove-or
 ```
 
 `git checkout main` and rebuild to come back. Nothing is pinned in `.env`, so
-the next deploy from Actions resets the checkout to the tag it is deploying and
-undoes the rollback — hold a rollback by not merging, or by reverting the
-offending commit on `main`, which releases and deploys the revert.
-
-Rolling back to a _release_ is `git reset --hard refs/tags/vX.Y.Z` and a
-rebuild, and `git tag --list 'v*'` on the server lists what there is to go back
-to.
+the next deploy from Actions resets the checkout to `origin/main` and undoes the
+rollback — hold a rollback by not deploying, or by reverting the offending
+commit on `main` so the two agree.
 
 Migrations only ever roll forward: checking the code out at an older commit does
 not roll the schema back. If the bad deploy migrated the database, restore a
@@ -305,9 +310,8 @@ dc logs -f api        # one service
 dc logs --tail=200 api
 dc logs -f backup     # next scheduled dump
 
-# Which release is deployed. The same version is on the settings screen and in
-# /api/health, and all three saying the same thing is the point of the tag.
-git describe --tags --exact-match 2>/dev/null || git log -1 --oneline
+# Which commit is deployed.
+git log -1 --oneline
 
 # Health, from the server and from outside.
 curl -s http://127.0.0.1:15000/health
