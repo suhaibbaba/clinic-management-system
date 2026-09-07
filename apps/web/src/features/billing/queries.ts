@@ -1,9 +1,7 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import type {
   CreatePaymentInput,
-  ListOverdueQuery,
   ListPaymentsQuery,
-  OverduePatient,
   Paginated,
   PatientBalance,
   Payment,
@@ -13,12 +11,12 @@ import type {
 } from '@clinic/shared';
 
 import { billingApi } from '@web/features/billing/api';
-import { PATIENT_KEY } from '@web/features/patients/queries';
+import { DASHBOARD_KEY } from '@web/features/dashboard/queries';
+import { PATIENT_KEY, PATIENTS_KEY } from '@web/features/patients/queries';
 
 export const BALANCE_KEY = 'patient-balance';
 export const STATEMENT_KEY = 'patient-statement';
 export const PAYMENTS_KEY = 'payments';
-export const OVERDUE_KEY = 'overdue';
 
 export function usePatientBalance(
   patientId: string,
@@ -52,28 +50,24 @@ export function usePayments(query: Partial<ListPaymentsQuery>): UseQueryResult<P
   });
 }
 
-export function useOverduePatients(
-  query: Partial<ListOverdueQuery>,
-): UseQueryResult<Paginated<OverduePatient>> {
-  return useQuery({
-    queryKey: [OVERDUE_KEY, query],
-    queryFn: () => billingApi.overdue(query),
-    placeholderData: (previous) => previous,
-  });
-}
-
 /**
  * Everything a payment touches is derived from the ledger, so recording one
  * invalidates the balance, the statement and the patient header together —
  * there is no cached total to patch by hand.
+ *
+ * The patients list and the dashboard are in that set too, and not as an
+ * afterthought: the list can be filtered to the people who owe, and the
+ * dashboard's overdue card is the clinic's total. Taking a payment can empty
+ * a row out of one and move the other, so leaving either cached would show
+ * money still owed that has just been handed over.
  */
 function useLedgerInvalidation(): () => Promise<void> {
   const queryClient = useQueryClient();
 
   return async () => {
     await Promise.all(
-      [BALANCE_KEY, STATEMENT_KEY, PAYMENTS_KEY, OVERDUE_KEY, PATIENT_KEY].map((key) =>
-        queryClient.invalidateQueries({ queryKey: [key] }),
+      [BALANCE_KEY, STATEMENT_KEY, PAYMENTS_KEY, PATIENT_KEY, PATIENTS_KEY, DASHBOARD_KEY].map(
+        (key) => queryClient.invalidateQueries({ queryKey: [key] }),
       ),
     );
   };

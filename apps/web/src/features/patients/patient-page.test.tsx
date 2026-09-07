@@ -102,10 +102,10 @@ describe('Patient page', () => {
     it('redirects a technician away from the patient file', async () => {
       await renderPatientPage(USER_ROLE.TECHNICIAN);
 
-      // Sent to the default screen — the patients list, which they may read —
-      // rather than shown what they cannot open: naming the record would
-      // confirm it exists.
-      expect(await screen.findByRole('heading', { name: ar.patients.title })).toBeVisible();
+      // Sent to the dashboard — the one screen every role has — rather than
+      // shown what they cannot open: naming the record would confirm it
+      // exists.
+      expect(await screen.findByRole('heading', { name: ar.dashboard.title })).toBeVisible();
 
       expect(screen.queryByRole('group', { name: ar.chart.title })).not.toBeInTheDocument();
       expect(screen.queryByText(makePatient().fullName)).not.toBeInTheDocument();

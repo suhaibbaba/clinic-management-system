@@ -7,6 +7,7 @@ import type {
   CalendarQuery,
   CreateAppointmentInput,
   CreateWaitingListEntryInput,
+  ListAppointmentsQuery,
   ListWaitingListQuery,
   Paginated,
   PromoteWaitingListEntryInput,
@@ -41,6 +42,25 @@ function useCalendarMutation<TArgs, TResult>(mutationFn: (args: TArgs) => Promis
         void queryClient.invalidateQueries({ queryKey: [key] });
       }
     },
+  });
+}
+
+/**
+ * A page of appointments, filtered — the list behind the tabs that are not the
+ * calendar.
+ *
+ * The calendar feed answers "what is in this week"; this answers "which
+ * appointments are in this state", which is a different question and a
+ * different endpoint. Kept on the calendar's key prefix so booking, moving or
+ * confirming anything invalidates it along with everything else.
+ */
+export function useAppointments(
+  query: Partial<ListAppointmentsQuery>,
+): UseQueryResult<Paginated<CalendarAppointment>> {
+  return useQuery({
+    queryKey: [CALENDAR_KEY, 'list', query],
+    queryFn: () => appointmentsApi.list(query),
+    placeholderData: (previous) => previous,
   });
 }
 

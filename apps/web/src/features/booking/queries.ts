@@ -21,8 +21,12 @@ export function usePendingBookings(
     queryFn: () => pendingBookingsApi.list(params),
     enabled,
     // Somebody books while reception is looking at the list; a minute-old
-    // count on a badge is worse than no badge.
+    // count on a badge is worse than no badge. Refetched on focus as well,
+    // because the badge's whole job is to be right the moment somebody comes
+    // back to the tab — a poll alone leaves it up to a minute stale exactly
+    // when it is being read.
     refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
   });
 }
 

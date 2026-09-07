@@ -481,4 +481,68 @@ describe('Billing', () => {
       expect(page.items.find((item) => item.patientId === owing)?.balance).toBe('300.00');
     });
   });
+
+  /**
+   * The patients list, narrowed to the people who owe.
+   *
+   * It is a server-side filter because a balance is an aggregate, not a
+   * column: filtering the page in hand would answer "which of these twenty
+   * owe" while looking like it answered "who owes", and the paging would be
+   * wrong in a way nobody could see from the screen.
+   */
+  describe('patients?hasBalance', () => {
+    it('returns only the patients who owe, and pages over those', async () => {
+      const owing = await newPatient();
+      const settled = await newPatient();
+
+      await recordProcedure(owing, { price: '120.00' });
+      await recordProcedure(settled, { price: '75.00' });
+      await pay(settled, '75.00');
+
+      const response = await context.app.inject({
+        method: 'GET',
+        url: '/patients?hasBalance=true&limit=100',
+        headers: auth(receptionistToken),
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const page = response.json() as Paginated<{ id: string; balance?: string }>;
+      const ids = page.items.map((item) => item.id);
+
+      expect(ids).toContain(owing);
+      expect(ids).not.toContain(settled);
+      // The total is the count of debtors, not of patients — which is the
+      // whole reason the filter is not applied after the page is cut.
+      expect(page.total).toBe(page.items.length);
+      expect(page.items.every((item) => Number(item.balance ?? '0') > 0)).toBe(true);
+    });
+
+    it('is ignored for a technician, whose responses carry no money at all', async () => {
+      const owing = await newPatient();
+      await recordProcedure(owing, { price: '90.00' });
+
+      const [filtered, unfiltered] = await Promise.all([
+        context.app.inject({
+          method: 'GET',
+          url: '/patients?hasBalance=true&limit=100',
+          headers: auth(technicianToken),
+        }),
+        context.app.inject({
+          method: 'GET',
+          url: '/patients?limit=100',
+          headers: auth(technicianToken),
+        }),
+      ]);
+
+      // Honouring it would leak through the row count exactly what the
+      // stripped `balance` field withholds (ROLES.md field rules).
+      expect((filtered.json() as Paginated<unknown>).total).toBe(
+        (unfiltered.json() as Paginated<unknown>).total,
+      );
+      expect((filtered.json() as Paginated<{ balance?: string }>).items[0]).not.toHaveProperty(
+        'balance',
+      );
+    });
+  });
 });

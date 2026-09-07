@@ -5,6 +5,7 @@ import {
   OVERDUE_AFTER_DAYS_SETTING,
   toMinorUnits,
   type ListOverdueQuery,
+  type Money,
   type OverduePatient,
   type Paginated,
 } from '@clinic/shared';
@@ -13,6 +14,12 @@ import { eq, sql } from 'drizzle-orm';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { clinics } from '@api/database/schema';
+
+/** The clinic-wide aggregate behind the dashboard's overdue card. */
+export interface OverdueTotal {
+  readonly total: Money;
+  readonly patients: number;
+}
 
 interface OverdueRow extends Record<string, unknown> {
   readonly patient_id: string;
@@ -83,6 +90,57 @@ export class OverdueService {
     const items = [...rows].map((row) => toOverduePatient(row));
 
     return toPaginated(items, rows[0]?.total ?? 0, query);
+  }
+
+  /**
+   * One line: what the whole clinic is owed past its window, and by how many
+   * patients.
+   *
+   * The list above paginates, so the dashboard cannot get this by adding a
+   * page up — and a page's subtotal presented as the clinic's debt would be
+   * wrong on a financial screen, which is worse than absent. Same `with`
+   * clause as `list`, without the window function or the page.
+   */
+  async total(clinicId: string, afterDays?: number): Promise<OverdueTotal> {
+    const days = afterDays ?? (await this.overdueAfterDays(clinicId));
+
+    const rows = await this.db.execute<{ total: string; patients: number }>(sql`
+      with ledger as (
+        select
+          p.id as patient_id,
+          coalesce((
+            select sum(amount - discount) from charges
+            where clinic_id = ${clinicId} and patient_id = p.id and deleted_at is null
+          ), 0) as charged,
+          coalesce((
+            select sum(amount) from payments
+            where clinic_id = ${clinicId} and patient_id = p.id and deleted_at is null
+          ), 0) as paid,
+          (
+            select max(created_at) from payments
+            where clinic_id = ${clinicId} and patient_id = p.id
+              and deleted_at is null and amount > 0
+          ) as last_payment_at
+        from patients p
+        where p.clinic_id = ${clinicId} and p.deleted_at is null
+      ),
+      overdue as (
+        select (charged - paid) as balance from ledger
+        where charged - paid > 0
+          and (
+            last_payment_at is null
+            or last_payment_at < now() - ${sql.raw(`interval '${days} days'`)}
+          )
+      )
+      select coalesce(sum(balance), 0)::text as total, count(*)::int as patients from overdue
+    `);
+
+    const row = rows[0];
+
+    return {
+      total: formatMinorUnits(toMinorUnits(row?.total ?? '0')),
+      patients: row?.patients ?? 0,
+    };
   }
 
   /** The clinic's overdue window, falling back to the shared default. */

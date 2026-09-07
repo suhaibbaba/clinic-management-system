@@ -70,12 +70,17 @@ packages/
 - RTL layout by default (`dir="rtl"`); test every screen in RTL. Gregorian dates, Arabic labels via i18n files — never hardcode Arabic strings in components.
 - Role-aware UI: hide what the role can't do, but treat UI hiding as cosmetic — the API is the real boundary.
 - Dropdowns read the clinic's own lists through `useLookupOptions` / `useLookupLabels`, never a constant. `pnpm --filter @clinic/web check:i18n` fails CI on an Arabic literal in any `.ts`/`.tsx` under `src`, and on a key present in one locale file and missing from the other.
+- **Navigation is one table.** `app/navigation.ts` lists the sidebar's sections and its settings group with the roles that see each; the route guards in `app/router.tsx` are built from the same sets, so a hidden entry is not reachable by typing its address either. Adding a screen means adding a row there, not a `<Route>` somewhere and a link somewhere else.
+- **A view somebody can reach is a view somebody can link to.** Tabs and list filters live in the URL (`useTabParam`, or a query param read straight from `useSearchParams`) — never in `useState`. A panel whose state is invisible to the address bar cannot be linked to, bookmarked, deep-linked from the dashboard, or redirected to from the route it replaced.
+- **A retired route redirects, it does not disappear.** When a page is merged into a tab or a filter, its old address stays in the router as a `<Navigate>` to the tab that replaced it.
+- **A response's shape is the permission.** Where the API omits a field a role may not read, the screen draws what it was sent rather than consulting a copy of the matrix — a card with no figure behind it is not rendered at all. And never link to a page the reader would be bounced off: check the same helper the route guard uses.
 
 ### Files & images
 - Upload via presigned R2 URLs from the API; store only key + metadata in DB; serve via short-lived signed URLs. Receptionist role never receives attachment URLs.
 
 ### Testing
 - Backend: Jest. Minimum required coverage: balance computation, slot availability/conflicts, permission boundaries per role (see ROLES.md test matrix), lab-order state transitions, audit log writes.
+- Frontend: Vitest. Every role's sidebar is asserted as a whole list, not one label at a time — the failure that matters is an entry appearing for somebody it was never meant for, which a test of what *should* be there cannot see. Each route guard is asserted per role, and each retired address is asserted to land on its replacement.
 
 ### Language
 - Code, comments, commits, API: English. UI strings: Arabic via i18n. Commits: conventional commits (`feat(billing): ...`).
@@ -87,6 +92,8 @@ packages/
 - The API serves it at `/version`; the web shows it on the settings screen and shows the API's beside it **only when they differ**, which is how a browser holding a stale bundle announces itself.
 
 ## Never
+- put a tab or a list filter in `useState` when somebody might link to it — it belongs in the URL
+- drop a route that a page used to live at; redirect it to whatever replaced it
 - hardcode a user-facing choice list — it belongs in `lookup_options` (see architecture decision 8); a status that drives a state machine is the exception, and stays an enum
 - write a user-facing string in a component — every word comes from the locale files, in both languages
 - store or expose a manually editable "balance" or "quantity" field

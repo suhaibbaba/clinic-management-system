@@ -4,6 +4,7 @@ import {
   Activity,
   AlertTriangle,
   Bell,
+  Building2,
   CalendarDays,
   Check,
   ChevronDown,
@@ -24,6 +25,7 @@ import {
   LogOut,
   Mail,
   Menu,
+  Package,
   Pencil,
   Phone,
   Plus,
@@ -73,6 +75,7 @@ export type IconName =
   | 'activity'
   | 'alert'
   | 'bell'
+  | 'building'
   | 'calendar'
   | 'check'
   | 'chevron-down'
@@ -96,6 +99,7 @@ export type IconName =
   | 'mail'
   | 'menu'
   | 'money'
+  | 'package'
   | 'phone'
   | 'plus'
   | 'print'
@@ -129,6 +133,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   activity: Activity,
   alert: AlertTriangle,
   bell: Bell,
+  building: Building2,
   calendar: CalendarDays,
   check: Check,
   'chevron-down': ChevronDown,
@@ -154,6 +159,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   mail: Mail,
   menu: Menu,
   money: CreditCard,
+  package: Package,
   phone: Phone,
   plus: Plus,
   print: Printer,

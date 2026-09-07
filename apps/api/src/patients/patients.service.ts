@@ -61,6 +61,16 @@ export class PatientsService implements OnModuleInit {
       filters.push(eq(patients.gender, query.gender));
     }
 
+    /*
+     * Asked of the server, and only for the roles that are served balances at
+     * all: a technician's response carries no financial data (ROLES.md field
+     * rules), and honouring the filter for them would leak through the row
+     * count what the fields withhold.
+     */
+    if (query.hasBalance && PatientAccessService.seesFinancialData(actor.role)) {
+      filters.push(LedgerService.owesFilter(actor.clinicId, patients.id));
+    }
+
     if (query.search) {
       const pattern = `%${query.search.trim()}%`;
       filters.push(

@@ -13,6 +13,7 @@ import {
   clinicScheduleSettings,
   DEFAULT_TIME_ZONE,
   instantFromLocal,
+  localDate,
   LOOKUP_LIST,
   occupiesSlot,
   type Appointment,
@@ -473,6 +474,17 @@ export class AppointmentsService implements OnModuleInit {
     }
 
     return row.duration;
+  }
+
+  /**
+   * Today, on the clinic's wall clock.
+   *
+   * A dashboard that asks the server's own date puts a Damascus clinic on
+   * yesterday's list for the first three hours of every morning — the same
+   * reason every other date on this calendar goes through the clinic's zone.
+   */
+  async localToday(clinicId: string): Promise<string> {
+    return localDate(new Date(), await this.timeZone(clinicId));
   }
 
   private async timeZone(clinicId: string): Promise<string> {

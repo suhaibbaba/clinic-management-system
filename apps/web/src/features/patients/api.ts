@@ -64,7 +64,12 @@ export const patientsApi = {
    */
   list: (query: Partial<ListPatientsQuery>): Promise<Paginated<PatientView>> =>
     apiRequest('/patients', {
-      query: { page: query.page, limit: query.limit, search: query.search },
+      query: {
+        page: query.page,
+        limit: query.limit,
+        search: query.search,
+        hasBalance: query.hasBalance,
+      },
     }),
 
   create: (body: CreatePatientInput): Promise<PatientClinicalView> =>

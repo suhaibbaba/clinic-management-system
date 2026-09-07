@@ -12,7 +12,8 @@ import {
   type StatementEntry,
   type StatementQuery,
 } from '@clinic/shared';
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull, sql, type SQL } from 'drizzle-orm';
+import type { PgColumn } from 'drizzle-orm/pg-core';
 
 import { DATABASE, type Database } from '@api/database/database.module';
 import { charges, payments, performedProcedures, procedureCatalog } from '@api/database/schema';
@@ -38,6 +39,32 @@ interface LedgerLine {
 @Injectable()
 export class LedgerService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
+
+  /**
+   * "Owes something", as a `where` clause the caller can drop into its own
+   * query.
+   *
+   * The patients list needs to page over *the patients who owe*, which no
+   * amount of filtering after the fact can do — page two of everybody is not
+   * page two of the debtors. So the condition goes into the same query as the
+   * page, and it is written here rather than there so that there is still
+   * exactly one definition of a balance in this system.
+   *
+   * `patientId` is the column to correlate against, so this composes with
+   * whatever the caller has already scoped.
+   */
+  static owesFilter(clinicId: string, patientId: PgColumn): SQL {
+    return sql`(
+      coalesce((
+        select sum(amount - discount) from charges
+        where clinic_id = ${clinicId} and patient_id = ${patientId} and deleted_at is null
+      ), 0)
+      - coalesce((
+        select sum(amount) from payments
+        where clinic_id = ${clinicId} and patient_id = ${patientId} and deleted_at is null
+      ), 0)
+    ) > 0`;
+  }
 
   /** `sum(charges) − sum(payments)` for one patient. */
   async balanceFor(clinicId: string, patientId: string): Promise<PatientBalance> {

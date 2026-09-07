@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@web/components/ui/dropdown-menu';
 import { Icon } from '@web/components/ui/icon';
+import { WEB_VERSION } from '@web/features/clinic/api-version';
 import { changeLanguage, LANGUAGES, type Language } from '@web/i18n/language';
 import { cn } from '@web/lib/cn';
 
@@ -34,6 +35,9 @@ export interface UserMenuProps {
  * Radix keeps `aria-expanded` and the `aria-controls` wiring in step. The
  * chevron turns when it is open, which is the only cue that the pill was ever
  * meant to be clicked.
+ *
+ * The build number sits at the foot of it: the settings screen where the full
+ * version panel lives is admin-only, and a version is not a permission.
  *
  * Language is inline rather than a submenu. There are two languages; a submenu
  * would add a hover delay and a second keyboard level to a choice that is one
@@ -96,6 +100,25 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
         <DropdownMenuItem icon="logout" tone="danger" onSelect={onLogout}>
           {t('nav.logout')}
         </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        {/*
+          Which build this is — the thing somebody reads out over the phone
+          when they report a problem.
+
+          Here rather than only on the settings screen, because the settings
+          screen is admin-only and the person on the phone is as likely to be
+          the receptionist. Not a menu item: there is nothing to select, and
+          making it one would put a version number in the keyboard's tab
+          order between "sign out" and the edge of the menu.
+        */}
+        <p className="px-2 py-1.5 text-label text-ink-subtle">
+          <span>{t('clinic.version')}</span>{' '}
+          <span dir="ltr" className="font-mono">
+            v{WEB_VERSION}
+          </span>
+        </p>
       </DropdownMenuContent>
     </DropdownMenu>
   );

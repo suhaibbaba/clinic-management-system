@@ -1,8 +1,6 @@
 import type {
   CreatePaymentInput,
-  ListOverdueQuery,
   ListPaymentsQuery,
-  OverduePatient,
   Paginated,
   PatientBalance,
   Payment,
@@ -39,7 +37,4 @@ export const billingApi = {
     apiRequest(`/payments/${id}/reverse`, { method: 'POST', body }),
 
   receiptPdf: (paymentId: string): Promise<Blob> => apiDownload(`/payments/${paymentId}/receipt`),
-
-  overdue: (query: Partial<ListOverdueQuery>): Promise<Paginated<OverduePatient>> =>
-    apiRequest('/billing/overdue', { query: { ...query } }),
 };

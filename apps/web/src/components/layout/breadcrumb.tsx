@@ -3,10 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 
 import { Icon } from '@web/components/ui/icon';
-import { NAV_ITEMS } from '@web/app/navigation';
+import { ALL_NAV_ITEMS } from '@web/app/navigation';
 
 /**
  * Where you are, in the top bar.
+ *
+ * Both halves of the sidebar, flattened: a page in the collapsed settings
+ * group still has a section name, and the crumb is the only place it is shown
+ * while the group is shut.
  *
  * Built from the nav table rather than from the URL's path segments: a
  * segment is an id as often as it is a name, and `/patients/8f3c…` would
@@ -23,7 +27,7 @@ export function Breadcrumb({ leaf }: BreadcrumbProps): JSX.Element | null {
   const { t } = useTranslation();
   const { pathname } = useLocation();
 
-  const section = NAV_ITEMS.find(
+  const section = ALL_NAV_ITEMS.find(
     (item) => pathname === item.to || pathname.startsWith(`${item.to}/`),
   );
 
