@@ -1,6 +1,12 @@
 import {
+  APPOINTMENT_TYPE,
+  ATTACHMENT_TYPE,
+  ITEM_CATEGORY,
+  ITEM_UNIT,
   LOOKUP_LIST,
+  PAYMENT_METHOD,
   SYSTEM_LOOKUPS,
+  TOOTH_STATE,
   USER_ROLE,
   type LookupBundle,
   type LookupOption,
@@ -61,6 +67,34 @@ describe('Lookups (e2e)', () => {
       for (const [listKey, rows] of Object.entries(SYSTEM_LOOKUPS)) {
         const codes = (bundle[listKey] ?? []).map((option) => option.code);
         expect(codes).toEqual(expect.arrayContaining(rows.map((row) => row.code)));
+      }
+    });
+
+    /*
+     * The migration's other half, stated as a table.
+     *
+     * These are the exact values the columns held while they were Postgres
+     * enums. Widening a column to text keeps its string, so an appointment
+     * recorded as `checkup` still says `checkup` — and this asserts there is a
+     * row behind each of them, which is what makes those strings mean
+     * something again. A code missing here is data that has quietly stopped
+     * resolving to a name.
+     */
+    it.each([
+      [LOOKUP_LIST.TOOTH_STATE, Object.values(TOOTH_STATE)],
+      [LOOKUP_LIST.APPOINTMENT_TYPE, Object.values(APPOINTMENT_TYPE)],
+      [LOOKUP_LIST.PAYMENT_METHOD, Object.values(PAYMENT_METHOD)],
+      [LOOKUP_LIST.ATTACHMENT_TYPE, Object.values(ATTACHMENT_TYPE)],
+      [LOOKUP_LIST.ITEM_CATEGORY, Object.values(ITEM_CATEGORY)],
+      [LOOKUP_LIST.ITEM_UNIT, Object.values(ITEM_UNIT)],
+    ])('keeps every value the %s enum held, as a code', async (listKey, values) => {
+      const codes = (await list(listKey)).map((option) => option.code);
+
+      expect(codes).toEqual(expect.arrayContaining([...values]));
+      // And each one resolves to something a person can read, in both languages.
+      for (const option of await list(listKey)) {
+        expect(option.nameAr).not.toBe('');
+        expect(option.nameEn).not.toBe('');
       }
     });
 

@@ -19,6 +19,8 @@ import {
   useToast,
 } from '@web/components/ui';
 import { LookupOptionModal } from '@web/features/lookups/lookup-option-modal';
+import { ToothSwatch } from '@web/features/patients/chart/tooth-swatch';
+import { useToothStates } from '@web/features/patients/chart/tooth-state';
 import {
   useDeleteLookupOption,
   useLookupList,
@@ -103,6 +105,8 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
     [listKey],
   );
 
+  const states = useToothStates();
+
   const fail = (error: unknown): void => toast.error(errorMessageKey(error));
 
   /**
@@ -184,10 +188,12 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
               </span>
 
               {coloured && (
-                <span
-                  aria-hidden="true"
-                  className="inline-block size-4 shrink-0 rounded-sm border border-line"
-                  style={option.color ? { backgroundColor: option.color } : undefined}
+                // The colour the chart will actually paint with, which for a
+                // built-in row with no colour of its own is the theme's own
+                // token — an empty swatch beside "سليم" would be a lie.
+                <ToothSwatch
+                  style={states.info(option.code).style}
+                  className="inline-block size-4 shrink-0 rounded-sm border"
                 />
               )}
 

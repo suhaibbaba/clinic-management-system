@@ -39,6 +39,8 @@ packages/
 5. **Interactive charts:** teeth use FDI numbering (11–48, deciduous 51–85). A `chart_marks` table links a treatment to a location (tooth + surface, or body region) generically per specialty.
 6. **Public booking is anonymous:** no patient accounts. Phone number is the identity key; OTP or reception confirms. Slot computation from doctor schedules minus existing appointments — never store "free slots".
 7. **State machines as data:** statuses are string enums in `packages/shared`; allowed transitions validated in services (e.g. lab order: draft → sent → ready → received → fitted, with sent ← returned loop).
+8. **Every user-facing choice list is data, never a hardcoded array.** Options live in `lookup_options`, one row per option, scoped per clinic and grouped by `list_key` — tooth states, lab work types, materials and shades, attachment types, appointment types, inventory categories and units, payment methods, frequent drugs. A clinic adds "veneer" to the tooth chart or "شيك" to the payment methods in settings → القوائم, without a deploy. Adding a list is a `list_key` plus its rows in `SYSTEM_LOOKUPS`; adding an option is not a code change at all. Built-in rows are seeded with `is_system = true`: their names and colours are editable — that is what people read — but they cannot be deleted or switched off, because the application refers to them by code.
+   **The exception is a status that drives a state machine** (decision 7 above): appointment status, lab order status, stock movement direction. Those stay code enums, because the transition table, the permissions and the arithmetic are written against those exact values, and making them editable would let a clinic add a status nothing knows how to move out of. Behaviour is code; the words on a dropdown are data.
 
 ## Modules (build in this order)
 
@@ -67,6 +69,7 @@ packages/
 - Functional components + hooks; feature folders mirror backend modules; TanStack Query for server state.
 - RTL layout by default (`dir="rtl"`); test every screen in RTL. Gregorian dates, Arabic labels via i18n files — never hardcode Arabic strings in components.
 - Role-aware UI: hide what the role can't do, but treat UI hiding as cosmetic — the API is the real boundary.
+- Dropdowns read the clinic's own lists through `useLookupOptions` / `useLookupLabels`, never a constant. `pnpm --filter @clinic/web check:i18n` fails CI on an Arabic literal in any `.ts`/`.tsx` under `src`, and on a key present in one locale file and missing from the other.
 
 ### Files & images
 - Upload via presigned R2 URLs from the API; store only key + metadata in DB; serve via short-lived signed URLs. Receptionist role never receives attachment URLs.
@@ -78,6 +81,8 @@ packages/
 - Code, comments, commits, API: English. UI strings: Arabic via i18n. Commits: conventional commits (`feat(billing): ...`).
 
 ## Never
+- hardcode a user-facing choice list — it belongs in `lookup_options` (see architecture decision 8); a status that drives a state machine is the exception, and stays an enum
+- write a user-facing string in a component — every word comes from the locale files, in both languages
 - store or expose a manually editable "balance" or "quantity" field
 - hard-delete medical or financial rows
 - return medical fields in receptionist-role responses (see ROLES.md field rules)

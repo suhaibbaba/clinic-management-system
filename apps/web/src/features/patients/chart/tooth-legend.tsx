@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { ToothSwatch } from '@web/features/patients/chart/tooth-swatch';
 import { useToothStates } from '@web/features/patients/chart/tooth-state';
 
 /**
@@ -20,15 +21,7 @@ export function ToothLegend(): JSX.Element {
       {states.all.map(({ code, label, style }) => {
         return (
           <li key={code} className="flex items-center gap-1.5 text-chart-text text-label">
-            <span
-              aria-hidden="true"
-              className="inline-block size-3.5 shrink-0 rounded-sm border"
-              style={{
-                backgroundColor: style.fill,
-                borderColor: style.stroke,
-                borderStyle: style.dashed ? 'dashed' : 'solid',
-              }}
-            />
+            <ToothSwatch style={style} />
             {label}
           </li>
         );
