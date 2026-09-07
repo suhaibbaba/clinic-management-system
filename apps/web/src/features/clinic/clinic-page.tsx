@@ -1,11 +1,23 @@
-import { CURRENCIES, USER_ROLE, type Currency, type WeeklySchedule } from '@clinic/shared';
-import { useEffect, useState, type JSX } from 'react';
+import {
+  ALLOWED_CLINIC_LOGO_MIME_TYPES,
+  CURRENCIES,
+  MAX_CLINIC_LOGO_BYTES,
+  USER_ROLE,
+  type Currency,
+  type WeeklySchedule,
+} from '@clinic/shared';
+import { useEffect, useRef, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button, FormField, Icon, Input, PageHeader, Select, useToast } from '@web/components/ui';
 import { ScheduleEditor } from '@web/components/schedule-editor';
 import { useSession } from '@web/features/auth/session';
-import { useClinic, useUpdateClinic } from '@web/features/clinic/queries';
+import {
+  useClinic,
+  useRemoveClinicLogo,
+  useUpdateClinic,
+  useUploadClinicLogo,
+} from '@web/features/clinic/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
 const isCurrency = (value: string): value is Currency =>
@@ -149,29 +161,7 @@ export function ClinicPage(): JSX.Element {
 
           <div className="mt-6 border-t border-line pt-4">
             <p className="text-value font-medium text-ink">{t('clinic.logo')}</p>
-            <div className="mt-2 flex items-center gap-3">
-              <div
-                aria-label={t('clinic.logoPlaceholder')}
-                className="flex size-16 shrink-0 items-center justify-center rounded-control border border-dashed border-line-strong text-2xl text-ink-subtle"
-              >
-                &#9633;
-              </div>
-
-              <div className="flex flex-col items-start gap-1">
-                <p className="text-label text-ink-muted">{t('clinic.logoPlaceholder')}</p>
-                {/* R2 presigned upload is wired up with the attachments work. */}
-                <Button
-                  icon={<Icon name="upload" />}
-                  variant="secondary"
-                  size="sm"
-                  disabled
-                  title={t('clinic.logoComingSoon')}
-                >
-                  {t('clinic.uploadLogo')}
-                </Button>
-                <p className="text-label text-ink-subtle">{t('clinic.logoComingSoon')}</p>
-              </div>
-            </div>
+            <LogoField logoUrl={clinic.data?.logoUrl ?? null} canEdit={canEdit} />
           </div>
         </section>
 
@@ -181,5 +171,124 @@ export function ClinicPage(): JSX.Element {
         </section>
       </div>
     </>
+  );
+}
+
+/**
+ * The clinic's mark: on screen here, in the sidebar, on the sign-in page and
+ * at the top of every printed document.
+ *
+ * The size limit is checked before the file leaves the browser as well as
+ * after it lands, because a two-megabyte ceiling that only announces itself
+ * after a slow upload is not a limit anyone can work with. The API checks the
+ * stored bytes again, which is the real gate — this one is a courtesy.
+ */
+function LogoField({
+  logoUrl,
+  canEdit,
+}: {
+  readonly logoUrl: string | null;
+  readonly canEdit: boolean;
+}): JSX.Element {
+  const { t } = useTranslation();
+  const toast = useToast();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const upload = useUploadClinicLogo();
+  const remove = useRemoveClinicLogo();
+
+  const pick = async (file: File | undefined): Promise<void> => {
+    if (!file) {
+      return;
+    }
+
+    if (!ALLOWED_CLINIC_LOGO_MIME_TYPES.some((allowed) => allowed === file.type)) {
+      toast.error('clinic.logoUnsupported');
+      return;
+    }
+
+    if (file.size > MAX_CLINIC_LOGO_BYTES) {
+      toast.error('clinic.logoTooLarge');
+      return;
+    }
+
+    try {
+      await upload.mutateAsync(file);
+      toast.success('clinic.logoUpdated');
+    } catch (error) {
+      toast.error(errorMessageKey(error));
+    }
+  };
+
+  const clear = async (): Promise<void> => {
+    try {
+      await remove.mutateAsync();
+      toast.success('clinic.logoRemoved');
+    } catch (error) {
+      toast.error(errorMessageKey(error));
+    }
+  };
+
+  return (
+    <div className="mt-2 flex items-center gap-3">
+      {logoUrl ? (
+        <img
+          src={logoUrl}
+          alt={t('clinic.logo')}
+          // Square-ish box, `contain`: a wide wordmark and a round badge both
+          // sit inside it without either being cropped or stretched.
+          className="size-16 shrink-0 rounded-control border border-line bg-surface object-contain p-1"
+        />
+      ) : (
+        <span
+          aria-label={t('clinic.logoPlaceholder')}
+          className="flex size-16 shrink-0 items-center justify-center rounded-control border border-dashed border-line-strong text-ink-subtle"
+        >
+          <Icon name="image" />
+        </span>
+      )}
+
+      <div className="flex flex-col items-start gap-1">
+        <p className="text-label text-ink-muted">{t('clinic.logoHint')}</p>
+
+        {canEdit && (
+          <span className="flex flex-wrap items-center gap-2">
+            <input
+              ref={inputRef}
+              type="file"
+              className="hidden"
+              accept={ALLOWED_CLINIC_LOGO_MIME_TYPES.join(',')}
+              onChange={(event) => {
+                void pick(event.target.files?.[0]);
+                // Cleared so picking the same file twice still fires a change.
+                event.target.value = '';
+              }}
+            />
+
+            <Button
+              icon={<Icon name="upload" />}
+              variant="secondary"
+              size="sm"
+              isLoading={upload.isPending}
+              onClick={() => inputRef.current?.click()}
+            >
+              {t(logoUrl ? 'clinic.replaceLogo' : 'clinic.uploadLogo')}
+            </Button>
+
+            {logoUrl && (
+              <Button
+                icon={<Icon name="trash" />}
+                variant="secondary"
+                size="sm"
+                isLoading={remove.isPending}
+                onClick={() => void clear()}
+              >
+                {t('common.delete')}
+              </Button>
+            )}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }

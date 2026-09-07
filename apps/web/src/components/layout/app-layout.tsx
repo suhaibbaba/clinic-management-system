@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 import { Logo } from '@web/components/brand/logo';
+import { useClinic } from '@web/features/clinic/queries';
 import { Breadcrumb } from '@web/components/layout/breadcrumb';
 import { NavDrawer } from '@web/components/layout/nav-drawer';
 import { UserMenu } from '@web/components/layout/user-menu';
@@ -27,6 +28,8 @@ import { cn } from '@web/lib/cn';
 export function AppLayout(): JSX.Element {
   const { t } = useTranslation();
   const { user, logout } = useSession();
+  // The clinic's own mark in the chrome; the bundled one until they upload it.
+  const clinic = useClinic();
   const { pathname } = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -91,7 +94,7 @@ export function AppLayout(): JSX.Element {
       >
         <div className="flex h-full flex-col px-3 py-4">
           <div className="mb-6 flex items-center gap-2.5 px-3">
-            <Logo size="sm" />
+            <Logo size="sm" src={clinic.data?.logoUrl} />
             <span className="text-value font-semibold tracking-[-0.03em] text-ink">
               {t('app.title')}
             </span>

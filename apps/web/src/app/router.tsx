@@ -10,6 +10,7 @@ import { LoginPage } from '@web/features/auth/login-page';
 import { OverduePage } from '@web/features/billing/overdue-page';
 import { PendingBookingsPage } from '@web/features/booking/pending-bookings-page';
 import { ClinicPage } from '@web/features/clinic/clinic-page';
+import { LookupsPage } from '@web/features/lookups/lookups-page';
 import { DoctorsPage } from '@web/features/doctors/doctors-page';
 import { InventoryPage } from '@web/features/inventory/inventory-page';
 import { ShoppingListPage } from '@web/features/inventory/shopping-list-page';
@@ -166,6 +167,14 @@ export function AppRoutes(): JSX.Element {
           }
         />
 
+        <Route
+          path="/clinic/lists"
+          element={
+            <RequireRole roles={ADMIN_ONLY}>
+              <LookupsPage />
+            </RequireRole>
+          }
+        />
         <Route
           path="/users"
           element={

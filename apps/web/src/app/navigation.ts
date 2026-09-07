@@ -77,6 +77,9 @@ export const NAV_ITEMS: readonly NavItem[] = [
   },
   { to: '/doctors', label: 'nav.doctors', roles: USER_ROLES, icon: 'stethoscope' },
   { to: '/clinic', label: 'nav.clinic', roles: USER_ROLES, icon: 'gear' },
+  // The lists every dropdown in the app is drawn from. Settings, so admin
+  // only (ROLES.md core matrix, "Clinic settings, templates").
+  { to: '/clinic/lists', label: 'nav.lists', roles: [USER_ROLE.ADMIN], icon: 'list' },
   { to: '/users', label: 'nav.users', roles: [USER_ROLE.ADMIN], icon: 'shield' },
   { to: '/audit-log', label: 'nav.audit', roles: [USER_ROLE.ADMIN], icon: 'clipboard' },
   { to: '/profile', label: 'nav.profile', roles: USER_ROLES, icon: 'user' },

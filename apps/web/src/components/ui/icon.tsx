@@ -1,4 +1,6 @@
 import {
+  GripVertical,
+  ListOrdered,
   Activity,
   AlertTriangle,
   Bell,
@@ -83,10 +85,12 @@ export type IconName =
   | 'error'
   | 'file'
   | 'gear'
+  | 'grip'
   | 'globe'
   | 'image'
   | 'info'
   | 'language'
+  | 'list'
   | 'login'
   | 'logout'
   | 'mail'
@@ -138,10 +142,13 @@ const ICONS: Record<IconName, LucideIcon> = {
   error: XCircle,
   file: FileText,
   gear: Settings,
+  // The drag handle: six dots is the shape everything that reorders uses.
+  grip: GripVertical,
   globe: Globe,
   image: ImageIcon,
   info: Info,
   language: Languages,
+  list: ListOrdered,
   login: LogIn,
   logout: LogOut,
   mail: Mail,

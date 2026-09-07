@@ -1,4 +1,5 @@
 import {
+  LOOKUP_LIST,
   TIMELINE_ENTRY_TYPE,
   type LabOrderStatus,
   type TimelineEntry,
@@ -8,6 +9,7 @@ import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge, EmptyState, Icon, type IconName } from '@web/components/ui';
+import { useLookupLabels } from '@web/features/lookups/queries';
 import { LAB_ORDER_STATUS_STYLES } from '@web/features/labs/status';
 import { usePatientTimeline } from '@web/features/patients/queries';
 import { formatDate } from '@web/lib/format';
@@ -115,6 +117,7 @@ function LabOrderChips({ entry }: { readonly entry: TimelineEntry }): JSX.Elemen
 /** The one line under the title, shaped by what kind of entry this is. */
 function Detail({ entry }: { readonly entry: TimelineEntry }): JSX.Element | null {
   const { t } = useTranslation();
+  const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
 
   if (entry.type === TIMELINE_ENTRY_TYPE.LAB_ORDER) {
     const teeth = (entry.detail['teeth'] as number[] | undefined) ?? [];
@@ -143,7 +146,7 @@ function Detail({ entry }: { readonly entry: TimelineEntry }): JSX.Element | nul
         <span dir="ltr" className="tabular-nums">
           {quantity}
         </span>{' '}
-        {unit ? t(`inventory.units.${unit}`) : ''}
+        {unitLabel(unit ?? null)}
       </p>
     );
   }

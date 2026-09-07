@@ -59,6 +59,16 @@ export const LOOKUP_LIST_KEYS = [
 export const COLOURED_LOOKUP_LISTS: readonly LookupListKey[] = [LOOKUP_LIST.TOOTH_STATE];
 
 /**
+ * What the colour picker starts on for a new option.
+ *
+ * A value rather than a theme token: it is written into the database as the
+ * clinic's own choice, and the theme has no say over a colour somebody picked.
+ * It lives here so the web app never names a colour in its own source, which
+ * `theme.test.ts` enforces — theme.css is the only place the *brand* is named.
+ */
+export const DEFAULT_LOOKUP_COLOUR = '#7c3aed';
+
+/**
  * Which half of the tooth a state describes, and whether the chart draws it
  * specially.
  *

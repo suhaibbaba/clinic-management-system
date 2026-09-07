@@ -69,6 +69,13 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      # Zero static text (CLAUDE.md): no Arabic written into a component, and
+      # every key present in both locales. A key added to one and forgotten in
+      # the other is text that silently falls back to Arabic in an English
+      # interface, which nobody notices until a user does.
+      - name: Check i18n
+        run: pnpm --filter @clinic/web check:i18n
+
       - name: Test
         run: pnpm test
 
