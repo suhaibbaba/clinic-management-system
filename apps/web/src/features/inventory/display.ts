@@ -5,7 +5,6 @@ import {
   quantityToNumber,
   toThousandths,
   type InventoryItemRow,
-  type ItemCategory,
   type MovementType,
 } from '@clinic/shared';
 
@@ -19,16 +18,19 @@ import type { ProgressTone } from '@web/components/ui/progress-bar';
  * amber in one place and grey in another, and "low" cannot be red on the list
  * and neutral in the drawer. Every value is a `theme.css` token; no hex.
  */
-export const CATEGORY_TONES: Record<ItemCategory, BadgeTone> = {
+/**
+ * Categories are the clinic's own list now, so this covers the four that ship
+ * and leaves anything a clinic added to the neutral badge — a tone is emphasis,
+ * and a category nobody wrote a rule for has none to give.
+ */
+const CATEGORY_TONES: Record<string, BadgeTone> = {
   [ITEM_CATEGORY.MEDICATION]: 'info',
   [ITEM_CATEGORY.CONSUMABLE]: 'neutral',
   [ITEM_CATEGORY.TOOL]: 'neutral',
   [ITEM_CATEGORY.STERILIZATION]: 'success',
 };
 
-export const categoryLabel = (category: ItemCategory): string => `inventory.categories.${category}`;
-
-export const unitLabel = (unit: string): string => `inventory.units.${unit}`;
+export const categoryTone = (category: string): BadgeTone => CATEGORY_TONES[category] ?? 'neutral';
 
 export const movementLabel = (type: MovementType): string => `inventory.movements.${type}`;
 

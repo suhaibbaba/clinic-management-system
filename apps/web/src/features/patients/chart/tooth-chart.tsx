@@ -1,4 +1,3 @@
-import { TOOTH_STATE, type ToothState } from '@clinic/shared';
 import {
   useCallback,
   useEffect,
@@ -20,9 +19,10 @@ import {
 } from '@web/features/patients/chart/tooth-shapes';
 import {
   areaState,
+  hasShape,
   healthyTooth,
-  TOOTH_STATE_STYLES,
-  toothStateLabelKey,
+  useToothStates,
+  type ToothStates,
   type ToothSummary,
 } from '@web/features/patients/chart/tooth-state';
 import { cn } from '@web/lib/cn';
@@ -67,6 +67,7 @@ export function ToothChart({
   onSelect,
 }: ToothChartProps): JSX.Element {
   const { t } = useTranslation();
+  const states = useToothStates();
 
   const upper = useMemo(() => layoutRow(dentition, 'upper'), [dentition]);
   const lower = useMemo(() => layoutRow(dentition, 'lower'), [dentition]);
@@ -140,7 +141,8 @@ export function ToothChart({
           key={slot.tooth}
           slot={slot}
           summary={summarise(summaries, slot.tooth)}
-          bridge={bridgeSpan(slots, slot.index, summaries)}
+          states={states}
+          bridge={bridgeSpan(slots, slot.index, summaries, states)}
           selected={selectedTooth === slot.tooth}
           tabIndex={rovingTooth === slot.tooth ? 0 : -1}
           onSelect={onSelect}
@@ -235,12 +237,11 @@ function bridgeSpan(
   slots: readonly ToothSlot[],
   index: number,
   summaries: ReadonlyMap<number, ToothSummary>,
+  states: ToothStates,
 ): BridgeSpan {
   const isBridge = (at: number): boolean => {
     const slot = slots[at];
-    return (
-      slot !== undefined && summarise(summaries, slot.tooth).states.includes(TOOTH_STATE.BRIDGE)
-    );
+    return slot !== undefined && hasShape(summarise(summaries, slot.tooth), 'bridge', states);
   };
 
   if (!isBridge(index)) {
@@ -260,6 +261,7 @@ function bridgeSpan(
 interface ToothProps {
   readonly slot: ToothSlot;
   readonly summary: ToothSummary;
+  readonly states: ToothStates;
   readonly bridge: BridgeSpan;
   readonly selected: boolean;
   readonly tabIndex: number;
@@ -271,6 +273,7 @@ interface ToothProps {
 function Tooth({
   slot,
   summary,
+  states,
   bridge,
   selected,
   tabIndex,
@@ -281,21 +284,24 @@ function Tooth({
   const { t } = useTranslation();
 
   const shape = TOOTH_SHAPES[slot.type];
-  const missing = summary.state === TOOTH_STATE.MISSING;
-  const implant = summary.states.includes(TOOTH_STATE.IMPLANT);
+  // The three drawings the chart has beyond a fill. Read from the state's own
+  // `shape` rather than from its code, so the row a clinic renamed still draws
+  // as the absence, the post or the bar it is.
+  const missing = states.info(summary.state).shape === 'missing';
+  const implant = hasShape(summary, 'implant', states);
 
-  const crown = TOOTH_STATE_STYLES[areaState(summary, 'crown')];
-  const root = TOOTH_STATE_STYLES[areaState(summary, 'root')];
+  const crown = states.info(areaState(summary, 'crown', states)).style;
+  const root = states.info(areaState(summary, 'root', states)).style;
+  const stateLabel = states.info(summary.state).label;
+  const implantStyle = states.info(areaState(summary, 'root', states)).style;
+  const bridgeStyle = crown;
 
   const label =
     summary.procedureCount === 0
-      ? t('chart.toothLabel', {
-          tooth: slot.tooth,
-          state: t(toothStateLabelKey(summary.state)),
-        })
+      ? t('chart.toothLabel', { tooth: slot.tooth, state: stateLabel })
       : t('chart.toothLabelWithCount', {
           tooth: slot.tooth,
-          state: t(toothStateLabelKey(summary.state)),
+          state: stateLabel,
           count: summary.procedureCount,
         });
 
@@ -337,7 +343,7 @@ function Tooth({
           // not there, dashed, with nothing inside it.
           <g
             fill="none"
-            stroke={TOOTH_STATE_STYLES[TOOTH_STATE.MISSING].stroke}
+            stroke={states.info(summary.state).style.stroke}
             strokeWidth={2}
             strokeDasharray="5 4"
             strokeLinejoin="round"
@@ -350,10 +356,7 @@ function Tooth({
         ) : (
           <g strokeWidth={2} strokeLinejoin="round">
             {implant ? (
-              <g
-                fill={TOOTH_STATE_STYLES[TOOTH_STATE.IMPLANT].fill}
-                stroke={TOOTH_STATE_STYLES[TOOTH_STATE.IMPLANT].stroke}
-              >
+              <g fill={implantStyle.fill} stroke={implantStyle.stroke}>
                 <path d={IMPLANT_POST.body} />
                 {IMPLANT_POST.threads.map((y) => (
                   <line
@@ -389,7 +392,7 @@ function Tooth({
 
             {bridge !== null && (
               <rect
-                fill={TOOTH_STATE_STYLES[TOOTH_STATE.BRIDGE].stroke}
+                fill={bridgeStyle.stroke}
                 // Only the first tooth of a run keeps its bar inside its own
                 // box; every other one starts 6 units early so it overlaps the
                 // bar reaching towards it. Anything else leaves a hairline gap
@@ -428,7 +431,7 @@ function Tooth({
         )}
       />
 
-      <Tooltip summary={summary} />
+      <Tooltip summary={summary} stateLabel={stateLabel} />
     </button>
   );
 }
@@ -437,9 +440,13 @@ function Tooth({
  * The hover bubble. Supplementary only — the same facts are already in the
  * tooth's accessible name, so a screen reader is not told them twice.
  */
-function Tooltip({ summary }: { readonly summary: ToothSummary }): JSX.Element {
-  const { t } = useTranslation();
-
+function Tooltip({
+  summary,
+  stateLabel,
+}: {
+  readonly summary: ToothSummary;
+  readonly stateLabel: string;
+}): JSX.Element {
   return (
     <span
       role="tooltip"
@@ -456,7 +463,7 @@ function Tooltip({ summary }: { readonly summary: ToothSummary }): JSX.Element {
       <span className="font-semibold" dir="ltr">
         {summary.tooth}
       </span>{' '}
-      · {t(toothStateLabelKey(summary.state))}
+      · {stateLabel}
       {summary.surfaces.length > 0 && (
         <>
           {' · '}
@@ -476,5 +483,3 @@ export function ToothChartSkeleton(): JSX.Element {
     />
   );
 }
-
-export type { ToothState };

@@ -1,5 +1,7 @@
 import {
   CHART_TYPE,
+  LOOKUP_LIST_KEYS,
+  SYSTEM_LOOKUPS,
   LEDGER_ENTRY_KIND,
   PAYMENT_METHOD,
   PERFORMED_PROCEDURE_STATUS,
@@ -16,6 +18,9 @@ import {
   type StatementEntry,
   type PerformedProcedure,
   type ProcedureCatalogItem,
+  type LookupBundle,
+  type LookupListKey,
+  type LookupOption,
   type ToothHistory,
   type TreatmentPlan,
   type TreatmentPlanItem,
@@ -338,6 +343,66 @@ export function makeOverduePatient(overrides: Partial<OverduePatient> = {}): Ove
     balance: '300.00',
     lastPaymentAt: '2026-06-01T10:00:00.000Z',
     daysSinceLastPayment: 96,
+    ...overrides,
+  };
+}
+
+/**
+ * The editable lists as a clinic starts with them.
+ *
+ * Built from the same `SYSTEM_LOOKUPS` the API seeds from, so a test that
+ * renders a dropdown sees exactly the rows a real clinic would — and a test
+ * that adds a row to one of them is adding a row to a real list, not to a
+ * fixture that happens to resemble one.
+ */
+export function makeLookupBundle(
+  extra: Partial<Record<LookupListKey, readonly Partial<LookupOption>[]>> = {},
+): LookupBundle {
+  const bundle: Record<string, LookupOption[]> = {};
+
+  for (const listKey of LOOKUP_LIST_KEYS) {
+    bundle[listKey] = SYSTEM_LOOKUPS[listKey].map((row, index) =>
+      makeLookupOption({
+        id: `${listKey}-${row.code}`,
+        listKey,
+        code: row.code,
+        nameAr: row.nameAr,
+        nameEn: row.nameEn,
+        color: row.color ?? null,
+        sortOrder: index,
+        isSystem: true,
+        meta: row.meta ?? {},
+      }),
+    );
+  }
+
+  for (const [listKey, rows] of Object.entries(extra)) {
+    const list = (bundle[listKey] ??= []);
+    for (const row of rows) {
+      list.push(
+        makeLookupOption({ listKey: listKey as LookupListKey, sortOrder: list.length, ...row }),
+      );
+    }
+  }
+
+  return bundle;
+}
+
+export function makeLookupOption(overrides: Partial<LookupOption> = {}): LookupOption {
+  return {
+    id: overrides.code ?? 'lookup-1',
+    clinicId: CLINIC_ID,
+    listKey: LOOKUP_LIST_KEYS[0],
+    code: 'code',
+    nameAr: 'خيار',
+    nameEn: 'Option',
+    color: null,
+    sortOrder: 0,
+    isSystem: false,
+    isActive: true,
+    meta: {},
+    createdAt: '2026-01-01T09:00:00.000Z',
+    updatedAt: '2026-01-01T09:00:00.000Z',
     ...overrides,
   };
 }

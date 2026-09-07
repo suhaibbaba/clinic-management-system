@@ -1,6 +1,6 @@
 import {
+  LOOKUP_LIST,
   ALLOWED_ATTACHMENT_MIME_TYPES,
-  ATTACHMENT_TYPES,
   isFdiTooth,
   MAX_ATTACHMENT_BYTES,
   type Attachment,
@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Badge, Button, EmptyState, Icon, Input, Select, useToast } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
+import { useLookupLabels, useLookupOptions } from '@web/features/lookups/queries';
 import { canDelete, canManageAttachments } from '@web/features/patients/permissions';
 import {
   useAttachment,
@@ -35,6 +36,7 @@ import { formatDate } from '@web/lib/format';
  */
 export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
   const { t } = useTranslation();
+  const attachmentTypes = useLookupOptions(LOOKUP_LIST.ATTACHMENT_TYPE);
   const { user } = useSession();
   const toast = useToast();
 
@@ -68,10 +70,7 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
             value={typeFilter}
             onChange={(event) => setTypeFilter(event.target.value as AttachmentType | '')}
             placeholder={t('common.all')}
-            options={ATTACHMENT_TYPES.map((value) => ({
-              value,
-              label: t(`imaging.types.${value}`),
-            }))}
+            options={attachmentTypes}
           />
         </div>
 
@@ -132,6 +131,7 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
 /** Picks a file and its kind, then runs the presign → upload → confirm flow. */
 function UploadRow({ patientId }: { patientId: string }): JSX.Element {
   const { t } = useTranslation();
+  const attachmentTypes = useLookupOptions(LOOKUP_LIST.ATTACHMENT_TYPE);
   const toast = useToast();
   const upload = useUploadAttachment(patientId);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -204,10 +204,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
             id="upload-type"
             value={type}
             onChange={(event) => setType(event.target.value as AttachmentType)}
-            options={ATTACHMENT_TYPES.map((value) => ({
-              value,
-              label: t(`imaging.types.${value}`),
-            }))}
+            options={attachmentTypes}
           />
         </div>
 
@@ -291,6 +288,7 @@ function ImageCard({
   onError: (error: unknown) => void;
 }): JSX.Element {
   const { t } = useTranslation();
+  const attachmentTypeLabel = useLookupLabels(LOOKUP_LIST.ATTACHMENT_TYPE);
   const toast = useToast();
   // The list carries no URL; one is minted per image actually on screen.
   const { data, isPending } = useAttachment(attachment.id, true);
@@ -340,7 +338,7 @@ function ImageCard({
         </span>
 
         <span className="flex flex-wrap items-center gap-1.5">
-          <Badge tone="neutral">{t(`imaging.types.${attachment.type}`)}</Badge>
+          <Badge tone="neutral">{attachmentTypeLabel(attachment.type)}</Badge>
           {attachment.tooth !== null && (
             <Badge tone="info">
               <span dir="ltr">{attachment.tooth}</span>

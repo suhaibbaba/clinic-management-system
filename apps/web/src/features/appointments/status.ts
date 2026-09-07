@@ -1,4 +1,4 @@
-import { APPOINTMENT_STATUS, type AppointmentStatus, type AppointmentType } from '@clinic/shared';
+import { APPOINTMENT_STATUS, type AppointmentStatus } from '@clinic/shared';
 
 import type { BadgeTone } from '@web/components/ui/badge';
 
@@ -57,8 +57,6 @@ export const APPOINTMENT_STATUS_STYLES: Record<AppointmentStatus, StatusStyle> =
 /** i18n keys, so no component ever holds an Arabic string. */
 export const statusLabelKey = (status: AppointmentStatus): string =>
   `appointments.statuses.${status}`;
-
-export const typeLabelKey = (type: AppointmentType): string => `appointments.types.${type}`;
 
 /**
  * The buttons the drawer offers for a status.

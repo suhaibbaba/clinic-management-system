@@ -1,10 +1,4 @@
-import {
-  ITEM_CATEGORIES,
-  ITEM_UNITS,
-  type InventoryItemRow,
-  type ItemCategory,
-  type ItemUnit,
-} from '@clinic/shared';
+import { LOOKUP_LIST, type InventoryItemRow } from '@clinic/shared';
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -18,7 +12,7 @@ import {
   Textarea,
   useToast,
 } from '@web/components/ui';
-import { categoryLabel, unitLabel } from '@web/features/inventory/display';
+import { useLookupOptions } from '@web/features/lookups/queries';
 import { useCreateItem, useSuppliers, useUpdateItem } from '@web/features/inventory/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -42,6 +36,8 @@ export function ItemFormModal({
   readonly item?: InventoryItemRow | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
+  const categoryOptions = useLookupOptions(LOOKUP_LIST.ITEM_CATEGORY);
+  const unitOptions = useLookupOptions(LOOKUP_LIST.ITEM_UNIT);
   const toast = useToast();
 
   const create = useCreateItem();
@@ -49,8 +45,8 @@ export function ItemFormModal({
   const suppliers = useSuppliers({ limit: 100 });
 
   const [nameAr, setNameAr] = useState('');
-  const [category, setCategory] = useState<ItemCategory>(ITEM_CATEGORIES[0]);
-  const [unit, setUnit] = useState<ItemUnit>(ITEM_UNITS[0]);
+  const [category, setCategory] = useState('');
+  const [unit, setUnit] = useState('');
   const [minQuantity, setMinQuantity] = useState('');
   const [supplierId, setSupplierId] = useState('');
   const [notes, setNotes] = useState('');
@@ -62,13 +58,15 @@ export function ItemFormModal({
     }
 
     setNameAr(item?.nameAr ?? '');
-    setCategory(item?.category ?? ITEM_CATEGORIES[0]);
-    setUnit(item?.unit ?? ITEM_UNITS[0]);
+    // The first option on the clinic's own list, once it has loaded — there is
+    // no built-in default to fall back on now that the list is theirs.
+    setCategory(item?.category ?? categoryOptions[0]?.value ?? '');
+    setUnit(item?.unit ?? unitOptions[0]?.value ?? '');
     setMinQuantity(item?.minQuantity ?? '');
     setSupplierId(item?.defaultSupplierId ?? '');
     setNotes(item?.notes ?? '');
     setIsActive(item?.isActive ?? true);
-  }, [open, item]);
+  }, [open, item, categoryOptions, unitOptions]);
 
   const submit = async (): Promise<void> => {
     try {
@@ -128,11 +126,8 @@ export function ItemFormModal({
             <Select
               id="item-category"
               value={category}
-              onChange={(event) => setCategory(event.target.value as ItemCategory)}
-              options={ITEM_CATEGORIES.map((value) => ({
-                value,
-                label: t(categoryLabel(value)),
-              }))}
+              onChange={(event) => setCategory(event.target.value)}
+              options={categoryOptions}
             />
           </FormField>
 
@@ -145,8 +140,8 @@ export function ItemFormModal({
               id="item-unit"
               value={unit}
               disabled={Boolean(item)}
-              onChange={(event) => setUnit(event.target.value as ItemUnit)}
-              options={ITEM_UNITS.map((value) => ({ value, label: t(unitLabel(value)) }))}
+              onChange={(event) => setUnit(event.target.value)}
+              options={unitOptions}
             />
           </FormField>
         </div>

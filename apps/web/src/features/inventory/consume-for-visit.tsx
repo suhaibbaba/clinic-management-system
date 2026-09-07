@@ -1,10 +1,10 @@
 import type { PatientClinicalView } from '@clinic/shared';
-import { MOVEMENT_TYPE } from '@clinic/shared';
+import { LOOKUP_LIST, MOVEMENT_TYPE } from '@clinic/shared';
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button, FormField, Modal, Select } from '@web/components/ui';
-import { unitLabel } from '@web/features/inventory/display';
+import { useLookupLabels } from '@web/features/lookups/queries';
 import { MovementModal } from '@web/features/inventory/movement-modal';
 import { useInventoryItems } from '@web/features/inventory/queries';
 
@@ -30,6 +30,7 @@ export function ConsumeForVisit({
   readonly patient: PatientClinicalView | undefined;
 }): JSX.Element | null {
   const { t } = useTranslation();
+  const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const [itemId, setItemId] = useState('');
 
   const items = useInventoryItems({ limit: 100 });
@@ -84,7 +85,7 @@ export function ConsumeForVisit({
           onChange={(event) => setItemId(event.target.value)}
           options={(items.data?.items ?? []).map((item) => ({
             value: item.id,
-            label: `${item.nameAr} — ${item.quantity} ${t(unitLabel(item.unit))}`,
+            label: `${item.nameAr} — ${item.quantity} ${unitLabel(item.unit)}`,
           }))}
         />
       </FormField>

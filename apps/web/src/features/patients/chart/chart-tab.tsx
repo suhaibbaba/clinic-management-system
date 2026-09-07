@@ -9,7 +9,11 @@ import type { NewProcedureInput } from '@web/features/patients/chart/add-procedu
 import { ToothChart, ToothChartSkeleton } from '@web/features/patients/chart/tooth-chart';
 import { ToothLegend } from '@web/features/patients/chart/tooth-legend';
 import { ToothPanel } from '@web/features/patients/chart/tooth-panel';
-import { deriveToothSummaries, healthyTooth } from '@web/features/patients/chart/tooth-state';
+import {
+  deriveToothSummaries,
+  healthyTooth,
+  useToothStates,
+} from '@web/features/patients/chart/tooth-state';
 import {
   useCreateProcedure,
   useProcedureCatalog,
@@ -67,9 +71,11 @@ export function ChartTab({
     [catalog.data],
   );
 
+  const states = useToothStates();
+
   const summaries = useMemo(
-    () => deriveToothSummaries(procedures.data ?? [], outcomes),
-    [procedures.data, outcomes],
+    () => deriveToothSummaries(procedures.data ?? [], outcomes, states),
+    [procedures.data, outcomes, states],
   );
 
   /*

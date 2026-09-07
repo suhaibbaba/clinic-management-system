@@ -1,13 +1,10 @@
-import type { CalendarAppointment } from '@clinic/shared';
+import { LOOKUP_LIST, type CalendarAppointment } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge, EmptyState, Icon } from '@web/components/ui';
-import {
-  APPOINTMENT_STATUS_STYLES,
-  statusLabelKey,
-  typeLabelKey,
-} from '@web/features/appointments/status';
+import { useLookupLabels } from '@web/features/lookups/queries';
+import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from '@web/features/appointments/status';
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
 import { cn } from '@web/lib/cn';
 
@@ -27,6 +24,7 @@ export interface AgendaListProps {
  */
 export function AgendaList({ appointments, onOpen, showDoctor }: AgendaListProps): JSX.Element {
   const { t } = useTranslation();
+  const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
 
   if (appointments.length === 0) {
     return <EmptyState icon="calendar" title="appointments.empty" hint="appointments.emptyHint" />;
@@ -70,7 +68,7 @@ export function AgendaList({ appointments, onOpen, showDoctor }: AgendaListProps
                 </span>
 
                 <span className="flex flex-wrap items-center gap-x-2 text-label text-ink-muted">
-                  <span>{t(typeLabelKey(appointment.type))}</span>
+                  <span>{typeLabel(appointment.type)}</span>
                   <span aria-hidden="true">·</span>
                   <span>
                     {t('appointments.durationMinutes', { count: appointment.durationMinutes })}

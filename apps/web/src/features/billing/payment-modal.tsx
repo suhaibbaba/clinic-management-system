@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createPaymentSchema, PAYMENT_METHODS, type CreatePaymentInput } from '@clinic/shared';
+import { createPaymentSchema, LOOKUP_LIST, type CreatePaymentInput } from '@clinic/shared';
 import { useEffect, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import { Button, FormField, Icon, Input, Modal, Select, useToast } from '@web/components/ui';
 import { openReceipt } from '@web/features/billing/documents';
+import { useLookupOptions } from '@web/features/lookups/queries';
 import { useCreatePayment } from '@web/features/billing/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -33,6 +34,7 @@ export function PaymentModal({
   currency,
 }: PaymentModalProps): JSX.Element {
   const { t } = useTranslation();
+  const methods = useLookupOptions(LOOKUP_LIST.PAYMENT_METHOD);
   const toast = useToast();
   const createPayment = useCreatePayment();
 
@@ -108,10 +110,7 @@ export function PaymentModal({
           <Select
             placeholder={t('common.placeholders.selectMethod')}
             id="payment-method"
-            options={PAYMENT_METHODS.map((method) => ({
-              value: method,
-              label: t(`billing.methods.${method}`),
-            }))}
+            options={methods}
             {...register('method')}
           />
         </FormField>

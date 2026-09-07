@@ -1,29 +1,52 @@
-import { TOOTH_STATE, type ToothState } from '@clinic/shared';
-import { render, screen } from '@testing-library/react';
+import {
+  LOOKUP_LIST,
+  SYSTEM_LOOKUPS,
+  TOOTH_STATE,
+  type LookupBundle,
+  type ToothState,
+} from '@clinic/shared';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ToothChart } from '@web/features/patients/chart/tooth-chart';
-import { deriveToothSummaries, type ToothSummary } from '@web/features/patients/chart/tooth-state';
-import ar from '@web/i18n/locales/ar.json';
+import {
+  buildToothStates,
+  deriveToothSummaries,
+  type ToothSummary,
+} from '@web/features/patients/chart/tooth-state';
 import '@web/i18n';
-import { makeProcedure } from '@test/helpers/fixtures';
+import { makeLookupBundle, makeProcedure } from '@test/helpers/fixtures';
+import { renderWithProviders } from '@test/helpers/render';
 
 const CATALOG_ID = makeProcedure(11).procedureId;
 
+/** The seeded Arabic name of a built-in state, which is what the chart draws. */
+const named = (code: string): string =>
+  SYSTEM_LOOKUPS[LOOKUP_LIST.TOOTH_STATE].find((row) => row.code === code)?.nameAr ?? code;
+
 function renderChart(
   summaries: ReadonlyMap<number, ToothSummary> = new Map(),
-  { selected = null as number | null } = {},
+  {
+    selected = null as number | null,
+    dentition = 'permanent' as const,
+    lookups = makeLookupBundle(),
+  }: {
+    selected?: number | null;
+    dentition?: 'permanent' | 'deciduous';
+    lookups?: LookupBundle;
+  } = {},
 ) {
   const onSelect = vi.fn();
 
-  const view = render(
+  const view = renderWithProviders(
     <ToothChart
-      dentition="permanent"
+      dentition={dentition}
       summaries={summaries}
       selectedTooth={selected}
       onSelect={onSelect}
     />,
+    { lookups },
   );
 
   return { onSelect, container: view.container };
@@ -64,13 +87,17 @@ describe('ToothChart', () => {
     const summaries = deriveToothSummaries(
       [makeProcedure(46, { procedureId: CATALOG_ID })],
       new Map([[CATALOG_ID, 'filling' as const]]),
+      buildToothStates(makeLookupBundle()[LOOKUP_LIST.TOOTH_STATE] ?? [], 'ar'),
     );
 
     renderChart(summaries);
 
-    expect(screen.getByRole('button', { name: `السن 46 — حشوة، 1 معالجة` })).toBeInTheDocument();
+    // The name comes off the clinic's own row, not an i18n key.
     expect(
-      screen.getByRole('button', { name: `السن 11 — ${ar.chart.states.healthy}` }),
+      screen.getByRole('button', { name: `السن 46 — ${named('filling')}، 1 معالجة` }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: `السن 11 — ${named('healthy')}` }),
     ).toBeInTheDocument();
   });
 
@@ -187,14 +214,7 @@ describe('ToothChart', () => {
 
   describe('deciduous mode', () => {
     it('shows 20 teeth instead of 32', () => {
-      render(
-        <ToothChart
-          dentition="deciduous"
-          summaries={new Map()}
-          selectedTooth={null}
-          onSelect={vi.fn()}
-        />,
-      );
+      renderChart(new Map(), { dentition: 'deciduous' });
 
       expect(screen.getAllByRole('button')).toHaveLength(20);
       expect(screen.getByRole('button', { name: new RegExp('\\b55\\b') })).toBeInTheDocument();
@@ -206,7 +226,28 @@ describe('ToothChart', () => {
 
     const button = tooth(18);
     expect(button.querySelector('[stroke-dasharray]')).not.toBeNull();
-    expect(button).toHaveAccessibleName(new RegExp(ar.chart.states.missing));
+    expect(button).toHaveAccessibleName(new RegExp(named('missing')));
+  });
+
+  /*
+   * The whole reason the states are data: a clinic adds one in settings, and
+   * the chart paints it and names it without a line of code here.
+   */
+  it('paints a state the clinic invented in the colour they chose', () => {
+    renderChart(charted(16, ['veneer']), {
+      lookups: makeLookupBundle({
+        [LOOKUP_LIST.TOOTH_STATE]: [
+          { code: 'veneer', nameAr: 'وجه تجميلي', nameEn: 'Veneer', color: '#7c3aed' },
+        ],
+      }),
+    });
+
+    const button = tooth(16);
+    const fills = [...button.querySelectorAll('path')].map((path) => path.getAttribute('fill'));
+
+    // Whole tooth: the chart cannot know which half a new state belongs on.
+    expect(new Set(fills)).toEqual(new Set(['#7c3aed']));
+    expect(button).toHaveAccessibleName(new RegExp('وجه تجميلي'));
   });
 
   describe('anatomy', () => {

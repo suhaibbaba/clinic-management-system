@@ -1,5 +1,5 @@
 import {
-  PAYMENT_METHODS,
+  LOOKUP_LIST,
   createLabPaymentSchema,
   type CreateLabPaymentInput,
   type LabBalance,
@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button, FormField, Input, Modal, Select, Textarea, useToast } from '@web/components/ui';
 import { Money } from '@web/features/billing/money';
+import { useLookupOptions } from '@web/features/lookups/queries';
 import { usePayLab } from '@web/features/labs/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -38,6 +39,7 @@ export function LabPaymentModal({
   readonly currency: string | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
+  const methods = useLookupOptions(LOOKUP_LIST.PAYMENT_METHOD);
   const toast = useToast();
   const pay = usePayLab();
 
@@ -114,10 +116,7 @@ export function LabPaymentModal({
                 id="lab-payment-method"
                 value={field.value}
                 onChange={(event) => field.onChange(event.target.value)}
-                options={PAYMENT_METHODS.map((method) => ({
-                  value: method,
-                  label: t(`billing.methods.${method}`),
-                }))}
+                options={methods}
               />
             </FormField>
           )}

@@ -1,4 +1,4 @@
-import { ITEM_CATEGORIES, type InventoryItemRow, type ItemCategory } from '@clinic/shared';
+import { LOOKUP_LIST, type InventoryItemRow } from '@clinic/shared';
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -16,14 +16,9 @@ import {
   type Column,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
+import { useLookupLabels, useLookupOptions } from '@web/features/lookups/queries';
 import { InventoryAlertCards } from '@web/features/inventory/alert-cards';
-import {
-  CATEGORY_TONES,
-  categoryLabel,
-  stockScale,
-  stockTone,
-  unitLabel,
-} from '@web/features/inventory/display';
+import { categoryTone, stockScale, stockTone } from '@web/features/inventory/display';
 import { ItemDrawer } from '@web/features/inventory/item-drawer';
 import { ItemFormModal } from '@web/features/inventory/item-form-modal';
 import { canManageInventory } from '@web/features/inventory/permissions';
@@ -45,11 +40,13 @@ import { useDebounced } from '@web/lib/use-debounced';
  */
 export function InventoryPage(): JSX.Element {
   const { t } = useTranslation();
+  const categoryLabel = useLookupLabels(LOOKUP_LIST.ITEM_CATEGORY);
+  const categoryOptions = useLookupOptions(LOOKUP_LIST.ITEM_CATEGORY);
   const { user } = useSession();
   const navigate = useNavigate();
 
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState<ItemCategory | ''>('');
+  const [category, setCategory] = useState('');
   const [low, setLow] = useState(false);
   const [expiring, setExpiring] = useState(false);
   const [openItemId, setOpenItemId] = useState<string | null>(null);
@@ -90,7 +87,7 @@ export function InventoryPage(): JSX.Element {
       key: 'category',
       header: 'inventory.columns.category',
       render: (row) => (
-        <Badge tone={CATEGORY_TONES[row.category]}>{t(categoryLabel(row.category))}</Badge>
+        <Badge tone={categoryTone(row.category)}>{categoryLabel(row.category)}</Badge>
       ),
     },
     {
@@ -173,11 +170,8 @@ export function InventoryPage(): JSX.Element {
             id="inventory-category"
             value={category}
             placeholder={t('common.all')}
-            onChange={(event) => setCategory(event.target.value as ItemCategory | '')}
-            options={ITEM_CATEGORIES.map((value) => ({
-              value,
-              label: t(categoryLabel(value)),
-            }))}
+            onChange={(event) => setCategory(event.target.value)}
+            options={categoryOptions}
           />
         </div>
 
@@ -224,6 +218,7 @@ export function InventoryPage(): JSX.Element {
  */
 function StockCell({ item }: { readonly item: InventoryItemRow }): JSX.Element {
   const { t } = useTranslation();
+  const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const scale = stockScale(item);
 
   return (
@@ -232,7 +227,7 @@ function StockCell({ item }: { readonly item: InventoryItemRow }): JSX.Element {
         <span dir="ltr" className="font-medium tabular-nums text-ink">
           {item.quantity}
         </span>
-        <span className="text-label text-ink-muted">{t(unitLabel(item.unit))}</span>
+        <span className="text-label text-ink-muted">{unitLabel(item.unit)}</span>
         {item.isLow && (
           <Badge tone="danger" className="ms-auto">
             {t('inventory.flags.low')}
