@@ -127,7 +127,7 @@ function AlertCard({
                 <button
                   type="button"
                   onClick={() => onSelectItem(item.id)}
-                  className="flex w-full cursor-pointer items-baseline justify-between gap-2 rounded-control px-1 py-0.5 text-start transition-colors duration-150 hover:bg-row-hover"
+                  className="flex min-h-11 w-full cursor-pointer items-baseline justify-between gap-2 rounded-control px-1 py-0.5 text-start transition-colors duration-150 hover:bg-row-hover lg:min-h-0"
                 >
                   <span className="truncate text-label text-ink">{item.nameAr}</span>
                   <Ltr className="shrink-0 text-label tabular-nums text-ink-muted">

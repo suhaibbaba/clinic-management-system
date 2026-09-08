@@ -128,6 +128,11 @@ reach, which keeps it fast enough to run on every pull request.
   glyphs) resolve per direction; a phone, a calendar and a printer never flip.
 - Line heights are set for Arabic: ~1.6 through body text, ~1.3 on display
   sizes.
-- 44px tap targets below `sm`, the drawn heights above it.
+- 44px tap targets below `lg` — a 768px tablet is a touch device whatever the
+  layout does at that width — and the drawn heights above it. Two exceptions
+  the report still lists: a tooth on the chart is 30px wide, because sixteen
+  of them at 44px is a 700px arch, and it is 74px tall to compensate; and a
+  switch's own box is 24px tall inside a 44px hit area that the report
+  measures the box of rather than the area.
 
 `direction.test.tsx` fails the build on the first two.

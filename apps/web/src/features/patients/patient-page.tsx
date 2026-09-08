@@ -148,7 +148,10 @@ export function PatientPage(): JSX.Element {
             aria-controls={`panel-${tab.id}`}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              'shrink-0 cursor-pointer rounded-pill px-3.5 py-1.5 text-value font-medium',
+              // The same 44px touch target the shared `Tabs` strip carries;
+              // this one is hand-rolled because the panels are the file's own.
+              'inline-flex min-h-11 shrink-0 cursor-pointer items-center rounded-pill lg:min-h-0',
+              'px-3.5 py-1.5 text-value font-medium',
               'transition-[background-color,color,box-shadow,transform] duration-150 active:scale-95',
               activeTab === tab.id
                 ? 'bg-surface text-ink shadow-pill'
