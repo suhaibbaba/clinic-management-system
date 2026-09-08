@@ -15,6 +15,7 @@ import { AppointmentsService } from '@api/appointments/appointments.service';
 import { BookingTokenService } from '@api/booking/booking-token.service';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import type { Env } from '@api/config/env.schema';
+import { notificationName } from '@api/common/person-name';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { clinics } from '@api/database/schema';
 import { NotificationsService } from '@api/notifications/notifications.service';
@@ -60,7 +61,7 @@ export class PendingBookingsService {
       appointmentId: appointment.id,
       vars: {
         clinic: clinic.name,
-        doctor: appointment.doctorName,
+        doctor: notificationName(appointment.doctorName),
         date: localDate(new Date(appointment.startsAt), clinic.timeZone),
         time: timeIn(clinic.timeZone, new Date(appointment.startsAt)),
         // The same signed handle the patient would have got from an OTP
@@ -100,13 +101,14 @@ export class PendingBookingsService {
 
   private async clinicFor(clinicId: string): Promise<{ name: string; timeZone: string }> {
     const [row] = await this.db
-      .select({ name: clinics.name, settings: clinics.settings })
+      .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, settings: clinics.settings })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
       .limit(1);
 
     return {
-      name: row?.name ?? '',
+      // The patient's own language, like the message it goes into.
+      name: row ? notificationName({ ar: row.nameAr, en: row.nameEn }) : '',
       timeZone: clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE,
     };
   }

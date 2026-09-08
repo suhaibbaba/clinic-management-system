@@ -10,6 +10,7 @@ import { BookingFacts } from '@web/booking/steps/success-view';
 import { WhenStep, type SlotOption } from '@web/booking/steps/when-step';
 import { Alert, Button, Card, Skeleton } from '@web/booking/ui';
 import { useAsync } from '@web/booking/use-async';
+import { bookingName } from '@web/booking/format';
 
 const VISIBLE_DAYS = 7;
 
@@ -90,7 +91,7 @@ export function ManagePage({
   };
 
   return (
-    <PageShell clinicName={booking.clinicName}>
+    <PageShell clinicName={bookingName(booking.clinicName)}>
       <h1 className="mb-4 text-[1.375rem] font-semibold tracking-[-0.02em] text-ink">
         {t('manage.heading')}
       </h1>
@@ -204,7 +205,9 @@ function ReschedulePanel({
   const [date, setDate] = useState(() => clinicDate(booking.startsAt));
 
   const doctors = useAsync(() => bookingApi.doctors(slug ?? ''), [slug], Boolean(slug));
-  const doctorId = doctors.data?.find((entry) => entry.name === booking.doctorName)?.id;
+  const doctorId = doctors.data?.find(
+    (entry) => bookingName(entry.name) === bookingName(booking.doctorName),
+  )?.id;
 
   const chips = useMemo(() => dayChips(date, VISIBLE_DAYS, 365), [date]);
 

@@ -34,7 +34,8 @@ export const USERS_ENTITY = 'users';
 const safeColumns = {
   id: users.id,
   clinicId: users.clinicId,
-  name: users.name,
+  nameAr: users.nameAr,
+  nameEn: users.nameEn,
   phone: users.phone,
   email: users.email,
   role: users.role,
@@ -77,8 +78,15 @@ export class UsersService implements OnModuleInit {
     }
     if (query.search) {
       const pattern = `%${query.search}%`;
+      // Either spelling: somebody searching an Arabic interface for "Layla"
+      // is searching the name they can see on a printed sheet.
       filters.push(
-        or(ilike(users.name, pattern), ilike(users.phone, pattern), ilike(users.email, pattern)),
+        or(
+          ilike(users.nameAr, pattern),
+          ilike(users.nameEn, pattern),
+          ilike(users.phone, pattern),
+          ilike(users.email, pattern),
+        ),
       );
     }
 
@@ -112,7 +120,8 @@ export class UsersService implements OnModuleInit {
       .insert(users)
       .values({
         clinicId: actor.clinicId,
-        name: input.name,
+        nameAr: input.name.ar,
+        nameEn: input.name.en,
         phone: input.phone,
         email: input.email ?? null,
         passwordHash,
@@ -156,7 +165,7 @@ export class UsersService implements OnModuleInit {
     const [row] = await this.db
       .update(users)
       .set({
-        ...(input.name !== undefined && { name: input.name }),
+        ...(input.name !== undefined && { nameAr: input.name.ar, nameEn: input.name.en }),
         ...(input.phone !== undefined && { phone: input.phone }),
         ...(input.email !== undefined && { email: input.email ?? null }),
         ...(input.role !== undefined && { role: input.role }),
@@ -270,7 +279,7 @@ function toUser(row: SafeUserRow): User {
   return {
     id: row.id,
     clinicId: row.clinicId,
-    name: row.name,
+    name: { ar: row.nameAr, en: row.nameEn },
     phone: row.phone,
     email: row.email,
     role: row.role,

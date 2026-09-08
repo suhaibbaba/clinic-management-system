@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { USER_ROLES } from '@shared/enums';
+import { personNameSchema } from '@shared/schemas/person-name';
 
 /** Minimum password length accepted anywhere in the system. */
 export const PASSWORD_MIN_LENGTH = 8;
@@ -46,7 +47,7 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export const authenticatedUserSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
-  name: z.string(),
+  name: personNameSchema,
   phone: z.string(),
   email: z.string().nullable(),
   role: z.enum(USER_ROLES),

@@ -12,6 +12,7 @@ import {
   Input,
   Ltr,
   PageHeader,
+  PersonName,
   useToast,
 } from '@web/components/ui';
 import { authApi } from '@web/features/auth/api';
@@ -60,7 +61,9 @@ export function ProfilePage(): JSX.Element {
 
           <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-value">
             <dt className="text-ink-muted">{t('users.name')}</dt>
-            <dd className="font-medium text-ink">{user?.name}</dd>
+            <dd className="font-medium text-ink">
+              <PersonName name={user?.name} showBoth />
+            </dd>
 
             <dt className="text-ink-muted">{t('users.phone')}</dt>
             <Ltr as="dd" className="font-medium text-ink">

@@ -46,6 +46,14 @@ export function NavDrawer({
         />
 
         <DialogPrimitive.Content
+          // No field here, but the same rule as `Modal` and `Drawer`: a panel
+          // opening does not move the caret. Radix would focus the close
+          // button, which announces "close" before the navigation.
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            (event.currentTarget as HTMLElement | null)?.focus();
+          }}
+          tabIndex={-1}
           aria-label={title}
           className={cn(
             'fixed inset-y-0 start-0 z-50 flex w-[86%] max-w-[320px] flex-col md:hidden',

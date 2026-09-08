@@ -12,12 +12,21 @@ import {
 import { useEffect, useId, useState, type FormEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Input, Select } from '@web/components/ui';
+import {
+  Button,
+  FormField,
+  Icon,
+  Input,
+  MoneyInput,
+  Select,
+  usePersonName,
+} from '@web/components/ui';
 import {
   SurfaceSelector,
   type SelectableSurface,
 } from '@web/features/patients/chart/surface-selector';
 import { canSeePrices } from '@web/features/patients/permissions';
+import { useCurrency } from '@web/features/clinic/queries';
 
 /** What the form emits; the caller supplies the patient it belongs to. */
 export type ProcedureFormValues = Omit<CreatePerformedProcedureInput, 'patientId'>;
@@ -67,6 +76,8 @@ export function ProcedureForm({
   procedure,
 }: ProcedureFormProps): JSX.Element {
   const { t } = useTranslation();
+  const currency = useCurrency();
+  const doctorName = usePersonName();
   const fieldId = useId();
   const isEdit = procedure !== undefined;
 
@@ -147,7 +158,10 @@ export function ProcedureForm({
           id={`${fieldId}-doctor`}
           value={doctorId}
           onChange={(event) => setDoctorId(event.target.value)}
-          options={doctors.map((doctor) => ({ value: doctor.id, label: doctor.user.name }))}
+          options={doctors.map((doctor) => ({
+            value: doctor.id,
+            label: doctorName(doctor.user.name),
+          }))}
         />
       </FormField>
 
@@ -175,21 +189,19 @@ export function ProcedureForm({
         <>
           <FormField label="chart.panel.price" htmlFor={`${fieldId}-price`}>
             {/* Money is a string all the way through — never a number input. */}
-            <Input
+            <MoneyInput
               id={`${fieldId}-price`}
+              currency={currency}
               value={price}
-              inputMode="decimal"
-              dir="ltr"
               onChange={(event) => setPrice(event.target.value)}
             />
           </FormField>
 
           <FormField label="chart.panel.discount" htmlFor={`${fieldId}-discount`} optional>
-            <Input
+            <MoneyInput
               id={`${fieldId}-discount`}
+              currency={currency}
               value={discount}
-              inputMode="decimal"
-              dir="ltr"
               onChange={(event) => setDiscount(event.target.value)}
             />
           </FormField>

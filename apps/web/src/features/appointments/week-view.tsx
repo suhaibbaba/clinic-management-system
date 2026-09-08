@@ -1,4 +1,4 @@
-import { LOOKUP_LIST, type CalendarAppointment } from '@clinic/shared';
+import { LOOKUP_LIST, type CalendarAppointment, type ClinicClosure } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -17,6 +17,8 @@ import { formatDate } from '@web/lib/format';
 export interface WeekViewProps {
   readonly date: string;
   readonly appointments: readonly CalendarAppointment[];
+  /** Closures overlapping the week; a covered day is shaded and named. */
+  readonly closures?: readonly ClinicClosure[] | undefined;
   readonly onOpen: (appointment: CalendarAppointment) => void;
   /** Clicking a day header jumps the day view there. */
   readonly onPickDay: (date: string) => void;
@@ -33,13 +35,25 @@ export interface WeekViewProps {
  * Desktop only. On a phone the same seven columns are 40px wide, which is a
  * week nobody can read; `AppointmentsPage` renders the agenda there instead.
  */
-export function WeekView({ date, appointments, onOpen, onPickDay }: WeekViewProps): JSX.Element {
+export function WeekView({
+  date,
+  appointments,
+  closures = [],
+  onOpen,
+  onPickDay,
+}: WeekViewProps): JSX.Element {
   const { t } = useTranslation();
   const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
   const days = weekDates(date);
   const today = toIsoDate(new Date());
 
-  if (appointments.length === 0) {
+  /** The closure covering a day, if one does. Both ends are inclusive. */
+  const closureOn = (day: string): ClinicClosure | undefined =>
+    closures.find((closure) => closure.startsOn <= day && day <= closure.endsOn);
+
+  // A week with a closure in it is worth drawing even with nothing booked —
+  // "why is Tuesday grey" is the question this view exists to answer.
+  if (appointments.length === 0 && closures.length === 0) {
     return (
       <EmptyState icon="calendar" title="appointments.emptyWeek" hint="appointments.emptyHint" />
     );
@@ -53,15 +67,17 @@ export function WeekView({ date, appointments, onOpen, onPickDay }: WeekViewProp
             .filter((entry) => toIsoDate(new Date(entry.startsAt)) === day)
             .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 
+          const closure = closureOn(day);
+
           return (
-            <div key={day} className="min-w-40 flex-1">
+            <div key={day} className={cn('min-w-40 flex-1', closure && 'bg-sunken')}>
               <button
                 type="button"
                 onClick={() => onPickDay(day)}
                 className={cn(
                   'block w-full cursor-pointer border-b border-line px-3 py-2.5 text-center',
                   'transition-colors duration-150 hover:bg-row-hover',
-                  day === today && 'bg-primary-50',
+                  closure ? 'bg-warning-50' : day === today && 'bg-primary-50',
                 )}
               >
                 <span
@@ -72,8 +88,10 @@ export function WeekView({ date, appointments, onOpen, onPickDay }: WeekViewProp
                 >
                   {formatDate(day)}
                 </span>
-                <span className="block text-[11px] text-ink-subtle">
-                  {t('pagination.total', { total: ofDay.length })}
+                {/* The reason, not the word "closed": a clinic writes what it
+                    wants reception to read out. */}
+                <span className="block truncate text-[11px] text-ink-subtle">
+                  {closure ? closure.reason : t('pagination.total', { total: ofDay.length })}
                 </span>
               </button>
 

@@ -17,6 +17,7 @@ import {
   Ltr,
   SegmentedControl,
   Select,
+  usePersonName,
   useToast,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
@@ -86,8 +87,9 @@ export function TreatmentPlansTab({
   const catalogName = (id: string): string =>
     catalog.data?.find((item) => item.id === id)?.nameAr ?? t('chart.panel.procedure');
 
+  const displayName = usePersonName();
   const doctorName = (id: string): string =>
-    doctors.data?.items.find((doctor) => doctor.id === id)?.user.name ?? '—';
+    displayName(doctors.data?.items.find((doctor) => doctor.id === id)?.user.name) || '—';
 
   if (plans.isPending) {
     return <p className="text-value text-ink-muted">{t('common.loading')}</p>;

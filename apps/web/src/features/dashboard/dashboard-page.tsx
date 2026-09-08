@@ -9,6 +9,7 @@ import {
   Icon,
   Ltr,
   PageHeader,
+  PersonName,
   StatCard,
   Table,
   type Column,
@@ -16,7 +17,7 @@ import {
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
-import { setClinicTimeZone } from '@web/features/appointments/clinic-zone';
+import { setClinicTimeZone } from '@web/lib/clinic-zone';
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from '@web/features/appointments/status';
 import { Money } from '@web/features/billing/money';
 import { useClinic } from '@web/features/clinic/queries';
@@ -201,7 +202,7 @@ function TodaySchedule({
       key: 'doctor',
       header: 'dashboard.schedule.doctor',
       hideOnMobile: true,
-      render: (row) => row.doctorName,
+      render: (row) => <PersonName name={row.doctorName} />,
     },
     {
       key: 'status',

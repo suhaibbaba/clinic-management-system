@@ -2,7 +2,7 @@ import type { PatientClinicalView, PerformedProcedure, Visit } from '@clinic/sha
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, EmptyState, Icon, Ltr, useToast } from '@web/components/ui';
+import { Badge, Button, EmptyState, Icon, Ltr, usePersonName, useToast } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { useDoctors } from '@web/features/doctors/queries';
 import { ConsumeForVisit } from '@web/features/inventory/consume-for-visit';
@@ -77,8 +77,9 @@ export function VisitsTab({
     return grouped;
   }, [procedures.data]);
 
+  const displayName = usePersonName();
   const doctorName = (id: string): string =>
-    doctors.data?.items.find((doctor) => doctor.id === id)?.user.name ?? '—';
+    displayName(doctors.data?.items.find((doctor) => doctor.id === id)?.user.name) || '—';
 
   const catalogName = (id: string): string =>
     catalog.data?.find((item) => item.id === id)?.nameAr ?? t('chart.panel.procedure');

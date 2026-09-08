@@ -59,7 +59,18 @@ export const clinics = pgTable(
   'clinics',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    name: text('name').notNull(),
+    /**
+     * The practice's own name, in both languages.
+     *
+     * Two columns rather than one, because this name is printed: it heads
+     * every receipt, prescription and lab sheet, and those documents are
+     * produced in the *clinic's* language (`settings.documents.language`),
+     * not the reader's. One column meant an Arabic clinic's English receipt
+     * carried an Arabic letterhead, or the reverse — and there was nowhere to
+     * put the other spelling.
+     */
+    nameAr: text('name_ar').notNull(),
+    nameEn: text('name_en').notNull(),
     /**
      * The clinic's handle in a public booking URL.
      *
@@ -122,7 +133,21 @@ export const users = pgTable(
     clinicId: uuid('clinic_id')
       .notNull()
       .references(() => clinics.id),
-    name: text('name').notNull(),
+    /**
+     * Staff names in both languages, both required.
+     *
+     * A clinic's interface is Arabic and its letterheads may be either, so a
+     * single `name` column meant "Dr. Layla Haddad" sitting in the middle of
+     * an otherwise Arabic calendar column — which is what people actually
+     * reported. Both spellings are entered once, on the user form, and every
+     * screen picks one through the shared `PersonName` helper.
+     *
+     * **Patient names stay a single field** (CLAUDE.md): a patient's name is
+     * what reception typed off their ID, and asking a receptionist to
+     * transliterate it at the desk would produce worse data, not better.
+     */
+    nameAr: text('name_ar').notNull(),
+    nameEn: text('name_en').notNull(),
     phone: text('phone').notNull(),
     email: text('email'),
     /** argon2id. Never selected into a response or an audit entry. */

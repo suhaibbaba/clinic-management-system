@@ -8,7 +8,7 @@ import ar from '@web/i18n/locales/ar.json';
 import { authTokens } from '@web/lib/auth-tokens';
 import { makeClinic, makeDoctor, makeProfile, paginated } from '@test/helpers/fixtures';
 import { mockApi, renderWithProviders, type MockResponse } from '@test/helpers/render';
-import { resetClinicTimeZone } from '@web/features/appointments/clinic-zone';
+import { resetClinicTimeZone } from '@web/lib/clinic-zone';
 
 const DOCTOR_ID = '11111111-1111-4111-8111-111111111111';
 const OTHER_DOCTOR_ID = '22222222-2222-4222-8222-222222222222';
@@ -51,7 +51,7 @@ function appointmentAt(hour: number, overrides: Record<string, unknown> = {}) {
     patientName: 'أحمد خالد الحسن',
     patientPhone: '+963931000001',
     patientFileNumber: '00001',
-    doctorName: 'Dr. Layla Haddad',
+    doctorName: { ar: 'د. ليلى حداد', en: 'Dr. Layla Haddad' },
     ...overrides,
   };
 }
@@ -69,8 +69,16 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse | unkno
     'GET /doctors': {
       status: 200,
       body: paginated([
-        { ...doctor, id: DOCTOR_ID, user: { ...doctor.user, name: 'Dr. Layla Haddad' } },
-        { ...doctor, id: OTHER_DOCTOR_ID, user: { ...doctor.user, name: 'Dr. Samer Nassar' } },
+        {
+          ...doctor,
+          id: DOCTOR_ID,
+          user: { ...doctor.user, name: { ar: 'د. ليلى حداد', en: 'Dr. Layla Haddad' } },
+        },
+        {
+          ...doctor,
+          id: OTHER_DOCTOR_ID,
+          user: { ...doctor.user, name: { ar: 'د. سامر نصار', en: 'Dr. Samer Nassar' } },
+        },
       ]),
     },
     'GET /waiting-list': { status: 200, body: paginated([]) },

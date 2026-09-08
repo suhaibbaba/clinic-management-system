@@ -9,7 +9,15 @@ import { useEffect, type JSX } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Input, Modal, Select, Textarea, useToast } from '@web/components/ui';
+import {
+  Button,
+  FormField,
+  Modal,
+  MoneyInput,
+  Select,
+  Textarea,
+  useToast,
+} from '@web/components/ui';
 import { Money } from '@web/features/billing/money';
 import { useLookupOptions } from '@web/features/lookups/queries';
 import { usePayLab } from '@web/features/labs/queries';
@@ -98,11 +106,11 @@ export function LabPaymentModal({
         </div>
 
         <FormField label="labs.payment.amount" htmlFor="lab-payment-amount" error={errors.amount}>
-          <Input
+          <MoneyInput
             id="lab-payment-amount"
-            dir="ltr"
-            inputMode="decimal"
-            placeholder="0.00"
+            currency={currency}
+            placeholder="0"
+            hasError={Boolean(errors.amount)}
             {...register('amount')}
           />
         </FormField>

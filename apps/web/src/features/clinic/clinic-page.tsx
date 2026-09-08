@@ -19,7 +19,8 @@ import {
   Select,
   useToast,
 } from '@web/components/ui';
-import { ScheduleEditor } from '@web/components/schedule-editor';
+import { WorkingHours } from '@web/components/schedule/working-hours';
+import { ClosuresPanel } from '@web/features/schedule/closures-panel';
 import { useSession } from '@web/features/auth/session';
 import { useApiVersion, WEB_VERSION } from '@web/features/clinic/api-version';
 import {
@@ -29,6 +30,7 @@ import {
   useUploadClinicLogo,
 } from '@web/features/clinic/queries';
 import { errorMessageKey } from '@web/lib/api-error';
+import { setClinicTimeZone } from '@web/lib/clinic-zone';
 
 const isCurrency = (value: string): value is Currency =>
   (CURRENCIES as readonly string[]).includes(value);
@@ -43,7 +45,10 @@ export function ClinicPage(): JSX.Element {
   const clinic = useClinic();
   const updateClinic = useUpdateClinic();
 
-  const [name, setName] = useState('');
+  // Both spellings: this name heads every printed sheet, and a receipt is
+  // produced in the *clinic's* document language rather than the reader's.
+  const [nameAr, setNameAr] = useState('');
+  const [nameEn, setNameEn] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
@@ -57,7 +62,8 @@ export function ClinicPage(): JSX.Element {
       return;
     }
 
-    setName(data.name);
+    setNameAr(data.name.ar);
+    setNameEn(data.name.en);
     setPhone(data.phone ?? '');
     setEmail(data.email ?? '');
     setAddress(data.address ?? '');
@@ -65,12 +71,14 @@ export function ClinicPage(): JSX.Element {
     // select on a value it actually offers rather than showing a blank box.
     setCurrency(isCurrency(data.currency) ? data.currency : CURRENCIES[0]);
     setWorkingHours(data.workingHours);
+    // The closures panel below prints clinic-zone dates.
+    setClinicTimeZone(data);
   }, [clinic.data]);
 
   const save = async (): Promise<void> => {
     try {
       await updateClinic.mutateAsync({
-        name,
+        name: { ar: nameAr, en: nameEn },
         phone: phone === '' ? null : phone,
         email: email === '' ? null : email,
         address: address === '' ? null : address,
@@ -108,15 +116,28 @@ export function ClinicPage(): JSX.Element {
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-card bg-surface shadow-card p-4">
           <div className="flex flex-col gap-4">
-            <FormField label="clinic.name" htmlFor="clinic-name">
-              <Input
-                placeholder={t('common.placeholders.fullName')}
-                id="clinic-name"
-                value={name}
-                disabled={!canEdit}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </FormField>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField label="clinic.nameAr" htmlFor="clinic-name-ar">
+                <Input
+                  placeholder={t('common.placeholders.fullNameAr')}
+                  id="clinic-name-ar"
+                  value={nameAr}
+                  disabled={!canEdit}
+                  onChange={(event) => setNameAr(event.target.value)}
+                />
+              </FormField>
+
+              <FormField label="clinic.nameEn" htmlFor="clinic-name-en">
+                <Input
+                  placeholder={t('common.placeholders.fullNameEn')}
+                  id="clinic-name-en"
+                  dir="ltr"
+                  value={nameEn}
+                  disabled={!canEdit}
+                  onChange={(event) => setNameEn(event.target.value)}
+                />
+              </FormField>
+            </div>
 
             <FormField label="clinic.phone" htmlFor="clinic-phone" optional>
               <Input
@@ -178,7 +199,21 @@ export function ClinicPage(): JSX.Element {
 
         <section className="rounded-card bg-surface shadow-card p-4">
           <p className="mb-3 text-value font-medium text-ink">{t('clinic.workingHours')}</p>
-          <ScheduleEditor value={workingHours} onChange={setWorkingHours} disabled={!canEdit} />
+          <WorkingHours
+            value={workingHours}
+            onChange={setWorkingHours}
+            disabled={!canEdit}
+            idPrefix="clinic-hours"
+          />
+        </section>
+
+        {/*
+          The days that override those hours, beside them. A closure is read in
+          the same breath as the opening hours it suspends, and a screen of its
+          own is one nobody would visit between Eids.
+        */}
+        <section className="rounded-card bg-surface shadow-card p-4">
+          <ClosuresPanel canEdit={canEdit} />
         </section>
 
         <AboutSection />

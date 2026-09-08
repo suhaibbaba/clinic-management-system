@@ -13,6 +13,7 @@ export * from '@api/database/schema/core';
 export * from '@api/database/schema/patients';
 export * from '@api/database/schema/billing';
 export * from '@api/database/schema/appointments';
+export * from '@api/database/schema/schedule';
 export * from '@api/database/schema/notifications';
 export * from '@api/database/schema/labs';
 export * from '@api/database/schema/inventory';

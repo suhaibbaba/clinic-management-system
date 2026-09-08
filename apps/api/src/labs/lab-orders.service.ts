@@ -26,6 +26,7 @@ import { and, asc, desc, eq, inArray, isNotNull, isNull, lt, or, sql, type SQL }
 import { AppointmentAccessService } from '@api/appointments/appointment-access.service';
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
+import { toPersonName } from '@api/common/person-name';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
@@ -403,7 +404,8 @@ export class LabOrdersService implements OnModuleInit {
         order: labOrders,
         patientName: patients.fullName,
         patientFileNumber: patients.fileNumber,
-        doctorName: users.name,
+        doctorNameAr: users.nameAr,
+        doctorNameEn: users.nameEn,
         labName: labs.name,
         workTypeName: labWorkTypes.nameAr,
       })
@@ -504,7 +506,8 @@ interface JoinedOrderRow {
   readonly order: OrderRow;
   readonly patientName: string;
   readonly patientFileNumber: string;
-  readonly doctorName: string;
+  readonly doctorNameAr: string;
+  readonly doctorNameEn: string;
   readonly labName: string;
   readonly workTypeName: string | null;
 }
@@ -516,7 +519,7 @@ export function toLabOrderRow(row: JoinedOrderRow): LabOrderRow {
     ...order,
     patientName: row.patientName,
     patientFileNumber: row.patientFileNumber,
-    doctorName: row.doctorName,
+    doctorName: toPersonName(row.doctorNameAr, row.doctorNameEn),
     labName: row.labName,
     workTypeName: row.workTypeName,
     // Computed rather than stored: "late" is a fact about now, and a column

@@ -3,8 +3,9 @@ import { z } from 'zod';
 import { isFdiTooth } from '@shared/constants/dental';
 import { LAB_ORDER_STATUSES } from '@shared/enums';
 import { isoDateSchema } from '@shared/schemas/appointments';
+import { personNameSchema } from '@shared/schemas/person-name';
 import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
-import { moneySchema, signedMoneySchema } from '@shared/schemas/money';
+import { moneySchema, signedMoneySchema, wholeMoneySchema } from '@shared/schemas/money';
 import { lookupCodeSchema } from '@shared/schemas/lookups';
 
 /**
@@ -89,7 +90,7 @@ export type LabWorkType = z.infer<typeof labWorkTypeSchema>;
 
 export const createLabWorkTypeSchema = z.object({
   nameAr: z.string().trim().min(2).max(160),
-  defaultPrice: moneySchema,
+  defaultPrice: wholeMoneySchema,
   isActive: z.boolean().optional(),
 });
 export type CreateLabWorkTypeInput = z.infer<typeof createLabWorkTypeSchema>;
@@ -148,7 +149,7 @@ export type LabOrder = z.infer<typeof labOrderSchema>;
 export const labOrderRowSchema = labOrderSchema.extend({
   patientName: z.string(),
   patientFileNumber: z.string(),
-  doctorName: z.string(),
+  doctorName: personNameSchema,
   labName: z.string(),
   workTypeName: z.string().nullable(),
   /** Past `expectedAt` and still out at the lab. */
@@ -167,7 +168,7 @@ export const createLabOrderSchema = z.object({
   teeth: labTeethSchema.optional(),
   instructions: z.string().trim().max(2000).nullish(),
   /** Omitted takes the work type's list price. */
-  price: moneySchema.optional(),
+  price: wholeMoneySchema.optional(),
   expectedAt: isoDateSchema.nullish(),
 });
 export type CreateLabOrderInput = z.infer<typeof createLabOrderSchema>;
@@ -255,7 +256,10 @@ export type LabPayment = z.infer<typeof labPaymentSchema>;
 
 export const createLabPaymentSchema = z.object({
   labId: uuidSchema,
-  amount: moneySchema.refine((value) => Number(value) > 0, 'A payment must be greater than zero'),
+  amount: wholeMoneySchema.refine(
+    (value) => Number(value) > 0,
+    'A payment must be greater than zero',
+  ),
   method: lookupCodeSchema,
   note: z.string().trim().max(500).nullish(),
 });

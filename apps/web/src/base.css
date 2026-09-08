@@ -71,6 +71,29 @@ body {
 }
 
 /*
+ * Time that is unavailable but not booked: a doctor's absence on the calendar.
+ *
+ * Hatching rather than a fill, and deliberately so — a fill is what an
+ * appointment is, and a block that reads as an appointment is one somebody will
+ * click looking for a patient. Diagonal stripes say "nothing here, and nothing
+ * can go here", which is the actual state.
+ *
+ * A gradient rather than an SVG so it costs no request and scales with the
+ * block; `background-attachment: fixed` is deliberately not used, or the
+ * stripes would slide as the grid scrolls.
+ */
+.hatched {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--color-neutral-200) 0,
+    var(--color-neutral-200) 3px,
+    transparent 3px,
+    transparent 8px
+  );
+  background-color: var(--color-sunken);
+}
+
+/*
  * Someone who asked their system to reduce motion means it. Transitions
  * collapse to something instant rather than to nothing, so a state change is
  * still perceptible.

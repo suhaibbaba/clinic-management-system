@@ -7,6 +7,7 @@ import {
 } from '@shared/constants/booking';
 import { BOOKING_CONFIRMATION_MODE, BOOKING_CONFIRMATION_MODES } from '@shared/enums';
 import { isoDateSchema, slotSchema } from '@shared/schemas/appointments';
+import { personNameSchema } from '@shared/schemas/person-name';
 import { timeOfDaySchema, uuidSchema } from '@shared/schemas/common';
 
 /* -------------------------------------------------------------------------- */
@@ -62,7 +63,7 @@ export function bookingSettings(settings: unknown): BookingSettings {
 
 /** The clinic as a stranger sees it: enough to book, and nothing more. */
 export const publicClinicSchema = z.object({
-  name: z.string(),
+  name: personNameSchema,
   slug: z.string(),
   phone: z.string().nullable(),
   address: z.string().nullable(),
@@ -81,7 +82,7 @@ export type PublicClinic = z.infer<typeof publicClinicSchema>;
  */
 export const publicDoctorSchema = z.object({
   id: uuidSchema,
-  name: z.string(),
+  name: personNameSchema,
   specialty: z.string(),
 });
 export type PublicDoctor = z.infer<typeof publicDoctorSchema>;
@@ -96,6 +97,17 @@ export const publicSlotsSchema = z.object({
   date: isoDateSchema,
   /** Only bookable ones — a stranger has no use for a greyed grid. */
   slots: z.array(slotSchema.omit({ available: true })),
+  /**
+   * Why a day offers nothing, when it offers nothing.
+   *
+   * The two dated reasons only. A full diary is the clinic's business, and
+   * "fully booked" tells a stranger how busy the practice is — but "we are
+   * closed for Eid" is on the door, and a patient staring at an empty day
+   * deserves it rather than being left to guess whether the page is broken.
+   */
+  closedReason: z.enum(['clinic_closure', 'doctor_time_off']).nullable(),
+  /** The clinic's own words for it, when it wrote any. */
+  closedNote: z.string().nullable(),
 });
 export type PublicSlots = z.infer<typeof publicSlotsSchema>;
 
@@ -166,8 +178,8 @@ export const managedBookingSchema = z.object({
   status: z.string(),
   startsAt: z.iso.datetime(),
   durationMinutes: z.number().int(),
-  doctorName: z.string(),
-  clinicName: z.string(),
+  doctorName: personNameSchema,
+  clinicName: personNameSchema,
   clinicPhone: z.string().nullable(),
   /** Whether the window still allows changing it. */
   canModify: z.boolean(),

@@ -121,10 +121,22 @@ async function snapshot(
   return loader(id, clinicId);
 }
 
-/** Creates have no `:id` route param — the new id comes from the response. */
+/**
+ * Creates have no `:id` route param — the new id comes from the response.
+ *
+ * A handler that has something to report alongside the row it made wraps it as
+ * `{ item, ... }` — a closure says how many appointments it cancelled — so the
+ * id is looked for one level in as well. Only those two shapes: walking an
+ * arbitrary response looking for something that resembles an id is how the
+ * wrong row ends up in the audit trail.
+ */
 function extractId(result: unknown): string | undefined {
-  if (result && typeof result === 'object' && 'id' in result) {
-    const { id } = result as { id: unknown };
+  return idOf(result) ?? idOf((result as { item?: unknown } | null)?.item);
+}
+
+function idOf(value: unknown): string | undefined {
+  if (value && typeof value === 'object' && 'id' in value) {
+    const { id } = value as { id: unknown };
     return typeof id === 'string' ? id : undefined;
   }
 

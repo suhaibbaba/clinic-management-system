@@ -10,6 +10,7 @@ import {
   Modal,
   Select,
   Textarea,
+  usePersonName,
   useToast,
 } from '@web/components/ui';
 import { useDoctors } from '@web/features/doctors/queries';
@@ -53,6 +54,7 @@ export function AppointmentFormModal({
   defaults,
 }: AppointmentFormModalProps): JSX.Element {
   const { t } = useTranslation();
+  const doctorName = usePersonName();
   const typeOptions = useLookupOptions(LOOKUP_LIST.APPOINTMENT_TYPE);
   const toast = useToast();
 
@@ -192,7 +194,7 @@ export function AppointmentFormModal({
               placeholder={t('appointments.allDoctors')}
               options={(doctors.data?.items ?? []).map((doctor) => ({
                 value: doctor.id,
-                label: doctor.user.name,
+                label: doctorName(doctor.user.name),
               }))}
               onChange={(event) => {
                 setDoctorId(event.target.value);

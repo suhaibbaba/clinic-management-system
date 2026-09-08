@@ -195,12 +195,40 @@ export const SCREENS = [
 
   // ── Settings ────────────────────────────────────────────────────────
   { id: 'clinic', path: '/clinic', roles: ADMIN },
+  {
+    // The working-hours accordion with a day open: the collapsed summaries are
+    // what the screen is for, and the expanded panel is where the split shift
+    // and the copy action live.
+    id: 'clinic-hours-expanded',
+    path: '/clinic',
+    roles: ADMIN,
+    steps: [{ clickSelector: '[data-testid="hours-day-0"] button:visible' }, { wait: 400 }],
+  },
+  {
+    id: 'clinic-closure-modal',
+    path: '/clinic',
+    roles: ADMIN,
+    steps: [{ click: 'schedule.closures.add' }, { wait: 400 }],
+  },
   { id: 'doctors', path: '/doctors', roles: ADMIN },
   {
     id: 'doctors-new-modal',
     path: '/doctors',
     roles: ADMIN,
     steps: [{ click: 'doctors.create' }, { wait: 400 }],
+  },
+  {
+    // The doctor's own page: the accordion again, and the time-off list beside
+    // it. Reached through the doctors list, like every other `:id` screen here.
+    id: 'doctor-page',
+    path: '/doctors/:doctorId',
+    roles: ADMIN,
+  },
+  {
+    id: 'doctor-time-off-modal',
+    path: '/doctors/:doctorId',
+    roles: ADMIN,
+    steps: [{ click: 'schedule.timeOff.add' }, { wait: 400 }],
   },
   { id: 'users', path: '/users', roles: ADMIN },
   {

@@ -96,7 +96,8 @@ describe('Dashboard', () => {
 
     expect(within(today).getByText('3')).toBeInTheDocument();
     expect(within(pending).getByText('2')).toBeInTheDocument();
-    expect(within(overdue).getByText(/450\.00/)).toBeInTheDocument();
+    // Whole numbers now — the KPI reads "450", not "450.00".
+    expect(within(overdue).getByText(/450/)).toBeInTheDocument();
   });
 
   /*

@@ -136,7 +136,14 @@ describe('Patient page', () => {
     it('shows the balance the ledger computed', async () => {
       await renderPatientPage(USER_ROLE.DOCTOR);
 
-      expect(await screen.findByText('100.00 USD')).toBeInTheDocument();
+      // The figure and its symbol are two elements inside one `Money`, so the
+      // match is on the whole box rather than on a text node.
+      const balance = await screen.findByText(
+        (_text, element) => element?.textContent?.replace(/\s/g, ' ') === '100 $',
+        { selector: 'span' },
+      );
+
+      expect(balance).toBeInTheDocument();
     });
 
     it('computes whole years, not part ones', () => {

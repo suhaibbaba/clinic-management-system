@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@web/components/ui/dropdown-menu';
 import { Icon } from '@web/components/ui/icon';
+import { PersonName, usePersonName } from '@web/components/ui/person-name';
 import { WEB_VERSION } from '@web/features/clinic/api-version';
 import { changeLanguage, LANGUAGES, type Language } from '@web/i18n/language';
 import { cn } from '@web/lib/cn';
@@ -46,6 +47,7 @@ export interface UserMenuProps {
  */
 export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
   const { t, i18n } = useTranslation();
+  const displayName = usePersonName();
   const navigate = useNavigate();
   const current = i18n.language.split('-')[0];
 
@@ -58,10 +60,10 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
           'data-[state=open]:bg-inset',
         )}
       >
-        <Avatar name={user.name} />
+        <Avatar name={displayName(user.name)} />
 
         <span className="flex min-w-0 flex-1 flex-col leading-snug text-start">
-          <span className="truncate text-label font-semibold text-ink">{user.name}</span>
+          <PersonName name={user.name} className="truncate text-label font-semibold text-ink" />
           <span className="truncate text-label text-ink-subtle">{t(`roles.${user.role}`)}</span>
         </span>
 

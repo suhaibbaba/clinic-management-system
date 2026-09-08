@@ -8,8 +8,10 @@ import {
   FormField,
   Input,
   Modal,
+  MoneyInput,
   Select,
   Textarea,
+  usePersonName,
   useToast,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
@@ -23,6 +25,7 @@ import {
 } from '@web/features/labs/queries';
 import { TeethField } from '@web/features/labs/teeth-field';
 import { errorMessageKey } from '@web/lib/api-error';
+import { useCurrency } from '@web/features/clinic/queries';
 
 /** What the patient page hands in when the order starts from a tooth. */
 export interface LabOrderDefaults {
@@ -57,6 +60,8 @@ export function OrderFormModal({
   defaults,
 }: OrderFormModalProps): JSX.Element {
   const { t } = useTranslation();
+  const currency = useCurrency();
+  const doctorName = usePersonName();
   const toast = useToast();
   const { user } = useSession();
 
@@ -249,7 +254,7 @@ export function OrderFormModal({
               onChange={(event) => setDoctorId(event.target.value)}
               options={(doctors.data?.items ?? []).map((doctor) => ({
                 value: doctor.id,
-                label: doctor.user.name,
+                label: doctorName(doctor.user.name),
               }))}
             />
           </FormField>
@@ -294,11 +299,10 @@ export function OrderFormModal({
             htmlFor="lab-order-price"
             hint={t('labs.prices.snapshotNote')}
           >
-            <Input
+            <MoneyInput
               id="lab-order-price"
-              dir="ltr"
-              inputMode="decimal"
-              placeholder="0.00"
+              currency={currency}
+              placeholder="0"
               value={price}
               onChange={(event) => setPrice(event.target.value)}
             />

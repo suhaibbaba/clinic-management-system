@@ -15,6 +15,11 @@ import { clinicScheduleSettings, type Clinic } from '@clinic/shared';
  * where the API booked 09:00 — the calendar and the availability endpoint
  * would disagree about what a day contains, and the patient would arrive at
  * the wrong hour.
+ *
+ * In `lib/` rather than in the appointments feature, where it started: a
+ * doctor's time off is a clinic time too, and so is anything else this app
+ * ever prints a wall clock for. A feature importing another feature's module
+ * for it is the boundary CLAUDE.md asks screens not to cross.
  */
 let zone = resolveBrowserZone();
 

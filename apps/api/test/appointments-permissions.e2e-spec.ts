@@ -79,7 +79,7 @@ describe('Appointments permission boundaries (e2e)', () => {
       .update(clinics)
       .set({
         workingHours: [{ weekday: 1, ranges: [{ start: '09:00', end: '17:00' }] }],
-        settings: { timezone: TIME_ZONE, holidays: [] },
+        settings: { timezone: TIME_ZONE },
       })
       .where(eq(clinics.id, clinic.id));
 
@@ -98,7 +98,8 @@ describe('Appointments permission boundaries (e2e)', () => {
       .insert(users)
       .values({
         clinicId: clinic.id,
-        name: 'طبيب آخر',
+        nameAr: 'طبيب آخر',
+        nameEn: 'Another doctor',
         phone: uniquePhone(),
         passwordHash: 'unused — this account never signs in',
         role: USER_ROLE.DOCTOR,

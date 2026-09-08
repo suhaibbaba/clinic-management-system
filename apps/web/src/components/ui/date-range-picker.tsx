@@ -6,6 +6,7 @@ import { Button } from '@web/components/ui/button';
 import { Calendar } from '@web/components/ui/calendar';
 import { fromIsoDate, toIsoDate } from '@web/components/ui/date-picker';
 import { Icon } from '@web/components/ui/icon';
+import { openOnArrowDown } from '@web/components/ui/open-on-key';
 import { PopoverSheet } from '@web/components/ui/popover-sheet';
 import { cn } from '@web/lib/cn';
 import { Ltr } from '@web/components/ui/ltr';
@@ -58,11 +59,15 @@ export function DateRangePicker({
       open={open}
       onOpenChange={setOpen}
       title={label}
-      trigger={
+      anchor={
         <button
           id={id}
           type="button"
           aria-label={label}
+          // This anchor is itself the control, so it opens on click, Enter and
+          // Space by being a button — and on ArrowDown like the other two.
+          onClick={() => setOpen(true)}
+          onKeyDown={openOnArrowDown(() => setOpen(true))}
           className={cn(
             'flex h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-control lg:h-10',
             'border border-line bg-surface ps-3.5 pe-3 text-start text-field',

@@ -1,6 +1,7 @@
 import { USER_ROLE, type Doctor } from '@clinic/shared';
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import {
   Badge,
@@ -9,6 +10,7 @@ import {
   Icon,
   Ltr,
   PageHeader,
+  PersonName,
   RowAction,
   SearchField,
   Table,
@@ -24,7 +26,8 @@ const PAGE_SIZE = 10;
 /** Readable by every role; only admin sees the write actions (ROLES.md). */
 export function DoctorsPage(): JSX.Element {
   const { t } = useTranslation();
-  const { user, hasRole } = useSession();
+  const { hasRole } = useSession();
+  const navigate = useNavigate();
   const isAdmin = hasRole(USER_ROLE.ADMIN);
 
   const [page, setPage] = useState(1);
@@ -46,7 +49,14 @@ export function DoctorsPage(): JSX.Element {
 
   const columns = useMemo<Column<Doctor>[]>(() => {
     const base: Column<Doctor>[] = [
-      { key: 'name', header: 'users.name', primary: true, render: (row) => row.user.name },
+      {
+        key: 'name',
+        header: 'users.name',
+        primary: true,
+        // Both spellings on hover: this is where a clinic checks what will be
+        // printed on a lab sheet against what the calendar shows.
+        render: (row) => <PersonName name={row.user.name} showBoth />,
+      },
       { key: 'phone', header: 'users.phone', render: (row) => <Ltr>{row.user.phone}</Ltr> },
       {
         key: 'specialty',
@@ -72,22 +82,35 @@ export function DoctorsPage(): JSX.Element {
       key: 'actions',
       header: 'common.actions',
       actions: true,
-      render: (row) =>
-        isAdmin || row.userId === user?.id ? (
+      render: (row) => (
+        <span className="flex items-center justify-end gap-3">
+          {/* The hours and the time off live on the doctor's own page now —
+              a growing list of absences was never going to fit in a modal. */}
           <RowAction
-            icon={<Icon name="edit" />}
-            onClick={() => {
-              setFormDoctor(row);
-              setFormOpen(true);
-            }}
+            icon={<Icon name="clock" />}
+            tone="quiet"
+            onClick={() => navigate(`/doctors/${row.id}`)}
           >
-            {isAdmin ? t('common.edit') : t('doctors.editSchedule')}
+            {t('doctors.openSchedule')}
           </RowAction>
-        ) : null,
+
+          {isAdmin && (
+            <RowAction
+              icon={<Icon name="edit" />}
+              onClick={() => {
+                setFormDoctor(row);
+                setFormOpen(true);
+              }}
+            >
+              {t('common.edit')}
+            </RowAction>
+          )}
+        </span>
+      ),
     });
 
     return base;
-  }, [t, isAdmin, user?.id]);
+  }, [t, isAdmin, navigate]);
 
   const data = query.data;
 

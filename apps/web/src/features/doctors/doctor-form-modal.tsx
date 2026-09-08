@@ -3,7 +3,7 @@ import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button, FormField, Icon, Input, Modal, Select, useToast } from '@web/components/ui';
-import { ScheduleEditor } from '@web/components/schedule-editor';
+import { WorkingHours } from '@web/components/schedule/working-hours';
 import { useCreateDoctor, useSpecialties, useUpdateDoctor } from '@web/features/doctors/queries';
 import { useUsers } from '@web/features/users/queries';
 import { errorMessageKey } from '@web/lib/api-error';
@@ -163,7 +163,12 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
 
         <div>
           <p className="mb-2 text-value font-medium text-ink">{t('doctors.schedule')}</p>
-          <ScheduleEditor value={schedule} onChange={setSchedule} />
+          {/*
+            The same accordion as the clinic's hours and the doctor's own page.
+            Editing a full week here is still possible, but the page is where
+            it belongs — this modal is about linking an account to a specialty.
+          */}
+          <WorkingHours value={schedule} onChange={setSchedule} idPrefix="doctor-form-hours" />
         </div>
       </div>
     </Modal>

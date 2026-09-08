@@ -18,6 +18,14 @@
  *     An English value that is *still Arabic* is caught too: that is a key
  *     somebody copied into both files and translated in neither.
  *
+ *     **Plural forms are compared as one key, not six.** i18next appends a CLDR
+ *     category to a pluralised key, and how many categories there are is a
+ *     property of the *language*: English has `_one` and `_other`, Arabic has
+ *     `_zero`, `_one`, `_two`, `_few`, `_many` and `_other`. Demanding the same
+ *     suffixes on both sides would force five untranslatable English keys per
+ *     plural — so the base key has to exist in both, and each side is then
+ *     checked against its own language's categories.
+ *
  * Both the app and the public booking page are checked for Arabic in their
  * source; they have separate bundles and separate locale files, and the
  * booking page is the one a patient sees. Only the app is checked for parity —
@@ -98,6 +106,24 @@ function withoutComments(source) {
     .replace(/\/\/[^\n]*/g, '');
 }
 
+/**
+ * The CLDR plural categories each language actually uses.
+ *
+ * From `Intl.PluralRules`, so the list cannot drift from what i18next selects
+ * at runtime — it reads the same data.
+ */
+const PLURAL_CATEGORIES = Object.fromEntries(
+  ['ar', 'en'].map((language) => [
+    language,
+    new Set(new Intl.PluralRules(language).resolvedOptions().pluralCategories),
+  ]),
+);
+
+const SUFFIX = /_(zero|one|two|few|many|other)$/;
+
+/** `schedule.conflicts.title_many` → `schedule.conflicts.title`. */
+const baseKey = (key) => key.replace(SUFFIX, '');
+
 /** Every leaf key, dotted — `clinic.logo`, `lookups.lists.tooth_state`. */
 function keysOf(value, prefix = '') {
   if (typeof value !== 'object' || value === null) {
@@ -138,18 +164,40 @@ function checkParity(locales) {
   const ar = JSON.parse(readFileSync(join(locales, 'ar.json'), 'utf8'));
   const en = JSON.parse(readFileSync(join(locales, 'en.json'), 'utf8'));
 
-  const arKeys = new Set(keysOf(ar));
-  const enKeys = new Set(keysOf(en));
+  const arKeys = keysOf(ar);
+  const enKeys = keysOf(en);
 
-  for (const key of arKeys) {
-    if (!enKeys.has(key)) {
+  // Plural families are compared by their base key; see the note above.
+  const arBases = new Set(arKeys.map(baseKey));
+  const enBases = new Set(enKeys.map(baseKey));
+
+  for (const key of arBases) {
+    if (!enBases.has(key)) {
       failures.push(`${where}/en.json  missing "${key}" — it would fall back to Arabic`);
     }
   }
 
-  for (const key of enKeys) {
-    if (!arKeys.has(key)) {
+  for (const key of enBases) {
+    if (!arBases.has(key)) {
       failures.push(`${where}/ar.json  missing "${key}"`);
+    }
+  }
+
+  // And a pluralised key must carry every category its own language has: a
+  // missing `_many` in Arabic is a sentence nobody sees until a count reaches
+  // eleven.
+  for (const [language, keys] of [
+    ['ar', arKeys],
+    ['en', enKeys],
+  ]) {
+    const families = new Set(keys.filter((key) => SUFFIX.test(key)).map(baseKey));
+
+    for (const family of families) {
+      for (const category of PLURAL_CATEGORIES[language]) {
+        if (!keys.includes(`${family}_${category}`)) {
+          failures.push(`${where}/${language}.json  missing "${family}_${category}"`);
+        }
+      }
     }
   }
 

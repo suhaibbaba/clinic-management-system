@@ -71,7 +71,6 @@ describe('Notifications and schedulers (e2e)', () => {
 
   const settings = (overrides: Record<string, unknown> = {}) => ({
     timezone: TIME_ZONE,
-    holidays: [] as string[],
     booking: {
       enabled: true,
       maxDaysAhead: 45,
@@ -105,7 +104,8 @@ describe('Notifications and schedulers (e2e)', () => {
       .insert(users)
       .values({
         clinicId: clinic.id,
-        name: `Test doctor ${suffix}`,
+        nameAr: `طبيب اختبار ${suffix}`,
+        nameEn: `Test doctor ${suffix}`,
         phone: `+98${suffix}`,
         email: `doctor.${suffix}@test.local`,
         passwordHash: 'not-a-login',
@@ -332,7 +332,9 @@ describe('Notifications and schedulers (e2e)', () => {
 
       expect(forTomorrow.map((row) => row.template)).toEqual([NOTIFICATION_TEMPLATE.REMINDER_24H]);
       expect(forSoon.map((row) => row.template)).toEqual([NOTIFICATION_TEMPLATE.REMINDER_2H]);
-      expect(forTomorrow[0]?.vars['doctor']).toMatch(/^Test doctor/);
+      // The Arabic spelling: a reminder is a text to a patient, not a screen
+      // with a language toggle on it.
+      expect(forTomorrow[0]?.vars['doctor']).toMatch(/^طبيب اختبار/);
       expect(forTomorrow[0]?.vars['time']).toMatch(/^\d{2}:\d{2}$/);
     });
 

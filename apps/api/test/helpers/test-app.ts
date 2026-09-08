@@ -100,7 +100,11 @@ export async function createTestContext(): Promise<TestContext> {
       const [clinic] = await db
         .insert(clinics)
         // The slug is unique system-wide, so each isolated clinic needs its own.
-        .values({ name: `Test Clinic ${suffix}`, slug: `test-${suffix}` })
+        .values({
+          nameAr: `عيادة اختبار ${suffix}`,
+          nameEn: `Test Clinic ${suffix}`,
+          slug: `test-${suffix}`,
+        })
         .returning({ id: clinics.id, slug: clinics.slug });
 
       if (!clinic) {
@@ -135,7 +139,8 @@ export async function createTestContext(): Promise<TestContext> {
           .insert(users)
           .values({
             clinicId: clinic.id,
-            name: `Test ${role}`,
+            nameAr: `اختبار ${role}`,
+            nameEn: `Test ${role}`,
             phone,
             email: `${role}.${suffix}@test.local`,
             passwordHash,

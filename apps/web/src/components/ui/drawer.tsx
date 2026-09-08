@@ -1,8 +1,9 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import type { JSX, ReactNode } from 'react';
+import { useState, type JSX, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Icon } from '@web/components/ui/icon';
+import { DialogLayerProvider } from '@web/components/ui/dialog-layer';
 import { cn } from '@web/lib/cn';
 import { documentDirection } from '@web/lib/direction';
 
@@ -21,7 +22,13 @@ export interface DrawerProps {
  * Side sheet anchored to the inline end of the page — the left in an RTL
  * layout, the right in LTR — so it opens away from the reading edge either way.
  *
- * Radix Dialog underneath, for the focus trap and escape handling. There is
+ * Radix Dialog underneath, for the focus trap and escape handling — and, as in
+ * `Modal`, with its auto-focus prevented: a drawer opens because somebody
+ * wanted to read a record, and putting the caret in its first field announces
+ * the wrong thing and can unfold a picker nobody asked for. The trap, Escape
+ * and the first Tab all behave exactly as they did.
+ *
+ * There is
  * deliberately no slide-in transform: `translate-x` is not mirrored in RTL, so
  * a slide would animate from the wrong side of an Arabic page. It fades in
  * instead, which is direction-agnostic.
@@ -35,12 +42,19 @@ export function Drawer({
   footer,
 }: DrawerProps): JSX.Element {
   const { t } = useTranslation();
+  const [layer, setLayer] = useState<HTMLElement | null>(null);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-ink/40" />
         <Dialog.Content
+          ref={setLayer}
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            (event.currentTarget as HTMLElement | null)?.focus();
+          }}
+          tabIndex={-1}
           dir={documentDirection()}
           className={cn(
             'fixed inset-y-0 end-0 z-50 flex w-full max-w-md flex-col bg-surface shadow-float',
@@ -67,7 +81,10 @@ export function Drawer({
 
           <Dialog.Description className="sr-only">{t(descriptionKey)}</Dialog.Description>
 
-          <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+          <div className="flex-1 overflow-y-auto px-5 py-4">
+            {/* As in `Modal`: a picker in here portals into the drawer. */}
+            <DialogLayerProvider container={layer}>{children}</DialogLayerProvider>
+          </div>
 
           {footer !== undefined && (
             <div className="shrink-0 border-t border-line px-5 py-3">{footer}</div>

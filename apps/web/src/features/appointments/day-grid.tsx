@@ -1,4 +1,10 @@
-import { LOOKUP_LIST, type CalendarAppointment, type Doctor } from '@clinic/shared';
+import {
+  LOOKUP_LIST,
+  type CalendarAppointment,
+  type ClinicClosure,
+  type Doctor,
+  type DoctorTimeOff,
+} from '@clinic/shared';
 import { useRef, useState, type DragEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -11,15 +17,27 @@ import {
   HOUR_HEIGHT,
   minuteFromOffset,
   minutesOf,
+  periodPosition,
   toTimeLabel,
 } from '@web/features/appointments/calendar-time';
 import { cn } from '@web/lib/cn';
+import { Icon } from '@web/components/ui/icon';
 import { Ltr } from '@web/components/ui/ltr';
+import { PersonName } from '@web/components/ui/person-name';
 
 export interface DayGridProps {
+  /** The day being drawn, as a local `YYYY-MM-DD`. */
+  readonly date: string;
   /** One column each. A doctor sees a single column: their own. */
   readonly doctors: readonly Doctor[];
   readonly appointments: readonly CalendarAppointment[];
+  /**
+   * The closure covering this day, if one does. Shading the whole grid rather
+   * than every column: the clinic is shut, not one doctor.
+   */
+  readonly closure?: ClinicClosure | undefined;
+  /** Absences touching this day, drawn as hatched blocks in their column. */
+  readonly timeOff?: readonly DoctorTimeOff[] | undefined;
   readonly onOpen: (appointment: CalendarAppointment) => void;
   /**
    * A block was dropped on a new time. Absent when the caller may not
@@ -43,8 +61,11 @@ export interface DayGridProps {
  * without a lane-packing algorithm, and it is worth knowing before adding one.
  */
 export function DayGrid({
+  date,
   doctors,
   appointments,
+  closure,
+  timeOff = [],
   onOpen,
   onMove,
   onPick,
@@ -74,6 +95,15 @@ export function DayGrid({
 
   return (
     <div className="overflow-x-auto rounded-card bg-surface shadow-card">
+      {closure && (
+        // The reason, in the clinic's own words. "The clinic is closed" is not
+        // something reception can repeat down the phone; "عيد الفطر" is.
+        <p className="flex items-center gap-2 border-b border-line bg-warning-50 px-4 py-2 text-label text-warning-800">
+          <Icon name="alert" />
+          {t('appointments.grid.closedOn', { reason: closure.reason })}
+        </p>
+      )}
+
       <div className="min-w-max">
         {/* ── Column headers ────────────────────────────────────────── */}
         <div
@@ -85,12 +115,12 @@ export function DayGrid({
               key={doctor.id}
               className="min-w-40 flex-1 truncate px-3 py-2.5 text-center text-label font-semibold text-ink"
             >
-              {doctor.user.name}
+              <PersonName name={doctor.user.name} />
             </div>
           ))}
         </div>
 
-        <div className="relative flex" style={{ height: bodyHeight }}>
+        <div className={cn('relative flex', closure && 'bg-sunken')} style={{ height: bodyHeight }}>
           {/* ── Hour ruler ──────────────────────────────────────────── */}
           <div className="relative w-14 shrink-0">
             {hours.map((minute) => (
@@ -145,6 +175,28 @@ export function DayGrid({
                     style={{ top: `${((minute - GRID_START_MINUTE) / 60) * HOUR_HEIGHT}px` }}
                   />
                 ))}
+
+                {/*
+                  Time off, under the appointments: an absence that overlaps a
+                  booking is a real state — the seed ships one — and hiding the
+                  appointment behind the hatching would be the wrong way round.
+                */}
+                {timeOff
+                  .filter((entry) => entry.doctorId === doctor.id)
+                  .map((entry) => {
+                    const position = periodPosition(entry.startsAt, entry.endsAt, date);
+
+                    return position === null ? null : (
+                      <div
+                        key={entry.id}
+                        title={entry.reason}
+                        aria-label={`${t('schedule.timeOff.title')}: ${entry.reason}`}
+                        data-time-off={entry.id}
+                        className="absolute inset-x-0 hatched border-y border-line-strong/60"
+                        style={position}
+                      />
+                    );
+                  })}
 
                 {column.map((appointment) => (
                   <AppointmentBlock

@@ -1,4 +1,5 @@
 import type { ManagedBooking } from '@clinic/shared';
+import { bookingName } from '@web/booking/format';
 
 /**
  * "Add to calendar", without a calendar provider.
@@ -36,16 +37,16 @@ export function appointmentIcs(booking: ManagedBooking): string {
     'BEGIN:VEVENT',
     // Stable per appointment instant, so re-downloading updates the same event
     // rather than adding a second one.
-    `UID:${stamp(start)}-${escape(booking.clinicName)}@clinic`,
+    `UID:${stamp(start)}-${escape(bookingName(booking.clinicName))}@clinic`,
     `DTSTAMP:${stamp(new Date())}`,
     `DTSTART:${stamp(start)}`,
     `DTEND:${stamp(end)}`,
-    `SUMMARY:${escape(`${booking.clinicName} — ${booking.doctorName}`)}`,
+    `SUMMARY:${escape(`${bookingName(booking.clinicName)} — ${bookingName(booking.doctorName)}`)}`,
     ...(booking.clinicPhone ? [`DESCRIPTION:${escape(booking.clinicPhone)}`] : []),
     'BEGIN:VALARM',
     'TRIGGER:-PT2H',
     'ACTION:DISPLAY',
-    `DESCRIPTION:${escape(booking.clinicName)}`,
+    `DESCRIPTION:${escape(bookingName(booking.clinicName))}`,
     'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR',

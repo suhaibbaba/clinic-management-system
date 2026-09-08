@@ -1,8 +1,8 @@
-import { LOOKUP_LIST, type CalendarAppointment } from '@clinic/shared';
+import { LOOKUP_LIST, type CalendarAppointment, type ClinicClosure } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, EmptyState, Icon, Ltr } from '@web/components/ui';
+import { Badge, EmptyState, Icon, Ltr, PersonName } from '@web/components/ui';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from '@web/features/appointments/status';
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
@@ -10,6 +10,8 @@ import { cn } from '@web/lib/cn';
 
 export interface AgendaListProps {
   readonly appointments: readonly CalendarAppointment[];
+  /** The closure covering this day, if one does — the phone's version of the shading. */
+  readonly closure?: ClinicClosure | undefined;
   readonly onOpen: (appointment: CalendarAppointment) => void;
   /** Shown when the caller can see more than one doctor's day. */
   readonly showDoctor: boolean;
@@ -22,18 +24,38 @@ export interface AgendaListProps {
  * pixels tall and nothing is legible or tappable. An agenda drops the spatial
  * metaphor and keeps the thing it was carrying, which is the order.
  */
-export function AgendaList({ appointments, onOpen, showDoctor }: AgendaListProps): JSX.Element {
+export function AgendaList({
+  appointments,
+  closure,
+  onOpen,
+  showDoctor,
+}: AgendaListProps): JSX.Element {
   const { t } = useTranslation();
   const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
 
+  // The closed notice comes first, and stands alone when the day is also
+  // empty: "no appointments" and "the clinic is shut" are different answers.
+  const closedNotice = closure ? (
+    <p className="flex items-center gap-2 rounded-card bg-warning-50 px-3 py-2 text-label text-warning-800">
+      <Icon name="alert" />
+      {t('appointments.grid.closedOn', { reason: closure.reason })}
+    </p>
+  ) : null;
+
   if (appointments.length === 0) {
-    return <EmptyState icon="calendar" title="appointments.empty" hint="appointments.emptyHint" />;
+    return (
+      <div className="flex flex-col gap-3">
+        {closedNotice}
+        <EmptyState icon="calendar" title="appointments.empty" hint="appointments.emptyHint" />
+      </div>
+    );
   }
 
   const ordered = [...appointments].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 
   return (
     <ul className="flex flex-col gap-3">
+      {closedNotice && <li>{closedNotice}</li>}
       {ordered.map((appointment) => {
         const style = APPOINTMENT_STATUS_STYLES[appointment.status];
 
@@ -76,7 +98,7 @@ export function AgendaList({ appointments, onOpen, showDoctor }: AgendaListProps
                   {showDoctor && (
                     <>
                       <span aria-hidden="true">·</span>
-                      <span className="truncate">{appointment.doctorName}</span>
+                      <PersonName name={appointment.doctorName} className="truncate" />
                     </>
                   )}
                 </span>

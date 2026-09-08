@@ -12,6 +12,21 @@ export function useClinic(): UseQueryResult<Clinic> {
   return useQuery({ queryKey: [CLINIC_KEY], queryFn: () => clinicApi.get() });
 }
 
+/**
+ * The clinic's currency, for anything that draws or accepts an amount.
+ *
+ * A hook rather than a prop threaded down through five forms: every money field
+ * and every figure needs it, it comes from the same cached query as the rest of
+ * the clinic, and a form that forgot the prop rendered its amounts with no
+ * symbol at all — which reads as a missing setting rather than as a bug.
+ *
+ * Undefined until the query lands; `Money` and `MoneyInput` both draw the
+ * figure without a symbol in the meantime rather than shifting the layout twice.
+ */
+export function useCurrency(): string | undefined {
+  return useClinic().data?.currency;
+}
+
 export function useUpdateClinic() {
   const queryClient = useQueryClient();
 

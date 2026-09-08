@@ -2,6 +2,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import type { JSX, ReactNode } from 'react';
 
+import { useDialogLayer } from '@web/components/ui/dialog-layer';
 import { Icon } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
 import { useIsMobile } from '@web/lib/use-media-query';
@@ -9,8 +10,14 @@ import { useIsMobile } from '@web/lib/use-media-query';
 export interface PopoverSheetProps {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
-  /** The control this hangs off. */
-  readonly trigger: ReactNode;
+  /**
+   * The control this hangs off — an **anchor**, not a trigger.
+   *
+   * It positions the popover and nothing else: opening is the caller's, from
+   * an explicit click, Enter, Space or ArrowDown on a control it owns. See the
+   * note on the component.
+   */
+  readonly anchor: ReactNode;
   /** The sheet's heading, and the popover's accessible name. */
   readonly title: string;
   readonly children: ReactNode;
@@ -30,22 +37,43 @@ export interface PopoverSheetProps {
  * button. On a laptop it is a popover, dismissed by looking away. Both take
  * their open state from the caller, so nothing behaves differently between the
  * two beyond what the shape implies.
+ *
+ * **The field anchors this; it does not trigger it.** Radix's `Trigger` wraps
+ * the node it is given and opens on any activation of it, which for a date or
+ * time field means the calendar can come up from something the user did not
+ * mean as "show me a calendar" — most visibly when a dialog opens and hands
+ * focus to its first field, where a picker unfolding over a form nobody has
+ * touched yet is the bug this replaced. `Anchor` positions and stays silent;
+ * every caller opens from its own button, which gives click, Enter and Space
+ * for free, and adds ArrowDown on the field itself.
  */
 export function PopoverSheet({
   open,
   onOpenChange,
-  trigger,
+  anchor,
   title,
   children,
 }: PopoverSheetProps): JSX.Element {
   const isMobile = useIsMobile();
+  /*
+   * A dialog above us, if any.
+   *
+   * Radix Dialog makes the body inert while it is open, so a popover portalled
+   * to `document.body` from inside one renders perfectly and ignores every
+   * click — which is what the date range picker in the "add a closure" dialog
+   * did. Portalling into the dialog's own content keeps it interactive, and is
+   * a no-op everywhere else.
+   */
+  const dialogLayer = useDialogLayer();
 
   if (isMobile) {
     return (
       <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-        <DialogPrimitive.Trigger asChild>{trigger}</DialogPrimitive.Trigger>
+        {/* Rendered plainly: on a phone the field opens the sheet from its
+            own button, exactly as it does on a laptop. */}
+        {anchor}
 
-        <DialogPrimitive.Portal>
+        <DialogPrimitive.Portal {...(dialogLayer && { container: dialogLayer })}>
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-ink/40" />
 
           <DialogPrimitive.Content
@@ -85,9 +113,9 @@ export function PopoverSheet({
 
   return (
     <PopoverPrimitive.Root open={open} onOpenChange={onOpenChange}>
-      <PopoverPrimitive.Trigger asChild>{trigger}</PopoverPrimitive.Trigger>
+      <PopoverPrimitive.Anchor asChild>{anchor}</PopoverPrimitive.Anchor>
 
-      <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Portal {...(dialogLayer && { container: dialogLayer })}>
         <PopoverPrimitive.Content
           align="start"
           sideOffset={8}

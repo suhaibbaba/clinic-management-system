@@ -47,7 +47,9 @@
       "selectType": "Select an attachment type",
       "date": "dd/mm/yyyy",
       "time": "--:--",
-      "dateRange": "Choose a period"
+      "dateRange": "Choose a period",
+      "fullNameAr": "Full name in Arabic",
+      "fullNameEn": "Full name in English"
     },
     "clear": "Clear",
     "today": "Today",
@@ -125,7 +127,9 @@
     "filterStatus": "Filter by status",
     "searchPlaceholder": "Search by name, phone or email",
     "empty": "No users",
-    "emptyHint": "Start by adding the first clinic user"
+    "emptyHint": "Start by adding the first clinic user",
+    "nameAr": "Name in Arabic",
+    "nameEn": "Name in English"
   },
   "doctors": {
     "title": "Doctors",
@@ -146,7 +150,10 @@
     "empty": "No doctors",
     "emptyHint": "Add a doctor after creating an account with the doctor role",
     "noEligibleUsers": "No doctor-role accounts without a profile",
-    "searchPlaceholder": "Search by doctor name or phone"
+    "searchPlaceholder": "Search by doctor name or phone",
+    "pageTitle": "Doctor's schedule",
+    "pageSubtitle": "Working hours and time off",
+    "openSchedule": "Hours and time off"
   },
   "schedule": {
     "working": "Working",
@@ -165,6 +172,48 @@
       "4": "Thursday",
       "5": "Friday",
       "6": "Saturday"
+    },
+    "copyToOthers": "Copy to the other working days",
+    "outsideBounds": "Outside {{bounds}}",
+    "clinicHours": "the clinic's opening hours",
+    "closures": {
+      "title": "Closures",
+      "add": "Add a closure",
+      "dates": "Period",
+      "reason": "Reason",
+      "reasonPlaceholder": "Eid al-Fitr",
+      "annual": "Repeats every year",
+      "annualHint": "For fixed-date holidays only; movable feasts are entered per year.",
+      "added": "Closure recorded",
+      "removed": "Closure removed",
+      "empty": "No closures",
+      "emptyHint": "Add the holidays and the days the clinic is shut",
+      "addedAndCancelled_one": "Closure recorded, 1 appointment cancelled and the patient notified",
+      "addedAndCancelled_other": "Closure recorded, {{count}} appointments cancelled and the patients notified"
+    },
+    "timeOff": {
+      "title": "Time off",
+      "add": "Add time off",
+      "from": "From date",
+      "to": "To date",
+      "reason": "Reason",
+      "reasonPlaceholder": "Medical conference",
+      "wholeDay": "Whole day",
+      "partial": "Part of the day",
+      "added": "Time off recorded",
+      "removed": "Time off removed",
+      "empty": "No time off",
+      "emptyHint": "Record the days or hours this doctor is away",
+      "addedAndCancelled_one": "Time off recorded, 1 appointment cancelled and the patient notified",
+      "addedAndCancelled_other": "Time off recorded, {{count}} appointments cancelled and the patients notified"
+    },
+    "conflicts": {
+      "description": "Choose what happens to them before the period is saved.",
+      "cancelThem": "Cancel them and notify the patients",
+      "keepThem": "Keep them",
+      "notifyNote": "Cancelling sends every patient a message and cannot be undone.",
+      "title_one": "There is 1 appointment in this period",
+      "title_other": "There are {{count}} appointments in this period"
     }
   },
   "clinic": {
@@ -177,8 +226,12 @@
     "currency": "Currency",
     "currencyHint": "Shown beside every figure in the system",
     "currencies": {
+      "JOD": "Jordanian dinar",
+      "ILS": "Israeli shekel",
       "USD": "US dollar",
-      "ILS": "Israeli shekel"
+      "EUR": "Euro",
+      "SAR": "Saudi riyal",
+      "SYP": "Syrian pound"
     },
     "workingHours": "Opening hours",
     "logo": "Clinic logo",
@@ -195,7 +248,9 @@
     "about": "About",
     "version": "Version",
     "apiVersion": "Server version",
-    "versionMismatch": "This page is older than the server — reload it"
+    "versionMismatch": "This page is older than the server — reload it",
+    "nameAr": "Clinic name in Arabic",
+    "nameEn": "Clinic name in English"
   },
   "audit": {
     "title": "Audit log",
@@ -623,7 +678,8 @@
       "waitingSince": "Waiting since {{time}}"
     },
     "grid": {
-      "dragHint": "Drag an appointment to change its time."
+      "dragHint": "Drag an appointment to change its time.",
+      "closedOn": "The clinic is closed: {{reason}}"
     },
     "tabs": {
       "label": "Appointment views",

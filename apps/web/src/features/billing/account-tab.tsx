@@ -100,7 +100,12 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
       header: 'billing.columns.charge',
       align: 'numeric',
       render: (entry) =>
-        entry.kind === LEDGER_ENTRY_KIND.CHARGE ? <Money amount={entry.amount} /> : null,
+        entry.kind === LEDGER_ENTRY_KIND.CHARGE ? (
+          // The symbol travels with every figure now that it *is* a symbol —
+          // one character rather than the three-letter code that was left off
+          // these columns because it doubled their width.
+          <Money amount={entry.amount} currency={currency} />
+        ) : null,
     },
     {
       key: 'payment',
@@ -108,7 +113,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
       align: 'numeric',
       render: (entry) =>
         entry.kind === LEDGER_ENTRY_KIND.PAYMENT ? (
-          <Money amount={entry.amount.replace('-', '')} />
+          <Money amount={entry.amount.replace('-', '')} currency={currency} />
         ) : null,
     },
     {
@@ -117,7 +122,9 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
       // The running balance is the point of a statement, so it stays on the
       // card at every width — it is never the column that gets dropped.
       align: 'numeric',
-      render: (entry) => <Money amount={entry.runningBalance} className="font-medium" />,
+      render: (entry) => (
+        <Money amount={entry.runningBalance} currency={currency} className="font-medium" />
+      ),
     },
     {
       key: 'actions',

@@ -232,7 +232,7 @@ describe('Treatment plans tab', () => {
     const sheet = heading.closest('.print-sheet');
     expect(sheet).not.toBeNull();
 
-    expect(within(sheet as HTMLElement).getByText(makeClinic().name)).toBeInTheDocument();
+    expect(within(sheet as HTMLElement).getByText(makeClinic().name.ar)).toBeInTheDocument();
     expect(within(sheet as HTMLElement).getByText(makePatient().fileNumber)).toBeInTheDocument();
     expect(
       within(sheet as HTMLElement).getByText(ar.treatmentPlans.signaturePatient),

@@ -15,6 +15,7 @@ import {
   Input,
   Ltr,
   Modal,
+  MoneyInput,
   Select,
   Textarea,
   useToast,
@@ -34,6 +35,7 @@ import {
   useSuppliers,
 } from '@web/features/inventory/queries';
 import { errorMessageKey } from '@web/lib/api-error';
+import { useCurrency } from '@web/features/clinic/queries';
 
 /** Which roles may open which form — the ROLES.md split, as a lookup. */
 export const mayRecord = (type: MovementType, role: UserRole | undefined): boolean =>
@@ -75,6 +77,7 @@ export function MovementModal({
   performedProcedureId,
 }: MovementModalProps): JSX.Element | null {
   const { t } = useTranslation();
+  const currency = useCurrency();
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const toast = useToast();
   const { user } = useSession();
@@ -216,11 +219,10 @@ export function MovementModal({
           <>
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField label="inventory.movement.unitPrice" htmlFor="movement-price" optional>
-                <Input
+                <MoneyInput
                   id="movement-price"
-                  dir="ltr"
-                  inputMode="decimal"
-                  placeholder="0.00"
+                  currency={currency}
+                  placeholder="0"
                   value={unitPrice}
                   onChange={(event) => setUnitPrice(event.target.value)}
                 />

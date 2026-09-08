@@ -16,6 +16,8 @@ export const doctorsApi = {
       query: { page: query.page, limit: query.limit, search: query.search },
     }),
 
+  get: (id: string): Promise<Doctor> => apiRequest(`/doctors/${id}`),
+
   create: (body: CreateDoctorInput): Promise<Doctor> =>
     apiRequest('/doctors', { method: 'POST', body }),
 

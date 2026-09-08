@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Clock,
   Coins,
+  Copy,
   CreditCard,
   FileText,
   Globe,
@@ -84,6 +85,7 @@ export type IconName =
   | 'clipboard'
   | 'clock'
   | 'coins'
+  | 'copy'
   | 'edit'
   | 'error'
   | 'file'
@@ -143,6 +145,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   clipboard: ClipboardList,
   clock: Clock,
   coins: Coins,
+  copy: Copy,
   edit: Pencil,
   error: XCircle,
   file: FileText,

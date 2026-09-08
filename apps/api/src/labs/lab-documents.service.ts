@@ -1,6 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   LAB_STATEMENT_ENTRY_KIND,
+  personName,
   type LabStatement,
   type Money,
   type StatementQuery,
@@ -46,7 +47,8 @@ export class LabDocumentsService {
       .select({
         order: labOrders,
         patientName: patients.fullName,
-        doctorName: users.name,
+        doctorNameAr: users.nameAr,
+        doctorNameEn: users.nameEn,
         labName: labs.name,
         workTypeName: labWorkTypes.nameAr,
       })
@@ -77,7 +79,13 @@ export class LabDocumentsService {
 
     // First name only — see the class comment.
     pdf.field(strings.patient, firstName(row.patientName));
-    pdf.field(strings.doctor, row.doctorName);
+    // The doctor's name in the *clinic's* document language, like every other
+    // word on the sheet — a lab order filed in Arabic should not carry one
+    // Latin name in the middle of it.
+    pdf.field(
+      strings.doctor,
+      personName({ ar: row.doctorNameAr, en: row.doctorNameEn }, clinic.language),
+    );
     pdf.space(6);
 
     pdf.field(strings.workType, row.workTypeName ?? '—');

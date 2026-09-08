@@ -31,7 +31,8 @@
     "slotsLabel": "الأوقات المتاحة",
     "daysLabel": "الأيام المتاحة",
     "chooseDay": "اختيار يوم {{day}}",
-    "chooseSlot": "اختيار الساعة {{time}}"
+    "chooseSlot": "اختيار الساعة {{time}}",
+    "closedFor": "العيادة مغلقة: {{reason}}"
   },
   "details": {
     "heading": "بياناتك",

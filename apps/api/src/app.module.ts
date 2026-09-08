@@ -25,6 +25,7 @@ import { LookupsModule } from '@api/lookups/lookups.module';
 import { PdfModule } from '@api/billing/pdf/pdf.module';
 import { NotificationsModule } from '@api/notifications/notifications.module';
 import { PatientsModule } from '@api/patients/patients.module';
+import { ClinicScheduleModule } from '@api/schedule/clinic-schedule.module';
 import { SpecialtiesModule } from '@api/specialties/specialties.module';
 import { StorageModule } from '@api/storage/storage.module';
 import { UsersModule } from '@api/users/users.module';
@@ -61,6 +62,8 @@ import { UsersModule } from '@api/users/users.module';
     PatientsModule,
     BillingModule,
     AppointmentsModule,
+    // Closures and doctor time off. After the calendar, which it depends on.
+    ClinicScheduleModule,
     LookupsModule,
     PdfModule,
     LabsModule,

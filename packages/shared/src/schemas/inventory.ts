@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { MOVEMENT_TYPE, MOVEMENT_TYPES } from '@shared/enums';
 import { isoDateSchema } from '@shared/schemas/appointments';
 import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
-import { moneySchema, signedMoneySchema } from '@shared/schemas/money';
+import { moneySchema, signedMoneySchema, wholeMoneySchema } from '@shared/schemas/money';
+import { personNameSchema } from '@shared/schemas/person-name';
 import {
   movementQuantitySchema,
   quantitySchema,
@@ -191,7 +192,7 @@ export const stockMovementRowSchema = stockMovementSchema.extend({
   supplierName: z.string().nullable(),
   patientName: z.string().nullable(),
   procedureName: z.string().nullable(),
-  createdByName: z.string().nullable(),
+  createdByName: personNameSchema.nullable(),
   /** What the item stood at immediately after this movement. */
   runningQuantity: signedQuantitySchema,
 });
@@ -206,7 +207,7 @@ export type StockMovementRow = z.infer<typeof stockMovementRowSchema>;
 export const purchaseStockSchema = z.object({
   itemId: uuidSchema,
   quantity: quantitySchema.refine((value) => Number(value) > 0, 'A purchase must be positive'),
-  unitPrice: moneySchema.optional(),
+  unitPrice: wholeMoneySchema.optional(),
   supplierId: uuidSchema.nullish(),
   batchNo: z.string().trim().max(64).nullish(),
   expiryDate: isoDateSchema.nullish(),

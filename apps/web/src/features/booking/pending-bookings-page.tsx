@@ -10,16 +10,17 @@ import {
   Ltr,
   Modal,
   PageHeader,
+  PersonName,
   RowAction,
   StatCard,
   StatRow,
   Table,
   Textarea,
-  type Column,
   useToast,
+  type Column,
 } from '@web/components/ui';
 import { toTimeLabel, minutesOf } from '@web/features/appointments/calendar-time';
-import { setClinicTimeZone } from '@web/features/appointments/clinic-zone';
+import { setClinicTimeZone } from '@web/lib/clinic-zone';
 import {
   useConfirmBooking,
   usePendingBookings,
@@ -124,7 +125,7 @@ export function PendingBookingsPage(): JSX.Element {
     {
       key: 'doctor',
       header: 'booking.pending.columns.doctor',
-      render: (row) => row.doctorName,
+      render: (row) => <PersonName name={row.doctorName} />,
     },
     {
       key: 'slot',

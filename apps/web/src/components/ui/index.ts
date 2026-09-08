@@ -13,6 +13,7 @@ export {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@web/components/ui/dropdown-menu';
+export { DialogLayerProvider, useDialogLayer } from '@web/components/ui/dialog-layer';
 export { Drawer } from '@web/components/ui/drawer';
 export { EmptyState } from '@web/components/ui/empty-state';
 export { EntityCard, EntityGrid, type EntityCardMeta } from '@web/components/ui/entity-card';
@@ -21,7 +22,10 @@ export { Icon, type IconName } from '@web/components/ui/icon';
 export { Input } from '@web/components/ui/input';
 export { Ltr } from '@web/components/ui/ltr';
 export { Modal } from '@web/components/ui/modal';
+export { Money } from '@web/components/ui/money';
+export { MoneyInput } from '@web/components/ui/money-input';
 export { PageHeader } from '@web/components/ui/page-header';
+export { PersonName, usePersonName } from '@web/components/ui/person-name';
 export { ProgressBar, type ProgressTone } from '@web/components/ui/progress-bar';
 export { RowAction, type RowActionTone } from '@web/components/ui/row-action';
 export { SearchField } from '@web/components/ui/search-field';

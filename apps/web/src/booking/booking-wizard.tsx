@@ -14,6 +14,7 @@ import { PendingView, SuccessView } from '@web/booking/steps/success-view';
 import { WhenStep, type SlotOption } from '@web/booking/steps/when-step';
 import { Alert, Button, Card, Skeleton } from '@web/booking/ui';
 import { useAsync } from '@web/booking/use-async';
+import { bookingName } from '@web/booking/format';
 
 const byDate = (days: readonly { date: string; slots: unknown[] }[]) =>
   new Map(days.map((day) => [day.date, day.slots]));
@@ -246,7 +247,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   if (!clinic.data.bookingEnabled) {
     return (
-      <PageShell clinicName={clinic.data.name}>
+      <PageShell clinicName={bookingName(clinic.data.name)}>
         <FullPageMessage
           title={t('errors.closed')}
           {...(clinic.data.phone && { body: clinic.data.phone })}
@@ -259,7 +260,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   if (stage === 'done') {
     return (
-      <PageShell clinicName={clinic.data.name}>
+      <PageShell clinicName={bookingName(clinic.data.name)}>
         {booking ? <SuccessView booking={booking} /> : <PendingView />}
       </PageShell>
     );
@@ -267,7 +268,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   return (
     <PageShell
-      clinicName={clinic.data.name}
+      clinicName={bookingName(clinic.data.name)}
       footer={
         stage === 'doctor' ? (
           <Button full disabled={!doctor} onClick={() => setStage('when')}>
@@ -342,7 +343,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
             summary={
               <Card className="bg-primary-50 shadow-none">
                 <p className="text-label text-ink-muted">{t('details.summary')}</p>
-                <p className="mt-1 text-value font-medium text-ink">{doctor?.name}</p>
+                <p className="mt-1 text-value font-medium text-ink">{bookingName(doctor?.name)}</p>
                 {/*
                   The time hugs its content and lets the card place it. As a
                   block it aligned itself to the left of an RTL card, so the

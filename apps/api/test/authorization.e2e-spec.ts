@@ -115,7 +115,7 @@ describe('Authorization (e2e)', () => {
         method: 'PATCH',
         url: `/users/${foreignUserId}`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
-        payload: { name: 'Hijacked' },
+        payload: { name: { ar: 'مُختطف', en: 'Hijacked' } },
       });
 
       expect(response.statusCode).toBe(404);
@@ -127,7 +127,7 @@ describe('Authorization (e2e)', () => {
         headers: auth(foreignAdminToken),
       });
 
-      expect(stillIntact.json().name).not.toBe('Hijacked');
+      expect(stillIntact.json().name.en).not.toBe('Hijacked');
     });
 
     it('refuses to soft-delete a user in another clinic', async () => {
@@ -173,7 +173,7 @@ describe('Authorization (e2e)', () => {
         url: '/users',
         headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: {
-          name: 'Injected Clinic',
+          name: { ar: 'عيادة محقونة', en: 'Injected Clinic' },
           phone: `+9955${Date.now().toString().slice(-8)}`,
           password: 'InjectedPass123!',
           role: USER_ROLE.RECEPTIONIST,

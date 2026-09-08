@@ -3,7 +3,17 @@ import { useRef, useState, type ChangeEvent, type JSX, type ReactNode } from 're
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { Badge, Button, Drawer, Icon, Ltr, Modal, Textarea, useToast } from '@web/components/ui';
+import {
+  Badge,
+  Button,
+  Drawer,
+  Icon,
+  Ltr,
+  Modal,
+  PersonName,
+  Textarea,
+  useToast,
+} from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
 import { useClinic } from '@web/features/clinic/queries';
@@ -120,7 +130,9 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
                 <Ltr className="tabular-nums text-ink-subtle">{order.patientFileNumber}</Ltr>
               </span>
             </Field>
-            <Field label={t('labs.order.doctor')}>{order.doctorName}</Field>
+            <Field label={t('labs.order.doctor')}>
+              <PersonName name={order.doctorName} />
+            </Field>
 
             {order.teeth.length > 0 && (
               <Field label={t('labs.order.teeth')}>

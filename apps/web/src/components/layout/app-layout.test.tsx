@@ -12,7 +12,10 @@ import { mockApi, renderWithProviders, type MockResponse } from '@test/helpers/r
 function handlers(role: UserRole, overrides: Record<string, MockResponse> = {}) {
   return {
     'POST /auth/refresh': { status: 200, body: { accessToken: 'access', expiresIn: 900 } },
-    'GET /me': { status: 200, body: makeProfile({ role, name: `مستخدم ${role}` }) },
+    'GET /me': {
+      status: 200,
+      body: makeProfile({ role, name: { ar: `مستخدم ${role}`, en: `User ${role}` } }),
+    },
     'GET /clinic': { status: 200, body: makeClinic() },
     'GET /dashboard/summary': { status: 200, body: makeDashboardSummary() },
     'GET /doctors': { status: 200, body: paginated([]) },

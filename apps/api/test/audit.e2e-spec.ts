@@ -1,4 +1,4 @@
-import { AUDIT_ACTION, USER_ROLE, type UserRole } from '@clinic/shared';
+import { AUDIT_ACTION, USER_ROLE, type PersonName, type UserRole } from '@clinic/shared';
 
 import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
 
@@ -48,13 +48,15 @@ describe('Audit log (e2e)', () => {
     return response.json().items as AuditEntry[];
   };
 
-  const createUser = async (name: string) => {
+  const createUser = async (english: string) => {
     const response = await context.app.inject({
       method: 'POST',
       url: '/users',
       headers: auth(adminToken),
       payload: {
-        name,
+        // Staff names are bilingual and both halves are required; the Arabic
+        // is fixed here because these tests are about the audit trail.
+        name: { ar: 'اسم عربي', en: english },
         phone: `+9944${Math.floor(Math.random() * 1_000_000_000)}`,
         password: 'CreatedUser123!',
         role: USER_ROLE.RECEPTIONIST,
@@ -62,7 +64,7 @@ describe('Audit log (e2e)', () => {
     });
 
     expect(response.statusCode).toBe(201);
-    return response.json() as { id: string; name: string; isActive: boolean };
+    return response.json() as { id: string; name: PersonName; isActive: boolean };
   };
 
   it('records a create with no old value and the new row as the new value', async () => {
@@ -76,7 +78,10 @@ describe('Audit log (e2e)', () => {
     expect(created?.clinicId).toBe(clinic.id);
     expect(created?.userId).toBe(clinic.userIds[USER_ROLE.ADMIN]);
     expect(created?.oldValue).toBeNull();
-    expect(created?.newValue).toMatchObject({ name: 'Audit Created', isActive: true });
+    expect(created?.newValue).toMatchObject({
+      name: { ar: 'اسم عربي', en: 'Audit Created' },
+      isActive: true,
+    });
   });
 
   it('records an update with the correct old and new values', async () => {
@@ -86,7 +91,7 @@ describe('Audit log (e2e)', () => {
       method: 'PATCH',
       url: `/users/${user.id}`,
       headers: auth(adminToken),
-      payload: { name: 'After Update', isActive: false },
+      payload: { name: { ar: 'اسم عربي', en: 'After Update' }, isActive: false },
     });
 
     expect(updated.statusCode).toBe(200);
@@ -95,8 +100,14 @@ describe('Audit log (e2e)', () => {
     const update = entries.find((entry) => entry.action === AUDIT_ACTION.UPDATE);
 
     expect(update).toBeDefined();
-    expect(update?.oldValue).toMatchObject({ name: 'Before Update', isActive: true });
-    expect(update?.newValue).toMatchObject({ name: 'After Update', isActive: false });
+    expect(update?.oldValue).toMatchObject({
+      name: { ar: 'اسم عربي', en: 'Before Update' },
+      isActive: true,
+    });
+    expect(update?.newValue).toMatchObject({
+      name: { ar: 'اسم عربي', en: 'After Update' },
+      isActive: false,
+    });
   });
 
   it('records a soft delete with the previous row and a null new value', async () => {
@@ -114,7 +125,7 @@ describe('Audit log (e2e)', () => {
     const remove = entries.find((entry) => entry.action === AUDIT_ACTION.DELETE);
 
     expect(remove).toBeDefined();
-    expect(remove?.oldValue).toMatchObject({ name: 'To Be Deleted' });
+    expect(remove?.oldValue).toMatchObject({ name: { ar: 'اسم عربي', en: 'To Be Deleted' } });
     expect(remove?.newValue).toBeNull();
   });
 
@@ -125,7 +136,7 @@ describe('Audit log (e2e)', () => {
       method: 'PATCH',
       url: `/users/${user.id}`,
       headers: auth(adminToken),
-      payload: { name: 'Secret Check Renamed' },
+      payload: { name: { ar: 'اسم عربي', en: 'Secret Check Renamed' } },
     });
 
     const serialised = JSON.stringify(await entriesFor(user.id));
@@ -140,7 +151,7 @@ describe('Audit log (e2e)', () => {
       method: 'PATCH',
       url: '/clinic',
       headers: auth(adminToken),
-      payload: { name: 'Renamed Clinic' },
+      payload: { name: { ar: 'عيادة بالاسم الجديد', en: 'Renamed Clinic' } },
     });
 
     expect(response.statusCode).toBe(200);
@@ -150,7 +161,9 @@ describe('Audit log (e2e)', () => {
 
     expect(update).toBeDefined();
     expect(update?.oldValue).toMatchObject({ id: clinic.id });
-    expect(update?.newValue).toMatchObject({ name: 'Renamed Clinic' });
+    expect(update?.newValue).toMatchObject({
+      name: { ar: 'عيادة بالاسم الجديد', en: 'Renamed Clinic' },
+    });
   });
 
   it('filters by entity, action and user', async () => {

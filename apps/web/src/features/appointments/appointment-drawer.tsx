@@ -3,7 +3,17 @@ import { useState, type JSX, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { Badge, Button, Drawer, Icon, Ltr, Modal, Textarea, useToast } from '@web/components/ui';
+import {
+  Badge,
+  Button,
+  Drawer,
+  Icon,
+  Ltr,
+  Modal,
+  PersonName,
+  Textarea,
+  useToast,
+} from '@web/components/ui';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { useSession } from '@web/features/auth/session';
 import {
@@ -199,7 +209,9 @@ export function AppointmentDrawer({
                 {toTimeLabel(minutesOf(appointment.endsAt))}
               </Ltr>
             </Field>
-            <Field label={t('appointments.doctor')}>{appointment.doctorName}</Field>
+            <Field label={t('appointments.doctor')}>
+              <PersonName name={appointment.doctorName} />
+            </Field>
             <Field label={t('appointments.patient')}>
               {/* A gap rather than a margin: the file number is an LTR island,
                   so a logical margin on it resolves against *its* direction and

@@ -27,6 +27,7 @@ import { and, desc, eq, gte, lt, sql, type SQL } from 'drizzle-orm';
 
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
+import { toOptionalPersonName } from '@api/common/person-name';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
@@ -148,7 +149,8 @@ export class StockMovementsService implements OnModuleInit {
           supplierName: suppliers.name,
           patientName: patients.fullName,
           procedureName: procedureCatalog.nameAr,
-          createdByName: users.name,
+          createdByNameAr: users.nameAr,
+          createdByNameEn: users.nameEn,
           runningQuantity: sql<string>`sum(${stockMovements.quantity}) over (
             partition by ${stockMovements.itemId}
             order by ${stockMovements.createdAt} asc, ${stockMovements.id} asc
@@ -180,7 +182,7 @@ export class StockMovementsService implements OnModuleInit {
         supplierName: row.supplierName,
         patientName: row.patientName,
         procedureName: row.procedureName,
-        createdByName: row.createdByName,
+        createdByName: toOptionalPersonName(row.createdByNameAr, row.createdByNameEn),
         runningQuantity: normalise(row.runningQuantity),
       })),
       totals?.value ?? 0,

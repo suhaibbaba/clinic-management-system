@@ -1,3 +1,5 @@
+import { personName, type PersonName } from '@clinic/shared';
+
 /**
  * Dates and times for the booking page.
  *
@@ -150,4 +152,17 @@ export function formatLongDate(iso: string): string {
 /** The clinic-local `YYYY-MM-DD` an instant falls on. */
 export function clinicDate(iso: string): string {
   return isoDate(inClinicZone(iso));
+}
+
+/**
+ * A staff or clinic name, for a page that ships Arabic alone.
+ *
+ * The booking page has no language switcher — it is opened from a WhatsApp
+ * link by an Arabic-speaking patient — so there is nothing to ask, and this is
+ * `personName(name, 'ar')` with the English as the fallback for a clinic that
+ * has not filled the Arabic in yet. The signed-in app uses the `<PersonName>`
+ * component instead, which does the same thing against the live language.
+ */
+export function bookingName(name: PersonName | null | undefined): string {
+  return personName(name, 'ar');
 }

@@ -57,7 +57,7 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
             isActive: user.isActive,
           }
         : // `role` is deliberately absent so the select starts on its placeholder.
-          { name: '', phone: '', email: null, isActive: true, password: '' },
+          { name: { ar: '', en: '' }, phone: '', email: null, isActive: true, password: '' },
     );
   }, [open, user, reset]);
 
@@ -107,15 +107,34 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
       }
     >
       <form id="user-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
-        <FormField label="users.name" htmlFor="user-name" error={errors.name}>
-          <Input
-            placeholder={t('common.placeholders.fullName')}
-            adornment="user"
-            id="user-name"
-            hasError={errors.name !== undefined}
-            {...register('name')}
-          />
-        </FormField>
+        {/*
+          Both spellings, both required. Staff are a small set the clinic
+          employs and can spell twice; the alternative was a name that stayed
+          Latin in the middle of an Arabic calendar, which is what this is for.
+          A patient's name is one field and stays one field (CLAUDE.md).
+        */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField label="users.nameAr" htmlFor="user-name-ar" error={errors.name?.ar}>
+            <Input
+              placeholder={t('common.placeholders.fullNameAr')}
+              adornment="user"
+              id="user-name-ar"
+              hasError={errors.name?.ar !== undefined}
+              {...register('name.ar')}
+            />
+          </FormField>
+
+          <FormField label="users.nameEn" htmlFor="user-name-en" error={errors.name?.en}>
+            <Input
+              placeholder={t('common.placeholders.fullNameEn')}
+              adornment="user"
+              id="user-name-en"
+              dir="ltr"
+              hasError={errors.name?.en !== undefined}
+              {...register('name.en')}
+            />
+          </FormField>
+        </div>
 
         <FormField label="users.phone" htmlFor="user-phone" error={errors.phone}>
           <Input

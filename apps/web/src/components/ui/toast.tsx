@@ -20,14 +20,14 @@ interface ToastMessage {
   readonly id: number;
   /** i18n key. */
   readonly messageKey: string;
-  readonly values?: Record<string, string>;
+  readonly values?: Record<string, string | number>;
   readonly tone: ToastTone;
 }
 
 interface ToastApi {
   /** Both take an i18n key — never a ready-made string. */
-  success: (messageKey: string, values?: Record<string, string>) => void;
-  error: (messageKey: string, values?: Record<string, string>) => void;
+  success: (messageKey: string, values?: Record<string, string | number>) => void;
+  error: (messageKey: string, values?: Record<string, string | number>) => void;
 }
 
 const ToastContext = createContext<ToastApi | null>(null);
@@ -47,7 +47,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
   const [messages, setMessages] = useState<ToastMessage[]>([]);
 
   const push = useCallback(
-    (messageKey: string, tone: ToastTone, values?: Record<string, string>) => {
+    (messageKey: string, tone: ToastTone, values?: Record<string, string | number>) => {
       setMessages((current) => [
         ...current,
         { id: Date.now() + current.length, messageKey, tone, ...(values && { values }) },
