@@ -146,6 +146,23 @@ export default defineConfig({
         index: fileURLToPath(new URL('./index.html', import.meta.url)),
         booking: fileURLToPath(new URL('./booking.html', import.meta.url)),
       },
+      /*
+       * `packages/shared` is declarations and nothing else.
+       *
+       * It is imported through one barrel, so every screen that wants
+       * `bookingRequestSchema` gets the inventory, labs and billing schemas
+       * with it — and a Zod schema is a *call*, which Rollup cannot prove is
+       * free of side effects and therefore cannot drop. The whole package
+       * landed in the chunk the two entries share, and the public booking
+       * page paid for the dashboard's ledger types.
+       *
+       * Saying out loud what is already true — these modules define values and
+       * touch nothing — lets the unused ones go. It is scoped to that package:
+       * a blanket `moduleSideEffects: false` would also lie about polyfills.
+       */
+      treeshake: {
+        moduleSideEffects: (id) => !id.includes(sharedSrcDir),
+      },
     },
   },
   test: {
