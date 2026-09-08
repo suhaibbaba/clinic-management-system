@@ -33,8 +33,21 @@ export function WhenStep({
   readonly selected: string | undefined;
   readonly onSelect: (slot: SlotOption) => void;
 }): JSX.Element {
-  const byDate = new Map((week.data ?? []).map((day) => [day.date, day.slots]));
-  const slots = byDate.get(date) ?? [];
+  const byDate = new Map((week.data ?? []).map((day) => [day.date, day]));
+  const day = byDate.get(date);
+  const slots = day?.slots ?? [];
+
+  /**
+   * What the empty day says.
+   *
+   * A closure and a doctor's absence are on the door, so a patient gets the
+   * clinic's own words for them; a full diary is not a stranger's business and
+   * falls back to the plain "no times".
+   */
+  const emptyMessage =
+    day?.closedReason && day.closedNote
+      ? t('when.closedFor', { reason: day.closedNote })
+      : t('when.noSlots');
 
   return (
     <div className="flex flex-col gap-4">
@@ -43,7 +56,7 @@ export function WhenStep({
         <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
           {chips.map((chip) => {
             const known = byDate.has(chip.date);
-            const closed = known && (byDate.get(chip.date)?.length ?? 0) === 0;
+            const closed = known && (byDate.get(chip.date)?.slots.length ?? 0) === 0;
             const active = chip.date === date;
 
             return (
@@ -97,7 +110,7 @@ export function WhenStep({
             </Button>
           </div>
         ) : slots.length === 0 ? (
-          <Alert tone="info">{t('when.noSlots')}</Alert>
+          <Alert tone="info">{emptyMessage}</Alert>
         ) : (
           <ul className="grid grid-cols-3 gap-2">
             {slots.map((slot) => {

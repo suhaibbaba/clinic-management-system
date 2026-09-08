@@ -2,6 +2,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import type { JSX, ReactNode } from 'react';
 
+import { useDialogLayer } from '@web/components/ui/dialog-layer';
 import { Icon } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
 import { useIsMobile } from '@web/lib/use-media-query';
@@ -54,6 +55,16 @@ export function PopoverSheet({
   children,
 }: PopoverSheetProps): JSX.Element {
   const isMobile = useIsMobile();
+  /*
+   * A dialog above us, if any.
+   *
+   * Radix Dialog makes the body inert while it is open, so a popover portalled
+   * to `document.body` from inside one renders perfectly and ignores every
+   * click — which is what the date range picker in the "add a closure" dialog
+   * did. Portalling into the dialog's own content keeps it interactive, and is
+   * a no-op everywhere else.
+   */
+  const dialogLayer = useDialogLayer();
 
   if (isMobile) {
     return (
@@ -62,7 +73,7 @@ export function PopoverSheet({
             own button, exactly as it does on a laptop. */}
         {anchor}
 
-        <DialogPrimitive.Portal>
+        <DialogPrimitive.Portal {...(dialogLayer && { container: dialogLayer })}>
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-ink/40" />
 
           <DialogPrimitive.Content
@@ -104,7 +115,7 @@ export function PopoverSheet({
     <PopoverPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <PopoverPrimitive.Anchor asChild>{anchor}</PopoverPrimitive.Anchor>
 
-      <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Portal {...(dialogLayer && { container: dialogLayer })}>
         <PopoverPrimitive.Content
           align="start"
           sideOffset={8}

@@ -1,8 +1,9 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import type { JSX, ReactNode } from 'react';
+import { useState, type JSX, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Icon } from '@web/components/ui/icon';
+import { DialogLayerProvider } from '@web/components/ui/dialog-layer';
 import { cn } from '@web/lib/cn';
 import { documentDirection } from '@web/lib/direction';
 
@@ -41,12 +42,14 @@ export function Drawer({
   footer,
 }: DrawerProps): JSX.Element {
   const { t } = useTranslation();
+  const [layer, setLayer] = useState<HTMLElement | null>(null);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-ink/40" />
         <Dialog.Content
+          ref={setLayer}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
             (event.currentTarget as HTMLElement | null)?.focus();
@@ -78,7 +81,10 @@ export function Drawer({
 
           <Dialog.Description className="sr-only">{t(descriptionKey)}</Dialog.Description>
 
-          <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+          <div className="flex-1 overflow-y-auto px-5 py-4">
+            {/* As in `Modal`: a picker in here portals into the drawer. */}
+            <DialogLayerProvider container={layer}>{children}</DialogLayerProvider>
+          </div>
 
           {footer !== undefined && (
             <div className="shrink-0 border-t border-line px-5 py-3">{footer}</div>

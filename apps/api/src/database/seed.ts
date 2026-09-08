@@ -298,7 +298,10 @@ async function upsertSpecialty(
     .values({
       clinicId,
       code: SPECIALTY_CODE.DENTAL,
-      name: 'Dentistry',
+      // A specialty's name is clinic data a practice edits, and this one's
+      // interface is Arabic — seeding it in English put one Latin word in the
+      // middle of every doctor card.
+      name: 'طب الأسنان',
       chartType: CHART_TYPE.TOOTH_FDI,
     })
     .returning({ id: specialties.id });

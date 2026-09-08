@@ -380,10 +380,12 @@ describe('Patient clinical records (e2e)', () => {
         method: 'POST',
         url: `/plan-items/${itemId}/convert`,
         headers: asDoctor(),
-        payload: { price: '75.50' },
+        // Whole units on the way in; the column still stores two decimals, so
+        // the answer comes back at the stored scale.
+        payload: { price: '75' },
       });
 
-      expect((response.json() as { price: string }).price).toBe('75.50');
+      expect((response.json() as { price: string }).price).toBe('75.00');
     });
 
     it('converts an item exactly once', async () => {

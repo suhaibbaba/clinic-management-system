@@ -8,7 +8,7 @@ import ar from '@web/i18n/locales/ar.json';
 import { authTokens } from '@web/lib/auth-tokens';
 import { makeClinic, makeDoctor, makeProfile, paginated } from '@test/helpers/fixtures';
 import { mockApi, renderWithProviders, type MockResponse } from '@test/helpers/render';
-import { resetClinicTimeZone } from '@web/features/appointments/clinic-zone';
+import { resetClinicTimeZone } from '@web/lib/clinic-zone';
 
 const DOCTOR_ID = '11111111-1111-4111-8111-111111111111';
 const OTHER_DOCTOR_ID = '22222222-2222-4222-8222-222222222222';

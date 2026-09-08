@@ -1,5 +1,7 @@
 import i18n from '@web/i18n';
 
+import { clinicTimeZone } from '@web/lib/clinic-zone';
+
 /**
  * Gregorian dates, in the reader's language (CLAUDE.md).
  *
@@ -46,6 +48,57 @@ export function formatDate(iso: string): string {
       day: '2-digit',
     }),
   );
+}
+
+/**
+ * A wall-clock time in the **clinic's** zone, as Latin digits on a 24-hour
+ * clock.
+ *
+ * Not `toLocaleTimeString`: the Arabic locale renders "09:00 ص", and that
+ * marker is Arabic text — dropped into the `<Ltr>` island every time in this
+ * app lives in, the bidi algorithm reorders the whole string and the period
+ * comes out shuffled. A 24-hour clock needs no marker, which is also how the
+ * calendar, the time picker and the API all express a time.
+ */
+export function formatClinicTime(iso: string): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: clinicTimeZone(),
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(iso));
+}
+
+/** The clinic-zone date for an instant, `dd/MM/yyyy`. */
+export function formatClinicDate(iso: string): string {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: clinicTimeZone(),
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date(iso));
+
+  const read = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((part) => part.type === type)?.value ?? '';
+
+  return `${read('day')}/${read('month')}/${read('year')}`;
+}
+
+/**
+ * A period between two instants, in the clinic's zone.
+ *
+ * A period inside one day is the day and its two times — "11/09/2026 09:30 -
+ * 12:00" — because repeating the date is noise on the case this app has most
+ * of. All Latin, all 24-hour, so the whole string sits inside one `<Ltr>`.
+ */
+export function formatClinicPeriod(startsAt: string, endsAt: string): string {
+  const from = formatClinicDate(startsAt);
+  const to = formatClinicDate(endsAt);
+  const times = `${formatClinicTime(startsAt)} - ${formatClinicTime(endsAt)}`;
+
+  return from === to
+    ? `${from} ${times}`
+    : `${from} ${formatClinicTime(startsAt)} - ${to} ${formatClinicTime(endsAt)}`;
 }
 
 /** `<input type="date">` value → an inclusive ISO instant for the API. */

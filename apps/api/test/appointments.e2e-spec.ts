@@ -158,20 +158,25 @@ describe('Appointments (e2e)', () => {
         })
         .returning({ id: clinicClosures.id });
 
-      const response = await context.app.inject({
-        method: 'GET',
-        url: `/appointments/availability?doctorId=${fixtures.doctorId}&date=${monday}`,
-        headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
-      });
+      try {
+        const response = await context.app.inject({
+          method: 'GET',
+          url: `/appointments/availability?doctorId=${fixtures.doctorId}&date=${monday}`,
+          headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+        });
 
-      const body = response.json() as { closedReason: string; closedNote: string | null };
+        const body = response.json() as { closedReason: string; closedNote: string | null };
 
-      // Distinct from `clinic_closed`, which is the weekly pattern: reception
-      // has to be able to say *why* a normally-open Monday is shut.
-      expect(body.closedReason).toBe('clinic_closure');
-      expect(body.closedNote).toBe('عيد الفطر');
-
-      await context.db.delete(clinicClosures).where(eq(clinicClosures.id, closure?.id ?? ''));
+        // Distinct from `clinic_closed`, which is the weekly pattern: reception
+        // has to be able to say *why* a normally-open Monday is shut.
+        expect(body.closedReason).toBe('clinic_closure');
+        expect(body.closedNote).toBe('عيد الفطر');
+      } finally {
+        // In a `finally`, because every test below books on this Monday: a
+        // failed assertion here would otherwise leave the clinic shut and take
+        // the rest of the suite down with it.
+        await context.db.delete(clinicClosures).where(eq(clinicClosures.id, closure?.id ?? ''));
+      }
     });
 
     it('is off when the doctor does not work that weekday', async () => {

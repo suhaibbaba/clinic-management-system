@@ -13,7 +13,7 @@ import {
   type Column,
 } from '@web/components/ui';
 import { minutesOf, toTimeLabel, todayIso } from '@web/features/appointments/calendar-time';
-import { setClinicTimeZone } from '@web/features/appointments/clinic-zone';
+import { setClinicTimeZone } from '@web/lib/clinic-zone';
 import { useAppointments } from '@web/features/appointments/queries';
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from '@web/features/appointments/status';
 import { useClinic } from '@web/features/clinic/queries';

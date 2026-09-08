@@ -1,6 +1,7 @@
 import { USER_ROLE, type Doctor } from '@clinic/shared';
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import {
   Badge,
@@ -25,7 +26,8 @@ const PAGE_SIZE = 10;
 /** Readable by every role; only admin sees the write actions (ROLES.md). */
 export function DoctorsPage(): JSX.Element {
   const { t } = useTranslation();
-  const { user, hasRole } = useSession();
+  const { hasRole } = useSession();
+  const navigate = useNavigate();
   const isAdmin = hasRole(USER_ROLE.ADMIN);
 
   const [page, setPage] = useState(1);
@@ -80,22 +82,35 @@ export function DoctorsPage(): JSX.Element {
       key: 'actions',
       header: 'common.actions',
       actions: true,
-      render: (row) =>
-        isAdmin || row.userId === user?.id ? (
+      render: (row) => (
+        <span className="flex items-center justify-end gap-3">
+          {/* The hours and the time off live on the doctor's own page now —
+              a growing list of absences was never going to fit in a modal. */}
           <RowAction
-            icon={<Icon name="edit" />}
-            onClick={() => {
-              setFormDoctor(row);
-              setFormOpen(true);
-            }}
+            icon={<Icon name="clock" />}
+            tone="quiet"
+            onClick={() => navigate(`/doctors/${row.id}`)}
           >
-            {isAdmin ? t('common.edit') : t('doctors.editSchedule')}
+            {t('doctors.openSchedule')}
           </RowAction>
-        ) : null,
+
+          {isAdmin && (
+            <RowAction
+              icon={<Icon name="edit" />}
+              onClick={() => {
+                setFormDoctor(row);
+                setFormOpen(true);
+              }}
+            >
+              {t('common.edit')}
+            </RowAction>
+          )}
+        </span>
+      ),
     });
 
     return base;
-  }, [t, isAdmin, user?.id]);
+  }, [t, isAdmin, navigate]);
 
   const data = query.data;
 

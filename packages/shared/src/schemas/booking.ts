@@ -97,6 +97,17 @@ export const publicSlotsSchema = z.object({
   date: isoDateSchema,
   /** Only bookable ones — a stranger has no use for a greyed grid. */
   slots: z.array(slotSchema.omit({ available: true })),
+  /**
+   * Why a day offers nothing, when it offers nothing.
+   *
+   * The two dated reasons only. A full diary is the clinic's business, and
+   * "fully booked" tells a stranger how busy the practice is — but "we are
+   * closed for Eid" is on the door, and a patient staring at an empty day
+   * deserves it rather than being left to guess whether the page is broken.
+   */
+  closedReason: z.enum(['clinic_closure', 'doctor_time_off']).nullable(),
+  /** The clinic's own words for it, when it wrote any. */
+  closedNote: z.string().nullable(),
 });
 export type PublicSlots = z.infer<typeof publicSlotsSchema>;
 

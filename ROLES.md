@@ -31,7 +31,9 @@ Legend: **C** create · **R** read · **U** update · **D** soft-delete · — n
 |---|---|---|---|---|
 | Clinic settings, templates | CRUD | R | R | R |
 | Users & roles | CRUD | — | — | — |
-| Doctors & schedules | CRUD | R (own U: schedule off-days) | R | R |
+| Doctors & schedules | CRUD | R (own U: schedule) | R | R |
+| Doctor time off | CRUD | R (own CRUD) | R | R |
+| Clinic closures | CRUD | R | R | R |
 | Specialties & procedure catalog | CRUD | R | R | R (names/prices only) |
 | Audit log | R | — | — | — |
 
@@ -123,3 +125,6 @@ For each role, one test per ✗ cell that matters most:
 - any authenticated user querying another clinic's resource id → 404
 - public endpoint accessing anything beyond slots/booking → 401
 - non-admin reading audit log or soft-deleted rows → 403
+- receptionist writing a clinic closure → 403 (they read them: a closure they cannot see is a day they will book into)
+- doctor writing time off in another doctor's calendar → 403; in their own → allowed
+- a closure or time off over booked appointments without `force` → 409 carrying the affected appointments

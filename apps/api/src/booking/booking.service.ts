@@ -175,11 +175,23 @@ export class BookingService {
 
     const earliest = this.earliestBookable(clinic);
 
+    const slots = availability.slots
+      .filter((slot) => slot.available && new Date(slot.startsAt) >= earliest)
+      .map(({ start, end, startsAt }) => ({ start, end, startsAt }));
+
+    // Only the two dated reasons reach a stranger: a closure and an absence
+    // are on the door, and how full the diary is is the clinic's business.
+    const dated =
+      availability.closedReason === 'clinic_closure' ||
+      availability.closedReason === 'doctor_time_off'
+        ? availability.closedReason
+        : null;
+
     return {
       date: query.date,
-      slots: availability.slots
-        .filter((slot) => slot.available && new Date(slot.startsAt) >= earliest)
-        .map(({ start, end, startsAt }) => ({ start, end, startsAt })),
+      slots,
+      closedReason: dated,
+      closedNote: dated ? availability.closedNote : null,
     };
   }
 

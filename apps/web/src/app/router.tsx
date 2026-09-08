@@ -10,6 +10,7 @@ import { LoginPage } from '@web/features/auth/login-page';
 import { ClinicPage } from '@web/features/clinic/clinic-page';
 import { DashboardPage } from '@web/features/dashboard/dashboard-page';
 import { LookupsPage } from '@web/features/lookups/lookups-page';
+import { DoctorPage } from '@web/features/doctors/doctor-page';
 import { DoctorsPage } from '@web/features/doctors/doctors-page';
 import { InventorySection } from '@web/features/inventory/inventory-section';
 import { ShoppingListPage } from '@web/features/inventory/shopping-list-page';
@@ -36,6 +37,8 @@ const PATIENTS = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST] as 
 const APPOINTMENTS = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST] as const;
 const LABS = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN] as const;
 const INVENTORY = [USER_ROLE.ADMIN, USER_ROLE.TECHNICIAN] as const;
+/** A doctor reaches their own page from the user menu; admin reaches any. */
+const DOCTOR_PAGE = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR] as const;
 
 /** The dashboard is where a role that may not be somewhere is sent instead. */
 const HOME = '/dashboard';
@@ -138,6 +141,20 @@ export function AppRoutes(): JSX.Element {
           element={
             <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
               <DoctorsPage />
+            </RequireRole>
+          }
+        />
+        {/*
+          A doctor's own page. Not admin-only, unlike the list it hangs off:
+          ROLES.md lets a doctor edit their own schedule and off-days, and the
+          page is where that now happens — the service is what refuses somebody
+          else's calendar.
+        */}
+        <Route
+          path="/doctors/:id"
+          element={
+            <RequireRole roles={DOCTOR_PAGE} redirectTo={HOME}>
+              <DoctorPage />
             </RequireRole>
           }
         />

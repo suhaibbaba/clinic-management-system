@@ -22,6 +22,14 @@ export function useDoctors(query: Partial<ListDoctorsQuery>): UseQueryResult<Pag
   });
 }
 
+export function useDoctor(id: string | undefined): UseQueryResult<Doctor> {
+  return useQuery({
+    queryKey: [DOCTORS_KEY, 'one', id],
+    queryFn: () => doctorsApi.get(id ?? ''),
+    enabled: id !== undefined,
+  });
+}
+
 export function useSpecialties(): UseQueryResult<Paginated<Specialty>> {
   return useQuery({ queryKey: [SPECIALTIES_KEY], queryFn: () => doctorsApi.specialties() });
 }

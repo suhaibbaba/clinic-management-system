@@ -88,7 +88,8 @@ for (const role of ROLES) {
 }
 
 /**
- * `/patients/:patientId` → an address a signed-in role can actually open.
+ * `/patients/:patientId` and its two siblings → an address a signed-in role can
+ * actually open.
  *
  * Read out of the app rather than out of the API: the access token is held in
  * memory and never handed to a request context, so the honest way to find a
@@ -99,7 +100,11 @@ async function resolvePath(page: Page, path: string): Promise<string> {
     return path;
   }
 
-  const listPath = path.startsWith('/patients') ? '/patients' : '/labs?tab=directory';
+  const listPath = path.startsWith('/patients')
+    ? '/patients'
+    : path.startsWith('/doctors')
+      ? '/doctors'
+      : '/labs?tab=directory';
   await page.goto(listPath);
   await page.waitForTimeout(1500);
 

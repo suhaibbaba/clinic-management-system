@@ -5,7 +5,7 @@ import {
   type CalendarAppointment,
 } from '@clinic/shared';
 
-import { clinicTimeZone } from '@web/features/appointments/clinic-zone';
+import { clinicTimeZone } from '@web/lib/clinic-zone';
 
 /**
  * The day grid's own arithmetic.
@@ -70,6 +70,36 @@ export function toTimeLabel(minute: number): string {
 }
 
 /** Where a block sits in the grid, as a percentage of the day's height. */
+/**
+ * Where an absence sits on the day grid, clipped to the drawn hours.
+ *
+ * The same arithmetic as an appointment's block, against two instants rather
+ * than a start and a duration — an absence that began yesterday evening or runs
+ * into tomorrow is clamped to the grid rather than drawn off the top of it.
+ * Returns null when it does not touch the drawn day at all.
+ */
+export function periodPosition(
+  startsAt: string,
+  endsAt: string,
+  isoDate: string,
+): { readonly top: string; readonly height: string } | null {
+  const zone = clinicTimeZone();
+  const start = minutesFromLocalMidnight(new Date(startsAt), isoDate, zone);
+  const end = minutesFromLocalMidnight(new Date(endsAt), isoDate, zone);
+
+  const clampedStart = Math.max(GRID_START_MINUTE, start);
+  const clampedEnd = Math.min(GRID_END_MINUTE, end);
+
+  if (clampedEnd <= clampedStart) {
+    return null;
+  }
+
+  return {
+    top: `${((clampedStart - GRID_START_MINUTE) / GRID_MINUTES) * 100}%`,
+    height: `${((clampedEnd - clampedStart) / GRID_MINUTES) * 100}%`,
+  };
+}
+
 export function blockPosition(appointment: CalendarAppointment): {
   readonly top: string;
   readonly height: string;

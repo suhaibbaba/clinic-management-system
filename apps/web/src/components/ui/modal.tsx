@@ -1,7 +1,8 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import type { JSX, ReactNode } from 'react';
+import { useState, type JSX, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { DialogLayerProvider } from '@web/components/ui/dialog-layer';
 import { cn } from '@web/lib/cn';
 import { documentDirection } from '@web/lib/direction';
 
@@ -10,8 +11,12 @@ export interface ModalProps {
   onOpenChange: (open: boolean) => void;
   /** i18n key. */
   title: string;
-  /** Interpolation values for the title. */
-  titleValues?: Record<string, string> | undefined;
+  /**
+   * Interpolation values for the title. Numbers stay numbers: i18next only
+   * pluralises on a numeric `count`, and Arabic has six plural forms — "12
+   * مواعيد" is the shape a stringified count produces.
+   */
+  titleValues?: Record<string, string | number> | undefined;
   description?: string | undefined;
   children: ReactNode;
   footer?: ReactNode | undefined;
@@ -45,6 +50,9 @@ export function Modal({
   size = 'md',
 }: ModalProps): JSX.Element {
   const { t } = useTranslation();
+  // State rather than a ref: a popover beneath this dialog has to re-render
+  // once the node exists, and a ref would not tell it.
+  const [layer, setLayer] = useState<HTMLElement | null>(null);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -52,6 +60,7 @@ export function Modal({
         <Dialog.Overlay className="fixed inset-0 z-40 bg-ink/40" />
         <Dialog.Content
           // See the note above: no field is focused on open.
+          ref={setLayer}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
             (event.currentTarget as HTMLElement | null)?.focus();
@@ -95,11 +104,15 @@ export function Modal({
             matching negative margin keeps the content aligned with the title
             above it.
           */}
-          <div className="-mx-1.5 mt-4 flex-1 overflow-y-auto px-1.5 py-1.5">{children}</div>
+          <div className="-mx-1.5 mt-4 flex-1 overflow-y-auto px-1.5 py-1.5">
+            {/* Date and time pickers inside a dialog portal into it rather than
+                into the inert body — see `DialogLayerProvider`. */}
+            <DialogLayerProvider container={layer}>{children}</DialogLayerProvider>
+          </div>
 
           {footer !== undefined && (
             <div className="mt-6 flex shrink-0 items-center justify-end gap-2 border-t border-line pt-5">
-              {footer}
+              <DialogLayerProvider container={layer}>{footer}</DialogLayerProvider>
             </div>
           )}
         </Dialog.Content>

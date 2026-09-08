@@ -19,7 +19,8 @@ import {
   Select,
   useToast,
 } from '@web/components/ui';
-import { ScheduleEditor } from '@web/components/schedule-editor';
+import { WorkingHours } from '@web/components/schedule/working-hours';
+import { ClosuresPanel } from '@web/features/schedule/closures-panel';
 import { useSession } from '@web/features/auth/session';
 import { useApiVersion, WEB_VERSION } from '@web/features/clinic/api-version';
 import {
@@ -29,6 +30,7 @@ import {
   useUploadClinicLogo,
 } from '@web/features/clinic/queries';
 import { errorMessageKey } from '@web/lib/api-error';
+import { setClinicTimeZone } from '@web/lib/clinic-zone';
 
 const isCurrency = (value: string): value is Currency =>
   (CURRENCIES as readonly string[]).includes(value);
@@ -69,6 +71,8 @@ export function ClinicPage(): JSX.Element {
     // select on a value it actually offers rather than showing a blank box.
     setCurrency(isCurrency(data.currency) ? data.currency : CURRENCIES[0]);
     setWorkingHours(data.workingHours);
+    // The closures panel below prints clinic-zone dates.
+    setClinicTimeZone(data);
   }, [clinic.data]);
 
   const save = async (): Promise<void> => {
@@ -195,7 +199,21 @@ export function ClinicPage(): JSX.Element {
 
         <section className="rounded-card bg-surface shadow-card p-4">
           <p className="mb-3 text-value font-medium text-ink">{t('clinic.workingHours')}</p>
-          <ScheduleEditor value={workingHours} onChange={setWorkingHours} disabled={!canEdit} />
+          <WorkingHours
+            value={workingHours}
+            onChange={setWorkingHours}
+            disabled={!canEdit}
+            idPrefix="clinic-hours"
+          />
+        </section>
+
+        {/*
+          The days that override those hours, beside them. A closure is read in
+          the same breath as the opening hours it suspends, and a screen of its
+          own is one nobody would visit between Eids.
+        */}
+        <section className="rounded-card bg-surface shadow-card p-4">
+          <ClosuresPanel canEdit={canEdit} />
         </section>
 
         <AboutSection />

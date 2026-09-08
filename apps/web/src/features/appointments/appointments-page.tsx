@@ -28,7 +28,7 @@ import {
   startOfWeek,
   todayIso,
 } from '@web/features/appointments/calendar-time';
-import { setClinicTimeZone } from '@web/features/appointments/clinic-zone';
+import { setClinicTimeZone } from '@web/lib/clinic-zone';
 import { DayGrid } from '@web/features/appointments/day-grid';
 import {
   canBookAppointment,
@@ -121,6 +121,13 @@ export function AppointmentsPage(): JSX.Element {
   const onlineToday = usePendingBookings({ from: todayIso(), to: todayIso(), limit: 1 }, frontDesk);
 
   const appointments = calendar.data?.appointments ?? [];
+  // Closures and absences arrive in the same response as the blocks, so the
+  // grid paints a shut day shut rather than open-then-shaded.
+  const closures = calendar.data?.closures ?? [];
+  const timeOff = calendar.data?.timeOff ?? [];
+  const closureToday = closures.find(
+    (closure) => closure.startsOn <= date && date <= closure.endsOn,
+  );
   const selected = appointments.find((entry) => entry.id === selectedId);
 
   /** Columns of the day grid: the filtered doctor, or all of them. */
@@ -339,6 +346,7 @@ export function AppointmentsPage(): JSX.Element {
           <WeekView
             date={date}
             appointments={appointments}
+            closures={closures}
             onOpen={(appointment) => setSelectedId(appointment.id)}
             onPickDay={(day) => {
               setDate(day);
@@ -350,6 +358,7 @@ export function AppointmentsPage(): JSX.Element {
         {!calendar.isError && effectiveRange === 'day' && isMobile && (
           <AgendaList
             appointments={appointments}
+            {...(closureToday && { closure: closureToday })}
             onOpen={(appointment) => setSelectedId(appointment.id)}
             showDoctor={wholeClinic}
           />
@@ -357,8 +366,11 @@ export function AppointmentsPage(): JSX.Element {
 
         {!calendar.isError && effectiveRange === 'day' && !isMobile && (
           <DayGrid
+            date={date}
             doctors={columns}
             appointments={appointments}
+            timeOff={timeOff}
+            {...(closureToday && { closure: closureToday })}
             onOpen={(appointment) => setSelectedId(appointment.id)}
             {...(mayBook && { onMove: (appointment, minute) => void move(appointment, minute) })}
             {...(mayBook && {

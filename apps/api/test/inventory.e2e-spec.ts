@@ -127,7 +127,9 @@ describe('Inventory (e2e)', () => {
       expect((await readItem(itemId)).quantity).toBe('0');
 
       expect(
-        (await move('purchase', { itemId, quantity: '20', unitPrice: '4.50' })).statusCode,
+        // Prices are whole units now (`wholeMoneySchema`); quantities are not,
+        // which is why the numbers below still carry fractions.
+        (await move('purchase', { itemId, quantity: '20', unitPrice: '4' })).statusCode,
       ).toBe(201);
       expect((await move('consume', { itemId, quantity: '3' })).statusCode).toBe(201);
       expect(
@@ -481,7 +483,7 @@ describe('Inventory (e2e)', () => {
   it('totals what was bought from one supplier', async () => {
     const itemId = await createItem({ nameAr: `بند مورّد ${uniquePhone()}` });
 
-    await move('purchase', { itemId, quantity: '10', unitPrice: '2.50', supplierId });
+    await move('purchase', { itemId, quantity: '10', unitPrice: '3', supplierId });
     await move('purchase', { itemId, quantity: '4', unitPrice: '3.00', supplierId });
     // A purchase with no price still appears; it just adds nothing to the total.
     await move('purchase', { itemId, quantity: '1', supplierId });
@@ -496,7 +498,7 @@ describe('Inventory (e2e)', () => {
     const statement = response.json() as SupplierStatement;
     const lines = statement.lines.filter((line) => line.itemId === itemId);
 
-    expect(lines.map((line) => line.total)).toEqual(['25.00', '12.00', null]);
+    expect(lines.map((line) => line.total)).toEqual(['30.00', '12.00', null]);
   });
 
   it('prints the shopping list as a PDF', async () => {
