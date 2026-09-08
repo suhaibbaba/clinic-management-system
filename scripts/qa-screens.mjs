@@ -176,6 +176,7 @@ const AUDIT = () => {
       hidden &&
       hasOwnText &&
       !isScreenReaderOnly(element) &&
+      !isClamped(element) &&
       element.scrollHeight > element.clientHeight + 1
     ) {
       results.clipped.push({
@@ -194,6 +195,11 @@ const AUDIT = () => {
     ) {
       results.physical.push({ selector: describe(element), textAlign: style.textAlign });
     }
+  }
+
+  /** A clamp is deliberate clipping: two lines, then an ellipsis. */
+  function isClamped(element) {
+    return getComputedStyle(element).webkitLineClamp !== 'none';
   }
 
   /** `sr-only`: a 1px clipped box, which is the point of it. */
