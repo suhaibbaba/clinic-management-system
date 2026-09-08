@@ -343,8 +343,16 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
               <Card className="bg-primary-50 shadow-none">
                 <p className="text-label text-ink-muted">{t('details.summary')}</p>
                 <p className="mt-1 text-value font-medium text-ink">{doctor?.name}</p>
-                <p dir="ltr" className="text-value tabular-nums text-ink">
-                  {slot?.start}
+                {/*
+                  The time hugs its content and lets the card place it. As a
+                  block it aligned itself to the left of an RTL card, so the
+                  summary read as a doctor's name on the right with a time
+                  stranded on the other side of the box.
+                */}
+                <p className="text-value text-ink">
+                  <span dir="ltr" className="inline-block w-fit whitespace-nowrap tabular-nums">
+                    {slot?.start}
+                  </span>
                 </p>
               </Card>
             }

@@ -25,7 +25,7 @@
     "filters": "عوامل التصفية",
     "viewAll": "عرض الكل",
     "placeholders": {
-      "identifier": "09XXXXXXXX أو name@clinic.com",
+      "identifier": "09XXXXXXXX",
       "password": "••••••••",
       "fullName": "مثال: أحمد خالد الحسن",
       "phone": "09XXXXXXXX",

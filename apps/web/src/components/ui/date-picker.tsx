@@ -128,8 +128,8 @@ export function DatePicker({
               // against *its* direction and reserve the icon's room on the
               // wrong side of an Arabic form. The `rtl:`/`ltr:` variants ask
               // the page instead, which is what the icon's `end-0` follows.
-              'rtl:pl-11 rtl:pr-3.5 rtl:text-right',
-              'ltr:pl-3.5 ltr:pr-11 ltr:text-left',
+              'page-rtl:pl-11 page-rtl:pr-3.5 page-rtl:text-right',
+              'page-ltr:pl-3.5 page-ltr:pr-11 page-ltr:text-left',
               'text-field text-ink tabular-nums placeholder:text-ink-subtle',
               'transition-[border-color,box-shadow] duration-150',
               'focus:border-primary-500',

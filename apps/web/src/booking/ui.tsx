@@ -197,6 +197,12 @@ export function Field({ label, error, hint, id, className, ...rest }: FieldProps
         className={cx(
           'min-h-12 w-full rounded-control border bg-surface px-3 text-field text-ink',
           'placeholder:text-ink-subtle',
+          // The phone field carries `dir="ltr"` so a leading + and the digits
+          // stay in the order they were typed. Its *alignment* still belongs
+          // to the page: aligned by its own direction it sat on the left of an
+          // Arabic form, under a label on the right, which reads as a field
+          // that has lost its label.
+          rest.dir === 'ltr' ? 'page-rtl:text-right page-ltr:text-left' : 'text-start',
           error ? 'border-danger-500' : 'border-line-strong focus:border-primary-600',
           className,
         )}

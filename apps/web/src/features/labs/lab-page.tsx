@@ -68,9 +68,18 @@ export function LabPage(): JSX.Element {
           <h1 className="truncate text-[1.625rem] font-bold leading-[1.3] tracking-[-0.03em] text-ink sm:text-title">
             {lab.data?.name ?? '…'}
           </h1>
-          <p className="mt-1 text-value text-ink-muted">
-            {[lab.data?.contactPerson, lab.data?.phone].filter(Boolean).join(' — ') ||
-              t('labs.subtitle')}
+          {/*
+            A contact and a phone number on one line, not a joined string.
+            Joined, the `+` in front of the number is a neutral character and
+            the bidi algorithm hands it to the Arabic around it: the lab's
+            number was drawn as `963115556677+`, which is not a phone number
+            anyone can dial.
+          */}
+          <p className="mt-1 flex flex-wrap items-baseline gap-1.5 text-value text-ink-muted">
+            {lab.data?.contactPerson && <span>{lab.data.contactPerson}</span>}
+            {lab.data?.contactPerson && lab.data?.phone && <span aria-hidden>—</span>}
+            {lab.data?.phone && <Ltr>{lab.data.phone}</Ltr>}
+            {!lab.data?.contactPerson && !lab.data?.phone && t('labs.subtitle')}
           </p>
         </div>
 

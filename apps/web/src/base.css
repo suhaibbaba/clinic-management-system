@@ -39,6 +39,24 @@ body {
 }
 
 /*
+ * `page-rtl:` / `page-ltr:` — the direction of the *page*, not of the element.
+ *
+ * Tailwind's own `rtl:`/`ltr:` variants match an element that is itself
+ * `dir="ltr"` as well as one inside a `dir="ltr"` ancestor. That is usually
+ * what you want and is exactly wrong for the one case this app is full of: a
+ * phone number, an amount or a date field that carries `dir="ltr"` so its
+ * digits stay in order, inside an Arabic form whose alignment it should still
+ * follow. Both variants matched such a field at once, and which one won came
+ * down to the order the utilities happened to be emitted in.
+ *
+ * These two ask an ancestor instead, which is always the `<html>` element —
+ * `applyLanguageToDocument` puts `dir` there — so a `dir="ltr"` island reads
+ * the page's direction rather than its own.
+ */
+@custom-variant page-rtl ([dir='rtl'] &);
+@custom-variant page-ltr ([dir='ltr'] &);
+
+/*
  * Arabic inside a Latin run, or a Latin phone number inside an Arabic one.
  * `isolate` stops the bidi algorithm reordering the text around it, which is
  * what otherwise drags a trailing comma or a plus sign to the wrong end.

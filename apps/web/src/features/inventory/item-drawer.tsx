@@ -306,11 +306,20 @@ function History({
                 >
                   {movement.quantity.startsWith('-') ? movement.quantity : `+${movement.quantity}`}
                 </Ltr>
-                {/* What the item stood at after this movement — the column that
-                    makes the history explain the number at the top. */}
-                <Ltr className="text-label tabular-nums text-ink-muted">
-                  → {movement.runningQuantity}
-                </Ltr>
+                {/*
+                  What the item stood at after this movement — the column that
+                  makes the history explain the number at the top.
+
+                  The arrow is the icon set's, not a `→` typed into the markup:
+                  a literal arrow points right in both languages, and "leads
+                  to" reads the other way in Arabic. `chevron-end` resolves per
+                  direction, and it sits outside the island so the row, rather
+                  than the number, decides which side it lands on.
+                */}
+                <span className="flex items-baseline gap-1 text-label text-ink-muted">
+                  <Icon name="chevron-end" className="size-3.5 self-center" />
+                  <Ltr className="tabular-nums">{movement.runningQuantity}</Ltr>
+                </span>
               </span>
             </div>
 

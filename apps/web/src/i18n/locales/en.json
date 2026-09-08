@@ -25,7 +25,7 @@
     "filters": "Filters",
     "viewAll": "View all",
     "placeholders": {
-      "identifier": "09XXXXXXXX or name@clinic.com",
+      "identifier": "09XXXXXXXX",
       "password": "••••••••",
       "fullName": "e.g. Ahmad Khaled Al-Hasan",
       "phone": "09XXXXXXXX",
