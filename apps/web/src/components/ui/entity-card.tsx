@@ -70,6 +70,9 @@ export function EntityCard({
 }: EntityCardProps): JSX.Element {
   return (
     <article
+      // The same hook the table's rows carry, so a sweep or a smoke run can
+      // open a record without knowing which of the two shapes it is looking at.
+      data-entity-card
       className={cn(
         'flex flex-col rounded-card bg-surface p-5 shadow-card',
         'transition-[box-shadow,background-color,border-color] duration-150',

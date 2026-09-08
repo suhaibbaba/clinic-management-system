@@ -103,14 +103,26 @@ async function resolvePath(page: Page, path: string): Promise<string> {
   await page.goto(listPath);
   await page.waitForTimeout(1500);
 
-  const row = page.locator('tbody tr[role="button"], [data-row-card], [data-entity-card]').first();
+  // The way in differs by list: a lab's card is opened by clicking it, a
+  // patient's file by the row action beside the name. Try the row, then the
+  // first control inside it, which covers both without naming either.
+  const row = page.locator('[data-row], [data-entity-card]').first();
 
   if ((await row.count()) === 0) {
     test.skip(true, `no seeded row behind ${path}`);
   }
 
   await row.click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(800);
+
+  if (new URL(page.url()).pathname === listPath.split('?')[0]) {
+    const action = row.locator('a, button').first();
+
+    if ((await action.count()) > 0) {
+      await action.click();
+      await page.waitForTimeout(800);
+    }
+  }
 
   const opened = new URL(page.url()).pathname;
 

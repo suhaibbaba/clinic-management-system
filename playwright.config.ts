@@ -29,6 +29,16 @@ export default defineConfig({
   reporter: process.env['CI'] ? [['github'], ['list']] : [['list']],
   use: {
     baseURL: BASE_URL,
+    /*
+     * A Chromium that is already on the machine, when there is one.
+     *
+     * CI installs Playwright's own and needs none of this; a sandbox or a
+     * developer box with a system Chromium sets `QA_CHROMIUM` — the same
+     * variable the visual sweep reads — and skips a 150 MB download.
+     */
+    ...(process.env['QA_CHROMIUM']
+      ? { launchOptions: { executablePath: process.env['QA_CHROMIUM'] } }
+      : {}),
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     locale: 'ar-SY',
