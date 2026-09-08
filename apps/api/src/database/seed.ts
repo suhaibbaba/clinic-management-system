@@ -15,12 +15,13 @@ import { eq, isNull, and } from 'drizzle-orm';
 import postgres from 'postgres';
 
 import { validateEnv } from '@api/config/env.schema';
-import { clinics, doctors, specialties, users } from '@api/database/schema';
+import { doctors, specialties, users } from '@api/database/schema';
 import { ensureSystemLookups } from '@api/database/system-lookups';
 import { seedAppointments } from '@api/database/seed-appointments';
 import { seedBilling } from '@api/database/seed-billing';
 import { seedInventory } from '@api/database/seed-inventory';
 import { seedLabs } from '@api/database/seed-labs';
+import { upsertSeedClinic } from '@api/database/seed-clinic';
 import { seedClosures } from '@api/database/seed-closures';
 import { seedPatients } from '@api/database/seed-patients';
 
@@ -150,7 +151,18 @@ async function main(): Promise<void> {
       parallelism: 1,
     });
 
-    const clinic = await upsertClinic(db);
+    const clinic = await upsertSeedClinic(db, {
+      slug: CLINIC_SLUG,
+      name: CLINIC_NAME,
+      defaults: {
+        phone: '+963110000000',
+        email: 'info@clinic.local',
+        address: 'Damascus, Syria',
+        currency: 'USD',
+        workingHours: WEEKDAY_HOURS,
+        settings: CLINIC_SETTINGS,
+      },
+    });
     // Before anything that stores a code: the dropdowns are rows now, and a
     // seeded appointment of type `checkup` needs the row that names it.
     await ensureSystemLookups(db, clinic.id);
@@ -231,46 +243,11 @@ async function main(): Promise<void> {
       seededLabOrders,
       seededStockMovements,
       seededClosures,
+      clinic.notes,
     );
   } finally {
     await client.end();
   }
-}
-
-async function upsertClinic(db: ReturnType<typeof drizzle>): Promise<{ id: string }> {
-  const [existing] = await db
-    .select({ id: clinics.id })
-    .from(clinics)
-    // Matched on the slug rather than the name: the slug is the clinic's
-    // identity in a URL, and it is the one of the two that cannot be spelled
-    // two ways.
-    .where(and(eq(clinics.slug, CLINIC_SLUG), isNull(clinics.deletedAt)))
-    .limit(1);
-
-  if (existing) {
-    return existing;
-  }
-
-  const [row] = await db
-    .insert(clinics)
-    .values({
-      nameAr: CLINIC_NAME.ar,
-      nameEn: CLINIC_NAME.en,
-      slug: CLINIC_SLUG,
-      phone: '+963110000000',
-      email: 'info@clinic.local',
-      address: 'Damascus, Syria',
-      currency: 'USD',
-      workingHours: WEEKDAY_HOURS,
-      settings: CLINIC_SETTINGS,
-    })
-    .returning({ id: clinics.id });
-
-  if (!row) {
-    throw new Error('Failed to create the seed clinic');
-  }
-
-  return row;
 }
 
 async function upsertSpecialty(
@@ -320,12 +297,25 @@ async function upsertUser(
   passwordHash: string,
 ): Promise<string> {
   const [existing] = await db
-    .select({ id: users.id })
+    .select({ id: users.id, clinicId: users.clinicId })
     .from(users)
     .where(and(eq(users.phone, account.phone), isNull(users.deletedAt)))
     .limit(1);
 
   if (existing) {
+    // An account that belongs somewhere else means the clinic lookup adopted
+    // the wrong row — accounts are matched by phone, which is unique across
+    // the system rather than per clinic, so carrying on would attach this
+    // clinic's demo data to another clinic's staff. That is the shape of the
+    // duplicate-clinic bug `upsertSeedClinic` exists to prevent, and it is
+    // worth saying out loud rather than seeding a fork of the database.
+    if (existing.clinicId !== clinicId) {
+      throw new Error(
+        `The seed account ${account.phone} already belongs to clinic ${existing.clinicId}, ` +
+          `not ${clinicId}. Refusing to seed a second clinic with the same staff.`,
+      );
+    }
+
     // Keep the documented password working even if it changed in .env.
     await db
       .update(users)
@@ -400,6 +390,8 @@ function report(
   seededLabOrders: number,
   seededStockMovements: number,
   seededClosures: number,
+  /** What the seed had to repair before it could run — usually nothing. */
+  notes: readonly string[],
 ): void {
   const lines = [
     '',
@@ -431,6 +423,7 @@ function report(
     seededClosures > 0
       ? 'Closed the clinic for a two-day holiday and booked two absences for the first doctor — one of them overlaps a booked appointment, so the conflict dialog has something real to show.'
       : 'Closures already present — left untouched.',
+    ...(notes.length > 0 ? ['', ...notes] : []),
     '',
     'Development credentials only — change SEED_PASSWORD before any shared environment.',
     '',
