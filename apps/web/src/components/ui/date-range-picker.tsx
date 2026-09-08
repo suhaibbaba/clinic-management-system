@@ -7,7 +7,7 @@ import { Calendar } from '@web/components/ui/calendar';
 import { fromIsoDate, toIsoDate } from '@web/components/ui/date-picker';
 import { Icon } from '@web/components/ui/icon';
 import { openOnArrowDown, usePickerOpen } from '@web/components/ui/picker-open';
-import { PopoverSheet } from '@web/components/ui/popover-sheet';
+import { Popover } from '@web/components/ui/popover';
 import { cn } from '@web/lib/cn';
 import { Ltr } from '@web/components/ui/ltr';
 
@@ -55,7 +55,7 @@ export function DateRangePicker({
       : t('common.placeholders.dateRange');
 
   return (
-    <PopoverSheet
+    <Popover
       open={picker.open}
       onOpenChange={picker.onOpenChange}
       focusOnOpen={picker.focusOnOpen}
@@ -117,6 +117,6 @@ export function DateRangePicker({
           {t('common.done')}
         </Button>
       </div>
-    </PopoverSheet>
+    </Popover>
   );
 }

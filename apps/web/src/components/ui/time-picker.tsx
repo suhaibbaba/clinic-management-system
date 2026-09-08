@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Icon } from '@web/components/ui/icon';
 import { openOnArrowDown, usePickerOpen } from '@web/components/ui/picker-open';
-import { PopoverSheet } from '@web/components/ui/popover-sheet';
+import { Popover } from '@web/components/ui/popover';
 import { cn } from '@web/lib/cn';
 
 /** `HH:mm`, 24-hour, Latin digits — the same shape the API stores. */
@@ -101,7 +101,7 @@ export function TimePicker({
   };
 
   return (
-    <PopoverSheet
+    <Popover
       open={picker.open}
       onOpenChange={picker.onOpenChange}
       focusOnOpen={picker.focusOnOpen}
@@ -193,6 +193,6 @@ export function TimePicker({
           </li>
         ))}
       </ul>
-    </PopoverSheet>
+    </Popover>
   );
 }

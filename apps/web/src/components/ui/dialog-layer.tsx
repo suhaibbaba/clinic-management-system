@@ -6,7 +6,7 @@ import { createContext, useContext, type JSX, type ReactNode } from 'react';
  * Radix Dialog makes the rest of the page inert while it is open — `RemoveScroll`
  * puts `pointer-events: none` on the body and the focus scope keeps focus in
  * the dialog. A popover that portals to `document.body`, which is what
- * `PopoverSheet` does everywhere else, lands in that inert layer: the calendar
+ * `Popover` does everywhere else, lands in that inert layer: the calendar
  * renders, and every click on it goes nowhere. The date range picker in the
  * "add a closure" dialog was exactly this — a calendar you could see and could
  * not use.

@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { DatePicker, parseTypedDate, toIsoDate } from '@web/components/ui/date-picker';
 import '@web/i18n';
@@ -19,7 +19,36 @@ function Host({ initial = '' }: { readonly initial?: string }): React.JSX.Elemen
   );
 }
 
+/** jsdom has no layout, so the breakpoint question is answered directly. */
+function setViewport(isMobile: boolean): void {
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: isMobile && query.includes('max-width'),
+    media: query,
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+  }));
+}
+
 describe('DatePicker', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('opens the same popover on a phone as on a laptop', async () => {
+    // It used to be a bottom sheet below `md` — a second primitive and a
+    // second set of behaviour for one question, and one more way for a date
+    // field to answer differently depending on what it is being read on.
+    setViewport(true);
+    render(<Host initial="2026-09-05" />);
+
+    await userEvent.click(screen.getByRole('textbox'));
+
+    // Anchored to the field — a popper — rather than a sheet pinned to the
+    // bottom of the screen with its own scrim and close button.
+    const grid = await screen.findByRole('grid');
+    expect(grid.closest('[data-radix-popper-content-wrapper]')).not.toBeNull();
+  });
+
   it('parses a typed date and hands back an ISO string', () => {
     const parsed = parseTypedDate('05/09/2026');
 
