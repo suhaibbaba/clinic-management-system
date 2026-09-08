@@ -313,8 +313,10 @@ function NotificationBell(): JSX.Element {
       aria-label={t('nav.notificationsEmpty')}
       title={t('nav.notificationsEmpty')}
       className={cn(
-        // 44px on touch (WCAG 2.5.8), back to 36 where there is a pointer.
-        'inline-flex size-11 cursor-pointer items-center justify-center rounded-pill md:size-9',
+        // 44px on touch (WCAG 2.5.8), back to 36 on a laptop. `lg` rather
+        // than `md`: the tablet the front desk uses is 768 wide and is a
+        // touch device, whatever the layout does at that width.
+        'inline-flex size-11 cursor-pointer items-center justify-center rounded-pill lg:size-9',
         'text-ink-subtle transition-colors duration-150 hover:bg-inset hover:text-ink',
         'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent',
       )}

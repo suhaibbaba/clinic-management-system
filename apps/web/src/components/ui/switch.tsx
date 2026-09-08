@@ -39,7 +39,7 @@ export function Switch({
          * against on a phone.
          */
         'after:absolute after:inset-x-0 after:top-1/2 after:h-11 after:-translate-y-1/2',
-        'after:content-[""] sm:after:hidden',
+        'after:content-[""] lg:after:hidden',
         'disabled:cursor-not-allowed disabled:opacity-50',
         checked ? 'bg-primary-600' : 'bg-neutral-300',
       )}

@@ -43,8 +43,8 @@ const VARIANTS: Record<ButtonVariant, string> = {
  */
 const SIZES: Record<ButtonSize, string> = {
   // 8px icon gap at both sizes — an icon and its label are one object.
-  sm: 'min-h-11 px-3.5 text-label gap-2 sm:h-8 sm:min-h-0',
-  md: 'min-h-11 px-5 text-value gap-2 sm:h-10 sm:min-h-0',
+  sm: 'min-h-11 px-3.5 text-label gap-2 lg:h-8 lg:min-h-0',
+  md: 'min-h-11 px-5 text-value gap-2 lg:h-10 lg:min-h-0',
 };
 
 export function Button({

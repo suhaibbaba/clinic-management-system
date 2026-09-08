@@ -64,7 +64,7 @@ export function DateRangePicker({
           type="button"
           aria-label={label}
           className={cn(
-            'flex h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-control sm:h-10',
+            'flex h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-control lg:h-10',
             'border border-line bg-surface ps-3.5 pe-3 text-start text-field',
             'transition-[border-color,box-shadow] duration-150 hover:border-primary-300',
             from || to ? 'text-ink' : 'text-ink-subtle',

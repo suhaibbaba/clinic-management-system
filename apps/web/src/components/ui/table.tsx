@@ -160,7 +160,12 @@ export function Table<TRow>({
                       <div key={column.key} className="contents">
                         <dt
                           className={cn(
-                            'py-2.5 text-start text-label text-ink-muted',
+                            // `pe-4`: the label's own end padding, which the
+                            // grid deliberately has no column gap for. Without
+                            // it a label wider than its 5.5rem minimum ran
+                            // straight into its value — "Requested slot" and
+                            // "08/09/2026 11:00" were printed as one word.
+                            'py-2.5 pe-4 text-start text-label text-ink-muted',
                             index > 0 && 'border-t border-line',
                           )}
                         >

@@ -49,6 +49,12 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 } },
     },
     {
+      // The width that found this run's only overflow: three stat cards across
+      // a 768px tablet, with a figure in each that does not break.
+      name: 'tablet-ar',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 768, height: 1024 } },
+    },
+    {
       name: 'desktop-en',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
     },

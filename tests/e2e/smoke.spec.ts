@@ -49,9 +49,9 @@ async function scrollsSideways(page: Page): Promise<boolean> {
   });
 }
 
-// `phone-ar` is the narrow Arabic pass; anything else runs English on desktop.
+/** The Arabic passes are the narrow ones; the desktop pass runs English. */
 const session = (project: string): Session =>
-  project === 'phone-ar' ? { lang: 'ar', dir: 'rtl' } : { lang: 'en', dir: 'ltr' };
+  project.endsWith('-ar') ? { lang: 'ar', dir: 'rtl' } : { lang: 'en', dir: 'ltr' };
 
 for (const role of ROLES) {
   test.describe(`${role}`, () => {

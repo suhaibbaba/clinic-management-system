@@ -47,7 +47,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       className={cn(
         // 44px on touch, the drawn 40 from `sm` up: a field is a tap target
         // before it is a box, and 40px is under the 44 WCAG 2.5.8 asks for.
-        'block h-11 w-full rounded-control border bg-surface px-3.5 text-field text-ink sm:h-10',
+        'block h-11 w-full rounded-control border bg-surface px-3.5 text-field text-ink lg:h-10',
         ltrIsland ? 'page-rtl:text-right page-ltr:text-left' : 'text-start',
         'transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-ink-subtle',
         'focus:border-primary-500',

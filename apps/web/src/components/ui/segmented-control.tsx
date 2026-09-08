@@ -60,7 +60,7 @@ export function SegmentedControl<TValue extends string>({
             aria-checked={isSelected}
             onClick={() => onChange(option.value)}
             className={cn(
-              'inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-[8px] px-3.5 sm:h-8 sm:min-h-0',
+              'inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-[8px] px-3.5 lg:h-8 lg:min-h-0',
               'text-label transition-[background-color,color,box-shadow] duration-150',
               isSelected
                 ? 'bg-surface font-semibold text-ink shadow-pill'

@@ -47,7 +47,7 @@ export function RowAction({
         'inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap',
         // Blue text on a desktop row; the same blue text inside a 44px box on
         // a phone, where the row is a card and this is a thumb target.
-        'min-h-11 rounded-control px-1 py-0.5 text-value font-medium sm:min-h-0',
+        'min-h-11 rounded-control px-1 py-0.5 text-value font-medium lg:min-h-0',
         'transition-colors duration-150',
         'disabled:cursor-not-allowed disabled:opacity-40',
         TONES[tone],

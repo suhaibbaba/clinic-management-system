@@ -72,13 +72,17 @@ export function StatCard({
       </div>
 
       {/*
-        Two cards fit across a phone, which leaves about 133px of card for the
-        figure — and `200.00 USD` at 32px is 170px of it. It wrapped, so a
-        balance was drawn as two lines with the currency stranded on the
-        second. A step down below `sm` is the whole fix; the number is still
-        the largest thing on the card, which is what the size was for.
+        The figure steps down until there is room for it.
+
+        `200.00 USD` at 32px is 170px wide and never breaks — an amount is one
+        word. Two cards across a phone leave about 133px of card, and at 32px
+        the figure either wrapped — currency stranded on a second line — or,
+        once it stopped wrapping, pushed the whole page sideways. 20px holds a
+        five-figure balance with its currency in that space; the full size
+        arrives at `lg`, where a card is 236px wide. It is still the largest
+        thing on the card, which is what the size was for.
       */}
-      <Ltr as="p" className="mt-4 text-[1.375rem] font-semibold text-ink sm:text-kpi">
+      <Ltr as="p" className="mt-4 text-[1.25rem] font-semibold text-ink lg:text-kpi">
         {value}
       </Ltr>
 

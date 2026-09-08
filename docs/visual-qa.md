@@ -24,6 +24,12 @@ pnpm seed
 pnpm qa:screens
 ```
 
+It writes as well as reads: the booking wizard's OTP screen is reached by
+submitting the form, so each sweep leaves one pending booking per viewport in
+the database it ran against. That is the point — the screen only exists after
+a real submission — but it is a reason to run this against a development
+stack and to re-seed when the queue gets noisy.
+
 Output lands in `qa/screens/` (git-ignored), one directory per
 language / viewport / role, plus `report.md` and `report.json`.
 
@@ -41,16 +47,16 @@ QA_LANGS=ar QA_VIEWPORTS=phone pnpm qa:screens
 QA_ROLES=technician QA_SCREENS=inventory pnpm qa:screens
 ```
 
-| variable | default | what it does |
-| --- | --- | --- |
-| `QA_BASE_URL` | `http://127.0.0.1:5173` | where the web app is |
-| `QA_API_URL` | `http://127.0.0.1:3000` | where the API is — used to find seeded ids |
-| `QA_LANGS` | `ar,en` | languages to sweep |
-| `QA_VIEWPORTS` | `phone,tablet,desktop` | 390×844, 768×1024, 1440×900 |
-| `QA_ROLES` | all four | roles to sign in as |
-| `QA_SCREENS` | — | substring filter on the screen id |
-| `QA_OUT` | `qa/screens` | output directory |
-| `QA_CHROMIUM` | — | path to a Chromium, instead of Playwright's own |
+| variable       | default                 | what it does                                    |
+| -------------- | ----------------------- | ----------------------------------------------- |
+| `QA_BASE_URL`  | `http://127.0.0.1:5173` | where the web app is                            |
+| `QA_API_URL`   | `http://127.0.0.1:3000` | where the API is — used to find seeded ids      |
+| `QA_LANGS`     | `ar,en`                 | languages to sweep                              |
+| `QA_VIEWPORTS` | `phone,tablet,desktop`  | 390×844, 768×1024, 1440×900                     |
+| `QA_ROLES`     | all four                | roles to sign in as                             |
+| `QA_SCREENS`   | —                       | substring filter on the screen id               |
+| `QA_OUT`       | `qa/screens`            | output directory                                |
+| `QA_CHROMIUM`  | —                       | path to a Chromium, instead of Playwright's own |
 
 ## What the report says
 
@@ -92,17 +98,17 @@ which are data rather than code so the same row runs in both languages:
 }
 ```
 
-| step | opens |
-| --- | --- |
-| `{ click: 'patients.create' }` | a button, by i18n key |
-| `{ clickTab: 'patients.tabs.visits' }` | a tab, by i18n key |
-| `{ clickRadio: 'appointments.day' }` | one option of a segmented control |
-| `{ clickSelector: '[data-tooth]' }` | anything with a stable attribute |
-| `{ clickLabelPrefix: 'when.chooseSlot' }` | an `aria-label` built from a key with a placeholder |
-| `{ firstRow: true }` | the first row of a list (`[data-row]`, either shape) |
-| `{ fill: { selector, value } }` | types into a field |
-| `{ clickSubmit: true }` | the form's submit button |
-| `{ wait: 500 }` | lets an animation settle |
+| step                                      | opens                                                |
+| ----------------------------------------- | ---------------------------------------------------- |
+| `{ click: 'patients.create' }`            | a button, by i18n key                                |
+| `{ clickTab: 'patients.tabs.visits' }`    | a tab, by i18n key                                   |
+| `{ clickRadio: 'appointments.day' }`      | one option of a segmented control                    |
+| `{ clickSelector: '[data-tooth]' }`       | anything with a stable attribute                     |
+| `{ clickLabelPrefix: 'when.chooseSlot' }` | an `aria-label` built from a key with a placeholder  |
+| `{ firstRow: true }`                      | the first row of a list (`[data-row]`, either shape) |
+| `{ fill: { selector, value } }`           | types into a field                                   |
+| `{ clickSubmit: true }`                   | the form's submit button                             |
+| `{ wait: 500 }`                           | lets an animation settle                             |
 
 Screens with `steps` are swept but not smoke-tested: CI checks what a URL can
 reach, which keeps it fast enough to run on every pull request.
@@ -111,11 +117,13 @@ reach, which keeps it fast enough to run on every pull request.
 
 - Every number — phone, money, date, time, file number, tooth, OTP — is an
   `<Ltr>`. It carries its own direction, isolates itself from the text around
-  it, and hugs its content so the *page's* alignment places it.
+  it, and hugs its content so the _page's_ alignment places it.
 - No unprefixed physical CSS. `ps`/`pe`, `ms`/`me`, `text-start`/`text-end`,
-  `border-s`/`border-e`, `start`/`end`. A `rtl:`/`ltr:` pair is the exception,
-  for a `dir="ltr"` field that has to be laid out against the page rather than
-  against itself.
+  `border-s`/`border-e`, `start`/`end`. The exception is a `dir="ltr"` field,
+  which has to be laid out against the page rather than against itself: those
+  use `page-rtl:`/`page-ltr:`, two custom variants that ask an ancestor rather
+  than the element, because Tailwind's own `rtl:`/`ltr:` match both and leave
+  the winner to the order the utilities were emitted in.
 - Direction-relative icons (`chevron-start`, `chevron-end`, and the two door
   glyphs) resolve per direction; a phone, a calendar and a printer never flip.
 - Line heights are set for Arabic: ~1.6 through body text, ~1.3 on display

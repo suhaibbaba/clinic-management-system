@@ -122,7 +122,7 @@ export function DatePicker({
               // while every other field's value sat on the right, and a column
               // of fields with one of them wandering off is the thing people
               // report as "the date looks broken".
-              'block h-11 w-full rounded-control border bg-surface sm:h-10',
+              'block h-11 w-full rounded-control border bg-surface lg:h-10',
               // Physical rather than logical, and deliberately so: the field
               // itself is `dir="ltr"`, so `ps`/`pe` on it would resolve
               // against *its* direction and reserve the icon's room on the
