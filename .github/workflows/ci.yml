@@ -93,7 +93,7 @@ jobs:
         run: pnpm --filter @clinic/web build-storybook
 
   e2e:
-    name: End-to-end smoke (RTL phone, LTR desktop)
+    name: End-to-end smoke (Arabic phone and tablet, English desktop)
     runs-on: ubuntu-latest
 
     # The smoke run drives the real product: a browser, the built bundle, the
