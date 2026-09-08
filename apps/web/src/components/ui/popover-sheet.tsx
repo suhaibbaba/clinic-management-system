@@ -20,6 +20,18 @@ export interface PopoverSheetProps {
   readonly anchor: ReactNode;
   /** The sheet's heading, and the popover's accessible name. */
   readonly title: string;
+  /**
+   * Whether the popover takes focus when it opens. Default `true`.
+   *
+   * `false` is for the one case where it must not: a picker that appeared
+   * because somebody clicked the text field it belongs to, where they are
+   * about to type. Moving focus there would swallow the first keystroke.
+   *
+   * Desktop only. The narrow-screen sheet is a dialog — it covers the page and
+   * traps focus — and a dialog that does not take focus is a trap with nobody
+   * in it.
+   */
+  readonly focusOnOpen?: boolean | undefined;
   readonly children: ReactNode;
 }
 
@@ -43,15 +55,17 @@ export interface PopoverSheetProps {
  * time field means the calendar can come up from something the user did not
  * mean as "show me a calendar" — most visibly when a dialog opens and hands
  * focus to its first field, where a picker unfolding over a form nobody has
- * touched yet is the bug this replaced. `Anchor` positions and stays silent;
- * every caller opens from its own button, which gives click, Enter and Space
- * for free, and adds ArrowDown on the field itself.
+ * touched yet is the bug this replaced. `Anchor` positions and stays silent,
+ * and each caller says for itself what opens it: a click on the field or on
+ * the button at the end of it, Enter or Space on that button, ArrowDown from
+ * the field — and never focus. See `usePickerOpen`.
  */
 export function PopoverSheet({
   open,
   onOpenChange,
   anchor,
   title,
+  focusOnOpen = true,
   children,
 }: PopoverSheetProps): JSX.Element {
   const isMobile = useIsMobile();
@@ -120,6 +134,9 @@ export function PopoverSheet({
           align="start"
           sideOffset={8}
           aria-label={title}
+          {...(!focusOnOpen && {
+            onOpenAutoFocus: (event: Event) => event.preventDefault(),
+          })}
           className={cn(
             'z-50 rounded-card bg-surface p-3 shadow-float',
             'origin-(--radix-popover-content-transform-origin)',

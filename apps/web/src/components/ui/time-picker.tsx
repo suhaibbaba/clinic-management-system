@@ -2,7 +2,7 @@ import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Icon } from '@web/components/ui/icon';
-import { openOnArrowDown } from '@web/components/ui/open-on-key';
+import { openOnArrowDown, usePickerOpen } from '@web/components/ui/picker-open';
 import { PopoverSheet } from '@web/components/ui/popover-sheet';
 import { cn } from '@web/lib/cn';
 
@@ -76,7 +76,7 @@ export function TimePicker({
   className,
 }: TimePickerProps): JSX.Element {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const picker = usePickerOpen();
   const [typed, setTyped] = useState(value);
 
   const [lastValue, setLastValue] = useState(value);
@@ -102,8 +102,9 @@ export function TimePicker({
 
   return (
     <PopoverSheet
-      open={open}
-      onOpenChange={setOpen}
+      open={picker.open}
+      onOpenChange={picker.onOpenChange}
+      focusOnOpen={picker.focusOnOpen}
       title={label}
       anchor={
         <div className={cn('relative', className)}>
@@ -118,8 +119,11 @@ export function TimePicker({
             placeholder={t('common.placeholders.time')}
             value={typed}
             onChange={(event) => commit(event.target.value)}
-            // Never on click or on focus — only ArrowDown, or the button.
-            onKeyDown={openOnArrowDown(() => setOpen(true))}
+            // Clicking the field shows the list beside it without taking the
+            // focus, so a time can still be typed straight over the top. Focus
+            // alone opens nothing — see `usePickerOpen`.
+            {...picker.opens(false)}
+            onKeyDown={openOnArrowDown(picker.show)}
             className={cn(
               // The value is Latin — `08/09/2026`, `14:30` — so the field is
               // `dir="ltr"` and keeps its digits and separators in order. Its
@@ -150,7 +154,8 @@ export function TimePicker({
             type="button"
             disabled={disabled}
             aria-label={t('common.openTimes')}
-            onClick={() => setOpen(true)}
+            // Asked for outright, so the keyboard lands in the list.
+            {...picker.opens(true)}
             className={cn(
               // At the inline end, like the range picker's and like the
               // chevron on every select — and a full 44px wide, because it is
@@ -172,7 +177,7 @@ export function TimePicker({
               type="button"
               onClick={() => {
                 onChange(slot);
-                setOpen(false);
+                picker.onOpenChange(false);
               }}
               aria-current={slot === value || undefined}
               dir="ltr"

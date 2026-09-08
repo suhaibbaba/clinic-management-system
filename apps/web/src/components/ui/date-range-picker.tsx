@@ -1,12 +1,12 @@
 import { format } from 'date-fns';
-import { useState, type JSX } from 'react';
+import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@web/components/ui/button';
 import { Calendar } from '@web/components/ui/calendar';
 import { fromIsoDate, toIsoDate } from '@web/components/ui/date-picker';
 import { Icon } from '@web/components/ui/icon';
-import { openOnArrowDown } from '@web/components/ui/open-on-key';
+import { openOnArrowDown, usePickerOpen } from '@web/components/ui/picker-open';
 import { PopoverSheet } from '@web/components/ui/popover-sheet';
 import { cn } from '@web/lib/cn';
 import { Ltr } from '@web/components/ui/ltr';
@@ -45,7 +45,7 @@ export function DateRangePicker({
   className,
 }: DateRangePickerProps): JSX.Element {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const picker = usePickerOpen();
 
   const from = fromIsoDate(value.from);
   const to = fromIsoDate(value.to);
@@ -56,8 +56,9 @@ export function DateRangePicker({
 
   return (
     <PopoverSheet
-      open={open}
-      onOpenChange={setOpen}
+      open={picker.open}
+      onOpenChange={picker.onOpenChange}
+      focusOnOpen={picker.focusOnOpen}
       title={label}
       anchor={
         <button
@@ -66,8 +67,9 @@ export function DateRangePicker({
           aria-label={label}
           // This anchor is itself the control, so it opens on click, Enter and
           // Space by being a button — and on ArrowDown like the other two.
-          onClick={() => setOpen(true)}
-          onKeyDown={openOnArrowDown(() => setOpen(true))}
+          // There is no text to type here, so it takes the focus every time.
+          {...picker.opens(true)}
+          onKeyDown={openOnArrowDown(picker.show)}
           className={cn(
             'flex h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-control lg:h-10',
             'border border-line bg-surface ps-3.5 pe-3 text-start text-field',
@@ -100,7 +102,7 @@ export function DateRangePicker({
           icon={<Icon name="x" />}
           onClick={() => {
             onChange({ from: '', to: '' });
-            setOpen(false);
+            picker.onOpenChange(false);
           }}
         >
           {t('common.clear')}
@@ -110,7 +112,7 @@ export function DateRangePicker({
           size="sm"
           variant="secondary"
           icon={<Icon name="check" />}
-          onClick={() => setOpen(false)}
+          onClick={() => picker.onOpenChange(false)}
         >
           {t('common.done')}
         </Button>
