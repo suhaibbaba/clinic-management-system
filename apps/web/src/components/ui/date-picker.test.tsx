@@ -58,6 +58,62 @@ describe('DatePicker', () => {
     expect(screen.getByTestId('value')).toHaveTextContent('');
   });
 
+  it('opens the calendar when the field itself is clicked', async () => {
+    // What a click on a date field is expected to do, and did not: the button
+    // at the end of it was the only way in, so the obvious gesture did nothing
+    // at all. See `usePickerOpen`.
+    render(<Host initial="2026-09-05" />);
+
+    await userEvent.click(screen.getByRole('textbox'));
+
+    expect(await screen.findByRole('grid')).toBeInTheDocument();
+  });
+
+  it('leaves the caret in the field, so a date can still be typed over it', async () => {
+    render(<Host />);
+
+    const field = screen.getByRole('textbox');
+    await userEvent.click(field);
+    await screen.findByRole('grid');
+
+    // The calendar is beside the field, not in front of it: focus has not
+    // moved, and the keystrokes still reach the input.
+    expect(field).toHaveFocus();
+
+    await userEvent.type(field, '05/09/2026');
+    expect(screen.getByTestId('value')).toHaveTextContent('2026-09-05');
+  });
+
+  it('closes again when the field is clicked a second time', async () => {
+    // The field anchors the popover rather than triggering it, so Radix
+    // dismisses on the pointer going down and a naive handler would reopen
+    // what the same click just closed.
+    render(<Host initial="2026-09-05" />);
+
+    const field = screen.getByRole('textbox');
+    await userEvent.click(field);
+    await screen.findByRole('grid');
+
+    await userEvent.click(field);
+
+    expect(screen.queryByRole('grid')).not.toBeInTheDocument();
+  });
+
+  it('opens nothing when the field merely receives focus', async () => {
+    render(
+      <>
+        <button type="button">قبل</button>
+        <Host />
+      </>,
+    );
+
+    await userEvent.tab();
+    await userEvent.tab();
+
+    expect(screen.getByRole('textbox')).toHaveFocus();
+    expect(screen.queryByRole('grid')).not.toBeInTheDocument();
+  });
+
   it('opens an Arabic, right-to-left calendar with Latin digits', async () => {
     render(<Host initial="2026-09-05" />);
 

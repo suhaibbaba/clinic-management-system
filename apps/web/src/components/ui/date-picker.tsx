@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@web/components/ui/button';
 import { Calendar, dateLocale } from '@web/components/ui/calendar';
 import { Icon } from '@web/components/ui/icon';
-import { openOnArrowDown } from '@web/components/ui/open-on-key';
+import { openOnArrowDown, usePickerOpen } from '@web/components/ui/picker-open';
 import { PopoverSheet } from '@web/components/ui/popover-sheet';
 import { cn } from '@web/lib/cn';
 
@@ -67,7 +67,7 @@ export function DatePicker({
   className,
 }: DatePickerProps): JSX.Element {
   const { t, i18n } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const picker = usePickerOpen();
   const selected = fromIsoDate(value);
   const [typed, setTyped] = useState(() => (selected ? format(selected, TYPED) : ''));
 
@@ -96,8 +96,9 @@ export function DatePicker({
 
   return (
     <PopoverSheet
-      open={open}
-      onOpenChange={setOpen}
+      open={picker.open}
+      onOpenChange={picker.onOpenChange}
+      focusOnOpen={picker.focusOnOpen}
       title={label}
       anchor={
         <div className={cn('relative', className)}>
@@ -112,11 +113,13 @@ export function DatePicker({
             placeholder={t('common.placeholders.date')}
             value={typed}
             onChange={(event) => commit(event.target.value)}
-            // Typing is the fast path and must stay uninterrupted, so the
-            // field opens nothing on click or on focus. ArrowDown is the one
-            // deliberate way in from the keyboard; the button beside it is the
-            // other (see `openOnArrowDown`).
-            onKeyDown={openOnArrowDown(() => setOpen(true))}
+            // Clicking the field shows the calendar beside it — the obvious
+            // thing to try, and what this looked broken without. It does not
+            // take the focus with it, so the caret stays where it was put and
+            // typing, which is the fast path for a date of birth, carries on
+            // uninterrupted. Focus alone still opens nothing.
+            {...picker.opens(false)}
+            onKeyDown={openOnArrowDown(picker.show)}
             className={cn(
               // The value is Latin — `08/09/2026`, `14:30` — so the field is
               // `dir="ltr"` and keeps its digits and separators in order. Its
@@ -147,7 +150,9 @@ export function DatePicker({
             type="button"
             disabled={disabled}
             aria-label={t('common.openCalendar')}
-            onClick={() => setOpen(true)}
+            // Asked for outright, so this one does take the focus: the
+            // keyboard lands in the calendar rather than behind it.
+            {...picker.opens(true)}
             className={cn(
               // At the inline end, like the range picker's and like the
               // chevron on every select — and a full 44px wide, because it is
@@ -168,7 +173,7 @@ export function DatePicker({
         onSelect={(date: Date | undefined) => {
           if (date) {
             onChange(toIsoDate(date));
-            setOpen(false);
+            picker.onOpenChange(false);
           }
         }}
       />
@@ -180,7 +185,7 @@ export function DatePicker({
           icon={<Icon name="x" />}
           onClick={() => {
             onChange('');
-            setOpen(false);
+            picker.onOpenChange(false);
           }}
         >
           {t('common.clear')}
@@ -192,7 +197,7 @@ export function DatePicker({
           icon={<Icon name="calendar" />}
           onClick={() => {
             onChange(toIsoDate(new Date()));
-            setOpen(false);
+            picker.onOpenChange(false);
           }}
         >
           {t('common.today')}
