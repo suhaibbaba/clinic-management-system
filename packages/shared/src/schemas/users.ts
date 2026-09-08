@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { USER_ROLES } from '@shared/enums';
 import { passwordSchema } from '@shared/schemas/auth';
 import { paginationQuerySchema } from '@shared/schemas/common';
+import { personNameInputSchema, personNameSchema } from '@shared/schemas/person-name';
 
 /**
  * Loose on purpose: clinics operate in regions with varied local formats, so
@@ -18,7 +19,8 @@ export const phoneSchema = z
 export const userSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
-  name: z.string(),
+  /** Both spellings; screens pick one through `PersonName` (see the helper). */
+  name: personNameSchema,
   phone: z.string(),
   email: z.string().nullable(),
   role: z.enum(USER_ROLES),
@@ -37,7 +39,7 @@ export type User = z.infer<typeof userSchema>;
  * from the request body (ROLES.md global rule 1).
  */
 const userWritableFields = {
-  name: z.string().trim().min(2).max(120),
+  name: personNameInputSchema,
   phone: phoneSchema,
   email: z.email().max(255).nullish(),
   role: z.enum(USER_ROLES),
@@ -69,7 +71,7 @@ export type ResetUserPasswordInput = z.infer<typeof resetUserPasswordSchema>;
 export const listUsersQuerySchema = paginationQuerySchema.extend({
   role: z.enum(USER_ROLES).optional(),
   isActive: z.stringbool().optional(),
-  /** Matches name, phone or email. */
+  /** Matches either spelling of the name, the phone or the email. */
   search: z.string().trim().min(1).max(120).optional(),
 });
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;

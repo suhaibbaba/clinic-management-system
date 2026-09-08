@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { settingsSchema, weeklyScheduleSchema } from '@shared/schemas/common';
+import { personNameInputSchema, personNameSchema } from '@shared/schemas/person-name';
 
 /**
  * The currencies a clinic may be billed in, as ISO-4217 codes.
@@ -25,8 +26,6 @@ export type Currency = (typeof CURRENCIES)[number];
 export const clinicScheduleSettingsSchema = z.object({
   /** IANA zone the clinic's opening hours are expressed in. */
   timezone: z.string().min(1).default('Asia/Damascus'),
-  /** Dates the clinic is shut regardless of the weekly schedule. */
-  holidays: z.array(z.iso.date()).default([]),
 });
 export type ClinicScheduleSettings = z.infer<typeof clinicScheduleSettingsSchema>;
 
@@ -34,7 +33,7 @@ export type ClinicScheduleSettings = z.infer<typeof clinicScheduleSettingsSchema
 export function clinicScheduleSettings(settings: unknown): ClinicScheduleSettings {
   const parsed = clinicScheduleSettingsSchema.safeParse(settings ?? {});
 
-  return parsed.success ? parsed.data : { timezone: 'Asia/Damascus', holidays: [] };
+  return parsed.success ? parsed.data : { timezone: 'Asia/Damascus' };
 }
 
 /**
@@ -117,14 +116,19 @@ export type ConfirmClinicLogoInput = z.infer<typeof confirmClinicLogoSchema>;
  * own mark — the same fallback it shows for a clinic that never uploaded one.
  */
 export const clinicBrandingSchema = z.object({
-  name: z.string().nullable(),
+  name: personNameSchema.nullable(),
   logoUrl: z.url().nullable(),
 });
 export type ClinicBranding = z.infer<typeof clinicBrandingSchema>;
 
 export const clinicSchema = z.object({
   id: z.uuid(),
-  name: z.string(),
+  /**
+   * The practice's own name, in both languages — it heads every printed
+   * document, and those are produced in the clinic's language rather than the
+   * reader's (`settings.documents.language`).
+   */
+  name: personNameSchema,
   /** R2 object key — never a public URL (CLAUDE.md files & images). */
   logoKey: z.string().nullable(),
   /** Short-lived signed URL for `logoKey`, minted per response. */
@@ -149,7 +153,7 @@ export type Clinic = z.infer<typeof clinicSchema>;
 
 export const updateClinicSchema = z
   .object({
-    name: z.string().trim().min(2).max(160),
+    name: personNameInputSchema,
     phone: z.string().trim().max(32).nullish(),
     email: z.email().max(255).nullish(),
     address: z.string().trim().max(500).nullish(),

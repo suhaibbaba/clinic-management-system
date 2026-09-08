@@ -14,6 +14,7 @@ import { asc, eq, isNull, sql, type SQL } from 'drizzle-orm';
 import { AppointmentsService } from '@api/appointments/appointments.service';
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
+import { toOptionalPersonName } from '@api/common/person-name';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
@@ -267,7 +268,8 @@ export class WaitingListService implements OnModuleInit {
         entry: waitingList,
         patientName: patients.fullName,
         patientPhone: patients.phone,
-        doctorName: users.name,
+        doctorNameAr: users.nameAr,
+        doctorNameEn: users.nameEn,
       })
       .from(waitingList)
       .innerJoin(patients, eq(patients.id, waitingList.patientId))
@@ -292,7 +294,8 @@ interface WaitingListJoinedRow {
   readonly entry: WaitingListRow;
   readonly patientName: string;
   readonly patientPhone: string;
-  readonly doctorName: string | null;
+  readonly doctorNameAr: string | null;
+  readonly doctorNameEn: string | null;
 }
 
 export function toWaitingListEntry(row: WaitingListJoinedRow): WaitingListEntry {
@@ -303,7 +306,7 @@ export function toWaitingListEntry(row: WaitingListJoinedRow): WaitingListEntry 
     patientName: row.patientName,
     patientPhone: row.patientPhone,
     doctorId: row.entry.doctorId,
-    doctorName: row.doctorName,
+    doctorName: toOptionalPersonName(row.doctorNameAr, row.doctorNameEn),
     reason: row.entry.reason,
     priority: row.entry.priority,
     resolvedAt: row.entry.resolvedAt?.toISOString() ?? null,

@@ -77,7 +77,7 @@ describe('Dashboard (e2e)', () => {
           weekday,
           ranges: [{ start: '00:00', end: '23:59' }],
         })),
-        settings: { timezone: TIME_ZONE, holidays: [] },
+        settings: { timezone: TIME_ZONE },
       })
       .where(eq(clinics.id, clinic.id));
 

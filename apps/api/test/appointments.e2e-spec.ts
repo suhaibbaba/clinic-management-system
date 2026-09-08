@@ -9,7 +9,7 @@ import {
 } from '@clinic/shared';
 import { eq } from 'drizzle-orm';
 
-import { appointments, clinics, doctors } from '@api/database/schema';
+import { appointments, clinicClosures, clinics, doctors } from '@api/database/schema';
 import {
   createPatient,
   seedClinicFixtures,
@@ -74,7 +74,7 @@ describe('Appointments (e2e)', () => {
       .update(clinics)
       .set({
         workingHours: [{ weekday: 1, ranges: [{ start: '09:00', end: '17:00' }] }],
-        settings: { timezone: TIME_ZONE, holidays: [] },
+        settings: { timezone: TIME_ZONE },
       })
       .where(eq(clinics.id, clinic.id));
 
@@ -146,11 +146,17 @@ describe('Appointments (e2e)', () => {
       expect((response.json() as { slots: unknown[] }).slots).toEqual([]);
     });
 
-    it('closes a holiday even though the weekday is a working one', async () => {
-      await context.db
-        .update(clinics)
-        .set({ settings: { timezone: TIME_ZONE, holidays: [monday] } })
-        .where(eq(clinics.id, clinic.id));
+    it('closes a dated closure even though the weekday is a working one', async () => {
+      const [closure] = await context.db
+        .insert(clinicClosures)
+        .values({
+          clinicId: clinic.id,
+          startsOn: monday,
+          endsOn: monday,
+          reason: 'عيد الفطر',
+          isAnnual: false,
+        })
+        .returning({ id: clinicClosures.id });
 
       const response = await context.app.inject({
         method: 'GET',
@@ -158,12 +164,14 @@ describe('Appointments (e2e)', () => {
         headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
       });
 
-      expect((response.json() as { closedReason: string }).closedReason).toBe('clinic_closed');
+      const body = response.json() as { closedReason: string; closedNote: string | null };
 
-      await context.db
-        .update(clinics)
-        .set({ settings: { timezone: TIME_ZONE, holidays: [] } })
-        .where(eq(clinics.id, clinic.id));
+      // Distinct from `clinic_closed`, which is the weekly pattern: reception
+      // has to be able to say *why* a normally-open Monday is shut.
+      expect(body.closedReason).toBe('clinic_closure');
+      expect(body.closedNote).toBe('عيد الفطر');
+
+      await context.db.delete(clinicClosures).where(eq(clinicClosures.id, closure?.id ?? ''));
     });
 
     it('is off when the doctor does not work that weekday', async () => {

@@ -64,6 +64,20 @@
       "when": 1788808228318,
       "tag": "0008_lookup_options",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788860071530,
+      "tag": "0009_closures_and_time_off",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788860083529,
+      "tag": "0010_bilingual_names",
+      "breakpoints": true
     }
   ]
 }

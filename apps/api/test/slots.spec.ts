@@ -28,7 +28,8 @@ const afternoon = { start: '14:00', end: '17:00' };
 const base = {
   clinicRanges: [nine],
   doctorRanges: [nine],
-  isHoliday: false,
+  isClosed: false,
+  timeOff: [] as BusyInterval[],
   busy: [] as BusyInterval[],
   durationMinutes: 30,
   stepMinutes: 30,
@@ -136,18 +137,48 @@ describe('computeDaySlots', () => {
   });
 
   it('says the clinic is closed rather than returning an empty day', () => {
-    // Three different answers to "can you fit me in?" that an empty array
-    // would render identically.
+    // Four different answers to "can you fit me in?" that an empty array would
+    // render identically.
     expect(computeDaySlots({ ...base, clinicRanges: [] }).closedReason).toBe('clinic_closed');
-    expect(computeDaySlots({ ...base, isHoliday: true }).closedReason).toBe('clinic_closed');
+    expect(computeDaySlots({ ...base, isClosed: true }).closedReason).toBe('clinic_closure');
     expect(computeDaySlots({ ...base, doctorRanges: [] }).closedReason).toBe('doctor_off');
   });
 
-  it('is closed on a holiday even when the weekday is a working one', () => {
-    const holiday = computeDaySlots({ ...base, isHoliday: true });
+  it('is closed by a dated closure even when the weekday is a working one', () => {
+    const closed = computeDaySlots({ ...base, isClosed: true });
 
-    expect(holiday.closedReason).toBe('clinic_closed');
-    expect(holiday.slots).toEqual([]);
+    // Not `clinic_closed`: that is the weekly pattern, and "we are shut on
+    // Fridays" and "we are shut for Eid" are different sentences on the phone.
+    expect(closed.closedReason).toBe('clinic_closure');
+    expect(closed.slots).toEqual([]);
+  });
+
+  it('subtracts a partial absence and leaves the rest of the day bookable', () => {
+    // 14:00–18:00 away: the morning still books, the afternoon does not.
+    const { slots, closedReason } = computeDaySlots({
+      ...base,
+      timeOff: [{ startMinute: toMinutes('14:00'), endMinute: toMinutes('18:00') }],
+    });
+
+    const at = (time: string) => slots.find((slot) => slot.startMinute === toMinutes(time));
+
+    expect(closedReason).toBeNull();
+    expect(at('09:00')?.available).toBe(true);
+    expect(at('13:30')?.available).toBe(true);
+    expect(at('14:00')?.available).toBe(false);
+    expect(at('16:30')?.available).toBe(false);
+  });
+
+  it('reports a whole day of absence as time off rather than as fully booked', () => {
+    const away = computeDaySlots({
+      ...base,
+      timeOff: [{ startMinute: 0, endMinute: 24 * 60 }],
+    });
+
+    // The clinic is open and another doctor may well have room, which is a
+    // different answer from "the diary is full".
+    expect(away.closedReason).toBe('doctor_time_off');
+    expect(away.slots.every((slot) => !slot.available)).toBe(true);
   });
 
   it('reports a full diary as full, not as closed', () => {

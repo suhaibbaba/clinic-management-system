@@ -6,6 +6,7 @@ import {
   NOTIFICATION_CHANNEL,
   SPECIALTY_CODE,
   USER_ROLE,
+  type PersonName,
   type UserRole,
   type WeeklySchedule,
 } from '@clinic/shared';
@@ -20,6 +21,7 @@ import { seedAppointments } from '@api/database/seed-appointments';
 import { seedBilling } from '@api/database/seed-billing';
 import { seedInventory } from '@api/database/seed-inventory';
 import { seedLabs } from '@api/database/seed-labs';
+import { seedClosures } from '@api/database/seed-closures';
 import { seedPatients } from '@api/database/seed-patients';
 
 /**
@@ -31,7 +33,14 @@ import { seedPatients } from '@api/database/seed-patients';
  *   docker compose exec api pnpm seed
  */
 
-const CLINIC_NAME = 'Al Nour Dental Clinic';
+/**
+ * The seeded practice, in both languages.
+ *
+ * Every staff name below is bilingual too: the interface is Arabic, and a seed
+ * that filled only the English column would make the calendar and the doctors
+ * list look exactly like the bug this replaced.
+ */
+const CLINIC_NAME: PersonName = { ar: 'عيادة النور لطب الأسنان', en: 'Al Nour Dental Clinic' };
 /** The clinic's handle in a public booking URL: /public/booking/al-nour. */
 const CLINIC_SLUG = 'al-nour';
 
@@ -51,7 +60,7 @@ const WEEKDAY_HOURS: WeeklySchedule = [0, 1, 2, 3, 4].map((weekday) => ({
 
 interface SeedAccount {
   readonly role: UserRole;
-  readonly name: string;
+  readonly name: PersonName;
   readonly phone: string;
   readonly email: string;
 }
@@ -59,25 +68,25 @@ interface SeedAccount {
 const ACCOUNTS: readonly SeedAccount[] = [
   {
     role: USER_ROLE.ADMIN,
-    name: 'Clinic Admin',
+    name: { ar: 'مدير العيادة', en: 'Clinic Admin' },
     phone: '+963100000001',
     email: 'admin@clinic.local',
   },
   {
     role: USER_ROLE.DOCTOR,
-    name: 'Dr. Layla Haddad',
+    name: { ar: 'د. ليلى حداد', en: 'Dr. Layla Haddad' },
     phone: '+963100000002',
     email: 'doctor@clinic.local',
   },
   {
     role: USER_ROLE.RECEPTIONIST,
-    name: 'Front Desk',
+    name: { ar: 'الاستقبال', en: 'Front Desk' },
     phone: '+963100000003',
     email: 'reception@clinic.local',
   },
   {
     role: USER_ROLE.TECHNICIAN,
-    name: 'Lab Technician',
+    name: { ar: 'فني المخبر', en: 'Lab Technician' },
     phone: '+963100000004',
     email: 'technician@clinic.local',
   },
@@ -85,7 +94,7 @@ const ACCOUNTS: readonly SeedAccount[] = [
   // the availability endpoint has two schedules to answer for.
   {
     role: USER_ROLE.DOCTOR,
-    name: 'Dr. Samer Nassar',
+    name: { ar: 'د. سامر نصار', en: 'Dr. Samer Nassar' },
     phone: '+963100000005',
     email: 'doctor2@clinic.local',
   },
@@ -107,7 +116,6 @@ const CLINIC_TIME_ZONE = 'Asia/Damascus';
  */
 const CLINIC_SETTINGS = {
   timezone: CLINIC_TIME_ZONE,
-  holidays: [] as string[],
   booking: {
     enabled: true,
     maxDaysAhead: 30,
@@ -162,6 +170,7 @@ async function main(): Promise<void> {
     let seededAppointments = 0;
     let seededLabOrders = 0;
     let seededStockMovements = 0;
+    let seededClosures = 0;
 
     if (doctorAccount && adminAccount) {
       const doctorIds: string[] = [];
@@ -201,10 +210,19 @@ async function main(): Promise<void> {
         timeZone: CLINIC_TIME_ZONE,
       });
       seededAppointments = calendar.appointments;
+
+      // After the appointments: one of the seeded absences deliberately sits
+      // on top of one of them, so the conflict dialog has a real collision.
+      seededClosures = await seedClosures(db, {
+        clinicId: clinic.id,
+        doctorIds,
+        actorId: adminAccount.id,
+        timeZone: CLINIC_TIME_ZONE,
+      });
     }
 
     report(
-      clinic.name,
+      CLINIC_NAME.en,
       created,
       env.SEED_PASSWORD,
       seededPatients,
@@ -212,17 +230,21 @@ async function main(): Promise<void> {
       seededAppointments,
       seededLabOrders,
       seededStockMovements,
+      seededClosures,
     );
   } finally {
     await client.end();
   }
 }
 
-async function upsertClinic(db: ReturnType<typeof drizzle>): Promise<{ id: string; name: string }> {
+async function upsertClinic(db: ReturnType<typeof drizzle>): Promise<{ id: string }> {
   const [existing] = await db
-    .select({ id: clinics.id, name: clinics.name })
+    .select({ id: clinics.id })
     .from(clinics)
-    .where(and(eq(clinics.name, CLINIC_NAME), isNull(clinics.deletedAt)))
+    // Matched on the slug rather than the name: the slug is the clinic's
+    // identity in a URL, and it is the one of the two that cannot be spelled
+    // two ways.
+    .where(and(eq(clinics.slug, CLINIC_SLUG), isNull(clinics.deletedAt)))
     .limit(1);
 
   if (existing) {
@@ -232,7 +254,8 @@ async function upsertClinic(db: ReturnType<typeof drizzle>): Promise<{ id: strin
   const [row] = await db
     .insert(clinics)
     .values({
-      name: CLINIC_NAME,
+      nameAr: CLINIC_NAME.ar,
+      nameEn: CLINIC_NAME.en,
       slug: CLINIC_SLUG,
       phone: '+963110000000',
       email: 'info@clinic.local',
@@ -241,7 +264,7 @@ async function upsertClinic(db: ReturnType<typeof drizzle>): Promise<{ id: strin
       workingHours: WEEKDAY_HOURS,
       settings: CLINIC_SETTINGS,
     })
-    .returning({ id: clinics.id, name: clinics.name });
+    .returning({ id: clinics.id });
 
   if (!row) {
     throw new Error('Failed to create the seed clinic');
@@ -312,7 +335,8 @@ async function upsertUser(
     .insert(users)
     .values({
       clinicId,
-      name: account.name,
+      nameAr: account.name.ar,
+      nameEn: account.name.en,
       phone: account.phone,
       email: account.email,
       passwordHash,
@@ -372,6 +396,7 @@ function report(
   seededAppointments: number,
   seededLabOrders: number,
   seededStockMovements: number,
+  seededClosures: number,
 ): void {
   const lines = [
     '',
@@ -400,6 +425,9 @@ function report(
     seededStockMovements > 0
       ? `Stocked 15 items from three suppliers over ${seededStockMovements} movements — gloves are below their minimum and a batch of anaesthetic is nearly out of date.`
       : 'Inventory already present — left untouched.',
+    seededClosures > 0
+      ? 'Closed the clinic for a two-day holiday and booked two absences for the first doctor — one of them overlaps a booked appointment, so the conflict dialog has something real to show.'
+      : 'Closures already present — left untouched.',
     '',
     'Development credentials only — change SEED_PASSWORD before any shared environment.',
     '',

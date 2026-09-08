@@ -103,7 +103,6 @@ describe('Public booking (e2e)', () => {
 
   const settings = (overrides: Record<string, unknown> = {}) => ({
     timezone: TIME_ZONE,
-    holidays: [] as string[],
     booking: { ...bookingSettings, ...overrides },
     notifications: {
       enabled: true,

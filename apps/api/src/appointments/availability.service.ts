@@ -9,15 +9,17 @@ import {
   minutesFromLocalMidnight,
   type Availability,
   type AvailabilityQuery,
+  type ClinicClosure,
+  type DoctorTimeOff,
   type Slot,
   type TimeRange,
   type WeeklySchedule,
 } from '@clinic/shared';
-import { and, eq, gte, lt, ne, notInArray } from 'drizzle-orm';
+import { and, eq, gt, gte, lt, lte, ne, notInArray, or, sql } from 'drizzle-orm';
 
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { DATABASE, type Database } from '@api/database/database.module';
-import { appointments, clinics, doctors } from '@api/database/schema';
+import { appointments, clinicClosures, clinics, doctors, doctorTimeOff } from '@api/database/schema';
 import { computeDaySlots, toTimeOfDay, type BusyInterval } from '@api/appointments/slots';
 
 /** How far apart slot starts are offered when a clinic has not said otherwise. */
@@ -36,7 +38,12 @@ export interface DayAvailabilityContext {
   readonly timeZone: string;
   readonly clinicRanges: readonly TimeRange[];
   readonly doctorRanges: readonly TimeRange[];
-  readonly isHoliday: boolean;
+  /** The dated closure covering this day, if one does. */
+  readonly closure: ClinicClosure | null;
+  /** The doctor's absences that touch this day, clipped to it. */
+  readonly timeOff: readonly BusyInterval[];
+  /** The first absence's reason, for the "why is this shut?" line. */
+  readonly timeOffReason: string | null;
   readonly busy: readonly BusyInterval[];
   readonly durationMinutes: number;
 }
@@ -47,9 +54,24 @@ const rangesFor = (schedule: WeeklySchedule, weekday: number): readonly TimeRang
 /**
  * Free slots for one doctor on one day.
  *
- * The answer is computed from the doctor's weekly schedule, the clinic's
- * opening hours and its holidays, minus the appointments already booked — and
- * is never stored (CLAUDE.md architecture decision 6).
+ * **This is the only place that decides whether a minute is bookable.** The
+ * internal calendar, the booking form's slot picker and the anonymous public
+ * booking page all arrive here, so a day the calendar shades is a day booking
+ * refuses, without either of them holding a second copy of the rule.
+ *
+ * Four things are subtracted from the day, in this order, and the order is
+ * what the answer's `closedReason` reports:
+ *
+ *  1. **Clinic closures** (`clinic_closures`) — a dated whole-day shutdown.
+ *     It outranks everything, including a weekday the clinic normally opens.
+ *  2. **Clinic working hours** for that weekday. No ranges means closed.
+ *  3. **The doctor's weekly schedule**, intersected with the clinic's: a
+ *     doctor who starts at 08:00 in a clinic that opens at 09:00 starts at
+ *     09:00, and the front door settles it.
+ *  4. **Doctor time off** (`doctor_time_off`), whole days and partial hours
+ *     alike, plus the appointments already booked.
+ *
+ * The answer is never stored (CLAUDE.md architecture decision 6).
  *
  * Every method takes a **clinic id**, not a caller. Reading availability is
  * open to every role — reception books, a doctor checks their own day, a
@@ -71,7 +93,8 @@ export class AvailabilityService {
     const computation = computeDaySlots({
       clinicRanges: context.clinicRanges,
       doctorRanges: context.doctorRanges,
-      isHoliday: context.isHoliday,
+      isClosed: context.closure !== null,
+      timeOff: context.timeOff,
       busy: context.busy,
       durationMinutes: context.durationMinutes,
       stepMinutes: DEFAULT_STEP_MINUTES,
@@ -91,6 +114,7 @@ export class AvailabilityService {
       date: query.date,
       durationMinutes: context.durationMinutes,
       closedReason: computation.closedReason,
+      closedNote: this.closedNote(computation.closedReason, context),
       slots,
     };
   }
@@ -131,14 +155,99 @@ export class AvailabilityService {
     const timeZone = settings.timezone || DEFAULT_TIME_ZONE;
     const weekday = localWeekday(query.date, timeZone);
 
+    const [closure, absences] = await Promise.all([
+      this.closureOn(clinicId, query.date),
+      this.timeOffOn(clinicId, query.doctorId, query.date, timeZone),
+    ]);
+
     return {
       timeZone,
       clinicRanges: rangesFor(clinic.workingHours, weekday),
       doctorRanges: rangesFor(doctor.weeklySchedule, weekday),
-      isHoliday: settings.holidays.includes(query.date),
+      closure,
+      timeOff: absences.map((row) => ({
+        startMinute: minutesFromLocalMidnight(row.startsAt, query.date, timeZone),
+        endMinute: minutesFromLocalMidnight(row.endsAt, query.date, timeZone),
+      })),
+      timeOffReason: absences[0]?.reason ?? null,
       busy: await this.busyIntervals(clinicId, query, timeZone),
       durationMinutes: query.durationMinutes ?? doctor.defaultDuration,
     };
+  }
+
+  /**
+   * The closure covering one local date, if any.
+   *
+   * Both ends inclusive — a closure names the last day the clinic is shut, not
+   * the day it reopens, because that is how a notice on the door reads and
+   * getting it wrong by a day is the mistake nobody notices until someone
+   * turns up.
+   *
+   * An annual closure matches on day and month whatever the year, which is why
+   * the comparison is on `to_char(...)` rather than on the dates themselves.
+   * Only single-year ranges may be annual (the service refuses the rest), so
+   * there is no year-crossing case to reason about here.
+   */
+  async closureOn(clinicId: string, isoDate: string): Promise<ClinicClosure | null> {
+    const dayMonth = isoDate.slice(5);
+
+    const [row] = await this.db
+      .select()
+      .from(clinicClosures)
+      .where(
+        this.scope.where(
+          clinicClosures,
+          clinicId,
+          or(
+            and(lte(clinicClosures.startsOn, isoDate), gte(clinicClosures.endsOn, isoDate)),
+            and(
+              eq(clinicClosures.isAnnual, true),
+              lte(sql`to_char(${clinicClosures.startsOn}, 'MM-DD')`, dayMonth),
+              gte(sql`to_char(${clinicClosures.endsOn}, 'MM-DD')`, dayMonth),
+            ),
+          ),
+        ),
+      )
+      .limit(1);
+
+    return row ? toClinicClosure(row) : null;
+  }
+
+  /**
+   * One doctor's absences overlapping a local day.
+   *
+   * The window is the day itself, and the rows come back unclipped: the caller
+   * converts them to minutes from that day's midnight, which lands an absence
+   * that started yesterday evening on a negative start and one running into
+   * tomorrow past 1440. The slot arithmetic compares intervals, so both are
+   * correct without a clamp — and clamping here would lose the fact that the
+   * absence continues.
+   */
+  async timeOffOn(
+    clinicId: string,
+    doctorId: string,
+    isoDate: string,
+    timeZone: string,
+  ): Promise<(typeof doctorTimeOff.$inferSelect)[]> {
+    const dayStart = instantFromLocal(isoDate, 0, timeZone);
+    const dayEnd = instantFromLocal(addDays(isoDate, 1), 0, timeZone);
+
+    return this.db
+      .select()
+      .from(doctorTimeOff)
+      .where(
+        this.scope.where(
+          doctorTimeOff,
+          clinicId,
+          and(
+            eq(doctorTimeOff.doctorId, doctorId),
+            // Half-open overlap, the same `[)` the appointments use.
+            lt(doctorTimeOff.startsAt, dayEnd),
+            gt(doctorTimeOff.endsAt, dayStart),
+          ),
+        ),
+      )
+      .orderBy(doctorTimeOff.startsAt);
   }
 
   /**
@@ -188,6 +297,18 @@ export class AvailabilityService {
     });
   }
 
+  /** The clinic's own words for why a day is shut, when they exist. */
+  private closedNote(
+    reason: Availability['closedReason'],
+    context: DayAvailabilityContext,
+  ): string | null {
+    if (reason === 'clinic_closure') {
+      return context.closure?.reason ?? null;
+    }
+
+    return reason === 'doctor_time_off' ? context.timeOffReason : null;
+  }
+
   /**
    * Where "already past" falls on that date, or undefined for a future one.
    *
@@ -210,4 +331,31 @@ export class AvailabilityService {
 
     return minutes;
   }
+}
+
+/** Row → wire shape. Shared with the closures service, which is where it lives. */
+export function toClinicClosure(row: typeof clinicClosures.$inferSelect): ClinicClosure {
+  return {
+    id: row.id,
+    clinicId: row.clinicId,
+    startsOn: row.startsOn,
+    endsOn: row.endsOn,
+    reason: row.reason,
+    isAnnual: row.isAnnual,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+export function toDoctorTimeOff(row: typeof doctorTimeOff.$inferSelect): DoctorTimeOff {
+  return {
+    id: row.id,
+    clinicId: row.clinicId,
+    doctorId: row.doctorId,
+    startsAt: row.startsAt.toISOString(),
+    endsAt: row.endsAt.toISOString(),
+    reason: row.reason,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
 }

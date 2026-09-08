@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { isFdiTooth } from '@shared/constants/dental';
 import { LAB_ORDER_STATUSES } from '@shared/enums';
 import { isoDateSchema } from '@shared/schemas/appointments';
+import { personNameSchema } from '@shared/schemas/person-name';
 import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
 import { moneySchema, signedMoneySchema } from '@shared/schemas/money';
 import { lookupCodeSchema } from '@shared/schemas/lookups';
@@ -148,7 +149,7 @@ export type LabOrder = z.infer<typeof labOrderSchema>;
 export const labOrderRowSchema = labOrderSchema.extend({
   patientName: z.string(),
   patientFileNumber: z.string(),
-  doctorName: z.string(),
+  doctorName: personNameSchema,
   labName: z.string(),
   workTypeName: z.string().nullable(),
   /** Past `expectedAt` and still out at the lab. */

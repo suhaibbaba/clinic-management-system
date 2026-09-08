@@ -12,6 +12,7 @@ import {
 } from '@clinic/shared';
 import { and, eq, gt, isNull, lt } from 'drizzle-orm';
 
+import { notificationName } from '@api/common/person-name';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { appointments, clinics, doctors, patients, users } from '@api/database/schema';
 import { NotificationsService } from '@api/notifications/notifications.service';
@@ -87,8 +88,10 @@ export class RemindersScheduler {
           clinicId: appointments.clinicId,
           startsAt: appointments.startsAt,
           phone: patients.phone,
-          doctorName: users.name,
-          clinicName: clinics.name,
+          doctorNameAr: users.nameAr,
+          doctorNameEn: users.nameEn,
+          clinicNameAr: clinics.nameAr,
+          clinicNameEn: clinics.nameEn,
           settings: clinics.settings,
         })
         .from(appointments)
@@ -127,8 +130,8 @@ export class RemindersScheduler {
           template: reminder.template,
           appointmentId: row.id,
           vars: {
-            clinic: row.clinicName,
-            doctor: row.doctorName,
+            clinic: notificationName({ ar: row.clinicNameAr, en: row.clinicNameEn }),
+            doctor: notificationName({ ar: row.doctorNameAr, en: row.doctorNameEn }),
             date: localDate(row.startsAt, zone),
             time: timeIn(zone, row.startsAt),
           },

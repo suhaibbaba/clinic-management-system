@@ -40,7 +40,8 @@ const doctorColumns = {
   defaultAppointmentDurationMinutes: doctors.defaultAppointmentDurationMinutes,
   createdAt: doctors.createdAt,
   updatedAt: doctors.updatedAt,
-  userName: users.name,
+  userNameAr: users.nameAr,
+  userNameEn: users.nameEn,
   userPhone: users.phone,
   userEmail: users.email,
   userIsActive: users.isActive,
@@ -59,7 +60,8 @@ interface DoctorJoinedRow {
   defaultAppointmentDurationMinutes: number;
   createdAt: Date;
   updatedAt: Date;
-  userName: string;
+  userNameAr: string;
+  userNameEn: string;
   userPhone: string;
   userEmail: string | null;
   userIsActive: boolean;
@@ -107,7 +109,13 @@ export class DoctorsService implements OnModuleInit {
     }
     if (query.search) {
       const pattern = `%${query.search}%`;
-      filters.push(or(ilike(users.name, pattern), ilike(users.phone, pattern)));
+      filters.push(
+        or(
+          ilike(users.nameAr, pattern),
+          ilike(users.nameEn, pattern),
+          ilike(users.phone, pattern),
+        ),
+      );
     }
 
     const where = this.scope.where(doctors, actor.clinicId, ...filters);
@@ -291,7 +299,7 @@ function toDoctor(row: DoctorJoinedRow): Doctor {
     updatedAt: row.updatedAt.toISOString(),
     user: {
       id: row.userId,
-      name: row.userName,
+      name: { ar: row.userNameAr, en: row.userNameEn },
       phone: row.userPhone,
       email: row.userEmail,
       isActive: row.userIsActive,

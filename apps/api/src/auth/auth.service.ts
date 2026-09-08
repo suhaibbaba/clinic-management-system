@@ -192,7 +192,7 @@ function toProfile(user: UserRow): AuthenticatedUserProfile {
   return {
     id: user.id,
     clinicId: user.clinicId,
-    name: user.name,
+    name: { ar: user.nameAr, en: user.nameEn },
     phone: user.phone,
     email: user.email,
     role: user.role,

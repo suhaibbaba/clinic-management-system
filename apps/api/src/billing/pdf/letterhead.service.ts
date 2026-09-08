@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { documentSettings } from '@clinic/shared';
+import { documentSettings, personName } from '@clinic/shared';
 import { eq } from 'drizzle-orm';
 
 import { BRAND_MARK, MARK_VIEWBOX } from '@api/billing/pdf/brand-mark';
@@ -10,6 +10,14 @@ import { clinics } from '@api/database/schema';
 import { StorageService, type FetchedObject } from '@api/storage/storage.service';
 
 export interface Letterhead {
+  /**
+   * The clinic's name in **its own** document language, already resolved.
+   *
+   * Resolved here rather than at each `pdf.text` call so the four document
+   * services cannot disagree about which spelling heads a sheet — and so the
+   * fallback (a clinic that has filled in only one of the two) is written
+   * once, in `personName`.
+   */
   readonly name: string;
   readonly contact: string;
   readonly currency: string;
@@ -42,7 +50,8 @@ export class LetterheadService {
   async load(clinicId: string): Promise<Letterhead> {
     const [row] = await this.db
       .select({
-        name: clinics.name,
+        nameAr: clinics.nameAr,
+        nameEn: clinics.nameEn,
         phone: clinics.phone,
         address: clinics.address,
         currency: clinics.currency,
@@ -58,11 +67,13 @@ export class LetterheadService {
       throw new NotFoundException('Resource not found');
     }
 
+    const language = documentSettings(row.settings).language;
+
     return {
-      name: row.name,
+      name: personName({ ar: row.nameAr, en: row.nameEn }, language),
       contact: [row.phone, row.address].filter(Boolean).join(' — '),
       currency: row.currency,
-      language: documentSettings(row.settings).language,
+      language,
       logo: row.logoKey ? await this.storage.getObject(row.logoKey) : null,
     };
   }

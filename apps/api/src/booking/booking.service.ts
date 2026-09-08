@@ -22,6 +22,7 @@ import {
   type BookingSettings,
   type CreateBookingInput,
   type ManagedBooking,
+  type PersonName,
   type PublicClinic,
   type PublicDoctor,
   type PublicSlots,
@@ -33,6 +34,7 @@ import { createHash, randomInt } from 'node:crypto';
 import { AvailabilityService } from '@api/appointments/availability.service';
 import { BookingTokenService } from '@api/booking/booking-token.service';
 import type { Env } from '@api/config/env.schema';
+import { notificationName, toPersonName } from '@api/common/person-name';
 import { DATABASE, type Database } from '@api/database/database.module';
 import {
   appointments,
@@ -72,7 +74,7 @@ const normalisePhone = (phone: string): string => phone.replaceAll(/[^\d]/g, '')
 
 interface ClinicContext {
   readonly id: string;
-  readonly name: string;
+  readonly name: PersonName;
   readonly phone: string | null;
   readonly timeZone: string;
   readonly booking: BookingSettings;
@@ -127,7 +129,12 @@ export class BookingService {
     const clinic = await this.requireBookingEnabled(slug);
 
     const rows = await this.db
-      .select({ id: doctors.id, name: users.name, specialty: specialties.name })
+      .select({
+        id: doctors.id,
+        nameAr: users.nameAr,
+        nameEn: users.nameEn,
+        specialty: specialties.name,
+      })
       .from(doctors)
       .innerJoin(users, eq(users.id, doctors.userId))
       .innerJoin(specialties, eq(specialties.id, doctors.specialtyId))
@@ -139,9 +146,15 @@ export class BookingService {
           isNull(users.deletedAt),
         ),
       )
-      .orderBy(asc(users.name));
+      // Ordered by the Arabic spelling: the booking page is Arabic-only, so
+      // that is the order a patient actually reads down the list in.
+      .orderBy(asc(users.nameAr));
 
-    return rows;
+    return rows.map((row) => ({
+      id: row.id,
+      name: toPersonName(row.nameAr, row.nameEn),
+      specialty: row.specialty,
+    }));
   }
 
   /**
@@ -296,8 +309,8 @@ export class BookingService {
       template: NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED,
       appointmentId,
       vars: {
-        clinic: clinic.name,
-        doctor: booking.doctorName,
+        clinic: notificationName(clinic.name),
+        doctor: notificationName(booking.doctorName),
         date: localDate(new Date(booking.startsAt), clinic.timeZone),
         time: timeIn(clinic.timeZone, new Date(booking.startsAt)),
         link: this.manageLink(token),
@@ -340,7 +353,7 @@ export class BookingService {
       template: NOTIFICATION_TEMPLATE.BOOKING_CANCELLED,
       appointmentId,
       vars: {
-        clinic: clinic.name,
+        clinic: notificationName(clinic.name),
         date: localDate(existing.startsAt, clinic.timeZone),
         time: timeIn(clinic.timeZone, existing.startsAt),
       },
@@ -407,7 +420,7 @@ export class BookingService {
       template: NOTIFICATION_TEMPLATE.BOOKING_OTP,
       appointmentId,
       vars: {
-        clinic: clinic.name,
+        clinic: notificationName(clinic.name),
         code,
         minutes: String(OTP_TTL_SECONDS / 60),
       },
@@ -553,7 +566,8 @@ export class BookingService {
     const [row] = await this.db
       .select({
         id: clinics.id,
-        name: clinics.name,
+        nameAr: clinics.nameAr,
+        nameEn: clinics.nameEn,
         phone: clinics.phone,
         settings: clinics.settings,
       })
@@ -567,7 +581,7 @@ export class BookingService {
 
     return {
       id: row.id,
-      name: row.name,
+      name: toPersonName(row.nameAr, row.nameEn),
       phone: row.phone,
       timeZone: clinicScheduleSettings(row.settings).timezone || DEFAULT_TIME_ZONE,
       booking: bookingSettings(row.settings),
@@ -677,7 +691,8 @@ export class BookingService {
         status: appointments.status,
         startsAt: appointments.startsAt,
         durationMinutes: appointments.durationMinutes,
-        doctorName: users.name,
+        doctorNameAr: users.nameAr,
+        doctorNameEn: users.nameEn,
       })
       .from(appointments)
       .innerJoin(doctors, eq(doctors.id, appointments.doctorId))
@@ -699,7 +714,7 @@ export class BookingService {
       status: row.status,
       startsAt: row.startsAt.toISOString(),
       durationMinutes: row.durationMinutes,
-      doctorName: row.doctorName,
+      doctorName: toPersonName(row.doctorNameAr, row.doctorNameEn),
       clinicName: clinic.name,
       clinicPhone: clinic.phone,
       canModify:

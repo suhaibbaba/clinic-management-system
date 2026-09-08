@@ -75,7 +75,7 @@ export class ClinicsService implements OnModuleInit {
    */
   async branding(): Promise<ClinicBranding> {
     const rows = await this.db
-      .select({ name: clinics.name, logoKey: clinics.logoKey })
+      .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, logoKey: clinics.logoKey })
       .from(clinics)
       .where(isNull(clinics.deletedAt))
       .limit(2);
@@ -86,7 +86,10 @@ export class ClinicsService implements OnModuleInit {
       return { name: null, logoUrl: null };
     }
 
-    return { name: only.name, logoUrl: await this.signLogo(only.logoKey) };
+    return {
+      name: { ar: only.nameAr, en: only.nameEn },
+      logoUrl: await this.signLogo(only.logoKey),
+    };
   }
 
   /**
@@ -177,7 +180,7 @@ export class ClinicsService implements OnModuleInit {
     const [row] = await this.db
       .update(clinics)
       .set({
-        ...(input.name !== undefined && { name: input.name }),
+        ...(input.name !== undefined && { nameAr: input.name.ar, nameEn: input.name.en }),
         ...(input.phone !== undefined && { phone: input.phone ?? null }),
         ...(input.email !== undefined && { email: input.email ?? null }),
         ...(input.address !== undefined && { address: input.address ?? null }),
@@ -249,7 +252,7 @@ export class ClinicsService implements OnModuleInit {
 function toClinic(row: ClinicRow): Omit<Clinic, 'logoUrl'> {
   return {
     id: row.id,
-    name: row.name,
+    name: { ar: row.nameAr, en: row.nameEn },
     logoKey: row.logoKey,
     phone: row.phone,
     email: row.email,

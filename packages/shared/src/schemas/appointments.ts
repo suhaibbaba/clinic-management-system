@@ -6,7 +6,9 @@ import {
   WAITING_LIST_PRIORITIES,
   WAITING_LIST_PRIORITY,
 } from '@shared/enums';
+import { clinicClosureSchema, doctorTimeOffSchema } from '@shared/schemas/closures';
 import { paginationQuerySchema, timeOfDaySchema, uuidSchema } from '@shared/schemas/common';
+import { personNameSchema } from '@shared/schemas/person-name';
 import { lookupCodeSchema } from '@shared/schemas/lookups';
 
 /** `YYYY-MM-DD`, the wire format for a calendar day everywhere in the app. */
@@ -61,7 +63,7 @@ export const calendarAppointmentSchema = appointmentSchema.extend({
   patientName: z.string(),
   patientPhone: z.string(),
   patientFileNumber: z.string(),
-  doctorName: z.string(),
+  doctorName: personNameSchema,
   /**
    * The patient record was created by the public booking page, not by anyone
    * at the desk — nobody has seen their ID yet.
@@ -150,6 +152,21 @@ export const calendarFeedSchema = z.object({
   from: isoDateSchema,
   to: isoDateSchema,
   appointments: z.array(calendarAppointmentSchema),
+  /**
+   * Everything in the range that makes a slot unbookable but is not an
+   * appointment.
+   *
+   * In the same response rather than fetched alongside it, because a calendar
+   * that draws its blocks before it knows which days are shut renders a normal
+   * Tuesday for a moment and then shades it — and reception books into the
+   * flicker. One request, one paint.
+   *
+   * Days are expanded to the range the caller asked for, so the grid never has
+   * to intersect a closure that started three weeks ago with the week it is
+   * drawing.
+   */
+  closures: z.array(clinicClosureSchema),
+  timeOff: z.array(doctorTimeOffSchema),
 });
 export type CalendarFeed = z.infer<typeof calendarFeedSchema>;
 
@@ -187,9 +204,29 @@ export const availabilitySchema = z.object({
   /**
    * Why there are no slots, when there are none. A closed day and a fully
    * booked one look identical in an empty array, and they are different
-   * answers to "can you fit me in?".
+   * answers to "can you fit me in?" — and so are a clinic closure, which is
+   * dated and applies to everybody, and one doctor being away, where another
+   * doctor may still have room.
    */
-  closedReason: z.enum(['clinic_closed', 'doctor_off', 'fully_booked', 'day_over']).nullable(),
+  closedReason: z
+    .enum([
+      'clinic_closed',
+      'clinic_closure',
+      'doctor_off',
+      'doctor_time_off',
+      'fully_booked',
+      'day_over',
+    ])
+    .nullable(),
+  /**
+   * The reason text of whatever shut the day, when something did.
+   *
+   * The closure's own words — "عيد الفطر", "conference" — rather than a
+   * translated category: a clinic writes the reason it wants patients and
+   * reception to read, and inventing a second one here would mean the calendar
+   * and the closure disagreed about why the door is locked.
+   */
+  closedNote: z.string().nullable(),
   slots: z.array(slotSchema),
 });
 export type Availability = z.infer<typeof availabilitySchema>;
@@ -206,7 +243,7 @@ export const waitingListEntrySchema = z.object({
   patientPhone: z.string(),
   /** Null when the patient will take any doctor. */
   doctorId: uuidSchema.nullable(),
-  doctorName: z.string().nullable(),
+  doctorName: personNameSchema.nullable(),
   reason: z.string().nullable(),
   priority: z.enum(WAITING_LIST_PRIORITIES),
   /** Set when the entry becomes an appointment, or is dismissed. */

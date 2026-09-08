@@ -27,15 +27,29 @@ import {
   type UpdateAppointmentInput,
   type Visit,
 } from '@clinic/shared';
-import { and, asc, eq, gte, lt, sql, type SQL } from 'drizzle-orm';
+import { and, asc, eq, gt, gte, lt, lte, sql, type SQL } from 'drizzle-orm';
 
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
 import { AppointmentAccessService } from '@api/appointments/appointment-access.service';
+import {
+  toClinicClosure,
+  toDoctorTimeOff,
+} from '@api/appointments/availability.service';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
+import { toPersonName } from '@api/common/person-name';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
-import { appointments, clinics, doctors, patients, users, visits } from '@api/database/schema';
+import {
+  appointments,
+  clinicClosures,
+  clinics,
+  doctors,
+  doctorTimeOff,
+  patients,
+  users,
+  visits,
+} from '@api/database/schema';
 import { PatientAccessService } from '@api/patients/patient-access.service';
 import { toVisit } from '@api/patients/visits.service';
 import { LookupsService } from '@api/lookups/lookups.service';
@@ -189,22 +203,65 @@ export class AppointmentsService implements OnModuleInit {
     const timeZone = await this.timeZone(actor.clinicId);
     const from = query.range === 'week' ? startOfWeek(query.date) : query.date;
     const to = addDays(from, query.range === 'week' ? 7 : 1);
+    const fromInstant = instantFromLocal(from, 0, timeZone);
+    const toInstant = instantFromLocal(to, 0, timeZone);
 
-    const rows = await this.calendarSelect()
-      .where(
-        this.scope.where(
-          appointments,
-          actor.clinicId,
-          and(
-            gte(appointments.startsAt, instantFromLocal(from, 0, timeZone)),
-            lt(appointments.startsAt, instantFromLocal(to, 0, timeZone)),
-            query.doctorId ? eq(appointments.doctorId, query.doctorId) : undefined,
+    // One round trip for everything the grid paints. Fetching the closures
+    // after the blocks would draw a normal Tuesday and shade it a moment
+    // later, and reception books into the flicker.
+    const [rows, closures, absences] = await Promise.all([
+      this.calendarSelect()
+        .where(
+          this.scope.where(
+            appointments,
+            actor.clinicId,
+            and(
+              gte(appointments.startsAt, fromInstant),
+              lt(appointments.startsAt, toInstant),
+              query.doctorId ? eq(appointments.doctorId, query.doctorId) : undefined,
+            ),
           ),
-        ),
-      )
-      .orderBy(asc(appointments.startsAt));
+        )
+        .orderBy(asc(appointments.startsAt)),
 
-    return { from, to, appointments: rows.map(toCalendarAppointment) };
+      this.db
+        .select()
+        .from(clinicClosures)
+        .where(
+          this.scope.where(
+            clinicClosures,
+            actor.clinicId,
+            // `to` is exclusive as a day boundary, so the last drawn day is
+            // the one before it.
+            and(lte(clinicClosures.startsOn, addDays(to, -1)), gte(clinicClosures.endsOn, from)),
+          ),
+        )
+        .orderBy(asc(clinicClosures.startsOn)),
+
+      this.db
+        .select()
+        .from(doctorTimeOff)
+        .where(
+          this.scope.where(
+            doctorTimeOff,
+            actor.clinicId,
+            and(
+              query.doctorId ? eq(doctorTimeOff.doctorId, query.doctorId) : undefined,
+              lt(doctorTimeOff.startsAt, toInstant),
+              gt(doctorTimeOff.endsAt, fromInstant),
+            ),
+          ),
+        )
+        .orderBy(asc(doctorTimeOff.startsAt)),
+    ]);
+
+    return {
+      from,
+      to,
+      appointments: rows.map(toCalendarAppointment),
+      closures: closures.map(toClinicClosure),
+      timeOff: absences.map(toDoctorTimeOff),
+    };
   }
 
   /* ---------------------------------------------------------------------- */
@@ -454,7 +511,8 @@ export class AppointmentsService implements OnModuleInit {
         patientFileNumber: patients.fileNumber,
         // A patient nobody on staff created came in through public booking.
         patientUnverified: sql<boolean>`${patients.createdBy} is null`,
-        doctorName: users.name,
+        doctorNameAr: users.nameAr,
+        doctorNameEn: users.nameEn,
       })
       .from(appointments)
       .innerJoin(patients, eq(patients.id, appointments.patientId))
@@ -534,7 +592,8 @@ interface CalendarRow {
   readonly patientPhone: string;
   readonly patientFileNumber: string;
   readonly patientUnverified: boolean;
-  readonly doctorName: string;
+  readonly doctorNameAr: string;
+  readonly doctorNameEn: string;
 }
 
 export function toCalendarAppointment(row: CalendarRow): CalendarAppointment {
@@ -544,6 +603,6 @@ export function toCalendarAppointment(row: CalendarRow): CalendarAppointment {
     patientPhone: row.patientPhone,
     patientFileNumber: row.patientFileNumber,
     patientUnverified: row.patientUnverified,
-    doctorName: row.doctorName,
+    doctorName: toPersonName(row.doctorNameAr, row.doctorNameEn),
   };
 }
