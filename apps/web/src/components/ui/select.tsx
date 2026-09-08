@@ -1,118 +1,71 @@
-import { forwardRef, type ChangeEvent, type SelectHTMLAttributes } from 'react';
-import { useTranslation } from 'react-i18next';
+import * as SelectPrimitive from '@radix-ui/react-select';
+import type { ChangeEvent, JSX, SelectHTMLAttributes } from 'react';
 
+import { useDialogLayer } from '@web/components/ui/dialog-layer';
 import { Icon } from '@web/components/ui/icon';
-import { usePickerOpen } from '@web/components/ui/picker-open';
-import { PopoverSheet } from '@web/components/ui/popover-sheet';
 import { cn } from '@web/lib/cn';
-import { useIsMobile } from '@web/lib/use-media-query';
+import { documentDirection } from '@web/lib/direction';
 
 export interface SelectOption {
   readonly value: string;
   readonly label: string;
 }
 
-export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectProps extends Omit<
+  SelectHTMLAttributes<HTMLSelectElement>,
+  'onChange' | 'value'
+> {
   options: readonly SelectOption[];
-  /** Rendered as the first entry when the field has no value yet. */
+  /** Shown while nothing is chosen, and offered as the way back to nothing. */
   placeholder?: string | undefined;
+  value?: string | undefined;
+  /**
+   * The native signature, kept deliberately.
+   *
+   * Radix's own is `onValueChange(value)`, and adopting it would have meant
+   * touching thirty call sites to say the same thing a different way. What a
+   * caller wants off this control is `event.target.value`, which is what it
+   * wanted before.
+   */
+  onChange?: ((event: ChangeEvent<HTMLSelectElement>) => void) | undefined;
+  /** `react-hook-form`'s, to mark the field touched. */
+  onBlur?: (() => void) | undefined;
   hasError?: boolean | undefined;
 }
 
 /**
- * The field's own look, shared by both shapes below so they are the same
- * control to look at — one row of fields must not have one member of it
- * drawn a step differently because of what device it is on.
+ * Radix cannot hold an empty string, and this app's "nothing chosen" is one.
+ *
+ * `<Select.Item value="">` throws by design — the empty string is reserved for
+ * clearing the selection. So the placeholder row travels under a sentinel and
+ * is turned back into `''` on the way out, which keeps `''` as the value every
+ * caller, every query and every query string already uses.
  */
-const FIELD = [
-  'block h-11 w-full cursor-pointer appearance-none rounded-control border bg-surface lg:h-10',
-  'ps-3.5 pe-10 text-start text-field text-ink',
-  'transition-[border-color,box-shadow,background-color] duration-150',
-  'focus:border-primary-500',
-  'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-subtle',
-];
-
-/** Our chevron, at the inline end, never in the way of a tap. */
-function Chevron(): React.JSX.Element {
-  return (
-    <span className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3 text-ink-subtle">
-      <Icon name="chevron-down" />
-    </span>
-  );
-}
+const NONE = '__none__';
 
 /**
  * A choice of one, from a list.
  *
- * **On a pointer device this is a native `<select>`**, and for the reasons it
- * always was: it mirrors correctly in RTL, is keyboard accessible with no code
- * of ours, and stays trivially testable. The platform's own arrow is removed
- * (`appearance-none`) and replaced, because it is a different glyph on every
- * OS, always sits on the left, and cannot take the app's ink colour.
+ * **Not a native `<select>`.** It was, and on a clinic's iPhone tapping one did
+ * nothing at all, on every screen, in Safari — the field present, enabled,
+ * uncovered and populated, and the platform picker simply never arriving. A
+ * native picker is not part of the page, so that failure can be neither
+ * reproduced nor regression-tested anywhere but on the device. This is Radix's
+ * `Select`, the primitive shadcn/ui builds the same control from: one control,
+ * the same on every platform, drawn by us out of ordinary DOM that a test at
+ * 390px can drive.
  *
- * **On a narrow screen it is the app's own sheet instead.** Reported from a
- * clinic's iPhone: tapping a dropdown did nothing at all, on every screen, in
- * Safari — the field is there, enabled, uncovered and populated, and the
- * platform picker simply never came up. That failure cannot be reproduced or
- * regression-tested anywhere but on the device, because a native picker is not
- * part of the page; so rather than guess at which quirk of it we had tripped,
- * the phone stops depending on it. What opens is the same bottom sheet the
- * date and time pickers already open there (`PopoverSheet`), which is ordinary
- * DOM: it can be tested at 390px like everything else, its rows are a full
- * touch target rather than a wheel, it draws Arabic option text in the app's
- * own type, and it ticks the value that is currently set.
+ * What that buys beyond the bug: the list is styled like the rest of the app
+ * instead of by the OS, Arabic option text is set in the app's own type, the
+ * row that is set carries a tick, rows are a full 44px for a thumb, and
+ * typeahead, Home/End, the arrow keys and Escape come from the primitive
+ * rather than from us.
  *
- * The two shapes take the same props and emit the same `onChange`, so no
- * caller knows which one it has.
+ * The chevron stays ours for the reason it always was: the platform's is a
+ * different glyph on every OS, always sits on the left, and cannot take the
+ * app's ink colour.
  */
-export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(props, ref) {
-  const isMobile = useIsMobile();
-
-  return isMobile ? <SheetSelect {...props} /> : <NativeSelect ref={ref} {...props} />;
-});
-
-const NativeSelect = forwardRef<HTMLSelectElement, SelectProps>(function NativeSelect(
-  { options, placeholder, className, hasError = false, ...props },
-  ref,
-) {
-  return (
-    /*
-     * `className` sizes the *wrapper*, and the field fills it.
-     *
-     * The chevron is positioned against this element, so putting a width on
-     * the `<select>` instead left the two at different widths: a `w-56`
-     * currency field on a full-width row drew its arrow four hundred pixels
-     * to the right of the box it belongs to. Every caller passes width or
-     * margin here, which is a property of the control as a whole anyway.
-     */
-    <div className={cn('relative', className)}>
-      <select
-        ref={ref}
-        aria-invalid={hasError || undefined}
-        className={cn(FIELD, hasError ? 'border-danger-500' : 'border-line')}
-        {...props}
-      >
-        {placeholder !== undefined && <option value="">{placeholder}</option>}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-
-      <Chevron />
-    </div>
-  );
-});
-
-/**
- * The same control as a button and a sheet of rows.
- *
- * The value still travels as a `change` event carrying `target.value`, because
- * that is what thirty call sites already read and there is no reason for any of
- * them to learn a second shape for the same fact.
- */
-function SheetSelect({
+export function Select({
   options,
   placeholder,
   className,
@@ -120,109 +73,147 @@ function SheetSelect({
   value,
   onChange,
   disabled = false,
+  onBlur,
   id,
   required,
   'aria-label': ariaLabel,
   'aria-describedby': describedBy,
-}: SelectProps): React.JSX.Element {
-  const { t } = useTranslation();
-  const picker = usePickerOpen();
+}: SelectProps): JSX.Element {
+  /*
+   * A dialog above us, if any.
+   *
+   * Radix Dialog makes the body inert while it is open, so a listbox portalled
+   * to `document.body` from inside one renders perfectly and ignores every
+   * click. Portalling into the dialog's own content keeps it interactive, and
+   * is a no-op everywhere else — the same reason `PopoverSheet` does it.
+   */
+  const dialogLayer = useDialogLayer();
+  /*
+   * Always controlled, `NONE` standing in for "nothing chosen".
+   *
+   * Leaving `value` off while the field is empty is the obvious way to get
+   * Radix's own placeholder handling, and it makes the control uncontrolled
+   * until the first choice — React says so out loud, and a form reset then
+   * cannot put it back to empty.
+   */
+  const empty = value === '' || value === undefined;
 
-  const current = options.find((option) => option.value === value);
-  const label = ariaLabel ?? placeholder ?? t('common.choose');
+  const emit = (next: string): void => {
+    const chosen = next === NONE ? '' : next;
 
-  const choose = (next: string): void => {
-    picker.onOpenChange(false);
-    // Enough of a change event for what a caller reads off it. Synthesising the
-    // whole of React's is neither possible nor useful: `target.value` is the
-    // entire contract every one of them uses.
+    // Enough of a change event for what a caller reads off it: `target.value`
+    // is the entire contract every one of them uses.
     onChange?.({
-      target: { value: next },
-      currentTarget: { value: next },
+      target: { value: chosen },
+      currentTarget: { value: chosen },
     } as ChangeEvent<HTMLSelectElement>);
   };
 
   return (
-    <PopoverSheet
-      open={picker.open}
-      onOpenChange={picker.onOpenChange}
-      focusOnOpen={picker.focusOnOpen}
-      title={label}
-      anchor={
-        <div className={cn('relative', className)}>
-          {/* Only the attributes that mean the same thing on a button: the
-              rest of `SelectHTMLAttributes` belongs to a control this is not,
-              and forwarding them wholesale would be a lie in the DOM. */}
-          <button
-            id={id}
-            type="button"
-            disabled={disabled}
-            aria-required={required || undefined}
-            aria-label={ariaLabel}
-            aria-describedby={describedBy}
-            aria-invalid={hasError || undefined}
-            {...picker.opens(true)}
-            className={cn(
-              FIELD,
-              'flex items-center',
-              current === undefined && 'text-ink-subtle',
-              hasError ? 'border-danger-500' : 'border-line',
-            )}
-          >
-            <span className="truncate">{current?.label ?? placeholder ?? ''}</span>
-          </button>
-
-          <Chevron />
-        </div>
-      }
+    <SelectPrimitive.Root
+      // The list portals onto `document.body`, which inherits nothing from the
+      // form it belongs to — so the direction is passed in, read off `<html>`
+      // where `applyLanguageToDocument` puts it.
+      dir={documentDirection()}
+      value={empty ? NONE : value}
+      onValueChange={emit}
+      disabled={disabled}
     >
-      <ul aria-label={label} className="max-h-[60vh] w-full overflow-y-auto">
-        {placeholder !== undefined && (
-          <Row label={placeholder} selected={current === undefined} onSelect={() => choose('')} />
+      <SelectPrimitive.Trigger
+        id={id}
+        // Forwarded so react-hook-form can mark the field touched, which is
+        // what decides whether its error is shown yet.
+        onBlur={onBlur}
+        aria-label={ariaLabel}
+        aria-describedby={describedBy}
+        aria-required={required || undefined}
+        aria-invalid={hasError || undefined}
+        className={cn(
+          // 44px under `lg`, like every other field a thumb has to hit.
+          'flex h-11 w-full cursor-pointer items-center justify-between gap-2 lg:h-10',
+          'rounded-control border bg-surface ps-3.5 pe-3 text-start text-field text-ink',
+          'transition-[border-color,box-shadow,background-color] duration-150',
+          'focus:border-primary-500',
+          'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-subtle',
+          // Ours rather than `data-[placeholder]`: the empty state is a real
+          // selection here — the row that clears the field — so Radix does not
+          // consider the trigger to be showing a placeholder.
+          empty && 'text-ink-subtle',
+          hasError ? 'border-danger-500' : 'border-line',
+          className,
         )}
+      >
+        {/* `truncate` on the value rather than the trigger: the chevron keeps
+            its room, and a long doctor's name ellipsises instead of pushing
+            it out of the field. */}
+        <span className="min-w-0 truncate">
+          <SelectPrimitive.Value placeholder={placeholder} />
+        </span>
 
-        {options.map((option) => (
-          <Row
-            key={option.value}
-            label={option.label}
-            selected={option.value === value}
-            onSelect={() => choose(option.value)}
-          />
-        ))}
-      </ul>
-    </PopoverSheet>
+        <SelectPrimitive.Icon asChild>
+          <Icon name="chevron-down" className="shrink-0 text-ink-subtle" />
+        </SelectPrimitive.Icon>
+      </SelectPrimitive.Trigger>
+
+      <SelectPrimitive.Portal {...(dialogLayer && { container: dialogLayer })}>
+        <SelectPrimitive.Content
+          position="popper"
+          sideOffset={6}
+          className={cn(
+            'z-50 max-h-[min(24rem,var(--radix-select-content-available-height))]',
+            'w-[var(--radix-select-trigger-width)] overflow-hidden rounded-card bg-surface p-1 shadow-float',
+            'origin-(--radix-select-content-transform-origin)',
+            'data-[state=open]:animate-menu-in data-[state=closed]:animate-menu-out',
+          )}
+        >
+          <SelectPrimitive.ScrollUpButton className="flex h-6 items-center justify-center text-ink-subtle">
+            <Icon name="chevron-up" className="size-4" />
+          </SelectPrimitive.ScrollUpButton>
+
+          <SelectPrimitive.Viewport>
+            {placeholder !== undefined && <Row value={NONE} label={placeholder} muted />}
+
+            {options.map((option) => (
+              <Row key={option.value} value={option.value} label={option.label} />
+            ))}
+          </SelectPrimitive.Viewport>
+
+          <SelectPrimitive.ScrollDownButton className="flex h-6 items-center justify-center text-ink-subtle">
+            <Icon name="chevron-down" className="size-4" />
+          </SelectPrimitive.ScrollDownButton>
+        </SelectPrimitive.Content>
+      </SelectPrimitive.Portal>
+    </SelectPrimitive.Root>
   );
 }
 
+/** One row: a full touch target, the label, and a tick when it is the one set. */
 function Row({
+  value,
   label,
-  selected,
-  onSelect,
+  muted = false,
 }: {
+  readonly value: string;
   readonly label: string;
-  readonly selected: boolean;
-  readonly onSelect: () => void;
-}): React.JSX.Element {
+  readonly muted?: boolean | undefined;
+}): JSX.Element {
   return (
-    <li>
-      <button
-        type="button"
-        // `aria-current`, like the time list's rows: this is a sheet of
-        // buttons rather than a listbox widget, and claiming otherwise would
-        // promise a keyboard model it does not implement.
-        aria-current={selected || undefined}
-        onClick={onSelect}
-        className={cn(
-          // 44px of row, because this is a thumb's target and the reason the
-          // sheet exists at all.
-          'flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-control',
-          'px-3 py-2 text-start text-value transition-colors duration-150',
-          selected ? 'bg-primary-600 text-ink-inverse' : 'text-ink hover:bg-inset',
-        )}
-      >
-        <span className="truncate">{label}</span>
-        {selected && <Icon name="check" className="size-4 shrink-0" />}
-      </button>
-    </li>
+    <SelectPrimitive.Item
+      value={value}
+      className={cn(
+        'flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-control lg:min-h-9',
+        'px-3 py-2 text-start text-field outline-none select-none',
+        // `data-highlighted` rather than `hover:`, because it is the keyboard's
+        // row as much as the pointer's.
+        'data-[highlighted]:bg-inset data-[state=checked]:font-medium',
+        muted ? 'text-ink-subtle' : 'text-ink',
+      )}
+    >
+      <SelectPrimitive.ItemText>{label}</SelectPrimitive.ItemText>
+
+      <SelectPrimitive.ItemIndicator asChild>
+        <Icon name="check" className="size-4 shrink-0 text-primary-600" />
+      </SelectPrimitive.ItemIndicator>
+    </SelectPrimitive.Item>
   );
 }

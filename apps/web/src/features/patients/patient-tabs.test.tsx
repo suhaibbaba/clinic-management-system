@@ -21,6 +21,7 @@ import {
   PATIENT_ID,
 } from '@test/helpers/fixtures';
 import { mockApi, renderWithProviders, type MockResponse } from '@test/helpers/render';
+import { choose } from '@test/select';
 
 const CATALOG = makeCatalogItem();
 const CROWN = makeCatalogItem({
@@ -133,7 +134,7 @@ describe('Visits tab', () => {
     await userEvent.click(screen.getByRole('button', { name: ar.chart.panel.addProcedure }));
 
     const form = screen.getByRole('combobox', { name: ar.chart.panel.procedure });
-    await userEvent.selectOptions(form, CATALOG.id);
+    await choose(form, CATALOG.nameAr);
     await userEvent.click(screen.getByRole('button', { name: ar.common.save }));
 
     await waitFor(() => {

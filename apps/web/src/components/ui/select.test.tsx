@@ -1,7 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { Select } from '@web/components/ui/select';
 import '@web/i18n';
@@ -11,22 +11,8 @@ const OPTIONS = [
   { value: 'layla', label: 'د. ليلى حداد' },
 ];
 
-/**
- * jsdom has no layout, so `matchMedia` answers the breakpoint question
- * directly. Unstubbed it is absent, which the hook reads as "not mobile" — so
- * every other test in the suite keeps getting the native control.
- */
-function setViewport(isMobile: boolean): void {
-  vi.stubGlobal('matchMedia', (query: string) => ({
-    matches: isMobile && query.includes('max-width'),
-    media: query,
-    addEventListener: () => undefined,
-    removeEventListener: () => undefined,
-  }));
-}
-
-function Host(): React.JSX.Element {
-  const [value, setValue] = useState('');
+function Host({ initial = '' }: { readonly initial?: string }): React.JSX.Element {
+  const [value, setValue] = useState(initial);
 
   return (
     <>
@@ -43,77 +29,75 @@ function Host(): React.JSX.Element {
   );
 }
 
+/**
+ * The control is Radix's rather than the platform's, because on a clinic's
+ * iPhone the platform's never opened — and a native picker is not part of the
+ * page, so it can be neither reproduced nor regression-tested off the device.
+ * These are the tests that a browser can actually run.
+ */
 describe('Select', () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it('is a native control on a pointer device', () => {
-    setViewport(false);
+  it('shows the placeholder while nothing is chosen', () => {
     render(<Host />);
 
-    const field = screen.getByRole('combobox');
-    expect(field.tagName).toBe('SELECT');
-    // Placeholder first, then the options in the order they were given.
-    expect([...(field as HTMLSelectElement).options].map((o) => o.value)).toEqual([
-      '',
-      'samer',
-      'layla',
-    ]);
+    expect(screen.getByRole('combobox', { name: 'الطبيب' })).toHaveTextContent('كل الأطباء');
   });
 
-  /**
-   * The reason this shape exists: on an iPhone the platform picker never came
-   * up, on every screen, and a native picker is not part of the page — so it
-   * can be neither reproduced nor regression-tested off the device. Below the
-   * breakpoint the choice is ordinary DOM instead, and this is the test that a
-   * browser can actually run.
-   */
-  it('opens the app’s own sheet on a narrow screen, and picks from it', async () => {
-    setViewport(true);
+  it('opens on a click and lists every option', async () => {
     render(<Host />);
 
-    const field = screen.getByRole('button', { name: 'الطبيب' });
-    expect(field.tagName).toBe('BUTTON');
-    expect(field).toHaveTextContent('كل الأطباء');
+    await userEvent.click(screen.getByRole('combobox', { name: 'الطبيب' }));
 
-    await userEvent.click(field);
+    const list = await screen.findByRole('listbox');
+    expect(
+      within(list)
+        .getAllByRole('option')
+        .map((row) => row.textContent),
+    ).toEqual(['كل الأطباء', 'د. سامر نصار', 'د. ليلى حداد']);
+  });
 
-    // Every option, and the placeholder as the way back to "no choice".
-    const sheet = await screen.findByRole('list', { name: 'الطبيب' });
-    expect(sheet).toBeInTheDocument();
+  it('hands the caller the chosen value as event.target.value', async () => {
+    render(<Host />);
 
-    await userEvent.click(screen.getByRole('button', { name: 'د. ليلى حداد' }));
+    await userEvent.click(screen.getByRole('combobox', { name: 'الطبيب' }));
+    await userEvent.click(await screen.findByRole('option', { name: 'د. ليلى حداد' }));
 
-    // The same `event.target.value` a caller reads off the native control.
     expect(screen.getByTestId('value')).toHaveTextContent('layla');
-    expect(screen.getByRole('button', { name: 'الطبيب' })).toHaveTextContent('د. ليلى حداد');
+    expect(screen.getByRole('combobox', { name: 'الطبيب' })).toHaveTextContent('د. ليلى حداد');
   });
 
-  it('can be put back to the placeholder', async () => {
-    setViewport(true);
-    render(<Host />);
+  it('goes back to nothing through the placeholder row', async () => {
+    // Radix reserves the empty string for clearing a selection, so the "no
+    // choice" row travels under a sentinel — and has to come back out as `''`,
+    // which is what every caller and every query string uses.
+    render(<Host initial="samer" />);
 
-    await userEvent.click(screen.getByRole('button', { name: 'الطبيب' }));
-    await userEvent.click(screen.getByRole('button', { name: 'د. سامر نصار' }));
-    expect(screen.getByTestId('value')).toHaveTextContent('samer');
-
-    await userEvent.click(screen.getByRole('button', { name: 'الطبيب' }));
-    await userEvent.click(screen.getByRole('button', { name: 'كل الأطباء' }));
+    await userEvent.click(screen.getByRole('combobox', { name: 'الطبيب' }));
+    await userEvent.click(await screen.findByRole('option', { name: 'كل الأطباء' }));
 
     expect(screen.getByTestId('value')).toHaveTextContent('');
   });
 
+  it('opens with the arrow keys and chooses with Enter', async () => {
+    render(<Host />);
+
+    screen.getByRole('combobox', { name: 'الطبيب' }).focus();
+    await userEvent.keyboard('{ArrowDown}');
+    await screen.findByRole('listbox');
+
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+
+    expect(screen.getByTestId('value')).toHaveTextContent('samer');
+  });
+
   it('does not open while it is disabled', async () => {
-    setViewport(true);
     render(
       <Select id="d" aria-label="الطبيب" options={OPTIONS} value="" disabled onChange={() => {}} />,
     );
 
-    const field = screen.getByRole('button', { name: 'الطبيب' });
+    const field = screen.getByRole('combobox', { name: 'الطبيب' });
     expect(field).toBeDisabled();
 
     await userEvent.click(field);
-    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
 });

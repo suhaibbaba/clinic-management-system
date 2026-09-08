@@ -21,6 +21,7 @@ import {
   PATIENT_ID,
 } from '@test/helpers/fixtures';
 import { mockApi, renderWithProviders, type MockResponse } from '@test/helpers/render';
+import { choose } from '@test/select';
 
 const CATALOG = makeCatalogItem();
 
@@ -249,10 +250,7 @@ describe('Patient page', () => {
 
     async function submitProcedure() {
       const dialog = screen.getByRole('dialog');
-      await userEvent.selectOptions(
-        within(dialog).getByLabelText(ar.chart.panel.procedure),
-        CATALOG.id,
-      );
+      await choose(within(dialog).getByLabelText(ar.chart.panel.procedure), CATALOG.nameAr);
       await userEvent.click(within(dialog).getByRole('button', { name: ar.common.save }));
     }
 
@@ -320,10 +318,7 @@ describe('Patient page', () => {
       await openAddForm();
 
       const dialog = screen.getByRole('dialog');
-      await userEvent.selectOptions(
-        within(dialog).getByLabelText(ar.chart.panel.procedure),
-        CATALOG.id,
-      );
+      await choose(within(dialog).getByLabelText(ar.chart.panel.procedure), CATALOG.nameAr);
       // The label carries an "(optional)" suffix, hence the loose match.
       await userEvent.type(
         within(dialog).getByLabelText(ar.chart.panel.discount, { exact: false }),

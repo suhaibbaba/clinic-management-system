@@ -137,11 +137,25 @@ export function PatientFormModal({
         </FormField>
 
         <FormField label="patients.gender" htmlFor="patient-gender" error={errors.gender} optional>
-          <Select
-            id="patient-gender"
-            placeholder={t('common.none')}
-            options={GENDERS.map((gender) => ({ value: gender, label: t(`patients.${gender}`) }))}
-            {...register('gender', { setValueAs: (value) => (value === '' ? null : value) })}
+          {/* `Controller` rather than `register`: the control is Radix's, not
+              a native `<select>`, so there is no element for a ref to hold. */}
+          <Controller
+            name="gender"
+            control={control}
+            render={({ field }) => (
+              <Select
+                id="patient-gender"
+                placeholder={t('common.none')}
+                options={GENDERS.map((gender) => ({
+                  value: gender,
+                  label: t(`patients.${gender}`),
+                }))}
+                value={field.value ?? ''}
+                onBlur={field.onBlur}
+                // Unset is null on the wire, and an empty string on screen.
+                onChange={(event) => field.onChange(event.target.value || null)}
+              />
+            )}
           />
         </FormField>
 
