@@ -91,7 +91,10 @@ export class ClinicClosuresController {
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(CLINIC_CLOSURES_ENTITY, AUDIT_ACTION.DELETE)
-  async remove(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<void> {
+  async remove(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+  ): Promise<void> {
     await this.closures.softDelete(actor, params.id);
   }
 }

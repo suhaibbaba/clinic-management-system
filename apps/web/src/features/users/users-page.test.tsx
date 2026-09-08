@@ -37,7 +37,7 @@ describe('Users management', () => {
     await renderUsersPage([user]);
 
     // Scoped to the row: the role also appears in the filter's options.
-    const row = (await screen.findByText(user.name)).closest('tr');
+    const row = (await screen.findByText(user.name.ar)).closest('tr');
     expect(row).not.toBeNull();
     expect(within(row!).getByText(user.phone)).toBeInTheDocument();
     expect(within(row!).getByText(ar.roles.doctor)).toBeInTheDocument();
@@ -52,7 +52,10 @@ describe('Users management', () => {
 
   it('creates a user and sends exactly what the form collected', async () => {
     authTokens.clear();
-    const created = makeUser({ name: 'سامر خليل', phone: '+963100000009' });
+    const created = makeUser({
+      name: { ar: 'سامر خليل', en: 'Samer Khalil' },
+      phone: '+963100000009',
+    });
 
     const api = mockApi({
       ...baseHandlers([]),
@@ -65,7 +68,8 @@ describe('Users management', () => {
     await userEvent.click(screen.getAllByRole('button', { name: ar.users.create })[0]!);
 
     const dialog = await screen.findByRole('dialog');
-    await userEvent.type(within(dialog).getByLabelText(ar.users.name), created.name);
+    await userEvent.type(within(dialog).getByLabelText(ar.users.nameAr), created.name.ar);
+    await userEvent.type(within(dialog).getByLabelText(ar.users.nameEn), created.name.en);
     await userEvent.type(within(dialog).getByLabelText(ar.users.phone), created.phone);
     await userEvent.selectOptions(
       within(dialog).getByLabelText(ar.users.role),
@@ -98,12 +102,12 @@ describe('Users management', () => {
       ...baseHandlers([user]),
       'PATCH /users/33333333-3333-4333-8333-333333333333': {
         status: 200,
-        body: { ...user, name: 'ليلى حداد المحدّث' },
+        body: { ...user, name: { ar: 'ليلى حداد المحدّث', en: 'Layla Haddad (updated)' } },
       },
     });
 
     renderWithProviders(<AppRoutes />, { route: '/users' });
-    await screen.findByText(user.name);
+    await screen.findByText(user.name.ar);
 
     await userEvent.click(screen.getByRole('button', { name: ar.common.edit }));
 
@@ -111,14 +115,18 @@ describe('Users management', () => {
     // Editing must not offer a password field.
     expect(within(dialog).queryByLabelText(ar.users.password)).not.toBeInTheDocument();
 
-    const nameInput = within(dialog).getByLabelText(ar.users.name);
+    const nameInput = within(dialog).getByLabelText(ar.users.nameAr);
     await userEvent.clear(nameInput);
     await userEvent.type(nameInput, 'ليلى حداد المحدّث');
     await userEvent.click(within(dialog).getByRole('button', { name: ar.common.save }));
 
     await waitFor(() => {
       const call = api.calls.find((entry) => entry.method === 'PATCH');
-      expect(call?.body).toMatchObject({ name: 'ليلى حداد المحدّث' });
+      // The English spelling is untouched by editing the Arabic one; both go
+      // up together, because the name is one value.
+      expect(call?.body).toMatchObject({
+        name: { ar: 'ليلى حداد المحدّث', en: 'Layla Haddad' },
+      });
       expect(call?.body).not.toHaveProperty('password');
     });
   });
@@ -136,7 +144,7 @@ describe('Users management', () => {
     });
 
     renderWithProviders(<AppRoutes />, { route: '/users' });
-    await screen.findByText(user.name);
+    await screen.findByText(user.name.ar);
 
     await userEvent.click(screen.getByRole('switch', { name: ar.users.deactivate }));
 
@@ -156,7 +164,7 @@ describe('Users management', () => {
     });
 
     renderWithProviders(<AppRoutes />, { route: '/users' });
-    await screen.findByText(user.name);
+    await screen.findByText(user.name.ar);
 
     await userEvent.click(screen.getByRole('button', { name: ar.users.resetPassword }));
 
@@ -187,7 +195,8 @@ describe('Users management', () => {
     await userEvent.click(screen.getAllByRole('button', { name: ar.users.create })[0]!);
 
     const dialog = await screen.findByRole('dialog');
-    await userEvent.type(within(dialog).getByLabelText(ar.users.name), 'اسم مكرر');
+    await userEvent.type(within(dialog).getByLabelText(ar.users.nameAr), 'اسم مكرر');
+    await userEvent.type(within(dialog).getByLabelText(ar.users.nameEn), 'Duplicate name');
     await userEvent.type(within(dialog).getByLabelText(ar.users.phone), '+963100000002');
     await userEvent.selectOptions(within(dialog).getByLabelText(ar.users.role), USER_ROLE.DOCTOR);
     await userEvent.type(within(dialog).getByLabelText(ar.users.password), 'SomePassword123!');

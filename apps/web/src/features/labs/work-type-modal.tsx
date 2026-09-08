@@ -8,9 +8,10 @@ import { useEffect, type JSX } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Input, Modal, Switch, useToast } from '@web/components/ui';
+import { Button, FormField, Input, Modal, MoneyInput, Switch, useToast } from '@web/components/ui';
 import { useCreateWorkType, useUpdateWorkType } from '@web/features/labs/queries';
 import { errorMessageKey } from '@web/lib/api-error';
+import { useCurrency } from '@web/features/clinic/queries';
 
 /**
  * A line of the lab's price list.
@@ -30,6 +31,7 @@ export function WorkTypeModal({
   readonly workType?: LabWorkType | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
+  const currency = useCurrency();
   const toast = useToast();
   const create = useCreateWorkType();
   const update = useUpdateWorkType();
@@ -97,11 +99,11 @@ export function WorkTypeModal({
           error={errors.defaultPrice}
           hint={t('labs.prices.snapshotNote')}
         >
-          <Input
+          <MoneyInput
             id="work-type-price"
-            dir="ltr"
-            inputMode="decimal"
-            placeholder="0.00"
+            currency={currency}
+            placeholder="0"
+            hasError={Boolean(errors.defaultPrice)}
             {...register('defaultPrice')}
           />
         </FormField>

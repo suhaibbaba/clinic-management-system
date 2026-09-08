@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@web/components/ui/button';
 import { Calendar, dateLocale } from '@web/components/ui/calendar';
 import { Icon } from '@web/components/ui/icon';
+import { openOnArrowDown } from '@web/components/ui/open-on-key';
 import { PopoverSheet } from '@web/components/ui/popover-sheet';
 import { cn } from '@web/lib/cn';
 
@@ -98,7 +99,7 @@ export function DatePicker({
       open={open}
       onOpenChange={setOpen}
       title={label}
-      trigger={
+      anchor={
         <div className={cn('relative', className)}>
           <input
             id={id}
@@ -111,9 +112,11 @@ export function DatePicker({
             placeholder={t('common.placeholders.date')}
             value={typed}
             onChange={(event) => commit(event.target.value)}
-            // The input must not swallow the click that opens the calendar,
-            // but it must still be typable: only the button opens it.
-            onClick={(event) => event.stopPropagation()}
+            // Typing is the fast path and must stay uninterrupted, so the
+            // field opens nothing on click or on focus. ArrowDown is the one
+            // deliberate way in from the keyboard; the button beside it is the
+            // other (see `openOnArrowDown`).
+            onKeyDown={openOnArrowDown(() => setOpen(true))}
             className={cn(
               // The value is Latin — `08/09/2026`, `14:30` — so the field is
               // `dir="ltr"` and keeps its digits and separators in order. Its

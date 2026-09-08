@@ -147,11 +147,7 @@ export class ClinicClosuresService implements OnModuleInit {
     input: UpdateClinicClosureInput,
     options: ScheduleConflictOptions,
   ): Promise<ClinicClosureResult> {
-    const existing = await this.scope.findOneOrFail<ClosureRow>(
-      clinicClosures,
-      actor.clinicId,
-      id,
-    );
+    const existing = await this.scope.findOneOrFail<ClosureRow>(clinicClosures, actor.clinicId, id);
 
     const startsOn = input.startsOn ?? existing.startsOn;
     const endsOn = input.endsOn ?? existing.endsOn;

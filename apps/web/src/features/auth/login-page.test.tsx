@@ -98,7 +98,7 @@ describe('Login flow', () => {
     renderWithProviders(<AppRoutes />, { route: '/doctors' });
 
     // The retried /me succeeded, so the shell renders with the user on it.
-    expect(await screen.findByText(profile.name)).toBeInTheDocument();
+    expect(await screen.findByText(profile.name.ar)).toBeInTheDocument();
     expect(meCalls).toBe(2);
     // Once on cold load, once for the 401 — not one refresh per failed call.
     expect(refreshCalls).toBe(2);

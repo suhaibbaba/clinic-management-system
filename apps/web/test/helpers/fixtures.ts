@@ -39,7 +39,7 @@ export function makeProfile(
   return {
     id: '22222222-2222-4222-8222-222222222222',
     clinicId: CLINIC_ID,
-    name: 'مدير العيادة',
+    name: { ar: 'مدير العيادة', en: 'Clinic Admin' },
     phone: '+963100000001',
     email: 'admin@clinic.local',
     role: USER_ROLE.ADMIN,
@@ -52,7 +52,7 @@ export function makeUser(overrides: Partial<User> = {}): User {
   return {
     id: '33333333-3333-4333-8333-333333333333',
     clinicId: CLINIC_ID,
-    name: 'ليلى حداد',
+    name: { ar: 'ليلى حداد', en: 'Layla Haddad' },
     phone: '+963100000002',
     email: 'layla@clinic.local',
     role: USER_ROLE.DOCTOR,
@@ -172,7 +172,7 @@ export function makeDoctor(overrides: Partial<Doctor> = {}): Doctor {
     updatedAt: '2026-01-01T09:00:00.000Z',
     user: {
       id: makeUser().id,
-      name: 'ليلى حداد',
+      name: { ar: 'ليلى حداد', en: 'Layla Haddad' },
       phone: '+963100000002',
       email: 'layla@clinic.local',
       isActive: true,
@@ -271,7 +271,7 @@ export function makeAttachment(overrides: Partial<Attachment> = {}): Attachment 
 export function makeClinic() {
   return {
     id: CLINIC_ID,
-    name: 'عيادة النور',
+    name: { ar: 'عيادة النور', en: 'Al Nour Clinic' },
     logoKey: null,
     phone: '+963110000000',
     email: 'info@clinic.local',
@@ -395,7 +395,7 @@ export function makeCalendarAppointment(
     patientPhone: '+963931000001',
     patientFileNumber: '00001',
     patientUnverified: false,
-    doctorName: 'ليلى حداد',
+    doctorName: { ar: 'ليلى حداد', en: 'Layla Haddad' },
     createdAt: startsAt,
     updatedAt: startsAt,
     ...overrides,

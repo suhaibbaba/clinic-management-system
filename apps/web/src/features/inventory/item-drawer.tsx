@@ -17,6 +17,7 @@ import {
   Icon,
   Ltr,
   Modal,
+  PersonName,
   Textarea,
   useToast,
 } from '@web/components/ui';
@@ -329,7 +330,11 @@ function History({
                 <Ltr as="dd">{formatDateTime(movement.createdAt)}</Ltr>
               </div>
 
-              {movement.createdByName && <dd>{movement.createdByName}</dd>}
+              {movement.createdByName && (
+                <dd>
+                  <PersonName name={movement.createdByName} />
+                </dd>
+              )}
               {movement.supplierName && <dd>{movement.supplierName}</dd>}
               {movement.batchNo && <Ltr as="dd">{movement.batchNo}</Ltr>}
 

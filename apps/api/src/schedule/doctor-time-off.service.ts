@@ -92,7 +92,12 @@ export class DoctorTimeOffService implements OnModuleInit {
   }
 
   /** Every absence overlapping an instant window — what the calendar hatches. */
-  async inRange(clinicId: string, from: Date, to: Date, doctorId?: string): Promise<DoctorTimeOff[]> {
+  async inRange(
+    clinicId: string,
+    from: Date,
+    to: Date,
+    doctorId?: string,
+  ): Promise<DoctorTimeOff[]> {
     const rows = await this.db
       .select()
       .from(doctorTimeOff)
@@ -122,12 +127,7 @@ export class DoctorTimeOffService implements OnModuleInit {
     await this.access.requireOwnCalendar(actor, doctorId);
 
     const window = { from: new Date(input.startsAt), to: new Date(input.endsAt) };
-    const conflicting = await this.conflicts.assertClear(
-      actor.clinicId,
-      window,
-      options,
-      doctorId,
-    );
+    const conflicting = await this.conflicts.assertClear(actor.clinicId, window, options, doctorId);
 
     const [created] = await this.db
       .insert(doctorTimeOff)

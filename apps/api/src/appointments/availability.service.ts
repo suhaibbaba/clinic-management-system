@@ -19,7 +19,13 @@ import { and, eq, gt, gte, lt, lte, ne, notInArray, or, sql } from 'drizzle-orm'
 
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { DATABASE, type Database } from '@api/database/database.module';
-import { appointments, clinicClosures, clinics, doctors, doctorTimeOff } from '@api/database/schema';
+import {
+  appointments,
+  clinicClosures,
+  clinics,
+  doctors,
+  doctorTimeOff,
+} from '@api/database/schema';
 import { computeDaySlots, toTimeOfDay, type BusyInterval } from '@api/appointments/slots';
 
 /** How far apart slot starts are offered when a clinic has not said otherwise. */

@@ -110,11 +110,7 @@ export class DoctorsService implements OnModuleInit {
     if (query.search) {
       const pattern = `%${query.search}%`;
       filters.push(
-        or(
-          ilike(users.nameAr, pattern),
-          ilike(users.nameEn, pattern),
-          ilike(users.phone, pattern),
-        ),
+        or(ilike(users.nameAr, pattern), ilike(users.nameEn, pattern), ilike(users.phone, pattern)),
       );
     }
 

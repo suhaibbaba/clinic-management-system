@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { LEDGER_ENTRY_KINDS } from '@shared/enums';
 import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
-import { moneySchema, signedMoneySchema } from '@shared/schemas/money';
+import { signedMoneySchema, wholeMoneySchema } from '@shared/schemas/money';
 import { lookupCodeSchema } from '@shared/schemas/lookups';
 
 /**
@@ -51,7 +51,12 @@ export type Payment = z.infer<typeof paymentSchema>;
 /** Recording money taken in. The amount is always positive — see `reversePayment`. */
 export const createPaymentSchema = z.object({
   patientId: uuidSchema,
-  amount: moneySchema.refine((value) => Number(value) > 0, 'A payment must be greater than zero'),
+  // Whole amounts on the way in (see `wholeMoneySchema`); the stored column and
+  // every read schema are unchanged.
+  amount: wholeMoneySchema.refine(
+    (value) => Number(value) > 0,
+    'A payment must be greater than zero',
+  ),
   method: lookupCodeSchema,
   note: z.string().trim().max(500).nullish(),
 });

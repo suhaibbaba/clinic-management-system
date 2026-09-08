@@ -5,6 +5,7 @@ import { formatLongDate, formatTime } from '@web/booking/format';
 import { t } from '@web/booking/i18n';
 import { downloadIcs } from '@web/booking/ics';
 import { Button, Card, cx } from '@web/booking/ui';
+import { bookingName } from '@web/booking/format';
 
 /**
  * The end of the flow: the appointment, in the four facts a patient repeats to
@@ -68,10 +69,10 @@ export function BookingFacts({ booking }: { readonly booking: ManagedBooking }):
   return (
     <Card>
       <dl className="flex flex-col gap-3">
-        <Row label={t('success.doctor')} value={booking.doctorName} />
+        <Row label={t('success.doctor')} value={bookingName(booking.doctorName)} />
         <Row label={t('success.date')} value={formatLongDate(booking.startsAt)} />
         <Row label={t('success.time')} value={formatTime(booking.startsAt)} ltr />
-        <Row label={t('success.clinic')} value={booking.clinicName} />
+        <Row label={t('success.clinic')} value={bookingName(booking.clinicName)} />
       </dl>
     </Card>
   );

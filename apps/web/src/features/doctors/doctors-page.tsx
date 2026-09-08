@@ -9,6 +9,7 @@ import {
   Icon,
   Ltr,
   PageHeader,
+  PersonName,
   RowAction,
   SearchField,
   Table,
@@ -46,7 +47,14 @@ export function DoctorsPage(): JSX.Element {
 
   const columns = useMemo<Column<Doctor>[]>(() => {
     const base: Column<Doctor>[] = [
-      { key: 'name', header: 'users.name', primary: true, render: (row) => row.user.name },
+      {
+        key: 'name',
+        header: 'users.name',
+        primary: true,
+        // Both spellings on hover: this is where a clinic checks what will be
+        // printed on a lab sheet against what the calendar shows.
+        render: (row) => <PersonName name={row.user.name} showBoth />,
+      },
       { key: 'phone', header: 'users.phone', render: (row) => <Ltr>{row.user.phone}</Ltr> },
       {
         key: 'specialty',

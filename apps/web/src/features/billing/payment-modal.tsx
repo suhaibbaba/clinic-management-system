@@ -4,7 +4,16 @@ import { useEffect, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Input, Modal, Select, useToast } from '@web/components/ui';
+import {
+  Button,
+  FormField,
+  Icon,
+  Input,
+  Modal,
+  MoneyInput,
+  Select,
+  useToast,
+} from '@web/components/ui';
 import { openReceipt } from '@web/features/billing/documents';
 import { useLookupOptions } from '@web/features/lookups/queries';
 import { useCreatePayment } from '@web/features/billing/queries';
@@ -93,17 +102,13 @@ export function PaymentModal({
     >
       <form id="payment-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
         <FormField label="billing.amount" htmlFor="payment-amount" error={errors.amount}>
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder={t('common.placeholders.amount')}
-              id="payment-amount"
-              dir="ltr"
-              inputMode="decimal"
-              hasError={Boolean(errors.amount)}
-              {...register('amount')}
-            />
-            {currency && <span className="text-value text-ink-muted">{currency}</span>}
-          </div>
+          <MoneyInput
+            placeholder={t('common.placeholders.amount')}
+            id="payment-amount"
+            currency={currency}
+            hasError={Boolean(errors.amount)}
+            {...register('amount')}
+          />
         </FormField>
 
         <FormField label="billing.method" htmlFor="payment-method" error={errors.method}>

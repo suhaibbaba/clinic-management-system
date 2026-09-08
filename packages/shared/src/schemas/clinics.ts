@@ -8,10 +8,11 @@ import { personNameInputSchema, personNameSchema } from '@shared/schemas/person-
  *
  * A closed list rather than any three letters: money is formatted, printed on
  * receipts and totalled per clinic, and a typo ("USE") would have quietly
- * relabelled every figure in the system. Adding one is a line here plus its
- * label in the i18n files.
+ * relabelled every figure in the system. Adding one is a line here, its label
+ * in the i18n files, and its symbol in `CURRENCY_SYMBOLS` — the symbol is what
+ * a reader actually sees, since no screen shows the code (see `money.ts`).
  */
-export const CURRENCIES = ['USD', 'ILS'] as const;
+export const CURRENCIES = ['JOD', 'ILS', 'USD', 'EUR', 'SAR', 'SYP'] as const;
 export type Currency = (typeof CURRENCIES)[number];
 
 /**

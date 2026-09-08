@@ -9,6 +9,7 @@ import {
   Icon,
   Ltr,
   PageHeader,
+  PersonName,
   StatCard,
   Table,
   type Column,
@@ -201,7 +202,7 @@ function TodaySchedule({
       key: 'doctor',
       header: 'dashboard.schedule.doctor',
       hideOnMobile: true,
-      render: (row) => row.doctorName,
+      render: (row) => <PersonName name={row.doctorName} />,
     },
     {
       key: 'status',

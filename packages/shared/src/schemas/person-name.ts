@@ -53,10 +53,16 @@ export function personName(name: PersonName | null | undefined, language: string
   }
 
   const english = language.startsWith('en');
-  const preferred = english ? name.en : name.ar;
-  const fallback = english ? name.ar : name.en;
+  // Read defensively rather than destructured: this runs on the public booking
+  // page, which a patient opens from a link, and a response from a stale cache
+  // or an older API is not worth a white screen over. An unusable value reads
+  // as a missing name, which the callers already handle.
+  const ar = typeof name.ar === 'string' ? name.ar : '';
+  const en = typeof name.en === 'string' ? name.en : '';
 
-  return preferred.trim() !== '' ? preferred : fallback;
+  const preferred = english ? en : ar;
+
+  return preferred.trim() !== '' ? preferred : english ? ar : en;
 }
 
 /** Both spellings, for a search index or a `title` attribute. */

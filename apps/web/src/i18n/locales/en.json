@@ -47,7 +47,9 @@
       "selectType": "Select an attachment type",
       "date": "dd/mm/yyyy",
       "time": "--:--",
-      "dateRange": "Choose a period"
+      "dateRange": "Choose a period",
+      "fullNameAr": "Full name in Arabic",
+      "fullNameEn": "Full name in English"
     },
     "clear": "Clear",
     "today": "Today",
@@ -125,7 +127,9 @@
     "filterStatus": "Filter by status",
     "searchPlaceholder": "Search by name, phone or email",
     "empty": "No users",
-    "emptyHint": "Start by adding the first clinic user"
+    "emptyHint": "Start by adding the first clinic user",
+    "nameAr": "Name in Arabic",
+    "nameEn": "Name in English"
   },
   "doctors": {
     "title": "Doctors",
@@ -177,8 +181,12 @@
     "currency": "Currency",
     "currencyHint": "Shown beside every figure in the system",
     "currencies": {
+      "JOD": "Jordanian dinar",
+      "ILS": "Israeli shekel",
       "USD": "US dollar",
-      "ILS": "Israeli shekel"
+      "EUR": "Euro",
+      "SAR": "Saudi riyal",
+      "SYP": "Syrian pound"
     },
     "workingHours": "Opening hours",
     "logo": "Clinic logo",
@@ -195,7 +203,9 @@
     "about": "About",
     "version": "Version",
     "apiVersion": "Server version",
-    "versionMismatch": "This page is older than the server — reload it"
+    "versionMismatch": "This page is older than the server — reload it",
+    "nameAr": "Clinic name in Arabic",
+    "nameEn": "Clinic name in English"
   },
   "audit": {
     "title": "Audit log",

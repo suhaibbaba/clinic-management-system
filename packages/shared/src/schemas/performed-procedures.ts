@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { PERFORMED_PROCEDURE_STATUSES } from '@shared/enums';
 import { createChartMarkSchema, chartMarkSchema } from '@shared/schemas/chart-marks';
 import { paginationQuerySchema } from '@shared/schemas/common';
-import { moneySchema } from '@shared/schemas/money';
+import { moneySchema, wholeMoneySchema } from '@shared/schemas/money';
 
 /**
  * A procedure carried out on a patient.
@@ -36,8 +36,8 @@ const procedureWritableFields = {
   doctorId: z.uuid(),
   procedureId: z.uuid(),
   /** Omitted on create, the catalog's current price is snapshotted instead. */
-  price: moneySchema,
-  discount: moneySchema,
+  price: wholeMoneySchema,
+  discount: wholeMoneySchema,
   discountReason: z.string().trim().max(500).nullish(),
   status: z.enum(PERFORMED_PROCEDURE_STATUSES),
   performedAt: z.iso.datetime(),
@@ -48,8 +48,8 @@ export const createPerformedProcedureSchema = z
   .object({
     ...procedureWritableFields,
     patientId: z.uuid(),
-    price: moneySchema.optional(),
-    discount: moneySchema.default('0.00'),
+    price: wholeMoneySchema.optional(),
+    discount: wholeMoneySchema.default('0.00'),
     status: z.enum(PERFORMED_PROCEDURE_STATUSES).default('done'),
     performedAt: z.iso.datetime().optional(),
     /** Chart marks are created with the procedure; they never exist alone. */

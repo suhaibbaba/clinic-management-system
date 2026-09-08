@@ -15,6 +15,7 @@ import {
 } from '@web/features/appointments/calendar-time';
 import { cn } from '@web/lib/cn';
 import { Ltr } from '@web/components/ui/ltr';
+import { PersonName } from '@web/components/ui/person-name';
 
 export interface DayGridProps {
   /** One column each. A doctor sees a single column: their own. */
@@ -85,7 +86,7 @@ export function DayGrid({
               key={doctor.id}
               className="min-w-40 flex-1 truncate px-3 py-2.5 text-center text-label font-semibold text-ink"
             >
-              {doctor.user.name}
+              <PersonName name={doctor.user.name} />
             </div>
           ))}
         </div>

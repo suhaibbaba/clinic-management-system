@@ -13,6 +13,7 @@ import {
   PageHeader,
   Select,
   Table,
+  usePersonName,
   type BadgeTone,
   type Column,
 } from '@web/components/ui';
@@ -45,9 +46,10 @@ export function AuditPage(): JSX.Element {
 
   // Admin-only screen, so listing users to resolve names is permitted.
   const users = useUsers({ limit: 100 });
+  const displayName = usePersonName();
   const userNames = useMemo(
-    () => new Map((users.data?.items ?? []).map((user) => [user.id, user.name])),
-    [users.data],
+    () => new Map((users.data?.items ?? []).map((user) => [user.id, displayName(user.name)])),
+    [users.data, displayName],
   );
 
   const query = useAuditLog({
@@ -147,7 +149,7 @@ export function AuditPage(): JSX.Element {
           placeholder={t('common.all')}
           options={(users.data?.items ?? []).map((user) => ({
             value: user.id,
-            label: user.name,
+            label: displayName(user.name),
           }))}
           value={userId}
           onChange={(event) => {

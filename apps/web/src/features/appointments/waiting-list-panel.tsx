@@ -16,7 +16,9 @@ import {
   Input,
   Ltr,
   Modal,
+  PersonName,
   Select,
+  usePersonName,
   useToast,
 } from '@web/components/ui';
 import { useDoctors } from '@web/features/doctors/queries';
@@ -119,7 +121,11 @@ export function WaitingListPanel({
               {entry.reason && <p className="mt-1.5 text-label text-ink-muted">{entry.reason}</p>}
 
               <p className="mt-1 text-label text-ink-subtle">
-                {entry.doctorName ?? t('appointments.waiting.anyDoctor')} ·{' '}
+                <PersonName
+                  name={entry.doctorName}
+                  fallback={t('appointments.waiting.anyDoctor')}
+                />{' '}
+                ·{' '}
                 {t('appointments.waiting.waitingSince', { time: formatDateTime(entry.createdAt) })}
               </p>
 
@@ -164,6 +170,7 @@ function AddWalkInModal({
   onOpenChange: (open: boolean) => void;
 }): JSX.Element {
   const { t } = useTranslation();
+  const doctorName = usePersonName();
   const toast = useToast();
   const add = useAddToWaitingList();
   const doctors = useDoctors({ limit: 100 });
@@ -223,7 +230,7 @@ function AddWalkInModal({
             placeholder={t('appointments.waiting.anyDoctor')}
             options={(doctors.data?.items ?? []).map((doctor) => ({
               value: doctor.id,
-              label: doctor.user.name,
+              label: doctorName(doctor.user.name),
             }))}
             onChange={(event) => setDoctorId(event.target.value)}
           />
@@ -268,6 +275,7 @@ function PromoteModal({
   onClose: () => void;
 }): JSX.Element {
   const { t } = useTranslation();
+  const doctorName = usePersonName();
   const toast = useToast();
   const promote = usePromoteWaitingEntry();
   const doctors = useDoctors({ limit: 100 });
@@ -321,7 +329,7 @@ function PromoteModal({
             placeholder={t('appointments.allDoctors')}
             options={(doctors.data?.items ?? []).map((doctor) => ({
               value: doctor.id,
-              label: doctor.user.name,
+              label: doctorName(doctor.user.name),
             }))}
             onChange={(event) => {
               setDoctorId(event.target.value);

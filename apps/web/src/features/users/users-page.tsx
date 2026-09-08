@@ -10,13 +10,15 @@ import {
   Icon,
   Ltr,
   PageHeader,
+  PersonName,
   RowAction,
   SearchField,
   Select,
   Switch,
   Table,
-  type Column,
+  usePersonName,
   useToast,
+  type Column,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { useUpdateUser, useUsers } from '@web/features/users/queries';
@@ -29,6 +31,7 @@ const PAGE_SIZE = 10;
 
 export function UsersPage(): JSX.Element {
   const { t } = useTranslation();
+  const displayName = usePersonName();
   const toast = useToast();
   const { user: currentUser } = useSession();
 
@@ -67,9 +70,11 @@ export function UsersPage(): JSX.Element {
         // the right-hand edge of the card at 1440px.
         render: (row) => (
           <span className="flex items-center gap-3">
-            <Avatar name={row.name} tintKey={row.id} />
+            <Avatar name={displayName(row.name)} tintKey={row.id} />
             <span className="flex min-w-0 flex-col leading-snug">
-              <span className="truncate font-semibold text-ink">{row.name}</span>
+              {/* Both spellings on hover: this is the screen where somebody
+                  checks how a name is written on a letterhead. */}
+              <PersonName name={row.name} showBoth className="truncate font-semibold text-ink" />
               {row.email !== null && row.email !== undefined && (
                 <span className="truncate text-label text-ink-subtle">{row.email}</span>
               )}

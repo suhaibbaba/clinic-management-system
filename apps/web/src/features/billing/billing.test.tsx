@@ -50,6 +50,9 @@ async function renderAccountTab(role: UserRole, overrides: Record<string, MockRe
   return api;
 }
 
+/** The space `Money` puts between a figure and its symbol. */
+const NBSP = '\u00A0';
+
 describe('Billing', () => {
   beforeEach(() => {
     authTokens.clear();
@@ -73,9 +76,17 @@ describe('Billing', () => {
 
       expect(rows).toHaveLength(2);
       // date | description | debit | credit | balance | actions
-      expect(cells(rows[0]!).slice(1, 5)).toEqual(['حشوة تجميلية', '150.00', '', '150.00']);
+      // Whole numbers and the clinic's *symbol* — no ".00" and no "USD". The
+      // space between them is non-breaking, so a narrow column cannot split a
+      // figure from its currency (see the `Money` component).
+      expect(cells(rows[0]!).slice(1, 5)).toEqual([
+        'حشوة تجميلية',
+        `150${NBSP}$`,
+        '',
+        `150${NBSP}$`,
+      ]);
       // The payment shows as a credit and takes the balance down with it.
-      expect(cells(rows[1]!).slice(2, 5)).toEqual(['', '50.00', '100.00']);
+      expect(cells(rows[1]!).slice(2, 5)).toEqual(['', `50${NBSP}$`, `100${NBSP}$`]);
     });
 
     it('names the procedure and nothing clinical beside it', async () => {
@@ -97,6 +108,7 @@ describe('Billing', () => {
 
       const amount = await screen.findByLabelText(new RegExp(ar.billing.amount));
       await userEvent.clear(amount);
+      // The field refuses a separator outright, so the dot never lands.
       await userEvent.type(amount, '40.00');
       await userEvent.click(screen.getByRole('button', { name: ar.billing.recordAndPrint }));
 
@@ -110,7 +122,9 @@ describe('Billing', () => {
 
       expect(posted.body).toMatchObject({
         patientId: PATIENT_ID,
-        amount: '40.00',
+        // The separator never lands, and the schema normalises to the stored
+        // scale: "40.00" typed into a whole-number field is forty hundred.
+        amount: '4000.00',
         method: 'cash',
       });
 

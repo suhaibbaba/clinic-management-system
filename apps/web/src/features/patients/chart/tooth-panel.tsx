@@ -2,7 +2,7 @@ import type { Doctor, PerformedProcedure, ProcedureCatalogItem, UserRole } from 
 import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, Drawer, EmptyState, Icon, Ltr } from '@web/components/ui';
+import { Badge, Button, Drawer, EmptyState, Icon, Ltr, usePersonName } from '@web/components/ui';
 import {
   AddProcedureForm,
   type NewProcedureInput,
@@ -59,6 +59,7 @@ export function ToothPanel({
   onSendToLab,
 }: ToothPanelProps): JSX.Element {
   const { t } = useTranslation();
+  const doctorName = usePersonName();
   const states = useToothStates();
   const [adding, setAdding] = useState(false);
 
@@ -173,9 +174,9 @@ export function ToothPanel({
                     key={procedure.id}
                     procedure={procedure}
                     name={catalogNames.get(procedure.procedureId)}
-                    doctorName={
-                      doctors.find((doctor) => doctor.id === procedure.doctorId)?.user.name
-                    }
+                    doctorName={doctorName(
+                      doctors.find((doctor) => doctor.id === procedure.doctorId)?.user.name,
+                    )}
                     showPrice={showPrices}
                     {...(onSendToLab &&
                       tooth !== null && {

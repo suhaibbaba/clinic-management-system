@@ -71,7 +71,7 @@ describe('Notifications and schedulers (e2e)', () => {
 
   const settings = (overrides: Record<string, unknown> = {}) => ({
     timezone: TIME_ZONE,
-      booking: {
+    booking: {
       enabled: true,
       maxDaysAhead: 45,
       minHoursBefore: 2,

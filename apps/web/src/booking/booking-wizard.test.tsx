@@ -31,7 +31,7 @@ const MORNING = slotAt(10);
 const NOON = slotAt(12);
 
 const clinic = {
-  name: 'عيادة النور',
+  name: { ar: 'عيادة النور', en: 'Al Nour Clinic' },
   slug: SLUG,
   phone: '+963110000000',
   address: null,
@@ -40,14 +40,20 @@ const clinic = {
   maxDaysAhead: 30,
 };
 
-const doctors = [{ id: DOCTOR_ID, name: 'د. ليلى حداد', specialty: 'طب الأسنان' }];
+const doctors = [
+  {
+    id: DOCTOR_ID,
+    name: { ar: 'د. ليلى حداد', en: 'Dr. Layla Haddad' },
+    specialty: 'طب الأسنان',
+  },
+];
 
 const confirmed = {
   status: 'confirmed',
   startsAt: MORNING.startsAt,
   durationMinutes: 30,
-  doctorName: 'د. ليلى حداد',
-  clinicName: 'عيادة النور',
+  doctorName: { ar: 'د. ليلى حداد', en: 'Dr. Layla Haddad' },
+  clinicName: { ar: 'عيادة النور', en: 'Al Nour Clinic' },
   clinicPhone: '+963110000000',
   canModify: true,
 };

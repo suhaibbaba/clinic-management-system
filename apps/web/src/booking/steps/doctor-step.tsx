@@ -5,6 +5,7 @@ import { failureKey } from '@web/booking/api';
 import { t } from '@web/booking/i18n';
 import { Alert, Button, ChoiceCard, Skeleton } from '@web/booking/ui';
 import type { AsyncState } from '@web/booking/use-async';
+import { bookingName } from '@web/booking/format';
 
 /**
  * The letter in the circle.
@@ -72,18 +73,18 @@ export function DoctorStep({
           <ChoiceCard
             selected={doctor.id === selectedId}
             onClick={() => onSelect(doctor)}
-            label={t('doctor.choose', { name: doctor.name })}
+            label={t('doctor.choose', { name: bookingName(doctor.name) })}
           >
             <span
               aria-hidden
               className="flex size-11 shrink-0 items-center justify-center rounded-pill bg-primary-100 text-value font-semibold text-primary-800"
             >
-              {initial(doctor.name)}
+              {initial(bookingName(doctor.name))}
             </span>
 
             <span className="min-w-0">
               <span className="block truncate text-field font-semibold text-ink">
-                {doctor.name}
+                {bookingName(doctor.name)}
               </span>
               <span className="block truncate text-label text-ink-muted">{doctor.specialty}</span>
             </span>

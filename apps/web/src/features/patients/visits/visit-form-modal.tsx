@@ -12,6 +12,7 @@ import {
   Select,
   Textarea,
   TimePicker,
+  usePersonName,
   useToast,
 } from '@web/components/ui';
 import { useSaveVisit } from '@web/features/patients/queries';
@@ -63,6 +64,7 @@ export function VisitFormModal({
   visit,
 }: VisitFormModalProps): JSX.Element {
   const { t } = useTranslation();
+  const doctorName = usePersonName();
   const toast = useToast();
   const saveVisit = useSaveVisit(patientId);
 
@@ -177,7 +179,10 @@ export function VisitFormModal({
         <FormField label="visits.doctor" htmlFor="visit-doctor" error={errors.doctorId}>
           <Select
             id="visit-doctor"
-            options={doctors.map((doctor) => ({ value: doctor.id, label: doctor.user.name }))}
+            options={doctors.map((doctor) => ({
+              value: doctor.id,
+              label: doctorName(doctor.user.name),
+            }))}
             {...register('doctorId')}
           />
         </FormField>

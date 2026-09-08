@@ -12,6 +12,7 @@ import {
   Select,
   StatCard,
   StatRow,
+  usePersonName,
   useToast,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
@@ -62,6 +63,7 @@ type Range = 'day' | 'week';
  */
 export function AppointmentsPage(): JSX.Element {
   const { t } = useTranslation();
+  const doctorName = usePersonName();
   const { user } = useSession();
   const toast = useToast();
   const isMobile = useIsMobile();
@@ -303,7 +305,7 @@ export function AppointmentsPage(): JSX.Element {
               value={doctorFilter}
               options={(doctors.data?.items ?? []).map((doctor) => ({
                 value: doctor.id,
-                label: doctor.user.name,
+                label: doctorName(doctor.user.name),
               }))}
               onChange={(event) => setDoctorFilter(event.target.value)}
             />

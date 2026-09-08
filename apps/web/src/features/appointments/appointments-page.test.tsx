@@ -51,7 +51,7 @@ function appointmentAt(hour: number, overrides: Record<string, unknown> = {}) {
     patientName: 'أحمد خالد الحسن',
     patientPhone: '+963931000001',
     patientFileNumber: '00001',
-    doctorName: 'Dr. Layla Haddad',
+    doctorName: { ar: 'د. ليلى حداد', en: 'Dr. Layla Haddad' },
     ...overrides,
   };
 }
@@ -69,8 +69,16 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse | unkno
     'GET /doctors': {
       status: 200,
       body: paginated([
-        { ...doctor, id: DOCTOR_ID, user: { ...doctor.user, name: 'Dr. Layla Haddad' } },
-        { ...doctor, id: OTHER_DOCTOR_ID, user: { ...doctor.user, name: 'Dr. Samer Nassar' } },
+        {
+          ...doctor,
+          id: DOCTOR_ID,
+          user: { ...doctor.user, name: { ar: 'د. ليلى حداد', en: 'Dr. Layla Haddad' } },
+        },
+        {
+          ...doctor,
+          id: OTHER_DOCTOR_ID,
+          user: { ...doctor.user, name: { ar: 'د. سامر نصار', en: 'Dr. Samer Nassar' } },
+        },
       ]),
     },
     'GET /waiting-list': { status: 200, body: paginated([]) },

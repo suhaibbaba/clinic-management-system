@@ -15,10 +15,7 @@ export function toPersonName(ar: string, en: string): PersonName {
 }
 
 /** The same, for a left join that may have matched nothing. */
-export function toOptionalPersonName(
-  ar: string | null,
-  en: string | null,
-): PersonName | null {
+export function toOptionalPersonName(ar: string | null, en: string | null): PersonName | null {
   return ar === null || en === null ? null : { ar, en };
 }
 

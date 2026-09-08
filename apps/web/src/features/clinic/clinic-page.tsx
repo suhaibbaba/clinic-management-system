@@ -43,7 +43,10 @@ export function ClinicPage(): JSX.Element {
   const clinic = useClinic();
   const updateClinic = useUpdateClinic();
 
-  const [name, setName] = useState('');
+  // Both spellings: this name heads every printed sheet, and a receipt is
+  // produced in the *clinic's* document language rather than the reader's.
+  const [nameAr, setNameAr] = useState('');
+  const [nameEn, setNameEn] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
@@ -57,7 +60,8 @@ export function ClinicPage(): JSX.Element {
       return;
     }
 
-    setName(data.name);
+    setNameAr(data.name.ar);
+    setNameEn(data.name.en);
     setPhone(data.phone ?? '');
     setEmail(data.email ?? '');
     setAddress(data.address ?? '');
@@ -70,7 +74,7 @@ export function ClinicPage(): JSX.Element {
   const save = async (): Promise<void> => {
     try {
       await updateClinic.mutateAsync({
-        name,
+        name: { ar: nameAr, en: nameEn },
         phone: phone === '' ? null : phone,
         email: email === '' ? null : email,
         address: address === '' ? null : address,
@@ -108,15 +112,28 @@ export function ClinicPage(): JSX.Element {
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-card bg-surface shadow-card p-4">
           <div className="flex flex-col gap-4">
-            <FormField label="clinic.name" htmlFor="clinic-name">
-              <Input
-                placeholder={t('common.placeholders.fullName')}
-                id="clinic-name"
-                value={name}
-                disabled={!canEdit}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </FormField>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField label="clinic.nameAr" htmlFor="clinic-name-ar">
+                <Input
+                  placeholder={t('common.placeholders.fullNameAr')}
+                  id="clinic-name-ar"
+                  value={nameAr}
+                  disabled={!canEdit}
+                  onChange={(event) => setNameAr(event.target.value)}
+                />
+              </FormField>
+
+              <FormField label="clinic.nameEn" htmlFor="clinic-name-en">
+                <Input
+                  placeholder={t('common.placeholders.fullNameEn')}
+                  id="clinic-name-en"
+                  dir="ltr"
+                  value={nameEn}
+                  disabled={!canEdit}
+                  onChange={(event) => setNameEn(event.target.value)}
+                />
+              </FormField>
+            </div>
 
             <FormField label="clinic.phone" htmlFor="clinic-phone" optional>
               <Input

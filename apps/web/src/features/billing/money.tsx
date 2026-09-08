@@ -1,38 +1,10 @@
-import type { JSX } from 'react';
-
-import { formatMoney } from '@web/lib/format';
-import { cn } from '@web/lib/cn';
-import { Ltr } from '@web/components/ui/ltr';
-
-interface MoneyProps {
-  readonly amount: string;
-  readonly currency?: string | undefined;
-  readonly className?: string | undefined;
-  /** Colours a debt red and a credit green. Off for neutral ledger lines. */
-  readonly signed?: boolean | undefined;
-}
-
 /**
- * An amount, always in an LTR box.
+ * Money now lives in `components/ui` — it is used by inventory, labs, the
+ * dashboard and the patients list as much as by billing, and a shared control
+ * that lives inside one feature is a shared control other features import
+ * across a boundary they should not.
  *
- * A number in an RTL paragraph keeps its own direction, but a leading minus
- * sign does not: the bidi algorithm floats it to the other end, so `-30.00`
- * reads as `30.00-`. The island is the fix, and it is the same one the PDF
- * documents use.
+ * Re-exported here so the existing call sites keep working; new ones should
+ * import from `@web/components/ui`.
  */
-export function Money({ amount, currency, className, signed = false }: MoneyProps): JSX.Element {
-  const negative = amount.startsWith('-');
-  const zero = Number(amount) === 0;
-
-  return (
-    <Ltr
-      className={cn(
-        'inline-block tabular-nums',
-        signed && !zero && (negative ? 'text-success-700' : 'text-danger-700'),
-        className,
-      )}
-    >
-      {formatMoney(amount, currency)}
-    </Ltr>
-  );
-}
+export { Money } from '@web/components/ui/money';

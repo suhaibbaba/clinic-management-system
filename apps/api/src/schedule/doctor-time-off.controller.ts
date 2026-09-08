@@ -94,7 +94,10 @@ export class DoctorTimeOffController {
   @Roles(USER_ROLE.DOCTOR)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(DOCTOR_TIME_OFF_ENTITY, AUDIT_ACTION.DELETE)
-  async remove(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<void> {
+  async remove(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+  ): Promise<void> {
     await this.timeOff.softDelete(actor, params.id);
   }
 }

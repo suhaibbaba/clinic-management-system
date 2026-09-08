@@ -31,10 +31,7 @@ import { and, asc, eq, gt, gte, lt, lte, sql, type SQL } from 'drizzle-orm';
 
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
 import { AppointmentAccessService } from '@api/appointments/appointment-access.service';
-import {
-  toClinicClosure,
-  toDoctorTimeOff,
-} from '@api/appointments/availability.service';
+import { toClinicClosure, toDoctorTimeOff } from '@api/appointments/availability.service';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { toPersonName } from '@api/common/person-name';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';

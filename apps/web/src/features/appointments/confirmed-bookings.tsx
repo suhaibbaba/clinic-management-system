@@ -3,7 +3,15 @@ import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { Badge, EmptyState, Ltr, PageHeader, Table, type Column } from '@web/components/ui';
+import {
+  Badge,
+  EmptyState,
+  Ltr,
+  PageHeader,
+  PersonName,
+  Table,
+  type Column,
+} from '@web/components/ui';
 import { minutesOf, toTimeLabel, todayIso } from '@web/features/appointments/calendar-time';
 import { setClinicTimeZone } from '@web/features/appointments/clinic-zone';
 import { useAppointments } from '@web/features/appointments/queries';
@@ -70,7 +78,7 @@ export function ConfirmedBookings(): JSX.Element {
     {
       key: 'doctor',
       header: 'booking.pending.columns.doctor',
-      render: (row) => row.doctorName,
+      render: (row) => <PersonName name={row.doctorName} />,
     },
     {
       key: 'slot',

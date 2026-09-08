@@ -2,7 +2,7 @@ import { LOOKUP_LIST, type CalendarAppointment } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, EmptyState, Icon, Ltr } from '@web/components/ui';
+import { Badge, EmptyState, Icon, Ltr, PersonName } from '@web/components/ui';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from '@web/features/appointments/status';
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
@@ -76,7 +76,7 @@ export function AgendaList({ appointments, onOpen, showDoctor }: AgendaListProps
                   {showDoctor && (
                     <>
                       <span aria-hidden="true">·</span>
-                      <span className="truncate">{appointment.doctorName}</span>
+                      <PersonName name={appointment.doctorName} className="truncate" />
                     </>
                   )}
                 </span>

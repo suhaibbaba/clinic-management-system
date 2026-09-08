@@ -4,7 +4,7 @@ import { useEffect, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Input, Modal, useToast } from '@web/components/ui';
+import { Button, FormField, Icon, Input, Modal, usePersonName, useToast } from '@web/components/ui';
 import { useResetUserPassword } from '@web/features/users/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -20,6 +20,7 @@ export function ResetPasswordModal({
   user,
 }: ResetPasswordModalProps): JSX.Element {
   const { t } = useTranslation();
+  const displayName = usePersonName();
   const toast = useToast();
   const resetPassword = useResetUserPassword();
 
@@ -58,7 +59,7 @@ export function ResetPasswordModal({
       open={open}
       onOpenChange={onOpenChange}
       title="users.resetPasswordFor"
-      titleValues={{ name: user?.name ?? '' }}
+      titleValues={{ name: displayName(user?.name) }}
       footer={
         <>
           <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>

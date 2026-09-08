@@ -8,7 +8,7 @@ import { Logo } from '@web/components/brand/logo';
 import { useClinicBranding } from '@web/features/clinic/queries';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
-import { Button, FormField, Icon, Input } from '@web/components/ui';
+import { Button, FormField, Icon, Input, PersonName } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { ApiError, errorMessageKey } from '@web/lib/api-error';
 
@@ -64,7 +64,9 @@ export function LoginPage(): JSX.Element {
         <Logo size="lg" src={branding.data?.logoUrl} className="mx-auto mb-6" />
 
         {branding.data?.name && (
-          <p className="mb-1 text-value font-medium text-ink-muted">{branding.data.name}</p>
+          <p className="mb-1 text-value font-medium text-ink-muted">
+            <PersonName name={branding.data.name} fallback="" />
+          </p>
         )}
 
         <h1 className="text-2xl font-semibold tracking-tight text-ink">{t('auth.loginTitle')}</h1>

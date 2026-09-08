@@ -2,6 +2,7 @@ import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Icon } from '@web/components/ui/icon';
+import { openOnArrowDown } from '@web/components/ui/open-on-key';
 import { PopoverSheet } from '@web/components/ui/popover-sheet';
 import { cn } from '@web/lib/cn';
 
@@ -104,7 +105,7 @@ export function TimePicker({
       open={open}
       onOpenChange={setOpen}
       title={label}
-      trigger={
+      anchor={
         <div className={cn('relative', className)}>
           <input
             id={id}
@@ -117,7 +118,8 @@ export function TimePicker({
             placeholder={t('common.placeholders.time')}
             value={typed}
             onChange={(event) => commit(event.target.value)}
-            onClick={(event) => event.stopPropagation()}
+            // Never on click or on focus — only ArrowDown, or the button.
+            onKeyDown={openOnArrowDown(() => setOpen(true))}
             className={cn(
               // The value is Latin — `08/09/2026`, `14:30` — so the field is
               // `dir="ltr"` and keeps its digits and separators in order. Its

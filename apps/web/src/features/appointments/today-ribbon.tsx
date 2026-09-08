@@ -2,7 +2,7 @@ import { APPOINTMENT_STATUS, type CalendarAppointment } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Icon, Ltr, useToast } from '@web/components/ui';
+import { Button, Icon, Ltr, PersonName, useToast } from '@web/components/ui';
 import { useAppointmentStep } from '@web/features/appointments/queries';
 import { APPOINTMENT_STATUS_STYLES } from '@web/features/appointments/status';
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
@@ -95,7 +95,7 @@ export function TodayRibbon({ appointments, onOpen, canMark }: TodayRibbonProps)
                       {appointment.patientName}
                     </span>
                     <span className="block truncate text-[11px] opacity-80">
-                      {appointment.doctorName}
+                      <PersonName name={appointment.doctorName} />
                     </span>
                   </button>
 

@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 
 import { Logo } from '@web/components/brand/logo';
 import { formatDate } from '@web/lib/format';
+import { PersonName } from '@web/components/ui/person-name';
 
 /**
  * The letterhead at the top of every printed sheet: the mark, the clinic's own
@@ -19,7 +20,14 @@ export function PrintLetterhead({ clinic }: { clinic: Clinic | undefined }): JSX
       <div className="print-brand">
         <Logo size="md" className="print-logo" />
         <div>
-          <h1 className="print-clinic-name">{clinic?.name ?? ''}</h1>
+          {/*
+            The clinic's own name, in the reader's language — this sheet is
+            printed from the browser, unlike the PDFs the API renders, which
+            use the clinic's configured document language instead.
+          */}
+          <h1 className="print-clinic-name">
+            <PersonName name={clinic?.name} fallback="" />
+          </h1>
           {/*
             The number is its own run, not half of a joined string: joined with
             an Arabic address, the `+` in front of it is a neutral character

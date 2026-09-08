@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { moneySchema } from '@shared/schemas/money';
+import { moneySchema, wholeMoneySchema } from '@shared/schemas/money';
 import { paginationQuerySchema } from '@shared/schemas/common';
 import { lookupCodeSchema } from '@shared/schemas/lookups';
 
@@ -47,7 +47,7 @@ const catalogWritableFields = {
   code: z.string().trim().min(1).max(32),
   nameAr: z.string().trim().min(1).max(160),
   nameEn: z.string().trim().min(1).max(160),
-  defaultPrice: moneySchema,
+  defaultPrice: wholeMoneySchema,
   chartOutcome: lookupCodeSchema.nullish(),
   isActive: z.boolean(),
 };

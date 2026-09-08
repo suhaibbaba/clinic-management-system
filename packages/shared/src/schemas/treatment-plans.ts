@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { TREATMENT_PLAN_ITEM_STATUSES, TREATMENT_PLAN_STATUSES } from '@shared/enums';
 import { paginationQuerySchema } from '@shared/schemas/common';
-import { moneySchema } from '@shared/schemas/money';
+import { moneySchema, wholeMoneySchema } from '@shared/schemas/money';
 
 export const treatmentPlanItemSchema = z.object({
   id: z.uuid(),
@@ -34,7 +34,7 @@ export type TreatmentPlan = z.infer<typeof treatmentPlanSchema>;
 
 const planItemWritableFields = {
   procedureId: z.uuid(),
-  estimatedPrice: moneySchema,
+  estimatedPrice: wholeMoneySchema,
   sortOrder: z.number().int().min(0).max(999),
   notes: z.string().trim().max(1000).nullish(),
 };
@@ -42,7 +42,7 @@ const planItemWritableFields = {
 export const createTreatmentPlanItemSchema = z.object({
   ...planItemWritableFields,
   /** Falls back to the catalog price when omitted. */
-  estimatedPrice: moneySchema.optional(),
+  estimatedPrice: wholeMoneySchema.optional(),
   sortOrder: z.number().int().min(0).max(999).default(0),
 });
 export type CreateTreatmentPlanItemInput = z.infer<typeof createTreatmentPlanItemSchema>;
@@ -79,7 +79,7 @@ export const convertPlanItemSchema = z.object({
   visitId: z.uuid().nullish(),
   doctorId: z.uuid().optional(),
   /** Defaults to the item's estimated price. */
-  price: moneySchema.optional(),
+  price: wholeMoneySchema.optional(),
   performedAt: z.iso.datetime().optional(),
 });
 export type ConvertPlanItemInput = z.infer<typeof convertPlanItemSchema>;
