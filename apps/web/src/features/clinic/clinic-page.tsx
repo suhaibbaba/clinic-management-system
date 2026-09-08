@@ -9,7 +9,16 @@ import {
 import { useEffect, useRef, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Input, PageHeader, Select, useToast } from '@web/components/ui';
+import {
+  Button,
+  FormField,
+  Icon,
+  Input,
+  Ltr,
+  PageHeader,
+  Select,
+  useToast,
+} from '@web/components/ui';
 import { ScheduleEditor } from '@web/components/schedule-editor';
 import { useSession } from '@web/features/auth/session';
 import { useApiVersion, WEB_VERSION } from '@web/features/clinic/api-version';
@@ -114,6 +123,7 @@ export function ClinicPage(): JSX.Element {
                 placeholder={t('common.placeholders.phone')}
                 adornment="phone"
                 id="clinic-phone"
+                dir="ltr"
                 inputMode="tel"
                 value={phone}
                 disabled={!canEdit}
@@ -322,17 +332,17 @@ function AboutSection(): JSX.Element {
       <dl className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-4">
           <dt className="text-label text-ink-muted">{t('clinic.version')}</dt>
-          <dd dir="ltr" className="font-mono text-value text-ink">
+          <Ltr as="dd" className="font-mono text-value text-ink">
             v{WEB_VERSION}
-          </dd>
+          </Ltr>
         </div>
 
         {mismatched && (
           <div className="flex items-baseline justify-between gap-4">
             <dt className="text-label text-ink-muted">{t('clinic.apiVersion')}</dt>
-            <dd dir="ltr" className="font-mono text-value text-warning-700">
+            <Ltr as="dd" className="font-mono text-value text-warning-700">
               v{apiVersion}
-            </dd>
+            </Ltr>
           </div>
         )}
       </dl>

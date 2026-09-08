@@ -2,7 +2,7 @@ import { LOOKUP_LIST, type CalendarAppointment } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { EmptyState } from '@web/components/ui';
+import { EmptyState, Ltr } from '@web/components/ui';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { APPOINTMENT_STATUS_STYLES } from '@web/features/appointments/status';
 import {
@@ -96,13 +96,13 @@ export function WeekView({ date, appointments, onOpen, onPickDay }: WeekViewProp
                         style.block,
                       )}
                     >
-                      <span dir="ltr" className="block text-[11px] font-semibold tabular-nums">
+                      <Ltr className="text-[11px] font-semibold tabular-nums">
                         {toTimeLabel(minutesOf(appointment.startsAt))}
-                      </span>
-                      <span className="block truncate text-[11px] leading-tight">
+                      </Ltr>
+                      <span className="block truncate text-[11px] leading-snug">
                         {appointment.patientName}
                       </span>
-                      <span className="block truncate text-[10px] leading-tight opacity-80">
+                      <span className="block truncate text-[10px] leading-snug opacity-80">
                         {typeLabel(appointment.type)}
                       </span>
                     </button>

@@ -7,6 +7,7 @@ import {
   Button,
   EmptyState,
   Icon,
+  Ltr,
   PageHeader,
   RowAction,
   SearchField,
@@ -46,7 +47,7 @@ export function DoctorsPage(): JSX.Element {
   const columns = useMemo<Column<Doctor>[]>(() => {
     const base: Column<Doctor>[] = [
       { key: 'name', header: 'users.name', primary: true, render: (row) => row.user.name },
-      { key: 'phone', header: 'users.phone', render: (row) => row.user.phone },
+      { key: 'phone', header: 'users.phone', render: (row) => <Ltr>{row.user.phone}</Ltr> },
       {
         key: 'specialty',
         header: 'doctors.specialty',

@@ -14,6 +14,7 @@ import {
   EmptyState,
   EntityCard,
   Icon,
+  Ltr,
   SegmentedControl,
   Select,
   useToast,
@@ -265,17 +266,15 @@ export function TreatmentPlansTab({
                       className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-canvas px-3 py-2"
                     >
                       <span className="flex items-center gap-2 text-value text-ink">
-                        <span className="text-label text-ink-subtle" dir="ltr">
-                          {index + 1}
-                        </span>
+                        <Ltr className="text-label text-ink-subtle">{index + 1}</Ltr>
                         {catalogName(item.procedureId)}
                       </span>
 
                       <span className="flex flex-wrap items-center gap-2">
                         {showPrices && (
-                          <span className="text-value text-ink-muted" dir="ltr">
+                          <Ltr className="text-value text-ink-muted">
                             {item.estimatedPrice} {currency}
-                          </span>
+                          </Ltr>
                         )}
 
                         <Badge tone={itemTone(item.status)}>

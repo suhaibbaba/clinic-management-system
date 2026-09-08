@@ -2,7 +2,7 @@ import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { Avatar, EmptyState } from '@web/components/ui';
+import { Avatar, EmptyState, Ltr } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { AccountTab } from '@web/features/billing/account-tab';
 import { PatientBalanceCard } from '@web/features/billing/patient-balance-card';
@@ -89,9 +89,9 @@ export function PatientPage(): JSX.Element {
               */}
               <dl className="mt-0.5 flex flex-wrap items-center gap-x-2 text-label text-ink-muted">
                 <dt className="sr-only">{t('patients.fileNumber')}</dt>
-                <dd dir="ltr" className="tabular-nums">
+                <Ltr as="dd" className="tabular-nums">
                   {patient.data.fileNumber}
-                </dd>
+                </Ltr>
 
                 <span aria-hidden="true">·</span>
 
@@ -105,9 +105,9 @@ export function PatientPage(): JSX.Element {
                 <span aria-hidden="true">·</span>
 
                 <dt className="sr-only">{t('patients.phone')}</dt>
-                <dd dir="ltr" className="tabular-nums">
+                <Ltr as="dd" className="tabular-nums">
                   {patient.data.phone}
-                </dd>
+                </Ltr>
               </dl>
             </div>
           </div>
@@ -148,7 +148,10 @@ export function PatientPage(): JSX.Element {
             aria-controls={`panel-${tab.id}`}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              'shrink-0 cursor-pointer rounded-pill px-3.5 py-1.5 text-value font-medium',
+              // The same 44px touch target the shared `Tabs` strip carries;
+              // this one is hand-rolled because the panels are the file's own.
+              'inline-flex min-h-11 shrink-0 cursor-pointer items-center rounded-pill lg:min-h-0',
+              'px-3.5 py-1.5 text-value font-medium',
               'transition-[background-color,color,box-shadow,transform] duration-150 active:scale-95',
               activeTab === tab.id
                 ? 'bg-surface text-ink shadow-pill'

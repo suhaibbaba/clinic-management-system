@@ -80,6 +80,22 @@ function appVersion(): string {
   }
 }
 
+/** Same-origin `/api` in dev and in preview; nginx does it in production. */
+function apiProxy(): Record<
+  string,
+  { target: string; changeOrigin: boolean; rewrite: (path: string) => string }
+> {
+  return {
+    // Keeping the API same-origin is what lets the httpOnly refresh cookie
+    // work without CORS credentials.
+    '/api': {
+      target: process.env['API_PROXY_TARGET'] ?? 'http://localhost:3000',
+      changeOrigin: true,
+      rewrite: (path: string) => path.replace(/^\/api/, ''),
+    },
+  };
+}
+
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(appVersion()),
@@ -100,16 +116,19 @@ export default defineConfig({
     host: true,
     port: 5173,
     watch: { usePolling, interval: 300 },
-    proxy: {
-      // Same-origin API path in every environment: Vite proxies it in dev,
-      // nginx proxies it in production. Keeping it same-origin is what lets the
-      // httpOnly refresh cookie work without CORS credentials.
-      '/api': {
-        target: process.env['API_PROXY_TARGET'] ?? 'http://localhost:3000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
+    proxy: apiProxy(),
+  },
+
+  /*
+   * `vite preview` serves the built bundle, and the end-to-end smoke run in CI
+   * drives *that* rather than the dev server: a dev overlay hides exactly the
+   * failures the run is looking for, and what ships is the build. It needs the
+   * same same-origin `/api`, or every screen it opens is a login page.
+   */
+  preview: {
+    host: true,
+    port: 4173,
+    proxy: apiProxy(),
   },
   build: {
     outDir: 'dist',

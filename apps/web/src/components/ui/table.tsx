@@ -160,7 +160,12 @@ export function Table<TRow>({
                       <div key={column.key} className="contents">
                         <dt
                           className={cn(
-                            'py-2.5 text-start text-label text-ink-muted',
+                            // `pe-4`: the label's own end padding, which the
+                            // grid deliberately has no column gap for. Without
+                            // it a label wider than its 5.5rem minimum ran
+                            // straight into its value — "Requested slot" and
+                            // "08/09/2026 11:00" were printed as one word.
+                            'py-2.5 pe-4 text-start text-label text-ink-muted',
                             index > 0 && 'border-t border-line',
                           )}
                         >
@@ -180,7 +185,14 @@ export function Table<TRow>({
                   </dl>
 
                   {rowActions !== null && (
-                    <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-line pt-3">
+                    <div
+                      // Above the overlay, and clickable in its own right:
+                      // these are the row's own actions, not a way into it.
+                      className={cn(
+                        'relative z-10 mt-3 flex flex-wrap items-center justify-end gap-2',
+                        'border-t border-line pt-3',
+                      )}
+                    >
                       {rowActions}
                     </div>
                   )}
@@ -191,19 +203,32 @@ export function Table<TRow>({
                 'rounded-card bg-surface p-4 text-start shadow-card transition-shadow duration-150';
 
               return onRowClick === undefined ? (
-                <div key={rowKey(row)} className={cardClass}>
+                <div key={rowKey(row)} data-row className={cardClass}>
                   {body}
                 </div>
               ) : (
-                <button
-                  key={rowKey(row)}
-                  type="button"
-                  onClick={() => onRowClick(row)}
-                  {...(rowLabel && { 'aria-label': rowLabel(row) })}
-                  className={cn(cardClass, 'w-full cursor-pointer hover:shadow-float')}
-                >
+                /*
+                 * The whole card opens the row, and the way it does that is an
+                 * overlay button rather than a button wrapped around the card.
+                 *
+                 * A row with actions put a `<button>` inside a `<button>` —
+                 * invalid HTML, which React says out loud in the console, and
+                 * which browsers resolve by guessing: the suppliers list had
+                 * an "edit" that sometimes opened the supplier instead.
+                 *
+                 * The overlay is the standard answer. It carries the label and
+                 * the click; the content above it stays inert except for the
+                 * actions row, which lifts itself back out.
+                 */
+                <div key={rowKey(row)} data-row className={cn(cardClass, 'relative')}>
+                  <button
+                    type="button"
+                    onClick={() => onRowClick(row)}
+                    {...(rowLabel && { 'aria-label': rowLabel(row) })}
+                    className="absolute inset-0 z-0 cursor-pointer rounded-card"
+                  />
                   {body}
-                </button>
+                </div>
               );
             })}
         </div>
@@ -253,6 +278,7 @@ export function Table<TRow>({
               rows.map((row) => (
                 <tr
                   key={rowKey(row)}
+                  data-row
                   {...(onRowClick && {
                     onClick: () => onRowClick(row),
                     className: 'cursor-pointer transition-colors duration-150 hover:bg-row-hover',

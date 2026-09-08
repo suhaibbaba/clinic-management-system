@@ -2,6 +2,7 @@ import type { JSX } from 'react';
 
 import { formatMoney } from '@web/lib/format';
 import { cn } from '@web/lib/cn';
+import { Ltr } from '@web/components/ui/ltr';
 
 interface MoneyProps {
   readonly amount: string;
@@ -24,8 +25,7 @@ export function Money({ amount, currency, className, signed = false }: MoneyProp
   const zero = Number(amount) === 0;
 
   return (
-    <span
-      dir="ltr"
+    <Ltr
       className={cn(
         'inline-block tabular-nums',
         signed && !zero && (negative ? 'text-success-700' : 'text-danger-700'),
@@ -33,6 +33,6 @@ export function Money({ amount, currency, className, signed = false }: MoneyProp
       )}
     >
       {formatMoney(amount, currency)}
-    </span>
+    </Ltr>
   );
 }

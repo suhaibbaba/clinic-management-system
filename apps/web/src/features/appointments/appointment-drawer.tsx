@@ -3,7 +3,7 @@ import { useState, type JSX, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { Badge, Button, Drawer, Icon, Modal, Textarea, useToast } from '@web/components/ui';
+import { Badge, Button, Drawer, Icon, Ltr, Modal, Textarea, useToast } from '@web/components/ui';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { useSession } from '@web/features/auth/session';
 import {
@@ -194,10 +194,10 @@ export function AppointmentDrawer({
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-value">
             <Field label={t('appointments.date')}>{formatDate(appointment.startsAt)}</Field>
             <Field label={t('appointments.time')}>
-              <span dir="ltr" className="tabular-nums">
+              <Ltr className="tabular-nums">
                 {toTimeLabel(minutesOf(appointment.startsAt))} –{' '}
                 {toTimeLabel(minutesOf(appointment.endsAt))}
-              </span>
+              </Ltr>
             </Field>
             <Field label={t('appointments.doctor')}>{appointment.doctorName}</Field>
             <Field label={t('appointments.patient')}>
@@ -207,15 +207,11 @@ export function AppointmentDrawer({
                   glued together. */}
               <span className="flex flex-wrap items-baseline gap-2">
                 <span>{appointment.patientName}</span>
-                <span dir="ltr" className="tabular-nums text-ink-subtle">
-                  {appointment.patientFileNumber}
-                </span>
+                <Ltr className="tabular-nums text-ink-subtle">{appointment.patientFileNumber}</Ltr>
               </span>
             </Field>
             <Field label={t('patients.phone')}>
-              <span dir="ltr" className="tabular-nums">
-                {appointment.patientPhone}
-              </span>
+              <Ltr className="tabular-nums">{appointment.patientPhone}</Ltr>
             </Field>
             {appointment.reason && (
               <Field label={t('appointments.reason')}>{appointment.reason}</Field>

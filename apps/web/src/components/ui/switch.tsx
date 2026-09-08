@@ -30,7 +30,16 @@ export function Switch({
       className={cn(
         'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full',
         'transition-colors duration-150',
-        'disabled:cursor-not-allowed disabled:opacity-50',
+        /*
+         * The pill is 24px tall, which is the shape; the target is 44.
+         *
+         * `after` rather than padding, because padding would move the thumb's
+         * own `top-0.5 start-0.5` anchor and the track would grow with it. An
+         * invisible overlay costs nothing and is what the thumb is measured
+         * against on a phone.
+         */
+        'after:absolute after:inset-x-0 after:top-1/2 after:h-11 after:-translate-y-1/2',
+        'after:content-[""] lg:after:hidden',
         'disabled:cursor-not-allowed disabled:opacity-50',
         checked ? 'bg-primary-600' : 'bg-neutral-300',
       )}

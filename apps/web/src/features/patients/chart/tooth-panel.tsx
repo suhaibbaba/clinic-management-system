@@ -2,7 +2,7 @@ import type { Doctor, PerformedProcedure, ProcedureCatalogItem, UserRole } from 
 import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, Drawer, EmptyState, Icon } from '@web/components/ui';
+import { Badge, Button, Drawer, EmptyState, Icon, Ltr } from '@web/components/ui';
 import {
   AddProcedureForm,
   type NewProcedureInput,
@@ -83,9 +83,7 @@ export function ToothPanel({
       title={
         <span className="flex items-center gap-2">
           {t('chart.panel.title')}
-          <span dir="ltr" className="font-mono">
-            {tooth}
-          </span>
+          <Ltr className="font-mono">{tooth}</Ltr>
           {summary && <Badge tone="neutral">{states.info(summary.state).label}</Badge>}
         </span>
       }
@@ -101,12 +99,9 @@ export function ToothPanel({
         {summary && (
           <section className="rounded-card bg-canvas p-4 shadow-float">
             <div className="flex items-center gap-3">
-              <span
-                dir="ltr"
-                className="inline-flex size-12 shrink-0 items-center justify-center rounded-panel bg-surface font-mono text-lg font-semibold text-ink shadow-pill"
-              >
+              <Ltr className="inline-flex size-12 shrink-0 items-center justify-center rounded-panel bg-surface font-mono text-lg font-semibold text-ink shadow-pill">
                 {tooth}
-              </span>
+              </Ltr>
 
               <div className="min-w-0">
                 <p className="text-label text-ink-muted">{t('chart.panel.title')}</p>
@@ -253,7 +248,7 @@ function ProcedureRow({
       <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-label text-ink-muted">
         <div className="flex gap-1">
           <dt>{t('chart.panel.date')}:</dt>
-          <dd dir="ltr">{formatDate(procedure.performedAt)}</dd>
+          <Ltr as="dd">{formatDate(procedure.performedAt)}</Ltr>
         </div>
 
         {doctorName && (
@@ -267,14 +262,14 @@ function ProcedureRow({
         {showPrice && (
           <div className="flex gap-1">
             <dt>{t('chart.panel.price')}:</dt>
-            <dd dir="ltr">{procedure.price}</dd>
+            <Ltr as="dd">{procedure.price}</Ltr>
           </div>
         )}
 
         {showPrice && procedure.discount !== '0.00' && (
           <div className="flex gap-1">
             <dt>{t('chart.panel.discount')}:</dt>
-            <dd dir="ltr">{procedure.discount}</dd>
+            <Ltr as="dd">{procedure.discount}</Ltr>
           </div>
         )}
       </dl>

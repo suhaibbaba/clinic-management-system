@@ -81,6 +81,8 @@ packages/
 ### Testing
 - Backend: Jest. Minimum required coverage: balance computation, slot availability/conflicts, permission boundaries per role (see ROLES.md test matrix), lab-order state transitions, audit log writes.
 - Frontend: Vitest. Every role's sidebar is asserted as a whole list, not one label at a time — the failure that matters is an entry appearing for somebody it was never meant for, which a test of what *should* be there cannot see. Each route guard is asserted per role, and each retired address is asserted to land on its replacement.
+- **Direction and spacing are tested by looking.** `pnpm qa:screens` signs in as every role and screenshots every screen — drawers, modals and open menus included — at 390/768/1440 in both languages, and reports what a browser can measure that an eye cannot: horizontal overflow, tap targets under 44px, text clipped by its own box. The screen catalogue (`scripts/qa/screens.mjs`) is one list, shared with the Playwright smoke run (`pnpm test:e2e`) that CI executes on every pull request, so a screen added to the app is added to both at once. See `docs/visual-qa.md`.
+- What the sweep found once, a unit test keeps out: no unprefixed physical CSS anywhere (`direction.test.tsx`), no component pinned to `dir="rtl"`, and `<Ltr>` for every number, so a phone number or a date cannot drift back to the wrong edge of an Arabic card.
 
 ### Language
 - Code, comments, commits, API: English. UI strings: Arabic via i18n. Commits: conventional commits (`feat(billing): ...`).

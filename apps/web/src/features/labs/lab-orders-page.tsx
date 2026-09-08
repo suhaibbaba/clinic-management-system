@@ -7,6 +7,7 @@ import {
   Button,
   EmptyState,
   Icon,
+  Ltr,
   PageHeader,
   SearchField,
   Select,
@@ -199,9 +200,7 @@ function Board({
               )}
             >
               <h2 className="truncate text-label font-semibold">{t(style.label)}</h2>
-              <span dir="ltr" className="text-label tabular-nums">
-                {column.length}
-              </span>
+              <Ltr className="text-label tabular-nums">{column.length}</Ltr>
             </header>
 
             {column.length === 0 ? (
@@ -265,18 +264,19 @@ function OrderCard({
     >
       {/* The card body is the button — the actions below it are their own
           buttons, and a button inside a button is not valid HTML. */}
-      <button type="button" onClick={onOpen} className="w-full cursor-pointer text-start">
+      <button
+        type="button"
+        onClick={onOpen}
+        data-lab-order={order.id}
+        className="w-full cursor-pointer text-start"
+      >
         <p className="truncate text-value font-medium text-ink">
           {order.workTypeName ?? t('labs.orders.custom')}
         </p>
         <p className="truncate text-label text-ink-muted">{order.patientName}</p>
 
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-label text-ink-muted">
-          {order.teeth.length > 0 && (
-            <span dir="ltr" className="tabular-nums">
-              {order.teeth.join(' · ')}
-            </span>
-          )}
+          {order.teeth.length > 0 && <Ltr className="tabular-nums">{order.teeth.join(' · ')}</Ltr>}
           <Money
             amount={order.price}
             currency={clinic.data?.currency}
@@ -285,15 +285,15 @@ function OrderCard({
         </div>
 
         {order.expectedAt && (
-          <p
-            dir="ltr"
+          <Ltr
+            as="p"
             className={cn(
               'mt-1 text-label tabular-nums',
               order.isOverdue ? 'text-danger-600' : 'text-ink-subtle',
             )}
           >
             {formatDate(order.expectedAt)}
-          </p>
+          </Ltr>
         )}
 
         {order.isOverdue && (

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import { cn } from '@web/lib/cn';
+import { Ltr } from '@web/components/ui/ltr';
 
 export interface TabDefinition<TId extends string> {
   readonly id: TId;
@@ -70,7 +71,7 @@ export function Tabs<TId extends string>({
             aria-controls={`panel-${tab.id}`}
             onClick={() => onChange(tab.id)}
             className={cn(
-              'inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-pill px-3.5 py-1.5',
+              'inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-pill px-3.5 py-1.5 lg:min-h-0',
               'text-value font-medium',
               'transition-[background-color,color,box-shadow,transform] duration-150 active:scale-95',
               selected
@@ -80,15 +81,14 @@ export function Tabs<TId extends string>({
           >
             {t(tab.label)}
             {tab.count !== undefined && tab.count > 0 && (
-              <span
-                dir="ltr"
+              <Ltr
                 className={cn(
                   'min-w-5 rounded-pill px-1.5 text-label font-semibold tabular-nums',
                   selected ? 'bg-inset text-ink-muted' : 'bg-surface text-ink-subtle',
                 )}
               >
                 {tab.count}
-              </span>
+              </Ltr>
             )}
           </button>
         );

@@ -81,3 +81,67 @@ describe('no component pins itself to Arabic', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+/**
+ * The other half of the same bug: a class that names a side.
+ *
+ * `pl-4`, `mr-2`, `text-left`, `border-r`, `rounded-l` and `left-0` are all
+ * correct in English and wrong in Arabic, and every one of them is invisible
+ * in review — the screen it breaks is the one the reviewer is not looking at.
+ * Tailwind's logical equivalents (`ps`/`pe`, `ms`/`me`, `text-start`/`end`,
+ * `border-s`/`e`, `rounded-s`/`e`, `start`/`end`) mirror themselves, so the
+ * rule is simply that the physical ones do not appear.
+ *
+ * Two exceptions, both deliberate and both commented at their call site:
+ * centring something with `left-1/2` + `-translate-x-1/2` (the logical
+ * property does not mirror the transform, so the logical version is the buggy
+ * one), and a `rtl:`/`ltr:`-prefixed pair, which states both directions
+ * explicitly and is the only way to lay out a `dir="ltr"` field inside an
+ * Arabic form.
+ */
+describe('no physical direction in the styles', () => {
+  const SRC = join(__dirname, '..', '..');
+
+  /** Physical utilities, unprefixed — a `rtl:`/`ltr:` pair is allowed. */
+  const PHYSICAL =
+    /(?<![\w:-])(?:pl|pr|ml|mr)-[\w./[\]-]+|(?<![\w:-])text-(?:left|right)\b|(?<![\w:-])border-[lr](?:-[\w[\]-]+)?\b|(?<![\w:-])rounded-[lr](?:-[\w[\]-]+)?\b|(?<![\w:-])-?(?:left|right)-[\w./[\]-]+/g;
+
+  /**
+   * Centring a fixed element is the one place a physical offset is correct:
+   * `-translate-x-1/2` is not mirrored, so `start-1/2` would push the dialog
+   * off centre in Arabic rather than centring it.
+   */
+  const ALLOWED = new Map<string, RegExp>([
+    ['modal.tsx', /left-1\/2/],
+    ['tooth-chart.tsx', /left-1\/2/],
+  ]);
+
+  function sources(directory: string): string[] {
+    return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+      const path = join(directory, entry.name);
+
+      if (entry.isDirectory()) {
+        return sources(path);
+      }
+
+      return entry.name.endsWith('.tsx') && !entry.name.endsWith('.test.tsx') ? [path] : [];
+    });
+  }
+
+  const withoutComments = (source: string): string =>
+    source.replaceAll(/\/\*[\s\S]*?\*\//g, '').replaceAll(/\/\/.*/g, '');
+
+  it('uses logical properties everywhere', () => {
+    const offenders = sources(SRC).flatMap((path) => {
+      const file = path.split('/').at(-1) ?? '';
+      const allowed = ALLOWED.get(file);
+      const found = [...withoutComments(readFileSync(path, 'utf8')).matchAll(PHYSICAL)]
+        .map((match) => match[0])
+        .filter((utility) => !(allowed && allowed.test(utility)));
+
+      return found.length > 0 ? [`${file}: ${[...new Set(found)].join(', ')}`] : [];
+    });
+
+    expect(offenders).toEqual([]);
+  });
+});

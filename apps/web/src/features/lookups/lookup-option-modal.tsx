@@ -2,7 +2,7 @@ import { DEFAULT_LOOKUP_COLOUR, type LookupListKey, type LookupOption } from '@c
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, FormField, Input, Modal, useToast } from '@web/components/ui';
+import { Badge, Button, FormField, Input, Ltr, Modal, useToast } from '@web/components/ui';
 import { useCreateLookupOption, useUpdateLookupOption } from '@web/features/lookups/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -142,9 +142,7 @@ export function LookupOptionModal({
                 onChange={(event) => setColor(event.target.value)}
                 className="size-10 cursor-pointer rounded-control border border-line bg-surface p-1"
               />
-              <span dir="ltr" className="font-mono text-label text-ink-muted">
-                {color}
-              </span>
+              <Ltr className="font-mono text-label text-ink-muted">{color}</Ltr>
             </span>
           </FormField>
         )}

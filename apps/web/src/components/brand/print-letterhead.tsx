@@ -20,8 +20,21 @@ export function PrintLetterhead({ clinic }: { clinic: Clinic | undefined }): JSX
         <Logo size="md" className="print-logo" />
         <div>
           <h1 className="print-clinic-name">{clinic?.name ?? ''}</h1>
+          {/*
+            The number is its own run, not half of a joined string: joined with
+            an Arabic address, the `+` in front of it is a neutral character
+            and the bidi algorithm gives it to the Arabic, so every printed
+            receipt and treatment plan carried the clinic's number as
+            `963110000000+`.
+          */}
           <p className="print-clinic-contact">
-            {[clinic?.phone, clinic?.address].filter(Boolean).join(' · ')}
+            {clinic?.phone && (
+              <span dir="ltr" className="inline-block w-fit whitespace-nowrap">
+                {clinic.phone}
+              </span>
+            )}
+            {clinic?.phone && clinic?.address && <span aria-hidden> · </span>}
+            {clinic?.address}
           </p>
         </div>
       </div>

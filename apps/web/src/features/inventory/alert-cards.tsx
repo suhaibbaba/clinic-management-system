@@ -2,7 +2,7 @@ import type { InventoryItemRow } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Card, Icon } from '@web/components/ui';
+import { Badge, Card, Icon, Ltr } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { seesInventory } from '@web/features/inventory/permissions';
 import { useInventoryAlerts } from '@web/features/inventory/queries';
@@ -46,7 +46,13 @@ export function InventoryAlertCards({
   }
 
   return (
-    <div className="grid gap-3 md:grid-cols-2">
+    /*
+      Side by side only once there is room for it. At 768px the two cards were
+      halves of a 518px column: an item's name had about 60px to live in and
+      every one of them was ellipsed to three letters, which is an alert
+      nobody can act on.
+    */
+    <div className="grid gap-3 lg:grid-cols-2">
       {low.length > 0 && (
         <AlertCard
           tone="danger"
@@ -121,12 +127,12 @@ function AlertCard({
                 <button
                   type="button"
                   onClick={() => onSelectItem(item.id)}
-                  className="flex w-full cursor-pointer items-baseline justify-between gap-2 rounded-control px-1 py-0.5 text-start transition-colors duration-150 hover:bg-row-hover"
+                  className="flex min-h-11 w-full cursor-pointer items-baseline justify-between gap-2 rounded-control px-1 py-0.5 text-start transition-colors duration-150 hover:bg-row-hover lg:min-h-0"
                 >
                   <span className="truncate text-label text-ink">{item.nameAr}</span>
-                  <span dir="ltr" className="shrink-0 text-label tabular-nums text-ink-muted">
+                  <Ltr className="shrink-0 text-label tabular-nums text-ink-muted">
                     {describe(item)}
-                  </span>
+                  </Ltr>
                 </button>
               </li>
             ))}

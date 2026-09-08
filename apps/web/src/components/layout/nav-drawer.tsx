@@ -61,7 +61,7 @@ export function NavDrawer({
             <DialogPrimitive.Close
               aria-label={closeLabel}
               className={cn(
-                'inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-pill',
+                'inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-pill',
                 'text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink',
               )}
             >

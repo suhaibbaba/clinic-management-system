@@ -9,6 +9,7 @@ import {
   DateRangePicker,
   EmptyState,
   Icon,
+  Ltr,
   Table,
   type Column,
   useToast,
@@ -75,7 +76,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
     {
       key: 'date',
       header: 'billing.columns.date',
-      render: (entry) => <span dir="ltr">{formatDate(entry.occurredAt)}</span>,
+      render: (entry) => <Ltr>{formatDate(entry.occurredAt)}</Ltr>,
     },
     {
       key: 'description',
@@ -87,9 +88,9 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
           {entry.description || t(`billing.kinds.${entry.kind}`)}
           {entry.isReversal && <Badge tone="warning">{t('billing.reversal')}</Badge>}
           {entry.receiptNumber !== null && (
-            <span className="text-label text-ink-muted" dir="ltr">
+            <Ltr className="text-label text-ink-muted">
               #{String(entry.receiptNumber).padStart(6, '0')}
-            </span>
+            </Ltr>
           )}
         </span>
       ),
@@ -161,8 +162,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
           />
           {balance.data?.lastPaymentAt && (
             <span className="mt-1 block text-label text-ink-muted">
-              {t('billing.lastPayment')}:{' '}
-              <span dir="ltr">{formatDate(balance.data.lastPaymentAt)}</span>
+              {t('billing.lastPayment')}: <Ltr>{formatDate(balance.data.lastPaymentAt)}</Ltr>
             </span>
           )}
         </div>

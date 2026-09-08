@@ -3,7 +3,7 @@ import { useRef, useState, type ChangeEvent, type JSX, type ReactNode } from 're
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { Badge, Button, Drawer, Icon, Modal, Textarea, useToast } from '@web/components/ui';
+import { Badge, Button, Drawer, Icon, Ltr, Modal, Textarea, useToast } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
 import { useClinic } from '@web/features/clinic/queries';
@@ -117,18 +117,14 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
             <Field label={t('labs.order.patient')}>
               <span className="flex flex-wrap items-baseline gap-2">
                 <span>{order.patientName}</span>
-                <span dir="ltr" className="tabular-nums text-ink-subtle">
-                  {order.patientFileNumber}
-                </span>
+                <Ltr className="tabular-nums text-ink-subtle">{order.patientFileNumber}</Ltr>
               </span>
             </Field>
             <Field label={t('labs.order.doctor')}>{order.doctorName}</Field>
 
             {order.teeth.length > 0 && (
               <Field label={t('labs.order.teeth')}>
-                <span dir="ltr" className="tabular-nums">
-                  {order.teeth.join(' · ')}
-                </span>
+                <Ltr className="tabular-nums">{order.teeth.join(' · ')}</Ltr>
               </Field>
             )}
 
@@ -141,9 +137,9 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
 
             <Field label={t('labs.order.expected')}>
               {order.expectedAt ? (
-                <span dir="ltr" className={order.isOverdue ? 'text-danger-600' : undefined}>
+                <Ltr className={order.isOverdue ? 'text-danger-600' : undefined}>
                   {formatDate(order.expectedAt)}
-                </span>
+                </Ltr>
               ) : (
                 '—'
               )}
@@ -276,9 +272,7 @@ function OrderHistory({
         {stamps.map((stamp) => (
           <li key={stamp.key} className="flex items-baseline justify-between gap-3 text-label">
             <span className="text-ink">{t(stamp.label)}</span>
-            <span dir="ltr" className="tabular-nums text-ink-muted">
-              {formatDateTime(stamp.at)}
-            </span>
+            <Ltr className="tabular-nums text-ink-muted">{formatDateTime(stamp.at)}</Ltr>
           </li>
         ))}
       </ol>
@@ -293,9 +287,7 @@ function OrderHistory({
             {audited.map((entry) => (
               <li key={entry.id} className="flex items-baseline justify-between gap-3 text-label">
                 <span className="text-ink">{t(`audit.actions.${entry.action}`)}</span>
-                <span dir="ltr" className="tabular-nums text-ink-muted">
-                  {formatDateTime(entry.createdAt)}
-                </span>
+                <Ltr className="tabular-nums text-ink-muted">{formatDateTime(entry.createdAt)}</Ltr>
               </li>
             ))}
           </ol>

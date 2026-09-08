@@ -7,6 +7,7 @@ import {
   Badge,
   EmptyState,
   Icon,
+  Ltr,
   PageHeader,
   StatCard,
   Table,
@@ -68,7 +69,15 @@ export function DashboardPage(): JSX.Element {
         four-column `StatRow`: there are three cards here at most, and a
         four-column grid would leave a hole where the fourth is not.
       */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+      {/*
+        Two across until there is room for three.
+
+        At `sm` the third column made each card 141px wide with 40px of its own
+        padding — 101px for a figure that is 128px, and for a label that wraps
+        to two lines and then overflows anyway. Three of these belong on a
+        laptop, not on a tablet held in one hand at the desk.
+      */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         <KpiLink to="/appointments">
           <StatCard
             icon="calendar"
@@ -169,9 +178,7 @@ function TodaySchedule({
       key: 'time',
       header: 'dashboard.schedule.time',
       render: (row) => (
-        <span dir="ltr" className="font-semibold tabular-nums">
-          {toTimeLabel(minutesOf(row.startsAt))}
-        </span>
+        <Ltr className="font-semibold tabular-nums">{toTimeLabel(minutesOf(row.startsAt))}</Ltr>
       ),
     },
     {
@@ -214,7 +221,9 @@ function TodaySchedule({
 
         <Link
           to="/appointments"
-          className="inline-flex items-center gap-1 text-label font-medium text-primary-600 transition-colors duration-150 hover:text-primary-700"
+          // A 20px-tall link is a 20px-tall target: the same blue text inside
+          // a 44px box on touch, unchanged on a laptop.
+          className="inline-flex min-h-11 items-center gap-1 text-label font-medium text-primary-600 transition-colors duration-150 hover:text-primary-700 lg:min-h-0"
         >
           {t('dashboard.schedule.seeAll')}
           <Icon name="chevron-end" className="size-4" />

@@ -190,14 +190,30 @@
   --tracking-body: -0.01em;
   --tracking-title: -0.03em;
 
+  /*
+   * Line heights are set for Arabic, and Arabic needs more room than Latin at
+   * the same point size.
+   *
+   * Plex Arabic is drawn with tall ascenders and deep descenders — the tail of
+   * a ج, the bowl of a ن, the hamza riding above an أ — and the marks sit
+   * outside the Latin x-height box the numbers here were first tuned against.
+   * At 1.15rem on 13px the descenders of one line were touching the tops of
+   * the next; a `truncate` or an `overflow-hidden` anywhere near that clipped
+   * them outright.
+   *
+   * So: ~1.6 through body text and captions, which is the range Arabic
+   * typography asks for, and ~1.3 on the display sizes where the same ratio
+   * would leave a heading floating in its own white space.
+   */
   --text-label: 0.8125rem; /* 13px — table headers, captions, meta */
-  --text-label--line-height: 1.15rem;
+  --text-label--line-height: 1.25rem; /* 1.54 */
   --text-value: 0.9375rem; /* 15px — body and table cells */
-  --text-value--line-height: 1.4rem;
+  --text-value--line-height: 1.5rem; /* 1.6 */
   --text-title: 2.125rem; /* 34px — the page title */
-  --text-title--line-height: 2.5rem;
+  --text-title--line-height: 2.75rem; /* 1.29 */
   --text-kpi: 2rem; /* 32px — the number on a stat card */
-  --text-kpi--line-height: 2.25rem;
+  --text-kpi--line-height: 2.5rem; /* 1.25 — Latin digits, but a currency
+                                      code rides along with them */
 
   /*
    * The size every focusable field renders at.
@@ -208,7 +224,7 @@
    * build if any field drops under it.
    */
   --text-field: 1rem; /* 16px — never lower */
-  --text-field--line-height: 1.5rem;
+  --text-field--line-height: 1.625rem; /* 1.63 */
 
   /* One duration for every colour, shadow and transform change. */
   --animate-menu-in: menu-in 150ms ease-out;

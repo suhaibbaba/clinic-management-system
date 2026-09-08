@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 
 import { cn } from '@web/lib/cn';
+import { Ltr } from '@web/components/ui/ltr';
 
 export interface SegmentOption<TValue extends string> {
   readonly value: TValue;
@@ -59,7 +60,7 @@ export function SegmentedControl<TValue extends string>({
             aria-checked={isSelected}
             onClick={() => onChange(option.value)}
             className={cn(
-              'inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-[8px] px-3.5',
+              'inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-[8px] px-3.5 lg:h-8 lg:min-h-0',
               'text-label transition-[background-color,color,box-shadow] duration-150',
               isSelected
                 ? 'bg-surface font-semibold text-ink shadow-pill'
@@ -68,15 +69,14 @@ export function SegmentedControl<TValue extends string>({
           >
             {option.label}
             {option.count !== undefined && (
-              <span
+              <Ltr
                 className={cn(
                   'text-label tabular-nums',
                   isSelected ? 'text-ink-muted' : 'text-ink-subtle',
                 )}
-                dir="ltr"
               >
                 {option.count}
-              </span>
+              </Ltr>
             )}
           </button>
         );

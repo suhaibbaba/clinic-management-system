@@ -18,7 +18,7 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps): JSX.E
           34px is a desktop title. At 390px it eats a third of the screen
           before any content, so it steps down to 26px and back up at `sm`.
         */}
-        <h1 className="text-[1.625rem] font-bold leading-tight tracking-[-0.03em] text-ink sm:text-title">
+        <h1 className="text-[1.625rem] font-bold leading-[1.3] tracking-[-0.03em] text-ink sm:text-title">
           {t(title)}
         </h1>
         {subtitle !== undefined && (

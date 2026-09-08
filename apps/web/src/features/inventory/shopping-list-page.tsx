@@ -7,6 +7,7 @@ import {
   Button,
   EmptyState,
   Icon,
+  Ltr,
   PageHeader,
   Table,
   type Column,
@@ -58,18 +59,14 @@ export function ShoppingListPage(): JSX.Element {
       key: 'current',
       header: 'inventory.shoppingList.current',
       align: 'numeric',
-      render: (row) => (
-        <span dir="ltr" className="text-danger-600">
-          {row.quantity}
-        </span>
-      ),
+      render: (row) => <Ltr className="text-danger-600">{row.quantity}</Ltr>,
     },
     {
       key: 'minimum',
       header: 'inventory.minimum',
       align: 'numeric',
       hideOnMobile: true,
-      render: (row) => <span dir="ltr">{row.minQuantity}</span>,
+      render: (row) => <Ltr>{row.minQuantity}</Ltr>,
     },
     {
       key: 'suggested',
@@ -77,9 +74,7 @@ export function ShoppingListPage(): JSX.Element {
       align: 'numeric',
       render: (row) => (
         <span className="flex items-baseline justify-end gap-1.5">
-          <span dir="ltr" className="font-semibold text-ink">
-            {row.suggested}
-          </span>
+          <Ltr className="font-semibold text-ink">{row.suggested}</Ltr>
           <span className="text-label text-ink-muted">{unitLabel(row.unit)}</span>
         </span>
       ),
@@ -125,8 +120,7 @@ export function ShoppingListPage(): JSX.Element {
 
       {list.data && list.data.lines.length > 0 && (
         <p className="text-label text-ink-muted">
-          {t('inventory.shoppingList.note')} —{' '}
-          <span dir="ltr">{formatDate(list.data.generatedAt)}</span>
+          {t('inventory.shoppingList.note')} — <Ltr>{formatDate(list.data.generatedAt)}</Ltr>
         </p>
       )}
     </div>

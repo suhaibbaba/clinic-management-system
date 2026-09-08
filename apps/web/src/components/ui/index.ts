@@ -19,6 +19,7 @@ export { EntityCard, EntityGrid, type EntityCardMeta } from '@web/components/ui/
 export { FormField } from '@web/components/ui/form-field';
 export { Icon, type IconName } from '@web/components/ui/icon';
 export { Input } from '@web/components/ui/input';
+export { Ltr } from '@web/components/ui/ltr';
 export { Modal } from '@web/components/ui/modal';
 export { PageHeader } from '@web/components/ui/page-header';
 export { ProgressBar, type ProgressTone } from '@web/components/ui/progress-bar';

@@ -2,6 +2,7 @@ import type { JSX, ReactNode } from 'react';
 
 import { Icon, type IconName } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
+import { Ltr } from '@web/components/ui/ltr';
 
 export type StatTone = 'primary' | 'success' | 'warning' | 'danger' | 'neutral';
 export type DeltaDirection = 'up' | 'down';
@@ -70,9 +71,20 @@ export function StatCard({
         <span className="text-label font-medium text-ink-muted">{label}</span>
       </div>
 
-      <p className="mt-4 text-kpi font-semibold tabular-nums text-ink" dir="ltr">
+      {/*
+        The figure steps down until there is room for it.
+
+        `200.00 USD` at 32px is 170px wide and never breaks — an amount is one
+        word. Two cards across a phone leave about 133px of card, and at 32px
+        the figure either wrapped — currency stranded on a second line — or,
+        once it stopped wrapping, pushed the whole page sideways. 20px holds a
+        five-figure balance with its currency in that space; the full size
+        arrives at `lg`, where a card is 236px wide. It is still the largest
+        thing on the card, which is what the size was for.
+      */}
+      <Ltr as="p" className="mt-4 text-[1.25rem] font-semibold text-ink lg:text-kpi">
         {value}
-      </p>
+      </Ltr>
 
       {(caption !== undefined || delta !== undefined) && (
         <div className="mt-1 flex flex-wrap items-center gap-x-2">
@@ -91,7 +103,7 @@ export function StatCard({
             </span>
           )}
           {caption !== undefined && (
-            <span className="min-w-0 truncate text-label text-ink-subtle">{caption}</span>
+            <span className="min-w-0 line-clamp-2 text-label text-ink-subtle">{caption}</span>
           )}
         </div>
       )}

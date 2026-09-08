@@ -257,6 +257,31 @@ const PATIENTS: readonly PatientSeed[] = [
     currentMedications: [],
     isPregnant: false,
   },
+  /*
+   * The long one, on purpose.
+   *
+   * Every card, table cell, drawer heading and breadcrumb in this app is a box
+   * with a name in it, and the way they break is a name longer than the box —
+   * which in Arabic is common: four given names and a compound family name is
+   * an ordinary way to be registered. Without one in the seed, truncation is
+   * only ever tested against names that happen to fit, and the first real
+   * patient of this shape is the one who finds the overflow.
+   *
+   * The address is long for the same reason, and both are read by the visual
+   * QA sweep (`pnpm qa:screens`), which screenshots this file deliberately.
+   */
+  {
+    fileNumber: '00011',
+    fullName: 'عبد الرحمن بن محمد بن عبد الله الشيخ الحموي الطرابلسي',
+    phone: '+963931000011',
+    dateOfBirth: '1962-01-19',
+    gender: GENDER.MALE,
+    address: 'حي الشيخ سعد، خلف مدرسة الشهيد أحمد الحمصي، بناء الورود، الطابق الرابع، دمشق',
+    allergies: ['اليود المستخدم في التصوير الظليل'],
+    chronicConditions: ['داء السكري من النمط الثاني'],
+    currentMedications: ['ميتفورمين ٨٥٠ ملغ مرتين يومياً'],
+    isPregnant: null,
+  },
 ];
 
 /** Days ago, so the seeded timeline is always recent relative to today. */
@@ -269,7 +294,7 @@ function toothMark(tooth: number, surfaces: ToothLocation['surfaces']): ToothLoc
 }
 
 /**
- * Patient-module seed data: a dental catalog, ten patients with histories, and
+ * Patient-module seed data: a dental catalog, eleven patients with histories, and
  * enough visits, procedures, FDI chart marks and one treatment plan that every
  * endpoint in the module returns something.
  *

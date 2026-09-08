@@ -119,16 +119,28 @@ export function TimePicker({
             onChange={(event) => commit(event.target.value)}
             onClick={(event) => event.stopPropagation()}
             className={cn(
-              // `dir="ltr"` on the field flips what `ps`/`pe` mean relative
-              // to the page, so these are physical on purpose: the icon is
-              // pinned right and the text is padded away from it, in both
-              // page directions.
-              'block h-10 w-full rounded-control border bg-surface pl-3.5 pr-10',
-              'text-left text-field text-ink tabular-nums placeholder:text-ink-subtle',
+              // The value is Latin — `08/09/2026`, `14:30` — so the field is
+              // `dir="ltr"` and keeps its digits and separators in order. Its
+              // *alignment*, though, belongs to the page: aligned by the
+              // element's own direction it sat on the left of an Arabic form
+              // while every other field's value sat on the right, and a column
+              // of fields with one of them wandering off is the thing people
+              // report as "the date looks broken".
+              'block h-11 w-full rounded-control border bg-surface lg:h-10',
+              // Physical rather than logical, and deliberately so: the field
+              // itself is `dir="ltr"`, so `ps`/`pe` on it would resolve
+              // against *its* direction and reserve the icon's room on the
+              // wrong side of an Arabic form. The `rtl:`/`ltr:` variants ask
+              // the page instead, which is what the icon's `end-0` follows.
+              'page-rtl:pl-11 page-rtl:pr-3.5 page-rtl:text-right',
+              'page-ltr:pl-3.5 page-ltr:pr-11 page-ltr:text-left',
+              'text-field text-ink tabular-nums placeholder:text-ink-subtle',
               'transition-[border-color,box-shadow] duration-150',
               'focus:border-primary-500',
               'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-subtle',
-              hasError ? 'border-danger-400' : 'border-line-strong',
+              // The same border as every other field in the form: this one
+              // used to be a step darker, which read as a different control.
+              hasError ? 'border-danger-500' : 'border-line',
             )}
           />
 
@@ -138,8 +150,11 @@ export function TimePicker({
             aria-label={t('common.openTimes')}
             onClick={() => setOpen(true)}
             className={cn(
-              'absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-ink-subtle',
-              'transition-colors duration-150 hover:text-ink',
+              // At the inline end, like the range picker's and like the
+              // chevron on every select — and a full 44px wide, because it is
+              // the only way into the calendar with a thumb.
+              'absolute inset-y-0 end-0 flex w-11 cursor-pointer items-center justify-center',
+              'text-ink-subtle transition-colors duration-150 hover:text-ink',
               'disabled:cursor-not-allowed',
             )}
           >

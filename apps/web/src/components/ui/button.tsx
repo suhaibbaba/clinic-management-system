@@ -33,10 +33,18 @@ const VARIANTS: Record<ButtonVariant, string> = {
   danger: 'bg-danger-600 text-ink-inverse hover:bg-danger-700 active:bg-danger-800',
 };
 
+/*
+ * Heights are the drawn heights; `min-h-11` below `sm` is the touch target.
+ *
+ * A 32px pill is right on a desktop and too small for a thumb — WCAG 2.5.8
+ * asks for 44. Rather than draw two sets of buttons, the phone keeps the same
+ * pill inside a taller box: the fill grows with it, the type does not move,
+ * and nothing about the design language changes.
+ */
 const SIZES: Record<ButtonSize, string> = {
   // 8px icon gap at both sizes — an icon and its label are one object.
-  sm: 'h-8 px-3.5 text-label gap-2',
-  md: 'h-10 px-5 text-value gap-2',
+  sm: 'min-h-11 px-3.5 text-label gap-2 lg:h-8 lg:min-h-0',
+  md: 'min-h-11 px-5 text-value gap-2 lg:h-10 lg:min-h-0',
 };
 
 export function Button({

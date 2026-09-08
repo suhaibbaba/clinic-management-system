@@ -8,6 +8,7 @@ import {
   Button,
   EmptyState,
   Icon,
+  Ltr,
   PageHeader,
   RowAction,
   SearchField,
@@ -133,11 +134,9 @@ export function PatientsPage(): JSX.Element {
         render: (row) => (
           <span className="flex items-center gap-3">
             <Avatar name={row.fullName} tintKey={row.id} />
-            <span className="flex min-w-0 flex-col leading-tight">
+            <span className="flex min-w-0 flex-col leading-snug">
               <span className="truncate font-semibold text-ink">{row.fullName}</span>
-              <span dir="ltr" className="text-label tabular-nums text-ink-subtle">
-                {row.fileNumber}
-              </span>
+              <Ltr className="text-label tabular-nums text-ink-subtle">{row.fileNumber}</Ltr>
             </span>
           </span>
         ),
@@ -145,11 +144,7 @@ export function PatientsPage(): JSX.Element {
       {
         key: 'phone',
         header: 'patients.phone',
-        render: (row) => (
-          <span dir="ltr" className="tabular-nums">
-            {row.phone}
-          </span>
-        ),
+        render: (row) => <Ltr className="tabular-nums">{row.phone}</Ltr>,
       },
       {
         key: 'age',

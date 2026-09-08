@@ -41,7 +41,14 @@ function handlers(role: UserRole) {
     'GET /labs': { status: 200, body: paginated([]) },
     'GET /lab-orders': { status: 200, body: paginated([]) },
     'GET /inventory/items': { status: 200, body: paginated([]) },
-    'GET /inventory/alerts': { status: 200, body: { lowStock: [], expiring: [], expired: [] } },
+    // The real shape (inventoryAlertsSchema): `low`, not `lowStock`, and the
+    // warning window. With the wrong key the alert cards read `low.length` off
+    // `undefined` and threw — a crash the suite reported as an unhandled error
+    // beside 261 passing tests, which is how it survived.
+    'GET /inventory/alerts': {
+      status: 200,
+      body: { expiryWarningDays: 30, low: [], expiring: [], expired: [] },
+    },
     'GET /suppliers': { status: 200, body: paginated([]) },
   } as Record<string, MockResponse>;
 }
