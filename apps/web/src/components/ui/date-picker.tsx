@@ -6,7 +6,7 @@ import { Button } from '@web/components/ui/button';
 import { Calendar, dateLocale } from '@web/components/ui/calendar';
 import { Icon } from '@web/components/ui/icon';
 import { openOnArrowDown, usePickerOpen } from '@web/components/ui/picker-open';
-import { PopoverSheet } from '@web/components/ui/popover-sheet';
+import { Popover } from '@web/components/ui/popover';
 import { cn } from '@web/lib/cn';
 
 /** The wire format everywhere: what the API takes and returns. */
@@ -95,7 +95,7 @@ export function DatePicker({
   };
 
   return (
-    <PopoverSheet
+    <Popover
       open={picker.open}
       onOpenChange={picker.onOpenChange}
       focusOnOpen={picker.focusOnOpen}
@@ -208,6 +208,6 @@ export function DatePicker({
       <p className="sr-only">
         {selected ? format(selected, 'PPP', { locale: dateLocale(i18n.language) }) : ''}
       </p>
-    </PopoverSheet>
+    </Popover>
   );
 }

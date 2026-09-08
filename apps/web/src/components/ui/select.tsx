@@ -85,7 +85,7 @@ export function Select({
    * Radix Dialog makes the body inert while it is open, so a listbox portalled
    * to `document.body` from inside one renders perfectly and ignores every
    * click. Portalling into the dialog's own content keeps it interactive, and
-   * is a no-op everywhere else — the same reason `PopoverSheet` does it.
+   * is a no-op everywhere else — the same reason `Popover` does it.
    */
   const dialogLayer = useDialogLayer();
   /*

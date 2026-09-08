@@ -21,7 +21,7 @@ export function openOnArrowDown(open: () => void) {
 export interface PickerOpener {
   readonly open: boolean;
   readonly onOpenChange: (next: boolean) => void;
-  /** True when the popover should take focus — see `PopoverSheet`. */
+  /** True when the popover should take focus — see `Popover`. */
   readonly focusOnOpen: boolean;
   /**
    * Spread onto anything inside the anchor that should open the picker: the
@@ -44,7 +44,7 @@ export interface PickerOpener {
  * Click opens a picker; clicking again closes it.
  *
  * The second half is why this is a hook rather than `setOpen(true)`. The field
- * *anchors* the popover rather than triggering it (see `PopoverSheet`), and
+ * *anchors* the popover rather than triggering it (see `Popover`), and
  * Radix treats an anchor as outside the layer: the pointer going down on it
  * dismisses an open popover before the click ever lands, so a plain
  * `onClick={() => setOpen(true)}` reopens what the same gesture just closed and
