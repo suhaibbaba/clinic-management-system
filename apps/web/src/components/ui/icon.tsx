@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Check,
   ChevronDown,
+  ChevronUp,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
@@ -80,6 +81,7 @@ export type IconName =
   | 'calendar'
   | 'check'
   | 'chevron-down'
+  | 'chevron-up'
   | 'chevron-end'
   | 'chevron-start'
   | 'clipboard'
@@ -139,6 +141,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   calendar: CalendarDays,
   check: Check,
   'chevron-down': ChevronDown,
+  'chevron-up': ChevronUp,
   // Resolved per direction below — these are the LTR defaults.
   'chevron-end': ChevronRight,
   'chevron-start': ChevronLeft,

@@ -8,6 +8,7 @@ import ar from '@web/i18n/locales/ar.json';
 import { authTokens } from '@web/lib/auth-tokens';
 import { makeProfile, makeUser, paginated } from '@test/helpers/fixtures';
 import { mockApi, renderWithProviders } from '@test/helpers/render';
+import { choose } from '@test/select';
 
 const admin = makeProfile();
 
@@ -71,10 +72,7 @@ describe('Users management', () => {
     await userEvent.type(within(dialog).getByLabelText(ar.users.nameAr), created.name.ar);
     await userEvent.type(within(dialog).getByLabelText(ar.users.nameEn), created.name.en);
     await userEvent.type(within(dialog).getByLabelText(ar.users.phone), created.phone);
-    await userEvent.selectOptions(
-      within(dialog).getByLabelText(ar.users.role),
-      USER_ROLE.RECEPTIONIST,
-    );
+    await choose(within(dialog).getByLabelText(ar.users.role), ar.roles.receptionist);
     await userEvent.type(within(dialog).getByLabelText(ar.users.password), 'NewUserPass123!');
     await userEvent.click(within(dialog).getByRole('button', { name: ar.common.save }));
 
@@ -198,7 +196,7 @@ describe('Users management', () => {
     await userEvent.type(within(dialog).getByLabelText(ar.users.nameAr), 'اسم مكرر');
     await userEvent.type(within(dialog).getByLabelText(ar.users.nameEn), 'Duplicate name');
     await userEvent.type(within(dialog).getByLabelText(ar.users.phone), '+963100000002');
-    await userEvent.selectOptions(within(dialog).getByLabelText(ar.users.role), USER_ROLE.DOCTOR);
+    await choose(within(dialog).getByLabelText(ar.users.role), ar.roles.doctor);
     await userEvent.type(within(dialog).getByLabelText(ar.users.password), 'SomePassword123!');
     await userEvent.click(within(dialog).getByRole('button', { name: ar.common.save }));
 

@@ -177,13 +177,21 @@ export function VisitFormModal({
     >
       <form id="visit-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
         <FormField label="visits.doctor" htmlFor="visit-doctor" error={errors.doctorId}>
-          <Select
-            id="visit-doctor"
-            options={doctors.map((doctor) => ({
-              value: doctor.id,
-              label: doctorName(doctor.user.name),
-            }))}
-            {...register('doctorId')}
+          <Controller
+            name="doctorId"
+            control={control}
+            render={({ field }) => (
+              <Select
+                id="visit-doctor"
+                options={doctors.map((doctor) => ({
+                  value: doctor.id,
+                  label: doctorName(doctor.user.name),
+                }))}
+                value={field.value ?? ''}
+                onBlur={field.onBlur}
+                onChange={(event) => field.onChange(event.target.value)}
+              />
+            )}
           />
         </FormField>
 

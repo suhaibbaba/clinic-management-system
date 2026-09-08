@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createPaymentSchema, LOOKUP_LIST, type CreatePaymentInput } from '@clinic/shared';
 import { useEffect, type JSX } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -51,6 +51,7 @@ export function PaymentModal({
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<CreatePaymentInput>({ resolver: zodResolver(createPaymentSchema) });
 
@@ -112,11 +113,19 @@ export function PaymentModal({
         </FormField>
 
         <FormField label="billing.method" htmlFor="payment-method" error={errors.method}>
-          <Select
-            placeholder={t('common.placeholders.selectMethod')}
-            id="payment-method"
-            options={methods}
-            {...register('method')}
+          <Controller
+            name="method"
+            control={control}
+            render={({ field }) => (
+              <Select
+                placeholder={t('common.placeholders.selectMethod')}
+                id="payment-method"
+                options={methods}
+                value={field.value ?? ''}
+                onBlur={field.onBlur}
+                onChange={(event) => field.onChange(event.target.value)}
+              />
+            )}
           />
         </FormField>
 

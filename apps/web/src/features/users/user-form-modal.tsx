@@ -8,7 +8,7 @@ import {
   type User,
 } from '@clinic/shared';
 import { useEffect, type JSX } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import { Button, FormField, Icon, Input, Select, useToast } from '@web/components/ui';
@@ -36,6 +36,7 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     // Editing never touches the password, so the two modes validate differently.
@@ -168,12 +169,20 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
         </FormField>
 
         <FormField label="users.role" htmlFor="user-role" error={errors.role}>
-          <Select
-            id="user-role"
-            options={roleOptions}
-            placeholder={t('users.selectRole')}
-            hasError={errors.role !== undefined}
-            {...register('role')}
+          <Controller
+            name="role"
+            control={control}
+            render={({ field }) => (
+              <Select
+                id="user-role"
+                options={roleOptions}
+                placeholder={t('users.selectRole')}
+                hasError={errors.role !== undefined}
+                value={field.value ?? ''}
+                onBlur={field.onBlur}
+                onChange={(event) => field.onChange(event.target.value)}
+              />
+            )}
           />
         </FormField>
 
