@@ -39,15 +39,18 @@ import { cn } from '@web/lib/cn';
  * that the system did not ship with. A tab per list, the list itself under it,
  * and nothing else.
  *
- * Two rules the screen has to make visible, because the API enforces them and
- * a refusal the user could not have predicted is a bug in the screen:
+ * Every row is the clinic's: rename it, recolour it, reorder it, switch it off
+ * or delete it, the built-in ones included. The "أساسي" badge is the one thing
+ * left of the old restriction and it is now information rather than a refusal —
+ * it marks a row the application draws behaviour from, so the confirmation
+ * before deleting one says what that costs.
  *
- *  - **A built-in row cannot be removed or switched off.** Something in the
- *    application refers to it by code — the chart draws `missing` specially,
- *    the ledger already holds `cash` — so the delete and the toggle are not
- *    offered, and the row says why.
- *  - **Its name and colour are editable anyway.** "نقداً" may well be "خالص"
- *    in this clinic, and that is not a code change.
+ * The two ways to retire an option are deliberately different, and the wording
+ * has to keep them apart, because only one of them is reversible in the
+ * records: **switching off** takes an option out of every dropdown and leaves
+ * it resolving to its name, so last year's receipt still reads "نقداً";
+ * **deleting** takes the name with it, and a record holding the code falls back
+ * to showing the code.
  */
 export function LookupsPage(): JSX.Element {
   const { t } = useTranslation();
@@ -140,7 +143,12 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
   };
 
   const destroy = async (option: LookupOption): Promise<void> => {
-    if (!window.confirm(t('lookups.confirmDelete', { name: lookupLabel(option, i18n.language) }))) {
+    // A built-in row is asked about differently: it is the one case where the
+    // reader may not know that something in the app is keyed to this code, and
+    // where "switch it off instead" is usually the answer they wanted.
+    const question = option.isSystem ? 'lookups.confirmDeleteSystem' : 'lookups.confirmDelete';
+
+    if (!window.confirm(t(question, { name: lookupLabel(option, i18n.language) }))) {
       return;
     }
 
@@ -231,9 +239,6 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
 
                 <Switch
                   checked={option.isActive}
-                  // A built-in row switched off would make behaviour written
-                  // against it unreachable rather than absent.
-                  disabled={option.isSystem}
                   label={t('lookups.active')}
                   onCheckedChange={() => void toggle(option)}
                 />
@@ -242,15 +247,13 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
                   {t('common.edit')}
                 </RowAction>
 
-                {!option.isSystem && (
-                  <RowAction
-                    icon={<Icon name="trash" />}
-                    tone="quiet"
-                    onClick={() => void destroy(option)}
-                  >
-                    {t('common.delete')}
-                  </RowAction>
-                )}
+                <RowAction
+                  icon={<Icon name="trash" />}
+                  tone="quiet"
+                  onClick={() => void destroy(option)}
+                >
+                  {t('common.delete')}
+                </RowAction>
               </span>
             </li>
           ))}

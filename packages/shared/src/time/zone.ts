@@ -3,7 +3,7 @@
  *
  * A clinic's opening hours are `09:00`, and an appointment is stored as a
  * `timestamptz`. Something has to join the two, and it must not be *either*
- * machine's own zone: a VPS in UTC would put a Damascus clinic's morning three
+ * machine's own zone: a VPS in UTC would put a Ramallah clinic's morning two
  * hours out on the server, and a laptop with a wrong clock would do the same
  * in the browser. Both sides ask the clinic.
  *
@@ -16,8 +16,15 @@
  * to date beyond the platform's own.
  */
 
-/** IANA zone used when a clinic has not set one (see `clinicTimeZone`). */
-export const DEFAULT_TIME_ZONE = 'Asia/Damascus';
+/**
+ * IANA zone used when a clinic has not set one (see `clinicTimeZone`).
+ *
+ * `Asia/Hebron` is the West Bank's zone — the one the first clinics on this
+ * system keep — and it is a fallback rather than an assumption: every clinic
+ * carries its own `settings.timezone`, and this is only what a row with none
+ * is read as.
+ */
+export const DEFAULT_TIME_ZONE = 'Asia/Hebron';
 
 const partsFormatter = new Map<string, Intl.DateTimeFormat>();
 

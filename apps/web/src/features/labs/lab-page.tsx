@@ -7,15 +7,16 @@ import {
   Badge,
   Button,
   Card,
+  type Column,
   DateRangePicker,
   EmptyState,
   Icon,
   Ltr,
+  PhoneLink,
   SegmentedControl,
   StatCard,
   StatRow,
   Table,
-  type Column,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
@@ -78,7 +79,7 @@ export function LabPage(): JSX.Element {
           <p className="mt-1 flex flex-wrap items-baseline gap-1.5 text-value text-ink-muted">
             {lab.data?.contactPerson && <span>{lab.data.contactPerson}</span>}
             {lab.data?.contactPerson && lab.data?.phone && <span aria-hidden>—</span>}
-            {lab.data?.phone && <Ltr>{lab.data.phone}</Ltr>}
+            {lab.data?.phone && <PhoneLink value={lab.data.phone} />}
             {!lab.data?.contactPerson && !lab.data?.phone && t('labs.subtitle')}
           </p>
         </div>

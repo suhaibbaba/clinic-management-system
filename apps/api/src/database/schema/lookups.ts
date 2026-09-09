@@ -24,11 +24,13 @@ import { clinics } from '@api/database/schema/core';
  * `code` in this table now, seeded per clinic with `is_system = true`. That is
  * the whole trick — the data did not move, only what constrains it.
  *
- * A **system** row is one the application itself refers to: the chart draws
+ * `is_system` marks a row the application itself refers to: the chart draws
  * `missing` as an outline and `implant` with a post, the seed writes `cash`.
- * Its names and colour are editable, because those are what people read; its
- * code, its existence and its being switched on are not, because something
- * already points at it.
+ * It is a label rather than a lock — the clinic may rename, recolour, switch
+ * off or delete any row — and what it buys is a warning on the screen before a
+ * row something is keyed to goes away. The **code** is the one immovable
+ * thing, on every row: it is what other tables hold, and a code that changed
+ * hands would make those references mean something else.
  *
  * Statuses that drive state machines are deliberately **not** here. An
  * appointment's status and a lab order's are validated against a transition

@@ -14,7 +14,7 @@ export interface LabsSeedContext {
 }
 
 /**
- * The price list every dental lab has, in the words a Syrian clinic uses.
+ * The price list every dental lab has, in the words a Palestinian clinic uses.
  *
  * Two labs with different prices for the same work, because that is the
  * situation the per-lab price list exists for: the clinic chooses where to
@@ -41,15 +41,15 @@ const LABS: readonly {
   readonly contactPerson: string;
 }[] = [
   {
-    name: 'مخبر الشام للأسنان',
-    phone: '+963112223344',
-    address: 'دمشق — المزة',
+    name: 'مخبر القدس للأسنان',
+    phone: '+97022958800',
+    address: 'رام الله — الماصيون',
     contactPerson: 'أبو خالد',
   },
   {
     name: 'مخبر الدقة',
-    phone: '+963115556677',
-    address: 'دمشق — الميدان',
+    phone: '+97092345566',
+    address: 'نابلس — رفيديا',
     contactPerson: 'م. رنا',
   },
 ];

@@ -154,6 +154,15 @@ export const users = pgTable(
     passwordHash: text('password_hash').notNull(),
     role: userRoleEnum('role').notNull(),
     isActive: boolean('is_active').notNull().default(true),
+    /**
+     * Object key of the staff photo, under `clinic/{id}/staff/{userId}/`.
+     *
+     * The key and never a URL, for the same reason an X-ray is stored this way
+     * (CLAUDE.md files & images): what a client receives is a signed GET that
+     * expires in minutes, minted per response, so a photo cannot be handed on
+     * by copying a link out of a JSON payload.
+     */
+    photoKey: text('photo_key'),
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
     ...auditColumns,
     ...softDeleteColumn,

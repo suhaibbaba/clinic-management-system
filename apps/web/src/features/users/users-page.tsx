@@ -6,11 +6,13 @@ import {
   Avatar,
   Badge,
   Button,
+  type Column,
+  EmailLink,
   EmptyState,
   Icon,
-  Ltr,
   PageHeader,
   PersonName,
+  PhoneLink,
   RowAction,
   SearchField,
   Select,
@@ -18,7 +20,6 @@ import {
   Table,
   usePersonName,
   useToast,
-  type Column,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { useUpdateUser, useUsers } from '@web/features/users/queries';
@@ -38,7 +39,7 @@ export function UsersPage(): JSX.Element {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [role, setRole] = useState<UserRole | ''>('');
-  const [formUser, setFormUser] = useState<User | null>(null);
+  const [formUserId, setFormUserId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [resetUser, setResetUser] = useState<User | null>(null);
 
@@ -49,6 +50,17 @@ export function UsersPage(): JSX.Element {
     ...(role !== '' && { role }),
   });
   const updateUser = useUpdateUser();
+
+  /*
+   * The row being edited is looked up in the live list rather than held as a
+   * copy taken when the dialog opened. The photo field inside it uploads on
+   * the spot and refetches, and a snapshot would leave the dialog showing the
+   * face that was just replaced.
+   */
+  const formUser =
+    formUserId === null
+      ? null
+      : ((query.data?.items ?? []).find((row) => row.id === formUserId) ?? null);
 
   const toggleActive = async (row: User): Promise<void> => {
     try {
@@ -70,13 +82,22 @@ export function UsersPage(): JSX.Element {
         // the right-hand edge of the card at 1440px.
         render: (row) => (
           <span className="flex items-center gap-3">
-            <Avatar name={displayName(row.name)} tintKey={row.id} />
+            <Avatar name={displayName(row.name)} tintKey={row.id} src={row.photoUrl} />
             <span className="flex min-w-0 flex-col leading-snug">
               {/* Both spellings on hover: this is the screen where somebody
                   checks how a name is written on a letterhead. */}
               <PersonName name={row.name} showBoth className="truncate font-semibold text-ink" />
+              {/*
+                The wide shape only. On a card the email is already its own
+                labelled row (the `email` column below, which exists for
+                exactly that) — the caption and the row are the same address
+                twice, which since it became a link is two identical links.
+              */}
               {row.email !== null && row.email !== undefined && (
-                <span className="truncate text-label text-ink-subtle">{row.email}</span>
+                <EmailLink
+                  value={row.email}
+                  className="hidden truncate text-label md:inline-flex"
+                />
               )}
             </span>
           </span>
@@ -85,7 +106,7 @@ export function UsersPage(): JSX.Element {
       {
         key: 'phone',
         header: 'users.phone',
-        render: (row) => <Ltr className="tabular-nums">{row.phone}</Ltr>,
+        render: (row) => <PhoneLink value={row.phone} />,
       },
       // Dropped from the wide shape — it is the caption under the name there —
       // but kept as its own labelled row on a card, where there is no caption.
@@ -93,7 +114,7 @@ export function UsersPage(): JSX.Element {
         key: 'email',
         header: 'users.email',
         hideOnDesktop: true,
-        render: (row) => row.email ?? '—',
+        render: (row) => <EmailLink value={row.email} />,
       },
       {
         key: 'role',
@@ -137,7 +158,7 @@ export function UsersPage(): JSX.Element {
             <RowAction
               icon={<Icon name="edit" />}
               onClick={() => {
-                setFormUser(row);
+                setFormUserId(row.id);
                 setFormOpen(true);
               }}
             >
@@ -166,7 +187,7 @@ export function UsersPage(): JSX.Element {
           <Button
             icon={<Icon name="user-plus" />}
             onClick={() => {
-              setFormUser(null);
+              setFormUserId(null);
               setFormOpen(true);
             }}
           >
@@ -216,7 +237,7 @@ export function UsersPage(): JSX.Element {
               <Button
                 icon={<Icon name="user-plus" />}
                 onClick={() => {
-                  setFormUser(null);
+                  setFormUserId(null);
                   setFormOpen(true);
                 }}
               >

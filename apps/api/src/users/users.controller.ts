@@ -12,13 +12,16 @@ import {
 } from '@nestjs/common';
 import {
   AUDIT_ACTION,
+  confirmUserPhotoSchema,
   createUserSchema,
   idParamSchema,
   listUsersQuerySchema,
+  presignUserPhotoSchema,
   resetUserPasswordSchema,
   updateUserSchema,
   USER_ROLE,
   type Paginated,
+  type PresignUserPhotoResponse,
   type User,
 } from '@clinic/shared';
 import { createZodDto } from 'nestjs-zod';
@@ -34,6 +37,8 @@ class UpdateUserDto extends createZodDto(updateUserSchema) {}
 class ResetUserPasswordDto extends createZodDto(resetUserPasswordSchema) {}
 class ListUsersQueryDto extends createZodDto(listUsersQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
+class PresignUserPhotoDto extends createZodDto(presignUserPhotoSchema) {}
+class ConfirmUserPhotoDto extends createZodDto(confirmUserPhotoSchema) {}
 
 /**
  * Users & roles — admin only, for every verb (ROLES.md core matrix).
@@ -88,6 +93,38 @@ export class UsersController {
     @Body() body: ResetUserPasswordDto,
   ): Promise<void> {
     await this.usersService.resetPassword(actor, params.id, body.newPassword);
+  }
+
+  /**
+   * Step 1 of a staff photo. Not audited: nothing has changed yet, and a
+   * signature that is never used leaves no trace worth keeping.
+   */
+  @Post(':id/photo/presign')
+  @HttpCode(HttpStatus.OK)
+  presignPhoto(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: PresignUserPhotoDto,
+  ): Promise<PresignUserPhotoResponse> {
+    return this.usersService.presignPhoto(actor, params.id, body);
+  }
+
+  /** Step 2: the bytes are read back from storage and the key is recorded. */
+  @Post(':id/photo')
+  @HttpCode(HttpStatus.OK)
+  @Audit(USERS_ENTITY, AUDIT_ACTION.UPDATE)
+  confirmPhoto(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: ConfirmUserPhotoDto,
+  ): Promise<User> {
+    return this.usersService.confirmPhoto(actor, params.id, body);
+  }
+
+  @Delete(':id/photo')
+  @Audit(USERS_ENTITY, AUDIT_ACTION.UPDATE)
+  removePhoto(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<User> {
+    return this.usersService.removePhoto(actor, params.id);
   }
 
   /** Soft delete. */

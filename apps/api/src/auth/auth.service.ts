@@ -12,6 +12,7 @@ import { PasswordService } from '@api/auth/password.service';
 import { TokenService } from '@api/auth/token.service';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
+import { StorageService } from '@api/storage/storage.service';
 import { users } from '@api/database/schema';
 
 type UserRow = typeof users.$inferSelect;
@@ -30,6 +31,7 @@ export class AuthService {
     @Inject(DATABASE) private readonly db: Database,
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
+    private readonly storage: StorageService,
   ) {}
 
   async login(input: LoginInput): Promise<LoginResponse & IssuedSession> {
@@ -56,7 +58,7 @@ export class AuthService {
 
     const tokens = await this.issueTokens(user);
 
-    return { ...tokens, user: toProfile(user) };
+    return { ...tokens, user: await this.toProfile(user) };
   }
 
   /**
@@ -115,7 +117,7 @@ export class AuthService {
       throw new UnauthorizedException('Account is no longer available');
     }
 
-    return toProfile(user);
+    return this.toProfile(user);
   }
 
   /** Changing a password ends every other session for that user. */
@@ -186,16 +188,24 @@ export class AuthService {
     this.decoyHash ??= await this.passwordService.hash('decoy-password-for-timing');
     await this.passwordService.verify(this.decoyHash, password);
   }
-}
 
-function toProfile(user: UserRow): AuthenticatedUserProfile {
-  return {
-    id: user.id,
-    clinicId: user.clinicId,
-    name: { ar: user.nameAr, en: user.nameEn },
-    phone: user.phone,
-    email: user.email,
-    role: user.role,
-    isActive: user.isActive,
-  };
+  /**
+   * The caller's own row as a profile, with their photo signed.
+   *
+   * A method rather than the free function it was, because signing needs the
+   * storage client: the stored key never leaves the API, so what login and
+   * `/me` hand back is a short-lived signed GET, minted per response.
+   */
+  private async toProfile(user: UserRow): Promise<AuthenticatedUserProfile> {
+    return {
+      id: user.id,
+      clinicId: user.clinicId,
+      name: { ar: user.nameAr, en: user.nameEn },
+      phone: user.phone,
+      email: user.email,
+      role: user.role,
+      isActive: user.isActive,
+      photoUrl: user.photoKey ? (await this.storage.createDownloadUrl(user.photoKey)).url : null,
+    };
+  }
 }

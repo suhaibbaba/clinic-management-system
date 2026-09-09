@@ -5,19 +5,20 @@ import { useTranslation } from 'react-i18next';
 import {
   Badge,
   Button,
+  type Column,
   EmptyState,
   FormField,
   Ltr,
   Modal,
   PageHeader,
   PersonName,
+  PhoneLink,
   RowAction,
   StatCard,
   StatRow,
   Table,
   Textarea,
   useToast,
-  type Column,
 } from '@web/components/ui';
 import { toTimeLabel, minutesOf } from '@web/features/appointments/calendar-time';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
@@ -112,15 +113,7 @@ export function PendingBookingsPage(): JSX.Element {
     {
       key: 'phone',
       header: 'booking.pending.columns.phone',
-      render: (row) => (
-        <a
-          href={`tel:${row.patientPhone}`}
-          dir="ltr"
-          className="text-primary-600 transition-colors duration-150 hover:text-primary-700"
-        >
-          {row.patientPhone}
-        </a>
-      ),
+      render: (row) => <PhoneLink value={row.patientPhone} />,
     },
     {
       key: 'doctor',

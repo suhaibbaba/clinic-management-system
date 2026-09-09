@@ -44,6 +44,7 @@ export function makeProfile(
     email: 'admin@clinic.local',
     role: USER_ROLE.ADMIN,
     isActive: true,
+    photoUrl: null,
     ...overrides,
   };
 }
@@ -57,6 +58,7 @@ export function makeUser(overrides: Partial<User> = {}): User {
     email: 'layla@clinic.local',
     role: USER_ROLE.DOCTOR,
     isActive: true,
+    photoUrl: null,
     createdAt: '2026-01-01T09:00:00.000Z',
     updatedAt: '2026-01-01T09:00:00.000Z',
     ...overrides,
@@ -176,6 +178,7 @@ export function makeDoctor(overrides: Partial<Doctor> = {}): Doctor {
       phone: '+963100000002',
       email: 'layla@clinic.local',
       isActive: true,
+      photoUrl: null,
     },
     specialty: {
       id: '77777777-7777-4777-8777-777777777777',

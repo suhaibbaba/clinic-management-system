@@ -21,6 +21,16 @@ interface SessionValue {
   readonly user: AuthenticatedUserProfile | null;
   readonly login: (input: LoginInput) => Promise<void>;
   readonly logout: () => Promise<void>;
+  /**
+   * Re-reads the signed-in user's own profile.
+   *
+   * The session is React state rather than a query, so nothing invalidates it:
+   * an admin who changes their own staff photo would otherwise keep seeing the
+   * old face in the sidebar until the next sign-in. A failure is ignored on
+   * purpose — this is a refresh of something already on screen, and ending the
+   * session over it would be a far worse answer than a stale avatar.
+   */
+  readonly refreshProfile: () => Promise<void>;
   readonly hasRole: (...roles: UserRole[]) => boolean;
 }
 
@@ -96,6 +106,14 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
     setStatus('authenticated');
   }, []);
 
+  const refreshProfile = useCallback(async () => {
+    try {
+      setUser(await authApi.me());
+    } catch {
+      // Left as it was; see `refreshProfile` on SessionValue.
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
@@ -112,9 +130,10 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
       user,
       login,
       logout,
+      refreshProfile,
       hasRole: (...roles: UserRole[]) => (user ? roles.includes(user.role) : false),
     }),
-    [status, user, login, logout],
+    [status, user, login, logout, refreshProfile],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

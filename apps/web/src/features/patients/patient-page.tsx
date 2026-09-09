@@ -2,7 +2,7 @@ import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { Avatar, EmptyState, Ltr } from '@web/components/ui';
+import { Avatar, EmptyState, Ltr, PhoneLink } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { AccountTab } from '@web/features/billing/account-tab';
 import { PatientBalanceCard } from '@web/features/billing/patient-balance-card';
@@ -105,9 +105,9 @@ export function PatientPage(): JSX.Element {
                 <span aria-hidden="true">·</span>
 
                 <dt className="sr-only">{t('patients.phone')}</dt>
-                <Ltr as="dd" className="tabular-nums">
-                  {patient.data.phone}
-                </Ltr>
+                <dd>
+                  <PhoneLink value={patient.data.phone} />
+                </dd>
               </dl>
             </div>
           </div>

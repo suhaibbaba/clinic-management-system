@@ -39,12 +39,19 @@ export const LOOKUP_OPTIONS_ENTITY = 'lookup_options';
  * every screen in the app needs these. Writing is admin-only (ROLES.md core
  * matrix, "Clinic settings, templates") — a list is settings.
  *
- * The rule that earns this service its existence is the system-row rule: a row
- * the application refers to by code keeps its editable *names and colour*,
- * because those are what people read, and refuses to be deleted or switched
- * off, because the chart draws `missing` specially and the ledger already
- * holds `cash`. That is enforced here rather than in the schema — the schema
- * cannot know which rows are load-bearing.
+ * Every row of every list is the clinic's to rename, recolour, switch off or
+ * remove — the built-in ones included. `is_system` survives as a *label*: it
+ * says the application ships behaviour keyed to that code, so the screen can
+ * warn before it goes, but it no longer refuses anything. A clinic that never
+ * takes an X-ray should be able to empty that list, and the alternative was a
+ * settings screen with rows nobody could explain away.
+ *
+ * What removing one costs is worth stating plainly, because it is the price of
+ * the freedom: records already holding the code keep it and fall back to
+ * showing the code where the name used to be, new records may no longer be
+ * written with it (`assertCode` reads the live list), and the tooth chart's
+ * special drawing for `missing`, `implant` and `bridge` has nothing left to
+ * attach to. Nothing is corrupted; a name simply stops resolving.
  */
 @Injectable()
 export class LookupsService implements OnModuleInit {
@@ -149,23 +156,20 @@ export class LookupsService implements OnModuleInit {
   }
 
   /**
-   * Names and colour are editable on every row, system ones included — "نقداً"
-   * may well be "خالص" in this clinic, and that is not a code change.
+   * Name, colour and whether it is offered at all — on every row, built-in ones
+   * included. "نقداً" may well be "خالص" in this clinic, and a clinic that
+   * never fits a bridge should not have to keep it in the dropdown.
    *
-   * Switching a system row off is refused: something in the application draws
-   * behaviour from it, and a hidden row would make that behaviour unreachable
-   * rather than absent.
+   * The code is the one thing `updateLookupOptionSchema` does not accept, and
+   * that is what makes the rest safe: an option switched off still resolves to
+   * a name for every record that already refers to it.
    */
   async update(
     actor: AuthenticatedUser,
     id: string,
     input: UpdateLookupOptionInput,
   ): Promise<LookupOption> {
-    const existing = await this.requireRow(actor.clinicId, id);
-
-    if (existing.isSystem && input.isActive === false) {
-      throw new BadRequestException('A built-in list option cannot be switched off');
-    }
+    await this.requireRow(actor.clinicId, id);
 
     const [row] = await this.db
       .update(lookupOptions)
@@ -230,13 +234,21 @@ export class LookupsService implements OnModuleInit {
     ] as LookupOption[];
   }
 
-  /** Soft delete, and never for a system row. */
+  /**
+   * Soft delete, on any row.
+   *
+   * Soft because the code is still spoken for: rows elsewhere hold it and the
+   * unique index keeps reserving it, so it can never be handed to a second
+   * option and start meaning two things.
+   *
+   * It is the heavier of the two ways to retire an option, and the screen says
+   * so. **Switching one off** takes it out of every dropdown but leaves it
+   * resolving to its name, so last year's receipt still reads "نقداً".
+   * **Deleting** it takes the name with it, and records that hold the code fall
+   * back to printing the code. Both are the clinic's call to make.
+   */
   async remove(actor: AuthenticatedUser, id: string): Promise<void> {
-    const existing = await this.requireRow(actor.clinicId, id);
-
-    if (existing.isSystem) {
-      throw new BadRequestException('A built-in list option cannot be deleted');
-    }
+    await this.requireRow(actor.clinicId, id);
 
     await this.db
       .update(lookupOptions)

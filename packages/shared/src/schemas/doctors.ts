@@ -19,7 +19,14 @@ export const doctorSchema = z.object({
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
   /** Joined for convenience; the doctor's login account. */
-  user: userSchema.pick({ id: true, name: true, phone: true, email: true, isActive: true }),
+  user: userSchema.pick({
+    id: true,
+    name: true,
+    phone: true,
+    email: true,
+    isActive: true,
+    photoUrl: true,
+  }),
   specialty: specialtySummarySchema,
 });
 export type Doctor = z.infer<typeof doctorSchema>;

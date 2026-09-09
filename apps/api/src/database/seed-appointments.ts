@@ -316,7 +316,7 @@ interface SeedOnlineBooking {
 const ONLINE_BOOKINGS: readonly SeedOnlineBooking[] = [
   {
     fullName: 'ريم العلي',
-    phone: '+963944123456',
+    phone: '+970568123456',
     dayOffset: 0,
     time: '16:30',
     doctor: 0,
@@ -324,7 +324,7 @@ const ONLINE_BOOKINGS: readonly SeedOnlineBooking[] = [
   },
   {
     fullName: 'باسل حمدان',
-    phone: '+963955987654',
+    phone: '+970599987654',
     dayOffset: 2,
     time: '12:00',
     doctor: 1,

@@ -6,15 +6,16 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Avatar,
   Button,
+  type Column,
   EmptyState,
   Icon,
   Ltr,
   PageHeader,
+  PhoneLink,
   RowAction,
   SearchField,
   SegmentedControl,
   Table,
-  type Column,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
@@ -144,7 +145,7 @@ export function PatientsPage(): JSX.Element {
       {
         key: 'phone',
         header: 'patients.phone',
-        render: (row) => <Ltr className="tabular-nums">{row.phone}</Ltr>,
+        render: (row) => <PhoneLink value={row.phone} />,
       },
       {
         key: 'age',

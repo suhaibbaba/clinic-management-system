@@ -143,6 +143,29 @@ describe('Table', () => {
     expect(within(second as HTMLElement).queryByText(ar.patients.balance)).toBeNull();
   });
 
+  it('reads a numeric value from the start on a card and from the end in the table', () => {
+    setViewport(true);
+    const mobile = render(<Table columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} />);
+
+    /*
+     * The balance is the figure people open this screen for, and on a card it
+     * has to sit where the phone number and the age sit — the start edge, which
+     * in Arabic is the right. End-alignment belongs to a column of figures,
+     * and a card has no column.
+     */
+    const card = mobile.getAllByText('120.00')[0] as HTMLElement;
+    expect(card.className).toContain('text-start');
+    expect(card.className).not.toContain('text-end');
+    expect(card.className).toContain('tabular-nums');
+    mobile.unmount();
+
+    setViewport(false);
+    render(<Table columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} />);
+
+    const cell = within(screen.getByRole('table')).getByText('120.00');
+    expect(cell.className).toContain('text-end');
+  });
+
   it('shows a card-shaped skeleton while loading', () => {
     setViewport(true);
     const { container } = render(

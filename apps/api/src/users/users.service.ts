@@ -7,10 +7,15 @@ import {
 } from '@nestjs/common';
 import { and, count, desc, eq, ilike, isNull, ne, or, sql, type SQL } from 'drizzle-orm';
 import {
+  ALLOWED_USER_PHOTO_MIME_TYPES,
   AUDIT_ACTION,
+  MAX_USER_PHOTO_BYTES,
+  type ConfirmUserPhotoInput,
   type CreateUserInput,
   type ListUsersQuery,
   type Paginated,
+  type PresignUserPhotoInput,
+  type PresignUserPhotoResponse,
   type UpdateUserInput,
   type User,
 } from '@clinic/shared';
@@ -24,11 +29,22 @@ import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { users } from '@api/database/schema';
+import { StorageService } from '@api/storage/storage.service';
 
 type UserRow = typeof users.$inferSelect;
 
 /** Entity name used in `audit_log.entity` and by `@Audit(...)`. */
 export const USERS_ENTITY = 'users';
+
+/**
+ * The prefix a staff photo lives under, per user: `staff/{userId}`.
+ *
+ * Under the clinic rather than under a patient, and one folder per member of
+ * staff, so a key can be checked against both the clinic that signed for it
+ * and the person it is a photo of — a key from another user's folder is
+ * refused on confirm even though both belong to the same clinic.
+ */
+const photoCategory = (userId: string): string => `staff/${userId}`;
 
 /** Columns safe to store in the audit trail and to return — never the hash. */
 const safeColumns = {
@@ -40,6 +56,7 @@ const safeColumns = {
   email: users.email,
   role: users.role,
   isActive: users.isActive,
+  photoKey: users.photoKey,
   createdAt: users.createdAt,
   updatedAt: users.updatedAt,
 };
@@ -53,6 +70,7 @@ export class UsersService implements OnModuleInit {
     private readonly tokenService: TokenService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
     private readonly auditService: AuditService,
+    private readonly storage: StorageService,
   ) {}
 
   onModuleInit(): void {
@@ -104,11 +122,11 @@ export class UsersService implements OnModuleInit {
       this.db.select({ value: count() }).from(users).where(where),
     ]);
 
-    return toPaginated(rows.map(toUser), totals?.value ?? 0, query);
+    return toPaginated(await this.present(rows), totals?.value ?? 0, query);
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<User> {
-    return toUser(await this.findInClinicOrFail(actor.clinicId, id));
+    return this.presentOne(await this.findInClinicOrFail(actor.clinicId, id));
   }
 
   async create(actor: AuthenticatedUser, input: CreateUserInput): Promise<User> {
@@ -137,7 +155,7 @@ export class UsersService implements OnModuleInit {
       throw new Error('Failed to create user');
     }
 
-    return toUser(row);
+    return this.presentOne(row);
   }
 
   async update(actor: AuthenticatedUser, id: string, input: UpdateUserInput): Promise<User> {
@@ -186,7 +204,7 @@ export class UsersService implements OnModuleInit {
       await this.tokenService.revokeAllForUser(id);
     }
 
-    return toUser(row);
+    return this.presentOne(row);
   }
 
   /**
@@ -233,9 +251,132 @@ export class UsersService implements OnModuleInit {
     await this.tokenService.revokeAllForUser(id);
   }
 
+  /**
+   * Step 1 of a staff photo: a URL the browser PUTs the image straight to.
+   *
+   * The key is built here from the caller's own clinic and the user being
+   * photographed, never taken from the request, so an upload can only land in
+   * the folder it is signed for. The body is checked twice — here, to refuse a
+   * signature for something that was never going to be accepted, and again on
+   * confirm against the bytes that actually arrived.
+   */
+  async presignPhoto(
+    actor: AuthenticatedUser,
+    id: string,
+    input: PresignUserPhotoInput,
+  ): Promise<PresignUserPhotoResponse> {
+    await this.findInClinicOrFail(actor.clinicId, id);
+
+    const key = this.storage.buildClinicObjectKey({
+      clinicId: actor.clinicId,
+      category: photoCategory(id),
+      filename: input.filename,
+    });
+
+    const upload = await this.storage.createUploadUrl(key, input.mime);
+
+    return {
+      key: upload.key,
+      uploadUrl: upload.uploadUrl,
+      expiresAt: upload.expiresAt.toISOString(),
+      maxSizeBytes: MAX_USER_PHOTO_BYTES,
+    };
+  }
+
+  /**
+   * Step 2: the size and type are read back from storage rather than trusted
+   * from the request, and anything outside the limits is deleted instead of
+   * being pointed at from the user row.
+   */
+  async confirmPhoto(
+    actor: AuthenticatedUser,
+    id: string,
+    input: ConfirmUserPhotoInput,
+  ): Promise<User> {
+    const existing = await this.findInClinicOrFail(actor.clinicId, id);
+
+    if (!this.storage.isClinicKeyOwnedBy(input.key, actor.clinicId, photoCategory(id))) {
+      throw new BadRequestException('This key does not belong to this user');
+    }
+
+    const stored = await this.storage.statObject(input.key);
+
+    if (!stored) {
+      throw new BadRequestException('No uploaded file found for this key');
+    }
+
+    const isImage = ALLOWED_USER_PHOTO_MIME_TYPES.some((mime) => mime === stored.mime);
+
+    if (!isImage || stored.sizeBytes <= 0 || stored.sizeBytes > MAX_USER_PHOTO_BYTES) {
+      // Unusable, so it is not left paying for storage.
+      await this.storage.deleteObject(input.key);
+      throw new BadRequestException(
+        isImage ? 'Uploaded file size is outside the allowed range' : 'Unsupported file type',
+      );
+    }
+
+    const row = await this.setPhotoKey(actor, id, input.key);
+
+    // The one it replaces: a photo is a single current image, not a history,
+    // and the old object has nothing left pointing at it.
+    if (existing.photoKey && existing.photoKey !== input.key) {
+      await this.storage.deleteObject(existing.photoKey);
+    }
+
+    return this.presentOne(row);
+  }
+
+  /** Back to initials, and the object goes with it. */
+  async removePhoto(actor: AuthenticatedUser, id: string): Promise<User> {
+    const existing = await this.findInClinicOrFail(actor.clinicId, id);
+    const row = await this.setPhotoKey(actor, id, null);
+
+    if (existing.photoKey) {
+      await this.storage.deleteObject(existing.photoKey);
+    }
+
+    return this.presentOne(row);
+  }
+
   /** Shared with the doctors module: a doctor row must point at a real user. */
   async findInClinicOrFail(clinicId: string, id: string): Promise<UserRow> {
     return this.scope.findOneOrFail<UserRow>(users, clinicId, id);
+  }
+
+  /**
+   * A signed, short-lived URL for a stored photo key — the only form a photo
+   * ever leaves the API in. Shared with the auth and doctors services, so a
+   * face is signed the same way whichever endpoint drew it.
+   */
+  async signPhoto(key: string | null): Promise<string | null> {
+    return key ? (await this.storage.createDownloadUrl(key)).url : null;
+  }
+
+  private async setPhotoKey(
+    actor: AuthenticatedUser,
+    id: string,
+    key: string | null,
+  ): Promise<SafeUserRow> {
+    const [row] = await this.db
+      .update(users)
+      .set({ photoKey: key, updatedAt: new Date(), updatedBy: actor.id })
+      .where(this.scope.where(users, actor.clinicId, eq(users.id, id)))
+      .returning(safeColumns);
+
+    /* istanbul ignore next -- the row was just loaded within this clinic. */
+    if (!row) {
+      throw new Error('Failed to update the staff photo');
+    }
+
+    return row;
+  }
+
+  private async presentOne(row: SafeUserRow): Promise<User> {
+    return toUser(row, await this.signPhoto(row.photoKey));
+  }
+
+  private async present(rows: readonly SafeUserRow[]): Promise<User[]> {
+    return Promise.all(rows.map((row) => this.presentOne(row)));
   }
 
   /**
@@ -275,7 +416,7 @@ export class UsersService implements OnModuleInit {
 
 type SafeUserRow = Pick<UserRow, keyof typeof safeColumns>;
 
-function toUser(row: SafeUserRow): User {
+function toUser(row: SafeUserRow, photoUrl: string | null): User {
   return {
     id: row.id,
     clinicId: row.clinicId,
@@ -284,11 +425,17 @@ function toUser(row: SafeUserRow): User {
     email: row.email,
     role: row.role,
     isActive: row.isActive,
+    photoUrl,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
 }
 
+/**
+ * The trail records the stored **key**, not a signed URL: the URL expires in
+ * minutes and would make every entry unreadable a day later — the same reason
+ * the clinic's logo is audited by key.
+ */
 function toAuditSnapshot(row: SafeUserRow): Record<string, unknown> {
-  return { ...toUser(row) };
+  return { ...toUser(row, null), photoKey: row.photoKey };
 }

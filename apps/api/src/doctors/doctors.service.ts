@@ -24,6 +24,7 @@ import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
+import { StorageService } from '@api/storage/storage.service';
 import { doctors, specialties, users } from '@api/database/schema';
 
 type DoctorRow = typeof doctors.$inferSelect;
@@ -45,6 +46,7 @@ const doctorColumns = {
   userPhone: users.phone,
   userEmail: users.email,
   userIsActive: users.isActive,
+  userPhotoKey: users.photoKey,
   specialtyCode: specialties.code,
   specialtyName: specialties.name,
   specialtyChartType: specialties.chartType,
@@ -65,6 +67,7 @@ interface DoctorJoinedRow {
   userPhone: string;
   userEmail: string | null;
   userIsActive: boolean;
+  userPhotoKey: string | null;
   specialtyCode: string;
   specialtyName: string;
   specialtyChartType: ChartType;
@@ -76,6 +79,7 @@ export class DoctorsService implements OnModuleInit {
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly storage: StorageService,
   ) {}
 
   onModuleInit(): void {
@@ -127,11 +131,15 @@ export class DoctorsService implements OnModuleInit {
         .where(where),
     ]);
 
-    return toPaginated(rows.map(toDoctor), totals?.value ?? 0, query);
+    return toPaginated(
+      await Promise.all(rows.map((row) => this.present(row))),
+      totals?.value ?? 0,
+      query,
+    );
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<Doctor> {
-    return toDoctor(await this.findJoinedOrFail(actor.clinicId, id));
+    return this.present(await this.findJoinedOrFail(actor.clinicId, id));
   }
 
   async create(actor: AuthenticatedUser, input: CreateDoctorInput): Promise<Doctor> {
@@ -187,7 +195,7 @@ export class DoctorsService implements OnModuleInit {
       throw new Error('Failed to create doctor');
     }
 
-    return toDoctor(await this.findJoinedOrFail(actor.clinicId, created.id));
+    return this.present(await this.findJoinedOrFail(actor.clinicId, created.id));
   }
 
   async update(actor: AuthenticatedUser, id: string, input: UpdateDoctorInput): Promise<Doctor> {
@@ -218,7 +226,7 @@ export class DoctorsService implements OnModuleInit {
       })
       .where(this.scope.where(doctors, actor.clinicId, eq(doctors.id, id)));
 
-    return toDoctor(await this.findJoinedOrFail(actor.clinicId, id));
+    return this.present(await this.findJoinedOrFail(actor.clinicId, id));
   }
 
   /**
@@ -241,7 +249,7 @@ export class DoctorsService implements OnModuleInit {
       .set({ weeklySchedule: input.weeklySchedule, updatedAt: new Date(), updatedBy: actor.id })
       .where(this.scope.where(doctors, actor.clinicId, eq(doctors.id, id)));
 
-    return toDoctor(await this.findJoinedOrFail(actor.clinicId, id));
+    return this.present(await this.findJoinedOrFail(actor.clinicId, id));
   }
 
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
@@ -259,6 +267,20 @@ export class DoctorsService implements OnModuleInit {
       .from(doctors)
       .innerJoin(users, eq(users.id, doctors.userId))
       .innerJoin(specialties, eq(specialties.id, doctors.specialtyId));
+  }
+
+  /**
+   * The doctor, with their photo signed.
+   *
+   * The list draws a face beside each name, and the key it is stored under
+   * never leaves the API — so like every other image in this system what goes
+   * out is a short-lived signed GET, minted per response.
+   */
+  private async present(row: DoctorJoinedRow): Promise<Doctor> {
+    return toDoctor(
+      row,
+      row.userPhotoKey ? (await this.storage.createDownloadUrl(row.userPhotoKey)).url : null,
+    );
   }
 
   private async findJoinedOrFail(clinicId: string, id: string): Promise<DoctorJoinedRow> {
@@ -283,7 +305,7 @@ export class DoctorsService implements OnModuleInit {
   }
 }
 
-function toDoctor(row: DoctorJoinedRow): Doctor {
+function toDoctor(row: DoctorJoinedRow, photoUrl: string | null): Doctor {
   return {
     id: row.id,
     clinicId: row.clinicId,
@@ -299,6 +321,7 @@ function toDoctor(row: DoctorJoinedRow): Doctor {
       phone: row.userPhone,
       email: row.userEmail,
       isActive: row.userIsActive,
+      photoUrl,
     },
     specialty: {
       id: row.specialtyId,

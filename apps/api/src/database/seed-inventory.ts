@@ -24,7 +24,7 @@ export interface InventorySeedContext {
 }
 
 /**
- * Who a Damascus dental clinic actually buys from: a general dental depot, a
+ * Who a Ramallah dental clinic actually buys from: a general dental depot, a
  * pharmaceutical wholesaler for the anaesthetic, and the shop that services
  * the autoclave.
  */
@@ -33,9 +33,9 @@ const SUPPLIERS: readonly {
   readonly phone: string;
   readonly contactPerson: string;
 }[] = [
-  { name: 'مستودع الشام لمواد الأسنان', phone: '+963113334455', contactPerson: 'أبو عمار' },
-  { name: 'شركة الفارابي الطبية', phone: '+963114445566', contactPerson: 'م. هدى' },
-  { name: 'مؤسسة التعقيم الحديثة', phone: '+963115556644', contactPerson: 'م. سامر' },
+  { name: 'مستودع القدس لمواد الأسنان', phone: '+97022963344', contactPerson: 'أبو عمار' },
+  { name: 'شركة بيرزيت للأدوية', phone: '+97022981122', contactPerson: 'م. هدى' },
+  { name: 'مؤسسة التعقيم الحديثة', phone: '+97022975566', contactPerson: 'م. سامر' },
 ];
 
 interface SeedItem {

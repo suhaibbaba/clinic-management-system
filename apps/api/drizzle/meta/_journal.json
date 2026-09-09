@@ -78,6 +78,13 @@
       "when": 1788860083529,
       "tag": "0010_bilingual_names",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788983543190,
+      "tag": "0011_staff_photos",
+      "breakpoints": true
     }
   ]
 }
