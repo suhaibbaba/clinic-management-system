@@ -89,35 +89,33 @@ export const SCREENS = [
     roles: CLINICAL,
     steps: [{ clickSelector: '[data-tooth]' }, { wait: 400 }],
   },
-  {
-    id: 'patient-file-visits',
-    path: '/patients/:patientId',
-    roles: CLINICAL,
-    steps: [{ clickTab: 'patients.tabs.visits' }, { wait: 400 }],
-  },
+  /*
+   * The file's tabs are addresses, so they are swept as addresses.
+   *
+   * They were reached by clicking, which sweeps the same screen and smoke-tests
+   * none of it: a screen with `steps` is deliberately left out of the CI run.
+   * As plain URLs each tab is also asserted to render, per role, on every pull
+   * request — which is the whole reason the tab moved into the URL.
+   */
+  { id: 'patient-file-visits', path: '/patients/:patientId?tab=visits', roles: CLINICAL },
   {
     id: 'patient-file-plans',
-    path: '/patients/:patientId',
+    path: '/patients/:patientId?tab=treatmentPlans',
     roles: CLINICAL,
-    steps: [{ clickTab: 'patients.tabs.treatmentPlans' }, { wait: 400 }],
   },
   {
     id: 'patient-file-attachments',
-    path: '/patients/:patientId',
+    path: '/patients/:patientId?tab=attachments',
     roles: CLINICAL,
-    steps: [{ clickTab: 'patients.tabs.attachments' }, { wait: 400 }],
   },
+  { id: 'patient-file-timeline', path: '/patients/:patientId?tab=timeline', roles: CLINICAL },
+  { id: 'patient-file-billing', path: '/patients/:patientId?tab=billing', roles: FRONT_DESK },
   {
-    id: 'patient-file-timeline',
-    path: '/patients/:patientId',
+    // The plan list filtered to one status — its own parameter, because the
+    // tab strip already owns `tab`.
+    id: 'patient-file-plans-accepted',
+    path: '/patients/:patientId?tab=treatmentPlans&plan=accepted',
     roles: CLINICAL,
-    steps: [{ clickTab: 'patients.tabs.timeline' }, { wait: 400 }],
-  },
-  {
-    id: 'patient-file-billing',
-    path: '/patients/:patientId',
-    roles: FRONT_DESK,
-    steps: [{ clickTab: 'patients.tabs.billing' }, { wait: 400 }],
   },
   {
     id: 'patient-file-long-name',
@@ -127,14 +125,20 @@ export const SCREENS = [
 
   { id: 'appointments', path: '/appointments', roles: FRONT_DESK },
   {
-    // Day and week are a `useState` toggle rather than a URL parameter, so the
-    // day view is reached by clicking the control — on a phone it is the only
-    // view offered and the control is not drawn at all.
+    // `?view=day`. On a phone the week is seven 40px columns, so the day is the
+    // only view offered there and the toggle is not drawn — which is why this
+    // is still swept at the two wider shapes only.
     id: 'appointments-day',
-    path: '/appointments',
+    path: '/appointments?view=day',
     roles: FRONT_DESK,
     viewports: ['tablet', 'desktop'],
-    steps: [{ clickRadio: 'appointments.day' }, { wait: 600 }],
+  },
+  {
+    // One doctor's calendar, which is the other thing anybody links to here.
+    id: 'appointments-day-one-doctor',
+    path: '/appointments?view=day&doctor=:doctorId',
+    roles: FRONT_DESK,
+    viewports: ['tablet', 'desktop'],
   },
   {
     id: 'appointments-pending',
@@ -172,10 +176,14 @@ export const SCREENS = [
   {
     id: 'labs-order-new-modal',
     path: '/labs?tab=orders',
-    roles: LABS,
+    // Not `LABS`: a technician works orders that exist but does not raise one
+    // (`canCreateLabOrder`), so there is no button for the step to click and
+    // the sweep filed a picture of the board under the modal's name.
+    roles: CLINICAL,
     steps: [{ click: 'labs.orders.add' }, { wait: 500 }],
   },
   { id: 'lab-page', path: '/labs/:labId', roles: LABS },
+  { id: 'lab-page-statement', path: '/labs/:labId?tab=statement', roles: LABS },
 
   { id: 'inventory', path: '/inventory?tab=stock', roles: STORE },
   { id: 'inventory-suppliers', path: '/inventory?tab=suppliers', roles: STORE },

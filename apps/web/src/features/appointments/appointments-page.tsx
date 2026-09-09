@@ -1,6 +1,7 @@
 import { APPOINTMENT_STATUS, type CalendarAppointment } from '@clinic/shared';
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 
 import {
   Button,
@@ -47,7 +48,9 @@ import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate } from '@web/lib/format';
 import { useIsMobile } from '@web/lib/use-media-query';
 
-type Range = 'day' | 'week';
+const RANGES = ['day', 'week'] as const;
+
+type Range = (typeof RANGES)[number];
 
 /**
  * The internal calendar.
@@ -76,9 +79,49 @@ export function AppointmentsPage(): JSX.Element {
   const clinic = useClinic();
   setClinicTimeZone(clinic.data);
 
-  const [range, setRange] = useState<Range>('week');
-  const [date, setDate] = useState(todayIso());
-  const [doctorFilter, setDoctorFilter] = useState('');
+  /*
+   * The calendar's three coordinates live in the address.
+   *
+   * "Look at Tuesday", "here is Dr Haddad's week", "open the day view" are the
+   * three things people say about this screen, and in `useState` none of them
+   * had an address to say it with: a link could only ever open today, every
+   * doctor, in the week view. A refresh threw the same three away.
+   *
+   * All three write their default as *no* parameter, so `/appointments` stays
+   * the plain address it was.
+   *
+   * One writer for the three of them rather than three calls to the shared
+   * tab helper: each of those takes its own snapshot of the current params, so
+   * two of them in one handler — picking a day out of the week view sets the
+   * date *and* the view — would have the second overwrite the first and the
+   * date would vanish on the way to the day it named.
+   */
+  const [params, setParams] = useSearchParams();
+
+  const range: Range = RANGES.find((id) => id === params.get('view')) ?? 'week';
+  const date = params.get('date') ?? todayIso();
+  const doctorFilter = params.get('doctor') ?? '';
+
+  /** Writes several params at once; a value equal to its default is removed. */
+  const setCalendarParams = (
+    changes: Readonly<Record<string, readonly [string, string]>>,
+  ): void => {
+    const next = new URLSearchParams(params);
+
+    for (const [name, [value, fallback]] of Object.entries(changes)) {
+      if (value === fallback) {
+        next.delete(name);
+      } else {
+        next.set(name, value);
+      }
+    }
+
+    setParams(next, { replace: true });
+  };
+
+  const setRange = (value: Range): void => setCalendarParams({ view: [value, 'week'] });
+  const setDate = (value: string): void => setCalendarParams({ date: [value, todayIso()] });
+  const setDoctorFilter = (value: string): void => setCalendarParams({ doctor: [value, ''] });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<CalendarAppointment | undefined>();
@@ -171,7 +214,7 @@ export function AppointmentsPage(): JSX.Element {
   }, [appointments]);
 
   const step = (direction: -1 | 1): void =>
-    setDate((current) => addDays(current, effectiveRange === 'week' ? direction * 7 : direction));
+    setDate(addDays(date, effectiveRange === 'week' ? direction * 7 : direction));
 
   const move = async (appointment: CalendarAppointment, minute: number): Promise<void> => {
     try {
@@ -348,10 +391,10 @@ export function AppointmentsPage(): JSX.Element {
             appointments={appointments}
             closures={closures}
             onOpen={(appointment) => setSelectedId(appointment.id)}
-            onPickDay={(day) => {
-              setDate(day);
-              setRange('day');
-            }}
+            // One write, or the second setter would drop the first's date.
+            onPickDay={(day) =>
+              setCalendarParams({ date: [day, todayIso()], view: ['day', 'week'] })
+            }
           />
         )}
 

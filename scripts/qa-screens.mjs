@@ -111,9 +111,39 @@ const labelPrefix = (lang, key) => t(lang, key).split('{{')[0].trim();
  * rendered document rather than a guess about intent.
  */
 const AUDIT = () => {
-  const results = { overflow: null, smallTargets: [], clipped: [], physical: [] };
+  const results = {
+    overflow: null,
+    smallTargets: [],
+    clipped: [],
+    physical: [],
+    tightLines: [],
+    baselines: [],
+  };
   const root = document.documentElement;
   const viewportWidth = root.clientWidth;
+
+  /*
+   * The font's own opinion of how tall its text is.
+   *
+   * `TextMetrics.fontBoundingBox*` is the ascent and descent the loaded face
+   * declares, so it accounts for what a stated font size does not: Plex
+   * Arabic inks about 1.23× its size where Inter inks about 1.18×, which is
+   * the whole reason a line height tuned on Latin clips an Arabic descender.
+   * A canvas measures the face actually resolved for the element, fallbacks
+   * included, rather than the first name in the stack.
+   */
+  const ruler = document.createElement('canvas').getContext('2d');
+  const inkHeight = (style, text) => {
+    ruler.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    const metrics = ruler.measureText(text);
+    return metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+  };
+  const ascent = (style, text) => {
+    ruler.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    return ruler.measureText(text).fontBoundingBoxAscent;
+  };
+  const lineBox = (style, text) =>
+    style.lineHeight === 'normal' ? inkHeight(style, text) : parseFloat(style.lineHeight);
 
   if (root.scrollWidth > viewportWidth + 1) {
     // Name the widest thing sticking out, or the sweep reports "the page is
@@ -155,11 +185,27 @@ const AUDIT = () => {
     // exempts them, and flagging every one of them would bury the buttons.
     if (element.tagName === 'A' && getComputedStyle(element).display === 'inline') continue;
 
-    if (rect.height < 44 || rect.width < 44) {
+    /*
+     * A hit area declared on a pseudo-element counts as the target.
+     *
+     * A control can be taller than it is drawn: `PhoneLink` carries its 44px
+     * on an absolutely positioned `::after`, because buying the height out of
+     * its own box would push the number off the baseline of the label beside
+     * it. `getBoundingClientRect` cannot see that box, so it is asked for
+     * directly — otherwise the sweep reports a 24px target that a thumb has
+     * never once missed.
+     */
+    const after = getComputedStyle(element, '::after');
+    const hitHeight = Math.max(
+      rect.height,
+      after.content !== 'none' && after.position === 'absolute' ? parseFloat(after.height) || 0 : 0,
+    );
+
+    if (hitHeight < 44 || rect.width < 44) {
       results.smallTargets.push({
         selector: describe(element),
         width: Math.round(rect.width),
-        height: Math.round(rect.height),
+        height: Math.round(hitHeight),
         text: (element.textContent ?? '').trim().slice(0, 40),
       });
     }
@@ -171,10 +217,21 @@ const AUDIT = () => {
     const hasOwnText = [...element.childNodes].some(
       (node) => node.nodeType === 3 && (node.textContent ?? '').trim().length > 0,
     );
+    /*
+     * Text anywhere inside, not only text this element owns directly.
+     *
+     * The box that clips is rarely the box that holds the words: an
+     * appointment block is an `overflow-hidden` button with its patient and
+     * its time in two child spans, and for a 30-minute booking it sliced the
+     * second of them horizontally through the glyphs — on most of the
+     * calendar, in both languages, at every viewport, without this check
+     * saying a word, because the button has no text node of its own.
+     */
+    const holdsText = (element.textContent ?? '').trim().length > 0;
 
     if (
       hidden &&
-      hasOwnText &&
+      holdsText &&
       !isScreenReaderOnly(element) &&
       !isClamped(element) &&
       element.scrollHeight > element.clientHeight + 1
@@ -194,6 +251,86 @@ const AUDIT = () => {
       element.getAttribute('dir') === null
     ) {
       results.physical.push({ selector: describe(element), textAlign: style.textAlign });
+    }
+
+    /*
+     * A line box smaller than the ink it holds.
+     *
+     * The clipping check above only sees text an `overflow: hidden` cut off.
+     * This one catches the same mistake one step earlier, where nothing is
+     * clipped yet but the glyphs already exceed their line: a `leading-none`
+     * on Arabic, a two-line caption whose descenders reach the marks below.
+     * It is what a person means by "the line height is wrong" on a screen
+     * where nothing is visibly chopped.
+     */
+    if (hasOwnText && !isScreenReaderOnly(element) && style.display !== 'none') {
+      const rect = element.getBoundingClientRect();
+      const text = (element.textContent ?? '').trim();
+
+      if (rect.height > 0 && text.length > 0) {
+        const ink = inkHeight(style, text);
+        const line = lineBox(style, text);
+
+        if (line + 0.5 < ink) {
+          results.tightLines.push({
+            selector: describe(element),
+            fontSize: Math.round(parseFloat(style.fontSize) * 100) / 100,
+            lineHeight: Math.round(line * 100) / 100,
+            ink: Math.round(ink * 100) / 100,
+            text: text.slice(0, 40),
+          });
+        }
+      }
+    }
+  }
+
+  /*
+   * A label and its value, sitting on two different baselines.
+   *
+   * The card shape of `Table` is a two-column grid of `<dt>`/`<dd>` pairs, and
+   * the two carry different type sizes — a 13px label against a 15px value.
+   * Stretched to the same row with the same top padding, the shorter line box
+   * puts its text higher than the taller one, and the label floats above the
+   * value it names. Nothing overflows and nothing is clipped, so neither of
+   * the checks above sees it; it is only visible as the row not reading as one
+   * line. Measured as the distance between the two first baselines.
+   */
+  for (const list of document.querySelectorAll('dl')) {
+    for (const term of list.querySelectorAll('dt')) {
+      const value = term.nextElementSibling;
+      if (!value || value.tagName !== 'DD') continue;
+
+      const firstBaseline = (element) => {
+        const style = getComputedStyle(element);
+        const text = (element.textContent ?? '').trim() || 'x';
+        const rect = element.getBoundingClientRect();
+        const halfLeading = (lineBox(style, text) - inkHeight(style, text)) / 2;
+        return (
+          rect.top +
+          parseFloat(style.borderTopWidth) +
+          parseFloat(style.paddingTop) +
+          halfLeading +
+          ascent(style, text)
+        );
+      };
+
+      // A pair the layout has already put on two lines — a wrapped value, a
+      // card narrow enough to stack — has no shared baseline to hold to.
+      if (Math.abs(term.getBoundingClientRect().top - value.getBoundingClientRect().top) > 1) {
+        continue;
+      }
+
+      const drift = Math.round((firstBaseline(term) - firstBaseline(value)) * 100) / 100;
+
+      if (Math.abs(drift) > 1.5) {
+        results.baselines.push({
+          selector: describe(list),
+          drift,
+          text: `${(term.textContent ?? '').trim().slice(0, 20)} / ${(value.textContent ?? '')
+            .trim()
+            .slice(0, 20)}`,
+        });
+      }
     }
   }
 
@@ -314,6 +451,7 @@ async function seededIds() {
 
   const patients = await get('/patients?page=1&limit=100');
   const labs = await get('/labs?page=1&limit=1');
+  const doctors = await get('/doctors?page=1&limit=1');
   const longest = [...patients.items].sort((a, b) => b.fullName.length - a.fullName.length)[0];
   // File 00001 is the seed's fullest record — visits, procedures, a treatment
   // plan, charges and payments. Screenshotting whichever patient happened to
@@ -326,6 +464,14 @@ async function seededIds() {
     // development seed carries on purpose.
     longNamePatientId: longest?.id ?? patients.items[0]?.id ?? '',
     labId: labs.items[0]?.id ?? '',
+    /*
+     * The doctor screens name `:doctorId` and nothing was filling it, so
+     * `/doctors/:doctorId` resolved to `/doctors/` — the list — and the two
+     * screens behind it were swept as a picture of the list under their own
+     * names. The time-off modal's step then had no button to click, which is
+     * the line in the report that gave it away.
+     */
+    doctorId: doctors.items[0]?.id ?? '',
   };
 }
 
@@ -530,7 +676,10 @@ async function main() {
     `\n${shots} screenshots → ${OUT_DIR}\n` +
       `${overflowing.length} screens scroll horizontally, ` +
       `${findings.filter((f) => f.smallTargets.length).length} carry a target under 44px, ` +
-      `${findings.filter((f) => f.clipped.length).length} clip their own text.\n` +
+      `${findings.filter((f) => f.clipped.length).length} clip their own text, ` +
+      `${findings.filter((f) => f.tightLines.length).length} set text on a line too short for ` +
+      `it, ${findings.filter((f) => f.baselines.length).length} put a label off its value's ` +
+      `baseline.\n` +
       `Report: ${join(OUT_DIR, 'report.md')}\n`,
   );
 }
@@ -613,6 +762,60 @@ function summarise(findings, shots) {
                     `${entry.text.replace(/\|/g, '\\|')} |`,
                 ),
             ),
+          )
+          .join('\n'),
+  );
+
+  lines.push('', '## Line boxes smaller than the text in them', '');
+  const tight = new Map();
+  for (const finding of findings) {
+    for (const entry of finding.tightLines ?? []) {
+      const key = `${entry.selector}|${entry.fontSize}|${entry.lineHeight}`;
+      const seen = tight.get(key) ?? { ...entry, screens: new Set() };
+      seen.screens.add(`${finding.screen}@${finding.lang}/${finding.viewport}`);
+      tight.set(key, seen);
+    }
+  }
+  lines.push(
+    tight.size === 0
+      ? 'None.'
+      : ['| element | size | line | ink | seen on |', '| --- | --- | --- | --- | --- |']
+          .concat(
+            [...tight.values()]
+              .sort((a, b) => b.ink - b.lineHeight - (a.ink - a.lineHeight))
+              .slice(0, 40)
+              .map(
+                (entry) =>
+                  `| \`${entry.selector}\` | ${entry.fontSize}px | ${entry.lineHeight}px | ` +
+                  `${entry.ink}px | ${[...entry.screens].slice(0, 4).join(', ')} |`,
+              ),
+          )
+          .join('\n'),
+  );
+
+  lines.push('', '## Labels off the baseline of their value', '');
+  const drifted = new Map();
+  for (const finding of findings) {
+    for (const entry of finding.baselines ?? []) {
+      const key = `${entry.selector}|${entry.drift}`;
+      const seen = drifted.get(key) ?? { ...entry, screens: new Set() };
+      seen.screens.add(`${finding.screen}@${finding.lang}/${finding.viewport}`);
+      drifted.set(key, seen);
+    }
+  }
+  lines.push(
+    drifted.size === 0
+      ? 'None.'
+      : ['| element | drift | seen on |', '| --- | --- | --- |']
+          .concat(
+            [...drifted.values()]
+              .sort((a, b) => Math.abs(b.drift) - Math.abs(a.drift))
+              .slice(0, 40)
+              .map(
+                (entry) =>
+                  `| \`${entry.selector}\` | ${entry.drift}px | ` +
+                  `${[...entry.screens].slice(0, 4).join(', ')} |`,
+              ),
           )
           .join('\n'),
   );

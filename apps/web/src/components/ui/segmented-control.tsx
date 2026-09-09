@@ -60,7 +60,11 @@ export function SegmentedControl<TValue extends string>({
             aria-checked={isSelected}
             onClick={() => onChange(option.value)}
             className={cn(
-              'inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-[8px] px-3.5 lg:h-8 lg:min-h-0',
+              // 44 in both directions on touch: `px-3.5` around a two-letter
+              // label ("الكل", "All") drew a 43px-wide segment, so the height
+              // was the target and the width was one pixel short of it.
+              'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5',
+              'rounded-[8px] px-3.5 lg:h-8 lg:min-h-0 lg:min-w-0',
               'text-label transition-[background-color,color,box-shadow] duration-150',
               isSelected
                 ? 'bg-surface font-semibold text-ink shadow-pill'

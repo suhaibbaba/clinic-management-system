@@ -12,6 +12,20 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Renders a spinner and blocks interaction while a mutation is running. */
   isLoading?: boolean | undefined;
   icon?: ReactNode | undefined;
+  /**
+   * Which side of the label the icon sits on, in reading order.
+   *
+   * `start` is the default and is right for almost everything: an icon that
+   * *classifies* the action — a plus on "add patient", a printer on "print" —
+   * belongs before the words, the way a bullet does.
+   *
+   * `end` is for the one case where the icon is not a classifier but a
+   * *direction*: "next" carries a forward chevron, and a forward chevron drawn
+   * before the label points back at the word it is leading away from. On the
+   * pagination bar that put the two arrows nose to nose in the middle of the
+   * control, both aiming inwards, with the page count between them.
+   */
+  iconPosition?: 'start' | 'end' | undefined;
 }
 
 /*
@@ -52,6 +66,7 @@ export function Button({
   size = 'md',
   isLoading = false,
   icon,
+  iconPosition = 'start',
   className,
   disabled,
   children,
@@ -79,8 +94,16 @@ export function Button({
       disabled={disabled === true || isLoading}
       {...props}
     >
-      {isLoading ? <Spinner /> : icon}
+      {/*
+        The spinner takes the icon's place wherever the icon was going to be:
+        a button whose chevron trails its label must not have the label jump
+        sideways the moment it starts working.
+      */}
+      {isLoading && iconPosition === 'start' && <Spinner />}
+      {!isLoading && iconPosition === 'start' && icon}
       {children}
+      {isLoading && iconPosition === 'end' && <Spinner />}
+      {!isLoading && iconPosition === 'end' && icon}
     </button>
   );
 }

@@ -2,15 +2,18 @@ import { describe, expect, it } from 'vitest';
 
 import {
   addDays,
+  blockMinutes,
   blockPosition,
   GRID_END_MINUTE,
   GRID_START_MINUTE,
   gridHours,
   instantAt,
+  MIN_BLOCK_MINUTES,
   minuteFromOffset,
   minutesOf,
   startOfWeek,
   toTimeLabel,
+  TWO_LINE_MINUTES,
   weekDates,
 } from '@web/features/appointments/calendar-time';
 
@@ -95,6 +98,27 @@ describe('calendar time', () => {
     it('clamps a drop past either edge into the day', () => {
       expect(minuteFromOffset(-50, 900)).toBe(GRID_START_MINUTE);
       expect(minuteFromOffset(5000, 900)).toBe(GRID_END_MINUTE - 15);
+    });
+  });
+
+  describe('how tall a block is drawn', () => {
+    it('holds a floor under a very short appointment', () => {
+      // Five minutes of grid is a hairline nobody can read or hit.
+      expect(blockMinutes(5)).toBe(MIN_BLOCK_MINUTES);
+      expect(blockMinutes(60)).toBe(60);
+    });
+
+    it('puts the clinic default below the two-line threshold', () => {
+      /*
+       * The grid draws a minute per pixel, and two lines of an appointment
+       * block need 39 of them. The clinic's default appointment is 30
+       * minutes, so the common case has to be the one-line shape — this is
+       * the assertion that keeps the second line from being sliced through
+       * the middle again the next time the type or the padding moves.
+       */
+      expect(blockMinutes(30)).toBeLessThan(TWO_LINE_MINUTES);
+      expect(blockMinutes(5)).toBeLessThan(TWO_LINE_MINUTES);
+      expect(blockMinutes(45)).toBeGreaterThanOrEqual(TWO_LINE_MINUTES);
     });
   });
 

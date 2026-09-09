@@ -110,7 +110,26 @@ export function WorkingHours({
                   'group',
                 )}
               >
-                <span className="flex min-w-0 items-center gap-2">
+                {/*
+                  `w-0 grow`, not `min-w-0` and not `flex-1`.
+
+                  `min-width: 0` lets a flex item be *shrunk*; it does not
+                  reduce what the item contributes to the flex container's own
+                  min-content width, which stays the full weekday. So the row
+                  demanded "Wednesday" and the whole hours summary side by
+                  side — 343px inside a 358px column — and the clinic settings
+                  screen scrolled sideways by 21px at 390px in English, where
+                  Arabic's short weekday names had been hiding it.
+
+                  `flex-1` does not fix it either: it is `flex: 1 1 0%`, and a
+                  *percentage* basis against a container with no definite width
+                  falls back to the content size — the same full weekday. A
+                  definite `width: 0` with `grow` is the version that holds:
+                  the item contributes nothing, takes whatever is left after
+                  the summary, and truncates inside it, which is what the
+                  `truncate` below was always written for.
+                */}
+                <span className="flex w-0 min-w-0 grow items-center gap-2">
                   <Icon
                     name="chevron-down"
                     className="shrink-0 text-ink-subtle transition-transform duration-150 group-data-[state=open]:rotate-180"

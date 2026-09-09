@@ -60,16 +60,31 @@ QA_ROLES=technician QA_SCREENS=inventory pnpm qa:screens
 
 ## What the report says
 
-The sweep does not judge a design. It reports three things a browser measures
+The sweep does not judge a design. It reports five things a browser measures
 better than an eye, and leaves the rest to the person looking at the PNGs:
 
 - **Horizontal overflow** — the document scrolling sideways, with the widest
   offending element named. Nothing in this app should ever do this.
 - **Tap targets under 44px** — WCAG 2.5.8, and the reality of a phone held in
-  one hand at the chair.
+  one hand at the chair. A control may declare its target on an absolutely
+  positioned `::after` rather than in its own box — `Switch` and `PhoneLink`
+  both do, because buying the height out of the box moves the thing beside it —
+  and the measurement reads that box too.
 - **Text clipped by its own box** — an element whose content is taller than the
   box it is in. In Arabic this is usually a descender cut off by a line height
-  that was tuned against Latin.
+  that was tuned against Latin. Measured on whatever element does the clipping,
+  not only on the one that owns the words: an appointment block is an
+  `overflow-hidden` button with its text in two child spans, and for a
+  30-minute booking it was slicing the second one in half.
+- **Line boxes smaller than the text in them** — the same mistake one step
+  earlier, before anything is clipped: `leading-none` on Arabic, a caption
+  whose descenders reach the line below. The font's own ascent and descent are
+  measured, so Plex Arabic inking 1.23× its size is accounted for rather than
+  assumed.
+- **Labels off the baseline of their value** — the two halves of a card row
+  not reading as one line. Nothing overflows and nothing is clipped, which is
+  why neither check above sees it; it is the difference between the two first
+  baselines in a `<dt>`/`<dd>` pair.
 
 It also collects console errors per screen, which is how a `<button>` nested
 inside a `<button>` was found in the suppliers list, and lists any step it

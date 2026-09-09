@@ -1,4 +1,4 @@
-import type { JSX, ReactNode } from 'react';
+import { Children, type JSX, type ReactNode } from 'react';
 
 import { Icon, type IconName } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
@@ -112,13 +112,50 @@ export function StatCard({
 }
 
 /**
- * The KPI row: four stat cards that collapse to two, then one.
+ * How many columns a row of `n` cards opens into on a wide screen.
+ *
+ * Written out rather than interpolated because Tailwind reads class names as
+ * literal strings — `xl:grid-cols-${n}` is a class that is never generated.
+ *
+ * Five is the widest this goes. Beyond that the row wraps at four, which is
+ * two full rows for six and the only shape that does not put a 150px card on
+ * a laptop.
+ */
+const WIDE_COLUMNS: Record<number, string> = {
+  1: 'xl:grid-cols-1',
+  2: 'xl:grid-cols-2',
+  3: 'xl:grid-cols-3',
+  4: 'xl:grid-cols-4',
+  5: 'xl:grid-cols-4 2xl:grid-cols-5',
+};
+
+/**
+ * The KPI row: the page's stat cards on one line, collapsing to two up.
  *
  * A named component rather than a utility class repeated on every page, so a
  * KPI row is the same shape everywhere it appears.
+ *
+ * The column count comes from the number of cards rather than being fixed at
+ * four. It was four, and the pages that summarise themselves in three or five
+ * — the dashboard, the appointments day — left a card-shaped hole at the end
+ * of the row, or dropped a single card onto a second line under four others
+ * with nothing beside it. A row of five only opens all the way at `2xl`: at
+ * `xl` a fifth column leaves about 145px of card, which a five-figure balance
+ * at the KPI size does not fit in.
  */
 export function StatRow({ children }: { readonly children: ReactNode }): JSX.Element {
   // Two up on a phone. Four full-width cards is 1300px of scrolling before
   // the data they summarise, which inverts what a summary is for.
-  return <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">{children}</div>;
+  const count = Children.count(children);
+
+  return (
+    <div
+      className={cn(
+        'mb-6 grid grid-cols-2 gap-3 sm:gap-4',
+        WIDE_COLUMNS[count] ?? 'xl:grid-cols-4',
+      )}
+    >
+      {children}
+    </div>
+  );
 }

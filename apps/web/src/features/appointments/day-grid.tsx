@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { APPOINTMENT_STATUS_STYLES } from '@web/features/appointments/status';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import {
+  blockMinutes,
   blockPosition,
   GRID_START_MINUTE,
   gridHours,
@@ -19,6 +20,7 @@ import {
   minutesOf,
   periodPosition,
   toTimeLabel,
+  TWO_LINE_MINUTES,
 } from '@web/features/appointments/calendar-time';
 import { cn } from '@web/lib/cn';
 import { Icon } from '@web/components/ui/icon';
@@ -249,6 +251,22 @@ function AppointmentBlock({
   const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
   const style = APPOINTMENT_STATUS_STYLES[appointment.status];
   const position = blockPosition(appointment);
+  const time = toTimeLabel(minutesOf(appointment.startsAt));
+
+  /*
+   * A short appointment says the same thing on one line.
+   *
+   * The block is as many pixels tall as the appointment is minutes long, and
+   * two lines of this type need 39 of them — so at the clinic's default of 30
+   * minutes the block clipped its own second line horizontally through the
+   * middle of the glyphs, on nearly every appointment in the calendar. One
+   * line fits, in the order a calendar is scanned: the time, then who.
+   *
+   * The type is what goes, because it is the least of the three and the only
+   * one the drawer behind the block does not make people hunt for. It stays in
+   * the tooltip, and the accessible name is unchanged either way.
+   */
+  const compact = blockMinutes(appointment.durationMinutes) < TWO_LINE_MINUTES;
 
   return (
     <button
@@ -258,27 +276,39 @@ function AppointmentBlock({
       onDragEnd={onDragEnd}
       onClick={onOpen}
       data-appointment={appointment.id}
+      title={`${time} · ${appointment.patientName} · ${typeLabel(appointment.type)}`}
       // The block's colour is a status, and a status is never only a colour:
       // the accessible name says it in words.
-      aria-label={`${toTimeLabel(minutesOf(appointment.startsAt))} — ${appointment.patientName} — ${t(
+      aria-label={`${time} — ${appointment.patientName} — ${t(
         `appointments.statuses.${appointment.status}`,
       )}`}
       className={cn(
-        'absolute inset-x-1 overflow-hidden rounded-panel border px-2 py-1 text-start',
+        'absolute inset-x-1 overflow-hidden rounded-panel border px-2 text-start',
         'cursor-pointer transition-shadow duration-150 hover:shadow-card',
+        // A 20px block — the floor a very short appointment is drawn at — has
+        // room for one 11px line and 4px of padding, and nothing else.
+        compact ? 'py-0.5' : 'py-1',
         draggable && 'active:cursor-grabbing',
         dragging && 'opacity-40',
         style.block,
       )}
       style={position}
     >
-      <span className="block truncate text-[11px] font-semibold leading-snug">
-        {appointment.patientName}
-      </span>
-      <span className="block truncate text-[10px] leading-snug opacity-80">
-        <Ltr className="tabular-nums">{toTimeLabel(minutesOf(appointment.startsAt))}</Ltr> ·{' '}
-        {typeLabel(appointment.type)}
-      </span>
+      {compact ? (
+        <span className="flex items-baseline gap-1.5 leading-tight">
+          <Ltr className="shrink-0 text-[10px] tabular-nums opacity-80">{time}</Ltr>
+          <span className="truncate text-[11px] font-semibold">{appointment.patientName}</span>
+        </span>
+      ) : (
+        <>
+          <span className="block truncate text-[11px] font-semibold leading-snug">
+            {appointment.patientName}
+          </span>
+          <span className="block truncate text-[10px] leading-snug opacity-80">
+            <Ltr className="tabular-nums">{time}</Ltr> · {typeLabel(appointment.type)}
+          </span>
+        </>
+      )}
     </button>
   );
 }

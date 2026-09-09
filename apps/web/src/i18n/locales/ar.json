@@ -58,6 +58,7 @@
     "openTimes": "اختيار الوقت"
   },
   "pagination": {
+    "label": "التنقل بين الصفحات",
     "previous": "السابق",
     "next": "التالي",
     "page": "صفحة {{page}} من {{totalPages}}",
