@@ -18,9 +18,29 @@ export interface ContactLinkProps {
 const LINK_CLASS = cn(
   'text-primary-600 underline-offset-2 transition-colors duration-150',
   'hover:text-primary-700 hover:underline',
-  // A row in a table is a 20px line; on a phone this is a thing a thumb has to
-  // land on, so it carries the same 44px box every other row action does.
-  'inline-flex min-h-11 items-center lg:min-h-0',
+  /*
+   * A 44px thumb target that costs the line nothing.
+   *
+   * A row in a table is a 20px line, and on a phone this is a thing a thumb
+   * has to land on — and a near miss on a patient card does not miss, it opens
+   * the patient, because the card's whole surface is a button. So the target
+   * has to be there.
+   *
+   * It used to be `inline-flex min-h-11 items-center`, which bought the height
+   * out of the line box: an inline-level box takes its baseline from its
+   * content, so a 44px box around a 24px line hung 10px of itself above the
+   * baseline and pushed the number 8px below the label sitting beside it. On
+   * every card of every list, the phone row was the one row whose two halves
+   * did not read as one line — and the row grew to 64px with it.
+   *
+   * An absolutely positioned `::after` gives the same 44px of hit area with no
+   * layout at all: it is a descendant box of the link, so it hit-tests as the
+   * link, and it is centred on the text rather than displacing it. Above `lg`
+   * there is no thumb and the rows are dense enough that neighbouring bands
+   * would start competing, so it is dropped.
+   */
+  'relative inline-block',
+  "after:absolute after:inset-x-0 after:top-1/2 after:h-11 after:-translate-y-1/2 after:content-[''] lg:after:hidden",
 );
 
 /**

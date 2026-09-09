@@ -29,6 +29,32 @@ export const GRID_MINUTES = GRID_END_MINUTE - GRID_START_MINUTE;
 /** One hour of grid, in pixels. Everything else is a fraction of it. */
 export const HOUR_HEIGHT = 60;
 
+/**
+ * The shortest block that can hold two lines of text.
+ *
+ * The grid draws an hour in `HOUR_HEIGHT` pixels, so a block's height in
+ * pixels is its duration in minutes. Two lines of an appointment block — an
+ * 11px name over a 10px time, both at `leading-snug`, inside `py-1` and a
+ * border — need 39 of them, and the clinic's default appointment is 30
+ * minutes: the second line of most of the calendar was being sliced through
+ * the middle by the block's own `overflow-hidden`.
+ *
+ * So a short block states the same facts on one line instead. The threshold
+ * lives here, with the arithmetic it belongs to, rather than as a number
+ * inside a component.
+ */
+export const TWO_LINE_MINUTES = 40;
+
+/**
+ * A floor on a block's height, so a 5-minute appointment is still readable and
+ * still clickable rather than a hairline.
+ */
+export const MIN_BLOCK_MINUTES = 20;
+
+/** How tall a block will actually be drawn, in minutes of grid. */
+export const blockMinutes = (durationMinutes: number): number =>
+  Math.max(durationMinutes, MIN_BLOCK_MINUTES);
+
 /** Slot granularity when dragging: a clinic books on the quarter hour. */
 export const DRAG_STEP_MINUTES = 15;
 
@@ -113,9 +139,7 @@ export function blockPosition(appointment: CalendarAppointment): {
 
   return {
     top: `${((clampedStart - GRID_START_MINUTE) / GRID_MINUTES) * 100}%`,
-    // A floor of a few minutes, so a 5-minute appointment is still readable
-    // and still clickable rather than a hairline.
-    height: `${(Math.max(clampedEnd - clampedStart, 20) / GRID_MINUTES) * 100}%`,
+    height: `${(blockMinutes(clampedEnd - clampedStart) / GRID_MINUTES) * 100}%`,
   };
 }
 

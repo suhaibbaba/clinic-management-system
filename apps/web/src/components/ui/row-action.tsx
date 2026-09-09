@@ -44,10 +44,14 @@ export function RowAction({
     <button
       type={type}
       className={cn(
-        'inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap',
+        'inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap',
         // Blue text on a desktop row; the same blue text inside a 44px box on
-        // a phone, where the row is a card and this is a thumb target.
-        'min-h-11 rounded-control px-1 py-0.5 text-value font-medium lg:min-h-0',
+        // a phone, where the row is a card and this is a thumb target. Square,
+        // because a two-syllable Arabic label — "قبول", "رفض" on the pending
+        // bookings list — is 30px of text inside `px-1` and drew a 38px-wide
+        // target that was the full 44 tall.
+        'min-h-11 min-w-11 rounded-control px-1 py-0.5 text-value font-medium',
+        'lg:min-h-0 lg:min-w-0',
         'transition-colors duration-150',
         'disabled:cursor-not-allowed disabled:opacity-40',
         TONES[tone],

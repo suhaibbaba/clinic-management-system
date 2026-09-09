@@ -166,6 +166,49 @@ describe('Table', () => {
     expect(cell.className).toContain('text-end');
   });
 
+  it('sets a card label on the same line box as the value it names', () => {
+    setViewport(true);
+    const { container } = render(<Table columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} />);
+
+    /*
+     * A 13px label and a 15px value are stretched to the same grid row with
+     * the same top padding, so their text only lands on one line if their
+     * line boxes are the same height. They were 20px and 24px, and every
+     * label on every card sat 2.5px above its own value.
+     *
+     * jsdom has no layout, so what is asserted is the rule rather than the
+     * measurement: the label carries the value's leading.
+     */
+    const label = within(container.querySelector('dl') as HTMLElement).getByText(ar.patients.phone);
+
+    expect(label.tagName).toBe('DT');
+    expect(label.className).toContain('leading-6');
+  });
+
+  it('trails the forward chevron on the next-page button and leads it on previous', () => {
+    setViewport(false);
+    render(
+      <Table
+        columns={COLUMNS}
+        rows={ROWS}
+        rowKey={(row) => row.id}
+        pagination={{ page: 1, totalPages: 3, total: 42, onPageChange: () => undefined }}
+      />,
+    );
+
+    // "Next" points away from its label, so its chevron follows the words;
+    // drawn before them it aimed back into the word it leads away from, and
+    // the two arrows faced each other across the page count.
+    const next = screen.getByRole('button', { name: ar.pagination.next });
+    const previous = screen.getByRole('button', { name: ar.pagination.previous });
+
+    expect(next.lastElementChild?.tagName.toLowerCase()).toBe('svg');
+    expect(previous.firstElementChild?.tagName.toLowerCase()).toBe('svg');
+
+    // The landmark names the control, not one of its buttons.
+    expect(screen.getByRole('navigation')).toHaveAccessibleName(ar.pagination.label);
+  });
+
   it('shows a card-shaped skeleton while loading', () => {
     setViewport(true);
     const { container } = render(

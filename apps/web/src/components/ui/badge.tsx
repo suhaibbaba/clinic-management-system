@@ -42,12 +42,23 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1 text-label font-medium',
+        // A badge is one word-object and never breaks across lines.
+        //
+        // "بانتظار التأكيد" in a 90px table cell wrapped inside the pill, and
+        // a wrapped pill stops reading as a pill: the dot centres itself
+        // against two lines of text and the tinted ground turns into a blob
+        // twice the height of the row's other cells. A table that has to
+        // scroll a little to keep its statuses legible is the better trade —
+        // and the cell it sits in is inside `overflow-x-auto` already.
+        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill px-2.5 py-1',
+        'text-label font-medium',
         style.pill,
         className,
       )}
     >
-      {!plain && <span aria-hidden="true" className={cn('size-1.5 rounded-pill', style.dot)} />}
+      {!plain && (
+        <span aria-hidden="true" className={cn('size-1.5 shrink-0 rounded-pill', style.dot)} />
+      )}
       {children}
     </span>
   );

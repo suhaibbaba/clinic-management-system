@@ -172,7 +172,10 @@ export const SCREENS = [
   {
     id: 'labs-order-new-modal',
     path: '/labs?tab=orders',
-    roles: LABS,
+    // Not `LABS`: a technician works orders that exist but does not raise one
+    // (`canCreateLabOrder`), so there is no button for the step to click and
+    // the sweep filed a picture of the board under the modal's name.
+    roles: CLINICAL,
     steps: [{ click: 'labs.orders.add' }, { wait: 500 }],
   },
   { id: 'lab-page', path: '/labs/:labId', roles: LABS },

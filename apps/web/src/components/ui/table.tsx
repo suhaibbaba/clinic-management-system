@@ -183,6 +183,28 @@ export function Table<TRow>({
                             // straight into its value — "Requested slot" and
                             // "08/09/2026 11:00" were printed as one word.
                             'py-2.5 pe-4 text-start text-label text-ink-muted',
+                            // The value's line height, on the label.
+                            //
+                            // A label is 13px on a 20px line and its value is
+                            // 15px on a 24px one. Both cells start at the same
+                            // y — they are stretched grid items with the same
+                            // top padding — so the taller line box put its
+                            // text 2.5px further down than the shorter one,
+                            // and every label on every card sat visibly above
+                            // the value it names. It reads as the two halves
+                            // of the row belonging to different rows, which on
+                            // a list of patients is the only thing wrong with
+                            // the card.
+                            //
+                            // Matching the line box is what fixes it, rather
+                            // than `items-baseline` on the grid: baseline
+                            // alignment stops stretching the cells, and the
+                            // hairline between rows is drawn on the cells
+                            // themselves — it would land 2.5px lower on one
+                            // side than the other and break in the middle.
+                            // Same 24px box, same first baseline, borders
+                            // still meet, row height unchanged.
+                            'leading-6',
                             index > 0 && 'border-t border-line',
                           )}
                         >
@@ -375,7 +397,10 @@ export function Pagination({
   return (
     <nav
       className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-[22px] py-3.5"
-      aria-label={t('pagination.next')}
+      // The landmark names the whole control, not one of its buttons: a
+      // screen reader listing the page's navigations announced "next" as the
+      // name of the region, and the button inside it said "next" as well.
+      aria-label={t('pagination.label')}
     >
       <p className="text-label text-ink-muted">{t('pagination.total', { total })}</p>
 
@@ -394,8 +419,20 @@ export function Pagination({
           {t('pagination.page', { page, totalPages: Math.max(totalPages, 1) })}
         </span>
 
+        {/*
+          The forward chevron trails its label, where "next" points.
+
+          Both buttons took their icon at the start, which is right for
+          "previous" — its chevron points backwards, away from the words, out
+          of the control — and wrong for "next": drawn before the label, a
+          forward chevron aims back into the word it is meant to be leading
+          away from, and the two arrows ended up facing each other across the
+          page count. Reading order does the mirroring, so this is one rule in
+          both languages.
+        */}
         <Button
           icon={<Icon name="chevron-end" />}
+          iconPosition="end"
           size="sm"
           variant="secondary"
           disabled={page >= totalPages}
