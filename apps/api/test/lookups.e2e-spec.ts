@@ -14,6 +14,7 @@ import {
 } from '@clinic/shared';
 
 import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
+import { ensureSystemLookups } from '@api/database/system-lookups';
 
 describe('Lookups (e2e)', () => {
   let context: TestContext;
@@ -107,36 +108,102 @@ describe('Lookups (e2e)', () => {
       expect(missing?.meta).toMatchObject({ chartBehavior: { shape: 'missing' } });
     });
 
-    it('refuses to delete one, because the application refers to it by code', async () => {
-      const [cash] = (await list(LOOKUP_LIST.PAYMENT_METHOD)).filter(
-        (option) => option.code === 'cash',
-      );
-
-      const response = await context.app.inject({
-        method: 'DELETE',
-        url: `/lookups/${cash?.id}`,
-        headers: auth(tokens[USER_ROLE.ADMIN]),
-      });
-
-      expect(response.statusCode).toBe(400);
-      expect(await list(LOOKUP_LIST.PAYMENT_METHOD)).toEqual(
-        expect.arrayContaining([expect.objectContaining({ code: 'cash' })]),
-      );
-    });
-
-    it('refuses to switch one off, which would hide it just as thoroughly', async () => {
-      const [cash] = (await list(LOOKUP_LIST.PAYMENT_METHOD)).filter(
-        (option) => option.code === 'cash',
+    /*
+     * The lists are the clinic's, all the way down. A built-in row is marked as
+     * one so the screen can warn, but nothing here refuses.
+     */
+    it('lets the clinic switch one off, and stops offering it', async () => {
+      const [card] = (await list(LOOKUP_LIST.PAYMENT_METHOD)).filter(
+        (option) => option.code === 'card',
       );
 
       const response = await context.app.inject({
         method: 'PATCH',
-        url: `/lookups/${cash?.id}`,
+        url: `/lookups/${card?.id}`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: { isActive: false },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toMatchObject({ code: 'card', isSystem: true, isActive: false });
+      expect((await list(LOOKUP_LIST.PAYMENT_METHOD)).map((option) => option.code)).not.toContain(
+        'card',
+      );
+
+      // Reversible, and this is the half of the pair that keeps the name: a
+      // receipt written while it was off still reads "بطاقة".
+      const back = await context.app.inject({
+        method: 'PATCH',
+        url: `/lookups/${card?.id}`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: { isActive: true },
+      });
+
+      expect(back.statusCode).toBe(200);
+    });
+
+    /*
+     * In a clinic of its own, because this one is destructive and the tests
+     * above assert that every enum value still has a row behind it — a shared
+     * fixture would make those two facts depend on the order they run in.
+     */
+    it('lets the clinic delete one, and stops accepting the code', async () => {
+      const own = await context.createClinic();
+      const admin = await context.login(own.phones[USER_ROLE.ADMIN]);
+      const [transfer] = (await list(LOOKUP_LIST.PAYMENT_METHOD, admin)).filter(
+        (option) => option.code === 'transfer',
+      );
+
+      const response = await context.app.inject({
+        method: 'DELETE',
+        url: `/lookups/${transfer?.id}`,
+        headers: auth(admin),
+      });
+
+      expect(response.statusCode).toBe(204);
+      expect(
+        (await list(LOOKUP_LIST.PAYMENT_METHOD, admin)).map((option) => option.code),
+      ).not.toContain('transfer');
+
+      // And this clinic only: one tenant emptying a list cannot empty another's.
+      expect((await list(LOOKUP_LIST.PAYMENT_METHOD)).map((option) => option.code)).toContain(
+        'transfer',
+      );
+    });
+
+    /*
+     * The property that makes the freedom durable.
+     *
+     * `ensureSystemLookups` runs on every migration and on every new clinic,
+     * and it upserts the built-in rows — so if it touched anything but the
+     * system flag, a clinic's deletions and switched-off rows would quietly
+     * come back on the next deploy, which is the worst kind of bug to explain.
+     */
+    it('does not resurrect a retired built-in row on the next deploy', async () => {
+      const own = await context.createClinic();
+      const admin = await context.login(own.phones[USER_ROLE.ADMIN]);
+      const rows = await list(LOOKUP_LIST.ITEM_UNIT, admin);
+      const [removed] = rows.filter((option) => option.code === 'ampoule');
+      const [switchedOff] = rows.filter((option) => option.code === 'ml');
+
+      await context.app.inject({
+        method: 'DELETE',
+        url: `/lookups/${removed?.id}`,
+        headers: auth(admin),
+      });
+      await context.app.inject({
+        method: 'PATCH',
+        url: `/lookups/${switchedOff?.id}`,
+        headers: auth(admin),
+        payload: { isActive: false },
+      });
+
+      // What a deploy does.
+      await ensureSystemLookups(context.db, own.id);
+
+      const after = await list(LOOKUP_LIST.ITEM_UNIT, admin);
+      expect(after.map((option) => option.code)).not.toContain('ampoule');
+      expect(after.map((option) => option.code)).not.toContain('ml');
     });
 
     /* The name is what people read; the code is what the application reads. */
