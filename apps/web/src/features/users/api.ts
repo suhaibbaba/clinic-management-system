@@ -2,6 +2,8 @@ import type {
   CreateUserInput,
   ListUsersQuery,
   Paginated,
+  PresignUserPhotoInput,
+  PresignUserPhotoResponse,
   ResetUserPasswordInput,
   UpdateUserInput,
   User,
@@ -28,4 +30,13 @@ export const usersApi = {
 
   resetPassword: (id: string, body: ResetUserPasswordInput): Promise<void> =>
     apiRequest(`/users/${id}/reset-password`, { method: 'POST', body }),
+
+  presignPhoto: (id: string, body: PresignUserPhotoInput): Promise<PresignUserPhotoResponse> =>
+    apiRequest(`/users/${id}/photo/presign`, { method: 'POST', body }),
+
+  confirmPhoto: (id: string, key: string): Promise<User> =>
+    apiRequest(`/users/${id}/photo`, { method: 'POST', body: { key } }),
+
+  removePhoto: (id: string): Promise<User> =>
+    apiRequest(`/users/${id}/photo`, { method: 'DELETE' }),
 };

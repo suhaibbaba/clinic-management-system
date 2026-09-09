@@ -52,6 +52,8 @@ export const authenticatedUserSchema = z.object({
   email: z.string().nullable(),
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
+  /** Signed and short-lived, like every other photo URL — see `userSchema`. */
+  photoUrl: z.url().nullable(),
 });
 export type AuthenticatedUserProfile = z.infer<typeof authenticatedUserSchema>;
 

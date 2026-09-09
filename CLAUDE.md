@@ -86,6 +86,7 @@ packages/
 
 ### Files & images
 - Upload via presigned R2 URLs from the API; store only key + metadata in DB; serve via short-lived signed URLs. Receptionist role never receives attachment URLs.
+- **Staff have a photo; patients do not.** A rota, a calendar column and a lab sheet are all read by scanning for a person, and a face is faster than a name at 36px — so `users.photo_key` holds one, uploaded and removed by the admin on the users screen (ROLES.md: users & roles are the admin's) and drawn by `<Avatar src>`, which falls back to initials both when there is none and when the signed URL has expired in a tab left open. A patient's record holds what reception was handed; a portrait of them is not that.
 
 ### Testing
 - Backend: Jest. Minimum required coverage: balance computation, slot availability/conflicts, permission boundaries per role (see ROLES.md test matrix), lab-order state transitions, audit log writes.

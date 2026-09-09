@@ -129,7 +129,15 @@
     "empty": "No users",
     "emptyHint": "Start by adding the first clinic user",
     "nameAr": "Name in Arabic",
-    "nameEn": "Name in English"
+    "nameEn": "Name in English",
+    "photo": "Photo",
+    "photoHint": "Shown beside the name in lists and on the calendar. PNG, JPG or WebP, up to 2 MB.",
+    "uploadPhoto": "Upload photo",
+    "replacePhoto": "Replace photo",
+    "photoUpdated": "Photo saved",
+    "photoRemoved": "Photo removed",
+    "photoTooLarge": "The photo is larger than 2 MB",
+    "photoUnsupported": "Unsupported file type: PNG, JPG or WebP"
   },
   "doctors": {
     "title": "Doctors",

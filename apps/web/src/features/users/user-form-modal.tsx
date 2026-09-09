@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button, FormField, Icon, Input, Select, useToast } from '@web/components/ui';
 import { useCreateUser, useUpdateUser } from '@web/features/users/queries';
+import { UserPhotoField } from '@web/features/users/user-photo-field';
 import { errorMessageKey } from '@web/lib/api-error';
 import { Modal } from '@web/components/ui/modal';
 
@@ -108,6 +109,14 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
       }
     >
       <form id="user-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
+        {/*
+          Outside the form's fields on purpose: the photo is uploaded and
+          removed on the spot rather than saved with the rest, because it is a
+          file that has already left the browser by the time "save" is pressed.
+          Only on an existing user — there is no id to address until then.
+        */}
+        {user && <UserPhotoField user={user} />}
+
         {/*
           Both spellings, both required. Staff are a small set the clinic
           employs and can spell twice; the alternative was a name that stayed

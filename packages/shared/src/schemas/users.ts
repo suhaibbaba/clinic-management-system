@@ -25,6 +25,15 @@ export const userSchema = z.object({
   email: z.string().nullable(),
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
+  /**
+   * A short-lived signed URL for the staff photo, or null when there is none.
+   *
+   * The stored object key never leaves the API (CLAUDE.md files & images), so
+   * this is not a field a client may write — it is minted per response and
+   * expires with the download TTL, and `<Avatar>` falls back to initials both
+   * when it is null and when the URL has gone stale in an open tab.
+   */
+  photoUrl: z.url().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
@@ -75,3 +84,45 @@ export const listUsersQuerySchema = paginationQuerySchema.extend({
   search: z.string().trim().min(1).max(120).optional(),
 });
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
+
+/**
+ * A staff photo: a face in a circle beside a name, on the users list, the
+ * doctors list and the calendar's own columns.
+ *
+ * Uploaded exactly the way the clinic's logo is — presign, PUT straight to
+ * storage, confirm — so no image ever travels through the API, and the size
+ * and type are read back from what actually landed rather than trusted from
+ * the request.
+ *
+ * 2 MB and the same three formats as the logo: this is drawn at 36 pixels and
+ * at most a couple of hundred on a profile, so anything larger is a phone
+ * camera's original being uploaded whole.
+ */
+export const MAX_USER_PHOTO_BYTES = 2 * 1024 * 1024;
+
+export const ALLOWED_USER_PHOTO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
+
+export const userPhotoMimeSchema = z.enum(ALLOWED_USER_PHOTO_MIME_TYPES);
+export type UserPhotoMime = z.infer<typeof userPhotoMimeSchema>;
+
+export const presignUserPhotoSchema = z.object({
+  filename: z.string().trim().min(1).max(255),
+  mime: userPhotoMimeSchema,
+  sizeBytes: z.number().int().positive().max(MAX_USER_PHOTO_BYTES),
+});
+export type PresignUserPhotoInput = z.infer<typeof presignUserPhotoSchema>;
+
+export const presignUserPhotoResponseSchema = z.object({
+  /** Opaque to the client; it is echoed back on confirm. */
+  key: z.string(),
+  uploadUrl: z.url(),
+  expiresAt: z.iso.datetime(),
+  maxSizeBytes: z.number().int().positive(),
+});
+export type PresignUserPhotoResponse = z.infer<typeof presignUserPhotoResponseSchema>;
+
+/** Called once the client has PUT the object; the API reads the bytes back. */
+export const confirmUserPhotoSchema = z.object({
+  key: z.string().trim().min(1).max(512),
+});
+export type ConfirmUserPhotoInput = z.infer<typeof confirmUserPhotoSchema>;

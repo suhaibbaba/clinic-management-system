@@ -129,7 +129,15 @@
     "empty": "لا يوجد مستخدمون",
     "emptyHint": "ابدأ بإضافة أول مستخدم للعيادة",
     "nameAr": "الاسم بالعربية",
-    "nameEn": "Name in English"
+    "nameEn": "Name in English",
+    "photo": "الصورة الشخصية",
+    "photoHint": "صورة تظهر بجانب الاسم في القوائم والتقويم. PNG أو JPG أو WebP، حتى ٢ ميغابايت.",
+    "uploadPhoto": "رفع صورة",
+    "replacePhoto": "تغيير الصورة",
+    "photoUpdated": "تم حفظ الصورة",
+    "photoRemoved": "تم حذف الصورة",
+    "photoTooLarge": "حجم الصورة أكبر من ٢ ميغابايت",
+    "photoUnsupported": "نوع الملف غير مدعوم: PNG أو JPG أو WebP"
   },
   "doctors": {
     "title": "الأطباء",
