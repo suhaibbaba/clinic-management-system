@@ -1,20 +1,21 @@
-import { USER_ROLE, type Doctor } from '@clinic/shared';
+import { personName, USER_ROLE, type Doctor } from '@clinic/shared';
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import {
+  Avatar,
   Badge,
   Button,
+  type Column,
   EmptyState,
   Icon,
-  Ltr,
   PageHeader,
   PersonName,
+  PhoneLink,
   RowAction,
   SearchField,
   Table,
-  type Column,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { DoctorFormModal } from '@web/features/doctors/doctor-form-modal';
@@ -25,7 +26,7 @@ const PAGE_SIZE = 10;
 
 /** Readable by every role; only admin sees the write actions (ROLES.md). */
 export function DoctorsPage(): JSX.Element {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { hasRole } = useSession();
   const navigate = useNavigate();
   const isAdmin = hasRole(USER_ROLE.ADMIN);
@@ -55,9 +56,22 @@ export function DoctorsPage(): JSX.Element {
         primary: true,
         // Both spellings on hover: this is where a clinic checks what will be
         // printed on a lab sheet against what the calendar shows.
-        render: (row) => <PersonName name={row.user.name} showBoth />,
+        render: (row) => (
+          <span className="flex items-center gap-3">
+            <Avatar
+              name={personName(row.user.name, i18n.language)}
+              tintKey={row.user.id}
+              src={row.user.photoUrl}
+            />
+            <PersonName name={row.user.name} showBoth />
+          </span>
+        ),
       },
-      { key: 'phone', header: 'users.phone', render: (row) => <Ltr>{row.user.phone}</Ltr> },
+      {
+        key: 'phone',
+        header: 'users.phone',
+        render: (row) => <PhoneLink value={row.user.phone} />,
+      },
       {
         key: 'specialty',
         header: 'doctors.specialty',

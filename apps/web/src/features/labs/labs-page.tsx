@@ -10,6 +10,7 @@ import {
   EntityGrid,
   Icon,
   PageHeader,
+  PhoneLink,
   SearchField,
   StatCard,
   StatRow,
@@ -144,7 +145,9 @@ function LabCard({
           ltr: true,
         },
         { label: t('labs.card.open'), value: lab.openOrders, ltr: true },
-        ...(lab.phone ? [{ label: t('labs.card.phone'), value: lab.phone, ltr: true }] : []),
+        ...(lab.phone
+          ? [{ label: t('labs.card.phone'), value: <PhoneLink value={lab.phone} /> }]
+          : []),
       ]}
       action={{ label: t('labs.card.view'), onClick: onOpen }}
     />

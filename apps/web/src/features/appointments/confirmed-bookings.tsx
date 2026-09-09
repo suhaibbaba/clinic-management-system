@@ -5,12 +5,13 @@ import { Link } from 'react-router-dom';
 
 import {
   Badge,
+  type Column,
   EmptyState,
   Ltr,
   PageHeader,
   PersonName,
+  PhoneLink,
   Table,
-  type Column,
 } from '@web/components/ui';
 import { minutesOf, toTimeLabel, todayIso } from '@web/features/appointments/calendar-time';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
@@ -65,15 +66,7 @@ export function ConfirmedBookings(): JSX.Element {
       key: 'phone',
       header: 'booking.pending.columns.phone',
       hideOnMobile: true,
-      render: (row) => (
-        <a
-          href={`tel:${row.patientPhone}`}
-          dir="ltr"
-          className="text-primary-600 transition-colors duration-150 hover:text-primary-700"
-        >
-          {row.patientPhone}
-        </a>
-      ),
+      render: (row) => <PhoneLink value={row.patientPhone} />,
     },
     {
       key: 'doctor',

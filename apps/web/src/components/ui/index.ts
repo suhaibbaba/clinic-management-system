@@ -3,6 +3,7 @@ export { Badge, type BadgeTone } from '@web/components/ui/badge';
 export { Button, type ButtonProps } from '@web/components/ui/button';
 export { Calendar } from '@web/components/ui/calendar';
 export { Card, CardHeader, type CardTone } from '@web/components/ui/card';
+export { EmailLink, PhoneLink, type ContactLinkProps } from '@web/components/ui/contact-link';
 export { DatePicker, fromIsoDate, parseTypedDate, toIsoDate } from '@web/components/ui/date-picker';
 export { DateRangePicker, type DateRange } from '@web/components/ui/date-range-picker';
 export {

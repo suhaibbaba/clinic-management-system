@@ -11,14 +11,15 @@ import {
   Badge,
   Button,
   Card,
+  type Column,
   DateRangePicker,
   EmptyState,
   Icon,
   Ltr,
   PageHeader,
+  PhoneLink,
   SearchField,
   Table,
-  type Column,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { useLookupLabels } from '@web/features/lookups/queries';
@@ -74,7 +75,7 @@ export function SuppliersPage(): JSX.Element {
       key: 'phone',
       header: 'inventory.suppliers.phone',
       hideOnMobile: true,
-      render: (row) => (row.phone ? <Ltr className="tabular-nums">{row.phone}</Ltr> : '—'),
+      render: (row) => <PhoneLink value={row.phone} />,
     },
     {
       key: 'items',
