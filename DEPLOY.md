@@ -275,6 +275,47 @@ docker compose -p clinic-sandbox -f docker-compose.sandbox.yml build api
 docker compose -p clinic-sandbox -f docker-compose.sandbox.yml up -d api
 ```
 
+### Starting the sandbox's data over
+
+**Actions → Deploy sandbox → Run workflow → type `RESET` in "Wipe the sandbox
+database and object store before deploying".** Anything other than that exact
+word is refused before the job touches the server, and a push to `main` can
+never reach it.
+
+The reason this exists rather than "just re-run the seed": the seed only ever
+populates an **empty** clinic. Every module returns early once its own rows are
+there, and `upsertSeedClinic` deliberately leaves an adopted clinic's address,
+currency and settings alone — those are things a practice edits about itself.
+That is right for a real deployment and it means **changing the seed cannot
+change what the sandbox already shows**. Only a wipe can.
+
+What the job does, in order:
+
+1. refuses unless `SEED_ON_BOOT=true` is in `.env` — a wipe that will not be
+   re-seeded leaves a sandbox nobody can sign into, which is worse than
+   whatever it was run to fix;
+2. takes a dump (`backup once`), so the wipe is recoverable for as long as the
+   backups are kept;
+3. `down`, then removes `clinic-sandbox_clinic_pg_data` and
+   `clinic-sandbox_clinic_minio_data` — **not** `clinic_backups`, which is why
+   it does not use `down -v`;
+4. runs the ordinary deploy, which recreates both volumes, migrates, and seeds
+   into an empty database.
+
+The same thing by hand, if Actions is not available:
+
+```bash
+cd /opt/clinic/sandbox
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml run --rm backup once
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml down
+docker volume rm clinic-sandbox_clinic_pg_data clinic-sandbox_clinic_minio_data
+docker compose -p clinic-sandbox -f docker-compose.sandbox.yml up -d
+```
+
+Removing the MinIO volume alongside the database keeps the two in step: the
+rows that point at an X-ray or a staff photo are going, so the objects they
+name should go with them rather than linger as orphans nothing can reach.
+
 ### Rolling back
 
 Which build is running is decided by which commit is checked out, so a rollback
