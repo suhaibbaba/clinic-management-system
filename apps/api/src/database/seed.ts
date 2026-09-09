@@ -7,21 +7,21 @@ import {
   SPECIALTY_CODE,
   USER_ROLE,
   type PersonName,
-  type UserRole,
   type WeeklySchedule,
 } from '@clinic/shared';
 import { drizzle } from 'drizzle-orm/postgres-js';
-import { eq, isNull, and } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import postgres from 'postgres';
 
 import { validateEnv } from '@api/config/env.schema';
-import { doctors, specialties, users } from '@api/database/schema';
+import { doctors, specialties } from '@api/database/schema';
 import { ensureSystemLookups } from '@api/database/system-lookups';
 import { seedAppointments } from '@api/database/seed-appointments';
 import { seedBilling } from '@api/database/seed-billing';
 import { seedInventory } from '@api/database/seed-inventory';
 import { seedLabs } from '@api/database/seed-labs';
 import { upsertSeedClinic } from '@api/database/seed-clinic';
+import { upsertUser, type SeedAccount } from '@api/database/seed-users';
 import { seedClosures } from '@api/database/seed-closures';
 import { seedPatients } from '@api/database/seed-patients';
 
@@ -58,13 +58,6 @@ const WEEKDAY_HOURS: WeeklySchedule = [0, 1, 2, 3, 4].map((weekday) => ({
     { start: '14:00', end: '17:00' },
   ],
 }));
-
-interface SeedAccount {
-  readonly role: UserRole;
-  readonly name: PersonName;
-  readonly phone: string;
-  readonly email: string;
-}
 
 const ACCOUNTS: readonly SeedAccount[] = [
   {
@@ -170,9 +163,13 @@ async function main(): Promise<void> {
     const specialty = await upsertSpecialty(db, clinic.id);
 
     const created: { account: SeedAccount; id: string }[] = [];
+    // Anything the accounts had to repair joins the clinic's own notes, so one
+    // report says everything the seed changed about a database it inherited.
+    const notes = [...clinic.notes];
     for (const account of ACCOUNTS) {
-      const id = await upsertUser(db, clinic.id, account, passwordHash);
-      created.push({ account, id });
+      const user = await upsertUser(db, clinic.id, account, passwordHash);
+      created.push({ account, id: user.id });
+      notes.push(...user.notes);
     }
 
     const doctorAccounts = created.filter((entry) => entry.account.role === USER_ROLE.DOCTOR);
@@ -244,7 +241,7 @@ async function main(): Promise<void> {
       seededLabOrders,
       seededStockMovements,
       seededClosures,
-      clinic.notes,
+      notes,
     );
   } finally {
     await client.end();
@@ -289,60 +286,6 @@ async function upsertSpecialty(
   }
 
   return row;
-}
-
-async function upsertUser(
-  db: ReturnType<typeof drizzle>,
-  clinicId: string,
-  account: SeedAccount,
-  passwordHash: string,
-): Promise<string> {
-  const [existing] = await db
-    .select({ id: users.id, clinicId: users.clinicId })
-    .from(users)
-    .where(and(eq(users.phone, account.phone), isNull(users.deletedAt)))
-    .limit(1);
-
-  if (existing) {
-    // An account that belongs somewhere else means the clinic lookup adopted
-    // the wrong row — accounts are matched by phone, which is unique across
-    // the system rather than per clinic, so carrying on would attach this
-    // clinic's demo data to another clinic's staff. That is the shape of the
-    // duplicate-clinic bug `upsertSeedClinic` exists to prevent, and it is
-    // worth saying out loud rather than seeding a fork of the database.
-    if (existing.clinicId !== clinicId) {
-      throw new Error(
-        `The seed account ${account.phone} already belongs to clinic ${existing.clinicId}, ` +
-          `not ${clinicId}. Refusing to seed a second clinic with the same staff.`,
-      );
-    }
-
-    // Keep the documented password working even if it changed in .env.
-    await db
-      .update(users)
-      .set({ passwordHash, updatedAt: new Date() })
-      .where(eq(users.id, existing.id));
-    return existing.id;
-  }
-
-  const [row] = await db
-    .insert(users)
-    .values({
-      clinicId,
-      nameAr: account.name.ar,
-      nameEn: account.name.en,
-      phone: account.phone,
-      email: account.email,
-      passwordHash,
-      role: account.role,
-    })
-    .returning({ id: users.id });
-
-  if (!row) {
-    throw new Error(`Failed to create the seed ${account.role}`);
-  }
-
-  return row.id;
 }
 
 async function upsertDoctor(
