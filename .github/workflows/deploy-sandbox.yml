@@ -21,6 +21,15 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      reset_data:
+        # A free-text confirmation rather than a checkbox, because a checkbox
+        # next to "Run workflow" is one mis-click away from deleting the
+        # sandbox's database. Typing the word is the whole safety mechanism.
+        description: "Wipe the sandbox database and object store before deploying. Type RESET to confirm — anything else is ignored."
+        required: false
+        default: ""
+        type: string
 
 # Never let two deploys reach the server at once, and never cancel one
 # mid-flight — a half-applied migration is worse than a queued deploy.
@@ -39,6 +48,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # A typo in the confirmation must stop the job rather than quietly
+      # deploying without the reset the operator asked for — "I clicked reset
+      # and it did not reset" is the failure mode this exists to prevent.
+      - name: Check the reset confirmation
+        env:
+          RESET: ${{ inputs.reset_data }}
+        run: |
+          set -eu
+
+          if [ -z "${RESET}" ] || [ "${RESET}" = "RESET" ]; then
+            exit 0
+          fi
+
+          echo "::error::reset_data must be empty or exactly RESET — got \"${RESET}\""
+          exit 1
+
       # The VPS is shared, and twice now a deploy has died before it began:
       # `dial tcp …:22: i/o timeout`, exactly 30 seconds in, with a manual
       # re-run minutes later working unchanged. The box was simply not
@@ -68,6 +93,58 @@ jobs:
 
           echo "::error::the sandbox VPS never accepted a TCP connection on port ${SSH_PORT} — 30 attempts over about six minutes"
           exit 1
+
+      # ── Optional, manual, and never reachable from a push to main ────────
+      #
+      # The seed only ever populates an *empty* clinic: every module returns
+      # early once its own rows exist, and `upsertSeedClinic` deliberately
+      # leaves an adopted clinic's address, currency and settings alone,
+      # because those are things a practice edits about itself. That is right
+      # for a real deployment and wrong for a demo — it means changing the seed
+      # cannot change what the sandbox shows. Only a wipe can.
+      #
+      # So: a dump first, then the two data volumes, then the ordinary deploy
+      # below recreates them and seeds into the empty database. `clinic_backups`
+      # is deliberately not removed — which is what `down -v` would have done,
+      # and the reason this does not use it.
+      - name: Wipe the sandbox data
+        if: ${{ inputs.reset_data == 'RESET' }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SANDBOX_HOST }}
+          username: ${{ secrets.SANDBOX_USER }}
+          key: ${{ secrets.SANDBOX_SSH_KEY }}
+          port: ${{ secrets.SANDBOX_SSH_PORT || 22 }}
+          script_stop: true
+          timeout: 60s
+          command_timeout: 10m
+          script: |
+            set -eu
+            cd ${{ env.REMOTE_DIR }}
+
+            compose() {
+              docker compose -p ${{ env.COMPOSE_PROJECT }} -f docker-compose.sandbox.yml "$@"
+            }
+
+            # Wiping a database that will not be re-seeded leaves an empty
+            # sandbox nobody can sign into, which is worse than the state this
+            # is being run to fix. Refuse before deleting anything.
+            if ! grep -qE '^SEED_ON_BOOT=["'\''"]?true["'\''"]?[[:space:]]*$' .env; then
+              echo "::error::SEED_ON_BOOT is not true in .env — a wipe would leave the sandbox empty"
+              exit 1
+            fi
+
+            echo "==> Dump first, so a wipe is recoverable for as long as the backups are kept"
+            compose run --rm backup once
+
+            echo "==> Stopping the stack"
+            compose down
+
+            echo "==> Removing the data volumes (the backups volume is kept)"
+            docker volume rm ${{ env.COMPOSE_PROJECT }}_clinic_pg_data || true
+            docker volume rm ${{ env.COMPOSE_PROJECT }}_clinic_minio_data || true
+
+            echo "==> Wiped. The deploy below recreates them and seeds from scratch."
 
       # Everything happens on the server: it already has the sources, and the
       # secrets that configure them live in /opt/clinic/sandbox/.env, which is
