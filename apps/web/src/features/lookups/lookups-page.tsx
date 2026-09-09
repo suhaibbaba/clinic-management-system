@@ -178,7 +178,14 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
               onDragOver={(event: DragEvent) => event.preventDefault()}
               onDrop={() => void drop(option.id)}
               className={cn(
-                'flex items-center gap-3 rounded-control border border-transparent px-2 py-2',
+                // Below `md` the row is two lines: the name gets the width to
+                // itself and the controls wrap under it. On one line a phone
+                // gave the name whatever the badge, the switch and two text
+                // actions left over — about sixty pixels — so every option in
+                // the list read "نخر /…", which is the one column nobody can
+                // do without.
+                'flex flex-wrap items-center gap-x-3 gap-y-1 md:flex-nowrap',
+                'rounded-control border border-transparent px-2 py-2',
                 'hover:border-line hover:bg-sunken',
                 dragging === option.id && 'opacity-40',
                 !option.isActive && 'opacity-60',
@@ -199,36 +206,52 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
               )}
 
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-value text-ink">
+                {/*
+                 * Wraps on a phone, truncates on a wide row. A settings list is
+                 * read to find one word in it: an ellipsis where the option's
+                 * own name should be defeats the screen, and two lines cost
+                 * nothing here.
+                 */}
+                <span className="block break-words text-value text-ink md:truncate">
                   {lookupLabel(option, i18n.language)}
                 </span>
                 <Ltr className="truncate text-label text-ink-subtle">{option.code}</Ltr>
               </span>
 
-              {option.isSystem && <Badge tone="neutral">{t('lookups.system')}</Badge>}
+              {/*
+                The controls travel together, so they wrap as a block onto the
+                row's second line rather than one at a time — the switch left
+                stranded beside the name would read as belonging to it. On that
+                second line they start where the name starts, so the option and
+                what can be done to it read as one block rather than as two
+                things at opposite edges of the card.
+              */}
+              <span className="flex w-full shrink-0 items-center gap-3 md:w-auto">
+                {option.isSystem && <Badge tone="neutral">{t('lookups.system')}</Badge>}
 
-              <Switch
-                checked={option.isActive}
-                // A built-in row switched off would make behaviour written
-                // against it unreachable rather than absent.
-                disabled={option.isSystem}
-                label={t('lookups.active')}
-                onCheckedChange={() => void toggle(option)}
-              />
+                <Switch
+                  checked={option.isActive}
+                  // A built-in row switched off would make behaviour written
+                  // against it unreachable rather than absent.
+                  disabled={option.isSystem}
+                  label={t('lookups.active')}
+                  onCheckedChange={() => void toggle(option)}
+                />
 
-              <RowAction icon={<Icon name="edit" />} onClick={() => setEditing(option)}>
-                {t('common.edit')}
-              </RowAction>
-
-              {!option.isSystem && (
-                <RowAction
-                  icon={<Icon name="trash" />}
-                  tone="quiet"
-                  onClick={() => void destroy(option)}
-                >
-                  {t('common.delete')}
+                <RowAction icon={<Icon name="edit" />} onClick={() => setEditing(option)}>
+                  {t('common.edit')}
                 </RowAction>
-              )}
+
+                {!option.isSystem && (
+                  <RowAction
+                    icon={<Icon name="trash" />}
+                    tone="quiet"
+                    onClick={() => void destroy(option)}
+                  >
+                    {t('common.delete')}
+                  </RowAction>
+                )}
+              </span>
             </li>
           ))}
         </ul>
