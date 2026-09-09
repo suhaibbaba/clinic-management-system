@@ -1,6 +1,8 @@
 import { APPOINTMENT_STATUS, USER_ROLE, type UserRole } from '@clinic/shared';
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { JSX } from 'react';
+import { useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AppRoutes } from '@web/app/router';
@@ -108,11 +110,18 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse | unkno
   } as Record<string, MockResponse>;
 }
 
-async function renderCalendar(role: UserRole, overrides = {}) {
+async function renderCalendar(role: UserRole, overrides = {}, route = '/appointments') {
   authTokens.clear();
   const api = mockApi(handlers(role, overrides));
-  renderWithProviders(<AppRoutes />, { route: '/appointments' });
+  renderWithProviders(<AppRoutes />, { route });
   return api;
+}
+
+/** Prints the router's current address, which `window.location` does not carry. */
+function Address(): JSX.Element {
+  const location = useLocation();
+
+  return <span data-testid="address">{`${location.pathname}${location.search}`}</span>;
 }
 
 /**
@@ -186,6 +195,46 @@ describe('Appointments page', () => {
 
     // The week is seven 40px columns at 390px, so it is not offered at all.
     expect(screen.queryByRole('radio', { name: ar.appointments.week })).not.toBeInTheDocument();
+  });
+
+  it('opens the view the address names, and leaves the default out of it', async () => {
+    /*
+     * "Look at Tuesday", "here is Dr Haddad's day" — the calendar's three
+     * coordinates are in the URL, so a link can say them. In `useState` a link
+     * to this screen could only ever open today, every doctor, in the week.
+     */
+    await renderCalendar(USER_ROLE.RECEPTIONIST, {}, '/appointments?view=day');
+
+    await block(/10:00/);
+
+    expect(screen.getByRole('radio', { name: ar.appointments.day })).toBeChecked();
+    expect(screen.getByRole('radio', { name: ar.appointments.week })).not.toBeChecked();
+  });
+
+  it('writes the view into the address when it is switched, and the default back out', async () => {
+    const user = userEvent.setup();
+    authTokens.clear();
+    mockApi(handlers(USER_ROLE.RECEPTIONIST));
+    // The router under test is in memory, so the address is read through the
+    // router rather than off `window.location`.
+    renderWithProviders(
+      <>
+        <AppRoutes />
+        <Address />
+      </>,
+      { route: '/appointments' },
+    );
+
+    await block(/10:00/);
+    // The plain address is the default view, with no parameter announcing it.
+    expect(screen.getByTestId('address')).toHaveTextContent('/appointments');
+    expect(screen.getByTestId('address').textContent).not.toContain('view=');
+
+    await user.click(screen.getByRole('radio', { name: ar.appointments.day }));
+    expect(screen.getByTestId('address')).toHaveTextContent('view=day');
+
+    await user.click(screen.getByRole('radio', { name: ar.appointments.week }));
+    expect(screen.getByTestId('address').textContent).not.toContain('view=');
   });
 
   it('draws times in the clinic’s zone, not the browser’s', async () => {

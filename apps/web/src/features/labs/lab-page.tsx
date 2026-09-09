@@ -17,6 +17,7 @@ import {
   StatCard,
   StatRow,
   Table,
+  useTabParam,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
@@ -36,7 +37,9 @@ import {
 } from '@web/features/labs/queries';
 import { endOfNextDayIso, formatDate, startOfDayIso } from '@web/lib/format';
 
-type Tab = 'orders' | 'prices' | 'statement';
+const TAB_IDS = ['orders', 'prices', 'statement'] as const;
+
+type Tab = (typeof TAB_IDS)[number];
 
 /**
  * One lab: who they are, what they charge, what they are making, what we owe.
@@ -50,7 +53,14 @@ export function LabPage(): JSX.Element {
   const { id = '' } = useParams<{ id: string }>();
   const { user } = useSession();
 
-  const [tab, setTab] = useState<Tab>('orders');
+  /*
+   * The open tab is in the address.
+   *
+   * A lab's statement is the thing somebody sends to somebody else — "look at
+   * what we owe them" — and in `useState` it had no address to send. Same
+   * `?tab=` parameter and same helper as the sections above it.
+   */
+  const [tab, setTab] = useTabParam<Tab>('tab', TAB_IDS, 'orders');
   const [editing, setEditing] = useState(false);
   const [paying, setPaying] = useState(false);
 
@@ -138,7 +148,7 @@ export function LabPage(): JSX.Element {
       <SegmentedControl
         label={t('labs.tabs.label')}
         value={tab}
-        onChange={(next) => setTab(next as Tab)}
+        onChange={setTab}
         options={[
           { value: 'orders', label: t('labs.tabs.orders') },
           { value: 'prices', label: t('labs.tabs.prices') },

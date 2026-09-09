@@ -18,6 +18,7 @@ import {
   SegmentedControl,
   Select,
   usePersonName,
+  useTabParam,
   useToast,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
@@ -75,7 +76,15 @@ export function TreatmentPlansTab({
   const updateItem = useUpdatePlanItem(patientId);
   const convertItem = useConvertPlanItem(patientId);
 
-  const [statusFilter, setStatusFilter] = useState<PlanFilter>('all');
+  /*
+   * The status filter is in the address, not in state.
+   *
+   * `?plan=accepted` is what a dentist pastes to a colleague and what survives
+   * the refresh after a plan is accepted; `useTabParam` writes the default as
+   * no parameter at all, so the plain patient-file address is unchanged. Its
+   * own parameter rather than `tab`, which the file's tab strip already owns.
+   */
+  const [statusFilter, setStatusFilter] = useTabParam<PlanFilter>('plan', PLAN_FILTERS, 'all');
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [newItemProcedure, setNewItemProcedure] = useState('');
   /** Which plan the print sheet is currently rendering. */

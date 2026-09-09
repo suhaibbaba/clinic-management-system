@@ -1,8 +1,8 @@
-import { useState, type JSX } from 'react';
+import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { Avatar, EmptyState, Ltr, PhoneLink } from '@web/components/ui';
+import { Avatar, EmptyState, Ltr, PhoneLink, useTabParam } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { AccountTab } from '@web/features/billing/account-tab';
 import { PatientBalanceCard } from '@web/features/billing/patient-balance-card';
@@ -47,7 +47,26 @@ export function PatientPage(): JSX.Element {
   // tabs are not merely disabled — they are not part of their file at all.
   const role = user?.role;
   const tabs = TABS.filter((tab) => (tab.clinical ? role && canViewChart(role) : true));
-  const [activeTab, setActiveTab] = useState<TabId>(tabs[0]?.id ?? 'billing');
+
+  /*
+   * The open tab is in the address, like every other tab in the app.
+   *
+   * It was `useState`, which made the patient file the one screen nobody could
+   * link into: a dentist could not send "look at his X-rays" to a colleague, a
+   * receptionist could not bookmark the account tab, and a refresh on the
+   * timeline landed back on the chart. `?tab=` is the same parameter and the
+   * same helper the labs, inventory and appointments sections already use.
+   *
+   * The tab list is filtered by role first, so the fallback is that role's own
+   * first tab — a receptionist has only the account tab, and `?tab=chart` in a
+   * pasted address resolves to what they are allowed to see rather than to a
+   * blank panel.
+   */
+  const [activeTab, setActiveTab] = useTabParam<TabId>(
+    'tab',
+    tabs.map((tab) => tab.id),
+    tabs[0]?.id ?? 'billing',
+  );
 
   const patient = usePatient(id);
 

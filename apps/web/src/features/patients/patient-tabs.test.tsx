@@ -66,6 +66,50 @@ async function openTab(tab: string, overrides = {}) {
 const attachmentTypeName = (code: string): string =>
   SYSTEM_LOOKUPS[LOOKUP_LIST.ATTACHMENT_TYPE].find((row) => row.code === code)?.nameAr ?? code;
 
+describe('The file\u2019s tabs are addresses', () => {
+  beforeEach(() => authTokens.clear());
+
+  it('opens the tab the address names', async () => {
+    /*
+     * The patient file was the one screen in the app whose tabs lived in
+     * `useState`: a dentist could not send "look at his X-rays" to a
+     * colleague, and a refresh on the timeline landed back on the chart.
+     */
+    authTokens.clear();
+    mockApi(handlers());
+    renderWithProviders(<AppRoutes />, { route: `/patients/${PATIENT_ID}?tab=visits` });
+
+    await screen.findByRole('heading', { name: makePatient().fullName });
+
+    expect(screen.getByRole('tab', { name: ar.patients.tabs.visits })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByRole('tab', { name: ar.patients.tabs.chart })).toHaveAttribute(
+      'aria-selected',
+      'false',
+    );
+  });
+
+  it('falls back to the first tab this role has, rather than a blank panel', async () => {
+    // A receptionist's file is the account and nothing else, so a pasted
+    // `?tab=chart` has to land on what they are allowed to open.
+    authTokens.clear();
+    mockApi(
+      handlers({ 'GET /me': { status: 200, body: makeProfile({ role: USER_ROLE.RECEPTIONIST }) } }),
+    );
+    renderWithProviders(<AppRoutes />, { route: `/patients/${PATIENT_ID}?tab=chart` });
+
+    await screen.findByRole('heading', { name: makePatient().fullName });
+
+    expect(screen.queryByRole('tab', { name: ar.patients.tabs.chart })).not.toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: ar.patients.tabs.billing })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+  });
+});
+
 describe('Visits tab', () => {
   beforeEach(() => authTokens.clear());
 
