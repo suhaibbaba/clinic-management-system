@@ -72,6 +72,23 @@ const alignClass = (align: Column<never>['align']): string =>
   align === 'numeric' ? 'text-end tabular-nums' : align === 'end' ? 'text-end' : 'text-start';
 
 /**
+ * The same column, on a card.
+ *
+ * End-alignment is a property of a *column*: a stack of amounts only lines up
+ * on its units digit if every one of them ends at the same edge. A card has no
+ * column — it has one label and one value on a line — so the same flag pushed a
+ * patient's balance to the far side of the card while their phone and their age
+ * sat at the start, and in Arabic that put the one figure people look for on
+ * the opposite edge from everything else on the row.
+ *
+ * So the alignment is dropped and only the figures are kept: `tabular-nums`
+ * still buys lining digits, which is the half of `numeric` that is about the
+ * number rather than about the column.
+ */
+const cardAlignClass = (align: Column<never>['align']): string =>
+  align === 'numeric' ? 'text-start tabular-nums' : 'text-start';
+
+/**
  * One table, two shapes.
  *
  * Above `md` it is a real `<table>`. Below it, each row becomes a card whose
@@ -174,7 +191,7 @@ export function Table<TRow>({
                         <dd
                           className={cn(
                             'py-2.5 text-value text-ink',
-                            alignClass(column.align),
+                            cardAlignClass(column.align),
                             index > 0 && 'border-t border-line',
                           )}
                         >
