@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { settingsSchema, weeklyScheduleSchema } from '@shared/schemas/common';
 import { personNameInputSchema, personNameSchema } from '@shared/schemas/person-name';
+import { DEFAULT_TIME_ZONE } from '@shared/time/zone';
 
 /**
  * The currencies a clinic may be billed in, as ISO-4217 codes.
@@ -26,7 +27,7 @@ export type Currency = (typeof CURRENCIES)[number];
  */
 export const clinicScheduleSettingsSchema = z.object({
   /** IANA zone the clinic's opening hours are expressed in. */
-  timezone: z.string().min(1).default('Asia/Damascus'),
+  timezone: z.string().min(1).default(DEFAULT_TIME_ZONE),
 });
 export type ClinicScheduleSettings = z.infer<typeof clinicScheduleSettingsSchema>;
 
@@ -34,7 +35,7 @@ export type ClinicScheduleSettings = z.infer<typeof clinicScheduleSettingsSchema
 export function clinicScheduleSettings(settings: unknown): ClinicScheduleSettings {
   const parsed = clinicScheduleSettingsSchema.safeParse(settings ?? {});
 
-  return parsed.success ? parsed.data : { timezone: 'Asia/Damascus' };
+  return parsed.success ? parsed.data : { timezone: DEFAULT_TIME_ZONE };
 }
 
 /**

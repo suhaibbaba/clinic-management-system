@@ -47,9 +47,9 @@ const CLINIC_SLUG = 'al-nour';
 
 /**
  * Sunday–Thursday, 09:00–17:00, with a 13:00–14:00 break expressed as two
- * ranges. That is the working week in Damascus, where the seeded clinic is —
- * a Monday–Friday default would show the calendar closed on the two busiest
- * days and open on the weekend.
+ * ranges. That is the working week in Ramallah, where the seeded clinic is —
+ * the weekend is Friday and Saturday, so a Monday–Friday default would show
+ * the calendar closed on the two busiest days and open on the weekend.
  */
 const WEEKDAY_HOURS: WeeklySchedule = [0, 1, 2, 3, 4].map((weekday) => ({
   weekday,
@@ -70,25 +70,25 @@ const ACCOUNTS: readonly SeedAccount[] = [
   {
     role: USER_ROLE.ADMIN,
     name: { ar: 'مدير العيادة', en: 'Clinic Admin' },
-    phone: '+963100000001',
+    phone: '+970599000101',
     email: 'admin@clinic.local',
   },
   {
     role: USER_ROLE.DOCTOR,
     name: { ar: 'د. ليلى حداد', en: 'Dr. Layla Haddad' },
-    phone: '+963100000002',
+    phone: '+970599000102',
     email: 'doctor@clinic.local',
   },
   {
     role: USER_ROLE.RECEPTIONIST,
     name: { ar: 'الاستقبال', en: 'Front Desk' },
-    phone: '+963100000003',
+    phone: '+970599000103',
     email: 'reception@clinic.local',
   },
   {
     role: USER_ROLE.TECHNICIAN,
     name: { ar: 'فني المخبر', en: 'Lab Technician' },
-    phone: '+963100000004',
+    phone: '+970599000104',
     email: 'technician@clinic.local',
   },
   // A second doctor, so the calendar's day view has two columns to draw and
@@ -96,13 +96,13 @@ const ACCOUNTS: readonly SeedAccount[] = [
   {
     role: USER_ROLE.DOCTOR,
     name: { ar: 'د. سامر نصار', en: 'Dr. Samer Nassar' },
-    phone: '+963100000005',
+    phone: '+970599000105',
     email: 'doctor2@clinic.local',
   },
 ];
 
 /** The zone the clinic's opening hours are expressed in (see `clinicScheduleSettings`). */
-const CLINIC_TIME_ZONE = 'Asia/Damascus';
+const CLINIC_TIME_ZONE = 'Asia/Hebron';
 
 /**
  * Everything the clinic's `settings` blob holds today.
@@ -155,10 +155,11 @@ async function main(): Promise<void> {
       slug: CLINIC_SLUG,
       name: CLINIC_NAME,
       defaults: {
-        phone: '+963110000000',
+        phone: '+97022950000',
         email: 'info@clinic.local',
-        address: 'Damascus, Syria',
-        currency: 'USD',
+        address: 'رام الله، فلسطين',
+        // Shekels, shown as ₪ — the currency the clinic is actually paid in.
+        currency: 'ILS',
         workingHours: WEEKDAY_HOURS,
         settings: CLINIC_SETTINGS,
       },

@@ -187,7 +187,7 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
   ],
 
   /**
-   * VITA classical, which is what a Syrian clinic and its lab both say out
+   * VITA classical, which is what a Palestinian clinic and its lab both say out
    * loud. A clinic on a different guide edits the list rather than the code.
    */
   [LOOKUP_LIST.LAB_SHADE]: [

@@ -37,8 +37,8 @@ export const clinicTimeZone = (): string => zone;
 /**
  * Back to the browser's zone.
  *
- * Module state outlives a test, so a suite that renders a Damascus clinic
- * would otherwise leave the next one drawing Damascus times. Exported for
+ * Module state outlives a test, so a suite that renders a Ramallah clinic
+ * would otherwise leave the next one drawing Ramallah times. Exported for
  * that reason and used nowhere else.
  */
 export const resetClinicTimeZone = (): void => {

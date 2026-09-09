@@ -29,7 +29,7 @@ const softDeleteColumn = {
  * shut on the 20th, and which instant that starts at is the availability
  * service's business, resolved against the clinic's own zone at read time.
  * Storing instants here would have made the same row mean different days for a
- * server in UTC and a clinic in Damascus.
+ * server in UTC and a clinic in Ramallah.
  *
  * This replaces the `settings.holidays` array of dates, which could hold no
  * reason, could not be audited, and had no id for a cancelled appointment to
