@@ -84,7 +84,11 @@
     "inventory": "Inventory",
     "lists": "Lists",
     "dashboard": "Dashboard",
-    "settings": "Clinic settings"
+    "settings": "Clinic settings",
+    "groups": {
+      "care": "Patients & appointments",
+      "stores": "Lab & inventory"
+    }
   },
   "roles": {
     "admin": "Admin",

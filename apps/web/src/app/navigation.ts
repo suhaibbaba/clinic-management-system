@@ -21,20 +21,36 @@ export interface NavItem {
 }
 
 export interface NavGroup {
-  /** i18n key for the group's own row. */
-  readonly label: string;
-  readonly icon: IconName;
+  /**
+   * i18n key for the group's caption, or absent for the rows at the very top
+   * that belong to no section and are drawn without one.
+   */
+  readonly label?: string | undefined;
   readonly items: readonly NavItem[];
+  /**
+   * Whether the group is open the first time it is drawn.
+   *
+   * The sections people navigate with are open; settings is not — see
+   * `NAV_SETTINGS`.
+   */
+  readonly openByDefault: boolean;
 }
 
 /**
- * The sidebar.
+ * The sidebar, as sections.
  *
- * Six rows, in the order a day runs: what is happening now, who it is
- * happening to, when, and then the two stores of things. Everything that is
- * set up once and rarely touched — accounts, lists, the audit trail — is
- * folded into one collapsed group at the bottom, so the list people navigate
- * with is the list of places they actually go.
+ * The dashboard is loose at the top because it is where every role lands and
+ * nothing groups with it. Under it the destinations are captioned by what they
+ * are for — the people and their times, then the two stores of things — so a
+ * list of six rows reads as three short lists rather than one long one.
+ *
+ * A caption never repeats the row beneath it. "المرضى" over a single row also
+ * reading "المرضى" is a heading that carries no information, which is why the
+ * captions name the pair rather than the section.
+ *
+ * Everything that is set up once and rarely touched — accounts, lists, the
+ * audit trail — is folded into one collapsed group at the bottom, so the list
+ * people navigate with is the list of places they actually go.
  *
  * The account itself is not here at all: it lives in the menu on the avatar,
  * which is where every application of this shape puts it, and where somebody
@@ -44,36 +60,53 @@ export interface NavGroup {
  * table drives the route guards, so a hidden section is not reachable by
  * typing its URL either.
  */
-export const NAV_ITEMS: readonly NavItem[] = [
-  // Everyone lands here, and every role has a dashboard row in ROLES.md; what
-  // differs is which figures the response carries, not who may look.
-  { to: '/dashboard', label: 'nav.dashboard', roles: USER_ROLES, icon: 'activity' },
+export const NAV_GROUPS: readonly NavGroup[] = [
   {
-    to: '/patients',
-    label: 'nav.patients',
-    roles: [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST],
-    icon: 'users',
+    // Everyone lands here, and every role has a dashboard row in ROLES.md;
+    // what differs is which figures the response carries, not who may look.
+    // Uncaptioned, because a heading over a single row that already says
+    // "dashboard" is a heading nobody reads.
+    openByDefault: true,
+    items: [{ to: '/dashboard', label: 'nav.dashboard', roles: USER_ROLES, icon: 'activity' }],
   },
   {
-    to: '/appointments',
-    label: 'nav.appointments',
-    roles: [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST],
-    icon: 'calendar',
-    // Online bookings are the only thing in this app that arrives while nobody
-    // is looking, so the count sits on the section that answers them.
-    badge: 'pendingBookings',
+    label: 'nav.groups.care',
+    openByDefault: true,
+    items: [
+      {
+        to: '/patients',
+        label: 'nav.patients',
+        roles: [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST],
+        icon: 'users',
+      },
+      {
+        to: '/appointments',
+        label: 'nav.appointments',
+        roles: [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST],
+        icon: 'calendar',
+        // Online bookings are the only thing in this app that arrives while
+        // nobody is looking, so the count sits on the section that answers it.
+        badge: 'pendingBookings',
+      },
+    ],
   },
   {
-    to: '/labs',
-    label: 'nav.labs',
-    roles: [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
-    icon: 'clipboard',
-  },
-  {
-    to: '/inventory',
-    label: 'nav.inventory',
-    roles: [USER_ROLE.TECHNICIAN],
-    icon: 'package',
+    label: 'nav.groups.stores',
+    openByDefault: true,
+    items: [
+      {
+        to: '/labs',
+        label: 'nav.labs',
+        roles: [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
+        icon: 'clipboard',
+      },
+      {
+        to: '/inventory',
+        label: 'nav.inventory',
+        roles: [USER_ROLE.TECHNICIAN],
+        icon: 'package',
+      },
+    ],
   },
 ];
 
@@ -82,7 +115,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
  *
  * Collapsed by default: these are the screens somebody opens on the day they
  * set the clinic up and then twice a year, and five permanent rows of them
- * push the five rows people use every day off a laptop screen.
+ * push the rows people use every day off a laptop screen.
  *
  * Clinic details and the doctors list are readable by every role (ROLES.md
  * core matrix) and their routes still are — this only decides who is *offered*
@@ -91,7 +124,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
  */
 export const NAV_SETTINGS: NavGroup = {
   label: 'nav.settings',
-  icon: 'gear',
+  openByDefault: false,
   items: [
     { to: '/clinic', label: 'nav.clinic', roles: [USER_ROLE.ADMIN], icon: 'building' },
     { to: '/doctors', label: 'nav.doctors', roles: [USER_ROLE.ADMIN], icon: 'stethoscope' },
@@ -102,11 +135,21 @@ export const NAV_SETTINGS: NavGroup = {
   ],
 };
 
+/** Every destination outside settings, in sidebar order. */
+export const NAV_ITEMS: readonly NavItem[] = NAV_GROUPS.flatMap((group) => group.items);
+
 const visible = (items: readonly NavItem[], role: UserRole): readonly NavItem[] =>
   items.filter((item) => role === USER_ROLE.ADMIN || item.roles.includes(role));
 
-export function visibleNavItems(role: UserRole | undefined): readonly NavItem[] {
-  return role ? visible(NAV_ITEMS, role) : [];
+/** The sections a role sees, with the groups they are captioned by. */
+export function visibleNavGroups(role: UserRole | undefined): readonly NavGroup[] {
+  if (!role) {
+    return [];
+  }
+
+  return NAV_GROUPS.map((group) => ({ ...group, items: visible(group.items, role) })).filter(
+    (group) => group.items.length > 0,
+  );
 }
 
 export function visibleSettingsItems(role: UserRole | undefined): readonly NavItem[] {
