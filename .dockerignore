@@ -16,4 +16,3 @@
 # Compose files and docs are not build inputs.
 docker-compose*.yml
 *.log
-storybook-static

@@ -20,7 +20,7 @@ function sourceFiles(dir: string, acc: string[] = []): string[] {
 
     if (statSync(path).isDirectory()) {
       sourceFiles(path, acc);
-    } else if (/\.tsx?$/.test(entry) && !/\.(test|stories)\.tsx?$/.test(entry)) {
+    } else if (/\.tsx?$/.test(entry) && !/\.test\.tsx?$/.test(entry)) {
       acc.push(path);
     }
   }
