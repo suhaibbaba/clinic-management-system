@@ -18,7 +18,7 @@ export function PrintLetterhead({ clinic }: { clinic: Clinic | undefined }): JSX
   return (
     <header className="print-letterhead">
       <div className="print-brand">
-        <Logo size="md" className="print-logo" />
+        <Logo size="print" className="print-logo" />
         <div>
           {/*
             The clinic's own name, in the reader's language — this sheet is

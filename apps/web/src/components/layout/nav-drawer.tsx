@@ -70,10 +70,12 @@ export function NavDrawer({
             'data-[state=open]:animate-drawer-in data-[state=closed]:animate-drawer-out',
           )}
         >
-          <div className="flex h-14 shrink-0 items-center justify-between gap-3 px-4">
+          <div className="flex shrink-0 items-center gap-3 border-b border-line px-3 py-3">
             {/* The mark is what is drawn; the name is what is announced. */}
             <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
-            {brand}
+            {/* `min-w-0` so the mark takes the width the close button leaves,
+                rather than pushing it off the edge. */}
+            <div className="min-w-0 flex-1">{brand}</div>
 
             <DialogPrimitive.Close
               aria-label={closeLabel}
@@ -86,7 +88,7 @@ export function NavDrawer({
             </DialogPrimitive.Close>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3">{children}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-3">{children}</div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

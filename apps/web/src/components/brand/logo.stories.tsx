@@ -9,9 +9,9 @@ const meta = {
     docs: {
       description: {
         component:
-          'One import of apps/web/src/assets/logo.svg, used at three named sizes: sm in the ' +
-          'sidebar header, md on the print letterhead, lg on the login page. Replacing the ' +
-          'asset file changes every placement at once.',
+          'One import of apps/web/src/assets/logo.svg, at three sizes named for where they ' +
+          'are used: chrome across the rail and the drawer, print on the letterhead, login ' +
+          'on the sign-in card. Replacing the asset file changes every placement at once.',
       },
     },
   },
@@ -23,8 +23,8 @@ type Story = StoryObj<typeof meta>;
 export const Sizes: Story = {
   render: () => (
     <div className="flex flex-wrap items-end gap-8">
-      {(['sm', 'md', 'lg'] as const).map((size) => (
-        <div key={size} className="flex flex-col items-center gap-2">
+      {(['chrome', 'print', 'login'] as const).map((size) => (
+        <div key={size} className="flex w-56 flex-col items-center gap-2">
           <Logo size={size} />
           <span className="font-mono text-xs text-ink-subtle">{size}</span>
         </div>
@@ -33,13 +33,17 @@ export const Sizes: Story = {
   ),
 };
 
-/** How it reads in the sidebar, beside the app name. */
-export const InSidebarHeader: Story = {
-  name: 'In the sidebar header',
+/**
+ * How it reads in the rail: the mark alone, across the full width of the band,
+ * with the hairline that separates the clinic's own header from the app's list.
+ */
+export const InTheRail: Story = {
+  name: 'In the rail',
   render: () => (
-    <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-4 py-3">
-      <Logo size="sm" />
-      <span className="text-sm font-semibold text-ink">نظام إدارة العيادة</span>
+    <div className="w-[236px] bg-canvas">
+      <div className="border-b border-line px-3 py-3">
+        <Logo size="chrome" />
+      </div>
     </div>
   ),
 };

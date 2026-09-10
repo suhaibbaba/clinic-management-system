@@ -102,10 +102,9 @@ export function AppLayout(): JSX.Element {
       >
         <div className="flex h-full flex-col">
           {/*
-            The mark, alone, in a band the height of the page's bar so the two
-            line up — and with no rule under it. The rail is a tint against a
-            white page, and a tinted surface does not need a hairline to say
-            where its header stops.
+            The mark, alone, across the width of the rail, with a rule under
+            it: the band is the clinic's, the list below it is the app's, and
+            the hairline is what says so.
 
             No wordmark beside it: a clinic's own logo already carries its
             name, and the app's name set in 16px next to it made two names for
@@ -113,11 +112,11 @@ export function AppLayout(): JSX.Element {
             name instead, which is the one place the app still has to say what
             it is.
           */}
-          <div className="flex h-14 shrink-0 items-center px-4">
-            <Logo size="sm" src={clinic.data?.logoUrl} alt={t('app.title')} />
+          <div className="shrink-0 border-b border-line px-3 py-3">
+            <Logo size="chrome" src={clinic.data?.logoUrl} alt={t('app.title')} />
           </div>
 
-          <div className="flex-1 overflow-y-auto px-3 pb-3">
+          <div className="flex-1 overflow-y-auto px-3 pt-3 pb-3">
             <NavList groups={groups} settings={settings} badges={badges} />
           </div>
 
@@ -134,7 +133,7 @@ export function AppLayout(): JSX.Element {
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         title={t('app.title')}
-        brand={<Logo size="sm" src={clinic.data?.logoUrl} />}
+        brand={<Logo size="chrome" src={clinic.data?.logoUrl} />}
         closeLabel={t('common.close')}
       >
         <NavList groups={groups} settings={settings} badges={badges} />
