@@ -86,7 +86,7 @@
     "dashboard": "Dashboard",
     "settings": "Clinic settings",
     "groups": {
-      "care": "Patients & appointments",
+      "care": "Patient care",
       "stores": "Lab & inventory"
     }
   },
