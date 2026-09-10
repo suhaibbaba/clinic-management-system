@@ -107,7 +107,6 @@ export function DayGrid({
       )}
 
       <div className="min-w-max">
-        {/* Column headers */}
         <div
           className="sticky top-0 z-10 flex border-b border-line bg-surface"
           style={{ paddingInlineStart: 56 }}

@@ -8,7 +8,7 @@ import { cx } from '@web/booking/ui';
  * The page frame: the clinic's mark and name, then whatever step is showing.
  *
  * One column, 480px at most, centred. On a phone that is the whole screen; on
- * a laptop it is a card-width sheet in the middle of the grey ground rather
+ * a laptop it is a card-width sheet in the middle of the tinted ground rather
  * than a form stretched across 1400px.
  */
 export function PageShell({
