@@ -36,6 +36,33 @@ function bookingEntryDevServer(): Plugin {
   };
 }
 
+// The logo is fetched from object storage on a different origin, so the TLS handshake would
+// otherwise start only once the bundle has run. Injected rather than written into the HTML, so a
+// deployment without the variable gets no tag at all instead of an empty one.
+function storagePreconnect(): Plugin {
+  return {
+    name: 'clinic-storage-preconnect',
+    transformIndexHtml() {
+      const origin = process.env['VITE_STORAGE_ORIGIN'];
+
+      return origin
+        ? [
+            {
+              tag: 'link',
+              attrs: { rel: 'preconnect', href: origin, crossorigin: '' },
+              injectTo: 'head' as const,
+            },
+            {
+              tag: 'link',
+              attrs: { rel: 'dns-prefetch', href: origin },
+              injectTo: 'head' as const,
+            },
+          ]
+        : [];
+    },
+  };
+}
+
 // A static SPA has no runtime configuration, so the version is baked in. Inside Docker there is no
 // `.git`, which is why the deploy passes it in.
 function appVersion(): string {
@@ -64,7 +91,7 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(appVersion()),
   },
-  plugins: [react(), tailwindcss(), bookingEntryDevServer()],
+  plugins: [react(), tailwindcss(), bookingEntryDevServer(), storagePreconnect()],
   resolve: {
     alias: {
       '@web': appSrc,

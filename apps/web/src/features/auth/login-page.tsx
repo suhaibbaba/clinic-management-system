@@ -5,12 +5,13 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import { Logo } from '@web/components/brand/logo';
-import { useClinicBranding } from '@web/features/clinic/queries';
+import { useClinicBranding, BRANDING_SCOPE } from '@web/features/clinic/queries';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { Button, FormField, Icon, Input, PersonName } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
 import { ApiError, errorMessageKey } from '@web/lib/api-error';
+import { useClinicLogo } from '@web/lib/use-clinic-logo';
 
 interface LocationState {
   from?: string;
@@ -20,6 +21,7 @@ export function LoginPage(): JSX.Element {
   const { t } = useTranslation();
   const { status, login } = useSession();
   const branding = useClinicBranding();
+  const logoUrl = useClinicLogo(BRANDING_SCOPE, branding.data?.logoUrl);
   const navigate = useNavigate();
   const location = useLocation();
   const [formErrorKey, setFormErrorKey] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export function LoginPage(): JSX.Element {
       <div className="w-full max-w-md rounded-card bg-surface p-8 shadow-card">
         {/* The one place the mark is shown at size; the clinic name sits in the
             heading below it, so the mark itself is decorative. */}
-        <Logo size="login" src={branding.data?.logoUrl} className="mx-auto mb-6" />
+        <Logo size="login" src={logoUrl} name={branding.data?.name} className="mb-6" />
 
         {branding.data?.name && (
           <p className="mb-1 text-value font-medium text-ink-muted">

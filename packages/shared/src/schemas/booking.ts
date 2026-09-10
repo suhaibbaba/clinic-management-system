@@ -44,6 +44,8 @@ export function bookingSettings(settings: unknown): BookingSettings {
 export const publicClinicSchema = z.object({
   name: personNameSchema,
   slug: z.string(),
+  /** Long-lived signed URL, so the booking page draws the mark from cache on a repeat visit. */
+  logoUrl: z.url().nullable(),
   phone: z.string().nullable(),
   address: z.string().nullable(),
   bookingEnabled: z.boolean(),

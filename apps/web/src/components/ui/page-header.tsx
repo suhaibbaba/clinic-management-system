@@ -1,14 +1,19 @@
 import type { JSX, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useDocumentTitle } from '@web/lib/document-title';
+
 export interface PageHeaderProps {
   title: string;
   subtitle?: string | undefined;
   actions?: ReactNode | undefined;
 }
 
+// Every screen with a heading gets its tab title from it here, rather than each calling the hook.
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps): JSX.Element {
   const { t } = useTranslation();
+
+  useDocumentTitle(t(title));
 
   return (
     <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

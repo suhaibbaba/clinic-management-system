@@ -11,7 +11,9 @@ export function PrintLetterhead({ clinic }: { clinic: Clinic | undefined }): JSX
   return (
     <header className="print-letterhead">
       <div className="print-brand">
-        <Logo size="print" className="print-logo" />
+        {/* Only when the clinic has one: a sheet with no logo carries its name, never a stand-in
+            mark, which on paper would read as somebody else's branding. */}
+        {clinic?.logoUrl && <Logo size="print" src={clinic.logoUrl} className="print-logo" />}
         <div>
           {/* In the reader's language: this sheet prints from the browser, unlike the API's PDFs,
               which use the clinic's document language. */}

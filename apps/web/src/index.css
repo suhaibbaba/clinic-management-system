@@ -89,8 +89,6 @@
   }
 
   .print-logo {
-    height: 16mm;
-    width: auto;
     /* Browsers drop background graphics from print; a letterhead mark is content. Where a browser
        refuses, the sheet still carries the clinic's name in text. */
     print-color-adjust: exact;

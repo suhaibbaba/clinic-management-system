@@ -47,8 +47,8 @@ export class ClinicsService implements OnModuleInit {
 
       const row = await this.findOwn(clinicId);
 
-      // The key is audited rather than the signed URL: the URL expires in
-      // minutes and would make every log entry unreadable a day later.
+      // The key is audited rather than the signed URL, which would make every entry unreadable
+      // once it expired.
       return row ? { ...toClinic(row), logoUrl: null } : null;
     });
   }
@@ -190,14 +190,14 @@ export class ClinicsService implements OnModuleInit {
     return row;
   }
 
-  // The stored key never leaves the API; the client gets a signed URL that expires with the
-  // configured TTL.
+  // The stored key never leaves the API; the client gets a signed URL that is stable for a window,
+  // so the rail's logo is a cache hit on every page after the first.
   private async withLogoUrl(row: ClinicRow): Promise<Clinic> {
     return { ...toClinic(row), logoUrl: await this.signLogo(row.logoKey) };
   }
 
   private async signLogo(key: string | null): Promise<string | null> {
-    return key ? (await this.storage.createDownloadUrl(key)).url : null;
+    return key ? (await this.storage.createBrandingUrl(key)).url : null;
   }
 
   private async findOwn(clinicId: string): Promise<ClinicRow | undefined> {

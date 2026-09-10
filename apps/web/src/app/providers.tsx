@@ -6,6 +6,7 @@ import { createQueryClient } from '@web/app/query-client';
 import { ToastProvider } from '@web/components/ui';
 import { SessionProvider } from '@web/features/auth/session';
 import { isRtl } from '@web/i18n';
+import { DocumentTitleProvider } from '@web/lib/document-title';
 
 export function AppProviders({ children }: { children: ReactNode }): JSX.Element {
   const { i18n } = useTranslation();
@@ -21,7 +22,9 @@ export function AppProviders({ children }: { children: ReactNode }): JSX.Element
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <DocumentTitleProvider>{children}</DocumentTitleProvider>
+        </SessionProvider>
       </ToastProvider>
     </QueryClientProvider>
   );

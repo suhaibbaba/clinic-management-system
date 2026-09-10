@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type JSX } from 'react';
 import { BookingError, bookingApi, failureKey } from '@web/booking/api';
 import { dayChips, learnClinicOffset, todayIso } from '@web/booking/format';
 import { t } from '@web/booking/i18n';
+import { useClinicLogo } from '@web/booking/branding';
 import { FullPageMessage, PageShell, StepHeader } from '@web/booking/layout';
 import { rememberClinic } from '@web/booking/route';
 import { DetailsStep, type BookingDetails } from '@web/booking/steps/details-step';
@@ -40,6 +41,8 @@ const STAGE_TITLE: Record<Stage, string> = {
 // taken meanwhile returns to the grid with fresh times, the only screen where that is actionable.
 export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element {
   const clinic = useAsync(() => bookingApi.clinic(slug), [slug]);
+  // Painted from the browser's copy on a repeat visit, before the response lands.
+  const logoUrl = useClinicLogo(slug, clinic.data?.logoUrl);
   const doctors = useAsync(() => bookingApi.doctors(slug), [slug], clinic.data?.bookingEnabled);
 
   const [stage, setStage] = useState<Stage>('doctor');
@@ -182,7 +185,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   if (clinic.loading) {
     return (
-      <PageShell clinicName={undefined}>
+      <PageShell clinicName={undefined} logoUrl={logoUrl}>
         <Skeleton className="h-8 w-2/3" />
         <div className="mt-4 flex flex-col gap-3">
           <Skeleton className="h-[76px] rounded-card" />
@@ -194,7 +197,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   if (clinic.error || !clinic.data) {
     return (
-      <PageShell clinicName={undefined}>
+      <PageShell clinicName={undefined} logoUrl={logoUrl}>
         <FullPageMessage
           title={t(failureKey(clinic.error))}
           action={
@@ -209,7 +212,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   if (!clinic.data.bookingEnabled) {
     return (
-      <PageShell clinicName={bookingName(clinic.data.name)}>
+      <PageShell clinicName={bookingName(clinic.data.name)} logoUrl={logoUrl}>
         <FullPageMessage
           title={t('errors.closed')}
           {...(clinic.data.phone && { body: clinic.data.phone })}
@@ -222,7 +225,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   if (stage === 'done') {
     return (
-      <PageShell clinicName={bookingName(clinic.data.name)}>
+      <PageShell clinicName={bookingName(clinic.data.name)} logoUrl={logoUrl}>
         {booking ? <SuccessView booking={booking} /> : <PendingView />}
       </PageShell>
     );
@@ -231,6 +234,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
   return (
     <PageShell
       clinicName={bookingName(clinic.data.name)}
+      logoUrl={logoUrl}
       footer={
         stage === 'doctor' ? (
           <Button full disabled={!doctor} onClick={() => setStage('when')}>

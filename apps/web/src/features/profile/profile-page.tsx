@@ -67,7 +67,7 @@ export function ProfilePage(): JSX.Element {
               name={personName(user?.name, i18n.language)}
               tintKey={user?.id ?? ''}
               src={user?.photoUrl}
-              className="size-16"
+              size={64}
             />
             <PersonName name={user?.name} className="text-value font-medium text-ink" />
           </div>

@@ -139,6 +139,7 @@ services:
         # version later. This is what makes the settings screen able to
         # disagree with /api/version, which is the whole point of showing both.
         VITE_APP_VERSION: ${APP_VERSION:-}
+        VITE_STORAGE_ORIGIN: ${VITE_STORAGE_ORIGIN:-}
     image: clinic-sandbox-web
     restart: unless-stopped
     ports:

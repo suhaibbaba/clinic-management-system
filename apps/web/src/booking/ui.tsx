@@ -1,4 +1,11 @@
-import type { ButtonHTMLAttributes, InputHTMLAttributes, JSX, ReactNode } from 'react';
+import {
+  useEffect,
+  useState,
+  type ButtonHTMLAttributes,
+  type InputHTMLAttributes,
+  type JSX,
+  type ReactNode,
+} from 'react';
 
 // Not `@web/components/ui`: that library is Radix-backed, and one button from it pulls much of the
 // dashboard's dependency graph into an 80 KB budget.
@@ -134,6 +141,55 @@ export function Alert({
 
 export function Skeleton({ className }: { readonly className?: string }): JSX.Element {
   return <span aria-hidden className={cx('skeleton block rounded-panel', className)} />;
+}
+
+// The dashboard's `Img` in miniature — the wall keeps `@web/components` out of this bundle. Same
+// contract: a box reserved up front that every state fills, so no image moves the form under it.
+export function Img({
+  src,
+  alt,
+  width,
+  height,
+  priority = false,
+  fallback,
+}: {
+  readonly src: string | null | undefined;
+  readonly alt: string;
+  readonly width: number;
+  readonly height: number;
+  readonly priority?: boolean;
+  readonly fallback?: ReactNode;
+}): JSX.Element {
+  const [state, setState] = useState<'loading' | 'loaded' | 'failed'>('loading');
+
+  useEffect(() => setState('loading'), [src]);
+
+  const missing = src === null || src === undefined || src === '';
+
+  return (
+    <span style={{ width, height }} className="relative block max-w-full shrink-0 overflow-hidden">
+      {!missing && (
+        <img
+          src={src}
+          alt={alt}
+          onLoad={() => setState('loaded')}
+          onError={() => setState('failed')}
+          {...(priority ? { loading: 'eager', fetchPriority: 'high' } : { loading: 'lazy' })}
+          decoding="async"
+          className={cx(
+            'size-full object-contain transition-opacity duration-[120ms]',
+            state === 'loaded' ? 'opacity-100' : 'opacity-0',
+          )}
+        />
+      )}
+
+      {!missing && state === 'loading' && (
+        <Skeleton className="absolute inset-0 size-full rounded-none" />
+      )}
+
+      {(missing || state === 'failed') && fallback}
+    </span>
+  );
 }
 
 export interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {

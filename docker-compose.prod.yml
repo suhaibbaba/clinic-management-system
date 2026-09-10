@@ -50,6 +50,7 @@ services:
       dockerfile: docker/web.Dockerfile
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        VITE_STORAGE_ORIGIN: ${VITE_STORAGE_ORIGIN:-}
     restart: always
     ports:
       - "${WEB_PORT:-80}:80"

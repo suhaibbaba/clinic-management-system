@@ -9,11 +9,18 @@ import { PendingBookingsService } from '@api/booking/pending-bookings.service';
 import { AppConfigModule } from '@api/config/config.module';
 import { DatabaseModule } from '@api/database/database.module';
 import { NotificationsModule } from '@api/notifications/notifications.module';
+import { StorageModule } from '@api/storage/storage.module';
 
 // No separate "public appointment" table and no separate hold: a booking is an ordinary appointment
 // in `requested`, so the overlap constraint holds the slot.
 @Module({
-  imports: [DatabaseModule, AppConfigModule, NotificationsModule, AppointmentsModule],
+  imports: [
+    DatabaseModule,
+    AppConfigModule,
+    NotificationsModule,
+    AppointmentsModule,
+    StorageModule,
+  ],
   controllers: [BookingController, PendingBookingsController],
   providers: [BookingService, BookingTokenService, PendingBookingsService],
   exports: [BookingTokenService],

@@ -98,7 +98,7 @@ describe('Clinic logo (e2e)', () => {
       expect(deleted).toEqual([first]);
     });
 
-    it('goes back to the built-in mark, and takes the object with it', async () => {
+    it('goes back to the generated mark, and takes the object with it', async () => {
       const key = ((await presign()).json() as PresignClinicLogoResponse).key;
       await confirm(key);
       deleted = [];
@@ -231,6 +231,48 @@ describe('Clinic logo (e2e)', () => {
       const response = await context.app.inject({ method: 'GET', url: '/clinic/branding' });
 
       expect(response.json()).toEqual({ name: null, logoUrl: null });
+    });
+  });
+
+  // A logo is not medical data, and a URL that changed on every response is a URL no browser could
+  // ever reuse — which is the whole reason the rail used to flash on every page.
+  describe('a URL a browser can cache', () => {
+    const logoUrl = async (): Promise<string> => {
+      const read = await context.app.inject({ method: 'GET', url: '/clinic', headers: asAdmin() });
+
+      return (read.json() as Clinic).logoUrl ?? '';
+    };
+
+    beforeAll(async () => {
+      const key = ((await presign()).json() as PresignClinicLogoResponse).key;
+      await confirm(key);
+    });
+
+    it('hands out the same URL byte for byte on every read', async () => {
+      expect(await logoUrl()).toBe(await logoUrl());
+    });
+
+    it('outlives a working day, unlike a medical image URL', async () => {
+      const expires = Number(new URL(await logoUrl()).searchParams.get('X-Amz-Expires'));
+
+      expect(expires).toBeGreaterThanOrEqual(24 * 60 * 60);
+    });
+
+    it('tells the browser to keep it', async () => {
+      const cacheControl = new URL(await logoUrl()).searchParams.get('response-cache-control');
+
+      expect(cacheControl).toMatch(/^public, max-age=\d+/);
+      // Inside the signature, so it cannot be stripped or forged on the way.
+      expect(new URL(await logoUrl()).searchParams.get('X-Amz-SignedHeaders')).not.toBeNull();
+    });
+
+    // The chrome is drawn from the session's own response, so nothing waits on a second request.
+    it('travels with the session bootstrap', async () => {
+      const response = await context.app.inject({ method: 'GET', url: '/me', headers: asAdmin() });
+      const profile = response.json() as { clinic: { name: unknown; logoUrl: string } };
+
+      expect(profile.clinic.logoUrl).toBe(await logoUrl());
+      expect(profile.clinic.name).toEqual({ ar: expect.any(String), en: expect.any(String) });
     });
   });
 });

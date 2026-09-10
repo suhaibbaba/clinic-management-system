@@ -2,7 +2,6 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { documentSettings, personName } from '@clinic/shared';
 import { eq } from 'drizzle-orm';
 
-import { BRAND_MARK, MARK_VIEWBOX } from '@api/billing/pdf/brand-mark';
 import type { DocumentLanguage } from '@api/billing/pdf/document-strings';
 import type { RtlPdf } from '@api/billing/pdf/pdf-builder';
 import { DATABASE, type Database } from '@api/database/database.module';
@@ -58,15 +57,11 @@ export class LetterheadService {
     };
   }
 
-  // The clinic's logo when there is one, the product's mark when there is not — decided by whether
-  // the image actually drew, since pdf-lib cannot embed everything.
+  // A clinic with no logo gets its name and nothing else: a stand-in mark on a receipt would be
+  // another clinic's branding on this one's paper.
   async draw(pdf: RtlPdf, clinic: Letterhead): Promise<void> {
-    const drawn = clinic.logo
-      ? await pdf.image(clinic.logo.bytes, clinic.logo.mime)
-      : /* istanbul ignore next -- short-circuited above. */ false;
-
-    if (!drawn) {
-      pdf.mark(BRAND_MARK, MARK_VIEWBOX);
+    if (clinic.logo) {
+      await pdf.image(clinic.logo.bytes, clinic.logo.mime);
     }
 
     pdf.text(clinic.name, { size: 18, weight: 'bold', align: 'centre', gap: 4 });

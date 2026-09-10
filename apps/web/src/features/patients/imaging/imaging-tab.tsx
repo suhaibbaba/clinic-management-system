@@ -9,7 +9,17 @@ import {
 import { useRef, useState, type ChangeEvent, type DragEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, EmptyState, Icon, Input, Ltr, Select, useToast } from '@web/components/ui';
+import {
+  Badge,
+  Button,
+  EmptyState,
+  Icon,
+  Img,
+  Input,
+  Ltr,
+  Select,
+  useToast,
+} from '@web/components/ui';
 import { Skeleton, SkeletonStatus } from '@web/components/ui/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { useLookupLabels, useLookupOptions } from '@web/features/lookups/queries';
@@ -301,11 +311,11 @@ function ImageCard({
         {data?.downloadUrl &&
           (isImage ? (
             <a href={data.downloadUrl} target="_blank" rel="noreferrer" className="size-full">
-              <img
+              <Img
                 src={data.downloadUrl}
                 alt={attachment.filename}
-                className="size-full object-cover"
-                loading="lazy"
+                aspectRatio="1/1"
+                className="size-full"
               />
             </a>
           ) : (
