@@ -280,7 +280,11 @@ function NavRow({
             // after it.
             aria-label={t('nav.waitingCount', { count })}
             className={cn(
-              'ms-auto min-w-5 rounded-pill px-1.5 py-0.5 text-center text-meta font-semibold tabular-nums',
+              // A circle, not a lozenge: `aspect-square` takes the height from
+              // whatever width the digits need, so one digit is a 20px disc and
+              // a three-figure count is a larger one — round either way.
+              'ms-auto inline-flex aspect-square min-w-5 shrink-0 items-center justify-center',
+              'rounded-pill px-1.5 text-meta font-semibold tabular-nums',
               isActive ? 'bg-ink-inverse text-primary-700' : 'bg-danger-600 text-ink-inverse',
             )}
           >
