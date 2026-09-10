@@ -129,3 +129,14 @@ packages/
 **Phase 1 (MVP):** core + patients (tooth chart & X-rays) + billing + internal appointments + roles & audit log.
 **Phase 2:** public booking + notifications, labs, inventory.
 **Phase 3:** reports & dashboard, prescriptions/medical reports polish, second specialty chart, expenses, Excel import.
+
+
+## Comment policy (strict)
+- Default is NO comment. Code must be self-explanatory via naming.
+- A comment is allowed ONLY for: a non-obvious WHY that cannot be
+  expressed in code (workaround + link, security/bidi/ledger invariant),
+  or JSDoc on shared/public utilities (one line, max two).
+- Maximum 3 lines per comment. No narrative prose, no essays, no
+  storytelling tone, no design rationale in code (that goes in the PR
+  description), no comments that restate the obvious.
+- Sweep the whole repo now to comply; keep deletions in their own commits.
