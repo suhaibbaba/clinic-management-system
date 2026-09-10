@@ -100,7 +100,7 @@ export function ToothPanel({
         {summary && (
           <section className="rounded-card bg-canvas p-4 shadow-float">
             <div className="flex items-center gap-3">
-              <Ltr className="inline-flex size-12 shrink-0 items-center justify-center rounded-panel bg-surface font-mono text-lg font-semibold text-ink shadow-pill">
+              <Ltr className="inline-flex size-12 shrink-0 items-center justify-center rounded-panel bg-surface font-mono text-section font-semibold text-ink shadow-pill">
                 {tooth}
               </Ltr>
 

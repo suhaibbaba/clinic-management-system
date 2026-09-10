@@ -100,7 +100,7 @@ export function DoctorPage(): JSX.Element {
         <PersonName
           name={doctor.data.user.name}
           showBoth
-          className="text-lg font-semibold text-ink"
+          className="text-section font-semibold text-ink"
         />
         <Badge tone="info">{doctor.data.specialty.name}</Badge>
         <span className="text-label text-ink-muted">

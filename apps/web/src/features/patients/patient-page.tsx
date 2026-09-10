@@ -73,66 +73,68 @@ export function PatientPage(): JSX.Element {
   return (
     <div className="flex flex-col gap-5">
       {/*
-        The file's identity line, not a card.
+        The file's identity, as the record's own header card.
 
-        It was a full-width white slab with a name at one edge and a balance at
-        the other and a hole in between; on a wide screen the two facts it
-        carried were a screen apart. As a plain header row — avatar, name, the
-        rest of the identity as one quiet line under it — it says the same
-        things in a third of the height, and the white surfaces below it are
-        left to mean "content".
+        Name and balance sit on the first line; everything else that identifies
+        the patient is a labelled pair in the grid under it. The labels are
+        drawn rather than `sr-only`: a file number, an age and a phone number
+        read as a dot-separated run only if you already know what order they
+        come in, and reception reads this block aloud down a telephone.
+
+        The grid is what keeps the two ends of a wide screen from drifting
+        apart — an earlier revision put the name at one edge and the balance at
+        the other with a hole between them.
       */}
-      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+      <header className="rounded-card bg-surface p-4 shadow-card">
         {patient.isPending && <p className="text-value text-ink-muted">{t('common.loading')}</p>}
 
         {patient.isError && <p className="text-value text-danger-600">{t('errors.notFound')}</p>}
 
         {patient.data && (
-          <div className="flex min-w-0 items-center gap-3">
-            <Avatar name={patient.data.fullName} tintKey={id} className="size-11 text-value" />
+          <>
+            <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <Avatar name={patient.data.fullName} tintKey={id} className="size-10 text-value" />
 
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <h1 className="truncate text-xl font-semibold tracking-tight text-ink">
-                  {patient.data.fullName}
-                </h1>
-                {/* Beside the name it qualifies, and it appears the moment its
-                    own query lands rather than waiting on the record. */}
-                <AllergyBanner patientId={id} />
+                <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                  <h1 className="truncate text-title font-semibold tracking-title text-ink">
+                    {patient.data.fullName}
+                  </h1>
+                  {/* Beside the name it qualifies, and it appears the moment
+                      its own query lands rather than waiting on the record. */}
+                  <AllergyBanner patientId={id} />
+                </div>
               </div>
 
-              {/*
-                One line, dot-separated. Three labelled pairs spread across a
-                row read as a form; the labels are only there for a screen
-                reader, which is what `sr-only` on the `dt` is for.
-              */}
-              <dl className="mt-0.5 flex flex-wrap items-center gap-x-2 text-label text-ink-muted">
-                <dt className="sr-only">{t('patients.fileNumber')}</dt>
-                <Ltr as="dd" className="tabular-nums">
+              {role && canSeeBilling(role) && <PatientBalanceCard patientId={id} />}
+            </div>
+
+            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 lg:grid-cols-3">
+              <div className="min-w-0">
+                <dt className="text-meta text-ink-muted">{t('patients.fileNumber')}</dt>
+                <Ltr as="dd" className="mt-0.5 truncate text-value text-ink tabular-nums">
                   {patient.data.fileNumber}
                 </Ltr>
+              </div>
 
-                <span aria-hidden="true">·</span>
-
-                <dt className="sr-only">{t('patients.age')}</dt>
-                <dd>
+              <div className="min-w-0">
+                <dt className="text-meta text-ink-muted">{t('patients.age')}</dt>
+                <dd className="mt-0.5 truncate text-value text-ink">
                   {patient.data.dateOfBirth
                     ? t('patients.years', { count: ageInYears(patient.data.dateOfBirth) })
                     : '—'}
                 </dd>
+              </div>
 
-                <span aria-hidden="true">·</span>
-
-                <dt className="sr-only">{t('patients.phone')}</dt>
-                <dd>
+              <div className="min-w-0">
+                <dt className="text-meta text-ink-muted">{t('patients.phone')}</dt>
+                <dd className="mt-0.5 truncate text-value text-ink">
                   <PhoneLink value={patient.data.phone} />
                 </dd>
-              </dl>
-            </div>
-          </div>
+              </div>
+            </dl>
+          </>
         )}
-
-        {patient.data && role && canSeeBilling(role) && <PatientBalanceCard patientId={id} />}
       </header>
 
       {/*
