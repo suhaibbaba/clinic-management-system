@@ -64,10 +64,6 @@ function useStockMutation<TArgs, TResult>(mutationFn: (args: TArgs) => Promise<T
   });
 }
 
-/* -------------------------------------------------------------------------- */
-/* Reads                                                                       */
-/* -------------------------------------------------------------------------- */
-
 export function useInventoryItems(
   query: Partial<ListInventoryItemsQuery> = {},
 ): UseQueryResult<Paginated<InventoryItemRow>> {
@@ -133,10 +129,6 @@ export function useSupplierStatement(
     enabled: id !== '',
   });
 }
-
-/* -------------------------------------------------------------------------- */
-/* Writes                                                                      */
-/* -------------------------------------------------------------------------- */
 
 export function useCreateItem() {
   return useStockMutation((input: CreateInventoryItemInput) => inventoryApi.createItem(input));

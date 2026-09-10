@@ -79,15 +79,15 @@ export function Modal({
             'fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2',
             size === 'lg' ? 'max-w-2xl' : 'max-w-md',
             // Column layout so the body scrolls and the footer stays reachable.
-            'flex max-h-[calc(100vh-4rem)] flex-col rounded-card bg-surface p-6 shadow-float',
+            'flex max-h-[calc(100vh-4rem)] flex-col rounded-card bg-surface p-5 shadow-float',
           )}
         >
-          <Dialog.Title className="text-lg font-semibold text-ink">
+          <Dialog.Title className="text-section font-semibold text-ink">
             {t(title, titleValues ?? {})}
           </Dialog.Title>
 
           {description !== undefined ? (
-            <Dialog.Description className="mt-1 text-label text-ink-muted">
+            <Dialog.Description className="mt-1 text-meta text-ink-muted">
               {t(description)}
             </Dialog.Description>
           ) : (
@@ -97,12 +97,11 @@ export function Modal({
           )}
 
           {/*
-            The focus ring is 3px with a 2px offset (base.css), so a field
-            flush against the edge of a scroll container has a fifth of its
-            ring clipped — most visibly at 390px, where every field is
-            full-width. The inner padding gives the ring its 5px and the
-            matching negative margin keeps the content aligned with the title
-            above it.
+            The focus ring is 2px with a 2px offset (base.css), so a field
+            flush against the edge of a scroll container has part of its ring
+            clipped — most visibly at 390px, where every field is full-width.
+            The inner padding gives the ring its 4px and the matching negative
+            margin keeps the content aligned with the title above it.
           */}
           <div className="-mx-1.5 mt-4 flex-1 overflow-y-auto px-1.5 py-1.5">
             {/* Date and time pickers inside a dialog portal into it rather than
@@ -111,7 +110,7 @@ export function Modal({
           </div>
 
           {footer !== undefined && (
-            <div className="mt-6 flex shrink-0 items-center justify-end gap-2 border-t border-line pt-5">
+            <div className="mt-5 flex shrink-0 items-center justify-end gap-2 border-t border-line pt-4">
               <DialogLayerProvider container={layer}>{footer}</DialogLayerProvider>
             </div>
           )}

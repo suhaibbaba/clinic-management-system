@@ -51,7 +51,7 @@ interface SeedAppointment {
  * first screen anyone opens.
  */
 const SCHEDULE: readonly SeedAppointment[] = [
-  // ── Yesterday: a finished day ──────────────────────────────────────────
+  // Yesterday: a finished day
   {
     dayOffset: -1,
     time: '09:00',
@@ -94,7 +94,7 @@ const SCHEDULE: readonly SeedAppointment[] = [
     cancelledReason: 'اعتذر المريض',
   },
 
-  // ── Today: partly behind, partly ahead ─────────────────────────────────
+  // Today: partly behind, partly ahead
   {
     dayOffset: 0,
     time: '09:00',
@@ -176,7 +176,7 @@ const SCHEDULE: readonly SeedAppointment[] = [
     reason: 'حجز عبر الموقع',
   },
 
-  // ── The rest of the week ───────────────────────────────────────────────
+  // The rest of the week
   {
     dayOffset: 1,
     time: '09:00',

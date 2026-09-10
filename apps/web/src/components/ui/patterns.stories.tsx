@@ -154,8 +154,8 @@ export const EntityCards: Story = {
 
 /**
  * The selection state, which is the same everywhere: a soft primary tint and a
- * 1.5px primary edge. It is drawn as an outline rather than a border so a card
- * does not shift by 1.5px — and nudge its neighbours — when it is picked.
+ * primary edge. It is drawn as an outline rather than a border so a card does
+ * not shift by a pixel — and nudge its neighbours — when it is picked.
  */
 export const Selection: Story = {
   render: () => (

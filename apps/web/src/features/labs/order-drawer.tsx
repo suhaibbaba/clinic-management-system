@@ -30,6 +30,7 @@ import {
 import { availableSteps, canReturn, LAB_ORDER_STATUS_STYLES } from '@web/features/labs/status';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate, formatDateTime } from '@web/lib/format';
+import { cn } from '@web/lib/cn';
 
 export interface OrderDrawerProps {
   readonly order: LabOrderRow | undefined;
@@ -122,7 +123,7 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
         }
       >
         <div className="flex flex-col gap-5">
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-value">
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-value">
             <Field label={t('labs.order.lab')}>{order.labName}</Field>
             <Field label={t('labs.order.patient')}>
               <span className="flex flex-wrap items-baseline gap-2">
@@ -158,11 +159,15 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
             </Field>
 
             {order.instructions && (
-              <Field label={t('labs.order.instructions')}>{order.instructions}</Field>
+              <Field wide label={t('labs.order.instructions')}>
+                {order.instructions}
+              </Field>
             )}
 
             {order.returnReason && (
-              <Field label={t('labs.order.returnReason')}>{order.returnReason}</Field>
+              <Field wide label={t('labs.order.returnReason')}>
+                {order.returnReason}
+              </Field>
             )}
           </dl>
 
@@ -400,11 +405,19 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }): JSX.Element {
+function Field({
+  label,
+  wide = false,
+  children,
+}: {
+  label: string;
+  wide?: boolean;
+  children: ReactNode;
+}): JSX.Element {
   return (
-    <>
-      <dt className="text-label text-ink-muted">{label}</dt>
-      <dd className="min-w-0 text-ink">{children}</dd>
-    </>
+    <div className={cn('min-w-0', wide && 'col-span-2')}>
+      <dt className="text-meta text-ink-muted">{label}</dt>
+      <dd className="mt-0.5 min-w-0 text-ink">{children}</dd>
+    </div>
   );
 }

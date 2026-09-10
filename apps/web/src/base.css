@@ -9,7 +9,7 @@
  * apart on the first change, and the drift would show as a booking page that
  * looks *almost* like the app.
  *
- * What stayed behind in `index.css`: the frosted chrome and the print sheet,
+ * What stayed behind in `index.css`: the chrome surfaces and the print sheet,
  * which belong to the signed-in shell alone.
  */
 
@@ -19,21 +19,21 @@ body,
   height: 100%;
 }
 
-/* The page ground: one flat grey. Everything readable floats on white above it. */
+/* The page ground: one flat cool tint. Everything readable sits on white. */
 body {
   margin: 0;
   background-color: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  /* Tight tracking through the body is what makes the family read as one. */
+  /* Set once here, so no screen has an opinion of its own about tracking. */
   letter-spacing: var(--tracking-body);
   /*
-   * 1.65, for Arabic. Latin reads comfortably from about 1.5; Arabic at the
+   * 1.6, for Arabic. Latin reads comfortably from about 1.5; Arabic at the
    * same ratio puts the descender of one line into the marks above the next,
    * and the difference is the whole reason a page of Arabic set at Latin
    * leading looks cramped without anyone being able to say why.
    */
-  line-height: 1.65;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -128,21 +128,23 @@ body {
  * blue, or missing. A component that needs a different offset overrides this;
  * nothing needs to opt in.
  *
- * 3px of primary-500, which clears the 3:1 a focus indicator needs against
- * both white and the grey ground while staying softer than the 600.
+ * 2px of primary-500, which clears the 3:1 a focus indicator needs against
+ * both white and the tinted ground while staying softer than the 600. Two
+ * rather than three: every panel on this page is drawn with a hairline, and a
+ * 3px halo beside one edge reads as a third border rather than as attention.
  */
 :focus-visible {
-  outline: 3px solid var(--color-primary-500);
+  outline: 2px solid var(--color-primary-500);
   outline-offset: 2px;
 }
 
 /*
  * Fields are the one exception, and they take the ring on their own edge.
  *
- * A text input already turns its border blue on focus; a 3px halo floating
- * 2px outside that border reads as two concentric rings around one box, which
- * is what the field looked like before. At `0` offset the outline lands flush
- * on the border and the two read as a single 3px edge.
+ * A text input already turns its border blue on focus; a halo floating 2px
+ * outside that border reads as two concentric rings around one box, which is
+ * what the field looked like before. At `0` offset the outline lands flush on
+ * the border and the two read as a single 2px edge.
  */
 :where(input, textarea, select):focus-visible {
   outline-width: 2px;

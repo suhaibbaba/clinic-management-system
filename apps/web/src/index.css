@@ -35,53 +35,25 @@
 @import './base.css';
 
 /*
- * Frosted chrome: the sidebar and the top bar let content show through them.
+ * The chrome: the sidebar and the page's own bar.
  *
- * Written as classes rather than utilities because `backdrop-filter` needs its
- * background and its filter to travel together — split across two utilities
- * they drift apart the first time one is overridden.
+ * Written as classes rather than utilities because both of them read the same
+ * pair of custom properties, and a system whose panels are outlined has to
+ * keep its two fixed surfaces identical — a sidebar half a shade off the bar
+ * beside it is the one difference nobody can name but everybody sees.
  *
- * The opaque base is not a nicety. An earlier revision had only the
- * translucent rule, and where it did not apply the sticky bar had *no*
- * background at all: content scrolled visibly through the header and the
- * breadcrumb sat on top of a phone number. A bar is opaque first and frosted
- * second.
+ * Opaque, deliberately. An earlier revision frosted them and let the page
+ * scroll through; where the effect did not apply the sticky bar had *no*
+ * background at all and the breadcrumb sat on top of a phone number. A bar is
+ * opaque first and decorated second — and with cards now drawn as outlines,
+ * translucency put a second edge behind every one of them.
  */
 .chrome-sidebar,
 .chrome-bar {
-  background-color: var(--color-canvas);
+  background-color: var(--chrome-surface);
 }
 
-/*
- * Frosting is a desktop effect here, from `md` up.
- *
- * On a phone the bar is 56px of the viewport and sits directly on top of the
- * content — at 72% opacity the breadcrumb ends up reading over a phone number
- * scrolling underneath it, which is confusing rather than pretty. There is no
- * sidebar beside it on a phone to give it context either. Solid.
- */
-@media (min-width: 768px) {
-  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-    .chrome-sidebar {
-      background-color: var(--chrome-sidebar);
-      -webkit-backdrop-filter: var(--chrome-blur);
-      backdrop-filter: var(--chrome-blur);
-    }
-
-    .chrome-bar {
-      background-color: var(--chrome-bar);
-      -webkit-backdrop-filter: var(--chrome-blur);
-      backdrop-filter: var(--chrome-blur);
-    }
-  }
-}
-
-/* The active sidebar row: a fill, never a colour. */
-.chrome-active {
-  background-color: var(--chrome-active);
-}
-
-/* A search field: a tint of the ground, no border. */
+/* A search field: white, like every other field, and tinted on hover. */
 .chrome-field {
   background-color: var(--chrome-field);
 }

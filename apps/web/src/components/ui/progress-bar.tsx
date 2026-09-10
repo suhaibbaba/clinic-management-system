@@ -52,7 +52,7 @@ export function ProgressBar({
       aria-valuenow={done}
       aria-valuemin={0}
       aria-valuemax={safeTotal}
-      className={cn('h-1.5 w-full overflow-hidden rounded-pill bg-sunken', className)}
+      className={cn('h-1.5 w-full overflow-hidden rounded-pill bg-inset', className)}
     >
       {/*
         Width is the only inline style here: it is a computed length, not a

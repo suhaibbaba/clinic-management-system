@@ -62,10 +62,6 @@ export function documentSettings(settings: unknown): DocumentSettings {
   return parsed.success ? parsed.data : { language: 'ar' };
 }
 
-/* -------------------------------------------------------------------------- */
-/* The clinic's logo                                                          */
-/* -------------------------------------------------------------------------- */
-
 /**
  * 2 MB, which is a generous letterhead logo and a poor place to keep a scan.
  *

@@ -317,7 +317,6 @@ export function AppointmentsPage(): JSX.Element {
         canMark={mayBook}
       />
 
-      {/* ── Toolbar ─────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="flex items-center gap-2">
           <Button
@@ -376,7 +375,6 @@ export function AppointmentsPage(): JSX.Element {
         </div>
       </div>
 
-      {/* ── The calendar itself ─────────────────────────────────────── */}
       {/* A landmark of its own, so "the calendar" is addressable separately
           from the ribbon above it — which draws some of the same appointments
           and would otherwise be indistinguishable to a screen reader. */}

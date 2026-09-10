@@ -31,6 +31,7 @@ import {
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate } from '@web/lib/format';
+import { cn } from '@web/lib/cn';
 
 export interface AppointmentDrawerProps {
   readonly appointment: CalendarAppointment | undefined;
@@ -201,7 +202,7 @@ export function AppointmentDrawer({
             )}
           </div>
 
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-value">
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-value">
             <Field label={t('appointments.date')}>{formatDate(appointment.startsAt)}</Field>
             <Field label={t('appointments.time')}>
               <Ltr className="tabular-nums">
@@ -226,13 +227,19 @@ export function AppointmentDrawer({
               <Ltr className="tabular-nums">{appointment.patientPhone}</Ltr>
             </Field>
             {appointment.reason && (
-              <Field label={t('appointments.reason')}>{appointment.reason}</Field>
+              <Field wide label={t('appointments.reason')}>
+                {appointment.reason}
+              </Field>
             )}
             {appointment.notes && (
-              <Field label={t('appointments.notes')}>{appointment.notes}</Field>
+              <Field wide label={t('appointments.notes')}>
+                {appointment.notes}
+              </Field>
             )}
             {appointment.cancelledReason && (
-              <Field label={t('appointments.cancel.reason')}>{appointment.cancelledReason}</Field>
+              <Field wide label={t('appointments.cancel.reason')}>
+                {appointment.cancelledReason}
+              </Field>
             )}
           </dl>
 
@@ -297,11 +304,19 @@ export function AppointmentDrawer({
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }): JSX.Element {
+function Field({
+  label,
+  wide = false,
+  children,
+}: {
+  label: string;
+  wide?: boolean;
+  children: ReactNode;
+}): JSX.Element {
   return (
-    <>
-      <dt className="text-label text-ink-muted">{label}</dt>
-      <dd className="min-w-0 text-ink">{children}</dd>
-    </>
+    <div className={cn('min-w-0', wide && 'col-span-2')}>
+      <dt className="text-meta text-ink-muted">{label}</dt>
+      <dd className="mt-0.5 min-w-0 text-ink">{children}</dd>
+    </div>
   );
 }

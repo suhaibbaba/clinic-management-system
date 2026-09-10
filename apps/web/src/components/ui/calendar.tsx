@@ -14,7 +14,7 @@ export function dateLocale(language: string): Locale {
 /**
  * The month grid, styled with the app's own tokens.
  *
- * ── Latin digits, Arabic words ────────────────────────────────────────────
+ * Latin digits, Arabic words
  *
  * The clinic writes Gregorian dates with Western digits — that is what a file
  * number, a phone number and a printed receipt all use here, and a calendar

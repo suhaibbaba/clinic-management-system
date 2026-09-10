@@ -33,16 +33,16 @@ export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.El
 
   return (
     <div className="text-end">
-      <span className="block text-label text-ink-muted">{t('patients.balance')}</span>
+      <span className="block text-meta text-ink-muted">{t('patients.balance')}</span>
 
       {balance.isPending ? (
-        <span className="block text-lg font-semibold text-ink-subtle">—</span>
+        <span className="block text-kpi font-semibold text-ink-subtle">—</span>
       ) : (
         <Money
           amount={balance.data?.balance ?? '0.00'}
           currency={currency}
           signed
-          className="text-lg font-semibold"
+          className="text-kpi font-semibold"
         />
       )}
 

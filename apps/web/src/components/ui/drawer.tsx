@@ -61,8 +61,8 @@ export function Drawer({
             'border-s border-line',
           )}
         >
-          <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
-            <Dialog.Title className="text-lg font-semibold text-ink">{title}</Dialog.Title>
+          <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-3">
+            <Dialog.Title className="text-section font-semibold text-ink">{title}</Dialog.Title>
             <Dialog.Close
               className={cn(
                 // The same 44px close as the navigation drawer's, and the same
@@ -81,13 +81,13 @@ export function Drawer({
 
           <Dialog.Description className="sr-only">{t(descriptionKey)}</Dialog.Description>
 
-          <div className="flex-1 overflow-y-auto px-5 py-4">
+          <div className="flex-1 overflow-y-auto px-4 py-4">
             {/* As in `Modal`: a picker in here portals into the drawer. */}
             <DialogLayerProvider container={layer}>{children}</DialogLayerProvider>
           </div>
 
           {footer !== undefined && (
-            <div className="shrink-0 border-t border-line px-5 py-3">{footer}</div>
+            <div className="shrink-0 border-t border-line px-4 py-3">{footer}</div>
           )}
         </Dialog.Content>
       </Dialog.Portal>

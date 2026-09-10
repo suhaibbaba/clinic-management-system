@@ -30,10 +30,10 @@ export interface UserMenuProps {
 }
 
 /**
- * The account menu in the header.
+ * The account menu at the foot of the sidebar.
  *
- * The trigger is the white pill that was already there — avatar, name, role,
- * chevron — now a real button: it takes focus, opens on Enter or Space, and
+ * The trigger is the card it has always been — avatar, name, role, chevron —
+ * and a real button: it takes focus, opens on Enter or Space, and
  * Radix keeps `aria-expanded` and the `aria-controls` wiring in step. The
  * chevron turns when it is open, which is the only cue that the pill was ever
  * meant to be clicked.
@@ -60,11 +60,14 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
           'data-[state=open]:bg-inset',
         )}
       >
-        <Avatar name={displayName(user.name)} />
+        {/* Square, not round: the person here is the account rather than a
+            face in a list, and the rounded square is what the rest of the
+            system's small tinted blocks are drawn as. */}
+        <Avatar name={displayName(user.name)} className="rounded-control" />
 
         <span className="flex min-w-0 flex-1 flex-col leading-snug text-start">
-          <PersonName name={user.name} className="truncate text-label font-semibold text-ink" />
-          <span className="truncate text-label text-ink-subtle">{t(`roles.${user.role}`)}</span>
+          <PersonName name={user.name} className="truncate text-value font-semibold text-ink" />
+          <span className="truncate text-meta text-ink-subtle">{t(`roles.${user.role}`)}</span>
         </span>
 
         <Icon
@@ -116,7 +119,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
           making it one would put a version number in the keyboard's tab
           order between "sign out" and the edge of the menu.
         */}
-        <p className="px-2 py-1.5 text-label text-ink-subtle">
+        <p className="px-2 py-1.5 text-meta text-ink-subtle">
           <span>{t('clinic.version')}</span> <Ltr className="font-mono">v{WEB_VERSION}</Ltr>
         </p>
       </DropdownMenuContent>

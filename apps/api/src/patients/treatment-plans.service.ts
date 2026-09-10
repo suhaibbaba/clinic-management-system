@@ -214,10 +214,6 @@ export class TreatmentPlansService implements OnModuleInit {
       );
   }
 
-  /* ---------------------------------------------------------------------- */
-  /* Items                                                                   */
-  /* ---------------------------------------------------------------------- */
-
   async addItem(
     actor: AuthenticatedUser,
     planId: string,
@@ -336,10 +332,6 @@ export class TreatmentPlansService implements OnModuleInit {
 
     return procedure;
   }
-
-  /* ---------------------------------------------------------------------- */
-  /* Helpers                                                                 */
-  /* ---------------------------------------------------------------------- */
 
   private async insertItem(
     actor: AuthenticatedUser,

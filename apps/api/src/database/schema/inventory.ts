@@ -37,10 +37,6 @@ const money = (name: string) => numeric(name, { precision: 10, scale: 2 });
  */
 const quantity = (name: string) => numeric(name, { precision: 12, scale: 3 });
 
-/* -------------------------------------------------------------------------- */
-/* Suppliers                                                                   */
-/* -------------------------------------------------------------------------- */
-
 /**
  * Who the clinic buys from.
  *
@@ -65,10 +61,6 @@ export const suppliers = pgTable(
   },
   (table) => [index('suppliers_clinic_idx').on(table.clinicId, table.name)],
 );
-
-/* -------------------------------------------------------------------------- */
-/* Items                                                                       */
-/* -------------------------------------------------------------------------- */
 
 /**
  * A thing the clinic keeps in a cupboard.
@@ -109,10 +101,6 @@ export const inventoryItems = pgTable(
     index('inventory_items_supplier_idx').on(table.defaultSupplierId),
   ],
 );
-
-/* -------------------------------------------------------------------------- */
-/* The ledger                                                                  */
-/* -------------------------------------------------------------------------- */
 
 /**
  * Every reason a quantity ever changed.

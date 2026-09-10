@@ -15,7 +15,7 @@ export interface SearchFieldProps extends InputHTMLAttributes<HTMLInputElement> 
 }
 
 /**
- * The rounded search field, with the magnifier at the start of the line and an
+ * The search field, with the magnifier at the start of the line and an
  * optional keyboard-hint chip at the end.
  *
  * Both are positioned with logical properties (`start`/`end`, `ps`/`pe`), so
@@ -41,11 +41,12 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
         type="search"
         aria-label={label}
         className={cn(
-          // A fill rather than a border: the field is a shape cut out of the
-          // page, which is what keeps a toolbar from turning into a row of
-          // outlined boxes.
-          'chrome-field block h-11 w-full rounded-control ps-10 text-start text-field text-ink lg:h-10',
-          'transition-colors duration-150 placeholder:text-ink-subtle',
+          // The same white box with a hairline as every other field: this
+          // system draws its edges, so a search that was a fill with no border
+          // read as the one control on the toolbar that had come unfinished.
+          'chrome-field block h-11 w-full rounded-control border border-line ps-10 lg:h-9',
+          'text-start text-field text-ink',
+          'transition-colors duration-150 placeholder:text-ink-subtle focus:border-primary-500',
           '[&::-webkit-search-decoration]:appearance-none [&::-webkit-search-cancel-button]:appearance-none',
           // The chip is desktop-only, so the room made for it is too.
           shortcut === undefined ? 'pe-4' : 'pe-4 md:pe-14',

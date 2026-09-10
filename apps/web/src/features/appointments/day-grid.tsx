@@ -107,7 +107,6 @@ export function DayGrid({
       )}
 
       <div className="min-w-max">
-        {/* ── Column headers ────────────────────────────────────────── */}
         <div
           className="sticky top-0 z-10 flex border-b border-line bg-surface"
           style={{ paddingInlineStart: 56 }}
@@ -123,7 +122,7 @@ export function DayGrid({
         </div>
 
         <div className={cn('relative flex', closure && 'bg-sunken')} style={{ height: bodyHeight }}>
-          {/* ── Hour ruler ──────────────────────────────────────────── */}
+          {/* Hour ruler */}
           <div className="relative w-14 shrink-0">
             {hours.map((minute) => (
               <span

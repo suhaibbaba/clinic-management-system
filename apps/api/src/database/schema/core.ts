@@ -14,17 +14,9 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
-/* -------------------------------------------------------------------------- */
-/* Enums                                                                       */
-/* -------------------------------------------------------------------------- */
-
 export const userRoleEnum = pgEnum('user_role', USER_ROLES);
 export const chartTypeEnum = pgEnum('chart_type', CHART_TYPES);
 export const auditActionEnum = pgEnum('audit_action', AUDIT_ACTIONS);
-
-/* -------------------------------------------------------------------------- */
-/* Shared column groups                                                        */
-/* -------------------------------------------------------------------------- */
 
 /**
  * On every table (CLAUDE.md architecture decision 3).
@@ -49,10 +41,6 @@ const softDeleteColumn = {
 
 /** Partial-index predicate: only live rows take part in a uniqueness rule. */
 const liveRows = sql`deleted_at is null`;
-
-/* -------------------------------------------------------------------------- */
-/* Tables                                                                      */
-/* -------------------------------------------------------------------------- */
 
 /** The tenant. Every other table carries `clinic_id`. */
 export const clinics = pgTable(

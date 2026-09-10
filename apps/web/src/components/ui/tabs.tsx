@@ -31,7 +31,7 @@ export interface TabsProps<TId extends string> {
  * `tablist`/`tab`/`tabpanel`, so a screen reader says which panel is showing
  * and how many there are.
  *
- * One scrolling row on a phone rather than a wrapping pill: a strip that wraps
+ * One scrolling row on a phone rather than a wrapping strip: one that wraps
  * to three ragged lines pushes the content a hundred pixels down the screen,
  * and a tab strip that scrolls sideways is what every mobile OS does.
  */
@@ -49,7 +49,7 @@ export function Tabs<TId extends string>({
       role="tablist"
       aria-label={t(label)}
       className={cn(
-        'flex items-center gap-1 rounded-pill bg-inset p-1',
+        'flex items-center gap-1 rounded-control border border-line bg-inset p-1',
         'max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
         // `self-start` as well as `inline-flex`: inside a column flex container
         // `align-items: stretch` would otherwise pull the strip to the full
@@ -71,7 +71,8 @@ export function Tabs<TId extends string>({
             aria-controls={`panel-${tab.id}`}
             onClick={() => onChange(tab.id)}
             className={cn(
-              'inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-pill px-3.5 py-1.5 lg:min-h-0',
+              'inline-flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center gap-1.5',
+              'rounded-control px-3 py-1.5 lg:min-h-0 lg:min-w-0',
               'text-value font-medium',
               'transition-[background-color,color,box-shadow,transform] duration-150 active:scale-95',
               selected
@@ -83,7 +84,7 @@ export function Tabs<TId extends string>({
             {tab.count !== undefined && tab.count > 0 && (
               <Ltr
                 className={cn(
-                  'min-w-5 rounded-pill px-1.5 text-label font-semibold tabular-nums',
+                  'min-w-5 rounded-pill px-1.5 text-meta font-semibold tabular-nums',
                   selected ? 'bg-inset text-ink-muted' : 'bg-surface text-ink-subtle',
                 )}
               >

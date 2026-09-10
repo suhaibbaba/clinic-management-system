@@ -20,10 +20,6 @@ import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
  * and the public booking page ask the same service (CLAUDE.md decision 6).
  */
 
-/* -------------------------------------------------------------------------- */
-/* Clinic closures                                                             */
-/* -------------------------------------------------------------------------- */
-
 export const clinicClosureSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
@@ -85,10 +81,6 @@ export const listClinicClosuresQuerySchema = paginationQuerySchema.extend({
 });
 export type ListClinicClosuresQuery = z.infer<typeof listClinicClosuresQuerySchema>;
 
-/* -------------------------------------------------------------------------- */
-/* Doctor time off                                                             */
-/* -------------------------------------------------------------------------- */
-
 export const doctorTimeOffSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
@@ -139,10 +131,6 @@ export const listDoctorTimeOffQuerySchema = paginationQuerySchema.extend({
   to: z.iso.datetime().optional(),
 });
 export type ListDoctorTimeOffQuery = z.infer<typeof listDoctorTimeOffQuerySchema>;
-
-/* -------------------------------------------------------------------------- */
-/* The conflict flow                                                           */
-/* -------------------------------------------------------------------------- */
 
 /**
  * What the caller has to decide before a closure or a time off is written.

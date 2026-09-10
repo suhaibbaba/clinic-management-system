@@ -96,7 +96,12 @@ export function UsersPage(): JSX.Element {
               {row.email !== null && row.email !== undefined && (
                 <EmailLink
                   value={row.email}
-                  className="hidden truncate text-label md:inline-flex"
+                  // `break-all` rather than `truncate`: the link carries its
+                  // 44px hit area on an absolutely positioned `::after`, and
+                  // an `overflow-hidden` ancestor cuts that band down to the
+                  // height of the line. An address that wraps is better than
+                  // one a thumb has to hit inside 20px.
+                  className="hidden break-all text-label md:inline-flex"
                 />
               )}
             </span>

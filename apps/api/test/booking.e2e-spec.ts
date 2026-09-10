@@ -145,10 +145,6 @@ describe('Public booking (e2e)', () => {
     context.resetThrottle();
   });
 
-  /* ---------------------------------------------------------------------- */
-  /* Helpers                                                                 */
-  /* ---------------------------------------------------------------------- */
-
   function book(payload: Record<string, unknown> = {}) {
     return context.app.inject({
       method: 'POST',
@@ -212,10 +208,6 @@ describe('Public booking (e2e)', () => {
     return token;
   }
 
-  /* ---------------------------------------------------------------------- */
-  /* Public reads                                                            */
-  /* ---------------------------------------------------------------------- */
-
   describe('reads', () => {
     it('describes the clinic without needing a token', async () => {
       const response = await context.app.inject({
@@ -277,10 +269,6 @@ describe('Public booking (e2e)', () => {
       ).not.toContain(startsAt);
     });
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* Booking and OTP                                                         */
-  /* ---------------------------------------------------------------------- */
 
   describe('booking', () => {
     it('holds the slot and answers with nothing about the patient', async () => {
@@ -455,10 +443,6 @@ describe('Public booking (e2e)', () => {
     });
   });
 
-  /* ---------------------------------------------------------------------- */
-  /* Enumeration                                                             */
-  /* ---------------------------------------------------------------------- */
-
   describe('phone enumeration', () => {
     it('answers a known number exactly as it answers a stranger', async () => {
       const known = uniquePhone();
@@ -542,10 +526,6 @@ describe('Public booking (e2e)', () => {
       );
     });
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* Manage link                                                             */
-  /* ---------------------------------------------------------------------- */
 
   describe('manage link', () => {
     it('shows the booking, and nothing clinical or financial, to whoever holds it', async () => {
@@ -684,10 +664,6 @@ describe('Public booking (e2e)', () => {
     });
   });
 
-  /* ---------------------------------------------------------------------- */
-  /* Reception's side                                                        */
-  /* ---------------------------------------------------------------------- */
-
   describe('pending confirmations', () => {
     it('lists what strangers booked, for reception and admin only', async () => {
       const appointmentId = appointmentIdOf(await held());
@@ -821,10 +797,6 @@ describe('Public booking (e2e)', () => {
       expect(response.statusCode).toBe(401);
     });
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* Anti-abuse                                                              */
-  /* ---------------------------------------------------------------------- */
 
   describe('throttling', () => {
     it('cuts off a burst of bookings from one address', async () => {

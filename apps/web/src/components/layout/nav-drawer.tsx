@@ -7,7 +7,13 @@ import { cn } from '@web/lib/cn';
 export interface NavDrawerProps {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
+  /**
+   * The panel's accessible name. Drawn nowhere: the header carries `brand`
+   * instead, and a dialog still has to be named for a screen reader.
+   */
   readonly title: string;
+  /** What the header shows — the clinic's mark, at the rail's own size. */
+  readonly brand: ReactNode;
   readonly closeLabel: string;
   readonly children: ReactNode;
 }
@@ -32,6 +38,7 @@ export function NavDrawer({
   open,
   onOpenChange,
   title,
+  brand,
   closeLabel,
   children,
 }: NavDrawerProps): JSX.Element {
@@ -61,10 +68,10 @@ export function NavDrawer({
             'data-[state=open]:animate-drawer-in data-[state=closed]:animate-drawer-out',
           )}
         >
-          <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
-            <DialogPrimitive.Title className="text-value font-semibold text-ink">
-              {title}
-            </DialogPrimitive.Title>
+          <div className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-line px-4">
+            {/* The mark is what is drawn; the name is what is announced. */}
+            <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
+            {brand}
 
             <DialogPrimitive.Close
               aria-label={closeLabel}

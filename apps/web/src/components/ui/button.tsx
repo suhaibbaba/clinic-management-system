@@ -29,36 +29,41 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 /*
- * One action colour.
+ * One action colour, and one outline.
  *
  * The primary button is the blue, and it is the only filled blue on a page —
- * which is what makes "the thing to do here" answerable at a glance. A
- * secondary is a plain grey pill, a ghost is blue text, and danger is the red
- * kept for destructive acts. Nothing else fills with a colour.
+ * which is what makes "the thing to do here" answerable at a glance.
  *
- * A previous revision made the primary near-black to keep it out of the blue's
- * way. With a single accent that reasoning inverts: near-black would now be
- * the one colour on the page that means nothing.
+ * `secondary` is the page's other button and it is *outlined*: white, a
+ * hairline, ink text, an icon beside the label. That is what a header full of
+ * actions is made of — print, export, email — and a row of grey fills there
+ * competes with the one filled thing that matters. A ghost drops even the
+ * outline, for an action inside a row or a card that must not draw the eye at
+ * all; danger is the red kept for destructive acts.
  */
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: 'bg-primary-600 text-ink-inverse hover:bg-primary-700 active:bg-primary-800',
-  secondary: 'bg-inset text-ink hover:bg-sunken active:bg-neutral-300',
+  secondary: 'border border-line bg-surface text-ink hover:bg-inset active:bg-sunken',
   ghost: 'bg-transparent text-primary-600 hover:bg-primary-50 active:bg-primary-100',
   danger: 'bg-danger-600 text-ink-inverse hover:bg-danger-700 active:bg-danger-800',
 };
 
 /*
- * Heights are the drawn heights; `min-h-11` below `sm` is the touch target.
+ * Heights are the drawn heights; `min-h-11` below `lg` is the touch target.
  *
- * A 32px pill is right on a desktop and too small for a thumb — WCAG 2.5.8
+ * A 36px button is right on a desktop and too small for a thumb — WCAG 2.5.8
  * asks for 44. Rather than draw two sets of buttons, the phone keeps the same
- * pill inside a taller box: the fill grows with it, the type does not move,
+ * shape inside a taller box: the fill grows with it, the type does not move,
  * and nothing about the design language changes.
  */
 const SIZES: Record<ButtonSize, string> = {
   // 8px icon gap at both sizes — an icon and its label are one object.
-  sm: 'min-h-11 px-3.5 text-label gap-2 lg:h-8 lg:min-h-0',
-  md: 'min-h-11 px-5 text-value gap-2 lg:h-10 lg:min-h-0',
+  //
+  // `min-w-11` as well as `min-h-11`: an icon-only button, or one whose label
+  // is two Arabic letters, is 42px wide inside this padding — the height was
+  // the target and the width was two pixels short of it.
+  sm: 'min-h-11 min-w-11 px-3 text-label gap-2 lg:h-8 lg:min-h-0 lg:min-w-0',
+  md: 'min-h-11 min-w-11 px-4 text-value gap-2 lg:h-9 lg:min-h-0 lg:min-w-0',
 };
 
 export function Button({
@@ -77,8 +82,9 @@ export function Button({
     <button
       type={type}
       className={cn(
-        // Fully rounded: the pill is the button shape in this system.
-        'inline-flex cursor-pointer items-center justify-center rounded-pill font-medium',
+        // A softly rounded rectangle, not a pill: it sits beside fields and
+        // cards of the same 8-12px family instead of on top of them.
+        'inline-flex cursor-pointer items-center justify-center rounded-control font-medium',
         // One duration for every colour, shadow and transform change in the
         // app; `active:scale-[0.98]` is the press, small enough to feel like
         // the button gives rather than like the layout moved.

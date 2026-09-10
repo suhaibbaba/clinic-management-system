@@ -183,7 +183,7 @@ export function AppRoutes(): JSX.Element {
           }
         />
 
-        {/* ── The addresses this restructure retired ─────────────────── */}
+        {/* The addresses this restructure retired */}
         {/*
           Kept rather than dropped: these were bookmarked, pasted into chats
           and printed on nothing at all, but somebody's browser still knows

@@ -50,10 +50,6 @@ export function formatMinorUnits(minorUnits: number): Money {
   return `${sign}${Math.floor(absolute / 100)}.${String(absolute % 100).padStart(2, '0')}`;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Whole amounts                                                               */
-/* -------------------------------------------------------------------------- */
-
 /**
  * What a **money input** accepts: a whole number of the currency's major unit.
  *
@@ -81,10 +77,6 @@ export const wholeMoneySchema = z
 
 /** Whether a string is a whole amount, for a form to check before it submits. */
 export const isWholeMoney = (value: string): boolean => /^\d{1,8}(\.0{1,2})?$/.test(value);
-
-/* -------------------------------------------------------------------------- */
-/* Currencies                                                                  */
-/* -------------------------------------------------------------------------- */
 
 /**
  * What a reader sees beside an amount: the **symbol**, never the code.

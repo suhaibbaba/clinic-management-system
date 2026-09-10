@@ -2,10 +2,6 @@ import { boolean, date, index, pgTable, text, timestamp, uuid } from 'drizzle-or
 
 import { clinics, doctors } from '@api/database/schema/core';
 
-/* -------------------------------------------------------------------------- */
-/* Shared column groups                                                        */
-/* -------------------------------------------------------------------------- */
-
 const auditColumns = {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -16,10 +12,6 @@ const auditColumns = {
 const softDeleteColumn = {
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 };
-
-/* -------------------------------------------------------------------------- */
-/* Tables                                                                      */
-/* -------------------------------------------------------------------------- */
 
 /**
  * Days the clinic is shut, whatever the weekly opening hours say.

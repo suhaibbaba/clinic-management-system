@@ -111,10 +111,6 @@ export class LabOrdersService implements OnModuleInit {
     });
   }
 
-  /* ---------------------------------------------------------------------- */
-  /* Reads                                                                   */
-  /* ---------------------------------------------------------------------- */
-
   async list(actor: AuthenticatedUser, query: ListLabOrdersQuery): Promise<Paginated<LabOrderRow>> {
     const filters: (SQL | undefined)[] = [];
 
@@ -193,10 +189,6 @@ export class LabOrdersService implements OnModuleInit {
 
     return rows.map(toLabOrderRow);
   }
-
-  /* ---------------------------------------------------------------------- */
-  /* Writes                                                                  */
-  /* ---------------------------------------------------------------------- */
 
   /**
    * Raises an order, in `draft`.
@@ -392,10 +384,6 @@ export class LabOrdersService implements OnModuleInit {
   async requireRow(clinicId: string, id: string): Promise<OrderRow> {
     return this.scope.findOneOrFail<OrderRow>(labOrders, clinicId, id);
   }
-
-  /* ---------------------------------------------------------------------- */
-  /* Internals                                                               */
-  /* ---------------------------------------------------------------------- */
 
   /** One shape for every order read, so a row always has its four names. */
   private rowsQuery() {

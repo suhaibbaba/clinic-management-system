@@ -130,7 +130,7 @@ export function Select({
         aria-invalid={hasError || undefined}
         className={cn(
           // 44px under `lg`, like every other field a thumb has to hit.
-          'flex h-11 w-full cursor-pointer items-center justify-between gap-2 lg:h-10',
+          'flex h-11 w-full cursor-pointer items-center justify-between gap-2 lg:h-9',
           'rounded-control border bg-surface ps-3.5 pe-3 text-start text-field text-ink',
           'transition-[border-color,box-shadow,background-color] duration-150',
           'focus:border-primary-500',

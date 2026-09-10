@@ -112,7 +112,7 @@ export function ItemDrawer({
         <div className="flex flex-col gap-5">
           {row && (
             <>
-              <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-value">
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-value">
                 <Field label={t('inventory.columns.quantity')}>
                   <span className="flex items-baseline gap-1.5">
                     <Ltr className="font-semibold tabular-nums">{row.quantity}</Ltr>
@@ -132,7 +132,11 @@ export function ItemDrawer({
                     </Ltr>
                   </Field>
                 )}
-                {row.notes && <Field label={t('inventory.notes')}>{row.notes}</Field>}
+                {row.notes && (
+                  <Field wide label={t('inventory.notes')}>
+                    {row.notes}
+                  </Field>
+                )}
               </dl>
 
               {canManageInventory(user?.role) && (
@@ -411,11 +415,19 @@ function History({
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }): JSX.Element {
+function Field({
+  label,
+  wide = false,
+  children,
+}: {
+  label: string;
+  wide?: boolean;
+  children: ReactNode;
+}): JSX.Element {
   return (
-    <>
-      <dt className="text-label text-ink-muted">{label}</dt>
-      <dd className="min-w-0 text-ink">{children}</dd>
-    </>
+    <div className={cn('min-w-0', wide && 'col-span-2')}>
+      <dt className="text-meta text-ink-muted">{label}</dt>
+      <dd className="mt-0.5 min-w-0 text-ink">{children}</dd>
+    </div>
   );
 }

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 
 import { Icon } from '@web/components/ui/icon';
-import { ALL_NAV_ITEMS } from '@web/app/navigation';
+import { activeNavItem } from '@web/app/navigation';
 
 /**
  * Where you are, in the top bar.
@@ -27,9 +27,7 @@ export function Breadcrumb({ leaf }: BreadcrumbProps): JSX.Element | null {
   const { t } = useTranslation();
   const { pathname } = useLocation();
 
-  const section = ALL_NAV_ITEMS.find(
-    (item) => pathname === item.to || pathname.startsWith(`${item.to}/`),
-  );
+  const section = activeNavItem(pathname);
 
   if (!section) {
     return null;

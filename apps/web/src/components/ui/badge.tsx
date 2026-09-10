@@ -50,8 +50,8 @@ export function Badge({
         // twice the height of the row's other cells. A table that has to
         // scroll a little to keep its statuses legible is the better trade —
         // and the cell it sits in is inside `overflow-x-auto` already.
-        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill px-2.5 py-1',
-        'text-label font-medium',
+        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill px-2 py-0.5',
+        'text-meta font-medium',
         style.pill,
         className,
       )}

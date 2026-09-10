@@ -69,10 +69,6 @@ export class AppointmentsController {
     private readonly availabilityService: AvailabilityService,
   ) {}
 
-  /* ---------------------------------------------------------------------- */
-  /* Reads — every role                                                      */
-  /* ---------------------------------------------------------------------- */
-
   @Get()
   list(
     @CurrentUser() actor: AuthenticatedUser,
@@ -107,9 +103,7 @@ export class AppointmentsController {
     return this.appointmentsService.findOne(actor, params.id);
   }
 
-  /* ---------------------------------------------------------------------- */
   /* Writes — admin, receptionist, and a doctor on their own calendar        */
-  /* ---------------------------------------------------------------------- */
 
   @Post()
   @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)

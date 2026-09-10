@@ -231,9 +231,10 @@ export class TimelineService {
           where sm.clinic_id = ${clinicId} and sm.patient_id = ${patientId}
             and sm.type = 'consume'`;
 
-      // TODO(appointments) / TODO(billing): these tables do not exist yet, so a
-      // receptionist — whose timeline is exactly these two types — currently
-      // receives an empty page rather than anything they may not see.
+      // TODO(appointments) / TODO(billing): the tables exist now, but the
+      // timeline does not read them yet — so a receptionist, whose timeline is
+      // exactly these types, still receives an empty page rather than anything
+      // they may not see.
       case TIMELINE_ENTRY_TYPE.APPOINTMENT:
       case TIMELINE_ENTRY_TYPE.PAYMENT:
       case TIMELINE_ENTRY_TYPE.CHARGE:

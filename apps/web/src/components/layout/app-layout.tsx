@@ -1,6 +1,6 @@
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { Logo } from '@web/components/brand/logo';
 import { useClinic } from '@web/features/clinic/queries';
@@ -9,9 +9,11 @@ import { NavDrawer } from '@web/components/layout/nav-drawer';
 import { UserMenu } from '@web/components/layout/user-menu';
 import { Button, Icon } from '@web/components/ui';
 import {
+  activeNavItem,
   NAV_SETTINGS,
-  visibleNavItems,
+  visibleNavGroups,
   visibleSettingsItems,
+  type NavGroup,
   type NavItem,
 } from '@web/app/navigation';
 import { useSession } from '@web/features/auth/session';
@@ -19,13 +21,13 @@ import { seesPendingBookings, usePendingBookingsCount } from '@web/features/book
 import { cn } from '@web/lib/cn';
 
 /**
- * The signed-in shell: a translucent sidebar, a frosted top bar, and the page
- * on the grey ground beside them.
+ * The signed-in shell: a white sidebar, a white bar over the page, and the
+ * content on the tinted ground beside them.
  *
- * The sidebar is a flat list — no chips, no card per row. An active item is a
- * faint grey fill and a heavier weight, which answers "where am I" without
- * spending the page's one accent colour on navigation. The icons take the
- * blue, because a row is a link.
+ * The sidebar is captioned sections rather than one flat list, and the active
+ * row is a solid blue pill — the only place navigation spends the page's
+ * accent colour, and worth it: "where am I" is the question a sidebar exists
+ * to answer, and a faint grey fill answered it quietly enough to be missed.
  *
  * The sidebar lists only what the role can reach. That is presentation: the
  * matching route guard and, above all, the API enforce the same rule.
@@ -38,7 +40,7 @@ export function AppLayout(): JSX.Element {
   const { pathname } = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const items = visibleNavItems(user?.role);
+  const groups = visibleNavGroups(user?.role);
   const settings = visibleSettingsItems(user?.role);
 
   /*
@@ -93,23 +95,32 @@ export function AppLayout(): JSX.Element {
       {/* Desktop: a permanent rail. */}
       <aside
         className={cn(
-          'chrome-sidebar z-30 hidden shrink-0 md:block md:w-[250px]',
+          'chrome-sidebar z-30 hidden shrink-0 md:block md:w-[248px]',
           'md:sticky md:top-0 md:h-screen md:overflow-y-auto',
           'md:border-e md:border-line',
         )}
       >
-        <div className="flex h-full flex-col px-3 py-4">
-          <div className="mb-6 flex items-center gap-2.5 px-3">
-            <Logo size="sm" src={clinic.data?.logoUrl} />
-            <span className="text-value font-semibold tracking-[-0.03em] text-ink">
-              {t('app.title')}
-            </span>
+        <div className="flex h-full flex-col">
+          {/*
+            The mark, alone, in a band the same height as the page's bar — so
+            the two hairlines meet where the sidebar ends.
+
+            No wordmark beside it: a clinic's own logo already carries its name,
+            and the app's name set in 16px next to it made two names for one
+            product at the top of every screen. It is the mark's accessible
+            name instead, which is the one place the app still has to say what
+            it is.
+          */}
+          <div className="flex h-14 shrink-0 items-center border-b border-line px-4">
+            <Logo size="sm" src={clinic.data?.logoUrl} alt={t('app.title')} />
           </div>
 
-          <NavList items={items} settings={settings} badges={badges} />
+          <div className="flex-1 overflow-y-auto px-3 py-3">
+            <NavList groups={groups} settings={settings} badges={badges} />
+          </div>
 
           {user && (
-            <div className="mt-6 border-t border-line pt-3">
+            <div className="shrink-0 border-t border-line p-2">
               <UserMenu user={user} onLogout={() => void logout()} />
             </div>
           )}
@@ -121,12 +132,13 @@ export function AppLayout(): JSX.Element {
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         title={t('app.title')}
+        brand={<Logo size="sm" src={clinic.data?.logoUrl} />}
         closeLabel={t('common.close')}
       >
-        <NavList items={items} settings={settings} badges={badges} />
+        <NavList groups={groups} settings={settings} badges={badges} />
 
         {user && (
-          <div className="mt-4 border-t border-line pt-3">
+          <div className="mt-4 border-t border-line pt-2">
             <UserMenu user={user} onLogout={() => void logout()} />
           </div>
         )}
@@ -165,11 +177,11 @@ export function AppLayout(): JSX.Element {
 
 /** The nav rows, shared by the desktop rail and the mobile drawer. */
 function NavList({
-  items,
+  groups,
   settings,
   badges,
 }: {
-  readonly items: readonly NavItem[];
+  readonly groups: readonly NavGroup[];
   readonly settings: readonly NavItem[];
   readonly badges: Readonly<Record<'pendingBookings', number>>;
 }): JSX.Element {
@@ -177,13 +189,35 @@ function NavList({
 
   return (
     <nav aria-label={t('nav.menu')} className="min-w-0 flex-1">
-      <ul className="flex flex-col gap-0.5">
-        {items.map((item) => (
-          <NavRow key={item.to} item={item} badges={badges} />
-        ))}
-      </ul>
+      {groups.map((group, index) =>
+        group.label === undefined ? (
+          <ul key="loose" className="flex flex-col gap-0.5">
+            {group.items.map((item) => (
+              <NavRow key={item.to} item={item} badges={badges} />
+            ))}
+          </ul>
+        ) : (
+          <NavSection
+            key={group.label}
+            id={`nav-group-${index}`}
+            label={group.label}
+            items={group.items}
+            defaultOpen={group.openByDefault}
+            badges={badges}
+          />
+        ),
+      )}
 
-      {settings.length > 0 && <SettingsGroup items={settings} />}
+      {settings.length > 0 && (
+        <NavSection
+          id="nav-settings"
+          label={NAV_SETTINGS.label ?? ''}
+          items={settings}
+          defaultOpen={NAV_SETTINGS.openByDefault}
+          badges={{ pendingBookings: 0 }}
+          openWithRoute
+        />
+      )}
     </nav>
   );
 }
@@ -192,32 +226,45 @@ function NavList({
 function NavRow({
   item,
   badges,
-  nested = false,
 }: {
   readonly item: NavItem;
   readonly badges: Readonly<Record<'pendingBookings', number>>;
-  readonly nested?: boolean;
 }): JSX.Element {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
   const count = item.badge ? badges[item.badge] : 0;
+  /*
+   * A plain `Link` with the state worked out here rather than `NavLink`.
+   *
+   * `NavLink` calls every ancestor path active, so `/clinic/lists` lit both
+   * the lists row and the clinic row above it — two answers to "where am I"
+   * once the active row is a solid pill, and two `aria-current="page"` rows
+   * for a screen reader. `activeNavItem` picks the longest match, and doing
+   * it here keeps what is drawn and what is announced the same rule.
+   */
+  const isActive = activeNavItem(pathname)?.to === item.to;
 
   return (
     <li>
-      <NavLink
+      <Link
         to={item.to}
-        className={({ isActive }) =>
-          cn(
-            // 44px tall: a nav row is the most-tapped target in the app.
-            'flex min-h-11 cursor-pointer items-center gap-3 rounded-control px-3 py-2',
-            'text-value transition-colors duration-150',
-            // Indented under the group's own row, so the hierarchy is visible
-            // without a second border or a background.
-            nested && 'ms-3',
-            isActive ? 'chrome-active font-semibold text-ink' : 'text-ink hover:bg-inset',
-          )
-        }
+        aria-current={isActive ? 'page' : undefined}
+        className={cn(
+          // 44px on touch, the drawn 36 on a laptop: a nav row is the
+          // most-tapped target in the app and the least-tapped one on a
+          // desk, and a rail of 44px rows pushes settings off the screen.
+          'flex min-h-11 cursor-pointer items-center gap-2.5 rounded-control px-2.5 lg:min-h-9',
+          'text-value transition-colors duration-150',
+          isActive ? 'bg-primary-600 font-medium text-ink-inverse' : 'text-ink hover:bg-primary-50',
+        )}
       >
-        <Icon name={item.icon} className={cn(nested ? 'text-ink-subtle' : 'text-primary-600')} />
+        {/* The glyph takes the row's own ink: white inside the active pill,
+            the blue outside it, where it is the thing that makes a row read
+            as a link. */}
+        <Icon
+          name={item.icon}
+          className={cn('shrink-0', isActive ? 'text-ink-inverse' : 'text-primary-600')}
+        />
         <span className="truncate">{t(item.label)}</span>
 
         {count > 0 && (
@@ -226,35 +273,59 @@ function NavRow({
             // "appointments, 3 waiting" rather than a bare number floating
             // after it.
             aria-label={t('nav.waitingCount', { count })}
-            className="ms-auto min-w-6 rounded-pill bg-danger-600 px-1.5 py-0.5 text-center text-label font-semibold text-ink-inverse tabular-nums"
+            className={cn(
+              'ms-auto min-w-5 rounded-pill px-1.5 py-0.5 text-center text-meta font-semibold tabular-nums',
+              isActive ? 'bg-ink-inverse text-primary-700' : 'bg-danger-600 text-ink-inverse',
+            )}
           >
             {count}
           </span>
         )}
-      </NavLink>
+      </Link>
     </li>
   );
 }
 
 /**
- * The settings drawer at the foot of the sidebar.
+ * A captioned section of the sidebar.
  *
- * Collapsed by default and *not* remembered between sessions: these are the
- * screens somebody opens on the day they set the clinic up and then twice a
- * year, and a group that reopens itself every morning because it was opened
+ * The caption is the control: a 12px muted line with a chevron, which is
+ * enough of a target to fold the section away and quiet enough that a rail of
+ * three of them still reads as one list rather than as three panels.
+ *
+ * Sections people navigate with open by default. Settings does not — those are
+ * the screens somebody opens on the day they set the clinic up and then twice
+ * a year, and five permanent rows of them push the rows people use every day
+ * off a laptop screen. Its state is deliberately *not* remembered between
+ * sessions: a group that reopens itself every morning because it was opened
  * once in March defeats the point of collapsing it.
  *
- * It does open by itself when one of its own pages is showing — arriving on
- * the audit log from a link and finding the group shut would leave the sidebar
- * disagreeing with the page.
+ * `openWithRoute` is the one exception, and it belongs to settings: arriving
+ * on the audit log from a link and finding the group shut would leave the
+ * sidebar disagreeing with the page.
  */
-function SettingsGroup({ items }: { readonly items: readonly NavItem[] }): JSX.Element {
+function NavSection({
+  id,
+  label,
+  items,
+  defaultOpen,
+  badges,
+  openWithRoute = false,
+}: {
+  readonly id: string;
+  /** i18n key. */
+  readonly label: string;
+  readonly items: readonly NavItem[];
+  readonly defaultOpen: boolean;
+  readonly badges: Readonly<Record<'pendingBookings', number>>;
+  readonly openWithRoute?: boolean;
+}): JSX.Element {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const holdsCurrent = items.some(
-    (item) => pathname === item.to || pathname.startsWith(`${item.to}/`),
-  );
-  const [open, setOpen] = useState(holdsCurrent);
+  const holdsCurrent =
+    openWithRoute &&
+    items.some((item) => pathname === item.to || pathname.startsWith(`${item.to}/`));
+  const [open, setOpen] = useState(defaultOpen || holdsCurrent);
 
   // Navigating into the group opens it; navigating out leaves it as the user
   // left it, because closing a drawer somebody just opened is rude.
@@ -265,31 +336,33 @@ function SettingsGroup({ items }: { readonly items: readonly NavItem[] }): JSX.E
   }, [holdsCurrent]);
 
   return (
-    <div className="mt-1">
+    <div className="mt-4 first:mt-0">
       <button
         type="button"
         aria-expanded={open}
-        aria-controls="nav-settings"
+        aria-controls={id}
         onClick={() => setOpen((current) => !current)}
         className={cn(
-          'flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-control px-3 py-2',
-          'text-value text-ink transition-colors duration-150 hover:bg-inset',
+          // 44px on touch like every other row in the rail; drawn at 28 on a
+          // laptop, where a caption that tall would read as a nav row itself.
+          'flex min-h-11 w-full cursor-pointer items-center gap-1.5 rounded-control px-2.5 py-1.5 lg:min-h-7',
+          'text-meta font-semibold text-ink-subtle transition-colors duration-150',
+          'hover:text-ink-muted',
         )}
       >
-        <Icon name={NAV_SETTINGS.icon} className="text-primary-600" />
-        <span className="truncate">{t(NAV_SETTINGS.label)}</span>
+        <span className="truncate">{t(label)}</span>
         <Icon
           name="chevron-down"
           className={cn(
-            'ms-auto text-ink-subtle transition-transform duration-150',
-            open && 'rotate-180',
+            'ms-auto size-3.5 shrink-0 transition-transform duration-150',
+            !open && '-rotate-90 rtl:rotate-90',
           )}
         />
       </button>
 
-      <ul id="nav-settings" hidden={!open} className="mt-0.5 flex flex-col gap-0.5">
+      <ul id={id} hidden={!open} className="mt-0.5 flex flex-col gap-0.5">
         {items.map((item) => (
-          <NavRow key={item.to} item={item} badges={{ pendingBookings: 0 }} nested />
+          <NavRow key={item.to} item={item} badges={badges} />
         ))}
       </ul>
     </div>

@@ -57,9 +57,9 @@ export function ProfilePage(): JSX.Element {
     <>
       <PageHeader title="profile.title" subtitle="profile.subtitle" />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <section className="rounded-card bg-surface shadow-card p-4">
-          <h2 className="text-value font-medium text-ink">{t('profile.details')}</h2>
+          <h2 className="text-section font-semibold text-ink">{t('profile.details')}</h2>
 
           {/*
             Read-only here: a staff photo is set by the admin on the users
@@ -76,29 +76,41 @@ export function ProfilePage(): JSX.Element {
             <PersonName name={user?.name} className="text-value font-medium text-ink" />
           </div>
 
-          <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-value">
-            <dt className="text-ink-muted">{t('users.name')}</dt>
-            <dd className="font-medium text-ink">
-              <PersonName name={user?.name} showBoth />
-            </dd>
+          {/* The summary box the drawers and the patient file use: a 12px
+              caption over the value, two to a row. */}
+          <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 text-value">
+            <div className="min-w-0">
+              <dt className="text-meta text-ink-muted">{t('users.name')}</dt>
+              <dd className="mt-0.5 font-medium text-ink">
+                <PersonName name={user?.name} showBoth />
+              </dd>
+            </div>
 
-            <dt className="text-ink-muted">{t('users.phone')}</dt>
-            <dd className="font-medium">
-              <PhoneLink value={user?.phone} />
-            </dd>
+            <div className="min-w-0">
+              <dt className="text-meta text-ink-muted">{t('users.phone')}</dt>
+              <dd className="mt-0.5 font-medium">
+                <PhoneLink value={user?.phone} />
+              </dd>
+            </div>
 
-            <dt className="text-ink-muted">{t('users.email')}</dt>
-            <dd className="font-medium">
-              <EmailLink value={user?.email} />
-            </dd>
+            <div className="min-w-0">
+              <dt className="text-meta text-ink-muted">{t('users.email')}</dt>
+              <dd className="mt-0.5 font-medium">
+                <EmailLink value={user?.email} />
+              </dd>
+            </div>
 
-            <dt className="text-ink-muted">{t('users.role')}</dt>
-            <dd>{user && <Badge tone="info">{t(`roles.${user.role}`)}</Badge>}</dd>
+            <div className="min-w-0">
+              <dt className="text-meta text-ink-muted">{t('users.role')}</dt>
+              <dd className="mt-0.5">
+                {user && <Badge tone="info">{t(`roles.${user.role}`)}</Badge>}
+              </dd>
+            </div>
           </dl>
         </section>
 
         <section className="rounded-card bg-surface shadow-card p-4">
-          <h2 className="text-value font-medium text-ink">{t('profile.changePassword')}</h2>
+          <h2 className="text-section font-semibold text-ink">{t('profile.changePassword')}</h2>
 
           <form className="mt-3 flex flex-col gap-4" onSubmit={onSubmit} noValidate>
             <FormField

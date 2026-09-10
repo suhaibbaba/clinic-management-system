@@ -18,10 +18,6 @@ import type { ButtonHTMLAttributes, InputHTMLAttributes, JSX, ReactNode } from '
 export const cx = (...parts: (string | false | undefined | null)[]): string =>
   parts.filter(Boolean).join(' ');
 
-/* -------------------------------------------------------------------------- */
-/* Button                                                                      */
-/* -------------------------------------------------------------------------- */
-
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
@@ -77,10 +73,6 @@ function Spinner(): JSX.Element {
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Surfaces                                                                    */
-/* -------------------------------------------------------------------------- */
-
 export function Card({
   children,
   className,
@@ -132,10 +124,6 @@ export function ChoiceCard({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/* Feedback                                                                    */
-/* -------------------------------------------------------------------------- */
-
 export function Alert({
   tone = 'danger',
   children,
@@ -162,10 +150,6 @@ export function Alert({
 export function Skeleton({ className }: { readonly className?: string }): JSX.Element {
   return <span aria-hidden className={cx('booking-skeleton block rounded-panel', className)} />;
 }
-
-/* -------------------------------------------------------------------------- */
-/* Fields                                                                      */
-/* -------------------------------------------------------------------------- */
 
 export interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   readonly label: string;
