@@ -8,6 +8,7 @@ import { vi } from 'vitest';
 import { ToastProvider } from '@web/components/ui';
 import { SessionProvider } from '@web/features/auth/session';
 import { lookupBundleKey } from '@web/features/lookups/queries';
+import { DocumentTitleProvider } from '@web/lib/document-title';
 import { makeLookupBundle } from '@test/helpers/fixtures';
 import '@web/i18n';
 
@@ -48,7 +49,13 @@ export function renderWithProviders(
     <QueryClientProvider client={client}>
       <ToastProvider>
         <MemoryRouter initialEntries={[route]}>
-          {withSession ? <SessionProvider>{ui}</SessionProvider> : ui}
+          {withSession ? (
+            <SessionProvider>
+              <DocumentTitleProvider>{ui}</DocumentTitleProvider>
+            </SessionProvider>
+          ) : (
+            ui
+          )}
         </MemoryRouter>
       </ToastProvider>
     </QueryClientProvider>

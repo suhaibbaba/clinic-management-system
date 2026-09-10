@@ -61,6 +61,8 @@ export function Img({
   return (
     <span
       style={box}
+      // The browser test measures every one of these and fails if two renders disagree.
+      data-img-box
       className={cn('relative block max-w-full shrink-0 overflow-hidden', className)}
     >
       {!missing && state !== 'failed' && (
