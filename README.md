@@ -335,45 +335,61 @@ which lucide does not have.
 
 ### The design system
 
-`apps/web/src/theme.css` holds all of it — colour, geometry, elevation and type. A light warm-grey
-ground, white cards with no borders, one blue for everything actionable, one red for money owed:
+`apps/web/src/theme.css` holds all of it — colour, geometry, elevation and type. A flat, very
+light cool ground, white cards drawn with a hairline, the clinic's own blue for everything
+actionable, a green that means settled and a red for money owed:
 
 |                    |                                  |
 | ------------------ | -------------------------------- |
-| ground `#F5F5F7`   | card `#FFFFFF`                   |
-| ink `#1D1D1F`      | secondary `#86868B`              |
-| hairline `#E8E8ED` | blue `#0071E3` (hover `#0060C2`) |
-| red `#E8402A`      |                                  |
+| ground `#F4F7FA`   | card `#FFFFFF`                   |
+| ink `#1B2432`      | secondary `#64748B`              |
+| hairline `#E3E9F0` | blue `#316C9C` (hover `#295B84`) |
+| green `#4EC191`    | red `#E5484D`                    |
 
-The scales around those are generated rather than picked: one shared perceptual lightness ramp in
-OKLCH with `#0071E3` pinned at `primary-600` and `#0060C2` at `700`, so a tint of the blue carries
-the same weight as a tint of the red. Out-of-gamut steps are mapped back into sRGB by reducing
-chroma along the hue line, never by clamping channels.
+The scales around those are one perceptual ramp per hue with the brand pinned at `primary-600`
+and `success-500`, so a tint of the blue carries the same weight as a tint of the red beside it.
+The neutral is mixed towards the blue rather than a pure grey, so the ground and the hairlines
+belong to the same family as the brand.
 
-**One accent.** If it is blue it is clickable — buttons, links, active nav, focus rings. Red is
-outstanding balances and destructive actions. Nothing else on a page fills with a colour. The one
-exception is the tooth chart, and deliberately: nine conditions cannot be encoded in one hue, and a
-tooth fill is data rather than an action.
+**One accent.** If it is blue it is clickable — buttons, links, the active nav row, focus rings.
+Green is a settled balance, a confirmed appointment, a finished plan; red is an outstanding
+balance and a destructive action. Nothing else on a page fills with a colour. The one exception is
+the tooth chart, and deliberately: nine conditions cannot be encoded in one hue, and a tooth fill
+is data rather than an action.
 
-**Two colours have an AA-safe twin.** `#86868B` is 3.62 on white and `#E8402A` is 4.04 — both under
-the 4.5 a 13px table header or a 15px balance needs. So `ink-subtle` is `#86868B` exactly, for
-placeholders and decoration, and `ink-muted` (`#6E6E73`) carries secondary text that has to be
-_read_; likewise `danger-500` is `#E8402A` for fills and `danger-600` is what a balance is written
-in. Using the named value everywhere would put a clinic's overdue figures below the legibility
-floor.
+**Two colours have an AA-safe twin.** `#7B8899` is 3.61 on white and `#4EC191` is 2.24 — both under
+the 4.5 a 13px table header or a "paid" label needs. So `ink-subtle` is `#7B8899` exactly, for
+placeholders and decoration, and `ink-muted` (`#64748B`) carries secondary text that has to be
+_read_; likewise `success-500` is `#4EC191` for fills and dots, and `success-700` is what the word
+beside them is written in. Using the named value everywhere would put a clinic's table headers
+below the legibility floor.
 
-Geometry: cards `18px`, panels `12px`, controls `10px`, buttons a full pill. Cards carry a shadow
-and **no border** — a hairline belongs between rows inside a card, and drawing one around the card
-as well doubles every edge on the page.
+**A card is defined by its edge, not by its shadow.** `shadow-card` is a hairline ring plus almost
+no blur, drawn as a spread shadow rather than a border so a card does not change size when it
+gains one and a rounded panel's outline follows its own corner. Elevation is spent only on things
+that genuinely float — a menu, a dialog, a toast — and even those carry the same hairline.
+
+Geometry: cards `12px`, panels `10px`, controls `8px`, and the pill kept for the things that are
+genuinely lozenges — a badge, an avatar, a progress track. Buttons and fields are `36px` on a
+laptop inside a `44px` touch target below `lg`.
 
 Type is Inter for Latin and IBM Plex Sans Arabic for Arabic, both bundled and neither hotlinked.
-Inter leads the stack, so Arabic falls through to Plex with no per-element font switching. Body
-tracking is `-0.01em`, page titles `-0.03em` at 34px/700.
+Inter leads the stack, so Arabic falls through to Plex with no per-element font switching. The
+scale is what a record wants rather than what a brand page does: page title 20px/600, card title
+16px/600, body 14px, table headers and captions 13px, a stat card's label 12px and its figure
+24px. Tracking is neutral through the body and `-0.01em` on a title. The field floor stays 16px —
+that is the iOS zoom rule, not a matter of taste, and `field-size.test.ts` fails the build if a
+field drops under it.
 
-The sidebar and top bar are frosted (`backdrop-filter: blur(20px) saturate(1.8)`) **from `md` up
-only**, over an opaque base. On a phone the bar is 56px of the viewport sitting directly on the
-content, and at 72% opacity the breadcrumb ends up reading over a phone number scrolling behind it.
-A bar is opaque first and frosted second.
+The sidebar and the page's bar are plain white with a hairline where they meet the content. An
+earlier revision frosted them and let the page scroll through, which put a second edge behind
+every card once cards were drawn as outlines — and where the effect did not apply, the sticky bar
+had no background at all and the breadcrumb read over a phone number scrolling underneath it.
+
+The sidebar's destinations are captioned by what they are for, each caption a 12px muted line with
+a chevron that folds its section away; the active row is a solid blue pill. Which row that is
+comes from `activeNavItem`, the longest destination that prefixes the path, so `/clinic/lists`
+lights the lists row and not the clinic row above it — and the breadcrumb reads the same helper.
 
 The focus ring is declared once, globally, rather than per component: fourteen components each
 carrying their own outline utility is fourteen chances for one to be 1px, a different blue, or
@@ -386,7 +402,7 @@ inline start — the right in Arabic — over a scrim, traps focus, and closes o
 and on navigating. It does **not** simply unhide the rail and push the page down, which is what it
 did first and which meant scrolling past seven nav rows to get back to the content.
 
-Page titles step 34px → 26px, page CTAs go full width, toolbars stack, KPI cards go two-up, and
+Page CTAs go full width, toolbars stack, KPI cards go two-up, and
 table rows become label/value cards with the label at the reading start and the value at the end.
 
 ### Storybook
