@@ -9,122 +9,127 @@
  *
  * ── The system ───────────────────────────────────────────────────────────
  *
- * A light warm-grey ground, white cards with no borders, one blue for
- * everything actionable, and one red for money owed and destructive acts:
+ * A flat, very light cool ground, white cards drawn with a hairline border,
+ * the clinic's own blue for everything actionable, and a green that means
+ * settled:
  *
- *   ground   #F5F5F7    card     #FFFFFF   hairline #E8E8ED
- *   ink      #1D1D1F    sub      #86868B
- *   blue     #0071E3    hover    #0060C2   red      #E8402A
+ *   ground   #F4F7FA    card     #FFFFFF   hairline #E3E9F0
+ *   ink      #1B2432    sub      #64748B
+ *   blue     #316C9C    hover    #295B84   green    #4EC191
  *
- * The full scales around them are generated rather than picked: one shared
- * perceptual lightness ramp in OKLCH, with #0071E3 pinned at 600 and #0060C2
- * at 700, so a tint of the blue carries the same weight as a tint of the red.
- * Out-of-gamut steps are mapped back into sRGB by reducing chroma along the
- * hue line, never by clamping channels.
+ * **A card is defined by its edge, not by its shadow.** Elevation is spent
+ * only on things that genuinely float — a menu, a dialog, a toast — and even
+ * those carry the same hairline. A page of white panels on a tinted ground,
+ * each outlined by one pixel, is what makes a clinic screen read as a record
+ * rather than as a set of tiles hovering over a desktop.
+ *
+ * The scales are one perceptual ramp per hue with the brand pinned at 600
+ * (blue) and 500 (green), so a tint of the blue carries the same weight as a
+ * tint of the red beside it.
  *
  * ── Where accessibility and the named values disagree ────────────────────
  *
  * Two named colours do not clear AA for small text, and the app has to do
  * both. Measured against white:
  *
- *   #86868B  3.62   the secondary grey  — needs 4.5 for a 13px table header
- *   #E8402A  4.04   the red             — needs 4.5 for a 15px balance
+ *   #7B8899  3.61   the secondary grey — needs 4.5 for a 13px table header
+ *   #4EC191  2.24   the green          — needs 4.5 for a "paid" label
  *
- * So each has two tokens rather than one compromise. `ink-subtle` is #86868B
- * exactly, used where 3:1 is the bar — placeholders, disabled text, decorative
- * captions. `ink-muted` is #6E6E73, the same hue two steps darker, and carries
- * every piece of secondary text that has to be *read*. Likewise `danger-500`
- * is #E8402A for fills and dots, and `danger-600` is what a balance is
- * written in.
- *
- * Using the named value everywhere would put a clinic's table headers and its
- * overdue figures below the legibility floor, which matters more on this
- * screen than a two-step difference nobody will notice.
+ * So each has two tokens rather than one compromise. `ink-subtle` is #7B8899,
+ * used where 3:1 is the bar — placeholders, disabled text, decorative
+ * captions. `ink-muted` is #64748B, the same hue two steps darker, and carries
+ * every piece of secondary text that has to be *read*. Likewise `success-500`
+ * is the named #4EC191 for fills, dots and progress, and `success-700` is what
+ * the word beside them is written in.
  */
 
 @theme static {
   /*
-   * Primary — the one action colour. Buttons, links, active nav, focus rings.
-   * If it is blue it is clickable, and nothing else competes with it.
+   * Primary — the clinic's blue, and the one action colour. Buttons, links,
+   * the active nav pill, focus rings. If it is blue it is clickable, and
+   * nothing else competes with it.
    */
-  --color-primary-50: #f3f8ff;
-  --color-primary-100: #e5f0ff;
-  --color-primary-200: #cde2ff;
-  --color-primary-300: #abcfff;
-  --color-primary-400: #77b1ff;
-  --color-primary-500: #348eff;
-  --color-primary-600: #0071e3;
-  --color-primary-700: #0060c2;
-  --color-primary-800: #004793;
-  --color-primary-900: #003169;
+  --color-primary-50: #f2f7fb;
+  --color-primary-100: #e3edf6;
+  --color-primary-200: #c5daeb;
+  --color-primary-300: #9dc0da;
+  --color-primary-400: #6b9dc3;
+  --color-primary-500: #4380ac;
+  --color-primary-600: #316c9c;
+  --color-primary-700: #295b84;
+  --color-primary-800: #21496a;
+  --color-primary-900: #1a3850;
 
   /*
    * Danger — money owed and destructive actions, nothing else. 500 is the
-   * named #E8402A for fills and dots; 600 is the text shade that clears AA.
+   * fill and the dot; 600 is the text shade that clears AA.
    */
-  --color-danger-50: #fff5f3;
-  --color-danger-100: #ffe9e5;
-  --color-danger-200: #ffd5cd;
-  --color-danger-300: #ffb8aa;
-  --color-danger-400: #ff8772;
-  --color-danger-500: #e8402a;
-  --color-danger-600: #d42913;
-  --color-danger-700: #b91600;
-  --color-danger-800: #8c0d00;
-  --color-danger-900: #640600;
+  --color-danger-50: #fef4f4;
+  --color-danger-100: #fde4e4;
+  --color-danger-200: #f9c8c9;
+  --color-danger-300: #f2a1a3;
+  --color-danger-400: #e97377;
+  --color-danger-500: #e5484d;
+  --color-danger-600: #d13438;
+  --color-danger-700: #b02428;
+  --color-danger-800: #8a1b1e;
+  --color-danger-900: #631315;
 
   /*
-   * Neutral — the cool grey. 50 is the ground, 200 the hairline, 500 the
-   * secondary grey, 900 the ink; the rest fill in between them.
+   * Neutral — a grey mixed towards the blue rather than a pure one, so the
+   * ground and the hairlines belong to the same family as the brand. 50 is the
+   * page, 200 the hairline every card is drawn with, 500 the secondary grey,
+   * 900 the ink.
    */
-  --color-neutral-50: #f5f5f7;
-  --color-neutral-100: #eeeef0;
-  --color-neutral-200: #e8e8ed;
-  --color-neutral-300: #cccccf;
-  --color-neutral-400: #aeaeb3;
-  --color-neutral-500: #86868b;
-  --color-neutral-600: #75757a;
-  --color-neutral-700: #636368;
-  --color-neutral-800: #49494e;
-  --color-neutral-900: #1d1d1f;
+  --color-neutral-50: #f4f7fa;
+  --color-neutral-100: #eef2f7;
+  --color-neutral-200: #e3e9f0;
+  --color-neutral-300: #cfd8e3;
+  --color-neutral-400: #a8b4c4;
+  --color-neutral-500: #7b8899;
+  --color-neutral-600: #64748b;
+  --color-neutral-700: #4d5a6e;
+  --color-neutral-800: #364152;
+  --color-neutral-900: #1b2432;
 
   /*
-   * Success and warning exist for one job each: a positive state, and the
+   * Success is the second brand colour: a settled balance, a confirmed
+   * appointment, a finished plan. Warning exists for one further job — the
    * tooth chart, which needs more than two hues to encode nine conditions.
-   * Neither is ever an action colour — that is the blue's alone.
+   * Neither is ever an action colour; that is the blue's alone.
    */
-  --color-success-50: #eefcf2;
-  --color-success-100: #dff6e6;
-  --color-success-200: #c6ebd1;
-  --color-success-300: #a4dcb6;
-  --color-success-400: #70c48f;
-  --color-success-500: #3aa76a;
-  --color-success-600: #108c51;
-  --color-success-700: #007743;
-  --color-success-800: #005930;
-  --color-success-900: #003e20;
+  --color-success-50: #eefaf4;
+  --color-success-100: #d7f3e6;
+  --color-success-200: #b0e7cf;
+  --color-success-300: #82d7b3;
+  --color-success-400: #64cc9f;
+  --color-success-500: #4ec191;
+  --color-success-600: #2ba277;
+  --color-success-700: #1a8562;
+  --color-success-800: #136749;
+  --color-success-900: #0c4a34;
 
-  --color-warning-50: #fff6eb;
-  --color-warning-100: #fcecd9;
-  --color-warning-200: #f5dcbc;
-  --color-warning-300: #eac596;
-  --color-warning-400: #d7a45c;
-  --color-warning-500: #be821c;
-  --color-warning-600: #9e6900;
-  --color-warning-700: #875900;
-  --color-warning-800: #654100;
-  --color-warning-900: #472d00;
+  --color-warning-50: #fff8eb;
+  --color-warning-100: #fdeed3;
+  --color-warning-200: #f8dcac;
+  --color-warning-300: #eec380;
+  --color-warning-400: #dda547;
+  --color-warning-500: #c2871a;
+  --color-warning-600: #a06d00;
+  --color-warning-700: #8f6100;
+  --color-warning-800: #644300;
+  --color-warning-900: #472f00;
 }
 
 @theme static {
-  /* Surfaces. The ground is grey; everything readable floats on white. */
+  /* Surfaces. The ground is the tint; everything readable sits on white. */
   --color-surface: #ffffff;
   --color-canvas: var(--color-neutral-50);
   /* A block nested inside a card, and the track behind a segmented control. */
   --color-inset: var(--color-neutral-100);
   --color-sunken: var(--color-neutral-100);
   /* The row a pointer is on. */
-  --color-row-hover: #fafafc;
+  --color-row-hover: #f8fafc;
 
   /* Selection: the blue at its faintest, for a chosen row or a picked tooth. */
   --color-selected: var(--color-primary-50);
@@ -132,17 +137,19 @@
 
   /*
    * Text. `ink` is body copy; `ink-muted` is secondary text that has to be
-   * read and clears AA; `ink-subtle` is the named #86868B, for placeholders,
-   * disabled text and captions where 3:1 is the bar.
+   * read and clears AA; `ink-subtle` is #7B8899, for placeholders, disabled
+   * text and captions where 3:1 is the bar.
    */
   --color-ink: var(--color-neutral-900);
-  --color-ink-muted: #6e6e73;
+  --color-ink-muted: var(--color-neutral-600);
   --color-ink-subtle: var(--color-neutral-500);
   --color-ink-inverse: #ffffff;
 
   /*
-   * Hairlines separate rows. They are never a card's edge — a card is defined
-   * by its shadow, which is what keeps a page full of cards quiet.
+   * Hairlines. One weight does two jobs here: it draws the edge of every card
+   * and it separates the rows inside one. That is deliberate — a system whose
+   * panels are outlined cannot also afford a second, heavier divider without
+   * the page turning into a grid of boxes.
    */
   --color-line: var(--color-neutral-200);
   --color-line-strong: var(--color-neutral-300);
@@ -165,30 +172,33 @@
  * ── Geometry, elevation and type ─────────────────────────────────────────
  *
  * Radii step down with nesting so a control inside a card never fights the
- * card's own corner: card 18 → panel 12 → control 10 → pill.
+ * card's own corner: card 12 → panel 10 → control 8 → pill, which is kept for
+ * the things that are genuinely lozenges — a badge, an avatar, a progress
+ * track.
  *
- * Cards carry a shadow and no border. Two soft layers rather than one: a 1px
- * contact shadow that keeps the edge crisp against the grey ground, and a
- * wide diffuse pool that does the floating.
+ * Every elevation carries the hairline as its first layer, drawn as a spread
+ * shadow rather than a border so it costs no layout: a card does not change
+ * size when it gains an edge, and a rounded panel's outline follows its own
+ * corner exactly. The blur on top of it is almost nothing on a card and only
+ * enough to lift a menu off the page beneath it.
  */
 @theme static {
-  --radius-card: 18px;
-  --radius-panel: 12px;
-  --radius-control: 10px;
+  --radius-card: 12px;
+  --radius-panel: 10px;
+  --radius-control: 8px;
   /* A pill, expressed the way the platform does — any large value clamps. */
   --radius-pill: 980px;
 
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.05);
-  --shadow-float: 0 4px 12px rgb(0 0 0 / 0.06), 0 16px 48px rgb(0 0 0 / 0.12);
-  --shadow-pill: 0 1px 2px rgb(0 0 0 / 0.06), 0 1px 3px rgb(0 0 0 / 0.08);
+  --shadow-card: 0 0 0 1px var(--color-line), 0 1px 2px rgb(27 36 50 / 0.04);
+  --shadow-float: 0 0 0 1px var(--color-line), 0 8px 24px rgb(27 36 50 / 0.08);
+  --shadow-pill: 0 1px 2px rgb(27 36 50 / 0.06);
 
   /*
-   * Type. Tight tracking is what makes this family read as one system:
-   * −0.01em through the body, −0.03em on a page title where the letters are
-   * large enough for default spacing to look loose.
+   * Type. Near-neutral tracking: the system reads as a record rather than as
+   * a brand page, and Arabic gains nothing from the tight Latin fit.
    */
-  --tracking-body: -0.01em;
-  --tracking-title: -0.03em;
+  --tracking-body: 0em;
+  --tracking-title: -0.01em;
 
   /*
    * Line heights are set for Arabic, and Arabic needs more room than Latin at
@@ -201,19 +211,23 @@
    * the next; a `truncate` or an `overflow-hidden` anywhere near that clipped
    * them outright.
    *
-   * So: ~1.6 through body text and captions, which is the range Arabic
-   * typography asks for, and ~1.3 on the display sizes where the same ratio
+   * So: ~1.5 and up through body text and captions, which is the range Arabic
+   * typography asks for, and ~1.35 on the display sizes where the same ratio
    * would leave a heading floating in its own white space.
    */
+  --text-meta: 0.75rem; /* 12px — a stat card's label, a badge, a field caption */
+  --text-meta--line-height: 1.125rem; /* 1.5 */
   --text-label: 0.8125rem; /* 13px — table headers, captions, meta */
   --text-label--line-height: 1.25rem; /* 1.54 */
-  --text-value: 0.9375rem; /* 15px — body and table cells */
-  --text-value--line-height: 1.5rem; /* 1.6 */
-  --text-title: 2.125rem; /* 34px — the page title */
-  --text-title--line-height: 2.75rem; /* 1.29 */
-  --text-kpi: 2rem; /* 32px — the number on a stat card */
-  --text-kpi--line-height: 2.5rem; /* 1.25 — Latin digits, but a currency
-                                      code rides along with them */
+  --text-value: 0.875rem; /* 14px — body and table cells */
+  --text-value--line-height: 1.375rem; /* 1.57 */
+  --text-section: 1rem; /* 16px — a card's own title */
+  --text-section--line-height: 1.5rem; /* 1.5 */
+  --text-title: 1.25rem; /* 20px — the page title */
+  --text-title--line-height: 1.75rem; /* 1.4 */
+  --text-kpi: 1.5rem; /* 24px — the number on a stat card */
+  --text-kpi--line-height: 2rem; /* 1.33 — Latin digits, but a currency
+                                    symbol rides along with them */
 
   /*
    * The size every focusable field renders at.
@@ -221,10 +235,11 @@
    * iOS Safari zooms the page when a field smaller than 16px takes focus, and
    * does not zoom back out. It is a floor, and the kind of rule a later "make
    * this tighter" change breaks silently, so `field-size.test.ts` fails the
-   * build if any field drops under it.
+   * build if any field drops under it. A field looks smaller in this system
+   * than it used to because it is 36px tall, not because its text shrank.
    */
   --text-field: 1rem; /* 16px — never lower */
-  --text-field--line-height: 1.625rem; /* 1.63 */
+  --text-field--line-height: 1.5rem; /* 1.5 */
 
   /* One duration for every colour, shadow and transform change. */
   --animate-menu-in: menu-in 150ms ease-out;
@@ -241,12 +256,16 @@
 }
 
 /*
- * Frosted chrome. The sidebar and the top bar sit over scrolling content and
- * let it show through, which is what stops them reading as slabs.
+ * The chrome: the sidebar and the page's own bar.
  *
- * Plain custom properties: these are `background`/`backdrop-filter` values
- * rather than colours, so they are applied in index.css by class rather than
- * through a Tailwind colour utility.
+ * Both are plain white with a hairline where they meet the content, which is
+ * what a bordered system asks for — an earlier revision frosted them and let
+ * the page show through, and a translucent bar over a bordered card reads as
+ * two edges sliding past each other.
+ *
+ * Plain custom properties rather than `@theme`: they are `background` values
+ * applied in index.css by class, so the sidebar and the bar cannot drift
+ * apart the first time one of them is overridden.
  */
 [dir='rtl'] {
   --drawer-direction: -1;
@@ -257,14 +276,10 @@
 }
 
 :root {
-  --chrome-sidebar: rgb(246 246 248 / 0.85);
-  --chrome-bar: rgb(245 245 247 / 0.72);
-  --chrome-blur: blur(20px) saturate(1.8);
-  /* The active sidebar item: a fill, not a colour. */
-  --chrome-active: rgb(0 0 0 / 0.07);
-  /* A search field's fill — no border, just a tint of the ground. */
-  --chrome-field: rgb(0 0 0 / 0.05);
-  --chrome-field-hover: rgb(0 0 0 / 0.07);
+  --chrome-surface: #ffffff;
+  /* A search field's fill, so it reads as a field before it is focused. */
+  --chrome-field: #ffffff;
+  --chrome-field-hover: var(--color-neutral-50);
 }
 
 @keyframes menu-in {
@@ -342,7 +357,7 @@
  *   · still to do        → danger (needs treatment), warning (in progress)
  *   · restored in enamel → primary; the deeper the work, the deeper the blue
  *   · crowned            → pale gold, which is what a crown looks like
- *   · bridged            → success: a finished restoration spanning a gap
+ *   · bridged            → a soft green: a finished restoration spanning a gap
  *   · implant            → neutral, the colour of titanium
  *
  * Every pair below was measured on the new palette: the tooth number clears
@@ -353,28 +368,28 @@
  * in SVG attributes, and `@theme` cannot be nested in a media query.
  */
 :root {
-  --color-tooth-healthy: #f5f5f7;
-  --color-tooth-healthy-line: #86868b;
-  --color-tooth-planned: #d42913;
-  --color-tooth-in-progress: #9e6900;
-  --color-tooth-filling: #0071e3;
-  --color-tooth-root-canal: #004793;
-  --color-tooth-crown: #eac596;
-  --color-tooth-crown-line: #875900;
-  --color-tooth-bridge: #70c48f;
-  --color-tooth-bridge-line: #007743;
-  --color-tooth-implant: #75757a;
+  --color-tooth-healthy: #f4f7fa;
+  --color-tooth-healthy-line: #7b8899;
+  --color-tooth-planned: #d13438;
+  --color-tooth-in-progress: #8f6100;
+  --color-tooth-filling: #316c9c;
+  --color-tooth-root-canal: #21496a;
+  --color-tooth-crown: #eec380;
+  --color-tooth-crown-line: #8f6100;
+  --color-tooth-bridge: #82d7b3;
+  --color-tooth-bridge-line: #1a8562;
+  --color-tooth-implant: #64748b;
   --color-tooth-missing: transparent;
-  --color-tooth-missing-line: #86868b;
+  --color-tooth-missing-line: #7b8899;
 
   --color-tooth-ink: #ffffff;
-  --color-tooth-ink-dark: #1d1d1f;
-  --color-tooth-ink-muted: #6e6e73;
+  --color-tooth-ink-dark: #1b2432;
+  --color-tooth-ink-muted: #4d5a6e;
 
   --chart-surface: #ffffff;
-  --chart-border: #e8e8ed;
-  --chart-text: #6e6e73;
-  --chart-guide: #e8e8ed;
+  --chart-border: #e3e9f0;
+  --chart-text: #64748b;
+  --chart-guide: #e3e9f0;
 }
 
 /*
@@ -398,26 +413,26 @@
  */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-tooth-healthy: #49494e;
-    --color-tooth-healthy-line: #86868b;
-    --color-tooth-planned: #ff8772;
-    --color-tooth-in-progress: #d7a45c;
-    --color-tooth-filling: #77b1ff;
-    --color-tooth-root-canal: #abcfff;
-    --color-tooth-crown: #f5dcbc;
-    --color-tooth-crown-line: #be821c;
-    --color-tooth-bridge: #a4dcb6;
-    --color-tooth-bridge-line: #3aa76a;
-    --color-tooth-implant: #aeaeb3;
-    --color-tooth-missing-line: #86868b;
+    --color-tooth-healthy: #364152;
+    --color-tooth-healthy-line: #7b8899;
+    --color-tooth-planned: #e97377;
+    --color-tooth-in-progress: #dda547;
+    --color-tooth-filling: #6b9dc3;
+    --color-tooth-root-canal: #9dc0da;
+    --color-tooth-crown: #f8dcac;
+    --color-tooth-crown-line: #c2871a;
+    --color-tooth-bridge: #b0e7cf;
+    --color-tooth-bridge-line: #2ba277;
+    --color-tooth-implant: #a8b4c4;
+    --color-tooth-missing-line: #7b8899;
 
-    --color-tooth-ink: #1d1d1f;
-    --color-tooth-ink-dark: #1d1d1f;
-    --color-tooth-ink-muted: #cccccf;
+    --color-tooth-ink: #1b2432;
+    --color-tooth-ink-dark: #1b2432;
+    --color-tooth-ink-muted: #cfd8e3;
 
-    --chart-surface: #1d1d1f;
-    --chart-border: #49494e;
-    --chart-text: #cccccf;
-    --chart-guide: #49494e;
+    --chart-surface: #1b2432;
+    --chart-border: #364152;
+    --chart-text: #cfd8e3;
+    --chart-guide: #364152;
   }
 }
