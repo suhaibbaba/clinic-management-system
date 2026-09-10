@@ -5,10 +5,7 @@ import { passwordSchema } from '@shared/schemas/auth';
 import { paginationQuerySchema } from '@shared/schemas/common';
 import { personNameInputSchema, personNameSchema } from '@shared/schemas/person-name';
 
-/**
- * Loose on purpose: clinics operate in regions with varied local formats, so
- * the API stores what reception types and only enforces shape, not country.
- */
+/** Loose on purpose: local formats vary by region, so the API enforces shape and not country. */
 export const phoneSchema = z
   .string()
   .trim()
@@ -19,34 +16,21 @@ export const phoneSchema = z
 export const userSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
-  /** Both spellings; screens pick one through `PersonName` (see the helper). */
   name: personNameSchema,
   phone: z.string(),
   email: z.string().nullable(),
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
-  /**
-   * A short-lived signed URL for the staff photo, or null when there is none.
-   *
-   * The stored object key never leaves the API (CLAUDE.md files & images), so
-   * this is not a field a client may write — it is minted per response and
-   * expires with the download TTL, and `<Avatar>` falls back to initials both
-   * when it is null and when the URL has gone stale in an open tab.
-   */
+  // Minted per response and expiring with the download TTL — the stored object key never leaves the
+  // API, so this is not writable.
   photoUrl: z.url().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
 export type User = z.infer<typeof userSchema>;
 
-/**
- * Writable fields, declared once and without defaults. `createUserSchema` adds
- * the defaults; `updateUserSchema` must not have any — a default survives
- * `.partial()` and would silently rewrite a field the caller never sent.
- *
- * `clinicId` is deliberately absent: it comes from the caller's token, never
- * from the request body (ROLES.md global rule 1).
- */
+// No defaults: one survives `.partial()` in `updateUserSchema` and would rewrite a field nobody
+// sent. `clinicId` comes from the caller's token, never the body.
 const userWritableFields = {
   name: personNameInputSchema,
   phone: phoneSchema,
@@ -68,10 +52,6 @@ export const updateUserSchema = z
   .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
-/**
- * Admin resetting another user's password. Separate from `changePasswordSchema`
- * because an admin does not know the current one.
- */
 export const resetUserPasswordSchema = z.object({
   newPassword: passwordSchema,
 });
@@ -80,24 +60,12 @@ export type ResetUserPasswordInput = z.infer<typeof resetUserPasswordSchema>;
 export const listUsersQuerySchema = paginationQuerySchema.extend({
   role: z.enum(USER_ROLES).optional(),
   isActive: z.stringbool().optional(),
-  /** Matches either spelling of the name, the phone or the email. */
   search: z.string().trim().min(1).max(120).optional(),
 });
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
 
-/**
- * A staff photo: a face in a circle beside a name, on the users list, the
- * doctors list and the calendar's own columns.
- *
- * Uploaded exactly the way the clinic's logo is — presign, PUT straight to
- * storage, confirm — so no image ever travels through the API, and the size
- * and type are read back from what actually landed rather than trusted from
- * the request.
- *
- * 2 MB and the same three formats as the logo: this is drawn at 36 pixels and
- * at most a couple of hundred on a profile, so anything larger is a phone
- * camera's original being uploaded whole.
- */
+// Presign, PUT, confirm — as the logo does, so no image travels through the API and size and type
+// are read back from what landed.
 export const MAX_USER_PHOTO_BYTES = 2 * 1024 * 1024;
 
 export const ALLOWED_USER_PHOTO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
@@ -113,7 +81,6 @@ export const presignUserPhotoSchema = z.object({
 export type PresignUserPhotoInput = z.infer<typeof presignUserPhotoSchema>;
 
 export const presignUserPhotoResponseSchema = z.object({
-  /** Opaque to the client; it is echoed back on confirm. */
   key: z.string(),
   uploadUrl: z.url(),
   expiresAt: z.iso.datetime(),

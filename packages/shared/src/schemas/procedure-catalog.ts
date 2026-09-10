@@ -4,12 +4,6 @@ import { moneySchema, wholeMoneySchema } from '@shared/schemas/money';
 import { paginationQuerySchema } from '@shared/schemas/common';
 import { lookupCodeSchema } from '@shared/schemas/lookups';
 
-/**
- * Priced procedures per specialty.
- *
- * Owned by billing in the module order, but pulled forward because treatment
- * plan items and performed procedures both reference it.
- */
 export const procedureCatalogItemSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
@@ -18,10 +12,7 @@ export const procedureCatalogItemSchema = z.object({
   nameAr: z.string(),
   nameEn: z.string(),
   defaultPrice: moneySchema,
-  /**
-   * What this procedure leaves on the chart once it is done. Null for
-   * procedures that chart nothing — an examination, a cleaning, an X-ray.
-   */
+  /** Null for procedures that chart nothing — an examination, a cleaning, an X-ray. */
   chartOutcome: lookupCodeSchema.nullable(),
   isActive: z.boolean(),
   createdAt: z.iso.datetime(),
@@ -29,10 +20,7 @@ export const procedureCatalogItemSchema = z.object({
 });
 export type ProcedureCatalogItem = z.infer<typeof procedureCatalogItemSchema>;
 
-/**
- * What a receptionist may read: names and prices only
- * (ROLES.md core matrix, "Specialties & procedure catalog").
- */
+/** What a receptionist may read: names and prices only (ROLES.md core matrix). */
 export const procedureCatalogPriceViewSchema = procedureCatalogItemSchema.pick({
   id: true,
   code: true,

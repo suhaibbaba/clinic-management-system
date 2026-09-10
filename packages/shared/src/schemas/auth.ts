@@ -3,27 +3,21 @@ import { z } from 'zod';
 import { USER_ROLES } from '@shared/enums';
 import { personNameSchema } from '@shared/schemas/person-name';
 
-/** Minimum password length accepted anywhere in the system. */
 export const PASSWORD_MIN_LENGTH = 8;
 /** Upper bound so a huge body can never turn into an expensive hash. */
 export const PASSWORD_MAX_LENGTH = 200;
 
 export const passwordSchema = z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH);
 
-/**
- * Login accepts either the phone number or the email in one field — the API
- * decides which by matching, so the UI needs a single input.
- */
+/** One field for phone or email — the API decides which by matching. */
 export const loginSchema = z.object({
   identifier: z.string().trim().min(3).max(255),
   password: passwordSchema,
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
-/**
- * Optional because browsers send the refresh token in an httpOnly cookie the
- * API sets at login. Non-browser clients may pass it in the body instead.
- */
+// Optional because browsers send it in the httpOnly cookie the API sets at login; other clients
+// pass it here.
 export const refreshSchema = z.object({
   refreshToken: z.string().min(1).max(512).optional(),
 });
@@ -52,24 +46,18 @@ export const authenticatedUserSchema = z.object({
   email: z.string().nullable(),
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
-  /** Signed and short-lived, like every other photo URL — see `userSchema`. */
   photoUrl: z.url().nullable(),
 });
 export type AuthenticatedUserProfile = z.infer<typeof authenticatedUserSchema>;
 
-/**
- * What a login or refresh returns. The refresh token is deliberately absent:
- * it is set as an httpOnly cookie so JavaScript — and therefore any XSS on the
- * web app — cannot read it.
- */
+// The refresh token is deliberately absent — it is an httpOnly cookie, so an XSS on the web app
+// cannot read it.
 export const authTokensSchema = z.object({
   accessToken: z.string(),
-  /** Access-token lifetime in seconds. */
   expiresIn: z.number().int().positive(),
 });
 export type AuthTokens = z.infer<typeof authTokensSchema>;
 
-/** Internal shape the API passes around before the cookie is set. */
 export interface IssuedSession extends AuthTokens {
   readonly refreshToken: string;
 }

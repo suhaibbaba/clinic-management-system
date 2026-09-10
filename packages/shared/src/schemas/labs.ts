@@ -8,16 +8,8 @@ import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
 import { moneySchema, signedMoneySchema, wholeMoneySchema } from '@shared/schemas/money';
 import { lookupCodeSchema } from '@shared/schemas/lookups';
 
-/**
- * The dental laboratory: the outside workshop that makes crowns, bridges and
- * dentures for the clinic.
- *
- * Two ledgers meet here and must not be confused. The **patient** owes the
- * clinic for the treatment (`charges`/`payments`); the **clinic** owes the lab
- * for the work (`lab_orders`/`lab_payments`). A crown that is never fitted may
- * still be owed to the lab, and a patient who never pays does not make the
- * lab's invoice go away.
- */
+// Two ledgers, never confused: the patient owes the clinic (`charges`/`payments`), the clinic owes
+// the lab (`lab_orders`/`lab_payments`), and neither cancels the other.
 
 export const labSchema = z.object({
   id: uuidSchema,
@@ -33,11 +25,9 @@ export const labSchema = z.object({
 });
 export type Lab = z.infer<typeof labSchema>;
 
-/** A lab with the two numbers a directory card shows. */
 export const labSummarySchema = labSchema.extend({
   /** Owed minus paid, computed — never stored (CLAUDE.md). */
   balance: signedMoneySchema,
-  /** Orders still out at the lab, whether or not they are late. */
   openOrders: z.number().int().min(0),
 });
 export type LabSummary = z.infer<typeof labSummarySchema>;
@@ -64,13 +54,7 @@ export const listLabsQuerySchema = paginationQuerySchema.extend({
 });
 export type ListLabsQuery = z.infer<typeof listLabsQuerySchema>;
 
-/**
- * One line of a lab's price list.
- *
- * Per lab rather than global: two labs charge differently for the same crown,
- * and an order copies the price it was placed at (see `price` on the order),
- * so raising a price never rewrites what the clinic already owes.
- */
+/** Per lab, not global: two labs charge differently for the same crown. */
 export const labWorkTypeSchema = z.object({
   id: uuidSchema,
   labId: uuidSchema,
@@ -101,7 +85,6 @@ export const labOrderSchema = z.object({
   labId: uuidSchema,
   patientId: uuidSchema,
   doctorId: uuidSchema,
-  /** The treatment that needs it, when the order came from one. */
   performedProcedureId: uuidSchema.nullable(),
   workTypeId: uuidSchema.nullable(),
   /** Both are codes on the clinic's own `lab_material` / `lab_shade` lists. */
@@ -109,11 +92,8 @@ export const labOrderSchema = z.object({
   shade: lookupCodeSchema.nullable(),
   teeth: labTeethSchema,
   instructions: z.string().nullable(),
-  /**
-   * What this order costs, copied from the price list when it was placed.
-   * A snapshot on purpose: the lab's price list moves, and an order the clinic
-   * already owes must not move with it.
-   */
+  // A snapshot taken when the order was placed — the lab's price list moves, and what the clinic
+  // already owes must not.
   price: moneySchema,
   status: z.enum(LAB_ORDER_STATUSES),
   sentAt: z.iso.datetime().nullable(),
@@ -126,21 +106,13 @@ export const labOrderSchema = z.object({
 });
 export type LabOrder = z.infer<typeof labOrderSchema>;
 
-/**
- * An order with the names a list has to draw.
- *
- * Denormalised on read for the same reason the calendar does it: a board of
- * forty orders should not be forty follow-up requests for a patient's name.
- * It carries **no clinical field** — a technician reads this list, and
- * ROLES.md gives them tooth and work information and nothing else.
- */
+/** Denormalised on read, and carries no clinical field: a technician reads this list (ROLES.md). */
 export const labOrderRowSchema = labOrderSchema.extend({
   patientName: z.string(),
   patientFileNumber: z.string(),
   doctorName: personNameSchema,
   labName: z.string(),
   workTypeName: z.string().nullable(),
-  /** Past `expectedAt` and still out at the lab. */
   isOverdue: z.boolean(),
 });
 export type LabOrderRow = z.infer<typeof labOrderRowSchema>;
@@ -161,12 +133,8 @@ export const createLabOrderSchema = z.object({
 });
 export type CreateLabOrderInput = z.infer<typeof createLabOrderSchema>;
 
-/**
- * What may still be edited, and by whom.
- *
- * `price` is here but ROLES.md keeps a doctor out of it — "create/edit own;
- * not financial fields" — so the service, not this schema, is what refuses it.
- */
+// `price` is in here but ROLES.md keeps a doctor out of it, so the service — not this schema — is
+// what refuses it.
 export const updateLabOrderSchema = createLabOrderSchema
   .omit({ patientId: true, doctorId: true })
   .partial();
@@ -177,7 +145,6 @@ export const listLabOrdersQuerySchema = paginationQuerySchema.extend({
   labId: uuidSchema.optional(),
   patientId: uuidSchema.optional(),
   doctorId: uuidSchema.optional(),
-  /** Only what is late: past its expected date and not back yet. */
   overdue: z.coerce.boolean().optional(),
   search: z.string().trim().max(160).optional(),
 });
@@ -189,12 +156,6 @@ export const returnLabOrderSchema = z.object({
 });
 export type ReturnLabOrderInput = z.infer<typeof returnLabOrderSchema>;
 
-/**
- * A photo or a scan that travels with the order — a shade photo, a scan file.
- *
- * Same storage flow as an X-ray: the bytes go straight to R2 through a
- * presigned URL and only the key and its metadata are stored here.
- */
 export const labOrderAttachmentSchema = z.object({
   id: uuidSchema,
   labOrderId: uuidSchema,
@@ -207,14 +168,12 @@ export const labOrderAttachmentSchema = z.object({
 });
 export type LabOrderAttachment = z.infer<typeof labOrderAttachmentSchema>;
 
-/** Step one of the upload: ask for a presigned PUT. */
 export const presignLabAttachmentSchema = z.object({
   filename: z.string().trim().min(1).max(255),
   mime: z.string().trim().min(3).max(160),
 });
 export type PresignLabAttachmentInput = z.infer<typeof presignLabAttachmentSchema>;
 
-/** Step three: the bytes are in the bucket, record the row. */
 export const confirmLabAttachmentSchema = z.object({
   key: z.string().trim().min(1).max(512),
   filename: z.string().trim().min(1).max(255),
@@ -251,13 +210,7 @@ export const reverseLabPaymentSchema = z.object({
 });
 export type ReverseLabPaymentInput = z.infer<typeof reverseLabPaymentSchema>;
 
-/**
- * What the clinic owes one lab.
- *
- * `owed` counts every order from `sent` onward and stops counting only a
- * cancelled one — see `countsTowardLabBalance`, which is where that rule
- * lives. Nothing here is stored.
- */
+/** Nothing here is stored: `owed` follows `countsTowardLabBalance`, which is where that rule lives. */
 export const labBalanceSchema = z.object({
   labId: uuidSchema,
   owed: signedMoneySchema,

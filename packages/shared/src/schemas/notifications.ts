@@ -10,14 +10,10 @@ import {
 } from '@shared/enums';
 import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
 
-/**
- * One attempt to reach a patient. Append-only, like the ledgers: a message is
- * never edited, and a failed one is a row saying so rather than an absence.
- */
+/** Append-only like the ledgers: a failed message is a row saying so, never an absence. */
 export const notificationLogEntrySchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
-  /** The phone number the message went to. */
   to: z.string(),
   channel: z.enum(NOTIFICATION_CHANNELS),
   template: z.enum(NOTIFICATION_TEMPLATES),
@@ -36,13 +32,6 @@ export const listNotificationsQuerySchema = paginationQuerySchema.extend({
 });
 export type ListNotificationsQuery = z.infer<typeof listNotificationsQuerySchema>;
 
-/**
- * The message bodies, in `clinics.settings.notifications`.
- *
- * Settings rather than a table because they are text a clinic edits, not data
- * anything references — the same reasoning as the booking window and the
- * holidays. `{name}`-style placeholders are interpolated at send time.
- */
 export const notificationSettingsSchema = z.object({
   /** Master switch. Off means the whole module is inert, scheduler included. */
   enabled: z.boolean().default(true),
@@ -54,15 +43,7 @@ export const notificationSettingsSchema = z.object({
 });
 export type NotificationSettings = z.infer<typeof notificationSettingsSchema>;
 
-/**
- * What every message says when a clinic has not written its own.
- *
- * Arabic, because that is the language of the clinic and of the patient
- * receiving it — the UI's English mode is for staff, and an SMS is not the UI.
- *
- * Placeholders are deliberately few and obvious: a template a receptionist
- * edits should not need documentation to stay working.
- */
+/** Arabic: the UI's English mode is for staff, and an SMS is not the UI. */
 export const DEFAULT_NOTIFICATION_TEMPLATES: Record<NotificationTemplate, string> = {
   [NOTIFICATION_TEMPLATE.BOOKING_OTP]:
     'رمز تأكيد حجزك في {clinic} هو {code}. صالح لمدة {minutes} دقائق.',
@@ -96,13 +77,8 @@ export function notificationSettings(settings: unknown): NotificationSettings {
       };
 }
 
-/**
- * Fills `{placeholders}` from a bag of values.
- *
- * An unknown placeholder is left as it stands rather than blanked: a message
- * reading "الساعة {time}" is a visible bug someone reports, where "الساعة "
- * is a message that looks fine and says nothing.
- */
+// An unknown placeholder is left standing — "الساعة {time}" is a visible bug, where "الساعة " looks
+// fine and says nothing.
 export function renderTemplate(body: string, vars: Record<string, string>): string {
   return body.replaceAll(/\{(\w+)\}/g, (match, key: string) => vars[key] ?? match);
 }

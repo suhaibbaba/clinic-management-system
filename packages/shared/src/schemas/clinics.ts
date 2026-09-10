@@ -4,27 +4,13 @@ import { settingsSchema, weeklyScheduleSchema } from '@shared/schemas/common';
 import { personNameInputSchema, personNameSchema } from '@shared/schemas/person-name';
 import { DEFAULT_TIME_ZONE } from '@shared/time/zone';
 
-/**
- * The currencies a clinic may be billed in, as ISO-4217 codes.
- *
- * A closed list rather than any three letters: money is formatted, printed on
- * receipts and totalled per clinic, and a typo ("USE") would have quietly
- * relabelled every figure in the system. Adding one is a line here, its label
- * in the i18n files, and its symbol in `CURRENCY_SYMBOLS` — the symbol is what
- * a reader actually sees, since no screen shows the code (see `money.ts`).
- */
+// A closed list: a typo would quietly relabel every figure. Adding one needs its i18n label and its
+// `CURRENCY_SYMBOLS` symbol too.
 export const CURRENCIES = ['JOD', 'ILS', 'USD', 'EUR', 'SAR', 'SYP'] as const;
 export type Currency = (typeof CURRENCIES)[number];
 
-/**
- * The scheduling keys inside `clinics.settings`.
- *
- * In the free-form settings blob rather than in columns of their own because
- * they are configuration a clinic edits, not data other tables reference —
- * and because adding one is then a line here rather than a migration. Parsed
- * with `clinicScheduleSettings` so an absent or malformed blob degrades to the
- * defaults instead of taking the calendar down.
- */
+// In the settings blob rather than columns, so adding one is not a migration; parsed leniently so a
+// malformed blob degrades to defaults.
 export const clinicScheduleSettingsSchema = z.object({
   /** IANA zone the clinic's opening hours are expressed in. */
   timezone: z.string().min(1).default(DEFAULT_TIME_ZONE),
@@ -38,14 +24,8 @@ export function clinicScheduleSettings(settings: unknown): ClinicScheduleSetting
   return parsed.success ? parsed.data : { timezone: DEFAULT_TIME_ZONE };
 }
 
-/**
- * How the clinic's printed documents are produced, in `clinics.settings.documents`.
- *
- * The language here is the *clinic's*, not the reader's: a receipt is a
- * document of the practice, filed and handed to patients, and it should not
- * change language because a locum had the interface switched to English for
- * the afternoon. Same lenient parse as the other settings blocks.
- */
+// The language is the clinic's, not the reader's: a receipt should not change language because a
+// locum switched the interface.
 export const documentSettingsSchema = z.object({
   language: z.enum(['ar', 'en']).default('ar'),
 });
@@ -62,22 +42,10 @@ export function documentSettings(settings: unknown): DocumentSettings {
   return parsed.success ? parsed.data : { language: 'ar' };
 }
 
-/**
- * 2 MB, which is a generous letterhead logo and a poor place to keep a scan.
- *
- * Small on purpose: this image is fetched on every page load and drawn into
- * every PDF the clinic prints, so the cost of a careless 12-megapixel upload
- * is paid over and over rather than once.
- */
+/** Small on purpose: fetched on every page load and drawn into every PDF the clinic prints. */
 export const MAX_CLINIC_LOGO_BYTES = 2 * 1024 * 1024;
 
-/**
- * Images only, and only the three every browser and pdf-lib both read.
- *
- * No SVG: it is a document that can carry script, and this one is rendered
- * inside the app's own origin. No TIFF or PDF either — a logo is displayed,
- * not archived.
- */
+/** No SVG — it can carry script and is rendered inside the app's own origin. */
 export const ALLOWED_CLINIC_LOGO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
 
 export const clinicLogoMimeSchema = z.enum(ALLOWED_CLINIC_LOGO_MIME_TYPES);
@@ -91,7 +59,6 @@ export const presignClinicLogoSchema = z.object({
 export type PresignClinicLogoInput = z.infer<typeof presignClinicLogoSchema>;
 
 export const presignClinicLogoResponseSchema = z.object({
-  /** Opaque to the client; it is echoed back on confirm. */
   key: z.string(),
   uploadUrl: z.url(),
   expiresAt: z.iso.datetime(),
@@ -105,14 +72,7 @@ export const confirmClinicLogoSchema = z.object({
 });
 export type ConfirmClinicLogoInput = z.infer<typeof confirmClinicLogoSchema>;
 
-/**
- * The clinic's name and mark, before anybody has signed in.
- *
- * What the login screen needs and nothing else: no phone, no address, no
- * indication of how many clinics this deployment serves. `name` is null when
- * the answer is not a single clinic, and the screen then shows the product's
- * own mark — the same fallback it shows for a clinic that never uploaded one.
- */
+/** Pre-auth: no phone, no address, and no indication of how many clinics this deployment serves. */
 export const clinicBrandingSchema = z.object({
   name: personNameSchema.nullable(),
   logoUrl: z.url().nullable(),
@@ -121,11 +81,6 @@ export type ClinicBranding = z.infer<typeof clinicBrandingSchema>;
 
 export const clinicSchema = z.object({
   id: z.uuid(),
-  /**
-   * The practice's own name, in both languages — it heads every printed
-   * document, and those are produced in the clinic's language rather than the
-   * reader's (`settings.documents.language`).
-   */
   name: personNameSchema,
   /** R2 object key — never a public URL (CLAUDE.md files & images). */
   logoKey: z.string().nullable(),
@@ -134,13 +89,8 @@ export const clinicSchema = z.object({
   phone: z.string().nullable(),
   email: z.string().nullable(),
   address: z.string().nullable(),
-  /**
-   * ISO-4217 code. Money itself is `numeric(10,2)`, handled as strings.
-   *
-   * Read as a plain string, not as the enum: a clinic row stored before the
-   * list existed must still parse, or the settings screen it would be fixed on
-   * is the one screen that fails to load.
-   */
+  // Read as a plain string, not the enum: a row stored before the list existed must still parse, or
+  // the settings screen cannot load to fix it.
   currency: z.string(),
   workingHours: weeklyScheduleSchema,
   settings: settingsSchema,

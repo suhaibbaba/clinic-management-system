@@ -1,29 +1,8 @@
-/**
- * Local wall-clock time ↔ absolute instants, in the clinic's own timezone.
- *
- * A clinic's opening hours are `09:00`, and an appointment is stored as a
- * `timestamptz`. Something has to join the two, and it must not be *either*
- * machine's own zone: a VPS in UTC would put a Ramallah clinic's morning two
- * hours out on the server, and a laptop with a wrong clock would do the same
- * in the browser. Both sides ask the clinic.
- *
- * In `@clinic/shared` rather than in either app because the API and the web
- * calendar must agree to the minute — a slot the API says is 09:00 and the
- * grid draws at 06:00 is the kind of disagreement that ends with a patient
- * arriving at the wrong hour.
- *
- * `Intl` does the work, so there is no timezone library and no data to keep up
- * to date beyond the platform's own.
- */
+// Local wall-clock ↔ instants in the clinic's own zone, never the server's or the browser's; API
+// and calendar must agree to the minute. `Intl` does it, so no timezone library.
 
-/**
- * IANA zone used when a clinic has not set one (see `clinicTimeZone`).
- *
- * `Asia/Hebron` is the West Bank's zone — the one the first clinics on this
- * system keep — and it is a fallback rather than an assumption: every clinic
- * carries its own `settings.timezone`, and this is only what a row with none
- * is read as.
- */
+// A fallback, not an assumption: every clinic carries its own `settings.timezone` and this is only
+// what a row with none reads as.
 export const DEFAULT_TIME_ZONE = 'Asia/Hebron';
 
 const partsFormatter = new Map<string, Intl.DateTimeFormat>();
@@ -73,7 +52,6 @@ function localParts(instant: Date, timeZone: string): LocalParts {
   };
 }
 
-/** How far ahead of UTC the zone is at that instant, in minutes. */
 function offsetMinutes(instant: Date, timeZone: string): number {
   const parts = localParts(instant, timeZone);
   const asIfUtc = Date.UTC(
@@ -88,15 +66,8 @@ function offsetMinutes(instant: Date, timeZone: string): number {
   return (asIfUtc - instant.getTime()) / 60_000;
 }
 
-/**
- * The instant at which a local date and a minute-of-day occur.
- *
- * Two passes, because the offset depends on the instant we are trying to find:
- * guess with the offset in force at the naive time, then re-read the offset at
- * the guess and correct. That converges everywhere except inside a DST gap,
- * where the requested wall-clock time does not exist at all and any answer is
- * an invention; this one lands on the far side of the gap.
- */
+// Two passes, because the offset depends on the instant sought: guess, re-read the offset there,
+// correct. Inside a DST gap the time does not exist; this lands past it.
 export function instantFromLocal(isoDate: string, minuteOfDay: number, timeZone: string): Date {
   const [year = 0, month = 1, day = 1] = isoDate.split('-').map(Number);
   const naive = Date.UTC(year, month - 1, day) + minuteOfDay * 60_000;
@@ -113,7 +84,6 @@ export function minutesFromLocalMidnight(instant: Date, isoDate: string, timeZon
   return (instant.getTime() - midnight.getTime()) / 60_000;
 }
 
-/** The local calendar date an instant falls on, as `YYYY-MM-DD`. */
 export function localDate(instant: Date, timeZone: string): string {
   const { year, month, day } = localParts(instant, timeZone);
 
@@ -130,7 +100,6 @@ export function localWeekday(isoDate: string, timeZone: string): number {
   return new Date(Date.UTC(parts.year, parts.month - 1, parts.day)).getUTCDay();
 }
 
-/** `YYYY-MM-DD` a whole number of days after another. */
 export function addDays(isoDate: string, days: number): string {
   const [year = 0, month = 1, day = 1] = isoDate.split('-').map(Number);
   const shifted = new Date(Date.UTC(year, month - 1, day + days));
