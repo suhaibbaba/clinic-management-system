@@ -95,32 +95,33 @@ export function AppLayout(): JSX.Element {
       {/* Desktop: a permanent rail. */}
       <aside
         className={cn(
-          'chrome-sidebar z-30 hidden shrink-0 md:block md:w-[248px]',
+          'chrome-sidebar z-30 hidden shrink-0 md:block md:w-[236px]',
           'md:sticky md:top-0 md:h-screen md:overflow-y-auto',
           'md:border-e md:border-line',
         )}
       >
         <div className="flex h-full flex-col">
           {/*
-            The mark, alone, in a band the same height as the page's bar — so
-            the two hairlines meet where the sidebar ends.
+            The mark, alone, across the width of the rail, with a rule under
+            it: the band is the clinic's, the list below it is the app's, and
+            the hairline is what says so.
 
-            No wordmark beside it: a clinic's own logo already carries its name,
-            and the app's name set in 16px next to it made two names for one
-            product at the top of every screen. It is the mark's accessible
+            No wordmark beside it: a clinic's own logo already carries its
+            name, and the app's name set in 16px next to it made two names for
+            one product at the top of every screen. It is the mark's accessible
             name instead, which is the one place the app still has to say what
             it is.
           */}
-          <div className="flex h-14 shrink-0 items-center border-b border-line px-4">
-            <Logo size="sm" src={clinic.data?.logoUrl} alt={t('app.title')} />
+          <div className="shrink-0 border-b border-line px-3 py-3">
+            <Logo size="chrome" src={clinic.data?.logoUrl} alt={t('app.title')} />
           </div>
 
-          <div className="flex-1 overflow-y-auto px-3 py-3">
+          <div className="flex-1 overflow-y-auto px-3 pt-3 pb-3">
             <NavList groups={groups} settings={settings} badges={badges} />
           </div>
 
           {user && (
-            <div className="shrink-0 border-t border-line p-2">
+            <div className="shrink-0 p-3 pt-2">
               <UserMenu user={user} onLogout={() => void logout()} />
             </div>
           )}
@@ -132,19 +133,19 @@ export function AppLayout(): JSX.Element {
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         title={t('app.title')}
-        brand={<Logo size="sm" src={clinic.data?.logoUrl} />}
+        brand={<Logo size="chrome" src={clinic.data?.logoUrl} />}
         closeLabel={t('common.close')}
       >
         <NavList groups={groups} settings={settings} badges={badges} />
 
         {user && (
-          <div className="mt-4 border-t border-line pt-2">
+          <div className="mt-5">
             <UserMenu user={user} onLogout={() => void logout()} />
           </div>
         )}
       </NavDrawer>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col bg-surface">
         <header className="chrome-bar sticky top-0 z-20 border-b border-line">
           <div className="flex h-14 items-center gap-3 px-4 md:px-8">
             <Button
@@ -191,7 +192,7 @@ function NavList({
     <nav aria-label={t('nav.menu')} className="min-w-0 flex-1">
       {groups.map((group, index) =>
         group.label === undefined ? (
-          <ul key="loose" className="flex flex-col gap-0.5">
+          <ul key="loose" className="flex flex-col gap-1">
             {group.items.map((item) => (
               <NavRow key={item.to} item={item} badges={badges} />
             ))}
@@ -255,15 +256,20 @@ function NavRow({
           // desk, and a rail of 44px rows pushes settings off the screen.
           'flex min-h-11 cursor-pointer items-center gap-2.5 rounded-control px-2.5 lg:min-h-9',
           'text-value transition-colors duration-150',
-          isActive ? 'bg-primary-600 font-medium text-ink-inverse' : 'text-ink hover:bg-primary-50',
+          isActive ? 'bg-primary-600 font-medium text-ink-inverse' : 'text-ink hover:bg-surface',
         )}
       >
-        {/* The glyph takes the row's own ink: white inside the active pill,
-            the blue outside it, where it is the thing that makes a row read
-            as a link. */}
+        {/*
+          A neutral glyph outside the active pill, white inside it.
+
+          The icons used to take the blue, on the reasoning that a row is a
+          link. In a rail where one row is a solid blue pill that reasoning
+          inverts: eight blue glyphs beside it are eight things competing with
+          the one that answers "where am I".
+        */}
         <Icon
           name={item.icon}
-          className={cn('shrink-0', isActive ? 'text-ink-inverse' : 'text-primary-600')}
+          className={cn('shrink-0', isActive ? 'text-ink-inverse' : 'text-ink-muted')}
         />
         <span className="truncate">{t(item.label)}</span>
 
@@ -274,7 +280,11 @@ function NavRow({
             // after it.
             aria-label={t('nav.waitingCount', { count })}
             className={cn(
-              'ms-auto min-w-5 rounded-pill px-1.5 py-0.5 text-center text-meta font-semibold tabular-nums',
+              // A circle, not a lozenge: `aspect-square` takes the height from
+              // whatever width the digits need, so one digit is a 20px disc and
+              // a three-figure count is a larger one — round either way.
+              'ms-auto inline-flex aspect-square min-w-5 shrink-0 items-center justify-center',
+              'rounded-pill px-1.5 text-meta font-semibold tabular-nums',
               isActive ? 'bg-ink-inverse text-primary-700' : 'bg-danger-600 text-ink-inverse',
             )}
           >
@@ -289,9 +299,14 @@ function NavRow({
 /**
  * A captioned section of the sidebar.
  *
- * The caption is the control: a 12px muted line with a chevron, which is
- * enough of a target to fold the section away and quiet enough that a rail of
- * three of them still reads as one list rather than as three panels.
+ * A hairline, then a caption that is also the control: 12px, small caps, with
+ * a chevron: enough of a target to fold the section away, quiet enough that a
+ * rail of three still reads as one list rather than as three panels.
+ *
+ * The rule earns its place here and nowhere else in the rail. Sections are
+ * what a person scans this list by — "where do I go for a patient, where for
+ * the lab" — and a caption alone leaves that to whitespace, which the eye
+ * reads as a gap rather than as a border between two kinds of thing.
  *
  * Sections people navigate with open by default. Settings does not — those are
  * the screens somebody opens on the day they set the clinic up and then twice
@@ -336,7 +351,7 @@ function NavSection({
   }, [holdsCurrent]);
 
   return (
-    <div className="mt-4 first:mt-0">
+    <div className="mt-4 border-t border-line pt-4">
       <button
         type="button"
         aria-expanded={open}
@@ -346,8 +361,12 @@ function NavSection({
           // 44px on touch like every other row in the rail; drawn at 28 on a
           // laptop, where a caption that tall would read as a nav row itself.
           'flex min-h-11 w-full cursor-pointer items-center gap-1.5 rounded-control px-2.5 py-1.5 lg:min-h-7',
-          'text-meta font-semibold text-ink-subtle transition-colors duration-150',
+          'text-meta font-medium text-ink-subtle transition-colors duration-150',
           'hover:text-ink-muted',
+          // Small caps, spaced out — in Latin only. Tracking pulls Arabic
+          // letters out of their joins, which is not a style but a spelling
+          // mistake, and `uppercase` has nothing to do in it either way.
+          'page-ltr:uppercase page-ltr:tracking-[0.06em]',
         )}
       >
         <span className="truncate">{t(label)}</span>
@@ -360,7 +379,7 @@ function NavSection({
         />
       </button>
 
-      <ul id={id} hidden={!open} className="mt-0.5 flex flex-col gap-0.5">
+      <ul id={id} hidden={!open} className="mt-1 flex flex-col gap-1">
         {items.map((item) => (
           <NavRow key={item.to} item={item} badges={badges} />
         ))}

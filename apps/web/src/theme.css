@@ -256,16 +256,20 @@
 }
 
 /*
- * The chrome: the sidebar and the page's own bar.
+ * The chrome, and where the tint lives.
  *
- * Both are plain white with a hairline where they meet the content, which is
- * what a bordered system asks for — an earlier revision frosted them and let
- * the page show through, and a translucent bar over a bordered card reads as
- * two edges sliding past each other.
+ * **The rail is tinted and the page beside it is white** — not the other way
+ * round, which is what this was. A record is read on the white; the navigation
+ * is furniture, and sitting it on a tint pushes it back a step and saves the
+ * rail from needing a rule between every section. It is also the one thing
+ * that lets a white card carry no fill of its own: on a white page a card is
+ * its hairline and its content, which is as quiet as a card gets.
+ *
+ * The bar over the page is white with the content, not grey with the rail: it
+ * holds the breadcrumb, which belongs to the page it names.
  *
  * Plain custom properties rather than `@theme`: they are `background` values
- * applied in index.css by class, so the sidebar and the bar cannot drift
- * apart the first time one of them is overridden.
+ * applied in index.css by class.
  */
 [dir='rtl'] {
   --drawer-direction: -1;
@@ -276,7 +280,8 @@
 }
 
 :root {
-  --chrome-surface: #ffffff;
+  --chrome-rail: var(--color-neutral-50);
+  --chrome-bar: #ffffff;
   /* A search field's fill, so it reads as a field before it is focused. */
   --chrome-field: #ffffff;
   --chrome-field-hover: var(--color-neutral-50);

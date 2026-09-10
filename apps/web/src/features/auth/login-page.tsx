@@ -61,7 +61,7 @@ export function LoginPage(): JSX.Element {
       <div className="w-full max-w-md rounded-card bg-surface p-8 shadow-card">
         {/* The one place the mark is shown at size; the clinic name sits in the
             heading below it, so the mark itself is decorative. */}
-        <Logo size="lg" src={branding.data?.logoUrl} className="mx-auto mb-6" />
+        <Logo size="login" src={branding.data?.logoUrl} className="mx-auto mb-6" />
 
         {branding.data?.name && (
           <p className="mb-1 text-value font-medium text-ink-muted">

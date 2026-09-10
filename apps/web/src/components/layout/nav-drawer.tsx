@@ -64,14 +64,18 @@ export function NavDrawer({
           aria-label={title}
           className={cn(
             'fixed inset-y-0 start-0 z-50 flex w-[86%] max-w-[320px] flex-col md:hidden',
-            'bg-surface shadow-float',
+            // `chrome-sidebar`, not `bg-surface`: on a phone this panel is the
+            // rail, and it carries the same tint the rail does on a laptop.
+            'chrome-sidebar shadow-float',
             'data-[state=open]:animate-drawer-in data-[state=closed]:animate-drawer-out',
           )}
         >
-          <div className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-line px-4">
+          <div className="flex shrink-0 items-center gap-3 border-b border-line px-3 py-3">
             {/* The mark is what is drawn; the name is what is announced. */}
             <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
-            {brand}
+            {/* `min-w-0` so the mark takes the width the close button leaves,
+                rather than pushing it off the edge. */}
+            <div className="min-w-0 flex-1">{brand}</div>
 
             <DialogPrimitive.Close
               aria-label={closeLabel}
@@ -84,7 +88,7 @@ export function NavDrawer({
             </DialogPrimitive.Close>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-3">{children}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-3">{children}</div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

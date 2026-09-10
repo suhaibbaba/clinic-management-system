@@ -14,25 +14,29 @@ import { cn } from '@web/lib/cn';
  * fails to load. Fallback on error and not only on absence: a URL that expired
  * between the response and the render must show a mark, not a broken image.
  *
- * Sizes are named rather than free-form: a logo that each screen scales to
- * taste stops being a logo. The file's own width and height are ignored — the
- * mark is sized by these classes and keeps its aspect ratio.
+ * Sizes are named for where they are used rather than as a t-shirt scale: a
+ * logo each screen sizes to taste stops being a logo. The file's own width and
+ * height are ignored — the mark is sized by these classes and keeps its aspect
+ * ratio.
  */
-export type LogoSize = 'sm' | 'md' | 'lg';
+export type LogoSize = 'chrome' | 'print' | 'login';
 
 const SIZES: Record<LogoSize, string> = {
   /**
-   * The chrome: the sidebar's own band, and the mobile drawer's.
+   * The rail's band, and the drawer's: the mark takes the whole width it is
+   * given and finds its own height under it.
    *
-   * 44 inside a 56px band is as large as the mark goes without the band
-   * growing — and the band's height is not free, because its hairline and the
-   * page bar's are one line across the screen.
+   * The height cap is not decoration. A clinic uploads its own mark and it can
+   * be any shape: the bundled one is 1.4:1 and would be 147px tall across a
+   * 208px rail, and a square one 208 — a brand band that pushes the navigation
+   * off a laptop screen. At `w-full` with a ceiling, a wordmark fills the width
+   * and anything squarer sits centred inside it at 96px.
    */
-  sm: 'h-11 w-auto',
+  chrome: 'w-full max-h-24 object-contain',
   /** Print letterhead. */
-  md: 'h-12 w-auto',
+  print: 'h-12 w-auto',
   /** Login page. */
-  lg: 'h-20 w-auto',
+  login: 'h-20 w-auto',
 };
 
 export interface LogoProps {
@@ -49,7 +53,7 @@ export interface LogoProps {
   alt?: string | undefined;
 }
 
-export function Logo({ size = 'md', src, className, alt }: LogoProps): JSX.Element {
+export function Logo({ size = 'print', src, className, alt }: LogoProps): JSX.Element {
   const [failed, setFailed] = useState(false);
   const own = src && !failed ? src : null;
 

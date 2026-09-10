@@ -55,9 +55,12 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          'group flex w-full cursor-pointer items-center gap-2.5 rounded-control p-2',
-          'transition-colors duration-150 hover:bg-inset',
-          'data-[state=open]:bg-inset',
+          // A white card on the tinted rail, like every other surface in the
+          // app: the rail is the ground here, so the block that lifts off it
+          // is the one that is white.
+          'group flex w-full cursor-pointer items-center gap-2.5 rounded-panel p-2',
+          'border border-line bg-surface transition-colors duration-150',
+          'hover:bg-inset data-[state=open]:bg-inset',
         )}
       >
         {/* Square, not round: the person here is the account rather than a
