@@ -8,6 +8,10 @@ import { uploadToStorage } from '@web/features/patients/api';
 const CLINIC_KEY = 'clinic';
 const BRANDING_KEY = 'clinic-branding';
 
+// `/clinic/branding` answers only for a single-clinic deployment, so there is no id to key the
+// browser's copy of the logo by, and one constant scope is the whole truth.
+export const BRANDING_SCOPE = 'branding';
+
 export function useClinic(): UseQueryResult<Clinic> {
   return useQuery({ queryKey: [CLINIC_KEY], queryFn: () => clinicApi.get() });
 }
@@ -27,14 +31,15 @@ export function useUpdateClinic() {
   });
 }
 
-// Cached for the session and never retried: a login page that spins because branding is slow is
-// worse than one showing the product's own mark.
-export function useClinicBranding(): UseQueryResult<ClinicBranding> {
+// Cached for the session and never retried: a sign-in page that spins because branding is slow is
+// worse than one showing the clinic's initial.
+export function useClinicBranding(enabled = true): UseQueryResult<ClinicBranding> {
   return useQuery({
     queryKey: [BRANDING_KEY],
     queryFn: () => clinicApi.branding(),
     staleTime: Infinity,
     retry: false,
+    enabled,
   });
 }
 

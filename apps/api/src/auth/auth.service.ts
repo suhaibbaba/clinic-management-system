@@ -6,6 +6,7 @@ import type {
   IssuedSession,
   LoginInput,
   LoginResponse,
+  SessionClinic,
 } from '@clinic/shared';
 
 import { PasswordService } from '@api/auth/password.service';
@@ -13,7 +14,7 @@ import { TokenService } from '@api/auth/token.service';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { StorageService } from '@api/storage/storage.service';
-import { users } from '@api/database/schema';
+import { clinics, users } from '@api/database/schema';
 
 type UserRow = typeof users.$inferSelect;
 
@@ -185,12 +186,31 @@ export class AuthService {
     return {
       id: user.id,
       clinicId: user.clinicId,
+      clinic: await this.sessionClinic(user.clinicId),
       name: { ar: user.nameAr, en: user.nameEn },
       phone: user.phone,
       email: user.email,
       role: user.role,
       isActive: user.isActive,
       photoUrl: user.photoKey ? (await this.storage.createDownloadUrl(user.photoKey)).url : null,
+    };
+  }
+
+  private async sessionClinic(clinicId: string): Promise<SessionClinic> {
+    const [row] = await this.db
+      .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, logoKey: clinics.logoKey })
+      .from(clinics)
+      .where(and(eq(clinics.id, clinicId), isNull(clinics.deletedAt)))
+      .limit(1);
+
+    /* istanbul ignore next -- a live user always has a live clinic. */
+    if (!row) {
+      return { name: { ar: '', en: '' }, logoUrl: null };
+    }
+
+    return {
+      name: { ar: row.nameAr, en: row.nameEn },
+      logoUrl: row.logoKey ? (await this.storage.createBrandingUrl(row.logoKey)).url : null,
     };
   }
 }

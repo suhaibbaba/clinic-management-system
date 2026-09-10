@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { Logo } from '@web/components/brand/logo';
-import { useClinic } from '@web/features/clinic/queries';
 import { Breadcrumb } from '@web/components/layout/breadcrumb';
 import { NavDrawer } from '@web/components/layout/nav-drawer';
 import { UserMenu } from '@web/components/layout/user-menu';
@@ -19,12 +18,14 @@ import {
 import { useSession } from '@web/features/auth/session';
 import { seesPendingBookings, usePendingBookingsCount } from '@web/features/booking/queries';
 import { cn } from '@web/lib/cn';
+import { useClinicLogo } from '@web/lib/use-clinic-logo';
 
 export function AppLayout(): JSX.Element {
   const { t } = useTranslation();
   const { user, logout } = useSession();
-  const clinic = useClinic();
   const { pathname } = useLocation();
+  // From the session bootstrap, not a second request, so the rail is branded on the first paint.
+  const logoUrl = useClinicLogo(user?.clinicId, user?.clinic.logoUrl);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const groups = visibleNavGroups(user?.role);
@@ -76,7 +77,7 @@ export function AppLayout(): JSX.Element {
       >
         <div className="flex h-full flex-col">
           <div className="shrink-0 border-b border-line px-3 py-3">
-            <Logo size="chrome" src={clinic.data?.logoUrl} alt={t('app.title')} />
+            <Logo size="chrome" src={logoUrl} name={user?.clinic.name} alt={t('app.title')} />
           </div>
 
           <div className="flex-1 overflow-y-auto px-3 pt-3 pb-3">
@@ -96,7 +97,7 @@ export function AppLayout(): JSX.Element {
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         title={t('app.title')}
-        brand={<Logo size="chrome" src={clinic.data?.logoUrl} />}
+        brand={<Logo size="chrome" src={logoUrl} name={user?.clinic.name} />}
         closeLabel={t('common.close')}
       >
         <NavList groups={groups} settings={settings} badges={badges} />

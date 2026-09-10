@@ -39,6 +39,7 @@ export function makeProfile(
   return {
     id: '22222222-2222-4222-8222-222222222222',
     clinicId: CLINIC_ID,
+    clinic: { name: { ar: 'عيادة النور', en: 'Al Nour Clinic' }, logoUrl: null },
     name: { ar: 'مدير العيادة', en: 'Clinic Admin' },
     phone: '+963100000001',
     email: 'admin@clinic.local',

@@ -29,6 +29,11 @@ ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 ARG VITE_APP_VERSION=
 ENV VITE_APP_VERSION=${VITE_APP_VERSION}
 
+# Object storage's origin, so the HTML can preconnect and the clinic's logo starts its handshake
+# during the bundle's download. Unset means no tag.
+ARG VITE_STORAGE_ORIGIN=
+ENV VITE_STORAGE_ORIGIN=${VITE_STORAGE_ORIGIN}
+
 COPY . .
 
 RUN pnpm --filter @clinic/web... build

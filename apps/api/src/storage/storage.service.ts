@@ -34,8 +34,8 @@ export interface StoredObject {
   readonly mime: string | undefined;
 }
 
-// Bytes never touch the API: clients PUT to a presigned URL and read through a short-lived signed
-// GET. Nothing is ever public.
+// Bytes never touch the API: clients PUT to a presigned URL and read through a signed GET. Nothing
+// is ever public — branding is signed too, only for longer so a browser can cache it.
 @Injectable()
 export class StorageService implements OnApplicationShutdown {
   private readonly logger = new Logger(StorageService.name);
@@ -115,6 +115,29 @@ export class StorageService implements OnApplicationShutdown {
     );
 
     return { url, expiresAt: new Date(Date.now() + ttl * 1000) };
+  }
+
+  // A logo is not medical data, so this trades a short life for a cacheable one: the signing date is
+  // rounded to a window, making the URL byte-identical all window long and a browser cache hit.
+  async createBrandingUrl(key: string): Promise<SignedDownload> {
+    const ttl = this.config.get('STORAGE_BRANDING_URL_TTL_SECONDS', { infer: true });
+    const window = this.config.get('STORAGE_BRANDING_URL_WINDOW_SECONDS', { infer: true });
+    const windowMs = window * 1000;
+    const signingDate = new Date(Math.floor(Date.now() / windowMs) * windowMs);
+
+    const url = await getSignedUrl(
+      this.client,
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        // Part of the signature, so the object needs no metadata of its own and a clinic that
+        // re-uploads still gets a new key and therefore a new URL.
+        ResponseCacheControl: `public, max-age=${window}, immutable`,
+      }),
+      { expiresIn: ttl, signingDate },
+    );
+
+    return { url, expiresAt: new Date(signingDate.getTime() + ttl * 1000) };
   }
 
   /** The confirm step uses this rather than trusting the size and content type a client claims. */

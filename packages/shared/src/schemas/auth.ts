@@ -37,10 +37,19 @@ export const changePasswordSchema = z
   });
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
+// Travels with the profile so the chrome — the rail's logo, the tab's title — is drawn on the
+// first render rather than after a second round trip to `/clinic`.
+export const sessionClinicSchema = z.object({
+  name: personNameSchema,
+  logoUrl: z.url().nullable(),
+});
+export type SessionClinic = z.infer<typeof sessionClinicSchema>;
+
 /** The caller's own profile — never includes the password hash. */
 export const authenticatedUserSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
+  clinic: sessionClinicSchema,
   name: personNameSchema,
   phone: z.string(),
   email: z.string().nullable(),

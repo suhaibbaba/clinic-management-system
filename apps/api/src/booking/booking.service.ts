@@ -46,6 +46,7 @@ import {
   users,
 } from '@api/database/schema';
 import { NotificationsService } from '@api/notifications/notifications.service';
+import { StorageService } from '@api/storage/storage.service';
 
 const OTP_TTL_SECONDS = 5 * 60;
 const OTP_MAX_ATTEMPTS = 3;
@@ -75,6 +76,7 @@ const normalisePhone = (phone: string): string => phone.replaceAll(/[^\d]/g, '')
 interface ClinicContext {
   readonly id: string;
   readonly name: PersonName;
+  readonly logoKey: string | null;
   readonly phone: string | null;
   readonly timeZone: string;
   readonly booking: BookingSettings;
@@ -90,6 +92,7 @@ export class BookingService {
     private readonly tokens: BookingTokenService,
     private readonly notifications: NotificationsService,
     private readonly config: ConfigService<Env, true>,
+    private readonly storage: StorageService,
   ) {}
 
   async clinicBySlug(slug: string): Promise<PublicClinic> {
@@ -98,6 +101,7 @@ export class BookingService {
     return {
       name: clinic.name,
       slug,
+      logoUrl: clinic.logoKey ? (await this.storage.createBrandingUrl(clinic.logoKey)).url : null,
       phone: clinic.phone,
       address: null,
       bookingEnabled: clinic.booking.enabled,
@@ -519,6 +523,7 @@ export class BookingService {
         id: clinics.id,
         nameAr: clinics.nameAr,
         nameEn: clinics.nameEn,
+        logoKey: clinics.logoKey,
         phone: clinics.phone,
         settings: clinics.settings,
       })
@@ -533,6 +538,7 @@ export class BookingService {
     return {
       id: row.id,
       name: toPersonName(row.nameAr, row.nameEn),
+      logoKey: row.logoKey,
       phone: row.phone,
       timeZone: clinicScheduleSettings(row.settings).timezone || DEFAULT_TIME_ZONE,
       booking: bookingSettings(row.settings),

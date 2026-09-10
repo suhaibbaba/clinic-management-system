@@ -64,6 +64,21 @@ export const envSchema = z.object({
   STORAGE_UPLOAD_URL_TTL_SECONDS: z.coerce.number().int().positive().max(3600).default(300),
   /** Medical images are never public; every read is a fresh short-lived URL. */
   STORAGE_DOWNLOAD_URL_TTL_SECONDS: z.coerce.number().int().positive().max(3600).default(300),
+  // Branding only. A URL that changes every response is a URL no browser can reuse, so the logo's
+  // is signed for days and re-signed on a fixed boundary; SigV4 allows at most seven.
+  STORAGE_BRANDING_URL_TTL_SECONDS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(604_800)
+    .default(604_800),
+  /** How often the branding URL changes. Shorter than the TTL, or a handed-out URL could expire. */
+  STORAGE_BRANDING_URL_WINDOW_SECONDS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(604_800)
+    .default(86_400),
 
   /** Password given to every account created by `pnpm seed`. Development only. */
   SEED_PASSWORD: z.string().min(8).default('ChangeMe123!'),
