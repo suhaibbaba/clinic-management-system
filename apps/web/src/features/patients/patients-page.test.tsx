@@ -37,6 +37,12 @@ async function renderList(role: UserRole, overrides = {}, route = '/patients') {
   return api;
 }
 
+const PAGE_TWO = makePatient({
+  id: '11111111-2222-4333-8444-666666666666',
+  fileNumber: '00003',
+  fullName: 'سامر حسن',
+});
+
 const searchCalls = (api: { calls: { url: string; method: string }[] }) =>
   api.calls.filter((call) => call.method === 'GET' && call.url.includes('/patients?'));
 
@@ -52,6 +58,33 @@ describe('Patients list', () => {
     expect(row).not.toBeNull();
     expect(within(row!).getByText('00001')).toBeInTheDocument();
     expect(within(row!).getByText('+963931000001')).toBeInTheDocument();
+  });
+
+  it('keeps the page on screen while the next one loads, and says it is updating', async () => {
+    const user = userEvent.setup();
+    let release: (() => void) | undefined;
+
+    await renderList(USER_ROLE.RECEPTIONIST, {
+      'GET /patients': ({ url }: { url: string }) =>
+        url.includes('page=2')
+          ? new Promise<MockResponse>((resolve) => {
+              release = () =>
+                resolve({
+                  status: 200,
+                  body: paginated([PAGE_TWO], { page: 2, total: 3, totalPages: 2 }),
+                });
+            })
+          : { status: 200, body: paginated(PATIENTS, { total: 3, totalPages: 2 }) },
+    });
+
+    await user.click(await screen.findByRole('button', { name: ar.pagination.next }));
+
+    // The rows people were reading do not blink out for a page that is still in flight.
+    expect(screen.getByText(PATIENTS[0]!.fullName)).toBeInTheDocument();
+    expect(await screen.findByText(ar.common.updating)).toBeInTheDocument();
+
+    release?.();
+    expect(await screen.findByText(PAGE_TWO.fullName)).toBeInTheDocument();
   });
 
   describe('search', () => {
