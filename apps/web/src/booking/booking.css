@@ -28,19 +28,3 @@
 .booking-step {
   animation: booking-fade-in 180ms ease-out;
 }
-
-.booking-skeleton {
-  animation: booking-pulse 1.4s ease-in-out infinite;
-  background-color: var(--color-neutral-200);
-}
-
-@keyframes booking-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.55;
-  }
-}

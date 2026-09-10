@@ -66,13 +66,16 @@ export function makeUser(overrides: Partial<User> = {}): User {
 }
 
 /** `total` can be overridden: a badge fed by `limit: 1` reads the total off a page of one row. */
-export function paginated<TItem>(items: TItem[], overrides: { total?: number } = {}) {
+export function paginated<TItem>(
+  items: TItem[],
+  overrides: { total?: number; page?: number; totalPages?: number } = {},
+) {
   return {
     items,
-    page: 1,
+    page: overrides.page ?? 1,
     limit: 10,
     total: overrides.total ?? items.length,
-    totalPages: 1,
+    totalPages: overrides.totalPages ?? 1,
   };
 }
 

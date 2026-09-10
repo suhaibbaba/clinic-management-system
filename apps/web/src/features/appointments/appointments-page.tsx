@@ -16,6 +16,7 @@ import {
   usePersonName,
   useToast,
 } from '@web/components/ui';
+import { RefreshBar, SkeletonCalendarDay } from '@web/components/ui/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { seesPendingBookings, usePendingBookings } from '@web/features/booking/queries';
 import { useClinic } from '@web/features/clinic/queries';
@@ -46,6 +47,7 @@ import { WaitingListPanel } from '@web/features/appointments/waiting-list-panel'
 import { WeekView } from '@web/features/appointments/week-view';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate } from '@web/lib/format';
+import { useQueryLoading } from '@web/lib/use-delayed-loading';
 import { useIsMobile } from '@web/lib/use-media-query';
 
 const RANGES = ['day', 'week'] as const;
@@ -132,6 +134,7 @@ export function AppointmentsPage(): JSX.Element {
   const frontDesk = seesPendingBookings(user?.role);
   const onlineToday = usePendingBookings({ from: todayIso(), to: todayIso(), limit: 1 }, frontDesk);
 
+  const { showSkeleton, isRefreshing } = useQueryLoading(calendar);
   const appointments = calendar.data?.appointments ?? [];
   // Closures and absences arrive in the same response as the blocks, so the
   // grid paints a shut day shut rather than open-then-shaded.
@@ -347,7 +350,11 @@ export function AppointmentsPage(): JSX.Element {
           <EmptyState icon="alert" title="errors.generic" hint="appointments.loadFailed" />
         )}
 
-        {!calendar.isError && effectiveRange === 'week' && (
+        {showSkeleton && <SkeletonCalendarDay columns={effectiveRange === 'week' ? 7 : 3} />}
+
+        <RefreshBar active={isRefreshing} />
+
+        {!showSkeleton && !calendar.isError && effectiveRange === 'week' && (
           <WeekView
             date={date}
             appointments={appointments}
@@ -360,7 +367,7 @@ export function AppointmentsPage(): JSX.Element {
           />
         )}
 
-        {!calendar.isError && effectiveRange === 'day' && isMobile && (
+        {!showSkeleton && !calendar.isError && effectiveRange === 'day' && isMobile && (
           <AgendaList
             appointments={appointments}
             {...(closureToday && { closure: closureToday })}
@@ -369,7 +376,7 @@ export function AppointmentsPage(): JSX.Element {
           />
         )}
 
-        {!calendar.isError && effectiveRange === 'day' && !isMobile && (
+        {!showSkeleton && !calendar.isError && effectiveRange === 'day' && !isMobile && (
           <DayGrid
             date={date}
             doctors={columns}

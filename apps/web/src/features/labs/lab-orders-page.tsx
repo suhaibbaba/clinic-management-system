@@ -13,6 +13,7 @@ import {
   Select,
   useToast,
 } from '@web/components/ui';
+import { RefreshBar, SkeletonCard, SkeletonStatus } from '@web/components/ui/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
 import { useClinic } from '@web/features/clinic/queries';
@@ -26,6 +27,7 @@ import { errorMessageKey } from '@web/lib/api-error';
 import { cn } from '@web/lib/cn';
 import { formatDate } from '@web/lib/format';
 import { useDebounced } from '@web/lib/use-debounced';
+import { useQueryLoading } from '@web/lib/use-delayed-loading';
 import { useIsMobile } from '@web/lib/use-media-query';
 
 // A board on a wide screen answers "what is at the lab right now" in one look; below `md` it is the
@@ -58,6 +60,7 @@ export function LabOrdersPage(): JSX.Element {
   );
 
   const orders = useLabOrders(query);
+  const { showSkeleton, isRefreshing } = useQueryLoading(orders);
   const rows = orders.data?.items ?? [];
 
   // The drawer follows the list rather than holding its own copy, so a
@@ -132,11 +135,17 @@ export function LabOrdersPage(): JSX.Element {
       {isMobile || status !== '' || overdueOnly ? (
         <LabOrdersTable
           orders={rows}
-          isLoading={orders.isPending}
+          isLoading={showSkeleton}
+          isRefreshing={isRefreshing}
           onOpen={(row) => setOpenOrderId(row.id)}
         />
       ) : (
-        <Board rows={rows} isLoading={orders.isPending} onOpen={setOpenOrderId} />
+        <Board
+          rows={rows}
+          isLoading={showSkeleton}
+          isRefreshing={isRefreshing}
+          onOpen={setOpenOrderId}
+        />
       )}
 
       <OrderDrawer
@@ -162,10 +171,12 @@ export function LabOrdersPage(): JSX.Element {
 function Board({
   rows,
   isLoading,
+  isRefreshing,
   onOpen,
 }: {
   readonly rows: readonly LabOrderRow[];
   readonly isLoading: boolean;
+  readonly isRefreshing: boolean;
   readonly onOpen: (id: string) => void;
 }): JSX.Element {
   const { t } = useTranslation();
@@ -176,6 +187,9 @@ function Board({
 
   return (
     <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
+      <RefreshBar active={isRefreshing} />
+      {isLoading && <SkeletonStatus />}
+
       {BOARD_COLUMNS.map((status) => {
         const column = rows.filter((row) => row.status === status);
         const style = LAB_ORDER_STATUS_STYLES[status];
@@ -192,11 +206,15 @@ function Board({
               <Ltr className="text-label tabular-nums">{column.length}</Ltr>
             </header>
 
-            {column.length === 0 ? (
+            {isLoading && <SkeletonCard count={2} />}
+
+            {!isLoading && column.length === 0 && (
               <p className="rounded-panel border border-dashed border-line px-3 py-4 text-center text-label text-ink-subtle">
                 {t('labs.orders.columnEmpty')}
               </p>
-            ) : (
+            )}
+
+            {!isLoading && column.length > 0 && (
               <ul className="flex flex-col gap-2">
                 {column.map((row) => (
                   <li key={row.id}>

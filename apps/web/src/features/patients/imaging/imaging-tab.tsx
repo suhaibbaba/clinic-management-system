@@ -10,6 +10,7 @@ import { useRef, useState, type ChangeEvent, type DragEvent, type JSX } from 're
 import { useTranslation } from 'react-i18next';
 
 import { Badge, Button, EmptyState, Icon, Input, Ltr, Select, useToast } from '@web/components/ui';
+import { Skeleton, SkeletonStatus } from '@web/components/ui/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { useLookupLabels, useLookupOptions } from '@web/features/lookups/queries';
 import { canDelete, canManageAttachments } from '@web/features/patients/permissions';
@@ -22,6 +23,7 @@ import {
 import { errorMessageKey } from '@web/lib/api-error';
 import { cn } from '@web/lib/cn';
 import { formatDate } from '@web/lib/format';
+import { useDelayedLoading } from '@web/lib/use-delayed-loading';
 
 // Presign, PUT, confirm: the API builds the key and re-reads the real size and type afterwards, so
 // nothing here is trusted. Thumbnails ask for their own signed URLs.
@@ -41,6 +43,7 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
     ...(typeFilter !== '' && { type: typeFilter }),
     ...(toothIsValid && { tooth }),
   });
+  const showSkeleton = useDelayedLoading(attachments.isPending);
 
   const canUpload = user ? canManageAttachments(user.role) : false;
   const canRemove = user ? canDelete(user.role) : false;
@@ -87,13 +90,25 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
         )}
       </div>
 
-      {attachments.isPending && <p className="text-value text-ink-muted">{t('common.loading')}</p>}
+      {showSkeleton && (
+        <>
+          <SkeletonStatus />
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {[0, 1, 2, 3].map((tile) => (
+              <li key={tile} aria-hidden="true">
+                <Skeleton className="aspect-square w-full rounded-card" />
+                <Skeleton className="mt-2 h-3 w-2/3" />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       {attachments.isError && (
         <EmptyState icon="alert" title="errors.generic" hint="imaging.loadFailed" />
       )}
 
-      {attachments.data?.length === 0 && (
+      {!attachments.isPending && attachments.data?.length === 0 && (
         <EmptyState icon="image" title="imaging.empty" hint="imaging.emptyHint" />
       )}
 
@@ -281,7 +296,7 @@ function ImageCard({
   return (
     <figure className="flex flex-col gap-1.5 rounded-card bg-surface shadow-card p-2">
       <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md bg-canvas">
-        {isPending && <span className="text-label text-ink-subtle">{t('common.loading')}</span>}
+        {isPending && <Skeleton className="size-full rounded-none" />}
 
         {data?.downloadUrl &&
           (isImage ? (

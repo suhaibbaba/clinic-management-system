@@ -9,10 +9,12 @@ import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge, EmptyState, Icon, Ltr, type IconName } from '@web/components/ui';
+import { SkeletonTimeline } from '@web/components/ui/skeleton';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { LAB_ORDER_STATUS_STYLES } from '@web/features/labs/status';
 import { usePatientTimeline } from '@web/features/patients/queries';
 import { formatDate } from '@web/lib/format';
+import { useDelayedLoading } from '@web/lib/use-delayed-loading';
 
 const ICONS: Record<TimelineEntryType, IconName> = {
   [TIMELINE_ENTRY_TYPE.VISIT]: 'stethoscope',
@@ -30,13 +32,17 @@ const ICONS: Record<TimelineEntryType, IconName> = {
 // The API merges the streams and decides which this role may see, so a receptionist's timeline is
 // simply shorter rather than filtered here.
 export function TimelineTab({ patientId }: { readonly patientId: string }): JSX.Element {
-  const { t } = useTranslation();
   const timeline = usePatientTimeline(patientId);
 
   const entries = timeline.data?.items ?? [];
+  const showSkeleton = useDelayedLoading(timeline.isPending);
+
+  if (showSkeleton) {
+    return <SkeletonTimeline />;
+  }
 
   if (timeline.isPending) {
-    return <p className="text-value text-ink-muted">{t('common.loading')}</p>;
+    return <></>;
   }
 
   if (timeline.isError) {

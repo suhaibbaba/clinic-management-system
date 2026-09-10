@@ -19,6 +19,7 @@ export function usePendingBookings(
   return useQuery({
     queryKey: [PENDING_BOOKINGS_KEY, params],
     queryFn: () => pendingBookingsApi.list(params),
+    placeholderData: (previous) => previous,
     enabled,
     // Refetched on focus as well as polled: the badge's job is to be right the moment somebody
     // comes back to the tab.

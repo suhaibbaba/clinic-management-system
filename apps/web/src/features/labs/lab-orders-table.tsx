@@ -13,11 +13,13 @@ import { formatDate } from '@web/lib/format';
 export function LabOrdersTable({
   orders,
   isLoading,
+  isRefreshing = false,
   onOpen,
   hideLab = false,
 }: {
   readonly orders: readonly LabOrderRow[];
   readonly isLoading: boolean;
+  readonly isRefreshing?: boolean | undefined;
   readonly onOpen?: ((order: LabOrderRow) => void) | undefined;
   /** Dropped on a lab's own page, where every row names the same lab. */
   readonly hideLab?: boolean | undefined;
@@ -92,6 +94,7 @@ export function LabOrdersTable({
       rows={orders}
       rowKey={(row) => row.id}
       isLoading={isLoading}
+      isRefreshing={isRefreshing}
       {...(onOpen && { onRowClick: onOpen, rowLabel: (row: LabOrderRow) => row.patientName })}
       empty={<EmptyState icon="clipboard" title="labs.orders.empty" hint="labs.orders.emptyHint" />}
     />

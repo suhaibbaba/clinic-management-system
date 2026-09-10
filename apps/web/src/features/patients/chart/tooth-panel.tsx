@@ -16,6 +16,7 @@ import {
   AddProcedureForm,
   type NewProcedureInput,
 } from '@web/features/patients/chart/add-procedure-form';
+import { SkeletonTimeline } from '@web/components/ui/skeleton';
 import { SurfaceSelector } from '@web/features/patients/chart/surface-selector';
 import { ToothAttachments } from '@web/features/patients/chart/tooth-attachments';
 import { useToothStates, type ToothSummary } from '@web/features/patients/chart/tooth-state';
@@ -27,6 +28,7 @@ import {
 import { useClinic } from '@web/features/clinic/queries';
 import { useToothHistory } from '@web/features/patients/queries';
 import { formatDate } from '@web/lib/format';
+import { useDelayedLoading } from '@web/lib/use-delayed-loading';
 
 export interface ToothPanelProps {
   readonly patientId: string;
@@ -62,6 +64,7 @@ export function ToothPanel({
   const [adding, setAdding] = useState(false);
 
   const { data, isPending, isError } = useToothHistory(patientId, tooth);
+  const showSkeleton = useDelayedLoading(isPending);
 
   const showPrices = canSeePrices(role);
   const showAttachments = canSeeAttachments(role);
@@ -149,7 +152,7 @@ export function ToothPanel({
             </div>
           </div>
 
-          {isPending && <p className="text-value text-ink-muted">{t('common.loading')}</p>}
+          {showSkeleton && <SkeletonTimeline entries={2} />}
           {isError && <p className="text-value text-danger-600">{t('errors.generic')}</p>}
 
           {data && data.procedures.length === 0 && (

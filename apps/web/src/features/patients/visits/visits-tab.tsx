@@ -3,6 +3,7 @@ import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge, Button, EmptyState, Icon, Ltr, usePersonName, useToast } from '@web/components/ui';
+import { SkeletonCard, SkeletonStatus } from '@web/components/ui/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { useDoctors } from '@web/features/doctors/queries';
 import { ConsumeForVisit } from '@web/features/inventory/consume-for-visit';
@@ -22,6 +23,7 @@ import { VisitFormModal } from '@web/features/patients/visits/visit-form-modal';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDateTime } from '@web/lib/format';
 import { cn } from '@web/lib/cn';
+import { useDelayedLoading } from '@web/lib/use-delayed-loading';
 
 // Procedures live under their visit because that is how they are recorded. The same procedure also
 // appears on the chart — two views of one record, not two records.
@@ -37,6 +39,7 @@ export function VisitsTab({
   const toast = useToast();
 
   const visits = usePatientVisits(patientId);
+  const showSkeleton = useDelayedLoading(visits.isPending);
   const procedures = usePatientProcedures(patientId);
   const catalog = useProcedureCatalog();
   const doctors = useDoctors({ limit: 100 });
@@ -74,8 +77,17 @@ export function VisitsTab({
   const catalogName = (id: string): string =>
     catalog.data?.find((item) => item.id === id)?.nameAr ?? t('chart.panel.procedure');
 
+  if (showSkeleton) {
+    return (
+      <div className="flex flex-col gap-3">
+        <SkeletonStatus />
+        <SkeletonCard count={3} />
+      </div>
+    );
+  }
+
   if (visits.isPending) {
-    return <p className="text-value text-ink-muted">{t('common.loading')}</p>;
+    return <></>;
   }
 
   if (visits.isError) {

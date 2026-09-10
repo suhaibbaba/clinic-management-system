@@ -62,7 +62,10 @@ export interface MockResponse {
   body?: unknown;
 }
 
-export type RouteHandler = (request: { body: unknown; url: string }) => MockResponse;
+export type RouteHandler = (request: {
+  body: unknown;
+  url: string;
+}) => MockResponse | Promise<MockResponse>;
 
 // The real api client runs on top of this, so the token handling and refresh-once-on-401 under test
 // are the shipped ones.
@@ -88,7 +91,7 @@ export function mockApi(handlers: Record<string, RouteHandler | MockResponse>): 
       });
     }
 
-    const result = typeof handler === 'function' ? handler({ body, url }) : handler;
+    const result = await (typeof handler === 'function' ? handler({ body, url }) : handler);
     const status = result.status ?? 200;
 
     return new Response(status === 204 ? null : JSON.stringify(result.body ?? {}), {

@@ -21,6 +21,7 @@ import { useSession } from '@web/features/auth/session';
 import { DoctorFormModal } from '@web/features/doctors/doctor-form-modal';
 import { useDoctors } from '@web/features/doctors/queries';
 import { formatList } from '@web/lib/format';
+import { isRefetching } from '@web/lib/use-delayed-loading';
 
 const PAGE_SIZE = 10;
 
@@ -167,6 +168,7 @@ export function DoctorsPage(): JSX.Element {
         rows={data?.items ?? []}
         rowKey={(row) => row.id}
         isLoading={query.isPending}
+        isRefreshing={isRefetching(query)}
         empty={<EmptyState icon="stethoscope" title="doctors.empty" hint="doctors.emptyHint" />}
         {...(data && {
           pagination: {

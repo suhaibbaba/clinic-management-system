@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import { Avatar, EmptyState, Ltr, PhoneLink, useTabParam } from '@web/components/ui';
+import { Skeleton, SkeletonStatus } from '@web/components/ui/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { AccountTab } from '@web/features/billing/account-tab';
 import { PatientBalanceCard } from '@web/features/billing/patient-balance-card';
@@ -17,6 +18,7 @@ import { TimelineTab } from '@web/features/patients/timeline/timeline-tab';
 import { TreatmentPlansTab } from '@web/features/patients/treatment-plans/treatment-plans-tab';
 import { VisitsTab } from '@web/features/patients/visits/visits-tab';
 import { cn } from '@web/lib/cn';
+import { useDelayedLoading } from '@web/lib/use-delayed-loading';
 
 const TABS = [
   { id: 'chart', label: 'patients.tabs.chart', clinical: true },
@@ -51,13 +53,14 @@ export function PatientPage(): JSX.Element {
   );
 
   const patient = usePatient(id);
+  const showSkeleton = useDelayedLoading(patient.isPending);
 
   return (
     <div className="flex flex-col gap-5">
       {/* The labels are drawn rather than `sr-only`: a file number, an age and a phone read as a
           dot-separated run only if you know the order, and reception reads this aloud. */}
       <header className="rounded-card bg-surface p-4 shadow-card">
-        {patient.isPending && <p className="text-value text-ink-muted">{t('common.loading')}</p>}
+        {showSkeleton && <PatientHeaderSkeleton />}
 
         {patient.isError && <p className="text-value text-danger-600">{t('errors.notFound')}</p>}
 
@@ -170,5 +173,33 @@ export function PatientPage(): JSX.Element {
         )}
       </div>
     </div>
+  );
+}
+
+function PatientHeaderSkeleton(): JSX.Element {
+  return (
+    <>
+      <SkeletonStatus />
+
+      <div aria-hidden="true">
+        <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <Skeleton className="size-10 shrink-0 rounded-full" />
+            <Skeleton className="h-5 w-48" />
+          </div>
+
+          <Skeleton className="h-12 w-32 rounded-panel" />
+        </div>
+
+        <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 lg:grid-cols-3">
+          {[0, 1, 2].map((field) => (
+            <div key={field} className="min-w-0">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="mt-1.5 h-4 w-24" />
+            </div>
+          ))}
+        </dl>
+      </div>
+    </>
   );
 }

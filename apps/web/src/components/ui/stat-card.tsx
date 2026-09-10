@@ -101,10 +101,16 @@ const WIDE_COLUMNS: Record<number, string> = {
   5: 'xl:grid-cols-5',
 };
 
-export function StatRow({ children }: { readonly children: ReactNode }): JSX.Element {
+export function StatRow({
+  children,
+  cards,
+}: {
+  readonly children: ReactNode;
+  readonly cards?: number | undefined;
+}): JSX.Element {
   // Two up on a phone. Four full-width cards is 1300px of scrolling before
   // the data they summarise, which inverts what a summary is for.
-  const count = Children.count(children);
+  const count = cards ?? Children.count(children);
 
   return (
     <div className={cn('mb-5 grid grid-cols-2 gap-3', WIDE_COLUMNS[count] ?? 'xl:grid-cols-4')}>

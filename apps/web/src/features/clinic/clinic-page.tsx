@@ -20,6 +20,7 @@ import {
   useToast,
 } from '@web/components/ui';
 import { WorkingHours } from '@web/components/schedule/working-hours';
+import { SkeletonForm } from '@web/components/ui/skeleton';
 import { ClosuresPanel } from '@web/features/schedule/closures-panel';
 import { useSession } from '@web/features/auth/session';
 import { useApiVersion, WEB_VERSION } from '@web/features/clinic/api-version';
@@ -31,6 +32,7 @@ import {
 } from '@web/features/clinic/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
+import { useDelayedLoading } from '@web/lib/use-delayed-loading';
 
 const isCurrency = (value: string): value is Currency =>
   (CURRENCIES as readonly string[]).includes(value);
@@ -43,6 +45,7 @@ export function ClinicPage(): JSX.Element {
   const canEdit = hasRole(USER_ROLE.ADMIN);
 
   const clinic = useClinic();
+  const showSkeleton = useDelayedLoading(clinic.isPending);
   const updateClinic = useUpdateClinic();
 
   // Both spellings: this name heads every printed sheet, and a receipt is
@@ -91,7 +94,7 @@ export function ClinicPage(): JSX.Element {
   };
 
   if (clinic.isPending) {
-    return <p className="text-value text-ink-muted">{t('common.loading')}</p>;
+    return showSkeleton ? <SkeletonForm fields={6} /> : <></>;
   }
 
   return (

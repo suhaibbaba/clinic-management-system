@@ -26,6 +26,7 @@ import { canCreatePatient, seesClinicalPatientFields } from '@web/features/patie
 import { usePatients } from '@web/features/patients/queries';
 import { ageInYears } from '@web/features/patients/age';
 import { useDebounced } from '@web/lib/use-debounced';
+import { isRefetching } from '@web/lib/use-delayed-loading';
 
 const PAGE_SIZE = 10;
 
@@ -226,6 +227,7 @@ export function PatientsPage(): JSX.Element {
         rows={rows}
         rowKey={(row) => row.id}
         isLoading={query.isPending}
+        isRefreshing={isRefetching(query)}
         empty={
           <EmptyState
             title={isSearching ? 'patients.noMatches' : 'patients.empty'}

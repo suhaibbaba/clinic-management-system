@@ -3,7 +3,14 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@web/components/ui/button';
 import { Icon } from '@web/components/ui/icon';
+import {
+  RefreshBar,
+  SkeletonStatus,
+  SkeletonTable,
+  SkeletonTableCards,
+} from '@web/components/ui/skeleton';
 import { cn } from '@web/lib/cn';
+import { useDelayedLoading } from '@web/lib/use-delayed-loading';
 import { useIsMobile } from '@web/lib/use-media-query';
 
 export interface Column<TRow> {
@@ -31,6 +38,7 @@ export interface TableProps<TRow> {
   rows: readonly TRow[];
   rowKey: (row: TRow) => string;
   isLoading?: boolean | undefined;
+  isRefreshing?: boolean | undefined;
   empty?: ReactNode | undefined;
   pagination?: PaginationProps | undefined;
   // On mobile the card itself becomes the target — a 44px button inside a card is a small thing to
@@ -62,6 +70,7 @@ export function Table<TRow>({
   rows,
   rowKey,
   isLoading = false,
+  isRefreshing = false,
   empty,
   pagination,
   onRowClick,
@@ -69,6 +78,7 @@ export function Table<TRow>({
 }: TableProps<TRow>): JSX.Element {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const showSkeleton = useDelayedLoading(isLoading);
 
   if (!isLoading && rows.length === 0 && empty !== undefined) {
     return <>{empty}</>;
@@ -87,7 +97,14 @@ export function Table<TRow>({
       <>
         {/* One card per row */}
         <div className="flex flex-col gap-3">
-          {isLoading && <CardSkeleton rows={detail.length || 3} />}
+          <RefreshBar active={isRefreshing} />
+
+          {showSkeleton && (
+            <>
+              <SkeletonStatus />
+              <SkeletonTableCards columns={mobileColumns} />
+            </>
+          )}
 
           {!isLoading &&
             rows.map((row) => {
@@ -188,6 +205,9 @@ export function Table<TRow>({
 
   return (
     <div className="overflow-hidden rounded-card bg-surface shadow-card">
+      {showSkeleton && <SkeletonStatus />}
+      <RefreshBar active={isRefreshing} />
+
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-value">
           <thead>
@@ -209,13 +229,7 @@ export function Table<TRow>({
           </thead>
 
           <tbody className="divide-y divide-line">
-            {isLoading && (
-              <tr>
-                <td colSpan={wideColumns.length} className="px-4 py-8 text-center text-ink-muted">
-                  {t('common.loading')}
-                </td>
-              </tr>
-            )}
+            {showSkeleton && <SkeletonTable columns={wideColumns} />}
 
             {!isLoading &&
               rows.map((row) => (
@@ -252,38 +266,6 @@ export function Table<TRow>({
 
       {pagination !== undefined && <Pagination {...pagination} />}
     </div>
-  );
-}
-
-// Mirrors the card's own grid, so the skeleton occupies about the height the content will and the
-// page does not jump.
-function CardSkeleton({ rows }: { readonly rows: number }): JSX.Element {
-  const { t } = useTranslation();
-
-  return (
-    <>
-      <span className="sr-only" role="status">
-        {t('common.loading')}
-      </span>
-
-      {[0, 1, 2].map((card) => (
-        <div
-          key={card}
-          aria-hidden="true"
-          className="animate-pulse rounded-card bg-surface p-4 shadow-card"
-        >
-          <div className="mb-3 h-4 w-1/2 rounded-pill bg-sunken" />
-          <div className="flex flex-col gap-3">
-            {Array.from({ length: rows }, (_, row) => (
-              <div key={row} className="flex items-center justify-between gap-4">
-                <div className="h-3 w-20 rounded-pill bg-sunken" />
-                <div className="h-3 w-24 rounded-pill bg-sunken" />
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </>
   );
 }
 

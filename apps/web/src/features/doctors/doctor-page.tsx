@@ -6,12 +6,14 @@ import { Navigate, useParams } from 'react-router-dom';
 import { Badge, Button, Icon, PageHeader, PersonName, useToast } from '@web/components/ui';
 import { WorkingHours } from '@web/components/schedule/working-hours';
 import { weekFitsWithin } from '@web/components/schedule/week';
+import { SkeletonForm } from '@web/components/ui/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { useClinic } from '@web/features/clinic/queries';
 import { useDoctor, useUpdateDoctorSchedule } from '@web/features/doctors/queries';
 import { TimeOffPanel } from '@web/features/schedule/time-off-panel';
 import { errorMessageKey } from '@web/lib/api-error';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
+import { useDelayedLoading } from '@web/lib/use-delayed-loading';
 
 // A page rather than a modal: time off is a list that grows and belongs beside the hours it
 // interrupts. Admin edits any, a doctor their own, everyone else reads.
@@ -22,6 +24,7 @@ export function DoctorPage(): JSX.Element {
   const { user, hasRole } = useSession();
 
   const doctor = useDoctor(id);
+  const showSkeleton = useDelayedLoading(doctor.isPending);
   const clinic = useClinic();
   const updateSchedule = useUpdateDoctorSchedule();
 
@@ -44,7 +47,7 @@ export function DoctorPage(): JSX.Element {
   }
 
   if (doctor.isPending) {
-    return <p className="text-value text-ink-muted">{t('common.loading')}</p>;
+    return showSkeleton ? <SkeletonForm fields={5} /> : <></>;
   }
 
   if (!doctor.data) {

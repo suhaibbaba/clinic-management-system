@@ -3,6 +3,7 @@ import { type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@web/components/ui';
+import { Skeleton } from '@web/components/ui/skeleton';
 import { Money } from '@web/features/billing/money';
 import { usePatientBalance, useStatement } from '@web/features/billing/queries';
 import { useClinic } from '@web/features/clinic/queries';
@@ -27,7 +28,7 @@ export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.El
       <span className="block text-meta text-ink-muted">{t('patients.balance')}</span>
 
       {balance.isPending ? (
-        <span className="block text-kpi font-semibold text-ink-subtle">—</span>
+        <Skeleton className="ms-auto mt-1 h-7 w-24" />
       ) : (
         <Money
           amount={balance.data?.balance ?? '0.00'}

@@ -15,6 +15,7 @@ import {
   StatCard,
   StatRow,
 } from '@web/components/ui';
+import { RefreshBar, SkeletonCard, SkeletonKpi } from '@web/components/ui/skeleton';
 import { useClinic } from '@web/features/clinic/queries';
 import { LabFormModal } from '@web/features/labs/lab-form-modal';
 import { useLabs } from '@web/features/labs/queries';
@@ -22,6 +23,7 @@ import { canManageLabs } from '@web/features/labs/permissions';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
 import { useDebounced } from '@web/lib/use-debounced';
+import { useQueryLoading } from '@web/lib/use-delayed-loading';
 
 // Cards, because a clinic deals with two or three labs and each is a relationship. The balance is
 // money owed, so it is never celebrated in green.
@@ -37,6 +39,7 @@ export function LabsPage(): JSX.Element {
   const labs = useLabs({ search: debounced, limit: 50, includeInactive: true });
 
   const rows = labs.data?.items ?? [];
+  const { showSkeleton, isRefreshing } = useQueryLoading(labs);
   const owed = rows.reduce((sum, lab) => sum + Number(lab.balance), 0);
   const openOrders = rows.reduce((sum, lab) => sum + lab.openOrders, 0);
 
@@ -54,7 +57,9 @@ export function LabsPage(): JSX.Element {
         }
       />
 
-      {rows.length > 0 && (
+      {showSkeleton && <SkeletonKpi count={2} />}
+
+      {!showSkeleton && rows.length > 0 && (
         <StatRow>
           <StatCard
             icon="money"
@@ -82,9 +87,19 @@ export function LabsPage(): JSX.Element {
         onChange={(event) => setSearch(event.target.value)}
       />
 
-      {rows.length === 0 && !labs.isPending ? (
+      <RefreshBar active={isRefreshing} />
+
+      {showSkeleton && (
+        <EntityGrid>
+          <SkeletonCard count={4} />
+        </EntityGrid>
+      )}
+
+      {!labs.isPending && rows.length === 0 && (
         <EmptyState icon="clipboard" title="labs.empty" hint="labs.emptyHint" />
-      ) : (
+      )}
+
+      {!labs.isPending && rows.length > 0 && (
         <EntityGrid>
           {rows.map((lab) => (
             <LabCard

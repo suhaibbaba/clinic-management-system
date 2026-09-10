@@ -190,14 +190,41 @@ describe('Table', () => {
     expect(screen.getByRole('navigation')).toHaveAccessibleName(ar.pagination.label);
   });
 
-  it('shows a card-shaped skeleton while loading', () => {
+  it('shows a card-shaped skeleton once loading outlasts the delay', async () => {
     setViewport(true);
     const { container } = render(
       <Table columns={COLUMNS} rows={[]} rowKey={(row) => row.id} isLoading />,
     );
 
-    expect(screen.getByRole('status')).toHaveTextContent(ar.common.loading);
-    expect(container.querySelectorAll('.animate-pulse').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('.skeleton')).toHaveLength(0);
+
+    expect(await screen.findByRole('status')).toHaveTextContent(ar.common.loading);
+    expect(container.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+  });
+
+  it("draws one skeleton cell per column, at the column's own width", async () => {
+    setViewport(false);
+    const { container } = render(
+      <Table columns={COLUMNS} rows={[]} rowKey={(row) => row.id} isLoading />,
+    );
+
+    await screen.findByRole('status');
+
+    const wide = COLUMNS.filter((column) => column.hideOnDesktop !== true);
+    const cells = container.querySelectorAll('tbody tr[aria-hidden="true"]:first-of-type td');
+
+    expect(cells).toHaveLength(wide.length);
+    // The numeric column ends where its figures will: pushed to the column's end edge.
+    expect(cells[3]?.firstElementChild).toHaveClass('ms-auto');
+  });
+
+  it('keeps rows on screen while a refetch is in flight', () => {
+    setViewport(false);
+    render(<Table columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} isRefreshing />);
+
+    expect(screen.getByText('أحمد خالد')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(ar.common.updating);
+    expect(document.querySelectorAll('tbody tr[aria-hidden="true"]')).toHaveLength(0);
   });
 
   it('shows the empty state instead of either shape', () => {

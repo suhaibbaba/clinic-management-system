@@ -36,6 +36,7 @@ import {
   useLabWorkTypes,
 } from '@web/features/labs/queries';
 import { endOfNextDayIso, formatDate, startOfDayIso } from '@web/lib/format';
+import { isRefetching } from '@web/lib/use-delayed-loading';
 
 const TAB_IDS = ['orders', 'prices', 'statement'] as const;
 
@@ -167,7 +168,14 @@ export function LabPage(): JSX.Element {
 function LabOrdersTab({ labId }: { readonly labId: string }): JSX.Element {
   const orders = useLabOrders({ labId, limit: 50 });
 
-  return <LabOrdersTable orders={orders.data?.items ?? []} isLoading={orders.isPending} hideLab />;
+  return (
+    <LabOrdersTable
+      orders={orders.data?.items ?? []}
+      isLoading={orders.isPending}
+      isRefreshing={isRefetching(orders)}
+      hideLab
+    />
+  );
 }
 
 // Editing a price changes what the next order costs and nothing already owed — every order carries
@@ -232,6 +240,7 @@ function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
         rows={workTypes.data ?? []}
         rowKey={(row) => row.id}
         isLoading={workTypes.isPending}
+        isRefreshing={isRefetching(workTypes)}
         empty={<EmptyState icon="money" title="labs.prices.empty" hint="labs.prices.emptyHint" />}
       />
 
@@ -354,6 +363,7 @@ function StatementTab({
         rows={statement.data?.entries ?? []}
         rowKey={(row) => `${row.kind}-${row.id}`}
         isLoading={statement.isPending}
+        isRefreshing={isRefetching(statement)}
         empty={
           <EmptyState icon="money" title="labs.statement.empty" hint="labs.statement.emptyHint" />
         }

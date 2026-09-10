@@ -26,6 +26,7 @@ import { canManageInventory } from '@web/features/inventory/permissions';
 import { useInventoryItems } from '@web/features/inventory/queries';
 import { formatDate } from '@web/lib/format';
 import { useDebounced } from '@web/lib/use-debounced';
+import { isRefetching } from '@web/lib/use-delayed-loading';
 
 // The quantity is a bar against the reorder level rather than a number to compare with another
 // number. Everything here is computed from the ledger; there is nothing to edit.
@@ -188,6 +189,7 @@ export function InventoryPage(): JSX.Element {
         rows={rows}
         rowKey={(row) => row.id}
         isLoading={items.isPending}
+        isRefreshing={isRefetching(items)}
         onRowClick={(row) => setOpenItemId(row.id)}
         rowLabel={(row) => row.nameAr}
         empty={<EmptyState icon="clipboard" title="inventory.empty" hint="inventory.emptyHint" />}
