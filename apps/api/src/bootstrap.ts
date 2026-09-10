@@ -1,5 +1,20 @@
 import fastifyCookie from '@fastify/cookie';
-import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+
+/**
+ * The HTTP adapter, built the same way for the server and for the tests.
+ *
+ * `trustProxy` is what makes `request.protocol`, `request.hostname` and
+ * `request.ip` describe the *browser* rather than the last hop: the API is
+ * never reached directly — nginx sits in front of it in production and the Vite
+ * proxy does in development — so without it every request looks like plain http
+ * from inside the Docker network. The refresh cookie's `Secure` attribute is
+ * decided from that scheme (`refreshCookieSecurity`), and so is the throttler's
+ * idea of who a caller is.
+ */
+export function createFastifyAdapter(): FastifyAdapter {
+  return new FastifyAdapter({ trustProxy: true });
+}
 
 /**
  * Fastify plugins the application needs, in one place so the production

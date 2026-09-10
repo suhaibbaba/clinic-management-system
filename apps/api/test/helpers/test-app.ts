@@ -1,13 +1,13 @@
 import { randomUUID } from 'node:crypto';
 
 import { Test } from '@nestjs/testing';
-import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+import { type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { ThrottlerStorage } from '@nestjs/throttler';
 import { hash } from '@node-rs/argon2';
 import { CHART_TYPE, SPECIALTY_CODE, USER_ROLE, USER_ROLES, type UserRole } from '@clinic/shared';
 
 import { AppModule } from '@api/app.module';
-import { registerFastifyPlugins } from '@api/bootstrap';
+import { createFastifyAdapter, registerFastifyPlugins } from '@api/bootstrap';
 import { DATABASE, POSTGRES_CLIENT, type Database } from '@api/database/database.module';
 import { clinics, specialties, users } from '@api/database/schema';
 import { ensureSystemLookups } from '@api/database/system-lookups';
@@ -62,7 +62,10 @@ export interface TestContext {
 export async function createTestContext(): Promise<TestContext> {
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
 
-  const app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter(), {
+  // The production adapter, not a plain one: proxy trust changes what
+  // `request.protocol` and `request.ip` report, and a harness that omitted it
+  // would be unable to see anything that depends on either.
+  const app = moduleRef.createNestApplication<NestFastifyApplication>(createFastifyAdapter(), {
     logger: false,
   });
 

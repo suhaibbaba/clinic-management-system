@@ -46,8 +46,49 @@ export const envSchema = z.object({
    * Path the refresh-token cookie is scoped to, as the *browser* sees it. The
    * web app reaches the API through a same-origin `/api` proxy, so the default
    * covers every deployment without coupling the API to the proxy prefix.
+   *
+   * Anything narrower has to cover the refresh endpoint *as the browser asks
+   * for it* — `/api/auth/refresh` through the proxy, not the `/auth/refresh`
+   * the API itself sees — or the browser holds a cookie it never sends and
+   * every reload lands back on the login screen. The dev proxy re-anchors
+   * cookie paths for exactly this reason (`apps/web/vite/dev-proxy.ts`).
    */
-  AUTH_COOKIE_PATH: z.string().min(1).default('/'),
+  AUTH_COOKIE_PATH: z
+    .string()
+    .min(1)
+    .startsWith('/', 'AUTH_COOKIE_PATH must start with /')
+    .default('/'),
+
+  /**
+   * Whether the refresh cookie carries `Secure`.
+   *
+   * `auto` is production plus whatever scheme the *browser* used: a production
+   * deployment always gets `Secure`, and elsewhere it follows the request, so
+   * a development API reached over https (a tunnel, a sandbox) still gets it
+   * and one reached over plain http does not — a `Secure` cookie sent to an
+   * http page is dropped, which reads as "signed out again on every reload".
+   *
+   * The scheme comes from `X-Forwarded-Proto` (see `createFastifyAdapter`),
+   * which is why it can only ever *add* `Secure` in production: a forged
+   * header must not be able to talk a real deployment out of it.
+   *
+   * `always` for a deployment whose proxy chain does not forward the scheme;
+   * `never` only for one that genuinely serves plain http, which for anything
+   * holding patient data means a laptop.
+   */
+  AUTH_COOKIE_SECURE: z.enum(['auto', 'always', 'never']).default('auto'),
+
+  /**
+   * `SameSite` for the refresh cookie. `lax` is right whenever the web app
+   * reaches the API on its own origin, which the `/api` proxy guarantees in
+   * development and nginx guarantees in production.
+   *
+   * `none` is for a frontend on a different origin, and browsers only accept
+   * it alongside `Secure` — so it implies it, and a deployment that also asks
+   * for `AUTH_COOKIE_SECURE=never` gets `lax` back rather than a cookie no
+   * browser will store.
+   */
+  AUTH_COOKIE_SAMESITE: z.enum(['lax', 'strict', 'none']).default('lax'),
 
   /* ---------------------------- Object storage --------------------------- */
 

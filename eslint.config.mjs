@@ -149,8 +149,10 @@ export default tseslint.config(
   },
 
   {
-    // Config files at a package root legitimately reference sibling paths.
-    files: ['**/*.config.{ts,mts,mjs,js}', 'eslint.config.mjs'],
+    /* Config files at a package root legitimately reference sibling paths, and
+       so does what they import: `apps/web/vite/` runs in the Vite process, not
+       in the bundle, so the `@web/…` alias it helps define does not exist yet. */
+    files: ['**/*.config.{ts,mts,mjs,js}', 'eslint.config.mjs', 'apps/web/vite/**/*.ts'],
     rules: {
       'no-restricted-imports': 'off',
     },

@@ -32,7 +32,14 @@ describe('Auth (e2e)', () => {
   /** The refresh cookie the API set on a response, if any. */
   const refreshCookie = (response: { cookies: unknown[] }) =>
     (
-      response.cookies as { name: string; value: string; httpOnly?: boolean; sameSite?: string }[]
+      response.cookies as {
+        name: string;
+        value: string;
+        httpOnly?: boolean;
+        sameSite?: string;
+        secure?: boolean;
+        path?: string;
+      }[]
     ).find((cookie) => cookie.name === REFRESH_COOKIE_NAME);
 
   /** Replays a refresh cookie the way a browser would. */
@@ -210,6 +217,51 @@ describe('Auth (e2e)', () => {
       });
 
       expect(refreshAfterLogout.statusCode).toBe(401);
+    });
+  });
+
+  describe('the refresh cookie', () => {
+    it('is scoped to a path that covers the refresh endpoint through the proxy', async () => {
+      // The browser asks for `/api/auth/refresh`; the API only ever sees
+      // `/auth/refresh`. A cookie scoped to what the API sees would be held and
+      // never sent, which reads as being signed out on every reload.
+      const path = refreshCookie(await login(clinic.phones[USER_ROLE.ADMIN]))?.path;
+
+      expect(path).toBe('/');
+    });
+
+    it('is not Secure over plain http, so a development browser keeps it', async () => {
+      const response = await login(clinic.phones[USER_ROLE.ADMIN]);
+
+      expect(refreshCookie(response)?.secure).toBeFalsy();
+    });
+
+    it('is Secure when the proxy says the browser used https', async () => {
+      // `X-Forwarded-Proto` is only read because the adapter trusts proxies —
+      // the API's own hop is plain http in every deployment.
+      const response = await context.app.inject({
+        method: 'POST',
+        url: '/auth/login',
+        headers: { 'x-forwarded-proto': 'https' },
+        payload: { identifier: clinic.phones[USER_ROLE.ADMIN], password: TEST_PASSWORD },
+      });
+
+      expect(refreshCookie(response)?.secure).toBe(true);
+    });
+
+    it('clears with the same attributes it was set with', async () => {
+      const loggedIn = await login(clinic.phones[USER_ROLE.ADMIN]);
+      const cleared = await context.app.inject({
+        method: 'POST',
+        url: '/auth/logout',
+        headers: { cookie: `${REFRESH_COOKIE_NAME}=${refreshCookie(loggedIn)?.value ?? ''}` },
+        payload: {},
+      });
+
+      // A browser matches the deletion against name, path and domain: an
+      // attribute that differs leaves the original cookie in place.
+      expect(refreshCookie(cleared)?.path).toBe(refreshCookie(loggedIn)?.path);
+      expect(refreshCookie(cleared)?.sameSite).toBe(refreshCookie(loggedIn)?.sameSite);
     });
   });
 

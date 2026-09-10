@@ -20,5 +20,5 @@
       "@clinic/shared": ["../../packages/shared/src/index.ts"]
     }
   },
-  "include": ["src", "test", "vite.config.ts"]
+  "include": ["src", "test", "vite", "vite.config.ts"]
 }
