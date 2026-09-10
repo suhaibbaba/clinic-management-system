@@ -23,10 +23,6 @@ import { lookupCodeSchema } from '@shared/schemas/lookups';
  * from it, instead of quietly overwriting it.
  */
 
-/* -------------------------------------------------------------------------- */
-/* Suppliers                                                                   */
-/* -------------------------------------------------------------------------- */
-
 export const supplierSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
@@ -76,10 +72,6 @@ export const listSuppliersQuerySchema = paginationQuerySchema.extend({
   includeInactive: z.coerce.boolean().optional(),
 });
 export type ListSuppliersQuery = z.infer<typeof listSuppliersQuerySchema>;
-
-/* -------------------------------------------------------------------------- */
-/* Items                                                                       */
-/* -------------------------------------------------------------------------- */
 
 export const inventoryItemSchema = z.object({
   id: uuidSchema,
@@ -158,10 +150,6 @@ export const listInventoryItemsQuerySchema = paginationQuerySchema.extend({
   includeInactive: z.coerce.boolean().optional(),
 });
 export type ListInventoryItemsQuery = z.infer<typeof listInventoryItemsQuerySchema>;
-
-/* -------------------------------------------------------------------------- */
-/* Movements — the ledger                                                      */
-/* -------------------------------------------------------------------------- */
 
 export const stockMovementSchema = z.object({
   id: uuidSchema,
@@ -264,10 +252,6 @@ export const listMovementsQuerySchema = paginationQuerySchema.extend({
 });
 export type ListMovementsQuery = z.infer<typeof listMovementsQuerySchema>;
 
-/* -------------------------------------------------------------------------- */
-/* Batches                                                                     */
-/* -------------------------------------------------------------------------- */
-
 /** One batch of an item and what is left of it — derived, never stored. */
 export const itemBatchSchema = z.object({
   batchNo: z.string().nullable(),
@@ -290,10 +274,6 @@ export const itemBatchesSchema = z.object({
   batches: z.array(itemBatchSchema),
 });
 export type ItemBatches = z.infer<typeof itemBatchesSchema>;
-
-/* -------------------------------------------------------------------------- */
-/* Alerts, statements and the shopping list                                    */
-/* -------------------------------------------------------------------------- */
 
 export const inventoryAlertsSchema = z.object({
   /** How many days ahead "expiring" looks — from clinic settings. */
@@ -359,10 +339,6 @@ export const statementRangeQuerySchema = z.object({
   to: z.iso.datetime().optional(),
 });
 export type StatementRangeQuery = z.infer<typeof statementRangeQuerySchema>;
-
-/* -------------------------------------------------------------------------- */
-/* Settings                                                                    */
-/* -------------------------------------------------------------------------- */
 
 /**
  * Inventory rules, in `clinics.settings.inventory`.

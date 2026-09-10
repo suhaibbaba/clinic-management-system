@@ -68,10 +68,6 @@ function useLabMutation<TArgs, TResult>(mutationFn: (args: TArgs) => Promise<TRe
   });
 }
 
-/* -------------------------------------------------------------------------- */
-/* Reads                                                                       */
-/* -------------------------------------------------------------------------- */
-
 export function useLabs(
   query: Partial<ListLabsQuery> = {},
   enabled = true,
@@ -181,10 +177,6 @@ export function useLabOrderAttachments(orderId: string): UseQueryResult<LabOrder
     enabled: orderId !== '',
   });
 }
-
-/* -------------------------------------------------------------------------- */
-/* Writes                                                                      */
-/* -------------------------------------------------------------------------- */
 
 export function useCreateLab() {
   return useLabMutation((input: CreateLabInput) => labsApi.create(input));

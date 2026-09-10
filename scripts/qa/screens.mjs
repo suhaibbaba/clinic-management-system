@@ -59,10 +59,10 @@ const ADMIN = ['admin'];
  * - `wait`              milliseconds, for an animation that has to settle
  */
 export const SCREENS = [
-  // ── The signed-out entry ────────────────────────────────────────────
+  // The signed-out entry
   { id: 'login', path: '/login', roles: ALL, anonymous: true },
 
-  // ── The sections of the sidebar ─────────────────────────────────────
+  // The sections of the sidebar
   { id: 'dashboard', path: '/dashboard', roles: ALL },
   { id: 'profile', path: '/profile', roles: ALL },
 
@@ -201,7 +201,7 @@ export const SCREENS = [
   },
   { id: 'inventory-shopping-list', path: '/inventory/shopping-list', roles: STORE },
 
-  // ── Settings ────────────────────────────────────────────────────────
+  // Settings
   { id: 'clinic', path: '/clinic', roles: ADMIN },
   {
     // The working-hours accordion with a day open: the collapsed summaries are
@@ -248,7 +248,7 @@ export const SCREENS = [
   { id: 'lists', path: '/clinic/lists', roles: ADMIN },
   { id: 'audit-log', path: '/audit-log', roles: ADMIN },
 
-  // ── The chrome itself ───────────────────────────────────────────────
+  // The chrome itself
   {
     id: 'chrome-user-menu',
     path: '/dashboard',

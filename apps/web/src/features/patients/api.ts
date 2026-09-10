@@ -110,10 +110,6 @@ export const patientsApi = {
   updateProcedure: (id: string, body: UpdatePerformedProcedureInput): Promise<PerformedProcedure> =>
     apiRequest(`/performed-procedures/${id}`, { method: 'PATCH', body }),
 
-  /* -------------------------------------------------------------------- */
-  /* Visits                                                                */
-  /* -------------------------------------------------------------------- */
-
   visits: (patientId: string): Promise<Visit[]> =>
     fetchAllPages((page) =>
       apiRequest<Paginated<Visit>>('/visits', {
@@ -126,10 +122,6 @@ export const patientsApi = {
 
   updateVisit: (id: string, body: UpdateVisitInput): Promise<Visit> =>
     apiRequest(`/visits/${id}`, { method: 'PATCH', body }),
-
-  /* -------------------------------------------------------------------- */
-  /* Treatment plans                                                       */
-  /* -------------------------------------------------------------------- */
 
   treatmentPlans: (patientId: string): Promise<TreatmentPlan[]> =>
     fetchAllPages((page) =>
@@ -156,10 +148,6 @@ export const patientsApi = {
   convertPlanItem: (itemId: string): Promise<PerformedProcedure> =>
     apiRequest(`/plan-items/${itemId}/convert`, { method: 'POST', body: {} }),
 
-  /* -------------------------------------------------------------------- */
-  /* Attachments                                                           */
-  /* -------------------------------------------------------------------- */
-
   attachments: (
     patientId: string,
     query: Partial<ListAttachmentsQuery> = {},
@@ -181,10 +169,6 @@ export const patientsApi = {
 
   deleteAttachment: (id: string): Promise<void> =>
     apiRequest(`/attachments/${id}`, { method: 'DELETE' }),
-
-  /* -------------------------------------------------------------------- */
-  /* Timeline                                                              */
-  /* -------------------------------------------------------------------- */
 
   /**
    * One merged stream over everything attached to the patient. Which entry

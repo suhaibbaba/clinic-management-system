@@ -30,10 +30,6 @@ const softDeleteColumn = { deletedAt: timestamp('deleted_at', { withTimezone: tr
 /** Money is `numeric(10, 2)`, read and written as a string — never a float. */
 const money = (name: string) => numeric(name, { precision: 10, scale: 2 });
 
-/* -------------------------------------------------------------------------- */
-/* The labs themselves                                                         */
-/* -------------------------------------------------------------------------- */
-
 /**
  * An outside workshop the clinic sends work to.
  *
@@ -84,10 +80,6 @@ export const labWorkTypes = pgTable(
   },
   (table) => [index('lab_work_types_lab_idx').on(table.labId, table.nameAr)],
 );
-
-/* -------------------------------------------------------------------------- */
-/* Orders                                                                      */
-/* -------------------------------------------------------------------------- */
 
 /**
  * A piece of work ordered from a lab for one patient.
@@ -179,10 +171,6 @@ export const labOrderAttachments = pgTable(
     uniqueIndex('lab_order_attachments_key_uniq').on(table.r2Key),
   ],
 );
-
-/* -------------------------------------------------------------------------- */
-/* Money                                                                       */
-/* -------------------------------------------------------------------------- */
 
 /**
  * What the clinic has paid a lab.

@@ -175,10 +175,6 @@ describe('Closures and time off (e2e)', () => {
       payload,
     });
 
-  /* ---------------------------------------------------------------------- */
-  /* Availability                                                            */
-  /* ---------------------------------------------------------------------- */
-
   describe('availability', () => {
     it('offers both halves of a split shift and nothing in the gap', async () => {
       const { slots, closedReason } = await availability(monday);
@@ -266,10 +262,6 @@ describe('Closures and time off (e2e)', () => {
       expect(slots.find((slot) => slot.start === '09:00')?.available).toBe(false);
     });
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* The conflict flow                                                       */
-  /* ---------------------------------------------------------------------- */
 
   describe('overlapping appointments', () => {
     it('refuses a closure over booked appointments and names them', async () => {
@@ -423,10 +415,6 @@ describe('Closures and time off (e2e)', () => {
     });
   });
 
-  /* ---------------------------------------------------------------------- */
-  /* Permissions and validation                                              */
-  /* ---------------------------------------------------------------------- */
-
   describe('permissions', () => {
     it('lets every role read closures — reception has to know Tuesday is shut', async () => {
       await createClosure({ startsOn: monday, endsOn: monday, reason: 'عطلة' });
@@ -511,10 +499,6 @@ describe('Closures and time off (e2e)', () => {
       expect((log.json() as { items: unknown[] }).items.length).toBeGreaterThan(0);
     });
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* The calendar feed                                                       */
-  /* ---------------------------------------------------------------------- */
 
   it('carries closures and time off in the calendar feed', async () => {
     await createClosure({ startsOn: monday, endsOn: monday, reason: 'عطلة' });

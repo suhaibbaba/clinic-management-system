@@ -7,7 +7,7 @@
  * step (`bg-primary-600`); no component carries a raw hex, an inline `style`
  * colour, or a stock Tailwind palette class such as `text-gray-500`.
  *
- * ── The system ───────────────────────────────────────────────────────────
+ * The system
  *
  * A flat, very light cool ground, white cards drawn with a hairline border,
  * the clinic's own blue for everything actionable, and a green that means
@@ -27,7 +27,7 @@
  * (blue) and 500 (green), so a tint of the blue carries the same weight as a
  * tint of the red beside it.
  *
- * ── Where accessibility and the named values disagree ────────────────────
+ * Where accessibility and the named values disagree
  *
  * Two named colours do not clear AA for small text, and the app has to do
  * both. Measured against white:
@@ -169,7 +169,7 @@
 }
 
 /*
- * ── Geometry, elevation and type ─────────────────────────────────────────
+ * Geometry, elevation and type
  *
  * Radii step down with nesting so a control inside a card never fights the
  * card's own corner: card 12 → panel 10 → control 8 → pill, which is kept for
@@ -341,7 +341,7 @@
 }
 
 /*
- * ── Interactive chart ────────────────────────────────────────────────────
+ * Interactive chart
  *
  * One colour per tooth state, re-derived from the scales above so the chart
  * belongs to the same system rather than being a stock nine-hue rainbow.

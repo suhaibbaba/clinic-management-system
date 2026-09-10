@@ -210,10 +210,6 @@ describe('Notifications and schedulers (e2e)', () => {
     await context.close();
   });
 
-  /* ---------------------------------------------------------------------- */
-  /* The service                                                             */
-  /* ---------------------------------------------------------------------- */
-
   describe('sending', () => {
     it('renders the clinic default and logs what went out', async () => {
       const to = uniquePhone();
@@ -305,10 +301,6 @@ describe('Notifications and schedulers (e2e)', () => {
       expect(after).toHaveLength(before.length);
     });
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* Reminders                                                               */
-  /* ---------------------------------------------------------------------- */
 
   describe('reminders', () => {
     it('reminds a day and two hours ahead, and never twice', async () => {
@@ -406,10 +398,6 @@ describe('Notifications and schedulers (e2e)', () => {
     });
   });
 
-  /* ---------------------------------------------------------------------- */
-  /* Hold expiry                                                             */
-  /* ---------------------------------------------------------------------- */
-
   describe('hold expiry', () => {
     it('gives back the slot of a booking nobody confirmed', async () => {
       const startsAt = nextSlot();
@@ -505,10 +493,6 @@ describe('Notifications and schedulers (e2e)', () => {
     });
   });
 
-  /* ---------------------------------------------------------------------- */
-  /* Templates                                                               */
-  /* ---------------------------------------------------------------------- */
-
   describe('templates', () => {
     it('ships an Arabic default for every message the system sends', () => {
       for (const template of Object.values(NOTIFICATION_TEMPLATE)) {
@@ -519,10 +503,6 @@ describe('Notifications and schedulers (e2e)', () => {
       }
     });
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* Booking's own messages                                                  */
-  /* ---------------------------------------------------------------------- */
 
   describe('booking messages', () => {
     it('logs the OTP against the appointment it belongs to', async () => {

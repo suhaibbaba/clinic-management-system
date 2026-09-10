@@ -158,8 +158,6 @@ describe('Appointments permission boundaries (e2e)', () => {
     return (response.json() as { id: string }).id;
   }
 
-  /* ---------------------------------------------------------------------- */
-
   describe('reading the calendar', () => {
     it.each([USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
       'is open to %s',

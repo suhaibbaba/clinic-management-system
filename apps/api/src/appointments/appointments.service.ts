@@ -123,10 +123,6 @@ export class AppointmentsService implements OnModuleInit {
     });
   }
 
-  /* ---------------------------------------------------------------------- */
-  /* Reads                                                                   */
-  /* ---------------------------------------------------------------------- */
-
   async list(
     actor: AuthenticatedUser,
     query: ListAppointmentsQuery,
@@ -260,10 +256,6 @@ export class AppointmentsService implements OnModuleInit {
       timeOff: absences.map(toDoctorTimeOff),
     };
   }
-
-  /* ---------------------------------------------------------------------- */
-  /* Writes                                                                  */
-  /* ---------------------------------------------------------------------- */
 
   async create(
     actor: AuthenticatedUser,
@@ -463,10 +455,6 @@ export class AppointmentsService implements OnModuleInit {
       .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
       .where(this.scope.where(appointments, actor.clinicId, eq(appointments.id, id)));
   }
-
-  /* ---------------------------------------------------------------------- */
-  /* Internals                                                               */
-  /* ---------------------------------------------------------------------- */
 
   /**
    * Runs a write that the overlap constraint may reject.

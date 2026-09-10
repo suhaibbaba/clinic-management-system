@@ -137,7 +137,7 @@ export function Table<TRow>({
   if (isMobile) {
     return (
       <>
-        {/* ── One card per row ──────────────────────────────────────── */}
+        {/* One card per row */}
         <div className="flex flex-col gap-3">
           {isLoading && <CardSkeleton rows={detail.length || 3} />}
 

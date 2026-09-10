@@ -36,10 +36,6 @@ export const listNotificationsQuerySchema = paginationQuerySchema.extend({
 });
 export type ListNotificationsQuery = z.infer<typeof listNotificationsQuerySchema>;
 
-/* -------------------------------------------------------------------------- */
-/* Templates                                                                   */
-/* -------------------------------------------------------------------------- */
-
 /**
  * The message bodies, in `clinics.settings.notifications`.
  *

@@ -106,10 +106,6 @@ export class BookingService {
     private readonly config: ConfigService<Env, true>,
   ) {}
 
-  /* ---------------------------------------------------------------------- */
-  /* Public reads                                                            */
-  /* ---------------------------------------------------------------------- */
-
   async clinicBySlug(slug: string): Promise<PublicClinic> {
     const clinic = await this.requireClinic(slug);
 
@@ -194,10 +190,6 @@ export class BookingService {
       closedNote: dated ? availability.closedNote : null,
     };
   }
-
-  /* ---------------------------------------------------------------------- */
-  /* Booking                                                                 */
-  /* ---------------------------------------------------------------------- */
 
   async book(slug: string, input: CreateBookingInput): Promise<BookingReceipt> {
     const clinic = await this.requireBookingEnabled(slug);
@@ -332,10 +324,6 @@ export class BookingService {
     return booking;
   }
 
-  /* ---------------------------------------------------------------------- */
-  /* Manage link                                                             */
-  /* ---------------------------------------------------------------------- */
-
   async view(token: string): Promise<ManagedBooking> {
     const appointmentId = this.tokens.verify(token);
     const clinic = await this.clinicForAppointment(appointmentId);
@@ -399,10 +387,6 @@ export class BookingService {
 
     return this.loadManaged(clinic, appointmentId);
   }
-
-  /* ---------------------------------------------------------------------- */
-  /* Internals                                                               */
-  /* ---------------------------------------------------------------------- */
 
   private async issueOtp(
     clinic: ClinicContext,

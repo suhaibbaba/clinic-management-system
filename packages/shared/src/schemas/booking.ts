@@ -10,10 +10,6 @@ import { isoDateSchema, slotSchema } from '@shared/schemas/appointments';
 import { personNameSchema } from '@shared/schemas/person-name';
 import { timeOfDaySchema, uuidSchema } from '@shared/schemas/common';
 
-/* -------------------------------------------------------------------------- */
-/* Settings                                                                    */
-/* -------------------------------------------------------------------------- */
-
 /**
  * Public booking rules, in `clinics.settings.booking`.
  *
@@ -56,10 +52,6 @@ export function bookingSettings(settings: unknown): BookingSettings {
         maxActivePerPhone: 3,
       };
 }
-
-/* -------------------------------------------------------------------------- */
-/* Public reads                                                                */
-/* -------------------------------------------------------------------------- */
 
 /** The clinic as a stranger sees it: enough to book, and nothing more. */
 export const publicClinicSchema = z.object({
@@ -110,10 +102,6 @@ export const publicSlotsSchema = z.object({
   closedNote: z.string().nullable(),
 });
 export type PublicSlots = z.infer<typeof publicSlotsSchema>;
-
-/* -------------------------------------------------------------------------- */
-/* Booking                                                                     */
-/* -------------------------------------------------------------------------- */
 
 /**
  * Local phone numbers, loosely. Deliberately permissive: rejecting a real

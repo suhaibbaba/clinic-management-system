@@ -23,10 +23,6 @@ export const isoDateSchema = z.iso.date();
  */
 export const durationMinutesSchema = z.number().int().min(5).max(480);
 
-/* -------------------------------------------------------------------------- */
-/* Appointment                                                                 */
-/* -------------------------------------------------------------------------- */
-
 export const appointmentSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
@@ -128,10 +124,6 @@ export const listAppointmentsQuerySchema = paginationQuerySchema.extend({
 });
 export type ListAppointmentsQuery = z.infer<typeof listAppointmentsQuerySchema>;
 
-/* -------------------------------------------------------------------------- */
-/* Calendar feeds                                                              */
-/* -------------------------------------------------------------------------- */
-
 /**
  * A day or a week of the calendar.
  *
@@ -169,10 +161,6 @@ export const calendarFeedSchema = z.object({
   timeOff: z.array(doctorTimeOffSchema),
 });
 export type CalendarFeed = z.infer<typeof calendarFeedSchema>;
-
-/* -------------------------------------------------------------------------- */
-/* Availability                                                                */
-/* -------------------------------------------------------------------------- */
 
 export const availabilityQuerySchema = z.object({
   doctorId: uuidSchema,
@@ -230,10 +218,6 @@ export const availabilitySchema = z.object({
   slots: z.array(slotSchema),
 });
 export type Availability = z.infer<typeof availabilitySchema>;
-
-/* -------------------------------------------------------------------------- */
-/* Waiting list                                                                */
-/* -------------------------------------------------------------------------- */
 
 export const waitingListEntrySchema = z.object({
   id: uuidSchema,

@@ -39,7 +39,7 @@ function useToken(name: string): string {
   return value;
 }
 
-/* ── WCAG, computed live so a token change cannot leave a stale number ──── */
+/* WCAG, computed live so a token change cannot leave a stale number */
 
 function channel(c: number): number {
   const v = c / 255;

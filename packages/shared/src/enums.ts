@@ -381,10 +381,6 @@ export const WAITING_LIST_PRIORITY_RANK: Record<WaitingListPriority, number> = {
 export const STOCK_MOVEMENT_TYPE = {} as const satisfies Record<string, string>;
 export type StockMovementType = EnumValue<typeof STOCK_MOVEMENT_TYPE>;
 
-/* -------------------------------------------------------------------------- */
-/* Notifications                                                               */
-/* -------------------------------------------------------------------------- */
-
 /**
  * How a message reaches a patient.
  *
@@ -447,10 +443,6 @@ export const NOTIFICATION_STATUSES = [
   NOTIFICATION_STATUS.FAILED,
 ] as const;
 
-/* -------------------------------------------------------------------------- */
-/* Public booking                                                              */
-/* -------------------------------------------------------------------------- */
-
 /**
  * How a booking a patient made themselves becomes a real appointment.
  *
@@ -468,10 +460,6 @@ export const BOOKING_CONFIRMATION_MODES = [
   BOOKING_CONFIRMATION_MODE.OTP,
   BOOKING_CONFIRMATION_MODE.MANUAL,
 ] as const;
-
-/* -------------------------------------------------------------------------- */
-/* Labs                                                                        */
-/* -------------------------------------------------------------------------- */
 
 /**
  * Where a piece of lab work has got to.
@@ -566,10 +554,6 @@ export const LAB_ORDER_AWAITING_STATUSES = [LAB_ORDER_STATUS.SENT, LAB_ORDER_STA
 
 export const awaitingLab = (status: LabOrderStatus): boolean =>
   (LAB_ORDER_AWAITING_STATUSES as readonly LabOrderStatus[]).includes(status);
-
-/* -------------------------------------------------------------------------- */
-/* Inventory                                                                   */
-/* -------------------------------------------------------------------------- */
 
 /**
  * What kind of thing an item is.

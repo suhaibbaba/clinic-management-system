@@ -5,16 +5,8 @@ import { index, integer, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-
 import { clinics, doctors } from '@api/database/schema/core';
 import { patients, visits } from '@api/database/schema/patients';
 
-/* -------------------------------------------------------------------------- */
-/* Enums                                                                       */
-/* -------------------------------------------------------------------------- */
-
 export const appointmentStatusEnum = pgEnum('appointment_status', APPOINTMENT_STATUSES);
 export const waitingListPriorityEnum = pgEnum('waiting_list_priority', WAITING_LIST_PRIORITIES);
-
-/* -------------------------------------------------------------------------- */
-/* Shared column groups                                                        */
-/* -------------------------------------------------------------------------- */
 
 const auditColumns = {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -26,10 +18,6 @@ const auditColumns = {
 const softDeleteColumn = {
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 };
-
-/* -------------------------------------------------------------------------- */
-/* Tables                                                                      */
-/* -------------------------------------------------------------------------- */
 
 /**
  * A booked slot in a doctor's day.

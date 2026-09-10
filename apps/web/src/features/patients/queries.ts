@@ -191,10 +191,6 @@ function optimisticProcedure(
   };
 }
 
-/* -------------------------------------------------------------------------- */
-/* Visits                                                                      */
-/* -------------------------------------------------------------------------- */
-
 export function usePatientVisits(patientId: string): UseQueryResult<Visit[]> {
   return useQuery({
     queryKey: [PATIENT_VISITS_KEY, patientId],
@@ -230,10 +226,6 @@ export function useUpdateProcedure(patientId: string) {
     },
   });
 }
-
-/* -------------------------------------------------------------------------- */
-/* Treatment plans                                                             */
-/* -------------------------------------------------------------------------- */
 
 export function useTreatmentPlans(patientId: string): UseQueryResult<TreatmentPlan[]> {
   return useQuery({
@@ -289,10 +281,6 @@ export function useConvertPlanItem(patientId: string) {
     },
   });
 }
-
-/* -------------------------------------------------------------------------- */
-/* Attachments                                                                 */
-/* -------------------------------------------------------------------------- */
 
 export function usePatientAttachments(
   patientId: string,

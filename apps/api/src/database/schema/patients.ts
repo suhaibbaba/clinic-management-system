@@ -26,10 +26,6 @@ import {
 
 import { chartTypeEnum, clinics, doctors, specialties } from '@api/database/schema/core';
 
-/* -------------------------------------------------------------------------- */
-/* Enums                                                                       */
-/* -------------------------------------------------------------------------- */
-
 export const genderEnum = pgEnum('gender', GENDERS);
 export const treatmentPlanStatusEnum = pgEnum('treatment_plan_status', TREATMENT_PLAN_STATUSES);
 export const treatmentPlanItemStatusEnum = pgEnum(
@@ -40,10 +36,6 @@ export const performedProcedureStatusEnum = pgEnum(
   'performed_procedure_status',
   PERFORMED_PROCEDURE_STATUSES,
 );
-
-/* -------------------------------------------------------------------------- */
-/* Shared column groups                                                        */
-/* -------------------------------------------------------------------------- */
 
 const auditColumns = {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -65,10 +57,6 @@ const liveRows = sql`deleted_at is null`;
 
 /** Money is `numeric(10, 2)`, read and written as a string — never a float. */
 const money = (name: string) => numeric(name, { precision: 10, scale: 2 });
-
-/* -------------------------------------------------------------------------- */
-/* Catalog                                                                     */
-/* -------------------------------------------------------------------------- */
 
 /**
  * Priced procedures per specialty. Owned by billing in the module order, but
@@ -110,10 +98,6 @@ export const procedureCatalog = pgTable(
     uniqueIndex('procedure_catalog_code_uniq').on(table.clinicId, table.code).where(liveRows),
   ],
 );
-
-/* -------------------------------------------------------------------------- */
-/* Patient file                                                                */
-/* -------------------------------------------------------------------------- */
 
 /**
  * The record everything else hangs off.
@@ -204,10 +188,6 @@ export const visits = pgTable(
   ],
 );
 
-/* -------------------------------------------------------------------------- */
-/* Treatment planning                                                          */
-/* -------------------------------------------------------------------------- */
-
 export const treatmentPlans = pgTable(
   'treatment_plans',
   {
@@ -262,10 +242,6 @@ export const treatmentPlanItems = pgTable(
     index('treatment_plan_items_plan_idx').on(table.treatmentPlanId, table.sortOrder),
   ],
 );
-
-/* -------------------------------------------------------------------------- */
-/* Performed work                                                              */
-/* -------------------------------------------------------------------------- */
 
 /**
  * Work actually carried out.
@@ -346,10 +322,6 @@ export const chartMarks = pgTable(
     index('chart_marks_tooth_idx').on(table.clinicId, table.tooth),
   ],
 );
-
-/* -------------------------------------------------------------------------- */
-/* Files and prescriptions                                                     */
-/* -------------------------------------------------------------------------- */
 
 /**
  * Only the R2 object key and metadata — never the bytes (CLAUDE.md).

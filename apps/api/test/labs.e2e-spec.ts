@@ -66,10 +66,6 @@ describe('Labs (e2e)', () => {
     await context.close();
   });
 
-  /* ---------------------------------------------------------------------- */
-  /* Helpers                                                                 */
-  /* ---------------------------------------------------------------------- */
-
   async function createWorkType(nameAr: string, defaultPrice: string): Promise<string> {
     const response = await context.app.inject({
       method: 'POST',
@@ -130,10 +126,6 @@ describe('Labs (e2e)', () => {
 
     return response.json() as { owed: string; paid: string; balance: string };
   };
-
-  /* ---------------------------------------------------------------------- */
-  /* The state machine                                                       */
-  /* ---------------------------------------------------------------------- */
 
   describe('status transitions', () => {
     it('walks the happy path and stamps each date as it goes', async () => {
@@ -216,10 +208,6 @@ describe('Labs (e2e)', () => {
       expect((await move(received.id, 'cancel')).statusCode).toBe(400);
     });
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* Who may move what                                                       */
-  /* ---------------------------------------------------------------------- */
 
   describe('transition permissions', () => {
     it('lets the technician run the conversation with the lab', async () => {
@@ -306,10 +294,6 @@ describe('Labs (e2e)', () => {
     });
   });
 
-  /* ---------------------------------------------------------------------- */
-  /* The balance rule                                                        */
-  /* ---------------------------------------------------------------------- */
-
   describe('what counts toward the balance', () => {
     /*
      * The rule, stated once: an order counts from the moment it is **sent**,
@@ -376,10 +360,6 @@ describe('Labs (e2e)', () => {
       });
     });
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* Money                                                                   */
-  /* ---------------------------------------------------------------------- */
 
   describe('payments', () => {
     it('records what the technician paid, and reverses it admin-only', async () => {
@@ -455,10 +435,6 @@ describe('Labs (e2e)', () => {
       expect(ofReversal.statusCode).toBe(400);
     });
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* Statement, overdue and the printed sheet                                */
-  /* ---------------------------------------------------------------------- */
 
   describe('statement and documents', () => {
     it('dates an order from the day it was sent, and runs the balance down each line', async () => {
@@ -536,10 +512,6 @@ describe('Labs (e2e)', () => {
       expect((after.json() as LabOrderRow[]).map((row) => row.id)).not.toContain(order.id);
     });
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* From the chart                                                          */
-  /* ---------------------------------------------------------------------- */
 
   describe('ordering from a procedure', () => {
     it('takes the teeth from the treatment that needs the work', async () => {

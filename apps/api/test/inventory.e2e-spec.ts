@@ -73,10 +73,6 @@ describe('Inventory (e2e)', () => {
     await context.close();
   });
 
-  /* ---------------------------------------------------------------------- */
-  /* Helpers                                                                 */
-  /* ---------------------------------------------------------------------- */
-
   const createItem = async (payload: Record<string, unknown>): Promise<string> => {
     const response = await context.app.inject({
       method: 'POST',
@@ -115,10 +111,6 @@ describe('Inventory (e2e)', () => {
     expect(response.statusCode).toBe(200);
     return response.json() as InventoryItemRow;
   };
-
-  /* ---------------------------------------------------------------------- */
-  /* The quantity is the sum of the movements                                */
-  /* ---------------------------------------------------------------------- */
 
   describe('quantity', () => {
     it('is the sum of every movement, and there is no field to set it with', async () => {
@@ -222,10 +214,6 @@ describe('Inventory (e2e)', () => {
     });
   });
 
-  /* ---------------------------------------------------------------------- */
-  /* The sign belongs to the type                                            */
-  /* ---------------------------------------------------------------------- */
-
   describe('movement rules', () => {
     it('requires a reason on an adjustment', async () => {
       const itemId = await createItem({ nameAr: `أدوات ${uniquePhone()}` });
@@ -264,10 +252,6 @@ describe('Inventory (e2e)', () => {
       expect((consumed.json() as StockMovement).quantity).toBe('-3');
     });
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* Batches, flags and the alerts                                           */
-  /* ---------------------------------------------------------------------- */
 
   describe('batches and flags', () => {
     it('drains the batch that goes off first and reports what is left', async () => {
@@ -374,10 +358,6 @@ describe('Inventory (e2e)', () => {
     });
   });
 
-  /* ---------------------------------------------------------------------- */
-  /* The item card                                                           */
-  /* ---------------------------------------------------------------------- */
-
   it('shows the item card with a running quantity, newest first', async () => {
     const itemId = await createItem({ nameAr: `بند ${uniquePhone()}` });
 
@@ -401,10 +381,6 @@ describe('Inventory (e2e)', () => {
     ]);
     expect(page.items[2]?.supplierName).toBe('مستودع الاختبار');
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* Consumption on a patient                                                */
-  /* ---------------------------------------------------------------------- */
 
   it('puts a consumption linked to a procedure on the patient timeline', async () => {
     const procedure = await context.app.inject({
@@ -453,10 +429,6 @@ describe('Inventory (e2e)', () => {
     expect(entries[0]?.detail['quantity']).toBe('2');
     expect(entries[0]?.detail['performedProcedureId']).toBe(performedProcedureId);
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* Shopping list and supplier statement                                    */
-  /* ---------------------------------------------------------------------- */
 
   it('suggests twice the minimum less what is on the shelf', async () => {
     const itemId = await createItem({
@@ -512,10 +484,6 @@ describe('Inventory (e2e)', () => {
     expect(response.headers['content-type']).toBe('application/pdf');
     expect(response.rawPayload.subarray(0, 5).toString()).toBe('%PDF-');
   });
-
-  /* ---------------------------------------------------------------------- */
-  /* Permissions (ROLES.md inventory matrix)                                 */
-  /* ---------------------------------------------------------------------- */
 
   describe('permissions', () => {
     let itemId: string;

@@ -107,8 +107,6 @@ describe('Appointments (e2e)', () => {
     });
   }
 
-  /* ---------------------------------------------------------------------- */
-
   describe('availability', () => {
     it('offers the working day, and nothing outside it', async () => {
       const response = await context.app.inject({
@@ -253,8 +251,6 @@ describe('Appointments (e2e)', () => {
     });
   });
 
-  /* ---------------------------------------------------------------------- */
-
   describe('double booking', () => {
     it('refuses an overlapping appointment with 409', async () => {
       const first = await book('09:00');
@@ -296,8 +292,6 @@ describe('Appointments (e2e)', () => {
       expect((await book('10:00')).statusCode).toBe(201);
     });
   });
-
-  /* ---------------------------------------------------------------------- */
 
   describe('status transitions', () => {
     it('walks confirmed → arrived → in progress → completed', async () => {
@@ -379,8 +373,6 @@ describe('Appointments (e2e)', () => {
     });
   });
 
-  /* ---------------------------------------------------------------------- */
-
   describe('convert to visit', () => {
     it('creates the visit and links both records', async () => {
       const created = await book('12:00', { reason: 'ألم في الضرس' });
@@ -453,8 +445,6 @@ describe('Appointments (e2e)', () => {
       expect(response.statusCode).toBe(400);
     });
   });
-
-  /* ---------------------------------------------------------------------- */
 
   describe('calendar feed', () => {
     it('returns the day, with the names a block has to draw', async () => {

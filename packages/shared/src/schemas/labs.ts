@@ -19,10 +19,6 @@ import { lookupCodeSchema } from '@shared/schemas/lookups';
  * lab's invoice go away.
  */
 
-/* -------------------------------------------------------------------------- */
-/* Labs                                                                        */
-/* -------------------------------------------------------------------------- */
-
 export const labSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
@@ -68,10 +64,6 @@ export const listLabsQuerySchema = paginationQuerySchema.extend({
 });
 export type ListLabsQuery = z.infer<typeof listLabsQuerySchema>;
 
-/* -------------------------------------------------------------------------- */
-/* Work types — the lab's price list                                           */
-/* -------------------------------------------------------------------------- */
-
 /**
  * One line of a lab's price list.
  *
@@ -97,10 +89,6 @@ export type CreateLabWorkTypeInput = z.infer<typeof createLabWorkTypeSchema>;
 
 export const updateLabWorkTypeSchema = createLabWorkTypeSchema.partial();
 export type UpdateLabWorkTypeInput = z.infer<typeof updateLabWorkTypeSchema>;
-
-/* -------------------------------------------------------------------------- */
-/* Orders                                                                      */
-/* -------------------------------------------------------------------------- */
 
 /** FDI numbers the work is for. A bridge is several; a denture may be none. */
 export const labTeethSchema = z
@@ -201,10 +189,6 @@ export const returnLabOrderSchema = z.object({
 });
 export type ReturnLabOrderInput = z.infer<typeof returnLabOrderSchema>;
 
-/* -------------------------------------------------------------------------- */
-/* Attachments                                                                 */
-/* -------------------------------------------------------------------------- */
-
 /**
  * A photo or a scan that travels with the order — a shade photo, a scan file.
  *
@@ -236,10 +220,6 @@ export const confirmLabAttachmentSchema = z.object({
   filename: z.string().trim().min(1).max(255),
 });
 export type ConfirmLabAttachmentInput = z.infer<typeof confirmLabAttachmentSchema>;
-
-/* -------------------------------------------------------------------------- */
-/* Money                                                                       */
-/* -------------------------------------------------------------------------- */
 
 export const labPaymentSchema = z.object({
   id: uuidSchema,

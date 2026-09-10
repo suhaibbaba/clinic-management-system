@@ -88,8 +88,6 @@ describe('Dashboard (e2e)', () => {
     await context.close();
   });
 
-  /* ---------------------------------------------------------------------- */
-
   it('reports today in the clinic timezone, not the server one', async () => {
     const body = await summary(USER_ROLE.ADMIN);
 
@@ -268,7 +266,6 @@ describe('Dashboard (e2e)', () => {
     expect(body.pendingBookings).toBeGreaterThanOrEqual(1);
   });
 
-  /* ---------------------------------------------------------------------- */
   /* Role shaping — ROLES.md, applied to the response and not the rendering. */
 
   it('gives a technician no financial figure and no booking queue', async () => {

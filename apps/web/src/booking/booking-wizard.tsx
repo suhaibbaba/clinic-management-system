@@ -216,8 +216,6 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
     }
   };
 
-  /* ---------------------------------------------------------------------- */
-
   if (clinic.loading) {
     return (
       <PageShell clinicName={undefined}>
