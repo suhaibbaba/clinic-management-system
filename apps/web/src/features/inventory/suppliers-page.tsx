@@ -30,6 +30,7 @@ import { useSuppliers, useSupplierStatement } from '@web/features/inventory/quer
 import { SupplierFormModal } from '@web/features/inventory/supplier-form-modal';
 import { endOfNextDayIso, formatDate, startOfDayIso } from '@web/lib/format';
 import { useDebounced } from '@web/lib/use-debounced';
+import { isRefetching } from '@web/lib/use-delayed-loading';
 
 export function SuppliersPage(): JSX.Element {
   const { t } = useTranslation();
@@ -139,6 +140,7 @@ export function SuppliersPage(): JSX.Element {
         rows={suppliers.data?.items ?? []}
         rowKey={(row) => row.id}
         isLoading={suppliers.isPending}
+        isRefreshing={isRefetching(suppliers)}
         onRowClick={setSelected}
         rowLabel={(row) => row.name}
         empty={
@@ -264,6 +266,7 @@ function Statement({
         rows={statement.data?.lines ?? []}
         rowKey={(row) => row.movementId}
         isLoading={statement.isPending}
+        isRefreshing={isRefetching(statement)}
         empty={
           <EmptyState
             icon="clipboard"

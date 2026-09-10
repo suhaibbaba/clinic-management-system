@@ -24,6 +24,7 @@ import { usePatientBalance, useStatement } from '@web/features/billing/queries';
 import { useClinic } from '@web/features/clinic/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 import { endOfNextDayIso, formatDate, startOfDayIso } from '@web/lib/format';
+import { isRefetching } from '@web/lib/use-delayed-loading';
 
 interface AccountTabProps {
   patientId: string;
@@ -221,6 +222,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
         rows={statement.data?.entries ?? []}
         rowKey={(entry) => entry.id}
         isLoading={statement.isPending}
+        isRefreshing={isRefetching(statement)}
         empty={<EmptyState icon="money" title="billing.empty" hint="billing.emptyHint" />}
       />
 

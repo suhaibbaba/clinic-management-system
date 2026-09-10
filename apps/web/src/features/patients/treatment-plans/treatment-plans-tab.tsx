@@ -21,6 +21,7 @@ import {
   useTabParam,
   useToast,
 } from '@web/components/ui';
+import { SkeletonCard, SkeletonStatus } from '@web/components/ui/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { useClinic } from '@web/features/clinic/queries';
 import { useDoctors } from '@web/features/doctors/queries';
@@ -36,6 +37,7 @@ import {
 import { PlanPrint } from '@web/features/patients/treatment-plans/plan-print';
 import { planRemaining, planTotal } from '@web/features/patients/treatment-plans/plan-total';
 import { errorMessageKey } from '@web/lib/api-error';
+import { useDelayedLoading } from '@web/lib/use-delayed-loading';
 
 // Built from the shared enum, so a status added to the state machine appears here instead of being
 // quietly unfilterable.
@@ -56,6 +58,7 @@ export function TreatmentPlansTab({
   const toast = useToast();
 
   const plans = useTreatmentPlans(patientId);
+  const showSkeleton = useDelayedLoading(plans.isPending);
   const catalog = useProcedureCatalog();
   const doctors = useDoctors({ limit: 100 });
   const clinic = useClinic();
@@ -82,8 +85,17 @@ export function TreatmentPlansTab({
   const doctorName = (id: string): string =>
     displayName(doctors.data?.items.find((doctor) => doctor.id === id)?.user.name) || '—';
 
+  if (showSkeleton) {
+    return (
+      <div className="flex flex-col gap-3">
+        <SkeletonStatus />
+        <SkeletonCard count={2} />
+      </div>
+    );
+  }
+
   if (plans.isPending) {
-    return <p className="text-value text-ink-muted">{t('common.loading')}</p>;
+    return <></>;
   }
 
   if (plans.isError) {

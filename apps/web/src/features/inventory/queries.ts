@@ -89,6 +89,7 @@ export function useItemMovements(
   return useQuery({
     queryKey: [MOVEMENTS_KEY, id, query],
     queryFn: () => inventoryApi.itemMovements(id, query),
+    placeholderData: (previous) => previous,
     enabled: id !== '',
   });
 }
@@ -118,6 +119,7 @@ export function useSupplierStatement(
   return useQuery({
     queryKey: [SUPPLIER_STATEMENT_KEY, id, query],
     queryFn: () => suppliersApi.statement(id, query),
+    placeholderData: (previous) => previous,
     enabled: id !== '',
   });
 }

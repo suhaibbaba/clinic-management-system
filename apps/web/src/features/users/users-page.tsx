@@ -27,6 +27,7 @@ import { ResetPasswordModal } from '@web/features/users/reset-password-modal';
 import { UserFormModal } from '@web/features/users/user-form-modal';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate } from '@web/lib/format';
+import { isRefetching } from '@web/lib/use-delayed-loading';
 
 const PAGE_SIZE = 10;
 
@@ -220,6 +221,7 @@ export function UsersPage(): JSX.Element {
         rows={data?.items ?? []}
         rowKey={(row) => row.id}
         isLoading={query.isPending}
+        isRefreshing={isRefetching(query)}
         empty={
           <EmptyState
             title="users.empty"

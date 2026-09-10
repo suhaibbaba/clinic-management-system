@@ -3,7 +3,9 @@ import type { JSX, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useLocation } from 'react-router-dom';
 
+import { Skeleton, SkeletonStatus } from '@web/components/ui/skeleton';
 import { useSession } from '@web/features/auth/session';
+import { useDelayedLoading } from '@web/lib/use-delayed-loading';
 
 function FullPageMessage({ messageKey }: { messageKey: string }): JSX.Element {
   const { t } = useTranslation();
@@ -15,12 +17,29 @@ function FullPageMessage({ messageKey }: { messageKey: string }): JSX.Element {
   );
 }
 
+function BootSkeleton(): JSX.Element {
+  const showSkeleton = useDelayedLoading(true);
+
+  if (!showSkeleton) {
+    return <></>;
+  }
+
+  return (
+    <div className="flex min-h-full flex-col gap-4 p-8">
+      <SkeletonStatus />
+      <Skeleton className="h-6 w-48" />
+      <Skeleton className="h-32 w-full rounded-card" />
+      <Skeleton className="h-32 w-full rounded-card" />
+    </div>
+  );
+}
+
 export function RequireAuth({ children }: { children: ReactNode }): JSX.Element {
   const { status } = useSession();
   const location = useLocation();
 
   if (status === 'loading') {
-    return <FullPageMessage messageKey="common.loading" />;
+    return <BootSkeleton />;
   }
 
   if (status === 'unauthenticated') {

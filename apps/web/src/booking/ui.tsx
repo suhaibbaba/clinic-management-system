@@ -133,7 +133,7 @@ export function Alert({
 }
 
 export function Skeleton({ className }: { readonly className?: string }): JSX.Element {
-  return <span aria-hidden className={cx('booking-skeleton block rounded-panel', className)} />;
+  return <span aria-hidden className={cx('skeleton block rounded-panel', className)} />;
 }
 
 export interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {

@@ -65,6 +65,7 @@ export function useLabs(
   return useQuery({
     queryKey: [LABS_KEY, query],
     queryFn: () => labsApi.list(query),
+    placeholderData: (previous) => previous,
     enabled,
   });
 }
@@ -81,6 +82,7 @@ export function useLabWorkTypes(labId: string, includeInactive = false) {
   return useQuery({
     queryKey: [LAB_WORK_TYPES_KEY, labId, includeInactive],
     queryFn: () => labsApi.workTypes(labId, includeInactive),
+    placeholderData: (previous) => previous,
     enabled: labId !== '',
   });
 }
@@ -100,6 +102,7 @@ export function useLabStatement(
   return useQuery({
     queryKey: [LAB_STATEMENT_KEY, labId, query],
     queryFn: () => labsApi.statement(labId, query),
+    placeholderData: (previous) => previous,
     enabled: labId !== '',
   });
 }

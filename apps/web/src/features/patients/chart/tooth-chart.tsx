@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Skeleton, SkeletonStatus } from '@web/components/ui/skeleton';
 import { layoutRow, type Dentition, type ToothSlot } from '@web/features/patients/chart/fdi-layout';
 import {
   CROWN_LINE,
@@ -410,9 +411,9 @@ function Tooltip({
 
 export function ToothChartSkeleton(): JSX.Element {
   return (
-    <div
-      aria-hidden="true"
-      className="h-56 w-full animate-pulse rounded-card bg-sunken sm:h-64 md:h-72"
-    />
+    <>
+      <SkeletonStatus />
+      <Skeleton className="h-56 w-full rounded-card sm:h-64 md:h-72" />
+    </>
   );
 }

@@ -21,6 +21,7 @@ import {
   Textarea,
   useToast,
 } from '@web/components/ui';
+import { RefreshBar, SkeletonTimeline } from '@web/components/ui/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { Money } from '@web/features/billing/money';
@@ -38,6 +39,7 @@ import {
 import { errorMessageKey } from '@web/lib/api-error';
 import { cn } from '@web/lib/cn';
 import { formatDate, formatDateTime } from '@web/lib/format';
+import { useQueryLoading } from '@web/lib/use-delayed-loading';
 
 // Each quick action is shown only to a role the API would accept it from. The history is the item
 // card, so "why is there only 3" is answered rather than raised.
@@ -60,6 +62,7 @@ export function ItemDrawer({
   const item = useInventoryItem(itemId ?? '');
   const batches = useItemBatches(itemId ?? '');
   const movements = useItemMovements(itemId ?? '', { limit: 50 });
+  const { showSkeleton, isRefreshing } = useQueryLoading(movements);
 
   if (itemId === null) {
     return null;
@@ -154,7 +157,8 @@ export function ItemDrawer({
 
           <History
             movements={movements.data?.items ?? []}
-            isLoading={movements.isPending}
+            isLoading={showSkeleton}
+            isRefreshing={isRefreshing}
             onOpenPatient={(patientId) => {
               onClose();
               void navigate(`/patients/${patientId}`);
@@ -232,10 +236,12 @@ function Batches({
 function History({
   movements,
   isLoading,
+  isRefreshing,
   onOpenPatient,
 }: {
   readonly movements: readonly StockMovementRow[];
   readonly isLoading: boolean;
+  readonly isRefreshing: boolean;
   readonly onOpenPatient: (patientId: string) => void;
 }): JSX.Element {
   const { t } = useTranslation();
@@ -266,7 +272,9 @@ function History({
     <section className="flex flex-col gap-2">
       <h3 className="text-value font-semibold text-ink">{t('inventory.history.title')}</h3>
 
-      {isLoading && <p className="text-label text-ink-muted">{t('common.loading')}</p>}
+      <RefreshBar active={isRefreshing} />
+
+      {isLoading && <SkeletonTimeline entries={3} />}
 
       {!isLoading && movements.length === 0 && (
         <EmptyState icon="clipboard" title="inventory.history.empty" />

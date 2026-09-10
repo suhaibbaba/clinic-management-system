@@ -3,6 +3,7 @@ import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Icon } from '@web/components/ui';
+import { Skeleton, SkeletonStatus } from '@web/components/ui/skeleton';
 import { cn } from '@web/lib/cn';
 
 export interface SlotPickerProps {
@@ -30,7 +31,14 @@ export function SlotPicker({
   }
 
   if (isLoading) {
-    return <Hint icon="spinner">{t('common.loading')}</Hint>;
+    return (
+      <div className="flex flex-wrap gap-2">
+        <SkeletonStatus />
+        {[0, 1, 2, 3, 4, 5].map((slot) => (
+          <Skeleton key={slot} className="h-11 w-20 rounded-control" />
+        ))}
+      </div>
+    );
   }
 
   if (!availability || availability.slots.length === 0) {

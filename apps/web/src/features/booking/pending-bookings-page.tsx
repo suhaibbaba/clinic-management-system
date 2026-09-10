@@ -30,6 +30,7 @@ import {
 import { useClinic } from '@web/features/clinic/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate, formatDateTime } from '@web/lib/format';
+import { isRefetching } from '@web/lib/use-delayed-loading';
 
 const PAGE_SIZE = 20;
 
@@ -170,6 +171,7 @@ export function PendingBookingsPage(): JSX.Element {
         rows={rows}
         rowKey={(row) => row.id}
         isLoading={pending.isPending}
+        isRefreshing={isRefetching(pending)}
         empty={
           <EmptyState
             icon="calendar"

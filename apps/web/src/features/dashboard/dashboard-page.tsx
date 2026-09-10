@@ -15,6 +15,7 @@ import {
   type Column,
   type StatTone,
 } from '@web/components/ui';
+import { SkeletonKpi } from '@web/components/ui/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
@@ -25,6 +26,7 @@ import { useDashboardSummary } from '@web/features/dashboard/queries';
 import { canOpenPatientFile } from '@web/features/patients/permissions';
 import { formatDate } from '@web/lib/format';
 import { cn } from '@web/lib/cn';
+import { useQueryLoading } from '@web/lib/use-delayed-loading';
 
 // Each number is a door rather than a decoration. Which cards exist follows the response, not the
 // role: a missing field draws no card, so this page keeps no copy of the matrix.
@@ -38,6 +40,7 @@ export function DashboardPage(): JSX.Element {
   setClinicTimeZone(clinic.data);
 
   const summary = useDashboardSummary();
+  const { showSkeleton, isRefreshing } = useQueryLoading(summary);
   const data = summary.data;
   const currency = clinic.data?.currency;
 
@@ -52,48 +55,53 @@ export function DashboardPage(): JSX.Element {
         <EmptyState icon="alert" title="errors.unknown" hint="dashboard.failed" />
       )}
 
+      {showSkeleton && <SkeletonKpi count={3} />}
+
       {/* At `sm` a third column left each card 141px wide with 40px of padding — 101px for a figure
           that is 128px. */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-        <KpiLink to="/appointments">
-          <StatCard
-            icon="calendar"
-            label={t('dashboard.kpi.today')}
-            value={data?.appointmentsToday ?? '—'}
-            caption={data ? formatDate(data.date) : undefined}
-          />
-        </KpiLink>
-
-        {pending !== undefined && (
-          <KpiLink to="/appointments?status=pending">
+      {!showSkeleton && (
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
+          <KpiLink to="/appointments">
             <StatCard
-              icon="clock"
-              // Warning only while somebody is actually waiting: a permanent
-              // amber card is a card nobody reads.
-              tone={toneFor(pending > 0, 'warning')}
-              label={t('dashboard.kpi.pending')}
-              value={pending}
-              caption={t('dashboard.kpi.pendingCaption')}
+              icon="calendar"
+              label={t('dashboard.kpi.today')}
+              value={data?.appointmentsToday ?? '—'}
+              caption={data ? formatDate(data.date) : undefined}
             />
           </KpiLink>
-        )}
 
-        {overdue !== undefined && (
-          <KpiLink to="/patients?filter=balance">
-            <StatCard
-              icon="money"
-              tone={toneFor(Number(overdue) > 0, 'danger')}
-              label={t('dashboard.kpi.overdue')}
-              value={<Money amount={overdue} currency={currency} />}
-              caption={t('dashboard.kpi.overdueCaption', { count: data?.overduePatients ?? 0 })}
-            />
-          </KpiLink>
-        )}
-      </div>
+          {pending !== undefined && (
+            <KpiLink to="/appointments?status=pending">
+              <StatCard
+                icon="clock"
+                // Warning only while somebody is actually waiting: a permanent
+                // amber card is a card nobody reads.
+                tone={toneFor(pending > 0, 'warning')}
+                label={t('dashboard.kpi.pending')}
+                value={pending}
+                caption={t('dashboard.kpi.pendingCaption')}
+              />
+            </KpiLink>
+          )}
+
+          {overdue !== undefined && (
+            <KpiLink to="/patients?filter=balance">
+              <StatCard
+                icon="money"
+                tone={toneFor(Number(overdue) > 0, 'danger')}
+                label={t('dashboard.kpi.overdue')}
+                value={<Money amount={overdue} currency={currency} />}
+                caption={t('dashboard.kpi.overdueCaption', { count: data?.overduePatients ?? 0 })}
+              />
+            </KpiLink>
+          )}
+        </div>
+      )}
 
       <TodaySchedule
         rows={data?.schedule ?? []}
         isLoading={summary.isPending}
+        isRefreshing={isRefreshing}
         linkPatients={canOpenPatientFile(user?.role)}
       />
     </div>
@@ -127,10 +135,12 @@ function KpiLink({
 function TodaySchedule({
   rows,
   isLoading,
+  isRefreshing,
   linkPatients,
 }: {
   readonly rows: readonly CalendarAppointment[];
   readonly isLoading: boolean;
+  readonly isRefreshing: boolean;
   // A technician reads the day but the file behind the name is not theirs, and a link that bounces
   // the reader back is worse than plain text.
   readonly linkPatients: boolean;
@@ -199,6 +209,7 @@ function TodaySchedule({
         rows={rows}
         rowKey={(row) => row.id}
         isLoading={isLoading}
+        isRefreshing={isRefreshing}
         empty={
           <EmptyState
             icon="calendar"

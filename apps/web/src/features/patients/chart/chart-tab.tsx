@@ -24,6 +24,7 @@ import { OrderFormModal, type LabOrderDefaults } from '@web/features/labs/order-
 import { canCreateLabOrder } from '@web/features/labs/permissions';
 import { ageInYears } from '@web/features/patients/age';
 import { errorMessageKey } from '@web/lib/api-error';
+import { useDelayedLoading } from '@web/lib/use-delayed-loading';
 
 // A tooth's state is the pair of queries: the procedure says how far along, the catalog what it
 // charts as. Past thirteen the deciduous arch is noise unless a tooth is retained.
@@ -49,6 +50,7 @@ export function ChartTab({
 
   const procedures = usePatientProcedures(patientId);
   const catalog = useProcedureCatalog();
+  const showSkeleton = useDelayedLoading(procedures.isPending || catalog.isPending);
   const doctors = useDoctors({ limit: 100 });
   const createProcedure = useCreateProcedure(patientId);
 
@@ -71,10 +73,12 @@ export function ChartTab({
   const showDentitionToggle = age === null || age < PERMANENT_DENTITION_AGE || hasDeciduousHistory;
 
   if (procedures.isPending || catalog.isPending) {
-    return (
+    return showSkeleton ? (
       <div className="flex flex-col gap-4">
         <ToothChartSkeleton />
       </div>
+    ) : (
+      <></>
     );
   }
 
