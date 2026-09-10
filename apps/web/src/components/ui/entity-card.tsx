@@ -39,23 +39,11 @@ export interface EntityCardProps {
     | undefined;
   readonly isSelected?: boolean | undefined;
   readonly className?: string | undefined;
-  /** Extra content between the progress bar and the meta row. */
   readonly children?: ReactNode | undefined;
 }
 
-/**
- * The repeating card for anything that has a name, a state and a sense of
- * progress: a treatment plan, a lab order, a stocked item.
- *
- * They are one component rather than three lookalikes because the shape is the
- * point — a clinic manager glancing at a grid should read "how far along" the
- * same way whatever the grid is showing. What differs is only what progress
- * *means*, which is why the caller supplies the numbers and the caption rather
- * than the component guessing.
- *
- * The status badge sits at the start of the header row, which in this RTL app
- * puts it top-right — the first thing read, as a status should be.
- */
+// One component rather than three lookalikes: what differs is only what progress means, which is
+// why the caller supplies the numbers and the caption.
 export function EntityCard({
   icon,
   title,
@@ -117,13 +105,8 @@ export function EntityCard({
           {(meta ?? []).map((entry) => (
             <div key={entry.label} className="min-w-0">
               <dt className="text-meta text-ink-subtle">{entry.label}</dt>
-              {/*
-                `break-words` rather than `truncate`: a meta value is short by
-                construction — a date, an amount, a count, a phone number — and
-                the one that is a phone number carries its 44px hit area on an
-                `::after`, which an `overflow-hidden` ancestor clips to the
-                height of the line.
-              */}
+              {/* `break-words` rather than `truncate`: a phone number's 44px hit area lives on an
+                  `::after`, which an `overflow-hidden` ancestor clips to the line. */}
               <dd
                 className="min-w-0 break-words text-value font-medium text-ink tabular-nums"
                 {...(entry.ltr === true && { dir: 'ltr' })}
@@ -158,7 +141,6 @@ export function EntityCard({
   );
 }
 
-/** The responsive grid these cards live in. */
 export function EntityGrid({ children }: { readonly children: ReactNode }): JSX.Element {
   return <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{children}</div>;
 }

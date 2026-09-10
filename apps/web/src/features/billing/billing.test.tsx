@@ -50,7 +50,6 @@ async function renderAccountTab(role: UserRole, overrides: Record<string, MockRe
   return api;
 }
 
-/** The space `Money` puts between a figure and its symbol. */
 const NBSP = '\u00A0';
 
 describe('Billing', () => {
@@ -75,26 +74,20 @@ describe('Billing', () => {
           .map((cell) => cell.textContent?.trim() ?? '');
 
       expect(rows).toHaveLength(2);
-      // date | description | debit | credit | balance | actions
-      // Whole numbers and the clinic's *symbol* — no ".00" and no "USD". The
-      // space between them is non-breaking, so a narrow column cannot split a
-      // figure from its currency (see the `Money` component).
+      // Whole numbers and the clinic's symbol. The space between figure and symbol is non-breaking,
+      // so a narrow column cannot split them.
       expect(cells(rows[0]!).slice(1, 5)).toEqual([
         'حشوة تجميلية',
         `150${NBSP}$`,
         '',
         `150${NBSP}$`,
       ]);
-      // The payment shows as a credit and takes the balance down with it.
       expect(cells(rows[1]!).slice(2, 5)).toEqual(['', `50${NBSP}$`, `100${NBSP}$`]);
     });
 
     it('names the procedure and nothing clinical beside it', async () => {
       await renderAccountTab(USER_ROLE.RECEPTIONIST);
 
-      // ROLES.md keeps diagnoses and visit notes away from a receptionist, and
-      // a statement they read is no exception — the API sends the catalog name
-      // and this screen has nothing else to show.
       expect(await screen.findByText('حشوة تجميلية')).toBeInTheDocument();
       expect(screen.queryByText(/تشخيص/)).not.toBeInTheDocument();
     });
@@ -170,14 +163,8 @@ describe('Billing', () => {
     });
   });
 
-  /**
-   * The standalone overdue screen is gone; the address is not.
-   *
-   * It was one filter of the patients list wearing a page's clothes, and the
-   * list can now ask the server the same question — so the page went and the
-   * link somebody bookmarked lands on the filter that replaced it, rather
-   * than on a dashboard with a shrug.
-   */
+  // The standalone overdue screen is gone; the address is not — it lands on the patients-list
+  // filter that replaced it.
   describe('the retired overdue screen', () => {
     it('carries its old address to the patients list, already filtered', async () => {
       authTokens.clear();

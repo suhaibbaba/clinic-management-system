@@ -37,16 +37,8 @@ const type = async (
   }
 };
 
-/**
- * The six boxes.
- *
- * Everything here is a thing a person actually does with an SMS code on a
- * phone: they paste it, they mistype and back up, they finish it. Each one was
- * a bug at some point in a six-box input somewhere — the auto-submit in
- * particular shipped broken (`'123456'.includes('')` is `true`, so the guard
- * that was meant to check for gaps never let anything through) and this is the
- * test that caught it.
- */
+// The auto-submit shipped broken — `'123456'.includes('')` is `true`, so the gap guard never let
+// anything through — and this is the test that caught it.
 describe('OTP input', () => {
   it('starts with the keyboard in the first box', () => {
     const { boxes } = renderStep();

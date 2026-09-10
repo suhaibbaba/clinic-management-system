@@ -39,15 +39,8 @@ export interface AppointmentDrawerProps {
   readonly onEdit: (appointment: CalendarAppointment) => void;
 }
 
-/**
- * One appointment, with the buttons that move it along.
- *
- * The action row is derived from the status rather than always shown: an
- * appointment that has been cancelled has nothing to confirm, and a button
- * that only ever returns 400 is worse than no button. The transitions the UI
- * offers come from the same table in `@clinic/shared` that the API validates
- * against, so the two cannot drift.
- */
+// The action row is derived from the same transition table the API validates against, so a button
+// that would only ever return 400 is not drawn.
 export function AppointmentDrawer({
   appointment,
   onClose,
@@ -214,10 +207,8 @@ export function AppointmentDrawer({
               <PersonName name={appointment.doctorName} />
             </Field>
             <Field label={t('appointments.patient')}>
-              {/* A gap rather than a margin: the file number is an LTR island,
-                  so a logical margin on it resolves against *its* direction and
-                  lands on the far side — the name and the number came out
-                  glued together. */}
+              {/* A logical margin on a `dir="ltr"` element resolves against its own direction and
+                  lands on the far side — the name and the number came out glued together. */}
               <span className="flex flex-wrap items-baseline gap-2">
                 <span>{appointment.patientName}</span>
                 <Ltr className="tabular-nums text-ink-subtle">{appointment.patientFileNumber}</Ltr>

@@ -14,12 +14,7 @@ const TABS: readonly TabDefinition<InventoryTab>[] = [
   { id: SUPPLIERS, label: 'inventory.section.suppliers' },
 ];
 
-/**
- * The store cupboard and the people it is filled from.
- *
- * A supplier only ever exists because of something on the shelf, so it was
- * never a section of its own — it is the other half of this one.
- */
+/** A supplier only exists because of something on the shelf, so it was never a section of its own. */
 export function InventorySection(): JSX.Element {
   const [active, setActive] = useTabParam<InventoryTab>(
     'tab',

@@ -9,15 +9,6 @@ import type { AsyncState } from '@web/booking/use-async';
 
 export type SlotOption = PublicSlots['slots'][number];
 
-/**
- * Step two: when.
- *
- * The whole visible week is fetched at once rather than one day at a time.
- * Seven small reads buy the thing a day-at-a-time page cannot have — a day
- * that is closed *looks* closed before it is tapped — and they are what makes
- * "no times on Friday" a greyed chip instead of a dead end the patient walks
- * into.
- */
 export function WhenStep({
   chips,
   week,
@@ -37,13 +28,8 @@ export function WhenStep({
   const day = byDate.get(date);
   const slots = day?.slots ?? [];
 
-  /**
-   * What the empty day says.
-   *
-   * A closure and a doctor's absence are on the door, so a patient gets the
-   * clinic's own words for them; a full diary is not a stranger's business and
-   * falls back to the plain "no times".
-   */
+  // A closure and an absence are on the door, so the patient gets the clinic's own words; a full
+  // diary falls back to a plain "no times".
   const emptyMessage =
     day?.closedReason && day.closedNote
       ? t('when.closedFor', { reason: day.closedNote })

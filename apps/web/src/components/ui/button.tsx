@@ -9,38 +9,15 @@ export type ButtonSize = 'sm' | 'md';
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant | undefined;
   size?: ButtonSize | undefined;
-  /** Renders a spinner and blocks interaction while a mutation is running. */
   isLoading?: boolean | undefined;
   icon?: ReactNode | undefined;
-  /**
-   * Which side of the label the icon sits on, in reading order.
-   *
-   * `start` is the default and is right for almost everything: an icon that
-   * *classifies* the action — a plus on "add patient", a printer on "print" —
-   * belongs before the words, the way a bullet does.
-   *
-   * `end` is for the one case where the icon is not a classifier but a
-   * *direction*: "next" carries a forward chevron, and a forward chevron drawn
-   * before the label points back at the word it is leading away from. On the
-   * pagination bar that put the two arrows nose to nose in the middle of the
-   * control, both aiming inwards, with the page count between them.
-   */
+  // `end` is for an icon that is a direction rather than a classifier: a forward chevron before the
+  // label points back at the word it is leading away from.
   iconPosition?: 'start' | 'end' | undefined;
 }
 
-/*
- * One action colour, and one outline.
- *
- * The primary button is the blue, and it is the only filled blue on a page —
- * which is what makes "the thing to do here" answerable at a glance.
- *
- * `secondary` is the page's other button and it is *outlined*: white, a
- * hairline, ink text, an icon beside the label. That is what a header full of
- * actions is made of — print, export, email — and a row of grey fills there
- * competes with the one filled thing that matters. A ghost drops even the
- * outline, for an action inside a row or a card that must not draw the eye at
- * all; danger is the red kept for destructive acts.
- */
+// The primary blue is the only filled blue on a page, which is what makes "the thing to do here"
+// answerable at a glance; `secondary` is outlined for header rows of actions.
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: 'bg-primary-600 text-ink-inverse hover:bg-primary-700 active:bg-primary-800',
   secondary: 'border border-line bg-surface text-ink hover:bg-inset active:bg-sunken',
@@ -48,20 +25,11 @@ const VARIANTS: Record<ButtonVariant, string> = {
   danger: 'bg-danger-600 text-ink-inverse hover:bg-danger-700 active:bg-danger-800',
 };
 
-/*
- * Heights are the drawn heights; `min-h-11` below `lg` is the touch target.
- *
- * A 36px button is right on a desktop and too small for a thumb — WCAG 2.5.8
- * asks for 44. Rather than draw two sets of buttons, the phone keeps the same
- * shape inside a taller box: the fill grows with it, the type does not move,
- * and nothing about the design language changes.
- */
+// Heights are the drawn heights; `min-h-11` below `lg` is the touch target, so the phone keeps the
+// same shape inside a taller box.
 const SIZES: Record<ButtonSize, string> = {
-  // 8px icon gap at both sizes — an icon and its label are one object.
-  //
-  // `min-w-11` as well as `min-h-11`: an icon-only button, or one whose label
-  // is two Arabic letters, is 42px wide inside this padding — the height was
-  // the target and the width was two pixels short of it.
+  // `min-w-11` as well as `min-h-11`: an icon-only button, or one labelled with two Arabic letters,
+  // is 42px wide inside this padding.
   sm: 'min-h-11 min-w-11 px-3 text-label gap-2 lg:h-8 lg:min-h-0 lg:min-w-0',
   md: 'min-h-11 min-w-11 px-4 text-value gap-2 lg:h-9 lg:min-h-0 lg:min-w-0',
 };
@@ -85,9 +53,6 @@ export function Button({
         // A softly rounded rectangle, not a pill: it sits beside fields and
         // cards of the same 8-12px family instead of on top of them.
         'inline-flex cursor-pointer items-center justify-center rounded-control font-medium',
-        // One duration for every colour, shadow and transform change in the
-        // app; `active:scale-[0.98]` is the press, small enough to feel like
-        // the button gives rather than like the layout moved.
         'transition-[background-color,box-shadow,transform,color] duration-150 ease-out',
         'active:scale-[0.98]',
         'disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none',
@@ -100,11 +65,8 @@ export function Button({
       disabled={disabled === true || isLoading}
       {...props}
     >
-      {/*
-        The spinner takes the icon's place wherever the icon was going to be:
-        a button whose chevron trails its label must not have the label jump
-        sideways the moment it starts working.
-      */}
+      {/* The spinner takes the icon's place: a button whose chevron trails its label must not have
+          the label jump sideways when it starts working. */}
       {isLoading && iconPosition === 'start' && <Spinner />}
       {!isLoading && iconPosition === 'start' && icon}
       {children}
@@ -114,7 +76,6 @@ export function Button({
   );
 }
 
-/** The loading state of a submit button: lucide's spinner, spun. */
 function Spinner(): JSX.Element {
   return <Icon name="spinner" className="animate-spin" />;
 }

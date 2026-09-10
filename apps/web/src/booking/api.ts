@@ -6,20 +6,10 @@ import type {
   PublicSlots,
 } from '@clinic/shared';
 
-/**
- * The public booking API, and nothing else.
- *
- * Deliberately not `@web/lib/api-client`: that one carries a bearer token, a
- * refresh-on-401 replay and a session-ended broadcast, none of which mean
- * anything here — every endpoint below is anonymous. Reusing it would also
- * drag the auth module into a bundle that must stay small.
- *
- * Same-origin `/api` in every environment, exactly like the dashboard: Vite
- * proxies it in development, nginx in production.
- */
+// Not `@web/lib/api-client`: every endpoint here is anonymous, and reusing it would drag the auth
+// module into a bundle that must stay small.
 const BASE = '/api/public/booking';
 
-/** Everything that can go wrong, in the shape the page reacts to. */
 export type BookingFailure =
   | 'network'
   | 'slotTaken'
@@ -44,16 +34,8 @@ export class BookingError extends Error {
 /** The call being made, because the same status means different things. */
 type Intent = 'read' | 'book' | 'verify' | 'manage';
 
-/**
- * Turns a status into a failure.
- *
- * Arabic copy is chosen from this side by code, never from the backend's
- * English message (CLAUDE.md) — which is also why a booking `400` reads as
- * "that time is gone". The page only ever submits a slot the API itself
- * offered a moment ago, so by the time one is rejected the honest explanation
- * is that somebody else took it; the other reasons the API can refuse a time
- * are unreachable from these screens.
- */
+// Arabic copy is chosen here by code, never from the backend's message. A booking 400 reads as
+// "that time is gone" — the page only submits a slot the API just offered.
 function failureFor(status: number, intent: Intent): BookingFailure {
   if (status === 429) {
     return 'throttled';
@@ -146,7 +128,6 @@ export const bookingApi = {
     }),
 };
 
-/** The i18n key for a failure, with a sensible answer for anything unexpected. */
 export function failureKey(error: unknown): string {
   return `errors.${error instanceof BookingError ? error.failure : 'generic'}`;
 }

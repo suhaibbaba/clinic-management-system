@@ -35,31 +35,8 @@ export interface ToothChartProps {
   readonly onSelect: (tooth: number) => void;
 }
 
-/**
- * The interactive chart: two rows of anatomical teeth, upper above lower.
- *
- * Each tooth is a real `<button>` containing its own small SVG, drawn root-up
- * and split at the crown line — so one tooth can say "root canal under a
- * crown", which is a thing mouths do and which a single fill cannot express.
- * Lower teeth are the same shapes flipped, with their numbers on the inside so
- * both rows label towards the midline.
- *
- * Three things are deliberate:
- *
- *  - **The chart never mirrors in RTL.** It is anatomy, not text: it is drawn
- *    from the clinician's point of view, with the patient's right on the
- *    viewer's left. Flipping it with the page would put the patient's right on
- *    the wrong side, which is the kind of error that ends up in the wrong
- *    tooth being treated. The rows are pinned `dir="ltr"`.
- *  - **Rows, not arches.** An earlier revision curved the teeth onto two
- *    ellipses. It was prettier and harder to read: counting "the fifth from
- *    the midline" along a curve is counting, and no two crowns were the same
- *    way up. Rows are also what every chart a dentist has used looks like.
- *  - **It scrolls rather than shrinking below a tappable size.** Sixteen teeth
- *    do not fit across a phone at a size anyone can hit, so the pair of rows
- *    scrolls together — and opens centred on the midline, because the incisors
- *    are what orients you.
- */
+// The chart never mirrors in RTL: it is anatomy from the clinician's side, and flipping it puts the
+// patient's right on the wrong side. It scrolls rather than shrinking below a tappable size.
 export function ToothChart({
   dentition,
   summaries,
@@ -91,12 +68,8 @@ export function ToothChart({
     containerRef.current?.querySelector<HTMLButtonElement>(`[data-tooth="${tooth}"]`)?.focus();
   }, []);
 
-  /**
-   * Arrow keys walk the rows the way the eye does — left to right, with up and
-   * down crossing between the rows at the same position. The directions are
-   * visual on purpose: the chart is pinned LTR, so mapping the keys to the
-   * page's reading direction would send focus the wrong way in Arabic.
-   */
+  // The directions are visual on purpose: the chart is pinned LTR, so mapping the keys to the
+  // page's reading direction would send focus the wrong way in Arabic.
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLButtonElement>, slot: ToothSlot): void => {
       const row = slot.arch === 'upper' ? upper : lower;
@@ -154,24 +127,12 @@ export function ToothChart({
   );
 
   return (
-    // `dir="ltr"` on the wrapper: the chart is anatomy drawn from the
-    // clinician's point of view, so it must not reorder with the page even
-    // though everything around it is Arabic.
     <div
       dir="ltr"
       ref={containerRef}
-      /*
-       * `pt-9` is for the tooltip, not for looks.
-       *
-       * `overflow-x: auto` makes this a scroll container on *both* axes — CSS
-       * turns the other axis's `visible` into `auto` — so a bubble sitting
-       * above the top row was clipped to a black sliver at the card's edge.
-       * The padding is the room it needs.
-       */
+      // `pt-9` is for the tooltip: `overflow-x: auto` makes this a scroll container on both axes,
+      // so a bubble above the top row was clipped to a sliver.
       className="overflow-x-auto rounded-card border border-chart-border bg-chart-surface px-2 pb-3 pt-9"
-      // Tooth width, in one place: the rows, the SVGs and the labels all size
-      // off it. Small enough to fit a phone at a still-tappable 30px, roomier
-      // once there is room.
       style={
         {
           '--tooth-w': dentition === 'permanent' ? '30px' : '36px',
@@ -183,20 +144,8 @@ export function ToothChart({
         aria-label={t('chart.title')}
         className="relative mx-auto w-max min-w-full sm:[--tooth-w:38px] md:[--tooth-w:44px] lg:[--tooth-w:52px]"
       >
-        {/*
-          The midline, the way an FDI chart draws it.
-
-          It is the reference every quadrant is read against: everything left
-          of it is the patient's right (quadrants 1 and 4), everything right of
-          it is the patient's left. Without it "the fifth one" is ambiguous —
-          fifth from which end? — which is the question the number is supposed
-          to have already answered.
-
-          Positioned at 50% rather than counted in teeth: both rows hold the
-          same number and are centred in the same box, so the container's
-          middle *is* the midline, and it stays there when the chart scrolls or
-          the dentition changes from 32 teeth to 20.
-        */}
+        {/* At 50% rather than counted in teeth: both rows hold the same number, so the container's
+            middle is the midline whether the chart has 32 teeth or 20. */}
         <span
           aria-hidden="true"
           data-chart-midline
@@ -219,20 +168,10 @@ function summarise(summaries: ReadonlyMap<number, ToothSummary>, tooth: number):
   return summaries.get(tooth) ?? healthyTooth(tooth);
 }
 
-/** Where a tooth sits in a run of bridged teeth, if it is in one. */
 type BridgeSpan = 'start' | 'middle' | 'end' | null;
 
-/**
- * A bridge is drawn as a bar joining the teeth it spans, so it reads as one
- * appliance rather than as three teeth that happen to share a colour.
- *
- * Membership is derived from adjacency: neighbouring teeth in the same row
- * that are both charted as bridge are one bridge. The record has no bridge
- * *grouping* — a procedure marks the teeth it touched and nothing links them —
- * so this is the strongest claim the data actually supports. Two separate
- * bridges that happen to be adjacent would draw as one; two bridges with a
- * healthy tooth between them draw correctly, which is the case that occurs.
- */
+// Membership is derived from adjacency, because the record has no bridge grouping — the strongest
+// claim the data supports. Two adjacent bridges would draw as one.
 function bridgeSpan(
   slots: readonly ToothSlot[],
   index: number,
@@ -284,8 +223,7 @@ function Tooth({
   const { t } = useTranslation();
 
   const shape = TOOTH_SHAPES[slot.type];
-  // The three drawings the chart has beyond a fill. Read from the state's own
-  // `shape` rather than from its code, so the row a clinic renamed still draws
+  // Read from the state's own `shape` rather than its code, so a row a clinic renamed still draws
   // as the absence, the post or the bar it is.
   const missing = states.info(summary.state).shape === 'missing';
   const implant = hasShape(summary, 'implant', states);
@@ -393,10 +331,8 @@ function Tooth({
             {bridge !== null && (
               <rect
                 fill={bridgeStyle.stroke}
-                // Only the first tooth of a run keeps its bar inside its own
-                // box; every other one starts 6 units early so it overlaps the
-                // bar reaching towards it. Anything else leaves a hairline gap
-                // between two teeth the appliance is supposed to join.
+                // Every tooth but the first starts 6 units early, so its bar overlaps the one
+                // reaching towards it and no gap opens between teeth the appliance joins.
                 x={bridge === 'start' ? 8 : -6}
                 width={bridge === 'middle' ? 60 : 46}
                 y={CROWN_LINE - 10}
@@ -436,10 +372,8 @@ function Tooth({
   );
 }
 
-/**
- * The hover bubble. Supplementary only — the same facts are already in the
- * tooth's accessible name, so a screen reader is not told them twice.
- */
+// Supplementary only: the same facts are in the tooth's accessible name, so a screen reader is not
+// told them twice.
 function Tooltip({
   summary,
   stateLabel,
@@ -474,7 +408,6 @@ function Tooltip({
   );
 }
 
-/** Placeholder with about the chart's footprint, so nothing jumps. */
 export function ToothChartSkeleton(): JSX.Element {
   return (
     <div

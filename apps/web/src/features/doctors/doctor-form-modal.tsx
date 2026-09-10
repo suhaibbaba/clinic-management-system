@@ -16,11 +16,6 @@ interface DoctorFormModalProps {
 
 const DEFAULT_DURATION = 30;
 
-/**
- * Create links an existing doctor-role account to a specialty; edit changes the
- * specialty, the default appointment length and the weekly schedule. The linked
- * account itself never changes — that is a users-page concern.
- */
 export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
@@ -48,15 +43,8 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
     setSchedule(doctor?.weeklySchedule ?? []);
   }, [open, doctor]);
 
-  /*
-   * `\u2068`/`\u2069` — FIRST STRONG ISOLATE and POP DIRECTIONAL ISOLATE.
-   *
-   * An `<option>` is text, not markup: there is no span to put `dir` on, so
-   * the isolation has to be in the string itself. Without it the bidi
-   * algorithm reads "Dr. Layla Haddad — +963931000002" inside an Arabic select
-   * and hands the dash and the leading plus to the paragraph's direction,
-   * which renders the line as "963931000002+ — Dr. Layla Haddad".
-   */
+  // `\u2068`/`\u2069` isolate the name in the string itself — an `<option>` is text with no span to
+  // carry `dir`, and bidi rendered the line as "963931000002+ — Dr. Layla Haddad".
   const userOptions = (doctorUsers.data?.items ?? []).map((user) => ({
     value: user.id,
     label: `\u2068${user.name}\u2069 — \u2068${user.phone}\u2069`,
@@ -163,11 +151,6 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
 
         <div>
           <p className="mb-2 text-value font-medium text-ink">{t('doctors.schedule')}</p>
-          {/*
-            The same accordion as the clinic's hours and the doctor's own page.
-            Editing a full week here is still possible, but the page is where
-            it belongs — this modal is about linking an account to a specialty.
-          */}
           <WorkingHours value={schedule} onChange={setSchedule} idPrefix="doctor-form-hours" />
         </div>
       </div>

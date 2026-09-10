@@ -1,14 +1,7 @@
 import { useRef, useState, type KeyboardEvent } from 'react';
 
-/**
- * The one key that opens a picker from its own text field.
- *
- * ArrowDown is the convention every combobox uses, and it is the only *key*
- * that can be added without taking something away: Enter belongs to the form
- * and Space belongs to the text being typed. Focus alone must never open
- * anything — a dialog handing focus to its first field would otherwise unfold
- * a calendar over a form nobody has touched, which is the bug this replaced.
- */
+// ArrowDown is the only key that can be added without taking one away: Enter belongs to the form
+// and Space to the text. Focus alone must never open anything.
 export function openOnArrowDown(open: () => void) {
   return (event: KeyboardEvent<HTMLElement>): void => {
     if (event.key === 'ArrowDown') {
@@ -21,36 +14,18 @@ export function openOnArrowDown(open: () => void) {
 export interface PickerOpener {
   readonly open: boolean;
   readonly onOpenChange: (next: boolean) => void;
-  /** True when the popover should take focus — see `Popover`. */
   readonly focusOnOpen: boolean;
-  /**
-   * Spread onto anything inside the anchor that should open the picker: the
-   * field itself, and the button at the end of it.
-   *
-   * `takeFocus` is what separates the two. The button and ArrowDown are a
-   * request for the picker, so it takes focus and the keyboard lands in it;
-   * a click in the text field is somebody about to type a date, so the
-   * calendar appears beside them and the caret stays where they put it.
-   */
+  // `takeFocus` separates the two: the button and ArrowDown ask for the picker, while a click in
+  // the text field means somebody is about to type.
   opens(takeFocus: boolean): {
     onPointerDown: () => void;
     onClick: () => void;
   };
-  /** Opens it and takes focus — for ArrowDown. */
   show(): void;
 }
 
-/**
- * Click opens a picker; clicking again closes it.
- *
- * The second half is why this is a hook rather than `setOpen(true)`. The field
- * *anchors* the popover rather than triggering it (see `Popover`), and
- * Radix treats an anchor as outside the layer: the pointer going down on it
- * dismisses an open popover before the click ever lands, so a plain
- * `onClick={() => setOpen(true)}` reopens what the same gesture just closed and
- * the picker cannot be shut by clicking the thing it belongs to. Remembering
- * what the state was when the pointer went down turns that back into a toggle.
- */
+// The field anchors rather than triggers, and Radix dismisses on pointer-down, so a plain
+// `setOpen(true)` reopens what the same click closed. The pointer-down state restores the toggle.
 export function usePickerOpen(): PickerOpener {
   const [open, setOpen] = useState(false);
   const [focusOnOpen, setFocusOnOpen] = useState(true);

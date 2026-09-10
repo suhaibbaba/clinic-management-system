@@ -22,7 +22,6 @@ const byDate = (days: readonly { date: string; slots: unknown[] }[]) =>
 /** Days offered at once. Seven is a thumb-flick and covers "next Tuesday". */
 const VISIBLE_DAYS = 7;
 
-/** What the API allows, and what this page reports when a code is refused. */
 const OTP_ATTEMPTS = 3;
 
 type Stage = 'doctor' | 'when' | 'details' | 'otp' | 'done';
@@ -37,19 +36,8 @@ const STAGE_TITLE: Record<Stage, string> = {
   done: 'success.heading',
 };
 
-/**
- * The whole public booking flow.
- *
- * One page, four stages, no router: the patient arrives from a WhatsApp link,
- * books, and leaves. Deep-linking into the middle of a half-filled form would
- * only produce a page that cannot answer for itself.
- *
- * Every failure lands somewhere useful rather than in a toast that scrolls
- * away. The one that matters is a taken slot: between choosing 10:00 and
- * pressing confirm, somebody else can book it, and this page answers that by
- * going back to the grid *with fresh times*, which is the only screen where
- * the news is actionable.
- */
+// One page, four stages, no router — the patient arrives from a link, books and leaves. A slot
+// taken meanwhile returns to the grid with fresh times, the only screen where that is actionable.
 export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element {
   const clinic = useAsync(() => bookingApi.clinic(slug), [slug]);
   const doctors = useAsync(() => bookingApi.doctors(slug), [slug], clinic.data?.bookingEnabled);
@@ -71,23 +59,14 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
   const maxDaysAhead = clinic.data?.maxDaysAhead ?? VISIBLE_DAYS;
   const chips = useMemo(() => dayChips(from, VISIBLE_DAYS, maxDaysAhead), [from, maxDaysAhead]);
 
-  /*
-   * The visible week, in one round trip per day.
-   *
-   * Fetching the whole strip is what lets a closed day render as a greyed
-   * chip. It also gives the conflict path something to do: `week.reload()` is
-   * literally "here are the times as they are now".
-   */
+  // Fetching the whole strip is what lets a closed day render as a greyed chip, and gives the
+  // conflict path a `week.reload()` to offer.
   const week = useAsync(
     async () => {
       const days = await Promise.all(
         chips.map((chip) => bookingApi.slots(slug, doctor?.id ?? '', chip.date)),
       );
 
-      // The clinic's own clock, learned from any slot: the label and the
-      // instant of the same slot are enough. Everything after this — the
-      // confirmation, the calendar file — is then drawn in the clinic's terms
-      // rather than the phone's.
       const sample = days.flatMap((day) => day.slots)[0];
       if (sample) {
         learnClinicOffset(sample.startsAt, sample.start);
@@ -99,16 +78,8 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
     Boolean(doctor),
   );
 
-  /*
-   * Land on a day that has times.
-   *
-   * The strip opens on today, and today is over by the evening — which is
-   * exactly when somebody browsing on their phone opens the link. Showing them
-   * "no times available" as the first thing the page says, when tomorrow is one
-   * chip away and full of slots, is a page arguing with its own visitor. So
-   * once the week is known, if the selected day is empty, move to the first day
-   * that is not.
-   */
+  // The strip opens on today, and today is over by the evening — exactly when somebody opens the
+  // link. Move to the first day that has times.
   useEffect(() => {
     if (!week.data || (byDate(week.data).get(date)?.length ?? 0) > 0) {
       return;
@@ -188,15 +159,8 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
     }
   };
 
-  /**
-   * "Send it again", built out of the two endpoints that exist.
-   *
-   * There is no resend route — deliberately: one live code per booking is what
-   * stops two valid codes existing at once. So the held booking is released
-   * and the same slot re-taken, which issues a fresh code through the ordinary
-   * path. If someone else took the slot in the meantime the patient lands back
-   * on the grid, which is the truthful answer to "resend" at that point.
-   */
+  // There is no resend route: one live code per booking. So the hold is released and the slot re-
+  // taken, which issues a fresh code through the ordinary path.
   const resend = async (): Promise<void> => {
     if (!token) {
       return;
@@ -342,12 +306,8 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
               <Card className="bg-primary-50 shadow-none">
                 <p className="text-label text-ink-muted">{t('details.summary')}</p>
                 <p className="mt-1 text-value font-medium text-ink">{bookingName(doctor?.name)}</p>
-                {/*
-                  The time hugs its content and lets the card place it. As a
-                  block it aligned itself to the left of an RTL card, so the
-                  summary read as a doctor's name on the right with a time
-                  stranded on the other side of the box.
-                */}
+                {/* The time hugs its content: as a block it aligned left inside an RTL card,
+                    stranding it on the far side of the box. */}
                 <p className="text-value text-ink">
                   <span dir="ltr" className="inline-block w-fit whitespace-nowrap tabular-nums">
                     {slot?.start}

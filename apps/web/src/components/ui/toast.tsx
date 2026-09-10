@@ -18,7 +18,6 @@ type ToastTone = 'success' | 'error';
 
 interface ToastMessage {
   readonly id: number;
-  /** i18n key. */
   readonly messageKey: string;
   readonly values?: Record<string, string | number>;
   readonly tone: ToastTone;
@@ -70,13 +69,8 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
 
   return (
     <ToastContext.Provider value={api}>
-      {/*
-        The toast sits in the bottom *start* corner — the right-hand side of an
-        Arabic page — so the gesture that throws it away goes towards the
-        nearest edge, which is the right in RTL and the left in LTR. Pinned to
-        "left", an Arabic user swiped a toast across the whole screen to
-        dismiss it, or more often gave up and waited for it to time out.
-      */}
+      {/* The toast sits in the bottom start corner, so the dismiss gesture goes towards the nearest
+          edge — pinned left, an Arabic user swiped across the whole screen. */}
       <ToastPrimitive.Provider
         swipeDirection={documentDirection() === 'rtl' ? 'right' : 'left'}
         duration={5000}

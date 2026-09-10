@@ -6,14 +6,8 @@ import { usePatients } from '@web/features/patients/queries';
 import { useDebounced } from '@web/lib/use-debounced';
 import { cn } from '@web/lib/cn';
 
-/**
- * What the picker draws — not a whole patient record.
- *
- * The calendar feed already carries these four for every appointment, so an
- * edit form can fill the picker from the row it was opened on rather than
- * fetching the patient again. It is also all a receptionist's response
- * contains, which is the other reason not to demand the clinical view here.
- */
+// Not a whole patient record: the calendar feed already carries these four, and they are all a
+// receptionist's response contains.
 export interface PickedPatient {
   readonly id: string;
   readonly fullName: string;
@@ -27,14 +21,8 @@ export interface PatientPickerProps {
   readonly id: string;
 }
 
-/**
- * Choose a patient by searching for them.
- *
- * A `<select>` of every patient is unusable past a few hundred rows, and the
- * clinic already has one search that reception knows — the patients list —
- * so this reuses the same endpoint and the same field, and shows the same
- * identity cell (initial, name, file number) so a result looks familiar.
- */
+// A `<select>` of every patient is unusable past a few hundred rows, so this reuses the search
+// reception already knows and the same identity cell.
 export function PatientPicker({ value, onChange, id }: PatientPickerProps): JSX.Element {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');

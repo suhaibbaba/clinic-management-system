@@ -6,16 +6,12 @@ import en from '@web/i18n/locales/en.json';
 
 export const DEFAULT_LANGUAGE = 'ar';
 
-/** Languages that render right-to-left; drives the `dir` attribute. */
 const RTL_LANGUAGES = new Set(['ar']);
 
 export const isRtl = (language: string): boolean => RTL_LANGUAGES.has(language.split('-')[0] ?? '');
 
-/**
- * Arabic is the default and only shipped language for now (CLAUDE.md); English
- * resources are wired up so adding it later is a config change. UI strings never
- * live in components — always `t('some.key')`.
- */
+// Arabic is the default and only shipped language; English is wired up so adding it is a config
+// change. Strings never live in components.
 void i18n.use(initReactI18next).init({
   resources: {
     ar: { translation: ar },

@@ -23,11 +23,8 @@ if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = (): void => {};
 }
 
-/*
- * Radix `Select` captures the pointer to keep a drag-to-choose gesture on the
- * list it started in. jsdom implements none of the Pointer Capture API, so the
- * primitive throws on the first pointer-down without these three.
- */
+// Radix `Select` captures the pointer, and jsdom implements none of the Pointer Capture API, so the
+// primitive throws on the first pointer-down without these.
 Element.prototype.hasPointerCapture ??= (): boolean => false;
 Element.prototype.setPointerCapture ??= (): void => {};
 Element.prototype.releasePointerCapture ??= (): void => {};

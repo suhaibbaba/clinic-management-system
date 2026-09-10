@@ -4,15 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { Icon, type IconName } from '@web/components/ui/icon';
 
 export interface EmptyStateProps {
-  /** i18n keys. */
   title: string;
   hint?: string | undefined;
   action?: ReactNode | undefined;
-  /**
-   * The thing that is missing, drawn. Defaults to a neutral document, so an
-   * empty state is never a bare paragraph in a dashed box — the icon is what
-   * makes it read as "nothing here yet" rather than as a failed render.
-   */
   icon?: IconName | undefined;
 }
 

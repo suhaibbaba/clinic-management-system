@@ -28,7 +28,6 @@ import {
 import { canSeePrices } from '@web/features/patients/permissions';
 import { useCurrency } from '@web/features/clinic/queries';
 
-/** What the form emits; the caller supplies the patient it belongs to. */
 export type ProcedureFormValues = Omit<CreatePerformedProcedureInput, 'patientId'>;
 
 export interface ProcedureFormProps {
@@ -38,32 +37,13 @@ export interface ProcedureFormProps {
   readonly submitting: boolean;
   readonly onSubmit: (values: ProcedureFormValues) => void;
   readonly onCancel: () => void;
-  /**
-   * Fixes the procedure to one tooth and shows the surface picker. Omitted
-   * where the tooth is not the subject — a procedure recorded against a visit
-   * may have no location at all.
-   */
   readonly tooth?: number | undefined;
-  /** Links the record to the visit it happened in. */
   readonly visitId?: string | undefined;
-  /** Editing an existing procedure rather than recording a new one. */
   readonly procedure?: PerformedProcedure | undefined;
 }
 
-/**
- * The one form that records a procedure, wherever it is recorded from.
- *
- * It started life inside the tooth panel and is now shared with the visits tab,
- * because the questions are the same in both places: which procedure, who did
- * it, how far along it is, what it cost. What differs is the context the caller
- * already knows — a tooth, a visit, or neither — which arrives as props rather
- * than being asked for again.
- *
- * Money stays a string throughout; the price is prefilled from the catalog but
- * editable, since the API snapshots what it is sent and a one-off price must
- * never rewrite the catalog. A discount requires a reason — the shared Zod
- * schema's rule, enforced here rather than waiting for a 400.
- */
+// One form wherever a procedure is recorded; the context arrives as props. The price is prefilled
+// but editable, since the API snapshots what it is sent and must not rewrite the catalog.
 export function ProcedureForm({
   role,
   catalog,
@@ -95,9 +75,8 @@ export function ProcedureForm({
   const showPrices = canSeePrices(role);
   const selected = catalog.find((item) => item.id === procedureId);
 
-  // Prefill from the catalog when the procedure changes, so switching never
-  // leaves the previous one's price behind. An edit keeps its snapshot: the
-  // price that was charged is history, not a default to re-derive.
+  // Prefill when the procedure changes, so switching leaves no stale price. An edit keeps its
+  // snapshot: what was charged is history, not a default.
   useEffect(() => {
     if (!isEdit) {
       setPrice(selected?.defaultPrice ?? '');
@@ -242,7 +221,6 @@ export function ProcedureForm({
   );
 }
 
-/** Surfaces already recorded on this tooth, when editing. */
 function initialSurfaces(
   procedure: PerformedProcedure | undefined,
   tooth: number | undefined,

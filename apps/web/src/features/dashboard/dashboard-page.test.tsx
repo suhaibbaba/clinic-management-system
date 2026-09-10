@@ -32,13 +32,7 @@ async function renderDashboard(
   await screen.findByRole('heading', { name: ar.dashboard.title, level: 1 });
 }
 
-/**
- * The card carrying a label, as a link.
- *
- * `findBy`, because the figures arrive with their own request a moment after
- * the heading does — the card's label is drawn immediately but the card it
- * belongs to only exists once the response says the role may have it.
- */
+/** `findBy`, because the card only exists once the response says the role may have it. */
 const card = async (label: string): Promise<HTMLElement> => {
   const link = (await screen.findByText(label)).closest('a');
   expect(link).not.toBeNull();
@@ -96,15 +90,11 @@ describe('Dashboard', () => {
 
     expect(within(today).getByText('3')).toBeInTheDocument();
     expect(within(pending).getByText('2')).toBeInTheDocument();
-    // Whole numbers now — the KPI reads "450", not "450.00".
     expect(within(overdue).getByText(/450/)).toBeInTheDocument();
   });
 
-  /*
-   * The API omits the figures a role may not read, so the page draws exactly
-   * what it was sent. It keeps no copy of the permission matrix — which is
-   * what stops it from drifting away from the one in ROLES.md.
-   */
+  // The API omits the figures a role may not read, so the page draws what it was sent and keeps no
+  // copy of the permission matrix.
   it('draws no card for a figure the response withheld', async () => {
     await renderDashboard(
       USER_ROLE.TECHNICIAN,

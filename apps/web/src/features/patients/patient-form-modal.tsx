@@ -20,18 +20,11 @@ import { errorMessageKey } from '@web/lib/api-error';
 interface PatientFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Called with the new patient's id, so the caller can open the file. */
   onCreated: (patientId: string) => void;
 }
 
-/**
- * Registers a patient.
- *
- * Only the basic-info fields ROLES.md lets a receptionist write — the clinical
- * record is filled in from the patient file afterwards. The file number is
- * deliberately absent: the API allocates it per clinic, and accepting one from
- * here would let two receptionists pick the same one.
- */
+// The file number is absent deliberately: the API allocates it per clinic, and accepting one here
+// would let two receptionists pick the same.
 export function PatientFormModal({
   open,
   onOpenChange,
@@ -116,11 +109,6 @@ export function PatientFormModal({
           error={errors.dateOfBirth}
           optional
         >
-          {/*
-            A date of birth is typed far more often than it is picked — nobody
-            pages back sixty years of months — so the field leads and the
-            calendar is there for the times it helps.
-          */}
           <Controller
             control={control}
             name="dateOfBirth"

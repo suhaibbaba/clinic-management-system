@@ -18,15 +18,8 @@ import { categoryTone } from '@web/features/inventory/display';
 import { useShoppingList } from '@web/features/inventory/queries';
 import { formatDate } from '@web/lib/format';
 
-/**
- * What to buy, on a page somebody prints and carries.
- *
- * The suggestion is twice the minimum less what is on the shelf: enough to
- * clear the reorder level and hold the same amount again, so the clinic is not
- * back on this screen next week. It is a starting figure, and the page says so
- * — the technician who knows a supplier only sells full cartons will write
- * their own number on the paper, which is exactly what paper is for.
- */
+// Twice the minimum less what is on the shelf — a starting figure, which the page says: the
+// technician who knows a supplier sells full cartons writes their own.
 export function ShoppingListPage(): JSX.Element {
   const { t } = useTranslation();
   const categoryLabel = useLookupLabels(LOOKUP_LIST.ITEM_CATEGORY);

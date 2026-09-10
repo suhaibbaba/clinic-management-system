@@ -23,20 +23,8 @@ const STATUS_KEY: Record<string, string> = {
 
 type Mode = 'view' | 'confirming-cancel' | 'rescheduling';
 
-/**
- * The link that went out by SMS.
- *
- * The token is the only credential — there is no account — so the page shows
- * what that token stands for and nothing else: an appointment's own facts, no
- * file number, no history, no other visit. Whether it may still be changed is
- * the API's answer (`canModify`), not this page's arithmetic; when the answer
- * is no, the clinic's phone number is what the screen offers instead.
- *
- * Rescheduling needs a doctor id to ask for slots, which the managed view does
- * not carry (it names the doctor, not their id). The clinic's public doctor
- * list is matched by name — which is why the reschedule strip appears only
- * when that match succeeds, rather than showing an empty grid.
- */
+// The token is the only credential, so the page shows what it stands for and nothing else.
+// Rescheduling needs a doctor id the managed view lacks, hence the match by name.
 export function ManagePage({
   token,
   slug,
@@ -182,13 +170,8 @@ export function ManagePage({
   );
 }
 
-/**
- * The same slot picker the wizard uses, pointed at the booking's own doctor.
- *
- * Without a clinic slug in the link there is nothing to ask for slots with, so
- * the panel says the clinic's phone number instead of rendering a grid that
- * can never fill.
- */
+// Without a clinic slug there is nothing to ask for slots with, so the panel offers the clinic's
+// phone number rather than a grid that can never fill.
 function ReschedulePanel({
   booking,
   slug,

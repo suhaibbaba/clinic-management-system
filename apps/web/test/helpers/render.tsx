@@ -23,16 +23,9 @@ function createTestQueryClient(): QueryClient {
 
 export interface RenderOptions {
   route?: string;
-  /** Wrap in SessionProvider — the default; disable to test it in isolation. */
   withSession?: boolean;
-  /**
-   * The clinic's editable lists, pre-seeded into the cache.
-   *
-   * Every dropdown in the app reads these, so the default is the same set a
-   * clinic is seeded with — a component under test should not have to know
-   * that its `<Select>` is fed by a query. Pass a bundle to add a list option
-   * the clinic invented and see how the screen draws it.
-   */
+  // Every dropdown reads these, so the default is the set a clinic is seeded with — a component
+  // under test should not have to know its `<Select>` is fed by a query.
   lookups?: LookupBundle;
 }
 
@@ -42,11 +35,8 @@ export function renderWithProviders(
 ): RenderResult {
   const client = createTestQueryClient();
 
-  /*
-   * As defaults rather than as cache entries: the test client collects
-   * anything with no observer the moment it is written, and these are written
-   * before the component that reads them has mounted.
-   */
+  // As defaults rather than cache entries: the test client collects anything with no observer the
+  // moment it is written, and these are written before mount.
   for (const includeInactive of [false, true]) {
     client.setQueryDefaults(lookupBundleKey(includeInactive), {
       initialData: lookups,
@@ -74,12 +64,8 @@ export interface MockResponse {
 
 export type RouteHandler = (request: { body: unknown; url: string }) => MockResponse;
 
-/**
- * Scripts `fetch` by "METHOD /path".
- *
- * The real api client runs on top of this, so the token handling and the
- * refresh-once-on-401 behaviour under test are the shipped ones, not a stub.
- */
+// The real api client runs on top of this, so the token handling and refresh-once-on-401 under test
+// are the shipped ones.
 export function mockApi(handlers: Record<string, RouteHandler | MockResponse>): {
   calls: { method: string; url: string; body: unknown }[];
 } {

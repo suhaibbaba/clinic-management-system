@@ -8,14 +8,6 @@ const stepsFor = (
   role: Parameters<typeof availableSteps>[1],
 ) => availableSteps(status, role).map((step) => step.step);
 
-/**
- * The board only offers moves the API would accept.
- *
- * Two tables decide that — the shared transition map and the ROLES.md split
- * between what a technician does and what a doctor does — and this is where
- * they meet. Hiding a button is cosmetic; the point of the test is that the
- * cosmetics never disagree with the rules.
- */
 describe('availableSteps', () => {
   it('offers a technician the lab-side moves and never the fitting', () => {
     expect(stepsFor(LAB_ORDER_STATUS.DRAFT, USER_ROLE.TECHNICIAN)).toEqual(['send', 'cancel']);

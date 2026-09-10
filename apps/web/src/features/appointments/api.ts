@@ -45,12 +45,6 @@ export const appointmentsApi = {
   update: (id: string, body: UpdateAppointmentInput) =>
     apiRequest<CalendarAppointment>(`/appointments/${id}`, { method: 'PATCH', body }),
 
-  /**
-   * The transition endpoints, one per act.
-   *
-   * Named after what the front desk presses rather than after a status field,
-   * which is what makes both the audit trail and this object readable.
-   */
   confirm: (id: string) =>
     apiRequest<CalendarAppointment>(`/appointments/${id}/confirm`, { method: 'PATCH' }),
   arrived: (id: string) =>

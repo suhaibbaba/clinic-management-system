@@ -65,13 +65,7 @@ export function makeUser(overrides: Partial<User> = {}): User {
   };
 }
 
-/**
- * A page of results.
- *
- * `total` defaults to what was passed, and can be overridden — a badge fed by
- * `limit: 1` reads the total off a page of one row, so a fixture that could
- * only ever report `items.length` could not stand in for it.
- */
+/** `total` can be overridden: a badge fed by `limit: 1` reads the total off a page of one row. */
 export function paginated<TItem>(items: TItem[], overrides: { total?: number } = {}) {
   return {
     items,
@@ -124,7 +118,6 @@ export function makeCatalogItem(
   };
 }
 
-/** A performed procedure carrying one FDI chart mark. */
 export function makeProcedure(
   tooth: number,
   overrides: Partial<PerformedProcedure> = {},
@@ -368,13 +361,8 @@ export function makeOverduePatient(overrides: Partial<OverduePatient> = {}): Ove
 
 export const APPOINTMENT_ID = '66666666-6666-4666-8666-666666666666';
 
-/**
- * One row of the calendar.
- *
- * `startsAt` is a real instant rather than a fixed string so a test can say
- * "today at ten" without knowing what today is; the clinic's zone is what
- * turns it back into a wall-clock time on screen.
- */
+// A real instant rather than a fixed string, so a test can say "today at ten" without knowing what
+// today is.
 export function makeCalendarAppointment(
   overrides: Partial<CalendarAppointment> = {},
 ): CalendarAppointment {
@@ -405,13 +393,8 @@ export function makeCalendarAppointment(
   };
 }
 
-/**
- * The landing page's aggregate, with every figure present.
- *
- * The API omits the ones a role may not read, so a test for role shaping
- * builds the narrower response by passing `undefined` for a field rather than
- * by reaching for a second fixture.
- */
+// The API omits the figures a role may not read, so a role-shaping test passes `undefined` for a
+// field rather than reaching for a second fixture.
 export function makeDashboardSummary(overrides: Partial<DashboardSummary> = {}): DashboardSummary {
   return {
     date: '2026-09-07',
@@ -424,14 +407,8 @@ export function makeDashboardSummary(overrides: Partial<DashboardSummary> = {}):
   };
 }
 
-/**
- * The editable lists as a clinic starts with them.
- *
- * Built from the same `SYSTEM_LOOKUPS` the API seeds from, so a test that
- * renders a dropdown sees exactly the rows a real clinic would — and a test
- * that adds a row to one of them is adding a row to a real list, not to a
- * fixture that happens to resemble one.
- */
+// Built from the same `SYSTEM_LOOKUPS` the API seeds from, so a dropdown under test sees exactly
+// the rows a real clinic would.
 export function makeLookupBundle(
   extra: Partial<Record<LookupListKey, readonly Partial<LookupOption>[]>> = {},
 ): LookupBundle {

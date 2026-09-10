@@ -80,7 +80,6 @@ describe('Login flow', () => {
     let refreshCalls = 0;
 
     mockApi({
-      // The cold-load refresh succeeds, so the app tries /me.
       'POST /auth/refresh': () => {
         refreshCalls += 1;
         return { status: 200, body: { accessToken: `access-${refreshCalls}`, expiresIn: 900 } };
@@ -97,7 +96,6 @@ describe('Login flow', () => {
 
     renderWithProviders(<AppRoutes />, { route: '/doctors' });
 
-    // The retried /me succeeded, so the shell renders with the user on it.
     expect(await screen.findByText(profile.name.ar)).toBeInTheDocument();
     expect(meCalls).toBe(2);
     // Once on cold load, once for the 401 — not one refresh per failed call.

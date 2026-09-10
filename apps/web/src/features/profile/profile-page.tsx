@@ -21,7 +21,6 @@ import { authApi } from '@web/features/auth/api';
 import { useSession } from '@web/features/auth/session';
 import { ApiError, errorMessageKey } from '@web/lib/api-error';
 
-/** Own profile and password — available to every role. */
 export function ProfilePage(): JSX.Element {
   const { t, i18n } = useTranslation();
   const toast = useToast();
@@ -61,11 +60,8 @@ export function ProfilePage(): JSX.Element {
         <section className="rounded-card bg-surface shadow-card p-4">
           <h2 className="text-section font-semibold text-ink">{t('profile.details')}</h2>
 
-          {/*
-            Read-only here: a staff photo is set by the admin on the users
-            screen, which is where accounts are managed (ROLES.md). This is
-            where somebody sees the face the rest of the clinic sees.
-          */}
+          {/* Read-only here: a staff photo is set by the admin on the users screen, where accounts
+              are managed. */}
           <div className="mt-3 flex items-center gap-3">
             <Avatar
               name={personName(user?.name, i18n.language)}

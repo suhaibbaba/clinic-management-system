@@ -1,19 +1,14 @@
 import { authTokens } from '@web/lib/auth-tokens';
 import { ApiError, NetworkError } from '@web/lib/api-error';
 
-/**
- * Same-origin in every environment: Vite proxies `/api` in development, nginx
- * proxies it in production. Same-origin is also what lets the httpOnly refresh
- * cookie ride along without CORS credentials.
- */
+// Same-origin in every environment, which is also what lets the httpOnly refresh cookie ride along
+// without CORS credentials.
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
 const REFRESH_PATH = '/auth/refresh';
 
-/**
- * In flight refresh, shared by every request that hit a 401 at the same time,
- * so a burst of parallel queries triggers exactly one refresh.
- */
+// Shared by every request that hit a 401 at once, so a burst of parallel queries triggers exactly
+// one refresh.
 let refreshInFlight: Promise<boolean> | null = null;
 
 export interface RequestOptions {
@@ -100,10 +95,8 @@ async function parse<TResult>(response: Response): Promise<TResult> {
   return (await response.json()) as TResult;
 }
 
-/**
- * Performs a request, refreshing once on a 401 and replaying the original call.
- * A second 401 ends the session and the app routes back to the login screen.
- */
+// Refreshes once and replays the call; a second 401 ends the session and routes back to the login
+// screen.
 export async function apiRequest<TResult>(
   path: string,
   options: RequestOptions = {},
@@ -133,13 +126,6 @@ export async function apiRequest<TResult>(
   return parse<TResult>(response);
 }
 
-/**
- * Fetches a binary document — a receipt or a statement PDF.
- *
- * These endpoints need the same bearer token and the same refresh-on-401 as
- * any other call, which is why the browser cannot simply follow a link to
- * them.
- */
 export async function apiDownload(path: string, query?: RequestOptions['query']): Promise<Blob> {
   const options: RequestOptions = query ? { query } : {};
   let response = await send(path, options);
@@ -162,7 +148,6 @@ export async function apiDownload(path: string, query?: RequestOptions['query'])
   return response.blob();
 }
 
-/** Restores a session on a cold page load. Safe to call when signed out. */
 export async function restoreSession(): Promise<boolean> {
   return refreshSession();
 }

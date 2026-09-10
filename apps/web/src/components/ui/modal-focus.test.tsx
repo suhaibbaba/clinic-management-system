@@ -11,18 +11,8 @@ import { TimePicker } from '@web/components/ui/time-picker';
 import '@web/i18n';
 import ar from '@web/i18n/locales/ar.json';
 
-/**
- * What a dialog must not do when it opens.
- *
- * Radix focuses the first focusable element by default. In this app that first
- * element is very often a date or a time field, and the two failures compound:
- * a caret lands in a form nobody has touched, and the picker attached to that
- * field unfolds a calendar over the dialog before anyone has read its title.
- *
- * The fix is in the shared `Modal` and `Drawer`, so these tests are written
- * against those rather than against any one screen — a dialog somewhere in the
- * app cannot opt out of it, and a new one cannot forget.
- */
+// Written against the shared `Modal` and `Drawer` rather than one screen, so a dialog cannot opt
+// out and a new one cannot forget.
 
 /** A dialog whose first field is a date picker: the worst case, on purpose. */
 function DialogWithPickers({

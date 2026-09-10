@@ -6,13 +6,8 @@ import { Button, FormField, Input, Modal, Switch, Textarea, useToast } from '@we
 import { useCreateSupplier, useUpdateSupplier } from '@web/features/inventory/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
-/**
- * A supplier.
- *
- * Retiring one is a switch rather than a delete: purchases point at them, and
- * a statement whose counterparty has vanished is unreadable. The switch keeps
- * them out of the pickers and leaves every line intact.
- */
+// Retiring is a switch rather than a delete: purchases point at them, and a statement whose
+// counterparty vanished is unreadable.
 export function SupplierFormModal({
   open,
   onOpenChange,

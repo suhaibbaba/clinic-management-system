@@ -7,51 +7,23 @@ import {
 
 import { clinicTimeZone } from '@web/lib/clinic-zone';
 
-/**
- * The day grid's own arithmetic.
- *
- * Kept out of the components because every one of these is a thing that is
- * either right or subtly wrong by fifteen minutes, and a function is testable
- * where a JSX expression is not.
- *
- * Everything is in **minutes from midnight in the clinic's timezone**, using
- * the same helpers the API's slot module uses — not the browser's zone. A
- * receptionist's laptop set to the wrong zone would otherwise draw 09:00 in
- * one place and book it as 06:00 in another, and the calendar would disagree
- * with the availability endpoint about what a day even contains.
- */
+// Minutes from midnight in the clinic's timezone, not the browser's: a laptop set elsewhere would
+// draw 09:00 and book it as 06:00.
 
 /** The grid runs 07:00–22:00: earlier than any clinic opens, later than it shuts. */
 export const GRID_START_MINUTE = 7 * 60;
 export const GRID_END_MINUTE = 22 * 60;
 export const GRID_MINUTES = GRID_END_MINUTE - GRID_START_MINUTE;
 
-/** One hour of grid, in pixels. Everything else is a fraction of it. */
 export const HOUR_HEIGHT = 60;
 
-/**
- * The shortest block that can hold two lines of text.
- *
- * The grid draws an hour in `HOUR_HEIGHT` pixels, so a block's height in
- * pixels is its duration in minutes. Two lines of an appointment block — an
- * 11px name over a 10px time, both at `leading-snug`, inside `py-1` and a
- * border — need 39 of them, and the clinic's default appointment is 30
- * minutes: the second line of most of the calendar was being sliced through
- * the middle by the block's own `overflow-hidden`.
- *
- * So a short block states the same facts on one line instead. The threshold
- * lives here, with the arithmetic it belongs to, rather than as a number
- * inside a component.
- */
+// A block is as many pixels tall as it is minutes long, and two lines of this type need 39 — so the
+// clinic's default 30-minute appointment states its facts on one line.
 export const TWO_LINE_MINUTES = 40;
 
-/**
- * A floor on a block's height, so a 5-minute appointment is still readable and
- * still clickable rather than a hairline.
- */
+/** A floor, so a 5-minute appointment is still readable and clickable rather than a hairline. */
 export const MIN_BLOCK_MINUTES = 20;
 
-/** How tall a block will actually be drawn, in minutes of grid. */
 export const blockMinutes = (durationMinutes: number): number =>
   Math.max(durationMinutes, MIN_BLOCK_MINUTES);
 
@@ -64,7 +36,6 @@ export const minutesOf = (iso: string): number => {
   return minutesFromLocalMidnight(at, toIsoDate(at), clinicTimeZone());
 };
 
-/** `YYYY-MM-DD` for an instant, in the clinic's zone. */
 export const toIsoDate = (at: Date): string => localDate(at, clinicTimeZone());
 
 export const todayIso = (): string => toIsoDate(new Date());
@@ -87,7 +58,6 @@ export function startOfWeek(isoDate: string): string {
 export const weekDates = (isoDate: string): string[] =>
   Array.from({ length: 7 }, (_, index) => addDays(startOfWeek(isoDate), index));
 
-/** `HH:MM` from minutes, for a grid label. */
 export function toTimeLabel(minute: number): string {
   const hours = Math.floor(minute / 60);
   const minutes = minute % 60;
@@ -95,15 +65,8 @@ export function toTimeLabel(minute: number): string {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
-/** Where a block sits in the grid, as a percentage of the day's height. */
-/**
- * Where an absence sits on the day grid, clipped to the drawn hours.
- *
- * The same arithmetic as an appointment's block, against two instants rather
- * than a start and a duration — an absence that began yesterday evening or runs
- * into tomorrow is clamped to the grid rather than drawn off the top of it.
- * Returns null when it does not touch the drawn day at all.
- */
+// The same arithmetic as a block but against two instants, clamped to the drawn hours — an absence
+// from yesterday evening is not drawn off the top. Null when it does not touch the day.
 export function periodPosition(
   startsAt: string,
   endsAt: string,
@@ -143,14 +106,8 @@ export function blockPosition(appointment: CalendarAppointment): {
   };
 }
 
-/**
- * The minute a drag landed on, snapped to the booking granularity.
- *
- * `offsetY` is measured against the column, so it is already relative to the
- * top of the day; the caller does not have to know where the column is on the
- * page. Clamped so a drag past the bottom edge books the last slot rather
- * than a time that does not exist.
- */
+// `offsetY` is measured against the column, so it is already relative to the top of the day.
+// Clamped, so a drag past the bottom books the last slot.
 export function minuteFromOffset(offsetY: number, columnHeight: number): number {
   const ratio = Math.max(0, Math.min(1, offsetY / Math.max(columnHeight, 1)));
   const raw = GRID_START_MINUTE + ratio * GRID_MINUTES;
@@ -159,11 +116,9 @@ export function minuteFromOffset(offsetY: number, columnHeight: number): number 
   return Math.max(GRID_START_MINUTE, Math.min(GRID_END_MINUTE - DRAG_STEP_MINUTES, snapped));
 }
 
-/** A clinic-local date and minute back into the instant the API stores. */
 export const instantAt = (isoDate: string, minute: number): string =>
   instantFromLocal(isoDate, minute, clinicTimeZone()).toISOString();
 
-/** Whole hours the grid draws a line and a label for. */
 export const gridHours = (): number[] =>
   Array.from(
     { length: (GRID_END_MINUTE - GRID_START_MINUTE) / 60 + 1 },

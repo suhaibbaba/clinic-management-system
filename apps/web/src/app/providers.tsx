@@ -7,7 +7,6 @@ import { ToastProvider } from '@web/components/ui';
 import { SessionProvider } from '@web/features/auth/session';
 import { isRtl } from '@web/i18n';
 
-/** Everything the app needs above the router. */
 export function AppProviders({ children }: { children: ReactNode }): JSX.Element {
   const { i18n } = useTranslation();
   const queryClient = useMemo(() => createQueryClient(), []);

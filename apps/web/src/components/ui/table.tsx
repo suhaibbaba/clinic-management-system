@@ -12,32 +12,15 @@ export interface Column<TRow> {
   readonly header: string;
   readonly render: (row: TRow) => ReactNode;
   readonly className?: string | undefined;
-  /**
-   * Dropped from the mobile card. For columns that are context on a wide
-   * screen and noise on a narrow one: an internal id, a file number already
-   * implied by the row you tapped.
-   */
+  // For columns that are context on a wide screen and noise on a narrow one — an internal id, a
+  // file number already implied by the row.
   readonly hideOnMobile?: boolean | undefined;
-  /**
-   * The mirror image: dropped from the wide table, kept on the card. For a
-   * field the wide shape folds into another cell — an email printed as the
-   * caption under a name — and which therefore has nowhere to live on a card
-   * unless it is declared again as its own labelled row.
-   *
-   * A column may set one of these or the other; setting both would declare a
-   * column that never renders.
-   */
+  // The mirror image, for a field the wide shape folds into another cell. A column sets one or the
+  // other; both would declare a column that never renders.
   readonly hideOnDesktop?: boolean | undefined;
-  /**
-   * The card's title line on mobile: rendered bold across the full width with
-   * no label, because a patient's name does not need to be captioned "name".
-   * At most one column should claim this.
-   */
+  // The card's title line: bold across the full width with no label, because a patient's name needs
+  // no caption. At most one column claims it.
   readonly primary?: boolean | undefined;
-  /**
-   * The row's actions. On mobile they leave the label/value grid and sit as a
-   * button row at the foot of the card.
-   */
   readonly actions?: boolean | undefined;
   /** Numeric values: lining, tabular figures so columns of money line up. */
   readonly align?: 'start' | 'end' | 'numeric' | undefined;
@@ -48,14 +31,10 @@ export interface TableProps<TRow> {
   rows: readonly TRow[];
   rowKey: (row: TRow) => string;
   isLoading?: boolean | undefined;
-  /** Rendered in place of the table body when there are no rows. */
   empty?: ReactNode | undefined;
   pagination?: PaginationProps | undefined;
-  /**
-   * Makes the whole row activate. On mobile the card itself becomes the
-   * target, which is the point — a 44px button inside a card is a small thing
-   * to hit when the card is right there.
-   */
+  // On mobile the card itself becomes the target — a 44px button inside a card is a small thing to
+  // hit when the card is right there.
   onRowClick?: ((row: TRow) => void) | undefined;
   /** Names a row for screen readers when the whole row is clickable. */
   rowLabel?: ((row: TRow) => string) | undefined;
@@ -71,44 +50,13 @@ export interface PaginationProps {
 const alignClass = (align: Column<never>['align']): string =>
   align === 'numeric' ? 'text-end tabular-nums' : align === 'end' ? 'text-end' : 'text-start';
 
-/**
- * The same column, on a card.
- *
- * End-alignment is a property of a *column*: a stack of amounts only lines up
- * on its units digit if every one of them ends at the same edge. A card has no
- * column — it has one label and one value on a line — so the same flag pushed a
- * patient's balance to the far side of the card while their phone and their age
- * sat at the start, and in Arabic that put the one figure people look for on
- * the opposite edge from everything else on the row.
- *
- * So the alignment is dropped and only the figures are kept: `tabular-nums`
- * still buys lining digits, which is the half of `numeric` that is about the
- * number rather than about the column.
- */
+// End-alignment is a property of a column, and a card has no column: it pushed the balance to the
+// far side while the phone and age sat at the start. Only `tabular-nums` is kept.
 const cardAlignClass = (align: Column<never>['align']): string =>
   align === 'numeric' ? 'text-start tabular-nums' : 'text-start';
 
-/**
- * One table, two shapes.
- *
- * Above `md` it is a real `<table>`. Below it, each row becomes a card whose
- * body is a two-column grid: the column's own header on one side, that row's
- * value on the other. In RTL that puts labels on the right and values on the
- * left, which falls out of `text-start`/`text-end` rather than being arranged.
- *
- * Both shapes are driven by the *same* `columns` array, which is the whole
- * reason this lives in one component: a label rendered on a card has to be the
- * label in the header above it, and the only way to guarantee that is for
- * there to be one string. A per-screen mobile fork would have had six copies
- * of every header, drifting one rename at a time.
- *
- * Only one shape is rendered at a time, chosen by a media query. Rendering
- * both and hiding one with `md:hidden` was simpler and wrong: `display: none`
- * hides a thing visually but the duplicate is still in the document, so a
- * screen reader reads every row twice and any `id` inside a cell exists twice.
- * The query is read through `useSyncExternalStore`, which returns its snapshot
- * during the first render — so there is no flash of the wrong shape either.
- */
+// Both shapes read the same `columns` array, so a card's label is the header above it. Only one is
+// rendered — `md:hidden` left the duplicate in the document, read twice and with duplicate ids.
 export function Table<TRow>({
   columns,
   rows,
@@ -143,19 +91,12 @@ export function Table<TRow>({
 
           {!isLoading &&
             rows.map((row) => {
-              // Rendered up front: a row action is often conditional — only a
-              // payment has a receipt — and an empty actions block still draws
-              // its divider and padding, leaving a hairline under nothing.
+              // Rendered up front: a row action is often conditional, and an empty actions block
+              // still draws its divider under nothing.
               const rowActions = actions?.render(row) ?? null;
 
-              /*
-               * A row whose value renders nothing is dropped from the card.
-               *
-               * On the wide shape an empty cell holds a column open and the
-               * grid stays aligned; on a card it is a labelled row with
-               * nothing after the label — every charge line in a statement
-               * showed an empty "credit", and every payment an empty "debit".
-               */
+              // A row whose value renders nothing is dropped from the card: on the wide shape an
+              // empty cell holds a column open, on a card it is a label with nothing after it.
               const shown = detail.filter((column) => {
                 const value = column.render(row);
                 return value !== null && value !== undefined && value !== false && value !== '';
@@ -167,43 +108,18 @@ export function Table<TRow>({
                     <p className="mb-3 text-value font-semibold text-ink">{primary.render(row)}</p>
                   )}
 
-                  {/*
-                  No column gap: the row divider is drawn on the two cells, so
-                  a gap between them leaves a visible break in the middle of
-                  every hairline. The label pads its own end instead.
-                */}
+                  {/* No column gap: the row divider is drawn on the two cells, so a gap would break
+                      every hairline in the middle. The label pads its own end instead. */}
                   <dl className="grid grid-cols-[minmax(5.5rem,auto)_1fr]">
                     {shown.map((column, index) => (
                       <div key={column.key} className="contents">
                         <dt
                           className={cn(
-                            // `pe-4`: the label's own end padding, which the
-                            // grid deliberately has no column gap for. Without
-                            // it a label wider than its 5.5rem minimum ran
-                            // straight into its value — "Requested slot" and
-                            // "08/09/2026 11:00" were printed as one word.
+                            // `pe-4` is the label's own end padding — without it a label wider than
+                            // its minimum runs straight into its value.
                             'py-2.5 pe-4 text-start text-label text-ink-muted',
-                            // The value's line height, on the label.
-                            //
-                            // A label is 13px on a 20px line and its value is
-                            // 15px on a 24px one. Both cells start at the same
-                            // y — they are stretched grid items with the same
-                            // top padding — so the taller line box put its
-                            // text 2.5px further down than the shorter one,
-                            // and every label on every card sat visibly above
-                            // the value it names. It reads as the two halves
-                            // of the row belonging to different rows, which on
-                            // a list of patients is the only thing wrong with
-                            // the card.
-                            //
-                            // Matching the line box is what fixes it, rather
-                            // than `items-baseline` on the grid: baseline
-                            // alignment stops stretching the cells, and the
-                            // hairline between rows is drawn on the cells
-                            // themselves — it would land 2.5px lower on one
-                            // side than the other and break in the middle.
-                            // Same 24px box, same first baseline, borders
-                            // still meet, row height unchanged.
+                            // The label carries the value's line height: different line boxes split
+                            // the row, and `items-baseline` breaks the hairline.
                             'leading-6',
                             index > 0 && 'border-t border-line',
                           )}
@@ -246,19 +162,8 @@ export function Table<TRow>({
                   {body}
                 </div>
               ) : (
-                /*
-                 * The whole card opens the row, and the way it does that is an
-                 * overlay button rather than a button wrapped around the card.
-                 *
-                 * A row with actions put a `<button>` inside a `<button>` —
-                 * invalid HTML, which React says out loud in the console, and
-                 * which browsers resolve by guessing: the suppliers list had
-                 * an "edit" that sometimes opened the supplier instead.
-                 *
-                 * The overlay is the standard answer. It carries the label and
-                 * the click; the content above it stays inert except for the
-                 * actions row, which lifts itself back out.
-                 */
+                // An overlay button rather than one wrapped around the card: a row with actions
+                // nested a `<button>` in a `<button>`, and "edit" sometimes opened the supplier.
                 <div key={rowKey(row)} data-row className={cn(cardClass, 'relative')}>
                   <button
                     type="button"
@@ -292,7 +197,6 @@ export function Table<TRow>({
                   key={column.key}
                   scope="col"
                   className={cn(
-                    // Headers are the secondary grey at 13px, not shouted.
                     'whitespace-nowrap border-b border-line px-4 py-2.5 text-label font-medium text-ink-muted',
                     alignClass(column.align),
                     column.className,
@@ -351,13 +255,8 @@ export function Table<TRow>({
   );
 }
 
-/**
- * The loading state in card shape.
- *
- * It mirrors the card's own grid — a title line and `rows` label/value rows —
- * so the skeleton occupies about the height the content will, and the page
- * does not jump when the data lands.
- */
+// Mirrors the card's own grid, so the skeleton occupies about the height the content will and the
+// page does not jump.
 function CardSkeleton({ rows }: { readonly rows: number }): JSX.Element {
   const { t } = useTranslation();
 
@@ -399,9 +298,8 @@ export function Pagination({
   return (
     <nav
       className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-3"
-      // The landmark names the whole control, not one of its buttons: a
-      // screen reader listing the page's navigations announced "next" as the
-      // name of the region, and the button inside it said "next" as well.
+      // The landmark names the whole control, not one of its buttons: a screen reader announced
+      // "next" as the name of the region.
       aria-label={t('pagination.label')}
     >
       <p className="text-label text-ink-muted">{t('pagination.total', { total })}</p>
@@ -421,17 +319,6 @@ export function Pagination({
           {t('pagination.page', { page, totalPages: Math.max(totalPages, 1) })}
         </span>
 
-        {/*
-          The forward chevron trails its label, where "next" points.
-
-          Both buttons took their icon at the start, which is right for
-          "previous" — its chevron points backwards, away from the words, out
-          of the control — and wrong for "next": drawn before the label, a
-          forward chevron aims back into the word it is meant to be leading
-          away from, and the two arrows ended up facing each other across the
-          page count. Reading order does the mirroring, so this is one rule in
-          both languages.
-        */}
         <Button
           icon={<Icon name="chevron-end" />}
           iconPosition="end"

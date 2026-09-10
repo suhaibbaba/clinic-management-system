@@ -34,7 +34,6 @@ export function fromIsoDate(value: string | null | undefined): Date | undefined 
 
 export interface DatePickerProps {
   readonly id: string;
-  /** ISO `yyyy-MM-dd`, or an empty string for no date. */
   readonly value: string;
   readonly onChange: (value: string) => void;
   readonly label: string;
@@ -43,20 +42,8 @@ export interface DatePickerProps {
   readonly className?: string | undefined;
 }
 
-/**
- * A date field: type it, or pick it from a calendar.
- *
- * It replaces `<input type="date">`, which looked foreign in every browser,
- * put its picker button on the wrong side in Arabic, could not be themed, and
- * showed `mm/dd/yyyy` to an Arabic-speaking clinic because the format follows
- * the *browser's* locale rather than the app's.
- *
- * Typing is not a fallback, it is the fast path: someone entering a date of
- * birth types it far quicker than they can page back through sixty years of
- * months. The text is only committed when it parses to a real date, so a
- * half-typed `12/0` leaves the value alone rather than clearing it, and
- * `31/02` is rejected rather than rolling into March.
- */
+// Replaces `<input type="date">`, which showed `mm/dd/yyyy` to an Arabic clinic. Text commits only
+// when it parses, so `12/0` leaves the value alone and `31/02` is refused.
 export function DatePicker({
   id,
   value,
@@ -113,27 +100,16 @@ export function DatePicker({
             placeholder={t('common.placeholders.date')}
             value={typed}
             onChange={(event) => commit(event.target.value)}
-            // Clicking the field shows the calendar beside it — the obvious
-            // thing to try, and what this looked broken without. It does not
-            // take the focus with it, so the caret stays where it was put and
-            // typing, which is the fast path for a date of birth, carries on
-            // uninterrupted. Focus alone still opens nothing.
+            // Clicking shows the calendar without taking focus, so the caret stays where it was put
+            // and typing carries on. Focus alone opens nothing.
             {...picker.opens(false)}
             onKeyDown={openOnArrowDown(picker.show)}
             className={cn(
-              // The value is Latin — `08/09/2026`, `14:30` — so the field is
-              // `dir="ltr"` and keeps its digits and separators in order. Its
-              // *alignment*, though, belongs to the page: aligned by the
-              // element's own direction it sat on the left of an Arabic form
-              // while every other field's value sat on the right, and a column
-              // of fields with one of them wandering off is the thing people
-              // report as "the date looks broken".
+              // The value is Latin so the field is `dir="ltr"`, but its alignment belongs to the
+              // page — by its own direction it sat on the left of an Arabic form.
               'block h-11 w-full rounded-control border bg-surface lg:h-9',
-              // Physical rather than logical, and deliberately so: the field
-              // itself is `dir="ltr"`, so `ps`/`pe` on it would resolve
-              // against *its* direction and reserve the icon's room on the
-              // wrong side of an Arabic form. The `rtl:`/`ltr:` variants ask
-              // the page instead, which is what the icon's `end-0` follows.
+              // Physical deliberately: the field is `dir="ltr"`, so `ps`/`pe` would reserve the
+              // icon's room on the wrong side of an Arabic form.
               'page-rtl:pl-11 page-rtl:pr-3.5 page-rtl:text-right',
               'page-ltr:pl-3.5 page-ltr:pr-11 page-ltr:text-left',
               'text-field text-ink tabular-nums placeholder:text-ink-subtle',
@@ -154,9 +130,7 @@ export function DatePicker({
             // keyboard lands in the calendar rather than behind it.
             {...picker.opens(true)}
             className={cn(
-              // At the inline end, like the range picker's and like the
-              // chevron on every select — and a full 44px wide, because it is
-              // the only way into the calendar with a thumb.
+              // A full 44px wide: it is the only way into the calendar with a thumb.
               'absolute inset-y-0 end-0 flex w-11 cursor-pointer items-center justify-center',
               'text-ink-subtle transition-colors duration-150 hover:text-ink',
               'disabled:cursor-not-allowed',

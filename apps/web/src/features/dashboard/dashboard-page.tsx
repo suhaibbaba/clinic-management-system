@@ -26,21 +26,8 @@ import { canOpenPatientFile } from '@web/features/patients/permissions';
 import { formatDate } from '@web/lib/format';
 import { cn } from '@web/lib/cn';
 
-/**
- * Where everyone lands.
- *
- * Three numbers and the day's list — the questions somebody actually opens
- * this app with: how busy is today, is anybody waiting on an answer, and how
- * much is outstanding. Each number is a door rather than a decoration: the
- * card is the link to the screen that shows the rows behind it, because a
- * count you cannot act on is trivia.
- *
- * Which cards exist follows the response, not the role: the API omits the
- * figures a role may not read (ROLES.md), so a missing field draws no card at
- * all. That is the same rule the patient table follows — the columns exist
- * exactly when the data does — and it means this page never has to keep its
- * own copy of the permission matrix.
- */
+// Each number is a door rather than a decoration. Which cards exist follows the response, not the
+// role: a missing field draws no card, so this page keeps no copy of the matrix.
 export function DashboardPage(): JSX.Element {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -65,19 +52,8 @@ export function DashboardPage(): JSX.Element {
         <EmptyState icon="alert" title="errors.unknown" hint="dashboard.failed" />
       )}
 
-      {/*
-        Two up on a phone and three across from `sm`, rather than the shared
-        four-column `StatRow`: there are three cards here at most, and a
-        four-column grid would leave a hole where the fourth is not.
-      */}
-      {/*
-        Two across until there is room for three.
-
-        At `sm` the third column made each card 141px wide with 40px of its own
-        padding — 101px for a figure that is 128px, and for a label that wraps
-        to two lines and then overflows anyway. Three of these belong on a
-        laptop, not on a tablet held in one hand at the desk.
-      */}
+      {/* At `sm` a third column left each card 141px wide with 40px of padding — 101px for a figure
+          that is 128px. */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         <KpiLink to="/appointments">
           <StatCard
@@ -124,17 +100,10 @@ export function DashboardPage(): JSX.Element {
   );
 }
 
-/** A neutral card when there is nothing to flag, the given tone when there is. */
 const toneFor = (active: boolean, tone: StatTone): StatTone => (active ? tone : 'neutral');
 
-/**
- * A KPI card that is a link.
- *
- * The anchor wraps the card rather than sitting inside it, so the whole tile
- * is the target — a card whose only clickable part is a caption is a card
- * people report as broken. `block` and the focus ring are here because the
- * card itself knows nothing about being a link.
- */
+// The anchor wraps the card so the whole tile is the target: a card whose only clickable part is a
+// caption gets reported as broken.
 function KpiLink({
   to,
   children,
@@ -155,7 +124,6 @@ function KpiLink({
   );
 }
 
-/** The day, in order, with a link out to the calendar it is a slice of. */
 function TodaySchedule({
   rows,
   isLoading,
@@ -163,13 +131,8 @@ function TodaySchedule({
 }: {
   readonly rows: readonly CalendarAppointment[];
   readonly isLoading: boolean;
-  /**
-   * Whether the patient's name opens their file.
-   *
-   * A technician reads the day — the calendar is `R` for every role — but the
-   * file behind the name is not theirs to open, and a link that bounces the
-   * reader back to where they came from is worse than plain text.
-   */
+  // A technician reads the day but the file behind the name is not theirs, and a link that bounces
+  // the reader back is worse than plain text.
   readonly linkPatients: boolean;
 }): JSX.Element {
   const { t } = useTranslation();

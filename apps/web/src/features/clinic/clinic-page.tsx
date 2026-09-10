@@ -71,7 +71,6 @@ export function ClinicPage(): JSX.Element {
     // select on a value it actually offers rather than showing a blank box.
     setCurrency(isCurrency(data.currency) ? data.currency : CURRENCIES[0]);
     setWorkingHours(data.workingHours);
-    // The closures panel below prints clinic-zone dates.
     setClinicTimeZone(data);
   }, [clinic.data]);
 
@@ -207,11 +206,6 @@ export function ClinicPage(): JSX.Element {
           />
         </section>
 
-        {/*
-          The days that override those hours, beside them. A closure is read in
-          the same breath as the opening hours it suspends, and a screen of its
-          own is one nobody would visit between Eids.
-        */}
         <section className="rounded-card bg-surface shadow-card p-4">
           <ClosuresPanel canEdit={canEdit} />
         </section>
@@ -222,15 +216,8 @@ export function ClinicPage(): JSX.Element {
   );
 }
 
-/**
- * The clinic's mark: on screen here, in the sidebar, on the sign-in page and
- * at the top of every printed document.
- *
- * The size limit is checked before the file leaves the browser as well as
- * after it lands, because a two-megabyte ceiling that only announces itself
- * after a slow upload is not a limit anyone can work with. The API checks the
- * stored bytes again, which is the real gate — this one is a courtesy.
- */
+// The size is checked before the file leaves the browser as a courtesy — a ceiling that announces
+// itself after a slow upload is not usable. The API's check is the real gate.
 function LogoField({
   logoUrl,
   canEdit,
@@ -341,18 +328,8 @@ function LogoField({
   );
 }
 
-/**
- * Which build this is — the thing somebody reads out over the phone when they
- * report a problem.
- *
- * Every role sees it: a version is not a permission, and the person on the
- * phone is as likely to be the receptionist as the admin.
- *
- * The number is the bundle's own, baked in at build time. The API's is shown
- * **only when the two disagree**, which is the case worth surfacing: a browser
- * still holding the previous bundle after a deploy. When they agree, a second
- * identical number would be noise.
- */
+// Every role sees it: a version is not a permission. The API's is shown only when the two disagree,
+// which is a browser still holding the previous bundle.
 function AboutSection(): JSX.Element {
   const { t } = useTranslation();
   const api = useApiVersion();

@@ -17,13 +17,6 @@ import {
 } from '@test/helpers/fixtures';
 import { mockApi, renderWithProviders, type MockResponse } from '@test/helpers/render';
 
-/**
- * Enough of the API for any of the merged sections to draw.
- *
- * Deliberately one set for all of them: these tests are about which panel is
- * showing, and a per-section fixture would only make the tab assertions harder
- * to read.
- */
 function handlers(role: UserRole) {
   return {
     'POST /auth/refresh': { status: 200, body: { accessToken: 'access', expiresIn: 900 } },
@@ -41,10 +34,8 @@ function handlers(role: UserRole) {
     'GET /labs': { status: 200, body: paginated([]) },
     'GET /lab-orders': { status: 200, body: paginated([]) },
     'GET /inventory/items': { status: 200, body: paginated([]) },
-    // The real shape (inventoryAlertsSchema): `low`, not `lowStock`, and the
-    // warning window. With the wrong key the alert cards read `low.length` off
-    // `undefined` and threw — a crash the suite reported as an unhandled error
-    // beside 261 passing tests, which is how it survived.
+    // The real shape (`inventoryAlertsSchema`): `low`, not `lowStock`. With the wrong key the alert
+    // cards read `low.length` off `undefined` and threw.
     'GET /inventory/alerts': {
       status: 200,
       body: { expiryWarningDays: 30, low: [], expiring: [], expired: [] },
@@ -53,13 +44,8 @@ function handlers(role: UserRole) {
   } as Record<string, MockResponse>;
 }
 
-/**
- * The address, on the page.
- *
- * `MemoryRouter` keeps its history in memory, so `window.location` never moves
- * and cannot be asserted against — which matters here, because "the tab is in
- * the address" is the whole property under test.
- */
+// `MemoryRouter` keeps history in memory, so `window.location` never moves — and "the tab is in the
+// address" is the property under test.
 function LocationProbe(): JSX.Element {
   const { pathname, search } = useLocation();
 
@@ -83,14 +69,8 @@ async function render(role: UserRole, route: string): Promise<void> {
 
 const strip = async (name: string): Promise<HTMLElement> => screen.findByRole('tablist', { name });
 
-/**
- * Four nav entries became two pages with tabs.
- *
- * What is worth asserting is not that the tabs render — it is that the tab is
- * in the address. Every one of these panels used to be a page somebody could
- * link to, and a tab kept in component state would have quietly broken all of
- * those links while looking identical on screen.
- */
+// What matters is that the tab is in the address: every panel here used to be a page somebody could
+// link to, and a tab in component state would break those links invisibly.
 describe('Appointments, as tabs', () => {
   it('opens on the calendar, with the booking queue beside it', async () => {
     await render(USER_ROLE.RECEPTIONIST, '/appointments');

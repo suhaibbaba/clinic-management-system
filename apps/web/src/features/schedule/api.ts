@@ -15,12 +15,8 @@ import type {
 
 import { apiRequest } from '@web/lib/api-client';
 
-/**
- * `force` and `cancelAppointments` are query parameters, not body fields:
- * they are what the caller decided about the 409 they were shown, not part of
- * the closure. A row that stored "I was forced" would be recording an
- * interaction rather than a fact.
- */
+// Query parameters, not body fields: they are what the caller decided about the 409 they were
+// shown, not part of the closure.
 const options = (choice: Partial<ScheduleConflictOptions> | undefined) => ({
   ...(choice?.force && { force: 'true' }),
   ...(choice?.cancelAppointments && { cancelAppointments: 'true' }),

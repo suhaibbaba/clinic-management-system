@@ -16,18 +16,6 @@ export interface TodayRibbonProps {
   readonly canMark: boolean;
 }
 
-/**
- * The next few people through the door, with the one button reception presses
- * most.
- *
- * A calendar answers "what does the day look like"; this answers "who is next"
- * — a different question, asked far more often, and the reason the front desk
- * would otherwise scan a grid for the current time. Marking someone arrived is
- * one tap from here rather than a click into a drawer.
- *
- * Only what is still ahead: an appointment already completed or missed is
- * history, and a ribbon of history is a ribbon nobody reads.
- */
 export function TodayRibbon({ appointments, onOpen, canMark }: TodayRibbonProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();

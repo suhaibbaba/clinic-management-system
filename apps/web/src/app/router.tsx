@@ -24,15 +24,8 @@ import { UsersPage } from '@web/features/users/users-page';
 
 const ADMIN_ONLY = [USER_ROLE.ADMIN] as const;
 
-/**
- * The four sections of the sidebar, as route guards.
- *
- * These mirror `NAV_ITEMS` exactly, because a hidden entry that is still
- * reachable by typing its address is not hidden — it is merely hard to find,
- * which is the worst of both. The API remains the real boundary: these guards
- * decide what this application offers, not what a role is permitted, and a
- * request that slipped past them would still be refused.
- */
+// Mirrors `NAV_ITEMS`, because a hidden entry still reachable by typing its address is not hidden.
+// The API remains the real boundary.
 const PATIENTS = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST] as const;
 const APPOINTMENTS = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST] as const;
 const LABS = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN] as const;
@@ -43,11 +36,6 @@ const DOCTOR_PAGE = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR] as const;
 /** The dashboard is where a role that may not be somewhere is sent instead. */
 const HOME = '/dashboard';
 
-/**
- * Routes mirror the sidebar, and every section carries the same role check —
- * so a hidden entry cannot be reached by typing its URL either. The API
- * remains the real boundary.
- */
 export function AppRoutes(): JSX.Element {
   return (
     <Routes>
@@ -144,12 +132,8 @@ export function AppRoutes(): JSX.Element {
             </RequireRole>
           }
         />
-        {/*
-          A doctor's own page. Not admin-only, unlike the list it hangs off:
-          ROLES.md lets a doctor edit their own schedule and off-days, and the
-          page is where that now happens — the service is what refuses somebody
-          else's calendar.
-        */}
+        {/* Not admin-only, unlike the list it hangs off: ROLES.md lets a doctor edit their own
+            schedule, and the service is what refuses somebody else's. */}
         <Route
           path="/doctors/:id"
           element={
@@ -184,13 +168,8 @@ export function AppRoutes(): JSX.Element {
         />
 
         {/* The addresses this restructure retired */}
-        {/*
-          Kept rather than dropped: these were bookmarked, pasted into chats
-          and printed on nothing at all, but somebody's browser still knows
-          them, and landing on a dashboard because a link rotted is a worse
-          answer than landing where the page went. Each one carries its
-          arrival straight to the tab or filter that replaced it.
-        */}
+        {/* Kept rather than dropped: somebody's browser still knows these, and landing on a
+            dashboard because a link rotted is worse than landing where the page went. */}
         <Route
           path="/appointments/pending"
           element={<Navigate to="/appointments?status=pending" replace />}

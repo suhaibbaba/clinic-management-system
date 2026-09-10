@@ -11,20 +11,8 @@ import { Avatar, Button, Icon, useToast } from '@web/components/ui';
 import { useRemoveUserPhoto, useUploadUserPhoto } from '@web/features/users/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
-/**
- * The staff photo on the user form: the face as it will be drawn, and the two
- * buttons that change it.
- *
- * Only on an existing user, because the upload is addressed to a user id and a
- * form that has not been saved has none. Creating somebody and then adding
- * their photo is one extra step and the honest one — the alternative was
- * holding bytes in the browser through a submit that may fail.
- *
- * The type and size are checked here **before** anything is signed rather than
- * after it lands, because a two-megabyte ceiling that only announces itself
- * after a slow upload is not a limit anyone can work with. The API checks the
- * stored bytes again, which is the real gate — this one is a courtesy.
- */
+// Only on an existing user, since the upload is addressed to a user id. Type and size are checked
+// before anything is signed, as a courtesy; the API's check is the gate.
 export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
   const { t, i18n } = useTranslation();
   const toast = useToast();

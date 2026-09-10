@@ -11,12 +11,8 @@ import type {
 
 import { apiDownload, apiRequest } from '@web/lib/api-client';
 
-/**
- * The money endpoints.
- *
- * Nothing here updates an amount, because nothing server-side would accept it:
- * a payment is created or reversed, never edited (CLAUDE.md ledger rules).
- */
+// Nothing here updates an amount, because nothing server-side would accept it: a payment is created
+// or reversed, never edited.
 export const billingApi = {
   balance: (patientId: string): Promise<PatientBalance> =>
     apiRequest(`/patients/${patientId}/balance`),

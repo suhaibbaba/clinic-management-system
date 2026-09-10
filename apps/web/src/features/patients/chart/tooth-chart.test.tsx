@@ -61,7 +61,6 @@ const TOKEN = {
   rootCanal: 'var(--color-tooth-root-canal)',
 };
 
-/** A summary map with one tooth carrying the given states, most significant first. */
 const charted = (fdi: number, states: readonly ToothState[]): Map<number, ToothSummary> =>
   new Map([
     [
@@ -125,7 +124,6 @@ describe('ToothChart', () => {
         .filter((element) => element.getAttribute('tabindex') === '0');
 
       expect(focusable).toHaveLength(1);
-      // The first tooth of the upper arch, as the viewer reads it.
       expect(focusable[0]).toHaveAccessibleName(new RegExp('\\b18\\b'));
     });
 
@@ -229,10 +227,6 @@ describe('ToothChart', () => {
     expect(button).toHaveAccessibleName(new RegExp(named('missing')));
   });
 
-  /*
-   * The whole reason the states are data: a clinic adds one in settings, and
-   * the chart paints it and names it without a line of code here.
-   */
   it('paints a state the clinic invented in the colour they chose', () => {
     renderChart(charted(16, ['veneer']), {
       lookups: makeLookupBundle({
@@ -266,7 +260,6 @@ describe('ToothChart', () => {
       expect(tooth(16).querySelectorAll('path')).toHaveLength(4);
       // Three for a lower one: two roots and a crown.
       expect(tooth(46).querySelectorAll('path')).toHaveLength(3);
-      // Two for an incisor.
       expect(tooth(11).querySelectorAll('path')).toHaveLength(2);
     });
 
@@ -278,7 +271,6 @@ describe('ToothChart', () => {
       const paths = [...tooth(16).querySelectorAll('path')];
       const fills = paths.map((path) => path.getAttribute('fill'));
 
-      // Three roots in the canal colour, then the crown in its own.
       expect(fills.slice(0, 3)).toEqual(Array.from({ length: 3 }, () => TOKEN.rootCanal));
       expect(fills[3]).toBe(TOKEN.crown);
     });
@@ -289,7 +281,6 @@ describe('ToothChart', () => {
       const button = tooth(36);
       // The threads are the tell: no other tooth draws lines inside itself.
       expect(button.querySelectorAll('line').length).toBeGreaterThan(0);
-      // ...and the crown above it is still painted as a crown.
       const crown = [...button.querySelectorAll('path')].at(-1);
       expect(crown).toHaveAttribute('fill', TOKEN.crown);
     });
@@ -311,10 +302,6 @@ describe('ToothChart', () => {
         };
       };
 
-      // Every bar but the first starts before its own tooth's box (x < 0) so
-      // it overlaps the one reaching towards it. Getting that wrong drew the
-      // appliance with a hairline gap between two of the teeth it joins, which
-      // is exactly what a bridge is not.
       expect(bar(24)).toEqual({ from: 8, to: 54 });
       expect(bar(25)).toEqual({ from: -6, to: 54 });
       expect(bar(26)).toEqual({ from: -6, to: 40 });

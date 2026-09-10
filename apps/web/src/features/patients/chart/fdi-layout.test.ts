@@ -9,13 +9,6 @@ import {
 } from '@web/features/patients/chart/fdi-layout';
 import { toothTypeOf } from '@web/features/patients/chart/tooth-shapes';
 
-/**
- * The layout is pure data, so it is checked as data: the order teeth appear in
- * and the shape each one takes. Both are things a chart gets silently wrong —
- * a mirrored row puts the patient's right on the viewer's right, and a molar
- * drawn with one root is just a big premolar — and neither shows up in a test
- * that only counts buttons.
- */
 describe('archRow', () => {
   it('runs from the patient’s right to the patient’s left', () => {
     // Charts are drawn from the clinician's point of view, so quadrant 1 is on
@@ -65,7 +58,6 @@ describe('layoutRow', () => {
     const upper = layoutRow('permanent', 'upper');
     const lower = layoutRow('permanent', 'lower');
 
-    // Same index, same side of the mouth, same position in the quadrant.
     expect(lower[upper.findIndex((slot) => slot.tooth === 16)]?.tooth).toBe(46);
     expect(lower[upper.findIndex((slot) => slot.tooth === 21)]?.tooth).toBe(31);
   });

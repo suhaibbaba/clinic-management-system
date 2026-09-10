@@ -7,26 +7,14 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { apiProxy, cookieForInsecureOrigin } from './dev-proxy.ts';
 
-/**
- * The bug this file exists for: a frontend on `pnpm dev` against a remote API
- * over https signs in, and every reload lands back on the login screen, because
- * the refresh cookie the API set was never stored — or was stored and never
- * sent back to `/api/auth/refresh`.
- *
- * So the test is the whole round trip: log in through the proxy, put what came
- * back through cookie rules a browser would apply, reload, and refresh. The
- * upstream stands in for the deployed API — the https of the real one is a
- * transport detail the cookie never sees, while the attributes it writes are
- * the entire problem, so the mock writes exactly those: `Secure`, a `Domain` of
- * its own host, and a `Path` under the prefix the proxy strips.
- */
+// The bug this exists for: `pnpm dev` against a remote https API signs in and every reload lands
+// back on login. The mock writes the attributes that cause it.
 
 const REFRESH_COOKIE = 'clinic_refresh_token';
 
 /** What the deployed API's `Set-Cookie` looks like: https, behind nginx. */
 const UPSTREAM_SET_COOKIE = `${REFRESH_COOKIE}=refresh-token-value; Domain=clinic.example; Path=/auth; HttpOnly; SameSite=Lax; Secure`;
 
-/** The origin a browser is on while it talks to the dev server. */
 interface Origin {
   readonly secure: boolean;
   readonly host: string;
@@ -37,14 +25,8 @@ interface StoredCookie {
   readonly path: string;
 }
 
-/**
- * A browser's cookie rules, as far as this test needs them.
- *
- * Strict about `Secure` on purpose: Chrome and Firefox make an exception for
- * localhost, Safari does not, and a clinic's laptop is not ours to choose. A
- * jar that accepted it would pass on the very configuration that sends people
- * back to the login screen.
- */
+// Strict about `Secure` on purpose: Chrome and Firefox make an exception for localhost, Safari does
+// not, and a clinic's laptop is not ours to choose.
 class CookieJar {
   private readonly cookies = new Map<string, StoredCookie>();
 
@@ -80,7 +62,6 @@ class CookieJar {
     }
   }
 
-  /** The `Cookie` header a browser would send for a path, if any. */
   header(path: string): string | undefined {
     const sent = [...this.cookies.entries()].filter(
       ([, cookie]) => path === cookie.path || path.startsWith(cookie.path.replace(/\/$/, '') + '/'),
@@ -92,7 +73,6 @@ class CookieJar {
   }
 }
 
-/** Requests the upstream saw, so the test can assert what was forwarded. */
 interface UpstreamRequest {
   readonly url: string;
   readonly cookie: string | undefined;
@@ -124,9 +104,8 @@ function createUpstream(): Server {
     }
 
     if (request.url === '/auth/refresh') {
-      // No cookie is exactly what the browser does when it never stored one, and
-      // the app's answer to a 401 here is to send the user back to the login
-      // screen — which is the symptom being tested.
+      // No cookie is what a browser does when it never stored one, and the app's answer to the 401
+      // is the login screen — the symptom being tested.
       if (!request.headers.cookie?.includes(REFRESH_COOKIE)) {
         response.writeHead(401, { 'content-type': 'application/json' });
         response.end(JSON.stringify({ statusCode: 401, message: 'Missing refresh token' }));
@@ -151,7 +130,6 @@ function header(request: IncomingMessage, name: string): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-/** One request from the "browser" to the dev server, cookies and all. */
 async function request(
   path: string,
   jar: CookieJar,
@@ -226,16 +204,13 @@ describe('the dev proxy and the refresh cookie', () => {
 
     await request('/api/auth/login', jar);
 
-    // Without this the API sees only its own hop — https from a proxy, or plain
-    // http from inside a Docker network — and decides `Secure` from the wrong
-    // one.
+    // Without this the API sees only its own hop and decides `Secure` from the wrong scheme.
     expect(received.at(-1)?.forwardedProto).toBe('http');
   });
 
   it('is the proxy that makes the cookie usable, not the target', async () => {
-    // The control: the upstream's own header, stored by the same rules, is held
-    // for another host, refused for being `Secure`, and scoped to a path the
-    // browser never asks for. Every one of those is a reload back to login.
+    // The control: the upstream's own header is held for another host, refused for being `Secure`,
+    // and scoped to a path the browser never asks for.
     const untouched = new CookieJar();
     untouched.store([UPSTREAM_SET_COOKIE], { secure: false, host: '127.0.0.1' });
 

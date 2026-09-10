@@ -1,18 +1,8 @@
 import type { ManagedBooking } from '@clinic/shared';
 import { bookingName } from '@web/booking/format';
 
-/**
- * "Add to calendar", without a calendar provider.
- *
- * An `.ics` file is the one thing every phone understands: iOS opens it in
- * Calendar, Android in whatever the user has, and nothing is sent anywhere. A
- * Google Calendar link would work on exactly one of those and would tell
- * Google when a named person has a dental appointment.
- *
- * Times are written in UTC (`…Z`), which is the only form that cannot be
- * misread — a floating local time would land an hour out for anyone whose
- * phone is not on the clinic's zone.
- */
+// An `.ics` is the one thing every phone understands and nothing is sent anywhere — a Google link
+// would tell Google when a named person has an appointment. Times are UTC, which cannot be misread.
 
 const stamp = (at: Date): string =>
   `${at.getUTCFullYear()}${pad(at.getUTCMonth() + 1)}${pad(at.getUTCDate())}T${pad(
@@ -54,7 +44,6 @@ export function appointmentIcs(booking: ManagedBooking): string {
   ].join('\r\n');
 }
 
-/** Hands the file to the browser and cleans up after itself. */
 export function downloadIcs(booking: ManagedBooking, fileName = 'appointment.ics'): void {
   const blob = new Blob([appointmentIcs(booking)], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);

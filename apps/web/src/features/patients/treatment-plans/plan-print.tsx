@@ -15,18 +15,8 @@ interface PlanPrintProps {
   readonly doctorName: string;
 }
 
-/**
- * The plan as it goes to the patient, on paper.
- *
- * It is not a separate route or a popup: the same component is in the page,
- * hidden on screen and revealed for print by `print.css`. One source of truth
- * means the printed quote cannot drift from the one on screen, and there is no
- * second fetch to get wrong.
- *
- * The letterhead comes from clinic settings rather than being hardcoded — this
- * is a multi-clinic system, and a printed quote carries the clinic's own name,
- * contact details and currency.
- */
+// Not a separate route: the same component, hidden on screen and revealed by `print.css`, so the
+// printed quote cannot drift from the one on screen.
 export function PlanPrint({
   plan,
   clinic,

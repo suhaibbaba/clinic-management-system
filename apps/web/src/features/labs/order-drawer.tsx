@@ -38,15 +38,8 @@ export interface OrderDrawerProps {
   readonly onEdit: (order: LabOrderRow) => void;
 }
 
-/**
- * One order, end to end: what was asked for, where it is, what came back with
- * it, and the buttons that move it along.
- *
- * The moves offered are the intersection of two tables — the shared transition
- * map, and who ROLES.md lets make each move — so a technician is never shown
- * "fits" and a doctor is never shown "received from the lab". That is cosmetic;
- * the API refuses either way.
- */
+// The moves offered are the intersection of the shared transition map and who ROLES.md lets make
+// each one, so a technician is never shown "fits".
 export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.Element | null {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -249,15 +242,8 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
   );
 }
 
-/**
- * Where the order has been.
- *
- * For an admin this is the audit log — the real record of who moved it and
- * when, written by the interceptor on every transition, so there is no second
- * history table to keep in step. Everybody else gets the order's own
- * timestamps, which say the same thing minus the name: the trail is admin-only
- * (ROLES.md core matrix) and this screen does not pretend otherwise.
- */
+// An admin gets the audit log — the real record, written by the interceptor, so there is no second
+// history table. Everyone else gets the order's own timestamps.
 function OrderHistory({
   order,
   role,
@@ -314,7 +300,6 @@ function OrderHistory({
   );
 }
 
-/** Shade photos and scan files, through the same presigned flow as an X-ray. */
 function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();

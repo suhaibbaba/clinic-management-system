@@ -1,20 +1,6 @@
 #!/usr/bin/env node
-/**
- * The public booking page's weight, as a build step.
- *
- * A budget nobody measures is a wish. This page is opened from a WhatsApp link
- * on a phone, often on mobile data, and the way it gets slow is not a bad
- * commit — it is one innocuous import of a dashboard component that drags in
- * Radix, the router and the query client behind it. The ESLint boundary rule
- * catches the obvious version of that; this catches the rest, including a
- * dependency that simply grew.
- *
- * What is measured is what the browser actually downloads for `booking.html`:
- * every `<script>` and `<link rel="modulepreload">` it names, gzipped, added
- * up. Not the entry chunk alone, which would hide React entirely.
- *
- * Usage: node scripts/check-booking-bundle.mjs [--limit 100] [--target 80]
- */
+// Measures what the browser actually downloads for `booking.html` — every script and modulepreload
+// it names, gzipped. Usage: node scripts/check-booking-bundle.mjs [--limit 100] [--target 80]
 import { gzipSync } from 'node:zlib';
 import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';

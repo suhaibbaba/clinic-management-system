@@ -18,11 +18,6 @@ import { TreatmentPlansTab } from '@web/features/patients/treatment-plans/treatm
 import { VisitsTab } from '@web/features/patients/visits/visits-tab';
 import { cn } from '@web/lib/cn';
 
-/**
- * Tabs of the patient file. The chart is first because it is what a dentist
- * opens the file for; the rest arrive with their own modules and are listed
- * here so the shape of the file is visible from the start.
- */
 const TABS = [
   { id: 'chart', label: 'patients.tabs.chart', clinical: true },
   { id: 'visits', label: 'patients.tabs.visits', clinical: true },
@@ -35,7 +30,6 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id'];
 
-/** Tabs still waiting on the module that fills them. */
 const PLACEHOLDER_TABS: readonly TabId[] = ['prescriptions'];
 
 export function PatientPage(): JSX.Element {
@@ -48,20 +42,8 @@ export function PatientPage(): JSX.Element {
   const role = user?.role;
   const tabs = TABS.filter((tab) => (tab.clinical ? role && canViewChart(role) : true));
 
-  /*
-   * The open tab is in the address, like every other tab in the app.
-   *
-   * It was `useState`, which made the patient file the one screen nobody could
-   * link into: a dentist could not send "look at his X-rays" to a colleague, a
-   * receptionist could not bookmark the account tab, and a refresh on the
-   * timeline landed back on the chart. `?tab=` is the same parameter and the
-   * same helper the labs, inventory and appointments sections already use.
-   *
-   * The tab list is filtered by role first, so the fallback is that role's own
-   * first tab — a receptionist has only the account tab, and `?tab=chart` in a
-   * pasted address resolves to what they are allowed to see rather than to a
-   * blank panel.
-   */
+  // `?tab=` like every other section: in `useState` nobody could link into a patient's X-rays. The
+  // list is filtered by role first, so a pasted `?tab=chart` resolves to what the reader may see.
   const [activeTab, setActiveTab] = useTabParam<TabId>(
     'tab',
     tabs.map((tab) => tab.id),
@@ -72,19 +54,8 @@ export function PatientPage(): JSX.Element {
 
   return (
     <div className="flex flex-col gap-5">
-      {/*
-        The file's identity, as the record's own header card.
-
-        Name and balance sit on the first line; everything else that identifies
-        the patient is a labelled pair in the grid under it. The labels are
-        drawn rather than `sr-only`: a file number, an age and a phone number
-        read as a dot-separated run only if you already know what order they
-        come in, and reception reads this block aloud down a telephone.
-
-        The grid is what keeps the two ends of a wide screen from drifting
-        apart — an earlier revision put the name at one edge and the balance at
-        the other with a hole between them.
-      */}
+      {/* The labels are drawn rather than `sr-only`: a file number, an age and a phone read as a
+          dot-separated run only if you know the order, and reception reads this aloud. */}
       <header className="rounded-card bg-surface p-4 shadow-card">
         {patient.isPending && <p className="text-value text-ink-muted">{t('common.loading')}</p>}
 
@@ -128,10 +99,8 @@ export function PatientPage(): JSX.Element {
 
               <div className="min-w-0">
                 <dt className="text-meta text-ink-muted">{t('patients.phone')}</dt>
-                {/* Not `truncate`: a phone number carries its 44px hit area on
-                    an absolutely positioned `::after`, and an ancestor with
-                    `overflow-hidden` cuts that band down to the line box —
-                    the number stays dialable but only across 22px of it. */}
+                {/* The 44px band is an absolutely positioned `::after`, and an `overflow-hidden`
+                    ancestor cuts it down to the line box. */}
                 <dd className="mt-0.5 min-w-0 text-value text-ink">
                   <PhoneLink value={patient.data.phone} />
                 </dd>
@@ -141,25 +110,12 @@ export function PatientPage(): JSX.Element {
         )}
       </header>
 
-      {/*
-        Styled as the segmented control, but still real tabs — these switch
-        panels rather than filter a list, so `tablist`/`tab`/`tabpanel` is what
-        they are and what a screen reader is told. `SegmentedControl` is a
-        radio group and would announce the wrong thing here.
-      */}
       <div
         role="tablist"
         aria-label={t('patients.tabs.label')}
         className={cn(
-          // One scrolling row on a phone. Seven tabs in a wrapping pill came
-          // out as three ragged lines that pushed the content 120px down the
-          // page; a tab strip that scrolls is what every mobile OS does.
           'flex items-center gap-1 rounded-control border border-line bg-inset p-1',
           'max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-          // `self-start` as well as `inline-flex`: the strip sits in a column
-          // flex container, where `align-items: stretch` pulls an inline-flex
-          // child to the full width anyway — which drew the pill as a grey bar
-          // across the page with the tabs bunched at one end.
           'sm:inline-flex sm:flex-wrap sm:self-start sm:overflow-visible',
         )}
       >

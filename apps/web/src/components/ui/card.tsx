@@ -5,36 +5,17 @@ import { cn } from '@web/lib/cn';
 export type CardTone = 'default' | 'selected';
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  /**
-   * `selected` is the whole design's selection state: a soft primary tint and
-   * a primary edge, used for a chosen row, a picked tooth, an active filter
-   * target — anywhere the answer to "which one" has to be obvious without a
-   * checkbox.
-   */
   readonly tone?: CardTone | undefined;
   /** Drops the built-in padding for cards that manage their own (tables). */
   readonly flush?: boolean | undefined;
-  /**
-   * Marks the card as something you click. It then lifts to `shadow-float` on
-   * hover and takes a pointer — an affordance a plain card must not have, or
-   * every card on the page looks clickable and none of them reads as such.
-   */
+  // Marks the card as something you click — without it every card looks clickable and none reads as
+  // such.
   readonly interactive?: boolean | undefined;
   readonly children: ReactNode;
 }
 
-/**
- * The surface everything sits on.
- *
- * Content in this app never touches the page ground directly: the ground is a
- * tinted wash and cards are the white panels drawn on it. That is the whole
- * visual system in one component, so `bg-surface rounded-card shadow-card`
- * should appear here and nowhere else.
- *
- * The selected border is drawn with `outline`, not `border`: an outline does
- * not take part in layout, so a card does not shift by a pixel when it becomes
- * selected — which, in a grid of them, would nudge every neighbour.
- */
+// The selected edge is an `outline`, not a `border`: an outline takes no part in layout, so
+// selecting a card does not nudge every neighbour.
 export function Card({
   tone = 'default',
   flush = false,
@@ -46,9 +27,6 @@ export function Card({
   return (
     <div
       className={cn(
-        // The edge is the card. `shadow-card` is a hairline ring plus almost
-        // no blur (theme.css) rather than a border, so a card that becomes
-        // selected or interactive changes colour without changing size.
         'rounded-card bg-surface shadow-card',
         'transition-[box-shadow,background-color,border-color] duration-150',
         !flush && 'p-4',
@@ -70,7 +48,6 @@ export interface CardHeaderProps {
   readonly className?: string | undefined;
 }
 
-/** Title, optional subtitle, optional actions — the top of most cards. */
 export function CardHeader({ title, subtitle, actions, className }: CardHeaderProps): JSX.Element {
   return (
     <div className={cn('mb-3 flex flex-wrap items-start justify-between gap-3', className)}>

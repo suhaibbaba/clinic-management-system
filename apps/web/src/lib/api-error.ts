@@ -1,9 +1,5 @@
-/**
- * An error the API answered with. Carries the HTTP status only — Arabic copy is
- * resolved from that code on this side, never from the backend's English
- * message (CLAUDE.md: "Arabic-facing messages resolved on the frontend by error
- * code, not by backend strings").
- */
+// Carries the HTTP status only — Arabic copy is resolved from that code on this side, never from
+// the backend's English message.
 export class ApiError extends Error {
   constructor(
     readonly statusCode: number,
@@ -14,7 +10,6 @@ export class ApiError extends Error {
   }
 }
 
-/** Raised when the request never reached the API. */
 export class NetworkError extends Error {
   constructor(cause?: unknown) {
     super('Could not reach the API');
@@ -23,7 +18,6 @@ export class NetworkError extends Error {
   }
 }
 
-/** Maps a failure onto an i18n key. Status codes in, translation keys out. */
 export function errorMessageKey(error: unknown): string {
   if (error instanceof NetworkError) {
     return 'errors.network';

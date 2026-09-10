@@ -4,22 +4,11 @@ export interface AsyncState<TData> {
   readonly data?: TData | undefined;
   readonly error?: unknown;
   readonly loading: boolean;
-  /** Runs the loader again — the "try again" button, and the slot refresh. */
   readonly reload: () => void;
 }
 
-/**
- * One request, tied to a few values.
- *
- * TanStack Query does this and a great deal more — caching, retries, window
- * focus revalidation — none of which this page wants: it makes at most four
- * requests in its whole life, and a *cached* slot list is precisely the wrong
- * thing to show someone about to book one. Twenty lines instead of 13 KB.
- *
- * The stale-response guard is the part that earns its keep. Change the day
- * twice quickly and two requests are in flight; without `ignore` the slower
- * one lands last and paints the wrong day's times over the right ones.
- */
+// Not TanStack Query: four requests in this page's life, and a cached slot list is the wrong thing
+// to show. The `ignore` guard stops a slow response painting the wrong day's times.
 export function useAsync<TData>(
   load: () => Promise<TData>,
   deps: readonly unknown[],
@@ -56,9 +45,8 @@ export function useAsync<TData>(
     return () => {
       ignore = true;
     };
-    // `load` is deliberately not a dependency: the caller passes a fresh arrow
-    // function every render, so depending on it would re-fetch forever. What
-    // the request actually varies with is `deps`, which the caller names.
+    // `load` is deliberately not a dependency: the caller passes a fresh arrow every render, so
+    // depending on it would re-fetch forever.
   }, [...deps, enabled, nonce]);
 
   return { ...state, reload };

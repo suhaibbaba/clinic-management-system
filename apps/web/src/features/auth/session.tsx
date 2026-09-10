@@ -21,15 +21,8 @@ interface SessionValue {
   readonly user: AuthenticatedUserProfile | null;
   readonly login: (input: LoginInput) => Promise<void>;
   readonly logout: () => Promise<void>;
-  /**
-   * Re-reads the signed-in user's own profile.
-   *
-   * The session is React state rather than a query, so nothing invalidates it:
-   * an admin who changes their own staff photo would otherwise keep seeing the
-   * old face in the sidebar until the next sign-in. A failure is ignored on
-   * purpose — this is a refresh of something already on screen, and ending the
-   * session over it would be a far worse answer than a stale avatar.
-   */
+  // The session is state rather than a query, so nothing invalidates it. A failure is ignored —
+  // ending the session over a refresh would be worse than a stale avatar.
   readonly refreshProfile: () => Promise<void>;
   readonly hasRole: (...roles: UserRole[]) => boolean;
 }
@@ -46,14 +39,8 @@ export function useSession(): SessionValue {
   return context;
 }
 
-/**
- * Holds the signed-in user.
- *
- * On a cold load there is no access token in memory — it is deliberately never
- * persisted — so the provider first tries a silent refresh against the httpOnly
- * cookie. That is what keeps a page reload signed in without exposing the
- * refresh token to JavaScript.
- */
+// No access token is persisted, so a cold load first tries a silent refresh against the httpOnly
+// cookie — which is what keeps a reload signed in.
 export function SessionProvider({ children }: { children: ReactNode }): JSX.Element {
   const [status, setStatus] = useState<SessionStatus>('loading');
   const [user, setUser] = useState<AuthenticatedUserProfile | null>(null);

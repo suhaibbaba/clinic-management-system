@@ -1,54 +1,8 @@
-/*
- * The design system — the single source of truth for colour, geometry and
- * type in this app.
- *
- * Nothing outside this file names a colour. Components use the semantic
- * utilities below (`bg-canvas`, `text-ink-muted`, `border-line`) or a scale
- * step (`bg-primary-600`); no component carries a raw hex, an inline `style`
- * colour, or a stock Tailwind palette class such as `text-gray-500`.
- *
- * The system
- *
- * A flat, very light cool ground, white cards drawn with a hairline border,
- * the clinic's own blue for everything actionable, and a green that means
- * settled:
- *
- *   ground   #F4F7FA    card     #FFFFFF   hairline #E3E9F0
- *   ink      #1B2432    sub      #64748B
- *   blue     #316C9C    hover    #295B84   green    #4EC191
- *
- * **A card is defined by its edge, not by its shadow.** Elevation is spent
- * only on things that genuinely float — a menu, a dialog, a toast — and even
- * those carry the same hairline. A page of white panels on a tinted ground,
- * each outlined by one pixel, is what makes a clinic screen read as a record
- * rather than as a set of tiles hovering over a desktop.
- *
- * The scales are one perceptual ramp per hue with the brand pinned at 600
- * (blue) and 500 (green), so a tint of the blue carries the same weight as a
- * tint of the red beside it.
- *
- * Where accessibility and the named values disagree
- *
- * Two named colours do not clear AA for small text, and the app has to do
- * both. Measured against white:
- *
- *   #7B8899  3.61   the secondary grey — needs 4.5 for a 13px table header
- *   #4EC191  2.24   the green          — needs 4.5 for a "paid" label
- *
- * So each has two tokens rather than one compromise. `ink-subtle` is #7B8899,
- * used where 3:1 is the bar — placeholders, disabled text, decorative
- * captions. `ink-muted` is #64748B, the same hue two steps darker, and carries
- * every piece of secondary text that has to be *read*. Likewise `success-500`
- * is the named #4EC191 for fills, dots and progress, and `success-700` is what
- * the word beside them is written in.
- */
+/* Nothing outside this file names a colour. Two named values miss AA for small text, so each has
+   two tokens: `ink-subtle`/`ink-muted`, and `success-500` for fills with `success-700` for words. */
 
 @theme static {
-  /*
-   * Primary — the clinic's blue, and the one action colour. Buttons, links,
-   * the active nav pill, focus rings. If it is blue it is clickable, and
-   * nothing else competes with it.
-   */
+  /* The one action colour: if it is blue it is clickable, and nothing else competes with it. */
   --color-primary-50: #f2f7fb;
   --color-primary-100: #e3edf6;
   --color-primary-200: #c5daeb;
@@ -60,10 +14,8 @@
   --color-primary-800: #21496a;
   --color-primary-900: #1a3850;
 
-  /*
-   * Danger — money owed and destructive actions, nothing else. 500 is the
-   * fill and the dot; 600 is the text shade that clears AA.
-   */
+  /* Money owed and destructive actions, nothing else. 500 is the fill and the dot; 600 is the text
+     shade that clears AA. */
   --color-danger-50: #fef4f4;
   --color-danger-100: #fde4e4;
   --color-danger-200: #f9c8c9;
@@ -75,12 +27,8 @@
   --color-danger-800: #8a1b1e;
   --color-danger-900: #631315;
 
-  /*
-   * Neutral — a grey mixed towards the blue rather than a pure one, so the
-   * ground and the hairlines belong to the same family as the brand. 50 is the
-   * page, 200 the hairline every card is drawn with, 500 the secondary grey,
-   * 900 the ink.
-   */
+  /* A grey mixed towards the blue, so the ground and the hairlines belong to the same family as the
+     brand. */
   --color-neutral-50: #f4f7fa;
   --color-neutral-100: #eef2f7;
   --color-neutral-200: #e3e9f0;
@@ -92,12 +40,8 @@
   --color-neutral-800: #364152;
   --color-neutral-900: #1b2432;
 
-  /*
-   * Success is the second brand colour: a settled balance, a confirmed
-   * appointment, a finished plan. Warning exists for one further job — the
-   * tooth chart, which needs more than two hues to encode nine conditions.
-   * Neither is ever an action colour; that is the blue's alone.
-   */
+  /* Neither success nor warning is ever an action colour; that is the blue's alone. Warning exists
+     for the tooth chart, which needs more than two hues. */
   --color-success-50: #eefaf4;
   --color-success-100: #d7f3e6;
   --color-success-200: #b0e7cf;
@@ -125,63 +69,31 @@
   /* Surfaces. The ground is the tint; everything readable sits on white. */
   --color-surface: #ffffff;
   --color-canvas: var(--color-neutral-50);
-  /* A block nested inside a card, and the track behind a segmented control. */
   --color-inset: var(--color-neutral-100);
   --color-sunken: var(--color-neutral-100);
-  /* The row a pointer is on. */
   --color-row-hover: #f8fafc;
 
   /* Selection: the blue at its faintest, for a chosen row or a picked tooth. */
   --color-selected: var(--color-primary-50);
   --color-selected-line: var(--color-primary-300);
 
-  /*
-   * Text. `ink` is body copy; `ink-muted` is secondary text that has to be
-   * read and clears AA; `ink-subtle` is #7B8899, for placeholders, disabled
-   * text and captions where 3:1 is the bar.
-   */
   --color-ink: var(--color-neutral-900);
   --color-ink-muted: var(--color-neutral-600);
   --color-ink-subtle: var(--color-neutral-500);
   --color-ink-inverse: #ffffff;
 
-  /*
-   * Hairlines. One weight does two jobs here: it draws the edge of every card
-   * and it separates the rows inside one. That is deliberate — a system whose
-   * panels are outlined cannot also afford a second, heavier divider without
-   * the page turning into a grid of boxes.
-   */
+  /* One weight draws the edge of every card and separates the rows inside it: a system of outlined
+     panels cannot also afford a heavier divider. */
   --color-line: var(--color-neutral-200);
   --color-line-strong: var(--color-neutral-300);
 
-  /*
-   * Inter for Latin, IBM Plex Sans Arabic for Arabic — both bundled, neither
-   * hotlinked: a clinic's browser should not announce every page view to a
-   * font CDN, and a VPS with no outbound network still renders correctly.
-   *
-   * Order matters. Inter first means Latin text and digits take Inter, and
-   * anything it has no glyph for — every Arabic letter — falls through to
-   * Plex Arabic. One stack, no per-element font switching.
-   */
   --font-sans:
     Inter, 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', 'Noto Sans Arabic',
     sans-serif;
 }
 
-/*
- * Geometry, elevation and type
- *
- * Radii step down with nesting so a control inside a card never fights the
- * card's own corner: card 12 → panel 10 → control 8 → pill, which is kept for
- * the things that are genuinely lozenges — a badge, an avatar, a progress
- * track.
- *
- * Every elevation carries the hairline as its first layer, drawn as a spread
- * shadow rather than a border so it costs no layout: a card does not change
- * size when it gains an edge, and a rounded panel's outline follows its own
- * corner exactly. The blur on top of it is almost nothing on a card and only
- * enough to lift a menu off the page beneath it.
- */
+/* Radii step down with nesting so a control never fights its card's corner. Every elevation carries
+   the hairline as a spread shadow, so gaining an edge costs no layout. */
 @theme static {
   --radius-card: 12px;
   --radius-panel: 10px;
@@ -193,28 +105,11 @@
   --shadow-float: 0 0 0 1px var(--color-line), 0 8px 24px rgb(27 36 50 / 0.08);
   --shadow-pill: 0 1px 2px rgb(27 36 50 / 0.06);
 
-  /*
-   * Type. Near-neutral tracking: the system reads as a record rather than as
-   * a brand page, and Arabic gains nothing from the tight Latin fit.
-   */
   --tracking-body: 0em;
   --tracking-title: -0.01em;
 
-  /*
-   * Line heights are set for Arabic, and Arabic needs more room than Latin at
-   * the same point size.
-   *
-   * Plex Arabic is drawn with tall ascenders and deep descenders — the tail of
-   * a ج, the bowl of a ن, the hamza riding above an أ — and the marks sit
-   * outside the Latin x-height box the numbers here were first tuned against.
-   * At 1.15rem on 13px the descenders of one line were touching the tops of
-   * the next; a `truncate` or an `overflow-hidden` anywhere near that clipped
-   * them outright.
-   *
-   * So: ~1.5 and up through body text and captions, which is the range Arabic
-   * typography asks for, and ~1.35 on the display sizes where the same ratio
-   * would leave a heading floating in its own white space.
-   */
+  /* Set for Arabic, which needs more room than Latin at the same size: Plex Arabic's descenders and
+     marks sit outside the Latin x-height box these numbers were first tuned against. */
   --text-meta: 0.75rem; /* 12px — a stat card's label, a badge, a field caption */
   --text-meta--line-height: 1.125rem; /* 1.5 */
   --text-label: 0.8125rem; /* 13px — table headers, captions, meta */
@@ -229,15 +124,8 @@
   --text-kpi--line-height: 2rem; /* 1.33 — Latin digits, but a currency
                                     symbol rides along with them */
 
-  /*
-   * The size every focusable field renders at.
-   *
-   * iOS Safari zooms the page when a field smaller than 16px takes focus, and
-   * does not zoom back out. It is a floor, and the kind of rule a later "make
-   * this tighter" change breaks silently, so `field-size.test.ts` fails the
-   * build if any field drops under it. A field looks smaller in this system
-   * than it used to because it is 36px tall, not because its text shrank.
-   */
+  /* iOS Safari zooms when a field under 16px takes focus and does not zoom back. A floor, so
+     `field-size.test.ts` fails the build if any field drops under it. */
   --text-field: 1rem; /* 16px — never lower */
   --text-field--line-height: 1.5rem; /* 1.5 */
 
@@ -246,31 +134,14 @@
   --animate-menu-out: menu-out 150ms ease-in;
   --animate-fade-in: fade-in 200ms ease-out;
   --animate-fade-out: fade-out 150ms ease-in;
-  /*
-   * The drawer slides from the inline start, so it comes in from the right in
-   * Arabic and the left in English. `translateX(-100%)` would be wrong in one
-   * of them; a logical property is right in both.
-   */
+  /* The drawer slides from the inline start, so `translateX(-100%)` would be wrong in one language;
+     a logical property is right in both. */
   --animate-drawer-in: drawer-in 220ms cubic-bezier(0.32, 0.72, 0, 1);
   --animate-drawer-out: drawer-out 180ms ease-in;
 }
 
-/*
- * The chrome, and where the tint lives.
- *
- * **The rail is tinted and the page beside it is white** — not the other way
- * round, which is what this was. A record is read on the white; the navigation
- * is furniture, and sitting it on a tint pushes it back a step and saves the
- * rail from needing a rule between every section. It is also the one thing
- * that lets a white card carry no fill of its own: on a white page a card is
- * its hairline and its content, which is as quiet as a card gets.
- *
- * The bar over the page is white with the content, not grey with the rail: it
- * holds the breadcrumb, which belongs to the page it names.
- *
- * Plain custom properties rather than `@theme`: they are `background` values
- * applied in index.css by class.
- */
+/* The rail is tinted and the page is white, not the other way round: a record is read on the white,
+   and a card on a white page is its hairline and its content. */
 [dir='rtl'] {
   --drawer-direction: -1;
 }
@@ -282,7 +153,6 @@
 :root {
   --chrome-rail: var(--color-neutral-50);
   --chrome-bar: #ffffff;
-  /* A search field's fill, so it reads as a field before it is focused. */
   --chrome-field: #ffffff;
   --chrome-field-hover: var(--color-neutral-50);
 }
@@ -345,33 +215,8 @@
   }
 }
 
-/*
- * Interactive chart
- *
- * One colour per tooth state, re-derived from the scales above so the chart
- * belongs to the same system rather than being a stock nine-hue rainbow.
- *
- * This is the one place the single-accent rule does not reach, deliberately:
- * "if it is blue it is clickable" governs *actions*, and a tooth fill is data.
- * Nine conditions cannot be encoded in one hue. Colour is never the only
- * channel here anyway — every tooth's accessible name states its condition in
- * words, the legend pairs each swatch with its label, and a missing tooth is
- * dashed rather than merely differently tinted.
- *
- * The mapping is semantic:
- *   · still to do        → danger (needs treatment), warning (in progress)
- *   · restored in enamel → primary; the deeper the work, the deeper the blue
- *   · crowned            → pale gold, which is what a crown looks like
- *   · bridged            → a soft green: a finished restoration spanning a gap
- *   · implant            → neutral, the colour of titanium
- *
- * Every pair below was measured on the new palette: the tooth number clears
- * 4.5:1 against its own fill and every outline clears 3.0:1 against the chart
- * surface, in both light and dark mode. Zero failures.
- *
- * Plain custom properties rather than `@theme`: they are read through `var()`
- * in SVG attributes, and `@theme` cannot be nested in a media query.
- */
+/* The one place the single-accent rule does not reach: a tooth fill is data, not an action, and
+   nine conditions need more than one hue. Colour is never the only channel here. */
 :root {
   --color-tooth-healthy: #f4f7fa;
   --color-tooth-healthy-line: #7b8899;
@@ -397,12 +242,8 @@
   --chart-guide: #e3e9f0;
 }
 
-/*
- * The chart surfaces again, as @theme aliases over the raw layer above. This
- * indirection is what lets the same four colours be both utility classes
- * (`bg-chart-surface`) and `var()` references inside SVG attributes, while
- * staying redefinable in the dark-mode media query — which @theme cannot be.
- */
+/* The indirection lets the same colours be utility classes and `var()` references inside SVG
+   attributes, while staying redefinable in a media query, which `@theme` cannot be. */
 @theme static {
   --color-chart-surface: var(--chart-surface);
   --color-chart-border: var(--chart-border);
@@ -410,12 +251,8 @@
   --color-chart-guide: var(--chart-guide);
 }
 
-/*
- * Dark mode follows the viewer's system setting. The app has no theme switch
- * yet, so only the chart tokens are redefined — the rest keeps its light
- * palette until a switch exists to drive it. Every fill moves up its own scale
- * rather than to a new hue, so the system survives the inversion.
- */
+/* There is no theme switch yet, so only the chart tokens are redefined; every fill moves up its own
+   scale rather than to a new hue. */
 @media (prefers-color-scheme: dark) {
   :root {
     --color-tooth-healthy: #364152;

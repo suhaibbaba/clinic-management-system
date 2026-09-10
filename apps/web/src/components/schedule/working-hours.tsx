@@ -18,42 +18,14 @@ export interface WorkingHoursProps {
   readonly value: WeeklySchedule;
   readonly onChange: (value: WeeklySchedule) => void;
   readonly disabled?: boolean | undefined;
-  /**
-   * The hours this schedule has to fit inside — the clinic's, when the caller
-   * is a doctor's page. A range outside them is flagged on its own row rather
-   * than refused, so somebody moving a shift in two steps is not blocked
-   * halfway through the first one.
-   */
   readonly within?: WeeklySchedule | undefined;
-  /** Names the bounds in the warning: "outside the clinic's hours". */
   readonly withinLabel?: string | undefined;
   /** Distinguishes the field ids when two of these are on one page. */
   readonly idPrefix?: string | undefined;
 }
 
-/**
- * A week of working hours, one row per day.
- *
- * **One component for the clinic's opening hours and for a doctor's own
- * schedule.** They are the same shape (`WeeklySchedule`) and the same question,
- * and the two editors that existed before agreed on everything except which
- * bugs they had.
- *
- * Collapsed, a day is its summary: `09:00 - 17:00`, `مغلق`, or both halves of a
- * split shift. That is the thing anybody opening this screen came to check, and
- * it used to take seven expanded panels of time pickers to read. Expanded, a
- * day is a toggle, its intervals, and a way to copy them to the rest of the
- * week — because a clinic almost always works the same hours five days running
- * and typing them five times is how the fifth one ends up different.
- *
- * **Split shifts are intervals, not a "break".** A day is a list of ranges and
- * the gaps between them are the breaks, which is what the slot computation
- * already means by it — so 09:00–13:00 and 16:00–20:00 needs no new concept.
- *
- * The week starts on **Saturday**, which is where it starts in the region these
- * clinics are in. The weekday *numbers* are unchanged (0 = Sunday, matching
- * `Date#getDay` and the API); only the order they are drawn in moved.
- */
+// One component for the clinic's hours and a doctor's own — the same shape and the same question.
+// Split shifts are just intervals, and the gaps between them are the breaks.
 export function WorkingHours({
   value,
   onChange,
@@ -66,7 +38,6 @@ export function WorkingHours({
 
   const replaceDay = (next: DaySchedule): void => onChange(withDay(value, next));
 
-  /** Which days have a range poking outside the bounds, if there are bounds. */
   const outside = useMemo(() => {
     if (!within) {
       return new Set<number>();
@@ -83,9 +54,8 @@ export function WorkingHours({
   return (
     <Accordion.Root
       type="multiple"
-      // Uncontrolled: which panels are open is a reading position, not state
-      // anything else depends on, and the days people expand are the days they
-      // are editing.
+      // Uncontrolled: which panels are open is a reading position, not state anything else depends
+      // on.
       className="flex flex-col gap-2"
     >
       {WEEKDAYS_FROM_SATURDAY.map((weekday) => {
@@ -110,25 +80,8 @@ export function WorkingHours({
                   'group',
                 )}
               >
-                {/*
-                  `w-0 grow`, not `min-w-0` and not `flex-1`.
-
-                  `min-width: 0` lets a flex item be *shrunk*; it does not
-                  reduce what the item contributes to the flex container's own
-                  min-content width, which stays the full weekday. So the row
-                  demanded "Wednesday" and the whole hours summary side by
-                  side — 343px inside a 358px column — and the clinic settings
-                  screen scrolled sideways by 21px at 390px in English, where
-                  Arabic's short weekday names had been hiding it.
-
-                  `flex-1` does not fix it either: it is `flex: 1 1 0%`, and a
-                  *percentage* basis against a container with no definite width
-                  falls back to the content size — the same full weekday. A
-                  definite `width: 0` with `grow` is the version that holds:
-                  the item contributes nothing, takes whatever is left after
-                  the summary, and truncates inside it, which is what the
-                  `truncate` below was always written for.
-                */}
+                {/* `flex-1` is `flex: 1 1 0%`, and a percentage basis with no definite width falls
+                    back to content size; `width: 0` with `grow` truncates. */}
                 <span className="flex w-0 min-w-0 grow items-center gap-2">
                   <Icon
                     name="chevron-down"
@@ -149,14 +102,8 @@ export function WorkingHours({
                     </span>
                   )}
                   <Badge tone={isWorking ? 'success' : 'neutral'}>
-                    {/*
-                      An LTR island, because the summary is Latin digits joined
-                      by neutral characters: without it the bidi algorithm hands
-                      the hyphens and the middot to the Arabic paragraph and
-                      "09:00 - 13:00 · 16:00 - 20:00" renders back to front, as
-                      "20:00 - 16:00 · 13:00 - 09:00". The word for closed is
-                      Arabic and needs no island.
-                    */}
+                    {/* An LTR island: without it bidi hands the hyphens and middot to the Arabic
+                        paragraph and the summary renders back to front. */}
                     {isWorking ? (
                       <Ltr className="tabular-nums">{daySummary(day.ranges, '')}</Ltr>
                     ) : (
@@ -309,13 +256,8 @@ function RangeRow({
   );
 }
 
-/**
- * This day's intervals onto every **other working day**.
- *
- * Days that are off stay off: "the same hours Saturday to Wednesday" is the
- * thing people mean, and opening two days that were deliberately shut is a
- * change nobody asked for and would have to undo one by one.
- */
+// Days that are off stay off: opening two days that were deliberately shut is a change nobody asked
+// for.
 function copyToOtherDays(week: WeeklySchedule, source: DaySchedule): WeeklySchedule {
   return WEEKDAYS_FROM_SATURDAY.reduce<WeeklySchedule>((week_, weekday) => {
     const existing = rangesFor(week_, weekday);

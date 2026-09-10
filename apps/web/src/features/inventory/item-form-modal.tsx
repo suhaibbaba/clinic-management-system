@@ -16,16 +16,8 @@ import { useLookupOptions } from '@web/features/lookups/queries';
 import { useCreateItem, useSuppliers, useUpdateItem } from '@web/features/inventory/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
-/**
- * A line in the cupboard.
- *
- * Two things are deliberately absent. There is no quantity field — the only
- * way stock moves is a movement, which is the whole ledger rule (CLAUDE.md) —
- * and the **unit cannot be changed** once the item exists, because every
- * movement already recorded is a number in that unit and reinterpreting forty
- * boxes as forty millilitres is not an edit. The select says so rather than
- * silently vanishing.
- */
+// No quantity field — stock moves only through a movement — and the unit cannot change once the
+// item exists, since every movement recorded is a number in it.
 export function ItemFormModal({
   open,
   onOpenChange,

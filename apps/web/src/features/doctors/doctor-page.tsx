@@ -13,18 +13,8 @@ import { TimeOffPanel } from '@web/features/schedule/time-off-panel';
 import { errorMessageKey } from '@web/lib/api-error';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
 
-/**
- * One doctor: their working week, and when they are away.
- *
- * A page rather than a modal, which is what the schedule used to live in. Time
- * off is a list that grows, and it belongs beside the hours it interrupts —
- * neither fits in a dialog you have to close to see the calendar you were
- * checking against.
- *
- * Admin edits any doctor; a doctor edits their own (ROLES.md core matrix,
- * "doctor R, own U: schedule off-days"). Everyone else reads, which is why the
- * route is open to every role and only the controls are gated.
- */
+// A page rather than a modal: time off is a list that grows and belongs beside the hours it
+// interrupts. Admin edits any, a doctor their own, everyone else reads.
 export function DoctorPage(): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
@@ -117,9 +107,6 @@ export function DoctorPage(): JSX.Element {
             onChange={setSchedule}
             disabled={!canEdit}
             idPrefix="doctor-hours"
-            // A doctor cannot be in the building before it opens; the clinic's
-            // hours are the bound, and a row outside them is flagged rather
-            // than refused so a shift can be moved in two edits.
             within={clinicHours}
             withinLabel={t('schedule.clinicHours')}
           />

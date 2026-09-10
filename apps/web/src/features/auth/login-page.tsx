@@ -19,7 +19,6 @@ interface LocationState {
 export function LoginPage(): JSX.Element {
   const { t } = useTranslation();
   const { status, login } = useSession();
-  // The clinic's own mark and name, when this deployment is one clinic.
   const branding = useClinicBranding();
   const navigate = useNavigate();
   const location = useLocation();

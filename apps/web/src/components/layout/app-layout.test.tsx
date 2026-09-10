@@ -26,7 +26,6 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse> = {}) 
   } as Record<string, MockResponse>;
 }
 
-/** Signs in as `role` and lands on the page every role has: the dashboard. */
 async function renderAs(role: UserRole, route = '/dashboard'): Promise<void> {
   authTokens.clear();
   mockApi(handlers(role));
@@ -42,13 +41,8 @@ const linkNames = (): string[] =>
     .getAllByRole('link')
     .map((link) => link.textContent?.trim() ?? '');
 
-/**
- * The sidebar, as the ROLES.md matrix draws it.
- *
- * Each role's list is asserted whole rather than one label at a time: the
- * failure that matters is an entry appearing for somebody it was never meant
- * for, and a test that only checks what *should* be there cannot see that.
- */
+// Each role's list is asserted whole: the failure that matters is an entry appearing for somebody
+// it was never meant for.
 describe('Sidebar navigation', () => {
   it('gives an admin every section and the settings group', async () => {
     await renderAs(USER_ROLE.ADMIN);
@@ -97,9 +91,8 @@ describe('Sidebar navigation', () => {
   it('counts the unanswered online bookings beside the appointments row', async () => {
     await renderAs(USER_ROLE.RECEPTIONIST);
 
-    // The count lands with its own query, a moment after the row it sits on,
-    // and it is labelled rather than left as a bare digit — so the row is read
-    // out as "appointments, 4 awaiting confirmation".
+    // Labelled rather than a bare digit, so the row reads as "appointments, 4 awaiting
+    // confirmation".
     const badge = await within(nav()).findByLabelText(
       ar.nav.waitingCount.replace('{{count}}', '4'),
     );
@@ -145,13 +138,8 @@ describe('The settings group', () => {
   });
 });
 
-/**
- * One row is current, never two.
- *
- * `/clinic/lists` sits under `/clinic`, and the obvious "does the path start
- * with this" test calls both of them current — which draws two solid pills and
- * announces two current pages. The longest match wins.
- */
+// `/clinic/lists` sits under `/clinic`, and a prefix test calls both current — two pills and two
+// `aria-current` rows. The longest match wins.
 describe('The current row', () => {
   it('marks the deepest section a URL belongs to, and only that one', async () => {
     await renderAs(USER_ROLE.ADMIN, '/clinic/lists');
@@ -176,11 +164,8 @@ describe('The current row', () => {
   });
 });
 
-/**
- * Hiding a link is not hiding a page — the address still resolves, and typing
- * it is the obvious thing to try. Every section a role cannot see sends them
- * to the one page they always can.
- */
+// Hiding a link is not hiding a page: the address still resolves, so every section a role cannot
+// see redirects to one they always can.
 describe('Route guards', () => {
   it.each([
     [USER_ROLE.TECHNICIAN, '/patients'],

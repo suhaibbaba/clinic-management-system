@@ -16,21 +16,8 @@ export interface ConflictDialogProps {
   readonly isSaving?: boolean | undefined;
 }
 
-/**
- * "There are 3 appointments in this period" — and which three.
- *
- * The list, not the count. A closure is typed on a settings screen by somebody
- * who is not looking at the calendar, and "3 appointments" with no way to see
- * whose is a question nobody can answer: reception knows these patients by
- * name, and the whole decision turns on which of them it is.
- *
- * Two ways forward and no default. **Cancel them** notifies every patient
- * through the clinic's own template and cannot be taken back, which is why it
- * is the secondary button; **keep them** records the closure and leaves the
- * diary alone, which is what a practice with three patients it knows usually
- * does — it rings round and moves them by hand. Closing the dialog writes
- * nothing at all.
- */
+// The list, not the count: reception knows these patients by name. No default — cancelling notifies
+// everyone and cannot be taken back, so it is the secondary button.
 export function ConflictDialog({
   open,
   onOpenChange,

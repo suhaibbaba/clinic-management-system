@@ -21,10 +21,8 @@ describe('Avatar', () => {
     expect(image).toHaveAttribute('alt', '');
   });
 
-  /*
-   * Photo URLs are signed and expire in minutes, so a tab left open overnight
-   * is the ordinary case — it has to show the initials, not a torn image.
-   */
+  // Photo URLs are signed and expire in minutes, so a tab left open overnight is the ordinary case
+  // — it must show initials, not a torn image.
   it('goes back to initials when the signed URL has expired', () => {
     const { container } = render(
       <Avatar name="سامر نصار" src="https://storage.example/gone.jpg" />,

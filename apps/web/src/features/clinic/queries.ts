@@ -12,17 +12,8 @@ export function useClinic(): UseQueryResult<Clinic> {
   return useQuery({ queryKey: [CLINIC_KEY], queryFn: () => clinicApi.get() });
 }
 
-/**
- * The clinic's currency, for anything that draws or accepts an amount.
- *
- * A hook rather than a prop threaded down through five forms: every money field
- * and every figure needs it, it comes from the same cached query as the rest of
- * the clinic, and a form that forgot the prop rendered its amounts with no
- * symbol at all — which reads as a missing setting rather than as a bug.
- *
- * Undefined until the query lands; `Money` and `MoneyInput` both draw the
- * figure without a symbol in the meantime rather than shifting the layout twice.
- */
+// A hook rather than a prop through five forms: a form that forgot the prop drew its amounts with
+// no symbol, which reads as a missing setting rather than a bug.
 export function useCurrency(): string | undefined {
   return useClinic().data?.currency;
 }
@@ -36,13 +27,8 @@ export function useUpdateClinic() {
   });
 }
 
-/**
- * The clinic's name and mark for the sign-in screen, which has no session yet.
- *
- * Cached for the session and never retried: the screen has a perfectly good
- * fallback, and a login page that spins because branding is slow is worse than
- * one showing the product's own mark.
- */
+// Cached for the session and never retried: a login page that spins because branding is slow is
+// worse than one showing the product's own mark.
 export function useClinicBranding(): UseQueryResult<ClinicBranding> {
   return useQuery({
     queryKey: [BRANDING_KEY],
@@ -52,11 +38,6 @@ export function useClinicBranding(): UseQueryResult<ClinicBranding> {
   });
 }
 
-/**
- * Presign, PUT the bytes straight to storage, confirm — the same three steps
- * the X-ray upload uses, because it is the same flow: the API signs a URL and
- * the file never passes through it.
- */
 export function useUploadClinicLogo() {
   const queryClient = useQueryClient();
 

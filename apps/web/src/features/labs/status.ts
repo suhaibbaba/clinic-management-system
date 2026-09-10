@@ -9,16 +9,10 @@ import {
 import type { BadgeTone } from '@web/components/ui/badge';
 import type { LabOrderStep } from '@web/features/labs/queries';
 
-/**
- * What a lab-order status looks like, in one table.
- *
- * The board draws a column header, the drawer draws a badge and a row draws a
- * chip — all three read this, so a status can never be amber in one place and
- * grey in another. Every value is a `theme.css` token; no hex anywhere.
- */
+// The column header, the badge and the chip all read this, so a status cannot be amber in one place
+// and grey in another.
 export interface LabStatusStyle {
   readonly tone: BadgeTone;
-  /** The column header on the board. */
   readonly column: string;
   readonly label: string;
 }
@@ -63,7 +57,6 @@ export const LAB_ORDER_STATUS_STYLES: Record<LabOrderStatus, LabStatusStyle> = {
   },
 };
 
-/** The columns of the board, left to right in the order work moves through. */
 export const BOARD_COLUMNS: readonly LabOrderStatus[] = [
   LAB_ORDER_STATUS.DRAFT,
   LAB_ORDER_STATUS.SENT,
@@ -113,15 +106,8 @@ const STEPS: readonly StepDefinition[] = [
   },
 ];
 
-/**
- * The moves this person can make on this order, right now.
- *
- * Two filters, and both matter: the shared transition table decides what is
- * possible at all, and the role table decides who may do it. Hiding a button
- * the API would refuse is the difference between a board people trust and one
- * that throws errors at them — but it is *only* cosmetic, and the API refuses
- * it either way.
- */
+// Two filters: the transition table decides what is possible, the role table who may do it.
+// Cosmetic — the API refuses either way.
 export function availableSteps(
   status: LabOrderStatus,
   role: UserRole | undefined,

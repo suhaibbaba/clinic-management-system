@@ -33,11 +33,8 @@ const COLUMNS: readonly Column<Row>[] = [
   },
 ];
 
-/**
- * jsdom has no layout, so `matchMedia` is stubbed to answer the breakpoint
- * question directly. Unstubbed it is absent entirely, which the hook reads as
- * "not mobile" — so every existing screen test keeps getting the table.
- */
+// jsdom has no layout, so `matchMedia` is stubbed; unstubbed it is absent, which the hook reads as
+// "not mobile".
 function setViewport(isMobile: boolean): void {
   vi.stubGlobal('matchMedia', (query: string) => ({
     matches: isMobile && query.includes('max-width'),
@@ -88,7 +85,6 @@ describe('Table', () => {
     expect(mobile.queryByText('المزة، دمشق')).toBeNull();
     mobile.unmount();
 
-    // Still on the wide shape, where there is room for it.
     setViewport(false);
     render(<Table columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} />);
     expect(within(screen.getByRole('table')).getByText('المزة، دمشق')).toBeInTheDocument();
@@ -98,7 +94,6 @@ describe('Table', () => {
     setViewport(true);
     render(<Table columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} />);
 
-    // The name is the card's title, not a captioned row.
     expect(screen.getByText('أحمد خالد').tagName).toBe('P');
     expect(screen.queryByText(ar.common.actions)).toBeNull();
     expect(screen.getAllByRole('button', { name: 'فتح الملف' })).toHaveLength(ROWS.length);
@@ -147,12 +142,8 @@ describe('Table', () => {
     setViewport(true);
     const mobile = render(<Table columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} />);
 
-    /*
-     * The balance is the figure people open this screen for, and on a card it
-     * has to sit where the phone number and the age sit — the start edge, which
-     * in Arabic is the right. End-alignment belongs to a column of figures,
-     * and a card has no column.
-     */
+    // On a card the balance sits at the start edge with the phone and the age: end-alignment
+    // belongs to a column of figures, and a card has no column.
     const card = mobile.getAllByText('120.00')[0] as HTMLElement;
     expect(card.className).toContain('text-start');
     expect(card.className).not.toContain('text-end');
@@ -170,15 +161,8 @@ describe('Table', () => {
     setViewport(true);
     const { container } = render(<Table columns={COLUMNS} rows={ROWS} rowKey={(row) => row.id} />);
 
-    /*
-     * A 13px label and a 15px value are stretched to the same grid row with
-     * the same top padding, so their text only lands on one line if their
-     * line boxes are the same height. They were 20px and 24px, and every
-     * label on every card sat 2.5px above its own value.
-     *
-     * jsdom has no layout, so what is asserted is the rule rather than the
-     * measurement: the label carries the value's leading.
-     */
+    // The label carries the value's leading, or their line boxes differ and every label sits 2.5px
+    // above its value. jsdom has no layout, so the rule is what is asserted.
     const label = within(container.querySelector('dl') as HTMLElement).getByText(ar.patients.phone);
 
     expect(label.tagName).toBe('DT');
@@ -196,9 +180,6 @@ describe('Table', () => {
       />,
     );
 
-    // "Next" points away from its label, so its chevron follows the words;
-    // drawn before them it aimed back into the word it leads away from, and
-    // the two arrows faced each other across the page count.
     const next = screen.getByRole('button', { name: ar.pagination.next });
     const previous = screen.getByRole('button', { name: ar.pagination.previous });
 

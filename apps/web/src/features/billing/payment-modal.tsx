@@ -23,18 +23,12 @@ interface PaymentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   patientId: string;
-  /** Prefills the amount — the outstanding balance, when there is one. */
   suggestedAmount?: string | undefined;
   currency?: string | undefined;
 }
 
-/**
- * Records a payment and prints its receipt.
- *
- * The amount is typed, never computed from a suggested total behind the user's
- * back: a patient often pays part of what they owe, and the receipt has to say
- * what actually changed hands.
- */
+// The amount is typed, never computed from a suggested total: a patient often pays part, and the
+// receipt has to say what changed hands.
 export function PaymentModal({
   open,
   onOpenChange,

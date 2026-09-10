@@ -36,23 +36,13 @@ export const LAB_WORK_TYPES_KEY = 'lab-work-types';
 /** The audit log's `entity` for an order — the table name, as the API writes it. */
 export const LAB_ORDERS_ENTITY = 'lab_orders';
 
-/**
- * Who sees the labs module at all (ROLES.md labs matrix).
- *
- * A receptionist appears in none of its rows, so they get no nav entry and no
- * route. That is presentation — the API refuses them either way.
- */
+// A receptionist is in none of the labs matrix rows, so no nav entry and no route. The API refuses
+// them either way.
 export const seesLabs = (role: UserRole | undefined): boolean =>
   role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR || role === USER_ROLE.TECHNICIAN;
 
-/**
- * Everything a write to this module can invalidate.
- *
- * A transition changes the board *and* the lab's balance *and* the statement —
- * an order that has just been sent is money owed — so every mutation
- * invalidates all of them rather than trying to be clever about which. Getting
- * that wrong leaves a balance chip disagreeing with the statement beside it.
- */
+// A transition changes the board, the balance and the statement — an order just sent is money owed
+// — so every mutation invalidates all three.
 const LAB_KEYS = [LABS_KEY, LAB_ORDERS_KEY, LAB_BALANCE_KEY, LAB_STATEMENT_KEY, LAB_PAYMENTS_KEY];
 
 function useLabMutation<TArgs, TResult>(mutationFn: (args: TArgs) => Promise<TResult>) {
@@ -150,15 +140,8 @@ export function useLabOrder(id: string): UseQueryResult<LabOrderRow> {
   });
 }
 
-/**
- * The order's own history, read back out of the audit log.
- *
- * The audit trail is the record of who moved this order and when — it is
- * written by the interceptor on every transition, so there is no second
- * history table to keep in step. It is admin-only (ROLES.md core matrix), so
- * this query is only enabled for an admin and the drawer falls back to the
- * order's own timestamps for everybody else.
- */
+// Read out of the audit log, which the interceptor already writes, so there is no second history
+// table. Admin-only, so others get the order's own timestamps.
 export function useLabOrderHistory(
   orderId: string,
   role: UserRole | undefined,
@@ -226,7 +209,6 @@ export function useReturnLabOrder() {
   );
 }
 
-/** Presign → PUT to storage → confirm, the same three steps as an X-ray. */
 export function useUploadLabOrderAttachment() {
   return useLabMutation(async ({ orderId, file }: { orderId: string; file: File }) => {
     const presigned = await labOrdersApi.presignAttachment(orderId, {

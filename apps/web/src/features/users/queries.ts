@@ -49,11 +49,6 @@ export function useResetUserPassword() {
   });
 }
 
-/**
- * Presign, PUT the bytes straight to storage, confirm — the same three steps
- * the clinic's logo and every X-ray use, because it is the same flow: the API
- * signs a URL and the image never passes through it.
- */
 export function useUploadUserPhoto() {
   const invalidate = useInvalidatePhotos();
 
@@ -82,13 +77,8 @@ export function useRemoveUserPhoto() {
   });
 }
 
-/**
- * Three places hold a face: the users list, the doctors list, and the signed-in
- * user's own profile — which is session state rather than a query, so it is
- * re-read rather than invalidated. Refreshing only the one being looked at is
- * how a photo stays changed on the settings screen and old in the sidebar, and
- * the URLs are signed and short-lived, so there is nothing to patch in place.
- */
+// Three places hold a face, and the profile is session state rather than a query. Refreshing only
+// the one on screen is how a photo stays old in the sidebar.
 function useInvalidatePhotos(): () => void {
   const queryClient = useQueryClient();
   const { refreshProfile } = useSession();

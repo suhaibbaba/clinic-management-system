@@ -28,18 +28,8 @@ import { formatDate } from '@web/lib/format';
 import { useDebounced } from '@web/lib/use-debounced';
 import { useIsMobile } from '@web/lib/use-media-query';
 
-/**
- * Every order in the clinic, arranged by where it is.
- *
- * A board on a wide screen because that is the question this page answers —
- * *what is at the lab right now* — and five short columns say it in one look
- * where a status column in a table would need reading. Below `md` it becomes
- * the shared responsive `Table`, which is already a stack of cards there: a
- * board of five columns on a phone is five columns of one card each.
- *
- * A late order is the thing this page exists to catch, so it is red in both
- * shapes and has its own filter.
- */
+// A board on a wide screen answers "what is at the lab right now" in one look; below `md` it is the
+// shared `Table`, already a stack of cards there.
 export function LabOrdersPage(): JSX.Element {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -169,7 +159,6 @@ export function LabOrdersPage(): JSX.Element {
   );
 }
 
-/** The wide shape: one column per status, in the order work moves through. */
 function Board({
   rows,
   isLoading,
@@ -223,14 +212,8 @@ function Board({
   );
 }
 
-/**
- * One order on the board.
- *
- * The card opens the drawer; the buttons along its foot are the moves this
- * person may make from here, so the common case — a technician working through
- * "what came back today" — never opens anything. Both come from the same two
- * tables the drawer uses.
- */
+// The buttons along the foot are the moves this person may make, so working through "what came back
+// today" never opens anything.
 function OrderCard({
   order,
   onOpen,

@@ -41,25 +41,15 @@ const TAB_IDS = ['orders', 'prices', 'statement'] as const;
 
 type Tab = (typeof TAB_IDS)[number];
 
-/**
- * One lab: who they are, what they charge, what they are making, what we owe.
- *
- * Three tabs rather than one long page, because the three questions belong to
- * different people on different days — the technician keeps the price list,
- * the doctor watches the orders, and whoever settles up reads the statement.
- */
+// Three tabs because the three questions belong to different people: the technician keeps the
+// prices, the doctor watches the orders, whoever settles up reads the statement.
 export function LabPage(): JSX.Element {
   const { t } = useTranslation();
   const { id = '' } = useParams<{ id: string }>();
   const { user } = useSession();
 
-  /*
-   * The open tab is in the address.
-   *
-   * A lab's statement is the thing somebody sends to somebody else — "look at
-   * what we owe them" — and in `useState` it had no address to send. Same
-   * `?tab=` parameter and same helper as the sections above it.
-   */
+  // A lab's statement is the thing somebody sends to somebody else, and in `useState` it had no
+  // address to send.
   const [tab, setTab] = useTabParam<Tab>('tab', TAB_IDS, 'orders');
   const [editing, setEditing] = useState(false);
   const [paying, setPaying] = useState(false);
@@ -79,13 +69,8 @@ export function LabPage(): JSX.Element {
           <h1 className="truncate text-[1.625rem] font-bold leading-[1.3] tracking-[-0.03em] text-ink sm:text-title">
             {lab.data?.name ?? '…'}
           </h1>
-          {/*
-            A contact and a phone number on one line, not a joined string.
-            Joined, the `+` in front of the number is a neutral character and
-            the bidi algorithm hands it to the Arabic around it: the lab's
-            number was drawn as `963115556677+`, which is not a phone number
-            anyone can dial.
-          */}
+          {/* Not a joined string: the `+` is neutral and bidi hands it to the Arabic around it,
+              drawing the number as `963115556677+`. */}
           <p className="mt-1 flex flex-wrap items-baseline gap-1.5 text-value text-ink-muted">
             {lab.data?.contactPerson && <span>{lab.data.contactPerson}</span>}
             {lab.data?.contactPerson && lab.data?.phone && <span aria-hidden>—</span>}
@@ -179,21 +164,14 @@ export function LabPage(): JSX.Element {
   );
 }
 
-/** Everything this lab is making, or has made. */
 function LabOrdersTab({ labId }: { readonly labId: string }): JSX.Element {
   const orders = useLabOrders({ labId, limit: 50 });
 
   return <LabOrdersTable orders={orders.data?.items ?? []} isLoading={orders.isPending} hideLab />;
 }
 
-/**
- * The price list.
- *
- * Editing a price here changes what the *next* order costs and nothing that is
- * already owed — every order carries the price it was placed at. The caption
- * says so, because it is exactly the kind of thing somebody assumes the other
- * way round.
- */
+// Editing a price changes what the next order costs and nothing already owed — every order carries
+// the price it was placed at, and the caption says so.
 function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -274,11 +252,6 @@ function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
   );
 }
 
-/**
- * The statement: every order and every payment, oldest first, with the balance
- * after each line — the same shape as a patient's account, because it answers
- * the same question from the other side.
- */
 function StatementTab({
   labId,
   labName,

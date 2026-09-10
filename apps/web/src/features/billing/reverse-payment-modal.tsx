@@ -14,19 +14,13 @@ import { useReversePayment } from '@web/features/billing/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
 interface ReversePaymentModalProps {
-  /** The statement line being cancelled; null closes the dialog. */
   payment: StatementEntry | null;
   onOpenChange: (open: boolean) => void;
   currency?: string | undefined;
 }
 
-/**
- * Cancels a payment — admin only, and by writing the opposite entry.
- *
- * The wording says "cancel", never "delete", because nothing is removed: the
- * original receipt and its cancellation both stay on the statement, which is
- * what makes the correction auditable.
- */
+// The wording says "cancel", never "delete": the original receipt and its cancellation both stay on
+// the statement.
 export function ReversePaymentModal({
   payment,
   onOpenChange,

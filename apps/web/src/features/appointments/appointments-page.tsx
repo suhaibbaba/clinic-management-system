@@ -52,18 +52,8 @@ const RANGES = ['day', 'week'] as const;
 
 type Range = (typeof RANGES)[number];
 
-/**
- * The internal calendar.
- *
- * Week is the default on a desktop — it is the view that answers "when can I
- * fit them in?", which is what reception is asked all day. On a phone the week
- * is seven 40px columns, so the day's agenda is the only view offered there
- * and the toggle disappears with it.
- *
- * A doctor sees their own column; every other role sees the clinic. Reading
- * the whole calendar is `R` for every role, so this is a default rather than a
- * boundary — the boundary is in the API.
- */
+// Week is the desktop default; on a phone it is seven 40px columns, so only the agenda is offered.
+// A doctor defaults to their own column — the boundary is the API.
 export function AppointmentsPage(): JSX.Element {
   const { t } = useTranslation();
   const doctorName = usePersonName();
@@ -79,23 +69,8 @@ export function AppointmentsPage(): JSX.Element {
   const clinic = useClinic();
   setClinicTimeZone(clinic.data);
 
-  /*
-   * The calendar's three coordinates live in the address.
-   *
-   * "Look at Tuesday", "here is Dr Haddad's week", "open the day view" are the
-   * three things people say about this screen, and in `useState` none of them
-   * had an address to say it with: a link could only ever open today, every
-   * doctor, in the week view. A refresh threw the same three away.
-   *
-   * All three write their default as *no* parameter, so `/appointments` stays
-   * the plain address it was.
-   *
-   * One writer for the three of them rather than three calls to the shared
-   * tab helper: each of those takes its own snapshot of the current params, so
-   * two of them in one handler — picking a day out of the week view sets the
-   * date *and* the view — would have the second overwrite the first and the
-   * date would vanish on the way to the day it named.
-   */
+  // The three coordinates live in the address, each writing its default as no parameter. One writer
+  // for all three: two calls to the tab helper each snapshot the params and the second wins.
   const [params, setParams] = useSearchParams();
 
   const range: Range = RANGES.find((id) => id === params.get('view')) ?? 'week';
@@ -152,14 +127,8 @@ export function AppointmentsPage(): JSX.Element {
 
   const waiting = useWaitingList({ limit: 1 });
 
-  /*
-   * Today's online bookings, for the front desk.
-   *
-   * The one number on this page that is not in the calendar feed already: a
-   * booking sitting in `requested` for today is somebody who thinks they have
-   * an appointment and whom nobody has answered. `limit: 1` because only the
-   * total is wanted.
-   */
+  // The one number not already in the calendar feed: a `requested` booking for today is somebody
+  // nobody has answered. `limit: 1` because only the total is wanted.
   const frontDesk = seesPendingBookings(user?.role);
   const onlineToday = usePendingBookings({ from: todayIso(), to: todayIso(), limit: 1 }, frontDesk);
 
@@ -173,7 +142,6 @@ export function AppointmentsPage(): JSX.Element {
   );
   const selected = appointments.find((entry) => entry.id === selectedId);
 
-  /** Columns of the day grid: the filtered doctor, or all of them. */
   const columns = useMemo(() => {
     const all = doctors.data?.items ?? [];
 
@@ -336,12 +304,8 @@ export function AppointmentsPage(): JSX.Element {
             aria-label={t('appointments.next')}
             onClick={() => step(1)}
           />
-          {/*
-            One island, not two dates in an Arabic line. `06/09 – 12/09` is a
-            single left-to-right run: read as ordinary text in an RTL
-            paragraph, the neutral dash let the algorithm swap its two halves
-            and the toolbar announced the week as `12/09 – 06/09`.
-          */}
+          {/* One island, not two dates: read as ordinary text in an RTL paragraph the neutral dash
+              let the halves swap, announcing the week as `12/09 – 06/09`. */}
           <Ltr className="ms-1 text-value font-medium text-ink">{label}</Ltr>
         </div>
 

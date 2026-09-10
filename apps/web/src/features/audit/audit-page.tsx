@@ -24,7 +24,6 @@ import { endOfNextDayIso, formatDateTime, startOfDayIso } from '@web/lib/format'
 
 const PAGE_SIZE = 10;
 
-/** Entities the trail can currently contain; each maps to an i18n label. */
 const ENTITIES = ['users', 'doctors', 'clinics'] as const;
 
 const ACTION_TONES: Record<AuditAction, BadgeTone> = {
@@ -83,7 +82,6 @@ export function AuditPage(): JSX.Element {
       {
         key: 'entity',
         header: 'audit.entity',
-        // What was touched leads the card; who and when follow it.
         primary: true,
         render: (row) => t(`audit.entities.${row.entity}`, { defaultValue: row.entity }),
       },
@@ -158,11 +156,8 @@ export function AuditPage(): JSX.Element {
           }}
         />
 
-        {/*
-          One range rather than two dates: the pair is only ever meaningful
-          together, and two independent fields let you ask for a window that
-          runs backwards.
-        */}
+        {/* One range rather than two dates: the pair is only meaningful together, and two fields let
+            you ask for a window that runs backwards. */}
         <label className="flex w-full flex-col gap-1 text-label text-ink-muted sm:w-auto">
           {t('audit.period')}
           <DateRangePicker

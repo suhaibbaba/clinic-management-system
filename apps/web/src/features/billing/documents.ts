@@ -2,13 +2,8 @@ import type { StatementQuery } from '@clinic/shared';
 
 import { billingApi } from '@web/features/billing/api';
 
-/**
- * Opening a printed document.
- *
- * These endpoints need the bearer token, so the browser cannot follow a plain
- * link to them: the PDF is fetched, wrapped in an object URL and handed to a
- * new tab, where the built-in viewer prints it.
- */
+// These endpoints need the bearer token, so a plain link cannot follow them: the PDF is fetched,
+// wrapped in an object URL and handed to a new tab.
 async function present(blob: Blob, filename: string, download: boolean): Promise<void> {
   const url = URL.createObjectURL(blob);
 

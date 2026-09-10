@@ -28,40 +28,22 @@ import { Ltr } from '@web/components/ui/ltr';
 import { PersonName } from '@web/components/ui/person-name';
 
 export interface DayGridProps {
-  /** The day being drawn, as a local `YYYY-MM-DD`. */
   readonly date: string;
   /** One column each. A doctor sees a single column: their own. */
   readonly doctors: readonly Doctor[];
   readonly appointments: readonly CalendarAppointment[];
-  /**
-   * The closure covering this day, if one does. Shading the whole grid rather
-   * than every column: the clinic is shut, not one doctor.
-   */
+  /** Shading the whole grid rather than every column: the clinic is shut, not one doctor. */
   readonly closure?: ClinicClosure | undefined;
   /** Absences touching this day, drawn as hatched blocks in their column. */
   readonly timeOff?: readonly DoctorTimeOff[] | undefined;
   readonly onOpen: (appointment: CalendarAppointment) => void;
-  /**
-   * A block was dropped on a new time. Absent when the caller may not
-   * reschedule, which also removes the drag affordance entirely.
-   */
   readonly onMove?: ((appointment: CalendarAppointment, minute: number) => void) | undefined;
   /** Clicking empty space books there — the fastest path reception has. */
   readonly onPick?: ((doctorId: string, minute: number) => void) | undefined;
 }
 
-/**
- * The day, as a time grid with one column per doctor.
- *
- * Absolute positioning inside a percentage-height column rather than a CSS
- * grid of quarter-hour rows: appointments are not aligned to any single
- * granularity — 20, 45 and 90 minutes all occur — and a row grid would either
- * lie about their length or need 60 rows an hour.
- *
- * Overlaps cannot happen: the database refuses them for one doctor, and each
- * column *is* one doctor. That is why a block can take the full column width
- * without a lane-packing algorithm, and it is worth knowing before adding one.
- */
+// Absolute positioning rather than quarter-hour rows: 20, 45 and 90 minutes all occur. Overlaps
+// cannot happen — a column is one doctor — so there is no lane packing.
 export function DayGrid({
   date,
   doctors,
@@ -177,11 +159,8 @@ export function DayGrid({
                   />
                 ))}
 
-                {/*
-                  Time off, under the appointments: an absence that overlaps a
-                  booking is a real state — the seed ships one — and hiding the
-                  appointment behind the hatching would be the wrong way round.
-                */}
+                {/* An absence overlapping a booking is a real state, and hiding the appointment
+                    behind the hatching would be the wrong way round. */}
                 {timeOff
                   .filter((entry) => entry.doctorId === doctor.id)
                   .map((entry) => {
@@ -252,19 +231,6 @@ function AppointmentBlock({
   const position = blockPosition(appointment);
   const time = toTimeLabel(minutesOf(appointment.startsAt));
 
-  /*
-   * A short appointment says the same thing on one line.
-   *
-   * The block is as many pixels tall as the appointment is minutes long, and
-   * two lines of this type need 39 of them — so at the clinic's default of 30
-   * minutes the block clipped its own second line horizontally through the
-   * middle of the glyphs, on nearly every appointment in the calendar. One
-   * line fits, in the order a calendar is scanned: the time, then who.
-   *
-   * The type is what goes, because it is the least of the three and the only
-   * one the drawer behind the block does not make people hunt for. It stays in
-   * the tooltip, and the accessible name is unchanged either way.
-   */
   const compact = blockMinutes(appointment.durationMinutes) < TWO_LINE_MINUTES;
 
   return (

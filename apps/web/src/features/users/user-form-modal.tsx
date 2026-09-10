@@ -20,7 +20,6 @@ import { Modal } from '@web/components/ui/modal';
 interface UserFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Null creates a user; a row edits it. */
   user: User | null;
 }
 
@@ -109,20 +108,12 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
       }
     >
       <form id="user-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
-        {/*
-          Outside the form's fields on purpose: the photo is uploaded and
-          removed on the spot rather than saved with the rest, because it is a
-          file that has already left the browser by the time "save" is pressed.
-          Only on an existing user — there is no id to address until then.
-        */}
+        {/* Outside the form's fields: the photo has already left the browser by the time "save" is
+            pressed, and there is no id to address until the user exists. */}
         {user && <UserPhotoField user={user} />}
 
-        {/*
-          Both spellings, both required. Staff are a small set the clinic
-          employs and can spell twice; the alternative was a name that stayed
-          Latin in the middle of an Arabic calendar, which is what this is for.
-          A patient's name is one field and stays one field (CLAUDE.md).
-        */}
+        {/* Both spellings, both required: staff are a small set the clinic can spell twice. A
+            patient's name is one field and stays one. */}
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label="users.nameAr" htmlFor="user-name-ar" error={errors.name?.ar}>
             <Input

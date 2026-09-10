@@ -7,15 +7,8 @@ import { downloadIcs } from '@web/booking/ics';
 import { Button, Card, cx } from '@web/booking/ui';
 import { bookingName } from '@web/booking/format';
 
-/**
- * The end of the flow: the appointment, in the four facts a patient repeats to
- * whoever is driving them.
- *
- * "Add to calendar" writes an `.ics` in the browser — no provider, no account,
- * nothing sent anywhere — and the manage link that also went out by SMS is
- * mentioned rather than printed, because this screen is often a screenshot and
- * that link is a credential.
- */
+// The manage link is mentioned rather than printed: this screen is often a screenshot, and that
+// link is a credential.
 export function SuccessView({ booking }: { readonly booking: ManagedBooking }): JSX.Element {
   return (
     <div className="booking-step flex flex-col gap-4">
@@ -64,7 +57,6 @@ export function PendingView({ booking }: { readonly booking?: ManagedBooking }):
   );
 }
 
-/** Doctor, date, time, clinic — the same four rows wherever a booking shows. */
 export function BookingFacts({ booking }: { readonly booking: ManagedBooking }): JSX.Element {
   return (
     <Card>

@@ -8,12 +8,6 @@ import { Button, FormField, Input, Modal, Textarea, useToast } from '@web/compon
 import { useCreateLab, useUpdateLab } from '@web/features/labs/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
-/**
- * Adding a lab, or editing the one detail that changes most — who to ask for.
- *
- * The same modal for both: a lab has five fields, and a separate "edit" dialog
- * would be the same five with a different title.
- */
 export function LabFormModal({
   open,
   onOpenChange,
@@ -21,7 +15,6 @@ export function LabFormModal({
 }: {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
-  /** Present when editing. */
   readonly lab?: Lab | undefined;
 }): JSX.Element {
   const { t } = useTranslation();

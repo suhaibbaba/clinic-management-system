@@ -20,21 +20,11 @@ export interface WeekViewProps {
   /** Closures overlapping the week; a covered day is shaded and named. */
   readonly closures?: readonly ClinicClosure[] | undefined;
   readonly onOpen: (appointment: CalendarAppointment) => void;
-  /** Clicking a day header jumps the day view there. */
   readonly onPickDay: (date: string) => void;
 }
 
-/**
- * Seven days as seven columns of stacked blocks.
- *
- * Deliberately *not* a time grid. A week at the day view's scale is 10,500
- * pixels of mostly-empty column, and the question a week answers is "how full
- * is Thursday?" rather than "what happens at 14:15?" — so each day is a list
- * in time order, and the day view is one click away for the detail.
- *
- * Desktop only. On a phone the same seven columns are 40px wide, which is a
- * week nobody can read; `AppointmentsPage` renders the agenda there instead.
- */
+// Not a time grid: a week at that scale is 10,500 pixels of empty column, and the question is "how
+// full is Thursday?". Desktop only — seven 40px columns is unreadable.
 export function WeekView({
   date,
   appointments,

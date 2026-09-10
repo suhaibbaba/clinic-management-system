@@ -13,12 +13,6 @@ import { useCreateWorkType, useUpdateWorkType } from '@web/features/labs/queries
 import { errorMessageKey } from '@web/lib/api-error';
 import { useCurrency } from '@web/features/clinic/queries';
 
-/**
- * A line of the lab's price list.
- *
- * Retiring a work type is a switch rather than a delete: orders already placed
- * point at it, and a statement whose lines lose their names is unreadable.
- */
 export function WorkTypeModal({
   open,
   onOpenChange,

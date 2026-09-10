@@ -29,44 +29,22 @@ import { useDebounced } from '@web/lib/use-debounced';
 
 const PAGE_SIZE = 10;
 
-/**
- * `?filter=balance` — the address the dashboard's overdue card and the
- * retired standalone overdue screen both point at.
- */
+/** The address the dashboard's overdue card and the retired standalone overdue screen both point at. */
 const BALANCE_FILTER = 'balance';
 
-/** True when the response carries the clinical fields, not just the public ones. */
 function isClinicalView(patient: PatientView): patient is PatientClinicalView {
   return 'gender' in patient;
 }
 
-/**
- * The way reception finds a patient: one search box over name, phone and file
- * number, and a page of results under it.
- *
- * The search runs on the server — the whole point is to find a patient among
- * thousands, which a client-side filter over one page cannot do — and is
- * debounced so a burst of typing is one request, not eight.
- *
- * Which columns exist follows the role. The API hands a receptionist and a
- * technician `PatientPublicView`, so the table can only render what it was
- * given; the extra columns are not merely hidden, they are absent
- * (ROLES.md field-level security).
- */
+// The search runs on the server — a client-side filter over one page cannot find a patient among
+// thousands — and is debounced. Columns follow the role's response shape.
 export function PatientsPage(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useSession();
 
-  /*
-   * The URL owns the search term, rather than a `useState` seeded from it.
-   *
-   * The top bar navigates here with `?q=`, and when the user is *already* on
-   * this screen that navigation does not remount the page — a state copy
-   * seeded once at mount would silently ignore it. Reading the param directly
-   * means there is only one answer to "what is being searched", and it also
-   * makes a search reloadable, shareable and back-button-able for free.
-   */
+  // The URL owns the term: the top bar navigates here with `?q=` without remounting, so a state
+  // copy seeded at mount would ignore it.
   const [page, setPage] = useState(1);
   const [params, setParams] = useSearchParams();
   const search = params.get('q') ?? '';
@@ -85,16 +63,6 @@ export function PatientsPage(): JSX.Element {
     setPage(1);
   };
   const [createOpen, setCreateOpen] = useState(false);
-  /*
-   * The Owing filter, in the URL and asked of the server.
-   *
-   * In the URL because the dashboard's overdue card links straight to it and
-   * the old standalone overdue screen redirects here — a filter nobody can
-   * link to could not have replaced a page. Asked of the server because a
-   * balance is an aggregate rather than a column: narrowing the page in hand
-   * would answer "which of these ten owe" while looking like it answered "who
-   * owes", and page two would be page two of everybody.
-   */
   const owingOnly = params.get('filter') === BALANCE_FILTER;
   const setOwingOnly = (next: boolean): void => {
     setParams(
@@ -127,10 +95,6 @@ export function PatientsPage(): JSX.Element {
       {
         key: 'fullName',
         header: 'patients.fullName',
-        // The card's title on a phone; on a wide screen, the identity cell:
-        // a tinted initial, the name, and the file number as its caption.
-        // Two columns collapsed into one — the file number never needed a
-        // header of its own, it needed to be under the name it belongs to.
         primary: true,
         render: (row) => (
           <span className="flex items-center gap-3">
@@ -166,9 +130,8 @@ export function PatientsPage(): JSX.Element {
       });
     }
 
-    // ROLES.md lists `balance` on `PatientPublicView`, and the API computes it
-    // for every role but the technician — so the column exists exactly when
-    // the response carries it.
+    // The API computes `balance` for every role but the technician, so the column exists exactly
+    // when the response carries it.
     if (showBalance) {
       base.push({
         key: 'balance',
@@ -227,17 +190,7 @@ export function PatientsPage(): JSX.Element {
         }
       />
 
-      {/*
-        Search and filter sit on the page, not on a card of their own: a
-        toolbar is chrome, and giving it a white surface makes it read as
-        content with a heading missing.
-      */}
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        {/*
-          Its own line on a phone. Sharing one with the filter and the count
-          left the placeholder clipped mid-word at 390px, which is the width
-          this app is most often used at.
-        */}
         <SearchField
           className="w-full min-w-0 sm:max-w-md sm:flex-1"
           label={t('patients.search')}

@@ -12,27 +12,13 @@ export interface DrawerProps {
   onOpenChange: (open: boolean) => void;
   /** Already-resolved title: a drawer usually names a record, not a screen. */
   title: ReactNode;
-  /** i18n key describing the drawer for screen readers. */
   descriptionKey: string;
   children: ReactNode;
   footer?: ReactNode | undefined;
 }
 
-/**
- * Side sheet anchored to the inline end of the page — the left in an RTL
- * layout, the right in LTR — so it opens away from the reading edge either way.
- *
- * Radix Dialog underneath, for the focus trap and escape handling — and, as in
- * `Modal`, with its auto-focus prevented: a drawer opens because somebody
- * wanted to read a record, and putting the caret in its first field announces
- * the wrong thing and can unfold a picker nobody asked for. The trap, Escape
- * and the first Tab all behave exactly as they did.
- *
- * There is
- * deliberately no slide-in transform: `translate-x` is not mirrored in RTL, so
- * a slide would animate from the wrong side of an Arabic page. It fades in
- * instead, which is direction-agnostic.
- */
+// Auto-focus prevented as in `Modal`: a drawer opens to be read. No slide-in either — `translate-x`
+// is not mirrored in RTL, so it would animate from the wrong side; it fades instead.
 export function Drawer({
   open,
   onOpenChange,
@@ -65,11 +51,8 @@ export function Drawer({
             <Dialog.Title className="text-section font-semibold text-ink">{title}</Dialog.Title>
             <Dialog.Close
               className={cn(
-                // The same 44px close as the navigation drawer's, and the same
-                // glyph: this one was a bare "✕" character in a 27px box, so
-                // it was both the smallest target on the screen and the one
-                // control in the app drawn in a font rather than in the icon
-                // set.
+                // The same 44px close as the navigation drawer: this was a bare "✕" in a 27px box,
+                // the smallest target on the screen.
                 'inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-pill',
                 'text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink',
               )}

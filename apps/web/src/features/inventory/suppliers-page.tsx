@@ -31,13 +31,6 @@ import { SupplierFormModal } from '@web/features/inventory/supplier-form-modal';
 import { endOfNextDayIso, formatDate, startOfDayIso } from '@web/lib/format';
 import { useDebounced } from '@web/lib/use-debounced';
 
-/**
- * Who the clinic buys from, and what it has spent with each of them.
- *
- * A table rather than cards: unlike a lab, a supplier is a name and a total,
- * and the question people bring here is "what did we buy from them" — which is
- * one click into the statement below.
- */
 export function SuppliersPage(): JSX.Element {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -170,7 +163,6 @@ export function SuppliersPage(): JSX.Element {
   );
 }
 
-/** Everything bought from one supplier in a period, and what it cost. */
 function Statement({
   supplier,
   onClose,

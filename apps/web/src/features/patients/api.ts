@@ -33,13 +33,8 @@ import { apiRequest } from '@web/lib/api-client';
 /** Server maximum for a page; the chart needs every row, so it pages through. */
 const PAGE_LIMIT = 100;
 
-/**
- * Reads every page of a list endpoint.
- *
- * The chart colours all 32 teeth at once, so a patient with years of history
- * cannot be shown from page one alone. The bound keeps a runaway loop from
- * hammering the API if a page ever comes back malformed.
- */
+// The chart colours all 32 teeth at once, so a patient with years of history cannot be drawn from
+// page one. The bound stops a runaway loop on a malformed page.
 async function fetchAllPages<TItem>(
   load: (page: number) => Promise<Paginated<TItem>>,
   maxPages = 20,
@@ -56,12 +51,8 @@ async function fetchAllPages<TItem>(
 }
 
 export const patientsApi = {
-  /**
-   * The list every role may read. The response shape is decided by the caller's
-   * role server-side — a receptionist or a technician receives
-   * `PatientPublicView`, so this is typed as the union rather than the
-   * clinical view (ROLES.md field-level security).
-   */
+  // Typed as the union, not the clinical view: the response shape is decided by the caller's role
+  // server-side.
   list: (query: Partial<ListPatientsQuery>): Promise<Paginated<PatientView>> =>
     apiRequest('/patients', {
       query: {
@@ -77,13 +68,8 @@ export const patientsApi = {
 
   get: (id: string): Promise<PatientClinicalView> => apiRequest(`/patients/${id}`),
 
-  /**
-   * Allergies only. The full medical history would do, but this endpoint is the
-   * narrower one and the banner needs nothing else (ROLES.md: least privilege).
-   */
   allergyFlags: (id: string): Promise<AllergyFlags> => apiRequest(`/patients/${id}/allergy-flags`),
 
-  /** Every procedure on the patient, each carrying its chart marks. */
   procedures: (patientId: string): Promise<PerformedProcedure[]> =>
     fetchAllPages((page) =>
       apiRequest<Paginated<PerformedProcedure>>('/performed-procedures', {
@@ -91,7 +77,6 @@ export const patientsApi = {
       }),
     ),
 
-  /** The catalog, for its prices and its chart classification. */
   catalog: (): Promise<ProcedureCatalogItem[]> =>
     fetchAllPages((page) =>
       apiRequest<Paginated<ProcedureCatalogItem>>('/procedure-catalog', {
@@ -144,7 +129,6 @@ export const patientsApi = {
     body: UpdateTreatmentPlanItemInput,
   ): Promise<TreatmentPlanItem> => apiRequest(`/plan-items/${itemId}`, { method: 'PATCH', body }),
 
-  /** Turns a quoted item into work actually carried out. */
   convertPlanItem: (itemId: string): Promise<PerformedProcedure> =>
     apiRequest(`/plan-items/${itemId}/convert`, { method: 'POST', body: {} }),
 
@@ -170,11 +154,7 @@ export const patientsApi = {
   deleteAttachment: (id: string): Promise<void> =>
     apiRequest(`/attachments/${id}`, { method: 'DELETE' }),
 
-  /**
-   * One merged stream over everything attached to the patient. Which entry
-   * types come back is decided by the caller's role, not by this query
-   * (ROLES.md patients matrix).
-   */
+  /** Which entry types come back is decided by the caller's role, not by this query. */
   timeline: (
     patientId: string,
     query: Partial<ListTimelineQuery> = {},
@@ -184,13 +164,8 @@ export const patientsApi = {
     }),
 };
 
-/**
- * Uploads the bytes straight to storage.
- *
- * Deliberately not `apiRequest`: this is a presigned PUT to the object store,
- * which must not carry the API's bearer token, and the body is the file itself
- * rather than JSON.
- */
+// Not `apiRequest`: a presigned PUT must not carry the API's bearer token, and the body is the file
+// rather than JSON.
 export async function uploadToStorage(uploadUrl: string, file: File): Promise<void> {
   const response = await fetch(uploadUrl, {
     method: 'PUT',

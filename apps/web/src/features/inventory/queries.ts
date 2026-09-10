@@ -31,16 +31,8 @@ export const SHOPPING_LIST_KEY = 'shopping-list';
 export const SUPPLIERS_KEY = 'suppliers';
 export const SUPPLIER_STATEMENT_KEY = 'supplier-statement';
 
-/**
- * Everything one movement can change.
- *
- * A single purchase moves the item's quantity, its batches, its low-stock
- * flag, the alerts, the shopping list and the supplier's total — so every
- * write invalidates all of them rather than trying to be clever about which.
- * Getting that wrong leaves a progress bar disagreeing with the number printed
- * beside it, which is the sort of thing that makes people stop trusting a
- * stock screen altogether.
- */
+// One purchase moves the quantity, the batches, the low flag, the alerts, the shopping list and the
+// supplier's total, so a write invalidates all of them.
 const STOCK_KEYS = [
   ITEMS_KEY,
   MOVEMENTS_KEY,

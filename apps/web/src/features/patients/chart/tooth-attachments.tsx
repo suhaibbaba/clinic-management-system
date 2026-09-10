@@ -5,17 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { useAttachment } from '@web/features/patients/queries';
 import { formatDate } from '@web/lib/format';
 
-/**
- * X-rays taken of this tooth.
- *
- * The list endpoint returns metadata only — no key, no URL — so each thumbnail
- * asks for its own short-lived signed URL. That is the API's design, not a
- * limitation to work around: a URL that expires in minutes must not be minted
- * for images nobody opens.
- *
- * This whole section is hidden for roles ROLES.md forbids attachment data to;
- * the API refuses them regardless.
- */
+// The list endpoint returns metadata only, so each thumbnail asks for its own short-lived URL — one
+// that expires in minutes must not be minted for images nobody opens.
 export function ToothAttachments({
   attachments,
 }: {

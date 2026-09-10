@@ -71,15 +71,10 @@ function childDateOfBirth(): string {
 const toothButton = (fdi: number) =>
   screen.getByRole('button', { name: new RegExp(`\\b${fdi}\\b`) });
 
-/** The chart is ready once its SVG group is on screen. */
 const findChart = () => screen.findByRole('group', { name: ar.chart.title });
 
-/**
- * A tooth's colour while the panel is open.
- *
- * The drawer is a modal, so the chart behind it is correctly hidden from the
- * accessibility tree and `getByRole` cannot see it — this reads the DOM instead.
- */
+// The drawer is a modal, so the chart behind it is correctly hidden from the accessibility tree and
+// `getByRole` cannot see it.
 const toothState = (fdi: number): string | null | undefined =>
   document.querySelector(`[data-tooth="${fdi}"]`)?.getAttribute('data-state');
 
@@ -103,9 +98,6 @@ describe('Patient page', () => {
     it('redirects a technician away from the patient file', async () => {
       await renderPatientPage(USER_ROLE.TECHNICIAN);
 
-      // Sent to the dashboard — the one screen every role has — rather than
-      // shown what they cannot open: naming the record would confirm it
-      // exists.
       expect(await screen.findByRole('heading', { name: ar.dashboard.title })).toBeVisible();
 
       expect(screen.queryByRole('group', { name: ar.chart.title })).not.toBeInTheDocument();

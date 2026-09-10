@@ -27,7 +27,6 @@ import { TeethField } from '@web/features/labs/teeth-field';
 import { errorMessageKey } from '@web/lib/api-error';
 import { useCurrency } from '@web/features/clinic/queries';
 
-/** What the patient page hands in when the order starts from a tooth. */
 export interface LabOrderDefaults {
   readonly patient?: PickedPatient | undefined;
   readonly teeth?: readonly number[] | undefined;
@@ -43,16 +42,8 @@ export interface OrderFormModalProps {
   readonly defaults?: LabOrderDefaults | undefined;
 }
 
-/**
- * Placing work with a lab.
- *
- * Two things here are deliberate. The price is a **snapshot**: choosing a work
- * type copies that lab's current price into the order, and the lab's price list
- * moving later never rewrites what the clinic already owes. And a doctor never
- * sees the price field at all — ROLES.md gives them the order but not its
- * financial fields, and the API drops any price a doctor sends and substitutes
- * the list price, so a box they could type into would be a lie.
- */
+// The price is a snapshot of the lab's list at ordering. A doctor never sees the field: the API
+// drops any price they send, so a box to type in would be a lie.
 export function OrderFormModal({
   open,
   onOpenChange,
@@ -85,7 +76,6 @@ export function OrderFormModal({
   const workTypes = useLabWorkTypes(labId);
   const mayPrice = user?.role === USER_ROLE.ADMIN;
 
-  /** The doctor's own record, so their orders default to themselves. */
   const ownDoctorId = useMemo(
     () => doctors.data?.items.find((doctor) => doctor.userId === user?.id)?.id ?? '',
     [doctors.data, user?.id],
@@ -127,10 +117,6 @@ export function OrderFormModal({
     setPrice('');
   }, [open, order, defaults, ownDoctorId]);
 
-  /**
-   * Picking the work fills the price from the list — visibly, so whoever may
-   * change it can see what they are changing away from.
-   */
   const chooseWorkType = (id: string): void => {
     setWorkTypeId(id);
 

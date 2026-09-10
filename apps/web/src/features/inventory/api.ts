@@ -39,8 +39,6 @@ const query = (params: Record<string, string | number | boolean | undefined>): s
 };
 
 export const inventoryApi = {
-  /* -------------------------------- Items ------------------------------- */
-
   items: (params: Partial<ListInventoryItemsQuery> = {}) =>
     apiRequest<Paginated<InventoryItemRow>>(`/inventory/items${query(params)}`),
 
@@ -55,21 +53,14 @@ export const inventoryApi = {
   /** What is left of each batch — derived on read, never stored. */
   batches: (id: string) => apiRequest<ItemBatches>(`/inventory/items/${id}/batches`),
 
-  /* ------------------------------ Movements ----------------------------- */
-
   movements: (params: Partial<ListMovementsQuery> = {}) =>
     apiRequest<Paginated<StockMovementRow>>(`/inventory/movements${query(params)}`),
 
-  /** The item card: this item's history with a running quantity. */
   itemMovements: (id: string, params: Partial<ListMovementsQuery> = {}) =>
     apiRequest<Paginated<StockMovementRow>>(`/inventory/items/${id}/movements${query(params)}`),
 
-  /**
-   * One call per act, matching the API.
-   *
-   * Not one `move(type, …)`: the three carry different fields and different
-   * permissions, and a single call would have to accept the union of both.
-   */
+  // One call per act, not one `move(type, …)`: the three carry different fields and different
+  // permissions.
   purchase: (body: PurchaseStockInput) =>
     apiRequest<StockMovement>('/inventory/movements/purchase', { method: 'POST', body }),
 
@@ -81,8 +72,6 @@ export const inventoryApi = {
 
   reverse: (id: string, body: ReverseMovementInput) =>
     apiRequest<StockMovement>(`/inventory/movements/${id}/reverse`, { method: 'PATCH', body }),
-
-  /* ------------------------- Alerts and the list ------------------------ */
 
   alerts: () => apiRequest<InventoryAlerts>('/inventory/alerts'),
 
