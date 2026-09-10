@@ -71,7 +71,8 @@ export function Tabs<TId extends string>({
             aria-controls={`panel-${tab.id}`}
             onClick={() => onChange(tab.id)}
             className={cn(
-              'inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-control px-3 py-1.5 lg:min-h-0',
+              'inline-flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center gap-1.5',
+              'rounded-control px-3 py-1.5 lg:min-h-0 lg:min-w-0',
               'text-value font-medium',
               'transition-[background-color,color,box-shadow,transform] duration-150 active:scale-95',
               selected

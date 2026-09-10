@@ -337,7 +337,9 @@ function NavSection({
         aria-controls={id}
         onClick={() => setOpen((current) => !current)}
         className={cn(
-          'flex w-full cursor-pointer items-center gap-1.5 rounded-control px-2.5 py-1.5',
+          // 44px on touch like every other row in the rail; drawn at 28 on a
+          // laptop, where a caption that tall would read as a nav row itself.
+          'flex min-h-11 w-full cursor-pointer items-center gap-1.5 rounded-control px-2.5 py-1.5 lg:min-h-7',
           'text-meta font-semibold text-ink-subtle transition-colors duration-150',
           'hover:text-ink-muted',
         )}

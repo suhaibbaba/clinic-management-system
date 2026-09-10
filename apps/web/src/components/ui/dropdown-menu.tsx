@@ -83,7 +83,7 @@ export function DropdownMenuItem({
     <DropdownMenuPrimitive.Item
       {...(onSelect && { onSelect })}
       className={cn(
-        'flex cursor-pointer select-none items-center gap-2.5 rounded-control px-3 py-2',
+        'flex min-h-11 cursor-pointer select-none items-center gap-2.5 rounded-control px-3 py-2 lg:min-h-9',
         'text-value outline-none transition-colors duration-150',
         // Radix moves `data-highlighted` with both the pointer and the arrow
         // keys, so hover and keyboard focus cannot drift apart.

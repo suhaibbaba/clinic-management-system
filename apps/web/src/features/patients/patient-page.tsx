@@ -154,7 +154,7 @@ export function PatientPage(): JSX.Element {
           // One scrolling row on a phone. Seven tabs in a wrapping pill came
           // out as three ragged lines that pushed the content 120px down the
           // page; a tab strip that scrolls is what every mobile OS does.
-          'flex items-center gap-1 rounded-pill bg-inset p-1',
+          'flex items-center gap-1 rounded-control border border-line bg-inset p-1',
           'max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
           // `self-start` as well as `inline-flex`: the strip sits in a column
           // flex container, where `align-items: stretch` pulls an inline-flex
@@ -175,8 +175,8 @@ export function PatientPage(): JSX.Element {
             className={cn(
               // The same 44px touch target the shared `Tabs` strip carries;
               // this one is hand-rolled because the panels are the file's own.
-              'inline-flex min-h-11 shrink-0 cursor-pointer items-center rounded-pill lg:min-h-0',
-              'px-3.5 py-1.5 text-value font-medium',
+              'inline-flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center',
+              'rounded-control px-3 py-1.5 text-value font-medium lg:min-h-0 lg:min-w-0',
               'transition-[background-color,color,box-shadow,transform] duration-150 active:scale-95',
               activeTab === tab.id
                 ? 'bg-surface text-ink shadow-pill'

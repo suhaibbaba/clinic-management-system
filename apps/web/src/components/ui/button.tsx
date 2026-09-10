@@ -58,8 +58,12 @@ const VARIANTS: Record<ButtonVariant, string> = {
  */
 const SIZES: Record<ButtonSize, string> = {
   // 8px icon gap at both sizes — an icon and its label are one object.
-  sm: 'min-h-11 px-3 text-label gap-2 lg:h-8 lg:min-h-0',
-  md: 'min-h-11 px-4 text-value gap-2 lg:h-9 lg:min-h-0',
+  //
+  // `min-w-11` as well as `min-h-11`: an icon-only button, or one whose label
+  // is two Arabic letters, is 42px wide inside this padding — the height was
+  // the target and the width was two pixels short of it.
+  sm: 'min-h-11 min-w-11 px-3 text-label gap-2 lg:h-8 lg:min-h-0 lg:min-w-0',
+  md: 'min-h-11 min-w-11 px-4 text-value gap-2 lg:h-9 lg:min-h-0 lg:min-w-0',
 };
 
 export function Button({

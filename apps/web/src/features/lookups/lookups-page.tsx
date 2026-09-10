@@ -72,7 +72,8 @@ export function LookupsPage(): JSX.Element {
               aria-current={key === listKey ? 'true' : undefined}
               onClick={() => setListKey(key)}
               className={cn(
-                'shrink-0 rounded-control px-3 py-2 text-start text-value transition-colors',
+                'flex min-h-11 shrink-0 items-center rounded-control px-3 py-2 lg:min-h-9',
+                'text-start text-value transition-colors',
                 key === listKey
                   ? 'bg-primary-50 font-medium text-primary-700'
                   : 'text-ink-muted hover:bg-sunken hover:text-ink',
