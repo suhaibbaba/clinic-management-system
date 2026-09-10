@@ -86,12 +86,6 @@ jobs:
       - name: Check the booking bundle size
         run: pnpm --filter @clinic/web size:booking
 
-      # The design-language catalogue renders the real components against the
-      # real theme, so a broken story means a broken component. Cheap to build,
-      # and it stops the stories rotting quietly.
-      - name: Build Storybook
-        run: pnpm --filter @clinic/web build-storybook
-
   e2e:
     name: End-to-end smoke (Arabic phone and tablet, English desktop)
     runs-on: ubuntu-latest

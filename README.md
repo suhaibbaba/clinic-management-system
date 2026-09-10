@@ -433,22 +433,6 @@ did first and which meant scrolling past seven nav rows to get back to the conte
 Page CTAs go full width, toolbars stack, KPI cards go two-up, and
 table rows become label/value cards with the label at the reading start and the value at the end.
 
-### Storybook
-
-```bash
-pnpm --filter @clinic/web storybook          # dev, http://localhost:6006
-pnpm --filter @clinic/web build-storybook    # static build, also run in CI
-```
-
-Storybook is the catalogue for the design language: the full palette with live hex values and
-contrast ratios, the semantic tokens, the tooth-chart states, and every base component in both
-RTL and LTR via the direction toolbar. The palette stories read the tokens back out of the
-stylesheet at runtime, so the catalogue is generated from `theme.css` and cannot drift from
-it. `addon-a11y` runs in `error` mode, so a contrast or ARIA regression fails the story.
-
-It is a devDependency of `apps/web` only — it is never installed into an image and adds
-nothing to the production bundle or the VPS's memory footprint.
-
 ## Production
 
 ```bash
@@ -527,8 +511,7 @@ the stack already provides:
 docker compose exec api pnpm --filter @clinic/api test
 ```
 
-CI runs exactly these on every pull request, and additionally builds Storybook and both
-Docker images.
+CI runs exactly these on every pull request, and additionally builds both Docker images.
 
 ## Conventions
 
