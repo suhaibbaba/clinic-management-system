@@ -62,7 +62,7 @@ export default tseslint.config(
 
   {
     // The public booking entry is a wall: one import of a dashboard component drags in Radix, the
-    // router and the auth module. `@web/assets` is the one shared thing.
+    // router and the auth module. It shares `@clinic/shared` and the stylesheet, nothing else.
     files: ['apps/web/src/booking/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
@@ -83,7 +83,7 @@ export default tseslint.config(
                 '@web/App',
               ],
               message:
-                'The booking entry ships its own bundle and must not import the dashboard app. Write what it needs under src/booking, or move the shared piece to src/assets or a token file.',
+                'The booking entry ships its own bundle and must not import the dashboard app. Write what it needs under src/booking, or move the shared piece to a token file.',
             },
             {
               group: [

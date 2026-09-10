@@ -2,10 +2,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import fontkit from '@pdf-lib/fontkit';
-import { LineCapStyle, PDFDocument, rgb, type PDFFont, type PDFImage, type PDFPage } from 'pdf-lib';
+import { PDFDocument, rgb, type PDFFont, type PDFImage, type PDFPage } from 'pdf-lib';
 
 import { visualRuns, type TextDirection } from '@api/billing/pdf/arabic-text';
-import type { MarkPath, MarkViewBox } from '@api/billing/pdf/brand-mark';
 
 const FONT_DIR = join(__dirname, 'fonts');
 
@@ -169,38 +168,7 @@ export class RtlPdf {
     this.cursor -= amount;
   }
 
-  // The cursor is a baseline, but pdf-lib anchors an SVG path at its top-left, so the mark's top
-  // goes a full `size` above it — drawing at the cursor would collide with the next line.
-  mark(paths: readonly MarkPath[], viewBox: MarkViewBox, size = 34): void {
-    // Fit by height and centre by whatever width that leaves: a mark is as
-    // tall as the band it sits in, and its own proportions decide the rest.
-    const scale = size / viewBox.height;
-    const x = (this.page.getWidth() - viewBox.width * scale) / 2;
-    const top = this.cursor + size;
-
-    for (const path of paths) {
-      this.page.drawSvgPath(path.d, {
-        // The paths keep the artwork's own coordinates, so the box's origin is
-        // subtracted here rather than baked into every number in the file.
-        x: x - viewBox.x * scale,
-        y: top - viewBox.y * scale,
-        scale,
-        // pdf-lib fills with black unless told otherwise, which would turn a
-        // stroked-only path into a solid blob.
-        ...(path.fill && { color: rgb(...path.fill) }),
-        ...(path.stroke && {
-          borderColor: rgb(...path.stroke),
-          borderWidth: (path.strokeWidth ?? 1) * scale,
-          borderLineCap: LineCapStyle.Round,
-        }),
-      });
-    }
-
-    this.cursor -= size + 8;
-  }
-
-  // False when the bytes are not something pdf-lib can embed, so the caller falls back to the
-  // built-in mark rather than failing the receipt.
+  /** False when the bytes are not something pdf-lib can embed; the sheet then carries the name alone. */
   async image(bytes: Buffer, mime: string, size = 34): Promise<boolean> {
     const embedded = await this.embed(bytes, mime);
 
