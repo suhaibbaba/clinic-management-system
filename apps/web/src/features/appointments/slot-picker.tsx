@@ -89,10 +89,10 @@ export function SlotPicker({
   );
 }
 
-function Hint({ icon, children }: { icon: 'info' | 'spinner' | 'calendar'; children: string }) {
+function Hint({ icon, children }: { icon: 'info' | 'calendar'; children: string }) {
   return (
     <p className="flex items-center gap-2 rounded-control bg-inset px-3 py-2.5 text-label text-ink-muted">
-      <Icon name={icon} className={cn('size-4', icon === 'spinner' && 'animate-spin')} />
+      <Icon name={icon} className="size-4" />
       {children}
     </p>
   );
