@@ -7,6 +7,8 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 
+import { apiProxy } from './vite/dev-proxy.ts';
+
 const sharedSrc = fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url));
 const sharedSrcDir = fileURLToPath(new URL('../../packages/shared/src', import.meta.url));
 const appSrc = fileURLToPath(new URL('./src', import.meta.url));
@@ -80,22 +82,6 @@ function appVersion(): string {
   }
 }
 
-/** Same-origin `/api` in dev and in preview; nginx does it in production. */
-function apiProxy(): Record<
-  string,
-  { target: string; changeOrigin: boolean; rewrite: (path: string) => string }
-> {
-  return {
-    // Keeping the API same-origin is what lets the httpOnly refresh cookie
-    // work without CORS credentials.
-    '/api': {
-      target: process.env['API_PROXY_TARGET'] ?? 'http://localhost:3000',
-      changeOrigin: true,
-      rewrite: (path: string) => path.replace(/^\/api/, ''),
-    },
-  };
-}
-
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(appVersion()),
@@ -165,11 +151,37 @@ export default defineConfig({
       },
     },
   },
+  /*
+   * Two suites, because they need two environments.
+   *
+   * The app's tests render components into jsdom. The dev proxy's start a real
+   * Vite server and a real target and talk to them over a socket — it is the
+   * one piece of this file that a wrong assumption takes the whole development
+   * workflow down with, and the only way to see that is to run it — so it wants
+   * Node, and none of the DOM setup jsdom needs.
+   */
   test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: ['./test/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
-    css: false,
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'app',
+          environment: 'jsdom',
+          globals: true,
+          setupFiles: ['./test/setup.ts'],
+          include: ['src/**/*.test.{ts,tsx}'],
+          css: false,
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'dev-proxy',
+          environment: 'node',
+          globals: true,
+          include: ['vite/**/*.test.ts'],
+        },
+      },
+    ],
   },
 });

@@ -63,6 +63,34 @@ docker compose run --rm --no-deps api pnpm install
 docker compose up
 ```
 
+### Against a remote API
+
+The frontend does not need the rest of the stack. Point `API_PROXY_TARGET` at a
+deployed API — the sandbox, say — and `pnpm dev` proxies `/api` there:
+
+```bash
+API_PROXY_TARGET=https://sandbox.example pnpm --filter @clinic/web dev
+```
+
+The proxy exists so the browser only ever sees one origin, which is what lets the
+refresh token live in an httpOnly cookie with no CORS credentials. A remote target
+makes that cookie the hard part: the API sets it for its own host, its own scheme
+and the path _it_ sees, none of which describe `http://localhost:5173`. So the dev
+proxy rewrites it on the way through (`apps/web/vite/dev-proxy.ts`) — it drops the
+`Domain`, re-anchors the `Path` at `/`, so `/api/auth/refresh` sends it, and drops
+`Secure`, which a browser on an http page would otherwise refuse to store. It also
+forwards `X-Forwarded-Proto: http`, so the API knows which scheme the browser
+actually used rather than concluding https from its own hop.
+
+Nothing about the remote deployment has to change for this, and nothing about it
+is weakened: the rewriting happens in the dev server on your machine. The API's
+own behaviour is `AUTH_COOKIE_SECURE` and `AUTH_COOKIE_SAMESITE` (documented in
+`.env.example`), and a production API marks the cookie `Secure` whatever a
+forwarded header claims.
+
+`pnpm test` covers the round trip — log in, reload, refresh — against a target
+that sets a cookie the way a deployed API behind nginx does.
+
 ### Seeding
 
 ```bash
