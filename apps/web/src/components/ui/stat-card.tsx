@@ -58,31 +58,32 @@ export function StatCard({
   className,
 }: StatCardProps): JSX.Element {
   return (
-    <div className={cn('rounded-card bg-surface p-5 shadow-card', className)}>
-      <div className="flex items-center gap-2.5">
+    <div className={cn('rounded-card bg-surface p-4 shadow-card', className)}>
+      {/* The icon and its label are one line: a tinted square, then the words,
+          then nothing — the figure below is what the card is for. */}
+      <div className="flex items-center gap-2">
         <span
           className={cn(
-            'inline-flex size-9 items-center justify-center rounded-panel',
+            'inline-flex size-7 shrink-0 items-center justify-center rounded-control',
             CHIPS[tone],
           )}
         >
-          <Icon name={icon} className="size-[18px]" />
+          <Icon name={icon} className="size-4" />
         </span>
-        <span className="text-label font-medium text-ink-muted">{label}</span>
+        <span className="min-w-0 truncate text-meta font-medium text-ink-muted">{label}</span>
       </div>
 
       {/*
-        The figure steps down until there is room for it.
+        24px, at every width.
 
-        `200.00 USD` at 32px is 170px wide and never breaks — an amount is one
-        word. Two cards across a phone leave about 133px of card, and at 32px
-        the figure either wrapped — currency stranded on a second line — or,
-        once it stopped wrapping, pushed the whole page sideways. 20px holds a
-        five-figure balance with its currency in that space; the full size
-        arrives at `lg`, where a card is 236px wide. It is still the largest
-        thing on the card, which is what the size was for.
+        The figure used to be 32 and had to step down on a phone: `200.00 USD`
+        at that size is 170px wide and never breaks — an amount is one word —
+        and two cards across a 390px screen leave about 133px of card, so it
+        either wrapped, stranding the currency on a second line, or pushed the
+        page sideways. At 24 a five-figure balance with its symbol fits in that
+        space, and it is still the largest thing on the card.
       */}
-      <Ltr as="p" className="mt-4 text-[1.25rem] font-semibold text-ink lg:text-kpi">
+      <Ltr as="p" className="mt-2.5 text-kpi font-semibold text-ink">
         {value}
       </Ltr>
 
@@ -91,19 +92,19 @@ export function StatCard({
           {delta !== undefined && (
             <span
               className={cn(
-                'inline-flex items-center gap-1 text-label font-medium',
+                'inline-flex items-center gap-1 text-meta font-medium',
                 delta.isGood ? 'text-success-700' : 'text-danger-700',
               )}
             >
               <Icon
                 name={delta.direction === 'up' ? 'trend-up' : 'trend-down'}
-                className="size-4"
+                className="size-3.5"
               />
               {delta.text}
             </span>
           )}
           {caption !== undefined && (
-            <span className="min-w-0 line-clamp-2 text-label text-ink-subtle">{caption}</span>
+            <span className="min-w-0 line-clamp-2 text-meta text-ink-subtle">{caption}</span>
           )}
         </div>
       )}
@@ -126,7 +127,7 @@ const WIDE_COLUMNS: Record<number, string> = {
   2: 'xl:grid-cols-2',
   3: 'xl:grid-cols-3',
   4: 'xl:grid-cols-4',
-  5: 'xl:grid-cols-4 2xl:grid-cols-5',
+  5: 'xl:grid-cols-5',
 };
 
 /**
@@ -139,9 +140,9 @@ const WIDE_COLUMNS: Record<number, string> = {
  * four. It was four, and the pages that summarise themselves in three or five
  * — the dashboard, the appointments day — left a card-shaped hole at the end
  * of the row, or dropped a single card onto a second line under four others
- * with nothing beside it. A row of five only opens all the way at `2xl`: at
- * `xl` a fifth column leaves about 145px of card, which a five-figure balance
- * at the KPI size does not fit in.
+ * with nothing beside it. Five open all the way at `xl`, which leaves about
+ * 145px of card: enough for a five-figure balance and its symbol now the
+ * figure is 24px rather than 32.
  */
 export function StatRow({ children }: { readonly children: ReactNode }): JSX.Element {
   // Two up on a phone. Four full-width cards is 1300px of scrolling before
@@ -149,12 +150,7 @@ export function StatRow({ children }: { readonly children: ReactNode }): JSX.Ele
   const count = Children.count(children);
 
   return (
-    <div
-      className={cn(
-        'mb-6 grid grid-cols-2 gap-3 sm:gap-4',
-        WIDE_COLUMNS[count] ?? 'xl:grid-cols-4',
-      )}
-    >
+    <div className={cn('mb-5 grid grid-cols-2 gap-3', WIDE_COLUMNS[count] ?? 'xl:grid-cols-4')}>
       {children}
     </div>
   );

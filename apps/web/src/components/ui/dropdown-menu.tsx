@@ -102,7 +102,7 @@ export function DropdownMenuItem({
 
 export function DropdownMenuLabel({ children }: { readonly children: ReactNode }): JSX.Element {
   return (
-    <DropdownMenuPrimitive.Label className="px-3 pb-1 pt-2 text-label font-medium text-ink-subtle">
+    <DropdownMenuPrimitive.Label className="px-3 pb-1 pt-2 text-meta font-medium text-ink-subtle">
       {children}
     </DropdownMenuPrimitive.Label>
   );

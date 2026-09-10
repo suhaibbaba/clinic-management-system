@@ -74,22 +74,22 @@ export function EntityCard({
       // open a record without knowing which of the two shapes it is looking at.
       data-entity-card
       className={cn(
-        'flex flex-col rounded-card bg-surface p-5 shadow-card',
+        'flex flex-col rounded-card bg-surface p-4 shadow-card',
         'transition-[box-shadow,background-color,border-color] duration-150',
-        action !== undefined && 'hover:border-primary-200 hover:shadow-float',
-        isSelected && 'bg-selected outline-[1.5px] -outline-offset-[1.5px] outline-selected-line',
+        action !== undefined && 'hover:shadow-float',
+        isSelected && 'bg-selected outline outline-offset-[-1px] outline-selected-line',
         className,
       )}
     >
       <div className="flex items-start gap-3">
-        <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-panel bg-primary-50 text-primary-700">
+        <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-control bg-primary-50 text-primary-700">
           <Icon name={icon} />
         </span>
 
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-value font-semibold text-ink">{title}</h3>
           {subtitle !== undefined && (
-            <p className="mt-0.5 truncate text-label text-ink-muted">{subtitle}</p>
+            <p className="mt-0.5 truncate text-meta text-ink-muted">{subtitle}</p>
           )}
         </div>
 
@@ -97,7 +97,7 @@ export function EntityCard({
       </div>
 
       {progress !== undefined && (
-        <div className="mt-4">
+        <div className="mt-3">
           <ProgressBar
             value={progress.value}
             total={progress.total}
@@ -105,18 +105,18 @@ export function EntityCard({
             {...(progress.tone && { tone: progress.tone })}
           />
           {progress.caption !== undefined && (
-            <p className="mt-2 text-label text-ink-muted">{progress.caption}</p>
+            <p className="mt-2 text-meta text-ink-muted">{progress.caption}</p>
           )}
         </div>
       )}
 
       {children}
 
-      <div className="mt-4 flex items-end justify-between gap-3 border-t border-line pt-4">
+      <div className="mt-3 flex items-end justify-between gap-3 border-t border-line pt-3">
         <dl className="flex min-w-0 flex-wrap gap-x-5 gap-y-2">
           {(meta ?? []).map((entry) => (
             <div key={entry.label} className="min-w-0">
-              <dt className="text-label text-ink-subtle">{entry.label}</dt>
+              <dt className="text-meta text-ink-subtle">{entry.label}</dt>
               <dd
                 className="truncate text-value font-medium text-ink tabular-nums"
                 {...(entry.ltr === true && { dir: 'ltr' })}
@@ -153,5 +153,5 @@ export function EntityCard({
 
 /** The responsive grid these cards live in. */
 export function EntityGrid({ children }: { readonly children: ReactNode }): JSX.Element {
-  return <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{children}</div>;
+  return <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{children}</div>;
 }

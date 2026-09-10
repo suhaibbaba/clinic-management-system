@@ -45,7 +45,7 @@ export function SegmentedControl<TValue extends string>({
       role="radiogroup"
       aria-label={label}
       className={cn(
-        'inline-flex max-w-full flex-wrap items-center gap-0.5 rounded-control bg-inset p-0.5',
+        'inline-flex max-w-full flex-wrap items-center gap-0.5 rounded-control border border-line bg-inset p-0.5',
         className,
       )}
     >
@@ -64,7 +64,7 @@ export function SegmentedControl<TValue extends string>({
               // label ("الكل", "All") drew a 43px-wide segment, so the height
               // was the target and the width was one pixel short of it.
               'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5',
-              'rounded-[8px] px-3.5 lg:h-8 lg:min-h-0 lg:min-w-0',
+              'rounded-control px-3 lg:h-8 lg:min-h-0 lg:min-w-0',
               'text-label transition-[background-color,color,box-shadow] duration-150',
               isSelected
                 ? 'bg-surface font-semibold text-ink shadow-pill'

@@ -293,7 +293,7 @@ export function Table<TRow>({
                   scope="col"
                   className={cn(
                     // Headers are the secondary grey at 13px, not shouted.
-                    'whitespace-nowrap border-b border-line px-[22px] py-3 text-label font-medium text-ink-muted',
+                    'whitespace-nowrap border-b border-line px-4 py-2.5 text-label font-medium text-ink-muted',
                     alignClass(column.align),
                     column.className,
                   )}
@@ -330,7 +330,9 @@ export function Table<TRow>({
                     <td
                       key={column.key}
                       className={cn(
-                        'px-[22px] py-3.5 align-middle',
+                        // 12px above and below a 22px line makes a 46px row:
+                        // the 44 a thumb needs, and no taller.
+                        'px-4 py-3 align-middle',
                         alignClass(column.align),
                         column.className,
                       )}
@@ -396,7 +398,7 @@ export function Pagination({
 
   return (
     <nav
-      className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-[22px] py-3.5"
+      className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-3"
       // The landmark names the whole control, not one of its buttons: a
       // screen reader listing the page's navigations announced "next" as the
       // name of the region, and the button inside it said "next" as well.
