@@ -13,6 +13,7 @@ import {
   Button,
   FormField,
   Icon,
+  Img,
   Input,
   Ltr,
   PageHeader,
@@ -270,12 +271,15 @@ function LogoField({
   return (
     <div className="mt-2 flex items-center gap-3">
       {logoUrl ? (
-        <img
+        <Img
           src={logoUrl}
           alt={t('clinic.logo')}
-          // Square-ish box, `contain`: a wide wordmark and a round badge both
-          // sit inside it without either being cropped or stretched.
-          className="size-16 shrink-0 rounded-control border border-line bg-surface object-contain p-1"
+          width={64}
+          height={64}
+          // `contain`: a wide wordmark and a round badge both sit inside the
+          // box without either being cropped or stretched.
+          fit="contain"
+          className="rounded-control border border-line bg-surface p-1"
         />
       ) : (
         <span

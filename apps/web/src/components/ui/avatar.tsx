@@ -1,5 +1,6 @@
-import { useEffect, useState, type JSX } from 'react';
+import type { JSX } from 'react';
 
+import { Img } from '@web/components/ui/img';
 import { cn } from '@web/lib/cn';
 
 export interface AvatarProps {
@@ -8,6 +9,8 @@ export interface AvatarProps {
   // means nothing.
   readonly tintKey?: string | undefined;
   readonly src?: string | null | undefined;
+  /** Edge length in pixels. Fixed, so the row does not reflow when a photo lands. */
+  readonly size?: number | undefined;
   readonly className?: string | undefined;
 }
 
@@ -32,12 +35,14 @@ function tintFor(key: string): string {
 }
 
 // Staff have a photo because a rota is read by scanning for a person; patients do not. A broken or
-// expired URL falls back to initials, and a new `src` clears that.
-export function Avatar({ name, tintKey, src, className }: AvatarProps): JSX.Element {
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => setFailed(false), [src]);
-
+// expired URL falls back to initials.
+export function Avatar({
+  name,
+  tintKey,
+  src,
+  size = DEFAULT_SIZE,
+  className,
+}: AvatarProps): JSX.Element {
   const initials = name
     .trim()
     .split(/\s+/)
@@ -45,31 +50,45 @@ export function Avatar({ name, tintKey, src, className }: AvatarProps): JSX.Elem
     .map((word) => [...word][0] ?? '')
     .join('');
 
-  const shape = cn('inline-flex size-9 shrink-0 select-none rounded-pill', className);
+  const shape = cn('inline-flex shrink-0 select-none rounded-pill', className);
 
-  if (src !== null && src !== undefined && src !== '' && !failed) {
+  const tint = tintKey === undefined ? 'bg-primary-100 text-primary-800' : tintFor(tintKey);
+
+  if (src === null || src === undefined || src === '') {
     return (
-      <img
-        src={src}
-        alt=""
-        // `cover`, because a portrait cropped to a circle is what everyone
-        // expects of one; `contain` would letterbox a face inside a ring.
-        className={cn(shape, 'inline-block border border-line bg-sunken object-cover')}
-        onError={() => setFailed(true)}
-      />
+      <span
+        aria-hidden="true"
+        style={{ width: size, height: size }}
+        className={cn(shape, 'items-center justify-center text-label font-semibold', tint)}
+      >
+        {initials}
+      </span>
     );
   }
 
   return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        shape,
-        'items-center justify-center text-label font-semibold',
-        tintKey === undefined ? 'bg-primary-100 text-primary-800' : tintFor(tintKey),
-      )}
-    >
-      {initials}
-    </span>
+    <Img
+      src={src}
+      alt=""
+      width={size}
+      height={size}
+      // `cover`, because a portrait cropped to a circle is what everyone
+      // expects of one; `contain` would letterbox a face inside a ring.
+      fit="cover"
+      fallback={
+        <span
+          aria-hidden="true"
+          className={cn(
+            'absolute inset-0 flex items-center justify-center text-label font-semibold',
+            tint,
+          )}
+        >
+          {initials}
+        </span>
+      }
+      className={cn(shape, 'border border-line bg-sunken')}
+    />
   );
 }
+
+const DEFAULT_SIZE = 36;

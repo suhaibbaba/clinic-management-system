@@ -59,7 +59,7 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
         name={personName(user.name, i18n.language)}
         tintKey={user.id}
         src={user.photoUrl}
-        className="size-16"
+        size={64}
       />
 
       <div className="flex flex-col items-start gap-1">

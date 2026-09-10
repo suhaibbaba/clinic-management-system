@@ -68,7 +68,12 @@ export function PatientPage(): JSX.Element {
           <>
             <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
               <div className="flex min-w-0 items-center gap-3">
-                <Avatar name={patient.data.fullName} tintKey={id} className="size-10 text-value" />
+                <Avatar
+                  name={patient.data.fullName}
+                  tintKey={id}
+                  size={40}
+                  className="text-value"
+                />
 
                 <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
                   <h1 className="truncate text-title font-semibold tracking-title text-ink">

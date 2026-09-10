@@ -20,6 +20,7 @@ export { EmptyState } from '@web/components/ui/empty-state';
 export { EntityCard, EntityGrid, type EntityCardMeta } from '@web/components/ui/entity-card';
 export { FormField } from '@web/components/ui/form-field';
 export { Icon, type IconName } from '@web/components/ui/icon';
+export { Img, type ImgProps } from '@web/components/ui/img';
 export { Input } from '@web/components/ui/input';
 export { Ltr } from '@web/components/ui/ltr';
 export { Modal } from '@web/components/ui/modal';

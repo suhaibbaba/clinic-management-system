@@ -2,6 +2,7 @@ import type { Attachment } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Img } from '@web/components/ui/img';
 import { Skeleton } from '@web/components/ui/skeleton';
 import { useAttachment } from '@web/features/patients/queries';
 import { formatDate } from '@web/lib/format';
@@ -45,11 +46,11 @@ function AttachmentThumbnail({ attachment }: { attachment: Attachment }): JSX.El
         {isError && <span className="text-label text-danger-500">{t('errors.generic')}</span>}
 
         {data?.downloadUrl && isImage && (
-          <img
+          <Img
             src={data.downloadUrl}
             alt={attachment.filename}
-            className="size-full object-cover"
-            loading="lazy"
+            aspectRatio="1/1"
+            className="size-full"
           />
         )}
 
