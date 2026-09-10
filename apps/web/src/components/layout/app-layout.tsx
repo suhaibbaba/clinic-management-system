@@ -101,13 +101,18 @@ export function AppLayout(): JSX.Element {
         )}
       >
         <div className="flex h-full flex-col">
-          {/* The mark sits in a band the same height as the page's bar, so the
-              two hairlines meet where the sidebar ends. */}
-          <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-line px-4">
-            <Logo size="sm" src={clinic.data?.logoUrl} />
-            <span className="truncate text-section font-semibold tracking-title text-ink">
-              {t('app.title')}
-            </span>
+          {/*
+            The mark, alone, in a band the same height as the page's bar — so
+            the two hairlines meet where the sidebar ends.
+
+            No wordmark beside it: a clinic's own logo already carries its name,
+            and the app's name set in 16px next to it made two names for one
+            product at the top of every screen. It is the mark's accessible
+            name instead, which is the one place the app still has to say what
+            it is.
+          */}
+          <div className="flex h-14 shrink-0 items-center border-b border-line px-4">
+            <Logo size="sm" src={clinic.data?.logoUrl} alt={t('app.title')} />
           </div>
 
           <div className="flex-1 overflow-y-auto px-3 py-3">
@@ -127,6 +132,7 @@ export function AppLayout(): JSX.Element {
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         title={t('app.title')}
+        brand={<Logo size="sm" src={clinic.data?.logoUrl} />}
         closeLabel={t('common.close')}
       >
         <NavList groups={groups} settings={settings} badges={badges} />
