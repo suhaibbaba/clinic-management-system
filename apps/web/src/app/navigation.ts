@@ -113,3 +113,14 @@ export function activeNavItem(pathname: string): NavItem | undefined {
     undefined,
   );
 }
+
+/** Screens outside the sidebar still need a name in the tab. */
+const OFF_NAV_TITLES: Readonly<Record<string, string>> = {
+  '/login': 'auth.loginTitle',
+};
+
+// The tab's fallback where a screen has no `PageHeader` to register one: a patient's file reads as
+// its section rather than as a bare clinic name.
+export function routeTitle(pathname: string): string | undefined {
+  return OFF_NAV_TITLES[pathname] ?? activeNavItem(pathname)?.label;
+}

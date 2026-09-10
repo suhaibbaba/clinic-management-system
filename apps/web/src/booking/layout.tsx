@@ -1,26 +1,37 @@
-import type { JSX, ReactNode } from 'react';
+import { useEffect, type JSX, type ReactNode } from 'react';
 
-import logoUrl from '@web/assets/logo.svg';
 import { t } from '@web/booking/i18n';
-import { cx } from '@web/booking/ui';
+import { cx, Img } from '@web/booking/ui';
 
 export function PageShell({
   clinicName,
+  logoUrl,
   children,
   footer,
 }: {
   readonly clinicName: string | undefined;
+  readonly logoUrl?: string | null;
   readonly children: ReactNode;
   /** Sticks to the bottom of the viewport on a phone — the thumb is there. */
   readonly footer?: ReactNode;
 }): JSX.Element {
+  const name = clinicName ?? t('page.title');
+
+  // Here rather than in each screen: every booking view is inside this shell.
+  useEffect(() => {
+    document.title =
+      clinicName === undefined ? t('page.title') : `${t('page.title')} — ${clinicName}`;
+  }, [clinicName]);
+
   return (
     <div className="flex min-h-full flex-col">
       <header className="flex items-center justify-center gap-2.5 px-4 py-5">
-        <img src={logoUrl} alt="" aria-hidden className="h-8 w-auto" />
-        <span className="text-value font-semibold tracking-[-0.02em] text-ink">
-          {clinicName ?? t('page.title')}
-        </span>
+        {/* Only the clinic's own: with none there is the name alone, never a mark belonging to
+            somebody else. */}
+        {logoUrl !== null && logoUrl !== undefined && (
+          <Img src={logoUrl} alt="" width={32} height={32} priority />
+        )}
+        <span className="text-value font-semibold tracking-[-0.02em] text-ink">{name}</span>
       </header>
 
       <main className="mx-auto w-full max-w-[480px] flex-1 px-4 pb-6">{children}</main>
