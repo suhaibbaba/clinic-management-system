@@ -16,6 +16,13 @@ describe('cn', () => {
     expect(cn(`text-ink-muted text-${size}`)).toContain('text-ink-muted');
   });
 
+  // The same blindness one token over: `rounded-card` and `rounded-pill` are both "unknown", so a
+  // component's own radius survived every override and a card came out as a pill.
+  it('lets a caller override the radius a component sets', () => {
+    expect(cn('skeleton rounded-pill', 'rounded-card')).toContain('rounded-card');
+    expect(cn('skeleton rounded-pill', 'rounded-card')).not.toContain('rounded-pill');
+  });
+
   it('still lets one size win over another', () => {
     expect(cn('text-label', 'text-kpi')).toBe('text-kpi');
   });

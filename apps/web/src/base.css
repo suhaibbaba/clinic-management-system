@@ -50,6 +50,43 @@ body {
   background-color: var(--color-sunken);
 }
 
+/* One sweep for every skeleton in both entries, reversed in RTL so it travels with the reading
+   direction. */
+.skeleton {
+  background-color: var(--color-sunken);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-surface) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-sweep 1.2s ease-in-out infinite;
+}
+
+[dir='rtl'] .skeleton {
+  animation-direction: reverse;
+}
+
+@keyframes skeleton-sweep {
+  from {
+    background-position: 150% 0;
+  }
+
+  to {
+    background-position: -50% 0;
+  }
+}
+
+/* A sweeping highlight is motion; the flat tint says "not here yet" without any. */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation-name: none;
+    background-image: none;
+  }
+}
+
 /* Transitions collapse to something instant rather than to nothing, so a state change is still
    perceptible. */
 @media (prefers-reduced-motion: reduce) {
