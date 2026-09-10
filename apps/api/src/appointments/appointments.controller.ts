@@ -44,24 +44,8 @@ class CalendarQueryDto extends createZodDto(calendarQuerySchema) {}
 class AvailabilityQueryDto extends createZodDto(availabilityQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-/**
- * The internal calendar (ROLES.md appointments matrix).
- *
- * **Reads** are open to every role: the calendar row is `R` for a technician
- * too, and the feed carries no clinical or financial field — a patient's name,
- * phone, file number and the doctor's name are exactly what a block draws.
- *
- * **Writes** are `CRUD` for admin and receptionist and `CRU (own)` for a
- * doctor. The class-level `@Roles` opens writes to doctor and receptionist,
- * and the service refuses a doctor writing to another doctor's calendar —
- * "own" is an object-level rule and object-level rules belong in the service
- * (ROLES.md enforcement step 4).
- *
- * Delete is admin only, like every other soft delete (global rule 5).
- *
- * Public booking is **not** here. It arrives as its own `@Public()`,
- * rate-limited, OTP-gated controller reusing `AvailabilityService`.
- */
+// Reads are open to every role (no clinical or financial field in the feed); "own" is object-level
+// and lives in the service; delete is admin only.
 @Controller('appointments')
 export class AppointmentsController {
   constructor(
@@ -77,7 +61,6 @@ export class AppointmentsController {
     return this.appointmentsService.list(actor, query);
   }
 
-  /** Day or week, one doctor or the whole clinic. The calendar's own feed. */
   @Get('calendar')
   calendar(
     @CurrentUser() actor: AuthenticatedUser,
@@ -103,8 +86,6 @@ export class AppointmentsController {
     return this.appointmentsService.findOne(actor, params.id);
   }
 
-  /* Writes — admin, receptionist, and a doctor on their own calendar        */
-
   @Post()
   @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.CREATE)
@@ -126,14 +107,8 @@ export class AppointmentsController {
     return this.appointmentsService.update(actor, params.id, body);
   }
 
-  /*
-   * One endpoint per transition rather than a `PATCH { status }`.
-   *
-   * The front desk presses a button called "arrived", not one called "set
-   * status"; naming the route after the act is what makes the audit trail
-   * readable, and it means cancelling can require its reason in the body
-   * schema rather than in a conditional.
-   */
+  // One endpoint per transition rather than `PATCH { status }`: it names the act for the audit
+  // trail, and cancelling can require its reason in the schema.
 
   @Patch(':id/confirm')
   @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
@@ -201,14 +176,8 @@ export class AppointmentsController {
     );
   }
 
-  /**
-   * Arrived → the doctor's visit. Creates the visit, links both records.
-   *
-   * Doctor and admin only: a visit is a clinical record, and ROLES.md gives a
-   * receptionist none of them. The audit entry is written against the
-   * appointment because that is the row this endpoint changes; the visit's own
-   * creation is audited by the visits entity through the same interceptor.
-   */
+  // Doctor and admin only — a visit is a clinical record. The audit entry is on the appointment,
+  // which is the row this changes.
   @Post(':id/visit')
   @Roles(USER_ROLE.DOCTOR)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)

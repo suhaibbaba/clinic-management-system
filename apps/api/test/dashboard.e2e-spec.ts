@@ -24,15 +24,8 @@ const TIME_ZONE = 'Asia/Damascus';
 const at = (date: string, minuteOfDay: number): string =>
   instantFromLocal(date, minuteOfDay, TIME_ZONE).toISOString();
 
-/**
- * The landing page's aggregate.
- *
- * Two properties matter here and neither is cosmetic. The figures must agree
- * with the pages the cards link to — a dashboard that computes its own totals
- * is a second source of truth for money — and the response must be shaped by
- * role, because a KPI is a fact about the clinic just as much as a row in a
- * table is (ROLES.md enforcement step 5).
- */
+// The figures must agree with the pages the cards link to, and the response must be shaped by role
+// — a KPI is a fact about the clinic like any row.
 describe('Dashboard (e2e)', () => {
   let context: TestContext;
   let clinic: TestClinic;

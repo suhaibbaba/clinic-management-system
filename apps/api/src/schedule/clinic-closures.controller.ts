@@ -39,19 +39,8 @@ class ListClinicClosuresQueryDto extends createZodDto(listClinicClosuresQuerySch
 class ConflictOptionsDto extends createZodDto(scheduleConflictOptionsSchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-/**
- * Clinic closures (ROLES.md core matrix, "Clinic settings"): every role reads,
- * only admin writes.
- *
- * Reading is deliberately open. A receptionist who cannot see that the clinic
- * is shut next Tuesday will book into it, and the calendar they book from
- * draws the shading from exactly this list.
- *
- * `force` and `cancelAppointments` are query parameters rather than body
- * fields because they are not part of the closure — they are what the caller
- * decided about the 409 they were shown, and a closure that stored "I was
- * forced" would be recording an interaction rather than a fact.
- */
+// Reading is open: a receptionist who cannot see Tuesday is shut will book into it. `force` and
+// `cancelAppointments` are query parameters — they answer a 409, they are not the closure.
 @Controller('clinic-closures')
 export class ClinicClosuresController {
   constructor(private readonly closures: ClinicClosuresService) {}

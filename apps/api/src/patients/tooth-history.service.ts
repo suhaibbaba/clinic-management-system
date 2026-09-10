@@ -15,17 +15,8 @@ import { AttachmentsService } from '@api/patients/attachments.service';
 import { PatientAccessService } from '@api/patients/patient-access.service';
 import { toChartMark, toProcedure } from '@api/patients/procedures.service';
 
-/**
- * `GET /patients/:id/teeth/:fdi` — everything ever recorded on one tooth.
- *
- * The lookup starts from `chart_marks.tooth`, the column denormalised out of
- * the JSONB location precisely so this is an index scan; attachments carry
- * their own `tooth` column and are read alongside.
- *
- * Nothing dental leaks into a shared module: this service lives in `patients`
- * and the FDI number is validated by the shared schema, so another specialty
- * adds its own aggregation rather than a branch here.
- */
+// Starts from `chart_marks.tooth`, the column denormalised out of the JSONB precisely so this is an
+// index scan.
 @Injectable()
 export class ToothHistoryService {
   constructor(
@@ -63,7 +54,6 @@ export class ToothHistoryService {
     return { patientId, tooth, procedures, marks, attachments: toothAttachments };
   }
 
-  /** Each procedure is returned with only the marks that touch this tooth. */
   private async proceduresFor(
     actor: AuthenticatedUser,
     procedureIds: readonly string[],

@@ -51,18 +51,8 @@ class AttachmentParamsDto extends createZodDto(
   z.object({ id: z.uuid(), attachmentId: z.uuid() }),
 ) {}
 
-/**
- * Lab orders (ROLES.md labs matrix).
- *
- * Every route here is closed to a receptionist — the matrix gives them nothing
- * in this module, so they are simply never listed and every call is a 403.
- *
- * The transitions are one endpoint per act rather than a `status` field on the
- * update: they are what people *do* — send it, it's ready, it came back, it
- * fits — and naming them that way is what makes both the audit trail and the
- * role table below readable. Who may make each move is settled in the service,
- * against the same table this file is documented from.
- */
+// A receptionist is in no row of the matrix, so every call is a 403. Transitions are one endpoint
+// per act, which is what makes the audit trail readable.
 @Controller('lab-orders')
 export class LabOrdersController {
   constructor(
@@ -70,8 +60,6 @@ export class LabOrdersController {
     private readonly attachments: LabOrderAttachmentsService,
     private readonly documents: LabDocumentsService,
   ) {}
-
-  /* -------------------------------- Reads ------------------------------- */
 
   @Get()
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
@@ -82,7 +70,6 @@ export class LabOrdersController {
     return this.orders.list(actor, query);
   }
 
-  /** The dashboard's alert: what is late, oldest first. */
   @Get('overdue')
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   overdue(@CurrentUser() actor: AuthenticatedUser): Promise<LabOrderRow[]> {
@@ -107,8 +94,6 @@ export class LabOrdersController {
     return this.documents.orderSheet(actor, params.id);
   }
 
-  /* -------------------------------- Writes ------------------------------ */
-
   @Post()
   @Roles(USER_ROLE.DOCTOR)
   @Audit(LAB_ORDERS_ENTITY, AUDIT_ACTION.CREATE)
@@ -130,8 +115,6 @@ export class LabOrdersController {
     return this.orders.update(actor, params.id, body);
   }
 
-  /* ----------------------------- Transitions ---------------------------- */
-
   /** Out of the door: the sheet is printed and the clinic now owes for it. */
   @Patch(':id/send')
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
@@ -140,7 +123,6 @@ export class LabOrdersController {
     return this.orders.changeStatus(actor, params.id, LAB_ORDER_STATUS.SENT);
   }
 
-  /** The lab says it is finished — the technician is the one they ring. */
   @Patch(':id/ready')
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(LAB_ORDERS_ENTITY, AUDIT_ACTION.UPDATE)
@@ -151,7 +133,6 @@ export class LabOrdersController {
     return this.orders.changeStatus(actor, params.id, LAB_ORDER_STATUS.READY);
   }
 
-  /** It is in the building. */
   @Patch(':id/receive')
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(LAB_ORDERS_ENTITY, AUDIT_ACTION.UPDATE)
@@ -170,7 +151,6 @@ export class LabOrdersController {
     return this.orders.changeStatus(actor, params.id, LAB_ORDER_STATUS.FITTED);
   }
 
-  /** Back to the lab, with the reason that goes to them. */
   @Patch(':id/return')
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(LAB_ORDERS_ENTITY, AUDIT_ACTION.UPDATE)
@@ -203,8 +183,6 @@ export class LabOrdersController {
   ): Promise<void> {
     await this.orders.softDelete(actor, params.id);
   }
-
-  /* ---------------------------- Attachments ----------------------------- */
 
   @Get(':id/attachments')
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)

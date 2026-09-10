@@ -13,13 +13,8 @@ import {
   type BusyInterval,
 } from '@api/appointments/slots';
 
-/**
- * The slot rule, tested as arithmetic.
- *
- * These are the cases public booking will depend on as much as reception does,
- * and they run without a database or a clock because the module they cover has
- * neither — which is the whole reason it is a separate module.
- */
+// They run without a database or a clock because the module they cover has neither — which is the
+// whole reason it is a separate module.
 
 const nine = { start: '09:00', end: '17:00' };
 const morning = { start: '09:00', end: '12:00' };
@@ -255,9 +250,8 @@ describe('time zone', () => {
   });
 
   it('does not drift with the server’s own zone', () => {
-    // The same wall-clock time in two zones is two different instants; a
-    // server in UTC reading a Damascus clinic's 09:00 as its own would be
-    // three hours out and nobody would notice until a patient arrived.
+    // The same wall-clock time in two zones is two different instants: a server in UTC reading a
+    // Damascus 09:00 as its own is three hours out.
     const damascus = instantFromLocal('2026-09-07', 9 * 60, DAMASCUS);
     const utc = instantFromLocal('2026-09-07', 9 * 60, 'UTC');
 

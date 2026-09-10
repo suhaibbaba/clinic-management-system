@@ -31,20 +31,8 @@ type PaymentRow = typeof labPayments.$inferSelect;
 
 export const LAB_PAYMENTS_ENTITY = 'lab_payments';
 
-/**
- * Money the clinic pays a lab.
- *
- * Append-only, exactly like patient payments (CLAUDE.md architecture decision
- * 2). There is no update and no delete: a mistake is corrected by writing the
- * negative of the entry with `reverses_id` pointing back, so the history of
- * what was paid and what was undone stays readable. That is also why the
- * balance can be a plain `sum()` — a reversal falls out of it with no special
- * case.
- *
- * ROLES.md: **technician** creates (they are the ones settling with the lab),
- * **admin** creates and reverses. A reversal is admin-only because it is the
- * only operation here that makes money appear to come back.
- */
+// Append-only, so the balance is a plain `sum()` and a reversal falls out of it. Technician
+// creates; admin creates and reverses, reversal being the one that makes money come back.
 @Injectable()
 export class LabPaymentsService implements OnModuleInit {
   constructor(
@@ -122,16 +110,8 @@ export class LabPaymentsService implements OnModuleInit {
     return toLabPayment(row);
   }
 
-  /**
-   * Cancels a payment by writing its opposite.
-   *
-   * The original is never touched beyond a `reversed_at` back-pointer, which is
-   * bookkeeping rather than money: both rows stay, both are visible on the
-   * statement, and the balance moves because the second row is negative.
-   *
-   * Locked with `for update` so two admins cannot reverse the same payment
-   * twice — the second one finds `reversedAt` already set.
-   */
+  // The original keeps only a `reversed_at` back-pointer, so both rows stay on the statement. `for
+  // update` stops two admins reversing the same payment twice.
   async reverse(
     actor: AuthenticatedUser,
     id: string,
@@ -184,7 +164,6 @@ export class LabPaymentsService implements OnModuleInit {
     });
   }
 
-  /** The row behind an audit snapshot or a reversal. */
   async requireRow(clinicId: string, id: string): Promise<PaymentRow> {
     const [row] = await this.db
       .select()

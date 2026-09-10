@@ -80,22 +80,8 @@ interface ClinicContext {
   readonly booking: BookingSettings;
 }
 
-/**
- * Booking a slot without an account.
- *
- * The rule that shapes almost every decision below: **nothing in a response may
- * differ between a phone the clinic knows and one it has never seen.** A
- * stranger who can tell the difference can walk a phone book and learn who is a
- * patient here, which is a medical disclosure. So the receipt carries no
- * patient id, no file number and no name; a booking for a known number and an
- * unknown one return the same shape; and the failures that could distinguish
- * them — too many active bookings, for instance — are worded identically.
- *
- * The other rule: the slot is held by the **same** exclusion constraint that
- * governs reception's bookings. A public booking is an ordinary appointment in
- * `requested`, so it collides with everything else and everything else collides
- * with it. There is no separate "hold" concept to keep in step.
- */
+// Nothing in a response may differ between a phone the clinic knows and one it has never seen —
+// otherwise a stranger walks a phone book and learns who is a patient here.
 @Injectable()
 export class BookingService {
   constructor(
@@ -153,13 +139,7 @@ export class BookingService {
     }));
   }
 
-  /**
-   * Free slots, from the same pure service the internal calendar uses.
-   *
-   * Only bookable ones are returned: a stranger has no use for a greyed grid,
-   * and a taken slot on a public page is a small leak — it says someone else
-   * has an appointment at ten.
-   */
+  /** Only bookable slots: a taken one on a public page says someone else has an appointment at ten. */
   async slots(slug: string, query: PublicSlotsQuery): Promise<PublicSlots> {
     const clinic = await this.requireBookingEnabled(slug);
     this.requireWithinWindow(clinic, `${query.date}T00:00:00.000Z`, { dateOnly: true });
@@ -258,13 +238,8 @@ export class BookingService {
     };
   }
 
-  /**
-   * Confirms a booking with the code that went to the phone.
-   *
-   * Every rejection is the same message. "Wrong code", "expired" and "too many
-   * attempts" told apart would let someone learn whether a code was ever issued
-   * for a booking they are guessing at.
-   */
+  // Every rejection is the same message — "wrong code", "expired" and "too many attempts" told
+  // apart reveal whether a code was ever issued.
   async verifyOtp(slug: string, token: string, code: string): Promise<ManagedBooking> {
     const clinic = await this.requireBookingEnabled(slug);
     const appointmentId = this.tokens.verify(token);
@@ -275,9 +250,6 @@ export class BookingService {
       .where(and(eq(bookingOtps.appointmentId, appointmentId), eq(bookingOtps.clinicId, clinic.id)))
       .limit(1);
 
-    // One exception for every rejection. "Wrong code", "expired" and "too many
-    // attempts" told apart would let someone learn whether a code was ever
-    // issued for a booking they are guessing at.
     const invalid = new UnauthorizedException('That code is not valid');
 
     if (!otp || otp.consumedAt || otp.expiresAt <= new Date() || otp.attempts >= OTP_MAX_ATTEMPTS) {
@@ -423,14 +395,8 @@ export class BookingService {
     });
   }
 
-  /**
-   * The patient behind a phone number.
-   *
-   * A known number is linked; an unknown one gets a minimal record flagged
-   * unverified, so reception can see it was created by a stranger rather than
-   * by the front desk. Either way the *response* is identical, which is the
-   * point — this method is where enumeration would leak if it leaked anywhere.
-   */
+  // A known number is linked, an unknown one gets a minimal unverified record — and the response is
+  // identical, which is where enumeration would leak if it leaked anywhere.
   private async linkOrCreatePatient(
     clinicId: string,
     phone: string,
@@ -477,7 +443,6 @@ export class BookingService {
     return created.id;
   }
 
-  /** Next per-clinic file number, in the same zero-padded shape reception uses. */
   private async nextFileNumber(clinicId: string): Promise<string> {
     const [row] = await this.db
       .select({ value: sql<number>`coalesce(max(${patients.fileNumber}::int), 0)::int` })
@@ -487,13 +452,8 @@ export class BookingService {
     return String((row?.value ?? 0) + 1).padStart(5, '0');
   }
 
-  /**
-   * How many unconfirmed bookings this number already holds.
-   *
-   * Anti-abuse, and the message is deliberately the same one a closed booking
-   * page gives: a stranger must not learn that *this* number is the one being
-   * limited.
-   */
+  // Anti-abuse, worded exactly like a closed booking page: a stranger must not learn that this
+  // number is the one being limited.
   private async requireUnderActiveLimit(clinic: ClinicContext, phone: string): Promise<void> {
     const [row] = await this.db
       .select({ value: count() })
@@ -518,13 +478,8 @@ export class BookingService {
     return new Date(Date.now() + clinic.booking.minHoursBefore * 3_600_000);
   }
 
-  /**
-   * The booking window, both ends.
-   *
-   * Too soon and reception never sees it before the patient arrives; too far
-   * ahead and one stranger can fill next spring. `dateOnly` relaxes the near
-   * end for the slots endpoint, which asks about a whole day.
-   */
+  // Too soon and reception never sees it; too far and one stranger fills next spring. `dateOnly`
+  // relaxes the near end for the whole-day slots endpoint.
   private requireWithinWindow(
     clinic: ClinicContext,
     startsAt: string,
@@ -644,18 +599,8 @@ export class BookingService {
     return { startsAt: row.startsAt, doctorId: row.doctorId };
   }
 
-  /**
-   * Whether the clinic actually offers that time, and whether it is still free.
-   *
-   * The exclusion constraint is what *guarantees* two bookings never overlap —
-   * a check here cannot, because another request can insert between the read
-   * and the write. This is the other half: the constraint knows nothing about
-   * opening hours, holidays or a doctor's weekly schedule, so without this a
-   * stranger could post a booking for 03:00 on a Friday and get it.
-   *
-   * It reads the same availability the public page renders, so a time the page
-   * offered is a time this accepts.
-   */
+  // The constraint guarantees no overlap but knows nothing about opening hours or schedules;
+  // without this a stranger could book 03:00 on a Friday. Same availability the page renders.
   private async requireOfferedSlot(
     clinic: ClinicContext,
     doctorId: string,
@@ -738,18 +683,10 @@ export class BookingService {
   }
 }
 
-/**
- * SHA-256 of the six digits.
- *
- * A digest rather than argon2 for the same reason the refresh tokens use one:
- * the value is generated by a CSPRNG, so there is nothing to brute-force
- * offline that the three-attempt limit does not already stop online. What
- * matters is only that the column never holds the code itself — anyone with
- * database access could otherwise confirm bookings they did not make.
- */
+// A digest, not argon2: the code is CSPRNG output and the three-attempt limit stops online
+// guessing. What matters is that the column never holds the code itself.
 export const hashCode = (code: string): string => createHash('sha256').update(code).digest('hex');
 
-/** `HH:MM` in the clinic's zone, for a message body. */
 function timeIn(timeZone: string, at: Date): string {
   const minutes = minutesFromLocalMidnight(at, localDate(at, timeZone), timeZone);
   const hours = Math.floor(minutes / 60);

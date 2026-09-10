@@ -8,10 +8,7 @@ import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 
 class ChangePasswordDto extends createZodDto(changePasswordSchema) {}
 
-/**
- * The caller's own account. Available to every role — no `@Roles(...)`, because
- * these only ever read or change the authenticated user's own row.
- */
+/** No `@Roles(...)`: these only ever read or change the authenticated user's own row. */
 @Controller('me')
 export class MeController {
   constructor(private readonly authService: AuthService) {}
@@ -21,11 +18,8 @@ export class MeController {
     return this.authService.getProfile(actor);
   }
 
-  /**
-   * Not audited: the audit trail stores old and new values, and a password
-   * change has no value that may be recorded. Every other session for the user
-   * is revoked instead.
-   */
+  // Not audited: the trail stores old and new values, and a password has none that may be recorded.
+  // Every other session is revoked instead.
   @Post('change-password')
   @HttpCode(HttpStatus.NO_CONTENT)
   async changePassword(

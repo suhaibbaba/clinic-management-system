@@ -33,11 +33,8 @@ class UpdateVisitDto extends createZodDto(updateVisitSchema) {}
 class ListVisitsQueryDto extends createZodDto(listVisitsQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-/**
- * Visits — complaint, examination, diagnosis (ROLES.md patients matrix):
- * admin CRUD, doctor CRU, and nothing at all for technician or receptionist,
- * whose responses must never carry a diagnosis or a visit note.
- */
+// Admin CRUD, doctor CRU, nothing for technician or receptionist — their responses must never carry
+// a diagnosis or a visit note.
 @Controller('visits')
 @Roles(USER_ROLE.DOCTOR)
 export class VisitsController {

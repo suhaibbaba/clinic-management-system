@@ -35,15 +35,8 @@ class ListAttachmentsQueryDto extends createZodDto(listAttachmentsQuerySchema) {
 class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-/**
- * Attachments / X-rays (ROLES.md patients matrix): admin CRUD, doctor CRU,
- * technician lab-linked only, receptionist nothing — a receptionist response
- * must never carry an attachment key or URL, which is why the role is not on
- * either controller here.
- *
- * Uploads are two steps so bytes never pass through the API: presign, PUT
- * straight to storage, then confirm.
- */
+// A receptionist is on neither controller: their responses must never carry an attachment key or
+// URL. Uploads are two steps so bytes never pass through the API.
 @Controller('patients/:patientId/attachments')
 @Roles(USER_ROLE.DOCTOR)
 export class PatientAttachmentsController {
@@ -69,7 +62,6 @@ export class PatientAttachmentsController {
     return this.attachments.presignUpload(actor, params.patientId, body);
   }
 
-  /** Step 2: record the metadata once the object is really in the bucket. */
   @Post('confirm')
   @Audit(ATTACHMENTS_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: 'response' })
   confirmUpload(
@@ -86,7 +78,6 @@ export class PatientAttachmentsController {
 export class AttachmentsController {
   constructor(private readonly attachments: AttachmentsService) {}
 
-  /** Returns the metadata plus a signed URL that expires with the storage TTL. */
   @Get(':id')
   findOne(
     @CurrentUser() actor: AuthenticatedUser,

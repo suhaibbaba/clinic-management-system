@@ -3,10 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { validateEnv } from '@api/config/env.schema';
 
-/**
- * Global config module. Inject `ConfigService<Env, true>` and read values with
- * `config.get('PORT', { infer: true })` for full type inference.
- */
+/** Read values with `config.get('PORT', { infer: true })` for full type inference. */
 @Module({
   imports: [
     ConfigModule.forRoot({

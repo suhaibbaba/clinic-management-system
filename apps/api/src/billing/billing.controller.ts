@@ -24,14 +24,8 @@ class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 class StatementQueryDto extends createZodDto(statementQuerySchema) {}
 class ListOverdueQueryDto extends createZodDto(listOverdueQuerySchema) {}
 
-/**
- * A patient's money: balance and statement (ROLES.md billing matrix — admin,
- * doctor and receptionist read; technician never, because "technician responses
- * must never include financial patient data").
- *
- * A statement carries the procedure's catalog name and nothing else, so a
- * receptionist reading one still never sees a diagnosis or a visit note.
- */
+// ROLES.md: admin, doctor and receptionist read; a technician never, and a statement carries the
+// catalog name without any clinical detail.
 @Controller('patients/:patientId')
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST)
 export class PatientBillingController {
@@ -74,7 +68,6 @@ export class PatientBillingController {
   }
 }
 
-/** Overdue balances (ROLES.md: admin and receptionist read; nobody else). */
 @Controller('billing')
 export class BillingController {
   constructor(private readonly overdue: OverdueService) {}

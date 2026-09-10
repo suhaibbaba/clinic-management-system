@@ -30,26 +30,14 @@ import { SpecialtiesModule } from '@api/specialties/specialties.module';
 import { StorageModule } from '@api/storage/storage.module';
 import { UsersModule } from '@api/users/users.module';
 
-/**
- * Root module. Domain modules are added here as the phases in CLAUDE.md are
- * built: `core` (clinics, specialties, doctors, users/roles, settings, audit
- * log), `patients` (the patient record and everything attached to it) and
- * `billing` (the charge and payment ledgers) and `appointments` (the internal
- * calendar; public booking arrives with the `booking` module).
- */
 @Module({
   imports: [
     AppConfigModule,
     DatabaseModule,
-    // Reminders and booking-hold expiry. One process today; when there are two,
-    // this needs a lock so a reminder is not sent twice — the log's dedupe
-    // makes that survivable, not correct.
+    // One process today; with two this needs a lock — the log's dedupe makes a double reminder
+    // survivable, not correct.
     ScheduleModule.forRoot(),
-    /*
-     * A default ceiling for every route, which the public booking endpoints
-     * tighten sharply. The internal API is behind a JWT and is not the surface
-     * an anonymous script attacks.
-     */
+    /** A default ceiling for every route, which the public booking endpoints tighten sharply. */
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     AuthModule,
     AuditModule,
@@ -62,7 +50,6 @@ import { UsersModule } from '@api/users/users.module';
     PatientsModule,
     BillingModule,
     AppointmentsModule,
-    // Closures and doctor time off. After the calendar, which it depends on.
     ClinicScheduleModule,
     LookupsModule,
     PdfModule,
@@ -77,9 +64,8 @@ import { UsersModule } from '@api/users/users.module';
     // with `createZodDto`. Validation is never duplicated per controller.
     { provide: APP_PIPE, useClass: ZodValidationPipe },
 
-    // ROLES.md enforcement order: authenticate, then check the role. Guards run
-    // in registration order, so JwtAuthGuard must come first — RolesGuard needs
-    // the caller it attaches.
+    // Guards run in registration order, so JwtAuthGuard must come first: RolesGuard needs the
+    // caller it attaches.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
 

@@ -45,26 +45,14 @@ class WorkTypeQueryDto extends createZodDto(
   z.object({ includeInactive: z.coerce.boolean().optional() }),
 ) {}
 
-/**
- * The labs directory and each lab's price list.
- *
- * ROLES.md labs matrix, exactly: **admin** CRUD, **technician** create-read-
- * update (labs are their working relationship, and keeping the price list
- * current is their job), **doctor** read (they choose a lab when ordering),
- * **receptionist** nothing at all — no route here lists them, so every call
- * they make is a 403.
- *
- * Deleting is admin-only, because a lab carries a balance and removing it from
- * the directory is a financial decision rather than housekeeping.
- */
+// Admin CRUD, technician CRU, doctor read, receptionist nothing — no route lists them, so every
+// call is a 403. Deleting is admin-only: a lab carries a balance.
 @Controller('labs')
 export class LabsController {
   constructor(
     private readonly labs: LabsService,
     private readonly workTypes: LabWorkTypesService,
   ) {}
-
-  /* -------------------------------- Labs -------------------------------- */
 
   @Get()
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
@@ -112,8 +100,6 @@ export class LabsController {
   ): Promise<void> {
     await this.labs.softDelete(actor, params.id);
   }
-
-  /* ----------------------------- Price list ----------------------------- */
 
   @Get(':labId/work-types')
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)

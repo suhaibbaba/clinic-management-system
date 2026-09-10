@@ -7,17 +7,8 @@ import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { doctors } from '@api/database/schema';
 
-/**
- * The one rule the whole module shares: a doctor manages their own calendar.
- *
- * ROLES.md appointments matrix — appointments are `CRUD` for admin and
- * receptionist, and `CRU (own)` for a doctor. "Own" means the appointment is
- * theirs to treat, which is the `doctors` row backed by their user account.
- *
- * Kept here rather than repeated in three services so the rule is reviewable
- * against the spec in one place, and so a later `STRICT_DOCTOR_SCOPE` has one
- * thing to tighten.
- */
+// ROLES.md: appointments are CRUD for admin and receptionist, CRU (own) for a doctor — "own" being
+// their `doctors` row. Defined once here.
 @Injectable()
 export class AppointmentAccessService {
   constructor(
@@ -25,7 +16,6 @@ export class AppointmentAccessService {
     private readonly scope: ClinicScopeService,
   ) {}
 
-  /** The `doctors.id` backing this user, or null for a non-doctor account. */
   async ownDoctorId(actor: AuthenticatedUser): Promise<string | null> {
     if (actor.role !== USER_ROLE.DOCTOR) {
       return null;
@@ -40,14 +30,8 @@ export class AppointmentAccessService {
     return row?.id ?? null;
   }
 
-  /**
-   * Refuses a doctor writing to someone else's calendar.
-   *
-   * Admin and receptionist pass — booking for every doctor is the front desk's
-   * job. A doctor account with no `doctors` row is refused rather than treated
-   * as an admin: an account that cannot be matched to a calendar has no own
-   * calendar to manage.
-   */
+  // A doctor account with no `doctors` row is refused rather than waved through: it has no own
+  // calendar to manage.
   async requireOwnCalendar(actor: AuthenticatedUser, doctorId: string): Promise<void> {
     if (actor.role !== USER_ROLE.DOCTOR) {
       return;

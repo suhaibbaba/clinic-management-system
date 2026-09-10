@@ -58,15 +58,8 @@ export const APPOINTMENTS_ENTITY = 'appointments';
 /** Postgres raises this when an `EXCLUDE` constraint rejects a row. */
 const EXCLUSION_VIOLATION = '23P01';
 
-/**
- * Whether an error is the overlap constraint rejecting a row.
- *
- * Walked down the `cause` chain rather than read off the top: drizzle wraps
- * the driver's error in a `DrizzleQueryError`, so the SQLSTATE that decides
- * this is one or two levels below the error the service catches. Reading only
- * the top level made every double booking a 500 — the constraint was doing its
- * job and the API was reporting it as a bug in itself.
- */
+// Walked down the `cause` chain: drizzle wraps the driver's error, so the SQLSTATE is a level or
+// two below. Reading the top level made every double booking a 500.
 function isOverlapConflict(error: unknown): boolean {
   for (let current = error, depth = 0; current && depth < 5; depth += 1) {
     if (
@@ -83,23 +76,8 @@ function isOverlapConflict(error: unknown): boolean {
   return false;
 }
 
-/**
- * The internal calendar.
- *
- * Two things about this service are worth reading before changing it.
- *
- * **Double booking is prevented by the database, not here.** There is no
- * "is the slot free?" query before an insert, because between such a query and
- * the insert another request can take the slot — the classic check-then-act
- * race, and one that a busy front desk with two people booking is very likely
- * to hit. The `appointments_no_overlap` exclusion constraint is what actually
- * holds; this service's job is to turn its 23P01 into a 409 with a message
- * reception can act on.
- *
- * **Status moves only through `changeStatus`.** `update` deliberately cannot
- * set a status, so the state machine in `@clinic/shared` has exactly one door
- * to guard rather than two.
- */
+// Double booking is prevented by the `appointments_no_overlap` constraint, not by a check-then-act
+// query here; this turns its 23P01 into a 409. Status moves only through `changeStatus`.
 @Injectable()
 export class AppointmentsService implements OnModuleInit {
   constructor(
@@ -184,14 +162,8 @@ export class AppointmentsService implements OnModuleInit {
     return toCalendarAppointment(row);
   }
 
-  /**
-   * A day or a week of the calendar, in one range query.
-   *
-   * Not paginated: a calendar draws every block in view or it is lying, and a
-   * week of one clinic is a few hundred rows at most. The range predicate is
-   * on `starts_at`, which is the leading time column of
-   * `appointments_doctor_starts_idx`.
-   */
+  // Not paginated: a calendar draws every block in view or it is lying. The range predicate is on
+  // the indexed `starts_at`.
   async calendar(actor: AuthenticatedUser, query: CalendarQuery): Promise<CalendarFeed> {
     const timeZone = await this.timeZone(actor.clinicId);
     const from = query.range === 'week' ? startOfWeek(query.date) : query.date;
@@ -199,9 +171,6 @@ export class AppointmentsService implements OnModuleInit {
     const fromInstant = instantFromLocal(from, 0, timeZone);
     const toInstant = instantFromLocal(to, 0, timeZone);
 
-    // One round trip for everything the grid paints. Fetching the closures
-    // after the blocks would draw a normal Tuesday and shade it a moment
-    // later, and reception books into the flicker.
     const [rows, closures, absences] = await Promise.all([
       this.calendarSelect()
         .where(
@@ -338,13 +307,6 @@ export class AppointmentsService implements OnModuleInit {
     return this.findOne(actor, id);
   }
 
-  /**
-   * The one door into the state machine.
-   *
-   * Transitions come from `APPOINTMENT_STATUS_TRANSITIONS` in `@clinic/shared`
-   * and nowhere else, so the rules are one table rather than seven endpoints
-   * that each remember part of them (CLAUDE.md architecture decision 7).
-   */
   async changeStatus(
     actor: AuthenticatedUser,
     id: string,
@@ -380,17 +342,8 @@ export class AppointmentsService implements OnModuleInit {
     return this.findOne(actor, id);
   }
 
-  /**
-   * Arrived → the doctor's visit, in one click.
-   *
-   * Creates the visit and links both records: the appointment keeps the visit
-   * id so the calendar can jump to it, and the visit carries the doctor and
-   * patient the appointment was booked with. The appointment moves to
-   * `in_progress`, which is what a patient in the chair is.
-   *
-   * Idempotent by refusal rather than by silence: a second call returns 400
-   * rather than creating a second visit for one attendance.
-   */
+  // Idempotent by refusal rather than silence: a second call is a 400, not a second visit for one
+  // attendance.
   async convertToVisit(actor: AuthenticatedUser, id: string): Promise<Visit> {
     const existing = await this.scope.findOneOrFail<AppointmentRow>(
       appointments,
@@ -456,13 +409,6 @@ export class AppointmentsService implements OnModuleInit {
       .where(this.scope.where(appointments, actor.clinicId, eq(appointments.id, id)));
   }
 
-  /**
-   * Runs a write that the overlap constraint may reject.
-   *
-   * The 23P01 is translated here rather than in a filter, because 409 with
-   * "that time is already booked" is the only version of this a receptionist
-   * can act on, and because everything else about the write is this service's.
-   */
   private async insert(write: () => Promise<AppointmentRow[]>): Promise<AppointmentRow> {
     let rows: AppointmentRow[];
 
@@ -486,7 +432,6 @@ export class AppointmentsService implements OnModuleInit {
     return row;
   }
 
-  /** One shape for every calendar read, so a block always has its two names. */
   private calendarSelect() {
     return this.db
       .select({
@@ -519,13 +464,8 @@ export class AppointmentsService implements OnModuleInit {
     return row.duration;
   }
 
-  /**
-   * Today, on the clinic's wall clock.
-   *
-   * A dashboard that asks the server's own date puts a Damascus clinic on
-   * yesterday's list for the first three hours of every morning — the same
-   * reason every other date on this calendar goes through the clinic's zone.
-   */
+  // The clinic's wall clock, not the server's — otherwise a Damascus clinic reads yesterday's list
+  // for the first hours of every morning.
   async localToday(clinicId: string): Promise<string> {
     return localDate(new Date(), await this.timeZone(clinicId));
   }

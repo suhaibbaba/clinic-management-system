@@ -10,18 +10,8 @@ import { AppConfigModule } from '@api/config/config.module';
 import { DatabaseModule } from '@api/database/database.module';
 import { NotificationsModule } from '@api/notifications/notifications.module';
 
-/**
- * Public booking.
- *
- * It imports `AppointmentsModule` for two things it must not reimplement: the
- * pure availability service, so the slots a stranger sees are the slots
- * reception sees, and the appointments service, so the pending-confirmations
- * list is the same query the calendar uses with one filter on it.
- *
- * There is no separate "public appointment" table and no separate hold. A
- * booking is an ordinary appointment in `requested`, which is what makes the
- * database's own overlap constraint hold the slot.
- */
+// No separate "public appointment" table and no separate hold: a booking is an ordinary appointment
+// in `requested`, so the overlap constraint holds the slot.
 @Module({
   imports: [DatabaseModule, AppConfigModule, NotificationsModule, AppointmentsModule],
   controllers: [BookingController, PendingBookingsController],

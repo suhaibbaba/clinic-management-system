@@ -50,11 +50,8 @@ describe('Lookups (e2e)', () => {
   };
 
   describe('the built-in rows', () => {
-    /*
-     * The migration's whole promise: the values the enum columns held are the
-     * codes of the rows that replaced them. A seeded appointment of type
-     * `checkup` still means something because `checkup` is on this list.
-     */
+    // The migration's promise: the values the enum columns held are the codes of the rows that
+    // replaced them.
     it('seeds every list a new clinic needs, keyed by the old enum values', async () => {
       const response = await context.app.inject({
         method: 'GET',
@@ -71,16 +68,8 @@ describe('Lookups (e2e)', () => {
       }
     });
 
-    /*
-     * The migration's other half, stated as a table.
-     *
-     * These are the exact values the columns held while they were Postgres
-     * enums. Widening a column to text keeps its string, so an appointment
-     * recorded as `checkup` still says `checkup` — and this asserts there is a
-     * row behind each of them, which is what makes those strings mean
-     * something again. A code missing here is data that has quietly stopped
-     * resolving to a name.
-     */
+    // The exact values the columns held as Postgres enums — a code missing here is data that has
+    // quietly stopped resolving to a name.
     it.each([
       [LOOKUP_LIST.TOOTH_STATE, Object.values(TOOTH_STATE)],
       [LOOKUP_LIST.APPOINTMENT_TYPE, Object.values(APPOINTMENT_TYPE)],
@@ -108,10 +97,7 @@ describe('Lookups (e2e)', () => {
       expect(missing?.meta).toMatchObject({ chartBehavior: { shape: 'missing' } });
     });
 
-    /*
-     * The lists are the clinic's, all the way down. A built-in row is marked as
-     * one so the screen can warn, but nothing here refuses.
-     */
+    /** A built-in row is marked so the screen can warn, but nothing here refuses. */
     it('lets the clinic switch one off, and stops offering it', async () => {
       const [card] = (await list(LOOKUP_LIST.PAYMENT_METHOD)).filter(
         (option) => option.code === 'card',
@@ -142,11 +128,8 @@ describe('Lookups (e2e)', () => {
       expect(back.statusCode).toBe(200);
     });
 
-    /*
-     * In a clinic of its own, because this one is destructive and the tests
-     * above assert that every enum value still has a row behind it — a shared
-     * fixture would make those two facts depend on the order they run in.
-     */
+    // In a clinic of its own: this one is destructive, and a shared fixture would make the tests
+    // above depend on run order.
     it('lets the clinic delete one, and stops accepting the code', async () => {
       const own = await context.createClinic();
       const admin = await context.login(own.phones[USER_ROLE.ADMIN]);
@@ -171,14 +154,8 @@ describe('Lookups (e2e)', () => {
       );
     });
 
-    /*
-     * The property that makes the freedom durable.
-     *
-     * `ensureSystemLookups` runs on every migration and on every new clinic,
-     * and it upserts the built-in rows — so if it touched anything but the
-     * system flag, a clinic's deletions and switched-off rows would quietly
-     * come back on the next deploy, which is the worst kind of bug to explain.
-     */
+    // `ensureSystemLookups` upserts on every migration and every new clinic, so if it touched
+    // anything but the system flag a clinic's deletions would come back on the next deploy.
     it('does not resurrect a retired built-in row on the next deploy', async () => {
       const own = await context.createClinic();
       const admin = await context.login(own.phones[USER_ROLE.ADMIN]);

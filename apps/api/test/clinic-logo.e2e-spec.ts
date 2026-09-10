@@ -16,7 +16,6 @@ describe('Clinic logo (e2e)', () => {
   let storage: StorageService;
   const tokens = {} as Record<UserRole, string>;
 
-  /** What the stubbed HeadObject reports for the next confirm. */
   let storedObject: StoredObject | null;
   let deleted: string[];
 
@@ -129,10 +128,8 @@ describe('Clinic logo (e2e)', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    /*
-     * The claim in the request body is not the file. What is checked on
-     * confirm is what the bytes turned out to be.
-     */
+    // The claim in the request body is not the file: what is checked on confirm is what the bytes
+    // turned out to be.
     it('refuses bytes that turned out not to be an image, and deletes them', async () => {
       const key = ((await presign()).json() as PresignClinicLogoResponse).key;
       storedObject = { sizeBytes: 40_000, mime: 'application/zip' };
@@ -221,11 +218,7 @@ describe('Clinic logo (e2e)', () => {
     });
   });
 
-  /*
-   * The sign-in screen has no token yet, so this one route is public. It says
-   * a name and a mark and nothing else — and stays quiet when the answer is
-   * not a single clinic, which this suite's isolated tenants guarantee.
-   */
+  /** Public because the sign-in screen has no token, and quiet unless the answer is a single clinic. */
   describe('the sign-in screen', () => {
     it('answers without a token', async () => {
       const response = await context.app.inject({ method: 'GET', url: '/clinic/branding' });

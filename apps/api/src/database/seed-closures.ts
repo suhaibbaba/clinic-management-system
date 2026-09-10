@@ -13,27 +13,8 @@ export interface ClosuresSeedContext {
   readonly timeZone: string;
 }
 
-/**
- * The three shapes of "not available", so all three are on screen on a fresh
- * database.
- *
- * 1. **A clinic closure** ten days out — two whole days, nothing booked in
- *    them. The calendar shades them and names the reason; public booking
- *    refuses them.
- * 2. **Partial time off** — one doctor away from 14:00 on a day they are
- *    otherwise working. This is the case a per-day "off" toggle could not
- *    express at all, and the one that proves the morning stays bookable while
- *    the afternoon does not.
- * 3. **Time off sitting on top of a booked appointment**, deliberately. The
- *    conflict flow refuses exactly this through the API — which is why the
- *    seed writes it directly, the same way it writes everything else — and
- *    leaving it here is what gives somebody a real collision to look at:
- *    widen this absence, or put a closure over that day, and the 409 dialog
- *    appears with a patient's name in it rather than with a fixture's.
- *
- * Nothing is seeded if closures already exist, so `pnpm seed` stays safe to
- * re-run.
- */
+// The third case sits on top of a booked appointment on purpose — the API refuses exactly that,
+// which is why the seed writes it directly.
 export async function seedClosures(db: Db, ctx: ClosuresSeedContext): Promise<number> {
   const [existing] = await db
     .select({ id: clinicClosures.id })
@@ -79,7 +60,6 @@ export async function seedClosures(db: Db, ctx: ClosuresSeedContext): Promise<nu
     {
       clinicId: ctx.clinicId,
       doctorId: firstDoctor,
-      // Sits over the 10:00 appointment three days out — see the note above.
       startsAt: at(3, 9 * 60 + 30),
       endsAt: at(3, 12 * 60),
       reason: 'التزام شخصي',

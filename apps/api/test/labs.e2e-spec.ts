@@ -79,7 +79,6 @@ describe('Labs (e2e)', () => {
     return (response.json() as { id: string }).id;
   }
 
-  /** A draft order, which is where every order starts. */
   async function createOrder(overrides: Record<string, unknown> = {}): Promise<LabOrderRow> {
     const response = await context.app.inject({
       method: 'POST',
@@ -233,9 +232,7 @@ describe('Labs (e2e)', () => {
       const order = await createOrder();
       await move(order.id, 'send', USER_ROLE.DOCTOR);
 
-      // "The lab says it is ready" and "it is in the building" are both things
-      // the technician is told. The route guard refuses first, so these are
-      // 403 rather than 400 — the role is checked before the transition is.
+      // The route guard refuses before the transition is checked, so these are 403 rather than 400.
       expect((await move(order.id, 'ready', USER_ROLE.DOCTOR)).statusCode).toBe(403);
       expect((await move(order.id, 'receive', USER_ROLE.DOCTOR)).statusCode).toBe(403);
     });
@@ -295,11 +292,8 @@ describe('Labs (e2e)', () => {
   });
 
   describe('what counts toward the balance', () => {
-    /*
-     * The rule, stated once: an order counts from the moment it is **sent**,
-     * and stops counting only if it is **cancelled**. Each test below is one
-     * clause of that sentence.
-     */
+    // An order counts from `sent` and stops counting only if `cancelled`. Each test below is one
+    // clause of that sentence.
     it('ignores a draft, counts it once sent', async () => {
       const before = await balance();
 

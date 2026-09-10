@@ -47,18 +47,8 @@ type OrderRow = typeof labOrders.$inferSelect;
 
 export const LAB_ORDERS_ENTITY = 'lab_orders';
 
-/**
- * Who may make each move.
- *
- * ROLES.md gives a technician "status transitions, receiving" and a doctor
- * "create/edit own" — so the split below is: the technician runs the
- * conversation with the lab (sending, chasing, receiving), and the doctor owns
- * the two moments that happen in the chair (fitting, and declaring that the
- * work is wrong). Admin passes everything, as everywhere else.
- *
- * `cancelled` is reachable only before the lab has done anything, which is why
- * a doctor may cancel their own draft without it being a financial decision.
- */
+// The technician runs the conversation with the lab (sending, chasing, receiving); the doctor owns
+// what happens in the chair (fitting, and declaring the work wrong).
 const TRANSITION_ROLES: Record<LabOrderStatus, readonly string[]> = {
   [LAB_ORDER_STATUS.DRAFT]: [],
   [LAB_ORDER_STATUS.SENT]: [USER_ROLE.TECHNICIAN, USER_ROLE.DOCTOR],
@@ -69,24 +59,8 @@ const TRANSITION_ROLES: Record<LabOrderStatus, readonly string[]> = {
   [LAB_ORDER_STATUS.CANCELLED]: [USER_ROLE.TECHNICIAN, USER_ROLE.DOCTOR],
 };
 
-/**
- * Lab orders: the work the clinic sends out and waits for.
- *
- * Three rules shape this service.
- *
- * **The state machine is the shared table, not this file.** Every move goes
- * through `changeStatus`, which asks `canTransitionLabOrder` — so the rules are
- * one table in `@clinic/shared` rather than six endpoints each remembering
- * part of them (CLAUDE.md architecture decision 7).
- *
- * **The dates are written by the moves.** `sent_at`, `received_at` and
- * `fitted_at` are set by the transition that means them. A form that could set
- * them independently is a form that eventually disagrees with the status.
- *
- * **The price is a snapshot.** It is copied from the work type when the order
- * is placed, exactly like a charge's amount, so a lab's new price list cannot
- * rewrite what the clinic already owes.
- */
+// Every move goes through `changeStatus` against the shared transition table; the dates are written
+// by the moves, never a form; the price is a snapshot from the work type.
 @Injectable()
 export class LabOrdersService implements OnModuleInit {
   constructor(
@@ -173,14 +147,8 @@ export class LabOrdersService implements OnModuleInit {
     return toLabOrderRow(row);
   }
 
-  /**
-   * Everything late, oldest first.
-   *
-   * "Late" is past the date the lab promised and still out — see
-   * `LAB_ORDER_AWAITING_STATUSES`. Once the work is back nobody is waiting,
-   * however late it was, which is why a received order drops off this list
-   * rather than staying red forever.
-   */
+  // Late is past the promised date and still out — once the work is back nobody is waiting, however
+  // late it was.
   async overdue(actor: AuthenticatedUser, limit = 20): Promise<LabOrderRow[]> {
     const rows = await this.rowsQuery()
       .where(this.scope.where(labOrders, actor.clinicId, overdueFilter()))
@@ -190,17 +158,8 @@ export class LabOrdersService implements OnModuleInit {
     return rows.map(toLabOrderRow);
   }
 
-  /**
-   * Raises an order, in `draft`.
-   *
-   * Draft rather than sent, always: the order sheet is printed and handed to a
-   * courier, and until that happens the clinic owes nothing. Sending is a
-   * separate act with its own timestamp.
-   *
-   * Teeth may be prefilled from the procedure that needs the work — a crown on
-   * 26 is ordered from the chart, and retyping the tooth number is how the lab
-   * ends up making it for the wrong one.
-   */
+  // Draft rather than sent, always: until the sheet goes to a courier the clinic owes nothing.
+  // Teeth may be prefilled from the procedure, since retyping is how a lab makes the wrong one.
   async create(actor: AuthenticatedUser, input: CreateLabOrderInput): Promise<LabOrderRow> {
     // Only codes on this clinic's own list — the schema cannot know them.
     await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.LAB_MATERIAL, input.material);
@@ -260,14 +219,8 @@ export class LabOrdersService implements OnModuleInit {
     return this.findOne(actor, row.id);
   }
 
-  /**
-   * Edits the work itself — never the status, and never the price for a doctor.
-   *
-   * An order that has left the building is not editable at all: the lab is
-   * already working from the sheet that was sent, so changing the shade here
-   * would put the record out of step with what is on the bench. That is a new
-   * instruction to the lab, which in this system is a return or a new order.
-   */
+  // An order that has left the building is not editable: the lab is working from the sheet that was
+  // sent, so a change here is a return or a new order.
   async update(
     actor: AuthenticatedUser,
     id: string,
@@ -318,13 +271,8 @@ export class LabOrdersService implements OnModuleInit {
     return this.findOne(actor, id);
   }
 
-  /**
-   * The one door into the state machine.
-   *
-   * Everything a status change implies happens here: the transition is checked
-   * against the shared table, the role against `TRANSITION_ROLES`, and the
-   * timestamp that the new status *means* is written with it.
-   */
+  // The one door: the transition is checked against the shared table, the role against
+  // `TRANSITION_ROLES`, and the timestamp the new status means is written with it.
   async changeStatus(
     actor: AuthenticatedUser,
     id: string,
@@ -356,9 +304,8 @@ export class LabOrdersService implements OnModuleInit {
       .update(labOrders)
       .set({
         status: next,
-        // Each timestamp belongs to exactly one move. Re-sending a returned
-        // order overwrites `sent_at`, which is right: it is out again, and the
-        // wait that matters is the one running now.
+        // Re-sending a returned order overwrites `sent_at`, which is right: it is out again, and
+        // the wait that matters is the one running now.
         ...(next === LAB_ORDER_STATUS.SENT && { sentAt: now, receivedAt: null, fittedAt: null }),
         ...(next === LAB_ORDER_STATUS.RECEIVED && { receivedAt: now }),
         ...(next === LAB_ORDER_STATUS.FITTED && { fittedAt: now }),
@@ -380,12 +327,10 @@ export class LabOrdersService implements OnModuleInit {
       .where(this.scope.where(labOrders, actor.clinicId, eq(labOrders.id, id)));
   }
 
-  /** The order behind an attachment or a printed sheet. */
   async requireRow(clinicId: string, id: string): Promise<OrderRow> {
     return this.scope.findOneOrFail<OrderRow>(labOrders, clinicId, id);
   }
 
-  /** One shape for every order read, so a row always has its four names. */
   private rowsQuery() {
     return this.db
       .select({
@@ -429,13 +374,8 @@ export class LabOrdersService implements OnModuleInit {
     }
   }
 
-  /**
-   * The teeth a performed procedure was marked on.
-   *
-   * This is what makes "order this from the lab" one click on the chart: the
-   * crown that was just recorded on 26 becomes an order for 26 without anyone
-   * retyping a number that a lab will cut metal to.
-   */
+  // What makes "order this from the lab" one click: the crown recorded on 26 becomes an order for
+  // 26, with nobody retyping a number a lab cuts metal to.
   private async teethOfProcedure(clinicId: string, procedureId: string): Promise<number[]> {
     const rows = await this.db
       .select({ location: chartMarks.location })

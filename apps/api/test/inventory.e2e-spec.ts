@@ -23,7 +23,6 @@ import {
 } from '@test/helpers/patient-fixtures';
 import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
 
-/** Days from now, as a plain ISO date — what an expiry is. */
 const inDays = (days: number): string =>
   new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
 

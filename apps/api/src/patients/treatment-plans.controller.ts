@@ -46,10 +46,7 @@ class ConvertPlanItemDto extends createZodDto(convertPlanItemSchema) {}
 class ListTreatmentPlansQueryDto extends createZodDto(listTreatmentPlansQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-/**
- * Treatment plans (ROLES.md patients matrix): admin CRUD, doctor CRU, and
- * nothing for technician or receptionist.
- */
+/** Admin CRUD, doctor CRU, nothing for technician or receptionist (ROLES.md patients matrix). */
 @Controller('treatment-plans')
 @Roles(USER_ROLE.DOCTOR)
 export class TreatmentPlansController {
@@ -139,12 +136,8 @@ export class PlanItemsController {
     await this.plans.softDeleteItem(actor, params.id);
   }
 
-  /**
-   * Turns the quote into work actually carried out.
-   *
-   * The row this writes is a performed procedure, not the plan item, so the
-   * audit entry is keyed by the response id rather than by `:id`.
-   */
+  // The row this writes is a performed procedure, not the plan item, so the audit entry is keyed by
+  // the response id rather than `:id`.
   @Post(':id/convert')
   @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: 'response' })
   convert(

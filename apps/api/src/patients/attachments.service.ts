@@ -34,14 +34,8 @@ type AttachmentRow = typeof attachments.$inferSelect;
 
 export const ATTACHMENTS_ENTITY = 'attachments';
 
-/**
- * X-rays and documents on the patient file.
- *
- * Bytes never pass through the API: the client PUTs to a presigned URL and then
- * confirms, and every read hands back a short-lived signed GET instead of the
- * object key. ROLES.md forbids a receptionist any of this, so the guard on the
- * controller is the boundary and nothing here ever serialises a key.
- */
+// Bytes never pass through the API, and every read hands back a short-lived signed GET — nothing
+// here ever serialises an object key.
 @Injectable()
 export class AttachmentsService implements OnModuleInit {
   constructor(
@@ -67,7 +61,6 @@ export class AttachmentsService implements OnModuleInit {
     });
   }
 
-  /** List is metadata only — a signed URL is minted per file on read. */
   async list(
     actor: AuthenticatedUser,
     patientId: string,
@@ -107,7 +100,6 @@ export class AttachmentsService implements OnModuleInit {
     return toPaginated(rows.map(toAttachment), totals?.value ?? 0, query);
   }
 
-  /** Single read: metadata plus a signed URL that expires with the configured TTL. */
   async findOne(actor: AuthenticatedUser, id: string): Promise<Attachment> {
     const row = await this.scope.findOneOrFail<AttachmentRow>(attachments, actor.clinicId, id);
     const download = await this.storage.createDownloadUrl(row.r2Key, row.filename);
@@ -119,10 +111,8 @@ export class AttachmentsService implements OnModuleInit {
     };
   }
 
-  /**
-   * Step 1 of an upload. The key is built here — never taken from the client —
-   * so an object can only ever land under this clinic and patient.
-   */
+  // The key is built here, never taken from the client, so an object can only land under this
+  // clinic and patient.
   async presignUpload(
     actor: AuthenticatedUser,
     patientId: string,
@@ -150,11 +140,8 @@ export class AttachmentsService implements OnModuleInit {
     };
   }
 
-  /**
-   * Step 2. Size and content type are read back from storage rather than
-   * trusted from the request, so a client cannot understate a file it uploaded;
-   * anything outside the limits is deleted instead of being recorded.
-   */
+  // Size and content type are read back from storage, so a client cannot understate a file it
+  // uploaded; anything outside the limits is deleted.
   async confirmUpload(
     actor: AuthenticatedUser,
     patientId: string,
@@ -220,10 +207,8 @@ export class AttachmentsService implements OnModuleInit {
     return toAttachment(row);
   }
 
-  /**
-   * Soft delete only. The object itself is deliberately left in the bucket: a
-   * medical image must stay recoverable by an admin (CLAUDE.md, ROLES.md rule 5).
-   */
+  // Soft delete only, and the object stays in the bucket: a medical image must remain recoverable
+  // by an admin.
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.scope.findOneOrFail<AttachmentRow>(attachments, actor.clinicId, id);
     const now = new Date();
@@ -234,7 +219,6 @@ export class AttachmentsService implements OnModuleInit {
       .where(this.scope.where(attachments, actor.clinicId, eq(attachments.id, id)));
   }
 
-  /** Tooth-scoped read used by the tooth-history endpoint. */
   async listForTooth(
     actor: AuthenticatedUser,
     patientId: string,

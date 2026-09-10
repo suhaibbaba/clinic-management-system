@@ -28,31 +28,14 @@ interface LedgerLine {
   readonly isReversal: boolean;
 }
 
-/**
- * Reads the money ledgers.
- *
- * A balance is **never stored** (CLAUDE.md): every read is a SQL aggregate over
- * `charges` and `payments`. Reversing entries carry negative amounts, so they
- * fall out of the same `sum()` with no special case — which is the point of
- * correcting by reversal rather than by edit.
- */
+// A balance is never stored: every read is a SQL aggregate, and reversing entries carry negative
+// amounts so they fall out of the same `sum()`.
 @Injectable()
 export class LedgerService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  /**
-   * "Owes something", as a `where` clause the caller can drop into its own
-   * query.
-   *
-   * The patients list needs to page over *the patients who owe*, which no
-   * amount of filtering after the fact can do — page two of everybody is not
-   * page two of the debtors. So the condition goes into the same query as the
-   * page, and it is written here rather than there so that there is still
-   * exactly one definition of a balance in this system.
-   *
-   * `patientId` is the column to correlate against, so this composes with
-   * whatever the caller has already scoped.
-   */
+  // The condition goes into the same query as the page — page two of everybody is not page two of
+  // the debtors — and lives here so a balance has one definition.
   static owesFilter(clinicId: string, patientId: PgColumn): SQL {
     return sql`(
       coalesce((
@@ -66,7 +49,6 @@ export class LedgerService {
     ) > 0`;
   }
 
-  /** `sum(charges) − sum(payments)` for one patient. */
   async balanceFor(clinicId: string, patientId: string): Promise<PatientBalance> {
     const rows = await this.db.execute<{
       charged: string;
@@ -132,17 +114,8 @@ export class LedgerService {
     return new Map([...rows].map((row) => [row.patient_id, normalise(row.balance)]));
   }
 
-  /**
-   * Every ledger line for a patient, oldest first, with the balance after each.
-   *
-   * A date range narrows the lines shown but not the arithmetic: whatever
-   * happened before `from` is folded into an opening balance, so the closing
-   * figure of an open-ended range always equals the patient's real balance.
-   *
-   * A charge describes itself with the procedure's catalog name and nothing
-   * else — a receptionist reads statements, and ROLES.md keeps diagnoses and
-   * visit notes away from them.
-   */
+  // A date range narrows the lines but not the arithmetic: anything before `from` is folded into an
+  // opening balance. Charges name the catalog procedure and nothing clinical.
   async statementFor(
     clinicId: string,
     patientId: string,

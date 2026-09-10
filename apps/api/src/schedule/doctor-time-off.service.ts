@@ -25,15 +25,6 @@ type TimeOffRow = typeof doctorTimeOff.$inferSelect;
 
 export const DOCTOR_TIME_OFF_ENTITY = 'doctor_time_off';
 
-/**
- * One doctor's absences — a conference afternoon, a week away, a morning at
- * the hospital.
- *
- * Ownership follows the ROLES.md core matrix line for doctors and schedules:
- * admin manages anyone's, a doctor manages their own, and everyone else reads.
- * That is the same "own calendar" rule appointments already use, so it is
- * `AppointmentAccessService` rather than a second copy of it here.
- */
 @Injectable()
 export class DoctorTimeOffService implements OnModuleInit {
   constructor(
@@ -91,7 +82,6 @@ export class DoctorTimeOffService implements OnModuleInit {
     return toPaginated(rows.map(toDoctorTimeOff), totals?.value ?? 0, query);
   }
 
-  /** Every absence overlapping an instant window — what the calendar hatches. */
   async inRange(
     clinicId: string,
     from: Date,

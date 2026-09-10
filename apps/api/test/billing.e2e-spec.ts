@@ -21,13 +21,6 @@ import {
 } from '@test/helpers/patient-fixtures';
 import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
 
-/**
- * The money ledgers.
- *
- * The properties asserted here are the ones CLAUDE.md states as law: a balance
- * is always sum(charges) − sum(payments), an amount is never edited, and a
- * procedure and its charge either both exist or neither does.
- */
 describe('Billing', () => {
   let context: TestContext;
   let clinic: TestClinic;
@@ -263,9 +256,8 @@ describe('Billing', () => {
         .from(charges)
         .where(eq(charges.patientId, patientId));
 
-      // A chart mark whose type does not match the specialty is rejected after
-      // the row would have been written, which is exactly the window a charge
-      // outside the transaction would leak through.
+      // The mark is rejected after the row would have been written, which is exactly the window a
+      // charge outside the transaction would leak through.
       const response = await context.app.inject({
         method: 'POST',
         url: '/performed-procedures',
@@ -431,9 +423,6 @@ describe('Billing', () => {
         .map(([, value]) => String(value))
         .join(' ');
 
-      // The Arabic face is embedded rather than referenced, which is what makes
-      // the sheet render the same on any machine — and the CID font is what
-      // carries the shaped presentation forms.
       expect(names).toContain('Amiri');
       expect(names).toContain('CIDFontType2');
       expect(pdf.byteLength).toBeGreaterThan(50_000);
@@ -482,14 +471,8 @@ describe('Billing', () => {
     });
   });
 
-  /**
-   * The patients list, narrowed to the people who owe.
-   *
-   * It is a server-side filter because a balance is an aggregate, not a
-   * column: filtering the page in hand would answer "which of these twenty
-   * owe" while looking like it answered "who owes", and the paging would be
-   * wrong in a way nobody could see from the screen.
-   */
+  // A server-side filter because a balance is an aggregate: filtering the page in hand would answer
+  // "which of these twenty owe" and page wrongly.
   describe('patients?hasBalance', () => {
     it('returns only the patients who owe, and pages over those', async () => {
       const owing = await newPatient();

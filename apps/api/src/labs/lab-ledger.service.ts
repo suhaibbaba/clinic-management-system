@@ -28,24 +28,8 @@ interface LedgerLine {
   readonly isReversal: boolean;
 }
 
-/**
- * What the clinic owes a lab.
- *
- * **The rule, once:** an order counts from the moment it is *sent*, and stops
- * counting only if it is *cancelled*. Everything else follows from it —
- *
- *  - a `draft` is a note to self and costs nothing;
- *  - a `returned` crown keeps counting, because the lab made it, and a remake
- *    is the lab's problem rather than an entry that quietly disappears;
- *  - `cancelled` is only reachable before the lab has started (see the
- *    transition table), which is exactly why it is the one status allowed to
- *    take an order out of the balance with nothing to explain it.
- *
- * The list of billable statuses lives in `@clinic/shared`, so this service,
- * the directory's balance chips and the screens all read the same definition.
- * Nothing is stored: a balance is a `sum()` over orders minus a `sum()` over
- * payments, every time (CLAUDE.md).
- */
+// An order counts from `sent` and stops only if `cancelled` — the billable list lives in
+// `@clinic/shared` so the chips, the screens and this agree. Nothing is stored.
 @Injectable()
 export class LabLedgerService {
   constructor(
@@ -96,15 +80,8 @@ export class LabLedgerService {
     };
   }
 
-  /**
-   * Every line, oldest first, with the balance after each.
-   *
-   * An order enters the statement on the day it was **sent**, not the day it
-   * was drafted — that is the day the debt begins, and a statement whose dates
-   * disagree with the balance rule is a statement nobody can reconcile. A date
-   * range narrows what is listed but not the arithmetic: everything before it
-   * folds into the opening balance.
-   */
+  // An order enters the statement on the day it was sent, not drafted: that is the day the debt
+  // begins. A date range narrows the lines, not the arithmetic.
   async statementFor(
     clinicId: string,
     labId: string,
@@ -209,7 +186,6 @@ export class LabLedgerService {
   }
 }
 
-/** "تاج — 26، 27", or just the work type when it is not tooth-specific. */
 function describeOrder(workTypeName: string | null, teeth: readonly number[]): string {
   const name = workTypeName ?? 'عمل مخبري';
 

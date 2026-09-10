@@ -4,7 +4,6 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
 
-/** Applies migrations once before the suites run. */
 export default async function globalSetup(): Promise<void> {
   const databaseUrl = process.env['DATABASE_URL'];
 

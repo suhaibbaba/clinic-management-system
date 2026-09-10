@@ -28,27 +28,17 @@ import {
 } from '@api/database/schema';
 import { computeDaySlots, toTimeOfDay, type BusyInterval } from '@api/appointments/slots';
 
-/** How far apart slot starts are offered when a clinic has not said otherwise. */
 const DEFAULT_STEP_MINUTES = 15;
 
 const MINUTES_PER_DAY = 24 * 60;
 
-/**
- * What the pure slot module needs, once it has been loaded.
- *
- * Named so the loading and the arithmetic stay visibly separate: everything
- * below the load is `computeDaySlots`, which public booking will call with the
- * same shape from an anonymous endpoint.
- */
 export interface DayAvailabilityContext {
   readonly timeZone: string;
   readonly clinicRanges: readonly TimeRange[];
   readonly doctorRanges: readonly TimeRange[];
-  /** The dated closure covering this day, if one does. */
   readonly closure: ClinicClosure | null;
   /** The doctor's absences that touch this day, clipped to it. */
   readonly timeOff: readonly BusyInterval[];
-  /** The first absence's reason, for the "why is this shut?" line. */
   readonly timeOffReason: string | null;
   readonly busy: readonly BusyInterval[];
   readonly durationMinutes: number;
@@ -57,35 +47,8 @@ export interface DayAvailabilityContext {
 const rangesFor = (schedule: WeeklySchedule, weekday: number): readonly TimeRange[] =>
   schedule.find((day) => day.weekday === weekday)?.ranges ?? [];
 
-/**
- * Free slots for one doctor on one day.
- *
- * **This is the only place that decides whether a minute is bookable.** The
- * internal calendar, the booking form's slot picker and the anonymous public
- * booking page all arrive here, so a day the calendar shades is a day booking
- * refuses, without either of them holding a second copy of the rule.
- *
- * Four things are subtracted from the day, in this order, and the order is
- * what the answer's `closedReason` reports:
- *
- *  1. **Clinic closures** (`clinic_closures`) — a dated whole-day shutdown.
- *     It outranks everything, including a weekday the clinic normally opens.
- *  2. **Clinic working hours** for that weekday. No ranges means closed.
- *  3. **The doctor's weekly schedule**, intersected with the clinic's: a
- *     doctor who starts at 08:00 in a clinic that opens at 09:00 starts at
- *     09:00, and the front door settles it.
- *  4. **Doctor time off** (`doctor_time_off`), whole days and partial hours
- *     alike, plus the appointments already booked.
- *
- * The answer is never stored (CLAUDE.md architecture decision 6).
- *
- * Every method takes a **clinic id**, not a caller. Reading availability is
- * open to every role — reception books, a doctor checks their own day, a
- * technician looking at the calendar sees the same thing — and it is also what
- * the anonymous public booking page asks for, which has no caller at all.
- * Nothing here is medical or financial, so there is nothing for an identity to
- * gate; the clinic is the only scope that matters.
- */
+// The only place that decides whether a minute is bookable. Subtracted in the order `closedReason`
+// reports: closures, clinic hours, the doctor's schedule, then time off and bookings.
 @Injectable()
 export class AvailabilityService {
   constructor(
@@ -125,13 +88,6 @@ export class AvailabilityService {
     };
   }
 
-  /**
-   * Everything the pure computation needs, in one place.
-   *
-   * Exposed so the appointments service can reuse it to answer "is this exact
-   * time bookable?" without a second copy of the loading logic, and so the
-   * public booking module can call it from an anonymous endpoint.
-   */
   async loadContext(clinicId: string, query: AvailabilityQuery): Promise<DayAvailabilityContext> {
     const [doctor] = await this.db
       .select({
@@ -181,19 +137,8 @@ export class AvailabilityService {
     };
   }
 
-  /**
-   * The closure covering one local date, if any.
-   *
-   * Both ends inclusive — a closure names the last day the clinic is shut, not
-   * the day it reopens, because that is how a notice on the door reads and
-   * getting it wrong by a day is the mistake nobody notices until someone
-   * turns up.
-   *
-   * An annual closure matches on day and month whatever the year, which is why
-   * the comparison is on `to_char(...)` rather than on the dates themselves.
-   * Only single-year ranges may be annual (the service refuses the rest), so
-   * there is no year-crossing case to reason about here.
-   */
+  // Both ends inclusive — a closure names the last day shut, not the day it reopens. An annual one
+  // matches day and month, hence `to_char`; only single-year ranges may be annual.
   async closureOn(clinicId: string, isoDate: string): Promise<ClinicClosure | null> {
     const dayMonth = isoDate.slice(5);
 
@@ -219,16 +164,8 @@ export class AvailabilityService {
     return row ? toClinicClosure(row) : null;
   }
 
-  /**
-   * One doctor's absences overlapping a local day.
-   *
-   * The window is the day itself, and the rows come back unclipped: the caller
-   * converts them to minutes from that day's midnight, which lands an absence
-   * that started yesterday evening on a negative start and one running into
-   * tomorrow past 1440. The slot arithmetic compares intervals, so both are
-   * correct without a clamp — and clamping here would lose the fact that the
-   * absence continues.
-   */
+  // Unclipped: an absence from yesterday evening lands on negative minutes, one running into
+  // tomorrow past 1440, and the interval arithmetic wants that.
   async timeOffOn(
     clinicId: string,
     doctorId: string,
@@ -256,18 +193,8 @@ export class AvailabilityService {
       .orderBy(doctorTimeOff.startsAt);
   }
 
-  /**
-   * The doctor's booked time on that day, in local minutes.
-   *
-   * Cancelled and missed appointments are excluded by exactly the list the
-   * database's exclusion constraint excludes, so the slot a patient is offered
-   * is the slot the insert will accept.
-   *
-   * The window is widened by a day on each side before converting to minutes,
-   * because an appointment that starts the previous evening can still be
-   * running at 00:30 — and because the range predicate has to be on the
-   * indexed `starts_at` column to use `appointments_doctor_starts_idx`.
-   */
+  // Excludes exactly the statuses the exclusion constraint does, so an offered slot is one the
+  // insert accepts. Widened a day each side to keep the predicate on the indexed `starts_at`.
   private async busyIntervals(
     clinicId: string,
     query: AvailabilityQuery,
@@ -303,7 +230,6 @@ export class AvailabilityService {
     });
   }
 
-  /** The clinic's own words for why a day is shut, when they exist. */
   private closedNote(
     reason: Availability['closedReason'],
     context: DayAvailabilityContext,
@@ -315,17 +241,12 @@ export class AvailabilityService {
     return reason === 'doctor_time_off' ? context.timeOffReason : null;
   }
 
-  /**
-   * Where "already past" falls on that date, or undefined for a future one.
-   *
-   * A slot in the past is offered but not bookable, so reception can see that
-   * the morning existed rather than staring at a day that looks closed.
-   */
+  // A past slot is shown but not bookable, so reception sees that the morning existed rather than a
+  // day that looks closed.
   private pastCutoff(isoDate: string, timeZone: string): number | undefined {
     const minutes = minutesFromLocalMidnight(new Date(), isoDate, timeZone);
 
     if (minutes <= 0) {
-      // The whole day is still ahead.
       return undefined;
     }
 
@@ -339,7 +260,6 @@ export class AvailabilityService {
   }
 }
 
-/** Row → wire shape. Shared with the closures service, which is where it lives. */
 export function toClinicClosure(row: typeof clinicClosures.$inferSelect): ClinicClosure {
   return {
     id: row.id,

@@ -1,14 +1,7 @@
 import { refreshCookieSecurity } from '@api/auth/refresh-cookie';
 
-/**
- * The refresh cookie's `Secure` and `SameSite`, over the environments the API
- * actually runs in.
- *
- * Both failures are silent. Too strict and the browser drops the cookie without
- * saying so — the reload lands on the login screen and the console is empty.
- * Too loose and a session token crosses a plain-http hop. Neither shows up in
- * an end-to-end run over http, which is why the matrix is a table here.
- */
+// Both failures are silent — too strict and the browser drops the cookie without saying so, too
+// loose and a session token crosses a plain-http hop.
 describe('refreshCookieSecurity', () => {
   const base = {
     mode: 'auto',

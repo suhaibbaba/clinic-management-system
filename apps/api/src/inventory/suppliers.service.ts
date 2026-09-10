@@ -20,14 +20,8 @@ type SupplierRow = typeof suppliers.$inferSelect;
 
 export const SUPPLIERS_ENTITY = 'suppliers';
 
-/**
- * Who the clinic buys from.
- *
- * The same shape as the labs directory, and for the same reasons: never hard
- * deleted, because purchases point here and a statement whose counterparty has
- * vanished is unreadable; `is_active` as the everyday switch that keeps a
- * supplier out of the pickers without touching their history.
- */
+// Never hard deleted — purchases point here, and a statement whose counterparty vanished is
+// unreadable. `is_active` is the everyday switch.
 @Injectable()
 export class SuppliersService implements OnModuleInit {
   constructor(
@@ -175,15 +169,8 @@ export class SuppliersService implements OnModuleInit {
     return this.scope.findOneOrFail<SupplierRow>(suppliers, clinicId, id);
   }
 
-  /**
-   * What has been spent with each supplier, and how many items name them.
-   *
-   * The total is over purchase movements only — a consumption has no supplier
-   * — and it multiplies quantity by unit price in SQL, in `numeric`, so it
-   * never passes through a float. A purchase recorded without a price
-   * contributes nothing rather than zero-ing the line: the clinic bought it,
-   * they just did not type what it cost.
-   */
+  // Purchases only, multiplied in SQL `numeric` so it never passes through a float. A purchase with
+  // no price contributes nothing rather than zeroing the line.
   private async summarise(
     clinicId: string,
     supplierIds: readonly string[],
@@ -260,12 +247,8 @@ export function toSupplier(row: SupplierRow): Supplier {
   };
 }
 
-/**
- * Postgres returns `numeric` unpadded, and `quantity * unit_price` comes back
- * with five decimals — three from the quantity, two from the price. Money is
- * two, and the extra digits are an artefact of the multiplication rather than
- * fractions of a piastre anyone owes.
- */
+// `quantity * unit_price` comes back with five decimals — three from the quantity, two from the
+// price — which is an artefact, not fractions anyone owes.
 export function toMoneyString(value: string): string {
   const negative = value.startsWith('-');
   const [whole = '0', fraction = ''] = (negative ? value.slice(1) : value).split('.');

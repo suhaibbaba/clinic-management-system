@@ -1,13 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { hash, verify } from '@node-rs/argon2';
 
-/**
- * argon2id password hashing.
- *
- * Parameters follow the OWASP baseline (19 MiB, 2 iterations, 1 lane). The
- * memory cost is per in-flight hash and logins are infrequent for a clinic, so
- * it stays comfortably within a small VPS.
- */
+// OWASP baseline (19 MiB, 2 iterations, 1 lane). Memory cost is per in-flight hash and logins are
+// infrequent, so it fits a small VPS.
 const ARGON2_OPTIONS = {
   memoryCost: 19_456,
   timeCost: 2,

@@ -44,11 +44,8 @@ const auditColumns = {
   updatedBy: uuid('updated_by'),
 };
 
-/**
- * Every table here is a medical record, so all of them carry `deleted_at`:
- * medical rows are never hard-deleted (CLAUDE.md). It is also what lets each
- * table go through `ClinicScopeService`, which filters live rows by clinic.
- */
+// Every table here is a medical record, so all carry `deleted_at` — and that is what lets each go
+// through `ClinicScopeService`.
 const softDeleteColumn = {
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 };
@@ -58,11 +55,6 @@ const liveRows = sql`deleted_at is null`;
 /** Money is `numeric(10, 2)`, read and written as a string — never a float. */
 const money = (name: string) => numeric(name, { precision: 10, scale: 2 });
 
-/**
- * Priced procedures per specialty. Owned by billing in the module order, but
- * introduced here because treatment plan items and performed procedures both
- * reference it.
- */
 export const procedureCatalog = pgTable(
   'procedure_catalog',
   {
@@ -77,16 +69,8 @@ export const procedureCatalog = pgTable(
     nameAr: text('name_ar').notNull(),
     nameEn: text('name_en').notNull(),
     defaultPrice: money('default_price').notNull(),
-    /**
-     * What the interactive chart shows once this procedure is done. Null for
-     * procedures that chart nothing. Classified here rather than inferred from
-     * the name, so a clinic can add a procedure without a client change
-     * (CLAUDE.md architecture decision 1).
-     */
-    /**
-     * What this procedure leaves on the chart: a `tooth_state` lookup code,
-     * so a clinic that adds "فينير" can chart it.
-     */
+    // A `tooth_state` lookup code for what this leaves on the chart, null for procedures that chart
+    // nothing — set per item rather than inferred from the name.
     chartOutcome: text('chart_outcome'),
     isActive: boolean('is_active').notNull().default(true),
     ...auditColumns,
@@ -99,14 +83,8 @@ export const procedureCatalog = pgTable(
   ],
 );
 
-/**
- * The record everything else hangs off.
- *
- * `file_number` is generated per clinic by the API and is what reception
- * actually searches by, alongside name and phone. Those three are indexed for
- * search: exact on the file number, trigram on name and phone so a partial
- * match stays fast without a full scan.
- */
+// Reception searches by file number, name and phone: exact on the first, trigram on the other two
+// so a partial match stays off a full scan.
 export const patients = pgTable(
   'patients',
   {
@@ -148,7 +126,6 @@ export const medicalHistories = pgTable(
     chronicConditions: jsonb('chronic_conditions').$type<string[]>().notNull().default([]),
     allergies: jsonb('allergies').$type<string[]>().notNull().default([]),
     currentMedications: jsonb('current_medications').$type<string[]>().notNull().default([]),
-    /** Null when not applicable or not asked. */
     isPregnant: boolean('is_pregnant'),
     notes: text('notes'),
     ...auditColumns,
@@ -213,10 +190,8 @@ export const treatmentPlans = pgTable(
   ],
 );
 
-/**
- * A planned procedure. `estimated_price` is a quote and stays put; the price
- * that bills is snapshotted onto the performed procedure at conversion.
- */
+// `estimated_price` is a quote and stays put; the price that bills is snapshotted onto the
+// performed procedure at conversion.
 export const treatmentPlanItems = pgTable(
   'treatment_plan_items',
   {
@@ -243,13 +218,8 @@ export const treatmentPlanItems = pgTable(
   ],
 );
 
-/**
- * Work actually carried out.
- *
- * `price` is snapshotted from the catalog so a later price change never
- * rewrites history, and the billing charge is derived from this row rather
- * than from the catalog.
- */
+// `price` is snapshotted from the catalog, and the charge derives from this row rather than from
+// the catalog.
 export const performedProcedures = pgTable(
   'performed_procedures',
   {
@@ -290,15 +260,8 @@ export const performedProcedures = pgTable(
   ],
 );
 
-/**
- * Where the work happened, generically per specialty
- * (CLAUDE.md architecture decision 5).
- *
- * `location` is validated by a Zod discriminated union keyed on `chart_type`,
- * so a dental `{ tooth, surfaces }` can never be stored against a skeleton
- * chart. The `tooth` column duplicates `location->>'tooth'` purely so tooth
- * history is an index lookup rather than a JSONB scan.
- */
+// `location` is a discriminated union keyed on `chart_type`, so a dental `{ tooth, surfaces }`
+// cannot be stored against a skeleton. `tooth` is duplicated to keep tooth history an index lookup.
 export const chartMarks = pgTable(
   'chart_marks',
   {
@@ -323,12 +286,8 @@ export const chartMarks = pgTable(
   ],
 );
 
-/**
- * Only the R2 object key and metadata — never the bytes (CLAUDE.md).
- *
- * The key never reaches a client: reads return a short-lived signed URL, and a
- * receptionist receives neither the key nor a URL (ROLES.md field rules).
- */
+// The key never reaches a client: reads return a short-lived signed URL, and a receptionist
+// receives neither.
 export const attachments = pgTable(
   'attachments',
   {
@@ -340,13 +299,11 @@ export const attachments = pgTable(
       .notNull()
       .references(() => patients.id),
     visitId: uuid('visit_id').references(() => visits.id),
-    /** An `attachment_type` lookup code. */
     type: text('type').notNull(),
     r2Key: text('r2_key').notNull(),
     filename: text('filename').notNull(),
     mime: text('mime').$type<AttachmentMime>().notNull(),
     sizeBytes: integer('size_bytes').notNull(),
-    /** FDI number when the image is of one tooth. */
     tooth: integer('tooth'),
     note: text('note'),
     ...auditColumns,

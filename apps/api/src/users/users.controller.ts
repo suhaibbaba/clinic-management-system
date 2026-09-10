@@ -40,12 +40,8 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 class PresignUserPhotoDto extends createZodDto(presignUserPhotoSchema) {}
 class ConfirmUserPhotoDto extends createZodDto(confirmUserPhotoSchema) {}
 
-/**
- * Users & roles — admin only, for every verb (ROLES.md core matrix).
- *
- * No handler accepts a `clinicId`: it comes from the caller's token and is
- * applied by `ClinicScopeService` inside the service.
- */
+// Admin only, every verb. No handler accepts a `clinicId` — it comes from the token, via
+// `ClinicScopeService`.
 @Controller('users')
 @Roles(USER_ROLE.ADMIN)
 export class UsersController {
@@ -80,11 +76,8 @@ export class UsersController {
     return this.usersService.update(actor, params.id, body);
   }
 
-  /**
-   * Not marked `@Audit(...)`: the trail records old and new values and a
-   * password has none that may be stored, so the service writes an explicit
-   * "password was reset" entry instead.
-   */
+  // Not `@Audit(...)`: a password has no value that may be stored, so the service writes an
+  // explicit "password was reset" entry instead.
   @Post(':id/reset-password')
   @HttpCode(HttpStatus.NO_CONTENT)
   async resetPassword(
@@ -95,10 +88,6 @@ export class UsersController {
     await this.usersService.resetPassword(actor, params.id, body.newPassword);
   }
 
-  /**
-   * Step 1 of a staff photo. Not audited: nothing has changed yet, and a
-   * signature that is never used leaves no trace worth keeping.
-   */
   @Post(':id/photo/presign')
   @HttpCode(HttpStatus.OK)
   presignPhoto(
@@ -127,7 +116,6 @@ export class UsersController {
     return this.usersService.removePhoto(actor, params.id);
   }
 
-  /** Soft delete. */
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(USERS_ENTITY, AUDIT_ACTION.DELETE)

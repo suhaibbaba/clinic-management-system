@@ -4,17 +4,13 @@ import { CHART_TYPE, PROCEDURE_OUTCOME, USER_ROLE } from '@clinic/shared';
 
 import { auth, type TestClinic, type TestContext } from '@test/helpers/test-app';
 
-/** Everything the patients suites need in place before they assert anything. */
 export interface PatientFixtures {
   readonly doctorId: string;
   readonly catalogId: string;
 }
 
-/**
- * Creates the doctor row and one catalog item for a test clinic, through the
- * API rather than by inserting rows, so the fixtures exercise the same
- * validation the suites are testing around.
- */
+// Through the API rather than by inserting rows, so the fixtures exercise the same validation the
+// suites test around.
 export async function seedClinicFixtures(
   context: TestContext,
   clinic: TestClinic,
@@ -62,7 +58,6 @@ export async function seedClinicFixtures(
   };
 }
 
-/** Creates a patient through the API and returns its id. */
 export async function createPatient(
   context: TestContext,
   token: string,
@@ -82,7 +77,6 @@ export async function createPatient(
   return (response.json() as { id: string }).id;
 }
 
-/** A performed procedure with one FDI tooth mark. */
 export function procedurePayload(input: {
   patientId: string;
   doctorId: string;

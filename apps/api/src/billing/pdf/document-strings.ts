@@ -1,20 +1,5 @@
-/**
- * Wording for the printed documents, in both languages.
- *
- * A receipt is rendered on the server, so its labels cannot come from the web
- * app's i18n files — but it follows the same rule those files exist for: no
- * language scattered through the services that decide what a document says,
- * and nothing on a printed page that only exists in one language.
- *
- * Which one a clinic gets is its own setting (`settings.documents.language`),
- * not the language of whoever pressed print: a receipt is a document of the
- * clinic, and a practice that files everything in Arabic should not end up
- * with an English one because a locum had the interface switched over.
- *
- * The three code-keyed maps that used to live here — payment methods, item
- * categories, units — are gone. Those are editable lists now, so a document
- * reads them from `lookup_options` and prints what this clinic calls them.
- */
+// Rendered on the server, so labels cannot come from the web app's i18n — and the language is the
+// clinic's setting, not the printer's.
 const AR = {
   receipt: {
     title: 'إيصال قبض',
@@ -49,14 +34,8 @@ const AR = {
     reversal: 'قيد عكسي',
     empty: 'لا توجد حركات في هذه الفترة',
   },
-  /**
-   * The sheet that goes to the lab with the work.
-   *
-   * It names the patient by **first name only**. The lab is an outside
-   * business, the sheet travels in a box with a plaster model, and a full name
-   * on it is a medical record leaving the clinic for no clinical benefit — the
-   * technician needs to know which box is which, not who the person is.
-   */
+  // First name only: the sheet travels to an outside business in a box, and a full name on it is a
+  // medical record leaving the clinic for no clinical benefit.
   labOrder: {
     title: 'طلب عمل مخبري',
     number: 'رقم الطلب',
@@ -107,13 +86,8 @@ const AR = {
   },
 };
 
-/**
- * The same shape in English, key for key.
- *
- * Typed as `typeof AR` so the compiler refuses a document string that exists
- * in one language and not the other — the printed equivalent of the i18n
- * guard that fails CI on a missing key.
- */
+// Typed as `typeof AR` so the compiler refuses a document string that exists in one language and
+// not the other.
 const EN: typeof AR = {
   receipt: {
     title: 'Payment receipt',
@@ -198,7 +172,6 @@ const EN: typeof AR = {
   },
 };
 
-/** Which language a clinic's documents are printed in. */
 export type DocumentLanguage = 'ar' | 'en';
 
 export type DocumentStrings = typeof AR;
@@ -206,6 +179,5 @@ export type DocumentStrings = typeof AR;
 export const documentStrings = (language: DocumentLanguage): DocumentStrings =>
   language === 'en' ? EN : AR;
 
-/** The page direction that goes with a document language. */
 export const documentDirection = (language: DocumentLanguage): 'rtl' | 'ltr' =>
   language === 'en' ? 'ltr' : 'rtl';

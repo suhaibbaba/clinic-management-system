@@ -12,11 +12,6 @@ import { IS_PUBLIC_KEY } from '@api/common/decorators/public.decorator';
 import type { AccessTokenPayload, RequestWithUser } from '@api/common/types/authenticated-user';
 import type { Env } from '@api/config/env.schema';
 
-/**
- * Global authentication guard (ROLES.md enforcement step 1). Verifies the
- * bearer access token and attaches the caller to the request. Endpoints marked
- * `@Public()` are skipped.
- */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(

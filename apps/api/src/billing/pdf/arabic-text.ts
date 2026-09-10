@@ -1,38 +1,11 @@
 import bidiFactory from 'bidi-js';
 
-/**
- * Turning logical Arabic into something a PDF can draw.
- *
- * Two problems have to be solved, and the order they are solved in matters:
- *
- *  1. **Joining.** An Arabic letter takes one of four shapes depending on its
- *     neighbours. The shape is decided against the letter's *logical*
- *     neighbours, so this runs first, on the original string. Each letter is
- *     replaced with its Unicode Presentation Form (U+FE70–U+FEFF).
- *  2. **Direction.** A line mixing Arabic with digits, prices and Latin codes
- *     has runs going both ways. The Unicode bidi algorithm decides the visual
- *     order of those runs; `bidi-js` implements it, and the caller draws each
- *     run separately at its own x.
- *
- * Presentation forms are used rather than letting the PDF library shape the
- * text, because pdf-lib maps glyphs by codepoint: the contextual glyphs a
- * shaper produces have no codepoint of their own, so they come out blank.
- * Presentation forms have codepoints, so they survive the trip.
- *
- * Each run is left in **logical** order. pdf-lib lays a run out through
- * fontkit, which reverses an Arabic run itself; reversing here as well would
- * undo it.
- */
+// Joining first (on logical neighbours), then bidi. Presentation forms because pdf-lib maps glyphs
+// by codepoint; runs stay logical, since fontkit reverses them.
 
 const bidi = bidiFactory();
 
-/**
- * Presentation forms per letter: [isolated, final, initial, medial].
- *
- * Letters with two entries are right-joining — they connect to the letter
- * before them but never to the one after, which is why they have no initial or
- * medial shape.
- */
+/** [isolated, final, initial, medial]. Two entries means right-joining: no initial or medial shape. */
 const FORMS = new Map<number, readonly number[]>([
   [0x0621, [0xfe80]],
   [0x0622, [0xfe81, 0xfe82]],
@@ -96,7 +69,6 @@ const isTransparent = (cp: number): boolean =>
 const joinsBackward = (cp: number): boolean => FORMS.has(cp);
 const joinsForward = (cp: number): boolean => (FORMS.get(cp)?.length ?? 0) === 4;
 
-/** Replaces Arabic letters with the presentation form their context calls for. */
 export function shapeArabic(input: string): string {
   const cps = [...input].map((char) => char.codePointAt(0) ?? 0);
   const out: number[] = [];
@@ -141,10 +113,8 @@ export function shapeArabic(input: string): string {
   return String.fromCodePoint(...out);
 }
 
-/** Which way a line reads when nothing in it says otherwise. */
 export type TextDirection = 'rtl' | 'ltr';
 
-/** One stretch of a line running in a single direction. */
 export interface TextRun {
   /** Shaped, still in logical order — the PDF library reverses RTL runs. */
   readonly text: string;
@@ -152,13 +122,8 @@ export interface TextRun {
   readonly level: number;
 }
 
-/**
- * Splits a logical line into runs and puts them in visual order, left to right.
- *
- * The reordering is the Unicode bidi algorithm's rule L2, applied at run
- * granularity: from the deepest level down to the shallowest odd one, reverse
- * every contiguous stretch of runs at least that deep.
- */
+// Bidi rule L2 at run granularity: from the deepest level down to the shallowest odd one, reverse
+// every contiguous stretch at least that deep.
 export function visualRuns(text: string, base: TextDirection = 'rtl'): TextRun[] {
   if (text === '') {
     return [];

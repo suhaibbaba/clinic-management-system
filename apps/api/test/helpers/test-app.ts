@@ -14,10 +14,7 @@ import { ensureSystemLookups } from '@api/database/system-lookups';
 
 export const TEST_PASSWORD = 'TestPassword123!';
 
-/**
- * argon2 is deliberately slow, so the digest for the shared test password is
- * computed once per run and reused for every seeded account.
- */
+/** argon2 is deliberately slow, so the digest for the shared test password is computed once per run. */
 let passwordHashPromise: Promise<string> | undefined;
 
 function testPasswordHash(): Promise<string> {
@@ -30,7 +27,6 @@ function testPasswordHash(): Promise<string> {
   return passwordHashPromise;
 }
 
-/** One isolated tenant: a clinic, a specialty and one account per role. */
 export interface TestClinic {
   readonly id: string;
   /** Handle for the public booking routes, which carry no other clinic hint. */
@@ -43,18 +39,10 @@ export interface TestClinic {
 export interface TestContext {
   readonly app: NestFastifyApplication;
   readonly db: Database;
-  /** Signs in and returns a bearer access token. */
   login(phone: string): Promise<string>;
-  /** Creates a fresh, fully isolated clinic. */
   createClinic(): Promise<TestClinic>;
-  /**
-   * Forgets the rate-limit counters.
-   *
-   * The public booking routes allow five bookings a minute per address, which
-   * is right for the internet and far too few for a suite that books a dozen
-   * times in a second — every test would otherwise inherit the previous one's
-   * budget. The suite that asserts throttling simply does not call this.
-   */
+  // Public booking allows five a minute per address, far too few for a suite that books a dozen a
+  // second. The throttling suite simply does not call this.
   resetThrottle(): void;
   close(): Promise<void>;
 }
@@ -62,9 +50,8 @@ export interface TestContext {
 export async function createTestContext(): Promise<TestContext> {
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
 
-  // The production adapter, not a plain one: proxy trust changes what
-  // `request.protocol` and `request.ip` report, and a harness that omitted it
-  // would be unable to see anything that depends on either.
+  // The production adapter, not a plain one: proxy trust changes what `request.protocol` and
+  // `request.ip` report.
   const app = moduleRef.createNestApplication<NestFastifyApplication>(createFastifyAdapter(), {
     logger: false,
   });
@@ -180,7 +167,6 @@ export async function createTestContext(): Promise<TestContext> {
   return context;
 }
 
-/** Bearer header helper. */
 export const auth = (token: string): Record<string, string> => ({
   authorization: `Bearer ${token}`,
 });

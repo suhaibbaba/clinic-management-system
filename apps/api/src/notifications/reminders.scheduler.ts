@@ -20,13 +20,8 @@ import { NotificationsService } from '@api/notifications/notifications.service';
 const HOUR = 3_600_000;
 const MINUTE = 60_000;
 
-/**
- * How wide a window each reminder looks at.
- *
- * The job runs every five minutes, so a ten-minute window guarantees every
- * appointment is seen at least once even if a run is slow or skipped — and
- * seeing one twice costs nothing, because the log is the dedupe.
- */
+// The job runs every five minutes, so a ten-minute window sees every appointment even if a run is
+// skipped — and seeing one twice costs nothing, the log being the dedupe.
 const WINDOW = 10 * MINUTE;
 
 interface Reminder {
@@ -40,24 +35,8 @@ const REMINDERS: readonly Reminder[] = [
   { template: NOTIFICATION_TEMPLATE.REMINDER_2H, leadMs: 2 * HOUR, setting: 'remind2h' },
 ];
 
-/**
- * The two scheduled jobs this module owns.
- *
- * **Reminders** are deduped against `notifications_log`, not against a marker
- * column, because the log already holds the fact and a second copy could
- * disagree with it. A `failed` row counts: retrying every five minutes against
- * a dead gateway would fill the log and then, once it recovered, deliver a pile
- * of stale reminders at once.
- *
- * **Hold expiry** is the other half of public booking. A booking is held as a
- * real `requested` appointment, so it blocks the slot through the same
- * exclusion constraint as everything else — which is correct while the patient
- * is reading their SMS and wrong forever after. Releasing it is a cancellation
- * with a reason, not a delete, so the slot's history stays readable.
- *
- * Both jobs are per-clinic and both swallow their own failures: one clinic's
- * misconfiguration must not stop the others being reminded.
- */
+// A held booking is a real `requested` appointment, so the same constraint blocks the slot; expiry
+// cancels with a reason rather than deleting. Both jobs are per-clinic and swallow their failures.
 @Injectable()
 export class RemindersScheduler {
   private readonly logger = new Logger(RemindersScheduler.name);
@@ -144,14 +123,8 @@ export class RemindersScheduler {
     return sent;
   }
 
-  /**
-   * Gives back the slots of bookings nobody confirmed.
-   *
-   * Cancelled rather than deleted: the slot is freed by the constraint's own
-   * predicate the moment the status changes, and the row stays so reception can
-   * see that someone tried to book and did not finish. The reason is written in
-   * Arabic because it is read on the appointment, in the clinic's UI.
-   */
+  // Cancelled rather than deleted, so reception can see that someone tried and did not finish. The
+  // reason is Arabic because it is read on the appointment.
   async releaseExpiredHolds(): Promise<number> {
     const rows = await this.db
       .select({
@@ -200,7 +173,6 @@ export class RemindersScheduler {
   }
 }
 
-/** `HH:MM` in the clinic's zone, for a message body. */
 function timeIn(timeZone: string, at: Date): string {
   const minutes = minutesFromLocalMidnight(at, localDate(at, timeZone), timeZone);
   const hours = Math.floor(minutes / 60);

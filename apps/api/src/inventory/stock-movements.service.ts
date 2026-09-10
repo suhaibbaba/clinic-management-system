@@ -47,38 +47,16 @@ type MovementRow = typeof stockMovements.$inferSelect;
 
 export const STOCK_MOVEMENTS_ENTITY = 'stock_movements';
 
-/**
- * Who may write which kind of movement (ROLES.md inventory matrix).
- *
- * A doctor consumes and does nothing else: they use an ampoule at the chair
- * and say so, which is the only way the count ever matches the cupboard. They
- * do not buy stock and they do not correct the count after a stock take —
- * both are the technician's job, and both touch what the clinic has spent.
- *
- * Admin passes every check by the guard's own rule, so it is absent here.
- */
+// A doctor consumes and nothing else; buying and correcting the count are the technician's, and
+// both touch what the clinic has spent. Admin passes by the guard's own rule.
 const MOVEMENT_ROLES: Record<MovementType, readonly UserRole[]> = {
   [MOVEMENT_TYPE.PURCHASE]: [USER_ROLE.TECHNICIAN],
   [MOVEMENT_TYPE.CONSUME]: [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
   [MOVEMENT_TYPE.ADJUST]: [USER_ROLE.TECHNICIAN],
 };
 
-/**
- * The stock ledger.
- *
- * Append-only, like every other ledger in this system: no update, no delete,
- * and a mistake corrected by writing the opposite entry with `reverses_id`
- * pointing back at the original. That is what lets an item's quantity be a
- * plain `sum(quantity)` with no special cases, and what keeps the reason a
- * number moved readable months later.
- *
- * The three kinds of movement are three methods rather than one with a `type`
- * field, because they are three different acts with three different rules: a
- * purchase carries a price and a batch, a consumption may name a patient, and
- * an adjustment must say why. One endpoint taking a discriminated union would
- * have pushed all of that into a validator and left the audit trail reading
- * "movement created" nine hundred times.
- */
+// Append-only: a mistake is the opposite entry, so quantity stays a plain `sum()`. Three methods
+// rather than one `type` field — three acts, three rules, a readable audit trail.
 @Injectable()
 export class StockMovementsService implements OnModuleInit {
   constructor(
@@ -101,18 +79,8 @@ export class StockMovementsService implements OnModuleInit {
     });
   }
 
-  /* ------------------------------- Reads -------------------------------- */
-
-  /**
-   * The item card: every movement, newest first, each with what the item stood
-   * at immediately after it.
-   *
-   * The running total is computed in SQL as a window over the *whole* item
-   * history rather than over the page, because a running total that restarts
-   * on page two is worse than none at all. It is ordered ascending inside the
-   * window and reversed for display, which is the only way "after this
-   * movement" means anything.
-   */
+  // The running total is a window over the whole item history, not the page: one that restarts on
+  // page two is worse than none.
   async list(
     actor: AuthenticatedUser,
     query: ListMovementsQuery,
@@ -190,8 +158,6 @@ export class StockMovementsService implements OnModuleInit {
     );
   }
 
-  /* ------------------------------- Writes ------------------------------- */
-
   /** Buying stock. Positive, and priced — that is what a supplier statement totals. */
   async purchase(actor: AuthenticatedUser, input: PurchaseStockInput): Promise<StockMovement> {
     this.assertMayWrite(actor, MOVEMENT_TYPE.PURCHASE);
@@ -213,14 +179,8 @@ export class StockMovementsService implements OnModuleInit {
     });
   }
 
-  /**
-   * Using stock. Stored negative — the sign is the type's, not the form's.
-   *
-   * A procedure implies its patient: passing one without the other would leave
-   * a consumption attached to a treatment but missing from the file that
-   * treatment belongs to, so the patient is read off the procedure rather than
-   * trusted from the request.
-   */
+  // Stored negative — the sign is the type's, not the form's. The patient is read off the procedure
+  // rather than trusted from the request.
   async consume(actor: AuthenticatedUser, input: ConsumeStockInput): Promise<StockMovement> {
     this.assertMayWrite(actor, MOVEMENT_TYPE.CONSUME);
     await this.items.requireRow(actor.clinicId, input.itemId);
@@ -260,11 +220,8 @@ export class StockMovementsService implements OnModuleInit {
     });
   }
 
-  /**
-   * Correcting the count. Signed either way, and the reason is required —
-   * the schema demands it, and this is the movement where it is the only
-   * explanation that will ever exist.
-   */
+  // Signed either way, and the reason is required: this is the movement where it is the only
+  // explanation that will ever exist.
   async adjust(actor: AuthenticatedUser, input: AdjustStockInput): Promise<StockMovement> {
     this.assertMayWrite(actor, MOVEMENT_TYPE.ADJUST);
     await this.items.requireRow(actor.clinicId, input.itemId);
@@ -283,18 +240,8 @@ export class StockMovementsService implements OnModuleInit {
     });
   }
 
-  /**
-   * Cancels a movement by writing its opposite. Admin only.
-   *
-   * The original is left exactly as it was apart from a `reversed_at`
-   * back-pointer, so both rows stay on the item card and the quantity moves
-   * because the second row is negative — no special case in the sum, and no
-   * history quietly rewritten.
-   *
-   * Locked with `for update`, so two admins reversing the same row race into
-   * the second one finding `reversedAt` already set rather than both writing a
-   * correction and taking the count twice as far.
-   */
+  // The original keeps everything but a `reversed_at` back-pointer, so the sum needs no special
+  // case. `for update` makes two admins racing find it already set rather than double-correcting.
   async reverse(
     actor: AuthenticatedUser,
     id: string,
@@ -353,15 +300,8 @@ export class StockMovementsService implements OnModuleInit {
     });
   }
 
-  /* ------------------------------ Internals ----------------------------- */
-
-  /**
-   * The one insert.
-   *
-   * Every movement goes through here, which is what makes "the sign matches
-   * the type" a fact rather than a convention — a future caller cannot write a
-   * positive consumption without going past this check.
-   */
+  // Every movement goes through here, which is what makes "the sign matches the type" a fact rather
+  // than a convention.
   private async write(
     actor: AuthenticatedUser,
     values: {
@@ -415,13 +355,8 @@ export class StockMovementsService implements OnModuleInit {
     return toMovement(row);
   }
 
-  /**
-   * The role check for the *kind* of movement.
-   *
-   * The route guard already refuses anyone outside the module; this is the
-   * finer split inside it, which a guard cannot express because all three acts
-   * live on sibling routes of one controller.
-   */
+  // The finer split inside the module, which a guard cannot express: all three acts live on sibling
+  // routes of one controller.
   private assertMayWrite(actor: AuthenticatedUser, type: MovementType): void {
     if (actor.role === USER_ROLE.ADMIN || MOVEMENT_ROLES[type].includes(actor.role)) {
       return;

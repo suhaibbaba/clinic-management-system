@@ -52,16 +52,8 @@ interface ConflictBody {
   appointments: { id: string; patientName: string }[];
 }
 
-/**
- * Closures, time off, and what happens when they land on somebody's
- * appointment.
- *
- * The availability assertions matter as much as the 409 does: the whole point
- * of one `AvailabilityService` is that the calendar, the booking form and the
- * public page cannot disagree about whether a minute is free, and a closure
- * that the settings screen records but availability ignores is the failure
- * that would put a patient in front of a locked door.
- */
+// The availability assertions matter as much as the 409: a closure the settings screen records but
+// availability ignores puts a patient in front of a locked door.
 describe('Closures and time off (e2e)', () => {
   let context: TestContext;
   let clinic: TestClinic;
@@ -85,9 +77,8 @@ describe('Closures and time off (e2e)', () => {
       .update(clinics)
       .set({
         workingHours: [
-          // Monday with a split shift: 09:00–13:00 and 16:00–20:00. Everything
-          // below is asserted against a day that has a hole in the middle of
-          // it, because that is the case a single start/end pair cannot hold.
+          // A split shift, 09:00–13:00 and 16:00–20:00: the case a single start/end pair cannot
+          // hold.
           {
             weekday: 1,
             ranges: [
@@ -121,7 +112,6 @@ describe('Closures and time off (e2e)', () => {
     await context.close();
   });
 
-  /** Wipes everything a test wrote, so each one starts from an open week. */
   afterEach(async () => {
     await context.db.delete(notificationsLog).where(eq(notificationsLog.clinicId, clinic.id));
     await context.db.delete(appointments).where(eq(appointments.clinicId, clinic.id));
@@ -283,7 +273,6 @@ describe('Closures and time off (e2e)', () => {
       expect(body.appointments).toHaveLength(1);
       expect(body.appointments[0]?.patientName).toBe('مريض الإغلاقات');
 
-      // And nothing was written.
       const rows = await context.db
         .select({ id: clinicClosures.id })
         .from(clinicClosures)
@@ -384,9 +373,8 @@ describe('Closures and time off (e2e)', () => {
     });
 
     it('accepts an absence that merely shares the day with an appointment', async () => {
-      // 09:00–09:30 is booked; the absence starts at 16:00. Overlap is an
-      // overlap of intervals, not of calendar days — getting that wrong would
-      // make every absence on a busy day need forcing.
+      // Overlap is of intervals, not of calendar days — getting that wrong would make every absence
+      // on a busy day need forcing.
       expect((await book('09:00')).statusCode).toBe(201);
 
       const response = await createTimeOff({
@@ -399,9 +387,8 @@ describe('Closures and time off (e2e)', () => {
     });
 
     it('counts an appointment that only ends inside the window', async () => {
-      // Booked 12:30–13:00, absence from 12:45: the appointment starts before
-      // the window and is still in the way, which a start-time-only comparison
-      // would miss.
+      // The appointment starts before the window and is still in the way, which a start-time-only
+      // comparison would miss.
       expect((await book('12:30')).statusCode).toBe(201);
 
       const response = await createTimeOff({

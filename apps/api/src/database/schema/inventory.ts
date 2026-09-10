@@ -28,22 +28,12 @@ const softDeleteColumn = { deletedAt: timestamp('deleted_at', { withTimezone: tr
 /** Money is `numeric(10, 2)`, read and written as a string — never a float. */
 const money = (name: string) => numeric(name, { precision: 10, scale: 2 });
 
-/**
- * A stock quantity: `numeric(12, 3)`, also a string in TypeScript.
- *
- * Three decimals because half the units are continuous — 2.5 ml of anaesthetic
- * is an ordinary movement — and a float would drift over a few hundred of
- * them. See `quantity.ts` in the shared package for the arithmetic.
- */
+// Three decimals because half the units are continuous — 2.5 ml of anaesthetic is an ordinary
+// movement, and a float drifts over a few hundred of them.
 const quantity = (name: string) => numeric(name, { precision: 12, scale: 3 });
 
-/**
- * Who the clinic buys from.
- *
- * Soft-deleted for the same reason a lab is: purchases point at them, and a
- * supplier statement whose lines lose their name is unreadable. `is_active`
- * is the everyday switch that keeps a supplier out of the pickers.
- */
+// Soft-deleted because purchases point at them: a statement whose lines lose their supplier's name
+// is unreadable. `is_active` keeps one out of the pickers.
 export const suppliers = pgTable(
   'suppliers',
   {
@@ -62,21 +52,8 @@ export const suppliers = pgTable(
   (table) => [index('suppliers_clinic_idx').on(table.clinicId, table.name)],
 );
 
-/**
- * A thing the clinic keeps in a cupboard.
- *
- * There is deliberately **no quantity column here** (CLAUDE.md: never a
- * stored, editable quantity). What is on the shelf is `sum(quantity)` over
- * this item's movements, and the only way to change it is to write one — which
- * is what makes the number explainable at any point in its history.
- *
- * `min_quantity` is the opposite kind of number: a target somebody chooses, not
- * a fact anyone observes, so it is a column and it is editable.
- *
- * `unit` never changes after creation (the update schema omits it): every
- * movement already recorded is a number *in that unit*, and reinterpreting
- * forty boxes as forty millilitres is not an edit, it is a fabrication.
- */
+// No quantity column: what is on the shelf is `sum(quantity)` over the movements. `unit` never
+// changes, or every movement already recorded is reinterpreted.
 export const inventoryItems = pgTable(
   'inventory_items',
   {
@@ -102,30 +79,8 @@ export const inventoryItems = pgTable(
   ],
 );
 
-/**
- * Every reason a quantity ever changed.
- *
- * Append-only, like `charges`, `payments` and `lab_payments` before it
- * (CLAUDE.md architecture decision 2). There is no update and no delete: a
- * mistake is corrected by writing the negative of the entry with `reverses_id`
- * pointing back at it, so both rows stay on the item card and the sum comes
- * out right with no special case anywhere.
- *
- * The sign carries the meaning — purchase positive, consumption negative,
- * adjustment either way — and the service refuses a movement whose sign
- * disagrees with its type. `reason` is required on an adjustment and optional
- * elsewhere, which is also enforced in the service rather than by a check
- * constraint: the message a person reads matters more than the guarantee, and
- * both paths write through one method.
- *
- * `patient_id` and `performed_procedure_id` are what put a consumption on a
- * patient's timeline. They are nullable because most stock is used on nobody
- * in particular — a bottle of disinfectant is not billed to a mouth.
- *
- * There is no `updated_at`/`updated_by` pair: a row that is never updated has
- * no use for them. `reversed_at` is the one field that changes, and it is
- * bookkeeping — a back-pointer to the entry that undid this one.
- */
+// Append-only; the sign carries the meaning and the service refuses one that disagrees with its
+// type. `patient_id` is nullable because most stock is used on nobody in particular.
 export const stockMovements = pgTable(
   'stock_movements',
   {
@@ -148,19 +103,14 @@ export const stockMovements = pgTable(
     patientId: uuid('patient_id').references(() => patients.id),
     performedProcedureId: uuid('performed_procedure_id').references(() => performedProcedures.id),
     reason: text('reason'),
-    /** The entry this one cancels. Set only on a reversal. */
     reversesId: uuid('reverses_id'),
-    /** Set on the original when a reversal is written against it. */
     reversedAt: timestamp('reversed_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     createdBy: uuid('created_by'),
   },
   (table) => [
-    /** The item card, newest first — and the sum behind every quantity. */
     index('stock_movements_item_idx').on(table.clinicId, table.itemId, table.createdAt),
-    /** The supplier statement. */
     index('stock_movements_supplier_idx').on(table.clinicId, table.supplierId, table.createdAt),
-    /** The patient timeline. */
     index('stock_movements_patient_idx').on(table.clinicId, table.patientId),
     index('stock_movements_procedure_idx').on(table.performedProcedureId),
     /** The batch view: purchases with an expiry, oldest first. */

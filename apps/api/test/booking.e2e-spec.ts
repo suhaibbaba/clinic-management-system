@@ -33,14 +33,8 @@ const TIME_ZONE = 'Asia/Damascus';
 const FIRST_SLOT_MINUTE = 9 * 60;
 const SLOTS_PER_DAY = 16;
 
-/**
- * The next Monday **in the clinic's own zone**.
- *
- * Stepping a UTC date forward is wrong for three hours out of every day: at
- * 22:00 UTC on a Sunday it is already Monday in Damascus, so "one day ahead"
- * lands on Tuesday and the fixture schedule does not apply — which turned this
- * whole suite red every evening. Walking local dates is right at every hour.
- */
+// Stepping a UTC date forward is wrong for three hours a day: at 22:00 UTC Sunday it is already
+// Monday in Damascus, so the fixture schedule missed and the suite went red every evening.
 function nextMonday(): string {
   let date = localDate(new Date(), TIME_ZONE);
 
@@ -53,7 +47,6 @@ function nextMonday(): string {
 
 const localDateOf = (startsAt: string): string => localDate(new Date(startsAt), TIME_ZONE);
 
-/** The appointment a signed token stands for, so a test can look it up. */
 const appointmentIdOf = (token: string): string =>
   Buffer.from(token.split('.')[1] ?? '', 'base64url').toString('utf8');
 
@@ -66,13 +59,8 @@ describe('Public booking (e2e)', () => {
   let doctorToken: string;
   let mondays: string[];
 
-  /**
-   * A slot nobody has taken yet.
-   *
-   * Every booking needs its own: the overlap constraint is real, and a suite
-   * that reused 09:00 would be testing conflict handling by accident. Four
-   * Mondays of half-hours is more than the suite gets through.
-   */
+  // Every booking needs its own slot: the overlap constraint is real, and reusing 09:00 would test
+  // conflict handling by accident.
   let cursor = 0;
   const freeSlot = (): string => {
     const index = cursor;
@@ -159,7 +147,6 @@ describe('Public booking (e2e)', () => {
     });
   }
 
-  /** The six digits that went out by SMS, read back from the log. */
   async function issuedCode(appointmentId: string): Promise<string> {
     const [row] = await context.db
       .select({ vars: notificationsLog.vars })
@@ -189,7 +176,6 @@ describe('Public booking (e2e)', () => {
       payload: { token, code },
     });
 
-  /** A booked, unconfirmed appointment, and the token that manages it. */
   async function held(payload: Record<string, unknown> = {}): Promise<string> {
     const response = await book(payload);
 
@@ -198,7 +184,6 @@ describe('Public booking (e2e)', () => {
     return (response.json() as { token: string }).token;
   }
 
-  /** A booking carried all the way through its OTP. */
   async function confirmed(payload: Record<string, unknown> = {}): Promise<string> {
     const token = await held(payload);
     const response = await verify(token, await issuedCode(appointmentIdOf(token)));

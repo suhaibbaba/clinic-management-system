@@ -11,14 +11,8 @@ import {
   type BatchInflow,
 } from '@clinic/shared';
 
-/**
- * The two pure pieces the whole module rests on: exact decimal arithmetic, and
- * the batch assumption the screens draw.
- *
- * Both are unit-tested rather than exercised through the API because both are
- * arithmetic — the interesting cases are the ones a seeded database would
- * never happen to contain.
- */
+// Unit-tested rather than driven through the API because both are arithmetic: the interesting cases
+// are ones a seeded database would never contain.
 describe('quantity arithmetic', () => {
   it('never goes through a float', () => {
     // 0.1 + 0.2 is the canonical float failure; in thousandths it is 300.

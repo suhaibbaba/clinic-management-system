@@ -38,11 +38,9 @@ interface CatalogSeed {
   readonly nameAr: string;
   readonly nameEn: string;
   readonly defaultPrice: string;
-  /** What the chart shows once it is done; null for procedures that chart nothing. */
   readonly chartOutcome: ProcedureOutcome | null;
 }
 
-/** A small dental catalog — prices in the clinic's currency, as strings. */
 const CATALOG: readonly CatalogSeed[] = [
   {
     code: 'EXAM',
@@ -257,19 +255,8 @@ const PATIENTS: readonly PatientSeed[] = [
     currentMedications: [],
     isPregnant: false,
   },
-  /*
-   * The long one, on purpose.
-   *
-   * Every card, table cell, drawer heading and breadcrumb in this app is a box
-   * with a name in it, and the way they break is a name longer than the box —
-   * which in Arabic is common: four given names and a compound family name is
-   * an ordinary way to be registered. Without one in the seed, truncation is
-   * only ever tested against names that happen to fit, and the first real
-   * patient of this shape is the one who finds the overflow.
-   *
-   * The address is long for the same reason, and both are read by the visual
-   * QA sweep (`pnpm qa:screens`), which screenshots this file deliberately.
-   */
+  // Long on purpose: four given names and a compound family name is an ordinary registration, and
+  // truncation is only tested against names that do not fit.
   {
     fileNumber: '00011',
     fullName: 'عبد الرحمن بن محمد بن عبد الله الشيخ البرغوثي المقدسي',
@@ -293,14 +280,6 @@ function toothMark(tooth: number, surfaces: ToothLocation['surfaces']): ToothLoc
   return { tooth, surfaces };
 }
 
-/**
- * Patient-module seed data: a dental catalog, eleven patients with histories, and
- * enough visits, procedures, FDI chart marks and one treatment plan that every
- * endpoint in the module returns something.
- *
- * Idempotent, like the rest of the seed: it returns early once the first
- * patient file number exists in this clinic.
- */
 export async function seedPatients(db: Db, ctx: PatientsSeedContext): Promise<number> {
   const catalog = await upsertCatalog(db, ctx);
 
@@ -473,8 +452,6 @@ export async function seedPatients(db: Db, ctx: PatientsSeedContext): Promise<nu
         performedAt: daysAgo(5),
         ...audit,
       },
-      // The rest give patient 00001 a chart with every state on it, which is
-      // what makes the tooth chart worth opening on a fresh database.
       {
         clinicId: ctx.clinicId,
         patientId: patientId('00001'),
@@ -560,19 +537,8 @@ export async function seedPatients(db: Db, ctx: PatientsSeedContext): Promise<nu
       status: performedProcedures.status,
     });
 
-  /*
-   * Which teeth each procedure was performed on.
-   *
-   * Matched by patient, catalog code and status rather than by position in the
-   * insert: `returning()` does not promise to hand rows back in the order they
-   * were sent, so indexing into it silently attaches marks to the wrong
-   * procedures — which is exactly what it did before this was keyed by identity.
-   *
-   * FDI numbering: 16/17/18 upper-right molars, 21 an upper-left incisor,
-   * 24–26 upper-left, 36 lower-left first molar, 46/47 lower-right molars.
-   * Together they give patient 00001 one tooth in every state the chart can
-   * show.
-   */
+  // Matched by identity, not by position: `returning()` does not promise the insert's order, and
+  // indexing into it attached marks to the wrong procedures.
   const markPlan: {
     file: string;
     code: string;
@@ -665,10 +631,8 @@ export async function seedPatients(db: Db, ctx: PatientsSeedContext): Promise<nu
     ]);
   }
 
-  // Attachments are deliberately not seeded: a row without its object in the
-  // bucket would hand out a signed URL that 404s. Upload one through
-  // POST /patients/:patientId/attachments/presign-upload instead — the dev
-  // stack's MinIO accepts it as-is.
+  // Attachments are deliberately not seeded: a row without its object in the bucket hands out a
+  // signed URL that 404s.
   return patientRows.length;
 }
 

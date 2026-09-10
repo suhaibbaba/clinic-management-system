@@ -59,20 +59,8 @@ class AdjustDto extends createZodDto(adjustStockSchema) {}
 class ReverseDto extends createZodDto(reverseMovementSchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-/**
- * The store cupboard (ROLES.md inventory matrix).
- *
- * Every route here is closed to a **receptionist** — they appear in no row of
- * that matrix, so they are never listed and every call is a 403.
- *
- * A **doctor** reads everything and writes exactly one thing: a consumption.
- * That split is the module's whole authorization story, and it is why the
- * three movements are three routes rather than one endpoint with a `type` in
- * the body — a guard can only see the route, so the route has to be the act.
- *
- * The finer role rules inside `consume` (which patient, which procedure) and
- * the sign rules live in the service, where the data needed to check them is.
- */
+// A receptionist is in no row of the matrix, so every call is a 403. A doctor reads all and writes
+// only a consumption — hence three routes, since a guard sees the route, not a body.
 @Controller('inventory')
 export class InventoryController {
   constructor(
@@ -82,14 +70,7 @@ export class InventoryController {
     private readonly documents: InventoryDocumentsService,
   ) {}
 
-  /* -------------------------------- Alerts ------------------------------ */
-
-  /**
-   * Before `:id`, or Nest reads "alerts" as an item id.
-   *
-   * Read by every role that can see the module at all: a doctor who knows the
-   * anaesthetic is nearly out is a doctor who mentions it.
-   */
+  /** Before `:id`, or Nest reads "alerts" as an item id. */
   @Get('alerts')
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   alerts(@CurrentUser() actor: AuthenticatedUser): Promise<InventoryAlerts> {
@@ -111,12 +92,6 @@ export class InventoryController {
     return this.documents.shoppingList(actor);
   }
 
-  /* ------------------------------ Movements ----------------------------- */
-
-  /**
-   * The ledger, filterable. Also the item card: `?itemId=…` with the running
-   * quantity each movement left behind.
-   */
   @Get('movements')
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   listMovements(
@@ -137,7 +112,6 @@ export class InventoryController {
     return this.movements.purchase(actor, body);
   }
 
-  /** The one write a doctor makes in this module. */
   @Post('movements/consume')
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.CREATE)
@@ -155,10 +129,6 @@ export class InventoryController {
     return this.movements.adjust(actor, body);
   }
 
-  /**
-   * Admin only: it is the one operation that makes stock — and money already
-   * spent — appear to come back.
-   */
   @Patch('movements/:id/reverse')
   @Roles(USER_ROLE.ADMIN)
   @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.UPDATE)
@@ -169,8 +139,6 @@ export class InventoryController {
   ): Promise<StockMovement> {
     return this.movements.reverse(actor, params.id, body);
   }
-
-  /* -------------------------------- Items ------------------------------- */
 
   @Get('items')
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
@@ -200,13 +168,6 @@ export class InventoryController {
     return this.items.batches(actor, params.id);
   }
 
-  /**
-   * The item card: this item's whole history with a running quantity.
-   *
-   * A separate route from `/movements?itemId=` so the screen that wants one
-   * item's history does not have to know the filter syntax, and so the id is
-   * validated as a path parameter.
-   */
   @Get('items/:id/movements')
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   itemMovements(

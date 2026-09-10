@@ -34,14 +34,8 @@ export interface StoredObject {
   readonly mime: string | undefined;
 }
 
-/**
- * S3-compatible object storage — Cloudflare R2 in production, MinIO in the dev
- * stack (CLAUDE.md files & images).
- *
- * Bytes never touch the API: clients PUT straight to a presigned URL and read
- * through a short-lived signed GET. Nothing is ever public, and the bucket is
- * addressed only through keys this service builds.
- */
+// Bytes never touch the API: clients PUT to a presigned URL and read through a short-lived signed
+// GET. Nothing is ever public.
 @Injectable()
 export class StorageService implements OnApplicationShutdown {
   private readonly logger = new Logger(StorageService.name);
@@ -65,13 +59,8 @@ export class StorageService implements OnApplicationShutdown {
     this.client.destroy();
   }
 
-  /**
-   * `clinic/{clinicId}/patients/{patientId}/{category}/{uuid}-{filename}`.
-   *
-   * The clinic prefix keeps one tenant's objects inseparable from its id, so a
-   * key from another clinic cannot be confirmed against this one. The random
-   * component makes keys unguessable and collision-free.
-   */
+  // The clinic prefix makes a key inseparable from its tenant, so one from another clinic cannot be
+  // confirmed against this one; the uuid makes it unguessable.
   buildPatientObjectKey(input: {
     clinicId: string;
     patientId: string;
@@ -82,25 +71,18 @@ export class StorageService implements OnApplicationShutdown {
     return `clinic/${input.clinicId}/patients/${input.patientId}/${input.category}/${randomUUID()}-${safeName}`;
   }
 
-  /** True when the key belongs to this clinic and patient. */
   isKeyOwnedBy(key: string, clinicId: string, patientId: string): boolean {
     return key.startsWith(`clinic/${clinicId}/patients/${patientId}/`);
   }
 
-  /**
-   * `clinic/{clinicId}/branding/{uuid}-{filename}` — the clinic's own images.
-   *
-   * Beside the patients prefix rather than inside it, so nothing that walks a
-   * patient's files can reach the letterhead and nothing that checks a
-   * patient's ownership accidentally passes a branding key.
-   */
+  // Beside the patients prefix rather than inside it, so a patient-ownership check can never
+  // accidentally pass a branding key.
   buildClinicObjectKey(input: { clinicId: string; category: string; filename: string }): string {
     const safeName = sanitiseFilename(input.filename);
 
     return `clinic/${input.clinicId}/${input.category}/${randomUUID()}-${safeName}`;
   }
 
-  /** True when the key is this clinic's own, outside any patient's folder. */
   isClinicKeyOwnedBy(key: string, clinicId: string, category: string): boolean {
     return key.startsWith(`clinic/${clinicId}/${category}/`);
   }
@@ -135,10 +117,7 @@ export class StorageService implements OnApplicationShutdown {
     return { url, expiresAt: new Date(Date.now() + ttl * 1000) };
   }
 
-  /**
-   * Reads back what was actually stored. The confirm step uses this rather than
-   * trusting the size and content type a client claims.
-   */
+  /** The confirm step uses this rather than trusting the size and content type a client claims. */
   async statObject(key: string): Promise<StoredObject | null> {
     try {
       const result = await this.client.send(
@@ -155,14 +134,8 @@ export class StorageService implements OnApplicationShutdown {
     }
   }
 
-  /**
-   * The object's bytes, for the one caller that needs them in-process: the PDF
-   * writer, which has to embed the clinic's logo rather than link to it.
-   *
-   * Everything else hands out a signed URL and lets the client fetch it. This
-   * is deliberately not a general-purpose read — a medical image must not
-   * start travelling through the API when a signed GET already exists.
-   */
+  // For the one caller that needs bytes in-process, the PDF writer. Deliberately not general-
+  // purpose: a medical image must not travel through the API when a signed GET exists.
   async getObject(key: string): Promise<FetchedObject | null> {
     try {
       const result = await this.client.send(
@@ -180,11 +153,8 @@ export class StorageService implements OnApplicationShutdown {
     }
   }
 
-  /**
-   * Removes an orphaned object — one uploaded but never confirmed, or confirmed
-   * with contents the API rejected. Never called for a live attachment: those
-   * are soft-deleted, so the object outlives the row.
-   */
+  // For an orphan — uploaded but never confirmed, or rejected on confirm. Never a live attachment:
+  // those are soft-deleted, so the object outlives the row.
   async deleteObject(key: string): Promise<void> {
     try {
       await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));

@@ -14,13 +14,6 @@ import {
 import { NotificationsService } from '@api/notifications/notifications.service';
 import { RemindersScheduler } from '@api/notifications/reminders.scheduler';
 
-/**
- * The one place a provider is chosen.
- *
- * `log` is the default, so the module works with no credentials in every
- * environment including the sandbox — which is what lets the booking OTP flow
- * and the reminder scheduler be exercised end to end without a gateway.
- */
 @Module({
   imports: [DatabaseModule, AppConfigModule],
   providers: [

@@ -2,18 +2,8 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-/**
- * The version is `<major>.<minor>` from the root manifest plus the commit
- * count, and it is worked out in two places: `scripts/app-version.mjs`, which
- * the deploy prefers, and a few lines of `awk` in the deploy workflow for a
- * machine with no node on it. Two implementations of one rule is a chance for
- * them to disagree, so this runs both and compares.
- *
- * The script is invoked rather than imported, because invoking it is what the
- * deploy does — `APP_VERSION="$(node scripts/app-version.mjs)"` — and a test
- * that imported the functions would not notice the day it started printing
- * something extra alongside the number.
- */
+// Two implementations of one rule — the script and the deploy's `awk` — so this runs both and
+// compares. Invoked, not imported, because invoking is what the deploy does.
 const ROOT = join(__dirname, '..', '..', '..');
 
 const run = (command: string, args: readonly string[]): string =>

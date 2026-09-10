@@ -18,30 +18,8 @@ import { DATABASE, type Database } from '@api/database/database.module';
 import { appointments, clinics, patients } from '@api/database/schema';
 import { NotificationsService } from '@api/notifications/notifications.service';
 
-/**
- * Shutting the door on appointments that are already in the diary.
- *
- * A closure or a period of time off is written by somebody looking at a
- * calendar they are not currently reading — "we're shut for Eid" is typed in
- * settings, and the three people booked that Tuesday are not on that screen.
- * Writing it silently would leave three patients turning up to a locked door,
- * and refusing it outright would make a closure impossible to record at all.
- *
- * So: the first attempt **fails** with 409 and the list of who is affected, and
- * the caller comes back having decided. Two decisions, not one —
- *
- *  - `force` writes the closure anyway;
- *  - `cancelAppointments` also cancels those appointments and tells each
- *    patient, through the clinic's own `booking_cancelled` template.
- *
- * They are separate because a practice with three patients it knows by name
- * usually rings round and moves them by hand, and a cancellation that went out
- * automatically cannot be taken back.
- *
- * Every cancelled appointment's reason points at the row that cancelled it
- * (`closure:<id>` / `time_off:<id>`), so three weeks later the calendar can
- * still say which closure swept it away rather than "the clinic was closed".
- */
+// The first attempt fails with 409 and who is affected; the caller returns having decided. Two
+// flags, because a practice rings three patients by hand and a cancellation cannot be undone.
 @Injectable()
 export class ScheduleConflictsService {
   constructor(
@@ -50,17 +28,8 @@ export class ScheduleConflictsService {
     private readonly notifications: NotificationsService,
   ) {}
 
-  /**
-   * The appointments a window would strand.
-   *
-   * Every status that still occupies a slot, not only `confirmed`: a patient
-   * who has already arrived and one whose booking is still `requested` are
-   * both in the way, and the exclusion constraint counts them both. Cancelled
-   * and missed ones released their slot long ago.
-   *
-   * `doctorId` narrows it to one doctor for a period of time off; a clinic
-   * closure passes nothing and gets everybody.
-   */
+  // Every status that still occupies a slot, not only `confirmed` — the same set the exclusion
+  // constraint counts.
   async findConflicts(
     clinicId: string,
     window: { from: Date; to: Date },
@@ -84,14 +53,8 @@ export class ScheduleConflictsService {
           and(
             doctorId ? eq(appointments.doctorId, doctorId) : undefined,
             notInArray(appointments.status, [...APPOINTMENT_RELEASED_STATUSES]),
-            // Half-open `[from, to)` against the appointment's own block, whose
-            // end is `starts_at + duration` and is never a stored column.
-            //
-            // Written as one `sql` fragment rather than through `gt`: the left
-            // side is an expression, so drizzle has no column to infer the
-            // bound parameter's type from — hence the explicit ISO string and
-            // the cast, without which the driver is handed a bare `Date` it
-            // has no type for and the whole query fails at bind time.
+            // One `sql` fragment, not `gt`: the left side is an expression, so drizzle cannot infer
+            // the parameter type and the driver fails at bind time.
             lt(appointments.startsAt, window.to),
             sql`${appointments.startsAt} + make_interval(mins => ${appointments.durationMinutes}) > ${window.from.toISOString()}::timestamptz`,
           ),
@@ -109,13 +72,7 @@ export class ScheduleConflictsService {
     }));
   }
 
-  /**
-   * Refuses the write unless the caller has already seen the conflicts.
-   *
-   * The 409 body carries the list itself rather than a count, because the
-   * dialog that follows names the patients — "there are 3 appointments in this
-   * period" with no way to see which three is a question nobody can answer.
-   */
+  /** The 409 body carries the list itself, not a count: the dialog that follows names the patients. */
   async assertClear(
     clinicId: string,
     window: { from: Date; to: Date },
@@ -136,19 +93,8 @@ export class ScheduleConflictsService {
     return conflicts;
   }
 
-  /**
-   * Cancels the listed appointments and tells each patient.
-   *
-   * The cancellation goes through a plain update rather than the appointments
-   * service's state machine on purpose: this is not somebody moving one
-   * appointment along its lifecycle, it is a closure ending all of them at
-   * once, and `arrived → cancelled` is a legal transition anyway. What matters
-   * is that the reason names the row responsible.
-   *
-   * A notification that fails does not fail the closure — `NotificationsService`
-   * swallows gateway errors by design, and a clinic that cannot reach its SMS
-   * provider still needs its holiday recorded.
-   */
+  // A plain update rather than the state machine: one closure ends all of them at once, and the
+  // reason names the row responsible. A failed notification does not fail the closure.
   async cancelAll(
     actor: AuthenticatedUser,
     conflicts: readonly ConflictingAppointment[],
@@ -200,7 +146,6 @@ export class ScheduleConflictsService {
   }
 }
 
-/** `14:30` in the clinic's own zone, Latin digits. */
 function timeIn(timeZone: string, instant: Date): string {
   return new Intl.DateTimeFormat('en-GB', {
     timeZone,

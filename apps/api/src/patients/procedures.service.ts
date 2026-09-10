@@ -54,9 +54,6 @@ export class ProceduresService implements OnModuleInit {
     actor: AuthenticatedUser,
     query: ListPerformedProceduresQuery,
   ): Promise<Paginated<PerformedProcedure>> {
-    // ROLES.md gives a technician read access to lab-linked procedures only.
-    // Nothing is lab-linked until the labs module exists, so the filter is
-    // structurally present and currently matches no rows.
     if (actor.role === USER_ROLE.TECHNICIAN) {
       return toPaginated<PerformedProcedure>([], 0, query);
     }
@@ -114,11 +111,8 @@ export class ProceduresService implements OnModuleInit {
     return toProcedure(row, marks.get(row.id) ?? []);
   }
 
-  /**
-   * `options.planItemId` is set only by the treatment-plan conversion, which is
-   * why it is not part of the request body: a client may not staple a procedure
-   * onto an arbitrary plan item.
-   */
+  // `options.planItemId` is set only by the plan conversion, never from the body: a client may not
+  // staple a procedure onto an arbitrary plan item.
   async create(
     actor: AuthenticatedUser,
     input: CreatePerformedProcedureInput,
@@ -133,9 +127,8 @@ export class ProceduresService implements OnModuleInit {
 
     await this.assertMarksMatchSpecialty(actor.clinicId, catalogItem.specialtyId, input.chartMarks);
 
-    // One transaction: the procedure, its chart marks and the charge it raises
-    // commit together or not at all. A procedure without its charge would be
-    // work nobody is ever billed for, and there is no way to detect it later.
+    // One transaction: the procedure, its chart marks and its charge commit together, because a
+    // procedure without its charge is undetectable later.
     return this.db.transaction(async (tx) => {
       const [row] = await tx
         .insert(performedProcedures)
@@ -237,9 +230,8 @@ export class ProceduresService implements OnModuleInit {
         ? await this.replaceMarks(tx, actor, row.id, input.chartMarks)
         : ((await this.marksFor(actor.clinicId, [row.id])).get(row.id) ?? []);
 
-      // What the patient owes is derived from price, discount and status, so a
-      // change to any of them re-bills. Never an update: the charge in force is
-      // reversed and the new figure appended (CLAUDE.md decision 2).
+      // What is owed derives from price, discount and status, so a change to any re-bills — never
+      // an update: the charge in force is reversed and the new figure appended.
       const rebills =
         row.price !== existing.price ||
         row.discount !== existing.discount ||
@@ -364,11 +356,8 @@ export class ProceduresService implements OnModuleInit {
     return grouped;
   }
 
-  /**
-   * A mark's chart type must match the specialty the procedure belongs to, so a
-   * tooth can never be recorded against a skeleton chart and vice versa. The
-   * rule is data-driven: the specialty row decides, not a branch on "dental".
-   */
+  // The specialty row decides which chart type a mark must match, so a tooth cannot be recorded
+  // against a skeleton — data-driven, not a branch on "dental".
   private async assertMarksMatchSpecialty(
     clinicId: string,
     specialtyId: string,

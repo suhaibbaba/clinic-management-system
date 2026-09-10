@@ -35,11 +35,8 @@ class UpdateDoctorScheduleDto extends createZodDto(updateDoctorScheduleSchema) {
 class ListDoctorsQueryDto extends createZodDto(listDoctorsQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-/**
- * Doctors & schedules (ROLES.md core matrix): every role reads, only admin
- * writes, and a doctor may update their own schedule — that last check is
- * ownership, so it lives in the service.
- */
+// Every role reads, only admin writes, and a doctor may update their own schedule — that check is
+// ownership, so it lives in the service.
 @Controller('doctors')
 export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) {}
@@ -75,7 +72,6 @@ export class DoctorsController {
     return this.doctorsService.update(actor, params.id, body);
   }
 
-  /** Admin, or the doctor who owns this row. */
   @Patch(':id/schedule')
   @Roles(USER_ROLE.DOCTOR)
   @Audit(DOCTORS_ENTITY, AUDIT_ACTION.UPDATE)

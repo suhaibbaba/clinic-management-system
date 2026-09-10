@@ -38,14 +38,8 @@ class ListSuppliersQueryDto extends createZodDto(listSuppliersQuerySchema) {}
 class StatementQueryDto extends createZodDto(statementRangeQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-/**
- * Who the clinic buys from (ROLES.md inventory matrix, "Items & suppliers").
- *
- * Admin CRUD, technician create-read-update — buying is their job and so is
- * keeping the list current — doctor read, receptionist nothing. Deleting is
- * admin-only for the same reason it is on a lab: a supplier carries purchase
- * history, and taking them out of the directory is a financial decision.
- */
+// Admin CRUD, technician CRU, doctor read, receptionist nothing. Deleting is admin-only: a supplier
+// carries purchase history.
 @Controller('suppliers')
 export class SuppliersController {
   constructor(
@@ -71,7 +65,6 @@ export class SuppliersController {
     return this.suppliers.findOne(actor, params.id);
   }
 
-  /** Everything bought from them in a period, with what it cost. */
   @Get(':id/statement')
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   statement(

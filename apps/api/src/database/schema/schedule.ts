@@ -13,20 +13,8 @@ const softDeleteColumn = {
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 };
 
-/**
- * Days the clinic is shut, whatever the weekly opening hours say.
- *
- * Whole days only — `date`, not `timestamptz`. A closure is a fact about the
- * calendar rather than about a moment, so it needs no timezone: the clinic is
- * shut on the 20th, and which instant that starts at is the availability
- * service's business, resolved against the clinic's own zone at read time.
- * Storing instants here would have made the same row mean different days for a
- * server in UTC and a clinic in Ramallah.
- *
- * This replaces the `settings.holidays` array of dates, which could hold no
- * reason, could not be audited, and had no id for a cancelled appointment to
- * point back at.
- */
+// Whole days, so `date` rather than `timestamptz`: storing instants would make one row mean
+// different days for a server in UTC and a clinic in Ramallah.
 export const clinicClosures = pgTable(
   'clinic_closures',
   {
@@ -52,19 +40,8 @@ export const clinicClosures = pgTable(
   ],
 );
 
-/**
- * One doctor's absence — a whole day, several days, or part of an afternoon.
- *
- * `timestamptz` rather than dates, because half of these are partial: 14:00 to
- * 18:00 at a conference is the case the clinic's old "off day" toggle could
- * not express at all, and it is the common one. A whole day is the same shape
- * with local midnight at each end, so nothing downstream has to branch on
- * which kind a row is.
- *
- * Half-open `[starts_at, ends_at)`, matching an appointment's own block, so
- * "does this absence collide with that appointment?" is the same comparison
- * the calendar already makes everywhere else.
- */
+// `timestamptz` because half of these are partial (14:00 at a conference); a whole day is local
+// midnight at each end. Half-open, matching an appointment's own block.
 export const doctorTimeOff = pgTable(
   'doctor_time_off',
   {

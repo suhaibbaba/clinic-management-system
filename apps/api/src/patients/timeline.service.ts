@@ -23,17 +23,8 @@ interface TimelineRow extends Record<string, unknown> {
   readonly detail: Record<string, unknown>;
 }
 
-/**
- * `GET /patients/:id/timeline` — one merged, reverse-chronological stream over
- * everything attached to the patient (CLAUDE.md: "…all appear in one timeline").
- *
- * The merge is a `UNION ALL` in SQL rather than five queries stitched together
- * in Node, because the page has to be cut across the merged stream: taking 20
- * rows from each table and sorting them afterwards would not paginate.
- *
- * Which entry types a caller receives is decided by role, never by the query
- * (ROLES.md patients matrix).
- */
+// A `UNION ALL` in SQL rather than five queries merged in Node: the page has to be cut across the
+// merged stream, which taking 20 from each table cannot do.
 @Injectable()
 export class TimelineService {
   constructor(
@@ -83,11 +74,6 @@ export class TimelineService {
     return toPaginated([...rows].map(toTimelineEntry), totals[0]?.value ?? 0, query);
   }
 
-  /**
-   * One arm of the union per entry type. `null` marks a type whose table is
-   * introduced by a later module — the arm appears once that module lands, and
-   * until then the type simply contributes no rows.
-   */
   private source(type: TimelineEntryType, clinicId: string, patientId: string): SQL | null {
     switch (type) {
       case TIMELINE_ENTRY_TYPE.VISIT:
@@ -171,13 +157,8 @@ export class TimelineService {
           where tp.clinic_id = ${clinicId} and tp.patient_id = ${patientId} and tp.deleted_at is null`;
 
       case TIMELINE_ENTRY_TYPE.LAB_ORDER:
-        /*
-         * Dated by when the work was **sent**, falling back to when it was
-         * drafted: a crown enters the patient's story on the day it left the
-         * building, which is also the day it started costing money.
-         *
-         * Money is cast to text so it never round-trips through a JSON number.
-         */
+        // Dated by when the work was sent, falling back to drafted — the day it left the building
+        // is the day it started costing money. Money is cast to text, never a JSON number.
         return sql`
           select lo.id,
                  ${TIMELINE_ENTRY_TYPE.LAB_ORDER}::text as type,
@@ -200,19 +181,8 @@ export class TimelineService {
             and lo.deleted_at is null`;
 
       case TIMELINE_ENTRY_TYPE.SUPPLY:
-        /*
-         * Stock used on this patient.
-         *
-         * Only consumptions that name a patient reach here — most stock is
-         * used on nobody in particular, and a bottle of disinfectant is not an
-         * event in anybody's file. The quantity is shown as a magnitude with
-         * its unit: the ledger stores it negative, but "2 ampoules" is what
-         * happened, not "-2", and `trim_scale` drops the ledger's three
-         * decimals so it reads as 48 rather than 48.000.
-         *
-         * No `--` comments inside these fragments: they are concatenated into
-         * one `union all`, and a line comment would swallow whatever followed.
-         */
+        // Only consumptions naming a patient, as a magnitude with its unit — the ledger stores it
+        // negative. No `--` comments here: the fragments are concatenated into one `union all`.
         return sql`
           select sm.id,
                  ${TIMELINE_ENTRY_TYPE.SUPPLY}::text as type,
@@ -231,10 +201,8 @@ export class TimelineService {
           where sm.clinic_id = ${clinicId} and sm.patient_id = ${patientId}
             and sm.type = 'consume'`;
 
-      // TODO(appointments) / TODO(billing): the tables exist now, but the
-      // timeline does not read them yet — so a receptionist, whose timeline is
-      // exactly these types, still receives an empty page rather than anything
-      // they may not see.
+      // TODO(appointments) / TODO(billing): the tables exist but the timeline does not read them
+      // yet, so a receptionist still receives an empty page.
       case TIMELINE_ENTRY_TYPE.APPOINTMENT:
       case TIMELINE_ENTRY_TYPE.PAYMENT:
       case TIMELINE_ENTRY_TYPE.CHARGE:
@@ -244,11 +212,6 @@ export class TimelineService {
   }
 }
 
-/**
- * ROLES.md patients matrix: admin and doctor read the full timeline, a
- * receptionist only the financial and appointment entries, and a technician
- * none of it.
- */
 export function allowedTypes(role: UserRole): TimelineEntryType[] {
   switch (role) {
     case USER_ROLE.ADMIN:

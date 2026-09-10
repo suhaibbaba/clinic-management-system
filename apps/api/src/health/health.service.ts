@@ -15,16 +15,12 @@ export class HealthService {
     private readonly config: ConfigService<Env, true>,
   ) {}
 
-  /** What the deploy resolved from the commit count, or the dev default. */
   version(): string {
     return this.config.get('APP_VERSION', { infer: true });
   }
 
-  /**
-   * Liveness + database connectivity. The response is validated with the same
-   * shared Zod schema the web app parses it with, so a drift between the two
-   * fails here rather than in the browser.
-   */
+  // Validated with the same shared schema the web app parses it with, so a drift fails here rather
+  // than in the browser.
   async check(): Promise<HealthResponse> {
     const database = (await this.pingDatabase()) ? 'up' : 'down';
 

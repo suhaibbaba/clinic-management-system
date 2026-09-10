@@ -17,19 +17,12 @@ export interface RecordAuditEntry {
   readonly newValue: unknown;
 }
 
-/**
- * Writes and reads the immutable audit trail. There is deliberately no update
- * or delete method here, and no endpoint that could reach one.
- */
 @Injectable()
 export class AuditService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  /**
-   * Appends one entry. Failures propagate: a mutation whose audit row cannot be
-   * written must not be reported as successful (CLAUDE.md "never skip the audit
-   * interceptor on a financial/medical mutation").
-   */
+  // Failures propagate: a mutation whose audit row cannot be written must not be reported as
+  // successful.
   async record(entry: RecordAuditEntry): Promise<void> {
     await this.db.insert(auditLog).values({
       clinicId: entry.clinicId,
@@ -42,7 +35,6 @@ export class AuditService {
     });
   }
 
-  /** Admin-only listing, always scoped to the caller's clinic. */
   async list(
     actor: AuthenticatedUser,
     query: ListAuditLogQuery,

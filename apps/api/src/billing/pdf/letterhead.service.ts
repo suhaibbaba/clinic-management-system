@@ -10,36 +10,16 @@ import { clinics } from '@api/database/schema';
 import { StorageService, type FetchedObject } from '@api/storage/storage.service';
 
 export interface Letterhead {
-  /**
-   * The clinic's name in **its own** document language, already resolved.
-   *
-   * Resolved here rather than at each `pdf.text` call so the four document
-   * services cannot disagree about which spelling heads a sheet — and so the
-   * fallback (a clinic that has filled in only one of the two) is written
-   * once, in `personName`.
-   */
   readonly name: string;
   readonly contact: string;
   readonly currency: string;
   /** The clinic's own document language — never the reader's. */
   readonly language: DocumentLanguage;
-  /** The uploaded logo's bytes, or null for the built-in mark. */
   readonly logo: FetchedObject | null;
 }
 
-/**
- * The top of every printed sheet: the clinic's mark, its name, and how to
- * reach it.
- *
- * One service rather than a copy in each document service, because a clinic
- * that uploads a logo expects it on the receipt, the prescription, the lab
- * order sheet and the shopping list, and three near-identical letterheads is
- * exactly how one of them ends up still drawing the old placeholder.
- *
- * The logo is fetched per document rather than cached: it is two megabytes at
- * most, printing is rare next to everything else the API does, and a cache
- * would hand out yesterday's mark on the day a clinic rebrands.
- */
+// One service, so a clinic's logo cannot appear on three sheets and not the fourth. Fetched per
+// document — a cache would hand out yesterday's mark on the day a clinic rebrands.
 @Injectable()
 export class LetterheadService {
   constructor(
@@ -78,15 +58,8 @@ export class LetterheadService {
     };
   }
 
-  /**
-   * The mark, then the clinic's own name: the sheet is the clinic's, and the
-   * brand sits above it rather than in place of it. Both are centred so a long
-   * Arabic name and a short one produce the same letterhead.
-   *
-   * The clinic's own logo when it has one, and the product's mark when it does
-   * not — or when the upload is something pdf-lib cannot embed, which is why
-   * the fallback is decided by whether the image actually drew.
-   */
+  // The clinic's logo when there is one, the product's mark when there is not — decided by whether
+  // the image actually drew, since pdf-lib cannot embed everything.
   async draw(pdf: RtlPdf, clinic: Letterhead): Promise<void> {
     const drawn = clinic.logo
       ? await pdf.image(clinic.logo.bytes, clinic.logo.mime)

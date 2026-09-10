@@ -61,12 +61,8 @@ export class AuthService {
     return { ...tokens, user: await this.toProfile(user) };
   }
 
-  /**
-   * Rotating refresh: the presented token is revoked and replaced on every call.
-   *
-   * Presenting an already-revoked token means it was captured and replayed, so
-   * the whole family is revoked and the session ends.
-   */
+  // Rotating refresh: the presented token is revoked and replaced on every call, and presenting a
+  // revoked one means a replay, so the whole family goes.
   async refresh(presentedToken: string): Promise<IssuedSession> {
     const stored = await this.tokenService.findByToken(presentedToken);
 
@@ -154,10 +150,6 @@ export class AuthService {
     };
   }
 
-  /**
-   * Login accepts the phone number or the email in one field. Both are unique
-   * across the system, so no clinic hint is needed.
-   */
   private async findByIdentifier(identifier: string): Promise<UserRow | undefined> {
     const [user] = await this.db
       .select()
@@ -189,13 +181,6 @@ export class AuthService {
     await this.passwordService.verify(this.decoyHash, password);
   }
 
-  /**
-   * The caller's own row as a profile, with their photo signed.
-   *
-   * A method rather than the free function it was, because signing needs the
-   * storage client: the stored key never leaves the API, so what login and
-   * `/me` hand back is a short-lived signed GET, minted per response.
-   */
   private async toProfile(user: UserRow): Promise<AuthenticatedUserProfile> {
     return {
       id: user.id,

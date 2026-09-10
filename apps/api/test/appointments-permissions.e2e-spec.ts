@@ -19,14 +19,8 @@ import { auth, createTestContext, type TestClinic, type TestContext } from '@tes
 
 const TIME_ZONE = 'Asia/Damascus';
 
-/**
- * The next Monday **in the clinic's own zone**.
- *
- * Stepping a UTC date forward is wrong for three hours out of every day: at
- * 22:00 UTC on a Sunday it is already Monday in Damascus, so "one day ahead"
- * lands on Tuesday and the fixture schedule does not apply — which turned this
- * whole suite red every evening. Walking local dates is right at every hour.
- */
+// Stepping a UTC date forward is wrong for three hours a day: at 22:00 UTC Sunday it is already
+// Monday in Damascus, so the fixture schedule missed and the suite went red every evening.
 function nextMonday(): string {
   let date = localDate(new Date(), TIME_ZONE);
 
@@ -37,17 +31,8 @@ function nextMonday(): string {
   return date;
 }
 
-/**
- * The ROLES.md appointments matrix, one request per cell that matters.
- *
- * | Resource     | admin | doctor    | technician | receptionist |
- * | Calendar     | R     | R (own)   | R          | R            |
- * | Appointments | CRUD  | CRU (own) | —          | CRUD         |
- * | Waiting list | CRUD  | R         | —          | CRUD         |
- *
- * "Own" is an object-level rule, so it is asserted against a second doctor's
- * calendar rather than against a role.
- */
+// One request per cell of the ROLES.md appointments matrix. "Own" is object-level, so it is
+// asserted against a second doctor's calendar rather than against a role.
 describe('Appointments permission boundaries (e2e)', () => {
   let context: TestContext;
   let clinic: TestClinic;
@@ -90,10 +75,8 @@ describe('Appointments permission boundaries (e2e)', () => {
 
     monday = nextMonday();
 
-    // A second doctor, purely so there is a calendar the logged-in doctor does
-    // not own. Its user account is inserted rather than created through the
-    // API because a doctor profile may only link a user whose role is doctor,
-    // and the test clinic ships exactly one of those.
+    // Its user account is inserted directly because a doctor profile may only link a user whose
+    // role is doctor, and the test clinic ships exactly one.
     const [secondDoctorUser] = await context.db
       .insert(users)
       .values({
@@ -391,7 +374,6 @@ describe('Appointments permission boundaries (e2e)', () => {
       });
       const id = (created.json() as { id: string }).id;
 
-      // 14:00 was just taken by the promotion above.
       const response = await context.app.inject({
         method: 'POST',
         url: `/waiting-list/${id}/promote`,
@@ -411,7 +393,6 @@ describe('Appointments permission boundaries (e2e)', () => {
         headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
       });
 
-      // They are still waiting, which is the correct outcome.
       expect((still.json() as { resolvedAt: string | null }).resolvedAt).toBeNull();
     });
   });

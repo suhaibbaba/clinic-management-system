@@ -33,13 +33,8 @@ class UpdateProcedureDto extends createZodDto(updatePerformedProcedureSchema) {}
 class ListProceduresQueryDto extends createZodDto(listPerformedProceduresQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-/**
- * Performed procedures & chart marks (ROLES.md patients matrix): admin CRUD,
- * doctor CRU, technician read of lab-linked rows only, receptionist nothing.
- *
- * Recording a procedure is what makes a patient owe money, so every mutation
- * is audited and hands the billing seam an event.
- */
+// Recording a procedure is what makes a patient owe money, so every mutation is audited and hands
+// the billing seam an event.
 @Controller('performed-procedures')
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
 export class ProceduresController {

@@ -36,12 +36,6 @@ interface PaymentSeed {
   readonly note: string;
 }
 
-/**
- * A believable set of payments against the seeded work.
- *
- * Files 00005 and 00008 are the overdue cases the billing screens need: still
- * owing, and last paid (or never paid) well outside the default 30-day window.
- */
 const PAYMENTS: readonly PaymentSeed[] = [
   {
     fileNumber: '00001',
@@ -80,13 +74,6 @@ const PAYMENTS: readonly PaymentSeed[] = [
   },
 ];
 
-/**
- * Bills the seeded procedures and records some payments against them.
- *
- * The charges are written the way `ChargesService` writes them — one per
- * billable procedure, amount and discount snapshotted — so a seeded database
- * shows the same balances the API would compute for real work.
- */
 export async function seedBilling(db: Db, ctx: BillingSeedContext): Promise<number> {
   const [alreadyBilled] = await db
     .select({ id: charges.id })

@@ -6,20 +6,13 @@ import postgres, { type Sql } from 'postgres';
 import type { Env } from '@api/config/env.schema';
 import * as schema from '@api/database/schema';
 
-/** Injection token for the Drizzle instance. */
 export const DATABASE = Symbol('DATABASE');
-/** Injection token for the underlying postgres.js client (migrations, shutdown). */
 export const POSTGRES_CLIENT = Symbol('POSTGRES_CLIENT');
 
 export type Database = PostgresJsDatabase<typeof schema>;
 
-/**
- * Anything a query can run on: the pool, or an open transaction.
- *
- * Services that must be composable into a caller's transaction take this
- * rather than injecting the database themselves — a charge and the procedure
- * that caused it have to commit or roll back together.
- */
+// Services that must compose into a caller's transaction take this rather than injecting the
+// database: a charge and its procedure commit together.
 export type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
 export type DatabaseExecutor = Database | Transaction;
 
