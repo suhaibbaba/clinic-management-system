@@ -146,6 +146,37 @@ describe('The settings group', () => {
 });
 
 /**
+ * One row is current, never two.
+ *
+ * `/clinic/lists` sits under `/clinic`, and the obvious "does the path start
+ * with this" test calls both of them current — which draws two solid pills and
+ * announces two current pages. The longest match wins.
+ */
+describe('The current row', () => {
+  it('marks the deepest section a URL belongs to, and only that one', async () => {
+    await renderAs(USER_ROLE.ADMIN, '/clinic/lists');
+
+    const current = within(nav())
+      .getAllByRole('link')
+      .filter((link) => link.getAttribute('aria-current') === 'page')
+      .map((link) => link.textContent?.trim());
+
+    expect(current).toEqual([ar.nav.lists]);
+  });
+
+  it('keeps the section current on a page below it', async () => {
+    await renderAs(USER_ROLE.ADMIN, '/clinic');
+
+    const current = within(nav())
+      .getAllByRole('link')
+      .filter((link) => link.getAttribute('aria-current') === 'page')
+      .map((link) => link.textContent?.trim());
+
+    expect(current).toEqual([ar.nav.clinic]);
+  });
+});
+
+/**
  * Hiding a link is not hiding a page — the address still resolves, and typing
  * it is the obvious thing to try. Every section a role cannot see sends them
  * to the one page they always can.

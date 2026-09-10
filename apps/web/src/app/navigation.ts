@@ -161,3 +161,19 @@ export function visibleSettingsItems(role: UserRole | undefined): readonly NavIt
  * section a URL belongs to, regardless of which half of the sidebar it is in.
  */
 export const ALL_NAV_ITEMS: readonly NavItem[] = [...NAV_ITEMS, ...NAV_SETTINGS.items];
+
+/**
+ * The one row a URL belongs to: the longest destination that prefixes it.
+ *
+ * `/clinic/lists` sits under `/clinic`, so a plain "does the path start with
+ * this" test matches both — which lit two rows at once the moment the active
+ * row became a solid pill, and named the wrong section in the breadcrumb.
+ */
+export function activeNavItem(pathname: string): NavItem | undefined {
+  return ALL_NAV_ITEMS.filter(
+    (item) => pathname === item.to || pathname.startsWith(`${item.to}/`),
+  ).reduce<NavItem | undefined>(
+    (best, item) => (best === undefined || item.to.length > best.to.length ? item : best),
+    undefined,
+  );
+}

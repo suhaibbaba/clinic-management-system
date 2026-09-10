@@ -117,8 +117,15 @@ export function EntityCard({
           {(meta ?? []).map((entry) => (
             <div key={entry.label} className="min-w-0">
               <dt className="text-meta text-ink-subtle">{entry.label}</dt>
+              {/*
+                `break-words` rather than `truncate`: a meta value is short by
+                construction — a date, an amount, a count, a phone number — and
+                the one that is a phone number carries its 44px hit area on an
+                `::after`, which an `overflow-hidden` ancestor clips to the
+                height of the line.
+              */}
               <dd
-                className="truncate text-value font-medium text-ink tabular-nums"
+                className="min-w-0 break-words text-value font-medium text-ink tabular-nums"
                 {...(entry.ltr === true && { dir: 'ltr' })}
               >
                 {entry.value}

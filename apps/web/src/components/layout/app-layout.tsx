@@ -1,6 +1,6 @@
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { Logo } from '@web/components/brand/logo';
 import { useClinic } from '@web/features/clinic/queries';
@@ -9,6 +9,7 @@ import { NavDrawer } from '@web/components/layout/nav-drawer';
 import { UserMenu } from '@web/components/layout/user-menu';
 import { Button, Icon } from '@web/components/ui';
 import {
+  activeNavItem,
   NAV_SETTINGS,
   visibleNavGroups,
   visibleSettingsItems,
@@ -224,53 +225,57 @@ function NavRow({
   readonly badges: Readonly<Record<'pendingBookings', number>>;
 }): JSX.Element {
   const { t } = useTranslation();
+  const { pathname } = useLocation();
   const count = item.badge ? badges[item.badge] : 0;
+  /*
+   * A plain `Link` with the state worked out here rather than `NavLink`.
+   *
+   * `NavLink` calls every ancestor path active, so `/clinic/lists` lit both
+   * the lists row and the clinic row above it — two answers to "where am I"
+   * once the active row is a solid pill, and two `aria-current="page"` rows
+   * for a screen reader. `activeNavItem` picks the longest match, and doing
+   * it here keeps what is drawn and what is announced the same rule.
+   */
+  const isActive = activeNavItem(pathname)?.to === item.to;
 
   return (
     <li>
-      <NavLink
+      <Link
         to={item.to}
-        className={({ isActive }) =>
-          cn(
-            // 44px on touch, the drawn 36 on a laptop: a nav row is the
-            // most-tapped target in the app and the least-tapped one on a
-            // desk, and a rail of 44px rows pushes settings off the screen.
-            'flex min-h-11 cursor-pointer items-center gap-2.5 rounded-control px-2.5 lg:min-h-9',
-            'text-value transition-colors duration-150',
-            isActive
-              ? 'bg-primary-600 font-medium text-ink-inverse'
-              : 'text-ink hover:bg-primary-50',
-          )
-        }
-      >
-        {({ isActive }) => (
-          <>
-            {/* The glyph takes the row's own ink: white inside the active
-                pill, the blue outside it, where it is the thing that makes a
-                row read as a link. */}
-            <Icon
-              name={item.icon}
-              className={cn('shrink-0', isActive ? 'text-ink-inverse' : 'text-primary-600')}
-            />
-            <span className="truncate">{t(item.label)}</span>
-
-            {count > 0 && (
-              <span
-                // The count is read out as part of the link, so the row
-                // announces "appointments, 3 waiting" rather than a bare
-                // number floating after it.
-                aria-label={t('nav.waitingCount', { count })}
-                className={cn(
-                  'ms-auto min-w-5 rounded-pill px-1.5 py-0.5 text-center text-meta font-semibold tabular-nums',
-                  isActive ? 'bg-ink-inverse text-primary-700' : 'bg-danger-600 text-ink-inverse',
-                )}
-              >
-                {count}
-              </span>
-            )}
-          </>
+        aria-current={isActive ? 'page' : undefined}
+        className={cn(
+          // 44px on touch, the drawn 36 on a laptop: a nav row is the
+          // most-tapped target in the app and the least-tapped one on a
+          // desk, and a rail of 44px rows pushes settings off the screen.
+          'flex min-h-11 cursor-pointer items-center gap-2.5 rounded-control px-2.5 lg:min-h-9',
+          'text-value transition-colors duration-150',
+          isActive ? 'bg-primary-600 font-medium text-ink-inverse' : 'text-ink hover:bg-primary-50',
         )}
-      </NavLink>
+      >
+        {/* The glyph takes the row's own ink: white inside the active pill,
+            the blue outside it, where it is the thing that makes a row read
+            as a link. */}
+        <Icon
+          name={item.icon}
+          className={cn('shrink-0', isActive ? 'text-ink-inverse' : 'text-primary-600')}
+        />
+        <span className="truncate">{t(item.label)}</span>
+
+        {count > 0 && (
+          <span
+            // The count is read out as part of the link, so the row announces
+            // "appointments, 3 waiting" rather than a bare number floating
+            // after it.
+            aria-label={t('nav.waitingCount', { count })}
+            className={cn(
+              'ms-auto min-w-5 rounded-pill px-1.5 py-0.5 text-center text-meta font-semibold tabular-nums',
+              isActive ? 'bg-ink-inverse text-primary-700' : 'bg-danger-600 text-ink-inverse',
+            )}
+          >
+            {count}
+          </span>
+        )}
+      </Link>
     </li>
   );
 }

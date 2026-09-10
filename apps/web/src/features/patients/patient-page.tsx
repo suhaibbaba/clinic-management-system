@@ -128,7 +128,11 @@ export function PatientPage(): JSX.Element {
 
               <div className="min-w-0">
                 <dt className="text-meta text-ink-muted">{t('patients.phone')}</dt>
-                <dd className="mt-0.5 truncate text-value text-ink">
+                {/* Not `truncate`: a phone number carries its 44px hit area on
+                    an absolutely positioned `::after`, and an ancestor with
+                    `overflow-hidden` cuts that band down to the line box —
+                    the number stays dialable but only across 22px of it. */}
+                <dd className="mt-0.5 min-w-0 text-value text-ink">
                   <PhoneLink value={patient.data.phone} />
                 </dd>
               </div>
