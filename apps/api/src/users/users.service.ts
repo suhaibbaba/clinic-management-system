@@ -33,17 +33,10 @@ import { StorageService } from '@api/storage/storage.service';
 
 type UserRow = typeof users.$inferSelect;
 
-/** Entity name used in `audit_log.entity` and by `@Audit(...)`. */
 export const USERS_ENTITY = 'users';
 
-/**
- * The prefix a staff photo lives under, per user: `staff/{userId}`.
- *
- * Under the clinic rather than under a patient, and one folder per member of
- * staff, so a key can be checked against both the clinic that signed for it
- * and the person it is a photo of — a key from another user's folder is
- * refused on confirm even though both belong to the same clinic.
- */
+// One folder per member of staff, so a key can be checked against the clinic that signed for it and
+// the person it is of — another user's folder is refused on confirm.
 const photoCategory = (userId: string): string => `staff/${userId}`;
 
 /** Columns safe to store in the audit trail and to return — never the hash. */
@@ -207,11 +200,8 @@ export class UsersService implements OnModuleInit {
     return this.presentOne(row);
   }
 
-  /**
-   * Admin resets another user's password. Every session for that user is
-   * revoked, and the reset is recorded in the audit trail — the password itself
-   * has no value that may be stored, so only the fact is written.
-   */
+  // Every session for that user is revoked, and only the fact is audited — the password has no
+  // value that may be stored.
   async resetPassword(actor: AuthenticatedUser, id: string, newPassword: string): Promise<void> {
     const target = await this.findInClinicOrFail(actor.clinicId, id);
 
@@ -251,15 +241,6 @@ export class UsersService implements OnModuleInit {
     await this.tokenService.revokeAllForUser(id);
   }
 
-  /**
-   * Step 1 of a staff photo: a URL the browser PUTs the image straight to.
-   *
-   * The key is built here from the caller's own clinic and the user being
-   * photographed, never taken from the request, so an upload can only land in
-   * the folder it is signed for. The body is checked twice — here, to refuse a
-   * signature for something that was never going to be accepted, and again on
-   * confirm against the bytes that actually arrived.
-   */
   async presignPhoto(
     actor: AuthenticatedUser,
     id: string,
@@ -283,11 +264,6 @@ export class UsersService implements OnModuleInit {
     };
   }
 
-  /**
-   * Step 2: the size and type are read back from storage rather than trusted
-   * from the request, and anything outside the limits is deleted instead of
-   * being pointed at from the user row.
-   */
   async confirmPhoto(
     actor: AuthenticatedUser,
     id: string,
@@ -326,7 +302,6 @@ export class UsersService implements OnModuleInit {
     return this.presentOne(row);
   }
 
-  /** Back to initials, and the object goes with it. */
   async removePhoto(actor: AuthenticatedUser, id: string): Promise<User> {
     const existing = await this.findInClinicOrFail(actor.clinicId, id);
     const row = await this.setPhotoKey(actor, id, null);
@@ -343,11 +318,8 @@ export class UsersService implements OnModuleInit {
     return this.scope.findOneOrFail<UserRow>(users, clinicId, id);
   }
 
-  /**
-   * A signed, short-lived URL for a stored photo key — the only form a photo
-   * ever leaves the API in. Shared with the auth and doctors services, so a
-   * face is signed the same way whichever endpoint drew it.
-   */
+  // The only form a photo ever leaves the API in. Shared with the auth and doctors services, so a
+  // face is signed the same way whichever endpoint drew it.
   async signPhoto(key: string | null): Promise<string | null> {
     return key ? (await this.storage.createDownloadUrl(key)).url : null;
   }
@@ -379,10 +351,8 @@ export class UsersService implements OnModuleInit {
     return Promise.all(rows.map((row) => this.presentOne(row)));
   }
 
-  /**
-   * Phone and email are unique system-wide because login resolves them without
-   * a clinic hint, so this check deliberately spans clinics.
-   */
+  // Phone and email are unique system-wide because login resolves them with no clinic hint, so this
+  // check deliberately spans clinics.
   private async assertIdentifiersAreFree(
     phone: string,
     email: string | null,
@@ -431,11 +401,8 @@ function toUser(row: SafeUserRow, photoUrl: string | null): User {
   };
 }
 
-/**
- * The trail records the stored **key**, not a signed URL: the URL expires in
- * minutes and would make every entry unreadable a day later — the same reason
- * the clinic's logo is audited by key.
- */
+// The trail records the stored key, not a signed URL: the URL expires in minutes and would make
+// every entry unreadable a day later.
 function toAuditSnapshot(row: SafeUserRow): Record<string, unknown> {
   return { ...toUser(row, null), photoKey: row.photoKey };
 }

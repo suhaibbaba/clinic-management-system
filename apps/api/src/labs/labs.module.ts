@@ -16,17 +16,8 @@ import { LabsController } from '@api/labs/labs.controller';
 import { LabsService } from '@api/labs/labs.service';
 import { StorageModule } from '@api/storage/storage.module';
 
-/**
- * Labs: the outside workshops, what is ordered from them, and what is owed.
- *
- * `AppointmentsModule` is imported for `AppointmentAccessService` — "a doctor
- * manages their own" is the same rule here as on the calendar, and one
- * definition of it is worth an import. `StorageModule` is for the order
- * attachments, which use the same presigned-URL flow as an X-ray.
- *
- * Everything financial in here is append-only and computed on read: there is
- * no balance column anywhere in this module, and there must never be one.
- */
+// Everything financial here is append-only and computed on read: there is no balance column in this
+// module and there must never be one.
 @Module({
   imports: [DatabaseModule, AuditModule, StorageModule, AppointmentsModule],
   controllers: [LabsController, LabOrdersController, LabLedgerController, LabPaymentsController],

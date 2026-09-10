@@ -14,7 +14,6 @@ const pad = (value: number): string => String(value).padStart(2, '0');
 const isoDate = (at: Date): string =>
   `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`;
 
-/** A slot at a wall-clock hour today, in whatever zone the test runs in. */
 function slotAt(hour: number) {
   const at = new Date();
   at.setHours(hour, 0, 0, 0);
@@ -58,7 +57,6 @@ const confirmed = {
   canModify: true,
 };
 
-/** Only today has times; every other day in the strip is closed. */
 const slotsHandler: RouteHandler = ({ url }) => {
   const date = new URL(url, 'http://test').searchParams.get('date');
 
@@ -83,11 +81,8 @@ function routes(overrides: Record<string, RouteHandler | MockResponse> = {}) {
   };
 }
 
-/**
- * Types a code the way a person does: one digit per box, with focus moving
- * itself. `user.type(firstBox, '123456')` would put every keystroke into the
- * box it was handed, which is not what a phone does.
- */
+// One digit per box with focus moving itself: `user.type(firstBox, '123456')` would put every
+// keystroke in the box it was handed.
 async function enterCode(user: ReturnType<typeof userEvent.setup>, code: string): Promise<void> {
   const boxes = await screen.findAllByRole('textbox', { name: /الرقم/ });
 
@@ -96,7 +91,6 @@ async function enterCode(user: ReturnType<typeof userEvent.setup>, code: string)
   }
 }
 
-/** Walks the wizard as far as the details form, which every test needs. */
 async function reachDetails(user: ReturnType<typeof userEvent.setup>): Promise<void> {
   await user.click(await screen.findByRole('button', { name: /د\. ليلى حداد/ }));
   await user.click(await screen.findByRole('button', { name: /10:00/ }));
@@ -115,25 +109,21 @@ describe('Public booking wizard', () => {
 
     render(<BookingWizard slug={SLUG} />);
 
-    // Step one: the doctor, with their specialty and nothing else about them.
     expect(await screen.findByText(ar.doctor.heading)).toBeInTheDocument();
     expect(screen.getByText('طب الأسنان')).toBeInTheDocument();
 
     await user.click(await screen.findByRole('button', { name: /د\. ليلى حداد/ }));
 
-    // Step two: today's free times, and a closed day that says so.
     expect(await screen.findByRole('button', { name: /10:00/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /12:00/ })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /10:00/ }));
 
-    // Step three: the two fields, prefaced by what was chosen.
     expect(await screen.findByText(ar.details.heading)).toBeInTheDocument();
     await user.type(screen.getByLabelText(ar.details.name), 'ريم العلي');
     await user.type(screen.getByLabelText(ar.details.phone), '0931234567');
     await user.click(screen.getByRole('button', { name: ar.details.submit }));
 
-    // Step four: six boxes, and the last digit confirms without a tap.
     expect(await screen.findAllByRole('textbox', { name: /الرقم/ })).toHaveLength(6);
 
     await enterCode(user, '123456');
@@ -174,7 +164,6 @@ describe('Public booking wizard', () => {
     const before = api.calls.filter((call) => call.url.includes('/slots')).length;
     await user.click(screen.getByRole('button', { name: ar.details.submit }));
 
-    // The Arabic answer, on the screen where it can be acted on.
     expect(await screen.findByText(ar.errors.slotTaken)).toBeInTheDocument();
     expect(await screen.findByRole('button', { name: /10:00/ })).toBeInTheDocument();
 

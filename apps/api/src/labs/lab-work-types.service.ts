@@ -16,18 +16,8 @@ type WorkTypeRow = typeof labWorkTypes.$inferSelect;
 
 export const LAB_WORK_TYPES_ENTITY = 'lab_work_types';
 
-/**
- * A lab's price list.
- *
- * The rows hang off the lab rather than off the clinic, so a clinic scope
- * check happens once — on the lab — and everything below it is reached through
- * that. There is no `clinic_id` on the table for the same reason: one lab, one
- * clinic, and a second copy of the fact is a second thing that can be wrong.
- *
- * Prices here are a starting point, never a running total: an order copies the
- * price it was placed at, so editing this list changes what the *next* order
- * costs and nothing the clinic already owes.
- */
+// Rows hang off the lab, so the clinic scope check happens once, on the lab, and the table needs no
+// `clinic_id` of its own. An order copies the price it was placed at.
 @Injectable()
 export class LabWorkTypesService implements OnModuleInit {
   constructor(
@@ -136,7 +126,6 @@ export class LabWorkTypesService implements OnModuleInit {
       .where(eq(labWorkTypes.id, id));
   }
 
-  /** The price an order starts from, and the lab it must belong to. */
   async requireRow(clinicId: string, id: string): Promise<WorkTypeRow> {
     const [row] = await this.db
       .select({ workType: labWorkTypes })

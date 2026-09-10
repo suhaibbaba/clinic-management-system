@@ -103,13 +103,8 @@ describe('Patients list', () => {
       ).toBeInTheDocument();
     });
 
-    /*
-     * The technician is absent from this table on purpose: this screen is no
-     * longer part of their application at all, and the guard that turns them
-     * away is asserted in `app-layout.test.tsx`. What the API would hand them
-     * if they asked anyway is a question for `patients-permissions.e2e-spec`,
-     * which is where the field rules are actually enforced.
-     */
+    // The technician is absent on purpose: this screen is not part of their application, and the
+    // guard is asserted in `app-layout.test.tsx`.
     it.each([[USER_ROLE.RECEPTIONIST, true]])(
       'gives %s the public-view columns only',
       async (role, withBalance) => {
@@ -121,9 +116,6 @@ describe('Patients list', () => {
           .getAllByRole('columnheader')
           .map((header) => header.textContent?.trim());
 
-        // The file number has no column of its own any more — it is the caption
-        // under the name, in the same cell — so it is asserted as content below
-        // rather than as a header.
         expect(headers).toEqual([
           ar.patients.fullName,
           ar.patients.phone,
@@ -139,14 +131,8 @@ describe('Patients list', () => {
     );
   });
 
-  /**
-   * The filter that replaced the standalone overdue screen.
-   *
-   * It has to be *the server's* filter and it has to be in the URL: the
-   * dashboard's overdue card links straight here, and the retired
-   * `/billing/overdue` redirects here, so a filter that lived in component
-   * state could not have taken that page's place.
-   */
+  // It has to be the server's filter and it has to be in the URL: the dashboard card links here and
+  // the retired `/billing/overdue` redirects here.
   describe('the owing filter', () => {
     it('asks the server when the address arrives with it', async () => {
       const api = await renderList(USER_ROLE.RECEPTIONIST, {}, '/patients?filter=balance');

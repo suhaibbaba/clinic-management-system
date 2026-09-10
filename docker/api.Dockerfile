@@ -1,16 +1,10 @@
 # syntax=docker/dockerfile:1.7
-#
-# API image. Build context is the REPOSITORY ROOT — the whole pnpm workspace is
-# one build context, so packages/shared is never duplicated per app:
-#
-#   docker build -f docker/api.Dockerfile -t clinic-api .
-#
+# Build context is the repository root: one pnpm workspace, so packages/shared is never duplicated
+# per app.
 ARG NODE_IMAGE=node:22.22-alpine
 
-# ---------------------------------------------------------------------------
-# Stage 1 — dependencies. Only the lockfile and the package manifests are copied,
-# so this layer is reused on every build that does not change a dependency.
-# ---------------------------------------------------------------------------
+# Only the lockfile and manifests, so this layer is reused by every build that does not change a
+# dependency.
 FROM ${NODE_IMAGE} AS deps
 
 ENV PNPM_HOME=/pnpm \
@@ -29,27 +23,19 @@ COPY apps/web/package.json apps/web/
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile --filter @clinic/api...
 
-# ---------------------------------------------------------------------------
-# Stage 2 — build. The whole workspace is copied over the dependency layer
-# (node_modules is excluded by .dockerignore, so it survives) and only the API
-# is built. pnpm builds packages/shared first because the API depends on it.
-# ---------------------------------------------------------------------------
+# node_modules is excluded by .dockerignore, so the dependency layer survives the copy. pnpm builds
+# packages/shared first.
 FROM deps AS build
 
 COPY . .
 
 RUN pnpm --filter @clinic/api... build
 
-# `pnpm deploy` produces a self-contained directory: the API's own files plus a
-# production-only node_modules with @clinic/shared resolved into it, no symlinks
-# back to the workspace. `--legacy` is required because the workspace uses a
-# single shared lockfile rather than injected dependencies.
+# `pnpm deploy` yields a self-contained directory with @clinic/shared resolved into it. `--legacy`
+# is required by the single shared lockfile.
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm --filter @clinic/api deploy --prod --legacy /prod/api
 
-# ---------------------------------------------------------------------------
-# Stage 3 — runtime. No pnpm, no sources, no build tooling.
-# ---------------------------------------------------------------------------
 FROM ${NODE_IMAGE} AS runtime
 
 ENV NODE_ENV=production \

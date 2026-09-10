@@ -3,10 +3,7 @@ import js from '@eslint/js';
 import prettier from 'eslint-config-prettier';
 import tseslint from 'typescript-eslint';
 
-/**
- * Shared flat config for every workspace package. Formatting is Prettier's job
- * (`eslint-config-prettier` last, so no rule fights the formatter).
- */
+/** Formatting is Prettier's job — `eslint-config-prettier` last, so no rule fights the formatter. */
 export default tseslint.config(
   {
     ignores: [
@@ -55,9 +52,8 @@ export default tseslint.config(
   {
     files: ['apps/api/**/*.ts'],
     rules: {
-      // Nest resolves constructor dependencies from `emitDecoratorMetadata`.
-      // Rewriting an injected class to `import type` erases that metadata and
-      // breaks DI at runtime, so the rule is off for the API.
+      // Nest resolves constructor dependencies from `emitDecoratorMetadata`, which `import type`
+      // erases — so the rule is off for the API.
       '@typescript-eslint/consistent-type-imports': 'off',
       // Nest modules are legitimately empty classes.
       '@typescript-eslint/no-extraneous-class': 'off',
@@ -65,19 +61,8 @@ export default tseslint.config(
   },
 
   {
-    /*
-     * The public booking entry is a wall, not a folder.
-     *
-     * It is a second bundle with its own gzip budget, opened on a phone from a
-     * WhatsApp link. One import of a dashboard component drags in Radix, the
-     * router, the query client and the auth module — none of which shows up in
-     * review as anything worse than a tidy-looking import line, and all of
-     * which shows up for the patient as a slower page.
-     *
-     * So the boundary is enforced here rather than remembered, and again in CI
-     * by the size check. `@web/assets` is allowed through: the logo is the one
-     * thing the two entries are *meant* to share, along with the CSS tokens.
-     */
+    // The public booking entry is a wall: one import of a dashboard component drags in Radix, the
+    // router and the auth module. `@web/assets` is the one shared thing.
     files: ['apps/web/src/booking/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
@@ -148,9 +133,8 @@ export default tseslint.config(
   },
 
   {
-    /* Config files at a package root legitimately reference sibling paths, and
-       so does what they import: `apps/web/vite/` runs in the Vite process, not
-       in the bundle, so the `@web/…` alias it helps define does not exist yet. */
+    // Config files legitimately reference sibling paths, and `apps/web/vite/` runs in the Vite
+    // process where the `@web/…` alias does not exist yet.
     files: ['**/*.config.{ts,mts,mjs,js}', 'eslint.config.mjs', 'apps/web/vite/**/*.ts'],
     rules: {
       'no-restricted-imports': 'off',
@@ -158,7 +142,6 @@ export default tseslint.config(
   },
 
   {
-    // Plain Node scripts that run outside a bundler or the Nest runtime.
     files: ['docker/**/*.js', 'scripts/**/*.mjs', 'apps/web/scripts/**/*.mjs'],
     languageOptions: {
       globals: { console: 'readonly', fetch: 'readonly', process: 'readonly' },
@@ -169,14 +152,8 @@ export default tseslint.config(
   },
 
   {
-    /*
-     * The visual QA sweep and the end-to-end smoke run.
-     *
-     * They sit outside every workspace — they drive the whole product, not one
-     * package — so there is no `@web/…` alias to import the shared screen
-     * catalogue through, and half of `qa-screens.mjs` is a function that is
-     * serialised into the browser and therefore names browser globals.
-     */
+    // The QA sweep and the smoke run sit outside every workspace, so there is no `@web/…` alias —
+    // and half of `qa-screens.mjs` is serialised into the browser.
     files: ['scripts/qa-screens.mjs', 'scripts/qa/**/*.mjs', 'tests/e2e/**/*.ts'],
     languageOptions: {
       globals: {

@@ -2,21 +2,10 @@ import { APPOINTMENT_STATUS, type AppointmentStatus } from '@clinic/shared';
 
 import type { BadgeTone } from '@web/components/ui/badge';
 
-/**
- * What a status looks like, in one table.
- *
- * The calendar draws a block, the drawer draws a badge and the ribbon draws a
- * dot; all three read this, so a status can never be amber in one place and
- * green in another. Every value is a token from `theme.css` — no hex anywhere.
- *
- * The tints are soft on purpose: a day view is *entirely* status colour, and
- * saturated blocks turn a calendar into a warning light. The border carries
- * the tone at a glance and the fill only supports it.
- */
+// The block, the badge and the dot all read this, so a status cannot be amber in one place and
+// green in another. Soft tints: a day view is entirely status colour.
 export interface StatusStyle {
-  /** The block in the day grid and the card in the agenda. */
   readonly block: string;
-  /** The badge in the drawer and the list. */
   readonly tone: BadgeTone;
 }
 
@@ -58,13 +47,6 @@ export const APPOINTMENT_STATUS_STYLES: Record<AppointmentStatus, StatusStyle> =
 export const statusLabelKey = (status: AppointmentStatus): string =>
   `appointments.statuses.${status}`;
 
-/**
- * The buttons the drawer offers for a status.
- *
- * Derived from the same transition table the API validates against, so the UI
- * cannot offer a move the server will refuse — the table lives in
- * `@clinic/shared` and both sides read it.
- */
 export const CANCELLABLE_STATUSES: readonly AppointmentStatus[] = [
   APPOINTMENT_STATUS.REQUESTED,
   APPOINTMENT_STATUS.CONFIRMED,

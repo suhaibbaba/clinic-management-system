@@ -1,20 +1,7 @@
 @import 'tailwindcss';
 
-/*
- * Inter and IBM Plex Sans Arabic, both self-hosted.
- *
- * Inter carries Latin — names, phone numbers, money codes, every digit — and
- * Plex Arabic carries the Arabic. The stack in theme.css lists Inter first, so
- * anything it has no glyph for falls through; there is no per-element font
- * switching anywhere in the app.
- *
- * Only the subsets and weights actually painted: Inter Latin and Plex Arabic
- * at 400/500/600/700, 230 KB in total. Neither is hotlinked.
- *
- * Self-hosted rather than pulled from a font CDN: a clinic app should not tell
- * a third party which of its screens a receptionist opened, and a VPS with no
- * outbound network should still render correctly.
- */
+/* Self-hosted: a clinic app should not tell a font CDN which screens a receptionist opened, and a
+   VPS with no outbound network must still render. */
 @import '@fontsource/inter/latin-400.css';
 @import '@fontsource/inter/latin-500.css';
 @import '@fontsource/inter/latin-600.css';
@@ -24,29 +11,12 @@
 @import '@fontsource/ibm-plex-sans-arabic/arabic-600.css';
 @import '@fontsource/ibm-plex-sans-arabic/arabic-700.css';
 
-/*
- * Every colour, font and chart token in this app lives in one file. Nothing
- * else names a colour — see theme.css for the scales, the semantic aliases and
- * the contrast budget they were built against.
- */
 @import './theme.css';
 
-/* Ground, focus ring, scrollbars, bidi — shared with the booking entry. */
 @import './base.css';
 
-/*
- * The chrome: the rail, and the page's own bar.
- *
- * The rail carries the app's one tint and the bar is white with the page —
- * see theme.css for why the tint sits there rather than under the content.
- * Written as classes rather than utilities so the rail and the drawer that
- * replaces it on a phone cannot drift apart: both wear `chrome-sidebar`.
- *
- * Opaque, deliberately. An earlier revision frosted them and let the page
- * scroll through; where the effect did not apply the sticky bar had *no*
- * background at all and the breadcrumb sat on top of a phone number. A bar is
- * opaque first and decorated second.
- */
+/* Opaque, deliberately: a frosted bar had no background where the effect did not apply, and the
+   breadcrumb sat on top of a phone number. */
 .chrome-sidebar {
   background-color: var(--chrome-rail);
 }
@@ -55,7 +25,6 @@
   background-color: var(--chrome-bar);
 }
 
-/* A search field: white, like every other field, and tinted on hover. */
 .chrome-field {
   background-color: var(--chrome-field);
 }
@@ -64,19 +33,8 @@
   background-color: var(--chrome-field-hover);
 }
 
-/*
- * Printing.
- *
- * The printable sheet lives in the page rather than in a popup or a second
- * route, so what is printed cannot drift from what was on screen. On screen it
- * is hidden; for print everything else is hidden instead and the sheet takes
- * over the page.
- *
- * Hiding works by `visibility`, not `display`. The sheet is nested deep inside
- * `#root`, so hiding its ancestors by `display: none` would take the sheet with
- * them — `visibility` lets the ancestors stay in the layout while painting
- * nothing, and the sheet turns itself back on.
- */
+/* The sheet lives in the page, so print cannot drift from screen. Hiding is by `visibility`: the
+   sheet is nested inside `#root`, and `display: none` on an ancestor would take it too. */
 .print-sheet {
   display: none;
 }
@@ -124,7 +82,6 @@
     padding-bottom: 4mm;
   }
 
-  /* The mark and the clinic's own name travel together on the sheet. */
   .print-brand {
     display: flex;
     align-items: center;
@@ -134,9 +91,8 @@
   .print-logo {
     height: 16mm;
     width: auto;
-    /* Browsers drop background graphics from print by default; a letterhead
-       mark is content, so ask for it back. Chrome honours this, and where a
-       browser refuses the sheet still carries the clinic's name in text. */
+    /* Browsers drop background graphics from print; a letterhead mark is content. Where a browser
+       refuses, the sheet still carries the clinic's name in text. */
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }

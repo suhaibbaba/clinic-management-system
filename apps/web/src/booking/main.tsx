@@ -8,16 +8,8 @@ import { FullPageMessage, PageShell } from '@web/booking/layout';
 import { ManagePage } from '@web/booking/manage-page';
 import { parseRoute } from '@web/booking/route';
 
-/**
- * The public booking entry.
- *
- * A second, deliberately small bundle: it shares the app's tokens, font and
- * logo and none of its code. Nothing here imports `@web/features`,
- * `@web/components` or `@web/app` — an ESLint boundary rule and a gzip budget
- * in CI both fail if that ever changes — because this page is opened from a
- * WhatsApp link on a phone, and the signed-in dashboard's router, query client
- * and component library have no business travelling with it.
- */
+// Nothing here imports `@web/features`, `@web/components` or `@web/app` — an ESLint boundary rule
+// and a gzip budget in CI both fail if that changes.
 function BookingApp(): JSX.Element {
   const route = parseRoute(window.location.pathname, window.location.search);
 

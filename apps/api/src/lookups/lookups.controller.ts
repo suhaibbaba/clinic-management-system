@@ -35,14 +35,8 @@ class ReorderLookupsDto extends createZodDto(reorderLookupOptionsSchema) {}
 class ListLookupsQueryDto extends createZodDto(listLookupOptionsQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-/**
- * The editable lists (ROLES.md core matrix, "Clinic settings, templates":
- * admin CRUD, everyone else read).
- *
- * Reading is open to every signed-in role on purpose — these are the contents
- * of the dropdowns every screen draws, and a list nobody can read is a screen
- * nobody can use. Writing is the admin's, because a list is settings.
- */
+// Reading is open to every signed-in role — these are the contents of every dropdown. Writing is
+// the admin's, because a list is settings.
 @Controller('lookups')
 export class LookupsController {
   constructor(private readonly lookups: LookupsService) {}
@@ -67,13 +61,8 @@ export class LookupsController {
     return this.lookups.create(actor, body);
   }
 
-  /**
-   * Before `:id`, or Nest reads "reorder" as an id.
-   *
-   * A `PATCH` on the collection rather than on each row: the new order is one
-   * decision, and applying it as ten separate writes would let a refresh
-   * halfway through leave a list nobody arranged.
-   */
+  // Before `:id`, or Nest reads "reorder" as one. A `PATCH` on the collection: ten separate writes
+  // would let a refresh halfway leave a list nobody arranged.
   @Patch('reorder')
   @Roles(USER_ROLE.ADMIN)
   @Audit(LOOKUP_OPTIONS_ENTITY, AUDIT_ACTION.UPDATE)
@@ -95,7 +84,6 @@ export class LookupsController {
     return this.lookups.update(actor, params.id, body);
   }
 
-  /** Soft delete, and refused outright on a built-in row. */
   @Delete(':id')
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)

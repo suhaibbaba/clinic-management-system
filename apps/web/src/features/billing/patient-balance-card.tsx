@@ -7,17 +7,8 @@ import { Money } from '@web/features/billing/money';
 import { usePatientBalance, useStatement } from '@web/features/billing/queries';
 import { useClinic } from '@web/features/clinic/queries';
 
-/**
- * What the patient owes, in the file header.
- *
- * The figure is a SQL aggregate over the ledgers on every read — there is no
- * stored balance to go stale, which is the whole reason CLAUDE.md forbids one.
- *
- * "Due today" is the work billed since midnight. It is what reception needs
- * the moment a doctor marks a procedure done: the patient is still at the
- * desk, and the outstanding total from previous visits is a different
- * conversation.
- */
+// An aggregate over the ledgers on every read. "Due today" is what reception needs while the
+// patient is still at the desk; the older total is a different conversation.
 export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.Element {
   const { t } = useTranslation();
   const clinic = useClinic();
@@ -60,7 +51,6 @@ export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.El
   );
 }
 
-/** Midnight local time, as the ISO instant the statement filter expects. */
 function startOfToday(): string {
   const date = new Date();
   date.setHours(0, 0, 0, 0);

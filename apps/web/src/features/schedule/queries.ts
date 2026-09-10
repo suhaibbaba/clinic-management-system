@@ -14,9 +14,8 @@ import {
 } from '@clinic/shared';
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 
-// Imported rather than retyped: a key that drifts here leaves the grid showing
-// an open Tuesday the settings screen has just closed, and nothing fails
-// loudly enough for anyone to notice.
+// Imported rather than retyped: a key that drifts leaves the grid showing an open Tuesday the
+// settings screen has just closed.
 import { AVAILABILITY_KEY, CALENDAR_KEY } from '@web/features/appointments/queries';
 import { closuresApi, timeOffApi } from '@web/features/schedule/api';
 import { ApiError } from '@web/lib/api-error';
@@ -46,13 +45,8 @@ export function useDoctorTimeOff(
   });
 }
 
-/**
- * Every list that a closure or an absence can change.
- *
- * The calendar and the availability endpoint both compute from these rows, so
- * shutting the clinic for Eid has to leave a stale grid behind it — which is
- * exactly the state in which somebody books into a closed day.
- */
+// The calendar and the availability endpoint both compute from these rows, so a stale grid after a
+// closure is exactly where somebody books into a closed day.
 function useInvalidateSchedule(): () => Promise<void> {
   const queryClient = useQueryClient();
 
@@ -115,14 +109,8 @@ export function useDeleteTimeOff() {
   });
 }
 
-/**
- * The appointments a refused write would have stranded, or null for any other
- * failure.
- *
- * Matched on the `error` code rather than on the status: a 409 is also what a
- * double booking and a duplicate phone number answer with, and a dialog listing
- * patients is a very wrong thing to show for either.
- */
+// Matched on the `error` code, not the status: a double booking is also a 409, and a dialog listing
+// patients is a very wrong thing to show for one.
 export function scheduleConflicts(error: unknown): ConflictingAppointment[] | null {
   if (!(error instanceof ApiError) || error.statusCode !== 409) {
     return null;

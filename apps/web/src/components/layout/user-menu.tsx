@@ -29,22 +29,8 @@ export interface UserMenuProps {
   readonly onLogout: () => void;
 }
 
-/**
- * The account menu at the foot of the sidebar.
- *
- * The trigger is the card it has always been — avatar, name, role, chevron —
- * and a real button: it takes focus, opens on Enter or Space, and
- * Radix keeps `aria-expanded` and the `aria-controls` wiring in step. The
- * chevron turns when it is open, which is the only cue that the pill was ever
- * meant to be clicked.
- *
- * The build number sits at the foot of it: the settings screen where the full
- * version panel lives is admin-only, and a version is not a permission.
- *
- * Language is inline rather than a submenu. There are two languages; a submenu
- * would add a hover delay and a second keyboard level to a choice that is one
- * click, and both options fit on screen at once with the current one ticked.
- */
+// The build number sits here because the settings screen that carries the full version panel is
+// admin-only, and a version is not a permission.
 export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
   const { t, i18n } = useTranslation();
   const displayName = usePersonName();
@@ -55,9 +41,6 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          // A white card on the tinted rail, like every other surface in the
-          // app: the rail is the ground here, so the block that lifts off it
-          // is the one that is white.
           'group flex w-full cursor-pointer items-center gap-2.5 rounded-panel p-2',
           'border border-line bg-surface transition-colors duration-150',
           'hover:bg-inset data-[state=open]:bg-inset',
@@ -112,16 +95,8 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
 
         <DropdownMenuSeparator />
 
-        {/*
-          Which build this is — the thing somebody reads out over the phone
-          when they report a problem.
-
-          Here rather than only on the settings screen, because the settings
-          screen is admin-only and the person on the phone is as likely to be
-          the receptionist. Not a menu item: there is nothing to select, and
-          making it one would put a version number in the keyboard's tab
-          order between "sign out" and the edge of the menu.
-        */}
+        {/* Not a menu item: there is nothing to select, and making it one would put a version number
+            in the tab order between "sign out" and the edge. */}
         <p className="px-2 py-1.5 text-meta text-ink-subtle">
           <span>{t('clinic.version')}</span> <Ltr className="font-mono">v{WEB_VERSION}</Ltr>
         </p>

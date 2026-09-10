@@ -20,22 +20,9 @@ import { useSession } from '@web/features/auth/session';
 import { seesPendingBookings, usePendingBookingsCount } from '@web/features/booking/queries';
 import { cn } from '@web/lib/cn';
 
-/**
- * The signed-in shell: a white sidebar, a white bar over the page, and the
- * content on the tinted ground beside them.
- *
- * The sidebar is captioned sections rather than one flat list, and the active
- * row is a solid blue pill — the only place navigation spends the page's
- * accent colour, and worth it: "where am I" is the question a sidebar exists
- * to answer, and a faint grey fill answered it quietly enough to be missed.
- *
- * The sidebar lists only what the role can reach. That is presentation: the
- * matching route guard and, above all, the API enforce the same rule.
- */
 export function AppLayout(): JSX.Element {
   const { t } = useTranslation();
   const { user, logout } = useSession();
-  // The clinic's own mark in the chrome; the bundled one until they upload it.
   const clinic = useClinic();
   const { pathname } = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -43,14 +30,7 @@ export function AppLayout(): JSX.Element {
   const groups = visibleNavGroups(user?.role);
   const settings = visibleSettingsItems(user?.role);
 
-  /*
-   * The one number in the chrome.
-   *
-   * Online bookings are the only thing in the app that arrives while nobody is
-   * looking — everything else happens because somebody at the desk did it — so
-   * it is the only thing that earns a badge. Asked for once here and handed to
-   * both copies of the nav list, rather than fetched twice.
-   */
+  /** Asked for once here and handed to both copies of the nav list, rather than fetched twice. */
   const pendingBookings = usePendingBookingsCount(seesPendingBookings(user?.role));
   const badges = { pendingBookings } as const;
 
@@ -60,14 +40,8 @@ export function AppLayout(): JSX.Element {
     setDrawerOpen(false);
   }, [pathname]);
 
-  /*
-   * `/` focuses the page's own search.
-   *
-   * The top bar has no search field in this design — each page owns one — so
-   * the shortcut looks for the first search input on the page rather than
-   * holding a ref to one. Never while the user is already typing somewhere,
-   * which would swallow the slash out of an address or a note.
-   */
+  // The bar has no search field — each page owns one — so `/` looks for the first search input, and
+  // never while the user is already typing.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       const target = event.target as HTMLElement | null;
@@ -101,17 +75,6 @@ export function AppLayout(): JSX.Element {
         )}
       >
         <div className="flex h-full flex-col">
-          {/*
-            The mark, alone, across the width of the rail, with a rule under
-            it: the band is the clinic's, the list below it is the app's, and
-            the hairline is what says so.
-
-            No wordmark beside it: a clinic's own logo already carries its
-            name, and the app's name set in 16px next to it made two names for
-            one product at the top of every screen. It is the mark's accessible
-            name instead, which is the one place the app still has to say what
-            it is.
-          */}
           <div className="shrink-0 border-b border-line px-3 py-3">
             <Logo size="chrome" src={clinic.data?.logoUrl} alt={t('app.title')} />
           </div>
@@ -176,7 +139,6 @@ export function AppLayout(): JSX.Element {
   );
 }
 
-/** The nav rows, shared by the desktop rail and the mobile drawer. */
 function NavList({
   groups,
   settings,
@@ -223,7 +185,6 @@ function NavList({
   );
 }
 
-/** One row of the sidebar, in either half of it. */
 function NavRow({
   item,
   badges,
@@ -234,15 +195,8 @@ function NavRow({
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const count = item.badge ? badges[item.badge] : 0;
-  /*
-   * A plain `Link` with the state worked out here rather than `NavLink`.
-   *
-   * `NavLink` calls every ancestor path active, so `/clinic/lists` lit both
-   * the lists row and the clinic row above it — two answers to "where am I"
-   * once the active row is a solid pill, and two `aria-current="page"` rows
-   * for a screen reader. `activeNavItem` picks the longest match, and doing
-   * it here keeps what is drawn and what is announced the same rule.
-   */
+  // A plain `Link`: `NavLink` calls every ancestor path active, so `/clinic/lists` lit the clinic
+  // row too. `activeNavItem` picks the longest match, drawn and announced alike.
   const isActive = activeNavItem(pathname)?.to === item.to;
 
   return (
@@ -251,22 +205,13 @@ function NavRow({
         to={item.to}
         aria-current={isActive ? 'page' : undefined}
         className={cn(
-          // 44px on touch, the drawn 36 on a laptop: a nav row is the
-          // most-tapped target in the app and the least-tapped one on a
-          // desk, and a rail of 44px rows pushes settings off the screen.
+          // 44px on touch, the drawn 36 on a laptop: a rail of 44px rows pushes settings off the
+          // screen.
           'flex min-h-11 cursor-pointer items-center gap-2.5 rounded-control px-2.5 lg:min-h-9',
           'text-value transition-colors duration-150',
           isActive ? 'bg-primary-600 font-medium text-ink-inverse' : 'text-ink hover:bg-surface',
         )}
       >
-        {/*
-          A neutral glyph outside the active pill, white inside it.
-
-          The icons used to take the blue, on the reasoning that a row is a
-          link. In a rail where one row is a solid blue pill that reasoning
-          inverts: eight blue glyphs beside it are eight things competing with
-          the one that answers "where am I".
-        */}
         <Icon
           name={item.icon}
           className={cn('shrink-0', isActive ? 'text-ink-inverse' : 'text-ink-muted')}
@@ -275,14 +220,10 @@ function NavRow({
 
         {count > 0 && (
           <span
-            // The count is read out as part of the link, so the row announces
-            // "appointments, 3 waiting" rather than a bare number floating
-            // after it.
             aria-label={t('nav.waitingCount', { count })}
             className={cn(
-              // A circle, not a lozenge: `aspect-square` takes the height from
-              // whatever width the digits need, so one digit is a 20px disc and
-              // a three-figure count is a larger one — round either way.
+              // A circle, not a lozenge: `aspect-square` takes the height from the width the digits
+              // need, so it stays round at any count.
               'ms-auto inline-flex aspect-square min-w-5 shrink-0 items-center justify-center',
               'rounded-pill px-1.5 text-meta font-semibold tabular-nums',
               isActive ? 'bg-ink-inverse text-primary-700' : 'bg-danger-600 text-ink-inverse',
@@ -296,29 +237,8 @@ function NavRow({
   );
 }
 
-/**
- * A captioned section of the sidebar.
- *
- * A hairline, then a caption that is also the control: 12px, small caps, with
- * a chevron: enough of a target to fold the section away, quiet enough that a
- * rail of three still reads as one list rather than as three panels.
- *
- * The rule earns its place here and nowhere else in the rail. Sections are
- * what a person scans this list by — "where do I go for a patient, where for
- * the lab" — and a caption alone leaves that to whitespace, which the eye
- * reads as a gap rather than as a border between two kinds of thing.
- *
- * Sections people navigate with open by default. Settings does not — those are
- * the screens somebody opens on the day they set the clinic up and then twice
- * a year, and five permanent rows of them push the rows people use every day
- * off a laptop screen. Its state is deliberately *not* remembered between
- * sessions: a group that reopens itself every morning because it was opened
- * once in March defeats the point of collapsing it.
- *
- * `openWithRoute` is the one exception, and it belongs to settings: arriving
- * on the audit log from a link and finding the group shut would leave the
- * sidebar disagreeing with the page.
- */
+// Settings starts collapsed, and its state is deliberately not remembered — a group that reopens
+// every morning because it was opened once in March is not collapsed.
 function NavSection({
   id,
   label,
@@ -328,7 +248,6 @@ function NavSection({
   openWithRoute = false,
 }: {
   readonly id: string;
-  /** i18n key. */
   readonly label: string;
   readonly items: readonly NavItem[];
   readonly defaultOpen: boolean;
@@ -363,9 +282,8 @@ function NavSection({
           'flex min-h-11 w-full cursor-pointer items-center gap-1.5 rounded-control px-2.5 py-1.5 lg:min-h-7',
           'text-meta font-medium text-ink-subtle transition-colors duration-150',
           'hover:text-ink-muted',
-          // Small caps, spaced out — in Latin only. Tracking pulls Arabic
-          // letters out of their joins, which is not a style but a spelling
-          // mistake, and `uppercase` has nothing to do in it either way.
+          // Small caps and tracking in Latin only: tracking pulls Arabic letters out of their
+          // joins, which is a spelling mistake rather than a style.
           'page-ltr:uppercase page-ltr:tracking-[0.06em]',
         )}
       >
@@ -388,13 +306,8 @@ function NavSection({
   );
 }
 
-/**
- * The bell.
- *
- * No feed behind it yet — notifications are a phase-2 module — so it carries
- * no count and says so, rather than a decorative red dot that would train
- * everyone to ignore the real one when it arrives.
- */
+// No feed behind it yet, so it carries no count: a decorative red dot would train everyone to
+// ignore the real one.
 function NotificationBell(): JSX.Element {
   const { t } = useTranslation();
 
@@ -405,9 +318,8 @@ function NotificationBell(): JSX.Element {
       aria-label={t('nav.notificationsEmpty')}
       title={t('nav.notificationsEmpty')}
       className={cn(
-        // 44px on touch (WCAG 2.5.8), back to 36 on a laptop. `lg` rather
-        // than `md`: the tablet the front desk uses is 768 wide and is a
-        // touch device, whatever the layout does at that width.
+        // 44px on touch (WCAG 2.5.8), 36 on a laptop. `lg` rather than `md`: the front desk's
+        // tablet is 768 wide and is a touch device.
         'inline-flex size-11 cursor-pointer items-center justify-center rounded-pill lg:size-9',
         'text-ink-subtle transition-colors duration-150 hover:bg-inset hover:text-ink',
         'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent',

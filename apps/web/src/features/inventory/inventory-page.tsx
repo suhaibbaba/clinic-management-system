@@ -27,18 +27,8 @@ import { useInventoryItems } from '@web/features/inventory/queries';
 import { formatDate } from '@web/lib/format';
 import { useDebounced } from '@web/lib/use-debounced';
 
-/**
- * The store cupboard, as a list of what is in it.
- *
- * The quantity is the column people come here for, so it is drawn as a bar
- * against the reorder level rather than as a number they have to compare with
- * another number: the minimum sits at the halfway mark, and an empty red bar
- * says "order this" from across the room. The figure is there too — a bar
- * alone cannot say 3 of 10.
- *
- * Everything on this screen is computed from the ledger. There is no quantity
- * to edit here and no field to edit it with (CLAUDE.md).
- */
+// The quantity is a bar against the reorder level rather than a number to compare with another
+// number. Everything here is computed from the ledger; there is nothing to edit.
 export function InventoryPage(): JSX.Element {
   const { t } = useTranslation();
   const categoryLabel = useLookupLabels(LOOKUP_LIST.ITEM_CATEGORY);
@@ -210,13 +200,6 @@ export function InventoryPage(): JSX.Element {
   );
 }
 
-/**
- * Quantity against the reorder level.
- *
- * The number, its unit, and a bar scaled so the minimum is the midpoint. Both
- * are needed: the bar is what the eye reads in a list of forty rows, and the
- * figure is what somebody writes on an order.
- */
 function StockCell({ item }: { readonly item: InventoryItemRow }): JSX.Element {
   const { t } = useTranslation();
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);

@@ -25,10 +25,6 @@ export const PROCEDURE_CATALOG_ENTITY = 'procedure_catalog';
 
 export type CatalogView = ProcedureCatalogItem | ProcedureCatalogPriceView;
 
-/**
- * Priced procedures per specialty. Admin writes; every role reads, and a
- * receptionist receives names and prices only (ROLES.md core matrix).
- */
 @Injectable()
 export class ProcedureCatalogService implements OnModuleInit {
   constructor(
@@ -96,7 +92,6 @@ export class ProcedureCatalogService implements OnModuleInit {
     return toRoleView(await this.requireRow(actor.clinicId, id), actor.role);
   }
 
-  /** Snapshot source for plan items and performed procedures. */
   async requirePriced(clinicId: string, id: string): Promise<CatalogRow> {
     return this.requireRow(clinicId, id);
   }

@@ -9,18 +9,8 @@ import { useInventoryAlerts } from '@web/features/inventory/queries';
 import { cn } from '@web/lib/cn';
 import { formatDate } from '@web/lib/format';
 
-/**
- * What the cupboard needs somebody to do about it, in two cards.
- *
- * Written as its own component rather than inline on the inventory screen
- * because it is the dashboard widget ROLES.md promises the technician
- * ("Dashboard: labs+stock widgets") — there is no dashboard screen yet, so it
- * lives at the top of the screen they actually open, and moves when one lands.
- *
- * A card with nothing in it is not drawn at all. An alert panel that says
- * "0 items low" every day is an alert panel people stop reading, and the whole
- * point of these two is that their presence means something.
- */
+// A card with nothing in it is not drawn: an alert panel that says "0 items low" every day is one
+// people stop reading.
 export function InventoryAlertCards({
   onSelectItem,
   onShowLow,
@@ -46,12 +36,8 @@ export function InventoryAlertCards({
   }
 
   return (
-    /*
-      Side by side only once there is room for it. At 768px the two cards were
-      halves of a 518px column: an item's name had about 60px to live in and
-      every one of them was ellipsed to three letters, which is an alert
-      nobody can act on.
-    */
+    // Side by side only once there is room: at 768px each card had about 60px for an item's name
+    // and ellipsed every one to three letters.
     <div className="grid gap-3 lg:grid-cols-2">
       {low.length > 0 && (
         <AlertCard

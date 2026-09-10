@@ -21,13 +21,8 @@ import {
 class UpdateMedicalHistoryDto extends createZodDto(updateMedicalHistorySchema) {}
 class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 
-/**
- * Medical history & allergies (ROLES.md patients matrix): admin CRUD,
- * doctor CRU, technician allergy flags only, receptionist nothing.
- *
- * One row per patient, so the route carries no history id and the audit entry
- * is keyed by the patient — the same shape as `PATCH /clinic`.
- */
+// One row per patient, so the route carries no history id and the audit entry is keyed by the
+// patient — the same shape as `PATCH /clinic`.
 @Controller('patients/:patientId')
 export class MedicalHistoriesController {
   constructor(private readonly medicalHistories: MedicalHistoriesService) {}
@@ -52,11 +47,6 @@ export class MedicalHistoriesController {
     return this.medicalHistories.update(actor, params.patientId, body);
   }
 
-  /**
-   * The light endpoint a technician may call: allergies and nothing else.
-   * ROLES.md permits the allergy *flag* for safety while forbidding every other
-   * medical detail.
-   */
   @Get('allergy-flags')
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   allergyFlags(

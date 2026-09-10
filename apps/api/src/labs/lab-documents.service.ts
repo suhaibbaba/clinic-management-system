@@ -20,20 +20,8 @@ import { LabLedgerService } from '@api/labs/lab-ledger.service';
 /** Technical values read left to right even inside an Arabic document. */
 const LTR = { dir: 'ltr' } as const;
 
-/**
- * The two things the labs module prints: the sheet that goes out with the work,
- * and the statement the clinic settles against.
- *
- * Both are built with the billing module's `RtlPdf` — the Arabic shaping, the
- * bidi ordering and the embedded font are hard enough once. No headless
- * browser: the API is meant to run on a cheap VPS (CLAUDE.md target infra).
- *
- * The order sheet carries the patient's **first name only**. It leaves the
- * building in a box with a plaster model and is handled by people who are not
- * clinic staff; the technician needs to tell one case from another, which a
- * first name and an order number do, and nothing more than that is theirs to
- * know.
- */
+// The order sheet carries the patient's first name only: it leaves the building in a box, handled
+// by people who are not clinic staff.
 @Injectable()
 export class LabDocumentsService {
   constructor(
@@ -77,11 +65,7 @@ export class LabDocumentsService {
     pdf.field(strings.date, formatDate(new Date().toISOString()), LTR);
     pdf.space(6);
 
-    // First name only — see the class comment.
     pdf.field(strings.patient, firstName(row.patientName));
-    // The doctor's name in the *clinic's* document language, like every other
-    // word on the sheet — a lab order filed in Arabic should not carry one
-    // Latin name in the middle of it.
     pdf.field(
       strings.doctor,
       personName({ ar: row.doctorNameAr, en: row.doctorNameEn }, clinic.language),
@@ -172,7 +156,6 @@ export class LabDocumentsService {
 /** Enough of the id to match a box to a record, short enough to read aloud. */
 const shortId = (id: string): string => id.slice(0, 8).toUpperCase();
 
-/** "أحمد" out of "أحمد خالد الحسن". */
 const firstName = (fullName: string): string => fullName.trim().split(/\s+/)[0] ?? fullName;
 
 function formatDate(iso: string): string {

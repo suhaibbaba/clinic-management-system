@@ -29,14 +29,8 @@ type PaymentRow = typeof payments.$inferSelect;
 
 export const PAYMENTS_ENTITY = 'payments';
 
-/**
- * Money taken in.
- *
- * Append-only, like every other ledger here: a payment is never updated and
- * never deleted, and ROLES.md gives the receptionist create and read only. A
- * mistake is corrected by an admin writing the opposite entry, which leaves
- * both the original receipt and its cancellation on the statement.
- */
+// Append-only: never updated, never deleted. A mistake is an admin writing the opposite entry,
+// which leaves the receipt and its cancellation on the statement.
 @Injectable()
 export class PaymentsService implements OnModuleInit {
   constructor(
@@ -91,10 +85,8 @@ export class PaymentsService implements OnModuleInit {
     return toPayment(await this.scope.findOneOrFail<PaymentRow>(payments, actor.clinicId, id));
   }
 
-  /**
-   * Records a payment and its receipt number in one transaction, so a receipt
-   * number is never handed out for a payment that then fails to commit.
-   */
+  // One transaction, so a receipt number is never handed out for a payment that then fails to
+  // commit.
   async create(actor: AuthenticatedUser, input: CreatePaymentInput): Promise<Payment> {
     await this.patientAccess.requirePatientId(actor, input.patientId);
     // The methods are an editable list: only this clinic's own count.
@@ -127,14 +119,8 @@ export class PaymentsService implements OnModuleInit {
     });
   }
 
-  /**
-   * Cancels a payment by writing its opposite — admin only (ROLES.md: nobody
-   * updates or deletes a payment, not even an admin).
-   *
-   * The reversal takes no receipt number of its own: it is documented by the
-   * receipt it cancels, and a receipt sequence with entries nobody was ever
-   * handed is a sequence that cannot be reconciled.
-   */
+  // The reversal takes no receipt number: a receipt series with entries nobody was handed cannot be
+  // reconciled.
   async reverse(
     actor: AuthenticatedUser,
     id: string,
@@ -189,15 +175,8 @@ export class PaymentsService implements OnModuleInit {
   }
 }
 
-/**
- * Takes the next receipt number for a clinic.
- *
- * A Postgres sequence would be wrong here: `nextval` does not roll back, so a
- * failed payment would burn a number and leave a hole in a document series the
- * clinic has to account for. A counter row does roll back, and the `UPDATE`
- * takes a row lock, so concurrent payments queue behind each other and every
- * number between the first and the last is on a real receipt.
- */
+// Not a Postgres sequence: `nextval` does not roll back, so a failed payment would burn a number. A
+// counter row rolls back, and its `UPDATE` row lock queues concurrent payments.
 async function nextReceiptNumber(tx: DatabaseExecutor, clinicId: string): Promise<number> {
   await tx
     .insert(clinicCounters)

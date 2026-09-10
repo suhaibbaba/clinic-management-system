@@ -19,22 +19,8 @@ const softDeleteColumn = {
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 };
 
-/**
- * A booked slot in a doctor's day.
- *
- * The end of an appointment is **not** a column: it is `starts_at` plus
- * `duration_minutes`, computed wherever it is needed and by the overlap
- * constraint below. Storing both is storing the same fact twice, and the two
- * would eventually disagree after one rescheduling bug.
- *
- * Two overlapping appointments for one doctor are prevented by a `gist`
- * exclusion constraint added in the migration — see `0004_appointments_module`.
- * Drizzle cannot express `EXCLUDE`, and a check in the service could not do the
- * job anyway: between reading "the slot is free" and inserting, another request
- * can insert the same slot. The constraint is the only place that holds under
- * concurrency, which is why it is the constraint and not the service that
- * rejects the second booking.
- */
+// The end is not a column — `starts_at` plus `duration_minutes`. Overlap is prevented by the `gist`
+// exclusion constraint, the only thing that holds under concurrency.
 export const appointments = pgTable(
   'appointments',
   {
@@ -50,16 +36,12 @@ export const appointments = pgTable(
       .references(() => doctors.id),
     startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
     durationMinutes: integer('duration_minutes').notNull().default(30),
-    /**
-     * A `lookup_options` code from the `appointment_type` list, not an enum:
-     * a clinic adds "استشارة" without a migration. The *status* beside it stays
-     * an enum — that one drives the transition table.
-     */
+    // An `appointment_type` lookup code, not an enum — a clinic adds one without a migration. The
+    // status beside it stays an enum: it drives the transition table.
     type: text('type').notNull().default('checkup'),
     status: appointmentStatusEnum('status').notNull().default('confirmed'),
     reason: text('reason'),
     notes: text('notes'),
-    /** Set by "convert to visit"; the link that joins the two records. */
     visitId: uuid('visit_id').references(() => visits.id),
     /** Required when the status becomes `cancelled`, enforced in the service. */
     cancelledReason: text('cancelled_reason'),
@@ -68,27 +50,16 @@ export const appointments = pgTable(
   },
   (table) => [
     index('appointments_clinic_idx').on(table.clinicId),
-    /**
-     * The calendar's own index: every feed asks for one doctor over a date
-     * range, and the day view asks for all of them over one day. Leading with
-     * the clinic keeps it useful for the second question too.
-     */
+    // Every feed asks for one doctor over a date range; leading with the clinic keeps it useful for
+    // the day view across all of them.
     index('appointments_doctor_starts_idx').on(table.clinicId, table.doctorId, table.startsAt),
     index('appointments_starts_idx').on(table.clinicId, table.startsAt),
     index('appointments_patient_idx').on(table.clinicId, table.patientId),
   ],
 );
 
-/**
- * Walk-ins and callers waiting for a slot that does not exist yet.
- *
- * Not an appointment with a null time: an appointment has a place in a day and
- * this does not, and modelling "no time yet" as a nullable `starts_at` would
- * put a null into every calendar query and every overlap check.
- *
- * `resolved_at` closes the entry — promoted into an appointment, or the patient
- * gave up. Soft-deleted like everything else, so a queue is auditable.
- */
+// Not an appointment with a null time: that would put a null into every calendar query and every
+// overlap check.
 export const waitingList = pgTable(
   'waiting_list',
   {
@@ -104,7 +75,6 @@ export const waitingList = pgTable(
     reason: text('reason'),
     priority: waitingListPriorityEnum('priority').notNull().default('normal'),
     resolvedAt: timestamp('resolved_at', { withTimezone: true }),
-    /** The appointment this entry became, when it was promoted. */
     appointmentId: uuid('appointment_id').references(() => appointments.id),
     ...auditColumns,
     ...softDeleteColumn,

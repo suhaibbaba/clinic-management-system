@@ -30,7 +30,6 @@ const visitWritableFields = {
 export const createVisitSchema = z.object({
   ...visitWritableFields,
   patientId: z.uuid(),
-  /** Defaults to now: a visit is usually recorded as it happens. */
   visitDate: z.iso.datetime().optional(),
 });
 export type CreateVisitInput = z.infer<typeof createVisitSchema>;

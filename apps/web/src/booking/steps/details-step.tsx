@@ -10,16 +10,8 @@ export interface BookingDetails {
   readonly reason: string;
 }
 
-/**
- * Step three: who is coming, and on which number.
- *
- * Both fields are checked against the **same rules the booking DTO enforces**
- * (CLAUDE.md: never duplicate validation) — `isBookingName` and
- * `isBookingPhone` are what `createBookingSchema` is built out of, in a
- * Zod-free module so this page does not ship 45 KB of schema machinery to
- * check that a name is two characters long. The API remains the boundary; this
- * only saves the patient a round trip.
- */
+// Checked against the same rules the booking DTO enforces, from the Zod-free module, so this page
+// saves a round trip without shipping the schema machinery.
 export function DetailsStep({
   details,
   onChange,
@@ -31,7 +23,6 @@ export function DetailsStep({
   readonly onChange: (details: BookingDetails) => void;
   readonly onSubmit: () => void;
   readonly busy: boolean;
-  /** The doctor and time chosen so far, so nobody submits blind. */
   readonly summary: JSX.Element;
 }): JSX.Element {
   const [touched, setTouched] = useState(false);

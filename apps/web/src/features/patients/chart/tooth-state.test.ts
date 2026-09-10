@@ -18,17 +18,11 @@ import {
 } from '@web/features/patients/chart/tooth-state';
 import { makeCatalogItem, makeLookupBundle, makeProcedure } from '@test/helpers/fixtures';
 
-/**
- * The clinic's own list, exactly as it is seeded — so what these tests assert
- * about precedence, halves and colours is what a real chart does, not what a
- * hand-written fixture allows.
- */
 const STATES: ToothStates = buildToothStates(
   makeLookupBundle()[LOOKUP_LIST.TOOTH_STATE] ?? [],
   'ar',
 );
 
-/** The same list with a state this clinic invented, in its own colour. */
 const VENEER = 'veneer';
 const WITH_CUSTOM: ToothStates = buildToothStates(
   makeLookupBundle({
@@ -58,7 +52,6 @@ const OUTCOMES: OutcomeLookup = new Map([
   [CATALOG.implant, PROCEDURE_OUTCOME.IMPLANT],
   [CATALOG.bridge, PROCEDURE_OUTCOME.BRIDGE],
   [CATALOG.extraction, PROCEDURE_OUTCOME.MISSING],
-  // A cleaning charts nothing.
   [CATALOG.cleaning, null],
 ]);
 
@@ -174,10 +167,6 @@ describe('tooth state derivation', () => {
       expect(new Set(fills).size).toBe(fills.length);
     });
 
-    /*
-     * The point of the whole exercise: a clinic adds a state with a colour in
-     * settings and the chart paints it, with no entry in any map here.
-     */
     it('paints a state the clinic added in the colour they chose', () => {
       expect(WITH_CUSTOM.info(VENEER).style).toMatchObject({
         fill: '#7c3aed',

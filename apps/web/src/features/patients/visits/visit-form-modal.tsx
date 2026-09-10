@@ -23,21 +23,17 @@ interface VisitFormModalProps {
   onOpenChange: (open: boolean) => void;
   patientId: string;
   doctors: readonly Doctor[];
-  /** Null records a visit; a row edits it. */
   visit: Visit | null;
 }
 
-/**
- * The form holds a visit's moment as local wall-clock `YYYY-MM-DDTHH:mm`,
- * which is what the two pickers edit as a date half and a time half.
- */
+// Local wall-clock `YYYY-MM-DDTHH:mm`, which is what the two pickers edit as a date half and a time
+// half.
 function toLocalInput(iso: string): string {
   const date = new Date(iso);
   const offset = date.getTimezoneOffset() * 60_000;
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 }
 
-/** Splits that value for the two controls, defaulting the time to the hour. */
 const splitLocal = (value: string): { date: string; time: string } => {
   const [date = '', time = ''] = value.split('T');
   return { date, time: time.slice(0, 5) };
@@ -49,13 +45,8 @@ const joinLocal = (date: string, time: string): string =>
 /** What the form holds: the same fields, with the date as local wall-clock time. */
 type VisitFormValues = Omit<CreateVisitInput, 'visitDate'> & { visitDate: string };
 
-/**
- * The clinical record of one encounter: what the patient came in with, what was
- * found, and what it was judged to be.
- *
- * These are exactly the fields ROLES.md keeps away from a receptionist, which is
- * why the whole tab is limited to admin and doctor.
- */
+// Exactly the fields ROLES.md keeps from a receptionist, which is why the whole tab is admin and
+// doctor only.
 export function VisitFormModal({
   open,
   onOpenChange,
@@ -116,11 +107,8 @@ export function VisitFormModal({
   }, [open, doctors, getValues, setValue]);
 
   const onSubmit = handleSubmit(async (values) => {
-    // The payload is validated, not the form: the date field holds local
-    // wall-clock time and only becomes an instant here, so checking the form
-    // against the shared schema would reject a value the API never sees. This
-    // way the one schema in `packages/shared` still decides, and it decides
-    // about exactly what is sent.
+    // The payload is validated, not the form: the field holds wall-clock time and only becomes an
+    // instant here, so the shared schema decides about what is actually sent.
     const payload = {
       ...values,
       patientId,
@@ -195,11 +183,6 @@ export function VisitFormModal({
           />
         </FormField>
 
-        {/*
-          One instant, two controls: a date and a quarter-hour time. Kept as a
-          single `visitDate` field so the schema and the API are unchanged —
-          the split is presentation, and the value is rejoined on every edit.
-        */}
         <FormField label="visits.date" htmlFor="visit-date" error={errors.visitDate}>
           <Controller
             control={control}

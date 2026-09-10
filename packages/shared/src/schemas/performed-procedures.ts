@@ -5,12 +5,8 @@ import { createChartMarkSchema, chartMarkSchema } from '@shared/schemas/chart-ma
 import { paginationQuerySchema } from '@shared/schemas/common';
 import { moneySchema, wholeMoneySchema } from '@shared/schemas/money';
 
-/**
- * A procedure carried out on a patient.
- *
- * `price` is a snapshot of the catalog price at the time, so a later catalog
- * change never rewrites history. The billing charge is derived from this row.
- */
+// `price` is a snapshot of the catalog price at the time, so a later catalog change never rewrites
+// history.
 export const performedProcedureSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),

@@ -12,7 +12,6 @@ import { cn } from '@web/lib/cn';
 import { Ltr } from '@web/components/ui/ltr';
 
 export interface DateRange {
-  /** ISO `yyyy-MM-dd`, or an empty string. */
   readonly from: string;
   readonly to: string;
 }
@@ -25,18 +24,8 @@ export interface DateRangePickerProps {
   readonly className?: string | undefined;
 }
 
-/**
- * One control for "between these two dates".
- *
- * Two separate date fields were what the statement and the audit log had, and
- * they let you ask for a range that runs backwards. Here the second click is
- * always the end, so the pair cannot be inverted — and the two dates are
- * chosen against the same visible month, which is the actual reason a range
- * picker exists.
- *
- * The button shows both dates rather than a count, because "01/09 — 30/09" is
- * the thing being verified before a statement is printed.
- */
+// The second click is always the end, so the pair cannot be inverted, and both dates are chosen
+// against the same visible month.
 export function DateRangePicker({
   id,
   value,
@@ -65,9 +54,8 @@ export function DateRangePicker({
           id={id}
           type="button"
           aria-label={label}
-          // This anchor is itself the control, so it opens on click, Enter and
-          // Space by being a button — and on ArrowDown like the other two.
-          // There is no text to type here, so it takes the focus every time.
+          // This anchor is itself the control, so it opens on click, Enter and Space by being a
+          // button. There is no text to type, so it takes focus every time.
           {...picker.opens(true)}
           onKeyDown={openOnArrowDown(picker.show)}
           className={cn(

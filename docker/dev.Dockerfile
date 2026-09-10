@@ -1,10 +1,6 @@
 # syntax=docker/dockerfile:1.7
-#
-# Single development image shared by the api and web services. The repository is
-# bind-mounted over /repo at run time and node_modules live in named volumes, so
-# this image only needs the toolchain plus a pre-warmed dependency tree that
-# seeds those volumes on first start.
-#
+# One image for api and web: the repo is bind-mounted and node_modules live in named volumes this
+# seeds on first start.
 ARG NODE_IMAGE=node:22.22-alpine
 
 FROM ${NODE_IMAGE}
@@ -25,7 +21,6 @@ COPY packages/shared/package.json packages/shared/
 COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
 
-# Full workspace install: this image runs both apps.
 RUN pnpm install --frozen-lockfile
 
 COPY docker/dev-api.sh docker/dev-web.sh docker/api-healthcheck.js /usr/local/bin/

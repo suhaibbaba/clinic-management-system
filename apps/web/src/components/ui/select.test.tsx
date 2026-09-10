@@ -29,12 +29,8 @@ function Host({ initial = '' }: { readonly initial?: string }): React.JSX.Elemen
   );
 }
 
-/**
- * The control is Radix's rather than the platform's, because on a clinic's
- * iPhone the platform's never opened — and a native picker is not part of the
- * page, so it can be neither reproduced nor regression-tested off the device.
- * These are the tests that a browser can actually run.
- */
+// Radix rather than the platform, because on a clinic's iPhone the native picker never opened — and
+// a native picker cannot be regression-tested off the device.
 describe('Select', () => {
   it('shows the placeholder while nothing is chosen', () => {
     render(<Host />);
@@ -66,9 +62,8 @@ describe('Select', () => {
   });
 
   it('goes back to nothing through the placeholder row', async () => {
-    // Radix reserves the empty string for clearing a selection, so the "no
-    // choice" row travels under a sentinel — and has to come back out as `''`,
-    // which is what every caller and every query string uses.
+    // Radix reserves the empty string for clearing a selection, so the "no choice" row travels
+    // under a sentinel and comes back out as `''`.
     render(<Host initial="samer" />);
 
     await userEvent.click(screen.getByRole('combobox', { name: 'الطبيب' }));

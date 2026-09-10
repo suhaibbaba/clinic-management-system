@@ -7,27 +7,13 @@ import { Alert, Button, ChoiceCard, Skeleton } from '@web/booking/ui';
 import type { AsyncState } from '@web/booking/use-async';
 import { bookingName } from '@web/booking/format';
 
-/**
- * The letter in the circle.
- *
- * "Dr. Layla Haddad" would otherwise be a circle with a D in it, and so would
- * every one of her colleagues — an avatar that tells two doctors apart is the
- * only reason to draw one. The honorific is stripped in both languages.
- */
+/** The honorific is stripped in both languages, or every doctor is a circle with a D in it. */
 const initial = (name: string): string => {
   const stripped = name.replace(/^\s*(?:د\.|dr\.?)\s*/i, '').trim(); // i18n-allow: an honorific being matched in stored data, not text on screen
 
   return (stripped[0] ?? name[0] ?? '').toUpperCase();
 };
 
-/**
- * Step one: who.
- *
- * Cards rather than a `<select>`: on a phone a native select is a wheel that
- * hides every option but one, and choosing a doctor is the decision this page
- * opens with. Name and specialty only — the public API returns nothing else,
- * deliberately (a weekly schedule is information about how the clinic runs).
- */
 export function DoctorStep({
   doctors,
   selectedId,

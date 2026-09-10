@@ -50,17 +50,8 @@ export function usePayments(query: Partial<ListPaymentsQuery>): UseQueryResult<P
   });
 }
 
-/**
- * Everything a payment touches is derived from the ledger, so recording one
- * invalidates the balance, the statement and the patient header together —
- * there is no cached total to patch by hand.
- *
- * The patients list and the dashboard are in that set too, and not as an
- * afterthought: the list can be filtered to the people who owe, and the
- * dashboard's overdue card is the clinic's total. Taking a payment can empty
- * a row out of one and move the other, so leaving either cached would show
- * money still owed that has just been handed over.
- */
+// Everything a payment touches is derived, so it invalidates the balance, the statement, the header
+// — and the patients list and dashboard, which can be filtered or totalled by what is owed.
 function useLedgerInvalidation(): () => Promise<void> {
   const queryClient = useQueryClient();
 

@@ -77,7 +77,6 @@ export function useAllergyFlags(id: string, enabled = true): UseQueryResult<Alle
   });
 }
 
-/** Backs the whole chart: every procedure, each with the teeth it touched. */
 export function usePatientProcedures(id: string): UseQueryResult<PerformedProcedure[]> {
   return useQuery({
     queryKey: [PATIENT_PROCEDURES_KEY, id],
@@ -111,15 +110,8 @@ export function useAttachment(id: string, enabled: boolean): UseQueryResult<Atta
   });
 }
 
-/**
- * Records a procedure and recolours the chart before the server answers.
- *
- * The optimistic entry is a real `PerformedProcedure` shape written into the
- * procedures cache, so the same derivation that colours the chart from server
- * data colours it from this — there is no second, "pending" code path. On
- * failure the previous cache is put back, so a rejected write never leaves a
- * tooth showing treatment it did not receive.
- */
+// The optimistic entry is a real `PerformedProcedure` written into the cache, so the same
+// derivation colours the chart and there is no second code path.
 export function useCreateProcedure(patientId: string) {
   const queryClient = useQueryClient();
   const key = [PATIENT_PROCEDURES_KEY, patientId];
@@ -208,12 +200,7 @@ export function useSaveVisit(patientId: string) {
   });
 }
 
-/**
- * Editing a procedure recorded inside a visit.
- *
- * Invalidates the chart's cache too: a price or a status change moves the tooth
- * it was recorded on, and the chart must not keep showing the old one.
- */
+/** Invalidates the chart too: a price or status change moves the tooth it was recorded on. */
 export function useUpdateProcedure(patientId: string) {
   const queryClient = useQueryClient();
 
@@ -263,12 +250,6 @@ export function useUpdatePlanItem(patientId: string) {
   });
 }
 
-/**
- * `POST /plan-items/:id/convert`.
- *
- * The item becomes a performed procedure, so both the plan and everything the
- * new procedure feeds — the chart, the tooth history — are refetched.
- */
 export function useConvertPlanItem(patientId: string) {
   const queryClient = useQueryClient();
 
@@ -301,14 +282,8 @@ export interface UploadAttachmentInput {
   readonly visitId?: string | null | undefined;
 }
 
-/**
- * The three-step upload: presign, PUT straight to storage, confirm.
- *
- * Bytes never pass through the API. The key comes back from the presign step
- * and is echoed to confirm untouched — the client never builds one, and the
- * API re-reads the real size and content type from the bucket rather than
- * trusting anything sent here.
- */
+// Bytes never pass through the API: the key comes back from presign and is echoed to confirm
+// untouched, and the API re-reads the real size and type from the bucket.
 export function useUploadAttachment(patientId: string) {
   const queryClient = useQueryClient();
 
@@ -349,7 +324,6 @@ export function useDeleteAttachment(patientId: string) {
   });
 }
 
-/** The merged patient stream — visits, procedures, images, lab work. */
 export function usePatientTimeline(patientId: string): UseQueryResult<Paginated<TimelineEntry>> {
   return useQuery({
     queryKey: [PATIENT_TIMELINE_KEY, patientId],

@@ -8,18 +8,8 @@ import postgres from 'postgres';
 import { clinics, users } from '@api/database/schema';
 import { upsertUser, type SeedAccount } from '@api/database/seed-users';
 
-/**
- * The seed has to recognise the account it seeded last time.
- *
- * It stopped doing so, and the cost was the sandbox. The lookup was on the
- * phone alone; the day the seeded numbers moved from `+963` to `+970` it
- * missed, the seed tried to *insert* an account that was already there, and
- * `users_email_uniq` rejected it. A failed seed exits the API container, so a
- * changed string in a constant took the deployment down — the same shape as
- * the duplicate-clinic bug one table over, and the reason both of these are
- * tested against a real database rather than a mock: the whole bug lived in
- * what a `where` clause did or did not match.
- */
+// The seed must recognise the account it seeded last time: matching on phone alone missed when the
+// numbers moved, and `users_email_uniq` failed the seed and exited the container.
 describe('the seed accounts', () => {
   let client: ReturnType<typeof postgres>;
   let db: ReturnType<typeof drizzle>;
@@ -57,13 +47,8 @@ describe('the seed accounts', () => {
 
   const HASH = '$argon2id$v=19$m=19456,t=2,p=1$c2VlZHNlZWQ$c2VlZHNlZWRzZWVkc2VlZHNlZWRzZWVk';
 
-  /**
-   * An account nobody else in the suite can collide with.
-   *
-   * Both identifiers are unique system-wide and this database is shared with
-   * every other spec, so neither may be a literal — a hardcoded number is a
-   * test that passes until something else in the run happens to take it.
-   */
+  // Both identifiers are unique system-wide and this database is shared with every other spec, so
+  // neither may be a literal.
   let serial = 0;
   function account(overrides: Partial<SeedAccount> = {}): SeedAccount {
     const handle = randomUUID().slice(0, 8);
@@ -136,11 +121,8 @@ describe('the seed accounts', () => {
     expect(await read(existing.id)).toMatchObject({ email: after.email });
   });
 
-  /*
-   * Both identifiers are unique system-wide, so "bring it into line" cannot be
-   * unconditional: the seed says what it could not do rather than failing, and
-   * rather than printing a sign-in that would not work.
-   */
+  // Both identifiers are unique system-wide, so bringing one into line cannot be unconditional: the
+  // seed says what it could not do rather than printing a sign-in that would not work.
   it('leaves an identifier alone when another account holds it, and says so', async () => {
     const squatter = account();
     await upsertUser(db, clinicId, squatter, HASH);

@@ -33,14 +33,8 @@ const TIME_ZONE = 'Asia/Damascus';
 const HOUR = 3_600_000;
 const MINUTE = 60_000;
 
-/**
- * The next Monday **in the clinic's own zone**.
- *
- * Stepping a UTC date forward is wrong for three hours out of every day: at
- * 22:00 UTC on a Sunday it is already Monday in Damascus, so "one day ahead"
- * lands on Tuesday and the fixture schedule does not apply — which turned this
- * whole suite red every evening. Walking local dates is right at every hour.
- */
+// Stepping a UTC date forward is wrong for three hours a day: at 22:00 UTC Sunday it is already
+// Monday in Damascus, so the fixture schedule missed and the suite went red every evening.
 function nextMonday(): string {
   let date = localDate(new Date(), TIME_ZONE);
 
@@ -89,14 +83,8 @@ describe('Notifications and schedulers (e2e)', () => {
     },
   });
 
-  /**
-   * Another doctor in the same clinic.
-   *
-   * The reminder window is ten minutes wide, so two appointments due for the
-   * same reminder are minutes apart — which one doctor cannot have, because the
-   * overlap constraint is real. A test that needs its own reminder needs its
-   * own diary.
-   */
+  // Two appointments due for the same reminder are minutes apart, which one doctor cannot have: the
+  // overlap constraint is real, so a second reminder needs a second diary.
   async function createDoctor(): Promise<string> {
     const suffix = randomUUID().replaceAll('-', '').slice(0, 10);
 
@@ -130,7 +118,6 @@ describe('Notifications and schedulers (e2e)', () => {
     return doctor.id;
   }
 
-  /** Puts an appointment straight into the table, at a time the test chooses. */
   async function insertAppointment(values: {
     startsAt: Date;
     doctorId?: string;
@@ -157,7 +144,6 @@ describe('Notifications and schedulers (e2e)', () => {
     return row.id;
   }
 
-  /** Every message logged for one appointment. */
   async function logged(appointmentId: string) {
     return context.db
       .select({
@@ -250,9 +236,8 @@ describe('Notifications and schedulers (e2e)', () => {
         vars: { doctor: 'د. سامي' },
       });
 
-      // `{branch}` stays visible: a message reading "في {branch}" is a bug
-      // somebody reports, where "في " is a message that looks fine and says
-      // nothing.
+      // `{branch}` stays visible: "في {branch}" is a bug somebody reports, where "في " looks fine
+      // and says nothing.
       expect(result?.body).toBe('موعدك مع د. سامي في {branch}');
     });
 
@@ -268,9 +253,8 @@ describe('Notifications and schedulers (e2e)', () => {
 
       expect(result?.status).toBe(NOTIFICATION_STATUS.FAILED);
 
-      // The row exists because it is written *before* the provider is called:
-      // a send that vanishes without a trace is the one failure a notification
-      // log exists to prevent.
+      // The row exists because it is written before the provider is called — a send that vanishes
+      // is the one failure the log exists to prevent.
       const [row] = await context.db
         .select({ status: notificationsLog.status, error: notificationsLog.error })
         .from(notificationsLog)

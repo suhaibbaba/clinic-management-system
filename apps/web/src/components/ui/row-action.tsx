@@ -5,12 +5,7 @@ import { cn } from '@web/lib/cn';
 export type RowActionTone = 'primary' | 'quiet';
 
 export interface RowActionProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  /** Leading icon, 16px — pass an `<Icon>`; it is sized here. */
   readonly icon?: ReactNode | undefined;
-  /**
-   * `primary` is the row's one blue action. `quiet` is grey until hovered, for
-   * the second and third actions on a row that has more than one.
-   */
   readonly tone?: RowActionTone | undefined;
   readonly children: ReactNode;
 }
@@ -20,18 +15,8 @@ const TONES: Record<RowActionTone, string> = {
   quiet: 'text-ink-muted hover:text-ink',
 };
 
-/**
- * A row's action, as text rather than as a button.
- *
- * A table of ten rows with two filled pills each is twenty pills, and the page
- * stops having a primary action at all. The design language answers that with
- * blue text in the last column — the patients list already did it by hand, and
- * this is that recipe with a name so users and doctors read the same.
- *
- * `whitespace-nowrap` is not cosmetic: "Reset password" in a column sized to
- * the shortest label wrapped to two lines and dragged its icon along with it,
- * which is what a row action must never do.
- */
+// Text rather than a button: ten rows with two filled pills each is twenty pills and no primary
+// action. `whitespace-nowrap`, or a long label wraps and drags its icon along.
 export function RowAction({
   icon,
   tone = 'primary',
@@ -45,11 +30,8 @@ export function RowAction({
       type={type}
       className={cn(
         'inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap',
-        // Blue text on a desktop row; the same blue text inside a 44px box on
-        // a phone, where the row is a card and this is a thumb target. Square,
-        // because a two-syllable Arabic label — "قبول", "رفض" on the pending
-        // bookings list — is 30px of text inside `px-1` and drew a 38px-wide
-        // target that was the full 44 tall.
+        // Square on touch: a two-syllable Arabic label inside `px-1` drew a 38px-wide target that
+        // was the full 44 tall.
         'min-h-11 min-w-11 rounded-control px-1 py-0.5 text-value font-medium',
         'lg:min-h-0 lg:min-w-0',
         'transition-colors duration-150',

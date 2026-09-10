@@ -31,7 +31,6 @@ const today = new Date();
 const iso = (at: Date): string =>
   `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(at.getDate()).padStart(2, '0')}`;
 
-/** An appointment at a wall-clock hour today, in whatever zone the test runs in. */
 function appointmentAt(hour: number, overrides: Record<string, unknown> = {}) {
   const startsAt = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hour, 0);
 
@@ -65,9 +64,8 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse | unkno
   return {
     'POST /auth/refresh': { status: 200, body: { accessToken: 'access', expiresIn: 900 } },
     'GET /me': { status: 200, body: makeProfile({ role }) },
-    // The calendar draws in the *clinic's* zone, so a test that builds its
-    // fixtures with the machine's has to say the two are the same. The zone
-    // itself is exercised by the last test in this file.
+    // The calendar draws in the clinic's zone, so a test building fixtures with the machine's has
+    // to say the two are the same.
     'GET /clinic': { status: 200, body: { ...makeClinic(), settings: { timezone: 'UTC' } } },
     'GET /doctors': {
       status: 200,
@@ -124,10 +122,8 @@ function Address(): JSX.Element {
   return <span data-testid="address">{`${location.pathname}${location.search}`}</span>;
 }
 
-/**
- * The calendar, as distinct from the today ribbon above it — the two draw some
- * of the same appointments, so a bare `getByRole` finds both.
- */
+// Distinct from the today ribbon above it: the two draw some of the same appointments, so a bare
+// `getByRole` finds both.
 const calendar = () => screen.findByRole('region', { name: ar.appointments.title });
 
 const block = async (time: RegExp) => within(await calendar()).findByRole('button', { name: time });
@@ -198,11 +194,6 @@ describe('Appointments page', () => {
   });
 
   it('opens the view the address names, and leaves the default out of it', async () => {
-    /*
-     * "Look at Tuesday", "here is Dr Haddad's day" — the calendar's three
-     * coordinates are in the URL, so a link can say them. In `useState` a link
-     * to this screen could only ever open today, every doctor, in the week.
-     */
     await renderCalendar(USER_ROLE.RECEPTIONIST, {}, '/appointments?view=day');
 
     await block(/10:00/);
@@ -238,10 +229,8 @@ describe('Appointments page', () => {
   });
 
   it('draws times in the clinic’s zone, not the browser’s', async () => {
-    // The bug this guards: the API books in the clinic's zone. Drawing in the
-    // browser's would show 10:00 where the API booked 13:00 on any machine
-    // whose clock is set elsewhere — and the grid would disagree with the
-    // availability endpoint about what a day contains.
+    // The API books in the clinic's zone: drawing in the browser's would show 10:00 where it booked
+    // 13:00, and disagree with availability about the day.
     await renderCalendar(USER_ROLE.RECEPTIONIST, {
       'GET /clinic': {
         status: 200,
@@ -263,9 +252,8 @@ describe('Appointments page', () => {
 
     const dialog = await screen.findByRole('dialog');
 
-    // Slots only exist once a doctor is chosen — "availability for no doctor"
-    // is not a question, and asking it would put an error in front of someone
-    // who has simply not finished filling the form in.
+    // Slots exist only once a doctor is chosen — asking for "availability for no doctor" would put
+    // an error in front of a half-filled form.
     expect(within(dialog).queryAllByRole('radio')).toHaveLength(0);
 
     await choose(within(dialog).getByLabelText(ar.appointments.doctor), 'د. ليلى حداد');

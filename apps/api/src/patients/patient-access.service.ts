@@ -9,12 +9,8 @@ import { patients } from '@api/database/schema';
 
 export type PatientRow = typeof patients.$inferSelect;
 
-/**
- * Checks every patient-scoped endpoint shares.
- *
- * A patient id that belongs to another clinic is reported as 404, never 403 —
- * a 403 would confirm the record exists somewhere (ROLES.md global rule 1).
- */
+// A patient id from another clinic is 404, never 403 — a 403 would confirm the record exists
+// somewhere.
 @Injectable()
 export class PatientAccessService {
   constructor(
@@ -22,12 +18,10 @@ export class PatientAccessService {
     private readonly scope: ClinicScopeService,
   ) {}
 
-  /** Loads the patient within the caller's clinic, or throws 404. */
   async requirePatient(actor: AuthenticatedUser, patientId: string): Promise<PatientRow> {
     return this.scope.findOneOrFail<PatientRow>(patients, actor.clinicId, patientId);
   }
 
-  /** Cheap existence check for endpoints that do not need the row itself. */
   async requirePatientId(actor: AuthenticatedUser, patientId: string): Promise<string> {
     const [row] = await this.db
       .select({ id: patients.id })
@@ -42,24 +36,14 @@ export class PatientAccessService {
     return patientId;
   }
 
-  /**
-   * Whether the caller may see clinical detail at all.
-   *
-   * ROLES.md: admin and doctor receive `PatientClinicalView`; receptionist and
-   * technician receive `PatientPublicView` and no clinical records.
-   */
+  // ROLES.md: admin and doctor receive `PatientClinicalView`; receptionist and technician receive
+  // `PatientPublicView`.
   static seesClinicalData(role: UserRole): boolean {
     return role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR;
   }
 
-  /**
-   * Whether the caller may see what a patient owes.
-   *
-   * ROLES.md lists `balance` on `PatientPublicView`, which goes to both the
-   * receptionist and the technician — but the field rules say a technician
-   * response must never carry financial patient data. The narrower rule wins,
-   * so the technician is the one role that sees no money.
-   */
+  // The matrix lists `balance` on `PatientPublicView`, but the field rules bar a technician from
+  // financial data — the narrower rule wins.
   static seesFinancialData(role: UserRole): boolean {
     return role !== USER_ROLE.TECHNICIAN;
   }

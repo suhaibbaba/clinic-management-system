@@ -32,27 +32,8 @@ type LookupRow = typeof lookupOptions.$inferSelect;
 
 export const LOOKUP_OPTIONS_ENTITY = 'lookup_options';
 
-/**
- * The editable lists, and the one place that decides what may be done to them.
- *
- * Reading is open to every signed-in role: a dropdown is not a permission, and
- * every screen in the app needs these. Writing is admin-only (ROLES.md core
- * matrix, "Clinic settings, templates") — a list is settings.
- *
- * Every row of every list is the clinic's to rename, recolour, switch off or
- * remove — the built-in ones included. `is_system` survives as a *label*: it
- * says the application ships behaviour keyed to that code, so the screen can
- * warn before it goes, but it no longer refuses anything. A clinic that never
- * takes an X-ray should be able to empty that list, and the alternative was a
- * settings screen with rows nobody could explain away.
- *
- * What removing one costs is worth stating plainly, because it is the price of
- * the freedom: records already holding the code keep it and fall back to
- * showing the code where the name used to be, new records may no longer be
- * written with it (`assertCode` reads the live list), and the tooth chart's
- * special drawing for `missing`, `implant` and `bridge` has nothing left to
- * attach to. Nothing is corrupted; a name simply stops resolving.
- */
+// Every row is the clinic's to rename, switch off or delete, built-in ones included: `is_system` is
+// a label the screen warns on, not a lock. A deleted code stops resolving; nothing is corrupted.
 @Injectable()
 export class LookupsService implements OnModuleInit {
   constructor(
@@ -73,14 +54,8 @@ export class LookupsService implements OnModuleInit {
     });
   }
 
-  /**
-   * Every list at once, keyed by list.
-   *
-   * The client caches this whole bundle rather than asking per dropdown: it is
-   * a few kilobytes, nearly every screen needs some of it, and one response
-   * invalidated as a unit cannot leave two dropdowns disagreeing about the
-   * same list.
-   */
+  // One cached bundle rather than a request per dropdown: a few kilobytes, and one response
+  // invalidated as a unit cannot leave two dropdowns disagreeing.
   async bundle(actor: AuthenticatedUser, query: ListLookupOptionsQuery): Promise<LookupBundle> {
     const filters: (SQL | undefined)[] = [];
 
@@ -155,15 +130,8 @@ export class LookupsService implements OnModuleInit {
     return toLookupOption(row);
   }
 
-  /**
-   * Name, colour and whether it is offered at all — on every row, built-in ones
-   * included. "نقداً" may well be "خالص" in this clinic, and a clinic that
-   * never fits a bridge should not have to keep it in the dropdown.
-   *
-   * The code is the one thing `updateLookupOptionSchema` does not accept, and
-   * that is what makes the rest safe: an option switched off still resolves to
-   * a name for every record that already refers to it.
-   */
+  // The code is the one thing the update schema does not accept, which is what makes the rest safe:
+  // a switched-off option still resolves to a name.
   async update(
     actor: AuthenticatedUser,
     id: string,
@@ -193,13 +161,8 @@ export class LookupsService implements OnModuleInit {
     return toLookupOption(row);
   }
 
-  /**
-   * The order the list is drawn in, sent back whole after a drag.
-   *
-   * Whole rather than "move this one to position 4": two people reordering at
-   * once would otherwise interleave into an order neither of them chose, and
-   * the payload is a handful of ids.
-   */
+  // Sent back whole rather than "move this to 4": two people reordering at once would otherwise
+  // interleave into an order neither chose.
   async reorder(
     actor: AuthenticatedUser,
     input: ReorderLookupOptionsInput,
@@ -234,19 +197,8 @@ export class LookupsService implements OnModuleInit {
     ] as LookupOption[];
   }
 
-  /**
-   * Soft delete, on any row.
-   *
-   * Soft because the code is still spoken for: rows elsewhere hold it and the
-   * unique index keeps reserving it, so it can never be handed to a second
-   * option and start meaning two things.
-   *
-   * It is the heavier of the two ways to retire an option, and the screen says
-   * so. **Switching one off** takes it out of every dropdown but leaves it
-   * resolving to its name, so last year's receipt still reads "نقداً".
-   * **Deleting** it takes the name with it, and records that hold the code fall
-   * back to printing the code. Both are the clinic's call to make.
-   */
+  // Soft, because the code is still spoken for and the unique index keeps reserving it. Switching
+  // off leaves the name resolving; deleting takes it, and records fall back to the code.
   async remove(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.requireRow(actor.clinicId, id);
 
@@ -256,13 +208,8 @@ export class LookupsService implements OnModuleInit {
       .where(this.scope.where(lookupOptions, actor.clinicId, eq(lookupOptions.id, id)));
   }
 
-  /**
-   * Refuses a code that is not on this clinic's list.
-   *
-   * The Zod schemas accept any well-formed code — they cannot know what a
-   * given clinic holds — so this is where "is that a real appointment type"
-   * is actually answered, next to the data that answers it.
-   */
+  // The Zod schemas accept any well-formed code — they cannot know what a clinic holds — so "is
+  // that a real appointment type" is answered here.
   async assertCode(clinicId: string, listKey: LookupListKey, code: string): Promise<void> {
     const [row] = await this.db
       .select({ id: lookupOptions.id })
@@ -283,17 +230,8 @@ export class LookupsService implements OnModuleInit {
     }
   }
 
-  /**
-   * The same check for a procedure's chart outcome, plus the one thing that
-   * distinguishes it: a procedure may not leave a tooth `healthy`.
-   *
-   * The chart's states and the outcomes a procedure produces are one list — a
-   * clinic that adds "veneer" wants it painted *and* selectable — but three of
-   * the built-in rows describe a tooth rather than something done to one, and
-   * they say so in their own `chartBehavior.stateOnly`. Read from the row
-   * rather than from a second hardcoded list, so a clinic that renames
-   * "سليم" does not quietly re-open it as an outcome.
-   */
+  // A procedure may not leave a tooth `healthy`: the state-only rows say so in their own
+  // `chartBehavior`, read from the row rather than a second hardcoded list.
   async assertChartOutcome(clinicId: string, code: string | null | undefined): Promise<void> {
     if (code === null || code === undefined || code === '') {
       return;
@@ -319,7 +257,6 @@ export class LookupsService implements OnModuleInit {
     }
   }
 
-  /** Same check, for an optional field. */
   async assertOptionalCode(
     clinicId: string,
     listKey: LookupListKey,
@@ -330,13 +267,8 @@ export class LookupsService implements OnModuleInit {
     }
   }
 
-  /**
-   * Code → label, in one language, for one list.
-   *
-   * What the printed documents use: a receipt says "نقداً" because that is
-   * what this clinic calls `cash`, and an English receipt says whatever they
-   * called it in English.
-   */
+  // What the printed documents use: a receipt says whatever this clinic calls `cash`, in the
+  // document's language.
   async labels(
     clinicId: string,
     listKey: LookupListKey,
@@ -364,10 +296,8 @@ export class LookupsService implements OnModuleInit {
     return this.scope.findOneOrFail<LookupRow>(lookupOptions, clinicId, id);
   }
 
-  /**
-   * A code is unique per list per clinic — including against soft-deleted rows,
-   * because a deleted row's code may still be sitting in an appointment.
-   */
+  // Unique per list per clinic including against soft-deleted rows — a deleted row's code may still
+  // be sitting in an appointment.
   private async assertCodeIsFree(
     clinicId: string,
     listKey: LookupListKey,
@@ -409,14 +339,8 @@ export function toLookupOption(row: LookupRow): LookupOption {
   };
 }
 
-/**
- * "Night guard" → `night_guard`.
- *
- * Derived rather than demanded: a person adding a payment method should not
- * have to invent an identifier, and the one they would invent is this. Falls
- * back to a timestamped code when the name is entirely non-Latin — an Arabic
- * name transliterates to nothing useful, and a code is not read by anybody.
- */
+// Derived rather than demanded — nobody adding a payment method should have to invent an
+// identifier. A wholly non-Latin name falls back to a timestamped code.
 function deriveCode(name: string): string {
   const slug = name
     .toLowerCase()
@@ -427,7 +351,6 @@ function deriveCode(name: string): string {
   return slug === '' ? `opt_${Date.now().toString(36)}` : slug;
 }
 
-/** Reads the chart's half of a tooth-state row's `meta`, if it has one. */
 function chartBehaviour(meta: unknown): ToothChartBehaviour | undefined {
   const behaviour = (meta as { chartBehavior?: unknown } | null)?.chartBehavior;
 

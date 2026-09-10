@@ -3,24 +3,13 @@ import { useTranslation } from 'react-i18next';
 
 import { cn } from '@web/lib/cn';
 
-/**
- * The five surfaces of a tooth, in the order the selector draws them.
- *
- * Codes match `TOOTH_SURFACES` in `packages/shared`, which is what the API
- * stores on a chart mark.
- */
+/** Codes match `TOOTH_SURFACES` in the shared package, which is what the API stores on a chart mark. */
 export const SELECTABLE_SURFACES = ['B', 'M', 'O', 'D', 'L'] as const;
 export type SelectableSurface = (typeof SELECTABLE_SURFACES)[number];
 
 const BOX = 120;
 const INSET = 34;
 
-/**
- * Zone outlines: a centre square for the biting surface, with four trapezoids
- * around it. This is the schematic every dental chart uses — it is not a view
- * from any particular angle, which is why each zone is labelled by name rather
- * than left to be inferred from where it sits.
- */
 const ZONES: Record<SelectableSurface, { points: string; labelX: number; labelY: number }> = {
   B: {
     points: `0,0 ${BOX},0 ${BOX - INSET},${INSET} ${INSET},${INSET}`,
@@ -56,13 +45,8 @@ export interface SurfaceSelectorProps {
   readonly readOnly?: boolean | undefined;
 }
 
-/**
- * Five-zone surface picker.
- *
- * Each zone is a real toggle button, so it is reachable by keyboard and
- * announced with its own name and pressed state — a set of SVG polygons with
- * click handlers would be neither.
- */
+// Each zone is a real toggle button, so it is reachable by keyboard and announced with its name and
+// pressed state.
 export function SurfaceSelector({
   value,
   onChange,

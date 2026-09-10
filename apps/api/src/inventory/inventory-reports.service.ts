@@ -24,14 +24,8 @@ import { InventoryItemsService } from '@api/inventory/inventory-items.service';
 import { StockService } from '@api/inventory/stock.service';
 import { SuppliersService } from '@api/inventory/suppliers.service';
 
-/**
- * The three questions the cupboard is asked that are not "how much of this is
- * there": what needs attention, what to buy, and what has been spent with whom.
- *
- * All three read the same computed stock as the items screen — there is one
- * definition of "low" and one of "expiring" in this module, and it lives in
- * `StockService` beside the numbers it judges.
- */
+// All three read the same computed stock as the items screen: one definition of "low" and one of
+// "expiring", in `StockService`.
 @Injectable()
 export class InventoryReportsService {
   constructor(
@@ -41,14 +35,8 @@ export class InventoryReportsService {
     private readonly suppliersService: SuppliersService,
   ) {}
 
-  /**
-   * What needs attention, in three lists.
-   *
-   * Whole lists rather than a page: this is the endpoint behind an alert, and
-   * an alert that says "5 items are low (of the first 20 checked)" is worse
-   * than no alert. Active items only — a retired item's leftovers are not
-   * something anybody is going to reorder.
-   */
+  // Whole lists rather than a page: "5 items are low (of the first 20 checked)" is worse than no
+  // alert. Active items only.
   async alerts(actor: AuthenticatedUser): Promise<InventoryAlerts> {
     const warningDays = await this.stock.expiryWarningDays(actor.clinicId);
     const rows = await this.activeItems(actor.clinicId);
@@ -62,14 +50,6 @@ export class InventoryReportsService {
     };
   }
 
-  /**
-   * What to buy, and roughly how much of it.
-   *
-   * `min × 2 − current` clears the minimum and leaves the same amount again as
-   * cover, so the clinic is not back on this screen next week. It is a
-   * starting figure printed on a sheet somebody takes to a supplier — not an
-   * order, and not a commitment.
-   */
   async shoppingList(actor: AuthenticatedUser): Promise<ShoppingList> {
     const { low } = await this.alerts(actor);
 
@@ -79,13 +59,8 @@ export class InventoryReportsService {
     };
   }
 
-  /**
-   * What has been bought from one supplier, and what it cost.
-   *
-   * Purchases only: a consumption has no supplier, and a line without a price
-   * still appears — the clinic did buy it, they just never typed what it cost,
-   * and dropping the line would hide the purchase as well as the price.
-   */
+  // Purchases only, and a line with no price still appears — the clinic did buy it, and dropping
+  // the line would hide the purchase as well.
   async supplierStatement(
     actor: AuthenticatedUser,
     supplierId: string,
@@ -146,7 +121,6 @@ export class InventoryReportsService {
     };
   }
 
-  /** Every live, active item in the clinic, with its default supplier's name. */
   private async activeItems(
     clinicId: string,
   ): Promise<(typeof inventoryItems.$inferSelect & { supplierName: string | null })[]> {
@@ -191,21 +165,15 @@ function toShoppingLine(item: InventoryItemRow): ShoppingListLine {
     unit: item.unit,
     quantity: item.quantity,
     minQuantity: item.minQuantity,
-    // A count that has gone below zero would otherwise suggest buying more
-    // than twice the minimum; the shortfall is real, the count is what is
-    // wrong, and a shopping list is not the place to argue about it.
+    // A count below zero would otherwise suggest buying more than twice the minimum; the count is
+    // what is wrong, and a shopping list is not the place to argue.
     suggested: compareQuantity(suggested, '0') > 0 ? suggested : '0',
     supplierName: item.supplierName,
   };
 }
 
-/**
- * quantity × unit price, in integers.
- *
- * Thousandths times cents is millionths, so the product is rounded back to
- * cents once at the end rather than at each step — 2.5 boxes at 3.33 is 8.325,
- * which is 8.33 and not 8.32.
- */
+// Thousandths times cents is millionths, so it is rounded back to cents once at the end: 2.5 at
+// 3.33 is 8.33, not 8.32.
 function lineTotal(quantity: string, unitPrice: string): string {
   const millionths = toThousandths(quantity) * toMinorUnits(unitPrice);
 

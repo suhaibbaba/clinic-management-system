@@ -50,8 +50,6 @@ export const labsApi = {
   update: (id: string, body: UpdateLabInput) =>
     apiRequest<Lab>(`/labs/${id}`, { method: 'PATCH', body }),
 
-  /* ----------------------------- Price list ----------------------------- */
-
   workTypes: (labId: string, includeInactive = false) =>
     apiRequest<LabWorkType[]>(`/labs/${labId}/work-types${query({ includeInactive })}`),
 
@@ -60,8 +58,6 @@ export const labsApi = {
 
   updateWorkType: (id: string, body: UpdateLabWorkTypeInput) =>
     apiRequest<LabWorkType>(`/labs/work-types/${id}`, { method: 'PATCH', body }),
-
-  /* -------------------------------- Money ------------------------------- */
 
   balance: (labId: string) => apiRequest<LabBalance>(`/labs/${labId}/balance`),
 
@@ -95,13 +91,6 @@ export const labOrdersApi = {
   update: (id: string, body: UpdateLabOrderInput) =>
     apiRequest<LabOrderRow>(`/lab-orders/${id}`, { method: 'PATCH', body }),
 
-  /**
-   * The transitions, one call per act.
-   *
-   * Named after what somebody does rather than after the status they land on —
-   * the same reasoning as the appointment steps, and what makes both the audit
-   * trail and the buttons on the board readable.
-   */
   send: (id: string) => apiRequest<LabOrderRow>(`/lab-orders/${id}/send`, { method: 'PATCH' }),
   ready: (id: string) => apiRequest<LabOrderRow>(`/lab-orders/${id}/ready`, { method: 'PATCH' }),
   receive: (id: string) =>
@@ -113,11 +102,8 @@ export const labOrdersApi = {
 
   attachments: (id: string) => apiRequest<LabOrderAttachment[]>(`/lab-orders/${id}/attachments`),
 
-  /**
-   * The same three-step upload as an X-ray: presign, PUT the bytes straight to
-   * storage, then confirm — the API re-reads the object's real size and type
-   * from the bucket, so nothing sent from here is trusted.
-   */
+  // Presign, PUT, confirm — the API re-reads the object's real size and type from the bucket, so
+  // nothing sent from here is trusted.
   presignAttachment: (id: string, body: PresignLabAttachmentInput) =>
     apiRequest<PresignAttachmentUploadResponse>(`/lab-orders/${id}/attachments/presign`, {
       method: 'POST',
@@ -130,6 +116,5 @@ export const labOrdersApi = {
   deleteAttachment: (id: string, attachmentId: string) =>
     apiRequest<void>(`/lab-orders/${id}/attachments/${attachmentId}`, { method: 'DELETE' }),
 
-  /** The sheet that goes to the lab, as a PDF the browser can print. */
   sheetPdf: (id: string): Promise<Blob> => apiDownload(`/lab-orders/${id}/print`),
 };

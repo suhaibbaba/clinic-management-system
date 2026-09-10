@@ -1,47 +1,15 @@
-/**
- * The brand mark, as path geometry pdf-lib can draw.
- *
- * This is a deliberate second copy of `apps/web/src/assets/logo.svg`. The API
- * cannot import from `apps/web` — they are separate packages and separate
- * images — and pdf-lib draws path geometry rather than SVG documents, so the
- * file could not be embedded verbatim even if it were reachable.
- *
- * A second copy is a chance to diverge, so `brand-mark.spec.ts` reads the web
- * logo and fails if these paths no longer match it. Replacing the logo is
- * still one file for the artwork plus this one for print, and the suite says
- * so out loud instead of letting receipts keep an old mark for months.
- *
- * What is copied is the emblem — every path the artwork draws itself. The
- * wordmark beside it is not: the logo sets it as glyph outlines, and the
- * letterhead already prints the clinic's own name in its own script directly
- * under this. Printing a second, Latin, name of the software over it would be
- * the wrong name in the wrong language.
- *
- * Only fills and simple strokes survive the trip: gradients, embedded images
- * and text in a logo have no equivalent here. `RtlPdf.mark` renders what it
- * can and the letterhead stands on its own without it, so a logo this cannot
- * express costs a mark on the PDF, never a failed receipt.
- *
- * This is the *fallback*. A clinic that has uploaded its own logo gets that
- * one on its documents; this is what prints until it does.
- */
+// A deliberate second copy of the web logo's emblem — pdf-lib draws path geometry, not SVG — and
+// `brand-mark.spec.ts` fails if the paths drift apart.
 
 export interface MarkPath {
-  /** SVG path data, in the mark's own viewBox coordinates. */
   readonly d: string;
   readonly fill?: readonly [number, number, number];
   readonly stroke?: readonly [number, number, number];
   readonly strokeWidth?: number;
 }
 
-/**
- * The emblem's own box inside the logo's coordinate space.
- *
- * The paths below keep the coordinates the artwork gave them, so the box says
- * where they actually are rather than asking anybody to shift them: `mark`
- * translates and scales by this, and re-copying the logo means copying its
- * numbers unchanged.
- */
+// The paths keep the artwork's own coordinates, so re-copying the logo means copying its numbers
+// unchanged; `mark` translates and scales by this.
 export interface MarkViewBox {
   readonly x: number;
   readonly y: number;
@@ -56,7 +24,6 @@ export const MARK_VIEWBOX: MarkViewBox = {
   height: 325.2695,
 };
 
-/** The logo's own two values, as pdf-lib wants them: 0–1 per channel. */
 const BRAND_BLUE = [0.1923, 0.4254, 0.6104] as const;
 const BRAND_GREEN = [0.304, 0.758, 0.5689] as const;
 

@@ -5,7 +5,6 @@ import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
 import { signedMoneySchema } from '@shared/schemas/money';
 import { phoneSchema } from '@shared/schemas/users';
 
-/** `:patientId` route parameter of every patient-nested route. */
 export const patientIdParamSchema = z.object({ patientId: uuidSchema });
 export type PatientIdParam = z.infer<typeof patientIdParamSchema>;
 
@@ -15,13 +14,8 @@ export const dateOnlySchema = z
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected a YYYY-MM-DD date')
   .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00Z`)), 'Not a valid date');
 
-/**
- * Everything on the patient file.
- *
- * ROLES.md calls this `PatientClinicalView` — admin and doctor only. It is the
- * full row minus nothing, because no field here is more sensitive than the
- * record's existence; the clinical detail lives in the related tables.
- */
+// ROLES.md `PatientClinicalView` — admin and doctor only. The clinical detail itself lives in the
+// related tables.
 export const patientClinicalViewSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
@@ -43,15 +37,8 @@ export const patientClinicalViewSchema = z.object({
 });
 export type PatientClinicalView = z.infer<typeof patientClinicalViewSchema>;
 
-/**
- * ROLES.md `PatientPublicView` — what a receptionist or technician receives.
- *
- * `balance` is present for a receptionist and absent for a technician: the
- * matrix lists the field on this view, but the field rules say a technician
- * response must never include financial patient data, and the narrower rule
- * wins. It is computed from the ledgers on every read and stored nowhere
- * (CLAUDE.md: never store a balance).
- */
+// ROLES.md `PatientPublicView` — what a receptionist or technician receives. `balance` reaches a
+// receptionist but never a technician: the field rules are narrower than the matrix and win.
 export const patientPublicViewSchema = patientClinicalViewSchema
   .pick({
     id: true,
@@ -63,7 +50,6 @@ export const patientPublicViewSchema = patientClinicalViewSchema
   .extend({ balance: signedMoneySchema.optional() });
 export type PatientPublicView = z.infer<typeof patientPublicViewSchema>;
 
-/** Either shape, depending on the caller's role. */
 export const patientViewSchema = z.union([patientClinicalViewSchema, patientPublicViewSchema]);
 export type PatientView = PatientClinicalView | PatientPublicView;
 
@@ -90,22 +76,10 @@ export const updatePatientSchema = z
 export type UpdatePatientInput = z.infer<typeof updatePatientSchema>;
 
 export const listPatientsQuerySchema = paginationQuerySchema.extend({
-  /** Matches the file number, the name or the phone. */
   search: z.string().trim().min(1).max(120).optional(),
   gender: z.enum(GENDERS).optional(),
-  /**
-   * Only patients who owe money.
-   *
-   * The balance is an aggregate over the ledgers, never a column, so this is
-   * a `having` rather than a `where` — but it has to be the *server's*
-   * question all the same. Narrowing the page in hand would answer "which of
-   * these twenty owe" while looking like it answered "who owes", which on a
-   * financial screen is a wrong number wearing a confident label.
-   *
-   * A role that is not served balances at all (the technician, ROLES.md field
-   * rules) is not served this filter either — the API ignores it rather than
-   * leaking the fact through a row count.
-   */
+  // The balance is an aggregate, so this is a `having` — and the server's question: narrowing the
+  // page in hand would answer "which of these owe". A role not served balances is not served it.
   hasBalance: z.stringbool().optional(),
 });
 export type ListPatientsQuery = z.infer<typeof listPatientsQuerySchema>;

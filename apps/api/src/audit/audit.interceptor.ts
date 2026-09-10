@@ -16,16 +16,8 @@ import { AuditService } from '@api/audit/audit.service';
 import { AUDIT_KEY, type AuditMetadata } from '@api/common/decorators/audit.decorator';
 import type { RequestWithUser } from '@api/common/types/authenticated-user';
 
-/**
- * Writes an `audit_log` row for every endpoint marked `@Audit(...)`
- * (ROLES.md enforcement step 6).
- *
- * Registered globally but inert without the decorator, so adding a mutation
- * endpoint to the audit trail is one line at the handler.
- *
- * The entry is written only after the handler succeeds, and a failure to write
- * it fails the request — an unaudited mutation must never look successful.
- */
+// Inert without the `@Audit(...)` decorator. The entry is written only after the handler succeeds,
+// and failing to write it fails the request — an unaudited mutation must never look successful.
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
   constructor(
@@ -87,11 +79,8 @@ export class AuditInterceptor implements NestInterceptor {
   }
 }
 
-/**
- * The id known before the handler runs. `response` deliberately yields nothing,
- * so the id is taken from the result — such a route always creates a row, which
- * has no previous state to snapshot anyway.
- */
+// `response` yields nothing: such a route always creates a row, so the id comes from the result and
+// there is no previous state to snapshot.
 function resolveEntityId(
   metadata: AuditMetadata,
   clinicId: string,
@@ -121,15 +110,8 @@ async function snapshot(
   return loader(id, clinicId);
 }
 
-/**
- * Creates have no `:id` route param — the new id comes from the response.
- *
- * A handler that has something to report alongside the row it made wraps it as
- * `{ item, ... }` — a closure says how many appointments it cancelled — so the
- * id is looked for one level in as well. Only those two shapes: walking an
- * arbitrary response looking for something that resembles an id is how the
- * wrong row ends up in the audit trail.
- */
+// A create has no `:id` param, so the id comes from the response, or from `{ item, ... }` one level
+// in. Only those two shapes — walking an arbitrary response puts the wrong row in the trail.
 function extractId(result: unknown): string | undefined {
   return idOf(result) ?? idOf((result as { item?: unknown } | null)?.item);
 }

@@ -35,18 +35,8 @@ export interface AppointmentFormModalProps {
     { readonly date?: string; readonly doctorId?: string; readonly startsAt?: string } | undefined;
 }
 
-/**
- * Booking and rescheduling, on the same form.
- *
- * The time is chosen from the availability endpoint, never typed: a free-text
- * time invites booking a doctor's lunch break or a closed Friday, and the
- * clinic's answer to "when is this doctor free?" already exists. The date uses
- * the shared `DatePicker` so it reads the same as every other date in the app.
- *
- * When editing, the appointment's own slot is excluded from the busy list, so
- * "keep the same time and change the reason" does not report a clash with
- * itself.
- */
+// The time comes from the availability endpoint, never typed. When editing, the appointment's own
+// slot is excluded so it does not clash with itself.
 export function AppointmentFormModal({
   open,
   onOpenChange,
@@ -77,9 +67,8 @@ export function AppointmentFormModal({
     }
 
     if (appointment) {
-      // The feed already carries everything the picker draws, so editing costs
-      // no extra request — and works for a receptionist, whose patient
-      // response never includes the clinical view.
+      // The feed already carries what the picker draws, so editing costs no request — and works for
+      // a receptionist, whose patient response has no clinical view.
       setPatient({
         id: appointment.patientId,
         fullName: appointment.patientName,

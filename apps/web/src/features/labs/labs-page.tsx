@@ -23,19 +23,8 @@ import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
 import { useDebounced } from '@web/lib/use-debounced';
 
-/**
- * The labs directory.
- *
- * Cards rather than a table: a clinic deals with two or three labs, each is a
- * relationship rather than a row, and the two things anyone wants at a glance
- * — what we owe them and how much of ours they are holding — fit on a card far
- * better than in columns.
- *
- * The balance is money the clinic **owes**, so it is never celebrated in
- * green: a lab balance of zero is the good state, and anything above it is a
- * bill. It is computed on read from the orders and payments; nothing here is
- * stored (CLAUDE.md).
- */
+// Cards, because a clinic deals with two or three labs and each is a relationship. The balance is
+// money owed, so it is never celebrated in green.
 export function LabsPage(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();

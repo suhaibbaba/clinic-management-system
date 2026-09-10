@@ -19,7 +19,6 @@ describe('Staff photo (e2e)', () => {
   let storage: StorageService;
   const tokens = {} as Record<UserRole, string>;
 
-  /** What the stubbed HeadObject reports for the next confirm. */
   let storedObject: StoredObject | null;
   let deleted: string[];
 
@@ -85,11 +84,8 @@ describe('Staff photo (e2e)', () => {
 
       const response = signed.json() as PresignUserPhotoResponse;
       expect(response.maxSizeBytes).toBe(MAX_USER_PHOTO_BYTES);
-      /*
-       * The key is the API's, built from the caller's own clinic *and* the
-       * person being photographed — never the client's, and one folder per
-       * member of staff so a key can be checked against both.
-       */
+      // The key is the API's, built from the caller's clinic and the person photographed, with one
+      // folder per member of staff so it can be checked against both.
       expect(response.key).toMatch(new RegExp(`^clinic/${clinic.id}/staff/${subject()}/`));
       expect(response.uploadUrl).toContain(response.key);
 
@@ -169,10 +165,8 @@ describe('Staff photo (e2e)', () => {
       expect((await presign({ sizeBytes: MAX_USER_PHOTO_BYTES + 1 })).statusCode).toBe(400);
     });
 
-    /*
-     * The claim in the request body is not the file. What is checked on
-     * confirm is what the bytes turned out to be.
-     */
+    // The claim in the request body is not the file: what is checked on confirm is what the bytes
+    // turned out to be.
     it('refuses bytes that turned out not to be an image, and deletes them', async () => {
       const key = ((await presign()).json() as PresignUserPhotoResponse).key;
       storedObject = { sizeBytes: 40_000, mime: 'application/zip' };
@@ -188,10 +182,8 @@ describe('Staff photo (e2e)', () => {
       expect((await confirm(key)).statusCode).toBe(400);
     });
 
-    /*
-     * The check that one folder per member of staff buys: both of these keys
-     * belong to this clinic, and the second is still not this user's.
-     */
+    // What one folder per member of staff buys: both keys belong to this clinic, and the second is
+    // still not this user's.
     it("refuses a key from another user's folder in the same clinic", async () => {
       const stranger = clinic.userIds[USER_ROLE.RECEPTIONIST];
       const key = ((await presign({}, stranger)).json() as PresignUserPhotoResponse).key;

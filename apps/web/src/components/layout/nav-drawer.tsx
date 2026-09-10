@@ -7,33 +7,16 @@ import { cn } from '@web/lib/cn';
 export interface NavDrawerProps {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
-  /**
-   * The panel's accessible name. Drawn nowhere: the header carries `brand`
-   * instead, and a dialog still has to be named for a screen reader.
-   */
+  // Drawn nowhere — the header carries `brand` — but a dialog still has to be named for a screen
+  // reader.
   readonly title: string;
-  /** What the header shows — the clinic's mark, at the rail's own size. */
   readonly brand: ReactNode;
   readonly closeLabel: string;
   readonly children: ReactNode;
 }
 
-/**
- * The mobile navigation drawer.
- *
- * It replaces what was there before, which was not a drawer at all: the
- * sidebar simply stopped being `hidden` and pushed the entire page down, so
- * opening the menu meant scrolling past seven nav rows to get back to the
- * content — and the page underneath jumped every time.
- *
- * A real drawer slides in over the page from the side the language starts on,
- * dims what is behind it, traps focus, closes on Escape, on the scrim, and on
- * picking a destination, and returns focus to the button that opened it. All
- * of that is Radix's Dialog; none of it is worth hand-rolling.
- *
- * It slides from `inset-inline-start`, so in Arabic it comes in from the right
- * — the edge the thumb is already on and the edge the reading starts from.
- */
+// A real drawer over the page: the sidebar used to simply unhide and push the content down, so
+// opening the menu meant scrolling past seven rows to get back.
 export function NavDrawer({
   open,
   onOpenChange,
@@ -53,9 +36,8 @@ export function NavDrawer({
         />
 
         <DialogPrimitive.Content
-          // No field here, but the same rule as `Modal` and `Drawer`: a panel
-          // opening does not move the caret. Radix would focus the close
-          // button, which announces "close" before the navigation.
+          // Same rule as `Modal` and `Drawer`: a panel opening does not move the caret. Radix would
+          // focus the close button, announcing "close" before the navigation.
           onOpenAutoFocus={(event) => {
             event.preventDefault();
             (event.currentTarget as HTMLElement | null)?.focus();

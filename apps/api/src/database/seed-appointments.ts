@@ -17,7 +17,6 @@ type Db = ReturnType<typeof drizzle>;
 
 export interface AppointmentsSeedContext {
   readonly clinicId: string;
-  /** Both calendars, so the day view has more than one column to draw. */
   readonly doctorIds: readonly string[];
   readonly actorId: string;
   readonly timeZone: string;
@@ -28,9 +27,7 @@ interface SeedAppointment {
   readonly dayOffset: number;
   readonly time: string;
   readonly durationMinutes: number;
-  /** Index into `doctorIds`. */
   readonly doctor: number;
-  /** Index into the clinic's patients, in file-number order. */
   readonly patient: number;
   readonly type: AppointmentType;
   readonly status: AppointmentStatus;
@@ -38,20 +35,9 @@ interface SeedAppointment {
   readonly cancelledReason?: string;
 }
 
-/**
- * A week that looks like a week.
- *
- * Yesterday is finished — completed, one no-show, one cancellation — today is
- * partly done and partly ahead, and the rest of the week is booked. That is
- * what makes the calendar worth looking at on a fresh database, and what gives
- * the status colours something to be.
- *
- * Times avoid 13:00–14:00: the seeded clinic closes for lunch, and an
- * appointment there would contradict the availability endpoint on the very
- * first screen anyone opens.
- */
+// Times avoid 13:00–14:00: the seeded clinic closes for lunch, and an appointment there would
+// contradict the availability endpoint on the first screen anyone opens.
 const SCHEDULE: readonly SeedAppointment[] = [
-  // Yesterday: a finished day
   {
     dayOffset: -1,
     time: '09:00',
@@ -94,7 +80,6 @@ const SCHEDULE: readonly SeedAppointment[] = [
     cancelledReason: 'اعتذر المريض',
   },
 
-  // Today: partly behind, partly ahead
   {
     dayOffset: 0,
     time: '09:00',
@@ -176,7 +161,6 @@ const SCHEDULE: readonly SeedAppointment[] = [
     reason: 'حجز عبر الموقع',
   },
 
-  // The rest of the week
   {
     dayOffset: 1,
     time: '09:00',
@@ -300,19 +284,8 @@ interface SeedOnlineBooking {
   readonly reason: string;
 }
 
-/**
- * Two bookings that came in from the public page overnight.
- *
- * They exist so the pending-confirmation screen and the badge beside it have
- * something to show on a fresh database — an empty screen teaches nobody what
- * it is for. Both are `requested`, which is what the booking page creates and
- * what reception has to answer, and both carry a patient record with **no
- * `created_by`**: nobody at the desk made it, which is exactly what marks the
- * row "data not verified".
- *
- * One is for today, so the calendar's own "online bookings today" tile is not
- * a zero either.
- */
+// Both `requested` and both with no `created_by` — nobody at the desk made them, which is what
+// marks the row "data not verified".
 const ONLINE_BOOKINGS: readonly SeedOnlineBooking[] = [
   {
     fullName: 'ريم العلي',
@@ -332,13 +305,8 @@ const ONLINE_BOOKINGS: readonly SeedOnlineBooking[] = [
   },
 ];
 
-/**
- * Appointments and a waiting list for the seeded clinic.
- *
- * Idempotent like the rest of the seed: it returns early once this clinic has
- * any appointment at all, so `pnpm seed` stays safe to repeat — and re-running
- * it cannot trip the overlap constraint on rows it already inserted.
- */
+// Returns early once this clinic has any appointment, so re-running cannot trip the overlap
+// constraint on rows it already inserted.
 export async function seedAppointments(
   db: Db,
   ctx: AppointmentsSeedContext,
@@ -423,14 +391,6 @@ export async function seedAppointments(
   return { appointments: SCHEDULE.length + ONLINE_BOOKINGS.length, waiting: WAITING.length };
 }
 
-/**
- * The public page's own rows, created the way the booking service creates them.
- *
- * Deliberately not through `seedPatients`: these records must look like what a
- * stranger's booking leaves behind — a name, a phone, the Arabic note the
- * booking service writes, and no `created_by` — because that absence is what
- * the reception screen reads to flag the row.
- */
 async function seedOnlineBookings(
   db: Db,
   ctx: AppointmentsSeedContext,

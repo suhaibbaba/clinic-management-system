@@ -49,11 +49,8 @@ export class PatientsService implements OnModuleInit {
     });
   }
 
-  /**
-   * Search by file number, name or phone in one box — what reception actually
-   * types. The trigram indexes on those three columns keep the partial match an
-   * index scan rather than a sequential one.
-   */
+  // One box for file number, name or phone — what reception types. The trigram indexes keep a
+  // partial match an index scan.
   async list(actor: AuthenticatedUser, query: ListPatientsQuery): Promise<Paginated<PatientView>> {
     const filters: (SQL | undefined)[] = [];
 
@@ -61,12 +58,8 @@ export class PatientsService implements OnModuleInit {
       filters.push(eq(patients.gender, query.gender));
     }
 
-    /*
-     * Asked of the server, and only for the roles that are served balances at
-     * all: a technician's response carries no financial data (ROLES.md field
-     * rules), and honouring the filter for them would leak through the row
-     * count what the fields withhold.
-     */
+    // Asked of the server, and only for roles served balances: honouring it for a technician would
+    // leak through the row count what the fields withhold.
     if (query.hasBalance && PatientAccessService.seesFinancialData(actor.role)) {
       filters.push(LedgerService.owesFilter(actor.clinicId, patients.id));
     }
@@ -176,13 +169,8 @@ export class PatientsService implements OnModuleInit {
       .where(this.scope.where(patients, actor.clinicId, eq(patients.id, id)));
   }
 
-  /**
-   * Allocates the next per-clinic file number and inserts.
-   *
-   * The number is derived from the current maximum, which two concurrent
-   * registrations can read identically; the unique index is the real guard and
-   * a conflict simply means trying again with the next value.
-   */
+  // Two concurrent registrations can read the same maximum; the unique index is the real guard and
+  // a conflict just retries with the next value.
   private async insertWithFileNumber(
     actor: AuthenticatedUser,
     input: CreatePatientInput,
@@ -266,10 +254,6 @@ function toPublicView(row: PatientRow): PatientPublicView {
   };
 }
 
-/**
- * The response shape is chosen by role, not by endpoint
- * (ROLES.md enforcement step 5).
- */
 export function toRoleView(row: PatientRow, role: UserRole, balance?: Money): PatientView {
   const view = PatientAccessService.seesClinicalData(role)
     ? toClinicalView(row)

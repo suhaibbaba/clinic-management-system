@@ -8,7 +8,6 @@ import { cn } from '@web/lib/cn';
 import { validationMessageKey } from '@web/lib/validation-message';
 
 export interface FormFieldProps {
-  /** i18n key for the label. */
   label: string;
   htmlFor: string;
   error?: FieldError | undefined;
@@ -16,25 +15,12 @@ export interface FormFieldProps {
   errorKey?: string | undefined;
   hint?: string | undefined;
   optional?: boolean | undefined;
-  /**
-   * Marks the field required with an asterisk. A field is required unless it
-   * says `optional`, so this is for the few places the marker earns its keep —
-   * a long form where the optional ones are the minority.
-   */
   required?: boolean | undefined;
   children: ReactNode;
 }
 
-/**
- * Label above the control, then the control, then one line underneath: a hint
- * while the field is clean, the error once it is not.
- *
- * The hint and the error share a slot rather than stacking, so a field does not
- * grow taller when it fails and shove the rest of the form down the page.
- *
- * The message comes from the Zod issue *code* rather than the schema's English
- * text, so every string on screen still comes from the i18n files.
- */
+// Hint and error share a slot, so a field does not grow taller when it fails. The message comes
+// from the Zod issue code, never the schema's English text.
 export function FormField({
   label,
   htmlFor,

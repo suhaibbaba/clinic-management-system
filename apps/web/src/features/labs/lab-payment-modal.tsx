@@ -23,14 +23,8 @@ import { useLookupOptions } from '@web/features/lookups/queries';
 import { usePayLab } from '@web/features/labs/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
-/**
- * Paying a lab.
- *
- * The balance is shown above the amount and not defaulted into it: paying a
- * lab in full is one of several normal things to do, and a prefilled figure is
- * a figure somebody stops reading. The ledger is append-only, so a mistake here
- * is corrected by an admin's reversing entry rather than by an edit.
- */
+// The balance is shown above the amount, not defaulted into it: a prefilled figure is a figure
+// somebody stops reading.
 export function LabPaymentModal({
   open,
   onOpenChange,

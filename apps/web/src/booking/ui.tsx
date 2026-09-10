@@ -1,17 +1,7 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, JSX, ReactNode } from 'react';
 
-/**
- * The booking page's own handful of controls.
- *
- * Not `@web/components/ui`: that library is Radix-backed — dialogs, popovers,
- * toasts, a day picker — and importing one button from it pulls a good part of
- * the dashboard's dependency graph into a bundle that has to stay under 80 KB.
- * What this page actually needs is a button, a card, an input and a skeleton,
- * and they are cheaper to write than to prune.
- *
- * They are built from the same tokens as the app, so the two look like one
- * product even though they share no component code.
- */
+// Not `@web/components/ui`: that library is Radix-backed, and one button from it pulls much of the
+// dashboard's dependency graph into an 80 KB budget.
 
 /** Joins class names. No `tailwind-merge` here — 6 KB to resolve conflicts
  *  this file simply does not create. */
@@ -87,12 +77,8 @@ export function Card({
   );
 }
 
-/**
- * A selectable card — a doctor, and nothing else so far.
- *
- * A real `<button>` rather than a div with a click handler, so it is tabbable,
- * activates on Enter and Space, and announces itself as pressed.
- */
+// A real `<button>`, so it is tabbable, activates on Enter and Space, and announces itself as
+// pressed.
 export function ChoiceCard({
   selected,
   onClick,
@@ -146,7 +132,6 @@ export function Alert({
   );
 }
 
-/** A grey block standing in for content that has not arrived. */
 export function Skeleton({ className }: { readonly className?: string }): JSX.Element {
   return <span aria-hidden className={cx('booking-skeleton block rounded-panel', className)} />;
 }
@@ -157,13 +142,8 @@ export interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   readonly hint?: string | undefined;
 }
 
-/**
- * A labelled input.
- *
- * `text-field` is 16px, which is not a style choice: iOS Safari zooms the page
- * when a smaller field takes focus and never zooms back out. This page exists
- * to be filled in on a phone.
- */
+// 16px is not a style choice: iOS Safari zooms the page when a smaller field takes focus and never
+// zooms back.
 export function Field({ label, error, hint, id, className, ...rest }: FieldProps): JSX.Element {
   const fieldId = id ?? `field-${rest.name ?? label}`;
   const errorId = `${fieldId}-error`;
@@ -181,11 +161,8 @@ export function Field({ label, error, hint, id, className, ...rest }: FieldProps
         className={cx(
           'min-h-12 w-full rounded-control border bg-surface px-3 text-field text-ink',
           'placeholder:text-ink-subtle',
-          // The phone field carries `dir="ltr"` so a leading + and the digits
-          // stay in the order they were typed. Its *alignment* still belongs
-          // to the page: aligned by its own direction it sat on the left of an
-          // Arabic form, under a label on the right, which reads as a field
-          // that has lost its label.
+          // `dir="ltr"` keeps the digits in order, but the alignment belongs to the page — by its
+          // own direction the field sat left of an Arabic form, under a label on the right.
           rest.dir === 'ltr' ? 'page-rtl:text-right page-ltr:text-left' : 'text-start',
           error ? 'border-danger-500' : 'border-line-strong focus:border-primary-600',
           className,

@@ -37,24 +37,13 @@ import { PlanPrint } from '@web/features/patients/treatment-plans/plan-print';
 import { planRemaining, planTotal } from '@web/features/patients/treatment-plans/plan-total';
 import { errorMessageKey } from '@web/lib/api-error';
 
-/**
- * The plan-status filter, with `all` in front of the real statuses.
- *
- * Built from the shared enum rather than typed out, so a status added to the
- * state machine appears here on the next build instead of being quietly
- * unfilterable.
- */
+// Built from the shared enum, so a status added to the state machine appears here instead of being
+// quietly unfilterable.
 const PLAN_FILTERS = ['all', ...TREATMENT_PLAN_STATUSES] as const;
 type PlanFilter = (typeof PLAN_FILTERS)[number];
 
-/**
- * Treatment plans: what has been quoted, in the order it will be carried out.
- *
- * A plan item is a quote and stays one. Converting it creates a performed
- * procedure through the existing endpoint — the estimate is left alone, so the
- * quote and what was actually charged remain separately readable, and the
- * conversion is one-way (the API enforces that with a unique index).
- */
+// A plan item is a quote and stays one: converting creates a procedure and leaves the estimate
+// alone, one way, which the API enforces with a unique index.
 export function TreatmentPlansTab({
   patientId,
   patient,
@@ -76,18 +65,11 @@ export function TreatmentPlansTab({
   const updateItem = useUpdatePlanItem(patientId);
   const convertItem = useConvertPlanItem(patientId);
 
-  /*
-   * The status filter is in the address, not in state.
-   *
-   * `?plan=accepted` is what a dentist pastes to a colleague and what survives
-   * the refresh after a plan is accepted; `useTabParam` writes the default as
-   * no parameter at all, so the plain patient-file address is unchanged. Its
-   * own parameter rather than `tab`, which the file's tab strip already owns.
-   */
+  // `?plan=accepted` is what a dentist pastes and what survives a refresh. Its own parameter, since
+  // the file's tab strip already owns `tab`.
   const [statusFilter, setStatusFilter] = useTabParam<PlanFilter>('plan', PLAN_FILTERS, 'all');
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [newItemProcedure, setNewItemProcedure] = useState('');
-  /** Which plan the print sheet is currently rendering. */
   const [printing, setPrinting] = useState<TreatmentPlan | null>(null);
 
   const showPrices = user ? canSeePrices(user.role) : false;
@@ -217,8 +199,7 @@ export function TreatmentPlansTab({
 
         {visible.map((plan) => {
           const items = [...(plan.items ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
-          // Progress is work *done*: an item that became a real procedure.
-          // Cancelled items are neither done nor outstanding, so they leave
+          // Progress is work done. Cancelled items are neither done nor outstanding, so they leave
           // the denominator rather than counting as unfinished forever.
           const live = items.filter((item) => item.status !== TREATMENT_PLAN_ITEM_STATUS.CANCELLED);
           const converted = live.filter(

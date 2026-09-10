@@ -20,11 +20,8 @@ export const ALLOWED_ATTACHMENT_MIME_TYPES = [
 export const attachmentMimeSchema = z.enum(ALLOWED_ATTACHMENT_MIME_TYPES);
 export type AttachmentMime = z.infer<typeof attachmentMimeSchema>;
 
-/**
- * Attachment metadata. The R2 object key never leaves the API — a caller
- * receives a short-lived signed URL instead, and a receptionist receives
- * neither (ROLES.md field rules).
- */
+// The R2 object key never leaves the API — callers get a short-lived signed URL, and a receptionist
+// gets neither (ROLES.md).
 export const attachmentSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
@@ -61,10 +58,7 @@ export const presignAttachmentUploadResponseSchema = z.object({
 });
 export type PresignAttachmentUploadResponse = z.infer<typeof presignAttachmentUploadResponseSchema>;
 
-/**
- * Called once the client has PUT the object. Size and MIME are read back from
- * storage rather than trusted from this body.
- */
+/** Size and MIME are read back from storage rather than trusted from this body. */
 export const confirmAttachmentUploadSchema = z.object({
   key: z.string().trim().min(1).max(512),
   type: lookupCodeSchema,

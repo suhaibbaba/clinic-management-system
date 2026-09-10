@@ -38,24 +38,12 @@ export interface ToothPanelProps {
   readonly submitting: boolean;
   readonly onClose: () => void;
   readonly onRecord: (input: NewProcedureInput) => void;
-  /**
-   * Sends this tooth's work to a lab, with the tooth — and, from a procedure
-   * row, the treatment it belongs to — already filled in. Absent for roles
-   * that may not raise an order.
-   */
   readonly onSendToLab?:
     ((input: { teeth: number[]; performedProcedureId?: string }) => void) | undefined;
 }
 
-/**
- * Everything on one tooth: what has been done to it, what it looks like, and —
- * for the roles ROLES.md allows — what it cost and what was imaged.
- *
- * The history comes from `GET /patients/:id/teeth/:fdi`, which already
- * aggregates procedures, marks and attachments server-side. Prices and
- * attachments are gated here as well as there: the API is the boundary, this is
- * so a role never sees a control it would only be refused.
- */
+// Prices and attachments are gated here as well as server-side: the API is the boundary, this is so
+// a role never sees a control it would only be refused.
 export function ToothPanel({
   patientId,
   tooth,
@@ -100,13 +88,6 @@ export function ToothPanel({
       }
     >
       <div className="flex flex-col gap-6">
-        {/*
-          The intro card: what this tooth *is*, before the list of what has
-          been done to it. It floats on a tinted ground inside the drawer —
-          the same "detail card over a surface" idea used elsewhere — so the
-          summary reads as a distinct answer rather than as the first row of
-          the history below it.
-        */}
         {summary && (
           <section className="rounded-card bg-canvas p-4 shadow-float">
             <div className="flex items-center gap-3">
@@ -244,9 +225,8 @@ function ProcedureRow({
   onSendToLab?: (() => void) | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
-  // The clinic's own symbol, and no decimals: `<Money>` is what every other
-  // figure in the app is drawn with, and this row was printing the raw
-  // `numeric(10,2)` string — "50.00", with nothing to say what 50 of.
+  // `<Money>` like every other figure: this row was printing the raw `numeric(10,2)` string —
+  // "50.00", with nothing to say what 50 of.
   const currency = useClinic().data?.currency;
 
   return (

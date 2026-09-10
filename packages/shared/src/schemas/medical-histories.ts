@@ -2,10 +2,7 @@ import { z } from 'zod';
 
 const entryListSchema = z.array(z.string().trim().min(1).max(160)).max(50);
 
-/**
- * One record per patient. Admin and doctor only (ROLES.md patients matrix);
- * a technician receives only the allergy flags below, for safety.
- */
+/** Admin and doctor only; a technician gets the allergy flags below and nothing else (ROLES.md). */
 export const medicalHistorySchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
@@ -13,7 +10,6 @@ export const medicalHistorySchema = z.object({
   chronicConditions: entryListSchema,
   allergies: entryListSchema,
   currentMedications: entryListSchema,
-  /** Null when not applicable or not asked. */
   isPregnant: z.boolean().nullable(),
   notes: z.string().nullable(),
   createdAt: z.iso.datetime(),
@@ -21,13 +17,8 @@ export const medicalHistorySchema = z.object({
 });
 export type MedicalHistory = z.infer<typeof medicalHistorySchema>;
 
-/**
- * The light endpoint a technician may read: allergies and nothing else.
- *
- * ROLES.md allows the allergy *flag* for safety while forbidding every other
- * medical detail, so this response deliberately carries no conditions,
- * medications, notes or pregnancy status.
- */
+// ROLES.md allows a technician the allergy flag for safety and nothing else — no conditions,
+// medications, notes or pregnancy status.
 export const allergyFlagsSchema = z.object({
   patientId: z.uuid(),
   hasAllergies: z.boolean(),

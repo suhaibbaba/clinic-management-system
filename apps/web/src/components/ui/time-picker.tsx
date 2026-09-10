@@ -11,12 +11,7 @@ const TIME = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 export const isValidTime = (value: string): boolean => TIME.test(value);
 
-/**
- * Every quarter hour between two times, inclusive of the start.
- *
- * Quarter hours because that is how a clinic books: a slot is fifteen minutes
- * or a multiple of it, and offering 09:07 invites a diary nobody can read.
- */
+/** Quarter hours because that is how a clinic books; offering 09:07 invites a diary nobody can read. */
 export function timeSlots(from = '00:00', to = '23:45', stepMinutes = 15): readonly string[] {
   const minutes = (value: string): number => {
     const [h = '0', m = '0'] = value.split(':');
@@ -38,7 +33,6 @@ export function timeSlots(from = '00:00', to = '23:45', stepMinutes = 15): reado
 
 export interface TimePickerProps {
   readonly id: string;
-  /** `HH:mm`, or an empty string. */
   readonly value: string;
   readonly onChange: (value: string) => void;
   readonly label: string;
@@ -51,18 +45,8 @@ export interface TimePickerProps {
   readonly className?: string | undefined;
 }
 
-/**
- * A time field: a list of quarter hours, or type one.
- *
- * The list is bounded by `min`/`max` so it can be pointed at the clinic's
- * working hours rather than offering 03:15 to a practice that opens at nine.
- * Typing stays open for the exception — a visit recorded after hours has to be
- * recordable — and is committed only when it parses as `HH:mm`.
- *
- * A `<select>` was the other option and is worse: 96 quarter hours in a native
- * dropdown is a scroll on a laptop and a full-screen wheel on a phone, with no
- * way to type past it.
- */
+// Bounded by `min`/`max` so it can follow the clinic's hours, with typing left open for a visit
+// recorded after hours. A native `<select>` of 96 rows is a full-screen wheel.
 export function TimePicker({
   id,
   value,
@@ -119,25 +103,16 @@ export function TimePicker({
             placeholder={t('common.placeholders.time')}
             value={typed}
             onChange={(event) => commit(event.target.value)}
-            // Clicking the field shows the list beside it without taking the
-            // focus, so a time can still be typed straight over the top. Focus
-            // alone opens nothing — see `usePickerOpen`.
+            // Clicking shows the list without taking focus, so a time can still be typed over the
+            // top. Focus alone opens nothing.
             {...picker.opens(false)}
             onKeyDown={openOnArrowDown(picker.show)}
             className={cn(
-              // The value is Latin — `08/09/2026`, `14:30` — so the field is
-              // `dir="ltr"` and keeps its digits and separators in order. Its
-              // *alignment*, though, belongs to the page: aligned by the
-              // element's own direction it sat on the left of an Arabic form
-              // while every other field's value sat on the right, and a column
-              // of fields with one of them wandering off is the thing people
-              // report as "the date looks broken".
+              // The value is Latin so the field is `dir="ltr"`, but its alignment belongs to the
+              // page — by its own direction it sat on the left of an Arabic form.
               'block h-11 w-full rounded-control border bg-surface lg:h-9',
-              // Physical rather than logical, and deliberately so: the field
-              // itself is `dir="ltr"`, so `ps`/`pe` on it would resolve
-              // against *its* direction and reserve the icon's room on the
-              // wrong side of an Arabic form. The `rtl:`/`ltr:` variants ask
-              // the page instead, which is what the icon's `end-0` follows.
+              // Physical deliberately: the field is `dir="ltr"`, so `ps`/`pe` would reserve the
+              // icon's room on the wrong side of an Arabic form.
               'page-rtl:pl-11 page-rtl:pr-3.5 page-rtl:text-right',
               'page-ltr:pl-3.5 page-ltr:pr-11 page-ltr:text-left',
               'text-field text-ink tabular-nums placeholder:text-ink-subtle',
@@ -157,9 +132,6 @@ export function TimePicker({
             // Asked for outright, so the keyboard lands in the list.
             {...picker.opens(true)}
             className={cn(
-              // At the inline end, like the range picker's and like the
-              // chevron on every select — and a full 44px wide, because it is
-              // the only way into the calendar with a thumb.
               'absolute inset-y-0 end-0 flex w-11 cursor-pointer items-center justify-center',
               'text-ink-subtle transition-colors duration-150 hover:text-ink',
               'disabled:cursor-not-allowed',

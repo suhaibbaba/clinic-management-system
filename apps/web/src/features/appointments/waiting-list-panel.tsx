@@ -49,16 +49,8 @@ export interface WaitingListPanelProps {
   readonly canManage: boolean;
 }
 
-/**
- * The queue of people with no slot yet.
- *
- * A side panel rather than a page: it is read *while* looking at the calendar
- * — "who can I fit into the gap at 15:00?" — and a route would mean leaving
- * the day to answer that.
- *
- * Ordering (urgent first, then longest waiting) comes from the API, which
- * reads the same rank table in `@clinic/shared` that the badge tones do.
- */
+// A side panel rather than a page: it is read while looking at the calendar — "who can I fit into
+// the gap at 15:00?" — and a route would mean leaving the day.
 export function WaitingListPanel({
   open,
   onOpenChange,
@@ -161,7 +153,6 @@ export function WaitingListPanel({
   );
 }
 
-/** Adding a walk-in: a patient, a priority, and why they are here. */
 function AddWalkInModal({
   open,
   onOpenChange,
@@ -260,13 +251,8 @@ function AddWalkInModal({
   );
 }
 
-/**
- * Promoting: pick a doctor and a real slot.
- *
- * The booking goes through the same endpoint as any other, so a slot taken
- * while the patient waited comes back 409 and the entry stays open — they are
- * still waiting, which is the honest outcome.
- */
+// Promotion goes through the same endpoint as any booking, so a slot taken while the patient waited
+// comes back 409 and the entry stays open.
 function PromoteModal({
   entry,
   onClose,

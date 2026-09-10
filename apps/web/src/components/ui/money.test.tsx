@@ -10,7 +10,6 @@ import { PersonName } from '@web/components/ui/person-name';
 import { changeLanguage } from '@web/i18n/language';
 import '@web/i18n';
 
-/** The rendered text of a `Money`, with its non-breaking space normalised. */
 const money = (): string => screen.getByTestId('money').textContent?.replace(/\s/g, ' ') ?? '';
 
 describe('money display', () => {

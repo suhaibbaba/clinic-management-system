@@ -22,19 +22,8 @@ function present(value: unknown): string | null {
   return typeof value === 'object' ? JSON.stringify(value, null, 1) : String(value);
 }
 
-/**
- * Field-by-field diff of an audit entry.
- *
- * Only the fields that actually changed are listed — a raw JSON dump of both
- * sides is unreadable for the common case of a one-field edit. Creates and
- * deletes have one side missing, so every field is shown.
- */
-/**
- * Stored values are technical: UUIDs, JSON, emails, times. They are Latin-script
- * and left-to-right, so they are rendered in their own `dir="ltr"` box —
- * inside an RTL cell the bidi algorithm otherwise reorders their punctuation
- * and they read as nonsense.
- */
+// Only the fields that changed: a raw dump of both sides is unreadable for a one-field edit.
+// Creates and deletes have one side missing, so everything is shown.
 function Value({
   tone,
   children,

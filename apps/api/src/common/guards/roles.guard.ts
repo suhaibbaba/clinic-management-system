@@ -10,13 +10,8 @@ import { USER_ROLE, type UserRole } from '@clinic/shared';
 import { ROLES_KEY } from '@api/common/decorators/roles.decorator';
 import type { RequestWithUser } from '@api/common/types/authenticated-user';
 
-/**
- * Role check for endpoints carrying `@Roles(...)` (ROLES.md enforcement step 2).
- * Runs after `JwtAuthGuard`, so a caller is always present.
- *
- * `admin` implicitly passes every role check within their clinic; cross-clinic
- * access is impossible for any role because scoping happens on every query.
- */
+// Runs after `JwtAuthGuard`, so a caller is always present. `admin` implicitly passes every role
+// check within their clinic.
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}

@@ -8,19 +8,8 @@ import postgres from 'postgres';
 import { clinics, users } from '@api/database/schema';
 import { upsertSeedClinic, type SeedClinicSpec } from '@api/database/seed-clinic';
 
-/**
- * The seed has to recognise the clinic it seeded last time.
- *
- * It stopped doing so once, and the cost was a deployment: the lookup moved
- * from the clinic's name to its slug, `0005` had derived that slug from the
- * name on every database older than it, and so the seed created a *second*
- * clinic, reused the first one's doctors — accounts are keyed by phone, which
- * is unique across the system — and died on `appointments_no_overlap`. The
- * container exits on a failed seed, so the sandbox never came back up.
- *
- * These tests run against the real database rather than a mock, because the
- * whole bug lived in what a `where` clause did or did not match.
- */
+// The seed must recognise the clinic it seeded last time; when the lookup moved to the slug it made
+// a second clinic and died on `appointments_no_overlap`, taking the sandbox with it.
 describe('the seed clinic', () => {
   let client: ReturnType<typeof postgres>;
   let db: ReturnType<typeof drizzle>;
@@ -40,7 +29,6 @@ describe('the seed clinic', () => {
     await client.end();
   });
 
-  /** A spec nobody else in the suite can collide with. */
   function spec(): SeedClinicSpec {
     const handle = `seed-${randomUUID().slice(0, 8)}`;
 

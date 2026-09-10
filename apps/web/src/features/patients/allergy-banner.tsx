@@ -9,28 +9,8 @@ import { useAllergyFlags } from '@web/features/patients/queries';
 import { cn } from '@web/lib/cn';
 import { formatList } from '@web/lib/format';
 
-/**
- * Allergies, at the top of the patient file and before anything else.
- *
- * It renders the moment its own query resolves, independently of the patient
- * record and the chart, because the whole point is that nobody starts working
- * on this patient without having seen it.
- *
- * A chip, not a banner. It used to be a full-width red slab with the word
- * "Allergies" in bold, which is the visual weight of a system error rather
- * than of a fact about the patient — and on a file where the actual data is
- * "iodine", eight words of chrome carried one word of content. Sized to its
- * text and set in the red, it is still the first and reddest thing on the
- * page, and still announced assertively.
- *
- * The data comes from the narrow allergy-flags endpoint rather than the full
- * medical history: it is all this needs, and it is the one medical read a
- * technician is also allowed (ROLES.md).
- *
- * A receptionist gets no medical history at all, allergies included, so the
- * query is not made rather than made and refused — a 403 in the console on
- * every patient they open teaches everyone to ignore 403s.
- */
+// Renders as soon as its own query resolves, so nobody starts work without seeing it. It reads the
+// narrow allergy endpoint, and a receptionist does not ask at all.
 export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element | null {
   const { t } = useTranslation();
   const { user } = useSession();

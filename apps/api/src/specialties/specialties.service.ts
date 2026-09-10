@@ -8,11 +8,6 @@ import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { specialties } from '@api/database/schema';
 
-/**
- * Specialties, read-only for now. Every role may read them (ROLES.md core
- * matrix); admin write endpoints land with the procedure catalog, which is the
- * feature that needs them.
- */
 @Injectable()
 export class SpecialtiesService {
   constructor(

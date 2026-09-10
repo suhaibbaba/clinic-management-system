@@ -4,13 +4,6 @@ import logoUrl from '@web/assets/logo.svg';
 import { t } from '@web/booking/i18n';
 import { cx } from '@web/booking/ui';
 
-/**
- * The page frame: the clinic's mark and name, then whatever step is showing.
- *
- * One column, 480px at most, centred. On a phone that is the whole screen; on
- * a laptop it is a card-width sheet in the middle of the tinted ground rather
- * than a form stretched across 1400px.
- */
 export function PageShell({
   clinicName,
   children,
@@ -49,14 +42,8 @@ export function PageShell({
 
 const STEP_KEYS = ['steps.doctor', 'steps.when', 'steps.details', 'steps.confirm'] as const;
 
-/**
- * Where the patient is, in words and in four bars.
- *
- * The bars alone would be decoration — `aria-hidden` — so the sentence above
- * them carries the same fact for a screen reader, and `aria-live` announces it
- * when the step changes rather than leaving someone who cannot see the bars to
- * infer it from a heading.
- */
+// The bars are `aria-hidden` decoration, so the sentence above them carries the fact and `aria-
+// live` announces the change.
 export function StepHeader({
   current,
   title,
@@ -90,7 +77,6 @@ export function StepHeader({
   );
 }
 
-/** The whole page said one thing and it was bad news. */
 export function FullPageMessage({
   title,
   body,

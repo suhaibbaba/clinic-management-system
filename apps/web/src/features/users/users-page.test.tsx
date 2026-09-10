@@ -110,7 +110,6 @@ describe('Users management', () => {
     await userEvent.click(screen.getByRole('button', { name: ar.common.edit }));
 
     const dialog = await screen.findByRole('dialog');
-    // Editing must not offer a password field.
     expect(within(dialog).queryByLabelText(ar.users.password)).not.toBeInTheDocument();
 
     const nameInput = within(dialog).getByLabelText(ar.users.nameAr);

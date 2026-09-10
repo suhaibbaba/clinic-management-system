@@ -34,7 +34,6 @@ class RescheduleBookingDto extends createZodDto(rescheduleBookingSchema) {}
 class CancelBookingDto extends createZodDto(cancelBookingSchema) {}
 class PublicSlotsQueryDto extends createZodDto(publicSlotsQuerySchema) {}
 
-/** A clinic handle, not an id: lowercase letters, digits and hyphens. */
 const slugParamSchema = z.object({
   clinicSlug: z
     .string()
@@ -48,30 +47,13 @@ class SlugParamDto extends createZodDto(slugParamSchema) {}
 const tokenParamSchema = z.object({ token: z.string().min(10).max(400) });
 class TokenParamDto extends createZodDto(tokenParamSchema) {}
 
-/**
- * The public booking API. Every route is `@Public()` and every route is
- * throttled (ROLES.md enforcement step 7).
- *
- * Three things hold this together, and none of them is authentication:
- *
- *  - **The clinic comes from the URL slug**, never from a body field. A caller
- *    cannot point a booking at a clinic by editing a payload.
- *  - **No response distinguishes a known phone from an unknown one.** That is
- *    what stops a stranger walking a phone book to learn who is a patient here,
- *    which would be a medical disclosure. The reads below carry a doctor's name
- *    and a free time — nothing about any patient at all.
- *  - **Writes are rate limited harder than reads.** Booking, verifying and
- *    cancelling each cost a database write and, in two cases, a message; the
- *    limits below are per IP, and `BookingService` applies a second limit per
- *    phone number, because one IP is one café and one phone is one person.
- */
+// The clinic comes from the URL slug, never a body field; no response distinguishes a known phone
+// from an unknown one; writes are throttled per IP here and per phone in the service.
 @Controller('public/booking')
 @Public()
 @UseGuards(ThrottlerGuard)
 export class BookingController {
   constructor(private readonly booking: BookingService) {}
-
-  /* ------------------------------- Reads -------------------------------- */
 
   @Get(':clinicSlug')
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
@@ -91,8 +73,6 @@ export class BookingController {
     return this.booking.slots(params.clinicSlug, query);
   }
 
-  /* ------------------------------- Writes ------------------------------- */
-
   /** Five bookings a minute from one address is already a lot of families. */
   @Post(':clinicSlug')
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
@@ -100,11 +80,8 @@ export class BookingController {
     return this.booking.book(params.clinicSlug, body);
   }
 
-  /**
-   * Ten a minute, which is well above a person mistyping six digits and well
-   * below anything that could grind through a million codes — and the code
-   * itself dies after three wrong guesses regardless.
-   */
+  // Well above a person mistyping six digits, well below grinding through a million codes — and the
+  // code dies after three wrong guesses anyway.
   @Post(':clinicSlug/verify-otp')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
@@ -112,13 +89,8 @@ export class BookingController {
     return this.booking.verifyOtp(params.clinicSlug, body.token, body.code);
   }
 
-  /* ---------------------------- Manage link ----------------------------- */
-
-  /*
-   * Deliberately not under `:clinicSlug`: the token already names the booking,
-   * and requiring the slug too would mean a patient who mistypes the clinic
-   * gets a different error than one who mistypes the token — an oracle.
-   */
+  // Deliberately not under `:clinicSlug`: mistyping the clinic and mistyping the token would give
+  // different errors, which is an oracle.
 
   @Get('manage/:token')
   @Throttle({ default: { limit: 30, ttl: 60_000 } })

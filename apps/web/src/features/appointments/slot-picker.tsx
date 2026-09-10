@@ -14,20 +14,8 @@ export interface SlotPickerProps {
   readonly onChange: (startsAt: string) => void;
 }
 
-/**
- * The free times for a doctor on a day, straight from the availability
- * endpoint.
- *
- * Only real slots are offered: the list is computed from the doctor's hours
- * intersected with the clinic's, minus what is booked, so a time on screen is
- * a time the API will accept. Taken slots are still drawn, disabled — a grid
- * with a hole in it says "that one is gone", where a shorter list just says
- * "there are fewer".
- *
- * When there is nothing at all, the reason is named. A closed clinic, a
- * doctor's day off and a full diary are three different answers, and an empty
- * box says the same nothing for all three.
- */
+// Taken slots are drawn disabled — a grid with a hole says "that one is gone", a shorter list only
+// says there are fewer. An empty day names its reason.
 export function SlotPicker({
   availability,
   isLoading,

@@ -28,14 +28,8 @@ class LoginDto extends createZodDto(loginSchema) {}
 class RefreshDto extends createZodDto(refreshSchema) {}
 class LogoutDto extends createZodDto(logoutSchema) {}
 
-/**
- * Session endpoints. All three are `@Public()`: they are how a caller obtains
- * or discards credentials, so they cannot require one.
- *
- * The refresh token travels in an httpOnly cookie and is never included in a
- * response body — a browser therefore cannot read it from JavaScript. Clients
- * that cannot hold cookies may still pass it in the request body instead.
- */
+// All three are `@Public()` — they are how a caller obtains or discards credentials. The refresh
+// token travels in an httpOnly cookie, never in a body.
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -76,10 +70,8 @@ export class AuthController {
     return tokens;
   }
 
-  /**
-   * Public and idempotent: a client whose access token has already expired must
-   * still be able to discard its refresh token.
-   */
+  // Public and idempotent: a caller whose access token has already expired must still be able to
+  // discard its refresh token.
   @Public()
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)

@@ -5,21 +5,9 @@ import { Link, useLocation } from 'react-router-dom';
 import { Icon } from '@web/components/ui/icon';
 import { activeNavItem } from '@web/app/navigation';
 
-/**
- * Where you are, in the top bar.
- *
- * Both halves of the sidebar, flattened: a page in the collapsed settings
- * group still has a section name, and the crumb is the only place it is shown
- * while the group is shut.
- *
- * Built from the nav table rather than from the URL's path segments: a
- * segment is an id as often as it is a name, and `/patients/8f3c…` would
- * otherwise render a UUID as a crumb. The nav table already maps a route to
- * the label a person reads, so the section crumb comes from there and the leaf
- * is supplied by the page that knows what it is showing.
- */
+// Built from the nav table, not the URL's segments: a segment is as often an id, and
+// `/patients/8f3c…` would render a UUID as a crumb.
 export interface BreadcrumbProps {
-  /** The page's own name, when it is deeper than a nav entry. */
   readonly leaf?: string | undefined;
 }
 

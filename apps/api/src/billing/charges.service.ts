@@ -25,10 +25,8 @@ export interface ProcedureBillingEvent {
 
 export const CHARGES_ENTITY = 'charges';
 
-/**
- * Planned work is not owed yet: a treatment plan a patient never comes back for
- * must not sit on their balance. Money starts at the moment the chair is used.
- */
+// Planned work is not owed yet — money starts at the moment the chair is used, not when a plan is
+// written.
 const BILLABLE_STATUSES: readonly PerformedProcedureStatus[] = [
   PERFORMED_PROCEDURE_STATUS.IN_PROGRESS,
   PERFORMED_PROCEDURE_STATUS.DONE,
@@ -38,27 +36,12 @@ export function isBillable(status: PerformedProcedureStatus): boolean {
   return BILLABLE_STATUSES.includes(status);
 }
 
-/**
- * Writes the `charges` ledger.
- *
- * Every method takes the executor to run on, because a charge is only ever
- * written in the **same transaction** as the procedure that caused it: a
- * procedure without its charge, or a charge without its procedure, is a
- * corrupted ledger, and there is no repair path for one.
- *
- * Nothing here updates an amount. A correction is the negative of the original
- * with `reverses_id` pointing back at it, followed by the corrected row
- * (CLAUDE.md architecture decision 2).
- */
+// Every method takes the executor: a charge is only ever written in the same transaction as the
+// procedure that caused it, and a half-written pair has no repair path.
 @Injectable()
 export class ChargesService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  /**
-   * Bills a newly recorded procedure. A procedure still only planned writes
-   * nothing — it starts owing money when it is first worked on, which the
-   * amend path then picks up.
-   */
   async onProcedureRecorded(tx: DatabaseExecutor, event: ProcedureBillingEvent): Promise<void> {
     if (!isBillable(event.status)) {
       return;
@@ -67,14 +50,8 @@ export class ChargesService {
     await this.insertCharge(tx, event);
   }
 
-  /**
-   * Re-bills an amended procedure: the charge in force is reversed and the new
-   * figure inserted. The old row keeps its amount forever — what changes is the
-   * balance, through the two new rows.
-   *
-   * Also the path a procedure takes when it moves off `planned`, which is why
-   * it inserts even when there was nothing to reverse.
-   */
+  // Reverses the charge in force and inserts the new figure. Also the path off `planned`, which is
+  // why it inserts with nothing to reverse.
   async onProcedureAmended(tx: DatabaseExecutor, event: ProcedureBillingEvent): Promise<void> {
     await this.reverseCurrentCharge(tx, event.clinicId, event.performedProcedureId, event.actorId);
 
@@ -91,7 +68,6 @@ export class ChargesService {
     await this.reverseCurrentCharge(tx, event.clinicId, event.performedProcedureId, event.actorId);
   }
 
-  /** The charge currently in force for a procedure, if it has one. */
   async currentChargeFor(
     clinicId: string,
     performedProcedureId: string,
@@ -118,14 +94,8 @@ export class ChargesService {
     });
   }
 
-  /**
-   * Cancels the charge in force for a procedure, if there is one.
-   *
-   * The reversal carries the same procedure id so it describes itself on a
-   * statement, and the original is stamped `reversed_at` — bookkeeping only,
-   * no amount is touched — which is what keeps `charges_procedure_uniq` able to
-   * guarantee a procedure has at most one charge in force.
-   */
+  // The reversal carries the procedure id so it describes itself on a statement, and `reversed_at`
+  // is what keeps `charges_procedure_uniq` to one charge in force.
   private async reverseCurrentCharge(
     tx: DatabaseExecutor,
     clinicId: string,

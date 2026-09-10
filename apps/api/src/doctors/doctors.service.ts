@@ -31,7 +31,6 @@ type DoctorRow = typeof doctors.$inferSelect;
 
 export const DOCTORS_ENTITY = 'doctors';
 
-/** Doctor row joined with the parts of its user and specialty the API exposes. */
 const doctorColumns = {
   id: doctors.id,
   clinicId: doctors.clinicId,
@@ -101,7 +100,6 @@ export class DoctorsService implements OnModuleInit {
     });
   }
 
-  /** Readable by every role (ROLES.md core matrix). */
   async list(actor: AuthenticatedUser, query: ListDoctorsQuery): Promise<Paginated<Doctor>> {
     const filters: (SQL | undefined)[] = [];
 
@@ -229,10 +227,7 @@ export class DoctorsService implements OnModuleInit {
     return this.present(await this.findJoinedOrFail(actor.clinicId, id));
   }
 
-  /**
-   * An admin may edit any schedule; a doctor may edit only their own
-   * (ROLES.md: "doctor R (own U: schedule off-days)").
-   */
+  /** An admin may edit any schedule; a doctor only their own (ROLES.md). */
   async updateSchedule(
     actor: AuthenticatedUser,
     id: string,
@@ -269,13 +264,6 @@ export class DoctorsService implements OnModuleInit {
       .innerJoin(specialties, eq(specialties.id, doctors.specialtyId));
   }
 
-  /**
-   * The doctor, with their photo signed.
-   *
-   * The list draws a face beside each name, and the key it is stored under
-   * never leaves the API — so like every other image in this system what goes
-   * out is a short-lived signed GET, minted per response.
-   */
   private async present(row: DoctorJoinedRow): Promise<Doctor> {
     return toDoctor(
       row,

@@ -49,26 +49,12 @@ export interface MovementModalProps {
   readonly type: MovementType | null;
   readonly item: InventoryItemRow | undefined;
   readonly onClose: () => void;
-  /** Pre-links a consumption to a patient, from the visit screen. */
   readonly patient?: PickedPatient | undefined;
   readonly performedProcedureId?: string | undefined;
 }
 
-/**
- * شراء / صرف / تسوية — one form, three shapes.
- *
- * The three share a quantity field and nothing else, which is exactly why the
- * fields are switched on the type rather than all shown and half disabled: a
- * purchase has a price, a supplier and a batch; a consumption may name a
- * patient; an adjustment must say why, and is the only one that may go
- * negative. A form that showed all of them at once would be asking a
- * technician to know which half to ignore.
- *
- * The sign is never a field. "How many did you use" is answered with a
- * positive number and stored negative, because nobody types a minus sign to
- * mean "used" — the exception is the adjustment, where the direction *is* the
- * information.
- */
+// Fields are switched on the type rather than half disabled: the three share only a quantity. The
+// sign is never a field — "how many did you use" is positive and stored negative.
 export function MovementModal({
   type,
   item,

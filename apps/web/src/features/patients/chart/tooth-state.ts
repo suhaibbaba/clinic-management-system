@@ -15,42 +15,11 @@ import { useTranslation } from 'react-i18next';
 
 import { useLookupList } from '@web/features/lookups/queries';
 
-/**
- * How a tooth gets its colour.
- *
- * The state is derived from the record on every render — it is never stored, so
- * it cannot drift out of step with the procedures it summarises (CLAUDE.md:
- * nothing that can be computed is kept as an editable field).
- *
- * Two inputs decide it:
- *  - the procedure's **status**: still planned, or under way
- *  - the catalog item's **chart outcome**: what a finished procedure leaves
- *    behind — a filling, a crown, an extraction
- *
- * The states themselves are the clinic's `tooth_state` list, not a fixed set:
- * a clinic adds "veneer" with a colour in settings and the chart paints it,
- * with no code change and no deploy. What stays in code is the handful of
- * built-in codes the drawing itself is written against — a missing tooth is a
- * dashed outline, an implant is a post, a bridge is a bar between crowns — and
- * those rows cannot be deleted, which is what makes reading them safe.
- */
+// Derived on every render, never stored, from the procedure's status and the catalog item's chart
+// outcome. The states are the clinic's own list; only the handful the drawing names are in code.
 
-/**
- * Which state wins when several procedures touch one tooth, most significant
- * first.
- *
- * The order answers "what is true of this tooth right now?".
- *
- * A replacement outranks the extraction it replaced — a site that was extracted
- * and then implanted is an implant, not a gap, and reading it as a gap is how a
- * chart ends up disagreeing with the mouth. Absence comes next, then work that
- * is under way or waiting, because that is what the appointment is about.
- * Finished restorations rank last: they are history, and the panel lists every
- * one of them in full whatever the tooth is coloured.
- *
- * A clinic's own states are restorations too, so they slot in with the rest of
- * the finished work, in the order the clinic put them in — see `precedenceOf`.
- */
+// A replacement outranks the extraction it replaced — an implanted site is an implant, not a gap.
+// Then absence, then work under way; finished restorations last, the panel listing them in full.
 const BUILTIN_PRECEDENCE: readonly string[] = [
   TOOTH_STATE.IMPLANT,
   TOOTH_STATE.BRIDGE,
@@ -62,17 +31,12 @@ const BUILTIN_PRECEDENCE: readonly string[] = [
   TOOTH_STATE.FILLING,
 ];
 
-/**
- * CSS variables from `index.css`, one per state. Kept as variable names rather
- * than hex values so light and dark mode are decided by the stylesheet — the
- * component never branches on a theme.
- */
+// Variable names rather than hex, so light and dark are the stylesheet's decision and no component
+// branches on a theme.
 export interface ToothStateStyle {
-  /** Interior colour. */
   readonly fill: string;
   /** Outline colour; distinct only where the fill alone would not read. */
   readonly stroke: string;
-  /** Colour of the tooth number drawn on top of the fill. */
   readonly ink: string;
   /** Dashed outline marks an absent tooth — a shape difference, not a hue. */
   readonly dashed: boolean;
@@ -86,11 +50,8 @@ const FILLED = (token: string): ToothStateStyle => ({
   dashed: false,
 });
 
-/**
- * A pale fill, which needs two things a saturated one does not: a darker
- * outline so the tooth still has an edge against the chart surface, and dark
- * ink so the tooth number stays legible on it.
- */
+// A pale fill needs a darker outline to keep an edge against the chart surface, and dark ink to
+// keep the tooth number legible.
 const PALE = (token: string): ToothStateStyle => ({
   fill: `var(--color-tooth-${token})`,
   stroke: `var(--color-tooth-${token}-line)`,
@@ -98,15 +59,8 @@ const PALE = (token: string): ToothStateStyle => ({
   dashed: false,
 });
 
-/**
- * The theme's own palette, for the states that ship with the system.
- *
- * These are deliberately not hex values on the lookup rows: they are the pair
- * of colours the stylesheet defines for light and for dark mode, and freezing
- * one of them into the database would make the chart unreadable in the other.
- * An admin who picks a colour for one of these rows overrides this — their
- * choice wins, in both modes, which is what picking a colour means.
- */
+// A pair of colours per mode: freezing one into the database would make the chart unreadable in the
+// other. An admin's own choice overrides it in both.
 export const BUILTIN_STYLES: Record<string, ToothStateStyle> = {
   [TOOTH_STATE.HEALTHY]: {
     fill: 'var(--color-tooth-healthy)',
@@ -132,13 +86,8 @@ export const BUILTIN_STYLES: Record<string, ToothStateStyle> = {
 /** What the chart falls back to for a code with no row and no built-in style. */
 const UNKNOWN_STYLE: ToothStateStyle = BUILTIN_STYLES[TOOTH_STATE.HEALTHY] as ToothStateStyle;
 
-/**
- * A colour the clinic picked, turned into a full style.
- *
- * The ink is chosen by the colour's own brightness rather than by asking for a
- * second colour: nobody setting up "veneer" should have to think about label
- * contrast, and getting it wrong makes the tooth number vanish.
- */
+// The ink is chosen from the colour's brightness rather than asked for: nobody setting up "veneer"
+// should have to think about label contrast.
 function customStyle(colour: string): ToothStateStyle {
   return {
     fill: colour,
@@ -167,10 +116,8 @@ function isLight(colour: string): boolean {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62;
 }
 
-/** Everything the chart needs about one state, colour and shape together. */
 export interface ToothStateInfo {
   readonly code: string;
-  /** In the reader's language, from the clinic's own row. */
   readonly label: string;
   readonly style: ToothStateStyle;
   readonly area: ToothArea;
@@ -178,21 +125,11 @@ export interface ToothStateInfo {
   readonly shape: ToothChartBehaviour['shape'];
 }
 
-/**
- * The clinic's tooth states, resolved: colour, shape, label and precedence.
- *
- * One object rather than four exported maps, because every one of them has to
- * agree about the same list — and because it is what a component receives when
- * the list is data rather than a constant.
- */
 export interface ToothStates {
   /** Never undefined: a code with no row still draws, in the neutral style. */
   info(code: string): ToothStateInfo;
-  /** In the order the clinic arranged them, for the legend. */
   readonly all: readonly ToothStateInfo[];
-  /** Every code, most significant first. */
   readonly precedence: readonly string[];
-  /** The most significant of several states. */
   dominant(codes: readonly string[]): string;
 }
 
@@ -208,9 +145,8 @@ export function buildToothStates(options: readonly LookupOption[], language: str
       style: option.color
         ? customStyle(option.color)
         : (BUILTIN_STYLES[option.code] ?? UNKNOWN_STYLE),
-      // A custom state paints the whole tooth: the chart cannot know that
-      // somebody's new "veneer" belongs on the crown, and guessing would put
-      // it in the wrong place.
+      // A custom state paints the whole tooth: the chart cannot know that somebody's "veneer"
+      // belongs on the crown, and guessing would put it in the wrong place.
       area: behaviour?.area ?? 'whole',
       shape: behaviour?.shape,
     };
@@ -239,7 +175,6 @@ export function buildToothStates(options: readonly LookupOption[], language: str
   };
 }
 
-/** Reads the chart's half of a tooth-state row's `meta`, if it has one. */
 function chartBehaviour(meta: unknown): ToothChartBehaviour | undefined {
   const behaviour = (meta as { chartBehavior?: unknown } | null)?.chartBehavior;
 
@@ -248,7 +183,6 @@ function chartBehaviour(meta: unknown): ToothChartBehaviour | undefined {
     : undefined;
 }
 
-/** The clinic's states, from the cached lookup bundle, in the reader's language. */
 export function useToothStates(): ToothStates {
   const options = useLookupList(LOOKUP_LIST.TOOTH_STATE);
   const { i18n } = useTranslation();
@@ -257,13 +191,8 @@ export function useToothStates(): ToothStates {
   return useMemo(() => buildToothStates(options, language), [options, language]);
 }
 
-/**
- * The state that paints one half of a tooth: the most significant state that
- * belongs to that half, or that belongs to the whole tooth.
- *
- * Falls back to healthy, so a tooth with only a crown recorded still has a
- * root drawn in the healthy fill rather than an unpainted hole.
- */
+// Falls back to healthy, so a tooth with only a crown recorded still has a root drawn rather than
+// an unpainted hole.
 export function areaState(
   summary: ToothSummary,
   area: 'crown' | 'root',
@@ -277,7 +206,6 @@ export function areaState(
   );
 }
 
-/** True when the tooth carries a state the drawing has a special shape for. */
 export function hasShape(
   summary: ToothSummary,
   shape: NonNullable<ToothChartBehaviour['shape']>,
@@ -286,28 +214,16 @@ export function hasShape(
   return summary.states.some((state) => states.info(state).shape === shape);
 }
 
-/** Everything the chart knows about one tooth. */
 export interface ToothSummary {
   readonly tooth: number;
   readonly state: ToothState;
-  /** Every state present on the tooth, in precedence order. */
   readonly states: readonly ToothState[];
-  /** Surface codes touched by any procedure on this tooth. */
   readonly surfaces: readonly string[];
   readonly procedureCount: number;
 }
 
-/** Lookup from a catalog item id to what it charts as when finished. */
 export type OutcomeLookup = ReadonlyMap<string, ProcedureOutcome | null>;
 
-/**
- * What one procedure says about the tooth it was recorded on.
- *
- * A procedure that is planned or under way says so whatever it will eventually
- * become. Once it is done, the catalog's classification decides; a procedure
- * that charts nothing — an examination, a cleaning — leaves the tooth as it was
- * and returns `null`.
- */
 export function procedureToothState(
   procedure: Pick<PerformedProcedure, 'status' | 'procedureId'>,
   outcomes: OutcomeLookup,
@@ -323,14 +239,8 @@ export function procedureToothState(
   return outcomes.get(procedure.procedureId) ?? null;
 }
 
-/**
- * Folds a patient's procedures into one summary per tooth.
- *
- * Only procedures carrying a chart mark reach a tooth: an X-ray of the whole
- * jaw or a cleaning of the whole mouth has no location and colours nothing.
- * Teeth with nothing recorded are simply absent from the map and render as
- * healthy.
- */
+// Only procedures carrying a chart mark reach a tooth: a panoramic X-ray has no location and
+// colours nothing.
 export function deriveToothSummaries(
   procedures: readonly PerformedProcedure[],
   outcomes: OutcomeLookup,
@@ -383,7 +293,6 @@ export function deriveToothSummaries(
   return summaries;
 }
 
-/** Summary for a tooth nothing has been recorded on. */
 export function healthyTooth(tooth: number): ToothSummary {
   return {
     tooth,

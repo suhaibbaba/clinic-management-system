@@ -1,11 +1,7 @@
 import { defineConfig } from 'drizzle-kit';
 
-/**
- * drizzle-kit configuration. Generated SQL is committed under ./drizzle and an
- * applied migration is never edited (CLAUDE.md) — corrections are new migrations.
- *
- * Usage: pnpm --filter @clinic/api db:generate
- */
+// Generated SQL is committed under ./drizzle; an applied migration is never edited — corrections
+// are new migrations.
 export default defineConfig({
   dialect: 'postgresql',
   schema: './src/database/schema/index.ts',

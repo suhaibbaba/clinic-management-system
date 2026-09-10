@@ -31,13 +31,6 @@ import { TreatmentPlansService } from '@api/patients/treatment-plans.service';
 import { VisitsController } from '@api/patients/visits.controller';
 import { VisitsService } from '@api/patients/visits.service';
 
-/**
- * The patient record and everything that hangs off it (CLAUDE.md module 2).
- *
- * The procedure catalog lives here too: billing owns it in the module order,
- * but treatment plan items and performed procedures both reference it, so it is
- * pulled forward rather than duplicated.
- */
 @Module({
   imports: [BillingModule],
   controllers: [

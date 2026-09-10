@@ -23,15 +23,8 @@ import { formatDate } from '@web/lib/format';
 
 const PAGE_SIZE = 20;
 
-/**
- * Everything that is settled and still to come.
- *
- * The counterpart of the pending queue, and the reason the two sit as tabs of
- * one page: they are the same appointments a decision apart, and reception
- * moves between them constantly. From today onwards, because a confirmed
- * appointment last March is history and belongs in the patient's file, not in
- * a list of what is coming.
- */
+// From today onwards: a confirmed appointment last March is history and belongs in the patient's
+// file, not in a list of what is coming.
 export function ConfirmedBookings(): JSX.Element {
   const { t } = useTranslation();
   const [page, setPage] = useState(1);

@@ -6,15 +6,8 @@ import { Badge, Button, FormField, Input, Ltr, Modal, useToast } from '@web/comp
 import { useCreateLookupOption, useUpdateLookupOption } from '@web/features/lookups/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
-/**
- * Adding a word to one of the clinic's lists, or renaming one it already has.
- *
- * Both names are asked for, not one: the interface has two languages and a
- * list with only an Arabic name would leave an English screen showing a code.
- * The code itself is never edited — it is what every row already recorded
- * refers to, and changing it would silently reinterpret them — so it is shown
- * for the built-in rows and derived from the English name for new ones.
- */
+// Both names, or an English screen shows a code. The code itself is never edited — every recorded
+// row refers to it — so it is derived from the English name for new rows.
 export function LookupOptionModal({
   open,
   listKey,

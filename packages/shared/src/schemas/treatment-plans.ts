@@ -41,7 +41,6 @@ const planItemWritableFields = {
 
 export const createTreatmentPlanItemSchema = z.object({
   ...planItemWritableFields,
-  /** Falls back to the catalog price when omitted. */
   estimatedPrice: wholeMoneySchema.optional(),
   sortOrder: z.number().int().min(0).max(999).default(0),
 });
@@ -74,11 +73,9 @@ export const updateTreatmentPlanSchema = z
   .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
 export type UpdateTreatmentPlanInput = z.infer<typeof updateTreatmentPlanSchema>;
 
-/** Body of `POST /plan-items/:id/convert`. */
 export const convertPlanItemSchema = z.object({
   visitId: z.uuid().nullish(),
   doctorId: z.uuid().optional(),
-  /** Defaults to the item's estimated price. */
   price: wholeMoneySchema.optional(),
   performedAt: z.iso.datetime().optional(),
 });

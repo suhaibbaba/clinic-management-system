@@ -3,25 +3,10 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-/**
- * No field may render below 16px.
- *
- * iOS Safari zooms the page in when a field smaller than that takes focus, and
- * it does not zoom back out — so a receptionist tapping a search box is left
- * looking at a magnified fragment of the page for the rest of the session.
- *
- * The rule is a size *floor*, which makes it the kind of thing a later "make
- * this look tighter" change breaks without anyone noticing: the fix is one
- * class, and nothing on screen says why it was there. Hence a test.
- *
- * It reads the source rather than a rendered page because jsdom has no layout
- * and would report every computed size as the same default. What it checks is
- * the invariant that actually matters: a focusable field carries `text-field`
- * (16px, defined in theme.css) and never a smaller size class.
- */
+// iOS Safari zooms in when a field under 16px takes focus and never zooms back. A floor is the kind
+// of rule a later "tighter" change breaks silently, so it is read out of the source.
 const UI = join(__dirname);
 
-/** Every component that renders a focusable field element. */
 const FIELDS = [
   'input.tsx',
   'select.tsx',

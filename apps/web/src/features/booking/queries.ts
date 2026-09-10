@@ -20,22 +20,13 @@ export function usePendingBookings(
     queryKey: [PENDING_BOOKINGS_KEY, params],
     queryFn: () => pendingBookingsApi.list(params),
     enabled,
-    // Somebody books while reception is looking at the list; a minute-old
-    // count on a badge is worse than no badge. Refetched on focus as well,
-    // because the badge's whole job is to be right the moment somebody comes
-    // back to the tab — a poll alone leaves it up to a minute stale exactly
-    // when it is being read.
+    // Refetched on focus as well as polled: the badge's job is to be right the moment somebody
+    // comes back to the tab.
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
   });
 }
 
-/**
- * Just the number, for the sidebar badge.
- *
- * `limit: 1` because the page of rows is not wanted here — only `total`, which
- * the API returns either way.
- */
 export function usePendingBookingsCount(enabled = true): number {
   const query = usePendingBookings({ limit: 1 }, enabled);
 

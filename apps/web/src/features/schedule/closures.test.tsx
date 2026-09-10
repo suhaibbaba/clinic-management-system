@@ -63,7 +63,6 @@ const openClinicSettings = async (overrides: Handlers = {}) => {
   return api;
 };
 
-/** Fills the "add a closure" form. The date picker takes a typed date. */
 async function fillClosureForm(): Promise<HTMLElement> {
   await userEvent.click(await screen.findByRole('button', { name: ar.schedule.closures.add }));
 

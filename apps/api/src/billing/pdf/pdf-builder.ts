@@ -7,51 +7,23 @@ import { LineCapStyle, PDFDocument, rgb, type PDFFont, type PDFImage, type PDFPa
 import { visualRuns, type TextDirection } from '@api/billing/pdf/arabic-text';
 import type { MarkPath, MarkViewBox } from '@api/billing/pdf/brand-mark';
 
-/**
- * A very small right-to-left document builder over pdf-lib.
- *
- * Everything a receipt or a statement needs — a letterhead, key/value lines, a
- * table, a totals block — and nothing else. It exists so the documents describe
- * *what* they show and never how Arabic is laid out.
- *
- */
-
 const FONT_DIR = join(__dirname, 'fonts');
 
-/**
- * Amiri (SIL Open Font License), a naskh face drawn for print.
- *
- * Chosen over the other free Arabic faces because its presentation forms are
- * single glyphs. Faces that build them out of a base letter plus separate dot
- * marks rely on the font's mark positioning, which pdf-lib does not apply — the
- * dots then pile up at the start of the line. Amiri simply has no such glyphs.
- */
+// Amiri because its presentation forms are single glyphs: faces that compose them from a base
+// letter plus mark glyphs need mark positioning, which pdf-lib does not apply.
 const FONTS = {
   regular: join(FONT_DIR, 'Amiri-Regular.ttf'),
   bold: join(FONT_DIR, 'Amiri-Bold.ttf'),
 } as const;
 
-/**
- * Fonts are embedded whole and with Amiri's Arabic localisation switched off.
- *
- * `subset: false` because pdf-lib's subsetter drops the presentation-form
- * glyphs the shaper produces, and a receipt with missing letters is worse than
- * a receipt that is a few hundred kilobytes.
- *
- * `locl: false` because Amiri swaps the full stop for an Arabic decimal
- * separator whenever a run looks Arabic, and that glyph's advance does not
- * survive into the PDF: pdf-lib writes glyph widths but no positioning, so
- * `100.00 USD` came out measured one width and drawn another, overlapping the
- * label beside it. The text reaching the font is already shaped by hand, so
- * there is nothing for the font's own substitutions to add.
- */
+// `subset: false` — pdf-lib's subsetter drops presentation-form glyphs. `locl: false` — Amiri's
+// Arabic decimal separator is measured at one width and drawn at another, overlapping the label.
 const EMBED_OPTIONS = { subset: false, features: { locl: false } } as const;
 
 export const A4 = { width: 595.28, height: 841.89 } as const;
 export const MARGIN = 42;
 
 export interface Column {
-  /** Share of the table width; the shares are normalised. */
   readonly width: number;
   readonly header: string;
   /** Numbers read better left-aligned even on an RTL sheet. */
@@ -65,16 +37,8 @@ export class RtlPdf {
     private readonly bold: PDFFont,
     private page: PDFPage,
     private cursor: number,
-    /**
-     * Which edge the sheet is anchored to.
-     *
-     * An Arabic receipt starts at the right and its table's first column is
-     * the rightmost; the English one is the mirror image. Every position in
-     * this class is expressed against `this.start` and `this.end` rather than
-     * against left and right, so one flag turns the whole document round —
-     * and the per-line `dir` islands (a phone number, a date range) keep
-     * working exactly as they did in either mode.
-     */
+    // Every position is expressed against `start`/`end` rather than left and right, so one flag
+    // turns the whole document round.
     private readonly pageDir: TextDirection,
   ) {}
 
@@ -97,12 +61,10 @@ export class RtlPdf {
     return this.pageDir === 'rtl' ? this.right : this.left;
   }
 
-  /** Signed direction of travel across the page. */
   private get flow(): 1 | -1 {
     return this.pageDir === 'rtl' ? -1 : 1;
   }
 
-  /** The document's own base direction, for callers that lay out their own lines. */
   get direction(): TextDirection {
     return this.pageDir;
   }
@@ -123,7 +85,6 @@ export class RtlPdf {
     return weight === 'bold' ? this.bold : this.regular;
   }
 
-  /** Width a line will occupy once shaped — runs are additive. */
   widthOf(
     text: string,
     size: number,
@@ -138,13 +99,8 @@ export class RtlPdf {
     );
   }
 
-  /**
-   * Draws one line, run by run.
-   *
-   * Each run is placed at its own x and handed to pdf-lib in logical order:
-   * fontkit reverses an Arabic run as it lays it out, so the runs end up in
-   * visual order without the text ever being reversed by hand.
-   */
+  // Each run is placed at its own x in logical order: fontkit reverses an Arabic run as it lays it
+  // out, so nothing is reversed by hand.
   drawLine(
     text: string,
     options: {
@@ -153,12 +109,8 @@ export class RtlPdf {
       size: number;
       weight?: 'regular' | 'bold';
       colour?: [number, number, number];
-      /**
-       * Base direction of this line. `ltr` is the PDF's equivalent of the web
-       * app's `dir="ltr"` island: a phone number or a date range read the same
-       * way in Arabic as anywhere else, but the bidi algorithm would otherwise
-       * float a leading `+` to the far side and swap the ends of a range.
-       */
+      // The PDF's equivalent of the web app's `dir="ltr"` island: without it bidi floats a leading
+      // `+` to the far side and swaps the ends of a range.
       dir?: TextDirection;
     },
   ): number {
@@ -180,7 +132,6 @@ export class RtlPdf {
     return x - options.x;
   }
 
-  /** Right-aligned line — the default on an Arabic sheet. */
   text(
     value: string,
     options: {
@@ -218,16 +169,8 @@ export class RtlPdf {
     this.cursor -= amount;
   }
 
-  /**
-   * The brand mark, centred, scaled to `size` points tall.
-   *
-   * The cursor is a baseline, so a line of text sits *above* it: `text` draws
-   * at the cursor and the glyphs rise about `size` points from there. The mark
-   * takes the same band — pdf-lib anchors an SVG path at its top-left, keeping
-   * SVG's downward y, so its top goes a full `size` above the cursor. Drawing
-   * it at the cursor instead would put the mark where the next line's letters
-   * are about to be, which is exactly the collision this avoids.
-   */
+  // The cursor is a baseline, but pdf-lib anchors an SVG path at its top-left, so the mark's top
+  // goes a full `size` above it — drawing at the cursor would collide with the next line.
   mark(paths: readonly MarkPath[], viewBox: MarkViewBox, size = 34): void {
     // Fit by height and centre by whatever width that leaves: a mark is as
     // tall as the band it sits in, and its own proportions decide the rest.
@@ -256,14 +199,8 @@ export class RtlPdf {
     this.cursor -= size + 8;
   }
 
-  /**
-   * The clinic's own uploaded logo, centred and scaled to `size` points tall.
-   *
-   * Returns false — drawing nothing and moving the cursor nowhere — when the
-   * bytes are not something pdf-lib can embed, so the caller falls back to the
-   * built-in mark. A logo the printer cannot read must cost a mark on the
-   * sheet, never a receipt the clinic cannot hand over.
-   */
+  // False when the bytes are not something pdf-lib can embed, so the caller falls back to the
+  // built-in mark rather than failing the receipt.
   async image(bytes: Buffer, mime: string, size = 34): Promise<boolean> {
     const embedded = await this.embed(bytes, mime);
 
@@ -315,7 +252,6 @@ export class RtlPdf {
     this.cursor -= 12;
   }
 
-  /** `label: value` on one line, anchored to the sheet's starting edge. */
   field(label: string, value: string, options: { size?: number; dir?: TextDirection } = {}): void {
     const size = options.size ?? 11;
     const dir = options.dir ?? this.pageDir;
@@ -333,12 +269,8 @@ export class RtlPdf {
     this.cursor -= size + 5;
   }
 
-  /**
-   * A table whose first column sits at the sheet's starting edge — the right
-   * on an Arabic sheet, the left on an English one.
-   *
-   * Rows break onto a new page rather than being split across one.
-   */
+  // First column at the sheet's starting edge. Rows break onto a new page rather than being split
+  // across one.
   table(columns: readonly Column[], rows: readonly (readonly string[])[], size = 10): void {
     const usable = this.right - this.left;
     const total = columns.reduce((sum, column) => sum + column.width, 0);
@@ -352,12 +284,6 @@ export class RtlPdf {
         const align = columns[index]?.align ?? 'start';
         const cellWidth = this.widthOf(cell, size, weight);
 
-        /*
-         * `start` hugs the edge the row began at, `end` the far side of the
-         * column — which is the right edge in Arabic and the left in English,
-         * and is what keeps a column of figures aligned under its header
-         * either way.
-         */
         const cellX =
           this.pageDir === 'rtl'
             ? align === 'end'

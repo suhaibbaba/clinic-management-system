@@ -14,13 +14,6 @@ import { lookupCodeSchema } from '@shared/schemas/lookups';
 /** `YYYY-MM-DD`, the wire format for a calendar day everywhere in the app. */
 export const isoDateSchema = z.iso.date();
 
-/**
- * Appointment length, in minutes.
- *
- * Bounded rather than free: five minutes is shorter than it takes to seat a
- * patient, and eight hours is a working day, so anything outside that is a
- * typo the calendar would render as an unreadable block.
- */
 export const durationMinutesSchema = z.number().int().min(5).max(480);
 
 export const appointmentSchema = z.object({
@@ -36,7 +29,6 @@ export const appointmentSchema = z.object({
   status: z.enum(APPOINTMENT_STATUSES),
   reason: z.string().nullable(),
   notes: z.string().nullable(),
-  /** Set once the appointment is turned into a visit; links the two records. */
   visitId: uuidSchema.nullable(),
   cancelledReason: z.string().nullable(),
   createdAt: z.iso.datetime(),
@@ -44,32 +36,15 @@ export const appointmentSchema = z.object({
 });
 export type Appointment = z.infer<typeof appointmentSchema>;
 
-/**
- * An appointment with the two names a calendar has to draw.
- *
- * Denormalised on read rather than fetched per block: a week view holds a
- * hundred appointments, and a hundred follow-up requests for a patient's name
- * is what makes a calendar feel slow.
- *
- * It carries **no** clinical field, which is what lets a receptionist read the
- * same feed as a doctor (ROLES.md: their responses never include diagnoses,
- * visit notes or medical history).
- */
+// Carries no clinical field, which is what lets a receptionist read the same feed as a doctor
+// (ROLES.md).
 export const calendarAppointmentSchema = appointmentSchema.extend({
   patientName: z.string(),
   patientPhone: z.string(),
   patientFileNumber: z.string(),
   doctorName: personNameSchema,
-  /**
-   * The patient record was created by the public booking page, not by anyone
-   * at the desk — nobody has seen their ID yet.
-   *
-   * It is `created_by IS NULL` on the patient, which is a fact rather than a
-   * flag someone has to remember to set: public booking attributes the record
-   * to nobody on purpose, because attributing it to a member of staff would be
-   * a lie in the audit trail. Reception needs it to know whose data still has
-   * to be completed on arrival.
-   */
+  // `created_by IS NULL` on the patient — public booking attributes the record to nobody, so this
+  // is a fact rather than a flag.
   patientUnverified: z.boolean(),
 });
 export type CalendarAppointment = z.infer<typeof calendarAppointmentSchema>;
@@ -86,22 +61,14 @@ const appointmentWritableFields = {
 export const createAppointmentSchema = z.object({
   ...appointmentWritableFields,
   patientId: uuidSchema,
-  /** Falls back to the doctor's own configured appointment length. */
   durationMinutes: durationMinutesSchema.optional(),
-  /** Most bookings are a check-up; the form defaults to it. */
   type: lookupCodeSchema.default(APPOINTMENT_TYPE.CHECKUP),
-  /**
-   * Omitted by reception, whose booking *is* the confirmation. Public booking
-   * will pass `requested` instead, which is why it is settable at all.
-   */
   status: z.enum(APPOINTMENT_STATUSES).optional(),
 });
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 
-/**
- * Rescheduling and editing. Status is **not** here: it moves only through the
- * transition endpoints, so the state machine has exactly one door.
- */
+// Status is not here: it moves only through the transition endpoints, so the state machine has one
+// door.
 export const updateAppointmentSchema = z
   .object(appointmentWritableFields)
   .partial()
@@ -124,13 +91,6 @@ export const listAppointmentsQuerySchema = paginationQuerySchema.extend({
 });
 export type ListAppointmentsQuery = z.infer<typeof listAppointmentsQuerySchema>;
 
-/**
- * A day or a week of the calendar.
- *
- * `doctorId` omitted means the whole clinic, which is the receptionist's view;
- * a doctor's own calendar is the same endpoint with their id, so there is one
- * range query rather than three.
- */
 export const calendarQuerySchema = z.object({
   /** Any date inside the range; the API snaps a week to its Sunday. */
   date: isoDateSchema,
@@ -144,19 +104,8 @@ export const calendarFeedSchema = z.object({
   from: isoDateSchema,
   to: isoDateSchema,
   appointments: z.array(calendarAppointmentSchema),
-  /**
-   * Everything in the range that makes a slot unbookable but is not an
-   * appointment.
-   *
-   * In the same response rather than fetched alongside it, because a calendar
-   * that draws its blocks before it knows which days are shut renders a normal
-   * Tuesday for a moment and then shades it — and reception books into the
-   * flicker. One request, one paint.
-   *
-   * Days are expanded to the range the caller asked for, so the grid never has
-   * to intersect a closure that started three weeks ago with the week it is
-   * drawing.
-   */
+  // In the same response as the appointments, so the grid never paints a normal Tuesday and then
+  // shades it.
   closures: z.array(clinicClosureSchema),
   timeOff: z.array(doctorTimeOffSchema),
 });
@@ -165,12 +114,8 @@ export type CalendarFeed = z.infer<typeof calendarFeedSchema>;
 export const availabilityQuerySchema = z.object({
   doctorId: uuidSchema,
   date: isoDateSchema,
-  /** Defaults to the doctor's configured appointment length. */
   durationMinutes: z.coerce.number().int().min(5).max(480).optional(),
-  /**
-   * The appointment being rescheduled. Its own block is ignored, so an edit
-   * that keeps the same time still sees that time as free.
-   */
+  /** Its own block is ignored, so an edit that keeps the same time still sees that time as free. */
   excludeAppointmentId: uuidSchema.optional(),
 });
 export type AvailabilityQuery = z.infer<typeof availabilityQuerySchema>;
@@ -189,13 +134,8 @@ export const availabilitySchema = z.object({
   doctorId: uuidSchema,
   date: isoDateSchema,
   durationMinutes: durationMinutesSchema,
-  /**
-   * Why there are no slots, when there are none. A closed day and a fully
-   * booked one look identical in an empty array, and they are different
-   * answers to "can you fit me in?" — and so are a clinic closure, which is
-   * dated and applies to everybody, and one doctor being away, where another
-   * doctor may still have room.
-   */
+  // A closed day and a fully booked one are both an empty array; the caller has to tell the patient
+  // which.
   closedReason: z
     .enum([
       'clinic_closed',
@@ -206,14 +146,8 @@ export const availabilitySchema = z.object({
       'day_over',
     ])
     .nullable(),
-  /**
-   * The reason text of whatever shut the day, when something did.
-   *
-   * The closure's own words — "عيد الفطر", "conference" — rather than a
-   * translated category: a clinic writes the reason it wants patients and
-   * reception to read, and inventing a second one here would mean the calendar
-   * and the closure disagreed about why the door is locked.
-   */
+  // The closure's own words rather than a translated category, so the calendar and the closure
+  // cannot disagree.
   closedNote: z.string().nullable(),
   slots: z.array(slotSchema),
 });
@@ -230,9 +164,7 @@ export const waitingListEntrySchema = z.object({
   doctorName: personNameSchema.nullable(),
   reason: z.string().nullable(),
   priority: z.enum(WAITING_LIST_PRIORITIES),
-  /** Set when the entry becomes an appointment, or is dismissed. */
   resolvedAt: z.iso.datetime().nullable(),
-  /** The appointment it was promoted into, when it was. */
   appointmentId: uuidSchema.nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -264,7 +196,6 @@ export const listWaitingListQuerySchema = paginationQuerySchema.extend({
 });
 export type ListWaitingListQuery = z.infer<typeof listWaitingListQuerySchema>;
 
-/** Turning a waiting patient into a booking. The slot comes from availability. */
 export const promoteWaitingListEntrySchema = z.object({
   doctorId: uuidSchema,
   startsAt: z.iso.datetime(),

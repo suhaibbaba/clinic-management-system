@@ -20,14 +20,8 @@ import { auth, createTestContext, type TestClinic, type TestContext } from '@tes
 
 const TIME_ZONE = 'Asia/Damascus';
 
-/**
- * The next Monday **in the clinic's own zone**.
- *
- * Stepping a UTC date forward is wrong for three hours out of every day: at
- * 22:00 UTC on a Sunday it is already Monday in Damascus, so "one day ahead"
- * lands on Tuesday and the fixture schedule does not apply — which turned this
- * whole suite red every evening. Walking local dates is right at every hour.
- */
+// Stepping a UTC date forward is wrong for three hours a day: at 22:00 UTC Sunday it is already
+// Monday in Damascus, so the fixture schedule missed and the suite went red every evening.
 function nextMonday(): string {
   let date = localDate(new Date(), TIME_ZONE);
 
@@ -90,7 +84,6 @@ describe('Appointments (e2e)', () => {
     await context.close();
   });
 
-  /** Books an appointment as reception and returns the parsed body. */
   async function book(time: string, overrides: Record<string, unknown> = {}) {
     return context.app.inject({
       method: 'POST',
@@ -170,9 +163,8 @@ describe('Appointments (e2e)', () => {
         expect(body.closedReason).toBe('clinic_closure');
         expect(body.closedNote).toBe('عيد الفطر');
       } finally {
-        // In a `finally`, because every test below books on this Monday: a
-        // failed assertion here would otherwise leave the clinic shut and take
-        // the rest of the suite down with it.
+        // In a `finally`: every test below books on this Monday, so a failed assertion here would
+        // leave the clinic shut and take the rest of the suite with it.
         await context.db.delete(clinicClosures).where(eq(clinicClosures.id, closure?.id ?? ''));
       }
     });
@@ -265,10 +257,8 @@ describe('Appointments (e2e)', () => {
     });
 
     it('holds under two genuinely concurrent inserts', async () => {
-      // The check-then-act race a busy front desk actually hits: two people
-      // booking the same slot at the same moment. No service-level check can
-      // win this — only the exclusion constraint can, which is why the test
-      // fires both requests before awaiting either.
+      // The check-then-act race a busy front desk hits. No service-level check can win it, which is
+      // why both requests are fired before either is awaited.
       const bothAtOnce = await Promise.all([book('13:00'), book('13:00')]);
 
       const codes = bothAtOnce.map((response) => response.statusCode).sort();

@@ -1,23 +1,17 @@
 import { z } from 'zod';
 
-/** Every entity id in the system is a UUID. */
 export const uuidSchema = z.uuid();
 
-/** `:id` route parameter. */
 export const idParamSchema = z.object({ id: uuidSchema });
 export type IdParam = z.infer<typeof idParamSchema>;
 
-/**
- * Pagination for every list endpoint (CLAUDE.md). Query params arrive as
- * strings, hence the coercion.
- */
+/** Query params arrive as strings, hence the coercion. */
 export const paginationQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
 
-/** Envelope returned by every list endpoint. */
 export function paginatedSchema<TItem extends z.ZodTypeAny>(item: TItem) {
   return z.object({
     items: z.array(item),
@@ -60,11 +54,8 @@ export const dayScheduleSchema = z.object({
 });
 export type DaySchedule = z.infer<typeof dayScheduleSchema>;
 
-/**
- * Reused for clinic opening hours and for a doctor's weekly schedule. Slot
- * availability is always computed from this minus existing appointments —
- * free slots are never stored (CLAUDE.md architecture decision 6).
- */
+// Availability is always computed from this minus existing appointments — free slots are never
+// stored.
 export const weeklyScheduleSchema = z
   .array(dayScheduleSchema)
   .max(7)
@@ -74,5 +65,4 @@ export const weeklyScheduleSchema = z
   );
 export type WeeklySchedule = z.infer<typeof weeklyScheduleSchema>;
 
-/** Free-form per-clinic configuration; typed as modules start using keys. */
 export const settingsSchema = z.record(z.string(), z.unknown());

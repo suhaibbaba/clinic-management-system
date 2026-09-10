@@ -18,15 +18,8 @@ export const userRoleEnum = pgEnum('user_role', USER_ROLES);
 export const chartTypeEnum = pgEnum('chart_type', CHART_TYPES);
 export const auditActionEnum = pgEnum('audit_action', AUDIT_ACTIONS);
 
-/**
- * On every table (CLAUDE.md architecture decision 3).
- *
- * `created_by` / `updated_by` are plain UUIDs with no foreign key on purpose:
- * `users.clinic_id` references `clinics`, so constraining them to `users` would
- * make the two tables circularly dependent, and the first clinic and the first
- * admin are necessarily created with no prior user to attribute them to. The
- * audit log is the authoritative record of who changed what.
- */
+// No foreign key on purpose: `users.clinic_id` references `clinics`, so constraining these would
+// make the two circular — and the first admin has nobody to attribute.
 const auditColumns = {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -47,26 +40,12 @@ export const clinics = pgTable(
   'clinics',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    /**
-     * The practice's own name, in both languages.
-     *
-     * Two columns rather than one, because this name is printed: it heads
-     * every receipt, prescription and lab sheet, and those documents are
-     * produced in the *clinic's* language (`settings.documents.language`),
-     * not the reader's. One column meant an Arabic clinic's English receipt
-     * carried an Arabic letterhead, or the reverse — and there was nowhere to
-     * put the other spelling.
-     */
+    // Two columns because this name is printed, and documents are produced in the clinic's language
+    // rather than the reader's.
     nameAr: text('name_ar').notNull(),
     nameEn: text('name_en').notNull(),
-    /**
-     * The clinic's handle in a public booking URL.
-     *
-     * A slug rather than the id, because the booking link is printed on cards
-     * and read aloud over the phone — and because a URL carrying a primary key
-     * invites walking the key space. Unique across the system, since the public
-     * routes carry no other clinic hint.
-     */
+    // A slug rather than the id: the link is printed on cards and read down the phone, and a URL
+    // carrying a primary key invites walking the key space.
     slug: text('slug').notNull(),
     /** R2 object key — never a public URL. */
     logoKey: text('logo_key'),
@@ -83,10 +62,7 @@ export const clinics = pgTable(
   (table) => [uniqueIndex('clinics_slug_uniq').on(table.slug).where(liveRows)],
 );
 
-/**
- * A clinic's specialties. `code` is text, not a Postgres enum, so adding a
- * specialty is data rather than a migration.
- */
+/** `code` is text, not a Postgres enum, so adding a specialty is data rather than a migration. */
 export const specialties = pgTable(
   'specialties',
   {
@@ -107,13 +83,8 @@ export const specialties = pgTable(
   ],
 );
 
-/**
- * Login accounts. One clinic, exactly one role (ROLES.md).
- *
- * Phone and email are unique across the whole system, not per clinic, because
- * login takes an identifier and no clinic hint — two clinics sharing a phone
- * number would make the credential ambiguous.
- */
+// Phone and email are unique system-wide, not per clinic: login takes an identifier with no clinic
+// hint, so a shared number would be ambiguous.
 export const users = pgTable(
   'users',
   {
@@ -121,19 +92,8 @@ export const users = pgTable(
     clinicId: uuid('clinic_id')
       .notNull()
       .references(() => clinics.id),
-    /**
-     * Staff names in both languages, both required.
-     *
-     * A clinic's interface is Arabic and its letterheads may be either, so a
-     * single `name` column meant "Dr. Layla Haddad" sitting in the middle of
-     * an otherwise Arabic calendar column — which is what people actually
-     * reported. Both spellings are entered once, on the user form, and every
-     * screen picks one through the shared `PersonName` helper.
-     *
-     * **Patient names stay a single field** (CLAUDE.md): a patient's name is
-     * what reception typed off their ID, and asking a receptionist to
-     * transliterate it at the desk would produce worse data, not better.
-     */
+    // Both spellings, because a single column put "Dr. Layla Haddad" in the middle of an Arabic
+    // calendar. Patient names stay one field — reception types what the ID says.
     nameAr: text('name_ar').notNull(),
     nameEn: text('name_en').notNull(),
     phone: text('phone').notNull(),
@@ -142,14 +102,8 @@ export const users = pgTable(
     passwordHash: text('password_hash').notNull(),
     role: userRoleEnum('role').notNull(),
     isActive: boolean('is_active').notNull().default(true),
-    /**
-     * Object key of the staff photo, under `clinic/{id}/staff/{userId}/`.
-     *
-     * The key and never a URL, for the same reason an X-ray is stored this way
-     * (CLAUDE.md files & images): what a client receives is a signed GET that
-     * expires in minutes, minted per response, so a photo cannot be handed on
-     * by copying a link out of a JSON payload.
-     */
+    // The key and never a URL: what a client receives is a signed GET minted per response, so a
+    // photo cannot be handed on by copying a link out of JSON.
     photoKey: text('photo_key'),
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
     ...auditColumns,
@@ -164,7 +118,6 @@ export const users = pgTable(
   ],
 );
 
-/** A treating physician, backed by exactly one user account. */
 export const doctors = pgTable(
   'doctors',
   {
@@ -193,17 +146,8 @@ export const doctors = pgTable(
   ],
 );
 
-/**
- * Rotating refresh tokens, stored as a SHA-256 digest of the random token.
- *
- * A digest rather than argon2: the token is 256 bits of entropy from a CSPRNG,
- * so it needs no brute-force hardening, and refresh has to stay cheap enough to
- * look up by hash on every call. Passwords are the low-entropy case and use
- * argon2id.
- *
- * Operational rather than medical data, so rows are revoked and purged rather
- * than soft-deleted.
- */
+// A SHA-256 digest, not argon2: 256 bits of CSPRNG entropy needs no hardening and refresh must stay
+// a cheap lookup. Operational data, so rows are purged rather than soft-deleted.
 export const refreshTokens = pgTable(
   'refresh_tokens',
   {
@@ -227,11 +171,8 @@ export const refreshTokens = pgTable(
   ],
 );
 
-/**
- * Immutable audit trail (CLAUDE.md architecture decision 4). Insert-only: no
- * update or delete path exists in the API, so it carries `created_at` and the
- * acting `user_id` instead of the usual mutation columns.
- */
+// Insert-only: no update or delete path exists in the API, so it carries `created_at` and the
+// acting `user_id` instead of the usual mutation columns.
 export const auditLog = pgTable(
   'audit_log',
   {
@@ -242,7 +183,6 @@ export const auditLog = pgTable(
     /** Null when the actor is the system (migrations, schedulers, seeding). */
     userId: uuid('user_id').references(() => users.id),
     action: auditActionEnum('action').notNull(),
-    /** Table name of the affected row, e.g. `users`. */
     entity: text('entity').notNull(),
     entityId: uuid('entity_id').notNull(),
     oldValue: jsonb('old_value'),

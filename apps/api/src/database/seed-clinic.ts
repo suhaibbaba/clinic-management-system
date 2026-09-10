@@ -6,7 +6,6 @@ import { clinics, users } from '@api/database/schema';
 
 type Db = ReturnType<typeof drizzle>;
 
-/** Everything the row needs beyond the two things that identify it. */
 type ClinicDefaults = Omit<
   InferInsertModel<typeof clinics>,
   'nameAr' | 'nameEn' | 'slug' | 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'
@@ -15,35 +14,16 @@ type ClinicDefaults = Omit<
 export interface SeedClinicSpec {
   readonly slug: string;
   readonly name: PersonName;
-  /** Used only when there is nothing to adopt. */
   readonly defaults: ClinicDefaults;
 }
 
 export interface SeedClinicResult {
   readonly id: string;
-  /** Lines for the seed's report — empty on a database that was already right. */
   readonly notes: readonly string[];
 }
 
-/**
- * The one clinic the seed maintains, found however it was last written.
- *
- * **Why this is not a lookup by slug.** It was, and that is what broke the
- * sandbox. `0005` gave every existing clinic a slug derived from its name, so
- * a database seeded before that migration holds `al-nour-dental-clinic` where
- * the seed now says `al-nour`; the lookup missed, the seed created a *second*
- * clinic, and then — because accounts are matched by phone, which is unique
- * across the system, not per clinic — it reused the first clinic's doctors and
- * collided with the first clinic's appointments on `appointments_no_overlap`.
- * The API container exits on a failed seed, so a mismatched string took a
- * deployment down.
- *
- * So the clinic is matched on any of the three things that name it — its slug
- * or either spelling of its name — and the oldest match wins, because a
- * duplicate is always the newer row. Its slug is then brought back into line,
- * so the drift is repaired rather than carried for ever; its *name* is left
- * exactly as it is, because that is a thing a practice edits about itself.
- */
+// Not a lookup by slug: `0005` derived slugs from names, so an older database holds a different one
+// and the seed made a second clinic. Matched on slug or either name, oldest wins.
 export async function upsertSeedClinic(db: Db, spec: SeedClinicSpec): Promise<SeedClinicResult> {
   const [adopted] = await db
     .select({ id: clinics.id, slug: clinics.slug })
@@ -80,7 +60,6 @@ export async function upsertSeedClinic(db: Db, spec: SeedClinicSpec): Promise<Se
   }
 
   const notes: string[] = [];
-  // Whatever else is sitting on the slug the seed wants.
   const squatter = await clinicOnSlug(db, spec.slug, adopted.id);
 
   // Retire before renaming: the unique index on the slug covers live rows, so
@@ -108,7 +87,6 @@ export async function upsertSeedClinic(db: Db, spec: SeedClinicSpec): Promise<Se
   return { id: adopted.id, notes };
 }
 
-/** A live clinic other than `exceptId` holding `slug`, if there is one. */
 async function clinicOnSlug(db: Db, slug: string, exceptId: string): Promise<string | undefined> {
   const [row] = await db
     .select({ id: clinics.id })
@@ -119,18 +97,8 @@ async function clinicOnSlug(db: Db, slug: string, exceptId: string): Promise<str
   return row?.id;
 }
 
-/**
- * A clinic on the seed's slug that nobody can sign into.
- *
- * Exactly the wreckage the lookup-by-slug bug left behind: a second clinic,
- * created because the first was not recognised, carrying seeded demo rows and
- * **no users at all** — every account stayed with the original clinic, since
- * accounts are matched by phone. That last part is the whole condition. A
- * clinic with even one account is somebody's, and the seed leaves it alone.
- *
- * Soft-deleted, like everything else in this system, so the rows are still
- * there to look at if the diagnosis was wrong.
- */
+// The wreckage of that bug: a second clinic with seeded rows and no users at all, since accounts
+// are matched by phone. One account means it is somebody's, and the seed leaves it alone.
 async function retireStray(db: Db, strayId: string): Promise<boolean> {
   const [{ value: accounts } = { value: 0 }] = await db
     .select({ value: count() })

@@ -25,21 +25,8 @@ import { canCreateLabOrder } from '@web/features/labs/permissions';
 import { ageInYears } from '@web/features/patients/age';
 import { errorMessageKey } from '@web/lib/api-error';
 
-/**
- * The chart tab: fetches what colours the teeth, and owns the selection.
- *
- * Two queries back it — the patient's procedures and the procedure catalog —
- * because a tooth's state is the pair of them: the procedure says how far along
- * it is, the catalog says what it charts as when finished.
- */
-/**
- * The age past which a deciduous chart is noise.
- *
- * The last baby teeth are normally shed around twelve, so from thirteen a
- * patient has one dentition and being asked to choose between two is a
- * question with a wrong answer available. It is a default, not a rule: a
- * retained deciduous tooth already charted brings the toggle back, below.
- */
+// A tooth's state is the pair of queries: the procedure says how far along, the catalog what it
+// charts as. Past thirteen the deciduous arch is noise unless a tooth is retained.
 const PERMANENT_DENTITION_AGE = 13;
 
 export function ChartTab({
@@ -48,7 +35,6 @@ export function ChartTab({
   patient,
 }: {
   readonly patientId: string;
-  /** ISO date, or null when the file has no date of birth. */
   readonly dateOfBirth?: string | null | undefined;
   /** Fills the lab order's patient without a second lookup. */
   readonly patient?: PatientClinicalView | undefined;
@@ -78,14 +64,8 @@ export function ChartTab({
     [procedures.data, outcomes, states],
   );
 
-  /*
-   * Whether this patient has two dentitions worth showing.
-   *
-   * An unknown date of birth keeps the toggle: the alternative is hiding half
-   * the chart from a child whose birthday nobody typed in. So does a deciduous
-   * tooth already on the file, which is what a retained one looks like — the
-   * chart must never become unable to show a tooth it has a procedure for.
-   */
+  // An unknown date of birth keeps the toggle, as does a deciduous tooth already on file: the chart
+  // must never be unable to show a tooth it has a procedure for.
   const age = dateOfBirth ? ageInYears(dateOfBirth) : null;
   const hasDeciduousHistory = [...summaries.keys()].some(isDeciduousTooth);
   const showDentitionToggle = age === null || age < PERMANENT_DENTITION_AGE || hasDeciduousHistory;
@@ -126,9 +106,8 @@ export function ChartTab({
             value={dentition}
             onChange={(next) => {
               setDentition(next);
-              // The deciduous arch has no tooth 27; keeping a selection across
-              // the switch would leave the panel describing a tooth that is not
-              // on screen.
+              // The deciduous arch has no tooth 27, so a selection kept across the switch would
+              // describe a tooth that is not on screen.
               setSelectedTooth(null);
             }}
             options={(['permanent', 'deciduous'] as const).map((option) => ({

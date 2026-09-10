@@ -11,16 +11,6 @@ import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { DatabaseModule } from '@api/database/database.module';
 import { PatientsModule } from '@api/patients/patients.module';
 
-/**
- * The internal calendar: appointments, availability and the waiting list.
- *
- * `PatientsModule` is imported for `PatientAccessService` — every appointment
- * belongs to a patient, and the 404-not-403 rule for a patient from another
- * clinic is written once there.
- *
- * `AvailabilityService` is exported because public booking needs exactly this
- * service from its own `@Public()` controller, with none of the rest.
- */
 @Module({
   imports: [DatabaseModule, AuditModule, PatientsModule],
   controllers: [AppointmentsController, WaitingListController],
@@ -31,9 +21,8 @@ import { PatientsModule } from '@api/patients/patients.module';
     AvailabilityService,
     WaitingListService,
   ],
-  // `AppointmentAccessService` is exported for the labs module: "a doctor
-  // manages their own" is the same rule for a crown as for an appointment, and
-  // one definition of it beats two that drift.
+  // Exported for the labs module: "a doctor manages their own" is the same rule for a crown as for
+  // an appointment.
   exports: [AvailabilityService, AppointmentsService, AppointmentAccessService],
 })
 export class AppointmentsModule {}

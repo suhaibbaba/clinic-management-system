@@ -6,7 +6,6 @@ import { Ltr } from '@web/components/ui/ltr';
 export interface SegmentOption<TValue extends string> {
   readonly value: TValue;
   readonly label: string;
-  /** Shown as a small count beside the label, e.g. how many rows match. */
   readonly count?: number | undefined;
 }
 
@@ -14,25 +13,12 @@ export interface SegmentedControlProps<TValue extends string> {
   readonly options: readonly SegmentOption<TValue>[];
   readonly value: TValue;
   readonly onChange: (value: TValue) => void;
-  /** Names the whole group, e.g. "filter by status". */
   readonly label: string;
   readonly className?: string | undefined;
 }
 
-/**
- * Pill tabs for filtering a list — all / active / done, and the like.
- *
- * A radio group rather than tabs or buttons: these choose *which rows to
- * show*, they do not switch panels, and a radio group is what conveys "one of
- * these, and exactly one" to a screen reader. Arrow keys then move the
- * selection natively, in the reading direction, with no key handling here.
- *
- * Styled as the platform's own segmented control: a grey groove with the
- * chosen segment raised out of it in white. Deliberately *not* a blue fill —
- * a row of filters is chrome, and colouring one would give a filter more
- * weight than the data it filters, in the one place the page has reserved for
- * its single action colour.
- */
+// A radio group, not tabs: these choose which rows to show, and it conveys "exactly one" plus
+// native arrow keys. Not a blue fill — a filter is chrome.
 export function SegmentedControl<TValue extends string>({
   options,
   value,
@@ -60,9 +46,8 @@ export function SegmentedControl<TValue extends string>({
             aria-checked={isSelected}
             onClick={() => onChange(option.value)}
             className={cn(
-              // 44 in both directions on touch: `px-3.5` around a two-letter
-              // label ("الكل", "All") drew a 43px-wide segment, so the height
-              // was the target and the width was one pixel short of it.
+              // 44 in both directions on touch: `px-3.5` around a two-letter label drew a 43px-wide
+              // segment.
               'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5',
               'rounded-control px-3 lg:h-8 lg:min-h-0 lg:min-w-0',
               'text-label transition-[background-color,color,box-shadow] duration-150',

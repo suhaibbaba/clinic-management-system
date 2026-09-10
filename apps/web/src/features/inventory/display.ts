@@ -11,18 +11,8 @@ import {
 import type { BadgeTone } from '@web/components/ui/badge';
 import type { ProgressTone } from '@web/components/ui/progress-bar';
 
-/**
- * How the inventory reads on screen, in one table.
- *
- * The bar, the badge and the row all consult this, so a category cannot be
- * amber in one place and grey in another, and "low" cannot be red on the list
- * and neutral in the drawer. Every value is a `theme.css` token; no hex.
- */
-/**
- * Categories are the clinic's own list now, so this covers the four that ship
- * and leaves anything a clinic added to the neutral badge — a tone is emphasis,
- * and a category nobody wrote a rule for has none to give.
- */
+// The bar, the badge and the row all consult this, so a category cannot be amber in one place and
+// grey in another. A clinic's own category gets the neutral badge.
 const CATEGORY_TONES: Record<string, BadgeTone> = {
   [ITEM_CATEGORY.MEDICATION]: 'info',
   [ITEM_CATEGORY.CONSUMABLE]: 'neutral',
@@ -42,14 +32,8 @@ export const MOVEMENT_TONES: Record<MovementType, BadgeTone> = {
   [MOVEMENT_TYPE.ADJUST]: 'warning',
 };
 
-/**
- * What the stock bar says about an item.
- *
- * Below its minimum is `danger` because it is a problem rather than a small
- * number — the bar's own documentation makes exactly this distinction. Between
- * the minimum and twice it is `warning`: still fine, but this is the week to
- * order. Above that it is the ordinary primary fill.
- */
+// Below the minimum is `danger` because it is a problem rather than a small number; up to twice it
+// is `warning` — still fine, but the week to order.
 export function stockTone(item: InventoryItemRow): ProgressTone {
   if (item.isLow) {
     return 'danger';
@@ -64,12 +48,8 @@ export function stockTone(item: InventoryItemRow): ProgressTone {
   return 'primary';
 }
 
-/**
- * The bar's scale: twice the minimum, so the minimum sits at the halfway mark
- * and "how close am I to reordering" is readable at a glance rather than
- * calculated. An item with no minimum has no meaningful scale, so the bar is
- * drawn against what is there.
- */
+// Twice the minimum, so the minimum sits at the halfway mark and "how close am I to reordering" is
+// read rather than calculated.
 export function stockScale(item: InventoryItemRow): { value: number; total: number } {
   const minimum = toThousandths(item.minQuantity);
   const quantity = Math.max(quantityToNumber(item.quantity), 0);

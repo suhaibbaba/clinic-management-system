@@ -8,12 +8,8 @@ import {
   storedLanguage,
 } from '@web/i18n/language';
 
-/**
- * Switching language has to do three things together, and the third is the one
- * that gets forgotten: change the strings, remember the choice, and flip the
- * document's direction. A language switch that leaves `dir="rtl"` renders
- * English right-aligned with the sidebar on the wrong side.
- */
+// Three things together, and the third is the forgotten one: change the strings, remember the
+// choice, flip the document's direction.
 describe('language', () => {
   afterEach(async () => {
     window.localStorage.clear();
@@ -56,11 +52,6 @@ describe('language', () => {
     expect(document.documentElement.dir).toBe('rtl');
   });
 
-  /*
-   * The ordering guard: the direction has to be on the document before the
-   * language change re-renders the tree, or direction-relative icons paint
-   * with the old direction.
-   */
   it('sets the direction before the strings change', async () => {
     let dirWhenStringsChanged: string | undefined;
     const onLanguageChanged = (): void => {

@@ -23,21 +23,13 @@ import { errorMessageKey } from '@web/lib/api-error';
 import { formatDateTime } from '@web/lib/format';
 import { cn } from '@web/lib/cn';
 
-/**
- * The visits tab: one encounter per card, newest first, with the procedures
- * carried out during it listed inside.
- *
- * Procedures live under their visit rather than in a flat list because that is
- * how they are recorded — a visit is the thing that happened, and the work is
- * what happened in it. The same procedure also appears on the chart, coloured
- * by the tooth it touched; these are two views of one record, not two records.
- */
+// Procedures live under their visit because that is how they are recorded. The same procedure also
+// appears on the chart — two views of one record, not two records.
 export function VisitsTab({
   patientId,
   patient,
 }: {
   patientId: string;
-  /** Fills the consumption's patient link without a second lookup. */
   patient?: PatientClinicalView | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
@@ -56,13 +48,11 @@ export function VisitsTab({
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingVisit, setEditingVisit] = useState<Visit | null>(null);
-  /** The visit currently showing its procedure form, and what it is editing. */
   const [procedureFor, setProcedureFor] = useState<{
     visitId: string;
     procedure: PerformedProcedure | null;
   } | null>(null);
 
-  /** Procedures grouped by the visit they were recorded in. */
   const byVisit = useMemo(() => {
     const grouped = new Map<string, PerformedProcedure[]>();
 
@@ -152,10 +142,8 @@ export function VisitsTab({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  {/* Recording what was used, from where it was used. The
-                      alternative is a technician reconstructing a day's
-                      consumption from memory, which is how a stock count stops
-                      matching the cupboard. */}
+                  {/* The alternative is a technician reconstructing a day's consumption from memory,
+                      which is how a stock count stops matching the cupboard. */}
                   {canConsumeStock(user?.role) && (
                     <Button
                       icon={<Icon name="clipboard" />}
@@ -319,7 +307,6 @@ function Field({
   );
 }
 
-/** The tooth a procedure was recorded on, when it has one. */
 function toothOf(procedure: PerformedProcedure): { tooth?: number } {
   const tooth = (procedure.chartMarks?.[0]?.location as { tooth?: number } | undefined)?.tooth;
 

@@ -16,14 +16,8 @@ import { TimelineService } from '@api/patients/timeline.service';
 class ListTimelineQueryDto extends createZodDto(listTimelineQuerySchema) {}
 class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 
-/**
- * The merged patient timeline (ROLES.md patients matrix): admin and doctor read
- * it in full, a receptionist only the financial and appointment entries, and a
- * technician not at all.
- *
- * Which entries come back is decided by the caller's role inside the service —
- * the `type` query parameter can only narrow that set, never widen it.
- */
+// Which entries come back is decided by role inside the service; the `type` parameter can only
+// narrow that set, never widen it.
 @Controller('patients/:patientId/timeline')
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST)
 export class TimelineController {

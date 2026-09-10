@@ -1,12 +1,5 @@
 import { shapeArabic, visualRuns } from '@api/billing/pdf/arabic-text';
 
-/**
- * The Arabic layer of the PDF pipeline.
- *
- * These are the two things that have to be right before a receipt is readable:
- * a letter takes the shape its neighbours give it, and a line mixing Arabic
- * with numbers comes out in the order a reader expects.
- */
 describe('Arabic text', () => {
   describe('shaping', () => {
     it('gives every letter of a word its joining form', () => {

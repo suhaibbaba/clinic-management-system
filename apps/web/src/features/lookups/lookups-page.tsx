@@ -31,27 +31,8 @@ import {
 import { errorMessageKey } from '@web/lib/api-error';
 import { cn } from '@web/lib/cn';
 
-/**
- * القوائم — the lists behind every dropdown in the app.
- *
- * One screen rather than a settings section per module, because the thing a
- * clinic is doing here is the same thing every time: adding a word they use
- * that the system did not ship with. A tab per list, the list itself under it,
- * and nothing else.
- *
- * Every row is the clinic's: rename it, recolour it, reorder it, switch it off
- * or delete it, the built-in ones included. The "أساسي" badge is the one thing
- * left of the old restriction and it is now information rather than a refusal —
- * it marks a row the application draws behaviour from, so the confirmation
- * before deleting one says what that costs.
- *
- * The two ways to retire an option are deliberately different, and the wording
- * has to keep them apart, because only one of them is reversible in the
- * records: **switching off** takes an option out of every dropdown and leaves
- * it resolving to its name, so last year's receipt still reads "نقداً";
- * **deleting** takes the name with it, and a record holding the code falls back
- * to showing the code.
- */
+// Every row is the clinic's, built-in ones included; "أساسي" is information, not a refusal.
+// Switching off leaves an option resolving to its name; deleting takes the name with it.
 export function LookupsPage(): JSX.Element {
   const { t } = useTranslation();
   const [listKey, setListKey] = useState<LookupListKey>(LOOKUP_LIST_KEYS[0]);
@@ -114,11 +95,8 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
 
   const fail = (error: unknown): void => toast.error(errorMessageKey(error));
 
-  /**
-   * The whole order goes back on drop, not "move this one to position 4":
-   * two people reordering at once would otherwise interleave into an order
-   * neither of them chose.
-   */
+  // The whole order goes back on drop: two people reordering at once would otherwise interleave
+  // into an order neither chose.
   const drop = async (targetId: string): Promise<void> => {
     if (!dragging || dragging === targetId) {
       return;
@@ -144,9 +122,8 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
   };
 
   const destroy = async (option: LookupOption): Promise<void> => {
-    // A built-in row is asked about differently: it is the one case where the
-    // reader may not know that something in the app is keyed to this code, and
-    // where "switch it off instead" is usually the answer they wanted.
+    // A built-in row is asked about differently: the reader may not know something in the app is
+    // keyed to this code, and "switch it off" is usually what they wanted.
     const question = option.isSystem ? 'lookups.confirmDeleteSystem' : 'lookups.confirmDelete';
 
     if (!window.confirm(t(question, { name: lookupLabel(option, i18n.language) }))) {
@@ -187,12 +164,8 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
               onDragOver={(event: DragEvent) => event.preventDefault()}
               onDrop={() => void drop(option.id)}
               className={cn(
-                // Below `md` the row is two lines: the name gets the width to
-                // itself and the controls wrap under it. On one line a phone
-                // gave the name whatever the badge, the switch and two text
-                // actions left over — about sixty pixels — so every option in
-                // the list read "نخر /…", which is the one column nobody can
-                // do without.
+                // Two lines below `md`: on one line the name got what the badge, the switch and two
+                // actions left over — about sixty pixels.
                 'flex flex-wrap items-center gap-x-3 gap-y-1 md:flex-nowrap',
                 'rounded-control border border-transparent px-2 py-2',
                 'hover:border-line hover:bg-sunken',
@@ -205,9 +178,8 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
               </span>
 
               {coloured && (
-                // The colour the chart will actually paint with, which for a
-                // built-in row with no colour of its own is the theme's own
-                // token — an empty swatch beside "سليم" would be a lie.
+                // The colour the chart will actually paint with — for a built-in row with none of
+                // its own that is the theme's token, and an empty swatch would be a lie.
                 <ToothSwatch
                   style={states.info(option.code).style}
                   className="inline-block size-4 shrink-0 rounded-sm border"
@@ -215,26 +187,14 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
               )}
 
               <span className="min-w-0 flex-1">
-                {/*
-                 * Wraps on a phone, truncates on a wide row. A settings list is
-                 * read to find one word in it: an ellipsis where the option's
-                 * own name should be defeats the screen, and two lines cost
-                 * nothing here.
-                 */}
+                {/* Wraps on a phone, truncates on a wide row: a settings list is read to find one
+                    word, and an ellipsis where the name should be defeats the screen. */}
                 <span className="block break-words text-value text-ink md:truncate">
                   {lookupLabel(option, i18n.language)}
                 </span>
                 <Ltr className="truncate text-label text-ink-subtle">{option.code}</Ltr>
               </span>
 
-              {/*
-                The controls travel together, so they wrap as a block onto the
-                row's second line rather than one at a time — the switch left
-                stranded beside the name would read as belonging to it. On that
-                second line they start where the name starts, so the option and
-                what can be done to it read as one block rather than as two
-                things at opposite edges of the card.
-              */}
               <span className="flex w-full shrink-0 items-center gap-3 md:w-auto">
                 {option.isSystem && <Badge tone="neutral">{t('lookups.system')}</Badge>}
 

@@ -8,18 +8,10 @@ type Db = ReturnType<typeof drizzle>;
 
 export interface LabsSeedContext {
   readonly clinicId: string;
-  /** Both doctors, so orders are not all from the same chair. */
   readonly doctorIds: readonly string[];
   readonly actorId: string;
 }
 
-/**
- * The price list every dental lab has, in the words a Palestinian clinic uses.
- *
- * Two labs with different prices for the same work, because that is the
- * situation the per-lab price list exists for: the clinic chooses where to
- * send a case partly on what it costs.
- */
 const WORK_TYPES: readonly {
   readonly nameAr: string;
   readonly prices: readonly [string, string];
@@ -55,15 +47,11 @@ const LABS: readonly {
 ];
 
 interface SeedOrder {
-  /** Index into `LABS`. */
   readonly lab: number;
-  /** Index into `WORK_TYPES`. */
   readonly workType: number;
-  /** Index into the clinic's patients, in file-number order. */
   readonly patient: number;
   readonly doctor: number;
   readonly teeth: readonly number[];
-  /** Codes on the clinic's `lab_material` and `lab_shade` lists. */
   readonly material: string;
   readonly shade: string | null;
   readonly status: LabOrderStatus;
@@ -74,14 +62,6 @@ interface SeedOrder {
   readonly returnReason?: string;
 }
 
-/**
- * A board that looks like a real week.
- *
- * One order in each state the technician actually sees, plus the two that make
- * the screens worth opening: **one overdue** — sent, due three days ago, still
- * not back — and **one returned**, which is the case that proves the balance
- * rule (the lab made it, so the clinic still owes for it).
- */
 const ORDERS: readonly SeedOrder[] = [
   {
     lab: 0,
@@ -109,7 +89,6 @@ const ORDERS: readonly SeedOrder[] = [
     expectedDays: 4,
   },
   {
-    // Late: promised three days ago and still at the lab.
     lab: 1,
     workType: 2,
     patient: 2,
@@ -187,7 +166,6 @@ const ORDERS: readonly SeedOrder[] = [
   },
 ];
 
-/** Partial on purpose: a lab with a settled balance shows nothing worth seeing. */
 const PAYMENTS: readonly {
   readonly lab: number;
   readonly amount: string;
@@ -198,12 +176,6 @@ const PAYMENTS: readonly {
   { lab: 1, amount: '100.00', note: 'دفعة على حساب' },
 ];
 
-/**
- * Two labs, their price lists, a week of orders and some money paid.
- *
- * Idempotent like the rest of the seed: it returns early once this clinic has
- * a lab, so `pnpm seed` stays safe to repeat.
- */
 export async function seedLabs(
   db: Db,
   ctx: LabsSeedContext,

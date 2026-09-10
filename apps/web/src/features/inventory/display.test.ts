@@ -23,11 +23,6 @@ const item = (quantity: string, minQuantity: string, isLow = false): InventoryIt
   nearestExpiry: null,
 });
 
-/**
- * The bar is the thing people read instead of the number, so what it says has
- * to be true at the boundaries: exactly at the minimum is a problem, one unit
- * above it is not, and the minimum always sits at the halfway mark.
- */
 describe('stockTone', () => {
   it('is danger when the API says the item is low', () => {
     expect(stockTone(item('3', '10', true))).toBe('danger');

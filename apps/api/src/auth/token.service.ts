@@ -46,10 +46,8 @@ export class TokenService {
     });
   }
 
-  /**
-   * A digest, not argon2: the token is high-entropy random output, so it needs
-   * no brute-force hardening, and refresh must stay a cheap indexed lookup.
-   */
+  // A digest, not argon2: the token is high-entropy random, so it needs no brute-force hardening
+  // and refresh stays a cheap indexed lookup.
   digest(token: string): string {
     return createHash('sha256').update(token).digest('hex');
   }
@@ -108,10 +106,7 @@ export class TokenService {
       .where(and(eq(refreshTokens.id, id), isNull(refreshTokens.revokedAt)));
   }
 
-  /**
-   * Revokes every live token for a user. Used on password change and on refresh
-   * token reuse, which means a token was captured.
-   */
+  /** Used on password change and on refresh-token reuse, which means a token was captured. */
   async revokeAllForUser(userId: string): Promise<void> {
     await this.db
       .update(refreshTokens)

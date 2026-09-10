@@ -52,27 +52,8 @@ import type { JSX } from 'react';
 
 import { cn } from '@web/lib/cn';
 
-/**
- * The app's icons: lucide, behind a wrapper that fixes size and stroke.
- *
- * The wrapper is the point. Lucide's own components take `size` and
- * `strokeWidth` per call site, which is exactly how an icon set drifts — one
- * screen at 16/2, the next at 20/1.5, and a toolbar where every glyph has a
- * different weight. Everything here is 18px at stroke 1.75 unless a caller
- * asks for the one larger step, so a row of icons reads as one family.
- *
- * Names are indirected through `IconName` rather than importing lucide at each
- * call site, so the vocabulary is a list one can read, swapping the icon set
- * again is one file, and no screen can quietly introduce a 400th glyph.
- *
- * Every icon is `currentColor` and decorative: an icon here never carries
- * meaning on its own, so it is `aria-hidden` and the label beside it is what a
- * screen reader announces. Where an icon is the only content — a circular
- * action button — the *button* carries the accessible name, not the glyph.
- *
- * Nothing is mirrored for RTL automatically. `chevron-start`/`chevron-end` are
- * named by reading order and resolve per direction at render; a bell is a bell.
- */
+// One size and stroke for every icon, or the set drifts one call site at a time. Names go through
+// `IconName` so swapping the set is one file; nothing is mirrored automatically.
 export type IconName =
   | 'activity'
   | 'alert'
@@ -153,7 +134,6 @@ const ICONS: Record<IconName, LucideIcon> = {
   error: XCircle,
   file: FileText,
   gear: Settings,
-  // The drag handle: six dots is the shape everything that reorders uses.
   grip: GripVertical,
   globe: Globe,
   image: ImageIcon,
@@ -175,9 +155,8 @@ const ICONS: Record<IconName, LucideIcon> = {
   shield: Shield,
   spinner: Loader2,
   stethoscope: Stethoscope,
-  // Lucide has no tooth, and a dental app needs one. Drawn on the same 24px
-  // grid so it sits at the same weight as its neighbours; the stroke width and
-  // colour come from the wrapper like every other glyph.
+  // Lucide has no tooth and a dental app needs one; drawn on the same 24px grid so it sits at the
+  // same weight.
   tooth: ToothGlyph,
   trash: Trash2,
   'trend-down': TrendingDown,
@@ -189,14 +168,8 @@ const ICONS: Record<IconName, LucideIcon> = {
   x: X,
 };
 
-/**
- * Direction-relative chevrons.
- *
- * "Forward" is a left-pointing arrow in Arabic and a right-pointing one in
- * English, so these two cannot be fixed glyphs. Read from the document rather
- * than from a hook: an icon is rendered in tables and menus far from any
- * provider, and `dir` is set on `<html>` the moment the language changes.
- */
+// "Forward" points left in Arabic, so these cannot be fixed glyphs. Read from the document: an icon
+// renders far from any provider.
 const DIRECTIONAL: Partial<
   Record<IconName, { readonly rtl: LucideIcon; readonly ltr: LucideIcon }>
 > = {
@@ -204,27 +177,14 @@ const DIRECTIONAL: Partial<
   'chevron-start': { rtl: ChevronRight, ltr: ChevronLeft },
 };
 
-/**
- * Glyphs that are a direction, with no mirrored twin to swap in.
- *
- * `log-in` and `log-out` are an arrow going through a doorway: the arrow says
- * "onwards" and "away", which in Arabic point the other way, and lucide ships
- * one of each rather than a pair. So these are flipped on the horizontal axis
- * instead — the same thing the platform does with a back arrow.
- *
- * Everything else stays as drawn. A magnifier, a printer, a clock and a
- * refresh arrow are objects rather than directions, and mirroring them makes
- * an interface look like it was translated by a machine.
- */
+// An arrow through a doorway is a direction and lucide ships no mirrored twin, so these flip. A
+// magnifier or a printer is an object and stays as drawn.
 const MIRRORED: ReadonlySet<IconName> = new Set(['login', 'logout']);
 
 export interface IconProps {
   readonly name: IconName;
-  /**
-   * `sm` (18px) is the default and covers buttons, menus and inputs. `md`
-   * (20px) is for a lone icon that has to hold its own — a nav chip, an icon
-   * button with no text. There is deliberately no third size.
-   */
+  // 18px covers buttons, menus and inputs; 20px is for a lone icon holding its own. There is
+  // deliberately no third size.
   readonly size?: 'sm' | 'md' | undefined;
   /** Sizing overrides and colour only — an icon has no colour of its own. */
   readonly className?: string | undefined;

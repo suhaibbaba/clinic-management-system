@@ -4,22 +4,14 @@ import type { NotificationChannel } from '@clinic/shared';
 
 import type { Env } from '@api/config/env.schema';
 
-/** One outbound message, already rendered. */
 export interface OutboundMessage {
   readonly to: string;
   readonly channel: NotificationChannel;
   readonly body: string;
 }
 
-/**
- * How a message leaves the building.
- *
- * The whole abstraction is one method, because that is the whole of what a
- * WhatsApp API and a local SMS gateway have in common — everything else about
- * them is configuration. A provider **throws** to fail; the service turns that
- * into a `failed` row rather than letting it reach the caller, so a dead
- * gateway never breaks a booking.
- */
+// One method, because that is all a WhatsApp API and an SMS gateway have in common. A provider
+// throws to fail; the service turns that into a `failed` row.
 export interface NotificationProvider {
   readonly name: string;
   send(message: OutboundMessage): Promise<void>;
@@ -27,14 +19,8 @@ export interface NotificationProvider {
 
 export const NOTIFICATION_PROVIDER = Symbol('NOTIFICATION_PROVIDER');
 
-/**
- * The sandbox default: writes the message down and sends nothing.
- *
- * Not a stub to be replaced before the module is useful — it is the correct
- * provider for every environment that has no gateway, which is all of them
- * today. The message still reaches `notifications_log`, so the OTP flow, the
- * reminder scheduler and their tests all work end to end with no credentials.
- */
+// Not a stub: it is the correct provider wherever there is no gateway, and the message still
+// reaches `notifications_log`, so the OTP flow works end to end.
 @Injectable()
 export class LogNotificationProvider implements NotificationProvider {
   readonly name = 'log';
@@ -48,18 +34,8 @@ export class LogNotificationProvider implements NotificationProvider {
   }
 }
 
-/**
- * Posts the message to one URL.
- *
- * Deliberately generic: `{ to, channel, body }` as JSON with an optional bearer
- * token is the shape every local SMS gateway already accepts and the shape a
- * thin adapter in front of the WhatsApp Business API would expose. Integrating
- * a named provider is a later PR; this is the seam it will slot into.
- *
- * The timeout is not optional. A gateway that accepts a connection and never
- * answers would otherwise hold a booking request open until the client gives
- * up, and the patient would see a failure for a booking that was made.
- */
+// `{ to, channel, body }` is the shape a local SMS gateway takes and a thin WhatsApp adapter would
+// expose. The timeout is not optional — a gateway that never answers would hold a booking open.
 @Injectable()
 export class HttpNotificationProvider implements NotificationProvider {
   readonly name = 'http';

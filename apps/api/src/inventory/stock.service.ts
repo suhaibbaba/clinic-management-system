@@ -15,9 +15,7 @@ import { eq, sql } from 'drizzle-orm';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { clinics } from '@api/database/schema';
 
-/** Everything derived from one item's movements, worked out in one place. */
 export interface ItemStock {
-  /** `sum(quantity)` over every movement, signed. */
   readonly quantity: string;
   readonly batches: ItemBatch[];
   /** Stock held against no batch at all — the rest of the quantity. */
@@ -36,31 +34,8 @@ const EMPTY: ItemStock = {
   isExpired: false,
 };
 
-/**
- * What is actually on the shelf.
- *
- * Every number this module shows about stock levels comes from here, and it is
- * computed on read from the movements — there is no quantity column anywhere
- * to disagree with (CLAUDE.md). Two facts come out of two cheap queries:
- *
- *  - **quantity**, a plain `sum(quantity)`, which is exact because the ledger
- *    is append-only and a reversal is just another (negative) row;
- *  - **batches**, which the ledger cannot answer on its own — movements are
- *    batch-agnostic unless somebody wrote a lot number down — so they are
- *    derived through the shared `batchesRemaining`, the same function the
- *    drawer's batch table is drawn from.
- *
- * That sharing is the point. An earlier sketch of this had the list flags
- * computed in SQL with a window function and the drawer's table computed in
- * TypeScript; they agreed on the seeded data and would eventually have
- * disagreed on somebody's real cupboard, which is the worst kind of bug to
- * have in a screen people trust to tell them what to order.
- *
- * The two queries are bounded by *inflows*, not by history: consumptions are
- * aggregated in SQL to one row per batch, and only positive movements come
- * back individually. A clinic buys a box a month and uses it a dozen times a
- * day, so this is the cheap half of the ledger.
- */
+// Computed on read from the movements — no quantity column to disagree. Batches go through the
+// shared `batchesRemaining` the drawer uses, and the queries are bounded by inflows, not history.
 @Injectable()
 export class StockService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
@@ -76,13 +51,8 @@ export class StockService {
     return inventorySettings(row?.settings).expiryWarningDays;
   }
 
-  /**
-   * Stock for a set of items, in two queries regardless of how many.
-   *
-   * `today` and `warningDays` are passed in rather than read here so that a
-   * list of forty items asks the clinic for its settings once, and so that a
-   * test can pin the date.
-   */
+  // `today` and `warningDays` are passed in so forty items ask the clinic for its settings once,
+  // and so a test can pin the date.
   async forItems(
     clinicId: string,
     itemIds: readonly string[],
@@ -163,14 +133,8 @@ export class StockService {
     return stock.get(itemId) ?? EMPTY;
   }
 
-  /**
-   * The pure half: batches, dates and the two expiry flags.
-   *
-   * Quantity is deliberately the sum of the *movements* rather than the sum of
-   * the batch remainders. They agree whenever the count is sound, and where
-   * they do not — stock consumed past what was ever bought — the ledger's
-   * total is the honest number and the batch view is the approximation.
-   */
+  // Quantity is the sum of the movements, not of the batch remainders: where they disagree, the
+  // ledger's total is the honest number.
   private derive(
     inflows: readonly BatchInflow[],
     outflows: readonly BatchOutflow[],

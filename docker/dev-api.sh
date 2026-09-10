@@ -1,12 +1,6 @@
 #!/bin/sh
-# Development entrypoint for the API container.
-#
-# Hot reload covers BOTH apps/api and packages/shared. Each package's `dev`
-# script pairs its compiler with `tsc-alias --watch`, which rewrites the `@api/`
-# and `@shared/` import aliases in the emitted JS to relative paths:
-#   - packages/shared: tsc --watch      + tsc-alias --watch
-#   - apps/api:        nest build --watch + tsc-alias --watch
-#   - node --watch-path restarts the process when either dist changes
+# Hot reload covers apps/api and packages/shared: each pairs its compiler with `tsc-alias --watch`,
+# and node --watch-path restarts on either dist.
 set -eu
 
 cd /repo

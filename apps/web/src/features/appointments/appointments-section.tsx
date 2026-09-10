@@ -13,24 +13,8 @@ const CONFIRMED = 'confirmed';
 
 type AppointmentsTab = typeof ALL | typeof PENDING | typeof CONFIRMED;
 
-/**
- * Appointments, as one screen.
- *
- * The online-booking queue used to be a nav entry of its own, which meant
- * reception answered a booking on one page and then went looking for it on
- * another. They are the same appointments at three points of the same
- * process, so they are three tabs: the calendar, the ones waiting on an
- * answer, and the ones that have had it.
- *
- * `?status=` rather than a nested route, because these are views of one thing
- * rather than three things — and because the dashboard card, the redirect from
- * the old `/appointments/pending` and anyone pasting an address all need to
- * arrive on a named tab.
- *
- * The two booking tabs exist only for the roles that answer bookings (ROLES.md
- * appointments row); for everyone else this is the calendar with no strip
- * above it, which is what it was before.
- */
+// Three tabs rather than three pages: the same appointments at three points of one process.
+// `?status=` so a dashboard card, an old redirect or a pasted address lands on a named tab.
 export function AppointmentsSection(): JSX.Element {
   const { user } = useSession();
   const frontDesk = seesPendingBookings(user?.role);

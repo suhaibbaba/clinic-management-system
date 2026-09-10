@@ -9,17 +9,13 @@ import { ToothHistoryService } from '@api/patients/tooth-history.service';
 
 class PatientToothParamDto extends createZodDto(patientToothParamSchema) {}
 
-/**
- * Everything ever recorded on one tooth. It aggregates procedures, chart marks
- * and attachments, so it is limited to the roles that may read all three:
- * admin and doctor (ROLES.md patients matrix).
- */
+// It aggregates procedures, chart marks and attachments, so it is limited to the roles that may
+// read all three: admin and doctor.
 @Controller('patients/:patientId/teeth')
 @Roles(USER_ROLE.DOCTOR)
 export class ToothHistoryController {
   constructor(private readonly toothHistory: ToothHistoryService) {}
 
-  /** `:fdi` is an FDI number — 11–48 permanent, 51–85 deciduous. */
   @Get(':fdi')
   get(
     @CurrentUser() actor: AuthenticatedUser,

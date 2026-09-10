@@ -15,7 +15,6 @@ import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { clinics } from '@api/database/schema';
 
-/** The clinic-wide aggregate behind the dashboard's overdue card. */
 export interface OverdueTotal {
   readonly total: Money;
   readonly patients: number;
@@ -31,15 +30,8 @@ interface OverdueRow extends Record<string, unknown> {
   readonly total: number;
 }
 
-/**
- * Patients who owe money and have not paid recently.
- *
- * "Recently" is a clinic setting, not a constant: a clinic that bills monthly
- * and one that expects payment on the day mean different things by overdue.
- *
- * The whole thing is one aggregate over the ledgers — there is no stored
- * balance and no "last payment" column to drift out of date.
- */
+// "Recently" is a clinic setting, not a constant, and the whole thing is one aggregate — no stored
+// balance, no "last payment" column to drift.
 @Injectable()
 export class OverdueService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
@@ -92,15 +84,8 @@ export class OverdueService {
     return toPaginated(items, rows[0]?.total ?? 0, query);
   }
 
-  /**
-   * One line: what the whole clinic is owed past its window, and by how many
-   * patients.
-   *
-   * The list above paginates, so the dashboard cannot get this by adding a
-   * page up — and a page's subtotal presented as the clinic's debt would be
-   * wrong on a financial screen, which is worse than absent. Same `with`
-   * clause as `list`, without the window function or the page.
-   */
+  // The list paginates, so the dashboard cannot add a page up: a page's subtotal presented as the
+  // clinic's debt is a wrong number on a financial screen.
   async total(clinicId: string, afterDays?: number): Promise<OverdueTotal> {
     const days = afterDays ?? (await this.overdueAfterDays(clinicId));
 
@@ -143,7 +128,6 @@ export class OverdueService {
     };
   }
 
-  /** The clinic's overdue window, falling back to the shared default. */
   private async overdueAfterDays(clinicId: string): Promise<number> {
     const [row] = await this.db
       .select({ settings: clinics.settings })

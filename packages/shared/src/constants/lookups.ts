@@ -1,25 +1,4 @@
-/**
- * The lists a clinic may edit, and what they start out holding.
- *
- * Every user-facing choice list in this system is data (CLAUDE.md): a clinic
- * adds "veneer" to the tooth chart or "شيك" to the payment methods without a
- * deploy, and the list it edits is the same list every dropdown reads.
- *
- * What is **not** here is deliberate. A status that drives a state machine —
- * an appointment's, a lab order's, a stock movement's direction — stays a code
- * enum, because the transition table, the permissions and the arithmetic are
- * written against those exact values. Making them editable would let a clinic
- * add a status nothing knows how to move out of.
- *
- * This file is the seed *and* the migration's mapping table: the rows below
- * are written for every clinic with `isSystem: true`, keyed by the same codes
- * the enum columns already hold, so widening those columns to text loses
- * nothing and the data keeps meaning what it meant.
- */
-
-/** Every editable list, by the key rows are grouped under. */
 export const LOOKUP_LIST = {
-  /** What the tooth chart paints, and what a finished procedure leaves behind. */
   TOOTH_STATE: 'tooth_state',
   /** The kinds of work a lab does. Prices stay per lab; the names are shared. */
   LAB_WORK_TYPE: 'lab_work_type',
@@ -30,7 +9,6 @@ export const LOOKUP_LIST = {
   ITEM_CATEGORY: 'item_category',
   ITEM_UNIT: 'item_unit',
   PAYMENT_METHOD: 'payment_method',
-  /** The drugs a clinic prescribes most, offered before the free-text field. */
   FREQUENT_DRUG: 'frequent_drug',
 } as const;
 
@@ -49,49 +27,20 @@ export const LOOKUP_LIST_KEYS = [
   LOOKUP_LIST.FREQUENT_DRUG,
 ] as const;
 
-/**
- * Lists whose rows carry a colour.
- *
- * Only the tooth chart paints with one. Offering a colour picker on the
- * payment methods would be a control that changes nothing, which is worse than
- * no control.
- */
 export const COLOURED_LOOKUP_LISTS: readonly LookupListKey[] = [LOOKUP_LIST.TOOTH_STATE];
 
-/**
- * What the colour picker starts on for a new option.
- *
- * A value rather than a theme token: it is written into the database as the
- * clinic's own choice, and the theme has no say over a colour somebody picked.
- * It lives here so the web app never names a colour in its own source, which
- * `theme.test.ts` enforces — theme.css is the only place the *brand* is named.
- */
+// A literal, not a theme token: it is stored as the clinic's own choice, and theme.test.ts bars the
+// web app from naming a colour.
 export const DEFAULT_LOOKUP_COLOUR = '#7c3aed';
 
-/**
- * Which half of the tooth a state describes, and whether the chart draws it
- * specially.
- *
- * A custom state has neither: it paints the whole tooth in its own colour,
- * which is the honest default — the chart cannot know that somebody's new
- * "veneer" belongs on the crown, and guessing would put it in the wrong place.
- */
 export type ToothArea = 'crown' | 'root' | 'whole';
 
 export interface ToothChartBehaviour {
   readonly area: ToothArea;
   /** Drawing the shape itself changes: an outline, a post, a retainer bar. */
   readonly shape?: 'missing' | 'implant' | 'bridge';
-  /**
-   * A state a tooth can be *in* but no procedure produces: healthy, planned,
-   * under way. They belong on the chart's legend and nowhere near the
-   * catalogue's "what does this leave behind" field, so the chart and the
-   * procedure outcomes are one editable list without a filling being an
-   * acceptable answer to "is this tooth healthy".
-   *
-   * Only the built-in rows carry it. Anything a clinic adds is something they
-   * do to a tooth, so it is offered as an outcome.
-   */
+  // States a tooth can be in that no procedure produces — kept out of the catalogue's outcome
+  // field. Only built-in rows carry it; anything a clinic adds is something done to a tooth.
   readonly stateOnly?: boolean;
 }
 
@@ -103,13 +52,8 @@ export interface SystemLookupRow {
   readonly meta?: Record<string, unknown>;
 }
 
-/**
- * The rows every clinic starts with — today's enum values, verbatim.
- *
- * The codes are load-bearing: they are what the columns already contain, what
- * the chart's built-in styling is keyed by, and what the seeded data refers
- * to. Names and colours are editable; codes are not.
- */
+// Codes are load-bearing: the enum values the columns already hold, the chart's styling keys, and
+// what the seed refers to. Names and colours are editable; codes are not.
 export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLookupRow[]>> = {
   [LOOKUP_LIST.TOOTH_STATE]: [
     {
@@ -186,10 +130,6 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
     { code: 'chrome_cobalt', nameAr: 'كروم كوبالت', nameEn: 'Chrome cobalt' },
   ],
 
-  /**
-   * VITA classical, which is what a Palestinian clinic and its lab both say out
-   * loud. A clinic on a different guide edits the list rather than the code.
-   */
   [LOOKUP_LIST.LAB_SHADE]: [
     { code: 'A1', nameAr: 'A1', nameEn: 'A1' },
     { code: 'A2', nameAr: 'A2', nameEn: 'A2' },
@@ -239,10 +179,6 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
     { code: 'transfer', nameAr: 'حوالة', nameEn: 'Transfer' },
   ],
 
-  /**
-   * A starting point rather than a formulary: the six a dental clinic reaches
-   * for, offered above the free-text field so the common case is two taps.
-   */
   [LOOKUP_LIST.FREQUENT_DRUG]: [
     { code: 'amoxicillin_500', nameAr: 'أموكسيسيلين 500 ملغ', nameEn: 'Amoxicillin 500 mg' },
     {
@@ -257,11 +193,6 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
   ],
 };
 
-/**
- * The chart behaviour of a system tooth state, or `undefined` for one a clinic
- * added — which is what tells the chart to fall back to painting the whole
- * tooth in the row's own colour.
- */
 export function systemChartBehaviour(code: string): ToothChartBehaviour | undefined {
   const row = SYSTEM_LOOKUPS[LOOKUP_LIST.TOOTH_STATE].find((entry) => entry.code === code);
   const behaviour = row?.meta?.['chartBehavior'];

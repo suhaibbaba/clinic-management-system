@@ -30,20 +30,8 @@ class PaginationQueryDto extends createZodDto(paginationQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 class LabIdParamDto extends createZodDto(z.object({ labId: z.uuid() })) {}
 
-/**
- * The lab ledger: what the clinic owes, what it has paid, and the statement
- * the two sides settle against.
- *
- * ROLES.md: balances and statements are read by admin, doctor and technician;
- * payments are created by technician and admin; **reversal is admin-only**,
- * because it is the one operation that makes money appear to come back.
- * A receptionist appears nowhere in the labs matrix and so appears nowhere
- * here.
- *
- * The balance rule — an order counts from `sent` and stops counting only if
- * cancelled — lives in `LabLedgerService`, and every number below comes from
- * it rather than from a second copy of the arithmetic.
- */
+// Reversal is admin-only — the one operation that makes money appear to come back. The balance rule
+// lives in `LabLedgerService`, not in a second copy here.
 @Controller('labs/:labId')
 export class LabLedgerController {
   constructor(
@@ -94,10 +82,6 @@ export class LabLedgerController {
   }
 }
 
-/**
- * Writing to the lab ledger, kept on its own path so the role rules read as
- * one list rather than being scattered through the lab's other routes.
- */
 @Controller('lab-payments')
 export class LabPaymentsController {
   constructor(private readonly payments: LabPaymentsService) {}
@@ -112,10 +96,6 @@ export class LabPaymentsController {
     return this.payments.create(actor, body);
   }
 
-  /**
-   * Admin only, and it writes the opposite entry rather than touching the
-   * original — the ledger is append-only (CLAUDE.md).
-   */
   @Patch(':id/reverse')
   @Roles(USER_ROLE.ADMIN)
   @Audit(LAB_PAYMENTS_ENTITY, AUDIT_ACTION.UPDATE)

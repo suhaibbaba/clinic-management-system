@@ -13,17 +13,11 @@ export interface AgendaListProps {
   /** The closure covering this day, if one does — the phone's version of the shading. */
   readonly closure?: ClinicClosure | undefined;
   readonly onOpen: (appointment: CalendarAppointment) => void;
-  /** Shown when the caller can see more than one doctor's day. */
   readonly showDoctor: boolean;
 }
 
-/**
- * The day as a vertical list of cards — what the day grid becomes on a phone.
- *
- * A time grid at 390px is a 40px column: a fifteen-minute appointment is ten
- * pixels tall and nothing is legible or tappable. An agenda drops the spatial
- * metaphor and keeps the thing it was carrying, which is the order.
- */
+// A time grid at 390px is a 40px column where a fifteen-minute appointment is ten pixels tall. An
+// agenda drops the spatial metaphor and keeps the order.
 export function AgendaList({
   appointments,
   closure,

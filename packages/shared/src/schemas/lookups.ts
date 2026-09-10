@@ -3,21 +3,8 @@ import { z } from 'zod';
 import { LOOKUP_LIST_KEYS } from '@shared/constants/lookups';
 import { uuidSchema } from '@shared/schemas/common';
 
-/**
- * One row of one editable list.
- *
- * `code` is the value stored in every column that refers to this row — an
- * appointment's type, an item's unit, a tooth's charted state — so it is
- * chosen once and never changed. The names are what people read and are freely
- * editable in both languages; `color` only means anything on a list that is
- * painted (today, the tooth chart).
- *
- * `isSystem` marks a row the application itself depends on: the chart's
- * `missing` and `implant` are drawn by special code, `cash` is what the seeded
- * data uses. Those rows keep editable names and colours — a clinic may prefer
- * "خالص" to "نقداً" — but cannot be removed or switched off, because something
- * already points at them.
- */
+// `code` is what every column referring to this row stores, so it never changes; names and colour
+// are editable. `isSystem` marks a row the app draws behaviour from — a label, not a lock.
 export const lookupOptionSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
@@ -36,11 +23,7 @@ export const lookupOptionSchema = z.object({
 });
 export type LookupOption = z.infer<typeof lookupOptionSchema>;
 
-/**
- * A code is an identifier, not a label: lower-case letters, digits, dash, dot
- * and underscore. It appears in URLs, in JSON and in a `where` clause, and a
- * code with a space in it is a bug waiting for the day somebody filters by it.
- */
+/** An identifier, not a label: it appears in URLs, in JSON and in a `where` clause, so no spaces. */
 export const lookupCodeSchema = z
   .string()
   .trim()
@@ -68,13 +51,8 @@ export const createLookupOptionSchema = z.object({
 });
 export type CreateLookupOptionInput = z.infer<typeof createLookupOptionSchema>;
 
-/**
- * What may be edited, and what may not.
- *
- * `code` and `listKey` are absent on purpose: both are what other rows point
- * at, and changing either would orphan them silently. A miscoded row is
- * deactivated and replaced.
- */
+// `code` and `listKey` are absent on purpose — other rows point at them, and changing either would
+// orphan them silently.
 export const updateLookupOptionSchema = z
   .object({
     nameAr: z.string().trim().min(1).max(160),
@@ -101,14 +79,8 @@ export const listLookupOptionsQuerySchema = z.object({
 });
 export type ListLookupOptionsQuery = z.infer<typeof listLookupOptionsQuerySchema>;
 
-/**
- * Every list in one response, keyed by list.
- *
- * The client caches this whole shape rather than fetching per dropdown: it is
- * a few kilobytes, it is read by nearly every screen, and one request that is
- * invalidated as a unit cannot leave two dropdowns disagreeing about the same
- * list.
- */
+// Every list in one cached response: a few kilobytes read by nearly every screen, invalidated as a
+// unit so two dropdowns cannot disagree.
 export const lookupBundleSchema = z.record(z.string(), z.array(lookupOptionSchema));
 export type LookupBundle = z.infer<typeof lookupBundleSchema>;
 

@@ -7,7 +7,6 @@ import { DatePicker, parseTypedDate, toIsoDate } from '@web/components/ui/date-p
 import '@web/i18n';
 import ar from '@web/i18n/locales/ar.json';
 
-/** A controlled host, so the test sees what a form would receive. */
 function Host({ initial = '' }: { readonly initial?: string }): React.JSX.Element {
   const [value, setValue] = useState(initial);
 
@@ -35,9 +34,8 @@ describe('DatePicker', () => {
   });
 
   it('opens the same popover on a phone as on a laptop', async () => {
-    // It used to be a bottom sheet below `md` — a second primitive and a
-    // second set of behaviour for one question, and one more way for a date
-    // field to answer differently depending on what it is being read on.
+    // It used to be a bottom sheet below `md` — a second primitive and a second set of behaviour
+    // for one question.
     setViewport(true);
     render(<Host initial="2026-09-05" />);
 
@@ -88,9 +86,8 @@ describe('DatePicker', () => {
   });
 
   it('opens the calendar when the field itself is clicked', async () => {
-    // What a click on a date field is expected to do, and did not: the button
-    // at the end of it was the only way in, so the obvious gesture did nothing
-    // at all. See `usePickerOpen`.
+    // What a click on a date field is expected to do and did not: the button at the end was the
+    // only way in. See `usePickerOpen`.
     render(<Host initial="2026-09-05" />);
 
     await userEvent.click(screen.getByRole('textbox'));
@@ -114,9 +111,8 @@ describe('DatePicker', () => {
   });
 
   it('closes again when the field is clicked a second time', async () => {
-    // The field anchors the popover rather than triggering it, so Radix
-    // dismisses on the pointer going down and a naive handler would reopen
-    // what the same click just closed.
+    // The field anchors the popover rather than triggering it, so Radix dismisses on pointer-down
+    // and a naive handler would reopen what the same click just closed.
     render(<Host initial="2026-09-05" />);
 
     const field = screen.getByRole('textbox');
@@ -151,7 +147,6 @@ describe('DatePicker', () => {
     const grid = await screen.findByRole('grid');
     expect(grid.closest('[dir="rtl"]')).not.toBeNull();
 
-    // Arabic weekday and month names…
     expect(within(grid).getByText('أحد')).toBeInTheDocument();
     expect(within(grid).getAllByLabelText(/سبتمبر/).length).toBeGreaterThan(0);
 

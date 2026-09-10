@@ -1,23 +1,11 @@
 import { useSyncExternalStore } from 'react';
 
-/**
- * Tailwind's `md`. Kept here as a number so the one component that has to know
- * the breakpoint in JavaScript agrees with the CSS that uses it everywhere else.
- */
+// Kept as a number so the one component that needs the breakpoint in JavaScript agrees with the
+// CSS.
 export const MD_BREAKPOINT = 768;
 
-/**
- * Subscribes to a media query.
- *
- * `useSyncExternalStore` rather than `useState` + `useEffect`: the snapshot is
- * read during the first render, so a layout that depends on the query paints
- * correctly the first time instead of flashing the wrong shape and correcting
- * itself after the effect runs.
- *
- * Falls back to `false` where `matchMedia` does not exist — jsdom under test,
- * and any pre-render — which makes the desktop shape the default. That is the
- * right default: it is the one with the full set of columns.
- */
+// `useSyncExternalStore` reads its snapshot during the first render, so a layout paints correctly
+// instead of flashing the wrong shape. Falls back to the desktop shape.
 export function useMediaQuery(query: string): boolean {
   return useSyncExternalStore(
     (onChange) => {

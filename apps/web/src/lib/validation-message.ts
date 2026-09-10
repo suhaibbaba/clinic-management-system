@@ -1,12 +1,7 @@
 import type { FieldError } from 'react-hook-form';
 
-/**
- * Turns a Zod issue code into an i18n key.
- *
- * The shared schemas carry English messages for the API; the UI never shows
- * them. `zodResolver` puts the issue code in `error.type`, so the Arabic copy is
- * resolved from the code — the same rule the API errors follow.
- */
+// The shared schemas carry English messages for the API; the UI resolves Arabic copy from the issue
+// code in `error.type` instead.
 export function validationMessageKey(error: FieldError | undefined): string | undefined {
   if (!error) {
     return undefined;

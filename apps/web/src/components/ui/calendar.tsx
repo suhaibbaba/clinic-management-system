@@ -6,31 +6,12 @@ import { useTranslation } from 'react-i18next';
 
 import { cn } from '@web/lib/cn';
 
-/** The date-fns locale matching the UI language. */
 export function dateLocale(language: string): Locale {
   return language.split('-')[0] === 'ar' ? ar : enGB;
 }
 
-/**
- * The month grid, styled with the app's own tokens.
- *
- * Latin digits, Arabic words
- *
- * The clinic writes Gregorian dates with Western digits — that is what a file
- * number, a phone number and a printed receipt all use here, and a calendar
- * that switched to ٠١٢ would be the only place in the app that did. Month and
- * weekday *names* are Arabic.
- *
- * The formatters are given explicitly rather than left to the library: the
- * default day formatter is a locale-aware number format, which is exactly the
- * thing that would quietly start rendering Arabic-Indic digits on a locale
- * data update. `String(getDate())` cannot.
- *
- * `CalendarProps` is `DayPickerProps` as-is rather than an `Omit` of it: the
- * props are a discriminated union on `mode`, and omitting keys collapses the
- * union, taking `selected` and `onSelect` with it. The four props this
- * component owns are spread *after* the caller's, which is what enforces them.
- */
+// Explicit formatters: the default is locale-aware and would start rendering Arabic-Indic digits.
+// `CalendarProps` is not an `Omit` — that collapses the `mode` union.
 export type CalendarProps = DayPickerProps;
 
 export function Calendar(props: CalendarProps): JSX.Element {

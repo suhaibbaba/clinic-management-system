@@ -33,19 +33,12 @@ class UpdatePatientDto extends createZodDto(updatePatientSchema) {}
 class ListPatientsQueryDto extends createZodDto(listPatientsQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-/**
- * Patient basic info (ROLES.md patients matrix): admin CRUD, doctor CRU,
- * receptionist CRU, technician R.
- *
- * The response shape is chosen by role inside the service — a receptionist and
- * a technician receive `PatientPublicView`, never the clinical one
- * (ROLES.md enforcement step 5).
- */
+// The response shape is chosen by role inside the service: a receptionist and a technician receive
+// `PatientPublicView`, never the clinical one.
 @Controller('patients')
 export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
-  /** Search by name, phone or file number; every role may read. */
   @Get()
   list(
     @CurrentUser() actor: AuthenticatedUser,

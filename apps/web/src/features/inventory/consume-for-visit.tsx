@@ -8,18 +8,8 @@ import { useLookupLabels } from '@web/features/lookups/queries';
 import { MovementModal } from '@web/features/inventory/movement-modal';
 import { useInventoryItems } from '@web/features/inventory/queries';
 
-/**
- * صرف مواد, from the chair.
- *
- * Two steps rather than one long form: which item, then how much of it. The
- * item list is the only thing that needs searching, and the second step is the
- * ordinary consumption modal with the patient already filled in — so what a
- * doctor sees here is the same form the technician uses, minus the question it
- * can answer for them.
- *
- * The patient link is what puts the ampoule on their timeline, which is the
- * whole reason to record it here rather than at the end of the day.
- */
+// Two steps, and the second is the technician's own consumption modal with the patient filled in.
+// The patient link is what puts the ampoule on their timeline.
 export function ConsumeForVisit({
   open,
   onClose,

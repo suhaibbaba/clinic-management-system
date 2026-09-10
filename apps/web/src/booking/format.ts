@@ -1,13 +1,5 @@
 import { personName, type PersonName } from '@clinic/shared';
 
-/**
- * Dates and times for the booking page.
- *
- * The dashboard's `lib/format` is not reused: it belongs to the signed-in
- * bundle, and this page needs a different set — day chips, a weekday name, and
- * one careful piece of arithmetic about *whose* clock a time is on.
- */
-
 /** Gregorian, Arabic labels, Latin digits — the same choice the app makes. */
 const DATE_LOCALE = 'ar-SY-u-ca-gregory-nu-latn';
 
@@ -16,7 +8,6 @@ const stripBidiMarks = (value: string): string => value.replace(/[\u200e\u200f]/
 
 const pad = (value: number): string => String(value).padStart(2, '0');
 
-/** `YYYY-MM-DD` for a Date, in the browser's own zone. */
 export function isoDate(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
@@ -44,19 +35,10 @@ export interface DayChip {
   readonly date: string;
   /** `الأحد`, or `اليوم` / `غداً` for the two the patient thinks of by name. */
   readonly label: string;
-  /** The day of the month, drawn large on the chip. */
   readonly dayNumber: string;
   readonly monthLabel: string;
 }
 
-/**
- * The next `count` days, starting today, stopping at the clinic's window.
- *
- * A horizontal strip rather than a calendar: on a phone, seven chips are one
- * thumb-flick and a month grid is a modal. Someone who wants a date three
- * weeks out is a rarer case than the page is designed around, and they can
- * page the strip forward.
- */
 export function dayChips(from: string, count: number, maxDaysAhead: number): DayChip[] {
   const chips: DayChip[] = [];
 
@@ -86,20 +68,8 @@ export function dayChips(from: string, count: number, maxDaysAhead: number): Day
   return chips;
 }
 
-/**
- * The clinic's clock, learned rather than configured.
- *
- * A slot arrives as both a local label (`start: "09:00"`) and an instant
- * (`startsAt`), so one of them is enough to know how far the clinic's zone
- * sits from UTC — and from then on any instant the API returns can be drawn in
- * the clinic's terms rather than in the phone's. It matters for the one case
- * that would otherwise be a silent lie: a patient whose phone is on a
- * different zone than the clinic, who would be told to come at 06:00 for a
- * 09:00 appointment.
- *
- * Until a slot has been seen the browser's own offset is used, which is right
- * for everyone actually near the clinic.
- */
+// A slot carries both a local label and an instant, which is enough to learn the clinic's offset —
+// otherwise a patient on another zone is told 06:00 for a 09:00 appointment.
 let clinicOffsetMinutes: number | undefined;
 
 export function learnClinicOffset(startsAt: string, localLabel: string): void {
@@ -118,7 +88,6 @@ export function learnClinicOffset(startsAt: string, localLabel: string): void {
   clinicOffsetMinutes = offset;
 }
 
-/** For the tests, and for a fresh page load. */
 export function resetClinicOffset(): void {
   clinicOffsetMinutes = undefined;
 }
@@ -131,7 +100,6 @@ const inClinicZone = (iso: string): Date => {
     : new Date(at.getTime() + (clinicOffsetMinutes + at.getTimezoneOffset()) * 60_000);
 };
 
-/** `09:30`, on the clinic's clock. */
 export function formatTime(iso: string): string {
   const at = inClinicZone(iso);
 
@@ -149,20 +117,12 @@ export function formatLongDate(iso: string): string {
   );
 }
 
-/** The clinic-local `YYYY-MM-DD` an instant falls on. */
 export function clinicDate(iso: string): string {
   return isoDate(inClinicZone(iso));
 }
 
-/**
- * A staff or clinic name, for a page that ships Arabic alone.
- *
- * The booking page has no language switcher — it is opened from a WhatsApp
- * link by an Arabic-speaking patient — so there is nothing to ask, and this is
- * `personName(name, 'ar')` with the English as the fallback for a clinic that
- * has not filled the Arabic in yet. The signed-in app uses the `<PersonName>`
- * component instead, which does the same thing against the live language.
- */
+// The booking page has no language switcher, so this is `personName(name, 'ar')` with English as
+// the fallback.
 export function bookingName(name: PersonName | null | undefined): string {
   return personName(name, 'ar');
 }

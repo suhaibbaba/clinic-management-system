@@ -51,12 +51,8 @@ export function UsersPage(): JSX.Element {
   });
   const updateUser = useUpdateUser();
 
-  /*
-   * The row being edited is looked up in the live list rather than held as a
-   * copy taken when the dialog opened. The photo field inside it uploads on
-   * the spot and refetches, and a snapshot would leave the dialog showing the
-   * face that was just replaced.
-   */
+  // Looked up in the live list rather than snapshotted when the dialog opened: the photo field
+  // uploads on the spot, and a copy would show the face just replaced.
   const formUser =
     formUserId === null
       ? null
@@ -77,9 +73,6 @@ export function UsersPage(): JSX.Element {
         key: 'name',
         header: 'users.name',
         primary: true,
-        // Name and email in one identity cell, the way the patients list does
-        // it. Two columns for one person is what pushed "Reset password" off
-        // the right-hand edge of the card at 1440px.
         render: (row) => (
           <span className="flex items-center gap-3">
             <Avatar name={displayName(row.name)} tintKey={row.id} src={row.photoUrl} />
@@ -87,20 +80,13 @@ export function UsersPage(): JSX.Element {
               {/* Both spellings on hover: this is the screen where somebody
                   checks how a name is written on a letterhead. */}
               <PersonName name={row.name} showBoth className="truncate font-semibold text-ink" />
-              {/*
-                The wide shape only. On a card the email is already its own
-                labelled row (the `email` column below, which exists for
-                exactly that) — the caption and the row are the same address
-                twice, which since it became a link is two identical links.
-              */}
+              {/* The wide shape only: on a card the email is already its own labelled row, and since
+                  it became a link that would be two identical links. */}
               {row.email !== null && row.email !== undefined && (
                 <EmailLink
                   value={row.email}
-                  // `break-all` rather than `truncate`: the link carries its
-                  // 44px hit area on an absolutely positioned `::after`, and
-                  // an `overflow-hidden` ancestor cuts that band down to the
-                  // height of the line. An address that wraps is better than
-                  // one a thumb has to hit inside 20px.
+                  // `break-all` rather than `truncate`: the link's 44px hit area is an `::after`,
+                  // which an `overflow-hidden` ancestor cuts to the line.
                   className="hidden break-all text-label md:inline-flex"
                 />
               )}

@@ -12,20 +12,8 @@ import { StockService } from '@api/inventory/stock.service';
 import { SuppliersController } from '@api/inventory/suppliers.controller';
 import { SuppliersService } from '@api/inventory/suppliers.service';
 
-/**
- * Inventory: what is in the cupboard, where it came from, and what went into
- * whom.
- *
- * `StockService` is the module's centre of gravity — every quantity, expiry
- * date and flag anything here shows comes out of it, computed from the ledger
- * on read. There is no quantity column in this module and there must never be
- * one (CLAUDE.md).
- *
- * No `StorageModule` and no `AppointmentsModule`: stock has no attachments,
- * and the one ownership question — may this person write this kind of movement
- * — is a role rule rather than a "doctor owns the patient" rule, so it lives
- * in the movements service.
- */
+// `StockService` is the centre: every quantity, expiry and flag is computed from the ledger on
+// read. There is no quantity column in this module and must never be one.
 @Module({
   imports: [DatabaseModule, AuditModule],
   controllers: [InventoryController, SuppliersController],

@@ -14,7 +14,6 @@ import { LAB_ORDER_STATUS_STYLES } from '@web/features/labs/status';
 import { usePatientTimeline } from '@web/features/patients/queries';
 import { formatDate } from '@web/lib/format';
 
-/** One icon per kind of thing that happens to a patient. */
 const ICONS: Record<TimelineEntryType, IconName> = {
   [TIMELINE_ENTRY_TYPE.VISIT]: 'stethoscope',
   [TIMELINE_ENTRY_TYPE.PROCEDURE]: 'tooth',
@@ -28,17 +27,8 @@ const ICONS: Record<TimelineEntryType, IconName> = {
   [TIMELINE_ENTRY_TYPE.CHARGE]: 'money',
 };
 
-/**
- * Everything on the file, newest first.
- *
- * The API merges the streams and decides which of them this role may see, so
- * this screen renders whatever comes back rather than assembling the story
- * itself — a receptionist's timeline is simply shorter, not filtered here.
- *
- * A lab order enters the story on the day it was **sent**, which is also the
- * day it started costing the clinic money; a draft that has not left the
- * building shows the day it was written.
- */
+// The API merges the streams and decides which this role may see, so a receptionist's timeline is
+// simply shorter rather than filtered here.
 export function TimelineTab({ patientId }: { readonly patientId: string }): JSX.Element {
   const { t } = useTranslation();
   const timeline = usePatientTimeline(patientId);
@@ -100,7 +90,6 @@ function Row({ entry }: { readonly entry: TimelineEntry }): JSX.Element {
   );
 }
 
-/** Where a lab order has got to, on the row that announces it. */
 function LabOrderChips({ entry }: { readonly entry: TimelineEntry }): JSX.Element | null {
   const { t } = useTranslation();
 
@@ -114,7 +103,6 @@ function LabOrderChips({ entry }: { readonly entry: TimelineEntry }): JSX.Elemen
   return style ? <Badge tone={style.tone}>{t(style.label)}</Badge> : null;
 }
 
-/** The one line under the title, shaped by what kind of entry this is. */
 function Detail({ entry }: { readonly entry: TimelineEntry }): JSX.Element | null {
   const { t } = useTranslation();
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);

@@ -1,8 +1,5 @@
-/**
- * Container healthcheck for the API. Exits 0 only when /health reports that the
- * database is reachable, so an API that lost Postgres is marked unhealthy.
- * Uses Node's global fetch — no curl/wget needed in the runtime image.
- */
+// Exits 0 only when /health reports the database reachable, so an API that lost Postgres is
+// unhealthy. Node's global fetch — no curl in the image.
 const port = process.env.PORT ?? '3000';
 
 fetch(`http://127.0.0.1:${port}/health`)

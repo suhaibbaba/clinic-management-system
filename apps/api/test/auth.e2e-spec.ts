@@ -29,7 +29,6 @@ describe('Auth (e2e)', () => {
       payload: { identifier, password },
     });
 
-  /** The refresh cookie the API set on a response, if any. */
   const refreshCookie = (response: { cookies: unknown[] }) =>
     (
       response.cookies as {
@@ -42,7 +41,6 @@ describe('Auth (e2e)', () => {
       }[]
     ).find((cookie) => cookie.name === REFRESH_COOKIE_NAME);
 
-  /** Replays a refresh cookie the way a browser would. */
   const withCookie = (token: string) => ({ cookie: `${REFRESH_COOKIE_NAME}=${token}` });
 
   describe('login', () => {
@@ -222,9 +220,8 @@ describe('Auth (e2e)', () => {
 
   describe('the refresh cookie', () => {
     it('is scoped to a path that covers the refresh endpoint through the proxy', async () => {
-      // The browser asks for `/api/auth/refresh`; the API only ever sees
-      // `/auth/refresh`. A cookie scoped to what the API sees would be held and
-      // never sent, which reads as being signed out on every reload.
+      // The browser asks for `/api/auth/refresh`; the API only sees `/auth/refresh`. A cookie
+      // scoped to what the API sees is held and never sent.
       const path = refreshCookie(await login(clinic.phones[USER_ROLE.ADMIN]))?.path;
 
       expect(path).toBe('/');

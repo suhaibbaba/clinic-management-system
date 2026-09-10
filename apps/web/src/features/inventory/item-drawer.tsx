@@ -39,15 +39,8 @@ import { errorMessageKey } from '@web/lib/api-error';
 import { cn } from '@web/lib/cn';
 import { formatDate, formatDateTime } from '@web/lib/format';
 
-/**
- * One item: what it is, where it sits in batches, and everything that ever
- * moved it.
- *
- * The three quick actions are at the foot where a drawer's actions live, and
- * each one is shown only to a role the API would accept it from. The history
- * is the item card — every movement with the quantity it left behind, so
- * "why is there only 3" is a question this screen answers rather than raises.
- */
+// Each quick action is shown only to a role the API would accept it from. The history is the item
+// card, so "why is there only 3" is answered rather than raised.
 export function ItemDrawer({
   itemId,
   onClose,
@@ -177,14 +170,8 @@ export function ItemDrawer({
   );
 }
 
-/**
- * The batches, oldest first.
- *
- * With the assumption written on the panel rather than left implicit: the
- * ledger does not record which box an ampoule came out of, so this is the
- * clinic's own habit — use the one going off first — applied to the numbers.
- * Saying so is the difference between a useful estimate and a wrong fact.
- */
+// The assumption is written on the panel: the ledger does not record which box an ampoule came
+// from, so this is oldest-first applied to the numbers.
 function Batches({
   batches,
   unbatched,
@@ -242,7 +229,6 @@ function Batches({
   );
 }
 
-/** Every movement, newest first, each with the quantity it left behind. */
 function History({
   movements,
   isLoading,
@@ -311,16 +297,8 @@ function History({
                 >
                   {movement.quantity.startsWith('-') ? movement.quantity : `+${movement.quantity}`}
                 </Ltr>
-                {/*
-                  What the item stood at after this movement — the column that
-                  makes the history explain the number at the top.
-
-                  The arrow is the icon set's, not a `→` typed into the markup:
-                  a literal arrow points right in both languages, and "leads
-                  to" reads the other way in Arabic. `chevron-end` resolves per
-                  direction, and it sits outside the island so the row, rather
-                  than the number, decides which side it lands on.
-                */}
+                {/* The icon set's arrow, not a literal `→`: a typed arrow points right in both
+                    languages. It sits outside the island so the row decides its side. */}
                 <span className="flex items-baseline gap-1 text-label text-ink-muted">
                   <Icon name="chevron-end" className="size-3.5 self-center" />
                   <Ltr className="tabular-nums">{movement.runningQuantity}</Ltr>

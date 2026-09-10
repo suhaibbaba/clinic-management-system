@@ -21,7 +21,6 @@ export interface StatCardProps {
   readonly value: ReactNode;
   readonly icon: IconName;
   readonly tone?: StatTone | undefined;
-  /** Small line under the number: a comparison, a total, a qualifier. */
   readonly caption?: string | undefined;
   readonly delta?:
     | {
@@ -34,20 +33,8 @@ export interface StatCardProps {
   readonly className?: string | undefined;
 }
 
-/**
- * One number, stated plainly: icon chip and label on top, the figure large
- * underneath, a caption or delta below that.
- *
- * The number is the point, so it gets the size and `tabular-nums` — a KPI row
- * whose digits shift width as the data refreshes looks broken. Values arrive
- * pre-formatted because money in this system is a decimal string that must not
- * pass through a float, and a display component is the wrong place to know
- * that.
- *
- * A delta's colour comes from `isGood`, not from its arrow: overdue balances
- * falling is green while pointing down, and treating "up" as good would paint
- * a growing debt in the colour of success.
- */
+// `tabular-nums`, or a KPI row's digits shift width as data refreshes. Values arrive pre-formatted
+// because money is a decimal string that must not pass through a float.
 export function StatCard({
   label,
   value,
@@ -73,16 +60,8 @@ export function StatCard({
         <span className="min-w-0 truncate text-meta font-medium text-ink-muted">{label}</span>
       </div>
 
-      {/*
-        24px, at every width.
-
-        The figure used to be 32 and had to step down on a phone: `200.00 USD`
-        at that size is 170px wide and never breaks — an amount is one word —
-        and two cards across a 390px screen leave about 133px of card, so it
-        either wrapped, stranding the currency on a second line, or pushed the
-        page sideways. At 24 a five-figure balance with its symbol fits in that
-        space, and it is still the largest thing on the card.
-      */}
+      {/* 24 rather than 32: an amount is one word, and at 32 `200.00 USD` is 170px inside a 133px
+          card — it wrapped or pushed the page sideways. */}
       <Ltr as="p" className="mt-2.5 text-kpi font-semibold text-ink">
         {value}
       </Ltr>
@@ -112,16 +91,8 @@ export function StatCard({
   );
 }
 
-/**
- * How many columns a row of `n` cards opens into on a wide screen.
- *
- * Written out rather than interpolated because Tailwind reads class names as
- * literal strings — `xl:grid-cols-${n}` is a class that is never generated.
- *
- * Five is the widest this goes. Beyond that the row wraps at four, which is
- * two full rows for six and the only shape that does not put a 150px card on
- * a laptop.
- */
+// Written out because Tailwind reads class names as literal strings — `xl:grid-cols-${n}` is never
+// generated.
 const WIDE_COLUMNS: Record<number, string> = {
   1: 'xl:grid-cols-1',
   2: 'xl:grid-cols-2',
@@ -130,20 +101,6 @@ const WIDE_COLUMNS: Record<number, string> = {
   5: 'xl:grid-cols-5',
 };
 
-/**
- * The KPI row: the page's stat cards on one line, collapsing to two up.
- *
- * A named component rather than a utility class repeated on every page, so a
- * KPI row is the same shape everywhere it appears.
- *
- * The column count comes from the number of cards rather than being fixed at
- * four. It was four, and the pages that summarise themselves in three or five
- * — the dashboard, the appointments day — left a card-shaped hole at the end
- * of the row, or dropped a single card onto a second line under four others
- * with nothing beside it. Five open all the way at `xl`, which leaves about
- * 145px of card: enough for a five-figure balance and its symbol now the
- * figure is 24px rather than 32.
- */
 export function StatRow({ children }: { readonly children: ReactNode }): JSX.Element {
   // Two up on a phone. Four full-width cards is 1300px of scrolling before
   // the data they summarise, which inverts what a summary is for.

@@ -41,18 +41,8 @@ class ConflictOptionsDto extends createZodDto(scheduleConflictOptionsSchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 class DoctorParamDto extends createZodDto(z.object({ doctorId: z.uuid() })) {}
 
-/**
- * A doctor's time off (ROLES.md core matrix, "Doctors & schedules").
- *
- * Every role reads — the calendar hatches these blocks for whoever is looking
- * at it — admin writes any, and a doctor writes their own. That last check is
- * ownership, so it lives in the service, and it is the same
- * `AppointmentAccessService` rule the appointments endpoints use.
- *
- * Nested under the doctor for creates and listing, because time off has no
- * meaning without whose it is; flat by id for edits and deletes, because by
- * then the row itself says.
- */
+// Every role reads, admin writes any, a doctor writes their own — that check is ownership, so it
+// uses the same `AppointmentAccessService` rule as appointments.
 @Controller()
 export class DoctorTimeOffController {
   constructor(private readonly timeOff: DoctorTimeOffService) {}

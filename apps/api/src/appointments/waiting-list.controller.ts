@@ -35,14 +35,8 @@ class PromoteWaitingListEntryDto extends createZodDto(promoteWaitingListEntrySch
 class ListWaitingListQueryDto extends createZodDto(listWaitingListQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-/**
- * The waiting list (ROLES.md appointments matrix): `CRUD` for admin and
- * receptionist, `R` for a doctor, nothing for a technician.
- *
- * A doctor reads it because they need to know who is waiting; adding and
- * promoting is the front desk's job, which is why the write routes name only
- * the receptionist (admin passes every role check).
- */
+// ROLES.md: CRUD for admin and receptionist, R for a doctor, nothing for a technician — adding and
+// promoting is the front desk's job.
 @Controller('waiting-list')
 @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
 export class WaitingListController {
@@ -85,7 +79,6 @@ export class WaitingListController {
     return this.waitingList.update(actor, params.id, body);
   }
 
-  /** Books the waiting patient into a slot and closes the entry. */
   @Post(':id/promote')
   @Roles(USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
@@ -97,7 +90,6 @@ export class WaitingListController {
     return this.waitingList.promote(actor, params.id, body);
   }
 
-  /** Closes an entry without booking it — the patient gave up, or was seen. */
   @Patch(':id/resolve')
   @Roles(USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)

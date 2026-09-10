@@ -19,7 +19,6 @@ import {
 
 export interface SendNotification {
   readonly clinicId: string;
-  /** Destination phone number, as dialled. */
   readonly to: string;
   readonly template: NotificationTemplate;
   readonly vars: Record<string, string>;
@@ -36,26 +35,8 @@ export interface SendResult {
   readonly body: string;
 }
 
-/**
- * Sending a message to a patient.
- *
- * Three things are deliberate.
- *
- * **The log row is written before the provider is called.** A provider that
- * throws, hangs or is killed mid-send still leaves a `queued` row behind — a
- * send that vanishes without a trace is the single failure a notification log
- * exists to prevent, and it is the one that looks like "we never told them".
- *
- * **A failure never reaches the caller.** `send` resolves whatever the gateway
- * does; the row records `failed` and the error. A booking must not fail because
- * an SMS gateway is down, and a reminder that cannot go out is not a reason to
- * crash a scheduled job partway through the list.
- *
- * **Templates come from the clinic, with a default underneath.** A clinic edits
- * its own wording in settings; anything it has not written falls back to the
- * Arabic defaults in `@clinic/shared`, so a fresh clinic sends sensible
- * messages before anyone configures it.
- */
+// The log row is written before the provider is called, so a send that throws still leaves a trace;
+// a failure never reaches the caller; and clinic templates fall back to the shared Arabic defaults.
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
@@ -118,15 +99,8 @@ export class NotificationsService {
     }
   }
 
-  /**
-   * Whether this exact message has already gone out for this appointment.
-   *
-   * The reminder scheduler's guard, and the reason there is no separate
-   * "sent markers" table: the log already holds the fact, and a second table
-   * holding it too could disagree. A `failed` row counts as sent for this
-   * purpose — retrying a reminder every five minutes against a dead gateway
-   * would fill the log and, once it recovered, deliver a pile of them at once.
-   */
+  // The reminder dedupe, and why there is no "sent markers" table. A `failed` row counts as sent:
+  // retrying against a dead gateway would deliver a pile at once when it recovered.
   async alreadySent(appointmentId: string, template: NotificationTemplate): Promise<boolean> {
     const [row] = await this.db
       .select({ id: notificationsLog.id })

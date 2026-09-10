@@ -14,15 +14,8 @@ const TABS: readonly TabDefinition<LabsTab>[] = [
   { id: DIRECTORY, label: 'labs.section.directory' },
 ];
 
-/**
- * The labs module, as one screen.
- *
- * The work in flight and the labs doing it were two nav entries answering one
- * question — "where is that crown" — from two directions. The board comes
- * first because it is what anyone opens this for; the directory is where a
- * relationship is set up and its balance settled, which is a monthly job
- * rather than a daily one.
- */
+// The work in flight and the labs doing it answered one question from two directions. The board
+// comes first; the directory is a monthly job.
 export function LabsSection(): JSX.Element {
   const [active, setActive] = useTabParam<LabsTab>(
     'tab',

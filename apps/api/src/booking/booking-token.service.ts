@@ -10,25 +10,8 @@ const PREFIX = 'v1';
 const encode = (value: string): string => Buffer.from(value, 'utf8').toString('base64url');
 const decode = (value: string): string => Buffer.from(value, 'base64url').toString('utf8');
 
-/**
- * The opaque handle a patient gets for their own booking.
- *
- * It is an HMAC over the appointment id, not the id itself. Two reasons, and
- * the first is the one that matters: a raw UUID in a URL that goes out over SMS
- * is a URL anyone can *try* — change a character, hit a different patient's
- * booking. A signature makes a guessed token indistinguishable from a typo, and
- * both are rejected before a database query happens.
- *
- * The second is that a token can carry a purpose. `cancel` and `manage` are
- * signed separately, so a link that only cancels cannot be replayed to read the
- * booking, and neither works after the appointment is soft-deleted because the
- * lookup that follows is still clinic-scoped.
- *
- * Signed with `BOOKING_TOKEN_SECRET`, which is deliberately not `JWT_SECRET`:
- * this one is handed to an anonymous stranger and lives for weeks, where an
- * access token is short-lived and belongs to signed-in staff. One key
- * compromised must not be the other.
- */
+// An HMAC over the appointment id, not the id itself, so a guessed token is a typo and is rejected
+// before any query. `cancel` and `manage` sign separately, under their own secret.
 @Injectable()
 export class BookingTokenService {
   private readonly secret: string;
@@ -47,14 +30,8 @@ export class BookingTokenService {
     return `${PREFIX}.${payload}.${this.signature(payload)}`;
   }
 
-  /**
-   * The appointment id inside a token, or 401.
-   *
-   * Every failure — wrong shape, wrong signature, wrong version — is the same
-   * exception with the same message. A token that is *nearly* right must not be
-   * distinguishable from one that is nonsense, or the error text becomes an
-   * oracle for forging the next attempt.
-   */
+  // Every failure is the same exception with the same message: a nearly-right token must not be
+  // distinguishable from nonsense, or the error text is a forging oracle.
   verify(token: string): string {
     const parts = token.split('.');
 

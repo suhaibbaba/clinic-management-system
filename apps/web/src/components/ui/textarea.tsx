@@ -6,17 +6,8 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
   hasError?: boolean | undefined;
 }
 
-/**
- * The multi-line counterpart to `Input`, with the same border, radius, focus
- * treatment and disabled state.
- *
- * It exists because four raw `<textarea>` elements in one visit form had each
- * grown their own copy of those classes — which is how a form ends up with a
- * notes box that focuses differently from the field above it.
- *
- * `resize-y` only: a textarea that can be dragged wider escapes the form's
- * column and, in RTL, drags from the wrong corner.
- */
+// `resize-y` only: a textarea dragged wider escapes the form's column and, in RTL, drags from the
+// wrong corner.
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
   { className, hasError = false, rows = 3, ...props },
   ref,

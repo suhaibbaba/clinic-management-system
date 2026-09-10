@@ -3,14 +3,8 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-/**
- * The single-source-of-truth rule, enforced.
- *
- * theme.css is the only place a colour is named. These tests fail the build if
- * a component reaches past it — for a stock Tailwind palette class, a raw hex,
- * or an inline colour — because that is exactly the kind of change that passes
- * review one utility at a time and leaves the brand in forty files.
- */
+// theme.css is the only place a colour is named. Reaching past it is the change that passes review
+// one utility at a time and leaves the brand in forty files.
 
 const SRC = join(__dirname);
 
@@ -63,10 +57,8 @@ describe('design tokens', () => {
 
     const offenders = FILES.filter((file) => inlineColour.test(file.source))
       .map((file) => file.path)
-      // The one swatch component, shared by the chart's legend and the
-      // settings screen, paints itself from the tooth-state style map — the
-      // single source. The value is per state, and half the states are the
-      // clinic's own, so it cannot be a class.
+      // The one swatch component paints from the tooth-state style map. The value is per state and
+      // half the states are the clinic's own, so it cannot be a class.
       .filter((path) => path !== join('features', 'patients', 'chart', 'tooth-swatch.tsx'));
 
     expect(offenders).toEqual([]);

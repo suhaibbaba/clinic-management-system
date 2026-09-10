@@ -32,11 +32,9 @@ export interface TimeOffPanelProps {
   readonly canEdit: boolean;
 }
 
-/** `2026-09-08` + `14:00` → an instant in the browser's own zone. */
 const instant = (date: string, time: string): string =>
   new Date(`${date}T${time}:00`).toISOString();
 
-/** Whether a period covers whole days end to end. */
 const isWholeDays = (startsAt: string, endsAt: string): boolean => {
   const start = new Date(startsAt);
   const end = new Date(endsAt);
@@ -49,17 +47,8 @@ const isWholeDays = (startsAt: string, endsAt: string): boolean => {
   );
 };
 
-/**
- * When a doctor is away — for whole days, or for part of one.
- *
- * The toggle is the whole point of this panel. A per-day "off" switch could
- * express "Thursday" and nothing else, and the case a clinic actually has is
- * "Thursday afternoon at a conference" — so the form is one date, and then
- * either the whole day or two times.
- *
- * Whole days are stored as local midnight to local midnight rather than as a
- * flag, so nothing downstream branches on which kind a row is.
- */
+// A per-day "off" switch cannot say "Thursday afternoon at a conference". Whole days are stored
+// midnight to midnight rather than as a flag, so nothing downstream branches.
 export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
@@ -175,11 +164,8 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
               >
                 <span className="flex min-w-0 flex-col leading-snug">
                   <span className="truncate text-value font-medium text-ink">{entry.reason}</span>
-                  {/*
-                    The clinic's zone and a 24-hour clock, so the whole period
-                    is Latin and sits inside one island — an Arabic "ص" in here
-                    reorders the string it is embedded in.
-                  */}
+                  {/* The clinic's zone and a 24-hour clock, so the period is Latin inside one island
+                      — an Arabic "ص" reorders the string it is embedded in. */}
                   <Ltr className="text-label tabular-nums text-ink-muted">
                     {whole
                       ? formatClinicDate(entry.startsAt)

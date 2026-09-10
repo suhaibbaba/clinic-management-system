@@ -15,19 +15,8 @@ const RESEND_SECONDS = 60;
 
 const digitsOnly = (value: string): string => value.replace(/\D/g, '');
 
-/**
- * Step four, OTP mode: the six digits that came by SMS.
- *
- * Six boxes rather than one field, because that is what every other code entry
- * on a phone looks like and because it makes "how many digits" answerable at a
- * glance. Everything that makes six boxes annoying is handled: pasting the
- * whole code into any box fills all of them, backspace on an empty box steps
- * back, the last digit submits without a tap, and each box tells a screen
- * reader which position it is.
- *
- * The code dies after three wrong guesses server-side, so the count below is a
- * report of the API's rule, never the rule itself.
- */
+// Pasting into any box fills all of them, backspace on an empty box steps back, the last digit
+// submits. The three-guess limit is the API's rule, reported here.
 export function OtpStep({
   phone,
   onVerify,

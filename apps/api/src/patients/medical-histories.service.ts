@@ -34,10 +34,7 @@ export class MedicalHistoriesService implements OnModuleInit {
     });
   }
 
-  /**
-   * Admin and doctor only. Returns an empty record rather than 404 when nothing
-   * has been filled in yet — every patient conceptually has a history.
-   */
+  /** Returns an empty record rather than 404: every patient conceptually has a history. */
   async get(actor: AuthenticatedUser, patientId: string): Promise<MedicalHistory> {
     await this.patientAccess.requirePatientId(actor, patientId);
     const row = await this.findRow(actor.clinicId, patientId);
@@ -45,13 +42,8 @@ export class MedicalHistoriesService implements OnModuleInit {
     return row ? toMedicalHistory(row) : emptyHistory(actor.clinicId, patientId);
   }
 
-  /**
-   * The light endpoint a technician may call.
-   *
-   * ROLES.md permits the allergy *flag* for safety while forbidding every other
-   * medical detail, so this deliberately returns nothing else — no conditions,
-   * medications, notes or pregnancy status.
-   */
+  // ROLES.md permits a technician the allergy flag for safety and nothing else — no conditions,
+  // medications, notes or pregnancy status.
   async allergyFlags(actor: AuthenticatedUser, patientId: string): Promise<AllergyFlags> {
     await this.patientAccess.requirePatientId(actor, patientId);
 
@@ -163,7 +155,6 @@ function toMedicalHistory(row: MedicalHistoryRow): MedicalHistory {
   };
 }
 
-/** Shape returned before anything has been recorded. */
 function emptyHistory(clinicId: string, patientId: string): MedicalHistory {
   const now = new Date().toISOString();
 

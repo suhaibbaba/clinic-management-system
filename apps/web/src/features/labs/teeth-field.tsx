@@ -4,19 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 import { Icon, Input } from '@web/components/ui';
 
-/**
- * The teeth an order is for, as chips.
- *
- * Typing a number and pressing enter (or space, or a comma — people paste
- * "14, 15, 16") adds it; the chip carries its own remove button. A free-text
- * box would have been less code and would have let "1 4" and "١٤" and "14-16"
- * all reach the API, which validates FDI numbers and would simply refuse the
- * lot with one message. Rejecting a number the moment it is typed is the
- * difference between a form that teaches and a form that scolds.
- *
- * Numbers are an LTR island inside an RTL form — 14 is fourteen in Arabic too
- * — so every chip and the input itself carry `dir="ltr"`.
- */
+// Chips rather than free text, so "1 4" and "١٤" are refused as they are typed instead of the API
+// rejecting the lot with one message. Numbers are an LTR island.
 export function TeethField({
   id,
   value,

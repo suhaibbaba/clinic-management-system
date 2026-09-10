@@ -9,7 +9,6 @@ import type {
 import { apiRequest } from '@web/lib/api-client';
 
 export const lookupsApi = {
-  /** The whole bundle in one request; see `useLookups` for why. */
   bundle: (includeInactive = false): Promise<LookupBundle> =>
     apiRequest('/lookups', { query: { includeInactive: includeInactive || undefined } }),
   create: (body: CreateLookupOptionInput): Promise<LookupOption> =>

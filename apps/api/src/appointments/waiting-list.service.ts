@@ -25,18 +25,8 @@ type WaitingListRow = typeof waitingList.$inferSelect;
 
 export const WAITING_LIST_ENTITY = 'waiting_list';
 
-/**
- * Walk-ins and callers waiting for a slot that does not exist yet.
- *
- * It is a queue, not a history: the panel reads unresolved entries, ordered by
- * priority and then by how long someone has been waiting, which is the order a
- * front desk actually calls people in.
- *
- * Promotion goes through `AppointmentsService.create`, so a promoted entry is
- * subject to the same overlap constraint as any other booking — a slot that
- * was taken while the patient waited is refused with a 409 rather than
- * double-booked.
- */
+// A queue, not a history. Promotion goes through `AppointmentsService.create`, so a slot taken
+// while the patient waited is refused with a 409.
 @Injectable()
 export class WaitingListService implements OnModuleInit {
   constructor(
@@ -172,14 +162,6 @@ export class WaitingListService implements OnModuleInit {
     return this.findOne(actor, id);
   }
 
-  /**
-   * Books the waiting patient into a slot and closes the entry.
-   *
-   * The appointment is created through the appointments service rather than
-   * inserted here, so a slot taken while the patient waited is refused by the
-   * same exclusion constraint with the same 409 — and the entry stays open,
-   * which is the correct outcome: they are still waiting.
-   */
   async promote(
     actor: AuthenticatedUser,
     id: string,
@@ -217,7 +199,6 @@ export class WaitingListService implements OnModuleInit {
     return this.findOne(actor, id);
   }
 
-  /** Closes an entry without booking it — the patient gave up or was seen. */
   async resolve(actor: AuthenticatedUser, id: string): Promise<WaitingListEntry> {
     const existing = await this.scope.findOneOrFail<WaitingListRow>(
       waitingList,
@@ -261,7 +242,6 @@ export class WaitingListService implements OnModuleInit {
     return toWaitingListEntry(row);
   }
 
-  /** The panel draws names, so every read joins them once here. */
   private entrySelect() {
     return this.db
       .select({

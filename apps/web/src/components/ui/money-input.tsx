@@ -9,31 +9,14 @@ export interface MoneyInputProps extends Omit<
   'type' | 'inputMode' | 'dir'
 > {
   hasError?: boolean | undefined;
-  /** ISO-4217 from the clinic setting; shown beside the field as its symbol. */
   currency?: string | undefined;
 }
 
 /** Everything but digits, dropped as it is typed. */
 const digitsOnly = (value: string): string => value.replace(/\D/g, '');
 
-/**
- * A price, typed as a whole number.
- *
- * Prices here are whole units — a filling is 60, not 60.00 — so the field
- * refuses a decimal separator outright rather than accepting one and failing
- * validation on submit. That is not only tidiness: `.` and `,` are one key
- * apart from nothing at all on a numeric keypad, and a stray separator turns
- * 6000 into 60.00 silently, which is the money bug worth designing out.
- * `wholeMoneySchema` is the real gate — the API is the boundary — and this is
- * what stops the mistake being made in the first place.
- *
- * The currency's **symbol** sits beside the field, never its code, matching
- * what `Money` renders everywhere else. It follows the page's flow rather than
- * being pinned to an edge, so an Arabic form reads "المبلغ: 150 د.ا".
- *
- * `inputMode="numeric"`, not `"decimal"`: `decimal` is what puts the separator
- * on the phone keypad this field will not accept.
- */
+// Refuses a decimal separator as it is typed: on a numeric keypad a stray `.` turns 6000 into 60.00
+// silently. `inputMode="numeric"`, since `decimal` puts that key on the pad.
 export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(function MoneyInput(
   { currency, className, onChange, ...props },
   ref,

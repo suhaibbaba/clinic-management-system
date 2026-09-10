@@ -8,12 +8,8 @@ import {
 } from '@test/helpers/patient-fixtures';
 import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
 
-/**
- * The ✗ cells of the ROLES.md patients matrix, one request each.
- *
- * Everything here asserts a refusal or a stripped response, so a permission
- * that quietly widens shows up as a failing test rather than as a leak.
- */
+// The ✗ cells of the ROLES.md patients matrix, one request each: a permission that quietly widens
+// shows up as a failing test rather than a leak.
 describe('Patients permission boundaries (e2e)', () => {
   let context: TestContext;
   let clinic: TestClinic;

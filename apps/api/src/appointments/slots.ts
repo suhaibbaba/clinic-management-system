@@ -1,22 +1,8 @@
 import type { TimeRange } from '@clinic/shared';
 
-/**
- * Slot availability, as arithmetic on minutes.
- *
- * Pure on purpose (CLAUDE.md architecture decision 6, and the task's own
- * constraint): no database, no Nest, no clock. Public booking will ask the same
- * question from an anonymous, rate-limited endpoint, and the answer has to be
- * the same one reception sees — so the rule lives here once and both callers
- * load their own data and hand it in.
- *
- * Everything is **minutes from local midnight**. Absolute instants are the
- * caller's problem (`time-zone.ts`), which is what keeps this file free of the
- * one thing that makes calendar code hard to test.
- *
- * Free slots are computed on every request and never stored.
- */
+// Pure arithmetic on minutes from local midnight — no database, no clock — so reception and the
+// anonymous booking page get the same answer. Instants are the caller's problem.
 
-/** A window that is already taken, in minutes from local midnight. */
 export interface BusyInterval {
   readonly startMinute: number;
   readonly endMinute: number;
@@ -28,22 +14,8 @@ export interface ComputedSlot {
   readonly available: boolean;
 }
 
-/**
- * Why a day offers nothing.
- *
- * A closed clinic, a doctor's day off, a full diary and a day that has simply
- * ended are four different answers to "can you fit me in?", and an empty array
- * says the same nothing for all four. `day_over` earns its place because it is
- * the one anybody looking at today after closing time will see — reporting
- * that evening as "fully booked" is a different and wrong claim.
- *
- * Two more say *why* the door is shut, and they are worth separating from the
- * weekly pattern for the same reason: "we are closed on Fridays" and "we are
- * closed for Eid" are different sentences to the person on the phone, and only
- * one of them is worth asking about next week. `clinic_closure` is a dated
- * closure, `doctor_time_off` is one doctor being away — the clinic is open and
- * another doctor may well have room.
- */
+// A closed clinic, a doctor away, a full diary and a day that has ended are four different
+// sentences on the phone; an empty array says the same nothing for all four.
 export type ClosedReason =
   | 'clinic_closed'
   | 'clinic_closure'
@@ -66,25 +38,13 @@ export interface SlotComputationInput {
   readonly doctorRanges: readonly TimeRange[];
   /** A dated clinic closure covers this day — shut whatever the weekday says. */
   readonly isClosed: boolean;
-  /**
-   * The doctor's absences on this day, clipped to it, in local minutes.
-   *
-   * Separate from `busy` rather than folded into it, because the two mean
-   * different things to whoever reads the answer: a slot lost to another
-   * patient may free up, and a slot lost to an absence will not. Keeping them
-   * apart is also what lets a day with no room left report *which* of the two
-   * emptied it.
-   */
+  // Separate from `busy`: a slot lost to another patient may free up, one lost to an absence will
+  // not, and the answer reports which emptied the day.
   readonly timeOff: readonly BusyInterval[];
   readonly busy: readonly BusyInterval[];
   readonly durationMinutes: number;
-  /** How far apart slot starts are offered. */
   readonly stepMinutes: number;
-  /**
-   * Minutes from midnight before which a slot is in the past. Omitted for a
-   * future date; the caller passes "now" for today, because deciding what
-   * "now" is is not this module's business.
-   */
+  /** The caller passes "now" for today — deciding what now is is not this module's business. */
   readonly notBeforeMinute?: number | undefined;
 }
 
@@ -115,16 +75,8 @@ const toInterval = (range: TimeRange): Interval => ({
   end: toMinutes(range.end),
 });
 
-/**
- * Where two sets of windows overlap.
- *
- * A doctor can only be seen when they are working **and** the clinic is open —
- * a doctor who starts at 08:00 in a clinic that opens at 09:00 starts at 09:00,
- * and the front door is what settles it.
- *
- * Both sides are small (at most six ranges a day), so the pairwise sweep is
- * the clearest thing that could work.
- */
+// A doctor is seen only when they are working and the clinic is open: one starting at 08:00 in a
+// clinic opening at 09:00 starts at 09:00.
 export function intersectRanges(
   left: readonly TimeRange[],
   right: readonly TimeRange[],
@@ -149,13 +101,8 @@ export function intersectRanges(
 const overlaps = (a: Interval, b: BusyInterval): boolean =>
   a.start < b.endMinute && b.startMinute < a.end;
 
-/**
- * The bookable starts in one day.
- *
- * A slot has to fit **entirely** inside a working window: offering 16:45 for a
- * thirty-minute appointment in a clinic that closes at 17:00 books fifteen
- * minutes of nobody being there.
- */
+// A slot must fit entirely inside a window: 16:45 for thirty minutes in a clinic closing at 17:00
+// books fifteen minutes of nobody being there.
 export function computeDaySlots(input: SlotComputationInput): SlotComputation {
   // A dated closure outranks the weekly pattern: the clinic is shut on a
   // Tuesday it normally opens, and saying so is more use than "clinic closed".
@@ -193,10 +140,8 @@ export function computeDaySlots(input: SlotComputationInput): SlotComputation {
     }
   }
 
-  // Windows can overlap each other — two clinic ranges against one doctor
-  // range — so the same start can be produced twice. De-duplicated on the way
-  // out rather than by pre-merging the windows, which is more code for the
-  // same answer.
+  // Windows can overlap, so the same start is produced twice; de-duplicated on the way out rather
+  // than by pre-merging.
   const unique = new Map<number, ComputedSlot>();
   for (const slot of slots) {
     unique.set(slot.startMinute, slot);
@@ -211,17 +156,6 @@ export function computeDaySlots(input: SlotComputationInput): SlotComputation {
   };
 }
 
-/**
- * Which "nothing available" this is.
- *
- * The windows exist, so the clinic is open and the doctor is rostered. If every
- * slot fell before the cutoff the day is simply over; if every one of them is
- * inside an absence the doctor is away, which is a different sentence from
- * "fully booked" and the one reception has to repeat down the phone. Otherwise
- * the diary is what is full — including the case where the requested duration
- * fits no window at all, which produces no slots and reads correctly as a day
- * with no room in it.
- */
 function closedBecause(
   slots: readonly ComputedSlot[],
   notBefore: number,

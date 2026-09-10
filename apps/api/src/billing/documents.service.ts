@@ -25,23 +25,12 @@ import { DATABASE, type Database } from '@api/database/database.module';
 import { payments } from '@api/database/schema';
 import { PatientAccessService } from '@api/patients/patient-access.service';
 
-/**
- * Technical values — a phone number, a date, a receipt number, an amount with
- * its currency — read left to right in an Arabic document just as they do
- * anywhere else. Marking them keeps a leading `+` on the left and stops the
- * bidi algorithm swapping the two ends of a date range.
- */
+// Keeps a leading `+` on the left and stops the bidi algorithm swapping the ends of a date range in
+// an Arabic document.
 const LTR = { dir: 'ltr' } as const;
 
-/**
- * The printable documents: a receipt for every payment, and a patient
- * statement.
- *
- * Rendered with pdf-lib and an Amiri font embedded whole — no headless browser,
- * because the API container is meant to run on a cheap VPS and a Chromium next
- * to Node would roughly triple its memory (CLAUDE.md target infra). The Arabic
- * shaping and bidi ordering live in `pdf/`.
- */
+// pdf-lib with an embedded Amiri font, not a headless browser: Chromium beside Node would roughly
+// triple the container's memory.
 @Injectable()
 export class DocumentsService {
   constructor(
@@ -202,11 +191,8 @@ function describeKind(
   return kind === LEDGER_ENTRY_KIND.PAYMENT ? strings.columns.payment : strings.columns.charge;
 }
 
-/**
- * Latin digits with an explicit separator, never `toLocaleString('ar')`: an
- * Arabic locale wraps its output in bidi control marks, and those reorder the
- * parts of a date once the string is laid out right-to-left.
- */
+// Never `toLocaleString('ar')`: it wraps output in bidi control marks, which reorder the parts of a
+// date laid out right-to-left.
 function formatDate(iso: string): string {
   const date = new Date(iso);
   const pad = (value: number): string => String(value).padStart(2, '0');

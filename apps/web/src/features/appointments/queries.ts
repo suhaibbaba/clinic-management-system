@@ -21,15 +21,8 @@ export const CALENDAR_KEY = 'appointments-calendar';
 export const AVAILABILITY_KEY = 'appointments-availability';
 export const WAITING_LIST_KEY = 'waiting-list';
 
-/**
- * Everything a mutation can invalidate.
- *
- * Booking changes the calendar *and* the availability of the day it touched
- * *and* possibly the waiting list — and getting one of the three wrong leaves
- * a slot on screen that is no longer free, which is how a double booking gets
- * attempted. So every write invalidates all three rather than trying to be
- * clever about which.
- */
+// Every write invalidates the calendar, the day's availability and the waiting list: getting one
+// wrong leaves a slot on screen that is no longer free.
 const CALENDAR_KEYS = [CALENDAR_KEY, AVAILABILITY_KEY, WAITING_LIST_KEY];
 
 function useCalendarMutation<TArgs, TResult>(mutationFn: (args: TArgs) => Promise<TResult>) {
@@ -45,15 +38,8 @@ function useCalendarMutation<TArgs, TResult>(mutationFn: (args: TArgs) => Promis
   });
 }
 
-/**
- * A page of appointments, filtered — the list behind the tabs that are not the
- * calendar.
- *
- * The calendar feed answers "what is in this week"; this answers "which
- * appointments are in this state", which is a different question and a
- * different endpoint. Kept on the calendar's key prefix so booking, moving or
- * confirming anything invalidates it along with everything else.
- */
+// A different question from the calendar feed, so a different endpoint — kept on the calendar's key
+// prefix so any write invalidates it too.
 export function useAppointments(
   query: Partial<ListAppointmentsQuery>,
 ): UseQueryResult<Paginated<CalendarAppointment>> {
@@ -74,13 +60,6 @@ export function useCalendar(query: CalendarQuery): UseQueryResult<CalendarFeed> 
   });
 }
 
-/**
- * Free slots for a doctor on a date.
- *
- * Disabled until both are chosen, because "availability for no doctor" is not
- * a question — and asking it would put an error toast in front of someone who
- * has simply not finished filling the form in.
- */
 export function useAvailability(
   query: Partial<AvailabilityQuery>,
   enabled = true,
@@ -113,12 +92,8 @@ export const useUpdateAppointment = () =>
     appointmentsApi.update(id, body),
   );
 
-/**
- * The status transitions, as one mutation over a named step.
- *
- * One hook rather than six: they differ only in which endpoint they call, and
- * six near-identical hooks is six places to forget an invalidation.
- */
+// One hook rather than six: they differ only in which endpoint they call, and six near-identical
+// hooks is six places to forget an invalidation.
 export type AppointmentStep = 'confirm' | 'arrived' | 'start' | 'complete' | 'noShow';
 
 export const useAppointmentStep = () =>
@@ -145,7 +120,6 @@ export const usePromoteWaitingEntry = () =>
 export const useResolveWaitingEntry = () =>
   useCalendarMutation((id: string) => waitingListApi.resolve(id));
 
-/** Narrowing helper for the drawer, which holds an id rather than a row. */
 export const findAppointment = (
   feed: CalendarFeed | undefined,
   id: string | null,

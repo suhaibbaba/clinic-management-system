@@ -19,52 +19,19 @@ export interface SelectProps extends Omit<
   /** Shown while nothing is chosen, and offered as the way back to nothing. */
   placeholder?: string | undefined;
   value?: string | undefined;
-  /**
-   * The native signature, kept deliberately.
-   *
-   * Radix's own is `onValueChange(value)`, and adopting it would have meant
-   * touching thirty call sites to say the same thing a different way. What a
-   * caller wants off this control is `event.target.value`, which is what it
-   * wanted before.
-   */
+  // The native signature, kept deliberately: a caller wants `event.target.value`, and Radix's
+  // `onValueChange` would have meant touching thirty call sites.
   onChange?: ((event: ChangeEvent<HTMLSelectElement>) => void) | undefined;
-  /** `react-hook-form`'s, to mark the field touched. */
   onBlur?: (() => void) | undefined;
   hasError?: boolean | undefined;
 }
 
-/**
- * Radix cannot hold an empty string, and this app's "nothing chosen" is one.
- *
- * `<Select.Item value="">` throws by design — the empty string is reserved for
- * clearing the selection. So the placeholder row travels under a sentinel and
- * is turned back into `''` on the way out, which keeps `''` as the value every
- * caller, every query and every query string already uses.
- */
+// `<Select.Item value="">` throws by design, so the placeholder row travels under a sentinel and
+// comes back out as the `''` every caller already uses.
 const NONE = '__none__';
 
-/**
- * A choice of one, from a list.
- *
- * **Not a native `<select>`.** It was, and on a clinic's iPhone tapping one did
- * nothing at all, on every screen, in Safari — the field present, enabled,
- * uncovered and populated, and the platform picker simply never arriving. A
- * native picker is not part of the page, so that failure can be neither
- * reproduced nor regression-tested anywhere but on the device. This is Radix's
- * `Select`, the primitive shadcn/ui builds the same control from: one control,
- * the same on every platform, drawn by us out of ordinary DOM that a test at
- * 390px can drive.
- *
- * What that buys beyond the bug: the list is styled like the rest of the app
- * instead of by the OS, Arabic option text is set in the app's own type, the
- * row that is set carries a tick, rows are a full 44px for a thumb, and
- * typeahead, Home/End, the arrow keys and Escape come from the primitive
- * rather than from us.
- *
- * The chevron stays ours for the reason it always was: the platform's is a
- * different glyph on every OS, always sits on the left, and cannot take the
- * app's ink colour.
- */
+// Not a native `<select>`: on a clinic's iPhone tapping one did nothing in Safari, and a native
+// picker cannot be tested off the device. Radix gives ordinary DOM a test can drive.
 export function Select({
   options,
   placeholder,
@@ -79,23 +46,11 @@ export function Select({
   'aria-label': ariaLabel,
   'aria-describedby': describedBy,
 }: SelectProps): JSX.Element {
-  /*
-   * A dialog above us, if any.
-   *
-   * Radix Dialog makes the body inert while it is open, so a listbox portalled
-   * to `document.body` from inside one renders perfectly and ignores every
-   * click. Portalling into the dialog's own content keeps it interactive, and
-   * is a no-op everywhere else — the same reason `Popover` does it.
-   */
+  // Radix Dialog makes the body inert, so a listbox portalled to `document.body` from inside one
+  // ignores every click. A no-op elsewhere.
   const dialogLayer = useDialogLayer();
-  /*
-   * Always controlled, `NONE` standing in for "nothing chosen".
-   *
-   * Leaving `value` off while the field is empty is the obvious way to get
-   * Radix's own placeholder handling, and it makes the control uncontrolled
-   * until the first choice — React says so out loud, and a form reset then
-   * cannot put it back to empty.
-   */
+  // Always controlled, `NONE` standing in for "nothing chosen": leaving `value` off would make it
+  // uncontrolled until the first choice, and a form reset could not clear it.
   const empty = value === '' || value === undefined;
 
   const emit = (next: string): void => {
@@ -111,9 +66,8 @@ export function Select({
 
   return (
     <SelectPrimitive.Root
-      // The list portals onto `document.body`, which inherits nothing from the
-      // form it belongs to — so the direction is passed in, read off `<html>`
-      // where `applyLanguageToDocument` puts it.
+      // The list portals onto `document.body` and inherits nothing from the form, so the direction
+      // is read off `<html>` and passed in.
       dir={documentDirection()}
       value={empty ? NONE : value}
       onValueChange={emit}
@@ -135,9 +89,8 @@ export function Select({
           'transition-[border-color,box-shadow,background-color] duration-150',
           'focus:border-primary-500',
           'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-subtle',
-          // Ours rather than `data-[placeholder]`: the empty state is a real
-          // selection here — the row that clears the field — so Radix does not
-          // consider the trigger to be showing a placeholder.
+          // Ours rather than `data-[placeholder]`: the empty state is a real selection here, so
+          // Radix does not consider the trigger to be showing a placeholder.
           empty && 'text-ink-subtle',
           hasError ? 'border-danger-500' : 'border-line',
           className,
@@ -187,7 +140,6 @@ export function Select({
   );
 }
 
-/** One row: a full touch target, the label, and a tick when it is the one set. */
 function Row({
   value,
   label,

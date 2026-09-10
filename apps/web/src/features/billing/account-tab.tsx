@@ -30,15 +30,8 @@ interface AccountTabProps {
   patient: PatientView | undefined;
 }
 
-/**
- * The patient's account: every charge and payment, oldest first, with the
- * balance after each line.
- *
- * A line describes itself with the procedure's catalog name and nothing else.
- * That is not a rendering choice — the API sends no more than that, because a
- * receptionist reads this screen and ROLES.md keeps diagnoses and visit notes
- * away from them.
- */
+// A line carries the procedure's catalog name and nothing else: the API sends no more, because a
+// receptionist reads this screen.
 export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -81,7 +74,6 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
     {
       key: 'description',
       header: 'billing.columns.description',
-      // The card's title: what the line *is*, before what it cost.
       primary: true,
       render: (entry) => (
         <span className="flex flex-wrap items-center gap-2">
@@ -101,9 +93,6 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
       align: 'numeric',
       render: (entry) =>
         entry.kind === LEDGER_ENTRY_KIND.CHARGE ? (
-          // The symbol travels with every figure now that it *is* a symbol —
-          // one character rather than the three-letter code that was left off
-          // these columns because it doubled their width.
           <Money amount={entry.amount} currency={currency} />
         ) : null,
     },

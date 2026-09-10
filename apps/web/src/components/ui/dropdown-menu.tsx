@@ -5,25 +5,11 @@ import { Icon, type IconName } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
 import { documentDirection } from '@web/lib/direction';
 
-/**
- * The app's dropdown menu, over Radix.
- *
- * Radix is already the source of the dialog, toast and switch here, and a menu
- * is the component least worth hand-rolling: roving focus, typeahead, escape
- * and outside-click, `aria-expanded` on the trigger, focus returned to it on
- * close, and portalling so the panel is not clipped by a scrolling header.
- *
- * `dir` is read off the document rather than hardcoded, so `side`/`align` and
- * the arrow keys mirror when the language changes. Radix reads it from the
- * `Root` and passes it down through the portal, which a CSS-only approach
- * cannot do — the panel renders on `document.body`, outside any `dir` wrapper.
- */
+// `dir` is read off the document rather than hardcoded, so `side`/`align` and the arrow keys mirror
+// with the language.
 
-/**
- * `dir` belongs on the root, not the content: Radix passes it down through the
- * portal, which is the only way the panel gets it — the panel renders on
- * `document.body`, outside any `dir` wrapper in the tree.
- */
+// `dir` belongs on the root: Radix passes it through the portal, which is the only way the panel
+// gets it — it renders on `document.body`.
 export function DropdownMenu({ children }: { readonly children: ReactNode }): JSX.Element {
   return (
     <DropdownMenuPrimitive.Root dir={documentDirection()}>{children}</DropdownMenuPrimitive.Root>
@@ -48,9 +34,6 @@ export function DropdownMenuContent({
         sideOffset={8}
         className={cn(
           'z-50 min-w-56 rounded-panel bg-surface p-1.5 shadow-float',
-          // 150ms fade + scale out of the corner the menu actually opened
-          // from, rather than appearing from nowhere. Radix computes that
-          // origin and hands it over as a custom property.
           'origin-(--radix-dropdown-menu-content-transform-origin)',
           'data-[state=open]:animate-menu-in data-[state=closed]:animate-menu-out',
           className,
@@ -66,9 +49,7 @@ export interface DropdownMenuItemProps {
   readonly icon: IconName;
   readonly children: ReactNode;
   readonly onSelect?: (() => void) | undefined;
-  /** Sign-out and deletions: the same red the rest of the app uses for danger. */
   readonly tone?: 'default' | 'danger' | undefined;
-  /** Shown at the end of the row — a checkmark, a shortcut, a current value. */
   readonly trailing?: ReactNode | undefined;
 }
 

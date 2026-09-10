@@ -1,12 +1,7 @@
 import { USER_ROLE, type UserRole } from '@clinic/shared';
 
-/**
- * The inventory matrix from ROLES.md, as the four questions the screens ask.
- *
- * Every one of these is cosmetic — the API enforces the same rules and is the
- * real boundary. What they buy is a screen that never offers a button whose
- * only outcome is a 403.
- */
+// The ROLES.md inventory matrix. Cosmetic — the API is the boundary — but it stops a screen
+// offering a button whose only outcome is a 403.
 
 /** Who sees the module at all. A receptionist is in none of its rows. */
 export const seesInventory = (role: UserRole | undefined): boolean =>
@@ -16,11 +11,8 @@ export const seesInventory = (role: UserRole | undefined): boolean =>
 export const canManageInventory = (role: UserRole | undefined): boolean =>
   role === USER_ROLE.ADMIN || role === USER_ROLE.TECHNICIAN;
 
-/**
- * "Stock movements: consume" — the one write a doctor makes here. They use an
- * ampoule at the chair and say so, which is the only way the count ever
- * matches the cupboard.
- */
+// The one write a doctor makes here: they use an ampoule at the chair and say so, which is the only
+// way the count matches the cupboard.
 export const canConsumeStock = (role: UserRole | undefined): boolean =>
   role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR || role === USER_ROLE.TECHNICIAN;
 

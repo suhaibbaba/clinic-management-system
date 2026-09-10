@@ -70,11 +70,6 @@ describe('The file\u2019s tabs are addresses', () => {
   beforeEach(() => authTokens.clear());
 
   it('opens the tab the address names', async () => {
-    /*
-     * The patient file was the one screen in the app whose tabs lived in
-     * `useState`: a dentist could not send "look at his X-rays" to a
-     * colleague, and a refresh on the timeline landed back on the chart.
-     */
     authTokens.clear();
     mockApi(handlers());
     renderWithProviders(<AppRoutes />, { route: `/patients/${PATIENT_ID}?tab=visits` });

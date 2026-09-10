@@ -8,17 +8,8 @@ import { useClinic } from '@web/features/clinic/queries';
 import { LAB_ORDER_STATUS_STYLES } from '@web/features/labs/status';
 import { formatDate } from '@web/lib/format';
 
-/**
- * Orders as rows.
- *
- * The board is the primary view on a desktop, but a table is what works on a
- * phone and inside a lab's own page — and it is the same `Table` the rest of
- * the app uses, so it collapses to cards at the same breakpoint with the same
- * behaviour.
- *
- * A late order is the one thing this list must not let anybody miss, so it
- * carries its own badge rather than relying on a date the eye has to compare.
- */
+// The same `Table` as the rest of the app, so it collapses to cards at the same breakpoint. A late
+// order carries its own badge rather than a date the eye must compare.
 export function LabOrdersTable({
   orders,
   isLoading,

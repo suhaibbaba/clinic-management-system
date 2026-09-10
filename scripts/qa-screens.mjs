@@ -1,32 +1,6 @@
 #!/usr/bin/env node
-/**
- * The visual QA sweep: `pnpm qa:screens`.
- *
- * Signs in as every role, walks every screen in `scripts/qa/screens.mjs` at
- * three viewports in both languages, and writes a PNG of each one plus a
- * report of what it measured while it was there.
- *
- * It exists because the defects this app gets are the ones a unit test cannot
- * see: a chevron that points the wrong way in Arabic, a phone number whose
- * plus sign jumps to the far end of the string, a card that scrolls sideways
- * on a phone, a descender clipped by a tight line box. Those are found by
- * looking — so the tool's job is to make sure somebody *can* look at all of it
- * in one pass, and to flag the three things a browser can measure better than
- * an eye can:
- *
- *   - a page that scrolls horizontally (nothing in this app should)
- *   - a tap target under 44px (WCAG 2.5.8, and a chair-side reality)
- *   - text clipped by its own box, which in Arabic means a cut descender
- *
- * Usage:
- *   pnpm qa:screens                      # everything
- *   QA_LANGS=ar QA_VIEWPORTS=phone pnpm qa:screens
- *   QA_ROLES=doctor QA_SCREENS=patient pnpm qa:screens
- *
- * The app and the API have to be running (`docker compose up`, or `pnpm dev`
- * with a seeded database) — this drives a real browser against a real stack,
- * which is the point.
- */
+// Signs in as every role and walks `scripts/qa/screens.mjs` at three viewports in both languages,
+// flagging what a browser measures better than an eye: overflow, small targets, clipped text.
 
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
@@ -49,7 +23,6 @@ const BASE_URL = process.env['QA_BASE_URL'] ?? 'http://127.0.0.1:5173';
 const API_URL = process.env['QA_API_URL'] ?? 'http://127.0.0.1:3000';
 const OUT_DIR = resolve(repoRoot, process.env['QA_OUT'] ?? 'qa/screens');
 
-/** `QA_LANGS=ar`, `QA_VIEWPORTS=phone,desktop`, `QA_ROLES=admin` — all filters. */
 const pick = (name, all) => {
   const raw = process.env[name];
   if (!raw) return all;
@@ -62,17 +35,10 @@ const viewports = pick('QA_VIEWPORTS', VIEWPORTS);
 const roles = pick('QA_ROLES', [...ROLES]);
 const screenFilter = process.env['QA_SCREENS'] ?? '';
 
-/**
- * A local browser that is not the one Playwright downloaded.
- *
- * CI installs its own and needs none of this; a sandbox or a developer machine
- * with a system Chromium sets `QA_CHROMIUM` and skips a 150 MB download.
- */
 const launchOptions = process.env['QA_CHROMIUM']
   ? { executablePath: process.env['QA_CHROMIUM'] }
   : {};
 
-/** The locale dictionaries, so a step names a button by key in both languages. */
 const dictionaries = {
   ar: JSON.parse(await readText(join(repoRoot, 'apps/web/src/i18n/locales/ar.json'))),
   en: JSON.parse(await readText(join(repoRoot, 'apps/web/src/i18n/locales/en.json'))),
@@ -100,16 +66,10 @@ function t(lang, key) {
   return value;
 }
 
-/** The literal part of a label before its first `{{placeholder}}`. */
 const labelPrefix = (lang, key) => t(lang, key).split('{{')[0].trim();
 
-/**
- * What the sweep measures on every screen.
- *
- * Runs in the page. Deliberately conservative: it reports geometry, never
- * opinions, so that a finding here is something that is provably true of the
- * rendered document rather than a guess about intent.
- */
+// Runs in the page and reports geometry, never opinions, so a finding is provably true of the
+// rendered document.
 const AUDIT = () => {
   const results = {
     overflow: null,
@@ -122,16 +82,8 @@ const AUDIT = () => {
   const root = document.documentElement;
   const viewportWidth = root.clientWidth;
 
-  /*
-   * The font's own opinion of how tall its text is.
-   *
-   * `TextMetrics.fontBoundingBox*` is the ascent and descent the loaded face
-   * declares, so it accounts for what a stated font size does not: Plex
-   * Arabic inks about 1.23× its size where Inter inks about 1.18×, which is
-   * the whole reason a line height tuned on Latin clips an Arabic descender.
-   * A canvas measures the face actually resolved for the element, fallbacks
-   * included, rather than the first name in the stack.
-   */
+  // `fontBoundingBox*` is what the loaded face declares: Plex Arabic inks about 1.23× its size
+  // where Inter inks 1.18×, which is why Latin line heights clip Arabic.
   const ruler = document.createElement('canvas').getContext('2d');
   const inkHeight = (style, text) => {
     ruler.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
@@ -177,24 +129,15 @@ const AUDIT = () => {
     const rect = element.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) continue;
     if (element.closest('[hidden]') !== null) continue;
-    // A visually hidden control is 1px on purpose — a file input behind a
-    // styled label, a heading only a screen reader reads. Reporting them
-    // buried the targets that are genuinely too small.
+    // A visually hidden control is 1px on purpose, and reporting them buried the targets that are
+    // genuinely too small.
     if (isScreenReaderOnly(element)) continue;
     // Inline links inside a paragraph are text, not targets: WCAG 2.5.8
     // exempts them, and flagging every one of them would bury the buttons.
     if (element.tagName === 'A' && getComputedStyle(element).display === 'inline') continue;
 
-    /*
-     * A hit area declared on a pseudo-element counts as the target.
-     *
-     * A control can be taller than it is drawn: `PhoneLink` carries its 44px
-     * on an absolutely positioned `::after`, because buying the height out of
-     * its own box would push the number off the baseline of the label beside
-     * it. `getBoundingClientRect` cannot see that box, so it is asked for
-     * directly — otherwise the sweep reports a 24px target that a thumb has
-     * never once missed.
-     */
+    // A hit area on a pseudo-element counts: `getBoundingClientRect` cannot see `PhoneLink`'s
+    // `::after`, so it is asked for directly.
     const after = getComputedStyle(element, '::after');
     const hitHeight = Math.max(
       rect.height,
@@ -217,16 +160,8 @@ const AUDIT = () => {
     const hasOwnText = [...element.childNodes].some(
       (node) => node.nodeType === 3 && (node.textContent ?? '').trim().length > 0,
     );
-    /*
-     * Text anywhere inside, not only text this element owns directly.
-     *
-     * The box that clips is rarely the box that holds the words: an
-     * appointment block is an `overflow-hidden` button with its patient and
-     * its time in two child spans, and for a 30-minute booking it sliced the
-     * second of them horizontally through the glyphs — on most of the
-     * calendar, in both languages, at every viewport, without this check
-     * saying a word, because the button has no text node of its own.
-     */
+    // Text anywhere inside, because the box that clips is rarely the one holding the words — an
+    // appointment block has no text node of its own.
     const holdsText = (element.textContent ?? '').trim().length > 0;
 
     if (
@@ -244,7 +179,6 @@ const AUDIT = () => {
       });
     }
 
-    // A physical alignment or offset that survived the logical-property sweep.
     if (
       (style.textAlign === 'left' || style.textAlign === 'right') &&
       hasOwnText &&
@@ -253,16 +187,8 @@ const AUDIT = () => {
       results.physical.push({ selector: describe(element), textAlign: style.textAlign });
     }
 
-    /*
-     * A line box smaller than the ink it holds.
-     *
-     * The clipping check above only sees text an `overflow: hidden` cut off.
-     * This one catches the same mistake one step earlier, where nothing is
-     * clipped yet but the glyphs already exceed their line: a `leading-none`
-     * on Arabic, a two-line caption whose descenders reach the marks below.
-     * It is what a person means by "the line height is wrong" on a screen
-     * where nothing is visibly chopped.
-     */
+    // The same mistake one step earlier: nothing clipped yet, but the glyphs already exceed their
+    // line box.
     if (hasOwnText && !isScreenReaderOnly(element) && style.display !== 'none') {
       const rect = element.getBoundingClientRect();
       const text = (element.textContent ?? '').trim();
@@ -284,17 +210,8 @@ const AUDIT = () => {
     }
   }
 
-  /*
-   * A label and its value, sitting on two different baselines.
-   *
-   * The card shape of `Table` is a two-column grid of `<dt>`/`<dd>` pairs, and
-   * the two carry different type sizes — a 13px label against a 15px value.
-   * Stretched to the same row with the same top padding, the shorter line box
-   * puts its text higher than the taller one, and the label floats above the
-   * value it names. Nothing overflows and nothing is clipped, so neither of
-   * the checks above sees it; it is only visible as the row not reading as one
-   * line. Measured as the distance between the two first baselines.
-   */
+  // A label and its value on two baselines: neither check above sees it, since nothing overflows.
+  // Measured between the two first baselines.
   for (const list of document.querySelectorAll('dl')) {
     for (const term of list.querySelectorAll('dt')) {
       const value = term.nextElementSibling;
@@ -371,7 +288,6 @@ async function signIn(page, role, lang) {
   await page.waitForURL(/\/(dashboard|patients|appointments|labs|inventory)/, { timeout: 20_000 });
 }
 
-/** Runs one screen's `steps`, the states a URL cannot carry on its own. */
 async function runSteps(page, steps, lang) {
   for (const step of steps ?? []) {
     if (step.wait) {
@@ -397,10 +313,8 @@ async function runSteps(page, steps, lang) {
         return `step skipped: nothing matched ${JSON.stringify(step)}`;
       }
 
-      // A step that cannot be performed is a finding, not a crash. The sweep's
-      // value is walking the whole app in one pass; abandoning the run at
-      // screen 34 of 450 because one button moved would leave the other 416
-      // unlooked at, which is the one thing this tool exists to prevent.
+      // A step that cannot be performed is a finding, not a crash: abandoning at screen 34 of 450
+      // leaves the rest unlooked at.
       try {
         await locator.first().click({ timeout: 5_000 });
       } catch {
@@ -429,7 +343,6 @@ function stepLocator(page, step, lang) {
   return null;
 }
 
-/** Ids the seeded rows the catalogue refers to by name. */
 async function seededIds() {
   const login = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
@@ -453,9 +366,8 @@ async function seededIds() {
   const labs = await get('/labs?page=1&limit=1');
   const doctors = await get('/doctors?page=1&limit=1');
   const longest = [...patients.items].sort((a, b) => b.fullName.length - a.fullName.length)[0];
-  // File 00001 is the seed's fullest record — visits, procedures, a treatment
-  // plan, charges and payments. Screenshotting whichever patient happened to
-  // be created last means screenshotting eight empty states.
+  // File 00001 is the seed's fullest record; whichever patient was created last is eight empty
+  // states.
   const richest = patients.items.find((patient) => patient.fileNumber === '00001');
 
   return {
@@ -464,26 +376,16 @@ async function seededIds() {
     // development seed carries on purpose.
     longNamePatientId: longest?.id ?? patients.items[0]?.id ?? '',
     labId: labs.items[0]?.id ?? '',
-    /*
-     * The doctor screens name `:doctorId` and nothing was filling it, so
-     * `/doctors/:doctorId` resolved to `/doctors/` — the list — and the two
-     * screens behind it were swept as a picture of the list under their own
-     * names. The time-off modal's step then had no button to click, which is
-     * the line in the report that gave it away.
-     */
+    // Nothing filled `:doctorId`, so those screens resolved to the list and were swept under their
+    // own names.
     doctorId: doctors.items[0]?.id ?? '',
   };
 }
 
 const fill = (path, ids) => path.replace(/:(\w+)/g, (_, name) => ids[name] ?? '');
 
-/**
- * One screen, in a browser that has never signed in.
- *
- * Its own context rather than a logged-out page in the shared one: the session
- * lives in an httpOnly refresh cookie, so "signed out" means a context without
- * that cookie, not a page that happens not to have asked for it yet.
- */
+// Its own context: the session is an httpOnly cookie, so "signed out" means a context without it,
+// not a page that has not asked.
 async function captureAnonymous(browser, screen, { lang, viewport, ids, out }) {
   const context = await browser.newContext({
     viewport: { width: viewport.width, height: viewport.height },
@@ -567,16 +469,8 @@ async function main() {
         for (const screen of screensFor(role, viewport.id)) {
           if (screenFilter && !screen.id.includes(screenFilter)) continue;
 
-          /*
-           * A signed-out screen has to be swept signed out.
-           *
-           * The sweep signs in once per context and then walks addresses, and
-           * `/login` answers a signed-in visitor with a redirect to the
-           * dashboard — so the login screen was being filed under its own name
-           * with a picture of the dashboard in it, in both languages, at every
-           * viewport, for a month. It gets a fresh context instead, and only
-           * once rather than once per role.
-           */
+          // `/login` answers a signed-in visitor with a redirect, so the login screen was filed
+          // under its own name with a picture of the dashboard.
           if (screen.anonymous === true) {
             if (role !== roles[0]) continue;
 
@@ -596,9 +490,8 @@ async function main() {
           await page.goto(`${BASE_URL}${fill(screen.path, ids)}`, {
             waitUntil: 'domcontentloaded',
           });
-          // Queries settle after the route paints; a fixed pause beats
-          // networkidle here because the app polls nothing and never idles
-          // twice the same way.
+          // A fixed pause beats networkidle here: the app polls nothing and never idles twice the
+          // same way.
           await page.waitForTimeout(1200);
           const note = await runSteps(page, screen.steps, lang);
           await page.waitForTimeout(300);
@@ -624,9 +517,8 @@ async function main() {
           );
         }
 
-        // The public booking page is Arabic-only by design (see
-        // apps/web/src/booking/i18n.ts), so it is swept once rather than per
-        // role or per language.
+        // The public booking page is Arabic-only by design, so it is swept once rather than per
+        // role or language.
         if (role === roles[0] && lang === 'ar') {
           const dir = join(OUT_DIR, lang, viewport.id, 'public');
           await mkdir(dir, { recursive: true });
@@ -684,7 +576,6 @@ async function main() {
   );
 }
 
-/** The report a human reads before opening a single PNG. */
 function summarise(findings, shots) {
   const lines = [
     '# Visual QA sweep',

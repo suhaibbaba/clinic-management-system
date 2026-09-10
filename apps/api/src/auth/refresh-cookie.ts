@@ -4,16 +4,9 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 
 import type { Env } from '@api/config/env.schema';
 
-/**
- * Name of the httpOnly cookie carrying the refresh token.
- *
- * The browser never sees the refresh token in JavaScript: it is set by the API
- * and returned automatically on the refresh and logout calls, so an XSS on the
- * web app cannot read or exfiltrate it.
- */
+/** Set by the API and never readable from JavaScript, so an XSS on the web app cannot exfiltrate it. */
 export const REFRESH_COOKIE_NAME = 'clinic_refresh_token';
 
-/** Reads the refresh token from the cookie, falling back to a request body. */
 export function readRefreshToken(
   request: FastifyRequest,
   fromBody: string | undefined,
@@ -24,29 +17,17 @@ export function readRefreshToken(
   return cookies?.[REFRESH_COOKIE_NAME] ?? fromBody;
 }
 
-/** Everything the `Secure`/`SameSite` decision depends on, and nothing else. */
 export interface RefreshCookieContext {
   readonly mode: Env['AUTH_COOKIE_SECURE'];
   readonly sameSite: Env['AUTH_COOKIE_SAMESITE'];
   readonly production: boolean;
-  /**
-   * The scheme the *browser* used — `request.protocol`, which reads
-   * `X-Forwarded-Proto` because the adapter trusts the proxies in front of it
-   * (see `createFastifyAdapter`). The API's own hop says nothing useful: it is
-   * plain http inside the Docker network in every deployment.
-   */
+  // The scheme the browser used, via `X-Forwarded-Proto` — the API's own hop is plain http inside
+  // the Docker network in every deployment.
   readonly clientProtocol: string;
 }
 
-/**
- * Resolves the two attributes that decide whether the browser keeps the cookie.
- *
- * Kept pure and separate from the reply so the whole matrix — environment,
- * forwarded scheme, and the pair of settings — is a table in a unit test rather
- * than something only a deployed stack can demonstrate. The failure it exists
- * to prevent is silent: a browser that drops a `Secure` cookie sent to an http
- * page does not report anything, it simply signs the user out on every reload.
- */
+// Pure and separate from the reply so the whole matrix is a unit test: a browser that drops a
+// `Secure` cookie sent to an http page reports nothing, it just signs the user out on every reload.
 export function refreshCookieSecurity(context: RefreshCookieContext): {
   secure: boolean;
   sameSite: Env['AUTH_COOKIE_SAMESITE'];
@@ -64,13 +45,8 @@ export function refreshCookieSecurity(context: RefreshCookieContext): {
   return { secure, sameSite: context.sameSite };
 }
 
-/**
- * The cookie's attributes for this request.
- *
- * `clearCookie` has to be given the same ones as `setCookie`: a browser matches
- * the expiry it is sent against name, domain and path, and an attribute that
- * differs leaves the original cookie in place — a logout that does not log out.
- */
+// `clearCookie` must be given the same attributes as `setCookie` — a browser that matches on name,
+// domain and path leaves the original in place otherwise.
 function refreshCookieOptions(
   reply: FastifyReply,
   config: ConfigService<Env, true>,

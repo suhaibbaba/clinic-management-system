@@ -5,17 +5,8 @@ import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
 import { signedMoneySchema, wholeMoneySchema } from '@shared/schemas/money';
 import { lookupCodeSchema } from '@shared/schemas/lookups';
 
-/**
- * The money ledger.
- *
- * `charges` and `payments` are append-only (CLAUDE.md architecture decision 2).
- * Nothing here is ever edited: a correction is a new row carrying the negative
- * of the original and pointing at it through `reversesId`, so the history of
- * what was billed and why stays readable forever.
- *
- * A balance is therefore never stored — it is sum(charges) − sum(payments),
- * computed on read.
- */
+// Append-only: a correction is a new row carrying the negative of the original and pointing at it
+// through `reversesId`.
 
 export const chargeSchema = z.object({
   id: uuidSchema,
@@ -73,12 +64,8 @@ export const listPaymentsQuerySchema = paginationQuerySchema.extend({
 });
 export type ListPaymentsQuery = z.infer<typeof listPaymentsQuerySchema>;
 
-/**
- * What a patient owes.
- *
- * Computed by a SQL aggregate over the two ledgers on every read — there is no
- * stored balance anywhere in the system, and there never will be.
- */
+// sum(charges) − sum(payments), aggregated on every read — no stored balance anywhere in the
+// system.
 export const patientBalanceSchema = z.object({
   patientId: uuidSchema,
   charged: signedMoneySchema,
@@ -89,13 +76,8 @@ export const patientBalanceSchema = z.object({
 });
 export type PatientBalance = z.infer<typeof patientBalanceSchema>;
 
-/**
- * One line of a statement.
- *
- * `description` deliberately carries no clinical detail beyond the procedure's
- * own name: a receptionist reads statements, and ROLES.md keeps diagnoses and
- * visit notes away from them.
- */
+// `description` carries no clinical detail beyond the procedure name: receptionists read statements
+// (ROLES.md).
 export const statementEntrySchema = z.object({
   id: uuidSchema,
   kind: z.enum(LEDGER_ENTRY_KINDS),
@@ -127,7 +109,6 @@ export const statementQuerySchema = z.object({
 });
 export type StatementQuery = z.infer<typeof statementQuerySchema>;
 
-/** A patient who owes money and has not paid recently. */
 export const overduePatientSchema = z.object({
   patientId: uuidSchema,
   fileNumber: z.string(),
@@ -139,14 +120,11 @@ export const overduePatientSchema = z.object({
 });
 export type OverduePatient = z.infer<typeof overduePatientSchema>;
 
-/** Days without a payment before a debt counts as overdue. */
 export const DEFAULT_OVERDUE_AFTER_DAYS = 30;
 
 export const listOverdueQuerySchema = paginationQuerySchema.extend({
-  /** Overrides the clinic setting for one request. */
   afterDays: z.coerce.number().int().min(1).max(365).optional(),
 });
 export type ListOverdueQuery = z.infer<typeof listOverdueQuerySchema>;
 
-/** Clinic settings key holding the overdue window. */
 export const OVERDUE_AFTER_DAYS_SETTING = 'overdueAfterDays';

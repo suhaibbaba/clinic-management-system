@@ -5,14 +5,8 @@ import { dashboardApi } from '@web/features/dashboard/api';
 
 export const DASHBOARD_KEY = 'dashboard-summary';
 
-/**
- * The landing page's data.
- *
- * Refetched when the window comes back into focus rather than on a timer: the
- * dashboard is the screen somebody returns to between patients, and the thing
- * that changes while they are away — an online booking, a payment at the desk
- * — is exactly what the cards are counting.
- */
+// Refetched on focus rather than on a timer: this is the screen somebody returns to between
+// patients, and what changed while they were away is what the cards count.
 export function useDashboardSummary(): UseQueryResult<DashboardSummary> {
   return useQuery({
     queryKey: [DASHBOARD_KEY],

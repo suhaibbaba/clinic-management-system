@@ -22,14 +22,8 @@ type LabRow = typeof labs.$inferSelect;
 
 export const LABS_ENTITY = 'labs';
 
-/**
- * The labs directory.
- *
- * A lab is never hard-deleted: its orders and payments are financial history,
- * and a statement whose counterparty has vanished is unreadable. "Delete" is a
- * soft delete, and `is_active` is the everyday switch that keeps a lab out of
- * the pickers while leaving the record — and its balance — intact.
- */
+// Never hard-deleted: its orders and payments are financial history. `is_active` keeps a lab out of
+// the pickers with its record and balance intact.
 @Injectable()
 export class LabsService implements OnModuleInit {
   constructor(
@@ -50,13 +44,8 @@ export class LabsService implements OnModuleInit {
     });
   }
 
-  /**
-   * The directory, with each lab's balance and open-order count.
-   *
-   * Both numbers are computed here rather than stored (CLAUDE.md), in one
-   * query per page rather than one per lab: a directory of a dozen labs should
-   * not be twenty-five round trips.
-   */
+  // Both numbers are computed, in one query per page rather than one per lab: a dozen labs should
+  // not be twenty-five round trips.
   async list(actor: AuthenticatedUser, query: ListLabsQuery): Promise<Paginated<LabSummary>> {
     const filters: (SQL | undefined)[] = [];
 
@@ -172,14 +161,8 @@ export class LabsService implements OnModuleInit {
     return this.scope.findOneOrFail<LabRow>(labs, clinicId, id);
   }
 
-  /**
-   * Balance and open orders for a set of labs, in one query.
-   *
-   * The balance rule lives in `LAB_ORDER_BILLABLE_STATUSES` — an order counts
-   * from the moment it is sent and stops counting only if it is cancelled — so
-   * this SQL reads the list rather than restating it. A `returned` order is in
-   * that list on purpose: the lab did the work.
-   */
+  // The SQL reads `LAB_ORDER_BILLABLE_STATUSES` rather than restating the rule. A `returned` order
+  // is in that list on purpose — the lab did the work.
   private async summarise(
     clinicId: string,
     labIds: readonly string[],
@@ -236,11 +219,8 @@ export class LabsService implements OnModuleInit {
     );
   }
 
-  /**
-   * Two labs in one clinic with the same name is a data-entry mistake, not a
-   * business case — and a statement addressed to one of two identical names is
-   * unusable.
-   */
+  // Two labs with one name is a data-entry mistake: a statement addressed to one of two identical
+  // names is unusable.
   private async assertNameIsFree(clinicId: string, name: string, exceptId?: string): Promise<void> {
     const [clash] = await this.db
       .select({ id: labs.id })

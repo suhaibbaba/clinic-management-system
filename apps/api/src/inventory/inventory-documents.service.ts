@@ -11,15 +11,6 @@ import { LookupsService } from '@api/lookups/lookups.service';
 /** Technical values read left to right even inside an Arabic document. */
 const LTR = { dir: 'ltr' } as const;
 
-/**
- * The sheet somebody carries to a supplier.
- *
- * Printed rather than exported, because that is what it is for: a piece of
- * paper on a clipboard in a store room, ticked off by hand. Built with the
- * billing module's `RtlPdf` for the same reason the lab documents are — the
- * Arabic shaping and bidi ordering are hard enough once, and a headless
- * browser has no place on a cheap VPS (CLAUDE.md target infra).
- */
 @Injectable()
 export class InventoryDocumentsService {
   constructor(

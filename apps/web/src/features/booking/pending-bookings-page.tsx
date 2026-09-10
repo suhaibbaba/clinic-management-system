@@ -33,20 +33,8 @@ import { formatDate, formatDateTime } from '@web/lib/format';
 
 const PAGE_SIZE = 20;
 
-/**
- * What strangers booked on the public page and nobody has answered yet.
- *
- * The list is `requested` appointments, which is the whole marker: reception's
- * own bookings are created confirmed, so anything sitting in `requested` came
- * from the booking page — either from a clinic that confirms by hand, or from
- * a patient who has not finished their OTP yet (those disappear by themselves
- * when the hold expires).
- *
- * Two decisions, both of which also *tell the patient*. That is the part a
- * generic calendar transition cannot do: the person is not in the building, so
- * a confirmation nobody sends is a patient who does not know they have an
- * appointment.
- */
+// Anything in `requested` came from the booking page — either a clinic confirming by hand, or an
+// unfinished OTP, which expires by itself. Both decisions also tell the patient.
 export function PendingBookingsPage(): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
@@ -54,9 +42,8 @@ export function PendingBookingsPage(): JSX.Element {
   const [rejecting, setRejecting] = useState<CalendarAppointment>();
   const [reason, setReason] = useState('');
 
-  // Every time on this screen is the clinic's wall clock, not the browser's:
-  // reception reading 13:30 for a 16:30 appointment would ring the wrong
-  // patient. The calendar does the same thing for the same reason.
+  // Every time here is the clinic's wall clock: reception reading 13:30 for a 16:30 appointment
+  // would ring the wrong patient.
   const clinic = useClinic();
   setClinicTimeZone(clinic.data);
 
@@ -100,12 +87,8 @@ export function PendingBookingsPage(): JSX.Element {
       render: (row) => (
         <span className="flex flex-col items-start gap-1">
           <span className="font-medium text-ink">{row.patientName}</span>
-          {/*
-           * A record created by the booking page carries no file number of the
-           * clinic's own making — nobody at the desk has seen this person's ID
-           * yet. Saying so on the row is what stops it being discovered at the
-           * chair.
-           */}
+          {/* A record from the booking page has no file number of the clinic's making — nobody has
+              seen this person's ID yet, and saying so stops it being discovered at the chair. */}
           {row.patientUnverified && <Badge tone="warning">{t('booking.pending.unverified')}</Badge>}
         </span>
       ),

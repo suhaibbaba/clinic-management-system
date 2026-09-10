@@ -23,11 +23,6 @@ export interface InventorySeedContext {
   readonly actorId: string;
 }
 
-/**
- * Who a Ramallah dental clinic actually buys from: a general dental depot, a
- * pharmaceutical wholesaler for the anaesthetic, and the shop that services
- * the autoclave.
- */
 const SUPPLIERS: readonly {
   readonly name: string;
   readonly phone: string;
@@ -43,7 +38,6 @@ interface SeedItem {
   readonly category: ItemCategory;
   readonly unit: ItemUnit;
   readonly minQuantity: string;
-  /** Index into `SUPPLIERS`. */
   readonly supplier: number;
   readonly notes?: string;
   /** Purchases: quantity, unit price, days ago, days until expiry, lot number. */
@@ -54,21 +48,10 @@ interface SeedItem {
     readonly expiresInDays?: number;
     readonly batchNo?: string;
   }[];
-  /** Total used since, spread over a few movements. */
   readonly consumed?: string;
-  /** A stock take that found the count wrong. */
   readonly adjust?: { readonly quantity: string; readonly reason: string };
 }
 
-/**
- * Fifteen things that are genuinely in a dental clinic's cupboard.
- *
- * Chosen so the screens have something to say rather than to fill a table: one
- * item is below its minimum (the gloves — the thing that always runs out),
- * one batch of anaesthetic goes off inside the warning window, one composite
- * shade has already expired, and one item carries an adjustment from a stock
- * take that found fewer than the ledger said.
- */
 const ITEMS: readonly SeedItem[] = [
   {
     nameAr: 'مخدر موضعي ليدوكائين 2%',
@@ -79,7 +62,6 @@ const ITEMS: readonly SeedItem[] = [
     notes: 'يُحفظ بعيداً عن الضوء',
     purchases: [
       { quantity: '100', price: '0.45', daysAgo: 120, expiresInDays: 400, batchNo: 'LX-2451' },
-      // The batch the alert is about: still in date, but not for long.
       { quantity: '100', price: '0.48', daysAgo: 40, expiresInDays: 35, batchNo: 'LX-2688' },
     ],
     consumed: '96',
@@ -102,7 +84,6 @@ const ITEMS: readonly SeedItem[] = [
     minQuantity: '10',
     supplier: 0,
     notes: 'علبة 100 قفاز',
-    // The item that is always about to run out, and is: 12 bought, 9 used.
     purchases: [{ quantity: '12', price: '4.50', daysAgo: 50, batchNo: 'GLV-77' }],
     consumed: '9',
   },
@@ -142,8 +123,6 @@ const ITEMS: readonly SeedItem[] = [
     unit: ITEM_UNIT.PIECE,
     minQuantity: '15',
     supplier: 0,
-    // Already gone off, and still on the shelf — which is exactly what the
-    // expired list is for.
     purchases: [
       { quantity: '20', price: '3.10', daysAgo: 400, expiresInDays: -20, batchNo: 'CMP-A3-04' },
       { quantity: '25', price: '3.35', daysAgo: 30, expiresInDays: 500, batchNo: 'CMP-A3-31' },
@@ -198,7 +177,6 @@ const ITEMS: readonly SeedItem[] = [
     minQuantity: '10',
     supplier: 0,
     purchases: [{ quantity: '24', price: '1.25', daysAgo: 220 }],
-    // The stock take that found two missing — the one adjustment in the seed.
     adjust: { quantity: '-2', reason: 'جرد شهري: نقص قطعتين' },
     consumed: '4',
   },
@@ -236,19 +214,8 @@ const ITEMS: readonly SeedItem[] = [
   },
 ];
 
-/**
- * Fills the cupboard, then uses some of it.
- *
- * The history is written as movements and nothing else — there is no quantity
- * to seed, because there is no quantity column (CLAUDE.md). Every number the
- * screens show is the sum of what this function inserts, which makes the seed
- * itself a check on the ledger: if the items screen disagrees with the
- * arithmetic here, one of the two is wrong.
- *
- * A couple of the consumptions are attached to real performed procedures, so
- * the patient timeline has stock on it and the "used on this patient" path is
- * exercised rather than merely implemented.
- */
+// Written as movements and nothing else: there is no quantity column, so every figure the screens
+// show is the sum of what this inserts.
 export async function seedInventory(
   db: Db,
   ctx: InventorySeedContext,
@@ -298,7 +265,6 @@ export async function seedInventory(
 
   const itemId = new Map(itemRows.map((row) => [row.nameAr, row.id]));
 
-  /* Two treatments to hang a couple of consumptions on. */
   const procedures = await db
     .select({ id: performedProcedures.id, patientId: performedProcedures.patientId })
     .from(performedProcedures)
@@ -311,13 +277,6 @@ export async function seedInventory(
 
   const movements: (typeof stockMovements.$inferInsert)[] = [];
 
-  /*
-   * Which treatment the next patient-linked consumption hangs on.
-   *
-   * Only the anaesthetics are attached to a patient: those are genuinely used
-   * *on* somebody, and putting a box of gloves on a person's file would be
-   * theatre. One procedure each, in order, until they run out.
-   */
   let nextProcedure = 0;
 
   for (const item of ITEMS) {
@@ -345,16 +304,12 @@ export async function seedInventory(
     }
 
     if (item.consumed) {
-      // Split across three days so the item card reads like a fortnight of
-      // work rather than one enormous withdrawal.
       const parts = splitConsumption(item.consumed, isMeasured(item.unit));
 
       const linked =
         item.category === ITEM_CATEGORY.MEDICATION ? procedures[nextProcedure++] : undefined;
 
       parts.forEach((part, index) => {
-        // The first withdrawal is the one that names the patient; the rest are
-        // ordinary chairside use with nobody recorded.
         const procedure = index === 0 ? linked : undefined;
 
         movements.push({
@@ -388,13 +343,6 @@ export async function seedInventory(
   return { suppliers: SUPPLIERS.length, items: ITEMS.length, movements: movements.length };
 }
 
-/**
- * Three uneven parts that add back to the whole.
- *
- * Rounded to whole units for anything counted rather than measured: a clinic
- * uses four boxes of gloves, not 4.5 of one, and a seeded history that says
- * otherwise makes the item card read like a rounding error.
- */
 function splitConsumption(total: string, measured: boolean): string[] {
   const [whole = '0', fraction = ''] = total.split('.');
   const thousandths = Number(whole) * 1000 + Number(fraction.padEnd(3, '0'));

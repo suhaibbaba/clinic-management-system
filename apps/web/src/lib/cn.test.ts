@@ -2,15 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { cn } from '@web/lib/cn';
 
-/**
- * The class merger has to know this app's own type scale.
- *
- * `text-label`, `text-value` and `text-kpi` are font sizes declared in
- * theme.css. tailwind-merge cannot know that on its own — it reads them as
- * colours, and drops whichever colour class came first. The failure is silent
- * and invisible in review: the class list simply comes out short, and a button
- * ends up with its background colour as its text colour.
- */
+// `text-label`/`text-value`/`text-kpi` are font sizes tailwind-merge reads as colours, dropping
+// whichever colour class came first — silently, and invisibly in review.
 describe('cn', () => {
   it('keeps a text colour and a text size together', () => {
     const result = cn('bg-neutral-900 text-ink-inverse', 'text-value');

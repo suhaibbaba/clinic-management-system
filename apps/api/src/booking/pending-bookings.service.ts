@@ -20,21 +20,8 @@ import { DATABASE, type Database } from '@api/database/database.module';
 import { clinics } from '@api/database/schema';
 import { NotificationsService } from '@api/notifications/notifications.service';
 
-/**
- * Reception answering an online booking.
- *
- * The state change itself is `AppointmentsService.changeStatus` — the same one
- * door into the state machine every other transition goes through, so the
- * transition table, the ownership check and the audit trail all still apply.
- * What this adds is the half that only exists for *online* bookings: the
- * patient is not in the building, so a decision they never hear about is not a
- * decision. Confirming sends the same message the OTP path sends, manage link
- * and all; rejecting sends the cancellation.
- *
- * A message that fails to go out never fails the confirmation:
- * `NotificationsService.send` records a `failed` row and resolves, because a
- * dead SMS gateway must not leave reception unable to confirm anybody.
- */
+// The transition goes through `changeStatus` like every other. A message that fails to send never
+// fails the confirmation — a dead gateway must not block reception.
 @Injectable()
 export class PendingBookingsService {
   constructor(
@@ -64,9 +51,6 @@ export class PendingBookingsService {
         doctor: notificationName(appointment.doctorName),
         date: localDate(new Date(appointment.startsAt), clinic.timeZone),
         time: timeIn(clinic.timeZone, new Date(appointment.startsAt)),
-        // The same signed handle the patient would have got from an OTP
-        // confirmation: reception confirming by hand must not leave them
-        // without a way to cancel.
         link: this.manageLink(appointment.id),
       },
     });
@@ -120,7 +104,6 @@ export class PendingBookingsService {
   }
 }
 
-/** `HH:MM` in the clinic's zone, for a message body. */
 function timeIn(timeZone: string, at: Date): string {
   const minutes = minutesFromLocalMidnight(at, localDate(at, timeZone), timeZone);
   const hours = Math.floor(minutes / 60);

@@ -25,32 +25,14 @@ import { upsertUser, type SeedAccount } from '@api/database/seed-users';
 import { seedClosures } from '@api/database/seed-closures';
 import { seedPatients } from '@api/database/seed-patients';
 
-/**
- * Development seed: one clinic, the dental specialty, and one account per role.
- *
- * Idempotent — re-running it reuses the existing rows instead of failing on the
- * unique phone/email indexes, so `pnpm seed` is safe to repeat.
- *
- *   docker compose exec api pnpm seed
- */
+// Idempotent — re-running reuses existing rows instead of failing on the unique phone/email
+// indexes.
 
-/**
- * The seeded practice, in both languages.
- *
- * Every staff name below is bilingual too: the interface is Arabic, and a seed
- * that filled only the English column would make the calendar and the doctors
- * list look exactly like the bug this replaced.
- */
 const CLINIC_NAME: PersonName = { ar: 'عيادة النور لطب الأسنان', en: 'Al Nour Dental Clinic' };
-/** The clinic's handle in a public booking URL: /public/booking/al-nour. */
 const CLINIC_SLUG = 'al-nour';
 
-/**
- * Sunday–Thursday, 09:00–17:00, with a 13:00–14:00 break expressed as two
- * ranges. That is the working week in Ramallah, where the seeded clinic is —
- * the weekend is Friday and Saturday, so a Monday–Friday default would show
- * the calendar closed on the two busiest days and open on the weekend.
- */
+// Sunday–Thursday with a 13:00–14:00 break as two ranges: the weekend in Ramallah is Friday and
+// Saturday, so a Monday–Friday default shows the calendar shut on the busiest days.
 const WEEKDAY_HOURS: WeeklySchedule = [0, 1, 2, 3, 4].map((weekday) => ({
   weekday,
   ranges: [
@@ -94,20 +76,8 @@ const ACCOUNTS: readonly SeedAccount[] = [
   },
 ];
 
-/** The zone the clinic's opening hours are expressed in (see `clinicScheduleSettings`). */
 const CLINIC_TIME_ZONE = 'Asia/Hebron';
 
-/**
- * Everything the clinic's `settings` blob holds today.
- *
- * Booking is on and in OTP mode, so `pnpm seed` produces a database the public
- * flow can be exercised against end to end — the log provider is the default,
- * so the code lands in `notifications_log` and needs no gateway.
- *
- * The message bodies are the Arabic defaults, written out rather than left
- * implicit: a clinic edits these, and having them present in settings is what
- * makes it obvious they are editable.
- */
 const CLINIC_SETTINGS = {
   timezone: CLINIC_TIME_ZONE,
   booking: {
@@ -151,7 +121,6 @@ async function main(): Promise<void> {
         phone: '+97022950000',
         email: 'info@clinic.local',
         address: 'رام الله، فلسطين',
-        // Shekels, shown as ₪ — the currency the clinic is actually paid in.
         currency: 'ILS',
         workingHours: WEEKDAY_HOURS,
         settings: CLINIC_SETTINGS,
@@ -163,8 +132,6 @@ async function main(): Promise<void> {
     const specialty = await upsertSpecialty(db, clinic.id);
 
     const created: { account: SeedAccount; id: string }[] = [];
-    // Anything the accounts had to repair joins the clinic's own notes, so one
-    // report says everything the seed changed about a database it inherited.
     const notes = [...clinic.notes];
     for (const account of ACCOUNTS) {
       const user = await upsertUser(db, clinic.id, account, passwordHash);
@@ -273,9 +240,6 @@ async function upsertSpecialty(
     .values({
       clinicId,
       code: SPECIALTY_CODE.DENTAL,
-      // A specialty's name is clinic data a practice edits, and this one's
-      // interface is Arabic — seeding it in English put one Latin word in the
-      // middle of every doctor card.
       name: 'طب الأسنان',
       chartType: CHART_TYPE.TOOTH_FDI,
     })
@@ -334,7 +298,6 @@ function report(
   seededLabOrders: number,
   seededStockMovements: number,
   seededClosures: number,
-  /** What the seed had to repair before it could run — usually nothing. */
   notes: readonly string[],
 ): void {
   const lines = [

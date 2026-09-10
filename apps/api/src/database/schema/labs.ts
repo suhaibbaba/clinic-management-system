@@ -30,14 +30,8 @@ const softDeleteColumn = { deletedAt: timestamp('deleted_at', { withTimezone: tr
 /** Money is `numeric(10, 2)`, read and written as a string — never a float. */
 const money = (name: string) => numeric(name, { precision: 10, scale: 2 });
 
-/**
- * An outside workshop the clinic sends work to.
- *
- * Soft-deleted rather than removed: a lab the clinic stopped using still has
- * orders and payments in its history, and a directory that loses a name makes
- * a statement unreadable. `is_active` is the everyday switch — it keeps a lab
- * out of the pickers while leaving its record intact.
- */
+// Soft-deleted: a lab the clinic stopped using still has orders and payments, and a statement that
+// loses its name is unreadable.
 export const labs = pgTable(
   'labs',
   {
@@ -48,7 +42,6 @@ export const labs = pgTable(
     name: text('name').notNull(),
     phone: text('phone'),
     address: text('address'),
-    /** Who to ask for when the clinic rings. */
     contactPerson: text('contact_person'),
     notes: text('notes'),
     isActive: boolean('is_active').notNull().default(true),
@@ -58,13 +51,8 @@ export const labs = pgTable(
   (table) => [index('labs_clinic_idx').on(table.clinicId, table.name)],
 );
 
-/**
- * One line of a lab's price list.
- *
- * Per lab, not global: two labs charge differently for the same crown. The
- * price here is what an order *starts* from — the order keeps its own copy, so
- * a price rise never rewrites work already ordered.
- */
+// Per lab, not global. The order keeps its own copy of the price, so a rise never rewrites work
+// already ordered.
 export const labWorkTypes = pgTable(
   'lab_work_types',
   {
@@ -81,24 +69,8 @@ export const labWorkTypes = pgTable(
   (table) => [index('lab_work_types_lab_idx').on(table.labId, table.nameAr)],
 );
 
-/**
- * A piece of work ordered from a lab for one patient.
- *
- * The four timestamps are written by the **transitions**, never by a form:
- * `sent_at` when it goes out, `received_at` when it comes back, `fitted_at`
- * when it goes in the patient's mouth. `expected_at` is the one date a person
- * types, because it is a promise rather than a record. A dated field that a
- * form can set independently of the status is a field that will eventually
- * disagree with it.
- *
- * `price` is a snapshot of the work type's price at the moment of ordering —
- * the same reasoning as a charge's amount. What the clinic owes cannot move
- * because the lab published a new list.
- *
- * `teeth` is a JSONB array of FDI numbers rather than a join table: a bridge's
- * teeth are read and written as one value, never queried across, and a table
- * with four rows per order would be four rows nobody ever selects separately.
- */
+// The timestamps are written by the transitions, never a form — only `expected_at` is typed, being
+// a promise. `teeth` is JSONB because a bridge's teeth are read as one value, never queried across.
 export const labOrders = pgTable(
   'lab_orders',
   {
@@ -115,7 +87,6 @@ export const labOrders = pgTable(
     doctorId: uuid('doctor_id')
       .notNull()
       .references(() => doctors.id),
-    /** The treatment that needs it, when the order was raised from one. */
     performedProcedureId: uuid('performed_procedure_id').references(() => performedProcedures.id),
     workTypeId: uuid('work_type_id').references(() => labWorkTypes.id),
     material: text('material'),
@@ -138,20 +109,13 @@ export const labOrders = pgTable(
     index('lab_orders_clinic_idx').on(table.clinicId, table.status),
     index('lab_orders_lab_idx').on(table.clinicId, table.labId),
     index('lab_orders_patient_idx').on(table.clinicId, table.patientId),
-    /** The overdue query: what is still out, ordered by the date it was due. */
     index('lab_orders_expected_idx').on(table.clinicId, table.expectedAt),
     index('lab_orders_procedure_idx').on(table.performedProcedureId),
   ],
 );
 
-/**
- * A file that travels with an order: a shade photo, an intra-oral scan.
- *
- * Same flow as an X-ray — the bytes go straight to R2 through a presigned URL
- * and never through the API — so this table holds a key and its metadata and
- * nothing else. No `clinic_id` of its own: an attachment belongs to exactly
- * one order, and the order carries the scope.
- */
+// Bytes go straight to R2, so this holds a key and metadata. No `clinic_id`: an attachment belongs
+// to one order, which carries the scope.
 export const labOrderAttachments = pgTable(
   'lab_order_attachments',
   {
@@ -172,18 +136,8 @@ export const labOrderAttachments = pgTable(
   ],
 );
 
-/**
- * What the clinic has paid a lab.
- *
- * Append-only, exactly like `payments` (CLAUDE.md architecture decision 2):
- * nothing here is ever edited, and a mistaken payment is cancelled by writing
- * the negative of it with `reverses_id` pointing back. The lab's balance is
- * `sum(billable orders) − sum(payments)`, computed on read — there is no
- * stored balance column anywhere in this file, and there must never be one.
- *
- * No receipt number: a receipt is a document the clinic *hands out*, and this
- * is money going the other way. The lab issues its own.
- */
+// Append-only; the lab's balance is computed on read and never stored. No receipt number — a
+// receipt is a document the clinic hands out, and this is money going the other way.
 export const labPayments = pgTable(
   'lab_payments',
   {
@@ -200,7 +154,6 @@ export const labPayments = pgTable(
     method: text('method').notNull(),
     note: text('note'),
     reversesId: uuid('reverses_id'),
-    /** Back-pointer, set on the original when its reversal is written. */
     reversedAt: timestamp('reversed_at', { withTimezone: true }),
     /** The user who handed the money over, kept apart from `created_by`. */
     paidBy: uuid('paid_by').references(() => users.id),

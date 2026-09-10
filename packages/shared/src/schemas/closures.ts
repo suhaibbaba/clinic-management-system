@@ -2,23 +2,8 @@ import { z } from 'zod';
 
 import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
 
-/**
- * When the clinic is shut and when a doctor is away.
- *
- * Two tables rather than one, because the two answer different questions and
- * are edited by different people. A **clinic closure** is a whole day or a run
- * of whole days — Eid, a public holiday, the week the surgery is being
- * refitted — and it applies to everybody; nobody closes a practice from 14:00
- * to 18:00 and books the morning. **Doctor time off** is one person's, and it
- * is very often part of a day: an afternoon at a conference, a morning at the
- * hospital. Forcing both into one table would mean either a closure carrying
- * times nobody sets or time off carrying a doctor id that is usually null,
- * and the availability rules would then have to guess which kind a row is.
- *
- * Both are subtracted from availability by `AvailabilityService`, which is the
- * one place that decides whether a minute is bookable — the internal calendar
- * and the public booking page ask the same service (CLAUDE.md decision 6).
- */
+// A clinic closure is whole days for everybody; doctor time off is one person's and often part of a
+// day. Both are subtracted by `AvailabilityService`, the only place that decides.
 
 export const clinicClosureSchema = z.object({
   id: uuidSchema,
@@ -28,15 +13,8 @@ export const clinicClosureSchema = z.object({
   /** Inclusive last closed day. A one-day closure repeats the start. */
   endsOn: z.iso.date(),
   reason: z.string(),
-  /**
-   * Repeats on the same calendar day every year.
-   *
-   * For the fixed-date holidays a clinic would otherwise re-enter each
-   * January — a national day, a new year. Movable feasts are not annual in
-   * this sense and are entered per year, which is honest: their Gregorian
-   * dates genuinely differ, and a checkbox claiming otherwise would close the
-   * clinic on the wrong day.
-   */
+  // Fixed-date holidays only — a movable feast falls on a different Gregorian day each year and is
+  // entered per year.
   isAnnual: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -50,10 +28,8 @@ const closureWritableFields = {
   isAnnual: z.boolean(),
 };
 
-/**
- * Ordered ends, checked here rather than in the service: a range that finishes
- * before it starts is a malformed request, not a business rule.
- */
+// Checked here rather than in the service: a range that finishes before it starts is a malformed
+// request, not a business rule.
 const orderedDays = <T extends { startsOn?: string | undefined; endsOn?: string | undefined }>(
   input: T,
 ): boolean =>
@@ -85,15 +61,8 @@ export const doctorTimeOffSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
   doctorId: uuidSchema,
-  /**
-   * Absolute instants, half-open `[startsAt, endsAt)` — the same convention as
-   * an appointment's own block, so the overlap test is one comparison rather
-   * than a special case per shape.
-   *
-   * Whole days are expressed as local midnight to local midnight. There is no
-   * `is_all_day` flag: it would be a second, redundant statement of what the
-   * two instants already say, and the two could disagree.
-   */
+  // Half-open `[startsAt, endsAt)` like an appointment's block, whole days as local midnight to
+  // midnight — no `is_all_day` flag to disagree with them.
   startsAt: z.iso.datetime(),
   endsAt: z.iso.datetime(),
   reason: z.string(),
@@ -132,17 +101,8 @@ export const listDoctorTimeOffQuerySchema = paginationQuerySchema.extend({
 });
 export type ListDoctorTimeOffQuery = z.infer<typeof listDoctorTimeOffQuerySchema>;
 
-/**
- * What the caller has to decide before a closure or a time off is written.
- *
- * Both flags default to false, and the pair is deliberately two questions
- * rather than one: "shut the clinic anyway" and "cancel the appointments that
- * were in it" are separate decisions, and the second is not reversible in the
- * way the first is. A closure created with `force` and without
- * `cancelAppointments` leaves the appointments standing — reception rings
- * round and moves them by hand, which is what a practice usually does for
- * three patients it knows by name.
- */
+// Two questions, not one: `force` writes it anyway, `cancelAppointments` cancels them — and only
+// the first is reversible.
 export const scheduleConflictOptionsSchema = z.object({
   /** Write the row even though appointments fall inside it. */
   force: z.stringbool().default(false),
@@ -151,7 +111,6 @@ export const scheduleConflictOptionsSchema = z.object({
 });
 export type ScheduleConflictOptions = z.infer<typeof scheduleConflictOptionsSchema>;
 
-/** One appointment standing in the way, with the two names a dialog shows. */
 export const conflictingAppointmentSchema = z.object({
   id: uuidSchema,
   startsAt: z.iso.datetime(),
@@ -162,13 +121,8 @@ export const conflictingAppointmentSchema = z.object({
 });
 export type ConflictingAppointment = z.infer<typeof conflictingAppointmentSchema>;
 
-/**
- * The 409 body.
- *
- * `error` is `schedule_conflict`, which is what the web app matches on: Nest's
- * exception shape is `{ statusCode, message, error }` and Arabic wording is
- * resolved on the front end by code, never by a backend string (CLAUDE.md).
- */
+// `error` is `schedule_conflict`, which is what the web app matches on — Arabic wording is resolved
+// on the front end by code.
 export const SCHEDULE_CONFLICT_ERROR = 'schedule_conflict';
 
 export const scheduleConflictSchema = z.object({
@@ -179,11 +133,9 @@ export const scheduleConflictSchema = z.object({
 });
 export type ScheduleConflict = z.infer<typeof scheduleConflictSchema>;
 
-/** Returned once a closure or time off is written, so the UI can report both. */
 export const closureResultSchema = <TItem extends z.ZodTypeAny>(item: TItem) =>
   z.object({
     item,
-    /** How many appointments were cancelled as part of the write. */
     cancelledAppointments: z.number().int().min(0),
   });
 
@@ -193,14 +145,8 @@ export type ClinicClosureResult = z.infer<typeof clinicClosureResultSchema>;
 export const doctorTimeOffResultSchema = closureResultSchema(doctorTimeOffSchema);
 export type DoctorTimeOffResult = z.infer<typeof doctorTimeOffResultSchema>;
 
-/**
- * The cancellation reason written onto every appointment a closure swept away.
- *
- * A code with the closure's own id in it rather than a sentence: the reason
- * column is read back by the UI and rendered in the reader's language, and it
- * has to say *which* closure did this — "the clinic was closed" is not
- * something reception can act on three weeks later.
- */
+// A code carrying the closure's own id, not a sentence: the UI renders it in the reader's language
+// and has to say which closure did this.
 export const CLOSURE_CANCELLATION_PREFIX = 'closure:';
 export const TIME_OFF_CANCELLATION_PREFIX = 'time_off:';
 

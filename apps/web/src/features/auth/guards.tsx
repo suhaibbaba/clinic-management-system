@@ -15,7 +15,6 @@ function FullPageMessage({ messageKey }: { messageKey: string }): JSX.Element {
   );
 }
 
-/** Sends signed-out visitors to the login page, remembering where they were. */
 export function RequireAuth({ children }: { children: ReactNode }): JSX.Element {
   const { status } = useSession();
   const location = useLocation();
@@ -31,24 +30,16 @@ export function RequireAuth({ children }: { children: ReactNode }): JSX.Element 
   return <>{children}</>;
 }
 
-/**
- * Route-level role check mirroring the sidebar filter, so a hidden page cannot
- * be reached by typing its URL. Cosmetic in the same sense the sidebar is: the
- * API refuses the request regardless.
- */
+// Mirrors the sidebar filter, so a hidden page cannot be reached by typing its URL. The API refuses
+// the request regardless.
 export function RequireRole({
   roles,
   redirectTo,
   children,
 }: {
   roles: readonly UserRole[];
-  /**
-   * Where to send a role that may not be here. Without it the guard explains
-   * the refusal in place, which suits a page reached from a menu the role can
-   * see. Deep links into another role's records — a patient file, say — are
-   * better redirected: there is nothing on the page for them, and naming what
-   * they cannot open only confirms that the record exists.
-   */
+  // A deep link into another role's records is redirected rather than explained: naming what they
+  // cannot open confirms the record exists.
   redirectTo?: string | undefined;
   children: ReactNode;
 }): JSX.Element {

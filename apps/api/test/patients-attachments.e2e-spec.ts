@@ -11,7 +11,6 @@ describe('Attachments (e2e)', () => {
   const tokens = {} as Record<UserRole, string>;
 
   let patientId: string;
-  /** What the stubbed HeadObject reports for the next confirm. */
   let storedObject: StoredObject | null;
 
   beforeAll(async () => {

@@ -25,15 +25,8 @@ type ItemRow = typeof inventoryItems.$inferSelect;
 
 export const INVENTORY_ITEMS_ENTITY = 'inventory_items';
 
-/**
- * The cupboard's contents.
- *
- * An item row is half stored and half computed: the name, category, unit and
- * reorder level are columns somebody edits, and the quantity, the expiry dates
- * and the three flags come from the ledger every time they are read. Nothing
- * here can be typed into except the target — which is the whole point of the
- * ledger pattern (CLAUDE.md).
- */
+// Half stored, half computed: name, category, unit and reorder level are columns; quantity, expiry
+// and the flags come from the ledger on every read.
 @Injectable()
 export class InventoryItemsService implements OnModuleInit {
   constructor(
@@ -57,17 +50,8 @@ export class InventoryItemsService implements OnModuleInit {
     });
   }
 
-  /**
-   * The items screen.
-   *
-   * The `low` and `expiring` filters are applied **after** the stock is
-   * computed rather than in SQL: both depend on numbers that do not exist in
-   * any column, and re-deriving them in a `where` clause would be the same
-   * rule written twice. The cost is that a filtered page is a page of the
-   * matching rows out of that page — which is why the filters raise the page
-   * size rather than paginating a filtered set, and why the alerts endpoint
-   * exists for the case where somebody wants the whole list of what is low.
-   */
+  // `low` and `expiring` are applied after the stock is computed, not in SQL — no column holds
+  // those numbers. Hence the raised page size and the alerts endpoint.
   async list(
     actor: AuthenticatedUser,
     query: ListInventoryItemsQuery,
@@ -196,10 +180,7 @@ export class InventoryItemsService implements OnModuleInit {
     return toInventoryItem(row);
   }
 
-  /**
-   * The unit is not here, and that is deliberate: the update schema omits it,
-   * because changing it would reinterpret every movement already recorded.
-   */
+  /** The unit is absent deliberately: changing it would reinterpret every movement already recorded. */
   async update(
     actor: AuthenticatedUser,
     id: string,
@@ -259,7 +240,6 @@ export class InventoryItemsService implements OnModuleInit {
     return this.scope.findOneOrFail<ItemRow>(inventoryItems, clinicId, id);
   }
 
-  /** Rows plus everything the ledger says about them. Used by every read here. */
   async decorate(
     clinicId: string,
     rows: readonly (ItemRow & { supplierName: string | null })[],

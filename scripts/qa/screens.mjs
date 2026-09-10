@@ -1,22 +1,5 @@
-/**
- * The catalogue of screens the visual QA sweep walks.
- *
- * One list, shared by `scripts/qa-screens.mjs` (the screenshot sweep) and
- * `tests/e2e/smoke.spec.ts` (the CI smoke run), so a screen added to the app
- * is added here once and both of them pick it up. A screen that only the
- * screenshot tool knew about would never be smoke-tested, and a smoke test
- * with its own list would drift from the sweep the first time a route moved.
- *
- * Every entry names the roles that may reach it — the same sets the router
- * guards use — because a sweep that signed in as a receptionist and asked for
- * the audit log would screenshot the dashboard it was bounced to and file it
- * under the wrong name.
- *
- * `steps` are the states a URL cannot reach on its own: a drawer, a modal, an
- * open menu. They are expressed as data rather than as code so the same entry
- * runs in both languages — labels are looked up by i18n key, never by the
- * Arabic or English string.
- */
+// One list, shared with `tests/e2e/smoke.spec.ts`, so a screen is added once. Entries name the
+// roles that may reach it, and `steps` are data so the same entry runs in both languages.
 
 export const ROLES = /** @type {const} */ (['admin', 'doctor', 'receptionist', 'technician']);
 
@@ -28,10 +11,6 @@ export const SEED_ACCOUNTS = {
   technician: { identifier: 'technician@clinic.local', password: 'ChangeMe123!' },
 };
 
-/**
- * The three shapes the app is built for: a phone in a pocket at the chair, the
- * tablet at reception, and the desktop in the back office.
- */
 export const VIEWPORTS = [
   { id: 'phone', width: 390, height: 844 },
   { id: 'tablet', width: 768, height: 1024 },
@@ -47,22 +26,11 @@ const LABS = ['admin', 'doctor', 'technician'];
 const STORE = ['admin', 'technician'];
 const ADMIN = ['admin'];
 
-/**
- * Steps, as data.
- *
- * - `click`             a button by its i18n key
- * - `clickTab`          a tab by its i18n key
- * - `clickRadio`        one option of a segmented control, by its i18n key
- * - `clickSelector`     a CSS selector, for what has no label of its own
- * - `clickLabelPrefix`  an `aria-label` built from a key with a placeholder
- * - `firstRow`          opens the first row of a list — the drawer behind it
- * - `wait`              milliseconds, for an animation that has to settle
- */
+// Steps as data: `click`, `clickTab`, `clickRadio`, `clickSelector`, `clickLabelPrefix` by i18n
+// key; `firstRow` opens a list's first row; `wait` is milliseconds.
 export const SCREENS = [
-  // The signed-out entry
   { id: 'login', path: '/login', roles: ALL, anonymous: true },
 
-  // The sections of the sidebar
   { id: 'dashboard', path: '/dashboard', roles: ALL },
   { id: 'profile', path: '/profile', roles: ALL },
 
@@ -89,14 +57,8 @@ export const SCREENS = [
     roles: CLINICAL,
     steps: [{ clickSelector: '[data-tooth]' }, { wait: 400 }],
   },
-  /*
-   * The file's tabs are addresses, so they are swept as addresses.
-   *
-   * They were reached by clicking, which sweeps the same screen and smoke-tests
-   * none of it: a screen with `steps` is deliberately left out of the CI run.
-   * As plain URLs each tab is also asserted to render, per role, on every pull
-   * request — which is the whole reason the tab moved into the URL.
-   */
+  // The file's tabs are addresses, so they are swept as addresses — a screen with `steps` is left
+  // out of the CI run, and as URLs each tab is asserted per role.
   { id: 'patient-file-visits', path: '/patients/:patientId?tab=visits', roles: CLINICAL },
   {
     id: 'patient-file-plans',
@@ -125,16 +87,14 @@ export const SCREENS = [
 
   { id: 'appointments', path: '/appointments', roles: FRONT_DESK },
   {
-    // `?view=day`. On a phone the week is seven 40px columns, so the day is the
-    // only view offered there and the toggle is not drawn — which is why this
-    // is still swept at the two wider shapes only.
+    // `?view=day`: on a phone the toggle is not drawn, so this is swept at the two wider shapes
+    // only.
     id: 'appointments-day',
     path: '/appointments?view=day',
     roles: FRONT_DESK,
     viewports: ['tablet', 'desktop'],
   },
   {
-    // One doctor's calendar, which is the other thing anybody links to here.
     id: 'appointments-day-one-doctor',
     path: '/appointments?view=day&doctor=:doctorId',
     roles: FRONT_DESK,
@@ -176,9 +136,8 @@ export const SCREENS = [
   {
     id: 'labs-order-new-modal',
     path: '/labs?tab=orders',
-    // Not `LABS`: a technician works orders that exist but does not raise one
-    // (`canCreateLabOrder`), so there is no button for the step to click and
-    // the sweep filed a picture of the board under the modal's name.
+    // Not `LABS`: a technician cannot raise an order, so there was no button for the step and the
+    // sweep filed the board under the modal's name.
     roles: CLINICAL,
     steps: [{ click: 'labs.orders.add' }, { wait: 500 }],
   },
@@ -201,12 +160,10 @@ export const SCREENS = [
   },
   { id: 'inventory-shopping-list', path: '/inventory/shopping-list', roles: STORE },
 
-  // Settings
   { id: 'clinic', path: '/clinic', roles: ADMIN },
   {
-    // The working-hours accordion with a day open: the collapsed summaries are
-    // what the screen is for, and the expanded panel is where the split shift
-    // and the copy action live.
+    // A day open: the collapsed summaries are what the screen is for, and the expanded panel is
+    // where the split shift and the copy action live.
     id: 'clinic-hours-expanded',
     path: '/clinic',
     roles: ADMIN,
@@ -248,7 +205,6 @@ export const SCREENS = [
   { id: 'lists', path: '/clinic/lists', roles: ADMIN },
   { id: 'audit-log', path: '/audit-log', roles: ADMIN },
 
-  // The chrome itself
   {
     id: 'chrome-user-menu',
     path: '/dashboard',
@@ -257,7 +213,6 @@ export const SCREENS = [
     steps: [{ clickSelector: '[aria-haspopup="menu"]:visible' }, { wait: 400 }],
   },
   {
-    // Same menu, reached the way a phone reaches it.
     id: 'chrome-user-menu-phone',
     path: '/dashboard',
     roles: ALL,
@@ -278,10 +233,7 @@ export const SCREENS = [
   },
 ];
 
-/**
- * The public booking wizard: no account, so it is swept once per language and
- * viewport rather than once per role.
- */
+/** No account, so it is swept once per language and viewport rather than once per role. */
 export const PUBLIC_SCREENS = [
   { id: 'booking-doctor-step', path: '/book/al-nour' },
   {
@@ -315,7 +267,6 @@ export const PUBLIC_SCREENS = [
   },
 ];
 
-/** Screens a role may reach, for the viewports they are meaningful at. */
 export function screensFor(role, viewportId) {
   return SCREENS.filter(
     (screen) =>

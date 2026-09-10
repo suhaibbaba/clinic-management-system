@@ -27,16 +27,8 @@ import {
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate } from '@web/lib/format';
 
-/**
- * The days the clinic is shut, in settings.
- *
- * A list and one "add" dialog, rather than a screen of its own: a clinic
- * records four or five of these a year, next to the opening hours they
- * override, and a route nobody visits between Eids is a route people forget
- * exists.
- *
- * Adding one goes through the conflict flow — see `ConflictDialog`.
- */
+// A list and one dialog rather than a screen of its own: a clinic records four or five a year, and
+// a route nobody visits between Eids is one people forget exists.
 export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
@@ -60,11 +52,8 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
 
   const canSubmit = range.from !== '' && reason.trim().length >= 2;
 
-  /**
-   * One save path for all three attempts — the first, and the two the conflict
-   * dialog leads to. The only difference is what the caller decided, which is
-   * exactly what `choice` carries.
-   */
+  // One save path for all three attempts — the first and the two the conflict dialog leads to. The
+  // only difference is what `choice` carries.
   const save = async (choice?: { force: boolean; cancelAppointments: boolean }): Promise<void> => {
     try {
       const result = await createClosure.mutateAsync({

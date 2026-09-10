@@ -1,15 +1,8 @@
-/**
- * Minimal typings for `bidi-js`, which ships as plain JavaScript.
- *
- * Only the surface the PDF renderer uses is declared: `getEmbeddingLevels`
- * resolves the Unicode bidi algorithm's embedding level for every character,
- * which is what lets us split a mixed Arabic/Latin line into runs.
- */
+// Minimal typings for `bidi-js`, which ships as plain JavaScript; only the surface the PDF renderer
+// uses.
 declare module 'bidi-js' {
   export interface EmbeddingLevels {
-    /** One embedding level per character of the input string. */
     readonly levels: Uint8Array;
-    /** Index pairs of characters removed from the visual result. */
     readonly paragraphs: readonly { start: number; end: number; level: number }[];
   }
 

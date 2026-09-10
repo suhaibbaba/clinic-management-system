@@ -27,16 +27,10 @@ type ClinicRow = typeof clinics.$inferSelect;
 
 export const CLINICS_ENTITY = 'clinics';
 
-/** The prefix the clinic's own images live under, beside `patients/`. */
 const LOGO_CATEGORY = 'branding';
 
-/**
- * The caller's own clinic.
- *
- * `clinics` is the one table without a `clinic_id` column — it *is* the tenant —
- * so scoping is `id = caller.clinicId` rather than `ClinicScopeService`. There
- * is no endpoint that takes a clinic id, so a caller can only ever reach theirs.
- */
+// `clinics` is the one table without a `clinic_id` — it is the tenant — so scoping is `id =
+// caller.clinicId` rather than `ClinicScopeService`.
 @Injectable()
 export class ClinicsService implements OnModuleInit {
   constructor(
@@ -63,16 +57,8 @@ export class ClinicsService implements OnModuleInit {
     return this.withLogoUrl(await this.findOwnOrFail(actor.clinicId));
   }
 
-  /**
-   * The clinic's name and mark for the sign-in screen, which has no caller yet.
-   *
-   * Answered only when this deployment serves exactly one clinic — the usual
-   * case, one practice on one VPS. With several, a stranger at the login page
-   * has no way to say which one they mean, and guessing would put one clinic's
-   * name in front of another's staff, so this says nothing and the screen
-   * falls back to the product's own mark. It is the same silence either way,
-   * so the response never reveals how many clinics exist here.
-   */
+  // Answered only when this deployment serves exactly one clinic: with several, a stranger cannot
+  // say which they mean, and the same silence hides how many exist.
   async branding(): Promise<ClinicBranding> {
     const rows = await this.db
       .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, logoKey: clinics.logoKey })
@@ -92,15 +78,8 @@ export class ClinicsService implements OnModuleInit {
     };
   }
 
-  /**
-   * Step 1 of the logo upload: a URL the browser PUTs the image to.
-   *
-   * The key is built here from the caller's own clinic id, never taken from
-   * the request, so an upload can only ever land under the clinic signing for
-   * it. What the body carries is checked twice — here, to refuse a signature
-   * for something that was never going to be accepted, and again on confirm
-   * against the bytes that actually arrived.
-   */
+  // The key is built from the caller's own clinic id, never taken from the request, so an upload
+  // can only land under the clinic signing for it.
   async presignLogo(
     actor: AuthenticatedUser,
     input: PresignClinicLogoInput,
@@ -123,11 +102,8 @@ export class ClinicsService implements OnModuleInit {
     };
   }
 
-  /**
-   * Step 2: the size and type are read back from storage rather than trusted
-   * from the request, and anything outside the limits is deleted instead of
-   * being pointed at from the clinic row.
-   */
+  // Size and type are read back from storage rather than trusted, and anything outside the limits
+  // is deleted instead of pointed at.
   async confirmLogo(actor: AuthenticatedUser, input: ConfirmClinicLogoInput): Promise<Clinic> {
     const existing = await this.findOwnOrFail(actor.clinicId);
 
@@ -144,7 +120,6 @@ export class ClinicsService implements OnModuleInit {
     const isImage = ALLOWED_CLINIC_LOGO_MIME_TYPES.some((mime) => mime === stored.mime);
 
     if (!isImage || stored.sizeBytes <= 0 || stored.sizeBytes > MAX_CLINIC_LOGO_BYTES) {
-      // Unusable, so it is not left paying for storage.
       await this.storage.deleteObject(input.key);
       throw new BadRequestException(
         isImage ? 'Uploaded file size is outside the allowed range' : 'Unsupported file type',
@@ -162,7 +137,6 @@ export class ClinicsService implements OnModuleInit {
     return this.withLogoUrl(row);
   }
 
-  /** Back to the product's own mark, and the object goes with it. */
   async removeLogo(actor: AuthenticatedUser): Promise<Clinic> {
     const existing = await this.findOwnOrFail(actor.clinicId);
     const row = await this.setLogoKey(actor, null);
@@ -216,10 +190,8 @@ export class ClinicsService implements OnModuleInit {
     return row;
   }
 
-  /**
-   * The stored key never leaves the API (CLAUDE.md files & images); what the
-   * client gets is a signed URL that expires with the configured TTL.
-   */
+  // The stored key never leaves the API; the client gets a signed URL that expires with the
+  // configured TTL.
   private async withLogoUrl(row: ClinicRow): Promise<Clinic> {
     return { ...toClinic(row), logoUrl: await this.signLogo(row.logoKey) };
   }

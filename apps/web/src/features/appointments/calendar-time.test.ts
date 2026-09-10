@@ -20,11 +20,6 @@ import {
 const appointment = (startsAt: string, durationMinutes: number) =>
   ({ startsAt, durationMinutes }) as Parameters<typeof blockPosition>[0];
 
-/**
- * The grid's arithmetic, which is the part of a calendar that is either exactly
- * right or wrong by fifteen minutes in a way nobody notices until someone is
- * booked at the wrong hour.
- */
 describe('calendar time', () => {
   it('labels minutes as HH:MM', () => {
     expect(toTimeLabel(GRID_START_MINUTE)).toBe('07:00');
@@ -42,7 +37,6 @@ describe('calendar time', () => {
 
   describe('weeks', () => {
     it('snaps to Sunday, the way the API does', () => {
-      // 2026-09-06 is a Sunday, 2026-09-09 a Wednesday.
       expect(startOfWeek('2026-09-06')).toBe('2026-09-06');
       expect(startOfWeek('2026-09-09')).toBe('2026-09-06');
       expect(startOfWeek('2026-09-12')).toBe('2026-09-06');
@@ -64,7 +58,6 @@ describe('calendar time', () => {
 
   describe('block position', () => {
     it('places a block by its start and sizes it by its duration', () => {
-      // 09:00 is two hours into a fifteen-hour grid.
       const { top, height } = blockPosition(appointment(instantAt('2026-09-09', 9 * 60), 60));
 
       expect(Number.parseFloat(top)).toBeCloseTo((120 / 900) * 100, 4);
@@ -103,19 +96,13 @@ describe('calendar time', () => {
 
   describe('how tall a block is drawn', () => {
     it('holds a floor under a very short appointment', () => {
-      // Five minutes of grid is a hairline nobody can read or hit.
       expect(blockMinutes(5)).toBe(MIN_BLOCK_MINUTES);
       expect(blockMinutes(60)).toBe(60);
     });
 
     it('puts the clinic default below the two-line threshold', () => {
-      /*
-       * The grid draws a minute per pixel, and two lines of an appointment
-       * block need 39 of them. The clinic's default appointment is 30
-       * minutes, so the common case has to be the one-line shape — this is
-       * the assertion that keeps the second line from being sliced through
-       * the middle again the next time the type or the padding moves.
-       */
+      // The grid draws a minute per pixel and two lines of a block need 39 of them, so the clinic's
+      // default 30-minute appointment has to be the one-line shape.
       expect(blockMinutes(30)).toBeLessThan(TWO_LINE_MINUTES);
       expect(blockMinutes(5)).toBeLessThan(TWO_LINE_MINUTES);
       expect(blockMinutes(45)).toBeGreaterThanOrEqual(TWO_LINE_MINUTES);

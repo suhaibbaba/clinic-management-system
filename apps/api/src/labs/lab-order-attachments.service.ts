@@ -15,19 +15,8 @@ import { StorageService } from '@api/storage/storage.service';
 
 type AttachmentRow = typeof labOrderAttachments.$inferSelect;
 
-/**
- * Files that travel with an order: a shade photo, a scan, the lab's own note.
- *
- * The same two-step upload as an X-ray — presign, PUT straight to R2, confirm —
- * so bytes never pass through the API. The key is built here from the clinic
- * and the order, never taken from the client, and it never leaves: a caller
- * receives a short-lived signed URL instead.
- *
- * The object lives under the patient's prefix, because that is what an
- * attachment of this kind *is*: a picture of a patient's mouth taken for a
- * crown. One prefix per patient keeps every file about them in one place when
- * the day comes to export or delete it.
- */
+// The key is built from the clinic and order, never taken from the client, and never leaves. It
+// lives under the patient's prefix — it is a picture of their mouth.
 @Injectable()
 export class LabOrderAttachmentsService {
   constructor(
@@ -78,13 +67,8 @@ export class LabOrderAttachmentsService {
     };
   }
 
-  /**
-   * Records what was actually uploaded.
-   *
-   * Size and type come back from storage rather than from the request, so a
-   * client cannot understate a file it has already put there; anything outside
-   * the limits is deleted rather than recorded.
-   */
+  // Size and type come back from storage, so a client cannot understate a file it has already put
+  // there; anything outside the limits is deleted.
   async confirm(
     actor: AuthenticatedUser,
     orderId: string,

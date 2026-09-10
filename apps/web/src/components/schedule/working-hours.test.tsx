@@ -14,7 +14,6 @@ import { WorkingHours } from '@web/components/schedule/working-hours';
 import '@web/i18n';
 import ar from '@web/i18n/locales/ar.json';
 
-/** Sunday, split 09:00–13:00 and 16:00–20:00. */
 const SPLIT: WeeklySchedule = [
   {
     weekday: 0,
@@ -61,7 +60,6 @@ describe('the week, as arithmetic', () => {
     const clinic = [{ start: '09:00', end: '17:00' }];
 
     expect(rangesOutsideBounds([{ start: '10:00', end: '16:00' }], clinic)).toEqual([]);
-    // Starts an hour before the clinic opens.
     expect(rangesOutsideBounds([{ start: '08:00', end: '12:00' }], clinic)).toHaveLength(1);
     // A day the clinic is shut: everything is outside, which is the answer a
     // doctor rostered on a closed day needs.
@@ -84,8 +82,6 @@ describe('the working-hours accordion', () => {
   it('shows a collapsed day as its summary, both halves of a split shift included', () => {
     render(<Host />);
 
-    // The thing anybody opening this screen came to read, without expanding
-    // seven panels of time pickers to find it.
     expect(within(day(0)).getByText('09:00 - 13:00 · 16:00 - 20:00')).toBeInTheDocument();
     expect(within(day(6)).getByText(ar.schedule.closed)).toBeInTheDocument();
   });

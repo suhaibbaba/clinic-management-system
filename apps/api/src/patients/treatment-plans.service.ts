@@ -36,15 +36,8 @@ type PlanItemRow = typeof treatmentPlanItems.$inferSelect;
 export const TREATMENT_PLANS_ENTITY = 'treatment_plans';
 export const TREATMENT_PLAN_ITEMS_ENTITY = 'treatment_plan_items';
 
-/**
- * Treatment plans and their items — admin and doctor only
- * (ROLES.md patients matrix).
- *
- * A plan item is a quote. It becomes real work exactly once, through
- * `convertItem`, which creates the performed procedure that billing later
- * charges for; the item's `estimated_price` is left alone so the quote and what
- * was actually charged stay separately readable.
- */
+// A plan item is a quote: it becomes real work once, through `convertItem`, and its
+// `estimated_price` is left alone so quote and charge stay separately readable.
 @Injectable()
 export class TreatmentPlansService implements OnModuleInit {
   constructor(
@@ -278,14 +271,8 @@ export class TreatmentPlansService implements OnModuleInit {
       );
   }
 
-  /**
-   * Turns a planned item into work actually carried out.
-   *
-   * The item is a quote, so the price is re-snapshotted here: the caller may
-   * override it, otherwise the estimate carries over. `planned → converted` is
-   * a one-way transition, which is also enforced by a partial unique index on
-   * `performed_procedures.plan_item_id`.
-   */
+  // The price is re-snapshotted here. `planned → converted` is one-way, enforced by a partial
+  // unique index on `performed_procedures.plan_item_id`.
   async convertItem(
     actor: AuthenticatedUser,
     itemId: string,

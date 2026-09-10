@@ -1,26 +1,7 @@
 import { clinicScheduleSettings, type Clinic } from '@clinic/shared';
 
-/**
- * The timezone the clinic's day is expressed in.
- *
- * A module-level value rather than a prop threaded through nine components,
- * because there is exactly one clinic per session and every one of those
- * components would pass it straight down unchanged. `useSyncClinicTimeZone`
- * sets it once the clinic query resolves; until then it is the browser's own
- * zone, which is right in the building and wrong nowhere that matters for the
- * few hundred milliseconds before the query lands.
- *
- * The point of it existing at all: the API books in the clinic's zone. If the
- * grid drew in the browser's, a laptop with a wrong timezone would show 06:00
- * where the API booked 09:00 — the calendar and the availability endpoint
- * would disagree about what a day contains, and the patient would arrive at
- * the wrong hour.
- *
- * In `lib/` rather than in the appointments feature, where it started: a
- * doctor's time off is a clinic time too, and so is anything else this app
- * ever prints a wall clock for. A feature importing another feature's module
- * for it is the boundary CLAUDE.md asks screens not to cross.
- */
+// The API books in the clinic's zone, so a grid drawn in the browser's would show 06:00 where 09:00
+// was booked. Module-level rather than a prop through nine components.
 let zone = resolveBrowserZone();
 
 function resolveBrowserZone(): string {
@@ -34,18 +15,12 @@ function resolveBrowserZone(): string {
 
 export const clinicTimeZone = (): string => zone;
 
-/**
- * Back to the browser's zone.
- *
- * Module state outlives a test, so a suite that renders a Ramallah clinic
- * would otherwise leave the next one drawing Ramallah times. Exported for
- * that reason and used nowhere else.
- */
+// Module state outlives a test, so a suite that renders a Ramallah clinic would leave the next one
+// drawing Ramallah times.
 export const resetClinicTimeZone = (): void => {
   zone = resolveBrowserZone();
 };
 
-/** Called by the page once the clinic's settings are known. */
 export function setClinicTimeZone(clinic: Clinic | undefined): void {
   if (clinic) {
     zone = clinicScheduleSettings(clinic.settings).timezone;
