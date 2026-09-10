@@ -2,7 +2,16 @@ import type { Doctor, PerformedProcedure, ProcedureCatalogItem, UserRole } from 
 import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, Drawer, EmptyState, Icon, Ltr, usePersonName } from '@web/components/ui';
+import {
+  Badge,
+  Button,
+  Drawer,
+  EmptyState,
+  Icon,
+  Ltr,
+  Money,
+  usePersonName,
+} from '@web/components/ui';
 import {
   AddProcedureForm,
   type NewProcedureInput,
@@ -15,6 +24,7 @@ import {
   canSeeAttachments,
   canSeePrices,
 } from '@web/features/patients/permissions';
+import { useClinic } from '@web/features/clinic/queries';
 import { useToothHistory } from '@web/features/patients/queries';
 import { formatDate } from '@web/lib/format';
 
@@ -234,6 +244,10 @@ function ProcedureRow({
   onSendToLab?: (() => void) | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
+  // The clinic's own symbol, and no decimals: `<Money>` is what every other
+  // figure in the app is drawn with, and this row was printing the raw
+  // `numeric(10,2)` string — "50.00", with nothing to say what 50 of.
+  const currency = useClinic().data?.currency;
 
   return (
     <li className="rounded-panel bg-canvas p-3">
@@ -263,14 +277,18 @@ function ProcedureRow({
         {showPrice && (
           <div className="flex gap-1">
             <dt>{t('chart.panel.price')}:</dt>
-            <Ltr as="dd">{procedure.price}</Ltr>
+            <dd>
+              <Money amount={procedure.price} currency={currency} />
+            </dd>
           </div>
         )}
 
         {showPrice && procedure.discount !== '0.00' && (
           <div className="flex gap-1">
             <dt>{t('chart.panel.discount')}:</dt>
-            <Ltr as="dd">{procedure.discount}</Ltr>
+            <dd>
+              <Money amount={procedure.discount} currency={currency} />
+            </dd>
           </div>
         )}
       </dl>

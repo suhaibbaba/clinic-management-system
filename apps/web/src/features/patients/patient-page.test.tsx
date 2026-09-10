@@ -235,8 +235,9 @@ describe('Patient page', () => {
 
       const panel = await screen.findByRole('dialog');
       expect(within(panel).getByText(CATALOG.nameAr)).toBeInTheDocument();
-      // ROLES.md billing: a doctor reads charges, so the price is shown.
-      expect(within(panel).getByText('60.00')).toBeInTheDocument();
+      // ROLES.md billing: a doctor reads charges, so the price is shown — as
+      // every figure in this app is, through `<Money>`: whole, with a symbol.
+      expect(within(panel).getByText('60')).toBeInTheDocument();
     });
   });
 
