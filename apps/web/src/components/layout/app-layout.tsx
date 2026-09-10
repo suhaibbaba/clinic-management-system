@@ -193,7 +193,7 @@ function NavList({
     <nav aria-label={t('nav.menu')} className="min-w-0 flex-1">
       {groups.map((group, index) =>
         group.label === undefined ? (
-          <ul key="loose" className="flex flex-col gap-0.5">
+          <ul key="loose" className="flex flex-col gap-1">
             {group.items.map((item) => (
               <NavRow key={item.to} item={item} badges={badges} />
             ))}
@@ -296,9 +296,14 @@ function NavRow({
 /**
  * A captioned section of the sidebar.
  *
- * The caption is the control: a 12px muted line with a chevron, which is
- * enough of a target to fold the section away and quiet enough that a rail of
- * three of them still reads as one list rather than as three panels.
+ * A hairline, then a caption that is also the control: 12px, small caps, with
+ * a chevron: enough of a target to fold the section away, quiet enough that a
+ * rail of three still reads as one list rather than as three panels.
+ *
+ * The rule earns its place here and nowhere else in the rail. Sections are
+ * what a person scans this list by — "where do I go for a patient, where for
+ * the lab" — and a caption alone leaves that to whitespace, which the eye
+ * reads as a gap rather than as a border between two kinds of thing.
  *
  * Sections people navigate with open by default. Settings does not — those are
  * the screens somebody opens on the day they set the clinic up and then twice
@@ -343,7 +348,7 @@ function NavSection({
   }, [holdsCurrent]);
 
   return (
-    <div className="mt-5 first:mt-0">
+    <div className="mt-4 border-t border-line pt-4">
       <button
         type="button"
         aria-expanded={open}
@@ -353,12 +358,12 @@ function NavSection({
           // 44px on touch like every other row in the rail; drawn at 28 on a
           // laptop, where a caption that tall would read as a nav row itself.
           'flex min-h-11 w-full cursor-pointer items-center gap-1.5 rounded-control px-2.5 py-1.5 lg:min-h-7',
-          'text-meta font-semibold text-ink-subtle transition-colors duration-150',
+          'text-meta font-medium text-ink-subtle transition-colors duration-150',
           'hover:text-ink-muted',
           // Small caps, spaced out — in Latin only. Tracking pulls Arabic
           // letters out of their joins, which is not a style but a spelling
           // mistake, and `uppercase` has nothing to do in it either way.
-          'page-ltr:uppercase page-ltr:tracking-[0.08em]',
+          'page-ltr:uppercase page-ltr:tracking-[0.06em]',
         )}
       >
         <span className="truncate">{t(label)}</span>
@@ -371,7 +376,7 @@ function NavSection({
         />
       </button>
 
-      <ul id={id} hidden={!open} className="mt-1 flex flex-col gap-0.5">
+      <ul id={id} hidden={!open} className="mt-1 flex flex-col gap-1">
         {items.map((item) => (
           <NavRow key={item.to} item={item} badges={badges} />
         ))}
