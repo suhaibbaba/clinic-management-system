@@ -7,54 +7,33 @@ import {
 } from '@clinic/shared';
 
 import type { BadgeTone } from '@web/components/ui/badge';
+import { TONE_SURFACE } from '@web/components/ui/tone';
 import type { LabOrderStep } from '@web/features/labs/queries';
 
 // The column header, the badge and the chip all read this, so a status cannot be amber in one place
-// and grey in another.
+// and grey in another. The colour itself comes from `TONE_SURFACE`.
 export interface LabStatusStyle {
   readonly tone: BadgeTone;
   readonly column: string;
   readonly label: string;
 }
 
+const column = (tone: BadgeTone, label: string): LabStatusStyle => ({
+  tone,
+  column: TONE_SURFACE[tone],
+  label,
+});
+
 export const LAB_ORDER_STATUS_STYLES: Record<LabOrderStatus, LabStatusStyle> = {
   // Not yet anybody's problem but the doctor's: it has not left the building.
-  [LAB_ORDER_STATUS.DRAFT]: {
-    tone: 'neutral',
-    column: 'border-line-strong bg-inset text-ink-muted',
-    label: 'labs.status.draft',
-  },
-  [LAB_ORDER_STATUS.SENT]: {
-    tone: 'info',
-    column: 'border-primary-200 bg-primary-50 text-primary-800',
-    label: 'labs.status.sent',
-  },
-  [LAB_ORDER_STATUS.READY]: {
-    tone: 'warning',
-    column: 'border-warning-300 bg-warning-50 text-warning-800',
-    label: 'labs.status.ready',
-  },
-  [LAB_ORDER_STATUS.RECEIVED]: {
-    tone: 'success',
-    column: 'border-success-300 bg-success-50 text-success-800',
-    label: 'labs.status.received',
-  },
+  [LAB_ORDER_STATUS.DRAFT]: column('neutral', 'labs.status.draft'),
+  [LAB_ORDER_STATUS.SENT]: column('info', 'labs.status.sent'),
+  [LAB_ORDER_STATUS.READY]: column('warning', 'labs.status.ready'),
+  [LAB_ORDER_STATUS.RECEIVED]: column('success', 'labs.status.received'),
   // Done is history: it recedes rather than celebrating.
-  [LAB_ORDER_STATUS.FITTED]: {
-    tone: 'neutral',
-    column: 'border-line-strong bg-inset text-ink-muted',
-    label: 'labs.status.fitted',
-  },
-  [LAB_ORDER_STATUS.RETURNED]: {
-    tone: 'danger',
-    column: 'border-danger-200 bg-danger-50 text-danger-700',
-    label: 'labs.status.returned',
-  },
-  [LAB_ORDER_STATUS.CANCELLED]: {
-    tone: 'neutral',
-    column: 'border-line-strong bg-inset text-ink-subtle',
-    label: 'labs.status.cancelled',
-  },
+  [LAB_ORDER_STATUS.FITTED]: column('neutral', 'labs.status.fitted'),
+  [LAB_ORDER_STATUS.RETURNED]: column('danger', 'labs.status.returned'),
+  [LAB_ORDER_STATUS.CANCELLED]: column('neutral', 'labs.status.cancelled'),
 };
 
 export const BOARD_COLUMNS: readonly LabOrderStatus[] = [

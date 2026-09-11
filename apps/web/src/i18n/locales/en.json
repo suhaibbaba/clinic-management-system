@@ -352,7 +352,7 @@
     "balance": "Balance",
     "allergies": "Allergies",
     "tabs": {
-      "label": "Patient file sections",
+      "label": "Tabs",
       "chart": "Tooth chart",
       "visits": "Visits",
       "treatmentPlans": "Treatment plans",

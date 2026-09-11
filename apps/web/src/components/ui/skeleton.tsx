@@ -114,7 +114,7 @@ export function SkeletonCard({ count = 3 }: { readonly count?: number }): JSX.El
           className="flex flex-col border border-line rounded-card bg-surface p-4 shadow-card"
         >
           <div className="flex items-start gap-3">
-            <Skeleton className="size-9 shrink-0 rounded-control" />
+            <Skeleton className="size-9 shrink-0 rounded-field" />
 
             <div className="min-w-0 flex-1">
               <Skeleton className="h-4 w-2/5" />
@@ -144,15 +144,13 @@ export function SkeletonKpi({ count = 3 }: { readonly count?: number }): JSX.Ele
         <div
           key={card}
           aria-hidden="true"
-          className="border border-line rounded-card bg-surface p-4 shadow-card"
+          className="rounded-card border border-line bg-surface p-[18px_20px] shadow-card"
         >
-          <div className="flex items-center gap-2">
-            <Skeleton className="size-7 shrink-0 rounded-control" />
-            <Skeleton className="h-3 w-2/5" />
-          </div>
-
-          <Skeleton className="mt-3 h-7 w-1/2" />
-          <Skeleton className="mt-2 h-3 w-3/5" />
+          {/* The same boxes the real card settles at: a 30px label chip, the figure's own
+              line, and one caption row. */}
+          <Skeleton className="h-[30px] w-28 rounded-field" />
+          <Skeleton className="mt-2 h-8 w-1/2" />
+          <Skeleton className="mt-[7px] h-[18px] w-3/5" />
         </div>
       ))}
     </StatRow>
@@ -185,7 +183,7 @@ export function SkeletonTimeline({ entries = 4 }: { readonly entries?: number })
           aria-hidden="true"
           className="flex items-start gap-3 border border-line rounded-card bg-surface p-4 shadow-card"
         >
-          <Skeleton className="size-9 shrink-0 rounded-control" />
+          <Skeleton className="size-9 shrink-0 rounded-field" />
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between gap-4">

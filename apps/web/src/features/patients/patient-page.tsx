@@ -1,8 +1,16 @@
-import type { JSX } from 'react';
+import { lazy, Suspense, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { Avatar, EmptyState, Ltr, PhoneLink, useTabParam } from '@web/components/ui';
+import {
+  Avatar,
+  EmptyState,
+  Ltr,
+  PhoneLink,
+  TabPanel,
+  Tabs,
+  useTabParam,
+} from '@web/components/ui';
 import { Skeleton, SkeletonStatus } from '@web/components/ui/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { AccountTab } from '@web/features/billing/account-tab';
@@ -10,15 +18,20 @@ import { PatientBalanceCard } from '@web/features/billing/patient-balance-card';
 import { canSeeBilling } from '@web/features/billing/permissions';
 import { ageInYears } from '@web/features/patients/age';
 import { AllergyBanner } from '@web/features/patients/allergy-banner';
-import { ChartTab } from '@web/features/patients/chart/chart-tab';
-import { ImagingTab } from '@web/features/patients/imaging/imaging-tab';
 import { canViewChart } from '@web/features/patients/permissions';
 import { usePatient } from '@web/features/patients/queries';
 import { TimelineTab } from '@web/features/patients/timeline/timeline-tab';
 import { TreatmentPlansTab } from '@web/features/patients/treatment-plans/treatment-plans-tab';
 import { VisitsTab } from '@web/features/patients/visits/visits-tab';
-import { cn } from '@web/lib/cn';
 import { useDelayedLoading } from '@web/lib/use-delayed-loading';
+
+const ChartTab = lazy(async () => ({
+  default: (await import('@web/features/patients/chart/chart-tab')).ChartTab,
+}));
+
+const ImagingTab = lazy(async () => ({
+  default: (await import('@web/features/patients/imaging/imaging-tab')).ImagingTab,
+}));
 
 const TABS = [
   { id: 'chart', label: 'patients.tabs.chart', clinical: true },
@@ -118,54 +131,31 @@ export function PatientPage(): JSX.Element {
         )}
       </header>
 
-      <div
-        role="tablist"
-        aria-label={t('patients.tabs.label')}
-        className={cn(
-          'flex items-center gap-1 rounded-control border border-line bg-inset p-1',
-          'max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-          'sm:inline-flex sm:flex-wrap sm:self-start sm:overflow-visible',
-        )}
-      >
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            role="tab"
-            id={`tab-${tab.id}`}
-            aria-selected={activeTab === tab.id}
-            aria-controls={`panel-${tab.id}`}
-            onClick={() => setActiveTab(tab.id)}
-            className={cn(
-              // The same 44px touch target the shared `Tabs` strip carries;
-              // this one is hand-rolled because the panels are the file's own.
-              'inline-flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center',
-              'rounded-control px-3 py-1.5 text-value font-medium lg:min-h-0 lg:min-w-0',
-              'transition-[background-color,color,box-shadow,transform] duration-150 active:scale-95',
-              activeTab === tab.id
-                ? 'bg-surface text-ink shadow-pill'
-                : 'text-ink-muted hover:bg-surface/60 hover:text-ink',
-            )}
-          >
-            {t(tab.label)}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        tabs={tabs.map((tab) => ({ id: tab.id, label: tab.label }))}
+        value={activeTab}
+        onChange={setActiveTab}
+        label="patients.tabs.label"
+      />
 
-      <div
-        role="tabpanel"
-        id={`panel-${activeTab}`}
-        aria-labelledby={`tab-${activeTab}`}
-        className="min-w-0"
-      >
-        {activeTab === 'chart' && (
-          <ChartTab patientId={id} dateOfBirth={patient.data?.dateOfBirth} patient={patient.data} />
-        )}
+      <TabPanel id={activeTab}>
+        {/* The chart and the imaging grid are the two heaviest things in the app — an SVG of 52
+            teeth and a lightbox — and most visits to a file never open either. */}
+        <Suspense fallback={<TabFallback />}>
+          {activeTab === 'chart' && (
+            <ChartTab
+              patientId={id}
+              dateOfBirth={patient.data?.dateOfBirth}
+              patient={patient.data}
+            />
+          )}
+          {activeTab === 'attachments' && <ImagingTab patientId={id} />}
+        </Suspense>
+
         {activeTab === 'visits' && <VisitsTab patientId={id} patient={patient.data} />}
         {activeTab === 'treatmentPlans' && (
           <TreatmentPlansTab patientId={id} patient={patient.data} />
         )}
-        {activeTab === 'attachments' && <ImagingTab patientId={id} />}
         {activeTab === 'timeline' && <TimelineTab patientId={id} />}
         {activeTab === 'billing' && <AccountTab patientId={id} patient={patient.data} />}
 
@@ -176,9 +166,15 @@ export function PatientPage(): JSX.Element {
             hint="patients.tabs.comingSoonHint"
           />
         )}
-      </div>
+      </TabPanel>
     </div>
   );
+}
+
+// The lazy tab's own box while its chunk arrives: the same height the chart and the grid settle
+// at, so the page does not grow under the reader when it lands.
+function TabFallback(): JSX.Element {
+  return <Skeleton aria-hidden="true" className="h-[420px] w-full rounded-card" />;
 }
 
 function PatientHeaderSkeleton(): JSX.Element {

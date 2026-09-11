@@ -1,15 +1,12 @@
 import { USER_ROLE } from '@clinic/shared';
-import type { JSX } from 'react';
+import { lazy, Suspense, type JSX } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AppLayout } from '@web/components/layout/app-layout';
-import { AppointmentsSection } from '@web/features/appointments/appointments-section';
-import { AuditPage } from '@web/features/audit/audit-page';
 import { RequireAuth, RequireRole } from '@web/features/auth/guards';
 import { LoginPage } from '@web/features/auth/login-page';
 import { ClinicPage } from '@web/features/clinic/clinic-page';
 import { DashboardPage } from '@web/features/dashboard/dashboard-page';
-import { LookupsPage } from '@web/features/lookups/lookups-page';
 import { DoctorPage } from '@web/features/doctors/doctor-page';
 import { DoctorsPage } from '@web/features/doctors/doctors-page';
 import { InventorySection } from '@web/features/inventory/inventory-section';
@@ -21,6 +18,21 @@ import { PATIENT_FILE_ROLES } from '@web/features/patients/permissions';
 import { PatientsPage } from '@web/features/patients/patients-page';
 import { ProfilePage } from '@web/features/profile/profile-page';
 import { UsersPage } from '@web/features/users/users-page';
+import { Skeleton } from '@web/components/ui/skeleton';
+
+// Split from the main chunk: the calendar carries a week grid, a day grid and a drag interaction,
+// and the two settings screens below are reached by one role on one afternoon a month.
+const AppointmentsSection = lazy(async () => ({
+  default: (await import('@web/features/appointments/appointments-section')).AppointmentsSection,
+}));
+
+const AuditPage = lazy(async () => ({
+  default: (await import('@web/features/audit/audit-page')).AuditPage,
+}));
+
+const LookupsPage = lazy(async () => ({
+  default: (await import('@web/features/lookups/lookups-page')).LookupsPage,
+}));
 
 const ADMIN_ONLY = [USER_ROLE.ADMIN] as const;
 
@@ -35,6 +47,16 @@ const DOCTOR_PAGE = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR] as const;
 
 /** The dashboard is where a role that may not be somewhere is sent instead. */
 const HOME = '/dashboard';
+
+// A split route's own box while its chunk arrives. Full width and the height a page settles at, so
+// nothing below it moves when the module lands.
+function RouteChunk({ children }: { readonly children: JSX.Element }): JSX.Element {
+  return (
+    <Suspense fallback={<Skeleton aria-hidden="true" className="h-[520px] w-full rounded-card" />}>
+      {children}
+    </Suspense>
+  );
+}
 
 export function AppRoutes(): JSX.Element {
   return (
@@ -74,7 +96,9 @@ export function AppRoutes(): JSX.Element {
           path="/appointments"
           element={
             <RequireRole roles={APPOINTMENTS} redirectTo={HOME}>
-              <AppointmentsSection />
+              <RouteChunk>
+                <AppointmentsSection />
+              </RouteChunk>
             </RequireRole>
           }
         />
@@ -146,7 +170,9 @@ export function AppRoutes(): JSX.Element {
           path="/clinic/lists"
           element={
             <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
-              <LookupsPage />
+              <RouteChunk>
+                <LookupsPage />
+              </RouteChunk>
             </RequireRole>
           }
         />
@@ -162,7 +188,9 @@ export function AppRoutes(): JSX.Element {
           path="/audit-log"
           element={
             <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
-              <AuditPage />
+              <RouteChunk>
+                <AuditPage />
+              </RouteChunk>
             </RequireRole>
           }
         />

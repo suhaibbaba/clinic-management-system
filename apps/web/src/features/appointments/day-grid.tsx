@@ -5,7 +5,7 @@ import {
   type Doctor,
   type DoctorTimeOff,
 } from '@clinic/shared';
-import { useRef, useState, type DragEvent, type JSX } from 'react';
+import { useMemo, useRef, useState, type CSSProperties, type DragEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { APPOINTMENT_STATUS_STYLES } from '@web/features/appointments/status';
@@ -44,6 +44,27 @@ export interface DayGridProps {
 
 // Absolute positioning rather than quarter-hour rows: 20, 45 and 90 minutes all occur. Overlaps
 // cannot happen — a column is one doctor — so there is no lane packing.
+/** One pass over a list instead of one pass per column. */
+function groupBy<TItem>(
+  items: readonly TItem[],
+  key: (item: TItem) => string,
+): Map<string, TItem[]> {
+  const groups = new Map<string, TItem[]>();
+
+  for (const item of items) {
+    const id = key(item);
+    const existing = groups.get(id);
+
+    if (existing) {
+      existing.push(item);
+    } else {
+      groups.set(id, [item]);
+    }
+  }
+
+  return groups;
+}
+
 export function DayGrid({
   date,
   doctors,
@@ -60,6 +81,11 @@ export function DayGrid({
 
   const hours = gridHours();
   const bodyHeight = (hours.length - 1) * HOUR_HEIGHT;
+
+  // Grouped once rather than filtered per column: the two scans below ran for every doctor on
+  // every commit, and a day with six columns re-walked the whole day six times to draw it.
+  const byDoctor = useMemo(() => groupBy(appointments, (entry) => entry.doctorId), [appointments]);
+  const absencesByDoctor = useMemo(() => groupBy(timeOff, (entry) => entry.doctorId), [timeOff]);
 
   const handleDrop = (event: DragEvent<HTMLDivElement>, doctorId: string): void => {
     event.preventDefault();
@@ -122,7 +148,7 @@ export function DayGrid({
           </div>
 
           {doctors.map((doctor) => {
-            const column = appointments.filter((entry) => entry.doctorId === doctor.id);
+            const column = byDoctor.get(doctor.id) ?? [];
 
             return (
               <div
@@ -145,38 +171,27 @@ export function DayGrid({
                   onPick(doctor.id, minuteFromOffset(event.clientY - bounds.top, bounds.height));
                 }}
                 className={cn(
-                  'relative min-w-40 flex-1 border-s border-line',
+                  'hour-rules relative min-w-40 flex-1 border-s border-line',
                   onPick && 'cursor-copy',
                 )}
+                style={{ '--hour-height': `${HOUR_HEIGHT}px` } as CSSProperties}
               >
-                {/* Hour lines, drawn on the column so they scroll with it. */}
-                {hours.slice(0, -1).map((minute) => (
-                  <div
-                    key={minute}
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-x-0 border-t border-line/70"
-                    style={{ top: `${((minute - GRID_START_MINUTE) / 60) * HOUR_HEIGHT}px` }}
-                  />
-                ))}
-
                 {/* An absence overlapping a booking is a real state, and hiding the appointment
                     behind the hatching would be the wrong way round. */}
-                {timeOff
-                  .filter((entry) => entry.doctorId === doctor.id)
-                  .map((entry) => {
-                    const position = periodPosition(entry.startsAt, entry.endsAt, date);
+                {(absencesByDoctor.get(doctor.id) ?? []).map((entry) => {
+                  const position = periodPosition(entry.startsAt, entry.endsAt, date);
 
-                    return position === null ? null : (
-                      <div
-                        key={entry.id}
-                        title={entry.reason}
-                        aria-label={`${t('schedule.timeOff.title')}: ${entry.reason}`}
-                        data-time-off={entry.id}
-                        className="absolute inset-x-0 hatched border-y border-line-strong/60"
-                        style={position}
-                      />
-                    );
-                  })}
+                  return position === null ? null : (
+                    <div
+                      key={entry.id}
+                      title={entry.reason}
+                      aria-label={`${t('schedule.timeOff.title')}: ${entry.reason}`}
+                      data-time-off={entry.id}
+                      className="absolute inset-x-0 hatched border-y border-line-strong/60"
+                      style={position}
+                    />
+                  );
+                })}
 
                 {column.map((appointment) => (
                   <AppointmentBlock
