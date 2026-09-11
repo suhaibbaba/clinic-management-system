@@ -63,13 +63,13 @@ export function DoctorStep({
           >
             <span
               aria-hidden
-              className="flex size-11 shrink-0 items-center justify-center rounded-pill bg-primary-100 text-value font-semibold text-primary-800"
+              className="flex size-11 shrink-0 items-center justify-center rounded-pill bg-primary-100 text-value font-medium text-primary-800"
             >
               {initial(bookingName(doctor.name))}
             </span>
 
             <span className="min-w-0">
-              <span className="block truncate text-field font-semibold text-ink">
+              <span className="block truncate text-field font-medium text-ink">
                 {bookingName(doctor.name)}
               </span>
               <span className="block truncate text-label text-ink-muted">{doctor.specialty}</span>

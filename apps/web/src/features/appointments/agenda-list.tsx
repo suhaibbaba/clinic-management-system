@@ -60,7 +60,7 @@ export function AgendaList({
               onClick={() => onOpen(appointment)}
               data-appointment={appointment.id}
               className={cn(
-                'flex w-full cursor-pointer items-stretch gap-3 rounded-card bg-surface p-3',
+                'flex w-full cursor-pointer items-stretch gap-3 rounded-card border border-line bg-surface p-3',
                 'text-start shadow-card transition-shadow duration-150 hover:shadow-float',
               )}
             >
@@ -73,7 +73,7 @@ export function AgendaList({
 
               <span className="flex min-w-0 flex-1 flex-col gap-1">
                 <span className="flex items-center gap-2">
-                  <Ltr className="text-value font-semibold tabular-nums text-ink">
+                  <Ltr className="text-value font-medium tabular-nums text-ink">
                     {toTimeLabel(minutesOf(appointment.startsAt))}
                   </Ltr>
                   <Badge tone={style.tone}>{t(statusLabelKey(appointment.status))}</Badge>

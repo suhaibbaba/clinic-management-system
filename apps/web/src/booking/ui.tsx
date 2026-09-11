@@ -45,7 +45,7 @@ export function Button({
       // 48px tall: this is a thumb on a phone, not a mouse on a desktop.
       className={cx(
         'inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-control',
-        'px-5 text-field font-semibold transition-colors duration-150',
+        'px-5 text-field font-medium transition-colors duration-150',
         'disabled:cursor-not-allowed disabled:opacity-45',
         BUTTON_VARIANTS[variant],
         full && 'w-full',
@@ -78,7 +78,9 @@ export function Card({
   readonly className?: string;
 }): JSX.Element {
   return (
-    <section className={cx('rounded-card bg-surface p-4 shadow-card', className)}>
+    <section
+      className={cx('border border-line rounded-card bg-surface p-4 shadow-card', className)}
+    >
       {children}
     </section>
   );
@@ -109,7 +111,7 @@ export function ChoiceCard({
         'transition-colors duration-150',
         selected
           ? 'bg-selected ring-2 ring-primary-600'
-          : 'bg-surface shadow-card hover:bg-row-hover',
+          : 'border border-line bg-surface shadow-card hover:bg-row-hover',
       )}
     >
       {children}

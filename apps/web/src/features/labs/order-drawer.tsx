@@ -269,7 +269,7 @@ function OrderHistory({
 
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-value font-semibold text-ink">{t('labs.order.history.title')}</h3>
+      <h3 className="text-value font-medium text-ink">{t('labs.order.history.title')}</h3>
 
       <ol className="flex flex-col gap-2">
         {stamps.map((stamp) => (
@@ -328,7 +328,7 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
   return (
     <section className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-value font-semibold text-ink">{t('labs.order.attachments')}</h3>
+        <h3 className="text-value font-medium text-ink">{t('labs.order.attachments')}</h3>
 
         <Button
           size="sm"

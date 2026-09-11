@@ -155,7 +155,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
             amount={balance.data?.balance ?? '0.00'}
             currency={currency}
             signed
-            className="text-kpi font-semibold tabular-nums"
+            className="text-kpi font-medium tabular-nums"
           />
           {balance.data?.lastPaymentAt && (
             <span className="mt-1 block text-label text-ink-muted">

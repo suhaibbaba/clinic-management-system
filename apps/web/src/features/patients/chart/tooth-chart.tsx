@@ -395,7 +395,7 @@ function Tooltip({
         'group-hover:opacity-100 group-focus-visible:opacity-100',
       )}
     >
-      <span className="font-semibold" dir="ltr">
+      <span className="font-medium" dir="ltr">
         {summary.tooth}
       </span>{' '}
       · {stateLabel}

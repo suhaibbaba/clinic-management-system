@@ -80,7 +80,7 @@ export function UsersPage(): JSX.Element {
             <span className="flex min-w-0 flex-col leading-snug">
               {/* Both spellings on hover: this is the screen where somebody
                   checks how a name is written on a letterhead. */}
-              <PersonName name={row.name} showBoth className="truncate font-semibold text-ink" />
+              <PersonName name={row.name} showBoth className="truncate font-medium text-ink" />
               {/* The wide shape only: on a card the email is already its own labelled row, and since
                   it became a link that would be two identical links. */}
               {row.email !== null && row.email !== undefined && (

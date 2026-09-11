@@ -68,7 +68,7 @@ export function ShoppingListPage(): JSX.Element {
       align: 'numeric',
       render: (row) => (
         <span className="flex items-baseline justify-end gap-1.5">
-          <Ltr className="font-semibold text-ink">{row.suggested}</Ltr>
+          <Ltr className="font-medium text-ink">{row.suggested}</Ltr>
           <span className="text-label text-ink-muted">{unitLabel(row.unit)}</span>
         </span>
       ),

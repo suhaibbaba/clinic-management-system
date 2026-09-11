@@ -59,7 +59,7 @@ export function LoginPage(): JSX.Element {
 
   return (
     <main className="flex min-h-full items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md rounded-card bg-surface p-8 shadow-card">
+      <div className="w-full max-w-md border border-line rounded-card bg-surface p-8 shadow-card">
         {/* The one place the mark is shown at size; the clinic name sits in the
             heading below it, so the mark itself is decorative. */}
         <Logo size="login" src={logoUrl} name={branding.data?.name} className="mb-6" />
@@ -70,7 +70,7 @@ export function LoginPage(): JSX.Element {
           </p>
         )}
 
-        <h1 className="text-title font-semibold tracking-title text-ink">{t('auth.loginTitle')}</h1>
+        <h1 className="text-title font-medium tracking-title text-ink">{t('auth.loginTitle')}</h1>
         <p className="mt-1 text-value text-ink-muted">{t('auth.loginSubtitle')}</p>
 
         <form className="mt-6 flex flex-col gap-4" onSubmit={onSubmit} noValidate>

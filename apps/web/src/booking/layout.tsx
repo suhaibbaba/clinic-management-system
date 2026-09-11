@@ -31,7 +31,7 @@ export function PageShell({
         {logoUrl !== null && logoUrl !== undefined && (
           <Img src={logoUrl} alt="" width={32} height={32} priority />
         )}
-        <span className="text-value font-semibold tracking-[-0.02em] text-ink">{name}</span>
+        <span className="text-value font-medium tracking-[-0.02em] text-ink">{name}</span>
       </header>
 
       <main className="mx-auto w-full max-w-[480px] flex-1 px-4 pb-6">{children}</main>
@@ -69,9 +69,7 @@ export function StepHeader({
         {t('steps.counter', { current, total: STEP_KEYS.length })}
       </p>
 
-      <h1 className="mt-1 text-[1.375rem] leading-8 font-semibold tracking-[-0.02em] text-ink">
-        {title}
-      </h1>
+      <h1 className="mt-1 text-title font-medium tracking-title text-ink">{title}</h1>
 
       <ol aria-hidden className="mt-3 flex gap-1.5">
         {STEP_KEYS.map((key, index) => (
@@ -99,7 +97,7 @@ export function FullPageMessage({
 }): JSX.Element {
   return (
     <div className="mt-10 flex flex-col items-center gap-3 text-center">
-      <h1 className="text-[1.375rem] font-semibold tracking-[-0.02em] text-ink">{title}</h1>
+      <h1 className="text-title font-medium tracking-title text-ink">{title}</h1>
       {body && <p className="text-value text-ink-muted">{body}</p>}
       {action}
     </div>

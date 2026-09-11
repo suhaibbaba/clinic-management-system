@@ -67,7 +67,7 @@ export function LabPage(): JSX.Element {
           written here rather than through `PageHeader`. */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h1 className="truncate text-[1.625rem] font-bold leading-[1.3] tracking-[-0.03em] text-ink sm:text-title">
+          <h1 className="truncate text-title font-medium tracking-title text-ink">
             {lab.data?.name ?? '…'}
           </h1>
           {/* Not a joined string: the `+` is neutral and bidi hands it to the Arabic around it,
@@ -371,11 +371,11 @@ function StatementTab({
 
       <Card>
         <div className="flex items-baseline justify-between">
-          <span className="text-value font-semibold text-ink">{t('labs.statement.closing')}</span>
+          <span className="text-value font-medium text-ink">{t('labs.statement.closing')}</span>
           <Money
             amount={statement.data?.closingBalance ?? '0.00'}
             currency={currency}
-            className="text-value font-semibold"
+            className="text-value font-medium"
           />
         </div>
       </Card>

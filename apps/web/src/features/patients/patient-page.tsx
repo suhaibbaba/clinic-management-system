@@ -59,7 +59,7 @@ export function PatientPage(): JSX.Element {
     <div className="flex flex-col gap-5">
       {/* The labels are drawn rather than `sr-only`: a file number, an age and a phone read as a
           dot-separated run only if you know the order, and reception reads this aloud. */}
-      <header className="rounded-card bg-surface p-4 shadow-card">
+      <header className="border border-line rounded-card bg-surface p-4 shadow-card">
         {showSkeleton && <PatientHeaderSkeleton />}
 
         {patient.isError && <p className="text-value text-danger-600">{t('errors.notFound')}</p>}
@@ -76,7 +76,7 @@ export function PatientPage(): JSX.Element {
                 />
 
                 <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-                  <h1 className="truncate text-title font-semibold tracking-title text-ink">
+                  <h1 className="truncate text-title font-medium tracking-title text-ink">
                     {patient.data.fullName}
                   </h1>
                   {/* Beside the name it qualifies, and it appears the moment

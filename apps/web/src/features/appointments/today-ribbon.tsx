@@ -49,11 +49,11 @@ export function TodayRibbon({ appointments, onOpen, canMark }: TodayRibbonProps)
   return (
     <section
       aria-label={t('appointments.ribbon.title')}
-      className="rounded-card bg-surface p-4 shadow-card"
+      className="border border-line rounded-card bg-surface p-4 shadow-card"
     >
       <div className="mb-3 flex items-center gap-2">
         <Icon name="clock" className="size-4 text-primary-600" />
-        <h2 className="text-value font-semibold text-ink">{t('appointments.ribbon.title')}</h2>
+        <h2 className="text-value font-medium text-ink">{t('appointments.ribbon.title')}</h2>
       </div>
 
       {upcoming.length === 0 ? (
@@ -76,7 +76,7 @@ export function TodayRibbon({ appointments, onOpen, canMark }: TodayRibbonProps)
                     onClick={() => onOpen(appointment)}
                     className="cursor-pointer text-start"
                   >
-                    <Ltr className="text-value font-semibold tabular-nums">
+                    <Ltr className="text-value font-medium tabular-nums">
                       {toTimeLabel(minutesOf(appointment.startsAt))}
                     </Ltr>
                     <span className="block truncate text-label font-medium">

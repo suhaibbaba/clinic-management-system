@@ -50,7 +50,7 @@ export function WeekView({
   }
 
   return (
-    <div className="overflow-x-auto rounded-card bg-surface shadow-card">
+    <div className="overflow-x-auto border border-line rounded-card bg-surface shadow-card">
       <div className="grid min-w-max grid-cols-7 divide-x divide-line rtl:divide-x-reverse">
         {days.map((day) => {
           const ofDay = appointments
@@ -72,7 +72,7 @@ export function WeekView({
               >
                 <span
                   className={cn(
-                    'block text-label font-semibold',
+                    'block text-label font-medium',
                     day === today ? 'text-primary-700' : 'text-ink',
                   )}
                 >
@@ -104,7 +104,7 @@ export function WeekView({
                         style.block,
                       )}
                     >
-                      <Ltr className="text-[11px] font-semibold tabular-nums">
+                      <Ltr className="text-[11px] font-medium tabular-nums">
                         {toTimeLabel(minutesOf(appointment.startsAt))}
                       </Ltr>
                       <span className="block truncate text-[11px] leading-snug">

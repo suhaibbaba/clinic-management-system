@@ -71,22 +71,13 @@ export function ValueDiff({ oldValue, newValue }: ValueDiffProps): JSX.Element {
       <table className="w-full border-collapse text-value">
         <thead>
           <tr className="bg-canvas">
-            <th
-              scope="col"
-              className="px-3 py-2 text-start text-label font-semibold text-ink-muted"
-            >
+            <th scope="col" className="px-3 py-2 text-start text-label font-medium text-ink-muted">
               {t('audit.changes')}
             </th>
-            <th
-              scope="col"
-              className="px-3 py-2 text-start text-label font-semibold text-ink-muted"
-            >
+            <th scope="col" className="px-3 py-2 text-start text-label font-medium text-ink-muted">
               {t('audit.oldValue')}
             </th>
-            <th
-              scope="col"
-              className="px-3 py-2 text-start text-label font-semibold text-ink-muted"
-            >
+            <th scope="col" className="px-3 py-2 text-start text-label font-medium text-ink-muted">
               {t('audit.newValue')}
             </th>
           </tr>

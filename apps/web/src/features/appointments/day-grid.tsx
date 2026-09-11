@@ -78,7 +78,7 @@ export function DayGrid({
   };
 
   return (
-    <div className="overflow-x-auto rounded-card bg-surface shadow-card">
+    <div className="overflow-x-auto border border-line rounded-card bg-surface shadow-card">
       {closure && (
         // The reason, in the clinic's own words. "The clinic is closed" is not
         // something reception can repeat down the phone; "عيد الفطر" is.
@@ -96,7 +96,7 @@ export function DayGrid({
           {doctors.map((doctor) => (
             <div
               key={doctor.id}
-              className="min-w-40 flex-1 truncate px-3 py-2.5 text-center text-label font-semibold text-ink"
+              className="min-w-40 flex-1 truncate px-3 py-2.5 text-center text-label font-medium text-ink"
             >
               <PersonName name={doctor.user.name} />
             </div>
@@ -262,11 +262,11 @@ function AppointmentBlock({
       {compact ? (
         <span className="flex items-baseline gap-1.5 leading-tight">
           <Ltr className="shrink-0 text-[10px] tabular-nums opacity-80">{time}</Ltr>
-          <span className="truncate text-[11px] font-semibold">{appointment.patientName}</span>
+          <span className="truncate text-[11px] font-medium">{appointment.patientName}</span>
         </span>
       ) : (
         <>
-          <span className="block truncate text-[11px] font-semibold leading-snug">
+          <span className="block truncate text-[11px] font-medium leading-snug">
             {appointment.patientName}
           </span>
           <span className="block truncate text-[10px] leading-snug opacity-80">
