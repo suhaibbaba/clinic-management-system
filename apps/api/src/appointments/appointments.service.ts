@@ -58,14 +58,19 @@ export const APPOINTMENTS_ENTITY = 'appointments';
 /** Postgres raises this when an `EXCLUDE` constraint rejects a row. */
 const EXCLUSION_VIOLATION = '23P01';
 
+// Two inserts landing together each have to check the other's uncommitted row against
+// `appointments_no_overlap`, and Postgres is entitled to break that wait by killing one of them.
+// The victim is rolled back whole, so it is safe to run again — see `insert`.
+const DEADLOCK = '40P01';
+
 // Walked down the `cause` chain: drizzle wraps the driver's error, so the SQLSTATE is a level or
 // two below. Reading the top level made every double booking a 500.
-function isOverlapConflict(error: unknown): boolean {
+function hasSqlState(error: unknown, state: string): boolean {
   for (let current = error, depth = 0; current && depth < 5; depth += 1) {
     if (
       typeof current === 'object' &&
       'code' in current &&
-      (current as { code?: unknown }).code === EXCLUSION_VIOLATION
+      (current as { code?: unknown }).code === state
     ) {
       return true;
     }
@@ -413,9 +418,11 @@ export class AppointmentsService implements OnModuleInit {
     let rows: AppointmentRow[];
 
     try {
-      rows = await write();
+      rows = await this.writeOnce(write);
     } catch (error) {
-      if (isOverlapConflict(error)) {
+      // Deadlock included: the retry below has already run, so anything still arriving here lost
+      // the slot rather than the coin toss.
+      if (hasSqlState(error, EXCLUSION_VIOLATION)) {
         throw new ConflictException('That time is already booked for this doctor');
       }
 
@@ -430,6 +437,22 @@ export class AppointmentsService implements OnModuleInit {
     }
 
     return row;
+  }
+
+  // A deadlock is not an answer to "is this slot free" — it only says two writers raced. Postgres
+  // rolls the victim back whole, so running it again asks the question properly: by then the winner
+  // has committed, and the constraint says 409 or the row goes in. Without this, two receptionists
+  // booking the same minute got a 500 instead of "already booked".
+  private async writeOnce(write: () => Promise<AppointmentRow[]>): Promise<AppointmentRow[]> {
+    try {
+      return await write();
+    } catch (error) {
+      if (!hasSqlState(error, DEADLOCK)) {
+        throw error;
+      }
+
+      return write();
+    }
   }
 
   private calendarSelect() {
