@@ -63,6 +63,17 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      # Nothing outside apps/web/src/theme.css names a colour, and the two entry
+      # documents and the tab mark — read before any stylesheet exists — carry
+      # the brand blue that file names rather than a value of their own.
+      - name: Check colour literals
+        run: pnpm lint:hex
+
+      # Unused files, exports, dependencies and devDependencies. A permanent
+      # check rather than a one-off sweep: dead code arrives one merge at a time.
+      - name: Check for dead code
+        run: pnpm knip
+
       - name: Check formatting
         run: pnpm exec prettier --check .
 
