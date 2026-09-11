@@ -46,14 +46,20 @@ export function PageHeader({
       </div>
 
       {(actions !== undefined || inRow !== undefined || count !== undefined) && (
-        // Full width on a phone, hugging its content from `sm` up: a lone
-        // button floating at one edge of a narrow screen reads as debris.
-        <div className="flex shrink-0 flex-col gap-2.5 [&>*]:w-full sm:ms-auto sm:flex-row sm:items-center sm:[&>*]:w-auto">
-          {inRow}
-          {actions}
+        <div className="flex shrink-0 flex-col gap-2.5 sm:ms-auto sm:flex-row sm:items-center">
+          {(inRow !== undefined || actions !== undefined) && (
+            // Full width on a phone, hugging its content from `sm` up: a lone
+            // button floating at one edge of a narrow screen reads as debris.
+            <div className="flex flex-col gap-2.5 [&>*]:w-full sm:flex-row sm:items-center sm:[&>*]:w-auto">
+              {inRow}
+              {actions}
+            </div>
+          )}
+
           {/* Last, so it lands at the far edge from the title — the corner the reference puts the
-              count in, past whatever the page offers you to do. */}
-          {count !== undefined && <Tag className="shrink-0">{count}</Tag>}
+              count in. `self-start` because a count is not a control: stretched to the width of a
+              phone it reads as a banner. */}
+          {count !== undefined && <Tag className="shrink-0 self-start">{count}</Tag>}
         </div>
       )}
     </header>
