@@ -7,3 +7,6 @@ apps/api/drizzle
 # Project specifications, kept exactly as authored.
 CLAUDE.md
 ROLES.md
+# The design this app is drawn from, byte for byte as it was handed over. Reformatting it would
+# rewrite the very file the result is compared against.
+docs/design-reference.html
