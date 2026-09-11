@@ -48,6 +48,9 @@ export function LabsPage(): JSX.Element {
       <PageHeader
         title="labs.title"
         subtitle="labs.subtitle"
+        {...(labs.data !== undefined && {
+          count: t('pagination.total', { total: labs.data.total }),
+        })}
         actions={
           canManageLabs(user?.role) ? (
             <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>

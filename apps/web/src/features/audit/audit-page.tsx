@@ -109,7 +109,13 @@ export function AuditPage(): JSX.Element {
 
   return (
     <>
-      <PageHeader title="audit.title" subtitle="audit.subtitle" />
+      <PageHeader
+        title="audit.title"
+        subtitle="audit.subtitle"
+        {...(query.data !== undefined && {
+          count: t('pagination.total', { total: query.data.total }),
+        })}
+      />
 
       <Card className="mb-4 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:items-end">
         <Select

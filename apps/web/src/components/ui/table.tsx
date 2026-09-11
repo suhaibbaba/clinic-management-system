@@ -1,8 +1,8 @@
 import type { JSX, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@web/components/ui/button';
 import { Icon } from '@web/components/ui/icon';
+import { Ltr } from '@web/components/ui/ltr';
 import {
   RefreshBar,
   SkeletonStatus,
@@ -234,7 +234,10 @@ export function Table<TRow>({
                   key={column.key}
                   scope="col"
                   className={cn(
-                    'whitespace-nowrap border-b border-line px-4 py-2.5 text-label font-medium text-ink-muted',
+                    // A tinted band with the reference's 13/18 rhythm: the head reads as a rule
+                    // over the rows rather than as a first row of them.
+                    'whitespace-nowrap border-b border-line bg-table-head px-[18px] py-[13px]',
+                    'text-micro font-medium text-ink-muted',
                     alignClass(column.align),
                     column.className,
                   )}
@@ -265,9 +268,9 @@ export function Table<TRow>({
                     <td
                       key={column.key}
                       className={cn(
-                        // 12px above and below a 22px line makes a 46px row:
-                        // the 44 a thumb needs, and no taller.
-                        'px-4 py-3 align-middle',
+                        // 13px above and below a 20px line makes a 46px row: the 44 a thumb
+                        // needs, and no taller.
+                        'px-[18px] py-[13px] align-middle',
                         alignClass(column.align),
                         column.className,
                       )}
@@ -299,42 +302,107 @@ export function Pagination({
   onPageChange,
 }: PaginationProps): JSX.Element {
   const { t } = useTranslation();
+  const pages = pageWindow(page, totalPages);
 
   return (
     <nav
-      className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-3"
+      className={cn(
+        'flex flex-wrap items-center justify-between gap-2',
+        'border-t border-line bg-table-head px-[18px] py-3',
+      )}
       // The landmark names the whole control, not one of its buttons: a screen reader announced
       // "next" as the name of the region.
       aria-label={t('pagination.label')}
     >
-      <p className="text-label text-ink-muted">{t('pagination.total', { total })}</p>
+      <p className="text-meta text-ink-muted">{t('pagination.total', { total })}</p>
 
-      <div className="flex items-center gap-2">
-        <Button
-          icon={<Icon name="chevron-start" />}
-          size="sm"
-          variant="secondary"
+      {/* Numbered, as the reference draws it: on two or three pages, naming them beats a pair of
+          arrows and a "page 1 of 2" that has to be read to be understood. */}
+      <div className="flex items-center gap-1.5">
+        <PageButton
+          label={t('pagination.previous')}
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
-          {t('pagination.previous')}
-        </Button>
+          <Icon name="chevron-start" className="size-3.5" />
+        </PageButton>
 
-        <span className="text-label text-ink-muted">
-          {t('pagination.page', { page, totalPages: Math.max(totalPages, 1) })}
-        </span>
+        {pages.map((entry) =>
+          entry === null ? (
+            <span key={`gap-${String(entry)}`} aria-hidden="true" className="px-1 text-ink-faint">
+              …
+            </span>
+          ) : (
+            <PageButton
+              key={entry}
+              label={t('pagination.goToPage', { page: entry })}
+              current={entry === page}
+              onClick={() => onPageChange(entry)}
+            >
+              <Ltr>{entry}</Ltr>
+            </PageButton>
+          ),
+        )}
 
-        <Button
-          icon={<Icon name="chevron-end" />}
-          iconPosition="end"
-          size="sm"
-          variant="secondary"
+        <PageButton
+          label={t('pagination.next')}
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
         >
-          {t('pagination.next')}
-        </Button>
+          <Icon name="chevron-end" className="size-3.5" />
+        </PageButton>
       </div>
     </nav>
+  );
+}
+
+function PageButton({
+  label,
+  current = false,
+  disabled = false,
+  onClick,
+  children,
+}: {
+  readonly label: string;
+  readonly current?: boolean;
+  readonly disabled?: boolean;
+  readonly onClick: () => void;
+  readonly children: ReactNode;
+}): JSX.Element {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      aria-current={current ? 'page' : undefined}
+      disabled={disabled}
+      onClick={onClick}
+      className={cn(
+        // 44px on touch, the reference's drawn 28 on a laptop.
+        'inline-flex size-11 cursor-pointer items-center justify-center lg:size-7',
+        'rounded-chip border text-label tabular-nums transition-colors duration-150',
+        current
+          ? 'border-primary-600 bg-primary-600 font-medium text-ink-inverse'
+          : 'border-line bg-surface text-ink-muted hover:border-primary-600 hover:text-primary-700',
+        'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line',
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** At most seven slots: the ends, the neighbours, and an ellipsis for whatever is skipped. */
+function pageWindow(page: number, totalPages: number): readonly (number | null)[] {
+  const last = Math.max(totalPages, 1);
+
+  if (last <= 7) {
+    return Array.from({ length: last }, (_, index) => index + 1);
+  }
+
+  const around = [page - 1, page, page + 1].filter((entry) => entry > 1 && entry < last);
+  const shown = [1, ...around, last];
+
+  return shown.flatMap((entry, index) =>
+    index > 0 && entry - shown[index - 1]! > 1 ? [null, entry] : [entry],
   );
 }

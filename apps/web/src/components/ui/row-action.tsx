@@ -10,13 +10,14 @@ export interface RowActionProps extends ButtonHTMLAttributes<HTMLButtonElement> 
   readonly children: ReactNode;
 }
 
+// The reference's `.open-btn`: a soft blue fill rather than a saturated one, so ten rows of them
+// still read as ten rows rather than as ten calls to action.
 const TONES: Record<RowActionTone, string> = {
-  primary: 'text-primary-600 hover:text-primary-700',
-  quiet: 'text-ink-muted hover:text-ink',
+  primary: 'bg-primary-100 text-primary-700 hover:brightness-[0.96]',
+  quiet: 'text-ink-muted hover:bg-inset hover:text-ink',
 };
 
-// Text rather than a button: ten rows with two filled pills each is twenty pills and no primary
-// action. `whitespace-nowrap`, or a long label wraps and drags its icon along.
+// `whitespace-nowrap`, or a long label wraps and drags its icon along.
 export function RowAction({
   icon,
   tone = 'primary',
@@ -32,16 +33,16 @@ export function RowAction({
         'inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap',
         // Square on touch: a two-syllable Arabic label inside `px-1` drew a 38px-wide target that
         // was the full 44 tall.
-        'min-h-11 min-w-11 rounded-control px-1 py-0.5 text-value font-medium',
+        'min-h-11 min-w-11 rounded-chip px-[13px] py-2 text-meta font-medium',
         'lg:min-h-0 lg:min-w-0',
-        'transition-colors duration-150',
+        'transition-[background-color,color,filter] duration-150',
         'disabled:cursor-not-allowed disabled:opacity-40',
         TONES[tone],
         className,
       )}
       {...props}
     >
-      {icon !== undefined && <span className="[&>svg]:size-4">{icon}</span>}
+      {icon !== undefined && <span className="[&>svg]:size-3.5">{icon}</span>}
       {children}
     </button>
   );

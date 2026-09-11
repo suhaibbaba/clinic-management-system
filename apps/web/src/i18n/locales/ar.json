@@ -63,7 +63,8 @@
     "previous": "السابق",
     "next": "التالي",
     "page": "صفحة {{page}} من {{totalPages}}",
-    "total": "{{total}} سجل"
+    "total": "{{total}} سجل",
+    "goToPage": "الصفحة {{page}}"
   },
   "nav": {
     "menu": "القائمة",

@@ -134,6 +134,9 @@ export function DoctorsPage(): JSX.Element {
       <PageHeader
         title="doctors.title"
         subtitle="doctors.subtitle"
+        {...(query.data !== undefined && {
+          count: t('pagination.total', { total: query.data.total }),
+        })}
         actions={
           isAdmin ? (
             <Button

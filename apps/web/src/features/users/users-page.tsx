@@ -175,6 +175,9 @@ export function UsersPage(): JSX.Element {
       <PageHeader
         title="users.title"
         subtitle="users.subtitle"
+        {...(query.data !== undefined && {
+          count: t('pagination.total', { total: query.data.total }),
+        })}
         actions={
           <Button
             icon={<Icon name="user-plus" />}

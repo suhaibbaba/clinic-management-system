@@ -117,6 +117,9 @@ export function SuppliersPage(): JSX.Element {
       <PageHeader
         title="inventory.suppliers.title"
         subtitle="inventory.suppliers.subtitle"
+        {...(suppliers.data !== undefined && {
+          count: t('pagination.total', { total: suppliers.data.total }),
+        })}
         actions={
           mayManage ? (
             <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
