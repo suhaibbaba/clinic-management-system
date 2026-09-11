@@ -22,6 +22,7 @@ import { HealthModule } from '@api/health/health.module';
 import { InventoryModule } from '@api/inventory/inventory.module';
 import { LabsModule } from '@api/labs/labs.module';
 import { LookupsModule } from '@api/lookups/lookups.module';
+import { NotesModule } from '@api/notes/notes.module';
 import { PdfModule } from '@api/billing/pdf/pdf.module';
 import { NotificationsModule } from '@api/notifications/notifications.module';
 import { PatientsModule } from '@api/patients/patients.module';
@@ -52,6 +53,7 @@ import { UsersModule } from '@api/users/users.module';
     AppointmentsModule,
     ClinicScheduleModule,
     LookupsModule,
+    NotesModule,
     PdfModule,
     LabsModule,
     InventoryModule,

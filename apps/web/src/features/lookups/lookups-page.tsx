@@ -44,7 +44,7 @@ export function LookupsPage(): JSX.Element {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <nav
           aria-label={t('lookups.pickList')}
-          className="flex gap-1 overflow-x-auto rounded-card bg-surface p-2 shadow-card lg:w-64 lg:shrink-0 lg:flex-col lg:overflow-visible"
+          className="flex gap-1 overflow-x-auto border border-line rounded-card bg-surface p-2 shadow-card lg:w-64 lg:shrink-0 lg:flex-col lg:overflow-visible"
         >
           {LOOKUP_LIST_KEYS.map((key) => (
             <button
@@ -139,7 +139,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
   };
 
   return (
-    <section className="min-w-0 flex-1 rounded-card bg-surface p-4 shadow-card">
+    <section className="min-w-0 flex-1 border border-line rounded-card bg-surface p-4 shadow-card">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-value font-medium text-ink">{t(`lookups.lists.${listKey}`)}</h2>

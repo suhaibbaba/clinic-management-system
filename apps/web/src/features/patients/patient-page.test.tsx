@@ -98,7 +98,10 @@ describe('Patient page', () => {
     it('redirects a technician away from the patient file', async () => {
       await renderPatientPage(USER_ROLE.TECHNICIAN);
 
-      expect(await screen.findByRole('heading', { name: ar.dashboard.title })).toBeVisible();
+      // The dashboard's `<h1>` is the banner's greeting; the day's panel names the screen.
+      expect(
+        await screen.findByRole('region', { name: ar.dashboard.schedule.title }),
+      ).toBeVisible();
 
       expect(screen.queryByRole('group', { name: ar.chart.title })).not.toBeInTheDocument();
       expect(screen.queryByText(makePatient().fullName)).not.toBeInTheDocument();

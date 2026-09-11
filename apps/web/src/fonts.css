@@ -1,0 +1,22 @@
+/* Self-hosted: a clinic app should not tell a font CDN which screens a receptionist opened, and a
+   VPS with no outbound network must still render. One family for both scripts, as the reference
+   loads it — Arabic and Latin in Tajawal at 400, 500 and 700. */
+
+@import '@fontsource/tajawal/arabic-400.css';
+@import '@fontsource/tajawal/arabic-500.css';
+@import '@fontsource/tajawal/arabic-700.css';
+@import '@fontsource/tajawal/latin-400.css';
+@import '@fontsource/tajawal/latin-500.css';
+@import '@fontsource/tajawal/latin-700.css';
+
+/* @fontsource ships `font-display: swap`, so the first paint is the fallback. Matched to Tajawal's
+   own metrics (upm 1000, x-height 454, ascent 643, descent 357, gap 200) against Arial's, so the
+   swap changes no glyph height and no line box — text does not move when the file lands. */
+@font-face {
+  font-family: 'Tajawal Fallback';
+  src: local('Arial'), local('Helvetica Neue'), local('Liberation Sans');
+  size-adjust: 87.55%;
+  ascent-override: 73.44%;
+  descent-override: 40.78%;
+  line-gap-override: 22.84%;
+}

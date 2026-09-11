@@ -17,12 +17,14 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 // The primary blue is the only filled blue on a page, which is what makes "the thing to do here"
-// answerable at a glance; `secondary` is outlined for header rows of actions.
+// answerable at a glance; `secondary` is the reference's outlined `.btn-ghost`, and `ghost` its
+// soft-tinted `.kpi-action`. Filled variants lighten on hover rather than stepping down the scale,
+// which is how the reference draws every one of them.
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-primary-600 text-ink-inverse hover:bg-primary-700 active:bg-primary-800',
-  secondary: 'border border-line bg-surface text-ink hover:bg-inset active:bg-sunken',
-  ghost: 'bg-transparent text-primary-600 hover:bg-primary-50 active:bg-primary-100',
-  danger: 'bg-danger-600 text-ink-inverse hover:bg-danger-700 active:bg-danger-800',
+  primary: 'bg-primary-600 text-ink-inverse hover:brightness-[1.06] active:brightness-[0.95]',
+  secondary: 'border border-line bg-surface text-ink hover:bg-primary-100 hover:text-primary-700',
+  ghost: 'bg-primary-100 text-primary-700 hover:brightness-[0.96] active:brightness-[0.92]',
+  danger: 'bg-danger-600 text-ink-inverse hover:brightness-[1.06] active:brightness-[0.95]',
 };
 
 // Heights are the drawn heights; `min-h-11` below `lg` is the touch target, so the phone keeps the
@@ -30,8 +32,8 @@ const VARIANTS: Record<ButtonVariant, string> = {
 const SIZES: Record<ButtonSize, string> = {
   // `min-w-11` as well as `min-h-11`: an icon-only button, or one labelled with two Arabic letters,
   // is 42px wide inside this padding.
-  sm: 'min-h-11 min-w-11 px-3 text-label gap-2 lg:h-8 lg:min-h-0 lg:min-w-0',
-  md: 'min-h-11 min-w-11 px-4 text-value gap-2 lg:h-9 lg:min-h-0 lg:min-w-0',
+  sm: 'min-h-11 min-w-11 px-3 text-meta gap-[7px] lg:h-[30px] lg:min-h-0 lg:min-w-0',
+  md: 'min-h-11 min-w-11 px-[13px] text-label gap-[7px] lg:h-[34px] lg:min-h-0 lg:min-w-0',
 };
 
 export function Button({
@@ -51,13 +53,13 @@ export function Button({
       type={type}
       className={cn(
         // A softly rounded rectangle, not a pill: it sits beside fields and
-        // cards of the same 8-12px family instead of on top of them.
+        // cards of the same 8-14px family instead of on top of them.
         'inline-flex cursor-pointer items-center justify-center rounded-control font-medium',
-        'transition-[background-color,box-shadow,transform,color] duration-150 ease-out',
+        'transition-[filter,background-color,color,transform] duration-150 ease-out',
         'active:scale-[0.98]',
         'disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none',
         // A disabled button must not still look like it responds.
-        'disabled:active:scale-100 disabled:hover:bg-inherit',
+        'disabled:active:scale-100 disabled:hover:brightness-100 disabled:hover:bg-inherit',
         VARIANTS[variant],
         SIZES[size],
         className,

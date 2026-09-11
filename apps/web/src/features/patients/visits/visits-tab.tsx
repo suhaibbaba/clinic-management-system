@@ -117,7 +117,7 @@ export function VisitsTab({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-value font-semibold text-ink">
+        <h2 className="text-value font-medium text-ink">
           {t('visits.count', { count: ordered.length })}
         </h2>
         <Button
@@ -142,10 +142,13 @@ export function VisitsTab({
           const showingForm = procedureFor?.visitId === visit.id;
 
           return (
-            <li key={visit.id} className="rounded-card bg-surface shadow-card p-4">
+            <li
+              key={visit.id}
+              className="border border-line rounded-card bg-surface shadow-card p-4"
+            >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <Ltr as="p" className="text-value font-semibold text-ink">
+                  <Ltr as="p" className="text-value font-medium text-ink">
                     {formatDateTime(visit.visitDate)}
                   </Ltr>
                   <p className="mt-0.5 text-label text-ink-muted">
@@ -190,7 +193,7 @@ export function VisitsTab({
 
               <section className="mt-4 border-t border-line pt-3">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-label font-semibold uppercase tracking-wide text-ink-muted">
+                  <h3 className="text-label font-medium uppercase tracking-wide text-ink-muted">
                     {t('visits.procedures')}
                   </h3>
 

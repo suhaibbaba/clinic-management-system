@@ -41,19 +41,22 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          'group flex w-full cursor-pointer items-center gap-2.5 rounded-panel p-2',
+          'group flex w-full cursor-pointer items-center gap-[11px] rounded-panel p-3',
           'border border-line bg-surface transition-colors duration-150',
-          'hover:bg-inset data-[state=open]:bg-inset',
+          'hover:bg-primary-50 data-[state=open]:bg-primary-50',
         )}
       >
-        {/* Square, not round: the person here is the account rather than a
-            face in a list, and the rounded square is what the rest of the
-            system's small tinted blocks are drawn as. */}
-        <Avatar name={displayName(user.name)} className="rounded-control" />
+        {/* Round and green, as the reference draws the rail's footer: this is the one avatar on the
+            page that is not a row in a list, so it does not take a list's rotating tint. */}
+        <Avatar
+          name={displayName(user.name)}
+          size={38}
+          className="bg-success-100 text-success-700"
+        />
 
         <span className="flex min-w-0 flex-1 flex-col leading-snug text-start">
-          <PersonName name={user.name} className="truncate text-value font-semibold text-ink" />
-          <span className="truncate text-meta text-ink-subtle">{t(`roles.${user.role}`)}</span>
+          <PersonName name={user.name} className="truncate text-value font-bold text-ink" />
+          <span className="truncate text-meta text-ink-muted">{t(`roles.${user.role}`)}</span>
         </span>
 
         <Icon

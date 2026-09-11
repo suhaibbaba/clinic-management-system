@@ -80,9 +80,7 @@ export function ManagePage({
 
   return (
     <PageShell clinicName={bookingName(booking.clinicName)}>
-      <h1 className="mb-4 text-[1.375rem] font-semibold tracking-[-0.02em] text-ink">
-        {t('manage.heading')}
-      </h1>
+      <h1 className="mb-4 text-title font-medium tracking-title text-ink">{t('manage.heading')}</h1>
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
@@ -112,7 +110,7 @@ export function ManagePage({
             {booking.clinicPhone && (
               <a
                 href={`tel:${booking.clinicPhone}`}
-                className="mt-2 inline-block text-value font-semibold text-primary-700"
+                className="mt-2 inline-block text-value font-medium text-primary-700"
               >
                 {t('manage.callClinic')}
               </a>
@@ -120,7 +118,7 @@ export function ManagePage({
           </Card>
         ) : mode === 'confirming-cancel' ? (
           <Card>
-            <h2 className="text-field font-semibold text-ink">{t('manage.cancelTitle')}</h2>
+            <h2 className="text-field font-medium text-ink">{t('manage.cancelTitle')}</h2>
             <p className="mt-1 text-value text-ink-muted">{t('manage.cancelBody')}</p>
 
             <label htmlFor="cancel-reason" className="mt-3 block text-value font-medium text-ink">
@@ -223,7 +221,7 @@ function ReschedulePanel({
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-field font-semibold text-ink">{t('manage.rescheduleTitle')}</h2>
+      <h2 className="text-field font-medium text-ink">{t('manage.rescheduleTitle')}</h2>
 
       <WhenStep
         chips={chips}

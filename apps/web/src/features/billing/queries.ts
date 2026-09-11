@@ -1,10 +1,7 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import type {
   CreatePaymentInput,
-  ListPaymentsQuery,
-  Paginated,
   PatientBalance,
-  Payment,
   ReversePaymentInput,
   Statement,
   StatementQuery,
@@ -38,14 +35,6 @@ export function useStatement(
     queryKey: [STATEMENT_KEY, patientId, query],
     queryFn: () => billingApi.statement(patientId, query),
     enabled: enabled && patientId !== '',
-    placeholderData: (previous) => previous,
-  });
-}
-
-export function usePayments(query: Partial<ListPaymentsQuery>): UseQueryResult<Paginated<Payment>> {
-  return useQuery({
-    queryKey: [PAYMENTS_KEY, query],
-    queryFn: () => billingApi.payments(query),
     placeholderData: (previous) => previous,
   });
 }

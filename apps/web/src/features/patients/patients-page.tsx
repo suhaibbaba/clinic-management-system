@@ -101,7 +101,7 @@ export function PatientsPage(): JSX.Element {
           <span className="flex items-center gap-3">
             <Avatar name={row.fullName} tintKey={row.id} />
             <span className="flex min-w-0 flex-col leading-snug">
-              <span className="truncate font-semibold text-ink">{row.fullName}</span>
+              <span className="truncate font-medium text-ink">{row.fullName}</span>
               <Ltr className="text-label tabular-nums text-ink-subtle">{row.fileNumber}</Ltr>
             </span>
           </span>
@@ -151,7 +151,7 @@ export function PatientsPage(): JSX.Element {
             <Money
               amount={row.balance}
               currency={currency}
-              className={owes ? 'font-semibold text-danger-600' : 'text-ink-subtle'}
+              className={owes ? 'font-medium text-danger-600' : 'text-ink-subtle'}
             />
           );
         },

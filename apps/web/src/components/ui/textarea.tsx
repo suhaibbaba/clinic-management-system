@@ -18,12 +18,12 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
       rows={rows}
       aria-invalid={hasError || undefined}
       className={cn(
-        'block w-full resize-y rounded-control border bg-surface px-3.5 py-2.5',
-        'text-start text-field text-ink placeholder:text-ink-subtle',
-        'transition-[border-color,box-shadow,background-color] duration-150',
-        'focus:border-primary-500',
-        'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-subtle',
-        hasError ? 'border-danger-500' : 'border-line',
+        'block w-full resize-y rounded-field border bg-canvas px-3.5 py-2.5',
+        'text-start text-field text-ink placeholder:text-ink-faint',
+        'transition-[border-color,box-shadow,background-color] duration-200',
+        'focus:border-primary-600 focus:shadow-ring',
+        'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-faint',
+        hasError ? 'border-danger-600' : 'border-line',
         className,
       )}
       {...props}

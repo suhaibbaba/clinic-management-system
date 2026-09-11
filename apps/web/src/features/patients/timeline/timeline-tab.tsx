@@ -74,7 +74,7 @@ function Row({ entry }: { readonly entry: TimelineEntry }): JSX.Element {
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-start gap-3 rounded-card bg-surface p-3 shadow-card">
+    <div className="flex items-start gap-3 border border-line rounded-card bg-surface p-3 shadow-card">
       <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-panel bg-inset">
         <Icon name={ICONS[entry.type]} className="size-4 text-ink-muted" />
       </span>

@@ -54,7 +54,7 @@ describe('the printed letterhead', () => {
 
   it('still carries the name when the bytes are something pdf-lib cannot embed', async () => {
     const { pdf, text } = fakePdf();
-    (pdf as { image: () => Promise<boolean> }).image = async () => false;
+    (pdf as unknown as { image: () => Promise<boolean> }).image = async () => false;
 
     await service.draw(pdf, clinic({ logo: { bytes: Buffer.from([1]), mime: 'image/tiff' } }));
 

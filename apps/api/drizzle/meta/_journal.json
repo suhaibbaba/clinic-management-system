@@ -85,6 +85,13 @@
       "when": 1788983543190,
       "tag": "0011_staff_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789126045566,
+      "tag": "0012_clinic_notes",
+      "breakpoints": true
     }
   ]
 }

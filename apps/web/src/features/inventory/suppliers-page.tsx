@@ -241,7 +241,7 @@ function Statement({
   return (
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h2 className="text-value font-semibold text-ink">
+        <h2 className="text-value font-medium text-ink">
           {t('inventory.suppliers.statement.title', { supplier: supplier.name })}
         </h2>
 
@@ -278,13 +278,13 @@ function Statement({
 
       <Card>
         <div className="flex items-baseline justify-between">
-          <span className="text-value font-semibold text-ink">
+          <span className="text-value font-medium text-ink">
             {t('inventory.suppliers.statement.periodTotal')}
           </span>
           <Money
             amount={(statement.data as SupplierStatement | undefined)?.total ?? '0.00'}
             currency={clinic.data?.currency}
-            className="text-value font-semibold"
+            className="text-value font-medium"
           />
         </div>
       </Card>

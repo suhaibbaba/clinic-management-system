@@ -35,6 +35,19 @@ export function formatDate(iso: string): string {
 
 // Not `toLocaleTimeString`: the Arabic locale renders "09:00 ص", and that Arabic marker reorders
 // the whole string inside an `<Ltr>` island.
+// The day named and the date in figures, kept apart: the figures are an `<Ltr>` island at the call
+// site, and a single joined string would let bidi drag the slashes to the wrong end.
+export function dayAndDate(iso: string): { readonly weekday: string; readonly date: string } {
+  const at = new Date(iso);
+
+  return {
+    weekday: stripBidiMarks(at.toLocaleDateString(dateLocale(), { weekday: 'long' })),
+    date: stripBidiMarks(
+      at.toLocaleDateString(dateLocale(), { year: '2-digit', month: '2-digit', day: '2-digit' }),
+    ),
+  };
+}
+
 export function formatClinicTime(iso: string): string {
   return new Intl.DateTimeFormat('en-GB', {
     timeZone: clinicTimeZone(),
@@ -84,12 +97,6 @@ export function endOfNextDayIso(value: string): string | undefined {
   const date = new Date(`${value}T00:00:00`);
   date.setDate(date.getDate() + 1);
   return date.toISOString();
-}
-
-// No `Intl.NumberFormat`: the value must never pass through a float, and an Arabic locale would
-// rewrite the digits and add bidi marks.
-export function formatMoney(amount: string, currency?: string): string {
-  return currency ? `${amount} ${currency}` : amount;
 }
 
 // The separator is punctuation, and Arabic's is not the Latin comma — `join(', ')` in an Arabic

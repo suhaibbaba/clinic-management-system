@@ -57,8 +57,8 @@ export function ProfilePage(): JSX.Element {
       <PageHeader title="profile.title" subtitle="profile.subtitle" />
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-card bg-surface shadow-card p-4">
-          <h2 className="text-section font-semibold text-ink">{t('profile.details')}</h2>
+        <section className="border border-line rounded-card bg-surface shadow-card p-4">
+          <h2 className="text-section font-medium text-ink">{t('profile.details')}</h2>
 
           {/* Read-only here: a staff photo is set by the admin on the users screen, where accounts
               are managed. */}
@@ -105,8 +105,8 @@ export function ProfilePage(): JSX.Element {
           </dl>
         </section>
 
-        <section className="rounded-card bg-surface shadow-card p-4">
-          <h2 className="text-section font-semibold text-ink">{t('profile.changePassword')}</h2>
+        <section className="border border-line rounded-card bg-surface shadow-card p-4">
+          <h2 className="text-section font-medium text-ink">{t('profile.changePassword')}</h2>
 
           <form className="mt-3 flex flex-col gap-4" onSubmit={onSubmit} noValidate>
             <FormField

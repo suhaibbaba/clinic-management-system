@@ -107,7 +107,7 @@ export function SurfaceSelector({
                 textAnchor="middle"
                 dominantBaseline="central"
                 className={cn(
-                  'text-[13px] font-semibold',
+                  'text-[13px] font-medium',
                   selected ? 'fill-ink-inverse' : 'fill-ink-muted',
                 )}
               >

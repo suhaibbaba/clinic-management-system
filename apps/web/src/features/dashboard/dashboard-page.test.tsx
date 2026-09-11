@@ -7,7 +7,9 @@ import ar from '@web/i18n/locales/ar.json';
 import { authTokens } from '@web/lib/auth-tokens';
 import {
   makeCalendarAppointment,
+  makeCalendarFeed,
   makeClinic,
+  makeLookupBundle,
   makeDashboardSummary,
   makeProfile,
   paginated,
@@ -26,10 +28,13 @@ async function renderDashboard(
     'GET /clinic': { status: 200, body: { ...makeClinic(), settings: { timezone: 'UTC' } } },
     'GET /dashboard/summary': { status: 200, body: summary },
     'GET /appointments/pending-confirmation': { status: 200, body: paginated([]) },
+    'GET /appointments/calendar': { status: 200, body: makeCalendarFeed() },
+    'GET /notes': { status: 200, body: paginated([]) },
+    'GET /lookups': { status: 200, body: makeLookupBundle() },
   } as Record<string, MockResponse>);
 
   renderWithProviders(<AppRoutes />, { route: '/dashboard' });
-  await screen.findByRole('heading', { name: ar.dashboard.title, level: 1 });
+  await screen.findByRole('region', { name: ar.dashboard.schedule.title });
 }
 
 /** `findBy`, because the card only exists once the response says the role may have it. */
@@ -54,7 +59,7 @@ describe('Dashboard', () => {
     renderWithProviders(<AppRoutes />, { route: '/' });
 
     expect(
-      await screen.findByRole('heading', { name: ar.dashboard.title, level: 1 }),
+      await screen.findByRole('region', { name: ar.dashboard.schedule.title }),
     ).toBeInTheDocument();
   });
 
@@ -69,7 +74,7 @@ describe('Dashboard', () => {
     } as Record<string, MockResponse>);
 
     renderWithProviders(<AppRoutes />, { route: '/dashboard' });
-    await screen.findByRole('heading', { name: ar.dashboard.title, level: 1 });
+    await screen.findByRole('region', { name: ar.dashboard.schedule.title });
 
     expect(api.calls.filter((call) => call.url.includes('/dashboard/summary'))).toHaveLength(1);
     // Not the paginated list behind the card, which would be a second request
@@ -128,13 +133,14 @@ describe('Dashboard', () => {
     const schedule = screen.getByRole('region', { name: ar.dashboard.schedule.title });
     await within(schedule).findByText('09:00');
 
-    const rows = within(schedule).getAllByRole('row').slice(1);
+    // One slot per time, in order down the rail.
+    const slots = within(schedule).getAllByRole('listitem');
 
-    expect(rows).toHaveLength(2);
-    expect(within(rows[0]!).getByText('09:00')).toBeInTheDocument();
-    expect(within(rows[1]!).getByText('11:30')).toBeInTheDocument();
+    expect(slots).toHaveLength(2);
+    expect(within(slots[0]!).getByText('09:00')).toBeInTheDocument();
+    expect(within(slots[1]!).getByText('11:30')).toBeInTheDocument();
 
-    expect(within(rows[0]!).getByRole('link', { name: 'أحمد خالد الحسن' })).toHaveAttribute(
+    expect(within(slots[0]!).getByRole('link', { name: 'أحمد خالد الحسن' })).toHaveAttribute(
       'href',
       `/patients/${PATIENT_ID}`,
     );

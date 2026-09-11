@@ -92,9 +92,9 @@ export const listAppointmentsQuerySchema = paginationQuerySchema.extend({
 export type ListAppointmentsQuery = z.infer<typeof listAppointmentsQuerySchema>;
 
 export const calendarQuerySchema = z.object({
-  /** Any date inside the range; the API snaps a week to its Sunday. */
+  /** Any date inside the range; the API snaps a week to its Sunday and a month to its first. */
   date: isoDateSchema,
-  range: z.enum(['day', 'week']).default('day'),
+  range: z.enum(['day', 'week', 'month']).default('day'),
   doctorId: uuidSchema.optional(),
 });
 export type CalendarQuery = z.infer<typeof calendarQuerySchema>;

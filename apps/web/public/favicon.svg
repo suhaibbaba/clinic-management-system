@@ -3,7 +3,7 @@
   a plain glyph on the brand blue rather than any one clinic's or specialty's emblem.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-  <rect width="48" height="48" rx="10" fill="#316C9C" />
+  <rect width="48" height="48" rx="10" fill="#1b6f97" />
   <path
     d="M24 12v24M12 24h24"
     fill="none"

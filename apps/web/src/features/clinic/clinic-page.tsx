@@ -117,7 +117,7 @@ export function ClinicPage(): JSX.Element {
       />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-card bg-surface shadow-card p-4">
+        <section className="border border-line rounded-card bg-surface shadow-card p-4">
           <div className="flex flex-col gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField label="clinic.nameAr" htmlFor="clinic-name-ar">
@@ -200,7 +200,7 @@ export function ClinicPage(): JSX.Element {
           </div>
         </section>
 
-        <section className="rounded-card bg-surface shadow-card p-4">
+        <section className="border border-line rounded-card bg-surface shadow-card p-4">
           <p className="mb-3 text-value font-medium text-ink">{t('clinic.workingHours')}</p>
           <WorkingHours
             value={workingHours}
@@ -210,7 +210,7 @@ export function ClinicPage(): JSX.Element {
           />
         </section>
 
-        <section className="rounded-card bg-surface shadow-card p-4">
+        <section className="border border-line rounded-card bg-surface shadow-card p-4">
           <ClosuresPanel canEdit={canEdit} />
         </section>
 
@@ -345,7 +345,7 @@ function AboutSection(): JSX.Element {
   const mismatched = apiVersion !== undefined && apiVersion !== WEB_VERSION;
 
   return (
-    <section className="rounded-card bg-surface shadow-card p-4">
+    <section className="border border-line rounded-card bg-surface shadow-card p-4">
       <p className="mb-3 text-value font-medium text-ink">{t('clinic.about')}</p>
 
       <dl className="flex flex-col gap-2">

@@ -58,14 +58,19 @@ export const APPOINTMENTS_ENTITY = 'appointments';
 /** Postgres raises this when an `EXCLUDE` constraint rejects a row. */
 const EXCLUSION_VIOLATION = '23P01';
 
+// Two inserts landing together each have to check the other's uncommitted row against
+// `appointments_no_overlap`, and Postgres is entitled to break that wait by killing one of them.
+// The victim is rolled back whole, so it is safe to run again — see `insert`.
+const DEADLOCK = '40P01';
+
 // Walked down the `cause` chain: drizzle wraps the driver's error, so the SQLSTATE is a level or
 // two below. Reading the top level made every double booking a 500.
-function isOverlapConflict(error: unknown): boolean {
+function hasSqlState(error: unknown, state: string): boolean {
   for (let current = error, depth = 0; current && depth < 5; depth += 1) {
     if (
       typeof current === 'object' &&
       'code' in current &&
-      (current as { code?: unknown }).code === EXCLUSION_VIOLATION
+      (current as { code?: unknown }).code === state
     ) {
       return true;
     }
@@ -166,8 +171,8 @@ export class AppointmentsService implements OnModuleInit {
   // the indexed `starts_at`.
   async calendar(actor: AuthenticatedUser, query: CalendarQuery): Promise<CalendarFeed> {
     const timeZone = await this.timeZone(actor.clinicId);
-    const from = query.range === 'week' ? startOfWeek(query.date) : query.date;
-    const to = addDays(from, query.range === 'week' ? 7 : 1);
+    const from = calendarRangeStart(query.date, query.range);
+    const to = calendarRangeEnd(from, query.range);
     const fromInstant = instantFromLocal(from, 0, timeZone);
     const toInstant = instantFromLocal(to, 0, timeZone);
 
@@ -413,9 +418,11 @@ export class AppointmentsService implements OnModuleInit {
     let rows: AppointmentRow[];
 
     try {
-      rows = await write();
+      rows = await this.writeOnce(write);
     } catch (error) {
-      if (isOverlapConflict(error)) {
+      // Deadlock included: the retry below has already run, so anything still arriving here lost
+      // the slot rather than the coin toss.
+      if (hasSqlState(error, EXCLUSION_VIOLATION)) {
         throw new ConflictException('That time is already booked for this doctor');
       }
 
@@ -430,6 +437,22 @@ export class AppointmentsService implements OnModuleInit {
     }
 
     return row;
+  }
+
+  // A deadlock is not an answer to "is this slot free" — it only says two writers raced. Postgres
+  // rolls the victim back whole, so running it again asks the question properly: by then the winner
+  // has committed, and the constraint says 409 or the row goes in. Without this, two receptionists
+  // booking the same minute got a 500 instead of "already booked".
+  private async writeOnce(write: () => Promise<AppointmentRow[]>): Promise<AppointmentRow[]> {
+    try {
+      return await write();
+    } catch (error) {
+      if (!hasSqlState(error, DEADLOCK)) {
+        throw error;
+      }
+
+      return write();
+    }
   }
 
   private calendarSelect() {
@@ -479,6 +502,26 @@ export class AppointmentsService implements OnModuleInit {
 
     return clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE;
   }
+}
+
+/** Inclusive first day drawn for a range, from any date inside it. */
+export function calendarRangeStart(isoDate: string, range: CalendarQuery['range']): string {
+  if (range === 'week') {
+    return startOfWeek(isoDate);
+  }
+
+  return range === 'month' ? `${isoDate.slice(0, 7)}-01` : isoDate;
+}
+
+/** Exclusive last day. A month is added in months, or a 31-day January would overshoot February. */
+export function calendarRangeEnd(from: string, range: CalendarQuery['range']): string {
+  if (range !== 'month') {
+    return addDays(from, range === 'week' ? 7 : 1);
+  }
+
+  const [year = 0, month = 1] = from.split('-').map(Number);
+
+  return new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
 }
 
 /** Sunday of the week a date falls in, matching `DaySchedule.weekday` 0 = Sunday. */

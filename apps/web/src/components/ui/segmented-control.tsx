@@ -30,10 +30,7 @@ export function SegmentedControl<TValue extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className={cn(
-        'inline-flex max-w-full flex-wrap items-center gap-0.5 rounded-control border border-line bg-inset p-0.5',
-        className,
-      )}
+      className={cn('inline-flex max-w-full flex-wrap items-center gap-2', className)}
     >
       {options.map((option) => {
         const isSelected = option.value === value;
@@ -49,19 +46,19 @@ export function SegmentedControl<TValue extends string>({
               // 44 in both directions on touch: `px-3.5` around a two-letter label drew a 43px-wide
               // segment.
               'inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5',
-              'rounded-control px-3 lg:h-8 lg:min-h-0 lg:min-w-0',
-              'text-label transition-[background-color,color,box-shadow] duration-150',
+              'rounded-pill border px-3.5 lg:h-[30px] lg:min-h-0 lg:min-w-0',
+              'text-meta font-medium transition-[background-color,border-color,color] duration-150',
               isSelected
-                ? 'bg-surface font-semibold text-ink shadow-pill'
-                : 'font-medium text-ink-muted hover:text-ink',
+                ? 'border-primary-600 bg-primary-600 text-ink-inverse'
+                : 'border-line bg-canvas text-ink-muted hover:border-primary-200 hover:bg-primary-100 hover:text-primary-700',
             )}
           >
             {option.label}
             {option.count !== undefined && (
               <Ltr
                 className={cn(
-                  'text-label tabular-nums',
-                  isSelected ? 'text-ink-muted' : 'text-ink-subtle',
+                  'text-micro tabular-nums',
+                  isSelected ? 'text-ink-inverse/80' : 'text-ink-subtle',
                 )}
               >
                 {option.count}

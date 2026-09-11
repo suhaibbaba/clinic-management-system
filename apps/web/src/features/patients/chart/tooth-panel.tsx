@@ -92,15 +92,15 @@ export function ToothPanel({
     >
       <div className="flex flex-col gap-6">
         {summary && (
-          <section className="rounded-card bg-canvas p-4 shadow-float">
+          <section className="rounded-card border border-line bg-canvas p-4 shadow-float">
             <div className="flex items-center gap-3">
-              <Ltr className="inline-flex size-12 shrink-0 items-center justify-center rounded-panel bg-surface font-mono text-section font-semibold text-ink shadow-pill">
+              <Ltr className="inline-flex size-12 shrink-0 items-center justify-center rounded-panel bg-surface font-mono text-section font-medium text-ink shadow-pill">
                 {tooth}
               </Ltr>
 
               <div className="min-w-0">
                 <p className="text-label text-ink-muted">{t('chart.panel.title')}</p>
-                <p className="text-value font-semibold text-ink">
+                <p className="text-value font-medium text-ink">
                   {states.info(summary.state).label}
                 </p>
               </div>
@@ -123,7 +123,7 @@ export function ToothPanel({
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-value font-semibold text-ink">{t('chart.panel.history')}</h3>
+            <h3 className="text-value font-medium text-ink">{t('chart.panel.history')}</h3>
 
             <div className="flex flex-wrap items-center gap-2">
               {/* The crown starts here far more often than on the lab board:
@@ -185,7 +185,7 @@ export function ToothPanel({
 
         {adding && tooth !== null && (
           <section className="rounded-panel bg-sunken p-4">
-            <h3 className="mb-3 text-value font-semibold text-ink">
+            <h3 className="mb-3 text-value font-medium text-ink">
               {t('chart.panel.addProcedure')}
             </h3>
             <AddProcedureForm
@@ -205,7 +205,7 @@ export function ToothPanel({
 
         {showAttachments && (
           <section className="flex flex-col gap-2">
-            <h3 className="text-value font-semibold text-ink">{t('chart.panel.attachments')}</h3>
+            <h3 className="text-value font-medium text-ink">{t('chart.panel.attachments')}</h3>
             {data && <ToothAttachments attachments={data.attachments} />}
           </section>
         )}

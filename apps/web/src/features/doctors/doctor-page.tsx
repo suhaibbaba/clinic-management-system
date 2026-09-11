@@ -93,7 +93,7 @@ export function DoctorPage(): JSX.Element {
         <PersonName
           name={doctor.data.user.name}
           showBoth
-          className="text-section font-semibold text-ink"
+          className="text-section font-medium text-ink"
         />
         <Badge tone="info">{doctor.data.specialty.name}</Badge>
         <span className="text-label text-ink-muted">
@@ -102,7 +102,7 @@ export function DoctorPage(): JSX.Element {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-card bg-surface shadow-card p-4">
+        <section className="border border-line rounded-card bg-surface shadow-card p-4">
           <p className="mb-3 text-value font-medium text-ink">{t('doctors.schedule')}</p>
 
           <WorkingHours
@@ -121,7 +121,7 @@ export function DoctorPage(): JSX.Element {
           )}
         </section>
 
-        <section className="rounded-card bg-surface shadow-card p-4">
+        <section className="border border-line rounded-card bg-surface shadow-card p-4">
           <TimeOffPanel doctorId={id} canEdit={canEdit} />
         </section>
       </div>

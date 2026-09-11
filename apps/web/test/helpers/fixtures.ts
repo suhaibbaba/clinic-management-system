@@ -11,9 +11,9 @@ import {
   type AuthenticatedUserProfile,
   type Attachment,
   type CalendarAppointment,
+  type CalendarFeed,
   type DashboardSummary,
   type Doctor,
-  type OverduePatient,
   type PatientBalance,
   type PatientClinicalView,
   type Payment,
@@ -350,19 +350,6 @@ export function makePayment(overrides: Partial<Payment> = {}): Payment {
   };
 }
 
-export function makeOverduePatient(overrides: Partial<OverduePatient> = {}): OverduePatient {
-  return {
-    patientId: PATIENT_ID,
-    fileNumber: '00001',
-    fullName: 'أحمد خالد الحسن',
-    phone: '+963931000001',
-    balance: '300.00',
-    lastPaymentAt: '2026-06-01T10:00:00.000Z',
-    daysSinceLastPayment: 96,
-    ...overrides,
-  };
-}
-
 export const APPOINTMENT_ID = '66666666-6666-4666-8666-666666666666';
 
 // A real instant rather than a fixed string, so a test can say "today at ten" without knowing what
@@ -394,6 +381,17 @@ export function makeCalendarAppointment(
     createdAt: startsAt,
     updatedAt: startsAt,
     ...overrides,
+  };
+}
+
+/** The calendar feed the mini calendar reads for its month of dots. */
+export function makeCalendarFeed(appointments: readonly CalendarAppointment[] = []): CalendarFeed {
+  return {
+    from: '2026-09-01',
+    to: '2026-10-01',
+    appointments: [...appointments],
+    closures: [],
+    timeOff: [],
   };
 }
 

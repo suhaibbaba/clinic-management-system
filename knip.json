@@ -1,0 +1,34 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.mjs", "scripts/qa/*.mjs", "tests/e2e/**/*.spec.ts"],
+      "project": ["scripts/**/*.mjs", "tests/**/*.ts"]
+    },
+    "apps/api": {
+      "entry": [
+        "src/main.ts",
+        "src/database/migrate.ts",
+        "src/database/seed.ts",
+        "test/**/*.{spec,e2e-spec}.ts",
+        "src/**/*.spec.ts"
+      ],
+      "project": ["src/**/*.ts", "test/**/*.ts"]
+    },
+    "apps/web": {
+      "entry": [
+        "src/booking/main.tsx",
+        "scripts/*.mjs",
+        "src/**/*.test.{ts,tsx}",
+        "vite/**/*.test.ts"
+      ],
+      "project": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", "vite/**/*.ts", "scripts/*.mjs"],
+      "ignoreDependencies": ["@fontsource/tajawal"]
+    },
+    "packages/shared": {
+      "project": ["src/**/*.ts"]
+    }
+  },
+  "ignoreExportsUsedInFile": true,
+  "exclude": ["duplicates"]
+}

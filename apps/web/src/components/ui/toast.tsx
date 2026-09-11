@@ -89,7 +89,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
             className={cn(
               // The accent bar is a border on the start edge, so it mirrors
               // with the language along with everything else.
-              'flex items-start gap-2.5 overflow-hidden rounded-panel border-s-4 bg-surface',
+              'flex items-start gap-2.5 overflow-hidden rounded-panel border border-s-4 border-line bg-surface',
               'px-4 py-3 text-value shadow-float',
               message.tone === 'success' ? 'border-s-success-500' : 'border-s-danger-500',
             )}

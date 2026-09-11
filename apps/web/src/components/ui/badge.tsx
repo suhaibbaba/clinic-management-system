@@ -5,13 +5,14 @@ import { cn } from '@web/lib/cn';
 export type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'info';
 
 // Never a solid fill: a grid of entity cards is mostly badges, and a row of saturated pills turns a
-// calm page into a warning light.
-const TONES: Record<BadgeTone, { readonly pill: string; readonly dot: string }> = {
-  neutral: { pill: 'bg-sunken text-ink-muted', dot: 'bg-neutral-500' },
-  success: { pill: 'bg-success-50 text-success-700', dot: 'bg-success-500' },
-  warning: { pill: 'bg-warning-50 text-warning-700', dot: 'bg-warning-500' },
-  danger: { pill: 'bg-danger-50 text-danger-700', dot: 'bg-danger-500' },
-  info: { pill: 'bg-primary-50 text-primary-700', dot: 'bg-primary-500' },
+// calm page into a warning light. The dot is `currentColor`, as the reference draws it — one
+// declaration per tone instead of two that can disagree.
+const TONES: Record<BadgeTone, string> = {
+  neutral: 'bg-sunken text-ink-subtle',
+  success: 'bg-success-100 text-success-700',
+  warning: 'bg-warning-100 text-warning-700',
+  danger: 'bg-danger-100 text-danger-600',
+  info: 'bg-primary-100 text-primary-600',
 };
 
 export interface BadgeProps {
@@ -28,22 +29,18 @@ export function Badge({
   className,
   children,
 }: BadgeProps): JSX.Element {
-  const style = TONES[tone];
-
   return (
     <span
       className={cn(
         // A badge never breaks across lines: a wrapped pill centres its dot against two lines and
         // doubles the row height. The cell is inside `overflow-x-auto` already.
-        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill px-2 py-0.5',
+        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill px-3 py-[5px]',
         'text-meta font-medium',
-        style.pill,
+        TONES[tone],
         className,
       )}
     >
-      {!plain && (
-        <span aria-hidden="true" className={cn('size-1.5 shrink-0 rounded-pill', style.dot)} />
-      )}
+      {!plain && <span aria-hidden="true" className="size-1.5 shrink-0 rounded-pill bg-current" />}
       {children}
     </span>
   );

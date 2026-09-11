@@ -202,7 +202,7 @@ function Board({
                 style.column,
               )}
             >
-              <h2 className="truncate text-label font-semibold">{t(style.label)}</h2>
+              <h2 className="truncate text-label font-medium">{t(style.label)}</h2>
               <Ltr className="text-label tabular-nums">{column.length}</Ltr>
             </header>
 
@@ -259,7 +259,7 @@ function OrderCard({
   return (
     <div
       className={cn(
-        'rounded-card bg-surface p-3 shadow-card transition-shadow duration-150 hover:shadow-float',
+        'border border-line rounded-card bg-surface p-3 shadow-card transition-shadow duration-150 hover:shadow-float',
         order.isOverdue && 'border border-danger-200',
       )}
     >

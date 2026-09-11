@@ -62,7 +62,7 @@ export function EntityCard({
       // open a record without knowing which of the two shapes it is looking at.
       data-entity-card
       className={cn(
-        'flex flex-col rounded-card bg-surface p-4 shadow-card',
+        'flex flex-col border border-line rounded-card bg-surface p-4 shadow-card',
         'transition-[box-shadow,background-color,border-color] duration-150',
         action !== undefined && 'hover:shadow-float',
         isSelected && 'bg-selected outline outline-offset-[-1px] outline-selected-line',
@@ -70,12 +70,12 @@ export function EntityCard({
       )}
     >
       <div className="flex items-start gap-3">
-        <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-control bg-primary-50 text-primary-700">
+        <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-field bg-primary-100 text-primary-700">
           <Icon name={icon} />
         </span>
 
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-value font-semibold text-ink">{title}</h3>
+          <h3 className="truncate text-value font-medium text-ink">{title}</h3>
           {subtitle !== undefined && (
             <p className="mt-0.5 truncate text-meta text-ink-muted">{subtitle}</p>
           )}

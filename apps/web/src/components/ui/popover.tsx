@@ -48,7 +48,7 @@ export function Popover({
             // Constrained to what is on screen, so a field near the bottom of a 390px phone gets a
             // calendar that scrolls rather than one cut off.
             'z-50 max-h-[min(32rem,var(--radix-popover-content-available-height))] overflow-y-auto',
-            'rounded-card bg-surface p-3 shadow-float',
+            'rounded-card border border-line bg-surface p-3 shadow-float',
             'origin-(--radix-popover-content-transform-origin)',
             'data-[state=open]:animate-menu-in data-[state=closed]:animate-menu-out',
           )}

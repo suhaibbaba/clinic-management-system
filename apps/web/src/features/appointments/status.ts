@@ -1,46 +1,32 @@
 import { APPOINTMENT_STATUS, type AppointmentStatus } from '@clinic/shared';
 
 import type { BadgeTone } from '@web/components/ui/badge';
+import { TONE_SURFACE } from '@web/components/ui/tone';
 
 // The block, the badge and the dot all read this, so a status cannot be amber in one place and
-// green in another. Soft tints: a day view is entirely status colour.
+// green in another. The colour itself comes from `TONE_SURFACE` — this table names tones.
 export interface StatusStyle {
   readonly block: string;
   readonly tone: BadgeTone;
 }
 
+const block = (tone: BadgeTone, override = ''): StatusStyle => ({
+  tone,
+  block: override === '' ? TONE_SURFACE[tone] : `${TONE_SURFACE[tone]} ${override}`,
+});
+
 export const APPOINTMENT_STATUS_STYLES: Record<AppointmentStatus, StatusStyle> = {
   // Booked by a patient and not yet confirmed by anyone: the one status that
   // is waiting on the clinic rather than on the patient.
-  [APPOINTMENT_STATUS.REQUESTED]: {
-    block: 'border-warning-300 bg-warning-50 text-warning-800',
-    tone: 'warning',
-  },
-  [APPOINTMENT_STATUS.CONFIRMED]: {
-    block: 'border-primary-200 bg-primary-50 text-primary-800',
-    tone: 'info',
-  },
-  [APPOINTMENT_STATUS.ARRIVED]: {
-    block: 'border-success-300 bg-success-50 text-success-800',
-    tone: 'success',
-  },
-  [APPOINTMENT_STATUS.IN_PROGRESS]: {
-    block: 'border-success-400 bg-success-100 text-success-800',
-    tone: 'success',
-  },
+  [APPOINTMENT_STATUS.REQUESTED]: block('warning'),
+  [APPOINTMENT_STATUS.CONFIRMED]: block('info'),
+  [APPOINTMENT_STATUS.ARRIVED]: block('success'),
+  // The one in the chair, so a step up the same scale rather than a second hue.
+  [APPOINTMENT_STATUS.IN_PROGRESS]: block('success', 'border-success-500 bg-success-200'),
   // Done is history: it recedes rather than celebrating.
-  [APPOINTMENT_STATUS.COMPLETED]: {
-    block: 'border-line-strong bg-inset text-ink-muted',
-    tone: 'neutral',
-  },
-  [APPOINTMENT_STATUS.NO_SHOW]: {
-    block: 'border-danger-200 bg-danger-50 text-danger-700',
-    tone: 'danger',
-  },
-  [APPOINTMENT_STATUS.CANCELLED]: {
-    block: 'border-line bg-surface text-ink-subtle line-through',
-    tone: 'neutral',
-  },
+  [APPOINTMENT_STATUS.COMPLETED]: block('neutral'),
+  [APPOINTMENT_STATUS.NO_SHOW]: block('danger'),
+  [APPOINTMENT_STATUS.CANCELLED]: block('neutral', 'bg-surface line-through'),
 };
 
 /** i18n keys, so no component ever holds an Arabic string. */

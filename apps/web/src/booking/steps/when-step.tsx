@@ -62,7 +62,7 @@ export function WhenStep({
                       ? 'bg-primary-600 text-ink-inverse'
                       : closed
                         ? 'cursor-not-allowed bg-inset text-ink-subtle line-through'
-                        : 'bg-surface text-ink shadow-card hover:bg-row-hover',
+                        : 'border border-line bg-surface text-ink shadow-card hover:bg-row-hover',
                   )}
                 >
                   <span className="text-label">
@@ -70,7 +70,7 @@ export function WhenStep({
                       ? t(`when.${chip.label}`)
                       : chip.label}
                   </span>
-                  <span className="text-field font-semibold tabular-nums">{chip.dayNumber}</span>
+                  <span className="text-field font-medium tabular-nums">{chip.dayNumber}</span>
                   <span className="text-[11px] opacity-80">{chip.monthLabel}</span>
                 </button>
               </li>
@@ -115,7 +115,7 @@ export function WhenStep({
                       'transition-colors duration-150',
                       active
                         ? 'bg-primary-600 text-ink-inverse'
-                        : 'bg-surface text-ink shadow-card hover:bg-row-hover',
+                        : 'border border-line bg-surface text-ink shadow-card hover:bg-row-hover',
                     )}
                   >
                     {slot.start}

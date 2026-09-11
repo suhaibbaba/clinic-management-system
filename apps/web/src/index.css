@@ -1,37 +1,10 @@
 @import 'tailwindcss';
 
-/* Self-hosted: a clinic app should not tell a font CDN which screens a receptionist opened, and a
-   VPS with no outbound network must still render. */
-@import '@fontsource/inter/latin-400.css';
-@import '@fontsource/inter/latin-500.css';
-@import '@fontsource/inter/latin-600.css';
-@import '@fontsource/inter/latin-700.css';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-400.css';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-500.css';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-600.css';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-700.css';
+@import './fonts.css';
 
 @import './theme.css';
 
 @import './base.css';
-
-/* Opaque, deliberately: a frosted bar had no background where the effect did not apply, and the
-   breadcrumb sat on top of a phone number. */
-.chrome-sidebar {
-  background-color: var(--chrome-rail);
-}
-
-.chrome-bar {
-  background-color: var(--chrome-bar);
-}
-
-.chrome-field {
-  background-color: var(--chrome-field);
-}
-
-.chrome-field:hover {
-  background-color: var(--chrome-field-hover);
-}
 
 /* The sheet lives in the page, so print cannot drift from screen. Hiding is by `visibility`: the
    sheet is nested inside `#root`, and `display: none` on an ancestor would take it too. */
@@ -45,7 +18,7 @@
   }
 
   body {
-    background: #fff;
+    background: var(--color-paper);
   }
 
   body * {
@@ -68,7 +41,7 @@
 
   .print-sheet {
     display: block;
-    color: #000;
+    color: var(--color-paper-ink);
     font-size: 12pt;
     line-height: 1.5;
   }
@@ -78,7 +51,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 12mm;
-    border-bottom: 1.5pt solid #000;
+    border-bottom: 1.5pt solid var(--color-paper-ink);
     padding-bottom: 4mm;
   }
 
@@ -144,7 +117,7 @@
 
   .print-table th,
   .print-table td {
-    border: 0.5pt solid #444;
+    border: 0.5pt solid var(--color-paper-rule);
     padding: 2mm 3mm;
     /* Logical, so the sheet mirrors correctly in Arabic. */
     text-align: start;
@@ -181,7 +154,7 @@
 
   .print-signature span {
     flex: 1;
-    border-top: 0.5pt solid #000;
+    border-top: 0.5pt solid var(--color-paper-ink);
     padding-top: 2mm;
   }
 }

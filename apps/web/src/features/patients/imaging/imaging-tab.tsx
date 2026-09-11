@@ -199,7 +199,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
   };
 
   return (
-    <div className="rounded-card bg-surface p-5 shadow-card">
+    <div className="border border-line rounded-card bg-surface p-5 shadow-card">
       {/* Both fields are sent with the upload, and a drop zone that fires the moment a file lands
           has to have them answered already. */}
       <div className="mb-4 flex flex-wrap items-end gap-3">
@@ -248,7 +248,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
       >
         <Icon name="upload" className="size-7 text-ink-subtle" />
 
-        <p className="text-value font-semibold text-ink">{t('imaging.uploadTitle')}</p>
+        <p className="text-value font-medium text-ink">{t('imaging.uploadTitle')}</p>
         <p className="text-label text-ink-muted">{t('imaging.dropHint')}</p>
 
         <input
@@ -304,7 +304,7 @@ function ImageCard({
   };
 
   return (
-    <figure className="flex flex-col gap-1.5 rounded-card bg-surface shadow-card p-2">
+    <figure className="flex flex-col gap-1.5 border border-line rounded-card bg-surface shadow-card p-2">
       <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md bg-canvas">
         {isPending && <Skeleton className="size-full rounded-none" />}
 

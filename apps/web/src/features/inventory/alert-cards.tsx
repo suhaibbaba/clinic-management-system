@@ -102,7 +102,7 @@ function AlertCard({
         </span>
 
         <div className="min-w-0 flex-1">
-          <p className="text-value font-semibold text-ink">{title}</p>
+          <p className="text-value font-medium text-ink">{title}</p>
           <p className="text-label text-ink-muted">{hint}</p>
 
           {/* The first three by name — enough to recognise the problem without

@@ -13,6 +13,3 @@ export const canRecordPayment = (role: UserRole): boolean =>
 
 /** Admin only, and the only correction there is: nobody updates or deletes a payment. */
 export const canReversePayment = (role: UserRole): boolean => role === USER_ROLE.ADMIN;
-
-export const canSeeOverdue = (role: UserRole): boolean =>
-  role === USER_ROLE.ADMIN || role === USER_ROLE.RECEPTIONIST;

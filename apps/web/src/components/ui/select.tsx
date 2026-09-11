@@ -85,14 +85,14 @@ export function Select({
         className={cn(
           // 44px under `lg`, like every other field a thumb has to hit.
           'flex h-11 w-full cursor-pointer items-center justify-between gap-2 lg:h-9',
-          'rounded-control border bg-surface ps-3.5 pe-3 text-start text-field text-ink',
-          'transition-[border-color,box-shadow,background-color] duration-150',
-          'focus:border-primary-500',
-          'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-subtle',
+          'rounded-field border bg-canvas ps-3.5 pe-3 text-start text-field text-ink',
+          'transition-[border-color,box-shadow,background-color] duration-200',
+          'focus:border-primary-600 focus:shadow-ring',
+          'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-faint',
           // Ours rather than `data-[placeholder]`: the empty state is a real selection here, so
           // Radix does not consider the trigger to be showing a placeholder.
-          empty && 'text-ink-subtle',
-          hasError ? 'border-danger-500' : 'border-line',
+          empty && 'text-ink-faint',
+          hasError ? 'border-danger-600' : 'border-line',
           className,
         )}
       >
@@ -114,7 +114,7 @@ export function Select({
           sideOffset={6}
           className={cn(
             'z-50 max-h-[min(24rem,var(--radix-select-content-available-height))]',
-            'w-[var(--radix-select-trigger-width)] overflow-hidden rounded-card bg-surface p-1 shadow-float',
+            'w-[var(--radix-select-trigger-width)] overflow-hidden rounded-panel border border-line bg-surface p-1 shadow-float',
             'origin-(--radix-select-content-transform-origin)',
             'data-[state=open]:animate-menu-in data-[state=closed]:animate-menu-out',
           )}

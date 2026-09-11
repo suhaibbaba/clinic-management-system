@@ -34,7 +34,7 @@ export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.El
           amount={balance.data?.balance ?? '0.00'}
           currency={currency}
           signed
-          className="text-kpi font-semibold"
+          className="text-kpi font-medium"
         />
       )}
 

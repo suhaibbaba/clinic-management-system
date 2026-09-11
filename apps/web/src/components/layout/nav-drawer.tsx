@@ -46,9 +46,9 @@ export function NavDrawer({
           aria-label={title}
           className={cn(
             'fixed inset-y-0 start-0 z-50 flex w-[86%] max-w-[320px] flex-col md:hidden',
-            // `chrome-sidebar`, not `bg-surface`: on a phone this panel is the
-            // rail, and it carries the same tint the rail does on a laptop.
-            'chrome-sidebar shadow-float',
+            // `bg-rail`, not `bg-surface`: on a phone this panel is the rail, and it carries the
+            // same tint the rail does on a laptop.
+            'bg-rail shadow-float',
             'data-[state=open]:animate-drawer-in data-[state=closed]:animate-drawer-out',
           )}
         >

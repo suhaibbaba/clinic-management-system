@@ -33,7 +33,7 @@ export function DropdownMenuContent({
         align={align}
         sideOffset={8}
         className={cn(
-          'z-50 min-w-56 rounded-panel bg-surface p-1.5 shadow-float',
+          'z-50 min-w-56 rounded-panel border border-line bg-surface p-1.5 shadow-float',
           'origin-(--radix-dropdown-menu-content-transform-origin)',
           'data-[state=open]:animate-menu-in data-[state=closed]:animate-menu-out',
           className,

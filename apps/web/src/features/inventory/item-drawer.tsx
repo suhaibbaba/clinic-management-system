@@ -111,7 +111,7 @@ export function ItemDrawer({
               <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-value">
                 <Field label={t('inventory.columns.quantity')}>
                   <span className="flex items-baseline gap-1.5">
-                    <Ltr className="font-semibold tabular-nums">{row.quantity}</Ltr>
+                    <Ltr className="font-medium tabular-nums">{row.quantity}</Ltr>
                     <span className="text-label text-ink-muted">{unitLabel(row.unit)}</span>
                   </span>
                 </Field>
@@ -188,7 +188,7 @@ function Batches({
 
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-value font-semibold text-ink">{t('inventory.batches.title')}</h3>
+      <h3 className="text-value font-medium text-ink">{t('inventory.batches.title')}</h3>
 
       {live.length === 0 ? (
         <p className="text-label text-ink-muted">{t('inventory.batches.empty')}</p>
@@ -270,7 +270,7 @@ function History({
 
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-value font-semibold text-ink">{t('inventory.history.title')}</h3>
+      <h3 className="text-value font-medium text-ink">{t('inventory.history.title')}</h3>
 
       <RefreshBar active={isRefreshing} />
 

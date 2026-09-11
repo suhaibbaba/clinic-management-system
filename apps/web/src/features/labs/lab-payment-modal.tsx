@@ -92,11 +92,7 @@ export function LabPaymentModal({
       <form className="flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
         <div className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2">
           <span className="text-label text-ink-muted">{t('labs.payment.currentBalance')}</span>
-          <Money
-            amount={balance?.balance ?? '0.00'}
-            currency={currency}
-            className="font-semibold"
-          />
+          <Money amount={balance?.balance ?? '0.00'} currency={currency} className="font-medium" />
         </div>
 
         <FormField label="labs.payment.amount" htmlFor="lab-payment-amount" error={errors.amount}>
