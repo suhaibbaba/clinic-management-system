@@ -1,5 +1,6 @@
 import {
   GripVertical,
+  MoreVertical,
   ListOrdered,
   Activity,
   AlertTriangle,
@@ -84,6 +85,7 @@ export type IconName =
   | 'mail'
   | 'menu'
   | 'money'
+  | 'more-vertical'
   | 'package'
   | 'phone'
   | 'plus'
@@ -135,6 +137,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   file: FileText,
   gear: Settings,
   grip: GripVertical,
+  'more-vertical': MoreVertical,
   globe: Globe,
   image: ImageIcon,
   info: Info,

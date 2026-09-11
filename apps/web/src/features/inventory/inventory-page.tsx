@@ -111,7 +111,7 @@ export function InventoryPage(): JSX.Element {
       <PageHeader
         title="inventory.title"
         subtitle="inventory.subtitle"
-        actions={
+        primaryAction={
           <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="secondary"

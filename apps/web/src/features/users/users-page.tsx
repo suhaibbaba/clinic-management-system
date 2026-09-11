@@ -178,7 +178,7 @@ export function UsersPage(): JSX.Element {
         {...(query.data !== undefined && {
           count: t('pagination.total', { total: query.data.total }),
         })}
-        actions={
+        primaryAction={
           <Button
             icon={<Icon name="user-plus" />}
             onClick={() => {

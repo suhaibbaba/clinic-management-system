@@ -60,6 +60,7 @@ export const patientsApi = {
         limit: query.limit,
         search: query.search,
         hasBalance: query.hasBalance,
+        visitedSince: query.visitedSince,
       },
     }),
 

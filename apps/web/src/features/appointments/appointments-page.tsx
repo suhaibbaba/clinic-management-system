@@ -216,7 +216,7 @@ export function AppointmentsPage(): JSX.Element {
       <PageHeader
         title="appointments.title"
         subtitle="appointments.subtitle"
-        actions={
+        primaryAction={
           <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="secondary"

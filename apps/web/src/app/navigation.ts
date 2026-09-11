@@ -97,6 +97,13 @@ export function visibleSettingsItems(role: UserRole | undefined): readonly NavIt
 
 export const ALL_NAV_ITEMS: readonly NavItem[] = [...NAV_ITEMS, ...NAV_SETTINGS.items];
 
+/** The same table the route guards are built from, so the bar never links somewhere it would bounce. */
+export function canReachNavItem(to: string, role: UserRole | undefined): boolean {
+  const item = ALL_NAV_ITEMS.find((candidate) => candidate.to === to);
+
+  return role !== undefined && item !== undefined && visible([item], role).length === 1;
+}
+
 // The longest destination that prefixes the URL: `/clinic/lists` sits under `/clinic`, and a plain
 // prefix test lit two rows at once.
 export function activeNavItem(pathname: string): NavItem | undefined {

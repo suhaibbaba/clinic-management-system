@@ -73,7 +73,7 @@ export function LabOrdersPage(): JSX.Element {
       <PageHeader
         title="labs.orders.title"
         subtitle="labs.orders.subtitle"
-        actions={
+        primaryAction={
           canCreateLabOrder(user?.role) ? (
             <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
               {t('labs.orders.add')}
