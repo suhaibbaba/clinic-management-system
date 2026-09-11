@@ -14,7 +14,6 @@ import {
   type CalendarFeed,
   type DashboardSummary,
   type Doctor,
-  type OverduePatient,
   type PatientBalance,
   type PatientClinicalView,
   type Payment,
@@ -347,19 +346,6 @@ export function makePayment(overrides: Partial<Payment> = {}): Payment {
     reversesId: null,
     receivedBy: null,
     createdAt: '2026-09-01T10:00:00.000Z',
-    ...overrides,
-  };
-}
-
-export function makeOverduePatient(overrides: Partial<OverduePatient> = {}): OverduePatient {
-  return {
-    patientId: PATIENT_ID,
-    fileNumber: '00001',
-    fullName: 'أحمد خالد الحسن',
-    phone: '+963931000001',
-    balance: '300.00',
-    lastPaymentAt: '2026-06-01T10:00:00.000Z',
-    daysSinceLastPayment: 96,
     ...overrides,
   };
 }

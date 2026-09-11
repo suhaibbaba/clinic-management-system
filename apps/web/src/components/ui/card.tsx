@@ -42,22 +42,3 @@ export function Card({
     </div>
   );
 }
-
-export interface CardHeaderProps {
-  readonly title: ReactNode;
-  readonly subtitle?: ReactNode | undefined;
-  readonly actions?: ReactNode | undefined;
-  readonly className?: string | undefined;
-}
-
-export function CardHeader({ title, subtitle, actions, className }: CardHeaderProps): JSX.Element {
-  return (
-    <div className={cn('mb-3 flex flex-wrap items-start justify-between gap-3', className)}>
-      <div className="min-w-0">
-        <h2 className="text-section font-medium text-ink">{title}</h2>
-        {subtitle !== undefined && <p className="mt-0.5 text-meta text-ink-muted">{subtitle}</p>}
-      </div>
-      {actions !== undefined && <div className="flex items-center gap-2">{actions}</div>}
-    </div>
-  );
-}

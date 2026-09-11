@@ -9,7 +9,6 @@ import {
   type LabBalance,
   type LabOrderAttachment,
   type LabOrderRow,
-  type LabPayment,
   type LabStatement,
   type LabSummary,
   type ListLabOrdersQuery,
@@ -35,11 +34,6 @@ export const LAB_WORK_TYPES_KEY = 'lab-work-types';
 
 /** The audit log's `entity` for an order — the table name, as the API writes it. */
 export const LAB_ORDERS_ENTITY = 'lab_orders';
-
-// A receptionist is in none of the labs matrix rows, so no nav entry and no route. The API refuses
-// them either way.
-export const seesLabs = (role: UserRole | undefined): boolean =>
-  role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR || role === USER_ROLE.TECHNICIAN;
 
 // A transition changes the board, the balance and the statement — an order just sent is money owed
 // — so every mutation invalidates all three.
@@ -107,14 +101,6 @@ export function useLabStatement(
   });
 }
 
-export function useLabPayments(labId: string): UseQueryResult<Paginated<LabPayment>> {
-  return useQuery({
-    queryKey: [LAB_PAYMENTS_KEY, labId],
-    queryFn: () => labsApi.payments(labId, { limit: 50 }),
-    enabled: labId !== '',
-  });
-}
-
 export function useLabOrders(
   query: Partial<ListLabOrdersQuery> = {},
   enabled = true,
@@ -124,22 +110,6 @@ export function useLabOrders(
     queryFn: () => labOrdersApi.list(query),
     enabled,
     placeholderData: (previous) => previous,
-  });
-}
-
-export function useOverdueLabOrders(enabled = true): UseQueryResult<LabOrderRow[]> {
-  return useQuery({
-    queryKey: [LAB_ORDERS_KEY, 'overdue'],
-    queryFn: () => labOrdersApi.overdue(),
-    enabled,
-  });
-}
-
-export function useLabOrder(id: string): UseQueryResult<LabOrderRow> {
-  return useQuery({
-    queryKey: [LAB_ORDERS_KEY, 'one', id],
-    queryFn: () => labOrdersApi.findOne(id),
-    enabled: id !== '',
   });
 }
 
@@ -236,10 +206,4 @@ export function useDeleteLabOrderAttachment() {
 
 export function usePayLab() {
   return useLabMutation((input: CreateLabPaymentInput) => labsApi.pay(input));
-}
-
-export function useReverseLabPayment() {
-  return useLabMutation(({ id, reason }: { id: string; reason: string }) =>
-    labsApi.reversePayment(id, { reason }),
-  );
 }

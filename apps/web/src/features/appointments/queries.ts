@@ -119,9 +119,3 @@ export const usePromoteWaitingEntry = () =>
 
 export const useResolveWaitingEntry = () =>
   useCalendarMutation((id: string) => waitingListApi.resolve(id));
-
-export const findAppointment = (
-  feed: CalendarFeed | undefined,
-  id: string | null,
-): CalendarAppointment | undefined =>
-  id === null ? undefined : feed?.appointments.find((entry) => entry.id === id);

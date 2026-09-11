@@ -32,11 +32,6 @@ body {
   unicode-bidi: isolate;
 }
 
-.bidi-rtl {
-  direction: rtl;
-  unicode-bidi: isolate;
-}
-
 /* The reference's two gradients, named once: the label chip on a KPI card or panel head, and the
    active row in the rail. Utilities rather than component classes so they compose with the rest. */
 @utility tag-wash {
@@ -50,7 +45,7 @@ body {
 /* The banner's ground: a green bloom over a blue-to-green wash, as the reference layers them. */
 @utility banner-wash {
   background-image:
-    radial-gradient(600px 200px at 85% 0%, rgb(57 186 151 / 0.12), transparent 60%),
+    radial-gradient(600px 200px at 85% 0%, var(--color-banner-bloom), transparent 60%),
     linear-gradient(
       100deg,
       var(--color-banner-from) 0%,
@@ -62,6 +57,19 @@ body {
 /* Today's cell in the mini calendar — the rail's gradient turned a quarter. */
 @utility today-wash {
   background-image: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-900));
+}
+
+/* The calendar's hour rules, painted rather than built: fifteen absolutely-positioned divs per
+   doctor column is a static grid React re-created on every commit. The row height arrives as
+   `--hour-height`, which is a length rather than a colour. */
+@utility hour-rules {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--color-line) 0,
+    var(--color-line) 1px,
+    transparent 1px,
+    transparent var(--hour-height, 60px)
+  );
 }
 
 /* Hatching, not a fill: a fill is what an appointment is, and a block that reads as one is a block

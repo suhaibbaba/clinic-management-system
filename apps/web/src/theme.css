@@ -8,19 +8,16 @@
   --color-primary-100: #e1eef5; /* --blue-100 */
   --color-primary-200: #c8dfec;
   --color-primary-300: #a5c9de;
-  --color-primary-400: #5f9bbb;
   --color-primary-500: #2e80a8;
   --color-primary-600: #1b6f97; /* --blue */
   --color-primary-700: #155b7d; /* --blue-700 */
   --color-primary-800: #114d6a;
   --color-primary-900: #0e3d55; /* --blue-900 */
-  --color-primary-950: #092b3d; /* --blue-950 */
 
   /* Green — the logo's second colour. It is the focus ring, the "now" marker and success, never a
      button fill: two filled accents on one page means neither answers "what do I press". */
   --color-success-50: #effaf6;
   --color-success-100: #dcf3ec; /* --green-100 */
-  --color-success-200: #cbefe2;
   --color-success-300: #a5e2cd;
   --color-success-400: #6dcfb1;
   --color-success-500: #39ba97; /* --green */
@@ -33,25 +30,18 @@
   --color-danger-50: #fef5f4;
   --color-danger-100: #fbeae8; /* --red-bg */
   --color-danger-200: #fce8e6;
-  --color-danger-300: #ebafa8;
-  --color-danger-400: #d97c71;
   --color-danger-500: #c4544a;
   --color-danger-600: #b03a31; /* --red-ink */
   --color-danger-700: #a03b31;
   --color-danger-800: #7a2720;
-  --color-danger-900: #5c1d18;
 
   /* 700 is the reference's `--amber-ink`, 100 its `--amber-bg`. */
   --color-warning-50: #fdf8ec;
   --color-warning-100: #fbf1da; /* --amber-bg */
-  --color-warning-200: #f5e3b6;
   --color-warning-300: #e8cb83;
-  --color-warning-400: #d3ac4a;
   --color-warning-500: #b98a1c;
-  --color-warning-600: #a0730b;
   --color-warning-700: #8f6206; /* --amber-ink */
   --color-warning-800: #6e4b04;
-  --color-warning-900: #4f3603;
 
   /* Grey mixed towards the blue: 50 is the reference's `--bg`, 200 its `--line`, 700 its
      `--ink-soft`, 900 its `--ink`. */
@@ -63,7 +53,6 @@
   --color-neutral-500: #8fa6b0;
   --color-neutral-600: #5f7885;
   --color-neutral-700: #4e6975; /* --ink-soft */
-  --color-neutral-800: #2c4f5e;
   --color-neutral-900: #12303f; /* --ink */
 }
 
@@ -188,6 +177,10 @@
   --color-note-line: #f0e6c6;
   --color-note-ink: #6e5d22;
   --color-note-meta: #a79554;
+
+  /* The bloom over the banner's wash. Held as a colour rather than baked into the gradient so the
+     one place a translucent green appears is still named here. */
+  --color-banner-bloom: rgb(57 186 151 / 0.12);
 }
 
 /* A printed sheet is black on white paper; these are the only values that are not the screen

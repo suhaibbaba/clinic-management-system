@@ -1,5 +1,4 @@
 import {
-  LOOKUP_LIST_KEYS,
   lookupLabel,
   type CreateLookupOptionInput,
   type LookupBundle,
@@ -121,5 +120,3 @@ export function useDeleteLookupOption() {
     onSuccess: invalidate,
   });
 }
-
-export { LOOKUP_LIST_KEYS };

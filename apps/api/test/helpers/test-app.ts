@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing';
 import { type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { ThrottlerStorage } from '@nestjs/throttler';
 import { hash } from '@node-rs/argon2';
-import { CHART_TYPE, SPECIALTY_CODE, USER_ROLE, USER_ROLES, type UserRole } from '@clinic/shared';
+import { CHART_TYPE, SPECIALTY_CODE, USER_ROLES, type UserRole } from '@clinic/shared';
 
 import { AppModule } from '@api/app.module';
 import { createFastifyAdapter, registerFastifyPlugins } from '@api/bootstrap';
@@ -170,5 +170,3 @@ export async function createTestContext(): Promise<TestContext> {
 export const auth = (token: string): Record<string, string> => ({
   authorization: `Bearer ${token}`,
 });
-
-export { USER_ROLE };

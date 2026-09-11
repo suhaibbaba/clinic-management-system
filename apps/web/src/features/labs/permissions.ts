@@ -11,6 +11,3 @@ export const canCreateLabOrder = (role: UserRole | undefined): boolean =>
 /** "Lab payments": technician and admin create; only admin reverses. */
 export const canPayLab = (role: UserRole | undefined): boolean =>
   role === USER_ROLE.ADMIN || role === USER_ROLE.TECHNICIAN;
-
-export const canReverseLabPayment = (role: UserRole | undefined): boolean =>
-  role === USER_ROLE.ADMIN;

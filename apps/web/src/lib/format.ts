@@ -99,12 +99,6 @@ export function endOfNextDayIso(value: string): string | undefined {
   return date.toISOString();
 }
 
-// No `Intl.NumberFormat`: the value must never pass through a float, and an Arabic locale would
-// rewrite the digits and add bidi marks.
-export function formatMoney(amount: string, currency?: string): string {
-  return currency ? `${amount} ${currency}` : amount;
-}
-
 // The separator is punctuation, and Arabic's is not the Latin comma — `join(', ')` in an Arabic
 // sentence is the same mistake as the wrong script, only quieter.
 export function formatList(items: readonly string[]): string {
