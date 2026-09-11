@@ -62,7 +62,11 @@
   --color-canvas: var(--color-neutral-50);
   --color-inset: var(--color-neutral-100);
   --color-sunken: #eff3f5;
-  --color-row-hover: #f7fafb;
+  --color-row-hover: #f7fbfa;
+  /* A table's head band, and the pill a zero balance recedes into. */
+  --color-table-head: #f7fafb;
+  --color-quiet-bg: #f0f5f6;
+  --color-quiet-ink: #7a929d;
   /* The rail is a shade lighter than white-on-tint, exactly as the reference draws it. */
   --color-rail: #fbfdfd;
 
@@ -107,29 +111,36 @@
   --shadow-ring: 0 0 0 3px var(--color-primary-100);
 
   --tracking-body: 0em;
-  --tracking-title: -0.01em;
 
-  /* The reference sets `html{font-size:15px}` and sizes in rem. Expressed here against a 16px root
-     instead, so the same pixel sizes land without shrinking the 16px field floor iOS needs. */
-  --text-micro: 0.656rem; /* 10.5px — rail section captions, calendar weekday heads */
+  /* The reference's own rem values, against the 15px root `base.css` sets. Converting them to a
+     16px root drifted every size by 6% — visibly, once the two were put side by side. */
+  --text-micro: 0.7rem; /* 10.5px — rail captions, table headers, badges */
   --text-micro--line-height: 1rem;
-  --text-meta: 0.713rem; /* 11.4px — sub-lines, badges, captions */
-  --text-meta--line-height: 1.125rem;
-  --text-label: 0.769rem; /* 12.3px — buttons, table headers, chips, times */
-  --text-label--line-height: 1.25rem;
-  --text-value: 0.844rem; /* 13.5px — body, navigation rows, table cells */
-  --text-value--line-height: 1.375rem;
-  --text-section: 0.863rem; /* 13.8px — a card's title, a row's headline */
-  --text-section--line-height: 1.375rem;
-  --text-title: 1.406rem; /* 22.5px — the page heading */
-  --text-title--line-height: 1.875rem;
-  --text-kpi: 1.969rem; /* 31.5px — the figure on a KPI card */
+  --text-meta: 0.76rem; /* 11.4px — sub-lines, captions, small buttons */
+  --text-meta--line-height: 1.1rem;
+  --text-label: 0.78rem; /* 11.7px — chips, pills, counts */
+  --text-label--line-height: 1.2rem;
+  --text-value: 0.86rem; /* 12.9px — table cells, body text */
+  --text-value--line-height: 1.35rem;
+  --text-nav: 0.9rem; /* 13.5px — a rail row, a row's headline name */
+  --text-nav--line-height: 1.4rem;
+  --text-section: 0.92rem; /* 13.8px — a card's or panel's title */
+  --text-section--line-height: 1.4rem;
+  --text-title: 1.35rem; /* 20.25px — a page heading */
+  --text-title--line-height: 1.8rem;
+  --text-display: 1.5rem; /* 22.5px — the dashboard banner's greeting */
+  --text-display--line-height: 2rem;
+  --text-kpi: 2.1rem; /* 31.5px — the figure on a KPI card */
   --text-kpi--line-height: 1;
 
-  /* iOS Safari zooms when a field under 16px takes focus and does not zoom back. A floor, so
-     `field-size.test.ts` fails the build if any field drops under it. */
-  --text-field: 1rem; /* 16px — never lower */
+  /* iOS Safari zooms when a field under 16px takes focus and does not zoom back. 16px at the 15px
+     root, so `field-size.test.ts` fails the build if any field drops under it. */
+  --text-field: 1.0667rem; /* 16px — never lower */
   --text-field--line-height: 1.5rem;
+
+  /* 4px at the 15px root. Tailwind's default 0.25rem would be 3.75, and every padding in the
+     reference is a whole number of pixels. */
+  --spacing: 0.2667rem;
 
   --animate-menu-in: menu-in 150ms ease-out;
   --animate-menu-out: menu-out 150ms ease-in;

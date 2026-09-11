@@ -19,7 +19,7 @@ export function SuccessView({ booking }: { readonly booking: ManagedBooking }): 
         >
           ✓
         </span>
-        <h1 className="text-title font-medium tracking-title text-ink">{t('success.heading')}</h1>
+        <h1 className="text-title font-medium text-primary-900">{t('success.heading')}</h1>
       </div>
 
       <BookingFacts booking={booking} />
@@ -44,7 +44,7 @@ export function PendingView({ booking }: { readonly booking?: ManagedBooking }):
         >
           ⏳
         </span>
-        <h1 className="text-title font-medium tracking-title text-ink">{t('success.manual')}</h1>
+        <h1 className="text-title font-medium text-primary-900">{t('success.manual')}</h1>
         <p className="text-value text-ink-muted">{t('success.manualBody')}</p>
       </div>
 

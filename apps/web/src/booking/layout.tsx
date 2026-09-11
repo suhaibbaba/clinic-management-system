@@ -69,7 +69,7 @@ export function StepHeader({
         {t('steps.counter', { current, total: STEP_KEYS.length })}
       </p>
 
-      <h1 className="mt-1 text-title font-medium tracking-title text-ink">{title}</h1>
+      <h1 className="mt-1 text-title font-medium text-primary-900">{title}</h1>
 
       <ol aria-hidden className="mt-3 flex gap-1.5">
         {STEP_KEYS.map((key, index) => (
@@ -97,7 +97,7 @@ export function FullPageMessage({
 }): JSX.Element {
   return (
     <div className="mt-10 flex flex-col items-center gap-3 text-center">
-      <h1 className="text-title font-medium tracking-title text-ink">{title}</h1>
+      <h1 className="text-title font-medium text-primary-900">{title}</h1>
       {body && <p className="text-value text-ink-muted">{body}</p>}
       {action}
     </div>

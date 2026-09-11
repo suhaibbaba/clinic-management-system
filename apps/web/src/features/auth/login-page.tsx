@@ -70,7 +70,7 @@ export function LoginPage(): JSX.Element {
           </p>
         )}
 
-        <h1 className="text-title font-medium tracking-title text-ink">{t('auth.loginTitle')}</h1>
+        <h1 className="text-title font-medium text-primary-900">{t('auth.loginTitle')}</h1>
         <p className="mt-1 text-value text-ink-muted">{t('auth.loginSubtitle')}</p>
 
         <form className="mt-6 flex flex-col gap-4" onSubmit={onSubmit} noValidate>

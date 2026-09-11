@@ -80,7 +80,7 @@ export function ManagePage({
 
   return (
     <PageShell clinicName={bookingName(booking.clinicName)}>
-      <h1 className="mb-4 text-title font-medium tracking-title text-ink">{t('manage.heading')}</h1>
+      <h1 className="mb-4 text-title font-medium text-primary-900">{t('manage.heading')}</h1>
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">

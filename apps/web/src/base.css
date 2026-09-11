@@ -1,6 +1,12 @@
 /* Shared by both entries — the dashboard and the public booking page. Two copies would drift, and
    the drift shows as a booking page that looks almost like the app. */
 
+/* The reference's root. A percentage rather than `15px`, so a reader who has raised their browser's
+   default still gets it raised — the ratio is what the design fixes, not the pixel. */
+html {
+  font-size: 93.75%;
+}
+
 html,
 body,
 #root {
