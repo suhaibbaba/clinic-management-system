@@ -163,33 +163,23 @@ function NavList({
 
   return (
     <nav aria-label={t('nav.menu')} className="min-w-0 flex-1">
-      {groups.map((group, index) =>
+      {groups.map((group) =>
         group.label === undefined ? (
-          <ul key="loose" className="flex flex-col gap-1">
+          <ul key="loose">
             {group.items.map((item) => (
               <NavRow key={item.to} item={item} badges={badges} />
             ))}
           </ul>
         ) : (
-          <NavSection
-            key={group.label}
-            id={`nav-group-${index}`}
-            label={group.label}
-            items={group.items}
-            defaultOpen={group.openByDefault}
-            badges={badges}
-          />
+          <NavSection key={group.label} label={group.label} items={group.items} badges={badges} />
         ),
       )}
 
       {settings.length > 0 && (
         <NavSection
-          id="nav-settings"
           label={NAV_SETTINGS.label ?? ''}
           items={settings}
-          defaultOpen={NAV_SETTINGS.openByDefault}
           badges={{ pendingBookings: 0 }}
-          openWithRoute
         />
       )}
     </nav>
@@ -216,10 +206,10 @@ function NavRow({
         to={item.to}
         aria-current={isActive ? 'page' : undefined}
         className={cn(
-          // 44px on touch, the drawn 40 on a laptop: a rail of 44px rows pushes settings off the
-          // screen.
+          // 44px on touch, the reference's drawn 40 on a laptop: a rail of 44px rows pushes the
+          // settings group off the screen.
           'mb-0.5 flex min-h-11 cursor-pointer items-center gap-[11px] rounded-nav px-3 lg:min-h-10',
-          'text-value font-medium transition-[background-color,color,box-shadow] duration-150',
+          'text-nav font-medium transition-[background-color,color,box-shadow] duration-150',
           isActive
             ? 'nav-active-wash text-ink-inverse shadow-nav-active'
             : 'text-ink-muted hover:bg-primary-100 hover:text-primary-700',
@@ -247,72 +237,41 @@ function NavRow({
   );
 }
 
-// Settings starts collapsed, and its state is deliberately not remembered — a group that reopens
-// every morning because it was opened once in March is not collapsed.
+// A rule, a caption, then the rows — the reference's `.nav-sep` and `.nav-title`. It used to be a
+// disclosure with a chevron, which put a control in front of five links that are always worth
+// showing and made the rail's own structure something to operate rather than read.
 function NavSection({
-  id,
   label,
   items,
-  defaultOpen,
   badges,
-  openWithRoute = false,
 }: {
-  readonly id: string;
   readonly label: string;
   readonly items: readonly NavItem[];
-  readonly defaultOpen: boolean;
   readonly badges: Readonly<Record<'pendingBookings', number>>;
-  readonly openWithRoute?: boolean;
 }): JSX.Element {
   const { t } = useTranslation();
-  const { pathname } = useLocation();
-  const holdsCurrent =
-    openWithRoute &&
-    items.some((item) => pathname === item.to || pathname.startsWith(`${item.to}/`));
-  const [open, setOpen] = useState(defaultOpen || holdsCurrent);
-
-  // Navigating into the group opens it; navigating out leaves it as the user
-  // left it, because closing a drawer somebody just opened is rude.
-  useEffect(() => {
-    if (holdsCurrent) {
-      setOpen(true);
-    }
-  }, [holdsCurrent]);
 
   return (
-    <div className="mt-3.5 border-t border-line pt-3.5">
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={id}
-        onClick={() => setOpen((current) => !current)}
+    <>
+      <hr className="my-3.5 mx-1 border-0 border-t border-line" />
+
+      <div
         className={cn(
-          // 44px on touch like every other row in the rail; drawn at 26 on a
-          // laptop, where a caption that tall would read as a nav row itself.
-          'flex min-h-11 w-full cursor-pointer items-center gap-1.5 rounded-nav px-3 py-1 lg:min-h-[26px]',
-          'text-micro font-medium tracking-[0.02em] text-ink-faint transition-colors duration-150',
-          'hover:text-ink-muted',
+          'px-3 pt-1 pb-2 text-micro font-medium tracking-[0.02em] text-ink-faint',
           // Small caps in Latin only: tracking pulls Arabic letters out of their joins, which is a
           // spelling mistake rather than a style.
           'page-ltr:uppercase',
         )}
       >
-        <span className="truncate">{t(label)}</span>
-        <Icon
-          name="chevron-down"
-          className={cn(
-            'ms-auto size-3.5 shrink-0 transition-transform duration-150',
-            !open && '-rotate-90 rtl:rotate-90',
-          )}
-        />
-      </button>
+        {t(label)}
+      </div>
 
-      <ul id={id} hidden={!open} className="mt-1 flex flex-col gap-1">
+      <ul>
         {items.map((item) => (
           <NavRow key={item.to} item={item} badges={badges} />
         ))}
       </ul>
-    </div>
+    </>
   );
 }
 

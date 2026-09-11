@@ -17,19 +17,16 @@ export interface NavItem {
 export interface NavGroup {
   readonly label?: string | undefined;
   readonly items: readonly NavItem[];
-  readonly openByDefault: boolean;
 }
 
 // Hiding a row is cosmetic — the API is the boundary — but this same table drives the route guards,
 // so a hidden section is not reachable by typing its URL either.
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
-    openByDefault: true,
     items: [{ to: '/dashboard', label: 'nav.dashboard', roles: USER_ROLES, icon: 'activity' }],
   },
   {
     label: 'nav.groups.care',
-    openByDefault: true,
     items: [
       {
         to: '/patients',
@@ -50,7 +47,6 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
   {
     label: 'nav.groups.stores',
-    openByDefault: true,
     items: [
       {
         to: '/labs',
@@ -68,11 +64,9 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
 ];
 
-// Collapsed by default: opened the day the clinic is set up and twice a year after. This decides
-// who is offered the group, not who may read its routes.
+// A group like any other in the rail. This decides who is offered it, not who may read its routes.
 export const NAV_SETTINGS: NavGroup = {
   label: 'nav.settings',
-  openByDefault: false,
   items: [
     { to: '/clinic', label: 'nav.clinic', roles: [USER_ROLE.ADMIN], icon: 'building' },
     { to: '/doctors', label: 'nav.doctors', roles: [USER_ROLE.ADMIN], icon: 'stethoscope' },
