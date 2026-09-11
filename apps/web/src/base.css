@@ -37,6 +37,33 @@ body {
   unicode-bidi: isolate;
 }
 
+/* The reference's two gradients, named once: the label chip on a KPI card or panel head, and the
+   active row in the rail. Utilities rather than component classes so they compose with the rest. */
+@utility tag-wash {
+  background-image: linear-gradient(100deg, var(--color-tag-from), var(--color-tag-to));
+}
+
+@utility nav-active-wash {
+  background-image: linear-gradient(160deg, var(--color-primary-600), var(--color-primary-900));
+}
+
+/* The banner's ground: a green bloom over a blue-to-green wash, as the reference layers them. */
+@utility banner-wash {
+  background-image:
+    radial-gradient(600px 200px at 85% 0%, rgb(57 186 151 / 0.12), transparent 60%),
+    linear-gradient(
+      100deg,
+      var(--color-banner-from) 0%,
+      var(--color-banner-mid) 55%,
+      var(--color-banner-to) 100%
+    );
+}
+
+/* Today's cell in the mini calendar — the rail's gradient turned a quarter. */
+@utility today-wash {
+  background-image: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-900));
+}
+
 /* Hatching, not a fill: a fill is what an appointment is, and a block that reads as one is a block
    somebody clicks looking for a patient. */
 .hatched {
@@ -106,17 +133,17 @@ body {
 }
 
 /* `:focus-visible` only, declared once: fourteen components with their own outline utility is
-   fourteen chances for one to be missing. 2px clears 3:1 without reading as a third border. */
+   fourteen chances for one to be missing. Green rather than blue, as the reference draws it — the
+   blue is the fill of the thing being focused. */
 :focus-visible {
-  outline: 2px solid var(--color-primary-500);
+  outline: 2px solid var(--color-success-500);
   outline-offset: 2px;
 }
 
-/* Fields take the ring on their own edge: a halo 2px outside an already-blue border reads as two
-   concentric rings. */
+/* A field draws its own focus, the way the reference draws `.search`: the border turns blue and a
+   3px blue halo sits outside it. A green outline on top of that is a third concentric ring. */
 :where(input, textarea, select):focus-visible {
-  outline-width: 2px;
-  outline-offset: 0;
+  outline: none;
 }
 
 /* WebKit only, deliberately: Firefox gets `scrollbar-width`/`scrollbar-color` and the rounded thumb
