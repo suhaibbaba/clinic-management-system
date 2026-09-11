@@ -1,14 +1,18 @@
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Logo } from '@web/components/brand/logo';
-import { Breadcrumb } from '@web/components/layout/breadcrumb';
 import { NavDrawer } from '@web/components/layout/nav-drawer';
+import {
+  createPageActionSlot,
+  PageActionSlotProvider,
+} from '@web/components/layout/page-action-slot';
 import { UserMenu } from '@web/components/layout/user-menu';
-import { Button, Icon } from '@web/components/ui';
+import { Button, Icon, SearchField } from '@web/components/ui';
 import {
   activeNavItem,
+  canReachNavItem,
   NAV_SETTINGS,
   visibleNavGroups,
   visibleSettingsItems,
@@ -20,6 +24,9 @@ import { seesPendingBookings, usePendingBookingsCount } from '@web/features/book
 import { cn } from '@web/lib/cn';
 import { useClinicLogo } from '@web/lib/use-clinic-logo';
 
+/** The one list the bar's search leads to; the bell and the slot are the rest of the reference's bar. */
+const PATIENTS = '/patients';
+
 export function AppLayout(): JSX.Element {
   const { t } = useTranslation();
   const { user, logout } = useSession();
@@ -27,6 +34,8 @@ export function AppLayout(): JSX.Element {
   // From the session bootstrap, not a second request, so the rail is branded on the first paint.
   const logoUrl = useClinicLogo(user?.clinicId, user?.clinic.logoUrl);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [actionSlot] = useState(createPageActionSlot);
+  const searchable = canReachNavItem(PATIENTS, user?.role);
 
   const groups = visibleNavGroups(user?.role);
   const settings = visibleSettingsItems(user?.role);
@@ -41,7 +50,7 @@ export function AppLayout(): JSX.Element {
     setDrawerOpen(false);
   }, [pathname]);
 
-  // The bar has no search field — each page owns one — so `/` looks for the first search input, and
+  // `/` focuses the first search input on the page — the bar's, wherever the bar has one — and
   // never while the user is already typing.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
@@ -66,87 +75,93 @@ export function AppLayout(): JSX.Element {
   }, []);
 
   return (
-    <div className="flex min-h-full flex-col md:flex-row">
-      {/* Desktop: a permanent rail. */}
-      <aside
-        className={cn(
-          'z-30 hidden shrink-0 bg-rail md:block md:w-[266px]',
-          'md:sticky md:top-0 md:h-screen md:overflow-y-auto',
-          'md:border-e md:border-line',
-        )}
-      >
-        <div className="flex h-full flex-col px-[18px] pt-5 pb-[18px]">
-          {/* The logo on its own white plate, as the reference draws it — the rail's ground is a
+    <PageActionSlotProvider value={actionSlot}>
+      <div className="flex min-h-full flex-col md:flex-row">
+        {/* Desktop: a permanent rail. */}
+        <aside
+          className={cn(
+            'z-30 hidden shrink-0 bg-rail md:block md:w-[266px]',
+            'md:sticky md:top-0 md:h-screen md:overflow-y-auto',
+            'md:border-e md:border-line',
+          )}
+        >
+          <div className="flex h-full flex-col px-[18px] pt-5 pb-[18px]">
+            {/* The logo on its own white plate, as the reference draws it — the rail's ground is a
               tint, so a mark sitting straight on it has no edge. */}
-          <div className="mb-[22px] shrink-0 rounded-brand border border-line bg-surface px-4 py-3.5">
-            <Logo size="chrome" src={logoUrl} name={user?.clinic.name} alt={t('app.title')} />
-          </div>
+            <div className="mb-[22px] shrink-0 rounded-brand border border-line bg-surface px-4 py-3.5">
+              <Logo size="chrome" src={logoUrl} name={user?.clinic.name} alt={t('app.title')} />
+            </div>
 
-          <div className="flex-1 overflow-y-auto">
-            <NavList groups={groups} settings={settings} badges={badges} />
+            <div className="flex-1 overflow-y-auto">
+              <NavList groups={groups} settings={settings} badges={badges} />
+            </div>
+
+            {user && (
+              <div className="mt-auto shrink-0 pt-4">
+                <UserMenu user={user} onLogout={() => void logout()} />
+              </div>
+            )}
           </div>
+        </aside>
+
+        {/* Mobile: the same list, in a drawer over the page. */}
+        <NavDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          title={t('app.title')}
+          brand={<Logo size="chrome" src={logoUrl} name={user?.clinic.name} />}
+          closeLabel={t('common.close')}
+        >
+          <NavList groups={groups} settings={settings} badges={badges} />
 
           {user && (
-            <div className="mt-auto shrink-0 pt-4">
+            <div className="mt-5">
               <UserMenu user={user} onLogout={() => void logout()} />
             </div>
           )}
-        </div>
-      </aside>
+        </NavDrawer>
 
-      {/* Mobile: the same list, in a drawer over the page. */}
-      <NavDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        title={t('app.title')}
-        brand={<Logo size="chrome" src={logoUrl} name={user?.clinic.name} />}
-        closeLabel={t('common.close')}
-      >
-        <NavList groups={groups} settings={settings} badges={badges} />
-
-        {user && (
-          <div className="mt-5">
-            <UserMenu user={user} onLogout={() => void logout()} />
-          </div>
-        )}
-      </NavDrawer>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        {/* A floating rounded bar inside the page's padding rather than a full-bleed strip, as the
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* A floating rounded bar inside the page's padding rather than a full-bleed strip, as the
             reference draws it. The sticky wrapper carries the page ground so the bar's corners do
             not frame scrolled content, and it reserves the bar's own height either way. */}
-        <div className="sticky top-0 z-20 bg-canvas px-4 pt-4 pb-4 md:px-[34px] md:pt-[26px]">
-          <header
-            className={cn(
-              'flex min-h-[60px] flex-wrap items-center gap-3.5',
-              'rounded-card border border-line bg-surface px-4 py-3 shadow-card',
-            )}
-          >
-            <Button
-              variant="secondary"
-              size="sm"
-              className="-ms-1 md:hidden"
-              aria-expanded={drawerOpen}
-              onClick={() => setDrawerOpen(true)}
-              icon={<Icon name="menu" />}
-              aria-label={t('nav.menu')}
-            />
+          <div className="sticky top-0 z-20 bg-canvas px-4 pt-4 pb-4 md:px-[34px] md:pt-[26px]">
+            <header
+              className={cn(
+                'flex min-h-[70px] flex-wrap items-center gap-3.5',
+                'rounded-card border border-line bg-surface px-4 py-3 shadow-card',
+              )}
+            >
+              <Button
+                variant="secondary"
+                size="sm"
+                className="-ms-1 md:hidden"
+                aria-expanded={drawerOpen}
+                onClick={() => setDrawerOpen(true)}
+                icon={<Icon name="menu" />}
+                aria-label={t('nav.menu')}
+              />
 
-            <Breadcrumb />
+              {/* The reference's `.top-actions`: its own 9px pair, then the bar's 14px to the field. */}
+              <div className="flex items-center gap-[9px]">
+                <NotificationBell />
+                {/* The page's own "new …" button, portalled in. `contents` so the slot's row is this
+                  one and the button sits beside the bell rather than in a box of its own. */}
+                <span className="contents" ref={(host) => void host?.appendChild(actionSlot)} />
+              </div>
 
-            <div className="ms-auto flex items-center gap-2.5">
-              <NotificationBell />
-            </div>
-          </header>
-        </div>
-
-        <main className="min-w-0 flex-1 px-4 pb-10 md:px-[34px] md:pb-12">
-          <div className="mx-auto w-full max-w-[1180px]">
-            <Outlet />
+              {searchable && <TopSearch />}
+            </header>
           </div>
-        </main>
+
+          <main className="min-w-0 flex-1 px-4 pb-10 md:px-[34px] md:pb-12">
+            <div className="mx-auto w-full max-w-[1180px]">
+              <Outlet />
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </PageActionSlotProvider>
   );
 }
 
@@ -272,6 +287,59 @@ function NavSection({
         ))}
       </ul>
     </>
+  );
+}
+
+// One field for the whole app, as the reference draws it: it searches patients, so it writes the
+// patients list's own `?q=` while you are on it and navigates there with the term from anywhere else.
+function TopSearch(): JSX.Element {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [params, setParams] = useSearchParams();
+
+  const onList = pathname === PATIENTS;
+  const [typed, setTyped] = useState('');
+  const term = onList ? (params.get('q') ?? '') : typed;
+
+  const write = (next: string): void => {
+    if (!onList) {
+      setTyped(next);
+      return;
+    }
+
+    // Merged rather than rebuilt, so the balance filter survives a search: "who owes, called
+    // Ahmad" is a question, and dropping half of it on the first keystroke is not.
+    const merged = new URLSearchParams(params);
+
+    if (next.trim() === '') {
+      merged.delete('q');
+    } else {
+      merged.set('q', next);
+    }
+
+    setParams(merged, { replace: true });
+  };
+
+  return (
+    <form
+      role="search"
+      className="order-last w-full min-w-0 md:order-none md:me-auto md:w-auto md:max-w-[520px] md:flex-1"
+      onSubmit={(event) => {
+        event.preventDefault();
+
+        if (!onList) {
+          navigate(term.trim() === '' ? PATIENTS : `${PATIENTS}?q=${encodeURIComponent(term)}`);
+        }
+      }}
+    >
+      <SearchField
+        label={t('nav.search')}
+        placeholder={t('nav.searchPlaceholder')}
+        value={term}
+        onChange={(event) => write(event.target.value)}
+      />
+    </form>
   );
 }
 

@@ -91,7 +91,7 @@ describe('Patients list', () => {
     it('searches on the server, not by filtering the page', async () => {
       const api = await renderList(USER_ROLE.RECEPTIONIST);
 
-      await userEvent.type(screen.getByLabelText(ar.patients.search), 'خالد');
+      await userEvent.type(screen.getByLabelText(ar.nav.search), 'خالد');
 
       await waitFor(() => {
         expect(searchCalls(api).some((call) => call.url.includes('search='))).toBe(true);
@@ -102,7 +102,7 @@ describe('Patients list', () => {
       const api = await renderList(USER_ROLE.RECEPTIONIST);
       const before = searchCalls(api).length;
 
-      await userEvent.type(screen.getByLabelText(ar.patients.search), 'خالد');
+      await userEvent.type(screen.getByLabelText(ar.nav.search), 'خالد');
 
       await waitFor(() => {
         expect(searchCalls(api).length).toBeGreaterThan(before);
@@ -121,7 +121,7 @@ describe('Patients list', () => {
 
       expect(await screen.findByText(ar.patients.empty)).toBeInTheDocument();
 
-      await userEvent.type(screen.getByLabelText(ar.patients.search), 'لا-يوجد');
+      await userEvent.type(screen.getByLabelText(ar.nav.search), 'لا-يوجد');
 
       expect(await screen.findByText(ar.patients.noMatches)).toBeInTheDocument();
     });

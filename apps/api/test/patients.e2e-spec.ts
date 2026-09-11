@@ -1,6 +1,6 @@
 import { USER_ROLE, type UserRole } from '@clinic/shared';
 
-import { createPatient, uniquePhone } from '@test/helpers/patient-fixtures';
+import { createPatient, seedClinicFixtures, uniquePhone } from '@test/helpers/patient-fixtures';
 import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
 
 describe('Patients (e2e)', () => {
@@ -316,6 +316,56 @@ describe('Patients (e2e)', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.json()).toMatchObject({ allergies: [], chronicConditions: [] });
+    });
+  });
+  describe('?visitedSince', () => {
+    it('returns only patients seen on or after the date, once each', async () => {
+      const fixtures = await seedClinicFixtures(context, clinic, tokens[USER_ROLE.ADMIN]);
+
+      const seen = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
+        fullName: 'مريض زار العيادة',
+        phone: uniquePhone(),
+      });
+      const unseen = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
+        fullName: 'مريض لم يزر العيادة',
+        phone: uniquePhone(),
+      });
+
+      // Twice, so a filter that joined rather than tested existence would show this patient twice.
+      for (const complaint of ['ألم', 'متابعة']) {
+        const visit = await context.app.inject({
+          method: 'POST',
+          url: '/visits',
+          headers: auth(tokens[USER_ROLE.DOCTOR]),
+          payload: { patientId: seen, doctorId: fixtures.doctorId, complaint },
+        });
+
+        expect(visit.statusCode).toBe(201);
+      }
+
+      const response = await context.app.inject({
+        method: 'GET',
+        url: '/patients?visitedSince=2000-01-01&limit=100',
+        headers: auth(tokens[USER_ROLE.DOCTOR]),
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const ids = (response.json() as { items: { id: string }[] }).items.map((row) => row.id);
+
+      expect(ids.filter((id) => id === seen)).toHaveLength(1);
+      expect(ids).not.toContain(unseen);
+    });
+
+    it('excludes a visit older than the date', async () => {
+      const response = await context.app.inject({
+        method: 'GET',
+        url: '/patients?visitedSince=2999-01-01&limit=100',
+        headers: auth(tokens[USER_ROLE.DOCTOR]),
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect((response.json() as { total: number }).total).toBe(0);
     });
   });
 });

@@ -1,5 +1,5 @@
 import type { PatientClinicalView, PatientView } from '@clinic/shared';
-import { useMemo, useState, type JSX } from 'react';
+import { useEffect, useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -7,13 +7,14 @@ import {
   Avatar,
   Button,
   type Column,
+  DropdownMenuItem,
   EmptyState,
   Icon,
   Ltr,
   PageHeader,
   PhoneLink,
   RowAction,
-  SearchField,
+  RowMenu,
   SegmentedControl,
   Table,
 } from '@web/components/ui';
@@ -33,6 +34,16 @@ const PAGE_SIZE = 10;
 
 /** The address the dashboard's overdue card and the retired standalone overdue screen both point at. */
 const BALANCE_FILTER = 'balance';
+const VISITED_FILTER = 'visited';
+
+type PatientFilter = typeof BALANCE_FILTER | typeof VISITED_FILTER | 'all';
+
+/** Local midnight on the first of this month, as a date the API reads without a timezone of its own. */
+function startOfThisMonth(): string {
+  const now = new Date();
+
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+}
 
 function isClinicalView(patient: PatientView): patient is PatientClinicalView {
   return 'gender' in patient;
@@ -45,32 +56,20 @@ export function PatientsPage(): JSX.Element {
   const navigate = useNavigate();
   const { user } = useSession();
 
-  // The URL owns the term: the top bar navigates here with `?q=` without remounting, so a state
-  // copy seeded at mount would ignore it.
+  // The bar owns the term and writes it here as `?q=`, so the URL is what this reads — a state copy
+  // seeded at mount would ignore a search typed from another screen.
   const [page, setPage] = useState(1);
   const [params, setParams] = useSearchParams();
   const search = params.get('q') ?? '';
-  const setSearch = (next: string): void => {
-    // The balance filter survives a search: "who owes, called Ahmad" is a
-    // question, and dropping half of it on the first keystroke is not.
-    setParams(
-      {
-        ...(next.trim() !== '' && { q: next }),
-        ...(params.get('filter') === BALANCE_FILTER && { filter: BALANCE_FILTER }),
-      },
-      { replace: true },
-    );
-    // A new search starts at the first page; page 3 of the old results is
-    // meaningless for the new ones.
-    setPage(1);
-  };
   const [createOpen, setCreateOpen] = useState(false);
-  const owingOnly = params.get('filter') === BALANCE_FILTER;
-  const setOwingOnly = (next: boolean): void => {
+
+  const raw = params.get('filter');
+  const filter: PatientFilter = raw === BALANCE_FILTER || raw === VISITED_FILTER ? raw : 'all';
+  const setFilter = (next: PatientFilter): void => {
     setParams(
       {
         ...(search.trim() !== '' && { q: search }),
-        ...(next && { filter: BALANCE_FILTER }),
+        ...(next !== 'all' && { filter: next }),
       },
       { replace: true },
     );
@@ -78,6 +77,13 @@ export function PatientsPage(): JSX.Element {
   };
 
   const debouncedSearch = useDebounced(search);
+
+  // A new term starts at the first page; page 3 of the old results is meaningless for the new ones.
+  // An effect rather than the setter's own job, because the setter is in the bar now.
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
   const showClinical = user ? seesClinicalPatientFields(user.role) : false;
   const showBalance = user ? canSeeBilling(user.role) : false;
   const clinic = useClinic();
@@ -89,7 +95,8 @@ export function PatientsPage(): JSX.Element {
     ...(debouncedSearch.trim() !== '' && { search: debouncedSearch.trim() }),
     // Only for the roles the API serves balances to; for a technician the
     // parameter is ignored on both sides.
-    ...(owingOnly && showBalance && { hasBalance: true }),
+    ...(filter === BALANCE_FILTER && showBalance && { hasBalance: true }),
+    ...(filter === VISITED_FILTER && { visitedSince: startOfThisMonth() }),
   });
 
   // `limit: 1` — the chip wants the total, not the rows, and the API returns it either way.
@@ -106,7 +113,7 @@ export function PatientsPage(): JSX.Element {
             <Avatar name={row.fullName} tintKey={row.id} />
             <span className="flex min-w-0 flex-col leading-snug">
               <span className="truncate font-medium text-ink">{row.fullName}</span>
-              <Ltr className="text-label tabular-nums text-ink-subtle">{row.fileNumber}</Ltr>
+              <Ltr className="text-micro tabular-nums text-ink-subtle">{row.fileNumber}</Ltr>
             </span>
           </span>
         ),
@@ -173,10 +180,41 @@ export function PatientsPage(): JSX.Element {
       header: 'common.actions',
       actions: true,
       render: (row) => (
-        <RowAction onClick={() => navigate(`/patients/${row.id}`)}>
-          {t('patients.openFile')}
-          <Icon name="chevron-end" className="size-4" />
-        </RowAction>
+        <span className="flex items-center gap-1.5">
+          <RowAction onClick={() => navigate(`/patients/${row.id}`)}>
+            {t('patients.openFile')}
+            <Icon name="chevron-end" className="size-4" />
+          </RowAction>
+
+          {/* The file's tabs are addresses, so the menu is shortcuts into them — each gated by the
+              permission that gates the tab, so nothing here bounces the reader. */}
+          <RowMenu label={t('patients.rowMenu')}>
+            {showClinical && (
+              <DropdownMenuItem
+                icon="clock"
+                onSelect={() => navigate(`/patients/${row.id}?tab=timeline`)}
+              >
+                {t('patients.tabs.timeline')}
+              </DropdownMenuItem>
+            )}
+            {showBalance && (
+              <DropdownMenuItem
+                icon="money"
+                onSelect={() => navigate(`/patients/${row.id}?tab=billing`)}
+              >
+                {t('patients.tabs.billing')}
+              </DropdownMenuItem>
+            )}
+            {showClinical && (
+              <DropdownMenuItem
+                icon="image"
+                onSelect={() => navigate(`/patients/${row.id}?tab=attachments`)}
+              >
+                {t('patients.tabs.attachments')}
+              </DropdownMenuItem>
+            )}
+          </RowMenu>
+        </span>
       ),
     });
 
@@ -195,7 +233,7 @@ export function PatientsPage(): JSX.Element {
         {...(query.data !== undefined && {
           count: t('pagination.total', { total: query.data.total }),
         })}
-        actions={
+        primaryAction={
           canCreate ? (
             <Button icon={<Icon name="user-plus" />} onClick={() => setCreateOpen(true)}>
               {t('patients.create')}
@@ -205,30 +243,26 @@ export function PatientsPage(): JSX.Element {
       />
 
       <div className="mb-3.5 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
-        {showBalance && (
-          <SegmentedControl
-            label={t('patients.filterByBalance')}
-            value={owingOnly ? 'owing' : 'all'}
-            onChange={(next) => setOwingOnly(next === 'owing')}
-            options={[
-              { value: 'all', label: t('common.all') },
-              {
-                value: 'owing',
-                label: t('patients.owing'),
-                // How many the filter would leave, on the chip that applies it.
-                ...(owing.data !== undefined && { count: owing.data.total }),
-              },
-            ]}
-          />
-        )}
-
-        <SearchField
-          className="w-full min-w-0 sm:ms-auto sm:max-w-md sm:flex-1"
-          label={t('patients.search')}
-          shortcut="/"
-          placeholder={t('patients.searchPlaceholder')}
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
+        <SegmentedControl<PatientFilter>
+          label={t('patients.filterLabel')}
+          value={filter}
+          onChange={setFilter}
+          options={[
+            { value: 'all', label: t('common.all') },
+            // The balance chip only where the response carries balances; the API would ignore the
+            // parameter for a technician anyway, and a chip that does nothing is worse than none.
+            ...(showBalance
+              ? [
+                  {
+                    value: BALANCE_FILTER as PatientFilter,
+                    label: t('patients.owing'),
+                    // How many the filter would leave, on the chip that applies it.
+                    ...(owing.data !== undefined && { count: owing.data.total }),
+                  },
+                ]
+              : []),
+            { value: VISITED_FILTER, label: t('patients.visitedThisMonth') },
+          ]}
         />
       </div>
 

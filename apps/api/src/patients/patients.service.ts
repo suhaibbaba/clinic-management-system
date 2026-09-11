@@ -10,7 +10,7 @@ import type {
   UpdatePatientInput,
   UserRole,
 } from '@clinic/shared';
-import { desc, eq, or, sql, type SQL } from 'drizzle-orm';
+import { and, desc, eq, exists, gte, isNull, or, sql, type SQL } from 'drizzle-orm';
 
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
 import { LedgerService } from '@api/billing/ledger.service';
@@ -18,7 +18,7 @@ import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
-import { patients } from '@api/database/schema';
+import { patients, visits } from '@api/database/schema';
 import { PatientAccessService, type PatientRow } from '@api/patients/patient-access.service';
 
 export const PATIENTS_ENTITY = 'patients';
@@ -62,6 +62,26 @@ export class PatientsService implements OnModuleInit {
     // leak through the row count what the fields withhold.
     if (query.hasBalance && PatientAccessService.seesFinancialData(actor.role)) {
       filters.push(LedgerService.owesFilter(actor.clinicId, patients.id));
+    }
+
+    // Attendance, not clinical content: who came in since a date. `exists` rather than a join, so a
+    // patient seen three times in the month is still one row.
+    if (query.visitedSince) {
+      filters.push(
+        exists(
+          this.db
+            .select({ present: sql`1` })
+            .from(visits)
+            .where(
+              and(
+                eq(visits.patientId, patients.id),
+                eq(visits.clinicId, actor.clinicId),
+                isNull(visits.deletedAt),
+                gte(visits.visitDate, new Date(query.visitedSince)),
+              ),
+            ),
+        ),
+      );
     }
 
     if (query.search) {

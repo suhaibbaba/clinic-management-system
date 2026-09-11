@@ -137,7 +137,7 @@ export function DoctorsPage(): JSX.Element {
         {...(query.data !== undefined && {
           count: t('pagination.total', { total: query.data.total }),
         })}
-        actions={
+        primaryAction={
           isAdmin ? (
             <Button
               icon={<Icon name="user-plus" />}

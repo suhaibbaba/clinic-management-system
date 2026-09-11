@@ -2,13 +2,37 @@ import clsx, { type ClassValue } from 'clsx';
 import { extendTailwindMerge } from 'tailwind-merge';
 
 // tailwind-merge has never read theme.css, so a custom `--text-*` key looks like a colour and a
-// custom `--radius-*` like an unrelated utility: the later class wins and an override does nothing.
-// Any new token needs adding below.
+// custom `--radius-*` like an unrelated utility: `cn('text-micro', 'text-ink-muted')` kept only the
+// colour and the size vanished. `cn.test.ts` fails if theme.css grows a token these miss.
+export const FONT_SIZE_KEYS = [
+  'micro',
+  'meta',
+  'label',
+  'value',
+  'nav',
+  'section',
+  'title',
+  'display',
+  'kpi',
+  'field',
+] as const;
+
+export const RADIUS_KEYS = [
+  'brand',
+  'card',
+  'chip',
+  'control',
+  'field',
+  'nav',
+  'panel',
+  'pill',
+] as const;
+
 const merge = extendTailwindMerge({
   extend: {
     classGroups: {
-      'font-size': [{ text: ['label', 'value', 'kpi'] }],
-      rounded: [{ rounded: ['card', 'panel', 'control', 'pill'] }],
+      'font-size': [{ text: [...FONT_SIZE_KEYS] }],
+      rounded: [{ rounded: [...RADIUS_KEYS] }],
     },
   },
 });

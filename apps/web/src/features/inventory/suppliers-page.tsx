@@ -120,7 +120,7 @@ export function SuppliersPage(): JSX.Element {
         {...(suppliers.data !== undefined && {
           count: t('pagination.total', { total: suppliers.data.total }),
         })}
-        actions={
+        primaryAction={
           mayManage ? (
             <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
               {t('inventory.suppliers.add')}

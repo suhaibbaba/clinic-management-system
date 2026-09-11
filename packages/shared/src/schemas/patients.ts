@@ -81,5 +81,8 @@ export const listPatientsQuerySchema = paginationQuerySchema.extend({
   // The balance is an aggregate, so this is a `having` — and the server's question: narrowing the
   // page in hand would answer "which of these owe". A role not served balances is not served it.
   hasBalance: z.stringbool().optional(),
+  // A date rather than a "this month" flag: the month is the caller's arithmetic, in the caller's
+  // timezone, and a server that guesses it is wrong for half the clinic's day.
+  visitedSince: z.iso.date().optional(),
 });
 export type ListPatientsQuery = z.infer<typeof listPatientsQuerySchema>;
