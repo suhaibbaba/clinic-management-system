@@ -132,14 +132,14 @@ describe('Patient page', () => {
     it('shows the balance the ledger computed', async () => {
       await renderPatientPage(USER_ROLE.DOCTOR);
 
-      // The figure and its symbol are two elements inside one `Money`, so the
-      // match is on the whole box rather than on a text node.
-      const balance = await screen.findByText(
+      // `Money` nests its LTR island inside the coloured box, so both spans carry the same text.
+      // The outermost is the one asserted on.
+      const boxes = await screen.findAllByText(
         (_text, element) => element?.textContent?.replace(/\s/g, ' ') === '100 $',
         { selector: 'span' },
       );
 
-      expect(balance).toBeInTheDocument();
+      expect(boxes[0]).toBeInTheDocument();
     });
 
     it('computes whole years, not part ones', () => {
@@ -232,7 +232,11 @@ describe('Patient page', () => {
       expect(within(panel).getByText(CATALOG.nameAr)).toBeInTheDocument();
       // ROLES.md billing: a doctor reads charges, so the price is shown — as
       // every figure in this app is, through `<Money>`: whole, with a symbol.
-      expect(within(panel).getByText('60')).toBeInTheDocument();
+      // The figure and its symbol share one island now, so there is no element whose text is bare
+      // "60"; the box that holds both is what is asserted on.
+      expect(
+        within(panel).getAllByText((_text, element) => /^60\s/.test(element?.textContent ?? ''))[0],
+      ).toBeInTheDocument();
     });
   });
 

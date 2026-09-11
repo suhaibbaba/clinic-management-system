@@ -25,6 +25,7 @@ import { PatientFormModal } from '@web/features/patients/patient-form-modal';
 import { canCreatePatient, seesClinicalPatientFields } from '@web/features/patients/permissions';
 import { usePatients } from '@web/features/patients/queries';
 import { ageInYears } from '@web/features/patients/age';
+import { cn } from '@web/lib/cn';
 import { useDebounced } from '@web/lib/use-debounced';
 import { isRefetching } from '@web/lib/use-delayed-loading';
 
@@ -91,6 +92,9 @@ export function PatientsPage(): JSX.Element {
     ...(owingOnly && showBalance && { hasBalance: true }),
   });
 
+  // `limit: 1` — the chip wants the total, not the rows, and the API returns it either way.
+  const owing = usePatients({ page: 1, limit: 1, hasBalance: true }, { enabled: showBalance });
+
   const columns = useMemo<Column<PatientView>[]>(() => {
     const base: Column<PatientView>[] = [
       {
@@ -147,11 +151,17 @@ export function PatientsPage(): JSX.Element {
           // thing on this page that earns the red.
           const owes = Number(row.balance) > 0;
 
+          // The reference's `.bal`: a pill either way, so the column reads as one shape and the
+          // colour is the only thing carrying the news.
           return (
             <Money
               amount={row.balance}
               currency={currency}
-              className={owes ? 'font-medium text-danger-600' : 'text-ink-subtle'}
+              className={cn(
+                'inline-flex items-center justify-center rounded-pill px-[13px] py-[5px]',
+                'text-label leading-none font-medium',
+                owes ? 'bg-danger-100 text-danger-600' : 'bg-quiet-bg text-quiet-ink',
+              )}
             />
           );
         },
@@ -182,6 +192,9 @@ export function PatientsPage(): JSX.Element {
       <PageHeader
         title="patients.title"
         subtitle="patients.subtitle"
+        {...(query.data !== undefined && {
+          count: t('pagination.total', { total: query.data.total }),
+        })}
         actions={
           canCreate ? (
             <Button icon={<Icon name="user-plus" />} onClick={() => setCreateOpen(true)}>
@@ -191,35 +204,32 @@ export function PatientsPage(): JSX.Element {
         }
       />
 
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <div className="mb-3.5 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
+        {showBalance && (
+          <SegmentedControl
+            label={t('patients.filterByBalance')}
+            value={owingOnly ? 'owing' : 'all'}
+            onChange={(next) => setOwingOnly(next === 'owing')}
+            options={[
+              { value: 'all', label: t('common.all') },
+              {
+                value: 'owing',
+                label: t('patients.owing'),
+                // How many the filter would leave, on the chip that applies it.
+                ...(owing.data !== undefined && { count: owing.data.total }),
+              },
+            ]}
+          />
+        )}
+
         <SearchField
-          className="w-full min-w-0 sm:max-w-md sm:flex-1"
+          className="w-full min-w-0 sm:ms-auto sm:max-w-md sm:flex-1"
           label={t('patients.search')}
           shortcut="/"
           placeholder={t('patients.searchPlaceholder')}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
-
-        <div className="flex items-center justify-between gap-3 sm:ms-auto">
-          {showBalance && (
-            <SegmentedControl
-              label={t('patients.filterByBalance')}
-              value={owingOnly ? 'owing' : 'all'}
-              onChange={(next) => setOwingOnly(next === 'owing')}
-              options={[
-                { value: 'all', label: t('common.all') },
-                { value: 'owing', label: t('patients.owing') },
-              ]}
-            />
-          )}
-
-          {query.data !== undefined && (
-            <span className="shrink-0 text-label text-ink-subtle">
-              {t('pagination.total', { total: query.data.total })}
-            </span>
-          )}
-        </div>
       </div>
 
       <Table

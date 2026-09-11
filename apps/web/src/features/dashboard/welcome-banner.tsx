@@ -26,7 +26,7 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
       <BannerArt />
 
       <div className="relative z-10 min-w-0">
-        <h1 className="flex items-center gap-2.5 text-title font-medium text-primary-900">
+        <h1 className="flex items-center gap-2.5 text-display font-medium text-primary-900">
           {user ? (
             <>
               {t(`dashboard.greeting.${partOfDay()}`)}

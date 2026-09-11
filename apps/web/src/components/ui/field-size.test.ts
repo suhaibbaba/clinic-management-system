@@ -37,9 +37,18 @@ describe('field size', () => {
     expect(fieldClasses).not.toMatch(SMALLER);
   });
 
-  it('defines the token at 16px', () => {
+  // The root is not 16px — `base.css` sets the reference's 93.75% — so the literal `1rem` this
+  // used to look for would now be 15px and silently under the floor. Both halves are read and
+  // multiplied instead.
+  it('resolves the token to 16px against the root the app sets', () => {
     const theme = readFileSync(join(UI, '..', '..', 'theme.css'), 'utf8');
+    const base = readFileSync(join(UI, '..', '..', 'base.css'), 'utf8');
 
-    expect(theme).toMatch(/--text-field:\s*1rem/);
+    const token = Number(/--text-field:\s*([\d.]+)rem/.exec(theme)?.[1]);
+    const rootPercent = Number(/html\s*\{[^}]*font-size:\s*([\d.]+)%/.exec(base)?.[1]);
+
+    expect(token).toBeGreaterThan(0);
+    expect(rootPercent).toBeGreaterThan(0);
+    expect(token * (rootPercent / 100) * 16).toBeGreaterThanOrEqual(16);
   });
 });

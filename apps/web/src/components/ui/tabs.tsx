@@ -62,7 +62,7 @@ export function Tabs<TId extends string>({
               'transition-[background-color,border-color,color,transform] duration-150 active:scale-95',
               selected
                 ? 'border-primary-600 bg-primary-600 text-ink-inverse'
-                : 'border-line bg-canvas text-ink-muted hover:border-primary-200 hover:bg-primary-100 hover:text-primary-700',
+                : 'border-line bg-surface text-ink-muted hover:border-primary-200 hover:bg-primary-100 hover:text-primary-700',
             )}
           >
             {t(tab.label)}

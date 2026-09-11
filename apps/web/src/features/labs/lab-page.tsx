@@ -67,7 +67,7 @@ export function LabPage(): JSX.Element {
           written here rather than through `PageHeader`. */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h1 className="truncate text-title font-medium tracking-title text-ink">
+          <h1 className="truncate text-title font-medium text-primary-900">
             {lab.data?.name ?? '…'}
           </h1>
           {/* Not a joined string: the `+` is neutral and bidi hands it to the Arabic around it,

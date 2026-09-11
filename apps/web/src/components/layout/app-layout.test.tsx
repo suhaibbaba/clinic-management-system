@@ -53,29 +53,34 @@ const linkNames = (): string[] =>
 // Each role's list is asserted whole: the failure that matters is an entry appearing for somebody
 // it was never meant for.
 describe('Sidebar navigation', () => {
-  it('gives an admin every section and the settings group', async () => {
+  it('gives an admin every section, settings included', async () => {
     await renderAs(USER_ROLE.ADMIN);
 
+    // The settings group is a caption over rows rather than a disclosure, so its links are part of
+    // the rail's list and are asserted with the rest of it.
     expect(linkNames()).toEqual([
       ar.nav.dashboard,
       ar.nav.patients,
       ar.nav.appointments,
       ar.nav.labs,
       ar.nav.inventory,
+      ar.nav.clinic,
+      ar.nav.doctors,
+      ar.nav.users,
+      ar.nav.lists,
+      ar.nav.audit,
     ]);
-
-    expect(within(nav()).getByRole('button', { name: ar.nav.settings })).toBeInTheDocument();
   });
 
   it.each([
     [USER_ROLE.DOCTOR, [ar.nav.dashboard, ar.nav.patients, ar.nav.appointments, ar.nav.labs]],
     [USER_ROLE.TECHNICIAN, [ar.nav.dashboard, ar.nav.labs, ar.nav.inventory]],
     [USER_ROLE.RECEPTIONIST, [ar.nav.dashboard, ar.nav.patients, ar.nav.appointments]],
-  ])('gives %s exactly their sections and no settings group', async (role, expected) => {
+  ])('gives %s exactly their sections and no settings rows', async (role, expected) => {
     await renderAs(role);
 
     expect(linkNames()).toEqual(expected);
-    expect(within(nav()).queryByRole('button', { name: ar.nav.settings })).not.toBeInTheDocument();
+    expect(within(nav()).queryByRole('link', { name: ar.nav.users })).not.toBeInTheDocument();
   });
 
   it('keeps the account out of the nav and behind the avatar', async () => {
@@ -120,30 +125,16 @@ describe('Sidebar navigation', () => {
 });
 
 describe('The settings group', () => {
-  it('starts collapsed and opens on click', async () => {
+  it('lists its rows without a control in front of them', async () => {
     await renderAs(USER_ROLE.ADMIN);
 
-    const toggle = within(nav()).getByRole('button', { name: ar.nav.settings });
-
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(within(nav()).queryByRole('link', { name: ar.nav.audit })).not.toBeInTheDocument();
-
-    await userEvent.click(toggle);
-
-    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    // It used to be a disclosure. Five links worth showing do not need a button operated first,
+    // and the reference's rail has no control in it at all.
+    expect(within(nav()).queryByRole('button')).not.toBeInTheDocument();
 
     for (const label of [ar.nav.clinic, ar.nav.doctors, ar.nav.users, ar.nav.lists, ar.nav.audit]) {
       expect(within(nav()).getByRole('link', { name: label })).toBeInTheDocument();
     }
-  });
-
-  it('opens by itself when one of its own pages is showing', async () => {
-    await renderAs(USER_ROLE.ADMIN, '/audit-log');
-
-    expect(within(nav()).getByRole('button', { name: ar.nav.settings })).toHaveAttribute(
-      'aria-expanded',
-      'true',
-    );
   });
 });
 

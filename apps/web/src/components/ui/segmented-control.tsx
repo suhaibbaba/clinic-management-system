@@ -50,15 +50,19 @@ export function SegmentedControl<TValue extends string>({
               'text-meta font-medium transition-[background-color,border-color,color] duration-150',
               isSelected
                 ? 'border-primary-600 bg-primary-600 text-ink-inverse'
-                : 'border-line bg-canvas text-ink-muted hover:border-primary-200 hover:bg-primary-100 hover:text-primary-700',
+                : 'border-line bg-surface text-ink-muted hover:border-primary-200 hover:bg-primary-100 hover:text-primary-700',
             )}
           >
             {option.label}
             {option.count !== undefined && (
               <Ltr
                 className={cn(
-                  'text-micro tabular-nums',
-                  isSelected ? 'text-ink-inverse/80' : 'text-ink-subtle',
+                  // A tinted pill, not a bare digit: the count is what the filter would leave, and
+                  // the reference gives it the same red a balance owed gets.
+                  'rounded-pill px-[7px] py-px text-micro tabular-nums',
+                  isSelected
+                    ? 'bg-primary-900/25 text-ink-inverse'
+                    : 'bg-danger-100 text-danger-600',
                 )}
               >
                 {option.count}

@@ -40,10 +40,13 @@ export const PATIENT_TIMELINE_KEY = 'patient-timeline';
 
 export function usePatients(
   query: Partial<ListPatientsQuery>,
+  options: { readonly enabled?: boolean } = {},
 ): UseQueryResult<Paginated<PatientView>> {
   return useQuery({
     queryKey: [PATIENTS_KEY, query],
     queryFn: () => patientsApi.list(query),
+    // A role the API serves no balances to must not ask for the owing count.
+    enabled: options.enabled ?? true,
     // Keeps the previous page on screen while a new search is in flight, so the
     // table does not blink empty on every keystroke that survives the debounce.
     placeholderData: (previous) => previous,

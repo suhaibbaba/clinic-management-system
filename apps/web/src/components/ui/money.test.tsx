@@ -58,10 +58,10 @@ describe('money display', () => {
       </span>,
     );
 
-    // The minus stays on the left of the number — that is what the LTR island
-    // is for — while the pair as a whole follows the page's flow.
-    const digits = screen.getByTestId('money').querySelector('[dir="ltr"]');
-    expect(digits?.textContent).toBe('-30');
+    // The island holds the figure and its symbol together, so the minus stays on the left of the
+    // number and the symbol on its right — while the pair as a whole follows the page's flow.
+    const island = screen.getByTestId('money').querySelector('[dir="ltr"]');
+    expect(island?.textContent?.replace(/\s/g, ' ')).toBe('-30 ₪');
   });
 
   it('does not pin the amount to one edge of its box', () => {

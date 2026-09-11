@@ -89,7 +89,7 @@ export function PatientPage(): JSX.Element {
                 />
 
                 <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-                  <h1 className="truncate text-title font-medium tracking-title text-ink">
+                  <h1 className="truncate text-title font-medium text-primary-900">
                     {patient.data.fullName}
                   </h1>
                   {/* Beside the name it qualifies, and it appears the moment
