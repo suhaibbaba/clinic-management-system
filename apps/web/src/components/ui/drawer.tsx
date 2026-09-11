@@ -48,7 +48,7 @@ export function Drawer({
           )}
         >
           <div className="flex items-start justify-between gap-3 border-b border-line px-4 py-3">
-            <Dialog.Title className="text-section font-semibold text-ink">{title}</Dialog.Title>
+            <Dialog.Title className="text-section font-medium text-ink">{title}</Dialog.Title>
             <Dialog.Close
               className={cn(
                 // The same 44px close as the navigation drawer: this was a bare "✕" in a 27px box,

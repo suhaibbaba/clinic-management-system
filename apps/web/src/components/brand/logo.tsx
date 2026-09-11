@@ -62,7 +62,7 @@ export function InitialMark({
         style={{ width: size, height: size, fontSize: Math.round(size * 0.45) }}
         className={cn(
           'flex items-center justify-center rounded-card',
-          'bg-primary-100 font-semibold text-primary-800 select-none',
+          'bg-primary-100 font-medium text-primary-800 select-none',
         )}
       >
         {letter}

@@ -15,13 +15,15 @@ export interface AvatarProps {
 }
 
 // Soft and low-chroma: this is the one place colour appears without meaning, so it must stay below
-// the blue or it competes with the page's action colour.
+// the blue or it competes with the page's action colour. Six pairs, from the reference's
+// `.a1`–`.a6`.
 const TINTS = [
-  'bg-primary-100 text-primary-800',
-  'bg-success-100 text-success-800',
-  'bg-warning-100 text-warning-800',
-  'bg-danger-100 text-danger-800',
-  'bg-neutral-200 text-neutral-800',
+  'bg-tint-1-bg text-tint-1-ink',
+  'bg-tint-2-bg text-tint-2-ink',
+  'bg-tint-3-bg text-tint-3-ink',
+  'bg-tint-4-bg text-tint-4-ink',
+  'bg-tint-5-bg text-tint-5-ink',
+  'bg-tint-6-bg text-tint-6-ink',
 ] as const;
 
 function tintFor(key: string): string {
@@ -50,16 +52,16 @@ export function Avatar({
     .map((word) => [...word][0] ?? '')
     .join('');
 
-  const shape = cn('inline-flex shrink-0 select-none rounded-pill', className);
+  const shape = 'inline-flex shrink-0 select-none rounded-pill';
 
-  const tint = tintKey === undefined ? 'bg-primary-100 text-primary-800' : tintFor(tintKey);
+  const tint = tintKey === undefined ? 'bg-tint-2-bg text-tint-2-ink' : tintFor(tintKey);
 
   if (src === null || src === undefined || src === '') {
     return (
       <span
         aria-hidden="true"
         style={{ width: size, height: size }}
-        className={cn(shape, 'items-center justify-center text-label font-semibold', tint)}
+        className={cn(shape, 'items-center justify-center text-label font-medium', tint, className)}
       >
         {initials}
       </span>
@@ -79,14 +81,14 @@ export function Avatar({
         <span
           aria-hidden="true"
           className={cn(
-            'absolute inset-0 flex items-center justify-center text-label font-semibold',
+            'absolute inset-0 flex items-center justify-center text-label font-medium',
             tint,
           )}
         >
           {initials}
         </span>
       }
-      className={cn(shape, 'border border-line bg-sunken')}
+      className={cn(shape, 'border border-line bg-sunken', className)}
     />
   );
 }

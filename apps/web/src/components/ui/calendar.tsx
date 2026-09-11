@@ -36,7 +36,7 @@ export function Calendar(props: CalendarProps): JSX.Element {
         months: 'relative',
         month: 'w-full',
         month_caption: 'flex h-9 items-center justify-center',
-        caption_label: 'text-value font-semibold text-ink',
+        caption_label: 'text-value font-medium text-ink',
         nav: 'absolute inset-x-0 top-0 flex h-9 items-center justify-between',
         button_previous: cn(
           'inline-flex size-8 cursor-pointer items-center justify-center rounded-control',
@@ -61,7 +61,7 @@ export function Calendar(props: CalendarProps): JSX.Element {
         ),
         selected:
           '[&_button]:bg-primary-600 [&_button]:text-ink-inverse [&_button]:hover:bg-primary-700',
-        today: '[&_button]:font-semibold [&_button]:text-primary-700',
+        today: '[&_button]:font-medium [&_button]:text-primary-700',
         outside: '[&_button]:text-ink-subtle',
         disabled:
           '[&_button]:cursor-not-allowed [&_button]:opacity-40 [&_button]:hover:bg-transparent',

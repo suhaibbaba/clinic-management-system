@@ -1,18 +1,21 @@
 import { Children, type JSX, type ReactNode } from 'react';
 
 import { Icon, type IconName } from '@web/components/ui/icon';
+import { Tag } from '@web/components/ui/tag';
 import { cn } from '@web/lib/cn';
 import { Ltr } from '@web/components/ui/ltr';
 
 export type StatTone = 'primary' | 'success' | 'warning' | 'danger' | 'neutral';
 export type DeltaDirection = 'up' | 'down';
 
-const CHIPS: Record<StatTone, string> = {
-  primary: 'bg-primary-50 text-primary-700',
-  success: 'bg-success-50 text-success-700',
-  warning: 'bg-warning-50 text-warning-700',
-  danger: 'bg-danger-50 text-danger-700',
-  neutral: 'bg-sunken text-ink-muted',
+// The figure takes the tone, as the reference's `.kpi.late` and `.kpi.pending` do: the label chip
+// stays the same barely-there wash on every card so the row reads as one thing.
+const FIGURES: Record<StatTone, string> = {
+  primary: 'text-ink',
+  success: 'text-success-900',
+  warning: 'text-warning-700',
+  danger: 'text-danger-600',
+  neutral: 'text-ink',
 };
 
 export interface StatCardProps {
@@ -45,29 +48,25 @@ export function StatCard({
   className,
 }: StatCardProps): JSX.Element {
   return (
-    <div className={cn('rounded-card bg-surface p-4 shadow-card', className)}>
-      {/* The icon and its label are one line: a tinted square, then the words,
-          then nothing — the figure below is what the card is for. */}
-      <div className="flex items-center gap-2">
-        <span
-          className={cn(
-            'inline-flex size-7 shrink-0 items-center justify-center rounded-control',
-            CHIPS[tone],
-          )}
-        >
-          <Icon name={icon} className="size-4" />
-        </span>
-        <span className="min-w-0 truncate text-meta font-medium text-ink-muted">{label}</span>
+    <div
+      className={cn(
+        'rounded-card border border-line bg-surface p-[18px_20px] shadow-card',
+        'transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover',
+        className,
+      )}
+    >
+      {/* The icon and its label are one chip: the reference's `.tag`, a wash running from green
+          into blue, naming what the figure below counts. */}
+      <div className="flex min-h-[26px] items-center justify-between gap-2">
+        <Tag icon={icon}>{label}</Tag>
       </div>
 
-      {/* 24 rather than 32: an amount is one word, and at 32 `200.00 USD` is 170px inside a 133px
-          card — it wrapped or pushed the page sideways. */}
-      <Ltr as="p" className="mt-2.5 text-kpi font-semibold text-ink">
+      <Ltr as="p" className={cn('mt-2 text-kpi font-medium', FIGURES[tone])}>
         {value}
       </Ltr>
 
       {(caption !== undefined || delta !== undefined) && (
-        <div className="mt-1 flex flex-wrap items-center gap-x-2">
+        <div className="mt-[7px] flex flex-wrap items-center gap-x-2">
           {delta !== undefined && (
             <span
               className={cn(

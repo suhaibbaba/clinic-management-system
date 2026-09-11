@@ -6,7 +6,13 @@ import { describe, expect, it } from 'vitest';
 import { AppRoutes } from '@web/app/router';
 import ar from '@web/i18n/locales/ar.json';
 import { authTokens } from '@web/lib/auth-tokens';
-import { makeClinic, makeDashboardSummary, makeProfile, paginated } from '@test/helpers/fixtures';
+import {
+  makeCalendarFeed,
+  makeClinic,
+  makeDashboardSummary,
+  makeProfile,
+  paginated,
+} from '@test/helpers/fixtures';
 import { mockApi, renderWithProviders, type MockResponse } from '@test/helpers/render';
 
 function handlers(role: UserRole, overrides: Record<string, MockResponse> = {}) {
@@ -22,6 +28,8 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse> = {}) 
     'GET /users': { status: 200, body: paginated([]) },
     'GET /audit-log': { status: 200, body: paginated([]) },
     'GET /appointments/pending-confirmation': { status: 200, body: paginated([], { total: 4 }) },
+    'GET /appointments/calendar': { status: 200, body: makeCalendarFeed() },
+    'GET /notes': { status: 200, body: paginated([]) },
     ...overrides,
   } as Record<string, MockResponse>;
 }
@@ -31,7 +39,8 @@ async function renderAs(role: UserRole, route = '/dashboard'): Promise<void> {
   mockApi(handlers(role));
 
   renderWithProviders(<AppRoutes />, { route });
-  await screen.findByText(`مستخدم ${role}`);
+  // `findAll`: the dashboard's banner greets the same person the rail's footer names.
+  await screen.findAllByText(`مستخدم ${role}`);
 }
 
 const nav = (): HTMLElement => screen.getByRole('navigation', { name: ar.nav.menu });
@@ -177,8 +186,9 @@ describe('Route guards', () => {
   ])('redirects %s away from %s and onto the dashboard', async (role, route) => {
     await renderAs(role, route);
 
+    // The dashboard's `<h1>` is the greeting, so the day's panel is what names the screen.
     expect(
-      await screen.findByRole('heading', { name: ar.dashboard.title, level: 1 }),
+      await screen.findByRole('region', { name: ar.dashboard.schedule.title }),
     ).toBeInTheDocument();
   });
 });

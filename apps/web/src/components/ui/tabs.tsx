@@ -35,10 +35,10 @@ export function Tabs<TId extends string>({
       role="tablist"
       aria-label={t(label)}
       className={cn(
-        'flex items-center gap-1 rounded-control border border-line bg-inset p-1',
+        // Separate pills with a gap, not a track: the reference's `.filters` row. A track would
+        // draw a grey bar across the page that the pills then have to fight.
+        'flex items-center gap-2',
         'max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-        // `self-start` as well as `inline-flex`: in a column flex container `align-items: stretch`
-        // would draw the strip as a full-width grey bar.
         'sm:inline-flex sm:flex-wrap sm:self-start sm:overflow-visible',
         className,
       )}
@@ -57,20 +57,20 @@ export function Tabs<TId extends string>({
             onClick={() => onChange(tab.id)}
             className={cn(
               'inline-flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center gap-1.5',
-              'rounded-control px-3 py-1.5 lg:min-h-0 lg:min-w-0',
-              'text-value font-medium',
-              'transition-[background-color,color,box-shadow,transform] duration-150 active:scale-95',
+              'rounded-pill border px-3.5 py-1.5 lg:min-h-0 lg:min-w-0',
+              'text-meta font-medium',
+              'transition-[background-color,border-color,color,transform] duration-150 active:scale-95',
               selected
-                ? 'bg-surface text-ink shadow-pill'
-                : 'text-ink-muted hover:bg-surface/60 hover:text-ink',
+                ? 'border-primary-600 bg-primary-600 text-ink-inverse'
+                : 'border-line bg-canvas text-ink-muted hover:border-primary-200 hover:bg-primary-100 hover:text-primary-700',
             )}
           >
             {t(tab.label)}
             {tab.count !== undefined && tab.count > 0 && (
               <Ltr
                 className={cn(
-                  'min-w-5 rounded-pill px-1.5 text-meta font-semibold tabular-nums',
-                  selected ? 'bg-inset text-ink-muted' : 'bg-surface text-ink-subtle',
+                  'min-w-5 rounded-pill px-1.5 text-micro font-medium tabular-nums',
+                  selected ? 'bg-primary-900/25 text-ink-inverse' : 'bg-inset text-ink-subtle',
                 )}
               >
                 {tab.count}

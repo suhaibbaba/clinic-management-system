@@ -46,6 +46,9 @@ export interface TableProps<TRow> {
   onRowClick?: ((row: TRow) => void) | undefined;
   /** Names a row for screen readers when the whole row is clickable. */
   rowLabel?: ((row: TRow) => string) | undefined;
+  // The reference's `.panel-head`: a title and its filters ride inside the panel, above the rule
+  // that starts the rows, rather than floating above the card with nothing holding them.
+  header?: ReactNode | undefined;
 }
 
 export interface PaginationProps {
@@ -75,13 +78,19 @@ export function Table<TRow>({
   pagination,
   onRowClick,
   rowLabel,
+  header,
 }: TableProps<TRow>): JSX.Element {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const showSkeleton = useDelayedLoading(isLoading);
 
   if (!isLoading && rows.length === 0 && empty !== undefined) {
-    return <>{empty}</>;
+    return (
+      <>
+        {header !== undefined && <PanelHead>{header}</PanelHead>}
+        {empty}
+      </>
+    );
   }
 
   const wideColumns = columns.filter((column) => column.hideOnDesktop !== true);
@@ -95,6 +104,8 @@ export function Table<TRow>({
   if (isMobile) {
     return (
       <>
+        {header !== undefined && <PanelHead>{header}</PanelHead>}
+
         {/* One card per row */}
         <div className="flex flex-col gap-3">
           <RefreshBar active={isRefreshing} />
@@ -122,7 +133,7 @@ export function Table<TRow>({
               const body = (
                 <>
                   {primary && (
-                    <p className="mb-3 text-value font-semibold text-ink">{primary.render(row)}</p>
+                    <p className="mb-3 text-value font-medium text-ink">{primary.render(row)}</p>
                   )}
 
                   {/* No column gap: the row divider is drawn on the two cells, so a gap would break
@@ -172,7 +183,7 @@ export function Table<TRow>({
               );
 
               const cardClass =
-                'rounded-card bg-surface p-4 text-start shadow-card transition-shadow duration-150';
+                'border border-line rounded-card bg-surface p-4 text-start shadow-card transition-shadow duration-150';
 
               return onRowClick === undefined ? (
                 <div key={rowKey(row)} data-row className={cardClass}>
@@ -195,7 +206,7 @@ export function Table<TRow>({
         </div>
 
         {pagination !== undefined && (
-          <div className="mt-3 rounded-card bg-surface shadow-card">
+          <div className="mt-3 border border-line rounded-card bg-surface shadow-card">
             <Pagination {...pagination} />
           </div>
         )}
@@ -204,7 +215,13 @@ export function Table<TRow>({
   }
 
   return (
-    <div className="overflow-hidden rounded-card bg-surface shadow-card">
+    <div className="overflow-hidden border border-line rounded-card bg-surface shadow-card">
+      {header !== undefined && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-[22px] py-[18px]">
+          {header}
+        </div>
+      )}
+
       {showSkeleton && <SkeletonStatus />}
       <RefreshBar active={isRefreshing} />
 
@@ -267,6 +284,12 @@ export function Table<TRow>({
       {pagination !== undefined && <Pagination {...pagination} />}
     </div>
   );
+}
+
+// On a phone the rows are separate cards, so the head cannot sit inside one; it becomes the row
+// above them, carrying the same spacing.
+function PanelHead({ children }: { readonly children: ReactNode }): JSX.Element {
+  return <div className="flex flex-wrap items-center justify-between gap-3">{children}</div>;
 }
 
 export function Pagination({

@@ -35,8 +35,10 @@ export { SegmentedControl, type SegmentOption } from '@web/components/ui/segment
 export { Select, type SelectOption } from '@web/components/ui/select';
 export { StatCard, StatRow, type StatTone } from '@web/components/ui/stat-card';
 export { Switch } from '@web/components/ui/switch';
+export { Tag } from '@web/components/ui/tag';
 export { TabPanel, Tabs, useTabParam, type TabDefinition } from '@web/components/ui/tabs';
 export { Textarea } from '@web/components/ui/textarea';
 export { Pagination, Table, type Column } from '@web/components/ui/table';
 export { isValidTime, TimePicker, timeSlots } from '@web/components/ui/time-picker';
 export { ToastProvider, useToast } from '@web/components/ui/toast';
+export { Widget } from '@web/components/ui/widget';

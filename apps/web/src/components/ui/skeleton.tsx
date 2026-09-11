@@ -82,7 +82,11 @@ export function SkeletonTableCards<TRow>({
   return (
     <>
       {Array.from({ length: cards }, (_, card) => (
-        <div key={card} aria-hidden="true" className="rounded-card bg-surface p-4 shadow-card">
+        <div
+          key={card}
+          aria-hidden="true"
+          className="border border-line rounded-card bg-surface p-4 shadow-card"
+        >
           {hasPrimary && <Skeleton className="mb-3 h-4 w-1/2" />}
 
           <div className="flex flex-col gap-3">
@@ -107,7 +111,7 @@ export function SkeletonCard({ count = 3 }: { readonly count?: number }): JSX.El
         <div
           key={card}
           aria-hidden="true"
-          className="flex flex-col rounded-card bg-surface p-4 shadow-card"
+          className="flex flex-col border border-line rounded-card bg-surface p-4 shadow-card"
         >
           <div className="flex items-start gap-3">
             <Skeleton className="size-9 shrink-0 rounded-control" />
@@ -137,7 +141,11 @@ export function SkeletonKpi({ count = 3 }: { readonly count?: number }): JSX.Ele
       <SkeletonStatus />
 
       {Array.from({ length: count }, (_, card) => (
-        <div key={card} aria-hidden="true" className="rounded-card bg-surface p-4 shadow-card">
+        <div
+          key={card}
+          aria-hidden="true"
+          className="border border-line rounded-card bg-surface p-4 shadow-card"
+        >
           <div className="flex items-center gap-2">
             <Skeleton className="size-7 shrink-0 rounded-control" />
             <Skeleton className="h-3 w-2/5" />
@@ -175,7 +183,7 @@ export function SkeletonTimeline({ entries = 4 }: { readonly entries?: number })
         <div
           key={entry}
           aria-hidden="true"
-          className="flex items-start gap-3 rounded-card bg-surface p-4 shadow-card"
+          className="flex items-start gap-3 border border-line rounded-card bg-surface p-4 shadow-card"
         >
           <Skeleton className="size-9 shrink-0 rounded-control" />
 
@@ -202,7 +210,7 @@ const BLOCKS = [
 /** The grid's own shape: an hour gutter beside one column of blocks per doctor. */
 export function SkeletonCalendarDay({ columns = 3 }: { readonly columns?: number }): JSX.Element {
   return (
-    <div className="rounded-card bg-surface p-4 shadow-card">
+    <div className="border border-line rounded-card bg-surface p-4 shadow-card">
       <SkeletonStatus />
 
       <div aria-hidden="true" className="flex gap-3">

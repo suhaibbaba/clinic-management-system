@@ -18,7 +18,7 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps): JSX.E
   return (
     <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
-        <h1 className="text-title font-semibold tracking-title text-ink">{t(title)}</h1>
+        <h1 className="text-title font-medium tracking-title text-ink">{t(title)}</h1>
         {subtitle !== undefined && <p className="mt-1 text-value text-ink-muted">{t(subtitle)}</p>}
       </div>
 
