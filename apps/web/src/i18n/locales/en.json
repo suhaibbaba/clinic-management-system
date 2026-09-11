@@ -1160,7 +1160,38 @@
       "doctor": "Doctor",
       "status": "Status",
       "empty": "Nothing booked today",
-      "emptyHint": "Appointments booked for today appear here"
+      "emptyHint": "Appointments booked for today appear here",
+      "byDoctor": "By doctor"
+    },
+    "greeting": {
+      "morning": "Good morning,",
+      "evening": "Good evening,"
+    },
+    "firstAppointment": "First appointment",
+    "lastAppointment": "Last appointment",
+    "now": "Now",
+    "call": "Call",
+    "calendar": {
+      "previous": "Previous month",
+      "next": "Next month",
+      "open": "Open appointments for",
+      "weekday": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      }
     }
+  },
+  "notes": {
+    "title": "Quick notes",
+    "add": "Add a note",
+    "placeholder": "Write a note…",
+    "save": "Save note",
+    "remove": "Delete note",
+    "empty": "No notes yet"
   }
 }

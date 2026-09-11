@@ -11,6 +11,7 @@ import {
   type AuthenticatedUserProfile,
   type Attachment,
   type CalendarAppointment,
+  type CalendarFeed,
   type DashboardSummary,
   type Doctor,
   type OverduePatient,
@@ -394,6 +395,17 @@ export function makeCalendarAppointment(
     createdAt: startsAt,
     updatedAt: startsAt,
     ...overrides,
+  };
+}
+
+/** The calendar feed the mini calendar reads for its month of dots. */
+export function makeCalendarFeed(appointments: readonly CalendarAppointment[] = []): CalendarFeed {
+  return {
+    from: '2026-09-01',
+    to: '2026-10-01',
+    appointments: [...appointments],
+    closures: [],
+    timeOff: [],
   };
 }
 
