@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>عيادة أبو عبيد — لوحة التحكم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* مشتقة من الشعار: أزرق #1B6F97 · أخضر #39BA97 */
+  --blue:#1B6F97;
+  --blue-700:#155B7D;
+  --blue-900:#0E3D55;
+  --blue-950:#092B3D;
+  --blue-100:#E1EEF5;
+  --green:#39BA97;
+  --green-700:#22987A;
+  --green-100:#DCF3EC;
+  --ink:#12303F;
+  --ink-soft:#4E6975;
+  --bg:#F1F6F7;
+  --surface:#FFFFFF;
+  --line:#E0EAEE;
+  --amber-ink:#8F6206;
+  --amber-bg:#FBF1DA;
+  --red-ink:#B03A31;
+  --red-bg:#FBEAE8;
+  --r-lg:20px;
+  --r-md:14px;
+  --shadow:0 8px 24px -14px rgba(14,61,85,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:15px}
+body{
+  font-family:'Tajawal',system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);
+  font-feature-settings:"tnum";min-height:100vh;
+}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.app{display:flex;min-height:100vh}
+
+/* ---------- الشريط الجانبي ---------- */
+.sidebar{
+  width:266px;flex-shrink:0;
+  background:#FBFDFD;
+  border-inline-end:1px solid var(--line);
+  color:var(--ink);display:flex;flex-direction:column;
+  padding:20px 18px 18px;position:sticky;top:0;height:100vh;
+}
+.brand{
+  background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;
+  margin-bottom:22px;display:grid;place-items:center;
+}
+.brand img{width:100%;max-width:190px;display:block}
+.nav-title{font-size:.7rem;color:#8FA6B0;font-weight:500;letter-spacing:.02em;padding:4px 12px 8px}
+.nav-sep{height:1px;background:var(--line);margin:14px 4px;border:none}
+.nav a{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 12px;border-radius:11px;
+  color:var(--ink-soft);text-decoration:none;font-size:.9rem;font-weight:500;
+  margin-bottom:2px;transition:background .15s,color .15s;
+}
+.nav a:hover{background:var(--blue-100);color:var(--blue-700)}
+.nav a.active{
+  background:linear-gradient(160deg,var(--blue),var(--blue-900));
+  color:#fff;font-weight:500;
+  box-shadow:0 8px 18px -10px rgba(27,111,151,.55);
+}
+.nav a svg{width:19px;height:19px;flex-shrink:0}
+.nav .badge{
+  margin-inline-start:auto;background:var(--red-ink);color:#fff;
+  font-size:.68rem;font-weight:500;min-width:20px;height:20px;
+  border-radius:10px;display:grid;place-items:center;padding:0 6px;
+}
+.sidebar-foot{
+  margin-top:auto;background:#fff;
+  border:1px solid var(--line);
+  border-radius:var(--r-md);padding:12px;
+  display:flex;align-items:center;gap:11px;cursor:pointer;
+}
+.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:500;font-size:.8rem;flex-shrink:0}
+.sidebar-foot .avatar{background:var(--green-100);color:var(--green-700)}
+.sidebar-foot b{display:block;font-size:.86rem}
+.sidebar-foot span{font-size:.72rem;color:var(--ink-soft)}
+
+/* ---------- المحتوى ---------- */
+.main{flex:1;min-width:0;padding:26px 34px 48px}
+.topbar{
+  display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:12px 16px;
+  box-shadow:0 12px 28px -18px rgba(27,111,151,.35),0 2px 6px -3px rgba(27,111,151,.12);
+}
+.top-actions{display:flex;align-items:center;gap:9px;order:3}
+.search{
+  order:2;flex:1;max-width:520px;margin-inline-end:auto;
+  display:flex;align-items:center;gap:9px;
+  background:var(--bg);
+  border:1px solid var(--line);
+  border-radius:12px;padding:0 14px;height:44px;
+  transition:border-color .2s,box-shadow .2s;
+}
+.search:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-100)}
+.search input{border:none;outline:none;font:inherit;font-size:.86rem;width:100%;background:transparent;color:var(--ink)}
+.search input::placeholder{color:#8FA6B0}
+.search svg{flex-shrink:0;stroke:#8FA6B0}
+.btn{
+  border:none;cursor:pointer;font-weight:500;border-radius:10px;font-size:.8rem;
+  display:inline-flex;align-items:center;gap:7px;padding:8px 13px;transition:filter .15s;
+}
+.btn:hover{filter:brightness(1.06)}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.icon-btn{
+  width:38px;height:38px;border-radius:10px;background:var(--surface);
+  border:1px solid var(--line);display:grid;place-items:center;cursor:pointer;position:relative;
+}
+.icon-btn svg{stroke:#4E6975}
+.icon-btn .dot{position:absolute;top:8px;inset-inline-end:8px;width:8px;height:8px;border-radius:50%;background:var(--red-ink);border:2px solid #fff}
+
+/* ---------- بانر الترحيب ---------- */
+.banner{
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(600px 200px at 85% 0%,rgba(57,186,151,.12),transparent 60%),
+    linear-gradient(100deg,#EAF7F2 0%,#E3EEF6 55%,#DCEAF4 100%);
+  border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:26px 30px;margin-bottom:16px;min-height:158px;
+  display:flex;align-items:center;
+  box-shadow:0 12px 28px -18px rgba(27,111,151,.35),0 2px 6px -3px rgba(27,111,151,.12);
+}
+.banner .hello{position:relative;z-index:1}
+.banner .hello h1{font-size:1.5rem;font-weight:500;color:var(--blue-900);display:flex;align-items:center;gap:10px}
+.banner .hello p{color:#5B7A8A;font-size:.9rem;margin-top:5px}
+.hello-chip{
+  margin-top:13px;display:inline-flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.75);border:1px solid rgba(27,111,151,.18);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  border-radius:99px;padding:6px 13px;
+  font-size:.76rem;font-weight:500;color:var(--blue-700);
+}
+.banner-art{position:absolute;inset-inline-end:0;top:0;bottom:0;width:46%;pointer-events:none}
+.banner-art svg{width:100%;height:100%;display:block}
+@media (max-width:900px){.banner-art{opacity:.35}}
+
+
+/* ---------- المؤشرات ---------- */
+/* بطاقات المؤشرات */
+.tag{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:linear-gradient(100deg,#DFF2EB,#DEEAF5);
+  color:var(--blue-900);border-radius:12px;padding:9px 15px;
+  font-size:12px;font-weight:500;line-height:10px;
+}
+.kpi{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 20px;
+  box-shadow:0 12px 28px -18px rgba(27,111,151,.35),0 2px 6px -3px rgba(27,111,151,.12);
+  transition:box-shadow .2s,transform .2s;
+}
+.kpi:hover{box-shadow:0 18px 34px -18px rgba(27,111,151,.45);transform:translateY(-2px)}
+.kpi-head{display:flex;align-items:center;justify-content:space-between;color:var(--ink-soft);font-size:.82rem;font-weight:500;min-height:26px}
+.kpi-num{font-size:2.1rem;font-weight:500;margin-top:8px;line-height:1}
+.kpi-sub{font-size:.78rem;color:var(--ink-soft);margin-top:7px}
+.ring{
+  --p:67;width:44px;height:44px;border-radius:50%;
+  background:conic-gradient(var(--green) calc(var(--p)*1%),var(--blue-100) 0);
+  display:grid;place-items:center;margin-top:-9px;
+}
+.ring i{width:33px;height:33px;border-radius:50%;background:#fff;color:var(--ink);display:grid;place-items:center;font-style:normal;font-size:.62rem;font-weight:500}
+.ring.lg{width:46px;height:46px}
+.ring.lg i{width:34px;height:34px}
+.kpi-action{
+  margin-top:12px;display:inline-flex;align-items:center;gap:6px;border:none;cursor:pointer;
+  font-size:.78rem;font-weight:500;color:var(--blue-700);
+  background:var(--blue-100);border-radius:8px;padding:6px 12px;transition:filter .15s;
+}
+.kpi-action:hover{filter:brightness(.96)}
+.kpi.late .kpi-num{color:var(--red-ink)}
+.kpi.late .kpi-action{color:var(--red-ink);background:var(--red-bg)}
+.kpi.pending .kpi-num{color:var(--amber-ink)}
+.kpi.pending .kpi-action{color:#06342A;background:var(--green-100)}
+
+/* ---------- تخطيط المحتوى ---------- */
+.content{display:grid;grid-template-columns:1fr 292px;gap:16px;align-items:start}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:16px;grid-column:1}
+.kpi.late{grid-column:2;align-self:stretch}
+.panel{grid-column:1}
+.side{grid-column:2;display:flex;flex-direction:column;gap:16px}
+.widget{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:16px 18px;
+  box-shadow:0 12px 28px -18px rgba(27,111,151,.35),0 2px 6px -3px rgba(27,111,151,.12);
+}
+.widget h3{font-size:.92rem;font-weight:500;display:flex;align-items:center;justify-content:space-between}
+
+/* التقويم المصغّر */
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-head b{font-size:.92rem}
+.cal-nav{display:flex;gap:4px}
+.cal-nav button{
+  width:26px;height:26px;border-radius:8px;border:1px solid var(--line);
+  background:var(--bg);cursor:pointer;color:var(--ink-soft);font-size:.8rem;
+}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+.cal-grid b{font-size:.62rem;color:var(--ink-soft);font-weight:500;padding:4px 0}
+.cal-grid span{
+  font-size:.74rem;font-weight:500;padding:6px 0;border-radius:8px;
+  position:relative;cursor:pointer;
+}
+.cal-grid span:hover{background:var(--blue-100)}
+.cal-grid span.mute{color:#B4C6CE;pointer-events:none}
+.cal-grid span.dot::after{
+  content:"";position:absolute;bottom:2px;right:50%;transform:translateX(50%);
+  width:4px;height:4px;border-radius:50%;background:var(--green);
+}
+.cal-grid span.today{
+  background:linear-gradient(135deg,var(--blue),var(--blue-900));
+  color:#fff;font-weight:500;
+}
+.cal-grid span.today.dot::after{background:#fff}
+
+/* ملاحظات سريعة */
+.note-add{
+  display:flex;align-items:center;gap:8px;margin-top:12px;
+  border:1px dashed var(--line);border-radius:10px;padding:9px 12px;
+}
+.note-add input{border:none;outline:none;font:inherit;font-size:.8rem;width:100%;background:transparent;color:var(--ink)}
+.note{
+  margin-top:10px;background:#FBF8EC;border:1px solid #F0E6C6;
+  border-radius:10px;padding:9px 12px;font-size:.78rem;color:#6E5D22;line-height:1.6;
+}
+.note small{display:block;color:#A79554;font-size:.68rem;margin-top:3px}
+
+
+.panel{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;
+  box-shadow:0 12px 28px -18px rgba(27,111,151,.35),0 2px 6px -3px rgba(27,111,151,.12);
+}
+.panel-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 22px;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap;
+}
+.panel-head h2{font-size:.9rem}
+.filters{display:flex;gap:8px}
+.chip{
+  border:1px solid var(--line);background:var(--bg);
+  border-radius:99px;padding:6px 14px;font-size:.78rem;font-weight:500;
+  color:var(--ink-soft);cursor:pointer;
+}
+.chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.all-link{font-size:.82rem;color:var(--blue);font-weight:500;text-decoration:none}
+
+.timeline{padding:8px 22px 22px;position:relative}
+.slot{display:grid;grid-template-columns:64px 14px 1fr;gap:0 14px;position:relative}
+.slot .time{font-size:.82rem;font-weight:500;color:var(--ink-soft);padding-top:20px;text-align:left;direction:ltr}
+.rail{position:relative}
+.rail::before{content:"";position:absolute;top:0;bottom:0;right:6px;width:2px;background:var(--line)}
+.slot:first-child .rail::before{top:26px}
+.slot:last-child .rail::before{bottom:auto;height:26px}
+.rail .node{
+  position:absolute;top:24px;right:1.5px;width:11px;height:11px;border-radius:50%;
+  background:#fff;border:3px solid var(--blue);
+}
+.slot.done .node{border-color:#A3BAC6;background:#A3BAC6}
+.slot.now-slot .node{border-color:var(--green);box-shadow:0 0 0 4px rgba(57,186,151,.22)}
+
+.appt{
+  margin:8px 0;border:1px solid var(--line);border-radius:var(--r-md);
+  padding:13px 16px;display:flex;align-items:center;gap:13px;background:var(--surface);
+}
+.slot.done .appt{opacity:.55}
+.slot.now-slot .appt{border-color:var(--green);box-shadow:0 10px 22px -14px rgba(34,152,122,.5)}
+.appt .avatar{font-size:.72rem}
+.a1{background:#FCE8E6;color:#A03B31}.a2{background:#E1EEF5;color:#1B6F97}
+.a3{background:#EDE8F8;color:#5B3EA6}.a4{background:#FBF1DA;color:#8F6206}
+.a5{background:#DCF3EC;color:#1E7A62}.a6{background:#F2E7EE;color:#8C3A6B}
+.appt-info{min-width:0;flex:1}
+.appt-info b{display:block;font-size:.92rem;font-weight:500}
+.appt-info span{font-size:.76rem;color:var(--ink-soft)}
+.appt-info .alert{
+  display:inline-flex;align-items:center;gap:4px;color:var(--red-ink);
+  background:var(--red-bg);border-radius:6px;padding:1px 7px;font-size:.7rem;font-weight:500;
+  margin-inline-start:6px;vertical-align:1px;
+}
+.status{
+  font-size:.75rem;font-weight:500;border-radius:99px;padding:5px 12px;
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.status::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.st-done{background:#EFF3F5;color:#5F7885}
+.st-arrived{background:var(--green-100);color:var(--green-700)}
+.st-inchair{background:#CBEFE2;color:#0F7A5D}
+.st-confirmed{background:var(--blue-100);color:var(--blue)}
+.st-pending{background:var(--amber-bg);color:var(--amber-ink)}
+.quick{display:flex;gap:6px}
+.quick button{
+  width:34px;height:34px;border-radius:9px;border:1px solid var(--line);
+  background:var(--bg);cursor:pointer;display:grid;place-items:center;color:var(--ink-soft);
+}
+.quick button:hover{border-color:var(--green-700);color:var(--green-700)}
+
+.now-line{position:absolute;left:22px;right:96px;height:0;border-top:2px dashed var(--green);z-index:2;pointer-events:none}
+.now-line em{
+  position:absolute;right:-58px;top:-11px;font-style:normal;
+  background:var(--green);color:#fff;font-size:.66rem;font-weight:500;
+  border-radius:6px;padding:3px 8px;direction:ltr;
+}
+
+@media (max-width:1220px){
+  .content{grid-template-columns:1fr}
+  .kpis,.kpi.late,.panel,.side{grid-column:1}
+  .side{flex-direction:row}
+  .side .widget{flex:1}
+}
+@media (max-width:1024px){
+  .search{order:4;flex-basis:100%;max-width:none;margin:6px 0 0}
+}
+@media (max-width:760px){
+  .sidebar{display:none}
+  .main{padding:18px 16px 40px}
+  .kpis{grid-template-columns:1fr}
+  .side{flex-direction:column}
+  .slot{grid-template-columns:50px 14px 1fr}
+  .quick{display:none}
+  .banner-art{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="data:image/webp;base64,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" alt="Abu Obaid Dental Clinic">
+    </div>
+
+    <nav class="nav">
+      <a href="#" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+        لوحة التحكم
+      </a>
+      <hr class="nav-sep">
+      <div class="nav-title">المرضى والمواعيد</div>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 2.8-4.5 5.5-4.5S13.9 16 14.5 19M15.5 5.4a3.2 3.2 0 0 1 0 5.2M17.5 14.7c1.6.6 2.6 1.9 3 4.3"/></svg>
+        المرضى
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>
+        المواعيد
+        <span class="badge">4</span>
+      </a>
+      <hr class="nav-sep">
+      <div class="nav-title">المختبر والمستودع</div>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4V2.8h6V4M9 9.5h6M9 13.5h6M9 17.5h3.5"/></svg>
+        المختبرات
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 4 7v10l8 4 8-4V7l-8-4ZM4 7l8 4m0 0 8-4m-8 4v10"/></svg>
+        المستودع
+      </a>
+      <hr class="nav-sep">
+      <div class="nav-title">الإدارة</div>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10.5h18M7 15h4"/></svg>
+        المعاملات المالية
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg>
+        التقارير
+      </a>
+      <hr class="nav-sep">
+      <div class="nav-title">الإعدادات</div>
+      <a href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2.1-1.2L14 3.2h-4l-.5 2.5a7 7 0 0 0-2.1 1.2l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2.4l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2.1 1.2l.5 2.5h4l.5-2.5a7 7 0 0 0 2.1-1.2l2.3 1 2-3.4-2-1.5c.07-.4.1-.8.1-1.2Z"/></svg>
+        إعدادات العيادة
+      </a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="avatar">دل</div>
+      <div><b>د. ليلى حداد</b><span>طبيبة أسنان</span></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="top-actions">
+        <button class="icon-btn" title="التنبيهات">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 9.5a6 6 0 0 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 13.5 6 9.5ZM10 18.5a2 2 0 0 0 4 0"/></svg>
+          <span class="dot"></span>
+        </button>
+        <button class="btn btn-ghost">مريض جديد</button>
+        <button class="btn btn-primary">+ موعد جديد</button>
+      </div>
+      <label class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" placeholder="ابحث عن مريض، ملف، أو رقم هاتف…">
+      </label>
+    </div>
+
+    <div class="banner">
+      <div class="hello">
+        <h1>صباح الخير، د. ليلى <span>☀️</span></h1>
+        <p>الجمعة 11 سبتمبر 2026 · كل ابتسامة تصنع فرقًا</p>
+        <div class="hello-chip">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          أول موعد 09:00 · آخر موعد 16:30
+        </div>
+      </div>
+      <div class="banner-art">
+        <svg viewBox="0 0 440 170" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#FFFFFF"/>
+              <stop offset="1" stop-color="#E7F6F0"/>
+            </linearGradient>
+            <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#1B6F97" flood-opacity=".22"/>
+            </filter>
+            <pattern id="dots" width="16" height="16" patternUnits="userSpaceOnUse">
+              <circle cx="2" cy="2" r="1.5" fill="#1B6F97" opacity=".12"/>
+            </pattern>
+          </defs>
+          <circle cx="110" cy="100" r="130" fill="#39BA97" opacity=".10"/>
+          <circle cx="340" cy="10" r="100" fill="#1B6F97" opacity=".08"/>
+          <circle cx="255" cy="85" r="66" fill="none" stroke="#39BA97" stroke-width="2" opacity=".35" stroke-dasharray="2 7" stroke-linecap="round"/>
+          <rect x="20" y="14" width="90" height="60" fill="url(#dots)"/>
+          <g filter="url(#soft)">
+            <path d="M218 26c-22 0-30 13-44 13-16 0-27 14-27 32 0 29 14 43 19 71 3 18 7 34 19 34 14 0 8-38 31-38s17 38 31 38c12 0 16-16 19-34 5-28 19-42 19-71 0-18-11-32-27-32-14 0-19-13-40-13Z"
+                  fill="url(#tg)" stroke="#1B6F97" stroke-width="6"/>
+          </g>
+          <path d="M186 64c11-11 53-13 66 0" stroke="#39BA97" stroke-width="6" stroke-linecap="round" fill="none"/>
+          <path d="M196 47c4-5 12-8 19-7" stroke="#BFE7DB" stroke-width="5" stroke-linecap="round" fill="none"/>
+          <g fill="#39BA97">
+            <path d="M318 40 322 52 334 56 322 60 318 72 314 60 302 56 314 52Z" opacity=".95"/>
+            <path d="M128 26 130 33 137 35 130 37 128 44 126 37 119 35 126 33Z" opacity=".8"/>
+          </g>
+          <g fill="#1B6F97">
+            <path d="M352 96 355 104 363 107 355 110 352 118 349 110 341 107 349 104Z" opacity=".7"/>
+            <path d="M160 118 161.5 122 166 123.5 161.5 125 160 129 158.5 125 154 123.5 158.5 122Z" opacity=".55"/>
+          </g>
+          <path d="M430 170c-36-5-56-22-63-48 27 2 53 19 63 48Z" fill="#39BA97" opacity=".4"/>
+          <path d="M400 170c-24-4-38-15-44-32 19 1 37 13 44 32Z" fill="#1B6F97" opacity=".3"/>
+          <circle cx="60" cy="140" r="5" fill="#39BA97" opacity=".45"/>
+          <circle cx="80" cy="152" r="3" fill="#1B6F97" opacity=".35"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="content">
+    <section class="kpis">
+      <div class="kpi">
+        <div class="kpi-head"><span class="tag">مواعيد اليوم</span></div>
+        <div class="kpi-num">9</div>
+        <div class="kpi-sub">6 مؤكّدة · 1 قيد المعالجة · 1 منجز</div>
+        <button class="kpi-action">عرض الجدول</button>
+      </div>
+      <div class="kpi pending">
+        <div class="kpi-head"><span class="tag">بانتظار التأكيد</span></div>
+        <div class="kpi-num">4</div>
+        <div class="kpi-sub">حجوزات إلكترونية لم يُردّ عليها</div>
+        <button class="kpi-action">تأكيد الكل ✓</button>
+      </div>
+    </section>
+    <div class="kpi late">
+      <div class="kpi-head"><span class="tag">أرصدة متأخرة</span></div>
+      <div class="kpi-num">₪ 200</div>
+      <div class="kpi-sub">مريضان · آخر تذكير قبل 3 أيام</div>
+      <button class="kpi-action">إرسال تذكير</button>
+    </div>
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="tag">جدول اليوم</h2>
+        <div class="filters">
+          <button class="chip on">الكل</button>
+          <button class="chip">د. ليلى حداد</button>
+          <button class="chip">د. سامر نصار</button>
+        </div>
+        <a class="all-link" href="#">كل المواعيد ‹</a>
+      </div>
+
+      <div class="timeline">
+
+        <div class="slot done">
+          <div class="time">09:00</div>
+          <div class="rail"><span class="node"></span></div>
+          <div class="appt">
+            <div class="avatar a2">يب</div>
+            <div class="appt-info"><b>يوسف نبيل البرغوثي</b><span>د. ليلى حداد · فحص دوري</span></div>
+            <span class="status st-done">منجز</span>
+          </div>
+        </div>
+
+        <div class="slot">
+          <div class="time">09:30</div>
+          <div class="rail"><span class="node"></span></div>
+          <div class="appt">
+            <div class="avatar a1">ست</div>
+            <div class="appt-info"><b>سلمى عادل التميمي</b><span>د. ليلى حداد · تركيب تاج</span></div>
+            <span class="status st-arrived">وصل المريض</span>
+          </div>
+          <div class="time"></div>
+          <div class="rail"><span class="node" style="top:12px"></span></div>
+          <div class="appt" style="margin-top:0">
+            <div class="avatar a3">ند</div>
+            <div class="appt-info"><b>نور إياد دراغمة</b><span>د. سامر نصار · حشوة تجميلية</span></div>
+            <span class="status st-arrived">وصل المريض</span>
+          </div>
+        </div>
+
+        <div class="slot now-slot" style="position:relative">
+          <div class="now-line" style="top:14px"><em>الآن 10:12</em></div>
+          <div class="time">10:00</div>
+          <div class="rail"><span class="node"></span></div>
+          <div class="appt">
+            <div class="avatar a5">كع</div>
+            <div class="appt-info"><b>كريم وليد عودة</b><span>د. ليلى حداد · معالجة لبّية — الكرسي 1</span></div>
+            <span class="status st-inchair">قيد المعالجة</span>
+          </div>
+        </div>
+
+        <div class="slot">
+          <div class="time">10:30</div>
+          <div class="rail"><span class="node"></span></div>
+          <div class="appt">
+            <div class="avatar a4">أح</div>
+            <div class="appt-info">
+              <b>أحمد خالد الحسن <span class="alert">⚠ تحسّس: البنسلين</span></b>
+              <span>د. سامر نصار · قلع ضرس</span>
+            </div>
+            <span class="status st-confirmed">مؤكَّد</span>
+          </div>
+        </div>
+
+        <div class="slot">
+          <div class="time">11:30</div>
+          <div class="rail"><span class="node"></span></div>
+          <div class="appt">
+            <div class="avatar a6">هم</div>
+            <div class="appt-info"><b>هدى ياسر المصري</b><span>د. ليلى حداد · تنظيف وتلميع</span></div>
+            <span class="status st-confirmed">مؤكَّد</span>
+          </div>
+        </div>
+
+        <div class="slot">
+          <div class="time">16:00</div>
+          <div class="rail"><span class="node"></span></div>
+          <div class="appt">
+            <div class="avatar a2">لع</div>
+            <div class="appt-info"><b>ليلى محمود العلي</b><span>د. سامر نصار · استشارة تقويم</span></div>
+            <span class="status st-pending">بانتظار التأكيد</span>
+            <div class="quick">
+              <button title="تأكيد الموعد"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 12.5 9.5 18 20 6.5"/></svg></button>
+              <button title="اتصال"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 4h4l1.5 4.5-2.2 1.6a12 12 0 0 0 5.6 5.6l1.6-2.2L20 15v4a1.5 1.5 0 0 1-1.6 1.5C10 20 4 14 3.5 5.6A1.5 1.5 0 0 1 5 4Z"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="slot">
+          <div class="time">16:30</div>
+          <div class="rail"><span class="node"></span></div>
+          <div class="appt">
+            <div class="avatar a1">رع</div>
+            <div class="appt-info"><b>ريم العلي</b><span>د. ليلى حداد · كشف أولي</span></div>
+            <span class="status st-pending">بانتظار التأكيد</span>
+            <div class="quick">
+              <button title="تأكيد الموعد"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 12.5 9.5 18 20 6.5"/></svg></button>
+              <button title="اتصال"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 4h4l1.5 4.5-2.2 1.6a12 12 0 0 0 5.6 5.6l1.6-2.2L20 15v4a1.5 1.5 0 0 1-1.6 1.5C10 20 4 14 3.5 5.6A1.5 1.5 0 0 1 5 4Z"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="widget">
+        <div class="cal-head">
+          <b>سبتمبر 2026</b>
+          <div class="cal-nav"><button>‹</button><button>›</button></div>
+        </div>
+        <div class="cal-grid">
+          <b>سبت</b><b>أحد</b><b>اثن</b><b>ثلا</b><b>أرب</b><b>خمي</b><b>جمع</b>
+          <span class="mute"></span><span class="mute"></span><span class="mute"></span>
+          <span>1</span><span>2</span><span class="dot">3</span><span>4</span>
+          <span>5</span><span class="dot">6</span><span>7</span><span class="dot">8</span><span>9</span><span>10</span><span class="today dot">11</span>
+          <span>12</span><span class="dot">13</span><span class="dot">14</span><span>15</span><span>16</span><span class="dot">17</span><span>18</span>
+          <span>19</span><span>20</span><span class="dot">21</span><span>22</span><span>23</span><span>24</span><span>25</span>
+          <span>26</span><span class="dot">27</span><span>28</span><span>29</span><span>30</span>
+          <span class="mute"></span><span class="mute"></span>
+        </div>
+      </div>
+
+      <div class="widget">
+        <h3>ملاحظات سريعة
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4E6975" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+        </h3>
+        <div class="note">
+          الاتصال بمختبر الابتسامة بخصوص تاج أحمد قبل الساعة 2
+          <small>اليوم · الاستقبال</small>
+        </div>
+        <div class="note-add">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8FA6B0" stroke-width="1.8"><path d="M4 20h4L19 9l-4-4L4 16v4ZM13 7l4 4"/></svg>
+          <input type="text" placeholder="اكتب ملاحظة…">
+        </div>
+      </div>
+    </aside>
+    </div>
+  </main>
+</div>
+</body>
+</html>
