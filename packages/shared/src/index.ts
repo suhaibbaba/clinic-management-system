@@ -22,6 +22,7 @@ export * from '@shared/schemas/labs';
 export * from '@shared/schemas/lookups';
 export * from '@shared/schemas/medical-histories';
 export * from '@shared/schemas/money';
+export * from '@shared/schemas/notes';
 export * from '@shared/schemas/notifications';
 export * from '@shared/schemas/patients';
 export * from '@shared/schemas/person-name';

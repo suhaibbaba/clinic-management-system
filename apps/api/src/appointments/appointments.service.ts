@@ -166,8 +166,8 @@ export class AppointmentsService implements OnModuleInit {
   // the indexed `starts_at`.
   async calendar(actor: AuthenticatedUser, query: CalendarQuery): Promise<CalendarFeed> {
     const timeZone = await this.timeZone(actor.clinicId);
-    const from = query.range === 'week' ? startOfWeek(query.date) : query.date;
-    const to = addDays(from, query.range === 'week' ? 7 : 1);
+    const from = calendarRangeStart(query.date, query.range);
+    const to = calendarRangeEnd(from, query.range);
     const fromInstant = instantFromLocal(from, 0, timeZone);
     const toInstant = instantFromLocal(to, 0, timeZone);
 
@@ -479,6 +479,26 @@ export class AppointmentsService implements OnModuleInit {
 
     return clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE;
   }
+}
+
+/** Inclusive first day drawn for a range, from any date inside it. */
+export function calendarRangeStart(isoDate: string, range: CalendarQuery['range']): string {
+  if (range === 'week') {
+    return startOfWeek(isoDate);
+  }
+
+  return range === 'month' ? `${isoDate.slice(0, 7)}-01` : isoDate;
+}
+
+/** Exclusive last day. A month is added in months, or a 31-day January would overshoot February. */
+export function calendarRangeEnd(from: string, range: CalendarQuery['range']): string {
+  if (range !== 'month') {
+    return addDays(from, range === 'week' ? 7 : 1);
+  }
+
+  const [year = 0, month = 1] = from.split('-').map(Number);
+
+  return new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
 }
 
 /** Sunday of the week a date falls in, matching `DaySchedule.weekday` 0 = Sunday. */
