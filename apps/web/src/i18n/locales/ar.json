@@ -1157,9 +1157,31 @@
     }
   },
   "dashboard": {
-    "title": "لوحة التحكم",
-    "subtitle": "ملخّص اليوم في العيادة",
+    "calendar": {
+      "previous": "الشهر السابق",
+      "next": "الشهر التالي",
+      "open": "عرض مواعيد يوم",
+      "weekday": {
+        "sun": "أحد",
+        "mon": "اثنين",
+        "tue": "ثلاثاء",
+        "wed": "أربعاء",
+        "thu": "خميس",
+        "fri": "جمعة",
+        "sat": "سبت"
+      }
+    },
+    "call": "اتصال",
     "failed": "تعذّر تحميل ملخّص اليوم، حاول تحديث الصفحة",
+    "firstAppointment": "أول موعد",
+    "greeting": {
+      "morning": "صباح الخير،",
+      "evening": "مساء الخير،"
+    },
+    "greetingMark": {
+      "morning": "☀️",
+      "evening": "🌙"
+    },
     "kpi": {
       "today": "مواعيد اليوم",
       "pending": "بانتظار التأكيد",
@@ -1167,6 +1189,8 @@
       "overdue": "أرصدة متأخرة",
       "overdueCaption": "{{count}} مريض"
     },
+    "lastAppointment": "آخر موعد",
+    "now": "الآن",
     "schedule": {
       "title": "جدول اليوم",
       "seeAll": "كل المواعيد",
@@ -1178,28 +1202,8 @@
       "emptyHint": "المواعيد المحجوزة لهذا اليوم تظهر هنا",
       "byDoctor": "حسب الطبيب"
     },
-    "greeting": {
-      "morning": "صباح الخير،",
-      "evening": "مساء الخير،"
-    },
-    "firstAppointment": "أول موعد",
-    "lastAppointment": "آخر موعد",
-    "now": "الآن",
-    "call": "اتصال",
-    "calendar": {
-      "previous": "الشهر السابق",
-      "next": "الشهر التالي",
-      "open": "عرض مواعيد يوم",
-      "weekday": {
-        "sun": "أحد",
-        "mon": "اثن",
-        "tue": "ثلا",
-        "wed": "أرب",
-        "thu": "خمي",
-        "fri": "جمع",
-        "sat": "سبت"
-      }
-    }
+    "subtitle": "ملخّص اليوم في العيادة",
+    "title": "لوحة التحكم"
   },
   "notes": {
     "title": "ملاحظات سريعة",

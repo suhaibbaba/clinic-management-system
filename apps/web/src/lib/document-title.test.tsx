@@ -11,7 +11,9 @@ import { mockApi, renderWithProviders } from '@test/helpers/render';
 
 const CLINIC = 'عيادة النور';
 
-const profile = makeProfile({ clinic: { name: { ar: CLINIC, en: 'Al Nour' }, logoUrl: null } });
+const profile = makeProfile({
+  clinic: { name: { ar: CLINIC, en: 'Al Nour' }, logoUrl: null, chartTypes: [] },
+});
 
 function renderRoutes(route: string) {
   mockApi({

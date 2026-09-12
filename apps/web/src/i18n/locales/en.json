@@ -1145,35 +1145,6 @@
     }
   },
   "dashboard": {
-    "title": "Dashboard",
-    "subtitle": "Today at the clinic, at a glance",
-    "failed": "Today's summary could not be loaded — try refreshing",
-    "kpi": {
-      "today": "Today's appointments",
-      "pending": "Awaiting confirmation",
-      "pendingCaption": "Online bookings nobody has answered",
-      "overdue": "Overdue balances",
-      "overdueCaption": "{{count}} patients"
-    },
-    "schedule": {
-      "title": "Today's schedule",
-      "seeAll": "All appointments",
-      "time": "Time",
-      "patient": "Patient",
-      "doctor": "Doctor",
-      "status": "Status",
-      "empty": "Nothing booked today",
-      "emptyHint": "Appointments booked for today appear here",
-      "byDoctor": "By doctor"
-    },
-    "greeting": {
-      "morning": "Good morning,",
-      "evening": "Good evening,"
-    },
-    "firstAppointment": "First appointment",
-    "lastAppointment": "Last appointment",
-    "now": "Now",
-    "call": "Call",
     "calendar": {
       "previous": "Previous month",
       "next": "Next month",
@@ -1187,7 +1158,40 @@
         "fri": "Fri",
         "sat": "Sat"
       }
-    }
+    },
+    "call": "Call",
+    "failed": "Today's summary could not be loaded — try refreshing",
+    "firstAppointment": "First appointment",
+    "greeting": {
+      "morning": "Good morning,",
+      "evening": "Good evening,"
+    },
+    "greetingMark": {
+      "morning": "☀️",
+      "evening": "🌙"
+    },
+    "kpi": {
+      "today": "Today's appointments",
+      "pending": "Awaiting confirmation",
+      "pendingCaption": "Online bookings nobody has answered",
+      "overdue": "Overdue balances",
+      "overdueCaption": "{{count}} patients"
+    },
+    "lastAppointment": "Last appointment",
+    "now": "Now",
+    "schedule": {
+      "title": "Today's schedule",
+      "seeAll": "All appointments",
+      "time": "Time",
+      "patient": "Patient",
+      "doctor": "Doctor",
+      "status": "Status",
+      "empty": "Nothing booked today",
+      "emptyHint": "Appointments booked for today appear here",
+      "byDoctor": "By doctor"
+    },
+    "subtitle": "Today at the clinic, at a glance",
+    "title": "Dashboard"
   },
   "notes": {
     "title": "Quick notes",
