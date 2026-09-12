@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { USER_ROLES } from '@shared/enums';
+import { CHART_TYPES, USER_ROLES } from '@shared/enums';
 import { personNameSchema } from '@shared/schemas/person-name';
 
 export const PASSWORD_MIN_LENGTH = 8;
@@ -42,6 +42,9 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export const sessionClinicSchema = z.object({
   name: personNameSchema,
   logoUrl: z.url().nullable(),
+  // The chart types its active specialties use. Carried on the session rather than fetched, for
+  // the same reason the logo is: chrome that differs per specialty is drawn on the first paint.
+  chartTypes: z.array(z.enum(CHART_TYPES)),
 });
 export type SessionClinic = z.infer<typeof sessionClinicSchema>;
 

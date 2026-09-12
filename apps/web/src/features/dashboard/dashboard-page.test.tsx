@@ -1,4 +1,10 @@
-import { USER_ROLE, type DashboardSummary, type UserRole } from '@clinic/shared';
+import {
+  CHART_TYPE,
+  USER_ROLE,
+  type ChartType,
+  type DashboardSummary,
+  type UserRole,
+} from '@clinic/shared';
 import { screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
@@ -20,11 +26,18 @@ import { mockApi, renderWithProviders, type MockResponse } from '@test/helpers/r
 async function renderDashboard(
   role: UserRole,
   summary: DashboardSummary = makeDashboardSummary(),
+  chartTypes: ChartType[] = [CHART_TYPE.TOOTH_FDI],
 ): Promise<void> {
   authTokens.clear();
   mockApi({
     'POST /auth/refresh': { status: 200, body: { accessToken: 'access', expiresIn: 900 } },
-    'GET /me': { status: 200, body: makeProfile({ role }) },
+    'GET /me': {
+      status: 200,
+      body: makeProfile({
+        role,
+        clinic: { ...makeProfile({ role }).clinic, chartTypes },
+      }),
+    },
     'GET /clinic': { status: 200, body: { ...makeClinic(), settings: { timezone: 'UTC' } } },
     'GET /dashboard/summary': { status: 200, body: summary },
     'GET /appointments/pending-confirmation': { status: 200, body: paginated([]) },
@@ -174,5 +187,24 @@ describe('Dashboard', () => {
     await renderDashboard(USER_ROLE.RECEPTIONIST, makeDashboardSummary({ schedule: [] }));
 
     expect(await screen.findByText(ar.dashboard.schedule.empty)).toBeInTheDocument();
+  });
+  // The banner's glyph is the specialty's, not the product's: an orthopedic clinic gets the
+  // abstract field without somebody else's molar.
+  describe('banner artwork by specialty', () => {
+    const tooth = (): Element | null => document.querySelector('[fill="url(#banner-tooth)"]');
+
+    it('draws the dental glyph where the clinic charts teeth', async () => {
+      await renderDashboard(USER_ROLE.DOCTOR, makeDashboardSummary(), [CHART_TYPE.TOOTH_FDI]);
+
+      expect(tooth()).not.toBeNull();
+    });
+
+    it('draws no glyph where it does not', async () => {
+      await renderDashboard(USER_ROLE.DOCTOR, makeDashboardSummary(), [CHART_TYPE.BODY_REGION]);
+
+      expect(tooth()).toBeNull();
+      // The field the reference gives every clinic is still there.
+      expect(document.querySelector('[fill="url(#banner-dots)"]')).not.toBeNull();
+    });
   });
 });

@@ -14,7 +14,7 @@ import { TokenService } from '@api/auth/token.service';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { StorageService } from '@api/storage/storage.service';
-import { clinics, users } from '@api/database/schema';
+import { clinics, specialties, users } from '@api/database/schema';
 
 type UserRow = typeof users.$inferSelect;
 
@@ -197,20 +197,33 @@ export class AuthService {
   }
 
   private async sessionClinic(clinicId: string): Promise<SessionClinic> {
-    const [row] = await this.db
-      .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, logoKey: clinics.logoKey })
-      .from(clinics)
-      .where(and(eq(clinics.id, clinicId), isNull(clinics.deletedAt)))
-      .limit(1);
+    const [[row], chartTypes] = await Promise.all([
+      this.db
+        .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, logoKey: clinics.logoKey })
+        .from(clinics)
+        .where(and(eq(clinics.id, clinicId), isNull(clinics.deletedAt)))
+        .limit(1),
+      this.db
+        .selectDistinct({ chartType: specialties.chartType })
+        .from(specialties)
+        .where(
+          and(
+            eq(specialties.clinicId, clinicId),
+            eq(specialties.isActive, true),
+            isNull(specialties.deletedAt),
+          ),
+        ),
+    ]);
 
     /* istanbul ignore next -- a live user always has a live clinic. */
     if (!row) {
-      return { name: { ar: '', en: '' }, logoUrl: null };
+      return { name: { ar: '', en: '' }, logoUrl: null, chartTypes: [] };
     }
 
     return {
       name: { ar: row.nameAr, en: row.nameEn },
       logoUrl: row.logoKey ? (await this.storage.createBrandingUrl(row.logoKey)).url : null,
+      chartTypes: chartTypes.map((specialty) => specialty.chartType),
     };
   }
 }

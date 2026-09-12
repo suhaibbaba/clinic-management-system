@@ -1157,35 +1157,6 @@
     }
   },
   "dashboard": {
-    "title": "لوحة التحكم",
-    "subtitle": "ملخّص اليوم في العيادة",
-    "failed": "تعذّر تحميل ملخّص اليوم، حاول تحديث الصفحة",
-    "kpi": {
-      "today": "مواعيد اليوم",
-      "pending": "بانتظار التأكيد",
-      "pendingCaption": "حجوزات إلكترونية لم يُردّ عليها",
-      "overdue": "أرصدة متأخرة",
-      "overdueCaption": "{{count}} مريض"
-    },
-    "schedule": {
-      "title": "جدول اليوم",
-      "seeAll": "كل المواعيد",
-      "time": "الوقت",
-      "patient": "المريض",
-      "doctor": "الطبيب",
-      "status": "الحالة",
-      "empty": "لا مواعيد اليوم",
-      "emptyHint": "المواعيد المحجوزة لهذا اليوم تظهر هنا",
-      "byDoctor": "حسب الطبيب"
-    },
-    "greeting": {
-      "morning": "صباح الخير،",
-      "evening": "مساء الخير،"
-    },
-    "firstAppointment": "أول موعد",
-    "lastAppointment": "آخر موعد",
-    "now": "الآن",
-    "call": "اتصال",
     "calendar": {
       "previous": "الشهر السابق",
       "next": "الشهر التالي",
@@ -1199,7 +1170,40 @@
         "fri": "جمع",
         "sat": "سبت"
       }
-    }
+    },
+    "call": "اتصال",
+    "failed": "تعذّر تحميل ملخّص اليوم، حاول تحديث الصفحة",
+    "firstAppointment": "أول موعد",
+    "greeting": {
+      "morning": "صباح الخير،",
+      "evening": "مساء الخير،"
+    },
+    "greetingMark": {
+      "morning": "☀️",
+      "evening": "🌙"
+    },
+    "kpi": {
+      "today": "مواعيد اليوم",
+      "pending": "بانتظار التأكيد",
+      "pendingCaption": "حجوزات إلكترونية لم يُردّ عليها",
+      "overdue": "أرصدة متأخرة",
+      "overdueCaption": "{{count}} مريض"
+    },
+    "lastAppointment": "آخر موعد",
+    "now": "الآن",
+    "schedule": {
+      "title": "جدول اليوم",
+      "seeAll": "كل المواعيد",
+      "time": "الوقت",
+      "patient": "المريض",
+      "doctor": "الطبيب",
+      "status": "الحالة",
+      "empty": "لا مواعيد اليوم",
+      "emptyHint": "المواعيد المحجوزة لهذا اليوم تظهر هنا",
+      "byDoctor": "حسب الطبيب"
+    },
+    "subtitle": "ملخّص اليوم في العيادة",
+    "title": "لوحة التحكم"
   },
   "notes": {
     "title": "ملاحظات سريعة",

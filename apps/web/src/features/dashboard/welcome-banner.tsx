@@ -1,4 +1,4 @@
-import type { CalendarAppointment } from '@clinic/shared';
+import { CHART_TYPE, type CalendarAppointment, type ChartType } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -23,7 +23,7 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
 
   return (
     <section className="relative flex min-h-[158px] items-center overflow-hidden rounded-card border border-line px-[30px] py-[26px] shadow-card banner-wash">
-      <BannerArt />
+      <BannerArt chartTypes={user?.clinic.chartTypes ?? []} />
 
       <div className="relative z-10 min-w-0">
         <h1 className="flex items-center gap-2.5 text-display font-medium text-primary-900">
@@ -33,6 +33,9 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
               {/* Separate from the greeting so the name is one `<PersonName>` rather than an
                   interpolation that would need a per-language ternary. */}
               <PersonName name={user.name} />
+              {/* The reference's ☀️, after the name as it draws it. In the locale files because a
+                  clinic that wants no emoji in its greeting should be able to empty the string. */}
+              <span aria-hidden="true">{t(`dashboard.greetingMark.${partOfDay()}`)}</span>
             </>
           ) : (
             t('dashboard.title')
@@ -87,9 +90,53 @@ function dayBounds(
   return { first: toTimeLabel(times[0]!), last: toTimeLabel(times.at(-1)!) };
 }
 
-// Abstract on purpose: this is a multi-specialty product, so the banner cannot carry a tooth. The
-// circles, the dotted field and the sparkles are the reference's; the dental glyph is not.
-function BannerArt(): JSX.Element {
+// The reference's dental glyph, drawn only where the clinic charts teeth. Specialty-specific
+// drawing is data here as it is for the chart itself (architecture decision 1), so an orthopedic
+// clinic gets the abstract field alone rather than somebody else's molar.
+function SpecialtyGlyph({
+  chartTypes,
+}: {
+  readonly chartTypes: readonly ChartType[];
+}): JSX.Element | null {
+  if (!chartTypes.includes(CHART_TYPE.TOOTH_FDI)) {
+    return null;
+  }
+
+  return (
+    <>
+      <g filter="url(#banner-soft)">
+        <path
+          d="M218 26c-22 0-30 13-44 13-16 0-27 14-27 32 0 29 14 43 19 71 3 18 7 34 19 34 14 0 8-38 31-38s17 38 31 38c12 0 16-16 19-34 5-28 19-42 19-71 0-18-11-32-27-32-14 0-19-13-40-13Z"
+          fill="url(#banner-tooth)"
+          stroke="currentColor"
+          className="text-primary-600"
+          strokeWidth="6"
+        />
+      </g>
+
+      <path
+        d="M186 64c11-11 53-13 66 0"
+        stroke="currentColor"
+        className="text-success-500"
+        strokeWidth="6"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path
+        d="M196 47c4-5 12-8 19-7"
+        stroke="currentColor"
+        className="text-success-300"
+        strokeWidth="5"
+        strokeLinecap="round"
+        fill="none"
+      />
+    </>
+  );
+}
+
+// The circles, the dotted field, the sparkles and the leaves are every clinic's; the glyph over
+// them is the specialty's.
+function BannerArt({ chartTypes }: { readonly chartTypes: readonly ChartType[] }): JSX.Element {
   return (
     <div
       aria-hidden="true"
@@ -105,6 +152,20 @@ function BannerArt(): JSX.Element {
           <pattern id="banner-dots" width="16" height="16" patternUnits="userSpaceOnUse">
             <circle cx="2" cy="2" r="1.5" fill="currentColor" className="text-primary-600" />
           </pattern>
+          <linearGradient id="banner-tooth" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="currentColor" className="text-surface" />
+            <stop offset="1" stopColor="currentColor" className="text-success-50" />
+          </linearGradient>
+          <filter id="banner-soft" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow
+              dx="0"
+              dy="8"
+              stdDeviation="10"
+              floodColor="currentColor"
+              floodOpacity=".22"
+              className="text-primary-600"
+            />
+          </filter>
         </defs>
 
         <g className="text-success-500" fill="currentColor">
@@ -140,6 +201,8 @@ function BannerArt(): JSX.Element {
         />
 
         <rect x="20" y="14" width="90" height="60" fill="url(#banner-dots)" opacity=".12" />
+
+        <SpecialtyGlyph chartTypes={chartTypes} />
       </svg>
     </div>
   );
