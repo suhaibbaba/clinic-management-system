@@ -59,7 +59,11 @@ export function SegmentedControl<TValue extends string>({
                 className={cn(
                   // A tinted pill, not a bare digit: the count is what the filter would leave, and
                   // the reference gives it the same red a balance owed gets.
-                  'rounded-pill px-[7px] py-px text-micro tabular-nums',
+                  // The box is declared and the digit centred in it, as the rail's badge does it.
+                  // Padding a line-height token instead gave a 17px circle around 11px of ink, so
+                  // the figure read as floating rather than set.
+                  'inline-flex h-[13px] items-center justify-center',
+                  'rounded-pill px-[7px] text-micro leading-[1.2] tabular-nums',
                   isSelected
                     ? 'bg-primary-900/25 text-ink-inverse'
                     : 'bg-danger-100 text-danger-600',
