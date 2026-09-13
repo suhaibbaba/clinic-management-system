@@ -1,6 +1,7 @@
 import {
   APPOINTMENT_TYPE,
   LOOKUP_LIST,
+  WAITING_LIST_SOURCE,
   type CalendarAppointment,
   type WaitingListEntry,
 } from '@clinic/shared';
@@ -177,7 +178,9 @@ export function AppointmentFormModal({
             startsAt,
             durationMinutes: Number(durationMinutes),
             type,
-            notify: true,
+            // Only the ones who asked from a phone. A walk-in is standing at the desk being told
+            // the time out loud, and does not need a text about it.
+            notify: waitingEntry.source === WAITING_LIST_SOURCE.ONLINE,
           },
         });
         toast.success('appointments.waiting.scheduled');
