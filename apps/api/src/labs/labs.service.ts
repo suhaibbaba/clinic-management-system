@@ -12,6 +12,7 @@ import {
 import { and, asc, eq, isNull, ne, sql, type SQL } from 'drizzle-orm';
 
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
+import { arabicNameSearch } from '@api/common/database/arabic-search';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
@@ -52,16 +53,23 @@ export class LabsService implements OnModuleInit {
     if (!query.includeInactive) {
       filters.push(eq(labs.isActive, true));
     }
-    if (query.search) {
-      const pattern = `%${query.search}%`;
-      filters.push(sql`${labs.name} ilike ${pattern}`);
+    const byName = query.search ? arabicNameSearch(labs.normalizedName, query.search) : null;
+
+    if (byName) {
+      filters.push(byName.match);
     }
 
     const where = this.scope.where(labs, actor.clinicId, ...filters);
     const { limit, offset } = toLimitOffset(query);
 
     const [rows, [totals]] = await Promise.all([
-      this.db.select().from(labs).where(where).orderBy(asc(labs.name)).limit(limit).offset(offset),
+      this.db
+        .select()
+        .from(labs)
+        .where(where)
+        .orderBy(...(byName ? [byName.rank, byName.closeness] : []), asc(labs.name))
+        .limit(limit)
+        .offset(offset),
       this.db
         .select({ value: sql<number>`count(*)::int` })
         .from(labs)

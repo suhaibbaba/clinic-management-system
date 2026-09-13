@@ -5,6 +5,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import {
   Avatar,
+  Badge,
   Button,
   type Column,
   DropdownMenuItem,
@@ -115,6 +116,9 @@ export function PatientsPage(): JSX.Element {
               <span className="truncate font-medium text-ink">{row.fullName}</span>
               <Ltr className="text-micro tabular-nums text-ink-subtle">{row.fileNumber}</Ltr>
             </span>
+            {/* Registered mid-booking or online, and never finished — the reminder to take the
+                rest of it when they walk in. */}
+            {row.profileIncomplete && <Badge tone="warning">{t('patients.incomplete')}</Badge>}
           </span>
         ),
       },

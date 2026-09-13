@@ -4,7 +4,7 @@ import type { AuditAction, AuditLogEntry, ListAuditLogQuery, Paginated } from '@
 
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
+import { DATABASE, type Database, type DatabaseExecutor } from '@api/database/database.module';
 import { auditLog } from '@api/database/schema';
 
 export interface RecordAuditEntry {
@@ -22,9 +22,9 @@ export class AuditService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
   // Failures propagate: a mutation whose audit row cannot be written must not be reported as
-  // successful.
-  async record(entry: RecordAuditEntry): Promise<void> {
-    await this.db.insert(auditLog).values({
+  // successful. `executor` lets an entry commit with the mutation it describes.
+  async record(entry: RecordAuditEntry, executor: DatabaseExecutor = this.db): Promise<void> {
+    await executor.insert(auditLog).values({
       clinicId: entry.clinicId,
       userId: entry.userId,
       action: entry.action,

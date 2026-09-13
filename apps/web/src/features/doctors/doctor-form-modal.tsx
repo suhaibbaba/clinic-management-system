@@ -1,9 +1,19 @@
-import { USER_ROLE, type Doctor, type WeeklySchedule } from '@clinic/shared';
+import type { Doctor, WeeklySchedule } from '@clinic/shared';
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Input, Modal, Select, useToast } from '@web/components/ui';
+import {
+  Button,
+  FormField,
+  Icon,
+  Input,
+  Modal,
+  SegmentedControl,
+  Select,
+  useToast,
+} from '@web/components/ui';
 import { WorkingHours } from '@web/components/schedule/working-hours';
+import { useClinic } from '@web/features/clinic/queries';
 import { useCreateDoctor, useSpecialties, useUpdateDoctor } from '@web/features/doctors/queries';
 import { useUsers } from '@web/features/users/queries';
 import { errorMessageKey } from '@web/lib/api-error';
@@ -16,16 +26,36 @@ interface DoctorFormModalProps {
 
 const DEFAULT_DURATION = 30;
 
+/** New by default: linking an account that already exists is the rare case, not the usual one. */
+const MODES = ['new', 'link'] as const;
+type Mode = (typeof MODES)[number];
+
+interface NewUserFields {
+  nameAr: string;
+  nameEn: string;
+  phone: string;
+  email: string;
+  password: string;
+}
+
+const EMPTY_USER: NewUserFields = { nameAr: '', nameEn: '', phone: '', email: '', password: '' };
+
+// One form for the whole doctor: the account, the specialty and the week. It used to be a user on
+// one screen and a profile on another, with a step in between that people forgot — and a user with
+// no profile can sign in and appear in no calendar, which the API now refuses outright.
 export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
   const createDoctor = useCreateDoctor();
   const updateDoctor = useUpdateDoctor();
   const specialties = useSpecialties();
+  const clinic = useClinic();
   // Only admins reach this screen, so listing users here is allowed.
-  const doctorUsers = useUsers({ role: USER_ROLE.DOCTOR, limit: 100 });
+  const doctorUsers = useUsers({ limit: 100 });
 
   const isEdit = doctor !== null;
+  const [mode, setMode] = useState<Mode>('new');
+  const [newUser, setNewUser] = useState<NewUserFields>(EMPTY_USER);
   const [userId, setUserId] = useState('');
   const [specialtyId, setSpecialtyId] = useState('');
   const [duration, setDuration] = useState(String(DEFAULT_DURATION));
@@ -37,11 +67,15 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
       return;
     }
 
+    setMode('new');
+    setNewUser(EMPTY_USER);
     setUserId(doctor?.userId ?? '');
     setSpecialtyId(doctor?.specialtyId ?? '');
     setDuration(String(doctor?.defaultAppointmentDurationMinutes ?? DEFAULT_DURATION));
-    setSchedule(doctor?.weeklySchedule ?? []);
-  }, [open, doctor]);
+    // A new doctor starts on the clinic's own hours rather than an empty week: most work the days
+    // the clinic is open, and the exceptions are edited here or on their own page later.
+    setSchedule(doctor?.weeklySchedule ?? clinic.data?.workingHours ?? []);
+  }, [open, doctor, clinic.data]);
 
   // `\u2068`/`\u2069` isolate the name in the string itself — an `<option>` is text with no span to
   // carry `dir`, and bidi rendered the line as "963931000002+ — Dr. Layla Haddad".
@@ -73,7 +107,16 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
         toast.success('doctors.updated');
       } else {
         await createDoctor.mutateAsync({
-          userId,
+          ...(mode === 'new'
+            ? {
+                newUser: {
+                  name: { ar: newUser.nameAr.trim(), en: newUser.nameEn.trim() },
+                  phone: newUser.phone.trim(),
+                  password: newUser.password,
+                  ...(newUser.email.trim() !== '' && { email: newUser.email.trim() }),
+                },
+              }
+            : { userId }),
           specialtyId,
           defaultAppointmentDurationMinutes: durationMinutes,
           weeklySchedule: schedule,
@@ -89,7 +132,15 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
     }
   };
 
-  const canSubmit = specialtyId !== '' && (isEdit || userId !== '');
+  const accountReady =
+    mode === 'link'
+      ? userId !== ''
+      : newUser.nameAr.trim() !== '' &&
+        newUser.nameEn.trim() !== '' &&
+        newUser.phone.trim() !== '' &&
+        newUser.password.length >= 8;
+
+  const canSubmit = specialtyId !== '' && (isEdit || accountReady);
 
   return (
     <Modal
@@ -115,18 +166,90 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
     >
       <div className="flex flex-col gap-4">
         {!isEdit && (
-          <FormField label="doctors.user" htmlFor="doctor-user">
-            <Select
-              id="doctor-user"
-              options={userOptions}
-              placeholder={t('doctors.selectUser')}
-              value={userId}
-              onChange={(event) => setUserId(event.target.value)}
+          <>
+            <SegmentedControl<Mode>
+              label={t('doctors.account')}
+              value={mode}
+              onChange={setMode}
+              options={MODES.map((value) => ({ value, label: t(`doctors.modes.${value}`) }))}
             />
-          </FormField>
+
+            {mode === 'new' ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField label="users.nameAr" htmlFor="doctor-name-ar" required>
+                  <Input
+                    id="doctor-name-ar"
+                    adornment="user"
+                    placeholder={t('common.placeholders.fullNameAr')}
+                    value={newUser.nameAr}
+                    onChange={(event) => setNewUser({ ...newUser, nameAr: event.target.value })}
+                  />
+                </FormField>
+
+                <FormField label="users.nameEn" htmlFor="doctor-name-en" required>
+                  <Input
+                    id="doctor-name-en"
+                    adornment="user"
+                    dir="ltr"
+                    placeholder={t('common.placeholders.fullNameEn')}
+                    value={newUser.nameEn}
+                    onChange={(event) => setNewUser({ ...newUser, nameEn: event.target.value })}
+                  />
+                </FormField>
+
+                <FormField label="users.phone" htmlFor="doctor-phone" required>
+                  <Input
+                    id="doctor-phone"
+                    type="tel"
+                    dir="ltr"
+                    placeholder={t('common.placeholders.phone')}
+                    value={newUser.phone}
+                    onChange={(event) => setNewUser({ ...newUser, phone: event.target.value })}
+                  />
+                </FormField>
+
+                <FormField label="users.email" htmlFor="doctor-email" optional>
+                  <Input
+                    id="doctor-email"
+                    type="email"
+                    dir="ltr"
+                    placeholder={t('common.placeholders.email')}
+                    value={newUser.email}
+                    onChange={(event) => setNewUser({ ...newUser, email: event.target.value })}
+                  />
+                </FormField>
+
+                <FormField
+                  label="users.password"
+                  htmlFor="doctor-password"
+                  hint="doctors.roleLocked"
+                  required
+                >
+                  <Input
+                    id="doctor-password"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder={t('common.placeholders.password')}
+                    value={newUser.password}
+                    onChange={(event) => setNewUser({ ...newUser, password: event.target.value })}
+                  />
+                </FormField>
+              </div>
+            ) : (
+              <FormField label="doctors.user" htmlFor="doctor-user" hint="doctors.linkPromotes">
+                <Select
+                  id="doctor-user"
+                  options={userOptions}
+                  placeholder={t('doctors.selectUser')}
+                  value={userId}
+                  onChange={(event) => setUserId(event.target.value)}
+                />
+              </FormField>
+            )}
+          </>
         )}
 
-        <FormField label="doctors.specialty" htmlFor="doctor-specialty">
+        <FormField label="doctors.specialty" htmlFor="doctor-specialty" required>
           <Select
             id="doctor-specialty"
             options={specialtyOptions}
@@ -150,7 +273,10 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
         </FormField>
 
         <div>
-          <p className="mb-2 text-value font-medium text-ink">{t('doctors.schedule')}</p>
+          <p className="mb-1 text-value font-medium text-ink">{t('doctors.schedule')}</p>
+          {!isEdit && (
+            <p className="mb-2 text-label text-ink-muted">{t('doctors.scheduleDefault')}</p>
+          )}
           <WorkingHours value={schedule} onChange={setSchedule} idPrefix="doctor-form-hours" />
         </div>
       </div>

@@ -9,6 +9,8 @@ import { and, count, desc, eq, ilike, isNull, ne, or, sql, type SQL } from 'driz
 import {
   ALLOWED_USER_PHOTO_MIME_TYPES,
   AUDIT_ACTION,
+  USER_ROLE,
+  type UserRole,
   MAX_USER_PHOTO_BYTES,
   type ConfirmUserPhotoInput,
   type CreateUserInput,
@@ -24,10 +26,11 @@ import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
 import { AuditService } from '@api/audit/audit.service';
 import { PasswordService } from '@api/auth/password.service';
 import { TokenService } from '@api/auth/token.service';
+import { arabicNameSearch } from '@api/common/database/arabic-search';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
+import { DATABASE, type Database, type DatabaseExecutor } from '@api/database/database.module';
 import { users } from '@api/database/schema';
 import { StorageService } from '@api/storage/storage.service';
 
@@ -87,18 +90,13 @@ export class UsersService implements OnModuleInit {
     if (query.isActive !== undefined) {
       filters.push(eq(users.isActive, query.isActive));
     }
+    // Either spelling: somebody searching an Arabic interface for "Layla" is searching the name
+    // they can see on a printed sheet, and both are folded into one column.
+    const byName = query.search ? arabicNameSearch(users.normalizedName, query.search) : null;
+
     if (query.search) {
       const pattern = `%${query.search}%`;
-      // Either spelling: somebody searching an Arabic interface for "Layla"
-      // is searching the name they can see on a printed sheet.
-      filters.push(
-        or(
-          ilike(users.nameAr, pattern),
-          ilike(users.nameEn, pattern),
-          ilike(users.phone, pattern),
-          ilike(users.email, pattern),
-        ),
-      );
+      filters.push(or(byName?.match, ilike(users.phone, pattern), ilike(users.email, pattern)));
     }
 
     const where = this.scope.where(users, actor.clinicId, ...filters);
@@ -109,7 +107,7 @@ export class UsersService implements OnModuleInit {
         .select(safeColumns)
         .from(users)
         .where(where)
-        .orderBy(desc(users.createdAt))
+        .orderBy(...(byName ? [byName.rank, byName.closeness] : []), desc(users.createdAt))
         .limit(limit)
         .offset(offset),
       this.db.select({ value: count() }).from(users).where(where),
@@ -123,11 +121,23 @@ export class UsersService implements OnModuleInit {
   }
 
   async create(actor: AuthenticatedUser, input: CreateUserInput): Promise<User> {
-    await this.assertIdentifiersAreFree(input.phone, input.email ?? null);
+    assertNotDoctorRole(input.role);
+
+    return this.presentOne(await this.insertUser(this.db, actor, input));
+  }
+
+  // Transaction-composable, and the only insert into `users`: the doctors module creates an account
+  // and the profile that makes it usable in one go.
+  async insertUser(
+    executor: DatabaseExecutor,
+    actor: AuthenticatedUser,
+    input: CreateUserInput,
+  ): Promise<SafeUserRow> {
+    await this.assertIdentifiersAreFree(input.phone, input.email ?? null, undefined, executor);
 
     const passwordHash = await this.passwordService.hash(input.password);
 
-    const [row] = await this.db
+    const [row] = await executor
       .insert(users)
       .values({
         clinicId: actor.clinicId,
@@ -148,7 +158,7 @@ export class UsersService implements OnModuleInit {
       throw new Error('Failed to create user');
     }
 
-    return this.presentOne(row);
+    return row;
   }
 
   async update(actor: AuthenticatedUser, id: string, input: UpdateUserInput): Promise<User> {
@@ -160,6 +170,10 @@ export class UsersService implements OnModuleInit {
         input.email === undefined ? existing.email : (input.email ?? null),
         id,
       );
+    }
+
+    if (input.role !== undefined && input.role !== existing.role) {
+      assertNotDoctorRole(input.role);
     }
 
     // An admin who deactivates or demotes themselves would lock the clinic out
@@ -357,12 +371,13 @@ export class UsersService implements OnModuleInit {
     phone: string,
     email: string | null,
     excludeUserId?: string,
+    executor: DatabaseExecutor = this.db,
   ): Promise<void> {
     const identifierMatches = email
       ? or(eq(users.phone, phone), eq(sql`lower(${users.email})`, email.toLowerCase()))
       : eq(users.phone, phone);
 
-    const [clash] = await this.db
+    const [clash] = await executor
       .select({ phone: users.phone, email: users.email })
       .from(users)
       .where(
@@ -384,7 +399,15 @@ export class UsersService implements OnModuleInit {
   }
 }
 
-type SafeUserRow = Pick<UserRow, keyof typeof safeColumns>;
+export type SafeUserRow = Pick<UserRow, keyof typeof safeColumns>;
+
+// The orphan guard: a `doctor` user with no `doctors` row can sign in and has no calendar, no
+// schedule and no place in any list. Only `POST /doctors` makes one, and it always writes both.
+function assertNotDoctorRole(role: UserRole): void {
+  if (role === USER_ROLE.DOCTOR) {
+    throw new BadRequestException('Create a doctor from the doctors screen, which makes both rows');
+  }
+}
 
 function toUser(row: SafeUserRow, photoUrl: string | null): User {
   return {

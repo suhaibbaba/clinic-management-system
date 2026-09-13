@@ -55,6 +55,14 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: Record<NotificationTemplate, string
     'تذكير: موعدك في {clinic} مع {doctor} بعد ساعتين، الساعة {time}.',
   [NOTIFICATION_TEMPLATE.BOOKING_CANCELLED]:
     'تم إلغاء موعدك في {clinic} يوم {date} الساعة {time}. للحجز من جديد تواصل معنا.',
+  // No time, no promise of one: the clinic has not looked at the diary yet, and a message that
+  // sounds like a booking is one the patient will turn up for.
+  [NOTIFICATION_TEMPLATE.URGENT_RECEIVED]:
+    'وصلنا طلبك العاجل في {clinic}. سنتواصل معك بأقرب وقت على هذا الرقم.',
+  [NOTIFICATION_TEMPLATE.URGENT_SCHEDULED]:
+    'حجزنا لك موعداً في {clinic} مع {doctor} يوم {date} الساعة {time}.',
+  [NOTIFICATION_TEMPLATE.URGENT_DECLINED]:
+    'بخصوص طلبك العاجل في {clinic}: {reason}. للاستفسار تواصل معنا.',
 };
 
 /** Never throws: unreadable settings must not stop a reminder from going out. */

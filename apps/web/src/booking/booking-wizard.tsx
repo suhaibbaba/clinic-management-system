@@ -12,6 +12,7 @@ import { DetailsStep, type BookingDetails } from '@web/booking/steps/details-ste
 import { DoctorStep } from '@web/booking/steps/doctor-step';
 import { OtpStep } from '@web/booking/steps/otp-step';
 import { PendingView, SuccessView } from '@web/booking/steps/success-view';
+import { UrgentSentView, UrgentStep, type UrgentDetails } from '@web/booking/steps/urgent-step';
 import { WhenStep, type SlotOption } from '@web/booking/steps/when-step';
 import { Alert, Button, Card, Skeleton } from '@web/booking/ui';
 import { useAsync } from '@web/booking/use-async';
@@ -25,9 +26,18 @@ const VISIBLE_DAYS = 7;
 
 const OTP_ATTEMPTS = 3;
 
-type Stage = 'doctor' | 'when' | 'details' | 'otp' | 'done';
+type Stage = 'doctor' | 'when' | 'details' | 'otp' | 'done' | 'urgent' | 'urgentSent';
 
-const STAGE_STEP: Record<Stage, number> = { doctor: 1, when: 2, details: 3, otp: 4, done: 4 };
+const STAGE_STEP: Record<Stage, number> = {
+  doctor: 1,
+  when: 2,
+  details: 3,
+  otp: 4,
+  done: 4,
+  // Off the main path rather than further along it: this is not step five of a booking.
+  urgent: 3,
+  urgentSent: 3,
+};
 
 const STAGE_TITLE: Record<Stage, string> = {
   doctor: 'doctor.heading',
@@ -35,6 +45,8 @@ const STAGE_TITLE: Record<Stage, string> = {
   details: 'details.heading',
   otp: 'otp.heading',
   done: 'success.heading',
+  urgent: 'urgent.heading',
+  urgentSent: 'urgent.sentHeading',
 };
 
 // One page, four stages, no router — the patient arrives from a link, books and leaves. A slot
@@ -51,6 +63,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
   const [date, setDate] = useState(todayIso());
   const [slot, setSlot] = useState<SlotOption>();
   const [details, setDetails] = useState<BookingDetails>({ fullName: '', phone: '', reason: '' });
+  const [urgent, setUrgent] = useState<UrgentDetails>({ fullName: '', phone: '', complaint: '' });
 
   const [token, setToken] = useState<string>();
   const [booking, setBooking] = useState<ManagedBooking>();
@@ -137,6 +150,26 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
       if (error instanceof BookingError && error.failure === 'slotTaken') {
         backToSlots();
       }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const sendUrgent = async (): Promise<void> => {
+    setBusy(true);
+    setFailure(undefined);
+
+    try {
+      await bookingApi.requestUrgent(slug, {
+        fullName: urgent.fullName.trim(),
+        phone: urgent.phone.trim(),
+        complaint: urgent.complaint.trim(),
+        ...(doctor && { doctorId: doctor.id }),
+      });
+
+      setStage('urgentSent');
+    } catch (error) {
+      setFailure(t(failureKey(error)));
     } finally {
       setBusy(false);
     }
@@ -231,6 +264,14 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
     );
   }
 
+  if (stage === 'urgentSent') {
+    return (
+      <PageShell clinicName={bookingName(clinic.data.name)} logoUrl={logoUrl}>
+        <UrgentSentView />
+      </PageShell>
+    );
+  }
+
   return (
     <PageShell
       clinicName={bookingName(clinic.data.name)}
@@ -297,6 +338,20 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
               setSlot(next);
               setStage('details');
             }}
+            onUrgent={() => {
+              setFailure(undefined);
+              setStage('urgent');
+            }}
+          />
+        )}
+
+        {stage === 'urgent' && (
+          <UrgentStep
+            details={urgent}
+            onChange={setUrgent}
+            onSubmit={() => void sendUrgent()}
+            onBack={() => setStage('when')}
+            busy={busy}
           />
         )}
 

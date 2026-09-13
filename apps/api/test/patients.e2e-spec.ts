@@ -167,7 +167,14 @@ describe('Patients (e2e)', () => {
     });
 
     it('strips the clinical fields for a receptionist and a technician', async () => {
-      const publicFields = ['dateOfBirth', 'fileNumber', 'fullName', 'id', 'phone'];
+      const publicFields = [
+        'dateOfBirth',
+        'fileNumber',
+        'fullName',
+        'id',
+        'phone',
+        'profileIncomplete',
+      ];
 
       for (const role of [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN]) {
         const response = await context.app.inject({

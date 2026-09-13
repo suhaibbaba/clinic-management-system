@@ -14,12 +14,13 @@ import { LabPaymentsService } from '@api/labs/lab-payments.service';
 import { LabWorkTypesService } from '@api/labs/lab-work-types.service';
 import { LabsController } from '@api/labs/labs.controller';
 import { LabsService } from '@api/labs/labs.service';
+import { PatientsModule } from '@api/patients/patients.module';
 import { StorageModule } from '@api/storage/storage.module';
 
 // Everything financial here is append-only and computed on read: there is no balance column in this
 // module and there must never be one.
 @Module({
-  imports: [DatabaseModule, AuditModule, StorageModule, AppointmentsModule],
+  imports: [DatabaseModule, AuditModule, StorageModule, AppointmentsModule, PatientsModule],
   controllers: [LabsController, LabOrdersController, LabLedgerController, LabPaymentsController],
   providers: [
     ClinicScopeService,

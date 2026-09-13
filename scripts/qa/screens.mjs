@@ -122,6 +122,24 @@ export const SCREENS = [
     roles: FRONT_DESK,
     steps: [{ clickSelector: '[data-appointment]' }, { wait: 500 }],
   },
+  // The queue is an address now, so the dashboard can link to it and the sweep can open it without
+  // a click. Urgent requests from the public page land here.
+  { id: 'appointments-queue', path: '/appointments?queue=open', roles: FRONT_DESK },
+  {
+    // Registering somebody inside the booking form: the search finds nobody, and the row it offers
+    // opens the four fields rather than sending reception to another screen.
+    id: 'appointments-inline-patient',
+    path: '/appointments',
+    roles: FRONT_DESK,
+    steps: [
+      { click: 'appointments.create' },
+      { wait: 500 },
+      { fill: { selector: '#appointment-patient', value: 'زينة الشامي' } },
+      { wait: 700 },
+      { clickSelector: '[data-new-patient]' },
+      { wait: 400 },
+    ],
+  },
 
   { id: 'labs-orders', path: '/labs?tab=orders', roles: LABS },
   { id: 'labs-directory', path: '/labs?tab=directory', roles: LABS },
@@ -177,10 +195,22 @@ export const SCREENS = [
   },
   { id: 'doctors', path: '/doctors', roles: ADMIN },
   {
+    // Opens on "new user": the account, the specialty and the week are one form now.
     id: 'doctors-new-modal',
     path: '/doctors',
     roles: ADMIN,
     steps: [{ click: 'doctors.create' }, { wait: 400 }],
+  },
+  {
+    id: 'doctors-link-existing-user',
+    path: '/doctors',
+    roles: ADMIN,
+    steps: [
+      { click: 'doctors.create' },
+      { wait: 400 },
+      { clickRadio: 'doctors.modes.link' },
+      { wait: 300 },
+    ],
   },
   {
     // The doctor's own page: the accordion again, and the time-off list beside
@@ -263,6 +293,18 @@ export const PUBLIC_SCREENS = [
       { wait: 900 },
       { clickLabelPrefix: 'when.chooseSlot' },
       { wait: 600 },
+    ],
+  },
+  {
+    // The way out of a day with no times on it. Reached here from the small link, which is on the
+    // step whether or not the diary is empty.
+    id: 'booking-urgent-step',
+    path: '/book/al-nour',
+    steps: [
+      { clickLabelPrefix: 'doctor.choose' },
+      { wait: 900 },
+      { click: 'urgent.link' },
+      { wait: 400 },
     ],
   },
 ];

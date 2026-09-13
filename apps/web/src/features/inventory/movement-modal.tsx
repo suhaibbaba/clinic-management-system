@@ -20,7 +20,11 @@ import {
   Textarea,
   useToast,
 } from '@web/components/ui';
-import { PatientPicker, type PickedPatient } from '@web/features/appointments/patient-picker';
+import {
+  PatientPicker,
+  type PatientChoice,
+  type PickedPatient,
+} from '@web/features/appointments/patient-picker';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { useSession } from '@web/features/auth/session';
 import {
@@ -81,7 +85,7 @@ export function MovementModal({
   const [expiryDate, setExpiryDate] = useState('');
   const [reason, setReason] = useState('');
   const [direction, setDirection] = useState<'add' | 'remove'>('remove');
-  const [linkedPatient, setLinkedPatient] = useState<PickedPatient | null>(null);
+  const [linkedPatient, setLinkedPatient] = useState<PatientChoice | null>(null);
 
   useEffect(() => {
     if (type === null) {
@@ -95,7 +99,7 @@ export function MovementModal({
     setExpiryDate('');
     setReason('');
     setDirection('remove');
-    setLinkedPatient(patient ?? null);
+    setLinkedPatient(patient ? { kind: 'existing', patient } : null);
   }, [type, item, patient]);
 
   if (type === null || !item) {
@@ -121,7 +125,7 @@ export function MovementModal({
         await consume.mutateAsync({
           itemId: item.id,
           quantity: quantity.trim(),
-          ...(linkedPatient && { patientId: linkedPatient.id }),
+          ...(linkedPatient?.kind === 'existing' && { patientId: linkedPatient.patient.id }),
           ...(performedProcedureId && { performedProcedureId }),
           ...(batchNo.trim() !== '' && { batchNo: batchNo.trim() }),
           ...(reason.trim() !== '' && { reason: reason.trim() }),
@@ -253,8 +257,11 @@ export function MovementModal({
 
         {type === MOVEMENT_TYPE.CONSUME && !performedProcedureId && (
           <FormField label="inventory.movement.patient" htmlFor="movement-patient" optional>
+            {/* Registering somebody is beside the point here: the patient is optional, so a name
+                the store does not know is simply left off. */}
             <PatientPicker
               id="movement-patient"
+              allowNew={false}
               value={linkedPatient}
               onChange={setLinkedPatient}
             />

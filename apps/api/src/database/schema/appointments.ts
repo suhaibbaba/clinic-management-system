@@ -1,4 +1,9 @@
-import { APPOINTMENT_STATUSES, WAITING_LIST_PRIORITIES } from '@clinic/shared';
+import {
+  APPOINTMENT_STATUSES,
+  WAITING_LIST_PRIORITIES,
+  WAITING_LIST_SOURCES,
+  WAITING_LIST_STATUSES,
+} from '@clinic/shared';
 import { sql } from 'drizzle-orm';
 import { index, integer, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
@@ -7,6 +12,8 @@ import { patients, visits } from '@api/database/schema/patients';
 
 export const appointmentStatusEnum = pgEnum('appointment_status', APPOINTMENT_STATUSES);
 export const waitingListPriorityEnum = pgEnum('waiting_list_priority', WAITING_LIST_PRIORITIES);
+export const waitingListSourceEnum = pgEnum('waiting_list_source', WAITING_LIST_SOURCES);
+export const waitingListStatusEnum = pgEnum('waiting_list_status', WAITING_LIST_STATUSES);
 
 const auditColumns = {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -72,8 +79,14 @@ export const waitingList = pgTable(
       .references(() => patients.id),
     /** Null when any doctor will do, which is most walk-ins. */
     doctorId: uuid('doctor_id').references(() => doctors.id),
+    /** The complaint. One field, whether reception typed it or the patient did. */
     reason: text('reason'),
     priority: waitingListPriorityEnum('priority').notNull().default('normal'),
+    source: waitingListSourceEnum('source').notNull().default('reception'),
+    // A state machine rather than an editable list, so `resolved_at` is the consequence of reaching
+    // a terminal status rather than a second, separate truth.
+    status: waitingListStatusEnum('status').notNull().default('pending'),
+    declinedReason: text('declined_reason'),
     resolvedAt: timestamp('resolved_at', { withTimezone: true }),
     appointmentId: uuid('appointment_id').references(() => appointments.id),
     ...auditColumns,
@@ -85,5 +98,7 @@ export const waitingList = pgTable(
     index('waiting_list_open_idx')
       .on(table.clinicId, table.priority, table.createdAt)
       .where(sql`resolved_at is null and deleted_at is null`),
+    /** The badge counts what arrived online and nobody has answered. */
+    index('waiting_list_source_status_idx').on(table.clinicId, table.source, table.status),
   ],
 );

@@ -6,6 +6,7 @@ import type {
   CalendarQuery,
   CreateAppointmentInput,
   CreateWaitingListEntryInput,
+  DeclineWaitingListEntryInput,
   ListAppointmentsQuery,
   ListWaitingListQuery,
   Paginated,
@@ -75,6 +76,9 @@ export const waitingListApi = {
   promote: (id: string, body: PromoteWaitingListEntryInput) =>
     apiRequest<WaitingListEntry>(`/waiting-list/${id}/promote`, { method: 'POST', body }),
 
-  resolve: (id: string) =>
-    apiRequest<WaitingListEntry>(`/waiting-list/${id}/resolve`, { method: 'PATCH' }),
+  markContacted: (id: string) =>
+    apiRequest<WaitingListEntry>(`/waiting-list/${id}/contacted`, { method: 'PATCH' }),
+
+  decline: (id: string, body: DeclineWaitingListEntryInput) =>
+    apiRequest<WaitingListEntry>(`/waiting-list/${id}/decline`, { method: 'PATCH', body }),
 };

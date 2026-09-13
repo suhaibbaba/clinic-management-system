@@ -56,7 +56,8 @@
     "today": "Today",
     "done": "Done",
     "openCalendar": "Open the calendar",
-    "openTimes": "Choose a time"
+    "openTimes": "Choose a time",
+    "notSpecified": "Not specified"
   },
   "pagination": {
     "label": "Pagination",
@@ -152,7 +153,7 @@
     "create": "Add doctor",
     "edit": "Edit doctor",
     "user": "Account",
-    "selectUser": "Select a doctor account",
+    "selectUser": "Select an existing user",
     "specialty": "Specialty",
     "selectSpecialty": "Select a specialty",
     "duration": "Default appointment length",
@@ -163,12 +164,19 @@
     "updated": "Doctor updated",
     "scheduleUpdated": "Schedule updated",
     "empty": "No doctors",
-    "emptyHint": "Add a doctor after creating an account with the doctor role",
-    "noEligibleUsers": "No doctor-role accounts without a profile",
+    "emptyHint": "Add a doctor — the account and the profile are created together.",
     "searchPlaceholder": "Search by doctor name or phone",
     "pageTitle": "Doctor's schedule",
     "pageSubtitle": "Working hours and time off",
-    "openSchedule": "Hours and time off"
+    "openSchedule": "Hours and time off",
+    "account": "Account",
+    "modes": {
+      "new": "New user",
+      "link": "Link an existing user"
+    },
+    "roleLocked": "The account is created with the doctor role.",
+    "linkPromotes": "This user's role becomes doctor.",
+    "scheduleDefault": "Starts on the clinic's hours — edit it later on the doctor's own page."
   },
   "schedule": {
     "working": "Working",
@@ -403,7 +411,13 @@
     },
     "title": "Patients",
     "visitedThisMonth": "Visited this month",
-    "years": "{{count}} years"
+    "years": "{{count}} years",
+    "incomplete": "Profile incomplete",
+    "createNamed": "New patient: {{name}}",
+    "createInline": "Register a new patient",
+    "createInlineHint": "A name and a phone number are enough for now — the rest of the file is taken when they arrive.",
+    "phoneTaken": "This number is already registered to {{name}}.",
+    "useExisting": "Use this patient"
   },
   "chart": {
     "title": "Tooth chart",
@@ -687,12 +701,25 @@
         "urgent": "Urgent"
       },
       "anyDoctor": "Any doctor",
-      "promote": "Book a slot",
-      "resolve": "Remove from the list",
       "added": "Added to the waiting list",
-      "promoted": "Appointment booked",
-      "resolved": "Removed from the list",
-      "waitingSince": "Waiting since {{time}}"
+      "waitingSince": "Waiting since {{time}}",
+      "schedule": "Book a slot",
+      "scheduled": "Appointment booked",
+      "markContacted": "Called back",
+      "contacted": "Marked as called back",
+      "decline": "Close the request",
+      "declineReason": "Why it is being closed",
+      "declineNotifies": "This text is sent to the patient as a message.",
+      "declined": "Request closed",
+      "online": "Urgent request",
+      "urgentCount_one": "{{count}} urgent",
+      "urgentCount_other": "{{count}} urgent",
+      "statuses": {
+        "pending": "Waiting for a call",
+        "contacted": "Called back",
+        "scheduled": "Booked",
+        "declined": "Closed"
+      }
     },
     "grid": {
       "dragHint": "Drag an appointment to change its time.",

@@ -7,9 +7,10 @@ import {
   type SupplierSummary,
   type UpdateSupplierInput,
 } from '@clinic/shared';
-import { and, asc, eq, isNull, ne, sql, type SQL } from 'drizzle-orm';
+import { and, asc, eq, isNull, ne, or, sql, type SQL } from 'drizzle-orm';
 
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
+import { arabicNameSearch } from '@api/common/database/arabic-search';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
@@ -51,10 +52,13 @@ export class SuppliersService implements OnModuleInit {
     if (!query.includeInactive) {
       filters.push(eq(suppliers.isActive, true));
     }
+    const byName = query.search ? arabicNameSearch(suppliers.normalizedName, query.search) : null;
+
     if (query.search) {
       const pattern = `%${query.search}%`;
-      filters.push(sql`(${suppliers.name} ilike ${pattern}
-        or coalesce(${suppliers.contactPerson}, '') ilike ${pattern})`);
+      filters.push(
+        or(byName?.match, sql`coalesce(${suppliers.contactPerson}, '') ilike ${pattern}`),
+      );
     }
 
     const where = this.scope.where(suppliers, actor.clinicId, ...filters);
@@ -65,7 +69,7 @@ export class SuppliersService implements OnModuleInit {
         .select()
         .from(suppliers)
         .where(where)
-        .orderBy(asc(suppliers.name))
+        .orderBy(...(byName ? [byName.rank, byName.closeness] : []), asc(suppliers.name))
         .limit(limit)
         .offset(offset),
       this.db

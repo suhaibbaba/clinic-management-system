@@ -56,7 +56,8 @@
     "today": "اليوم",
     "done": "تم",
     "openCalendar": "فتح التقويم",
-    "openTimes": "اختيار الوقت"
+    "openTimes": "اختيار الوقت",
+    "notSpecified": "غير محدد"
   },
   "pagination": {
     "label": "التنقل بين الصفحات",
@@ -152,7 +153,7 @@
     "create": "إضافة طبيب",
     "edit": "تعديل الطبيب",
     "user": "الحساب",
-    "selectUser": "اختر حساب طبيب",
+    "selectUser": "اختر مستخدماً موجوداً",
     "specialty": "الاختصاص",
     "selectSpecialty": "اختر الاختصاص",
     "duration": "مدة الموعد الافتراضية",
@@ -163,12 +164,19 @@
     "updated": "تم تحديث الطبيب",
     "scheduleUpdated": "تم تحديث الدوام",
     "empty": "لا يوجد أطباء",
-    "emptyHint": "أضف طبيبًا بعد إنشاء حساب له بصلاحية طبيب",
-    "noEligibleUsers": "لا توجد حسابات بصلاحية طبيب بدون ملف",
+    "emptyHint": "أضف طبيباً: يُنشأ الحساب وملف الطبيب معاً.",
     "searchPlaceholder": "ابحث باسم الطبيب أو هاتفه",
     "pageTitle": "دوام الطبيب",
     "pageSubtitle": "أوقات العمل والإجازات",
-    "openSchedule": "الدوام والإجازات"
+    "openSchedule": "الدوام والإجازات",
+    "account": "الحساب",
+    "modes": {
+      "new": "مستخدم جديد",
+      "link": "ربط مستخدم موجود"
+    },
+    "roleLocked": "يُنشأ الحساب بصلاحية طبيب.",
+    "linkPromotes": "ستتحوّل صلاحية هذا المستخدم إلى طبيب.",
+    "scheduleDefault": "مبدئياً دوام العيادة — يمكن تعديله لاحقاً من صفحة الطبيب."
   },
   "schedule": {
     "working": "دوام",
@@ -415,7 +423,13 @@
     },
     "title": "المرضى",
     "visitedThisMonth": "زاروا هذا الشهر",
-    "years": "{{count}} سنة"
+    "years": "{{count}} سنة",
+    "incomplete": "بيانات غير مكتملة",
+    "createNamed": "مريض جديد: {{name}}",
+    "createInline": "تسجيل مريض جديد",
+    "createInlineHint": "يكفي الاسم والهاتف الآن؛ تُستكمل بقية البيانات عند وصول المريض.",
+    "phoneTaken": "هذا الرقم مسجّل باسم {{name}}.",
+    "useExisting": "استخدام هذا المريض"
   },
   "chart": {
     "title": "مخطط الأسنان",
@@ -699,12 +713,29 @@
         "urgent": "عاجل"
       },
       "anyDoctor": "أي طبيب",
-      "promote": "حجز موعد",
-      "resolve": "إزالة من القائمة",
       "added": "تمت الإضافة إلى قائمة الانتظار",
-      "promoted": "تم حجز موعد للمريض",
-      "resolved": "تمت إزالة الاسم من القائمة",
-      "waitingSince": "بالانتظار منذ {{time}}"
+      "waitingSince": "بالانتظار منذ {{time}}",
+      "schedule": "حجز موعد",
+      "scheduled": "تم حجز موعد للمريض",
+      "markContacted": "تم الاتصال",
+      "contacted": "سُجّل الاتصال بالمريض",
+      "decline": "إغلاق الطلب",
+      "declineReason": "سبب الإغلاق",
+      "declineNotifies": "سيصل هذا النص إلى المريض كرسالة.",
+      "declined": "تم إغلاق الطلب",
+      "online": "طلب عاجل",
+      "urgentCount_zero": "لا طلبات عاجلة",
+      "urgentCount_one": "طلب عاجل",
+      "urgentCount_two": "طلبان عاجلان",
+      "urgentCount_few": "{{count}} طلبات عاجلة",
+      "urgentCount_many": "{{count}} طلباً عاجلاً",
+      "urgentCount_other": "{{count}} طلب عاجل",
+      "statuses": {
+        "pending": "بانتظار الاتصال",
+        "contacted": "تم الاتصال",
+        "scheduled": "تم الحجز",
+        "declined": "مغلق"
+      }
     },
     "grid": {
       "dragHint": "اسحب الموعد لتغيير وقته.",

@@ -2,7 +2,9 @@ import { z } from 'zod';
 
 import { paginationQuerySchema, weeklyScheduleSchema } from '@shared/schemas/common';
 import { specialtySummarySchema } from '@shared/schemas/specialties';
-import { userSchema } from '@shared/schemas/users';
+import { passwordSchema } from '@shared/schemas/auth';
+import { personNameInputSchema } from '@shared/schemas/person-name';
+import { phoneSchema, userSchema } from '@shared/schemas/users';
 
 export const DEFAULT_APPOINTMENT_DURATION_MINUTES = 30;
 
@@ -37,15 +39,37 @@ const doctorWritableFields = {
   defaultAppointmentDurationMinutes: appointmentDurationSchema,
 };
 
-export const createDoctorSchema = z.object({
-  ...doctorWritableFields,
-  /** An existing user in the caller's clinic, whose role must be `doctor`. */
-  userId: z.uuid(),
-  weeklySchedule: weeklyScheduleSchema.default([]),
-  defaultAppointmentDurationMinutes: appointmentDurationSchema.default(
-    DEFAULT_APPOINTMENT_DURATION_MINUTES,
-  ),
+// The staff account a doctor signs in with. No `role`: this endpoint only ever makes a doctor, and
+// a role field here would be a second place the answer could be wrong.
+export const newDoctorUserSchema = z.object({
+  name: personNameInputSchema,
+  phone: phoneSchema,
+  email: z.email().max(255).nullish(),
+  password: passwordSchema,
 });
+export type NewDoctorUserInput = z.infer<typeof newDoctorUserSchema>;
+
+export const hasExactlyOneDoctorUser = (input: {
+  readonly userId?: string | undefined;
+  readonly newUser?: NewDoctorUserInput | undefined;
+}): boolean => (input.userId === undefined) !== (input.newUser === undefined);
+
+export const DOCTOR_USER_REF_MESSAGE = 'Provide either userId or newUser';
+
+// Creating the account and the profile is one form, because a doctor is both and neither is any use
+// alone — the pair used to be two screens and a step people forgot.
+export const createDoctorSchema = z
+  .object({
+    ...doctorWritableFields,
+    /** An existing user in the caller's clinic; the API promotes them to the doctor role. */
+    userId: z.uuid().optional(),
+    newUser: newDoctorUserSchema.optional(),
+    weeklySchedule: weeklyScheduleSchema.default([]),
+    defaultAppointmentDurationMinutes: appointmentDurationSchema.default(
+      DEFAULT_APPOINTMENT_DURATION_MINUTES,
+    ),
+  })
+  .refine(hasExactlyOneDoctorUser, DOCTOR_USER_REF_MESSAGE);
 export type CreateDoctorInput = z.infer<typeof createDoctorSchema>;
 
 export const updateDoctorSchema = z

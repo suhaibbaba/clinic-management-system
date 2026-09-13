@@ -3,6 +3,11 @@ import { z } from 'zod';
 import { isFdiTooth } from '@shared/constants/dental';
 import { LAB_ORDER_STATUSES } from '@shared/enums';
 import { isoDateSchema } from '@shared/schemas/appointments';
+import {
+  hasExactlyOnePatient,
+  patientRefFields,
+  PATIENT_REF_MESSAGE,
+} from '@shared/schemas/patients';
 import { personNameSchema } from '@shared/schemas/person-name';
 import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
 import { moneySchema, signedMoneySchema, wholeMoneySchema } from '@shared/schemas/money';
@@ -117,9 +122,8 @@ export const labOrderRowSchema = labOrderSchema.extend({
 });
 export type LabOrderRow = z.infer<typeof labOrderRowSchema>;
 
-export const createLabOrderSchema = z.object({
+const labOrderWritableFields = {
   labId: uuidSchema,
-  patientId: uuidSchema,
   doctorId: uuidSchema,
   performedProcedureId: uuidSchema.nullish(),
   workTypeId: uuidSchema.nullish(),
@@ -130,13 +134,18 @@ export const createLabOrderSchema = z.object({
   /** Omitted takes the work type's list price. */
   price: wholeMoneySchema.optional(),
   expectedAt: isoDateSchema.nullish(),
-});
+};
+
+export const createLabOrderSchema = z
+  .object({ ...labOrderWritableFields, ...patientRefFields })
+  .refine(hasExactlyOnePatient, PATIENT_REF_MESSAGE);
 export type CreateLabOrderInput = z.infer<typeof createLabOrderSchema>;
 
 // `price` is in here but ROLES.md keeps a doctor out of it, so the service — not this schema — is
-// what refuses it.
-export const updateLabOrderSchema = createLabOrderSchema
-  .omit({ patientId: true, doctorId: true })
+// what refuses it. The patient and the doctor are not: an order is re-raised, never reassigned.
+export const updateLabOrderSchema = z
+  .object(labOrderWritableFields)
+  .omit({ doctorId: true })
   .partial();
 export type UpdateLabOrderInput = z.infer<typeof updateLabOrderSchema>;
 

@@ -48,6 +48,7 @@ import {
   visits,
 } from '@api/database/schema';
 import { PatientAccessService } from '@api/patients/patient-access.service';
+import { PatientRegistrationService } from '@api/patients/patient-registration.service';
 import { toVisit } from '@api/patients/visits.service';
 import { LookupsService } from '@api/lookups/lookups.service';
 
@@ -90,6 +91,7 @@ export class AppointmentsService implements OnModuleInit {
     private readonly lookups: LookupsService,
     private readonly scope: ClinicScopeService,
     private readonly patientAccess: PatientAccessService,
+    private readonly registration: PatientRegistrationService,
     private readonly access: AppointmentAccessService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
   ) {}
@@ -238,30 +240,37 @@ export class AppointmentsService implements OnModuleInit {
     // Only codes on this clinic's own list — the schema cannot know them.
     await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.APPOINTMENT_TYPE, input.type);
 
-    await this.patientAccess.requirePatientId(actor, input.patientId);
+    if (input.patientId) {
+      await this.patientAccess.requirePatientId(actor, input.patientId);
+    }
+
     await this.access.requireOwnCalendar(actor, input.doctorId);
 
     const duration = input.durationMinutes ?? (await this.defaultDuration(actor, input.doctorId));
 
+    // A patient registered on this form and a booking that then turns out to clash commit or roll
+    // back together — reception performed one action, so one action is what succeeds or fails.
     const row = await this.insert(() =>
-      this.db
-        .insert(appointments)
-        .values({
-          clinicId: actor.clinicId,
-          patientId: input.patientId,
-          doctorId: input.doctorId,
-          startsAt: new Date(input.startsAt),
-          durationMinutes: duration,
-          type: input.type ?? APPOINTMENT_TYPE.CHECKUP,
-          // Reception booking *is* the confirmation; `requested` exists for
-          // public booking, which has to be confirmed by a person or an OTP.
-          status: input.status ?? APPOINTMENT_STATUS.CONFIRMED,
-          reason: input.reason ?? null,
-          notes: input.notes ?? null,
-          createdBy: actor.id,
-          updatedBy: actor.id,
-        })
-        .returning(),
+      this.registration.withPatient(actor, input, (executor, patientId) =>
+        executor
+          .insert(appointments)
+          .values({
+            clinicId: actor.clinicId,
+            patientId,
+            doctorId: input.doctorId,
+            startsAt: new Date(input.startsAt),
+            durationMinutes: duration,
+            type: input.type ?? APPOINTMENT_TYPE.CHECKUP,
+            // Reception booking *is* the confirmation; `requested` exists for
+            // public booking, which has to be confirmed by a person or an OTP.
+            status: input.status ?? APPOINTMENT_STATUS.CONFIRMED,
+            reason: input.reason ?? null,
+            notes: input.notes ?? null,
+            createdBy: actor.id,
+            updatedBy: actor.id,
+          })
+          .returning(),
+      ),
     );
 
     return this.findOne(actor, row.id);

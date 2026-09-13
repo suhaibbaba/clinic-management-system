@@ -15,7 +15,14 @@ import {
   useToast,
 } from '@web/components/ui';
 import { useSession } from '@web/features/auth/session';
-import { PatientPicker, type PickedPatient } from '@web/features/appointments/patient-picker';
+import {
+  isDraftComplete,
+  PatientPicker,
+  patientPhoneClash,
+  toPatientRef,
+  type PatientChoice,
+  type PickedPatient,
+} from '@web/features/appointments/patient-picker';
 import { useDoctors } from '@web/features/doctors/queries';
 import {
   useCreateLabOrder,
@@ -62,7 +69,8 @@ export function OrderFormModal({
   const labs = useLabs({ limit: 100 }, open);
   const doctors = useDoctors({ limit: 100 });
 
-  const [patient, setPatient] = useState<PickedPatient | null>(null);
+  const [patient, setPatient] = useState<PatientChoice | null>(null);
+  const [clash, setClash] = useState<PickedPatient | null>(null);
   const [labId, setLabId] = useState('');
   const [doctorId, setDoctorId] = useState('');
   const [workTypeId, setWorkTypeId] = useState('');
@@ -86,12 +94,17 @@ export function OrderFormModal({
       return;
     }
 
+    setClash(null);
+
     if (order) {
       setPatient({
-        id: order.patientId,
-        fullName: order.patientName,
-        phone: '',
-        fileNumber: order.patientFileNumber,
+        kind: 'existing',
+        patient: {
+          id: order.patientId,
+          fullName: order.patientName,
+          phone: '',
+          fileNumber: order.patientFileNumber,
+        },
       });
       setLabId(order.labId);
       setDoctorId(order.doctorId);
@@ -105,7 +118,7 @@ export function OrderFormModal({
       return;
     }
 
-    setPatient(defaults?.patient ?? null);
+    setPatient(defaults?.patient ? { kind: 'existing', patient: defaults.patient } : null);
     setLabId('');
     setDoctorId(defaults?.doctorId ?? ownDoctorId);
     setWorkTypeId('');
@@ -126,13 +139,14 @@ export function OrderFormModal({
     }
   };
 
-  const canSubmit = Boolean(labId) && Boolean(doctorId) && (Boolean(patient) || Boolean(order));
+  const canSubmit =
+    Boolean(labId) && Boolean(doctorId) && (isDraftComplete(patient) || Boolean(order));
 
   const submit = async (): Promise<void> => {
     try {
       const body: CreateLabOrderInput = {
         labId,
-        patientId: patient?.id ?? order?.patientId ?? '',
+        ...(order ? { patientId: order.patientId } : toPatientRef(patient as PatientChoice)),
         doctorId,
         teeth: [...teeth],
         ...(workTypeId !== '' && { workTypeId }),
@@ -148,7 +162,12 @@ export function OrderFormModal({
       };
 
       if (order) {
-        const { patientId: _patientId, doctorId: _doctorId, ...editable } = body;
+        const {
+          patientId: _patientId,
+          newPatient: _newPatient,
+          doctorId: _doctorId,
+          ...editable
+        } = body;
         await update.mutateAsync({ id: order.id, body: editable });
       } else {
         await create.mutateAsync(body);
@@ -157,6 +176,13 @@ export function OrderFormModal({
       toast.success(order ? 'labs.order.updated' : 'labs.order.created');
       onOpenChange(false);
     } catch (error) {
+      const existing = patientPhoneClash(error);
+
+      if (existing) {
+        setClash(existing);
+        return;
+      }
+
       toast.error(errorMessageKey(error));
     }
   };
@@ -193,7 +219,15 @@ export function OrderFormModal({
           </FormField>
         ) : (
           <FormField label="labs.order.patient" htmlFor="lab-order-patient" required>
-            <PatientPicker id="lab-order-patient" value={patient} onChange={setPatient} />
+            <PatientPicker
+              id="lab-order-patient"
+              value={patient}
+              clash={clash}
+              onChange={(next) => {
+                setPatient(next);
+                setClash(null);
+              }}
+            />
           </FormField>
         )}
 

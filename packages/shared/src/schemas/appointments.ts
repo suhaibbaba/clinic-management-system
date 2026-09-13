@@ -5,9 +5,16 @@ import {
   APPOINTMENT_TYPE,
   WAITING_LIST_PRIORITIES,
   WAITING_LIST_PRIORITY,
+  WAITING_LIST_SOURCES,
+  WAITING_LIST_STATUSES,
 } from '@shared/enums';
 import { clinicClosureSchema, doctorTimeOffSchema } from '@shared/schemas/closures';
 import { paginationQuerySchema, timeOfDaySchema, uuidSchema } from '@shared/schemas/common';
+import {
+  hasExactlyOnePatient,
+  patientRefFields,
+  PATIENT_REF_MESSAGE,
+} from '@shared/schemas/patients';
 import { personNameSchema } from '@shared/schemas/person-name';
 import { lookupCodeSchema } from '@shared/schemas/lookups';
 
@@ -58,13 +65,17 @@ const appointmentWritableFields = {
   notes: z.string().trim().max(2000).nullish(),
 };
 
-export const createAppointmentSchema = z.object({
-  ...appointmentWritableFields,
-  patientId: uuidSchema,
-  durationMinutes: durationMinutesSchema.optional(),
-  type: lookupCodeSchema.default(APPOINTMENT_TYPE.CHECKUP),
-  status: z.enum(APPOINTMENT_STATUSES).optional(),
-});
+// `newPatient` registers and books in one request, because the alternative is reception leaving a
+// half-filled form to go and create a patient. Both write inside one transaction.
+export const createAppointmentSchema = z
+  .object({
+    ...appointmentWritableFields,
+    ...patientRefFields,
+    durationMinutes: durationMinutesSchema.optional(),
+    type: lookupCodeSchema.default(APPOINTMENT_TYPE.CHECKUP),
+    status: z.enum(APPOINTMENT_STATUSES).optional(),
+  })
+  .refine(hasExactlyOnePatient, PATIENT_REF_MESSAGE);
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 
 // Status is not here: it moves only through the transition endpoints, so the state machine has one
@@ -162,8 +173,12 @@ export const waitingListEntrySchema = z.object({
   /** Null when the patient will take any doctor. */
   doctorId: uuidSchema.nullable(),
   doctorName: personNameSchema.nullable(),
+  /** The complaint, in the patient's own words when it arrived online. */
   reason: z.string().nullable(),
   priority: z.enum(WAITING_LIST_PRIORITIES),
+  source: z.enum(WAITING_LIST_SOURCES),
+  status: z.enum(WAITING_LIST_STATUSES),
+  declinedReason: z.string().nullable(),
   resolvedAt: z.iso.datetime().nullable(),
   appointmentId: uuidSchema.nullable(),
   createdAt: z.iso.datetime(),
@@ -171,12 +186,14 @@ export const waitingListEntrySchema = z.object({
 });
 export type WaitingListEntry = z.infer<typeof waitingListEntrySchema>;
 
-export const createWaitingListEntrySchema = z.object({
-  patientId: uuidSchema,
-  doctorId: uuidSchema.nullish(),
-  reason: z.string().trim().max(500).nullish(),
-  priority: z.enum(WAITING_LIST_PRIORITIES).default(WAITING_LIST_PRIORITY.NORMAL),
-});
+export const createWaitingListEntrySchema = z
+  .object({
+    ...patientRefFields,
+    doctorId: uuidSchema.nullish(),
+    reason: z.string().trim().max(500).nullish(),
+    priority: z.enum(WAITING_LIST_PRIORITIES).default(WAITING_LIST_PRIORITY.NORMAL),
+  })
+  .refine(hasExactlyOnePatient, PATIENT_REF_MESSAGE);
 export type CreateWaitingListEntryInput = z.infer<typeof createWaitingListEntrySchema>;
 
 export const updateWaitingListEntrySchema = z
@@ -193,13 +210,26 @@ export const listWaitingListQuerySchema = paginationQuerySchema.extend({
   /** Unresolved only by default: the panel is a queue, not a history. */
   includeResolved: z.coerce.boolean().default(false),
   doctorId: uuidSchema.optional(),
+  source: z.enum(WAITING_LIST_SOURCES).optional(),
+  status: z.enum(WAITING_LIST_STATUSES).optional(),
 });
 export type ListWaitingListQuery = z.infer<typeof listWaitingListQuerySchema>;
 
+// Booking goes through the ordinary appointment path, so a slot taken while the patient waited is
+// the same 409 reception would have got typing it in, and the entry stays open.
 export const promoteWaitingListEntrySchema = z.object({
   doctorId: uuidSchema,
   startsAt: z.iso.datetime(),
   durationMinutes: durationMinutesSchema.optional(),
   type: lookupCodeSchema.optional(),
+  /** Tells the patient the time they were given; off for a walk-in already at the desk. */
+  notify: z.boolean().default(false),
 });
 export type PromoteWaitingListEntryInput = z.infer<typeof promoteWaitingListEntrySchema>;
+
+/** Closing the entry without a booking. The reason is the patient's answer, so it is required. */
+export const declineWaitingListEntrySchema = z.object({
+  reason: z.string().trim().min(3).max(500),
+  notify: z.boolean().default(false),
+});
+export type DeclineWaitingListEntryInput = z.infer<typeof declineWaitingListEntrySchema>;
