@@ -54,7 +54,7 @@ export function Button({
       className={cn(
         // A softly rounded rectangle, not a pill: it sits beside fields and
         // cards of the same 8-14px family instead of on top of them.
-        'inline-flex cursor-pointer items-center justify-center rounded-control font-medium',
+        'pill-text cursor-pointer justify-center rounded-control font-medium',
         'transition-[filter,background-color,color,transform] duration-150 ease-out',
         'active:scale-[0.98]',
         'disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none',

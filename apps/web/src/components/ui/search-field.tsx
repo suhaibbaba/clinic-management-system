@@ -49,9 +49,9 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
             'text-ink-faint',
           )}
         >
-          {/* A fixed 20px box with the glyph centred: `py-0.5` on `leading-none` gave a 13px line to
-              a slash that inks 16px, so it overflowed its own chip. */}
-          <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded-chip border border-line bg-sunken px-1.5 font-sans text-label leading-none">
+          {/* A drawn 20px box, not a padded line: a slash inks taller than its own line box and
+              overflowed the chip when the height came from the type scale. */}
+          <kbd className="pill-text h-5 min-w-5 justify-center rounded-chip border border-line bg-sunken px-1.5 font-sans text-label">
             {shortcut}
           </kbd>
         </span>

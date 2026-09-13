@@ -88,8 +88,8 @@ export function ManagePage({
           <span
             className={
               cancelled
-                ? 'rounded-pill bg-neutral-100 px-2.5 py-1 text-label font-medium text-ink-muted'
-                : 'rounded-pill bg-success-100 px-2.5 py-1 text-label font-medium text-success-800'
+                ? 'pill-text rounded-pill bg-neutral-100 px-2.5 py-1 text-label font-medium text-ink-muted'
+                : 'pill-text rounded-pill bg-success-100 px-2.5 py-1 text-label font-medium text-success-800'
             }
           >
             {t(STATUS_KEY[booking.status] ?? 'manage.statusRequested')}

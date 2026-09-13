@@ -25,7 +25,8 @@ export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element
     <span
       role="alert"
       className={cn(
-        // `inline-flex`, so it is as wide as what it says and no wider.
+        // `inline-flex`, so it is as wide as what it says and no wider. Not `pill-text`: this one
+        // wraps, and a wrapped line box of exactly one em would set the rows touching.
         'inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5',
         'rounded-pill border border-danger-200 bg-danger-50 py-1 pe-3 ps-2.5',
         'text-label text-danger-700',

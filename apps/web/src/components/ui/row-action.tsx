@@ -30,7 +30,7 @@ export function RowAction({
     <button
       type={type}
       className={cn(
-        'inline-flex cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap',
+        'pill-text cursor-pointer justify-center gap-1.5 whitespace-nowrap',
         // Square on touch: a two-syllable Arabic label inside `px-1` drew a 38px-wide target that
         // was the full 44 tall.
         'min-h-11 min-w-11 rounded-chip px-[13px] py-2 text-meta font-medium',

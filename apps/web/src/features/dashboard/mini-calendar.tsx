@@ -103,7 +103,7 @@ function Day({
       aria-label={`${label} ${date}`}
       aria-current={isToday ? 'date' : undefined}
       className={cn(
-        'relative cursor-pointer rounded-chip py-1.5 text-label font-medium',
+        'pill-text relative cursor-pointer justify-center rounded-chip py-1.5 text-label font-medium',
         'transition-colors duration-150',
         isToday ? 'today-wash text-ink-inverse' : 'text-ink hover:bg-primary-100',
       )}

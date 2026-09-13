@@ -378,7 +378,7 @@ function PageButton({
       onClick={onClick}
       className={cn(
         // 44px on touch, the reference's drawn 28 on a laptop.
-        'inline-flex size-11 cursor-pointer items-center justify-center lg:size-7',
+        'pill-text size-11 cursor-pointer justify-center lg:size-7',
         'rounded-chip border text-label tabular-nums transition-colors duration-150',
         current
           ? 'border-primary-600 bg-primary-600 font-medium text-ink-inverse'

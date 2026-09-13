@@ -60,7 +60,9 @@ export function WhenStep({
                   })}
                   onClick={() => onDate(chip.date)}
                   className={cx(
-                    'flex min-h-[72px] w-16 cursor-pointer flex-col items-center justify-center gap-0.5',
+                    // The three lines are `pill-text` each, so the `gap` is the whole of the
+                    // space between them rather than three type-scale line-heights.
+                    'flex min-h-[72px] w-16 cursor-pointer flex-col items-center justify-center gap-2',
                     'rounded-panel px-2 transition-colors duration-150',
                     active
                       ? 'bg-primary-600 text-ink-inverse'
@@ -69,13 +71,15 @@ export function WhenStep({
                         : 'border border-line bg-surface text-ink shadow-card hover:bg-row-hover',
                   )}
                 >
-                  <span className="text-label">
+                  <span className="pill-text text-label">
                     {chip.label === 'today' || chip.label === 'tomorrow'
                       ? t(`when.${chip.label}`)
                       : chip.label}
                   </span>
-                  <span className="text-field font-medium tabular-nums">{chip.dayNumber}</span>
-                  <span className="text-[11px] opacity-80">{chip.monthLabel}</span>
+                  <span className="pill-text text-field font-medium tabular-nums">
+                    {chip.dayNumber}
+                  </span>
+                  <span className="pill-text text-micro opacity-80">{chip.monthLabel}</span>
                 </button>
               </li>
             );

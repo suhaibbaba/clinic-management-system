@@ -34,7 +34,7 @@ export function Badge({
       className={cn(
         // A badge never breaks across lines: a wrapped pill centres its dot against two lines and
         // doubles the row height. The cell is inside `overflow-x-auto` already.
-        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill px-3 py-[5px]',
+        'pill-text gap-1.5 whitespace-nowrap rounded-pill px-3 py-[5px]',
         'text-meta font-medium',
         TONES[tone],
         className,

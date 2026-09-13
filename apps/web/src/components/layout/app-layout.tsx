@@ -239,7 +239,7 @@ function NavRow({
             className={cn(
               // A lozenge that stays at least as wide as it is tall, so one digit is a circle and
               // three do not spill — the reference's `min-width:20px;height:20px`.
-              'ms-auto inline-flex h-5 min-w-5 shrink-0 items-center justify-center',
+              'pill-text ms-auto h-5 min-w-5 shrink-0 justify-center',
               'rounded-pill px-1.5 text-micro font-medium tabular-nums',
               isActive ? 'bg-ink-inverse text-primary-700' : 'bg-danger-600 text-ink-inverse',
             )}

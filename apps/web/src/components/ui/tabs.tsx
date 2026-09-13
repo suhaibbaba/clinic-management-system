@@ -56,7 +56,7 @@ export function Tabs<TId extends string>({
             aria-controls={`panel-${tab.id}`}
             onClick={() => onChange(tab.id)}
             className={cn(
-              'inline-flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center gap-1.5',
+              'pill-text min-h-11 min-w-11 shrink-0 cursor-pointer justify-center gap-1.5',
               'rounded-pill border px-3.5 py-1.5 lg:min-h-0 lg:min-w-0',
               'text-meta font-medium',
               'transition-[background-color,border-color,color,transform] duration-150 active:scale-95',
@@ -69,7 +69,10 @@ export function Tabs<TId extends string>({
             {tab.count !== undefined && tab.count > 0 && (
               <Ltr
                 className={cn(
-                  'min-w-5 rounded-pill px-1.5 text-micro font-medium tabular-nums',
+                  // A declared lozenge, as the rail's badge is: one digit is a circle and three
+                  // do not spill. Its height is drawn, never a line-height's leftovers.
+                  'pill-text h-4 min-w-4 justify-center rounded-pill px-1.5 text-micro font-medium',
+                  'tabular-nums',
                   selected ? 'bg-primary-900/25 text-ink-inverse' : 'bg-inset text-ink-subtle',
                 )}
               >

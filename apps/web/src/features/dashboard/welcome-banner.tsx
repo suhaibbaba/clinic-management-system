@@ -54,7 +54,7 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
         </p>
 
         {bounds && (
-          <p className="mt-[13px] inline-flex items-center gap-[7px] rounded-pill border border-primary-600/20 bg-surface/75 px-[13px] py-1.5 text-meta font-medium text-primary-700 backdrop-blur-[6px]">
+          <p className="pill-text mt-[13px] gap-[7px] rounded-pill border border-primary-600/20 bg-surface/75 px-[13px] py-1.5 text-meta font-medium text-primary-700 backdrop-blur-[6px]">
             <Icon name="clock" className="size-3.5 shrink-0" />
             <span>
               {t('dashboard.firstAppointment')} <Ltr>{bounds.first}</Ltr>
