@@ -52,7 +52,7 @@ export function Avatar({
     .map((word) => [...word][0] ?? '')
     .join('');
 
-  const shape = 'inline-flex shrink-0 select-none rounded-pill';
+  const shape = 'pill-text shrink-0 select-none rounded-pill';
 
   const tint = tintKey === undefined ? 'bg-tint-2-bg text-tint-2-ink' : tintFor(tintKey);
 
@@ -61,7 +61,7 @@ export function Avatar({
       <span
         aria-hidden="true"
         style={{ width: size, height: size }}
-        className={cn(shape, 'items-center justify-center text-label font-medium', tint, className)}
+        className={cn(shape, 'justify-center text-label font-medium', tint, className)}
       >
         {initials}
       </span>

@@ -70,7 +70,7 @@ export function StatCard({
           {delta !== undefined && (
             <span
               className={cn(
-                'inline-flex items-center gap-1 text-meta font-medium',
+                'pill-text gap-1 text-meta font-medium',
                 delta.isGood ? 'text-success-700' : 'text-danger-700',
               )}
             >

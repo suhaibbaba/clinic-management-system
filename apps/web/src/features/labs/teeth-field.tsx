@@ -56,7 +56,7 @@ export function TeethField({
             <li key={tooth}>
               <span
                 dir="ltr"
-                className="inline-flex items-center gap-1 rounded-pill bg-inset py-1 pe-1 ps-2.5 text-label font-medium tabular-nums text-ink"
+                className="pill-text gap-1 rounded-pill bg-inset py-1 pe-1 ps-2.5 text-label font-medium tabular-nums text-ink"
               >
                 {tooth}
                 <button

@@ -16,8 +16,8 @@ export function Tag({ icon, className, children }: TagProps): JSX.Element {
   return (
     <span
       className={cn(
-        'inline-flex min-w-0 items-center gap-1.5 rounded-field px-[15px] py-[9px]',
-        'tag-wash text-label leading-none font-medium text-primary-900',
+        'pill-text min-w-0 gap-1.5 rounded-field px-[15px] py-[9px]',
+        'tag-wash text-label font-medium text-primary-900',
         className,
       )}
     >
