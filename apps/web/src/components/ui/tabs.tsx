@@ -2,6 +2,7 @@ import type { JSX, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
+import { PILL_BASE } from '@web/components/ui/badge';
 import { cn } from '@web/lib/cn';
 import { Ltr } from '@web/components/ui/ltr';
 
@@ -56,13 +57,12 @@ export function Tabs<TId extends string>({
             aria-controls={`panel-${tab.id}`}
             onClick={() => onChange(tab.id)}
             className={cn(
-              'pill-text min-h-11 min-w-11 shrink-0 cursor-pointer justify-center gap-1.5',
-              'rounded-pill border px-3.5 py-1.5 lg:min-h-0 lg:min-w-0',
-              'text-meta font-medium',
+              PILL_BASE,
+              'min-h-(--control-h) shrink-0 cursor-pointer border-[1.5px] lg:h-(--control-h-sm) lg:min-h-0',
               'transition-[background-color,border-color,color,transform] duration-150 active:scale-95',
               selected
                 ? 'border-primary-600 bg-primary-600 text-ink-inverse'
-                : 'border-line bg-surface text-ink-muted hover:border-primary-200 hover:bg-primary-100 hover:text-primary-700',
+                : 'border-line-strong bg-surface text-ink-muted hover:border-neutral-400 hover:text-ink',
             )}
           >
             {t(tab.label)}

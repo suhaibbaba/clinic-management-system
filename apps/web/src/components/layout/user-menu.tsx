@@ -5,13 +5,13 @@ import { useNavigate } from 'react-router-dom';
 
 import { Avatar } from '@web/components/ui/avatar';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@web/components/ui/dropdown-menu';
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuLabel,
+  MenuSeparator,
+  MenuTrigger,
+} from '@web/components/ui/menu';
 import { Icon } from '@web/components/ui/icon';
 import { PersonName, usePersonName } from '@web/components/ui/person-name';
 import { WEB_VERSION } from '@web/features/clinic/api-version';
@@ -38,8 +38,8 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
   const current = i18n.language.split('-')[0];
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
+    <Menu>
+      <MenuTrigger
         className={cn(
           'group flex w-full cursor-pointer items-center gap-[11px] rounded-panel p-3',
           'border border-line bg-surface transition-colors duration-150',
@@ -66,19 +66,19 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
             'group-data-[state=open]:rotate-180',
           )}
         />
-      </DropdownMenuTrigger>
+      </MenuTrigger>
 
-      <DropdownMenuContent align="start">
-        <DropdownMenuItem icon="user" onSelect={() => void navigate('/profile')}>
+      <MenuContent align="start">
+        <MenuItem icon="user" onSelect={() => void navigate('/profile')}>
           {t('nav.profile')}
-        </DropdownMenuItem>
+        </MenuItem>
 
-        <DropdownMenuSeparator />
+        <MenuSeparator />
 
-        <DropdownMenuLabel>{t('nav.language')}</DropdownMenuLabel>
+        <MenuLabel>{t('nav.language')}</MenuLabel>
 
         {LANGUAGES.map((language) => (
-          <DropdownMenuItem
+          <MenuItem
             key={language}
             icon={language === 'ar' ? 'language' : 'globe'}
             onSelect={() => void changeLanguage(language)}
@@ -87,23 +87,23 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
             })}
           >
             {LANGUAGE_LABELS[language]}
-          </DropdownMenuItem>
+          </MenuItem>
         ))}
 
-        <DropdownMenuSeparator />
+        <MenuSeparator />
 
-        <DropdownMenuItem icon="logout" tone="danger" onSelect={onLogout}>
+        <MenuItem icon="logout" tone="danger" onSelect={onLogout}>
           {t('nav.logout')}
-        </DropdownMenuItem>
+        </MenuItem>
 
-        <DropdownMenuSeparator />
+        <MenuSeparator />
 
         {/* Not a menu item: there is nothing to select, and making it one would put a version number
             in the tab order between "sign out" and the edge. */}
         <p className="px-2 py-1.5 text-meta text-ink-subtle">
           <span>{t('clinic.version')}</span> <Ltr className="font-mono">v{WEB_VERSION}</Ltr>
         </p>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </MenuContent>
+    </Menu>
   );
 }

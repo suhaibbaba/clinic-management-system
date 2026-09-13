@@ -21,13 +21,19 @@ const FIELDS = [
 const SMALLER = /\btext-(label|value|xs|sm|base)\b/;
 
 describe('field size', () => {
-  it.each(FIELDS)('%s renders its field at text-field', (file) => {
+  // The size lives in `FIELD_TEXT` now, so a field either carries the token itself or takes the
+  // shared one. Both are the same 16px; what must not happen is a field that does neither.
+  it.each([...FIELDS, 'field.tsx'])('%s sets its field size from the scale', (file) => {
     const source = readFileSync(join(UI, file), 'utf8');
 
-    expect(source).toContain('text-field');
+    expect(source.includes('text-field') || source.includes('FIELD_TEXT')).toBe(true);
   });
 
-  it.each(FIELDS)('%s puts no smaller size on the field element', (file) => {
+  it('declares the token once, on the shared field text', () => {
+    expect(readFileSync(join(UI, 'field.tsx'), 'utf8')).toContain('text-field');
+  });
+
+  it.each([...FIELDS, 'field.tsx'])('%s puts no smaller size on the field element', (file) => {
     const source = readFileSync(join(UI, file), 'utf8');
 
     // Only the element's own class list matters: a 13px label or a 15px list

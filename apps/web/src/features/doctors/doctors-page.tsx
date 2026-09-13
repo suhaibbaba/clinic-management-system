@@ -13,7 +13,6 @@ import {
   PageHeader,
   PersonName,
   PhoneLink,
-  RowAction,
   SearchField,
   Table,
 } from '@web/components/ui';
@@ -101,16 +100,20 @@ export function DoctorsPage(): JSX.Element {
         <span className="flex items-center justify-end gap-3">
           {/* The hours and the time off live on the doctor's own page now —
               a growing list of absences was never going to fit in a modal. */}
-          <RowAction
+          <Button
+            size="sm"
+            variant="quiet"
             icon={<Icon name="clock" />}
-            tone="quiet"
+
             onClick={() => navigate(`/doctors/${row.id}`)}
           >
             {t('doctors.openSchedule')}
-          </RowAction>
+          </Button>
 
           {isAdmin && (
-            <RowAction
+            <Button
+              size="sm"
+              variant="ghost"
               icon={<Icon name="edit" />}
               onClick={() => {
                 setFormDoctor(row);
@@ -118,7 +121,7 @@ export function DoctorsPage(): JSX.Element {
               }}
             >
               {t('common.edit')}
-            </RowAction>
+            </Button>
           )}
         </span>
       ),

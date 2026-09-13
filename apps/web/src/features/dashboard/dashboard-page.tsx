@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import {
+  Badge,
   EmptyState,
   Icon,
   SegmentedControl,
   StatCard,
-  Tag,
   usePersonName,
   type StatTone,
 } from '@web/components/ui';
@@ -179,7 +179,9 @@ function TodaySchedule({
   const head = (
     <>
       <h2>
-        <Tag>{t('dashboard.schedule.title')}</Tag>
+        <Badge tone="wash" plain>
+          {t('dashboard.schedule.title')}
+        </Badge>
       </h2>
 
       {doctors.length > 1 && (
@@ -198,7 +200,7 @@ function TodaySchedule({
         to="/appointments"
         // A 20px-tall link is a 20px-tall target: the same blue text inside
         // a 44px box on touch, unchanged on a laptop.
-        className="inline-flex min-h-11 items-center gap-1 text-label font-medium text-primary-600 transition-colors duration-150 hover:text-primary-700 lg:min-h-0"
+        className="inline-flex min-h-(--control-h) items-center gap-1 text-label font-medium text-primary-600 transition-colors duration-150 hover:text-primary-700 lg:min-h-0"
       >
         {t('dashboard.schedule.seeAll')}
         <Icon name="chevron-end" className="size-4" />
@@ -313,7 +315,7 @@ function SkeletonTimeline(): JSX.Element {
       className="overflow-hidden rounded-card border border-line bg-surface shadow-card"
     >
       <div className="border-b border-line px-[22px] py-[18px]">
-        <span className="skeleton block h-[34px] w-32 rounded-field" />
+        <span className="skeleton block h-(--control-h-sm) w-32 rounded-field" />
       </div>
 
       <div className="flex flex-col gap-4 px-[22px] pt-2 pb-[22px]">

@@ -53,7 +53,7 @@ export function Drawer({
               className={cn(
                 // The same 44px close as the navigation drawer: this was a bare "✕" in a 27px box,
                 // the smallest target on the screen.
-                'inline-flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-pill',
+                'inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill',
                 'text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink',
               )}
               aria-label={t('common.close')}

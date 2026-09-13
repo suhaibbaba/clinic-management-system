@@ -148,7 +148,7 @@ export function SkeletonKpi({ count = 3 }: { readonly count?: number }): JSX.Ele
         >
           {/* The same boxes the real card settles at: a 30px label chip, the figure's own
               line, and one caption row. */}
-          <Skeleton className="h-[30px] w-28 rounded-field" />
+          <Skeleton className="h-(--control-h-sm) w-28 rounded-field" />
           <Skeleton className="mt-2 h-8 w-1/2" />
           <Skeleton className="mt-[7px] h-[18px] w-3/5" />
         </div>
@@ -165,7 +165,7 @@ export function SkeletonForm({ fields = 4 }: { readonly fields?: number }): JSX.
       {Array.from({ length: fields }, (_, field) => (
         <div key={field} aria-hidden="true" className="flex flex-col gap-2">
           <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-11 w-full rounded-control" />
+          <Skeleton className="h-(--control-h) w-full rounded-control" />
         </div>
       ))}
     </div>

@@ -24,6 +24,7 @@ import {
   KeyRound,
   Languages,
   Loader2,
+  Lock,
   LogIn,
   LogOut,
   Mail,
@@ -80,6 +81,7 @@ export type IconName =
   | 'info'
   | 'language'
   | 'list'
+  | 'lock'
   | 'login'
   | 'logout'
   | 'mail'
@@ -143,6 +145,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   info: Info,
   language: Languages,
   list: ListOrdered,
+  lock: Lock,
   login: LogIn,
   logout: LogOut,
   mail: Mail,

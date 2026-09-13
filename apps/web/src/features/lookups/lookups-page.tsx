@@ -15,7 +15,6 @@ import {
   Icon,
   Ltr,
   PageHeader,
-  RowAction,
   Switch,
   useToast,
 } from '@web/components/ui';
@@ -53,7 +52,8 @@ export function LookupsPage(): JSX.Element {
               aria-current={key === listKey ? 'true' : undefined}
               onClick={() => setListKey(key)}
               className={cn(
-                'flex min-h-11 shrink-0 items-center rounded-control px-3 py-2 lg:min-h-9',
+                'flex min-h-(--control-h) shrink-0 items-center rounded-control px-3 py-2',
+                'lg:min-h-(--control-h-sm)',
                 'text-start text-value transition-colors',
                 key === listKey
                   ? 'bg-primary-50 font-medium text-primary-700'
@@ -204,17 +204,24 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
                   onCheckedChange={() => void toggle(option)}
                 />
 
-                <RowAction icon={<Icon name="edit" />} onClick={() => setEditing(option)}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  icon={<Icon name="edit" />}
+                  onClick={() => setEditing(option)}
+                >
                   {t('common.edit')}
-                </RowAction>
+                </Button>
 
-                <RowAction
+                <Button
+                  size="sm"
+                  variant="quiet"
                   icon={<Icon name="trash" />}
-                  tone="quiet"
+
                   onClick={() => void destroy(option)}
                 >
                   {t('common.delete')}
-                </RowAction>
+                </Button>
               </span>
             </li>
           ))}

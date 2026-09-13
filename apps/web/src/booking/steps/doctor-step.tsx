@@ -63,7 +63,7 @@ export function DoctorStep({
           >
             <span
               aria-hidden
-              className="pill-text size-11 shrink-0 justify-center rounded-pill bg-primary-100 text-value font-medium text-primary-800"
+              className="pill-text size-(--control-h) shrink-0 justify-center rounded-pill bg-primary-100 text-value font-medium text-primary-800"
             >
               {initial(bookingName(doctor.name))}
             </span>

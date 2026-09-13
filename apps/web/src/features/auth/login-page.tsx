@@ -114,7 +114,7 @@ export function LoginPage(): JSX.Element {
             icon={<Icon name="login" />}
             type="submit"
             isLoading={isSubmitting}
-            className="mt-2 h-12 w-full"
+            className="mt-2 w-full"
           >
             {isSubmitting ? t('auth.submitting') : t('auth.submit')}
           </Button>

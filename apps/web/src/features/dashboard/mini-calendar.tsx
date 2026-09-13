@@ -139,7 +139,7 @@ function StepButton({
       onClick={onClick}
       className={cn(
         // 44px on touch, the reference's drawn 26 on a laptop.
-        'inline-flex size-11 cursor-pointer items-center justify-center lg:size-[26px]',
+        'inline-flex size-(--control-h) cursor-pointer items-center justify-center lg:size-(--control-h-sm)',
         'rounded-chip border border-line bg-canvas text-ink-muted',
         'transition-colors duration-150 hover:border-primary-600 hover:text-primary-700',
       )}

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
 import { usePageActionSlot } from '@web/components/layout/page-action-slot';
-import { Tag } from '@web/components/ui/tag';
+import { Badge } from '@web/components/ui/badge';
 import { useDocumentTitle } from '@web/lib/document-title';
 
 export interface PageHeaderProps {
@@ -59,7 +59,11 @@ export function PageHeader({
           {/* Last, so it lands at the far edge from the title — the corner the reference puts the
               count in. `self-start` because a count is not a control: stretched to the width of a
               phone it reads as a banner. */}
-          {count !== undefined && <Tag className="shrink-0 self-start">{count}</Tag>}
+          {count !== undefined && (
+            <Badge tone="wash" plain className="shrink-0 self-start">
+              {count}
+            </Badge>
+          )}
         </div>
       )}
     </header>

@@ -12,7 +12,6 @@ import {
   Input,
   Ltr,
   Modal,
-  RowAction,
   Switch,
   useToast,
   type DateRange,
@@ -149,13 +148,15 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
               <span className="flex items-center gap-2">
                 {closure.isAnnual && <Badge tone="info">{t('schedule.closures.annual')}</Badge>}
                 {canEdit && (
-                  <RowAction
+                  <Button
+                    size="sm"
+                    variant="quiet"
                     icon={<Icon name="trash" />}
-                    tone="quiet"
+
                     onClick={() => void remove(closure)}
                   >
                     {t('common.delete')}
-                  </RowAction>
+                  </Button>
                 )}
               </span>
             </li>

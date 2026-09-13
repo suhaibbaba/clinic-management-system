@@ -8,13 +8,12 @@ import {
   Badge,
   Button,
   type Column,
-  DropdownMenuItem,
+  MenuItem,
   EmptyState,
   Icon,
   Ltr,
   PageHeader,
   PhoneLink,
-  RowAction,
   RowMenu,
   SegmentedControl,
   Table,
@@ -169,8 +168,8 @@ export function PatientsPage(): JSX.Element {
               amount={row.balance}
               currency={currency}
               className={cn(
-                'pill-text justify-center rounded-pill px-[13px] py-[5px]',
-                'text-label font-medium',
+                'pill-text h-(--control-h-sm) justify-center rounded-pill px-3',
+                'text-nav font-medium',
                 owes ? 'bg-danger-100 text-danger-600' : 'bg-quiet-bg text-quiet-ink',
               )}
             />
@@ -185,37 +184,31 @@ export function PatientsPage(): JSX.Element {
       actions: true,
       render: (row) => (
         <span className="flex items-center gap-1.5">
-          <RowAction onClick={() => navigate(`/patients/${row.id}`)}>
+          <Button size="sm" variant="ghost" onClick={() => navigate(`/patients/${row.id}`)}>
             {t('patients.openFile')}
             <Icon name="chevron-end" className="size-4" />
-          </RowAction>
+          </Button>
 
           {/* The file's tabs are addresses, so the menu is shortcuts into them — each gated by the
               permission that gates the tab, so nothing here bounces the reader. */}
           <RowMenu label={t('patients.rowMenu')}>
             {showClinical && (
-              <DropdownMenuItem
-                icon="clock"
-                onSelect={() => navigate(`/patients/${row.id}?tab=timeline`)}
-              >
+              <MenuItem icon="clock" onSelect={() => navigate(`/patients/${row.id}?tab=timeline`)}>
                 {t('patients.tabs.timeline')}
-              </DropdownMenuItem>
+              </MenuItem>
             )}
             {showBalance && (
-              <DropdownMenuItem
-                icon="money"
-                onSelect={() => navigate(`/patients/${row.id}?tab=billing`)}
-              >
+              <MenuItem icon="money" onSelect={() => navigate(`/patients/${row.id}?tab=billing`)}>
                 {t('patients.tabs.billing')}
-              </DropdownMenuItem>
+              </MenuItem>
             )}
             {showClinical && (
-              <DropdownMenuItem
+              <MenuItem
                 icon="image"
                 onSelect={() => navigate(`/patients/${row.id}?tab=attachments`)}
               >
                 {t('patients.tabs.attachments')}
-              </DropdownMenuItem>
+              </MenuItem>
             )}
           </RowMenu>
         </span>

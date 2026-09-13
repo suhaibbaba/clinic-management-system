@@ -5,20 +5,21 @@ import { Icon, type IconName } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
 import { documentDirection } from '@web/lib/direction';
 
-// `dir` is read off the document rather than hardcoded, so `side`/`align` and the arrow keys mirror
-// with the language.
+// The app's one menu: every popover-and-keyboard behaviour in the product comes from this file, and
+// a caller that needs a different trigger writes a trigger, not a second menu.
 
-// `dir` belongs on the root: Radix passes it through the portal, which is the only way the panel
-// gets it — it renders on `document.body`.
-export function DropdownMenu({ children }: { readonly children: ReactNode }): JSX.Element {
+// `dir` belongs on the root and is read off the document rather than hardcoded: Radix passes it
+// through the portal, which is the only way the panel — rendered on `document.body` — gets it, and
+// it is what mirrors `side`/`align` and the arrow keys with the language.
+export function Menu({ children }: { readonly children: ReactNode }): JSX.Element {
   return (
     <DropdownMenuPrimitive.Root dir={documentDirection()}>{children}</DropdownMenuPrimitive.Root>
   );
 }
 
-export const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
+export const MenuTrigger = DropdownMenuPrimitive.Trigger;
 
-export function DropdownMenuContent({
+export function MenuContent({
   children,
   align = 'end',
   className,
@@ -45,7 +46,7 @@ export function DropdownMenuContent({
   );
 }
 
-export interface DropdownMenuItemProps {
+export interface MenuItemProps {
   readonly icon: IconName;
   readonly children: ReactNode;
   readonly onSelect?: (() => void) | undefined;
@@ -53,18 +54,19 @@ export interface DropdownMenuItemProps {
   readonly trailing?: ReactNode | undefined;
 }
 
-export function DropdownMenuItem({
+export function MenuItem({
   icon,
   children,
   onSelect,
   tone = 'default',
   trailing,
-}: DropdownMenuItemProps): JSX.Element {
+}: MenuItemProps): JSX.Element {
   return (
     <DropdownMenuPrimitive.Item
       {...(onSelect && { onSelect })}
       className={cn(
-        'flex min-h-11 cursor-pointer select-none items-center gap-2.5 rounded-control px-3 py-2 lg:min-h-9',
+        'flex min-h-(--control-h) cursor-pointer select-none items-center gap-2 rounded-control px-3 py-2',
+        'lg:min-h-(--control-h-sm)',
         'text-value outline-none transition-colors duration-150',
         // Radix moves `data-highlighted` with both the pointer and the arrow
         // keys, so hover and keyboard focus cannot drift apart.
@@ -81,7 +83,7 @@ export function DropdownMenuItem({
   );
 }
 
-export function DropdownMenuLabel({ children }: { readonly children: ReactNode }): JSX.Element {
+export function MenuLabel({ children }: { readonly children: ReactNode }): JSX.Element {
   return (
     <DropdownMenuPrimitive.Label className="px-3 pb-1 pt-2 text-meta font-medium text-ink-subtle">
       {children}
@@ -89,6 +91,36 @@ export function DropdownMenuLabel({ children }: { readonly children: ReactNode }
   );
 }
 
-export function DropdownMenuSeparator(): JSX.Element {
+export function MenuSeparator(): JSX.Element {
   return <DropdownMenuPrimitive.Separator className="my-1.5 h-px bg-line" />;
+}
+
+export interface RowMenuProps {
+  /** Named for screen readers; the trigger is a glyph. */
+  readonly label: string;
+  readonly children: ReactNode;
+}
+
+// The reference's `.more-btn`: the row's second-rank destinations behind one glyph, so the first
+// one stays the only thing competing for the eye down a column of ten. A trigger over `Menu`, not
+// a menu of its own.
+export function RowMenu({ label, children }: RowMenuProps): JSX.Element {
+  return (
+    <Menu>
+      <MenuTrigger
+        aria-label={label}
+        className={cn(
+          'inline-grid size-(--control-h) shrink-0 cursor-pointer place-items-center',
+          'lg:size-(--control-h-sm) rounded-control border border-line bg-surface text-ink-muted',
+          'transition-colors duration-150',
+          'hover:border-primary-600 hover:text-primary-600',
+          'data-[state=open]:border-primary-600 data-[state=open]:text-primary-600',
+        )}
+      >
+        <Icon name="more-vertical" className="size-4" />
+      </MenuTrigger>
+
+      <MenuContent>{children}</MenuContent>
+    </Menu>
+  );
 }

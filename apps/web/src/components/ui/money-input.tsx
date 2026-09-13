@@ -23,9 +23,12 @@ export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(function
 ) {
   const symbol = currencySymbol(currency);
 
-  const field = (
+  return (
     <Input
       ref={ref}
+      // The symbol is an adornment inside the field, not a word beside it: it keeps its place while
+      // the digits grow, and the money field is the same box as every other one.
+      {...(symbol !== '' && { suffix: symbol })}
       // The digits read left to right whatever the page says; `Input` keeps the
       // field's *alignment* with the page (see its own note).
       dir="ltr"
@@ -45,16 +48,5 @@ export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(function
       }}
       {...props}
     />
-  );
-
-  if (symbol === '') {
-    return field;
-  }
-
-  return (
-    <span className="flex items-center gap-2">
-      {field}
-      <span className="shrink-0 text-value text-ink-muted">{symbol}</span>
-    </span>
   );
 });

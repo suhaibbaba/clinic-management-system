@@ -1,7 +1,8 @@
 import { Children, type JSX, type ReactNode } from 'react';
 
+import { Badge } from '@web/components/ui/badge';
 import { Icon, type IconName } from '@web/components/ui/icon';
-import { Tag } from '@web/components/ui/tag';
+
 import { cn } from '@web/lib/cn';
 import { Ltr } from '@web/components/ui/ltr';
 
@@ -58,7 +59,9 @@ export function StatCard({
       {/* The icon and its label are one chip: the reference's `.tag`, a wash running from green
           into blue, naming what the figure below counts. */}
       <div className="flex min-h-[26px] items-center justify-between gap-2">
-        <Tag icon={icon}>{label}</Tag>
+        <Badge tone="wash" icon={icon}>
+          {label}
+        </Badge>
       </div>
 
       <Ltr as="p" className={cn('mt-2 text-kpi font-medium', FIGURES[tone])}>

@@ -35,7 +35,7 @@ export function SlotPicker({
       <div className="flex flex-wrap gap-2">
         <SkeletonStatus />
         {[0, 1, 2, 3, 4, 5].map((slot) => (
-          <Skeleton key={slot} className="h-11 w-20 rounded-control" />
+          <Skeleton key={slot} className="h-(--control-h) w-20 rounded-control" />
         ))}
       </div>
     );

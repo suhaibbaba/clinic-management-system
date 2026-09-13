@@ -75,7 +75,7 @@ export function WorkingHours({
                 className={cn(
                   // 44px: this is the control that opens a day, and on a phone
                   // it is the only one.
-                  'flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 px-3 py-2',
+                  'flex min-h-(--control-h) w-full cursor-pointer items-center justify-between gap-2 px-3 py-2',
                   'text-start transition-colors duration-150 hover:bg-inset',
                   'group',
                 )}
