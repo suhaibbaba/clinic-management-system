@@ -13,6 +13,7 @@ import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import {
   cancelBookingSchema,
   createBookingSchema,
+  createUrgentRequestSchema,
   publicSlotsQuerySchema,
   rescheduleBookingSchema,
   verifyOtpSchema,
@@ -21,6 +22,7 @@ import {
   type PublicClinic,
   type PublicDoctor,
   type PublicSlots,
+  type UrgentRequestReceipt,
 } from '@clinic/shared';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
@@ -29,6 +31,7 @@ import { BookingService } from '@api/booking/booking.service';
 import { Public } from '@api/common/decorators/public.decorator';
 
 class CreateBookingDto extends createZodDto(createBookingSchema) {}
+class CreateUrgentRequestDto extends createZodDto(createUrgentRequestSchema) {}
 class VerifyOtpDto extends createZodDto(verifyOtpSchema) {}
 class RescheduleBookingDto extends createZodDto(rescheduleBookingSchema) {}
 class CancelBookingDto extends createZodDto(cancelBookingSchema) {}
@@ -78,6 +81,17 @@ export class BookingController {
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   book(@Param() params: SlugParamDto, @Body() body: CreateBookingDto): Promise<BookingReceipt> {
     return this.booking.book(params.clinicSlug, body);
+  }
+
+  // Same budget as a booking: five a minute from one address is already a lot of families, and the
+  // per-phone cap in the service is the other half.
+  @Post(':clinicSlug/urgent-request')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  requestUrgent(
+    @Param() params: SlugParamDto,
+    @Body() body: CreateUrgentRequestDto,
+  ): Promise<UrgentRequestReceipt> {
+    return this.booking.requestUrgent(params.clinicSlug, body);
   }
 
   // Well above a person mistyping six digits, well below grinding through a million codes — and the

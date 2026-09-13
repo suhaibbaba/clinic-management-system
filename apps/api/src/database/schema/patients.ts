@@ -25,6 +25,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { chartTypeEnum, clinics, doctors, specialties } from '@api/database/schema/core';
+import { normalizedName } from '@api/database/schema/normalized-name';
 
 export const genderEnum = pgEnum('gender', GENDERS);
 export const treatmentPlanStatusEnum = pgEnum('treatment_plan_status', TREATMENT_PLAN_STATUSES);
@@ -83,8 +84,8 @@ export const procedureCatalog = pgTable(
   ],
 );
 
-// Reception searches by file number, name and phone: exact on the first, trigram on the other two
-// so a partial match stays off a full scan.
+// Reception searches by file number, name and phone: exact on the first two, and the name through
+// its folded form so a hamza or a taa marbuta typed either way is the same person.
 export const patients = pgTable(
   'patients',
   {
@@ -94,6 +95,7 @@ export const patients = pgTable(
       .references(() => clinics.id),
     fileNumber: text('file_number').notNull(),
     fullName: text('full_name').notNull(),
+    normalizedName: normalizedName('full_name'),
     phone: text('phone').notNull(),
     dateOfBirth: date('date_of_birth'),
     gender: genderEnum('gender'),

@@ -9,10 +9,11 @@ import { WaitingListService } from '@api/appointments/waiting-list.service';
 import { AuditModule } from '@api/audit/audit.module';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { DatabaseModule } from '@api/database/database.module';
+import { NotificationsModule } from '@api/notifications/notifications.module';
 import { PatientsModule } from '@api/patients/patients.module';
 
 @Module({
-  imports: [DatabaseModule, AuditModule, PatientsModule],
+  imports: [DatabaseModule, AuditModule, NotificationsModule, PatientsModule],
   controllers: [AppointmentsController, WaitingListController],
   providers: [
     ClinicScopeService,
@@ -23,6 +24,6 @@ import { PatientsModule } from '@api/patients/patients.module';
   ],
   // Exported for the labs module: "a doctor manages their own" is the same rule for a crown as for
   // an appointment.
-  exports: [AvailabilityService, AppointmentsService, AppointmentAccessService],
+  exports: [AvailabilityService, AppointmentsService, AppointmentAccessService, WaitingListService],
 })
 export class AppointmentsModule {}

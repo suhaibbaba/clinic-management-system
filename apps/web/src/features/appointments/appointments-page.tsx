@@ -1,9 +1,15 @@
-import { APPOINTMENT_STATUS, type CalendarAppointment } from '@clinic/shared';
+import {
+  APPOINTMENT_STATUS,
+  WAITING_LIST_SOURCE,
+  type CalendarAppointment,
+  type WaitingListEntry,
+} from '@clinic/shared';
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import {
+  Badge,
   Button,
   EmptyState,
   Icon,
@@ -99,13 +105,20 @@ export function AppointmentsPage(): JSX.Element {
   const setRange = (value: Range): void => setCalendarParams({ view: [value, 'week'] });
   const setDate = (value: string): void => setCalendarParams({ date: [value, todayIso()] });
   const setDoctorFilter = (value: string): void => setCalendarParams({ doctor: [value, ''] });
+
+  // In the address, not in state: the dashboard's badge links straight to the open queue, and a
+  // panel nobody can link to is a panel nobody can be sent to.
+  const waitingOpen = params.get('queue') === 'open';
+  const setWaitingOpen = (next: boolean): void =>
+    setCalendarParams({ queue: [next ? 'open' : '', ''] });
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<CalendarAppointment | undefined>();
+  const [scheduling, setScheduling] = useState<WaitingListEntry | undefined>();
   const [formDefaults, setFormDefaults] = useState<
     { date?: string; doctorId?: string; startsAt?: string } | undefined
   >();
-  const [waitingOpen, setWaitingOpen] = useState(false);
 
   const role = user?.role;
   const wholeClinic = role ? seesWholeClinic(role) : true;
@@ -128,6 +141,10 @@ export function AppointmentsPage(): JSX.Element {
   });
 
   const waiting = useWaitingList({ limit: 1 });
+
+  // Strangers who asked to be rung back and nobody has answered yet — the one number on this page
+  // that is somebody waiting on a phone rather than a row in a diary.
+  const urgent = useWaitingList({ limit: 1, source: WAITING_LIST_SOURCE.ONLINE });
 
   // The one number not already in the calendar feed: a `requested` booking for today is somebody
   // nobody has answered. `limit: 1` because only the total is wanted.
@@ -202,7 +219,17 @@ export function AppointmentsPage(): JSX.Element {
 
   const openForm = (defaults?: { date?: string; doctorId?: string; startsAt?: string }): void => {
     setEditing(undefined);
+    setScheduling(undefined);
     setFormDefaults(defaults);
+    setFormOpen(true);
+  };
+
+  // Scheduling somebody off the queue is the same form as any other booking, prefilled — so the
+  // queue closes behind it and the calendar is left standing on the slot that was just taken.
+  const scheduleFromQueue = (entry: WaitingListEntry): void => {
+    setEditing(undefined);
+    setFormDefaults({ date, ...(entry.doctorId && { doctorId: entry.doctorId }) });
+    setScheduling(entry);
     setFormOpen(true);
   };
 
@@ -226,6 +253,11 @@ export function AppointmentsPage(): JSX.Element {
               {t('appointments.waiting.title')}
               {(waiting.data?.total ?? 0) > 0 && (
                 <span className="ms-1 tabular-nums">({waiting.data?.total})</span>
+              )}
+              {(urgent.data?.total ?? 0) > 0 && (
+                <Badge tone="danger" className="ms-1.5">
+                  {t('appointments.waiting.urgentCount', { count: urgent.data?.total ?? 0 })}
+                </Badge>
               )}
             </Button>
 
@@ -410,16 +442,30 @@ export function AppointmentsPage(): JSX.Element {
           setFormOpen(next);
           if (!next) {
             setEditing(undefined);
+            setScheduling(undefined);
           }
         }}
         appointment={editing}
         defaults={formDefaults}
+        waitingEntry={scheduling}
+        // Back where the work happened: a booking made for next Tuesday leaves the calendar on next
+        // Tuesday, not on the day the form was opened from.
+        onBooked={({ date: booked, doctorId: booking }) =>
+          setCalendarParams({
+            date: [booked, todayIso()],
+            ...(wholeClinic && doctorFilter !== '' && { doctor: [booking, ''] }),
+          })
+        }
       />
 
       <WaitingListPanel
         open={waitingOpen}
         onOpenChange={setWaitingOpen}
         canManage={mayManageQueue}
+        onSchedule={(entry) => {
+          setWaitingOpen(false);
+          scheduleFromQueue(entry);
+        }}
       />
     </div>
   );

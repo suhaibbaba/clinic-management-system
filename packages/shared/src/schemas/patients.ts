@@ -30,6 +30,9 @@ export const patientClinicalViewSchema = z.object({
   emergencyContactName: z.string().nullable(),
   emergencyContactPhone: z.string().nullable(),
   notes: z.string().nullable(),
+  // Registered mid-flow (an appointment taken over the phone, an online booking) and never
+  // finished. Computed from the record, not a flag somebody has to remember to clear.
+  profileIncomplete: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
   /** sum(charges) − sum(payments), computed on read and never stored. */
@@ -46,6 +49,7 @@ export const patientPublicViewSchema = patientClinicalViewSchema
     fullName: true,
     phone: true,
     dateOfBirth: true,
+    profileIncomplete: true,
   })
   .extend({ balance: signedMoneySchema.optional() });
 export type PatientPublicView = z.infer<typeof patientPublicViewSchema>;
@@ -74,6 +78,40 @@ export const updatePatientSchema = z
   .partial()
   .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
 export type UpdatePatientInput = z.infer<typeof updatePatientSchema>;
+
+// The least a patient can be registered with: reception is mid-booking with somebody on the phone,
+// and the history, the allergies and the address are taken when they walk in.
+export const inlinePatientSchema = z.object({
+  fullName: patientWritableFields.fullName,
+  phone: patientWritableFields.phone,
+  gender: patientWritableFields.gender,
+  dateOfBirth: patientWritableFields.dateOfBirth,
+});
+export type InlinePatientInput = z.infer<typeof inlinePatientSchema>;
+
+/** The two ways a form names its patient. Exactly one, so nothing silently wins over the other. */
+export const patientRefFields = {
+  patientId: uuidSchema.optional(),
+  newPatient: inlinePatientSchema.optional(),
+};
+
+export const hasExactlyOnePatient = (input: {
+  readonly patientId?: string | undefined;
+  readonly newPatient?: InlinePatientInput | undefined;
+}): boolean => (input.patientId === undefined) !== (input.newPatient === undefined);
+
+export const PATIENT_REF_MESSAGE = 'Provide either patientId or newPatient';
+
+// The number is the identity key at the front desk, so a second record under it is a duplicate
+// waiting to split somebody's history. The clash carries the patient it found, and the form offers
+// it rather than dead-ending.
+export const patientPhoneClashSchema = z.object({
+  statusCode: z.literal(409),
+  message: z.string(),
+  error: z.string(),
+  existingPatient: patientPublicViewSchema,
+});
+export type PatientPhoneClash = z.infer<typeof patientPhoneClashSchema>;
 
 export const listPatientsQuerySchema = paginationQuerySchema.extend({
   search: z.string().trim().min(1).max(120).optional(),

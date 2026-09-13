@@ -14,6 +14,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { clinics, doctors, users } from '@api/database/schema/core';
+import { normalizedName } from '@api/database/schema/normalized-name';
 import { patients, performedProcedures } from '@api/database/schema/patients';
 
 export const labOrderStatusEnum = pgEnum('lab_order_status', LAB_ORDER_STATUSES);
@@ -40,6 +41,7 @@ export const labs = pgTable(
       .notNull()
       .references(() => clinics.id),
     name: text('name').notNull(),
+    normalizedName: normalizedName('name'),
     phone: text('phone'),
     address: text('address'),
     contactPerson: text('contact_person'),

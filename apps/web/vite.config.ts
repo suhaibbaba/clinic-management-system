@@ -5,7 +5,7 @@ import { fileURLToPath, URL } from 'node:url';
 
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, type Connect, type Plugin } from 'vite';
 
 import { apiProxy } from './vite/dev-proxy.ts';
 
@@ -18,21 +18,25 @@ const usePolling = process.env['CHOKIDAR_USEPOLLING'] === 'true';
 
 // nginx does this in production; without the same rewrite `/book/al-nour` 404s in `pnpm dev`.
 // `/booking/…` matches only `/booking/manage/…` — anything wider swallowed `/booking/pending`.
-function bookingEntryDevServer(): Plugin {
+function bookingEntry(): Plugin {
+  const rewrite = (server: { middlewares: Connect.Server }): void => {
+    server.middlewares.use((request, _response, next) => {
+      const path = (request.url ?? '').split('?')[0] ?? '';
+
+      if (/^\/book(\/|$)|^\/booking\/manage(\/|$)/.test(path)) {
+        request.url = '/booking.html';
+      }
+
+      next();
+    });
+  };
+
   return {
     name: 'clinic-booking-entry',
-    apply: 'serve',
-    configureServer(server) {
-      server.middlewares.use((request, _response, next) => {
-        const path = (request.url ?? '').split('?')[0] ?? '';
-
-        if (/^\/book(\/|$)|^\/booking\/manage(\/|$)/.test(path)) {
-          request.url = '/booking.html';
-        }
-
-        next();
-      });
-    },
+    configureServer: rewrite,
+    // And the preview server: `pnpm test:e2e` and the visual sweep both run against the built
+    // bundle, where without this the public page silently served the staff app's shell instead.
+    configurePreviewServer: rewrite,
   };
 }
 
@@ -91,7 +95,7 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(appVersion()),
   },
-  plugins: [react(), tailwindcss(), bookingEntryDevServer(), storagePreconnect()],
+  plugins: [react(), tailwindcss(), bookingEntry(), storagePreconnect()],
   resolve: {
     alias: {
       '@web': appSrc,

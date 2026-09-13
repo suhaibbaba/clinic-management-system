@@ -21,17 +21,20 @@ import {
   type BookingReceipt,
   type BookingSettings,
   type CreateBookingInput,
+  type CreateUrgentRequestInput,
   type ManagedBooking,
   type PersonName,
   type PublicClinic,
   type PublicDoctor,
   type PublicSlots,
   type PublicSlotsQuery,
+  type UrgentRequestReceipt,
 } from '@clinic/shared';
 import { and, asc, count, eq, gte, isNull, sql } from 'drizzle-orm';
 import { createHash, randomInt } from 'node:crypto';
 
 import { AvailabilityService } from '@api/appointments/availability.service';
+import { WaitingListService } from '@api/appointments/waiting-list.service';
 import { BookingTokenService } from '@api/booking/booking-token.service';
 import type { Env } from '@api/config/env.schema';
 import { notificationName, toPersonName } from '@api/common/person-name';
@@ -89,6 +92,7 @@ export class BookingService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly availability: AvailabilityService,
+    private readonly waitingList: WaitingListService,
     private readonly tokens: BookingTokenService,
     private readonly notifications: NotificationsService,
     private readonly config: ConfigService<Env, true>,
@@ -173,6 +177,38 @@ export class BookingService {
       closedReason: dated,
       closedNote: dated ? availability.closedNote : null,
     };
+  }
+
+  // The way out of a page with no times on it. Nothing is held and no time is named: reception rings
+  // back, and the reply says only that. Enumeration-safe like everything else here — the body is
+  // identical for a phone the clinic knows and one it has never seen.
+  async requestUrgent(
+    slug: string,
+    input: CreateUrgentRequestInput,
+  ): Promise<UrgentRequestReceipt> {
+    const clinic = await this.requireBookingEnabled(slug);
+    const phone = normalisePhone(input.phone);
+
+    const open = await this.waitingList.openUrgentCount(clinic.id, phone);
+
+    // Same cap as a booking, and the same wording: a stranger must not learn
+    // that it is their own number being limited.
+    if (open >= clinic.booking.maxActivePerPhone) {
+      throw new ForbiddenException('Booking is not available right now');
+    }
+
+    const patientId = await this.linkOrCreatePatient(clinic.id, phone, input.fullName);
+
+    await this.waitingList.createUrgentRequest(clinic.id, patientId, input);
+
+    await this.notifications.send({
+      clinicId: clinic.id,
+      to: phone,
+      template: NOTIFICATION_TEMPLATE.URGENT_RECEIVED,
+      vars: { clinic: notificationName(clinic.name) },
+    });
+
+    return { received: true };
   }
 
   async book(slug: string, input: CreateBookingInput): Promise<BookingReceipt> {

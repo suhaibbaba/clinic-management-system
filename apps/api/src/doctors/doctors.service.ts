@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { and, count, desc, eq, ilike, isNull, or, type SQL } from 'drizzle-orm';
 import {
+  DOCTOR_USER_REF_MESSAGE,
   USER_ROLE,
   type ChartType,
   type CreateDoctorInput,
@@ -20,11 +21,14 @@ import {
 } from '@clinic/shared';
 
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
+import { arabicNameSearch } from '@api/common/database/arabic-search';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
+import { DATABASE, type Database, type DatabaseExecutor } from '@api/database/database.module';
 import { StorageService } from '@api/storage/storage.service';
+import { TokenService } from '@api/auth/token.service';
+import { UsersService } from '@api/users/users.service';
 import { doctors, specialties, users } from '@api/database/schema';
 
 type DoctorRow = typeof doctors.$inferSelect;
@@ -79,6 +83,8 @@ export class DoctorsService implements OnModuleInit {
     private readonly scope: ClinicScopeService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
     private readonly storage: StorageService,
+    private readonly users: UsersService,
+    private readonly tokens: TokenService,
   ) {}
 
   onModuleInit(): void {
@@ -109,18 +115,21 @@ export class DoctorsService implements OnModuleInit {
     if (query.isActive !== undefined) {
       filters.push(eq(users.isActive, query.isActive));
     }
+    const byName = query.search ? arabicNameSearch(users.normalizedName, query.search) : null;
+
     if (query.search) {
-      const pattern = `%${query.search}%`;
-      filters.push(
-        or(ilike(users.nameAr, pattern), ilike(users.nameEn, pattern), ilike(users.phone, pattern)),
-      );
+      filters.push(or(byName?.match, ilike(users.phone, `%${query.search}%`)));
     }
 
     const where = this.scope.where(doctors, actor.clinicId, ...filters);
     const { limit, offset } = toLimitOffset(query);
 
     const [rows, [totals]] = await Promise.all([
-      this.baseQuery().where(where).orderBy(desc(doctors.createdAt)).limit(limit).offset(offset),
+      this.baseQuery()
+        .where(where)
+        .orderBy(...(byName ? [byName.rank, byName.closeness] : []), desc(doctors.createdAt))
+        .limit(limit)
+        .offset(offset),
       this.db
         .select({ value: count() })
         .from(doctors)
@@ -140,21 +149,9 @@ export class DoctorsService implements OnModuleInit {
     return this.present(await this.findJoinedOrFail(actor.clinicId, id));
   }
 
+  // The account and the profile in one transaction: a doctor is both, and neither half is any use
+  // on its own. `newUser` creates the account here; `userId` links and promotes an existing one.
   async create(actor: AuthenticatedUser, input: CreateDoctorInput): Promise<Doctor> {
-    const [user] = await this.db
-      .select({ id: users.id, role: users.role })
-      .from(users)
-      .where(this.scope.where(users, actor.clinicId, eq(users.id, input.userId)))
-      .limit(1);
-
-    if (!user) {
-      throw new BadRequestException('User not found in this clinic');
-    }
-
-    if (user.role !== USER_ROLE.DOCTOR) {
-      throw new BadRequestException('The linked user must have the doctor role');
-    }
-
     const [specialty] = await this.db
       .select({ id: specialties.id })
       .from(specialties)
@@ -165,35 +162,87 @@ export class DoctorsService implements OnModuleInit {
       throw new BadRequestException('Specialty not found in this clinic');
     }
 
-    const [existing] = await this.db
+    const created = await this.db.transaction(async (tx) => {
+      const userId = input.newUser
+        ? (
+            await this.users.insertUser(tx, actor, {
+              ...input.newUser,
+              isActive: true,
+              role: USER_ROLE.DOCTOR,
+            })
+          ).id
+        : await this.promoteToDoctor(tx, actor, input.userId);
+
+      const [row] = await tx
+        .insert(doctors)
+        .values({
+          clinicId: actor.clinicId,
+          userId,
+          specialtyId: input.specialtyId,
+          weeklySchedule: input.weeklySchedule,
+          defaultAppointmentDurationMinutes: input.defaultAppointmentDurationMinutes,
+          createdBy: actor.id,
+          updatedBy: actor.id,
+        })
+        .returning({ id: doctors.id });
+
+      /* istanbul ignore next -- insert ... returning always yields a row. */
+      if (!row) {
+        throw new Error('Failed to create doctor');
+      }
+
+      return row;
+    });
+
+    return this.present(await this.findJoinedOrFail(actor.clinicId, created.id));
+  }
+
+  // Linking the rare case: an account that already exists takes the doctor role here rather than on
+  // the users screen, which refuses it — that refusal is what makes an orphan impossible.
+  private async promoteToDoctor(
+    executor: DatabaseExecutor,
+    actor: AuthenticatedUser,
+    userId: string | undefined,
+  ): Promise<string> {
+    /* istanbul ignore next -- the create schema refuses a body with neither. */
+    if (!userId) {
+      throw new BadRequestException(DOCTOR_USER_REF_MESSAGE);
+    }
+
+    const [user] = await executor
+      .select({ id: users.id, role: users.role })
+      .from(users)
+      .where(this.scope.where(users, actor.clinicId, eq(users.id, userId)))
+      .limit(1);
+
+    if (!user) {
+      throw new BadRequestException('User not found in this clinic');
+    }
+
+    // An admin who makes themselves a doctor loses user management, and with it
+    // the way back.
+    if (user.id === actor.id && user.role !== USER_ROLE.DOCTOR) {
+      throw new BadRequestException('You cannot change your own role');
+    }
+
+    const [existing] = await executor
       .select({ id: doctors.id })
       .from(doctors)
-      .where(this.scope.where(doctors, actor.clinicId, eq(doctors.userId, input.userId)))
+      .where(this.scope.where(doctors, actor.clinicId, eq(doctors.userId, userId)))
       .limit(1);
 
     if (existing) {
       throw new ConflictException('This user already has a doctor profile');
     }
 
-    const [created] = await this.db
-      .insert(doctors)
-      .values({
-        clinicId: actor.clinicId,
-        userId: input.userId,
-        specialtyId: input.specialtyId,
-        weeklySchedule: input.weeklySchedule,
-        defaultAppointmentDurationMinutes: input.defaultAppointmentDurationMinutes,
-        createdBy: actor.id,
-        updatedBy: actor.id,
-      })
-      .returning({ id: doctors.id });
-
-    /* istanbul ignore next -- insert ... returning always yields a row. */
-    if (!created) {
-      throw new Error('Failed to create doctor');
+    if (user.role !== USER_ROLE.DOCTOR) {
+      await executor
+        .update(users)
+        .set({ role: USER_ROLE.DOCTOR, updatedAt: new Date(), updatedBy: actor.id })
+        .where(this.scope.where(users, actor.clinicId, eq(users.id, userId)));
     }
 
-    return this.present(await this.findJoinedOrFail(actor.clinicId, created.id));
+    return userId;
   }
 
   async update(actor: AuthenticatedUser, id: string, input: UpdateDoctorInput): Promise<Doctor> {
@@ -247,13 +296,24 @@ export class DoctorsService implements OnModuleInit {
     return this.present(await this.findJoinedOrFail(actor.clinicId, id));
   }
 
+  // The account goes inactive with the profile, in the same transaction: a `doctor` user with no
+  // profile left is the orphan the create path exists to prevent, arrived at from the other end.
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
-    await this.scope.findOneOrFail<DoctorRow>(doctors, actor.clinicId, id);
+    const doctor = await this.scope.findOneOrFail<DoctorRow>(doctors, actor.clinicId, id);
 
-    await this.db
-      .update(doctors)
-      .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
-      .where(this.scope.where(doctors, actor.clinicId, eq(doctors.id, id)));
+    await this.db.transaction(async (tx) => {
+      await tx
+        .update(doctors)
+        .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
+        .where(this.scope.where(doctors, actor.clinicId, eq(doctors.id, id)));
+
+      await tx
+        .update(users)
+        .set({ isActive: false, updatedAt: new Date(), updatedBy: actor.id })
+        .where(this.scope.where(users, actor.clinicId, eq(users.id, doctor.userId)));
+    });
+
+    await this.tokens.revokeAllForUser(doctor.userId);
   }
 
   private baseQuery() {

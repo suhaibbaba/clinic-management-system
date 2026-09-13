@@ -142,3 +142,18 @@ export const cancelBookingSchema = z.object({
 export type CancelBookingInput = z.infer<typeof cancelBookingSchema>;
 
 export const publicSlotTimeSchema = timeOfDaySchema;
+
+// The way out of a page with no times on it. Deliberately not a booking: no slot is chosen, nothing
+// is held, and the copy promises a phone call rather than an appointment.
+export const createUrgentRequestSchema = z.object({
+  fullName: z.string().trim().min(BOOKING_NAME_LENGTH.min).max(BOOKING_NAME_LENGTH.max),
+  phone: bookingPhoneSchema,
+  complaint: z.string().trim().min(3).max(500),
+  /** Who they were looking at when they gave up on the times. */
+  doctorId: uuidSchema.optional(),
+});
+export type CreateUrgentRequestInput = z.infer<typeof createUrgentRequestSchema>;
+
+/** Says nothing a stranger could learn from: the same body for a known phone and an unknown one. */
+export const urgentRequestReceiptSchema = z.object({ received: z.literal(true) });
+export type UrgentRequestReceipt = z.infer<typeof urgentRequestReceiptSchema>;

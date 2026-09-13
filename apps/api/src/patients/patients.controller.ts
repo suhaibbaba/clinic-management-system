@@ -26,7 +26,8 @@ import { Audit } from '@api/common/decorators/audit.decorator';
 import { CurrentUser } from '@api/common/decorators/current-user.decorator';
 import { Roles } from '@api/common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { PATIENTS_ENTITY, PatientsService } from '@api/patients/patients.service';
+import { PATIENTS_ENTITY } from '@api/patients/patient-view';
+import { PatientsService } from '@api/patients/patients.service';
 
 class CreatePatientDto extends createZodDto(createPatientSchema) {}
 class UpdatePatientDto extends createZodDto(updatePatientSchema) {}

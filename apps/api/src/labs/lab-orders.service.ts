@@ -25,6 +25,7 @@ import { and, asc, desc, eq, inArray, isNotNull, isNull, lt, or, sql, type SQL }
 
 import { AppointmentAccessService } from '@api/appointments/appointment-access.service';
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
+import { arabicNameSearch } from '@api/common/database/arabic-search';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { toPersonName } from '@api/common/person-name';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
@@ -42,6 +43,7 @@ import {
 import { LabWorkTypesService } from '@api/labs/lab-work-types.service';
 import { LabsService } from '@api/labs/labs.service';
 import { LookupsService } from '@api/lookups/lookups.service';
+import { PatientRegistrationService } from '@api/patients/patient-registration.service';
 
 type OrderRow = typeof labOrders.$inferSelect;
 
@@ -70,6 +72,7 @@ export class LabOrdersService implements OnModuleInit {
     private readonly labsService: LabsService,
     private readonly workTypes: LabWorkTypesService,
     private readonly access: AppointmentAccessService,
+    private readonly registration: PatientRegistrationService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
   ) {}
 
@@ -107,9 +110,9 @@ export class LabOrdersService implements OnModuleInit {
       const pattern = `%${query.search}%`;
       filters.push(
         or(
-          sql`${patients.fullName} ilike ${pattern}`,
+          arabicNameSearch(patients.normalizedName, query.search)?.match,
+          arabicNameSearch(labs.normalizedName, query.search)?.match,
           sql`${patients.fileNumber} ilike ${pattern}`,
-          sql`${labs.name} ilike ${pattern}`,
         ),
       );
     }
@@ -167,7 +170,10 @@ export class LabOrdersService implements OnModuleInit {
 
     await this.labsService.requireRow(actor.clinicId, input.labId);
     await this.access.requireOwnCalendar(actor, input.doctorId);
-    await this.requirePatient(actor.clinicId, input.patientId);
+
+    if (input.patientId) {
+      await this.requirePatient(actor.clinicId, input.patientId);
+    }
 
     const workType = input.workTypeId
       ? await this.workTypes.requireRow(actor.clinicId, input.workTypeId)
@@ -190,26 +196,28 @@ export class LabOrdersService implements OnModuleInit {
         ? (workType?.defaultPrice ?? '0.00')
         : (input.price ?? workType?.defaultPrice ?? '0.00');
 
-    const [row] = await this.db
-      .insert(labOrders)
-      .values({
-        clinicId: actor.clinicId,
-        labId: input.labId,
-        patientId: input.patientId,
-        doctorId: input.doctorId,
-        performedProcedureId: input.performedProcedureId ?? null,
-        workTypeId: input.workTypeId ?? null,
-        material: input.material ?? null,
-        shade: input.shade ?? null,
-        teeth,
-        instructions: input.instructions ?? null,
-        price,
-        status: LAB_ORDER_STATUS.DRAFT,
-        expectedAt: input.expectedAt ? new Date(input.expectedAt) : null,
-        createdBy: actor.id,
-        updatedBy: actor.id,
-      })
-      .returning({ id: labOrders.id });
+    const [row] = await this.registration.withPatient(actor, input, (executor, patientId) =>
+      executor
+        .insert(labOrders)
+        .values({
+          clinicId: actor.clinicId,
+          labId: input.labId,
+          patientId,
+          doctorId: input.doctorId,
+          performedProcedureId: input.performedProcedureId ?? null,
+          workTypeId: input.workTypeId ?? null,
+          material: input.material ?? null,
+          shade: input.shade ?? null,
+          teeth,
+          instructions: input.instructions ?? null,
+          price,
+          status: LAB_ORDER_STATUS.DRAFT,
+          expectedAt: input.expectedAt ? new Date(input.expectedAt) : null,
+          createdBy: actor.id,
+          updatedBy: actor.id,
+        })
+        .returning({ id: labOrders.id }),
+    );
 
     /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {

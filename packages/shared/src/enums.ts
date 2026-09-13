@@ -258,12 +258,61 @@ export const WAITING_LIST_PRIORITIES = [
   WAITING_LIST_PRIORITY.URGENT,
 ] as const;
 
-/** Most urgent first — the order the panel and the promote picker use. */
+/** Most urgent first — the order the panel and the scheduling picker use. */
 export const WAITING_LIST_PRIORITY_RANK: Record<WaitingListPriority, number> = {
   [WAITING_LIST_PRIORITY.URGENT]: 0,
   [WAITING_LIST_PRIORITY.HIGH]: 1,
   [WAITING_LIST_PRIORITY.NORMAL]: 2,
 };
+
+// Where the entry came from. A fact about the row rather than a choice anybody makes, so it is an
+// enum and not a lookup list: reception needs to know a stranger typed this, not a colleague.
+export const WAITING_LIST_SOURCE = {
+  RECEPTION: 'reception',
+  ONLINE: 'online',
+} as const satisfies Record<string, string>;
+export type WaitingListSource = EnumValue<typeof WAITING_LIST_SOURCE>;
+
+export const WAITING_LIST_SOURCES = [
+  WAITING_LIST_SOURCE.RECEPTION,
+  WAITING_LIST_SOURCE.ONLINE,
+] as const;
+
+// A state machine, so an enum rather than a lookup list (CLAUDE.md decision 8): the transitions,
+// the permissions and what each one notifies are written against these exact values.
+export const WAITING_LIST_STATUS = {
+  PENDING: 'pending',
+  CONTACTED: 'contacted',
+  SCHEDULED: 'scheduled',
+  DECLINED: 'declined',
+} as const satisfies Record<string, string>;
+export type WaitingListStatus = EnumValue<typeof WAITING_LIST_STATUS>;
+
+export const WAITING_LIST_STATUSES = [
+  WAITING_LIST_STATUS.PENDING,
+  WAITING_LIST_STATUS.CONTACTED,
+  WAITING_LIST_STATUS.SCHEDULED,
+  WAITING_LIST_STATUS.DECLINED,
+] as const;
+
+/** Ringing back is optional; both ways out are terminal. */
+export const WAITING_LIST_STATUS_TRANSITIONS = {
+  [WAITING_LIST_STATUS.PENDING]: [
+    WAITING_LIST_STATUS.CONTACTED,
+    WAITING_LIST_STATUS.SCHEDULED,
+    WAITING_LIST_STATUS.DECLINED,
+  ],
+  [WAITING_LIST_STATUS.CONTACTED]: [WAITING_LIST_STATUS.SCHEDULED, WAITING_LIST_STATUS.DECLINED],
+  [WAITING_LIST_STATUS.SCHEDULED]: [],
+  [WAITING_LIST_STATUS.DECLINED]: [],
+} as const satisfies Record<WaitingListStatus, readonly WaitingListStatus[]>;
+
+export function canTransitionWaitingListEntry(
+  from: WaitingListStatus,
+  to: WaitingListStatus,
+): boolean {
+  return (WAITING_LIST_STATUS_TRANSITIONS[from] as readonly WaitingListStatus[]).includes(to);
+}
 
 export const STOCK_MOVEMENT_TYPE = {} as const satisfies Record<string, string>;
 export type StockMovementType = EnumValue<typeof STOCK_MOVEMENT_TYPE>;
@@ -285,6 +334,9 @@ export const NOTIFICATION_TEMPLATE = {
   REMINDER_24H: 'reminder_24h',
   REMINDER_2H: 'reminder_2h',
   BOOKING_CANCELLED: 'booking_cancelled',
+  URGENT_RECEIVED: 'urgent_received',
+  URGENT_SCHEDULED: 'urgent_scheduled',
+  URGENT_DECLINED: 'urgent_declined',
 } as const satisfies Record<string, string>;
 export type NotificationTemplate = EnumValue<typeof NOTIFICATION_TEMPLATE>;
 
@@ -294,6 +346,9 @@ export const NOTIFICATION_TEMPLATES = [
   NOTIFICATION_TEMPLATE.REMINDER_24H,
   NOTIFICATION_TEMPLATE.REMINDER_2H,
   NOTIFICATION_TEMPLATE.BOOKING_CANCELLED,
+  NOTIFICATION_TEMPLATE.URGENT_RECEIVED,
+  NOTIFICATION_TEMPLATE.URGENT_SCHEDULED,
+  NOTIFICATION_TEMPLATE.URGENT_DECLINED,
 ] as const;
 
 // `queued` is written before the provider is called, so a provider that throws still leaves a

@@ -14,6 +14,8 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
+import { normalizedName } from '@api/database/schema/normalized-name';
+
 export const userRoleEnum = pgEnum('user_role', USER_ROLES);
 export const chartTypeEnum = pgEnum('chart_type', CHART_TYPES);
 export const auditActionEnum = pgEnum('audit_action', AUDIT_ACTIONS);
@@ -96,6 +98,9 @@ export const users = pgTable(
     // calendar. Patient names stay one field — reception types what the ID says.
     nameAr: text('name_ar').notNull(),
     nameEn: text('name_en').notNull(),
+    // Both spellings folded into one column: a name is searched for in whichever script the person
+    // looking is thinking in.
+    normalizedName: normalizedName("name_ar || ' ' || name_en"),
     phone: text('phone').notNull(),
     email: text('email'),
     /** argon2id. Never selected into a response or an audit entry. */

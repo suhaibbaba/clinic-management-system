@@ -13,6 +13,7 @@ import {
 import {
   AUDIT_ACTION,
   createWaitingListEntrySchema,
+  declineWaitingListEntrySchema,
   idParamSchema,
   listWaitingListQuerySchema,
   promoteWaitingListEntrySchema,
@@ -32,6 +33,7 @@ import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 class CreateWaitingListEntryDto extends createZodDto(createWaitingListEntrySchema) {}
 class UpdateWaitingListEntryDto extends createZodDto(updateWaitingListEntrySchema) {}
 class PromoteWaitingListEntryDto extends createZodDto(promoteWaitingListEntrySchema) {}
+class DeclineWaitingListEntryDto extends createZodDto(declineWaitingListEntrySchema) {}
 class ListWaitingListQueryDto extends createZodDto(listWaitingListQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
@@ -90,14 +92,26 @@ export class WaitingListController {
     return this.waitingList.promote(actor, params.id, body);
   }
 
-  @Patch(':id/resolve')
+  /** Rang back, nothing decided — the one action that leaves the entry in the queue. */
+  @Patch(':id/contacted')
   @Roles(USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
-  resolve(
+  markContacted(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
   ): Promise<WaitingListEntry> {
-    return this.waitingList.resolve(actor, params.id);
+    return this.waitingList.markContacted(actor, params.id);
+  }
+
+  @Patch(':id/decline')
+  @Roles(USER_ROLE.RECEPTIONIST)
+  @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
+  decline(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: DeclineWaitingListEntryDto,
+  ): Promise<WaitingListEntry> {
+    return this.waitingList.decline(actor, params.id, body);
   }
 
   @Delete(':id')

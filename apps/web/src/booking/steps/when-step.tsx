@@ -16,6 +16,7 @@ export function WhenStep({
   onDate,
   selected,
   onSelect,
+  onUrgent,
 }: {
   readonly chips: readonly DayChip[];
   readonly week: AsyncState<readonly PublicSlots[]>;
@@ -23,6 +24,9 @@ export function WhenStep({
   readonly onDate: (date: string) => void;
   readonly selected: string | undefined;
   readonly onSelect: (slot: SlotOption) => void;
+  // The way out when the diary cannot help — offered loudly when the day is empty, quietly when it
+  // is not. Absent while rescheduling: they already have an appointment.
+  readonly onUrgent?: (() => void) | undefined;
 }): JSX.Element {
   const byDate = new Map((week.data ?? []).map((day) => [day.date, day]));
   const day = byDate.get(date);
@@ -96,7 +100,14 @@ export function WhenStep({
             </Button>
           </div>
         ) : slots.length === 0 ? (
-          <Alert tone="info">{emptyMessage}</Alert>
+          <div className="flex flex-col gap-3">
+            <Alert tone="info">{emptyMessage}</Alert>
+            {onUrgent && (
+              <Button variant="secondary" full onClick={onUrgent}>
+                {t('urgent.cta')}
+              </Button>
+            )}
+          </div>
         ) : (
           <ul className="grid grid-cols-3 gap-2">
             {slots.map((slot) => {
@@ -126,6 +137,18 @@ export function WhenStep({
           </ul>
         )}
       </section>
+
+      {/* Small and always there: somebody whose pain will not wait until Tuesday should not have to
+          find an empty day first. */}
+      {onUrgent && (
+        <button
+          type="button"
+          onClick={onUrgent}
+          className="cursor-pointer self-center text-label text-primary-700 underline underline-offset-4"
+        >
+          {t('urgent.link')}
+        </button>
+      )}
     </div>
   );
 }

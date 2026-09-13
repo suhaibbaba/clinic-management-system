@@ -1,32 +1,25 @@
-import { ConflictException, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, type OnModuleInit } from '@nestjs/common';
 import type {
   CreatePatientInput,
   Money,
   ListPatientsQuery,
   Paginated,
-  PatientClinicalView,
-  PatientPublicView,
   PatientView,
   UpdatePatientInput,
-  UserRole,
 } from '@clinic/shared';
 import { and, desc, eq, exists, gte, isNull, or, sql, type SQL } from 'drizzle-orm';
 
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
 import { LedgerService } from '@api/billing/ledger.service';
+import { arabicNameSearch } from '@api/common/database/arabic-search';
 import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
 import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
 import { patients, visits } from '@api/database/schema';
 import { PatientAccessService, type PatientRow } from '@api/patients/patient-access.service';
-
-export const PATIENTS_ENTITY = 'patients';
-
-/** File numbers are zero-padded so they sort and read like a paper file. */
-const FILE_NUMBER_WIDTH = 5;
-/** Bounded retry when two receptionists register a patient at the same moment. */
-const FILE_NUMBER_ATTEMPTS = 5;
+import { PatientRegistrationService } from '@api/patients/patient-registration.service';
+import { PATIENTS_ENTITY, toClinicalView, toRoleView } from '@api/patients/patient-view';
 
 @Injectable()
 export class PatientsService implements OnModuleInit {
@@ -34,6 +27,7 @@ export class PatientsService implements OnModuleInit {
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
     private readonly ledger: LedgerService,
+    private readonly registration: PatientRegistrationService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
   ) {}
 
@@ -49,8 +43,7 @@ export class PatientsService implements OnModuleInit {
     });
   }
 
-  // One box for file number, name or phone — what reception types. The trigram indexes keep a
-  // partial match an index scan.
+  // One box for file number, name or phone — what reception types.
   async list(actor: AuthenticatedUser, query: ListPatientsQuery): Promise<Paginated<PatientView>> {
     const filters: (SQL | undefined)[] = [];
 
@@ -84,11 +77,15 @@ export class PatientsService implements OnModuleInit {
       );
     }
 
+    // Name folded on both sides, phone and file number left exact: those two are typed off a
+    // handset or a paper file, and a fuzzy digit match would offer the wrong patient.
+    const byName = query.search ? arabicNameSearch(patients.normalizedName, query.search) : null;
+
     if (query.search) {
       const pattern = `%${query.search.trim()}%`;
       filters.push(
         or(
-          sql`${patients.fullName} ilike ${pattern}`,
+          byName?.match,
           sql`${patients.phone} ilike ${pattern}`,
           sql`${patients.fileNumber} ilike ${pattern}`,
         ),
@@ -103,7 +100,8 @@ export class PatientsService implements OnModuleInit {
         .select()
         .from(patients)
         .where(where)
-        .orderBy(desc(patients.createdAt))
+        // An exactly-folded match outranks a trigram guess, whichever was registered first.
+        .orderBy(...(byName ? [byName.rank, byName.closeness] : []), desc(patients.createdAt))
         .limit(limit)
         .offset(offset),
       this.db
@@ -137,8 +135,11 @@ export class PatientsService implements OnModuleInit {
     return toRoleView(row, actor.role, balance);
   }
 
+  // No duplicate-phone check here, unlike the inline form: a mother and her child share a handset,
+  // and this is the screen that exists for registering the second of them.
   async create(actor: AuthenticatedUser, input: CreatePatientInput): Promise<PatientView> {
-    const row = await this.insertWithFileNumber(actor, input);
+    const row = await this.registration.insertPatient(this.db, actor, input);
+
     return toRoleView(row, actor.role);
   }
 
@@ -188,104 +189,4 @@ export class PatientsService implements OnModuleInit {
       .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
       .where(this.scope.where(patients, actor.clinicId, eq(patients.id, id)));
   }
-
-  // Two concurrent registrations can read the same maximum; the unique index is the real guard and
-  // a conflict just retries with the next value.
-  private async insertWithFileNumber(
-    actor: AuthenticatedUser,
-    input: CreatePatientInput,
-  ): Promise<PatientRow> {
-    for (let attempt = 0; attempt < FILE_NUMBER_ATTEMPTS; attempt += 1) {
-      const fileNumber = await this.nextFileNumber(actor.clinicId, attempt);
-
-      try {
-        const [row] = await this.db
-          .insert(patients)
-          .values({
-            clinicId: actor.clinicId,
-            fileNumber,
-            fullName: input.fullName,
-            phone: input.phone,
-            dateOfBirth: input.dateOfBirth ?? null,
-            gender: input.gender ?? null,
-            address: input.address ?? null,
-            nationalId: input.nationalId ?? null,
-            emergencyContactName: input.emergencyContactName ?? null,
-            emergencyContactPhone: input.emergencyContactPhone ?? null,
-            notes: input.notes ?? null,
-            createdBy: actor.id,
-            updatedBy: actor.id,
-          })
-          .returning();
-
-        if (row) {
-          return row;
-        }
-      } catch (error: unknown) {
-        if (!isUniqueViolation(error)) {
-          throw error;
-        }
-      }
-    }
-
-    throw new ConflictException('Could not allocate a file number, please retry');
-  }
-
-  private async nextFileNumber(clinicId: string, offset: number): Promise<string> {
-    const [result] = await this.db
-      .select({
-        // Non-numeric file numbers (imported records) are ignored rather than
-        // breaking the cast.
-        max: sql<number>`coalesce(max(nullif(regexp_replace(${patients.fileNumber}, '\\D', '', 'g'), '')::bigint), 0)::int`,
-      })
-      .from(patients)
-      .where(eq(patients.clinicId, clinicId));
-
-    return String((result?.max ?? 0) + 1 + offset).padStart(FILE_NUMBER_WIDTH, '0');
-  }
-}
-
-function toClinicalView(row: PatientRow): PatientClinicalView {
-  return {
-    id: row.id,
-    clinicId: row.clinicId,
-    fileNumber: row.fileNumber,
-    fullName: row.fullName,
-    phone: row.phone,
-    dateOfBirth: row.dateOfBirth,
-    gender: row.gender,
-    address: row.address,
-    nationalId: row.nationalId,
-    emergencyContactName: row.emergencyContactName,
-    emergencyContactPhone: row.emergencyContactPhone,
-    notes: row.notes,
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
-  };
-}
-
-function toPublicView(row: PatientRow): PatientPublicView {
-  return {
-    id: row.id,
-    fileNumber: row.fileNumber,
-    fullName: row.fullName,
-    phone: row.phone,
-    dateOfBirth: row.dateOfBirth,
-  };
-}
-
-export function toRoleView(row: PatientRow, role: UserRole, balance?: Money): PatientView {
-  const view = PatientAccessService.seesClinicalData(role)
-    ? toClinicalView(row)
-    : toPublicView(row);
-
-  // Absent rather than null for a technician: ROLES.md forbids financial
-  // patient data in their responses, and an explicit null is still a field.
-  return balance === undefined ? view : { ...view, balance };
-}
-
-function isUniqueViolation(error: unknown): boolean {
-  return (
-    typeof error === 'object' && error !== null && (error as { code?: string }).code === '23505'
-  );
 }

@@ -11,6 +11,7 @@ import { AttachmentsService } from '@api/patients/attachments.service';
 import { MedicalHistoriesController } from '@api/patients/medical-histories.controller';
 import { MedicalHistoriesService } from '@api/patients/medical-histories.service';
 import { PatientAccessService } from '@api/patients/patient-access.service';
+import { PatientRegistrationService } from '@api/patients/patient-registration.service';
 import { PatientsController } from '@api/patients/patients.controller';
 import { PatientsService } from '@api/patients/patients.service';
 import { PrescriptionsController } from '@api/patients/prescriptions.controller';
@@ -50,6 +51,7 @@ import { VisitsService } from '@api/patients/visits.service';
   providers: [
     ClinicScopeService,
     PatientAccessService,
+    PatientRegistrationService,
     PatientsService,
     MedicalHistoriesService,
     VisitsService,
@@ -61,6 +63,11 @@ import { VisitsService } from '@api/patients/visits.service';
     PrescriptionsService,
     ProcedureCatalogService,
   ],
-  exports: [PatientAccessService, PatientsService, ProcedureCatalogService],
+  exports: [
+    PatientAccessService,
+    PatientRegistrationService,
+    PatientsService,
+    ProcedureCatalogService,
+  ],
 })
 export class PatientsModule {}

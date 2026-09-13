@@ -4,6 +4,7 @@ import type {
   PublicClinic,
   PublicDoctor,
   PublicSlots,
+  UrgentRequestReceipt,
 } from '@clinic/shared';
 
 // Not `@web/lib/api-client`: every endpoint here is anonymous, and reusing it would drag the auth
@@ -108,6 +109,12 @@ export const bookingApi = {
     slug: string,
     body: { fullName: string; phone: string; doctorId: string; startsAt: string; reason?: string },
   ): Promise<BookingReceipt> => request(`/${encode(slug)}`, 'book', { method: 'POST', body }),
+
+  requestUrgent: (
+    slug: string,
+    body: { fullName: string; phone: string; complaint: string; doctorId?: string },
+  ): Promise<UrgentRequestReceipt> =>
+    request(`/${encode(slug)}/urgent-request`, 'book', { method: 'POST', body }),
 
   verifyOtp: (slug: string, token: string, code: string): Promise<ManagedBooking> =>
     request(`/${encode(slug)}/verify-otp`, 'verify', { method: 'POST', body: { token, code } }),

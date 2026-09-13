@@ -7,6 +7,7 @@ import type {
   CalendarQuery,
   CreateAppointmentInput,
   CreateWaitingListEntryInput,
+  DeclineWaitingListEntryInput,
   ListAppointmentsQuery,
   ListWaitingListQuery,
   Paginated,
@@ -117,5 +118,10 @@ export const usePromoteWaitingEntry = () =>
     waitingListApi.promote(id, body),
   );
 
-export const useResolveWaitingEntry = () =>
-  useCalendarMutation((id: string) => waitingListApi.resolve(id));
+export const useContactWaitingEntry = () =>
+  useCalendarMutation((id: string) => waitingListApi.markContacted(id));
+
+export const useDeclineWaitingEntry = () =>
+  useCalendarMutation(({ id, body }: { id: string; body: DeclineWaitingListEntryInput }) =>
+    waitingListApi.decline(id, body),
+  );

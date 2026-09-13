@@ -12,6 +12,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { clinics } from '@api/database/schema/core';
+import { normalizedName } from '@api/database/schema/normalized-name';
 import { patients, performedProcedures } from '@api/database/schema/patients';
 
 export const movementTypeEnum = pgEnum('movement_type', MOVEMENT_TYPES);
@@ -42,6 +43,7 @@ export const suppliers = pgTable(
       .notNull()
       .references(() => clinics.id),
     name: text('name').notNull(),
+    normalizedName: normalizedName('name'),
     phone: text('phone'),
     contactPerson: text('contact_person'),
     notes: text('notes'),
