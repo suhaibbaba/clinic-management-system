@@ -4,7 +4,7 @@
 
 /* Tajawal's shipped box is tall and platform-dependent (`hhea` 64.3/35.7, `OS/2` 101.6/37.5), and
    leaves a 63.3 cap sitting above the ascent. The files in `fonts/` carry 78/22/0 instead —
-   `ascent-override` would say the same thing and Safari below 17 ignores it. */
+   `ascent-override` would say the same thing, and no Safari applies it. */
 
 @font-face {
   font-family: 'Tajawal';
