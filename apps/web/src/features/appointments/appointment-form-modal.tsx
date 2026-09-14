@@ -18,7 +18,7 @@ import {
   Textarea,
   usePersonName,
   useToast,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useDoctors } from '@web/features/doctors/queries';
 import { useLookupOptions } from '@web/features/lookups/queries';
 import {

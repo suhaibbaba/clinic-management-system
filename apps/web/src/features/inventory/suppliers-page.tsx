@@ -20,7 +20,7 @@ import {
   PhoneLink,
   SearchField,
   Table,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { Money } from '@web/features/billing/money';
@@ -30,7 +30,7 @@ import { useSuppliers, useSupplierStatement } from '@web/features/inventory/quer
 import { SupplierFormModal } from '@web/features/inventory/supplier-form-modal';
 import { endOfNextDayIso, formatDate, startOfDayIso } from '@web/lib/format';
 import { useDebounced } from '@web/lib/use-debounced';
-import { isRefetching } from '@web/lib/use-delayed-loading';
+import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
 export function SuppliersPage(): JSX.Element {
   const { t } = useTranslation();

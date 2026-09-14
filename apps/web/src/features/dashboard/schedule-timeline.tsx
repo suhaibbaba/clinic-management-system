@@ -3,11 +3,11 @@ import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { Avatar, Badge, Icon, Ltr, PersonName } from '@web/components/ui';
+import { Avatar, Badge, Icon, Ltr, PersonName } from '@clinic/ui';
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from '@web/features/appointments/status';
 import { useLookupLabels } from '@web/features/lookups/queries';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 
 export interface ScheduleTimelineProps {
   readonly rows: readonly CalendarAppointment[];

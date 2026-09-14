@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-@import '../fonts.css';
+@import '@clinic/ui/styles/base.css';
 @import '../theme.css';
 @import '../base.css';
 

@@ -3,17 +3,17 @@ import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useParams } from 'react-router-dom';
 
-import { Badge, Button, Icon, PageHeader, PersonName, useToast } from '@web/components/ui';
+import { Badge, Button, Icon, PageHeader, PersonName, useToast } from '@clinic/ui';
 import { WorkingHours } from '@web/components/schedule/working-hours';
 import { weekFitsWithin } from '@web/components/schedule/week';
-import { SkeletonForm } from '@web/components/ui/skeleton';
+import { SkeletonForm } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { useClinic } from '@web/features/clinic/queries';
 import { useDoctor, useUpdateDoctorSchedule } from '@web/features/doctors/queries';
 import { TimeOffPanel } from '@web/features/schedule/time-off-panel';
 import { errorMessageKey } from '@web/lib/api-error';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
-import { useDelayedLoading } from '@web/lib/use-delayed-loading';
+import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 // A page rather than a modal: time off is a list that grows and belongs beside the hours it
 // interrupts. Admin edits any, a doctor their own, everyone else reads.

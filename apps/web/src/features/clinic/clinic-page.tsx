@@ -9,19 +9,9 @@ import {
 import { useEffect, useRef, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  Button,
-  FormField,
-  Icon,
-  Img,
-  Input,
-  Ltr,
-  PageHeader,
-  Select,
-  useToast,
-} from '@web/components/ui';
+import { Button, FormField, Icon, Img, Input, Ltr, PageHeader, Select, useToast } from '@clinic/ui';
 import { WorkingHours } from '@web/components/schedule/working-hours';
-import { SkeletonForm } from '@web/components/ui/skeleton';
+import { SkeletonForm } from '@clinic/ui/components/skeleton';
 import { ClosuresPanel } from '@web/features/schedule/closures-panel';
 import { useSession } from '@web/features/auth/session';
 import { useApiVersion, WEB_VERSION } from '@web/features/clinic/api-version';
@@ -33,7 +23,7 @@ import {
 } from '@web/features/clinic/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
-import { useDelayedLoading } from '@web/lib/use-delayed-loading';
+import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 const isCurrency = (value: string): value is Currency =>
   (CURRENCIES as readonly string[]).includes(value);

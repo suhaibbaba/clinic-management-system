@@ -8,7 +8,7 @@ import { Logo } from '@web/components/brand/logo';
 import { useClinicBranding, BRANDING_SCOPE } from '@web/features/clinic/queries';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
-import { Button, FormField, Icon, Input, PersonName } from '@web/components/ui';
+import { Button, FormField, Icon, Input, PersonName } from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { ApiError, errorMessageKey } from '@web/lib/api-error';
 import { useClinicLogo } from '@web/lib/use-clinic-logo';

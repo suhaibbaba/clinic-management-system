@@ -8,8 +8,8 @@ import {
   type MovementType,
 } from '@clinic/shared';
 
-import type { BadgeTone } from '@web/components/ui/badge';
-import type { ProgressTone } from '@web/components/ui/progress-bar';
+import type { BadgeTone } from '@clinic/ui/components/badge';
+import type { ProgressTone } from '@clinic/ui/components/progress-bar';
 
 // The bar, the badge and the row all consult this, so a category cannot be amber in one place and
 // grey in another. A clinic's own category gets the neutral badge.

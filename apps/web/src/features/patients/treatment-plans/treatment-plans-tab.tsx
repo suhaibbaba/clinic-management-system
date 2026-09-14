@@ -20,8 +20,8 @@ import {
   usePersonName,
   useTabParam,
   useToast,
-} from '@web/components/ui';
-import { SkeletonCard, SkeletonStatus } from '@web/components/ui/skeleton';
+} from '@clinic/ui';
+import { SkeletonCard, SkeletonStatus } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { useClinic } from '@web/features/clinic/queries';
 import { useDoctors } from '@web/features/doctors/queries';
@@ -37,7 +37,7 @@ import {
 import { PlanPrint } from '@web/features/patients/treatment-plans/plan-print';
 import { planRemaining, planTotal } from '@web/features/patients/treatment-plans/plan-total';
 import { errorMessageKey } from '@web/lib/api-error';
-import { useDelayedLoading } from '@web/lib/use-delayed-loading';
+import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 // Built from the shared enum, so a status added to the state machine appears here instead of being
 // quietly unfilterable.

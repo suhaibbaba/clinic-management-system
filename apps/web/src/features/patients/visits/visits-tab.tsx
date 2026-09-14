@@ -2,8 +2,8 @@ import type { PatientClinicalView, PerformedProcedure, Visit } from '@clinic/sha
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, EmptyState, Icon, Ltr, usePersonName, useToast } from '@web/components/ui';
-import { SkeletonCard, SkeletonStatus } from '@web/components/ui/skeleton';
+import { Badge, Button, EmptyState, Icon, Ltr, usePersonName, useToast } from '@clinic/ui';
+import { SkeletonCard, SkeletonStatus } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { useDoctors } from '@web/features/doctors/queries';
 import { ConsumeForVisit } from '@web/features/inventory/consume-for-visit';
@@ -22,8 +22,8 @@ import {
 import { VisitFormModal } from '@web/features/patients/visits/visit-form-modal';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDateTime } from '@web/lib/format';
-import { cn } from '@web/lib/cn';
-import { useDelayedLoading } from '@web/lib/use-delayed-loading';
+import { cn } from '@clinic/ui/lib/cn';
+import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 // Procedures live under their visit because that is how they are recorded. The same procedure also
 // appears on the chart — two views of one record, not two records.

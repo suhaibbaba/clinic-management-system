@@ -3,7 +3,7 @@ import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { Avatar } from '@web/components/ui/avatar';
+import { Avatar } from '@clinic/ui/components/avatar';
 import {
   Menu,
   MenuContent,
@@ -11,13 +11,13 @@ import {
   MenuLabel,
   MenuSeparator,
   MenuTrigger,
-} from '@web/components/ui/menu';
-import { Icon } from '@web/components/ui/icon';
-import { PersonName, usePersonName } from '@web/components/ui/person-name';
+} from '@clinic/ui/components/menu';
+import { Icon } from '@clinic/ui/components/icon';
+import { PersonName, usePersonName } from '@clinic/ui/components/person-name';
 import { WEB_VERSION } from '@web/features/clinic/api-version';
 import { changeLanguage, LANGUAGES, type Language } from '@web/i18n/language';
-import { cn } from '@web/lib/cn';
-import { Ltr } from '@web/components/ui/ltr';
+import { cn } from '@clinic/ui/lib/cn';
+import { Ltr } from '@clinic/ui/components/ltr';
 
 const LANGUAGE_LABELS: Record<Language, string> = {
   ar: 'العربية', // i18n-allow: a language is named in its own script, never translated

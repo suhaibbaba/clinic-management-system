@@ -15,7 +15,7 @@ import {
   Switch,
   useToast,
   type DateRange,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { ConflictDialog } from '@web/features/schedule/conflict-dialog';
 import {
   scheduleConflicts,

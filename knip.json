@@ -28,6 +28,10 @@
     },
     "packages/shared": {
       "project": ["src/**/*.ts"]
+    },
+    "packages/ui": {
+      "entry": ["src/**/*.test.{ts,tsx}"],
+      "project": ["src/**/*.{ts,tsx}"]
     }
   },
   "ignoreExportsUsedInFile": true,

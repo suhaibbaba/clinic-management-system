@@ -5,7 +5,7 @@ import type { ReactElement } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 
-import { ToastProvider } from '@web/components/ui';
+import { ToastProvider } from '@clinic/ui';
 import { SessionProvider } from '@web/features/auth/session';
 import { lookupBundleKey } from '@web/features/lookups/queries';
 import { DocumentTitleProvider } from '@web/lib/document-title';

@@ -18,11 +18,11 @@ import {
   Ltr,
   SearchField,
   Select,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { usePatients } from '@web/features/patients/queries';
 import { ApiError } from '@web/lib/api-error';
 import { useDebounced } from '@web/lib/use-debounced';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 
 // Not a whole patient record: the calendar feed already carries these, and they are all a
 // receptionist's response contains.

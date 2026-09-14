@@ -15,12 +15,12 @@ import {
   PhoneLink,
   SearchField,
   Table,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { DoctorFormModal } from '@web/features/doctors/doctor-form-modal';
 import { useDoctors } from '@web/features/doctors/queries';
 import { formatList } from '@web/lib/format';
-import { isRefetching } from '@web/lib/use-delayed-loading';
+import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
 const PAGE_SIZE = 10;
 

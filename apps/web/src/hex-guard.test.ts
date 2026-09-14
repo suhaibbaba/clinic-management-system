@@ -22,17 +22,21 @@ describe('the hex-literal check', () => {
     }
   });
 
-  it('passes on the repository as it stands', async () => {
-    const { stdout } = await run('node', [checker], { cwd: repoRoot });
-
-    expect(stdout).toContain('no colour literal outside the token file');
-  });
-
-  it('fails on a colour named outside the token file', async () => {
-    planted = join(repoRoot, 'apps/web/src/hex-guard-fixture.tsx');
+  it.each([
+    ['the app', 'apps/web/src/hex-guard-fixture.tsx'],
+    // The library is where a stray colour hurts most: it cannot be themed away by any product.
+    ['the library', 'packages/ui/src/components/hex-guard-fixture.tsx'],
+  ])('fails on a colour named inside %s', async (_where, fixture) => {
+    planted = join(repoRoot, fixture);
     await writeFile(planted, "export const shade = 'text-[#ff00ff]';\n");
 
     await expect(run('node', [checker], { cwd: repoRoot })).rejects.toMatchObject({ code: 1 });
+  });
+
+  it('passes on the repository as it stands', async () => {
+    const { stdout } = await run('node', [checker], { cwd: repoRoot });
+
+    expect(stdout).toContain('no colour literal outside the token files');
   });
 
   it('fails when an entry document drifts off the brand token', async () => {

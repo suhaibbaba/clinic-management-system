@@ -2,16 +2,8 @@ import { lazy, Suspense, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import {
-  Avatar,
-  EmptyState,
-  Ltr,
-  PhoneLink,
-  TabPanel,
-  Tabs,
-  useTabParam,
-} from '@web/components/ui';
-import { Skeleton, SkeletonStatus } from '@web/components/ui/skeleton';
+import { Avatar, EmptyState, Ltr, PhoneLink, TabPanel, Tabs, useTabParam } from '@clinic/ui';
+import { Skeleton, SkeletonStatus } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { AccountTab } from '@web/features/billing/account-tab';
 import { PatientBalanceCard } from '@web/features/billing/patient-balance-card';
@@ -23,7 +15,7 @@ import { usePatient } from '@web/features/patients/queries';
 import { TimelineTab } from '@web/features/patients/timeline/timeline-tab';
 import { TreatmentPlansTab } from '@web/features/patients/treatment-plans/treatment-plans-tab';
 import { VisitsTab } from '@web/features/patients/visits/visits-tab';
-import { useDelayedLoading } from '@web/lib/use-delayed-loading';
+import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 const ChartTab = lazy(async () => ({
   default: (await import('@web/features/patients/chart/chart-tab')).ChartTab,

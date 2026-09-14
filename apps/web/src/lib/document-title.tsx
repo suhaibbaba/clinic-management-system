@@ -1,13 +1,12 @@
-import { createContext, useContext, useEffect, useState, type JSX, type ReactNode } from 'react';
+import { PageTitleProvider } from '@clinic/ui/lib/page-title';
+import { useEffect, useState, type JSX, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
 import { routeTitle } from '@web/app/navigation';
-import { usePersonName } from '@web/components/ui/person-name';
+import { usePersonName } from '@clinic/ui/components/person-name';
 import { useSession } from '@web/features/auth/session';
 import { useClinicBranding } from '@web/features/clinic/queries';
-
-const TitleContext = createContext<((title: string | null) => void) | null>(null);
 
 /** `{page} — {clinic}`, and whichever half exists on its own. */
 export function documentTitle(page: string | undefined, clinic: string | undefined): string {
@@ -38,16 +37,5 @@ export function DocumentTitleProvider({ children }: { readonly children: ReactNo
     );
   }, [page, route, clinicName, t]);
 
-  return <TitleContext.Provider value={setPage}>{children}</TitleContext.Provider>;
-}
-
-/** Called by `PageHeader`, never by a screen: a screen's title is the heading it already renders. */
-export function useDocumentTitle(title: string): void {
-  const register = useContext(TitleContext);
-
-  useEffect(() => {
-    register?.(title);
-
-    return () => register?.(null);
-  }, [register, title]);
+  return <PageTitleProvider value={setPage}>{children}</PageTitleProvider>;
 }

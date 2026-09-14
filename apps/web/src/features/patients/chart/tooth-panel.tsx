@@ -2,21 +2,12 @@ import type { Doctor, PerformedProcedure, ProcedureCatalogItem, UserRole } from 
 import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  Badge,
-  Button,
-  Drawer,
-  EmptyState,
-  Icon,
-  Ltr,
-  Money,
-  usePersonName,
-} from '@web/components/ui';
+import { Badge, Button, Drawer, EmptyState, Icon, Ltr, Money, usePersonName } from '@clinic/ui';
 import {
   AddProcedureForm,
   type NewProcedureInput,
 } from '@web/features/patients/chart/add-procedure-form';
-import { SkeletonTimeline } from '@web/components/ui/skeleton';
+import { SkeletonTimeline } from '@clinic/ui/components/skeleton';
 import { SurfaceSelector } from '@web/features/patients/chart/surface-selector';
 import { ToothAttachments } from '@web/features/patients/chart/tooth-attachments';
 import { useToothStates, type ToothSummary } from '@web/features/patients/chart/tooth-state';
@@ -28,7 +19,7 @@ import {
 import { useClinic } from '@web/features/clinic/queries';
 import { useToothHistory } from '@web/features/patients/queries';
 import { formatDate } from '@web/lib/format';
-import { useDelayedLoading } from '@web/lib/use-delayed-loading';
+import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 export interface ToothPanelProps {
   readonly patientId: string;

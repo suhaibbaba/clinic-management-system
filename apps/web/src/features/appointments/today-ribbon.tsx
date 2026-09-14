@@ -2,12 +2,12 @@ import { APPOINTMENT_STATUS, type CalendarAppointment } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, Icon, Ltr, PersonName, useToast } from '@web/components/ui';
+import { Button, Icon, Ltr, PersonName, useToast } from '@clinic/ui';
 import { useAppointmentStep } from '@web/features/appointments/queries';
 import { APPOINTMENT_STATUS_STYLES } from '@web/features/appointments/status';
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
 import { errorMessageKey } from '@web/lib/api-error';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 
 export interface TodayRibbonProps {
   readonly appointments: readonly CalendarAppointment[];

@@ -13,7 +13,7 @@ import {
   PersonName,
   Textarea,
   useToast,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
 import { useClinic } from '@web/features/clinic/queries';
@@ -30,7 +30,7 @@ import {
 import { availableSteps, canReturn, LAB_ORDER_STATUS_STYLES } from '@web/features/labs/status';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate, formatDateTime } from '@web/lib/format';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 
 export interface OrderDrawerProps {
   readonly order: LabOrderRow | undefined;

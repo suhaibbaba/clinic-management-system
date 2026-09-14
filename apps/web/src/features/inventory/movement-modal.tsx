@@ -19,7 +19,7 @@ import {
   Select,
   Textarea,
   useToast,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import {
   PatientPicker,
   type PatientChoice,

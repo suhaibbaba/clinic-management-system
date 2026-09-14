@@ -2,7 +2,7 @@ import type { LabOrderRow } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, EmptyState, Ltr, Table, type Column } from '@web/components/ui';
+import { Badge, EmptyState, Ltr, Table, type Column } from '@clinic/ui';
 import { Money } from '@web/features/billing/money';
 import { useClinic } from '@web/features/clinic/queries';
 import { LAB_ORDER_STATUS_STYLES } from '@web/features/labs/status';

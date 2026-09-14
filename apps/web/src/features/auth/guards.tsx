@@ -3,9 +3,9 @@ import type { JSX, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useLocation } from 'react-router-dom';
 
-import { Skeleton, SkeletonStatus } from '@web/components/ui/skeleton';
+import { Skeleton, SkeletonStatus } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
-import { useDelayedLoading } from '@web/lib/use-delayed-loading';
+import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 function FullPageMessage({ messageKey }: { messageKey: string }): JSX.Element {
   const { t } = useTranslation();

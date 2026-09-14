@@ -13,7 +13,7 @@ import {
   PersonName,
   Textarea,
   useToast,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { useSession } from '@web/features/auth/session';
 import {
@@ -31,7 +31,7 @@ import {
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate } from '@web/lib/format';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 
 export interface AppointmentDrawerProps {
   readonly appointment: CalendarAppointment | undefined;

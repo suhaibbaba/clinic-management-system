@@ -17,7 +17,7 @@ import {
   RowMenu,
   SegmentedControl,
   Table,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
 import { canSeeBilling } from '@web/features/billing/permissions';
@@ -26,9 +26,9 @@ import { PatientFormModal } from '@web/features/patients/patient-form-modal';
 import { canCreatePatient, seesClinicalPatientFields } from '@web/features/patients/permissions';
 import { usePatients } from '@web/features/patients/queries';
 import { ageInYears } from '@web/features/patients/age';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 import { useDebounced } from '@web/lib/use-debounced';
-import { isRefetching } from '@web/lib/use-delayed-loading';
+import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
 const PAGE_SIZE = 10;
 

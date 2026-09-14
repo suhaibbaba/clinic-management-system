@@ -1,11 +1,11 @@
 import { useState, type FormEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Icon, PersonName, Widget } from '@web/components/ui';
+import { Icon, PersonName, Widget } from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { useCreateNote, useDeleteNote, useNotes } from '@web/features/notes/queries';
 import { formatDate } from '@web/lib/format';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 
 // The clinic's noticeboard, not a patient's record: one line the next person at the desk needs to
 // read. Anything about a patient belongs on the patient, where it is scoped and audited as such.

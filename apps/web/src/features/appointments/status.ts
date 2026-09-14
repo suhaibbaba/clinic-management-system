@@ -1,7 +1,7 @@
 import { APPOINTMENT_STATUS, type AppointmentStatus } from '@clinic/shared';
 
-import type { BadgeTone } from '@web/components/ui/badge';
-import { TONE_SURFACE } from '@web/components/ui/tone';
+import type { BadgeTone } from '@clinic/ui/components/badge';
+import { TONE_SURFACE } from '@clinic/ui/components/tone';
 
 // The block, the badge and the dot all read this, so a status cannot be amber in one place and
 // green in another. The colour itself comes from `TONE_SURFACE` — this table names tones.

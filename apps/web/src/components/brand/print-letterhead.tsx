@@ -3,7 +3,7 @@ import type { JSX } from 'react';
 
 import { Logo } from '@web/components/brand/logo';
 import { formatDate } from '@web/lib/format';
-import { PersonName } from '@web/components/ui/person-name';
+import { PersonName } from '@clinic/ui/components/person-name';
 
 // Shared, so a treatment plan and a prescription cannot look like they came from two clinics. The
 // clinic is passed in, keeping a printable sheet a pure function.

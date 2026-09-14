@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 
-// Not `@web/components/ui`: that library is Radix-backed, and one button from it pulls much of the
+// Not `@clinic/ui`: that library is Radix-backed, and one button from it pulls much of the
 // dashboard's dependency graph into an 80 KB budget.
 
 /** Joins class names. No `tailwind-merge` here — 6 KB to resolve conflicts

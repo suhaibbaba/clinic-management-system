@@ -4,12 +4,9 @@ import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-r
 
 import { Logo } from '@web/components/brand/logo';
 import { NavDrawer } from '@web/components/layout/nav-drawer';
-import {
-  createPageActionSlot,
-  PageActionSlotProvider,
-} from '@web/components/layout/page-action-slot';
+import { createPageActionSlot, PageActionSlotProvider } from '@clinic/ui/lib/page-action-slot';
 import { UserMenu } from '@web/components/layout/user-menu';
-import { Button, Icon, SearchField } from '@web/components/ui';
+import { Button, Icon, SearchField } from '@clinic/ui';
 import {
   activeNavItem,
   canReachNavItem,
@@ -21,7 +18,7 @@ import {
 } from '@web/app/navigation';
 import { useSession } from '@web/features/auth/session';
 import { seesPendingBookings, usePendingBookingsCount } from '@web/features/booking/queries';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 import { useClinicLogo } from '@web/lib/use-clinic-logo';
 
 /** The one list the bar's search leads to; the bell and the slot are the rest of the reference's bar. */

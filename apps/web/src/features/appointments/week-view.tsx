@@ -2,7 +2,7 @@ import { LOOKUP_LIST, type CalendarAppointment, type ClinicClosure } from '@clin
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { EmptyState, Ltr } from '@web/components/ui';
+import { EmptyState, Ltr } from '@clinic/ui';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { APPOINTMENT_STATUS_STYLES } from '@web/features/appointments/status';
 import {
@@ -11,7 +11,7 @@ import {
   toTimeLabel,
   weekDates,
 } from '@web/features/appointments/calendar-time';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 import { formatDate } from '@web/lib/format';
 
 export interface WeekViewProps {

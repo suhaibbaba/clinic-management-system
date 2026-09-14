@@ -4,16 +4,7 @@ import { useEffect, type JSX } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import {
-  Button,
-  DatePicker,
-  FormField,
-  Icon,
-  Input,
-  Modal,
-  Select,
-  useToast,
-} from '@web/components/ui';
+import { Button, DatePicker, FormField, Icon, Input, Modal, Select, useToast } from '@clinic/ui';
 import { useCreatePatient } from '@web/features/patients/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 

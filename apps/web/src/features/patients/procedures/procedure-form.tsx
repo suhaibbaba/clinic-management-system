@@ -12,15 +12,7 @@ import {
 import { useEffect, useId, useState, type FormEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  Button,
-  FormField,
-  Icon,
-  Input,
-  MoneyInput,
-  Select,
-  usePersonName,
-} from '@web/components/ui';
+import { Button, FormField, Icon, Input, MoneyInput, Select, usePersonName } from '@clinic/ui';
 import {
   SurfaceSelector,
   type SelectableSurface,

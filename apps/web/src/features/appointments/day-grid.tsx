@@ -22,10 +22,10 @@ import {
   toTimeLabel,
   TWO_LINE_MINUTES,
 } from '@web/features/appointments/calendar-time';
-import { cn } from '@web/lib/cn';
-import { Icon } from '@web/components/ui/icon';
-import { Ltr } from '@web/components/ui/ltr';
-import { PersonName } from '@web/components/ui/person-name';
+import { cn } from '@clinic/ui/lib/cn';
+import { Icon } from '@clinic/ui/components/icon';
+import { Ltr } from '@clinic/ui/components/ltr';
+import { PersonName } from '@clinic/ui/components/person-name';
 
 export interface DayGridProps {
   readonly date: string;

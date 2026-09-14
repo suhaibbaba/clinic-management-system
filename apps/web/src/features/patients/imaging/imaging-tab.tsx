@@ -9,18 +9,8 @@ import {
 import { useRef, useState, type ChangeEvent, type DragEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  Badge,
-  Button,
-  EmptyState,
-  Icon,
-  Img,
-  Input,
-  Ltr,
-  Select,
-  useToast,
-} from '@web/components/ui';
-import { Skeleton, SkeletonStatus } from '@web/components/ui/skeleton';
+import { Badge, Button, EmptyState, Icon, Img, Input, Ltr, Select, useToast } from '@clinic/ui';
+import { Skeleton, SkeletonStatus } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { useLookupLabels, useLookupOptions } from '@web/features/lookups/queries';
 import { canDelete, canManageAttachments } from '@web/features/patients/permissions';
@@ -31,9 +21,9 @@ import {
   useUploadAttachment,
 } from '@web/features/patients/queries';
 import { errorMessageKey } from '@web/lib/api-error';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 import { formatDate } from '@web/lib/format';
-import { useDelayedLoading } from '@web/lib/use-delayed-loading';
+import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 // Presign, PUT, confirm: the API builds the key and re-reads the real size and type afterwards, so
 // nothing here is trusted. Thumbnails ask for their own signed URLs.

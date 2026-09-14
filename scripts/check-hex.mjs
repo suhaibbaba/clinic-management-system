@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// One file names colours. A hex anywhere else is a value that cannot be themed, cannot be audited,
-// and survives a redesign by being invisible to it.
+// Two files name colours: the library's defaults and this product's override. A hex anywhere else
+// is a value that cannot be themed, cannot be audited, and survives a redesign by being invisible
+// to it.
 
 import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
@@ -8,14 +9,24 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** The token file itself, and the places a hex is data rather than design. */
+/** The token files themselves, and the places a hex is data rather than design. */
 const ALLOWED = new Set([
+  // The library's neutral defaults: the only colours inside the package, and none of them branded.
+  'packages/ui/src/styles/base.css',
+  // This product's values, in the two layers that carry them.
   'apps/web/src/theme.css',
+  'apps/web/src/theme.ts',
   // A clinic picks its own colours for the painted lists, and the seed carries the defaults.
   'packages/shared/src/constants/lookups.ts',
 ]);
 
-const SEARCH = ['apps/web/src', 'apps/web/index.html', 'apps/web/booking.html', 'apps/web/public'];
+const SEARCH = [
+  'apps/web/src',
+  'apps/web/index.html',
+  'apps/web/booking.html',
+  'apps/web/public',
+  'packages/ui/src',
+];
 
 const EXTENSIONS = /\.(?:tsx?|css|html|svg)$/;
 
@@ -96,10 +107,11 @@ for (const file of files) {
 
 if (offenders.length > 0) {
   console.error(
-    `Colours are named in apps/web/src/theme.css and nowhere else. ${offenders.length} literal(s):\n`,
+    "Colours are named in packages/ui/src/styles/base.css (the library's defaults) and in a " +
+      `product's theme.css/theme.ts, and nowhere else. ${offenders.length} literal(s):\n`,
   );
   console.error(offenders.join('\n'));
   process.exit(1);
 }
 
-console.log(`hex: ${files.length} files carry no colour literal outside the token file.`);
+console.log(`hex: ${files.length} files carry no colour literal outside the token files.`);

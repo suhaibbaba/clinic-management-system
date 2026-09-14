@@ -21,8 +21,8 @@ import {
   StatRow,
   usePersonName,
   useToast,
-} from '@web/components/ui';
-import { RefreshBar, SkeletonCalendarDay } from '@web/components/ui/skeleton';
+} from '@clinic/ui';
+import { RefreshBar, SkeletonCalendarDay } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { seesPendingBookings, usePendingBookings } from '@web/features/booking/queries';
 import { useClinic } from '@web/features/clinic/queries';
@@ -53,8 +53,8 @@ import { WaitingListPanel } from '@web/features/appointments/waiting-list-panel'
 import { WeekView } from '@web/features/appointments/week-view';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate } from '@web/lib/format';
-import { useQueryLoading } from '@web/lib/use-delayed-loading';
-import { useIsMobile } from '@web/lib/use-media-query';
+import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
+import { useIsMobile } from '@clinic/ui/lib/use-media-query';
 
 const RANGES = ['day', 'week'] as const;
 

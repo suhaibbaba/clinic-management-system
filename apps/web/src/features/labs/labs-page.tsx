@@ -14,8 +14,8 @@ import {
   SearchField,
   StatCard,
   StatRow,
-} from '@web/components/ui';
-import { RefreshBar, SkeletonCard, SkeletonKpi } from '@web/components/ui/skeleton';
+} from '@clinic/ui';
+import { RefreshBar, SkeletonCard, SkeletonKpi } from '@clinic/ui/components/skeleton';
 import { useClinic } from '@web/features/clinic/queries';
 import { LabFormModal } from '@web/features/labs/lab-form-modal';
 import { useLabs } from '@web/features/labs/queries';
@@ -23,7 +23,7 @@ import { canManageLabs } from '@web/features/labs/permissions';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
 import { useDebounced } from '@web/lib/use-debounced';
-import { useQueryLoading } from '@web/lib/use-delayed-loading';
+import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 // Cards, because a clinic deals with two or three labs and each is a relationship. The balance is
 // money owed, so it is never celebrated in green.

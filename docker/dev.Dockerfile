@@ -18,6 +18,7 @@ WORKDIR /repo
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml .npmrc package.json ./
 COPY packages/shared/package.json packages/shared/
+COPY packages/ui/package.json packages/ui/
 COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
 

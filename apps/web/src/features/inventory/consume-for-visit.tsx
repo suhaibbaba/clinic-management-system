@@ -3,7 +3,7 @@ import { LOOKUP_LIST, MOVEMENT_TYPE } from '@clinic/shared';
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Modal, Select } from '@web/components/ui';
+import { Button, FormField, Modal, Select } from '@clinic/ui';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { MovementModal } from '@web/features/inventory/movement-modal';
 import { useInventoryItems } from '@web/features/inventory/queries';

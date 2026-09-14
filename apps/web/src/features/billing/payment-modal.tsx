@@ -4,16 +4,7 @@ import { useEffect, type JSX } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import {
-  Button,
-  FormField,
-  Icon,
-  Input,
-  Modal,
-  MoneyInput,
-  Select,
-  useToast,
-} from '@web/components/ui';
+import { Button, FormField, Icon, Input, Modal, MoneyInput, Select, useToast } from '@clinic/ui';
 import { openReceipt } from '@web/features/billing/documents';
 import { useLookupOptions } from '@web/features/lookups/queries';
 import { useCreatePayment } from '@web/features/billing/queries';

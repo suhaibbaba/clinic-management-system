@@ -12,7 +12,7 @@ import {
   PersonName,
   PhoneLink,
   Table,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { minutesOf, toTimeLabel, todayIso } from '@web/features/appointments/calendar-time';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
 import { useAppointments } from '@web/features/appointments/queries';

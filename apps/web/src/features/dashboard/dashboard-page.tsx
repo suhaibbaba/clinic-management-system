@@ -11,8 +11,8 @@ import {
   StatCard,
   usePersonName,
   type StatTone,
-} from '@web/components/ui';
-import { RefreshBar, SkeletonKpi } from '@web/components/ui/skeleton';
+} from '@clinic/ui';
+import { RefreshBar, SkeletonKpi } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { minutesOf } from '@web/features/appointments/calendar-time';
 import { canBookAppointment } from '@web/features/appointments/permissions';
@@ -27,9 +27,9 @@ import { WelcomeBanner } from '@web/features/dashboard/welcome-banner';
 import { NotesWidget } from '@web/features/notes/notes-widget';
 import { canOpenPatientFile } from '@web/features/patients/permissions';
 import { formatDate } from '@web/lib/format';
-import { cn } from '@web/lib/cn';
-import { useDocumentTitle } from '@web/lib/document-title';
-import { useQueryLoading } from '@web/lib/use-delayed-loading';
+import { cn } from '@clinic/ui/lib/cn';
+import { useDocumentTitle } from '@clinic/ui/lib/page-title';
+import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 // Each number is a door rather than a decoration. Which cards exist follows the response, not the
 // role: a missing field draws no card, so this page keeps no copy of the matrix.

@@ -2,22 +2,13 @@ import { LOOKUP_LIST, type ShoppingListLine } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  Badge,
-  Button,
-  EmptyState,
-  Icon,
-  Ltr,
-  PageHeader,
-  Table,
-  type Column,
-} from '@web/components/ui';
+import { Badge, Button, EmptyState, Icon, Ltr, PageHeader, Table, type Column } from '@clinic/ui';
 import { inventoryApi } from '@web/features/inventory/api';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { categoryTone } from '@web/features/inventory/display';
 import { useShoppingList } from '@web/features/inventory/queries';
 import { formatDate } from '@web/lib/format';
-import { isRefetching } from '@web/lib/use-delayed-loading';
+import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
 // Twice the minimum less what is on the shelf — a starting figure, which the page says: the
 // technician who knows a supplier sells full cartons writes their own.

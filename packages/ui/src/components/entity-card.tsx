@@ -1,0 +1,163 @@
+import type { JSX, ReactNode } from 'react';
+
+import { Badge, type BadgeTone } from '@ui/components/badge';
+import { Icon, type IconName } from '@ui/components/icon';
+import { ProgressBar, type ProgressTone } from '@ui/components/progress-bar';
+import { cn } from '@ui/lib/cn';
+
+export interface EntityCardMeta {
+  readonly label: string;
+  readonly value: ReactNode;
+  /** Latin values — money, dates, file numbers — stay left-to-right. */
+  readonly ltr?: boolean | undefined;
+}
+
+export interface EntityCardProps {
+  readonly icon: IconName;
+  readonly title: string;
+  readonly subtitle?: string | undefined;
+  readonly status?: { readonly label: string; readonly tone: BadgeTone } | undefined;
+  readonly progress?:
+    | {
+        readonly value: number;
+        readonly total: number;
+        readonly label: string;
+        readonly caption?: string | undefined;
+        readonly tone?: ProgressTone | undefined;
+      }
+    | undefined;
+  readonly meta?: readonly EntityCardMeta[] | undefined;
+  readonly action?:
+    | {
+        /** The button's accessible name — the icon alone says nothing. */
+        readonly label: string;
+        readonly onClick: () => void;
+        /** Defaults to the "forward" chevron, which in Arabic points left. */
+        readonly icon?: IconName | undefined;
+        readonly disabled?: boolean | undefined;
+      }
+    | undefined;
+  readonly isSelected?: boolean | undefined;
+  readonly className?: string | undefined;
+  readonly children?: ReactNode | undefined;
+}
+
+// One component rather than three lookalikes: what differs is only what progress means, which is
+// why the caller supplies the numbers and the caption.
+export function EntityCard({
+  icon,
+  title,
+  subtitle,
+  status,
+  progress,
+  meta,
+  action,
+  isSelected = false,
+  className,
+  children,
+}: EntityCardProps): JSX.Element {
+  return (
+    <article
+      data-part="entity-card"
+      // The same hook the table's rows carry, so a sweep or a smoke run can
+      // open a record without knowing which of the two shapes it is looking at.
+      data-entity-card
+      className={cn(
+        'flex flex-col border border-line rounded-card bg-surface p-4 shadow-card',
+        'transition-[box-shadow,background-color,border-color] duration-150',
+        action !== undefined && 'hover:shadow-float',
+        isSelected && 'bg-selected outline outline-offset-[-1px] outline-selected-line',
+        className,
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          data-part="entity-card-icon"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-field bg-primary-100 text-primary-700"
+        >
+          <Icon name={icon} />
+        </span>
+
+        <div className="min-w-0 flex-1">
+          <h3 data-part="entity-card-title" className="truncate text-value font-medium text-ink">
+            {title}
+          </h3>
+          {subtitle !== undefined && (
+            <p
+              data-part="entity-card-subtitle"
+              className="mt-0.5 truncate text-meta text-ink-muted"
+            >
+              {subtitle}
+            </p>
+          )}
+        </div>
+
+        {status !== undefined && <Badge tone={status.tone}>{status.label}</Badge>}
+      </div>
+
+      {progress !== undefined && (
+        <div className="mt-3">
+          <ProgressBar
+            value={progress.value}
+            total={progress.total}
+            label={progress.label}
+            {...(progress.tone && { tone: progress.tone })}
+          />
+          {progress.caption !== undefined && (
+            <p className="mt-2 text-meta text-ink-muted">{progress.caption}</p>
+          )}
+        </div>
+      )}
+
+      {children}
+
+      <div className="mt-3 flex items-end justify-between gap-3 border-t border-line pt-3">
+        <dl data-part="entity-card-meta" className="flex min-w-0 flex-wrap gap-x-5 gap-y-2">
+          {(meta ?? []).map((entry) => (
+            <div key={entry.label} className="min-w-0">
+              <dt className="text-meta text-ink-subtle">{entry.label}</dt>
+              {/* `break-words` rather than `truncate`: a phone number's 44px hit area lives on an
+                  `::after`, which an `overflow-hidden` ancestor clips to the line. */}
+              <dd
+                className="min-w-0 break-words text-value font-medium text-ink tabular-nums"
+                {...(entry.ltr === true && { dir: 'ltr' })}
+              >
+                {entry.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+
+        {action !== undefined && (
+          <button
+            type="button"
+            data-part="entity-card-action"
+            onClick={action.onClick}
+            disabled={action.disabled === true}
+            aria-label={action.label}
+            title={action.label}
+            className={cn(
+              // 44px on touch, the drawn 36 on a laptop — this circle is the
+              // whole way into the record on a phone.
+              'inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill',
+              'lg:size-(--control-h-sm)',
+              'bg-primary-600 text-ink-inverse hover:bg-primary-700',
+              'transition-[background-color,transform] duration-150 active:scale-95',
+              'disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100',
+            )}
+          >
+            <Icon name={action.icon ?? 'chevron-end'} className="size-[18px]" />
+          </button>
+        )}
+      </div>
+    </article>
+  );
+}
+
+export function EntityGrid({ children }: { readonly children: ReactNode }): JSX.Element {
+  return (
+    <div data-part="entity-grid" className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      {children}
+    </div>
+  );
+}

@@ -17,7 +17,12 @@
       "@shared/*": ["../../packages/shared/src/*"],
       /* The web app consumes the shared package straight from source: Vite
          compiles it, so an edit in packages/shared hot-reloads the browser. */
-      "@clinic/shared": ["../../packages/shared/src/index.ts"]
+      "@clinic/shared": ["../../packages/shared/src/index.ts"],
+      /* And the UI package the same way, along with its own alias — the app
+         compiles its source, so that alias has to resolve in this context. */
+      "@clinic/ui": ["../../packages/ui/src/index.ts"],
+      "@clinic/ui/*": ["../../packages/ui/src/*"],
+      "@ui/*": ["../../packages/ui/src/*"]
     }
   },
   "include": ["src", "test", "vite", "vite.config.ts"]

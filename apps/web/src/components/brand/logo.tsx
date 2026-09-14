@@ -1,9 +1,9 @@
 import type { PersonName } from '@clinic/shared';
 import type { JSX } from 'react';
 
-import { Img } from '@web/components/ui/img';
-import { usePersonName } from '@web/components/ui/person-name';
-import { cn } from '@web/lib/cn';
+import { Img } from '@clinic/ui/components/img';
+import { usePersonName } from '@clinic/ui/components/person-name';
+import { cn } from '@clinic/ui/lib/cn';
 
 export type LogoSize = 'chrome' | 'print' | 'login';
 
