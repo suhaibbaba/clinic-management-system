@@ -18,7 +18,7 @@ import {
   Table,
   Textarea,
   useToast,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { toTimeLabel, minutesOf } from '@web/features/appointments/calendar-time';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
 import {
@@ -29,7 +29,7 @@ import {
 import { useClinic } from '@web/features/clinic/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate, formatDateTime } from '@web/lib/format';
-import { isRefetching } from '@web/lib/use-delayed-loading';
+import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
 const PAGE_SIZE = 20;
 

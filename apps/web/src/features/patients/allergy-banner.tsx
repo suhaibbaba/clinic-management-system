@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { USER_ROLE } from '@clinic/shared';
 
-import { Icon } from '@web/components/ui';
+import { Icon } from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { useAllergyFlags } from '@web/features/patients/queries';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 import { formatList } from '@web/lib/format';
 
 // Renders as soon as its own query resolves, so nobody starts work without seeing it. It reads the

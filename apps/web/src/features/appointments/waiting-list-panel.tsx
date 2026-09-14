@@ -22,7 +22,7 @@ import {
   Textarea,
   usePersonName,
   useToast,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useDoctors } from '@web/features/doctors/queries';
 import {
   useAddToWaitingList,
@@ -40,7 +40,7 @@ import {
 } from '@web/features/appointments/patient-picker';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDateTime } from '@web/lib/format';
-import type { BadgeTone } from '@web/components/ui/badge';
+import type { BadgeTone } from '@clinic/ui/components/badge';
 
 const PRIORITY_TONE: Record<string, BadgeTone> = {
   [WAITING_LIST_PRIORITY.URGENT]: 'danger',

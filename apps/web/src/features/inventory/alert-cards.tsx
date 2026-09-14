@@ -2,11 +2,11 @@ import type { InventoryItemRow } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Card, Icon, Ltr } from '@web/components/ui';
+import { Badge, Card, Icon, Ltr } from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { seesInventory } from '@web/features/inventory/permissions';
 import { useInventoryAlerts } from '@web/features/inventory/queries';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 import { formatDate } from '@web/lib/format';
 
 // A card with nothing in it is not drawn: an alert panel that says "0 items low" every day is one

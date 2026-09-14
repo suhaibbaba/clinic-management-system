@@ -16,12 +16,12 @@ import {
   usePersonName,
   type BadgeTone,
   type Column,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useAuditLog } from '@web/features/audit/queries';
 import { ValueDiff } from '@web/features/audit/value-diff';
 import { useUsers } from '@web/features/users/queries';
 import { endOfNextDayIso, formatDateTime, startOfDayIso } from '@web/lib/format';
-import { isRefetching } from '@web/lib/use-delayed-loading';
+import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
 const PAGE_SIZE = 10;
 

@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
 
-import { TabPanel, Tabs, useTabParam, type TabDefinition } from '@web/components/ui';
+import { TabPanel, Tabs, useTabParam, type TabDefinition } from '@clinic/ui';
 import { InventoryPage } from '@web/features/inventory/inventory-page';
 import { SuppliersPage } from '@web/features/inventory/suppliers-page';
 

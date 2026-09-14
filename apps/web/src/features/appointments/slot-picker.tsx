@@ -2,9 +2,9 @@ import type { Availability } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Icon } from '@web/components/ui';
-import { Skeleton, SkeletonStatus } from '@web/components/ui/skeleton';
-import { cn } from '@web/lib/cn';
+import { Icon } from '@clinic/ui';
+import { Skeleton, SkeletonStatus } from '@clinic/ui/components/skeleton';
+import { cn } from '@clinic/ui/lib/cn';
 
 export interface SlotPickerProps {
   readonly availability: Availability | undefined;

@@ -20,8 +20,8 @@ import {
   PersonName,
   Textarea,
   useToast,
-} from '@web/components/ui';
-import { RefreshBar, SkeletonTimeline } from '@web/components/ui/skeleton';
+} from '@clinic/ui';
+import { RefreshBar, SkeletonTimeline } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { Money } from '@web/features/billing/money';
@@ -37,9 +37,9 @@ import {
   useReverseMovement,
 } from '@web/features/inventory/queries';
 import { errorMessageKey } from '@web/lib/api-error';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 import { formatDate, formatDateTime } from '@web/lib/format';
-import { useQueryLoading } from '@web/lib/use-delayed-loading';
+import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 // Each quick action is shown only to a role the API would accept it from. The history is the item
 // card, so "why is there only 3" is answered rather than raised.

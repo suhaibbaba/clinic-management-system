@@ -1,12 +1,17 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { themeVariables } from '@clinic/ui/theme';
 import { describe, expect, it } from 'vitest';
 
-// theme.css is the only place a colour is named. Reaching past it is the change that passes review
-// one utility at a time and leaves the brand in forty files.
+import { abuObaidTheme } from '@web/theme';
+
+// theme.css and theme.ts are the only places a colour is named. Reaching past them is the change
+// that passes review one utility at a time and leaves the brand in forty files.
 
 const SRC = join(__dirname);
+const UI_SRC = join(__dirname, '..', '..', '..', 'packages', 'ui', 'src');
+const THEME_CSS = readFileSync(join(SRC, 'theme.css'), 'utf8');
 
 function sourceFiles(dir: string, acc: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
@@ -14,7 +19,13 @@ function sourceFiles(dir: string, acc: string[] = []): string[] {
 
     if (statSync(path).isDirectory()) {
       sourceFiles(path, acc);
-    } else if (/\.tsx?$/.test(entry) && !/\.test\.tsx?$/.test(entry)) {
+    } else if (
+      /\.tsx?$/.test(entry) &&
+      !/\.test\.tsx?$/.test(entry) &&
+      // `hex-guard.test.ts` plants a colour literal in this tree and takes it away again. Both
+      // suites read the same files, so without this the two race and this one fails at random.
+      !/-fixture\.tsx?$/.test(entry)
+    ) {
       acc.push(path);
     }
   }
@@ -22,14 +33,65 @@ function sourceFiles(dir: string, acc: string[] = []): string[] {
   return acc;
 }
 
-const FILES = sourceFiles(SRC).map((path) => ({
-  path: path.slice(SRC.length + 1),
-  source: readFileSync(path, 'utf8'),
-}));
+// The library's own source is held to the same rule: a colour named inside a component is a colour
+// no product can override.
+const FILES = [
+  ...sourceFiles(SRC).map((path) => ({ path: path.slice(SRC.length + 1), source: '' })),
+  ...sourceFiles(UI_SRC).map((path) => ({
+    path: join('@clinic/ui', path.slice(UI_SRC.length + 1)),
+    source: '',
+  })),
+]
+  .map((file) => ({
+    ...file,
+    source: readFileSync(
+      file.path.startsWith('@clinic/ui')
+        ? join(UI_SRC, file.path.slice('@clinic/ui'.length + 1))
+        : join(SRC, file.path),
+      'utf8',
+    ),
+  }))
+  // The product's token file names the palette by design; that is what it is for.
+  .filter((file) => file.path !== 'theme.ts');
 
 describe('design tokens', () => {
   it('has files to check', () => {
     expect(FILES.length).toBeGreaterThan(30);
+    expect(FILES.filter((file) => file.path.startsWith('@clinic/ui')).length).toBeGreaterThan(30);
+  });
+
+  // Two layers carry the same palette: the stylesheet paints the first frame, the object is what a
+  // second product would swap. Nothing keeps them together except this.
+  it('gives theme.ts the values theme.css compiles', () => {
+    const drifted = Object.entries(themeVariables(abuObaidTheme)).filter(([name, value]) => {
+      const declared = new RegExp(`^\\s*${name}:\\s*(.+?);\\s*(?:/\\*.*)?$`, 'm').exec(THEME_CSS);
+
+      return declared?.[1]?.trim() !== value;
+    });
+
+    expect(drifted).toEqual([]);
+  });
+
+  // And the other way: a value the stylesheet overrides but the object forgets is a token that
+  // silently reverts to the library's neutral default on a rebrand.
+  it('gives theme.css no override theme.ts is missing', () => {
+    const typed = new Set(Object.keys(themeVariables(abuObaidTheme)));
+    const overridden = [
+      ...THEME_CSS.matchAll(/^\s*(--(?:color|shadow|radius|text|control)-[a-z0-9-]+):/gm),
+    ]
+      .map((match) => match[1] ?? '')
+      // Tooth and chart fills are this specialty's data, not a library token — `ThemeOverride`
+      // has no name for them and should not.
+      .filter((name) => !name.startsWith('--color-tooth-') && !name.startsWith('--color-chart-'))
+      // The banner, the sticky note and a printed sheet are this product's own surfaces.
+      .filter(
+        (name) =>
+          !name.startsWith('--color-banner-') &&
+          !name.startsWith('--color-note-') &&
+          !name.startsWith('--color-paper'),
+      );
+
+    expect(overridden.filter((name) => !typed.has(name))).toEqual([]);
   });
 
   it('uses no stock Tailwind palette class', () => {

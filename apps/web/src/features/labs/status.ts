@@ -6,8 +6,8 @@ import {
   type UserRole,
 } from '@clinic/shared';
 
-import type { BadgeTone } from '@web/components/ui/badge';
-import { TONE_SURFACE } from '@web/components/ui/tone';
+import type { BadgeTone } from '@clinic/ui/components/badge';
+import { TONE_SURFACE } from '@clinic/ui/components/tone';
 import type { LabOrderStep } from '@web/features/labs/queries';
 
 // The column header, the badge and the chip all read this, so a status cannot be amber in one place

@@ -8,13 +8,13 @@ import {
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, EmptyState, Icon, Ltr, type IconName } from '@web/components/ui';
-import { SkeletonTimeline } from '@web/components/ui/skeleton';
+import { Badge, EmptyState, Icon, Ltr, type IconName } from '@clinic/ui';
+import { SkeletonTimeline } from '@clinic/ui/components/skeleton';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { LAB_ORDER_STATUS_STYLES } from '@web/features/labs/status';
 import { usePatientTimeline } from '@web/features/patients/queries';
 import { formatDate } from '@web/lib/format';
-import { useDelayedLoading } from '@web/lib/use-delayed-loading';
+import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 const ICONS: Record<TimelineEntryType, IconName> = {
   [TIMELINE_ENTRY_TYPE.VISIT]: 'stethoscope',

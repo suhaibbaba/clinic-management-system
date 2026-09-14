@@ -13,7 +13,7 @@ import {
   Textarea,
   usePersonName,
   useToast,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import {
   isDraftComplete,

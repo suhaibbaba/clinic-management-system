@@ -2,8 +2,8 @@ import { LEDGER_ENTRY_KIND } from '@clinic/shared';
 import { type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge } from '@web/components/ui';
-import { Skeleton } from '@web/components/ui/skeleton';
+import { Badge } from '@clinic/ui';
+import { Skeleton } from '@clinic/ui/components/skeleton';
 import { Money } from '@web/features/billing/money';
 import { usePatientBalance, useStatement } from '@web/features/billing/queries';
 import { useClinic } from '@web/features/clinic/queries';

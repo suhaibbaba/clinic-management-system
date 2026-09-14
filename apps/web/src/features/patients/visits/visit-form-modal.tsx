@@ -14,7 +14,7 @@ import {
   TimePicker,
   usePersonName,
   useToast,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useSaveVisit } from '@web/features/patients/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 

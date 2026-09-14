@@ -19,14 +19,14 @@ import {
   Table,
   usePersonName,
   useToast,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { useUpdateUser, useUsers } from '@web/features/users/queries';
 import { ResetPasswordModal } from '@web/features/users/reset-password-modal';
 import { UserFormModal } from '@web/features/users/user-form-modal';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate } from '@web/lib/format';
-import { isRefetching } from '@web/lib/use-delayed-loading';
+import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
 const PAGE_SIZE = 10;
 

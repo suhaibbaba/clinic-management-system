@@ -18,7 +18,7 @@ import {
   StatRow,
   Table,
   useTabParam,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
 import { useClinic } from '@web/features/clinic/queries';
@@ -36,7 +36,7 @@ import {
   useLabWorkTypes,
 } from '@web/features/labs/queries';
 import { endOfNextDayIso, formatDate, startOfDayIso } from '@web/lib/format';
-import { isRefetching } from '@web/lib/use-delayed-loading';
+import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
 const TAB_IDS = ['orders', 'prices', 'statement'] as const;
 

@@ -4,7 +4,7 @@ import { useEffect, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Input, Modal, usePersonName, useToast } from '@web/components/ui';
+import { Button, FormField, Icon, Input, Modal, usePersonName, useToast } from '@clinic/ui';
 import { useResetUserPassword } from '@web/features/users/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 

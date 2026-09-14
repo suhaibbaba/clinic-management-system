@@ -2,8 +2,8 @@ import type { Attachment } from '@clinic/shared';
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Img } from '@web/components/ui/img';
-import { Skeleton } from '@web/components/ui/skeleton';
+import { Img } from '@clinic/ui/components/img';
+import { Skeleton } from '@clinic/ui/components/skeleton';
 import { useAttachment } from '@web/features/patients/queries';
 import { formatDate } from '@web/lib/format';
 

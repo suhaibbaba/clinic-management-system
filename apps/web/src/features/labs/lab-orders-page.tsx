@@ -13,8 +13,8 @@ import {
   SearchField,
   Select,
   useToast,
-} from '@web/components/ui';
-import { RefreshBar, SkeletonCard, SkeletonStatus } from '@web/components/ui/skeleton';
+} from '@clinic/ui';
+import { RefreshBar, SkeletonCard, SkeletonStatus } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
 import { useClinic } from '@web/features/clinic/queries';
@@ -25,11 +25,11 @@ import { canCreateLabOrder } from '@web/features/labs/permissions';
 import { useLabOrders, useLabOrderStep, useLabs } from '@web/features/labs/queries';
 import { availableSteps, BOARD_COLUMNS, LAB_ORDER_STATUS_STYLES } from '@web/features/labs/status';
 import { errorMessageKey } from '@web/lib/api-error';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 import { formatDate } from '@web/lib/format';
 import { useDebounced } from '@web/lib/use-debounced';
-import { useQueryLoading } from '@web/lib/use-delayed-loading';
-import { useIsMobile } from '@web/lib/use-media-query';
+import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
+import { useIsMobile } from '@clinic/ui/lib/use-media-query';
 
 // A board on a wide screen answers "what is at the lab right now" in one look; below `md` it is the
 // shared `Table`, already a stack of cards there.

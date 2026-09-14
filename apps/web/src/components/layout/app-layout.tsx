@@ -4,12 +4,9 @@ import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-r
 
 import { Logo } from '@web/components/brand/logo';
 import { NavDrawer } from '@web/components/layout/nav-drawer';
-import {
-  createPageActionSlot,
-  PageActionSlotProvider,
-} from '@web/components/layout/page-action-slot';
+import { createPageActionSlot, PageActionSlotProvider } from '@clinic/ui/lib/page-action-slot';
 import { UserMenu } from '@web/components/layout/user-menu';
-import { Button, Icon, SearchField } from '@web/components/ui';
+import { Button, Icon, SearchField } from '@clinic/ui';
 import {
   activeNavItem,
   canReachNavItem,
@@ -21,7 +18,7 @@ import {
 } from '@web/app/navigation';
 import { useSession } from '@web/features/auth/session';
 import { seesPendingBookings, usePendingBookingsCount } from '@web/features/booking/queries';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 import { useClinicLogo } from '@web/lib/use-clinic-logo';
 
 /** The one list the bar's search leads to; the bell and the slot are the rest of the reference's bar. */
@@ -81,7 +78,7 @@ export function AppLayout(): JSX.Element {
         <aside
           className={cn(
             'z-30 hidden shrink-0 bg-rail md:block md:w-[266px]',
-            'md:sticky md:top-0 md:h-screen md:overflow-y-auto',
+            'md:sticky md:top-0 md:h-dvh md:overflow-y-auto',
             'md:border-e md:border-line',
           )}
         >
@@ -272,7 +269,7 @@ function NavSection({
 
       <div
         className={cn(
-          'px-3 pt-1 pb-2 text-micro font-medium tracking-[0.02em] text-ink-faint',
+          'px-3 pt-1 pb-2 text-micro font-medium tracking-[0.02em] text-ink-subtle',
           // Small caps in Latin only: tracking pulls Arabic letters out of their joins, which is a
           // spelling mistake rather than a style.
           'page-ltr:uppercase',

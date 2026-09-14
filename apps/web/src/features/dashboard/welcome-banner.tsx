@@ -2,7 +2,7 @@ import { CHART_TYPE, type CalendarAppointment, type ChartType } from '@clinic/sh
 import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Icon, Ltr, PersonName } from '@web/components/ui';
+import { Icon, Ltr, PersonName } from '@clinic/ui';
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
 import { useSession } from '@web/features/auth/session';
 import { dayAndDate } from '@web/lib/format';

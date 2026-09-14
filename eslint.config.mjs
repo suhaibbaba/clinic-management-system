@@ -37,7 +37,7 @@ export default tseslint.config(
             {
               group: ['../*', './*'],
               message:
-                'Use the package alias instead of a relative path: @api/… in apps/api, @web/… in apps/web, @shared/… in packages/shared.',
+                'Use the package alias instead of a relative path: @api/… in apps/api, @web/… in apps/web, @shared/… in packages/shared, @ui/… in packages/ui.',
             },
           ],
         },
@@ -57,6 +57,31 @@ export default tseslint.config(
       '@typescript-eslint/consistent-type-imports': 'off',
       // Nest modules are legitimately empty classes.
       '@typescript-eslint/no-extraneous-class': 'off',
+    },
+  },
+
+  {
+    /* The library is a package, not a folder of the app: it may be copied into another product, so
+       it must compile with no app in the tree at all. The rule is the boundary — the alias would
+       resolve, and a single `@web/…` import is what turns a library back into a folder. */
+    files: ['packages/ui/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['../*', './*'],
+              message: 'Use the @ui/… alias instead of a relative path.',
+            },
+            {
+              group: ['@web/*', '@api/*', '@clinic/web', '@clinic/api'],
+              message:
+                'packages/ui must not import from an app. Move the shared piece into packages/ui, or pass it in as a prop.',
+            },
+          ],
+        },
+      ],
     },
   },
 
@@ -81,9 +106,11 @@ export default tseslint.config(
                 '@web/lib/*',
                 '@web/i18n*',
                 '@web/App',
+                '@clinic/ui',
+                '@clinic/ui/*',
               ],
               message:
-                'The booking entry ships its own bundle and must not import the dashboard app. Write what it needs under src/booking, or move the shared piece to a token file.',
+                'The booking entry ships its own bundle and must not import the dashboard app or the UI library. Write what it needs under src/booking, or move the shared piece to a token file.',
             },
             {
               group: [
@@ -125,6 +152,13 @@ export default tseslint.config(
               group: ['@web/booking/*'],
               message:
                 'The booking entry is a separate bundle; move anything shared out of it rather than importing from it.',
+            },
+            {
+              /* The package's own alias resolves here, because the app compiles its source. Using
+                 it would tie the app to the library's internal layout rather than its exports. */
+              group: ['@ui/*'],
+              message:
+                'Import the library by its package name — @clinic/ui, @clinic/ui/components/… — never by its internal alias.',
             },
           ],
         },

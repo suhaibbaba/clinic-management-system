@@ -15,7 +15,7 @@ import {
   Select,
   Table,
   type Column,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { useLookupLabels, useLookupOptions } from '@web/features/lookups/queries';
 import { InventoryAlertCards } from '@web/features/inventory/alert-cards';
@@ -26,7 +26,7 @@ import { canManageInventory } from '@web/features/inventory/permissions';
 import { useInventoryItems } from '@web/features/inventory/queries';
 import { formatDate } from '@web/lib/format';
 import { useDebounced } from '@web/lib/use-debounced';
-import { isRefetching } from '@web/lib/use-delayed-loading';
+import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
 // The quantity is a bar against the reorder level rather than a number to compare with another
 // number. Everything here is computed from the ledger; there is nothing to edit.

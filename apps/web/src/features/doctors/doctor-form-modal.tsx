@@ -11,7 +11,7 @@ import {
   SegmentedControl,
   Select,
   useToast,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { WorkingHours } from '@web/components/schedule/working-hours';
 import { useClinic } from '@web/features/clinic/queries';
 import { useCreateDoctor, useSpecialties, useUpdateDoctor } from '@web/features/doctors/queries';

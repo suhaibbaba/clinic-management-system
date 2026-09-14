@@ -8,6 +8,9 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(here, '..');
 const SRC = join(ROOT, 'src');
+// The library's components render this app's words too, and the rule does not weaken by crossing a
+// package boundary: every one of them comes from a locale file.
+const UI_SRC = join(ROOT, '..', '..', 'packages', 'ui', 'src');
 
 const LOCALE_PAIRS = [join(SRC, 'i18n', 'locales'), join(SRC, 'booking', 'locales')];
 
@@ -69,7 +72,7 @@ function keysOf(value, prefix = '') {
 }
 
 function checkLiterals() {
-  for (const path of sources(SRC)) {
+  for (const path of [...sources(SRC), ...sources(UI_SRC)]) {
     const relativePath = relative(ROOT, path).replaceAll('\\', '/');
     const raw = readFileSync(path, 'utf8').split('\n');
     const lines = withoutComments(raw.join('\n')).split('\n');

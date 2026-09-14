@@ -8,7 +8,7 @@ import { useEffect, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Input, Modal, useToast } from '@web/components/ui';
+import { Button, FormField, Icon, Input, Modal, useToast } from '@clinic/ui';
 import { Money } from '@web/features/billing/money';
 import { useReversePayment } from '@web/features/billing/queries';
 import { errorMessageKey } from '@web/lib/api-error';

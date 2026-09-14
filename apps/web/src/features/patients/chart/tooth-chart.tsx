@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Skeleton, SkeletonStatus } from '@web/components/ui/skeleton';
+import { Skeleton, SkeletonStatus } from '@clinic/ui/components/skeleton';
 import { layoutRow, type Dentition, type ToothSlot } from '@web/features/patients/chart/fdi-layout';
 import {
   CROWN_LINE,
@@ -26,8 +26,8 @@ import {
   type ToothStates,
   type ToothSummary,
 } from '@web/features/patients/chart/tooth-state';
-import { cn } from '@web/lib/cn';
-import { documentDirection } from '@web/lib/direction';
+import { cn } from '@clinic/ui/lib/cn';
+import { documentDirection } from '@clinic/ui/lib/direction';
 
 export interface ToothChartProps {
   readonly dentition: Dentition;

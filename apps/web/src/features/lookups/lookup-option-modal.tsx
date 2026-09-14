@@ -2,7 +2,7 @@ import { DEFAULT_LOOKUP_COLOUR, type LookupListKey, type LookupOption } from '@c
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, FormField, Input, Ltr, Modal, useToast } from '@web/components/ui';
+import { Badge, Button, FormField, Input, Ltr, Modal, useToast } from '@clinic/ui';
 import { useCreateLookupOption, useUpdateLookupOption } from '@web/features/lookups/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 

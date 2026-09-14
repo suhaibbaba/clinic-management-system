@@ -11,11 +11,11 @@ import { useEffect, type JSX } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Input, Select, useToast } from '@web/components/ui';
+import { Button, FormField, Icon, Input, Select, useToast } from '@clinic/ui';
 import { useCreateUser, useUpdateUser } from '@web/features/users/queries';
 import { UserPhotoField } from '@web/features/users/user-photo-field';
 import { errorMessageKey } from '@web/lib/api-error';
-import { Modal } from '@web/components/ui/modal';
+import { Modal } from '@clinic/ui/components/modal';
 
 interface UserFormModalProps {
   open: boolean;

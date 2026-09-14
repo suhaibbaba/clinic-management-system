@@ -2,10 +2,10 @@ import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { Icon, Ltr, Widget } from '@web/components/ui';
+import { Icon, Ltr, Widget } from '@clinic/ui';
 import { toIsoDate, todayIso } from '@web/features/appointments/calendar-time';
 import { useCalendar } from '@web/features/appointments/queries';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
 
@@ -104,6 +104,7 @@ function Day({
       aria-current={isToday ? 'date' : undefined}
       className={cn(
         'pill-text relative cursor-pointer justify-center rounded-chip py-1.5 text-label font-medium',
+        'min-h-(--control-h) lg:min-h-0',
         'transition-colors duration-150',
         isToday ? 'today-wash text-ink-inverse' : 'text-ink hover:bg-primary-100',
       )}

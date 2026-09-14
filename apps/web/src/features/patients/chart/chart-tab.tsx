@@ -2,7 +2,7 @@ import { isDeciduousTooth, type PatientClinicalView } from '@clinic/shared';
 import { useMemo, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { EmptyState, SegmentedControl, useToast } from '@web/components/ui';
+import { EmptyState, SegmentedControl, useToast } from '@clinic/ui';
 import { useDoctors } from '@web/features/doctors/queries';
 import type { Dentition } from '@web/features/patients/chart/fdi-layout';
 import type { NewProcedureInput } from '@web/features/patients/chart/add-procedure-form';
@@ -24,7 +24,7 @@ import { OrderFormModal, type LabOrderDefaults } from '@web/features/labs/order-
 import { canCreateLabOrder } from '@web/features/labs/permissions';
 import { ageInYears } from '@web/features/patients/age';
 import { errorMessageKey } from '@web/lib/api-error';
-import { useDelayedLoading } from '@web/lib/use-delayed-loading';
+import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 // A tooth's state is the pair of queries: the procedure says how far along, the catalog what it
 // charts as. Past thirteen the deciduous arch is noise unless a tooth is retained.

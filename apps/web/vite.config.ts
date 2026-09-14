@@ -11,6 +11,8 @@ import { apiProxy } from './vite/dev-proxy.ts';
 
 const sharedSrc = fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url));
 const sharedSrcDir = fileURLToPath(new URL('../../packages/shared/src', import.meta.url));
+const uiSrc = fileURLToPath(new URL('../../packages/ui/src/index.ts', import.meta.url));
+const uiSrcDir = fileURLToPath(new URL('../../packages/ui/src', import.meta.url));
 const appSrc = fileURLToPath(new URL('./src', import.meta.url));
 
 /** Inotify does not reliably cross a Docker bind mount; poll when asked to. */
@@ -97,14 +99,19 @@ export default defineConfig({
   },
   plugins: [react(), tailwindcss(), bookingEntry(), storagePreconnect()],
   resolve: {
-    alias: {
-      '@web': appSrc,
+    // An array, because the UI package needs its bare specifier and its subpaths resolved
+    // differently, and the bare one has to be tried first.
+    alias: [
+      { find: '@web', replacement: appSrc },
       // The shared package is compiled from source here, so its own alias has
       // to resolve in this context too.
-      '@shared': sharedSrcDir,
-      '@test': fileURLToPath(new URL('./test', import.meta.url)),
-      '@clinic/shared': sharedSrc,
-    },
+      { find: '@shared', replacement: sharedSrcDir },
+      { find: '@test', replacement: fileURLToPath(new URL('./test', import.meta.url)) },
+      { find: '@clinic/shared', replacement: sharedSrc },
+      { find: /^@clinic\/ui$/, replacement: uiSrc },
+      { find: /^@clinic\/ui\//, replacement: `${uiSrcDir}/` },
+      { find: '@ui', replacement: uiSrcDir },
+    ],
   },
   server: {
     host: true,

@@ -3,7 +3,7 @@ import * as Accordion from '@radix-ui/react-accordion';
 import { useMemo, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Badge, Button, Icon, Ltr, Switch, TimePicker } from '@web/components/ui';
+import { Badge, Button, Icon, Ltr, Switch, TimePicker } from '@clinic/ui';
 import {
   DEFAULT_RANGE,
   daySummary,
@@ -12,7 +12,7 @@ import {
   WEEKDAYS_FROM_SATURDAY,
   withDay,
 } from '@web/components/schedule/week';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 
 export interface WorkingHoursProps {
   readonly value: WeeklySchedule;

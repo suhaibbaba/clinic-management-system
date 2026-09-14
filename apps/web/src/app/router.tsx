@@ -18,7 +18,7 @@ import { PATIENT_FILE_ROLES } from '@web/features/patients/permissions';
 import { PatientsPage } from '@web/features/patients/patients-page';
 import { ProfilePage } from '@web/features/profile/profile-page';
 import { UsersPage } from '@web/features/users/users-page';
-import { Skeleton } from '@web/components/ui/skeleton';
+import { Skeleton } from '@clinic/ui/components/skeleton';
 
 // Split from the main chunk: the calendar carries a week grid, a day grid and a drag interaction,
 // and the two settings screens below are reached by one role on one afternoon a month.

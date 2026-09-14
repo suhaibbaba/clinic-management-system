@@ -13,7 +13,7 @@ import {
   Table,
   type Column,
   useToast,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { downloadStatement, openReceipt } from '@web/features/billing/documents';
 import { Money } from '@web/features/billing/money';
@@ -24,7 +24,7 @@ import { usePatientBalance, useStatement } from '@web/features/billing/queries';
 import { useClinic } from '@web/features/clinic/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 import { endOfNextDayIso, formatDate, startOfDayIso } from '@web/lib/format';
-import { isRefetching } from '@web/lib/use-delayed-loading';
+import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
 interface AccountTabProps {
   patientId: string;

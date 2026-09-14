@@ -16,7 +16,7 @@ import {
   PersonName,
   PhoneLink,
   useToast,
-} from '@web/components/ui';
+} from '@clinic/ui';
 import { authApi } from '@web/features/auth/api';
 import { useSession } from '@web/features/auth/session';
 import { ApiError, errorMessageKey } from '@web/lib/api-error';

@@ -3,11 +3,11 @@ import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-import { Avatar, Badge, Icon, Ltr, PersonName } from '@web/components/ui';
+import { Avatar, Badge, Icon, Ltr, PersonName } from '@clinic/ui';
 import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from '@web/features/appointments/status';
 import { useLookupLabels } from '@web/features/lookups/queries';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 
 export interface ScheduleTimelineProps {
   readonly rows: readonly CalendarAppointment[];
@@ -99,7 +99,13 @@ export function ScheduleTimeline({
                     {linkPatients ? (
                       <Link
                         to={`/patients/${appointment.patientId}`}
-                        className="block truncate text-section font-medium text-ink transition-colors duration-150 hover:text-primary-700"
+                        className={cn(
+                          'block truncate text-section font-medium text-ink',
+                          'transition-colors duration-150 hover:text-primary-700',
+                          // The hit box, not the line box: `truncate` clips an ::after overlay,
+                          // so the target is grown with padding an equal negative margin undoes.
+                          '-my-[11px] py-[11px] lg:my-0 lg:py-0',
+                        )}
                       >
                         {appointment.patientName}
                       </Link>
@@ -192,7 +198,7 @@ function NowLine({
       className="pointer-events-none absolute inset-x-0 top-1 z-[2] border-t-2 border-dashed border-success-500"
     >
       {/* Over the rail rather than the card, which is the gap the reference leaves for it. */}
-      <span className="absolute -top-[11px] start-[-54px] rounded-md bg-success-500 px-2 py-[3px] text-micro font-medium text-ink-inverse">
+      <span className="absolute -top-[11px] start-[-54px] rounded-md bg-success-800 px-2 py-[3px] text-micro font-medium text-ink-inverse">
         <Ltr>
           {label} {toTimeLabel(minute)}
         </Ltr>

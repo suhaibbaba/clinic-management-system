@@ -8,16 +8,7 @@ import {
 import { useMemo, useState, type DragEvent, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import {
-  Badge,
-  Button,
-  EmptyState,
-  Icon,
-  Ltr,
-  PageHeader,
-  Switch,
-  useToast,
-} from '@web/components/ui';
+import { Badge, Button, EmptyState, Icon, Ltr, PageHeader, Switch, useToast } from '@clinic/ui';
 import { LookupOptionModal } from '@web/features/lookups/lookup-option-modal';
 import { ToothSwatch } from '@web/features/patients/chart/tooth-swatch';
 import { useToothStates } from '@web/features/patients/chart/tooth-state';
@@ -28,7 +19,7 @@ import {
   useUpdateLookupOption,
 } from '@web/features/lookups/queries';
 import { errorMessageKey } from '@web/lib/api-error';
-import { cn } from '@web/lib/cn';
+import { cn } from '@clinic/ui/lib/cn';
 
 // Every row is the clinic's, built-in ones included; "أساسي" is information, not a refusal.
 // Switching off leaves an option resolving to its name; deleting takes the name with it.
