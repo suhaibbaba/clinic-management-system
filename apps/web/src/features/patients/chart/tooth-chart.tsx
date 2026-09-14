@@ -348,7 +348,7 @@ function Tooth({
       <span
         aria-hidden="true"
         className={cn(
-          'pill-text text-[10px] font-medium tabular-nums',
+          'pill-text inline-flex items-center text-[10px] font-medium tabular-nums',
           selected ? 'text-primary-600' : 'text-chart-text',
         )}
       >
@@ -390,7 +390,7 @@ function Tooltip({
       dir={documentDirection()}
       className={cn(
         'pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2',
-        'pill-text gap-1 whitespace-nowrap rounded-pill bg-ink px-2.5 py-1 text-[11px]',
+        'pill-text inline-flex items-center gap-1 whitespace-nowrap rounded-pill bg-ink px-2.5 py-1 text-[11px]',
         'text-ink-inverse shadow-float',
         'opacity-0 transition-opacity duration-150',
         'group-hover:opacity-100 group-focus-visible:opacity-100',

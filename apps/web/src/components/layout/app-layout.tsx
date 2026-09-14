@@ -5,6 +5,7 @@ import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-r
 import { Logo } from '@web/components/brand/logo';
 import { NavDrawer } from '@web/components/layout/nav-drawer';
 import { createPageActionSlot, PageActionSlotProvider } from '@clinic/ui/lib/page-action-slot';
+import { useIsMobile } from '@clinic/ui/lib/use-media-query';
 import { UserMenu } from '@web/components/layout/user-menu';
 import { Button, Icon, SearchField } from '@clinic/ui';
 import {
@@ -71,8 +72,13 @@ export function AppLayout(): JSX.Element {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
+  // On a phone the bar is burger + bell + search, and that is already the width of the screen: a
+  // portalled "new …" button wrapped the search onto a second row and the header ate a fifth of
+  // the screen on every page. Below `md` the page keeps its own button, where the label fits.
+  const isMobile = useIsMobile();
+
   return (
-    <PageActionSlotProvider value={actionSlot}>
+    <PageActionSlotProvider value={isMobile ? null : actionSlot}>
       <div className="flex min-h-full flex-col md:flex-row">
         {/* Desktop: a permanent rail. */}
         <aside
@@ -236,7 +242,7 @@ function NavRow({
             className={cn(
               // A lozenge that stays at least as wide as it is tall, so one digit is a circle and
               // three do not spill — the reference's `min-width:20px;height:20px`.
-              'pill-text ms-auto h-5 min-w-5 shrink-0 justify-center',
+              'pill-text inline-flex items-center ms-auto h-5 min-w-5 shrink-0 justify-center',
               'rounded-pill px-1.5 text-micro font-medium tabular-nums',
               isActive ? 'bg-ink-inverse text-primary-700' : 'bg-danger-600 text-ink-inverse',
             )}
@@ -321,7 +327,9 @@ function TopSearch(): JSX.Element {
   return (
     <form
       role="search"
-      className="order-last w-full min-w-0 md:order-none md:me-auto md:w-auto md:max-w-[520px] md:flex-1"
+      // Shares the bar's one row at every width. `w-full order-last` gave it a row of its own on a
+      // phone, which made the header two rows tall on every single page.
+      className="me-auto min-w-0 flex-1 md:max-w-[520px]"
       onSubmit={(event) => {
         event.preventDefault();
 

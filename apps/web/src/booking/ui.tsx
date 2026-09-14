@@ -44,7 +44,7 @@ export function Button({
       type="button"
       // 48px tall: this is a thumb on a phone, not a mouse on a desktop.
       className={cx(
-        'pill-text min-h-(--control-h) cursor-pointer justify-center gap-2 rounded-control',
+        'pill-text inline-flex items-center min-h-(--control-h) cursor-pointer justify-center gap-2 rounded-control',
         'px-5 text-field font-medium transition-colors duration-150',
         'disabled:cursor-not-allowed disabled:opacity-45',
         BUTTON_VARIANTS[variant],

@@ -116,9 +116,10 @@
 
   --tracking-body: 0em;
 
-  /* Two heights, and there is no third. 44px is WCAG 2.5.8's tap target and the height a field is
-     drawn at; 32px is the compact row a laptop gets. A control below `lg` is always the tall one,
-     because a thumb does not shrink with the viewport. */
+  /* Two heights, and there is no third. 44px is the tap target a thumb needs and the height a field
+     is drawn at; 32px is the compact row for a chip, a tab or a segment. A control is the tall one
+     wherever a thumb might reach it — see the pointer query below, which is the only place either
+     of these changes. */
   --control-h: 44px;
   --control-h-sm: 32px;
 
@@ -149,8 +150,9 @@
   --text-kpi: 2.1rem; /* 31.5px — the figure on a KPI card */
   --text-kpi--line-height: 1;
 
-  /* iOS Safari zooms when a field under 16px takes focus and does not zoom back. */
-  --text-field: 1.0667rem; /* 16px — never lower */
+  /* iOS Safari zooms when a field under 16px takes focus and does not zoom back. Never lower on a
+     touch device; the pointer query below takes it down only where there is a mouse. */
+  --text-field: 1.0667rem; /* 16px */
   --text-field--line-height: 1.5rem;
 
   /* 4px at the 93.75% root. Tailwind's default 0.25rem would be 3.75, and every padding in the
@@ -189,6 +191,18 @@
 @theme static {
   --color-tag-from: #e6efeb;
   --color-tag-to: #e4eaf0;
+}
+
+/* A mouse is precise and a screen at this width is dense, so the tall scale is bigger than it needs
+   to be: a 44px field and 16px of text in a form of eight rows reads as a phone blown up. Keyed on
+   the pointer, not the width alone — a tablet at 1024px is still driven by a thumb, and iOS Safari
+   zooms a field under 16px and does not zoom back. Two tokens, one place: nothing else changes. */
+@media (min-width: 64rem) and (pointer: fine) {
+  :root {
+    --control-h: 38px;
+    --text-field: 0.9333rem; /* 14px at the 93.75% root */
+    --text-field--line-height: 1.35rem;
+  }
 }
 
 [dir='rtl'] {
@@ -297,10 +311,11 @@ body {
 
 /* One line inside a pill. Unlayered rather than a `@utility`, so it outranks the line-height a
    `text-*` token carries; and no `text-box-trim` — Safari applies it to a flex container where
-   Chrome does not, and its `cap alphabetic` band is Latin, which throws Arabic off-centre. */
+   Chrome does not, and its `cap alphabetic` band is Latin, which throws Arabic off-centre.
+   Line height *only*: it used to set `display` too, and an unlayered declaration outranks every
+   layered utility — so `hidden` and `md:hidden` on a pill silently did nothing. The box is spelled
+   at each call site with ordinary utilities, which a variant can then override. */
 .pill-text {
-  display: inline-flex;
-  align-items: center;
   line-height: 1;
 }
 

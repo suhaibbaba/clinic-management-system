@@ -47,7 +47,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
           data-part="search-field-shortcut"
           aria-hidden="true"
           className={cn(
-            'pill-text hidden h-5 min-w-5 shrink-0 justify-center rounded-chip md:inline-flex',
+            'pill-text inline-flex items-center hidden h-5 min-w-5 shrink-0 justify-center rounded-chip md:inline-flex',
             'border border-line bg-sunken px-1.5 font-sans text-label text-ink-faint',
           )}
         >

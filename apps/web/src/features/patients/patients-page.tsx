@@ -168,7 +168,7 @@ export function PatientsPage(): JSX.Element {
               amount={row.balance}
               currency={currency}
               className={cn(
-                'pill-text h-(--control-h-sm) justify-center rounded-pill px-3',
+                'pill-text inline-flex items-center h-(--control-h-sm) justify-center rounded-pill px-3',
                 'text-nav font-medium',
                 owes ? 'bg-danger-100 text-danger-600' : 'bg-quiet-bg text-quiet-ink',
               )}

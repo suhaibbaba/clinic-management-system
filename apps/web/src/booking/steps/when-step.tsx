@@ -73,15 +73,17 @@ export function WhenStep({
                         : 'border-line-strong bg-surface text-ink hover:border-neutral-400',
                   )}
                 >
-                  <span className="pill-text text-label">
+                  <span className="pill-text inline-flex items-center text-label">
                     {chip.label === 'today' || chip.label === 'tomorrow'
                       ? t(`when.${chip.label}`)
                       : chip.label}
                   </span>
-                  <span className="pill-text text-field font-medium tabular-nums">
+                  <span className="pill-text inline-flex items-center text-field font-medium tabular-nums">
                     {chip.dayNumber}
                   </span>
-                  <span className="pill-text text-micro opacity-80">{chip.monthLabel}</span>
+                  <span className="pill-text inline-flex items-center text-micro opacity-80">
+                    {chip.monthLabel}
+                  </span>
                 </button>
               </li>
             );
@@ -150,7 +152,9 @@ export function WhenStep({
         <button
           type="button"
           onClick={onUrgent}
-          className="cursor-pointer self-center text-label text-primary-700 underline underline-offset-4"
+          // 18px of link on the one control somebody in pain reaches for. The padding grows the
+          // target; `-my-*` keeps the row where the layout put it.
+          className="-my-3 cursor-pointer self-center px-3 py-3 text-label text-primary-700 underline underline-offset-4"
         >
           {t('urgent.link')}
         </button>
