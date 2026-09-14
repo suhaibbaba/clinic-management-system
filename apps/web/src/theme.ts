@@ -56,7 +56,7 @@ export const abuObaidTheme: ThemeOverride = {
     'row-hover': '#f7fbfa',
     'table-head': '#f7fafb',
     'quiet-bg': '#f0f5f6',
-    'quiet-ink': '#7a929d',
+    'quiet-ink': '#5a7280',
     rail: '#fbfdfd',
 
     'tint-3-bg': '#ede8f8',

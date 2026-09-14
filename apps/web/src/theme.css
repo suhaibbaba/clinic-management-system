@@ -66,7 +66,8 @@
   /* A table's head band, and the pill a zero balance recedes into. */
   --color-table-head: #f7fafb;
   --color-quiet-bg: #f0f5f6;
-  --color-quiet-ink: #7a929d;
+  /* Quiet, but still read: at the reference's #7a929d a zero balance sat at 2.97 on its own pill. */
+  --color-quiet-ink: #5a7280;
   /* The rail is a shade lighter than white-on-tint, exactly as the reference draws it. */
   --color-rail: #fbfdfd;
 }
@@ -109,7 +110,7 @@
   --color-note-bg: #fbf8ec;
   --color-note-line: #f0e6c6;
   --color-note-ink: #6e5d22;
-  --color-note-meta: #a79554;
+  --color-note-meta: #7f6f30;
 
   /* The bloom over the banner's wash. Held as a colour rather than baked into the gradient so the
      one place a translucent green appears is still named here. */
@@ -148,7 +149,7 @@
 
   --chart-surface: #ffffff;
   --chart-border: #e0eaee;
-  --chart-text: #5f7885;
+  --chart-text: #4e6975;
   --chart-guide: #e0eaee;
 }
 

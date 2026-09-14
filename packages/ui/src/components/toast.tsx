@@ -124,7 +124,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
         {/* Bottom-start corner: mirrors to the right-hand side in RTL. */}
         <ToastPrimitive.Viewport
           data-part="toast-viewport"
-          className="fixed bottom-4 start-4 z-[60] flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2 outline-none"
+          className="fixed bottom-4 start-4 z-[60] flex w-80 max-w-[calc(100dvw-2rem)] flex-col gap-2 outline-none"
         />
       </ToastPrimitive.Provider>
     </ToastContext.Provider>

@@ -80,7 +80,7 @@ export function WeekView({
                 </span>
                 {/* The reason, not the word "closed": a clinic writes what it
                     wants reception to read out. */}
-                <span className="block truncate text-[11px] text-ink-subtle">
+                <span className="block truncate text-[11px] text-ink-muted">
                   {closure ? closure.reason : t('pagination.total', { total: ofDay.length })}
                 </span>
               </button>

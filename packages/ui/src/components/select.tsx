@@ -101,7 +101,7 @@ export function Select({
             'min-w-0 flex-1 truncate',
             // Ours rather than `data-[placeholder]`: the empty state is a real selection here, so
             // Radix does not consider the trigger to be showing a placeholder.
-            empty || disabled ? 'text-ink-faint' : 'text-ink',
+            disabled ? 'text-ink-faint' : empty ? 'text-ink-subtle' : 'text-ink',
           )}
         >
           <SelectPrimitive.Value placeholder={placeholder} />

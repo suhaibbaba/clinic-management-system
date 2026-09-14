@@ -32,10 +32,14 @@ export function fieldShell({ hasError = false, disabled = false }: FieldState): 
   );
 }
 
-/** The value inside the shell: it truncates, so the adornments beside it never move. */
+/**
+ * The value inside the shell: it truncates, so the adornments beside it never move. `self-stretch`
+ * because the shell is the 44px target and the input is a 22px line box inside it — without it a
+ * tap in the top or bottom 10px of every field in the app landed on nothing.
+ */
 export const FIELD_TEXT = cn(
-  'min-w-0 flex-1 truncate border-none bg-transparent p-0 text-field text-ink outline-none',
-  'placeholder:text-ink-faint',
+  'min-w-0 flex-1 self-stretch truncate border-none bg-transparent p-0 text-field text-ink outline-none',
+  'placeholder:text-ink-subtle',
   'disabled:cursor-not-allowed disabled:text-ink-faint',
 );
 

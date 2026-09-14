@@ -86,7 +86,10 @@ export function NotesWidget(): JSX.Element {
           search, which is the difference the reference draws. */}
       <form
         onSubmit={submit}
-        className="mt-3 flex items-center gap-2 rounded-control border border-dashed border-line px-3 py-2.5"
+        className={cn(
+          'mt-3 flex items-center gap-2 rounded-control border border-dashed border-line px-3 py-2.5',
+          'min-h-(--control-h) lg:min-h-0',
+        )}
       >
         <Icon name="edit" className="size-3.5 shrink-0 text-ink-faint" aria-hidden="true" />
         <input
@@ -96,7 +99,10 @@ export function NotesWidget(): JSX.Element {
           onChange={(event) => setDraft(event.target.value)}
           aria-label={t('notes.add')}
           placeholder={t('notes.placeholder')}
-          className="w-full min-w-0 border-none bg-transparent text-field text-ink outline-none placeholder:text-ink-faint"
+          className={cn(
+            'w-full min-w-0 self-stretch border-none bg-transparent text-field text-ink outline-none',
+            'placeholder:text-ink-subtle',
+          )}
         />
         {draft.trim().length >= 2 && (
           <button
@@ -104,7 +110,8 @@ export function NotesWidget(): JSX.Element {
             disabled={create.isPending}
             aria-label={t('notes.save')}
             className={cn(
-              'inline-flex size-(--control-h-sm) shrink-0 cursor-pointer items-center justify-center rounded-chip',
+              'inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-chip',
+              'lg:size-(--control-h-sm)',
               'bg-primary-600 text-ink-inverse transition-[filter] duration-150',
               'hover:brightness-[1.06] disabled:cursor-not-allowed disabled:opacity-40',
             )}

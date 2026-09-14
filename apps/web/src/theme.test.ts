@@ -19,7 +19,13 @@ function sourceFiles(dir: string, acc: string[] = []): string[] {
 
     if (statSync(path).isDirectory()) {
       sourceFiles(path, acc);
-    } else if (/\.tsx?$/.test(entry) && !/\.test\.tsx?$/.test(entry)) {
+    } else if (
+      /\.tsx?$/.test(entry) &&
+      !/\.test\.tsx?$/.test(entry) &&
+      // `hex-guard.test.ts` plants a colour literal in this tree and takes it away again. Both
+      // suites read the same files, so without this the two race and this one fails at random.
+      !/-fixture\.tsx?$/.test(entry)
+    ) {
       acc.push(path);
     }
   }

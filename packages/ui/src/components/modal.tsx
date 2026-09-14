@@ -55,10 +55,12 @@ export function Modal({
           className={cn(
             // Physical centring: `translate-x` is not mirrored in RTL, so the
             // logical `start-*` variant would push the dialog off centre.
-            'fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2',
+            'fixed left-1/2 top-1/2 z-50 w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2',
             size === 'lg' ? 'max-w-2xl' : 'max-w-md',
-            // Column layout so the body scrolls and the footer stays reachable.
-            'flex max-h-[calc(100vh-4rem)] flex-col rounded-card border border-line bg-surface p-5 shadow-float',
+            // Column layout so the body scrolls and the footer stays reachable. `dvh`, not `vh`:
+            // iOS Safari resolves `vh` against the viewport with its toolbars hidden, so the
+            // footer — Save, Cancel — sat underneath them.
+            'flex max-h-[calc(100dvh-4rem)] flex-col rounded-card border border-line bg-surface p-5 shadow-float',
           )}
         >
           <Dialog.Title data-part="modal-title" className="text-section font-medium text-ink">

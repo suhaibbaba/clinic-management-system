@@ -23,7 +23,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
       aria-invalid={hasError || undefined}
       className={cn(
         'block min-h-(--control-h) w-full resize-y rounded-control border-[1.5px] px-3.5 py-2.5',
-        'text-start text-field text-ink placeholder:text-ink-faint',
+        'text-start text-field text-ink placeholder:text-ink-subtle',
         'transition-[border-color,box-shadow,background-color] duration-150 outline-none',
         disabled
           ? 'cursor-not-allowed border-transparent bg-inset text-ink-faint'

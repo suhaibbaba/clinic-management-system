@@ -12,8 +12,8 @@ export type BadgeVariant = BadgeTone | 'wash';
 // calm page into a warning light. The dot is `currentColor`, as the reference draws it — one
 // declaration per tone instead of two that can disagree.
 const TONES: Record<BadgeVariant, string> = {
-  neutral: 'bg-sunken text-ink-subtle',
-  success: 'bg-success-100 text-success-700',
+  neutral: 'bg-sunken text-ink-muted',
+  success: 'bg-success-100 text-success-900',
   warning: 'bg-warning-100 text-warning-700',
   danger: 'bg-danger-100 text-danger-600',
   info: 'bg-primary-100 text-primary-600',

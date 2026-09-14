@@ -62,7 +62,7 @@ export function DateRangePicker({
           className={cn(
             fieldShell({}),
             'cursor-pointer text-start text-field focus-visible:outline-none',
-            from || to ? 'text-ink' : 'text-ink-faint',
+            from || to ? 'text-ink' : 'text-ink-subtle',
             className,
           )}
         >

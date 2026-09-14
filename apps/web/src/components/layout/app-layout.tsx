@@ -78,7 +78,7 @@ export function AppLayout(): JSX.Element {
         <aside
           className={cn(
             'z-30 hidden shrink-0 bg-rail md:block md:w-[266px]',
-            'md:sticky md:top-0 md:h-screen md:overflow-y-auto',
+            'md:sticky md:top-0 md:h-dvh md:overflow-y-auto',
             'md:border-e md:border-line',
           )}
         >
@@ -269,7 +269,7 @@ function NavSection({
 
       <div
         className={cn(
-          'px-3 pt-1 pb-2 text-micro font-medium tracking-[0.02em] text-ink-faint',
+          'px-3 pt-1 pb-2 text-micro font-medium tracking-[0.02em] text-ink-subtle',
           // Small caps in Latin only: tracking pulls Arabic letters out of their joins, which is a
           // spelling mistake rather than a style.
           'page-ltr:uppercase',
