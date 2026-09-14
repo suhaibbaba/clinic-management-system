@@ -246,7 +246,9 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
                 />
               </FormField>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
+              // Its own row: sharing one half of the pair left each time field 87px wide, and
+              // `14:00` came out as `14…`.
+              <div className="grid grid-cols-2 gap-2 sm:col-span-2">
                 <FormField label="schedule.from" htmlFor="time-off-start">
                   <TimePicker
                     id="time-off-start"

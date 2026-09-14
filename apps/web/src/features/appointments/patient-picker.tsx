@@ -302,6 +302,7 @@ function NewPatientFields({
         <FormField label="patients.dateOfBirth" htmlFor={`${id}-dob`} optional>
           <DatePicker
             id={`${id}-dob`}
+            startView="years"
             label={t('patients.dateOfBirth')}
             value={draft.dateOfBirth ?? ''}
             onChange={(next) => onChange({ ...draft, dateOfBirth: next })}

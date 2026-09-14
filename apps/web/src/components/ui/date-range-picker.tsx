@@ -39,10 +39,9 @@ export function DateRangePicker({
 
   const from = fromIsoDate(value.from);
   const to = fromIsoDate(value.to);
-  const summary =
-    from || to
-      ? [from ? format(from, 'dd/MM/yyyy') : '…', to ? format(to, 'dd/MM/yyyy') : '…'].join(' — ')
-      : t('common.placeholders.dateRange');
+  const dates = [from ? format(from, 'dd/MM/yyyy') : '…', to ? format(to, 'dd/MM/yyyy') : '…'].join(
+    ' — ',
+  );
 
   return (
     <Popover
@@ -66,7 +65,15 @@ export function DateRangePicker({
             className,
           )}
         >
-          <Ltr className="min-w-0 flex-1 truncate tabular-nums">{summary}</Ltr>
+          {/* The island isolates the digits; the span around it is the page's direction, so the
+              value sits at the inline start of an Arabic form rather than at its far left. */}
+          <span className="min-w-0 flex-1 truncate">
+            {from || to ? (
+              <Ltr className="truncate tabular-nums">{dates}</Ltr>
+            ) : (
+              t('common.placeholders.dateRange')
+            )}
+          </span>
           <Icon name="calendar" className="size-4 shrink-0 text-ink-faint" />
         </button>
       }
@@ -86,7 +93,7 @@ export function DateRangePicker({
       <div className="mt-2 flex items-center justify-between gap-2 border-t border-line pt-2">
         <Button
           size="sm"
-          variant="ghost"
+          variant="quiet"
           icon={<Icon name="x" />}
           onClick={() => {
             onChange({ from: '', to: '' });
@@ -98,7 +105,7 @@ export function DateRangePicker({
 
         <Button
           size="sm"
-          variant="secondary"
+          variant="ghost"
           icon={<Icon name="check" />}
           onClick={() => picker.onOpenChange(false)}
         >
