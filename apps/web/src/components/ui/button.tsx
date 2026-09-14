@@ -55,9 +55,15 @@ export function Button({
         // A softly rounded rectangle, not a pill: it sits beside fields and
         // cards of the same 8-14px family instead of on top of them.
         'pill-text cursor-pointer justify-center rounded-control font-medium',
+        // A control of a fixed height cannot wrap: a narrow table column turned "فتح الملف" into
+        // two lines and the box clipped the second.
+        'whitespace-nowrap',
         'transition-[filter,background-color,color,transform] duration-150 ease-out',
         'active:scale-[0.98]',
-        'disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none',
+        // Disabled is a solid muted fill with no edge, as a disabled field is. At 40% opacity a
+        // white label on the primary fill was barely there at all.
+        'disabled:cursor-not-allowed disabled:border-transparent disabled:bg-inset',
+        'disabled:text-ink-subtle disabled:shadow-none',
         // A disabled button must not still look like it responds.
         'disabled:active:scale-100 disabled:hover:brightness-100 disabled:hover:bg-inherit',
         VARIANTS[variant],
