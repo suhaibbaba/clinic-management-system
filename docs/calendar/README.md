@@ -31,4 +31,16 @@ pull request can point at them rather than at a description of them.
 | `23-time-field-after-ar.png`           | The same field on its own row                                                    |
 | `24-day-grid-en.png`                   | The day grid in English                                                          |
 
+The `sheet-*.png` files are the same frames laid side by side, for a pull request that would
+otherwise carry twenty links:
+
+| File                     | What it shows                                               |
+| ------------------------ | ----------------------------------------------------------- |
+| `sheet-1-day-states.png` | Today selected, before and after, and today unselected      |
+| `sheet-2-range.png`      | A full range in both languages, before and after            |
+| `sheet-3-month-year.png` | The month grid, the year grid, and a date of birth at 390px |
+| `sheet-4-trigger.png`    | The range trigger, with a value and empty                   |
+| `sheet-5-chips.png`      | The chip selection highlight                                |
+| `sheet-6-ui-pass.png`    | The three fixes from the general pass                       |
+
 They are not regression fixtures. The sweep that measures screens is `pnpm qa:screens`.
