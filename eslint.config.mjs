@@ -152,26 +152,6 @@ export default tseslint.config(
   },
 
   {
-    // The QA sweep and the smoke run sit outside every workspace, so there is no `@web/…` alias —
-    // and half of `qa-screens.mjs` is serialised into the browser.
-    files: ['scripts/qa-screens.mjs', 'scripts/qa/**/*.mjs', 'tests/e2e/**/*.ts'],
-    languageOptions: {
-      globals: {
-        console: 'readonly',
-        document: 'readonly',
-        fetch: 'readonly',
-        getComputedStyle: 'readonly',
-        process: 'readonly',
-        window: 'readonly',
-      },
-    },
-    rules: {
-      'no-console': 'off',
-      'no-restricted-imports': 'off',
-    },
-  },
-
-  {
     files: ['**/*.spec.ts', '**/*.test.ts'],
     rules: {
       'no-console': 'off',

@@ -34,8 +34,8 @@ function bookingEntry(): Plugin {
   return {
     name: 'clinic-booking-entry',
     configureServer: rewrite,
-    // And the preview server: `pnpm test:e2e` and the visual sweep both run against the built
-    // bundle, where without this the public page silently served the staff app's shell instead.
+    // And the preview server: checking the built bundle is what `vite preview` is for, and without
+    // this the public page silently served the staff app's shell instead.
     configurePreviewServer: rewrite,
   };
 }
@@ -113,8 +113,8 @@ export default defineConfig({
     proxy: apiProxy(),
   },
 
-  // CI's smoke run drives the built bundle rather than the dev server — a dev overlay hides exactly
-  // the failures it looks for — and it needs the same same-origin `/api`.
+  // Looking at the built bundle rather than the dev server is how a screenshot for a pull request
+  // is taken — a dev overlay hides what it is meant to show — and it needs the same `/api` origin.
   preview: {
     host: true,
     port: 4173,
