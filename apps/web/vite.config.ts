@@ -16,7 +16,7 @@ const appSrc = fileURLToPath(new URL('./src', import.meta.url));
 /** Inotify does not reliably cross a Docker bind mount; poll when asked to. */
 const usePolling = process.env['CHOKIDAR_USEPOLLING'] === 'true';
 
-// nginx does this in production; without the same rewrite `/book/al-nour` 404s in `pnpm dev`.
+// nginx does this in production; without the same rewrite `/book/abu-obeid` 404s in `pnpm dev`.
 // `/booking/…` matches only `/booking/manage/…` — anything wider swallowed `/booking/pending`.
 function bookingEntry(): Plugin {
   const rewrite = (server: { middlewares: Connect.Server }): void => {

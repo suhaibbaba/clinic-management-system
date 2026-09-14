@@ -1,20 +1,49 @@
 import { randomUUID } from 'node:crypto';
 
-import { USER_ROLE, type PersonName } from '@clinic/shared';
+import {
+  PERFORMED_PROCEDURE_STATUS,
+  localWeekday,
+  occupiesSlot,
+  type AppointmentStatus,
+} from '@clinic/shared';
 import { drizzle } from 'drizzle-orm/postgres-js';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, asc, eq, isNull } from 'drizzle-orm';
 import postgres from 'postgres';
 
-import { clinics, users } from '@api/database/schema';
-import { upsertSeedClinic, type SeedClinicSpec } from '@api/database/seed-clinic';
+import type { Database } from '@api/database/database.module';
+import * as schema from '@api/database/schema';
+import {
+  appointments,
+  charges,
+  clinicClosures,
+  clinics,
+  patients,
+  payments,
+  performedProcedures,
+} from '@api/database/schema';
+import { CLINIC_HOURS, CLINIC_NAME, CLINIC_TIME_ZONE } from '@api/database/seed/clinic';
+import { seedDatabase, type SeedOptions, type SeedSummary } from '@api/database/seed/seed-database';
 
-// The seed must recognise the clinic it seeded last time; when the lookup moved to the slug it made
-// a second clinic and died on `appointments_no_overlap`, taking the sandbox with it.
-describe('the seed clinic', () => {
+const localDateOf = (instant: Date): string =>
+  new Intl.DateTimeFormat('en-CA', {
+    timeZone: CLINIC_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(instant);
+
+// The seed is the fixture the whole app is demonstrated on, so what is asserted here is what it
+// must never produce: a Friday appointment, two patients in one chair, a charge for planned work.
+describe('the seeded clinic', () => {
+  jest.setTimeout(180_000);
+
   let client: ReturnType<typeof postgres>;
-  let db: ReturnType<typeof drizzle>;
+  let db: Database;
+  let options: SeedOptions;
+  let summary: SeedSummary;
+  let clinicId: string;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     const databaseUrl = process.env['DATABASE_URL'];
 
     if (!databaseUrl) {
@@ -22,189 +51,216 @@ describe('the seed clinic', () => {
     }
 
     client = postgres(databaseUrl, { max: 1, onnotice: () => {} });
-    db = drizzle(client);
+    db = drizzle(client, { schema });
+
+    // A scratch clinic rather than the real slug: staff identifiers are unique system-wide, and
+    // the suite must not adopt whatever a previous run left behind.
+    const handle = randomUUID().slice(0, 8);
+
+    options = {
+      passwordHash: 'x'.repeat(32),
+      slug: `seed-${handle}`,
+      namePrefix: handle,
+      identifierPrefix: handle,
+      patientCount: 12,
+      daysBack: 60,
+      daysForward: 30,
+    };
+
+    summary = await seedDatabase(db, options);
+    clinicId = summary.clinicId;
   });
 
   afterAll(async () => {
     await client.end();
   });
 
-  function spec(): SeedClinicSpec {
-    const handle = `seed-${randomUUID().slice(0, 8)}`;
+  it('names the clinic and bills it in shekels', async () => {
+    const [row] = await db.select().from(clinics).where(eq(clinics.id, clinicId)).limit(1);
 
-    return {
-      slug: handle,
-      name: { ar: `عيادة ${handle}`, en: `Clinic ${handle}` } satisfies PersonName,
-      defaults: {
-        phone: '+963110000000',
-        email: 'info@clinic.local',
-        address: 'Damascus, Syria',
-        currency: 'USD',
-        workingHours: [],
-        settings: {},
-      },
-    };
-  }
+    expect(row?.nameAr).toContain(CLINIC_NAME.ar);
+    expect(row?.currency).toBe('ILS');
+    expect(row?.address).toContain('نابلس');
+    // Saturday through Thursday: Friday is the one day with no hours at all.
+    expect(row?.workingHours.map((day) => day.weekday).sort()).toEqual([0, 1, 2, 3, 4, 6]);
+  });
 
-  /** A clinic written the way an older seed wrote it, with a derived slug. */
-  async function legacyClinic(target: SeedClinicSpec, slug: string): Promise<string> {
-    const [row] = await db
-      .insert(clinics)
-      .values({
-        ...target.defaults,
-        nameAr: target.name.ar,
-        nameEn: target.name.en,
-        slug,
+  it('opens five accounts and two doctors with different weeks', () => {
+    expect(summary.accounts.map((entry) => entry.account.role).sort()).toEqual([
+      'admin',
+      'doctor',
+      'doctor',
+      'receptionist',
+      'technician',
+    ]);
+  });
+
+  it('writes something into every table the app draws from', () => {
+    expect(summary.created).toBe(true);
+    expect(summary.counts['patients']).toBe(12);
+
+    for (const table of [
+      'appointments',
+      'visits',
+      'performedProcedures',
+      'chartMarks',
+      'charges',
+      'payments',
+      'labs',
+      'labOrders',
+      'labPayments',
+      'inventoryItems',
+      'stockMovements',
+      'suppliers',
+      'waitingList',
+      'notifications',
+      'treatmentPlans',
+      'treatmentPlanItems',
+      'clinicClosures',
+      'doctorTimeOff',
+    ]) {
+      expect([table, summary.counts[table] ?? 0]).not.toEqual([table, 0]);
+    }
+  });
+
+  it('books nothing on a Friday, or on a day the clinic is closed', async () => {
+    const booked = await db
+      .select({ startsAt: appointments.startsAt })
+      .from(appointments)
+      .where(and(eq(appointments.clinicId, clinicId), isNull(appointments.deletedAt)));
+
+    const closures = await db
+      .select({ startsOn: clinicClosures.startsOn, endsOn: clinicClosures.endsOn })
+      .from(clinicClosures)
+      .where(eq(clinicClosures.clinicId, clinicId));
+
+    expect(booked.length).toBeGreaterThan(0);
+
+    const openWeekdays = new Set(CLINIC_HOURS.map((day) => day.weekday));
+    const outsideHours = booked.filter(
+      (row) => !openWeekdays.has(localWeekday(localDateOf(row.startsAt), CLINIC_TIME_ZONE)),
+    );
+
+    expect(outsideHours).toEqual([]);
+
+    const inClosure = booked.filter((row) => {
+      const isoDate = localDateOf(row.startsAt);
+      return closures.some((closure) => isoDate >= closure.startsOn && isoDate <= closure.endsOn);
+    });
+
+    expect(inClosure).toEqual([]);
+  });
+
+  it('never puts two patients in one chair', async () => {
+    const booked = await db
+      .select({
+        doctorId: appointments.doctorId,
+        startsAt: appointments.startsAt,
+        durationMinutes: appointments.durationMinutes,
+        status: appointments.status,
       })
-      .returning({ id: clinics.id });
+      .from(appointments)
+      .where(and(eq(appointments.clinicId, clinicId), isNull(appointments.deletedAt)))
+      .orderBy(asc(appointments.doctorId), asc(appointments.startsAt));
 
-    if (!row) {
-      throw new Error('Failed to insert the legacy clinic');
+    const held = booked.filter((row) => occupiesSlot(row.status as AppointmentStatus));
+    const clashes: string[] = [];
+
+    for (let index = 1; index < held.length; index += 1) {
+      const previous = held[index - 1];
+      const current = held[index];
+
+      if (!previous || !current || previous.doctorId !== current.doctorId) {
+        continue;
+      }
+
+      if (
+        current.startsAt.getTime() <
+        previous.startsAt.getTime() + previous.durationMinutes * 60_000
+      ) {
+        clashes.push(`${current.doctorId} ${current.startsAt.toISOString()}`);
+      }
     }
 
-    return row.id;
-  }
-
-  it('creates the clinic when there is nothing to adopt', async () => {
-    const target = spec();
-
-    const result = await upsertSeedClinic(db, target);
-
-    expect(result.notes).toEqual([]);
-
-    const [row] = await db
-      .select({ slug: clinics.slug, nameAr: clinics.nameAr })
-      .from(clinics)
-      .where(eq(clinics.id, result.id));
-
-    expect(row).toEqual({ slug: target.slug, nameAr: target.name.ar });
+    expect(clashes).toEqual([]);
   });
 
-  it('adopts the same clinic when it is run again', async () => {
-    const target = spec();
+  it('bills the work that was done and nothing that is only planned', async () => {
+    const rows = await db
+      .select({ status: performedProcedures.status, chargeId: charges.id })
+      .from(performedProcedures)
+      .leftJoin(
+        charges,
+        and(
+          eq(charges.performedProcedureId, performedProcedures.id),
+          isNull(charges.reversesId),
+          isNull(charges.reversedAt),
+        ),
+      )
+      .where(
+        and(eq(performedProcedures.clinicId, clinicId), isNull(performedProcedures.deletedAt)),
+      );
 
-    const first = await upsertSeedClinic(db, target);
-    const second = await upsertSeedClinic(db, target);
+    expect(rows.length).toBeGreaterThan(0);
 
-    expect(second.id).toBe(first.id);
-    expect(second.notes).toEqual([]);
+    const unbilled = rows.filter(
+      (row) => row.status !== PERFORMED_PROCEDURE_STATUS.PLANNED && row.chargeId === null,
+    );
+    const wronglyBilled = rows.filter(
+      (row) => row.status === PERFORMED_PROCEDURE_STATUS.PLANNED && row.chargeId !== null,
+    );
+
+    expect(unbilled).toEqual([]);
+    expect(wronglyBilled).toEqual([]);
   });
 
-  it('adopts a clinic whose slug was derived from its name, and takes the slug back', async () => {
-    const target = spec();
-    // What `0005` left behind: the name matches, the slug does not.
-    const legacyId = await legacyClinic(target, `${target.slug}-dental-clinic`);
+  it('numbers the receipts continuously from one', async () => {
+    const rows = await db
+      .select({ receiptNumber: payments.receiptNumber })
+      .from(payments)
+      .where(and(eq(payments.clinicId, clinicId), isNull(payments.deletedAt)))
+      .orderBy(asc(payments.receiptNumber));
 
-    const result = await upsertSeedClinic(db, target);
+    const numbers = rows.map((row) => row.receiptNumber).filter((value) => value !== null);
 
-    expect(result.id).toBe(legacyId);
-    expect(result.notes).toHaveLength(1);
-    expect(result.notes[0]).toContain('booking slug');
-
-    const [row] = await db
-      .select({ slug: clinics.slug })
-      .from(clinics)
-      .where(eq(clinics.id, legacyId));
-
-    expect(row?.slug).toBe(target.slug);
+    expect(numbers.length).toBeGreaterThan(0);
+    expect(numbers).toEqual(numbers.map((_, index) => index + 1));
   });
 
-  it('retires the empty duplicate a missed lookup created, and keeps the older clinic', async () => {
-    const target = spec();
-    // The sandbox, exactly: the real clinic under its derived slug, and the
-    // duplicate the missed lookup created sitting on the slug the seed wants.
-    const realId = await legacyClinic(target, `${target.slug}-dental-clinic`);
-    const strayId = await legacyClinic(target, target.slug);
+  it('leaves today with a list somebody can demonstrate', async () => {
+    const today = localDateOf(new Date());
 
-    // The real clinic is the one with the staff — that is what makes the
-    // other one unreachable, and it is the whole condition for retiring it.
-    await db.insert(users).values({
-      clinicId: realId,
-      nameAr: 'مسؤول',
-      nameEn: 'Admin',
-      phone: `+9639${Math.floor(Math.random() * 100_000_000)
-        .toString()
-        .padStart(8, '0')}`,
-      email: `${randomUUID()}@clinic.local`,
-      passwordHash: 'x',
-      role: USER_ROLE.ADMIN,
-    });
+    // A Friday is the one day the demo has nothing to show, and that is correct.
+    if (!CLINIC_HOURS.some((day) => day.weekday === localWeekday(today, CLINIC_TIME_ZONE))) {
+      return;
+    }
 
-    const result = await upsertSeedClinic(db, target);
+    const booked = await db
+      .select({ startsAt: appointments.startsAt, status: appointments.status })
+      .from(appointments)
+      .where(and(eq(appointments.clinicId, clinicId), isNull(appointments.deletedAt)));
 
-    expect(result.id).toBe(realId);
-    expect(result.notes.join('\n')).toContain('Retired an empty duplicate');
+    const todays = booked.filter((row) => localDateOf(row.startsAt) === today);
 
-    const [stray] = await db
-      .select({ deletedAt: clinics.deletedAt })
-      .from(clinics)
-      .where(eq(clinics.id, strayId));
-
-    expect(stray?.deletedAt).not.toBeNull();
-
-    // And the real clinic ends up on the slug the booking link is printed with.
-    const [real] = await db
-      .select({ slug: clinics.slug })
-      .from(clinics)
-      .where(eq(clinics.id, realId));
-
-    expect(real?.slug).toBe(target.slug);
+    expect(todays.length).toBeGreaterThanOrEqual(6);
+    expect(new Set(todays.map((row) => row.status)).size).toBeGreaterThan(2);
   });
 
-  it('leaves a duplicate alone once somebody can sign into it', async () => {
-    const target = spec();
-    const realId = await legacyClinic(target, `${target.slug}-dental-clinic`);
-    const otherId = await legacyClinic(target, target.slug);
+  it('writes nothing the second time it is run', async () => {
+    const before = await db
+      .select({ id: patients.id })
+      .from(patients)
+      .where(eq(patients.clinicId, clinicId));
 
-    await db.insert(users).values({
-      clinicId: otherId,
-      nameAr: 'مسؤول',
-      nameEn: 'Admin',
-      phone: `+9639${Math.floor(Math.random() * 100_000_000)
-        .toString()
-        .padStart(8, '0')}`,
-      email: `${randomUUID()}@clinic.local`,
-      passwordHash: 'x',
-      role: USER_ROLE.ADMIN,
-    });
+    const again = await seedDatabase(db, options);
 
-    const result = await upsertSeedClinic(db, target);
+    const after = await db
+      .select({ id: patients.id })
+      .from(patients)
+      .where(eq(patients.clinicId, clinicId));
 
-    expect(result.id).toBe(realId);
-    expect(result.notes).toEqual([]);
-
-    const [other] = await db
-      .select({ deletedAt: clinics.deletedAt, slug: clinics.slug })
-      .from(clinics)
-      .where(eq(clinics.id, otherId));
-
-    expect(other?.deletedAt).toBeNull();
-    expect(other?.slug).toBe(target.slug);
-
-    // The seed does not fight it for the slug either.
-    const [real] = await db
-      .select({ slug: clinics.slug })
-      .from(clinics)
-      .where(eq(clinics.id, realId));
-
-    expect(real?.slug).toBe(`${target.slug}-dental-clinic`);
-  });
-
-  it('ignores a soft-deleted clinic', async () => {
-    const target = spec();
-    const goneId = await legacyClinic(target, target.slug);
-
-    await db.update(clinics).set({ deletedAt: new Date() }).where(eq(clinics.id, goneId));
-
-    const result = await upsertSeedClinic(db, target);
-
-    expect(result.id).not.toBe(goneId);
-
-    const [live] = await db
-      .select({ id: clinics.id })
-      .from(clinics)
-      .where(and(eq(clinics.slug, target.slug), isNull(clinics.deletedAt)));
-
-    expect(live?.id).toBe(result.id);
+    expect(again.clinicId).toBe(clinicId);
+    expect(again.created).toBe(false);
+    expect(after.length).toBe(before.length);
   });
 });

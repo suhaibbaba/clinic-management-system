@@ -10,10 +10,11 @@
         "src/main.ts",
         "src/database/migrate.ts",
         "src/database/seed.ts",
+        "scripts/*.mjs",
         "test/**/*.{spec,e2e-spec}.ts",
         "src/**/*.spec.ts"
       ],
-      "project": ["src/**/*.ts", "test/**/*.ts"]
+      "project": ["src/**/*.ts", "test/**/*.ts", "scripts/*.mjs"]
     },
     "apps/web": {
       "entry": [

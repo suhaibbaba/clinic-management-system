@@ -142,7 +142,7 @@ export default tseslint.config(
   },
 
   {
-    files: ['docker/**/*.js', 'scripts/**/*.mjs', 'apps/web/scripts/**/*.mjs'],
+    files: ['docker/**/*.js', 'scripts/**/*.mjs', 'apps/*/scripts/**/*.mjs'],
     languageOptions: {
       globals: { console: 'readonly', fetch: 'readonly', process: 'readonly' },
     },
@@ -160,7 +160,7 @@ export default tseslint.config(
 
   {
     // Standalone scripts run outside Nest and log to stdout by design.
-    files: ['apps/api/src/database/migrate.ts'],
+    files: ['apps/api/src/database/migrate.ts', 'apps/api/src/database/seed.ts'],
     rules: {
       'no-console': 'off',
     },

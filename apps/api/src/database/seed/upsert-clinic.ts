@@ -1,10 +1,10 @@
 import type { PersonName } from '@clinic/shared';
 import { and, asc, count, eq, isNull, ne, or, type InferInsertModel } from 'drizzle-orm';
-import type { drizzle } from 'drizzle-orm/postgres-js';
 
+import type { Database } from '@api/database/database.module';
 import { clinics, users } from '@api/database/schema';
 
-type Db = ReturnType<typeof drizzle>;
+type Db = Database;
 
 type ClinicDefaults = Omit<
   InferInsertModel<typeof clinics>,

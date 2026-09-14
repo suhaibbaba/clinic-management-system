@@ -97,10 +97,21 @@ that sets a cookie the way a deployed API behind nginx does.
 docker compose exec api pnpm seed
 ```
 
-Creates one clinic, the dental specialty, one account per role, a dental procedure
-catalog and ten patients with medical histories, visits, procedures on FDI teeth and a
-treatment plan — then prints the credentials. It is idempotent, so re-running it is safe.
-The accounts and the password are documented in `.env.example`.
+Fills an **empty** database with عيادة أبو عبيد لطب الأسنان — a Nablus practice billing
+in shekels, open Saturday to Thursday — and a year of history behind it and a year of
+diary ahead: ~80 patients with Palestinian names and mixed ages, ~1,500 past appointments
+with the visits, procedures and FDI tooth marks they produced, charges and receipts
+through the real billing service, three labs, a stock room with expiries, and a fortnight
+ahead that is nearly full. It prints the credentials and the row counts; the accounts and
+the password are documented in `.env.example`.
+
+It is **deterministic** — the same clinic every run — and takes a few seconds. It only
+ever populates an empty clinic, so re-running it is safe and changes nothing that has been
+edited since. To rebuild from scratch, dropping what is there:
+
+```bash
+docker compose exec api pnpm db:reset   # drop the schema, migrate, seed — one command
+```
 
 Sign in with either the phone or the email:
 
@@ -117,6 +128,7 @@ docker compose exec api pnpm --filter @clinic/api test
 docker compose exec api pnpm --filter @clinic/api db:generate   # generate a migration
 docker compose exec api node dist/database/migrate.js           # apply migrations
 docker compose exec api pnpm seed
+docker compose exec api pnpm db:reset                           # wipe, migrate, seed
 docker compose exec web pnpm --filter @clinic/web test
 ```
 

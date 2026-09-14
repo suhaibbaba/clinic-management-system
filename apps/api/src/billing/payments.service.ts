@@ -177,7 +177,8 @@ export class PaymentsService implements OnModuleInit {
 
 // Not a Postgres sequence: `nextval` does not roll back, so a failed payment would burn a number. A
 // counter row rolls back, and its `UPDATE` row lock queues concurrent payments.
-async function nextReceiptNumber(tx: DatabaseExecutor, clinicId: string): Promise<number> {
+/** Exported for the seed, which writes a year of receipts and must not invent the sequence. */
+export async function nextReceiptNumber(tx: DatabaseExecutor, clinicId: string): Promise<number> {
   await tx
     .insert(clinicCounters)
     .values({ clinicId })
