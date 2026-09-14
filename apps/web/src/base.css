@@ -38,16 +38,13 @@ body {
   unicode-bidi: isolate;
 }
 
-/* One line inside a pill — badge, tag, count, tab, segment, button: the line box is the glyph box,
-   so the padding is all that stands above and below it and no screen needs a nudge of its own.
-   Unlayered rather than a `@utility`, so it outranks the line-height a `text-*` token carries. */
+/* One line inside a pill. Unlayered rather than a `@utility`, so it outranks the line-height a
+   `text-*` token carries; and no `text-box-trim` — Safari applies it to a flex container where
+   Chrome does not, and its `cap alphabetic` band is Latin, which throws Arabic off-centre. */
 .pill-text {
   display: inline-flex;
   align-items: center;
   line-height: 1;
-  /* Free where the browser has it: the same cap/baseline band `fonts.css` already centres. */
-  text-box-trim: trim-both;
-  text-box-edge: cap alphabetic;
 }
 
 /* The reference's two gradients, named once: the label chip on a KPI card or panel head, and the
