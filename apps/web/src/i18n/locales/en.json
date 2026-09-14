@@ -57,7 +57,17 @@
     "done": "Done",
     "openCalendar": "Open the calendar",
     "openTimes": "Choose a time",
-    "notSpecified": "Not specified"
+    "notSpecified": "Not specified",
+    "calendar": {
+      "chooseMonth": "Choose month",
+      "chooseYear": "Choose year",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "previousYear": "Previous year",
+      "nextYear": "Next year",
+      "previousYears": "Previous years",
+      "nextYears": "Next years"
+    }
   },
   "pagination": {
     "label": "Pagination",

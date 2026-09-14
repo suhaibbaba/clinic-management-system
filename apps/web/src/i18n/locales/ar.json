@@ -57,7 +57,17 @@
     "done": "تم",
     "openCalendar": "فتح التقويم",
     "openTimes": "اختيار الوقت",
-    "notSpecified": "غير محدد"
+    "notSpecified": "غير محدد",
+    "calendar": {
+      "chooseMonth": "اختيار الشهر",
+      "chooseYear": "اختيار السنة",
+      "previousMonth": "الشهر السابق",
+      "nextMonth": "الشهر التالي",
+      "previousYear": "السنة السابقة",
+      "nextYear": "السنة التالية",
+      "previousYears": "السنوات السابقة",
+      "nextYears": "السنوات التالية"
+    }
   },
   "pagination": {
     "label": "التنقل بين الصفحات",

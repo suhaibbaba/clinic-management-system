@@ -3,7 +3,7 @@ import { useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@web/components/ui/button';
-import { Calendar, dateLocale } from '@web/components/ui/calendar';
+import { Calendar, dateLocale, type CalendarView } from '@web/components/ui/calendar';
 import { FIELD_BUTTON, FIELD_TEXT, FieldLock, fieldShell } from '@web/components/ui/field';
 import { Icon } from '@web/components/ui/icon';
 import { openOnArrowDown, usePickerOpen } from '@web/components/ui/picker-open';
@@ -40,6 +40,8 @@ export interface DatePickerProps {
   readonly label: string;
   readonly disabled?: boolean | undefined;
   readonly hasError?: boolean | undefined;
+  /** `years` for a date of birth, so the picker opens where the answer is. */
+  readonly startView?: CalendarView | undefined;
   readonly className?: string | undefined;
 }
 
@@ -52,6 +54,7 @@ export function DatePicker({
   label,
   disabled = false,
   hasError = false,
+  startView,
   className,
 }: DatePickerProps): JSX.Element {
   const { t, i18n } = useTranslation();
@@ -135,6 +138,7 @@ export function DatePicker({
     >
       <Calendar
         mode="single"
+        {...(startView && { startView })}
         {...(selected && { selected, defaultMonth: selected })}
         onSelect={(date: Date | undefined) => {
           if (date) {
@@ -147,7 +151,7 @@ export function DatePicker({
       <div className="mt-2 flex items-center justify-between gap-2 border-t border-line pt-2">
         <Button
           size="sm"
-          variant="ghost"
+          variant="quiet"
           icon={<Icon name="x" />}
           onClick={() => {
             onChange('');
@@ -159,7 +163,7 @@ export function DatePicker({
 
         <Button
           size="sm"
-          variant="secondary"
+          variant="ghost"
           icon={<Icon name="calendar" />}
           onClick={() => {
             onChange(toIsoDate(new Date()));
