@@ -109,7 +109,8 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
             <ToastPrimitive.Close
               aria-label={t('common.close')}
               className={cn(
-                'shrink-0 cursor-pointer rounded-control p-1 text-ink-subtle',
+                'inline-grid size-(--control-h-sm) shrink-0 cursor-pointer place-items-center',
+                'rounded-control text-ink-subtle',
                 'transition-colors duration-150 hover:bg-inset hover:text-ink',
               )}
             >

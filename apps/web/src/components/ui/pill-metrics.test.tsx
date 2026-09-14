@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { Badge } from '@web/components/ui/badge';
+import { Badge, Chip } from '@web/components/ui/badge';
 
 const SRC = join(__dirname, '..', '..');
 
@@ -66,14 +66,42 @@ function classNameValues(source: string): string[] {
 // The badge is the shape every other pill copies, so it is the one asserted by name: `pill-text`
 // carries the box, and nothing in the component declares a line-height of its own.
 describe('the badge draws its line box from the shared pill class', () => {
-  it('renders with it', () => {
+  it('renders with it, at the small control height', () => {
     render(<Badge tone="danger">مؤكَّد</Badge>);
 
-    expect(screen.getByText('مؤكَّد')).toHaveClass('pill-text');
+    // The pill is the box; the text inside it is the part that truncates.
+    const pill = screen.getByText('مؤكَّد').parentElement;
+
+    expect(pill).toHaveClass('pill-text');
+    expect(pill).toHaveClass('h-(--control-h-sm)');
+    expect(pill).toHaveClass('gap-2');
+  });
+
+  it('gives an interactive chip the same box', () => {
+    render(<Chip selected>الكل</Chip>);
+
+    const chip = screen.getByRole('button', { name: 'الكل' });
+
+    expect(chip).toHaveClass('pill-text');
+    // The tall token: a chip sits in a filter row beside a search box and a select.
+    expect(chip).toHaveClass('h-(--control-h)');
   });
 
   it('never sets a line-height of its own', () => {
     expect(readSrc('components', 'ui', 'badge.tsx')).not.toMatch(/leading-/);
+  });
+
+  it('is the only pill implementation left', () => {
+    const pills = sources(SRC).filter((path) =>
+      /\bPILL_BASE\b/.test(withoutComments(readFileSync(path, 'utf8'))),
+    );
+
+    // Everything pill-shaped composes the one base; nothing declares a second.
+    expect(pills.map((path) => path.split('/').at(-1)).sort()).toEqual([
+      'badge.tsx',
+      'segmented-control.tsx',
+      'tabs.tsx',
+    ]);
   });
 
   it('is inline-flex, centred, and one em tall', () => {

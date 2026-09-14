@@ -17,7 +17,7 @@ const LINK_CLASS = cn(
   // An absolutely positioned `::after` gives 44px of hit area with no layout: `inline-flex
   // min-h-11` bought the height out of the line box and dropped the number below its label.
   'relative inline-block',
-  "after:absolute after:inset-x-0 after:top-1/2 after:h-11 after:-translate-y-1/2 after:content-[''] lg:after:hidden",
+  "after:absolute after:inset-x-0 after:top-1/2 after:h-(--control-h) after:-translate-y-1/2 after:content-[''] lg:after:hidden",
 );
 
 // `tel:` gets the digits stripped of spacing while the visible text stays as entered — that is what

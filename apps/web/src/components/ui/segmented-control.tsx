@@ -1,5 +1,6 @@
 import type { JSX } from 'react';
 
+import { PILL_BASE } from '@web/components/ui/badge';
 import { cn } from '@web/lib/cn';
 import { Ltr } from '@web/components/ui/ltr';
 
@@ -43,14 +44,14 @@ export function SegmentedControl<TValue extends string>({
             aria-checked={isSelected}
             onClick={() => onChange(option.value)}
             className={cn(
-              // 44 in both directions on touch: `px-3.5` around a two-letter label drew a 43px-wide
-              // segment.
-              'pill-text min-h-11 min-w-11 cursor-pointer justify-center gap-1.5',
-              'rounded-pill border px-3.5 lg:h-[30px] lg:min-h-0 lg:min-w-0',
-              'text-meta font-medium transition-[background-color,border-color,color] duration-150',
+              PILL_BASE,
+              // 44 in both directions on touch: a two-letter Arabic label drew a 43px-wide segment.
+              'min-h-(--control-h) min-w-(--control-h) cursor-pointer border-[1.5px]',
+              'lg:h-(--control-h-sm) lg:min-h-0 lg:min-w-(--control-h-sm)',
+              'transition-[background-color,border-color,color] duration-150',
               isSelected
                 ? 'border-primary-600 bg-primary-600 text-ink-inverse'
-                : 'border-line bg-surface text-ink-muted hover:border-primary-200 hover:bg-primary-100 hover:text-primary-700',
+                : 'border-line-strong bg-surface text-ink-muted hover:border-neutral-400 hover:text-ink',
             )}
           >
             {option.label}

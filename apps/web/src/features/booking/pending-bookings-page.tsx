@@ -13,7 +13,6 @@ import {
   PageHeader,
   PersonName,
   PhoneLink,
-  RowAction,
   StatCard,
   StatRow,
   Table,
@@ -126,18 +125,25 @@ export function PendingBookingsPage(): JSX.Element {
       actions: true,
       render: (row) => (
         <span className="flex items-center gap-3">
-          <RowAction onClick={() => void onConfirm(row)} disabled={confirm.isPending}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => void onConfirm(row)}
+            disabled={confirm.isPending}
+          >
             {t('booking.pending.confirm')}
-          </RowAction>
-          <RowAction
-            tone="quiet"
+          </Button>
+          <Button
+            size="sm"
+            variant="quiet"
+
             onClick={() => {
               setRejecting(row);
               setReason('');
             }}
           >
             {t('booking.pending.reject')}
-          </RowAction>
+          </Button>
         </span>
       ),
     },

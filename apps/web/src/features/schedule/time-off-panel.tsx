@@ -12,7 +12,6 @@ import {
   Input,
   Ltr,
   Modal,
-  RowAction,
   Switch,
   TimePicker,
   useToast,
@@ -178,13 +177,15 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
                     {t(whole ? 'schedule.timeOff.wholeDay' : 'schedule.timeOff.partial')}
                   </Badge>
                   {canEdit && (
-                    <RowAction
+                    <Button
+                      size="sm"
+                      variant="quiet"
                       icon={<Icon name="trash" />}
-                      tone="quiet"
+
                       onClick={() => void remove(entry)}
                     >
                       {t('common.delete')}
-                    </RowAction>
+                    </Button>
                   )}
                 </span>
               </li>

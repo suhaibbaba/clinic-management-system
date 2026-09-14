@@ -1,61 +1,54 @@
-import { forwardRef, type InputHTMLAttributes } from 'react';
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
 
-import { Icon, type IconName } from '@web/components/ui/icon';
+import { FIELD_TEXT, FieldClear, FieldIcon, FieldLock, fieldShell } from '@web/components/ui/field';
+import type { IconName } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   hasError?: boolean | undefined;
   adornment?: IconName | undefined;
+  /** Draws a clear button at the inline end; the caller decides what empty means. */
+  onClear?: (() => void) | undefined;
+  clearLabel?: string | undefined;
+  /** Sits at the inline end, inside the field — a currency symbol, a unit. */
+  suffix?: ReactNode | undefined;
 }
 
-// `dir="ltr"` fields are handled here, not at the call site: `text-start` and `ps-*` would resolve
-// against the field, putting its value and icon room on the left of an Arabic form.
+// `dir="ltr"` fields are handled here, not at the call site: `text-start` would resolve against the
+// field, putting a phone number on the left of an Arabic form. The attribute is inline isolation
+// for a Latin value — the page's direction still decides where the value sits.
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { className, hasError = false, adornment, ...props },
+  { className, hasError = false, adornment, onClear, clearLabel, suffix, ...props },
   ref,
 ) {
   const ltrIsland = props.dir === 'ltr';
-
-  const field = (
-    <input
-      ref={ref}
-      aria-invalid={hasError || undefined}
-      className={cn(
-        // 44px everywhere, which is both the reference's drawn height and what WCAG 2.5.8 asks of
-        // a tap target — the two agree here, so there is no `lg:` step down.
-        'block h-11 w-full rounded-field border bg-canvas px-3.5 text-field text-ink',
-        ltrIsland ? 'page-rtl:text-right page-ltr:text-left' : 'text-start',
-        'transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-ink-faint',
-        'focus:border-primary-600 focus:shadow-ring',
-        'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-faint',
-        '[&::-webkit-calendar-picker-indicator]:cursor-pointer',
-        '[&::-webkit-calendar-picker-indicator]:opacity-60',
-        '[&::-webkit-calendar-picker-indicator]:hover:opacity-100',
-        // The icon is on the page's start edge either way, so the room for it
-        // is too — `ps-10` on an LTR island would reserve it on the far side.
-        adornment !== undefined && (ltrIsland ? 'page-rtl:pr-10 page-ltr:pl-10' : 'ps-10'),
-        hasError ? 'border-danger-600' : 'border-line',
-        className,
-      )}
-      {...props}
-    />
-  );
-
-  if (adornment === undefined) {
-    return field;
-  }
+  const disabled = props.disabled === true;
+  const clearable = onClear !== undefined && !disabled && String(props.value ?? '') !== '';
 
   return (
-    <div className="relative">
-      <span
+    <div className={cn(fieldShell({ hasError, disabled }), className)}>
+      {adornment !== undefined && (
+        <FieldIcon name={adornment} hasError={hasError} disabled={disabled} />
+      )}
+
+      <input
+        ref={ref}
+        aria-invalid={hasError || undefined}
         className={cn(
-          'pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3',
-          hasError ? 'text-danger-600' : 'text-ink-faint',
+          FIELD_TEXT,
+          ltrIsland ? 'page-rtl:text-right page-ltr:text-left' : 'text-start',
+          '[&::-webkit-calendar-picker-indicator]:cursor-pointer',
+          '[&::-webkit-calendar-picker-indicator]:opacity-60',
+          '[&::-webkit-calendar-picker-indicator]:hover:opacity-100',
         )}
-      >
-        <Icon name={adornment} />
-      </span>
-      {field}
+        {...props}
+      />
+
+      {clearable && clearLabel !== undefined && <FieldClear label={clearLabel} onClear={onClear} />}
+
+      {suffix !== undefined && <span className="shrink-0 text-value text-ink-muted">{suffix}</span>}
+
+      {disabled && <FieldLock />}
     </div>
   );
 });

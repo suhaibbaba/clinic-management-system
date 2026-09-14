@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Badge,
   Button,
+  Chip,
   EmptyState,
   Icon,
   Ltr,
@@ -123,13 +124,12 @@ export function LabOrdersPage(): JSX.Element {
           />
         </div>
 
-        <Button
-          variant={overdueOnly ? 'danger' : 'secondary'}
-          icon={<Icon name="clock" />}
-          onClick={() => setOverdueOnly((previous) => !previous)}
-        >
+        {/* A filter, so it is a chip and takes the fields' state language rather than a button's
+            emphasis: what is on is what is bordered blue. */}
+        <Chip selected={overdueOnly} onClick={() => setOverdueOnly((previous) => !previous)}>
+          <Icon name="clock" className="size-3.5 shrink-0" />
           {t('labs.orders.overdueFilter', { count: overdueCount })}
-        </Button>
+        </Chip>
       </div>
 
       {isMobile || status !== '' || overdueOnly ? (

@@ -1,6 +1,6 @@
 import { forwardRef, type InputHTMLAttributes } from 'react';
 
-import { Icon } from '@web/components/ui/icon';
+import { FIELD_TEXT, FieldClear, FieldIcon, fieldShell } from '@web/components/ui/field';
 import { cn } from '@web/lib/cn';
 
 export interface SearchFieldProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -9,52 +9,48 @@ export interface SearchFieldProps extends InputHTMLAttributes<HTMLInputElement> 
   // Pass it only where a shortcut actually focuses this field — a chip promising a key that does
   // nothing is worse than no chip.
   readonly shortcut?: string | undefined;
+  readonly onClear?: (() => void) | undefined;
+  readonly clearLabel?: string | undefined;
 }
 
 // `type="search"` for the platform's clear button; its WebKit decoration is stripped because it
-// lands on the wrong side in RTL and duplicates the chip.
+// lands on the wrong side in RTL and duplicates the button beside it.
 export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(function SearchField(
-  { label, shortcut, className, ...props },
+  { label, shortcut, className, onClear, clearLabel, ...props },
   ref,
 ) {
+  const clearable = onClear !== undefined && String(props.value ?? '') !== '';
+
   return (
-    <div className={cn('relative', className)}>
-      <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3.5 text-ink-faint">
-        <Icon name="search" className="size-4" />
-      </span>
+    <div className={cn(fieldShell({}), className)}>
+      <FieldIcon name="search" />
 
       <input
         ref={ref}
         type="search"
         aria-label={label}
         className={cn(
-          'block h-11 w-full rounded-field border border-line bg-canvas ps-11',
-          'text-start text-field text-ink',
-          'transition-[border-color,box-shadow] duration-200 placeholder:text-ink-faint',
-          'focus:border-primary-600 focus:shadow-ring',
+          FIELD_TEXT,
+          'text-start',
           '[&::-webkit-search-decoration]:appearance-none [&::-webkit-search-cancel-button]:appearance-none',
-          // The chip is desktop-only, so the room made for it is too.
-          shortcut === undefined ? 'pe-4' : 'pe-4 md:pe-14',
         )}
         {...props}
       />
 
+      {clearable && clearLabel !== undefined && <FieldClear label={clearLabel} onClear={onClear} />}
+
       {shortcut !== undefined && (
-        <span
+        // Hidden on a phone: there is no keyboard to press it with, in a field already short at
+        // 390px. A drawn box, not a padded line — a slash inks taller than its own line box.
+        <kbd
           aria-hidden="true"
           className={cn(
-            // Hidden on a phone: there is no keyboard to press it with, in a field already short at
-            // 390px.
-            'pointer-events-none absolute inset-y-0 end-0 hidden items-center pe-3 md:flex',
-            'text-ink-faint',
+            'pill-text hidden h-5 min-w-5 shrink-0 justify-center rounded-chip md:inline-flex',
+            'border border-line bg-sunken px-1.5 font-sans text-label text-ink-faint',
           )}
         >
-          {/* A drawn 20px box, not a padded line: a slash inks taller than its own line box and
-              overflowed the chip when the height came from the type scale. */}
-          <kbd className="pill-text h-5 min-w-5 justify-center rounded-chip border border-line bg-sunken px-1.5 font-sans text-label">
-            {shortcut}
-          </kbd>
-        </span>
+          {shortcut}
+        </kbd>
       )}
     </div>
   );

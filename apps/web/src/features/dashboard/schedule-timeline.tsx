@@ -160,7 +160,7 @@ function QuickAction({
   readonly href?: string | undefined;
 }): JSX.Element {
   const className = cn(
-    'inline-flex size-11 cursor-pointer items-center justify-center lg:size-[34px]',
+    'inline-flex size-(--control-h) cursor-pointer items-center justify-center lg:size-(--control-h-sm)',
     'rounded-chip border border-line bg-canvas text-ink-muted',
     'transition-colors duration-150 hover:border-success-700 hover:text-success-700',
   );

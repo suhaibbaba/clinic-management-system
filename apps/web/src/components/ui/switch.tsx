@@ -31,7 +31,7 @@ export function Switch({
         'transition-colors duration-150',
         // `after` rather than padding for the 44px target: padding would move the thumb's own
         // anchor and grow the track with it.
-        'after:absolute after:inset-x-0 after:top-1/2 after:h-11 after:-translate-y-1/2',
+        'after:absolute after:inset-x-0 after:top-1/2 after:h-(--control-h) after:-translate-y-1/2',
         'after:content-[""] lg:after:hidden',
         'disabled:cursor-not-allowed disabled:opacity-50',
         checked ? 'bg-primary-600' : 'bg-neutral-300',

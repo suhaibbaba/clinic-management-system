@@ -64,7 +64,8 @@ export function NotesWidget(): JSX.Element {
                   onClick={() => remove.mutate(note.id)}
                   disabled={remove.isPending}
                   className={cn(
-                    'inline-flex size-11 shrink-0 cursor-pointer items-center justify-center lg:size-6',
+                    'inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center',
+                    'lg:size-(--control-h-sm)',
                     'rounded-chip text-note-meta transition-colors duration-150',
                     'hover:text-danger-600 disabled:cursor-not-allowed disabled:opacity-40',
                   )}
@@ -103,7 +104,7 @@ export function NotesWidget(): JSX.Element {
             disabled={create.isPending}
             aria-label={t('notes.save')}
             className={cn(
-              'inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-chip',
+              'inline-flex size-(--control-h-sm) shrink-0 cursor-pointer items-center justify-center rounded-chip',
               'bg-primary-600 text-ink-inverse transition-[filter] duration-150',
               'hover:brightness-[1.06] disabled:cursor-not-allowed disabled:opacity-40',
             )}

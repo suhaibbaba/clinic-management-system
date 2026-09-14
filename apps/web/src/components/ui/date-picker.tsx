@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@web/components/ui/button';
 import { Calendar, dateLocale } from '@web/components/ui/calendar';
+import { FIELD_BUTTON, FIELD_TEXT, FieldLock, fieldShell } from '@web/components/ui/field';
 import { Icon } from '@web/components/ui/icon';
 import { openOnArrowDown, usePickerOpen } from '@web/components/ui/picker-open';
 import { Popover } from '@web/components/ui/popover';
@@ -88,7 +89,7 @@ export function DatePicker({
       focusOnOpen={picker.focusOnOpen}
       title={label}
       anchor={
-        <div className={cn('relative', className)}>
+        <div className={cn(fieldShell({ hasError, disabled }), className)}>
           <input
             id={id}
             type="text"
@@ -105,39 +106,30 @@ export function DatePicker({
             {...picker.opens(false)}
             onKeyDown={openOnArrowDown(picker.show)}
             className={cn(
-              // The value is Latin so the field is `dir="ltr"`, but its alignment belongs to the
-              // page — by its own direction it sat on the left of an Arabic form.
-              'block h-11 w-full rounded-control border bg-surface lg:h-9',
-              // Physical deliberately: the field is `dir="ltr"`, so `ps`/`pe` would reserve the
-              // icon's room on the wrong side of an Arabic form.
-              'page-rtl:pl-11 page-rtl:pr-3.5 page-rtl:text-right',
-              'page-ltr:pl-3.5 page-ltr:pr-11 page-ltr:text-left',
-              'text-field text-ink tabular-nums placeholder:text-ink-subtle',
-              'transition-[border-color,box-shadow] duration-150',
-              'focus:border-primary-500',
-              'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-subtle',
-              // The same border as every other field in the form: this one
-              // used to be a step darker, which read as a different control.
-              hasError ? 'border-danger-500' : 'border-line',
+              FIELD_TEXT,
+              // The value is Latin so the field is `dir="ltr"` — inline isolation for the digits,
+              // nothing more. Its alignment still belongs to the page: by its own direction it sat
+              // on the left of an Arabic form.
+              'page-rtl:text-right page-ltr:text-left',
+              'tabular-nums',
             )}
           />
 
-          <button
-            type="button"
-            disabled={disabled}
-            aria-label={t('common.openCalendar')}
-            // Asked for outright, so this one does take the focus: the
-            // keyboard lands in the calendar rather than behind it.
-            {...picker.opens(true)}
-            className={cn(
-              // A full 44px wide: it is the only way into the calendar with a thumb.
-              'absolute inset-y-0 end-0 flex w-11 cursor-pointer items-center justify-center',
-              'text-ink-subtle transition-colors duration-150 hover:text-ink',
-              'disabled:cursor-not-allowed',
-            )}
-          >
-            <Icon name="calendar" />
-          </button>
+          {disabled ? (
+            <FieldLock />
+          ) : (
+            <button
+              type="button"
+              aria-label={t('common.openCalendar')}
+              // Asked for outright, so this one does take the focus: the keyboard lands in the
+              // calendar rather than behind it. The 44px thumb target is the field itself, which
+              // opens the calendar on a click anywhere in it.
+              {...picker.opens(true)}
+              className={FIELD_BUTTON}
+            >
+              <Icon name="calendar" className="size-4" />
+            </button>
+          )}
         </div>
       }
     >

@@ -44,7 +44,7 @@ export function Button({
       type="button"
       // 48px tall: this is a thumb on a phone, not a mouse on a desktop.
       className={cx(
-        'pill-text min-h-12 cursor-pointer justify-center gap-2 rounded-control',
+        'pill-text min-h-(--control-h) cursor-pointer justify-center gap-2 rounded-control',
         'px-5 text-field font-medium transition-colors duration-150',
         'disabled:cursor-not-allowed disabled:opacity-45',
         BUTTON_VARIANTS[variant],
@@ -217,12 +217,14 @@ export function Field({ label, error, hint, id, className, ...rest }: FieldProps
       <input
         id={fieldId}
         className={cx(
-          'min-h-12 w-full rounded-control border bg-surface px-3 text-field text-ink',
+          'min-h-(--control-h) w-full rounded-control border-[1.5px] bg-surface px-3 text-field text-ink',
           'placeholder:text-ink-subtle',
           // `dir="ltr"` keeps the digits in order, but the alignment belongs to the page — by its
           // own direction the field sat left of an Arabic form, under a label on the right.
           rest.dir === 'ltr' ? 'page-rtl:text-right page-ltr:text-left' : 'text-start',
-          error ? 'border-danger-500' : 'border-line-strong focus:border-primary-600',
+          error
+            ? 'border-danger-600 shadow-field-error'
+            : 'border-line-strong hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus',
           className,
         )}
         {...(describedBy && { 'aria-describedby': describedBy })}

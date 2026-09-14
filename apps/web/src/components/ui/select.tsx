@@ -2,6 +2,7 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import type { ChangeEvent, JSX, SelectHTMLAttributes } from 'react';
 
 import { useDialogLayer } from '@web/components/ui/dialog-layer';
+import { FieldLock, fieldShell } from '@web/components/ui/field';
 import { Icon } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
 import { documentDirection } from '@web/lib/direction';
@@ -83,29 +84,40 @@ export function Select({
         aria-required={required || undefined}
         aria-invalid={hasError || undefined}
         className={cn(
-          // 44px under `lg`, like every other field a thumb has to hit.
-          'flex h-11 w-full cursor-pointer items-center justify-between gap-2 lg:h-9',
-          'rounded-field border bg-canvas ps-3.5 pe-3 text-start text-field text-ink',
-          'transition-[border-color,box-shadow,background-color] duration-200',
-          'focus:border-primary-600 focus:shadow-ring',
-          'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-ink-faint',
-          // Ours rather than `data-[placeholder]`: the empty state is a real selection here, so
-          // Radix does not consider the trigger to be showing a placeholder.
-          empty && 'text-ink-faint',
-          hasError ? 'border-danger-600' : 'border-line',
+          fieldShell({ hasError, disabled }),
+          'cursor-pointer text-start text-field',
+          // The trigger is a button, so it draws its own focus ring rather than one from a child.
+          'focus-visible:outline-none',
+          disabled && 'text-ink-faint',
           className,
         )}
       >
-        {/* `truncate` on the value rather than the trigger: the chevron keeps
-            its room, and a long doctor's name ellipsises instead of pushing
-            it out of the field. */}
-        <span className="min-w-0 truncate">
+        {/* The value truncates and the chevron does not: a long doctor's name ellipsises rather
+            than pushing the chevron out of the field. */}
+        <span
+          className={cn(
+            'min-w-0 flex-1 truncate',
+            // Ours rather than `data-[placeholder]`: the empty state is a real selection here, so
+            // Radix does not consider the trigger to be showing a placeholder.
+            empty || disabled ? 'text-ink-faint' : 'text-ink',
+          )}
+        >
           <SelectPrimitive.Value placeholder={placeholder} />
         </span>
 
-        <SelectPrimitive.Icon asChild>
-          <Icon name="chevron-down" className="shrink-0 text-ink-subtle" />
-        </SelectPrimitive.Icon>
+        {disabled ? (
+          <FieldLock />
+        ) : (
+          <SelectPrimitive.Icon asChild>
+            <Icon
+              name="chevron-down"
+              className={cn(
+                'size-4 shrink-0 transition-colors duration-150',
+                hasError ? 'text-danger-600' : 'text-ink-faint',
+              )}
+            />
+          </SelectPrimitive.Icon>
+        )}
       </SelectPrimitive.Trigger>
 
       <SelectPrimitive.Portal {...(dialogLayer && { container: dialogLayer })}>
@@ -153,8 +165,8 @@ function Row({
     <SelectPrimitive.Item
       value={value}
       className={cn(
-        'flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-control lg:min-h-9',
-        'px-3 py-2 text-start text-field outline-none select-none',
+        'flex min-h-(--control-h) cursor-pointer items-center justify-between gap-2 rounded-control',
+        'lg:min-h-(--control-h-sm) px-3 py-2 text-start text-field outline-none select-none',
         // `data-highlighted` rather than `hover:`, because it is the keyboard's
         // row as much as the pointer's.
         'data-[highlighted]:bg-inset data-[state=checked]:font-medium',

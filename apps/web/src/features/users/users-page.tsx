@@ -13,7 +13,6 @@ import {
   PageHeader,
   PersonName,
   PhoneLink,
-  RowAction,
   SearchField,
   Select,
   Switch,
@@ -147,7 +146,9 @@ export function UsersPage(): JSX.Element {
         actions: true,
         render: (row) => (
           <div className="flex items-center gap-4">
-            <RowAction
+            <Button
+              size="sm"
+              variant="ghost"
               icon={<Icon name="edit" />}
               onClick={() => {
                 setFormUserId(row.id);
@@ -155,12 +156,17 @@ export function UsersPage(): JSX.Element {
               }}
             >
               {t('common.edit')}
-            </RowAction>
+            </Button>
             {/* The second action on the row, so grey until it is pointed at:
                 two blues in one cell and neither is the one to press. */}
-            <RowAction icon={<Icon name="key" />} tone="quiet" onClick={() => setResetUser(row)}>
+            <Button
+              size="sm"
+              variant="quiet"
+              icon={<Icon name="key" />}
+              onClick={() => setResetUser(row)}
+            >
               {t('users.resetPassword')}
-            </RowAction>
+            </Button>
           </div>
         ),
       },

@@ -223,7 +223,7 @@ function NavRow({
         className={cn(
           // 44px on touch, the reference's drawn 40 on a laptop: a rail of 44px rows pushes the
           // settings group off the screen.
-          'mb-0.5 flex min-h-11 cursor-pointer items-center gap-[11px] rounded-nav px-3 lg:min-h-10',
+          'mb-0.5 flex min-h-(--control-h) cursor-pointer items-center gap-[11px] rounded-nav px-3',
           'text-nav font-medium transition-[background-color,color,box-shadow] duration-150',
           isActive
             ? 'nav-active-wash text-ink-inverse shadow-nav-active'
@@ -357,7 +357,7 @@ function NotificationBell(): JSX.Element {
       className={cn(
         // 44px on touch (WCAG 2.5.8), the reference's drawn 38 on a laptop. `lg` rather than
         // `md`: the front desk's tablet is 768 wide and is a touch device.
-        'inline-flex size-11 cursor-pointer items-center justify-center lg:size-[38px]',
+        'inline-flex size-(--control-h) cursor-pointer items-center justify-center lg:size-(--control-h-sm)',
         'rounded-control border border-line bg-surface text-ink-muted',
         'transition-colors duration-150 hover:bg-primary-100 hover:text-primary-700',
         'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface',

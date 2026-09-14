@@ -8,7 +8,7 @@ import { t } from '@web/booking/i18n';
 import { FullPageMessage, PageShell } from '@web/booking/layout';
 import { BookingFacts } from '@web/booking/steps/success-view';
 import { WhenStep, type SlotOption } from '@web/booking/steps/when-step';
-import { Alert, Button, Card, Skeleton } from '@web/booking/ui';
+import { Alert, Button, Card, Skeleton, cx } from '@web/booking/ui';
 import { useAsync } from '@web/booking/use-async';
 import { bookingName } from '@web/booking/format';
 
@@ -88,8 +88,8 @@ export function ManagePage({
           <span
             className={
               cancelled
-                ? 'pill-text rounded-pill bg-neutral-100 px-2.5 py-1 text-label font-medium text-ink-muted'
-                : 'pill-text rounded-pill bg-success-100 px-2.5 py-1 text-label font-medium text-success-800'
+                ? 'pill-text h-(--control-h-sm) rounded-pill bg-inset px-3 text-nav font-medium text-ink-muted'
+                : 'pill-text h-(--control-h-sm) rounded-pill bg-success-100 px-3 text-nav font-medium text-success-800'
             }
           >
             {t(STATUS_KEY[booking.status] ?? 'manage.statusRequested')}
@@ -128,7 +128,12 @@ export function ManagePage({
               id="cancel-reason"
               value={reason}
               onChange={(event) => setReason(event.target.value)}
-              className="mt-1.5 min-h-12 w-full rounded-control border border-line-strong bg-surface px-3 text-field"
+              className={cx(
+                'mt-1.5 min-h-(--control-h) w-full rounded-control border-[1.5px] px-3 text-field',
+                'border-line-strong bg-surface transition-[border-color,box-shadow] duration-150',
+                'hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus',
+                'outline-none',
+              )}
             />
 
             <div className="mt-4 flex flex-col gap-2">

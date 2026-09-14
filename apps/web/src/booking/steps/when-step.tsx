@@ -63,12 +63,14 @@ export function WhenStep({
                     // The three lines are `pill-text` each, so the `gap` is the whole of the
                     // space between them rather than three type-scale line-heights.
                     'flex min-h-[72px] w-16 cursor-pointer flex-col items-center justify-center gap-2',
-                    'rounded-panel px-2 transition-colors duration-150',
+                    // Three lines, so not a single-line pill — but the same six states a field
+                    // and a chip draw: bordered, primary-tinted when chosen, solid when shut.
+                    'rounded-panel border-[1.5px] px-2 transition-colors duration-150',
                     active
-                      ? 'bg-primary-600 text-ink-inverse'
+                      ? 'border-primary-600 bg-primary-100 text-primary-700'
                       : closed
-                        ? 'cursor-not-allowed bg-inset text-ink-subtle line-through'
-                        : 'border border-line bg-surface text-ink shadow-card hover:bg-row-hover',
+                        ? 'cursor-not-allowed border-transparent bg-inset text-ink-faint line-through'
+                        : 'border-line-strong bg-surface text-ink hover:border-neutral-400',
                   )}
                 >
                   <span className="pill-text text-label">
@@ -92,7 +94,7 @@ export function WhenStep({
           <ul className="grid grid-cols-3 gap-2">
             {[0, 1, 2, 3, 4, 5].map((index) => (
               <li key={index}>
-                <Skeleton className="h-12 rounded-control" />
+                <Skeleton className="h-(--control-h) rounded-control" />
               </li>
             ))}
           </ul>
@@ -126,11 +128,11 @@ export function WhenStep({
                     onClick={() => onSelect(slot)}
                     dir="ltr"
                     className={cx(
-                      'min-h-12 w-full cursor-pointer rounded-control text-field font-medium tabular-nums',
-                      'transition-colors duration-150',
+                      'min-h-(--control-h) w-full cursor-pointer rounded-control text-field font-medium',
+                      'tabular-nums transition-colors duration-150',
                       active
-                        ? 'bg-primary-600 text-ink-inverse'
-                        : 'border border-line bg-surface text-ink shadow-card hover:bg-row-hover',
+                        ? 'border-[1.5px] border-primary-600 bg-primary-100 text-primary-700'
+                        : 'border-[1.5px] border-line-strong bg-surface text-ink hover:border-neutral-400',
                     )}
                   >
                     {slot.start}

@@ -59,7 +59,7 @@ export function FormField({
         <p
           id={errorId}
           role="alert"
-          className={cn('flex items-center gap-1.5 text-label text-danger-700')}
+          className={cn('flex items-center gap-1.5 text-value text-danger-700')}
         >
           <Icon name="error" className="size-4" />
           {t(messageKey)}

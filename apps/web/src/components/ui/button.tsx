@@ -3,7 +3,7 @@ import type { ButtonHTMLAttributes, JSX, ReactNode } from 'react';
 import { Icon } from '@web/components/ui/icon';
 import { cn } from '@web/lib/cn';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'quiet' | 'danger';
 export type ButtonSize = 'sm' | 'md';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -24,16 +24,16 @@ const VARIANTS: Record<ButtonVariant, string> = {
   primary: 'bg-primary-600 text-ink-inverse hover:brightness-[1.06] active:brightness-[0.95]',
   secondary: 'border border-line bg-surface text-ink hover:bg-primary-100 hover:text-primary-700',
   ghost: 'bg-primary-100 text-primary-700 hover:brightness-[0.96] active:brightness-[0.92]',
+  // No fill at rest: a column of ten rows must not read as ten calls to action.
+  quiet: 'text-ink-muted hover:bg-inset hover:text-ink',
   danger: 'bg-danger-600 text-ink-inverse hover:brightness-[1.06] active:brightness-[0.95]',
 };
 
-// Heights are the drawn heights; `min-h-11` below `lg` is the touch target, so the phone keeps the
-// same shape inside a taller box.
+// The two scale tokens and nothing else. A compact button is the tall one below `lg`, because a
+// thumb does not shrink with the viewport; `min-w` matches, so an icon-only button stays square.
 const SIZES: Record<ButtonSize, string> = {
-  // `min-w-11` as well as `min-h-11`: an icon-only button, or one labelled with two Arabic letters,
-  // is 42px wide inside this padding.
-  sm: 'min-h-11 min-w-11 px-3 text-meta gap-[7px] lg:h-[30px] lg:min-h-0 lg:min-w-0',
-  md: 'min-h-11 min-w-11 px-[13px] text-label gap-[7px] lg:h-[34px] lg:min-h-0 lg:min-w-0',
+  sm: 'min-h-(--control-h) min-w-(--control-h) gap-2 px-3 text-nav lg:h-(--control-h-sm) lg:min-h-0 lg:min-w-(--control-h-sm)',
+  md: 'h-(--control-h) min-w-(--control-h) gap-2 px-3.5 text-field',
 };
 
 export function Button({
