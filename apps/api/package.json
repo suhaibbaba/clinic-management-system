@@ -18,6 +18,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node dist/database/migrate.js",
     "seed": "node dist/database/seed.js",
+    "db:reset": "node scripts/reset-database.mjs",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "clean": "rm -rf dist"

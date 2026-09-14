@@ -108,7 +108,9 @@ describe('Arabic-aware search (e2e)', () => {
     });
 
     it('does not fuzzy-match a phone number onto the wrong patient', async () => {
-      const wrong = `${ahmadPhone.slice(0, -1)}9`;
+      // A different last digit, not the digit 9: `uniquePhone` is random, and one run in ten ended
+      // with a 9 already, which made the "wrong" number the right one.
+      const wrong = `${ahmadPhone.slice(0, -1)}${ahmadPhone.endsWith('9') ? '8' : '9'}`;
 
       expect(namesFrom(await search(wrong))).not.toContain(names.ahmad);
     });

@@ -142,32 +142,12 @@ export default tseslint.config(
   },
 
   {
-    files: ['docker/**/*.js', 'scripts/**/*.mjs', 'apps/web/scripts/**/*.mjs'],
+    files: ['docker/**/*.js', 'scripts/**/*.mjs', 'apps/*/scripts/**/*.mjs'],
     languageOptions: {
       globals: { console: 'readonly', fetch: 'readonly', process: 'readonly' },
     },
     rules: {
       'no-console': 'off',
-    },
-  },
-
-  {
-    // The QA sweep and the smoke run sit outside every workspace, so there is no `@web/…` alias —
-    // and half of `qa-screens.mjs` is serialised into the browser.
-    files: ['scripts/qa-screens.mjs', 'scripts/qa/**/*.mjs', 'tests/e2e/**/*.ts'],
-    languageOptions: {
-      globals: {
-        console: 'readonly',
-        document: 'readonly',
-        fetch: 'readonly',
-        getComputedStyle: 'readonly',
-        process: 'readonly',
-        window: 'readonly',
-      },
-    },
-    rules: {
-      'no-console': 'off',
-      'no-restricted-imports': 'off',
     },
   },
 
@@ -180,7 +160,7 @@ export default tseslint.config(
 
   {
     // Standalone scripts run outside Nest and log to stdout by design.
-    files: ['apps/api/src/database/migrate.ts'],
+    files: ['apps/api/src/database/migrate.ts', 'apps/api/src/database/seed.ts'],
     rules: {
       'no-console': 'off',
     },

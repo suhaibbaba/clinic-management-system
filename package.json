@@ -18,12 +18,10 @@
     "version:check": "node scripts/sync-version.mjs --check",
     "test": "pnpm -r test",
     "seed": "pnpm --filter @clinic/api seed",
-    "qa:screens": "node scripts/qa-screens.mjs",
-    "test:e2e": "playwright test"
+    "db:reset": "pnpm --filter @clinic/api db:reset"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@playwright/test": "^1.63.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "knip": "^6.35.1",

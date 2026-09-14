@@ -2,18 +2,19 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "workspaces": {
     ".": {
-      "entry": ["scripts/*.mjs", "scripts/qa/*.mjs", "tests/e2e/**/*.spec.ts"],
-      "project": ["scripts/**/*.mjs", "tests/**/*.ts"]
+      "entry": ["scripts/*.mjs"],
+      "project": ["scripts/**/*.mjs"]
     },
     "apps/api": {
       "entry": [
         "src/main.ts",
         "src/database/migrate.ts",
         "src/database/seed.ts",
+        "scripts/*.mjs",
         "test/**/*.{spec,e2e-spec}.ts",
         "src/**/*.spec.ts"
       ],
-      "project": ["src/**/*.ts", "test/**/*.ts"]
+      "project": ["src/**/*.ts", "test/**/*.ts", "scripts/*.mjs"]
     },
     "apps/web": {
       "entry": [
