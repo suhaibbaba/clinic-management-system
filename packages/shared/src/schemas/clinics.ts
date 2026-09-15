@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { settingsSchema, weeklyScheduleSchema } from '@shared/schemas/common';
+import { settingsSchema, weeklyScheduleSchema, optionalPhoneSchema } from '@shared/schemas/common';
 import { personNameInputSchema, personNameSchema } from '@shared/schemas/person-name';
 import { DEFAULT_TIME_ZONE } from '@shared/time/zone';
 
@@ -102,7 +102,7 @@ export type Clinic = z.infer<typeof clinicSchema>;
 export const updateClinicSchema = z
   .object({
     name: personNameInputSchema,
-    phone: z.string().trim().max(32).nullish(),
+    phone: optionalPhoneSchema,
     email: z.email().max(255).nullish(),
     address: z.string().trim().max(500).nullish(),
     /** Writes are held to the list, even though reads are not. */

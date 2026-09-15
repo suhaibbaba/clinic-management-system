@@ -9,7 +9,18 @@ import {
 import { useEffect, useRef, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Img, Input, Ltr, PageHeader, Select, useToast } from '@clinic/ui';
+import {
+  Button,
+  FormField,
+  Icon,
+  Img,
+  Input,
+  Ltr,
+  PageHeader,
+  PhoneInput,
+  Select,
+  useToast,
+} from '@clinic/ui';
 import { WorkingHours } from '@web/components/schedule/working-hours';
 import { SkeletonForm } from '@clinic/ui/components/skeleton';
 import { ClosuresPanel } from '@web/features/schedule/closures-panel';
@@ -133,12 +144,10 @@ export function ClinicPage(): JSX.Element {
             </div>
 
             <FormField label="clinic.phone" htmlFor="clinic-phone" optional>
-              <Input
+              <PhoneInput
                 placeholder={t('common.placeholders.phone')}
                 adornment="phone"
                 id="clinic-phone"
-                dir="ltr"
-                inputMode="tel"
                 value={phone}
                 disabled={!canEdit}
                 onChange={(event) => setPhone(event.target.value)}

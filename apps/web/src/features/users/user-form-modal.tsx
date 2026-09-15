@@ -11,7 +11,7 @@ import { useEffect, type JSX } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Input, Select, useToast } from '@clinic/ui';
+import { Button, FormField, Icon, Input, PhoneInput, Select, useToast } from '@clinic/ui';
 import { useCreateUser, useUpdateUser } from '@web/features/users/queries';
 import { UserPhotoField } from '@web/features/users/user-photo-field';
 import { errorMessageKey } from '@web/lib/api-error';
@@ -137,13 +137,16 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
           </FormField>
         </div>
 
-        <FormField label="users.phone" htmlFor="user-phone" error={errors.phone}>
-          <Input
+        <FormField
+          label="users.phone"
+          htmlFor="user-phone"
+          error={errors.phone}
+          errorKey={errors.phone ? 'errors.validation.invalidPhone' : undefined}
+        >
+          <PhoneInput
             placeholder={t('common.placeholders.phone')}
             adornment="phone"
             id="user-phone"
-            dir="ltr"
-            inputMode="tel"
             hasError={errors.phone !== undefined}
             {...register('phone')}
           />

@@ -30,6 +30,30 @@ export interface Paginated<TItem> {
   totalPages: number;
 }
 
+/** E.164 caps a number at 15 digits; 7 is the shortest a national number gets. */
+export const PHONE_DIGITS = { min: 7, max: 15 } as const;
+
+const digitCount = (value: string): number => (value.match(/\d/g) ?? []).length;
+
+/**
+ * Loose on country, strict on substance: local formats vary by region, so this checks the shape and
+ * how many digits are in it rather than a dialling plan. The shape alone let `------` through — the
+ * separators were optional but the digits were not required.
+ */
+export const phoneSchema = z
+  .string()
+  .trim()
+  .max(32)
+  .regex(/^\+?[\d\s-]+$/, 'Expected digits, optionally prefixed with +')
+  .refine((value) => {
+    const digits = digitCount(value);
+
+    return digits >= PHONE_DIGITS.min && digits <= PHONE_DIGITS.max;
+  }, `Expected between ${PHONE_DIGITS.min} and ${PHONE_DIGITS.max} digits`);
+
+/** The same rule where the field may be left empty — an optional contact number. */
+export const optionalPhoneSchema = phoneSchema.nullish();
+
 /** 24-hour clock time, zero padded so plain string comparison orders correctly. */
 export const timeOfDaySchema = z
   .string()

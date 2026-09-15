@@ -343,6 +343,7 @@
       "tooBig": "Value is longer than allowed",
       "invalidFormat": "Invalid format",
       "invalidEmail": "Invalid email address",
+      "invalidPhone": "Not a valid phone number",
       "passwordMin": "Password must be at least 8 characters",
       "passwordSame": "The new password must differ from the current one",
       "noChanges": "No field was changed"

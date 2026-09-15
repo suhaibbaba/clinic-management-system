@@ -3,6 +3,7 @@ import { forwardRef, type InputHTMLAttributes } from 'react';
 
 import { Input } from '@ui/components/input';
 import { cn } from '@ui/lib/cn';
+import { foldDigits } from '@ui/lib/digits';
 
 export interface MoneyInputProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
@@ -12,8 +13,8 @@ export interface MoneyInputProps extends Omit<
   currency?: string | undefined;
 }
 
-/** Everything but digits, dropped as it is typed. */
-const digitsOnly = (value: string): string => value.replace(/\D/g, '');
+/** Everything but digits, dropped as it is typed — an Arabic keypad's digits kept, not dropped. */
+const digitsOnly = (value: string): string => foldDigits(value).replace(/\D/g, '');
 
 // Refuses a decimal separator as it is typed: on a numeric keypad a stray `.` turns 6000 into 60.00
 // silently. `inputMode="numeric"`, since `decimal` puts that key on the pad.

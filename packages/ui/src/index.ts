@@ -18,6 +18,7 @@ export { Modal } from '@ui/components/modal';
 export { Money } from '@ui/components/money';
 export { MoneyInput } from '@ui/components/money-input';
 export { PageHeader } from '@ui/components/page-header';
+export { PhoneInput } from '@ui/components/phone-input';
 export { PersonName, usePersonName } from '@ui/components/person-name';
 export { ProgressBar } from '@ui/components/progress-bar';
 export { SearchField } from '@ui/components/search-field';

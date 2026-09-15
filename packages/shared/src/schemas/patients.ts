@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { GENDERS } from '@shared/enums';
 import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
 import { signedMoneySchema } from '@shared/schemas/money';
-import { phoneSchema } from '@shared/schemas/users';
+import { phoneSchema } from '@shared/schemas/common';
 
 export const patientIdParamSchema = z.object({ patientId: uuidSchema });
 export type PatientIdParam = z.infer<typeof patientIdParamSchema>;

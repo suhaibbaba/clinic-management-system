@@ -2,16 +2,8 @@ import { z } from 'zod';
 
 import { USER_ROLES } from '@shared/enums';
 import { passwordSchema } from '@shared/schemas/auth';
-import { paginationQuerySchema } from '@shared/schemas/common';
+import { paginationQuerySchema, phoneSchema } from '@shared/schemas/common';
 import { personNameInputSchema, personNameSchema } from '@shared/schemas/person-name';
-
-/** Loose on purpose: local formats vary by region, so the API enforces shape and not country. */
-export const phoneSchema = z
-  .string()
-  .trim()
-  .min(6)
-  .max(32)
-  .regex(/^\+?[0-9\s-]+$/, 'Expected digits, optionally prefixed with +');
 
 export const userSchema = z.object({
   id: z.uuid(),

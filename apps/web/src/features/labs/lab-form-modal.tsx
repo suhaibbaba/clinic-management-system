@@ -4,7 +4,7 @@ import { useEffect, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Input, Modal, Textarea, useToast } from '@clinic/ui';
+import { Button, FormField, Input, Modal, PhoneInput, Textarea, useToast } from '@clinic/ui';
 import { useCreateLab, useUpdateLab } from '@web/features/labs/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -84,8 +84,14 @@ export function LabFormModal({
           <Input id="lab-contact" {...register('contactPerson')} />
         </FormField>
 
-        <FormField label="labs.fields.phone" htmlFor="lab-phone" optional>
-          <Input id="lab-phone" dir="ltr" inputMode="tel" {...register('phone')} />
+        <FormField
+          label="labs.fields.phone"
+          htmlFor="lab-phone"
+          error={errors.phone}
+          errorKey={errors.phone ? 'errors.validation.invalidPhone' : undefined}
+          optional
+        >
+          <PhoneInput id="lab-phone" hasError={Boolean(errors.phone)} {...register('phone')} />
         </FormField>
 
         <FormField label="labs.fields.address" htmlFor="lab-address" optional>

@@ -4,7 +4,8 @@ import { paginationQuerySchema, weeklyScheduleSchema } from '@shared/schemas/com
 import { specialtySummarySchema } from '@shared/schemas/specialties';
 import { passwordSchema } from '@shared/schemas/auth';
 import { personNameInputSchema } from '@shared/schemas/person-name';
-import { phoneSchema, userSchema } from '@shared/schemas/users';
+import { phoneSchema } from '@shared/schemas/common';
+import { userSchema } from '@shared/schemas/users';
 
 export const DEFAULT_APPOINTMENT_DURATION_MINUTES = 30;
 

@@ -4,7 +4,17 @@ import { useEffect, type JSX } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, DatePicker, FormField, Icon, Input, Modal, Select, useToast } from '@clinic/ui';
+import {
+  Button,
+  DatePicker,
+  FormField,
+  Icon,
+  Input,
+  Modal,
+  PhoneInput,
+  Select,
+  useToast,
+} from '@clinic/ui';
 import { useCreatePatient } from '@web/features/patients/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -82,13 +92,16 @@ export function PatientFormModal({
           />
         </FormField>
 
-        <FormField label="patients.phone" htmlFor="patient-phone" error={errors.phone}>
-          <Input
+        <FormField
+          label="patients.phone"
+          htmlFor="patient-phone"
+          error={errors.phone}
+          errorKey={errors.phone ? 'errors.validation.invalidPhone' : undefined}
+        >
+          <PhoneInput
             placeholder={t('common.placeholders.phone')}
             adornment="phone"
             id="patient-phone"
-            dir="ltr"
-            inputMode="tel"
             hasError={Boolean(errors.phone)}
             {...register('phone')}
           />
