@@ -213,10 +213,10 @@ export function UsersPage(): JSX.Element {
               </MenuItem>
             )}
 
-            {/* The password is the owner's to choose, so what is sent is a link. An account with
-                no address has nowhere to receive one — only there does the admin set it — and a
-                disabled account has nothing to come back to. */}
-            {row.email && row.isActive && can('users.sendPasswordReset') && (
+            {/* Changing a password is for somebody who has one: an account still waiting to be
+                claimed gets the activation letter above instead. An address is needed to receive
+                either, and a disabled account has nothing to come back to. */}
+            {row.activated && row.email && row.isActive && can('users.sendPasswordReset') && (
               <MenuItem
                 icon="key"
                 onSelect={() => void send(sendReset.mutateAsync(row.id), 'users.resetLinkSent')}

@@ -182,6 +182,22 @@ describe('Users management', () => {
     });
   });
 
+  it('offers the activation letter, not a password change, while an account is unclaimed', async () => {
+    authTokens.clear();
+    const user = makeUser({ activated: false });
+
+    mockApi(baseHandlers([user]));
+    renderWithProviders(<AppRoutes />, { route: '/users' });
+    await screen.findByText(user.name.ar);
+
+    await userEvent.click(screen.getByRole('button', { name: ar.users.rowMenu }));
+
+    expect(await screen.findByRole('menuitem', { name: ar.users.resendInvite })).toBeVisible();
+    expect(
+      screen.queryByRole('menuitem', { name: ar.users.sendResetLink }),
+    ).not.toBeInTheDocument();
+  });
+
   it('sends no letter to a disabled account — the API refuses one either way', async () => {
     authTokens.clear();
     const user = makeUser({ isActive: false, activated: false });
