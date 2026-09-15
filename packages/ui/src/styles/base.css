@@ -445,6 +445,18 @@ body {
   outline: none;
 }
 
+/* A row in a popup list is already marked by its own fill — Radix moves `data-highlighted` with the
+   arrow keys and the pointer alike — and a ring on top is a second marker, drawn with an offset the
+   list's own `overflow: hidden` cuts off at both ends. */
+:where(
+  [role='option'],
+  [role='menuitem'],
+  [role='menuitemcheckbox'],
+  [role='menuitemradio']
+):focus-visible {
+  outline: none;
+}
+
 /* Windows and Linux draw a classic scrollbar *inside* the scroll container, taking its width out
    of the content box; macOS overlays one and takes nothing, which is why a bar sitting on top of a
    navigation row or a card's content is invisible here. `stable` keeps that lane reserved whether
