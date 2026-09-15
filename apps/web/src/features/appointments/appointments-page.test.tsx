@@ -29,10 +29,14 @@ function setViewport(isMobile: boolean): void {
 
 const today = new Date();
 const iso = (at: Date): string =>
-  `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(at.getDate()).padStart(2, '0')}`;
+  `${at.getUTCFullYear()}-${String(at.getUTCMonth() + 1).padStart(2, '0')}-${String(at.getUTCDate()).padStart(2, '0')}`;
 
 function appointmentAt(hour: number, overrides: Record<string, unknown> = {}) {
-  const startsAt = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hour, 0);
+  // Built in UTC because the clinic below is in UTC: a fixture built in the machine's zone draws
+  // at a different hour on every developer's laptop.
+  const startsAt = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), hour, 0),
+  );
 
   return {
     id: `appt-${hour}`,
@@ -159,6 +163,29 @@ describe('Appointments page', () => {
     expect(
       within(drawer).queryByRole('button', { name: ar.appointments.actions.complete }),
     ).not.toBeInTheDocument();
+  });
+
+  it('drops an action the clinic has taken away, and keeps the rest', async () => {
+    await renderCalendar(USER_ROLE.RECEPTIONIST, {
+      'GET /me': {
+        status: 200,
+        body: makeProfile({
+          role: USER_ROLE.RECEPTIONIST,
+          capabilities: ['appointments.noShow'],
+        }),
+      },
+    });
+
+    await userEvent.click(await block(/10:00/));
+
+    const drawer = await screen.findByRole('dialog');
+
+    expect(
+      within(drawer).queryByRole('button', { name: ar.appointments.actions.arrived }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(drawer).getByRole('button', { name: ar.appointments.actions.noShow }),
+    ).toBeVisible();
   });
 
   it('offers a visit only once the patient has arrived', async () => {

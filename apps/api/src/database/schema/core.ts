@@ -5,6 +5,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   text,
@@ -54,6 +55,11 @@ export const clinics = pgTable(
     phone: text('phone'),
     email: text('email'),
     address: text('address'),
+    // `numeric`, read and written as a string like every other numeric column here. A coordinate is
+    // stored and handed to a map, never added up, so the exactness costs nothing; 6 decimals is
+    // roughly 0.1 m. Both columns or neither — a latitude on its own points nowhere.
+    latitude: numeric('latitude', { precision: 9, scale: 6 }),
+    longitude: numeric('longitude', { precision: 9, scale: 6 }),
     /** ISO-4217. Money columns are `numeric(10,2)` and never floats. */
     currency: varchar('currency', { length: 3 }).notNull().default('USD'),
     workingHours: jsonb('working_hours').$type<WeeklySchedule>().notNull().default([]),
@@ -104,7 +110,13 @@ export const users = pgTable(
     phone: text('phone').notNull(),
     email: text('email'),
     /** argon2id. Never selected into a response or an audit entry. */
-    passwordHash: text('password_hash').notNull(),
+    // Nullable: an account created by an admin has no password until the person it belongs to
+    // chooses one through the link they were emailed. Null means "cannot sign in yet", which is the
+    // truth, rather than an unguessable hash that only looks like one.
+    passwordHash: text('password_hash'),
+    /** A SHA-256 of the activation or reset token — the token itself is only ever in the email. */
+    passwordTokenHash: text('password_token_hash'),
+    passwordTokenExpiresAt: timestamp('password_token_expires_at', { withTimezone: true }),
     role: userRoleEnum('role').notNull(),
     isActive: boolean('is_active').notNull().default(true),
     // The key and never a URL: what a client receives is a signed GET minted per response, so a
@@ -120,6 +132,27 @@ export const users = pgTable(
     uniqueIndex('users_email_uniq')
       .on(table.email)
       .where(sql`deleted_at is null and email is not null`),
+  ],
+);
+
+// A role's permissions, as data. Only the differences from what the code ships with are stored, so
+// a clinic that has never opened the screen has no rows at all and behaves exactly as before — and
+// a capability added by a later release is governed by its own default rather than by a stale row.
+export const roleCapabilities = pgTable(
+  'role_capabilities',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clinicId: uuid('clinic_id')
+      .notNull()
+      .references(() => clinics.id),
+    role: userRoleEnum('role').notNull(),
+    /** Matches `CapabilityRegistry`, e.g. `patients.update`. */
+    capability: text('capability').notNull(),
+    allowed: boolean('allowed').notNull(),
+    ...auditColumns,
+  },
+  (table) => [
+    uniqueIndex('role_capabilities_uniq').on(table.clinicId, table.role, table.capability),
   ],
 );
 

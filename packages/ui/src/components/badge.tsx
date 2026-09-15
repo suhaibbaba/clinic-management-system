@@ -24,7 +24,9 @@ const TONES: Record<BadgeVariant, string> = {
 /** One pill for the whole app: a status, a count, a filter — the same box in every one of them. */
 export const PILL_BASE = cn(
   'pill-text inline-flex items-center h-(--control-h-sm) gap-2 whitespace-nowrap rounded-pill px-3',
-  'text-nav font-medium',
+  // Regular weight: a pill already carries its meaning in the tint it sits on, and a row of bold
+  // ones reads as a row of shouting.
+  'text-nav font-normal',
 );
 
 export interface BadgeProps {

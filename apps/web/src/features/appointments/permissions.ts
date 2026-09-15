@@ -1,18 +1,21 @@
 import { USER_ROLE, type UserRole } from '@clinic/shared';
 
-// The ROLES.md appointments row, kept beside the spec: hiding a control is cosmetic, but it stops a
-// screen offering a button that only ever 403s.
+import type { Can } from '@web/features/auth/session';
+import type { AppointmentStep } from '@web/features/appointments/queries';
 
-export const canBookAppointment = (role: UserRole): boolean => role !== USER_ROLE.TECHNICIAN;
+export const canBookAppointment = (can: Can): boolean => can('appointments.create');
 
-// A visit is a clinical record, so a receptionist cannot open one even though they mark the patient
-// as arrived.
-export const canOpenVisit = (role: UserRole): boolean =>
-  role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR;
+/** Each move an appointment can make is its own permission, so each button asks for its own. */
+export const canMoveAppointment = (can: Can, step: AppointmentStep): boolean =>
+  can(`appointments.${step}`);
 
-export const canManageWaitingList = (role: UserRole): boolean =>
-  role === USER_ROLE.ADMIN || role === USER_ROLE.RECEPTIONIST;
+export const canCancelAppointment = (can: Can): boolean => can('appointments.cancel');
 
-// The API would serve a doctor the whole clinic — reading is `R` for every role — but a doctor
-// opening the calendar wants their day, not eight columns.
+/** Turning an appointment into a visit — the clinical record it becomes. */
+export const canOpenVisit = (can: Can): boolean => can('appointments.convertToVisit');
+
+export const canManageWaitingList = (can: Can): boolean => can('waiting-list.create');
+
+// Not a permission: the API would serve a doctor the whole clinic — reading is `R` for every role —
+// but a doctor opening the calendar wants their day, not eight columns.
 export const seesWholeClinic = (role: UserRole): boolean => role !== USER_ROLE.DOCTOR;

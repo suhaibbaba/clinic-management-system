@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { MOVEMENT_TYPE, MOVEMENT_TYPES } from '@shared/enums';
 import { isoDateSchema } from '@shared/schemas/appointments';
-import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
+import { paginationQuerySchema, uuidSchema, optionalPhoneSchema } from '@shared/schemas/common';
 import { moneySchema, signedMoneySchema, wholeMoneySchema } from '@shared/schemas/money';
 import { personNameSchema } from '@shared/schemas/person-name';
 import {
@@ -37,7 +37,7 @@ export type SupplierSummary = z.infer<typeof supplierSummarySchema>;
 
 const supplierWritableFields = {
   name: z.string().trim().min(2).max(160),
-  phone: z.string().trim().max(32).nullish(),
+  phone: optionalPhoneSchema,
   contactPerson: z.string().trim().max(160).nullish(),
   notes: z.string().trim().max(2000).nullish(),
   isActive: z.boolean().optional(),

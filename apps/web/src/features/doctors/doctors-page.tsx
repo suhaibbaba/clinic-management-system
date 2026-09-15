@@ -7,7 +7,6 @@ import {
   Avatar,
   Badge,
   Button,
-  type Column,
   EmptyState,
   Icon,
   PageHeader,
@@ -15,14 +14,14 @@ import {
   PhoneLink,
   SearchField,
   Table,
+  usePageParams,
+  type Column,
 } from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { DoctorFormModal } from '@web/features/doctors/doctor-form-modal';
 import { useDoctors } from '@web/features/doctors/queries';
 import { formatList } from '@web/lib/format';
 import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
-
-const PAGE_SIZE = 10;
 
 /** Readable by every role; only admin sees the write actions (ROLES.md). */
 export function DoctorsPage(): JSX.Element {
@@ -31,12 +30,12 @@ export function DoctorsPage(): JSX.Element {
   const navigate = useNavigate();
   const isAdmin = hasRole(USER_ROLE.ADMIN);
 
-  const [page, setPage] = useState(1);
+  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams(10);
   const [search, setSearch] = useState('');
   const [formDoctor, setFormDoctor] = useState<Doctor | null>(null);
   const [formOpen, setFormOpen] = useState(false);
 
-  const query = useDoctors({ page, limit: PAGE_SIZE, ...(search !== '' && { search }) });
+  const query = useDoctors({ page, limit: perPage, ...(search !== '' && { search }) });
 
   const summariseSchedule = (doctor: Doctor): string => {
     const workingDays = doctor.weeklySchedule.filter((day) => day.ranges.length > 0);
@@ -164,7 +163,7 @@ export function DoctorsPage(): JSX.Element {
           value={search}
           onChange={(event) => {
             setSearch(event.target.value);
-            setPage(1);
+            resetPage();
           }}
         />
       </div>
@@ -182,6 +181,8 @@ export function DoctorsPage(): JSX.Element {
             totalPages: data.totalPages,
             total: data.total,
             onPageChange: setPage,
+            perPage,
+            onPerPageChange: setPerPage,
           },
         })}
       />

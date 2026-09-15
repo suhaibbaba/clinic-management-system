@@ -1,22 +1,7 @@
 import { createTheme, type ThemeOverride } from '@ui/theme/create-theme';
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useInsertionEffect,
-  type JSX,
-  type ReactNode,
-} from 'react';
+import { useEffect, useInsertionEffect, type JSX, type ReactNode } from 'react';
 
 export type Direction = 'rtl' | 'ltr';
-
-const DirectionContext = createContext<Direction>('rtl');
-
-/**
- * The page's direction as React sees it. Components that portal to `document.body` cannot inherit
- * it from the tree and read `documentDirection()` instead.
- */
-export const useDirection = (): Direction => useContext(DirectionContext);
 
 export interface UiProviderProps {
   /** This product's values for the library's tokens. Omitted, the neutral defaults stand. */
@@ -60,5 +45,7 @@ export function UiProvider({
     }
   }, [direction, lang]);
 
-  return <DirectionContext.Provider value={direction}>{children}</DirectionContext.Provider>;
+  // No context: the direction that matters is the one on `<html>`, because the components that
+  // need it portal to `document.body` and would not see a provider above them anyway.
+  return <>{children}</>;
 }

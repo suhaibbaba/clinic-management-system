@@ -6,46 +6,70 @@ import {
   Avatar,
   Badge,
   Button,
-  type Column,
   EmailLink,
   EmptyState,
   Icon,
+  MenuItem,
+  Modal,
   PageHeader,
   PersonName,
   PhoneLink,
+  RowMenu,
   SearchField,
   Select,
   Switch,
   Table,
+  usePageParams,
   usePersonName,
   useToast,
+  type Column,
 } from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
-import { useUpdateUser, useUsers } from '@web/features/users/queries';
+import {
+  useDeleteUser,
+  useInviteUser,
+  useSendPasswordReset,
+  useUpdateUser,
+  useUsers,
+} from '@web/features/users/queries';
 import { ResetPasswordModal } from '@web/features/users/reset-password-modal';
 import { UserFormModal } from '@web/features/users/user-form-modal';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate } from '@web/lib/format';
 import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
-const PAGE_SIZE = 10;
-
 export function UsersPage(): JSX.Element {
   const { t } = useTranslation();
   const displayName = usePersonName();
   const toast = useToast();
-  const { user: currentUser } = useSession();
+  const invite = useInviteUser();
+  const sendReset = useSendPasswordReset();
+  const removeUser = useDeleteUser();
+  const { user: currentUser, can } = useSession();
 
-  const [page, setPage] = useState(1);
+  const send = async (
+    run: Promise<unknown>,
+    successKey: 'users.inviteSent' | 'users.resetLinkSent',
+  ): Promise<void> => {
+    try {
+      await run;
+      toast.success(successKey);
+    } catch (error) {
+      toast.error(errorMessageKey(error));
+    }
+  };
+
+  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams(10);
   const [search, setSearch] = useState('');
   const [role, setRole] = useState<UserRole | ''>('');
   const [formUserId, setFormUserId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [resetUser, setResetUser] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState<User | null>(null);
 
   const query = useUsers({
     page,
-    limit: PAGE_SIZE,
+    limit: perPage,
     ...(search !== '' && { search }),
     ...(role !== '' && { role }),
   });
@@ -57,6 +81,20 @@ export function UsersPage(): JSX.Element {
     formUserId === null
       ? null
       : ((query.data?.items ?? []).find((row) => row.id === formUserId) ?? null);
+
+  const remove = async (): Promise<void> => {
+    if (!deleting) {
+      return;
+    }
+
+    try {
+      await removeUser.mutateAsync(deleting.id);
+      toast.success('users.deleted');
+      setDeleting(null);
+    } catch (error) {
+      toast.error(errorMessageKey(error));
+    }
+  };
 
   const toggleActive = async (row: User): Promise<void> => {
     try {
@@ -130,6 +168,10 @@ export function UsersPage(): JSX.Element {
             <span className="text-label text-ink-muted">
               {row.isActive ? t('users.active') : t('users.inactive')}
             </span>
+
+            {/* An account nobody has claimed yet: the switch says it is live, and it is — there is
+                simply no password on it until its owner sets one. */}
+            {!row.activated && <Badge tone="warning">{t('users.pending')}</Badge>}
           </div>
         ),
       },
@@ -145,33 +187,60 @@ export function UsersPage(): JSX.Element {
         header: 'common.actions',
         actions: true,
         render: (row) => (
-          <div className="flex items-center gap-4">
-            <Button
-              size="sm"
-              variant="ghost"
-              icon={<Icon name="edit" />}
-              onClick={() => {
-                setFormUserId(row.id);
-                setFormOpen(true);
-              }}
-            >
-              {t('common.edit')}
-            </Button>
-            {/* The second action on the row, so grey until it is pointed at:
-                two blues in one cell and neither is the one to press. */}
-            <Button
-              size="sm"
-              variant="quiet"
-              icon={<Icon name="key" />}
-              onClick={() => setResetUser(row)}
-            >
-              {t('users.resetPassword')}
-            </Button>
-          </div>
+          <RowMenu label={t('users.rowMenu')}>
+            {can('users.update') && (
+              <MenuItem
+                icon="edit"
+                onSelect={() => {
+                  setFormUserId(row.id);
+                  setFormOpen(true);
+                }}
+              >
+                {t('common.edit')}
+              </MenuItem>
+            )}
+
+            {/* Offered only where it can do anything: an account with no address has no link to
+                send, one already activated does not need this one, and a disabled account is
+                refused the letter. */}
+            {!row.activated && row.email && row.isActive && can('users.invite') && (
+              <MenuItem
+                icon="mail"
+                onSelect={() => void send(invite.mutateAsync(row.id), 'users.inviteSent')}
+              >
+                {t('users.resendInvite')}
+              </MenuItem>
+            )}
+
+            {/* Changing a password is for somebody who has one: an account still waiting to be
+                claimed gets the activation letter above instead. An address is needed to receive
+                either, and a disabled account has nothing to come back to. */}
+            {row.activated && row.email && row.isActive && can('users.sendPasswordReset') && (
+              <MenuItem
+                icon="key"
+                onSelect={() => void send(sendReset.mutateAsync(row.id), 'users.resetLinkSent')}
+              >
+                {t('users.sendResetLink')}
+              </MenuItem>
+            )}
+
+            {!row.email && can('users.resetPassword') && (
+              <MenuItem icon="key" onSelect={() => setResetUser(row)}>
+                {t('users.resetPassword')}
+              </MenuItem>
+            )}
+
+            {/* Deleting your own account is refused by the API; do not offer it. */}
+            {row.id !== currentUser?.id && can('users.remove') && (
+              <MenuItem icon="trash" tone="danger" onSelect={() => setDeleting(row)}>
+                {t('users.delete')}
+              </MenuItem>
+            )}
+          </RowMenu>
         ),
       },
     ],
-    [t, currentUser?.id],
+    [t, currentUser?.id, can, displayName],
   );
 
   const data = query.data;
@@ -208,7 +277,7 @@ export function UsersPage(): JSX.Element {
           value={search}
           onChange={(event) => {
             setSearch(event.target.value);
-            setPage(1);
+            resetPage();
           }}
         />
 
@@ -220,7 +289,7 @@ export function UsersPage(): JSX.Element {
           value={role}
           onChange={(event) => {
             setRole(event.target.value as UserRole | '');
-            setPage(1);
+            resetPage();
           }}
         />
       </div>
@@ -254,6 +323,8 @@ export function UsersPage(): JSX.Element {
             totalPages: data.totalPages,
             total: data.total,
             onPageChange: setPage,
+            perPage,
+            onPerPageChange: setPerPage,
           },
         })}
       />
@@ -268,6 +339,33 @@ export function UsersPage(): JSX.Element {
         }}
         user={resetUser}
       />
+
+      {/* A soft delete, and one the API refuses for your own account. Named in the question, because
+          a row menu closes over the row it belonged to. */}
+      <Modal
+        open={deleting !== null}
+        onOpenChange={(open) => !open && setDeleting(null)}
+        title="users.deleteTitle"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setDeleting(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              icon={<Icon name="trash" />}
+              isLoading={removeUser.isPending}
+              onClick={() => void remove()}
+            >
+              {t('users.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-value text-ink">
+          {t('users.deleteQuestion', { name: displayName(deleting?.name) })}
+        </p>
+      </Modal>
     </>
   );
 }

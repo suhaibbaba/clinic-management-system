@@ -27,6 +27,7 @@ import {
 import { createZodDto } from 'nestjs-zod';
 
 import { Audit } from '@api/common/decorators/audit.decorator';
+import { AccountInvitationsService } from '@api/email/account-invitations.service';
 import { CurrentUser } from '@api/common/decorators/current-user.decorator';
 import { Roles } from '@api/common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
@@ -45,7 +46,10 @@ class ConfirmUserPhotoDto extends createZodDto(confirmUserPhotoSchema) {}
 @Controller('users')
 @Roles(USER_ROLE.ADMIN)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly invitations: AccountInvitationsService,
+  ) {}
 
   @Get()
   list(
@@ -74,6 +78,30 @@ export class UsersController {
     @Body() body: UpdateUserDto,
   ): Promise<User> {
     return this.usersService.update(actor, params.id, body);
+  }
+
+  /**
+   * Sends the activation letter, and re-sends it: the same call either way, because a resend is
+   * simply a fresh link. Each one retires the last, so a message forwarded or left in an inbox
+   * stops working the moment another is asked for.
+   */
+  @Post(':id/invite')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async invite(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+  ): Promise<void> {
+    await this.invitations.invite(params.id, actor.clinicId, 'activate');
+  }
+
+  /** The emailed alternative to setting somebody's password for them. */
+  @Post(':id/send-password-reset')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async sendPasswordReset(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+  ): Promise<void> {
+    await this.invitations.invite(params.id, actor.clinicId, 'reset');
   }
 
   // Not `@Audit(...)`: a password has no value that may be stored, so the service writes an

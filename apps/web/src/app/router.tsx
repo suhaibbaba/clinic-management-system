@@ -4,7 +4,9 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AppLayout } from '@web/components/layout/app-layout';
 import { RequireAuth, RequireRole } from '@web/features/auth/guards';
+import { ForgotPasswordPage } from '@web/features/auth/forgot-password-page';
 import { LoginPage } from '@web/features/auth/login-page';
+import { SetPasswordPage } from '@web/features/auth/set-password-page';
 import { ClinicPage } from '@web/features/clinic/clinic-page';
 import { DashboardPage } from '@web/features/dashboard/dashboard-page';
 import { DoctorPage } from '@web/features/doctors/doctor-page';
@@ -28,6 +30,10 @@ const AppointmentsSection = lazy(async () => ({
 
 const AuditPage = lazy(async () => ({
   default: (await import('@web/features/audit/audit-page')).AuditPage,
+}));
+
+const PermissionsPage = lazy(async () => ({
+  default: (await import('@web/features/permissions/permissions-page')).PermissionsPage,
 }));
 
 const LookupsPage = lazy(async () => ({
@@ -62,6 +68,11 @@ export function AppRoutes(): JSX.Element {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      {/* Public by necessity: whoever opens these cannot sign in yet. One screen, two names — the
+          letter that sent them here is what decides which. */}
+      <Route path="/activate/:token" element={<SetPasswordPage purpose="activate" />} />
+      <Route path="/reset/:token" element={<SetPasswordPage purpose="reset" />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
       <Route
         element={
@@ -181,6 +192,16 @@ export function AppRoutes(): JSX.Element {
           element={
             <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
               <UsersPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/permissions"
+          element={
+            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
+              <RouteChunk>
+                <PermissionsPage />
+              </RouteChunk>
             </RequireRole>
           }
         />

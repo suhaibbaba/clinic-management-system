@@ -26,6 +26,20 @@ export type RefreshInput = z.infer<typeof refreshSchema>;
 export const logoutSchema = refreshSchema;
 export type LogoutInput = z.infer<typeof logoutSchema>;
 
+/** Somebody arriving from a link in their inbox: the token proves who they are, so there is no
+ *  current password to give. */
+export const setPasswordSchema = z.object({
+  token: z.string().min(16).max(256),
+  password: passwordSchema,
+});
+export type SetPasswordInput = z.infer<typeof setPasswordSchema>;
+
+/** Always answered the same way, whether or not the address is known here. */
+export const forgotPasswordSchema = z.object({
+  identifier: z.string().trim().min(3).max(255),
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
 export const changePasswordSchema = z
   .object({
     currentPassword: passwordSchema,
@@ -59,6 +73,10 @@ export const authenticatedUserSchema = z.object({
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
   photoUrl: z.url().nullable(),
+  /** What this clinic lets this role do, resolved from the shipped defaults and the clinic's own
+   *  edits. Carried on the session so a screen hides what its reader cannot use; the API is still
+   *  the boundary. */
+  capabilities: z.array(z.string()),
 });
 export type AuthenticatedUserProfile = z.infer<typeof authenticatedUserSchema>;
 

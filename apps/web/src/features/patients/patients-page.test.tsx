@@ -209,6 +209,19 @@ describe('Patients list', () => {
       expect(screen.getAllByRole('button', { name: ar.patients.create }).length).toBeGreaterThan(0);
     });
 
+    it('withdraws the action when the clinic has taken the permission away', async () => {
+      // The screen asks what this clinic lets this reader do, not what the role shipped with — a
+      // switch on the permissions screen is the whole point of the question.
+      await renderList(USER_ROLE.RECEPTIONIST, {
+        'GET /me': {
+          status: 200,
+          body: makeProfile({ role: USER_ROLE.RECEPTIONIST, capabilities: ['patients.update'] }),
+        },
+      });
+
+      expect(screen.queryByRole('button', { name: ar.patients.create })).not.toBeInTheDocument();
+    });
+
     it('sends what the form collected and opens the new file', async () => {
       const created = makePatient({ id: PATIENT_ID, fullName: 'سامر التلاوي' });
 

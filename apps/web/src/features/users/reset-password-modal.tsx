@@ -4,7 +4,7 @@ import { useEffect, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Input, Modal, usePersonName, useToast } from '@clinic/ui';
+import { Button, FormField, Icon, Modal, PasswordInput, usePersonName, useToast } from '@clinic/ui';
 import { useResetUserPassword } from '@web/features/users/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -83,10 +83,9 @@ export function ResetPasswordModal({
           error={errors.newPassword}
           errorKey={errors.newPassword ? 'errors.validation.passwordMin' : undefined}
         >
-          <Input
+          <PasswordInput
             placeholder={t('common.placeholders.password')}
             id="reset-password"
-            type="password"
             autoComplete="new-password"
             hasError={errors.newPassword !== undefined}
             {...register('newPassword')}

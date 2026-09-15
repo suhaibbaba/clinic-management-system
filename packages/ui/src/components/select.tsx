@@ -174,6 +174,7 @@ function Row({
         'lg:min-h-(--control-h-sm) px-3 py-2 text-start text-field outline-none select-none',
         // `data-highlighted` rather than `hover:`, because it is the keyboard's
         // row as much as the pointer's.
+        'transition-colors duration-150',
         'data-[highlighted]:bg-inset data-[state=checked]:font-medium',
         muted ? 'text-ink-subtle' : 'text-ink',
       )}

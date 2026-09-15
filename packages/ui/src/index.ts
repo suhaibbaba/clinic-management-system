@@ -18,6 +18,8 @@ export { Modal } from '@ui/components/modal';
 export { Money } from '@ui/components/money';
 export { MoneyInput } from '@ui/components/money-input';
 export { PageHeader } from '@ui/components/page-header';
+export { PasswordInput } from '@ui/components/password-input';
+export { PhoneInput } from '@ui/components/phone-input';
 export { PersonName, usePersonName } from '@ui/components/person-name';
 export { ProgressBar } from '@ui/components/progress-bar';
 export { SearchField } from '@ui/components/search-field';
@@ -26,6 +28,7 @@ export { Select } from '@ui/components/select';
 export { StatCard, StatRow, type StatTone } from '@ui/components/stat-card';
 export { Switch } from '@ui/components/switch';
 export { TabPanel, Tabs, useTabParam, type TabDefinition } from '@ui/components/tabs';
+export { usePageParams, type PageParams } from '@ui/lib/use-page-params';
 export { Textarea } from '@ui/components/textarea';
 export { Table, type Column } from '@ui/components/table';
 export { TimePicker } from '@ui/components/time-picker';
@@ -36,7 +39,6 @@ export {
   createTheme,
   themeVariables,
   UiProvider,
-  useDirection,
   type Direction,
   type ThemeOverride,
   type ThemeVariables,

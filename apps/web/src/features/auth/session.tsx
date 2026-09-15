@@ -16,6 +16,10 @@ import { authTokens } from '@web/lib/auth-tokens';
 
 export type SessionStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
+/** Asks whether the clinic lets this reader do one thing. What the feature `permissions.ts` files
+ *  are written against, so a screen never repeats a role list the admin can change. */
+export type Can = (capability: string) => boolean;
+
 interface SessionValue {
   readonly status: SessionStatus;
   readonly user: AuthenticatedUserProfile | null;
@@ -25,6 +29,7 @@ interface SessionValue {
   // ending the session over a refresh would be worse than a stale avatar.
   readonly refreshProfile: () => Promise<void>;
   readonly hasRole: (...roles: UserRole[]) => boolean;
+  readonly can: Can;
 }
 
 const SessionContext = createContext<SessionValue | null>(null);
@@ -111,6 +116,9 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
     }
   }, []);
 
+  // A set rather than the array it arrives as: every screen asks this a few times per render.
+  const granted = useMemo(() => new Set(user?.capabilities ?? []), [user]);
+
   const value = useMemo<SessionValue>(
     () => ({
       status,
@@ -119,8 +127,9 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
       logout,
       refreshProfile,
       hasRole: (...roles: UserRole[]) => (user ? roles.includes(user.role) : false),
+      can: (capability: string) => granted.has(capability),
     }),
-    [status, user, login, logout, refreshProfile],
+    [status, user, login, logout, refreshProfile, granted],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

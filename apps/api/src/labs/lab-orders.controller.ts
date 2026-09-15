@@ -31,6 +31,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 import { Audit } from '@api/common/decorators/audit.decorator';
+import { Capability } from '@api/common/decorators/capability.decorator';
 import { CurrentUser } from '@api/common/decorators/current-user.decorator';
 import { Roles } from '@api/common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
@@ -203,7 +204,9 @@ export class LabOrdersController {
     return this.attachments.presign(actor, params.id, body);
   }
 
+  // Named, because the derived `lab-orders.confirm` would read as confirming the order itself.
   @Post(':id/attachments')
+  @Capability('lab-orders.confirmAttachment')
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   confirm(
     @CurrentUser() actor: AuthenticatedUser,

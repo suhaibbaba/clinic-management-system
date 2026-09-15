@@ -34,7 +34,7 @@ export function InventoryPage(): JSX.Element {
   const { t } = useTranslation();
   const categoryLabel = useLookupLabels(LOOKUP_LIST.ITEM_CATEGORY);
   const categoryOptions = useLookupOptions(LOOKUP_LIST.ITEM_CATEGORY);
-  const { user } = useSession();
+  const { can } = useSession();
   const navigate = useNavigate();
 
   const [search, setSearch] = useState('');
@@ -59,7 +59,7 @@ export function InventoryPage(): JSX.Element {
 
   const items = useInventoryItems(query);
   const rows = items.data?.items ?? [];
-  const mayManage = canManageInventory(user?.role);
+  const mayManage = canManageInventory(can);
 
   const columns: readonly Column<InventoryItemRow>[] = [
     {

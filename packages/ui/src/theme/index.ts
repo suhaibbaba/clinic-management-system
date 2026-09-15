@@ -4,12 +4,7 @@ export {
   type ThemeOverride,
   type ThemeVariables,
 } from '@ui/theme/create-theme';
-export {
-  UiProvider,
-  useDirection,
-  type Direction,
-  type UiProviderProps,
-} from '@ui/theme/ui-provider';
+export { UiProvider, type Direction, type UiProviderProps } from '@ui/theme/ui-provider';
 export type {
   AnimationToken,
   ColorToken,

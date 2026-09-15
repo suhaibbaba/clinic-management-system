@@ -65,7 +65,7 @@ type Range = (typeof RANGES)[number];
 export function AppointmentsPage(): JSX.Element {
   const { t } = useTranslation();
   const doctorName = usePersonName();
-  const { user } = useSession();
+  const { user, can } = useSession();
   const toast = useToast();
   const isMobile = useIsMobile();
 
@@ -122,8 +122,8 @@ export function AppointmentsPage(): JSX.Element {
 
   const role = user?.role;
   const wholeClinic = role ? seesWholeClinic(role) : true;
-  const mayBook = role ? canBookAppointment(role) : false;
-  const mayManageQueue = role ? canManageWaitingList(role) : false;
+  const mayBook = canBookAppointment(can);
+  const mayManageQueue = canManageWaitingList(can);
 
   /** A doctor's own calendar is the one backed by their user account. */
   const ownDoctorId = useMemo(
@@ -148,7 +148,7 @@ export function AppointmentsPage(): JSX.Element {
 
   // The one number not already in the calendar feed: a `requested` booking for today is somebody
   // nobody has answered. `limit: 1` because only the total is wanted.
-  const frontDesk = seesPendingBookings(user?.role);
+  const frontDesk = seesPendingBookings(can);
   const onlineToday = usePendingBookings({ from: todayIso(), to: todayIso(), limit: 1 }, frontDesk);
 
   const { showSkeleton, isRefreshing } = useQueryLoading(calendar);

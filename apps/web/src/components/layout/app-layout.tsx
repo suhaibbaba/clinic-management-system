@@ -27,7 +27,7 @@ const PATIENTS = '/patients';
 
 export function AppLayout(): JSX.Element {
   const { t } = useTranslation();
-  const { user, logout } = useSession();
+  const { user, logout, can } = useSession();
   const { pathname } = useLocation();
   // From the session bootstrap, not a second request, so the rail is branded on the first paint.
   const logoUrl = useClinicLogo(user?.clinicId, user?.clinic.logoUrl);
@@ -39,7 +39,7 @@ export function AppLayout(): JSX.Element {
   const settings = visibleSettingsItems(user?.role);
 
   /** Asked for once here and handed to both copies of the nav list, rather than fetched twice. */
-  const pendingBookings = usePendingBookingsCount(seesPendingBookings(user?.role));
+  const pendingBookings = usePendingBookingsCount(seesPendingBookings(can));
   const badges = { pendingBookings } as const;
 
   // Navigating closes the drawer. Doing it here rather than in each row's
@@ -84,7 +84,7 @@ export function AppLayout(): JSX.Element {
         <aside
           className={cn(
             'z-30 hidden shrink-0 bg-rail md:block md:w-[266px]',
-            'md:sticky md:top-0 md:h-dvh md:overflow-y-auto',
+            'md:sticky md:top-0 md:h-dvh',
             'md:border-e md:border-line',
           )}
         >
@@ -95,7 +95,7 @@ export function AppLayout(): JSX.Element {
               <Logo size="chrome" src={logoUrl} name={user?.clinic.name} alt={t('app.title')} />
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="scroll-lane min-h-0 flex-1 overflow-y-auto">
               <NavList groups={groups} settings={settings} badges={badges} />
             </div>
 
@@ -145,15 +145,19 @@ export function AppLayout(): JSX.Element {
                 aria-label={t('nav.menu')}
               />
 
+              {/* Search first, actions last, in logical order: the field opens where reading begins
+                  — the right in Arabic, the left in English — and the bell and the page's own
+                  button sit together at the far end. `ms-auto` pins them there on a page with no
+                  search field, so the pair does not drift into the middle of an empty bar. */}
+              {searchable && <TopSearch />}
+
               {/* The reference's `.top-actions`: its own 9px pair, then the bar's 14px to the field. */}
-              <div className="flex items-center gap-[9px]">
+              <div className="ms-auto flex items-center gap-[9px]">
                 <NotificationBell />
                 {/* The page's own "new …" button, portalled in. `contents` so the slot's row is this
                   one and the button sits beside the bell rather than in a box of its own. */}
                 <span className="contents" ref={(host) => void host?.appendChild(actionSlot)} />
               </div>
-
-              {searchable && <TopSearch />}
             </header>
           </div>
 
@@ -329,7 +333,7 @@ function TopSearch(): JSX.Element {
       role="search"
       // Shares the bar's one row at every width. `w-full order-last` gave it a row of its own on a
       // phone, which made the header two rows tall on every single page.
-      className="me-auto min-w-0 flex-1 md:max-w-[520px]"
+      className="min-w-0 flex-1 md:max-w-[520px]"
       onSubmit={(event) => {
         event.preventDefault();
 

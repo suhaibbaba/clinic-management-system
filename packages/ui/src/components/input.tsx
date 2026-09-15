@@ -51,6 +51,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           ltrIsland ? 'page-rtl:text-right page-ltr:text-left' : 'text-start',
           '[&::-webkit-calendar-picker-indicator]:cursor-pointer',
           '[&::-webkit-calendar-picker-indicator]:opacity-60',
+          '[&::-webkit-calendar-picker-indicator]:transition-opacity',
+          '[&::-webkit-calendar-picker-indicator]:duration-150',
           '[&::-webkit-calendar-picker-indicator]:hover:opacity-100',
         )}
         {...props}

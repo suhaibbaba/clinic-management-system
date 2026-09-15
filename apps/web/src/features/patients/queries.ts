@@ -19,6 +19,7 @@ import type {
   TimelineEntry,
   ToothHistory,
   TreatmentPlan,
+  UpdatePatientInput,
   UpdatePerformedProcedureInput,
   UpdateTreatmentPlanItemInput,
   UpdateVisitInput,
@@ -50,6 +51,19 @@ export function usePatients(
     // Keeps the previous page on screen while a new search is in flight, so the
     // table does not blink empty on every keystroke that survives the debounce.
     placeholderData: (previous) => previous,
+  });
+}
+
+export function useUpdatePatient(id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: UpdatePatientInput) => patientsApi.update(id, body),
+    onSuccess: (patient) => {
+      queryClient.setQueryData([PATIENT_KEY, id], patient);
+      // The list carries the same name, phone and balance, so it goes stale the moment this writes.
+      void queryClient.invalidateQueries({ queryKey: [PATIENTS_KEY] });
+    },
   });
 }
 

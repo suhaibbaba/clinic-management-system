@@ -35,7 +35,7 @@ interface AccountTabProps {
 // receptionist reads this screen.
 export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { can } = useSession();
   const toast = useToast();
   const clinic = useClinic();
 
@@ -56,7 +56,6 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
   const statement = useStatement(patientId, query);
 
   const currency = clinic.data?.currency;
-  const role = user?.role;
 
   const print = async (action: () => Promise<void>): Promise<void> => {
     try {
@@ -130,7 +129,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
             >
               {t('billing.receipt')}
             </Button>
-            {role && canReversePayment(role) && (
+            {canReversePayment(can) && (
               <Button
                 icon={<Icon name="reset" />}
                 variant="ghost"
@@ -165,7 +164,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {role && canRecordPayment(role) && (
+          {canRecordPayment(can) && (
             <Button icon={<Icon name="money" />} onClick={() => setPaying(true)}>
               {t('billing.recordPayment')}
             </Button>

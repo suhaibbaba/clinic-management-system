@@ -107,7 +107,8 @@ describe('Users management', () => {
     renderWithProviders(<AppRoutes />, { route: '/users' });
     await screen.findByText(user.name.ar);
 
-    await userEvent.click(screen.getByRole('button', { name: ar.common.edit }));
+    await userEvent.click(screen.getByRole('button', { name: ar.users.rowMenu }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: ar.common.edit }));
 
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).queryByLabelText(ar.users.password)).not.toBeInTheDocument();
@@ -151,9 +152,72 @@ describe('Users management', () => {
     });
   });
 
-  it('resets a password through the dedicated endpoint', async () => {
+  it('sends a reset link rather than setting a password for an account with an address', async () => {
     authTokens.clear();
     const user = makeUser();
+
+    const api = mockApi({
+      ...baseHandlers([user]),
+      'POST /users/33333333-3333-4333-8333-333333333333/send-password-reset': { status: 204 },
+    });
+
+    renderWithProviders(<AppRoutes />, { route: '/users' });
+    await screen.findByText(user.name.ar);
+
+    await userEvent.click(screen.getByRole('button', { name: ar.users.rowMenu }));
+
+    // The password is the owner's to choose: no dialog asks the admin for one.
+    expect(
+      screen.queryByRole('menuitem', { name: ar.users.resetPassword }),
+    ).not.toBeInTheDocument();
+
+    await userEvent.click(await screen.findByRole('menuitem', { name: ar.users.sendResetLink }));
+
+    await waitFor(() => {
+      expect(
+        api.calls.some(
+          (entry) => entry.method === 'POST' && entry.url.endsWith('/send-password-reset'),
+        ),
+      ).toBe(true);
+    });
+  });
+
+  it('offers the activation letter, not a password change, while an account is unclaimed', async () => {
+    authTokens.clear();
+    const user = makeUser({ activated: false });
+
+    mockApi(baseHandlers([user]));
+    renderWithProviders(<AppRoutes />, { route: '/users' });
+    await screen.findByText(user.name.ar);
+
+    await userEvent.click(screen.getByRole('button', { name: ar.users.rowMenu }));
+
+    expect(await screen.findByRole('menuitem', { name: ar.users.resendInvite })).toBeVisible();
+    expect(
+      screen.queryByRole('menuitem', { name: ar.users.sendResetLink }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('sends no letter to a disabled account — the API refuses one either way', async () => {
+    authTokens.clear();
+    const user = makeUser({ isActive: false, activated: false });
+
+    mockApi(baseHandlers([user]));
+    renderWithProviders(<AppRoutes />, { route: '/users' });
+    await screen.findByText(user.name.ar);
+
+    await userEvent.click(screen.getByRole('button', { name: ar.users.rowMenu }));
+
+    expect(await screen.findByRole('menuitem', { name: ar.common.edit })).toBeVisible();
+    expect(
+      screen.queryByRole('menuitem', { name: ar.users.sendResetLink }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: ar.users.resendInvite })).not.toBeInTheDocument();
+  });
+
+  it('asks the admin for a password only where there is no address to send to', async () => {
+    authTokens.clear();
+    const user = makeUser({ email: null });
 
     const api = mockApi({
       ...baseHandlers([user]),
@@ -163,7 +227,8 @@ describe('Users management', () => {
     renderWithProviders(<AppRoutes />, { route: '/users' });
     await screen.findByText(user.name.ar);
 
-    await userEvent.click(screen.getByRole('button', { name: ar.users.resetPassword }));
+    await userEvent.click(screen.getByRole('button', { name: ar.users.rowMenu }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: ar.users.resetPassword }));
 
     const dialog = await screen.findByRole('dialog');
     await userEvent.type(within(dialog).getByLabelText(ar.users.newPassword), 'ResetByAdmin123!');
@@ -172,6 +237,34 @@ describe('Users management', () => {
     await waitFor(() => {
       const call = api.calls.find((entry) => entry.url.includes('/reset-password'));
       expect(call?.body).toEqual({ newPassword: 'ResetByAdmin123!' });
+    });
+  });
+
+  it('deletes an account from the row menu, once the question is answered', async () => {
+    authTokens.clear();
+    const user = makeUser();
+
+    const api = mockApi({
+      ...baseHandlers([user]),
+      'DELETE /users/33333333-3333-4333-8333-333333333333': { status: 204 },
+    });
+
+    renderWithProviders(<AppRoutes />, { route: '/users' });
+    await screen.findByText(user.name.ar);
+
+    await userEvent.click(screen.getByRole('button', { name: ar.users.rowMenu }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: ar.users.delete }));
+
+    const dialog = await screen.findByRole('dialog');
+
+    expect(api.calls.some((entry) => entry.method === 'DELETE')).toBe(false);
+
+    await userEvent.click(within(dialog).getByRole('button', { name: ar.users.delete }));
+
+    await waitFor(() => {
+      expect(
+        api.calls.some((entry) => entry.method === 'DELETE' && entry.url.endsWith(user.id)),
+      ).toBe(true);
     });
   });
 

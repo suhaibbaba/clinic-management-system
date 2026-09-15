@@ -1,15 +1,14 @@
 import { USER_ROLE, type UserRole } from '@clinic/shared';
 
-// The ROLES.md billing row, kept beside the spec it comes from. Hiding a control is cosmetic — the
-// API refuses either way.
+import type { Can } from '@web/features/auth/session';
 
 // A technician never sees financial patient data, so the API does not put a balance in their
-// patient response at all.
+// patient response at all. A response's shape is the permission, and no switch moves it — which is
+// why this one stays a role and the two below do not.
 export const canSeeBilling = (role: UserRole): boolean => role !== USER_ROLE.TECHNICIAN;
 
-/** Taking money: admin CRUD, receptionist CR. A doctor reads only. */
-export const canRecordPayment = (role: UserRole): boolean =>
-  role === USER_ROLE.ADMIN || role === USER_ROLE.RECEPTIONIST;
+/** Taking money. */
+export const canRecordPayment = (can: Can): boolean => can('payments.create');
 
-/** Admin only, and the only correction there is: nobody updates or deletes a payment. */
-export const canReversePayment = (role: UserRole): boolean => role === USER_ROLE.ADMIN;
+/** The only correction there is: nobody updates or deletes a payment. */
+export const canReversePayment = (can: Can): boolean => can('payments.reverse');

@@ -9,7 +9,7 @@ import {
   PATIENT_REF_MESSAGE,
 } from '@shared/schemas/patients';
 import { personNameSchema } from '@shared/schemas/person-name';
-import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
+import { paginationQuerySchema, uuidSchema, optionalPhoneSchema } from '@shared/schemas/common';
 import { moneySchema, signedMoneySchema, wholeMoneySchema } from '@shared/schemas/money';
 import { lookupCodeSchema } from '@shared/schemas/lookups';
 
@@ -39,7 +39,7 @@ export type LabSummary = z.infer<typeof labSummarySchema>;
 
 const labWritableFields = {
   name: z.string().trim().min(2).max(160),
-  phone: z.string().trim().max(32).nullish(),
+  phone: optionalPhoneSchema,
   address: z.string().trim().max(300).nullish(),
   contactPerson: z.string().trim().max(160).nullish(),
   notes: z.string().trim().max(2000).nullish(),

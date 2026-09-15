@@ -25,7 +25,7 @@ export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.El
 
   return (
     <div className="text-end">
-      <span className="block text-meta text-ink-muted">{t('patients.balance')}</span>
+      <span className="block text-value text-ink-muted">{t('patients.balance')}</span>
 
       {balance.isPending ? (
         <Skeleton className="ms-auto mt-1 h-7 w-24" />

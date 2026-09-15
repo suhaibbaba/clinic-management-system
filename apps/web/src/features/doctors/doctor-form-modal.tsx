@@ -1,5 +1,6 @@
 import type { Doctor, WeeklySchedule } from '@clinic/shared';
 import { useEffect, useState, type JSX } from 'react';
+import { foldDigits } from '@clinic/ui/lib/digits';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -8,6 +9,8 @@ import {
   Icon,
   Input,
   Modal,
+  PasswordInput,
+  PhoneInput,
   SegmentedControl,
   Select,
   useToast,
@@ -198,10 +201,8 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
                 </FormField>
 
                 <FormField label="users.phone" htmlFor="doctor-phone" required>
-                  <Input
+                  <PhoneInput
                     id="doctor-phone"
-                    type="tel"
-                    dir="ltr"
                     placeholder={t('common.placeholders.phone')}
                     value={newUser.phone}
                     onChange={(event) => setNewUser({ ...newUser, phone: event.target.value })}
@@ -225,9 +226,8 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
                   hint="doctors.roleLocked"
                   required
                 >
-                  <Input
+                  <PasswordInput
                     id="doctor-password"
-                    type="password"
                     autoComplete="new-password"
                     placeholder={t('common.placeholders.password')}
                     value={newUser.password}
@@ -263,12 +263,12 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
           <Input
             placeholder={t('common.placeholders.minutes')}
             id="doctor-duration"
-            type="number"
-            min={5}
-            max={480}
-            step={5}
+            // Not `type="number"`: it accepts `e`, `+`, `-` and `.`, and reads back an empty
+            // string for any of them, so the field looks filled and submits nothing.
+            inputMode="numeric"
+            dir="ltr"
             value={duration}
-            onChange={(event) => setDuration(event.target.value)}
+            onChange={(event) => setDuration(foldDigits(event.target.value).replace(/\D/g, ''))}
           />
         </FormField>
 

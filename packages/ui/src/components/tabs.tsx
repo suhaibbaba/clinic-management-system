@@ -115,6 +115,8 @@ export function useTabParam<TId extends string>(
   param: string,
   ids: readonly TId[],
   fallback: TId,
+  /** Params the new panel has no use for — a page number belongs to the list it was counted in. */
+  clears: readonly string[] = [],
 ): readonly [TId, (id: TId) => void] {
   const [params, setParams] = useSearchParams();
   const raw = params.get(param);
@@ -123,15 +125,24 @@ export function useTabParam<TId extends string>(
   const active = ids.find((id) => id === raw) ?? fallback;
 
   const setActive = (id: TId): void => {
-    const next = new URLSearchParams(params);
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
 
-    if (id === fallback) {
-      next.delete(param);
-    } else {
-      next.set(param, id);
-    }
+        if (id === fallback) {
+          next.delete(param);
+        } else {
+          next.set(param, id);
+        }
 
-    setParams(next, { replace: true });
+        for (const stale of clears) {
+          next.delete(stale);
+        }
+
+        return next;
+      },
+      { replace: true },
+    );
   };
 
   return [active, setActive];

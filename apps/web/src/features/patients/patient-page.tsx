@@ -1,8 +1,18 @@
-import { lazy, Suspense, type JSX } from 'react';
+import { Suspense, lazy, type JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { Avatar, EmptyState, Ltr, PhoneLink, TabPanel, Tabs, useTabParam } from '@clinic/ui';
+import {
+  Avatar,
+  Button,
+  EmptyState,
+  Icon,
+  Ltr,
+  PhoneLink,
+  TabPanel,
+  Tabs,
+  useTabParam,
+} from '@clinic/ui';
 import { Skeleton, SkeletonStatus } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { AccountTab } from '@web/features/billing/account-tab';
@@ -10,7 +20,8 @@ import { PatientBalanceCard } from '@web/features/billing/patient-balance-card';
 import { canSeeBilling } from '@web/features/billing/permissions';
 import { ageInYears } from '@web/features/patients/age';
 import { AllergyBanner } from '@web/features/patients/allergy-banner';
-import { canViewChart } from '@web/features/patients/permissions';
+import { PatientFormModal } from '@web/features/patients/patient-form-modal';
+import { canEditPatient, canViewChart } from '@web/features/patients/permissions';
 import { usePatient } from '@web/features/patients/queries';
 import { TimelineTab } from '@web/features/patients/timeline/timeline-tab';
 import { TreatmentPlansTab } from '@web/features/patients/treatment-plans/treatment-plans-tab';
@@ -41,7 +52,7 @@ const PLACEHOLDER_TABS: readonly TabId[] = ['prescriptions'];
 
 export function PatientPage(): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { user, can } = useSession();
   const { id = '' } = useParams();
 
   // A receptionist reaches this page for the account only, so the clinical
@@ -58,6 +69,7 @@ export function PatientPage(): JSX.Element {
   );
 
   const patient = usePatient(id);
+  const [editing, setEditing] = useState(false);
   const showSkeleton = useDelayedLoading(patient.isPending);
 
   return (
@@ -90,19 +102,34 @@ export function PatientPage(): JSX.Element {
                 </div>
               </div>
 
-              {role && canSeeBilling(role) && <PatientBalanceCard patientId={id} />}
+              <div className="flex items-center gap-3">
+                {role && canSeeBilling(role) && <PatientBalanceCard patientId={id} />}
+
+                {/* Editing the file is the header's job, not a tab's: every tab below is about what
+                    was done to the patient, and this is about who they are. */}
+                {canEditPatient(can) && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    icon={<Icon name="edit" />}
+                    onClick={() => setEditing(true)}
+                  >
+                    {t('patients.edit')}
+                  </Button>
+                )}
+              </div>
             </div>
 
             <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 lg:grid-cols-3">
               <div className="min-w-0">
-                <dt className="text-meta text-ink-muted">{t('patients.fileNumber')}</dt>
+                <dt className="text-value text-ink-muted">{t('patients.fileNumber')}</dt>
                 <Ltr as="dd" className="mt-0.5 truncate text-value text-ink tabular-nums">
                   {patient.data.fileNumber}
                 </Ltr>
               </div>
 
               <div className="min-w-0">
-                <dt className="text-meta text-ink-muted">{t('patients.age')}</dt>
+                <dt className="text-value text-ink-muted">{t('patients.age')}</dt>
                 <dd className="mt-0.5 truncate text-value text-ink">
                   {patient.data.dateOfBirth
                     ? t('patients.years', { count: ageInYears(patient.data.dateOfBirth) })
@@ -111,7 +138,7 @@ export function PatientPage(): JSX.Element {
               </div>
 
               <div className="min-w-0">
-                <dt className="text-meta text-ink-muted">{t('patients.phone')}</dt>
+                <dt className="text-value text-ink-muted">{t('patients.phone')}</dt>
                 {/* The 44px band is an absolutely positioned `::after`, and an `overflow-hidden`
                     ancestor cuts it down to the line box. */}
                 <dd className="mt-0.5 min-w-0 text-value text-ink">
@@ -122,6 +149,10 @@ export function PatientPage(): JSX.Element {
           </>
         )}
       </header>
+
+      {patient.data && (
+        <PatientFormModal open={editing} onOpenChange={setEditing} patient={patient.data} />
+      )}
 
       <Tabs
         tabs={tabs.map((tab) => ({ id: tab.id, label: tab.label }))}

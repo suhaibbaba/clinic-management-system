@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { settingsSchema, weeklyScheduleSchema } from '@shared/schemas/common';
+import { settingsSchema, weeklyScheduleSchema, optionalPhoneSchema } from '@shared/schemas/common';
 import { personNameInputSchema, personNameSchema } from '@shared/schemas/person-name';
 import { DEFAULT_TIME_ZONE } from '@shared/time/zone';
 
@@ -79,6 +79,29 @@ export const clinicBrandingSchema = z.object({
 });
 export type ClinicBranding = z.infer<typeof clinicBrandingSchema>;
 
+/**
+ * A coordinate as the database holds it: `numeric(9,6)` arrives as a string, and it is only ever
+ * handed to a map, never added up. Six decimals is roughly 0.1 m, which is finer than a building.
+ */
+const coordinateSchema = (limit: number) =>
+  z
+    .string()
+    .regex(/^-?\d{1,3}(\.\d{1,6})?$/, 'Expected a decimal coordinate')
+    .refine((value) => Math.abs(Number(value)) <= limit, `Expected between -${limit} and ${limit}`);
+
+export const latitudeSchema = coordinateSchema(90);
+export const longitudeSchema = coordinateSchema(180);
+
+/** What the settings screen sends when somebody pastes a shortened map link. */
+export const resolveLocationSchema = z.object({ url: z.url().max(2048) });
+export type ResolveLocationInput = z.infer<typeof resolveLocationSchema>;
+
+export const resolvedLocationSchema = z.object({
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+});
+export type ResolvedLocation = z.infer<typeof resolvedLocationSchema>;
+
 export const clinicSchema = z.object({
   id: z.uuid(),
   name: personNameSchema,
@@ -89,6 +112,8 @@ export const clinicSchema = z.object({
   phone: z.string().nullable(),
   email: z.string().nullable(),
   address: z.string().nullable(),
+  latitude: z.string().nullable(),
+  longitude: z.string().nullable(),
   // Read as a plain string, not the enum: a row stored before the list existed must still parse, or
   // the settings screen cannot load to fix it.
   currency: z.string(),
@@ -102,14 +127,25 @@ export type Clinic = z.infer<typeof clinicSchema>;
 export const updateClinicSchema = z
   .object({
     name: personNameInputSchema,
-    phone: z.string().trim().max(32).nullish(),
+    phone: optionalPhoneSchema,
     email: z.email().max(255).nullish(),
     address: z.string().trim().max(500).nullish(),
+    latitude: latitudeSchema.nullish(),
+    longitude: longitudeSchema.nullish(),
     /** Writes are held to the list, even though reads are not. */
     currency: z.enum(CURRENCIES),
     workingHours: weeklyScheduleSchema,
     settings: settingsSchema,
   })
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided')
+  // Both or neither: a latitude without a longitude points nowhere, and a half-written pin is
+  // worse than none because the map still opens, somewhere else entirely.
+  .refine(
+    (input) =>
+      (input.latitude ?? null) === null
+        ? (input.longitude ?? null) === null
+        : input.longitude != null,
+    { message: 'Latitude and longitude must be given together', path: ['longitude'] },
+  );
 export type UpdateClinicInput = z.infer<typeof updateClinicSchema>;

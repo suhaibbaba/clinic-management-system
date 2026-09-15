@@ -21,6 +21,7 @@ import type {
   ToothHistory,
   TreatmentPlan,
   TreatmentPlanItem,
+  UpdatePatientInput,
   UpdatePerformedProcedureInput,
   UpdateTreatmentPlanInput,
   UpdateTreatmentPlanItemInput,
@@ -68,6 +69,9 @@ export const patientsApi = {
     apiRequest('/patients', { method: 'POST', body }),
 
   get: (id: string): Promise<PatientClinicalView> => apiRequest(`/patients/${id}`),
+
+  update: (id: string, body: UpdatePatientInput): Promise<PatientClinicalView> =>
+    apiRequest(`/patients/${id}`, { method: 'PATCH', body }),
 
   allergyFlags: (id: string): Promise<AllergyFlags> => apiRequest(`/patients/${id}/allergy-flags`),
 

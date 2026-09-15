@@ -16,8 +16,8 @@ type AppointmentsTab = typeof ALL | typeof PENDING | typeof CONFIRMED;
 // Three tabs rather than three pages: the same appointments at three points of one process.
 // `?status=` so a dashboard card, an old redirect or a pasted address lands on a named tab.
 export function AppointmentsSection(): JSX.Element {
-  const { user } = useSession();
-  const frontDesk = seesPendingBookings(user?.role);
+  const { can } = useSession();
+  const frontDesk = seesPendingBookings(can);
   const pendingCount = usePendingBookingsCount(frontDesk);
 
   const tabs: readonly TabDefinition<AppointmentsTab>[] = frontDesk
@@ -32,6 +32,7 @@ export function AppointmentsSection(): JSX.Element {
     'status',
     tabs.map((tab) => tab.id),
     ALL,
+    ['page'],
   );
 
   return (

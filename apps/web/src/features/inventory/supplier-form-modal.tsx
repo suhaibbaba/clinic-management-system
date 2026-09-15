@@ -2,7 +2,16 @@ import type { SupplierSummary } from '@clinic/shared';
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Input, Modal, Switch, Textarea, useToast } from '@clinic/ui';
+import {
+  Button,
+  FormField,
+  Input,
+  Modal,
+  PhoneInput,
+  Switch,
+  Textarea,
+  useToast,
+} from '@clinic/ui';
 import { useCreateSupplier, useUpdateSupplier } from '@web/features/inventory/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
@@ -95,10 +104,8 @@ export function SupplierFormModal({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label="inventory.suppliers.phone" htmlFor="supplier-phone" optional>
-            <Input
+            <PhoneInput
               id="supplier-phone"
-              dir="ltr"
-              inputMode="tel"
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
             />

@@ -35,7 +35,7 @@ import { useIsMobile } from '@clinic/ui/lib/use-media-query';
 // shared `Table`, already a stack of cards there.
 export function LabOrdersPage(): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { can } = useSession();
   const isMobile = useIsMobile();
 
   const [search, setSearch] = useState('');
@@ -75,7 +75,7 @@ export function LabOrdersPage(): JSX.Element {
         title="labs.orders.title"
         subtitle="labs.orders.subtitle"
         primaryAction={
-          canCreateLabOrder(user?.role) ? (
+          canCreateLabOrder(can) ? (
             <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
               {t('labs.orders.add')}
             </Button>
@@ -240,12 +240,12 @@ function OrderCard({
   readonly onOpen: () => void;
 }): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { can } = useSession();
   const toast = useToast();
   const clinic = useClinic();
   const step = useLabOrderStep();
 
-  const steps = availableSteps(order.status, user?.role);
+  const steps = availableSteps(order.status, can);
 
   const move = async (next: (typeof steps)[number]): Promise<void> => {
     try {
@@ -285,22 +285,23 @@ function OrderCard({
           />
         </div>
 
-        {order.expectedAt && (
-          <Ltr
-            as="p"
-            className={cn(
-              'mt-1 text-label tabular-nums',
-              order.isOverdue ? 'text-danger-600' : 'text-ink-subtle',
+        {/* One row, so the date and the pill get a gap: `Ltr` is inline-block and the two sat
+            against each other with the badge's own margin doing nothing between them. */}
+        {(order.expectedAt || order.isOverdue) && (
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            {order.expectedAt && (
+              <Ltr
+                className={cn(
+                  'text-label tabular-nums',
+                  order.isOverdue ? 'text-danger-600' : 'text-ink-subtle',
+                )}
+              >
+                {formatDate(order.expectedAt)}
+              </Ltr>
             )}
-          >
-            {formatDate(order.expectedAt)}
-          </Ltr>
-        )}
 
-        {order.isOverdue && (
-          <Badge tone="danger" className="mt-2">
-            {t('labs.orders.overdue')}
-          </Badge>
+            {order.isOverdue && <Badge tone="danger">{t('labs.orders.overdue')}</Badge>}
+          </div>
         )}
       </button>
 

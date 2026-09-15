@@ -9,9 +9,6 @@
   ],
   "exports": {
     ".": "./src/index.ts",
-    "./theme": "./src/theme/index.ts",
-    "./styles/base.css": "./src/styles/base.css",
-    "./styles/fonts.css": "./src/styles/fonts.css",
     "./components/avatar": "./src/components/avatar.tsx",
     "./components/badge": "./src/components/badge.tsx",
     "./components/button": "./src/components/button.tsx",
@@ -32,10 +29,12 @@
     "./components/ltr": "./src/components/ltr.tsx",
     "./components/menu": "./src/components/menu.tsx",
     "./components/modal": "./src/components/modal.tsx",
-    "./components/money-input": "./src/components/money-input.tsx",
     "./components/money": "./src/components/money.tsx",
+    "./components/money-input": "./src/components/money-input.tsx",
     "./components/page-header": "./src/components/page-header.tsx",
+    "./components/password-input": "./src/components/password-input.tsx",
     "./components/person-name": "./src/components/person-name.tsx",
+    "./components/phone-input": "./src/components/phone-input.tsx",
     "./components/picker-open": "./src/components/picker-open.ts",
     "./components/popover": "./src/components/popover.tsx",
     "./components/progress-bar": "./src/components/progress-bar.tsx",
@@ -53,12 +52,16 @@
     "./components/tone": "./src/components/tone.ts",
     "./components/widget": "./src/components/widget.tsx",
     "./lib/cn": "./src/lib/cn.ts",
+    "./lib/digits": "./src/lib/digits.ts",
     "./lib/direction": "./src/lib/direction.ts",
     "./lib/page-action-slot": "./src/lib/page-action-slot.tsx",
     "./lib/page-title": "./src/lib/page-title.ts",
     "./lib/use-delayed-loading": "./src/lib/use-delayed-loading.ts",
     "./lib/use-media-query": "./src/lib/use-media-query.ts",
-    "./lib/validation-message": "./src/lib/validation-message.ts"
+    "./lib/validation-message": "./src/lib/validation-message.ts",
+    "./styles/base.css": "./src/styles/base.css",
+    "./styles/fonts.css": "./src/styles/fonts.css",
+    "./theme": "./src/theme/index.ts"
   },
   "files": [
     "src"

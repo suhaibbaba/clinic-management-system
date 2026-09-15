@@ -11,8 +11,8 @@ import {
   EmailLink,
   FormField,
   Icon,
-  Input,
   PageHeader,
+  PasswordInput,
   PersonName,
   PhoneLink,
   useToast,
@@ -115,10 +115,9 @@ export function ProfilePage(): JSX.Element {
               error={errors.currentPassword}
               errorKey={errors.currentPassword ? 'errors.validation.passwordMin' : undefined}
             >
-              <Input
+              <PasswordInput
                 placeholder={t('common.placeholders.password')}
                 id="current-password"
-                type="password"
                 autoComplete="current-password"
                 hasError={errors.currentPassword !== undefined}
                 {...register('currentPassword')}
@@ -137,10 +136,9 @@ export function ProfilePage(): JSX.Element {
                     : undefined
               }
             >
-              <Input
+              <PasswordInput
                 placeholder={t('common.placeholders.password')}
                 id="new-password"
-                type="password"
                 autoComplete="new-password"
                 hasError={errors.newPassword !== undefined}
                 {...register('newPassword')}

@@ -7,12 +7,14 @@ import type {
   LoginInput,
   LoginResponse,
   SessionClinic,
+  UserRole,
 } from '@clinic/shared';
 
 import { PasswordService } from '@api/auth/password.service';
 import { TokenService } from '@api/auth/token.service';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
+import { PermissionsService } from '@api/permissions/permissions.service';
 import { StorageService } from '@api/storage/storage.service';
 import { clinics, specialties, users } from '@api/database/schema';
 
@@ -33,12 +35,20 @@ export class AuthService {
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
     private readonly storage: StorageService,
+    private readonly permissions: PermissionsService,
   ) {}
 
   async login(input: LoginInput): Promise<LoginResponse & IssuedSession> {
     const user = await this.findByIdentifier(input.identifier);
 
     if (!user) {
+      await this.burnTiming(input.password);
+      throw new UnauthorizedException(INVALID_CREDENTIALS);
+    }
+
+    // No password yet means the account was created but never activated. Answered exactly as a
+    // wrong password is — anything else tells a stranger which addresses have accounts here.
+    if (user.passwordHash === null) {
       await this.burnTiming(input.password);
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
@@ -125,7 +135,10 @@ export class AuthService {
       throw new UnauthorizedException('Account is no longer available');
     }
 
-    const matches = await this.passwordService.verify(user.passwordHash, input.currentPassword);
+    // Somebody who never set one cannot change it; they activate instead.
+    const matches =
+      user.passwordHash !== null &&
+      (await this.passwordService.verify(user.passwordHash, input.currentPassword));
 
     if (!matches) {
       throw new UnauthorizedException('Current password is incorrect');
@@ -193,7 +206,17 @@ export class AuthService {
       role: user.role,
       isActive: user.isActive,
       photoUrl: user.photoKey ? (await this.storage.createDownloadUrl(user.photoKey)).url : null,
+      capabilities: await this.allowedCapabilities(user.clinicId, user.role),
     };
+  }
+
+  /** The keys only, so a screen can ask `can('patients.update')` without carrying the false ones. */
+  private async allowedCapabilities(clinicId: string, role: UserRole): Promise<string[]> {
+    const matrix = await this.permissions.matrix(clinicId, role);
+
+    return Object.entries(matrix)
+      .filter(([, allowed]) => allowed)
+      .map(([capability]) => capability);
   }
 
   private async sessionClinic(clinicId: string): Promise<SessionClinic> {

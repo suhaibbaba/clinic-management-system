@@ -98,6 +98,16 @@ export const envSchema = z.object({
   // back to it only so development boots without a second variable.
   BOOKING_TOKEN_SECRET: z.string().min(32).optional(),
 
+  // `log` again by default, for the same reason: the activation link is written to the log, so the
+  // whole flow works end to end on a machine with no mail account at all.
+  EMAIL_PROVIDER: z.enum(['log', 'resend']).default('log'),
+  RESEND_API_KEY: z.string().optional(),
+  // The address staff will reply to. Its domain has to be verified with the provider.
+  EMAIL_FROM: z.string().default('Clinic <onboarding@resend.dev>'),
+  // How long an activation or reset link stays usable. Long enough to survive a weekend, short
+  // enough that a forwarded mailbox is not a standing key to somebody's account.
+  EMAIL_LINK_TTL_HOURS: z.coerce.number().int().min(1).max(336).default(48),
+
   PUBLIC_BASE_URL: z.string().url().default('http://localhost:5173'),
 });
 

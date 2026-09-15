@@ -22,7 +22,11 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 // which is how the reference draws every one of them.
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: 'bg-primary-600 text-ink-inverse hover:brightness-[1.06] active:brightness-[0.95]',
-  secondary: 'border border-line bg-surface text-ink hover:bg-primary-100 hover:text-primary-700',
+  // Keeps its own white ground on hover and signals with its edge instead. Tinting the fill to
+  // `primary-100` made it vanish on any card already painted that colour — a confirmed
+  // appointment's ribbon tile is exactly that, so "جاء المريض" disappeared under the pointer.
+  secondary:
+    'border border-line bg-surface text-ink hover:border-primary-600 hover:text-primary-700',
   ghost: 'bg-primary-100 text-primary-700 hover:brightness-[0.96] active:brightness-[0.92]',
   // No fill at rest: a column of ten rows must not read as ten calls to action.
   quiet: 'text-ink-muted hover:bg-inset hover:text-ink',
@@ -33,7 +37,8 @@ const VARIANTS: Record<ButtonVariant, string> = {
 // thumb does not shrink with the viewport; `min-w` matches, so an icon-only button stays square.
 const SIZES: Record<ButtonSize, string> = {
   sm: 'min-h-(--control-h) min-w-(--control-h) gap-2 px-3 text-nav lg:h-(--control-h-sm) lg:min-h-0 lg:min-w-(--control-h-sm)',
-  md: 'h-(--control-h) min-w-(--control-h) gap-2 px-3.5 text-field',
+  // `text-nav`, not `text-field`: this is a label, and 16px is reserved for what somebody typed.
+  md: 'h-(--control-h) min-w-(--control-h) gap-2 px-3.5 text-nav',
 };
 
 export function Button({
@@ -59,7 +64,7 @@ export function Button({
         // A control of a fixed height cannot wrap: a narrow table column turned "فتح الملف" into
         // two lines and the box clipped the second.
         'whitespace-nowrap',
-        'transition-[filter,background-color,color,transform] duration-150 ease-out',
+        'transition-[filter,background-color,border-color,color,transform] duration-150 ease-out',
         'active:scale-[0.98]',
         // Disabled is a solid muted fill with no edge, as a disabled field is. At 40% opacity a
         // white label on the primary fill was barely there at all.
