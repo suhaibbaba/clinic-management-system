@@ -322,6 +322,11 @@ function PanelHead({ children }: { readonly children: ReactNode }): JSX.Element 
   );
 }
 
+// A size the list was given but the ladder does not offer still has to be shown — a control drawn
+// blank is worse than an odd rung.
+const sizes = (perPage: number, options: readonly number[]): number[] =>
+  options.includes(perPage) ? [...options] : [...options, perPage].sort((a, b) => a - b);
+
 export function Pagination({
   page,
   totalPages,
@@ -356,7 +361,7 @@ export function Pagination({
               className="w-[5.5rem]"
               value={String(perPage)}
               onChange={(event) => onPerPageChange(Number(event.target.value))}
-              options={perPageOptions.map((size) => ({
+              options={sizes(perPage, perPageOptions).map((size) => ({
                 value: String(size),
                 label: String(size),
               }))}
