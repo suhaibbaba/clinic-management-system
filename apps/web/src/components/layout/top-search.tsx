@@ -103,6 +103,12 @@ export function TopSearch(): JSX.Element {
         aria-expanded={showing}
         aria-controls={panelId}
         onChange={(event) => write(event.target.value)}
+        clearLabel={t('common.clear')}
+        // Empties the field and takes the panel with it — the panel is the term's answer.
+        onClear={() => {
+          write('');
+          setOpen(false);
+        }}
         onFocus={() => setOpen(true)}
         onKeyDown={(event) => {
           if (event.key === 'Escape') {

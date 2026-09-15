@@ -47,6 +47,23 @@ describe('The bar’s search, off the patients list', () => {
     });
   });
 
+  it('empties the field and takes the panel with it', async () => {
+    mockApi(handlers());
+    renderWithProviders(<AppRoutes />, { route: '/dashboard' });
+
+    const field = await screen.findByRole('combobox', { name: ar.nav.search });
+
+    await userEvent.type(field, 'أحمد');
+    expect(await screen.findByText(PATIENT.fullName)).toBeVisible();
+
+    await userEvent.click(screen.getByRole('button', { name: ar.common.clear }));
+
+    expect(field).toHaveValue('');
+    await waitFor(() => {
+      expect(screen.queryByText(PATIENT.fullName)).not.toBeInTheDocument();
+    });
+  });
+
   it('opens the file a result names', async () => {
     const api = mockApi(handlers());
     renderWithProviders(<AppRoutes />, { route: '/dashboard' });

@@ -276,6 +276,11 @@ export function UsersPage(): JSX.Element {
             setSearch(event.target.value);
             resetPage();
           }}
+          clearLabel={t('common.clear')}
+          onClear={() => {
+            setSearch('');
+            resetPage();
+          }}
         />
 
         <Select

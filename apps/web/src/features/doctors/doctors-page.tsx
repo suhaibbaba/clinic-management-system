@@ -161,6 +161,11 @@ export function DoctorsPage(): JSX.Element {
             setSearch(event.target.value);
             resetPage();
           }}
+          clearLabel={t('common.clear')}
+          onClear={() => {
+            setSearch('');
+            resetPage();
+          }}
         />
       </div>
 

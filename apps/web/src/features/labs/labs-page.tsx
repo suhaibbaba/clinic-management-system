@@ -88,6 +88,8 @@ export function LabsPage(): JSX.Element {
         placeholder={t('labs.searchPlaceholder')}
         value={search}
         onChange={(event) => setSearch(event.target.value)}
+        clearLabel={t('common.clear')}
+        onClear={() => setSearch('')}
       />
 
       <RefreshBar active={isRefreshing} />

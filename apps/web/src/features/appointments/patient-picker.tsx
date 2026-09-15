@@ -155,6 +155,8 @@ export function PatientPicker({
         placeholder={t('patients.searchPlaceholder')}
         value={search}
         onChange={(event) => setSearch(event.target.value)}
+        clearLabel={t('common.clear')}
+        onClear={() => setSearch('')}
       />
 
       {typed !== '' && (
