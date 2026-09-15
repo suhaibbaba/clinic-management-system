@@ -17,6 +17,7 @@ export { Ltr } from '@ui/components/ltr';
 export { Modal } from '@ui/components/modal';
 export { Money } from '@ui/components/money';
 export { MoneyInput } from '@ui/components/money-input';
+export { PageAction } from '@ui/components/page-action';
 export { PageHeader } from '@ui/components/page-header';
 export { PasswordInput } from '@ui/components/password-input';
 export { PhoneInput } from '@ui/components/phone-input';

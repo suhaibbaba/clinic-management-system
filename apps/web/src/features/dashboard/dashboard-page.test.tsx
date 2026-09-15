@@ -6,6 +6,7 @@ import {
   type UserRole,
 } from '@clinic/shared';
 import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import { AppRoutes } from '@web/app/router';
@@ -74,6 +75,20 @@ describe('Dashboard', () => {
     expect(
       await screen.findByRole('region', { name: ar.dashboard.schedule.title }),
     ).toBeInTheDocument();
+  });
+
+  it('offers the day’s booking from the bar, to the roles that may book', async () => {
+    await renderDashboard(USER_ROLE.RECEPTIONIST);
+
+    await userEvent.click(screen.getByRole('button', { name: ar.appointments.create }));
+
+    expect(await screen.findByRole('dialog')).toBeVisible();
+  });
+
+  it('offers no booking to a role without the permission', async () => {
+    await renderDashboard(USER_ROLE.TECHNICIAN);
+
+    expect(screen.queryByRole('button', { name: ar.appointments.create })).not.toBeInTheDocument();
   });
 
   it('asks for the three figures once, not three times', async () => {
