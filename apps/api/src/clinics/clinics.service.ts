@@ -87,13 +87,13 @@ export class ClinicsService implements OnModuleInit {
     const [only] = rows;
 
     if (rows.length !== 1 || !only) {
-      return { name: null, logoUrl: null, hasIcons: false };
+      return { name: null, logoUrl: null, iconsAt: null };
     }
 
     return {
       name: { ar: only.nameAr, en: only.nameEn },
       logoUrl: await this.signLogo(only.logoKey),
-      hasIcons: only.logoIconsAt !== null,
+      iconsAt: only.logoIconsAt?.toISOString() ?? null,
     };
   }
 

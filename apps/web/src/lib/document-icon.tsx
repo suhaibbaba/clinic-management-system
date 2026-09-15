@@ -8,12 +8,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
 const PRODUCT_MARK = { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' } as const;
 
 const CLINIC_MARKS = [
-  { rel: 'icon', type: 'image/x-icon', href: `${API_BASE_URL}/clinic/icon/favicon.ico` },
-  {
-    rel: 'apple-touch-icon',
-    type: 'image/png',
-    href: `${API_BASE_URL}/clinic/icon/apple-touch-icon.png`,
-  },
+  { rel: 'icon', type: 'image/x-icon', name: 'favicon.ico' },
+  { rel: 'apple-touch-icon', type: 'image/png', name: 'apple-touch-icon.png' },
 ] as const;
 
 const MANAGED = 'data-clinic-icon';
@@ -22,7 +18,7 @@ const MANAGED = 'data-clinic-icon';
  * Points the tab at the clinic's own mark, or back at the product's when it has none. The
  * endpoint is public and redirects to a window-stable signed URL, so the browser caches it.
  */
-export function applyDocumentIcon(hasIcons: boolean): void {
+export function applyDocumentIcon(iconsAt: string | null): void {
   for (const link of document.head.querySelectorAll(`link[${MANAGED}]`)) {
     link.remove();
   }
@@ -33,16 +29,31 @@ export function applyDocumentIcon(hasIcons: boolean): void {
     existing.remove();
   }
 
-  for (const mark of hasIcons ? CLINIC_MARKS : [PRODUCT_MARK]) {
-    const link = document.createElement('link');
-
-    link.setAttribute(MANAGED, '');
-    link.rel = mark.rel;
-    link.type = mark.type;
-    link.href = mark.href;
-
-    document.head.append(link);
+  if (iconsAt === null) {
+    document.head.append(managedLink(PRODUCT_MARK.rel, PRODUCT_MARK.type, PRODUCT_MARK.href));
+    return;
   }
+
+  // The generation time is in the address: a browser keeps a favicon long past any cache header,
+  // and only reaches for a new one when the URL it was told about has moved.
+  const version = encodeURIComponent(iconsAt);
+
+  for (const mark of CLINIC_MARKS) {
+    document.head.append(
+      managedLink(mark.rel, mark.type, `${API_BASE_URL}/clinic/icon/${mark.name}?v=${version}`),
+    );
+  }
+}
+
+function managedLink(rel: string, type: string, href: string): HTMLLinkElement {
+  const link = document.createElement('link');
+
+  link.setAttribute(MANAGED, '');
+  link.rel = rel;
+  link.type = type;
+  link.href = href;
+
+  return link;
 }
 
 /**
@@ -51,11 +62,11 @@ export function applyDocumentIcon(hasIcons: boolean): void {
  */
 export function DocumentIcon(): null {
   const { data } = useClinicBranding();
-  const hasIcons = data?.hasIcons ?? false;
+  const iconsAt = data?.iconsAt ?? null;
 
   useEffect(() => {
-    applyDocumentIcon(hasIcons);
-  }, [hasIcons]);
+    applyDocumentIcon(iconsAt);
+  }, [iconsAt]);
 
   return null;
 }

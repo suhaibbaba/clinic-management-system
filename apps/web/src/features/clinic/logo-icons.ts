@@ -20,7 +20,7 @@ export async function buildClinicIconSet(file: Blob): Promise<ClinicIconSet> {
   const source = await createImageBitmap(file);
 
   try {
-    const content = trimmedBounds(source);
+    const content = crop(source, trimmedBounds(source));
     const paper = paperColour();
     const set = new Map<string, Blob>();
 
@@ -34,7 +34,7 @@ export async function buildClinicIconSet(file: Blob): Promise<ClinicIconSet> {
 
       set.set(
         icon.name,
-        await render(source, content, icon.size, {
+        await render(content, icon.size, {
           inset: maskable ? MASKABLE_INSET : apple ? APPLE_INSET : 0,
           background: maskable || apple ? paper : null,
           fit: maskable ? 'circle' : 'box',
@@ -47,7 +47,7 @@ export async function buildClinicIconSet(file: Blob): Promise<ClinicIconSet> {
         size,
         png: new Uint8Array(
           await (
-            await render(source, content, size, { inset: 0, background: null, fit: 'box' })
+            await render(content, size, { inset: 0, background: null, fit: 'box' })
           ).arrayBuffer(),
         ),
       })),
@@ -62,8 +62,7 @@ export async function buildClinicIconSet(file: Blob): Promise<ClinicIconSet> {
 }
 
 async function render(
-  source: ImageBitmap,
-  content: Bounds,
+  content: HTMLCanvasElement,
   size: number,
   options: {
     readonly inset: number;
@@ -71,15 +70,8 @@ async function render(
     readonly fit: 'box' | 'circle';
   },
 ): Promise<Blob> {
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-
-  const context = canvas.getContext('2d');
-
-  if (!context) {
-    throw new Error('This browser cannot render the clinic icons');
-  }
+  const canvas = surface(size, size);
+  const context = context2d(canvas);
 
   if (options.background) {
     context.fillStyle = options.background;
@@ -91,16 +83,12 @@ async function render(
     options.fit === 'circle'
       ? safe / Math.hypot(content.width, content.height)
       : Math.min(safe / content.width, safe / content.height);
-  const width = content.width * scale;
-  const height = content.height * scale;
 
-  context.imageSmoothingQuality = 'high';
+  const width = Math.max(1, Math.round(content.width * scale));
+  const height = Math.max(1, Math.round(content.height * scale));
+
   context.drawImage(
-    source,
-    content.x,
-    content.y,
-    content.width,
-    content.height,
+    stepDown(content, width, height),
     (size - width) / 2,
     (size - height) / 2,
     width,
@@ -110,21 +98,55 @@ async function render(
   return toBlob(canvas);
 }
 
+// Chrome samples too few source pixels when `drawImage` is asked to shrink by more than half in
+// one go, which turns a thin line into hard blocks. Halving keeps every source pixel in the average.
+function stepDown(source: HTMLCanvasElement, width: number, height: number): HTMLCanvasElement {
+  let current = source;
+
+  while (current.width >= width * 2 && current.height >= height * 2) {
+    const next = surface(
+      Math.max(1, Math.floor(current.width / 2)),
+      Math.max(1, Math.floor(current.height / 2)),
+    );
+
+    context2d(next).drawImage(current, 0, 0, next.width, next.height);
+    current = next;
+  }
+
+  return current;
+}
+
+function crop(source: ImageBitmap, bounds: Bounds): HTMLCanvasElement {
+  const canvas = surface(bounds.width, bounds.height);
+
+  context2d(canvas).drawImage(
+    source,
+    bounds.x,
+    bounds.y,
+    bounds.width,
+    bounds.height,
+    0,
+    0,
+    bounds.width,
+    bounds.height,
+  );
+
+  return canvas;
+}
+
 // An adaptive-icon foreground carries its safe-zone padding baked in, and a wordmark exported from
 // a design tool carries its artboard margin. Fitting the frame would keep both and shrink the ink.
 function trimmedBounds(source: ImageBitmap): Bounds {
+  const whole = { x: 0, y: 0, width: source.width, height: source.height };
   const scale = Math.min(1, TRIM_SCAN_SIZE / Math.max(source.width, source.height));
   const width = Math.max(1, Math.round(source.width * scale));
   const height = Math.max(1, Math.round(source.height * scale));
 
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-
+  const canvas = surface(width, height);
   const context = canvas.getContext('2d', { willReadFrequently: true });
 
   if (!context) {
-    return { x: 0, y: 0, width: source.width, height: source.height };
+    return whole;
   }
 
   context.drawImage(source, 0, 0, width, height);
@@ -142,6 +164,28 @@ function trimmedBounds(source: ImageBitmap): Bounds {
     width: Math.min(source.width - x, Math.ceil(scanned.width / scale + pad * 2)),
     height: Math.min(source.height - y, Math.ceil(scanned.height / scale + pad * 2)),
   };
+}
+
+function surface(width: number, height: number): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+
+  canvas.width = width;
+  canvas.height = height;
+
+  return canvas;
+}
+
+function context2d(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
+  const context = canvas.getContext('2d');
+
+  if (!context) {
+    throw new Error('This browser cannot render the clinic icons');
+  }
+
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = 'high';
+
+  return context;
 }
 
 function toBlob(canvas: HTMLCanvasElement): Promise<Blob> {
