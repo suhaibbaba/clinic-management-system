@@ -28,6 +28,9 @@ interface Permission {
 
 interface Section {
   readonly title: string;
+  /** What the section covers, in a sentence. The library has no tooltip, and a hover is nothing on
+   *  a phone — so the explanation is on the page. */
+  hint: string;
   readonly permissions: Permission[];
 }
 
@@ -57,8 +60,11 @@ export function PermissionsPage(): JSX.Element {
       const title = t(`permissions.resources.${capability.resource}`, {
         defaultValue: capability.resource,
       });
-      const section = byTitle.get(title) ?? { title, permissions: [] };
+      const section = byTitle.get(title) ?? { title, hint: '', permissions: [] };
 
+      // Two resources can share a section — time off hangs off `doctors` and `doctor-time-off` —
+      // and the sentence is written once, on whichever of them carries it.
+      section.hint ||= t(`permissions.hints.${capability.resource}`, { defaultValue: '' });
       section.permissions.push({
         key: capability.key,
         label: t(`permissions.capabilities.${capability.key}`, { defaultValue: capability.key }),
@@ -85,6 +91,8 @@ export function PermissionsPage(): JSX.Element {
     <div className="flex flex-col gap-4">
       <PageHeader title="permissions.title" subtitle="permissions.subtitle" />
 
+      <p className="text-value text-ink-muted">{t('permissions.intro')}</p>
+
       <SegmentedControl
         label={t('permissions.role')}
         value={role}
@@ -109,11 +117,12 @@ export function PermissionsPage(): JSX.Element {
         current &&
         sections.map((section) => (
           <Card key={section.title}>
-            <h2 className="mb-2 text-section font-medium text-ink">{section.title}</h2>
+            <h2 className="text-section font-medium text-ink">{section.title}</h2>
+            {section.hint && <p className="mt-0.5 text-meta text-ink-muted">{section.hint}</p>}
 
             {/* Two columns where there is room: 162 switches in one lane is a page nobody reaches
                 the foot of. */}
-            <ul className="grid gap-x-8 lg:grid-cols-2">
+            <ul className="mt-3 grid gap-x-8 lg:grid-cols-2">
               {section.permissions.map((permission) => (
                 <li
                   key={permission.key}

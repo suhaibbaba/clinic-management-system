@@ -1500,6 +1500,31 @@
         "update": "Edit a waiting-list entry"
       }
     },
+    "hints": {
+      "appointments": "Booking, confirming and cancelling appointments, marking a patient arrived, and the bookings the public page sends in.",
+      "audit-log": "The audit log: who changed what, and when.",
+      "clinic": "The clinic itself: its name, logo, location and settings.",
+      "clinic-closures": "The days the clinic is shut, such as holidays.",
+      "doctors": "Doctors, their weekly hours and their time off.",
+      "inventory": "The store room: items, purchases, what is used up, stock takes, and the movements behind the count.",
+      "lab-orders": "The work sent out to a lab and its stages: sending, ready, received and fitted.",
+      "lab-payments": "Paying a lab, and reversing a payment.",
+      "labs": "The labs the clinic works with, the work types they offer, and their statements.",
+      "lookups": "The lists behind every dropdown: appointment types, payment methods, tooth states and the rest.",
+      "notes": "The internal notes pinned to the dashboard.",
+      "patients": "Patient files: creating and editing one, the medical history, attachments and X-rays, and the account statement.",
+      "payments": "Taking money from patients, printing receipts, and reversing a payment entered by mistake.",
+      "performed-procedures": "The treatments carried out on a patient’s file, and what they were charged at.",
+      "permissions": "This screen itself: who may read and change what each role is allowed to do.",
+      "prescriptions": "Prescriptions: writing, editing and removing them.",
+      "procedure-catalog": "The clinic’s list of procedures and the prices they are charged at.",
+      "suppliers": "The suppliers the clinic buys from, and their statements.",
+      "treatment-plans": "Treatment plans and their items, and turning an item into a treatment that was done.",
+      "users": "Staff accounts: adding and editing them, activation invitations and password resets.",
+      "visits": "A patient’s visits: recording what happened and editing it.",
+      "waiting-list": "Who is waiting for a free slot: adding them, recording a call, and turning an entry into an appointment."
+    },
+    "intro": "These permissions belong to this clinic alone. Switch one off and its action leaves the role’s screens and is refused if attempted; switch it back whenever you like.",
     "resources": {
       "appointments": "Appointments",
       "attachments": "Patients",
