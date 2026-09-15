@@ -30,6 +30,10 @@ export function fieldShell({ hasError = false, disabled = false }: FieldState): 
 
 export const FIELD_TEXT = cn(
   'min-w-0 flex-1 self-stretch truncate border-none bg-transparent p-0 text-field text-ink outline-none',
+  // Each value takes its direction from its own first strong character, so a number's groups are
+  // not reversed by the field's — `0599 123 456` drew as `456 123 0599` — and an Arabic
+  // placeholder keeps its ellipsis at the end, which `dir="auto"` moved to the front.
+  '[unicode-bidi:plaintext]',
   'placeholder:text-ink-subtle',
   'disabled:cursor-not-allowed disabled:text-ink-faint',
 );
