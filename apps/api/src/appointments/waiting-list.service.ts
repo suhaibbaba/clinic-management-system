@@ -149,7 +149,6 @@ export class WaitingListService implements OnModuleInit {
         .returning({ id: waitingList.id }),
     );
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to create the waiting list entry');
     }
@@ -279,8 +278,6 @@ export class WaitingListService implements OnModuleInit {
     return entry;
   }
 
-  // The public page's way out of a day with no times on it. Nothing is held and no slot is named:
-  // it is a request for a phone call, and the reply says exactly that.
   async createUrgentRequest(
     clinicId: string,
     patientId: string,
@@ -340,7 +337,6 @@ export class WaitingListService implements OnModuleInit {
       .where(this.scope.where(waitingList, actor.clinicId, eq(waitingList.id, id)))
       .limit(1);
 
-    /* istanbul ignore next -- the row was just loaded. */
     if (!row) {
       throw new BadRequestException('Waiting list entry not found');
     }

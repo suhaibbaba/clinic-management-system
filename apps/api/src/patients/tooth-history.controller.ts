@@ -9,8 +9,6 @@ import { ToothHistoryService } from '@api/patients/tooth-history.service';
 
 class PatientToothParamDto extends createZodDto(patientToothParamSchema) {}
 
-// It aggregates procedures, chart marks and attachments, so it is limited to the roles that may
-// read all three: admin and doctor.
 @Controller('patients/:patientId/teeth')
 @Roles(USER_ROLE.DOCTOR)
 export class ToothHistoryController {

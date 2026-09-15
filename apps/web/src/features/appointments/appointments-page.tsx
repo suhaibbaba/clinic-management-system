@@ -60,8 +60,6 @@ const RANGES = ['day', 'week'] as const;
 
 type Range = (typeof RANGES)[number];
 
-// Week is the desktop default; on a phone it is seven 40px columns, so only the agenda is offered.
-// A doctor defaults to their own column — the boundary is the API.
 export function AppointmentsPage(): JSX.Element {
   const { t } = useTranslation();
   const doctorName = usePersonName();
@@ -106,8 +104,6 @@ export function AppointmentsPage(): JSX.Element {
   const setDate = (value: string): void => setCalendarParams({ date: [value, todayIso()] });
   const setDoctorFilter = (value: string): void => setCalendarParams({ doctor: [value, ''] });
 
-  // In the address, not in state: the dashboard's badge links straight to the open queue, and a
-  // panel nobody can link to is a panel nobody can be sent to.
   const waitingOpen = params.get('queue') === 'open';
   const setWaitingOpen = (next: boolean): void =>
     setCalendarParams({ queue: [next ? 'open' : '', ''] });
@@ -142,8 +138,6 @@ export function AppointmentsPage(): JSX.Element {
 
   const waiting = useWaitingList({ limit: 1 });
 
-  // Strangers who asked to be rung back and nobody has answered yet — the one number on this page
-  // that is somebody waiting on a phone rather than a row in a diary.
   const urgent = useWaitingList({ limit: 1, source: WAITING_LIST_SOURCE.ONLINE });
 
   // The one number not already in the calendar feed: a `requested` booking for today is somebody
@@ -224,8 +218,6 @@ export function AppointmentsPage(): JSX.Element {
     setFormOpen(true);
   };
 
-  // Scheduling somebody off the queue is the same form as any other booking, prefilled — so the
-  // queue closes behind it and the calendar is left standing on the slot that was just taken.
   const scheduleFromQueue = (entry: WaitingListEntry): void => {
     setEditing(undefined);
     setFormDefaults({ date, ...(entry.doctorId && { doctorId: entry.doctorId }) });
@@ -392,7 +384,6 @@ export function AppointmentsPage(): JSX.Element {
             appointments={appointments}
             closures={closures}
             onOpen={(appointment) => setSelectedId(appointment.id)}
-            // One write, or the second setter would drop the first's date.
             onPickDay={(day) =>
               setCalendarParams({ date: [day, todayIso()], view: ['day', 'week'] })
             }
@@ -448,8 +439,6 @@ export function AppointmentsPage(): JSX.Element {
         appointment={editing}
         defaults={formDefaults}
         waitingEntry={scheduling}
-        // Back where the work happened: a booking made for next Tuesday leaves the calendar on next
-        // Tuesday, not on the day the form was opened from.
         onBooked={({ date: booked, doctorId: booking }) =>
           setCalendarParams({
             date: [booked, todayIso()],

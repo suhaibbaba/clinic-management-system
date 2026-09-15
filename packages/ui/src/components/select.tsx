@@ -77,8 +77,6 @@ export function Select({
       <SelectPrimitive.Trigger
         id={id}
         data-part="select"
-        // Forwarded so react-hook-form can mark the field touched, which is
-        // what decides whether its error is shown yet.
         onBlur={onBlur}
         aria-label={ariaLabel}
         aria-describedby={describedBy}
@@ -87,7 +85,6 @@ export function Select({
         className={cn(
           fieldShell({ hasError, disabled }),
           'cursor-pointer text-start text-field',
-          // The trigger is a button, so it draws its own focus ring rather than one from a child.
           'focus-visible:outline-none',
           disabled && 'text-ink-faint',
           className,

@@ -26,8 +26,6 @@ import {
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate } from '@web/lib/format';
 
-// A list and one dialog rather than a screen of its own: a clinic records four or five a year, and
-// a route nobody visits between Eids is one people forget exists.
 export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
@@ -58,8 +56,6 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
       const result = await createClosure.mutateAsync({
         body: {
           startsOn: range.from,
-          // A single day is entered by picking one date; the API wants both
-          // ends, and both ends are inclusive.
           endsOn: range.to === '' ? range.from : range.to,
           reason: reason.trim(),
           isAnnual,
@@ -67,7 +63,6 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
         ...(choice && { choice }),
       });
 
-      // The count is worth saying out loud: cancelling is the irreversible half.
       if (result.cancelledAppointments > 0) {
         toast.success('schedule.closures.addedAndCancelled', {
           count: result.cancelledAppointments,

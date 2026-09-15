@@ -136,8 +136,6 @@ export class BookingService {
           isNull(users.deletedAt),
         ),
       )
-      // Ordered by the Arabic spelling: the booking page is Arabic-only, so
-      // that is the order a patient actually reads down the list in.
       .orderBy(asc(users.nameAr));
 
     return rows.map((row) => ({
@@ -163,8 +161,6 @@ export class BookingService {
       .filter((slot) => slot.available && new Date(slot.startsAt) >= earliest)
       .map(({ start, end, startsAt }) => ({ start, end, startsAt }));
 
-    // Only the two dated reasons reach a stranger: a closure and an absence
-    // are on the door, and how full the diary is is the clinic's business.
     const dated =
       availability.closedReason === 'clinic_closure' ||
       availability.closedReason === 'doctor_time_off'
@@ -179,9 +175,6 @@ export class BookingService {
     };
   }
 
-  // The way out of a page with no times on it. Nothing is held and no time is named: reception rings
-  // back, and the reply says only that. Enumeration-safe like everything else here — the body is
-  // identical for a phone the clinic knows and one it has never seen.
   async requestUrgent(
     slug: string,
     input: CreateUrgentRequestInput,
@@ -235,14 +228,11 @@ export class BookingService {
           startsAt: new Date(input.startsAt),
           durationMinutes: duration,
           type: APPOINTMENT_TYPE.CHECKUP,
-          // Held, not confirmed. The same status reception sees in the pending
-          // list, and the same one the hold-expiry job releases.
           status: APPOINTMENT_STATUS.REQUESTED,
           reason: input.reason ?? null,
         })
         .returning({ id: appointments.id });
 
-      /* istanbul ignore next -- insert ... returning always yields a row. */
       if (!row) {
         throw new Error('Failed to hold the slot');
       }
@@ -278,8 +268,6 @@ export class BookingService {
     };
   }
 
-  // Every rejection is the same message — "wrong code", "expired" and "too many attempts" told
-  // apart reveal whether a code was ever issued.
   async verifyOtp(slug: string, token: string, code: string): Promise<ManagedBooking> {
     const clinic = await this.requireBookingEnabled(slug);
     const appointmentId = this.tokens.verify(token);
@@ -297,8 +285,6 @@ export class BookingService {
     }
 
     if (otp.codeHash !== hashCode(code)) {
-      // The attempt is counted before the rejection, so three wrong guesses
-      // burn the code whether or not the caller keeps trying.
       await this.db
         .update(bookingOtps)
         .set({ attempts: otp.attempts + 1 })
@@ -380,8 +366,6 @@ export class BookingService {
     const existing = await this.requireOpen(clinic, appointmentId);
 
     this.requireWithinWindow(clinic, startsAt);
-    // Excluding itself, so moving a booking by fifteen minutes does not collide
-    // with the slot it is moving out of.
     await this.requireOfferedSlot(clinic, existing.doctorId, startsAt, appointmentId);
 
     try {
@@ -410,8 +394,6 @@ export class BookingService {
     // predictable one is no credential at all.
     const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
 
-    // One live code per booking. A resend replaces the previous row rather than
-    // leaving two valid codes behind.
     await this.db.delete(bookingOtps).where(eq(bookingOtps.appointmentId, appointmentId));
 
     await this.db.insert(bookingOtps).values({
@@ -449,8 +431,6 @@ export class BookingService {
         and(
           eq(patients.clinicId, clinicId),
           isNull(patients.deletedAt),
-          // Compared on digits, so a number saved as +963… matches one typed
-          // as 09….
           sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') = ${phone}`,
         ),
       )
@@ -475,7 +455,6 @@ export class BookingService {
       })
       .returning({ id: patients.id });
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!created) {
       throw new Error('Failed to create the patient');
     }
@@ -641,8 +620,6 @@ export class BookingService {
     return { startsAt: row.startsAt, doctorId: row.doctorId };
   }
 
-  // The constraint guarantees no overlap but knows nothing about opening hours or schedules;
-  // without this a stranger could book 03:00 on a Friday. Same availability the page renders.
   private async requireOfferedSlot(
     clinic: ClinicContext,
     doctorId: string,

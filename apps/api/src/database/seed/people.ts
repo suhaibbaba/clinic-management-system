@@ -2,7 +2,6 @@ import { GENDER, type Gender } from '@clinic/shared';
 
 import type { Rng } from '@api/database/seed/random';
 
-// Nablus and the villages around it, which is what an address in this clinic's files looks like.
 const AREAS: readonly string[] = [
   'نابلس، رفيديا',
   'نابلس، شارع فيصل',
@@ -98,8 +97,6 @@ const FAMILIES: readonly string[] = [
   'أبو بكر',
 ];
 
-// The search box folds hamza and taa marbuta, so the files have to hold both spellings for anyone
-// to find out whether it works.
 const SPELLING_VARIANTS: readonly string[] = ['أحمد خالد النابلسي', 'احمد خالد النابلسي'];
 const SPELLING_VARIANTS_FEMALE: readonly string[] = ['فاطمة سامي طوقان', 'فاطمه سامي طوقان'];
 
@@ -120,18 +117,11 @@ export interface SeedPerson {
   readonly incomplete: boolean;
 }
 
-/**
- * `count` patients, deterministic for a given generator: a spread of ages with real children in it
- * (the chart draws deciduous teeth only if somebody has them), both spellings of two names, and a
- * few files nobody finished.
- */
 export function buildPeople(rng: Rng, count: number, today: Date): SeedPerson[] {
   const people: SeedPerson[] = [];
   const takenNames = new Set<string>();
 
   const addName = (name: string): string => {
-    // A repeat is realistic in a small town but breaks "search for this one patient", so the
-    // second one takes another family.
     let candidate = name;
     let attempt = 0;
 
@@ -161,7 +151,6 @@ export function buildPeople(rng: Rng, count: number, today: Date): SeedPerson[] 
       ? addName(preset.name)
       : addName(`${first} ${rng.pick(MIDDLE)} ${rng.pick(FAMILIES)}`);
 
-    // A fifth are children, so the deciduous half of the chart is used by somebody.
     const age = rng.bool(0.2) ? rng.int(5, 15) : rng.int(16, 78);
     const incomplete = index >= count - 4;
 

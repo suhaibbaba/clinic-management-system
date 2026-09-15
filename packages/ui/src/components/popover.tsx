@@ -7,8 +7,6 @@ import { cn } from '@ui/lib/cn';
 export interface PopoverProps {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
-  // An anchor, not a trigger: it positions and nothing else, and opening is the caller's from an
-  // explicit click, Enter, Space or ArrowDown.
   readonly anchor: ReactNode;
   readonly title: string;
   // `false` is for a picker that appeared because somebody clicked the text field: moving focus
@@ -46,8 +44,6 @@ export function Popover({
             onOpenAutoFocus: (event: Event) => event.preventDefault(),
           })}
           className={cn(
-            // Constrained to what is on screen, so a field near the bottom of a 390px phone gets a
-            // calendar that scrolls rather than one cut off.
             'z-50 max-h-[min(32rem,var(--radix-popover-content-available-height))] overflow-y-auto',
             'rounded-card border border-line bg-surface p-3 shadow-float',
             'origin-(--radix-popover-content-transform-origin)',

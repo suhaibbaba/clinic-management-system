@@ -45,8 +45,6 @@ export class LabsService implements OnModuleInit {
     });
   }
 
-  // Both numbers are computed, in one query per page rather than one per lab: a dozen labs should
-  // not be twenty-five round trips.
   async list(actor: AuthenticatedUser, query: ListLabsQuery): Promise<Paginated<LabSummary>> {
     const filters: (SQL | undefined)[] = [];
 
@@ -116,7 +114,6 @@ export class LabsService implements OnModuleInit {
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to create the lab');
     }
@@ -146,7 +143,6 @@ export class LabsService implements OnModuleInit {
       .where(this.scope.where(labs, actor.clinicId, eq(labs.id, id)))
       .returning();
 
-    /* istanbul ignore next -- the row was just read under the same scope. */
     if (!row) {
       throw new Error('Failed to update the lab');
     }
@@ -227,8 +223,6 @@ export class LabsService implements OnModuleInit {
     );
   }
 
-  // Two labs with one name is a data-entry mistake: a statement addressed to one of two identical
-  // names is unusable.
   private async assertNameIsFree(clinicId: string, name: string, exceptId?: string): Promise<void> {
     const [clash] = await this.db
       .select({ id: labs.id })

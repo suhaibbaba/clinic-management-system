@@ -12,11 +12,6 @@ import { BRANDING_SCOPE, useClinicBranding } from '@web/features/clinic/queries'
 import { errorMessageKey } from '@web/lib/api-error';
 import { useClinicLogo } from '@web/lib/use-clinic-logo';
 
-/**
- * Where both letters land. Activating an account and resetting a password are the same act — a
- * token, spent once, for a password only its owner ever knows — so they are one screen that only
- * changes what it calls itself.
- */
 export function SetPasswordPage({ purpose }: { purpose: 'activate' | 'reset' }): JSX.Element {
   const { t } = useTranslation();
   const { token = '' } = useParams();

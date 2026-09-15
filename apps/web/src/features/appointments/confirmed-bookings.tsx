@@ -22,8 +22,6 @@ import { useClinic } from '@web/features/clinic/queries';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { formatDate } from '@web/lib/format';
 
-// From today onwards: a confirmed appointment last March is history and belongs in the patient's
-// file, not in a list of what is coming.
 export function ConfirmedBookings(): JSX.Element {
   const { t } = useTranslation();
   const { page, perPage, setPage, setPerPage } = usePageParams(20);

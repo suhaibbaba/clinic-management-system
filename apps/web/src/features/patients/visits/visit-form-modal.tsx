@@ -98,8 +98,6 @@ export function VisitFormModal({
     );
   }, [open, visit, patientId, reset]);
 
-  // Doctors may still be loading when the modal opens; fill the select the
-  // moment they arrive, without touching anything already typed.
   useEffect(() => {
     if (open && !getValues('doctorId') && doctors[0]) {
       setValue('doctorId', doctors[0].id);

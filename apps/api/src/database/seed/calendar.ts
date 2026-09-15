@@ -68,11 +68,6 @@ const CANCELLED_REASONS: readonly string[] = [
 
 const APPOINTMENT_TYPES: readonly string[] = ['checkup', 'treatment', 'followup', 'emergency'];
 
-/**
- * Every appointment comes out of `computeDaySlots` — the same function the calendar and the public
- * booking page ask — so nothing lands on a Friday, inside a closure, on top of an absence, or on
- * another appointment with the same doctor. Returned unsaved: the caller writes them in one go.
- */
 export function planAppointments(input: CalendarPlanInput): PlannedAppointment[] {
   const planned: PlannedAppointment[] = [];
   // Per doctor and day, what the generator has already taken. `computeDaySlots` is pure, so the
@@ -126,7 +121,6 @@ export function planAppointments(input: CalendarPlanInput): PlannedAppointment[]
           break;
         }
 
-        // Earlier slots first: a real diary fills from the top of the day rather than at random.
         const slot = free[Math.min(free.length - 1, input.rng.skewedInt(0, free.length - 1))];
 
         /* istanbul ignore next -- `free` is non-empty here. */
@@ -160,8 +154,6 @@ export function planAppointments(input: CalendarPlanInput): PlannedAppointment[]
   return planned;
 }
 
-// Today is the demo, so it is full; the fortnight after it is nearly full and the diary thins out
-// the further ahead it goes, which is what a real book looks like.
 function appointmentsForDay(rng: Rng, offset: number): number {
   if (offset === 0) {
     return rng.int(6, 9);
@@ -195,7 +187,6 @@ function statusFor(rng: Rng, offset: number): AppointmentStatus {
     return APPOINTMENT_STATUS.COMPLETED;
   }
 
-  // Today reads as a day in progress: some seen, one in the chair, the rest still to come.
   if (offset === 0) {
     return rng.pick([
       APPOINTMENT_STATUS.COMPLETED,
@@ -208,8 +199,6 @@ function statusFor(rng: Rng, offset: number): AppointmentStatus {
     ]);
   }
 
-  // Online requests reception has not answered yet: a handful, because the dashboard counts them
-  // and a badge reading 78 is not a queue anybody would work through.
   return offset <= 10 && rng.bool(0.04)
     ? APPOINTMENT_STATUS.REQUESTED
     : APPOINTMENT_STATUS.CONFIRMED;

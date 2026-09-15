@@ -33,10 +33,6 @@ export function formatDate(iso: string): string {
   );
 }
 
-// Not `toLocaleTimeString`: the Arabic locale renders "09:00 ص", and that Arabic marker reorders
-// the whole string inside an `<Ltr>` island.
-// The day named and the date in figures, kept apart: the figures are an `<Ltr>` island at the call
-// site, and a single joined string would let bidi drag the slashes to the wrong end.
 export function dayAndDate(iso: string): { readonly weekday: string; readonly date: string } {
   const at = new Date(iso);
 
@@ -71,8 +67,6 @@ export function formatClinicDate(iso: string): string {
   return `${read('day')}/${read('month')}/${read('year')}`;
 }
 
-// A period inside one day is the date and its two times: repeating the date is noise on the case
-// this app has most of.
 export function formatClinicPeriod(startsAt: string, endsAt: string): string {
   const from = formatClinicDate(startsAt);
   const to = formatClinicDate(endsAt);

@@ -15,8 +15,6 @@ import {
 import { useCreateSupplier, useUpdateSupplier } from '@web/features/inventory/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
-// Retiring is a switch rather than a delete: purchases point at them, and a statement whose
-// counterparty vanished is unreadable.
 export function SupplierFormModal({
   open,
   onOpenChange,

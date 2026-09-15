@@ -79,8 +79,6 @@ export const updatePatientSchema = z
   .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
 export type UpdatePatientInput = z.infer<typeof updatePatientSchema>;
 
-// The least a patient can be registered with: reception is mid-booking with somebody on the phone,
-// and the history, the allergies and the address are taken when they walk in.
 export const inlinePatientSchema = z.object({
   fullName: patientWritableFields.fullName,
   phone: patientWritableFields.phone,
@@ -102,9 +100,6 @@ export const hasExactlyOnePatient = (input: {
 
 export const PATIENT_REF_MESSAGE = 'Provide either patientId or newPatient';
 
-// The number is the identity key at the front desk, so a second record under it is a duplicate
-// waiting to split somebody's history. The clash carries the patient it found, and the form offers
-// it rather than dead-ending.
 export const patientPhoneClashSchema = z.object({
   statusCode: z.literal(409),
   message: z.string(),

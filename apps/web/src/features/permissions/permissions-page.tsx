@@ -16,8 +16,6 @@ import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
 import { usePermissions, useUpdateRolePermission } from '@web/features/permissions/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
-// Everything but the administrator, whose answer is fixed. Listed as a tuple so the first is known
-// to exist — it is the tab somebody lands on.
 const EDITABLE = [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN] as const;
 const ROLE_TABS: readonly UserRole[] = [...EDITABLE, USER_ROLE.ADMIN];
 
@@ -45,10 +43,6 @@ interface Section {
   readonly permissions: Permission[];
 }
 
-/**
- * What each role may do, read off the API's own route table rather than a list kept beside it — so
- * an endpoint added next week appears here without anybody remembering to add it.
- */
 export function PermissionsPage(): JSX.Element {
   const { t, i18n } = useTranslation();
   const toast = useToast();
@@ -62,8 +56,6 @@ export function PermissionsPage(): JSX.Element {
   const current = permissions.data?.roles.find((entry) => entry.role === role);
   const locked = current?.locked ?? false;
 
-  // Grouped by the section's *name*, not the module it came from: time off hangs off two addresses
-  // and patient attachments off a third, and a reader looking for them thinks "الأطباء", "المرضى".
   const sections = useMemo<Section[]>(() => {
     const byTitle = new Map<string, Section>();
 

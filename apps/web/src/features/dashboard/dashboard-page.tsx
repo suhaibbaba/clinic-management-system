@@ -31,8 +31,6 @@ import { cn } from '@clinic/ui/lib/cn';
 import { useDocumentTitle } from '@clinic/ui/lib/page-title';
 import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
 
-// Each number is a door rather than a decoration. Which cards exist follows the response, not the
-// role: a missing field draws no card, so this page keeps no copy of the matrix.
 export function DashboardPage(): JSX.Element {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -85,8 +83,6 @@ export function DashboardPage(): JSX.Element {
                 <KpiLink to="/appointments?status=pending">
                   <StatCard
                     icon="clock"
-                    // Warning only while somebody is actually waiting: a permanent
-                    // amber card is a card nobody reads.
                     tone={toneFor(pending > 0, 'warning')}
                     label={t('dashboard.kpi.pending')}
                     value={pending}
@@ -131,8 +127,6 @@ export function DashboardPage(): JSX.Element {
 
 const toneFor = (active: boolean, tone: StatTone): StatTone => (active ? tone : 'neutral');
 
-// The anchor wraps the card so the whole tile is the target: a card whose only clickable part is a
-// caption gets reported as broken.
 function KpiLink({
   to,
   children,
@@ -162,14 +156,11 @@ function TodaySchedule({
   readonly rows: readonly CalendarAppointment[];
   readonly isLoading: boolean;
   readonly isRefreshing: boolean;
-  // A technician reads the day but the file behind the name is not theirs, and a link that bounces
-  // the reader back is worse than plain text.
   readonly linkPatients: boolean;
 }): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();
   const confirm = useAppointmentStep();
-  // In the URL, so a filtered day is a day somebody can send to a colleague.
   const [doctorId, setDoctorId] = useDoctorFilter();
 
   const doctors = useScheduleDoctors(rows);
@@ -198,8 +189,6 @@ function TodaySchedule({
 
       <Link
         to="/appointments"
-        // A 20px-tall link is a 20px-tall target: the same blue text inside
-        // a 44px box on touch, unchanged on a laptop.
         className="inline-flex min-h-(--control-h) items-center gap-1 text-label font-medium text-primary-600 transition-colors duration-150 hover:text-primary-700 lg:min-h-0"
       >
         {t('dashboard.schedule.seeAll')}
@@ -288,7 +277,6 @@ function useDoctorFilter(): readonly [string | null, (id: string | null) => void
   return [raw, set];
 }
 
-// A minute, not a second: the line moves once a minute and nothing else on the page ticks.
 function useNowMinute(): number | null {
   const [minute, setMinute] = useState(() => currentClinicMinute());
 
@@ -307,7 +295,6 @@ function currentClinicMinute(): number {
   return Math.floor(minutesOf(new Date().toISOString()));
 }
 
-// The panel's own shape while it loads, so the page does not jump when the rows land.
 function SkeletonTimeline(): JSX.Element {
   return (
     <div

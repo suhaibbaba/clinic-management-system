@@ -88,7 +88,6 @@ export class MedicalHistoriesService implements OnModuleInit {
         })
         .returning();
 
-      /* istanbul ignore next -- insert ... returning always yields a row. */
       if (!created) {
         throw new Error('Failed to create medical history');
       }
@@ -116,7 +115,6 @@ export class MedicalHistoriesService implements OnModuleInit {
       )
       .returning();
 
-    /* istanbul ignore next -- the row was just loaded. */
     if (!row) {
       throw new Error('Failed to update medical history');
     }

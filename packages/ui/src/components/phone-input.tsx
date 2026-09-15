@@ -13,9 +13,6 @@ const phoneCharacters = (value: string): string =>
     .replace(/[^\d\s+-]/g, '')
     .replace(/(?!^)\+/g, '');
 
-// The sibling of `MoneyInput`, and for the same reason: a field that cannot hold a wrong value is
-// better than one that explains the wrong value afterwards. Reception types a number off a card
-// while the patient is standing there, and a pasted "tel: +970 59 …" should land as a number.
 export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function PhoneInput(
   { className, onChange, ...props },
   ref,
@@ -35,8 +32,6 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
         const cleaned = phoneCharacters(event.target.value);
 
         if (cleaned !== event.target.value) {
-          // Rewritten before it reaches the form, so a pasted number with brackets or a country
-          // name arrives as digits rather than being accepted and rejected on submit.
           event.target.value = cleaned;
         }
 

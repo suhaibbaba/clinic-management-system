@@ -29,8 +29,6 @@ interface DayState {
   readonly button: string;
 }
 
-// Every state below is a fill and the ink that sits on it, named as one pair and AA against that
-// fill. No state may set a background without the text colour that has to stay readable on it.
 const DAY_STATES = {
   plain: { button: 'text-ink hover:bg-inset' },
   muted: { button: 'text-ink-faint' },
@@ -84,8 +82,6 @@ function dayInk(modifiers: Modifiers): string {
   );
 }
 
-// Replacing the component replaces the focus it carried, and the arrow keys would stop moving
-// between days.
 function CalendarDayButton({
   day: _day,
   modifiers,

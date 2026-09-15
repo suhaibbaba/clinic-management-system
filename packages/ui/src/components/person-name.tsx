@@ -33,8 +33,6 @@ export function PersonName({
   );
 }
 
-// Returns a function rather than a value, so one call covers a list — forty rows would otherwise
-// need forty hooks.
 export function usePersonName(): (name: Name | null | undefined) => string {
   const { i18n } = useTranslation();
 

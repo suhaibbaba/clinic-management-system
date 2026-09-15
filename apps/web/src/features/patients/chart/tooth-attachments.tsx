@@ -33,7 +33,6 @@ export function ToothAttachments({
 
 function AttachmentThumbnail({ attachment }: { attachment: Attachment }): JSX.Element {
   const { t } = useTranslation();
-  // The list response carries no URL; ask for one only for what is on screen.
   const { data, isPending, isError } = useAttachment(attachment.id, true);
 
   const isImage = attachment.mime.startsWith('image/');

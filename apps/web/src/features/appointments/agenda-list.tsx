@@ -16,8 +16,6 @@ export interface AgendaListProps {
   readonly showDoctor: boolean;
 }
 
-// A time grid at 390px is a 40px column where a fifteen-minute appointment is ten pixels tall. An
-// agenda drops the spatial metaphor and keeps the order.
 export function AgendaList({
   appointments,
   closure,
@@ -27,8 +25,6 @@ export function AgendaList({
   const { t } = useTranslation();
   const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
 
-  // The closed notice comes first, and stands alone when the day is also
-  // empty: "no appointments" and "the clinic is shut" are different answers.
   const closedNotice = closure ? (
     <p className="flex items-center gap-2 rounded-card bg-warning-50 px-3 py-2 text-label text-warning-800">
       <Icon name="alert" />

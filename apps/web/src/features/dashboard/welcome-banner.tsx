@@ -12,8 +12,6 @@ export interface WelcomeBannerProps {
   readonly schedule: readonly CalendarAppointment[];
 }
 
-// The greeting is read once a morning and then ignored, which is the point: it is the one part of
-// the page that says whose day this is before the numbers say what is in it.
 export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Element {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -90,9 +88,6 @@ function dayBounds(
   return { first: toTimeLabel(times[0]!), last: toTimeLabel(times.at(-1)!) };
 }
 
-// The reference's dental glyph, drawn only where the clinic charts teeth. Specialty-specific
-// drawing is data here as it is for the chart itself (architecture decision 1), so an orthopedic
-// clinic gets the abstract field alone rather than somebody else's molar.
 function SpecialtyGlyph({
   chartTypes,
 }: {
@@ -134,8 +129,6 @@ function SpecialtyGlyph({
   );
 }
 
-// The circles, the dotted field, the sparkles and the leaves are every clinic's; the glyph over
-// them is the specialty's.
 function BannerArt({ chartTypes }: { readonly chartTypes: readonly ChartType[] }): JSX.Element {
   return (
     <div

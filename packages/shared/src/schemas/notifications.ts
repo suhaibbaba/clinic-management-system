@@ -55,8 +55,6 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: Record<NotificationTemplate, string
     'تذكير: موعدك في {clinic} مع {doctor} بعد ساعتين، الساعة {time}.',
   [NOTIFICATION_TEMPLATE.BOOKING_CANCELLED]:
     'تم إلغاء موعدك في {clinic} يوم {date} الساعة {time}. للحجز من جديد تواصل معنا.',
-  // No time, no promise of one: the clinic has not looked at the diary yet, and a message that
-  // sounds like a booking is one the patient will turn up for.
   [NOTIFICATION_TEMPLATE.URGENT_RECEIVED]:
     'وصلنا طلبك العاجل في {clinic}. سنتواصل معك بأقرب وقت على هذا الرقم.',
   [NOTIFICATION_TEMPLATE.URGENT_SCHEDULED]:
@@ -85,8 +83,6 @@ export function notificationSettings(settings: unknown): NotificationSettings {
       };
 }
 
-// An unknown placeholder is left standing — "الساعة {time}" is a visible bug, where "الساعة " looks
-// fine and says nothing.
 export function renderTemplate(body: string, vars: Record<string, string>): string {
   return body.replaceAll(/\{(\w+)\}/g, (match, key: string) => vars[key] ?? match);
 }

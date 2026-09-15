@@ -15,11 +15,6 @@ export interface MoneyProps {
   readonly signed?: boolean | undefined;
 }
 
-// The symbol, not the code; whole numbers, truncated rather than rounded. The figure and its
-// symbol share one LTR island, so they render in written order — isolating only the digits left
-// the symbol to the surrounding Arabic, which threw it to the far side of the number. The island
-// is inside the coloured span rather than being it: an outer `dir`/`w-fit` drags a statement's
-// figures away from their rows.
 export function Money({ amount, currency, className, signed = false }: MoneyProps): JSX.Element {
   const negative = amount.startsWith('-');
   const zero = Number(amount) === 0;

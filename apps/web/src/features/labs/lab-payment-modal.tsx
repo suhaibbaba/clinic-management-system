@@ -15,8 +15,6 @@ import { useLookupOptions } from '@web/features/lookups/queries';
 import { usePayLab } from '@web/features/labs/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
-// The balance is shown above the amount, not defaulted into it: a prefilled figure is a figure
-// somebody stops reading.
 export function LabPaymentModal({
   open,
   onOpenChange,

@@ -92,8 +92,6 @@ export function AppointmentFormModal({
     setClash(null);
 
     if (appointment) {
-      // The feed already carries what the picker draws, so editing costs no request — and works for
-      // a receptionist, whose patient response has no clinical view.
       setPatient({
         kind: 'existing',
         patient: {
@@ -178,8 +176,6 @@ export function AppointmentFormModal({
             startsAt,
             durationMinutes: Number(durationMinutes),
             type,
-            // Only the ones who asked from a phone. A walk-in is standing at the desk being told
-            // the time out loud, and does not need a text about it.
             notify: waitingEntry.source === WAITING_LIST_SOURCE.ONLINE,
           },
         });
@@ -196,8 +192,6 @@ export function AppointmentFormModal({
       onBooked?.({ date: toIsoDate(new Date(startsAt)), doctorId });
       onOpenChange(false);
     } catch (error) {
-      // Not a dead end: the number is already somebody's, and the picker offers
-      // to book that somebody instead.
       const existing = patientPhoneClash(error);
 
       if (existing) {
@@ -259,7 +253,6 @@ export function AppointmentFormModal({
               }))}
               onChange={(event) => {
                 setDoctorId(event.target.value);
-                // The old slot belongs to the old doctor's day.
                 setStartsAt(null);
               }}
             />
@@ -296,7 +289,6 @@ export function AppointmentFormModal({
               }))}
               onChange={(event) => {
                 setDurationMinutes(event.target.value);
-                // A longer appointment may no longer fit where the old one did.
                 setStartsAt(null);
               }}
             />

@@ -59,9 +59,6 @@ export const APPOINTMENTS_ENTITY = 'appointments';
 /** Postgres raises this when an `EXCLUDE` constraint rejects a row. */
 const EXCLUSION_VIOLATION = '23P01';
 
-// Two inserts landing together each have to check the other's uncommitted row against
-// `appointments_no_overlap`, and Postgres is entitled to break that wait by killing one of them.
-// The victim is rolled back whole, so it is safe to run again — see `insert`.
 const DEADLOCK = '40P01';
 
 // Walked down the `cause` chain: drizzle wraps the driver's error, so the SQLSTATE is a level or
@@ -154,14 +151,12 @@ export class AppointmentsService implements OnModuleInit {
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<CalendarAppointment> {
-    // Scoped first, so an id from another clinic is a 404 before anything else.
     await this.scope.findOneOrFail<AppointmentRow>(appointments, actor.clinicId, id);
 
     const [row] = await this.calendarSelect()
       .where(this.scope.where(appointments, actor.clinicId, eq(appointments.id, id)))
       .limit(1);
 
-    /* istanbul ignore next -- the row was just loaded. */
     if (!row) {
       throw new BadRequestException('Appointment not found');
     }
@@ -248,8 +243,6 @@ export class AppointmentsService implements OnModuleInit {
 
     const duration = input.durationMinutes ?? (await this.defaultDuration(actor, input.doctorId));
 
-    // A patient registered on this form and a booking that then turns out to clash commit or roll
-    // back together — reception performed one action, so one action is what succeeds or fails.
     const row = await this.insert(() =>
       this.registration.withPatient(actor, input, (executor, patientId) =>
         executor
@@ -296,7 +289,6 @@ export class AppointmentsService implements OnModuleInit {
       await this.access.requireOwnCalendar(actor, input.doctorId);
     }
 
-    // Moving a finished appointment rewrites history rather than the diary.
     if (!occupiesSlot(existing.status) || existing.status === APPOINTMENT_STATUS.COMPLETED) {
       throw new BadRequestException('This appointment is closed and can no longer be moved');
     }
@@ -392,7 +384,6 @@ export class AppointmentsService implements OnModuleInit {
         })
         .returning();
 
-      /* istanbul ignore next -- insert ... returning always yields a row. */
       if (!visit) {
         throw new Error('Failed to create the visit');
       }
@@ -401,7 +392,6 @@ export class AppointmentsService implements OnModuleInit {
         .update(appointments)
         .set({
           visitId: visit.id,
-          // A patient who is being seen is in progress, whatever they were.
           status: canTransitionAppointment(existing.status, APPOINTMENT_STATUS.IN_PROGRESS)
             ? APPOINTMENT_STATUS.IN_PROGRESS
             : existing.status,
@@ -440,7 +430,6 @@ export class AppointmentsService implements OnModuleInit {
 
     const row = rows[0];
 
-    /* istanbul ignore next -- returning always yields the written row. */
     if (!row) {
       throw new Error('Failed to write the appointment');
     }
@@ -448,10 +437,6 @@ export class AppointmentsService implements OnModuleInit {
     return row;
   }
 
-  // A deadlock is not an answer to "is this slot free" — it only says two writers raced. Postgres
-  // rolls the victim back whole, so running it again asks the question properly: by then the winner
-  // has committed, and the constraint says 409 or the row goes in. Without this, two receptionists
-  // booking the same minute got a 500 instead of "already booked".
   private async writeOnce(write: () => Promise<AppointmentRow[]>): Promise<AppointmentRow[]> {
     try {
       return await write();
@@ -471,7 +456,6 @@ export class AppointmentsService implements OnModuleInit {
         patientName: patients.fullName,
         patientPhone: patients.phone,
         patientFileNumber: patients.fileNumber,
-        // A patient nobody on staff created came in through public booking.
         patientUnverified: sql<boolean>`${patients.createdBy} is null`,
         doctorNameAr: users.nameAr,
         doctorNameEn: users.nameEn,
@@ -549,8 +533,6 @@ export function toAppointment(row: AppointmentRow): Appointment {
     doctorId: row.doctorId,
     startsAt: row.startsAt.toISOString(),
     durationMinutes: row.durationMinutes,
-    // Computed on read from the two columns that define it — there is no
-    // stored end to fall out of step, in the table or in the constraint.
     endsAt: new Date(row.startsAt.getTime() + row.durationMinutes * 60_000).toISOString(),
     type: row.type,
     status: row.status,

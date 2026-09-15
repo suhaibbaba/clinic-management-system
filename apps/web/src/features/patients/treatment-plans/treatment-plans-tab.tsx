@@ -39,8 +39,6 @@ import { planRemaining, planTotal } from '@web/features/patients/treatment-plans
 import { errorMessageKey } from '@web/lib/api-error';
 import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
-// Built from the shared enum, so a status added to the state machine appears here instead of being
-// quietly unfilterable.
 const PLAN_FILTERS = ['all', ...TREATMENT_PLAN_STATUSES] as const;
 type PlanFilter = (typeof PLAN_FILTERS)[number];
 
@@ -211,8 +209,6 @@ export function TreatmentPlansTab({
 
         {visible.map((plan) => {
           const items = [...(plan.items ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
-          // Progress is work done. Cancelled items are neither done nor outstanding, so they leave
-          // the denominator rather than counting as unfinished forever.
           const live = items.filter((item) => item.status !== TREATMENT_PLAN_ITEM_STATUS.CANCELLED);
           const converted = live.filter(
             (item) => item.status === TREATMENT_PLAN_ITEM_STATUS.CONVERTED,

@@ -73,8 +73,6 @@ export const publicSlotsSchema = z.object({
   date: isoDateSchema,
   /** Only bookable ones — a stranger has no use for a greyed grid. */
   slots: z.array(slotSchema.omit({ available: true })),
-  // The dated reasons only — "closed for Eid" is on the door, but a full diary tells a stranger how
-  // busy the practice is.
   closedReason: z.enum(['clinic_closure', 'doctor_time_off']).nullable(),
   closedNote: z.string().nullable(),
 });
@@ -118,8 +116,6 @@ export const verifyOtpSchema = z.object({
 });
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
 
-// Carries the appointment's own facts for whoever holds the token, but no file number, no balance
-// and nothing clinical.
 export const managedBookingSchema = z.object({
   status: z.string(),
   startsAt: z.iso.datetime(),
@@ -143,8 +139,6 @@ export type CancelBookingInput = z.infer<typeof cancelBookingSchema>;
 
 export const publicSlotTimeSchema = timeOfDaySchema;
 
-// The way out of a page with no times on it. Deliberately not a booking: no slot is chosen, nothing
-// is held, and the copy promises a phone call rather than an appointment.
 export const createUrgentRequestSchema = z.object({
   fullName: z.string().trim().min(BOOKING_NAME_LENGTH.min).max(BOOKING_NAME_LENGTH.max),
   phone: bookingPhoneSchema,

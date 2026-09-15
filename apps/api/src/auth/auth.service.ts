@@ -238,7 +238,6 @@ export class AuthService {
         ),
     ]);
 
-    /* istanbul ignore next -- a live user always has a live clinic. */
     if (!row) {
       return { name: { ar: '', en: '' }, logoUrl: null, chartTypes: [] };
     }

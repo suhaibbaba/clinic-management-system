@@ -49,10 +49,6 @@ type OrderRow = typeof labOrders.$inferSelect;
 
 export const LAB_ORDERS_ENTITY = 'lab_orders';
 
-// The technician runs the conversation with the lab (sending, chasing, receiving); the doctor owns
-// what happens in the chair (fitting, and declaring the work wrong).
-// Every move goes through `changeStatus` against the shared transition table; the dates are written
-// by the moves, never a form; the price is a snapshot from the work type.
 @Injectable()
 export class LabOrdersService implements OnModuleInit {
   constructor(
@@ -111,12 +107,7 @@ export class LabOrdersService implements OnModuleInit {
     const { limit, offset } = toLimitOffset(query);
 
     const [rows, [totals]] = await Promise.all([
-      this.rowsQuery()
-        .where(where)
-        // Newest first, but a late order is what somebody opened the board for.
-        .orderBy(desc(labOrders.createdAt))
-        .limit(limit)
-        .offset(offset),
+      this.rowsQuery().where(where).orderBy(desc(labOrders.createdAt)).limit(limit).offset(offset),
       this.db
         .select({ value: sql<number>`count(*)::int` })
         .from(labOrders)
@@ -140,8 +131,6 @@ export class LabOrdersService implements OnModuleInit {
     return toLabOrderRow(row);
   }
 
-  // Late is past the promised date and still out — once the work is back nobody is waiting, however
-  // late it was.
   async overdue(actor: AuthenticatedUser, limit = 20): Promise<LabOrderRow[]> {
     const rows = await this.rowsQuery()
       .where(this.scope.where(labOrders, actor.clinicId, overdueFilter()))
@@ -151,8 +140,6 @@ export class LabOrdersService implements OnModuleInit {
     return rows.map(toLabOrderRow);
   }
 
-  // Draft rather than sent, always: until the sheet goes to a courier the clinic owes nothing.
-  // Teeth may be prefilled from the procedure, since retyping is how a lab makes the wrong one.
   async create(actor: AuthenticatedUser, input: CreateLabOrderInput): Promise<LabOrderRow> {
     // Only codes on this clinic's own list — the schema cannot know them.
     await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.LAB_MATERIAL, input.material);
@@ -209,7 +196,6 @@ export class LabOrdersService implements OnModuleInit {
         .returning({ id: labOrders.id }),
     );
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to create the lab order');
     }
@@ -217,8 +203,6 @@ export class LabOrdersService implements OnModuleInit {
     return this.findOne(actor, row.id);
   }
 
-  // An order that has left the building is not editable: the lab is working from the sheet that was
-  // sent, so a change here is a return or a new order.
   async update(
     actor: AuthenticatedUser,
     id: string,
@@ -269,9 +253,6 @@ export class LabOrdersService implements OnModuleInit {
     return this.findOne(actor, id);
   }
 
-  // The one door: the transition is checked against the shared table and the timestamp the new
-  // status means is written with it. Who may make the move is the guard's answer — each step is its
-  // own endpoint with its own permission, which a clinic may hand to somebody else.
   async changeStatus(
     actor: AuthenticatedUser,
     id: string,
@@ -368,8 +349,6 @@ export class LabOrdersService implements OnModuleInit {
     }
   }
 
-  // What makes "order this from the lab" one click: the crown recorded on 26 becomes an order for
-  // 26, with nobody retyping a number a lab cuts metal to.
   private async teethOfProcedure(clinicId: string, procedureId: string): Promise<number[]> {
     const rows = await this.db
       .select({ location: chartMarks.location })
@@ -444,8 +423,6 @@ export function toLabOrderRow(row: JoinedOrderRow): LabOrderRow {
     doctorName: toPersonName(row.doctorNameAr, row.doctorNameEn),
     labName: row.labName,
     workTypeName: row.workTypeName,
-    // Computed rather than stored: "late" is a fact about now, and a column
-    // holding it would be wrong every day at midnight.
     isOverdue:
       order.expectedAt !== null &&
       awaitingLab(order.status) &&

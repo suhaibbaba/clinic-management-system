@@ -16,8 +16,6 @@ export const loginSchema = z.object({
 });
 export type LoginInput = z.infer<typeof loginSchema>;
 
-// Optional because browsers send it in the httpOnly cookie the API sets at login; other clients
-// pass it here.
 export const refreshSchema = z.object({
   refreshToken: z.string().min(1).max(512).optional(),
 });
@@ -56,8 +54,6 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export const sessionClinicSchema = z.object({
   name: personNameSchema,
   logoUrl: z.url().nullable(),
-  // The chart types its active specialties use. Carried on the session rather than fetched, for
-  // the same reason the logo is: chrome that differs per specialty is drawn on the first paint.
   chartTypes: z.array(z.enum(CHART_TYPES)),
 });
 export type SessionClinic = z.infer<typeof sessionClinicSchema>;
@@ -73,9 +69,6 @@ export const authenticatedUserSchema = z.object({
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
   photoUrl: z.url().nullable(),
-  /** What this clinic lets this role do, resolved from the shipped defaults and the clinic's own
-   *  edits. Carried on the session so a screen hides what its reader cannot use; the API is still
-   *  the boundary. */
   capabilities: z.array(z.string()),
 });
 export type AuthenticatedUserProfile = z.infer<typeof authenticatedUserSchema>;

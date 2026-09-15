@@ -32,8 +32,6 @@ export function NotesWidget(): JSX.Element {
     <Widget title={t('notes.title')}>
       <ul className="flex flex-col">
         {(notes.data?.items ?? []).map((note) => {
-          // The author may delete their own; the admin may take any note down. The same rule the
-          // API enforces — this only decides whether to draw the button.
           const canRemove = user?.role === 'admin' || note.authorId === user?.id;
 
           return (
@@ -88,8 +86,6 @@ export function NotesWidget(): JSX.Element {
         onSubmit={submit}
         className={cn(
           'mt-3 flex items-center gap-2 rounded-control border border-dashed border-line px-3',
-          // No vertical padding: it sat outside the input, so the top and bottom of the box did
-          // nothing. The height is the token's and the input stretches into all of it.
           'min-h-(--control-h) lg:min-h-(--control-h-sm)',
         )}
       >

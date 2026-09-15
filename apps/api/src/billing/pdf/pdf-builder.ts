@@ -8,8 +8,6 @@ import { visualRuns, type TextDirection } from '@api/billing/pdf/arabic-text';
 
 const FONT_DIR = join(__dirname, 'fonts');
 
-// Amiri because its presentation forms are single glyphs: faces that compose them from a base
-// letter plus mark glyphs need mark positioning, which pdf-lib does not apply.
 const FONTS = {
   regular: join(FONT_DIR, 'Amiri-Regular.ttf'),
   bold: join(FONT_DIR, 'Amiri-Bold.ttf'),
@@ -98,8 +96,6 @@ export class RtlPdf {
     );
   }
 
-  // Each run is placed at its own x in logical order: fontkit reverses an Arabic run as it lays it
-  // out, so nothing is reversed by hand.
   drawLine(
     text: string,
     options: {
@@ -181,8 +177,6 @@ export class RtlPdf {
 
     this.page.drawImage(embedded, {
       x: (this.page.getWidth() - width) / 2,
-      // Unlike an SVG path, an image is anchored at its bottom-left, so the
-      // cursor is where it stands rather than where its top goes.
       y: this.cursor,
       width,
       height: size,
@@ -206,7 +200,6 @@ export class RtlPdf {
       return undefined;
     }
 
-    // pdf-lib embeds PNG and JPEG only; WebP is fine on screen and not here.
     return undefined;
   }
 
@@ -237,8 +230,6 @@ export class RtlPdf {
     this.cursor -= size + 5;
   }
 
-  // First column at the sheet's starting edge. Rows break onto a new page rather than being split
-  // across one.
   table(columns: readonly Column[], rows: readonly (readonly string[])[], size = 10): void {
     const usable = this.right - this.left;
     const total = columns.reduce((sum, column) => sum + column.width, 0);

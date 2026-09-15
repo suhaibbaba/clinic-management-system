@@ -17,7 +17,6 @@ export function PageShell({
 }): JSX.Element {
   const name = clinicName ?? t('page.title');
 
-  // Here rather than in each screen: every booking view is inside this shell.
   useEffect(() => {
     document.title =
       clinicName === undefined ? t('page.title') : `${t('page.title')} — ${clinicName}`;
@@ -40,7 +39,6 @@ export function PageShell({
         <div
           className={cx(
             'sticky bottom-0 z-10 border-t border-line bg-surface',
-            // Clears the home indicator on an iPhone without a fixed guess.
             'px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]',
           )}
         >

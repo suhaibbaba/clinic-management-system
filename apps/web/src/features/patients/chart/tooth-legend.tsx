@@ -4,8 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { ToothSwatch } from '@web/features/patients/chart/tooth-swatch';
 import { useToothStates } from '@web/features/patients/chart/tooth-state';
 
-// Nine hues are more than anyone reliably tells apart, so this is where a colour becomes a word.
-// Swatches use the same style object the teeth do.
 export function ToothLegend(): JSX.Element {
   const { t } = useTranslation();
   const states = useToothStates();

@@ -41,7 +41,6 @@ export class LetterheadService {
       .where(eq(clinics.id, clinicId))
       .limit(1);
 
-    /* istanbul ignore next -- the caller's own clinic always exists. */
     if (!row) {
       throw new NotFoundException('Resource not found');
     }
@@ -57,8 +56,6 @@ export class LetterheadService {
     };
   }
 
-  // A clinic with no logo gets its name and nothing else: a stand-in mark on a receipt would be
-  // another clinic's branding on this one's paper.
   async draw(pdf: RtlPdf, clinic: Letterhead): Promise<void> {
     if (clinic.logo) {
       await pdf.image(clinic.logo.bytes, clinic.logo.mime);

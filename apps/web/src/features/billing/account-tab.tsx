@@ -31,8 +31,6 @@ interface AccountTabProps {
   patient: PatientView | undefined;
 }
 
-// A line carries the procedure's catalog name and nothing else: the API sends no more, because a
-// receptionist reads this screen.
 export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();

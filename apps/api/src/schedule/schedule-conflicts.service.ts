@@ -93,8 +93,6 @@ export class ScheduleConflictsService {
     return conflicts;
   }
 
-  // A plain update rather than the state machine: one closure ends all of them at once, and the
-  // reason names the row responsible. A failed notification does not fail the closure.
   async cancelAll(
     actor: AuthenticatedUser,
     conflicts: readonly ConflictingAppointment[],
@@ -110,7 +108,6 @@ export class ScheduleConflictsService {
       .where(eq(clinics.id, actor.clinicId))
       .limit(1);
 
-    /* istanbul ignore next -- the caller's own clinic always exists. */
     const settings = clinicScheduleSettings(clinic?.settings);
     const zone = settings.timezone || DEFAULT_TIME_ZONE;
 
@@ -133,8 +130,6 @@ export class ScheduleConflictsService {
         template: NOTIFICATION_TEMPLATE.BOOKING_CANCELLED,
         appointmentId: conflict.id,
         vars: {
-          // The patient's message is the clinic's Arabic name: a WhatsApp text
-          // is not a screen with a language toggle on it.
           clinic: clinic?.nameAr ?? '',
           date: localDate(startsAt, zone),
           time: timeIn(zone, startsAt),

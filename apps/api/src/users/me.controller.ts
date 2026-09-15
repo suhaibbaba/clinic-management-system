@@ -29,8 +29,6 @@ export class MeController {
     return this.authService.getProfile(actor);
   }
 
-  // The whole profile comes back rather than the row: the caller is the session, and a name it went
-  // on showing after the change would be the old one.
   @Patch()
   @Audit(USERS_ENTITY, AUDIT_ACTION.UPDATE, { entityIdSource: 'actor' })
   async updateProfile(

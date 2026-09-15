@@ -16,16 +16,10 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   iconPosition?: 'start' | 'end' | undefined;
 }
 
-// The primary blue is the only filled blue on a page, which is what makes "the thing to do here"
-// answerable at a glance; `secondary` is the reference's outlined `.btn-ghost`, and `ghost` its
-// soft-tinted `.kpi-action`. Every one of them answers the pointer with a step of its own scale:
-// the reference's `filter: brightness(1.06)` is nothing at all on a white ground, which is what
-// left the outlined button signalling with its edge alone.
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: 'bg-primary-600 text-ink-inverse hover:bg-primary-500 active:bg-primary-700',
-  // A neutral step, not `primary-100`: that made it vanish on any card already painted that colour
-  // — a confirmed appointment's ribbon tile is exactly that, so "جاء المريض" disappeared under the
-  // pointer. The edge and the ink still turn primary with it.
+  // A neutral hover step, never `primary-100`: that is a confirmed appointment's tile, and the
+  // button vanished into it.
   secondary:
     'border border-line bg-surface text-ink hover:bg-inset hover:border-primary-600 hover:text-primary-700 active:bg-neutral-200',
   ghost: 'bg-primary-100 text-primary-700 hover:bg-primary-200 active:bg-primary-300',
@@ -59,18 +53,12 @@ export function Button({
       type={type}
       data-part="button"
       className={cn(
-        // A softly rounded rectangle, not a pill: it sits beside fields and
-        // cards of the same 8-14px family instead of on top of them.
         'pill-text inline-flex items-center cursor-pointer justify-center rounded-control font-medium',
         // A control of a fixed height cannot wrap: a narrow table column turned "فتح الملف" into
         // two lines and the box clipped the second.
         'whitespace-nowrap',
-        // The fill settles over a quarter of a second; the press does not wait for it, or a button
-        // would go soft under the finger.
         '[transition:background-color_250ms_ease-in-out,border-color_250ms_ease-in-out,color_250ms_ease-in-out,scale_120ms_ease-out]',
         'active:scale-[0.98]',
-        // Disabled is a solid muted fill with no edge, as a disabled field is. At 40% opacity a
-        // white label on the primary fill was barely there at all.
         'disabled:cursor-not-allowed disabled:border-transparent disabled:bg-inset',
         'disabled:text-ink-subtle disabled:shadow-none',
         // A disabled button must not still look like it responds.

@@ -22,8 +22,6 @@ export function personName(name: PersonName | null | undefined, language: string
   }
 
   const english = language.startsWith('en');
-  // Read defensively: this runs on the public booking page, where a stale cache or an older API is
-  // not worth a white screen.
   const ar = typeof name.ar === 'string' ? name.ar : '';
   const en = typeof name.en === 'string' ? name.en : '';
 

@@ -31,8 +31,6 @@ export function Modal({
   size = 'md',
 }: ModalProps): JSX.Element {
   const { t } = useTranslation();
-  // State rather than a ref: a popover beneath this dialog has to re-render
-  // once the node exists, and a ref would not tell it.
   const [layer, setLayer] = useState<HTMLElement | null>(null);
 
   return (
@@ -64,11 +62,7 @@ export function Modal({
             // logical `start-*` variant would push the dialog off centre.
             'fixed left-1/2 top-1/2 z-50 w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2',
             size === 'lg' ? 'max-w-2xl' : 'max-w-md',
-            // Column layout so the body scrolls and the footer stays reachable. `dvh`, not `vh`:
-            // iOS Safari resolves `vh` against the viewport with its toolbars hidden, so the
-            // footer — Save, Cancel — sat underneath them.
             'flex max-h-[calc(100dvh-4rem)] flex-col rounded-card border border-line bg-surface p-5 shadow-float',
-            // Its own timing, like every other moving part: a dialog settles, a menu snaps.
             'data-[state=open]:animate-[modal-in_160ms_ease-out]',
             'data-[state=closed]:animate-[modal-out_120ms_ease-in]',
           )}

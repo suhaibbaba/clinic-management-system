@@ -39,8 +39,6 @@ export function useStatement(
   });
 }
 
-// Everything a payment touches is derived, so it invalidates the balance, the statement, the header
-// — and the patients list and dashboard, which can be filtered or totalled by what is owed.
 function useLedgerInvalidation(): () => Promise<void> {
   const queryClient = useQueryClient();
 

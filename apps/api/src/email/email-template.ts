@@ -1,8 +1,3 @@
-/**
- * One layout, ours, rendered to a table because that is still what mail clients agree on — no
- * flexbox, no grid, no stylesheet, everything inline. RTL by default, as every other surface here
- * is, and it degrades to the plain-text part when images or HTML are off.
- */
 export interface EmailLayout {
   readonly clinicName: string;
   /** Referenced as `cid:` so the mark survives the signed URL it was fetched from. */
@@ -64,8 +59,6 @@ export function renderEmail(layout: EmailLayout): { html: string; text: string }
 </td></tr></table>
 </body></html>`;
 
-  // Not an afterthought: a mail client with HTML off, and every screen reader that prefers it,
-  // reads this — so it carries the link in full rather than behind a label.
   const text = [
     layout.clinicName,
     '',

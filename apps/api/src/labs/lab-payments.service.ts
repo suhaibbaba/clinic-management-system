@@ -95,14 +95,12 @@ export class LabPaymentsService implements OnModuleInit {
         amount: input.amount,
         method: input.method,
         note: input.note ?? null,
-        // Who handed the money over, kept apart from who typed the row.
         paidBy: actor.id,
         createdBy: actor.id,
         updatedBy: actor.id,
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to record the lab payment');
     }
@@ -155,7 +153,6 @@ export class LabPaymentsService implements OnModuleInit {
         })
         .returning();
 
-      /* istanbul ignore next -- insert ... returning always yields a row. */
       if (!row) {
         throw new Error('Failed to reverse the lab payment');
       }

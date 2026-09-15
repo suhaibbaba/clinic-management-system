@@ -17,8 +17,6 @@ export class BookingTokenService {
   private readonly secret: string;
 
   constructor(config: ConfigService<Env, true>) {
-    // Falls back only so a development environment boots without a second
-    // variable; every deployed environment sets its own.
     this.secret =
       config.get('BOOKING_TOKEN_SECRET', { infer: true }) ??
       config.get('JWT_SECRET', { infer: true });

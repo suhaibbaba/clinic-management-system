@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { hash, verify } from '@node-rs/argon2';
 
-// OWASP baseline (19 MiB, 2 iterations, 1 lane). Memory cost is per in-flight hash and logins are
-// infrequent, so it fits a small VPS.
 const ARGON2_OPTIONS = {
   memoryCost: 19_456,
   timeCost: 2,

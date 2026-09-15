@@ -3,9 +3,6 @@ import type { AuditAction } from '@clinic/shared';
 
 export const AUDIT_KEY = 'audit';
 
-// `route`: the `:id` param, falling back to the response's `id`, which covers creates. `clinic`:
-// singleton routes. `patient`: `:patientId`. `response`: when `:id` names a different entity.
-// `actor`: a route that only ever writes the caller's own row, so it carries no id at all.
 export type AuditEntityIdSource = 'route' | 'clinic' | 'patient' | 'response' | 'actor';
 
 export interface AuditMetadata {

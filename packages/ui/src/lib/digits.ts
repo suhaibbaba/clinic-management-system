@@ -1,6 +1,3 @@
-// Arabic-Indic (٠-٩) and Eastern Arabic-Indic (۰-۹) are what an Arabic keypad produces, and
-// JavaScript's `\d` matches neither — so a numeric field that strips "not a digit" threw away
-// everything a patient or a receptionist typed on their own keyboard.
 const ARABIC_INDIC = 0x0660;
 const EASTERN_ARABIC_INDIC = 0x06f0;
 

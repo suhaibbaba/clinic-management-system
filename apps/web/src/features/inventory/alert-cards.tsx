@@ -9,8 +9,6 @@ import { useInventoryAlerts } from '@web/features/inventory/queries';
 import { cn } from '@clinic/ui/lib/cn';
 import { formatDate } from '@web/lib/format';
 
-// A card with nothing in it is not drawn: an alert panel that says "0 items low" every day is one
-// people stop reading.
 export function InventoryAlertCards({
   onSelectItem,
   onShowLow,
@@ -36,8 +34,6 @@ export function InventoryAlertCards({
   }
 
   return (
-    // Side by side only once there is room: at 768px each card had about 60px for an item's name
-    // and ellipsed every one to three letters.
     <div className="grid gap-3 lg:grid-cols-2">
       {low.length > 0 && (
         <AlertCard

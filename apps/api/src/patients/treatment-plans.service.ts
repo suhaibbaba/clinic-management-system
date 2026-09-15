@@ -139,7 +139,6 @@ export class TreatmentPlansService implements OnModuleInit {
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to create treatment plan');
     }
@@ -176,7 +175,6 @@ export class TreatmentPlansService implements OnModuleInit {
       .where(this.scope.where(treatmentPlans, actor.clinicId, eq(treatmentPlans.id, id)))
       .returning();
 
-    /* istanbul ignore next -- the row was just loaded. */
     if (!row) {
       throw new Error('Failed to update treatment plan');
     }
@@ -247,7 +245,6 @@ export class TreatmentPlansService implements OnModuleInit {
       )
       .returning();
 
-    /* istanbul ignore next -- the row was just loaded. */
     if (!row) {
       throw new Error('Failed to update treatment plan item');
     }
@@ -333,7 +330,6 @@ export class TreatmentPlansService implements OnModuleInit {
         clinicId: actor.clinicId,
         treatmentPlanId: planId,
         procedureId: input.procedureId,
-        // The quote defaults to today's catalog price and then stands on its own.
         estimatedPrice: input.estimatedPrice ?? catalogItem.defaultPrice,
         sortOrder: input.sortOrder,
         notes: input.notes ?? null,
@@ -342,7 +338,6 @@ export class TreatmentPlansService implements OnModuleInit {
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to create treatment plan item');
     }

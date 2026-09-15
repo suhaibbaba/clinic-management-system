@@ -23,8 +23,6 @@ export interface WeekViewProps {
   readonly onPickDay: (date: string) => void;
 }
 
-// Not a time grid: a week at that scale is 10,500 pixels of empty column, and the question is "how
-// full is Thursday?". Desktop only — seven 40px columns is unreadable.
 export function WeekView({
   date,
   appointments,
@@ -41,8 +39,6 @@ export function WeekView({
   const closureOn = (day: string): ClinicClosure | undefined =>
     closures.find((closure) => closure.startsOn <= day && day <= closure.endsOn);
 
-  // A week with a closure in it is worth drawing even with nothing booked —
-  // "why is Tuesday grey" is the question this view exists to answer.
   if (appointments.length === 0 && closures.length === 0) {
     return (
       <EmptyState icon="calendar" title="appointments.emptyWeek" hint="appointments.emptyHint" />

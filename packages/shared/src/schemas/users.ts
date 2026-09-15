@@ -36,8 +36,6 @@ const userWritableFields = {
 export const createUserSchema = z
   .object({
     ...userWritableFields,
-    // Optional now: an account with an email address is activated by its owner through a link, and
-    // nobody else ever knows the password. It stays available for staff with no address at all.
     password: passwordSchema.optional(),
     isActive: z.boolean().default(true),
   })
@@ -77,8 +75,6 @@ export const listUsersQuerySchema = paginationQuerySchema.extend({
 });
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
 
-// Presign, PUT, confirm — as the logo does, so no image travels through the API and size and type
-// are read back from what landed.
 export const MAX_USER_PHOTO_BYTES = 2 * 1024 * 1024;
 
 export const ALLOWED_USER_PHOTO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;

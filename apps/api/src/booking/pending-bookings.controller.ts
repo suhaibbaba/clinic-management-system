@@ -43,8 +43,6 @@ export class PendingBookingsController {
     });
   }
 
-  // Its own endpoint because the patient is not in the building: confirming also tells them, with
-  // the manage link an OTP confirmation would have sent.
   @Patch(':id/confirm')
   confirm(
     @CurrentUser() actor: AuthenticatedUser,

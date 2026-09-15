@@ -57,8 +57,6 @@ export interface WaitingListPanelProps {
   readonly onSchedule: (entry: WaitingListEntry) => void;
 }
 
-// A side panel rather than a page: it is read while looking at the calendar — "who can I fit into
-// the gap at 15:00?" — and a route would mean leaving the day.
 export function WaitingListPanel({
   open,
   onOpenChange,
@@ -297,8 +295,6 @@ function AddWalkInModal({
   );
 }
 
-// Closing an entry without a booking. The reason is what the patient was told, so it is required
-// and it is what the message quotes back to them.
 function DeclineModal({
   entry,
   onClose,

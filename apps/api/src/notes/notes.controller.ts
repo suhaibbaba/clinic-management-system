@@ -33,8 +33,6 @@ class UpdateNoteDto extends createZodDto(updateClinicNoteSchema) {}
 class ListNotesQueryDto extends createZodDto(listClinicNotesQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// The noticeboard is the whole clinic's: every signed-in role reads it and writes to it. Which note
-// a person may change is decided in the service, because it depends on who wrote it.
 @Controller('notes')
 export class NotesController {
   constructor(private readonly notes: NotesService) {}

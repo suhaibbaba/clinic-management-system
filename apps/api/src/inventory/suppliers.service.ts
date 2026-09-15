@@ -117,7 +117,6 @@ export class SuppliersService implements OnModuleInit {
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to create the supplier');
     }
@@ -150,7 +149,6 @@ export class SuppliersService implements OnModuleInit {
       .where(this.scope.where(suppliers, actor.clinicId, eq(suppliers.id, id)))
       .returning();
 
-    /* istanbul ignore next -- the row was just read under the same scope. */
     if (!row) {
       throw new Error('Failed to update the supplier');
     }

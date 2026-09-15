@@ -22,8 +22,6 @@ import { ProfilePage } from '@web/features/profile/profile-page';
 import { UsersPage } from '@web/features/users/users-page';
 import { Skeleton } from '@clinic/ui/components/skeleton';
 
-// Split from the main chunk: the calendar carries a week grid, a day grid and a drag interaction,
-// and the two settings screens below are reached by one role on one afternoon a month.
 const AppointmentsSection = lazy(async () => ({
   default: (await import('@web/features/appointments/appointments-section')).AppointmentsSection,
 }));
@@ -54,8 +52,6 @@ const DOCTOR_PAGE = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR] as const;
 /** The dashboard is where a role that may not be somewhere is sent instead. */
 const HOME = '/dashboard';
 
-// A split route's own box while its chunk arrives. Full width and the height a page settles at, so
-// nothing below it moves when the module lands.
 function RouteChunk({ children }: { readonly children: JSX.Element }): JSX.Element {
   return (
     <Suspense fallback={<Skeleton aria-hidden="true" className="h-[520px] w-full rounded-card" />}>

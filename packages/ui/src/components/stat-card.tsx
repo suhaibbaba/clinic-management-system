@@ -123,8 +123,6 @@ export function StatRow({
   readonly children: ReactNode;
   readonly cards?: number | undefined;
 }): JSX.Element {
-  // Two up on a phone. Four full-width cards is 1300px of scrolling before
-  // the data they summarise, which inverts what a summary is for.
   const count = cards ?? Children.count(children);
 
   return (

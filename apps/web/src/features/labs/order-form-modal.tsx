@@ -157,7 +157,6 @@ export function OrderFormModal({
         ...(defaults?.performedProcedureId && {
           performedProcedureId: defaults.performedProcedureId,
         }),
-        // Only sent by a role allowed to set it; otherwise the list price stands.
         ...(mayPrice && price.trim() !== '' && { price: price.trim() }),
       };
 

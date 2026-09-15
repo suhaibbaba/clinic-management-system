@@ -14,8 +14,6 @@ const TABS: readonly TabDefinition<LabsTab>[] = [
   { id: DIRECTORY, label: 'labs.section.directory' },
 ];
 
-// The work in flight and the labs doing it answered one question from two directions. The board
-// comes first; the directory is a monthly job.
 export function LabsSection(): JSX.Element {
   const [active, setActive] = useTabParam<LabsTab>(
     'tab',

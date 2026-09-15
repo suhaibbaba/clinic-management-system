@@ -1,10 +1,5 @@
 import type { ThemeOverride } from '@clinic/ui/theme';
 
-/**
- * Abu-Obaid's values for the library's tokens — the same palette `theme.css` compiles into the
- * stylesheet, typed. The stylesheet is what paints the first frame; this is what a second product
- * would replace, and `theme.test.ts` fails if the two ever disagree.
- */
 export const abuObaidTheme: ThemeOverride = {
   color: {
     'primary-50': '#f1f7fa',

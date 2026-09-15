@@ -16,8 +16,6 @@ export function useClinic(): UseQueryResult<Clinic> {
   return useQuery({ queryKey: [CLINIC_KEY], queryFn: () => clinicApi.get() });
 }
 
-// A hook rather than a prop through five forms: a form that forgot the prop drew its amounts with
-// no symbol, which reads as a missing setting rather than a bug.
 export function useCurrency(): string | undefined {
   return useClinic().data?.currency;
 }
@@ -65,7 +63,6 @@ export function useUploadClinicLogo() {
     },
     onSuccess: (clinic) => {
       queryClient.setQueryData([CLINIC_KEY], clinic);
-      // The sign-in screen reads its own endpoint, so it needs telling too.
       void queryClient.invalidateQueries({ queryKey: [BRANDING_KEY] });
     },
   });

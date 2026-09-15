@@ -6,8 +6,6 @@ import { uuidSchema } from '@shared/schemas/common';
 import { chartMarkSchema } from '@shared/schemas/chart-marks';
 import { performedProcedureSchema } from '@shared/schemas/performed-procedures';
 
-// An aggregation over rows the other endpoints already return, so it exposes nothing new; a
-// receptionist reaches none of it.
 export const toothHistorySchema = z.object({
   patientId: z.uuid(),
   tooth: z.number().int().refine(isFdiTooth, 'Not a valid FDI tooth number'),

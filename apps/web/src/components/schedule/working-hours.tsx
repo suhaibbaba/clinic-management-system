@@ -24,8 +24,6 @@ export interface WorkingHoursProps {
   readonly idPrefix?: string | undefined;
 }
 
-// One component for the clinic's hours and a doctor's own — the same shape and the same question.
-// Split shifts are just intervals, and the gaps between them are the breaks.
 export function WorkingHours({
   value,
   onChange,
@@ -52,12 +50,7 @@ export function WorkingHours({
   }, [value, within]);
 
   return (
-    <Accordion.Root
-      type="multiple"
-      // Uncontrolled: which panels are open is a reading position, not state anything else depends
-      // on.
-      className="flex flex-col gap-2"
-    >
+    <Accordion.Root type="multiple" className="flex flex-col gap-2">
       {WEEKDAYS_FROM_SATURDAY.map((weekday) => {
         const day = { weekday, ranges: rangesFor(value, weekday) };
         const isWorking = day.ranges.length > 0;
@@ -73,8 +66,6 @@ export function WorkingHours({
             <Accordion.Header>
               <Accordion.Trigger
                 className={cn(
-                  // 44px: this is the control that opens a day, and on a phone
-                  // it is the only one.
                   'flex min-h-(--control-h) w-full cursor-pointer items-center justify-between gap-2 px-3 py-2',
                   'text-start transition-colors duration-150 hover:bg-inset',
                   'group',
@@ -128,7 +119,6 @@ export function WorkingHours({
                 {isWorking && (
                   <>
                     {day.ranges.map((range, index) => (
-                      // Intervals have no id; their position is their identity.
                       <RangeRow
                         key={`${weekday}-${index}`}
                         idPrefix={idPrefix}
@@ -256,8 +246,6 @@ function RangeRow({
   );
 }
 
-// Days that are off stay off: opening two days that were deliberately shut is a change nobody asked
-// for.
 function copyToOtherDays(week: WeeklySchedule, source: DaySchedule): WeeklySchedule {
   return WEEKDAYS_FROM_SATURDAY.reduce<WeeklySchedule>((week_, weekday) => {
     const existing = rangesFor(week_, weekday);

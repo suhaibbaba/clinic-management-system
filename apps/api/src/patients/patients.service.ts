@@ -43,7 +43,6 @@ export class PatientsService implements OnModuleInit {
     });
   }
 
-  // One box for file number, name or phone — what reception types.
   async list(actor: AuthenticatedUser, query: ListPatientsQuery): Promise<Paginated<PatientView>> {
     const filters: (SQL | undefined)[] = [];
 
@@ -77,8 +76,6 @@ export class PatientsService implements OnModuleInit {
       );
     }
 
-    // Name folded on both sides, phone and file number left exact: those two are typed off a
-    // handset or a paper file, and a fuzzy digit match would offer the wrong patient.
     const byName = query.search ? arabicNameSearch(patients.normalizedName, query.search) : null;
 
     if (query.search) {
@@ -100,7 +97,6 @@ export class PatientsService implements OnModuleInit {
         .select()
         .from(patients)
         .where(where)
-        // An exactly-folded match outranks a trigram guess, whichever was registered first.
         .orderBy(...(byName ? [byName.rank, byName.closeness] : []), desc(patients.createdAt))
         .limit(limit)
         .offset(offset),
@@ -110,7 +106,6 @@ export class PatientsService implements OnModuleInit {
         .where(where),
     ]);
 
-    // One aggregate for the whole page rather than one per row.
     const balances = PatientAccessService.seesFinancialData(actor.role)
       ? await this.ledger.balancesFor(
           actor.clinicId,
@@ -172,7 +167,6 @@ export class PatientsService implements OnModuleInit {
       .where(this.scope.where(patients, actor.clinicId, eq(patients.id, id)))
       .returning();
 
-    /* istanbul ignore next -- the row was just loaded within this clinic. */
     if (!row) {
       throw new Error('Failed to update patient');
     }

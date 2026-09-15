@@ -57,8 +57,6 @@ export function PaymentModal({
       toast.success('billing.paymentRecorded');
       onOpenChange(false);
 
-      // The receipt is the point of taking the payment, so it opens straight
-      // away rather than waiting for someone to find a print button.
       await openReceipt(payment.id);
     } catch (error) {
       toast.error(errorMessageKey(error));

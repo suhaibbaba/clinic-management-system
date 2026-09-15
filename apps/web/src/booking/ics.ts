@@ -25,8 +25,6 @@ export function appointmentIcs(booking: ManagedBooking): string {
     'PRODID:-//clinic//booking//AR',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
-    // Stable per appointment instant, so re-downloading updates the same event
-    // rather than adding a second one.
     `UID:${stamp(start)}-${escape(bookingName(booking.clinicName))}@clinic`,
     `DTSTAMP:${stamp(new Date())}`,
     `DTSTART:${stamp(start)}`,
@@ -40,7 +38,6 @@ export function appointmentIcs(booking: ManagedBooking): string {
     'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR',
-    // CRLF and a trailing newline: RFC 5545, and Outlook is strict about it.
   ].join('\r\n');
 }
 

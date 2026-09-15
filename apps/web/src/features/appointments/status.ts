@@ -16,14 +16,10 @@ const block = (tone: BadgeTone, override = ''): StatusStyle => ({
 });
 
 export const APPOINTMENT_STATUS_STYLES: Record<AppointmentStatus, StatusStyle> = {
-  // Booked by a patient and not yet confirmed by anyone: the one status that
-  // is waiting on the clinic rather than on the patient.
   [APPOINTMENT_STATUS.REQUESTED]: block('warning'),
   [APPOINTMENT_STATUS.CONFIRMED]: block('info'),
   [APPOINTMENT_STATUS.ARRIVED]: block('success'),
-  // The one in the chair, so a step up the same scale rather than a second hue.
   [APPOINTMENT_STATUS.IN_PROGRESS]: block('success', 'border-success-500 bg-success-200'),
-  // Done is history: it recedes rather than celebrating.
   [APPOINTMENT_STATUS.COMPLETED]: block('neutral'),
   [APPOINTMENT_STATUS.NO_SHOW]: block('danger'),
   [APPOINTMENT_STATUS.CANCELLED]: block('neutral', 'bg-surface line-through'),

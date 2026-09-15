@@ -33,9 +33,6 @@ export interface IssuedToken {
 
 const LOGO_CONTENT_ID = 'clinic-logo';
 
-// Arabic, because the app is: the letters staff receive are in the clinic's language, and these are
-// the only strings in the API that a person reads. They are not in the locale files for that
-// reason — nothing else here renders copy.
 const COPY = {
   activate: {
     subject: (clinic: string) => `تفعيل حسابك في ${clinic}`,
@@ -96,7 +93,6 @@ export class AccountEmailService {
     const base = this.config.get('PUBLIC_BASE_URL', { infer: true }).replace(/\/$/, '');
     const hours = this.config.get('EMAIL_LINK_TTL_HOURS', { infer: true });
     const copy = COPY[purpose];
-    // Arabic is the clinic's language for a printed document, and a letter is one.
     const clinicName = personName(clinic.name, 'ar');
     const who = personName(recipient.name, 'ar');
     const logo = await this.logo(clinic.logoKey);
@@ -112,8 +108,6 @@ export class AccountEmailService {
 
     await this.provider.send({
       to: recipient.email,
-      // Both from the clinic's own settings: the letter is signed with its name, and a reply lands
-      // in its inbox rather than at whatever address the deployment sends through.
       fromName: clinicName,
       ...(clinic.email ? { replyTo: clinic.email } : {}),
       subject: copy.subject(clinicName),
@@ -123,11 +117,6 @@ export class AccountEmailService {
     });
   }
 
-  /**
-   * Fetched and attached rather than linked: the branding URL is signed for a week and an email is
-   * kept for years, so a link would render today and break later. A clinic with no mark gets its
-   * name set in type, which is what a printed sheet gets too.
-   */
   private async logo(
     key: string | null,
   ): Promise<{ filename: string; content: Buffer; contentId: string } | null> {
@@ -150,7 +139,6 @@ export class AccountEmailService {
 
       return { filename: `logo.${extension}`, content: object.bytes, contentId: LOGO_CONTENT_ID };
     } catch (error) {
-      // A letter without its mark still says everything it needs to; failing to send it would not.
       this.logger.warn(`Could not attach the clinic logo: ${String(error)}`);
 
       return null;

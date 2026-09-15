@@ -26,8 +26,6 @@ import { ageInYears } from '@web/features/patients/age';
 import { errorMessageKey } from '@web/lib/api-error';
 import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
-// A tooth's state is the pair of queries: the procedure says how far along, the catalog what it
-// charts as. Past thirteen the deciduous arch is noise unless a tooth is retained.
 const PERMANENT_DENTITION_AGE = 13;
 
 export function ChartTab({
@@ -110,8 +108,6 @@ export function ChartTab({
             value={dentition}
             onChange={(next) => {
               setDentition(next);
-              // The deciduous arch has no tooth 27, so a selection kept across the switch would
-              // describe a tooth that is not on screen.
               setSelectedTooth(null);
             }}
             options={(['permanent', 'deciduous'] as const).map((option) => ({

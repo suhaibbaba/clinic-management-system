@@ -36,7 +36,6 @@ export class ClinicScopeService {
   ): SQL {
     const scoped = and(eq(table.clinicId, clinicId), ...conditions);
 
-    /* istanbul ignore next */
     if (!scoped) {
       throw new Error('Failed to build a clinic-scoped predicate');
     }

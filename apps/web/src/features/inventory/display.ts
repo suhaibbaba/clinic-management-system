@@ -27,8 +27,6 @@ export const movementLabel = (type: MovementType): string => `inventory.movement
 export const MOVEMENT_TONES: Record<MovementType, BadgeTone> = {
   [MOVEMENT_TYPE.PURCHASE]: 'success',
   [MOVEMENT_TYPE.CONSUME]: 'info',
-  // An adjustment is the one movement with no event behind it, so it is the
-  // one worth noticing in a list of forty.
   [MOVEMENT_TYPE.ADJUST]: 'warning',
 };
 
@@ -48,8 +46,6 @@ export function stockTone(item: InventoryItemRow): ProgressTone {
   return 'primary';
 }
 
-// Twice the minimum, so the minimum sits at the halfway mark and "how close am I to reordering" is
-// read rather than calculated.
 export function stockScale(item: InventoryItemRow): { value: number; total: number } {
   const minimum = toThousandths(item.minQuantity);
   const quantity = Math.max(quantityToNumber(item.quantity), 0);

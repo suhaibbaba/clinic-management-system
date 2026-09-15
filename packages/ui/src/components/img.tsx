@@ -35,10 +35,6 @@ export type ImgProps = ImgBase & (FluidSizing | FixedSizing);
 
 type ImgState = 'loading' | 'loaded' | 'failed';
 
-/**
- * The box is reserved before the file loads and keeps its dimensions in every state, so no image
- * in the app can shift the layout under it.
- */
 export function Img({
   src,
   alt,
@@ -65,7 +61,6 @@ export function Img({
     <span
       style={box}
       data-part={part}
-      // The browser test measures every one of these and fails if two renders disagree.
       data-img-box
       className={cn('relative block max-w-full shrink-0 overflow-hidden', className)}
     >

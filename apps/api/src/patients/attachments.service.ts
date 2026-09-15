@@ -119,8 +119,6 @@ export class AttachmentsService implements OnModuleInit {
     input: PresignAttachmentUploadInput,
   ): Promise<PresignAttachmentUploadResponse> {
     await this.patientAccess.requirePatientId(actor, patientId);
-    // The type is a clinic-editable list now, and it becomes part of the object
-    // key below — so it is checked before anything is signed.
     await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ATTACHMENT_TYPE, input.type);
 
     const key = this.storage.buildPatientObjectKey({
@@ -174,7 +172,6 @@ export class AttachmentsService implements OnModuleInit {
 
     const mime = assertAllowedMime(stored.mime);
     if (!mime || stored.sizeBytes <= 0 || stored.sizeBytes > MAX_ATTACHMENT_BYTES) {
-      // The object is unusable, so it is not left paying for storage.
       await this.storage.deleteObject(input.key);
       throw new BadRequestException(
         mime ? 'Uploaded file size is outside the allowed range' : 'Unsupported file type',
@@ -199,7 +196,6 @@ export class AttachmentsService implements OnModuleInit {
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to record attachment');
     }

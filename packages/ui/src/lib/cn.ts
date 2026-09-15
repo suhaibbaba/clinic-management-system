@@ -1,9 +1,6 @@
 import clsx, { type ClassValue } from 'clsx';
 import { extendTailwindMerge } from 'tailwind-merge';
 
-// tailwind-merge has never read theme.css, so a custom `--text-*` key looks like a colour and a
-// custom `--radius-*` like an unrelated utility: `cn('text-micro', 'text-ink-muted')` kept only the
-// colour and the size vanished. `cn.test.ts` fails if theme.css grows a token these miss.
 export const FONT_SIZE_KEYS = [
   'micro',
   'meta',

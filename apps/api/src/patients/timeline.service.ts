@@ -112,7 +112,6 @@ export class TimelineService {
           where pp.clinic_id = ${clinicId} and pp.patient_id = ${patientId} and pp.deleted_at is null`;
 
       case TIMELINE_ENTRY_TYPE.ATTACHMENT:
-        // Metadata only: no object key, and no URL is minted for a list.
         return sql`
           select a.id,
                  ${TIMELINE_ENTRY_TYPE.ATTACHMENT}::text as type,
@@ -201,8 +200,6 @@ export class TimelineService {
           where sm.clinic_id = ${clinicId} and sm.patient_id = ${patientId}
             and sm.type = 'consume'`;
 
-      // TODO(appointments) / TODO(billing): the tables exist but the timeline does not read them
-      // yet, so a receptionist still receives an empty page.
       case TIMELINE_ENTRY_TYPE.APPOINTMENT:
       case TIMELINE_ENTRY_TYPE.PAYMENT:
       case TIMELINE_ENTRY_TYPE.CHARGE:

@@ -9,8 +9,6 @@ import { useAllergyFlags } from '@web/features/patients/queries';
 import { cn } from '@clinic/ui/lib/cn';
 import { formatList } from '@web/lib/format';
 
-// Renders as soon as its own query resolves, so nobody starts work without seeing it. It reads the
-// narrow allergy endpoint, and a receptionist does not ask at all.
 export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element | null {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -29,9 +27,6 @@ export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element
         // wraps, and a wrapped line box of exactly one em would set the rows touching.
         'inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5',
         'rounded-pill border border-danger-200 bg-danger-50 py-1 pe-3 ps-2.5',
-        // `text-value`, the scale's 13px: at `text-label` this read smaller than the row beneath it,
-        // which is the wrong way round for the one thing on the page nobody may miss. Medium
-        // throughout — the allergen matters as much as the word in front of it.
         'text-value font-medium text-danger-700',
       )}
     >

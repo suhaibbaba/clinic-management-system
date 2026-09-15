@@ -77,7 +77,6 @@ export class TokenService {
       })
       .returning({ id: refreshTokens.id });
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to persist refresh token');
     }

@@ -31,8 +31,6 @@ export const SHOPPING_LIST_KEY = 'shopping-list';
 export const SUPPLIERS_KEY = 'suppliers';
 export const SUPPLIER_STATEMENT_KEY = 'supplier-statement';
 
-// One purchase moves the quantity, the batches, the low flag, the alerts, the shopping list and the
-// supplier's total, so a write invalidates all of them.
 const STOCK_KEYS = [
   ITEMS_KEY,
   MOVEMENTS_KEY,

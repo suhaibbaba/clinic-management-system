@@ -18,8 +18,6 @@ export interface SegmentedControlProps<TValue extends string> {
   readonly className?: string | undefined;
 }
 
-// A radio group, not tabs: these choose which rows to show, and it conveys "exactly one" plus
-// native arrow keys. Not a blue fill — a filter is chrome.
 export function SegmentedControl<TValue extends string>({
   options,
   value,
@@ -47,7 +45,6 @@ export function SegmentedControl<TValue extends string>({
             onClick={() => onChange(option.value)}
             className={cn(
               PILL_BASE,
-              // 44 in both directions on touch: a two-letter Arabic label drew a 43px-wide segment.
               'min-h-(--control-h) min-w-(--control-h) cursor-pointer border-[1.5px]',
               'lg:h-(--control-h-sm) lg:min-h-0 lg:min-w-(--control-h-sm)',
               'transition-[background-color,border-color,color] duration-[250ms] ease-in-out',
@@ -61,8 +58,6 @@ export function SegmentedControl<TValue extends string>({
               <Ltr
                 data-part="segment-count"
                 className={cn(
-                  // A tinted pill, not a bare digit: the count is what the filter would leave, and
-                  // the reference gives it the same red a balance owed gets.
                   'pill-text inline-flex items-center h-4 min-w-4 justify-center',
                   'rounded-pill px-[7px] text-micro font-medium tabular-nums',
                   isSelected

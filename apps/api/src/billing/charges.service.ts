@@ -23,8 +23,6 @@ export interface ProcedureBillingEvent {
   readonly actorId: string;
 }
 
-// Planned work is not owed yet — money starts at the moment the chair is used, not when a plan is
-// written.
 const BILLABLE_STATUSES: readonly PerformedProcedureStatus[] = [
   PERFORMED_PROCEDURE_STATUS.IN_PROGRESS,
   PERFORMED_PROCEDURE_STATUS.DONE,

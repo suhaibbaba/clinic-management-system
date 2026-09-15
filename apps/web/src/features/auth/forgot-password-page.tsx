@@ -24,8 +24,6 @@ export function ForgotPasswordPage(): JSX.Element {
     formState: { errors, isSubmitting },
   } = useForm<ForgotPasswordInput>({ resolver: zodResolver(forgotPasswordSchema) });
 
-  // Always the same answer, and no error path: whether an address has an account here is not
-  // something an anonymous form may reveal, including by failing differently.
   const onSubmit = handleSubmit(async (values) => {
     await authApi.forgotPassword(values).catch(() => undefined);
     setSent(true);

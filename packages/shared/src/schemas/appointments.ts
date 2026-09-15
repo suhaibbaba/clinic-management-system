@@ -78,8 +78,6 @@ export const createAppointmentSchema = z
   .refine(hasExactlyOnePatient, PATIENT_REF_MESSAGE);
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 
-// Status is not here: it moves only through the transition endpoints, so the state machine has one
-// door.
 export const updateAppointmentSchema = z
   .object(appointmentWritableFields)
   .partial()
@@ -145,8 +143,6 @@ export const availabilitySchema = z.object({
   doctorId: uuidSchema,
   date: isoDateSchema,
   durationMinutes: durationMinutesSchema,
-  // A closed day and a fully booked one are both an empty array; the caller has to tell the patient
-  // which.
   closedReason: z
     .enum([
       'clinic_closed',

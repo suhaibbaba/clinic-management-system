@@ -53,7 +53,6 @@ export function Drawer({
           className={cn(
             'fixed inset-y-0 end-0 z-50 flex w-full max-w-md flex-col bg-surface shadow-float',
             'border-s border-line',
-            // Longer than a dialog and on a sheet's curve: it travels the width of itself.
             'data-[state=open]:animate-[drawer-end-in_220ms_cubic-bezier(0.32,0.72,0,1)]',
             'data-[state=closed]:animate-[drawer-end-out_180ms_ease-in]',
           )}
@@ -68,8 +67,6 @@ export function Drawer({
             <Dialog.Close
               data-part="drawer-close"
               className={cn(
-                // The same 44px close as the navigation drawer: this was a bare "✕" in a 27px box,
-                // the smallest target on the screen.
                 'inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill',
                 'text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink',
               )}

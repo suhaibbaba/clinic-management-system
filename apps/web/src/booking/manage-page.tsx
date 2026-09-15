@@ -23,8 +23,6 @@ const STATUS_KEY: Record<string, string> = {
 
 type Mode = 'view' | 'confirming-cancel' | 'rescheduling';
 
-// The token is the only credential, so the page shows what it stands for and nothing else.
-// Rescheduling needs a doctor id the managed view lacks, hence the match by name.
 export function ManagePage({
   token,
   slug,

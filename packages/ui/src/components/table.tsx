@@ -20,14 +20,10 @@ export interface Column<TRow> {
   readonly header: string;
   readonly render: (row: TRow) => ReactNode;
   readonly className?: string | undefined;
-  // For columns that are context on a wide screen and noise on a narrow one — an internal id, a
-  // file number already implied by the row.
   readonly hideOnMobile?: boolean | undefined;
   // The mirror image, for a field the wide shape folds into another cell. A column sets one or the
   // other; both would declare a column that never renders.
   readonly hideOnDesktop?: boolean | undefined;
-  // The card's title line: bold across the full width with no label, because a patient's name needs
-  // no caption. At most one column claims it.
   readonly primary?: boolean | undefined;
   readonly actions?: boolean | undefined;
   /** Numeric values: lining, tabular figures so columns of money line up. */
@@ -42,8 +38,6 @@ export interface TableProps<TRow> {
   isRefreshing?: boolean | undefined;
   empty?: ReactNode | undefined;
   pagination?: PaginationProps | undefined;
-  // On mobile the card itself becomes the target — a 44px button inside a card is a small thing to
-  // hit when the card is right there.
   onRowClick?: ((row: TRow) => void) | undefined;
   /** Names a row for screen readers when the whole row is clickable. */
   rowLabel?: ((row: TRow) => string) | undefined;
@@ -131,8 +125,6 @@ export function Table<TRow>({
               // still draws its divider under nothing.
               const rowActions = actions?.render(row) ?? null;
 
-              // A row whose value renders nothing is dropped from the card: on the wide shape an
-              // empty cell holds a column open, on a card it is a label with nothing after it.
               const shown = detail.filter((column) => {
                 const value = column.render(row);
                 return value !== null && value !== undefined && value !== false && value !== '';
@@ -188,8 +180,6 @@ export function Table<TRow>({
                   {rowActions !== null && (
                     <div
                       data-part="table-row-actions"
-                      // Above the overlay, and clickable in its own right:
-                      // these are the row's own actions, not a way into it.
                       className={cn(
                         'relative z-10 mt-3 flex flex-wrap items-center justify-end gap-2',
                         'border-t border-line pt-3',
@@ -269,8 +259,6 @@ export function Table<TRow>({
                   data-part="table-head-cell"
                   scope="col"
                   className={cn(
-                    // A tinted band with the reference's 13/18 rhythm: the head reads as a rule
-                    // over the rows rather than as a first row of them.
                     'whitespace-nowrap border-b border-line bg-table-head px-[18px] py-[13px]',
                     'text-micro font-medium text-ink-muted',
                     alignClass(column.align),
@@ -305,8 +293,6 @@ export function Table<TRow>({
                       key={column.key}
                       data-part="table-body-cell"
                       className={cn(
-                        // 13px above and below a 20px line makes a 46px row: the 44 a thumb
-                        // needs, and no taller.
                         'px-[18px] py-[13px] align-middle',
                         alignClass(column.align),
                         column.className,
@@ -355,8 +341,6 @@ export function Pagination({
         'flex flex-wrap items-center justify-between gap-2',
         'border-t border-line bg-table-head px-[18px] py-3',
       )}
-      // The landmark names the whole control, not one of its buttons: a screen reader announced
-      // "next" as the name of the region.
       aria-label={t('pagination.label')}
     >
       <div className="flex items-center gap-3">
@@ -448,7 +432,6 @@ function PageButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        // 44px on touch, the reference's drawn 28 on a laptop.
         'pill-text inline-flex items-center size-(--control-h) cursor-pointer justify-center lg:size-(--control-h-sm)',
         'rounded-chip border text-label tabular-nums transition-colors duration-[250ms] ease-in-out',
         current

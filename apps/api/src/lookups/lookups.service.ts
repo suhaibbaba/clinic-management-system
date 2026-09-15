@@ -74,8 +74,6 @@ export class LookupsService implements OnModuleInit {
 
     const bundle: Record<string, LookupOption[]> = {};
 
-    // Every known key is present even when empty, so a client can tell "this
-    // clinic has no shades" from "the response did not include shades".
     for (const key of query.listKey ? [query.listKey] : LOOKUP_LIST_KEYS) {
       bundle[key] = [];
     }
@@ -113,8 +111,6 @@ export class LookupsService implements OnModuleInit {
         nameEn: input.nameEn,
         color: input.color ?? null,
         sortOrder: Number(next),
-        // Only the seed writes system rows. Anything created through the API
-        // is the clinic's own, and stays deletable.
         isSystem: false,
         meta: input.meta ?? {},
         createdBy: actor.id,
@@ -122,7 +118,6 @@ export class LookupsService implements OnModuleInit {
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to create the list option');
     }
@@ -130,8 +125,6 @@ export class LookupsService implements OnModuleInit {
     return toLookupOption(row);
   }
 
-  // The code is the one thing the update schema does not accept, which is what makes the rest safe:
-  // a switched-off option still resolves to a name.
   async update(
     actor: AuthenticatedUser,
     id: string,
@@ -153,7 +146,6 @@ export class LookupsService implements OnModuleInit {
       .where(this.scope.where(lookupOptions, actor.clinicId, eq(lookupOptions.id, id)))
       .returning();
 
-    /* istanbul ignore next -- the row was just read under the same scope. */
     if (!row) {
       throw new Error('Failed to update the list option');
     }
@@ -161,8 +153,6 @@ export class LookupsService implements OnModuleInit {
     return toLookupOption(row);
   }
 
-  // Sent back whole rather than "move this to 4": two people reordering at once would otherwise
-  // interleave into an order neither chose.
   async reorder(
     actor: AuthenticatedUser,
     input: ReorderLookupOptionsInput,
@@ -339,8 +329,6 @@ export function toLookupOption(row: LookupRow): LookupOption {
   };
 }
 
-// Derived rather than demanded — nobody adding a payment method should have to invent an
-// identifier. A wholly non-Latin name falls back to a timestamped code.
 function deriveCode(name: string): string {
   const slug = name
     .toLowerCase()

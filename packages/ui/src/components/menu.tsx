@@ -5,12 +5,6 @@ import { Icon, type IconName } from '@ui/components/icon';
 import { cn } from '@ui/lib/cn';
 import { documentDirection } from '@ui/lib/direction';
 
-// The app's one menu: every popover-and-keyboard behaviour in the product comes from this file, and
-// a caller that needs a different trigger writes a trigger, not a second menu.
-
-// `dir` belongs on the root and is read off the document rather than hardcoded: Radix passes it
-// through the portal, which is the only way the panel — rendered on `document.body` — gets it, and
-// it is what mirrors `side`/`align` and the arrow keys with the language.
 export function Menu({ children }: { readonly children: ReactNode }): JSX.Element {
   return (
     <DropdownMenuPrimitive.Root dir={documentDirection()}>{children}</DropdownMenuPrimitive.Root>
@@ -111,9 +105,6 @@ export interface RowMenuProps {
   readonly children: ReactNode;
 }
 
-// The reference's `.more-btn`: the row's second-rank destinations behind one glyph, so the first
-// one stays the only thing competing for the eye down a column of ten. A trigger over `Menu`, not
-// a menu of its own.
 export function RowMenu({ label, children }: RowMenuProps): JSX.Element {
   return (
     <Menu>

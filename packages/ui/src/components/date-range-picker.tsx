@@ -55,8 +55,6 @@ export function DateRangePicker({
           id={id}
           type="button"
           aria-label={label}
-          // This anchor is itself the control, so it opens on click, Enter and Space by being a
-          // button. There is no text to type, so it takes focus every time.
           {...picker.opens(true)}
           onKeyDown={openOnArrowDown(picker.show)}
           className={cn(

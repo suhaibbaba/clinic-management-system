@@ -22,8 +22,6 @@ export interface LogoProps {
   /** Supplies the letter the mark falls back to. */
   name?: PersonName | null | undefined;
   className?: string | undefined;
-  // Decorative wherever something else already names it, so it is not read out twice; the sidebar
-  // band is the exception.
   alt?: string | undefined;
 }
 
@@ -45,10 +43,6 @@ export function Logo({ size = 'print', src, name, className, alt }: LogoProps): 
   );
 }
 
-/**
- * The mark shown when a clinic has no logo, or its image failed: generated from the name, never a
- * second piece of artwork standing in for the first.
- */
 export function InitialMark({
   letter,
   size,

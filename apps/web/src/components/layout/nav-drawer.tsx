@@ -15,8 +15,6 @@ export interface NavDrawerProps {
   readonly children: ReactNode;
 }
 
-// A real drawer over the page: the sidebar used to simply unhide and push the content down, so
-// opening the menu meant scrolling past seven rows to get back.
 export function NavDrawer({
   open,
   onOpenChange,

@@ -186,7 +186,6 @@ export class DoctorsService implements OnModuleInit {
         })
         .returning({ id: doctors.id });
 
-      /* istanbul ignore next -- insert ... returning always yields a row. */
       if (!row) {
         throw new Error('Failed to create doctor');
       }
@@ -219,8 +218,6 @@ export class DoctorsService implements OnModuleInit {
       throw new BadRequestException('User not found in this clinic');
     }
 
-    // An admin who makes themselves a doctor loses user management, and with it
-    // the way back.
     if (user.id === actor.id && user.role !== USER_ROLE.DOCTOR) {
       throw new BadRequestException('You cannot change your own role');
     }

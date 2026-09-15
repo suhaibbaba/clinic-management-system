@@ -182,9 +182,6 @@ function QuickAction({
   );
 }
 
-// Dashed and green, across the appointment column with its label over the rail. The label is not
-// itself the `<Ltr>` island: `start-*` resolves against the element's own direction, so an island
-// carrying the offset would place it at the wrong edge of an Arabic page.
 function NowLine({
   label,
   minute,

@@ -80,11 +80,6 @@ export class UsersController {
     return this.usersService.update(actor, params.id, body);
   }
 
-  /**
-   * Sends the activation letter, and re-sends it: the same call either way, because a resend is
-   * simply a fresh link. Each one retires the last, so a message forwarded or left in an inbox
-   * stops working the moment another is asked for.
-   */
   @Post(':id/invite')
   @HttpCode(HttpStatus.NO_CONTENT)
   async invite(

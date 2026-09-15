@@ -34,8 +34,6 @@ const AR = {
     reversal: 'قيد عكسي',
     empty: 'لا توجد حركات في هذه الفترة',
   },
-  // First name only: the sheet travels to an outside business in a box, and a full name on it is a
-  // medical record leaving the clinic for no clinical benefit.
   labOrder: {
     title: 'طلب عمل مخبري',
     number: 'رقم الطلب',

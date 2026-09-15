@@ -8,10 +8,6 @@ export interface FieldState {
   readonly disabled?: boolean | undefined;
 }
 
-/**
- * The box every field draws — input, select, search, both pickers. Six states, and each one is the
- * edge and the fill; the geometry never moves between them.
- */
 export function fieldShell({ hasError = false, disabled = false }: FieldState): string {
   return cn(
     'group flex w-full items-center gap-2 rounded-control border-[1.5px] px-3.5',
@@ -32,11 +28,6 @@ export function fieldShell({ hasError = false, disabled = false }: FieldState): 
   );
 }
 
-/**
- * The value inside the shell: it truncates, so the adornments beside it never move. `self-stretch`
- * because the shell is the 44px target and the input is a 22px line box inside it — without it a
- * tap in the top or bottom 10px of every field in the app landed on nothing.
- */
 export const FIELD_TEXT = cn(
   'min-w-0 flex-1 self-stretch truncate border-none bg-transparent p-0 text-field text-ink outline-none',
   'placeholder:text-ink-subtle',
@@ -91,7 +82,6 @@ export interface FieldClearProps {
   readonly onClear: () => void;
 }
 
-// A button, not a glyph: emptying a field is an action, and reception does it with a thumb.
 export function FieldClear({ label, onClear }: FieldClearProps): JSX.Element {
   return (
     <button

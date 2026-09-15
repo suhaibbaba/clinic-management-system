@@ -57,8 +57,6 @@ export const hasExactlyOneDoctorUser = (input: {
 
 export const DOCTOR_USER_REF_MESSAGE = 'Provide either userId or newUser';
 
-// Creating the account and the profile is one form, because a doctor is both and neither is any use
-// alone — the pair used to be two screens and a step people forgot.
 export const createDoctorSchema = z
   .object({
     ...doctorWritableFields,

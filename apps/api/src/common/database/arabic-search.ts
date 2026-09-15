@@ -4,10 +4,6 @@ import { sql, type Column, type SQL } from 'drizzle-orm';
 /** A `%` or `_` typed into the search box is a character, not a wildcard. */
 const escapeLike = (value: string): string => value.replaceAll(/[\\%_]/g, (match) => `\\${match}`);
 
-// `word_similarity` rather than `similarity`, because the term is one word and the column is a
-// whole name: "مهنند" against "مهند سليم عودة" scores 0.57 on the first and 0.24 on the second, so
-// the whole-string measure cannot tell a typo from a stranger. Written out rather than left to the
-// `<%` operator so the bar is in the query, not in a session setting nobody reading this can see.
 const FUZZY_THRESHOLD = 0.4;
 
 export interface ArabicNameSearch {
@@ -19,9 +15,6 @@ export interface ArabicNameSearch {
   readonly closeness: SQL;
 }
 
-// Both sides folded the same way, so "احمد" finds "أحمد" and "عوده" finds "عودة". Null when the
-// term folds away to nothing — punctuation alone is not a name search, and a bare `like '%'` would
-// match the whole clinic.
 export function arabicNameSearch(column: Column, search: string): ArabicNameSearch | null {
   const term = normalizeArabic(search);
 

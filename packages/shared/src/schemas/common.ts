@@ -35,11 +35,6 @@ const PHONE_DIGITS = { min: 7, max: 15 } as const;
 
 const digitCount = (value: string): number => (value.match(/\d/g) ?? []).length;
 
-/**
- * Loose on country, strict on substance: local formats vary by region, so this checks the shape and
- * how many digits are in it rather than a dialling plan. The shape alone let `------` through — the
- * separators were optional but the digits were not required.
- */
 export const phoneSchema = z
   .string()
   .trim()

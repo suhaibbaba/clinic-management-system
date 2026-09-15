@@ -89,7 +89,6 @@ export class PaymentsService implements OnModuleInit {
   // commit.
   async create(actor: AuthenticatedUser, input: CreatePaymentInput): Promise<Payment> {
     await this.patientAccess.requirePatientId(actor, input.patientId);
-    // The methods are an editable list: only this clinic's own count.
     await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.PAYMENT_METHOD, input.method);
 
     return this.db.transaction(async (tx) => {
@@ -110,7 +109,6 @@ export class PaymentsService implements OnModuleInit {
         })
         .returning();
 
-      /* istanbul ignore next -- insert ... returning always yields a row. */
       if (!row) {
         throw new Error('Failed to record payment');
       }
@@ -165,7 +163,6 @@ export class PaymentsService implements OnModuleInit {
         })
         .returning();
 
-      /* istanbul ignore next -- insert ... returning always yields a row. */
       if (!row) {
         throw new Error('Failed to reverse payment');
       }
@@ -190,7 +187,6 @@ export async function nextReceiptNumber(tx: DatabaseExecutor, clinicId: string):
     .where(eq(clinicCounters.clinicId, clinicId))
     .returning({ next: clinicCounters.nextReceiptNumber });
 
-  /* istanbul ignore next -- the row was just ensured to exist. */
   if (!row) {
     throw new Error('Failed to allocate a receipt number');
   }

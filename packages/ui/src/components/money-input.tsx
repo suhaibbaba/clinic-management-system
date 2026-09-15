@@ -28,8 +28,6 @@ export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(function
     <Input
       ref={ref}
       data-part="money-input"
-      // The symbol is an adornment inside the field, not a word beside it: it keeps its place while
-      // the digits grow, and the money field is the same box as every other one.
       {...(symbol !== '' && { suffix: symbol })}
       // The digits read left to right whatever the page says; `Input` keeps the
       // field's *alignment* with the page (see its own note).
@@ -41,8 +39,6 @@ export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(function
         const cleaned = digitsOnly(event.target.value);
 
         if (cleaned !== event.target.value) {
-          // Rewritten before it reaches the form, so a pasted "60.50" becomes
-          // 6050 rather than being silently accepted and rejected on submit.
           event.target.value = cleaned;
         }
 

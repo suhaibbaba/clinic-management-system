@@ -9,8 +9,6 @@ export interface NavItem {
   readonly roles: readonly UserRole[];
   /** Decorative — the label beside it is what is announced. */
   readonly icon: IconName;
-  // There is exactly one badge and it is fed by a real query: a decorative dot would train everyone
-  // to ignore the real one.
   readonly badge?: 'pendingBookings';
 }
 
@@ -19,8 +17,6 @@ export interface NavGroup {
   readonly items: readonly NavItem[];
 }
 
-// Hiding a row is cosmetic — the API is the boundary — but this same table drives the route guards,
-// so a hidden section is not reachable by typing its URL either.
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
     items: [{ to: '/dashboard', label: 'nav.dashboard', roles: USER_ROLES, icon: 'activity' }],
@@ -39,8 +35,6 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         label: 'nav.appointments',
         roles: [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST],
         icon: 'calendar',
-        // Online bookings are the only thing in this app that arrives while
-        // nobody is looking, so the count sits on the section that answers it.
         badge: 'pendingBookings',
       },
     ],
@@ -64,7 +58,6 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
 ];
 
-// A group like any other in the rail. This decides who is offered it, not who may read its routes.
 export const NAV_SETTINGS: NavGroup = {
   label: 'nav.settings',
   items: [

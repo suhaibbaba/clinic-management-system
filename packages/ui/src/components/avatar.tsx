@@ -5,8 +5,6 @@ import { cn } from '@ui/lib/cn';
 
 export interface AvatarProps {
   readonly name: string;
-  // Keyed to a stable id so the same person is the same colour on every screen; the colour itself
-  // means nothing.
   readonly tintKey?: string | undefined;
   readonly src?: string | null | undefined;
   /** Edge length in pixels. Fixed, so the row does not reflow when a photo lands. */
@@ -14,9 +12,6 @@ export interface AvatarProps {
   readonly className?: string | undefined;
 }
 
-// Soft and low-chroma: this is the one place colour appears without meaning, so it must stay below
-// the blue or it competes with the page's action colour. Six pairs, from the reference's
-// `.a1`–`.a6`.
 const TINTS = [
   'bg-tint-1-bg text-tint-1-ink',
   'bg-tint-2-bg text-tint-2-ink',
@@ -36,8 +31,6 @@ function tintFor(key: string): string {
   return TINTS[hash % TINTS.length] ?? TINTS[0];
 }
 
-// Staff have a photo because a rota is read by scanning for a person; patients do not. A broken or
-// expired URL falls back to initials.
 export function Avatar({
   name,
   tintKey,

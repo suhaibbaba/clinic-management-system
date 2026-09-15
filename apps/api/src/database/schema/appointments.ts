@@ -57,16 +57,12 @@ export const appointments = pgTable(
   },
   (table) => [
     index('appointments_clinic_idx').on(table.clinicId),
-    // Every feed asks for one doctor over a date range; leading with the clinic keeps it useful for
-    // the day view across all of them.
     index('appointments_doctor_starts_idx').on(table.clinicId, table.doctorId, table.startsAt),
     index('appointments_starts_idx').on(table.clinicId, table.startsAt),
     index('appointments_patient_idx').on(table.clinicId, table.patientId),
   ],
 );
 
-// Not an appointment with a null time: that would put a null into every calendar query and every
-// overlap check.
 export const waitingList = pgTable(
   'waiting_list',
   {

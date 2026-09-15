@@ -70,8 +70,6 @@ import { UsersModule } from '@api/users/users.module';
     // with `createZodDto`. Validation is never duplicated per controller.
     { provide: APP_PIPE, useClass: ZodValidationPipe },
 
-    // Guards run in registration order, so JwtAuthGuard must come first: RolesGuard needs the
-    // caller it attaches.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
 

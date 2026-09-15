@@ -64,8 +64,6 @@ export function LabOrdersPage(): JSX.Element {
   const { showSkeleton, isRefreshing } = useQueryLoading(orders);
   const rows = orders.data?.items ?? [];
 
-  // The drawer follows the list rather than holding its own copy, so a
-  // transition made inside it redraws the drawer as well as the board.
   const openOrder = rows.find((row) => row.id === openOrderId);
   const overdueCount = rows.filter((row) => row.isOverdue).length;
 

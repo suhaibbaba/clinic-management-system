@@ -12,14 +12,6 @@ import { CapabilityRegistry } from '@api/permissions/capability-registry.service
 import { PermissionsService } from '@api/permissions/permissions.service';
 import type { RequestWithUser } from '@api/common/types/authenticated-user';
 
-/**
- * Runs after `JwtAuthGuard`, so a caller is always present.
- *
- * `@Roles(...)` is now the *default* rather than the rule: it says who the endpoint ships for, and
- * a clinic may move it. What it may not move is the admin, who passes every check within their own
- * clinic — a clinic able to take a permission from its own administrator could lock itself out of
- * the only account that can give it back.
- */
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(

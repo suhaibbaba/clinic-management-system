@@ -42,7 +42,6 @@ export function TeethField({
       return;
     }
 
-    // Backspace on an empty box removes the last chip — what every tag input does.
     if (event.key === 'Backspace' && draft === '' && value.length > 0) {
       onChange(value.slice(0, -1));
     }

@@ -62,8 +62,6 @@ export function DatePicker({
   const selected = fromIsoDate(value);
   const [typed, setTyped] = useState(() => (selected ? format(selected, TYPED) : ''));
 
-  // The field follows the value when it changes from outside — a reset button,
-  // a form reset — without fighting what is being typed inside it.
   const display = selected ? format(selected, TYPED) : '';
   const [lastValue, setLastValue] = useState(value);
   if (value !== lastValue) {
@@ -105,18 +103,9 @@ export function DatePicker({
             placeholder={t('common.placeholders.date')}
             value={typed}
             onChange={(event) => commit(event.target.value)}
-            // Clicking shows the calendar without taking focus, so the caret stays where it was put
-            // and typing carries on. Focus alone opens nothing.
             {...picker.opens(false)}
             onKeyDown={openOnArrowDown(picker.show)}
-            className={cn(
-              FIELD_TEXT,
-              // The value is Latin so the field is `dir="ltr"` — inline isolation for the digits,
-              // nothing more. Its alignment still belongs to the page: by its own direction it sat
-              // on the left of an Arabic form.
-              'page-rtl:text-right page-ltr:text-left',
-              'tabular-nums',
-            )}
+            className={cn(FIELD_TEXT, 'page-rtl:text-right page-ltr:text-left', 'tabular-nums')}
           />
 
           {disabled ? (
@@ -126,9 +115,6 @@ export function DatePicker({
               type="button"
               data-part="date-picker-trigger"
               aria-label={t('common.openCalendar')}
-              // Asked for outright, so this one does take the focus: the keyboard lands in the
-              // calendar rather than behind it. The 44px thumb target is the field itself, which
-              // opens the calendar on a click anywhere in it.
               {...picker.opens(true)}
               className={FIELD_BUTTON}
             >

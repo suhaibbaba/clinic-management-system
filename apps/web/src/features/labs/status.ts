@@ -20,12 +20,10 @@ const column = (tone: BadgeTone, label: string): LabStatusStyle => ({
 });
 
 export const LAB_ORDER_STATUS_STYLES: Record<LabOrderStatus, LabStatusStyle> = {
-  // Not yet anybody's problem but the doctor's: it has not left the building.
   [LAB_ORDER_STATUS.DRAFT]: column('neutral', 'labs.status.draft'),
   [LAB_ORDER_STATUS.SENT]: column('info', 'labs.status.sent'),
   [LAB_ORDER_STATUS.READY]: column('warning', 'labs.status.ready'),
   [LAB_ORDER_STATUS.RECEIVED]: column('success', 'labs.status.received'),
-  // Done is history: it recedes rather than celebrating.
   [LAB_ORDER_STATUS.FITTED]: column('neutral', 'labs.status.fitted'),
   [LAB_ORDER_STATUS.RETURNED]: column('danger', 'labs.status.returned'),
   [LAB_ORDER_STATUS.CANCELLED]: column('neutral', 'labs.status.cancelled'),

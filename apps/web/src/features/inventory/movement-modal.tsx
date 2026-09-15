@@ -132,7 +132,6 @@ export function MovementModal({
       } else {
         await adjust.mutateAsync({
           itemId: item.id,
-          // The one place a sign is chosen rather than implied.
           quantity: `${direction === 'remove' ? '-' : ''}${quantity.trim()}`,
           reason: reason.trim(),
           ...(batchNo.trim() !== '' && { batchNo: batchNo.trim() }),

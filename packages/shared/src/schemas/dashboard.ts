@@ -5,8 +5,6 @@ import { moneySchema } from '@shared/schemas/money';
 
 export const DASHBOARD_SCHEDULE_LIMIT = 20;
 
-// One request, because a dashboard landing in four waves flickers. Fields are optional and shaped
-// by role — absent rather than zero, since zero claims nothing is owed.
 export const dashboardSummarySchema = z.object({
   /** The clinic's local date the figures were computed for, `YYYY-MM-DD`. */
   date: z.string(),

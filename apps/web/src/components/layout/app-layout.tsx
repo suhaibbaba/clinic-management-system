@@ -29,7 +29,6 @@ export function AppLayout(): JSX.Element {
   const { t } = useTranslation();
   const { user, logout, can } = useSession();
   const { pathname } = useLocation();
-  // From the session bootstrap, not a second request, so the rail is branded on the first paint.
   const logoUrl = useClinicLogo(user?.clinicId, user?.clinic.logoUrl);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [actionSlot] = useState(createPageActionSlot);
@@ -42,8 +41,6 @@ export function AppLayout(): JSX.Element {
   const pendingBookings = usePendingBookingsCount(seesPendingBookings(can));
   const badges = { pendingBookings } as const;
 
-  // Navigating closes the drawer. Doing it here rather than in each row's
-  // onClick also covers the back button and any link inside the page.
   useEffect(() => {
     setDrawerOpen(false);
   }, [pathname]);
@@ -72,9 +69,6 @@ export function AppLayout(): JSX.Element {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  // On a phone the bar is burger + bell + search, and that is already the width of the screen: a
-  // portalled "new …" button wrapped the search onto a second row and the header ate a fifth of
-  // the screen on every page. Below `md` the page keeps its own button, where the label fits.
   const isMobile = useIsMobile();
 
   return (
@@ -228,8 +222,6 @@ function NavRow({
         to={item.to}
         aria-current={isActive ? 'page' : undefined}
         className={cn(
-          // 44px on touch, the reference's drawn 40 on a laptop: a rail of 44px rows pushes the
-          // settings group off the screen.
           'mb-0.5 flex min-h-(--control-h) cursor-pointer items-center gap-[11px] rounded-nav px-3',
           'text-nav font-medium transition-[background-color,color,box-shadow] duration-150',
           isActive
@@ -259,9 +251,6 @@ function NavRow({
   );
 }
 
-// A rule, a caption, then the rows — the reference's `.nav-sep` and `.nav-title`. It used to be a
-// disclosure with a chevron, which put a control in front of five links that are always worth
-// showing and made the rail's own structure something to operate rather than read.
 function NavSection({
   label,
   items,
@@ -280,8 +269,6 @@ function NavSection({
       <div
         className={cn(
           'px-3 pt-1 pb-2 text-micro font-medium tracking-[0.02em] text-ink-subtle',
-          // Small caps in Latin only: tracking pulls Arabic letters out of their joins, which is a
-          // spelling mistake rather than a style.
           'page-ltr:uppercase',
         )}
       >
@@ -315,8 +302,6 @@ function TopSearch(): JSX.Element {
       return;
     }
 
-    // Merged rather than rebuilt, so the balance filter survives a search: "who owes, called
-    // Ahmad" is a question, and dropping half of it on the first keystroke is not.
     const merged = new URLSearchParams(params);
 
     if (next.trim() === '') {
@@ -352,8 +337,6 @@ function TopSearch(): JSX.Element {
   );
 }
 
-// No feed behind it yet, so it carries no count: a decorative red dot would train everyone to
-// ignore the real one.
 function NotificationBell(): JSX.Element {
   const { t } = useTranslation();
 

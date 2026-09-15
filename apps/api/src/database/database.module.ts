@@ -25,7 +25,6 @@ export type DatabaseExecutor = Database | Transaction;
       useFactory: (config: ConfigService<Env, true>): Sql =>
         postgres(config.get('DATABASE_URL', { infer: true }), {
           max: config.get('DATABASE_POOL_MAX', { infer: true }),
-          // Surface connection problems to /health instead of hanging a request.
           connect_timeout: 10,
         }),
     },

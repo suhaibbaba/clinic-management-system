@@ -84,8 +84,6 @@ export const procedureCatalog = pgTable(
   ],
 );
 
-// Reception searches by file number, name and phone: exact on the first two, and the name through
-// its folded form so a hamza or a taa marbuta typed either way is the same person.
 export const patients = pgTable(
   'patients',
   {

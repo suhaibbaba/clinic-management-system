@@ -28,8 +28,6 @@ export const LAB_STATEMENT_KEY = 'lab-statement';
 export const LAB_PAYMENTS_KEY = 'lab-payments';
 export const LAB_WORK_TYPES_KEY = 'lab-work-types';
 
-// A transition changes the board, the balance and the statement — an order just sent is money owed
-// — so every mutation invalidates all three.
 const LAB_KEYS = [LABS_KEY, LAB_ORDERS_KEY, LAB_BALANCE_KEY, LAB_STATEMENT_KEY, LAB_PAYMENTS_KEY];
 
 function useLabMutation<TArgs, TResult>(mutationFn: (args: TArgs) => Promise<TResult>) {

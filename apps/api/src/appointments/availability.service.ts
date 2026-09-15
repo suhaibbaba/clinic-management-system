@@ -67,7 +67,6 @@ export class AvailabilityService {
       busy: context.busy,
       durationMinutes: context.durationMinutes,
       stepMinutes: DEFAULT_STEP_MINUTES,
-      // Today's mornings are gone; a future date has no floor at all.
       notBeforeMinute: this.pastCutoff(query.date, context.timeZone),
     });
 
@@ -108,7 +107,6 @@ export class AvailabilityService {
       .where(eq(clinics.id, clinicId))
       .limit(1);
 
-    /* istanbul ignore next -- the caller's clinic always exists. */
     if (!clinic) {
       throw new BadRequestException('Clinic not found');
     }
@@ -164,8 +162,6 @@ export class AvailabilityService {
     return row ? toClinicClosure(row) : null;
   }
 
-  // Unclipped: an absence from yesterday evening lands on negative minutes, one running into
-  // tomorrow past 1440, and the interval arithmetic wants that.
   async timeOffOn(
     clinicId: string,
     doctorId: string,
@@ -241,8 +237,6 @@ export class AvailabilityService {
     return reason === 'doctor_time_off' ? context.timeOffReason : null;
   }
 
-  // A past slot is shown but not bookable, so reception sees that the morning existed rather than a
-  // day that looks closed.
   private pastCutoff(isoDate: string, timeZone: string): number | undefined {
     const minutes = minutesFromLocalMidnight(new Date(), isoDate, timeZone);
 
@@ -251,8 +245,6 @@ export class AvailabilityService {
     }
 
     if (minutes >= MINUTES_PER_DAY) {
-      // The day is over. Every slot is shown and none is bookable, which is
-      // the honest rendering of yesterday.
       return Number.POSITIVE_INFINITY;
     }
 

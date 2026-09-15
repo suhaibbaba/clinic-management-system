@@ -30,8 +30,6 @@ interface OverdueRow extends Record<string, unknown> {
   readonly total: number;
 }
 
-// "Recently" is a clinic setting, not a constant, and the whole thing is one aggregate — no stored
-// balance, no "last payment" column to drift.
 @Injectable()
 export class OverdueService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}

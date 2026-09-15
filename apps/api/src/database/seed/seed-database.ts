@@ -176,8 +176,6 @@ export async function seedDatabase(db: Database, options: SeedOptions): Promise<
     );
   }
 
-  // Every module below writes only into an empty clinic, so re-running the seed — on boot, on a
-  // deploy — changes nothing that a practice has since edited.
   const [existingPatient] = await db
     .select({ id: patients.id })
     .from(patients)
@@ -375,9 +373,6 @@ async function writeClinicalHistory(
   ctx: WriteContext,
   appointmentRows: readonly { readonly id: string }[],
 ): Promise<{ counts: SeedCounts; procedures: ProcedureRecord[] }> {
-  // Not every appointment ends up written down — a clinic records the ones that needed a note.
-  // The showcase files are the exception: every one of their visits is on the record, so there is
-  // a patient to open with a year of history behind them.
   const showcase = new Set(
     ctx.rng.sample(ctx.patients, Math.min(10, ctx.patients.length)).map((patient) => patient.index),
   );
@@ -410,7 +405,6 @@ async function writeClinicalHistory(
     await db.insert(visits).values(visitValues);
   }
 
-  // The appointment points at the visit it produced, which is what the timeline joins on.
   for (const [position, { index }] of seen.entries()) {
     const appointmentId = appointmentRows[index]?.id;
     const visitId = visitValues[position]?.id;
@@ -435,7 +429,6 @@ async function writeClinicalHistory(
       continue;
     }
 
-    // The booked work, plus an examination or a second small item on some visits.
     const items = [booked, ...(ctx.rng.bool(0.35) ? [CATALOG[0] as (typeof CATALOG)[number]] : [])];
 
     for (const item of items) {
@@ -648,7 +641,6 @@ async function writeMoney(
   }
 
   const entries = [...owedByPatient.entries()];
-  // Ten files are left short, which is what the overdue list is for.
   const overdue = new Set(ctx.rng.sample(entries, 10).map(([patientId]) => patientId));
   let receipts = 0;
 
@@ -740,8 +732,6 @@ async function writeLabs(
     .sort((left, right) => right.performedAt.getTime() - left.performedAt.getTime())
     .slice(0, 40);
 
-  // The first six are in flight — two of them late, one sent back — and everything older has
-  // finished its journey.
   const settled: readonly LabOrderStatus[] = [
     LAB_ORDER_STATUS.FITTED,
     LAB_ORDER_STATUS.FITTED,
@@ -810,8 +800,6 @@ async function writeLabs(
     await db.insert(labOrders).values(orders);
   }
 
-  // Part of each lab's bill settled, so every balance on the directory is a live figure rather
-  // than the whole invoice or nothing.
   const paymentValues = labRows.map((lab, index) => {
     const billed = orders
       .filter((order) => order.labId === lab.id && order.status !== LAB_ORDER_STATUS.DRAFT)
@@ -872,8 +860,6 @@ async function writeInventory(
   ITEMS.forEach((item, index) => {
     const itemId = itemRows[index]?.id as string;
     const minimum = Number(item.minQuantity);
-    // Two items are left under their minimum and one batch is already out of date, because the
-    // alert cards are the first thing the technician's dashboard draws.
     const short = index === 0 || index === 2;
     const purchases = ctx.rng.int(2, 4);
 
@@ -905,8 +891,6 @@ async function writeInventory(
       .filter((movement) => movement.itemId === itemId && movement.type === MOVEMENT_TYPE.PURCHASE)
       .reduce((sum, movement) => sum + Number(movement.quantity), 0);
 
-    // The two short items are taken below their minimum on purpose, because the low-stock card is
-    // the first thing the store screen draws and an empty one proves nothing.
     const consumed = short
       ? Math.max(1, purchased - Math.floor(minimum * 0.4))
       : Math.min(purchased * 0.6, minimum * ctx.rng.int(1, 2));
@@ -959,7 +943,6 @@ async function writeWaitingList(db: Database, ctx: WriteContext): Promise<SeedCo
       doctorId: index === 1 ? (ctx.doctorIds[0] as string) : null,
       reason: WAITING_REASONS[index] ?? WAITING_REASONS[0] ?? null,
       priority: index === 0 ? WAITING_LIST_PRIORITY.URGENT : WAITING_LIST_PRIORITY.NORMAL,
-      // The urgent one came in through the public page and nobody has answered it yet.
       source: index === 0 ? WAITING_LIST_SOURCE.ONLINE : WAITING_LIST_SOURCE.RECEPTION,
       status: index === 2 ? WAITING_LIST_STATUS.CONTACTED : WAITING_LIST_STATUS.PENDING,
       createdAt: earlier(ctx.now, index + 1),
@@ -1025,9 +1008,6 @@ async function writeAbsences(db: Database, ctx: WriteContext): Promise<SeedCount
   const at = (isoDate: string, minute: number): Date =>
     instantFromLocal(isoDate, minute, CLINIC_TIME_ZONE);
 
-  // The first absence has nothing under it — the diary was generated around it. The second is
-  // written on top of booked appointments on purpose: the API refuses exactly that without
-  // `force`, so the conflict dialog has a real collision to show.
   const overlapping = ctx.planned.find(
     (entry) =>
       entry.doctorId === firstDoctor &&

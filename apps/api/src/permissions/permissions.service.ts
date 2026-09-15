@@ -8,15 +8,8 @@ import { CapabilityRegistry } from '@api/permissions/capability-registry.service
 
 type Grants = ReadonlyMap<string, boolean>;
 
-/**
- * Resolves what a role may do. Only the clinic's *differences* from the shipped defaults are
- * stored, so this answers from the code until somebody changes something.
- */
 @Injectable()
 export class PermissionsService {
-  // Read on every authorised request, so it is not read from Postgres on every authorised request.
-  // Invalidated on write; a single VPS runs one process, and a second would need this moving to a
-  // shared cache rather than a longer TTL.
   private readonly cache = new Map<string, Grants>();
 
   constructor(
@@ -24,11 +17,6 @@ export class PermissionsService {
     private readonly registry: CapabilityRegistry,
   ) {}
 
-  /**
-   * The admin is not consulted: they hold every permission, and the screen that edits the others
-   * cannot reach them. A clinic that could take a permission from its own administrator could lock
-   * itself out of the only account that can give it back.
-   */
   async allows(clinicId: string, role: UserRole, capability: string): Promise<boolean> {
     if (role === USER_ROLE.ADMIN) {
       return true;
@@ -41,7 +29,6 @@ export class PermissionsService {
       return stored;
     }
 
-    // Nothing stored: whatever the endpoint shipped with.
     return this.registry.get(capability)?.defaultRoles.includes(role) ?? false;
   }
 
@@ -75,7 +62,6 @@ export class PermissionsService {
       );
     }
 
-    // An unknown key would sit in the table for ever, governing nothing.
     if (!this.registry.get(capability)) {
       throw new BadRequestException(`No such permission: ${capability}`);
     }

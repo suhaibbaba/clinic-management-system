@@ -123,8 +123,6 @@ export class RemindersScheduler {
     return sent;
   }
 
-  // Cancelled rather than deleted, so reception can see that someone tried and did not finish. The
-  // reason is Arabic because it is read on the appointment.
   async releaseExpiredHolds(): Promise<number> {
     const rows = await this.db
       .select({
@@ -143,8 +141,6 @@ export class RemindersScheduler {
     for (const row of rows) {
       const booking = bookingSettings(row.settings);
 
-      // Manual confirmation means reception rings back; there is no hold to
-      // expire, and dropping those would delete the clinic's own to-do list.
       if (booking.confirmationMode !== 'otp') {
         continue;
       }

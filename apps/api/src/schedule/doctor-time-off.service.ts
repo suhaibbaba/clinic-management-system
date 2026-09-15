@@ -56,8 +56,6 @@ export class DoctorTimeOffService implements OnModuleInit {
 
     const filters: (SQL | undefined)[] = [eq(doctorTimeOff.doctorId, doctorId)];
 
-    // Overlap, not containment: an absence that started last week and runs
-    // into the window is one the window's reader needs to see.
     if (query.from) {
       filters.push(gt(doctorTimeOff.endsAt, new Date(query.from)));
     }
@@ -132,7 +130,6 @@ export class DoctorTimeOffService implements OnModuleInit {
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!created) {
       throw new Error('Failed to create the time off');
     }
@@ -161,7 +158,6 @@ export class DoctorTimeOffService implements OnModuleInit {
       throw new BadRequestException('endsAt must be after startsAt');
     }
 
-    // Only a widened window can strand anything new.
     const grew = from < existing.startsAt || to > existing.endsAt;
     const conflicting = grew
       ? await this.conflicts.assertClear(actor.clinicId, { from, to }, options, existing.doctorId)

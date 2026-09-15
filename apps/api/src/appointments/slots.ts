@@ -14,8 +14,6 @@ export interface ComputedSlot {
   readonly available: boolean;
 }
 
-// A closed clinic, a doctor away, a full diary and a day that has ended are four different
-// sentences on the phone; an empty array says the same nothing for all four.
 export type ClosedReason =
   | 'clinic_closed'
   | 'clinic_closure'
@@ -75,8 +73,6 @@ const toInterval = (range: TimeRange): Interval => ({
   end: toMinutes(range.end),
 });
 
-// A doctor is seen only when they are working and the clinic is open: one starting at 08:00 in a
-// clinic opening at 09:00 starts at 09:00.
 export function intersectRanges(
   left: readonly TimeRange[],
   right: readonly TimeRange[],
@@ -101,11 +97,7 @@ export function intersectRanges(
 const overlaps = (a: Interval, b: BusyInterval): boolean =>
   a.start < b.endMinute && b.startMinute < a.end;
 
-// A slot must fit entirely inside a window: 16:45 for thirty minutes in a clinic closing at 17:00
-// books fifteen minutes of nobody being there.
 export function computeDaySlots(input: SlotComputationInput): SlotComputation {
-  // A dated closure outranks the weekly pattern: the clinic is shut on a
-  // Tuesday it normally opens, and saying so is more use than "clinic closed".
   if (input.isClosed) {
     return { closedReason: 'clinic_closure', slots: [] };
   }

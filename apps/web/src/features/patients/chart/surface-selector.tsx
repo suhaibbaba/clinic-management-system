@@ -45,8 +45,6 @@ export interface SurfaceSelectorProps {
   readonly readOnly?: boolean | undefined;
 }
 
-// Each zone is a real toggle button, so it is reachable by keyboard and announced with its name and
-// pressed state.
 export function SurfaceSelector({
   value,
   onChange,

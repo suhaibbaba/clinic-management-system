@@ -42,8 +42,6 @@ const TAB_IDS = ['orders', 'prices', 'statement'] as const;
 
 type Tab = (typeof TAB_IDS)[number];
 
-// Three tabs because the three questions belong to different people: the technician keeps the
-// prices, the doctor watches the orders, whoever settles up reads the statement.
 export function LabPage(): JSX.Element {
   const { t } = useTranslation();
   const { id = '' } = useParams<{ id: string }>();
@@ -178,8 +176,6 @@ function LabOrdersTab({ labId }: { readonly labId: string }): JSX.Element {
   );
 }
 
-// Editing a price changes what the next order costs and nothing already owed — every order carries
-// the price it was placed at, and the caption says so.
 function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();

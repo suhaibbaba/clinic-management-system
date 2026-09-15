@@ -24,8 +24,6 @@ import { ApiError } from '@web/lib/api-error';
 import { useDebounced } from '@web/lib/use-debounced';
 import { cn } from '@clinic/ui/lib/cn';
 
-// Not a whole patient record: the calendar feed already carries these, and they are all a
-// receptionist's response contains.
 export interface PickedPatient {
   readonly id: string;
   readonly fullName: string;
@@ -93,9 +91,6 @@ export interface PatientPickerProps {
   readonly allowNew?: boolean;
 }
 
-// A `<select>` of every patient is unusable past a few hundred rows, so this reuses the search
-// reception already knows. A search that finds nobody offers to register them here rather than
-// sending reception away to another screen with a half-filled form behind them.
 export function PatientPicker({
   value,
   onChange,
@@ -228,8 +223,6 @@ const toPicked = (patient: PatientView): PickedPatient => ({
   profileIncomplete: patient.profileIncomplete,
 });
 
-// Four fields, two of them optional. The history, the allergies and the address are taken when the
-// patient walks in — asking for them down the phone is how the booking gets abandoned.
 function NewPatientFields({
   id,
   draft,

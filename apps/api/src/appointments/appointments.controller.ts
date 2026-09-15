@@ -44,8 +44,6 @@ class CalendarQueryDto extends createZodDto(calendarQuerySchema) {}
 class AvailabilityQueryDto extends createZodDto(availabilityQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// Reads are open to every role (no clinical or financial field in the feed); "own" is object-level
-// and lives in the service; delete is admin only.
 @Controller('appointments')
 export class AppointmentsController {
   constructor(

@@ -22,7 +22,6 @@ export class InventoryDocumentsService {
   async shoppingList(actor: AuthenticatedUser): Promise<Buffer> {
     const clinic = await this.letterheads.load(actor.clinicId);
     const list = await this.reports.shoppingList(actor);
-    // Units are an editable list: the sheet prints what this clinic calls them.
     const units = await this.lookups.labels(actor.clinicId, LOOKUP_LIST.ITEM_UNIT, clinic.language);
     const strings = documentStrings(clinic.language).shoppingList;
 

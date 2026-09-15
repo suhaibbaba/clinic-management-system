@@ -36,8 +36,6 @@ class UpdateCatalogItemDto extends createZodDto(updateProcedureCatalogItemSchema
 class ListCatalogQueryDto extends createZodDto(listProcedureCatalogQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// Admin writes, every other role reads, and a receptionist receives names and prices only — the
-// narrowing happens in the service.
 @Controller('procedure-catalog')
 export class ProcedureCatalogController {
   constructor(private readonly catalog: ProcedureCatalogService) {}

@@ -10,9 +10,6 @@ export interface UrgentDetails {
   readonly complaint: string;
 }
 
-// The page's way out of a day with no times on it. Deliberately not a booking: nothing is held, no
-// hour is offered, and the copy promises a phone call — a page that hints at a slot is a page
-// somebody turns up on the strength of.
 export function UrgentStep({
   details,
   onChange,

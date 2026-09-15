@@ -1,9 +1,3 @@
-/**
- * The library's token vocabulary. Every name here is declared with a neutral default in
- * `styles/base.css`; a product supplies values, never new names — a name that exists in one
- * product has no utility class in the others.
- */
-
 type ScaleStop = '50' | '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
 
 type Scale<Family extends string> = `${Family}-${ScaleStop}`;

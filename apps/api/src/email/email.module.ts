@@ -13,8 +13,6 @@ import { AccountInvitationsService } from '@api/email/account-invitations.servic
 import { AuthModule } from '@api/auth/auth.module';
 import { StorageModule } from '@api/storage/storage.module';
 
-// Global, as the notifications module is: two feature modules send these letters and neither owns
-// them.
 @Global()
 @Module({
   imports: [StorageModule, forwardRef(() => AuthModule)],

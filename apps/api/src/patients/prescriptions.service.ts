@@ -100,7 +100,6 @@ export class PrescriptionsService implements OnModuleInit {
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to create prescription');
     }
@@ -132,7 +131,6 @@ export class PrescriptionsService implements OnModuleInit {
       .where(this.scope.where(prescriptions, actor.clinicId, eq(prescriptions.id, id)))
       .returning();
 
-    /* istanbul ignore next -- the row was just loaded. */
     if (!row) {
       throw new Error('Failed to update prescription');
     }

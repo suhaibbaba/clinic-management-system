@@ -8,8 +8,6 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   readonly tone?: CardTone | undefined;
   /** Drops the built-in padding for cards that manage their own (tables). */
   readonly flush?: boolean | undefined;
-  // Marks the card as something you click — without it every card looks clickable and none reads as
-  // such.
   readonly interactive?: boolean | undefined;
   readonly children: ReactNode;
 }
@@ -28,8 +26,6 @@ export function Card({
     <div
       data-part="card"
       className={cn(
-        // A drawn hairline plus a soft blue-tinted shadow, as the reference draws every panel: the
-        // shadow alone leaves the card's edge undefined against the tinted ground.
         'rounded-card border border-line bg-surface shadow-card',
         // A quarter of a second, and Tailwind's curated property list: a lift moves `translate`,
         // not `transform`, so naming the latter animated nothing at all.

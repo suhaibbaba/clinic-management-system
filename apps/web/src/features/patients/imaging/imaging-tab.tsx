@@ -173,7 +173,6 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
       await send(file);
     }
 
-    // Lets the same file be picked again after a failure.
     event.target.value = '';
   };
 
@@ -278,7 +277,6 @@ function ImageCard({
   const { t } = useTranslation();
   const attachmentTypeLabel = useLookupLabels(LOOKUP_LIST.ATTACHMENT_TYPE);
   const toast = useToast();
-  // The list carries no URL; one is minted per image actually on screen.
   const { data, isPending } = useAttachment(attachment.id, true);
   const remove = useDeleteAttachment(patientId);
 

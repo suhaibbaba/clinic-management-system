@@ -2,9 +2,6 @@ import { FDI_DECIDUOUS_TEETH, FDI_PERMANENT_TEETH } from '@clinic/shared';
 
 import { toothTypeOf, type ToothType } from '@web/features/patients/chart/tooth-shapes';
 
-// Two straight rows, as a chart is drawn and the numbering read aloud. No pixel geometry here —
-// flexbox and the stylesheet own that, which is what makes this testable.
-
 export type Dentition = 'permanent' | 'deciduous';
 export type Arch = 'upper' | 'lower';
 
@@ -16,8 +13,6 @@ export interface ToothSlot {
   readonly type: ToothType;
 }
 
-// Ordered as the viewer sees them: charts are drawn from the clinician's side, so the patient's
-// right (quadrants 1 and 4) is on the viewer's left.
 export function archRow(dentition: Dentition, arch: Arch): readonly number[] {
   const all = dentition === 'permanent' ? FDI_PERMANENT_TEETH : FDI_DECIDUOUS_TEETH;
   const quadrants = dentition === 'permanent' ? [1, 2, 3, 4] : [5, 6, 7, 8];

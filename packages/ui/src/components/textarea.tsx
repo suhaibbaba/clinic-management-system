@@ -6,9 +6,6 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
   hasError?: boolean | undefined;
 }
 
-// The field shell's edge and fill, but not its height: this one grows with what is written in it,
-// so it sets a single-line `min-h` from the same token instead. `resize-y` only — dragged wider it
-// escapes the form's column and, in RTL, drags from the wrong corner.
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
   { className, hasError = false, rows = 3, ...props },
   ref,

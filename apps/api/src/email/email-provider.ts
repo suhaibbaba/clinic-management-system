@@ -31,10 +31,6 @@ export interface EmailProvider {
 
 export const EMAIL_PROVIDER = Symbol('EMAIL_PROVIDER');
 
-/**
- * Not a stub: it is the correct provider wherever there is no mail account, and it prints the link
- * — so activation and reset work end to end on a laptop with no API key at all.
- */
 @Injectable()
 export class LogEmailProvider implements EmailProvider {
   readonly name = 'log';
@@ -58,8 +54,6 @@ export class ResendEmailProvider implements EmailProvider {
   private readonly fromAddress: string;
 
   constructor(config: ConfigService<Env, true>) {
-    // Checked at construction rather than at send: a deployment that selected this provider without
-    // a key should fail to boot, not fail the first time somebody is invited.
     const key = config.get('RESEND_API_KEY', { infer: true });
 
     if (!key) {
@@ -73,9 +67,6 @@ export class ResendEmailProvider implements EmailProvider {
 
   async send(email: OutboundEmail): Promise<void> {
     const { error } = await this.resend.emails.send({
-      // The clinic's name in front of the deployment's verified address. The address itself is
-      // infrastructure — it is the one the sending domain was verified for, and an address nobody
-      // verified is an address the provider refuses.
       from: email.fromName ? `${email.fromName} <${this.fromAddress}>` : this.from,
       to: [email.to],
       ...(email.replyTo ? { replyTo: email.replyTo } : {}),
@@ -93,8 +84,6 @@ export class ResendEmailProvider implements EmailProvider {
         : {}),
     });
 
-    // Resend answers with an error object rather than throwing, so a failure would otherwise look
-    // exactly like a delivery.
     if (error) {
       throw new Error(`Resend refused the message: ${error.message}`);
     }
