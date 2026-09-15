@@ -68,7 +68,9 @@
       "nextYear": "Next year",
       "previousYears": "Previous years",
       "nextYears": "Next years"
-    }
+    },
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "pagination": {
     "label": "Pagination",

@@ -31,7 +31,7 @@ export interface Paginated<TItem> {
 }
 
 /** E.164 caps a number at 15 digits; 7 is the shortest a national number gets. */
-export const PHONE_DIGITS = { min: 7, max: 15 } as const;
+const PHONE_DIGITS = { min: 7, max: 15 } as const;
 
 const digitCount = (value: string): number => (value.match(/\d/g) ?? []).length;
 

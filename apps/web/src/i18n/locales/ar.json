@@ -68,7 +68,9 @@
       "nextYear": "السنة التالية",
       "previousYears": "السنوات السابقة",
       "nextYears": "السنوات التالية"
-    }
+    },
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور"
   },
   "pagination": {
     "label": "التنقل بين الصفحات",

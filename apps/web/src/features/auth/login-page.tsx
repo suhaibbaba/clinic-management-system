@@ -8,7 +8,7 @@ import { Logo } from '@web/components/brand/logo';
 import { useClinicBranding, BRANDING_SCOPE } from '@web/features/clinic/queries';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
-import { Button, FormField, Icon, Input, PersonName } from '@clinic/ui';
+import { Button, FormField, Icon, Input, PasswordInput, PersonName } from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { ApiError, errorMessageKey } from '@web/lib/api-error';
 import { useClinicLogo } from '@web/lib/use-clinic-logo';
@@ -91,10 +91,9 @@ export function LoginPage(): JSX.Element {
             error={errors.password}
             errorKey={errors.password ? 'errors.validation.passwordMin' : undefined}
           >
-            <Input
+            <PasswordInput
               placeholder={t('common.placeholders.password')}
               id="password"
-              type="password"
               autoComplete="current-password"
               hasError={errors.password !== undefined}
               {...register('password')}

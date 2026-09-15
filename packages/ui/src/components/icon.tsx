@@ -27,6 +27,8 @@ import {
   Lock,
   LogIn,
   LogOut,
+  Eye,
+  EyeOff,
   Mail,
   MapPin,
   Menu,
@@ -85,6 +87,8 @@ export type IconName =
   | 'lock'
   | 'login'
   | 'logout'
+  | 'eye'
+  | 'eye-off'
   | 'mail'
   | 'map-pin'
   | 'menu'
@@ -150,6 +154,8 @@ const ICONS: Record<IconName, LucideIcon> = {
   lock: Lock,
   login: LogIn,
   logout: LogOut,
+  eye: Eye,
+  'eye-off': EyeOff,
   mail: Mail,
   'map-pin': MapPin,
   menu: Menu,

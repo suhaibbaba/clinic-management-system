@@ -9,6 +9,7 @@ import {
   Icon,
   Input,
   Modal,
+  PasswordInput,
   PhoneInput,
   SegmentedControl,
   Select,
@@ -225,9 +226,8 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
                   hint="doctors.roleLocked"
                   required
                 >
-                  <Input
+                  <PasswordInput
                     id="doctor-password"
-                    type="password"
                     autoComplete="new-password"
                     placeholder={t('common.placeholders.password')}
                     value={newUser.password}

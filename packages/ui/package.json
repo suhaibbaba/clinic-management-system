@@ -32,6 +32,7 @@
     "./components/money": "./src/components/money.tsx",
     "./components/money-input": "./src/components/money-input.tsx",
     "./components/page-header": "./src/components/page-header.tsx",
+    "./components/password-input": "./src/components/password-input.tsx",
     "./components/person-name": "./src/components/person-name.tsx",
     "./components/phone-input": "./src/components/phone-input.tsx",
     "./components/picker-open": "./src/components/picker-open.ts",

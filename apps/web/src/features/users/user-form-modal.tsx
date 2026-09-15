@@ -11,7 +11,16 @@ import { useEffect, type JSX } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
-import { Button, FormField, Icon, Input, PhoneInput, Select, useToast } from '@clinic/ui';
+import {
+  Button,
+  FormField,
+  Icon,
+  Input,
+  PasswordInput,
+  PhoneInput,
+  Select,
+  useToast,
+} from '@clinic/ui';
 import { useCreateUser, useUpdateUser } from '@web/features/users/queries';
 import { UserPhotoField } from '@web/features/users/user-photo-field';
 import { errorMessageKey } from '@web/lib/api-error';
@@ -196,10 +205,9 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
             error={errors.password}
             errorKey={errors.password ? 'errors.validation.passwordMin' : undefined}
           >
-            <Input
+            <PasswordInput
               placeholder={t('common.placeholders.password')}
               id="user-password"
-              type="password"
               autoComplete="new-password"
               hasError={errors.password !== undefined}
               {...register('password')}
