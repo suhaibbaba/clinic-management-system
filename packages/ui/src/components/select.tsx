@@ -132,7 +132,8 @@ export function Select({
             'z-50 max-h-[min(24rem,var(--radix-select-content-available-height))]',
             'w-[var(--radix-select-trigger-width)] overflow-hidden rounded-panel border border-line bg-surface p-1 shadow-float',
             'origin-(--radix-select-content-transform-origin)',
-            'data-[state=open]:animate-menu-in data-[state=closed]:animate-menu-out',
+            'data-[state=open]:animate-[menu-in_150ms_ease-out]',
+            'data-[state=closed]:animate-[menu-out_150ms_ease-in]',
           )}
         >
           <SelectPrimitive.ScrollUpButton className="flex h-6 items-center justify-center text-ink-subtle">

@@ -31,7 +31,8 @@ export function NavDrawer({
         <DialogPrimitive.Overlay
           className={cn(
             'fixed inset-0 z-40 bg-ink/40 md:hidden',
-            'data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out',
+            'data-[state=open]:animate-[fade-in_200ms_ease-out]',
+            'data-[state=closed]:animate-[fade-out_150ms_ease-in]',
           )}
         />
 
@@ -49,7 +50,8 @@ export function NavDrawer({
             // `bg-rail`, not `bg-surface`: on a phone this panel is the rail, and it carries the
             // same tint the rail does on a laptop.
             'bg-rail shadow-float',
-            'data-[state=open]:animate-drawer-in data-[state=closed]:animate-drawer-out',
+            'data-[state=open]:animate-[drawer-in_220ms_cubic-bezier(0.32,0.72,0,1)]',
+            'data-[state=closed]:animate-[drawer-out_180ms_ease-in]',
           )}
         >
           <div className="flex shrink-0 items-center gap-3 border-b border-line px-3 py-3">

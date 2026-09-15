@@ -37,7 +37,8 @@ export function Drawer({
           data-part="drawer-overlay"
           className={cn(
             'fixed inset-0 z-40 bg-ink/40',
-            'data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out',
+            'data-[state=open]:animate-[fade-in_200ms_ease-out]',
+            'data-[state=closed]:animate-[fade-out_150ms_ease-in]',
           )}
         />
         <Dialog.Content
@@ -52,7 +53,9 @@ export function Drawer({
           className={cn(
             'fixed inset-y-0 end-0 z-50 flex w-full max-w-md flex-col bg-surface shadow-float',
             'border-s border-line',
-            'data-[state=open]:animate-drawer-end-in data-[state=closed]:animate-drawer-end-out',
+            // Longer than a dialog and on a sheet's curve: it travels the width of itself.
+            'data-[state=open]:animate-[drawer-end-in_220ms_cubic-bezier(0.32,0.72,0,1)]',
+            'data-[state=closed]:animate-[drawer-end-out_180ms_ease-in]',
           )}
         >
           <div
