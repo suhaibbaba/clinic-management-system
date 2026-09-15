@@ -51,13 +51,6 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
   JOD: 'د.ا',
   ILS: '₪',
   USD: '$',
-  EUR: '€',
-  SAR: 'ر.س',
-  SYP: 'ل.س',
-  AED: 'د.إ',
-  EGP: 'ج.م',
-  TRY: '₺',
-  GBP: '£',
 };
 
 export function currencySymbol(code: string | undefined): string {

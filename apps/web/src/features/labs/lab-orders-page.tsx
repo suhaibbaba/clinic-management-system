@@ -89,6 +89,8 @@ export function LabOrdersPage(): JSX.Element {
           placeholder={t('labs.orders.searchPlaceholder')}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
+          clearLabel={t('common.clear')}
+          onClear={() => setSearch('')}
         />
 
         <div className="min-w-44">

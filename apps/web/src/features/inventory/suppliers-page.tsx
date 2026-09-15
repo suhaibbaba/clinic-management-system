@@ -136,6 +136,8 @@ export function SuppliersPage(): JSX.Element {
         placeholder={t('inventory.suppliers.searchPlaceholder')}
         value={search}
         onChange={(event) => setSearch(event.target.value)}
+        clearLabel={t('common.clear')}
+        onClear={() => setSearch('')}
       />
 
       <Table

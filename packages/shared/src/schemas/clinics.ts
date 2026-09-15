@@ -6,7 +6,7 @@ import { DEFAULT_TIME_ZONE } from '@shared/time/zone';
 
 // A closed list: a typo would quietly relabel every figure. Adding one needs its i18n label and its
 // `CURRENCY_SYMBOLS` symbol too.
-export const CURRENCIES = ['JOD', 'ILS', 'USD', 'EUR', 'SAR', 'SYP'] as const;
+export const CURRENCIES = ['JOD', 'ILS', 'USD'] as const;
 export type Currency = (typeof CURRENCIES)[number];
 
 export const clinicScheduleSettingsSchema = z.object({

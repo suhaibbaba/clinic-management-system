@@ -29,7 +29,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   },
   ref,
 ) {
-  const ltrIsland = props.dir === 'ltr';
+  const direction = props.dir ?? 'auto';
   const disabled = props.disabled === true;
   const clearable = onClear !== undefined && !disabled && String(props.value ?? '') !== '';
 
@@ -45,7 +45,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         aria-invalid={hasError || undefined}
         className={cn(
           FIELD_TEXT,
-          ltrIsland ? 'page-rtl:text-right page-ltr:text-left' : 'text-start',
+          'page-rtl:text-right page-ltr:text-left',
           '[&::-webkit-calendar-picker-indicator]:cursor-pointer',
           '[&::-webkit-calendar-picker-indicator]:opacity-60',
           '[&::-webkit-calendar-picker-indicator]:transition-opacity',
@@ -53,6 +53,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           '[&::-webkit-calendar-picker-indicator]:hover:opacity-100',
         )}
         {...props}
+        dir={direction}
       />
 
       {clearable && clearLabel !== undefined && <FieldClear label={clearLabel} onClear={onClear} />}

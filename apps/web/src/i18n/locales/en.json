@@ -103,6 +103,8 @@
     "permissions": "Permissions",
     "profile": "My account",
     "search": "Search",
+    "searchAll": "See all results ({{count}})",
+    "searchEmpty": "No matches",
     "searchPlaceholder": "Search by name, phone, or file number…",
     "settings": "Clinic settings",
     "users": "Users",
@@ -296,10 +298,7 @@
     "currencies": {
       "JOD": "Jordanian dinar",
       "ILS": "Israeli shekel",
-      "USD": "US dollar",
-      "EUR": "Euro",
-      "SAR": "Saudi riyal",
-      "SYP": "Syrian pound"
+      "USD": "US dollar"
     },
     "workingHours": "Opening hours",
     "logo": "Clinic logo",
