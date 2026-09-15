@@ -43,8 +43,6 @@ const DRAIN_ORDER = (left: BatchInflow, right: BatchInflow): number => {
   return left.receivedAt.localeCompare(right.receivedAt);
 };
 
-// Same lot number is one batch; anything unlabelled stays separate, because two unlabelled
-// deliveries have two expiries.
 export function batchesRemaining(
   inflows: readonly BatchInflow[],
   outflows: readonly BatchOutflow[],
@@ -94,8 +92,6 @@ export function batchesRemaining(
 
     const taken = Math.min(remaining[index] ?? 0, amount);
     remaining[index] = (remaining[index] ?? 0) - taken;
-    // A batch drained past its own size spills into the general pool rather than going negative,
-    // which would hide a miscount.
     unassigned += amount - taken;
   }
 

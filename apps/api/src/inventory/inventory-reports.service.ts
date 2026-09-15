@@ -35,8 +35,6 @@ export class InventoryReportsService {
     private readonly suppliersService: SuppliersService,
   ) {}
 
-  // Whole lists rather than a page: "5 items are low (of the first 20 checked)" is worse than no
-  // alert. Active items only.
   async alerts(actor: AuthenticatedUser): Promise<InventoryAlerts> {
     const warningDays = await this.stock.expiryWarningDays(actor.clinicId);
     const rows = await this.activeItems(actor.clinicId);
@@ -59,8 +57,6 @@ export class InventoryReportsService {
     };
   }
 
-  // Purchases only, and a line with no price still appears — the clinic did buy it, and dropping
-  // the line would hide the purchase as well.
   async supplierStatement(
     actor: AuthenticatedUser,
     supplierId: string,
@@ -102,7 +98,6 @@ export class InventoryReportsService {
       unitPrice: movement.unitPrice,
       total: movement.unitPrice === null ? null : lineTotal(movement.quantity, movement.unitPrice),
       batchNo: movement.batchNo,
-      // A returned delivery is a negative purchase against the same supplier.
       isReversal: movement.reversesId !== null,
     }));
 
@@ -165,15 +160,11 @@ function toShoppingLine(item: InventoryItemRow): ShoppingListLine {
     unit: item.unit,
     quantity: item.quantity,
     minQuantity: item.minQuantity,
-    // A count below zero would otherwise suggest buying more than twice the minimum; the count is
-    // what is wrong, and a shopping list is not the place to argue.
     suggested: compareQuantity(suggested, '0') > 0 ? suggested : '0',
     supplierName: item.supplierName,
   };
 }
 
-// Thousandths times cents is millionths, so it is rounded back to cents once at the end: 2.5 at
-// 3.33 is 8.33, not 8.32.
 function lineTotal(quantity: string, unitPrice: string): string {
   const millionths = toThousandths(quantity) * toMinorUnits(unitPrice);
 

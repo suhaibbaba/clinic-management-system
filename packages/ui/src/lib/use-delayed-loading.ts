@@ -13,10 +13,6 @@ interface QueryLike {
   readonly isFetching: boolean;
 }
 
-/**
- * True once loading has lasted `SKELETON_DELAY_MS`, and then for at least
- * `SKELETON_MIN_VISIBLE_MS` — a fast response paints no skeleton, a slow one paints no blink.
- */
 export function useDelayedLoading(isLoading: boolean): boolean {
   const [visible, setVisible] = useState(false);
   const shownAt = useRef(0);

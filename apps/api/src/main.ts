@@ -24,7 +24,6 @@ async function bootstrap(): Promise<void> {
     credentials: true,
   });
 
-  // Lets DatabaseModule close the pool on SIGTERM from Docker.
   app.enableShutdownHooks();
 
   await app.listen({ port, host });

@@ -7,7 +7,6 @@ import { DATABASE, type Database } from '@api/database/database.module';
 import { HealthService } from '@api/health/health.service';
 
 describe('HealthService', () => {
-  // The degraded path logs the probe failure on purpose; keep test output clean.
   beforeAll(() => {
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
   });

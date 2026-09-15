@@ -20,8 +20,6 @@ import { LabLedgerService } from '@api/labs/lab-ledger.service';
 /** Technical values read left to right even inside an Arabic document. */
 const LTR = { dir: 'ltr' } as const;
 
-// The order sheet carries the patient's first name only: it leaves the building in a box, handled
-// by people who are not clinic staff.
 @Injectable()
 export class LabDocumentsService {
   constructor(
@@ -133,8 +131,6 @@ export class LabDocumentsService {
             formatDate(entry.occurredAt),
             description || (isPayment ? strings.columns.payment : strings.columns.order),
             isPayment ? '' : entry.amount,
-            // Payments are stored negated in the statement's arithmetic; the
-            // column shows what was handed over, which is the positive of it.
             isPayment ? entry.amount.replace('-', '') : '',
             entry.runningBalance,
           ];

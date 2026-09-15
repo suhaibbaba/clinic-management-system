@@ -53,8 +53,6 @@ export function DoctorsPage(): JSX.Element {
         key: 'name',
         header: 'users.name',
         primary: true,
-        // Both spellings on hover: this is where a clinic checks what will be
-        // printed on a lab sheet against what the calendar shows.
         render: (row) => (
           <span className="flex items-center gap-3">
             <Avatar
@@ -84,13 +82,11 @@ export function DoctorsPage(): JSX.Element {
       {
         key: 'schedule',
         header: 'doctors.schedule',
-        // A week of opening hours on one line is unreadable at 375px.
         hideOnMobile: true,
         render: summariseSchedule,
       },
     ];
 
-    // A doctor may edit their own schedule; an admin may edit anyone's.
     base.push({
       key: 'actions',
       header: 'common.actions',

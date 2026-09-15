@@ -43,8 +43,6 @@ export function LookupOptionModal({
   }, [open, option]);
 
   const submit = async (): Promise<void> => {
-    // A built-in state keeps the theme's own light/dark pair unless somebody
-    // deliberately picks a colour, so an untouched default is sent as null.
     const chosen =
       coloured && (color !== DEFAULT_LOOKUP_COLOUR || !option?.isSystem) ? color : null;
 
@@ -107,8 +105,6 @@ export function LookupOptionModal({
           <FormField label="lookups.nameAr" htmlFor="lookup-name-ar" required>
             <Input
               id="lookup-name-ar"
-              // The browser reads the direction off what is typed: this field
-              // holds Arabic but the screen around it may be in English.
               dir="auto"
               value={nameAr}
               onChange={(event) => setNameAr(event.target.value)}

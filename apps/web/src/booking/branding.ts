@@ -2,10 +2,6 @@ import { useEffect, useState } from 'react';
 
 const KEY = 'clinic.branding.';
 
-/**
- * The dashboard's `use-clinic-logo` in miniature — the wall keeps `@web/lib` out of this bundle.
- * The clinic's slug is the scope; a repeat visitor sees the mark before the response lands.
- */
 export function useClinicLogo(
   slug: string | undefined,
   live: string | null | undefined,
@@ -40,6 +36,6 @@ function write(slug: string, logoUrl: string | null): void {
   try {
     localStorage.setItem(KEY + slug, JSON.stringify({ logoUrl }));
   } catch {
-    // A private window; the URL is in the response either way.
+    // A private window refuses storage; nothing here is worth failing a page over.
   }
 }

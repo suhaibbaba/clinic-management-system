@@ -34,8 +34,6 @@ interface LedgerLine {
 export class LedgerService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  // The condition goes into the same query as the page — page two of everybody is not page two of
-  // the debtors — and lives here so a balance has one definition.
   static owesFilter(clinicId: string, patientId: PgColumn): SQL {
     return sql`(
       coalesce((
@@ -162,7 +160,6 @@ export class LedgerService {
         id: row.id,
         kind: LEDGER_ENTRY_KIND.CHARGE,
         occurredAt: row.createdAt,
-        // Net of its discount: what the patient is actually asked for.
         amount: subtractMoney(row.amount, row.discount),
         description: row.procedureName ?? row.note ?? '',
         receiptNumber: null,
@@ -172,7 +169,6 @@ export class LedgerService {
         id: row.id,
         kind: LEDGER_ENTRY_KIND.PAYMENT,
         occurredAt: row.createdAt,
-        // A payment reduces the balance, so it enters the running total negated.
         amount: formatMinorUnits(-toMinorUnits(row.amount)),
         description: row.note ?? '',
         receiptNumber: row.receiptNumber,
@@ -185,8 +181,6 @@ export class LedgerService {
     const entries: StatementEntry[] = [];
 
     for (const line of lines) {
-      // Past the window: later lines change the real balance but not this
-      // statement, and the list is sorted, so nothing after it matters either.
       if (to && line.occurredAt > to) {
         break;
       }
@@ -194,7 +188,6 @@ export class LedgerService {
       running = addMoney(running, line.amount);
 
       if (from && line.occurredAt < from) {
-        // Before the window: it only moves the opening balance.
         opening = running;
         continue;
       }

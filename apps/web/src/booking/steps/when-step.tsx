@@ -32,8 +32,6 @@ export function WhenStep({
   const day = byDate.get(date);
   const slots = day?.slots ?? [];
 
-  // A closure and an absence are on the door, so the patient gets the clinic's own words; a full
-  // diary falls back to a plain "no times".
   const emptyMessage =
     day?.closedReason && day.closedNote
       ? t('when.closedFor', { reason: day.closedNote })
@@ -63,8 +61,6 @@ export function WhenStep({
                     // The three lines are `pill-text` each, so the `gap` is the whole of the
                     // space between them rather than three type-scale line-heights.
                     'flex min-h-[72px] w-16 cursor-pointer flex-col items-center justify-center gap-2',
-                    // Three lines, so not a single-line pill — but the same six states a field
-                    // and a chip draw: bordered, primary-tinted when chosen, solid when shut.
                     'rounded-panel border-[1.5px] px-2 transition-colors duration-150',
                     active
                       ? 'border-primary-600 bg-primary-100 text-primary-700'

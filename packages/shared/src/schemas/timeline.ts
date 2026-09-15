@@ -3,8 +3,6 @@ import { z } from 'zod';
 import { TIMELINE_ENTRY_TYPES } from '@shared/enums';
 import { paginationQuerySchema } from '@shared/schemas/common';
 
-// Which entry types a caller receives is decided by role, not by the query — a receptionist sees
-// only financial and appointment entries.
 export const timelineEntrySchema = z.object({
   id: z.uuid(),
   type: z.enum(TIMELINE_ENTRY_TYPES),

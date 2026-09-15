@@ -91,7 +91,6 @@ export class PendingBookingsService {
       .limit(1);
 
     return {
-      // The patient's own language, like the message it goes into.
       name: row ? notificationName({ ar: row.nameAr, en: row.nameEn }) : '',
       timeZone: clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE,
     };

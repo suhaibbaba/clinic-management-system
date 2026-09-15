@@ -17,7 +17,6 @@ export interface PageHeaderProps {
   count?: ReactNode | undefined;
 }
 
-// Every screen with a heading gets its tab title from it here, rather than each calling the hook.
 export function PageHeader({
   title,
   subtitle,
@@ -30,8 +29,6 @@ export function PageHeader({
 
   useDocumentTitle(t(title));
 
-  // Without a bar to ride in — a test, the booking app — it falls back to the page's own row rather
-  // than going missing.
   const hosted = slot !== null && primaryAction !== undefined;
   const inRow = hosted ? undefined : primaryAction;
 

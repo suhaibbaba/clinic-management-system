@@ -80,8 +80,6 @@ export class LabLedgerService {
     };
   }
 
-  // An order enters the statement on the day it was sent, not drafted: that is the day the debt
-  // begins. A date range narrows the lines, not the arithmetic.
   async statementFor(
     clinicId: string,
     labId: string,
@@ -140,7 +138,6 @@ export class LabLedgerService {
         id: row.id,
         kind: LAB_STATEMENT_ENTRY_KIND.PAYMENT,
         occurredAt: row.createdAt,
-        // A payment reduces what is owed, so it enters the running total negated.
         amount: formatMinorUnits(-toMinorUnits(row.amount)),
         description: row.note ?? '',
         isReversal: row.reversesId !== null,

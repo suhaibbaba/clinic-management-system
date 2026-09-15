@@ -50,8 +50,6 @@ export class NotificationsService {
     const settings = await this.settingsFor(input.clinicId);
 
     if (!settings.enabled) {
-      // The master switch is off. Not an error and not a row: a clinic that has
-      // turned notifications off has not failed to send anything.
       return null;
     }
 
@@ -71,7 +69,6 @@ export class NotificationsService {
       })
       .returning({ id: notificationsLog.id });
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to record the notification');
     }

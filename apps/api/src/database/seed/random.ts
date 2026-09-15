@@ -1,5 +1,3 @@
-// One seeded generator for the whole seed, so a rebuild produces the same clinic: a demo that
-// reshuffles itself is a demo nobody can point at twice.
 export class Rng {
   private state: number;
 

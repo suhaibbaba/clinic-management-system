@@ -6,8 +6,6 @@ export function planTotal(items: readonly TreatmentPlanItem[]): Money {
   return items.reduce<Money>((total, item) => addMoney(total, item.estimatedPrice), '0.00');
 }
 
-// Converted items have become procedures with their own price and cancelled ones are not owed, so
-// neither belongs in the remaining quote.
 export function planRemaining(items: readonly TreatmentPlanItem[]): Money {
   return planTotal(items.filter((item) => item.status === 'planned'));
 }

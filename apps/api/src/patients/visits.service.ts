@@ -97,7 +97,6 @@ export class VisitsService implements OnModuleInit {
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to create visit');
     }
@@ -127,7 +126,6 @@ export class VisitsService implements OnModuleInit {
       .where(this.scope.where(visits, actor.clinicId, eq(visits.id, id)))
       .returning();
 
-    /* istanbul ignore next -- the row was just loaded. */
     if (!row) {
       throw new Error('Failed to update visit');
     }

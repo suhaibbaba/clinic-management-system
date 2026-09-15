@@ -93,8 +93,6 @@ export class UsersService implements OnModuleInit {
     if (query.isActive !== undefined) {
       filters.push(eq(users.isActive, query.isActive));
     }
-    // Either spelling: somebody searching an Arabic interface for "Layla" is searching the name
-    // they can see on a printed sheet, and both are folded into one column.
     const byName = query.search ? arabicNameSearch(users.normalizedName, query.search) : null;
 
     if (query.search) {
@@ -142,8 +140,6 @@ export class UsersService implements OnModuleInit {
   ): Promise<SafeUserRow> {
     await this.assertIdentifiersAreFree(input.phone, input.email ?? null, undefined, executor);
 
-    // Null when they are to be invited: the link they receive is what sets it, so nobody but the
-    // person it belongs to ever knows it.
     const passwordHash = input.password ? await this.passwordService.hash(input.password) : null;
 
     const [row] = await executor
@@ -162,7 +158,6 @@ export class UsersService implements OnModuleInit {
       })
       .returning(safeColumns);
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to create user');
     }
@@ -210,7 +205,6 @@ export class UsersService implements OnModuleInit {
       .where(this.scope.where(users, actor.clinicId, eq(users.id, id)))
       .returning(safeColumns);
 
-    /* istanbul ignore next -- the row was just loaded within this clinic. */
     if (!row) {
       throw new Error('Failed to update user');
     }
@@ -307,7 +301,6 @@ export class UsersService implements OnModuleInit {
     const isImage = ALLOWED_USER_PHOTO_MIME_TYPES.some((mime) => mime === stored.mime);
 
     if (!isImage || stored.sizeBytes <= 0 || stored.sizeBytes > MAX_USER_PHOTO_BYTES) {
-      // Unusable, so it is not left paying for storage.
       await this.storage.deleteObject(input.key);
       throw new BadRequestException(
         isImage ? 'Uploaded file size is outside the allowed range' : 'Unsupported file type',
@@ -316,8 +309,6 @@ export class UsersService implements OnModuleInit {
 
     const row = await this.setPhotoKey(actor, id, input.key);
 
-    // The one it replaces: a photo is a single current image, not a history,
-    // and the old object has nothing left pointing at it.
     if (existing.photoKey && existing.photoKey !== input.key) {
       await this.storage.deleteObject(existing.photoKey);
     }
@@ -341,8 +332,6 @@ export class UsersService implements OnModuleInit {
     return this.scope.findOneOrFail<UserRow>(users, clinicId, id);
   }
 
-  // The only form a photo ever leaves the API in. Shared with the auth and doctors services, so a
-  // face is signed the same way whichever endpoint drew it.
   async signPhoto(key: string | null): Promise<string | null> {
     return key ? (await this.storage.createDownloadUrl(key)).url : null;
   }
@@ -358,7 +347,6 @@ export class UsersService implements OnModuleInit {
       .where(this.scope.where(users, actor.clinicId, eq(users.id, id)))
       .returning(safeColumns);
 
-    /* istanbul ignore next -- the row was just loaded within this clinic. */
     if (!row) {
       throw new Error('Failed to update the staff photo');
     }
@@ -437,8 +425,6 @@ function toUser(row: SafeUserRow, photoUrl: string | null): User {
   };
 }
 
-// The trail records the stored key, not a signed URL: the URL expires in minutes and would make
-// every entry unreadable a day later.
 function toAuditSnapshot(row: SafeUserRow): Record<string, unknown> {
   return { ...toUser(row, null), photoKey: row.photoKey };
 }

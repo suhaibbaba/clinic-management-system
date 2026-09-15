@@ -43,21 +43,14 @@ export const clinics = pgTable(
   'clinics',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    // Two columns because this name is printed, and documents are produced in the clinic's language
-    // rather than the reader's.
     nameAr: text('name_ar').notNull(),
     nameEn: text('name_en').notNull(),
-    // A slug rather than the id: the link is printed on cards and read down the phone, and a URL
-    // carrying a primary key invites walking the key space.
     slug: text('slug').notNull(),
     /** R2 object key — never a public URL. */
     logoKey: text('logo_key'),
     phone: text('phone'),
     email: text('email'),
     address: text('address'),
-    // `numeric`, read and written as a string like every other numeric column here. A coordinate is
-    // stored and handed to a map, never added up, so the exactness costs nothing; 6 decimals is
-    // roughly 0.1 m. Both columns or neither — a latitude on its own points nowhere.
     latitude: numeric('latitude', { precision: 9, scale: 6 }),
     longitude: numeric('longitude', { precision: 9, scale: 6 }),
     /** ISO-4217. Money columns are `numeric(10,2)` and never floats. */
@@ -100,19 +93,12 @@ export const users = pgTable(
     clinicId: uuid('clinic_id')
       .notNull()
       .references(() => clinics.id),
-    // Both spellings, because a single column put "Dr. Layla Haddad" in the middle of an Arabic
-    // calendar. Patient names stay one field — reception types what the ID says.
     nameAr: text('name_ar').notNull(),
     nameEn: text('name_en').notNull(),
-    // Both spellings folded into one column: a name is searched for in whichever script the person
-    // looking is thinking in.
     normalizedName: normalizedName("name_ar || ' ' || name_en"),
     phone: text('phone').notNull(),
     email: text('email'),
     /** argon2id. Never selected into a response or an audit entry. */
-    // Nullable: an account created by an admin has no password until the person it belongs to
-    // chooses one through the link they were emailed. Null means "cannot sign in yet", which is the
-    // truth, rather than an unguessable hash that only looks like one.
     passwordHash: text('password_hash'),
     /** A SHA-256 of the activation or reset token — the token itself is only ever in the email. */
     passwordTokenHash: text('password_token_hash'),
@@ -135,9 +121,6 @@ export const users = pgTable(
   ],
 );
 
-// A role's permissions, as data. Only the differences from what the code ships with are stored, so
-// a clinic that has never opened the screen has no rows at all and behaves exactly as before — and
-// a capability added by a later release is governed by its own default rather than by a stale row.
 export const roleCapabilities = pgTable(
   'role_capabilities',
   {

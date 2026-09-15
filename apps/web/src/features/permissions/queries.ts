@@ -14,8 +14,6 @@ export function useUpdateRolePermission() {
 
   return useMutation({
     mutationFn: (body: UpdateRolePermissionInput) => permissionsApi.update(body),
-    // Written through rather than refetched: a matrix of 162 rows re-fetched on every toggle would
-    // flicker the whole screen for one switch.
     onMutate: async (body) => {
       await queryClient.cancelQueries({ queryKey: [PERMISSIONS_KEY] });
       const previous = queryClient.getQueryData<Permissions>([PERMISSIONS_KEY]);

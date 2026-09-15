@@ -1,7 +1,5 @@
 import { useSyncExternalStore } from 'react';
 
-// Kept as a number so the one component that needs the breakpoint in JavaScript agrees with the
-// CSS.
 export const MD_BREAKPOINT = 768;
 
 // `useSyncExternalStore` reads its snapshot during the first render, so a layout paints correctly

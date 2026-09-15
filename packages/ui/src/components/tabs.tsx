@@ -61,10 +61,11 @@ export function Tabs<TId extends string>({
             className={cn(
               PILL_BASE,
               'min-h-(--control-h) shrink-0 cursor-pointer border-[1.5px] lg:h-(--control-h-sm) lg:min-h-0',
-              'transition-[background-color,border-color,color,transform] duration-150 active:scale-95',
+              '[transition:background-color_250ms_ease-in-out,border-color_250ms_ease-in-out,color_250ms_ease-in-out,scale_120ms_ease-out]',
+              'active:scale-95',
               selected
                 ? 'border-primary-600 bg-primary-600 text-ink-inverse'
-                : 'border-line-strong bg-surface text-ink-muted hover:border-neutral-400 hover:text-ink',
+                : 'border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink',
             )}
           >
             {t(tab.label)}
@@ -120,8 +121,6 @@ export function useTabParam<TId extends string>(
 ): readonly [TId, (id: TId) => void] {
   const [params, setParams] = useSearchParams();
   const raw = params.get(param);
-  // An unknown value is treated as absent rather than as an error: a stale
-  // bookmark should land on the page, not on a blank panel.
   const active = ids.find((id) => id === raw) ?? fallback;
 
   const setActive = (id: TId): void => {

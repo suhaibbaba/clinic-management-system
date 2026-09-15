@@ -111,8 +111,6 @@ export const TOOTH_STATE = {
 } as const satisfies Record<string, string>;
 export type ToothState = string;
 
-// What a completed procedure leaves behind on the chart, set per catalog item rather than guessed
-// from its name.
 export const PROCEDURE_OUTCOME = {
   FILLING: TOOTH_STATE.FILLING,
   ROOT_CANAL: TOOTH_STATE.ROOT_CANAL,
@@ -235,8 +233,6 @@ export function canTransitionAppointment(from: AppointmentStatus, to: Appointmen
   return (APPOINTMENT_STATUS_TRANSITIONS[from] as readonly AppointmentStatus[]).includes(to);
 }
 
-// Cancelled and no-show free the slot — the DB exclusion constraint and the availability
-// computation both exclude exactly these.
 export const APPOINTMENT_RELEASED_STATUSES = [
   APPOINTMENT_STATUS.CANCELLED,
   APPOINTMENT_STATUS.NO_SHOW,
@@ -265,8 +261,6 @@ export const WAITING_LIST_PRIORITY_RANK: Record<WaitingListPriority, number> = {
   [WAITING_LIST_PRIORITY.NORMAL]: 2,
 };
 
-// Where the entry came from. A fact about the row rather than a choice anybody makes, so it is an
-// enum and not a lookup list: reception needs to know a stranger typed this, not a colleague.
 export const WAITING_LIST_SOURCE = {
   RECEPTION: 'reception',
   ONLINE: 'online',
@@ -456,8 +450,6 @@ export const ITEM_UNIT = {
 } as const satisfies Record<string, string>;
 export type ItemUnit = string;
 
-// The sign is not free: purchase adds, consumption subtracts, only an adjustment may go either way
-// — and must say why.
 export const MOVEMENT_TYPE = {
   PURCHASE: 'purchase',
   CONSUME: 'consume',

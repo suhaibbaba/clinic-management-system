@@ -64,8 +64,6 @@ export const listPaymentsQuerySchema = paginationQuerySchema.extend({
 });
 export type ListPaymentsQuery = z.infer<typeof listPaymentsQuerySchema>;
 
-// sum(charges) − sum(payments), aggregated on every read — no stored balance anywhere in the
-// system.
 export const patientBalanceSchema = z.object({
   patientId: uuidSchema,
   charged: signedMoneySchema,

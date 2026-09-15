@@ -11,10 +11,6 @@ export interface PageParams {
   readonly resetPage: () => void;
 }
 
-/**
- * The page and its size, in the address. A row somebody found on page three is a row they can send
- * to a colleague, and a reader who wants fifty at a time should not have to say so twice.
- */
 export function usePageParams(
   defaultPerPage: number,
   options: readonly number[] = PER_PAGE_OPTIONS,
@@ -40,8 +36,6 @@ export function usePageParams(
     );
   };
 
-  // The default is absent from the address rather than spelled out in it, like every other param in
-  // the app: a bare URL means the first page.
   const putPage = (next: URLSearchParams, value: number): void => {
     if (value <= 1) {
       next.delete('page');
@@ -57,7 +51,6 @@ export function usePageParams(
     resetPage: () => write((next) => putPage(next, 1)),
     setPerPage: (value) =>
       write((next) => {
-        // Page seven of ten-row pages is page two of fifty-row ones; rather than guess, go back.
         putPage(next, 1);
 
         if (value === defaultPerPage) {

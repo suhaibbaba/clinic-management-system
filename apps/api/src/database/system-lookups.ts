@@ -1,8 +1,6 @@
 import { LOOKUP_LIST_KEYS, SYSTEM_LOOKUPS } from '@clinic/shared';
 import { sql, type SQL } from 'drizzle-orm';
 
-// Just enough of a drizzle handle to run one statement, so the migrator's bare connection and the
-// API's typed database both satisfy it.
 interface Executor {
   execute(query: SQL): Promise<{ readonly length: number }>;
 }

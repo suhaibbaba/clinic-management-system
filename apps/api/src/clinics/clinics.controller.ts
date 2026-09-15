@@ -26,8 +26,6 @@ class PresignLogoDto extends createZodDto(presignClinicLogoSchema) {}
 class ConfirmLogoDto extends createZodDto(confirmClinicLogoSchema) {}
 class ResolveLocationDto extends createZodDto(resolveLocationSchema) {}
 
-// No clinic id in the route — the caller's token decides which clinic this is. Creating and
-// deleting clinics is provisioning.
 @Controller('clinic')
 export class ClinicsController {
   constructor(
@@ -35,8 +33,6 @@ export class ClinicsController {
     private readonly mapLinks: MapLinkResolver,
   ) {}
 
-  // Public because the login page has no token yet, and safe to be: a name and an image, nothing
-  // about who works here.
   @Get('branding')
   @Public()
   branding(): Promise<ClinicBranding> {

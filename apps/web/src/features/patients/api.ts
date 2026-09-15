@@ -52,8 +52,6 @@ async function fetchAllPages<TItem>(
 }
 
 export const patientsApi = {
-  // Typed as the union, not the clinical view: the response shape is decided by the caller's role
-  // server-side.
   list: (query: Partial<ListPatientsQuery>): Promise<Paginated<PatientView>> =>
     apiRequest('/patients', {
       query: {

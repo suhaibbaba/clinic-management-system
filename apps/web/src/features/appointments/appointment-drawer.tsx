@@ -86,7 +86,6 @@ export function AppointmentDrawer({
       const visit = await convert.mutateAsync(appointment.id);
       toast.success('appointments.visit.created');
       onClose();
-      // Straight into the file, on the visits tab — the point of one click.
       navigate(`/patients/${visit.patientId}`);
     } catch (error) {
       toast.error(errorMessageKey(error));

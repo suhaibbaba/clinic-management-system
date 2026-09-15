@@ -42,8 +42,6 @@ export interface LookupChoice {
   readonly color: string | null;
 }
 
-// The label follows the reader, not the clinic: a locum in English sees "Cash" where the printed
-// receipt still says "نقداً".
 export function useLookupOptions(listKey: LookupListKey): LookupChoice[] {
   const options = useLookupList(listKey);
   const { i18n } = useTranslation();
@@ -60,8 +58,6 @@ export function useLookupOptions(listKey: LookupListKey): LookupChoice[] {
   );
 }
 
-// Falls back to the code rather than an empty cell — a row referring to a deleted option should
-// still say something.
 export function useLookupLabels(listKey: LookupListKey): (code: string | null) => string {
   const options = useLookupList(listKey, true);
   const { i18n } = useTranslation();
@@ -74,8 +70,6 @@ export function useLookupLabels(listKey: LookupListKey): (code: string | null) =
   }, [options, language]);
 }
 
-// Both variants: the settings screen reads the one with inactive rows and every other screen the
-// one without.
 function useInvalidateLookups(): () => Promise<void> {
   const queryClient = useQueryClient();
 

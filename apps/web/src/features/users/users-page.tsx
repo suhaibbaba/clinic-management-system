@@ -137,8 +137,6 @@ export function UsersPage(): JSX.Element {
         header: 'users.phone',
         render: (row) => <PhoneLink value={row.phone} />,
       },
-      // Dropped from the wide shape — it is the caption under the name there —
-      // but kept as its own labelled row on a card, where there is no caption.
       {
         key: 'email',
         header: 'users.email',
@@ -178,7 +176,6 @@ export function UsersPage(): JSX.Element {
       {
         key: 'createdAt',
         header: 'audit.when',
-        // Housekeeping detail; the account itself is what a phone is for.
         hideOnMobile: true,
         render: (row) => formatDate(row.createdAt),
       },

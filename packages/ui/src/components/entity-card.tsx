@@ -42,8 +42,6 @@ export interface EntityCardProps {
   readonly children?: ReactNode | undefined;
 }
 
-// One component rather than three lookalikes: what differs is only what progress means, which is
-// why the caller supplies the numbers and the caption.
 export function EntityCard({
   icon,
   title,
@@ -59,12 +57,10 @@ export function EntityCard({
   return (
     <article
       data-part="entity-card"
-      // The same hook the table's rows carry, so a sweep or a smoke run can
-      // open a record without knowing which of the two shapes it is looking at.
       data-entity-card
       className={cn(
         'flex flex-col border border-line rounded-card bg-surface p-4 shadow-card',
-        'transition-[box-shadow,background-color,border-color] duration-150',
+        'transition duration-[250ms] ease-in-out',
         action !== undefined && 'hover:shadow-float',
         isSelected && 'bg-selected outline outline-offset-[-1px] outline-selected-line',
         className,
@@ -137,12 +133,10 @@ export function EntityCard({
             aria-label={action.label}
             title={action.label}
             className={cn(
-              // 44px on touch, the drawn 36 on a laptop — this circle is the
-              // whole way into the record on a phone.
               'inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill',
               'lg:size-(--control-h-sm)',
               'bg-primary-600 text-ink-inverse hover:bg-primary-700',
-              'transition-[background-color,transform] duration-150 active:scale-95',
+              '[transition:background-color_250ms_ease-in-out,scale_120ms_ease-out] active:scale-95',
               'disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100',
             )}
           >

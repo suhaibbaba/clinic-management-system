@@ -8,8 +8,6 @@ export const quantitySchema = z
 
 export type Quantity = z.infer<typeof quantitySchema>;
 
-// A consumption is negative, an adjustment may go either way, and a balance below zero is a wrong
-// count rather than an error to hide.
 export const signedQuantitySchema = z
   .string()
   .regex(/^-?\d{1,9}(\.\d{1,3})?$/, 'Expected a quantity with at most three decimal places');

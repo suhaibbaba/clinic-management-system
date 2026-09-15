@@ -29,8 +29,6 @@ const ICONS: Record<TimelineEntryType, IconName> = {
   [TIMELINE_ENTRY_TYPE.CHARGE]: 'money',
 };
 
-// The API merges the streams and decides which this role may see, so a receptionist's timeline is
-// simply shorter rather than filtered here.
 export function TimelineTab({ patientId }: { readonly patientId: string }): JSX.Element {
   const timeline = usePatientTimeline(patientId);
 

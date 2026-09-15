@@ -19,11 +19,6 @@ export interface Capability {
   readonly defaultRoles: UserRole[];
 }
 
-/**
- * The controller's own name, not its path: six controllers hang off `patients/:patientId`, and
- * three share it exactly — keying on the path collided them onto one permission, which the
- * permission tests caught immediately. A class name is unique in an application by construction.
- */
 const scopeOf = (controller: { name: string }): string =>
   controller.name
     .replace(/Controller$/, '')
@@ -45,10 +40,6 @@ const METHOD_NAMES: Record<number, string> = {
   [RequestMethod.PATCH]: 'PATCH',
 };
 
-/**
- * Every permission the API has, read off its own route table at boot rather than kept in a list
- * beside it. A list would drift the first time somebody adds an endpoint and forgets; this cannot.
- */
 @Injectable()
 export class CapabilityRegistry implements OnApplicationBootstrap {
   private readonly logger = new Logger('Capabilities');
@@ -87,9 +78,6 @@ export class CapabilityRegistry implements OnApplicationBootstrap {
           this.reflector.get<UserRole[]>(ROLES_KEY, handler) ??
           this.reflector.get<UserRole[]>(ROLES_KEY, metatype);
 
-        // Only an endpoint that declares `@Roles` is a permission. The rest are open to anybody
-        // signed in — by design, and listing them would offer an admin switches that govern
-        // nothing while hiding the 132 that do.
         if (!declared || declared.length === 0) {
           continue;
         }

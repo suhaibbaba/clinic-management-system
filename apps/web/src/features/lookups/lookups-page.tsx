@@ -21,8 +21,6 @@ import {
 import { errorMessageKey } from '@web/lib/api-error';
 import { cn } from '@clinic/ui/lib/cn';
 
-// Every row is the clinic's, built-in ones included; "أساسي" is information, not a refusal.
-// Switching off leaves an option resolving to its name; deleting takes the name with it.
 export function LookupsPage(): JSX.Element {
   const { t } = useTranslation();
   const [listKey, setListKey] = useState<LookupListKey>(LOOKUP_LIST_KEYS[0]);
@@ -66,8 +64,6 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
   const { t, i18n } = useTranslation();
   const toast = useToast();
 
-  // Inactive rows included: this is the one screen where a switched-off option
-  // has to be visible, or switching it back on is impossible.
   const options = useLookupList(listKey, true);
   const reorder = useReorderLookupOptions();
   const update = useUpdateLookupOption();
@@ -86,8 +82,6 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
 
   const fail = (error: unknown): void => toast.error(errorMessageKey(error));
 
-  // The whole order goes back on drop: two people reordering at once would otherwise interleave
-  // into an order neither chose.
   const drop = async (targetId: string): Promise<void> => {
     if (!dragging || dragging === targetId) {
       return;
@@ -113,8 +107,6 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
   };
 
   const destroy = async (option: LookupOption): Promise<void> => {
-    // A built-in row is asked about differently: the reader may not know something in the app is
-    // keyed to this code, and "switch it off" is usually what they wanted.
     const question = option.isSystem ? 'lookups.confirmDeleteSystem' : 'lookups.confirmDelete';
 
     if (!window.confirm(t(question, { name: lookupLabel(option, i18n.language) }))) {
@@ -169,8 +161,6 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
               </span>
 
               {coloured && (
-                // The colour the chart will actually paint with — for a built-in row with none of
-                // its own that is the theme's token, and an empty swatch would be a lie.
                 <ToothSwatch
                   style={states.info(option.code).style}
                   className="inline-block size-4 shrink-0 rounded-sm border"

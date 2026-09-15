@@ -43,9 +43,6 @@ interface NewUserFields {
 
 const EMPTY_USER: NewUserFields = { nameAr: '', nameEn: '', phone: '', email: '', password: '' };
 
-// One form for the whole doctor: the account, the specialty and the week. It used to be a user on
-// one screen and a profile on another, with a step in between that people forgot — and a user with
-// no profile can sign in and appear in no calendar, which the API now refuses outright.
 export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
@@ -53,7 +50,6 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
   const updateDoctor = useUpdateDoctor();
   const specialties = useSpecialties();
   const clinic = useClinic();
-  // Only admins reach this screen, so listing users here is allowed.
   const doctorUsers = useUsers({ limit: 100 });
 
   const isEdit = doctor !== null;
@@ -75,8 +71,6 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
     setUserId(doctor?.userId ?? '');
     setSpecialtyId(doctor?.specialtyId ?? '');
     setDuration(String(doctor?.defaultAppointmentDurationMinutes ?? DEFAULT_DURATION));
-    // A new doctor starts on the clinic's own hours rather than an empty week: most work the days
-    // the clinic is open, and the exceptions are edited here or on their own page later.
     setSchedule(doctor?.weeklySchedule ?? clinic.data?.workingHours ?? []);
   }, [open, doctor, clinic.data]);
 

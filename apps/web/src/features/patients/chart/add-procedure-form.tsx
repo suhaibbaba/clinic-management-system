@@ -18,8 +18,6 @@ export interface AddProcedureFormProps {
   readonly onCancel: () => void;
 }
 
-// The form is shared with the visits tab; all this adds is the chart's context — the tooth is
-// fixed, which is what turns the surface picker on.
 export function AddProcedureForm({ tooth, ...rest }: AddProcedureFormProps): JSX.Element {
   return <ProcedureForm tooth={tooth} {...rest} />;
 }

@@ -29,8 +29,6 @@ import { PatientAccessService } from '@api/patients/patient-access.service';
 // an Arabic document.
 const LTR = { dir: 'ltr' } as const;
 
-// pdf-lib with an embedded Amiri font, not a headless browser: Chromium beside Node would roughly
-// triple the container's memory.
 @Injectable()
 export class DocumentsService {
   constructor(
@@ -88,8 +86,6 @@ export class DocumentsService {
     pdf.field(strings.patient, patient.fullName);
     pdf.field(strings.fileNumber, patient.fileNumber, LTR);
     pdf.field(strings.amount, formatAmount(payment.amount, clinic.currency), LTR);
-    // What *this* clinic calls this method, in the document's language — the
-    // payment methods are an editable list now, so there is no map to read.
     const methods = await this.lookups.labels(
       actor.clinicId,
       LOOKUP_LIST.PAYMENT_METHOD,
@@ -127,8 +123,6 @@ export class DocumentsService {
 
     pdf.field(strings.patient, patient.fullName);
     pdf.field(strings.fileNumber, patient.fileNumber, LTR);
-    // With no start date the statement covers the whole record, so the line
-    // says "up to" rather than naming a beginning that does not exist.
     pdf.field(statement.from ? strings.period : strings.periodUntil, formatPeriod(statement), LTR);
     pdf.field(strings.printedAt, formatDate(new Date().toISOString()), LTR);
     pdf.space(8);

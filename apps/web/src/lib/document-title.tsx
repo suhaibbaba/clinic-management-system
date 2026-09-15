@@ -13,10 +13,6 @@ export function documentTitle(page: string | undefined, clinic: string | undefin
   return [page, clinic].filter((part) => part !== undefined && part.trim() !== '').join(' — ');
 }
 
-/**
- * One effect writes `document.title`; screens register their part through `PageHeader` rather than
- * each setting it, so two of them can never race for the tab.
- */
 export function DocumentTitleProvider({ children }: { readonly children: ReactNode }): JSX.Element {
   const { t } = useTranslation();
   const { pathname } = useLocation();
@@ -24,8 +20,6 @@ export function DocumentTitleProvider({ children }: { readonly children: ReactNo
   const resolve = usePersonName();
   const [page, setPage] = useState<string | null>(null);
 
-  // Signed out there is no session to name the clinic, and the sign-in screen asks for the same
-  // branding under the same key — so this is that response, not a second request.
   const branding = useClinicBranding(status === 'unauthenticated');
   const clinicName = resolve(user ? user.clinic.name : branding.data?.name);
   const route = routeTitle(pathname);

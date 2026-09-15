@@ -23,10 +23,6 @@ export class AccountInvitationsService {
     private readonly tokens: TokenService,
   ) {}
 
-  /**
-   * Issues a fresh link and sends it. A resend is the same call — the new token replaces the old
-   * one, so a link that was forwarded or left in an inbox stops working the moment another is sent.
-   */
   async invite(userId: string, clinicId: string, purpose: AccountEmailPurpose): Promise<void> {
     const [user] = await this.db
       .select({
@@ -59,10 +55,6 @@ export class AccountInvitationsService {
     );
   }
 
-  /**
-   * The public half. Answers the same whatever the identifier is: whether an address has an account
-   * here is not something a stranger may ask.
-   */
   async forgot(identifier: string): Promise<void> {
     const value = identifier.trim();
 
@@ -127,8 +119,6 @@ export class AccountInvitationsService {
       })
       .where(eq(users.id, user.id));
 
-    // The same thing changing a password does: every session opened before this one belonged to
-    // whoever had the old credential.
     await this.tokens.revokeAllForUser(user.id);
   }
 

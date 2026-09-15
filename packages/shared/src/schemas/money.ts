@@ -41,7 +41,6 @@ export function formatMinorUnits(minorUnits: number): Money {
 export const wholeMoneySchema = z
   .string()
   .regex(/^\d{1,8}(\.0{1,2})?$/, 'Expected a whole amount')
-  // Normalised on the way in, so the service and the database see one shape.
   .transform((value) => `${value.split('.')[0] ?? '0'}.00`);
 
 export const isWholeMoney = (value: string): boolean => /^\d{1,8}(\.0{1,2})?$/.test(value);

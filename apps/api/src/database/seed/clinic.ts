@@ -19,8 +19,6 @@ export const CLINIC_NAME: PersonName = {
 export const CLINIC_SLUG = 'abu-obeid';
 export const CLINIC_TIME_ZONE = 'Asia/Hebron';
 
-// Saturday through Thursday: Friday is the one day the clinic is shut, and Monday is the long day
-// with a gap in the middle of it, which is how a practice with an afternoon list actually runs.
 export const CLINIC_HOURS: WeeklySchedule = [
   { weekday: 6, ranges: [{ start: '09:00', end: '14:00' }] },
   { weekday: 0, ranges: [{ start: '09:00', end: '17:00' }] },
@@ -36,8 +34,6 @@ export const CLINIC_HOURS: WeeklySchedule = [
   { weekday: 4, ranges: [{ start: '09:00', end: '15:00' }] },
 ];
 
-// Two different weeks, so the day view has two columns that do not mirror each other and the
-// availability endpoint has something to disagree about.
 const SENIOR_SCHEDULE: WeeklySchedule = [
   { weekday: 6, ranges: [{ start: '09:00', end: '14:00' }] },
   { weekday: 0, ranges: [{ start: '09:00', end: '17:00' }] },
@@ -134,7 +130,6 @@ export interface CatalogEntry {
   readonly needsLab?: boolean;
 }
 
-// Shekel prices a Nablus practice would recognise.
 export const CATALOG: readonly CatalogEntry[] = [
   {
     code: 'EXAM',

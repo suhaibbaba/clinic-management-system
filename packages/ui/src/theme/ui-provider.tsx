@@ -14,10 +14,6 @@ export interface UiProviderProps {
 
 const STYLE_ID = 'clinic-ui-theme';
 
-/**
- * Applies the product's theme at the root and carries the direction. The stylesheet a product ships
- * is still the one that paints the first frame; this layer is what a runtime rebrand swaps.
- */
 export function UiProvider({
   theme,
   direction = 'rtl',

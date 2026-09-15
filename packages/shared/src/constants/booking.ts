@@ -5,8 +5,6 @@ export const BOOKING_NAME_LENGTH = { min: 2, max: 160 } as const;
 
 export const BOOKING_PHONE_LENGTH = { min: 6, max: 32 } as const;
 
-// Deliberately permissive — rejecting a real number is worse than accepting a fake one, which the
-// OTP catches.
 export const BOOKING_PHONE_PATTERN = /^[+\d][\d\s-]*$/;
 
 export function isBookingName(value: string): boolean {

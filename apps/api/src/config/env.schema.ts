@@ -28,8 +28,6 @@ export const envSchema = z.object({
 
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'log', 'debug', 'verbose']).default('log'),
 
-  // Must be replaced per environment — the value in .env.example is a development placeholder, not
-  // a secret.
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   /** Access tokens are short-lived; the refresh token carries the session. */
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().max(86_400).default(900),
@@ -51,8 +49,6 @@ export const envSchema = z.object({
   // it — asking for `never` too gets `lax` back rather than a cookie nothing will store.
   AUTH_COOKIE_SAMESITE: z.enum(['lax', 'strict', 'none']).default('lax'),
 
-  // Cloudflare R2 in production, MinIO in the dev stack — the API only speaks S3, so nothing needs
-  // real R2 credentials locally.
   STORAGE_ENDPOINT: z.string().regex(/^https?:\/\/.+/, 'STORAGE_ENDPOINT must be a URL'),
   /** R2 ignores the region but the SDK requires one; `auto` is R2's convention. */
   STORAGE_REGION: z.string().min(1).default('auto'),
@@ -64,8 +60,6 @@ export const envSchema = z.object({
   STORAGE_UPLOAD_URL_TTL_SECONDS: z.coerce.number().int().positive().max(3600).default(300),
   /** Medical images are never public; every read is a fresh short-lived URL. */
   STORAGE_DOWNLOAD_URL_TTL_SECONDS: z.coerce.number().int().positive().max(3600).default(300),
-  // Branding only. A URL that changes every response is a URL no browser can reuse, so the logo's
-  // is signed for days and re-signed on a fixed boundary; SigV4 allows at most seven.
   STORAGE_BRANDING_URL_TTL_SECONDS: z.coerce
     .number()
     .int()
@@ -102,10 +96,7 @@ export const envSchema = z.object({
   // whole flow works end to end on a machine with no mail account at all.
   EMAIL_PROVIDER: z.enum(['log', 'resend']).default('log'),
   RESEND_API_KEY: z.string().optional(),
-  // The address staff will reply to. Its domain has to be verified with the provider.
   EMAIL_FROM: z.string().default('Clinic <onboarding@resend.dev>'),
-  // How long an activation or reset link stays usable. Long enough to survive a weekend, short
-  // enough that a forwarded mailbox is not a standing key to somebody's account.
   EMAIL_LINK_TTL_HOURS: z.coerce.number().int().min(1).max(336).default(48),
 
   PUBLIC_BASE_URL: z.string().url().default('http://localhost:5173'),

@@ -8,9 +8,6 @@ export type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'info';
 /** The label chip that names what a figure counts — the reference's `.tag`, never a status. */
 export type BadgeVariant = BadgeTone | 'wash';
 
-// Never a solid fill: a grid of entity cards is mostly badges, and a row of saturated pills turns a
-// calm page into a warning light. The dot is `currentColor`, as the reference draws it — one
-// declaration per tone instead of two that can disagree.
 const TONES: Record<BadgeVariant, string> = {
   neutral: 'bg-sunken text-ink-muted',
   success: 'bg-success-100 text-success-900',
@@ -24,8 +21,6 @@ const TONES: Record<BadgeVariant, string> = {
 /** One pill for the whole app: a status, a count, a filter — the same box in every one of them. */
 export const PILL_BASE = cn(
   'pill-text inline-flex items-center h-(--control-h-sm) gap-2 whitespace-nowrap rounded-pill px-3',
-  // Regular weight: a pill already carries its meaning in the tint it sits on, and a row of bold
-  // ones reads as a row of shouting.
   'text-nav font-normal',
 );
 
@@ -67,10 +62,6 @@ export interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   readonly children: ReactNode;
 }
 
-// The same pill as a control, so it takes the fields' state language rather than a second one:
-// bordered at rest, primary-tinted when it is the one chosen, a solid fill when it is unavailable.
-// The tall token, not the small one: a chip lives in a filter row beside a search box and a select,
-// and a row of controls whose heights disagree reads as a mistake at any width.
 export function Chip({
   selected = false,
   className,
@@ -88,12 +79,12 @@ export function Chip({
       className={cn(
         PILL_BASE,
         'h-(--control-h) shrink-0 cursor-pointer border-[1.5px]',
-        'transition-[background-color,border-color,color] duration-150',
+        'transition-[background-color,border-color,color] duration-[250ms] ease-in-out',
         disabled && 'cursor-not-allowed border-transparent bg-inset text-ink-faint',
         !disabled &&
           (selected
             ? 'border-primary-600 bg-primary-100 text-primary-700'
-            : 'border-line-strong bg-surface text-ink-muted hover:border-neutral-400 hover:text-ink'),
+            : 'border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink'),
         className,
       )}
       {...props}

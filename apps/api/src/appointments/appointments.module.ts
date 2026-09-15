@@ -22,8 +22,6 @@ import { PatientsModule } from '@api/patients/patients.module';
     AvailabilityService,
     WaitingListService,
   ],
-  // Exported for the labs module: "a doctor manages their own" is the same rule for a crown as for
-  // an appointment.
   exports: [AvailabilityService, AppointmentsService, AppointmentAccessService, WaitingListService],
 })
 export class AppointmentsModule {}

@@ -104,8 +104,6 @@ export class AuthController {
     await this.invitations.forgot(body.identifier);
   }
 
-  // Both letters land here: activating an account and resetting a password are the same act — a
-  // token, spent once, in exchange for a password only its owner knows.
   @Public()
   @Post('set-password')
   @HttpCode(HttpStatus.NO_CONTENT)

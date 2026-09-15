@@ -34,7 +34,6 @@ const STAGE_STEP: Record<Stage, number> = {
   details: 3,
   otp: 4,
   done: 4,
-  // Off the main path rather than further along it: this is not step five of a booking.
   urgent: 3,
   urgentSent: 3,
 };
@@ -49,11 +48,8 @@ const STAGE_TITLE: Record<Stage, string> = {
   urgentSent: 'urgent.sentHeading',
 };
 
-// One page, four stages, no router — the patient arrives from a link, books and leaves. A slot
-// taken meanwhile returns to the grid with fresh times, the only screen where that is actionable.
 export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element {
   const clinic = useAsync(() => bookingApi.clinic(slug), [slug]);
-  // Painted from the browser's copy on a repeat visit, before the response lands.
   const logoUrl = useClinicLogo(slug, clinic.data?.logoUrl);
   const doctors = useAsync(() => bookingApi.doctors(slug), [slug], clinic.data?.bookingEnabled);
 
@@ -94,8 +90,6 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
     Boolean(doctor),
   );
 
-  // The strip opens on today, and today is over by the evening — exactly when somebody opens the
-  // link. Move to the first day that has times.
   useEffect(() => {
     if (!week.data || (byDate(week.data).get(date)?.length ?? 0) > 0) {
       return;
@@ -140,8 +134,6 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
       if (receipt.status === 'pending_otp') {
         setStage('otp');
       } else {
-        // Manual clinics: reception rings back. There is no confirmed
-        // appointment to show, so the screen says what will happen instead.
         setStage('done');
       }
     } catch (error) {
@@ -195,8 +187,6 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
     }
   };
 
-  // There is no resend route: one live code per booking. So the hold is released and the slot re-
-  // taken, which issues a fresh code through the ordinary path.
   const resend = async (): Promise<void> => {
     if (!token) {
       return;
@@ -327,8 +317,6 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
               setDate(next);
               setSlot(undefined);
 
-              // The last chip pages the strip forward a week, so a patient
-              // looking for "in ten days" is not stuck at seven.
               if (next === chips.at(-1)?.date) {
                 setFrom(next);
               }

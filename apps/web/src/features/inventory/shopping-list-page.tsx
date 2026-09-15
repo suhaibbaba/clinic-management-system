@@ -10,8 +10,6 @@ import { useShoppingList } from '@web/features/inventory/queries';
 import { formatDate } from '@web/lib/format';
 import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
-// Twice the minimum less what is on the shelf — a starting figure, which the page says: the
-// technician who knows a supplier sells full cartons writes their own.
 export function ShoppingListPage(): JSX.Element {
   const { t } = useTranslation();
   const categoryLabel = useLookupLabels(LOOKUP_LIST.ITEM_CATEGORY);

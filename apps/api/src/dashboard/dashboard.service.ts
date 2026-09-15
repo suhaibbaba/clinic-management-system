@@ -11,8 +11,6 @@ import { AppointmentsService } from '@api/appointments/appointments.service';
 import { OverdueService } from '@api/billing/overdue.service';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 
-// Nothing here is a new source of truth — it arranges the calendar's, the queue's and the overdue
-// service's own queries, and shapes the response by role.
 @Injectable()
 export class DashboardService {
   constructor(

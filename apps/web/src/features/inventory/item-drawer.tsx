@@ -41,8 +41,6 @@ import { cn } from '@clinic/ui/lib/cn';
 import { formatDate, formatDateTime } from '@web/lib/format';
 import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
 
-// Each quick action is shown only to a role the API would accept it from. The history is the item
-// card, so "why is there only 3" is answered rather than raised.
 export function ItemDrawer({
   itemId,
   onClose,

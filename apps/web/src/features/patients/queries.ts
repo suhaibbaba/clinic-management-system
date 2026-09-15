@@ -48,8 +48,6 @@ export function usePatients(
     queryFn: () => patientsApi.list(query),
     // A role the API serves no balances to must not ask for the owing count.
     enabled: options.enabled ?? true,
-    // Keeps the previous page on screen while a new search is in flight, so the
-    // table does not blink empty on every keystroke that survives the debounce.
     placeholderData: (previous) => previous,
   });
 }
@@ -61,7 +59,6 @@ export function useUpdatePatient(id: string) {
     mutationFn: (body: UpdatePatientInput) => patientsApi.update(id, body),
     onSuccess: (patient) => {
       queryClient.setQueryData([PATIENT_KEY, id], patient);
-      // The list carries the same name, phone and balance, so it goes stale the moment this writes.
       void queryClient.invalidateQueries({ queryKey: [PATIENTS_KEY] });
     },
   });
@@ -122,7 +119,6 @@ export function useAttachment(id: string, enabled: boolean): UseQueryResult<Atta
     queryKey: ['attachment', id],
     queryFn: () => patientsApi.attachment(id),
     enabled,
-    // Signed URLs expire; refetching on mount is cheaper than serving a dead one.
     staleTime: 60_000,
   });
 }
@@ -152,8 +148,6 @@ export function useCreateProcedure(patientId: string) {
       queryClient.setQueryData(key, context?.previous);
     },
 
-    // Settled, not success: a failed write still has to reconcile with the
-    // server, in case it landed and the response was what was lost.
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: key });
       void queryClient.invalidateQueries({ queryKey: [TOOTH_HISTORY_KEY, patientId] });

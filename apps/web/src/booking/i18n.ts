@@ -1,7 +1,5 @@
 import ar from '@web/booking/locales/ar.json';
 
-// Same rule as the dashboard — no Arabic in a component — but not i18next: 18 KB gzipped is a fifth
-// of this page's budget for a language switcher it does not have.
 type Dictionary = { readonly [key: string]: string | Dictionary };
 
 const DICTIONARIES: Record<string, Dictionary> = { ar };

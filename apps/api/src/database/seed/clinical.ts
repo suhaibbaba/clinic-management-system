@@ -165,8 +165,6 @@ const MEDICATIONS: readonly string[] = [
   'بخاخ سالبوتامول',
 ];
 
-// A third of the files carry something: an allergy the clinic must see before it injects anything,
-// a condition that changes the plan, or a pregnancy that rules the X-ray out.
 export function medicalHistory(
   rng: Rng,
   ageYears: number,

@@ -83,8 +83,6 @@ export class BookingController {
     return this.booking.book(params.clinicSlug, body);
   }
 
-  // Same budget as a booking: five a minute from one address is already a lot of families, and the
-  // per-phone cap in the service is the other half.
   @Post(':clinicSlug/urgent-request')
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   requestUrgent(
@@ -94,8 +92,6 @@ export class BookingController {
     return this.booking.requestUrgent(params.clinicSlug, body);
   }
 
-  // Well above a person mistyping six digits, well below grinding through a million codes — and the
-  // code dies after three wrong guesses anyway.
   @Post(':clinicSlug/verify-otp')
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: 60_000 } })

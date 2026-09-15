@@ -1,10 +1,5 @@
 import type { DaySchedule, TimeRange, WeeklySchedule } from '@clinic/shared';
 
-// Pure and free of React, so the collapsed summary and the "outside the clinic's hours" check can
-// both be tested directly.
-
-// Saturday first, as the region reads it. The numbers are unchanged (0 = Sunday, matching the API);
-// only the drawing order moved.
 export const WEEKDAYS_FROM_SATURDAY = [6, 0, 1, 2, 3, 4, 5] as const;
 
 export const DEFAULT_RANGE: TimeRange = { start: '09:00', end: '17:00' };

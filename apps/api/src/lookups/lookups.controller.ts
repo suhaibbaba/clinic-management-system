@@ -35,8 +35,6 @@ class ReorderLookupsDto extends createZodDto(reorderLookupOptionsSchema) {}
 class ListLookupsQueryDto extends createZodDto(listLookupOptionsQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// Reading is open to every signed-in role — these are the contents of every dropdown. Writing is
-// the admin's, because a list is settings.
 @Controller('lookups')
 export class LookupsController {
   constructor(private readonly lookups: LookupsService) {}

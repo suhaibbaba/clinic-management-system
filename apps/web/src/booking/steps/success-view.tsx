@@ -7,8 +7,6 @@ import { downloadIcs } from '@web/booking/ics';
 import { Button, Card, cx } from '@web/booking/ui';
 import { bookingName } from '@web/booking/format';
 
-// The manage link is mentioned rather than printed: this screen is often a screenshot, and that
-// link is a credential.
 export function SuccessView({ booking }: { readonly booking: ManagedBooking }): JSX.Element {
   return (
     <div className="booking-step flex flex-col gap-4">

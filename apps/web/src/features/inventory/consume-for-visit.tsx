@@ -8,8 +8,6 @@ import { useLookupLabels } from '@web/features/lookups/queries';
 import { MovementModal } from '@web/features/inventory/movement-modal';
 import { useInventoryItems } from '@web/features/inventory/queries';
 
-// Two steps, and the second is the technician's own consumption modal with the patient filled in.
-// The patient link is what puts the ampoule on their timeline.
 export function ConsumeForVisit({
   open,
   onClose,

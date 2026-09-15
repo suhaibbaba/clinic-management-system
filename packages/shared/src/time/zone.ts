@@ -66,8 +66,6 @@ function offsetMinutes(instant: Date, timeZone: string): number {
   return (asIfUtc - instant.getTime()) / 60_000;
 }
 
-// Two passes, because the offset depends on the instant sought: guess, re-read the offset there,
-// correct. Inside a DST gap the time does not exist; this lands past it.
 export function instantFromLocal(isoDate: string, minuteOfDay: number, timeZone: string): Date {
   const [year = 0, month = 1, day = 1] = isoDate.split('-').map(Number);
   const naive = Date.UTC(year, month - 1, day) + minuteOfDay * 60_000;
@@ -92,8 +90,6 @@ export function localDate(instant: Date, timeZone: string): string {
 
 /** 0 = Sunday … 6 = Saturday, matching `DaySchedule.weekday`. */
 export function localWeekday(isoDate: string, timeZone: string): number {
-  // Read off noon rather than midnight: a zone that shifts at midnight can put
-  // 00:00 on the previous day, and no zone shifts at noon.
   const noon = instantFromLocal(isoDate, 12 * 60, timeZone);
   const parts = localParts(noon, timeZone);
 

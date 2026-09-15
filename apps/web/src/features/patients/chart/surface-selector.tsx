@@ -45,8 +45,6 @@ export interface SurfaceSelectorProps {
   readonly readOnly?: boolean | undefined;
 }
 
-// Each zone is a real toggle button, so it is reachable by keyboard and announced with its name and
-// pressed state.
 export function SurfaceSelector({
   value,
   onChange,
@@ -131,7 +129,7 @@ export function SurfaceSelector({
               onClick={() => toggle(surface)}
               className={cn(
                 'cursor-pointer rounded-control border px-2.5 py-1 text-label font-medium',
-                'transition-[background-color,border-color,transform] duration-150 active:scale-95',
+                '[transition:background-color_250ms_ease-in-out,border-color_250ms_ease-in-out,scale_120ms_ease-out] active:scale-95',
                 selected
                   ? 'border-primary-600 bg-primary-600 text-ink-inverse'
                   : 'border-line-strong bg-surface text-ink hover:border-primary-300 hover:bg-inset',

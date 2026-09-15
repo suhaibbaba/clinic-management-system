@@ -14,8 +14,6 @@ import {
 } from '@clinic/shared';
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 
-// Imported rather than retyped: a key that drifts leaves the grid showing an open Tuesday the
-// settings screen has just closed.
 import { AVAILABILITY_KEY, CALENDAR_KEY } from '@web/features/appointments/queries';
 import { closuresApi, timeOffApi } from '@web/features/schedule/api';
 import { ApiError } from '@web/lib/api-error';
@@ -45,8 +43,6 @@ export function useDoctorTimeOff(
   });
 }
 
-// The calendar and the availability endpoint both compute from these rows, so a stale grid after a
-// closure is exactly where somebody books into a closed day.
 function useInvalidateSchedule(): () => Promise<void> {
   const queryClient = useQueryClient();
 

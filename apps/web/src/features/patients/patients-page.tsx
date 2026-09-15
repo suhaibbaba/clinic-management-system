@@ -81,9 +81,6 @@ export function PatientsPage(): JSX.Element {
 
   const debouncedSearch = useDebounced(search);
 
-  // A new term starts at the first page; page 3 of the old results is meaningless for the new ones.
-  // An effect rather than the setter's own job, because the setter is in the bar now — and only
-  // when the term actually changes, or a pasted `?page=3` would be dropped on arrival.
   const lastSearch = useRef(debouncedSearch);
 
   useEffect(() => {
@@ -102,8 +99,6 @@ export function PatientsPage(): JSX.Element {
     page,
     limit: perPage,
     ...(debouncedSearch.trim() !== '' && { search: debouncedSearch.trim() }),
-    // Only for the roles the API serves balances to; for a technician the
-    // parameter is ignored on both sides.
     ...(filter === BALANCE_FILTER && showBalance && { hasBalance: true }),
     ...(filter === VISITED_FILTER && { visitedSince: startOfThisMonth() }),
   });
@@ -143,11 +138,9 @@ export function PatientsPage(): JSX.Element {
       },
     ];
 
-    // Only for the roles whose response actually carries these fields.
     if (showClinical) {
       base.push({
         key: 'address',
-        // Long, wraps badly, and rarely the reason anyone opens this list.
         hideOnMobile: true,
         header: 'patients.address',
         render: (row) => (isClinicalView(row) ? (row.address ?? '—') : '—'),
@@ -166,8 +159,6 @@ export function PatientsPage(): JSX.Element {
             return '—';
           }
 
-          // Nothing owed is not news: it recedes. Something owed is the one
-          // thing on this page that earns the red.
           const owes = Number(row.balance) > 0;
 
           // The reference's `.bal`: a pill either way, so the column reads as one shape and the
@@ -255,14 +246,11 @@ export function PatientsPage(): JSX.Element {
           onChange={setFilter}
           options={[
             { value: 'all', label: t('common.all') },
-            // The balance chip only where the response carries balances; the API would ignore the
-            // parameter for a technician anyway, and a chip that does nothing is worse than none.
             ...(showBalance
               ? [
                   {
                     value: BALANCE_FILTER as PatientFilter,
                     label: t('patients.owing'),
-                    // How many the filter would leave, on the chip that applies it.
                     ...(owing.data !== undefined && { count: owing.data.total }),
                   },
                 ]

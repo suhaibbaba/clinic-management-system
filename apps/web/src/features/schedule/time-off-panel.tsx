@@ -79,8 +79,6 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
     from !== '' && reason.trim().length >= 2 && (wholeDay || (startTime !== '' && endTime !== ''));
 
   const save = async (choice?: { force: boolean; cancelAppointments: boolean }): Promise<void> => {
-    // A whole-day absence runs to midnight of the day *after* the last one, so
-    // the last day is covered end to end.
     const lastDay = to === '' ? from : to;
     const dayAfter = new Date(`${lastDay}T00:00:00`);
     dayAfter.setDate(dayAfter.getDate() + 1);

@@ -1,6 +1,3 @@
-// Root-up in a 48×100 box with the crown line at y=54 — a contract between these paths and the
-// painting code, since a tooth may be root-canalled under a crown. Lower teeth are these flipped.
-
 export const TOOTH_VIEWBOX = { width: 48, height: 100 } as const;
 
 /** Where root meets crown. Paints are split on this line. */
@@ -48,8 +45,6 @@ export const TOOTH_SHAPES: Record<ToothType, ToothShape> = {
   },
 };
 
-// A grey root would say "this root is grey"; the point is that there is no root, so the shape has
-// to differ rather than the colour.
 export const IMPLANT_POST = {
   body: 'M20,8 L28,8 L26,50 L22,50 Z',
   /** Thread lines, drawn slightly off horizontal so they read as a spiral. */
@@ -57,8 +52,6 @@ export const IMPLANT_POST = {
   collar: 'M17,50 L31,50 L33,55 L15,55 Z',
 } as const;
 
-// Read off the FDI number's second digit, the same rule for both dentitions — except that a
-// deciduous arch has no premolars: 54 and 55 are molars.
 export function toothTypeOf(tooth: number, arch: 'upper' | 'lower'): ToothType {
   const position = tooth % 10;
   const deciduous = tooth >= 50;

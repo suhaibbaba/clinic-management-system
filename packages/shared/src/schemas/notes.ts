@@ -4,10 +4,6 @@ import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
 import { personNameSchema } from '@shared/schemas/person-name';
 import { USER_ROLES } from '@shared/enums';
 
-// The clinic's noticeboard: a line somebody at the desk needs the next person to see. Not a
-// patient's record — anything about a patient belongs on the patient, where it is scoped and
-// audited as medical data.
-
 export const clinicNoteSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,

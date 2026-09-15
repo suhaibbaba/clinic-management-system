@@ -68,8 +68,6 @@ export class StockMovementsService implements OnModuleInit {
     });
   }
 
-  // The running total is a window over the whole item history, not the page: one that restarts on
-  // page two is worse than none.
   async list(
     actor: AuthenticatedUser,
     query: ListMovementsQuery,
@@ -207,8 +205,6 @@ export class StockMovementsService implements OnModuleInit {
     });
   }
 
-  // Signed either way, and the reason is required: this is the movement where it is the only
-  // explanation that will ever exist.
   async adjust(actor: AuthenticatedUser, input: AdjustStockInput): Promise<StockMovement> {
     await this.items.requireRow(actor.clinicId, input.itemId);
 
@@ -264,8 +260,6 @@ export class StockMovementsService implements OnModuleInit {
           type: original.type,
           quantity: negateQuantity(normalise(original.quantity)),
           unitPrice: original.unitPrice,
-          // The batch travels with the reversal: putting six ampoules back
-          // means putting them back where they came from.
           batchNo: original.batchNo,
           expiryDate: original.expiryDate,
           supplierId: original.supplierId,
@@ -277,7 +271,6 @@ export class StockMovementsService implements OnModuleInit {
         })
         .returning();
 
-      /* istanbul ignore next -- insert ... returning always yields a row. */
       if (!row) {
         throw new Error('Failed to reverse the movement');
       }
@@ -286,8 +279,6 @@ export class StockMovementsService implements OnModuleInit {
     });
   }
 
-  // Every movement goes through here, which is what makes "the sign matches the type" a fact rather
-  // than a convention.
   private async write(
     actor: AuthenticatedUser,
     values: {
@@ -333,7 +324,6 @@ export class StockMovementsService implements OnModuleInit {
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to record the movement');
     }

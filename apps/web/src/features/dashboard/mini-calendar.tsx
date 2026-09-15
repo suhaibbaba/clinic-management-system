@@ -64,8 +64,6 @@ export function MiniCalendar(): JSX.Element {
 
         {cells.map((cell, index) =>
           cell === null ? (
-            // Blanks before the first and after the last: a key from the index is right here,
-            // because the padding cells have no identity of their own.
             <span key={`pad-${index}`} aria-hidden="true" className="py-1.5" />
           ) : (
             <Day
@@ -139,7 +137,6 @@ function StepButton({
       aria-label={label}
       onClick={onClick}
       className={cn(
-        // 44px on touch, the reference's drawn 26 on a laptop.
         'inline-flex size-(--control-h) cursor-pointer items-center justify-center lg:size-(--control-h-sm)',
         'rounded-chip border border-line bg-canvas text-ink-muted',
         'transition-colors duration-150 hover:border-primary-600 hover:text-primary-700',

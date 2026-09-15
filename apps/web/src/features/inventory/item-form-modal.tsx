@@ -41,8 +41,6 @@ export function ItemFormModal({
     }
 
     setNameAr(item?.nameAr ?? '');
-    // The first option on the clinic's own list, once it has loaded — there is
-    // no built-in default to fall back on now that the list is theirs.
     setCategory(item?.category ?? categoryOptions[0]?.value ?? '');
     setUnit(item?.unit ?? unitOptions[0]?.value ?? '');
     setMinQuantity(item?.minQuantity ?? '');

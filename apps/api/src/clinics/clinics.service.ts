@@ -128,8 +128,6 @@ export class ClinicsService implements OnModuleInit {
 
     const row = await this.setLogoKey(actor, input.key);
 
-    // The one it replaces: a logo is a single current image, not a history,
-    // and the old object has nothing left pointing at it.
     if (existing.logoKey && existing.logoKey !== input.key) {
       await this.storage.deleteObject(existing.logoKey);
     }
@@ -169,7 +167,6 @@ export class ClinicsService implements OnModuleInit {
       .where(and(eq(clinics.id, actor.clinicId), isNull(clinics.deletedAt)))
       .returning();
 
-    /* istanbul ignore next -- the row was just loaded. */
     if (!row) {
       throw new NotFoundException('Resource not found');
     }
@@ -184,7 +181,6 @@ export class ClinicsService implements OnModuleInit {
       .where(and(eq(clinics.id, actor.clinicId), isNull(clinics.deletedAt)))
       .returning();
 
-    /* istanbul ignore next -- the row was just loaded. */
     if (!row) {
       throw new NotFoundException('Resource not found');
     }

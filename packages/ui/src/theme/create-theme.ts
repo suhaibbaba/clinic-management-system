@@ -7,10 +7,6 @@ import type {
   TextToken,
 } from '@ui/theme/tokens';
 
-/**
- * A product's values for the library's tokens. Partial throughout: whatever is left out keeps the
- * neutral default `styles/base.css` gives it.
- */
 export interface ThemeOverride {
   readonly color?: Partial<Record<ColorToken, string>> | undefined;
   readonly radius?: Partial<Record<RadiusToken, string>> | undefined;
@@ -75,10 +71,6 @@ export function themeVariables(theme: ThemeOverride): ThemeVariables {
   return variables;
 }
 
-/**
- * The override as a stylesheet. Unlayered `:root`, so it wins over the `@layer theme` block
- * `styles/base.css` compiles to without needing to be imported after it.
- */
 export function createTheme(theme: ThemeOverride): string {
   const declarations = Object.entries(themeVariables(theme)).map(
     ([name, value]) => `  ${name}: ${value};`,

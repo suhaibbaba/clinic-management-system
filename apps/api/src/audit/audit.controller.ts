@@ -14,8 +14,6 @@ import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 
 class ListAuditLogQueryDto extends createZodDto(listAuditLogQuerySchema) {}
 
-// Read only, admin only. There is deliberately no POST, PATCH, PUT or DELETE handler: the trail is
-// immutable.
 @Controller('audit-log')
 @Roles(USER_ROLE.ADMIN)
 export class AuditController {

@@ -170,8 +170,6 @@ const ICONS: Record<IconName, LucideIcon> = {
   shield: Shield,
   spinner: Loader2,
   stethoscope: Stethoscope,
-  // Lucide has no tooth and a dental app needs one; drawn on the same 24px grid so it sits at the
-  // same weight.
   tooth: ToothGlyph,
   trash: Trash2,
   'trend-down': TrendingDown,
@@ -192,14 +190,10 @@ const DIRECTIONAL: Partial<
   'chevron-start': { rtl: ChevronRight, ltr: ChevronLeft },
 };
 
-// An arrow through a doorway is a direction and lucide ships no mirrored twin, so these flip. A
-// magnifier or a printer is an object and stays as drawn.
 const MIRRORED: ReadonlySet<IconName> = new Set(['login', 'logout']);
 
 export interface IconProps {
   readonly name: IconName;
-  // 18px covers buttons, menus and inputs; 20px is for a lone icon holding its own. There is
-  // deliberately no third size.
   readonly size?: 'sm' | 'md' | undefined;
   /** Sizing overrides and colour only — an icon has no colour of its own. */
   readonly className?: string | undefined;

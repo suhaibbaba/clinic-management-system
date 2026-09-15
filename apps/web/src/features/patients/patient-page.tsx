@@ -55,8 +55,6 @@ export function PatientPage(): JSX.Element {
   const { user, can } = useSession();
   const { id = '' } = useParams();
 
-  // A receptionist reaches this page for the account only, so the clinical
-  // tabs are not merely disabled — they are not part of their file at all.
   const role = user?.role;
   const tabs = TABS.filter((tab) => (tab.clinical ? role && canViewChart(role) : true));
 
@@ -194,8 +192,6 @@ export function PatientPage(): JSX.Element {
   );
 }
 
-// The lazy tab's own box while its chunk arrives: the same height the chart and the grid settle
-// at, so the page does not grow under the reader when it lands.
 function TabFallback(): JSX.Element {
   return <Skeleton aria-hidden="true" className="h-[420px] w-full rounded-card" />;
 }

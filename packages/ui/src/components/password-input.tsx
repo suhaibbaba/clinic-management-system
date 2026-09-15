@@ -7,11 +7,6 @@ import { Input, type InputProps } from '@ui/components/input';
 
 export type PasswordInputProps = Omit<InputProps, 'type'>;
 
-/**
- * A password field that can be read back. Typing one blind is how a wrong password gets typed
- * twice, and on a phone it is most of why people give up — so the reveal is part of the field
- * rather than something each screen bolts on.
- */
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   function PasswordInput({ ...props }, ref) {
     const { t } = useTranslation();

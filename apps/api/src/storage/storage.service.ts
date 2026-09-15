@@ -117,8 +117,6 @@ export class StorageService implements OnApplicationShutdown {
     return { url, expiresAt: new Date(Date.now() + ttl * 1000) };
   }
 
-  // A logo is not medical data, so this trades a short life for a cacheable one: the signing date is
-  // rounded to a window, making the URL byte-identical all window long and a browser cache hit.
   async createBrandingUrl(key: string): Promise<SignedDownload> {
     const ttl = this.config.get('STORAGE_BRANDING_URL_TTL_SECONDS', { infer: true });
     const window = this.config.get('STORAGE_BRANDING_URL_WINDOW_SECONDS', { infer: true });
@@ -130,8 +128,6 @@ export class StorageService implements OnApplicationShutdown {
       new GetObjectCommand({
         Bucket: this.bucket,
         Key: key,
-        // Part of the signature, so the object needs no metadata of its own and a clinic that
-        // re-uploads still gets a new key and therefore a new URL.
         ResponseCacheControl: `public, max-age=${window}, immutable`,
       }),
       { expiresIn: ttl, signingDate },

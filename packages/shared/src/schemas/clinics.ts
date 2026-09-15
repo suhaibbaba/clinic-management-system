@@ -9,8 +9,6 @@ import { DEFAULT_TIME_ZONE } from '@shared/time/zone';
 export const CURRENCIES = ['JOD', 'ILS', 'USD', 'EUR', 'SAR', 'SYP'] as const;
 export type Currency = (typeof CURRENCIES)[number];
 
-// In the settings blob rather than columns, so adding one is not a migration; parsed leniently so a
-// malformed blob degrades to defaults.
 export const clinicScheduleSettingsSchema = z.object({
   /** IANA zone the clinic's opening hours are expressed in. */
   timezone: z.string().min(1).default(DEFAULT_TIME_ZONE),
@@ -24,8 +22,6 @@ export function clinicScheduleSettings(settings: unknown): ClinicScheduleSetting
   return parsed.success ? parsed.data : { timezone: DEFAULT_TIME_ZONE };
 }
 
-// The language is the clinic's, not the reader's: a receipt should not change language because a
-// locum switched the interface.
 export const documentSettingsSchema = z.object({
   language: z.enum(['ar', 'en']).default('ar'),
 });
@@ -79,10 +75,6 @@ export const clinicBrandingSchema = z.object({
 });
 export type ClinicBranding = z.infer<typeof clinicBrandingSchema>;
 
-/**
- * A coordinate as the database holds it: `numeric(9,6)` arrives as a string, and it is only ever
- * handed to a map, never added up. Six decimals is roughly 0.1 m, which is finer than a building.
- */
 const coordinateSchema = (limit: number) =>
   z
     .string()
@@ -139,8 +131,6 @@ export const updateClinicSchema = z
   })
   .partial()
   .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided')
-  // Both or neither: a latitude without a longitude points nowhere, and a half-written pin is
-  // worse than none because the map still opens, somewhere else entirely.
   .refine(
     (input) =>
       (input.latitude ?? null) === null

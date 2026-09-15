@@ -70,8 +70,6 @@ export async function upsertSeedClinic(db: Db, spec: SeedClinicSpec): Promise<Se
         'accounts, so nobody could reach it. Its rows are soft-deleted, not removed.',
     );
   } else if (squatter) {
-    // A clinic with staff of its own. The seed does not take a handle off a
-    // practice somebody is using, so the adopted row keeps the slug it has.
     return { id: adopted.id, notes };
   }
 
@@ -97,8 +95,6 @@ async function clinicOnSlug(db: Db, slug: string, exceptId: string): Promise<str
   return row?.id;
 }
 
-// The wreckage of that bug: a second clinic with seeded rows and no users at all, since accounts
-// are matched by phone. One account means it is somebody's, and the seed leaves it alone.
 async function retireStray(db: Db, strayId: string): Promise<boolean> {
   const [{ value: accounts } = { value: 0 }] = await db
     .select({ value: count() })

@@ -22,8 +22,6 @@ function present(value: unknown): string | null {
   return typeof value === 'object' ? JSON.stringify(value, null, 1) : String(value);
 }
 
-// Only the fields that changed: a raw dump of both sides is unreadable for a one-field edit.
-// Creates and deletes have one side missing, so everything is shown.
 function Value({
   tone,
   children,

@@ -31,8 +31,6 @@ const softDeleteColumn = { deletedAt: timestamp('deleted_at', { withTimezone: tr
 /** Money is `numeric(10, 2)`, read and written as a string — never a float. */
 const money = (name: string) => numeric(name, { precision: 10, scale: 2 });
 
-// Soft-deleted: a lab the clinic stopped using still has orders and payments, and a statement that
-// loses its name is unreadable.
 export const labs = pgTable(
   'labs',
   {

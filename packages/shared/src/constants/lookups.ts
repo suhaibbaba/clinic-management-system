@@ -29,8 +29,6 @@ export const LOOKUP_LIST_KEYS = [
 
 export const COLOURED_LOOKUP_LISTS: readonly LookupListKey[] = [LOOKUP_LIST.TOOTH_STATE];
 
-// A literal, not a theme token: it is stored as the clinic's own choice, and theme.test.ts bars the
-// web app from naming a colour.
 export const DEFAULT_LOOKUP_COLOUR = '#7c3aed';
 
 export type ToothArea = 'crown' | 'root' | 'whole';
@@ -52,8 +50,6 @@ export interface SystemLookupRow {
   readonly meta?: Record<string, unknown>;
 }
 
-// Codes are load-bearing: the enum values the columns already hold, the chart's styling keys, and
-// what the seed refers to. Names and colours are editable; codes are not.
 export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLookupRow[]>> = {
   [LOOKUP_LIST.TOOTH_STATE]: [
     {

@@ -25,8 +25,6 @@ import { formatDateTime } from '@web/lib/format';
 import { cn } from '@clinic/ui/lib/cn';
 import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
-// Procedures live under their visit because that is how they are recorded. The same procedure also
-// appears on the chart — two views of one record, not two records.
 export function VisitsTab({
   patientId,
   patient,

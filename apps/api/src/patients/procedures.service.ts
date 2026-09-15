@@ -150,7 +150,6 @@ export class ProceduresService implements OnModuleInit {
         })
         .returning();
 
-      /* istanbul ignore next -- insert ... returning always yields a row. */
       if (!row) {
         throw new Error('Failed to create performed procedure');
       }
@@ -221,7 +220,6 @@ export class ProceduresService implements OnModuleInit {
         )
         .returning();
 
-      /* istanbul ignore next -- the row was just loaded. */
       if (!row) {
         throw new Error('Failed to update performed procedure');
       }
@@ -266,7 +264,6 @@ export class ProceduresService implements OnModuleInit {
           this.scope.where(performedProcedures, actor.clinicId, eq(performedProcedures.id, id)),
         );
 
-      // Marks have no meaning without their procedure.
       await tx
         .update(chartMarks)
         .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
@@ -274,8 +271,6 @@ export class ProceduresService implements OnModuleInit {
           this.scope.where(chartMarks, actor.clinicId, eq(chartMarks.performedProcedureId, id)),
         );
 
-      // The charge is not deleted with it — it is reversed, so the money that
-      // was once owed stays visible on the statement alongside its correction.
       await this.charges.onProcedureReversed(tx, {
         clinicId: actor.clinicId,
         performedProcedureId: id,
@@ -316,7 +311,6 @@ export class ProceduresService implements OnModuleInit {
           performedProcedureId: procedureId,
           chartType: mark.chartType,
           location: mark.location,
-          // Denormalised so tooth history is an index lookup, not a JSONB scan.
           tooth: mark.chartType === CHART_TYPE.TOOTH_FDI ? mark.location.tooth : null,
           createdBy: actor.id,
           updatedBy: actor.id,

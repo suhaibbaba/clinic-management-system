@@ -43,7 +43,6 @@ export function AuditPage(): JSX.Element {
   const [to, setTo] = useState('');
   const [selected, setSelected] = useState<AuditLogEntry | null>(null);
 
-  // Admin-only screen, so listing users to resolve names is permitted.
   const users = useUsers({ limit: 100 });
   const displayName = usePersonName();
   const userNames = useMemo(

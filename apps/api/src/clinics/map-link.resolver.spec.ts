@@ -34,7 +34,6 @@ describe('MapLinkResolver', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  // "Fetch a URL the client gave me" is the shape of every SSRF, so the bounds are the feature.
   it.each([
     ['cloud metadata', 'http://169.254.169.254/latest/meta-data/'],
     ['a private address', 'https://192.168.1.1/'],

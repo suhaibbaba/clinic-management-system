@@ -19,8 +19,6 @@ export class HealthService {
     return this.config.get('APP_VERSION', { infer: true });
   }
 
-  // Validated with the same shared schema the web app parses it with, so a drift fails here rather
-  // than in the browser.
   async check(): Promise<HealthResponse> {
     const database = (await this.pingDatabase()) ? 'up' : 'down';
 

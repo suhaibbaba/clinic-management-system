@@ -15,8 +15,6 @@ import { errorMessageKey } from '@web/lib/api-error';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
 import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 
-// A page rather than a modal: time off is a list that grows and belongs beside the hours it
-// interrupts. Admin edits any, a doctor their own, everyone else reads.
 export function DoctorPage(): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
@@ -77,8 +75,6 @@ export function DoctorPage(): JSX.Element {
           canEdit ? (
             <Button
               icon={<Icon name="check" />}
-              // Friendly rather than silent: the button explains itself instead
-              // of a save that fails with a message about a weekday number.
               disabled={!fits}
               isLoading={updateSchedule.isPending}
               onClick={() => void save()}

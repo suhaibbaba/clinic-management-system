@@ -77,8 +77,6 @@ export function Select({
       <SelectPrimitive.Trigger
         id={id}
         data-part="select"
-        // Forwarded so react-hook-form can mark the field touched, which is
-        // what decides whether its error is shown yet.
         onBlur={onBlur}
         aria-label={ariaLabel}
         aria-describedby={describedBy}
@@ -87,7 +85,6 @@ export function Select({
         className={cn(
           fieldShell({ hasError, disabled }),
           'cursor-pointer text-start text-field',
-          // The trigger is a button, so it draws its own focus ring rather than one from a child.
           'focus-visible:outline-none',
           disabled && 'text-ink-faint',
           className,
@@ -132,7 +129,8 @@ export function Select({
             'z-50 max-h-[min(24rem,var(--radix-select-content-available-height))]',
             'w-[var(--radix-select-trigger-width)] overflow-hidden rounded-panel border border-line bg-surface p-1 shadow-float',
             'origin-(--radix-select-content-transform-origin)',
-            'data-[state=open]:animate-menu-in data-[state=closed]:animate-menu-out',
+            'data-[state=open]:animate-[menu-in_150ms_ease-out]',
+            'data-[state=closed]:animate-[menu-out_150ms_ease-in]',
           )}
         >
           <SelectPrimitive.ScrollUpButton className="flex h-6 items-center justify-center text-ink-subtle">

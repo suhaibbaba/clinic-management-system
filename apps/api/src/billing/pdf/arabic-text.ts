@@ -1,8 +1,5 @@
 import bidiFactory from 'bidi-js';
 
-// Joining first (on logical neighbours), then bidi. Presentation forms because pdf-lib maps glyphs
-// by codepoint; runs stay logical, since fontkit reverses them.
-
 const bidi = bidiFactory();
 
 /** [isolated, final, initial, medial]. Two entries means right-joining: no initial or medial shape. */
@@ -122,8 +119,6 @@ export interface TextRun {
   readonly level: number;
 }
 
-// Bidi rule L2 at run granularity: from the deepest level down to the shallowest odd one, reverse
-// every contiguous stretch at least that deep.
 export function visualRuns(text: string, base: TextDirection = 'rtl'): TextRun[] {
   if (text === '') {
     return [];

@@ -53,7 +53,9 @@ export function StatCard({
       data-part="stat-card"
       className={cn(
         'rounded-card border border-line bg-surface p-[18px_20px] shadow-card',
-        'transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover',
+        // `transition`, which is Tailwind's curated list: it carries `translate` and `scale` — the
+        // properties a lift and a press actually move — along with the shadow and the colours.
+        'transition duration-[250ms] ease-in-out hover:-translate-y-0.5 hover:shadow-card-hover',
         className,
       )}
     >
@@ -121,8 +123,6 @@ export function StatRow({
   readonly children: ReactNode;
   readonly cards?: number | undefined;
 }): JSX.Element {
-  // Two up on a phone. Four full-width cards is 1300px of scrolling before
-  // the data they summarise, which inverts what a summary is for.
   const count = cards ?? Children.count(children);
 
   return (

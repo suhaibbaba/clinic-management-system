@@ -1,8 +1,3 @@
-/**
- * Nobody knows their clinic's coordinates, but everybody can find it on a map and copy the link.
- * So the field takes what people actually have in the clipboard — a Google, Apple or OSM URL, or a
- * pair of numbers — and pulls the pin out of it.
- */
 export interface Coordinates {
   readonly latitude: string;
   readonly longitude: string;
@@ -20,10 +15,6 @@ const inRange = (latitude: number, longitude: number): boolean =>
   Math.abs(latitude) <= 90 &&
   Math.abs(longitude) <= 180;
 
-// `@lat,lng` is Google's viewport centre and `q=`/`ll=`/`daddr=` the pinned place; `/maps/search/`
-// is where a shortened link lands, with the pair `+`-separated; OSM puts it in the fragment.
-// Ordered so an explicit pin beats the viewport when a URL carries both — a Google "place" link
-// always does, and the two can be a street apart.
 const NUMBER = '(-?\\d{1,3}(?:\\.\\d+)?)';
 
 const PATTERNS: readonly RegExp[] = [
@@ -35,10 +26,6 @@ const PATTERNS: readonly RegExp[] = [
   new RegExp(`^\\s*${NUMBER}\\s*[,\\s]\\s*${NUMBER}\\s*$`),
 ];
 
-/**
- * A shortened link carries no coordinates of its own — they are behind a redirect. The API resolves
- * these, because a browser cannot: the short host sends no CORS headers.
- */
 export const isShortMapLink = (value: string): boolean =>
   /(?:maps\.app\.goo\.gl|goo\.gl\/maps|g\.co\/kgs)/i.test(value);
 

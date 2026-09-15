@@ -38,8 +38,6 @@ class ListSuppliersQueryDto extends createZodDto(listSuppliersQuerySchema) {}
 class StatementQueryDto extends createZodDto(statementRangeQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// Admin CRUD, technician CRU, doctor read, receptionist nothing. Deleting is admin-only: a supplier
-// carries purchase history.
 @Controller('suppliers')
 export class SuppliersController {
   constructor(

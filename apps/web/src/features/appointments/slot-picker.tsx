@@ -15,8 +15,6 @@ export interface SlotPickerProps {
   readonly onChange: (startsAt: string) => void;
 }
 
-// Taken slots are drawn disabled — a grid with a hole says "that one is gone", a shorter list only
-// says there are fewer. An empty day names its reason.
 export function SlotPicker({
   availability,
   isLoading,

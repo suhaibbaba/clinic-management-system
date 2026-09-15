@@ -22,8 +22,6 @@ export function usePendingBookings(
     queryFn: () => pendingBookingsApi.list(params),
     placeholderData: (previous) => previous,
     enabled,
-    // Refetched on focus as well as polled: the badge's job is to be right the moment somebody
-    // comes back to the tab.
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
   });
@@ -41,8 +39,6 @@ function usePendingMutation<TArgs>(mutationFn: (args: TArgs) => Promise<Calendar
   return useMutation({
     mutationFn,
     onSuccess: () => {
-      // Both: the row leaves this list *and* appears (or stops appearing) on
-      // the calendar, and a stale calendar is how a slot gets double-booked.
       void queryClient.invalidateQueries({ queryKey: [PENDING_BOOKINGS_KEY] });
       void queryClient.invalidateQueries({ queryKey: [CALENDAR_KEY] });
     },

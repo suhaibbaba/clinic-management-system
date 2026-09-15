@@ -18,8 +18,6 @@ import { useLookupList } from '@web/features/lookups/queries';
 // Derived on every render, never stored, from the procedure's status and the catalog item's chart
 // outcome. The states are the clinic's own list; only the handful the drawing names are in code.
 
-// A replacement outranks the extraction it replaced — an implanted site is an implant, not a gap.
-// Then absence, then work under way; finished restorations last, the panel listing them in full.
 const BUILTIN_PRECEDENCE: readonly string[] = [
   TOOTH_STATE.IMPLANT,
   TOOTH_STATE.BRIDGE,
@@ -31,8 +29,6 @@ const BUILTIN_PRECEDENCE: readonly string[] = [
   TOOTH_STATE.FILLING,
 ];
 
-// Variable names rather than hex, so light and dark are the stylesheet's decision and no component
-// branches on a theme.
 export interface ToothStateStyle {
   readonly fill: string;
   /** Outline colour; distinct only where the fill alone would not read. */
@@ -50,8 +46,6 @@ const FILLED = (token: string): ToothStateStyle => ({
   dashed: false,
 });
 
-// A pale fill needs a darker outline to keep an edge against the chart surface, and dark ink to
-// keep the tooth number legible.
 const PALE = (token: string): ToothStateStyle => ({
   fill: `var(--color-tooth-${token})`,
   stroke: `var(--color-tooth-${token}-line)`,
@@ -59,8 +53,6 @@ const PALE = (token: string): ToothStateStyle => ({
   dashed: false,
 });
 
-// A pair of colours per mode: freezing one into the database would make the chart unreadable in the
-// other. An admin's own choice overrides it in both.
 export const BUILTIN_STYLES: Record<string, ToothStateStyle> = {
   [TOOTH_STATE.HEALTHY]: {
     fill: 'var(--color-tooth-healthy)',
@@ -86,8 +78,6 @@ export const BUILTIN_STYLES: Record<string, ToothStateStyle> = {
 /** What the chart falls back to for a code with no row and no built-in style. */
 const UNKNOWN_STYLE: ToothStateStyle = BUILTIN_STYLES[TOOTH_STATE.HEALTHY] as ToothStateStyle;
 
-// The ink is chosen from the colour's brightness rather than asked for: nobody setting up "veneer"
-// should have to think about label contrast.
 function customStyle(colour: string): ToothStateStyle {
   return {
     fill: colour,
@@ -191,8 +181,6 @@ export function useToothStates(): ToothStates {
   return useMemo(() => buildToothStates(options, language), [options, language]);
 }
 
-// Falls back to healthy, so a tooth with only a crown recorded still has a root drawn rather than
-// an unpainted hole.
 export function areaState(
   summary: ToothSummary,
   area: 'crown' | 'root',
@@ -239,8 +227,6 @@ export function procedureToothState(
   return outcomes.get(procedure.procedureId) ?? null;
 }
 
-// Only procedures carrying a chart mark reach a tooth: a panoramic X-ray has no location and
-// colours nothing.
 export function deriveToothSummaries(
   procedures: readonly PerformedProcedure[],
   outcomes: OutcomeLookup,
@@ -282,8 +268,6 @@ export function deriveToothSummaries(
     summaries.set(tooth, {
       tooth,
       state: states.dominant(entry.states),
-      // Precedence order, so the crown/root split reads the most significant
-      // state for each half first.
       states: states.precedence.filter((state) => entry.states.includes(state)),
       surfaces: [...entry.surfaces],
       procedureCount: entry.count,

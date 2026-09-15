@@ -161,21 +161,6 @@
   /* 4px at the 93.75% root. Tailwind's default 0.25rem would be 3.75, and every padding in the
      system is a whole number of pixels. */
   --spacing: 0.2667rem;
-
-  --animate-menu-in: menu-in 150ms ease-out;
-  --animate-menu-out: menu-out 150ms ease-in;
-  --animate-fade-in: fade-in 200ms ease-out;
-  --animate-fade-out: fade-out 150ms ease-in;
-  /* The drawer slides from the inline start, so `translateX(-100%)` would be wrong in one language;
-     a logical property is right in both. */
-  --animate-drawer-in: drawer-in 220ms cubic-bezier(0.32, 0.72, 0, 1);
-  --animate-drawer-out: drawer-out 180ms ease-in;
-  /* The pair above is for a panel anchored to the inline start — the navigation. A record's drawer
-     is anchored to the end, so it leaves and returns through the other edge. */
-  --animate-drawer-end-in: drawer-end-in 220ms cubic-bezier(0.32, 0.72, 0, 1);
-  --animate-drawer-end-out: drawer-end-out 180ms ease-in;
-  --animate-modal-in: modal-in 160ms ease-out;
-  --animate-modal-out: modal-out 120ms ease-in;
 }
 
 /* Six soft pairs for an initials avatar. The colour carries no meaning; it only makes the same
@@ -210,6 +195,9 @@
   --drawer-direction: 1;
 }
 
+/* Only the *shape* of a movement lives here, because `@keyframes` cannot live anywhere else. How
+   long it takes and on what curve is named by the component that moves — a dialog and a menu do not
+   share a duration just because they both fade. */
 @keyframes menu-in {
   from {
     opacity: 0;

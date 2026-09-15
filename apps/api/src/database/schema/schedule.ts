@@ -34,8 +34,6 @@ export const clinicClosures = pgTable(
   },
   (table) => [
     index('clinic_closures_clinic_idx').on(table.clinicId),
-    // Availability asks for the closures covering one day, so the range end is
-    // the leading column of the predicate that narrows most.
     index('clinic_closures_range_idx').on(table.clinicId, table.endsOn, table.startsOn),
   ],
 );
@@ -60,7 +58,6 @@ export const doctorTimeOff = pgTable(
   },
   (table) => [
     index('doctor_time_off_clinic_idx').on(table.clinicId),
-    // Every read is "this doctor, around this day", which is exactly this.
     index('doctor_time_off_doctor_starts_idx').on(table.doctorId, table.startsAt),
   ],
 );

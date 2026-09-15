@@ -31,8 +31,6 @@ export function TodayRibbon({ appointments, onOpen, canMark }: TodayRibbonProps)
         entry.status === APPOINTMENT_STATUS.REQUESTED ||
         entry.status === APPOINTMENT_STATUS.ARRIVED,
     )
-    // Everything from an hour ago onwards: someone fifteen minutes late is
-    // exactly who reception is looking for.
     .filter((entry) => minutesOf(entry.startsAt) >= nowMinutes - 60)
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
     .slice(0, 6);
@@ -59,8 +57,6 @@ export function TodayRibbon({ appointments, onOpen, canMark }: TodayRibbonProps)
       {upcoming.length === 0 ? (
         <p className="text-label text-ink-muted">{t('appointments.ribbon.none')}</p>
       ) : (
-        // Scrolls sideways rather than wrapping: a ribbon that grows to three
-        // rows on a busy morning stops being a ribbon.
         <ul className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:thin]">
           {upcoming.map((appointment) => {
             const style = APPOINTMENT_STATUS_STYLES[appointment.status];

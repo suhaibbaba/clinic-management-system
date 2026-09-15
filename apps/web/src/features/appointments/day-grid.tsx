@@ -82,8 +82,6 @@ export function DayGrid({
   const hours = gridHours();
   const bodyHeight = (hours.length - 1) * HOUR_HEIGHT;
 
-  // Grouped once rather than filtered per column: the two scans below ran for every doctor on
-  // every commit, and a day with six columns re-walked the whole day six times to draw it.
   const byDoctor = useMemo(() => groupBy(appointments, (entry) => entry.doctorId), [appointments]);
   const absencesByDoctor = useMemo(() => groupBy(timeOff, (entry) => entry.doctorId), [timeOff]);
 
@@ -106,8 +104,6 @@ export function DayGrid({
   return (
     <div className="overflow-x-auto border border-line rounded-card bg-surface shadow-card">
       {closure && (
-        // The reason, in the clinic's own words. "The clinic is closed" is not
-        // something reception can repeat down the phone; "عيد الفطر" is.
         <p className="flex items-center gap-2 border-b border-line bg-warning-50 px-4 py-2 text-label text-warning-800">
           <Icon name="alert" />
           {t('appointments.grid.closedOn', { reason: closure.reason })}

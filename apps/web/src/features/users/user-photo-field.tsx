@@ -11,8 +11,6 @@ import { Avatar, Button, Icon, useToast } from '@clinic/ui';
 import { useRemoveUserPhoto, useUploadUserPhoto } from '@web/features/users/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
-// Only on an existing user, since the upload is addressed to a user id. Type and size are checked
-// before anything is signed, as a courtesy; the API's check is the gate.
 export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
   const { t, i18n } = useTranslation();
   const toast = useToast();
@@ -74,7 +72,6 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
             aria-label={t('users.photo')}
             onChange={(event) => {
               void pick(event.target.files?.[0]);
-              // Cleared so picking the same file twice still fires a change.
               event.target.value = '';
             }}
           />

@@ -68,8 +68,6 @@ export function dayChips(from: string, count: number, maxDaysAhead: number): Day
   return chips;
 }
 
-// A slot carries both a local label and an instant, which is enough to learn the clinic's offset —
-// otherwise a patient on another zone is told 06:00 for a 09:00 appointment.
 let clinicOffsetMinutes: number | undefined;
 
 export function learnClinicOffset(startsAt: string, localLabel: string): void {

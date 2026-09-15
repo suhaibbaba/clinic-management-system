@@ -35,8 +35,6 @@ class UpdateDoctorScheduleDto extends createZodDto(updateDoctorScheduleSchema) {
 class ListDoctorsQueryDto extends createZodDto(listDoctorsQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// Every role reads, only admin writes, and a doctor may update their own schedule — that check is
-// ownership, so it lives in the service.
 @Controller('doctors')
 export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) {}

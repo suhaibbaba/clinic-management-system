@@ -31,9 +31,6 @@ interface PatientFormModalProps {
   patient?: PatientClinicalView | undefined;
 }
 
-// The file number is absent deliberately: the API allocates it per clinic, and accepting one here
-// would let two receptionists pick the same. One form for both jobs: the fields a patient is
-// registered with are the fields they are corrected with, and two copies would drift.
 export function PatientFormModal({
   open,
   onOpenChange,
@@ -178,7 +175,6 @@ export function PatientFormModal({
                 }))}
                 value={field.value ?? ''}
                 onBlur={field.onBlur}
-                // Unset is null on the wire, and an empty string on screen.
                 onChange={(event) => field.onChange(event.target.value || null)}
               />
             )}

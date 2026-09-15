@@ -116,7 +116,6 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
     }
   }, []);
 
-  // A set rather than the array it arrives as: every screen asks this a few times per render.
   const granted = useMemo(() => new Set(user?.capabilities ?? []), [user]);
 
   const value = useMemo<SessionValue>(

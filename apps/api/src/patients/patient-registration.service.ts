@@ -26,9 +26,6 @@ export interface PatientRef {
   readonly newPatient?: InlinePatientInput | undefined;
 }
 
-// Registering a patient is the first half of three different forms — an appointment, a place in the
-// queue, a lab order — so it lives here rather than in any one of them, and composes into the
-// caller's transaction.
 @Injectable()
 export class PatientRegistrationService {
   constructor(
@@ -88,8 +85,6 @@ export class PatientRegistrationService {
     return row;
   }
 
-  // The number is the identity key at the desk, so a second record under one is a history about to
-  // split in two. The clash carries the patient it found: the form offers it rather than stopping.
   private async assertPhoneIsFree(
     executor: DatabaseExecutor,
     actor: AuthenticatedUser,
@@ -104,7 +99,6 @@ export class PatientRegistrationService {
         this.scope.where(
           patients,
           actor.clinicId,
-          // On digits, so a number saved as +963… matches one typed as 09….
           sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') = ${digits}`,
         ),
       )
@@ -151,7 +145,6 @@ export class PatientRegistrationService {
             })
             .returning();
 
-          /* istanbul ignore next -- insert ... returning always yields a row. */
           if (!row) {
             throw new Error('Failed to register the patient');
           }
@@ -175,8 +168,6 @@ export class PatientRegistrationService {
   ): Promise<string> {
     const [result] = await executor
       .select({
-        // Non-numeric file numbers (imported records) are ignored rather than
-        // breaking the cast.
         max: sql<number>`coalesce(max(nullif(regexp_replace(${patients.fileNumber}, '\\D', '', 'g'), '')::bigint), 0)::int`,
       })
       .from(patients)

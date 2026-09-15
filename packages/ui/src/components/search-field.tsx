@@ -6,8 +6,6 @@ import { cn } from '@ui/lib/cn';
 export interface SearchFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   /** Names the field for screen readers; there is no visible label. */
   readonly label: string;
-  // Pass it only where a shortcut actually focuses this field — a chip promising a key that does
-  // nothing is worse than no chip.
   readonly shortcut?: string | undefined;
   readonly onClear?: (() => void) | undefined;
   readonly clearLabel?: string | undefined;
@@ -41,8 +39,6 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
       {clearable && clearLabel !== undefined && <FieldClear label={clearLabel} onClear={onClear} />}
 
       {shortcut !== undefined && (
-        // Hidden on a phone: there is no keyboard to press it with, in a field already short at
-        // 390px. A drawn box, not a padded line — a slash inks taller than its own line box.
         <kbd
           data-part="search-field-shortcut"
           aria-hidden="true"

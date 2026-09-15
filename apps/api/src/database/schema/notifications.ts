@@ -40,8 +40,6 @@ export const notificationsLog = pgTable(
   ],
 );
 
-// The code is hashed: anyone with database access could otherwise confirm bookings they did not
-// make. Hard-deleted once spent — operational data, not a medical record.
 export const bookingOtps = pgTable(
   'booking_otps',
   {

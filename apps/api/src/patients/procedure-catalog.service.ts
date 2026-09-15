@@ -122,7 +122,6 @@ export class ProcedureCatalogService implements OnModuleInit {
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to create catalog item');
     }
@@ -162,7 +161,6 @@ export class ProcedureCatalogService implements OnModuleInit {
       .where(this.scope.where(procedureCatalog, actor.clinicId, eq(procedureCatalog.id, id)))
       .returning();
 
-    /* istanbul ignore next -- the row was just loaded. */
     if (!row) {
       throw new Error('Failed to update catalog item');
     }

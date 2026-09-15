@@ -75,8 +75,6 @@ export const inventoryItemSchema = z.object({
 });
 export type InventoryItem = z.infer<typeof inventoryItemSchema>;
 
-// The flags are computed with the quantity: "low" compares two exact decimals and "expiring"
-// depends on a clinic setting.
 export const inventoryItemRowSchema = inventoryItemSchema.extend({
   /** `sum(quantity)` over every movement. Signed: a miscount can go below zero. */
   quantity: signedQuantitySchema,
@@ -102,8 +100,6 @@ const itemWritableFields = {
 export const createInventoryItemSchema = z.object(itemWritableFields);
 export type CreateInventoryItemInput = z.infer<typeof createInventoryItemSchema>;
 
-// The unit is not editable — changing it would reinterpret every movement recorded (40 boxes
-// becoming 40 millilitres).
 export const updateInventoryItemSchema = createInventoryItemSchema
   .omit({ unit: true })
   .partial()
@@ -154,8 +150,6 @@ export const stockMovementRowSchema = stockMovementSchema.extend({
 });
 export type StockMovementRow = z.infer<typeof stockMovementRowSchema>;
 
-// Unsigned and stored positive: which way a purchase points is not a decision anyone makes on a
-// form.
 export const purchaseStockSchema = z.object({
   itemId: uuidSchema,
   quantity: quantitySchema.refine((value) => Number(value) > 0, 'A purchase must be positive'),
@@ -177,8 +171,6 @@ export const consumeStockSchema = z.object({
 });
 export type ConsumeStockInput = z.infer<typeof consumeStockSchema>;
 
-// Signed, and the reason is required — an adjustment has no event behind it, so that sentence is
-// the whole explanation.
 export const adjustStockSchema = z.object({
   itemId: uuidSchema,
   quantity: movementQuantitySchema,

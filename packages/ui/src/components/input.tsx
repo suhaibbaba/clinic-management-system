@@ -16,9 +16,6 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   'data-part'?: string | undefined;
 }
 
-// `dir="ltr"` fields are handled here, not at the call site: `text-start` would resolve against the
-// field, putting a phone number on the left of an Arabic form. The attribute is inline isolation
-// for a Latin value — the page's direction still decides where the value sits.
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   {
     className,

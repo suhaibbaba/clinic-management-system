@@ -53,8 +53,6 @@ export function ClinicPage(): JSX.Element {
   const updateClinic = useUpdateClinic();
   const resolveLocation = useResolveLocation();
 
-  // Both spellings: this name heads every printed sheet, and a receipt is
-  // produced in the *clinic's* document language rather than the reader's.
   const [nameAr, setNameAr] = useState('');
   const [nameEn, setNameEn] = useState('');
   const [phone, setPhone] = useState('');
@@ -84,22 +82,15 @@ export function ClinicPage(): JSX.Element {
         : null;
 
     setLocation(stored ? `${stored.latitude}, ${stored.longitude}` : '');
-    // A clinic saved before the list existed can hold anything; keep the
-    // select on a value it actually offers rather than showing a blank box.
     setCurrency(isCurrency(data.currency) ? data.currency : CURRENCIES[0]);
     setWorkingHours(data.workingHours);
     setClinicTimeZone(data);
   }, [clinic.data]);
 
-  // Derived rather than stored: the box holds what was pasted, and the pin is whatever can be read
-  // out of it — so the screen can show what it understood before anything is saved.
   const pin = parseCoordinates(location);
   const shortLink = pin === null && isShortMapLink(location);
   const unreadable = location.trim() !== '' && pin === null && !shortLink;
 
-  // A shortened link is what the Maps app's share button produces, so it is the common case rather
-  // than an edge one. The browser cannot follow it — the short host sends no CORS headers — so the
-  // API does, and the box is rewritten with what came back.
   useEffect(() => {
     if (!shortLink) {
       return;
@@ -119,8 +110,6 @@ export function ClinicPage(): JSX.Element {
     return () => {
       cancelled = true;
     };
-    // Keyed on the link alone: the mutation's identity changes on every state it passes through,
-    // and following that would re-run this on its own result.
   }, [shortLink, location]);
 
   const save = async (): Promise<void> => {
@@ -278,8 +267,6 @@ export function ClinicPage(): JSX.Element {
                 disabled={!canEdit}
                 options={CURRENCIES.map((code) => ({
                   value: code,
-                  // "US dollar (USD)" — the code alone is what appears beside
-                  // every figure, so it stays visible next to the name.
                   label: `${t(`clinic.currencies.${code}`)} (${code})`,
                 }))}
                 onChange={(event) => setCurrency(event.target.value as Currency)}
@@ -313,8 +300,6 @@ export function ClinicPage(): JSX.Element {
   );
 }
 
-// The size is checked before the file leaves the browser as a courtesy — a ceiling that announces
-// itself after a slow upload is not usable. The API's check is the real gate.
 function LogoField({
   logoUrl,
   canEdit,
@@ -395,7 +380,6 @@ function LogoField({
               accept={ALLOWED_CLINIC_LOGO_MIME_TYPES.join(',')}
               onChange={(event) => {
                 void pick(event.target.files?.[0]);
-                // Cleared so picking the same file twice still fires a change.
                 event.target.value = '';
               }}
             />

@@ -1,6 +1,3 @@
-// FDI: first digit is the quadrant, second the tooth (permanent 1-4 → 11-48, deciduous 5-8 →
-// 51-85).
-
 function quadrantRange(quadrants: readonly number[], teeth: number): number[] {
   return quadrants.flatMap((quadrant) =>
     Array.from({ length: teeth }, (_, index) => quadrant * 10 + index + 1),

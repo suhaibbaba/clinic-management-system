@@ -1,16 +1,6 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { parseCoordinates, type ResolvedLocation } from '@clinic/shared';
 
-/**
- * A shortened map link hides its coordinates behind a redirect, and a browser cannot follow it —
- * the short host sends no CORS headers. So the API follows it instead, under tight bounds, because
- * "fetch a URL the client gave me" is the shape of every SSRF:
- *
- *  - only the hosts that actually shorten map links, and only https;
- *  - redirects followed by hand, capped, and each hop checked against the same list;
- *  - the body is never read, so nothing can come back but a pair of numbers off a `Location`;
- *  - a timeout, because a host that accepts a connection and never answers must not hold a request.
- */
 @Injectable()
 export class MapLinkResolver {
   private static readonly HOSTS = new Set([
@@ -32,7 +22,6 @@ export class MapLinkResolver {
     let current = this.checked(url);
 
     for (let hop = 0; hop < MapLinkResolver.MAX_HOPS; hop++) {
-      // The destination may already carry the pair — a long Google link resolves without a request.
       const here = parseCoordinates(current.toString());
 
       if (here) {

@@ -13,8 +13,6 @@ export const clinicClosureSchema = z.object({
   /** Inclusive last closed day. A one-day closure repeats the start. */
   endsOn: z.iso.date(),
   reason: z.string(),
-  // Fixed-date holidays only — a movable feast falls on a different Gregorian day each year and is
-  // entered per year.
   isAnnual: z.boolean(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
@@ -28,8 +26,6 @@ const closureWritableFields = {
   isAnnual: z.boolean(),
 };
 
-// Checked here rather than in the service: a range that finishes before it starts is a malformed
-// request, not a business rule.
 const orderedDays = <T extends { startsOn?: string | undefined; endsOn?: string | undefined }>(
   input: T,
 ): boolean =>
@@ -145,8 +141,6 @@ export type ClinicClosureResult = z.infer<typeof clinicClosureResultSchema>;
 export const doctorTimeOffResultSchema = closureResultSchema(doctorTimeOffSchema);
 export type DoctorTimeOffResult = z.infer<typeof doctorTimeOffResultSchema>;
 
-// A code carrying the closure's own id, not a sentence: the UI renders it in the reader's language
-// and has to say which closure did this.
 export const CLOSURE_CANCELLATION_PREFIX = 'closure:';
 export const TIME_OFF_CANCELLATION_PREFIX = 'time_off:';
 

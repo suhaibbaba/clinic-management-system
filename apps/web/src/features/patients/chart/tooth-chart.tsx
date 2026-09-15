@@ -171,8 +171,6 @@ function summarise(summaries: ReadonlyMap<number, ToothSummary>, tooth: number):
 
 type BridgeSpan = 'start' | 'middle' | 'end' | null;
 
-// Membership is derived from adjacency, because the record has no bridge grouping — the strongest
-// claim the data supports. Two adjacent bridges would draw as one.
 function bridgeSpan(
   slots: readonly ToothSlot[],
   index: number,
@@ -260,8 +258,6 @@ function Tooth({
       className={cn(
         'group relative flex shrink-0 cursor-pointer flex-col items-center gap-0.5',
         'rounded-panel px-px py-0.5 transition-colors duration-150',
-        // The lower row reads bottom-up, so its number sits above its crown —
-        // which puts the numbers of both rows against the occlusal line.
         slot.arch === 'lower' && 'flex-col-reverse',
       )}
       style={{ width: 'var(--tooth-w)' }}
@@ -278,8 +274,6 @@ function Tooth({
         }}
       >
         {missing ? (
-          // Absence is a shape, not a hue: the outline of the tooth that is
-          // not there, dashed, with nothing inside it.
           <g
             fill="none"
             stroke={states.info(summary.state).style.stroke}
@@ -332,8 +326,6 @@ function Tooth({
             {bridge !== null && (
               <rect
                 fill={bridgeStyle.stroke}
-                // Every tooth but the first starts 6 units early, so its bar overlaps the one
-                // reaching towards it and no gap opens between teeth the appliance joins.
                 x={bridge === 'start' ? 8 : -6}
                 width={bridge === 'middle' ? 60 : 46}
                 y={CROWN_LINE - 10}
@@ -373,8 +365,6 @@ function Tooth({
   );
 }
 
-// Supplementary only: the same facts are in the tooth's accessible name, so a screen reader is not
-// told them twice.
 function Tooltip({
   summary,
   stateLabel,
@@ -386,7 +376,6 @@ function Tooltip({
     <span
       role="tooltip"
       aria-hidden="true"
-      // The text follows the page even though the chart around it does not.
       dir={documentDirection()}
       className={cn(
         'pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2',

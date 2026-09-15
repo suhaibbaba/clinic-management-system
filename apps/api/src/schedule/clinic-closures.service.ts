@@ -57,7 +57,6 @@ export class ClinicClosuresService implements OnModuleInit {
   ): Promise<Paginated<ClinicClosure>> {
     const filters: (SQL | undefined)[] = [];
 
-    // Inclusive both ends, so a closure straddling the window still shows.
     if (query.from) {
       filters.push(gte(clinicClosures.endsOn, query.from));
     }
@@ -121,7 +120,6 @@ export class ClinicClosuresService implements OnModuleInit {
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!created) {
       throw new Error('Failed to create the closure');
     }
@@ -151,8 +149,6 @@ export class ClinicClosuresService implements OnModuleInit {
 
     assertAnnualFitsOneYear(startsOn, endsOn, isAnnual);
 
-    // Only the days the closure is *gaining* need checking: a day it already
-    // covered has no live appointment left to strand.
     const grew = startsOn < existing.startsOn || endsOn > existing.endsOn;
     const conflicting = grew
       ? await this.conflicts.assertClear(
@@ -183,8 +179,6 @@ export class ClinicClosuresService implements OnModuleInit {
     return { item: toClinicClosure(updated), cancelledAppointments: cancelled };
   }
 
-  // The appointments a closure cancelled stay cancelled — the patients were told, and quietly
-  // reinstating them would be worse.
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.scope.findOneOrFail<ClosureRow>(clinicClosures, actor.clinicId, id);
 

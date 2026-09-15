@@ -15,8 +15,6 @@ const RESEND_SECONDS = 60;
 
 const digitsOnly = (value: string): string => value.replace(/\D/g, '');
 
-// Pasting into any box fills all of them, backspace on an empty box steps back, the last digit
-// submits. The three-guess limit is the API's rule, reported here.
 export function OtpStep({
   phone,
   onVerify,
@@ -36,7 +34,6 @@ export function OtpStep({
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Auto-focus: the keyboard should already be up when the SMS arrives.
   useEffect(() => {
     boxes.current[0]?.focus();
   }, []);
@@ -55,8 +52,6 @@ export function OtpStep({
   const write = (next: string[]): void => {
     setDigits(next);
 
-    // Six characters after joining means six boxes with a digit in them: a
-    // gap contributes nothing to the join, so a short string is a gap.
     const filled = next.join('');
     if (filled.length === LENGTH) {
       onVerify(filled);
@@ -66,8 +61,6 @@ export function OtpStep({
   const setDigit = (index: number, value: string): void => {
     const typed = digitsOnly(value);
 
-    // More than one digit in one box means a paste, or a keyboard that
-    // inserted the whole code: spread it forward from here.
     if (typed.length > 1) {
       const next = [...digits];
       for (let offset = 0; offset < typed.length && index + offset < LENGTH; offset += 1) {

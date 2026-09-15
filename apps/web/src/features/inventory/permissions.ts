@@ -13,8 +13,6 @@ export const canManageInventory = (can: Can): boolean => can('inventory.create')
  *  book of who from. */
 export const canManageSuppliers = (can: Can): boolean => can('suppliers.create');
 
-// The one write a doctor makes here: they use an ampoule at the chair and say so, which is the only
-// way the count matches the cupboard.
 export const canConsumeStock = (can: Can): boolean => can('inventory.consume');
 
 export const canPurchaseStock = (can: Can): boolean => can('inventory.purchase');

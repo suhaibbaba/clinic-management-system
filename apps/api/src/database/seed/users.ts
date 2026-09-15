@@ -88,7 +88,6 @@ export async function upsertUser(
       }
     }
 
-    // Keep the documented password working even if it changed in .env.
     await db
       .update(users)
       .set({ ...changes, passwordHash, updatedAt: new Date() })

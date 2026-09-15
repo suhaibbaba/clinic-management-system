@@ -100,8 +100,6 @@ export class InventoryItemsService implements OnModuleInit {
         (!query.low || item.isLow) && (!query.expiring || item.isExpiring || item.isExpired),
     );
 
-    // The total counts what the database matched; a stock filter narrows the
-    // page in front of you and says so by returning fewer rows than the total.
     return toPaginated(
       filtered,
       query.low || query.expiring ? filtered.length : (totals?.value ?? 0),
@@ -123,7 +121,6 @@ export class InventoryItemsService implements OnModuleInit {
       { ...row, supplierName: supplier?.name ?? null },
     ]);
 
-    /* istanbul ignore next -- decorate returns one row per row it is given. */
     if (!item) {
       throw new Error('Failed to load the item');
     }
@@ -172,7 +169,6 @@ export class InventoryItemsService implements OnModuleInit {
       })
       .returning();
 
-    /* istanbul ignore next -- insert ... returning always yields a row. */
     if (!row) {
       throw new Error('Failed to create the item');
     }
@@ -217,7 +213,6 @@ export class InventoryItemsService implements OnModuleInit {
       .where(this.scope.where(inventoryItems, actor.clinicId, eq(inventoryItems.id, id)))
       .returning();
 
-    /* istanbul ignore next -- the row was just read under the same scope. */
     if (!row) {
       throw new Error('Failed to update the item');
     }

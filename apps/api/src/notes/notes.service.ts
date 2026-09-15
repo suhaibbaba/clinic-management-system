@@ -27,8 +27,6 @@ export const CLINIC_NOTES_ENTITY = 'clinic_notes';
 type NoteRow = typeof clinicNotes.$inferSelect;
 type AuthorRow = { nameAr: string; nameEn: string; role: ClinicNote['authorRole'] } | null;
 
-// A shared line at the front desk, so every signed-in role reads and writes it. Editing is the
-// author's own; an admin can take any note down, because somebody has to be able to.
 @Injectable()
 export class NotesService implements OnModuleInit {
   constructor(

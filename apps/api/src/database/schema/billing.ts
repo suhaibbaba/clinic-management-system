@@ -22,8 +22,6 @@ const auditColumns = {
 
 const softDeleteColumn = { deletedAt: timestamp('deleted_at', { withTimezone: true }) };
 
-// Still the current entry for its subject: live, not itself a reversing entry, and not yet
-// cancelled by one.
 const currentEntries = sql`deleted_at is null and reverses_id is null and reversed_at is null`;
 
 // `numeric(10,2)`, read and written as a string — never a float. Signed: a reversing entry carries
@@ -50,8 +48,6 @@ export const charges = pgTable(
     discountReason: text('discount_reason'),
     note: text('note'),
     reversesId: uuid('reverses_id'),
-    // Set on the original when its reversal is written. Bookkeeping, not money — no amount on this
-    // row moves.
     reversedAt: timestamp('reversed_at', { withTimezone: true }),
     ...auditColumns,
     ...softDeleteColumn,
