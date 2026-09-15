@@ -5,6 +5,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   text,
@@ -54,6 +55,11 @@ export const clinics = pgTable(
     phone: text('phone'),
     email: text('email'),
     address: text('address'),
+    // `numeric`, read and written as a string like every other numeric column here. A coordinate is
+    // stored and handed to a map, never added up, so the exactness costs nothing; 6 decimals is
+    // roughly 0.1 m. Both columns or neither — a latitude on its own points nowhere.
+    latitude: numeric('latitude', { precision: 9, scale: 6 }),
+    longitude: numeric('longitude', { precision: 9, scale: 6 }),
     /** ISO-4217. Money columns are `numeric(10,2)` and never floats. */
     currency: varchar('currency', { length: 3 }).notNull().default('USD'),
     workingHours: jsonb('working_hours').$type<WeeklySchedule>().notNull().default([]),

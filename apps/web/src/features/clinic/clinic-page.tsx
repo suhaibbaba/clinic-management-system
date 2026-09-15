@@ -22,6 +22,7 @@ import {
   useToast,
 } from '@clinic/ui';
 import { WorkingHours } from '@web/components/schedule/working-hours';
+import { isShortMapLink, mapsUrl, parseCoordinates } from '@web/features/clinic/coordinates';
 import { SkeletonForm } from '@clinic/ui/components/skeleton';
 import { ClosuresPanel } from '@web/features/schedule/closures-panel';
 import { useSession } from '@web/features/auth/session';
@@ -57,6 +58,7 @@ export function ClinicPage(): JSX.Element {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
+  const [location, setLocation] = useState('');
   const [currency, setCurrency] = useState<Currency>(CURRENCIES[0]);
   const [workingHours, setWorkingHours] = useState<WeeklySchedule>([]);
 
@@ -72,12 +74,25 @@ export function ClinicPage(): JSX.Element {
     setPhone(data.phone ?? '');
     setEmail(data.email ?? '');
     setAddress(data.address ?? '');
+    // Through the parser on the way in too: `numeric(9,6)` reads back as `32.221000`, and a box
+    // full of trailing zeros looks like something the screen did rather than something you typed.
+    const stored =
+      data.latitude && data.longitude
+        ? parseCoordinates(`${data.latitude}, ${data.longitude}`)
+        : null;
+
+    setLocation(stored ? `${stored.latitude}, ${stored.longitude}` : '');
     // A clinic saved before the list existed can hold anything; keep the
     // select on a value it actually offers rather than showing a blank box.
     setCurrency(isCurrency(data.currency) ? data.currency : CURRENCIES[0]);
     setWorkingHours(data.workingHours);
     setClinicTimeZone(data);
   }, [clinic.data]);
+
+  // Derived rather than stored: the box holds what was pasted, and the pin is whatever can be read
+  // out of it — so the screen can show what it understood before anything is saved.
+  const pin = parseCoordinates(location);
+  const unreadable = location.trim() !== '' && pin === null;
 
   const save = async (): Promise<void> => {
     try {
@@ -86,6 +101,8 @@ export function ClinicPage(): JSX.Element {
         phone: phone === '' ? null : phone,
         email: email === '' ? null : email,
         address: address === '' ? null : address,
+        latitude: pin?.latitude ?? null,
+        longitude: pin?.longitude ?? null,
         currency,
         workingHours,
       });
@@ -175,6 +192,48 @@ export function ClinicPage(): JSX.Element {
                 onChange={(event) => setAddress(event.target.value)}
               />
             </FormField>
+
+            <FormField
+              label="clinic.location"
+              htmlFor="clinic-location"
+              hint={unreadable ? undefined : 'clinic.locationHint'}
+              errorKey={
+                unreadable
+                  ? isShortMapLink(location)
+                    ? 'clinic.locationShortLink'
+                    : 'clinic.locationUnreadable'
+                  : undefined
+              }
+              error={unreadable ? { type: 'custom' } : undefined}
+              optional
+            >
+              <Input
+                placeholder={t('common.placeholders.location')}
+                adornment="map-pin"
+                id="clinic-location"
+                dir="ltr"
+                value={location}
+                hasError={unreadable}
+                disabled={!canEdit}
+                onChange={(event) => setLocation(event.target.value)}
+              />
+            </FormField>
+
+            {/* What was understood, and a way to check it before it is saved: a pin in the wrong
+                street looks exactly like a pin in the right one until somebody opens it. */}
+            {pin && (
+              <p className="-mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-label text-ink-muted">
+                <Ltr className="tabular-nums">{`${pin.latitude}, ${pin.longitude}`}</Ltr>
+                <a
+                  href={mapsUrl(pin)}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-primary-600 underline underline-offset-2 hover:text-primary-700"
+                >
+                  {t('clinic.locationVerify')}
+                </a>
+              </p>
+            )}
 
             <FormField label="clinic.currency" htmlFor="clinic-currency" hint="clinic.currencyHint">
               <Select

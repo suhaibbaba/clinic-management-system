@@ -50,7 +50,8 @@
       "time": "--:--",
       "dateRange": "اختر مدة",
       "fullNameAr": "الاسم الكامل بالعربية",
-      "fullNameEn": "Full name in English"
+      "fullNameEn": "Full name in English",
+      "location": "32.221, 35.254"
     },
     "clear": "مسح",
     "today": "اليوم",
@@ -268,6 +269,11 @@
     "phone": "رقم الهاتف",
     "email": "البريد الإلكتروني",
     "address": "العنوان",
+    "location": "موقع العيادة",
+    "locationHint": "الصق رابط الموقع من خرائط جوجل، أو أدخل الإحداثيات مفصولة بفاصلة",
+    "locationUnreadable": "تعذّرت قراءة إحداثيات من هذا النص",
+    "locationShortLink": "الرابط المختصر لا يحمل الإحداثيات — افتحه وانسخ الرابط الكامل",
+    "locationVerify": "افتح على الخريطة للتأكد",
     "currency": "العملة",
     "currencyHint": "تُعرض مع كل مبلغ في النظام",
     "currencies": {

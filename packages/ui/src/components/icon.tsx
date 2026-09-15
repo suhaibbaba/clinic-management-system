@@ -28,6 +28,7 @@ import {
   LogIn,
   LogOut,
   Mail,
+  MapPin,
   Menu,
   Package,
   Pencil,
@@ -85,6 +86,7 @@ export type IconName =
   | 'login'
   | 'logout'
   | 'mail'
+  | 'map-pin'
   | 'menu'
   | 'money'
   | 'more-vertical'
@@ -149,6 +151,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   login: LogIn,
   logout: LogOut,
   mail: Mail,
+  'map-pin': MapPin,
   menu: Menu,
   money: CreditCard,
   package: Package,
