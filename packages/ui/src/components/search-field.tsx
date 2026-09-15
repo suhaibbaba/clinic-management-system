@@ -28,9 +28,11 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
         data-part="search-field-control"
         type="search"
         aria-label={label}
+        // `auto`, so a phone number typed into it is not reordered by the page's direction.
+        dir="auto"
         className={cn(
           FIELD_TEXT,
-          'text-start',
+          'page-rtl:text-right page-ltr:text-left',
           '[&::-webkit-search-decoration]:appearance-none [&::-webkit-search-cancel-button]:appearance-none',
         )}
         {...props}
