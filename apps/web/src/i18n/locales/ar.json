@@ -98,6 +98,7 @@
     "lists": "القوائم",
     "logout": "تسجيل الخروج",
     "menu": "القائمة",
+    "notifications": "الإشعارات ({{count}})",
     "notificationsEmpty": "لا توجد إشعارات",
     "patients": "المرضى",
     "permissions": "الصلاحيات",
@@ -1577,5 +1578,12 @@
     "role": "الدور",
     "subtitle": "ما الذي يستطيع كل دور فعله",
     "title": "الصلاحيات"
+  },
+  "notifications": {
+    "pendingBookings": "حجوزات إلكترونية بانتظار الرد",
+    "urgentRequests": "طلبات عاجلة في قائمة الانتظار",
+    "overdueLabs": "طلبات مختبر متأخرة",
+    "inventoryAlerts": "أصناف تحتاج انتباهاً",
+    "overdueBalances": "مرضى عليهم رصيد متأخر"
   }
 }

@@ -5,6 +5,7 @@ import { Logo } from '@web/components/brand/logo';
 import { NavDrawer } from '@web/components/layout/nav-drawer';
 import { createPageActionSlot, PageActionSlotProvider } from '@clinic/ui/lib/page-action-slot';
 import { useIsMobile } from '@clinic/ui/lib/use-media-query';
+import { NotificationBell } from '@web/components/layout/notification-bell';
 import { TopSearch } from '@web/components/layout/top-search';
 import { UserMenu } from '@web/components/layout/user-menu';
 import { Button, Icon } from '@clinic/ui';
@@ -281,28 +282,5 @@ function NavSection({
         ))}
       </ul>
     </>
-  );
-}
-
-function NotificationBell(): JSX.Element {
-  const { t } = useTranslation();
-
-  return (
-    <button
-      type="button"
-      disabled
-      aria-label={t('nav.notificationsEmpty')}
-      title={t('nav.notificationsEmpty')}
-      className={cn(
-        // 44px on touch (WCAG 2.5.8), the reference's drawn 38 on a laptop. `lg` rather than
-        // `md`: the front desk's tablet is 768 wide and is a touch device.
-        'inline-flex size-(--control-h) cursor-pointer items-center justify-center lg:size-(--control-h-sm)',
-        'rounded-control border border-line bg-surface text-ink-muted',
-        'transition-colors duration-150 hover:bg-primary-100 hover:text-primary-700',
-        'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-surface',
-      )}
-    >
-      <Icon name="bell" />
-    </button>
   );
 }
