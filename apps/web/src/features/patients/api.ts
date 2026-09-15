@@ -169,11 +169,15 @@ export const patientsApi = {
 
 // Not `apiRequest`: a presigned PUT must not carry the API's bearer token, and the body is the file
 // rather than JSON.
-export async function uploadToStorage(uploadUrl: string, file: File): Promise<void> {
+export async function uploadToStorage(
+  uploadUrl: string,
+  body: Blob,
+  contentType: string = body.type,
+): Promise<void> {
   const response = await fetch(uploadUrl, {
     method: 'PUT',
-    headers: { 'content-type': file.type },
-    body: file,
+    headers: { 'content-type': contentType },
+    body,
   });
 
   if (!response.ok) {

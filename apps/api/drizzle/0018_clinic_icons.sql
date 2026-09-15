@@ -1,0 +1,1 @@
+ALTER TABLE "clinics" ADD COLUMN "logo_icons_at" timestamp with time zone;

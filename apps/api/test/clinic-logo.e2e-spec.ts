@@ -1,6 +1,9 @@
 import {
+  CLINIC_ICONS,
+  MAX_CLINIC_ICON_BYTES,
   MAX_CLINIC_LOGO_BYTES,
   USER_ROLE,
+  clinicIcon,
   type Clinic,
   type ClinicBranding,
   type PresignClinicLogoResponse,
@@ -17,7 +20,12 @@ describe('Clinic logo (e2e)', () => {
   const tokens = {} as Record<UserRole, string>;
 
   let storedObject: StoredObject | null;
+  let storedIcon: (name: string) => StoredObject | null;
   let deleted: string[];
+
+  /** The derived set lives under the logo's own key, so a stat tells the two apart by path. */
+  const iconNameIn = (key: string): string | undefined => key.split('/icons/')[1];
+  const isLogoKey = (key: string): boolean => iconNameIn(key) === undefined;
 
   beforeAll(async () => {
     context = await createTestContext();
@@ -30,7 +38,11 @@ describe('Clinic logo (e2e)', () => {
     // Signing is offline; only the read-back of a stored object and the
     // cleanup delete need a stand-in.
     storage = context.app.get(StorageService);
-    storage.statObject = async (): Promise<StoredObject | null> => storedObject;
+    storage.statObject = async (key: string): Promise<StoredObject | null> => {
+      const icon = iconNameIn(key);
+
+      return icon === undefined ? storedObject : storedIcon(icon);
+    };
     storage.deleteObject = async (key: string): Promise<void> => {
       deleted.push(key);
     };
@@ -38,6 +50,11 @@ describe('Clinic logo (e2e)', () => {
 
   beforeEach(() => {
     storedObject = { sizeBytes: 40_000, mime: 'image/png' };
+    storedIcon = (name) => {
+      const icon = clinicIcon(name);
+
+      return icon ? { sizeBytes: 3_000, mime: icon.mime } : null;
+    };
     deleted = [];
   });
 
@@ -95,7 +112,11 @@ describe('Clinic logo (e2e)', () => {
       deleted = [];
       await confirm(second);
 
-      expect(deleted).toEqual([first]);
+      expect(deleted.filter(isLogoKey)).toEqual([first]);
+      // And the icons rendered from it, which are no longer a picture of anything.
+      expect(deleted.filter((key) => !isLogoKey(key)).sort()).toEqual(
+        CLINIC_ICONS.map((icon) => `${first}/icons/${icon.name}`).sort(),
+      );
     });
 
     it('goes back to the generated mark, and takes the object with it', async () => {
@@ -110,8 +131,100 @@ describe('Clinic logo (e2e)', () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.json()).toMatchObject({ logoKey: null, logoUrl: null });
-      expect(deleted).toEqual([key]);
+      expect(response.json()).toMatchObject({ logoKey: null, logoUrl: null, logoIconsAt: null });
+      expect(deleted.filter(isLogoKey)).toEqual([key]);
+      expect(deleted).toHaveLength(1 + CLINIC_ICONS.length);
+    });
+  });
+
+  describe('the icons derived from it', () => {
+    it('signs a slot for every icon, under the logo it was rendered from', async () => {
+      const upload = (await presign()).json() as PresignClinicLogoResponse;
+
+      expect(upload.maxIconSizeBytes).toBe(MAX_CLINIC_ICON_BYTES);
+      expect(upload.icons.map((icon) => icon.name)).toEqual(CLINIC_ICONS.map((icon) => icon.name));
+
+      for (const icon of upload.icons) {
+        expect(icon.uploadUrl).toContain(`${upload.key}/icons/${icon.name}`);
+        expect(icon.mime).toBe(clinicIcon(icon.name)?.mime);
+      }
+    });
+
+    it('records the set once every icon is there, and serves the tab mark to a stranger', async () => {
+      const upload = (await presign()).json() as PresignClinicLogoResponse;
+      const confirmed = await confirm(upload.key);
+
+      expect((confirmed.json() as Clinic).logoIconsAt).not.toBeNull();
+
+      const branding = await context.app.inject({ method: 'GET', url: '/clinic/branding' });
+      expect((branding.json() as ClinicBranding).hasIcons).toBe(true);
+
+      // No token: a browser fetches a favicon and a manifest icon without one.
+      const icon = await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' });
+
+      expect(icon.statusCode).toBe(302);
+      expect(icon.headers['location']).toContain(`${upload.key}/icons/favicon.ico`);
+      expect(icon.headers['cache-control']).toContain('max-age=');
+    });
+
+    // The browser that could not draw them still gets its logo; the tab falls back to the
+    // product's mark rather than the upload failing.
+    it('takes a logo that arrived with no icons at all, and says so', async () => {
+      storedIcon = () => null;
+
+      const upload = (await presign()).json() as PresignClinicLogoResponse;
+      const confirmed = await confirm(upload.key);
+
+      expect(confirmed.statusCode).toBe(200);
+      expect((confirmed.json() as Clinic).logoIconsAt).toBeNull();
+
+      const branding = await context.app.inject({ method: 'GET', url: '/clinic/branding' });
+      expect((branding.json() as ClinicBranding).hasIcons).toBe(false);
+
+      expect(
+        (await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' })).statusCode,
+      ).toBe(404);
+    });
+
+    it('refuses a half-written set, and keeps neither the logo nor the icons', async () => {
+      storedIcon = (name) =>
+        name === 'favicon.ico' ? null : { sizeBytes: 3_000, mime: clinicIcon(name)?.mime };
+
+      const upload = (await presign()).json() as PresignClinicLogoResponse;
+
+      expect((await confirm(upload.key)).statusCode).toBe(400);
+      expect(deleted).toContain(upload.key);
+      expect(deleted).toHaveLength(1 + CLINIC_ICONS.length);
+    });
+
+    it('refuses an icon whose bytes are not the type its slot was signed for', async () => {
+      storedIcon = () => ({ sizeBytes: 3_000, mime: 'application/zip' });
+
+      const upload = (await presign()).json() as PresignClinicLogoResponse;
+
+      expect((await confirm(upload.key)).statusCode).toBe(400);
+    });
+
+    it('refuses an icon over the ceiling', async () => {
+      storedIcon = (name) => ({
+        sizeBytes: MAX_CLINIC_ICON_BYTES + 1,
+        mime: clinicIcon(name)?.mime,
+      });
+
+      const upload = (await presign()).json() as PresignClinicLogoResponse;
+
+      expect((await confirm(upload.key)).statusCode).toBe(400);
+    });
+
+    it('answers nothing for a name the app never generates', async () => {
+      await confirm(((await presign()).json() as PresignClinicLogoResponse).key);
+
+      const response = await context.app.inject({
+        method: 'GET',
+        url: '/clinic/icon/..%2F..%2Flogo.png',
+      });
+
+      expect(response.statusCode).toBe(404);
     });
   });
 

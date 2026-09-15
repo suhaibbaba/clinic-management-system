@@ -1,4 +1,17 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
+  Res,
+} from '@nestjs/common';
+import type { FastifyReply } from 'fastify';
 import {
   AUDIT_ACTION,
   confirmClinicLogoSchema,
@@ -21,6 +34,10 @@ import { Public } from '@api/common/decorators/public.decorator';
 import { Roles } from '@api/common/decorators/roles.decorator';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 
+// Short: the signed URL behind the redirect lasts days, so this only decides how often a browser
+// asks again after the clinic changes its logo.
+const ICON_MAX_AGE_SECONDS = 300;
+
 class UpdateClinicDto extends createZodDto(updateClinicSchema) {}
 class PresignLogoDto extends createZodDto(presignClinicLogoSchema) {}
 class ConfirmLogoDto extends createZodDto(confirmClinicLogoSchema) {}
@@ -37,6 +54,23 @@ export class ClinicsController {
   @Public()
   branding(): Promise<ClinicBranding> {
     return this.clinicsService.branding();
+  }
+
+  // The tab mark and the home-screen icons: public because a browser fetches a favicon and a
+  // manifest icon with no token, and a redirect rather than a proxy so the bytes still never pass
+  // through the API. The signed URL is window-stable, so the browser caches it like any image.
+  @Get('icon/:name')
+  @Public()
+  async icon(@Param('name') name: string, @Res() reply: FastifyReply): Promise<void> {
+    const url = await this.clinicsService.iconUrl(name);
+
+    if (!url) {
+      throw new NotFoundException('Resource not found');
+    }
+
+    reply
+      .header('cache-control', `public, max-age=${ICON_MAX_AGE_SECONDS}`)
+      .redirect(url, HttpStatus.FOUND);
   }
 
   @Get()

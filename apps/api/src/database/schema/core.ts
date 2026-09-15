@@ -48,6 +48,9 @@ export const clinics = pgTable(
     slug: text('slug').notNull(),
     /** R2 object key — never a public URL. */
     logoKey: text('logo_key'),
+    // The derived icons live under `${logo_key}/icons/`, so their location cannot drift from the
+    // logo they were rendered from; this only records that the set uploaded and verified.
+    logoIconsAt: timestamp('logo_icons_at', { withTimezone: true }),
     phone: text('phone'),
     email: text('email'),
     address: text('address'),

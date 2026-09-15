@@ -8,7 +8,10 @@ import {
 import { and, eq, isNull } from 'drizzle-orm';
 import {
   ALLOWED_CLINIC_LOGO_MIME_TYPES,
+  CLINIC_ICONS,
+  MAX_CLINIC_ICON_BYTES,
   MAX_CLINIC_LOGO_BYTES,
+  clinicIcon,
   type Clinic,
   type ClinicBranding,
   type ConfirmClinicLogoInput,
@@ -28,6 +31,9 @@ type ClinicRow = typeof clinics.$inferSelect;
 export const CLINICS_ENTITY = 'clinics';
 
 const LOGO_CATEGORY = 'branding';
+
+/** Derived, never stored: the icons for a logo are always under that logo's own key. */
+const iconKey = (logoKey: string, name: string): string => `${logoKey}/icons/${name}`;
 
 // `clinics` is the one table without a `clinic_id` — it is the tenant — so scoping is `id =
 // caller.clinicId` rather than `ClinicScopeService`.
@@ -61,7 +67,12 @@ export class ClinicsService implements OnModuleInit {
   // say which they mean, and the same silence hides how many exist.
   async branding(): Promise<ClinicBranding> {
     const rows = await this.db
-      .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, logoKey: clinics.logoKey })
+      .select({
+        nameAr: clinics.nameAr,
+        nameEn: clinics.nameEn,
+        logoKey: clinics.logoKey,
+        logoIconsAt: clinics.logoIconsAt,
+      })
       .from(clinics)
       .where(isNull(clinics.deletedAt))
       .limit(2);
@@ -69,13 +80,38 @@ export class ClinicsService implements OnModuleInit {
     const [only] = rows;
 
     if (rows.length !== 1 || !only) {
-      return { name: null, logoUrl: null };
+      return { name: null, logoUrl: null, hasIcons: false };
     }
 
     return {
       name: { ar: only.nameAr, en: only.nameEn },
       logoUrl: await this.signLogo(only.logoKey),
+      hasIcons: only.logoIconsAt !== null,
     };
+  }
+
+  // The same single-clinic rule as `branding`, for the same reason: a stranger asking a
+  // multi-clinic deployment for "the" tab mark has not named which one.
+  async iconUrl(name: string): Promise<string | null> {
+    const icon = clinicIcon(name);
+
+    if (!icon) {
+      return null;
+    }
+
+    const rows = await this.db
+      .select({ logoKey: clinics.logoKey, logoIconsAt: clinics.logoIconsAt })
+      .from(clinics)
+      .where(isNull(clinics.deletedAt))
+      .limit(2);
+
+    const [only] = rows;
+
+    if (rows.length !== 1 || !only?.logoKey || only.logoIconsAt === null) {
+      return null;
+    }
+
+    return (await this.storage.createBrandingUrl(iconKey(only.logoKey, icon.name))).url;
   }
 
   // The key is built from the caller's own clinic id, never taken from the request, so an upload
@@ -94,11 +130,22 @@ export class ClinicsService implements OnModuleInit {
 
     const upload = await this.storage.createUploadUrl(key, input.mime);
 
+    const icons = await Promise.all(
+      CLINIC_ICONS.map(async (icon) => ({
+        name: icon.name,
+        mime: icon.mime,
+        uploadUrl: (await this.storage.createUploadUrl(iconKey(key, icon.name), icon.mime))
+          .uploadUrl,
+      })),
+    );
+
     return {
       key: upload.key,
       uploadUrl: upload.uploadUrl,
       expiresAt: upload.expiresAt.toISOString(),
       maxSizeBytes: MAX_CLINIC_LOGO_BYTES,
+      icons,
+      maxIconSizeBytes: MAX_CLINIC_ICON_BYTES,
     };
   }
 
@@ -126,10 +173,17 @@ export class ClinicsService implements OnModuleInit {
       );
     }
 
-    const row = await this.setLogoKey(actor, input.key);
+    const icons = await this.inspectIcons(input.key);
+
+    if (icons === 'partial') {
+      await this.discardLogo(input.key);
+      throw new BadRequestException('The generated icon set is incomplete or invalid');
+    }
+
+    const row = await this.setLogoKey(actor, input.key, icons === 'complete' ? new Date() : null);
 
     if (existing.logoKey && existing.logoKey !== input.key) {
-      await this.storage.deleteObject(existing.logoKey);
+      await this.discardLogo(existing.logoKey);
     }
 
     return this.withLogoUrl(row);
@@ -137,10 +191,10 @@ export class ClinicsService implements OnModuleInit {
 
   async removeLogo(actor: AuthenticatedUser): Promise<Clinic> {
     const existing = await this.findOwnOrFail(actor.clinicId);
-    const row = await this.setLogoKey(actor, null);
+    const row = await this.setLogoKey(actor, null, null);
 
     if (existing.logoKey) {
-      await this.storage.deleteObject(existing.logoKey);
+      await this.discardLogo(existing.logoKey);
     }
 
     return this.withLogoUrl(row);
@@ -174,10 +228,44 @@ export class ClinicsService implements OnModuleInit {
     return this.withLogoUrl(row);
   }
 
-  private async setLogoKey(actor: AuthenticatedUser, key: string | null): Promise<ClinicRow> {
+  // All or nothing, and a logo may arrive with none: a browser that generated no icons still gets
+  // its logo and falls back to the product mark, but half a set is a failure the admin should see.
+  private async inspectIcons(logoKey: string): Promise<'complete' | 'none' | 'partial'> {
+    const stored = await Promise.all(
+      CLINIC_ICONS.map(async (icon) => {
+        const object = await this.storage.statObject(iconKey(logoKey, icon.name));
+
+        return (
+          object !== null &&
+          object.mime === icon.mime &&
+          object.sizeBytes > 0 &&
+          object.sizeBytes <= MAX_CLINIC_ICON_BYTES
+        );
+      }),
+    );
+
+    if (stored.every(Boolean)) {
+      return 'complete';
+    }
+
+    return stored.some(Boolean) ? 'partial' : 'none';
+  }
+
+  private async discardLogo(logoKey: string): Promise<void> {
+    await Promise.all([
+      this.storage.deleteObject(logoKey),
+      ...CLINIC_ICONS.map((icon) => this.storage.deleteObject(iconKey(logoKey, icon.name))),
+    ]);
+  }
+
+  private async setLogoKey(
+    actor: AuthenticatedUser,
+    key: string | null,
+    iconsAt: Date | null,
+  ): Promise<ClinicRow> {
     const [row] = await this.db
       .update(clinics)
-      .set({ logoKey: key, updatedAt: new Date(), updatedBy: actor.id })
+      .set({ logoKey: key, logoIconsAt: iconsAt, updatedAt: new Date(), updatedBy: actor.id })
       .where(and(eq(clinics.id, actor.clinicId), isNull(clinics.deletedAt)))
       .returning();
 
@@ -224,6 +312,7 @@ function toClinic(row: ClinicRow): Omit<Clinic, 'logoUrl'> {
     id: row.id,
     name: { ar: row.nameAr, en: row.nameEn },
     logoKey: row.logoKey,
+    logoIconsAt: row.logoIconsAt?.toISOString() ?? null,
     phone: row.phone,
     email: row.email,
     address: row.address,
