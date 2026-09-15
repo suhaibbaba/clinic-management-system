@@ -1,5 +1,6 @@
 import { CLINIC_FAVICON_SIZES, CLINIC_ICONS } from '@clinic/shared';
 
+import { opaqueBounds, type Bounds } from '@web/features/clinic/trim';
 import { packIco } from '@web/features/clinic/ico';
 
 // Android crops a maskable icon to a circle or a squircle, and the guaranteed region is a circle
@@ -9,6 +10,9 @@ const MASKABLE_INSET = 0.1;
 /** iOS composites a transparent home-screen icon onto black, so this one is filled and inset. */
 const APPLE_INSET = 0.08;
 
+/** Big enough to place an edge within a pixel of the full-size one, small enough to scan cheaply. */
+const TRIM_SCAN_SIZE = 256;
+
 export type ClinicIconSet = ReadonlyMap<string, Blob>;
 
 /** Renders the tab mark and the home-screen icons from whichever picture the icons come from. */
@@ -16,6 +20,7 @@ export async function buildClinicIconSet(file: Blob): Promise<ClinicIconSet> {
   const source = await createImageBitmap(file);
 
   try {
+    const content = trimmedBounds(source);
     const paper = paperColour();
     const set = new Map<string, Blob>();
 
@@ -29,7 +34,7 @@ export async function buildClinicIconSet(file: Blob): Promise<ClinicIconSet> {
 
       set.set(
         icon.name,
-        await render(source, icon.size, {
+        await render(source, content, icon.size, {
           inset: maskable ? MASKABLE_INSET : apple ? APPLE_INSET : 0,
           background: maskable || apple ? paper : null,
           fit: maskable ? 'circle' : 'box',
@@ -42,7 +47,7 @@ export async function buildClinicIconSet(file: Blob): Promise<ClinicIconSet> {
         size,
         png: new Uint8Array(
           await (
-            await render(source, size, { inset: 0, background: null, fit: 'box' })
+            await render(source, content, size, { inset: 0, background: null, fit: 'box' })
           ).arrayBuffer(),
         ),
       })),
@@ -58,6 +63,7 @@ export async function buildClinicIconSet(file: Blob): Promise<ClinicIconSet> {
 
 async function render(
   source: ImageBitmap,
+  content: Bounds,
   size: number,
   options: {
     readonly inset: number;
@@ -83,15 +89,59 @@ async function render(
   const safe = size * (1 - options.inset * 2);
   const scale =
     options.fit === 'circle'
-      ? safe / Math.hypot(source.width, source.height)
-      : Math.min(safe / source.width, safe / source.height);
-  const width = source.width * scale;
-  const height = source.height * scale;
+      ? safe / Math.hypot(content.width, content.height)
+      : Math.min(safe / content.width, safe / content.height);
+  const width = content.width * scale;
+  const height = content.height * scale;
 
   context.imageSmoothingQuality = 'high';
-  context.drawImage(source, (size - width) / 2, (size - height) / 2, width, height);
+  context.drawImage(
+    source,
+    content.x,
+    content.y,
+    content.width,
+    content.height,
+    (size - width) / 2,
+    (size - height) / 2,
+    width,
+    height,
+  );
 
   return toBlob(canvas);
+}
+
+// An adaptive-icon foreground carries its safe-zone padding baked in, and a wordmark exported from
+// a design tool carries its artboard margin. Fitting the frame would keep both and shrink the ink.
+function trimmedBounds(source: ImageBitmap): Bounds {
+  const scale = Math.min(1, TRIM_SCAN_SIZE / Math.max(source.width, source.height));
+  const width = Math.max(1, Math.round(source.width * scale));
+  const height = Math.max(1, Math.round(source.height * scale));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+
+  if (!context) {
+    return { x: 0, y: 0, width: source.width, height: source.height };
+  }
+
+  context.drawImage(source, 0, 0, width, height);
+
+  const scanned = opaqueBounds(context.getImageData(0, 0, width, height).data, width, height);
+  // One scanned pixel of slack each way, so a soft edge is not shaved off by the downscale.
+  const pad = 1 / scale;
+
+  const x = Math.max(0, Math.floor(scanned.x / scale - pad));
+  const y = Math.max(0, Math.floor(scanned.y / scale - pad));
+
+  return {
+    x,
+    y,
+    width: Math.min(source.width - x, Math.ceil(scanned.width / scale + pad * 2)),
+    height: Math.min(source.height - y, Math.ceil(scanned.height / scale + pad * 2)),
+  };
 }
 
 function toBlob(canvas: HTMLCanvasElement): Promise<Blob> {
