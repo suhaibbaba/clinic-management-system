@@ -209,7 +209,7 @@ function Board({
             {isLoading && <SkeletonCard count={2} />}
 
             {!isLoading && column.length === 0 && (
-              <p className="rounded-panel border border-dashed border-line px-3 py-4 text-center text-label text-ink-subtle">
+              <p className="rounded-panel border border-dashed border-line px-3 py-4 text-center text-label text-ink-muted">
                 {t('labs.orders.columnEmpty')}
               </p>
             )}

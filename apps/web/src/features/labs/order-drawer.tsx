@@ -282,7 +282,9 @@ function OrderHistory({
 
       {audited.length > 0 && (
         <details className="rounded-panel bg-inset px-3 py-2">
-          <summary className="cursor-pointer text-label text-ink-muted">
+          {/* 18px of disclosure is under the target a thumb needs; the padding grows the box and
+              the negative margin keeps the row where it was. */}
+          <summary className="-my-3 cursor-pointer py-3 text-label text-ink-muted lg:my-0 lg:py-0">
             {t('labs.order.history.audit', { count: audited.length })}
           </summary>
 

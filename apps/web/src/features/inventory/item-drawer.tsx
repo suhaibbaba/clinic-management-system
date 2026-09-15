@@ -300,7 +300,7 @@ function History({
                 <Ltr
                   className={cn(
                     'font-medium tabular-nums',
-                    movement.quantity.startsWith('-') ? 'text-danger-600' : 'text-success-700',
+                    movement.quantity.startsWith('-') ? 'text-danger-600' : 'text-success-900',
                   )}
                 >
                   {movement.quantity.startsWith('-') ? movement.quantity : `+${movement.quantity}`}
@@ -339,7 +339,7 @@ function History({
               <button
                 type="button"
                 onClick={() => onOpenPatient(movement.patientId as string)}
-                className="mt-1 cursor-pointer text-label font-medium text-primary-700 hover:underline"
+                className="-my-3 cursor-pointer py-3 text-label font-medium text-primary-700 hover:underline lg:my-0 lg:mt-1 lg:py-0"
               >
                 {movement.patientName}
                 {movement.procedureName ? ` — ${movement.procedureName}` : ''}
