@@ -31,6 +31,11 @@ export function useUpdateClinic() {
   });
 }
 
+/** Never retried: a link that cannot be resolved once will not resolve on a second try either. */
+export function useResolveLocation() {
+  return useMutation({ mutationFn: (url: string) => clinicApi.resolveLocation(url), retry: false });
+}
+
 // Cached for the session and never retried: a sign-in page that spins because branding is slow is
 // worse than one showing the clinic's initial.
 export function useClinicBranding(enabled = true): UseQueryResult<ClinicBranding> {

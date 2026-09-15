@@ -3,6 +3,7 @@ import type {
   ClinicBranding,
   PresignClinicLogoInput,
   PresignClinicLogoResponse,
+  ResolvedLocation,
   UpdateClinicInput,
 } from '@clinic/shared';
 
@@ -14,6 +15,10 @@ export const clinicApi = {
     apiRequest('/clinic', { method: 'PATCH', body }),
   /** No token: the sign-in screen draws this before anybody has one. */
   branding: (): Promise<ClinicBranding> => apiRequest('/clinic/branding'),
+  /** A shortened map link hides its coordinates behind a redirect only the API can follow. */
+  resolveLocation: (url: string): Promise<ResolvedLocation> =>
+    apiRequest('/clinic/location/resolve', { method: 'POST', body: { url } }),
+
   presignLogo: (body: PresignClinicLogoInput): Promise<PresignClinicLogoResponse> =>
     apiRequest('/clinic/logo/presign', { method: 'POST', body }),
   confirmLogo: (key: string): Promise<Clinic> =>

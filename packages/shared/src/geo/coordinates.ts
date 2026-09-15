@@ -20,19 +20,24 @@ const inRange = (latitude: number, longitude: number): boolean =>
   Math.abs(latitude) <= 90 &&
   Math.abs(longitude) <= 180;
 
-// `@lat,lng` is Google's viewport centre and `q=`/`ll=`/`daddr=` the pinned place; OSM puts it in
-// the fragment. Ordered so an explicit pin beats the viewport when a URL carries both.
+// `@lat,lng` is Google's viewport centre and `q=`/`ll=`/`daddr=` the pinned place; `/maps/search/`
+// is where a shortened link lands, with the pair `+`-separated; OSM puts it in the fragment.
+// Ordered so an explicit pin beats the viewport when a URL carries both — a Google "place" link
+// always does, and the two can be a street apart.
+const NUMBER = '(-?\\d{1,3}(?:\\.\\d+)?)';
+
 const PATTERNS: readonly RegExp[] = [
-  /[?&](?:q|ll|daddr|destination|sll)=(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)/i,
-  /!3d(-?\d{1,3}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/,
-  /@(-?\d{1,3}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)/,
-  /#map=\d+\/(-?\d{1,3}(?:\.\d+)?)\/(-?\d{1,3}(?:\.\d+)?)/,
-  /^\s*(-?\d{1,3}(?:\.\d+)?)\s*[,\s]\s*(-?\d{1,3}(?:\.\d+)?)\s*$/,
+  new RegExp(`[?&](?:q|ll|daddr|destination|sll)=${NUMBER}\\s*,\\s*${NUMBER}`, 'i'),
+  new RegExp(`!3d${NUMBER}!4d${NUMBER}`),
+  new RegExp(`/maps/(?:search|dir|place)/${NUMBER}\\s*,\\s*\\+?\\s*${NUMBER}`),
+  new RegExp(`@${NUMBER},${NUMBER}`),
+  new RegExp(`#map=\\d+/${NUMBER}/${NUMBER}`),
+  new RegExp(`^\\s*${NUMBER}\\s*[,\\s]\\s*${NUMBER}\\s*$`),
 ];
 
 /**
- * A shortened link carries no coordinates at all — they are behind a redirect only the network can
- * follow — so the screen says to open it first rather than failing silently.
+ * A shortened link carries no coordinates of its own — they are behind a redirect. The API resolves
+ * these, because a browser cannot: the short host sends no CORS headers.
  */
 export const isShortMapLink = (value: string): boolean =>
   /(?:maps\.app\.goo\.gl|goo\.gl\/maps|g\.co\/kgs)/i.test(value);

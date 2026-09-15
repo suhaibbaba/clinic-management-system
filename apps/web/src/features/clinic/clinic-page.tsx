@@ -22,7 +22,7 @@ import {
   useToast,
 } from '@clinic/ui';
 import { WorkingHours } from '@web/components/schedule/working-hours';
-import { isShortMapLink, mapsUrl, parseCoordinates } from '@web/features/clinic/coordinates';
+import { isShortMapLink, mapsUrl, parseCoordinates } from '@clinic/shared';
 import { SkeletonForm } from '@clinic/ui/components/skeleton';
 import { ClosuresPanel } from '@web/features/schedule/closures-panel';
 import { useSession } from '@web/features/auth/session';
@@ -30,6 +30,7 @@ import { useApiVersion, WEB_VERSION } from '@web/features/clinic/api-version';
 import {
   useClinic,
   useRemoveClinicLogo,
+  useResolveLocation,
   useUpdateClinic,
   useUploadClinicLogo,
 } from '@web/features/clinic/queries';
@@ -50,6 +51,7 @@ export function ClinicPage(): JSX.Element {
   const clinic = useClinic();
   const showSkeleton = useDelayedLoading(clinic.isPending);
   const updateClinic = useUpdateClinic();
+  const resolveLocation = useResolveLocation();
 
   // Both spellings: this name heads every printed sheet, and a receipt is
   // produced in the *clinic's* document language rather than the reader's.
@@ -92,7 +94,34 @@ export function ClinicPage(): JSX.Element {
   // Derived rather than stored: the box holds what was pasted, and the pin is whatever can be read
   // out of it — so the screen can show what it understood before anything is saved.
   const pin = parseCoordinates(location);
-  const unreadable = location.trim() !== '' && pin === null;
+  const shortLink = pin === null && isShortMapLink(location);
+  const unreadable = location.trim() !== '' && pin === null && !shortLink;
+
+  // A shortened link is what the Maps app's share button produces, so it is the common case rather
+  // than an edge one. The browser cannot follow it — the short host sends no CORS headers — so the
+  // API does, and the box is rewritten with what came back.
+  useEffect(() => {
+    if (!shortLink) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void resolveLocation
+      .mutateAsync(location.trim())
+      .then((resolved) => {
+        if (!cancelled) {
+          setLocation(`${resolved.latitude}, ${resolved.longitude}`);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+    // Keyed on the link alone: the mutation's identity changes on every state it passes through,
+    // and following that would re-run this on its own result.
+  }, [shortLink, location]);
 
   const save = async (): Promise<void> => {
     try {
@@ -196,11 +225,17 @@ export function ClinicPage(): JSX.Element {
             <FormField
               label="clinic.location"
               htmlFor="clinic-location"
-              hint={unreadable ? undefined : 'clinic.locationHint'}
+              hint={
+                unreadable
+                  ? undefined
+                  : shortLink
+                    ? 'clinic.locationResolving'
+                    : 'clinic.locationHint'
+              }
               errorKey={
                 unreadable
-                  ? isShortMapLink(location)
-                    ? 'clinic.locationShortLink'
+                  ? resolveLocation.isError
+                    ? 'clinic.locationShortLinkFailed'
                     : 'clinic.locationUnreadable'
                   : undefined
               }

@@ -92,6 +92,16 @@ const coordinateSchema = (limit: number) =>
 export const latitudeSchema = coordinateSchema(90);
 export const longitudeSchema = coordinateSchema(180);
 
+/** What the settings screen sends when somebody pastes a shortened map link. */
+export const resolveLocationSchema = z.object({ url: z.url().max(2048) });
+export type ResolveLocationInput = z.infer<typeof resolveLocationSchema>;
+
+export const resolvedLocationSchema = z.object({
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+});
+export type ResolvedLocation = z.infer<typeof resolvedLocationSchema>;
+
 export const clinicSchema = z.object({
   id: z.uuid(),
   name: personNameSchema,
