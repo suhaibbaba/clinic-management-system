@@ -24,6 +24,7 @@ import {
 import { WorkingHours } from '@web/components/schedule/working-hours';
 import { isShortMapLink, mapsUrl, parseCoordinates } from '@clinic/shared';
 import { SkeletonForm } from '@clinic/ui/components/skeleton';
+import { InstallCard } from '@web/components/pwa/install-card';
 import { ClosuresPanel } from '@web/features/schedule/closures-panel';
 import { useSession } from '@web/features/auth/session';
 import { useApiVersion, WEB_VERSION } from '@web/features/clinic/api-version';
@@ -528,6 +529,8 @@ function AboutSection(): JSX.Element {
       {mismatched && (
         <p className="mt-2 text-label text-ink-subtle">{t('clinic.versionMismatch')}</p>
       )}
+
+      <InstallCard />
     </section>
   );
 }

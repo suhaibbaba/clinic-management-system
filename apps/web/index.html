@@ -2,10 +2,18 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- `viewport-fit=cover` so a standalone window can clear the notch and the home indicator. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- Per clinic, and served by the API: a home screen shows the clinic's name, not the product's. -->
+    <link rel="manifest" href="/api/clinic/manifest.webmanifest" />
     <meta name="theme-color" content="#1b6f97" />
-    <title>نظام إدارة العيادة</title>
+    <!-- iOS reads neither the manifest's `display` nor its icons; these are its half of the same
+         two settings, and `apple-touch-icon` is set alongside the tab mark. -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>Clinic Managment System</title>
   </head>
   <body>
     <div id="root"></div>

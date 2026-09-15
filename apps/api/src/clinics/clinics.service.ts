@@ -9,19 +9,24 @@ import { and, eq, isNull } from 'drizzle-orm';
 import {
   ALLOWED_CLINIC_LOGO_MIME_TYPES,
   CLINIC_ICONS,
+  MAX_APP_SHORT_NAME_LENGTH,
   MAX_CLINIC_ICON_BYTES,
   MAX_CLINIC_LOGO_BYTES,
   clinicIcon,
   type Clinic,
   type ClinicBranding,
+  type ClinicManifest,
   type ConfirmClinicAppIconInput,
   type ConfirmClinicLogoInput,
+  type DocumentSettings,
   type PresignClinicAppIconInput,
   type PresignClinicIconsResponse,
   type PresignClinicLogoInput,
   type PresignClinicLogoResponse,
   type UpdateClinicInput,
 } from '@clinic/shared';
+
+import { documentSettings } from '@clinic/shared';
 
 import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
@@ -39,6 +44,17 @@ const LOGO_CATEGORY = 'branding';
 const iconKey = (sourceKey: string, name: string): string => `${sourceKey}/icons/${name}`;
 
 /** A wordmark has no legible 16px form, so a clinic may supply a square to render the icons from. */
+/** Whatever a home screen should read, in the clinic's own document language. */
+function appName(row: { nameAr: string; nameEn: string; settings: unknown } | undefined): string {
+  if (!row) {
+    return '';
+  }
+
+  const language: DocumentSettings['language'] = documentSettings(row.settings).language;
+
+  return language === 'ar' ? row.nameAr : row.nameEn;
+}
+
 const iconSource = (row: { logoKey: string | null; appIconKey: string | null }): string | null =>
   row.appIconKey ?? row.logoKey;
 
@@ -77,6 +93,7 @@ export class ClinicsService implements OnModuleInit {
       .select({
         nameAr: clinics.nameAr,
         nameEn: clinics.nameEn,
+        settings: clinics.settings,
         logoKey: clinics.logoKey,
         logoIconsAt: clinics.logoIconsAt,
       })
@@ -87,13 +104,57 @@ export class ClinicsService implements OnModuleInit {
     const [only] = rows;
 
     if (rows.length !== 1 || !only) {
-      return { name: null, logoUrl: null, iconsAt: null };
+      return { name: null, logoUrl: null, iconsAt: null, appName: '' };
     }
 
     return {
       name: { ar: only.nameAr, en: only.nameEn },
       logoUrl: await this.signLogo(only.logoKey),
       iconsAt: only.logoIconsAt?.toISOString() ?? null,
+      appName: appName(only),
+    };
+  }
+
+  // A home screen shows one label, so the clinic's own document language picks it rather than the
+  // reader's — the same rule a printed sheet follows.
+  async manifest(): Promise<ClinicManifest> {
+    const rows = await this.db
+      .select({
+        nameAr: clinics.nameAr,
+        nameEn: clinics.nameEn,
+        settings: clinics.settings,
+        logoKey: clinics.logoKey,
+        appIconKey: clinics.appIconKey,
+        logoIconsAt: clinics.logoIconsAt,
+      })
+      .from(clinics)
+      .where(isNull(clinics.deletedAt))
+      .limit(2);
+
+    const only = rows.length === 1 ? rows[0] : undefined;
+    const language = only ? documentSettings(only.settings).language : 'ar';
+    const name = appName(only);
+    const version = only?.logoIconsAt?.toISOString();
+
+    return {
+      name,
+      short_name: name.slice(0, MAX_APP_SHORT_NAME_LENGTH).trim(),
+      lang: language,
+      dir: language === 'ar' ? 'rtl' : 'ltr',
+      start_url: '/',
+      scope: '/',
+      display: 'standalone',
+      // Installability wants a 192 and a 512; without a rendered set there are none to offer, and
+      // the browser declines to install rather than being handed a broken address.
+      icons:
+        version === undefined
+          ? []
+          : CLINIC_ICONS.filter((icon) => icon.size >= 192).map((icon) => ({
+              src: `/api/clinic/icon/${icon.name}?v=${encodeURIComponent(version)}`,
+              sizes: `${icon.size}x${icon.size}`,
+              type: icon.mime,
+              purpose: icon.purpose,
+            })),
     };
   }
 

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { applyDocumentIcon } from '@web/lib/document-icon';
+import { applyAppTitle, applyDocumentIcon } from '@web/lib/document-branding';
 
 const hrefs = (rel: string): string[] =>
   [...document.head.querySelectorAll<HTMLLinkElement>(`link[rel="${rel}"]`)].map(
@@ -51,5 +51,34 @@ describe('applyDocumentIcon', () => {
 
     expect(hrefs('icon')).toEqual([`/api/clinic/icon/favicon.ico?v=${encodeURIComponent(AT)}`]);
     expect(hrefs('apple-touch-icon')).toHaveLength(1);
+  });
+});
+
+describe('applyAppTitle', () => {
+  const title = () =>
+    document.head.querySelector('meta[name="apple-mobile-web-app-title"]')?.getAttribute('content');
+
+  it('names the home screen after the clinic', () => {
+    applyAppTitle('عيادة أبو عبيد');
+
+    expect(title()).toBe('عيادة أبو عبيد');
+  });
+
+  it('writes one tag however often it runs', () => {
+    applyAppTitle('First');
+    applyAppTitle('Second');
+
+    expect(document.head.querySelectorAll('meta[name="apple-mobile-web-app-title"]')).toHaveLength(
+      1,
+    );
+    expect(title()).toBe('Second');
+  });
+
+  // Nothing is better than the product's name on a clinic's home screen.
+  it('leaves no tag when there is no clinic to name', () => {
+    applyAppTitle('Something');
+    applyAppTitle('');
+
+    expect(title()).toBeUndefined();
   });
 });
