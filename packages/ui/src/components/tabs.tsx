@@ -62,7 +62,7 @@ export function Tabs<TId extends string>({
               PILL_BASE,
               'min-h-(--control-h) shrink-0 cursor-pointer border-[1.5px] lg:h-(--control-h-sm) lg:min-h-0',
               // The fill settles; the press does not wait for it.
-              '[transition:background-color_250ms_ease-out,border-color_250ms_ease-out,color_250ms_ease-out,transform_120ms_ease-out]',
+              '[transition:background-color_250ms_ease-in-out,border-color_250ms_ease-in-out,color_250ms_ease-in-out,scale_120ms_ease-out]',
               'active:scale-95',
               selected
                 ? 'border-primary-600 bg-primary-600 text-ink-inverse'

@@ -67,7 +67,7 @@ export function Button({
         'whitespace-nowrap',
         // The fill settles over a quarter of a second; the press does not wait for it, or a button
         // would go soft under the finger.
-        '[transition:background-color_250ms_ease-out,border-color_250ms_ease-out,color_250ms_ease-out,transform_120ms_ease-out]',
+        '[transition:background-color_250ms_ease-in-out,border-color_250ms_ease-in-out,color_250ms_ease-in-out,scale_120ms_ease-out]',
         'active:scale-[0.98]',
         // Disabled is a solid muted fill with no edge, as a disabled field is. At 40% opacity a
         // white label on the primary fill was barely there at all.

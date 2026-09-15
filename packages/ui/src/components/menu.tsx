@@ -123,7 +123,7 @@ export function RowMenu({ label, children }: RowMenuProps): JSX.Element {
         className={cn(
           'inline-grid size-(--control-h) shrink-0 cursor-pointer place-items-center',
           'lg:size-(--control-h-sm) rounded-control border border-line bg-surface text-ink-muted',
-          'transition-colors duration-[250ms] ease-out',
+          'transition-colors duration-[250ms] ease-in-out',
           'hover:bg-inset hover:border-primary-600 hover:text-primary-600',
           'data-[state=open]:border-primary-600 data-[state=open]:text-primary-600',
         )}

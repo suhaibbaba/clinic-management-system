@@ -64,7 +64,7 @@ export function EntityCard({
       data-entity-card
       className={cn(
         'flex flex-col border border-line rounded-card bg-surface p-4 shadow-card',
-        'transition-[box-shadow,background-color,border-color] duration-[250ms] ease-out',
+        'transition duration-[250ms] ease-in-out',
         action !== undefined && 'hover:shadow-float',
         isSelected && 'bg-selected outline outline-offset-[-1px] outline-selected-line',
         className,
@@ -142,7 +142,7 @@ export function EntityCard({
               'inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill',
               'lg:size-(--control-h-sm)',
               'bg-primary-600 text-ink-inverse hover:bg-primary-700',
-              'transition-[background-color,transform] duration-150 active:scale-95',
+              '[transition:background-color_250ms_ease-in-out,scale_120ms_ease-out] active:scale-95',
               'disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100',
             )}
           >

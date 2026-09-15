@@ -53,7 +53,9 @@ export function StatCard({
       data-part="stat-card"
       className={cn(
         'rounded-card border border-line bg-surface p-[18px_20px] shadow-card',
-        'transition-[box-shadow,transform] duration-[250ms] ease-out hover:-translate-y-0.5 hover:shadow-card-hover',
+        // `transition`, which is Tailwind's curated list: it carries `translate` and `scale` — the
+        // properties a lift and a press actually move — along with the shadow and the colours.
+        'transition duration-[250ms] ease-in-out hover:-translate-y-0.5 hover:shadow-card-hover',
         className,
       )}
     >

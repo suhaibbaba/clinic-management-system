@@ -88,7 +88,7 @@ export function Chip({
       className={cn(
         PILL_BASE,
         'h-(--control-h) shrink-0 cursor-pointer border-[1.5px]',
-        'transition-[background-color,border-color,color] duration-[250ms] ease-out',
+        'transition-[background-color,border-color,color] duration-[250ms] ease-in-out',
         disabled && 'cursor-not-allowed border-transparent bg-inset text-ink-faint',
         !disabled &&
           (selected
