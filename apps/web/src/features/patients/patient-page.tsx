@@ -95,14 +95,14 @@ export function PatientPage(): JSX.Element {
 
             <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 lg:grid-cols-3">
               <div className="min-w-0">
-                <dt className="text-meta text-ink-muted">{t('patients.fileNumber')}</dt>
+                <dt className="text-value text-ink-muted">{t('patients.fileNumber')}</dt>
                 <Ltr as="dd" className="mt-0.5 truncate text-value text-ink tabular-nums">
                   {patient.data.fileNumber}
                 </Ltr>
               </div>
 
               <div className="min-w-0">
-                <dt className="text-meta text-ink-muted">{t('patients.age')}</dt>
+                <dt className="text-value text-ink-muted">{t('patients.age')}</dt>
                 <dd className="mt-0.5 truncate text-value text-ink">
                   {patient.data.dateOfBirth
                     ? t('patients.years', { count: ageInYears(patient.data.dateOfBirth) })
@@ -111,7 +111,7 @@ export function PatientPage(): JSX.Element {
               </div>
 
               <div className="min-w-0">
-                <dt className="text-meta text-ink-muted">{t('patients.phone')}</dt>
+                <dt className="text-value text-ink-muted">{t('patients.phone')}</dt>
                 {/* The 44px band is an absolutely positioned `::after`, and an `overflow-hidden`
                     ancestor cuts it down to the line box. */}
                 <dd className="mt-0.5 min-w-0 text-value text-ink">
