@@ -110,7 +110,13 @@ export const users = pgTable(
     phone: text('phone').notNull(),
     email: text('email'),
     /** argon2id. Never selected into a response or an audit entry. */
-    passwordHash: text('password_hash').notNull(),
+    // Nullable: an account created by an admin has no password until the person it belongs to
+    // chooses one through the link they were emailed. Null means "cannot sign in yet", which is the
+    // truth, rather than an unguessable hash that only looks like one.
+    passwordHash: text('password_hash'),
+    /** A SHA-256 of the activation or reset token — the token itself is only ever in the email. */
+    passwordTokenHash: text('password_token_hash'),
+    passwordTokenExpiresAt: timestamp('password_token_expires_at', { withTimezone: true }),
     role: userRoleEnum('role').notNull(),
     isActive: boolean('is_active').notNull().default(true),
     // The key and never a URL: what a client receives is a signed GET minted per response, so a

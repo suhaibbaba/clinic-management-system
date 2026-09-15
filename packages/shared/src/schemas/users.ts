@@ -11,6 +11,8 @@ export const userSchema = z.object({
   name: personNameSchema,
   phone: z.string(),
   email: z.string().nullable(),
+  /** False until they have chosen a password through the link they were sent. */
+  activated: z.boolean(),
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
   // Minted per response and expiring with the download TTL — the stored object key never leaves the
@@ -31,11 +33,18 @@ const userWritableFields = {
   isActive: z.boolean(),
 };
 
-export const createUserSchema = z.object({
-  ...userWritableFields,
-  password: passwordSchema,
-  isActive: z.boolean().default(true),
-});
+export const createUserSchema = z
+  .object({
+    ...userWritableFields,
+    // Optional now: an account with an email address is activated by its owner through a link, and
+    // nobody else ever knows the password. It stays available for staff with no address at all.
+    password: passwordSchema.optional(),
+    isActive: z.boolean().default(true),
+  })
+  .refine((input) => Boolean(input.email) || Boolean(input.password), {
+    message: 'Give an email address to invite by, or a password to set directly',
+    path: ['email'],
+  });
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 
 export const updateUserSchema = z

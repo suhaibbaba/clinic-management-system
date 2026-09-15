@@ -52,6 +52,9 @@ const safeColumns = {
   email: users.email,
   role: users.role,
   isActive: users.isActive,
+  // Not the hash — only whether there is one. A response never carries a credential, and the
+  // screen needs to know who is still waiting on their invitation.
+  activated: sql<boolean>`${users.passwordHash} is not null`.as('activated'),
   photoKey: users.photoKey,
   createdAt: users.createdAt,
   updatedAt: users.updatedAt,
@@ -117,7 +120,11 @@ export class UsersService implements OnModuleInit {
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<User> {
-    return this.presentOne(await this.findInClinicOrFail(actor.clinicId, id));
+    const row = await this.findInClinicOrFail(actor.clinicId, id);
+
+    // This one reads the whole row rather than the safe columns, so the flag is derived here
+    // instead of in the select. The hash still never leaves `present`.
+    return this.presentOne({ ...row, activated: row.passwordHash !== null });
   }
 
   async create(actor: AuthenticatedUser, input: CreateUserInput): Promise<User> {
@@ -135,7 +142,9 @@ export class UsersService implements OnModuleInit {
   ): Promise<SafeUserRow> {
     await this.assertIdentifiersAreFree(input.phone, input.email ?? null, undefined, executor);
 
-    const passwordHash = await this.passwordService.hash(input.password);
+    // Null when they are to be invited: the link they receive is what sets it, so nobody but the
+    // person it belongs to ever knows it.
+    const passwordHash = input.password ? await this.passwordService.hash(input.password) : null;
 
     const [row] = await executor
       .insert(users)
@@ -399,7 +408,10 @@ export class UsersService implements OnModuleInit {
   }
 }
 
-export type SafeUserRow = Pick<UserRow, keyof typeof safeColumns>;
+// `activated` is computed in the select rather than stored, so it is not a column to pick.
+export type SafeUserRow = Pick<UserRow, Exclude<keyof typeof safeColumns, 'activated'>> & {
+  activated: boolean;
+};
 
 // The orphan guard: a `doctor` user with no `doctors` row can sign in and has no calendar, no
 // schedule and no place in any list. Only `POST /doctors` makes one, and it always writes both.
@@ -416,6 +428,7 @@ function toUser(row: SafeUserRow, photoUrl: string | null): User {
     name: { ar: row.nameAr, en: row.nameEn },
     phone: row.phone,
     email: row.email,
+    activated: row.activated,
     role: row.role,
     isActive: row.isActive,
     photoUrl,

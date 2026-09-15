@@ -10,15 +10,18 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
+  forgotPasswordSchema,
   loginSchema,
   logoutSchema,
   refreshSchema,
+  setPasswordSchema,
   type AuthTokens,
   type LoginResponse,
 } from '@clinic/shared';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { createZodDto } from 'nestjs-zod';
 
+import { AccountInvitationsService } from '@api/email/account-invitations.service';
 import { AuthService } from '@api/auth/auth.service';
 import { clearRefreshCookie, readRefreshToken, setRefreshCookie } from '@api/auth/refresh-cookie';
 import { Public } from '@api/common/decorators/public.decorator';
@@ -27,6 +30,8 @@ import type { Env } from '@api/config/env.schema';
 class LoginDto extends createZodDto(loginSchema) {}
 class RefreshDto extends createZodDto(refreshSchema) {}
 class LogoutDto extends createZodDto(logoutSchema) {}
+class ForgotPasswordDto extends createZodDto(forgotPasswordSchema) {}
+class SetPasswordDto extends createZodDto(setPasswordSchema) {}
 
 // All three are `@Public()` — they are how a caller obtains or discards credentials. The refresh
 // token travels in an httpOnly cookie, never in a body.
@@ -34,6 +39,7 @@ class LogoutDto extends createZodDto(logoutSchema) {}
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly invitations: AccountInvitationsService,
     private readonly config: ConfigService<Env, true>,
   ) {}
 
@@ -87,5 +93,23 @@ export class AuthController {
     }
 
     clearRefreshCookie(reply, this.config);
+  }
+
+  // Public by necessity: somebody who cannot sign in is asking for the way back in. Always 204,
+  // whatever the identifier — telling a stranger which addresses have accounts here is the leak.
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async forgotPassword(@Body() body: ForgotPasswordDto): Promise<void> {
+    await this.invitations.forgot(body.identifier);
+  }
+
+  // Both letters land here: activating an account and resetting a password are the same act — a
+  // token, spent once, in exchange for a password only its owner knows.
+  @Public()
+  @Post('set-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async setPassword(@Body() body: SetPasswordDto): Promise<void> {
+    await this.invitations.setPassword(body.token, body.password);
   }
 }

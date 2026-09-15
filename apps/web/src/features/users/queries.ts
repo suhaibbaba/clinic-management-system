@@ -42,6 +42,17 @@ export function useUpdateUser() {
   });
 }
 
+export function useInviteUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => usersApi.invite(id),
+    // The row's `activated` does not change, but a fresh link retires the last one, and the list is
+    // where somebody checks whether it went.
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [USERS_KEY] }),
+  });
+}
+
 export function useResetUserPassword() {
   return useMutation({
     mutationFn: ({ id, newPassword }: { id: string; newPassword: string }) =>

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Logo } from '@web/components/brand/logo';
 import { useClinicBranding, BRANDING_SCOPE } from '@web/features/clinic/queries';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { Button, FormField, Icon, Input, PasswordInput, PersonName } from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
@@ -117,6 +117,15 @@ export function LoginPage(): JSX.Element {
           >
             {isSubmitting ? t('auth.submitting') : t('auth.submit')}
           </Button>
+
+          {/* Under the button rather than beside the field: it is what you reach for after the
+              password has already failed you. */}
+          <Link
+            to="/forgot-password"
+            className="self-center text-label text-primary-600 underline underline-offset-4 hover:text-primary-700"
+          >
+            {t('auth.forgotLink')}
+          </Link>
         </form>
       </div>
     </main>

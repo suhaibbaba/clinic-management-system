@@ -21,7 +21,7 @@ import {
   useToast,
 } from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
-import { useUpdateUser, useUsers } from '@web/features/users/queries';
+import { useInviteUser, useUpdateUser, useUsers } from '@web/features/users/queries';
 import { ResetPasswordModal } from '@web/features/users/reset-password-modal';
 import { UserFormModal } from '@web/features/users/user-form-modal';
 import { errorMessageKey } from '@web/lib/api-error';
@@ -34,6 +34,16 @@ export function UsersPage(): JSX.Element {
   const { t } = useTranslation();
   const displayName = usePersonName();
   const toast = useToast();
+  const invite = useInviteUser();
+
+  const resend = async (id: string): Promise<void> => {
+    try {
+      await invite.mutateAsync(id);
+      toast.success('users.inviteSent');
+    } catch (error) {
+      toast.error(errorMessageKey(error));
+    }
+  };
   const { user: currentUser } = useSession();
 
   const [page, setPage] = useState(1);
@@ -130,6 +140,10 @@ export function UsersPage(): JSX.Element {
             <span className="text-label text-ink-muted">
               {row.isActive ? t('users.active') : t('users.inactive')}
             </span>
+
+            {/* An account nobody has claimed yet: the switch says it is live, and it is — there is
+                simply no password on it until its owner sets one. */}
+            {!row.activated && <Badge tone="warning">{t('users.pending')}</Badge>}
           </div>
         ),
       },
@@ -157,6 +171,20 @@ export function UsersPage(): JSX.Element {
             >
               {t('common.edit')}
             </Button>
+            {/* The resend, offered only where it can do anything: an account with no address has
+                no link to send, and one already activated does not need it. */}
+            {!row.activated && row.email && (
+              <Button
+                size="sm"
+                variant="quiet"
+                icon={<Icon name="mail" />}
+                isLoading={invite.isPending && invite.variables === row.id}
+                onClick={() => void resend(row.id)}
+              >
+                {t('users.resendInvite')}
+              </Button>
+            )}
+
             {/* The second action on the row, so grey until it is pointed at:
                 two blues in one cell and neither is the one to press. */}
             <Button

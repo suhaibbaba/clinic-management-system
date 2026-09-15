@@ -26,6 +26,20 @@ export type RefreshInput = z.infer<typeof refreshSchema>;
 export const logoutSchema = refreshSchema;
 export type LogoutInput = z.infer<typeof logoutSchema>;
 
+/** Somebody arriving from a link in their inbox: the token proves who they are, so there is no
+ *  current password to give. */
+export const setPasswordSchema = z.object({
+  token: z.string().min(16).max(256),
+  password: passwordSchema,
+});
+export type SetPasswordInput = z.infer<typeof setPasswordSchema>;
+
+/** Always answered the same way, whether or not the address is known here. */
+export const forgotPasswordSchema = z.object({
+  identifier: z.string().trim().min(3).max(255),
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
 export const changePasswordSchema = z
   .object({
     currentPassword: passwordSchema,

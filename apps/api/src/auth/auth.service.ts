@@ -43,6 +43,13 @@ export class AuthService {
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
 
+    // No password yet means the account was created but never activated. Answered exactly as a
+    // wrong password is — anything else tells a stranger which addresses have accounts here.
+    if (user.passwordHash === null) {
+      await this.burnTiming(input.password);
+      throw new UnauthorizedException(INVALID_CREDENTIALS);
+    }
+
     const passwordMatches = await this.passwordService.verify(user.passwordHash, input.password);
 
     if (!passwordMatches) {
@@ -125,7 +132,10 @@ export class AuthService {
       throw new UnauthorizedException('Account is no longer available');
     }
 
-    const matches = await this.passwordService.verify(user.passwordHash, input.currentPassword);
+    // Somebody who never set one cannot change it; they activate instead.
+    const matches =
+      user.passwordHash !== null &&
+      (await this.passwordService.verify(user.passwordHash, input.currentPassword));
 
     if (!matches) {
       throw new UnauthorizedException('Current password is incorrect');

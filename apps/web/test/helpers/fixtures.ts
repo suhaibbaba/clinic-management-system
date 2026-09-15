@@ -60,6 +60,7 @@ export function makeUser(overrides: Partial<User> = {}): User {
     clinicId: CLINIC_ID,
     name: { ar: 'ليلى حداد', en: 'Layla Haddad' },
     phone: '+963100000002',
+    activated: true,
     email: 'layla@clinic.local',
     role: USER_ROLE.DOCTOR,
     isActive: true,

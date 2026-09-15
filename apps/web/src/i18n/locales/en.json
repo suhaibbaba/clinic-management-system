@@ -120,7 +120,19 @@
     "submit": "Sign in",
     "submitting": "Signing in…",
     "invalidCredentials": "Invalid credentials",
-    "sessionExpired": "Your session expired, please sign in again"
+    "sessionExpired": "Your session expired, please sign in again",
+    "activateTitle": "Activate your account",
+    "resetTitle": "Reset your password",
+    "setPasswordSubtitle": "Choose a new password for your account.",
+    "setPassword": "Save password",
+    "newPassword": "New password",
+    "passwordSet": "Your password is saved. You can sign in now.",
+    "toLogin": "Go to sign in",
+    "forgotTitle": "Forgotten your password?",
+    "forgotSubtitle": "Give your email address or phone number and we will send you a link.",
+    "forgotSubmit": "Send the link",
+    "forgotSent": "If that account has an email address on file, the link has been sent to it.",
+    "forgotLink": "Forgotten your password?"
   },
   "users": {
     "title": "Users",
@@ -158,7 +170,12 @@
     "photoUpdated": "Photo saved",
     "photoRemoved": "Photo removed",
     "photoTooLarge": "The photo is larger than 2 MB",
-    "photoUnsupported": "Unsupported file type: PNG, JPG or WebP"
+    "photoUnsupported": "Unsupported file type: PNG, JPG or WebP",
+    "pending": "Pending activation",
+    "willBeInvited": "An activation link will be sent to {{email}} — they choose their own password.",
+    "passwordNoEmail": "No email address to send a link to, so set a password and hand it over yourself.",
+    "resendInvite": "Resend the activation link",
+    "inviteSent": "The link has been sent"
   },
   "doctors": {
     "title": "Doctors",

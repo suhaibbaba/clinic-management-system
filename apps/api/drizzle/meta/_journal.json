@@ -113,6 +113,13 @@
       "when": 1789462862240,
       "tag": "0015_clinic_location",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1789469339365,
+      "tag": "0016_account_activation",
+      "breakpoints": true
     }
   ]
 }

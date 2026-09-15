@@ -120,7 +120,19 @@
     "submit": "دخول",
     "submitting": "جارٍ الدخول…",
     "invalidCredentials": "بيانات الدخول غير صحيحة",
-    "sessionExpired": "انتهت الجلسة، يرجى تسجيل الدخول مجددًا"
+    "sessionExpired": "انتهت الجلسة، يرجى تسجيل الدخول مجددًا",
+    "activateTitle": "تفعيل حسابك",
+    "resetTitle": "إعادة تعيين كلمة المرور",
+    "setPasswordSubtitle": "اختر كلمة مرور جديدة لحسابك.",
+    "setPassword": "حفظ كلمة المرور",
+    "newPassword": "كلمة المرور الجديدة",
+    "passwordSet": "تم حفظ كلمة المرور. يمكنك الدخول الآن.",
+    "toLogin": "الذهاب إلى صفحة الدخول",
+    "forgotTitle": "نسيت كلمة المرور؟",
+    "forgotSubtitle": "أدخل بريدك الإلكتروني أو رقم هاتفك وسنرسل لك رابطاً.",
+    "forgotSubmit": "أرسل الرابط",
+    "forgotSent": "إذا كان لهذا الحساب بريد مسجّل فقد أُرسل الرابط إليه.",
+    "forgotLink": "نسيت كلمة المرور؟"
   },
   "users": {
     "title": "المستخدمون",
@@ -158,7 +170,12 @@
     "photoUpdated": "تم حفظ الصورة",
     "photoRemoved": "تم حذف الصورة",
     "photoTooLarge": "حجم الصورة أكبر من ٢ ميغابايت",
-    "photoUnsupported": "نوع الملف غير مدعوم: PNG أو JPG أو WebP"
+    "photoUnsupported": "نوع الملف غير مدعوم: PNG أو JPG أو WebP",
+    "pending": "بانتظار التفعيل",
+    "willBeInvited": "سيصل رابط التفعيل إلى {{email}} — يختار صاحب الحساب كلمة المرور بنفسه.",
+    "passwordNoEmail": "لا يوجد بريد إلكتروني لإرسال رابط، لذلك عيّن كلمة مرور وسلّمها بنفسك.",
+    "resendInvite": "إعادة إرسال رابط التفعيل",
+    "inviteSent": "تم إرسال الرابط"
   },
   "doctors": {
     "title": "الأطباء",

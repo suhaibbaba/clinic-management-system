@@ -28,6 +28,10 @@ export const usersApi = {
   update: (id: string, body: UpdateUserInput): Promise<User> =>
     apiRequest(`/users/${id}`, { method: 'PATCH', body }),
 
+  /** Sends the activation link, and sends it again — the same call, a fresh link each time. */
+  invite: (id: string): Promise<void> =>
+    apiRequest(`/users/${id}/invite`, { method: 'POST', body: {} }),
+
   resetPassword: (id: string, body: ResetUserPasswordInput): Promise<void> =>
     apiRequest(`/users/${id}/reset-password`, { method: 'POST', body }),
 
