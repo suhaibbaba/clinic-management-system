@@ -13,6 +13,10 @@ export interface EmailAttachment {
 
 export interface OutboundEmail {
   readonly to: string;
+  /** Shown instead of the configured one. The address is not the clinic's to choose — see below. */
+  readonly fromName?: string | undefined;
+  /** Where a reply goes. Needs no verification at all, which is why this is the clinic's own. */
+  readonly replyTo?: string | undefined;
   readonly subject: string;
   readonly html: string;
   /** What a client with images turned off, or a screen reader, reads instead. */
@@ -50,6 +54,8 @@ export class ResendEmailProvider implements EmailProvider {
 
   private readonly resend: Resend;
   private readonly from: string;
+  /** The bare address out of `EMAIL_FROM`, so a display name can be put in front of it. */
+  private readonly fromAddress: string;
 
   constructor(config: ConfigService<Env, true>) {
     // Checked at construction rather than at send: a deployment that selected this provider without
@@ -62,12 +68,17 @@ export class ResendEmailProvider implements EmailProvider {
 
     this.resend = new Resend(key);
     this.from = config.get('EMAIL_FROM', { infer: true });
+    this.fromAddress = this.from.match(/<([^>]+)>/)?.[1] ?? this.from;
   }
 
   async send(email: OutboundEmail): Promise<void> {
     const { error } = await this.resend.emails.send({
-      from: this.from,
+      // The clinic's name in front of the deployment's verified address. The address itself is
+      // infrastructure — it is the one the sending domain was verified for, and an address nobody
+      // verified is an address the provider refuses.
+      from: email.fromName ? `${email.fromName} <${this.fromAddress}>` : this.from,
       to: [email.to],
+      ...(email.replyTo ? { replyTo: email.replyTo } : {}),
       subject: email.subject,
       html: email.html,
       text: email.text,

@@ -19,6 +19,8 @@ export interface AccountEmailRecipient {
 export interface ClinicLetterhead {
   readonly name: PersonName;
   readonly logoKey: string | null;
+  /** From clinic settings, which the admin already edits. Replies go here, not to the sender. */
+  readonly email: string | null;
 }
 
 export interface IssuedToken {
@@ -110,6 +112,10 @@ export class AccountEmailService {
 
     await this.provider.send({
       to: recipient.email,
+      // Both from the clinic's own settings: the letter is signed with its name, and a reply lands
+      // in its inbox rather than at whatever address the deployment sends through.
+      fromName: clinicName,
+      ...(clinic.email ? { replyTo: clinic.email } : {}),
       subject: copy.subject(clinicName),
       html,
       text,

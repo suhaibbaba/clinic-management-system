@@ -138,7 +138,12 @@ export class AccountInvitationsService {
     purpose: AccountEmailPurpose,
   ): Promise<void> {
     const [clinic] = await this.db
-      .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, logoKey: clinics.logoKey })
+      .select({
+        nameAr: clinics.nameAr,
+        nameEn: clinics.nameEn,
+        logoKey: clinics.logoKey,
+        email: clinics.email,
+      })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
       .limit(1);
@@ -159,7 +164,11 @@ export class AccountInvitationsService {
     await this.email.send(
       purpose,
       { email: recipient.email, name: recipient.name },
-      { name: { ar: clinic.nameAr, en: clinic.nameEn }, logoKey: clinic.logoKey },
+      {
+        name: { ar: clinic.nameAr, en: clinic.nameEn },
+        logoKey: clinic.logoKey,
+        email: clinic.email,
+      },
       issued.token,
     );
   }
