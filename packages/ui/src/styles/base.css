@@ -311,14 +311,14 @@
   }
 }
 
-/* The life left in a toast, drawn as a line that runs out. Scaled rather than resized, so it costs
-   no layout, and from the inline start so it empties the way the text is read. */
+/* A toast's life, drawn as a line that fills. Scaled rather than resized, so it costs no layout,
+   and grown from the inline start so it travels the way the text is read. */
 @keyframes toast-life {
   from {
-    transform: scaleX(1);
+    transform: scaleX(0);
   }
   to {
-    transform: scaleX(0);
+    transform: scaleX(1);
   }
 }
 

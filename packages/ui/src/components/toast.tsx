@@ -182,10 +182,10 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               aria-hidden="true"
               style={{ animationDuration: `${TOAST_MS}ms` }}
               className={cn(
-                // Held at the left and emptied from the right, so the line runs out the way Arabic
-                // is read.
-                'absolute inset-x-0 bottom-0 h-0.5 origin-left animate-[toast-life_linear_forwards]',
-                'group-hover:animate-none',
+                // Grown from the side reading starts on: in Arabic it fills from the right, in
+                // English from the left.
+                'absolute inset-x-0 bottom-0 h-0.5 animate-[toast-life_linear_forwards]',
+                'page-rtl:origin-right page-ltr:origin-left group-hover:animate-none',
                 TONES[message.tone].line,
               )}
             />
