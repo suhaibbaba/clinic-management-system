@@ -1,4 +1,4 @@
-import { LAB_ORDER_STATUS, type LabOrderRow, type UserRole } from '@clinic/shared';
+import { LAB_ORDER_STATUS, type LabOrderRow } from '@clinic/shared';
 import { useRef, useState, type ChangeEvent, type JSX, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -22,7 +22,6 @@ import { canCreateLabOrder } from '@web/features/labs/permissions';
 import {
   useDeleteLabOrderAttachment,
   useLabOrderAttachments,
-  useLabOrderHistory,
   useLabOrderStep,
   useReturnLabOrder,
   useUploadLabOrderAttachment,
@@ -42,7 +41,7 @@ export interface OrderDrawerProps {
 // each one, so a technician is never shown "fits".
 export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.Element | null {
   const { t } = useTranslation();
-  const { user, can } = useSession();
+  const { can } = useSession();
   const toast = useToast();
   const navigate = useNavigate();
   const clinic = useClinic();
@@ -164,7 +163,7 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
             )}
           </dl>
 
-          <OrderHistory order={order} role={user?.role} />
+          <OrderHistory order={order} />
 
           <Attachments orderId={order.id} />
 
@@ -242,19 +241,10 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
   );
 }
 
-// An admin gets the audit log — the real record, written by the interceptor, so there is no second
-// history table. Everyone else gets the order's own timestamps.
-function OrderHistory({
-  order,
-  role,
-}: {
-  readonly order: LabOrderRow;
-  readonly role: UserRole | undefined;
-}): JSX.Element {
+// The order's own timestamps. What was changed and by whom is the audit log's, and the audit log
+// is read on the audit log screen.
+function OrderHistory({ order }: { readonly order: LabOrderRow }): JSX.Element {
   const { t } = useTranslation();
-  const history = useLabOrderHistory(order.id, role);
-
-  const audited = history.data?.items ?? [];
 
   const stamps: readonly { key: string; label: string; at: string }[] = [
     { key: 'created', label: 'labs.order.history.created', at: order.createdAt },
@@ -279,25 +269,6 @@ function OrderHistory({
           </li>
         ))}
       </ol>
-
-      {audited.length > 0 && (
-        <details className="rounded-panel bg-inset px-3 py-2">
-          {/* 18px of disclosure is under the target a thumb needs; the padding grows the box and
-              the negative margin keeps the row where it was. */}
-          <summary className="-my-3 cursor-pointer py-3 text-label text-ink-muted lg:my-0 lg:py-0">
-            {t('labs.order.history.audit', { count: audited.length })}
-          </summary>
-
-          <ol className="mt-2 flex flex-col gap-1.5">
-            {audited.map((entry) => (
-              <li key={entry.id} className="flex items-baseline justify-between gap-3 text-label">
-                <span className="text-ink">{t(`audit.actions.${entry.action}`)}</span>
-                <Ltr className="tabular-nums text-ink-muted">{formatDateTime(entry.createdAt)}</Ltr>
-              </li>
-            ))}
-          </ol>
-        </details>
-      )}
     </section>
   );
 }

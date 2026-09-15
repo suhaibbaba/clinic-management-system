@@ -980,8 +980,7 @@
         "created": "Created",
         "sent": "Sent",
         "received": "Received",
-        "fitted": "Fitted",
-        "audit": "Audit trail ({{count}})"
+        "fitted": "Fitted"
       }
     },
     "section": {

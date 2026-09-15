@@ -996,8 +996,7 @@
         "created": "أُنشئ",
         "sent": "أُرسل",
         "received": "استُلم",
-        "fitted": "رُكّب",
-        "audit": "سجل التدقيق ({{count}})"
+        "fitted": "رُكّب"
       }
     },
     "section": {

@@ -1,7 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import {
-  USER_ROLE,
-  type AuditLogEntry,
   type CreateLabInput,
   type CreateLabOrderInput,
   type CreateLabPaymentInput,
@@ -18,10 +16,8 @@ import {
   type UpdateLabInput,
   type UpdateLabOrderInput,
   type UpdateLabWorkTypeInput,
-  type UserRole,
 } from '@clinic/shared';
 
-import { auditApi } from '@web/features/audit/api';
 import { labOrdersApi, labsApi } from '@web/features/labs/api';
 import { uploadToStorage } from '@web/features/patients/api';
 
@@ -31,9 +27,6 @@ export const LAB_BALANCE_KEY = 'lab-balance';
 export const LAB_STATEMENT_KEY = 'lab-statement';
 export const LAB_PAYMENTS_KEY = 'lab-payments';
 export const LAB_WORK_TYPES_KEY = 'lab-work-types';
-
-/** The audit log's `entity` for an order — the table name, as the API writes it. */
-export const LAB_ORDERS_ENTITY = 'lab_orders';
 
 // A transition changes the board, the balance and the statement — an order just sent is money owed
 // — so every mutation invalidates all three.
@@ -110,19 +103,6 @@ export function useLabOrders(
     queryFn: () => labOrdersApi.list(query),
     enabled,
     placeholderData: (previous) => previous,
-  });
-}
-
-// Read out of the audit log, which the interceptor already writes, so there is no second history
-// table. Admin-only, so others get the order's own timestamps.
-export function useLabOrderHistory(
-  orderId: string,
-  role: UserRole | undefined,
-): UseQueryResult<Paginated<AuditLogEntry>> {
-  return useQuery({
-    queryKey: ['audit-log', LAB_ORDERS_ENTITY, orderId],
-    queryFn: () => auditApi.list({ entity: LAB_ORDERS_ENTITY, entityId: orderId, limit: 50 }),
-    enabled: orderId !== '' && role === USER_ROLE.ADMIN,
   });
 }
 
