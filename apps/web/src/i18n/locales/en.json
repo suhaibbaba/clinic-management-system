@@ -1299,22 +1299,21 @@
         "update": "Edit a closure"
       },
       "clinics": {
-        "confirmLogo": "Save the clinic logo",
-        "presignLogo": "Upload the clinic logo",
+        "presignLogo": "Upload or replace the clinic logo",
         "removeLogo": "Remove the clinic logo",
         "resolveLocation": "Read the clinic location from a map link",
         "update": "Edit the clinic details"
       },
       "doctor-time-off": {
-        "create": "Add doctor time off",
-        "remove": "Delete doctor time off",
-        "update": "Edit doctor time off"
+        "create": "Add time off for a doctor",
+        "remove": "Delete a doctor’s time off",
+        "update": "Edit a doctor’s time off"
       },
       "doctors": {
         "create": "Add a doctor",
         "remove": "Delete a doctor",
         "update": "Edit a doctor",
-        "updateSchedule": "Edit a doctor's working hours"
+        "updateSchedule": "Edit a doctor’s weekly hours"
       },
       "inventory": {
         "adjust": "Adjust an item's quantity",
@@ -1341,14 +1340,13 @@
       },
       "lab-orders": {
         "cancel": "Cancel a lab order",
-        "confirmAttachment": "Attach a file to a lab order",
         "create": "Add a lab order",
         "findOne": "Open a lab order",
         "fit": "Record the work as fitted",
         "list": "See lab orders",
         "listAttachments": "See a lab order's attachments",
         "overdue": "See overdue lab orders",
-        "presign": "Upload an attachment to a lab order",
+        "presign": "Attach a file to a lab order",
         "print": "Print a lab order",
         "ready": "Record the work as ready",
         "receive": "Record the work as received",
@@ -1392,9 +1390,8 @@
         "update": "Edit a note"
       },
       "patient-attachments": {
-        "confirmUpload": "Save a patient attachment",
         "list": "See a patient's attachments",
-        "presignUpload": "Upload a patient attachment"
+        "presignUpload": "Upload an attachment or X-ray to a patient"
       },
       "patient-billing": {
         "balance": "See a patient's balance",
@@ -1470,12 +1467,11 @@
         "update": "Edit a treatment plan"
       },
       "users": {
-        "confirmPhoto": "Save a user's photo",
         "create": "Add a user",
         "findOne": "Open a user",
         "invite": "Send an activation invitation",
         "list": "See the users",
-        "presignPhoto": "Upload a user's photo",
+        "presignPhoto": "Upload or replace a user’s photo",
         "remove": "Delete a user",
         "removePhoto": "Remove a user's photo",
         "resetPassword": "Set a user's password",
@@ -1501,30 +1497,30 @@
       }
     },
     "hints": {
-      "appointments": "Booking, confirming and cancelling appointments, marking a patient arrived, and the bookings the public page sends in.",
-      "audit-log": "The audit log: who changed what, and when.",
-      "clinic": "The clinic itself: its name, logo, location and settings.",
-      "clinic-closures": "The days the clinic is shut, such as holidays.",
-      "doctors": "Doctors, their weekly hours and their time off.",
-      "inventory": "The store room: items, purchases, what is used up, stock takes, and the movements behind the count.",
-      "lab-orders": "The work sent out to a lab and its stages: sending, ready, received and fitted.",
-      "lab-payments": "Paying a lab, and reversing a payment.",
-      "labs": "The labs the clinic works with, the work types they offer, and their statements.",
-      "lookups": "The lists behind every dropdown: appointment types, payment methods, tooth states and the rest.",
-      "notes": "The internal notes pinned to the dashboard.",
-      "patients": "Patient files: creating and editing one, the medical history, attachments and X-rays, and the account statement.",
-      "payments": "Taking money from patients, printing receipts, and reversing a payment entered by mistake.",
-      "performed-procedures": "The treatments carried out on a patient’s file, and what they were charged at.",
-      "permissions": "This screen itself: who may read and change what each role is allowed to do.",
-      "prescriptions": "Prescriptions: writing, editing and removing them.",
-      "procedure-catalog": "The clinic’s list of procedures and the prices they are charged at.",
-      "suppliers": "The suppliers the clinic buys from, and their statements.",
-      "treatment-plans": "Treatment plans and their items, and turning an item into a treatment that was done.",
-      "users": "Staff accounts: adding and editing them, activation invitations and password resets.",
-      "visits": "A patient’s visits: recording what happened and editing it.",
-      "waiting-list": "Who is waiting for a free slot: adding them, recording a call, and turning an entry into an appointment."
+      "appointments": "The Appointments screen: booking, confirming and cancelling, marking a patient arrived, and the bookings the public page sends in.",
+      "audit-log": "The Audit log screen: who changed what, and when.",
+      "clinic": "The Clinic details screen: the name, the logo, the location and the working hours.",
+      "clinic-closures": "Closures in the clinic details: the holidays the whole clinic is shut for.",
+      "doctors": "The Doctors screen: adding a doctor and editing their details, their weekly hours and their time off. A doctor may only change their own; an administrator may change any doctor’s.",
+      "inventory": "The Inventory screen: the items, buying, using up and stock takes, and the movements behind the count.",
+      "lab-orders": "The Orders tab of the Labs screen: sending work out and following it through to fitting. Each stage is its own permission.",
+      "lab-payments": "A lab’s page: paying it, and reversing a payment entered by mistake.",
+      "labs": "The Labs screen: the labs the clinic works with, the work types they offer, and their statements.",
+      "lookups": "The Lists screen: the options behind every dropdown — appointment types, payment methods, tooth states and the rest.",
+      "notes": "The dashboard notes: what the staff leave each other. Only the person who wrote a note may change it.",
+      "patients": "The Patients screen and a patient’s file: creating and editing it, the medical history, attachments and X-rays, the balance and the statement.",
+      "payments": "The Account tab of a patient’s file: taking a payment, printing the receipt, and reversing one entered by mistake.",
+      "performed-procedures": "Treatments in a patient’s file: recording one against a tooth or a visit, and editing it.",
+      "permissions": "This screen: who may read what each role is allowed to do, and who may change it. The administrator’s own are not among what can be changed.",
+      "prescriptions": "Prescriptions in a patient’s file: writing, editing and deleting them.",
+      "procedure-catalog": "The price list: what the clinic offers and what each procedure is charged at.",
+      "suppliers": "The Suppliers tab of the Inventory screen: who the clinic buys from, and their statement.",
+      "treatment-plans": "The Treatment plans tab of a patient’s file: building a plan and its items, and turning an item into a treatment done.",
+      "users": "The Users screen: staff accounts, and sending an activation invitation or a password reset link.",
+      "visits": "The Visits tab of a patient’s file: recording a visit and what happened in it.",
+      "waiting-list": "The waiting list inside the Appointments screen: who is waiting for a free slot, calling them, and turning an entry into an appointment."
     },
-    "intro": "These permissions belong to this clinic alone. Switch one off and its action leaves the role’s screens and is refused if attempted; switch it back whenever you like.",
+    "intro": "Every line here is one action in the app. Switch it off and its button leaves that role’s screens and the action is refused if attempted; switch it back whenever you like. What you change belongs to this clinic alone.",
     "resources": {
       "appointments": "Appointments",
       "attachments": "Patients",

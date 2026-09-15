@@ -1,4 +1,4 @@
-import { USER_ROLE, type Permissions } from '@clinic/shared';
+import { ITEM_CATEGORY, ITEM_UNIT, USER_ROLE, type Permissions } from '@clinic/shared';
 
 import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
 
@@ -142,6 +142,38 @@ describe('Permissions (e2e)', () => {
 
     expect(after.json<{ capabilities: string[] }>().capabilities).toContain(AUDIT.capability);
     await grant(USER_ROLE.RECEPTIONIST, AUDIT.capability, false);
+  });
+
+  it('a grant is the whole answer — no service keeps a second role table behind the guard', async () => {
+    // Three stock movements are three endpoints with three permissions; the module used to check
+    // the role again on the way past, which made a granted switch do nothing at all.
+    const item = await context.app.inject({
+      method: 'POST',
+      url: '/inventory/items',
+      headers: auth(adminToken),
+      payload: {
+        nameAr: 'قفازات',
+        category: ITEM_CATEGORY.CONSUMABLE,
+        unit: ITEM_UNIT.PIECE,
+      },
+    });
+    const itemId = item.json<{ id: string }>().id;
+    const purchase = () =>
+      context.app.inject({
+        method: 'POST',
+        url: '/inventory/movements/purchase',
+        headers: auth(receptionToken),
+        payload: { itemId, quantity: '1', unitCost: '10' },
+      });
+
+    expect(item.statusCode).toBe(201);
+    expect((await purchase()).statusCode).toBe(403);
+
+    await grant(USER_ROLE.RECEPTIONIST, 'inventory.purchase', true);
+    expect((await purchase()).statusCode).toBe(201);
+
+    await grant(USER_ROLE.RECEPTIONIST, 'inventory.purchase', false);
+    expect((await purchase()).statusCode).toBe(403);
   });
 
   it('the administrator cannot be edited, and an unknown permission is not stored', async () => {

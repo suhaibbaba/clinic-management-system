@@ -22,9 +22,20 @@ const EDITABLE = [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN
 const ROLE_TABS: readonly UserRole[] = [...EDITABLE, USER_ROLE.ADMIN];
 
 interface Permission {
-  readonly key: string;
+  /** Every key this one switch writes. Usually one. */
+  readonly keys: readonly string[];
   readonly label: string;
 }
+
+// Two endpoints, one act: the browser asks for a signed URL and then says the file arrived. Drawn
+// as one switch, because half an upload permission is an upload that never finishes.
+const PAIRED: Record<string, string> = {
+  'patient-attachments.presignUpload': 'patient-attachments.confirmUpload',
+  'clinics.presignLogo': 'clinics.confirmLogo',
+  'users.presignPhoto': 'users.confirmPhoto',
+  'lab-orders.presign': 'lab-orders.confirmAttachment',
+};
+const FOLDED = new Set(Object.values(PAIRED));
 
 interface Section {
   readonly title: string;
@@ -57,16 +68,21 @@ export function PermissionsPage(): JSX.Element {
     const byTitle = new Map<string, Section>();
 
     for (const capability of permissions.data?.capabilities ?? []) {
+      if (FOLDED.has(capability.key)) {
+        continue;
+      }
+
       const title = t(`permissions.resources.${capability.resource}`, {
         defaultValue: capability.resource,
       });
       const section = byTitle.get(title) ?? { title, hint: '', permissions: [] };
+      const paired = PAIRED[capability.key];
 
       // Two resources can share a section — time off hangs off `doctors` and `doctor-time-off` —
       // and the sentence is written once, on whichever of them carries it.
       section.hint ||= t(`permissions.hints.${capability.resource}`, { defaultValue: '' });
       section.permissions.push({
-        key: capability.key,
+        keys: paired ? [capability.key, paired] : [capability.key],
         label: t(`permissions.capabilities.${capability.key}`, { defaultValue: capability.key }),
       });
       byTitle.set(title, section);
@@ -79,9 +95,11 @@ export function PermissionsPage(): JSX.Element {
     return [...byTitle.values()].sort((a, b) => a.title.localeCompare(b.title, i18n.language));
   }, [permissions.data, t, i18n.language]);
 
-  const toggle = async (capability: string, allowed: boolean): Promise<void> => {
+  const toggle = async (keys: readonly string[], allowed: boolean): Promise<void> => {
     try {
-      await update.mutateAsync({ role, capability, allowed });
+      for (const capability of keys) {
+        await update.mutateAsync({ role, capability, allowed });
+      }
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -125,15 +143,15 @@ export function PermissionsPage(): JSX.Element {
             <ul className="mt-3 grid gap-x-8 lg:grid-cols-2">
               {section.permissions.map((permission) => (
                 <li
-                  key={permission.key}
+                  key={permission.keys[0]}
                   className="flex items-center justify-between gap-4 border-t border-line py-2"
                 >
                   <span className="min-w-0 truncate text-value text-ink">{permission.label}</span>
 
                   <Switch
-                    checked={current.allows[permission.key] ?? false}
+                    checked={permission.keys.every((key) => current.allows[key])}
                     disabled={locked}
-                    onCheckedChange={(next) => void toggle(permission.key, next)}
+                    onCheckedChange={(next) => void toggle(permission.keys, next)}
                     label={permission.label}
                   />
                 </li>

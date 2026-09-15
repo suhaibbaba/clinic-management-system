@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -8,7 +7,6 @@ import {
 } from '@nestjs/common';
 import {
   MOVEMENT_TYPE,
-  USER_ROLE,
   formatThousandths,
   negateQuantity,
   toThousandths,
@@ -21,7 +19,6 @@ import {
   type ReverseMovementInput,
   type StockMovement,
   type StockMovementRow,
-  type UserRole,
 } from '@clinic/shared';
 import { and, desc, eq, gte, lt, sql, type SQL } from 'drizzle-orm';
 
@@ -46,14 +43,6 @@ import { SuppliersService } from '@api/inventory/suppliers.service';
 type MovementRow = typeof stockMovements.$inferSelect;
 
 export const STOCK_MOVEMENTS_ENTITY = 'stock_movements';
-
-// A doctor consumes and nothing else; buying and correcting the count are the technician's, and
-// both touch what the clinic has spent. Admin passes by the guard's own rule.
-const MOVEMENT_ROLES: Record<MovementType, readonly UserRole[]> = {
-  [MOVEMENT_TYPE.PURCHASE]: [USER_ROLE.TECHNICIAN],
-  [MOVEMENT_TYPE.CONSUME]: [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN],
-  [MOVEMENT_TYPE.ADJUST]: [USER_ROLE.TECHNICIAN],
-};
 
 // Append-only: a mistake is the opposite entry, so quantity stays a plain `sum()`. Three methods
 // rather than one `type` field — three acts, three rules, a readable audit trail.
@@ -160,7 +149,6 @@ export class StockMovementsService implements OnModuleInit {
 
   /** Buying stock. Positive, and priced — that is what a supplier statement totals. */
   async purchase(actor: AuthenticatedUser, input: PurchaseStockInput): Promise<StockMovement> {
-    this.assertMayWrite(actor, MOVEMENT_TYPE.PURCHASE);
     await this.items.requireRow(actor.clinicId, input.itemId);
 
     if (input.supplierId) {
@@ -182,7 +170,6 @@ export class StockMovementsService implements OnModuleInit {
   // Stored negative — the sign is the type's, not the form's. The patient is read off the procedure
   // rather than trusted from the request.
   async consume(actor: AuthenticatedUser, input: ConsumeStockInput): Promise<StockMovement> {
-    this.assertMayWrite(actor, MOVEMENT_TYPE.CONSUME);
     await this.items.requireRow(actor.clinicId, input.itemId);
 
     let patientId = input.patientId ?? null;
@@ -223,7 +210,6 @@ export class StockMovementsService implements OnModuleInit {
   // Signed either way, and the reason is required: this is the movement where it is the only
   // explanation that will ever exist.
   async adjust(actor: AuthenticatedUser, input: AdjustStockInput): Promise<StockMovement> {
-    this.assertMayWrite(actor, MOVEMENT_TYPE.ADJUST);
     await this.items.requireRow(actor.clinicId, input.itemId);
 
     if (toThousandths(input.quantity) === 0) {
@@ -353,16 +339,6 @@ export class StockMovementsService implements OnModuleInit {
     }
 
     return toMovement(row);
-  }
-
-  // The finer split inside the module, which a guard cannot express: all three acts live on sibling
-  // routes of one controller.
-  private assertMayWrite(actor: AuthenticatedUser, type: MovementType): void {
-    if (actor.role === USER_ROLE.ADMIN || MOVEMENT_ROLES[type].includes(actor.role)) {
-      return;
-    }
-
-    throw new ForbiddenException('Your role cannot record this kind of movement');
   }
 }
 

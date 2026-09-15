@@ -51,16 +51,6 @@ export const LAB_ORDERS_ENTITY = 'lab_orders';
 
 // The technician runs the conversation with the lab (sending, chasing, receiving); the doctor owns
 // what happens in the chair (fitting, and declaring the work wrong).
-const TRANSITION_ROLES: Record<LabOrderStatus, readonly string[]> = {
-  [LAB_ORDER_STATUS.DRAFT]: [],
-  [LAB_ORDER_STATUS.SENT]: [USER_ROLE.TECHNICIAN, USER_ROLE.DOCTOR],
-  [LAB_ORDER_STATUS.READY]: [USER_ROLE.TECHNICIAN],
-  [LAB_ORDER_STATUS.RECEIVED]: [USER_ROLE.TECHNICIAN],
-  [LAB_ORDER_STATUS.FITTED]: [USER_ROLE.DOCTOR],
-  [LAB_ORDER_STATUS.RETURNED]: [USER_ROLE.TECHNICIAN, USER_ROLE.DOCTOR],
-  [LAB_ORDER_STATUS.CANCELLED]: [USER_ROLE.TECHNICIAN, USER_ROLE.DOCTOR],
-};
-
 // Every move goes through `changeStatus` against the shared transition table; the dates are written
 // by the moves, never a form; the price is a snapshot from the work type.
 @Injectable()
@@ -279,8 +269,9 @@ export class LabOrdersService implements OnModuleInit {
     return this.findOne(actor, id);
   }
 
-  // The one door: the transition is checked against the shared table, the role against
-  // `TRANSITION_ROLES`, and the timestamp the new status means is written with it.
+  // The one door: the transition is checked against the shared table and the timestamp the new
+  // status means is written with it. Who may make the move is the guard's answer — each step is its
+  // own endpoint with its own permission, which a clinic may hand to somebody else.
   async changeStatus(
     actor: AuthenticatedUser,
     id: string,
@@ -291,11 +282,6 @@ export class LabOrdersService implements OnModuleInit {
 
     if (!canTransitionLabOrder(existing.status, next)) {
       throw new BadRequestException(`A lab order cannot go from ${existing.status} to ${next}`);
-    }
-
-    const allowed = TRANSITION_ROLES[next];
-    if (actor.role !== USER_ROLE.ADMIN && !allowed.includes(actor.role)) {
-      throw new ForbiddenException(`Your role may not move a lab order to ${next}`);
     }
 
     if (actor.role === USER_ROLE.DOCTOR) {
