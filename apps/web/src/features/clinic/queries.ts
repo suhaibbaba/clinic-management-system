@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tan
 import type { Clinic, ClinicBranding, PresignClinicLogoInput } from '@clinic/shared';
 import type { UpdateClinicInput } from '@clinic/shared';
 
+import { buildClinicIconSet } from '@web/features/clinic/logo-icons';
 import { clinicApi } from '@web/features/clinic/api';
 import { uploadToStorage } from '@web/features/patients/api';
 
@@ -51,13 +52,28 @@ export function useUploadClinicLogo() {
 
   return useMutation({
     mutationFn: async (file: File): Promise<Clinic> => {
+      const icons = await buildClinicIconSet(file);
+
       const presigned = await clinicApi.presignLogo({
         filename: file.name,
         mime: file.type as PresignClinicLogoInput['mime'],
         sizeBytes: file.size,
       });
 
-      await uploadToStorage(presigned.uploadUrl, file);
+      // The logo and its icons go up together; confirm refuses a set that arrived half-written,
+      // so a clinic never ends up with a tab mark rendered from a logo it no longer has.
+      await Promise.all([
+        uploadToStorage(presigned.uploadUrl, file),
+        ...presigned.icons.map((slot) => {
+          const blob = icons.get(slot.name);
+
+          if (!blob) {
+            throw new Error(`No icon was generated for ${slot.name}`);
+          }
+
+          return uploadToStorage(slot.uploadUrl, blob, slot.mime);
+        }),
+      ]);
 
       return clinicApi.confirmLogo(presigned.key);
     },
