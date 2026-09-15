@@ -29,11 +29,14 @@ export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element
         // wraps, and a wrapped line box of exactly one em would set the rows touching.
         'inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5',
         'rounded-pill border border-danger-200 bg-danger-50 py-1 pe-3 ps-2.5',
-        'text-label text-danger-700',
+        // `text-value`, the scale's 13px: at `text-label` this read smaller than the row beneath it,
+        // which is the wrong way round for the one thing on the page nobody may miss. Medium
+        // throughout — the allergen matters as much as the word in front of it.
+        'text-value font-medium text-danger-700',
       )}
     >
       <Icon name="alert" className="size-4 shrink-0 text-danger-600" />
-      <span className="font-medium">{t('patients.allergies')}:</span>
+      <span>{t('patients.allergies')}:</span>
       <span>{formatList(data.allergies)}</span>
     </span>
   );
