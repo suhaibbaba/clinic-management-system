@@ -10,11 +10,32 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Icon } from '@ui/components/icon';
+import { Icon, type IconName } from '@ui/components/icon';
 import { cn } from '@ui/lib/cn';
 import { documentDirection } from '@ui/lib/direction';
 
-type ToastTone = 'success' | 'error';
+type ToastTone = 'success' | 'warning' | 'error';
+
+const TONES: Record<ToastTone, { chip: string; tint: string; line: string; icon: IconName }> = {
+  success: {
+    chip: 'bg-success-600',
+    tint: '[--toast-tint:var(--color-success-100)]',
+    line: 'bg-success-500',
+    icon: 'check',
+  },
+  warning: {
+    chip: 'bg-warning-500',
+    tint: '[--toast-tint:var(--color-warning-100)]',
+    line: 'bg-warning-500',
+    icon: 'alert',
+  },
+  error: {
+    chip: 'bg-danger-600',
+    tint: '[--toast-tint:var(--color-danger-100)]',
+    line: 'bg-danger-500',
+    icon: 'x',
+  },
+};
 
 /** Four seconds: long enough to read a line, short enough not to sit over the next thing done. */
 const TOAST_MS = 4000;
@@ -23,13 +44,19 @@ interface ToastMessage {
   readonly id: number;
   readonly messageKey: string;
   readonly values?: Record<string, string | number>;
+  /** A second line under the title, where one sentence does not carry it. */
+  readonly descriptionKey?: string;
   readonly tone: ToastTone;
 }
 
+type Values = Record<string, string | number>;
+type Notify = (messageKey: string, values?: Values, descriptionKey?: string) => void;
+
 interface ToastApi {
-  /** Both take an i18n key — never a ready-made string. */
-  success: (messageKey: string, values?: Record<string, string | number>) => void;
-  error: (messageKey: string, values?: Record<string, string | number>) => void;
+  /** Each takes an i18n key — never a ready-made string. */
+  success: Notify;
+  warning: Notify;
+  error: Notify;
 }
 
 const ToastContext = createContext<ToastApi | null>(null);
@@ -49,10 +76,16 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
   const [messages, setMessages] = useState<ToastMessage[]>([]);
 
   const push = useCallback(
-    (messageKey: string, tone: ToastTone, values?: Record<string, string | number>) => {
+    (messageKey: string, tone: ToastTone, values?: Values, descriptionKey?: string) => {
       setMessages((current) => [
         ...current,
-        { id: Date.now() + current.length, messageKey, tone, ...(values && { values }) },
+        {
+          id: Date.now() + current.length,
+          messageKey,
+          tone,
+          ...(values && { values }),
+          ...(descriptionKey !== undefined && { descriptionKey }),
+        },
       ]);
     },
     [],
@@ -60,8 +93,11 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
 
   const api = useMemo<ToastApi>(
     () => ({
-      success: (messageKey, values) => push(messageKey, 'success', values),
-      error: (messageKey, values) => push(messageKey, 'error', values),
+      success: (messageKey, values, description) =>
+        push(messageKey, 'success', values, description),
+      warning: (messageKey, values, description) =>
+        push(messageKey, 'warning', values, description),
+      error: (messageKey, values, description) => push(messageKey, 'error', values, description),
     }),
     [push],
   );
@@ -90,25 +126,42 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               }
             }}
             className={cn(
-              'group relative flex items-start gap-2.5 overflow-hidden rounded-panel border border-line bg-surface',
-              'border-s-4 px-4 py-3 text-value shadow-float',
+              'group relative flex items-start gap-3 overflow-hidden rounded-card border border-line',
+              'toast-wash px-4 py-3.5 shadow-float',
+              TONES[message.tone].tint,
               'data-[state=open]:animate-[toast-in_200ms_ease-out]',
               'data-[state=closed]:animate-[toast-out_150ms_ease-in]',
               'data-[swipe=move]:translate-x-(--radix-toast-swipe-move-x)',
-              message.tone === 'success' ? 'border-s-success-500' : 'border-s-danger-500',
             )}
           >
-            <Icon
-              name={message.tone === 'success' ? 'check' : 'error'}
+            <span
+              data-part="toast-chip"
+              aria-hidden="true"
               className={cn(
-                'mt-0.5',
-                message.tone === 'success' ? 'text-success-600' : 'text-danger-600',
+                'mt-0.5 grid size-8 shrink-0 place-items-center rounded-pill text-ink-inverse',
+                TONES[message.tone].chip,
               )}
-            />
+            >
+              <Icon name={TONES[message.tone].icon} className="size-4" />
+            </span>
 
-            <ToastPrimitive.Description data-part="toast-message" className="flex-1 text-ink">
-              {t(message.messageKey, message.values ?? {})}
-            </ToastPrimitive.Description>
+            <div className="min-w-0 flex-1">
+              <ToastPrimitive.Title
+                data-part="toast-title"
+                className="text-value font-medium text-ink"
+              >
+                {t(message.messageKey, message.values ?? {})}
+              </ToastPrimitive.Title>
+
+              {message.descriptionKey !== undefined && (
+                <ToastPrimitive.Description
+                  data-part="toast-message"
+                  className="mt-0.5 text-label text-ink-muted"
+                >
+                  {t(message.descriptionKey, message.values ?? {})}
+                </ToastPrimitive.Description>
+              )}
+            </div>
 
             <ToastPrimitive.Close
               data-part="toast-close"
@@ -116,7 +169,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               className={cn(
                 'inline-grid size-(--control-h-sm) shrink-0 cursor-pointer place-items-center',
                 'rounded-control text-ink-subtle',
-                'transition-colors duration-150 hover:bg-inset hover:text-ink',
+                'transition-colors duration-[250ms] ease-in-out hover:bg-inset hover:text-ink',
               )}
             >
               <Icon name="x" className="size-4" />
@@ -131,7 +184,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               className={cn(
                 'absolute inset-x-0 bottom-0 h-0.5 origin-left animate-[toast-life_linear_forwards]',
                 'page-rtl:origin-right group-hover:animate-none',
-                message.tone === 'success' ? 'bg-success-500' : 'bg-danger-500',
+                TONES[message.tone].line,
               )}
             />
           </ToastPrimitive.Root>
