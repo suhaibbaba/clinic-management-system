@@ -38,7 +38,7 @@ const TONES: Record<ToastTone, { chip: string; tint: string; line: string; icon:
 };
 
 /** Four seconds: long enough to read a line, short enough not to sit over the next thing done. */
-const TOAST_MS = 4000;
+const TOAST_MS = 2500;
 
 interface ToastMessage {
   readonly id: number;
@@ -126,7 +126,9 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               }
             }}
             className={cn(
-              'group relative flex items-start gap-3 overflow-hidden rounded-card border border-line',
+              // One line sits in the middle of the chip; two lines start level with its top.
+              'group relative flex gap-3 overflow-hidden rounded-card border border-line',
+              message.descriptionKey === undefined ? 'items-center' : 'items-start',
               'toast-wash px-4 py-3.5 shadow-float',
               TONES[message.tone].tint,
               'data-[state=open]:animate-[toast-in_200ms_ease-out]',
@@ -138,7 +140,8 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               data-part="toast-chip"
               aria-hidden="true"
               className={cn(
-                'mt-0.5 grid size-8 shrink-0 place-items-center rounded-pill text-ink-inverse',
+                'grid size-8 shrink-0 place-items-center rounded-pill text-ink-inverse',
+                message.descriptionKey !== undefined && 'mt-0.5',
                 TONES[message.tone].chip,
               )}
             >
