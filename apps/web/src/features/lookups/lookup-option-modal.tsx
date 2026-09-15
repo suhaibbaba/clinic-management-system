@@ -133,7 +133,7 @@ export function LookupOptionModal({
                 type="color"
                 value={color}
                 onChange={(event) => setColor(event.target.value)}
-                className="size-10 cursor-pointer rounded-control border border-line bg-surface p-1"
+                className="size-(--control-h) cursor-pointer rounded-control border border-line bg-surface p-1 lg:size-(--control-h-sm)"
               />
               <Ltr className="font-mono text-label text-ink-muted">{color}</Ltr>
             </span>

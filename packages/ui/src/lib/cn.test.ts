@@ -7,10 +7,15 @@ import { cn, FONT_SIZE_KEYS, RADIUS_KEYS } from '@ui/lib/cn';
 
 const theme = readFileSync(join(__dirname, '..', 'styles', 'base.css'), 'utf8');
 
-const tokensOf = (prefix: string): string[] =>
-  [...theme.matchAll(new RegExp(`^\\s*--${prefix}-([a-z0-9-]+):`, 'gm'))]
-    .map((match) => match[1] ?? '')
-    .filter((name) => !name.endsWith('--line-height'));
+// Deduped: a token redefined under a media query — the pointer step for `--control-h` and
+// `--text-field` — is still one token, and the registry only ever needs its name once.
+const tokensOf = (prefix: string): string[] => [
+  ...new Set(
+    [...theme.matchAll(new RegExp(`^\\s*--${prefix}-([a-z0-9-]+):`, 'gm'))]
+      .map((match) => match[1] ?? '')
+      .filter((name) => !name.endsWith('--line-height')),
+  ),
+];
 
 // Every `--text-*` key is a font size tailwind-merge reads as a colour, dropping whichever class
 // came first — silently, and invisibly in review. A product cannot widen this: `TextToken` and

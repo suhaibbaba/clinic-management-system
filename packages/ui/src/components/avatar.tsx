@@ -52,7 +52,7 @@ export function Avatar({
     .map((word) => [...word][0] ?? '')
     .join('');
 
-  const shape = 'pill-text shrink-0 select-none rounded-pill';
+  const shape = 'pill-text inline-flex items-center shrink-0 select-none rounded-pill';
 
   const tint = tintKey === undefined ? 'bg-tint-2-bg text-tint-2-ink' : tintFor(tintKey);
 

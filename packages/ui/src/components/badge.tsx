@@ -23,7 +23,7 @@ const TONES: Record<BadgeVariant, string> = {
 
 /** One pill for the whole app: a status, a count, a filter — the same box in every one of them. */
 export const PILL_BASE = cn(
-  'pill-text h-(--control-h-sm) gap-2 whitespace-nowrap rounded-pill px-3',
+  'pill-text inline-flex items-center h-(--control-h-sm) gap-2 whitespace-nowrap rounded-pill px-3',
   'text-nav font-medium',
 );
 

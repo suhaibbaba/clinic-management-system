@@ -87,8 +87,10 @@ export function NotesWidget(): JSX.Element {
       <form
         onSubmit={submit}
         className={cn(
-          'mt-3 flex items-center gap-2 rounded-control border border-dashed border-line px-3 py-2.5',
-          'min-h-(--control-h) lg:min-h-0',
+          'mt-3 flex items-center gap-2 rounded-control border border-dashed border-line px-3',
+          // No vertical padding: it sat outside the input, so the top and bottom of the box did
+          // nothing. The height is the token's and the input stretches into all of it.
+          'min-h-(--control-h) lg:min-h-(--control-h-sm)',
         )}
       >
         <Icon name="edit" className="size-3.5 shrink-0 text-ink-faint" aria-hidden="true" />

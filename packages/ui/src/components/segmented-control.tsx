@@ -63,7 +63,7 @@ export function SegmentedControl<TValue extends string>({
                 className={cn(
                   // A tinted pill, not a bare digit: the count is what the filter would leave, and
                   // the reference gives it the same red a balance owed gets.
-                  'pill-text h-4 min-w-4 justify-center',
+                  'pill-text inline-flex items-center h-4 min-w-4 justify-center',
                   'rounded-pill px-[7px] text-micro font-medium tabular-nums',
                   isSelected
                     ? 'bg-primary-900/25 text-ink-inverse'

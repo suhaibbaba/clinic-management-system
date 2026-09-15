@@ -88,8 +88,8 @@ export function ManagePage({
           <span
             className={
               cancelled
-                ? 'pill-text h-(--control-h-sm) rounded-pill bg-inset px-3 text-nav font-medium text-ink-muted'
-                : 'pill-text h-(--control-h-sm) rounded-pill bg-success-100 px-3 text-nav font-medium text-success-800'
+                ? 'pill-text inline-flex items-center h-(--control-h-sm) rounded-pill bg-inset px-3 text-nav font-medium text-ink-muted'
+                : 'pill-text inline-flex items-center h-(--control-h-sm) rounded-pill bg-success-100 px-3 text-nav font-medium text-success-800'
             }
           >
             {t(STATUS_KEY[booking.status] ?? 'manage.statusRequested')}

@@ -55,7 +55,7 @@ export function Button({
       className={cn(
         // A softly rounded rectangle, not a pill: it sits beside fields and
         // cards of the same 8-14px family instead of on top of them.
-        'pill-text cursor-pointer justify-center rounded-control font-medium',
+        'pill-text inline-flex items-center cursor-pointer justify-center rounded-control font-medium',
         // A control of a fixed height cannot wrap: a narrow table column turned "فتح الملف" into
         // two lines and the box clipped the second.
         'whitespace-nowrap',

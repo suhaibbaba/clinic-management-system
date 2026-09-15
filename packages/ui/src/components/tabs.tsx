@@ -74,7 +74,7 @@ export function Tabs<TId extends string>({
                 className={cn(
                   // A declared lozenge, as the rail's badge is: one digit is a circle and three
                   // do not spill. Its height is drawn, never a line-height's leftovers.
-                  'pill-text h-4 min-w-4 justify-center rounded-pill px-1.5 text-micro font-medium',
+                  'pill-text inline-flex items-center h-4 min-w-4 justify-center rounded-pill px-1.5 text-micro font-medium',
                   'tabular-nums',
                   selected ? 'bg-primary-900/25 text-ink-inverse' : 'bg-inset text-ink-subtle',
                 )}
