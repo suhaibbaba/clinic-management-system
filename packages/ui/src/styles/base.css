@@ -370,6 +370,19 @@ body {
   color: var(--color-primary-900);
 }
 
+/* The ring's colour is set before it is ever drawn. Tailwind's `transition-colors` includes
+   `outline-color`, and an outline that has not been drawn computes to `currentColor` — so the ring
+   flipped to `solid` at once and then *faded* from the text's near-black to green over 150ms. In
+   the base layer and behind `:where`, so a component that names its own outline — a selected card —
+   still wins at rest. */
+@layer base {
+  :where(*),
+  :where(*)::before,
+  :where(*)::after {
+    outline-color: var(--color-success-500);
+  }
+}
+
 /* `:focus-visible` only, declared once: fourteen components with their own outline utility is
    fourteen chances for one to be missing. Green rather than the action colour — that is the fill of
    the thing being focused. */
