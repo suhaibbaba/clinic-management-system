@@ -53,7 +53,7 @@ export function ItemDrawer({
   const { t } = useTranslation();
   const categoryLabel = useLookupLabels(LOOKUP_LIST.ITEM_CATEGORY);
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
-  const { user } = useSession();
+  const { can } = useSession();
   const navigate = useNavigate();
 
   const [movement, setMovement] = useState<MovementType | null>(null);
@@ -91,7 +91,7 @@ export function ItemDrawer({
         footer={
           <div className="flex flex-wrap items-center gap-2">
             {actions
-              .filter((type) => mayRecord(type, user?.role))
+              .filter((type) => mayRecord(type, can))
               .map((type) => (
                 <Button
                   key={type}
@@ -135,7 +135,7 @@ export function ItemDrawer({
                 )}
               </dl>
 
-              {canManageInventory(user?.role) && (
+              {canManageInventory(can) && (
                 <div>
                   <Button
                     size="sm"
@@ -245,7 +245,7 @@ function History({
   readonly onOpenPatient: (patientId: string) => void;
 }): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { can } = useSession();
   const toast = useToast();
   const clinic = useClinic();
   const reverse = useReverseMovement();
@@ -348,7 +348,7 @@ function History({
 
             {movement.reason && <p className="mt-1 text-label text-ink">{movement.reason}</p>}
 
-            {canReverseMovement(user?.role) &&
+            {canReverseMovement(can) &&
               movement.reversedAt === null &&
               movement.reversesId === null && (
                 <Button

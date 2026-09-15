@@ -35,7 +35,7 @@ export function VisitsTab({
   patient?: PatientClinicalView | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { user, can } = useSession();
   const toast = useToast();
 
   const visits = usePatientVisits(patientId);
@@ -159,7 +159,7 @@ export function VisitsTab({
                 <div className="flex flex-wrap items-center gap-2">
                   {/* The alternative is a technician reconstructing a day's consumption from memory,
                       which is how a stock count stops matching the cupboard. */}
-                  {canConsumeStock(user?.role) && (
+                  {canConsumeStock(can) && (
                     <Button
                       icon={<Icon name="clipboard" />}
                       variant="secondary"

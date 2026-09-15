@@ -48,7 +48,7 @@ export function AppointmentDrawer({
 }: AppointmentDrawerProps): JSX.Element | null {
   const { t } = useTranslation();
   const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
-  const { user } = useSession();
+  const { can } = useSession();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -65,7 +65,7 @@ export function AppointmentDrawer({
 
   const status = appointment.status;
   const style = APPOINTMENT_STATUS_STYLES[status];
-  const mayOpenVisit = user ? canOpenVisit(user.role) : false;
+  const mayOpenVisit = canOpenVisit(can);
 
   const move = async (next: AppointmentStep, successKey: string): Promise<void> => {
     try {

@@ -41,7 +41,7 @@ export function ChartTab({
   readonly patient?: PatientClinicalView | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { user, can } = useSession();
   const toast = useToast();
 
   const [dentition, setDentition] = useState<Dentition>('permanent');
@@ -156,7 +156,7 @@ export function ChartTab({
           submitting={createProcedure.isPending}
           onClose={() => setSelectedTooth(null)}
           onRecord={handleRecord}
-          {...(canCreateLabOrder(role) && {
+          {...(canCreateLabOrder(can) && {
             onSendToLab: (input: { teeth: number[]; performedProcedureId?: string }) =>
               setLabOrder({
                 teeth: input.teeth,

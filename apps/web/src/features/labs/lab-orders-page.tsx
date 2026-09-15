@@ -35,7 +35,7 @@ import { useIsMobile } from '@clinic/ui/lib/use-media-query';
 // shared `Table`, already a stack of cards there.
 export function LabOrdersPage(): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { can } = useSession();
   const isMobile = useIsMobile();
 
   const [search, setSearch] = useState('');
@@ -75,7 +75,7 @@ export function LabOrdersPage(): JSX.Element {
         title="labs.orders.title"
         subtitle="labs.orders.subtitle"
         primaryAction={
-          canCreateLabOrder(user?.role) ? (
+          canCreateLabOrder(can) ? (
             <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
               {t('labs.orders.add')}
             </Button>
@@ -240,12 +240,12 @@ function OrderCard({
   readonly onOpen: () => void;
 }): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { can } = useSession();
   const toast = useToast();
   const clinic = useClinic();
   const step = useLabOrderStep();
 
-  const steps = availableSteps(order.status, user?.role);
+  const steps = availableSteps(order.status, can);
 
   const move = async (next: (typeof steps)[number]): Promise<void> => {
     try {

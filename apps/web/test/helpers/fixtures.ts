@@ -28,10 +28,88 @@ import {
   type TreatmentPlan,
   type TreatmentPlanItem,
   type User,
+  type UserRole,
   type Visit,
 } from '@clinic/shared';
 
 export const CLINIC_ID = '11111111-1111-4111-8111-111111111111';
+
+// What each role ships able to do, for the capabilities the app actually asks about. The API
+// resolves the real set from its own route table; this is the same answer for a clinic that has
+// edited nothing, which is what every test below assumes. Pass `capabilities` to a fixture to play
+// a clinic that has edited something.
+export const SHIPPED_CAPABILITIES: Record<UserRole, readonly string[]> = {
+  [USER_ROLE.ADMIN]: [
+    'appointments.convertToVisit',
+    'appointments.create',
+    'attachments.remove',
+    'inventory.adjust',
+    'inventory.consume',
+    'inventory.create',
+    'inventory.purchase',
+    'inventory.reverse',
+    'lab-orders.cancel',
+    'lab-orders.create',
+    'lab-orders.fit',
+    'lab-orders.ready',
+    'lab-orders.receive',
+    'lab-orders.return',
+    'lab-orders.send',
+    'lab-payments.create',
+    'labs.create',
+    'patient-attachments.presignUpload',
+    'patients.create',
+    'patients.update',
+    'payments.create',
+    'payments.reverse',
+    'pending-bookings.list',
+    'procedures.create',
+    'suppliers.create',
+    'waiting-list.create',
+  ],
+  [USER_ROLE.DOCTOR]: [
+    'appointments.convertToVisit',
+    'appointments.create',
+    'inventory.consume',
+    'lab-orders.cancel',
+    'lab-orders.create',
+    'lab-orders.fit',
+    'lab-orders.return',
+    'lab-orders.send',
+    'patient-attachments.presignUpload',
+    'patients.create',
+    'patients.update',
+    'procedures.create',
+  ],
+  [USER_ROLE.TECHNICIAN]: [
+    'inventory.adjust',
+    'inventory.consume',
+    'inventory.create',
+    'inventory.purchase',
+    'lab-orders.cancel',
+    'lab-orders.ready',
+    'lab-orders.receive',
+    'lab-orders.return',
+    'lab-orders.send',
+    'lab-payments.create',
+    'labs.create',
+    'suppliers.create',
+  ],
+  [USER_ROLE.RECEPTIONIST]: [
+    'appointments.create',
+    'patients.create',
+    'patients.update',
+    'payments.create',
+    'pending-bookings.list',
+    'waiting-list.create',
+  ],
+};
+
+/** A `can` for a role that has had nothing edited — what a screen is handed by the session. */
+export const canFor =
+  (role: UserRole) =>
+  (capability: string): boolean =>
+    SHIPPED_CAPABILITIES[role].includes(capability);
 
 export function makeProfile(
   overrides: Partial<AuthenticatedUserProfile> = {},
@@ -50,6 +128,7 @@ export function makeProfile(
     role: USER_ROLE.ADMIN,
     isActive: true,
     photoUrl: null,
+    capabilities: [...SHIPPED_CAPABILITIES[overrides.role ?? USER_ROLE.ADMIN]],
     ...overrides,
   };
 }

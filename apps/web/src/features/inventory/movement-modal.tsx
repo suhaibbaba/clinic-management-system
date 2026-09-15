@@ -3,7 +3,6 @@ import {
   MOVEMENT_TYPE,
   type InventoryItemRow,
   type MovementType,
-  type UserRole,
 } from '@clinic/shared';
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +25,7 @@ import {
   type PickedPatient,
 } from '@web/features/appointments/patient-picker';
 import { useLookupLabels } from '@web/features/lookups/queries';
-import { useSession } from '@web/features/auth/session';
+import { useSession, type Can } from '@web/features/auth/session';
 import {
   canAdjustStock,
   canConsumeStock,
@@ -41,13 +40,13 @@ import {
 import { errorMessageKey } from '@web/lib/api-error';
 import { useCurrency } from '@web/features/clinic/queries';
 
-/** Which roles may open which form — the ROLES.md split, as a lookup. */
-export const mayRecord = (type: MovementType, role: UserRole | undefined): boolean =>
+/** Which permission each form asks for, as a lookup. */
+export const mayRecord = (type: MovementType, can: Can): boolean =>
   ({
     [MOVEMENT_TYPE.PURCHASE]: canPurchaseStock,
     [MOVEMENT_TYPE.CONSUME]: canConsumeStock,
     [MOVEMENT_TYPE.ADJUST]: canAdjustStock,
-  })[type](role);
+  })[type](can);
 
 export interface MovementModalProps {
   readonly type: MovementType | null;
@@ -70,7 +69,7 @@ export function MovementModal({
   const currency = useCurrency();
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const toast = useToast();
-  const { user } = useSession();
+  const { can } = useSession();
 
   const purchase = usePurchaseStock();
   const consume = useConsumeStock();
@@ -295,7 +294,7 @@ export function MovementModal({
         </FormField>
 
         {/* Cosmetic only: the API refuses the same thing, and says so. */}
-        {!mayRecord(type, user?.role) && (
+        {!mayRecord(type, can) && (
           <p role="alert" className="text-label text-danger-600">
             {t('inventory.movement.notAllowed')}
           </p>

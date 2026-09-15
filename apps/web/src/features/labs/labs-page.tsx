@@ -30,7 +30,7 @@ import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
 export function LabsPage(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useSession();
+  const { can } = useSession();
   const [search, setSearch] = useState('');
   const [creating, setCreating] = useState(false);
 
@@ -52,7 +52,7 @@ export function LabsPage(): JSX.Element {
           count: t('pagination.total', { total: labs.data.total }),
         })}
         primaryAction={
-          canManageLabs(user?.role) ? (
+          canManageLabs(can) ? (
             <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
               {t('labs.add')}
             </Button>

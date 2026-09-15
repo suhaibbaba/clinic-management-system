@@ -13,7 +13,7 @@ import { Badge, Button, EmptyState, Icon, Img, Input, Ltr, Select, useToast } fr
 import { Skeleton, SkeletonStatus } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { useLookupLabels, useLookupOptions } from '@web/features/lookups/queries';
-import { canDelete, canManageAttachments } from '@web/features/patients/permissions';
+import { canDeleteAttachment, canManageAttachments } from '@web/features/patients/permissions';
 import {
   useAttachment,
   useDeleteAttachment,
@@ -30,7 +30,7 @@ import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
 export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
   const { t } = useTranslation();
   const attachmentTypes = useLookupOptions(LOOKUP_LIST.ATTACHMENT_TYPE);
-  const { user } = useSession();
+  const { can } = useSession();
   const toast = useToast();
 
   const [typeFilter, setTypeFilter] = useState<AttachmentType | ''>('');
@@ -45,8 +45,8 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
   });
   const showSkeleton = useDelayedLoading(attachments.isPending);
 
-  const canUpload = user ? canManageAttachments(user.role) : false;
-  const canRemove = user ? canDelete(user.role) : false;
+  const canUpload = canManageAttachments(can);
+  const canRemove = canDeleteAttachment(can);
 
   return (
     <div className="flex flex-col gap-4">

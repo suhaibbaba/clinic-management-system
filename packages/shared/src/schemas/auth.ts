@@ -73,6 +73,10 @@ export const authenticatedUserSchema = z.object({
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
   photoUrl: z.url().nullable(),
+  /** What this clinic lets this role do, resolved from the shipped defaults and the clinic's own
+   *  edits. Carried on the session so a screen hides what its reader cannot use; the API is still
+   *  the boundary. */
+  capabilities: z.array(z.string()),
 });
 export type AuthenticatedUserProfile = z.infer<typeof authenticatedUserSchema>;
 

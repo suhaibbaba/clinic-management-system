@@ -122,6 +122,28 @@ describe('Permissions (e2e)', () => {
     await grant(USER_ROLE.RECEPTIONIST, AUDIT.capability, false);
   });
 
+  it('the session carries what the reader may do, so a screen can hide what they cannot', async () => {
+    const before = await context.app.inject({
+      method: 'GET',
+      url: '/me',
+      headers: auth(receptionToken),
+    });
+
+    expect(before.json<{ capabilities: string[] }>().capabilities).not.toContain(AUDIT.capability);
+    expect(before.json<{ capabilities: string[] }>().capabilities).toContain('patients.create');
+
+    await grant(USER_ROLE.RECEPTIONIST, AUDIT.capability, true);
+
+    const after = await context.app.inject({
+      method: 'GET',
+      url: '/me',
+      headers: auth(receptionToken),
+    });
+
+    expect(after.json<{ capabilities: string[] }>().capabilities).toContain(AUDIT.capability);
+    await grant(USER_ROLE.RECEPTIONIST, AUDIT.capability, false);
+  });
+
   it('the administrator cannot be edited, and an unknown permission is not stored', async () => {
     const admin = await grant(USER_ROLE.ADMIN, AUDIT.capability, false);
     const nonsense = await grant(USER_ROLE.DOCTOR, 'made.up', true);

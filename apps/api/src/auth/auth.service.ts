@@ -7,12 +7,14 @@ import type {
   LoginInput,
   LoginResponse,
   SessionClinic,
+  UserRole,
 } from '@clinic/shared';
 
 import { PasswordService } from '@api/auth/password.service';
 import { TokenService } from '@api/auth/token.service';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 import { DATABASE, type Database } from '@api/database/database.module';
+import { PermissionsService } from '@api/permissions/permissions.service';
 import { StorageService } from '@api/storage/storage.service';
 import { clinics, specialties, users } from '@api/database/schema';
 
@@ -33,6 +35,7 @@ export class AuthService {
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
     private readonly storage: StorageService,
+    private readonly permissions: PermissionsService,
   ) {}
 
   async login(input: LoginInput): Promise<LoginResponse & IssuedSession> {
@@ -203,7 +206,17 @@ export class AuthService {
       role: user.role,
       isActive: user.isActive,
       photoUrl: user.photoKey ? (await this.storage.createDownloadUrl(user.photoKey)).url : null,
+      capabilities: await this.allowedCapabilities(user.clinicId, user.role),
     };
+  }
+
+  /** The keys only, so a screen can ask `can('patients.update')` without carrying the false ones. */
+  private async allowedCapabilities(clinicId: string, role: UserRole): Promise<string[]> {
+    const matrix = await this.permissions.matrix(clinicId, role);
+
+    return Object.entries(matrix)
+      .filter(([, allowed]) => allowed)
+      .map(([capability]) => capability);
   }
 
   private async sessionClinic(clinicId: string): Promise<SessionClinic> {

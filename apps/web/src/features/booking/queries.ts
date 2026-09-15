@@ -1,16 +1,14 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import type { CalendarAppointment, ListAppointmentsQuery, Paginated } from '@clinic/shared';
 
-import { USER_ROLE, type UserRole } from '@clinic/shared';
-
 import { pendingBookingsApi } from '@web/features/booking/api';
+import type { Can } from '@web/features/auth/session';
 import { CALENDAR_KEY } from '@web/features/appointments/queries';
 
 export const PENDING_BOOKINGS_KEY = 'pending-bookings';
 
-/** Who is asked to deal with online bookings at all (ROLES.md appointments row). */
-export const seesPendingBookings = (role: UserRole | undefined): boolean =>
-  role === USER_ROLE.ADMIN || role === USER_ROLE.RECEPTIONIST;
+/** Who is asked to deal with online bookings at all. */
+export const seesPendingBookings = (can: Can): boolean => can('pending-bookings.list');
 
 export function usePendingBookings(
   params: Partial<ListAppointmentsQuery> = {},

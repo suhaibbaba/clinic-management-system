@@ -17,6 +17,7 @@ import {
   canSeePrices,
 } from '@web/features/patients/permissions';
 import { useClinic } from '@web/features/clinic/queries';
+import { useSession } from '@web/features/auth/session';
 import { useToothHistory } from '@web/features/patients/queries';
 import { formatDate } from '@web/lib/format';
 import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
@@ -50,6 +51,7 @@ export function ToothPanel({
   onSendToLab,
 }: ToothPanelProps): JSX.Element {
   const { t } = useTranslation();
+  const { can } = useSession();
   const doctorName = usePersonName();
   const states = useToothStates();
   const [adding, setAdding] = useState(false);
@@ -59,7 +61,7 @@ export function ToothPanel({
 
   const showPrices = canSeePrices(role);
   const showAttachments = canSeeAttachments(role);
-  const canAdd = canRecordProcedure(role);
+  const canAdd = canRecordProcedure(can);
 
   const catalogNames = new Map(catalog.map((item) => [item.id, item.nameAr]));
 

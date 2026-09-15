@@ -42,7 +42,7 @@ export interface OrderDrawerProps {
 // each one, so a technician is never shown "fits".
 export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.Element | null {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { user, can } = useSession();
   const toast = useToast();
   const navigate = useNavigate();
   const clinic = useClinic();
@@ -58,7 +58,7 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
   }
 
   const style = LAB_ORDER_STATUS_STYLES[order.status];
-  const steps = availableSteps(order.status, user?.role);
+  const steps = availableSteps(order.status, can);
   const busy = step.isPending || returnToLab.isPending;
 
   const move = async (next: (typeof steps)[number]): Promise<void> => {
@@ -107,7 +107,7 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
               </Button>
             ))}
 
-            {canReturn(order.status, user?.role) && (
+            {canReturn(order.status, can) && (
               <Button variant="secondary" disabled={busy} onClick={() => setReturning(true)}>
                 {t('labs.actions.return')}
               </Button>
@@ -178,7 +178,7 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
               {t('labs.order.print')}
             </Button>
 
-            {order.status === LAB_ORDER_STATUS.DRAFT && canCreateLabOrder(user?.role) && (
+            {order.status === LAB_ORDER_STATUS.DRAFT && canCreateLabOrder(can) && (
               <Button
                 variant="ghost"
                 size="sm"

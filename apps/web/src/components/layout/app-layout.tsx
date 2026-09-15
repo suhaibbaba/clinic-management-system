@@ -27,7 +27,7 @@ const PATIENTS = '/patients';
 
 export function AppLayout(): JSX.Element {
   const { t } = useTranslation();
-  const { user, logout } = useSession();
+  const { user, logout, can } = useSession();
   const { pathname } = useLocation();
   // From the session bootstrap, not a second request, so the rail is branded on the first paint.
   const logoUrl = useClinicLogo(user?.clinicId, user?.clinic.logoUrl);
@@ -39,7 +39,7 @@ export function AppLayout(): JSX.Element {
   const settings = visibleSettingsItems(user?.role);
 
   /** Asked for once here and handed to both copies of the nav list, rather than fetched twice. */
-  const pendingBookings = usePendingBookingsCount(seesPendingBookings(user?.role));
+  const pendingBookings = usePendingBookingsCount(seesPendingBookings(can));
   const badges = { pendingBookings } as const;
 
   // Navigating closes the drawer. Doing it here rather than in each row's

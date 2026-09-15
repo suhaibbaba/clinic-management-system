@@ -52,7 +52,7 @@ const PLACEHOLDER_TABS: readonly TabId[] = ['prescriptions'];
 
 export function PatientPage(): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { user, can } = useSession();
   const { id = '' } = useParams();
 
   // A receptionist reaches this page for the account only, so the clinical
@@ -107,7 +107,7 @@ export function PatientPage(): JSX.Element {
 
                 {/* Editing the file is the header's job, not a tab's: every tab below is about what
                     was done to the patient, and this is about who they are. */}
-                {role && canEditPatient(role) && (
+                {canEditPatient(can) && (
                   <Button
                     size="sm"
                     variant="secondary"

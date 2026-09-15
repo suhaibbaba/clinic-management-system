@@ -1,4 +1,4 @@
-import { USER_ROLE, type CalendarAppointment } from '@clinic/shared';
+import type { CalendarAppointment } from '@clinic/shared';
 import { useEffect, useMemo, useState, type JSX, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -167,7 +167,7 @@ function TodaySchedule({
   readonly linkPatients: boolean;
 }): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { can } = useSession();
   const confirm = useAppointmentStep();
   // In the URL, so a filtered day is a day somebody can send to a colleague.
   const [doctorId, setDoctorId] = useDoctorFilter();
@@ -241,7 +241,7 @@ function TodaySchedule({
         linkPatients={linkPatients}
         nowMinute={nowMinute}
         onConfirm={
-          canBookAppointment(user?.role ?? USER_ROLE.TECHNICIAN)
+          canBookAppointment(can)
             ? (appointment) => confirm.mutate({ id: appointment.id, step: 'confirm' })
             : undefined
         }

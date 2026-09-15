@@ -25,7 +25,7 @@ import { useSession } from '@web/features/auth/session';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { Money } from '@web/features/billing/money';
 import { useClinic } from '@web/features/clinic/queries';
-import { canManageInventory } from '@web/features/inventory/permissions';
+import { canManageSuppliers } from '@web/features/inventory/permissions';
 import { useSuppliers, useSupplierStatement } from '@web/features/inventory/queries';
 import { SupplierFormModal } from '@web/features/inventory/supplier-form-modal';
 import { endOfNextDayIso, formatDate, startOfDayIso } from '@web/lib/format';
@@ -34,7 +34,7 @@ import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
 export function SuppliersPage(): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { can } = useSession();
   const clinic = useClinic();
 
   const [search, setSearch] = useState('');
@@ -49,7 +49,7 @@ export function SuppliersPage(): JSX.Element {
     ...(debounced.trim() !== '' && { search: debounced.trim() }),
   });
 
-  const mayManage = canManageInventory(user?.role);
+  const mayManage = canManageSuppliers(can);
 
   const columns: readonly Column<SupplierSummary>[] = [
     {

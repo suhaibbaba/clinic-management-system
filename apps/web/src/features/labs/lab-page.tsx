@@ -47,7 +47,7 @@ type Tab = (typeof TAB_IDS)[number];
 export function LabPage(): JSX.Element {
   const { t } = useTranslation();
   const { id = '' } = useParams<{ id: string }>();
-  const { user } = useSession();
+  const { can } = useSession();
 
   // A lab's statement is the thing somebody sends to somebody else, and in `useState` it had no
   // address to send.
@@ -81,7 +81,7 @@ export function LabPage(): JSX.Element {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {canManageLabs(user?.role) && (
+          {canManageLabs(can) && (
             <Button
               variant="secondary"
               icon={<Icon name="edit" />}
@@ -90,7 +90,7 @@ export function LabPage(): JSX.Element {
               {t('common.edit')}
             </Button>
           )}
-          {canPayLab(user?.role) && (
+          {canPayLab(can) && (
             <Button icon={<Icon name="money" />} onClick={() => setPaying(true)}>
               {t('labs.payment.action')}
             </Button>
@@ -182,14 +182,14 @@ function LabOrdersTab({ labId }: { readonly labId: string }): JSX.Element {
 // the price it was placed at, and the caption says so.
 function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { can } = useSession();
   const clinic = useClinic();
   const workTypes = useLabWorkTypes(labId, true);
 
   const [editing, setEditing] = useState<LabWorkType | undefined>();
   const [creating, setCreating] = useState(false);
 
-  const mayEdit = canManageLabs(user?.role);
+  const mayEdit = canManageLabs(can);
 
   const columns: readonly Column<LabWorkType>[] = [
     { key: 'name', header: 'labs.prices.name', primary: true, render: (row) => row.nameAr },

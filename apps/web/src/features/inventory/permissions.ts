@@ -1,24 +1,24 @@
 import { USER_ROLE, type UserRole } from '@clinic/shared';
 
-// The ROLES.md inventory matrix. Cosmetic — the API is the boundary — but it stops a screen
-// offering a button whose only outcome is a 403.
+import type { Can } from '@web/features/auth/session';
 
-/** Who sees the module at all. A receptionist is in none of its rows. */
+/** Who sees the module at all — a route, which is a role rather than a permission. */
 export const seesInventory = (role: UserRole | undefined): boolean =>
   role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR || role === USER_ROLE.TECHNICIAN;
 
-/** "Items & suppliers": admin CRUD, technician CRU, doctor read. */
-export const canManageInventory = (role: UserRole | undefined): boolean =>
-  role === USER_ROLE.ADMIN || role === USER_ROLE.TECHNICIAN;
+/** Items: adding one, and editing one. */
+export const canManageInventory = (can: Can): boolean => can('inventory.create');
+
+/** Suppliers keep their own switch: a clinic can let somebody buy without letting them edit the
+ *  book of who from. */
+export const canManageSuppliers = (can: Can): boolean => can('suppliers.create');
 
 // The one write a doctor makes here: they use an ampoule at the chair and say so, which is the only
 // way the count matches the cupboard.
-export const canConsumeStock = (role: UserRole | undefined): boolean =>
-  role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR || role === USER_ROLE.TECHNICIAN;
+export const canConsumeStock = (can: Can): boolean => can('inventory.consume');
 
-/** Purchases and stock takes are the technician's, with the admin over them. */
-export const canPurchaseStock = canManageInventory;
-export const canAdjustStock = canManageInventory;
+export const canPurchaseStock = (can: Can): boolean => can('inventory.purchase');
+export const canAdjustStock = (can: Can): boolean => can('inventory.adjust');
 
-/** Only an admin may write the entry that undoes another. */
-export const canReverseMovement = (role: UserRole | undefined): boolean => role === USER_ROLE.ADMIN;
+/** The entry that undoes another. */
+export const canReverseMovement = (can: Can): boolean => can('inventory.reverse');

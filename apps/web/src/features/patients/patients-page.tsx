@@ -54,7 +54,7 @@ function isClinicalView(patient: PatientView): patient is PatientClinicalView {
 export function PatientsPage(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useSession();
+  const { user, can } = useSession();
 
   // The bar owns the term and writes it here as `?q=`, so the URL is what this reads — a state copy
   // seeded at mount would ignore a search typed from another screen.
@@ -218,7 +218,7 @@ export function PatientsPage(): JSX.Element {
     return base;
   }, [showClinical, showBalance, currency, navigate, t]);
 
-  const canCreate = user ? canCreatePatient(user.role) : false;
+  const canCreate = canCreatePatient(can);
   const isSearching = search.trim() !== '';
   const rows = query.data?.items ?? [];
 

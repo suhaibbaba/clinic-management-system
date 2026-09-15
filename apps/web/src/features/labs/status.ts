@@ -1,13 +1,8 @@
-import {
-  LAB_ORDER_STATUS,
-  USER_ROLE,
-  canTransitionLabOrder,
-  type LabOrderStatus,
-  type UserRole,
-} from '@clinic/shared';
+import { LAB_ORDER_STATUS, canTransitionLabOrder, type LabOrderStatus } from '@clinic/shared';
 
 import type { BadgeTone } from '@clinic/ui/components/badge';
 import { TONE_SURFACE } from '@clinic/ui/components/tone';
+import type { Can } from '@web/features/auth/session';
 import type { LabOrderStep } from '@web/features/labs/queries';
 
 // The column header, the badge and the chip all read this, so a status cannot be amber in one place
@@ -48,8 +43,8 @@ interface StepDefinition {
   readonly step: LabOrderStep;
   readonly to: LabOrderStatus;
   readonly label: string;
-  /** Who the API lets make this move — the same split as `TRANSITION_ROLES`. */
-  readonly roles: readonly UserRole[];
+  /** The permission the API asks for on this move. */
+  readonly capability: string;
 }
 
 const STEPS: readonly StepDefinition[] = [
@@ -57,56 +52,41 @@ const STEPS: readonly StepDefinition[] = [
     step: 'send',
     to: LAB_ORDER_STATUS.SENT,
     label: 'labs.actions.send',
-    roles: [USER_ROLE.TECHNICIAN, USER_ROLE.DOCTOR],
+    capability: 'lab-orders.send',
   },
   {
     step: 'ready',
     to: LAB_ORDER_STATUS.READY,
     label: 'labs.actions.ready',
-    roles: [USER_ROLE.TECHNICIAN],
+    capability: 'lab-orders.ready',
   },
   {
     step: 'receive',
     to: LAB_ORDER_STATUS.RECEIVED,
     label: 'labs.actions.receive',
-    roles: [USER_ROLE.TECHNICIAN],
+    capability: 'lab-orders.receive',
   },
   {
     step: 'fit',
     to: LAB_ORDER_STATUS.FITTED,
     label: 'labs.actions.fit',
-    roles: [USER_ROLE.DOCTOR],
+    capability: 'lab-orders.fit',
   },
   {
     step: 'cancel',
     to: LAB_ORDER_STATUS.CANCELLED,
     label: 'labs.actions.cancel',
-    roles: [USER_ROLE.TECHNICIAN, USER_ROLE.DOCTOR],
+    capability: 'lab-orders.cancel',
   },
 ];
 
-// Two filters: the transition table decides what is possible, the role table who may do it.
-// Cosmetic — the API refuses either way.
-export function availableSteps(
-  status: LabOrderStatus,
-  role: UserRole | undefined,
-): readonly StepDefinition[] {
-  if (!role) {
-    return [];
-  }
-
-  return STEPS.filter(
-    (step) =>
-      canTransitionLabOrder(status, step.to) &&
-      (role === USER_ROLE.ADMIN || step.roles.includes(role)),
-  );
+// Two filters: the transition table decides what is possible, the clinic's permissions who may do
+// it. Cosmetic — the API refuses either way.
+export function availableSteps(status: LabOrderStatus, can: Can): readonly StepDefinition[] {
+  return STEPS.filter((step) => canTransitionLabOrder(status, step.to) && can(step.capability));
 }
 
 /** Returning is its own action: it needs a reason, so it opens a dialog. */
-export function canReturn(status: LabOrderStatus, role: UserRole | undefined): boolean {
-  return (
-    role !== undefined &&
-    canTransitionLabOrder(status, LAB_ORDER_STATUS.RETURNED) &&
-    (role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR || role === USER_ROLE.TECHNICIAN)
-  );
+export function canReturn(status: LabOrderStatus, can: Can): boolean {
+  return canTransitionLabOrder(status, LAB_ORDER_STATUS.RETURNED) && can('lab-orders.return');
 }
