@@ -1,5 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createPatientSchema, GENDERS, type CreatePatientInput } from '@clinic/shared';
+import {
+  createPatientSchema,
+  GENDERS,
+  type CreatePatientInput,
+  type PatientClinicalView,
+} from '@clinic/shared';
 import { useEffect, type JSX } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -15,25 +20,31 @@ import {
   Select,
   useToast,
 } from '@clinic/ui';
-import { useCreatePatient } from '@web/features/patients/queries';
+import { useCreatePatient, useUpdatePatient } from '@web/features/patients/queries';
 import { errorMessageKey } from '@web/lib/api-error';
 
 interface PatientFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated: (patientId: string) => void;
+  onCreated?: ((patientId: string) => void) | undefined;
+  /** Given, the same form edits that record instead of registering a new one. */
+  patient?: PatientClinicalView | undefined;
 }
 
 // The file number is absent deliberately: the API allocates it per clinic, and accepting one here
-// would let two receptionists pick the same.
+// would let two receptionists pick the same. One form for both jobs: the fields a patient is
+// registered with are the fields they are corrected with, and two copies would drift.
 export function PatientFormModal({
   open,
   onOpenChange,
   onCreated,
+  patient,
 }: PatientFormModalProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
+  const editing = patient !== undefined;
   const createPatient = useCreatePatient();
+  const updatePatient = useUpdatePatient(patient?.id ?? '');
 
   const {
     register,
@@ -44,17 +55,39 @@ export function PatientFormModal({
   } = useForm<CreatePatientInput>({ resolver: zodResolver(createPatientSchema) });
 
   useEffect(() => {
-    if (open) {
-      reset({ fullName: '', phone: '' });
+    if (!open) {
+      return;
     }
-  }, [open, reset]);
+
+    reset(
+      patient
+        ? {
+            fullName: patient.fullName,
+            phone: patient.phone,
+            dateOfBirth: patient.dateOfBirth,
+            gender: patient.gender,
+            address: patient.address,
+            nationalId: patient.nationalId,
+            emergencyContactName: patient.emergencyContactName,
+            emergencyContactPhone: patient.emergencyContactPhone,
+          }
+        : { fullName: '', phone: '' },
+    );
+  }, [open, patient, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      const patient = await createPatient.mutateAsync(values);
+      if (editing) {
+        await updatePatient.mutateAsync(values);
+        toast.success('patients.updated');
+        onOpenChange(false);
+        return;
+      }
+
+      const created = await createPatient.mutateAsync(values);
       toast.success('patients.created');
       onOpenChange(false);
-      onCreated(patient.id);
+      onCreated?.(created.id);
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -64,7 +97,7 @@ export function PatientFormModal({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="patients.create"
+      title={editing ? 'patients.edit' : 'patients.create'}
       footer={
         <>
           <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>

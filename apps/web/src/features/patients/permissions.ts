@@ -28,6 +28,11 @@ export const canDelete = (role: UserRole): boolean => role === USER_ROLE.ADMIN;
 
 export const canCreatePatient = (role: UserRole): boolean => role !== USER_ROLE.TECHNICIAN;
 
+// ROLES.md, patients: basic info is CRUD for an admin and CRU for a doctor and a receptionist — a
+// technician reads. Named separately from creating even though the rule is the same today, because
+// the two are free to diverge and the spec lists them in different columns.
+export const canEditPatient = (role: UserRole): boolean => role !== USER_ROLE.TECHNICIAN;
+
 export const seesClinicalPatientFields = isClinical;
 
 // The route guard is built from this list, and so is every link that would lead to it — a name

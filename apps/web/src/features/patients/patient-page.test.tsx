@@ -121,6 +121,31 @@ describe('Patient page', () => {
     });
   });
 
+  // ROLES.md, patients: basic info is CRUD for an admin and CRU for a doctor and a receptionist.
+  // The endpoint existed from the start; the screen to reach it did not, so nobody could correct a
+  // misspelt name — an admin least of all, which is how it was noticed.
+  describe('editing the file (ROLES.md patients matrix)', () => {
+    it.each([USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST])(
+      'offers %s the edit button',
+      async (role) => {
+        await renderPatientPage(role);
+
+        expect(await screen.findByRole('button', { name: ar.patients.edit })).toBeInTheDocument();
+      },
+    );
+
+    it('opens the form on the record it is editing, not an empty one', async () => {
+      const user = userEvent.setup();
+      await renderPatientPage(USER_ROLE.ADMIN);
+
+      await user.click(await screen.findByRole('button', { name: ar.patients.edit }));
+
+      expect(await screen.findByLabelText(ar.patients.fullName)).toHaveValue(
+        makePatient().fullName,
+      );
+    });
+  });
+
   describe('header', () => {
     it('shows the file number, age and phone', async () => {
       await renderPatientPage(USER_ROLE.DOCTOR);
