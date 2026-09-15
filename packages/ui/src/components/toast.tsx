@@ -16,6 +16,9 @@ import { documentDirection } from '@ui/lib/direction';
 
 type ToastTone = 'success' | 'error';
 
+/** Four seconds: long enough to read a line, short enough not to sit over the next thing done. */
+const TOAST_MS = 4000;
+
 interface ToastMessage {
   readonly id: number;
   readonly messageKey: string;
@@ -69,11 +72,10 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
 
   return (
     <ToastContext.Provider value={api}>
-      {/* The toast sits in the bottom start corner, so the dismiss gesture goes towards the nearest
-          edge — pinned left, an Arabic user swiped across the whole screen. */}
+      {/* Swiped towards the nearest edge, which for a toast in the top end corner is the end one. */}
       <ToastPrimitive.Provider
-        swipeDirection={documentDirection() === 'rtl' ? 'right' : 'left'}
-        duration={5000}
+        swipeDirection={documentDirection() === 'rtl' ? 'left' : 'right'}
+        duration={TOAST_MS}
       >
         {children}
 
@@ -88,8 +90,11 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               }
             }}
             className={cn(
-              'flex items-start gap-2.5 overflow-hidden rounded-panel border border-s-4 border-line bg-surface',
-              'px-4 py-3 text-value shadow-float',
+              'group relative flex items-start gap-2.5 overflow-hidden rounded-panel border border-line bg-surface',
+              'border-s-4 px-4 py-3 text-value shadow-float',
+              'data-[state=open]:animate-[toast-in_200ms_ease-out]',
+              'data-[state=closed]:animate-[toast-out_150ms_ease-in]',
+              'data-[swipe=move]:translate-x-(--radix-toast-swipe-move-x)',
               message.tone === 'success' ? 'border-s-success-500' : 'border-s-danger-500',
             )}
           >
@@ -116,13 +121,27 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
             >
               <Icon name="x" className="size-4" />
             </ToastPrimitive.Close>
+
+            {/* The time left. A pointer over the toast does not pause the countdown, it restarts it
+                — so the line is dropped while hovered and runs again from full on the way out. */}
+            <span
+              data-part="toast-life"
+              aria-hidden="true"
+              style={{ animationDuration: `${TOAST_MS}ms` }}
+              className={cn(
+                'absolute inset-x-0 bottom-0 h-0.5 origin-left animate-[toast-life_linear_forwards]',
+                'page-rtl:origin-right group-hover:animate-none',
+                message.tone === 'success' ? 'bg-success-500' : 'bg-danger-500',
+              )}
+            />
           </ToastPrimitive.Root>
         ))}
 
-        {/* Bottom-start corner: mirrors to the right-hand side in RTL. */}
+        {/* The top end corner — the right in English, the left in Arabic — clear of the bar's own
+            buttons and of anything a hand covers on a phone. */}
         <ToastPrimitive.Viewport
           data-part="toast-viewport"
-          className="fixed bottom-4 start-4 z-[60] flex w-80 max-w-[calc(100dvw-2rem)] flex-col gap-2 outline-none"
+          className="fixed top-4 end-4 z-[60] flex w-80 max-w-[calc(100dvw-2rem)] flex-col gap-2 outline-none"
         />
       </ToastPrimitive.Provider>
     </ToastContext.Provider>
