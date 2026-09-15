@@ -1,20 +1,44 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { changePasswordSchema, type AuthenticatedUserProfile } from '@clinic/shared';
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post } from '@nestjs/common';
+import {
+  AUDIT_ACTION,
+  changePasswordSchema,
+  updateOwnProfileSchema,
+  type AuthenticatedUserProfile,
+} from '@clinic/shared';
 import { createZodDto } from 'nestjs-zod';
 
+import { Audit } from '@api/common/decorators/audit.decorator';
 import { AuthService } from '@api/auth/auth.service';
 import { CurrentUser } from '@api/common/decorators/current-user.decorator';
+import { USERS_ENTITY, UsersService } from '@api/users/users.service';
 import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 
 class ChangePasswordDto extends createZodDto(changePasswordSchema) {}
+class UpdateOwnProfileDto extends createZodDto(updateOwnProfileSchema) {}
 
 /** No `@Roles(...)`: these only ever read or change the authenticated user's own row. */
 @Controller('me')
 export class MeController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Get()
   getProfile(@CurrentUser() actor: AuthenticatedUser): Promise<AuthenticatedUserProfile> {
+    return this.authService.getProfile(actor);
+  }
+
+  // The whole profile comes back rather than the row: the caller is the session, and a name it went
+  // on showing after the change would be the old one.
+  @Patch()
+  @Audit(USERS_ENTITY, AUDIT_ACTION.UPDATE, { entityIdSource: 'actor' })
+  async updateProfile(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: UpdateOwnProfileDto,
+  ): Promise<AuthenticatedUserProfile> {
+    await this.usersService.update(actor, actor.id, body);
+
     return this.authService.getProfile(actor);
   }
 

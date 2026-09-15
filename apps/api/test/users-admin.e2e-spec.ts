@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import { USER_ROLE, type UserRole } from '@clinic/shared';
 
 import { REFRESH_COOKIE_NAME } from '@api/auth/refresh-cookie';
@@ -31,6 +33,73 @@ describe('Admin user management and specialties (e2e)', () => {
 
   afterAll(async () => {
     await context.close();
+  });
+
+  describe('PATCH /me', () => {
+    it('lets anybody correct their own name and contact details', async () => {
+      // A unique address per run: identifiers are unique system-wide and this database outlives
+      // the suite that writes to it.
+      const email = `me.${randomUUID()}@test.local`;
+      const response = await context.app.inject({
+        method: 'PATCH',
+        url: '/me',
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: { name: { ar: 'مؤيد كنعان', en: 'Muayyad Kanaan' }, email },
+      });
+      const body = response.json<{ name: { ar: string }; email: string; role: string }>();
+
+      expect(response.statusCode).toBe(200);
+      expect(body.name.ar).toBe('مؤيد كنعان');
+      expect(body.email).toBe(email);
+      // The whole profile comes back, so the session the caller holds can be replaced with it.
+      expect(body.role).toBe(USER_ROLE.TECHNICIAN);
+    });
+
+    it('is not a way to change your own role', async () => {
+      const escalate = await context.app.inject({
+        method: 'PATCH',
+        url: '/me',
+        headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+        payload: { role: USER_ROLE.ADMIN },
+      });
+
+      // `role` is not a field of the schema at all, so the body carries nothing writable.
+      expect(escalate.statusCode).toBe(400);
+
+      const after = await context.app.inject({
+        method: 'GET',
+        url: '/me',
+        headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+      });
+
+      expect(after.json<{ role: string }>().role).toBe(USER_ROLE.RECEPTIONIST);
+    });
+
+    it('refuses a phone another account already answers to', async () => {
+      const phone = `+9725${String(Date.now()).slice(-7)}`;
+      const created = await context.app.inject({
+        method: 'POST',
+        url: '/users',
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: {
+          name: { ar: 'زميل', en: 'Colleague' },
+          phone,
+          role: USER_ROLE.RECEPTIONIST,
+          password: TEST_PASSWORD,
+        },
+      });
+
+      expect(created.statusCode).toBe(201);
+
+      const response = await context.app.inject({
+        method: 'PATCH',
+        url: '/me',
+        headers: auth(tokens[USER_ROLE.DOCTOR]),
+        payload: { phone },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
   });
 
   describe('POST /users/:id/reset-password', () => {

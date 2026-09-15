@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { changePasswordSchema, personName, type ChangePasswordInput } from '@clinic/shared';
-import type { JSX } from 'react';
+import { useState, type JSX } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -18,6 +18,7 @@ import {
   useToast,
 } from '@clinic/ui';
 import { authApi } from '@web/features/auth/api';
+import { ProfileFormModal } from '@web/features/profile/profile-form-modal';
 import { useSession } from '@web/features/auth/session';
 import { ApiError, errorMessageKey } from '@web/lib/api-error';
 
@@ -25,6 +26,7 @@ export function ProfilePage(): JSX.Element {
   const { t, i18n } = useTranslation();
   const toast = useToast();
   const { user, logout } = useSession();
+  const [editing, setEditing] = useState(false);
 
   const {
     register,
@@ -54,7 +56,19 @@ export function ProfilePage(): JSX.Element {
 
   return (
     <>
-      <PageHeader title="profile.title" subtitle="profile.subtitle" />
+      <PageHeader
+        title="profile.title"
+        subtitle="profile.subtitle"
+        {...(user && {
+          primaryAction: (
+            <Button icon={<Icon name="edit" />} onClick={() => setEditing(true)}>
+              {t('profile.edit')}
+            </Button>
+          ),
+        })}
+      />
+
+      {user && <ProfileFormModal open={editing} onOpenChange={setEditing} user={user} />}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="border border-line rounded-card bg-surface shadow-card p-4">
