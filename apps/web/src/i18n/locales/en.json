@@ -313,6 +313,13 @@
     "logoRemoved": "Logo removed",
     "logoTooLarge": "The image is larger than 2 MB",
     "logoUnsupported": "Unsupported image type: use PNG, JPG or WebP",
+    "appIcon": "App icon",
+    "appIconHint": "A square the tab mark and home-screen icons are rendered from — use one if the logo is wide, since a wordmark is unreadable at 16px. Without it they are rendered from the logo",
+    "appIconPlaceholder": "No app icon",
+    "uploadAppIcon": "Upload icon",
+    "replaceAppIcon": "Replace icon",
+    "appIconUpdated": "App icon updated",
+    "appIconRemoved": "App icon removed; the icons are back to the logo",
     "about": "About",
     "version": "Version",
     "apiVersion": "Server version",
@@ -1309,7 +1316,10 @@
         "update": "Edit a closure"
       },
       "clinics": {
+        "presignAppIcon": "Upload or replace the app icon",
+        "presignIcons": "Generate the tab and app icons",
         "presignLogo": "Upload or replace the clinic logo",
+        "removeAppIcon": "Remove the app icon",
         "removeLogo": "Remove the clinic logo",
         "resolveLocation": "Read the clinic location from a map link",
         "update": "Edit the clinic details"

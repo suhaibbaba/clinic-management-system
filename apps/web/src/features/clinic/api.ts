@@ -1,6 +1,7 @@
 import type {
   Clinic,
   ClinicBranding,
+  PresignClinicIconsResponse,
   PresignClinicLogoInput,
   PresignClinicLogoResponse,
   ResolvedLocation,
@@ -24,4 +25,15 @@ export const clinicApi = {
   confirmLogo: (key: string): Promise<Clinic> =>
     apiRequest('/clinic/logo', { method: 'POST', body: { key } }),
   removeLogo: (): Promise<Clinic> => apiRequest('/clinic/logo', { method: 'DELETE' }),
+
+  presignAppIcon: (body: PresignClinicLogoInput): Promise<PresignClinicLogoResponse> =>
+    apiRequest('/clinic/app-icon/presign', { method: 'POST', body }),
+  confirmAppIcon: (key: string): Promise<Clinic> =>
+    apiRequest('/clinic/app-icon', { method: 'POST', body: { key } }),
+  removeAppIcon: (): Promise<Clinic> => apiRequest('/clinic/app-icon', { method: 'DELETE' }),
+
+  /** Signed against whatever the icons are rendered from, and hands back its bytes to re-read. */
+  presignIcons: (): Promise<PresignClinicIconsResponse> =>
+    apiRequest('/clinic/branding/icons/presign', { method: 'POST' }),
+  confirmIcons: (): Promise<Clinic> => apiRequest('/clinic/branding/icons', { method: 'POST' }),
 };

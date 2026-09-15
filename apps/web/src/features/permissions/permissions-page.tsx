@@ -30,6 +30,8 @@ interface Permission {
 const PAIRED: Record<string, string> = {
   'patient-attachments.presignUpload': 'patient-attachments.confirmUpload',
   'clinics.presignLogo': 'clinics.confirmLogo',
+  'clinics.presignAppIcon': 'clinics.confirmAppIcon',
+  'clinics.presignIcons': 'clinics.confirmIcons',
   'users.presignPhoto': 'users.confirmPhoto',
   'lab-orders.presign': 'lab-orders.confirmAttachment',
 };

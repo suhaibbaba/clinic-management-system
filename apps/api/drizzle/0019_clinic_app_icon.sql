@@ -1,0 +1,1 @@
+ALTER TABLE "clinics" ADD COLUMN "app_icon_key" text;

@@ -14,13 +14,16 @@ import {
 import type { FastifyReply } from 'fastify';
 import {
   AUDIT_ACTION,
+  confirmClinicAppIconSchema,
   confirmClinicLogoSchema,
+  presignClinicAppIconSchema,
   presignClinicLogoSchema,
   resolveLocationSchema,
   updateClinicSchema,
   USER_ROLE,
   type Clinic,
   type ClinicBranding,
+  type PresignClinicIconsResponse,
   type PresignClinicLogoResponse,
   type ResolvedLocation,
 } from '@clinic/shared';
@@ -41,6 +44,8 @@ const ICON_MAX_AGE_SECONDS = 300;
 class UpdateClinicDto extends createZodDto(updateClinicSchema) {}
 class PresignLogoDto extends createZodDto(presignClinicLogoSchema) {}
 class ConfirmLogoDto extends createZodDto(confirmClinicLogoSchema) {}
+class PresignAppIconDto extends createZodDto(presignClinicAppIconSchema) {}
+class ConfirmAppIconDto extends createZodDto(confirmClinicAppIconSchema) {}
 class ResolveLocationDto extends createZodDto(resolveLocationSchema) {}
 
 @Controller('clinic')
@@ -122,5 +127,50 @@ export class ClinicsController {
   @Audit(CLINICS_ENTITY, AUDIT_ACTION.UPDATE, { entityIdSource: 'clinic' })
   removeLogo(@CurrentUser() actor: AuthenticatedUser): Promise<Clinic> {
     return this.clinicsService.removeLogo(actor);
+  }
+
+  @Post('app-icon/presign')
+  @HttpCode(HttpStatus.OK)
+  @Roles(USER_ROLE.ADMIN)
+  presignAppIcon(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: PresignAppIconDto,
+  ): Promise<PresignClinicLogoResponse> {
+    return this.clinicsService.presignAppIcon(actor, body);
+  }
+
+  @Post('app-icon')
+  @HttpCode(HttpStatus.OK)
+  @Roles(USER_ROLE.ADMIN)
+  @Audit(CLINICS_ENTITY, AUDIT_ACTION.UPDATE, { entityIdSource: 'clinic' })
+  confirmAppIcon(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: ConfirmAppIconDto,
+  ): Promise<Clinic> {
+    return this.clinicsService.confirmAppIcon(actor, body);
+  }
+
+  @Delete('app-icon')
+  @Roles(USER_ROLE.ADMIN)
+  @Audit(CLINICS_ENTITY, AUDIT_ACTION.UPDATE, { entityIdSource: 'clinic' })
+  removeAppIcon(@CurrentUser() actor: AuthenticatedUser): Promise<Clinic> {
+    return this.clinicsService.removeAppIcon(actor);
+  }
+
+  // Its own step rather than part of either upload, because the set is re-rendered whenever the
+  // picture it comes from changes — including when removing the app icon falls back to the logo.
+  @Post('branding/icons/presign')
+  @HttpCode(HttpStatus.OK)
+  @Roles(USER_ROLE.ADMIN)
+  presignIcons(@CurrentUser() actor: AuthenticatedUser): Promise<PresignClinicIconsResponse> {
+    return this.clinicsService.presignIcons(actor);
+  }
+
+  @Post('branding/icons')
+  @HttpCode(HttpStatus.OK)
+  @Roles(USER_ROLE.ADMIN)
+  @Audit(CLINICS_ENTITY, AUDIT_ACTION.UPDATE, { entityIdSource: 'clinic' })
+  confirmIcons(@CurrentUser() actor: AuthenticatedUser): Promise<Clinic> {
+    return this.clinicsService.confirmIcons(actor);
   }
 }
