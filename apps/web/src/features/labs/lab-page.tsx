@@ -51,7 +51,7 @@ export function LabPage(): JSX.Element {
 
   // A lab's statement is the thing somebody sends to somebody else, and in `useState` it had no
   // address to send.
-  const [tab, setTab] = useTabParam<Tab>('tab', TAB_IDS, 'orders');
+  const [tab, setTab] = useTabParam<Tab>('tab', TAB_IDS, 'orders', ['page']);
   const [editing, setEditing] = useState(false);
   const [paying, setPaying] = useState(false);
 

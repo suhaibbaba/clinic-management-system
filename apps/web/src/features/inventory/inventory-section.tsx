@@ -20,6 +20,7 @@ export function InventorySection(): JSX.Element {
     'tab',
     TABS.map((tab) => tab.id),
     STOCK,
+    ['page'],
   );
 
   return (

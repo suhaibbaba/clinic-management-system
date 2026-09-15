@@ -13,6 +13,7 @@ import {
   PageHeader,
   Select,
   Table,
+  usePageParams,
   usePersonName,
   type BadgeTone,
   type Column,
@@ -22,8 +23,6 @@ import { ValueDiff } from '@web/features/audit/value-diff';
 import { useUsers } from '@web/features/users/queries';
 import { endOfNextDayIso, formatDateTime, startOfDayIso } from '@web/lib/format';
 import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
-
-const PAGE_SIZE = 10;
 
 const ENTITIES = ['users', 'doctors', 'clinics'] as const;
 
@@ -36,7 +35,7 @@ const ACTION_TONES: Record<AuditAction, BadgeTone> = {
 export function AuditPage(): JSX.Element {
   const { t } = useTranslation();
 
-  const [page, setPage] = useState(1);
+  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams(10);
   const [entity, setEntity] = useState('');
   const [action, setAction] = useState('');
   const [userId, setUserId] = useState('');
@@ -54,15 +53,13 @@ export function AuditPage(): JSX.Element {
 
   const query = useAuditLog({
     page,
-    limit: PAGE_SIZE,
+    limit: perPage,
     ...(entity !== '' && { entity }),
     ...(action !== '' && { action: action as AuditAction }),
     ...(userId !== '' && { userId }),
     ...(startOfDayIso(from) && { from: startOfDayIso(from) }),
     ...(endOfNextDayIso(to) && { to: endOfNextDayIso(to) }),
   });
-
-  const resetPage = (): void => setPage(1);
 
   const columns = useMemo<Column<AuditLogEntry>[]>(
     () => [
@@ -194,6 +191,8 @@ export function AuditPage(): JSX.Element {
             totalPages: data.totalPages,
             total: data.total,
             onPageChange: setPage,
+            perPage,
+            onPerPageChange: setPerPage,
           },
         })}
       />

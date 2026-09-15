@@ -1,17 +1,18 @@
 import { APPOINTMENT_STATUS, LOOKUP_LIST, type CalendarAppointment } from '@clinic/shared';
-import { useState, type JSX } from 'react';
+import type { JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import {
   Badge,
-  type Column,
   EmptyState,
   Ltr,
   PageHeader,
   PersonName,
   PhoneLink,
   Table,
+  usePageParams,
+  type Column,
 } from '@clinic/ui';
 import { minutesOf, toTimeLabel, todayIso } from '@web/features/appointments/calendar-time';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
@@ -21,13 +22,11 @@ import { useClinic } from '@web/features/clinic/queries';
 import { useLookupLabels } from '@web/features/lookups/queries';
 import { formatDate } from '@web/lib/format';
 
-const PAGE_SIZE = 20;
-
 // From today onwards: a confirmed appointment last March is history and belongs in the patient's
 // file, not in a list of what is coming.
 export function ConfirmedBookings(): JSX.Element {
   const { t } = useTranslation();
-  const [page, setPage] = useState(1);
+  const { page, perPage, setPage, setPerPage } = usePageParams(20);
   const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
 
   // The clinic's wall clock, as everywhere else a time is drawn.
@@ -36,7 +35,7 @@ export function ConfirmedBookings(): JSX.Element {
 
   const query = useAppointments({
     page,
-    limit: PAGE_SIZE,
+    limit: perPage,
     status: APPOINTMENT_STATUS.CONFIRMED,
     from: todayIso(),
   });
@@ -112,6 +111,8 @@ export function ConfirmedBookings(): JSX.Element {
           totalPages: query.data?.totalPages ?? 0,
           total: query.data?.total ?? 0,
           onPageChange: setPage,
+          perPage,
+          onPerPageChange: setPerPage,
         }}
       />
     </div>

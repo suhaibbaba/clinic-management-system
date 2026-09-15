@@ -32,6 +32,7 @@ export function AppointmentsSection(): JSX.Element {
     'status',
     tabs.map((tab) => tab.id),
     ALL,
+    ['page'],
   );
 
   return (

@@ -28,6 +28,7 @@ export { Select } from '@ui/components/select';
 export { StatCard, StatRow, type StatTone } from '@ui/components/stat-card';
 export { Switch } from '@ui/components/switch';
 export { TabPanel, Tabs, useTabParam, type TabDefinition } from '@ui/components/tabs';
+export { usePageParams, type PageParams } from '@ui/lib/use-page-params';
 export { Textarea } from '@ui/components/textarea';
 export { Table, type Column } from '@ui/components/table';
 export { TimePicker } from '@ui/components/time-picker';

@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import {
   Badge,
   Button,
-  type Column,
   EmptyState,
   FormField,
   Ltr,
@@ -17,7 +16,9 @@ import {
   StatRow,
   Table,
   Textarea,
+  usePageParams,
   useToast,
+  type Column,
 } from '@clinic/ui';
 import { toTimeLabel, minutesOf } from '@web/features/appointments/calendar-time';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
@@ -34,15 +35,13 @@ import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate, formatDateTime } from '@web/lib/format';
 import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
-const PAGE_SIZE = 20;
-
 // Anything in `requested` came from the booking page — either a clinic confirming by hand, or an
 // unfinished OTP, which expires by itself. Both decisions also tell the patient.
 export function PendingBookingsPage(): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();
   const toast = useToast();
-  const [page, setPage] = useState(1);
+  const { page, perPage, setPage, setPerPage } = usePageParams(20);
   const [rejecting, setRejecting] = useState<CalendarAppointment>();
   const [reason, setReason] = useState('');
 
@@ -51,7 +50,7 @@ export function PendingBookingsPage(): JSX.Element {
   const clinic = useClinic();
   setClinicTimeZone(clinic.data);
 
-  const pending = usePendingBookings({ page, limit: PAGE_SIZE });
+  const pending = usePendingBookings({ page, limit: perPage });
   const confirm = useConfirmBooking();
   const reject = useRejectBooking();
 
@@ -197,6 +196,8 @@ export function PendingBookingsPage(): JSX.Element {
           totalPages: pending.data?.totalPages ?? 0,
           total: pending.data?.total ?? 0,
           onPageChange: setPage,
+          perPage,
+          onPerPageChange: setPerPage,
         }}
       />
 

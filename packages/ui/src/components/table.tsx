@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Icon } from '@ui/components/icon';
 import { Ltr } from '@ui/components/ltr';
+import { Select } from '@ui/components/select';
 import {
   RefreshBar,
   SkeletonStatus,
@@ -56,7 +57,14 @@ export interface PaginationProps {
   totalPages: number;
   total: number;
   onPageChange: (page: number) => void;
+  /** Rows per page. Offered as a control only when `onPerPageChange` is given with it. */
+  perPage?: number | undefined;
+  perPageOptions?: readonly number[] | undefined;
+  onPerPageChange?: ((perPage: number) => void) | undefined;
 }
+
+/** What a list offers as its page sizes. A clinic's screen is a laptop or a phone, not a wall. */
+export const PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;
 
 const alignClass = (align: Column<never>['align']): string =>
   align === 'numeric' ? 'text-end tabular-nums' : align === 'end' ? 'text-end' : 'text-start';
@@ -333,6 +341,9 @@ export function Pagination({
   totalPages,
   total,
   onPageChange,
+  perPage,
+  perPageOptions = PER_PAGE_OPTIONS,
+  onPerPageChange,
 }: PaginationProps): JSX.Element {
   const { t } = useTranslation();
   const pages = pageWindow(page, totalPages);
@@ -348,9 +359,27 @@ export function Pagination({
       // "next" as the name of the region.
       aria-label={t('pagination.label')}
     >
-      <p data-part="pagination-total" className="text-meta text-ink-muted">
-        {t('pagination.total', { total })}
-      </p>
+      <div className="flex items-center gap-3">
+        <p data-part="pagination-total" className="text-meta text-ink-muted">
+          {t('pagination.total', { total })}
+        </p>
+
+        {/* The size of a page is the reader's: a laptop shows fifty rows where a phone shows ten. */}
+        {perPage !== undefined && onPerPageChange !== undefined && (
+          <label className="flex items-center gap-2 text-meta text-ink-muted">
+            {t('pagination.perPage')}
+            <Select
+              className="w-[5.5rem]"
+              value={String(perPage)}
+              onChange={(event) => onPerPageChange(Number(event.target.value))}
+              options={perPageOptions.map((size) => ({
+                value: String(size),
+                label: String(size),
+              }))}
+            />
+          </label>
+        )}
+      </div>
 
       {/* Numbered, as the reference draws it: on two or three pages, naming them beats a pair of
           arrows and a "page 1 of 2" that has to be read to be understood. */}

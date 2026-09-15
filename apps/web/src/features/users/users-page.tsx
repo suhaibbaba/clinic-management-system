@@ -6,7 +6,6 @@ import {
   Avatar,
   Badge,
   Button,
-  type Column,
   EmailLink,
   EmptyState,
   Icon,
@@ -20,8 +19,10 @@ import {
   Select,
   Switch,
   Table,
+  usePageParams,
   usePersonName,
   useToast,
+  type Column,
 } from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import {
@@ -36,8 +37,6 @@ import { UserFormModal } from '@web/features/users/user-form-modal';
 import { errorMessageKey } from '@web/lib/api-error';
 import { formatDate } from '@web/lib/format';
 import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
-
-const PAGE_SIZE = 10;
 
 export function UsersPage(): JSX.Element {
   const { t } = useTranslation();
@@ -60,7 +59,7 @@ export function UsersPage(): JSX.Element {
     }
   };
 
-  const [page, setPage] = useState(1);
+  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams(10);
   const [search, setSearch] = useState('');
   const [role, setRole] = useState<UserRole | ''>('');
   const [formUserId, setFormUserId] = useState<string | null>(null);
@@ -70,7 +69,7 @@ export function UsersPage(): JSX.Element {
 
   const query = useUsers({
     page,
-    limit: PAGE_SIZE,
+    limit: perPage,
     ...(search !== '' && { search }),
     ...(role !== '' && { role }),
   });
@@ -278,7 +277,7 @@ export function UsersPage(): JSX.Element {
           value={search}
           onChange={(event) => {
             setSearch(event.target.value);
-            setPage(1);
+            resetPage();
           }}
         />
 
@@ -290,7 +289,7 @@ export function UsersPage(): JSX.Element {
           value={role}
           onChange={(event) => {
             setRole(event.target.value as UserRole | '');
-            setPage(1);
+            resetPage();
           }}
         />
       </div>
@@ -324,6 +323,8 @@ export function UsersPage(): JSX.Element {
             totalPages: data.totalPages,
             total: data.total,
             onPageChange: setPage,
+            perPage,
+            onPerPageChange: setPerPage,
           },
         })}
       />

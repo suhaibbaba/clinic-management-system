@@ -73,12 +73,13 @@
     "hidePassword": "إخفاء كلمة المرور"
   },
   "pagination": {
+    "goToPage": "الصفحة {{page}}",
     "label": "التنقل بين الصفحات",
-    "previous": "السابق",
     "next": "التالي",
     "page": "صفحة {{page}} من {{totalPages}}",
-    "total": "{{total}} سجل",
-    "goToPage": "الصفحة {{page}}"
+    "perPage": "لكل صفحة",
+    "previous": "السابق",
+    "total": "{{total}} سجل"
   },
   "nav": {
     "account": "الحساب",

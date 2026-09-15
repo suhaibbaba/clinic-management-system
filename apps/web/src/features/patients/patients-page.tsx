@@ -1,5 +1,5 @@
 import type { PatientClinicalView, PatientView } from '@clinic/shared';
-import { useEffect, useMemo, useState, type JSX } from 'react';
+import { useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -7,16 +7,17 @@ import {
   Avatar,
   Badge,
   Button,
-  type Column,
-  MenuItem,
   EmptyState,
   Icon,
   Ltr,
+  MenuItem,
   PageHeader,
   PhoneLink,
   RowMenu,
   SegmentedControl,
   Table,
+  usePageParams,
+  type Column,
 } from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
 import { Money } from '@web/features/billing/money';
@@ -30,7 +31,7 @@ import { cn } from '@clinic/ui/lib/cn';
 import { useDebounced } from '@web/lib/use-debounced';
 import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
 
-const PAGE_SIZE = 10;
+const DEFAULT_PER_PAGE = 10;
 
 /** The address the dashboard's overdue card and the retired standalone overdue screen both point at. */
 const BALANCE_FILTER = 'balance';
@@ -58,30 +59,38 @@ export function PatientsPage(): JSX.Element {
 
   // The bar owns the term and writes it here as `?q=`, so the URL is what this reads — a state copy
   // seeded at mount would ignore a search typed from another screen.
-  const [page, setPage] = useState(1);
+  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams(DEFAULT_PER_PAGE);
   const [params, setParams] = useSearchParams();
   const search = params.get('q') ?? '';
   const [createOpen, setCreateOpen] = useState(false);
 
   const raw = params.get('filter');
   const filter: PatientFilter = raw === BALANCE_FILTER || raw === VISITED_FILTER ? raw : 'all';
+  // One write, not two: this form replaces the whole query string, so the page goes with it — and a
+  // second `resetPage()` here would land on the params as they were and put the filter back.
   const setFilter = (next: PatientFilter): void => {
     setParams(
       {
         ...(search.trim() !== '' && { q: search }),
         ...(next !== 'all' && { filter: next }),
+        ...(perPage !== DEFAULT_PER_PAGE && { perPage: String(perPage) }),
       },
       { replace: true },
     );
-    setPage(1);
   };
 
   const debouncedSearch = useDebounced(search);
 
   // A new term starts at the first page; page 3 of the old results is meaningless for the new ones.
-  // An effect rather than the setter's own job, because the setter is in the bar now.
+  // An effect rather than the setter's own job, because the setter is in the bar now — and only
+  // when the term actually changes, or a pasted `?page=3` would be dropped on arrival.
+  const lastSearch = useRef(debouncedSearch);
+
   useEffect(() => {
-    setPage(1);
+    if (lastSearch.current !== debouncedSearch) {
+      lastSearch.current = debouncedSearch;
+      resetPage();
+    }
   }, [debouncedSearch]);
 
   const showClinical = user ? seesClinicalPatientFields(user.role) : false;
@@ -91,7 +100,7 @@ export function PatientsPage(): JSX.Element {
 
   const query = usePatients({
     page,
-    limit: PAGE_SIZE,
+    limit: perPage,
     ...(debouncedSearch.trim() !== '' && { search: debouncedSearch.trim() }),
     // Only for the roles the API serves balances to; for a technician the
     // parameter is ignored on both sides.
@@ -287,6 +296,8 @@ export function PatientsPage(): JSX.Element {
           totalPages: query.data?.totalPages ?? 0,
           total: query.data?.total ?? 0,
           onPageChange: setPage,
+          perPage,
+          onPerPageChange: setPerPage,
         }}
       />
 
