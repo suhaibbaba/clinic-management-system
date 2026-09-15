@@ -1,13 +1,13 @@
 import { useEffect, useState, type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Logo } from '@web/components/brand/logo';
 import { NavDrawer } from '@web/components/layout/nav-drawer';
 import { createPageActionSlot, PageActionSlotProvider } from '@clinic/ui/lib/page-action-slot';
 import { useIsMobile } from '@clinic/ui/lib/use-media-query';
+import { TopSearch } from '@web/components/layout/top-search';
 import { UserMenu } from '@web/components/layout/user-menu';
-import { Button, Icon, SearchField } from '@clinic/ui';
+import { Button, Icon } from '@clinic/ui';
 import {
   activeNavItem,
   canReachNavItem,
@@ -281,59 +281,6 @@ function NavSection({
         ))}
       </ul>
     </>
-  );
-}
-
-// One field for the whole app, as the reference draws it: it searches patients, so it writes the
-// patients list's own `?q=` while you are on it and navigates there with the term from anywhere else.
-function TopSearch(): JSX.Element {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const [params, setParams] = useSearchParams();
-
-  const onList = pathname === PATIENTS;
-  const [typed, setTyped] = useState('');
-  const term = onList ? (params.get('q') ?? '') : typed;
-
-  const write = (next: string): void => {
-    if (!onList) {
-      setTyped(next);
-      return;
-    }
-
-    const merged = new URLSearchParams(params);
-
-    if (next.trim() === '') {
-      merged.delete('q');
-    } else {
-      merged.set('q', next);
-    }
-
-    setParams(merged, { replace: true });
-  };
-
-  return (
-    <form
-      role="search"
-      // Shares the bar's one row at every width. `w-full order-last` gave it a row of its own on a
-      // phone, which made the header two rows tall on every single page.
-      className="min-w-0 flex-1 md:max-w-[520px]"
-      onSubmit={(event) => {
-        event.preventDefault();
-
-        if (!onList) {
-          navigate(term.trim() === '' ? PATIENTS : `${PATIENTS}?q=${encodeURIComponent(term)}`);
-        }
-      }}
-    >
-      <SearchField
-        label={t('nav.search')}
-        placeholder={t('nav.searchPlaceholder')}
-        value={term}
-        onChange={(event) => write(event.target.value)}
-      />
-    </form>
   );
 }
 
