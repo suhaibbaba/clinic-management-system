@@ -5,8 +5,10 @@ import { Link, useSearchParams } from 'react-router-dom';
 
 import {
   Badge,
+  Button,
   EmptyState,
   Icon,
+  PageAction,
   SegmentedControl,
   StatCard,
   usePersonName,
@@ -15,7 +17,8 @@ import {
 import { RefreshBar, SkeletonKpi } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { minutesOf } from '@web/features/appointments/calendar-time';
-import { canMoveAppointment } from '@web/features/appointments/permissions';
+import { AppointmentFormModal } from '@web/features/appointments/appointment-form-modal';
+import { canBookAppointment, canMoveAppointment } from '@web/features/appointments/permissions';
 import { useAppointmentStep } from '@web/features/appointments/queries';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
 import { Money } from '@web/features/billing/money';
@@ -33,7 +36,8 @@ import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
 
 export function DashboardPage(): JSX.Element {
   const { t } = useTranslation();
-  const { user } = useSession();
+  const { user, can } = useSession();
+  const [booking, setBooking] = useState(false);
 
   // Every time drawn here is the clinic's wall clock, not the browser's — the
   // same reason the calendar and the booking queue set it.
@@ -55,6 +59,18 @@ export function DashboardPage(): JSX.Element {
   return (
     <div className="flex flex-col gap-4">
       <WelcomeBanner date={data?.date} schedule={data?.schedule ?? []} />
+
+      {/* The day's one action. It rides in the bar beside the bell, and on a phone — where the bar
+          keeps no slot — it falls in here, under the banner that is this screen's heading. */}
+      {canBookAppointment(can) && (
+        <PageAction>
+          <Button icon={<Icon name="plus" />} onClick={() => setBooking(true)}>
+            {t('appointments.create')}
+          </Button>
+        </PageAction>
+      )}
+
+      <AppointmentFormModal open={booking} onOpenChange={setBooking} />
 
       {summary.isError && (
         <EmptyState icon="alert" title="errors.unknown" hint="dashboard.failed" />
