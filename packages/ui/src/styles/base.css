@@ -116,11 +116,11 @@
 
   --tracking-body: 0em;
 
-  /* Two heights, and there is no third. 34px is a field, a button, a chip; 28px is the compact row
+  /* Two heights, and there is no third. 36px is a field, a button, a chip; 28px is the compact row
      a laptop gets for a chip, a tab, a segment or a table-row button. Each is one value at every
-     width now — the scale no longer changes under a thumb, so 34px is what a finger gets too. That
+     width now — the scale no longer changes under a thumb, so 36px is what a finger gets too. That
      clears WCAG 2.5.8's 24px minimum; 44px is 2.5.5, which is AAA and what this used to hold. */
-  --control-h: 34px;
+  --control-h: 36px;
   --control-h-sm: 28px;
 
   /* A field's state is its edge. The inner 0.5px turns the resting 1.5px border into 2px without
@@ -382,6 +382,15 @@ body {
    outline on top of that is a third concentric ring. */
 :where(input, textarea, select):focus-visible {
   outline: none;
+}
+
+/* Windows and Linux draw a classic scrollbar *inside* the scroll container, taking its width out
+   of the content box; macOS overlays one and takes nothing, which is why a bar sitting on top of a
+   navigation row or a card's content is invisible here. `stable` keeps that lane reserved whether
+   or not the bar is showing, so the content stops before it and nothing reflows when it appears.
+   On a platform with overlay scrollbars this is a no-op. */
+@utility scroll-lane {
+  scrollbar-gutter: stable;
 }
 
 /* WebKit only, deliberately: Firefox gets `scrollbar-width`/`scrollbar-color` and the rounded thumb

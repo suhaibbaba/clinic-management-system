@@ -70,7 +70,9 @@ export function NavDrawer({
             </DialogPrimitive.Close>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-3">{children}</div>
+          <div className="scroll-lane min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-3">
+            {children}
+          </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

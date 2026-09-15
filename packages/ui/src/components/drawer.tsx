@@ -71,7 +71,7 @@ export function Drawer({
 
           <Dialog.Description className="sr-only">{t(descriptionKey)}</Dialog.Description>
 
-          <div data-part="drawer-body" className="flex-1 overflow-y-auto px-4 py-4">
+          <div data-part="drawer-body" className="scroll-lane flex-1 overflow-y-auto px-4 py-4">
             {/* As in `Modal`: a picker in here portals into the drawer. */}
             <DialogLayerProvider container={layer}>{children}</DialogLayerProvider>
           </div>

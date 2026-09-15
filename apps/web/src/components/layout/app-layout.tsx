@@ -84,7 +84,7 @@ export function AppLayout(): JSX.Element {
         <aside
           className={cn(
             'z-30 hidden shrink-0 bg-rail md:block md:w-[266px]',
-            'md:sticky md:top-0 md:h-dvh md:overflow-y-auto',
+            'md:sticky md:top-0 md:h-dvh',
             'md:border-e md:border-line',
           )}
         >
@@ -95,7 +95,7 @@ export function AppLayout(): JSX.Element {
               <Logo size="chrome" src={logoUrl} name={user?.clinic.name} alt={t('app.title')} />
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="scroll-lane min-h-0 flex-1 overflow-y-auto">
               <NavList groups={groups} settings={settings} badges={badges} />
             </div>
 

@@ -82,7 +82,10 @@ export function Modal({
 
           {/* The focus ring is 2px with a 2px offset, so a field flush against a scroll container's
               edge is clipped; the inner padding and negative margin give it room. */}
-          <div data-part="modal-body" className="-mx-1.5 mt-4 flex-1 overflow-y-auto px-1.5 py-1.5">
+          <div
+            data-part="modal-body"
+            className="scroll-lane -mx-1.5 mt-4 flex-1 overflow-y-auto px-1.5 py-1.5"
+          >
             {/* Date and time pickers inside a dialog portal into it rather than
                 into the inert body — see `DialogLayerProvider`. */}
             <DialogLayerProvider container={layer}>{children}</DialogLayerProvider>
