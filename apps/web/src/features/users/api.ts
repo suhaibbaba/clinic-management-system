@@ -32,8 +32,14 @@ export const usersApi = {
   invite: (id: string): Promise<void> =>
     apiRequest(`/users/${id}/invite`, { method: 'POST', body: {} }),
 
+  /** The admin types a password. Only for an account with no address to send a link to. */
   resetPassword: (id: string, body: ResetUserPasswordInput): Promise<void> =>
     apiRequest(`/users/${id}/reset-password`, { method: 'POST', body }),
+
+  sendPasswordReset: (id: string): Promise<void> =>
+    apiRequest(`/users/${id}/send-password-reset`, { method: 'POST', body: {} }),
+
+  remove: (id: string): Promise<void> => apiRequest(`/users/${id}`, { method: 'DELETE' }),
 
   presignPhoto: (id: string, body: PresignUserPhotoInput): Promise<PresignUserPhotoResponse> =>
     apiRequest(`/users/${id}/photo/presign`, { method: 'POST', body }),

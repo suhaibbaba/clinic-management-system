@@ -53,6 +53,19 @@ export function useInviteUser() {
   });
 }
 
+export function useSendPasswordReset() {
+  return useMutation({ mutationFn: (id: string) => usersApi.sendPasswordReset(id) });
+}
+
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => usersApi.remove(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [USERS_KEY] }),
+  });
+}
+
 export function useResetUserPassword() {
   return useMutation({
     mutationFn: ({ id, newPassword }: { id: string; newPassword: string }) =>

@@ -73,6 +73,11 @@ export const SHIPPED_CAPABILITIES: Record<UserRole, readonly string[]> = {
     'pending-bookings.reject',
     'procedures.create',
     'suppliers.create',
+    'users.invite',
+    'users.remove',
+    'users.resetPassword',
+    'users.sendPasswordReset',
+    'users.update',
     'waiting-list.create',
   ],
   [USER_ROLE.DOCTOR]: [

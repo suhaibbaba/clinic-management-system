@@ -10,9 +10,12 @@ import {
   EmailLink,
   EmptyState,
   Icon,
+  MenuItem,
+  Modal,
   PageHeader,
   PersonName,
   PhoneLink,
+  RowMenu,
   SearchField,
   Select,
   Switch,
@@ -21,7 +24,13 @@ import {
   useToast,
 } from '@clinic/ui';
 import { useSession } from '@web/features/auth/session';
-import { useInviteUser, useUpdateUser, useUsers } from '@web/features/users/queries';
+import {
+  useDeleteUser,
+  useInviteUser,
+  useSendPasswordReset,
+  useUpdateUser,
+  useUsers,
+} from '@web/features/users/queries';
 import { ResetPasswordModal } from '@web/features/users/reset-password-modal';
 import { UserFormModal } from '@web/features/users/user-form-modal';
 import { errorMessageKey } from '@web/lib/api-error';
@@ -35,16 +44,21 @@ export function UsersPage(): JSX.Element {
   const displayName = usePersonName();
   const toast = useToast();
   const invite = useInviteUser();
+  const sendReset = useSendPasswordReset();
+  const removeUser = useDeleteUser();
+  const { user: currentUser, can } = useSession();
 
-  const resend = async (id: string): Promise<void> => {
+  const send = async (
+    run: Promise<unknown>,
+    successKey: 'users.inviteSent' | 'users.resetLinkSent',
+  ): Promise<void> => {
     try {
-      await invite.mutateAsync(id);
-      toast.success('users.inviteSent');
+      await run;
+      toast.success(successKey);
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
   };
-  const { user: currentUser } = useSession();
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -52,6 +66,7 @@ export function UsersPage(): JSX.Element {
   const [formUserId, setFormUserId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [resetUser, setResetUser] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState<User | null>(null);
 
   const query = useUsers({
     page,
@@ -67,6 +82,20 @@ export function UsersPage(): JSX.Element {
     formUserId === null
       ? null
       : ((query.data?.items ?? []).find((row) => row.id === formUserId) ?? null);
+
+  const remove = async (): Promise<void> => {
+    if (!deleting) {
+      return;
+    }
+
+    try {
+      await removeUser.mutateAsync(deleting.id);
+      toast.success('users.deleted');
+      setDeleting(null);
+    } catch (error) {
+      toast.error(errorMessageKey(error));
+    }
+  };
 
   const toggleActive = async (row: User): Promise<void> => {
     try {
@@ -159,47 +188,58 @@ export function UsersPage(): JSX.Element {
         header: 'common.actions',
         actions: true,
         render: (row) => (
-          <div className="flex items-center gap-4">
-            <Button
-              size="sm"
-              variant="ghost"
-              icon={<Icon name="edit" />}
-              onClick={() => {
-                setFormUserId(row.id);
-                setFormOpen(true);
-              }}
-            >
-              {t('common.edit')}
-            </Button>
-            {/* The resend, offered only where it can do anything: an account with no address has
-                no link to send, and one already activated does not need it. */}
-            {!row.activated && row.email && (
-              <Button
-                size="sm"
-                variant="quiet"
-                icon={<Icon name="mail" />}
-                isLoading={invite.isPending && invite.variables === row.id}
-                onClick={() => void resend(row.id)}
+          <RowMenu label={t('users.rowMenu')}>
+            {can('users.update') && (
+              <MenuItem
+                icon="edit"
+                onSelect={() => {
+                  setFormUserId(row.id);
+                  setFormOpen(true);
+                }}
               >
-                {t('users.resendInvite')}
-              </Button>
+                {t('common.edit')}
+              </MenuItem>
             )}
 
-            {/* The second action on the row, so grey until it is pointed at:
-                two blues in one cell and neither is the one to press. */}
-            <Button
-              size="sm"
-              variant="quiet"
-              icon={<Icon name="key" />}
-              onClick={() => setResetUser(row)}
-            >
-              {t('users.resetPassword')}
-            </Button>
-          </div>
+            {/* Offered only where it can do anything: an account with no address has no link to
+                send, and one already activated does not need this one. */}
+            {!row.activated && row.email && can('users.invite') && (
+              <MenuItem
+                icon="mail"
+                onSelect={() => void send(invite.mutateAsync(row.id), 'users.inviteSent')}
+              >
+                {t('users.resendInvite')}
+              </MenuItem>
+            )}
+
+            {/* The password is the owner's to choose, so what is sent is a link. An account with
+                no address has nowhere to receive one, and only there does the admin set it. */}
+            {row.email && can('users.sendPasswordReset') && (
+              <MenuItem
+                icon="key"
+                onSelect={() => void send(sendReset.mutateAsync(row.id), 'users.resetLinkSent')}
+              >
+                {t('users.sendResetLink')}
+              </MenuItem>
+            )}
+
+            {!row.email && can('users.resetPassword') && (
+              <MenuItem icon="key" onSelect={() => setResetUser(row)}>
+                {t('users.resetPassword')}
+              </MenuItem>
+            )}
+
+            {/* Deleting your own account is refused by the API; do not offer it. */}
+            {row.id !== currentUser?.id && can('users.remove') && (
+              <MenuItem icon="trash" tone="danger" onSelect={() => setDeleting(row)}>
+                {t('users.delete')}
+              </MenuItem>
+            )}
+          </RowMenu>
         ),
       },
     ],
-    [t, currentUser?.id],
+    [t, currentUser?.id, can, displayName],
   );
 
   const data = query.data;
@@ -296,6 +336,33 @@ export function UsersPage(): JSX.Element {
         }}
         user={resetUser}
       />
+
+      {/* A soft delete, and one the API refuses for your own account. Named in the question, because
+          a row menu closes over the row it belonged to. */}
+      <Modal
+        open={deleting !== null}
+        onOpenChange={(open) => !open && setDeleting(null)}
+        title="users.deleteTitle"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setDeleting(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              icon={<Icon name="trash" />}
+              isLoading={removeUser.isPending}
+              onClick={() => void remove()}
+            >
+              {t('users.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-value text-ink">
+          {t('users.deleteQuestion', { name: displayName(deleting?.name) })}
+        </p>
+      </Modal>
     </>
   );
 }
