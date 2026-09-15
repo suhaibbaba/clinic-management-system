@@ -99,6 +99,7 @@
     "menu": "القائمة",
     "notificationsEmpty": "لا توجد إشعارات",
     "patients": "المرضى",
+    "permissions": "الصلاحيات",
     "profile": "حسابي",
     "search": "البحث",
     "searchPlaceholder": "ابحث بالاسم، رقم الهاتف، أو رقم الملف…",
@@ -1282,5 +1283,269 @@
     "save": "حفظ الملاحظة",
     "remove": "حذف الملاحظة",
     "empty": "لا ملاحظات بعد"
+  },
+  "permissions": {
+    "adminLocked": "المدير يملك كل الصلاحيات، ولا يمكن تعديلها — عيادة تستطيع سحب صلاحية من مديرها تستطيع أن تغلق على نفسها الحساب الوحيد القادر على إعادتها.",
+    "capabilities": {
+      "appointments": {
+        "arrived": "تسجيل وصول المريض",
+        "cancel": "إلغاء موعد",
+        "complete": "إنهاء موعد",
+        "confirm": "تأكيد موعد",
+        "convertToVisit": "تحويل موعد إلى زيارة",
+        "create": "إضافة موعد",
+        "noShow": "تسجيل عدم حضور",
+        "remove": "حذف موعد",
+        "start": "بدء الموعد",
+        "update": "تعديل موعد"
+      },
+      "attachments": {
+        "findOne": "فتح مرفق",
+        "remove": "حذف مرفق"
+      },
+      "audit": {
+        "list": "عرض سجل التدقيق"
+      },
+      "billing": {
+        "list": "عرض المتأخرات المالية"
+      },
+      "clinic-closures": {
+        "create": "إضافة يوم إغلاق",
+        "remove": "حذف يوم إغلاق",
+        "update": "تعديل يوم إغلاق"
+      },
+      "clinics": {
+        "confirmLogo": "حفظ شعار العيادة",
+        "presignLogo": "رفع شعار العيادة",
+        "removeLogo": "حذف شعار العيادة",
+        "resolveLocation": "قراءة موقع العيادة من رابط خريطة",
+        "update": "تعديل بيانات العيادة"
+      },
+      "doctor-time-off": {
+        "create": "إضافة إجازة طبيب",
+        "remove": "حذف إجازة طبيب",
+        "update": "تعديل إجازة طبيب"
+      },
+      "doctors": {
+        "create": "إضافة طبيب",
+        "remove": "حذف طبيب",
+        "update": "تعديل بيانات طبيب",
+        "updateSchedule": "تعديل دوام طبيب"
+      },
+      "inventory": {
+        "adjust": "تسوية كمية صنف",
+        "alerts": "عرض تنبيهات المستودع",
+        "batches": "عرض دفعات صنف",
+        "consume": "تسجيل صرف من المستودع",
+        "create": "إضافة صنف",
+        "findOne": "فتح صنف",
+        "itemMovements": "عرض حركات صنف",
+        "list": "عرض الأصناف",
+        "listMovements": "عرض حركات المستودع",
+        "purchase": "تسجيل شراء",
+        "remove": "حذف صنف",
+        "reverse": "عكس حركة مستودع",
+        "shoppingList": "عرض قائمة المشتريات",
+        "shoppingListPdf": "طباعة قائمة المشتريات",
+        "update": "تعديل صنف"
+      },
+      "lab-ledger": {
+        "balance": "عرض رصيد مختبر",
+        "listPayments": "عرض دفعات مختبر",
+        "statement": "عرض كشف حساب مختبر",
+        "statementPdf": "طباعة كشف حساب مختبر"
+      },
+      "lab-orders": {
+        "cancel": "إلغاء طلب مختبر",
+        "confirmAttachment": "إرفاق ملف بطلب مختبر",
+        "create": "إضافة طلب مختبر",
+        "findOne": "فتح طلب مختبر",
+        "fit": "تسجيل تركيب العمل",
+        "list": "عرض طلبات المختبر",
+        "listAttachments": "عرض مرفقات طلب مختبر",
+        "overdue": "عرض طلبات المختبر المتأخرة",
+        "presign": "رفع مرفق لطلب مختبر",
+        "print": "طباعة طلب مختبر",
+        "ready": "تسجيل جاهزية العمل",
+        "receive": "تسجيل استلام العمل",
+        "remove": "حذف طلب مختبر",
+        "removeAttachment": "حذف مرفق من طلب مختبر",
+        "return": "إرجاع عمل إلى المختبر",
+        "send": "إرسال طلب إلى المختبر",
+        "update": "تعديل طلب مختبر"
+      },
+      "lab-payments": {
+        "create": "تسجيل دفعة لمختبر",
+        "reverse": "عكس دفعة مختبر"
+      },
+      "labs": {
+        "create": "إضافة مختبر",
+        "createWorkType": "إضافة نوع عمل لمختبر",
+        "findOne": "فتح مختبر",
+        "list": "عرض المختبرات",
+        "listWorkTypes": "عرض أنواع أعمال مختبر",
+        "remove": "حذف مختبر",
+        "removeWorkType": "حذف نوع عمل",
+        "update": "تعديل مختبر",
+        "updateWorkType": "تعديل نوع عمل"
+      },
+      "lookups": {
+        "bundle": "عرض القوائم",
+        "create": "إضافة خيار إلى قائمة",
+        "remove": "حذف خيار من قائمة",
+        "reorder": "ترتيب خيارات قائمة",
+        "update": "تعديل خيار في قائمة"
+      },
+      "medical-histories": {
+        "allergyFlags": "عرض تنبيهات الحساسية",
+        "get": "عرض التاريخ المرضي",
+        "update": "تعديل التاريخ المرضي"
+      },
+      "notes": {
+        "create": "إضافة ملاحظة",
+        "list": "عرض الملاحظات",
+        "remove": "حذف ملاحظة",
+        "update": "تعديل ملاحظة"
+      },
+      "patient-attachments": {
+        "confirmUpload": "حفظ مرفق للمريض",
+        "list": "عرض مرفقات المريض",
+        "presignUpload": "رفع مرفق للمريض"
+      },
+      "patient-billing": {
+        "balance": "عرض رصيد المريض",
+        "statement": "عرض كشف حساب المريض",
+        "statementPdf": "طباعة كشف حساب المريض"
+      },
+      "patients": {
+        "create": "إضافة مريض",
+        "remove": "حذف مريض",
+        "update": "تعديل ملف مريض"
+      },
+      "payments": {
+        "create": "تسجيل دفعة",
+        "findOne": "فتح دفعة",
+        "list": "عرض الدفعات",
+        "receipt": "طباعة إيصال",
+        "remove": "حذف دفعة",
+        "reverse": "عكس دفعة"
+      },
+      "pending-bookings": {
+        "confirm": "قبول حجز إلكتروني",
+        "list": "عرض الحجوزات الإلكترونية",
+        "reject": "رفض حجز إلكتروني"
+      },
+      "permissions": {
+        "list": "عرض الصلاحيات",
+        "update": "تعديل صلاحيات الأدوار"
+      },
+      "plan-items": {
+        "convert": "تحويل بند خطة إلى علاج",
+        "remove": "حذف بند من خطة",
+        "update": "تعديل بند في خطة"
+      },
+      "prescriptions": {
+        "create": "إضافة وصفة",
+        "findOne": "فتح وصفة",
+        "list": "عرض الوصفات",
+        "remove": "حذف وصفة",
+        "update": "تعديل وصفة"
+      },
+      "procedure-catalog": {
+        "create": "إضافة إجراء إلى قائمة الأسعار",
+        "remove": "حذف إجراء من قائمة الأسعار",
+        "update": "تعديل سعر إجراء"
+      },
+      "procedures": {
+        "create": "تسجيل علاج",
+        "findOne": "فتح علاج",
+        "list": "عرض العلاجات",
+        "remove": "حذف علاج",
+        "update": "تعديل علاج"
+      },
+      "suppliers": {
+        "create": "إضافة مورّد",
+        "findOne": "فتح مورّد",
+        "list": "عرض الموردين",
+        "remove": "حذف مورّد",
+        "statement": "عرض كشف حساب مورّد",
+        "update": "تعديل مورّد"
+      },
+      "timeline": {
+        "list": "عرض السجل الزمني للمريض"
+      },
+      "tooth-history": {
+        "get": "عرض تاريخ السن"
+      },
+      "treatment-plans": {
+        "addItem": "إضافة بند إلى خطة علاجية",
+        "create": "إنشاء خطة علاجية",
+        "findOne": "فتح خطة علاجية",
+        "list": "عرض الخطط العلاجية",
+        "remove": "حذف خطة علاجية",
+        "update": "تعديل خطة علاجية"
+      },
+      "users": {
+        "confirmPhoto": "حفظ صورة مستخدم",
+        "create": "إضافة مستخدم",
+        "findOne": "فتح مستخدم",
+        "invite": "إرسال دعوة لتفعيل الحساب",
+        "list": "عرض المستخدمين",
+        "presignPhoto": "رفع صورة مستخدم",
+        "remove": "حذف مستخدم",
+        "removePhoto": "حذف صورة مستخدم",
+        "resetPassword": "تعيين كلمة مرور لمستخدم",
+        "sendPasswordReset": "إرسال رابط إعادة تعيين كلمة المرور",
+        "update": "تعديل مستخدم"
+      },
+      "visits": {
+        "create": "تسجيل زيارة",
+        "findOne": "فتح زيارة",
+        "list": "عرض الزيارات",
+        "remove": "حذف زيارة",
+        "update": "تعديل زيارة"
+      },
+      "waiting-list": {
+        "create": "إضافة إلى قائمة الانتظار",
+        "decline": "رفض عرض موعد",
+        "findOne": "فتح طلب انتظار",
+        "list": "عرض قائمة الانتظار",
+        "markContacted": "تسجيل التواصل مع المريض",
+        "promote": "تحويل طلب انتظار إلى موعد",
+        "remove": "حذف من قائمة الانتظار",
+        "update": "تعديل طلب انتظار"
+      }
+    },
+    "resources": {
+      "appointments": "المواعيد",
+      "attachments": "المرضى",
+      "audit-log": "سجل التدقيق",
+      "billing": "الفواتير والدفعات",
+      "clinic": "بيانات العيادة",
+      "clinic-closures": "إغلاقات العيادة",
+      "doctor-time-off": "الأطباء",
+      "doctors": "الأطباء",
+      "inventory": "المستودع",
+      "lab-orders": "طلبات المختبر",
+      "lab-payments": "دفعات المختبرات",
+      "labs": "المختبرات",
+      "lookups": "القوائم",
+      "notes": "الملاحظات",
+      "patients": "المرضى",
+      "payments": "الفواتير والدفعات",
+      "performed-procedures": "العلاجات",
+      "permissions": "الصلاحيات",
+      "plan-items": "الخطط العلاجية",
+      "prescriptions": "الوصفات الطبية",
+      "procedure-catalog": "قائمة الأسعار",
+      "suppliers": "الموردون",
+      "treatment-plans": "الخطط العلاجية",
+      "users": "المستخدمون",
+      "visits": "الزيارات",
+      "waiting-list": "قائمة الانتظار"
+    },
+    "role": "الدور",
+    "subtitle": "ما الذي يستطيع كل دور فعله",
+    "title": "الصلاحيات"
   }
 }

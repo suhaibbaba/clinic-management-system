@@ -135,6 +135,27 @@ export const users = pgTable(
   ],
 );
 
+// A role's permissions, as data. Only the differences from what the code ships with are stored, so
+// a clinic that has never opened the screen has no rows at all and behaves exactly as before — and
+// a capability added by a later release is governed by its own default rather than by a stale row.
+export const roleCapabilities = pgTable(
+  'role_capabilities',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clinicId: uuid('clinic_id')
+      .notNull()
+      .references(() => clinics.id),
+    role: userRoleEnum('role').notNull(),
+    /** Matches `CapabilityRegistry`, e.g. `patients.update`. */
+    capability: text('capability').notNull(),
+    allowed: boolean('allowed').notNull(),
+    ...auditColumns,
+  },
+  (table) => [
+    uniqueIndex('role_capabilities_uniq').on(table.clinicId, table.role, table.capability),
+  ],
+);
+
 export const doctors = pgTable(
   'doctors',
   {

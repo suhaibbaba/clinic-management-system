@@ -32,6 +32,10 @@ const AuditPage = lazy(async () => ({
   default: (await import('@web/features/audit/audit-page')).AuditPage,
 }));
 
+const PermissionsPage = lazy(async () => ({
+  default: (await import('@web/features/permissions/permissions-page')).PermissionsPage,
+}));
+
 const LookupsPage = lazy(async () => ({
   default: (await import('@web/features/lookups/lookups-page')).LookupsPage,
 }));
@@ -188,6 +192,16 @@ export function AppRoutes(): JSX.Element {
           element={
             <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
               <UsersPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/permissions"
+          element={
+            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
+              <RouteChunk>
+                <PermissionsPage />
+              </RouteChunk>
             </RequireRole>
           }
         />

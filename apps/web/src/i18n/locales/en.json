@@ -99,6 +99,7 @@
     "menu": "Menu",
     "notificationsEmpty": "No notifications",
     "patients": "Patients",
+    "permissions": "Permissions",
     "profile": "My account",
     "search": "Search",
     "searchPlaceholder": "Search by name, phone, or file number…",
@@ -1266,5 +1267,269 @@
     "save": "Save note",
     "remove": "Delete note",
     "empty": "No notes yet"
+  },
+  "permissions": {
+    "adminLocked": "The administrator holds every permission and cannot be edited — a clinic able to take one from its own administrator could lock itself out of the only account that can give it back.",
+    "capabilities": {
+      "appointments": {
+        "arrived": "Mark a patient as arrived",
+        "cancel": "Cancel an appointment",
+        "complete": "Complete an appointment",
+        "confirm": "Confirm an appointment",
+        "convertToVisit": "Turn an appointment into a visit",
+        "create": "Add an appointment",
+        "noShow": "Mark a no-show",
+        "remove": "Delete an appointment",
+        "start": "Start an appointment",
+        "update": "Edit an appointment"
+      },
+      "attachments": {
+        "findOne": "Open an attachment",
+        "remove": "Delete an attachment"
+      },
+      "audit": {
+        "list": "See the audit log"
+      },
+      "billing": {
+        "list": "See overdue balances"
+      },
+      "clinic-closures": {
+        "create": "Add a closure",
+        "remove": "Delete a closure",
+        "update": "Edit a closure"
+      },
+      "clinics": {
+        "confirmLogo": "Save the clinic logo",
+        "presignLogo": "Upload the clinic logo",
+        "removeLogo": "Remove the clinic logo",
+        "resolveLocation": "Read the clinic location from a map link",
+        "update": "Edit the clinic details"
+      },
+      "doctor-time-off": {
+        "create": "Add doctor time off",
+        "remove": "Delete doctor time off",
+        "update": "Edit doctor time off"
+      },
+      "doctors": {
+        "create": "Add a doctor",
+        "remove": "Delete a doctor",
+        "update": "Edit a doctor",
+        "updateSchedule": "Edit a doctor's working hours"
+      },
+      "inventory": {
+        "adjust": "Adjust an item's quantity",
+        "alerts": "See inventory alerts",
+        "batches": "See an item's batches",
+        "consume": "Record stock consumed",
+        "create": "Add an item",
+        "findOne": "Open an item",
+        "itemMovements": "See an item's movements",
+        "list": "See the items",
+        "listMovements": "See stock movements",
+        "purchase": "Record a purchase",
+        "remove": "Delete an item",
+        "reverse": "Reverse a stock movement",
+        "shoppingList": "See the shopping list",
+        "shoppingListPdf": "Print the shopping list",
+        "update": "Edit an item"
+      },
+      "lab-ledger": {
+        "balance": "See a lab's balance",
+        "listPayments": "See a lab's payments",
+        "statement": "See a lab's statement",
+        "statementPdf": "Print a lab's statement"
+      },
+      "lab-orders": {
+        "cancel": "Cancel a lab order",
+        "confirmAttachment": "Attach a file to a lab order",
+        "create": "Add a lab order",
+        "findOne": "Open a lab order",
+        "fit": "Record the work as fitted",
+        "list": "See lab orders",
+        "listAttachments": "See a lab order's attachments",
+        "overdue": "See overdue lab orders",
+        "presign": "Upload an attachment to a lab order",
+        "print": "Print a lab order",
+        "ready": "Record the work as ready",
+        "receive": "Record the work as received",
+        "remove": "Delete a lab order",
+        "removeAttachment": "Delete a lab order attachment",
+        "return": "Return work to the lab",
+        "send": "Send an order to the lab",
+        "update": "Edit a lab order"
+      },
+      "lab-payments": {
+        "create": "Record a payment to a lab",
+        "reverse": "Reverse a lab payment"
+      },
+      "labs": {
+        "create": "Add a lab",
+        "createWorkType": "Add a lab work type",
+        "findOne": "Open a lab",
+        "list": "See the labs",
+        "listWorkTypes": "See a lab's work types",
+        "remove": "Delete a lab",
+        "removeWorkType": "Delete a work type",
+        "update": "Edit a lab",
+        "updateWorkType": "Edit a work type"
+      },
+      "lookups": {
+        "bundle": "See the lists",
+        "create": "Add an option to a list",
+        "remove": "Delete an option from a list",
+        "reorder": "Reorder a list",
+        "update": "Edit an option in a list"
+      },
+      "medical-histories": {
+        "allergyFlags": "See allergy flags",
+        "get": "See the medical history",
+        "update": "Edit the medical history"
+      },
+      "notes": {
+        "create": "Add a note",
+        "list": "See the notes",
+        "remove": "Delete a note",
+        "update": "Edit a note"
+      },
+      "patient-attachments": {
+        "confirmUpload": "Save a patient attachment",
+        "list": "See a patient's attachments",
+        "presignUpload": "Upload a patient attachment"
+      },
+      "patient-billing": {
+        "balance": "See a patient's balance",
+        "statement": "See a patient's statement",
+        "statementPdf": "Print a patient's statement"
+      },
+      "patients": {
+        "create": "Add a patient",
+        "remove": "Delete a patient",
+        "update": "Edit a patient's file"
+      },
+      "payments": {
+        "create": "Record a payment",
+        "findOne": "Open a payment",
+        "list": "See the payments",
+        "receipt": "Print a receipt",
+        "remove": "Delete a payment",
+        "reverse": "Reverse a payment"
+      },
+      "pending-bookings": {
+        "confirm": "Accept an online booking",
+        "list": "See online bookings",
+        "reject": "Reject an online booking"
+      },
+      "permissions": {
+        "list": "See the permissions",
+        "update": "Edit role permissions"
+      },
+      "plan-items": {
+        "convert": "Turn a plan item into a treatment",
+        "remove": "Delete a plan item",
+        "update": "Edit a plan item"
+      },
+      "prescriptions": {
+        "create": "Add a prescription",
+        "findOne": "Open a prescription",
+        "list": "See the prescriptions",
+        "remove": "Delete a prescription",
+        "update": "Edit a prescription"
+      },
+      "procedure-catalog": {
+        "create": "Add a procedure to the price list",
+        "remove": "Delete a procedure from the price list",
+        "update": "Edit a procedure's price"
+      },
+      "procedures": {
+        "create": "Record a treatment",
+        "findOne": "Open a treatment",
+        "list": "See the treatments",
+        "remove": "Delete a treatment",
+        "update": "Edit a treatment"
+      },
+      "suppliers": {
+        "create": "Add a supplier",
+        "findOne": "Open a supplier",
+        "list": "See the suppliers",
+        "remove": "Delete a supplier",
+        "statement": "See a supplier's statement",
+        "update": "Edit a supplier"
+      },
+      "timeline": {
+        "list": "See a patient's timeline"
+      },
+      "tooth-history": {
+        "get": "See a tooth's history"
+      },
+      "treatment-plans": {
+        "addItem": "Add an item to a treatment plan",
+        "create": "Create a treatment plan",
+        "findOne": "Open a treatment plan",
+        "list": "See the treatment plans",
+        "remove": "Delete a treatment plan",
+        "update": "Edit a treatment plan"
+      },
+      "users": {
+        "confirmPhoto": "Save a user's photo",
+        "create": "Add a user",
+        "findOne": "Open a user",
+        "invite": "Send an activation invitation",
+        "list": "See the users",
+        "presignPhoto": "Upload a user's photo",
+        "remove": "Delete a user",
+        "removePhoto": "Remove a user's photo",
+        "resetPassword": "Set a user's password",
+        "sendPasswordReset": "Send a password reset link",
+        "update": "Edit a user"
+      },
+      "visits": {
+        "create": "Record a visit",
+        "findOne": "Open a visit",
+        "list": "See the visits",
+        "remove": "Delete a visit",
+        "update": "Edit a visit"
+      },
+      "waiting-list": {
+        "create": "Add to the waiting list",
+        "decline": "Decline an offered slot",
+        "findOne": "Open a waiting-list entry",
+        "list": "See the waiting list",
+        "markContacted": "Record that the patient was contacted",
+        "promote": "Turn a waiting-list entry into an appointment",
+        "remove": "Remove from the waiting list",
+        "update": "Edit a waiting-list entry"
+      }
+    },
+    "resources": {
+      "appointments": "Appointments",
+      "attachments": "Patients",
+      "audit-log": "Audit log",
+      "billing": "Billing and payments",
+      "clinic": "Clinic details",
+      "clinic-closures": "Clinic closures",
+      "doctor-time-off": "Doctors",
+      "doctors": "Doctors",
+      "inventory": "Inventory",
+      "lab-orders": "Lab orders",
+      "lab-payments": "Lab payments",
+      "labs": "Labs",
+      "lookups": "Lists",
+      "notes": "Notes",
+      "patients": "Patients",
+      "payments": "Billing and payments",
+      "performed-procedures": "Treatments",
+      "permissions": "Permissions",
+      "plan-items": "Treatment plans",
+      "prescriptions": "Prescriptions",
+      "procedure-catalog": "Price list",
+      "suppliers": "Suppliers",
+      "treatment-plans": "Treatment plans",
+      "users": "Users",
+      "visits": "Visits",
+      "waiting-list": "Waiting list"
+    },
+    "role": "Role",
+    "subtitle": "What each role is able to do",
+    "title": "Permissions"
   }
 }

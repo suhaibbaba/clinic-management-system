@@ -68,6 +68,7 @@ describe('Sidebar navigation', () => {
       ar.nav.doctors,
       ar.nav.users,
       ar.nav.lists,
+      ar.nav.permissions,
       ar.nav.audit,
     ]);
   });

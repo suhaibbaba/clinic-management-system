@@ -27,6 +27,7 @@ export * from '@shared/schemas/money';
 export * from '@shared/schemas/notes';
 export * from '@shared/schemas/notifications';
 export * from '@shared/schemas/patients';
+export * from '@shared/schemas/permissions';
 export * from '@shared/schemas/person-name';
 export * from '@shared/schemas/performed-procedures';
 export * from '@shared/schemas/prescriptions';
