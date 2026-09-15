@@ -183,7 +183,7 @@ describe('Clinic logo (e2e)', () => {
       expect((confirmed.json() as Clinic).logoIconsAt).not.toBeNull();
 
       const branding = await context.app.inject({ method: 'GET', url: '/clinic/branding' });
-      expect((branding.json() as ClinicBranding).hasIcons).toBe(true);
+      expect((branding.json() as ClinicBranding).iconsAt).not.toBeNull();
 
       // No token: a browser fetches a favicon and a manifest icon without one.
       const icon = await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' });
@@ -198,7 +198,7 @@ describe('Clinic logo (e2e)', () => {
       await uploadLogo();
 
       const branding = await context.app.inject({ method: 'GET', url: '/clinic/branding' });
-      expect((branding.json() as ClinicBranding).hasIcons).toBe(false);
+      expect((branding.json() as ClinicBranding).iconsAt).toBeNull();
 
       expect(
         (await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' })).statusCode,

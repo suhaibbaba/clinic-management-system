@@ -120,8 +120,11 @@ export type ConfirmClinicAppIconInput = z.infer<typeof confirmClinicAppIconSchem
 export const clinicBrandingSchema = z.object({
   name: personNameSchema.nullable(),
   logoUrl: z.url().nullable(),
-  /** Whether `GET /clinic/icon/:name` will answer — false for a logo stored before icons existed. */
-  hasIcons: z.boolean(),
+  /**
+   * When the icon set was rendered, or null when there is none. A timestamp rather than a flag
+   * because it versions the icon URLs, and a browser re-reads a favicon only when its address moves.
+   */
+  iconsAt: z.iso.datetime().nullable(),
 });
 export type ClinicBranding = z.infer<typeof clinicBrandingSchema>;
 
