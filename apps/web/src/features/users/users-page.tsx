@@ -202,8 +202,9 @@ export function UsersPage(): JSX.Element {
             )}
 
             {/* Offered only where it can do anything: an account with no address has no link to
-                send, and one already activated does not need this one. */}
-            {!row.activated && row.email && can('users.invite') && (
+                send, one already activated does not need this one, and a disabled account is
+                refused the letter. */}
+            {!row.activated && row.email && row.isActive && can('users.invite') && (
               <MenuItem
                 icon="mail"
                 onSelect={() => void send(invite.mutateAsync(row.id), 'users.inviteSent')}
@@ -213,8 +214,9 @@ export function UsersPage(): JSX.Element {
             )}
 
             {/* The password is the owner's to choose, so what is sent is a link. An account with
-                no address has nowhere to receive one, and only there does the admin set it. */}
-            {row.email && can('users.sendPasswordReset') && (
+                no address has nowhere to receive one — only there does the admin set it — and a
+                disabled account has nothing to come back to. */}
+            {row.email && row.isActive && can('users.sendPasswordReset') && (
               <MenuItem
                 icon="key"
                 onSelect={() => void send(sendReset.mutateAsync(row.id), 'users.resetLinkSent')}

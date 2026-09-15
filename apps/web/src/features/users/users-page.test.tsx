@@ -182,6 +182,23 @@ describe('Users management', () => {
     });
   });
 
+  it('sends no letter to a disabled account — the API refuses one either way', async () => {
+    authTokens.clear();
+    const user = makeUser({ isActive: false, activated: false });
+
+    mockApi(baseHandlers([user]));
+    renderWithProviders(<AppRoutes />, { route: '/users' });
+    await screen.findByText(user.name.ar);
+
+    await userEvent.click(screen.getByRole('button', { name: ar.users.rowMenu }));
+
+    expect(await screen.findByRole('menuitem', { name: ar.common.edit })).toBeVisible();
+    expect(
+      screen.queryByRole('menuitem', { name: ar.users.sendResetLink }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitem', { name: ar.users.resendInvite })).not.toBeInTheDocument();
+  });
+
   it('asks the admin for a password only where there is no address to send to', async () => {
     authTokens.clear();
     const user = makeUser({ email: null });
