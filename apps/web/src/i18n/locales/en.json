@@ -354,13 +354,16 @@
     "period": "Period"
   },
   "profile": {
-    "title": "My account",
-    "subtitle": "Your details and password",
-    "details": "My details",
     "changePassword": "Change password",
     "currentPassword": "Current password",
+    "details": "My details",
+    "edit": "Edit my details",
+    "identifierHint": "You sign in with this, so change it knowingly.",
     "newPassword": "New password",
-    "passwordChanged": "Password changed, please sign in again"
+    "passwordChanged": "Password changed, please sign in again",
+    "subtitle": "Your details and password",
+    "title": "My account",
+    "updated": "Your details were saved"
   },
   "errors": {
     "network": "Could not reach the server",

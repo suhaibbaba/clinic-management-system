@@ -5,6 +5,7 @@ import type {
   LoginInput,
   LoginResponse,
   SetPasswordInput,
+  UpdateOwnProfileInput,
 } from '@clinic/shared';
 
 import { apiRequest } from '@web/lib/api-client';
@@ -25,6 +26,9 @@ export const authApi = {
     apiRequest('/auth/forgot-password', { method: 'POST', body }),
 
   me: (): Promise<AuthenticatedUserProfile> => apiRequest('/me'),
+
+  updateProfile: (body: UpdateOwnProfileInput): Promise<AuthenticatedUserProfile> =>
+    apiRequest('/me', { method: 'PATCH', body }),
 
   changePassword: (body: ChangePasswordInput): Promise<void> =>
     apiRequest('/me/change-password', { method: 'POST', body }),

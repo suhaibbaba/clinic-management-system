@@ -44,7 +44,7 @@ export class AuditInterceptor implements NestInterceptor {
     }
 
     const loader = this.registry.get(metadata.entity);
-    const knownEntityId = resolveEntityId(metadata, actor.clinicId, request.params);
+    const knownEntityId = resolveEntityId(metadata, actor, request.params);
 
     // Snapshot before the handler runs: for an update or a soft delete this is
     // the only moment the previous state is still readable.
@@ -83,12 +83,14 @@ export class AuditInterceptor implements NestInterceptor {
 // there is no previous state to snapshot.
 function resolveEntityId(
   metadata: AuditMetadata,
-  clinicId: string,
+  actor: { clinicId: string; id: string },
   params: Record<string, string> | undefined,
 ): string | undefined {
   switch (metadata.entityIdSource) {
     case 'clinic':
-      return clinicId;
+      return actor.clinicId;
+    case 'actor':
+      return actor.id;
     case 'patient':
       return params?.['patientId'];
     case 'response':

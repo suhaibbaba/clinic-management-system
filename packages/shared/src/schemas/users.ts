@@ -53,6 +53,18 @@ export const updateUserSchema = z
   .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
+/** What somebody may change about themselves: how they are named and how they are reached. Their
+ *  role and whether the account is live are the admin's, on the users screen. */
+export const updateOwnProfileSchema = z
+  .object({
+    name: personNameInputSchema,
+    phone: phoneSchema,
+    email: z.email().max(255).nullish(),
+  })
+  .partial()
+  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+export type UpdateOwnProfileInput = z.infer<typeof updateOwnProfileSchema>;
+
 export const resetUserPasswordSchema = z.object({
   newPassword: passwordSchema,
 });
