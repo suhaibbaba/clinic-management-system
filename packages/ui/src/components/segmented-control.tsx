@@ -50,10 +50,10 @@ export function SegmentedControl<TValue extends string>({
               // 44 in both directions on touch: a two-letter Arabic label drew a 43px-wide segment.
               'min-h-(--control-h) min-w-(--control-h) cursor-pointer border-[1.5px]',
               'lg:h-(--control-h-sm) lg:min-h-0 lg:min-w-(--control-h-sm)',
-              'transition-[background-color,border-color,color] duration-150',
+              'transition-[background-color,border-color,color] duration-[250ms] ease-out',
               isSelected
                 ? 'border-primary-600 bg-primary-600 text-ink-inverse'
-                : 'border-line-strong bg-surface text-ink-muted hover:border-neutral-400 hover:text-ink',
+                : 'border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink',
             )}
           >
             {option.label}

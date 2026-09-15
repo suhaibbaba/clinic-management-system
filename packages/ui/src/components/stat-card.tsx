@@ -53,7 +53,7 @@ export function StatCard({
       data-part="stat-card"
       className={cn(
         'rounded-card border border-line bg-surface p-[18px_20px] shadow-card',
-        'transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-card-hover',
+        'transition-[box-shadow,transform] duration-[250ms] ease-out hover:-translate-y-0.5 hover:shadow-card-hover',
         className,
       )}
     >

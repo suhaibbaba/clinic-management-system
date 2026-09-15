@@ -88,12 +88,12 @@ export function Chip({
       className={cn(
         PILL_BASE,
         'h-(--control-h) shrink-0 cursor-pointer border-[1.5px]',
-        'transition-[background-color,border-color,color] duration-150',
+        'transition-[background-color,border-color,color] duration-[250ms] ease-out',
         disabled && 'cursor-not-allowed border-transparent bg-inset text-ink-faint',
         !disabled &&
           (selected
             ? 'border-primary-600 bg-primary-100 text-primary-700'
-            : 'border-line-strong bg-surface text-ink-muted hover:border-neutral-400 hover:text-ink'),
+            : 'border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink'),
         className,
       )}
       {...props}

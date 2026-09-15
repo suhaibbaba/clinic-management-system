@@ -31,7 +31,8 @@ export function Card({
         // A drawn hairline plus a soft blue-tinted shadow, as the reference draws every panel: the
         // shadow alone leaves the card's edge undefined against the tinted ground.
         'rounded-card border border-line bg-surface shadow-card',
-        'transition-[box-shadow,background-color,border-color,transform] duration-200',
+        // A quarter of a second: a card lifts, it does not flick.
+        'transition-[box-shadow,background-color,border-color,transform] duration-[250ms] ease-out',
         !flush && 'p-[18px_20px]',
         interactive && 'cursor-pointer hover:-translate-y-0.5 hover:shadow-card-hover',
         tone === 'selected' && 'bg-selected outline outline-offset-[-1px] outline-selected-line',

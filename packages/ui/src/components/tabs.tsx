@@ -61,10 +61,12 @@ export function Tabs<TId extends string>({
             className={cn(
               PILL_BASE,
               'min-h-(--control-h) shrink-0 cursor-pointer border-[1.5px] lg:h-(--control-h-sm) lg:min-h-0',
-              'transition-[background-color,border-color,color,transform] duration-150 active:scale-95',
+              // The fill settles; the press does not wait for it.
+              '[transition:background-color_250ms_ease-out,border-color_250ms_ease-out,color_250ms_ease-out,transform_120ms_ease-out]',
+              'active:scale-95',
               selected
                 ? 'border-primary-600 bg-primary-600 text-ink-inverse'
-                : 'border-line-strong bg-surface text-ink-muted hover:border-neutral-400 hover:text-ink',
+                : 'border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink',
             )}
           >
             {t(tab.label)}

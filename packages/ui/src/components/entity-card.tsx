@@ -64,7 +64,7 @@ export function EntityCard({
       data-entity-card
       className={cn(
         'flex flex-col border border-line rounded-card bg-surface p-4 shadow-card',
-        'transition-[box-shadow,background-color,border-color] duration-150',
+        'transition-[box-shadow,background-color,border-color] duration-[250ms] ease-out',
         action !== undefined && 'hover:shadow-float',
         isSelected && 'bg-selected outline outline-offset-[-1px] outline-selected-line',
         className,

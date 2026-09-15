@@ -202,7 +202,7 @@ export function Table<TRow>({
               );
 
               const cardClass =
-                'border border-line rounded-card bg-surface p-4 text-start shadow-card transition-shadow duration-150';
+                'border border-line rounded-card bg-surface p-4 text-start shadow-card transition-shadow duration-[250ms] ease-out';
 
               return onRowClick === undefined ? (
                 <div key={rowKey(row)} data-row data-part="table-card" className={cardClass}>
@@ -450,10 +450,10 @@ function PageButton({
       className={cn(
         // 44px on touch, the reference's drawn 28 on a laptop.
         'pill-text inline-flex items-center size-(--control-h) cursor-pointer justify-center lg:size-(--control-h-sm)',
-        'rounded-chip border text-label tabular-nums transition-colors duration-150',
+        'rounded-chip border text-label tabular-nums transition-colors duration-[250ms] ease-out',
         current
           ? 'border-primary-600 bg-primary-600 font-medium text-ink-inverse'
-          : 'border-line bg-surface text-ink-muted hover:border-primary-600 hover:text-primary-700',
+          : 'border-line bg-surface text-ink-muted hover:bg-inset hover:border-primary-600 hover:text-primary-700',
         'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line',
       )}
     >

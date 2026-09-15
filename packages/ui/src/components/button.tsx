@@ -18,19 +18,20 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 // The primary blue is the only filled blue on a page, which is what makes "the thing to do here"
 // answerable at a glance; `secondary` is the reference's outlined `.btn-ghost`, and `ghost` its
-// soft-tinted `.kpi-action`. Filled variants lighten on hover rather than stepping down the scale,
-// which is how the reference draws every one of them.
+// soft-tinted `.kpi-action`. Every one of them answers the pointer with a step of its own scale:
+// the reference's `filter: brightness(1.06)` is nothing at all on a white ground, which is what
+// left the outlined button signalling with its edge alone.
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-primary-600 text-ink-inverse hover:brightness-[1.06] active:brightness-[0.95]',
-  // Keeps its own white ground on hover and signals with its edge instead. Tinting the fill to
-  // `primary-100` made it vanish on any card already painted that colour — a confirmed
-  // appointment's ribbon tile is exactly that, so "جاء المريض" disappeared under the pointer.
+  primary: 'bg-primary-600 text-ink-inverse hover:bg-primary-500 active:bg-primary-700',
+  // A neutral step, not `primary-100`: that made it vanish on any card already painted that colour
+  // — a confirmed appointment's ribbon tile is exactly that, so "جاء المريض" disappeared under the
+  // pointer. The edge and the ink still turn primary with it.
   secondary:
-    'border border-line bg-surface text-ink hover:border-primary-600 hover:text-primary-700',
-  ghost: 'bg-primary-100 text-primary-700 hover:brightness-[0.96] active:brightness-[0.92]',
+    'border border-line bg-surface text-ink hover:bg-inset hover:border-primary-600 hover:text-primary-700 active:bg-neutral-200',
+  ghost: 'bg-primary-100 text-primary-700 hover:bg-primary-200 active:bg-primary-300',
   // No fill at rest: a column of ten rows must not read as ten calls to action.
-  quiet: 'text-ink-muted hover:bg-inset hover:text-ink',
-  danger: 'bg-danger-600 text-ink-inverse hover:brightness-[1.06] active:brightness-[0.95]',
+  quiet: 'text-ink-muted hover:bg-inset hover:text-ink active:bg-neutral-200',
+  danger: 'bg-danger-600 text-ink-inverse hover:bg-danger-500 active:bg-danger-700',
 };
 
 // The two scale tokens and nothing else. A compact button is the tall one below `lg`, because a
@@ -64,14 +65,16 @@ export function Button({
         // A control of a fixed height cannot wrap: a narrow table column turned "فتح الملف" into
         // two lines and the box clipped the second.
         'whitespace-nowrap',
-        'transition-[filter,background-color,border-color,color,transform] duration-150 ease-out',
+        // The fill settles over a quarter of a second; the press does not wait for it, or a button
+        // would go soft under the finger.
+        '[transition:background-color_250ms_ease-out,border-color_250ms_ease-out,color_250ms_ease-out,transform_120ms_ease-out]',
         'active:scale-[0.98]',
         // Disabled is a solid muted fill with no edge, as a disabled field is. At 40% opacity a
         // white label on the primary fill was barely there at all.
         'disabled:cursor-not-allowed disabled:border-transparent disabled:bg-inset',
         'disabled:text-ink-subtle disabled:shadow-none',
         // A disabled button must not still look like it responds.
-        'disabled:active:scale-100 disabled:hover:brightness-100 disabled:hover:bg-inherit',
+        'disabled:active:scale-100 disabled:hover:bg-inset disabled:hover:text-ink-subtle',
         VARIANTS[variant],
         SIZES[size],
         className,
