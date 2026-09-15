@@ -38,7 +38,13 @@ export function Modal({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay data-part="modal-overlay" className="fixed inset-0 z-40 bg-ink/40" />
+        <Dialog.Overlay
+          data-part="modal-overlay"
+          className={cn(
+            'fixed inset-0 z-40 bg-ink/40',
+            'data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out',
+          )}
+        />
         <Dialog.Content
           ref={setLayer}
           data-part="modal"
@@ -61,6 +67,7 @@ export function Modal({
             // iOS Safari resolves `vh` against the viewport with its toolbars hidden, so the
             // footer — Save, Cancel — sat underneath them.
             'flex max-h-[calc(100dvh-4rem)] flex-col rounded-card border border-line bg-surface p-5 shadow-float',
+            'data-[state=open]:animate-modal-in data-[state=closed]:animate-modal-out',
           )}
         >
           <Dialog.Title data-part="modal-title" className="text-section font-medium text-ink">

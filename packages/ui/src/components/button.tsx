@@ -64,7 +64,7 @@ export function Button({
         // A control of a fixed height cannot wrap: a narrow table column turned "فتح الملف" into
         // two lines and the box clipped the second.
         'whitespace-nowrap',
-        'transition-[filter,background-color,color,transform] duration-150 ease-out',
+        'transition-[filter,background-color,border-color,color,transform] duration-150 ease-out',
         'active:scale-[0.98]',
         // Disabled is a solid muted fill with no edge, as a disabled field is. At 40% opacity a
         // white label on the primary fill was barely there at all.

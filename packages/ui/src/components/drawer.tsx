@@ -33,7 +33,13 @@ export function Drawer({
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay data-part="drawer-overlay" className="fixed inset-0 z-40 bg-ink/40" />
+        <Dialog.Overlay
+          data-part="drawer-overlay"
+          className={cn(
+            'fixed inset-0 z-40 bg-ink/40',
+            'data-[state=open]:animate-fade-in data-[state=closed]:animate-fade-out',
+          )}
+        />
         <Dialog.Content
           ref={setLayer}
           data-part="drawer"
@@ -46,6 +52,7 @@ export function Drawer({
           className={cn(
             'fixed inset-y-0 end-0 z-50 flex w-full max-w-md flex-col bg-surface shadow-float',
             'border-s border-line',
+            'data-[state=open]:animate-drawer-end-in data-[state=closed]:animate-drawer-end-out',
           )}
         >
           <div

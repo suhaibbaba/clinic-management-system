@@ -170,6 +170,14 @@
      a logical property is right in both. */
   --animate-drawer-in: drawer-in 220ms cubic-bezier(0.32, 0.72, 0, 1);
   --animate-drawer-out: drawer-out 180ms ease-in;
+  /* The pair above is for a panel anchored to the inline start — the navigation. A record's drawer
+     is anchored to the end, so it leaves and returns through the other edge. */
+  --animate-drawer-end-in: drawer-end-in 220ms cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-drawer-end-out: drawer-end-out 180ms ease-in;
+  /* A dialog is centred by a transform, so its own keyframes carry that translate — an animation
+     that set `scale` alone would drop the centring for as long as it ran. */
+  --animate-modal-in: modal-in 180ms cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-modal-out: modal-out 140ms ease-in;
 }
 
 /* Six soft pairs for an initials avatar. The colour carries no meaning; it only makes the same
@@ -248,6 +256,46 @@
   }
   to {
     transform: translateX(calc(-100% * var(--drawer-direction, 1)));
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes modal-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.98);
+  }
+}
+
+@keyframes drawer-end-in {
+  from {
+    transform: translateX(calc(100% * var(--drawer-direction, 1)));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes drawer-end-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(100% * var(--drawer-direction, 1)));
   }
 }
 
