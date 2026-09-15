@@ -116,6 +116,32 @@ export type PresignClinicAppIconInput = z.infer<typeof presignClinicAppIconSchem
 export const confirmClinicAppIconSchema = confirmClinicLogoSchema;
 export type ConfirmClinicAppIconInput = z.infer<typeof confirmClinicAppIconSchema>;
 
+/**
+ * The subset of the web app manifest this serves. Colours are deliberately absent: the entry
+ * document's `theme-color` already carries them, and naming them twice is a drift waiting to happen.
+ */
+export const clinicManifestSchema = z.object({
+  name: z.string(),
+  short_name: z.string(),
+  lang: z.string(),
+  dir: z.enum(['rtl', 'ltr']),
+  start_url: z.string(),
+  scope: z.string(),
+  display: z.literal('standalone'),
+  icons: z.array(
+    z.object({
+      src: z.string(),
+      sizes: z.string(),
+      type: z.string(),
+      purpose: z.enum(['any', 'maskable']),
+    }),
+  ),
+});
+export type ClinicManifest = z.infer<typeof clinicManifestSchema>;
+
+/** iOS truncates a home-screen label at about a dozen characters anyway. */
+export const MAX_APP_SHORT_NAME_LENGTH = 12;
+
 /** Pre-auth: no phone, no address, and no indication of how many clinics this deployment serves. */
 export const clinicBrandingSchema = z.object({
   name: personNameSchema.nullable(),
@@ -125,6 +151,8 @@ export const clinicBrandingSchema = z.object({
    * because it versions the icon URLs, and a browser re-reads a favicon only when its address moves.
    */
   iconsAt: z.iso.datetime().nullable(),
+  /** The home-screen label, already resolved: iOS reads this one, the manifest carries the same. */
+  appName: z.string(),
 });
 export type ClinicBranding = z.infer<typeof clinicBrandingSchema>;
 

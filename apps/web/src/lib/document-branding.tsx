@@ -14,6 +14,10 @@ const CLINIC_MARKS = [
 
 const MANAGED = 'data-clinic-icon';
 
+/** iOS reads neither the manifest's name nor its icons; this is where its home-screen label comes
+ *  from, and without it the label is the page title with the route still on the front. */
+const APPLE_TITLE = 'apple-mobile-web-app-title';
+
 /**
  * Points the tab at the clinic's own mark, or back at the product's when it has none. The
  * endpoint is public and redirects to a window-stable signed URL, so the browser caches it.
@@ -45,6 +49,20 @@ export function applyDocumentIcon(iconsAt: string | null): void {
   }
 }
 
+export function applyAppTitle(appName: string): void {
+  const existing = document.head.querySelector(`meta[name="${APPLE_TITLE}"]`);
+
+  if (appName === '') {
+    existing?.remove();
+    return;
+  }
+
+  const meta = existing ?? document.head.appendChild(document.createElement('meta'));
+
+  meta.setAttribute('name', APPLE_TITLE);
+  meta.setAttribute('content', appName);
+}
+
 function managedLink(rel: string, type: string, href: string): HTMLLinkElement {
   const link = document.createElement('link');
 
@@ -60,13 +78,18 @@ function managedLink(rel: string, type: string, href: string): HTMLLinkElement {
  * Renders nothing. Branding is public, cached for the session and shared with the sign-in screen,
  * so asking for it here costs one request whether or not anybody is signed in.
  */
-export function DocumentIcon(): null {
+export function DocumentBranding(): null {
   const { data } = useClinicBranding();
   const iconsAt = data?.iconsAt ?? null;
+  const appName = data?.appName ?? '';
 
   useEffect(() => {
     applyDocumentIcon(iconsAt);
   }, [iconsAt]);
+
+  useEffect(() => {
+    applyAppTitle(appName);
+  }, [appName]);
 
   return null;
 }

@@ -41,6 +41,10 @@ import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
 // asks again after the clinic changes its logo.
 const ICON_MAX_AGE_SECONDS = 300;
 
+// Short as well: a clinic that renames itself should see the home screen follow within the hour,
+// and the document is a few hundred bytes.
+const MANIFEST_MAX_AGE_SECONDS = 300;
+
 class UpdateClinicDto extends createZodDto(updateClinicSchema) {}
 class PresignLogoDto extends createZodDto(presignClinicLogoSchema) {}
 class ConfirmLogoDto extends createZodDto(confirmClinicLogoSchema) {}
@@ -59,6 +63,18 @@ export class ClinicsController {
   @Public()
   branding(): Promise<ClinicBranding> {
     return this.clinicsService.branding();
+  }
+
+  // Per clinic, because a home screen shows the clinic's name rather than the product's. Public
+  // and same-origin: a browser fetches a manifest without a token, and `start_url` is resolved
+  // against it.
+  @Get('manifest.webmanifest')
+  @Public()
+  async manifest(@Res() reply: FastifyReply): Promise<void> {
+    reply
+      .type('application/manifest+json')
+      .header('cache-control', `public, max-age=${MANIFEST_MAX_AGE_SECONDS}`)
+      .send(await this.clinicsService.manifest());
   }
 
   // The tab mark and the home-screen icons: public because a browser fetches a favicon and a

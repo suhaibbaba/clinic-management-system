@@ -6,6 +6,7 @@ import { fileURLToPath, URL } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Connect, type Plugin } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 import { apiProxy } from './vite/dev-proxy.ts';
 
@@ -69,6 +70,27 @@ function storagePreconnect(): Plugin {
   };
 }
 
+// The shell only: never `/api`. This is a medical record on shared clinic hardware, and a cached
+// response outlives the logout and the role change that should have ended it.
+function pwa(): Plugin[] {
+  return VitePWA({
+    // The manifest is per clinic and served by the API; `index.html` links it directly.
+    manifest: false,
+    registerType: 'prompt',
+    injectRegister: null,
+    workbox: {
+      globPatterns: ['**/*.{js,css,html,woff2,svg,ico,png}'],
+      navigateFallback: '/index.html',
+      // The API answers for itself, and the public booking page is nginx's own entry.
+      navigateFallbackDenylist: [/^\/api\//, /^\/book(\/|$)/, /^\/booking\/manage(\/|$)/],
+      // Nothing is cached at runtime, so nothing medical can be. Precache is the whole strategy.
+      runtimeCaching: [],
+      cleanupOutdatedCaches: true,
+    },
+    devOptions: { enabled: false },
+  });
+}
+
 // A static SPA has no runtime configuration, so the version is baked in. Inside Docker there is no
 // `.git`, which is why the deploy passes it in.
 function appVersion(): string {
@@ -97,7 +119,7 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(appVersion()),
   },
-  plugins: [react(), tailwindcss(), bookingEntry(), storagePreconnect()],
+  plugins: [react(), tailwindcss(), bookingEntry(), storagePreconnect(), pwa()],
   resolve: {
     // An array, because the UI package needs its bare specifier and its subpaths resolved
     // differently, and the bare one has to be tried first.

@@ -7,7 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { createQueryClient } from '@web/app/query-client';
 import { SessionProvider } from '@web/features/auth/session';
 import { isRtl } from '@web/i18n';
-import { DocumentIcon } from '@web/lib/document-icon';
+import { OfflineBar } from '@web/components/pwa/offline-bar';
+import { DocumentBranding } from '@web/lib/document-branding';
 import { DocumentTitleProvider } from '@web/lib/document-title';
 import { abuObaidTheme } from '@web/theme';
 
@@ -26,7 +27,8 @@ export function AppProviders({ children }: { children: ReactNode }): JSX.Element
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <SessionProvider>
-            <DocumentIcon />
+            <DocumentBranding />
+            <OfflineBar />
             <DocumentTitleProvider>{children}</DocumentTitleProvider>
           </SessionProvider>
         </ToastProvider>

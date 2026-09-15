@@ -1,11 +1,13 @@
 import {
   CLINIC_ICONS,
+  MAX_APP_SHORT_NAME_LENGTH,
   MAX_CLINIC_ICON_BYTES,
   MAX_CLINIC_LOGO_BYTES,
   USER_ROLE,
   clinicIcon,
   type Clinic,
   type ClinicBranding,
+  type ClinicManifest,
   type PresignClinicIconsResponse,
   type PresignClinicLogoResponse,
   type UserRole,
@@ -64,6 +66,9 @@ describe('Clinic logo (e2e)', () => {
   });
 
   const asAdmin = () => auth(tokens[USER_ROLE.ADMIN]);
+
+  const manifestBody = (response: { json: () => unknown }): ClinicManifest =>
+    response.json() as ClinicManifest;
 
   const presign = async (payload: Record<string, unknown> = {}) =>
     context.app.inject({
@@ -251,6 +256,59 @@ describe('Clinic logo (e2e)', () => {
         expect((await confirmIcons(tokens[role])).statusCode).toBe(403);
       },
     );
+  });
+
+  describe('the manifest a home screen installs from', () => {
+    const manifest = async () =>
+      context.app.inject({ method: 'GET', url: '/clinic/manifest.webmanifest' });
+
+    it('names itself after the clinic, and is readable without a token', async () => {
+      const response = await manifest();
+
+      expect(response.statusCode).toBe(200);
+      expect(response.headers['content-type']).toContain('application/manifest+json');
+
+      const body = response.json() as ClinicManifest;
+      const branding = await context.app.inject({ method: 'GET', url: '/clinic/branding' });
+
+      // One resolution of the label: iOS reads the branding payload, Android reads this.
+      expect(body.name).toBe((branding.json() as ClinicBranding).appName);
+      expect(body.name).not.toBe('');
+      expect(body.short_name.length).toBeLessThanOrEqual(MAX_APP_SHORT_NAME_LENGTH);
+      expect(body).toMatchObject({ lang: 'ar', dir: 'rtl', display: 'standalone', scope: '/' });
+    });
+
+    // Chromium declines to install without a 192 and a 512, which is better than being handed an
+    // address that answers 404.
+    it('offers no icons until a set has been rendered', async () => {
+      await context.app.inject({ method: 'DELETE', url: '/clinic/logo', headers: asAdmin() });
+
+      expect(manifestBody(await manifest()).icons).toEqual([]);
+    });
+
+    it('offers the installable sizes, versioned so a re-render is fetched again', async () => {
+      const key = ((await presign()).json() as PresignClinicLogoResponse).key;
+      await confirm(key);
+      await context.app.inject({
+        method: 'POST',
+        url: '/clinic/branding/icons/presign',
+        headers: asAdmin(),
+      });
+      await context.app.inject({
+        method: 'POST',
+        url: '/clinic/branding/icons',
+        headers: asAdmin(),
+      });
+
+      const icons = manifestBody(await manifest()).icons;
+
+      expect(icons.map((icon) => icon.sizes)).toEqual(['192x192', '512x512', '512x512']);
+      expect(icons.map((icon) => icon.purpose)).toEqual(['any', 'any', 'maskable']);
+
+      for (const icon of icons) {
+        expect(icon.src).toMatch(/^\/api\/clinic\/icon\/.+\?v=/);
+      }
+    });
   });
 
   describe('the app icon, for a clinic whose logo is a wordmark', () => {
