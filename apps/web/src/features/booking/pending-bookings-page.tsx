@@ -41,7 +41,7 @@ export function PendingBookingsPage(): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();
   const toast = useToast();
-  const { page, perPage, setPage, setPerPage } = usePageParams(20);
+  const { page, perPage, setPage, setPerPage } = usePageParams(25);
   const [rejecting, setRejecting] = useState<CalendarAppointment>();
   const [reason, setReason] = useState('');
 

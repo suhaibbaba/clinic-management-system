@@ -189,10 +189,12 @@
 
 [dir='rtl'] {
   --drawer-direction: -1;
+  --wash-to: left;
 }
 
 [dir='ltr'] {
   --drawer-direction: 1;
+  --wash-to: right;
 }
 
 /* Only the *shape* of a movement lives here, because `@keyframes` cannot live anywhere else. How
@@ -289,6 +291,37 @@
   }
 }
 
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes toast-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* A toast's life, drawn as a line that fills. Scaled rather than resized, so it costs no layout,
+   and grown from the inline start so it travels the way the text is read. */
+@keyframes toast-life {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 @keyframes menu-out {
   from {
     opacity: 1;
@@ -346,6 +379,12 @@ body {
    at each call site with ordinary utilities, which a variant can then override. */
 .pill-text {
   line-height: 1;
+}
+
+/* A toast's tone, laid over its surface and fading out across it. The tint is the caller's, the
+   direction the page's. */
+@utility toast-wash {
+  background-image: linear-gradient(to var(--wash-to), var(--toast-tint), var(--color-surface) 62%);
 }
 
 /* The label chip on a KPI card or panel head. A utility rather than a component class so it

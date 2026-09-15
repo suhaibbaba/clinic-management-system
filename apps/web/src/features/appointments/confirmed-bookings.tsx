@@ -24,7 +24,7 @@ import { formatDate } from '@web/lib/format';
 
 export function ConfirmedBookings(): JSX.Element {
   const { t } = useTranslation();
-  const { page, perPage, setPage, setPerPage } = usePageParams(20);
+  const { page, perPage, setPage, setPerPage } = usePageParams(25);
   const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
 
   // The clinic's wall clock, as everywhere else a time is drawn.

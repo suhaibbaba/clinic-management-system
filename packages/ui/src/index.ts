@@ -6,7 +6,7 @@ export { EmailLink, PhoneLink } from '@ui/components/contact-link';
 export { DatePicker } from '@ui/components/date-picker';
 export { DateRangePicker, type DateRange } from '@ui/components/date-range-picker';
 export { Drawer } from '@ui/components/drawer';
-export { MenuItem, RowMenu } from '@ui/components/menu';
+export { Menu, MenuContent, MenuItem, MenuTrigger, RowMenu } from '@ui/components/menu';
 export { EmptyState } from '@ui/components/empty-state';
 export { EntityCard, EntityGrid } from '@ui/components/entity-card';
 export { FormField } from '@ui/components/form-field';

@@ -29,7 +29,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   },
   ref,
 ) {
-  const direction = props.dir ?? 'auto';
   const disabled = props.disabled === true;
   const clearable = onClear !== undefined && !disabled && String(props.value ?? '') !== '';
 
@@ -53,7 +52,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           '[&::-webkit-calendar-picker-indicator]:hover:opacity-100',
         )}
         {...props}
-        dir={direction}
       />
 
       {clearable && clearLabel !== undefined && <FieldClear label={clearLabel} onClear={onClear} />}

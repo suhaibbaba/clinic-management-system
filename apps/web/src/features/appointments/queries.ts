@@ -71,10 +71,12 @@ export function useAvailability(
 
 export function useWaitingList(
   query: Partial<ListWaitingListQuery> = {},
+  enabled = true,
 ): UseQueryResult<Paginated<WaitingListEntry>> {
   return useQuery({
     queryKey: [WAITING_LIST_KEY, query],
     queryFn: () => waitingListApi.list(query),
+    enabled,
   });
 }
 

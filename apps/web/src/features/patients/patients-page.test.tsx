@@ -178,7 +178,7 @@ describe('Patients list', () => {
     it('puts it in the address when the segment is chosen, and takes it out again', async () => {
       const api = await renderList(USER_ROLE.RECEPTIONIST);
 
-      await userEvent.click(screen.getByRole('radio', { name: ar.patients.owing }));
+      await userEvent.click(screen.getByRole('radio', { name: new RegExp(ar.patients.owing) }));
 
       await waitFor(() =>
         expect(searchCalls(api).some((call) => call.url.includes('hasBalance=true'))).toBe(true),
@@ -198,7 +198,9 @@ describe('Patients list', () => {
       // no route to this page at all (see `app-layout.test.tsx`).
       await renderList(USER_ROLE.DOCTOR);
 
-      expect(screen.getByRole('radio', { name: ar.patients.owing })).toBeInTheDocument();
+      expect(
+        screen.getByRole('radio', { name: new RegExp(ar.patients.owing) }),
+      ).toBeInTheDocument();
     });
   });
 

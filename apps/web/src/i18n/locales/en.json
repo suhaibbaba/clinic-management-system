@@ -98,6 +98,7 @@
     "lists": "Lists",
     "logout": "Sign out",
     "menu": "Menu",
+    "notifications": "Notifications ({{count}})",
     "notificationsEmpty": "No notifications",
     "patients": "Patients",
     "permissions": "Permissions",
@@ -1561,5 +1562,12 @@
     "role": "Role",
     "subtitle": "What each role is able to do",
     "title": "Permissions"
+  },
+  "notifications": {
+    "pendingBookings": "Online bookings awaiting an answer",
+    "urgentRequests": "Urgent requests on the waiting list",
+    "overdueLabs": "Overdue lab orders",
+    "inventoryAlerts": "Items needing attention",
+    "overdueBalances": "Patients with an overdue balance"
   }
 }

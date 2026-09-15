@@ -1,4 +1,4 @@
-import type { Doctor, WeeklySchedule } from '@clinic/shared';
+import { personName, type Doctor, type WeeklySchedule } from '@clinic/shared';
 import { useEffect, useState, type JSX } from 'react';
 import { foldDigits } from '@clinic/ui/lib/digits';
 import { useTranslation } from 'react-i18next';
@@ -44,7 +44,7 @@ interface NewUserFields {
 const EMPTY_USER: NewUserFields = { nameAr: '', nameEn: '', phone: '', email: '', password: '' };
 
 export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalProps): JSX.Element {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const toast = useToast();
   const createDoctor = useCreateDoctor();
   const updateDoctor = useUpdateDoctor();
@@ -74,11 +74,9 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
     setSchedule(doctor?.weeklySchedule ?? clinic.data?.workingHours ?? []);
   }, [open, doctor, clinic.data]);
 
-  // `\u2068`/`\u2069` isolate the name in the string itself — an `<option>` is text with no span to
-  // carry `dir`, and bidi rendered the line as "963931000002+ — Dr. Layla Haddad".
   const userOptions = (doctorUsers.data?.items ?? []).map((user) => ({
     value: user.id,
-    label: `\u2068${user.name}\u2069 — \u2068${user.phone}\u2069`,
+    label: `\u2068${personName(user.name, i18n.language)}\u2069 — \u2068${user.phone}\u2069`,
   }));
 
   const specialtyOptions = (specialties.data?.items ?? []).map((specialty) => ({

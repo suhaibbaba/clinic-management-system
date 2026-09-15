@@ -172,7 +172,7 @@ describe('Billing', () => {
       renderWithProviders(<AppRoutes />, { route: '/billing/overdue' });
 
       expect(await screen.findByRole('heading', { name: ar.patients.title })).toBeVisible();
-      expect(screen.getByRole('radio', { name: ar.patients.owing })).toBeChecked();
+      expect(screen.getByRole('radio', { name: new RegExp(ar.patients.owing) })).toBeChecked();
 
       await waitFor(() =>
         expect(
