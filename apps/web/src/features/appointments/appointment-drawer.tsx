@@ -22,7 +22,11 @@ import {
   useConvertToVisit,
   type AppointmentStep,
 } from '@web/features/appointments/queries';
-import { canOpenVisit } from '@web/features/appointments/permissions';
+import {
+  canCancelAppointment,
+  canMoveAppointment,
+  canOpenVisit,
+} from '@web/features/appointments/permissions';
 import {
   APPOINTMENT_STATUS_STYLES,
   CANCELLABLE_STATUSES,
@@ -66,6 +70,7 @@ export function AppointmentDrawer({
   const status = appointment.status;
   const style = APPOINTMENT_STATUS_STYLES[status];
   const mayOpenVisit = canOpenVisit(can);
+  const may = (step: AppointmentStep): boolean => canMoveAppointment(can, step);
 
   const move = async (next: AppointmentStep, successKey: string): Promise<void> => {
     try {
@@ -111,7 +116,7 @@ export function AppointmentDrawer({
         descriptionKey="appointments.title"
         footer={
           <div className="flex flex-wrap items-center gap-2">
-            {status === APPOINTMENT_STATUS.REQUESTED && (
+            {status === APPOINTMENT_STATUS.REQUESTED && may('confirm') && (
               <Button
                 icon={<Icon name="check" />}
                 isLoading={busy}
@@ -121,7 +126,7 @@ export function AppointmentDrawer({
               </Button>
             )}
 
-            {status === APPOINTMENT_STATUS.CONFIRMED && (
+            {status === APPOINTMENT_STATUS.CONFIRMED && may('arrived') && (
               <Button
                 icon={<Icon name="user-plus" />}
                 isLoading={busy}
@@ -141,7 +146,7 @@ export function AppointmentDrawer({
               </Button>
             )}
 
-            {status === APPOINTMENT_STATUS.ARRIVED && !mayOpenVisit && (
+            {status === APPOINTMENT_STATUS.ARRIVED && !mayOpenVisit && may('start') && (
               <Button
                 icon={<Icon name="activity" />}
                 isLoading={busy}
@@ -151,19 +156,19 @@ export function AppointmentDrawer({
               </Button>
             )}
 
-            {(status === APPOINTMENT_STATUS.IN_PROGRESS ||
-              status === APPOINTMENT_STATUS.ARRIVED) && (
-              <Button
-                variant="secondary"
-                icon={<Icon name="check" />}
-                isLoading={busy}
-                onClick={() => void move('complete', 'appointments.updated')}
-              >
-                {t('appointments.actions.complete')}
-              </Button>
-            )}
+            {(status === APPOINTMENT_STATUS.IN_PROGRESS || status === APPOINTMENT_STATUS.ARRIVED) &&
+              may('complete') && (
+                <Button
+                  variant="secondary"
+                  icon={<Icon name="check" />}
+                  isLoading={busy}
+                  onClick={() => void move('complete', 'appointments.updated')}
+                >
+                  {t('appointments.actions.complete')}
+                </Button>
+              )}
 
-            {status === APPOINTMENT_STATUS.CONFIRMED && (
+            {status === APPOINTMENT_STATUS.CONFIRMED && may('noShow') && (
               <Button
                 variant="secondary"
                 isLoading={busy}
@@ -173,7 +178,7 @@ export function AppointmentDrawer({
               </Button>
             )}
 
-            {CANCELLABLE_STATUSES.includes(status) && (
+            {CANCELLABLE_STATUSES.includes(status) && canCancelAppointment(can) && (
               <Button
                 variant="ghost"
                 icon={<Icon name="x" />}

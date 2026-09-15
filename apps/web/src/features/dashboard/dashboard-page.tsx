@@ -15,7 +15,7 @@ import {
 import { RefreshBar, SkeletonKpi } from '@clinic/ui/components/skeleton';
 import { useSession } from '@web/features/auth/session';
 import { minutesOf } from '@web/features/appointments/calendar-time';
-import { canBookAppointment } from '@web/features/appointments/permissions';
+import { canMoveAppointment } from '@web/features/appointments/permissions';
 import { useAppointmentStep } from '@web/features/appointments/queries';
 import { setClinicTimeZone } from '@web/lib/clinic-zone';
 import { Money } from '@web/features/billing/money';
@@ -241,7 +241,7 @@ function TodaySchedule({
         linkPatients={linkPatients}
         nowMinute={nowMinute}
         onConfirm={
-          canBookAppointment(can)
+          canMoveAppointment(can, 'confirm')
             ? (appointment) => confirm.mutate({ id: appointment.id, step: 'confirm' })
             : undefined
         }

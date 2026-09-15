@@ -10,6 +10,9 @@ export const PENDING_BOOKINGS_KEY = 'pending-bookings';
 /** Who is asked to deal with online bookings at all. */
 export const seesPendingBookings = (can: Can): boolean => can('pending-bookings.list');
 
+export const canConfirmBooking = (can: Can): boolean => can('pending-bookings.confirm');
+export const canRejectBooking = (can: Can): boolean => can('pending-bookings.reject');
+
 export function usePendingBookings(
   params: Partial<ListAppointmentsQuery> = {},
   enabled = true,

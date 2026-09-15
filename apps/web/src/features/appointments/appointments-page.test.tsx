@@ -165,6 +165,29 @@ describe('Appointments page', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('drops an action the clinic has taken away, and keeps the rest', async () => {
+    await renderCalendar(USER_ROLE.RECEPTIONIST, {
+      'GET /me': {
+        status: 200,
+        body: makeProfile({
+          role: USER_ROLE.RECEPTIONIST,
+          capabilities: ['appointments.noShow'],
+        }),
+      },
+    });
+
+    await userEvent.click(await block(/10:00/));
+
+    const drawer = await screen.findByRole('dialog');
+
+    expect(
+      within(drawer).queryByRole('button', { name: ar.appointments.actions.arrived }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(drawer).getByRole('button', { name: ar.appointments.actions.noShow }),
+    ).toBeVisible();
+  });
+
   it('offers a visit only once the patient has arrived', async () => {
     await renderCalendar(USER_ROLE.DOCTOR);
 
