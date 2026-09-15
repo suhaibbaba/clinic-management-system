@@ -50,7 +50,7 @@ export type ClinicLogoMime = z.infer<typeof clinicLogoMimeSchema>;
 /** Packed into the one `favicon.ico`: a tab, a bookmark and a shortcut each pick the size it wants. */
 export const CLINIC_FAVICON_SIZES = [16, 32, 48] as const;
 
-/** Square renderings of the uploaded logo, stored beside it under `${logo_key}/icons/`. */
+/** Square renderings of the icon source, stored beside it under `${source_key}/icons/`. */
 export const CLINIC_ICONS = [
   { name: 'favicon.ico', mime: 'image/x-icon', size: 48, purpose: 'any' },
   { name: 'apple-touch-icon.png', mime: 'image/png', size: 180, purpose: 'any' },
@@ -76,29 +76,45 @@ export const presignClinicLogoSchema = z.object({
 });
 export type PresignClinicLogoInput = z.infer<typeof presignClinicLogoSchema>;
 
-/** One slot per `CLINIC_ICONS` entry, signed in the same call so the set uploads in one round. */
-export const presignClinicIconSchema = z.object({
-  name: z.string(),
-  uploadUrl: z.url(),
-  mime: z.string(),
-});
-export type PresignClinicIcon = z.infer<typeof presignClinicIconSchema>;
-
 export const presignClinicLogoResponseSchema = z.object({
   key: z.string(),
   uploadUrl: z.url(),
   expiresAt: z.iso.datetime(),
   maxSizeBytes: z.number().int().positive(),
-  icons: z.array(presignClinicIconSchema),
-  maxIconSizeBytes: z.number().int().positive(),
 });
 export type PresignClinicLogoResponse = z.infer<typeof presignClinicLogoResponseSchema>;
+
+/** One slot per `CLINIC_ICONS` entry, signed together so the set uploads in one round. */
+export const clinicIconSlotSchema = z.object({
+  name: z.string(),
+  uploadUrl: z.url(),
+  mime: z.string(),
+});
+export type ClinicIconSlot = z.infer<typeof clinicIconSlotSchema>;
+
+/**
+ * Signed against whatever the icons are currently rendered from — the app icon if there is one,
+ * otherwise the logo — so re-rendering is one call whichever of the two just changed.
+ */
+export const presignClinicIconsResponseSchema = z.object({
+  sourceUrl: z.url(),
+  icons: z.array(clinicIconSlotSchema),
+  maxIconSizeBytes: z.number().int().positive(),
+});
+export type PresignClinicIconsResponse = z.infer<typeof presignClinicIconsResponseSchema>;
 
 /** Called once the client has PUT the object; the API reads the bytes back. */
 export const confirmClinicLogoSchema = z.object({
   key: z.string().trim().min(1).max(512),
 });
 export type ConfirmClinicLogoInput = z.infer<typeof confirmClinicLogoSchema>;
+
+/** A square the clinic supplies when its logo is a wordmark, which has no legible 16px form. */
+export const presignClinicAppIconSchema = presignClinicLogoSchema;
+export type PresignClinicAppIconInput = z.infer<typeof presignClinicAppIconSchema>;
+
+export const confirmClinicAppIconSchema = confirmClinicLogoSchema;
+export type ConfirmClinicAppIconInput = z.infer<typeof confirmClinicAppIconSchema>;
 
 /** Pre-auth: no phone, no address, and no indication of how many clinics this deployment serves. */
 export const clinicBrandingSchema = z.object({
@@ -135,6 +151,9 @@ export const clinicSchema = z.object({
   logoKey: z.string().nullable(),
   /** Short-lived signed URL for `logoKey`, minted per response. */
   logoUrl: z.url().nullable(),
+  /** The square the icons are rendered from when the logo is a wordmark. */
+  appIconKey: z.string().nullable(),
+  appIconUrl: z.url().nullable(),
   /** When the derived icon set was uploaded and verified; null means the tab falls back. */
   logoIconsAt: z.iso.datetime().nullable(),
   phone: z.string().nullable(),

@@ -29,9 +29,11 @@ import { useSession } from '@web/features/auth/session';
 import { useApiVersion, WEB_VERSION } from '@web/features/clinic/api-version';
 import {
   useClinic,
+  useRemoveAppIcon,
   useRemoveClinicLogo,
   useResolveLocation,
   useUpdateClinic,
+  useUploadAppIcon,
   useUploadClinicLogo,
 } from '@web/features/clinic/queries';
 import { errorMessageKey } from '@web/lib/api-error';
@@ -276,7 +278,12 @@ export function ClinicPage(): JSX.Element {
 
           <div className="mt-6 border-t border-line pt-4">
             <p className="text-value font-medium text-ink">{t('clinic.logo')}</p>
-            <LogoField logoUrl={clinic.data?.logoUrl ?? null} canEdit={canEdit} />
+            <LogoField src={clinic.data?.logoUrl ?? null} canEdit={canEdit} />
+          </div>
+
+          <div className="mt-6 border-t border-line pt-4">
+            <p className="text-value font-medium text-ink">{t('clinic.appIcon')}</p>
+            <AppIconField src={clinic.data?.appIconUrl ?? null} canEdit={canEdit} />
           </div>
         </section>
 
@@ -300,19 +307,32 @@ export function ClinicPage(): JSX.Element {
   );
 }
 
-function LogoField({
-  logoUrl,
-  canEdit,
-}: {
-  readonly logoUrl: string | null;
+interface BrandingImageFieldProps {
+  readonly src: string | null;
   readonly canEdit: boolean;
-}): JSX.Element {
+  readonly labels: {
+    readonly alt: string;
+    readonly placeholder: string;
+    readonly hint: string;
+    readonly upload: string;
+    readonly replace: string;
+    readonly uploaded: string;
+    readonly removed: string;
+  };
+  readonly upload: ReturnType<typeof useUploadClinicLogo>;
+  readonly remove: ReturnType<typeof useRemoveClinicLogo>;
+}
+
+function BrandingImageField({
+  src,
+  canEdit,
+  labels,
+  upload,
+  remove,
+}: BrandingImageFieldProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const upload = useUploadClinicLogo();
-  const remove = useRemoveClinicLogo();
 
   const pick = async (file: File | undefined): Promise<void> => {
     if (!file) {
@@ -331,7 +351,7 @@ function LogoField({
 
     try {
       await upload.mutateAsync(file);
-      toast.success('clinic.logoUpdated');
+      toast.success(labels.uploaded);
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -340,7 +360,7 @@ function LogoField({
   const clear = async (): Promise<void> => {
     try {
       await remove.mutateAsync();
-      toast.success('clinic.logoRemoved');
+      toast.success(labels.removed);
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -348,10 +368,10 @@ function LogoField({
 
   return (
     <div className="mt-2 flex items-center gap-3">
-      {logoUrl ? (
+      {src ? (
         <Img
-          src={logoUrl}
-          alt={t('clinic.logo')}
+          src={src}
+          alt={t(labels.alt)}
           width={64}
           height={64}
           // `contain`: a wide wordmark and a round badge both sit inside the
@@ -361,7 +381,7 @@ function LogoField({
         />
       ) : (
         <span
-          aria-label={t('clinic.logoPlaceholder')}
+          aria-label={t(labels.placeholder)}
           className="flex size-16 shrink-0 items-center justify-center rounded-control border border-dashed border-line-strong text-ink-subtle"
         >
           <Icon name="image" />
@@ -369,7 +389,7 @@ function LogoField({
       )}
 
       <div className="flex flex-col items-start gap-1">
-        <p className="text-label text-ink-muted">{t('clinic.logoHint')}</p>
+        <p className="text-label text-ink-muted">{t(labels.hint)}</p>
 
         {canEdit && (
           <span className="flex flex-wrap items-center gap-2">
@@ -391,10 +411,10 @@ function LogoField({
               isLoading={upload.isPending}
               onClick={() => inputRef.current?.click()}
             >
-              {t(logoUrl ? 'clinic.replaceLogo' : 'clinic.uploadLogo')}
+              {t(src ? labels.replace : labels.upload)}
             </Button>
 
-            {logoUrl && (
+            {src && (
               <Button
                 icon={<Icon name="trash" />}
                 variant="secondary"
@@ -409,6 +429,68 @@ function LogoField({
         )}
       </div>
     </div>
+  );
+}
+
+const LOGO_LABELS = {
+  alt: 'clinic.logo',
+  placeholder: 'clinic.logoPlaceholder',
+  hint: 'clinic.logoHint',
+  upload: 'clinic.uploadLogo',
+  replace: 'clinic.replaceLogo',
+  uploaded: 'clinic.logoUpdated',
+  removed: 'clinic.logoRemoved',
+} as const;
+
+const APP_ICON_LABELS = {
+  alt: 'clinic.appIcon',
+  placeholder: 'clinic.appIconPlaceholder',
+  hint: 'clinic.appIconHint',
+  upload: 'clinic.uploadAppIcon',
+  replace: 'clinic.replaceAppIcon',
+  uploaded: 'clinic.appIconUpdated',
+  removed: 'clinic.appIconRemoved',
+} as const;
+
+function LogoField({
+  src,
+  canEdit,
+}: {
+  readonly src: string | null;
+  readonly canEdit: boolean;
+}): JSX.Element {
+  const upload = useUploadClinicLogo();
+  const remove = useRemoveClinicLogo();
+
+  return (
+    <BrandingImageField
+      src={src}
+      canEdit={canEdit}
+      labels={LOGO_LABELS}
+      upload={upload}
+      remove={remove}
+    />
+  );
+}
+
+function AppIconField({
+  src,
+  canEdit,
+}: {
+  readonly src: string | null;
+  readonly canEdit: boolean;
+}): JSX.Element {
+  const upload = useUploadAppIcon();
+  const remove = useRemoveAppIcon();
+
+  return (
+    <BrandingImageField
+      src={src}
+      canEdit={canEdit}
+      labels={APP_ICON_LABELS}
+      upload={upload}
+      remove={remove}
+    />
   );
 }
 

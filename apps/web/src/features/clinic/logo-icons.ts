@@ -2,7 +2,8 @@ import { CLINIC_FAVICON_SIZES, CLINIC_ICONS } from '@clinic/shared';
 
 import { packIco } from '@web/features/clinic/ico';
 
-/** Android crops a maskable icon to a circle or a squircle; only the central 80% always survives. */
+// Android crops a maskable icon to a circle or a squircle, and the guaranteed region is a circle
+// of 80% of the width — so the whole picture has to fit that circle, diagonal included.
 const MASKABLE_INSET = 0.1;
 
 /** iOS composites a transparent home-screen icon onto black, so this one is filled and inset. */
@@ -10,8 +11,8 @@ const APPLE_INSET = 0.08;
 
 export type ClinicIconSet = ReadonlyMap<string, Blob>;
 
-/** Renders the tab mark and the home-screen icons from the logo the admin just picked. */
-export async function buildClinicIconSet(file: File): Promise<ClinicIconSet> {
+/** Renders the tab mark and the home-screen icons from whichever picture the icons come from. */
+export async function buildClinicIconSet(file: Blob): Promise<ClinicIconSet> {
   const source = await createImageBitmap(file);
 
   try {
@@ -31,6 +32,7 @@ export async function buildClinicIconSet(file: File): Promise<ClinicIconSet> {
         await render(source, icon.size, {
           inset: maskable ? MASKABLE_INSET : apple ? APPLE_INSET : 0,
           background: maskable || apple ? paper : null,
+          fit: maskable ? 'circle' : 'box',
         }),
       );
     }
@@ -39,7 +41,9 @@ export async function buildClinicIconSet(file: File): Promise<ClinicIconSet> {
       CLINIC_FAVICON_SIZES.map(async (size) => ({
         size,
         png: new Uint8Array(
-          await (await render(source, size, { inset: 0, background: null })).arrayBuffer(),
+          await (
+            await render(source, size, { inset: 0, background: null, fit: 'box' })
+          ).arrayBuffer(),
         ),
       })),
     );
@@ -55,7 +59,11 @@ export async function buildClinicIconSet(file: File): Promise<ClinicIconSet> {
 async function render(
   source: ImageBitmap,
   size: number,
-  options: { readonly inset: number; readonly background: string | null },
+  options: {
+    readonly inset: number;
+    readonly background: string | null;
+    readonly fit: 'box' | 'circle';
+  },
 ): Promise<Blob> {
   const canvas = document.createElement('canvas');
   canvas.width = size;
@@ -72,8 +80,11 @@ async function render(
     context.fillRect(0, 0, size, size);
   }
 
-  const box = size * (1 - options.inset * 2);
-  const scale = Math.min(box / source.width, box / source.height);
+  const safe = size * (1 - options.inset * 2);
+  const scale =
+    options.fit === 'circle'
+      ? safe / Math.hypot(source.width, source.height)
+      : Math.min(safe / source.width, safe / source.height);
   const width = source.width * scale;
   const height = source.height * scale;
 

@@ -6,6 +6,7 @@ import {
   clinicIcon,
   type Clinic,
   type ClinicBranding,
+  type PresignClinicIconsResponse,
   type PresignClinicLogoResponse,
   type UserRole,
 } from '@clinic/shared';
@@ -138,21 +139,46 @@ describe('Clinic logo (e2e)', () => {
   });
 
   describe('the icons derived from it', () => {
-    it('signs a slot for every icon, under the logo it was rendered from', async () => {
-      const upload = (await presign()).json() as PresignClinicLogoResponse;
+    const presignIcons = async (token = tokens[USER_ROLE.ADMIN]) =>
+      context.app.inject({
+        method: 'POST',
+        url: '/clinic/branding/icons/presign',
+        headers: auth(token),
+      });
 
-      expect(upload.maxIconSizeBytes).toBe(MAX_CLINIC_ICON_BYTES);
-      expect(upload.icons.map((icon) => icon.name)).toEqual(CLINIC_ICONS.map((icon) => icon.name));
+    const confirmIcons = async (token = tokens[USER_ROLE.ADMIN]) =>
+      context.app.inject({ method: 'POST', url: '/clinic/branding/icons', headers: auth(token) });
 
-      for (const icon of upload.icons) {
-        expect(icon.uploadUrl).toContain(`${upload.key}/icons/${icon.name}`);
+    const uploadLogo = async (): Promise<string> => {
+      const key = ((await presign()).json() as PresignClinicLogoResponse).key;
+      await confirm(key);
+      return key;
+    };
+
+    it('has nothing to render from until a picture is there', async () => {
+      await context.app.inject({ method: 'DELETE', url: '/clinic/logo', headers: asAdmin() });
+
+      expect((await presignIcons()).statusCode).toBe(400);
+    });
+
+    it('signs a slot per icon under the logo, and hands back the logo to re-read', async () => {
+      const key = await uploadLogo();
+
+      const slots = (await presignIcons()).json() as PresignClinicIconsResponse;
+
+      expect(slots.maxIconSizeBytes).toBe(MAX_CLINIC_ICON_BYTES);
+      expect(slots.icons.map((icon) => icon.name)).toEqual(CLINIC_ICONS.map((icon) => icon.name));
+      expect(slots.sourceUrl).toContain(key);
+
+      for (const icon of slots.icons) {
+        expect(icon.uploadUrl).toContain(`${key}/icons/${icon.name}`);
         expect(icon.mime).toBe(clinicIcon(icon.name)?.mime);
       }
     });
 
-    it('records the set once every icon is there, and serves the tab mark to a stranger', async () => {
-      const upload = (await presign()).json() as PresignClinicLogoResponse;
-      const confirmed = await confirm(upload.key);
+    it('records the set, and serves the tab mark to a stranger', async () => {
+      const key = await uploadLogo();
+      const confirmed = await confirmIcons();
 
       expect((confirmed.json() as Clinic).logoIconsAt).not.toBeNull();
 
@@ -163,20 +189,13 @@ describe('Clinic logo (e2e)', () => {
       const icon = await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' });
 
       expect(icon.statusCode).toBe(302);
-      expect(icon.headers['location']).toContain(`${upload.key}/icons/favicon.ico`);
+      expect(icon.headers['location']).toContain(`${key}/icons/favicon.ico`);
       expect(icon.headers['cache-control']).toContain('max-age=');
     });
 
-    // The browser that could not draw them still gets its logo; the tab falls back to the
-    // product's mark rather than the upload failing.
-    it('takes a logo that arrived with no icons at all, and says so', async () => {
-      storedIcon = () => null;
-
-      const upload = (await presign()).json() as PresignClinicLogoResponse;
-      const confirmed = await confirm(upload.key);
-
-      expect(confirmed.statusCode).toBe(200);
-      expect((confirmed.json() as Clinic).logoIconsAt).toBeNull();
+    // The logo is still the clinic's; only its tab mark falls back to the product's.
+    it('leaves the tab on the product mark while the set is missing', async () => {
+      await uploadLogo();
 
       const branding = await context.app.inject({ method: 'GET', url: '/clinic/branding' });
       expect((branding.json() as ClinicBranding).hasIcons).toBe(false);
@@ -186,38 +205,36 @@ describe('Clinic logo (e2e)', () => {
       ).toBe(404);
     });
 
-    it('refuses a half-written set, and keeps neither the logo nor the icons', async () => {
+    it('refuses a half-written set, and sweeps up what did arrive', async () => {
+      await uploadLogo();
       storedIcon = (name) =>
         name === 'favicon.ico' ? null : { sizeBytes: 3_000, mime: clinicIcon(name)?.mime };
+      deleted = [];
 
-      const upload = (await presign()).json() as PresignClinicLogoResponse;
-
-      expect((await confirm(upload.key)).statusCode).toBe(400);
-      expect(deleted).toContain(upload.key);
-      expect(deleted).toHaveLength(1 + CLINIC_ICONS.length);
+      expect((await confirmIcons()).statusCode).toBe(400);
+      expect(deleted).toHaveLength(CLINIC_ICONS.length);
     });
 
     it('refuses an icon whose bytes are not the type its slot was signed for', async () => {
+      await uploadLogo();
       storedIcon = () => ({ sizeBytes: 3_000, mime: 'application/zip' });
 
-      const upload = (await presign()).json() as PresignClinicLogoResponse;
-
-      expect((await confirm(upload.key)).statusCode).toBe(400);
+      expect((await confirmIcons()).statusCode).toBe(400);
     });
 
     it('refuses an icon over the ceiling', async () => {
+      await uploadLogo();
       storedIcon = (name) => ({
         sizeBytes: MAX_CLINIC_ICON_BYTES + 1,
         mime: clinicIcon(name)?.mime,
       });
 
-      const upload = (await presign()).json() as PresignClinicLogoResponse;
-
-      expect((await confirm(upload.key)).statusCode).toBe(400);
+      expect((await confirmIcons()).statusCode).toBe(400);
     });
 
     it('answers nothing for a name the app never generates', async () => {
-      await confirm(((await presign()).json() as PresignClinicLogoResponse).key);
+      await uploadLogo();
+      await confirmIcons();
 
       const response = await context.app.inject({
         method: 'GET',
@@ -226,6 +243,133 @@ describe('Clinic logo (e2e)', () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
+      'refuses %s the rendering',
+      async (role) => {
+        expect((await presignIcons(tokens[role])).statusCode).toBe(403);
+        expect((await confirmIcons(tokens[role])).statusCode).toBe(403);
+      },
+    );
+  });
+
+  describe('the app icon, for a clinic whose logo is a wordmark', () => {
+    const presignAppIcon = async (token = tokens[USER_ROLE.ADMIN]) =>
+      context.app.inject({
+        method: 'POST',
+        url: '/clinic/app-icon/presign',
+        headers: auth(token),
+        payload: { filename: 'icon.png', mime: 'image/png', sizeBytes: 40_000 },
+      });
+
+    const confirmAppIcon = async (key: string, token = tokens[USER_ROLE.ADMIN]) =>
+      context.app.inject({
+        method: 'POST',
+        url: '/clinic/app-icon',
+        headers: auth(token),
+        payload: { key },
+      });
+
+    const renderIcons = async () => {
+      await context.app.inject({
+        method: 'POST',
+        url: '/clinic/branding/icons/presign',
+        headers: asAdmin(),
+      });
+
+      return context.app.inject({
+        method: 'POST',
+        url: '/clinic/branding/icons',
+        headers: asAdmin(),
+      });
+    };
+
+    const uploadBoth = async (): Promise<{ logo: string; appIcon: string }> => {
+      const logo = ((await presign()).json() as PresignClinicLogoResponse).key;
+      await confirm(logo);
+      const appIcon = ((await presignAppIcon()).json() as PresignClinicLogoResponse).key;
+      await confirmAppIcon(appIcon);
+      await renderIcons();
+
+      return { logo, appIcon };
+    };
+
+    it('sweeps up the set the logo had rendered, which is nobody’s icon now', async () => {
+      const logo = ((await presign()).json() as PresignClinicLogoResponse).key;
+      await confirm(logo);
+      await renderIcons();
+      deleted = [];
+
+      const appIcon = ((await presignAppIcon()).json() as PresignClinicLogoResponse).key;
+      await confirmAppIcon(appIcon);
+
+      expect(deleted.sort()).toEqual(
+        CLINIC_ICONS.map((icon) => `${logo}/icons/${icon.name}`).sort(),
+      );
+    });
+
+    it('takes over as what the icons are rendered from', async () => {
+      const { appIcon } = await uploadBoth();
+
+      const icon = await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' });
+
+      expect(icon.statusCode).toBe(302);
+      expect(icon.headers['location']).toContain(`${appIcon}/icons/favicon.ico`);
+    });
+
+    // The source did not change, so the set it rendered is still a picture of it.
+    it('keeps the set when the logo changes underneath it', async () => {
+      const { appIcon } = await uploadBoth();
+
+      const replacement = ((await presign()).json() as PresignClinicLogoResponse).key;
+      await confirm(replacement);
+
+      const icon = await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' });
+
+      expect(icon.statusCode).toBe(302);
+      expect(icon.headers['location']).toContain(`${appIcon}/icons/favicon.ico`);
+    });
+
+    it('drops the set when it goes, and points back at the logo once re-rendered', async () => {
+      const { logo, appIcon } = await uploadBoth();
+      deleted = [];
+
+      const removed = await context.app.inject({
+        method: 'DELETE',
+        url: '/clinic/app-icon',
+        headers: asAdmin(),
+      });
+
+      expect(removed.statusCode).toBe(200);
+      expect((removed.json() as Clinic).appIconKey).toBeNull();
+      expect(deleted).toContain(appIcon);
+      expect(deleted).toHaveLength(1 + CLINIC_ICONS.length);
+
+      // Until the client re-renders, the tab is on the product mark.
+      expect(
+        (await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' })).statusCode,
+      ).toBe(404);
+
+      await renderIcons();
+
+      const icon = await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' });
+      expect(icon.headers['location']).toContain(`${logo}/icons/favicon.ico`);
+    });
+
+    it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
+      'refuses %s the upload and the removal',
+      async (role) => {
+        expect((await presignAppIcon(tokens[role])).statusCode).toBe(403);
+
+        const removed = await context.app.inject({
+          method: 'DELETE',
+          url: '/clinic/app-icon',
+          headers: auth(tokens[role]),
+        });
+
+        expect(removed.statusCode).toBe(403);
+      },
+    );
   });
 
   describe('what it refuses', () => {

@@ -47,49 +47,86 @@ export function useClinicBranding(enabled = true): UseQueryResult<ClinicBranding
   });
 }
 
+// Re-reads the stored source rather than the file in hand, so the icons are always a rendering of
+// exactly the bytes the API kept — and so removing the app icon can fall back to the logo.
+async function renderBrandingIcons(): Promise<Clinic> {
+  const slots = await clinicApi.presignIcons();
+  const source = await fetch(slots.sourceUrl);
+
+  if (!source.ok) {
+    throw new Error(`The icon source could not be read (${String(source.status)})`);
+  }
+
+  const icons = await buildClinicIconSet(await source.blob());
+
+  await Promise.all(
+    slots.icons.map((slot) => {
+      const blob = icons.get(slot.name);
+
+      if (!blob) {
+        throw new Error(`No icon was generated for ${slot.name}`);
+      }
+
+      return uploadToStorage(slot.uploadUrl, blob, slot.mime);
+    }),
+  );
+
+  return clinicApi.confirmIcons();
+}
+
+async function uploadBrandingImage(
+  file: File,
+  presign: (body: PresignClinicLogoInput) => Promise<{ key: string; uploadUrl: string }>,
+  confirm: (key: string) => Promise<Clinic>,
+): Promise<Clinic> {
+  const presigned = await presign({
+    filename: file.name,
+    mime: file.type as PresignClinicLogoInput['mime'],
+    sizeBytes: file.size,
+  });
+
+  await uploadToStorage(presigned.uploadUrl, file);
+
+  return confirm(presigned.key);
+}
+
+/** Only the logo drives the icons, and only when no app icon has taken that job. */
 export function useUploadClinicLogo() {
-  const queryClient = useQueryClient();
+  return useBrandingMutation(async (file: File) => {
+    const clinic = await uploadBrandingImage(file, clinicApi.presignLogo, clinicApi.confirmLogo);
 
-  return useMutation({
-    mutationFn: async (file: File): Promise<Clinic> => {
-      const icons = await buildClinicIconSet(file);
-
-      const presigned = await clinicApi.presignLogo({
-        filename: file.name,
-        mime: file.type as PresignClinicLogoInput['mime'],
-        sizeBytes: file.size,
-      });
-
-      // The logo and its icons go up together; confirm refuses a set that arrived half-written,
-      // so a clinic never ends up with a tab mark rendered from a logo it no longer has.
-      await Promise.all([
-        uploadToStorage(presigned.uploadUrl, file),
-        ...presigned.icons.map((slot) => {
-          const blob = icons.get(slot.name);
-
-          if (!blob) {
-            throw new Error(`No icon was generated for ${slot.name}`);
-          }
-
-          return uploadToStorage(slot.uploadUrl, blob, slot.mime);
-        }),
-      ]);
-
-      return clinicApi.confirmLogo(presigned.key);
-    },
-    onSuccess: (clinic) => {
-      queryClient.setQueryData([CLINIC_KEY], clinic);
-      void queryClient.invalidateQueries({ queryKey: [BRANDING_KEY] });
-    },
+    return clinic.appIconKey === null ? renderBrandingIcons() : clinic;
   });
 }
 
+// Nothing to re-render either way: an app icon is still the source, and without one the API has
+// already dropped the set.
 export function useRemoveClinicLogo() {
+  return useBrandingMutation(() => clinicApi.removeLogo());
+}
+
+export function useUploadAppIcon() {
+  return useBrandingMutation(async (file: File) => {
+    await uploadBrandingImage(file, clinicApi.presignAppIcon, clinicApi.confirmAppIcon);
+
+    return renderBrandingIcons();
+  });
+}
+
+export function useRemoveAppIcon() {
+  return useBrandingMutation(async () => {
+    const clinic = await clinicApi.removeAppIcon();
+
+    return clinic.logoKey === null ? clinic : renderBrandingIcons();
+  });
+}
+
+function useBrandingMutation<TInput>(mutationFn: (input: TInput) => Promise<Clinic>) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => clinicApi.removeLogo(),
-    onSuccess: (clinic) => {
+    mutationFn,
+    onSuccess: (clinic: Clinic) => {
       queryClient.setQueryData([CLINIC_KEY], clinic);
       void queryClient.invalidateQueries({ queryKey: [BRANDING_KEY] });
     },

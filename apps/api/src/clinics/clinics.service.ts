@@ -14,7 +14,10 @@ import {
   clinicIcon,
   type Clinic,
   type ClinicBranding,
+  type ConfirmClinicAppIconInput,
   type ConfirmClinicLogoInput,
+  type PresignClinicAppIconInput,
+  type PresignClinicIconsResponse,
   type PresignClinicLogoInput,
   type PresignClinicLogoResponse,
   type UpdateClinicInput,
@@ -32,8 +35,12 @@ export const CLINICS_ENTITY = 'clinics';
 
 const LOGO_CATEGORY = 'branding';
 
-/** Derived, never stored: the icons for a logo are always under that logo's own key. */
-const iconKey = (logoKey: string, name: string): string => `${logoKey}/icons/${name}`;
+/** Derived, never stored: the icons are always under the key of the image they were rendered from. */
+const iconKey = (sourceKey: string, name: string): string => `${sourceKey}/icons/${name}`;
+
+/** A wordmark has no legible 16px form, so a clinic may supply a square to render the icons from. */
+const iconSource = (row: { logoKey: string | null; appIconKey: string | null }): string | null =>
+  row.appIconKey ?? row.logoKey;
 
 // `clinics` is the one table without a `clinic_id` — it is the tenant — so scoping is `id =
 // caller.clinicId` rather than `ClinicScopeService`.
@@ -100,18 +107,23 @@ export class ClinicsService implements OnModuleInit {
     }
 
     const rows = await this.db
-      .select({ logoKey: clinics.logoKey, logoIconsAt: clinics.logoIconsAt })
+      .select({
+        logoKey: clinics.logoKey,
+        appIconKey: clinics.appIconKey,
+        logoIconsAt: clinics.logoIconsAt,
+      })
       .from(clinics)
       .where(isNull(clinics.deletedAt))
       .limit(2);
 
     const [only] = rows;
+    const source = only ? iconSource(only) : null;
 
-    if (rows.length !== 1 || !only?.logoKey || only.logoIconsAt === null) {
+    if (rows.length !== 1 || !source || only?.logoIconsAt == null) {
       return null;
     }
 
-    return (await this.storage.createBrandingUrl(iconKey(only.logoKey, icon.name))).url;
+    return (await this.storage.createBrandingUrl(iconKey(source, icon.name))).url;
   }
 
   // The key is built from the caller's own clinic id, never taken from the request, so an upload
@@ -130,74 +142,120 @@ export class ClinicsService implements OnModuleInit {
 
     const upload = await this.storage.createUploadUrl(key, input.mime);
 
-    const icons = await Promise.all(
-      CLINIC_ICONS.map(async (icon) => ({
-        name: icon.name,
-        mime: icon.mime,
-        uploadUrl: (await this.storage.createUploadUrl(iconKey(key, icon.name), icon.mime))
-          .uploadUrl,
-      })),
-    );
-
     return {
       key: upload.key,
       uploadUrl: upload.uploadUrl,
       expiresAt: upload.expiresAt.toISOString(),
       maxSizeBytes: MAX_CLINIC_LOGO_BYTES,
+    };
+  }
+
+  async presignAppIcon(
+    actor: AuthenticatedUser,
+    input: PresignClinicAppIconInput,
+  ): Promise<PresignClinicLogoResponse> {
+    return this.presignLogo(actor, input);
+  }
+
+  async confirmLogo(actor: AuthenticatedUser, input: ConfirmClinicLogoInput): Promise<Clinic> {
+    const existing = await this.findOwnOrFail(actor.clinicId);
+
+    await this.verifyUploadedImage(input.key, actor.clinicId);
+
+    return this.replaceSource(actor, existing, { logoKey: input.key });
+  }
+
+  async removeLogo(actor: AuthenticatedUser): Promise<Clinic> {
+    return this.replaceSource(actor, await this.findOwnOrFail(actor.clinicId), { logoKey: null });
+  }
+
+  async confirmAppIcon(
+    actor: AuthenticatedUser,
+    input: ConfirmClinicAppIconInput,
+  ): Promise<Clinic> {
+    const existing = await this.findOwnOrFail(actor.clinicId);
+
+    await this.verifyUploadedImage(input.key, actor.clinicId);
+
+    return this.replaceSource(actor, existing, { appIconKey: input.key });
+  }
+
+  async removeAppIcon(actor: AuthenticatedUser): Promise<Clinic> {
+    return this.replaceSource(actor, await this.findOwnOrFail(actor.clinicId), {
+      appIconKey: null,
+    });
+  }
+
+  // The icons belong to whichever image they were rendered from, so changing either picture drops
+  // the set and leaves the tab on the product mark until the client re-renders it.
+  private async replaceSource(
+    actor: AuthenticatedUser,
+    existing: ClinicRow,
+    change: { logoKey?: string | null; appIconKey?: string | null },
+  ): Promise<Clinic> {
+    const before = iconSource(existing);
+    const unchanged = before === iconSource({ ...existing, ...change });
+    const row = await this.writeBranding(actor, change, unchanged ? 'keep' : 'clear');
+
+    const replaced = [
+      change.logoKey !== undefined && existing.logoKey !== change.logoKey ? existing.logoKey : null,
+      change.appIconKey !== undefined && existing.appIconKey !== change.appIconKey
+        ? existing.appIconKey
+        : null,
+    ].filter((key): key is string => key !== null);
+
+    for (const key of replaced) {
+      await this.discardSource(key);
+    }
+
+    // An app icon arriving over a logo leaves the logo in place but retires the set rendered from
+    // it, which nothing above would have swept up.
+    if (!unchanged && before !== null && !replaced.includes(before)) {
+      await this.discardIcons(before);
+    }
+
+    return this.withLogoUrl(row);
+  }
+
+  /** Slots under the current source, so re-rendering is the same call whichever picture changed. */
+  async presignIcons(actor: AuthenticatedUser): Promise<PresignClinicIconsResponse> {
+    const row = await this.findOwnOrFail(actor.clinicId);
+    const source = iconSource(row);
+
+    if (!source) {
+      throw new BadRequestException('There is no logo or app icon to render icons from');
+    }
+
+    const icons = await Promise.all(
+      CLINIC_ICONS.map(async (icon) => ({
+        name: icon.name,
+        mime: icon.mime,
+        uploadUrl: (await this.storage.createUploadUrl(iconKey(source, icon.name), icon.mime))
+          .uploadUrl,
+      })),
+    );
+
+    return {
+      sourceUrl: (await this.storage.createBrandingUrl(source)).url,
       icons,
       maxIconSizeBytes: MAX_CLINIC_ICON_BYTES,
     };
   }
 
-  // Size and type are read back from storage rather than trusted, and anything outside the limits
-  // is deleted instead of pointed at.
-  async confirmLogo(actor: AuthenticatedUser, input: ConfirmClinicLogoInput): Promise<Clinic> {
-    const existing = await this.findOwnOrFail(actor.clinicId);
+  async confirmIcons(actor: AuthenticatedUser): Promise<Clinic> {
+    const row = await this.findOwnOrFail(actor.clinicId);
+    const source = iconSource(row);
 
-    if (!this.storage.isClinicKeyOwnedBy(input.key, actor.clinicId, LOGO_CATEGORY)) {
-      throw new BadRequestException('This key does not belong to this clinic');
+    if (!source) {
+      throw new BadRequestException('There is no logo or app icon to render icons from');
     }
 
-    const stored = await this.storage.statObject(input.key);
-
-    if (!stored) {
-      throw new BadRequestException('No uploaded file found for this key');
-    }
-
-    const isImage = ALLOWED_CLINIC_LOGO_MIME_TYPES.some((mime) => mime === stored.mime);
-
-    if (!isImage || stored.sizeBytes <= 0 || stored.sizeBytes > MAX_CLINIC_LOGO_BYTES) {
-      await this.storage.deleteObject(input.key);
-      throw new BadRequestException(
-        isImage ? 'Uploaded file size is outside the allowed range' : 'Unsupported file type',
-      );
-    }
-
-    const icons = await this.inspectIcons(input.key);
-
-    if (icons === 'partial') {
-      await this.discardLogo(input.key);
+    if ((await this.inspectIcons(source)) !== 'complete') {
+      await this.discardIcons(source);
       throw new BadRequestException('The generated icon set is incomplete or invalid');
     }
 
-    const row = await this.setLogoKey(actor, input.key, icons === 'complete' ? new Date() : null);
-
-    if (existing.logoKey && existing.logoKey !== input.key) {
-      await this.discardLogo(existing.logoKey);
-    }
-
-    return this.withLogoUrl(row);
-  }
-
-  async removeLogo(actor: AuthenticatedUser): Promise<Clinic> {
-    const existing = await this.findOwnOrFail(actor.clinicId);
-    const row = await this.setLogoKey(actor, null, null);
-
-    if (existing.logoKey) {
-      await this.discardLogo(existing.logoKey);
-    }
-
-    return this.withLogoUrl(row);
+    return this.withLogoUrl(await this.writeBranding(actor, {}, 'verified'));
   }
 
   async update(actor: AuthenticatedUser, input: UpdateClinicInput): Promise<Clinic> {
@@ -228,6 +286,29 @@ export class ClinicsService implements OnModuleInit {
     return this.withLogoUrl(row);
   }
 
+  // Size and type are read back from storage rather than trusted, and anything outside the limits
+  // is deleted instead of pointed at.
+  private async verifyUploadedImage(key: string, clinicId: string): Promise<void> {
+    if (!this.storage.isClinicKeyOwnedBy(key, clinicId, LOGO_CATEGORY)) {
+      throw new BadRequestException('This key does not belong to this clinic');
+    }
+
+    const stored = await this.storage.statObject(key);
+
+    if (!stored) {
+      throw new BadRequestException('No uploaded file found for this key');
+    }
+
+    const isImage = ALLOWED_CLINIC_LOGO_MIME_TYPES.some((mime) => mime === stored.mime);
+
+    if (!isImage || stored.sizeBytes <= 0 || stored.sizeBytes > MAX_CLINIC_LOGO_BYTES) {
+      await this.storage.deleteObject(key);
+      throw new BadRequestException(
+        isImage ? 'Uploaded file size is outside the allowed range' : 'Unsupported file type',
+      );
+    }
+  }
+
   // All or nothing, and a logo may arrive with none: a browser that generated no icons still gets
   // its logo and falls back to the product mark, but half a set is a failure the admin should see.
   private async inspectIcons(logoKey: string): Promise<'complete' | 'none' | 'partial'> {
@@ -251,21 +332,30 @@ export class ClinicsService implements OnModuleInit {
     return stored.some(Boolean) ? 'partial' : 'none';
   }
 
-  private async discardLogo(logoKey: string): Promise<void> {
-    await Promise.all([
-      this.storage.deleteObject(logoKey),
-      ...CLINIC_ICONS.map((icon) => this.storage.deleteObject(iconKey(logoKey, icon.name))),
-    ]);
+  private async discardSource(sourceKey: string): Promise<void> {
+    await Promise.all([this.storage.deleteObject(sourceKey), this.discardIcons(sourceKey)]);
   }
 
-  private async setLogoKey(
+  private async discardIcons(sourceKey: string): Promise<void> {
+    await Promise.all(
+      CLINIC_ICONS.map((icon) => this.storage.deleteObject(iconKey(sourceKey, icon.name))),
+    );
+  }
+
+  private async writeBranding(
     actor: AuthenticatedUser,
-    key: string | null,
-    iconsAt: Date | null,
+    change: { logoKey?: string | null; appIconKey?: string | null },
+    icons: 'keep' | 'clear' | 'verified',
   ): Promise<ClinicRow> {
     const [row] = await this.db
       .update(clinics)
-      .set({ logoKey: key, logoIconsAt: iconsAt, updatedAt: new Date(), updatedBy: actor.id })
+      .set({
+        ...change,
+        ...(icons === 'clear' ? { logoIconsAt: null } : {}),
+        ...(icons === 'verified' ? { logoIconsAt: new Date() } : {}),
+        updatedAt: new Date(),
+        updatedBy: actor.id,
+      })
       .where(and(eq(clinics.id, actor.clinicId), isNull(clinics.deletedAt)))
       .returning();
 
@@ -279,7 +369,12 @@ export class ClinicsService implements OnModuleInit {
   // The stored key never leaves the API; the client gets a signed URL that is stable for a window,
   // so the rail's logo is a cache hit on every page after the first.
   private async withLogoUrl(row: ClinicRow): Promise<Clinic> {
-    return { ...toClinic(row), logoUrl: await this.signLogo(row.logoKey) };
+    const [logoUrl, appIconUrl] = await Promise.all([
+      this.signLogo(row.logoKey),
+      this.signLogo(row.appIconKey),
+    ]);
+
+    return { ...toClinic(row), logoUrl, appIconUrl };
   }
 
   private async signLogo(key: string | null): Promise<string | null> {
@@ -307,11 +402,12 @@ export class ClinicsService implements OnModuleInit {
   }
 }
 
-function toClinic(row: ClinicRow): Omit<Clinic, 'logoUrl'> {
+function toClinic(row: ClinicRow): Omit<Clinic, 'logoUrl' | 'appIconUrl'> {
   return {
     id: row.id,
     name: { ar: row.nameAr, en: row.nameEn },
     logoKey: row.logoKey,
+    appIconKey: row.appIconKey,
     logoIconsAt: row.logoIconsAt?.toISOString() ?? null,
     phone: row.phone,
     email: row.email,
