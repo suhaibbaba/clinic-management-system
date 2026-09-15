@@ -116,12 +116,12 @@
 
   --tracking-body: 0em;
 
-  /* Two heights, and there is no third. 44px is the tap target a thumb needs and the height a field
-     is drawn at; 32px is the compact row for a chip, a tab or a segment. A control is the tall one
-     wherever a thumb might reach it — see the pointer query below, which is the only place either
-     of these changes. */
-  --control-h: 44px;
-  --control-h-sm: 32px;
+  /* Two heights, and there is no third. 34px is a field, a button, a chip; 28px is the compact row
+     a laptop gets for a chip, a tab, a segment or a table-row button. Each is one value at every
+     width now — the scale no longer changes under a thumb, so 34px is what a finger gets too. That
+     clears WCAG 2.5.8's 24px minimum; 44px is 2.5.5, which is AAA and what this used to hold. */
+  --control-h: 34px;
+  --control-h-sm: 28px;
 
   /* A field's state is its edge. The inner 0.5px turns the resting 1.5px border into 2px without
      the box changing size, so nothing moves when a field is focused or fails. */
@@ -139,8 +139,10 @@
   --text-label--line-height: 1.2rem;
   --text-value: 0.86rem; /* 12.9px — table cells, body text */
   --text-value--line-height: 1.35rem;
-  --text-nav: 0.9rem; /* 13.5px — a rail row, a row's headline name */
-  --text-nav--line-height: 1.4rem;
+  /* The label on a control: a button, a chip, a tab, a segment, a badge — and a rail row, which is
+     the same thing in a column. */
+  --text-nav: 0.9333rem; /* 14px */
+  --text-nav--line-height: 1.35rem;
   --text-section: 0.92rem; /* 13.8px — a card's or panel's title */
   --text-section--line-height: 1.4rem;
   --text-title: 1.35rem; /* 20.25px — a page heading */
@@ -150,9 +152,10 @@
   --text-kpi: 2.1rem; /* 31.5px — the figure on a KPI card */
   --text-kpi--line-height: 1;
 
-  /* iOS Safari zooms when a field under 16px takes focus and does not zoom back. Never lower on a
-     touch device; the pointer query below takes it down only where there is a mouse. */
-  --text-field: 1.0667rem; /* 16px */
+  /* The value inside a field, and the one size that never moves: iOS Safari zooms when a field
+     under 16px takes focus and does not zoom back. A control's *label* is `--text-nav`; this is
+     only ever what somebody typed. */
+  --text-field: 1.0667rem; /* 16px — never lower */
   --text-field--line-height: 1.5rem;
 
   /* 4px at the 93.75% root. Tailwind's default 0.25rem would be 3.75, and every padding in the
@@ -191,18 +194,6 @@
 @theme static {
   --color-tag-from: #e6efeb;
   --color-tag-to: #e4eaf0;
-}
-
-/* A mouse is precise and a screen at this width is dense, so the tall scale is bigger than it needs
-   to be: a 44px field and 16px of text in a form of eight rows reads as a phone blown up. Keyed on
-   the pointer, not the width alone — a tablet at 1024px is still driven by a thumb, and iOS Safari
-   zooms a field under 16px and does not zoom back. Two tokens, one place: nothing else changes. */
-@media (min-width: 64rem) and (pointer: fine) {
-  :root {
-    --control-h: 38px;
-    --text-field: 0.9333rem; /* 14px at the 93.75% root */
-    --text-field--line-height: 1.35rem;
-  }
 }
 
 [dir='rtl'] {

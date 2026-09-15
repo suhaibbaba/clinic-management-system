@@ -33,7 +33,8 @@ const VARIANTS: Record<ButtonVariant, string> = {
 // thumb does not shrink with the viewport; `min-w` matches, so an icon-only button stays square.
 const SIZES: Record<ButtonSize, string> = {
   sm: 'min-h-(--control-h) min-w-(--control-h) gap-2 px-3 text-nav lg:h-(--control-h-sm) lg:min-h-0 lg:min-w-(--control-h-sm)',
-  md: 'h-(--control-h) min-w-(--control-h) gap-2 px-3.5 text-field',
+  // `text-nav`, not `text-field`: this is a label, and 16px is reserved for what somebody typed.
+  md: 'h-(--control-h) min-w-(--control-h) gap-2 px-3.5 text-nav',
 };
 
 export function Button({
