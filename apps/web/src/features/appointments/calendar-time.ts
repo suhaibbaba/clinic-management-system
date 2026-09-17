@@ -5,6 +5,7 @@ import {
   type CalendarAppointment,
 } from "@clinic/shared";
 
+import i18n from "@web/i18n";
 import { clinicTimeZone } from "@web/lib/clinic-zone";
 
 // Minutes from midnight in the clinic's timezone, not the browser's: a laptop set elsewhere would
@@ -58,11 +59,34 @@ export function startOfWeek(isoDate: string): string {
 export const weekDates = (isoDate: string): string[] =>
   Array.from({ length: 7 }, (_, index) => addDays(startOfWeek(isoDate), index));
 
-export function toTimeLabel(minute: number): string {
-  const hours = Math.floor(minute / 60);
-  const minutes = minute % 60;
+const clockFormatters = new Map<string, Intl.DateTimeFormat>();
 
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+function clockFormatter(): Intl.DateTimeFormat {
+  const locale = i18n.language.startsWith("en") ? "en-GB-u-nu-latn" : "ar-SY-u-nu-latn";
+  let cached = clockFormatters.get(locale);
+
+  if (!cached) {
+    cached = new Intl.DateTimeFormat(locale, {
+      timeZone: "UTC",
+      hour12: true,
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    clockFormatters.set(locale, cached);
+  }
+
+  return cached;
+}
+
+// Assembled from the parts rather than the formatted string: ICU versions disagree on the space
+// before the marker, and a narrow no-break one is invisible in a diff.
+export function toTimeLabel(minute: number): string {
+  const parts = clockFormatter().formatToParts(new Date(Date.UTC(2000, 0, 1, 0, minute)));
+  const read = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((part) => part.type === type)?.value ?? "";
+
+  // `en-GB` writes `am`; the case is the app's own and Arabic's marker has none to change.
+  return `${read("hour")}:${read("minute")} ${read("dayPeriod").toUpperCase()}`;
 }
 
 // The same arithmetic as a block but against two instants, clamped to the drawn hours — an absence
