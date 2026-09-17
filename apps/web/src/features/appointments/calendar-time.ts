@@ -59,34 +59,14 @@ export function startOfWeek(isoDate: string): string {
 export const weekDates = (isoDate: string): string[] =>
   Array.from({ length: 7 }, (_, index) => addDays(startOfWeek(isoDate), index));
 
-const clockFormatters = new Map<string, Intl.DateTimeFormat>();
-
-function clockFormatter(): Intl.DateTimeFormat {
-  const locale = i18n.language.startsWith("en") ? "en-GB-u-nu-latn" : "ar-SY-u-nu-latn";
-  let cached = clockFormatters.get(locale);
-
-  if (!cached) {
-    cached = new Intl.DateTimeFormat(locale, {
-      timeZone: "UTC",
-      hour12: true,
-      hour: "numeric",
-      minute: "2-digit",
-    });
-    clockFormatters.set(locale, cached);
-  }
-
-  return cached;
-}
-
-// Assembled from the parts rather than the formatted string: ICU versions disagree on the space
-// before the marker, and a narrow no-break one is invisible in a diff.
+// The marker is the same in both languages and comes from the locale files rather than `Intl`,
+// which writes `ص`/`م` in Arabic. Latin digits throughout: this renders inside an `<Ltr>` island.
 export function toTimeLabel(minute: number): string {
-  const parts = clockFormatter().formatToParts(new Date(Date.UTC(2000, 0, 1, 0, minute)));
-  const read = (type: Intl.DateTimeFormatPartTypes): string =>
-    parts.find((part) => part.type === type)?.value ?? "";
+  const hours = Math.floor(minute / 60) % 24;
+  const minutes = Math.floor(minute % 60);
+  const marker = i18n.t(hours < 12 ? "common.clock.am" : "common.clock.pm");
 
-  // `en-GB` writes `am`; the case is the app's own and Arabic's marker has none to change.
-  return `${read("hour")}:${read("minute")} ${read("dayPeriod").toUpperCase()}`;
+  return `${((hours + 11) % 12) + 1}:${String(minutes).padStart(2, "0")} ${marker}`;
 }
 
 // The same arithmetic as a block but against two instants, clamped to the drawn hours — an absence

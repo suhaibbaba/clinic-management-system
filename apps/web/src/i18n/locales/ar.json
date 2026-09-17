@@ -4,6 +4,10 @@
     "shortTitle": "العيادة"
   },
   "common": {
+    "clock": {
+      "am": "AM",
+      "pm": "PM"
+    },
     "save": "حفظ",
     "saving": "جارٍ الحفظ…",
     "cancel": "إلغاء",

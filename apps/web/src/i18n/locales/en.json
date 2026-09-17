@@ -4,6 +4,10 @@
     "shortTitle": "Clinic"
   },
   "common": {
+    "clock": {
+      "am": "AM",
+      "pm": "PM"
+    },
     "save": "Save",
     "saving": "Saving…",
     "cancel": "Cancel",
