@@ -21,10 +21,10 @@ const appointment = (startsAt: string, durationMinutes: number) =>
   ({ startsAt, durationMinutes }) as Parameters<typeof blockPosition>[0];
 
 describe("calendar time", () => {
-  it("labels minutes as HH:MM", () => {
-    expect(toTimeLabel(GRID_START_MINUTE)).toBe("07:00");
-    expect(toTimeLabel(9 * 60 + 30)).toBe("09:30");
-    expect(toTimeLabel(GRID_END_MINUTE)).toBe("22:00");
+  it("labels minutes on a 12-hour clock", () => {
+    expect(toTimeLabel(GRID_START_MINUTE)).toBe("7:00 ص");
+    expect(toTimeLabel(9 * 60 + 30)).toBe("9:30 ص");
+    expect(toTimeLabel(GRID_END_MINUTE)).toBe("10:00 م");
   });
 
   it("draws an hour line for every hour of the grid, inclusive of both ends", () => {
