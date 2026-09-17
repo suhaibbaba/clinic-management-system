@@ -22,6 +22,7 @@ export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element
   return (
     <span
       role="alert"
+      data-testid="allergy-banner"
       className={cn(
         // `inline-flex`, so it is as wide as what it says and no wider. Not `pill-text`: this one
         // wraps, and a wrapped line box of exactly one em would set the rows touching.
@@ -32,7 +33,7 @@ export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element
     >
       <Icon name="alert" className="size-4 shrink-0 text-danger-600" />
       <span>{t("patients.allergies")}:</span>
-      <span>{formatList(data.allergies)}</span>
+      <span data-testid="allergy-banner-list">{formatList(data.allergies)}</span>
     </span>
   );
 }

@@ -85,7 +85,7 @@ export function TreatmentPlansTab({
 
   if (showSkeleton) {
     return (
-      <div className="flex flex-col gap-3">
+      <div data-testid="treatment-plans-loading" className="flex flex-col gap-3">
         <SkeletonStatus />
         <SkeletonCard count={2} />
       </div>
@@ -97,7 +97,14 @@ export function TreatmentPlansTab({
   }
 
   if (plans.isError) {
-    return <EmptyState icon="alert" title="errors.generic" hint="treatmentPlans.loadFailed" />;
+    return (
+      <EmptyState
+        icon="alert"
+        data-testid="treatment-plans-error"
+        title="errors.generic"
+        hint="treatmentPlans.loadFailed"
+      />
+    );
   }
 
   const ordered = [...(plans.data ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -168,10 +175,11 @@ export function TreatmentPlansTab({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-testid="treatment-plans-tab" className="flex flex-col gap-4">
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <SegmentedControl
+            data-testid="treatment-plans-filter"
             label={t("treatmentPlans.filterByStatus")}
             value={statusFilter}
             onChange={setStatusFilter}
@@ -184,6 +192,7 @@ export function TreatmentPlansTab({
 
           <Button
             size="sm"
+            data-testid="treatment-plans-create"
             onClick={() => void handleCreatePlan()}
             icon={<Icon name="plus" className="size-4" />}
           >
@@ -194,6 +203,7 @@ export function TreatmentPlansTab({
         {ordered.length === 0 && (
           <EmptyState
             icon="clipboard"
+            data-testid="treatment-plans-empty"
             title="treatmentPlans.empty"
             hint="treatmentPlans.emptyHint"
           />
@@ -202,6 +212,7 @@ export function TreatmentPlansTab({
         {ordered.length > 0 && visible.length === 0 && (
           <EmptyState
             icon="search"
+            data-testid="treatment-plans-none-in-filter"
             title="treatmentPlans.noneInFilter"
             hint="treatmentPlans.noneInFilterHint"
           />
@@ -217,6 +228,7 @@ export function TreatmentPlansTab({
           return (
             <EntityCard
               key={plan.id}
+              data-testid={`treatment-plan-${plan.id}`}
               icon="clipboard"
               title={plan.title}
               subtitle={`${t("visits.doctor")}: ${doctorName(plan.doctorId)}`}
@@ -257,12 +269,15 @@ export function TreatmentPlansTab({
               }}
             >
               {items.length === 0 ? (
-                <p className="mt-3 text-label text-ink-muted">{t("treatmentPlans.noItems")}</p>
+                <p data-testid="treatment-plan-no-items" className="mt-3 text-label text-ink-muted">
+                  {t("treatmentPlans.noItems")}
+                </p>
               ) : (
-                <ol className="mt-3 flex flex-col gap-1.5">
+                <ol data-testid="treatment-plan-items" className="mt-3 flex flex-col gap-1.5">
                   {items.map((item, index) => (
                     <li
                       key={item.id}
+                      data-testid={`treatment-plan-item-${item.id}`}
                       className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-canvas px-3 py-2"
                     >
                       <span className="flex items-center gap-2 text-value text-ink">
@@ -277,7 +292,10 @@ export function TreatmentPlansTab({
                           </Ltr>
                         )}
 
-                        <Badge tone={itemTone(item.status)}>
+                        <Badge
+                          tone={itemTone(item.status)}
+                          data-testid="treatment-plan-item-status"
+                        >
                           {t(`treatmentPlans.itemStatus.${item.status}`)}
                         </Badge>
 
@@ -287,6 +305,7 @@ export function TreatmentPlansTab({
                               icon={<Icon name="check" />}
                               variant="secondary"
                               size="sm"
+                              data-testid="treatment-plan-item-convert"
                               disabled={convertItem.isPending}
                               onClick={() => void handleConvert(item)}
                             >
@@ -296,6 +315,7 @@ export function TreatmentPlansTab({
                               icon={<Icon name="x" />}
                               variant="ghost"
                               size="sm"
+                              data-testid="treatment-plan-item-cancel"
                               onClick={() => void handleCancelItem(item)}
                             >
                               {t("treatmentPlans.cancelItem")}
@@ -320,6 +340,7 @@ export function TreatmentPlansTab({
                       </label>
                       <Select
                         id={`add-item-${plan.id}`}
+                        data-testid="treatment-plan-add-item-procedure"
                         value={newItemProcedure}
                         onChange={(event) => setNewItemProcedure(event.target.value)}
                         placeholder={t("chart.panel.selectProcedure")}
@@ -333,6 +354,7 @@ export function TreatmentPlansTab({
                       icon={<Icon name="check" />}
                       variant="secondary"
                       size="sm"
+                      data-testid="treatment-plan-add-item-save"
                       disabled={addItem.isPending || !newItemProcedure}
                       onClick={() => void handleAddItem(plan.id)}
                     >
@@ -342,6 +364,7 @@ export function TreatmentPlansTab({
                       icon={<Icon name="x" />}
                       variant="ghost"
                       size="sm"
+                      data-testid="treatment-plan-add-item-cancel"
                       onClick={() => setAddingTo(null)}
                     >
                       {t("common.cancel")}
@@ -352,6 +375,7 @@ export function TreatmentPlansTab({
                     icon={<Icon name="plus" />}
                     variant="secondary"
                     size="sm"
+                    data-testid="treatment-plan-add-item"
                     onClick={() => setAddingTo(plan.id)}
                   >
                     {t("treatmentPlans.addItem")}
@@ -365,7 +389,7 @@ export function TreatmentPlansTab({
 
       {/* Rendered only while printing; `print.css` reveals it. */}
       {printing && (
-        <div className="print-root">
+        <div data-testid="treatment-plan-print-root" className="print-root">
           <PlanPrint
             plan={printing}
             clinic={clinic.data}

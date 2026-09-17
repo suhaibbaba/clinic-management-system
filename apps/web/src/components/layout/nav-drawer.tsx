@@ -27,6 +27,7 @@ export function NavDrawer({
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
+          data-testid="nav-drawer-overlay"
           className={cn(
             "fixed inset-0 z-40 bg-ink/40 md:hidden",
             "data-[state=open]:animate-[fade-in_200ms_ease-out]",
@@ -35,6 +36,7 @@ export function NavDrawer({
         />
 
         <DialogPrimitive.Content
+          data-testid="nav-drawer"
           // Same rule as `Modal` and `Drawer`: a panel opening does not move the caret. Radix would
           // focus the close button, announcing "close" before the navigation.
           onOpenAutoFocus={(event) => {
@@ -52,7 +54,10 @@ export function NavDrawer({
             "data-[state=closed]:animate-[drawer-out_180ms_ease-in]",
           )}
         >
-          <div className="flex shrink-0 items-center gap-3 border-b border-line px-3 py-3">
+          <div
+            data-testid="nav-drawer-header"
+            className="flex shrink-0 items-center gap-3 border-b border-line px-3 py-3"
+          >
             {/* The mark is what is drawn; the name is what is announced. */}
             <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
             {/* `min-w-0` so the mark takes the width the close button leaves,
@@ -60,6 +65,7 @@ export function NavDrawer({
             <div className="min-w-0 flex-1">{brand}</div>
 
             <DialogPrimitive.Close
+              data-testid="nav-drawer-close"
               aria-label={closeLabel}
               className={cn(
                 "inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill",
@@ -70,7 +76,10 @@ export function NavDrawer({
             </DialogPrimitive.Close>
           </div>
 
-          <div className="scroll-lane min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-3">
+          <div
+            data-testid="nav-drawer-body"
+            className="scroll-lane min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-3"
+          >
             {children}
           </div>
         </DialogPrimitive.Content>

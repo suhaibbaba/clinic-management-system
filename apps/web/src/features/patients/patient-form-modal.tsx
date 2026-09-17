@@ -24,6 +24,7 @@ import { useCreatePatient, useUpdatePatient } from "@web/features/patients/queri
 import { errorMessageKey } from "@web/lib/api-error";
 
 interface PatientFormModalProps {
+  "data-testid"?: string | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated?: ((patientId: string) => void) | undefined;
@@ -36,6 +37,7 @@ export function PatientFormModal({
   onOpenChange,
   onCreated,
   patient,
+  "data-testid": testId = "patient-form-modal",
 }: PatientFormModalProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
@@ -92,18 +94,25 @@ export function PatientFormModal({
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       title={editing ? "patients.edit" : "patients.create"}
       footer={
         <>
-          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            icon={<Icon name="x" />}
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
             type="submit"
             form="patient-form"
+            data-testid={`${testId}-save`}
             isLoading={isSubmitting}
           >
             {t(isSubmitting ? "common.saving" : "common.save")}
@@ -111,12 +120,19 @@ export function PatientFormModal({
         </>
       }
     >
-      <form id="patient-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
+      <form
+        id="patient-form"
+        data-testid={`${testId}-form`}
+        className="flex flex-col gap-4"
+        onSubmit={onSubmit}
+        noValidate
+      >
         <FormField label="patients.fullName" htmlFor="patient-name" error={errors.fullName}>
           <Input
             placeholder={t("common.placeholders.fullName")}
             adornment="user"
             id="patient-name"
+            data-testid="patient-field-name"
             hasError={Boolean(errors.fullName)}
             {...register("fullName")}
           />
@@ -132,6 +148,7 @@ export function PatientFormModal({
             placeholder={t("common.placeholders.phone")}
             adornment="phone"
             id="patient-phone"
+            data-testid="patient-field-phone"
             hasError={Boolean(errors.phone)}
             {...register("phone")}
           />
@@ -149,6 +166,7 @@ export function PatientFormModal({
             render={({ field }) => (
               <DatePicker
                 id="patient-dob"
+                data-testid="patient-field-dob"
                 startView="years"
                 label={t("patients.dateOfBirth")}
                 value={field.value ?? ""}
@@ -168,6 +186,7 @@ export function PatientFormModal({
             render={({ field }) => (
               <Select
                 id="patient-gender"
+                data-testid="patient-field-gender"
                 placeholder={t("common.none")}
                 options={GENDERS.map((gender) => ({
                   value: gender,
@@ -190,6 +209,7 @@ export function PatientFormModal({
           <Input
             placeholder={t("common.placeholders.address")}
             id="patient-address"
+            data-testid="patient-field-address"
             {...register("address", { setValueAs: (value) => (value === "" ? null : value) })}
           />
         </FormField>
@@ -204,6 +224,7 @@ export function PatientFormModal({
             placeholder={t("common.placeholders.emergencyName")}
             adornment="user"
             id="patient-emergency-name"
+            data-testid="patient-field-emergency-name"
             {...register("emergencyContactName", {
               setValueAs: (value) => (value === "" ? null : value),
             })}
@@ -220,6 +241,7 @@ export function PatientFormModal({
             placeholder={t("common.placeholders.phone")}
             adornment="phone"
             id="patient-emergency-phone"
+            data-testid="patient-field-emergency-phone"
             dir="ltr"
             inputMode="tel"
             {...register("emergencyContactPhone", {

@@ -30,9 +30,18 @@ export function ForgotPasswordPage(): JSX.Element {
   });
 
   return (
-    <main className="flex min-h-full items-center justify-center px-4 py-12">
+    <main
+      data-testid="forgot-password-page"
+      className="flex min-h-full items-center justify-center px-4 py-12"
+    >
       <div className="w-full max-w-md border border-line rounded-card bg-surface p-8 shadow-card">
-        <Logo size="login" src={logoUrl} name={branding.data?.name} className="mb-6" />
+        <Logo
+          size="login"
+          src={logoUrl}
+          name={branding.data?.name}
+          data-testid="forgot-password-logo"
+          className="mb-6"
+        />
 
         {branding.data?.name && (
           <p className="mb-1 text-value font-medium text-ink-muted">
@@ -40,14 +49,19 @@ export function ForgotPasswordPage(): JSX.Element {
           </p>
         )}
 
-        <h1 className="text-title font-medium text-primary-900">{t("auth.forgotTitle")}</h1>
+        <h1 data-testid="forgot-password-title" className="text-title font-medium text-primary-900">
+          {t("auth.forgotTitle")}
+        </h1>
 
         {sent ? (
           <>
-            <p className="mt-1 text-value text-ink-muted">{t("auth.forgotSent")}</p>
+            <p data-testid="forgot-password-sent" className="mt-1 text-value text-ink-muted">
+              {t("auth.forgotSent")}
+            </p>
             <Button
               className="mt-6 w-full"
               variant="secondary"
+              data-testid="forgot-password-to-login"
               icon={<Icon name="login" />}
               onClick={() => navigate("/login")}
             >
@@ -58,7 +72,12 @@ export function ForgotPasswordPage(): JSX.Element {
           <>
             <p className="mt-1 text-value text-ink-muted">{t("auth.forgotSubtitle")}</p>
 
-            <form className="mt-6 flex flex-col gap-4" onSubmit={onSubmit} noValidate>
+            <form
+              data-testid="forgot-password-form"
+              className="mt-6 flex flex-col gap-4"
+              onSubmit={onSubmit}
+              noValidate
+            >
               <FormField
                 label="auth.identifier"
                 htmlFor="forgot-identifier"
@@ -68,6 +87,7 @@ export function ForgotPasswordPage(): JSX.Element {
                   placeholder={t("common.placeholders.identifier")}
                   adornment="user"
                   id="forgot-identifier"
+                  data-testid="forgot-password-identifier"
                   autoComplete="username"
                   hasError={errors.identifier !== undefined}
                   {...register("identifier")}
@@ -77,6 +97,7 @@ export function ForgotPasswordPage(): JSX.Element {
               <Button
                 icon={<Icon name="mail" />}
                 type="submit"
+                data-testid="forgot-password-submit"
                 isLoading={isSubmitting}
                 className="mt-2 w-full"
               >

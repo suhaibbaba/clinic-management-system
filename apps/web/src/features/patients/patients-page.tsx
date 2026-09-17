@@ -114,14 +114,20 @@ export function PatientsPage(): JSX.Element {
         primary: true,
         render: (row) => (
           <span className="flex items-center gap-3">
-            <Avatar name={row.fullName} tintKey={row.id} />
+            <Avatar name={row.fullName} tintKey={row.id} data-testid="patient-avatar" />
             <span className="flex min-w-0 flex-col leading-snug">
-              <span className="truncate font-medium text-ink">{row.fullName}</span>
+              <span data-testid="patient-name" className="truncate font-medium text-ink">
+                {row.fullName}
+              </span>
               <Ltr className="text-micro tabular-nums text-ink-subtle">{row.fileNumber}</Ltr>
             </span>
             {/* Registered mid-booking or online, and never finished — the reminder to take the
                 rest of it when they walk in. */}
-            {row.profileIncomplete && <Badge tone="warning">{t("patients.incomplete")}</Badge>}
+            {row.profileIncomplete && (
+              <Badge tone="warning" data-testid="patient-incomplete">
+                {t("patients.incomplete")}
+              </Badge>
+            )}
           </span>
         ),
       },
@@ -184,27 +190,41 @@ export function PatientsPage(): JSX.Element {
       actions: true,
       render: (row) => (
         <span className="flex items-center gap-1.5">
-          <Button size="sm" variant="ghost" onClick={() => navigate(`/patients/${row.id}`)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            data-testid="patient-open"
+            onClick={() => navigate(`/patients/${row.id}`)}
+          >
             {t("patients.openFile")}
             <Icon name="chevron-end" className="size-4" />
           </Button>
 
           {/* The file's tabs are addresses, so the menu is shortcuts into them — each gated by the
               permission that gates the tab, so nothing here bounces the reader. */}
-          <RowMenu label={t("patients.rowMenu")}>
+          <RowMenu label={t("patients.rowMenu")} data-testid="patient-menu">
             {showClinical && (
-              <MenuItem icon="clock" onSelect={() => navigate(`/patients/${row.id}?tab=timeline`)}>
+              <MenuItem
+                icon="clock"
+                data-testid="patient-menu-timeline"
+                onSelect={() => navigate(`/patients/${row.id}?tab=timeline`)}
+              >
                 {t("patients.tabs.timeline")}
               </MenuItem>
             )}
             {showBalance && (
-              <MenuItem icon="money" onSelect={() => navigate(`/patients/${row.id}?tab=billing`)}>
+              <MenuItem
+                icon="money"
+                data-testid="patient-menu-billing"
+                onSelect={() => navigate(`/patients/${row.id}?tab=billing`)}
+              >
                 {t("patients.tabs.billing")}
               </MenuItem>
             )}
             {showClinical && (
               <MenuItem
                 icon="image"
+                data-testid="patient-menu-attachments"
                 onSelect={() => navigate(`/patients/${row.id}?tab=attachments`)}
               >
                 {t("patients.tabs.attachments")}
@@ -223,8 +243,9 @@ export function PatientsPage(): JSX.Element {
   const rows = query.data?.items ?? [];
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="patients-page" className="flex flex-col gap-5">
       <PageHeader
+        data-testid="patients-header"
         title="patients.title"
         subtitle="patients.subtitle"
         {...(query.data !== undefined && {
@@ -232,7 +253,11 @@ export function PatientsPage(): JSX.Element {
         })}
         primaryAction={
           canCreate ? (
-            <Button icon={<Icon name="user-plus" />} onClick={() => setCreateOpen(true)}>
+            <Button
+              icon={<Icon name="user-plus" />}
+              data-testid="patients-create"
+              onClick={() => setCreateOpen(true)}
+            >
               {t("patients.create")}
             </Button>
           ) : undefined
@@ -241,6 +266,7 @@ export function PatientsPage(): JSX.Element {
 
       <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
         <SegmentedControl<PatientFilter>
+          data-testid="patients-filter"
           label={t("patients.filterLabel")}
           value={filter}
           onChange={setFilter}
@@ -261,6 +287,7 @@ export function PatientsPage(): JSX.Element {
       </div>
 
       <Table
+        data-testid="patients-table"
         columns={columns}
         rows={rows}
         rowKey={(row) => row.id}
@@ -268,11 +295,16 @@ export function PatientsPage(): JSX.Element {
         isRefreshing={isRefetching(query)}
         empty={
           <EmptyState
+            data-testid="patients-empty"
             title={isSearching ? "patients.noMatches" : "patients.empty"}
             hint={isSearching ? "patients.noMatchesHint" : "patients.emptyHint"}
             action={
               canCreate && !isSearching ? (
-                <Button icon={<Icon name="user-plus" />} onClick={() => setCreateOpen(true)}>
+                <Button
+                  icon={<Icon name="user-plus" />}
+                  data-testid="patients-empty-create"
+                  onClick={() => setCreateOpen(true)}
+                >
                   {t("patients.create")}
                 </Button>
               ) : undefined
@@ -290,6 +322,7 @@ export function PatientsPage(): JSX.Element {
       />
 
       <PatientFormModal
+        data-testid="patients-create-modal"
         open={createOpen}
         onOpenChange={setCreateOpen}
         onCreated={(patientId) => navigate(`/patients/${patientId}`)}

@@ -9,10 +9,18 @@ export function ToothLegend(): JSX.Element {
   const states = useToothStates();
 
   return (
-    <ul className="flex flex-wrap gap-x-4 gap-y-2" aria-label={t("chart.legend")}>
+    <ul
+      data-testid="tooth-legend"
+      className="flex flex-wrap gap-x-4 gap-y-2"
+      aria-label={t("chart.legend")}
+    >
       {states.all.map(({ code, label, style }) => {
         return (
-          <li key={code} className="flex items-center gap-1.5 text-chart-text text-label">
+          <li
+            key={code}
+            data-testid={`tooth-legend-${code}`}
+            className="flex items-center gap-1.5 text-chart-text text-label"
+          >
             <ToothSwatch style={style} />
             {label}
           </li>

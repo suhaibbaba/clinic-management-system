@@ -58,11 +58,20 @@ export function LoginPage(): JSX.Element {
   });
 
   return (
-    <main className="flex min-h-full items-center justify-center px-4 py-12">
+    <main
+      data-testid="login-page"
+      className="flex min-h-full items-center justify-center px-4 py-12"
+    >
       <div className="w-full max-w-md border border-line rounded-card bg-surface p-8 shadow-card">
         {/* The one place the mark is shown at size; the clinic name sits in the
             heading below it, so the mark itself is decorative. */}
-        <Logo size="login" src={logoUrl} name={branding.data?.name} className="mb-6" />
+        <Logo
+          size="login"
+          src={logoUrl}
+          name={branding.data?.name}
+          data-testid="login-logo"
+          className="mb-6"
+        />
 
         {branding.data?.name && (
           <p className="mb-1 text-value font-medium text-ink-muted">
@@ -70,15 +79,23 @@ export function LoginPage(): JSX.Element {
           </p>
         )}
 
-        <h1 className="text-title font-medium text-primary-900">{t("auth.loginTitle")}</h1>
+        <h1 data-testid="login-title" className="text-title font-medium text-primary-900">
+          {t("auth.loginTitle")}
+        </h1>
         <p className="mt-1 text-value text-ink-muted">{t("auth.loginSubtitle")}</p>
 
-        <form className="mt-6 flex flex-col gap-4" onSubmit={onSubmit} noValidate>
+        <form
+          data-testid="login-form"
+          className="mt-6 flex flex-col gap-4"
+          onSubmit={onSubmit}
+          noValidate
+        >
           <FormField label="auth.identifier" htmlFor="identifier" error={errors.identifier}>
             <Input
               placeholder={t("common.placeholders.identifier")}
               adornment="user"
               id="identifier"
+              data-testid="login-identifier"
               autoComplete="username"
               hasError={errors.identifier !== undefined}
               {...register("identifier")}
@@ -94,6 +111,7 @@ export function LoginPage(): JSX.Element {
             <PasswordInput
               placeholder={t("common.placeholders.password")}
               id="password"
+              data-testid="login-password"
               autoComplete="current-password"
               hasError={errors.password !== undefined}
               {...register("password")}
@@ -103,6 +121,7 @@ export function LoginPage(): JSX.Element {
           {formErrorKey !== null && (
             <p
               role="alert"
+              data-testid="login-error"
               className="rounded-panel bg-danger-50 px-3.5 py-2.5 text-value text-danger-700"
             >
               {t(formErrorKey)}
@@ -112,6 +131,7 @@ export function LoginPage(): JSX.Element {
           <Button
             icon={<Icon name="login" />}
             type="submit"
+            data-testid="login-submit"
             isLoading={isSubmitting}
             className="mt-2 w-full"
           >
@@ -122,6 +142,7 @@ export function LoginPage(): JSX.Element {
               password has already failed you. */}
           <Link
             to="/forgot-password"
+            data-testid="login-forgot-link"
             className="self-center text-label text-primary-600 underline underline-offset-4 hover:text-primary-700"
           >
             {t("auth.forgotLink")}

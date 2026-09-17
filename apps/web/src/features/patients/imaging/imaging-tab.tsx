@@ -49,7 +49,7 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
   const canRemove = canDeleteAttachment(can);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-testid="imaging-tab" className="flex flex-col gap-4">
       {canUpload && <UploadRow patientId={patientId} />}
 
       <div className="flex flex-wrap items-end gap-3">
@@ -61,6 +61,7 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
           </label>
           <Select
             id="imaging-type"
+            data-testid="imaging-filter-type"
             value={typeFilter}
             onChange={(event) => setTypeFilter(event.target.value as AttachmentType | "")}
             placeholder={t("common.all")}
@@ -74,6 +75,7 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
           </label>
           <Input
             id="imaging-tooth"
+            data-testid="imaging-filter-tooth"
             dir="ltr"
             inputMode="numeric"
             placeholder="46"
@@ -84,7 +86,11 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
         </div>
 
         {toothFilter !== "" && !toothIsValid && (
-          <p role="alert" className="text-label text-danger-600">
+          <p
+            role="alert"
+            data-testid="imaging-invalid-tooth"
+            className="text-label text-danger-600"
+          >
             {t("imaging.invalidTooth")}
           </p>
         )}
@@ -105,17 +111,30 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
       )}
 
       {attachments.isError && (
-        <EmptyState icon="alert" title="errors.generic" hint="imaging.loadFailed" />
+        <EmptyState
+          icon="alert"
+          data-testid="imaging-error"
+          title="errors.generic"
+          hint="imaging.loadFailed"
+        />
       )}
 
       {!attachments.isPending && attachments.data?.length === 0 && (
-        <EmptyState icon="image" title="imaging.empty" hint="imaging.emptyHint" />
+        <EmptyState
+          icon="image"
+          data-testid="imaging-empty"
+          title="imaging.empty"
+          hint="imaging.emptyHint"
+        />
       )}
 
       {attachments.data && attachments.data.length > 0 && (
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <ul
+          data-testid="imaging-grid"
+          className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+        >
           {attachments.data.map((attachment) => (
-            <li key={attachment.id}>
+            <li key={attachment.id} data-testid={`imaging-item-${attachment.id}`}>
               <ImageCard
                 attachment={attachment}
                 patientId={patientId}
@@ -188,7 +207,10 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
   };
 
   return (
-    <div className="border border-line rounded-card bg-surface p-5 shadow-card">
+    <div
+      data-testid="imaging-upload"
+      className="border border-line rounded-card bg-surface p-5 shadow-card"
+    >
       {/* Both fields are sent with the upload, and a drop zone that fires the moment a file lands
           has to have them answered already. */}
       <div className="mb-4 flex flex-wrap items-end gap-3">
@@ -199,6 +221,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
           <Select
             placeholder={t("common.placeholders.selectType")}
             id="upload-type"
+            data-testid="imaging-upload-type"
             value={type}
             onChange={(event) => setType(event.target.value as AttachmentType)}
             options={attachmentTypes}
@@ -211,6 +234,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
           </label>
           <Input
             id="upload-tooth"
+            data-testid="imaging-upload-tooth"
             dir="ltr"
             inputMode="numeric"
             placeholder="46"
@@ -223,6 +247,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
       {/* Not a `<button>`: it contains one, and a button inside a button is invalid. The keyboard
           path is the button in the middle. */}
       <div
+        data-testid="imaging-dropzone"
         onDragOver={(event) => {
           event.preventDefault();
           setIsOver(true);
@@ -243,6 +268,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
         <input
           ref={inputRef}
           type="file"
+          data-testid="imaging-file-input"
           className="sr-only"
           accept={ALLOWED_ATTACHMENT_MIME_TYPES.join(",")}
           onChange={(event) => void handleFile(event)}
@@ -250,6 +276,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
 
         <Button
           className="mt-2"
+          data-testid="imaging-upload-button"
           icon={<Icon name="upload" />}
           isLoading={upload.isPending}
           onClick={() => inputRef.current?.click()}
@@ -292,14 +319,24 @@ function ImageCard({
   };
 
   return (
-    <figure className="flex flex-col gap-1.5 border border-line rounded-card bg-surface shadow-card p-2">
+    <figure
+      data-testid="imaging-card"
+      className="flex flex-col gap-1.5 border border-line rounded-card bg-surface shadow-card p-2"
+    >
       <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md bg-canvas">
         {isPending && <Skeleton className="size-full rounded-none" />}
 
         {data?.downloadUrl &&
           (isImage ? (
-            <a href={data.downloadUrl} target="_blank" rel="noreferrer" className="size-full">
+            <a
+              href={data.downloadUrl}
+              data-testid="imaging-card-open"
+              target="_blank"
+              rel="noreferrer"
+              className="size-full"
+            >
               <Img
+                data-testid="imaging-card-image"
                 src={data.downloadUrl}
                 alt={attachment.filename}
                 aspectRatio="1/1"
@@ -309,6 +346,7 @@ function ImageCard({
           ) : (
             <a
               href={data.downloadUrl}
+              data-testid="imaging-card-open-file"
               target="_blank"
               rel="noreferrer"
               className="px-2 text-center text-label text-primary-600 underline"
@@ -319,14 +357,20 @@ function ImageCard({
       </div>
 
       <figcaption className="flex flex-col gap-1">
-        <span className="truncate text-label font-medium text-ink" title={attachment.filename}>
+        <span
+          data-testid="imaging-card-filename"
+          className="truncate text-label font-medium text-ink"
+          title={attachment.filename}
+        >
           {attachment.filename}
         </span>
 
         <span className="flex flex-wrap items-center gap-1.5">
-          <Badge tone="neutral">{attachmentTypeLabel(attachment.type)}</Badge>
+          <Badge tone="neutral" data-testid="imaging-card-type">
+            {attachmentTypeLabel(attachment.type)}
+          </Badge>
           {attachment.tooth !== null && (
-            <Badge tone="info">
+            <Badge tone="info" data-testid="imaging-card-tooth">
               <Ltr>{attachment.tooth}</Ltr>
             </Badge>
           )}
@@ -339,6 +383,7 @@ function ImageCard({
             icon={<Icon name="trash" />}
             variant="ghost"
             size="sm"
+            data-testid="imaging-card-delete"
             disabled={remove.isPending}
             onClick={() => void handleDelete()}
           >

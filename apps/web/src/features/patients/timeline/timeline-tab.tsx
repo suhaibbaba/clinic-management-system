@@ -44,13 +44,21 @@ export function TimelineTab({ patientId }: { readonly patientId: string }): JSX.
   }
 
   if (timeline.isError) {
-    return <EmptyState icon="alert" title="errors.generic" hint="patients.timeline.loadFailed" />;
+    return (
+      <EmptyState
+        icon="alert"
+        data-testid="timeline-error"
+        title="errors.generic"
+        hint="patients.timeline.loadFailed"
+      />
+    );
   }
 
   if (entries.length === 0) {
     return (
       <EmptyState
         icon="clipboard"
+        data-testid="timeline-empty"
         title="patients.timeline.empty"
         hint="patients.timeline.emptyHint"
       />
@@ -58,9 +66,12 @@ export function TimelineTab({ patientId }: { readonly patientId: string }): JSX.
   }
 
   return (
-    <ol className="flex flex-col gap-2">
+    <ol data-testid="timeline-tab" className="flex flex-col gap-2">
       {entries.map((entry) => (
-        <li key={`${entry.type}-${entry.id}`}>
+        <li
+          key={`${entry.type}-${entry.id}`}
+          data-testid={`timeline-entry-${entry.type}-${entry.id}`}
+        >
           <Row entry={entry} />
         </li>
       ))}
@@ -72,22 +83,36 @@ function Row({ entry }: { readonly entry: TimelineEntry }): JSX.Element {
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-start gap-3 border border-line rounded-card bg-surface p-3 shadow-card">
+    <div
+      data-testid="timeline-row"
+      data-entry-type={entry.type}
+      className="flex items-start gap-3 border border-line rounded-card bg-surface p-3 shadow-card"
+    >
       <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-panel bg-inset">
         <Icon name={ICONS[entry.type]} className="size-4 text-ink-muted" />
       </span>
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="truncate text-value font-medium text-ink">{entry.title}</span>
-          <Badge tone="neutral">{t(`patients.timeline.types.${entry.type}`)}</Badge>
+          <span
+            data-testid="timeline-row-title"
+            className="truncate text-value font-medium text-ink"
+          >
+            {entry.title}
+          </span>
+          <Badge tone="neutral" data-testid="timeline-row-type">
+            {t(`patients.timeline.types.${entry.type}`)}
+          </Badge>
           <LabOrderChips entry={entry} />
         </div>
 
         <Detail entry={entry} />
       </div>
 
-      <Ltr className="shrink-0 text-label tabular-nums text-ink-subtle">
+      <Ltr
+        data-testid="timeline-row-date"
+        className="shrink-0 text-label tabular-nums text-ink-subtle"
+      >
         {formatDate(entry.occurredAt)}
       </Ltr>
     </div>
@@ -104,7 +129,11 @@ function LabOrderChips({ entry }: { readonly entry: TimelineEntry }): JSX.Elemen
   const status = entry.detail["status"] as LabOrderStatus | undefined;
   const style = status ? LAB_ORDER_STATUS_STYLES[status] : undefined;
 
-  return style ? <Badge tone={style.tone}>{t(style.label)}</Badge> : null;
+  return style ? (
+    <Badge tone={style.tone} data-testid="timeline-row-lab-status">
+      {t(style.label)}
+    </Badge>
+  ) : null;
 }
 
 function Detail({ entry }: { readonly entry: TimelineEntry }): JSX.Element | null {
@@ -116,7 +145,10 @@ function Detail({ entry }: { readonly entry: TimelineEntry }): JSX.Element | nul
     const labName = entry.detail["labName"] as string | undefined;
 
     return (
-      <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-label text-ink-muted">
+      <p
+        data-testid="timeline-row-detail"
+        className="mt-0.5 flex flex-wrap items-center gap-x-2 text-label text-ink-muted"
+      >
         {labName}
         {teeth.length > 0 && <Ltr className="tabular-nums">{teeth.join(" · ")}</Ltr>}
       </p>
@@ -130,7 +162,7 @@ function Detail({ entry }: { readonly entry: TimelineEntry }): JSX.Element | nul
     const unit = entry.detail["unit"] as string | undefined;
 
     return (
-      <p className="mt-0.5 text-label text-ink-muted">
+      <p data-testid="timeline-row-detail" className="mt-0.5 text-label text-ink-muted">
         <Ltr className="tabular-nums">{quantity}</Ltr> {unitLabel(unit ?? null)}
       </p>
     );
@@ -139,7 +171,9 @@ function Detail({ entry }: { readonly entry: TimelineEntry }): JSX.Element | nul
   const complaint = entry.detail["complaint"] as string | undefined;
 
   return complaint ? (
-    <p className="mt-0.5 truncate text-label text-ink-muted">{complaint}</p>
+    <p data-testid="timeline-row-detail" className="mt-0.5 truncate text-label text-ink-muted">
+      {complaint}
+    </p>
   ) : (
     <p className="sr-only">{t(`patients.timeline.types.${entry.type}`)}</p>
   );

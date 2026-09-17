@@ -33,12 +33,14 @@ export function PlanPrint({
     catalog.find((item) => item.id === procedureId)?.nameAr ?? t("chart.panel.procedure");
 
   return (
-    <div className="print-sheet" dir="rtl" lang="ar">
+    <div data-testid="plan-print" className="print-sheet" dir="rtl" lang="ar">
       <PrintLetterhead clinic={clinic} />
 
-      <h2 className="print-title">{t("treatmentPlans.printTitle")}</h2>
+      <h2 data-testid="plan-print-title" className="print-title">
+        {t("treatmentPlans.printTitle")}
+      </h2>
 
-      <dl className="print-meta">
+      <dl data-testid="plan-print-meta" className="print-meta">
         <div>
           <dt>{t("patients.fullName")}</dt>
           <dd>{patientName}</dd>
@@ -57,7 +59,7 @@ export function PlanPrint({
         </div>
       </dl>
 
-      <table className="print-table">
+      <table data-testid="plan-print-table" className="print-table">
         <thead>
           <tr>
             <th scope="col">#</th>
@@ -68,7 +70,7 @@ export function PlanPrint({
         </thead>
         <tbody>
           {items.map((item, index) => (
-            <tr key={item.id}>
+            <tr key={item.id} data-testid={`plan-print-item-${item.id}`}>
               <td dir="ltr">{index + 1}</td>
               <td>{nameOf(item.procedureId)}</td>
               <td>{t(`treatmentPlans.itemStatus.${item.status}`)}</td>
@@ -98,11 +100,15 @@ export function PlanPrint({
         </tfoot>
       </table>
 
-      {plan.notes && <p className="print-notes">{plan.notes}</p>}
+      {plan.notes && (
+        <p data-testid="plan-print-notes" className="print-notes">
+          {plan.notes}
+        </p>
+      )}
 
       <p className="print-disclaimer">{t("treatmentPlans.printDisclaimer")}</p>
 
-      <div className="print-signature">
+      <div data-testid="plan-print-signature" className="print-signature">
         <span>{t("treatmentPlans.signatureDoctor")}</span>
         <span>{t("treatmentPlans.signaturePatient")}</span>
       </div>

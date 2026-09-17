@@ -72,7 +72,7 @@ export function ChartTab({
 
   if (procedures.isPending || catalog.isPending) {
     return showSkeleton ? (
-      <div className="flex flex-col gap-4">
+      <div data-testid="chart-tab-loading" className="flex flex-col gap-4">
         <ToothChartSkeleton />
       </div>
     ) : (
@@ -81,7 +81,14 @@ export function ChartTab({
   }
 
   if (procedures.isError) {
-    return <EmptyState icon="alert" title="errors.generic" hint="chart.loadFailed" />;
+    return (
+      <EmptyState
+        icon="alert"
+        data-testid="chart-error"
+        title="errors.generic"
+        hint="chart.loadFailed"
+      />
+    );
   }
 
   const role = user?.role;
@@ -100,10 +107,11 @@ export function ChartTab({
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="chart-tab" className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         {showDentitionToggle && (
           <SegmentedControl
+            data-testid="chart-dentition"
             label={t("chart.dentition")}
             value={dentition}
             onChange={(next) => {
@@ -119,12 +127,21 @@ export function ChartTab({
 
         {/* `ms-auto`, so the hint stays at the far end whether or not the
             toggle beside it exists. */}
-        <p className="ms-auto text-label text-ink-muted">{t("chart.keyboardHint")}</p>
+        <p data-testid="chart-keyboard-hint" className="ms-auto text-label text-ink-muted">
+          {t("chart.keyboardHint")}
+        </p>
       </div>
 
       {/* A new patient still gets a chart — every tooth healthy — with a line
           saying so, rather than an empty box in place of the thing to click. */}
-      {!hasHistory && <EmptyState icon="tooth" title="chart.empty" hint="chart.emptyHint" />}
+      {!hasHistory && (
+        <EmptyState
+          icon="tooth"
+          data-testid="chart-empty"
+          title="chart.empty"
+          hint="chart.emptyHint"
+        />
+      )}
 
       <div className="flex flex-col gap-3">
         <ToothChart
@@ -175,6 +192,7 @@ export function ChartTab({
       {/* Raised from the chart, so the tooth — and the treatment that needs the
           work, when it started from a procedure — are already on the form. */}
       <OrderFormModal
+        data-testid="chart-lab-order-modal"
         open={labOrder !== undefined}
         onOpenChange={(open) => !open && setLabOrder(undefined)}
         defaults={labOrder}
