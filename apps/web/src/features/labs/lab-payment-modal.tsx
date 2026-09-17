@@ -22,7 +22,9 @@ export function LabPaymentModal({
   labName,
   balance,
   currency,
+  "data-testid": testId = "lab-payment-modal",
 }: {
+  readonly "data-testid"?: string | undefined;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly labId: string;
@@ -64,23 +66,39 @@ export function LabPaymentModal({
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       title={t("labs.payment.title", { lab: labName })}
       description={t("labs.payment.description")}
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
-          <Button isLoading={isSubmitting} onClick={() => void submit()}>
+          <Button
+            isLoading={isSubmitting}
+            data-testid={`${testId}-save`}
+            onClick={() => void submit()}
+          >
             {t("labs.payment.submit")}
           </Button>
         </>
       }
     >
-      <form className="flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
-        <div className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2">
+      <form
+        data-testid={`${testId}-form`}
+        className="flex flex-col gap-4"
+        onSubmit={(event) => void submit(event)}
+      >
+        <div
+          data-testid={`${testId}-current-balance`}
+          className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2"
+        >
           <span className="text-label text-ink-muted">{t("labs.payment.currentBalance")}</span>
           <Money amount={balance?.balance ?? "0.00"} currency={currency} className="font-medium" />
         </div>
@@ -88,6 +106,7 @@ export function LabPaymentModal({
         <FormField label="labs.payment.amount" htmlFor="lab-payment-amount" error={errors.amount}>
           <MoneyInput
             id="lab-payment-amount"
+            data-testid="lab-payment-field-amount"
             currency={currency}
             placeholder="0"
             hasError={Boolean(errors.amount)}
@@ -102,6 +121,7 @@ export function LabPaymentModal({
             <FormField label="labs.payment.method" htmlFor="lab-payment-method">
               <Select
                 id="lab-payment-method"
+                data-testid="lab-payment-field-method"
                 value={field.value}
                 onChange={(event) => field.onChange(event.target.value)}
                 options={methods}
@@ -111,7 +131,12 @@ export function LabPaymentModal({
         />
 
         <FormField label="labs.payment.note" htmlFor="lab-payment-note" optional>
-          <Textarea id="lab-payment-note" rows={2} {...register("note")} />
+          <Textarea
+            id="lab-payment-note"
+            data-testid="lab-payment-field-note"
+            rows={2}
+            {...register("note")}
+          />
         </FormField>
       </form>
     </Modal>

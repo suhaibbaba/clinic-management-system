@@ -11,6 +11,7 @@ import { useCreatePayment } from "@web/features/billing/queries";
 import { errorMessageKey } from "@web/lib/api-error";
 
 interface PaymentModalProps {
+  "data-testid"?: string | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   patientId: string;
@@ -26,6 +27,7 @@ export function PaymentModal({
   patientId,
   suggestedAmount,
   currency,
+  "data-testid": testId = "payment-modal",
 }: PaymentModalProps): JSX.Element {
   const { t } = useTranslation();
   const methods = useLookupOptions(LOOKUP_LIST.PAYMENT_METHOD);
@@ -65,18 +67,25 @@ export function PaymentModal({
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       title="billing.recordPayment"
       footer={
         <>
-          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            icon={<Icon name="x" />}
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
             type="submit"
             form="payment-form"
+            data-testid={`${testId}-save`}
             isLoading={isSubmitting}
           >
             {t(isSubmitting ? "common.saving" : "billing.recordAndPrint")}
@@ -84,11 +93,18 @@ export function PaymentModal({
         </>
       }
     >
-      <form id="payment-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
+      <form
+        id="payment-form"
+        data-testid={`${testId}-form`}
+        className="flex flex-col gap-4"
+        onSubmit={onSubmit}
+        noValidate
+      >
         <FormField label="billing.amount" htmlFor="payment-amount" error={errors.amount}>
           <MoneyInput
             placeholder={t("common.placeholders.amount")}
             id="payment-amount"
+            data-testid="payment-field-amount"
             currency={currency}
             hasError={Boolean(errors.amount)}
             {...register("amount")}
@@ -103,6 +119,7 @@ export function PaymentModal({
               <Select
                 placeholder={t("common.placeholders.selectMethod")}
                 id="payment-method"
+                data-testid="payment-field-method"
                 options={methods}
                 value={field.value ?? ""}
                 onBlur={field.onBlur}
@@ -116,6 +133,7 @@ export function PaymentModal({
           <Input
             placeholder={t("common.placeholders.note")}
             id="payment-note"
+            data-testid="payment-field-note"
             {...register("note", { setValueAs: (value) => (value === "" ? null : value) })}
           />
         </FormField>

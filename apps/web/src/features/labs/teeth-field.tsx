@@ -48,11 +48,11 @@ export function TeethField({
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div data-testid="teeth-field" className="flex flex-col gap-2">
       {value.length > 0 && (
-        <ul className="flex flex-wrap gap-1.5">
+        <ul data-testid="teeth-field-list" className="flex flex-wrap gap-1.5">
           {value.map((tooth) => (
-            <li key={tooth}>
+            <li key={tooth} data-testid={`teeth-field-tooth-${tooth}`}>
               <span
                 dir="ltr"
                 className="pill-text inline-flex items-center h-(--control-h-sm) gap-2 rounded-pill bg-inset pe-1.5 ps-3 text-nav font-medium tabular-nums text-ink"
@@ -60,6 +60,7 @@ export function TeethField({
                 {tooth}
                 <button
                   type="button"
+                  data-testid={`teeth-field-remove-${tooth}`}
                   aria-label={t("labs.order.removeTooth", { tooth })}
                   onClick={() => onChange(value.filter((item) => item !== tooth))}
                   className="cursor-pointer rounded-pill p-0.5 text-ink-subtle transition-colors duration-150 hover:text-ink"
@@ -74,6 +75,7 @@ export function TeethField({
 
       <Input
         id={id}
+        data-testid="teeth-field-input"
         dir="ltr"
         inputMode="numeric"
         placeholder="46"
@@ -87,7 +89,10 @@ export function TeethField({
         onBlur={() => draft !== "" && add(draft)}
       />
 
-      <p className={invalid ? "text-label text-danger-600" : "text-label text-ink-muted"}>
+      <p
+        data-testid="teeth-field-hint"
+        className={invalid ? "text-label text-danger-600" : "text-label text-ink-muted"}
+      >
         {t(invalid ? "labs.order.toothInvalid" : "labs.order.toothHint")}
       </p>
     </div>

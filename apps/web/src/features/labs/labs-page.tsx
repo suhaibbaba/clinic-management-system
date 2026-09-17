@@ -44,8 +44,9 @@ export function LabsPage(): JSX.Element {
   const openOrders = rows.reduce((sum, lab) => sum + lab.openOrders, 0);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="labs-page" className="flex flex-col gap-5">
       <PageHeader
+        data-testid="labs-header"
         title="labs.title"
         subtitle="labs.subtitle"
         {...(labs.data !== undefined && {
@@ -53,7 +54,11 @@ export function LabsPage(): JSX.Element {
         })}
         primaryAction={
           canManageLabs(can) ? (
-            <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
+            <Button
+              icon={<Icon name="plus" />}
+              data-testid="labs-add"
+              onClick={() => setCreating(true)}
+            >
               {t("labs.add")}
             </Button>
           ) : undefined
@@ -63,9 +68,10 @@ export function LabsPage(): JSX.Element {
       {showSkeleton && <SkeletonKpi count={2} />}
 
       {!showSkeleton && rows.length > 0 && (
-        <StatRow>
+        <StatRow data-testid="labs-kpis">
           <StatCard
             icon="money"
+            data-testid="labs-kpi-owed"
             tone={owed > 0 ? "warning" : "success"}
             label={t("labs.kpi.owed")}
             value={<Money amount={owed.toFixed(2)} currency={clinic.data?.currency} />}
@@ -73,6 +79,7 @@ export function LabsPage(): JSX.Element {
           />
           <StatCard
             icon="clipboard"
+            data-testid="labs-kpi-open"
             tone="primary"
             label={t("labs.kpi.open")}
             value={openOrders}
@@ -82,6 +89,7 @@ export function LabsPage(): JSX.Element {
       )}
 
       <SearchField
+        data-testid="labs-search"
         className="w-full min-w-0 sm:max-w-md"
         label={t("labs.search")}
         shortcut="/"
@@ -101,11 +109,16 @@ export function LabsPage(): JSX.Element {
       )}
 
       {!labs.isPending && rows.length === 0 && (
-        <EmptyState icon="clipboard" title="labs.empty" hint="labs.emptyHint" />
+        <EmptyState
+          icon="clipboard"
+          data-testid="labs-empty"
+          title="labs.empty"
+          hint="labs.emptyHint"
+        />
       )}
 
       {!labs.isPending && rows.length > 0 && (
-        <EntityGrid>
+        <EntityGrid data-testid="labs-grid">
           {rows.map((lab) => (
             <LabCard
               key={lab.id}
@@ -117,7 +130,7 @@ export function LabsPage(): JSX.Element {
         </EntityGrid>
       )}
 
-      <LabFormModal open={creating} onOpenChange={setCreating} />
+      <LabFormModal data-testid="labs-create-modal" open={creating} onOpenChange={setCreating} />
     </div>
   );
 }
@@ -136,6 +149,7 @@ function LabCard({
 
   return (
     <EntityCard
+      data-testid={`lab-card-${lab.id}`}
       icon="clipboard"
       title={lab.name}
       {...(lab.contactPerson && { subtitle: lab.contactPerson })}

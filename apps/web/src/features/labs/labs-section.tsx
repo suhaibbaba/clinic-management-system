@@ -23,10 +23,16 @@ export function LabsSection(): JSX.Element {
   );
 
   return (
-    <div className="flex flex-col gap-5">
-      <Tabs tabs={TABS} value={active} onChange={setActive} label="labs.section.label" />
+    <div data-testid="labs-section" className="flex flex-col gap-5">
+      <Tabs
+        data-testid="labs-section-tabs"
+        tabs={TABS}
+        value={active}
+        onChange={setActive}
+        label="labs.section.label"
+      />
 
-      <TabPanel id={active}>
+      <TabPanel id={active} data-testid="labs-section-panel">
         {active === ORDERS && <LabOrdersPage />}
         {active === DIRECTORY && <LabsPage />}
       </TabPanel>

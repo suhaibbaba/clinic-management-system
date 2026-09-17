@@ -25,7 +25,7 @@ export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.El
     .reduce((sum, entry) => sum + Math.round(Number(entry.amount) * 100), 0);
 
   return (
-    <div className="min-w-0">
+    <div data-testid="patient-balance-card" className="min-w-0">
       <dt className="text-value text-ink-muted">{t("patients.balance")}</dt>
       <dd className="mt-0.5 flex min-w-0 flex-wrap items-center gap-2 text-value text-ink">
         {balance.isPending ? (
@@ -35,12 +35,13 @@ export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.El
             amount={balance.data?.balance ?? "0.00"}
             currency={currency}
             signed
+            data-testid="patient-balance"
             className="font-medium"
           />
         )}
 
         {dueToday > 0 && (
-          <Badge tone="warning">
+          <Badge tone="warning" data-testid="patient-due-today">
             <span className="inline-flex items-center gap-1">
               {t("billing.dueToday")}:
               <Money amount={(dueToday / 100).toFixed(2)} currency={currency} />

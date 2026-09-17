@@ -32,6 +32,7 @@ import { formatDate, formatDateTime } from "@web/lib/format";
 import { cn } from "@clinic/ui/lib/cn";
 
 export interface OrderDrawerProps {
+  readonly "data-testid"?: string | undefined;
   readonly order: LabOrderRow | undefined;
   readonly onClose: () => void;
   readonly onEdit: (order: LabOrderRow) => void;
@@ -39,7 +40,12 @@ export interface OrderDrawerProps {
 
 // The moves offered are the intersection of the shared transition map and who ROLES.md lets make
 // each one, so a technician is never shown "fits".
-export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.Element | null {
+export function OrderDrawer({
+  order,
+  onClose,
+  onEdit,
+  "data-testid": testId = "order-drawer",
+}: OrderDrawerProps): JSX.Element | null {
   const { t } = useTranslation();
   const { can } = useSession();
   const toast = useToast();
@@ -83,14 +89,21 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
   return (
     <>
       <Drawer
+        data-testid={testId}
         open
         onOpenChange={(next) => !next && onClose()}
         descriptionKey="labs.order.description"
         title={
           <span className="flex flex-wrap items-center gap-2">
             {order.workTypeName ?? t("labs.orders.custom")}
-            <Badge tone={style.tone}>{t(style.label)}</Badge>
-            {order.isOverdue && <Badge tone="danger">{t("labs.orders.overdue")}</Badge>}
+            <Badge tone={style.tone} data-testid={`${testId}-status`}>
+              {t(style.label)}
+            </Badge>
+            {order.isOverdue && (
+              <Badge tone="danger" data-testid={`${testId}-overdue`}>
+                {t("labs.orders.overdue")}
+              </Badge>
+            )}
           </span>
         }
         footer={
@@ -99,6 +112,7 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
               <Button
                 key={next.step}
                 variant={next.step === "cancel" ? "ghost" : "primary"}
+                data-testid={`${testId}-step-${next.step}`}
                 isLoading={busy}
                 onClick={() => void move(next)}
               >
@@ -107,7 +121,12 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
             ))}
 
             {canReturn(order.status, can) && (
-              <Button variant="secondary" disabled={busy} onClick={() => setReturning(true)}>
+              <Button
+                variant="secondary"
+                data-testid={`${testId}-return`}
+                disabled={busy}
+                onClick={() => setReturning(true)}
+              >
                 {t("labs.actions.return")}
               </Button>
             )}
@@ -115,7 +134,10 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
         }
       >
         <div className="flex flex-col gap-5">
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-value">
+          <dl
+            data-testid={`${testId}-details`}
+            className="grid grid-cols-2 gap-x-4 gap-y-3 text-value"
+          >
             <Field label={t("labs.order.lab")}>{order.labName}</Field>
             <Field label={t("labs.order.patient")}>
               <span className="flex flex-wrap items-baseline gap-2">
@@ -172,6 +194,7 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
               variant="secondary"
               size="sm"
               icon={<Icon name="print" />}
+              data-testid={`${testId}-print`}
               onClick={() => void openLabOrderSheet(order.id)}
             >
               {t("labs.order.print")}
@@ -182,6 +205,7 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
                 variant="ghost"
                 size="sm"
                 icon={<Icon name="edit" />}
+                data-testid={`${testId}-edit`}
                 onClick={() => onEdit(order)}
               >
                 {t("common.edit")}
@@ -192,6 +216,7 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
               variant="ghost"
               size="sm"
               icon={<Icon name="user" />}
+              data-testid={`${testId}-open-file`}
               onClick={() => {
                 onClose();
                 void navigate(`/patients/${order.patientId}`);
@@ -206,17 +231,23 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
       {/* A return says why: the reason travels to the lab on the next sheet and
           stays on the record afterwards, which is the whole point of asking. */}
       <Modal
+        data-testid="lab-order-return-modal"
         open={returning}
         onOpenChange={setReturning}
         title="labs.order.returnTitle"
         description={t("labs.order.returnDescription")}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setReturning(false)}>
+            <Button
+              variant="secondary"
+              data-testid="lab-order-return-cancel"
+              onClick={() => setReturning(false)}
+            >
               {t("common.cancel")}
             </Button>
             <Button
               variant="danger"
+              data-testid="lab-order-return-confirm"
               isLoading={returnToLab.isPending}
               disabled={reason.trim().length < 3}
               onClick={() => void submitReturn()}
@@ -231,6 +262,7 @@ export function OrderDrawer({ order, onClose, onEdit }: OrderDrawerProps): JSX.E
         </label>
         <Textarea
           id="lab-return-reason"
+          data-testid="lab-order-return-reason"
           rows={3}
           placeholder={t("labs.order.returnReasonPlaceholder")}
           value={reason}
@@ -258,12 +290,16 @@ function OrderHistory({ order }: { readonly order: LabOrderRow }): JSX.Element {
   ];
 
   return (
-    <section className="flex flex-col gap-2">
+    <section data-testid="lab-order-history" className="flex flex-col gap-2">
       <h3 className="text-value font-medium text-ink">{t("labs.order.history.title")}</h3>
 
       <ol className="flex flex-col gap-2">
         {stamps.map((stamp) => (
-          <li key={stamp.key} className="flex items-baseline justify-between gap-3 text-label">
+          <li
+            key={stamp.key}
+            data-testid={`lab-order-history-${stamp.key}`}
+            className="flex items-baseline justify-between gap-3 text-label"
+          >
             <span className="text-ink">{t(stamp.label)}</span>
             <Ltr className="tabular-nums text-ink-muted">{formatDateTime(stamp.at)}</Ltr>
           </li>
@@ -299,7 +335,7 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
   };
 
   return (
-    <section className="flex flex-col gap-2">
+    <section data-testid="lab-order-attachments" className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-value font-medium text-ink">{t("labs.order.attachments")}</h3>
 
@@ -307,6 +343,7 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
           size="sm"
           variant="secondary"
           icon={<Icon name="upload" />}
+          data-testid="lab-order-attachment-add"
           isLoading={upload.isPending}
           onClick={() => inputRef.current?.click()}
         >
@@ -316,6 +353,7 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
         <input
           ref={inputRef}
           type="file"
+          data-testid="lab-order-attachment-input"
           className="sr-only"
           aria-label={t("labs.order.addAttachment")}
           onChange={(event) => void pick(event)}
@@ -323,13 +361,16 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
       </div>
 
       {attachments.data?.length === 0 && (
-        <p className="text-label text-ink-muted">{t("labs.order.noAttachments")}</p>
+        <p data-testid="lab-order-no-attachments" className="text-label text-ink-muted">
+          {t("labs.order.noAttachments")}
+        </p>
       )}
 
       <ul className="flex flex-col gap-1.5">
         {attachments.data?.map((file) => (
           <li
             key={file.id}
+            data-testid={`lab-order-attachment-${file.id}`}
             className="flex items-center gap-2 rounded-panel bg-inset px-3 py-2 text-label"
           >
             <Icon name="file" className="size-4 shrink-0 text-ink-subtle" />
@@ -337,6 +378,7 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
             {file.url ? (
               <a
                 href={file.url}
+                data-testid="lab-order-attachment-open"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="min-w-0 flex-1 truncate text-primary-700 hover:underline"
@@ -349,6 +391,7 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
 
             <button
               type="button"
+              data-testid="lab-order-attachment-delete"
               aria-label={t("common.delete")}
               disabled={remove.isPending}
               onClick={() => void remove.mutateAsync({ orderId, id: file.id })}

@@ -42,6 +42,7 @@ export interface LabOrderDefaults {
 }
 
 export interface OrderFormModalProps {
+  readonly "data-testid"?: string | undefined;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   /** Editing when present — only a draft may be edited, which the API enforces. */
@@ -56,6 +57,7 @@ export function OrderFormModal({
   onOpenChange,
   order,
   defaults,
+  "data-testid": testId = "order-form-modal",
 }: OrderFormModalProps): JSX.Element {
   const { t } = useTranslation();
   const currency = useCurrency();
@@ -188,16 +190,22 @@ export function OrderFormModal({
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       title={t(order ? "labs.order.editTitle" : "labs.order.newTitle")}
       description={t("labs.order.description")}
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
           <Button
+            data-testid={`${testId}-save`}
             disabled={!canSubmit}
             isLoading={create.isPending || update.isPending}
             onClick={() => void submit()}
@@ -207,12 +215,16 @@ export function OrderFormModal({
         </>
       }
     >
-      <div className="flex flex-col gap-4">
+      <div data-testid={`${testId}-form`} className="flex flex-col gap-4">
         {/* Editing never moves an order to another patient: the API refuses it,
             and the file it belongs to is the one fact that must not drift. */}
         {order ? (
           <FormField label="labs.order.patient" htmlFor="lab-order-patient">
-            <p id="lab-order-patient" className="text-value text-ink">
+            <p
+              id="lab-order-patient"
+              data-testid="lab-order-field-patient"
+              className="text-value text-ink"
+            >
               {order.patientName}
             </p>
           </FormField>
@@ -234,6 +246,7 @@ export function OrderFormModal({
           <FormField label="labs.order.lab" htmlFor="lab-order-lab" required>
             <Select
               id="lab-order-lab"
+              data-testid="lab-order-field-lab"
               value={labId}
               placeholder={t("labs.order.selectLab")}
               onChange={(event) => {
@@ -253,6 +266,7 @@ export function OrderFormModal({
           >
             <Select
               id="lab-order-work-type"
+              data-testid="lab-order-field-work-type"
               value={workTypeId}
               disabled={labId === ""}
               placeholder={t("labs.order.selectWorkType")}
@@ -267,6 +281,7 @@ export function OrderFormModal({
           <FormField label="labs.order.doctor" htmlFor="lab-order-doctor" required>
             <Select
               id="lab-order-doctor"
+              data-testid="lab-order-field-doctor"
               value={doctorId}
               disabled={Boolean(order)}
               placeholder={t("labs.order.selectDoctor")}
@@ -281,6 +296,7 @@ export function OrderFormModal({
           <FormField label="labs.order.expected" htmlFor="lab-order-expected" optional>
             <DatePicker
               id="lab-order-expected"
+              data-testid="lab-order-field-expected"
               label={t("labs.order.expected")}
               value={expectedAt}
               onChange={setExpectedAt}
@@ -296,6 +312,7 @@ export function OrderFormModal({
           <FormField label="labs.order.shade" htmlFor="lab-order-shade" optional>
             <Input
               id="lab-order-shade"
+              data-testid="lab-order-field-shade"
               placeholder="A2"
               value={shade}
               onChange={(event) => setShade(event.target.value)}
@@ -305,6 +322,7 @@ export function OrderFormModal({
           <FormField label="labs.order.material" htmlFor="lab-order-material" optional>
             <Input
               id="lab-order-material"
+              data-testid="lab-order-field-material"
               value={material}
               onChange={(event) => setMaterial(event.target.value)}
             />
@@ -320,6 +338,7 @@ export function OrderFormModal({
           >
             <MoneyInput
               id="lab-order-price"
+              data-testid="lab-order-field-price"
               currency={currency}
               placeholder="0"
               value={price}
@@ -331,6 +350,7 @@ export function OrderFormModal({
         <FormField label="labs.order.instructions" htmlFor="lab-order-instructions" optional>
           <Textarea
             id="lab-order-instructions"
+            data-testid="lab-order-field-instructions"
             rows={3}
             placeholder={t("labs.order.instructionsPlaceholder")}
             value={instructions}

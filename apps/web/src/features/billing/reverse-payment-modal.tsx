@@ -14,6 +14,7 @@ import { useReversePayment } from "@web/features/billing/queries";
 import { errorMessageKey } from "@web/lib/api-error";
 
 interface ReversePaymentModalProps {
+  "data-testid"?: string | undefined;
   payment: StatementEntry | null;
   onOpenChange: (open: boolean) => void;
   currency?: string | undefined;
@@ -25,6 +26,7 @@ export function ReversePaymentModal({
   payment,
   onOpenChange,
   currency,
+  "data-testid": testId = "reverse-payment-modal",
 }: ReversePaymentModalProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
@@ -59,18 +61,25 @@ export function ReversePaymentModal({
 
   return (
     <Modal
+      data-testid={testId}
       open={payment !== null}
       onOpenChange={onOpenChange}
       title="billing.reversePayment"
       footer={
         <>
-          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            icon={<Icon name="x" />}
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
             type="submit"
             form="reverse-payment-form"
+            data-testid={`${testId}-confirm`}
             isLoading={isSubmitting}
           >
             {t(isSubmitting ? "common.saving" : "billing.confirmReversal")}
@@ -84,7 +93,7 @@ export function ReversePaymentModal({
         onSubmit={onSubmit}
         noValidate
       >
-        <p className="text-value text-ink-muted">
+        <p data-testid={`${testId}-explainer`} className="text-value text-ink-muted">
           {t("billing.reverseExplainer")}
           {payment && (
             <>
@@ -98,6 +107,7 @@ export function ReversePaymentModal({
           <Input
             placeholder={t("common.placeholders.reason")}
             id="reverse-reason"
+            data-testid="reverse-field-reason"
             hasError={Boolean(errors.reason)}
             {...register("reason")}
           />
