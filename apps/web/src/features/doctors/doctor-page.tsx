@@ -67,7 +67,7 @@ export function DoctorPage(): JSX.Element {
   };
 
   return (
-    <>
+    <div className="flex flex-col gap-5">
       <PageHeader
         title="doctors.pageTitle"
         subtitle="doctors.pageSubtitle"
@@ -85,7 +85,7 @@ export function DoctorPage(): JSX.Element {
         }
       />
 
-      <div className="mb-5 flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <PersonName
           name={doctor.data.user.name}
           showBoth
@@ -121,6 +121,6 @@ export function DoctorPage(): JSX.Element {
           <TimeOffPanel doctorId={id} canEdit={canEdit} />
         </section>
       </div>
-    </>
+    </div>
   );
 }

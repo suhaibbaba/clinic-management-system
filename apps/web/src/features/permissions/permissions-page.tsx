@@ -100,7 +100,7 @@ export function PermissionsPage(): JSX.Element {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <PageHeader title="permissions.title" subtitle="permissions.subtitle" />
 
       <p className="text-value text-ink-muted">{t("permissions.intro")}</p>

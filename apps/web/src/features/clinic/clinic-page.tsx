@@ -138,7 +138,7 @@ export function ClinicPage(): JSX.Element {
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-5">
       <PageHeader
         title="clinic.title"
         subtitle={canEdit ? "clinic.subtitle" : "clinic.readOnly"}
@@ -304,7 +304,7 @@ export function ClinicPage(): JSX.Element {
 
         <AboutSection />
       </div>
-    </>
+    </div>
   );
 }
 

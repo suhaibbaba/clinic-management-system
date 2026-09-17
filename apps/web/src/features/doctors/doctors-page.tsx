@@ -128,7 +128,7 @@ export function DoctorsPage(): JSX.Element {
   const data = query.data;
 
   return (
-    <>
+    <div className="flex flex-col gap-5">
       <PageHeader
         title="doctors.title"
         subtitle="doctors.subtitle"
@@ -150,7 +150,7 @@ export function DoctorsPage(): JSX.Element {
         }
       />
 
-      <div className="mb-5">
+      <div>
         <SearchField
           className="w-full min-w-0 sm:max-w-md"
           label={t("common.search")}
@@ -189,6 +189,6 @@ export function DoctorsPage(): JSX.Element {
       />
 
       <DoctorFormModal open={formOpen} onOpenChange={setFormOpen} doctor={formDoctor} />
-    </>
+    </div>
   );
 }

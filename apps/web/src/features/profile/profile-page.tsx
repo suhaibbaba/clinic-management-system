@@ -55,7 +55,7 @@ export function ProfilePage(): JSX.Element {
   });
 
   return (
-    <>
+    <div className="flex flex-col gap-5">
       <PageHeader
         title="profile.title"
         subtitle="profile.subtitle"
@@ -170,6 +170,6 @@ export function ProfilePage(): JSX.Element {
           </form>
         </section>
       </div>
-    </>
+    </div>
   );
 }

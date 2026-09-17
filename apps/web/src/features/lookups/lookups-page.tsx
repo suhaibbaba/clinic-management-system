@@ -26,7 +26,7 @@ export function LookupsPage(): JSX.Element {
   const [listKey, setListKey] = useState<LookupListKey>(LOOKUP_LIST_KEYS[0]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <PageHeader title={t("lookups.title")} subtitle={t("lookups.subtitle")} />
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
