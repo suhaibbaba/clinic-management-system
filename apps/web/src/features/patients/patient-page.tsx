@@ -104,8 +104,6 @@ export function PatientPage(): JSX.Element {
               </div>
 
               <div className="flex items-center gap-3">
-                {role && canSeeBilling(role) && <PatientBalanceCard patientId={id} />}
-
                 {canBookAppointment(can) && (
                   <Button
                     size="sm"
@@ -132,7 +130,7 @@ export function PatientPage(): JSX.Element {
               </div>
             </div>
 
-            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 lg:grid-cols-3">
+            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 lg:grid-cols-4">
               <div className="min-w-0">
                 <dt className="text-value text-ink-muted">{t("patients.fileNumber")}</dt>
                 <Ltr as="dd" className="mt-0.5 truncate text-value text-ink tabular-nums">
@@ -157,6 +155,8 @@ export function PatientPage(): JSX.Element {
                   <PhoneLink value={patient.data.phone} />
                 </dd>
               </div>
+
+              {role && canSeeBilling(role) && <PatientBalanceCard patientId={id} />}
             </dl>
           </>
         )}
