@@ -7,7 +7,7 @@ import { Calendar } from "@ui/components/calendar";
 import { fromIsoDate, toIsoDate } from "@ui/components/date-picker";
 import { fieldShell } from "@ui/components/field";
 import { Icon } from "@ui/components/icon";
-import { openOnArrowDown, usePickerOpen } from "@ui/components/picker-open";
+import { openOnArrowDown, usePickerOpen } from "@ui/lib/picker-open";
 import { Popover } from "@ui/components/popover";
 import { cn } from "@ui/lib/cn";
 import { Ltr } from "@ui/components/ltr";

@@ -50,6 +50,8 @@ export interface AppointmentFormModalProps {
   // Scheduling somebody off the queue. The booking goes through the queue's own endpoint, so a slot
   // taken while they waited is the same 409 and the entry stays open.
   readonly waitingEntry?: WaitingListEntry | undefined;
+  /** Booking from an open file: the patient is settled, so the picker starts on them. */
+  readonly forPatient?: PickedPatient | undefined;
   /** Where the calendar should be standing once this closes. */
   readonly onBooked?: ((booked: { date: string; doctorId: string }) => void) | undefined;
 }
@@ -62,6 +64,7 @@ export function AppointmentFormModal({
   appointment,
   defaults,
   waitingEntry,
+  forPatient,
   onBooked,
 }: AppointmentFormModalProps): JSX.Element {
   const { t } = useTranslation();
@@ -124,7 +127,7 @@ export function AppointmentFormModal({
       setDoctorId(waitingEntry.doctorId ?? "");
       setReason(waitingEntry.reason ?? "");
     } else {
-      setPatient(null);
+      setPatient(forPatient ? { kind: "existing", patient: forPatient } : null);
       setDoctorId(defaults?.doctorId ?? "");
       setReason("");
     }
@@ -134,7 +137,7 @@ export function AppointmentFormModal({
     setDurationMinutes("30");
     setType(APPOINTMENT_TYPE.CHECKUP);
     setNotes("");
-  }, [open, appointment, defaults, waitingEntry]);
+  }, [open, appointment, defaults, waitingEntry, forPatient]);
 
   const availability = useAvailability(
     {
@@ -233,7 +236,7 @@ export function AppointmentFormModal({
             id="appointment-patient"
             value={patient}
             clash={clash}
-            allowNew={waitingEntry === undefined && appointment === undefined}
+            allowNew={!waitingEntry && !appointment && !forPatient}
             onChange={(next) => {
               setPatient(next);
               setClash(null);

@@ -8,7 +8,6 @@ const dateLocale = (): string =>
   i18n.language.startsWith("en") ? "en-GB-u-ca-gregory-nu-latn" : "ar-SY-u-ca-gregory-nu-latn";
 
 // The Arabic locale interleaves RTL marks between the parts of a date; they survive into the DOM
-// and render `08/05/2026` as `082026/05/`.
 const stripBidiMarks = (value: string): string => value.replace(/[\u200e\u200f]/g, "");
 
 export function formatDateTime(iso: string): string {
@@ -39,7 +38,11 @@ export function dayAndDate(iso: string): { readonly weekday: string; readonly da
   return {
     weekday: stripBidiMarks(at.toLocaleDateString(dateLocale(), { weekday: "long" })),
     date: stripBidiMarks(
-      at.toLocaleDateString(dateLocale(), { year: "2-digit", month: "2-digit", day: "2-digit" }),
+      at.toLocaleDateString(dateLocale(), {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }),
     ),
   };
 }

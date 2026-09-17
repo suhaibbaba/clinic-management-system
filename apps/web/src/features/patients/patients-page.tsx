@@ -223,7 +223,7 @@ export function PatientsPage(): JSX.Element {
   const rows = query.data?.items ?? [];
 
   return (
-    <div>
+    <div className="flex flex-col gap-5">
       <PageHeader
         title="patients.title"
         subtitle="patients.subtitle"
@@ -239,7 +239,7 @@ export function PatientsPage(): JSX.Element {
         }
       />
 
-      <div className="mb-3.5 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
         <SegmentedControl<PatientFilter>
           label={t("patients.filterLabel")}
           value={filter}

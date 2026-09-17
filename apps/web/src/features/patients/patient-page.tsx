@@ -14,6 +14,8 @@ import {
   useTabParam,
 } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import { AppointmentFormModal } from "@web/features/appointments/appointment-form-modal";
+import { canBookAppointment } from "@web/features/appointments/permissions";
 import { useSession } from "@web/features/auth/session";
 import { AccountTab } from "@web/features/billing/account-tab";
 import { PatientBalanceCard } from "@web/features/billing/patient-balance-card";
@@ -68,6 +70,7 @@ export function PatientPage(): JSX.Element {
 
   const patient = usePatient(id);
   const [editing, setEditing] = useState(false);
+  const [booking, setBooking] = useState(false);
   const showSkeleton = useDelayedLoading(patient.isPending);
 
   return (
@@ -101,7 +104,16 @@ export function PatientPage(): JSX.Element {
               </div>
 
               <div className="flex items-center gap-3">
-                {role && canSeeBilling(role) && <PatientBalanceCard patientId={id} />}
+                {canBookAppointment(can) && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    icon={<Icon name="calendar" />}
+                    onClick={() => setBooking(true)}
+                  >
+                    {t("appointments.create")}
+                  </Button>
+                )}
 
                 {/* Editing the file is the header's job, not a tab's: every tab below is about what
                     was done to the patient, and this is about who they are. */}
@@ -118,7 +130,7 @@ export function PatientPage(): JSX.Element {
               </div>
             </div>
 
-            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 lg:grid-cols-3">
+            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 lg:grid-cols-4">
               <div className="min-w-0">
                 <dt className="text-value text-ink-muted">{t("patients.fileNumber")}</dt>
                 <Ltr as="dd" className="mt-0.5 truncate text-value text-ink tabular-nums">
@@ -143,6 +155,8 @@ export function PatientPage(): JSX.Element {
                   <PhoneLink value={patient.data.phone} />
                 </dd>
               </div>
+
+              {role && canSeeBilling(role) && <PatientBalanceCard patientId={id} />}
             </dl>
           </>
         )}
@@ -150,6 +164,19 @@ export function PatientPage(): JSX.Element {
 
       {patient.data && (
         <PatientFormModal open={editing} onOpenChange={setEditing} patient={patient.data} />
+      )}
+
+      {patient.data && (
+        <AppointmentFormModal
+          open={booking}
+          onOpenChange={setBooking}
+          forPatient={{
+            id: patient.data.id,
+            fullName: patient.data.fullName,
+            phone: patient.data.phone,
+            fileNumber: patient.data.fileNumber,
+          }}
+        />
       )}
 
       <Tabs

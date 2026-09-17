@@ -243,7 +243,7 @@ export function UsersPage(): JSX.Element {
   const data = query.data;
 
   return (
-    <>
+    <div className="flex flex-col gap-5">
       <PageHeader
         title="users.title"
         subtitle="users.subtitle"
@@ -265,7 +265,7 @@ export function UsersPage(): JSX.Element {
 
       {/* The same toolbar shape as every other list: the app's search field,
           then the filters, on their own line at 390px. */}
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <SearchField
           className="w-full min-w-0 sm:max-w-md sm:flex-1"
           label={t("common.search")}
@@ -368,6 +368,6 @@ export function UsersPage(): JSX.Element {
           {t("users.deleteQuestion", { name: displayName(deleting?.name) })}
         </p>
       </Modal>
-    </>
+    </div>
   );
 }

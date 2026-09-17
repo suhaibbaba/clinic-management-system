@@ -35,7 +35,7 @@ export function PageHeader({
   return (
     <header
       data-part="page-header"
-      className="mt-1.5 mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
+      className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
     >
       {hosted && createPortal(primaryAction, slot)}
 

@@ -104,7 +104,7 @@ export function AuditPage(): JSX.Element {
   const data = query.data;
 
   return (
-    <>
+    <div className="flex flex-col gap-5">
       <PageHeader
         title="audit.title"
         subtitle="audit.subtitle"
@@ -113,7 +113,7 @@ export function AuditPage(): JSX.Element {
         })}
       />
 
-      <Card className="mb-4 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:items-end">
+      <Card className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:items-end">
         <Select
           className="w-full sm:w-44"
           aria-label={t("audit.filterEntity")}
@@ -213,6 +213,6 @@ export function AuditPage(): JSX.Element {
       >
         {selected && <ValueDiff oldValue={selected.oldValue} newValue={selected.newValue} />}
       </Modal>
-    </>
+    </div>
   );
 }
