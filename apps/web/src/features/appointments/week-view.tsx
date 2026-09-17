@@ -15,6 +15,7 @@ import { cn } from "@clinic/ui/lib/cn";
 import { formatDate } from "@web/lib/format";
 
 export interface WeekViewProps {
+  readonly "data-testid"?: string | undefined;
   readonly date: string;
   readonly appointments: readonly CalendarAppointment[];
   /** Closures overlapping the week; a covered day is shaded and named. */
@@ -29,6 +30,7 @@ export function WeekView({
   closures = [],
   onOpen,
   onPickDay,
+  "data-testid": testId = "week-view",
 }: WeekViewProps): JSX.Element {
   const { t } = useTranslation();
   const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
@@ -41,12 +43,20 @@ export function WeekView({
 
   if (appointments.length === 0 && closures.length === 0) {
     return (
-      <EmptyState icon="calendar" title="appointments.emptyWeek" hint="appointments.emptyHint" />
+      <EmptyState
+        icon="calendar"
+        data-testid={`${testId}-empty`}
+        title="appointments.emptyWeek"
+        hint="appointments.emptyHint"
+      />
     );
   }
 
   return (
-    <div className="overflow-x-auto border border-line rounded-card bg-surface shadow-card">
+    <div
+      data-testid={testId}
+      className="overflow-x-auto border border-line rounded-card bg-surface shadow-card"
+    >
       <div className="grid min-w-max grid-cols-7 divide-x divide-line rtl:divide-x-reverse">
         {days.map((day) => {
           const ofDay = appointments
@@ -56,9 +66,14 @@ export function WeekView({
           const closure = closureOn(day);
 
           return (
-            <div key={day} className={cn("min-w-40 flex-1", closure && "bg-sunken")}>
+            <div
+              key={day}
+              data-testid={`${testId}-day-${day}`}
+              className={cn("min-w-40 flex-1", closure && "bg-sunken")}
+            >
               <button
                 type="button"
+                data-testid={`${testId}-pick-${day}`}
                 onClick={() => onPickDay(day)}
                 className={cn(
                   "block w-full cursor-pointer border-b border-line px-3 py-2.5 text-center",
@@ -91,6 +106,7 @@ export function WeekView({
                       type="button"
                       onClick={() => onOpen(appointment)}
                       data-appointment={appointment.id}
+                      data-testid={`${testId}-appointment-${appointment.id}`}
                       aria-label={`${toTimeLabel(minutesOf(appointment.startsAt))} — ${
                         appointment.patientName
                       } — ${t(`appointments.statuses.${appointment.status}`)}`}

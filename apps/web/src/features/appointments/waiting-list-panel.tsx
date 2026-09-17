@@ -84,38 +84,60 @@ export function WaitingListPanel({
   return (
     <>
       <Drawer
+        data-testid="waiting-list-panel"
         open={open}
         onOpenChange={onOpenChange}
         title={t("appointments.waiting.title")}
         descriptionKey="appointments.waiting.title"
         footer={
           canManage ? (
-            <Button icon={<Icon name="user-plus" />} onClick={() => setAddOpen(true)}>
+            <Button
+              icon={<Icon name="user-plus" />}
+              data-testid="waiting-list-add"
+              onClick={() => setAddOpen(true)}
+            >
               {t("appointments.waiting.add")}
             </Button>
           ) : undefined
         }
       >
         {entries.data?.items.length === 0 && (
-          <p className="rounded-control bg-inset px-3 py-6 text-center text-value text-ink-muted">
+          <p
+            data-testid="waiting-list-empty"
+            className="rounded-control bg-inset px-3 py-6 text-center text-value text-ink-muted"
+          >
             {t("appointments.waiting.empty")}
           </p>
         )}
 
-        <ul className="flex flex-col gap-3">
+        <ul data-testid="waiting-list" className="flex flex-col gap-3">
           {entries.data?.items.map((entry) => (
-            <li key={entry.id} className="rounded-card border border-line p-3">
+            <li
+              key={entry.id}
+              data-testid={`waiting-entry-${entry.id}`}
+              className="rounded-card border border-line p-3"
+            >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="truncate text-value font-medium text-ink">{entry.patientName}</p>
+                  <p
+                    data-testid="waiting-entry-name"
+                    className="truncate text-value font-medium text-ink"
+                  >
+                    {entry.patientName}
+                  </p>
                   {/* Reception's next move on one of these is to ring it. */}
                   <PhoneLink value={entry.patientPhone} className="truncate text-label" />
                 </div>
                 <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
                   {entry.source === WAITING_LIST_SOURCE.ONLINE && (
-                    <Badge tone="info">{t("appointments.waiting.online")}</Badge>
+                    <Badge tone="info" data-testid="waiting-entry-online">
+                      {t("appointments.waiting.online")}
+                    </Badge>
                   )}
-                  <Badge tone={PRIORITY_TONE[entry.priority] ?? "neutral"}>
+                  <Badge
+                    tone={PRIORITY_TONE[entry.priority] ?? "neutral"}
+                    data-testid="waiting-entry-priority"
+                  >
                     {t(`appointments.waiting.priorities.${entry.priority}`)}
                   </Badge>
                 </div>
@@ -140,6 +162,7 @@ export function WaitingListPanel({
                   <Button
                     size="sm"
                     icon={<Icon name="calendar" />}
+                    data-testid="waiting-entry-schedule"
                     onClick={() => onSchedule(entry)}
                   >
                     {t("appointments.waiting.schedule")}
@@ -149,6 +172,7 @@ export function WaitingListPanel({
                       size="sm"
                       variant="secondary"
                       icon={<Icon name="phone" />}
+                      data-testid="waiting-entry-contacted"
                       isLoading={contact.isPending}
                       onClick={() => void markContacted(entry.id)}
                     >
@@ -159,6 +183,7 @@ export function WaitingListPanel({
                     size="sm"
                     variant="ghost"
                     icon={<Icon name="x" />}
+                    data-testid="waiting-entry-decline"
                     onClick={() => setDeclining(entry)}
                   >
                     {t("appointments.waiting.decline")}
@@ -227,16 +252,22 @@ function AddWalkInModal({
 
   return (
     <Modal
+      data-testid="waiting-add-modal"
       open={open}
       onOpenChange={onOpenChange}
       title="appointments.waiting.add"
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="secondary"
+            data-testid="waiting-add-cancel"
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
           <Button
             isLoading={add.isPending}
+            data-testid="waiting-add-save"
             disabled={!isDraftComplete(patient)}
             onClick={() => void submit()}
           >
@@ -261,6 +292,7 @@ function AddWalkInModal({
         <FormField label="appointments.doctor" htmlFor="waiting-doctor" optional>
           <Select
             id="waiting-doctor"
+            data-testid="waiting-field-doctor"
             value={doctorId}
             placeholder={t("appointments.waiting.anyDoctor")}
             options={(doctors.data?.items ?? []).map((doctor) => ({
@@ -274,6 +306,7 @@ function AddWalkInModal({
         <FormField label="appointments.waiting.priority" htmlFor="waiting-priority">
           <Select
             id="waiting-priority"
+            data-testid="waiting-field-priority"
             value={priority}
             options={WAITING_LIST_PRIORITIES.map((value) => ({
               value,
@@ -286,6 +319,7 @@ function AddWalkInModal({
         <FormField label="appointments.reason" htmlFor="waiting-reason" optional>
           <Input
             id="waiting-reason"
+            data-testid="waiting-field-reason"
             value={reason}
             onChange={(event) => setReason(event.target.value)}
           />
@@ -321,16 +355,18 @@ function DeclineModal({
 
   return (
     <Modal
+      data-testid="waiting-decline-modal"
       open
       onOpenChange={(next) => !next && onClose()}
       title="appointments.waiting.decline"
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" data-testid="waiting-decline-cancel" onClick={onClose}>
             {t("common.cancel")}
           </Button>
           <Button
             isLoading={decline.isPending}
+            data-testid="waiting-decline-confirm"
             disabled={reason.trim().length < 3}
             onClick={() => void submit()}
           >
@@ -350,6 +386,7 @@ function DeclineModal({
         >
           <Textarea
             id="decline-reason"
+            data-testid="waiting-decline-reason"
             rows={3}
             value={reason}
             onChange={(event) => setReason(event.target.value)}

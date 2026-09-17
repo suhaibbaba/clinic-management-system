@@ -38,6 +38,7 @@ import { formatDate } from "@web/lib/format";
 import { cn } from "@clinic/ui/lib/cn";
 
 export interface AppointmentDrawerProps {
+  readonly "data-testid"?: string | undefined;
   readonly appointment: CalendarAppointment | undefined;
   readonly onClose: () => void;
   readonly onEdit: (appointment: CalendarAppointment) => void;
@@ -49,6 +50,7 @@ export function AppointmentDrawer({
   appointment,
   onClose,
   onEdit,
+  "data-testid": testId = "appointment-drawer",
 }: AppointmentDrawerProps): JSX.Element | null {
   const { t } = useTranslation();
   const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
@@ -109,6 +111,7 @@ export function AppointmentDrawer({
   return (
     <>
       <Drawer
+        data-testid={testId}
         open
         onOpenChange={(next) => !next && onClose()}
         title={appointment.patientName}
@@ -118,6 +121,7 @@ export function AppointmentDrawer({
             {status === APPOINTMENT_STATUS.REQUESTED && may("confirm") && (
               <Button
                 icon={<Icon name="check" />}
+                data-testid={`${testId}-confirm`}
                 isLoading={busy}
                 onClick={() => void move("confirm", "appointments.updated")}
               >
@@ -128,6 +132,7 @@ export function AppointmentDrawer({
             {status === APPOINTMENT_STATUS.CONFIRMED && may("arrived") && (
               <Button
                 icon={<Icon name="user-plus" />}
+                data-testid={`${testId}-arrived`}
                 isLoading={busy}
                 onClick={() => void move("arrived", "appointments.updated")}
               >
@@ -138,6 +143,7 @@ export function AppointmentDrawer({
             {status === APPOINTMENT_STATUS.ARRIVED && mayOpenVisit && (
               <Button
                 icon={<Icon name="stethoscope" />}
+                data-testid={`${testId}-open-visit`}
                 isLoading={busy}
                 onClick={() => void openVisit()}
               >
@@ -148,6 +154,7 @@ export function AppointmentDrawer({
             {status === APPOINTMENT_STATUS.ARRIVED && !mayOpenVisit && may("start") && (
               <Button
                 icon={<Icon name="activity" />}
+                data-testid={`${testId}-start`}
                 isLoading={busy}
                 onClick={() => void move("start", "appointments.updated")}
               >
@@ -160,6 +167,7 @@ export function AppointmentDrawer({
                 <Button
                   variant="secondary"
                   icon={<Icon name="check" />}
+                  data-testid={`${testId}-complete`}
                   isLoading={busy}
                   onClick={() => void move("complete", "appointments.updated")}
                 >
@@ -170,6 +178,7 @@ export function AppointmentDrawer({
             {status === APPOINTMENT_STATUS.CONFIRMED && may("noShow") && (
               <Button
                 variant="secondary"
+                data-testid={`${testId}-no-show`}
                 isLoading={busy}
                 onClick={() => void move("noShow", "appointments.updated")}
               >
@@ -181,6 +190,7 @@ export function AppointmentDrawer({
               <Button
                 variant="ghost"
                 icon={<Icon name="x" />}
+                data-testid={`${testId}-cancel`}
                 disabled={busy}
                 onClick={() => setCancelOpen(true)}
               >
@@ -192,14 +202,21 @@ export function AppointmentDrawer({
       >
         <div className="flex flex-col gap-5">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone={style.tone}>{t(statusLabelKey(status))}</Badge>
-            <Badge>{typeLabel(appointment.type)}</Badge>
+            <Badge tone={style.tone} data-testid={`${testId}-status`}>
+              {t(statusLabelKey(status))}
+            </Badge>
+            <Badge data-testid={`${testId}-type`}>{typeLabel(appointment.type)}</Badge>
             {appointment.visitId && (
-              <Badge tone="success">{t("appointments.visit.existing")}</Badge>
+              <Badge tone="success" data-testid={`${testId}-visit`}>
+                {t("appointments.visit.existing")}
+              </Badge>
             )}
           </div>
 
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-value">
+          <dl
+            data-testid={`${testId}-details`}
+            className="grid grid-cols-2 gap-x-4 gap-y-3 text-value"
+          >
             <Field label={t("appointments.date")}>{formatDate(appointment.startsAt)}</Field>
             <Field label={t("appointments.time")}>
               <Ltr className="tabular-nums">
@@ -243,6 +260,7 @@ export function AppointmentDrawer({
               variant="secondary"
               size="sm"
               icon={<Icon name="edit" />}
+              data-testid={`${testId}-reschedule`}
               onClick={() => onEdit(appointment)}
             >
               {t("appointments.actions.reschedule")}
@@ -251,6 +269,7 @@ export function AppointmentDrawer({
               variant="ghost"
               size="sm"
               icon={<Icon name="user" />}
+              data-testid={`${testId}-open-file`}
               onClick={() => {
                 onClose();
                 navigate(`/patients/${appointment.patientId}`);
@@ -265,16 +284,22 @@ export function AppointmentDrawer({
       {/* Cancelling states a reason — the API refuses one without it, and the
           reason is what the next person reading the file needs. */}
       <Modal
+        data-testid="appointment-cancel-modal"
         open={cancelOpen}
         onOpenChange={setCancelOpen}
         title="appointments.cancel.title"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setCancelOpen(false)}>
+            <Button
+              variant="secondary"
+              data-testid="appointment-cancel-dismiss"
+              onClick={() => setCancelOpen(false)}
+            >
               {t("common.cancel")}
             </Button>
             <Button
               variant="danger"
+              data-testid="appointment-cancel-confirm"
               isLoading={cancel.isPending}
               disabled={cancelReason.trim().length < 3}
               onClick={() => void submitCancel()}
@@ -289,6 +314,7 @@ export function AppointmentDrawer({
         </label>
         <Textarea
           id="cancel-reason"
+          data-testid="appointment-cancel-reason"
           rows={3}
           placeholder={t("appointments.cancel.reasonPlaceholder")}
           value={cancelReason}

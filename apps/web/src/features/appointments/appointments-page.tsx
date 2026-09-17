@@ -231,8 +231,9 @@ export function AppointmentsPage(): JSX.Element {
       : formatDate(date);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="appointments-page" className="flex flex-col gap-5">
       <PageHeader
+        data-testid="appointments-header"
         title="appointments.title"
         subtitle="appointments.subtitle"
         primaryAction={
@@ -240,6 +241,7 @@ export function AppointmentsPage(): JSX.Element {
             <Button
               variant="secondary"
               icon={<Icon name="users" />}
+              data-testid="appointments-waiting-open"
               onClick={() => setWaitingOpen(true)}
             >
               {t("appointments.waiting.title")}
@@ -247,14 +249,18 @@ export function AppointmentsPage(): JSX.Element {
                 <span className="ms-1 tabular-nums">({waiting.data?.total})</span>
               )}
               {(urgent.data?.total ?? 0) > 0 && (
-                <Badge tone="danger" className="ms-1.5">
+                <Badge tone="danger" className="ms-1.5" data-testid="appointments-urgent-count">
                   {t("appointments.waiting.urgentCount", { count: urgent.data?.total ?? 0 })}
                 </Badge>
               )}
             </Button>
 
             {mayBook && (
-              <Button icon={<Icon name="plus" />} onClick={() => openForm({ date })}>
+              <Button
+                icon={<Icon name="plus" />}
+                data-testid="appointments-create"
+                onClick={() => openForm({ date })}
+              >
                 {t("appointments.create")}
               </Button>
             )}
@@ -266,9 +272,10 @@ export function AppointmentsPage(): JSX.Element {
           the calendar starts. The summary is worth reading; it is not worth
           reading *first* on the device the day is checked on. */}
       <div className="order-last sm:order-none">
-        <StatRow>
+        <StatRow data-testid="appointments-kpis">
           <StatCard
             icon="calendar"
+            data-testid="appointments-kpi-today"
             label={t("appointments.kpi.today")}
             value={todayStats.total}
             caption={formatDate(todayIso())}
@@ -276,17 +283,20 @@ export function AppointmentsPage(): JSX.Element {
           <StatCard
             icon="user-plus"
             tone="success"
+            data-testid="appointments-kpi-arrived"
             label={t("appointments.kpi.arrived")}
             value={todayStats.attended}
           />
           <StatCard
             icon="clock"
             tone="warning"
+            data-testid="appointments-kpi-remaining"
             label={t("appointments.kpi.remaining")}
             value={todayStats.remaining}
           />
           <StatCard
             icon="activity"
+            data-testid="appointments-kpi-attendance"
             tone={
               todayStats.attendance !== null && todayStats.attendance < 70 ? "danger" : "primary"
             }
@@ -297,6 +307,7 @@ export function AppointmentsPage(): JSX.Element {
           {frontDesk && (
             <StatCard
               icon="globe"
+              data-testid="appointments-kpi-online-today"
               tone={(onlineToday.data?.total ?? 0) > 0 ? "warning" : "primary"}
               label={t("appointments.kpi.onlineToday")}
               value={onlineToday.data?.total ?? 0}
@@ -307,6 +318,7 @@ export function AppointmentsPage(): JSX.Element {
       </div>
 
       <TodayRibbon
+        data-testid="appointments-today-ribbon"
         appointments={today}
         onOpen={(appointment) => setSelectedId(appointment.id)}
         canMark={mayBook}
@@ -318,28 +330,41 @@ export function AppointmentsPage(): JSX.Element {
             size="sm"
             variant="secondary"
             icon={<Icon name="chevron-start" />}
+            data-testid="appointments-previous"
             aria-label={t("appointments.previous")}
             onClick={() => step(-1)}
           />
-          <Button size="sm" variant="secondary" onClick={() => setDate(todayIso())}>
+          <Button
+            size="sm"
+            variant="secondary"
+            data-testid="appointments-today"
+            onClick={() => setDate(todayIso())}
+          >
             {t("appointments.today")}
           </Button>
           <Button
             size="sm"
             variant="secondary"
             icon={<Icon name="chevron-end" />}
+            data-testid="appointments-next"
             aria-label={t("appointments.next")}
             onClick={() => step(1)}
           />
           {/* One island, not two dates: read as ordinary text in an RTL paragraph the neutral dash
               let the halves swap, announcing the week as `12/09 – 06/09`. */}
-          <Ltr className="ms-1 text-value font-medium text-ink">{label}</Ltr>
+          <Ltr
+            data-testid="appointments-range-label"
+            className="ms-1 text-value font-medium text-ink"
+          >
+            {label}
+          </Ltr>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 sm:ms-auto">
           {wholeClinic && (
             <Select
               className="w-full sm:w-52"
+              data-testid="appointments-doctor-filter"
               aria-label={t("appointments.doctor")}
               placeholder={t("appointments.allDoctors")}
               value={doctorFilter}
@@ -354,6 +379,7 @@ export function AppointmentsPage(): JSX.Element {
           {/* The week is desktop-only, so the toggle is too. */}
           {!isMobile && (
             <SegmentedControl
+              data-testid="appointments-range"
               label={t("appointments.title")}
               value={range}
               onChange={(next) => setRange(next)}
@@ -369,9 +395,18 @@ export function AppointmentsPage(): JSX.Element {
       {/* A landmark of its own, so "the calendar" is addressable separately
           from the ribbon above it — which draws some of the same appointments
           and would otherwise be indistinguishable to a screen reader. */}
-      <section aria-label={t("appointments.title")} className="flex min-w-0 flex-col gap-5">
+      <section
+        data-testid="appointments-calendar"
+        aria-label={t("appointments.title")}
+        className="flex min-w-0 flex-col gap-5"
+      >
         {calendar.isError && (
-          <EmptyState icon="alert" title="errors.generic" hint="appointments.loadFailed" />
+          <EmptyState
+            icon="alert"
+            data-testid="appointments-error"
+            title="errors.generic"
+            hint="appointments.loadFailed"
+          />
         )}
 
         {showSkeleton && <SkeletonCalendarDay columns={effectiveRange === "week" ? 7 : 3} />}
@@ -380,6 +415,7 @@ export function AppointmentsPage(): JSX.Element {
 
         {!showSkeleton && !calendar.isError && effectiveRange === "week" && (
           <WeekView
+            data-testid="appointments-week"
             date={date}
             appointments={appointments}
             closures={closures}
@@ -392,6 +428,7 @@ export function AppointmentsPage(): JSX.Element {
 
         {!showSkeleton && !calendar.isError && effectiveRange === "day" && isMobile && (
           <AgendaList
+            data-testid="appointments-agenda"
             appointments={appointments}
             {...(closureToday && { closure: closureToday })}
             onOpen={(appointment) => setSelectedId(appointment.id)}
@@ -401,6 +438,7 @@ export function AppointmentsPage(): JSX.Element {
 
         {!showSkeleton && !calendar.isError && effectiveRange === "day" && !isMobile && (
           <DayGrid
+            data-testid="appointments-day-grid"
             date={date}
             doctors={columns}
             appointments={appointments}
@@ -417,6 +455,7 @@ export function AppointmentsPage(): JSX.Element {
       </section>
 
       <AppointmentDrawer
+        data-testid="appointment-drawer"
         appointment={selected}
         onClose={() => setSelectedId(null)}
         onEdit={(appointment) => {
@@ -428,6 +467,7 @@ export function AppointmentsPage(): JSX.Element {
       />
 
       <AppointmentFormModal
+        data-testid="appointment-form-modal"
         open={formOpen}
         onOpenChange={(next) => {
           setFormOpen(next);

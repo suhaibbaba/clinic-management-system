@@ -23,20 +23,37 @@ export function NewPatientFields({
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col gap-3 rounded-control border border-primary-200 bg-primary-50 p-3">
+    <div
+      data-testid="new-patient-fields"
+      className="flex flex-col gap-3 rounded-control border border-primary-200 bg-primary-50 p-3"
+    >
       <div className="flex items-center justify-between gap-2">
         <span className="text-label font-medium text-ink">{t("patients.createInline")}</span>
-        <Button size="sm" variant="ghost" icon={<Icon name="x" />} onClick={onCancel}>
+        <Button
+          size="sm"
+          variant="ghost"
+          icon={<Icon name="x" />}
+          data-testid="new-patient-cancel"
+          onClick={onCancel}
+        >
           {t("common.cancel")}
         </Button>
       </div>
 
       {clash && (
-        <div className="flex flex-wrap items-center gap-2 rounded-control bg-warning-100 px-3 py-2">
+        <div
+          data-testid="new-patient-clash"
+          className="flex flex-wrap items-center gap-2 rounded-control bg-warning-100 px-3 py-2"
+        >
           <span className="text-label text-warning-700">
             {t("patients.phoneTaken", { name: clash.fullName })}
           </span>
-          <Button size="sm" variant="secondary" onClick={() => onUseExisting(clash)}>
+          <Button
+            size="sm"
+            variant="secondary"
+            data-testid="new-patient-use-existing"
+            onClick={() => onUseExisting(clash)}
+          >
             {t("patients.useExisting")}
           </Button>
         </div>
@@ -45,6 +62,7 @@ export function NewPatientFields({
       <FormField label="patients.fullName" htmlFor={`${id}-name`} required>
         <Input
           id={`${id}-name`}
+          data-testid="new-patient-name"
           value={draft.fullName}
           onChange={(event) => onChange({ ...draft, fullName: event.target.value })}
         />
@@ -53,6 +71,7 @@ export function NewPatientFields({
       <FormField label="patients.phone" htmlFor={`${id}-phone`} required>
         <Input
           id={`${id}-phone`}
+          data-testid="new-patient-phone"
           type="tel"
           dir="ltr"
           value={draft.phone}
@@ -64,6 +83,7 @@ export function NewPatientFields({
         <FormField label="patients.gender" htmlFor={`${id}-gender`} optional>
           <Select
             id={`${id}-gender`}
+            data-testid="new-patient-gender"
             value={draft.gender ?? ""}
             placeholder={t("common.notSpecified")}
             options={GENDERS.map((gender) => ({
@@ -77,6 +97,7 @@ export function NewPatientFields({
         <FormField label="patients.dateOfBirth" htmlFor={`${id}-dob`} optional>
           <DatePicker
             id={`${id}-dob`}
+            data-testid="new-patient-dob"
             startView="years"
             label={t("patients.dateOfBirth")}
             value={draft.dateOfBirth ?? ""}

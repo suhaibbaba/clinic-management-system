@@ -30,7 +30,7 @@ export function SlotPicker({
 
   if (isLoading) {
     return (
-      <div className="flex flex-wrap gap-2">
+      <div data-testid="slot-picker-loading" className="flex flex-wrap gap-2">
         <SkeletonStatus />
         {[0, 1, 2, 3, 4, 5].map((slot) => (
           <Skeleton key={slot} className="h-(--control-h) w-20 rounded-control" />
@@ -49,6 +49,7 @@ export function SlotPicker({
     <div className="flex flex-col gap-2">
       <div
         role="radiogroup"
+        data-testid="slot-picker"
         aria-label={t("appointments.slots.label")}
         className="grid max-h-56 grid-cols-3 gap-1.5 overflow-y-auto sm:grid-cols-4"
       >
@@ -59,6 +60,7 @@ export function SlotPicker({
             <button
               key={slot.startsAt}
               type="button"
+              data-testid={`slot-${slot.start}`}
               role="radio"
               aria-checked={selected}
               disabled={!slot.available}
@@ -81,7 +83,9 @@ export function SlotPicker({
       </div>
 
       {availability.closedReason === "fully_booked" && (
-        <p className="text-label text-warning-700">{t("appointments.slots.fully_booked")}</p>
+        <p data-testid="slot-picker-fully-booked" className="text-label text-warning-700">
+          {t("appointments.slots.fully_booked")}
+        </p>
       )}
     </div>
   );
@@ -89,7 +93,10 @@ export function SlotPicker({
 
 function Hint({ icon, children }: { icon: "info" | "calendar"; children: string }) {
   return (
-    <p className="flex items-center gap-2 rounded-control bg-inset px-3 py-2.5 text-label text-ink-muted">
+    <p
+      data-testid="slot-picker-hint"
+      className="flex items-center gap-2 rounded-control bg-inset px-3 py-2.5 text-label text-ink-muted"
+    >
       <Icon name={icon} className="size-4" />
       {children}
     </p>
