@@ -24,10 +24,16 @@ export function InventorySection(): JSX.Element {
   );
 
   return (
-    <div className="flex flex-col gap-5">
-      <Tabs tabs={TABS} value={active} onChange={setActive} label="inventory.section.label" />
+    <div data-testid="inventory-section" className="flex flex-col gap-5">
+      <Tabs
+        data-testid="inventory-section-tabs"
+        tabs={TABS}
+        value={active}
+        onChange={setActive}
+        label="inventory.section.label"
+      />
 
-      <TabPanel id={active}>
+      <TabPanel id={active} data-testid="inventory-section-panel">
         {active === STOCK && <InventoryPage />}
         {active === SUPPLIERS && <SuppliersPage />}
       </TabPanel>

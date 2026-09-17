@@ -87,7 +87,11 @@ export function SuppliersPage(): JSX.Element {
       key: "state",
       header: "inventory.suppliers.state",
       render: (row) =>
-        row.isActive ? null : <Badge tone="neutral">{t("inventory.suppliers.inactive")}</Badge>,
+        row.isActive ? null : (
+          <Badge tone="neutral" data-testid="supplier-inactive">
+            {t("inventory.suppliers.inactive")}
+          </Badge>
+        ),
     },
     ...(mayManage
       ? [
@@ -99,6 +103,7 @@ export function SuppliersPage(): JSX.Element {
               <Button
                 size="sm"
                 variant="ghost"
+                data-testid="supplier-edit"
                 onClick={(event) => {
                   event.stopPropagation();
                   setEditing(row);
@@ -113,8 +118,9 @@ export function SuppliersPage(): JSX.Element {
   ];
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="suppliers-page" className="flex flex-col gap-5">
       <PageHeader
+        data-testid="suppliers-header"
         title="inventory.suppliers.title"
         subtitle="inventory.suppliers.subtitle"
         {...(suppliers.data !== undefined && {
@@ -122,7 +128,11 @@ export function SuppliersPage(): JSX.Element {
         })}
         primaryAction={
           mayManage ? (
-            <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
+            <Button
+              icon={<Icon name="plus" />}
+              data-testid="suppliers-add"
+              onClick={() => setCreating(true)}
+            >
               {t("inventory.suppliers.add")}
             </Button>
           ) : undefined
@@ -130,6 +140,7 @@ export function SuppliersPage(): JSX.Element {
       />
 
       <SearchField
+        data-testid="suppliers-search"
         className="w-full min-w-0 sm:max-w-md"
         label={t("inventory.suppliers.search")}
         shortcut="/"
@@ -141,6 +152,7 @@ export function SuppliersPage(): JSX.Element {
       />
 
       <Table
+        data-testid="suppliers-table"
         columns={columns}
         rows={suppliers.data?.items ?? []}
         rowKey={(row) => row.id}
@@ -151,6 +163,7 @@ export function SuppliersPage(): JSX.Element {
         empty={
           <EmptyState
             icon="clipboard"
+            data-testid="suppliers-empty"
             title="inventory.suppliers.empty"
             hint="inventory.suppliers.emptyHint"
           />
@@ -159,9 +172,14 @@ export function SuppliersPage(): JSX.Element {
 
       {selected && <Statement supplier={selected} onClose={() => setSelected(null)} />}
 
-      <SupplierFormModal open={creating} onOpenChange={setCreating} />
+      <SupplierFormModal
+        data-testid="supplier-create-modal"
+        open={creating}
+        onOpenChange={setCreating}
+      />
 
       <SupplierFormModal
+        data-testid="supplier-edit-modal"
         open={editing !== undefined}
         onOpenChange={(open) => !open && setEditing(undefined)}
         supplier={editing}
@@ -208,7 +226,11 @@ function Statement({
         <span className="flex flex-wrap items-center gap-2">
           <span>{row.itemName}</span>
           {row.batchNo && <Ltr className="text-label text-ink-muted">{row.batchNo}</Ltr>}
-          {row.isReversal && <Badge tone="neutral">{t("inventory.history.reversal")}</Badge>}
+          {row.isReversal && (
+            <Badge tone="neutral" data-testid="supplier-statement-reversal">
+              {t("inventory.history.reversal")}
+            </Badge>
+          )}
         </span>
       ),
     },
@@ -244,19 +266,26 @@ function Statement({
   ];
 
   return (
-    <section className="flex flex-col gap-3">
+    <section data-testid="supplier-statement" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h2 className="text-value font-medium text-ink">
+        <h2 data-testid="supplier-statement-title" className="text-value font-medium text-ink">
           {t("inventory.suppliers.statement.title", { supplier: supplier.name })}
         </h2>
 
-        <Button variant="ghost" size="sm" icon={<Icon name="x" />} onClick={onClose}>
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={<Icon name="x" />}
+          data-testid="supplier-statement-close"
+          onClick={onClose}
+        >
           {t("common.close")}
         </Button>
       </div>
 
       <DateRangePicker
         id="supplier-statement-range"
+        data-testid="supplier-statement-range"
         className="w-full sm:w-72"
         label={t("inventory.suppliers.statement.range")}
         value={{ from, to }}
@@ -267,6 +296,7 @@ function Statement({
       />
 
       <Table
+        data-testid="supplier-statement-table"
         columns={columns}
         rows={statement.data?.lines ?? []}
         rowKey={(row) => row.movementId}
@@ -275,13 +305,14 @@ function Statement({
         empty={
           <EmptyState
             icon="clipboard"
+            data-testid="supplier-statement-empty"
             title="inventory.suppliers.statement.empty"
             hint="inventory.suppliers.statement.emptyHint"
           />
         }
       />
 
-      <Card>
+      <Card data-testid="supplier-statement-total">
         <div className="flex items-baseline justify-between">
           <span className="text-value font-medium text-ink">
             {t("inventory.suppliers.statement.periodTotal")}

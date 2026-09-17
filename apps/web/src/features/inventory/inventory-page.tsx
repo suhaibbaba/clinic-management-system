@@ -79,7 +79,9 @@ export function InventoryPage(): JSX.Element {
       key: "category",
       header: "inventory.columns.category",
       render: (row) => (
-        <Badge tone={categoryTone(row.category)}>{categoryLabel(row.category)}</Badge>
+        <Badge tone={categoryTone(row.category)} data-testid="inventory-category">
+          {categoryLabel(row.category)}
+        </Badge>
       ),
     },
     {
@@ -97,8 +99,16 @@ export function InventoryPage(): JSX.Element {
             <Ltr className={row.isExpired ? "text-danger-600" : undefined}>
               {formatDate(row.nearestExpiry)}
             </Ltr>
-            {row.isExpired && <Badge tone="danger">{t("inventory.flags.expired")}</Badge>}
-            {row.isExpiring && <Badge tone="warning">{t("inventory.flags.expiring")}</Badge>}
+            {row.isExpired && (
+              <Badge tone="danger" data-testid="inventory-flag-expired">
+                {t("inventory.flags.expired")}
+              </Badge>
+            )}
+            {row.isExpiring && (
+              <Badge tone="warning" data-testid="inventory-flag-expiring">
+                {t("inventory.flags.expiring")}
+              </Badge>
+            )}
           </span>
         ) : (
           "—"
@@ -107,8 +117,9 @@ export function InventoryPage(): JSX.Element {
   ];
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="inventory-page" className="flex flex-col gap-5">
       <PageHeader
+        data-testid="inventory-header"
         title="inventory.title"
         subtitle="inventory.subtitle"
         primaryAction={
@@ -116,12 +127,17 @@ export function InventoryPage(): JSX.Element {
             <Button
               variant="secondary"
               icon={<Icon name="clipboard" />}
+              data-testid="inventory-shopping-list"
               onClick={() => void navigate("/inventory/shopping-list")}
             >
               {t("inventory.shoppingList.action")}
             </Button>
             {mayManage && (
-              <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
+              <Button
+                icon={<Icon name="plus" />}
+                data-testid="inventory-add-item"
+                onClick={() => setCreating(true)}
+              >
                 {t("inventory.addItem")}
               </Button>
             )}
@@ -146,6 +162,7 @@ export function InventoryPage(): JSX.Element {
 
       <div className="flex flex-wrap items-end gap-3">
         <SearchField
+          data-testid="inventory-search"
           className="w-full min-w-0 sm:max-w-xs"
           label={t("inventory.search")}
           shortcut="/"
@@ -162,6 +179,7 @@ export function InventoryPage(): JSX.Element {
           </label>
           <Select
             id="inventory-category"
+            data-testid="inventory-filter-category"
             value={category}
             placeholder={t("common.all")}
             onChange={(event) => setCategory(event.target.value)}
@@ -172,6 +190,7 @@ export function InventoryPage(): JSX.Element {
         <Button
           variant={low ? "danger" : "secondary"}
           icon={<Icon name="alert" />}
+          data-testid="inventory-filter-low"
           onClick={() => setLow((previous) => !previous)}
         >
           {t("inventory.filterLow")}
@@ -180,6 +199,7 @@ export function InventoryPage(): JSX.Element {
         <Button
           variant={expiring ? "danger" : "secondary"}
           icon={<Icon name="clock" />}
+          data-testid="inventory-filter-expiring"
           onClick={() => setExpiring((previous) => !previous)}
         >
           {t("inventory.filterExpiring")}
@@ -187,6 +207,7 @@ export function InventoryPage(): JSX.Element {
       </div>
 
       <Table
+        data-testid="inventory-table"
         columns={columns}
         rows={rows}
         rowKey={(row) => row.id}
@@ -194,12 +215,27 @@ export function InventoryPage(): JSX.Element {
         isRefreshing={isRefetching(items)}
         onRowClick={(row) => setOpenItemId(row.id)}
         rowLabel={(row) => row.nameAr}
-        empty={<EmptyState icon="clipboard" title="inventory.empty" hint="inventory.emptyHint" />}
+        empty={
+          <EmptyState
+            icon="clipboard"
+            data-testid="inventory-empty"
+            title="inventory.empty"
+            hint="inventory.emptyHint"
+          />
+        }
       />
 
-      <ItemDrawer itemId={openItemId} onClose={() => setOpenItemId(null)} />
+      <ItemDrawer
+        data-testid="inventory-item-drawer"
+        itemId={openItemId}
+        onClose={() => setOpenItemId(null)}
+      />
 
-      <ItemFormModal open={creating} onOpenChange={setCreating} />
+      <ItemFormModal
+        data-testid="inventory-item-create-modal"
+        open={creating}
+        onOpenChange={setCreating}
+      />
     </div>
   );
 }
@@ -210,18 +246,19 @@ function StockCell({ item }: { readonly item: InventoryItemRow }): JSX.Element {
   const scale = stockScale(item);
 
   return (
-    <span className="flex min-w-28 flex-col gap-1">
+    <span data-testid="inventory-stock-cell" className="flex min-w-28 flex-col gap-1">
       <span className="flex items-baseline gap-1.5">
         <Ltr className="font-medium tabular-nums text-ink">{item.quantity}</Ltr>
         <span className="text-label text-ink-muted">{unitLabel(item.unit)}</span>
         {item.isLow && (
-          <Badge tone="danger" className="ms-auto">
+          <Badge tone="danger" className="ms-auto" data-testid="inventory-flag-low">
             {t("inventory.flags.low")}
           </Badge>
         )}
       </span>
 
       <ProgressBar
+        data-testid="inventory-stock-bar"
         value={scale.value}
         total={scale.total}
         tone={stockTone(item)}

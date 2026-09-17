@@ -44,7 +44,9 @@ import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 export function ItemDrawer({
   itemId,
   onClose,
+  "data-testid": testId = "item-drawer",
 }: {
+  readonly "data-testid"?: string | undefined;
   readonly itemId: string | null;
   readonly onClose: () => void;
 }): JSX.Element | null {
@@ -76,14 +78,23 @@ export function ItemDrawer({
   return (
     <>
       <Drawer
+        data-testid={testId}
         open
         onOpenChange={(open) => !open && onClose()}
         descriptionKey="inventory.drawer.description"
         title={
           <span className="flex flex-wrap items-center gap-2">
             {row?.nameAr ?? "…"}
-            {row && <Badge tone={categoryTone(row.category)}>{categoryLabel(row.category)}</Badge>}
-            {row?.isLow && <Badge tone="danger">{t("inventory.flags.low")}</Badge>}
+            {row && (
+              <Badge tone={categoryTone(row.category)} data-testid={`${testId}-category`}>
+                {categoryLabel(row.category)}
+              </Badge>
+            )}
+            {row?.isLow && (
+              <Badge tone="danger" data-testid={`${testId}-low`}>
+                {t("inventory.flags.low")}
+              </Badge>
+            )}
           </span>
         }
         footer={
@@ -93,6 +104,7 @@ export function ItemDrawer({
               .map((type) => (
                 <Button
                   key={type}
+                  data-testid={`${testId}-movement-${type}`}
                   variant={type === MOVEMENT_TYPE.ADJUST ? "ghost" : "primary"}
                   disabled={!row}
                   onClick={() => setMovement(type)}
@@ -106,7 +118,10 @@ export function ItemDrawer({
         <div className="flex flex-col gap-5">
           {row && (
             <>
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-value">
+              <dl
+                data-testid={`${testId}-details`}
+                className="grid grid-cols-2 gap-x-4 gap-y-3 text-value"
+              >
                 <Field label={t("inventory.columns.quantity")}>
                   <span className="flex items-baseline gap-1.5">
                     <Ltr className="font-medium tabular-nums">{row.quantity}</Ltr>
@@ -139,6 +154,7 @@ export function ItemDrawer({
                     size="sm"
                     variant="secondary"
                     icon={<Icon name="edit" />}
+                    data-testid={`${testId}-edit`}
                     onClick={() => setEditing(true)}
                   >
                     {t("inventory.editItem")}
@@ -165,9 +181,21 @@ export function ItemDrawer({
         </div>
       </Drawer>
 
-      <MovementModal type={movement} item={row} onClose={() => setMovement(null)} />
+      <MovementModal
+        data-testid="movement-modal"
+        type={movement}
+        item={row}
+        onClose={() => setMovement(null)}
+      />
 
-      {row && <ItemFormModal open={editing} onOpenChange={setEditing} item={row} />}
+      {row && (
+        <ItemFormModal
+          data-testid="item-edit-modal"
+          open={editing}
+          onOpenChange={setEditing}
+          item={row}
+        />
+      )}
     </>
   );
 }
@@ -185,16 +213,19 @@ function Batches({
   const live = batches.filter((batch) => Number(batch.remaining) > 0);
 
   return (
-    <section className="flex flex-col gap-2">
+    <section data-testid="item-batches" className="flex flex-col gap-2">
       <h3 className="text-value font-medium text-ink">{t("inventory.batches.title")}</h3>
 
       {live.length === 0 ? (
-        <p className="text-label text-ink-muted">{t("inventory.batches.empty")}</p>
+        <p data-testid="item-batches-empty" className="text-label text-ink-muted">
+          {t("inventory.batches.empty")}
+        </p>
       ) : (
         <ul className="flex flex-col gap-1.5">
           {live.map((batch) => (
             <li
               key={`${batch.batchNo ?? "none"}-${batch.receivedAt}`}
+              data-testid={`item-batch-${batch.batchNo ?? "none"}`}
               className={cn(
                 "flex flex-wrap items-baseline justify-between gap-2 rounded-panel px-3 py-2",
                 batch.isExpired ? "bg-danger-50" : batch.isExpiring ? "bg-warning-50" : "bg-inset",
@@ -267,7 +298,7 @@ function History({
   };
 
   return (
-    <section className="flex flex-col gap-2">
+    <section data-testid="item-history" className="flex flex-col gap-2">
       <h3 className="text-value font-medium text-ink">{t("inventory.history.title")}</h3>
 
       <RefreshBar active={isRefreshing} />
@@ -275,22 +306,34 @@ function History({
       {isLoading && <SkeletonTimeline entries={3} />}
 
       {!isLoading && movements.length === 0 && (
-        <EmptyState icon="clipboard" title="inventory.history.empty" />
+        <EmptyState
+          icon="clipboard"
+          data-testid="item-history-empty"
+          title="inventory.history.empty"
+        />
       )}
 
       <ol className="flex flex-col gap-2">
         {movements.map((movement) => (
-          <li key={movement.id} className="rounded-panel bg-canvas p-3">
+          <li
+            key={movement.id}
+            data-testid={`item-movement-${movement.id}`}
+            className="rounded-panel bg-canvas p-3"
+          >
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <span className="flex flex-wrap items-center gap-2">
-                <Badge tone={MOVEMENT_TONES[movement.type]}>
+                <Badge tone={MOVEMENT_TONES[movement.type]} data-testid="item-movement-type">
                   {t(movementLabel(movement.type))}
                 </Badge>
                 {movement.reversesId && (
-                  <Badge tone="neutral">{t("inventory.history.reversal")}</Badge>
+                  <Badge tone="neutral" data-testid="item-movement-reversal">
+                    {t("inventory.history.reversal")}
+                  </Badge>
                 )}
                 {movement.reversedAt && (
-                  <Badge tone="neutral">{t("inventory.history.reversed")}</Badge>
+                  <Badge tone="neutral" data-testid="item-movement-reversed">
+                    {t("inventory.history.reversed")}
+                  </Badge>
                 )}
               </span>
 
@@ -336,6 +379,7 @@ function History({
             {movement.patientId && (
               <button
                 type="button"
+                data-testid="item-movement-patient"
                 onClick={() => onOpenPatient(movement.patientId as string)}
                 className="-my-3 cursor-pointer py-3 text-label font-medium text-primary-700 hover:underline lg:my-0 lg:mt-1 lg:py-0"
               >
@@ -353,6 +397,7 @@ function History({
                   className="mt-2"
                   size="sm"
                   variant="ghost"
+                  data-testid="item-movement-reverse"
                   onClick={() => setReversing(movement)}
                 >
                   {t("inventory.history.reverse")}
@@ -365,17 +410,23 @@ function History({
       {/* A reversal writes the opposite entry rather than deleting anything,
           so it asks for the sentence that will sit beside it forever. */}
       <Modal
+        data-testid="movement-reverse-modal"
         open={reversing !== null}
         onOpenChange={(open) => !open && setReversing(null)}
         title="inventory.history.reverseTitle"
         description={t("inventory.history.reverseDescription")}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setReversing(null)}>
+            <Button
+              variant="secondary"
+              data-testid="movement-reverse-cancel"
+              onClick={() => setReversing(null)}
+            >
               {t("common.cancel")}
             </Button>
             <Button
               variant="danger"
+              data-testid="movement-reverse-confirm"
               isLoading={reverse.isPending}
               disabled={reason.trim().length < 3}
               onClick={() => void submit()}
@@ -390,6 +441,7 @@ function History({
         </label>
         <Textarea
           id="reverse-reason"
+          data-testid="movement-reverse-reason"
           rows={3}
           value={reason}
           onChange={(event) => setReason(event.target.value)}

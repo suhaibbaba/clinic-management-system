@@ -34,9 +34,10 @@ export function InventoryAlertCards({
   }
 
   return (
-    <div className="grid gap-3 lg:grid-cols-2">
+    <div data-testid="inventory-alerts" className="grid gap-3 lg:grid-cols-2">
       {low.length > 0 && (
         <AlertCard
+          data-testid="inventory-alert-low"
           tone="danger"
           icon="alert"
           title={t("inventory.alerts.low", { count: low.length })}
@@ -50,6 +51,7 @@ export function InventoryAlertCards({
 
       {going.length > 0 && (
         <AlertCard
+          data-testid="inventory-alert-expiring"
           tone="warning"
           icon="clock"
           title={t("inventory.alerts.expiring", { count: going.length })}
@@ -73,7 +75,9 @@ function AlertCard({
   describe,
   onShowAll,
   onSelectItem,
+  "data-testid": testId,
 }: {
+  readonly "data-testid": string;
   readonly tone: "danger" | "warning";
   readonly icon: "alert" | "clock";
   readonly title: string;
@@ -86,7 +90,7 @@ function AlertCard({
   const { t } = useTranslation();
 
   return (
-    <Card>
+    <Card data-testid={testId}>
       <div className="flex items-start gap-3">
         <span
           className={cn(
@@ -108,6 +112,7 @@ function AlertCard({
               <li key={item.id}>
                 <button
                   type="button"
+                  data-testid={`${testId}-item-${item.id}`}
                   onClick={() => onSelectItem(item.id)}
                   className="flex min-h-(--control-h) w-full cursor-pointer items-baseline justify-between gap-2 rounded-control px-1 py-0.5 text-start transition-colors duration-150 hover:bg-row-hover lg:min-h-(--control-h-sm)"
                 >
@@ -123,6 +128,7 @@ function AlertCard({
           {items.length > 3 && (
             <button
               type="button"
+              data-testid={`${testId}-show-all`}
               onClick={onShowAll}
               className="mt-2 cursor-pointer text-label font-medium text-primary-700 hover:underline"
             >
@@ -131,7 +137,9 @@ function AlertCard({
           )}
         </div>
 
-        <Badge tone={tone}>{items.length}</Badge>
+        <Badge tone={tone} data-testid={`${testId}-count`}>
+          {items.length}
+        </Badge>
       </div>
     </Card>
   );

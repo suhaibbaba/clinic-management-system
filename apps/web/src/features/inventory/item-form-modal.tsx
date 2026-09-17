@@ -13,7 +13,9 @@ export function ItemFormModal({
   open,
   onOpenChange,
   item,
+  "data-testid": testId = "item-form-modal",
 }: {
+  readonly "data-testid"?: string | undefined;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly item?: InventoryItemRow | undefined;
@@ -75,15 +77,21 @@ export function ItemFormModal({
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       title={t(item ? "inventory.item.editTitle" : "inventory.item.newTitle")}
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
           <Button
+            data-testid={`${testId}-save`}
             disabled={nameAr.trim().length < 2}
             isLoading={create.isPending || update.isPending}
             onClick={() => void submit()}
@@ -93,10 +101,11 @@ export function ItemFormModal({
         </>
       }
     >
-      <div className="flex flex-col gap-4">
+      <div data-testid={`${testId}-form`} className="flex flex-col gap-4">
         <FormField label="inventory.item.name" htmlFor="item-name" required>
           <Input
             id="item-name"
+            data-testid="item-field-name"
             value={nameAr}
             onChange={(event) => setNameAr(event.target.value)}
           />
@@ -106,6 +115,7 @@ export function ItemFormModal({
           <FormField label="inventory.item.category" htmlFor="item-category" required>
             <Select
               id="item-category"
+              data-testid="item-field-category"
               value={category}
               onChange={(event) => setCategory(event.target.value)}
               options={categoryOptions}
@@ -119,6 +129,7 @@ export function ItemFormModal({
           >
             <Select
               id="item-unit"
+              data-testid="item-field-unit"
               value={unit}
               disabled={Boolean(item)}
               onChange={(event) => setUnit(event.target.value)}
@@ -135,6 +146,7 @@ export function ItemFormModal({
           >
             <Input
               id="item-min"
+              data-testid="item-field-min"
               dir="ltr"
               inputMode="decimal"
               placeholder="0"
@@ -146,6 +158,7 @@ export function ItemFormModal({
           <FormField label="inventory.item.supplier" htmlFor="item-supplier" optional>
             <Select
               id="item-supplier"
+              data-testid="item-field-supplier"
               value={supplierId}
               placeholder={t("inventory.movement.selectSupplier")}
               onChange={(event) => setSupplierId(event.target.value)}
@@ -160,6 +173,7 @@ export function ItemFormModal({
         <FormField label="inventory.notes" htmlFor="item-notes" optional>
           <Textarea
             id="item-notes"
+            data-testid="item-field-notes"
             rows={2}
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
@@ -167,6 +181,7 @@ export function ItemFormModal({
         </FormField>
 
         <Switch
+          data-testid="item-field-active"
           checked={isActive}
           onCheckedChange={setIsActive}
           label={t("inventory.item.active")}
