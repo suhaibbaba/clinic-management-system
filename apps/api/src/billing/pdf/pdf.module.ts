@@ -1,6 +1,6 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, Module } from "@nestjs/common";
 
-import { LetterheadService } from '@api/billing/pdf/letterhead.service';
+import { LetterheadService } from "@api/billing/pdf/letterhead.service";
 
 @Global()
 @Module({

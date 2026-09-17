@@ -4,8 +4,8 @@ import {
   Injectable,
   NotFoundException,
   type OnModuleInit,
-} from '@nestjs/common';
-import { and, eq, isNull } from 'drizzle-orm';
+} from "@nestjs/common";
+import { and, eq, isNull } from "drizzle-orm";
 import {
   ALLOWED_CLINIC_LOGO_MIME_TYPES,
   CLINIC_ICONS,
@@ -24,21 +24,21 @@ import {
   type PresignClinicLogoInput,
   type PresignClinicLogoResponse,
   type UpdateClinicInput,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { documentSettings } from '@clinic/shared';
+import { documentSettings } from "@clinic/shared";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { clinics } from '@api/database/schema';
-import { StorageService } from '@api/storage/storage.service';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { clinics } from "@api/database/schema";
+import { StorageService } from "@api/storage/storage.service";
 
 type ClinicRow = typeof clinics.$inferSelect;
 
-export const CLINICS_ENTITY = 'clinics';
+export const CLINICS_ENTITY = "clinics";
 
-const LOGO_CATEGORY = 'branding';
+const LOGO_CATEGORY = "branding";
 
 /** Derived, never stored: the icons are always under the key of the image they were rendered from. */
 const iconKey = (sourceKey: string, name: string): string => `${sourceKey}/icons/${name}`;
@@ -47,12 +47,12 @@ const iconKey = (sourceKey: string, name: string): string => `${sourceKey}/icons
 /** Whatever a home screen should read, in the clinic's own document language. */
 function appName(row: { nameAr: string; nameEn: string; settings: unknown } | undefined): string {
   if (!row) {
-    return '';
+    return "";
   }
 
-  const language: DocumentSettings['language'] = documentSettings(row.settings).language;
+  const language: DocumentSettings["language"] = documentSettings(row.settings).language;
 
-  return language === 'ar' ? row.nameAr : row.nameEn;
+  return language === "ar" ? row.nameAr : row.nameEn;
 }
 
 const iconSource = (row: { logoKey: string | null; appIconKey: string | null }): string | null =>
@@ -104,7 +104,7 @@ export class ClinicsService implements OnModuleInit {
     const [only] = rows;
 
     if (rows.length !== 1 || !only) {
-      return { name: null, logoUrl: null, iconsAt: null, appName: '' };
+      return { name: null, logoUrl: null, iconsAt: null, appName: "" };
     }
 
     return {
@@ -132,7 +132,7 @@ export class ClinicsService implements OnModuleInit {
       .limit(2);
 
     const only = rows.length === 1 ? rows[0] : undefined;
-    const language = only ? documentSettings(only.settings).language : 'ar';
+    const language = only ? documentSettings(only.settings).language : "ar";
     const name = appName(only);
     const version = only?.logoIconsAt?.toISOString();
 
@@ -140,10 +140,10 @@ export class ClinicsService implements OnModuleInit {
       name,
       short_name: name.slice(0, MAX_APP_SHORT_NAME_LENGTH).trim(),
       lang: language,
-      dir: language === 'ar' ? 'rtl' : 'ltr',
-      start_url: '/',
-      scope: '/',
-      display: 'standalone',
+      dir: language === "ar" ? "rtl" : "ltr",
+      start_url: "/",
+      scope: "/",
+      display: "standalone",
       // Installability wants a 192 and a 512; without a rendered set there are none to offer, and
       // the browser declines to install rather than being handed a broken address.
       icons:
@@ -256,7 +256,7 @@ export class ClinicsService implements OnModuleInit {
   ): Promise<Clinic> {
     const before = iconSource(existing);
     const unchanged = before === iconSource({ ...existing, ...change });
-    const row = await this.writeBranding(actor, change, unchanged ? 'keep' : 'clear');
+    const row = await this.writeBranding(actor, change, unchanged ? "keep" : "clear");
 
     const replaced = [
       change.logoKey !== undefined && existing.logoKey !== change.logoKey ? existing.logoKey : null,
@@ -284,7 +284,7 @@ export class ClinicsService implements OnModuleInit {
     const source = iconSource(row);
 
     if (!source) {
-      throw new BadRequestException('There is no logo or app icon to render icons from');
+      throw new BadRequestException("There is no logo or app icon to render icons from");
     }
 
     const icons = await Promise.all(
@@ -308,15 +308,15 @@ export class ClinicsService implements OnModuleInit {
     const source = iconSource(row);
 
     if (!source) {
-      throw new BadRequestException('There is no logo or app icon to render icons from');
+      throw new BadRequestException("There is no logo or app icon to render icons from");
     }
 
-    if ((await this.inspectIcons(source)) !== 'complete') {
+    if ((await this.inspectIcons(source)) !== "complete") {
       await this.discardIcons(source);
-      throw new BadRequestException('The generated icon set is incomplete or invalid');
+      throw new BadRequestException("The generated icon set is incomplete or invalid");
     }
 
-    return this.withLogoUrl(await this.writeBranding(actor, {}, 'verified'));
+    return this.withLogoUrl(await this.writeBranding(actor, {}, "verified"));
   }
 
   async update(actor: AuthenticatedUser, input: UpdateClinicInput): Promise<Clinic> {
@@ -341,7 +341,7 @@ export class ClinicsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
 
     return this.withLogoUrl(row);
@@ -351,13 +351,13 @@ export class ClinicsService implements OnModuleInit {
   // is deleted instead of pointed at.
   private async verifyUploadedImage(key: string, clinicId: string): Promise<void> {
     if (!this.storage.isClinicKeyOwnedBy(key, clinicId, LOGO_CATEGORY)) {
-      throw new BadRequestException('This key does not belong to this clinic');
+      throw new BadRequestException("This key does not belong to this clinic");
     }
 
     const stored = await this.storage.statObject(key);
 
     if (!stored) {
-      throw new BadRequestException('No uploaded file found for this key');
+      throw new BadRequestException("No uploaded file found for this key");
     }
 
     const isImage = ALLOWED_CLINIC_LOGO_MIME_TYPES.some((mime) => mime === stored.mime);
@@ -365,14 +365,14 @@ export class ClinicsService implements OnModuleInit {
     if (!isImage || stored.sizeBytes <= 0 || stored.sizeBytes > MAX_CLINIC_LOGO_BYTES) {
       await this.storage.deleteObject(key);
       throw new BadRequestException(
-        isImage ? 'Uploaded file size is outside the allowed range' : 'Unsupported file type',
+        isImage ? "Uploaded file size is outside the allowed range" : "Unsupported file type",
       );
     }
   }
 
   // All or nothing, and a logo may arrive with none: a browser that generated no icons still gets
   // its logo and falls back to the product mark, but half a set is a failure the admin should see.
-  private async inspectIcons(logoKey: string): Promise<'complete' | 'none' | 'partial'> {
+  private async inspectIcons(logoKey: string): Promise<"complete" | "none" | "partial"> {
     const stored = await Promise.all(
       CLINIC_ICONS.map(async (icon) => {
         const object = await this.storage.statObject(iconKey(logoKey, icon.name));
@@ -387,10 +387,10 @@ export class ClinicsService implements OnModuleInit {
     );
 
     if (stored.every(Boolean)) {
-      return 'complete';
+      return "complete";
     }
 
-    return stored.some(Boolean) ? 'partial' : 'none';
+    return stored.some(Boolean) ? "partial" : "none";
   }
 
   private async discardSource(sourceKey: string): Promise<void> {
@@ -406,14 +406,14 @@ export class ClinicsService implements OnModuleInit {
   private async writeBranding(
     actor: AuthenticatedUser,
     change: { logoKey?: string | null; appIconKey?: string | null },
-    icons: 'keep' | 'clear' | 'verified',
+    icons: "keep" | "clear" | "verified",
   ): Promise<ClinicRow> {
     const [row] = await this.db
       .update(clinics)
       .set({
         ...change,
-        ...(icons === 'clear' ? { logoIconsAt: null } : {}),
-        ...(icons === 'verified' ? { logoIconsAt: new Date() } : {}),
+        ...(icons === "clear" ? { logoIconsAt: null } : {}),
+        ...(icons === "verified" ? { logoIconsAt: new Date() } : {}),
         updatedAt: new Date(),
         updatedBy: actor.id,
       })
@@ -421,7 +421,7 @@ export class ClinicsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
 
     return row;
@@ -456,14 +456,14 @@ export class ClinicsService implements OnModuleInit {
     const row = await this.findOwn(clinicId);
 
     if (!row) {
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
 
     return row;
   }
 }
 
-function toClinic(row: ClinicRow): Omit<Clinic, 'logoUrl' | 'appIconUrl'> {
+function toClinic(row: ClinicRow): Omit<Clinic, "logoUrl" | "appIconUrl"> {
   return {
     id: row.id,
     name: { ar: row.nameAr, en: row.nameEn },

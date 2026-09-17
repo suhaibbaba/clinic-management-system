@@ -1,7 +1,7 @@
-import { LOOKUP_LIST, APPOINTMENT_STATUS, type CalendarAppointment } from '@clinic/shared';
-import { useState, type JSX, type ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { LOOKUP_LIST, APPOINTMENT_STATUS, type CalendarAppointment } from "@clinic/shared";
+import { useState, type JSX, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 import {
   Badge,
@@ -13,29 +13,29 @@ import {
   PersonName,
   Textarea,
   useToast,
-} from '@clinic/ui';
-import { useLookupLabels } from '@web/features/lookups/queries';
-import { useSession } from '@web/features/auth/session';
+} from "@clinic/ui";
+import { useLookupLabels } from "@web/features/lookups/queries";
+import { useSession } from "@web/features/auth/session";
 import {
   useAppointmentStep,
   useCancelAppointment,
   useConvertToVisit,
   type AppointmentStep,
-} from '@web/features/appointments/queries';
+} from "@web/features/appointments/queries";
 import {
   canCancelAppointment,
   canMoveAppointment,
   canOpenVisit,
-} from '@web/features/appointments/permissions';
+} from "@web/features/appointments/permissions";
 import {
   APPOINTMENT_STATUS_STYLES,
   CANCELLABLE_STATUSES,
   statusLabelKey,
-} from '@web/features/appointments/status';
-import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
-import { errorMessageKey } from '@web/lib/api-error';
-import { formatDate } from '@web/lib/format';
-import { cn } from '@clinic/ui/lib/cn';
+} from "@web/features/appointments/status";
+import { minutesOf, toTimeLabel } from "@web/features/appointments/calendar-time";
+import { errorMessageKey } from "@web/lib/api-error";
+import { formatDate } from "@web/lib/format";
+import { cn } from "@clinic/ui/lib/cn";
 
 export interface AppointmentDrawerProps {
   readonly appointment: CalendarAppointment | undefined;
@@ -61,7 +61,7 @@ export function AppointmentDrawer({
   const convert = useConvertToVisit();
 
   const [cancelOpen, setCancelOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
+  const [cancelReason, setCancelReason] = useState("");
 
   if (!appointment) {
     return null;
@@ -84,7 +84,7 @@ export function AppointmentDrawer({
   const openVisit = async (): Promise<void> => {
     try {
       const visit = await convert.mutateAsync(appointment.id);
-      toast.success('appointments.visit.created');
+      toast.success("appointments.visit.created");
       onClose();
       navigate(`/patients/${visit.patientId}`);
     } catch (error) {
@@ -95,9 +95,9 @@ export function AppointmentDrawer({
   const submitCancel = async (): Promise<void> => {
     try {
       await cancel.mutateAsync({ id: appointment.id, reason: cancelReason.trim() });
-      toast.success('appointments.cancel.done');
+      toast.success("appointments.cancel.done");
       setCancelOpen(false);
-      setCancelReason('');
+      setCancelReason("");
       onClose();
     } catch (error) {
       toast.error(errorMessageKey(error));
@@ -115,23 +115,23 @@ export function AppointmentDrawer({
         descriptionKey="appointments.title"
         footer={
           <div className="flex flex-wrap items-center gap-2">
-            {status === APPOINTMENT_STATUS.REQUESTED && may('confirm') && (
+            {status === APPOINTMENT_STATUS.REQUESTED && may("confirm") && (
               <Button
                 icon={<Icon name="check" />}
                 isLoading={busy}
-                onClick={() => void move('confirm', 'appointments.updated')}
+                onClick={() => void move("confirm", "appointments.updated")}
               >
-                {t('appointments.actions.confirm')}
+                {t("appointments.actions.confirm")}
               </Button>
             )}
 
-            {status === APPOINTMENT_STATUS.CONFIRMED && may('arrived') && (
+            {status === APPOINTMENT_STATUS.CONFIRMED && may("arrived") && (
               <Button
                 icon={<Icon name="user-plus" />}
                 isLoading={busy}
-                onClick={() => void move('arrived', 'appointments.updated')}
+                onClick={() => void move("arrived", "appointments.updated")}
               >
-                {t('appointments.actions.arrived')}
+                {t("appointments.actions.arrived")}
               </Button>
             )}
 
@@ -141,39 +141,39 @@ export function AppointmentDrawer({
                 isLoading={busy}
                 onClick={() => void openVisit()}
               >
-                {t('appointments.actions.openVisit')}
+                {t("appointments.actions.openVisit")}
               </Button>
             )}
 
-            {status === APPOINTMENT_STATUS.ARRIVED && !mayOpenVisit && may('start') && (
+            {status === APPOINTMENT_STATUS.ARRIVED && !mayOpenVisit && may("start") && (
               <Button
                 icon={<Icon name="activity" />}
                 isLoading={busy}
-                onClick={() => void move('start', 'appointments.updated')}
+                onClick={() => void move("start", "appointments.updated")}
               >
-                {t('appointments.actions.start')}
+                {t("appointments.actions.start")}
               </Button>
             )}
 
             {(status === APPOINTMENT_STATUS.IN_PROGRESS || status === APPOINTMENT_STATUS.ARRIVED) &&
-              may('complete') && (
+              may("complete") && (
                 <Button
                   variant="secondary"
                   icon={<Icon name="check" />}
                   isLoading={busy}
-                  onClick={() => void move('complete', 'appointments.updated')}
+                  onClick={() => void move("complete", "appointments.updated")}
                 >
-                  {t('appointments.actions.complete')}
+                  {t("appointments.actions.complete")}
                 </Button>
               )}
 
-            {status === APPOINTMENT_STATUS.CONFIRMED && may('noShow') && (
+            {status === APPOINTMENT_STATUS.CONFIRMED && may("noShow") && (
               <Button
                 variant="secondary"
                 isLoading={busy}
-                onClick={() => void move('noShow', 'appointments.updated')}
+                onClick={() => void move("noShow", "appointments.updated")}
               >
-                {t('appointments.actions.noShow')}
+                {t("appointments.actions.noShow")}
               </Button>
             )}
 
@@ -184,7 +184,7 @@ export function AppointmentDrawer({
                 disabled={busy}
                 onClick={() => setCancelOpen(true)}
               >
-                {t('appointments.actions.cancel')}
+                {t("appointments.actions.cancel")}
               </Button>
             )}
           </div>
@@ -195,22 +195,22 @@ export function AppointmentDrawer({
             <Badge tone={style.tone}>{t(statusLabelKey(status))}</Badge>
             <Badge>{typeLabel(appointment.type)}</Badge>
             {appointment.visitId && (
-              <Badge tone="success">{t('appointments.visit.existing')}</Badge>
+              <Badge tone="success">{t("appointments.visit.existing")}</Badge>
             )}
           </div>
 
           <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-value">
-            <Field label={t('appointments.date')}>{formatDate(appointment.startsAt)}</Field>
-            <Field label={t('appointments.time')}>
+            <Field label={t("appointments.date")}>{formatDate(appointment.startsAt)}</Field>
+            <Field label={t("appointments.time")}>
               <Ltr className="tabular-nums">
-                {toTimeLabel(minutesOf(appointment.startsAt))} –{' '}
+                {toTimeLabel(minutesOf(appointment.startsAt))} –{" "}
                 {toTimeLabel(minutesOf(appointment.endsAt))}
               </Ltr>
             </Field>
-            <Field label={t('appointments.doctor')}>
+            <Field label={t("appointments.doctor")}>
               <PersonName name={appointment.doctorName} />
             </Field>
-            <Field label={t('appointments.patient')}>
+            <Field label={t("appointments.patient")}>
               {/* A logical margin on a `dir="ltr"` element resolves against its own direction and
                   lands on the far side — the name and the number came out glued together. */}
               <span className="flex flex-wrap items-baseline gap-2">
@@ -218,21 +218,21 @@ export function AppointmentDrawer({
                 <Ltr className="tabular-nums text-ink-subtle">{appointment.patientFileNumber}</Ltr>
               </span>
             </Field>
-            <Field label={t('patients.phone')}>
+            <Field label={t("patients.phone")}>
               <Ltr className="tabular-nums">{appointment.patientPhone}</Ltr>
             </Field>
             {appointment.reason && (
-              <Field wide label={t('appointments.reason')}>
+              <Field wide label={t("appointments.reason")}>
                 {appointment.reason}
               </Field>
             )}
             {appointment.notes && (
-              <Field wide label={t('appointments.notes')}>
+              <Field wide label={t("appointments.notes")}>
                 {appointment.notes}
               </Field>
             )}
             {appointment.cancelledReason && (
-              <Field wide label={t('appointments.cancel.reason')}>
+              <Field wide label={t("appointments.cancel.reason")}>
                 {appointment.cancelledReason}
               </Field>
             )}
@@ -245,7 +245,7 @@ export function AppointmentDrawer({
               icon={<Icon name="edit" />}
               onClick={() => onEdit(appointment)}
             >
-              {t('appointments.actions.reschedule')}
+              {t("appointments.actions.reschedule")}
             </Button>
             <Button
               variant="ghost"
@@ -256,7 +256,7 @@ export function AppointmentDrawer({
                 navigate(`/patients/${appointment.patientId}`);
               }}
             >
-              {t('appointments.actions.openFile')}
+              {t("appointments.actions.openFile")}
             </Button>
           </div>
         </div>
@@ -271,7 +271,7 @@ export function AppointmentDrawer({
         footer={
           <>
             <Button variant="secondary" onClick={() => setCancelOpen(false)}>
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button
               variant="danger"
@@ -279,18 +279,18 @@ export function AppointmentDrawer({
               disabled={cancelReason.trim().length < 3}
               onClick={() => void submitCancel()}
             >
-              {t('appointments.cancel.confirm')}
+              {t("appointments.cancel.confirm")}
             </Button>
           </>
         }
       >
         <label htmlFor="cancel-reason" className="mb-1.5 block text-label font-medium text-ink">
-          {t('appointments.cancel.reason')}
+          {t("appointments.cancel.reason")}
         </label>
         <Textarea
           id="cancel-reason"
           rows={3}
-          placeholder={t('appointments.cancel.reasonPlaceholder')}
+          placeholder={t("appointments.cancel.reasonPlaceholder")}
           value={cancelReason}
           onChange={(event) => setCancelReason(event.target.value)}
         />
@@ -309,7 +309,7 @@ function Field({
   children: ReactNode;
 }): JSX.Element {
   return (
-    <div className={cn('min-w-0', wide && 'col-span-2')}>
+    <div className={cn("min-w-0", wide && "col-span-2")}>
       <dt className="text-meta text-ink-muted">{label}</dt>
       <dd className="mt-0.5 min-w-0 text-ink">{children}</dd>
     </div>

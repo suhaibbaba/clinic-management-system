@@ -1,6 +1,6 @@
-import { USER_ROLE, type UserRole } from '@clinic/shared';
+import { USER_ROLE, type UserRole } from "@clinic/shared";
 
-import type { Can } from '@web/features/auth/session';
+import type { Can } from "@web/features/auth/session";
 
 const isClinical = (role: UserRole): boolean =>
   role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR;
@@ -17,17 +17,17 @@ export const canSeeAttachments = isClinical;
 
 export const seesClinicalPatientFields = isClinical;
 
-export const canRecordProcedure = (can: Can): boolean => can('procedures.create');
+export const canRecordProcedure = (can: Can): boolean => can("procedures.create");
 
 /** Uploading an image against the file. */
-export const canManageAttachments = (can: Can): boolean => can('patient-attachments.presignUpload');
+export const canManageAttachments = (can: Can): boolean => can("patient-attachments.presignUpload");
 
 /** Soft-deleting an attachment; nothing here is ever hard-deleted. */
-export const canDeleteAttachment = (can: Can): boolean => can('attachments.remove');
+export const canDeleteAttachment = (can: Can): boolean => can("attachments.remove");
 
-export const canCreatePatient = (can: Can): boolean => can('patients.create');
+export const canCreatePatient = (can: Can): boolean => can("patients.create");
 
-export const canEditPatient = (can: Can): boolean => can('patients.update');
+export const canEditPatient = (can: Can): boolean => can("patients.update");
 
 export const PATIENT_FILE_ROLES = [
   USER_ROLE.ADMIN,

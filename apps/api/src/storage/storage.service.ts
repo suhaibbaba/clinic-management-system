@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID } from "node:crypto";
 
 import {
   DeleteObjectCommand,
@@ -6,12 +6,12 @@ import {
   HeadObjectCommand,
   PutObjectCommand,
   S3Client,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { Injectable, Logger, type OnApplicationShutdown } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Injectable, Logger, type OnApplicationShutdown } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
-import type { Env } from '@api/config/env.schema';
+import type { Env } from "@api/config/env.schema";
 
 export interface SignedUpload {
   readonly key: string;
@@ -43,14 +43,14 @@ export class StorageService implements OnApplicationShutdown {
   private readonly bucket: string;
 
   constructor(private readonly config: ConfigService<Env, true>) {
-    this.bucket = config.get('STORAGE_BUCKET', { infer: true });
+    this.bucket = config.get("STORAGE_BUCKET", { infer: true });
     this.client = new S3Client({
-      endpoint: config.get('STORAGE_ENDPOINT', { infer: true }),
-      region: config.get('STORAGE_REGION', { infer: true }),
-      forcePathStyle: config.get('STORAGE_FORCE_PATH_STYLE', { infer: true }),
+      endpoint: config.get("STORAGE_ENDPOINT", { infer: true }),
+      region: config.get("STORAGE_REGION", { infer: true }),
+      forcePathStyle: config.get("STORAGE_FORCE_PATH_STYLE", { infer: true }),
       credentials: {
-        accessKeyId: config.get('STORAGE_ACCESS_KEY_ID', { infer: true }),
-        secretAccessKey: config.get('STORAGE_SECRET_ACCESS_KEY', { infer: true }),
+        accessKeyId: config.get("STORAGE_ACCESS_KEY_ID", { infer: true }),
+        secretAccessKey: config.get("STORAGE_SECRET_ACCESS_KEY", { infer: true }),
       },
     });
   }
@@ -88,7 +88,7 @@ export class StorageService implements OnApplicationShutdown {
   }
 
   async createUploadUrl(key: string, mime: string): Promise<SignedUpload> {
-    const ttl = this.config.get('STORAGE_UPLOAD_URL_TTL_SECONDS', { infer: true });
+    const ttl = this.config.get("STORAGE_UPLOAD_URL_TTL_SECONDS", { infer: true });
 
     const uploadUrl = await getSignedUrl(
       this.client,
@@ -100,7 +100,7 @@ export class StorageService implements OnApplicationShutdown {
   }
 
   async createDownloadUrl(key: string, filename?: string): Promise<SignedDownload> {
-    const ttl = this.config.get('STORAGE_DOWNLOAD_URL_TTL_SECONDS', { infer: true });
+    const ttl = this.config.get("STORAGE_DOWNLOAD_URL_TTL_SECONDS", { infer: true });
 
     const url = await getSignedUrl(
       this.client,
@@ -118,8 +118,8 @@ export class StorageService implements OnApplicationShutdown {
   }
 
   async createBrandingUrl(key: string): Promise<SignedDownload> {
-    const ttl = this.config.get('STORAGE_BRANDING_URL_TTL_SECONDS', { infer: true });
-    const window = this.config.get('STORAGE_BRANDING_URL_WINDOW_SECONDS', { infer: true });
+    const ttl = this.config.get("STORAGE_BRANDING_URL_TTL_SECONDS", { infer: true });
+    const window = this.config.get("STORAGE_BRANDING_URL_WINDOW_SECONDS", { infer: true });
     const windowMs = window * 1000;
     const signingDate = new Date(Math.floor(Date.now() / windowMs) * windowMs);
 
@@ -162,7 +162,7 @@ export class StorageService implements OnApplicationShutdown {
       );
       const bytes = await result.Body?.transformToByteArray();
 
-      return bytes ? { bytes: Buffer.from(bytes), mime: result.ContentType ?? '' } : null;
+      return bytes ? { bytes: Buffer.from(bytes), mime: result.ContentType ?? "" } : null;
     } catch (error: unknown) {
       if (isNotFound(error)) {
         return null;
@@ -188,17 +188,17 @@ export class StorageService implements OnApplicationShutdown {
 function sanitiseFilename(filename: string): string {
   return (
     filename
-      .replace(/[\\/\r\n"]/g, '')
-      .replace(/\s+/g, '_')
-      .slice(-120) || 'file'
+      .replace(/[\\/\r\n"]/g, "")
+      .replace(/\s+/g, "_")
+      .slice(-120) || "file"
   );
 }
 
 function isNotFound(error: unknown): boolean {
-  if (typeof error !== 'object' || error === null) {
+  if (typeof error !== "object" || error === null) {
     return false;
   }
 
   const candidate = error as { name?: string; $metadata?: { httpStatusCode?: number } };
-  return candidate.name === 'NotFound' || candidate.$metadata?.httpStatusCode === 404;
+  return candidate.name === "NotFound" || candidate.$metadata?.httpStatusCode === 404;
 }

@@ -1,15 +1,15 @@
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { ToothSwatch } from '@web/features/patients/chart/tooth-swatch';
-import { useToothStates } from '@web/features/patients/chart/tooth-state';
+import { ToothSwatch } from "@web/features/patients/chart/tooth-swatch";
+import { useToothStates } from "@web/features/patients/chart/tooth-state";
 
 export function ToothLegend(): JSX.Element {
   const { t } = useTranslation();
   const states = useToothStates();
 
   return (
-    <ul className="flex flex-wrap gap-x-4 gap-y-2" aria-label={t('chart.legend')}>
+    <ul className="flex flex-wrap gap-x-4 gap-y-2" aria-label={t("chart.legend")}>
       {states.all.map(({ code, label, style }) => {
         return (
           <li key={code} className="flex items-center gap-1.5 text-chart-text text-label">

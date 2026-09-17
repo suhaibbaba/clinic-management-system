@@ -1,13 +1,13 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createPatientSchema,
   GENDERS,
   type CreatePatientInput,
   type PatientClinicalView,
-} from '@clinic/shared';
-import { useEffect, type JSX } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useEffect, type JSX } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 import {
   Button,
@@ -19,9 +19,9 @@ import {
   PhoneInput,
   Select,
   useToast,
-} from '@clinic/ui';
-import { useCreatePatient, useUpdatePatient } from '@web/features/patients/queries';
-import { errorMessageKey } from '@web/lib/api-error';
+} from "@clinic/ui";
+import { useCreatePatient, useUpdatePatient } from "@web/features/patients/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 
 interface PatientFormModalProps {
   open: boolean;
@@ -41,7 +41,7 @@ export function PatientFormModal({
   const toast = useToast();
   const editing = patient !== undefined;
   const createPatient = useCreatePatient();
-  const updatePatient = useUpdatePatient(patient?.id ?? '');
+  const updatePatient = useUpdatePatient(patient?.id ?? "");
 
   const {
     register,
@@ -68,7 +68,7 @@ export function PatientFormModal({
             emergencyContactName: patient.emergencyContactName,
             emergencyContactPhone: patient.emergencyContactPhone,
           }
-        : { fullName: '', phone: '' },
+        : { fullName: "", phone: "" },
     );
   }, [open, patient, reset]);
 
@@ -76,13 +76,13 @@ export function PatientFormModal({
     try {
       if (editing) {
         await updatePatient.mutateAsync(values);
-        toast.success('patients.updated');
+        toast.success("patients.updated");
         onOpenChange(false);
         return;
       }
 
       const created = await createPatient.mutateAsync(values);
-      toast.success('patients.created');
+      toast.success("patients.created");
       onOpenChange(false);
       onCreated?.(created.id);
     } catch (error) {
@@ -94,11 +94,11 @@ export function PatientFormModal({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title={editing ? 'patients.edit' : 'patients.create'}
+      title={editing ? "patients.edit" : "patients.create"}
       footer={
         <>
           <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
@@ -106,7 +106,7 @@ export function PatientFormModal({
             form="patient-form"
             isLoading={isSubmitting}
           >
-            {t(isSubmitting ? 'common.saving' : 'common.save')}
+            {t(isSubmitting ? "common.saving" : "common.save")}
           </Button>
         </>
       }
@@ -114,11 +114,11 @@ export function PatientFormModal({
       <form id="patient-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
         <FormField label="patients.fullName" htmlFor="patient-name" error={errors.fullName}>
           <Input
-            placeholder={t('common.placeholders.fullName')}
+            placeholder={t("common.placeholders.fullName")}
             adornment="user"
             id="patient-name"
             hasError={Boolean(errors.fullName)}
-            {...register('fullName')}
+            {...register("fullName")}
           />
         </FormField>
 
@@ -126,14 +126,14 @@ export function PatientFormModal({
           label="patients.phone"
           htmlFor="patient-phone"
           error={errors.phone}
-          errorKey={errors.phone ? 'errors.validation.invalidPhone' : undefined}
+          errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
         >
           <PhoneInput
-            placeholder={t('common.placeholders.phone')}
+            placeholder={t("common.placeholders.phone")}
             adornment="phone"
             id="patient-phone"
             hasError={Boolean(errors.phone)}
-            {...register('phone')}
+            {...register("phone")}
           />
         </FormField>
 
@@ -150,10 +150,10 @@ export function PatientFormModal({
               <DatePicker
                 id="patient-dob"
                 startView="years"
-                label={t('patients.dateOfBirth')}
-                value={field.value ?? ''}
+                label={t("patients.dateOfBirth")}
+                value={field.value ?? ""}
                 hasError={errors.dateOfBirth !== undefined}
-                onChange={(value) => field.onChange(value === '' ? null : value)}
+                onChange={(value) => field.onChange(value === "" ? null : value)}
               />
             )}
           />
@@ -168,12 +168,12 @@ export function PatientFormModal({
             render={({ field }) => (
               <Select
                 id="patient-gender"
-                placeholder={t('common.none')}
+                placeholder={t("common.none")}
                 options={GENDERS.map((gender) => ({
                   value: gender,
                   label: t(`patients.${gender}`),
                 }))}
-                value={field.value ?? ''}
+                value={field.value ?? ""}
                 onBlur={field.onBlur}
                 onChange={(event) => field.onChange(event.target.value || null)}
               />
@@ -188,9 +188,9 @@ export function PatientFormModal({
           optional
         >
           <Input
-            placeholder={t('common.placeholders.address')}
+            placeholder={t("common.placeholders.address")}
             id="patient-address"
-            {...register('address', { setValueAs: (value) => (value === '' ? null : value) })}
+            {...register("address", { setValueAs: (value) => (value === "" ? null : value) })}
           />
         </FormField>
 
@@ -201,11 +201,11 @@ export function PatientFormModal({
           optional
         >
           <Input
-            placeholder={t('common.placeholders.emergencyName')}
+            placeholder={t("common.placeholders.emergencyName")}
             adornment="user"
             id="patient-emergency-name"
-            {...register('emergencyContactName', {
-              setValueAs: (value) => (value === '' ? null : value),
+            {...register("emergencyContactName", {
+              setValueAs: (value) => (value === "" ? null : value),
             })}
           />
         </FormField>
@@ -217,13 +217,13 @@ export function PatientFormModal({
           optional
         >
           <Input
-            placeholder={t('common.placeholders.phone')}
+            placeholder={t("common.placeholders.phone")}
             adornment="phone"
             id="patient-emergency-phone"
             dir="ltr"
             inputMode="tel"
-            {...register('emergencyContactPhone', {
-              setValueAs: (value) => (value === '' ? null : value),
+            {...register("emergencyContactPhone", {
+              setValueAs: (value) => (value === "" ? null : value),
             })}
           />
         </FormField>

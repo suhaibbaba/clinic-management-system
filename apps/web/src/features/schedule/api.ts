@@ -11,20 +11,20 @@ import type {
   ScheduleConflictOptions,
   UpdateClinicClosureInput,
   UpdateDoctorTimeOffInput,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { apiRequest } from '@web/lib/api-client';
+import { apiRequest } from "@web/lib/api-client";
 
 // Query parameters, not body fields: they are what the caller decided about the 409 they were
 // shown, not part of the closure.
 const options = (choice: Partial<ScheduleConflictOptions> | undefined) => ({
-  ...(choice?.force && { force: 'true' }),
-  ...(choice?.cancelAppointments && { cancelAppointments: 'true' }),
+  ...(choice?.force && { force: "true" }),
+  ...(choice?.cancelAppointments && { cancelAppointments: "true" }),
 });
 
 export const closuresApi = {
   list: (query: Partial<ListClinicClosuresQuery> = {}): Promise<Paginated<ClinicClosure>> =>
-    apiRequest('/clinic-closures', {
+    apiRequest("/clinic-closures", {
       query: { page: query.page, limit: query.limit, from: query.from, to: query.to },
     }),
 
@@ -32,16 +32,16 @@ export const closuresApi = {
     body: CreateClinicClosureInput,
     choice?: Partial<ScheduleConflictOptions>,
   ): Promise<ClinicClosureResult> =>
-    apiRequest('/clinic-closures', { method: 'POST', body, query: options(choice) }),
+    apiRequest("/clinic-closures", { method: "POST", body, query: options(choice) }),
 
   update: (
     id: string,
     body: UpdateClinicClosureInput,
     choice?: Partial<ScheduleConflictOptions>,
   ): Promise<ClinicClosureResult> =>
-    apiRequest(`/clinic-closures/${id}`, { method: 'PATCH', body, query: options(choice) }),
+    apiRequest(`/clinic-closures/${id}`, { method: "PATCH", body, query: options(choice) }),
 
-  remove: (id: string): Promise<void> => apiRequest(`/clinic-closures/${id}`, { method: 'DELETE' }),
+  remove: (id: string): Promise<void> => apiRequest(`/clinic-closures/${id}`, { method: "DELETE" }),
 };
 
 export const timeOffApi = {
@@ -58,14 +58,14 @@ export const timeOffApi = {
     body: CreateDoctorTimeOffInput,
     choice?: Partial<ScheduleConflictOptions>,
   ): Promise<DoctorTimeOffResult> =>
-    apiRequest(`/doctors/${doctorId}/time-off`, { method: 'POST', body, query: options(choice) }),
+    apiRequest(`/doctors/${doctorId}/time-off`, { method: "POST", body, query: options(choice) }),
 
   update: (
     id: string,
     body: UpdateDoctorTimeOffInput,
     choice?: Partial<ScheduleConflictOptions>,
   ): Promise<DoctorTimeOffResult> =>
-    apiRequest(`/doctor-time-off/${id}`, { method: 'PATCH', body, query: options(choice) }),
+    apiRequest(`/doctor-time-off/${id}`, { method: "PATCH", body, query: options(choice) }),
 
-  remove: (id: string): Promise<void> => apiRequest(`/doctor-time-off/${id}`, { method: 'DELETE' }),
+  remove: (id: string): Promise<void> => apiRequest(`/doctor-time-off/${id}`, { method: "DELETE" }),
 };

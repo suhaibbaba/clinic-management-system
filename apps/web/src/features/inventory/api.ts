@@ -22,20 +22,20 @@ import type {
   SupplierSummary,
   UpdateInventoryItemInput,
   UpdateSupplierInput,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { apiDownload, apiRequest } from '@web/lib/api-client';
+import { apiDownload, apiRequest } from "@web/lib/api-client";
 
 const query = (params: Record<string, string | number | boolean | undefined>): string => {
   const search = new URLSearchParams();
 
   for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== '') {
+    if (value !== undefined && value !== "") {
       search.set(key, String(value));
     }
   }
 
-  return search.size > 0 ? `?${search.toString()}` : '';
+  return search.size > 0 ? `?${search.toString()}` : "";
 };
 
 export const inventoryApi = {
@@ -45,10 +45,10 @@ export const inventoryApi = {
   item: (id: string) => apiRequest<InventoryItemRow>(`/inventory/items/${id}`),
 
   createItem: (body: CreateInventoryItemInput) =>
-    apiRequest<InventoryItem>('/inventory/items', { method: 'POST', body }),
+    apiRequest<InventoryItem>("/inventory/items", { method: "POST", body }),
 
   updateItem: (id: string, body: UpdateInventoryItemInput) =>
-    apiRequest<InventoryItem>(`/inventory/items/${id}`, { method: 'PATCH', body }),
+    apiRequest<InventoryItem>(`/inventory/items/${id}`, { method: "PATCH", body }),
 
   /** What is left of each batch — derived on read, never stored. */
   batches: (id: string) => apiRequest<ItemBatches>(`/inventory/items/${id}/batches`),
@@ -62,22 +62,22 @@ export const inventoryApi = {
   // One call per act, not one `move(type, …)`: the three carry different fields and different
   // permissions.
   purchase: (body: PurchaseStockInput) =>
-    apiRequest<StockMovement>('/inventory/movements/purchase', { method: 'POST', body }),
+    apiRequest<StockMovement>("/inventory/movements/purchase", { method: "POST", body }),
 
   consume: (body: ConsumeStockInput) =>
-    apiRequest<StockMovement>('/inventory/movements/consume', { method: 'POST', body }),
+    apiRequest<StockMovement>("/inventory/movements/consume", { method: "POST", body }),
 
   adjust: (body: AdjustStockInput) =>
-    apiRequest<StockMovement>('/inventory/movements/adjust', { method: 'POST', body }),
+    apiRequest<StockMovement>("/inventory/movements/adjust", { method: "POST", body }),
 
   reverse: (id: string, body: ReverseMovementInput) =>
-    apiRequest<StockMovement>(`/inventory/movements/${id}/reverse`, { method: 'PATCH', body }),
+    apiRequest<StockMovement>(`/inventory/movements/${id}/reverse`, { method: "PATCH", body }),
 
-  alerts: () => apiRequest<InventoryAlerts>('/inventory/alerts'),
+  alerts: () => apiRequest<InventoryAlerts>("/inventory/alerts"),
 
-  shoppingList: () => apiRequest<ShoppingList>('/inventory/shopping-list'),
+  shoppingList: () => apiRequest<ShoppingList>("/inventory/shopping-list"),
 
-  shoppingListPdf: (): Promise<Blob> => apiDownload('/inventory/shopping-list.pdf'),
+  shoppingListPdf: (): Promise<Blob> => apiDownload("/inventory/shopping-list.pdf"),
 };
 
 export const suppliersApi = {
@@ -87,10 +87,10 @@ export const suppliersApi = {
   findOne: (id: string) => apiRequest<SupplierSummary>(`/suppliers/${id}`),
 
   create: (body: CreateSupplierInput) =>
-    apiRequest<Supplier>('/suppliers', { method: 'POST', body }),
+    apiRequest<Supplier>("/suppliers", { method: "POST", body }),
 
   update: (id: string, body: UpdateSupplierInput) =>
-    apiRequest<Supplier>(`/suppliers/${id}`, { method: 'PATCH', body }),
+    apiRequest<Supplier>(`/suppliers/${id}`, { method: "PATCH", body }),
 
   statement: (id: string, params: StatementRangeQuery) =>
     apiRequest<SupplierStatement>(`/suppliers/${id}/statement${query({ ...params })}`),

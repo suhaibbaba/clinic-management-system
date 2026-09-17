@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
   type OnModuleInit,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   MOVEMENT_TYPE,
   formatThousandths,
@@ -19,15 +19,15 @@ import {
   type ReverseMovementInput,
   type StockMovement,
   type StockMovementRow,
-} from '@clinic/shared';
-import { and, desc, eq, gte, lt, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, desc, eq, gte, lt, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toOptionalPersonName } from '@api/common/person-name';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toOptionalPersonName } from "@api/common/person-name";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
 import {
   patients,
   performedProcedures,
@@ -35,14 +35,14 @@ import {
   stockMovements,
   suppliers,
   users,
-} from '@api/database/schema';
-import { InventoryItemsService } from '@api/inventory/inventory-items.service';
-import { normalise } from '@api/inventory/stock.service';
-import { SuppliersService } from '@api/inventory/suppliers.service';
+} from "@api/database/schema";
+import { InventoryItemsService } from "@api/inventory/inventory-items.service";
+import { normalise } from "@api/inventory/stock.service";
+import { SuppliersService } from "@api/inventory/suppliers.service";
 
 type MovementRow = typeof stockMovements.$inferSelect;
 
-export const STOCK_MOVEMENTS_ENTITY = 'stock_movements';
+export const STOCK_MOVEMENTS_ENTITY = "stock_movements";
 
 // Append-only: a mistake is the opposite entry, so quantity stays a plain `sum()`. Three methods
 // rather than one `type` field — three acts, three rules, a readable audit trail.
@@ -186,7 +186,7 @@ export class StockMovementsService implements OnModuleInit {
         .limit(1);
 
       if (!procedure) {
-        throw new NotFoundException('Resource not found');
+        throw new NotFoundException("Resource not found");
       }
 
       patientId = procedure.patientId;
@@ -209,7 +209,7 @@ export class StockMovementsService implements OnModuleInit {
     await this.items.requireRow(actor.clinicId, input.itemId);
 
     if (toThousandths(input.quantity) === 0) {
-      throw new BadRequestException('An adjustment cannot be zero');
+      throw new BadRequestException("An adjustment cannot be zero");
     }
 
     return this.write(actor, {
@@ -235,16 +235,16 @@ export class StockMovementsService implements OnModuleInit {
         .from(stockMovements)
         .where(and(eq(stockMovements.id, id), eq(stockMovements.clinicId, actor.clinicId)))
         .limit(1)
-        .for('update');
+        .for("update");
 
       if (!original) {
-        throw new NotFoundException('Resource not found');
+        throw new NotFoundException("Resource not found");
       }
       if (original.reversesId !== null) {
-        throw new BadRequestException('A reversing entry cannot itself be reversed');
+        throw new BadRequestException("A reversing entry cannot itself be reversed");
       }
       if (original.reversedAt !== null) {
-        throw new BadRequestException('This movement has already been reversed');
+        throw new BadRequestException("This movement has already been reversed");
       }
 
       await tx
@@ -272,7 +272,7 @@ export class StockMovementsService implements OnModuleInit {
         .returning();
 
       if (!row) {
-        throw new Error('Failed to reverse the movement');
+        throw new Error("Failed to reverse the movement");
       }
 
       return toMovement(row);
@@ -297,13 +297,13 @@ export class StockMovementsService implements OnModuleInit {
     const thousandths = toThousandths(values.quantity);
 
     if (thousandths === 0) {
-      throw new BadRequestException('A movement cannot be zero');
+      throw new BadRequestException("A movement cannot be zero");
     }
     if (values.type === MOVEMENT_TYPE.PURCHASE && thousandths < 0) {
-      throw new BadRequestException('A purchase must be positive');
+      throw new BadRequestException("A purchase must be positive");
     }
     if (values.type === MOVEMENT_TYPE.CONSUME && thousandths > 0) {
-      throw new BadRequestException('A consumption must be negative');
+      throw new BadRequestException("A consumption must be negative");
     }
 
     const [row] = await this.db
@@ -325,7 +325,7 @@ export class StockMovementsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to record the movement');
+      throw new Error("Failed to record the movement");
     }
 
     return toMovement(row);

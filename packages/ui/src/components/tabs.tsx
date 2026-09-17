@@ -1,10 +1,10 @@
-import type { JSX, ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import type { JSX, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 
-import { PILL_BASE } from '@ui/components/badge';
-import { cn } from '@ui/lib/cn';
-import { Ltr } from '@ui/components/ltr';
+import { PILL_BASE } from "@ui/components/badge";
+import { cn } from "@ui/lib/cn";
+import { Ltr } from "@ui/components/ltr";
 
 export interface TabDefinition<TId extends string> {
   readonly id: TId;
@@ -39,9 +39,9 @@ export function Tabs<TId extends string>({
       className={cn(
         // Separate pills with a gap, not a track: the reference's `.filters` row. A track would
         // draw a grey bar across the page that the pills then have to fight.
-        'flex items-center gap-2',
-        'max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
-        'sm:inline-flex sm:flex-wrap sm:self-start sm:overflow-visible',
+        "flex items-center gap-2",
+        "max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        "sm:inline-flex sm:flex-wrap sm:self-start sm:overflow-visible",
         className,
       )}
     >
@@ -60,12 +60,12 @@ export function Tabs<TId extends string>({
             onClick={() => onChange(tab.id)}
             className={cn(
               PILL_BASE,
-              'min-h-(--control-h) shrink-0 cursor-pointer border-[1.5px] lg:h-(--control-h-sm) lg:min-h-0',
-              '[transition:background-color_250ms_ease-in-out,border-color_250ms_ease-in-out,color_250ms_ease-in-out,scale_120ms_ease-out]',
-              'active:scale-95',
+              "min-h-(--control-h) shrink-0 cursor-pointer border-[1.5px] lg:h-(--control-h-sm) lg:min-h-0",
+              "[transition:background-color_250ms_ease-in-out,border-color_250ms_ease-in-out,color_250ms_ease-in-out,scale_120ms_ease-out]",
+              "active:scale-95",
               selected
-                ? 'border-primary-600 bg-primary-600 text-ink-inverse'
-                : 'border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink',
+                ? "border-primary-600 bg-primary-600 text-ink-inverse"
+                : "border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink",
             )}
           >
             {t(tab.label)}
@@ -75,9 +75,9 @@ export function Tabs<TId extends string>({
                 className={cn(
                   // A declared lozenge, as the rail's badge is: one digit is a circle and three
                   // do not spill. Its height is drawn, never a line-height's leftovers.
-                  'pill-text inline-flex items-center h-4 min-w-4 justify-center rounded-pill px-1.5 text-micro font-medium',
-                  'tabular-nums',
-                  selected ? 'bg-primary-900/25 text-ink-inverse' : 'bg-inset text-ink-subtle',
+                  "pill-text inline-flex items-center h-4 min-w-4 justify-center rounded-pill px-1.5 text-micro font-medium",
+                  "tabular-nums",
+                  selected ? "bg-primary-900/25 text-ink-inverse" : "bg-inset text-ink-subtle",
                 )}
               >
                 {tab.count}
@@ -103,7 +103,7 @@ export function TabPanel({ id, children, className }: TabPanelProps): JSX.Elemen
       role="tabpanel"
       id={`panel-${id}`}
       aria-labelledby={`tab-${id}`}
-      className={cn('min-w-0', className)}
+      className={cn("min-w-0", className)}
     >
       {children}
     </div>

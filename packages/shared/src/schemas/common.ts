@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const uuidSchema = z.uuid();
 
@@ -39,7 +39,7 @@ export const phoneSchema = z
   .string()
   .trim()
   .max(32)
-  .regex(/^\+?[\d\s-]+$/, 'Expected digits, optionally prefixed with +')
+  .regex(/^\+?[\d\s-]+$/, "Expected digits, optionally prefixed with +")
   .refine((value) => {
     const digits = digitCount(value);
 
@@ -52,14 +52,14 @@ export const optionalPhoneSchema = phoneSchema.nullish();
 /** 24-hour clock time, zero padded so plain string comparison orders correctly. */
 export const timeOfDaySchema = z
   .string()
-  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Expected a HH:MM 24-hour time');
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Expected a HH:MM 24-hour time");
 
 /** A working interval within one day. Breaks are the gaps between ranges. */
 export const timeRangeSchema = z
   .object({ start: timeOfDaySchema, end: timeOfDaySchema })
   .refine((range) => range.start < range.end, {
-    message: 'start must be earlier than end',
-    path: ['end'],
+    message: "start must be earlier than end",
+    path: ["end"],
   });
 export type TimeRange = z.infer<typeof timeRangeSchema>;
 
@@ -80,7 +80,7 @@ export const weeklyScheduleSchema = z
   .max(7)
   .refine(
     (days) => new Set(days.map((day) => day.weekday)).size === days.length,
-    'Each weekday may appear at most once',
+    "Each weekday may appear at most once",
   );
 export type WeeklySchedule = z.infer<typeof weeklyScheduleSchema>;
 

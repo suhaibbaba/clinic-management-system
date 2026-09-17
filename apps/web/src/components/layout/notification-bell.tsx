@@ -1,17 +1,17 @@
-import { WAITING_LIST_SOURCE } from '@clinic/shared';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { WAITING_LIST_SOURCE } from "@clinic/shared";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
-import { Icon, Menu, MenuContent, MenuItem, MenuTrigger, type IconName } from '@clinic/ui';
-import { useWaitingList } from '@web/features/appointments/queries';
-import { useSession } from '@web/features/auth/session';
-import { canSeeBilling } from '@web/features/billing/permissions';
-import { usePendingBookingsCount, seesPendingBookings } from '@web/features/booking/queries';
-import { useInventoryAlerts } from '@web/features/inventory/queries';
-import { useLabOrders } from '@web/features/labs/queries';
-import { usePatients } from '@web/features/patients/queries';
-import { cn } from '@clinic/ui/lib/cn';
+import { Icon, Menu, MenuContent, MenuItem, MenuTrigger, type IconName } from "@clinic/ui";
+import { useWaitingList } from "@web/features/appointments/queries";
+import { useSession } from "@web/features/auth/session";
+import { canSeeBilling } from "@web/features/billing/permissions";
+import { usePendingBookingsCount, seesPendingBookings } from "@web/features/booking/queries";
+import { useInventoryAlerts } from "@web/features/inventory/queries";
+import { useLabOrders } from "@web/features/labs/queries";
+import { usePatients } from "@web/features/patients/queries";
+import { cn } from "@clinic/ui/lib/cn";
 
 interface Waiting {
   readonly key: string;
@@ -33,13 +33,13 @@ export function NotificationBell(): JSX.Element {
   const frontDesk = seesPendingBookings(can);
   const pending = usePendingBookingsCount(frontDesk);
 
-  const mayQueue = can('waiting-list.list');
+  const mayQueue = can("waiting-list.list");
   const urgent = useWaitingList({ limit: 1, source: WAITING_LIST_SOURCE.ONLINE }, mayQueue);
 
-  const mayLabs = can('lab-orders.list');
+  const mayLabs = can("lab-orders.list");
   const overdueLabs = useLabOrders({ limit: 1, overdue: true }, mayLabs);
 
-  const mayStock = can('inventory.alerts');
+  const mayStock = can("inventory.alerts");
   const alerts = useInventoryAlerts(mayStock);
 
   const seesMoney = user !== null && canSeeBilling(user.role);
@@ -52,29 +52,29 @@ export function NotificationBell(): JSX.Element {
   const waiting: Waiting[] = (
     [
       {
-        key: 'pendingBookings',
-        icon: 'globe',
+        key: "pendingBookings",
+        icon: "globe",
         count: frontDesk ? pending : 0,
-        to: '/appointments?status=pending',
+        to: "/appointments?status=pending",
       },
       {
-        key: 'urgentRequests',
-        icon: 'alert',
+        key: "urgentRequests",
+        icon: "alert",
         count: mayQueue ? (urgent.data?.total ?? 0) : 0,
-        to: '/appointments',
+        to: "/appointments",
       },
       {
-        key: 'overdueLabs',
-        icon: 'clipboard',
+        key: "overdueLabs",
+        icon: "clipboard",
         count: mayLabs ? (overdueLabs.data?.total ?? 0) : 0,
-        to: '/labs?tab=orders',
+        to: "/labs?tab=orders",
       },
-      { key: 'inventoryAlerts', icon: 'package', count: mayStock ? stock : 0, to: '/inventory' },
+      { key: "inventoryAlerts", icon: "package", count: mayStock ? stock : 0, to: "/inventory" },
       {
-        key: 'overdueBalances',
-        icon: 'money',
+        key: "overdueBalances",
+        icon: "money",
         count: seesMoney ? (owing.data?.total ?? 0) : 0,
-        to: '/patients?filter=balance',
+        to: "/patients?filter=balance",
       },
     ] satisfies Waiting[]
   ).filter((entry) => entry.count > 0);
@@ -85,13 +85,13 @@ export function NotificationBell(): JSX.Element {
     <Menu>
       <MenuTrigger
         aria-label={
-          total > 0 ? t('nav.notifications', { count: total }) : t('nav.notificationsEmpty')
+          total > 0 ? t("nav.notifications", { count: total }) : t("nav.notificationsEmpty")
         }
         className={cn(
-          'relative inline-flex size-(--control-h) cursor-pointer items-center justify-center lg:size-(--control-h-sm)',
-          'rounded-control border border-line bg-surface text-ink-muted',
-          'transition-colors duration-[250ms] ease-in-out hover:bg-primary-100 hover:text-primary-700',
-          'data-[state=open]:border-primary-600 data-[state=open]:text-primary-700',
+          "relative inline-flex size-(--control-h) cursor-pointer items-center justify-center lg:size-(--control-h-sm)",
+          "rounded-control border border-line bg-surface text-ink-muted",
+          "transition-colors duration-[250ms] ease-in-out hover:bg-primary-100 hover:text-primary-700",
+          "data-[state=open]:border-primary-600 data-[state=open]:text-primary-700",
         )}
       >
         <Icon name="bell" />
@@ -101,8 +101,8 @@ export function NotificationBell(): JSX.Element {
             data-part="notification-count"
             aria-hidden="true"
             className={cn(
-              'absolute -top-1 -end-1 inline-flex min-w-4 items-center justify-center rounded-pill',
-              'bg-danger-600 px-1 text-[11px] font-medium text-ink-inverse tabular-nums',
+              "absolute -top-1 -end-1 inline-flex min-w-4 items-center justify-center rounded-pill",
+              "bg-danger-600 px-1 text-[11px] font-medium text-ink-inverse tabular-nums",
             )}
           >
             {total}
@@ -112,7 +112,7 @@ export function NotificationBell(): JSX.Element {
 
       <MenuContent className="min-w-72">
         {waiting.length === 0 ? (
-          <p className="px-3 py-2 text-label text-ink-muted">{t('nav.notificationsEmpty')}</p>
+          <p className="px-3 py-2 text-label text-ink-muted">{t("nav.notificationsEmpty")}</p>
         ) : (
           waiting.map((entry) => (
             <MenuItem

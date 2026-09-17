@@ -1,4 +1,4 @@
-import { Controller, Get, Header, Param, Query } from '@nestjs/common';
+import { Controller, Get, Header, Param, Query } from "@nestjs/common";
 import {
   listOverdueQuerySchema,
   patientIdParamSchema,
@@ -9,16 +9,16 @@ import {
   type Paginated,
   type PatientBalance,
   type Statement,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { DocumentsService } from '@api/billing/documents.service';
-import { LedgerService } from '@api/billing/ledger.service';
-import { OverdueService } from '@api/billing/overdue.service';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { PatientAccessService } from '@api/patients/patient-access.service';
+import { DocumentsService } from "@api/billing/documents.service";
+import { LedgerService } from "@api/billing/ledger.service";
+import { OverdueService } from "@api/billing/overdue.service";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { PatientAccessService } from "@api/patients/patient-access.service";
 
 class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 class StatementQueryDto extends createZodDto(statementQuerySchema) {}
@@ -26,7 +26,7 @@ class ListOverdueQueryDto extends createZodDto(listOverdueQuerySchema) {}
 
 // ROLES.md: admin, doctor and receptionist read; a technician never, and a statement carries the
 // catalog name without any clinical detail.
-@Controller('patients/:patientId')
+@Controller("patients/:patientId")
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST)
 export class PatientBillingController {
   constructor(
@@ -35,7 +35,7 @@ export class PatientBillingController {
     private readonly patientAccess: PatientAccessService,
   ) {}
 
-  @Get('balance')
+  @Get("balance")
   async balance(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: PatientIdParamDto,
@@ -45,7 +45,7 @@ export class PatientBillingController {
     return this.ledger.balanceFor(actor.clinicId, params.patientId);
   }
 
-  @Get('statement')
+  @Get("statement")
   async statement(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: PatientIdParamDto,
@@ -56,9 +56,9 @@ export class PatientBillingController {
     return this.ledger.statementFor(actor.clinicId, params.patientId, query);
   }
 
-  @Get('statement.pdf')
-  @Header('Content-Type', 'application/pdf')
-  @Header('Content-Disposition', 'inline; filename="statement.pdf"')
+  @Get("statement.pdf")
+  @Header("Content-Type", "application/pdf")
+  @Header("Content-Disposition", 'inline; filename="statement.pdf"')
   statementPdf(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: PatientIdParamDto,
@@ -68,11 +68,11 @@ export class PatientBillingController {
   }
 }
 
-@Controller('billing')
+@Controller("billing")
 export class BillingController {
   constructor(private readonly overdue: OverdueService) {}
 
-  @Get('overdue')
+  @Get("overdue")
   @Roles(USER_ROLE.RECEPTIONIST)
   list(
     @CurrentUser() actor: AuthenticatedUser,

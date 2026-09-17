@@ -1,41 +1,41 @@
-import { USER_ROLE } from '@clinic/shared';
-import { lazy, Suspense, type JSX } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { USER_ROLE } from "@clinic/shared";
+import { lazy, Suspense, type JSX } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 
-import { AppLayout } from '@web/components/layout/app-layout';
-import { RequireAuth, RequireRole } from '@web/features/auth/guards';
-import { ForgotPasswordPage } from '@web/features/auth/forgot-password-page';
-import { LoginPage } from '@web/features/auth/login-page';
-import { SetPasswordPage } from '@web/features/auth/set-password-page';
-import { ClinicPage } from '@web/features/clinic/clinic-page';
-import { DashboardPage } from '@web/features/dashboard/dashboard-page';
-import { DoctorPage } from '@web/features/doctors/doctor-page';
-import { DoctorsPage } from '@web/features/doctors/doctors-page';
-import { InventorySection } from '@web/features/inventory/inventory-section';
-import { ShoppingListPage } from '@web/features/inventory/shopping-list-page';
-import { LabsSection } from '@web/features/labs/labs-section';
-import { LabPage } from '@web/features/labs/lab-page';
-import { PatientPage } from '@web/features/patients/patient-page';
-import { PATIENT_FILE_ROLES } from '@web/features/patients/permissions';
-import { PatientsPage } from '@web/features/patients/patients-page';
-import { ProfilePage } from '@web/features/profile/profile-page';
-import { UsersPage } from '@web/features/users/users-page';
-import { Skeleton } from '@clinic/ui/components/skeleton';
+import { AppLayout } from "@web/components/layout/app-layout";
+import { RequireAuth, RequireRole } from "@web/features/auth/guards";
+import { ForgotPasswordPage } from "@web/features/auth/forgot-password-page";
+import { LoginPage } from "@web/features/auth/login-page";
+import { SetPasswordPage } from "@web/features/auth/set-password-page";
+import { ClinicPage } from "@web/features/clinic/clinic-page";
+import { DashboardPage } from "@web/features/dashboard/dashboard-page";
+import { DoctorPage } from "@web/features/doctors/doctor-page";
+import { DoctorsPage } from "@web/features/doctors/doctors-page";
+import { InventorySection } from "@web/features/inventory/inventory-section";
+import { ShoppingListPage } from "@web/features/inventory/shopping-list-page";
+import { LabsSection } from "@web/features/labs/labs-section";
+import { LabPage } from "@web/features/labs/lab-page";
+import { PatientPage } from "@web/features/patients/patient-page";
+import { PATIENT_FILE_ROLES } from "@web/features/patients/permissions";
+import { PatientsPage } from "@web/features/patients/patients-page";
+import { ProfilePage } from "@web/features/profile/profile-page";
+import { UsersPage } from "@web/features/users/users-page";
+import { Skeleton } from "@clinic/ui/components/skeleton";
 
 const AppointmentsSection = lazy(async () => ({
-  default: (await import('@web/features/appointments/appointments-section')).AppointmentsSection,
+  default: (await import("@web/features/appointments/appointments-section")).AppointmentsSection,
 }));
 
 const AuditPage = lazy(async () => ({
-  default: (await import('@web/features/audit/audit-page')).AuditPage,
+  default: (await import("@web/features/audit/audit-page")).AuditPage,
 }));
 
 const PermissionsPage = lazy(async () => ({
-  default: (await import('@web/features/permissions/permissions-page')).PermissionsPage,
+  default: (await import("@web/features/permissions/permissions-page")).PermissionsPage,
 }));
 
 const LookupsPage = lazy(async () => ({
-  default: (await import('@web/features/lookups/lookups-page')).LookupsPage,
+  default: (await import("@web/features/lookups/lookups-page")).LookupsPage,
 }));
 
 const ADMIN_ONLY = [USER_ROLE.ADMIN] as const;
@@ -50,7 +50,7 @@ const INVENTORY = [USER_ROLE.ADMIN, USER_ROLE.TECHNICIAN] as const;
 const DOCTOR_PAGE = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR] as const;
 
 /** The dashboard is where a role that may not be somewhere is sent instead. */
-const HOME = '/dashboard';
+const HOME = "/dashboard";
 
 function RouteChunk({ children }: { readonly children: JSX.Element }): JSX.Element {
   return (

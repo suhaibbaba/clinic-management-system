@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
   addDays,
   clinicScheduleSettings,
@@ -12,21 +12,21 @@ import {
   type Paginated,
   type ScheduleConflictOptions,
   type UpdateClinicClosureInput,
-} from '@clinic/shared';
-import { and, asc, count, eq, gte, lte, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, asc, count, eq, gte, lte, type SQL } from "drizzle-orm";
 
-import { toClinicClosure } from '@api/appointments/availability.service';
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { clinicClosures, clinics } from '@api/database/schema';
-import { ScheduleConflictsService } from '@api/schedule/schedule-conflicts.service';
+import { toClinicClosure } from "@api/appointments/availability.service";
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { clinicClosures, clinics } from "@api/database/schema";
+import { ScheduleConflictsService } from "@api/schedule/schedule-conflicts.service";
 
 type ClosureRow = typeof clinicClosures.$inferSelect;
 
-export const CLINIC_CLOSURES_ENTITY = 'clinic_closures';
+export const CLINIC_CLOSURES_ENTITY = "clinic_closures";
 
 // Read by every role, written by admin. The rule that makes it more than a list is in
 // `ScheduleConflictsService`: a closure over a booked day is refused first.
@@ -121,7 +121,7 @@ export class ClinicClosuresService implements OnModuleInit {
       .returning();
 
     if (!created) {
-      throw new Error('Failed to create the closure');
+      throw new Error("Failed to create the closure");
     }
 
     const cancelled = options.cancelAppointments
@@ -144,7 +144,7 @@ export class ClinicClosuresService implements OnModuleInit {
     const isAnnual = input.isAnnual ?? existing.isAnnual;
 
     if (startsOn > endsOn) {
-      throw new BadRequestException('endsOn must not be before startsOn');
+      throw new BadRequestException("endsOn must not be before startsOn");
     }
 
     assertAnnualFitsOneYear(startsOn, endsOn, isAnnual);
@@ -218,6 +218,6 @@ export class ClinicClosuresService implements OnModuleInit {
 // repeating rule, and the day/month match cannot express it.
 function assertAnnualFitsOneYear(startsOn: string, endsOn: string, isAnnual: boolean): void {
   if (isAnnual && startsOn.slice(0, 4) !== endsOn.slice(0, 4)) {
-    throw new BadRequestException('An annual closure must start and end in the same year');
+    throw new BadRequestException("An annual closure must start and end in the same year");
   }
 }

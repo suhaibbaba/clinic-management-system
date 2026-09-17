@@ -1,6 +1,6 @@
-import type { JSX, ReactNode } from 'react';
+import type { JSX, ReactNode } from "react";
 
-import { cn } from '@ui/lib/cn';
+import { cn } from "@ui/lib/cn";
 
 export interface WidgetProps {
   readonly title?: ReactNode | undefined;
@@ -16,7 +16,7 @@ export function Widget({ title, action, className, children }: WidgetProps): JSX
     <div
       data-part="widget"
       className={cn(
-        'rounded-card border border-line bg-surface px-[18px] py-4 shadow-card',
+        "rounded-card border border-line bg-surface px-[18px] py-4 shadow-card",
         className,
       )}
     >

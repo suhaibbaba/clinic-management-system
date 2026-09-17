@@ -7,13 +7,13 @@ import {
   type PresignUserPhotoResponse,
   type User,
   type UserRole,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { seedClinicFixtures } from '@test/helpers/patient-fixtures';
-import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
-import { StorageService, type StoredObject } from '@api/storage/storage.service';
+import { seedClinicFixtures } from "@test/helpers/patient-fixtures";
+import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
+import { StorageService, type StoredObject } from "@api/storage/storage.service";
 
-describe('Staff photo (e2e)', () => {
+describe("Staff photo (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
   let storage: StorageService;
@@ -43,7 +43,7 @@ describe('Staff photo (e2e)', () => {
   });
 
   beforeEach(() => {
-    storedObject = { sizeBytes: 40_000, mime: 'image/jpeg' };
+    storedObject = { sizeBytes: 40_000, mime: "image/jpeg" };
     deleted = [];
   });
 
@@ -56,15 +56,15 @@ describe('Staff photo (e2e)', () => {
 
   const presign = async (payload: Record<string, unknown> = {}, id = subject()) =>
     context.app.inject({
-      method: 'POST',
+      method: "POST",
       url: `/users/${id}/photo/presign`,
       headers: asAdmin(),
-      payload: { filename: 'layla.jpg', mime: 'image/jpeg', sizeBytes: 40_000, ...payload },
+      payload: { filename: "layla.jpg", mime: "image/jpeg", sizeBytes: 40_000, ...payload },
     });
 
   const confirm = async (key: string, id = subject()) =>
     context.app.inject({
-      method: 'POST',
+      method: "POST",
       url: `/users/${id}/photo`,
       headers: asAdmin(),
       payload: { key },
@@ -77,8 +77,8 @@ describe('Staff photo (e2e)', () => {
     return key;
   };
 
-  describe('the happy path', () => {
-    it('signs an upload, records the key, and hands back a URL to draw it with', async () => {
+  describe("the happy path", () => {
+    it("signs an upload, records the key, and hands back a URL to draw it with", async () => {
       const signed = await presign();
       expect(signed.statusCode).toBe(200);
 
@@ -94,10 +94,10 @@ describe('Staff photo (e2e)', () => {
       expect((confirmed.json() as User).photoUrl).toContain(response.key);
     });
 
-    it('is on the list the admin screen reads, and never as a bare key', async () => {
+    it("is on the list the admin screen reads, and never as a bare key", async () => {
       const key = await upload();
 
-      const list = await context.app.inject({ method: 'GET', url: '/users', headers: asAdmin() });
+      const list = await context.app.inject({ method: "GET", url: "/users", headers: asAdmin() });
       const row = (list.json() as Paginated<User>).items.find((user) => user.id === subject());
 
       expect(row?.photoUrl).toContain(key);
@@ -106,10 +106,10 @@ describe('Staff photo (e2e)', () => {
     });
 
     /* The face beside a name on the doctors list and in the calendar's columns. */
-    it('reaches the doctors list, signed the same way', async () => {
+    it("reaches the doctors list, signed the same way", async () => {
       const key = await upload();
 
-      const list = await context.app.inject({ method: 'GET', url: '/doctors', headers: asAdmin() });
+      const list = await context.app.inject({ method: "GET", url: "/doctors", headers: asAdmin() });
       const row = (list.json() as Paginated<Doctor>).items.find(
         (doctor) => doctor.user.id === subject(),
       );
@@ -118,19 +118,19 @@ describe('Staff photo (e2e)', () => {
     });
 
     /* Somebody's own photo, on their own profile — every role reads this one. */
-    it('reaches the profile the owner sees', async () => {
+    it("reaches the profile the owner sees", async () => {
       const key = await upload();
 
       const profile = await context.app.inject({
-        method: 'GET',
-        url: '/me',
+        method: "GET",
+        url: "/me",
         headers: auth(tokens[USER_ROLE.DOCTOR]),
       });
 
       expect((profile.json() as AuthenticatedUserProfile).photoUrl).toContain(key);
     });
 
-    it('drops the image it replaces — a photo is one current face, not a history', async () => {
+    it("drops the image it replaces — a photo is one current face, not a history", async () => {
       const first = await upload();
 
       const second = ((await presign()).json() as PresignUserPhotoResponse).key;
@@ -140,12 +140,12 @@ describe('Staff photo (e2e)', () => {
       expect(deleted).toEqual([first]);
     });
 
-    it('goes back to initials, and takes the object with it', async () => {
+    it("goes back to initials, and takes the object with it", async () => {
       const key = await upload();
       deleted = [];
 
       const response = await context.app.inject({
-        method: 'DELETE',
+        method: "DELETE",
         url: `/users/${subject()}/photo`,
         headers: asAdmin(),
       });
@@ -156,26 +156,26 @@ describe('Staff photo (e2e)', () => {
     });
   });
 
-  describe('what it refuses', () => {
-    it('refuses a file that is not an image, before signing anything', async () => {
-      expect((await presign({ filename: 'cv.pdf', mime: 'application/pdf' })).statusCode).toBe(400);
+  describe("what it refuses", () => {
+    it("refuses a file that is not an image, before signing anything", async () => {
+      expect((await presign({ filename: "cv.pdf", mime: "application/pdf" })).statusCode).toBe(400);
     });
 
-    it('refuses one over the ceiling, before signing anything', async () => {
+    it("refuses one over the ceiling, before signing anything", async () => {
       expect((await presign({ sizeBytes: MAX_USER_PHOTO_BYTES + 1 })).statusCode).toBe(400);
     });
 
     // The claim in the request body is not the file: what is checked on confirm is what the bytes
     // turned out to be.
-    it('refuses bytes that turned out not to be an image, and deletes them', async () => {
+    it("refuses bytes that turned out not to be an image, and deletes them", async () => {
       const key = ((await presign()).json() as PresignUserPhotoResponse).key;
-      storedObject = { sizeBytes: 40_000, mime: 'application/zip' };
+      storedObject = { sizeBytes: 40_000, mime: "application/zip" };
 
       expect((await confirm(key)).statusCode).toBe(400);
       expect(deleted).toEqual([key]);
     });
 
-    it('refuses a key that was never uploaded to', async () => {
+    it("refuses a key that was never uploaded to", async () => {
       const key = ((await presign()).json() as PresignUserPhotoResponse).key;
       storedObject = null;
 
@@ -191,13 +191,13 @@ describe('Staff photo (e2e)', () => {
       expect((await confirm(key)).statusCode).toBe(400);
     });
 
-    it('refuses a key from inside a patient folder', async () => {
+    it("refuses a key from inside a patient folder", async () => {
       const response = await confirm(`clinic/${clinic.id}/patients/x/xray_panoramic/scan.png`);
 
       expect(response.statusCode).toBe(400);
     });
 
-    it('refuses a key belonging to another clinic', async () => {
+    it("refuses a key belonging to another clinic", async () => {
       const other = await context.createClinic();
 
       const response = await confirm(`clinic/${other.id}/staff/${subject()}/whatever.png`);
@@ -205,30 +205,30 @@ describe('Staff photo (e2e)', () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it('does not reach another clinic (a cross-clinic id is 404)', async () => {
+    it("does not reach another clinic (a cross-clinic id is 404)", async () => {
       const other = await context.createClinic();
       const otherAdmin = await context.login(other.phones[USER_ROLE.ADMIN]);
 
       const response = await context.app.inject({
-        method: 'POST',
+        method: "POST",
         url: `/users/${subject()}/photo/presign`,
         headers: auth(otherAdmin),
-        payload: { filename: 'x.png', mime: 'image/png', sizeBytes: 1000 },
+        payload: { filename: "x.png", mime: "image/png", sizeBytes: 1000 },
       });
 
       expect(response.statusCode).toBe(404);
     });
   });
 
-  describe('permissions (ROLES.md: staff accounts are the admin’s)', () => {
+  describe("permissions (ROLES.md: staff accounts are the admin’s)", () => {
     it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
-      'refuses %s the upload — even of their own face',
+      "refuses %s the upload — even of their own face",
       async (role) => {
         const response = await context.app.inject({
-          method: 'POST',
+          method: "POST",
           url: `/users/${clinic.userIds[role]}/photo/presign`,
           headers: auth(tokens[role]),
-          payload: { filename: 'me.png', mime: 'image/png', sizeBytes: 1000 },
+          payload: { filename: "me.png", mime: "image/png", sizeBytes: 1000 },
         });
 
         expect(response.statusCode).toBe(403);
@@ -236,10 +236,10 @@ describe('Staff photo (e2e)', () => {
     );
 
     it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
-      'refuses %s the removal',
+      "refuses %s the removal",
       async (role) => {
         const response = await context.app.inject({
-          method: 'DELETE',
+          method: "DELETE",
           url: `/users/${subject()}/photo`,
           headers: auth(tokens[role]),
         });

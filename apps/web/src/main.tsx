@@ -1,15 +1,15 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 
-import { App } from '@web/App';
-import '@web/i18n';
-import { initLanguage } from '@web/i18n/language';
-import '@web/index.css';
-import { registerServiceWorker } from '@web/lib/service-worker';
+import { App } from "@web/App";
+import "@web/i18n";
+import { initLanguage } from "@web/i18n/language";
+import "@web/index.css";
+import { registerServiceWorker } from "@web/lib/service-worker";
 
-const container = document.getElementById('root');
+const container = document.getElementById("root");
 if (!container) {
-  throw new Error('Root container #root is missing from index.html');
+  throw new Error("Root container #root is missing from index.html");
 }
 
 // Before the first render, so the app never paints Arabic-RTL for a frame and

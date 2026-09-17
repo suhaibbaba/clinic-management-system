@@ -1,5 +1,5 @@
-import { normalizeArabic } from '@clinic/shared';
-import { sql, type Column, type SQL } from 'drizzle-orm';
+import { normalizeArabic } from "@clinic/shared";
+import { sql, type Column, type SQL } from "drizzle-orm";
 
 /** A `%` or `_` typed into the search box is a character, not a wildcard. */
 const escapeLike = (value: string): string => value.replaceAll(/[\\%_]/g, (match) => `\\${match}`);
@@ -18,7 +18,7 @@ export interface ArabicNameSearch {
 export function arabicNameSearch(column: Column, search: string): ArabicNameSearch | null {
   const term = normalizeArabic(search);
 
-  if (term === '') {
+  if (term === "") {
     return null;
   }
 

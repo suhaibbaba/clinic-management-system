@@ -21,13 +21,13 @@ export function isDeciduousTooth(value: number): boolean {
 }
 
 export const TOOTH_SURFACE = {
-  MESIAL: 'M',
-  DISTAL: 'D',
-  OCCLUSAL: 'O',
-  INCISAL: 'I',
-  BUCCAL: 'B',
-  LINGUAL: 'L',
-  PALATAL: 'P',
+  MESIAL: "M",
+  DISTAL: "D",
+  OCCLUSAL: "O",
+  INCISAL: "I",
+  BUCCAL: "B",
+  LINGUAL: "L",
+  PALATAL: "P",
 } as const;
 
 export const TOOTH_SURFACES = [

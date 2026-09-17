@@ -1,8 +1,8 @@
-import { isBookingName, isBookingPhone } from '@shared/constants/booking';
-import { useState, type FormEvent, type JSX } from 'react';
+import { isBookingName, isBookingPhone } from "@shared/constants/booking";
+import { useState, type FormEvent, type JSX } from "react";
 
-import { t } from '@web/booking/i18n';
-import { Button, Field } from '@web/booking/ui';
+import { t } from "@web/booking/i18n";
+import { Button, Field } from "@web/booking/ui";
 
 export interface BookingDetails {
   readonly fullName: string;
@@ -27,8 +27,8 @@ export function DetailsStep({
 }): JSX.Element {
   const [touched, setTouched] = useState(false);
 
-  const nameError = isBookingName(details.fullName) ? undefined : t('details.nameError');
-  const phoneError = isBookingPhone(details.phone) ? undefined : t('details.phoneError');
+  const nameError = isBookingName(details.fullName) ? undefined : t("details.nameError");
+  const phoneError = isBookingPhone(details.phone) ? undefined : t("details.phoneError");
 
   const submit = (event: FormEvent): void => {
     event.preventDefault();
@@ -46,17 +46,17 @@ export function DetailsStep({
       {summary}
 
       <Field
-        label={t('details.name')}
+        label={t("details.name")}
         name="fullName"
         autoComplete="name"
-        placeholder={t('details.namePlaceholder')}
+        placeholder={t("details.namePlaceholder")}
         value={details.fullName}
         error={touched ? nameError : undefined}
         onChange={(event) => onChange({ ...details, fullName: event.target.value })}
       />
 
       <Field
-        label={t('details.phone')}
+        label={t("details.phone")}
         name="phone"
         // `tel` gives the phone's own keypad; `dir="ltr"` keeps a leading +
         // and the digits in the order they were typed.
@@ -64,25 +64,25 @@ export function DetailsStep({
         inputMode="tel"
         dir="ltr"
         autoComplete="tel"
-        placeholder={t('details.phonePlaceholder')}
-        hint={t('details.phoneHint')}
+        placeholder={t("details.phonePlaceholder")}
+        hint={t("details.phoneHint")}
         value={details.phone}
         error={touched ? phoneError : undefined}
         onChange={(event) => onChange({ ...details, phone: event.target.value })}
       />
 
       <Field
-        label={t('details.reason')}
+        label={t("details.reason")}
         name="reason"
-        placeholder={t('details.reasonPlaceholder')}
+        placeholder={t("details.reasonPlaceholder")}
         value={details.reason}
         onChange={(event) => onChange({ ...details, reason: event.target.value })}
       />
 
-      <p className="text-label text-ink-muted">{t('details.terms')}</p>
+      <p className="text-label text-ink-muted">{t("details.terms")}</p>
 
       <Button type="submit" full busy={busy}>
-        {t('details.submit')}
+        {t("details.submit")}
       </Button>
     </form>
   );

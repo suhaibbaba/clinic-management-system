@@ -1,12 +1,12 @@
-import { LEDGER_ENTRY_KIND } from '@clinic/shared';
-import { type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { LEDGER_ENTRY_KIND } from "@clinic/shared";
+import { type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Badge } from '@clinic/ui';
-import { Skeleton } from '@clinic/ui/components/skeleton';
-import { Money } from '@web/features/billing/money';
-import { usePatientBalance, useStatement } from '@web/features/billing/queries';
-import { useClinic } from '@web/features/clinic/queries';
+import { Badge } from "@clinic/ui";
+import { Skeleton } from "@clinic/ui/components/skeleton";
+import { Money } from "@web/features/billing/money";
+import { usePatientBalance, useStatement } from "@web/features/billing/queries";
+import { useClinic } from "@web/features/clinic/queries";
 
 // An aggregate over the ledgers on every read. "Due today" is what reception needs while the
 // patient is still at the desk; the older total is a different conversation.
@@ -25,13 +25,13 @@ export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.El
 
   return (
     <div className="text-end">
-      <span className="block text-value text-ink-muted">{t('patients.balance')}</span>
+      <span className="block text-value text-ink-muted">{t("patients.balance")}</span>
 
       {balance.isPending ? (
         <Skeleton className="ms-auto mt-1 h-7 w-24" />
       ) : (
         <Money
-          amount={balance.data?.balance ?? '0.00'}
+          amount={balance.data?.balance ?? "0.00"}
           currency={currency}
           signed
           className="text-kpi font-medium"
@@ -42,7 +42,7 @@ export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.El
         <span className="mt-1 block">
           <Badge tone="warning">
             <span className="inline-flex items-center gap-1">
-              {t('billing.dueToday')}:
+              {t("billing.dueToday")}:
               <Money amount={(dueToday / 100).toFixed(2)} currency={currency} />
             </span>
           </Badge>

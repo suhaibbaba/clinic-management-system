@@ -4,7 +4,7 @@ import {
   Inject,
   Injectable,
   type OnModuleInit,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   TREATMENT_PLAN_ITEM_STATUS,
   type ConvertPlanItemInput,
@@ -17,24 +17,24 @@ import {
   type TreatmentPlanItem,
   type UpdateTreatmentPlanInput,
   type UpdateTreatmentPlanItemInput,
-} from '@clinic/shared';
-import { asc, desc, eq, inArray, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { asc, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { doctors, treatmentPlanItems, treatmentPlans } from '@api/database/schema';
-import { PatientAccessService } from '@api/patients/patient-access.service';
-import { ProcedureCatalogService } from '@api/patients/procedure-catalog.service';
-import { ProceduresService } from '@api/patients/procedures.service';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { doctors, treatmentPlanItems, treatmentPlans } from "@api/database/schema";
+import { PatientAccessService } from "@api/patients/patient-access.service";
+import { ProcedureCatalogService } from "@api/patients/procedure-catalog.service";
+import { ProceduresService } from "@api/patients/procedures.service";
 
 type PlanRow = typeof treatmentPlans.$inferSelect;
 type PlanItemRow = typeof treatmentPlanItems.$inferSelect;
 
-export const TREATMENT_PLANS_ENTITY = 'treatment_plans';
-export const TREATMENT_PLAN_ITEMS_ENTITY = 'treatment_plan_items';
+export const TREATMENT_PLANS_ENTITY = "treatment_plans";
+export const TREATMENT_PLAN_ITEMS_ENTITY = "treatment_plan_items";
 
 // A plan item is a quote: it becomes real work once, through `convertItem`, and its
 // `estimated_price` is left alone so quote and charge stay separately readable.
@@ -140,7 +140,7 @@ export class TreatmentPlansService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to create treatment plan');
+      throw new Error("Failed to create treatment plan");
     }
 
     const items: TreatmentPlanItem[] = [];
@@ -176,7 +176,7 @@ export class TreatmentPlansService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to update treatment plan');
+      throw new Error("Failed to update treatment plan");
     }
 
     const items = await this.itemsFor(actor.clinicId, [row.id]);
@@ -223,7 +223,7 @@ export class TreatmentPlansService implements OnModuleInit {
     const existing = await this.requireItem(actor, itemId);
 
     if (existing.status === TREATMENT_PLAN_ITEM_STATUS.CONVERTED) {
-      throw new ConflictException('A converted plan item can no longer be edited');
+      throw new ConflictException("A converted plan item can no longer be edited");
     }
     if (input.procedureId) {
       await this.catalog.requirePriced(actor.clinicId, input.procedureId);
@@ -246,7 +246,7 @@ export class TreatmentPlansService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to update treatment plan item');
+      throw new Error("Failed to update treatment plan item");
     }
 
     return toPlanItem(row);
@@ -256,7 +256,7 @@ export class TreatmentPlansService implements OnModuleInit {
     const existing = await this.requireItem(actor, itemId);
 
     if (existing.status === TREATMENT_PLAN_ITEM_STATUS.CONVERTED) {
-      throw new ConflictException('A converted plan item can no longer be removed');
+      throw new ConflictException("A converted plan item can no longer be removed");
     }
 
     const now = new Date();
@@ -295,8 +295,8 @@ export class TreatmentPlansService implements OnModuleInit {
         doctorId: input.doctorId ?? plan.doctorId,
         procedureId: item.procedureId,
         price: input.price ?? item.estimatedPrice,
-        discount: '0.00',
-        status: 'done',
+        discount: "0.00",
+        status: "done",
         ...(input.performedAt !== undefined && { performedAt: input.performedAt }),
         chartMarks: [],
       },
@@ -339,7 +339,7 @@ export class TreatmentPlansService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to create treatment plan item');
+      throw new Error("Failed to create treatment plan item");
     }
 
     return toPlanItem(row);
@@ -387,7 +387,7 @@ export class TreatmentPlansService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new BadRequestException('Doctor not found in this clinic');
+      throw new BadRequestException("Doctor not found in this clinic");
     }
   }
 }

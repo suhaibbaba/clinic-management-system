@@ -1,12 +1,12 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { resetUserPasswordSchema, type ResetUserPasswordInput, type User } from '@clinic/shared';
-import { useEffect, type JSX } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { resetUserPasswordSchema, type ResetUserPasswordInput, type User } from "@clinic/shared";
+import { useEffect, type JSX } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
-import { Button, FormField, Icon, Modal, PasswordInput, usePersonName, useToast } from '@clinic/ui';
-import { useResetUserPassword } from '@web/features/users/queries';
-import { errorMessageKey } from '@web/lib/api-error';
+import { Button, FormField, Icon, Modal, PasswordInput, usePersonName, useToast } from "@clinic/ui";
+import { useResetUserPassword } from "@web/features/users/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 
 interface ResetPasswordModalProps {
   open: boolean;
@@ -31,12 +31,12 @@ export function ResetPasswordModal({
     formState: { errors, isSubmitting },
   } = useForm<ResetUserPasswordInput>({
     resolver: zodResolver(resetUserPasswordSchema),
-    defaultValues: { newPassword: '' },
+    defaultValues: { newPassword: "" },
   });
 
   useEffect(() => {
     if (open) {
-      reset({ newPassword: '' });
+      reset({ newPassword: "" });
     }
   }, [open, reset]);
 
@@ -47,7 +47,7 @@ export function ResetPasswordModal({
 
     try {
       await resetPassword.mutateAsync({ id: user.id, newPassword: values.newPassword });
-      toast.success('users.resetPasswordDone');
+      toast.success("users.resetPasswordDone");
       onOpenChange(false);
     } catch (error) {
       toast.error(errorMessageKey(error));
@@ -63,7 +63,7 @@ export function ResetPasswordModal({
       footer={
         <>
           <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
@@ -71,7 +71,7 @@ export function ResetPasswordModal({
             type="submit"
             isLoading={isSubmitting}
           >
-            {t('common.save')}
+            {t("common.save")}
           </Button>
         </>
       }
@@ -81,14 +81,14 @@ export function ResetPasswordModal({
           label="users.newPassword"
           htmlFor="reset-password"
           error={errors.newPassword}
-          errorKey={errors.newPassword ? 'errors.validation.passwordMin' : undefined}
+          errorKey={errors.newPassword ? "errors.validation.passwordMin" : undefined}
         >
           <PasswordInput
-            placeholder={t('common.placeholders.password')}
+            placeholder={t("common.placeholders.password")}
             id="reset-password"
             autoComplete="new-password"
             hasError={errors.newPassword !== undefined}
-            {...register('newPassword')}
+            {...register("newPassword")}
           />
         </FormField>
       </form>

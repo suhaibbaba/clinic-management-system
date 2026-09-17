@@ -1,11 +1,11 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-export const healthStatusSchema = z.enum(['ok', 'degraded']);
+export const healthStatusSchema = z.enum(["ok", "degraded"]);
 export type HealthStatus = z.infer<typeof healthStatusSchema>;
 
 export const healthResponseSchema = z.object({
   status: healthStatusSchema,
-  database: z.enum(['up', 'down']),
+  database: z.enum(["up", "down"]),
   version: z.string().min(1),
   /** ISO-8601, Gregorian — CLAUDE.md: Gregorian dates everywhere. */
   timestamp: z.iso.datetime(),

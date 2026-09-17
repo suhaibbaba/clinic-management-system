@@ -1,8 +1,8 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq, isNull, type SQL } from 'drizzle-orm';
-import type { PgColumn, PgTable } from 'drizzle-orm/pg-core';
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { and, eq, isNull, type SQL } from "drizzle-orm";
+import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 
-import { DATABASE, type Database } from '@api/database/database.module';
+import { DATABASE, type Database } from "@api/database/database.module";
 
 export type ClinicScopedTable = PgTable & {
   id: PgColumn;
@@ -22,7 +22,7 @@ export class ClinicScopeService {
 
     /* istanbul ignore next -- `and` only returns undefined with no arguments. */
     if (!scoped) {
-      throw new Error('Failed to build a clinic-scoped predicate');
+      throw new Error("Failed to build a clinic-scoped predicate");
     }
 
     return scoped;
@@ -37,7 +37,7 @@ export class ClinicScopeService {
     const scoped = and(eq(table.clinicId, clinicId), ...conditions);
 
     if (!scoped) {
-      throw new Error('Failed to build a clinic-scoped predicate');
+      throw new Error("Failed to build a clinic-scoped predicate");
     }
 
     return scoped;
@@ -57,7 +57,7 @@ export class ClinicScopeService {
     const row = rows[0];
 
     if (!row) {
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
 
     return row;

@@ -1,24 +1,24 @@
-import { BadRequestException, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import type {
   CreatePrescriptionInput,
   ListPrescriptionsQuery,
   Paginated,
   Prescription,
   UpdatePrescriptionInput,
-} from '@clinic/shared';
-import { desc, eq, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { desc, eq, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { doctors, prescriptions } from '@api/database/schema';
-import { PatientAccessService } from '@api/patients/patient-access.service';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { doctors, prescriptions } from "@api/database/schema";
+import { PatientAccessService } from "@api/patients/patient-access.service";
 
 type PrescriptionRow = typeof prescriptions.$inferSelect;
 
-export const PRESCRIPTIONS_ENTITY = 'prescriptions';
+export const PRESCRIPTIONS_ENTITY = "prescriptions";
 
 /** Admin and doctor only; never reaches a receptionist (ROLES.md field rules). */
 @Injectable()
@@ -101,7 +101,7 @@ export class PrescriptionsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to create prescription');
+      throw new Error("Failed to create prescription");
     }
 
     return toPrescription(row);
@@ -132,7 +132,7 @@ export class PrescriptionsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to update prescription');
+      throw new Error("Failed to update prescription");
     }
 
     return toPrescription(row);
@@ -155,7 +155,7 @@ export class PrescriptionsService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new BadRequestException('Doctor not found in this clinic');
+      throw new BadRequestException("Doctor not found in this clinic");
     }
   }
 }

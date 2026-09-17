@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
   LAB_ORDER_BILLABLE_STATUSES,
   LAB_ORDER_AWAITING_STATUSES,
@@ -8,20 +8,20 @@ import {
   type ListLabsQuery,
   type Paginated,
   type UpdateLabInput,
-} from '@clinic/shared';
-import { and, asc, eq, isNull, ne, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, asc, eq, isNull, ne, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { arabicNameSearch } from '@api/common/database/arabic-search';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { labs } from '@api/database/schema';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { arabicNameSearch } from "@api/common/database/arabic-search";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { labs } from "@api/database/schema";
 
 type LabRow = typeof labs.$inferSelect;
 
-export const LABS_ENTITY = 'labs';
+export const LABS_ENTITY = "labs";
 
 // Never hard-deleted: its orders and payments are financial history. `is_active` keeps a lab out of
 // the pickers with its record and balance intact.
@@ -82,7 +82,7 @@ export class LabsService implements OnModuleInit {
     return toPaginated(
       rows.map((row) => ({
         ...toLab(row),
-        ...(summaries.get(row.id) ?? { balance: '0.00', openOrders: 0 }),
+        ...(summaries.get(row.id) ?? { balance: "0.00", openOrders: 0 }),
       })),
       totals?.value ?? 0,
       query,
@@ -93,7 +93,7 @@ export class LabsService implements OnModuleInit {
     const row = await this.requireRow(actor.clinicId, id);
     const summary = await this.summarise(actor.clinicId, [id]);
 
-    return { ...toLab(row), ...(summary.get(id) ?? { balance: '0.00', openOrders: 0 }) };
+    return { ...toLab(row), ...(summary.get(id) ?? { balance: "0.00", openOrders: 0 }) };
   }
 
   async create(actor: AuthenticatedUser, input: CreateLabInput): Promise<Lab> {
@@ -115,7 +115,7 @@ export class LabsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to create the lab');
+      throw new Error("Failed to create the lab");
     }
 
     return toLab(row);
@@ -144,7 +144,7 @@ export class LabsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to update the lab');
+      throw new Error("Failed to update the lab");
     }
 
     return toLab(row);
@@ -238,7 +238,7 @@ export class LabsService implements OnModuleInit {
       .limit(1);
 
     if (clash) {
-      throw new ConflictException('A lab with this name already exists');
+      throw new ConflictException("A lab with this name already exists");
     }
   }
 }
@@ -260,7 +260,7 @@ export function toLab(row: LabRow): Lab {
 
 /** Postgres returns `numeric` unpadded; money is always two decimals here. */
 function normalise(value: string): string {
-  const [whole = '0', fraction = ''] = value.split('.');
+  const [whole = "0", fraction = ""] = value.split(".");
 
-  return `${whole}.${fraction.padEnd(2, '0').slice(0, 2)}`;
+  return `${whole}.${fraction.padEnd(2, "0").slice(0, 2)}`;
 }

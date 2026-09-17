@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   createProcedureCatalogItemSchema,
@@ -18,25 +18,25 @@ import {
   updateProcedureCatalogItemSchema,
   USER_ROLE,
   type Paginated,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import {
   PROCEDURE_CATALOG_ENTITY,
   ProcedureCatalogService,
   type CatalogView,
-} from '@api/patients/procedure-catalog.service';
+} from "@api/patients/procedure-catalog.service";
 
 class CreateCatalogItemDto extends createZodDto(createProcedureCatalogItemSchema) {}
 class UpdateCatalogItemDto extends createZodDto(updateProcedureCatalogItemSchema) {}
 class ListCatalogQueryDto extends createZodDto(listProcedureCatalogQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-@Controller('procedure-catalog')
+@Controller("procedure-catalog")
 export class ProcedureCatalogController {
   constructor(private readonly catalog: ProcedureCatalogService) {}
 
@@ -48,7 +48,7 @@ export class ProcedureCatalogController {
     return this.catalog.list(actor, query);
   }
 
-  @Get(':id')
+  @Get(":id")
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -66,7 +66,7 @@ export class ProcedureCatalogController {
     return this.catalog.create(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Roles(USER_ROLE.ADMIN)
   @Audit(PROCEDURE_CATALOG_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -77,7 +77,7 @@ export class ProcedureCatalogController {
     return this.catalog.update(actor, params.id, body);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(PROCEDURE_CATALOG_ENTITY, AUDIT_ACTION.DELETE)

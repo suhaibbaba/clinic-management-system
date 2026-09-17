@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
   type OnModuleInit,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   LOOKUP_LIST,
   type CreatePaymentInput,
@@ -12,22 +12,22 @@ import {
   type Paginated,
   type Payment,
   type ReversePaymentInput,
-} from '@clinic/shared';
-import { desc, eq, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { desc, eq, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { negate } from '@api/billing/charges.service';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database, type DatabaseExecutor } from '@api/database/database.module';
-import { clinicCounters, payments } from '@api/database/schema';
-import { PatientAccessService } from '@api/patients/patient-access.service';
-import { LookupsService } from '@api/lookups/lookups.service';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { negate } from "@api/billing/charges.service";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
+import { clinicCounters, payments } from "@api/database/schema";
+import { PatientAccessService } from "@api/patients/patient-access.service";
+import { LookupsService } from "@api/lookups/lookups.service";
 
 type PaymentRow = typeof payments.$inferSelect;
 
-export const PAYMENTS_ENTITY = 'payments';
+export const PAYMENTS_ENTITY = "payments";
 
 // Append-only: never updated, never deleted. A mistake is an admin writing the opposite entry,
 // which leaves the receipt and its cancellation on the statement.
@@ -110,7 +110,7 @@ export class PaymentsService implements OnModuleInit {
         .returning();
 
       if (!row) {
-        throw new Error('Failed to record payment');
+        throw new Error("Failed to record payment");
       }
 
       return toPayment(row);
@@ -130,16 +130,16 @@ export class PaymentsService implements OnModuleInit {
         .from(payments)
         .where(this.scope.where(payments, actor.clinicId, eq(payments.id, id)))
         .limit(1)
-        .for('update');
+        .for("update");
 
       if (!original) {
-        throw new NotFoundException('Resource not found');
+        throw new NotFoundException("Resource not found");
       }
       if (original.reversesId !== null) {
-        throw new BadRequestException('A reversing entry cannot itself be reversed');
+        throw new BadRequestException("A reversing entry cannot itself be reversed");
       }
       if (original.reversedAt !== null) {
-        throw new BadRequestException('This payment has already been reversed');
+        throw new BadRequestException("This payment has already been reversed");
       }
 
       await tx
@@ -164,7 +164,7 @@ export class PaymentsService implements OnModuleInit {
         .returning();
 
       if (!row) {
-        throw new Error('Failed to reverse payment');
+        throw new Error("Failed to reverse payment");
       }
 
       return toPayment(row);
@@ -188,7 +188,7 @@ export async function nextReceiptNumber(tx: DatabaseExecutor, clinicId: string):
     .returning({ next: clinicCounters.nextReceiptNumber });
 
   if (!row) {
-    throw new Error('Failed to allocate a receipt number');
+    throw new Error("Failed to allocate a receipt number");
   }
 
   return row.next - 1;

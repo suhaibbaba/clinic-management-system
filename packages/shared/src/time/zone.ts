@@ -3,7 +3,7 @@
 
 // A fallback, not an assumption: every clinic carries its own `settings.timezone` and this is only
 // what a row with none reads as.
-export const DEFAULT_TIME_ZONE = 'Asia/Hebron';
+export const DEFAULT_TIME_ZONE = "Asia/Hebron";
 
 const partsFormatter = new Map<string, Intl.DateTimeFormat>();
 
@@ -11,15 +11,15 @@ function formatter(timeZone: string): Intl.DateTimeFormat {
   let cached = partsFormatter.get(timeZone);
 
   if (!cached) {
-    cached = new Intl.DateTimeFormat('en-US', {
+    cached = new Intl.DateTimeFormat("en-US", {
       timeZone,
       hour12: false,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     });
     partsFormatter.set(timeZone, cached);
   }
@@ -39,16 +39,16 @@ interface LocalParts {
 function localParts(instant: Date, timeZone: string): LocalParts {
   const parts = formatter(timeZone).formatToParts(instant);
   const read = (type: Intl.DateTimeFormatPartTypes): number =>
-    Number(parts.find((part) => part.type === type)?.value ?? '0');
+    Number(parts.find((part) => part.type === type)?.value ?? "0");
 
   return {
-    year: read('year'),
-    month: read('month'),
-    day: read('day'),
+    year: read("year"),
+    month: read("month"),
+    day: read("day"),
     // `hour12: false` still renders midnight as 24 in some ICU versions.
-    hour: read('hour') % 24,
-    minute: read('minute'),
-    second: read('second'),
+    hour: read("hour") % 24,
+    minute: read("minute"),
+    second: read("second"),
   };
 }
 
@@ -67,7 +67,7 @@ function offsetMinutes(instant: Date, timeZone: string): number {
 }
 
 export function instantFromLocal(isoDate: string, minuteOfDay: number, timeZone: string): Date {
-  const [year = 0, month = 1, day = 1] = isoDate.split('-').map(Number);
+  const [year = 0, month = 1, day = 1] = isoDate.split("-").map(Number);
   const naive = Date.UTC(year, month - 1, day) + minuteOfDay * 60_000;
 
   const firstGuess = new Date(naive - offsetMinutes(new Date(naive), timeZone) * 60_000);
@@ -85,7 +85,7 @@ export function minutesFromLocalMidnight(instant: Date, isoDate: string, timeZon
 export function localDate(instant: Date, timeZone: string): string {
   const { year, month, day } = localParts(instant, timeZone);
 
-  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 /** 0 = Sunday … 6 = Saturday, matching `DaySchedule.weekday`. */
@@ -97,7 +97,7 @@ export function localWeekday(isoDate: string, timeZone: string): number {
 }
 
 export function addDays(isoDate: string, days: number): string {
-  const [year = 0, month = 1, day = 1] = isoDate.split('-').map(Number);
+  const [year = 0, month = 1, day = 1] = isoDate.split("-").map(Number);
   const shifted = new Date(Date.UTC(year, month - 1, day + days));
 
   return shifted.toISOString().slice(0, 10);

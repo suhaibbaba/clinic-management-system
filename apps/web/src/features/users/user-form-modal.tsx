@@ -1,4 +1,4 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createUserSchema,
   updateUserSchema,
@@ -6,10 +6,10 @@ import {
   type CreateUserInput,
   type UpdateUserInput,
   type User,
-} from '@clinic/shared';
-import { useEffect, type JSX } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useEffect, type JSX } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 import {
   Button,
@@ -20,11 +20,11 @@ import {
   PhoneInput,
   Select,
   useToast,
-} from '@clinic/ui';
-import { useCreateUser, useUpdateUser } from '@web/features/users/queries';
-import { UserPhotoField } from '@web/features/users/user-photo-field';
-import { errorMessageKey } from '@web/lib/api-error';
-import { Modal } from '@clinic/ui/components/modal';
+} from "@clinic/ui";
+import { useCreateUser, useUpdateUser } from "@web/features/users/queries";
+import { UserPhotoField } from "@web/features/users/user-photo-field";
+import { errorMessageKey } from "@web/lib/api-error";
+import { Modal } from "@clinic/ui/components/modal";
 
 interface UserFormModalProps {
   open: boolean;
@@ -68,13 +68,13 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
             isActive: user.isActive,
           }
         : // `role` is deliberately absent so the select starts on its placeholder.
-          { name: { ar: '', en: '' }, phone: '', email: null, isActive: true, password: '' },
+          { name: { ar: "", en: "" }, phone: "", email: null, isActive: true, password: "" },
     );
   }, [open, user, reset]);
 
   const roleOptions = USER_ROLES.map((role) => ({ value: role, label: t(`roles.${role}`) }));
 
-  const email = watch('email')?.trim() ?? '';
+  const email = watch("email")?.trim() ?? "";
 
   const onSubmit = handleSubmit(async (values) => {
     try {
@@ -86,10 +86,10 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
           role: values.role,
         };
         await updateUser.mutateAsync({ id: user.id, body });
-        toast.success('users.updated');
+        toast.success("users.updated");
       } else {
         await createUser.mutateAsync(values as CreateUserInput);
-        toast.success('users.created');
+        toast.success("users.created");
       }
 
       onOpenChange(false);
@@ -102,11 +102,11 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title={isEdit ? 'users.edit' : 'users.create'}
+      title={isEdit ? "users.edit" : "users.create"}
       footer={
         <>
           <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
@@ -114,7 +114,7 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
             type="submit"
             isLoading={isSubmitting}
           >
-            {t('common.save')}
+            {t("common.save")}
           </Button>
         </>
       }
@@ -129,22 +129,22 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label="users.nameAr" htmlFor="user-name-ar" error={errors.name?.ar}>
             <Input
-              placeholder={t('common.placeholders.fullNameAr')}
+              placeholder={t("common.placeholders.fullNameAr")}
               adornment="user"
               id="user-name-ar"
               hasError={errors.name?.ar !== undefined}
-              {...register('name.ar')}
+              {...register("name.ar")}
             />
           </FormField>
 
           <FormField label="users.nameEn" htmlFor="user-name-en" error={errors.name?.en}>
             <Input
-              placeholder={t('common.placeholders.fullNameEn')}
+              placeholder={t("common.placeholders.fullNameEn")}
               adornment="user"
               id="user-name-en"
               dir="ltr"
               hasError={errors.name?.en !== undefined}
-              {...register('name.en')}
+              {...register("name.en")}
             />
           </FormField>
         </div>
@@ -153,14 +153,14 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
           label="users.phone"
           htmlFor="user-phone"
           error={errors.phone}
-          errorKey={errors.phone ? 'errors.validation.invalidPhone' : undefined}
+          errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
         >
           <PhoneInput
-            placeholder={t('common.placeholders.phone')}
+            placeholder={t("common.placeholders.phone")}
             adornment="phone"
             id="user-phone"
             hasError={errors.phone !== undefined}
-            {...register('phone')}
+            {...register("phone")}
           />
         </FormField>
 
@@ -169,17 +169,17 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
           htmlFor="user-email"
           optional
           error={errors.email}
-          errorKey={errors.email ? 'errors.validation.invalidEmail' : undefined}
+          errorKey={errors.email ? "errors.validation.invalidEmail" : undefined}
         >
           <Input
-            placeholder={t('common.placeholders.email')}
+            placeholder={t("common.placeholders.email")}
             adornment="mail"
             id="user-email"
             type="email"
             hasError={errors.email !== undefined}
             // An untouched optional field must clear the value, not fail
             // `z.email()` — `setValueAs` runs before the resolver.
-            {...register('email', { setValueAs: (value: string) => (value === '' ? null : value) })}
+            {...register("email", { setValueAs: (value: string) => (value === "" ? null : value) })}
           />
         </FormField>
 
@@ -191,9 +191,9 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
               <Select
                 id="user-role"
                 options={roleOptions}
-                placeholder={t('users.selectRole')}
+                placeholder={t("users.selectRole")}
                 hasError={errors.role !== undefined}
-                value={field.value ?? ''}
+                value={field.value ?? ""}
                 onBlur={field.onBlur}
                 onChange={(event) => field.onChange(event.target.value)}
               />
@@ -207,7 +207,7 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
         {!isEdit &&
           (email ? (
             <p className="rounded-panel border border-primary-200 bg-primary-50 px-3.5 py-2.5 text-label text-primary-900">
-              {t('users.willBeInvited', { email })}
+              {t("users.willBeInvited", { email })}
             </p>
           ) : (
             <FormField
@@ -215,14 +215,14 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
               htmlFor="user-password"
               hint="users.passwordNoEmail"
               error={errors.password}
-              errorKey={errors.password ? 'errors.validation.passwordMin' : undefined}
+              errorKey={errors.password ? "errors.validation.passwordMin" : undefined}
             >
               <PasswordInput
-                placeholder={t('common.placeholders.password')}
+                placeholder={t("common.placeholders.password")}
                 id="user-password"
                 autoComplete="new-password"
                 hasError={errors.password !== undefined}
-                {...register('password')}
+                {...register("password")}
               />
             </FormField>
           ))}

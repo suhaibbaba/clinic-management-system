@@ -1,9 +1,9 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { USER_ROLES } from '@shared/enums';
-import { passwordSchema } from '@shared/schemas/auth';
-import { paginationQuerySchema, phoneSchema } from '@shared/schemas/common';
-import { personNameInputSchema, personNameSchema } from '@shared/schemas/person-name';
+import { USER_ROLES } from "@shared/enums";
+import { passwordSchema } from "@shared/schemas/auth";
+import { paginationQuerySchema, phoneSchema } from "@shared/schemas/common";
+import { personNameInputSchema, personNameSchema } from "@shared/schemas/person-name";
 
 export const userSchema = z.object({
   id: z.uuid(),
@@ -40,15 +40,15 @@ export const createUserSchema = z
     isActive: z.boolean().default(true),
   })
   .refine((input) => Boolean(input.email) || Boolean(input.password), {
-    message: 'Give an email address to invite by, or a password to set directly',
-    path: ['email'],
+    message: "Give an email address to invite by, or a password to set directly",
+    path: ["email"],
   });
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 
 export const updateUserSchema = z
   .object(userWritableFields)
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
 /** What somebody may change about themselves: how they are named and how they are reached. Their
@@ -60,7 +60,7 @@ export const updateOwnProfileSchema = z
     email: z.email().max(255).nullish(),
   })
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateOwnProfileInput = z.infer<typeof updateOwnProfileSchema>;
 
 export const resetUserPasswordSchema = z.object({
@@ -77,7 +77,7 @@ export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
 
 export const MAX_USER_PHOTO_BYTES = 2 * 1024 * 1024;
 
-export const ALLOWED_USER_PHOTO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
+export const ALLOWED_USER_PHOTO_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
 
 export const userPhotoMimeSchema = z.enum(ALLOWED_USER_PHOTO_MIME_TYPES);
 export type UserPhotoMime = z.infer<typeof userPhotoMimeSchema>;

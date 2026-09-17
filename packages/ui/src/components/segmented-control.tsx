@@ -1,8 +1,8 @@
-import type { JSX } from 'react';
+import type { JSX } from "react";
 
-import { PILL_BASE } from '@ui/components/badge';
-import { cn } from '@ui/lib/cn';
-import { Ltr } from '@ui/components/ltr';
+import { PILL_BASE } from "@ui/components/badge";
+import { cn } from "@ui/lib/cn";
+import { Ltr } from "@ui/components/ltr";
 
 export interface SegmentOption<TValue extends string> {
   readonly value: TValue;
@@ -30,7 +30,7 @@ export function SegmentedControl<TValue extends string>({
       data-part="segmented-control"
       role="radiogroup"
       aria-label={label}
-      className={cn('inline-flex max-w-full flex-wrap items-center gap-2', className)}
+      className={cn("inline-flex max-w-full flex-wrap items-center gap-2", className)}
     >
       {options.map((option) => {
         const isSelected = option.value === value;
@@ -45,12 +45,12 @@ export function SegmentedControl<TValue extends string>({
             onClick={() => onChange(option.value)}
             className={cn(
               PILL_BASE,
-              'min-h-(--control-h) min-w-(--control-h) cursor-pointer border-[1.5px]',
-              'lg:h-(--control-h-sm) lg:min-h-0 lg:min-w-(--control-h-sm)',
-              'transition-[background-color,border-color,color] duration-[250ms] ease-in-out',
+              "min-h-(--control-h) min-w-(--control-h) cursor-pointer border-[1.5px]",
+              "lg:h-(--control-h-sm) lg:min-h-0 lg:min-w-(--control-h-sm)",
+              "transition-[background-color,border-color,color] duration-[250ms] ease-in-out",
               isSelected
-                ? 'border-primary-600 bg-primary-600 text-ink-inverse'
-                : 'border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink',
+                ? "border-primary-600 bg-primary-600 text-ink-inverse"
+                : "border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink",
             )}
           >
             {option.label}
@@ -58,11 +58,11 @@ export function SegmentedControl<TValue extends string>({
               <Ltr
                 data-part="segment-count"
                 className={cn(
-                  'pill-text inline-flex items-center h-4 min-w-4 justify-center',
-                  'rounded-pill px-[7px] text-micro font-medium tabular-nums',
+                  "pill-text inline-flex items-center h-4 min-w-4 justify-center",
+                  "rounded-pill px-[7px] text-micro font-medium tabular-nums",
                   isSelected
-                    ? 'bg-primary-900/25 text-ink-inverse'
-                    : 'bg-danger-100 text-danger-600',
+                    ? "bg-primary-900/25 text-ink-inverse"
+                    : "bg-danger-100 text-danger-600",
                 )}
               >
                 {option.count}

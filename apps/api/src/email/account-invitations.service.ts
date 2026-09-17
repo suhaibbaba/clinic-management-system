@@ -1,20 +1,20 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { and, eq, gt, isNull, or, sql } from 'drizzle-orm';
-import { Inject } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { and, eq, gt, isNull, or, sql } from "drizzle-orm";
+import { Inject } from "@nestjs/common";
 
-import { DATABASE, type Database } from '@api/database/database.module';
-import { clinics, users } from '@api/database/schema';
+import { DATABASE, type Database } from "@api/database/database.module";
+import { clinics, users } from "@api/database/schema";
 import {
   AccountEmailService,
   hashToken,
   type AccountEmailPurpose,
-} from '@api/email/account-email.service';
-import { PasswordService } from '@api/auth/password.service';
-import { TokenService } from '@api/auth/token.service';
+} from "@api/email/account-email.service";
+import { PasswordService } from "@api/auth/password.service";
+import { TokenService } from "@api/auth/token.service";
 
 @Injectable()
 export class AccountInvitationsService {
-  private readonly logger = new Logger('AccountInvitations');
+  private readonly logger = new Logger("AccountInvitations");
 
   constructor(
     @Inject(DATABASE) private readonly db: Database,
@@ -37,15 +37,15 @@ export class AccountInvitationsService {
       .limit(1);
 
     if (!user) {
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
 
     if (!user.email) {
-      throw new BadRequestException('That account has no email address to send to');
+      throw new BadRequestException("That account has no email address to send to");
     }
 
     if (!user.isActive) {
-      throw new BadRequestException('That account is disabled');
+      throw new BadRequestException("That account is disabled");
     }
 
     await this.issueAndSend(
@@ -78,7 +78,7 @@ export class AccountInvitationsService {
       .limit(1);
 
     if (!user?.email) {
-      this.logger.log('Password reset asked for an identifier with no live account; nothing sent.');
+      this.logger.log("Password reset asked for an identifier with no live account; nothing sent.");
       return;
     }
 
@@ -86,7 +86,7 @@ export class AccountInvitationsService {
       { id: user.id, name: { ar: user.nameAr, en: user.nameEn }, email: user.email },
       user.clinicId,
       // Somebody who never activated gets the letter that matches where they actually are.
-      user.hasPassword ? 'reset' : 'activate',
+      user.hasPassword ? "reset" : "activate",
     );
   }
 
@@ -106,7 +106,7 @@ export class AccountInvitationsService {
       .limit(1);
 
     if (!user) {
-      throw new BadRequestException('That link has expired or has already been used');
+      throw new BadRequestException("That link has expired or has already been used");
     }
 
     await this.db
@@ -139,7 +139,7 @@ export class AccountInvitationsService {
       .limit(1);
 
     if (!clinic) {
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
 
     const issued = this.email.issueToken();

@@ -4,12 +4,12 @@ import {
   useQueryClient,
   type UseMutationResult,
   type UseQueryResult,
-} from '@tanstack/react-query';
-import type { ClinicNote, CreateClinicNoteInput, Paginated } from '@clinic/shared';
+} from "@tanstack/react-query";
+import type { ClinicNote, CreateClinicNoteInput, Paginated } from "@clinic/shared";
 
-import { notesApi } from '@web/features/notes/api';
+import { notesApi } from "@web/features/notes/api";
 
-export const NOTES_KEY = 'clinic-notes';
+export const NOTES_KEY = "clinic-notes";
 
 /** The widget shows the most recent few; the board is not a list screen. */
 export const NOTES_LIMIT = 6;

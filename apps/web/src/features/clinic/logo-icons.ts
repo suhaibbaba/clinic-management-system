@@ -1,7 +1,7 @@
-import { CLINIC_FAVICON_SIZES, CLINIC_ICONS } from '@clinic/shared';
+import { CLINIC_FAVICON_SIZES, CLINIC_ICONS } from "@clinic/shared";
 
-import { opaqueBounds, type Bounds } from '@web/features/clinic/trim';
-import { packIco } from '@web/features/clinic/ico';
+import { opaqueBounds, type Bounds } from "@web/features/clinic/trim";
+import { packIco } from "@web/features/clinic/ico";
 
 // Android crops a maskable icon to a circle or a squircle, and the guaranteed region is a circle
 // of 80% of the width — so the whole picture has to fit that circle, diagonal included.
@@ -25,19 +25,19 @@ export async function buildClinicIconSet(file: Blob): Promise<ClinicIconSet> {
     const set = new Map<string, Blob>();
 
     for (const icon of CLINIC_ICONS) {
-      if (icon.name === 'favicon.ico') {
+      if (icon.name === "favicon.ico") {
         continue;
       }
 
-      const maskable = icon.purpose === 'maskable';
-      const apple = icon.name === 'apple-touch-icon.png';
+      const maskable = icon.purpose === "maskable";
+      const apple = icon.name === "apple-touch-icon.png";
 
       set.set(
         icon.name,
         await render(content, icon.size, {
           inset: maskable ? MASKABLE_INSET : apple ? APPLE_INSET : 0,
           background: maskable || apple ? paper : null,
-          fit: maskable ? 'circle' : 'box',
+          fit: maskable ? "circle" : "box",
         }),
       );
     }
@@ -47,13 +47,13 @@ export async function buildClinicIconSet(file: Blob): Promise<ClinicIconSet> {
         size,
         png: new Uint8Array(
           await (
-            await render(content, size, { inset: 0, background: null, fit: 'box' })
+            await render(content, size, { inset: 0, background: null, fit: "box" })
           ).arrayBuffer(),
         ),
       })),
     );
 
-    set.set('favicon.ico', new Blob([packIco(frames)], { type: 'image/x-icon' }));
+    set.set("favicon.ico", new Blob([packIco(frames)], { type: "image/x-icon" }));
 
     return set;
   } finally {
@@ -67,7 +67,7 @@ async function render(
   options: {
     readonly inset: number;
     readonly background: string | null;
-    readonly fit: 'box' | 'circle';
+    readonly fit: "box" | "circle";
   },
 ): Promise<Blob> {
   const canvas = surface(size, size);
@@ -80,7 +80,7 @@ async function render(
 
   const safe = size * (1 - options.inset * 2);
   const scale =
-    options.fit === 'circle'
+    options.fit === "circle"
       ? safe / Math.hypot(content.width, content.height)
       : Math.min(safe / content.width, safe / content.height);
 
@@ -143,7 +143,7 @@ function trimmedBounds(source: ImageBitmap): Bounds {
   const height = Math.max(1, Math.round(source.height * scale));
 
   const canvas = surface(width, height);
-  const context = canvas.getContext('2d', { willReadFrequently: true });
+  const context = canvas.getContext("2d", { willReadFrequently: true });
 
   if (!context) {
     return whole;
@@ -167,7 +167,7 @@ function trimmedBounds(source: ImageBitmap): Bounds {
 }
 
 function surface(width: number, height: number): HTMLCanvasElement {
-  const canvas = document.createElement('canvas');
+  const canvas = document.createElement("canvas");
 
   canvas.width = width;
   canvas.height = height;
@@ -176,14 +176,14 @@ function surface(width: number, height: number): HTMLCanvasElement {
 }
 
 function context2d(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
-  const context = canvas.getContext('2d');
+  const context = canvas.getContext("2d");
 
   if (!context) {
-    throw new Error('This browser cannot render the clinic icons');
+    throw new Error("This browser cannot render the clinic icons");
   }
 
   context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = 'high';
+  context.imageSmoothingQuality = "high";
 
   return context;
 }
@@ -191,8 +191,8 @@ function context2d(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
 function toBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
-      (blob) => (blob ? resolve(blob) : reject(new Error('The icon could not be encoded'))),
-      'image/png',
+      (blob) => (blob ? resolve(blob) : reject(new Error("The icon could not be encoded"))),
+      "image/png",
     );
   });
 }
@@ -200,7 +200,7 @@ function toBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 // A baked icon outlives the theme it was generated under and is drawn by the OS, not the app, so
 // it takes the one surface that does not follow dark mode: the printed sheet's.
 function paperColour(): string | null {
-  const value = getComputedStyle(document.documentElement).getPropertyValue('--color-paper').trim();
+  const value = getComputedStyle(document.documentElement).getPropertyValue("--color-paper").trim();
 
-  return value === '' ? null : value;
+  return value === "" ? null : value;
 }

@@ -1,7 +1,7 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { LOOKUP_LIST_KEYS } from '@shared/constants/lookups';
-import { uuidSchema } from '@shared/schemas/common';
+import { LOOKUP_LIST_KEYS } from "@shared/constants/lookups";
+import { uuidSchema } from "@shared/schemas/common";
 
 // `code` is what every column referring to this row stores, so it never changes; names and colour
 // are editable. `isSystem` marks a row the app draws behaviour from — a label, not a lock.
@@ -31,13 +31,13 @@ export const lookupCodeSchema = z
   .max(64)
   .regex(
     /^[A-Za-z0-9][A-Za-z0-9._-]*$/,
-    'A code may contain letters, digits, dot, dash and underscore',
+    "A code may contain letters, digits, dot, dash and underscore",
   );
 
 const colourSchema = z
   .string()
   .trim()
-  .regex(/^#[0-9a-fA-F]{6}$/, 'Expected a colour like #1f6feb');
+  .regex(/^#[0-9a-fA-F]{6}$/, "Expected a colour like #1f6feb");
 
 export const createLookupOptionSchema = z.object({
   listKey: z.enum(LOOKUP_LIST_KEYS),
@@ -62,7 +62,7 @@ export const updateLookupOptionSchema = z
     meta: z.record(z.string(), z.unknown()),
   })
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateLookupOptionInput = z.infer<typeof updateLookupOptionSchema>;
 
 /** Drag-and-drop sends the whole list back in its new order. */
@@ -86,5 +86,5 @@ export type LookupBundle = z.infer<typeof lookupBundleSchema>;
 
 /** The label for a row in the language on screen, falling back to Arabic. */
 export function lookupLabel(option: { nameAr: string; nameEn: string }, language: string): string {
-  return language.startsWith('en') ? option.nameEn || option.nameAr : option.nameAr;
+  return language.startsWith("en") ? option.nameEn || option.nameAr : option.nameAr;
 }

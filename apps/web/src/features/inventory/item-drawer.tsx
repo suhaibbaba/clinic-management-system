@@ -4,10 +4,10 @@ import {
   type ItemBatch,
   type MovementType,
   type StockMovementRow,
-} from '@clinic/shared';
-import { useState, type JSX, type ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+} from "@clinic/shared";
+import { useState, type JSX, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 import {
   Badge,
@@ -20,26 +20,26 @@ import {
   PersonName,
   Textarea,
   useToast,
-} from '@clinic/ui';
-import { RefreshBar, SkeletonTimeline } from '@clinic/ui/components/skeleton';
-import { useSession } from '@web/features/auth/session';
-import { useLookupLabels } from '@web/features/lookups/queries';
-import { Money } from '@web/features/billing/money';
-import { useClinic } from '@web/features/clinic/queries';
-import { categoryTone, MOVEMENT_TONES, movementLabel } from '@web/features/inventory/display';
-import { ItemFormModal } from '@web/features/inventory/item-form-modal';
-import { MovementModal, mayRecord } from '@web/features/inventory/movement-modal';
-import { canManageInventory, canReverseMovement } from '@web/features/inventory/permissions';
+} from "@clinic/ui";
+import { RefreshBar, SkeletonTimeline } from "@clinic/ui/components/skeleton";
+import { useSession } from "@web/features/auth/session";
+import { useLookupLabels } from "@web/features/lookups/queries";
+import { Money } from "@web/features/billing/money";
+import { useClinic } from "@web/features/clinic/queries";
+import { categoryTone, MOVEMENT_TONES, movementLabel } from "@web/features/inventory/display";
+import { ItemFormModal } from "@web/features/inventory/item-form-modal";
+import { MovementModal, mayRecord } from "@web/features/inventory/movement-modal";
+import { canManageInventory, canReverseMovement } from "@web/features/inventory/permissions";
 import {
   useInventoryItem,
   useItemBatches,
   useItemMovements,
   useReverseMovement,
-} from '@web/features/inventory/queries';
-import { errorMessageKey } from '@web/lib/api-error';
-import { cn } from '@clinic/ui/lib/cn';
-import { formatDate, formatDateTime } from '@web/lib/format';
-import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
+} from "@web/features/inventory/queries";
+import { errorMessageKey } from "@web/lib/api-error";
+import { cn } from "@clinic/ui/lib/cn";
+import { formatDate, formatDateTime } from "@web/lib/format";
+import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 export function ItemDrawer({
   itemId,
@@ -57,9 +57,9 @@ export function ItemDrawer({
   const [movement, setMovement] = useState<MovementType | null>(null);
   const [editing, setEditing] = useState(false);
 
-  const item = useInventoryItem(itemId ?? '');
-  const batches = useItemBatches(itemId ?? '');
-  const movements = useItemMovements(itemId ?? '', { limit: 50 });
+  const item = useInventoryItem(itemId ?? "");
+  const batches = useItemBatches(itemId ?? "");
+  const movements = useItemMovements(itemId ?? "", { limit: 50 });
   const { showSkeleton, isRefreshing } = useQueryLoading(movements);
 
   if (itemId === null) {
@@ -81,9 +81,9 @@ export function ItemDrawer({
         descriptionKey="inventory.drawer.description"
         title={
           <span className="flex flex-wrap items-center gap-2">
-            {row?.nameAr ?? '…'}
+            {row?.nameAr ?? "…"}
             {row && <Badge tone={categoryTone(row.category)}>{categoryLabel(row.category)}</Badge>}
-            {row?.isLow && <Badge tone="danger">{t('inventory.flags.low')}</Badge>}
+            {row?.isLow && <Badge tone="danger">{t("inventory.flags.low")}</Badge>}
           </span>
         }
         footer={
@@ -93,7 +93,7 @@ export function ItemDrawer({
               .map((type) => (
                 <Button
                   key={type}
-                  variant={type === MOVEMENT_TYPE.ADJUST ? 'ghost' : 'primary'}
+                  variant={type === MOVEMENT_TYPE.ADJUST ? "ghost" : "primary"}
                   disabled={!row}
                   onClick={() => setMovement(type)}
                 >
@@ -107,27 +107,27 @@ export function ItemDrawer({
           {row && (
             <>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-value">
-                <Field label={t('inventory.columns.quantity')}>
+                <Field label={t("inventory.columns.quantity")}>
                   <span className="flex items-baseline gap-1.5">
                     <Ltr className="font-medium tabular-nums">{row.quantity}</Ltr>
                     <span className="text-label text-ink-muted">{unitLabel(row.unit)}</span>
                   </span>
                 </Field>
-                <Field label={t('inventory.minimum')}>
+                <Field label={t("inventory.minimum")}>
                   <Ltr className="tabular-nums">{row.minQuantity}</Ltr>
                 </Field>
                 {row.supplierName && (
-                  <Field label={t('inventory.movement.supplier')}>{row.supplierName}</Field>
+                  <Field label={t("inventory.movement.supplier")}>{row.supplierName}</Field>
                 )}
                 {row.nearestExpiry && (
-                  <Field label={t('inventory.columns.expiry')}>
-                    <Ltr className={row.isExpired ? 'text-danger-600' : undefined}>
+                  <Field label={t("inventory.columns.expiry")}>
+                    <Ltr className={row.isExpired ? "text-danger-600" : undefined}>
                       {formatDate(row.nearestExpiry)}
                     </Ltr>
                   </Field>
                 )}
                 {row.notes && (
-                  <Field wide label={t('inventory.notes')}>
+                  <Field wide label={t("inventory.notes")}>
                     {row.notes}
                   </Field>
                 )}
@@ -141,7 +141,7 @@ export function ItemDrawer({
                     icon={<Icon name="edit" />}
                     onClick={() => setEditing(true)}
                   >
-                    {t('inventory.editItem')}
+                    {t("inventory.editItem")}
                   </Button>
                 </div>
               )}
@@ -150,7 +150,7 @@ export function ItemDrawer({
 
           <Batches
             batches={batches.data?.batches ?? []}
-            unbatched={batches.data?.unbatched ?? '0'}
+            unbatched={batches.data?.unbatched ?? "0"}
           />
 
           <History
@@ -186,29 +186,29 @@ function Batches({
 
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-value font-medium text-ink">{t('inventory.batches.title')}</h3>
+      <h3 className="text-value font-medium text-ink">{t("inventory.batches.title")}</h3>
 
       {live.length === 0 ? (
-        <p className="text-label text-ink-muted">{t('inventory.batches.empty')}</p>
+        <p className="text-label text-ink-muted">{t("inventory.batches.empty")}</p>
       ) : (
         <ul className="flex flex-col gap-1.5">
           {live.map((batch) => (
             <li
-              key={`${batch.batchNo ?? 'none'}-${batch.receivedAt}`}
+              key={`${batch.batchNo ?? "none"}-${batch.receivedAt}`}
               className={cn(
-                'flex flex-wrap items-baseline justify-between gap-2 rounded-panel px-3 py-2',
-                batch.isExpired ? 'bg-danger-50' : batch.isExpiring ? 'bg-warning-50' : 'bg-inset',
+                "flex flex-wrap items-baseline justify-between gap-2 rounded-panel px-3 py-2",
+                batch.isExpired ? "bg-danger-50" : batch.isExpiring ? "bg-warning-50" : "bg-inset",
               )}
             >
               <span className="flex flex-wrap items-baseline gap-2">
                 <Ltr className="text-label font-medium text-ink">
-                  {batch.batchNo ?? t('inventory.batches.unlabelled')}
+                  {batch.batchNo ?? t("inventory.batches.unlabelled")}
                 </Ltr>
                 {batch.expiryDate && (
                   <Ltr className="text-label text-ink-muted">{formatDate(batch.expiryDate)}</Ltr>
                 )}
-                {batch.isExpired && <Badge tone="danger">{t('inventory.flags.expired')}</Badge>}
-                {batch.isExpiring && <Badge tone="warning">{t('inventory.flags.expiring')}</Badge>}
+                {batch.isExpired && <Badge tone="danger">{t("inventory.flags.expired")}</Badge>}
+                {batch.isExpiring && <Badge tone="warning">{t("inventory.flags.expiring")}</Badge>}
               </span>
 
               <Ltr className="text-label tabular-nums text-ink">
@@ -221,12 +221,12 @@ function Batches({
 
       {Number(unbatched) > 0 && (
         <p className="flex items-baseline justify-between text-label text-ink-muted">
-          <span>{t('inventory.batches.unbatched')}</span>
+          <span>{t("inventory.batches.unbatched")}</span>
           <Ltr className="tabular-nums">{unbatched}</Ltr>
         </p>
       )}
 
-      <p className="text-label text-ink-subtle">{t('inventory.batches.assumption')}</p>
+      <p className="text-label text-ink-subtle">{t("inventory.batches.assumption")}</p>
     </section>
   );
 }
@@ -249,7 +249,7 @@ function History({
   const reverse = useReverseMovement();
 
   const [reversing, setReversing] = useState<StockMovementRow | null>(null);
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState("");
 
   const submit = async (): Promise<void> => {
     if (!reversing) {
@@ -258,9 +258,9 @@ function History({
 
     try {
       await reverse.mutateAsync({ id: reversing.id, reason: reason.trim() });
-      toast.success('inventory.movement.reversed');
+      toast.success("inventory.movement.reversed");
       setReversing(null);
-      setReason('');
+      setReason("");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -268,7 +268,7 @@ function History({
 
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-value font-medium text-ink">{t('inventory.history.title')}</h3>
+      <h3 className="text-value font-medium text-ink">{t("inventory.history.title")}</h3>
 
       <RefreshBar active={isRefreshing} />
 
@@ -287,21 +287,21 @@ function History({
                   {t(movementLabel(movement.type))}
                 </Badge>
                 {movement.reversesId && (
-                  <Badge tone="neutral">{t('inventory.history.reversal')}</Badge>
+                  <Badge tone="neutral">{t("inventory.history.reversal")}</Badge>
                 )}
                 {movement.reversedAt && (
-                  <Badge tone="neutral">{t('inventory.history.reversed')}</Badge>
+                  <Badge tone="neutral">{t("inventory.history.reversed")}</Badge>
                 )}
               </span>
 
               <span className="flex items-baseline gap-3">
                 <Ltr
                   className={cn(
-                    'font-medium tabular-nums',
-                    movement.quantity.startsWith('-') ? 'text-danger-600' : 'text-success-900',
+                    "font-medium tabular-nums",
+                    movement.quantity.startsWith("-") ? "text-danger-600" : "text-success-900",
                   )}
                 >
-                  {movement.quantity.startsWith('-') ? movement.quantity : `+${movement.quantity}`}
+                  {movement.quantity.startsWith("-") ? movement.quantity : `+${movement.quantity}`}
                 </Ltr>
                 {/* The icon set's arrow, not a literal `→`: a typed arrow points right in both
                     languages. It sits outside the island so the row decides its side. */}
@@ -314,7 +314,7 @@ function History({
 
             <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-label text-ink-muted">
               <div className="flex gap-1">
-                <dt className="sr-only">{t('inventory.history.when')}</dt>
+                <dt className="sr-only">{t("inventory.history.when")}</dt>
                 <Ltr as="dd">{formatDateTime(movement.createdAt)}</Ltr>
               </div>
 
@@ -340,7 +340,7 @@ function History({
                 className="-my-3 cursor-pointer py-3 text-label font-medium text-primary-700 hover:underline lg:my-0 lg:mt-1 lg:py-0"
               >
                 {movement.patientName}
-                {movement.procedureName ? ` — ${movement.procedureName}` : ''}
+                {movement.procedureName ? ` — ${movement.procedureName}` : ""}
               </button>
             )}
 
@@ -355,7 +355,7 @@ function History({
                   variant="ghost"
                   onClick={() => setReversing(movement)}
                 >
-                  {t('inventory.history.reverse')}
+                  {t("inventory.history.reverse")}
                 </Button>
               )}
           </li>
@@ -368,11 +368,11 @@ function History({
         open={reversing !== null}
         onOpenChange={(open) => !open && setReversing(null)}
         title="inventory.history.reverseTitle"
-        description={t('inventory.history.reverseDescription')}
+        description={t("inventory.history.reverseDescription")}
         footer={
           <>
             <Button variant="secondary" onClick={() => setReversing(null)}>
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button
               variant="danger"
@@ -380,13 +380,13 @@ function History({
               disabled={reason.trim().length < 3}
               onClick={() => void submit()}
             >
-              {t('inventory.history.reverse')}
+              {t("inventory.history.reverse")}
             </Button>
           </>
         }
       >
         <label htmlFor="reverse-reason" className="mb-1.5 block text-label font-medium text-ink">
-          {t('inventory.movement.reason')}
+          {t("inventory.movement.reason")}
         </label>
         <Textarea
           id="reverse-reason"
@@ -409,7 +409,7 @@ function Field({
   children: ReactNode;
 }): JSX.Element {
   return (
-    <div className={cn('min-w-0', wide && 'col-span-2')}>
+    <div className={cn("min-w-0", wide && "col-span-2")}>
       <dt className="text-meta text-ink-muted">{label}</dt>
       <dd className="mt-0.5 min-w-0 text-ink">{children}</dd>
     </div>

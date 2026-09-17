@@ -3,14 +3,14 @@ import {
   Injectable,
   type CanActivate,
   type ExecutionContext,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { USER_ROLE, type UserRole } from '@clinic/shared';
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { USER_ROLE, type UserRole } from "@clinic/shared";
 
-import { ROLES_KEY } from '@api/common/decorators/roles.decorator';
-import { CapabilityRegistry } from '@api/permissions/capability-registry.service';
-import { PermissionsService } from '@api/permissions/permissions.service';
-import type { RequestWithUser } from '@api/common/types/authenticated-user';
+import { ROLES_KEY } from "@api/common/decorators/roles.decorator";
+import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
+import { PermissionsService } from "@api/permissions/permissions.service";
+import type { RequestWithUser } from "@api/common/types/authenticated-user";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -36,7 +36,7 @@ export class RolesGuard implements CanActivate {
 
     if (!user) {
       // A @Roles() endpoint that is also @Public() is a wiring mistake.
-      throw new ForbiddenException('Insufficient role');
+      throw new ForbiddenException("Insufficient role");
     }
 
     if (user.role === USER_ROLE.ADMIN) {
@@ -49,6 +49,6 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    throw new ForbiddenException('Insufficient role');
+    throw new ForbiddenException("Insufficient role");
   }
 }

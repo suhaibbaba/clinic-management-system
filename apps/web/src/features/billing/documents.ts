@@ -1,6 +1,6 @@
-import type { StatementQuery } from '@clinic/shared';
+import type { StatementQuery } from "@clinic/shared";
 
-import { billingApi } from '@web/features/billing/api';
+import { billingApi } from "@web/features/billing/api";
 
 // These endpoints need the bearer token, so a plain link cannot follow them: the PDF is fetched,
 // wrapped in an object URL and handed to a new tab.
@@ -8,12 +8,12 @@ async function present(blob: Blob, filename: string, download: boolean): Promise
   const url = URL.createObjectURL(blob);
 
   if (download) {
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = filename;
     link.click();
   } else {
-    window.open(url, '_blank', 'noopener');
+    window.open(url, "_blank", "noopener");
   }
 
   // Long enough for the tab or the download to take hold of the blob; the URL

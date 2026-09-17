@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 const entryListSchema = z.array(z.string().trim().min(1).max(160)).max(50);
 
@@ -35,5 +35,5 @@ export const updateMedicalHistorySchema = z
     notes: z.string().trim().max(2000).nullish(),
   })
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateMedicalHistoryInput = z.infer<typeof updateMedicalHistorySchema>;

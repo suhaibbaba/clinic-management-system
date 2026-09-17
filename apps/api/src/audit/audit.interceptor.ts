@@ -3,18 +3,18 @@ import {
   type CallHandler,
   type ExecutionContext,
   type NestInterceptor,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { AUDIT_ACTION } from '@clinic/shared';
-import { concatMap, from, type Observable } from 'rxjs';
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { AUDIT_ACTION } from "@clinic/shared";
+import { concatMap, from, type Observable } from "rxjs";
 
 import {
   AuditSnapshotRegistry,
   type AuditSnapshotLoader,
-} from '@api/audit/audit-snapshot.registry';
-import { AuditService } from '@api/audit/audit.service';
-import { AUDIT_KEY, type AuditMetadata } from '@api/common/decorators/audit.decorator';
-import type { RequestWithUser } from '@api/common/types/authenticated-user';
+} from "@api/audit/audit-snapshot.registry";
+import { AuditService } from "@api/audit/audit.service";
+import { AUDIT_KEY, type AuditMetadata } from "@api/common/decorators/audit.decorator";
+import type { RequestWithUser } from "@api/common/types/authenticated-user";
 
 // Inert without the `@Audit(...)` decorator. The entry is written only after the handler succeeds,
 // and failing to write it fails the request — an unaudited mutation must never look successful.
@@ -87,16 +87,16 @@ function resolveEntityId(
   params: Record<string, string> | undefined,
 ): string | undefined {
   switch (metadata.entityIdSource) {
-    case 'clinic':
+    case "clinic":
       return actor.clinicId;
-    case 'actor':
+    case "actor":
       return actor.id;
-    case 'patient':
-      return params?.['patientId'];
-    case 'response':
+    case "patient":
+      return params?.["patientId"];
+    case "response":
       return undefined;
     default:
-      return params?.['id'];
+      return params?.["id"];
   }
 }
 
@@ -119,9 +119,9 @@ function extractId(result: unknown): string | undefined {
 }
 
 function idOf(value: unknown): string | undefined {
-  if (value && typeof value === 'object' && 'id' in value) {
+  if (value && typeof value === "object" && "id" in value) {
     const { id } = value as { id: unknown };
-    return typeof id === 'string' ? id : undefined;
+    return typeof id === "string" ? id : undefined;
   }
 
   return undefined;

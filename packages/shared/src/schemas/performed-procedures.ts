@@ -1,9 +1,9 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { PERFORMED_PROCEDURE_STATUSES } from '@shared/enums';
-import { createChartMarkSchema, chartMarkSchema } from '@shared/schemas/chart-marks';
-import { paginationQuerySchema } from '@shared/schemas/common';
-import { moneySchema, wholeMoneySchema } from '@shared/schemas/money';
+import { PERFORMED_PROCEDURE_STATUSES } from "@shared/enums";
+import { createChartMarkSchema, chartMarkSchema } from "@shared/schemas/chart-marks";
+import { paginationQuerySchema } from "@shared/schemas/common";
+import { moneySchema, wholeMoneySchema } from "@shared/schemas/money";
 
 // `price` is a snapshot of the catalog price at the time, so a later catalog change never rewrites
 // history.
@@ -45,8 +45,8 @@ export const createPerformedProcedureSchema = z
     ...procedureWritableFields,
     patientId: z.uuid(),
     price: wholeMoneySchema.optional(),
-    discount: wholeMoneySchema.default('0.00'),
-    status: z.enum(PERFORMED_PROCEDURE_STATUSES).default('done'),
+    discount: wholeMoneySchema.default("0.00"),
+    status: z.enum(PERFORMED_PROCEDURE_STATUSES).default("done"),
     performedAt: z.iso.datetime().optional(),
     /** Chart marks are created with the procedure; they never exist alone. */
     chartMarks: z.array(createChartMarkSchema).max(32).default([]),
@@ -55,8 +55,8 @@ export const createPerformedProcedureSchema = z
     (input) =>
       input.discount === undefined ||
       input.discountReason !== undefined ||
-      input.discount === '0.00',
-    { message: 'A discount requires a reason', path: ['discountReason'] },
+      input.discount === "0.00",
+    { message: "A discount requires a reason", path: ["discountReason"] },
   );
 export type CreatePerformedProcedureInput = z.infer<typeof createPerformedProcedureSchema>;
 
@@ -64,11 +64,11 @@ export const updatePerformedProcedureSchema = z
   .object(procedureWritableFields)
   .partial()
   .extend({ chartMarks: z.array(createChartMarkSchema).max(32).optional() })
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided')
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided")
   .refine(
     (input) =>
-      input.discount === undefined || input.discount === '0.00' || Boolean(input.discountReason),
-    { message: 'A discount requires a reason', path: ['discountReason'] },
+      input.discount === undefined || input.discount === "0.00" || Boolean(input.discountReason),
+    { message: "A discount requires a reason", path: ["discountReason"] },
   );
 export type UpdatePerformedProcedureInput = z.infer<typeof updatePerformedProcedureSchema>;
 

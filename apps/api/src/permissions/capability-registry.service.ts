@@ -1,12 +1,12 @@
-import { Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common';
-import { DiscoveryService, MetadataScanner, Reflector } from '@nestjs/core';
-import { PATH_METADATA, METHOD_METADATA } from '@nestjs/common/constants';
-import { RequestMethod } from '@nestjs/common';
-import type { UserRole } from '@clinic/shared';
+import { Injectable, Logger, type OnApplicationBootstrap } from "@nestjs/common";
+import { DiscoveryService, MetadataScanner, Reflector } from "@nestjs/core";
+import { PATH_METADATA, METHOD_METADATA } from "@nestjs/common/constants";
+import { RequestMethod } from "@nestjs/common";
+import type { UserRole } from "@clinic/shared";
 
-import { CAPABILITY_KEY } from '@api/common/decorators/capability.decorator';
-import { ROLES_KEY } from '@api/common/decorators/roles.decorator';
-import { IS_PUBLIC_KEY } from '@api/common/decorators/public.decorator';
+import { CAPABILITY_KEY } from "@api/common/decorators/capability.decorator";
+import { ROLES_KEY } from "@api/common/decorators/roles.decorator";
+import { IS_PUBLIC_KEY } from "@api/common/decorators/public.decorator";
 
 export interface Capability {
   /** `patients.update` — stable, and what a role's grant is stored against. */
@@ -21,28 +21,28 @@ export interface Capability {
 
 const scopeOf = (controller: { name: string }): string =>
   controller.name
-    .replace(/Controller$/, '')
-    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/Controller$/, "")
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
     .toLowerCase();
 
 /** `@Controller()` with no prefix and a handler carrying the whole path is one route, not three. */
 const joinPath = (...segments: string[]): string =>
   `/${segments
-    .flatMap((segment) => segment.split('/'))
+    .flatMap((segment) => segment.split("/"))
     .filter(Boolean)
-    .join('/')}`;
+    .join("/")}`;
 
 const METHOD_NAMES: Record<number, string> = {
-  [RequestMethod.GET]: 'GET',
-  [RequestMethod.POST]: 'POST',
-  [RequestMethod.PUT]: 'PUT',
-  [RequestMethod.DELETE]: 'DELETE',
-  [RequestMethod.PATCH]: 'PATCH',
+  [RequestMethod.GET]: "GET",
+  [RequestMethod.POST]: "POST",
+  [RequestMethod.PUT]: "PUT",
+  [RequestMethod.DELETE]: "DELETE",
+  [RequestMethod.PATCH]: "PATCH",
 };
 
 @Injectable()
 export class CapabilityRegistry implements OnApplicationBootstrap {
-  private readonly logger = new Logger('Capabilities');
+  private readonly logger = new Logger("Capabilities");
   private readonly byKey = new Map<string, Capability>();
 
   constructor(
@@ -59,13 +59,13 @@ export class CapabilityRegistry implements OnApplicationBootstrap {
         continue;
       }
 
-      const controllerPath = String(this.reflector.get<string>(PATH_METADATA, metatype) ?? '');
+      const controllerPath = String(this.reflector.get<string>(PATH_METADATA, metatype) ?? "");
       const prototype = Object.getPrototypeOf(instance) as object;
 
       for (const name of this.scanner.getAllMethodNames(prototype)) {
         const handler = (instance as Record<string, unknown>)[name];
 
-        if (typeof handler !== 'function') {
+        if (typeof handler !== "function") {
           continue;
         }
 
@@ -89,15 +89,15 @@ export class CapabilityRegistry implements OnApplicationBootstrap {
           this.reflector.get<number>(METHOD_METADATA, handler) ?? RequestMethod.GET;
         const path = joinPath(
           controllerPath,
-          String(this.reflector.get<string>(PATH_METADATA, handler) ?? ''),
+          String(this.reflector.get<string>(PATH_METADATA, handler) ?? ""),
         );
 
         this.byKey.set(key, {
           key,
           // The first segment of the address, which is the module a reader thinks in — not the
           // controller, six of which hang off `patients/:patientId`.
-          resource: path.split('/')[1] ?? 'root',
-          method: METHOD_NAMES[methodCode] ?? 'GET',
+          resource: path.split("/")[1] ?? "root",
+          method: METHOD_NAMES[methodCode] ?? "GET",
           path,
           defaultRoles: [...declared],
         });

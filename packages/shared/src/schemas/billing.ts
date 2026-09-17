@@ -1,9 +1,9 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { LEDGER_ENTRY_KINDS } from '@shared/enums';
-import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
-import { signedMoneySchema, wholeMoneySchema } from '@shared/schemas/money';
-import { lookupCodeSchema } from '@shared/schemas/lookups';
+import { LEDGER_ENTRY_KINDS } from "@shared/enums";
+import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
+import { signedMoneySchema, wholeMoneySchema } from "@shared/schemas/money";
+import { lookupCodeSchema } from "@shared/schemas/lookups";
 
 // Append-only: a correction is a new row carrying the negative of the original and pointing at it
 // through `reversesId`.
@@ -46,7 +46,7 @@ export const createPaymentSchema = z.object({
   // every read schema are unchanged.
   amount: wholeMoneySchema.refine(
     (value) => Number(value) > 0,
-    'A payment must be greater than zero',
+    "A payment must be greater than zero",
   ),
   method: lookupCodeSchema,
   note: z.string().trim().max(500).nullish(),
@@ -125,4 +125,4 @@ export const listOverdueQuerySchema = paginationQuerySchema.extend({
 });
 export type ListOverdueQuery = z.infer<typeof listOverdueQuerySchema>;
 
-export const OVERDUE_AFTER_DAYS_SETTING = 'overdueAfterDays';
+export const OVERDUE_AFTER_DAYS_SETTING = "overdueAfterDays";

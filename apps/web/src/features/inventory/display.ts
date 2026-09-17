@@ -6,44 +6,44 @@ import {
   toThousandths,
   type InventoryItemRow,
   type MovementType,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import type { BadgeTone } from '@clinic/ui/components/badge';
-import type { ProgressTone } from '@clinic/ui/components/progress-bar';
+import type { BadgeTone } from "@clinic/ui/components/badge";
+import type { ProgressTone } from "@clinic/ui/components/progress-bar";
 
 // The bar, the badge and the row all consult this, so a category cannot be amber in one place and
 // grey in another. A clinic's own category gets the neutral badge.
 const CATEGORY_TONES: Record<string, BadgeTone> = {
-  [ITEM_CATEGORY.MEDICATION]: 'info',
-  [ITEM_CATEGORY.CONSUMABLE]: 'neutral',
-  [ITEM_CATEGORY.TOOL]: 'neutral',
-  [ITEM_CATEGORY.STERILIZATION]: 'success',
+  [ITEM_CATEGORY.MEDICATION]: "info",
+  [ITEM_CATEGORY.CONSUMABLE]: "neutral",
+  [ITEM_CATEGORY.TOOL]: "neutral",
+  [ITEM_CATEGORY.STERILIZATION]: "success",
 };
 
-export const categoryTone = (category: string): BadgeTone => CATEGORY_TONES[category] ?? 'neutral';
+export const categoryTone = (category: string): BadgeTone => CATEGORY_TONES[category] ?? "neutral";
 
 export const movementLabel = (type: MovementType): string => `inventory.movements.${type}`;
 
 export const MOVEMENT_TONES: Record<MovementType, BadgeTone> = {
-  [MOVEMENT_TYPE.PURCHASE]: 'success',
-  [MOVEMENT_TYPE.CONSUME]: 'info',
-  [MOVEMENT_TYPE.ADJUST]: 'warning',
+  [MOVEMENT_TYPE.PURCHASE]: "success",
+  [MOVEMENT_TYPE.CONSUME]: "info",
+  [MOVEMENT_TYPE.ADJUST]: "warning",
 };
 
 // Below the minimum is `danger` because it is a problem rather than a small number; up to twice it
 // is `warning` — still fine, but the week to order.
 export function stockTone(item: InventoryItemRow): ProgressTone {
   if (item.isLow) {
-    return 'danger';
+    return "danger";
   }
 
   const minimum = toThousandths(item.minQuantity);
 
   if (minimum > 0 && compareQuantity(item.quantity, doubled(item.minQuantity)) <= 0) {
-    return 'warning';
+    return "warning";
   }
 
-  return 'primary';
+  return "primary";
 }
 
 export function stockScale(item: InventoryItemRow): { value: number; total: number } {
@@ -58,10 +58,10 @@ export function stockScale(item: InventoryItemRow): { value: number; total: numb
 const doubled = (quantity: string): string => {
   const thousandths = toThousandths(quantity) * 2;
   const fraction = String(Math.abs(thousandths) % 1000)
-    .padStart(3, '0')
-    .replace(/0+$/, '');
+    .padStart(3, "0")
+    .replace(/0+$/, "");
 
-  return fraction === ''
+  return fraction === ""
     ? String(Math.trunc(thousandths / 1000))
     : `${Math.trunc(thousandths / 1000)}.${fraction}`;
 };

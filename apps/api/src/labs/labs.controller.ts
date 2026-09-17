@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   createLabSchema,
@@ -23,16 +23,16 @@ import {
   type LabSummary,
   type LabWorkType,
   type Paginated,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
+import { z } from "zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { LAB_WORK_TYPES_ENTITY, LabWorkTypesService } from '@api/labs/lab-work-types.service';
-import { LABS_ENTITY, LabsService } from '@api/labs/labs.service';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { LAB_WORK_TYPES_ENTITY, LabWorkTypesService } from "@api/labs/lab-work-types.service";
+import { LABS_ENTITY, LabsService } from "@api/labs/labs.service";
 
 class CreateLabDto extends createZodDto(createLabSchema) {}
 class UpdateLabDto extends createZodDto(updateLabSchema) {}
@@ -47,7 +47,7 @@ class WorkTypeQueryDto extends createZodDto(
 
 // Admin CRUD, technician CRU, doctor read, receptionist nothing — no route lists them, so every
 // call is a 403. Deleting is admin-only: a lab carries a balance.
-@Controller('labs')
+@Controller("labs")
 export class LabsController {
   constructor(
     private readonly labs: LabsService,
@@ -63,7 +63,7 @@ export class LabsController {
     return this.labs.list(actor, query);
   }
 
-  @Get(':id')
+  @Get(":id")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
@@ -79,7 +79,7 @@ export class LabsController {
     return this.labs.create(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(LABS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -90,7 +90,7 @@ export class LabsController {
     return this.labs.update(actor, params.id, body);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(LABS_ENTITY, AUDIT_ACTION.DELETE)
@@ -101,7 +101,7 @@ export class LabsController {
     await this.labs.softDelete(actor, params.id);
   }
 
-  @Get(':labId/work-types')
+  @Get(":labId/work-types")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   listWorkTypes(
     @CurrentUser() actor: AuthenticatedUser,
@@ -111,7 +111,7 @@ export class LabsController {
     return this.workTypes.list(actor, params.labId, query.includeInactive ?? false);
   }
 
-  @Post(':labId/work-types')
+  @Post(":labId/work-types")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(LAB_WORK_TYPES_ENTITY, AUDIT_ACTION.CREATE)
   createWorkType(
@@ -122,7 +122,7 @@ export class LabsController {
     return this.workTypes.create(actor, params.labId, body);
   }
 
-  @Patch('work-types/:id')
+  @Patch("work-types/:id")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(LAB_WORK_TYPES_ENTITY, AUDIT_ACTION.UPDATE)
   updateWorkType(
@@ -133,7 +133,7 @@ export class LabsController {
     return this.workTypes.update(actor, params.id, body);
   }
 
-  @Delete('work-types/:id')
+  @Delete("work-types/:id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(LAB_WORK_TYPES_ENTITY, AUDIT_ACTION.DELETE)

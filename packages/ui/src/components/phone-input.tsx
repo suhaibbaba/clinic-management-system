@@ -1,17 +1,17 @@
-import { forwardRef } from 'react';
+import { forwardRef } from "react";
 
-import { Input, type InputProps } from '@ui/components/input';
-import { cn } from '@ui/lib/cn';
-import { foldDigits } from '@ui/lib/digits';
+import { Input, type InputProps } from "@ui/components/input";
+import { cn } from "@ui/lib/cn";
+import { foldDigits } from "@ui/lib/digits";
 
 /** Everything `Input` takes — an adornment, a clear button — bar what this field decides itself. */
-export type PhoneInputProps = Omit<InputProps, 'type' | 'inputMode' | 'dir'>;
+export type PhoneInputProps = Omit<InputProps, "type" | "inputMode" | "dir">;
 
 /** Digits, spaces and dashes, and a `+` only at the front — where a dialling code puts it. */
 const phoneCharacters = (value: string): string =>
   foldDigits(value)
-    .replace(/[^\d\s+-]/g, '')
-    .replace(/(?!^)\+/g, '');
+    .replace(/[^\d\s+-]/g, "")
+    .replace(/(?!^)\+/g, "");
 
 export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function PhoneInput(
   { className, onChange, ...props },
@@ -27,7 +27,7 @@ export const PhoneInput = forwardRef<HTMLInputElement, PhoneInputProps>(function
       dir="ltr"
       inputMode="tel"
       autoComplete="tel"
-      className={cn('tabular-nums', className)}
+      className={cn("tabular-nums", className)}
       onChange={(event) => {
         const cleaned = phoneCharacters(event.target.value);
 

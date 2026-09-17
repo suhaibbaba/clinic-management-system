@@ -4,12 +4,12 @@ import {
   type ClinicClosure,
   type Doctor,
   type DoctorTimeOff,
-} from '@clinic/shared';
-import { useMemo, useRef, useState, type CSSProperties, type DragEvent, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useMemo, useRef, useState, type CSSProperties, type DragEvent, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { APPOINTMENT_STATUS_STYLES } from '@web/features/appointments/status';
-import { useLookupLabels } from '@web/features/lookups/queries';
+import { APPOINTMENT_STATUS_STYLES } from "@web/features/appointments/status";
+import { useLookupLabels } from "@web/features/lookups/queries";
 import {
   blockMinutes,
   blockPosition,
@@ -21,11 +21,11 @@ import {
   periodPosition,
   toTimeLabel,
   TWO_LINE_MINUTES,
-} from '@web/features/appointments/calendar-time';
-import { cn } from '@clinic/ui/lib/cn';
-import { Icon } from '@clinic/ui/components/icon';
-import { Ltr } from '@clinic/ui/components/ltr';
-import { PersonName } from '@clinic/ui/components/person-name';
+} from "@web/features/appointments/calendar-time";
+import { cn } from "@clinic/ui/lib/cn";
+import { Icon } from "@clinic/ui/components/icon";
+import { Ltr } from "@clinic/ui/components/ltr";
+import { PersonName } from "@clinic/ui/components/person-name";
 
 export interface DayGridProps {
   readonly date: string;
@@ -89,7 +89,7 @@ export function DayGrid({
     event.preventDefault();
     setDragging(null);
 
-    const id = event.dataTransfer.getData('text/plain');
+    const id = event.dataTransfer.getData("text/plain");
     const appointment = appointments.find((entry) => entry.id === id);
     const column = columnRefs.current.get(doctorId);
 
@@ -106,7 +106,7 @@ export function DayGrid({
       {closure && (
         <p className="flex items-center gap-2 border-b border-line bg-warning-50 px-4 py-2 text-label text-warning-800">
           <Icon name="alert" />
-          {t('appointments.grid.closedOn', { reason: closure.reason })}
+          {t("appointments.grid.closedOn", { reason: closure.reason })}
         </p>
       )}
 
@@ -125,7 +125,7 @@ export function DayGrid({
           ))}
         </div>
 
-        <div className={cn('relative flex', closure && 'bg-sunken')} style={{ height: bodyHeight }}>
+        <div className={cn("relative flex", closure && "bg-sunken")} style={{ height: bodyHeight }}>
           {/* Hour ruler */}
           <div className="relative w-14 shrink-0">
             {hours.map((minute) => (
@@ -167,10 +167,10 @@ export function DayGrid({
                   onPick(doctor.id, minuteFromOffset(event.clientY - bounds.top, bounds.height));
                 }}
                 className={cn(
-                  'hour-rules relative min-w-40 flex-1 border-s border-line',
-                  onPick && 'cursor-copy',
+                  "hour-rules relative min-w-40 flex-1 border-s border-line",
+                  onPick && "cursor-copy",
                 )}
-                style={{ '--hour-height': `${HOUR_HEIGHT}px` } as CSSProperties}
+                style={{ "--hour-height": `${HOUR_HEIGHT}px` } as CSSProperties}
               >
                 {/* An absence overlapping a booking is a real state, and hiding the appointment
                     behind the hatching would be the wrong way round. */}
@@ -181,7 +181,7 @@ export function DayGrid({
                     <div
                       key={entry.id}
                       title={entry.reason}
-                      aria-label={`${t('schedule.timeOff.title')}: ${entry.reason}`}
+                      aria-label={`${t("schedule.timeOff.title")}: ${entry.reason}`}
                       data-time-off={entry.id}
                       className="absolute inset-x-0 hatched border-y border-line-strong/60"
                       style={position}
@@ -196,8 +196,8 @@ export function DayGrid({
                     draggable={Boolean(onMove)}
                     dragging={dragging === appointment.id}
                     onDragStart={(event) => {
-                      event.dataTransfer.setData('text/plain', appointment.id);
-                      event.dataTransfer.effectAllowed = 'move';
+                      event.dataTransfer.setData("text/plain", appointment.id);
+                      event.dataTransfer.effectAllowed = "move";
                       setDragging(appointment.id);
                     }}
                     onDragEnd={() => setDragging(null)}
@@ -212,7 +212,7 @@ export function DayGrid({
 
       {onMove && (
         <p className="border-t border-line px-4 py-2 text-label text-ink-subtle">
-          {t('appointments.grid.dragHint')}
+          {t("appointments.grid.dragHint")}
         </p>
       )}
     </div>
@@ -259,13 +259,13 @@ function AppointmentBlock({
         `appointments.statuses.${appointment.status}`,
       )}`}
       className={cn(
-        'absolute inset-x-1 overflow-hidden rounded-panel border px-2 text-start',
-        'cursor-pointer transition-shadow duration-150 hover:shadow-card',
+        "absolute inset-x-1 overflow-hidden rounded-panel border px-2 text-start",
+        "cursor-pointer transition-shadow duration-150 hover:shadow-card",
         // A 20px block — the floor a very short appointment is drawn at — has
         // room for one 11px line and 4px of padding, and nothing else.
-        compact ? 'py-0.5' : 'py-1',
-        draggable && 'active:cursor-grabbing',
-        dragging && 'opacity-40',
+        compact ? "py-0.5" : "py-1",
+        draggable && "active:cursor-grabbing",
+        dragging && "opacity-40",
         style.block,
       )}
       style={position}

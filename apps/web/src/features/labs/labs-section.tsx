@@ -1,25 +1,25 @@
-import type { JSX } from 'react';
+import type { JSX } from "react";
 
-import { TabPanel, Tabs, useTabParam, type TabDefinition } from '@clinic/ui';
-import { LabOrdersPage } from '@web/features/labs/lab-orders-page';
-import { LabsPage } from '@web/features/labs/labs-page';
+import { TabPanel, Tabs, useTabParam, type TabDefinition } from "@clinic/ui";
+import { LabOrdersPage } from "@web/features/labs/lab-orders-page";
+import { LabsPage } from "@web/features/labs/labs-page";
 
-const ORDERS = 'orders';
-const DIRECTORY = 'directory';
+const ORDERS = "orders";
+const DIRECTORY = "directory";
 
 type LabsTab = typeof ORDERS | typeof DIRECTORY;
 
 const TABS: readonly TabDefinition<LabsTab>[] = [
-  { id: ORDERS, label: 'labs.section.orders' },
-  { id: DIRECTORY, label: 'labs.section.directory' },
+  { id: ORDERS, label: "labs.section.orders" },
+  { id: DIRECTORY, label: "labs.section.directory" },
 ];
 
 export function LabsSection(): JSX.Element {
   const [active, setActive] = useTabParam<LabsTab>(
-    'tab',
+    "tab",
     TABS.map((tab) => tab.id),
     ORDERS,
-    ['page'],
+    ["page"],
   );
 
   return (

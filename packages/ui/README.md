@@ -37,9 +37,9 @@ src/
 
 ```css
 /* the product's entry stylesheet, in this order */
-@import 'tailwindcss';
-@import '@clinic/ui/styles/base.css'; /* tokens with neutral defaults */
-@import './theme.css'; /* this product's values on top */
+@import "tailwindcss";
+@import "@clinic/ui/styles/base.css"; /* tokens with neutral defaults */
+@import "./theme.css"; /* this product's values on top */
 ```
 
 ```tsx
@@ -99,10 +99,10 @@ its markup by tag or utility class, is not: both break on the next change here.
 - **`data-part`** names each inner part, so a product can reach one from plain CSS:
 
   ```css
-  [data-part='field-icon'] {
+  [data-part="field-icon"] {
     color: var(--color-primary-600);
   }
-  [data-part='table-body-row']:hover {
+  [data-part="table-body-row"]:hover {
     background: var(--color-selected);
   }
   ```

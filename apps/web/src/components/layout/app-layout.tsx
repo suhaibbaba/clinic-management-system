@@ -1,14 +1,14 @@
-import { useEffect, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Logo } from '@web/components/brand/logo';
-import { NavDrawer } from '@web/components/layout/nav-drawer';
-import { createPageActionSlot, PageActionSlotProvider } from '@clinic/ui/lib/page-action-slot';
-import { useIsMobile } from '@clinic/ui/lib/use-media-query';
-import { NotificationBell } from '@web/components/layout/notification-bell';
-import { TopSearch } from '@web/components/layout/top-search';
-import { UserMenu } from '@web/components/layout/user-menu';
-import { Button, Icon } from '@clinic/ui';
+import { useEffect, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import { Logo } from "@web/components/brand/logo";
+import { NavDrawer } from "@web/components/layout/nav-drawer";
+import { createPageActionSlot, PageActionSlotProvider } from "@clinic/ui/lib/page-action-slot";
+import { useIsMobile } from "@clinic/ui/lib/use-media-query";
+import { NotificationBell } from "@web/components/layout/notification-bell";
+import { TopSearch } from "@web/components/layout/top-search";
+import { UserMenu } from "@web/components/layout/user-menu";
+import { Button, Icon } from "@clinic/ui";
 import {
   activeNavItem,
   canReachNavItem,
@@ -17,14 +17,14 @@ import {
   visibleSettingsItems,
   type NavGroup,
   type NavItem,
-} from '@web/app/navigation';
-import { useSession } from '@web/features/auth/session';
-import { seesPendingBookings, usePendingBookingsCount } from '@web/features/booking/queries';
-import { cn } from '@clinic/ui/lib/cn';
-import { useClinicLogo } from '@web/lib/use-clinic-logo';
+} from "@web/app/navigation";
+import { useSession } from "@web/features/auth/session";
+import { seesPendingBookings, usePendingBookingsCount } from "@web/features/booking/queries";
+import { cn } from "@clinic/ui/lib/cn";
+import { useClinicLogo } from "@web/lib/use-clinic-logo";
 
 /** The one list the bar's search leads to; the bell and the slot are the rest of the reference's bar. */
-const PATIENTS = '/patients';
+const PATIENTS = "/patients";
 
 export function AppLayout(): JSX.Element {
   const { t } = useTranslation();
@@ -56,7 +56,7 @@ export function AppLayout(): JSX.Element {
         target instanceof HTMLTextAreaElement ||
         target?.isContentEditable === true;
 
-      if (event.key === '/' && !isTyping && !event.metaKey && !event.ctrlKey) {
+      if (event.key === "/" && !isTyping && !event.metaKey && !event.ctrlKey) {
         const search = document.querySelector<HTMLInputElement>('input[type="search"]');
 
         if (search) {
@@ -66,8 +66,8 @@ export function AppLayout(): JSX.Element {
       }
     };
 
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   const isMobile = useIsMobile();
@@ -78,16 +78,16 @@ export function AppLayout(): JSX.Element {
         {/* Desktop: a permanent rail. */}
         <aside
           className={cn(
-            'z-30 hidden shrink-0 bg-rail md:block md:w-[266px]',
-            'md:sticky md:top-0 md:h-dvh',
-            'md:border-e md:border-line',
+            "z-30 hidden shrink-0 bg-rail md:block md:w-[266px]",
+            "md:sticky md:top-0 md:h-dvh",
+            "md:border-e md:border-line",
           )}
         >
           <div className="flex h-full flex-col px-[18px] pt-5 pb-[18px]">
             {/* The logo on its own white plate, as the reference draws it — the rail's ground is a
               tint, so a mark sitting straight on it has no edge. */}
             <div className="mb-[22px] shrink-0 rounded-brand border border-line bg-surface px-4 py-3.5">
-              <Logo size="chrome" src={logoUrl} name={user?.clinic.name} alt={t('app.title')} />
+              <Logo size="chrome" src={logoUrl} name={user?.clinic.name} alt={t("app.title")} />
             </div>
 
             <div className="scroll-lane min-h-0 flex-1 overflow-y-auto">
@@ -106,9 +106,9 @@ export function AppLayout(): JSX.Element {
         <NavDrawer
           open={drawerOpen}
           onOpenChange={setDrawerOpen}
-          title={t('app.title')}
+          title={t("app.title")}
           brand={<Logo size="chrome" src={logoUrl} name={user?.clinic.name} />}
-          closeLabel={t('common.close')}
+          closeLabel={t("common.close")}
         >
           <NavList groups={groups} settings={settings} badges={badges} />
 
@@ -126,8 +126,8 @@ export function AppLayout(): JSX.Element {
           <div className="sticky top-0 z-20 bg-canvas px-4 pt-4 pb-4 md:px-[34px] md:pt-[26px]">
             <header
               className={cn(
-                'flex min-h-[70px] flex-wrap items-center gap-3.5',
-                'rounded-card border border-line bg-surface px-4 py-3 shadow-card',
+                "flex min-h-[70px] flex-wrap items-center gap-3.5",
+                "rounded-card border border-line bg-surface px-4 py-3 shadow-card",
               )}
             >
               <Button
@@ -137,7 +137,7 @@ export function AppLayout(): JSX.Element {
                 aria-expanded={drawerOpen}
                 onClick={() => setDrawerOpen(true)}
                 icon={<Icon name="menu" />}
-                aria-label={t('nav.menu')}
+                aria-label={t("nav.menu")}
               />
 
               {/* Search first, actions last, in logical order: the field opens where reading begins
@@ -174,12 +174,12 @@ function NavList({
 }: {
   readonly groups: readonly NavGroup[];
   readonly settings: readonly NavItem[];
-  readonly badges: Readonly<Record<'pendingBookings', number>>;
+  readonly badges: Readonly<Record<"pendingBookings", number>>;
 }): JSX.Element {
   const { t } = useTranslation();
 
   return (
-    <nav aria-label={t('nav.menu')} className="min-w-0 flex-1">
+    <nav aria-label={t("nav.menu")} className="min-w-0 flex-1">
       {groups.map((group) =>
         group.label === undefined ? (
           <ul key="loose">
@@ -194,7 +194,7 @@ function NavList({
 
       {settings.length > 0 && (
         <NavSection
-          label={NAV_SETTINGS.label ?? ''}
+          label={NAV_SETTINGS.label ?? ""}
           items={settings}
           badges={{ pendingBookings: 0 }}
         />
@@ -208,7 +208,7 @@ function NavRow({
   badges,
 }: {
   readonly item: NavItem;
-  readonly badges: Readonly<Record<'pendingBookings', number>>;
+  readonly badges: Readonly<Record<"pendingBookings", number>>;
 }): JSX.Element {
   const { t } = useTranslation();
   const { pathname } = useLocation();
@@ -221,13 +221,13 @@ function NavRow({
     <li>
       <Link
         to={item.to}
-        aria-current={isActive ? 'page' : undefined}
+        aria-current={isActive ? "page" : undefined}
         className={cn(
-          'mb-0.5 flex min-h-(--control-h) cursor-pointer items-center gap-[11px] rounded-nav px-3',
-          'text-nav font-medium transition-[background-color,color,box-shadow] duration-150',
+          "mb-0.5 flex min-h-(--control-h) cursor-pointer items-center gap-[11px] rounded-nav px-3",
+          "text-nav font-medium transition-[background-color,color,box-shadow] duration-150",
           isActive
-            ? 'nav-active-wash text-ink-inverse shadow-nav-active'
-            : 'text-ink-muted hover:bg-primary-100 hover:text-primary-700',
+            ? "nav-active-wash text-ink-inverse shadow-nav-active"
+            : "text-ink-muted hover:bg-primary-100 hover:text-primary-700",
         )}
       >
         <Icon name={item.icon} className="size-[19px] shrink-0" />
@@ -235,13 +235,13 @@ function NavRow({
 
         {count > 0 && (
           <span
-            aria-label={t('nav.waitingCount', { count })}
+            aria-label={t("nav.waitingCount", { count })}
             className={cn(
               // A lozenge that stays at least as wide as it is tall, so one digit is a circle and
               // three do not spill — the reference's `min-width:20px;height:20px`.
-              'pill-text inline-flex items-center ms-auto h-5 min-w-5 shrink-0 justify-center',
-              'rounded-pill px-1.5 text-micro font-medium tabular-nums',
-              isActive ? 'bg-ink-inverse text-primary-700' : 'bg-danger-600 text-ink-inverse',
+              "pill-text inline-flex items-center ms-auto h-5 min-w-5 shrink-0 justify-center",
+              "rounded-pill px-1.5 text-micro font-medium tabular-nums",
+              isActive ? "bg-ink-inverse text-primary-700" : "bg-danger-600 text-ink-inverse",
             )}
           >
             {count}
@@ -259,7 +259,7 @@ function NavSection({
 }: {
   readonly label: string;
   readonly items: readonly NavItem[];
-  readonly badges: Readonly<Record<'pendingBookings', number>>;
+  readonly badges: Readonly<Record<"pendingBookings", number>>;
 }): JSX.Element {
   const { t } = useTranslation();
 
@@ -269,8 +269,8 @@ function NavSection({
 
       <div
         className={cn(
-          'px-3 pt-1 pb-2 text-micro font-medium tracking-[0.02em] text-ink-subtle',
-          'page-ltr:uppercase',
+          "px-3 pt-1 pb-2 text-micro font-medium tracking-[0.02em] text-ink-subtle",
+          "page-ltr:uppercase",
         )}
       >
         {t(label)}

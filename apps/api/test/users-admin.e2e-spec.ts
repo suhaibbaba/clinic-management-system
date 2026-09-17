@@ -1,18 +1,18 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID } from "node:crypto";
 
-import { USER_ROLE, type UserRole } from '@clinic/shared';
+import { USER_ROLE, type UserRole } from "@clinic/shared";
 
-import { REFRESH_COOKIE_NAME } from '@api/auth/refresh-cookie';
+import { REFRESH_COOKIE_NAME } from "@api/auth/refresh-cookie";
 import {
   auth,
   createTestContext,
   TEST_PASSWORD,
   type TestClinic,
   type TestContext,
-} from '@test/helpers/test-app';
+} from "@test/helpers/test-app";
 
 /** Endpoints added so the web app can manage users and pick a specialty. */
-describe('Admin user management and specialties (e2e)', () => {
+describe("Admin user management and specialties (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
   const tokens = {} as Record<UserRole, string>;
@@ -35,30 +35,30 @@ describe('Admin user management and specialties (e2e)', () => {
     await context.close();
   });
 
-  describe('PATCH /me', () => {
-    it('lets anybody correct their own name and contact details', async () => {
+  describe("PATCH /me", () => {
+    it("lets anybody correct their own name and contact details", async () => {
       // A unique address per run: identifiers are unique system-wide and this database outlives
       // the suite that writes to it.
       const email = `me.${randomUUID()}@test.local`;
       const response = await context.app.inject({
-        method: 'PATCH',
-        url: '/me',
+        method: "PATCH",
+        url: "/me",
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
-        payload: { name: { ar: 'مؤيد كنعان', en: 'Muayyad Kanaan' }, email },
+        payload: { name: { ar: "مؤيد كنعان", en: "Muayyad Kanaan" }, email },
       });
       const body = response.json<{ name: { ar: string }; email: string; role: string }>();
 
       expect(response.statusCode).toBe(200);
-      expect(body.name.ar).toBe('مؤيد كنعان');
+      expect(body.name.ar).toBe("مؤيد كنعان");
       expect(body.email).toBe(email);
       // The whole profile comes back, so the session the caller holds can be replaced with it.
       expect(body.role).toBe(USER_ROLE.TECHNICIAN);
     });
 
-    it('is not a way to change your own role', async () => {
+    it("is not a way to change your own role", async () => {
       const escalate = await context.app.inject({
-        method: 'PATCH',
-        url: '/me',
+        method: "PATCH",
+        url: "/me",
         headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
         payload: { role: USER_ROLE.ADMIN },
       });
@@ -67,22 +67,22 @@ describe('Admin user management and specialties (e2e)', () => {
       expect(escalate.statusCode).toBe(400);
 
       const after = await context.app.inject({
-        method: 'GET',
-        url: '/me',
+        method: "GET",
+        url: "/me",
         headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
       });
 
       expect(after.json<{ role: string }>().role).toBe(USER_ROLE.RECEPTIONIST);
     });
 
-    it('refuses a phone another account already answers to', async () => {
+    it("refuses a phone another account already answers to", async () => {
       const phone = `+9725${String(Date.now()).slice(-7)}`;
       const created = await context.app.inject({
-        method: 'POST',
-        url: '/users',
+        method: "POST",
+        url: "/users",
         headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: {
-          name: { ar: 'زميل', en: 'Colleague' },
+          name: { ar: "زميل", en: "Colleague" },
           phone,
           role: USER_ROLE.RECEPTIONIST,
           password: TEST_PASSWORD,
@@ -92,8 +92,8 @@ describe('Admin user management and specialties (e2e)', () => {
       expect(created.statusCode).toBe(201);
 
       const response = await context.app.inject({
-        method: 'PATCH',
-        url: '/me',
+        method: "PATCH",
+        url: "/me",
         headers: auth(tokens[USER_ROLE.DOCTOR]),
         payload: { phone },
       });
@@ -102,24 +102,24 @@ describe('Admin user management and specialties (e2e)', () => {
     });
   });
 
-  describe('POST /users/:id/reset-password', () => {
-    it('sets a new password, ends existing sessions and records the reset', async () => {
+  describe("POST /users/:id/reset-password", () => {
+    it("sets a new password, ends existing sessions and records the reset", async () => {
       const phone = clinic.phones[USER_ROLE.RECEPTIONIST];
       const userId = clinic.userIds[USER_ROLE.RECEPTIONIST];
-      const newPassword = 'AdminResetPass123!';
+      const newPassword = "AdminResetPass123!";
 
       const loggedIn = await context.app.inject({
-        method: 'POST',
-        url: '/auth/login',
+        method: "POST",
+        url: "/auth/login",
         payload: { identifier: phone, password: TEST_PASSWORD },
       });
       const sessionCookie = (response: { cookies: unknown[] }): string =>
         (response.cookies as { name: string; value: string }[]).find(
           (cookie) => cookie.name === REFRESH_COOKIE_NAME,
-        )?.value ?? '';
+        )?.value ?? "";
 
       const reset = await context.app.inject({
-        method: 'POST',
+        method: "POST",
         url: `/users/${userId}/reset-password`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: { newPassword },
@@ -128,13 +128,13 @@ describe('Admin user management and specialties (e2e)', () => {
       expect(reset.statusCode).toBe(204);
 
       const withOld = await context.app.inject({
-        method: 'POST',
-        url: '/auth/login',
+        method: "POST",
+        url: "/auth/login",
         payload: { identifier: phone, password: TEST_PASSWORD },
       });
       const withNew = await context.app.inject({
-        method: 'POST',
-        url: '/auth/login',
+        method: "POST",
+        url: "/auth/login",
         payload: { identifier: phone, password: newPassword },
       });
 
@@ -143,8 +143,8 @@ describe('Admin user management and specialties (e2e)', () => {
 
       // The session held before the reset must be dead.
       const refreshOld = await context.app.inject({
-        method: 'POST',
-        url: '/auth/refresh',
+        method: "POST",
+        url: "/auth/refresh",
         headers: { cookie: `${REFRESH_COOKIE_NAME}=${sessionCookie(loggedIn)}` },
         payload: {},
       });
@@ -152,53 +152,53 @@ describe('Admin user management and specialties (e2e)', () => {
 
       // Recorded as a fact, never as a value.
       const trail = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/audit-log?entityId=${userId}&limit=50`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
       });
       const entries = trail.json().items as { newValue: Record<string, unknown> | null }[];
-      const resetEntry = entries.find((entry) => entry.newValue?.['passwordReset'] === true);
+      const resetEntry = entries.find((entry) => entry.newValue?.["passwordReset"] === true);
 
       expect(resetEntry).toBeDefined();
       expect(JSON.stringify(entries)).not.toContain(newPassword);
-      expect(JSON.stringify(entries)).not.toContain('$argon2');
+      expect(JSON.stringify(entries)).not.toContain("$argon2");
     });
 
     it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
-      'refuses %s',
+      "refuses %s",
       async (role) => {
         const response = await context.app.inject({
-          method: 'POST',
+          method: "POST",
           url: `/users/${clinic.userIds[USER_ROLE.TECHNICIAN]}/reset-password`,
           headers: auth(tokens[role]),
-          payload: { newPassword: 'ShouldNotWork123!' },
+          payload: { newPassword: "ShouldNotWork123!" },
         });
 
         expect(response.statusCode).toBe(403);
       },
     );
 
-    it('returns 404 for a user in another clinic', async () => {
+    it("returns 404 for a user in another clinic", async () => {
       const other = await context.createClinic();
 
       const response = await context.app.inject({
-        method: 'POST',
+        method: "POST",
         url: `/users/${other.userIds[USER_ROLE.DOCTOR]}/reset-password`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
-        payload: { newPassword: 'ShouldNotWork123!' },
+        payload: { newPassword: "ShouldNotWork123!" },
       });
 
       expect(response.statusCode).toBe(404);
     });
   });
 
-  describe('GET /specialties', () => {
+  describe("GET /specialties", () => {
     it.each([USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
-      'is readable by %s',
+      "is readable by %s",
       async (role) => {
         const response = await context.app.inject({
-          method: 'GET',
-          url: '/specialties',
+          method: "GET",
+          url: "/specialties",
           headers: auth(tokens[role]),
         });
 
@@ -209,8 +209,8 @@ describe('Admin user management and specialties (e2e)', () => {
       },
     );
 
-    it('requires authentication', async () => {
-      const response = await context.app.inject({ method: 'GET', url: '/specialties' });
+    it("requires authentication", async () => {
+      const response = await context.app.inject({ method: "GET", url: "/specialties" });
 
       expect(response.statusCode).toBe(401);
     });

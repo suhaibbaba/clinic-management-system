@@ -3,13 +3,13 @@ import {
   MAX_USER_PHOTO_BYTES,
   personName,
   type User,
-} from '@clinic/shared';
-import { useRef, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useRef, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Avatar, Button, Icon, useToast } from '@clinic/ui';
-import { useRemoveUserPhoto, useUploadUserPhoto } from '@web/features/users/queries';
-import { errorMessageKey } from '@web/lib/api-error';
+import { Avatar, Button, Icon, useToast } from "@clinic/ui";
+import { useRemoveUserPhoto, useUploadUserPhoto } from "@web/features/users/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 
 export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
   const { t, i18n } = useTranslation();
@@ -25,18 +25,18 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
     }
 
     if (!ALLOWED_USER_PHOTO_MIME_TYPES.some((allowed) => allowed === file.type)) {
-      toast.error('users.photoUnsupported');
+      toast.error("users.photoUnsupported");
       return;
     }
 
     if (file.size > MAX_USER_PHOTO_BYTES) {
-      toast.error('users.photoTooLarge');
+      toast.error("users.photoTooLarge");
       return;
     }
 
     try {
       await upload.mutateAsync({ id: user.id, file });
-      toast.success('users.photoUpdated');
+      toast.success("users.photoUpdated");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -45,7 +45,7 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
   const clear = async (): Promise<void> => {
     try {
       await remove.mutateAsync(user.id);
-      toast.success('users.photoRemoved');
+      toast.success("users.photoRemoved");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -61,18 +61,18 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
       />
 
       <div className="flex flex-col items-start gap-1">
-        <p className="text-label text-ink-muted">{t('users.photoHint')}</p>
+        <p className="text-label text-ink-muted">{t("users.photoHint")}</p>
 
         <span className="flex flex-wrap items-center gap-2">
           <input
             ref={inputRef}
             type="file"
             className="hidden"
-            accept={ALLOWED_USER_PHOTO_MIME_TYPES.join(',')}
-            aria-label={t('users.photo')}
+            accept={ALLOWED_USER_PHOTO_MIME_TYPES.join(",")}
+            aria-label={t("users.photo")}
             onChange={(event) => {
               void pick(event.target.files?.[0]);
-              event.target.value = '';
+              event.target.value = "";
             }}
           />
 
@@ -83,7 +83,7 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
             isLoading={upload.isPending}
             onClick={() => inputRef.current?.click()}
           >
-            {t(user.photoUrl ? 'users.replacePhoto' : 'users.uploadPhoto')}
+            {t(user.photoUrl ? "users.replacePhoto" : "users.uploadPhoto")}
           </Button>
 
           {user.photoUrl && (
@@ -94,7 +94,7 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
               isLoading={remove.isPending}
               onClick={() => void clear()}
             >
-              {t('common.delete')}
+              {t("common.delete")}
             </Button>
           )}
         </span>

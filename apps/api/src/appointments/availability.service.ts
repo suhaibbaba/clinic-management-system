@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import {
   addDays,
   APPOINTMENT_RELEASED_STATUSES,
@@ -14,19 +14,19 @@ import {
   type Slot,
   type TimeRange,
   type WeeklySchedule,
-} from '@clinic/shared';
-import { and, eq, gt, gte, lt, lte, ne, notInArray, or, sql } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, eq, gt, gte, lt, lte, ne, notInArray, or, sql } from "drizzle-orm";
 
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { DATABASE, type Database } from '@api/database/database.module';
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { DATABASE, type Database } from "@api/database/database.module";
 import {
   appointments,
   clinicClosures,
   clinics,
   doctors,
   doctorTimeOff,
-} from '@api/database/schema';
-import { computeDaySlots, toTimeOfDay, type BusyInterval } from '@api/appointments/slots';
+} from "@api/database/schema";
+import { computeDaySlots, toTimeOfDay, type BusyInterval } from "@api/appointments/slots";
 
 const DEFAULT_STEP_MINUTES = 15;
 
@@ -98,7 +98,7 @@ export class AvailabilityService {
       .limit(1);
 
     if (!doctor) {
-      throw new BadRequestException('Doctor not found in this clinic');
+      throw new BadRequestException("Doctor not found in this clinic");
     }
 
     const [clinic] = await this.db
@@ -108,7 +108,7 @@ export class AvailabilityService {
       .limit(1);
 
     if (!clinic) {
-      throw new BadRequestException('Clinic not found');
+      throw new BadRequestException("Clinic not found");
     }
 
     const settings = clinicScheduleSettings(clinic.settings);
@@ -227,14 +227,14 @@ export class AvailabilityService {
   }
 
   private closedNote(
-    reason: Availability['closedReason'],
+    reason: Availability["closedReason"],
     context: DayAvailabilityContext,
   ): string | null {
-    if (reason === 'clinic_closure') {
+    if (reason === "clinic_closure") {
       return context.closure?.reason ?? null;
     }
 
-    return reason === 'doctor_time_off' ? context.timeOffReason : null;
+    return reason === "doctor_time_off" ? context.timeOffReason : null;
   }
 
   private pastCutoff(isoDate: string, timeZone: string): number | undefined {

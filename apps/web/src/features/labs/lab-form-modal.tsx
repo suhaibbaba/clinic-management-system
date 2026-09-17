@@ -1,12 +1,12 @@
-import { createLabSchema, type Lab, type CreateLabInput } from '@clinic/shared';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, type JSX } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+import { createLabSchema, type Lab, type CreateLabInput } from "@clinic/shared";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, type JSX } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
-import { Button, FormField, Input, Modal, PhoneInput, Textarea, useToast } from '@clinic/ui';
-import { useCreateLab, useUpdateLab } from '@web/features/labs/queries';
-import { errorMessageKey } from '@web/lib/api-error';
+import { Button, FormField, Input, Modal, PhoneInput, Textarea, useToast } from "@clinic/ui";
+import { useCreateLab, useUpdateLab } from "@web/features/labs/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 
 export function LabFormModal({
   open,
@@ -29,17 +29,17 @@ export function LabFormModal({
     formState: { errors, isSubmitting },
   } = useForm<CreateLabInput>({
     resolver: zodResolver(createLabSchema),
-    defaultValues: { name: '', phone: '', address: '', contactPerson: '', notes: '' },
+    defaultValues: { name: "", phone: "", address: "", contactPerson: "", notes: "" },
   });
 
   useEffect(() => {
     if (open) {
       reset({
-        name: lab?.name ?? '',
-        phone: lab?.phone ?? '',
-        address: lab?.address ?? '',
-        contactPerson: lab?.contactPerson ?? '',
-        notes: lab?.notes ?? '',
+        name: lab?.name ?? "",
+        phone: lab?.phone ?? "",
+        address: lab?.address ?? "",
+        contactPerson: lab?.contactPerson ?? "",
+        notes: lab?.notes ?? "",
       });
     }
   }, [open, lab, reset]);
@@ -52,7 +52,7 @@ export function LabFormModal({
         await create.mutateAsync(values);
       }
 
-      toast.success(lab ? 'labs.updated' : 'labs.created');
+      toast.success(lab ? "labs.updated" : "labs.created");
       onOpenChange(false);
     } catch (error) {
       toast.error(errorMessageKey(error));
@@ -63,43 +63,43 @@ export function LabFormModal({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title={t(lab ? 'labs.editTitle' : 'labs.addTitle')}
+      title={t(lab ? "labs.editTitle" : "labs.addTitle")}
       footer={
         <>
           <Button variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button isLoading={isSubmitting} onClick={() => void submit()}>
-            {t('common.save')}
+            {t("common.save")}
           </Button>
         </>
       }
     >
       <form className="flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
         <FormField label="labs.fields.name" htmlFor="lab-name" error={errors.name}>
-          <Input id="lab-name" {...register('name')} />
+          <Input id="lab-name" {...register("name")} />
         </FormField>
 
         <FormField label="labs.fields.contactPerson" htmlFor="lab-contact" optional>
-          <Input id="lab-contact" {...register('contactPerson')} />
+          <Input id="lab-contact" {...register("contactPerson")} />
         </FormField>
 
         <FormField
           label="labs.fields.phone"
           htmlFor="lab-phone"
           error={errors.phone}
-          errorKey={errors.phone ? 'errors.validation.invalidPhone' : undefined}
+          errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
           optional
         >
-          <PhoneInput id="lab-phone" hasError={Boolean(errors.phone)} {...register('phone')} />
+          <PhoneInput id="lab-phone" hasError={Boolean(errors.phone)} {...register("phone")} />
         </FormField>
 
         <FormField label="labs.fields.address" htmlFor="lab-address" optional>
-          <Input id="lab-address" {...register('address')} />
+          <Input id="lab-address" {...register("address")} />
         </FormField>
 
         <FormField label="labs.fields.notes" htmlFor="lab-notes" optional>
-          <Textarea id="lab-notes" rows={2} {...register('notes')} />
+          <Textarea id="lab-notes" rows={2} {...register("notes")} />
         </FormField>
       </form>
     </Modal>

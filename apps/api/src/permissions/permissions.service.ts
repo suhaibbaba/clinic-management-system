@@ -1,10 +1,10 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
-import { USER_ROLE, type UserRole } from '@clinic/shared';
+import { BadRequestException, Inject, Injectable } from "@nestjs/common";
+import { and, eq } from "drizzle-orm";
+import { USER_ROLE, type UserRole } from "@clinic/shared";
 
-import { DATABASE, type Database } from '@api/database/database.module';
-import { roleCapabilities } from '@api/database/schema';
-import { CapabilityRegistry } from '@api/permissions/capability-registry.service';
+import { DATABASE, type Database } from "@api/database/database.module";
+import { roleCapabilities } from "@api/database/schema";
+import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
 
 type Grants = ReadonlyMap<string, boolean>;
 
@@ -58,7 +58,7 @@ export class PermissionsService {
     // stored row saying otherwise is a screen that shows something untrue about who can do what.
     if (role === USER_ROLE.ADMIN) {
       throw new BadRequestException(
-        'The administrator holds every permission and cannot be edited',
+        "The administrator holds every permission and cannot be edited",
       );
     }
 

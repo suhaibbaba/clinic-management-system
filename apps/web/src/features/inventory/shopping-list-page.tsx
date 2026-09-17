@@ -1,14 +1,14 @@
-import { LOOKUP_LIST, type ShoppingListLine } from '@clinic/shared';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { LOOKUP_LIST, type ShoppingListLine } from "@clinic/shared";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Badge, Button, EmptyState, Icon, Ltr, PageHeader, Table, type Column } from '@clinic/ui';
-import { inventoryApi } from '@web/features/inventory/api';
-import { useLookupLabels } from '@web/features/lookups/queries';
-import { categoryTone } from '@web/features/inventory/display';
-import { useShoppingList } from '@web/features/inventory/queries';
-import { formatDate } from '@web/lib/format';
-import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
+import { Badge, Button, EmptyState, Icon, Ltr, PageHeader, Table, type Column } from "@clinic/ui";
+import { inventoryApi } from "@web/features/inventory/api";
+import { useLookupLabels } from "@web/features/lookups/queries";
+import { categoryTone } from "@web/features/inventory/display";
+import { useShoppingList } from "@web/features/inventory/queries";
+import { formatDate } from "@web/lib/format";
+import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 export function ShoppingListPage(): JSX.Element {
   const { t } = useTranslation();
@@ -18,8 +18,8 @@ export function ShoppingListPage(): JSX.Element {
 
   const columns: readonly Column<ShoppingListLine>[] = [
     {
-      key: 'item',
-      header: 'inventory.columns.item',
+      key: "item",
+      header: "inventory.columns.item",
       primary: true,
       render: (row) => (
         <span className="flex flex-col">
@@ -31,30 +31,30 @@ export function ShoppingListPage(): JSX.Element {
       ),
     },
     {
-      key: 'category',
-      header: 'inventory.columns.category',
+      key: "category",
+      header: "inventory.columns.category",
       hideOnMobile: true,
       render: (row) => (
         <Badge tone={categoryTone(row.category)}>{categoryLabel(row.category)}</Badge>
       ),
     },
     {
-      key: 'current',
-      header: 'inventory.shoppingList.current',
-      align: 'numeric',
+      key: "current",
+      header: "inventory.shoppingList.current",
+      align: "numeric",
       render: (row) => <Ltr className="text-danger-600">{row.quantity}</Ltr>,
     },
     {
-      key: 'minimum',
-      header: 'inventory.minimum',
-      align: 'numeric',
+      key: "minimum",
+      header: "inventory.minimum",
+      align: "numeric",
       hideOnMobile: true,
       render: (row) => <Ltr>{row.minQuantity}</Ltr>,
     },
     {
-      key: 'suggested',
-      header: 'inventory.shoppingList.suggested',
-      align: 'numeric',
+      key: "suggested",
+      header: "inventory.shoppingList.suggested",
+      align: "numeric",
       render: (row) => (
         <span className="flex items-baseline justify-end gap-1.5">
           <Ltr className="font-medium text-ink">{row.suggested}</Ltr>
@@ -67,7 +67,7 @@ export function ShoppingListPage(): JSX.Element {
   const print = async (): Promise<void> => {
     const url = URL.createObjectURL(await inventoryApi.shoppingListPdf());
 
-    window.open(url, '_blank', 'noopener');
+    window.open(url, "_blank", "noopener");
     window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
   };
 
@@ -82,7 +82,7 @@ export function ShoppingListPage(): JSX.Element {
             disabled={(list.data?.lines.length ?? 0) === 0}
             onClick={() => void print()}
           >
-            {t('inventory.shoppingList.print')}
+            {t("inventory.shoppingList.print")}
           </Button>
         }
       />
@@ -104,7 +104,7 @@ export function ShoppingListPage(): JSX.Element {
 
       {list.data && list.data.lines.length > 0 && (
         <p className="text-label text-ink-muted">
-          {t('inventory.shoppingList.note')} — <Ltr>{formatDate(list.data.generatedAt)}</Ltr>
+          {t("inventory.shoppingList.note")} — <Ltr>{formatDate(list.data.generatedAt)}</Ltr>
         </p>
       )}
     </div>

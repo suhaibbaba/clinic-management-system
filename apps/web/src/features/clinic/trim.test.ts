@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from "vitest";
 
-import { opaqueBounds } from '@web/features/clinic/trim';
+import { opaqueBounds } from "@web/features/clinic/trim";
 
 function frame(width: number, height: number, ink: readonly [number, number][], alpha = 255) {
   const data = new Uint8ClampedArray(width * height * 4);
@@ -12,9 +12,9 @@ function frame(width: number, height: number, ink: readonly [number, number][], 
   return opaqueBounds(data, width, height);
 }
 
-describe('opaqueBounds', () => {
+describe("opaqueBounds", () => {
   // An adaptive-icon foreground is authored this way: the mark inside, padding baked around it.
-  it('finds the mark inside a padded frame', () => {
+  it("finds the mark inside a padded frame", () => {
     expect(
       frame(10, 10, [
         [3, 4],
@@ -23,7 +23,7 @@ describe('opaqueBounds', () => {
     ).toEqual({ x: 3, y: 4, width: 4, height: 4 });
   });
 
-  it('trims an image that fills its frame to itself', () => {
+  it("trims an image that fills its frame to itself", () => {
     expect(
       frame(4, 4, [
         [0, 0],
@@ -33,7 +33,7 @@ describe('opaqueBounds', () => {
   });
 
   // A JPEG has no alpha channel at all, so nothing is ever removed from one.
-  it('keeps the whole frame when everything is opaque', () => {
+  it("keeps the whole frame when everything is opaque", () => {
     const ink: [number, number][] = [];
 
     for (let y = 0; y < 3; y += 1) {
@@ -45,11 +45,11 @@ describe('opaqueBounds', () => {
     expect(frame(3, 3, ink)).toEqual({ x: 0, y: 0, width: 3, height: 3 });
   });
 
-  it('keeps the whole frame rather than collapsing when nothing is drawn', () => {
+  it("keeps the whole frame rather than collapsing when nothing is drawn", () => {
     expect(frame(5, 6, [])).toEqual({ x: 0, y: 0, width: 5, height: 6 });
   });
 
-  it('reads a barely-there edge as antialiasing, not artwork', () => {
+  it("reads a barely-there edge as antialiasing, not artwork", () => {
     expect(frame(6, 6, [[1, 1]], 4)).toEqual({ x: 0, y: 0, width: 6, height: 6 });
     expect(frame(6, 6, [[1, 1]], 200)).toEqual({ x: 1, y: 1, width: 1, height: 1 });
   });

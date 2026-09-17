@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from "@nestjs/common";
 import {
   addMoney,
   formatMinorUnits,
@@ -11,12 +11,12 @@ import {
   type Statement,
   type StatementEntry,
   type StatementQuery,
-} from '@clinic/shared';
-import { and, eq, isNull, sql, type SQL } from 'drizzle-orm';
-import type { PgColumn } from 'drizzle-orm/pg-core';
+} from "@clinic/shared";
+import { and, eq, isNull, sql, type SQL } from "drizzle-orm";
+import type { PgColumn } from "drizzle-orm/pg-core";
 
-import { DATABASE, type Database } from '@api/database/database.module';
-import { charges, payments, performedProcedures, procedureCatalog } from '@api/database/schema';
+import { DATABASE, type Database } from "@api/database/database.module";
+import { charges, payments, performedProcedures, procedureCatalog } from "@api/database/schema";
 
 interface LedgerLine {
   readonly id: string;
@@ -70,8 +70,8 @@ export class LedgerService {
     `);
 
     const row = rows[0];
-    const charged = normalise(row?.charged ?? '0');
-    const paid = normalise(row?.paid ?? '0');
+    const charged = normalise(row?.charged ?? "0");
+    const paid = normalise(row?.paid ?? "0");
 
     return {
       patientId,
@@ -161,7 +161,7 @@ export class LedgerService {
         kind: LEDGER_ENTRY_KIND.CHARGE,
         occurredAt: row.createdAt,
         amount: subtractMoney(row.amount, row.discount),
-        description: row.procedureName ?? row.note ?? '',
+        description: row.procedureName ?? row.note ?? "",
         receiptNumber: null,
         isReversal: row.reversesId !== null,
       })),
@@ -170,14 +170,14 @@ export class LedgerService {
         kind: LEDGER_ENTRY_KIND.PAYMENT,
         occurredAt: row.createdAt,
         amount: formatMinorUnits(-toMinorUnits(row.amount)),
-        description: row.note ?? '',
+        description: row.note ?? "",
         receiptNumber: row.receiptNumber,
         isReversal: row.reversesId !== null,
       })),
     ].sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime() || a.id.localeCompare(b.id));
 
-    let running: Money = '0.00';
-    let opening: Money = '0.00';
+    let running: Money = "0.00";
+    let opening: Money = "0.00";
     const entries: StatementEntry[] = [];
 
     for (const line of lines) {

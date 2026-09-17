@@ -1,5 +1,5 @@
-import fastifyCookie from '@fastify/cookie';
-import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+import fastifyCookie from "@fastify/cookie";
+import { FastifyAdapter, type NestFastifyApplication } from "@nestjs/platform-fastify";
 
 // `trustProxy` makes `request.protocol`/`hostname`/`ip` describe the browser rather than the last
 // hop — nginx and the Vite proxy sit in front, so without it every request looks like plain http.

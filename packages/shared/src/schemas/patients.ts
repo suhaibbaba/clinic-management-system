@@ -1,9 +1,9 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { GENDERS } from '@shared/enums';
-import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
-import { signedMoneySchema } from '@shared/schemas/money';
-import { phoneSchema } from '@shared/schemas/common';
+import { GENDERS } from "@shared/enums";
+import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
+import { signedMoneySchema } from "@shared/schemas/money";
+import { phoneSchema } from "@shared/schemas/common";
 
 export const patientIdParamSchema = z.object({ patientId: uuidSchema });
 export type PatientIdParam = z.infer<typeof patientIdParamSchema>;
@@ -11,8 +11,8 @@ export type PatientIdParam = z.infer<typeof patientIdParamSchema>;
 /** Gregorian, `YYYY-MM-DD` — a date of birth has no time or zone. */
 export const dateOnlySchema = z
   .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected a YYYY-MM-DD date')
-  .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00Z`)), 'Not a valid date');
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected a YYYY-MM-DD date")
+  .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00Z`)), "Not a valid date");
 
 // ROLES.md `PatientClinicalView` — admin and doctor only. The clinical detail itself lives in the
 // related tables.
@@ -76,7 +76,7 @@ export type CreatePatientInput = z.infer<typeof createPatientSchema>;
 export const updatePatientSchema = z
   .object(patientWritableFields)
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdatePatientInput = z.infer<typeof updatePatientSchema>;
 
 export const inlinePatientSchema = z.object({
@@ -98,7 +98,7 @@ export const hasExactlyOnePatient = (input: {
   readonly newPatient?: InlinePatientInput | undefined;
 }): boolean => (input.patientId === undefined) !== (input.newPatient === undefined);
 
-export const PATIENT_REF_MESSAGE = 'Provide either patientId or newPatient';
+export const PATIENT_REF_MESSAGE = "Provide either patientId or newPatient";
 
 export const patientPhoneClashSchema = z.object({
   statusCode: z.literal(409),

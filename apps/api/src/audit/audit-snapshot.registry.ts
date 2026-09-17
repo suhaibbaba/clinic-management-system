@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 
 // Must return a redacted projection — never a password hash: the value is stored verbatim in
 // `audit_log` and read back by admins.

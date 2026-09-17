@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
 
-import { validateEnv } from '@api/config/env.schema';
+import { validateEnv } from "@api/config/env.schema";
 
 /** Read values with `config.get('PORT', { infer: true })` for full type inference. */
 @Module({
@@ -9,7 +9,7 @@ import { validateEnv } from '@api/config/env.schema';
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
-      envFilePath: ['.env', '../../.env'],
+      envFilePath: [".env", "../../.env"],
       validate: validateEnv,
     }),
   ],

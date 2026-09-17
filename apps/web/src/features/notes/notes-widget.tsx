@@ -1,11 +1,11 @@
-import { useState, type FormEvent, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useState, type FormEvent, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Icon, PersonName, Widget } from '@clinic/ui';
-import { useSession } from '@web/features/auth/session';
-import { useCreateNote, useDeleteNote, useNotes } from '@web/features/notes/queries';
-import { formatDate } from '@web/lib/format';
-import { cn } from '@clinic/ui/lib/cn';
+import { Icon, PersonName, Widget } from "@clinic/ui";
+import { useSession } from "@web/features/auth/session";
+import { useCreateNote, useDeleteNote, useNotes } from "@web/features/notes/queries";
+import { formatDate } from "@web/lib/format";
+import { cn } from "@clinic/ui/lib/cn";
 
 // The clinic's noticeboard, not a patient's record: one line the next person at the desk needs to
 // read. Anything about a patient belongs on the patient, where it is scoped and audited as such.
@@ -15,7 +15,7 @@ export function NotesWidget(): JSX.Element {
   const notes = useNotes();
   const create = useCreateNote();
   const remove = useDeleteNote();
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState("");
 
   const submit = (event: FormEvent): void => {
     event.preventDefault();
@@ -25,21 +25,21 @@ export function NotesWidget(): JSX.Element {
       return;
     }
 
-    create.mutate({ body }, { onSuccess: () => setDraft('') });
+    create.mutate({ body }, { onSuccess: () => setDraft("") });
   };
 
   return (
-    <Widget title={t('notes.title')}>
+    <Widget title={t("notes.title")}>
       <ul className="flex flex-col">
         {(notes.data?.items ?? []).map((note) => {
-          const canRemove = user?.role === 'admin' || note.authorId === user?.id;
+          const canRemove = user?.role === "admin" || note.authorId === user?.id;
 
           return (
             <li
               key={note.id}
               className={cn(
-                'mt-2.5 flex items-start gap-2 rounded-control border border-note-line bg-note-bg',
-                'px-3 py-2.5 text-meta leading-relaxed text-note-ink',
+                "mt-2.5 flex items-start gap-2 rounded-control border border-note-line bg-note-bg",
+                "px-3 py-2.5 text-meta leading-relaxed text-note-ink",
               )}
             >
               <div className="min-w-0 flex-1">
@@ -58,14 +58,14 @@ export function NotesWidget(): JSX.Element {
               {canRemove && (
                 <button
                   type="button"
-                  aria-label={t('notes.remove')}
+                  aria-label={t("notes.remove")}
                   onClick={() => remove.mutate(note.id)}
                   disabled={remove.isPending}
                   className={cn(
-                    'inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center',
-                    'lg:size-(--control-h-sm)',
-                    'rounded-chip text-note-meta transition-colors duration-150',
-                    'hover:text-danger-600 disabled:cursor-not-allowed disabled:opacity-40',
+                    "inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center",
+                    "lg:size-(--control-h-sm)",
+                    "rounded-chip text-note-meta transition-colors duration-150",
+                    "hover:text-danger-600 disabled:cursor-not-allowed disabled:opacity-40",
                   )}
                 >
                   <Icon name="x" className="size-3.5" />
@@ -77,7 +77,7 @@ export function NotesWidget(): JSX.Element {
       </ul>
 
       {notes.data?.items.length === 0 && (
-        <p className="mt-2.5 text-meta text-ink-subtle">{t('notes.empty')}</p>
+        <p className="mt-2.5 text-meta text-ink-subtle">{t("notes.empty")}</p>
       )}
 
       {/* A dashed box rather than a field: it reads as somewhere to add rather than somewhere to
@@ -85,8 +85,8 @@ export function NotesWidget(): JSX.Element {
       <form
         onSubmit={submit}
         className={cn(
-          'mt-3 flex items-center gap-2 rounded-control border border-dashed border-line px-3',
-          'min-h-(--control-h) lg:min-h-(--control-h-sm)',
+          "mt-3 flex items-center gap-2 rounded-control border border-dashed border-line px-3",
+          "min-h-(--control-h) lg:min-h-(--control-h-sm)",
         )}
       >
         <Icon name="edit" className="size-3.5 shrink-0 text-ink-faint" aria-hidden="true" />
@@ -95,23 +95,23 @@ export function NotesWidget(): JSX.Element {
           value={draft}
           maxLength={500}
           onChange={(event) => setDraft(event.target.value)}
-          aria-label={t('notes.add')}
-          placeholder={t('notes.placeholder')}
+          aria-label={t("notes.add")}
+          placeholder={t("notes.placeholder")}
           className={cn(
-            'w-full min-w-0 self-stretch border-none bg-transparent text-field text-ink outline-none',
-            'placeholder:text-ink-subtle',
+            "w-full min-w-0 self-stretch border-none bg-transparent text-field text-ink outline-none",
+            "placeholder:text-ink-subtle",
           )}
         />
         {draft.trim().length >= 2 && (
           <button
             type="submit"
             disabled={create.isPending}
-            aria-label={t('notes.save')}
+            aria-label={t("notes.save")}
             className={cn(
-              'inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-chip',
-              'lg:size-(--control-h-sm)',
-              'bg-primary-600 text-ink-inverse transition-[filter] duration-150',
-              'hover:brightness-[1.06] disabled:cursor-not-allowed disabled:opacity-40',
+              "inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-chip",
+              "lg:size-(--control-h-sm)",
+              "bg-primary-600 text-ink-inverse transition-[filter] duration-150",
+              "hover:brightness-[1.06] disabled:cursor-not-allowed disabled:opacity-40",
             )}
           >
             <Icon name="check" className="size-3.5" />

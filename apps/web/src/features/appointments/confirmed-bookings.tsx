@@ -1,7 +1,7 @@
-import { APPOINTMENT_STATUS, LOOKUP_LIST, type CalendarAppointment } from '@clinic/shared';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { APPOINTMENT_STATUS, LOOKUP_LIST, type CalendarAppointment } from "@clinic/shared";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 import {
   Badge,
@@ -13,14 +13,14 @@ import {
   Table,
   usePageParams,
   type Column,
-} from '@clinic/ui';
-import { minutesOf, toTimeLabel, todayIso } from '@web/features/appointments/calendar-time';
-import { setClinicTimeZone } from '@web/lib/clinic-zone';
-import { useAppointments } from '@web/features/appointments/queries';
-import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from '@web/features/appointments/status';
-import { useClinic } from '@web/features/clinic/queries';
-import { useLookupLabels } from '@web/features/lookups/queries';
-import { formatDate } from '@web/lib/format';
+} from "@clinic/ui";
+import { minutesOf, toTimeLabel, todayIso } from "@web/features/appointments/calendar-time";
+import { setClinicTimeZone } from "@web/lib/clinic-zone";
+import { useAppointments } from "@web/features/appointments/queries";
+import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/features/appointments/status";
+import { useClinic } from "@web/features/clinic/queries";
+import { useLookupLabels } from "@web/features/lookups/queries";
+import { formatDate } from "@web/lib/format";
 
 export function ConfirmedBookings(): JSX.Element {
   const { t } = useTranslation();
@@ -40,8 +40,8 @@ export function ConfirmedBookings(): JSX.Element {
 
   const columns: readonly Column<CalendarAppointment>[] = [
     {
-      key: 'patient',
-      header: 'booking.pending.columns.patient',
+      key: "patient",
+      header: "booking.pending.columns.patient",
       primary: true,
       render: (row) => (
         <Link
@@ -53,19 +53,19 @@ export function ConfirmedBookings(): JSX.Element {
       ),
     },
     {
-      key: 'phone',
-      header: 'booking.pending.columns.phone',
+      key: "phone",
+      header: "booking.pending.columns.phone",
       hideOnMobile: true,
       render: (row) => <PhoneLink value={row.patientPhone} />,
     },
     {
-      key: 'doctor',
-      header: 'booking.pending.columns.doctor',
+      key: "doctor",
+      header: "booking.pending.columns.doctor",
       render: (row) => <PersonName name={row.doctorName} />,
     },
     {
-      key: 'slot',
-      header: 'booking.pending.columns.slot',
+      key: "slot",
+      header: "booking.pending.columns.slot",
       render: (row) => (
         <span className="flex flex-wrap items-center gap-2">
           <Ltr>{formatDate(row.startsAt)}</Ltr>
@@ -74,8 +74,8 @@ export function ConfirmedBookings(): JSX.Element {
       ),
     },
     {
-      key: 'type',
-      header: 'appointments.type',
+      key: "type",
+      header: "appointments.type",
       hideOnMobile: true,
       render: (row) => (
         <span className="flex items-center gap-2">

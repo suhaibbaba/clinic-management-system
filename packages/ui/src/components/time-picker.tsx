@@ -1,11 +1,11 @@
-import { useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { FIELD_BUTTON, FIELD_TEXT, FieldLock, fieldShell } from '@ui/components/field';
-import { Icon } from '@ui/components/icon';
-import { openOnArrowDown, usePickerOpen } from '@ui/components/picker-open';
-import { Popover } from '@ui/components/popover';
-import { cn } from '@ui/lib/cn';
+import { FIELD_BUTTON, FIELD_TEXT, FieldLock, fieldShell } from "@ui/components/field";
+import { Icon } from "@ui/components/icon";
+import { openOnArrowDown, usePickerOpen } from "@ui/components/picker-open";
+import { Popover } from "@ui/components/popover";
+import { cn } from "@ui/lib/cn";
 
 /** `HH:mm`, 24-hour, Latin digits — the same shape the API stores. */
 const TIME = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -13,9 +13,9 @@ const TIME = /^([01]\d|2[0-3]):([0-5]\d)$/;
 export const isValidTime = (value: string): boolean => TIME.test(value);
 
 /** Quarter hours because that is how a clinic books; offering 09:07 invites a diary nobody can read. */
-export function timeSlots(from = '00:00', to = '23:45', stepMinutes = 15): readonly string[] {
+export function timeSlots(from = "00:00", to = "23:45", stepMinutes = 15): readonly string[] {
   const minutes = (value: string): number => {
-    const [h = '0', m = '0'] = value.split(':');
+    const [h = "0", m = "0"] = value.split(":");
     return Number(h) * 60 + Number(m);
   };
 
@@ -24,8 +24,8 @@ export function timeSlots(from = '00:00', to = '23:45', stepMinutes = 15): reado
   const slots: string[] = [];
 
   for (let at = start; at <= end; at += stepMinutes) {
-    const h = String(Math.floor(at / 60)).padStart(2, '0');
-    const m = String(at % 60).padStart(2, '0');
+    const h = String(Math.floor(at / 60)).padStart(2, "0");
+    const m = String(at % 60).padStart(2, "0");
     slots.push(`${h}:${m}`);
   }
 
@@ -70,13 +70,13 @@ export function TimePicker({
     setTyped(value);
   }
 
-  const slots = timeSlots(min ?? '00:00', max ?? '23:45', stepMinutes);
+  const slots = timeSlots(min ?? "00:00", max ?? "23:45", stepMinutes);
 
   const commit = (text: string): void => {
     setTyped(text);
 
-    if (text.trim() === '') {
-      onChange('');
+    if (text.trim() === "") {
+      onChange("");
       return;
     }
 
@@ -102,12 +102,12 @@ export function TimePicker({
             autoComplete="off"
             disabled={disabled}
             aria-invalid={hasError || undefined}
-            placeholder={t('common.placeholders.time')}
+            placeholder={t("common.placeholders.time")}
             value={typed}
             onChange={(event) => commit(event.target.value)}
             {...picker.opens(false)}
             onKeyDown={openOnArrowDown(picker.show)}
-            className={cn(FIELD_TEXT, 'page-rtl:text-right page-ltr:text-left', 'tabular-nums')}
+            className={cn(FIELD_TEXT, "page-rtl:text-right page-ltr:text-left", "tabular-nums")}
           />
 
           {disabled ? (
@@ -116,7 +116,7 @@ export function TimePicker({
             <button
               type="button"
               data-part="time-picker-trigger"
-              aria-label={t('common.openTimes')}
+              aria-label={t("common.openTimes")}
               {...picker.opens(true)}
               className={FIELD_BUTTON}
             >
@@ -143,9 +143,9 @@ export function TimePicker({
               aria-current={slot === value || undefined}
               dir="ltr"
               className={cn(
-                'flex w-full cursor-pointer items-center justify-between rounded-control px-3 py-2',
-                'text-start text-value tabular-nums transition-colors duration-150',
-                slot === value ? 'bg-primary-600 text-ink-inverse' : 'text-ink hover:bg-inset',
+                "flex w-full cursor-pointer items-center justify-between rounded-control px-3 py-2",
+                "text-start text-value tabular-nums transition-colors duration-150",
+                slot === value ? "bg-primary-600 text-ink-inverse" : "text-ink hover:bg-inset",
               )}
             >
               {slot}

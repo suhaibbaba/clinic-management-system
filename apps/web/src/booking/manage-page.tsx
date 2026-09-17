@@ -1,27 +1,27 @@
-import type { ManagedBooking } from '@clinic/shared';
-import { APPOINTMENT_STATUS } from '@shared/enums';
-import { useMemo, useState, type JSX } from 'react';
+import type { ManagedBooking } from "@clinic/shared";
+import { APPOINTMENT_STATUS } from "@shared/enums";
+import { useMemo, useState, type JSX } from "react";
 
-import { bookingApi, failureKey } from '@web/booking/api';
-import { clinicDate, dayChips, learnClinicOffset } from '@web/booking/format';
-import { t } from '@web/booking/i18n';
-import { FullPageMessage, PageShell } from '@web/booking/layout';
-import { BookingFacts } from '@web/booking/steps/success-view';
-import { WhenStep, type SlotOption } from '@web/booking/steps/when-step';
-import { Alert, Button, Card, Skeleton, cx } from '@web/booking/ui';
-import { useAsync } from '@web/booking/use-async';
-import { bookingName } from '@web/booking/format';
+import { bookingApi, failureKey } from "@web/booking/api";
+import { clinicDate, dayChips, learnClinicOffset } from "@web/booking/format";
+import { t } from "@web/booking/i18n";
+import { FullPageMessage, PageShell } from "@web/booking/layout";
+import { BookingFacts } from "@web/booking/steps/success-view";
+import { WhenStep, type SlotOption } from "@web/booking/steps/when-step";
+import { Alert, Button, Card, Skeleton, cx } from "@web/booking/ui";
+import { useAsync } from "@web/booking/use-async";
+import { bookingName } from "@web/booking/format";
 
 const VISIBLE_DAYS = 7;
 
 const STATUS_KEY: Record<string, string> = {
-  [APPOINTMENT_STATUS.REQUESTED]: 'manage.statusRequested',
-  [APPOINTMENT_STATUS.CONFIRMED]: 'manage.statusConfirmed',
-  [APPOINTMENT_STATUS.CANCELLED]: 'manage.statusCancelled',
-  [APPOINTMENT_STATUS.COMPLETED]: 'manage.statusCompleted',
+  [APPOINTMENT_STATUS.REQUESTED]: "manage.statusRequested",
+  [APPOINTMENT_STATUS.CONFIRMED]: "manage.statusConfirmed",
+  [APPOINTMENT_STATUS.CANCELLED]: "manage.statusCancelled",
+  [APPOINTMENT_STATUS.COMPLETED]: "manage.statusCompleted",
 };
 
-type Mode = 'view' | 'confirming-cancel' | 'rescheduling';
+type Mode = "view" | "confirming-cancel" | "rescheduling";
 
 export function ManagePage({
   token,
@@ -33,8 +33,8 @@ export function ManagePage({
   readonly slug: string | undefined;
 }): JSX.Element {
   const managed = useAsync(() => bookingApi.managed(token), [token]);
-  const [mode, setMode] = useState<Mode>('view');
-  const [reason, setReason] = useState('');
+  const [mode, setMode] = useState<Mode>("view");
+  const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<string>();
 
@@ -67,7 +67,7 @@ export function ManagePage({
 
     try {
       await run();
-      setMode('view');
+      setMode("view");
       managed.reload();
     } catch (error) {
       setFailure(t(failureKey(error)));
@@ -78,19 +78,19 @@ export function ManagePage({
 
   return (
     <PageShell clinicName={bookingName(booking.clinicName)}>
-      <h1 className="mb-4 text-title font-medium text-primary-900">{t('manage.heading')}</h1>
+      <h1 className="mb-4 text-title font-medium text-primary-900">{t("manage.heading")}</h1>
 
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-label text-ink-muted">{t('manage.status')}</span>
+          <span className="text-label text-ink-muted">{t("manage.status")}</span>
           <span
             className={
               cancelled
-                ? 'pill-text inline-flex items-center h-(--control-h-sm) rounded-pill bg-inset px-3 text-nav font-medium text-ink-muted'
-                : 'pill-text inline-flex items-center h-(--control-h-sm) rounded-pill bg-success-100 px-3 text-nav font-medium text-success-800'
+                ? "pill-text inline-flex items-center h-(--control-h-sm) rounded-pill bg-inset px-3 text-nav font-medium text-ink-muted"
+                : "pill-text inline-flex items-center h-(--control-h-sm) rounded-pill bg-success-100 px-3 text-nav font-medium text-success-800"
             }
           >
-            {t(STATUS_KEY[booking.status] ?? 'manage.statusRequested')}
+            {t(STATUS_KEY[booking.status] ?? "manage.statusRequested")}
           </span>
         </div>
 
@@ -99,38 +99,38 @@ export function ManagePage({
         {failure && <Alert>{failure}</Alert>}
 
         {cancelled ? (
-          <Alert tone="info">{t('manage.cancelled')}</Alert>
+          <Alert tone="info">{t("manage.cancelled")}</Alert>
         ) : !booking.canModify ? (
           <Card className="bg-inset shadow-none">
             <p className="text-value text-ink-muted">
-              {t('manage.locked', { phone: booking.clinicPhone ?? '' })}
+              {t("manage.locked", { phone: booking.clinicPhone ?? "" })}
             </p>
             {booking.clinicPhone && (
               <a
                 href={`tel:${booking.clinicPhone}`}
                 className="mt-2 inline-block text-value font-medium text-primary-700"
               >
-                {t('manage.callClinic')}
+                {t("manage.callClinic")}
               </a>
             )}
           </Card>
-        ) : mode === 'confirming-cancel' ? (
+        ) : mode === "confirming-cancel" ? (
           <Card>
-            <h2 className="text-field font-medium text-ink">{t('manage.cancelTitle')}</h2>
-            <p className="mt-1 text-value text-ink-muted">{t('manage.cancelBody')}</p>
+            <h2 className="text-field font-medium text-ink">{t("manage.cancelTitle")}</h2>
+            <p className="mt-1 text-value text-ink-muted">{t("manage.cancelBody")}</p>
 
             <label htmlFor="cancel-reason" className="mt-3 block text-value font-medium text-ink">
-              {t('manage.cancelReason')}
+              {t("manage.cancelReason")}
             </label>
             <input
               id="cancel-reason"
               value={reason}
               onChange={(event) => setReason(event.target.value)}
               className={cx(
-                'mt-1.5 min-h-(--control-h) w-full rounded-control border-[1.5px] px-3 text-field',
-                'border-line-strong bg-surface transition-[border-color,box-shadow] duration-150',
-                'hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus',
-                'outline-none',
+                "mt-1.5 min-h-(--control-h) w-full rounded-control border-[1.5px] px-3 text-field",
+                "border-line-strong bg-surface transition-[border-color,box-shadow] duration-150",
+                "hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus",
+                "outline-none",
               )}
             />
 
@@ -141,28 +141,28 @@ export function ManagePage({
                 busy={busy}
                 onClick={() => void act(() => bookingApi.cancel(token, reason.trim() || undefined))}
               >
-                {t('manage.cancelConfirm')}
+                {t("manage.cancelConfirm")}
               </Button>
-              <Button variant="secondary" full onClick={() => setMode('view')}>
-                {t('manage.cancelKeep')}
+              <Button variant="secondary" full onClick={() => setMode("view")}>
+                {t("manage.cancelKeep")}
               </Button>
             </div>
           </Card>
-        ) : mode === 'rescheduling' ? (
+        ) : mode === "rescheduling" ? (
           <ReschedulePanel
             booking={booking}
             slug={slug}
             busy={busy}
             onPick={(slot) => void act(() => bookingApi.reschedule(token, slot.startsAt))}
-            onClose={() => setMode('view')}
+            onClose={() => setMode("view")}
           />
         ) : (
           <div className="flex flex-col gap-2">
-            <Button variant="secondary" full onClick={() => setMode('rescheduling')}>
-              {t('manage.reschedule')}
+            <Button variant="secondary" full onClick={() => setMode("rescheduling")}>
+              {t("manage.reschedule")}
             </Button>
-            <Button variant="ghost" full onClick={() => setMode('confirming-cancel')}>
-              {t('manage.cancel')}
+            <Button variant="ghost" full onClick={() => setMode("confirming-cancel")}>
+              {t("manage.cancel")}
             </Button>
           </div>
         )}
@@ -188,7 +188,7 @@ function ReschedulePanel({
 }): JSX.Element {
   const [date, setDate] = useState(() => clinicDate(booking.startsAt));
 
-  const doctors = useAsync(() => bookingApi.doctors(slug ?? ''), [slug], Boolean(slug));
+  const doctors = useAsync(() => bookingApi.doctors(slug ?? ""), [slug], Boolean(slug));
   const doctorId = doctors.data?.find(
     (entry) => bookingName(entry.name) === bookingName(booking.doctorName),
   )?.id;
@@ -198,7 +198,7 @@ function ReschedulePanel({
   const week = useAsync(
     async () => {
       const days = await Promise.all(
-        chips.map((chip) => bookingApi.slots(slug ?? '', doctorId ?? '', chip.date)),
+        chips.map((chip) => bookingApi.slots(slug ?? "", doctorId ?? "", chip.date)),
       );
 
       const sample = days.flatMap((day) => day.slots)[0];
@@ -216,7 +216,7 @@ function ReschedulePanel({
     return (
       <Card className="bg-inset shadow-none">
         <p className="text-value text-ink-muted">
-          {t('manage.locked', { phone: booking.clinicPhone ?? '' })}
+          {t("manage.locked", { phone: booking.clinicPhone ?? "" })}
         </p>
       </Card>
     );
@@ -224,7 +224,7 @@ function ReschedulePanel({
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-field font-medium text-ink">{t('manage.rescheduleTitle')}</h2>
+      <h2 className="text-field font-medium text-ink">{t("manage.rescheduleTitle")}</h2>
 
       <WhenStep
         chips={chips}
@@ -236,7 +236,7 @@ function ReschedulePanel({
       />
 
       <Button variant="secondary" full disabled={busy} onClick={onClose}>
-        {t('common.back')}
+        {t("common.back")}
       </Button>
     </div>
   );

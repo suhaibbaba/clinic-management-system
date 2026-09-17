@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect } from "react";
 
 const PageTitleContext = createContext<((title: string | null) => void) | null>(null);
 

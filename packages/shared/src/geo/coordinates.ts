@@ -7,7 +7,7 @@ export interface Coordinates {
 const round = (value: number): string =>
   String(Number(value.toFixed(6)))
     // `-0` is a coordinate nobody means.
-    .replace(/^-0$/, '0');
+    .replace(/^-0$/, "0");
 
 const inRange = (latitude: number, longitude: number): boolean =>
   Number.isFinite(latitude) &&
@@ -15,10 +15,10 @@ const inRange = (latitude: number, longitude: number): boolean =>
   Math.abs(latitude) <= 90 &&
   Math.abs(longitude) <= 180;
 
-const NUMBER = '(-?\\d{1,3}(?:\\.\\d+)?)';
+const NUMBER = "(-?\\d{1,3}(?:\\.\\d+)?)";
 
 const PATTERNS: readonly RegExp[] = [
-  new RegExp(`[?&](?:q|ll|daddr|destination|sll)=${NUMBER}\\s*,\\s*${NUMBER}`, 'i'),
+  new RegExp(`[?&](?:q|ll|daddr|destination|sll)=${NUMBER}\\s*,\\s*${NUMBER}`, "i"),
   new RegExp(`!3d${NUMBER}!4d${NUMBER}`),
   new RegExp(`/maps/(?:search|dir|place)/${NUMBER}\\s*,\\s*\\+?\\s*${NUMBER}`),
   new RegExp(`@${NUMBER},${NUMBER}`),
@@ -32,7 +32,7 @@ export const isShortMapLink = (value: string): boolean =>
 export function parseCoordinates(value: string): Coordinates | null {
   const text = value.trim();
 
-  if (text === '') {
+  if (text === "") {
     return null;
   }
 

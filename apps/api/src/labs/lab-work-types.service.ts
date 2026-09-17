@@ -1,20 +1,20 @@
-import { Inject, Injectable, NotFoundException, type OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, type OnModuleInit } from "@nestjs/common";
 import {
   type CreateLabWorkTypeInput,
   type LabWorkType,
   type UpdateLabWorkTypeInput,
-} from '@clinic/shared';
-import { and, asc, eq, isNull } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, asc, eq, isNull } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { LabsService } from '@api/labs/labs.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { labWorkTypes, labs } from '@api/database/schema';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { LabsService } from "@api/labs/labs.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { labWorkTypes, labs } from "@api/database/schema";
 
 type WorkTypeRow = typeof labWorkTypes.$inferSelect;
 
-export const LAB_WORK_TYPES_ENTITY = 'lab_work_types';
+export const LAB_WORK_TYPES_ENTITY = "lab_work_types";
 
 // Rows hang off the lab, so the clinic scope check happens once, on the lab, and the table needs no
 // `clinic_id` of its own. An order copies the price it was placed at.
@@ -83,7 +83,7 @@ export class LabWorkTypesService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to create the work type');
+      throw new Error("Failed to create the work type");
     }
 
     return toWorkType(row);
@@ -109,7 +109,7 @@ export class LabWorkTypesService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to update the work type');
+      throw new Error("Failed to update the work type");
     }
 
     return toWorkType(row);
@@ -142,7 +142,7 @@ export class LabWorkTypesService implements OnModuleInit {
     if (!row) {
       // 404 rather than 403 for another clinic's id, like everything else here:
       // "not found" tells a caller nothing about what exists elsewhere.
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
 
     return row.workType;

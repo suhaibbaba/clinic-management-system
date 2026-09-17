@@ -1,17 +1,17 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID } from "node:crypto";
 
 import {
   PERFORMED_PROCEDURE_STATUS,
   localWeekday,
   occupiesSlot,
   type AppointmentStatus,
-} from '@clinic/shared';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import { and, asc, eq, isNull } from 'drizzle-orm';
-import postgres from 'postgres';
+} from "@clinic/shared";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { and, asc, eq, isNull } from "drizzle-orm";
+import postgres from "postgres";
 
-import type { Database } from '@api/database/database.module';
-import * as schema from '@api/database/schema';
+import type { Database } from "@api/database/database.module";
+import * as schema from "@api/database/schema";
 import {
   appointments,
   charges,
@@ -20,21 +20,21 @@ import {
   patients,
   payments,
   performedProcedures,
-} from '@api/database/schema';
-import { CLINIC_HOURS, CLINIC_NAME, CLINIC_TIME_ZONE } from '@api/database/seed/clinic';
-import { seedDatabase, type SeedOptions, type SeedSummary } from '@api/database/seed/seed-database';
+} from "@api/database/schema";
+import { CLINIC_HOURS, CLINIC_NAME, CLINIC_TIME_ZONE } from "@api/database/seed/clinic";
+import { seedDatabase, type SeedOptions, type SeedSummary } from "@api/database/seed/seed-database";
 
 const localDateOf = (instant: Date): string =>
-  new Intl.DateTimeFormat('en-CA', {
+  new Intl.DateTimeFormat("en-CA", {
     timeZone: CLINIC_TIME_ZONE,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   }).format(instant);
 
 // The seed is the fixture the whole app is demonstrated on, so what is asserted here is what it
 // must never produce: a Friday appointment, two patients in one chair, a charge for planned work.
-describe('the seeded clinic', () => {
+describe("the seeded clinic", () => {
   jest.setTimeout(180_000);
 
   let client: ReturnType<typeof postgres>;
@@ -44,10 +44,10 @@ describe('the seeded clinic', () => {
   let clinicId: string;
 
   beforeAll(async () => {
-    const databaseUrl = process.env['DATABASE_URL'];
+    const databaseUrl = process.env["DATABASE_URL"];
 
     if (!databaseUrl) {
-      throw new Error('DATABASE_URL is required to run the API tests.');
+      throw new Error("DATABASE_URL is required to run the API tests.");
     }
 
     client = postgres(databaseUrl, { max: 1, onnotice: () => {} });
@@ -58,7 +58,7 @@ describe('the seeded clinic', () => {
     const handle = randomUUID().slice(0, 8);
 
     options = {
-      passwordHash: 'x'.repeat(32),
+      passwordHash: "x".repeat(32),
       slug: `seed-${handle}`,
       namePrefix: handle,
       identifierPrefix: handle,
@@ -75,55 +75,55 @@ describe('the seeded clinic', () => {
     await client.end();
   });
 
-  it('names the clinic and bills it in shekels', async () => {
+  it("names the clinic and bills it in shekels", async () => {
     const [row] = await db.select().from(clinics).where(eq(clinics.id, clinicId)).limit(1);
 
     expect(row?.nameAr).toContain(CLINIC_NAME.ar);
-    expect(row?.currency).toBe('ILS');
-    expect(row?.address).toContain('نابلس');
+    expect(row?.currency).toBe("ILS");
+    expect(row?.address).toContain("نابلس");
     // Saturday through Thursday: Friday is the one day with no hours at all.
     expect(row?.workingHours.map((day) => day.weekday).sort()).toEqual([0, 1, 2, 3, 4, 6]);
   });
 
-  it('opens five accounts and two doctors with different weeks', () => {
+  it("opens five accounts and two doctors with different weeks", () => {
     expect(summary.accounts.map((entry) => entry.account.role).sort()).toEqual([
-      'admin',
-      'doctor',
-      'doctor',
-      'receptionist',
-      'technician',
+      "admin",
+      "doctor",
+      "doctor",
+      "receptionist",
+      "technician",
     ]);
   });
 
-  it('writes something into every table the app draws from', () => {
+  it("writes something into every table the app draws from", () => {
     expect(summary.created).toBe(true);
-    expect(summary.counts['patients']).toBe(12);
+    expect(summary.counts["patients"]).toBe(12);
 
     for (const table of [
-      'appointments',
-      'visits',
-      'performedProcedures',
-      'chartMarks',
-      'charges',
-      'payments',
-      'labs',
-      'labOrders',
-      'labPayments',
-      'inventoryItems',
-      'stockMovements',
-      'suppliers',
-      'waitingList',
-      'notifications',
-      'treatmentPlans',
-      'treatmentPlanItems',
-      'clinicClosures',
-      'doctorTimeOff',
+      "appointments",
+      "visits",
+      "performedProcedures",
+      "chartMarks",
+      "charges",
+      "payments",
+      "labs",
+      "labOrders",
+      "labPayments",
+      "inventoryItems",
+      "stockMovements",
+      "suppliers",
+      "waitingList",
+      "notifications",
+      "treatmentPlans",
+      "treatmentPlanItems",
+      "clinicClosures",
+      "doctorTimeOff",
     ]) {
       expect([table, summary.counts[table] ?? 0]).not.toEqual([table, 0]);
     }
   });
 
-  it('books nothing on a Friday, or on a day the clinic is closed', async () => {
+  it("books nothing on a Friday, or on a day the clinic is closed", async () => {
     const booked = await db
       .select({ startsAt: appointments.startsAt })
       .from(appointments)
@@ -151,7 +151,7 @@ describe('the seeded clinic', () => {
     expect(inClosure).toEqual([]);
   });
 
-  it('never puts two patients in one chair', async () => {
+  it("never puts two patients in one chair", async () => {
     const booked = await db
       .select({
         doctorId: appointments.doctorId,
@@ -185,7 +185,7 @@ describe('the seeded clinic', () => {
     expect(clashes).toEqual([]);
   });
 
-  it('bills the work that was done and nothing that is only planned', async () => {
+  it("bills the work that was done and nothing that is only planned", async () => {
     const rows = await db
       .select({ status: performedProcedures.status, chargeId: charges.id })
       .from(performedProcedures)
@@ -214,7 +214,7 @@ describe('the seeded clinic', () => {
     expect(wronglyBilled).toEqual([]);
   });
 
-  it('numbers the receipts continuously from one', async () => {
+  it("numbers the receipts continuously from one", async () => {
     const rows = await db
       .select({ receiptNumber: payments.receiptNumber })
       .from(payments)
@@ -227,7 +227,7 @@ describe('the seeded clinic', () => {
     expect(numbers).toEqual(numbers.map((_, index) => index + 1));
   });
 
-  it('leaves today with a list somebody can demonstrate', async () => {
+  it("leaves today with a list somebody can demonstrate", async () => {
     const today = localDateOf(new Date());
 
     // A Friday is the one day the demo has nothing to show, and that is correct.
@@ -246,7 +246,7 @@ describe('the seeded clinic', () => {
     expect(new Set(todays.map((row) => row.status)).size).toBeGreaterThan(2);
   });
 
-  it('writes nothing the second time it is run', async () => {
+  it("writes nothing the second time it is run", async () => {
     const before = await db
       .select({ id: patients.id })
       .from(patients)

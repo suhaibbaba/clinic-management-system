@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Header, Param, Patch, Post, Query } from "@nestjs/common";
 import {
   AUDIT_ACTION,
   createLabPaymentSchema,
@@ -11,17 +11,17 @@ import {
   type LabPayment,
   type LabStatement,
   type Paginated,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
+import { z } from "zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { LabDocumentsService } from '@api/labs/lab-documents.service';
-import { LabLedgerService } from '@api/labs/lab-ledger.service';
-import { LAB_PAYMENTS_ENTITY, LabPaymentsService } from '@api/labs/lab-payments.service';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { LabDocumentsService } from "@api/labs/lab-documents.service";
+import { LabLedgerService } from "@api/labs/lab-ledger.service";
+import { LAB_PAYMENTS_ENTITY, LabPaymentsService } from "@api/labs/lab-payments.service";
 
 class CreateLabPaymentDto extends createZodDto(createLabPaymentSchema) {}
 class ReverseLabPaymentDto extends createZodDto(reverseLabPaymentSchema) {}
@@ -32,7 +32,7 @@ class LabIdParamDto extends createZodDto(z.object({ labId: z.uuid() })) {}
 
 // Reversal is admin-only — the one operation that makes money appear to come back. The balance rule
 // lives in `LabLedgerService`, not in a second copy here.
-@Controller('labs/:labId')
+@Controller("labs/:labId")
 export class LabLedgerController {
   constructor(
     private readonly ledger: LabLedgerService,
@@ -40,7 +40,7 @@ export class LabLedgerController {
     private readonly documents: LabDocumentsService,
   ) {}
 
-  @Get('balance')
+  @Get("balance")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   balance(
     @CurrentUser() actor: AuthenticatedUser,
@@ -49,7 +49,7 @@ export class LabLedgerController {
     return this.ledger.balanceFor(actor.clinicId, params.labId);
   }
 
-  @Get('statement')
+  @Get("statement")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   statement(
     @CurrentUser() actor: AuthenticatedUser,
@@ -59,10 +59,10 @@ export class LabLedgerController {
     return this.ledger.statementFor(actor.clinicId, params.labId, query);
   }
 
-  @Get('statement.pdf')
+  @Get("statement.pdf")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
-  @Header('Content-Type', 'application/pdf')
-  @Header('Content-Disposition', 'inline; filename="lab-statement.pdf"')
+  @Header("Content-Type", "application/pdf")
+  @Header("Content-Disposition", 'inline; filename="lab-statement.pdf"')
   statementPdf(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: LabIdParamDto,
@@ -71,7 +71,7 @@ export class LabLedgerController {
     return this.documents.statement(actor, params.labId, query);
   }
 
-  @Get('payments')
+  @Get("payments")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   listPayments(
     @CurrentUser() actor: AuthenticatedUser,
@@ -82,7 +82,7 @@ export class LabLedgerController {
   }
 }
 
-@Controller('lab-payments')
+@Controller("lab-payments")
 export class LabPaymentsController {
   constructor(private readonly payments: LabPaymentsService) {}
 
@@ -96,7 +96,7 @@ export class LabPaymentsController {
     return this.payments.create(actor, body);
   }
 
-  @Patch(':id/reverse')
+  @Patch(":id/reverse")
   @Roles(USER_ROLE.ADMIN)
   @Audit(LAB_PAYMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   reverse(

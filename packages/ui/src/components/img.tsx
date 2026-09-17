@@ -1,8 +1,8 @@
-import { useEffect, useState, type CSSProperties, type JSX, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type JSX, type ReactNode } from "react";
 
-import { Icon } from '@ui/components/icon';
-import { Skeleton } from '@ui/components/skeleton';
-import { cn } from '@ui/lib/cn';
+import { Icon } from "@ui/components/icon";
+import { Skeleton } from "@ui/components/skeleton";
+import { cn } from "@ui/lib/cn";
 
 interface FluidSizing {
   /** CSS `aspect-ratio`, e.g. `"4/3"`. The box takes its width from the layout. */
@@ -22,68 +22,68 @@ interface ImgBase {
   readonly alt: string;
   readonly className?: string | undefined;
   /** `cover` crops to fill the reserved box; `contain` fits inside it. */
-  readonly fit?: 'cover' | 'contain' | undefined;
+  readonly fit?: "cover" | "contain" | undefined;
   /** Above the fold: eager and high priority, for the logo and nothing routine. */
   readonly priority?: boolean | undefined;
   /** Drawn in the reserved box instead of the broken-image mark, at the same size. */
   readonly fallback?: ReactNode | undefined;
   /** Names this box for a product's own CSS — see the package README. */
-  readonly 'data-part'?: string | undefined;
+  readonly "data-part"?: string | undefined;
 }
 
 export type ImgProps = ImgBase & (FluidSizing | FixedSizing);
 
-type ImgState = 'loading' | 'loaded' | 'failed';
+type ImgState = "loading" | "loaded" | "failed";
 
 export function Img({
   src,
   alt,
   className,
-  fit = 'cover',
+  fit = "cover",
   priority = false,
   fallback,
-  'data-part': part = 'img',
+  "data-part": part = "img",
   ...sizing
 }: ImgProps): JSX.Element {
-  const [state, setState] = useState<ImgState>('loading');
+  const [state, setState] = useState<ImgState>("loading");
 
-  useEffect(() => setState('loading'), [src]);
+  useEffect(() => setState("loading"), [src]);
 
   const box: CSSProperties =
     sizing.aspectRatio === undefined
       ? { width: sizing.width, height: sizing.height }
       : { aspectRatio: sizing.aspectRatio };
 
-  const missing = src === null || src === undefined || src === '';
-  const showFallback = missing || state === 'failed';
+  const missing = src === null || src === undefined || src === "";
+  const showFallback = missing || state === "failed";
 
   return (
     <span
       style={box}
       data-part={part}
       data-img-box
-      className={cn('relative block max-w-full shrink-0 overflow-hidden', className)}
+      className={cn("relative block max-w-full shrink-0 overflow-hidden", className)}
     >
-      {!missing && state !== 'failed' && (
+      {!missing && state !== "failed" && (
         <img
           data-part="img-file"
           src={src}
           alt={alt}
-          onLoad={() => setState('loaded')}
-          onError={() => setState('failed')}
+          onLoad={() => setState("loaded")}
+          onError={() => setState("failed")}
           {...(priority
-            ? { loading: 'eager' as const, fetchPriority: 'high' as const }
-            : { loading: 'lazy' as const })}
+            ? { loading: "eager" as const, fetchPriority: "high" as const }
+            : { loading: "lazy" as const })}
           decoding="async"
           className={cn(
-            'size-full transition-opacity duration-[120ms]',
-            fit === 'cover' ? 'object-cover' : 'object-contain',
-            state === 'loaded' ? 'opacity-100' : 'opacity-0',
+            "size-full transition-opacity duration-[120ms]",
+            fit === "cover" ? "object-cover" : "object-contain",
+            state === "loaded" ? "opacity-100" : "opacity-0",
           )}
         />
       )}
 
-      {!missing && state === 'loading' && (
+      {!missing && state === "loading" && (
         <Skeleton className="absolute inset-0 size-full rounded-none" />
       )}
 

@@ -3,17 +3,17 @@ import {
   createLabPaymentSchema,
   type CreateLabPaymentInput,
   type LabBalance,
-} from '@clinic/shared';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, type JSX } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, type JSX } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
-import { Button, FormField, Modal, MoneyInput, Select, Textarea, useToast } from '@clinic/ui';
-import { Money } from '@web/features/billing/money';
-import { useLookupOptions } from '@web/features/lookups/queries';
-import { usePayLab } from '@web/features/labs/queries';
-import { errorMessageKey } from '@web/lib/api-error';
+import { Button, FormField, Modal, MoneyInput, Select, Textarea, useToast } from "@clinic/ui";
+import { Money } from "@web/features/billing/money";
+import { useLookupOptions } from "@web/features/lookups/queries";
+import { usePayLab } from "@web/features/labs/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 
 export function LabPaymentModal({
   open,
@@ -43,19 +43,19 @@ export function LabPaymentModal({
     formState: { errors, isSubmitting },
   } = useForm<CreateLabPaymentInput>({
     resolver: zodResolver(createLabPaymentSchema),
-    defaultValues: { labId, amount: '', method: 'cash', note: '' },
+    defaultValues: { labId, amount: "", method: "cash", note: "" },
   });
 
   useEffect(() => {
     if (open) {
-      reset({ labId, amount: '', method: 'cash', note: '' });
+      reset({ labId, amount: "", method: "cash", note: "" });
     }
   }, [open, labId, reset]);
 
   const submit = handleSubmit(async (values) => {
     try {
       await pay.mutateAsync(values);
-      toast.success('labs.payment.recorded');
+      toast.success("labs.payment.recorded");
       onOpenChange(false);
     } catch (error) {
       toast.error(errorMessageKey(error));
@@ -66,23 +66,23 @@ export function LabPaymentModal({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title={t('labs.payment.title', { lab: labName })}
-      description={t('labs.payment.description')}
+      title={t("labs.payment.title", { lab: labName })}
+      description={t("labs.payment.description")}
       footer={
         <>
           <Button variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button isLoading={isSubmitting} onClick={() => void submit()}>
-            {t('labs.payment.submit')}
+            {t("labs.payment.submit")}
           </Button>
         </>
       }
     >
       <form className="flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
         <div className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2">
-          <span className="text-label text-ink-muted">{t('labs.payment.currentBalance')}</span>
-          <Money amount={balance?.balance ?? '0.00'} currency={currency} className="font-medium" />
+          <span className="text-label text-ink-muted">{t("labs.payment.currentBalance")}</span>
+          <Money amount={balance?.balance ?? "0.00"} currency={currency} className="font-medium" />
         </div>
 
         <FormField label="labs.payment.amount" htmlFor="lab-payment-amount" error={errors.amount}>
@@ -91,7 +91,7 @@ export function LabPaymentModal({
             currency={currency}
             placeholder="0"
             hasError={Boolean(errors.amount)}
-            {...register('amount')}
+            {...register("amount")}
           />
         </FormField>
 
@@ -111,7 +111,7 @@ export function LabPaymentModal({
         />
 
         <FormField label="labs.payment.note" htmlFor="lab-payment-note" optional>
-          <Textarea id="lab-payment-note" rows={2} {...register('note')} />
+          <Textarea id="lab-payment-note" rows={2} {...register("note")} />
         </FormField>
       </form>
     </Modal>

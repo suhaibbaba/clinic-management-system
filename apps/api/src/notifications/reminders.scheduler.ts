@@ -1,5 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
 import {
   APPOINTMENT_STATUS,
   bookingSettings,
@@ -9,13 +9,13 @@ import {
   minutesFromLocalMidnight,
   NOTIFICATION_TEMPLATE,
   type NotificationTemplate,
-} from '@clinic/shared';
-import { and, eq, gt, isNull, lt } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, eq, gt, isNull, lt } from "drizzle-orm";
 
-import { notificationName } from '@api/common/person-name';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { appointments, clinics, doctors, patients, users } from '@api/database/schema';
-import { NotificationsService } from '@api/notifications/notifications.service';
+import { notificationName } from "@api/common/person-name";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { appointments, clinics, doctors, patients, users } from "@api/database/schema";
+import { NotificationsService } from "@api/notifications/notifications.service";
 
 const HOUR = 3_600_000;
 const MINUTE = 60_000;
@@ -27,12 +27,12 @@ const WINDOW = 10 * MINUTE;
 interface Reminder {
   readonly template: NotificationTemplate;
   readonly leadMs: number;
-  readonly setting: 'remind24h' | 'remind2h';
+  readonly setting: "remind24h" | "remind2h";
 }
 
 const REMINDERS: readonly Reminder[] = [
-  { template: NOTIFICATION_TEMPLATE.REMINDER_24H, leadMs: 24 * HOUR, setting: 'remind24h' },
-  { template: NOTIFICATION_TEMPLATE.REMINDER_2H, leadMs: 2 * HOUR, setting: 'remind2h' },
+  { template: NOTIFICATION_TEMPLATE.REMINDER_24H, leadMs: 24 * HOUR, setting: "remind24h" },
+  { template: NOTIFICATION_TEMPLATE.REMINDER_2H, leadMs: 2 * HOUR, setting: "remind2h" },
 ];
 
 // A held booking is a real `requested` appointment, so the same constraint blocks the slot; expiry
@@ -141,7 +141,7 @@ export class RemindersScheduler {
     for (const row of rows) {
       const booking = bookingSettings(row.settings);
 
-      if (booking.confirmationMode !== 'otp') {
+      if (booking.confirmationMode !== "otp") {
         continue;
       }
 
@@ -153,7 +153,7 @@ export class RemindersScheduler {
         .update(appointments)
         .set({
           status: APPOINTMENT_STATUS.CANCELLED,
-          cancelledReason: 'انتهت مهلة تأكيد الحجز الإلكتروني',
+          cancelledReason: "انتهت مهلة تأكيد الحجز الإلكتروني",
           updatedAt: new Date(),
         })
         .where(eq(appointments.id, row.id));
@@ -173,5 +173,5 @@ function timeIn(timeZone: string, at: Date): string {
   const minutes = minutesFromLocalMidnight(at, localDate(at, timeZone), timeZone);
   const hours = Math.floor(minutes / 60);
 
-  return `${String(hours).padStart(2, '0')}:${String(Math.round(minutes % 60)).padStart(2, '0')}`;
+  return `${String(hours).padStart(2, "0")}:${String(Math.round(minutes % 60)).padStart(2, "0")}`;
 }

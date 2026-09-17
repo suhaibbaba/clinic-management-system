@@ -1,16 +1,16 @@
-import { USER_ROLE, type UserRole } from '@clinic/shared';
+import { USER_ROLE, type UserRole } from "@clinic/shared";
 
 import {
   createPatient,
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
-} from '@test/helpers/patient-fixtures';
-import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
+} from "@test/helpers/patient-fixtures";
+import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 // The ✗ cells of the ROLES.md patients matrix, one request each: a permission that quietly widens
 // shows up as a failing test rather than a leak.
-describe('Patients permission boundaries (e2e)', () => {
+describe("Patients permission boundaries (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
   let fixtures: PatientFixtures;
@@ -36,32 +36,32 @@ describe('Patients permission boundaries (e2e)', () => {
     fixtures = await seedClinicFixtures(context, clinic, tokens[USER_ROLE.ADMIN]);
 
     patientId = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
-      fullName: 'مريض اختبار الصلاحيات',
+      fullName: "مريض اختبار الصلاحيات",
       phone: uniquePhone(),
     });
 
     const visit = await context.app.inject({
-      method: 'POST',
-      url: '/visits',
+      method: "POST",
+      url: "/visits",
       headers: auth(tokens[USER_ROLE.DOCTOR]),
       payload: {
         patientId,
         doctorId: fixtures.doctorId,
-        complaint: 'ألم',
-        diagnosis: 'تشخيص سري',
+        complaint: "ألم",
+        diagnosis: "تشخيص سري",
       },
     });
     visitId = (visit.json() as { id: string }).id;
 
     const prescription = await context.app.inject({
-      method: 'POST',
-      url: '/prescriptions',
+      method: "POST",
+      url: "/prescriptions",
       headers: auth(tokens[USER_ROLE.DOCTOR]),
       payload: {
         patientId,
         doctorId: fixtures.doctorId,
         items: [
-          { drug: 'إيبوبروفين', dose: '٤٠٠ ملغ', frequency: 'عند اللزوم', duration: '٣ أيام' },
+          { drug: "إيبوبروفين", dose: "٤٠٠ ملغ", frequency: "عند اللزوم", duration: "٣ أيام" },
         ],
       },
     });
@@ -74,75 +74,75 @@ describe('Patients permission boundaries (e2e)', () => {
 
   interface Case {
     readonly name: string;
-    readonly method: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+    readonly method: "GET" | "POST" | "PATCH" | "DELETE";
     readonly url: () => string;
     readonly roles: UserRole[];
   }
 
   const FORBIDDEN: readonly Case[] = [
     {
-      name: 'visits list',
-      method: 'GET',
+      name: "visits list",
+      method: "GET",
       url: () => `/visits?patientId=${patientId}`,
       roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
     },
     {
-      name: 'a single visit',
-      method: 'GET',
+      name: "a single visit",
+      method: "GET",
       url: () => `/visits/${visitId}`,
       roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
     },
     {
-      name: 'medical history read',
-      method: 'GET',
+      name: "medical history read",
+      method: "GET",
       url: () => `/patients/${patientId}/medical-history`,
       roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
     },
     {
-      name: 'medical history write',
-      method: 'PATCH',
+      name: "medical history write",
+      method: "PATCH",
       url: () => `/patients/${patientId}/medical-history`,
       roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
     },
     {
-      name: 'allergy flags',
-      method: 'GET',
+      name: "allergy flags",
+      method: "GET",
       url: () => `/patients/${patientId}/allergy-flags`,
       roles: [USER_ROLE.RECEPTIONIST],
     },
     {
-      name: 'prescriptions list',
-      method: 'GET',
+      name: "prescriptions list",
+      method: "GET",
       url: () => `/prescriptions?patientId=${patientId}`,
       roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
     },
     {
-      name: 'a single prescription',
-      method: 'GET',
+      name: "a single prescription",
+      method: "GET",
       url: () => `/prescriptions/${prescriptionId}`,
       roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
     },
     {
-      name: 'treatment plans',
-      method: 'GET',
+      name: "treatment plans",
+      method: "GET",
       url: () => `/treatment-plans?patientId=${patientId}`,
       roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
     },
     {
-      name: 'tooth history',
-      method: 'GET',
+      name: "tooth history",
+      method: "GET",
       url: () => `/patients/${patientId}/teeth/46`,
       roles: [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN],
     },
     {
-      name: 'attachments',
-      method: 'GET',
+      name: "attachments",
+      method: "GET",
       url: () => `/patients/${patientId}/attachments`,
       roles: [USER_ROLE.RECEPTIONIST],
     },
     {
-      name: 'the timeline',
-      method: 'GET',
+      name: "the timeline",
+      method: "GET",
       url: () => `/patients/${patientId}/timeline`,
       roles: [USER_ROLE.TECHNICIAN],
     },
@@ -163,9 +163,9 @@ describe('Patients permission boundaries (e2e)', () => {
     }
   }
 
-  it('lets a doctor write clinical records but only an admin delete them', async () => {
+  it("lets a doctor write clinical records but only an admin delete them", async () => {
     const deleteAsDoctor = await context.app.inject({
-      method: 'DELETE',
+      method: "DELETE",
       url: `/visits/${visitId}`,
       headers: auth(tokens[USER_ROLE.DOCTOR]),
     });
@@ -173,13 +173,13 @@ describe('Patients permission boundaries (e2e)', () => {
     expect(deleteAsDoctor.statusCode).toBe(403);
   });
 
-  it('reports another clinic’s clinical record as 404, never 403', async () => {
+  it("reports another clinic’s clinical record as 404, never 403", async () => {
     const otherClinic = await context.createClinic();
     const otherToken = await context.login(otherClinic.phones[USER_ROLE.ADMIN]);
 
     for (const url of [`/visits/${visitId}`, `/prescriptions/${prescriptionId}`]) {
       const response = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url,
         headers: auth(otherToken),
       });
@@ -188,10 +188,10 @@ describe('Patients permission boundaries (e2e)', () => {
     }
   });
 
-  it('gives a receptionist the procedure catalog as names and prices only', async () => {
+  it("gives a receptionist the procedure catalog as names and prices only", async () => {
     const response = await context.app.inject({
-      method: 'GET',
-      url: '/procedure-catalog',
+      method: "GET",
+      url: "/procedure-catalog",
       headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
     });
 
@@ -202,23 +202,23 @@ describe('Patients permission boundaries (e2e)', () => {
 
     for (const item of items) {
       expect(Object.keys(item).sort()).toEqual(
-        ['code', 'defaultPrice', 'id', 'nameAr', 'nameEn'].sort(),
+        ["code", "defaultPrice", "id", "nameAr", "nameEn"].sort(),
       );
     }
   });
 
-  it('refuses a non-admin write to the procedure catalog', async () => {
+  it("refuses a non-admin write to the procedure catalog", async () => {
     for (const role of [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN]) {
       const response = await context.app.inject({
-        method: 'POST',
-        url: '/procedure-catalog',
+        method: "POST",
+        url: "/procedure-catalog",
         headers: auth(tokens[role]),
         payload: {
           specialtyId: clinic.specialtyId,
           code: `X-${role}`,
-          nameAr: 'إجراء',
-          nameEn: 'Procedure',
-          defaultPrice: '10.00',
+          nameAr: "إجراء",
+          nameEn: "Procedure",
+          defaultPrice: "10.00",
         },
       });
 

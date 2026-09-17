@@ -4,8 +4,8 @@ import {
   Inject,
   Injectable,
   type OnModuleInit,
-} from '@nestjs/common';
-import { and, count, desc, eq, ilike, isNull, ne, or, sql, type SQL } from 'drizzle-orm';
+} from "@nestjs/common";
+import { and, count, desc, eq, ilike, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 import {
   ALLOWED_USER_PHOTO_MIME_TYPES,
   AUDIT_ACTION,
@@ -20,23 +20,23 @@ import {
   type PresignUserPhotoResponse,
   type UpdateUserInput,
   type User,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { AuditService } from '@api/audit/audit.service';
-import { PasswordService } from '@api/auth/password.service';
-import { TokenService } from '@api/auth/token.service';
-import { arabicNameSearch } from '@api/common/database/arabic-search';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database, type DatabaseExecutor } from '@api/database/database.module';
-import { users } from '@api/database/schema';
-import { StorageService } from '@api/storage/storage.service';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { AuditService } from "@api/audit/audit.service";
+import { PasswordService } from "@api/auth/password.service";
+import { TokenService } from "@api/auth/token.service";
+import { arabicNameSearch } from "@api/common/database/arabic-search";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
+import { users } from "@api/database/schema";
+import { StorageService } from "@api/storage/storage.service";
 
 type UserRow = typeof users.$inferSelect;
 
-export const USERS_ENTITY = 'users';
+export const USERS_ENTITY = "users";
 
 // One folder per member of staff, so a key can be checked against the clinic that signed for it and
 // the person it is of — another user's folder is refused on confirm.
@@ -54,7 +54,7 @@ const safeColumns = {
   isActive: users.isActive,
   // Not the hash — only whether there is one. A response never carries a credential, and the
   // screen needs to know who is still waiting on their invitation.
-  activated: sql<boolean>`${users.passwordHash} is not null`.as('activated'),
+  activated: sql<boolean>`${users.passwordHash} is not null`.as("activated"),
   photoKey: users.photoKey,
   createdAt: users.createdAt,
   updatedAt: users.updatedAt,
@@ -159,7 +159,7 @@ export class UsersService implements OnModuleInit {
       .returning(safeColumns);
 
     if (!row) {
-      throw new Error('Failed to create user');
+      throw new Error("Failed to create user");
     }
 
     return row;
@@ -184,10 +184,10 @@ export class UsersService implements OnModuleInit {
     // of user management, so both are refused.
     if (id === actor.id) {
       if (input.isActive === false) {
-        throw new BadRequestException('You cannot deactivate your own account');
+        throw new BadRequestException("You cannot deactivate your own account");
       }
       if (input.role !== undefined && input.role !== existing.role) {
-        throw new BadRequestException('You cannot change your own role');
+        throw new BadRequestException("You cannot change your own role");
       }
     }
 
@@ -206,7 +206,7 @@ export class UsersService implements OnModuleInit {
       .returning(safeColumns);
 
     if (!row) {
-      throw new Error('Failed to update user');
+      throw new Error("Failed to update user");
     }
 
     // A deactivated user must not keep a live session.
@@ -247,7 +247,7 @@ export class UsersService implements OnModuleInit {
     await this.findInClinicOrFail(actor.clinicId, id);
 
     if (id === actor.id) {
-      throw new BadRequestException('You cannot delete your own account');
+      throw new BadRequestException("You cannot delete your own account");
     }
 
     await this.db
@@ -289,13 +289,13 @@ export class UsersService implements OnModuleInit {
     const existing = await this.findInClinicOrFail(actor.clinicId, id);
 
     if (!this.storage.isClinicKeyOwnedBy(input.key, actor.clinicId, photoCategory(id))) {
-      throw new BadRequestException('This key does not belong to this user');
+      throw new BadRequestException("This key does not belong to this user");
     }
 
     const stored = await this.storage.statObject(input.key);
 
     if (!stored) {
-      throw new BadRequestException('No uploaded file found for this key');
+      throw new BadRequestException("No uploaded file found for this key");
     }
 
     const isImage = ALLOWED_USER_PHOTO_MIME_TYPES.some((mime) => mime === stored.mime);
@@ -303,7 +303,7 @@ export class UsersService implements OnModuleInit {
     if (!isImage || stored.sizeBytes <= 0 || stored.sizeBytes > MAX_USER_PHOTO_BYTES) {
       await this.storage.deleteObject(input.key);
       throw new BadRequestException(
-        isImage ? 'Uploaded file size is outside the allowed range' : 'Unsupported file type',
+        isImage ? "Uploaded file size is outside the allowed range" : "Unsupported file type",
       );
     }
 
@@ -348,7 +348,7 @@ export class UsersService implements OnModuleInit {
       .returning(safeColumns);
 
     if (!row) {
-      throw new Error('Failed to update the staff photo');
+      throw new Error("Failed to update the staff photo");
     }
 
     return row;
@@ -391,13 +391,13 @@ export class UsersService implements OnModuleInit {
     }
 
     throw new ConflictException(
-      clash.phone === phone ? 'Phone number is already in use' : 'Email is already in use',
+      clash.phone === phone ? "Phone number is already in use" : "Email is already in use",
     );
   }
 }
 
 // `activated` is computed in the select rather than stored, so it is not a column to pick.
-export type SafeUserRow = Pick<UserRow, Exclude<keyof typeof safeColumns, 'activated'>> & {
+export type SafeUserRow = Pick<UserRow, Exclude<keyof typeof safeColumns, "activated">> & {
   activated: boolean;
 };
 
@@ -405,7 +405,7 @@ export type SafeUserRow = Pick<UserRow, Exclude<keyof typeof safeColumns, 'activ
 // schedule and no place in any list. Only `POST /doctors` makes one, and it always writes both.
 function assertNotDoctorRole(role: UserRole): void {
   if (role === USER_ROLE.DOCTOR) {
-    throw new BadRequestException('Create a doctor from the doctors screen, which makes both rows');
+    throw new BadRequestException("Create a doctor from the doctors screen, which makes both rows");
   }
 }
 

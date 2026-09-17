@@ -1,10 +1,10 @@
-import type { Doctor, ProcedureCatalogItem, UserRole } from '@clinic/shared';
-import type { JSX } from 'react';
+import type { Doctor, ProcedureCatalogItem, UserRole } from "@clinic/shared";
+import type { JSX } from "react";
 
 import {
   ProcedureForm,
   type ProcedureFormValues,
-} from '@web/features/patients/procedures/procedure-form';
+} from "@web/features/patients/procedures/procedure-form";
 
 export type NewProcedureInput = ProcedureFormValues;
 

@@ -1,4 +1,4 @@
-import type { Paginated, PaginationQuery } from '@clinic/shared';
+import type { Paginated, PaginationQuery } from "@clinic/shared";
 
 export function toLimitOffset(query: PaginationQuery): { limit: number; offset: number } {
   return { limit: query.limit, offset: (query.page - 1) * query.limit };

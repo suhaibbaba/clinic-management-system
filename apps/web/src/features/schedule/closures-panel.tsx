@@ -1,6 +1,6 @@
-import type { ClinicClosure, ConflictingAppointment } from '@clinic/shared';
-import { useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { ClinicClosure, ConflictingAppointment } from "@clinic/shared";
+import { useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Badge,
@@ -15,16 +15,16 @@ import {
   Switch,
   useToast,
   type DateRange,
-} from '@clinic/ui';
-import { ConflictDialog } from '@web/features/schedule/conflict-dialog';
+} from "@clinic/ui";
+import { ConflictDialog } from "@web/features/schedule/conflict-dialog";
 import {
   scheduleConflicts,
   useClinicClosures,
   useCreateClosure,
   useDeleteClosure,
-} from '@web/features/schedule/queries';
-import { errorMessageKey } from '@web/lib/api-error';
-import { formatDate } from '@web/lib/format';
+} from "@web/features/schedule/queries";
+import { errorMessageKey } from "@web/lib/api-error";
+import { formatDate } from "@web/lib/format";
 
 export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.Element {
   const { t } = useTranslation();
@@ -35,19 +35,19 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
   const deleteClosure = useDeleteClosure();
 
   const [adding, setAdding] = useState(false);
-  const [range, setRange] = useState<DateRange>({ from: '', to: '' });
-  const [reason, setReason] = useState('');
+  const [range, setRange] = useState<DateRange>({ from: "", to: "" });
+  const [reason, setReason] = useState("");
   const [isAnnual, setIsAnnual] = useState(false);
   const [conflicts, setConflicts] = useState<ConflictingAppointment[] | null>(null);
 
   const reset = (): void => {
-    setRange({ from: '', to: '' });
-    setReason('');
+    setRange({ from: "", to: "" });
+    setReason("");
     setIsAnnual(false);
     setConflicts(null);
   };
 
-  const canSubmit = range.from !== '' && reason.trim().length >= 2;
+  const canSubmit = range.from !== "" && reason.trim().length >= 2;
 
   // One save path for all three attempts — the first and the two the conflict dialog leads to. The
   // only difference is what `choice` carries.
@@ -56,7 +56,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
       const result = await createClosure.mutateAsync({
         body: {
           startsOn: range.from,
-          endsOn: range.to === '' ? range.from : range.to,
+          endsOn: range.to === "" ? range.from : range.to,
           reason: reason.trim(),
           isAnnual,
         },
@@ -64,11 +64,11 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
       });
 
       if (result.cancelledAppointments > 0) {
-        toast.success('schedule.closures.addedAndCancelled', {
+        toast.success("schedule.closures.addedAndCancelled", {
           count: result.cancelledAppointments,
         });
       } else {
-        toast.success('schedule.closures.added');
+        toast.success("schedule.closures.added");
       }
       setAdding(false);
       reset();
@@ -87,7 +87,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
   const remove = async (closure: ClinicClosure): Promise<void> => {
     try {
       await deleteClosure.mutateAsync(closure.id);
-      toast.success('schedule.closures.removed');
+      toast.success("schedule.closures.removed");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -98,7 +98,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-value font-medium text-ink">{t('schedule.closures.title')}</p>
+        <p className="text-value font-medium text-ink">{t("schedule.closures.title")}</p>
 
         {canEdit && (
           <Button
@@ -110,7 +110,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
               setAdding(true);
             }}
           >
-            {t('schedule.closures.add')}
+            {t("schedule.closures.add")}
           </Button>
         )}
       </div>
@@ -141,7 +141,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
               </span>
 
               <span className="flex items-center gap-2">
-                {closure.isAnnual && <Badge tone="info">{t('schedule.closures.annual')}</Badge>}
+                {closure.isAnnual && <Badge tone="info">{t("schedule.closures.annual")}</Badge>}
                 {canEdit && (
                   <Button
                     size="sm"
@@ -150,7 +150,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
 
                     onClick={() => void remove(closure)}
                   >
-                    {t('common.delete')}
+                    {t("common.delete")}
                   </Button>
                 )}
               </span>
@@ -171,7 +171,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
         footer={
           <>
             <Button icon={<Icon name="x" />} variant="secondary" onClick={() => setAdding(false)}>
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button
               icon={<Icon name="check" />}
@@ -179,7 +179,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
               isLoading={createClosure.isPending}
               onClick={() => void save()}
             >
-              {t('common.save')}
+              {t("common.save")}
             </Button>
           </>
         }
@@ -188,7 +188,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
           <FormField label="schedule.closures.dates" htmlFor="closure-dates">
             <DateRangePicker
               id="closure-dates"
-              label={t('schedule.closures.dates')}
+              label={t("schedule.closures.dates")}
               value={range}
               onChange={setRange}
             />
@@ -197,7 +197,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
           <FormField label="schedule.closures.reason" htmlFor="closure-reason">
             <Input
               id="closure-reason"
-              placeholder={t('schedule.closures.reasonPlaceholder')}
+              placeholder={t("schedule.closures.reasonPlaceholder")}
               value={reason}
               onChange={(event) => setReason(event.target.value)}
             />
@@ -206,10 +206,10 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
           <div>
             <Switch
               checked={isAnnual}
-              label={t('schedule.closures.annual')}
+              label={t("schedule.closures.annual")}
               onCheckedChange={setIsAnnual}
             />
-            <p className="mt-1 text-label text-ink-subtle">{t('schedule.closures.annualHint')}</p>
+            <p className="mt-1 text-label text-ink-subtle">{t("schedule.closures.annualHint")}</p>
           </div>
         </div>
       </Modal>

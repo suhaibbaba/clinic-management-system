@@ -1,19 +1,19 @@
-import { USER_ROLE, USER_ROLES, type UserRole } from '@clinic/shared';
+import { USER_ROLE, USER_ROLES, type UserRole } from "@clinic/shared";
 
-import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
+import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 /** Every endpoint ROLES.md restricts to admin, with the verb it is reached by. */
 const ADMIN_ONLY_ROUTES = [
-  { method: 'GET' as const, url: '/users' },
-  { method: 'POST' as const, url: '/users' },
-  { method: 'GET' as const, url: '/audit-log' },
-  { method: 'PATCH' as const, url: '/clinic' },
-  { method: 'POST' as const, url: '/doctors' },
+  { method: "GET" as const, url: "/users" },
+  { method: "POST" as const, url: "/users" },
+  { method: "GET" as const, url: "/audit-log" },
+  { method: "PATCH" as const, url: "/clinic" },
+  { method: "POST" as const, url: "/doctors" },
 ];
 
 const NON_ADMIN_ROLES: UserRole[] = USER_ROLES.filter((role) => role !== USER_ROLE.ADMIN);
 
-describe('Authorization (e2e)', () => {
+describe("Authorization (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
   let otherClinic: TestClinic;
@@ -33,14 +33,14 @@ describe('Authorization (e2e)', () => {
     await context.close();
   });
 
-  describe('RolesGuard', () => {
-    it.each(NON_ADMIN_ROLES)('refuses %s on every admin-only route', async (role) => {
+  describe("RolesGuard", () => {
+    it.each(NON_ADMIN_ROLES)("refuses %s on every admin-only route", async (role) => {
       for (const route of ADMIN_ONLY_ROUTES) {
         const response = await context.app.inject({
           method: route.method,
           url: route.url,
           headers: auth(tokens[role]),
-          ...(route.method === 'GET' ? {} : { payload: {} }),
+          ...(route.method === "GET" ? {} : { payload: {} }),
         });
 
         expect({ role, ...route, status: response.statusCode }).toEqual({
@@ -51,15 +51,15 @@ describe('Authorization (e2e)', () => {
       }
     });
 
-    it('admin passes every one of them', async () => {
+    it("admin passes every one of them", async () => {
       const listUsers = await context.app.inject({
-        method: 'GET',
-        url: '/users',
+        method: "GET",
+        url: "/users",
         headers: auth(tokens[USER_ROLE.ADMIN]),
       });
       const auditLog = await context.app.inject({
-        method: 'GET',
-        url: '/audit-log',
+        method: "GET",
+        url: "/audit-log",
         headers: auth(tokens[USER_ROLE.ADMIN]),
       });
 
@@ -67,15 +67,15 @@ describe('Authorization (e2e)', () => {
       expect(auditLog.statusCode).toBe(200);
     });
 
-    it.each(USER_ROLES)('lets %s read doctors and clinic settings', async (role) => {
+    it.each(USER_ROLES)("lets %s read doctors and clinic settings", async (role) => {
       const doctors = await context.app.inject({
-        method: 'GET',
-        url: '/doctors',
+        method: "GET",
+        url: "/doctors",
         headers: auth(tokens[role]),
       });
       const clinicSettings = await context.app.inject({
-        method: 'GET',
-        url: '/clinic',
+        method: "GET",
+        url: "/clinic",
         headers: auth(tokens[role]),
       });
 
@@ -83,10 +83,10 @@ describe('Authorization (e2e)', () => {
       expect(clinicSettings.statusCode).toBe(200);
     });
 
-    it.each(USER_ROLES)('lets %s read their own profile', async (role) => {
+    it.each(USER_ROLES)("lets %s read their own profile", async (role) => {
       const response = await context.app.inject({
-        method: 'GET',
-        url: '/me',
+        method: "GET",
+        url: "/me",
         headers: auth(tokens[role]),
       });
 
@@ -95,12 +95,12 @@ describe('Authorization (e2e)', () => {
     });
   });
 
-  describe('clinic scoping', () => {
+  describe("clinic scoping", () => {
     it("reports another clinic's user id as 404, not 403", async () => {
       const foreignUserId = otherClinic.userIds[USER_ROLE.RECEPTIONIST];
 
       const response = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/users/${foreignUserId}`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
       });
@@ -108,33 +108,33 @@ describe('Authorization (e2e)', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('refuses to update a user in another clinic and leaves it untouched', async () => {
+    it("refuses to update a user in another clinic and leaves it untouched", async () => {
       const foreignUserId = otherClinic.userIds[USER_ROLE.DOCTOR];
 
       const response = await context.app.inject({
-        method: 'PATCH',
+        method: "PATCH",
         url: `/users/${foreignUserId}`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
-        payload: { name: { ar: 'مُختطف', en: 'Hijacked' } },
+        payload: { name: { ar: "مُختطف", en: "Hijacked" } },
       });
 
       expect(response.statusCode).toBe(404);
 
       const foreignAdminToken = await context.login(otherClinic.phones[USER_ROLE.ADMIN]);
       const stillIntact = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/users/${foreignUserId}`,
         headers: auth(foreignAdminToken),
       });
 
-      expect(stillIntact.json().name.en).not.toBe('Hijacked');
+      expect(stillIntact.json().name.en).not.toBe("Hijacked");
     });
 
-    it('refuses to soft-delete a user in another clinic', async () => {
+    it("refuses to soft-delete a user in another clinic", async () => {
       const foreignUserId = otherClinic.userIds[USER_ROLE.TECHNICIAN];
 
       const response = await context.app.inject({
-        method: 'DELETE',
+        method: "DELETE",
         url: `/users/${foreignUserId}`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
       });
@@ -144,8 +144,8 @@ describe('Authorization (e2e)', () => {
 
     it("never lists another clinic's users", async () => {
       const response = await context.app.inject({
-        method: 'GET',
-        url: '/users?limit=100',
+        method: "GET",
+        url: "/users?limit=100",
         headers: auth(tokens[USER_ROLE.ADMIN]),
       });
 
@@ -159,23 +159,23 @@ describe('Authorization (e2e)', () => {
 
     it("returns only the caller's own clinic from /clinic", async () => {
       const response = await context.app.inject({
-        method: 'GET',
-        url: '/clinic',
+        method: "GET",
+        url: "/clinic",
         headers: auth(tokens[USER_ROLE.ADMIN]),
       });
 
       expect(response.json().id).toBe(clinic.id);
     });
 
-    it('ignores a clinicId supplied in a request body', async () => {
+    it("ignores a clinicId supplied in a request body", async () => {
       const response = await context.app.inject({
-        method: 'POST',
-        url: '/users',
+        method: "POST",
+        url: "/users",
         headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: {
-          name: { ar: 'عيادة محقونة', en: 'Injected Clinic' },
+          name: { ar: "عيادة محقونة", en: "Injected Clinic" },
           phone: `+9955${Date.now().toString().slice(-8)}`,
-          password: 'InjectedPass123!',
+          password: "InjectedPass123!",
           role: USER_ROLE.RECEPTIONIST,
           // Not part of the schema, and never read from the body regardless.
           clinicId: otherClinic.id,
@@ -187,11 +187,11 @@ describe('Authorization (e2e)', () => {
     });
   });
 
-  describe('doctor schedule ownership', () => {
+  describe("doctor schedule ownership", () => {
     it("lets a doctor update their own schedule but not another doctor's", async () => {
       const created = await context.app.inject({
-        method: 'POST',
-        url: '/doctors',
+        method: "POST",
+        url: "/doctors",
         headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: {
           userId: clinic.userIds[USER_ROLE.DOCTOR],
@@ -203,21 +203,21 @@ describe('Authorization (e2e)', () => {
       const doctorId = created.json().id;
 
       const own = await context.app.inject({
-        method: 'PATCH',
+        method: "PATCH",
         url: `/doctors/${doctorId}/schedule`,
         headers: auth(tokens[USER_ROLE.DOCTOR]),
-        payload: { weeklySchedule: [{ weekday: 1, ranges: [{ start: '09:00', end: '12:00' }] }] },
+        payload: { weeklySchedule: [{ weekday: 1, ranges: [{ start: "09:00", end: "12:00" }] }] },
       });
 
       expect(own.statusCode).toBe(200);
       expect(own.json().weeklySchedule).toEqual([
-        { weekday: 1, ranges: [{ start: '09:00', end: '12:00' }] },
+        { weekday: 1, ranges: [{ start: "09:00", end: "12:00" }] },
       ]);
 
       // A different doctor account in the same clinic must not reach this row.
       const otherDoctorToken = await context.login(otherClinic.phones[USER_ROLE.DOCTOR]);
       const foreign = await context.app.inject({
-        method: 'PATCH',
+        method: "PATCH",
         url: `/doctors/${doctorId}/schedule`,
         headers: auth(otherDoctorToken),
         payload: { weeklySchedule: [] },
@@ -226,9 +226,9 @@ describe('Authorization (e2e)', () => {
       expect(foreign.statusCode).toBe(404);
     });
 
-    it('refuses a receptionist changing any schedule', async () => {
+    it("refuses a receptionist changing any schedule", async () => {
       const response = await context.app.inject({
-        method: 'PATCH',
+        method: "PATCH",
         url: `/doctors/${otherClinic.userIds[USER_ROLE.DOCTOR]}/schedule`,
         headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
         payload: { weeklySchedule: [] },

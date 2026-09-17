@@ -1,19 +1,19 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   CreatePaymentInput,
   PatientBalance,
   ReversePaymentInput,
   Statement,
   StatementQuery,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { billingApi } from '@web/features/billing/api';
-import { DASHBOARD_KEY } from '@web/features/dashboard/queries';
-import { PATIENT_KEY, PATIENTS_KEY } from '@web/features/patients/queries';
+import { billingApi } from "@web/features/billing/api";
+import { DASHBOARD_KEY } from "@web/features/dashboard/queries";
+import { PATIENT_KEY, PATIENTS_KEY } from "@web/features/patients/queries";
 
-export const BALANCE_KEY = 'patient-balance';
-export const STATEMENT_KEY = 'patient-statement';
-export const PAYMENTS_KEY = 'payments';
+export const BALANCE_KEY = "patient-balance";
+export const STATEMENT_KEY = "patient-statement";
+export const PAYMENTS_KEY = "payments";
 
 export function usePatientBalance(
   patientId: string,
@@ -22,7 +22,7 @@ export function usePatientBalance(
   return useQuery({
     queryKey: [BALANCE_KEY, patientId],
     queryFn: () => billingApi.balance(patientId),
-    enabled: enabled && patientId !== '',
+    enabled: enabled && patientId !== "",
   });
 }
 
@@ -34,7 +34,7 @@ export function useStatement(
   return useQuery({
     queryKey: [STATEMENT_KEY, patientId, query],
     queryFn: () => billingApi.statement(patientId, query),
-    enabled: enabled && patientId !== '',
+    enabled: enabled && patientId !== "",
     placeholderData: (previous) => previous,
   });
 }

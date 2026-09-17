@@ -1,16 +1,16 @@
-import { PageTitleProvider } from '@clinic/ui/lib/page-title';
-import { useEffect, useState, type JSX, type ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useLocation } from 'react-router-dom';
+import { PageTitleProvider } from "@clinic/ui/lib/page-title";
+import { useEffect, useState, type JSX, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 
-import { routeTitle } from '@web/app/navigation';
-import { usePersonName } from '@clinic/ui/components/person-name';
-import { useSession } from '@web/features/auth/session';
-import { useClinicBranding } from '@web/features/clinic/queries';
+import { routeTitle } from "@web/app/navigation";
+import { usePersonName } from "@clinic/ui/components/person-name";
+import { useSession } from "@web/features/auth/session";
+import { useClinicBranding } from "@web/features/clinic/queries";
 
 /** `{page} — {clinic}`, and whichever half exists on its own. */
 export function documentTitle(page: string | undefined, clinic: string | undefined): string {
-  return [page, clinic].filter((part) => part !== undefined && part.trim() !== '').join(' — ');
+  return [page, clinic].filter((part) => part !== undefined && part.trim() !== "").join(" — ");
 }
 
 export function DocumentTitleProvider({ children }: { readonly children: ReactNode }): JSX.Element {
@@ -20,7 +20,7 @@ export function DocumentTitleProvider({ children }: { readonly children: ReactNo
   const resolve = usePersonName();
   const [page, setPage] = useState<string | null>(null);
 
-  const branding = useClinicBranding(status === 'unauthenticated');
+  const branding = useClinicBranding(status === "unauthenticated");
   const clinicName = resolve(user ? user.clinic.name : branding.data?.name);
   const route = routeTitle(pathname);
 

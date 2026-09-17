@@ -1,6 +1,6 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
+import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
 
 // A clinic closure is whole days for everybody; doctor time off is one person's and often part of a
 // day. Both are subtracted by `AvailabilityService`, the only place that decides.
@@ -36,14 +36,14 @@ export const createClinicClosureSchema = z
     ...closureWritableFields,
     isAnnual: z.boolean().default(false),
   })
-  .refine(orderedDays, { message: 'endsOn must not be before startsOn', path: ['endsOn'] });
+  .refine(orderedDays, { message: "endsOn must not be before startsOn", path: ["endsOn"] });
 export type CreateClinicClosureInput = z.infer<typeof createClinicClosureSchema>;
 
 export const updateClinicClosureSchema = z
   .object(closureWritableFields)
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided')
-  .refine(orderedDays, { message: 'endsOn must not be before startsOn', path: ['endsOn'] });
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided")
+  .refine(orderedDays, { message: "endsOn must not be before startsOn", path: ["endsOn"] });
 export type UpdateClinicClosureInput = z.infer<typeof updateClinicClosureSchema>;
 
 export const listClinicClosuresQuerySchema = paginationQuerySchema.extend({
@@ -80,14 +80,14 @@ const orderedInstants = <T extends { startsAt?: string | undefined; endsAt?: str
 
 export const createDoctorTimeOffSchema = z
   .object(timeOffWritableFields)
-  .refine(orderedInstants, { message: 'endsAt must be after startsAt', path: ['endsAt'] });
+  .refine(orderedInstants, { message: "endsAt must be after startsAt", path: ["endsAt"] });
 export type CreateDoctorTimeOffInput = z.infer<typeof createDoctorTimeOffSchema>;
 
 export const updateDoctorTimeOffSchema = z
   .object(timeOffWritableFields)
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided')
-  .refine(orderedInstants, { message: 'endsAt must be after startsAt', path: ['endsAt'] });
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided")
+  .refine(orderedInstants, { message: "endsAt must be after startsAt", path: ["endsAt"] });
 export type UpdateDoctorTimeOffInput = z.infer<typeof updateDoctorTimeOffSchema>;
 
 export const listDoctorTimeOffQuerySchema = paginationQuerySchema.extend({
@@ -119,7 +119,7 @@ export type ConflictingAppointment = z.infer<typeof conflictingAppointmentSchema
 
 // `error` is `schedule_conflict`, which is what the web app matches on — Arabic wording is resolved
 // on the front end by code.
-export const SCHEDULE_CONFLICT_ERROR = 'schedule_conflict';
+export const SCHEDULE_CONFLICT_ERROR = "schedule_conflict";
 
 export const scheduleConflictSchema = z.object({
   statusCode: z.literal(409),
@@ -141,8 +141,8 @@ export type ClinicClosureResult = z.infer<typeof clinicClosureResultSchema>;
 export const doctorTimeOffResultSchema = closureResultSchema(doctorTimeOffSchema);
 export type DoctorTimeOffResult = z.infer<typeof doctorTimeOffResultSchema>;
 
-export const CLOSURE_CANCELLATION_PREFIX = 'closure:';
-export const TIME_OFF_CANCELLATION_PREFIX = 'time_off:';
+export const CLOSURE_CANCELLATION_PREFIX = "closure:";
+export const TIME_OFF_CANCELLATION_PREFIX = "time_off:";
 
 export const closureCancellationReason = (closureId: string): string =>
   `${CLOSURE_CANCELLATION_PREFIX}${closureId}`;

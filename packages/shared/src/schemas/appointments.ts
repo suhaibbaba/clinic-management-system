@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 import {
   APPOINTMENT_STATUSES,
@@ -7,16 +7,16 @@ import {
   WAITING_LIST_PRIORITY,
   WAITING_LIST_SOURCES,
   WAITING_LIST_STATUSES,
-} from '@shared/enums';
-import { clinicClosureSchema, doctorTimeOffSchema } from '@shared/schemas/closures';
-import { paginationQuerySchema, timeOfDaySchema, uuidSchema } from '@shared/schemas/common';
+} from "@shared/enums";
+import { clinicClosureSchema, doctorTimeOffSchema } from "@shared/schemas/closures";
+import { paginationQuerySchema, timeOfDaySchema, uuidSchema } from "@shared/schemas/common";
 import {
   hasExactlyOnePatient,
   patientRefFields,
   PATIENT_REF_MESSAGE,
-} from '@shared/schemas/patients';
-import { personNameSchema } from '@shared/schemas/person-name';
-import { lookupCodeSchema } from '@shared/schemas/lookups';
+} from "@shared/schemas/patients";
+import { personNameSchema } from "@shared/schemas/person-name";
+import { lookupCodeSchema } from "@shared/schemas/lookups";
 
 /** `YYYY-MM-DD`, the wire format for a calendar day everywhere in the app. */
 export const isoDateSchema = z.iso.date();
@@ -81,7 +81,7 @@ export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 export const updateAppointmentSchema = z
   .object(appointmentWritableFields)
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateAppointmentInput = z.infer<typeof updateAppointmentSchema>;
 
 /** Cancelling states a reason; every other transition carries no body. */
@@ -103,7 +103,7 @@ export type ListAppointmentsQuery = z.infer<typeof listAppointmentsQuerySchema>;
 export const calendarQuerySchema = z.object({
   /** Any date inside the range; the API snaps a week to its Sunday and a month to its first. */
   date: isoDateSchema,
-  range: z.enum(['day', 'week', 'month']).default('day'),
+  range: z.enum(["day", "week", "month"]).default("day"),
   doctorId: uuidSchema.optional(),
 });
 export type CalendarQuery = z.infer<typeof calendarQuerySchema>;
@@ -145,12 +145,12 @@ export const availabilitySchema = z.object({
   durationMinutes: durationMinutesSchema,
   closedReason: z
     .enum([
-      'clinic_closed',
-      'clinic_closure',
-      'doctor_off',
-      'doctor_time_off',
-      'fully_booked',
-      'day_over',
+      "clinic_closed",
+      "clinic_closure",
+      "doctor_off",
+      "doctor_time_off",
+      "fully_booked",
+      "day_over",
     ])
     .nullable(),
   // The closure's own words rather than a translated category, so the calendar and the closure
@@ -199,7 +199,7 @@ export const updateWaitingListEntrySchema = z
     priority: z.enum(WAITING_LIST_PRIORITIES),
   })
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateWaitingListEntryInput = z.infer<typeof updateWaitingListEntrySchema>;
 
 export const listWaitingListQuerySchema = paginationQuerySchema.extend({

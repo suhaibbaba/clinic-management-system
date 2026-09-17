@@ -1,20 +1,20 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { setPasswordSchema, type SetPasswordInput } from '@clinic/shared';
-import { useState, type JSX } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { setPasswordSchema, type SetPasswordInput } from "@clinic/shared";
+import { useState, type JSX } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { Button, FormField, Icon, PasswordInput, PersonName } from '@clinic/ui';
-import { Logo } from '@web/components/brand/logo';
-import { authApi } from '@web/features/auth/api';
-import { BRANDING_SCOPE, useClinicBranding } from '@web/features/clinic/queries';
-import { errorMessageKey } from '@web/lib/api-error';
-import { useClinicLogo } from '@web/lib/use-clinic-logo';
+import { Button, FormField, Icon, PasswordInput, PersonName } from "@clinic/ui";
+import { Logo } from "@web/components/brand/logo";
+import { authApi } from "@web/features/auth/api";
+import { BRANDING_SCOPE, useClinicBranding } from "@web/features/clinic/queries";
+import { errorMessageKey } from "@web/lib/api-error";
+import { useClinicLogo } from "@web/lib/use-clinic-logo";
 
-export function SetPasswordPage({ purpose }: { purpose: 'activate' | 'reset' }): JSX.Element {
+export function SetPasswordPage({ purpose }: { purpose: "activate" | "reset" }): JSX.Element {
   const { t } = useTranslation();
-  const { token = '' } = useParams();
+  const { token = "" } = useParams();
   const navigate = useNavigate();
   const branding = useClinicBranding();
   const logoUrl = useClinicLogo(BRANDING_SCOPE, branding.data?.logoUrl);
@@ -53,37 +53,37 @@ export function SetPasswordPage({ purpose }: { purpose: 'activate' | 'reset' }):
         )}
 
         <h1 className="text-title font-medium text-primary-900">
-          {t(purpose === 'activate' ? 'auth.activateTitle' : 'auth.resetTitle')}
+          {t(purpose === "activate" ? "auth.activateTitle" : "auth.resetTitle")}
         </h1>
 
         {done ? (
           <>
-            <p className="mt-1 text-value text-ink-muted">{t('auth.passwordSet')}</p>
+            <p className="mt-1 text-value text-ink-muted">{t("auth.passwordSet")}</p>
             <Button
               className="mt-6 w-full"
               icon={<Icon name="login" />}
-              onClick={() => navigate('/login')}
+              onClick={() => navigate("/login")}
             >
-              {t('auth.toLogin')}
+              {t("auth.toLogin")}
             </Button>
           </>
         ) : (
           <>
-            <p className="mt-1 text-value text-ink-muted">{t('auth.setPasswordSubtitle')}</p>
+            <p className="mt-1 text-value text-ink-muted">{t("auth.setPasswordSubtitle")}</p>
 
             <form className="mt-6 flex flex-col gap-4" onSubmit={onSubmit} noValidate>
               <FormField
                 label="auth.newPassword"
                 htmlFor="new-password"
                 error={errors.password}
-                errorKey={errors.password ? 'errors.validation.passwordMin' : undefined}
+                errorKey={errors.password ? "errors.validation.passwordMin" : undefined}
               >
                 <PasswordInput
-                  placeholder={t('common.placeholders.password')}
+                  placeholder={t("common.placeholders.password")}
                   id="new-password"
                   autoComplete="new-password"
                   hasError={errors.password !== undefined}
-                  {...register('password')}
+                  {...register("password")}
                 />
               </FormField>
 
@@ -102,7 +102,7 @@ export function SetPasswordPage({ purpose }: { purpose: 'activate' | 'reset' }):
                 isLoading={isSubmitting}
                 className="mt-2 w-full"
               >
-                {isSubmitting ? t('auth.submitting') : t('auth.setPassword')}
+                {isSubmitting ? t("auth.submitting") : t("auth.setPassword")}
               </Button>
             </form>
           </>

@@ -1,31 +1,31 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
 /** Not in the DOM library: Chromium ships it, no standard defines it. */
 interface InstallPromptEvent extends Event {
   prompt: () => Promise<void>;
-  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  readonly userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
 export type InstallState =
   /** Running from a home screen already. */
-  | 'installed'
+  | "installed"
   /** Chromium offered the prompt, so it can be raised on a click. */
-  | 'available'
+  | "available"
   /** Safari installs only through the share sheet, and exposes no event for it. */
-  | 'manual'
+  | "manual"
   /** A desktop browser with nothing to offer, or a tab that has not been offered it. */
-  | 'unavailable';
+  | "unavailable";
 
 const standalone = (): boolean =>
   // An embedded webview may implement neither; not installed is the safe answer.
-  window.matchMedia?.('(display-mode: standalone)').matches === true ||
+  window.matchMedia?.("(display-mode: standalone)").matches === true ||
   // iOS never adopted `display-mode`, and reports this on `navigator` instead.
-  ('standalone' in navigator && navigator.standalone === true);
+  ("standalone" in navigator && navigator.standalone === true);
 
 const isIos = (): boolean =>
   /iphone|ipad|ipod/i.test(navigator.userAgent) ||
   // iPadOS reports itself as a Mac; a touch point is what separates the two.
-  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
 export function useInstallPrompt(): {
   readonly state: InstallState;
@@ -48,12 +48,12 @@ export function useInstallPrompt(): {
       setInstalled(true);
     };
 
-    window.addEventListener('beforeinstallprompt', offered);
-    window.addEventListener('appinstalled', done);
+    window.addEventListener("beforeinstallprompt", offered);
+    window.addEventListener("appinstalled", done);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', offered);
-      window.removeEventListener('appinstalled', done);
+      window.removeEventListener("beforeinstallprompt", offered);
+      window.removeEventListener("appinstalled", done);
     };
   }, []);
 
@@ -69,12 +69,12 @@ export function useInstallPrompt(): {
   }, [event]);
 
   const state: InstallState = installed
-    ? 'installed'
+    ? "installed"
     : event
-      ? 'available'
+      ? "available"
       : isIos()
-        ? 'manual'
-        : 'unavailable';
+        ? "manual"
+        : "unavailable";
 
   return { state, install };
 }

@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   createDoctorSchema,
@@ -20,14 +20,14 @@ import {
   USER_ROLE,
   type Doctor,
   type Paginated,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DOCTORS_ENTITY, DoctorsService } from '@api/doctors/doctors.service';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DOCTORS_ENTITY, DoctorsService } from "@api/doctors/doctors.service";
 
 class CreateDoctorDto extends createZodDto(createDoctorSchema) {}
 class UpdateDoctorDto extends createZodDto(updateDoctorSchema) {}
@@ -35,7 +35,7 @@ class UpdateDoctorScheduleDto extends createZodDto(updateDoctorScheduleSchema) {
 class ListDoctorsQueryDto extends createZodDto(listDoctorsQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-@Controller('doctors')
+@Controller("doctors")
 export class DoctorsController {
   constructor(private readonly doctorsService: DoctorsService) {}
 
@@ -47,7 +47,7 @@ export class DoctorsController {
     return this.doctorsService.list(actor, query);
   }
 
-  @Get(':id')
+  @Get(":id")
   findOne(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<Doctor> {
     return this.doctorsService.findOne(actor, params.id);
   }
@@ -59,7 +59,7 @@ export class DoctorsController {
     return this.doctorsService.create(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Roles(USER_ROLE.ADMIN)
   @Audit(DOCTORS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -70,7 +70,7 @@ export class DoctorsController {
     return this.doctorsService.update(actor, params.id, body);
   }
 
-  @Patch(':id/schedule')
+  @Patch(":id/schedule")
   @Roles(USER_ROLE.DOCTOR)
   @Audit(DOCTORS_ENTITY, AUDIT_ACTION.UPDATE)
   updateSchedule(
@@ -81,7 +81,7 @@ export class DoctorsController {
     return this.doctorsService.updateSchedule(actor, params.id, body);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(DOCTORS_ENTITY, AUDIT_ACTION.DELETE)

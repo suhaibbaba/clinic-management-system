@@ -1,13 +1,13 @@
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { USER_ROLE } from '@clinic/shared';
+import { USER_ROLE } from "@clinic/shared";
 
-import { Icon } from '@clinic/ui';
-import { useSession } from '@web/features/auth/session';
-import { useAllergyFlags } from '@web/features/patients/queries';
-import { cn } from '@clinic/ui/lib/cn';
-import { formatList } from '@web/lib/format';
+import { Icon } from "@clinic/ui";
+import { useSession } from "@web/features/auth/session";
+import { useAllergyFlags } from "@web/features/patients/queries";
+import { cn } from "@clinic/ui/lib/cn";
+import { formatList } from "@web/lib/format";
 
 export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element | null {
   const { t } = useTranslation();
@@ -25,13 +25,13 @@ export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element
       className={cn(
         // `inline-flex`, so it is as wide as what it says and no wider. Not `pill-text`: this one
         // wraps, and a wrapped line box of exactly one em would set the rows touching.
-        'inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5',
-        'rounded-pill border border-danger-200 bg-danger-50 py-1 pe-3 ps-2.5',
-        'text-value font-medium text-danger-700',
+        "inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5",
+        "rounded-pill border border-danger-200 bg-danger-50 py-1 pe-3 ps-2.5",
+        "text-value font-medium text-danger-700",
       )}
     >
       <Icon name="alert" className="size-4 shrink-0 text-danger-600" />
-      <span>{t('patients.allergies')}:</span>
+      <span>{t("patients.allergies")}:</span>
       <span>{formatList(data.allergies)}</span>
     </span>
   );

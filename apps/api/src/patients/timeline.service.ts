@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from "@nestjs/common";
 import {
   TIMELINE_ENTRY_TYPE,
   USER_ROLE,
@@ -7,13 +7,13 @@ import {
   type TimelineEntry,
   type TimelineEntryType,
   type UserRole,
-} from '@clinic/shared';
-import { sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { sql, type SQL } from "drizzle-orm";
 
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { PatientAccessService } from '@api/patients/patient-access.service';
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { PatientAccessService } from "@api/patients/patient-access.service";
 
 interface TimelineRow extends Record<string, unknown> {
   readonly id: string;

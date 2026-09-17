@@ -1,18 +1,18 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { parseCoordinates, type ResolvedLocation } from '@clinic/shared';
+import { Injectable, UnprocessableEntityException } from "@nestjs/common";
+import { parseCoordinates, type ResolvedLocation } from "@clinic/shared";
 
 @Injectable()
 export class MapLinkResolver {
   private static readonly HOSTS = new Set([
-    'maps.app.goo.gl',
-    'goo.gl',
-    'g.co',
-    'maps.google.com',
-    'www.google.com',
-    'google.com',
-    'maps.apple.com',
-    'www.openstreetmap.org',
-    'openstreetmap.org',
+    "maps.app.goo.gl",
+    "goo.gl",
+    "g.co",
+    "maps.google.com",
+    "www.google.com",
+    "google.com",
+    "maps.apple.com",
+    "www.openstreetmap.org",
+    "openstreetmap.org",
   ]);
 
   private static readonly MAX_HOPS = 5;
@@ -37,7 +37,7 @@ export class MapLinkResolver {
       current = this.checked(next, current);
     }
 
-    throw new UnprocessableEntityException('No coordinates could be read from that link');
+    throw new UnprocessableEntityException("No coordinates could be read from that link");
   }
 
   /** One redirect, header only. */
@@ -47,15 +47,15 @@ export class MapLinkResolver {
 
     try {
       const response = await fetch(url, {
-        method: 'GET',
-        redirect: 'manual',
+        method: "GET",
+        redirect: "manual",
         signal: controller.signal,
-        headers: { accept: 'text/html' },
+        headers: { accept: "text/html" },
       });
 
-      return response.headers.get('location');
+      return response.headers.get("location");
     } catch {
-      throw new UnprocessableEntityException('That link could not be reached');
+      throw new UnprocessableEntityException("That link could not be reached");
     } finally {
       clearTimeout(timeout);
     }
@@ -67,11 +67,11 @@ export class MapLinkResolver {
     try {
       url = base ? new URL(value, base) : new URL(value);
     } catch {
-      throw new UnprocessableEntityException('Not a link');
+      throw new UnprocessableEntityException("Not a link");
     }
 
-    if (url.protocol !== 'https:' || !MapLinkResolver.HOSTS.has(url.hostname.toLowerCase())) {
-      throw new UnprocessableEntityException('Only a map link can be resolved');
+    if (url.protocol !== "https:" || !MapLinkResolver.HOSTS.has(url.hostname.toLowerCase())) {
+      throw new UnprocessableEntityException("Only a map link can be resolved");
     }
 
     return url;

@@ -1,9 +1,9 @@
-import { SetMetadata } from '@nestjs/common';
-import type { AuditAction } from '@clinic/shared';
+import { SetMetadata } from "@nestjs/common";
+import type { AuditAction } from "@clinic/shared";
 
-export const AUDIT_KEY = 'audit';
+export const AUDIT_KEY = "audit";
 
-export type AuditEntityIdSource = 'route' | 'clinic' | 'patient' | 'response' | 'actor';
+export type AuditEntityIdSource = "route" | "clinic" | "patient" | "response" | "actor";
 
 export interface AuditMetadata {
   readonly entity: string;
@@ -21,5 +21,5 @@ export const Audit = (
   SetMetadata(AUDIT_KEY, {
     entity,
     action,
-    entityIdSource: options.entityIdSource ?? 'route',
+    entityIdSource: options.entityIdSource ?? "route",
   } satisfies AuditMetadata);

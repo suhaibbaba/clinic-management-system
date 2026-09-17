@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   APPOINTMENT_STATUS,
   AUDIT_ACTION,
@@ -26,15 +26,15 @@ import {
   type CalendarFeed,
   type Paginated,
   type Visit,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { AvailabilityService } from '@api/appointments/availability.service';
-import { APPOINTMENTS_ENTITY, AppointmentsService } from '@api/appointments/appointments.service';
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
+import { AvailabilityService } from "@api/appointments/availability.service";
+import { APPOINTMENTS_ENTITY, AppointmentsService } from "@api/appointments/appointments.service";
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 
 class CreateAppointmentDto extends createZodDto(createAppointmentSchema) {}
 class UpdateAppointmentDto extends createZodDto(updateAppointmentSchema) {}
@@ -44,7 +44,7 @@ class CalendarQueryDto extends createZodDto(calendarQuerySchema) {}
 class AvailabilityQueryDto extends createZodDto(availabilityQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-@Controller('appointments')
+@Controller("appointments")
 export class AppointmentsController {
   constructor(
     private readonly appointmentsService: AppointmentsService,
@@ -59,7 +59,7 @@ export class AppointmentsController {
     return this.appointmentsService.list(actor, query);
   }
 
-  @Get('calendar')
+  @Get("calendar")
   calendar(
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: CalendarQueryDto,
@@ -68,7 +68,7 @@ export class AppointmentsController {
   }
 
   /** Free slots for a doctor on a date. Never stored, computed per request. */
-  @Get('availability')
+  @Get("availability")
   availability(
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: AvailabilityQueryDto,
@@ -76,7 +76,7 @@ export class AppointmentsController {
     return this.availabilityService.forDay(actor.clinicId, query);
   }
 
-  @Get(':id')
+  @Get(":id")
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -94,7 +94,7 @@ export class AppointmentsController {
     return this.appointmentsService.create(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -108,7 +108,7 @@ export class AppointmentsController {
   // One endpoint per transition rather than `PATCH { status }`: it names the act for the audit
   // trail, and cancelling can require its reason in the schema.
 
-  @Patch(':id/confirm')
+  @Patch(":id/confirm")
   @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   confirm(
@@ -118,7 +118,7 @@ export class AppointmentsController {
     return this.appointmentsService.changeStatus(actor, params.id, APPOINTMENT_STATUS.CONFIRMED);
   }
 
-  @Patch(':id/arrived')
+  @Patch(":id/arrived")
   @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   arrived(
@@ -128,7 +128,7 @@ export class AppointmentsController {
     return this.appointmentsService.changeStatus(actor, params.id, APPOINTMENT_STATUS.ARRIVED);
   }
 
-  @Patch(':id/start')
+  @Patch(":id/start")
   @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   start(
@@ -138,7 +138,7 @@ export class AppointmentsController {
     return this.appointmentsService.changeStatus(actor, params.id, APPOINTMENT_STATUS.IN_PROGRESS);
   }
 
-  @Patch(':id/complete')
+  @Patch(":id/complete")
   @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   complete(
@@ -148,7 +148,7 @@ export class AppointmentsController {
     return this.appointmentsService.changeStatus(actor, params.id, APPOINTMENT_STATUS.COMPLETED);
   }
 
-  @Patch(':id/no-show')
+  @Patch(":id/no-show")
   @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   noShow(
@@ -158,7 +158,7 @@ export class AppointmentsController {
     return this.appointmentsService.changeStatus(actor, params.id, APPOINTMENT_STATUS.NO_SHOW);
   }
 
-  @Patch(':id/cancel')
+  @Patch(":id/cancel")
   @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   cancel(
@@ -176,7 +176,7 @@ export class AppointmentsController {
 
   // Doctor and admin only — a visit is a clinical record. The audit entry is on the appointment,
   // which is the row this changes.
-  @Post(':id/visit')
+  @Post(":id/visit")
   @Roles(USER_ROLE.DOCTOR)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   convertToVisit(
@@ -186,7 +186,7 @@ export class AppointmentsController {
     return this.appointmentsService.convertToVisit(actor, params.id);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.DELETE)

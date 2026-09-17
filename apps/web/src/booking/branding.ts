@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-const KEY = 'clinic.branding.';
+const KEY = "clinic.branding.";
 
 export function useClinicLogo(
   slug: string | undefined,
@@ -23,10 +23,10 @@ export function useClinicLogo(
 
 function read(slug: string): string | null {
   try {
-    const parsed: unknown = JSON.parse(localStorage.getItem(KEY + slug) ?? 'null');
+    const parsed: unknown = JSON.parse(localStorage.getItem(KEY + slug) ?? "null");
     const url = (parsed as { logoUrl?: unknown } | null)?.logoUrl;
 
-    return typeof url === 'string' ? url : null;
+    return typeof url === "string" ? url : null;
   } catch {
     return null;
   }

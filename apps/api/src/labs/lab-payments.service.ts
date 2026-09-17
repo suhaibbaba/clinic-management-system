@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
   type OnModuleInit,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   formatMinorUnits,
   LOOKUP_LIST,
@@ -15,21 +15,21 @@ import {
   type Paginated,
   type PaginationQuery,
   type ReverseLabPaymentInput,
-} from '@clinic/shared';
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { labPayments } from '@api/database/schema';
-import { LabsService } from '@api/labs/labs.service';
-import { LookupsService } from '@api/lookups/lookups.service';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { labPayments } from "@api/database/schema";
+import { LabsService } from "@api/labs/labs.service";
+import { LookupsService } from "@api/lookups/lookups.service";
 
 type PaymentRow = typeof labPayments.$inferSelect;
 
-export const LAB_PAYMENTS_ENTITY = 'lab_payments';
+export const LAB_PAYMENTS_ENTITY = "lab_payments";
 
 // Append-only, so the balance is a plain `sum()` and a reversal falls out of it. Technician
 // creates; admin creates and reverses, reversal being the one that makes money come back.
@@ -102,7 +102,7 @@ export class LabPaymentsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to record the lab payment');
+      throw new Error("Failed to record the lab payment");
     }
 
     return toLabPayment(row);
@@ -121,16 +121,16 @@ export class LabPaymentsService implements OnModuleInit {
         .from(labPayments)
         .where(this.scope.where(labPayments, actor.clinicId, eq(labPayments.id, id)))
         .limit(1)
-        .for('update');
+        .for("update");
 
       if (!original) {
-        throw new NotFoundException('Resource not found');
+        throw new NotFoundException("Resource not found");
       }
       if (original.reversesId !== null) {
-        throw new BadRequestException('A reversing entry cannot itself be reversed');
+        throw new BadRequestException("A reversing entry cannot itself be reversed");
       }
       if (original.reversedAt !== null) {
-        throw new BadRequestException('This payment has already been reversed');
+        throw new BadRequestException("This payment has already been reversed");
       }
 
       await tx
@@ -154,7 +154,7 @@ export class LabPaymentsService implements OnModuleInit {
         .returning();
 
       if (!row) {
-        throw new Error('Failed to reverse the lab payment');
+        throw new Error("Failed to reverse the lab payment");
       }
 
       return toLabPayment(row);
@@ -175,7 +175,7 @@ export class LabPaymentsService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
 
     return row;

@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   USER_ROLE,
@@ -20,14 +20,14 @@ import {
   updateLookupOptionSchema,
   type LookupBundle,
   type LookupOption,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { LOOKUP_OPTIONS_ENTITY, LookupsService } from '@api/lookups/lookups.service';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { LOOKUP_OPTIONS_ENTITY, LookupsService } from "@api/lookups/lookups.service";
 
 class CreateLookupDto extends createZodDto(createLookupOptionSchema) {}
 class UpdateLookupDto extends createZodDto(updateLookupOptionSchema) {}
@@ -35,7 +35,7 @@ class ReorderLookupsDto extends createZodDto(reorderLookupOptionsSchema) {}
 class ListLookupsQueryDto extends createZodDto(listLookupOptionsQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-@Controller('lookups')
+@Controller("lookups")
 export class LookupsController {
   constructor(private readonly lookups: LookupsService) {}
 
@@ -61,7 +61,7 @@ export class LookupsController {
 
   // Before `:id`, or Nest reads "reorder" as one. A `PATCH` on the collection: ten separate writes
   // would let a refresh halfway leave a list nobody arranged.
-  @Patch('reorder')
+  @Patch("reorder")
   @Roles(USER_ROLE.ADMIN)
   @Audit(LOOKUP_OPTIONS_ENTITY, AUDIT_ACTION.UPDATE)
   reorder(
@@ -71,7 +71,7 @@ export class LookupsController {
     return this.lookups.reorder(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Roles(USER_ROLE.ADMIN)
   @Audit(LOOKUP_OPTIONS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -82,7 +82,7 @@ export class LookupsController {
     return this.lookups.update(actor, params.id, body);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(LOOKUP_OPTIONS_ENTITY, AUDIT_ACTION.DELETE)

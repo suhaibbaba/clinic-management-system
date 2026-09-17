@@ -1,8 +1,8 @@
-import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 
-import { FIELD_TEXT, FieldClear, FieldIcon, FieldLock, fieldShell } from '@ui/components/field';
-import type { IconName } from '@ui/components/icon';
-import { cn } from '@ui/lib/cn';
+import { FIELD_TEXT, FieldClear, FieldIcon, FieldLock, fieldShell } from "@ui/components/field";
+import type { IconName } from "@ui/components/icon";
+import { cn } from "@ui/lib/cn";
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   hasError?: boolean | undefined;
@@ -13,7 +13,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   /** Sits at the inline end, inside the field — a currency symbol, a unit. */
   suffix?: ReactNode | undefined;
   /** Names the shell for a product's own CSS — see the package README. */
-  'data-part'?: string | undefined;
+  "data-part"?: string | undefined;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
@@ -24,13 +24,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     onClear,
     clearLabel,
     suffix,
-    'data-part': part = 'input',
+    "data-part": part = "input",
     ...props
   },
   ref,
 ) {
   const disabled = props.disabled === true;
-  const clearable = onClear !== undefined && !disabled && String(props.value ?? '') !== '';
+  const clearable = onClear !== undefined && !disabled && String(props.value ?? "") !== "";
 
   return (
     <div data-part={part} className={cn(fieldShell({ hasError, disabled }), className)}>
@@ -44,12 +44,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         aria-invalid={hasError || undefined}
         className={cn(
           FIELD_TEXT,
-          'page-rtl:text-right page-ltr:text-left',
-          '[&::-webkit-calendar-picker-indicator]:cursor-pointer',
-          '[&::-webkit-calendar-picker-indicator]:opacity-60',
-          '[&::-webkit-calendar-picker-indicator]:transition-opacity',
-          '[&::-webkit-calendar-picker-indicator]:duration-150',
-          '[&::-webkit-calendar-picker-indicator]:hover:opacity-100',
+          "page-rtl:text-right page-ltr:text-left",
+          "[&::-webkit-calendar-picker-indicator]:cursor-pointer",
+          "[&::-webkit-calendar-picker-indicator]:opacity-60",
+          "[&::-webkit-calendar-picker-indicator]:transition-opacity",
+          "[&::-webkit-calendar-picker-indicator]:duration-150",
+          "[&::-webkit-calendar-picker-indicator]:hover:opacity-100",
         )}
         {...props}
       />

@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   createDoctorTimeOffSchema,
@@ -21,18 +21,18 @@ import {
   type DoctorTimeOff,
   type DoctorTimeOffResult,
   type Paginated,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
+import { z } from "zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import {
   DOCTOR_TIME_OFF_ENTITY,
   DoctorTimeOffService,
-} from '@api/schedule/doctor-time-off.service';
+} from "@api/schedule/doctor-time-off.service";
 
 class CreateDoctorTimeOffDto extends createZodDto(createDoctorTimeOffSchema) {}
 class UpdateDoctorTimeOffDto extends createZodDto(updateDoctorTimeOffSchema) {}
@@ -47,7 +47,7 @@ class DoctorParamDto extends createZodDto(z.object({ doctorId: z.uuid() })) {}
 export class DoctorTimeOffController {
   constructor(private readonly timeOff: DoctorTimeOffService) {}
 
-  @Get('doctors/:doctorId/time-off')
+  @Get("doctors/:doctorId/time-off")
   list(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: DoctorParamDto,
@@ -56,9 +56,9 @@ export class DoctorTimeOffController {
     return this.timeOff.list(actor, params.doctorId, query);
   }
 
-  @Post('doctors/:doctorId/time-off')
+  @Post("doctors/:doctorId/time-off")
   @Roles(USER_ROLE.DOCTOR)
-  @Audit(DOCTOR_TIME_OFF_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: 'response' })
+  @Audit(DOCTOR_TIME_OFF_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: "response" })
   create(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: DoctorParamDto,
@@ -68,7 +68,7 @@ export class DoctorTimeOffController {
     return this.timeOff.create(actor, params.doctorId, body, options);
   }
 
-  @Patch('doctor-time-off/:id')
+  @Patch("doctor-time-off/:id")
   @Roles(USER_ROLE.DOCTOR)
   @Audit(DOCTOR_TIME_OFF_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -80,7 +80,7 @@ export class DoctorTimeOffController {
     return this.timeOff.update(actor, params.id, body, options);
   }
 
-  @Delete('doctor-time-off/:id')
+  @Delete("doctor-time-off/:id")
   @Roles(USER_ROLE.DOCTOR)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(DOCTOR_TIME_OFF_ENTITY, AUDIT_ACTION.DELETE)

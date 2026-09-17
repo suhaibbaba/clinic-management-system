@@ -3,9 +3,9 @@ import {
   type CreateAppointmentInput,
   type PatientPhoneClash,
   type PatientView,
-} from '@clinic/shared';
-import { useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Avatar,
@@ -18,11 +18,11 @@ import {
   Ltr,
   SearchField,
   Select,
-} from '@clinic/ui';
-import { usePatients } from '@web/features/patients/queries';
-import { ApiError } from '@web/lib/api-error';
-import { useDebounced } from '@web/lib/use-debounced';
-import { cn } from '@clinic/ui/lib/cn';
+} from "@clinic/ui";
+import { usePatients } from "@web/features/patients/queries";
+import { ApiError } from "@web/lib/api-error";
+import { useDebounced } from "@web/lib/use-debounced";
+import { cn } from "@clinic/ui/lib/cn";
 
 export interface PickedPatient {
   readonly id: string;
@@ -41,14 +41,14 @@ export interface PatientDraft {
 }
 
 export type PatientChoice =
-  | { readonly kind: 'existing'; readonly patient: PickedPatient }
-  | { readonly kind: 'new'; readonly draft: PatientDraft };
+  | { readonly kind: "existing"; readonly patient: PickedPatient }
+  | { readonly kind: "new"; readonly draft: PatientDraft };
 
 /** What every form that picks a patient sends: one of the two, never both (`patientRefFields`). */
 export function toPatientRef(
   choice: PatientChoice,
-): Pick<CreateAppointmentInput, 'patientId' | 'newPatient'> {
-  if (choice.kind === 'existing') {
+): Pick<CreateAppointmentInput, "patientId" | "newPatient"> {
+  if (choice.kind === "existing") {
     return { patientId: choice.patient.id };
   }
 
@@ -78,8 +78,8 @@ export function patientPhoneClash(error: unknown): PickedPatient | null {
 export const isDraftComplete = (choice: PatientChoice | null): boolean =>
   choice === null
     ? false
-    : choice.kind === 'existing' ||
-      (choice.draft.fullName.trim() !== '' && choice.draft.phone.trim() !== '');
+    : choice.kind === "existing" ||
+      (choice.draft.fullName.trim() !== "" && choice.draft.phone.trim() !== "");
 
 export interface PatientPickerProps {
   readonly value: PatientChoice | null;
@@ -99,14 +99,14 @@ export function PatientPicker({
   allowNew = true,
 }: PatientPickerProps): JSX.Element {
   const { t } = useTranslation();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const debounced = useDebounced(search);
 
   const term = debounced.trim();
-  const results = usePatients({ limit: 8, ...(term !== '' && { search: term }) });
+  const results = usePatients({ limit: 8, ...(term !== "" && { search: term }) });
   const matches = results.data?.items ?? [];
 
-  if (value?.kind === 'existing') {
+  if (value?.kind === "existing") {
     return (
       <div className="flex items-center gap-3 rounded-control border border-line bg-inset px-3 py-2">
         <Avatar name={value.patient.fullName} tintKey={value.patient.id} />
@@ -117,12 +117,12 @@ export function PatientPicker({
           </Ltr>
         </span>
         {value.patient.profileIncomplete && (
-          <Badge tone="warning">{t('patients.incomplete')}</Badge>
+          <Badge tone="warning">{t("patients.incomplete")}</Badge>
         )}
         <button
           type="button"
           onClick={() => onChange(null)}
-          aria-label={t('common.clear')}
+          aria-label={t("common.clear")}
           className="cursor-pointer rounded-control p-1 text-ink-subtle transition-colors duration-150 hover:text-ink"
         >
           <Icon name="x" className="size-4" />
@@ -131,56 +131,56 @@ export function PatientPicker({
     );
   }
 
-  if (value?.kind === 'new') {
+  if (value?.kind === "new") {
     return (
       <NewPatientFields
         id={id}
         draft={value.draft}
-        onChange={(draft) => onChange({ kind: 'new', draft })}
+        onChange={(draft) => onChange({ kind: "new", draft })}
         onCancel={() => onChange(null)}
         {...(clash ? { clash } : {})}
-        onUseExisting={(patient) => onChange({ kind: 'existing', patient })}
+        onUseExisting={(patient) => onChange({ kind: "existing", patient })}
       />
     );
   }
 
   const typed = search.trim();
-  const offerNew = allowNew && typed !== '' && !results.isPending && matches.length === 0;
+  const offerNew = allowNew && typed !== "" && !results.isPending && matches.length === 0;
 
   return (
     <div className="flex flex-col gap-2">
       <SearchField
         id={id}
-        label={t('patients.search')}
-        placeholder={t('patients.searchPlaceholder')}
+        label={t("patients.search")}
+        placeholder={t("patients.searchPlaceholder")}
         value={search}
         onChange={(event) => setSearch(event.target.value)}
-        clearLabel={t('common.clear')}
-        onClear={() => setSearch('')}
+        clearLabel={t("common.clear")}
+        onClear={() => setSearch("")}
       />
 
-      {typed !== '' && (
+      {typed !== "" && (
         <ul className="max-h-56 overflow-y-auto rounded-control border border-line">
           {offerNew && (
             <li>
               <button
                 type="button"
                 data-new-patient
-                onClick={() => onChange({ kind: 'new', draft: { fullName: typed, phone: '' } })}
+                onClick={() => onChange({ kind: "new", draft: { fullName: typed, phone: "" } })}
                 className={cn(
-                  'flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-start',
-                  'text-value font-medium text-primary-600',
-                  'transition-colors duration-150 hover:bg-row-hover',
+                  "flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-start",
+                  "text-value font-medium text-primary-600",
+                  "transition-colors duration-150 hover:bg-row-hover",
                 )}
               >
                 <Icon name="user-plus" className="size-4 shrink-0" />
-                <span className="truncate">{t('patients.createNamed', { name: typed })}</span>
+                <span className="truncate">{t("patients.createNamed", { name: typed })}</span>
               </button>
             </li>
           )}
 
           {!offerNew && matches.length === 0 && (
-            <li className="px-3 py-2.5 text-label text-ink-muted">{t('patients.noMatches')}</li>
+            <li className="px-3 py-2.5 text-label text-ink-muted">{t("patients.noMatches")}</li>
           )}
 
           {matches.map((patient) => (
@@ -188,12 +188,12 @@ export function PatientPicker({
               <button
                 type="button"
                 onClick={() => {
-                  onChange({ kind: 'existing', patient: toPicked(patient) });
-                  setSearch('');
+                  onChange({ kind: "existing", patient: toPicked(patient) });
+                  setSearch("");
                 }}
                 className={cn(
-                  'flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-start',
-                  'transition-colors duration-150 hover:bg-row-hover',
+                  "flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-start",
+                  "transition-colors duration-150 hover:bg-row-hover",
                 )}
               >
                 <Avatar name={patient.fullName} tintKey={patient.id} />
@@ -205,7 +205,7 @@ export function PatientPicker({
                 </span>
                 {patient.profileIncomplete && (
                   <Badge tone="warning" className="ms-auto">
-                    {t('patients.incomplete')}
+                    {t("patients.incomplete")}
                   </Badge>
                 )}
               </button>
@@ -245,19 +245,19 @@ function NewPatientFields({
   return (
     <div className="flex flex-col gap-3 rounded-control border border-primary-200 bg-primary-50 p-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-label font-medium text-ink">{t('patients.createInline')}</span>
+        <span className="text-label font-medium text-ink">{t("patients.createInline")}</span>
         <Button size="sm" variant="ghost" icon={<Icon name="x" />} onClick={onCancel}>
-          {t('common.cancel')}
+          {t("common.cancel")}
         </Button>
       </div>
 
       {clash && (
         <div className="flex flex-wrap items-center gap-2 rounded-control bg-warning-100 px-3 py-2">
           <span className="text-label text-warning-700">
-            {t('patients.phoneTaken', { name: clash.fullName })}
+            {t("patients.phoneTaken", { name: clash.fullName })}
           </span>
           <Button size="sm" variant="secondary" onClick={() => onUseExisting(clash)}>
-            {t('patients.useExisting')}
+            {t("patients.useExisting")}
           </Button>
         </div>
       )}
@@ -284,8 +284,8 @@ function NewPatientFields({
         <FormField label="patients.gender" htmlFor={`${id}-gender`} optional>
           <Select
             id={`${id}-gender`}
-            value={draft.gender ?? ''}
-            placeholder={t('common.notSpecified')}
+            value={draft.gender ?? ""}
+            placeholder={t("common.notSpecified")}
             options={GENDERS.map((gender) => ({
               value: gender,
               label: t(`patients.${gender}`),
@@ -298,14 +298,14 @@ function NewPatientFields({
           <DatePicker
             id={`${id}-dob`}
             startView="years"
-            label={t('patients.dateOfBirth')}
-            value={draft.dateOfBirth ?? ''}
+            label={t("patients.dateOfBirth")}
+            value={draft.dateOfBirth ?? ""}
             onChange={(next) => onChange({ ...draft, dateOfBirth: next })}
           />
         </FormField>
       </div>
 
-      <p className="text-label text-ink-muted">{t('patients.createInlineHint')}</p>
+      <p className="text-label text-ink-muted">{t("patients.createInlineHint")}</p>
     </div>
   );
 }

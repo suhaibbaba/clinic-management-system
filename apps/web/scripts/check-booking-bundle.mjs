@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 // Measures what the browser actually downloads for `booking.html` — every script and modulepreload
 // it names, gzipped. Usage: node scripts/check-booking-bundle.mjs [--limit 100] [--target 80]
-import { gzipSync } from 'node:zlib';
-import { readFileSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { gzipSync } from "node:zlib";
+import { readFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const dist = join(here, '..', 'dist');
+const dist = join(here, "..", "dist");
 
 const arg = (name, fallback) => {
   const index = process.argv.indexOf(`--${name}`);
@@ -17,9 +17,9 @@ const arg = (name, fallback) => {
 };
 
 /** Fails the build. Set well above the target so it flags a regression, not a rounding. */
-const LIMIT_KB = arg('limit', 100);
+const LIMIT_KB = arg("limit", 100);
 /** What the page is designed to weigh; reported, never enforced. */
-const TARGET_KB = arg('target', 80);
+const TARGET_KB = arg("target", 80);
 
 const kb = (bytes) => bytes / 1024;
 
@@ -27,10 +27,10 @@ async function main() {
   let html;
 
   try {
-    html = await readFile(join(dist, 'booking.html'), 'utf8');
+    html = await readFile(join(dist, "booking.html"), "utf8");
   } catch {
     console.error(
-      'booking.html is missing from dist/. Run `pnpm --filter @clinic/web build` first.',
+      "booking.html is missing from dist/. Run `pnpm --filter @clinic/web build` first.",
     );
     process.exit(1);
   }
@@ -40,7 +40,7 @@ async function main() {
   const references = [...html.matchAll(/(?:src|href)="([^"]+\.js)"/g)].map(([, path]) => path);
 
   if (references.length === 0) {
-    console.error('No JavaScript found in booking.html — the entry may have been renamed.');
+    console.error("No JavaScript found in booking.html — the entry may have been renamed.");
     process.exit(1);
   }
 
@@ -48,7 +48,7 @@ async function main() {
   const rows = [];
 
   for (const reference of [...new Set(references)]) {
-    const file = join(dist, reference.replace(/^\//, ''));
+    const file = join(dist, reference.replace(/^\//, ""));
     const gzipped = gzipSync(readFileSync(file)).length;
 
     total += gzipped;
@@ -59,7 +59,7 @@ async function main() {
     console.log(`  ${kb(gzipped).toFixed(1).padStart(7)} KB gz  ${reference}`);
   }
 
-  console.log(`  ${'─'.repeat(7)}`);
+  console.log(`  ${"─".repeat(7)}`);
   console.log(
     `  ${kb(total).toFixed(1).padStart(7)} KB gz  total (target ${TARGET_KB}, limit ${LIMIT_KB})`,
   );
@@ -67,7 +67,7 @@ async function main() {
   if (kb(total) > LIMIT_KB) {
     console.error(
       `\nThe booking bundle is ${kb(total).toFixed(1)} KB gzipped, over the ${LIMIT_KB} KB limit.\n` +
-        'Something heavy reached the public page — check the newest import under src/booking.',
+        "Something heavy reached the public page — check the newest import under src/booking.",
     );
     process.exit(1);
   }

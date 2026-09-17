@@ -1,10 +1,10 @@
-import { useId, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useId, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { cn } from '@clinic/ui/lib/cn';
+import { cn } from "@clinic/ui/lib/cn";
 
 /** Codes match `TOOTH_SURFACES` in the shared package, which is what the API stores on a chart mark. */
-export const SELECTABLE_SURFACES = ['B', 'M', 'O', 'D', 'L'] as const;
+export const SELECTABLE_SURFACES = ["B", "M", "O", "D", "L"] as const;
 export type SelectableSurface = (typeof SELECTABLE_SURFACES)[number];
 
 const BOX = 120;
@@ -70,7 +70,7 @@ export function SurfaceSelector({
   return (
     <div role="group" aria-labelledby={groupId} className="inline-flex flex-col items-center gap-2">
       <span id={groupId} className="sr-only">
-        {t('chart.surfaces.legend')}
+        {t("chart.surfaces.legend")}
       </span>
 
       {/* Anatomical, not textual: the zones keep their positions in RTL, so the
@@ -81,7 +81,7 @@ export function SurfaceSelector({
         className="size-32 select-none"
         // `direction` has no Tailwind utility and React's SVG types have no
         // `dir` prop; it is layout, not colour, so an inline style is right.
-        style={{ direction: 'ltr' }}
+        style={{ direction: "ltr" }}
         aria-hidden="true"
         focusable="false"
       >
@@ -94,8 +94,8 @@ export function SurfaceSelector({
               <polygon
                 points={zone.points}
                 className={cn(
-                  'stroke-line-strong transition-colors',
-                  selected ? 'fill-primary-600' : 'fill-ink-inverse',
+                  "stroke-line-strong transition-colors",
+                  selected ? "fill-primary-600" : "fill-ink-inverse",
                 )}
                 strokeWidth={1.5}
               />
@@ -105,8 +105,8 @@ export function SurfaceSelector({
                 textAnchor="middle"
                 dominantBaseline="central"
                 className={cn(
-                  'text-[13px] font-medium',
-                  selected ? 'fill-ink-inverse' : 'fill-ink-muted',
+                  "text-[13px] font-medium",
+                  selected ? "fill-ink-inverse" : "fill-ink-muted",
                 )}
               >
                 {surface}
@@ -128,12 +128,12 @@ export function SurfaceSelector({
               aria-pressed={selected}
               onClick={() => toggle(surface)}
               className={cn(
-                'cursor-pointer rounded-control border px-2.5 py-1 text-label font-medium',
-                '[transition:background-color_250ms_ease-in-out,border-color_250ms_ease-in-out,scale_120ms_ease-out] active:scale-95',
+                "cursor-pointer rounded-control border px-2.5 py-1 text-label font-medium",
+                "[transition:background-color_250ms_ease-in-out,border-color_250ms_ease-in-out,scale_120ms_ease-out] active:scale-95",
                 selected
-                  ? 'border-primary-600 bg-primary-600 text-ink-inverse'
-                  : 'border-line-strong bg-surface text-ink hover:border-primary-300 hover:bg-inset',
-                readOnly && 'cursor-default opacity-90 hover:bg-surface active:scale-100',
+                  ? "border-primary-600 bg-primary-600 text-ink-inverse"
+                  : "border-line-strong bg-surface text-ink hover:border-primary-300 hover:bg-inset",
+                readOnly && "cursor-default opacity-90 hover:bg-surface active:scale-100",
               )}
             >
               {t(`chart.surfaces.${surface}`)}

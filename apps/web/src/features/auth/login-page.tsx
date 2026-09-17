@@ -1,17 +1,17 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, type LoginInput } from '@clinic/shared';
-import { useState, type JSX } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema, type LoginInput } from "@clinic/shared";
+import { useState, type JSX } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
-import { Logo } from '@web/components/brand/logo';
-import { useClinicBranding, BRANDING_SCOPE } from '@web/features/clinic/queries';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Logo } from "@web/components/brand/logo";
+import { useClinicBranding, BRANDING_SCOPE } from "@web/features/clinic/queries";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
-import { Button, FormField, Icon, Input, PasswordInput, PersonName } from '@clinic/ui';
-import { useSession } from '@web/features/auth/session';
-import { ApiError, errorMessageKey } from '@web/lib/api-error';
-import { useClinicLogo } from '@web/lib/use-clinic-logo';
+import { Button, FormField, Icon, Input, PasswordInput, PersonName } from "@clinic/ui";
+import { useSession } from "@web/features/auth/session";
+import { ApiError, errorMessageKey } from "@web/lib/api-error";
+import { useClinicLogo } from "@web/lib/use-clinic-logo";
 
 interface LocationState {
   from?: string;
@@ -32,12 +32,12 @@ export function LoginPage(): JSX.Element {
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { identifier: '', password: '' },
+    defaultValues: { identifier: "", password: "" },
   });
 
-  if (status === 'authenticated') {
+  if (status === "authenticated") {
     const from = (location.state as LocationState | null)?.from;
-    return <Navigate to={from ?? '/'} replace />;
+    return <Navigate to={from ?? "/"} replace />;
   }
 
   const onSubmit = handleSubmit(async (values) => {
@@ -46,12 +46,12 @@ export function LoginPage(): JSX.Element {
     try {
       await login(values);
       const from = (location.state as LocationState | null)?.from;
-      void navigate(from ?? '/', { replace: true });
+      void navigate(from ?? "/", { replace: true });
     } catch (error) {
       // 401 here means the credentials were wrong, not that a session lapsed.
       setFormErrorKey(
         error instanceof ApiError && error.statusCode === 401
-          ? 'auth.invalidCredentials'
+          ? "auth.invalidCredentials"
           : errorMessageKey(error),
       );
     }
@@ -70,18 +70,18 @@ export function LoginPage(): JSX.Element {
           </p>
         )}
 
-        <h1 className="text-title font-medium text-primary-900">{t('auth.loginTitle')}</h1>
-        <p className="mt-1 text-value text-ink-muted">{t('auth.loginSubtitle')}</p>
+        <h1 className="text-title font-medium text-primary-900">{t("auth.loginTitle")}</h1>
+        <p className="mt-1 text-value text-ink-muted">{t("auth.loginSubtitle")}</p>
 
         <form className="mt-6 flex flex-col gap-4" onSubmit={onSubmit} noValidate>
           <FormField label="auth.identifier" htmlFor="identifier" error={errors.identifier}>
             <Input
-              placeholder={t('common.placeholders.identifier')}
+              placeholder={t("common.placeholders.identifier")}
               adornment="user"
               id="identifier"
               autoComplete="username"
               hasError={errors.identifier !== undefined}
-              {...register('identifier')}
+              {...register("identifier")}
             />
           </FormField>
 
@@ -89,14 +89,14 @@ export function LoginPage(): JSX.Element {
             label="auth.password"
             htmlFor="password"
             error={errors.password}
-            errorKey={errors.password ? 'errors.validation.passwordMin' : undefined}
+            errorKey={errors.password ? "errors.validation.passwordMin" : undefined}
           >
             <PasswordInput
-              placeholder={t('common.placeholders.password')}
+              placeholder={t("common.placeholders.password")}
               id="password"
               autoComplete="current-password"
               hasError={errors.password !== undefined}
-              {...register('password')}
+              {...register("password")}
             />
           </FormField>
 
@@ -115,7 +115,7 @@ export function LoginPage(): JSX.Element {
             isLoading={isSubmitting}
             className="mt-2 w-full"
           >
-            {isSubmitting ? t('auth.submitting') : t('auth.submit')}
+            {isSubmitting ? t("auth.submitting") : t("auth.submit")}
           </Button>
 
           {/* Under the button rather than beside the field: it is what you reach for after the
@@ -124,7 +124,7 @@ export function LoginPage(): JSX.Element {
             to="/forgot-password"
             className="self-center text-label text-primary-600 underline underline-offset-4 hover:text-primary-700"
           >
-            {t('auth.forgotLink')}
+            {t("auth.forgotLink")}
           </Link>
         </form>
       </div>

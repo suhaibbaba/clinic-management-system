@@ -1,11 +1,11 @@
-import type { Attachment } from '@clinic/shared';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { Attachment } from "@clinic/shared";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Img } from '@clinic/ui/components/img';
-import { Skeleton } from '@clinic/ui/components/skeleton';
-import { useAttachment } from '@web/features/patients/queries';
-import { formatDate } from '@web/lib/format';
+import { Img } from "@clinic/ui/components/img";
+import { Skeleton } from "@clinic/ui/components/skeleton";
+import { useAttachment } from "@web/features/patients/queries";
+import { formatDate } from "@web/lib/format";
 
 // The list endpoint returns metadata only, so each thumbnail asks for its own short-lived URL — one
 // that expires in minutes must not be minted for images nobody opens.
@@ -17,7 +17,7 @@ export function ToothAttachments({
   const { t } = useTranslation();
 
   if (attachments.length === 0) {
-    return <p className="text-value text-ink-muted">{t('chart.panel.noAttachments')}</p>;
+    return <p className="text-value text-ink-muted">{t("chart.panel.noAttachments")}</p>;
   }
 
   return (
@@ -35,14 +35,14 @@ function AttachmentThumbnail({ attachment }: { attachment: Attachment }): JSX.El
   const { t } = useTranslation();
   const { data, isPending, isError } = useAttachment(attachment.id, true);
 
-  const isImage = attachment.mime.startsWith('image/');
+  const isImage = attachment.mime.startsWith("image/");
 
   return (
     <figure className="flex flex-col gap-1">
       <div className="flex aspect-square items-center justify-center overflow-hidden rounded-control border border-line bg-canvas">
         {isPending && <Skeleton className="size-full rounded-none" />}
 
-        {isError && <span className="text-label text-danger-500">{t('errors.generic')}</span>}
+        {isError && <span className="text-label text-danger-500">{t("errors.generic")}</span>}
 
         {data?.downloadUrl && isImage && (
           <Img
@@ -60,7 +60,7 @@ function AttachmentThumbnail({ attachment }: { attachment: Attachment }): JSX.El
             rel="noreferrer"
             className="px-1 text-center text-label text-primary-600 underline"
           >
-            {t('chart.panel.openFile')}
+            {t("chart.panel.openFile")}
           </a>
         )}
       </div>

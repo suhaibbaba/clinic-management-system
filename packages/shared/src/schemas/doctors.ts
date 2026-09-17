@@ -1,11 +1,11 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { paginationQuerySchema, weeklyScheduleSchema } from '@shared/schemas/common';
-import { specialtySummarySchema } from '@shared/schemas/specialties';
-import { passwordSchema } from '@shared/schemas/auth';
-import { personNameInputSchema } from '@shared/schemas/person-name';
-import { phoneSchema } from '@shared/schemas/common';
-import { userSchema } from '@shared/schemas/users';
+import { paginationQuerySchema, weeklyScheduleSchema } from "@shared/schemas/common";
+import { specialtySummarySchema } from "@shared/schemas/specialties";
+import { passwordSchema } from "@shared/schemas/auth";
+import { personNameInputSchema } from "@shared/schemas/person-name";
+import { phoneSchema } from "@shared/schemas/common";
+import { userSchema } from "@shared/schemas/users";
 
 export const DEFAULT_APPOINTMENT_DURATION_MINUTES = 30;
 
@@ -55,7 +55,7 @@ export const hasExactlyOneDoctorUser = (input: {
   readonly newUser?: NewDoctorUserInput | undefined;
 }): boolean => (input.userId === undefined) !== (input.newUser === undefined);
 
-export const DOCTOR_USER_REF_MESSAGE = 'Provide either userId or newUser';
+export const DOCTOR_USER_REF_MESSAGE = "Provide either userId or newUser";
 
 export const createDoctorSchema = z
   .object({
@@ -74,7 +74,7 @@ export type CreateDoctorInput = z.infer<typeof createDoctorSchema>;
 export const updateDoctorSchema = z
   .object(doctorWritableFields)
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateDoctorInput = z.infer<typeof updateDoctorSchema>;
 
 // Separate from `updateDoctorSchema`: a doctor may edit their own schedule but nothing else about

@@ -1,11 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { and, count, desc, eq, gte, lt, type SQL } from 'drizzle-orm';
-import type { AuditAction, AuditLogEntry, ListAuditLogQuery, Paginated } from '@clinic/shared';
+import { Inject, Injectable } from "@nestjs/common";
+import { and, count, desc, eq, gte, lt, type SQL } from "drizzle-orm";
+import type { AuditAction, AuditLogEntry, ListAuditLogQuery, Paginated } from "@clinic/shared";
 
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database, type DatabaseExecutor } from '@api/database/database.module';
-import { auditLog } from '@api/database/schema';
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
+import { auditLog } from "@api/database/schema";
 
 export interface RecordAuditEntry {
   readonly clinicId: string;

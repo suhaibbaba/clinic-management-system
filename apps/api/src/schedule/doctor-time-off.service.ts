@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
   timeOffCancellationReason,
   type CreateDoctorTimeOffInput,
@@ -8,22 +8,22 @@ import {
   type Paginated,
   type ScheduleConflictOptions,
   type UpdateDoctorTimeOffInput,
-} from '@clinic/shared';
-import { and, asc, count, eq, gt, lt, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, asc, count, eq, gt, lt, type SQL } from "drizzle-orm";
 
-import { AppointmentAccessService } from '@api/appointments/appointment-access.service';
-import { toDoctorTimeOff } from '@api/appointments/availability.service';
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { doctors, doctorTimeOff } from '@api/database/schema';
-import { ScheduleConflictsService } from '@api/schedule/schedule-conflicts.service';
+import { AppointmentAccessService } from "@api/appointments/appointment-access.service";
+import { toDoctorTimeOff } from "@api/appointments/availability.service";
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { doctors, doctorTimeOff } from "@api/database/schema";
+import { ScheduleConflictsService } from "@api/schedule/schedule-conflicts.service";
 
 type TimeOffRow = typeof doctorTimeOff.$inferSelect;
 
-export const DOCTOR_TIME_OFF_ENTITY = 'doctor_time_off';
+export const DOCTOR_TIME_OFF_ENTITY = "doctor_time_off";
 
 @Injectable()
 export class DoctorTimeOffService implements OnModuleInit {
@@ -131,7 +131,7 @@ export class DoctorTimeOffService implements OnModuleInit {
       .returning();
 
     if (!created) {
-      throw new Error('Failed to create the time off');
+      throw new Error("Failed to create the time off");
     }
 
     const cancelled = options.cancelAppointments
@@ -155,7 +155,7 @@ export class DoctorTimeOffService implements OnModuleInit {
     const to = input.endsAt ? new Date(input.endsAt) : existing.endsAt;
 
     if (from >= to) {
-      throw new BadRequestException('endsAt must be after startsAt');
+      throw new BadRequestException("endsAt must be after startsAt");
     }
 
     const grew = from < existing.startsAt || to > existing.endsAt;

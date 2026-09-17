@@ -1,17 +1,17 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
-import type { Clinic, ClinicBranding, PresignClinicLogoInput } from '@clinic/shared';
-import type { UpdateClinicInput } from '@clinic/shared';
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
+import type { Clinic, ClinicBranding, PresignClinicLogoInput } from "@clinic/shared";
+import type { UpdateClinicInput } from "@clinic/shared";
 
-import { buildClinicIconSet } from '@web/features/clinic/logo-icons';
-import { clinicApi } from '@web/features/clinic/api';
-import { uploadToStorage } from '@web/features/patients/api';
+import { buildClinicIconSet } from "@web/features/clinic/logo-icons";
+import { clinicApi } from "@web/features/clinic/api";
+import { uploadToStorage } from "@web/features/patients/api";
 
-const CLINIC_KEY = 'clinic';
-const BRANDING_KEY = 'clinic-branding';
+const CLINIC_KEY = "clinic";
+const BRANDING_KEY = "clinic-branding";
 
 // `/clinic/branding` answers only for a single-clinic deployment, so there is no id to key the
 // browser's copy of the logo by, and one constant scope is the whole truth.
-export const BRANDING_SCOPE = 'branding';
+export const BRANDING_SCOPE = "branding";
 
 export function useClinic(): UseQueryResult<Clinic> {
   return useQuery({ queryKey: [CLINIC_KEY], queryFn: () => clinicApi.get() });
@@ -81,7 +81,7 @@ async function uploadBrandingImage(
 ): Promise<Clinic> {
   const presigned = await presign({
     filename: file.name,
-    mime: file.type as PresignClinicLogoInput['mime'],
+    mime: file.type as PresignClinicLogoInput["mime"],
     sizeBytes: file.size,
   });
 

@@ -1,11 +1,11 @@
-import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
-import { USER_ROLE } from '@clinic/shared';
-import { eq } from 'drizzle-orm';
+import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
+import { USER_ROLE } from "@clinic/shared";
+import { eq } from "drizzle-orm";
 
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { doctors } from '@api/database/schema';
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { doctors } from "@api/database/schema";
 
 // ROLES.md: appointments are CRUD for admin and receptionist, CRU (own) for a doctor — "own" being
 // their `doctors` row. Defined once here.
@@ -40,7 +40,7 @@ export class AppointmentAccessService {
     const own = await this.ownDoctorId(actor);
 
     if (own !== doctorId) {
-      throw new ForbiddenException('You may only manage your own calendar');
+      throw new ForbiddenException("You may only manage your own calendar");
     }
   }
 }

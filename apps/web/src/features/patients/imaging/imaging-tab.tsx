@@ -5,25 +5,25 @@ import {
   MAX_ATTACHMENT_BYTES,
   type Attachment,
   type AttachmentType,
-} from '@clinic/shared';
-import { useRef, useState, type ChangeEvent, type DragEvent, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useRef, useState, type ChangeEvent, type DragEvent, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Badge, Button, EmptyState, Icon, Img, Input, Ltr, Select, useToast } from '@clinic/ui';
-import { Skeleton, SkeletonStatus } from '@clinic/ui/components/skeleton';
-import { useSession } from '@web/features/auth/session';
-import { useLookupLabels, useLookupOptions } from '@web/features/lookups/queries';
-import { canDeleteAttachment, canManageAttachments } from '@web/features/patients/permissions';
+import { Badge, Button, EmptyState, Icon, Img, Input, Ltr, Select, useToast } from "@clinic/ui";
+import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import { useSession } from "@web/features/auth/session";
+import { useLookupLabels, useLookupOptions } from "@web/features/lookups/queries";
+import { canDeleteAttachment, canManageAttachments } from "@web/features/patients/permissions";
 import {
   useAttachment,
   useDeleteAttachment,
   usePatientAttachments,
   useUploadAttachment,
-} from '@web/features/patients/queries';
-import { errorMessageKey } from '@web/lib/api-error';
-import { cn } from '@clinic/ui/lib/cn';
-import { formatDate } from '@web/lib/format';
-import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
+} from "@web/features/patients/queries";
+import { errorMessageKey } from "@web/lib/api-error";
+import { cn } from "@clinic/ui/lib/cn";
+import { formatDate } from "@web/lib/format";
+import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 // Presign, PUT, confirm: the API builds the key and re-reads the real size and type afterwards, so
 // nothing here is trusted. Thumbnails ask for their own signed URLs.
@@ -33,14 +33,14 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
   const { can } = useSession();
   const toast = useToast();
 
-  const [typeFilter, setTypeFilter] = useState<AttachmentType | ''>('');
-  const [toothFilter, setToothFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState<AttachmentType | "">("");
+  const [toothFilter, setToothFilter] = useState("");
 
   const tooth = Number(toothFilter);
-  const toothIsValid = toothFilter !== '' && Number.isInteger(tooth) && isFdiTooth(tooth);
+  const toothIsValid = toothFilter !== "" && Number.isInteger(tooth) && isFdiTooth(tooth);
 
   const attachments = usePatientAttachments(patientId, {
-    ...(typeFilter !== '' && { type: typeFilter }),
+    ...(typeFilter !== "" && { type: typeFilter }),
     ...(toothIsValid && { tooth }),
   });
   const showSkeleton = useDelayedLoading(attachments.isPending);
@@ -57,20 +57,20 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
           <label htmlFor="imaging-type" className="mb-1 block text-label text-ink-muted">
             {/* Not "Type": the uploader above has a field by that name, and two
                 identical labels on one screen is a guess about which is which. */}
-            {t('imaging.filterType')}
+            {t("imaging.filterType")}
           </label>
           <Select
             id="imaging-type"
             value={typeFilter}
-            onChange={(event) => setTypeFilter(event.target.value as AttachmentType | '')}
-            placeholder={t('common.all')}
+            onChange={(event) => setTypeFilter(event.target.value as AttachmentType | "")}
+            placeholder={t("common.all")}
             options={attachmentTypes}
           />
         </div>
 
         <div className="w-32">
           <label htmlFor="imaging-tooth" className="mb-1 block text-label text-ink-muted">
-            {t('imaging.filterTooth')}
+            {t("imaging.filterTooth")}
           </label>
           <Input
             id="imaging-tooth"
@@ -79,13 +79,13 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
             placeholder="46"
             value={toothFilter}
             onChange={(event) => setToothFilter(event.target.value)}
-            hasError={toothFilter !== '' && !toothIsValid}
+            hasError={toothFilter !== "" && !toothIsValid}
           />
         </div>
 
-        {toothFilter !== '' && !toothIsValid && (
+        {toothFilter !== "" && !toothIsValid && (
           <p role="alert" className="text-label text-danger-600">
-            {t('imaging.invalidTooth')}
+            {t("imaging.invalidTooth")}
           </p>
         )}
       </div>
@@ -137,30 +137,30 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
   const upload = useUploadAttachment(patientId);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [type, setType] = useState<AttachmentType>('xray_periapical');
-  const [tooth, setTooth] = useState('');
+  const [type, setType] = useState<AttachmentType>("xray_periapical");
+  const [tooth, setTooth] = useState("");
   const [isOver, setIsOver] = useState(false);
 
   const send = async (file: File): Promise<void> => {
     // Checked here so an oversized or unsupported file never starts a round
     // trip; the API checks the stored object again, which is the real gate.
     if (file.size > MAX_ATTACHMENT_BYTES) {
-      toast.error('imaging.tooLarge');
+      toast.error("imaging.tooLarge");
       return;
     }
 
     if (!ALLOWED_ATTACHMENT_MIME_TYPES.some((allowed) => allowed === file.type)) {
-      toast.error('imaging.unsupportedType');
+      toast.error("imaging.unsupportedType");
       return;
     }
 
     const parsed = Number(tooth);
-    const toothNumber = tooth !== '' && isFdiTooth(parsed) ? parsed : null;
+    const toothNumber = tooth !== "" && isFdiTooth(parsed) ? parsed : null;
 
     try {
       await upload.mutateAsync({ file, type, tooth: toothNumber });
-      toast.success('imaging.uploaded');
-      setTooth('');
+      toast.success("imaging.uploaded");
+      setTooth("");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -173,7 +173,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
       await send(file);
     }
 
-    event.target.value = '';
+    event.target.value = "";
   };
 
   const handleDrop = (event: DragEvent<HTMLDivElement>): void => {
@@ -194,10 +194,10 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <div className="min-w-44 flex-1 sm:flex-none">
           <label htmlFor="upload-type" className="mb-1 block text-label text-ink-muted">
-            {t('imaging.type')}
+            {t("imaging.type")}
           </label>
           <Select
-            placeholder={t('common.placeholders.selectType')}
+            placeholder={t("common.placeholders.selectType")}
             id="upload-type"
             value={type}
             onChange={(event) => setType(event.target.value as AttachmentType)}
@@ -207,7 +207,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
 
         <div className="w-28">
           <label htmlFor="upload-tooth" className="mb-1 block text-label text-ink-muted">
-            {t('imaging.tooth')}
+            {t("imaging.tooth")}
           </label>
           <Input
             id="upload-tooth"
@@ -230,21 +230,21 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
         onDragLeave={() => setIsOver(false)}
         onDrop={handleDrop}
         className={cn(
-          'flex flex-col items-center gap-2 rounded-panel border-2 border-dashed px-4 py-8 text-center',
-          'transition-colors duration-150',
-          isOver ? 'border-primary-500 bg-primary-50' : 'border-line-strong bg-inset/40',
+          "flex flex-col items-center gap-2 rounded-panel border-2 border-dashed px-4 py-8 text-center",
+          "transition-colors duration-150",
+          isOver ? "border-primary-500 bg-primary-50" : "border-line-strong bg-inset/40",
         )}
       >
         <Icon name="upload" className="size-7 text-ink-subtle" />
 
-        <p className="text-value font-medium text-ink">{t('imaging.uploadTitle')}</p>
-        <p className="text-label text-ink-muted">{t('imaging.dropHint')}</p>
+        <p className="text-value font-medium text-ink">{t("imaging.uploadTitle")}</p>
+        <p className="text-label text-ink-muted">{t("imaging.dropHint")}</p>
 
         <input
           ref={inputRef}
           type="file"
           className="sr-only"
-          accept={ALLOWED_ATTACHMENT_MIME_TYPES.join(',')}
+          accept={ALLOWED_ATTACHMENT_MIME_TYPES.join(",")}
           onChange={(event) => void handleFile(event)}
         />
 
@@ -254,10 +254,10 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
           isLoading={upload.isPending}
           onClick={() => inputRef.current?.click()}
         >
-          {t(upload.isPending ? 'imaging.uploading' : 'imaging.upload')}
+          {t(upload.isPending ? "imaging.uploading" : "imaging.upload")}
         </Button>
 
-        <p className="mt-1 text-label text-ink-subtle">{t('imaging.uploadHint')}</p>
+        <p className="mt-1 text-label text-ink-subtle">{t("imaging.uploadHint")}</p>
       </div>
     </div>
   );
@@ -280,12 +280,12 @@ function ImageCard({
   const { data, isPending } = useAttachment(attachment.id, true);
   const remove = useDeleteAttachment(patientId);
 
-  const isImage = attachment.mime.startsWith('image/');
+  const isImage = attachment.mime.startsWith("image/");
 
   const handleDelete = async (): Promise<void> => {
     try {
       await remove.mutateAsync(attachment.id);
-      toast.success('imaging.deleted');
+      toast.success("imaging.deleted");
     } catch (error) {
       onError(error);
     }
@@ -313,7 +313,7 @@ function ImageCard({
               rel="noreferrer"
               className="px-2 text-center text-label text-primary-600 underline"
             >
-              {t('chart.panel.openFile')}
+              {t("chart.panel.openFile")}
             </a>
           ))}
       </div>
@@ -342,7 +342,7 @@ function ImageCard({
             disabled={remove.isPending}
             onClick={() => void handleDelete()}
           >
-            {t('common.delete')}
+            {t("common.delete")}
           </Button>
         )}
       </figcaption>

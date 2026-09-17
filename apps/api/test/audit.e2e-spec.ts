@@ -1,6 +1,6 @@
-import { AUDIT_ACTION, USER_ROLE, type PersonName, type UserRole } from '@clinic/shared';
+import { AUDIT_ACTION, USER_ROLE, type PersonName, type UserRole } from "@clinic/shared";
 
-import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
+import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 interface AuditEntry {
   action: string;
@@ -12,7 +12,7 @@ interface AuditEntry {
   newValue: Record<string, unknown> | null;
 }
 
-describe('Audit log (e2e)', () => {
+describe("Audit log (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
   let adminToken: string;
@@ -39,7 +39,7 @@ describe('Audit log (e2e)', () => {
 
   const entriesFor = async (entityId: string): Promise<AuditEntry[]> => {
     const response = await context.app.inject({
-      method: 'GET',
+      method: "GET",
       url: `/audit-log?entityId=${entityId}&limit=100`,
       headers: auth(adminToken),
     });
@@ -50,15 +50,15 @@ describe('Audit log (e2e)', () => {
 
   const createUser = async (english: string) => {
     const response = await context.app.inject({
-      method: 'POST',
-      url: '/users',
+      method: "POST",
+      url: "/users",
       headers: auth(adminToken),
       payload: {
         // Staff names are bilingual and both halves are required; the Arabic
         // is fixed here because these tests are about the audit trail.
-        name: { ar: 'اسم عربي', en: english },
+        name: { ar: "اسم عربي", en: english },
         phone: `+9944${Math.floor(Math.random() * 1_000_000_000)}`,
-        password: 'CreatedUser123!',
+        password: "CreatedUser123!",
         role: USER_ROLE.RECEPTIONIST,
       },
     });
@@ -67,31 +67,31 @@ describe('Audit log (e2e)', () => {
     return response.json() as { id: string; name: PersonName; isActive: boolean };
   };
 
-  it('records a create with no old value and the new row as the new value', async () => {
-    const user = await createUser('Audit Created');
+  it("records a create with no old value and the new row as the new value", async () => {
+    const user = await createUser("Audit Created");
 
     const entries = await entriesFor(user.id);
     const created = entries.find((entry) => entry.action === AUDIT_ACTION.CREATE);
 
     expect(created).toBeDefined();
-    expect(created?.entity).toBe('users');
+    expect(created?.entity).toBe("users");
     expect(created?.clinicId).toBe(clinic.id);
     expect(created?.userId).toBe(clinic.userIds[USER_ROLE.ADMIN]);
     expect(created?.oldValue).toBeNull();
     expect(created?.newValue).toMatchObject({
-      name: { ar: 'اسم عربي', en: 'Audit Created' },
+      name: { ar: "اسم عربي", en: "Audit Created" },
       isActive: true,
     });
   });
 
-  it('records an update with the correct old and new values', async () => {
-    const user = await createUser('Before Update');
+  it("records an update with the correct old and new values", async () => {
+    const user = await createUser("Before Update");
 
     const updated = await context.app.inject({
-      method: 'PATCH',
+      method: "PATCH",
       url: `/users/${user.id}`,
       headers: auth(adminToken),
-      payload: { name: { ar: 'اسم عربي', en: 'After Update' }, isActive: false },
+      payload: { name: { ar: "اسم عربي", en: "After Update" }, isActive: false },
     });
 
     expect(updated.statusCode).toBe(200);
@@ -101,20 +101,20 @@ describe('Audit log (e2e)', () => {
 
     expect(update).toBeDefined();
     expect(update?.oldValue).toMatchObject({
-      name: { ar: 'اسم عربي', en: 'Before Update' },
+      name: { ar: "اسم عربي", en: "Before Update" },
       isActive: true,
     });
     expect(update?.newValue).toMatchObject({
-      name: { ar: 'اسم عربي', en: 'After Update' },
+      name: { ar: "اسم عربي", en: "After Update" },
       isActive: false,
     });
   });
 
-  it('records a soft delete with the previous row and a null new value', async () => {
-    const user = await createUser('To Be Deleted');
+  it("records a soft delete with the previous row and a null new value", async () => {
+    const user = await createUser("To Be Deleted");
 
     const deleted = await context.app.inject({
-      method: 'DELETE',
+      method: "DELETE",
       url: `/users/${user.id}`,
       headers: auth(adminToken),
     });
@@ -125,52 +125,52 @@ describe('Audit log (e2e)', () => {
     const remove = entries.find((entry) => entry.action === AUDIT_ACTION.DELETE);
 
     expect(remove).toBeDefined();
-    expect(remove?.oldValue).toMatchObject({ name: { ar: 'اسم عربي', en: 'To Be Deleted' } });
+    expect(remove?.oldValue).toMatchObject({ name: { ar: "اسم عربي", en: "To Be Deleted" } });
     expect(remove?.newValue).toBeNull();
   });
 
-  it('never stores a password hash in the trail', async () => {
-    const user = await createUser('Secret Check');
+  it("never stores a password hash in the trail", async () => {
+    const user = await createUser("Secret Check");
 
     await context.app.inject({
-      method: 'PATCH',
+      method: "PATCH",
       url: `/users/${user.id}`,
       headers: auth(adminToken),
-      payload: { name: { ar: 'اسم عربي', en: 'Secret Check Renamed' } },
+      payload: { name: { ar: "اسم عربي", en: "Secret Check Renamed" } },
     });
 
     const serialised = JSON.stringify(await entriesFor(user.id));
 
-    expect(serialised).not.toContain('passwordHash');
-    expect(serialised).not.toContain('password');
-    expect(serialised).not.toContain('$argon2');
+    expect(serialised).not.toContain("passwordHash");
+    expect(serialised).not.toContain("password");
+    expect(serialised).not.toContain("$argon2");
   });
 
   it("records clinic settings updates against the caller's own clinic", async () => {
     const response = await context.app.inject({
-      method: 'PATCH',
-      url: '/clinic',
+      method: "PATCH",
+      url: "/clinic",
       headers: auth(adminToken),
-      payload: { name: { ar: 'عيادة بالاسم الجديد', en: 'Renamed Clinic' } },
+      payload: { name: { ar: "عيادة بالاسم الجديد", en: "Renamed Clinic" } },
     });
 
     expect(response.statusCode).toBe(200);
 
     const entries = await entriesFor(clinic.id);
-    const update = entries.find((entry) => entry.entity === 'clinics');
+    const update = entries.find((entry) => entry.entity === "clinics");
 
     expect(update).toBeDefined();
     expect(update?.oldValue).toMatchObject({ id: clinic.id });
     expect(update?.newValue).toMatchObject({
-      name: { ar: 'عيادة بالاسم الجديد', en: 'Renamed Clinic' },
+      name: { ar: "عيادة بالاسم الجديد", en: "Renamed Clinic" },
     });
   });
 
-  it('filters by entity, action and user', async () => {
-    const user = await createUser('Filter Target');
+  it("filters by entity, action and user", async () => {
+    const user = await createUser("Filter Target");
 
     const byAction = await context.app.inject({
-      method: 'GET',
+      method: "GET",
       url: `/audit-log?entity=users&action=${AUDIT_ACTION.CREATE}&entityId=${user.id}`,
       headers: auth(adminToken),
     });
@@ -181,7 +181,7 @@ describe('Audit log (e2e)', () => {
     expect(items[0]?.action).toBe(AUDIT_ACTION.CREATE);
 
     const byOtherUser = await context.app.inject({
-      method: 'GET',
+      method: "GET",
       url: `/audit-log?entityId=${user.id}&userId=${clinic.userIds[USER_ROLE.DOCTOR]}`,
       headers: auth(adminToken),
     });
@@ -189,10 +189,10 @@ describe('Audit log (e2e)', () => {
     expect(byOtherUser.json().items).toHaveLength(0);
   });
 
-  it('paginates', async () => {
+  it("paginates", async () => {
     const response = await context.app.inject({
-      method: 'GET',
-      url: '/audit-log?page=1&limit=2',
+      method: "GET",
+      url: "/audit-log?page=1&limit=2",
       headers: auth(adminToken),
     });
 
@@ -200,20 +200,20 @@ describe('Audit log (e2e)', () => {
 
     expect(body.items.length).toBeLessThanOrEqual(2);
     expect(body).toMatchObject({ page: 1, limit: 2 });
-    expect(typeof body.total).toBe('number');
+    expect(typeof body.total).toBe("number");
   });
 
-  describe('immutability', () => {
+  describe("immutability", () => {
     // Checked as admin: admin passes every role check, so a 404 here proves the
     // route does not exist rather than that it was refused.
     it.each([
-      ['POST', '/audit-log'],
-      ['PATCH', '/audit-log'],
-      ['PUT', '/audit-log'],
-      ['DELETE', '/audit-log'],
-    ])('exposes no %s %s', async (method, url) => {
+      ["POST", "/audit-log"],
+      ["PATCH", "/audit-log"],
+      ["PUT", "/audit-log"],
+      ["DELETE", "/audit-log"],
+    ])("exposes no %s %s", async (method, url) => {
       const response = await context.app.inject({
-        method: method as 'POST',
+        method: method as "POST",
         url,
         headers: auth(adminToken),
         payload: {},
@@ -222,17 +222,17 @@ describe('Audit log (e2e)', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it.each([['PATCH'], ['PUT'], ['DELETE']])('exposes no %s /audit-log/:id', async (method) => {
+    it.each([["PATCH"], ["PUT"], ["DELETE"]])("exposes no %s /audit-log/:id", async (method) => {
       const entries = await context.app.inject({
-        method: 'GET',
-        url: '/audit-log?limit=1',
+        method: "GET",
+        url: "/audit-log?limit=1",
         headers: auth(adminToken),
       });
       const id = (entries.json().items as { id: string }[])[0]?.id;
 
       const response = await context.app.inject({
-        method: method as 'PATCH',
-        url: `/audit-log/${id ?? '00000000-0000-4000-8000-000000000000'}`,
+        method: method as "PATCH",
+        url: `/audit-log/${id ?? "00000000-0000-4000-8000-000000000000"}`,
         headers: auth(adminToken),
         payload: {},
       });
@@ -241,13 +241,13 @@ describe('Audit log (e2e)', () => {
     });
   });
 
-  describe('access', () => {
+  describe("access", () => {
     it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
-      'refuses %s',
+      "refuses %s",
       async (role) => {
         const response = await context.app.inject({
-          method: 'GET',
-          url: '/audit-log',
+          method: "GET",
+          url: "/audit-log",
           headers: auth(tokens[role]),
         });
 

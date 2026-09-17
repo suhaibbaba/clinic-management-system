@@ -4,9 +4,9 @@ import {
   type PatientClinicalView,
   type TreatmentPlan,
   type TreatmentPlanItem,
-} from '@clinic/shared';
-import { useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Badge,
@@ -20,12 +20,12 @@ import {
   usePersonName,
   useTabParam,
   useToast,
-} from '@clinic/ui';
-import { SkeletonCard, SkeletonStatus } from '@clinic/ui/components/skeleton';
-import { useSession } from '@web/features/auth/session';
-import { useClinic } from '@web/features/clinic/queries';
-import { useDoctors } from '@web/features/doctors/queries';
-import { canSeePrices } from '@web/features/patients/permissions';
+} from "@clinic/ui";
+import { SkeletonCard, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import { useSession } from "@web/features/auth/session";
+import { useClinic } from "@web/features/clinic/queries";
+import { useDoctors } from "@web/features/doctors/queries";
+import { canSeePrices } from "@web/features/patients/permissions";
 import {
   useAddPlanItem,
   useConvertPlanItem,
@@ -33,13 +33,13 @@ import {
   useProcedureCatalog,
   useTreatmentPlans,
   useUpdatePlanItem,
-} from '@web/features/patients/queries';
-import { PlanPrint } from '@web/features/patients/treatment-plans/plan-print';
-import { planRemaining, planTotal } from '@web/features/patients/treatment-plans/plan-total';
-import { errorMessageKey } from '@web/lib/api-error';
-import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
+} from "@web/features/patients/queries";
+import { PlanPrint } from "@web/features/patients/treatment-plans/plan-print";
+import { planRemaining, planTotal } from "@web/features/patients/treatment-plans/plan-total";
+import { errorMessageKey } from "@web/lib/api-error";
+import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
-const PLAN_FILTERS = ['all', ...TREATMENT_PLAN_STATUSES] as const;
+const PLAN_FILTERS = ["all", ...TREATMENT_PLAN_STATUSES] as const;
 type PlanFilter = (typeof PLAN_FILTERS)[number];
 
 // A plan item is a quote and stays one: converting creates a procedure and leaves the estimate
@@ -68,20 +68,20 @@ export function TreatmentPlansTab({
 
   // `?plan=accepted` is what a dentist pastes and what survives a refresh. Its own parameter, since
   // the file's tab strip already owns `tab`.
-  const [statusFilter, setStatusFilter] = useTabParam<PlanFilter>('plan', PLAN_FILTERS, 'all');
+  const [statusFilter, setStatusFilter] = useTabParam<PlanFilter>("plan", PLAN_FILTERS, "all");
   const [addingTo, setAddingTo] = useState<string | null>(null);
-  const [newItemProcedure, setNewItemProcedure] = useState('');
+  const [newItemProcedure, setNewItemProcedure] = useState("");
   const [printing, setPrinting] = useState<TreatmentPlan | null>(null);
 
   const showPrices = user ? canSeePrices(user.role) : false;
-  const currency = clinic.data?.currency ?? '';
+  const currency = clinic.data?.currency ?? "";
 
   const catalogName = (id: string): string =>
-    catalog.data?.find((item) => item.id === id)?.nameAr ?? t('chart.panel.procedure');
+    catalog.data?.find((item) => item.id === id)?.nameAr ?? t("chart.panel.procedure");
 
   const displayName = usePersonName();
   const doctorName = (id: string): string =>
-    displayName(doctors.data?.items.find((doctor) => doctor.id === id)?.user.name) || '—';
+    displayName(doctors.data?.items.find((doctor) => doctor.id === id)?.user.name) || "—";
 
   if (showSkeleton) {
     return (
@@ -101,13 +101,13 @@ export function TreatmentPlansTab({
   }
 
   const ordered = [...(plans.data ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const visible = ordered.filter((plan) => statusFilter === 'all' || plan.status === statusFilter);
+  const visible = ordered.filter((plan) => statusFilter === "all" || plan.status === statusFilter);
 
   const handleCreatePlan = async (): Promise<void> => {
     const doctorId = doctors.data?.items[0]?.id;
 
     if (!doctorId) {
-      toast.error('treatmentPlans.needsDoctor');
+      toast.error("treatmentPlans.needsDoctor");
       return;
     }
 
@@ -115,11 +115,11 @@ export function TreatmentPlansTab({
       await createPlan.mutateAsync({
         patientId,
         doctorId,
-        title: t('treatmentPlans.defaultTitle'),
-        status: 'draft',
+        title: t("treatmentPlans.defaultTitle"),
+        status: "draft",
         items: [],
       });
-      toast.success('treatmentPlans.created');
+      toast.success("treatmentPlans.created");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -135,9 +135,9 @@ export function TreatmentPlansTab({
         planId,
         body: { procedureId: newItemProcedure, sortOrder: 0 },
       });
-      setNewItemProcedure('');
+      setNewItemProcedure("");
       setAddingTo(null);
-      toast.success('treatmentPlans.itemAdded');
+      toast.success("treatmentPlans.itemAdded");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -146,7 +146,7 @@ export function TreatmentPlansTab({
   const handleConvert = async (item: TreatmentPlanItem): Promise<void> => {
     try {
       await convertItem.mutateAsync(item.id);
-      toast.success('treatmentPlans.converted');
+      toast.success("treatmentPlans.converted");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -154,8 +154,8 @@ export function TreatmentPlansTab({
 
   const handleCancelItem = async (item: TreatmentPlanItem): Promise<void> => {
     try {
-      await updateItem.mutateAsync({ itemId: item.id, body: { status: 'cancelled' } });
-      toast.success('treatmentPlans.itemCancelled');
+      await updateItem.mutateAsync({ itemId: item.id, body: { status: "cancelled" } });
+      toast.success("treatmentPlans.itemCancelled");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -172,13 +172,13 @@ export function TreatmentPlansTab({
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <SegmentedControl
-            label={t('treatmentPlans.filterByStatus')}
+            label={t("treatmentPlans.filterByStatus")}
             value={statusFilter}
             onChange={setStatusFilter}
             options={PLAN_FILTERS.map((filter) => ({
               value: filter,
-              label: filter === 'all' ? t('common.all') : t(`treatmentPlans.planStatus.${filter}`),
-              count: ordered.filter((plan) => filter === 'all' || plan.status === filter).length,
+              label: filter === "all" ? t("common.all") : t(`treatmentPlans.planStatus.${filter}`),
+              count: ordered.filter((plan) => filter === "all" || plan.status === filter).length,
             }))}
           />
 
@@ -187,7 +187,7 @@ export function TreatmentPlansTab({
             onClick={() => void handleCreatePlan()}
             icon={<Icon name="plus" className="size-4" />}
           >
-            {t('treatmentPlans.create')}
+            {t("treatmentPlans.create")}
           </Button>
         </div>
 
@@ -219,7 +219,7 @@ export function TreatmentPlansTab({
               key={plan.id}
               icon="clipboard"
               title={plan.title}
-              subtitle={`${t('visits.doctor')}: ${doctorName(plan.doctorId)}`}
+              subtitle={`${t("visits.doctor")}: ${doctorName(plan.doctorId)}`}
               status={{
                 label: t(`treatmentPlans.planStatus.${plan.status}`),
                 tone: planTone(plan.status),
@@ -228,8 +228,8 @@ export function TreatmentPlansTab({
                 progress: {
                   value: converted.length,
                   total: live.length,
-                  label: t('treatmentPlans.progressLabel'),
-                  caption: t('treatmentPlans.progressCaption', {
+                  label: t("treatmentPlans.progressLabel"),
+                  caption: t("treatmentPlans.progressCaption", {
                     done: converted.length,
                     total: live.length,
                   }),
@@ -239,25 +239,25 @@ export function TreatmentPlansTab({
                 items.length > 0 && {
                   meta: [
                     {
-                      label: t('treatmentPlans.total'),
+                      label: t("treatmentPlans.total"),
                       value: `${planTotal(items)} ${currency}`,
                       ltr: true,
                     },
                     {
-                      label: t('treatmentPlans.remaining'),
+                      label: t("treatmentPlans.remaining"),
                       value: `${planRemaining(items)} ${currency}`,
                       ltr: true,
                     },
                   ],
                 })}
               action={{
-                label: t('treatmentPlans.print'),
-                icon: 'file',
+                label: t("treatmentPlans.print"),
+                icon: "file",
                 onClick: () => print(plan),
               }}
             >
               {items.length === 0 ? (
-                <p className="mt-3 text-label text-ink-muted">{t('treatmentPlans.noItems')}</p>
+                <p className="mt-3 text-label text-ink-muted">{t("treatmentPlans.noItems")}</p>
               ) : (
                 <ol className="mt-3 flex flex-col gap-1.5">
                   {items.map((item, index) => (
@@ -290,7 +290,7 @@ export function TreatmentPlansTab({
                               disabled={convertItem.isPending}
                               onClick={() => void handleConvert(item)}
                             >
-                              {t('treatmentPlans.convert')}
+                              {t("treatmentPlans.convert")}
                             </Button>
                             <Button
                               icon={<Icon name="x" />}
@@ -298,7 +298,7 @@ export function TreatmentPlansTab({
                               size="sm"
                               onClick={() => void handleCancelItem(item)}
                             >
-                              {t('treatmentPlans.cancelItem')}
+                              {t("treatmentPlans.cancelItem")}
                             </Button>
                           </>
                         )}
@@ -316,13 +316,13 @@ export function TreatmentPlansTab({
                         htmlFor={`add-item-${plan.id}`}
                         className="mb-1 block text-label text-ink-muted"
                       >
-                        {t('chart.panel.procedure')}
+                        {t("chart.panel.procedure")}
                       </label>
                       <Select
                         id={`add-item-${plan.id}`}
                         value={newItemProcedure}
                         onChange={(event) => setNewItemProcedure(event.target.value)}
-                        placeholder={t('chart.panel.selectProcedure')}
+                        placeholder={t("chart.panel.selectProcedure")}
                         options={(catalog.data ?? []).map((entry) => ({
                           value: entry.id,
                           label: entry.nameAr,
@@ -336,7 +336,7 @@ export function TreatmentPlansTab({
                       disabled={addItem.isPending || !newItemProcedure}
                       onClick={() => void handleAddItem(plan.id)}
                     >
-                      {t('common.save')}
+                      {t("common.save")}
                     </Button>
                     <Button
                       icon={<Icon name="x" />}
@@ -344,7 +344,7 @@ export function TreatmentPlansTab({
                       size="sm"
                       onClick={() => setAddingTo(null)}
                     >
-                      {t('common.cancel')}
+                      {t("common.cancel")}
                     </Button>
                   </div>
                 ) : (
@@ -354,7 +354,7 @@ export function TreatmentPlansTab({
                     size="sm"
                     onClick={() => setAddingTo(plan.id)}
                   >
-                    {t('treatmentPlans.addItem')}
+                    {t("treatmentPlans.addItem")}
                   </Button>
                 )}
               </div>
@@ -369,8 +369,8 @@ export function TreatmentPlansTab({
           <PlanPrint
             plan={printing}
             clinic={clinic.data}
-            patientName={patient?.fullName ?? ''}
-            fileNumber={patient?.fileNumber ?? ''}
+            patientName={patient?.fullName ?? ""}
+            fileNumber={patient?.fileNumber ?? ""}
             catalog={catalog.data ?? []}
             doctorName={doctorName(printing.doctorId)}
           />
@@ -380,26 +380,26 @@ export function TreatmentPlansTab({
   );
 }
 
-function planTone(status: TreatmentPlan['status']): 'neutral' | 'info' | 'success' | 'danger' {
+function planTone(status: TreatmentPlan["status"]): "neutral" | "info" | "success" | "danger" {
   switch (status) {
-    case 'active':
-      return 'info';
-    case 'completed':
-      return 'success';
-    case 'cancelled':
-      return 'danger';
+    case "active":
+      return "info";
+    case "completed":
+      return "success";
+    case "cancelled":
+      return "danger";
     default:
-      return 'neutral';
+      return "neutral";
   }
 }
 
-function itemTone(status: TreatmentPlanItem['status']): 'neutral' | 'success' | 'danger' {
+function itemTone(status: TreatmentPlanItem["status"]): "neutral" | "success" | "danger" {
   switch (status) {
     case TREATMENT_PLAN_ITEM_STATUS.CONVERTED:
-      return 'success';
+      return "success";
     case TREATMENT_PLAN_ITEM_STATUS.CANCELLED:
-      return 'danger';
+      return "danger";
     default:
-      return 'neutral';
+      return "neutral";
   }
 }

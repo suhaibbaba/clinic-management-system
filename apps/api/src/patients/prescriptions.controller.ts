@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   createPrescriptionSchema,
@@ -19,14 +19,14 @@ import {
   USER_ROLE,
   type Paginated,
   type Prescription,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { PRESCRIPTIONS_ENTITY, PrescriptionsService } from '@api/patients/prescriptions.service';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { PRESCRIPTIONS_ENTITY, PrescriptionsService } from "@api/patients/prescriptions.service";
 
 class CreatePrescriptionDto extends createZodDto(createPrescriptionSchema) {}
 class UpdatePrescriptionDto extends createZodDto(updatePrescriptionSchema) {}
@@ -35,7 +35,7 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 
 // Admin CRUD, doctor CRU, nothing for technician or receptionist — a receptionist response must
 // never contain a prescription.
-@Controller('prescriptions')
+@Controller("prescriptions")
 @Roles(USER_ROLE.DOCTOR)
 export class PrescriptionsController {
   constructor(private readonly prescriptions: PrescriptionsService) {}
@@ -48,7 +48,7 @@ export class PrescriptionsController {
     return this.prescriptions.list(actor, query);
   }
 
-  @Get(':id')
+  @Get(":id")
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -65,7 +65,7 @@ export class PrescriptionsController {
     return this.prescriptions.create(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Audit(PRESCRIPTIONS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,
@@ -75,7 +75,7 @@ export class PrescriptionsController {
     return this.prescriptions.update(actor, params.id, body);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(PRESCRIPTIONS_ENTITY, AUDIT_ACTION.DELETE)

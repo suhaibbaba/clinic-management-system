@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   createWaitingListEntrySchema,
@@ -21,14 +21,14 @@ import {
   USER_ROLE,
   type Paginated,
   type WaitingListEntry,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { WAITING_LIST_ENTITY, WaitingListService } from '@api/appointments/waiting-list.service';
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
+import { WAITING_LIST_ENTITY, WaitingListService } from "@api/appointments/waiting-list.service";
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 
 class CreateWaitingListEntryDto extends createZodDto(createWaitingListEntrySchema) {}
 class UpdateWaitingListEntryDto extends createZodDto(updateWaitingListEntrySchema) {}
@@ -39,7 +39,7 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 
 // ROLES.md: CRUD for admin and receptionist, R for a doctor, nothing for a technician — adding and
 // promoting is the front desk's job.
-@Controller('waiting-list')
+@Controller("waiting-list")
 @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
 export class WaitingListController {
   constructor(private readonly waitingList: WaitingListService) {}
@@ -52,7 +52,7 @@ export class WaitingListController {
     return this.waitingList.list(actor, query);
   }
 
-  @Get(':id')
+  @Get(":id")
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -70,7 +70,7 @@ export class WaitingListController {
     return this.waitingList.create(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Roles(USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -81,7 +81,7 @@ export class WaitingListController {
     return this.waitingList.update(actor, params.id, body);
   }
 
-  @Post(':id/promote')
+  @Post(":id/promote")
   @Roles(USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
   promote(
@@ -93,7 +93,7 @@ export class WaitingListController {
   }
 
   /** Rang back, nothing decided — the one action that leaves the entry in the queue. */
-  @Patch(':id/contacted')
+  @Patch(":id/contacted")
   @Roles(USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
   markContacted(
@@ -103,7 +103,7 @@ export class WaitingListController {
     return this.waitingList.markContacted(actor, params.id);
   }
 
-  @Patch(':id/decline')
+  @Patch(":id/decline")
   @Roles(USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
   decline(
@@ -114,7 +114,7 @@ export class WaitingListController {
     return this.waitingList.decline(actor, params.id, body);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.DELETE)

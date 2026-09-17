@@ -1,6 +1,6 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from "@tanstack/react-query";
 
-import { ApiError } from '@web/lib/api-error';
+import { ApiError } from "@web/lib/api-error";
 
 // A 401 is already handled by the api client — it refreshes once, then ends the session — and the
 // other 4xx answers will not change on a retry.

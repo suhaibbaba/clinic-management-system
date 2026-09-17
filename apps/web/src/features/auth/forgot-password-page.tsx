@@ -1,15 +1,15 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { forgotPasswordSchema, type ForgotPasswordInput } from '@clinic/shared';
-import { useState, type JSX } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { forgotPasswordSchema, type ForgotPasswordInput } from "@clinic/shared";
+import { useState, type JSX } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
-import { Button, FormField, Icon, Input, PersonName } from '@clinic/ui';
-import { Logo } from '@web/components/brand/logo';
-import { authApi } from '@web/features/auth/api';
-import { BRANDING_SCOPE, useClinicBranding } from '@web/features/clinic/queries';
-import { useClinicLogo } from '@web/lib/use-clinic-logo';
+import { Button, FormField, Icon, Input, PersonName } from "@clinic/ui";
+import { Logo } from "@web/components/brand/logo";
+import { authApi } from "@web/features/auth/api";
+import { BRANDING_SCOPE, useClinicBranding } from "@web/features/clinic/queries";
+import { useClinicLogo } from "@web/lib/use-clinic-logo";
 
 export function ForgotPasswordPage(): JSX.Element {
   const { t } = useTranslation();
@@ -40,23 +40,23 @@ export function ForgotPasswordPage(): JSX.Element {
           </p>
         )}
 
-        <h1 className="text-title font-medium text-primary-900">{t('auth.forgotTitle')}</h1>
+        <h1 className="text-title font-medium text-primary-900">{t("auth.forgotTitle")}</h1>
 
         {sent ? (
           <>
-            <p className="mt-1 text-value text-ink-muted">{t('auth.forgotSent')}</p>
+            <p className="mt-1 text-value text-ink-muted">{t("auth.forgotSent")}</p>
             <Button
               className="mt-6 w-full"
               variant="secondary"
               icon={<Icon name="login" />}
-              onClick={() => navigate('/login')}
+              onClick={() => navigate("/login")}
             >
-              {t('auth.toLogin')}
+              {t("auth.toLogin")}
             </Button>
           </>
         ) : (
           <>
-            <p className="mt-1 text-value text-ink-muted">{t('auth.forgotSubtitle')}</p>
+            <p className="mt-1 text-value text-ink-muted">{t("auth.forgotSubtitle")}</p>
 
             <form className="mt-6 flex flex-col gap-4" onSubmit={onSubmit} noValidate>
               <FormField
@@ -65,12 +65,12 @@ export function ForgotPasswordPage(): JSX.Element {
                 error={errors.identifier}
               >
                 <Input
-                  placeholder={t('common.placeholders.identifier')}
+                  placeholder={t("common.placeholders.identifier")}
                   adornment="user"
                   id="forgot-identifier"
                   autoComplete="username"
                   hasError={errors.identifier !== undefined}
-                  {...register('identifier')}
+                  {...register("identifier")}
                 />
               </FormField>
 
@@ -80,7 +80,7 @@ export function ForgotPasswordPage(): JSX.Element {
                 isLoading={isSubmitting}
                 className="mt-2 w-full"
               >
-                {isSubmitting ? t('auth.submitting') : t('auth.forgotSubmit')}
+                {isSubmitting ? t("auth.submitting") : t("auth.forgotSubmit")}
               </Button>
             </form>
           </>

@@ -1,7 +1,7 @@
-import { createVisitSchema, type CreateVisitInput, type Doctor, type Visit } from '@clinic/shared';
-import { useEffect, type JSX } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+import { createVisitSchema, type CreateVisitInput, type Doctor, type Visit } from "@clinic/shared";
+import { useEffect, type JSX } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
 import {
   Button,
@@ -14,9 +14,9 @@ import {
   TimePicker,
   usePersonName,
   useToast,
-} from '@clinic/ui';
-import { useSaveVisit } from '@web/features/patients/queries';
-import { errorMessageKey } from '@web/lib/api-error';
+} from "@clinic/ui";
+import { useSaveVisit } from "@web/features/patients/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 
 interface VisitFormModalProps {
   open: boolean;
@@ -35,15 +35,15 @@ function toLocalInput(iso: string): string {
 }
 
 const splitLocal = (value: string): { date: string; time: string } => {
-  const [date = '', time = ''] = value.split('T');
+  const [date = "", time = ""] = value.split("T");
   return { date, time: time.slice(0, 5) };
 };
 
 const joinLocal = (date: string, time: string): string =>
-  date === '' ? '' : `${date}T${time === '' ? '09:00' : time}`;
+  date === "" ? "" : `${date}T${time === "" ? "09:00" : time}`;
 
 /** What the form holds: the same fields, with the date as local wall-clock time. */
-type VisitFormValues = Omit<CreateVisitInput, 'visitDate'> & { visitDate: string };
+type VisitFormValues = Omit<CreateVisitInput, "visitDate"> & { visitDate: string };
 
 // Exactly the fields ROLES.md keeps from a receptionist, which is why the whole tab is admin and
 // doctor only.
@@ -88,19 +88,19 @@ export function VisitFormModal({
           }
         : {
             patientId,
-            doctorId: doctors[0]?.id ?? '',
+            doctorId: doctors[0]?.id ?? "",
             visitDate: toLocalInput(new Date().toISOString()),
-            complaint: '',
-            examination: '',
-            diagnosis: '',
-            notes: '',
+            complaint: "",
+            examination: "",
+            diagnosis: "",
+            notes: "",
           },
     );
   }, [open, visit, patientId, reset]);
 
   useEffect(() => {
-    if (open && !getValues('doctorId') && doctors[0]) {
-      setValue('doctorId', doctors[0].id);
+    if (open && !getValues("doctorId") && doctors[0]) {
+      setValue("doctorId", doctors[0].id);
     }
   }, [open, doctors, getValues, setValue]);
 
@@ -119,7 +119,7 @@ export function VisitFormModal({
       for (const issue of parsed.error.issues) {
         const field = issue.path[0];
 
-        if (typeof field === 'string') {
+        if (typeof field === "string") {
           setError(field as keyof VisitFormValues, { type: issue.code, message: issue.message });
         }
       }
@@ -132,7 +132,7 @@ export function VisitFormModal({
         body: parsed.data,
       });
 
-      toast.success(visit ? 'visits.updated' : 'visits.created');
+      toast.success(visit ? "visits.updated" : "visits.created");
       onOpenChange(false);
     } catch (error) {
       toast.error(errorMessageKey(error));
@@ -143,12 +143,12 @@ export function VisitFormModal({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title={visit ? 'visits.edit' : 'visits.create'}
+      title={visit ? "visits.edit" : "visits.create"}
       size="lg"
       footer={
         <>
           <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
@@ -156,7 +156,7 @@ export function VisitFormModal({
             form="visit-form"
             isLoading={isSubmitting}
           >
-            {t(isSubmitting ? 'common.saving' : 'common.save')}
+            {t(isSubmitting ? "common.saving" : "common.save")}
           </Button>
         </>
       }
@@ -173,7 +173,7 @@ export function VisitFormModal({
                   value: doctor.id,
                   label: doctorName(doctor.user.name),
                 }))}
-                value={field.value ?? ''}
+                value={field.value ?? ""}
                 onBlur={field.onBlur}
                 onChange={(event) => field.onChange(event.target.value)}
               />
@@ -186,14 +186,14 @@ export function VisitFormModal({
             control={control}
             name="visitDate"
             render={({ field }) => {
-              const { date, time } = splitLocal(field.value ?? '');
+              const { date, time } = splitLocal(field.value ?? "");
 
               return (
                 <div className="flex flex-wrap gap-2">
                   <DatePicker
                     id="visit-date"
                     className="min-w-40 flex-1"
-                    label={t('visits.date')}
+                    label={t("visits.date")}
                     value={date}
                     hasError={errors.visitDate !== undefined}
                     onChange={(next) => field.onChange(joinLocal(next, time))}
@@ -201,7 +201,7 @@ export function VisitFormModal({
                   <TimePicker
                     id="visit-time"
                     className="w-32"
-                    label={t('visits.time')}
+                    label={t("visits.time")}
                     value={time}
                     onChange={(next) => field.onChange(joinLocal(date, next))}
                   />
@@ -213,37 +213,37 @@ export function VisitFormModal({
 
         <FormField label="visits.complaint" htmlFor="visit-complaint" error={errors.complaint}>
           <Textarea
-            placeholder={t('common.placeholders.complaint')}
+            placeholder={t("common.placeholders.complaint")}
             id="visit-complaint"
             rows={2}
-            {...register('complaint', { setValueAs: (v) => (v === '' ? null : v) })}
+            {...register("complaint", { setValueAs: (v) => (v === "" ? null : v) })}
           />
         </FormField>
 
         <FormField label="visits.examination" htmlFor="visit-exam" error={errors.examination}>
           <Textarea
-            placeholder={t('common.placeholders.examination')}
+            placeholder={t("common.placeholders.examination")}
             id="visit-exam"
             rows={3}
-            {...register('examination', { setValueAs: (v) => (v === '' ? null : v) })}
+            {...register("examination", { setValueAs: (v) => (v === "" ? null : v) })}
           />
         </FormField>
 
         <FormField label="visits.diagnosis" htmlFor="visit-diagnosis" error={errors.diagnosis}>
           <Textarea
-            placeholder={t('common.placeholders.diagnosis')}
+            placeholder={t("common.placeholders.diagnosis")}
             id="visit-diagnosis"
             rows={2}
-            {...register('diagnosis', { setValueAs: (v) => (v === '' ? null : v) })}
+            {...register("diagnosis", { setValueAs: (v) => (v === "" ? null : v) })}
           />
         </FormField>
 
         <FormField label="visits.notes" htmlFor="visit-notes" error={errors.notes} optional>
           <Textarea
-            placeholder={t('common.placeholders.visitNotes')}
+            placeholder={t("common.placeholders.visitNotes")}
             id="visit-notes"
             rows={2}
-            {...register('notes', { setValueAs: (v) => (v === '' ? null : v) })}
+            {...register("notes", { setValueAs: (v) => (v === "" ? null : v) })}
           />
         </FormField>
       </form>

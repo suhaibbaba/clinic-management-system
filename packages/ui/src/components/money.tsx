@@ -1,9 +1,9 @@
-import { currencySymbol, formatWholeMoney } from '@clinic/shared';
-import type { JSX } from 'react';
+import { currencySymbol, formatWholeMoney } from "@clinic/shared";
+import type { JSX } from "react";
 
-import { Ltr } from '@ui/components/ltr';
+import { Ltr } from "@ui/components/ltr";
 
-import { cn } from '@ui/lib/cn';
+import { cn } from "@ui/lib/cn";
 
 export interface MoneyProps {
   /** A `numeric(10,2)` string exactly as the API sent it — never a float. */
@@ -16,7 +16,7 @@ export interface MoneyProps {
 }
 
 export function Money({ amount, currency, className, signed = false }: MoneyProps): JSX.Element {
-  const negative = amount.startsWith('-');
+  const negative = amount.startsWith("-");
   const zero = Number(amount) === 0;
   const symbol = currencySymbol(currency);
 
@@ -24,18 +24,18 @@ export function Money({ amount, currency, className, signed = false }: MoneyProp
     <span
       data-part="money"
       className={cn(
-        'tabular-nums',
-        signed && !zero && (negative ? 'text-success-700' : 'text-danger-700'),
+        "tabular-nums",
+        signed && !zero && (negative ? "text-success-700" : "text-danger-700"),
         className,
       )}
     >
       <Ltr data-part="money-figure">
         {formatWholeMoney(amount)}
-        {symbol !== '' && (
+        {symbol !== "" && (
           <>
             {/* A non-breaking space, and a real character rather than a margin: a narrow column
                 must not split "150" from "$", and copying must yield both. */}
-            {'\u00A0'}
+            {"\u00A0"}
             {symbol}
           </>
         )}

@@ -1,13 +1,13 @@
-import { APPOINTMENT_STATUS, LOOKUP_LIST, type CalendarAppointment } from '@clinic/shared';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { APPOINTMENT_STATUS, LOOKUP_LIST, type CalendarAppointment } from "@clinic/shared";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
-import { Avatar, Badge, Icon, Ltr, PersonName } from '@clinic/ui';
-import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
-import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from '@web/features/appointments/status';
-import { useLookupLabels } from '@web/features/lookups/queries';
-import { cn } from '@clinic/ui/lib/cn';
+import { Avatar, Badge, Icon, Ltr, PersonName } from "@clinic/ui";
+import { minutesOf, toTimeLabel } from "@web/features/appointments/calendar-time";
+import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/features/appointments/status";
+import { useLookupLabels } from "@web/features/lookups/queries";
+import { cn } from "@clinic/ui/lib/cn";
 
 export interface ScheduleTimelineProps {
   readonly rows: readonly CalendarAppointment[];
@@ -56,20 +56,20 @@ export function ScheduleTimeline({
             <span
               aria-hidden="true"
               className={cn(
-                'relative',
+                "relative",
                 "before:absolute before:end-[6px] before:w-0.5 before:bg-line before:content-['']",
-                index === 0 ? 'before:top-[26px]' : 'before:top-0',
-                index === slots.length - 1 ? 'before:h-[26px]' : 'before:bottom-0',
+                index === 0 ? "before:top-[26px]" : "before:top-0",
+                index === slots.length - 1 ? "before:h-[26px]" : "before:bottom-0",
               )}
             >
               <span
                 className={cn(
-                  'absolute top-6 end-[1.5px] size-[11px] rounded-pill border-[3px]',
+                  "absolute top-6 end-[1.5px] size-[11px] rounded-pill border-[3px]",
                   spent
-                    ? 'border-neutral-400 bg-neutral-400'
+                    ? "border-neutral-400 bg-neutral-400"
                     : isNow
-                      ? 'border-success-500 bg-surface shadow-[0_0_0_4px_rgb(57_186_151_/_0.22)]'
-                      : 'border-primary-600 bg-surface',
+                      ? "border-success-500 bg-surface shadow-[0_0_0_4px_rgb(57_186_151_/_0.22)]"
+                      : "border-primary-600 bg-surface",
                 )}
               />
             </span>
@@ -77,15 +77,15 @@ export function ScheduleTimeline({
             {/* Two patients at 09:30 stack under one time and one node, as the reference draws
                 them. */}
             <div className="relative min-w-0">
-              {isNow && <NowLine label={t('dashboard.now')} minute={nowMinute} />}
+              {isNow && <NowLine label={t("dashboard.now")} minute={nowMinute} />}
 
               {slot.appointments.map((appointment) => (
                 <div
                   key={appointment.id}
                   className={cn(
-                    'my-2 flex items-center gap-3 rounded-panel border bg-surface px-4 py-3',
-                    SPENT_STATUSES.includes(appointment.status) && 'opacity-55',
-                    isNow ? 'border-success-500 shadow-now' : 'border-line',
+                    "my-2 flex items-center gap-3 rounded-panel border bg-surface px-4 py-3",
+                    SPENT_STATUSES.includes(appointment.status) && "opacity-55",
+                    isNow ? "border-success-500 shadow-now" : "border-line",
                   )}
                 >
                   <Avatar
@@ -100,11 +100,11 @@ export function ScheduleTimeline({
                       <Link
                         to={`/patients/${appointment.patientId}`}
                         className={cn(
-                          'block truncate text-section font-medium text-ink',
-                          'transition-colors duration-150 hover:text-primary-700',
+                          "block truncate text-section font-medium text-ink",
+                          "transition-colors duration-150 hover:text-primary-700",
                           // The hit box, not the line box: `truncate` clips an ::after overlay,
                           // so the target is grown with padding an equal negative margin undoes.
-                          '-my-[11px] py-[11px] lg:my-0 lg:py-0',
+                          "-my-[11px] py-[11px] lg:my-0 lg:py-0",
                         )}
                       >
                         {appointment.patientName}
@@ -132,15 +132,15 @@ export function ScheduleTimeline({
                     <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
                       {onConfirm && (
                         <QuickAction
-                          label={t('appointments.actions.confirm')}
+                          label={t("appointments.actions.confirm")}
                           icon="check"
                           onClick={() => onConfirm(appointment)}
                         />
                       )}
                       <QuickAction
-                        label={t('dashboard.call')}
+                        label={t("dashboard.call")}
                         icon="phone"
-                        href={`tel:${appointment.patientPhone.replace(/[\s-]/g, '')}`}
+                        href={`tel:${appointment.patientPhone.replace(/[\s-]/g, "")}`}
                       />
                     </div>
                   )}
@@ -161,14 +161,14 @@ function QuickAction({
   href,
 }: {
   readonly label: string;
-  readonly icon: 'check' | 'phone';
+  readonly icon: "check" | "phone";
   readonly onClick?: (() => void) | undefined;
   readonly href?: string | undefined;
 }): JSX.Element {
   const className = cn(
-    'inline-flex size-(--control-h) cursor-pointer items-center justify-center lg:size-(--control-h-sm)',
-    'rounded-chip border border-line bg-canvas text-ink-muted',
-    'transition-colors duration-150 hover:border-success-700 hover:text-success-700',
+    "inline-flex size-(--control-h) cursor-pointer items-center justify-center lg:size-(--control-h-sm)",
+    "rounded-chip border border-line bg-canvas text-ink-muted",
+    "transition-colors duration-150 hover:border-success-700 hover:text-success-700",
   );
 
   return href === undefined ? (

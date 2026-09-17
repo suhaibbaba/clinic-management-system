@@ -1,15 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from "@nestjs/common";
 import {
   formatMinorUnits,
   PERFORMED_PROCEDURE_STATUS,
   toMinorUnits,
   type Money,
   type PerformedProcedureStatus,
-} from '@clinic/shared';
-import { and, eq, isNull, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, eq, isNull, type SQL } from "drizzle-orm";
 
-import { DATABASE, type Database, type DatabaseExecutor } from '@api/database/database.module';
-import { charges } from '@api/database/schema';
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
+import { charges } from "@api/database/schema";
 
 /** What a procedure looks like to billing. No clinical fields cross this line. */
 export interface ProcedureBillingEvent {
@@ -59,7 +59,7 @@ export class ChargesService {
   /** A soft-deleted procedure is not owed: reverse it, never delete the row. */
   async onProcedureReversed(
     tx: DatabaseExecutor,
-    event: Pick<ProcedureBillingEvent, 'clinicId' | 'performedProcedureId' | 'actorId'>,
+    event: Pick<ProcedureBillingEvent, "clinicId" | "performedProcedureId" | "actorId">,
   ): Promise<void> {
     await this.reverseCurrentCharge(tx, event.clinicId, event.performedProcedureId, event.actorId);
   }
@@ -105,7 +105,7 @@ export class ChargesService {
       .from(charges)
       .where(currentChargePredicate(clinicId, performedProcedureId))
       .limit(1)
-      .for('update');
+      .for("update");
 
     if (!existing) {
       return;
@@ -141,7 +141,7 @@ function currentChargePredicate(clinicId: string, performedProcedureId: string):
 
   /* istanbul ignore next -- `and` only returns undefined with no arguments. */
   if (!predicate) {
-    throw new Error('Failed to build a charge predicate');
+    throw new Error("Failed to build a charge predicate");
   }
 
   return predicate;

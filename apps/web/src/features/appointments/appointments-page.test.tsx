@@ -1,26 +1,26 @@
-import { APPOINTMENT_STATUS, USER_ROLE, type UserRole } from '@clinic/shared';
-import { screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import type { JSX } from 'react';
-import { useLocation } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { APPOINTMENT_STATUS, USER_ROLE, type UserRole } from "@clinic/shared";
+import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import type { JSX } from "react";
+import { useLocation } from "react-router-dom";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AppRoutes } from '@web/app/router';
-import ar from '@web/i18n/locales/ar.json';
-import { authTokens } from '@web/lib/auth-tokens';
-import { makeClinic, makeDoctor, makeProfile, paginated } from '@test/helpers/fixtures';
-import { mockApi, renderWithProviders, type MockResponse } from '@test/helpers/render';
-import { resetClinicTimeZone } from '@web/lib/clinic-zone';
-import { choose } from '@test/select';
+import { AppRoutes } from "@web/app/router";
+import ar from "@web/i18n/locales/ar.json";
+import { authTokens } from "@web/lib/auth-tokens";
+import { makeClinic, makeDoctor, makeProfile, paginated } from "@test/helpers/fixtures";
+import { mockApi, renderWithProviders, type MockResponse } from "@test/helpers/render";
+import { resetClinicTimeZone } from "@web/lib/clinic-zone";
+import { choose } from "@test/select";
 
-const DOCTOR_ID = '11111111-1111-4111-8111-111111111111';
-const OTHER_DOCTOR_ID = '22222222-2222-4222-8222-222222222222';
-const PATIENT_ID = '33333333-3333-4333-8333-333333333333';
+const DOCTOR_ID = "11111111-1111-4111-8111-111111111111";
+const OTHER_DOCTOR_ID = "22222222-2222-4222-8222-222222222222";
+const PATIENT_ID = "33333333-3333-4333-8333-333333333333";
 
 /** jsdom has no layout, so the breakpoint is answered directly. */
 function setViewport(isMobile: boolean): void {
-  vi.stubGlobal('matchMedia', (query: string) => ({
-    matches: isMobile && query.includes('max-width'),
+  vi.stubGlobal("matchMedia", (query: string) => ({
+    matches: isMobile && query.includes("max-width"),
     media: query,
     addEventListener: () => undefined,
     removeEventListener: () => undefined,
@@ -29,7 +29,7 @@ function setViewport(isMobile: boolean): void {
 
 const today = new Date();
 const iso = (at: Date): string =>
-  `${at.getUTCFullYear()}-${String(at.getUTCMonth() + 1).padStart(2, '0')}-${String(at.getUTCDate()).padStart(2, '0')}`;
+  `${at.getUTCFullYear()}-${String(at.getUTCMonth() + 1).padStart(2, "0")}-${String(at.getUTCDate()).padStart(2, "0")}`;
 
 function appointmentAt(hour: number, overrides: Record<string, unknown> = {}) {
   // Built in UTC because the clinic below is in UTC: a fixture built in the machine's zone draws
@@ -40,24 +40,24 @@ function appointmentAt(hour: number, overrides: Record<string, unknown> = {}) {
 
   return {
     id: `appt-${hour}`,
-    clinicId: 'clinic',
+    clinicId: "clinic",
     patientId: PATIENT_ID,
     doctorId: DOCTOR_ID,
     startsAt: startsAt.toISOString(),
     durationMinutes: 30,
     endsAt: new Date(startsAt.getTime() + 30 * 60_000).toISOString(),
-    type: 'checkup',
+    type: "checkup",
     status: APPOINTMENT_STATUS.CONFIRMED,
-    reason: 'فحص دوري',
+    reason: "فحص دوري",
     notes: null,
     visitId: null,
     cancelledReason: null,
     createdAt: startsAt.toISOString(),
     updatedAt: startsAt.toISOString(),
-    patientName: 'أحمد خالد الحسن',
-    patientPhone: '+963931000001',
-    patientFileNumber: '00001',
-    doctorName: { ar: 'د. ليلى حداد', en: 'Dr. Layla Haddad' },
+    patientName: "أحمد خالد الحسن",
+    patientPhone: "+963931000001",
+    patientFileNumber: "00001",
+    doctorName: { ar: "د. ليلى حداد", en: "Dr. Layla Haddad" },
     ...overrides,
   };
 }
@@ -66,36 +66,36 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse | unkno
   const doctor = makeDoctor();
 
   return {
-    'POST /auth/refresh': { status: 200, body: { accessToken: 'access', expiresIn: 900 } },
-    'GET /me': { status: 200, body: makeProfile({ role }) },
+    "POST /auth/refresh": { status: 200, body: { accessToken: "access", expiresIn: 900 } },
+    "GET /me": { status: 200, body: makeProfile({ role }) },
     // The calendar draws in the clinic's zone, so a test building fixtures with the machine's has
     // to say the two are the same.
-    'GET /clinic': { status: 200, body: { ...makeClinic(), settings: { timezone: 'UTC' } } },
-    'GET /doctors': {
+    "GET /clinic": { status: 200, body: { ...makeClinic(), settings: { timezone: "UTC" } } },
+    "GET /doctors": {
       status: 200,
       body: paginated([
         {
           ...doctor,
           id: DOCTOR_ID,
-          user: { ...doctor.user, name: { ar: 'د. ليلى حداد', en: 'Dr. Layla Haddad' } },
+          user: { ...doctor.user, name: { ar: "د. ليلى حداد", en: "Dr. Layla Haddad" } },
         },
         {
           ...doctor,
           id: OTHER_DOCTOR_ID,
-          user: { ...doctor.user, name: { ar: 'د. سامر نصار', en: 'Dr. Samer Nassar' } },
+          user: { ...doctor.user, name: { ar: "د. سامر نصار", en: "Dr. Samer Nassar" } },
         },
       ]),
     },
-    'GET /waiting-list': { status: 200, body: paginated([]) },
-    'GET /appointments/calendar': {
+    "GET /waiting-list": { status: 200, body: paginated([]) },
+    "GET /appointments/calendar": {
       status: 200,
       body: {
         from: iso(today),
         to: iso(today),
-        appointments: [appointmentAt(10), appointmentAt(14, { id: 'appt-14', status: 'arrived' })],
+        appointments: [appointmentAt(10), appointmentAt(14, { id: "appt-14", status: "arrived" })],
       },
     },
-    'GET /appointments/availability': {
+    "GET /appointments/availability": {
       status: 200,
       body: {
         doctorId: DOCTOR_ID,
@@ -103,8 +103,8 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse | unkno
         durationMinutes: 30,
         closedReason: null,
         slots: [
-          { start: '09:00', end: '09:30', startsAt: new Date().toISOString(), available: true },
-          { start: '09:30', end: '10:00', startsAt: new Date().toISOString(), available: false },
+          { start: "09:00", end: "09:30", startsAt: new Date().toISOString(), available: true },
+          { start: "09:30", end: "10:00", startsAt: new Date().toISOString(), available: false },
         ],
       },
     },
@@ -112,7 +112,7 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse | unkno
   } as Record<string, MockResponse>;
 }
 
-async function renderCalendar(role: UserRole, overrides = {}, route = '/appointments') {
+async function renderCalendar(role: UserRole, overrides = {}, route = "/appointments") {
   authTokens.clear();
   const api = mockApi(handlers(role, overrides));
   renderWithProviders(<AppRoutes />, { route });
@@ -128,18 +128,18 @@ function Address(): JSX.Element {
 
 // Distinct from the today ribbon above it: the two draw some of the same appointments, so a bare
 // `getByRole` finds both.
-const calendar = () => screen.findByRole('region', { name: ar.appointments.title });
+const calendar = () => screen.findByRole("region", { name: ar.appointments.title });
 
-const block = async (time: RegExp) => within(await calendar()).findByRole('button', { name: time });
+const block = async (time: RegExp) => within(await calendar()).findByRole("button", { name: time });
 
-describe('Appointments page', () => {
+describe("Appointments page", () => {
   beforeEach(() => {
     authTokens.clear();
     setViewport(false);
     resetClinicTimeZone();
   });
 
-  it('draws every appointment as its own button, named by time, patient and status', async () => {
+  it("draws every appointment as its own button, named by time, patient and status", async () => {
     await renderCalendar(USER_ROLE.RECEPTIONIST);
 
     // Colour is never the only channel: the status is in the name, in words.
@@ -148,88 +148,88 @@ describe('Appointments page', () => {
     ).toBeInTheDocument();
   });
 
-  it('opens the detail drawer on a block, with the actions that status allows', async () => {
+  it("opens the detail drawer on a block, with the actions that status allows", async () => {
     await renderCalendar(USER_ROLE.RECEPTIONIST);
 
     await userEvent.click(await block(/10:00/));
 
-    const drawer = await screen.findByRole('dialog');
+    const drawer = await screen.findByRole("dialog");
 
     // Confirmed → arrived or no-show. Not "complete": a confirmed appointment
     // nobody turned up to must not be markable as done.
     expect(
-      within(drawer).getByRole('button', { name: ar.appointments.actions.arrived }),
+      within(drawer).getByRole("button", { name: ar.appointments.actions.arrived }),
     ).toBeVisible();
     expect(
-      within(drawer).queryByRole('button', { name: ar.appointments.actions.complete }),
+      within(drawer).queryByRole("button", { name: ar.appointments.actions.complete }),
     ).not.toBeInTheDocument();
   });
 
-  it('drops an action the clinic has taken away, and keeps the rest', async () => {
+  it("drops an action the clinic has taken away, and keeps the rest", async () => {
     await renderCalendar(USER_ROLE.RECEPTIONIST, {
-      'GET /me': {
+      "GET /me": {
         status: 200,
         body: makeProfile({
           role: USER_ROLE.RECEPTIONIST,
-          capabilities: ['appointments.noShow'],
+          capabilities: ["appointments.noShow"],
         }),
       },
     });
 
     await userEvent.click(await block(/10:00/));
 
-    const drawer = await screen.findByRole('dialog');
+    const drawer = await screen.findByRole("dialog");
 
     expect(
-      within(drawer).queryByRole('button', { name: ar.appointments.actions.arrived }),
+      within(drawer).queryByRole("button", { name: ar.appointments.actions.arrived }),
     ).not.toBeInTheDocument();
     expect(
-      within(drawer).getByRole('button', { name: ar.appointments.actions.noShow }),
+      within(drawer).getByRole("button", { name: ar.appointments.actions.noShow }),
     ).toBeVisible();
   });
 
-  it('offers a visit only once the patient has arrived', async () => {
+  it("offers a visit only once the patient has arrived", async () => {
     await renderCalendar(USER_ROLE.DOCTOR);
 
     await userEvent.click(await block(/14:00/));
-    const drawer = await screen.findByRole('dialog');
+    const drawer = await screen.findByRole("dialog");
 
     expect(
-      within(drawer).getByRole('button', { name: ar.appointments.actions.openVisit }),
+      within(drawer).getByRole("button", { name: ar.appointments.actions.openVisit }),
     ).toBeVisible();
   });
 
-  it('does not offer a receptionist the visit button — a visit is clinical', async () => {
+  it("does not offer a receptionist the visit button — a visit is clinical", async () => {
     await renderCalendar(USER_ROLE.RECEPTIONIST);
 
     await userEvent.click(await block(/14:00/));
-    const drawer = await screen.findByRole('dialog');
+    const drawer = await screen.findByRole("dialog");
 
     expect(
-      within(drawer).queryByRole('button', { name: ar.appointments.actions.openVisit }),
+      within(drawer).queryByRole("button", { name: ar.appointments.actions.openVisit }),
     ).not.toBeInTheDocument();
   });
 
-  it('shows the day as an agenda on a phone, with no week toggle', async () => {
+  it("shows the day as an agenda on a phone, with no week toggle", async () => {
     setViewport(true);
     await renderCalendar(USER_ROLE.RECEPTIONIST);
 
     await block(/10:00/);
 
     // The week is seven 40px columns at 390px, so it is not offered at all.
-    expect(screen.queryByRole('radio', { name: ar.appointments.week })).not.toBeInTheDocument();
+    expect(screen.queryByRole("radio", { name: ar.appointments.week })).not.toBeInTheDocument();
   });
 
-  it('opens the view the address names, and leaves the default out of it', async () => {
-    await renderCalendar(USER_ROLE.RECEPTIONIST, {}, '/appointments?view=day');
+  it("opens the view the address names, and leaves the default out of it", async () => {
+    await renderCalendar(USER_ROLE.RECEPTIONIST, {}, "/appointments?view=day");
 
     await block(/10:00/);
 
-    expect(screen.getByRole('radio', { name: ar.appointments.day })).toBeChecked();
-    expect(screen.getByRole('radio', { name: ar.appointments.week })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: ar.appointments.day })).toBeChecked();
+    expect(screen.getByRole("radio", { name: ar.appointments.week })).not.toBeChecked();
   });
 
-  it('writes the view into the address when it is switched, and the default back out', async () => {
+  it("writes the view into the address when it is switched, and the default back out", async () => {
     const user = userEvent.setup();
     authTokens.clear();
     mockApi(handlers(USER_ROLE.RECEPTIONIST));
@@ -240,54 +240,54 @@ describe('Appointments page', () => {
         <AppRoutes />
         <Address />
       </>,
-      { route: '/appointments' },
+      { route: "/appointments" },
     );
 
     await block(/10:00/);
     // The plain address is the default view, with no parameter announcing it.
-    expect(screen.getByTestId('address')).toHaveTextContent('/appointments');
-    expect(screen.getByTestId('address').textContent).not.toContain('view=');
+    expect(screen.getByTestId("address")).toHaveTextContent("/appointments");
+    expect(screen.getByTestId("address").textContent).not.toContain("view=");
 
-    await user.click(screen.getByRole('radio', { name: ar.appointments.day }));
-    expect(screen.getByTestId('address')).toHaveTextContent('view=day');
+    await user.click(screen.getByRole("radio", { name: ar.appointments.day }));
+    expect(screen.getByTestId("address")).toHaveTextContent("view=day");
 
-    await user.click(screen.getByRole('radio', { name: ar.appointments.week }));
-    expect(screen.getByTestId('address').textContent).not.toContain('view=');
+    await user.click(screen.getByRole("radio", { name: ar.appointments.week }));
+    expect(screen.getByTestId("address").textContent).not.toContain("view=");
   });
 
-  it('draws times in the clinic’s zone, not the browser’s', async () => {
+  it("draws times in the clinic’s zone, not the browser’s", async () => {
     // The API books in the clinic's zone: drawing in the browser's would show 10:00 where it booked
     // 13:00, and disagree with availability about the day.
     await renderCalendar(USER_ROLE.RECEPTIONIST, {
-      'GET /clinic': {
+      "GET /clinic": {
         status: 200,
-        body: { ...makeClinic(), settings: { timezone: 'Asia/Tokyo' } },
+        body: { ...makeClinic(), settings: { timezone: "Asia/Tokyo" } },
       },
     });
 
     // 10:00 UTC is 19:00 in Tokyo.
     expect(await block(/19:00/)).toBeInTheDocument();
     expect(
-      within(await calendar()).queryByRole('button', { name: /\b10:00\b/ }),
+      within(await calendar()).queryByRole("button", { name: /\b10:00\b/ }),
     ).not.toBeInTheDocument();
   });
 
-  it('only lets a real slot be picked in the booking form', async () => {
+  it("only lets a real slot be picked in the booking form", async () => {
     await renderCalendar(USER_ROLE.RECEPTIONIST);
 
-    await userEvent.click(await screen.findByRole('button', { name: ar.appointments.create }));
+    await userEvent.click(await screen.findByRole("button", { name: ar.appointments.create }));
 
-    const dialog = await screen.findByRole('dialog');
+    const dialog = await screen.findByRole("dialog");
 
     // Slots exist only once a doctor is chosen — asking for "availability for no doctor" would put
     // an error in front of a half-filled form.
-    expect(within(dialog).queryAllByRole('radio')).toHaveLength(0);
+    expect(within(dialog).queryAllByRole("radio")).toHaveLength(0);
 
-    await choose(within(dialog).getByLabelText(ar.appointments.doctor), 'د. ليلى حداد');
+    await choose(within(dialog).getByLabelText(ar.appointments.doctor), "د. ليلى حداد");
 
-    const slots = await within(dialog).findAllByRole('radio');
+    const slots = await within(dialog).findAllByRole("radio");
 
-    expect(slots.map((slot) => slot.textContent)).toEqual(['09:00', '09:30']);
+    expect(slots.map((slot) => slot.textContent)).toEqual(["09:00", "09:30"]);
 
     // A taken slot is drawn and disabled: a hole in the grid says "that one is
     // gone" where a shorter list only says "there are fewer".

@@ -3,10 +3,10 @@ import {
   WAITING_LIST_SOURCE,
   type CalendarAppointment,
   type WaitingListEntry,
-} from '@clinic/shared';
-import { useMemo, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+} from "@clinic/shared";
+import { useMemo, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
 
 import {
   Badge,
@@ -21,42 +21,42 @@ import {
   StatRow,
   usePersonName,
   useToast,
-} from '@clinic/ui';
-import { RefreshBar, SkeletonCalendarDay } from '@clinic/ui/components/skeleton';
-import { useSession } from '@web/features/auth/session';
-import { seesPendingBookings, usePendingBookings } from '@web/features/booking/queries';
-import { useClinic } from '@web/features/clinic/queries';
-import { useDoctors } from '@web/features/doctors/queries';
-import { AgendaList } from '@web/features/appointments/agenda-list';
-import { AppointmentDrawer } from '@web/features/appointments/appointment-drawer';
-import { AppointmentFormModal } from '@web/features/appointments/appointment-form-modal';
+} from "@clinic/ui";
+import { RefreshBar, SkeletonCalendarDay } from "@clinic/ui/components/skeleton";
+import { useSession } from "@web/features/auth/session";
+import { seesPendingBookings, usePendingBookings } from "@web/features/booking/queries";
+import { useClinic } from "@web/features/clinic/queries";
+import { useDoctors } from "@web/features/doctors/queries";
+import { AgendaList } from "@web/features/appointments/agenda-list";
+import { AppointmentDrawer } from "@web/features/appointments/appointment-drawer";
+import { AppointmentFormModal } from "@web/features/appointments/appointment-form-modal";
 import {
   addDays,
   instantAt,
   startOfWeek,
   todayIso,
-} from '@web/features/appointments/calendar-time';
-import { setClinicTimeZone } from '@web/lib/clinic-zone';
-import { DayGrid } from '@web/features/appointments/day-grid';
+} from "@web/features/appointments/calendar-time";
+import { setClinicTimeZone } from "@web/lib/clinic-zone";
+import { DayGrid } from "@web/features/appointments/day-grid";
 import {
   canBookAppointment,
   canManageWaitingList,
   seesWholeClinic,
-} from '@web/features/appointments/permissions';
+} from "@web/features/appointments/permissions";
 import {
   useCalendar,
   useUpdateAppointment,
   useWaitingList,
-} from '@web/features/appointments/queries';
-import { TodayRibbon } from '@web/features/appointments/today-ribbon';
-import { WaitingListPanel } from '@web/features/appointments/waiting-list-panel';
-import { WeekView } from '@web/features/appointments/week-view';
-import { errorMessageKey } from '@web/lib/api-error';
-import { formatDate } from '@web/lib/format';
-import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
-import { useIsMobile } from '@clinic/ui/lib/use-media-query';
+} from "@web/features/appointments/queries";
+import { TodayRibbon } from "@web/features/appointments/today-ribbon";
+import { WaitingListPanel } from "@web/features/appointments/waiting-list-panel";
+import { WeekView } from "@web/features/appointments/week-view";
+import { errorMessageKey } from "@web/lib/api-error";
+import { formatDate } from "@web/lib/format";
+import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
+import { useIsMobile } from "@clinic/ui/lib/use-media-query";
 
-const RANGES = ['day', 'week'] as const;
+const RANGES = ["day", "week"] as const;
 
 type Range = (typeof RANGES)[number];
 
@@ -79,9 +79,9 @@ export function AppointmentsPage(): JSX.Element {
   // for all three: two calls to the tab helper each snapshot the params and the second wins.
   const [params, setParams] = useSearchParams();
 
-  const range: Range = RANGES.find((id) => id === params.get('view')) ?? 'week';
-  const date = params.get('date') ?? todayIso();
-  const doctorFilter = params.get('doctor') ?? '';
+  const range: Range = RANGES.find((id) => id === params.get("view")) ?? "week";
+  const date = params.get("date") ?? todayIso();
+  const doctorFilter = params.get("doctor") ?? "";
 
   /** Writes several params at once; a value equal to its default is removed. */
   const setCalendarParams = (
@@ -100,13 +100,13 @@ export function AppointmentsPage(): JSX.Element {
     setParams(next, { replace: true });
   };
 
-  const setRange = (value: Range): void => setCalendarParams({ view: [value, 'week'] });
+  const setRange = (value: Range): void => setCalendarParams({ view: [value, "week"] });
   const setDate = (value: string): void => setCalendarParams({ date: [value, todayIso()] });
-  const setDoctorFilter = (value: string): void => setCalendarParams({ doctor: [value, ''] });
+  const setDoctorFilter = (value: string): void => setCalendarParams({ doctor: [value, ""] });
 
-  const waitingOpen = params.get('queue') === 'open';
+  const waitingOpen = params.get("queue") === "open";
   const setWaitingOpen = (next: boolean): void =>
-    setCalendarParams({ queue: [next ? 'open' : '', ''] });
+    setCalendarParams({ queue: [next ? "open" : "", ""] });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -127,13 +127,13 @@ export function AppointmentsPage(): JSX.Element {
     [doctors.data, user?.id],
   );
 
-  const effectiveDoctorId = wholeClinic ? doctorFilter : (ownDoctorId ?? '');
-  const effectiveRange: Range = isMobile ? 'day' : range;
+  const effectiveDoctorId = wholeClinic ? doctorFilter : (ownDoctorId ?? "");
+  const effectiveRange: Range = isMobile ? "day" : range;
 
   const calendar = useCalendar({
     date,
     range: effectiveRange,
-    ...(effectiveDoctorId !== '' && { doctorId: effectiveDoctorId }),
+    ...(effectiveDoctorId !== "" && { doctorId: effectiveDoctorId }),
   });
 
   const waiting = useWaitingList({ limit: 1 });
@@ -159,20 +159,20 @@ export function AppointmentsPage(): JSX.Element {
   const columns = useMemo(() => {
     const all = doctors.data?.items ?? [];
 
-    return effectiveDoctorId === '' ? all : all.filter((doctor) => doctor.id === effectiveDoctorId);
+    return effectiveDoctorId === "" ? all : all.filter((doctor) => doctor.id === effectiveDoctorId);
   }, [doctors.data, effectiveDoctorId]);
 
   const today = appointments.filter(
-    (entry) => entry.startsAt.slice(0, 10) === todayIso() || range === 'day',
+    (entry) => entry.startsAt.slice(0, 10) === todayIso() || range === "day",
   );
 
   const todayStats = useMemo(() => {
     const ofToday = appointments.filter((entry) => {
       const local = new Date(entry.startsAt);
       return (
-        `${local.getFullYear()}-${String(local.getMonth() + 1).padStart(2, '0')}-${String(
+        `${local.getFullYear()}-${String(local.getMonth() + 1).padStart(2, "0")}-${String(
           local.getDate(),
-        ).padStart(2, '0')}` === todayIso()
+        ).padStart(2, "0")}` === todayIso()
       );
     });
 
@@ -196,7 +196,7 @@ export function AppointmentsPage(): JSX.Element {
   }, [appointments]);
 
   const step = (direction: -1 | 1): void =>
-    setDate(addDays(date, effectiveRange === 'week' ? direction * 7 : direction));
+    setDate(addDays(date, effectiveRange === "week" ? direction * 7 : direction));
 
   const move = async (appointment: CalendarAppointment, minute: number): Promise<void> => {
     try {
@@ -204,7 +204,7 @@ export function AppointmentsPage(): JSX.Element {
         id: appointment.id,
         body: { startsAt: instantAt(date, minute) },
       });
-      toast.success('appointments.moved');
+      toast.success("appointments.moved");
     } catch (error) {
       // A 409 lands here: the slot was taken between the drag and the drop.
       toast.error(errorMessageKey(error));
@@ -226,7 +226,7 @@ export function AppointmentsPage(): JSX.Element {
   };
 
   const label =
-    effectiveRange === 'week'
+    effectiveRange === "week"
       ? `${formatDate(startOfWeek(date))} – ${formatDate(addDays(startOfWeek(date), 6))}`
       : formatDate(date);
 
@@ -242,20 +242,20 @@ export function AppointmentsPage(): JSX.Element {
               icon={<Icon name="users" />}
               onClick={() => setWaitingOpen(true)}
             >
-              {t('appointments.waiting.title')}
+              {t("appointments.waiting.title")}
               {(waiting.data?.total ?? 0) > 0 && (
                 <span className="ms-1 tabular-nums">({waiting.data?.total})</span>
               )}
               {(urgent.data?.total ?? 0) > 0 && (
                 <Badge tone="danger" className="ms-1.5">
-                  {t('appointments.waiting.urgentCount', { count: urgent.data?.total ?? 0 })}
+                  {t("appointments.waiting.urgentCount", { count: urgent.data?.total ?? 0 })}
                 </Badge>
               )}
             </Button>
 
             {mayBook && (
               <Button icon={<Icon name="plus" />} onClick={() => openForm({ date })}>
-                {t('appointments.create')}
+                {t("appointments.create")}
               </Button>
             )}
           </div>
@@ -269,38 +269,38 @@ export function AppointmentsPage(): JSX.Element {
         <StatRow>
           <StatCard
             icon="calendar"
-            label={t('appointments.kpi.today')}
+            label={t("appointments.kpi.today")}
             value={todayStats.total}
             caption={formatDate(todayIso())}
           />
           <StatCard
             icon="user-plus"
             tone="success"
-            label={t('appointments.kpi.arrived')}
+            label={t("appointments.kpi.arrived")}
             value={todayStats.attended}
           />
           <StatCard
             icon="clock"
             tone="warning"
-            label={t('appointments.kpi.remaining')}
+            label={t("appointments.kpi.remaining")}
             value={todayStats.remaining}
           />
           <StatCard
             icon="activity"
             tone={
-              todayStats.attendance !== null && todayStats.attendance < 70 ? 'danger' : 'primary'
+              todayStats.attendance !== null && todayStats.attendance < 70 ? "danger" : "primary"
             }
-            label={t('appointments.kpi.attendance')}
-            value={todayStats.attendance === null ? '—' : `${todayStats.attendance}%`}
-            caption={t('appointments.kpi.attendanceCaption')}
+            label={t("appointments.kpi.attendance")}
+            value={todayStats.attendance === null ? "—" : `${todayStats.attendance}%`}
+            caption={t("appointments.kpi.attendanceCaption")}
           />
           {frontDesk && (
             <StatCard
               icon="globe"
-              tone={(onlineToday.data?.total ?? 0) > 0 ? 'warning' : 'primary'}
-              label={t('appointments.kpi.onlineToday')}
+              tone={(onlineToday.data?.total ?? 0) > 0 ? "warning" : "primary"}
+              label={t("appointments.kpi.onlineToday")}
               value={onlineToday.data?.total ?? 0}
-              caption={t('appointments.kpi.onlineTodayCaption')}
+              caption={t("appointments.kpi.onlineTodayCaption")}
             />
           )}
         </StatRow>
@@ -318,17 +318,17 @@ export function AppointmentsPage(): JSX.Element {
             size="sm"
             variant="secondary"
             icon={<Icon name="chevron-start" />}
-            aria-label={t('appointments.previous')}
+            aria-label={t("appointments.previous")}
             onClick={() => step(-1)}
           />
           <Button size="sm" variant="secondary" onClick={() => setDate(todayIso())}>
-            {t('appointments.today')}
+            {t("appointments.today")}
           </Button>
           <Button
             size="sm"
             variant="secondary"
             icon={<Icon name="chevron-end" />}
-            aria-label={t('appointments.next')}
+            aria-label={t("appointments.next")}
             onClick={() => step(1)}
           />
           {/* One island, not two dates: read as ordinary text in an RTL paragraph the neutral dash
@@ -340,8 +340,8 @@ export function AppointmentsPage(): JSX.Element {
           {wholeClinic && (
             <Select
               className="w-full sm:w-52"
-              aria-label={t('appointments.doctor')}
-              placeholder={t('appointments.allDoctors')}
+              aria-label={t("appointments.doctor")}
+              placeholder={t("appointments.allDoctors")}
               value={doctorFilter}
               options={(doctors.data?.items ?? []).map((doctor) => ({
                 value: doctor.id,
@@ -354,12 +354,12 @@ export function AppointmentsPage(): JSX.Element {
           {/* The week is desktop-only, so the toggle is too. */}
           {!isMobile && (
             <SegmentedControl
-              label={t('appointments.title')}
+              label={t("appointments.title")}
               value={range}
               onChange={(next) => setRange(next)}
               options={[
-                { value: 'day', label: t('appointments.day') },
-                { value: 'week', label: t('appointments.week') },
+                { value: "day", label: t("appointments.day") },
+                { value: "week", label: t("appointments.week") },
               ]}
             />
           )}
@@ -369,28 +369,28 @@ export function AppointmentsPage(): JSX.Element {
       {/* A landmark of its own, so "the calendar" is addressable separately
           from the ribbon above it — which draws some of the same appointments
           and would otherwise be indistinguishable to a screen reader. */}
-      <section aria-label={t('appointments.title')} className="flex min-w-0 flex-col gap-5">
+      <section aria-label={t("appointments.title")} className="flex min-w-0 flex-col gap-5">
         {calendar.isError && (
           <EmptyState icon="alert" title="errors.generic" hint="appointments.loadFailed" />
         )}
 
-        {showSkeleton && <SkeletonCalendarDay columns={effectiveRange === 'week' ? 7 : 3} />}
+        {showSkeleton && <SkeletonCalendarDay columns={effectiveRange === "week" ? 7 : 3} />}
 
         <RefreshBar active={isRefreshing} />
 
-        {!showSkeleton && !calendar.isError && effectiveRange === 'week' && (
+        {!showSkeleton && !calendar.isError && effectiveRange === "week" && (
           <WeekView
             date={date}
             appointments={appointments}
             closures={closures}
             onOpen={(appointment) => setSelectedId(appointment.id)}
             onPickDay={(day) =>
-              setCalendarParams({ date: [day, todayIso()], view: ['day', 'week'] })
+              setCalendarParams({ date: [day, todayIso()], view: ["day", "week"] })
             }
           />
         )}
 
-        {!showSkeleton && !calendar.isError && effectiveRange === 'day' && isMobile && (
+        {!showSkeleton && !calendar.isError && effectiveRange === "day" && isMobile && (
           <AgendaList
             appointments={appointments}
             {...(closureToday && { closure: closureToday })}
@@ -399,7 +399,7 @@ export function AppointmentsPage(): JSX.Element {
           />
         )}
 
-        {!showSkeleton && !calendar.isError && effectiveRange === 'day' && !isMobile && (
+        {!showSkeleton && !calendar.isError && effectiveRange === "day" && !isMobile && (
           <DayGrid
             date={date}
             doctors={columns}
@@ -442,7 +442,7 @@ export function AppointmentsPage(): JSX.Element {
         onBooked={({ date: booked, doctorId: booking }) =>
           setCalendarParams({
             date: [booked, todayIso()],
-            ...(wholeClinic && doctorFilter !== '' && { doctor: [booking, ''] }),
+            ...(wholeClinic && doctorFilter !== "" && { doctor: [booking, ""] }),
           })
         }
       />

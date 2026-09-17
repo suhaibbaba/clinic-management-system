@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
   type CreateSupplierInput,
   type ListSuppliersQuery,
@@ -6,20 +6,20 @@ import {
   type Supplier,
   type SupplierSummary,
   type UpdateSupplierInput,
-} from '@clinic/shared';
-import { and, asc, eq, isNull, ne, or, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, asc, eq, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { arabicNameSearch } from '@api/common/database/arabic-search';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { suppliers } from '@api/database/schema';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { arabicNameSearch } from "@api/common/database/arabic-search";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { suppliers } from "@api/database/schema";
 
 type SupplierRow = typeof suppliers.$inferSelect;
 
-export const SUPPLIERS_ENTITY = 'suppliers';
+export const SUPPLIERS_ENTITY = "suppliers";
 
 // Never hard deleted — purchases point here, and a statement whose counterparty vanished is
 // unreadable. `is_active` is the everyday switch.
@@ -86,7 +86,7 @@ export class SuppliersService implements OnModuleInit {
     return toPaginated(
       rows.map((row) => ({
         ...toSupplier(row),
-        ...(summaries.get(row.id) ?? { purchased: '0.00', itemCount: 0 }),
+        ...(summaries.get(row.id) ?? { purchased: "0.00", itemCount: 0 }),
       })),
       totals?.value ?? 0,
       query,
@@ -97,7 +97,7 @@ export class SuppliersService implements OnModuleInit {
     const row = await this.requireRow(actor.clinicId, id);
     const summary = await this.summarise(actor.clinicId, [id]);
 
-    return { ...toSupplier(row), ...(summary.get(id) ?? { purchased: '0.00', itemCount: 0 }) };
+    return { ...toSupplier(row), ...(summary.get(id) ?? { purchased: "0.00", itemCount: 0 }) };
   }
 
   async create(actor: AuthenticatedUser, input: CreateSupplierInput): Promise<Supplier> {
@@ -118,7 +118,7 @@ export class SuppliersService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to create the supplier');
+      throw new Error("Failed to create the supplier");
     }
 
     return toSupplier(row);
@@ -150,7 +150,7 @@ export class SuppliersService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to update the supplier');
+      throw new Error("Failed to update the supplier");
     }
 
     return toSupplier(row);
@@ -230,7 +230,7 @@ export class SuppliersService implements OnModuleInit {
       .limit(1);
 
     if (clash) {
-      throw new ConflictException('A supplier with this name already exists');
+      throw new ConflictException("A supplier with this name already exists");
     }
   }
 }
@@ -252,10 +252,10 @@ export function toSupplier(row: SupplierRow): Supplier {
 // `quantity * unit_price` comes back with five decimals — three from the quantity, two from the
 // price — which is an artefact, not fractions anyone owes.
 export function toMoneyString(value: string): string {
-  const negative = value.startsWith('-');
-  const [whole = '0', fraction = ''] = (negative ? value.slice(1) : value).split('.');
-  const thousandths = Math.round(Number(`0.${fraction || '0'}`) * 100);
+  const negative = value.startsWith("-");
+  const [whole = "0", fraction = ""] = (negative ? value.slice(1) : value).split(".");
+  const thousandths = Math.round(Number(`0.${fraction || "0"}`) * 100);
   const carried = Number(whole) + Math.floor(thousandths / 100);
 
-  return `${negative ? '-' : ''}${carried}.${String(thousandths % 100).padStart(2, '0')}`;
+  return `${negative ? "-" : ""}${carried}.${String(thousandths % 100).padStart(2, "0")}`;
 }

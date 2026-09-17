@@ -1,17 +1,17 @@
-import type { PublicDoctor } from '@clinic/shared';
-import type { JSX } from 'react';
+import type { PublicDoctor } from "@clinic/shared";
+import type { JSX } from "react";
 
-import { failureKey } from '@web/booking/api';
-import { t } from '@web/booking/i18n';
-import { Alert, Button, ChoiceCard, Skeleton } from '@web/booking/ui';
-import type { AsyncState } from '@web/booking/use-async';
-import { bookingName } from '@web/booking/format';
+import { failureKey } from "@web/booking/api";
+import { t } from "@web/booking/i18n";
+import { Alert, Button, ChoiceCard, Skeleton } from "@web/booking/ui";
+import type { AsyncState } from "@web/booking/use-async";
+import { bookingName } from "@web/booking/format";
 
 /** The honorific is stripped in both languages, or every doctor is a circle with a D in it. */
 const initial = (name: string): string => {
-  const stripped = name.replace(/^\s*(?:د\.|dr\.?)\s*/i, '').trim(); // i18n-allow: an honorific being matched in stored data, not text on screen
+  const stripped = name.replace(/^\s*(?:د\.|dr\.?)\s*/i, "").trim(); // i18n-allow: an honorific being matched in stored data, not text on screen
 
-  return (stripped[0] ?? name[0] ?? '').toUpperCase();
+  return (stripped[0] ?? name[0] ?? "").toUpperCase();
 };
 
 export function DoctorStep({
@@ -40,7 +40,7 @@ export function DoctorStep({
       <div className="flex flex-col gap-3">
         <Alert>{t(failureKey(doctors.error))}</Alert>
         <Button variant="secondary" onClick={doctors.reload}>
-          {t('common.retry')}
+          {t("common.retry")}
         </Button>
       </div>
     );
@@ -49,7 +49,7 @@ export function DoctorStep({
   const list = doctors.data ?? [];
 
   if (list.length === 0) {
-    return <Alert tone="info">{t('doctor.empty')}</Alert>;
+    return <Alert tone="info">{t("doctor.empty")}</Alert>;
   }
 
   return (
@@ -59,7 +59,7 @@ export function DoctorStep({
           <ChoiceCard
             selected={doctor.id === selectedId}
             onClick={() => onSelect(doctor)}
-            label={t('doctor.choose', { name: bookingName(doctor.name) })}
+            label={t("doctor.choose", { name: bookingName(doctor.name) })}
           >
             <span
               aria-hidden

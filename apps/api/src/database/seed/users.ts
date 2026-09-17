@@ -1,8 +1,8 @@
-import { and, asc, eq, isNull, ne, or, sql } from 'drizzle-orm';
-import type { PersonName, UserRole } from '@clinic/shared';
+import { and, asc, eq, isNull, ne, or, sql } from "drizzle-orm";
+import type { PersonName, UserRole } from "@clinic/shared";
 
-import type { Database } from '@api/database/database.module';
-import { users } from '@api/database/schema';
+import type { Database } from "@api/database/database.module";
+import { users } from "@api/database/schema";
 
 type Db = Database;
 
@@ -42,7 +42,7 @@ export async function upsertUser(
     .limit(2);
 
   const existing =
-    matches.find((row) => (row.email ?? '').toLowerCase() === account.email.toLowerCase()) ??
+    matches.find((row) => (row.email ?? "").toLowerCase() === account.email.toLowerCase()) ??
     matches[0];
 
   if (existing) {
@@ -73,16 +73,16 @@ export async function upsertUser(
       }
     }
 
-    if ((existing.email ?? '').toLowerCase() !== account.email.toLowerCase()) {
+    if ((existing.email ?? "").toLowerCase() !== account.email.toLowerCase()) {
       if (await identifierIsFree(db, users.email, account.email, existing.id)) {
         changes.email = account.email;
         notes.push(
-          `Moved the ${account.role} account's email from "${existing.email ?? '—'}" to ` +
+          `Moved the ${account.role} account's email from "${existing.email ?? "—"}" to ` +
             `"${account.email}" to match the seed.`,
         );
       } else {
         notes.push(
-          `The ${account.role} account still signs in as "${existing.email ?? '—'}": the seed's ` +
+          `The ${account.role} account still signs in as "${existing.email ?? "—"}": the seed's ` +
             `"${account.email}" is held by another account.`,
         );
       }

@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { hash, verify } from '@node-rs/argon2';
+import { Injectable } from "@nestjs/common";
+import { hash, verify } from "@node-rs/argon2";
 
 const ARGON2_OPTIONS = {
   memoryCost: 19_456,

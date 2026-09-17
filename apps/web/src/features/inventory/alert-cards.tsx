@@ -1,13 +1,13 @@
-import type { InventoryItemRow } from '@clinic/shared';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { InventoryItemRow } from "@clinic/shared";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Badge, Card, Icon, Ltr } from '@clinic/ui';
-import { useSession } from '@web/features/auth/session';
-import { seesInventory } from '@web/features/inventory/permissions';
-import { useInventoryAlerts } from '@web/features/inventory/queries';
-import { cn } from '@clinic/ui/lib/cn';
-import { formatDate } from '@web/lib/format';
+import { Badge, Card, Icon, Ltr } from "@clinic/ui";
+import { useSession } from "@web/features/auth/session";
+import { seesInventory } from "@web/features/inventory/permissions";
+import { useInventoryAlerts } from "@web/features/inventory/queries";
+import { cn } from "@clinic/ui/lib/cn";
+import { formatDate } from "@web/lib/format";
 
 export function InventoryAlertCards({
   onSelectItem,
@@ -39,8 +39,8 @@ export function InventoryAlertCards({
         <AlertCard
           tone="danger"
           icon="alert"
-          title={t('inventory.alerts.low', { count: low.length })}
-          hint={t('inventory.alerts.lowHint')}
+          title={t("inventory.alerts.low", { count: low.length })}
+          hint={t("inventory.alerts.lowHint")}
           items={low}
           onShowAll={onShowLow}
           onSelectItem={onSelectItem}
@@ -52,12 +52,12 @@ export function InventoryAlertCards({
         <AlertCard
           tone="warning"
           icon="clock"
-          title={t('inventory.alerts.expiring', { count: going.length })}
-          hint={t('inventory.alerts.expiringHint', { days: alerts.data.expiryWarningDays })}
+          title={t("inventory.alerts.expiring", { count: going.length })}
+          hint={t("inventory.alerts.expiringHint", { days: alerts.data.expiryWarningDays })}
           items={going}
           onShowAll={onShowExpiring}
           onSelectItem={onSelectItem}
-          describe={(item) => (item.nearestExpiry ? formatDate(item.nearestExpiry) : '')}
+          describe={(item) => (item.nearestExpiry ? formatDate(item.nearestExpiry) : "")}
         />
       )}
     </div>
@@ -74,8 +74,8 @@ function AlertCard({
   onShowAll,
   onSelectItem,
 }: {
-  readonly tone: 'danger' | 'warning';
-  readonly icon: 'alert' | 'clock';
+  readonly tone: "danger" | "warning";
+  readonly icon: "alert" | "clock";
   readonly title: string;
   readonly hint: string;
   readonly items: readonly InventoryItemRow[];
@@ -90,8 +90,8 @@ function AlertCard({
       <div className="flex items-start gap-3">
         <span
           className={cn(
-            'flex size-9 shrink-0 items-center justify-center rounded-panel',
-            tone === 'danger' ? 'bg-danger-50 text-danger-600' : 'bg-warning-50 text-warning-700',
+            "flex size-9 shrink-0 items-center justify-center rounded-panel",
+            tone === "danger" ? "bg-danger-50 text-danger-600" : "bg-warning-50 text-warning-700",
           )}
         >
           <Icon name={icon} className="size-4" />
@@ -126,7 +126,7 @@ function AlertCard({
               onClick={onShowAll}
               className="mt-2 cursor-pointer text-label font-medium text-primary-700 hover:underline"
             >
-              {t('inventory.alerts.showAll', { count: items.length })}
+              {t("inventory.alerts.showAll", { count: items.length })}
             </button>
           )}
         </div>

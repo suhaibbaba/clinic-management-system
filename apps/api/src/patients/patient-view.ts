@@ -4,12 +4,12 @@ import type {
   PatientPublicView,
   PatientView,
   UserRole,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import type { PatientRow } from '@api/patients/patient-access.service';
-import { PatientAccessService } from '@api/patients/patient-access.service';
+import type { PatientRow } from "@api/patients/patient-access.service";
+import { PatientAccessService } from "@api/patients/patient-access.service";
 
-export const PATIENTS_ENTITY = 'patients';
+export const PATIENTS_ENTITY = "patients";
 
 // Registered mid-flow and never finished — an appointment taken over the phone, an online booking.
 // Derived from the record rather than a column, so completing the file clears it by itself.

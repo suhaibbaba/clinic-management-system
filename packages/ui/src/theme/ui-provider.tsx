@@ -1,7 +1,7 @@
-import { createTheme, type ThemeOverride } from '@ui/theme/create-theme';
-import { useEffect, useInsertionEffect, type JSX, type ReactNode } from 'react';
+import { createTheme, type ThemeOverride } from "@ui/theme/create-theme";
+import { useEffect, useInsertionEffect, type JSX, type ReactNode } from "react";
 
-export type Direction = 'rtl' | 'ltr';
+export type Direction = "rtl" | "ltr";
 
 export interface UiProviderProps {
   /** This product's values for the library's tokens. Omitted, the neutral defaults stand. */
@@ -12,11 +12,11 @@ export interface UiProviderProps {
   readonly children: ReactNode;
 }
 
-const STYLE_ID = 'clinic-ui-theme';
+const STYLE_ID = "clinic-ui-theme";
 
 export function UiProvider({
   theme,
-  direction = 'rtl',
+  direction = "rtl",
   lang,
   children,
 }: UiProviderProps): JSX.Element {
@@ -26,7 +26,7 @@ export function UiProvider({
       return;
     }
 
-    const style = document.getElementById(STYLE_ID) ?? document.createElement('style');
+    const style = document.getElementById(STYLE_ID) ?? document.createElement("style");
 
     style.id = STYLE_ID;
     style.textContent = createTheme(theme);

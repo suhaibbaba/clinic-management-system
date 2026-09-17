@@ -1,10 +1,10 @@
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useRef, useState, type KeyboardEvent } from "react";
 
 // ArrowDown is the only key that can be added without taking one away: Enter belongs to the form
 // and Space to the text. Focus alone must never open anything.
 export function openOnArrowDown(open: () => void) {
   return (event: KeyboardEvent<HTMLElement>): void => {
-    if (event.key === 'ArrowDown') {
+    if (event.key === "ArrowDown") {
       event.preventDefault();
       open();
     }

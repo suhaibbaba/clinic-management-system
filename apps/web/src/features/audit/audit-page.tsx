@@ -1,6 +1,6 @@
-import { AUDIT_ACTIONS, type AuditAction, type AuditLogEntry } from '@clinic/shared';
-import { useMemo, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { AUDIT_ACTIONS, type AuditAction, type AuditLogEntry } from "@clinic/shared";
+import { useMemo, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Badge,
@@ -17,30 +17,30 @@ import {
   usePersonName,
   type BadgeTone,
   type Column,
-} from '@clinic/ui';
-import { useAuditLog } from '@web/features/audit/queries';
-import { ValueDiff } from '@web/features/audit/value-diff';
-import { useUsers } from '@web/features/users/queries';
-import { endOfNextDayIso, formatDateTime, startOfDayIso } from '@web/lib/format';
-import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
+} from "@clinic/ui";
+import { useAuditLog } from "@web/features/audit/queries";
+import { ValueDiff } from "@web/features/audit/value-diff";
+import { useUsers } from "@web/features/users/queries";
+import { endOfNextDayIso, formatDateTime, startOfDayIso } from "@web/lib/format";
+import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
-const ENTITIES = ['users', 'doctors', 'clinics'] as const;
+const ENTITIES = ["users", "doctors", "clinics"] as const;
 
 const ACTION_TONES: Record<AuditAction, BadgeTone> = {
-  create: 'success',
-  update: 'info',
-  delete: 'danger',
+  create: "success",
+  update: "info",
+  delete: "danger",
 };
 
 export function AuditPage(): JSX.Element {
   const { t } = useTranslation();
 
   const { page, perPage, setPage, setPerPage, resetPage } = usePageParams(10);
-  const [entity, setEntity] = useState('');
-  const [action, setAction] = useState('');
-  const [userId, setUserId] = useState('');
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
+  const [entity, setEntity] = useState("");
+  const [action, setAction] = useState("");
+  const [userId, setUserId] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
   const [selected, setSelected] = useState<AuditLogEntry | null>(null);
 
   const users = useUsers({ limit: 100 });
@@ -53,38 +53,38 @@ export function AuditPage(): JSX.Element {
   const query = useAuditLog({
     page,
     limit: perPage,
-    ...(entity !== '' && { entity }),
-    ...(action !== '' && { action: action as AuditAction }),
-    ...(userId !== '' && { userId }),
+    ...(entity !== "" && { entity }),
+    ...(action !== "" && { action: action as AuditAction }),
+    ...(userId !== "" && { userId }),
     ...(startOfDayIso(from) && { from: startOfDayIso(from) }),
     ...(endOfNextDayIso(to) && { to: endOfNextDayIso(to) }),
   });
 
   const columns = useMemo<Column<AuditLogEntry>[]>(
     () => [
-      { key: 'when', header: 'audit.when', render: (row) => formatDateTime(row.createdAt) },
+      { key: "when", header: "audit.when", render: (row) => formatDateTime(row.createdAt) },
       {
-        key: 'user',
-        header: 'audit.user',
+        key: "user",
+        header: "audit.user",
         render: (row) =>
-          row.userId === null ? t('audit.systemUser') : (userNames.get(row.userId) ?? row.userId),
+          row.userId === null ? t("audit.systemUser") : (userNames.get(row.userId) ?? row.userId),
       },
       {
-        key: 'action',
-        header: 'audit.action',
+        key: "action",
+        header: "audit.action",
         render: (row) => (
           <Badge tone={ACTION_TONES[row.action]}>{t(`audit.actions.${row.action}`)}</Badge>
         ),
       },
       {
-        key: 'entity',
-        header: 'audit.entity',
+        key: "entity",
+        header: "audit.entity",
         primary: true,
         render: (row) => t(`audit.entities.${row.entity}`, { defaultValue: row.entity }),
       },
       {
-        key: 'changes',
-        header: 'audit.changes',
+        key: "changes",
+        header: "audit.changes",
         actions: true,
         render: (row) => (
           <Button
@@ -93,7 +93,7 @@ export function AuditPage(): JSX.Element {
             variant="ghost"
             onClick={() => setSelected(row)}
           >
-            {t('audit.viewChanges')}
+            {t("audit.viewChanges")}
           </Button>
         ),
       },
@@ -109,15 +109,15 @@ export function AuditPage(): JSX.Element {
         title="audit.title"
         subtitle="audit.subtitle"
         {...(query.data !== undefined && {
-          count: t('pagination.total', { total: query.data.total }),
+          count: t("pagination.total", { total: query.data.total }),
         })}
       />
 
       <Card className="mb-4 grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:items-end">
         <Select
           className="w-full sm:w-44"
-          aria-label={t('audit.filterEntity')}
-          placeholder={t('common.all')}
+          aria-label={t("audit.filterEntity")}
+          placeholder={t("common.all")}
           options={ENTITIES.map((value) => ({
             value,
             label: t(`audit.entities.${value}`, { defaultValue: value }),
@@ -131,8 +131,8 @@ export function AuditPage(): JSX.Element {
 
         <Select
           className="w-full sm:w-40"
-          aria-label={t('audit.filterAction')}
-          placeholder={t('common.all')}
+          aria-label={t("audit.filterAction")}
+          placeholder={t("common.all")}
           options={AUDIT_ACTIONS.map((value) => ({
             value,
             label: t(`audit.actions.${value}`),
@@ -146,8 +146,8 @@ export function AuditPage(): JSX.Element {
 
         <Select
           className="w-full sm:w-52"
-          aria-label={t('audit.filterUser')}
-          placeholder={t('common.all')}
+          aria-label={t("audit.filterUser")}
+          placeholder={t("common.all")}
           options={(users.data?.items ?? []).map((user) => ({
             value: user.id,
             label: displayName(user.name),
@@ -162,11 +162,11 @@ export function AuditPage(): JSX.Element {
         {/* One range rather than two dates: the pair is only meaningful together, and two fields let
             you ask for a window that runs backwards. */}
         <label className="flex w-full flex-col gap-1 text-label text-ink-muted sm:w-auto">
-          {t('audit.period')}
+          {t("audit.period")}
           <DateRangePicker
             id="audit-period"
             className="w-full sm:w-64"
-            label={t('audit.period')}
+            label={t("audit.period")}
             value={{ from, to }}
             onChange={(range) => {
               setFrom(range.from);
@@ -208,7 +208,7 @@ export function AuditPage(): JSX.Element {
         titleValues={{
           entity: selected
             ? t(`audit.entities.${selected.entity}`, { defaultValue: selected.entity })
-            : '',
+            : "",
         }}
       >
         {selected && <ValueDiff oldValue={selected.oldValue} newValue={selected.newValue} />}

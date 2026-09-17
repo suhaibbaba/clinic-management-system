@@ -1,4 +1,4 @@
-import { createContext, useContext, type JSX, type ReactNode } from 'react';
+import { createContext, useContext, type JSX, type ReactNode } from "react";
 
 // Radix Dialog makes the rest of the page inert, so a popover portalled to `document.body` renders
 // and swallows every click. A dialog publishes its content node here for popovers beneath it.

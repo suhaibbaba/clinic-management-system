@@ -1,9 +1,9 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
-import type { Permissions, UpdateRolePermissionInput } from '@clinic/shared';
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
+import type { Permissions, UpdateRolePermissionInput } from "@clinic/shared";
 
-import { permissionsApi } from '@web/features/permissions/api';
+import { permissionsApi } from "@web/features/permissions/api";
 
-const PERMISSIONS_KEY = 'permissions';
+const PERMISSIONS_KEY = "permissions";
 
 export function usePermissions(): UseQueryResult<Permissions> {
   return useQuery({ queryKey: [PERMISSIONS_KEY], queryFn: () => permissionsApi.get() });

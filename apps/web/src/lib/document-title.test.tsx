@@ -1,24 +1,24 @@
-import { screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { Link, Route, Routes } from 'react-router-dom';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { Link, Route, Routes } from "react-router-dom";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { PageHeader } from '@clinic/ui/components/page-header';
-import ar from '@web/i18n/locales/ar.json';
-import { documentTitle } from '@web/lib/document-title';
-import { makeProfile } from '@test/helpers/fixtures';
-import { mockApi, renderWithProviders } from '@test/helpers/render';
+import { PageHeader } from "@clinic/ui/components/page-header";
+import ar from "@web/i18n/locales/ar.json";
+import { documentTitle } from "@web/lib/document-title";
+import { makeProfile } from "@test/helpers/fixtures";
+import { mockApi, renderWithProviders } from "@test/helpers/render";
 
-const CLINIC = 'عيادة النور';
+const CLINIC = "عيادة النور";
 
 const profile = makeProfile({
-  clinic: { name: { ar: CLINIC, en: 'Al Nour' }, logoUrl: null, chartTypes: [] },
+  clinic: { name: { ar: CLINIC, en: "Al Nour" }, logoUrl: null, chartTypes: [] },
 });
 
 function renderRoutes(route: string) {
   mockApi({
-    'POST /auth/refresh': { body: { accessToken: 'token', expiresIn: 900 } },
-    'GET /me': { body: profile },
+    "POST /auth/refresh": { body: { accessToken: "token", expiresIn: 900 } },
+    "GET /me": { body: profile },
   });
 
   return renderWithProviders(
@@ -39,43 +39,43 @@ function renderRoutes(route: string) {
   );
 }
 
-describe('documentTitle', () => {
-  it('joins the two halves, and copes with either alone', () => {
-    expect(documentTitle('المرضى', CLINIC)).toBe(`المرضى — ${CLINIC}`);
+describe("documentTitle", () => {
+  it("joins the two halves, and copes with either alone", () => {
+    expect(documentTitle("المرضى", CLINIC)).toBe(`المرضى — ${CLINIC}`);
     expect(documentTitle(undefined, CLINIC)).toBe(CLINIC);
-    expect(documentTitle('المرضى', undefined)).toBe('المرضى');
-    expect(documentTitle('المرضى', '')).toBe('المرضى');
+    expect(documentTitle("المرضى", undefined)).toBe("المرضى");
+    expect(documentTitle("المرضى", "")).toBe("المرضى");
   });
 });
 
-describe('the tab', () => {
+describe("the tab", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
-    document.title = '';
+    document.title = "";
   });
 
-  it('names the screen and the clinic once the session lands', async () => {
-    renderRoutes('/patients');
+  it("names the screen and the clinic once the session lands", async () => {
+    renderRoutes("/patients");
 
     await waitFor(() => expect(document.title).toBe(`${ar.patients.title} — ${CLINIC}`));
   });
 
-  it('follows a route change', async () => {
-    renderRoutes('/patients');
+  it("follows a route change", async () => {
+    renderRoutes("/patients");
 
     await waitFor(() => expect(document.title).toBe(`${ar.patients.title} — ${CLINIC}`));
 
-    await userEvent.click(screen.getByRole('link', { name: 'go' }));
+    await userEvent.click(screen.getByRole("link", { name: "go" }));
 
     await waitFor(() => expect(document.title).toBe(`${ar.inventory.title} — ${CLINIC}`));
   });
 
   // A patient's file has no i18n key for a heading — the name is data — so the route table names
   // it instead of the tab reading as the clinic alone.
-  it('falls back to the route for a screen with no PageHeader', async () => {
-    renderRoutes('/patients/abc');
+  it("falls back to the route for a screen with no PageHeader", async () => {
+    renderRoutes("/patients/abc");
 
-    expect(await screen.findByText('أحمد خالد')).toBeInTheDocument();
+    expect(await screen.findByText("أحمد خالد")).toBeInTheDocument();
     await waitFor(() => expect(document.title).toBe(`${ar.nav.patients} — ${CLINIC}`));
   });
 });

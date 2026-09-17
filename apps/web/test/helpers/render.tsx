@@ -1,16 +1,16 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, type RenderResult } from '@testing-library/react';
-import type { LookupBundle } from '@clinic/shared';
-import type { ReactElement } from 'react';
-import { MemoryRouter } from 'react-router-dom';
-import { vi } from 'vitest';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, type RenderResult } from "@testing-library/react";
+import type { LookupBundle } from "@clinic/shared";
+import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router-dom";
+import { vi } from "vitest";
 
-import { ToastProvider } from '@clinic/ui';
-import { SessionProvider } from '@web/features/auth/session';
-import { lookupBundleKey } from '@web/features/lookups/queries';
-import { DocumentTitleProvider } from '@web/lib/document-title';
-import { makeLookupBundle } from '@test/helpers/fixtures';
-import '@web/i18n';
+import { ToastProvider } from "@clinic/ui";
+import { SessionProvider } from "@web/features/auth/session";
+import { lookupBundleKey } from "@web/features/lookups/queries";
+import { DocumentTitleProvider } from "@web/lib/document-title";
+import { makeLookupBundle } from "@test/helpers/fixtures";
+import "@web/i18n";
 
 /** No retries and no caching between tests, so each one starts clean. */
 function createTestQueryClient(): QueryClient {
@@ -32,7 +32,7 @@ export interface RenderOptions {
 
 export function renderWithProviders(
   ui: ReactElement,
-  { route = '/', withSession = true, lookups = makeLookupBundle() }: RenderOptions = {},
+  { route = "/", withSession = true, lookups = makeLookupBundle() }: RenderOptions = {},
 ): RenderResult {
   const client = createTestQueryClient();
 
@@ -83,8 +83,8 @@ export function mockApi(handlers: Record<string, RouteHandler | MockResponse>): 
 
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
-    const method = (init?.method ?? 'GET').toUpperCase();
-    const path = url.replace(/^\/api/, '').split('?')[0] ?? '';
+    const method = (init?.method ?? "GET").toUpperCase();
+    const path = url.replace(/^\/api/, "").split("?")[0] ?? "";
     const body = init?.body ? JSON.parse(String(init.body)) : undefined;
 
     calls.push({ method, url, body });
@@ -94,20 +94,20 @@ export function mockApi(handlers: Record<string, RouteHandler | MockResponse>): 
     if (!handler) {
       return new Response(JSON.stringify({ message: `Unhandled ${method} ${path}` }), {
         status: 404,
-        headers: { 'content-type': 'application/json' },
+        headers: { "content-type": "application/json" },
       });
     }
 
-    const result = await (typeof handler === 'function' ? handler({ body, url }) : handler);
+    const result = await (typeof handler === "function" ? handler({ body, url }) : handler);
     const status = result.status ?? 200;
 
     return new Response(status === 204 ? null : JSON.stringify(result.body ?? {}), {
       status,
-      headers: { 'content-type': 'application/json' },
+      headers: { "content-type": "application/json" },
     });
   });
 
-  vi.stubGlobal('fetch', fetchMock);
+  vi.stubGlobal("fetch", fetchMock);
 
   return { calls };
 }

@@ -1,19 +1,19 @@
-import { USER_ROLE, type WeeklySchedule } from '@clinic/shared';
-import { useEffect, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Navigate, useParams } from 'react-router-dom';
+import { USER_ROLE, type WeeklySchedule } from "@clinic/shared";
+import { useEffect, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { Navigate, useParams } from "react-router-dom";
 
-import { Badge, Button, Icon, PageHeader, PersonName, useToast } from '@clinic/ui';
-import { WorkingHours } from '@web/components/schedule/working-hours';
-import { weekFitsWithin } from '@web/components/schedule/week';
-import { SkeletonForm } from '@clinic/ui/components/skeleton';
-import { useSession } from '@web/features/auth/session';
-import { useClinic } from '@web/features/clinic/queries';
-import { useDoctor, useUpdateDoctorSchedule } from '@web/features/doctors/queries';
-import { TimeOffPanel } from '@web/features/schedule/time-off-panel';
-import { errorMessageKey } from '@web/lib/api-error';
-import { setClinicTimeZone } from '@web/lib/clinic-zone';
-import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
+import { Badge, Button, Icon, PageHeader, PersonName, useToast } from "@clinic/ui";
+import { WorkingHours } from "@web/components/schedule/working-hours";
+import { weekFitsWithin } from "@web/components/schedule/week";
+import { SkeletonForm } from "@clinic/ui/components/skeleton";
+import { useSession } from "@web/features/auth/session";
+import { useClinic } from "@web/features/clinic/queries";
+import { useDoctor, useUpdateDoctorSchedule } from "@web/features/doctors/queries";
+import { TimeOffPanel } from "@web/features/schedule/time-off-panel";
+import { errorMessageKey } from "@web/lib/api-error";
+import { setClinicTimeZone } from "@web/lib/clinic-zone";
+import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 export function DoctorPage(): JSX.Element {
   const { t } = useTranslation();
@@ -60,7 +60,7 @@ export function DoctorPage(): JSX.Element {
   const save = async (): Promise<void> => {
     try {
       await updateSchedule.mutateAsync({ id, weeklySchedule: schedule });
-      toast.success('doctors.scheduleUpdated');
+      toast.success("doctors.scheduleUpdated");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -79,7 +79,7 @@ export function DoctorPage(): JSX.Element {
               isLoading={updateSchedule.isPending}
               onClick={() => void save()}
             >
-              {t('common.save')}
+              {t("common.save")}
             </Button>
           ) : undefined
         }
@@ -93,13 +93,13 @@ export function DoctorPage(): JSX.Element {
         />
         <Badge tone="info">{doctor.data.specialty.name}</Badge>
         <span className="text-label text-ink-muted">
-          {doctor.data.defaultAppointmentDurationMinutes} {t('doctors.durationUnit')}
+          {doctor.data.defaultAppointmentDurationMinutes} {t("doctors.durationUnit")}
         </span>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="border border-line rounded-card bg-surface shadow-card p-4">
-          <p className="mb-3 text-value font-medium text-ink">{t('doctors.schedule')}</p>
+          <p className="mb-3 text-value font-medium text-ink">{t("doctors.schedule")}</p>
 
           <WorkingHours
             value={schedule}
@@ -107,12 +107,12 @@ export function DoctorPage(): JSX.Element {
             disabled={!canEdit}
             idPrefix="doctor-hours"
             within={clinicHours}
-            withinLabel={t('schedule.clinicHours')}
+            withinLabel={t("schedule.clinicHours")}
           />
 
           {!fits && (
             <p className="mt-3 text-label text-warning-700">
-              {t('schedule.outsideBounds', { bounds: t('schedule.clinicHours') })}
+              {t("schedule.outsideBounds", { bounds: t("schedule.clinicHours") })}
             </p>
           )}
         </section>

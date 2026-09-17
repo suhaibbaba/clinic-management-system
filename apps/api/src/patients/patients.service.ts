@@ -1,4 +1,4 @@
-import { Inject, Injectable, type OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import type {
   CreatePatientInput,
   Money,
@@ -6,20 +6,20 @@ import type {
   Paginated,
   PatientView,
   UpdatePatientInput,
-} from '@clinic/shared';
-import { and, desc, eq, exists, gte, isNull, or, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, desc, eq, exists, gte, isNull, or, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { LedgerService } from '@api/billing/ledger.service';
-import { arabicNameSearch } from '@api/common/database/arabic-search';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { patients, visits } from '@api/database/schema';
-import { PatientAccessService, type PatientRow } from '@api/patients/patient-access.service';
-import { PatientRegistrationService } from '@api/patients/patient-registration.service';
-import { PATIENTS_ENTITY, toClinicalView, toRoleView } from '@api/patients/patient-view';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { LedgerService } from "@api/billing/ledger.service";
+import { arabicNameSearch } from "@api/common/database/arabic-search";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { patients, visits } from "@api/database/schema";
+import { PatientAccessService, type PatientRow } from "@api/patients/patient-access.service";
+import { PatientRegistrationService } from "@api/patients/patient-registration.service";
+import { PATIENTS_ENTITY, toClinicalView, toRoleView } from "@api/patients/patient-view";
 
 @Injectable()
 export class PatientsService implements OnModuleInit {
@@ -168,7 +168,7 @@ export class PatientsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to update patient');
+      throw new Error("Failed to update patient");
     }
 
     return toRoleView(row, actor.role);

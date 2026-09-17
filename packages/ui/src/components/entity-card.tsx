@@ -1,9 +1,9 @@
-import type { JSX, ReactNode } from 'react';
+import type { JSX, ReactNode } from "react";
 
-import { Badge, type BadgeTone } from '@ui/components/badge';
-import { Icon, type IconName } from '@ui/components/icon';
-import { ProgressBar, type ProgressTone } from '@ui/components/progress-bar';
-import { cn } from '@ui/lib/cn';
+import { Badge, type BadgeTone } from "@ui/components/badge";
+import { Icon, type IconName } from "@ui/components/icon";
+import { ProgressBar, type ProgressTone } from "@ui/components/progress-bar";
+import { cn } from "@ui/lib/cn";
 
 export interface EntityCardMeta {
   readonly label: string;
@@ -59,10 +59,10 @@ export function EntityCard({
       data-part="entity-card"
       data-entity-card
       className={cn(
-        'flex flex-col border border-line rounded-card bg-surface p-4 shadow-card',
-        'transition duration-[250ms] ease-in-out',
-        action !== undefined && 'hover:shadow-float',
-        isSelected && 'bg-selected outline outline-offset-[-1px] outline-selected-line',
+        "flex flex-col border border-line rounded-card bg-surface p-4 shadow-card",
+        "transition duration-[250ms] ease-in-out",
+        action !== undefined && "hover:shadow-float",
+        isSelected && "bg-selected outline outline-offset-[-1px] outline-selected-line",
         className,
       )}
     >
@@ -116,7 +116,7 @@ export function EntityCard({
                   `::after`, which an `overflow-hidden` ancestor clips to the line. */}
               <dd
                 className="min-w-0 break-words text-value font-medium text-ink tabular-nums"
-                {...(entry.ltr === true && { dir: 'ltr' })}
+                {...(entry.ltr === true && { dir: "ltr" })}
               >
                 {entry.value}
               </dd>
@@ -133,14 +133,14 @@ export function EntityCard({
             aria-label={action.label}
             title={action.label}
             className={cn(
-              'inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill',
-              'lg:size-(--control-h-sm)',
-              'bg-primary-600 text-ink-inverse hover:bg-primary-700',
-              '[transition:background-color_250ms_ease-in-out,scale_120ms_ease-out] active:scale-95',
-              'disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100',
+              "inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill",
+              "lg:size-(--control-h-sm)",
+              "bg-primary-600 text-ink-inverse hover:bg-primary-700",
+              "[transition:background-color_250ms_ease-in-out,scale_120ms_ease-out] active:scale-95",
+              "disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100",
             )}
           >
-            <Icon name={action.icon ?? 'chevron-end'} className="size-[18px]" />
+            <Icon name={action.icon ?? "chevron-end"} className="size-[18px]" />
           </button>
         )}
       </div>

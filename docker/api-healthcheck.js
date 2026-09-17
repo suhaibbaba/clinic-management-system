@@ -1,6 +1,6 @@
 // Exits 0 only when /health reports the database reachable, so an API that lost Postgres is
 // unhealthy. Node's global fetch — no curl in the image.
-const port = process.env.PORT ?? '3000';
+const port = process.env.PORT ?? "3000";
 
 fetch(`http://127.0.0.1:${port}/health`)
   .then((response) => {
@@ -8,7 +8,7 @@ fetch(`http://127.0.0.1:${port}/health`)
     return response.json();
   })
   .then((body) => {
-    if (body.status !== 'ok') {
+    if (body.status !== "ok") {
       throw new Error(`status=${body.status} database=${body.database}`);
     }
     process.exit(0);

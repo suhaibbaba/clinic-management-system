@@ -1,11 +1,11 @@
-import type { PersonName } from '@clinic/shared';
-import type { JSX } from 'react';
+import type { PersonName } from "@clinic/shared";
+import type { JSX } from "react";
 
-import { Img } from '@clinic/ui/components/img';
-import { usePersonName } from '@clinic/ui/components/person-name';
-import { cn } from '@clinic/ui/lib/cn';
+import { Img } from "@clinic/ui/components/img";
+import { usePersonName } from "@clinic/ui/components/person-name";
+import { cn } from "@clinic/ui/lib/cn";
 
-export type LogoSize = 'chrome' | 'print' | 'login';
+export type LogoSize = "chrome" | "print" | "login";
 
 // Fixed boxes, because the rail and the sign-in card must not resize around a clinic's own
 // artwork. `contain` fits a wide wordmark and a square badge alike.
@@ -25,19 +25,19 @@ export interface LogoProps {
   alt?: string | undefined;
 }
 
-export function Logo({ size = 'print', src, name, className, alt }: LogoProps): JSX.Element {
+export function Logo({ size = "print", src, name, className, alt }: LogoProps): JSX.Element {
   const resolve = usePersonName();
   const { width, height } = SIZES[size];
 
   return (
     <Img
       src={src}
-      alt={alt ?? ''}
+      alt={alt ?? ""}
       width={width}
       height={height}
       fit="contain"
       priority
-      className={cn('mx-auto', className)}
+      className={cn("mx-auto", className)}
       fallback={<InitialMark letter={firstLetter(resolve(name))} size={height} />}
     />
   );
@@ -55,8 +55,8 @@ export function InitialMark({
       <span
         style={{ width: size, height: size, fontSize: Math.round(size * 0.45) }}
         className={cn(
-          'flex items-center justify-center rounded-card',
-          'bg-primary-100 font-medium text-primary-800 select-none',
+          "flex items-center justify-center rounded-card",
+          "bg-primary-100 font-medium text-primary-800 select-none",
         )}
       >
         {letter}
@@ -65,4 +65,4 @@ export function InitialMark({
   );
 }
 
-const firstLetter = (name: string): string => [...name.trim()][0] ?? '';
+const firstLetter = (name: string): string => [...name.trim()][0] ?? "";

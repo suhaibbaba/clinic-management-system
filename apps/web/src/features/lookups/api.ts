@@ -4,18 +4,18 @@ import type {
   LookupOption,
   ReorderLookupOptionsInput,
   UpdateLookupOptionInput,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { apiRequest } from '@web/lib/api-client';
+import { apiRequest } from "@web/lib/api-client";
 
 export const lookupsApi = {
   bundle: (includeInactive = false): Promise<LookupBundle> =>
-    apiRequest('/lookups', { query: { includeInactive: includeInactive || undefined } }),
+    apiRequest("/lookups", { query: { includeInactive: includeInactive || undefined } }),
   create: (body: CreateLookupOptionInput): Promise<LookupOption> =>
-    apiRequest('/lookups', { method: 'POST', body }),
+    apiRequest("/lookups", { method: "POST", body }),
   update: (id: string, body: UpdateLookupOptionInput): Promise<LookupOption> =>
-    apiRequest(`/lookups/${id}`, { method: 'PATCH', body }),
+    apiRequest(`/lookups/${id}`, { method: "PATCH", body }),
   reorder: (body: ReorderLookupOptionsInput): Promise<LookupOption[]> =>
-    apiRequest('/lookups/reorder', { method: 'PATCH', body }),
-  remove: (id: string): Promise<void> => apiRequest(`/lookups/${id}`, { method: 'DELETE' }),
+    apiRequest("/lookups/reorder", { method: "PATCH", body }),
+  remove: (id: string): Promise<void> => apiRequest(`/lookups/${id}`, { method: "DELETE" }),
 };

@@ -1,13 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from "vitest";
 
-import { packIco } from '@web/features/clinic/ico';
+import { packIco } from "@web/features/clinic/ico";
 
 const png = (length: number, fill: number): Uint8Array => new Uint8Array(length).fill(fill);
 
 const read = (bytes: Uint8Array) => new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 
-describe('packIco', () => {
-  it('writes the directory header the format expects', () => {
+describe("packIco", () => {
+  it("writes the directory header the format expects", () => {
     const view = read(packIco([{ size: 16, png: png(10, 1) }]));
 
     expect(view.getUint16(0, true)).toBe(0);
@@ -15,7 +15,7 @@ describe('packIco', () => {
     expect(view.getUint16(4, true)).toBe(1);
   });
 
-  it('points every entry at its own bytes', () => {
+  it("points every entry at its own bytes", () => {
     const images = [
       { size: 16, png: png(10, 1) },
       { size: 32, png: png(20, 2) },
@@ -43,18 +43,18 @@ describe('packIco', () => {
     expect(packed.byteLength).toBe(6 + 3 * 16 + 60);
   });
 
-  it('stores 256 as zero, which is the only way the byte can say it', () => {
+  it("stores 256 as zero, which is the only way the byte can say it", () => {
     const view = read(packIco([{ size: 256, png: png(4, 7) }]));
 
     expect(view.getUint8(6)).toBe(0);
     expect(view.getUint8(7)).toBe(0);
   });
 
-  it('refuses a size the directory cannot describe', () => {
+  it("refuses a size the directory cannot describe", () => {
     expect(() => packIco([{ size: 512, png: png(4, 7) }])).toThrow(/1–256px/);
   });
 
-  it('refuses an empty set', () => {
+  it("refuses an empty set", () => {
     expect(() => packIco([])).toThrow(/at least one image/);
   });
 });

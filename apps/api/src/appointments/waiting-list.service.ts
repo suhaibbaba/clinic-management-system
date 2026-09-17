@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
   APPOINTMENT_TYPE,
   canTransitionWaitingListEntry,
@@ -20,24 +20,24 @@ import {
   type UpdateWaitingListEntryInput,
   type WaitingListEntry,
   type WaitingListStatus,
-} from '@clinic/shared';
-import { asc, eq, isNull, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { asc, eq, isNull, sql, type SQL } from "drizzle-orm";
 
-import { AppointmentsService } from '@api/appointments/appointments.service';
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { notificationName, toOptionalPersonName, toPersonName } from '@api/common/person-name';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { clinics, doctors, patients, users, waitingList } from '@api/database/schema';
-import { NotificationsService } from '@api/notifications/notifications.service';
-import { PatientAccessService } from '@api/patients/patient-access.service';
-import { PatientRegistrationService } from '@api/patients/patient-registration.service';
+import { AppointmentsService } from "@api/appointments/appointments.service";
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { notificationName, toOptionalPersonName, toPersonName } from "@api/common/person-name";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { clinics, doctors, patients, users, waitingList } from "@api/database/schema";
+import { NotificationsService } from "@api/notifications/notifications.service";
+import { PatientAccessService } from "@api/patients/patient-access.service";
+import { PatientRegistrationService } from "@api/patients/patient-registration.service";
 
 type WaitingListRow = typeof waitingList.$inferSelect;
 
-export const WAITING_LIST_ENTITY = 'waiting_list';
+export const WAITING_LIST_ENTITY = "waiting_list";
 
 // A queue, not a history. Promotion goes through `AppointmentsService.create`, so a slot taken
 // while the patient waited is refused with a 409.
@@ -150,7 +150,7 @@ export class WaitingListService implements OnModuleInit {
     );
 
     if (!row) {
-      throw new Error('Failed to create the waiting list entry');
+      throw new Error("Failed to create the waiting list entry");
     }
 
     return this.findOne(actor, row.id);
@@ -168,7 +168,7 @@ export class WaitingListService implements OnModuleInit {
     );
 
     if (existing.resolvedAt) {
-      throw new BadRequestException('This entry has already been resolved');
+      throw new BadRequestException("This entry has already been resolved");
     }
 
     if (input.doctorId) {
@@ -338,7 +338,7 @@ export class WaitingListService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new BadRequestException('Waiting list entry not found');
+      throw new BadRequestException("Waiting list entry not found");
     }
 
     return toWaitingListEntry(row);
@@ -371,7 +371,7 @@ export class WaitingListService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new BadRequestException('Doctor not found in this clinic');
+      throw new BadRequestException("Doctor not found in this clinic");
     }
   }
 
@@ -412,7 +412,7 @@ export class WaitingListService implements OnModuleInit {
       to: entry.patientPhone,
       template,
       vars: {
-        clinic: row ? notificationName(toPersonName(row.nameAr, row.nameEn)) : '',
+        clinic: row ? notificationName(toPersonName(row.nameAr, row.nameEn)) : "",
         ...vars,
       },
     });
@@ -433,7 +433,7 @@ function timeIn(timeZone: string, at: Date): string {
   const minutes = minutesFromLocalMidnight(at, localDate(at, timeZone), timeZone);
   const hours = Math.floor(minutes / 60);
 
-  return `${String(hours).padStart(2, '0')}:${String(Math.round(minutes % 60)).padStart(2, '0')}`;
+  return `${String(hours).padStart(2, "0")}:${String(Math.round(minutes % 60)).padStart(2, "0")}`;
 }
 
 interface WaitingListJoinedRow {

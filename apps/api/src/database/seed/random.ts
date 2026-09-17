@@ -27,7 +27,7 @@ export class Rng {
     const value = values[Math.floor(this.next() * values.length)];
 
     if (value === undefined) {
-      throw new Error('Cannot pick from an empty list');
+      throw new Error("Cannot pick from an empty list");
     }
 
     return value;

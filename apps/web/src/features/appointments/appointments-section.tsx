@@ -1,15 +1,15 @@
-import type { JSX } from 'react';
+import type { JSX } from "react";
 
-import { TabPanel, Tabs, useTabParam, type TabDefinition } from '@clinic/ui';
-import { AppointmentsPage } from '@web/features/appointments/appointments-page';
-import { ConfirmedBookings } from '@web/features/appointments/confirmed-bookings';
-import { useSession } from '@web/features/auth/session';
-import { PendingBookingsPage } from '@web/features/booking/pending-bookings-page';
-import { seesPendingBookings, usePendingBookingsCount } from '@web/features/booking/queries';
+import { TabPanel, Tabs, useTabParam, type TabDefinition } from "@clinic/ui";
+import { AppointmentsPage } from "@web/features/appointments/appointments-page";
+import { ConfirmedBookings } from "@web/features/appointments/confirmed-bookings";
+import { useSession } from "@web/features/auth/session";
+import { PendingBookingsPage } from "@web/features/booking/pending-bookings-page";
+import { seesPendingBookings, usePendingBookingsCount } from "@web/features/booking/queries";
 
-const ALL = 'all';
-const PENDING = 'pending';
-const CONFIRMED = 'confirmed';
+const ALL = "all";
+const PENDING = "pending";
+const CONFIRMED = "confirmed";
 
 type AppointmentsTab = typeof ALL | typeof PENDING | typeof CONFIRMED;
 
@@ -22,17 +22,17 @@ export function AppointmentsSection(): JSX.Element {
 
   const tabs: readonly TabDefinition<AppointmentsTab>[] = frontDesk
     ? [
-        { id: ALL, label: 'appointments.tabs.all' },
-        { id: PENDING, label: 'appointments.tabs.pending', count: pendingCount },
-        { id: CONFIRMED, label: 'appointments.tabs.confirmed' },
+        { id: ALL, label: "appointments.tabs.all" },
+        { id: PENDING, label: "appointments.tabs.pending", count: pendingCount },
+        { id: CONFIRMED, label: "appointments.tabs.confirmed" },
       ]
-    : [{ id: ALL, label: 'appointments.tabs.all' }];
+    : [{ id: ALL, label: "appointments.tabs.all" }];
 
   const [active, setActive] = useTabParam<AppointmentsTab>(
-    'status',
+    "status",
     tabs.map((tab) => tab.id),
     ALL,
-    ['page'],
+    ["page"],
   );
 
   return (

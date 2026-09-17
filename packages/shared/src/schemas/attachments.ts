@@ -1,20 +1,20 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { isFdiTooth } from '@shared/constants/dental';
-import { paginationQuerySchema } from '@shared/schemas/common';
-import { lookupCodeSchema } from '@shared/schemas/lookups';
+import { isFdiTooth } from "@shared/constants/dental";
+import { paginationQuerySchema } from "@shared/schemas/common";
+import { lookupCodeSchema } from "@shared/schemas/lookups";
 
 /** Upload ceiling per file; CBCT volumes are the reason it is not smaller. */
 export const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024;
 
 /** Only formats the clinic actually stores — an allow-list, never a deny-list. */
 export const ALLOWED_ATTACHMENT_MIME_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-  'image/tiff',
-  'application/dicom',
-  'application/pdf',
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/tiff",
+  "application/dicom",
+  "application/pdf",
 ] as const;
 
 export const attachmentMimeSchema = z.enum(ALLOWED_ATTACHMENT_MIME_TYPES);
@@ -64,7 +64,7 @@ export const confirmAttachmentUploadSchema = z.object({
   type: lookupCodeSchema,
   filename: z.string().trim().min(1).max(255),
   visitId: z.uuid().nullish(),
-  tooth: z.number().int().refine(isFdiTooth, 'Not a valid FDI tooth number').nullish(),
+  tooth: z.number().int().refine(isFdiTooth, "Not a valid FDI tooth number").nullish(),
   note: z.string().trim().max(1000).nullish(),
 });
 export type ConfirmAttachmentUploadInput = z.infer<typeof confirmAttachmentUploadSchema>;

@@ -5,15 +5,15 @@ import {
   type ClipboardEvent,
   type JSX,
   type KeyboardEvent,
-} from 'react';
+} from "react";
 
-import { t } from '@web/booking/i18n';
-import { Alert, Button, cx } from '@web/booking/ui';
+import { t } from "@web/booking/i18n";
+import { Alert, Button, cx } from "@web/booking/ui";
 
 const LENGTH = 6;
 const RESEND_SECONDS = 60;
 
-const digitsOnly = (value: string): string => value.replace(/\D/g, '');
+const digitsOnly = (value: string): string => value.replace(/\D/g, "");
 
 export function OtpStep({
   phone,
@@ -30,7 +30,7 @@ export function OtpStep({
   readonly error: string | undefined;
   readonly attemptsLeft: number;
 }): JSX.Element {
-  const [digits, setDigits] = useState<string[]>(() => Array.from({ length: LENGTH }, () => ''));
+  const [digits, setDigits] = useState<string[]>(() => Array.from({ length: LENGTH }, () => ""));
   const [seconds, setSeconds] = useState(RESEND_SECONDS);
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -47,12 +47,12 @@ export function OtpStep({
     return () => clearTimeout(timer);
   }, [seconds]);
 
-  const code = digits.join('');
+  const code = digits.join("");
 
   const write = (next: string[]): void => {
     setDigits(next);
 
-    const filled = next.join('');
+    const filled = next.join("");
     if (filled.length === LENGTH) {
       onVerify(filled);
     }
@@ -64,7 +64,7 @@ export function OtpStep({
     if (typed.length > 1) {
       const next = [...digits];
       for (let offset = 0; offset < typed.length && index + offset < LENGTH; offset += 1) {
-        next[index + offset] = typed[offset] ?? '';
+        next[index + offset] = typed[offset] ?? "";
       }
 
       boxes.current[Math.min(index + typed.length, LENGTH - 1)]?.focus();
@@ -82,29 +82,29 @@ export function OtpStep({
   };
 
   const onKeyDown = (index: number, event: KeyboardEvent<HTMLInputElement>): void => {
-    if (event.key === 'Backspace' && !digits[index] && index > 0) {
+    if (event.key === "Backspace" && !digits[index] && index > 0) {
       event.preventDefault();
       const next = [...digits];
-      next[index - 1] = '';
+      next[index - 1] = "";
       setDigits(next);
       boxes.current[index - 1]?.focus();
     }
 
-    if (event.key === 'ArrowLeft' && index > 0) {
+    if (event.key === "ArrowLeft" && index > 0) {
       boxes.current[index - 1]?.focus();
     }
 
-    if (event.key === 'ArrowRight' && index < LENGTH - 1) {
+    if (event.key === "ArrowRight" && index < LENGTH - 1) {
       boxes.current[index + 1]?.focus();
     }
   };
 
   const onPaste = (event: ClipboardEvent<HTMLInputElement>): void => {
-    const pasted = digitsOnly(event.clipboardData.getData('text')).slice(0, LENGTH);
+    const pasted = digitsOnly(event.clipboardData.getData("text")).slice(0, LENGTH);
 
     if (pasted) {
       event.preventDefault();
-      const next = Array.from({ length: LENGTH }, (_unused, index) => pasted[index] ?? '');
+      const next = Array.from({ length: LENGTH }, (_unused, index) => pasted[index] ?? "");
       boxes.current[Math.min(pasted.length, LENGTH - 1)]?.focus();
       write(next);
     }
@@ -113,14 +113,14 @@ export function OtpStep({
   return (
     <div className="flex flex-col gap-4">
       <p className="text-value text-ink-muted">
-        {t('otp.sentTo', { phone: '' })}
+        {t("otp.sentTo", { phone: "" })}
         <span dir="ltr" className="bidi-auto font-medium text-ink">
           {phone}
         </span>
       </p>
 
       <fieldset className="border-0 p-0">
-        <legend className="sr-only">{t('otp.inputLabel')}</legend>
+        <legend className="sr-only">{t("otp.inputLabel")}</legend>
 
         {/* LTR: a code is read left to right in every language. */}
         <div dir="ltr" className="flex justify-between gap-2">
@@ -136,14 +136,14 @@ export function OtpStep({
               onKeyDown={(event) => onKeyDown(index, event)}
               onPaste={onPaste}
               inputMode="numeric"
-              autoComplete={index === 0 ? 'one-time-code' : 'off'}
+              autoComplete={index === 0 ? "one-time-code" : "off"}
               // Not `maxLength={1}`: a paste into a box must reach onChange
               // whole, or five of its six digits are silently dropped.
-              aria-label={t('otp.digitLabel', { index: index + 1 })}
+              aria-label={t("otp.digitLabel", { index: index + 1 })}
               className={cx(
-                'h-14 w-full min-w-0 rounded-control border bg-surface text-center',
-                'text-[1.25rem] font-medium tabular-nums text-ink',
-                error ? 'border-danger-500' : 'border-line-strong focus:border-primary-600',
+                "h-14 w-full min-w-0 rounded-control border bg-surface text-center",
+                "text-[1.25rem] font-medium tabular-nums text-ink",
+                error ? "border-danger-500" : "border-line-strong focus:border-primary-600",
               )}
             />
           ))}
@@ -153,12 +153,12 @@ export function OtpStep({
       {error && <Alert>{error}</Alert>}
 
       <Button full busy={busy} disabled={code.length < LENGTH} onClick={() => onVerify(code)}>
-        {t('otp.verify')}
+        {t("otp.verify")}
       </Button>
 
       {seconds > 0 ? (
         <p aria-live="polite" className="text-center text-label text-ink-muted">
-          {t('otp.resendIn', { seconds })}
+          {t("otp.resendIn", { seconds })}
         </p>
       ) : (
         <Button
@@ -167,12 +167,12 @@ export function OtpStep({
           disabled={attemptsLeft <= 0}
           onClick={() => {
             setSeconds(RESEND_SECONDS);
-            setDigits(Array.from({ length: LENGTH }, () => ''));
+            setDigits(Array.from({ length: LENGTH }, () => ""));
             boxes.current[0]?.focus();
             onResend();
           }}
         >
-          {t('otp.resend')}
+          {t("otp.resend")}
         </Button>
       )}
     </div>

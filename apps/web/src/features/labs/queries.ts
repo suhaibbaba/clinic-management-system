@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import {
   type CreateLabInput,
   type CreateLabOrderInput,
@@ -16,17 +16,17 @@ import {
   type UpdateLabInput,
   type UpdateLabOrderInput,
   type UpdateLabWorkTypeInput,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { labOrdersApi, labsApi } from '@web/features/labs/api';
-import { uploadToStorage } from '@web/features/patients/api';
+import { labOrdersApi, labsApi } from "@web/features/labs/api";
+import { uploadToStorage } from "@web/features/patients/api";
 
-export const LABS_KEY = 'labs';
-export const LAB_ORDERS_KEY = 'lab-orders';
-export const LAB_BALANCE_KEY = 'lab-balance';
-export const LAB_STATEMENT_KEY = 'lab-statement';
-export const LAB_PAYMENTS_KEY = 'lab-payments';
-export const LAB_WORK_TYPES_KEY = 'lab-work-types';
+export const LABS_KEY = "labs";
+export const LAB_ORDERS_KEY = "lab-orders";
+export const LAB_BALANCE_KEY = "lab-balance";
+export const LAB_STATEMENT_KEY = "lab-statement";
+export const LAB_PAYMENTS_KEY = "lab-payments";
+export const LAB_WORK_TYPES_KEY = "lab-work-types";
 
 const LAB_KEYS = [LABS_KEY, LAB_ORDERS_KEY, LAB_BALANCE_KEY, LAB_STATEMENT_KEY, LAB_PAYMENTS_KEY];
 
@@ -59,7 +59,7 @@ export function useLab(id: string): UseQueryResult<LabSummary> {
   return useQuery({
     queryKey: [LABS_KEY, id],
     queryFn: () => labsApi.findOne(id),
-    enabled: id !== '',
+    enabled: id !== "",
   });
 }
 
@@ -68,7 +68,7 @@ export function useLabWorkTypes(labId: string, includeInactive = false) {
     queryKey: [LAB_WORK_TYPES_KEY, labId, includeInactive],
     queryFn: () => labsApi.workTypes(labId, includeInactive),
     placeholderData: (previous) => previous,
-    enabled: labId !== '',
+    enabled: labId !== "",
   });
 }
 
@@ -76,7 +76,7 @@ export function useLabBalance(labId: string): UseQueryResult<LabBalance> {
   return useQuery({
     queryKey: [LAB_BALANCE_KEY, labId],
     queryFn: () => labsApi.balance(labId),
-    enabled: labId !== '',
+    enabled: labId !== "",
   });
 }
 
@@ -88,7 +88,7 @@ export function useLabStatement(
     queryKey: [LAB_STATEMENT_KEY, labId, query],
     queryFn: () => labsApi.statement(labId, query),
     placeholderData: (previous) => previous,
-    enabled: labId !== '',
+    enabled: labId !== "",
   });
 }
 
@@ -106,9 +106,9 @@ export function useLabOrders(
 
 export function useLabOrderAttachments(orderId: string): UseQueryResult<LabOrderAttachment[]> {
   return useQuery({
-    queryKey: [LAB_ORDERS_KEY, orderId, 'attachments'],
+    queryKey: [LAB_ORDERS_KEY, orderId, "attachments"],
     queryFn: () => labOrdersApi.attachments(orderId),
-    enabled: orderId !== '',
+    enabled: orderId !== "",
   });
 }
 
@@ -146,11 +146,11 @@ export function useUpdateLabOrder() {
 }
 
 /** Every transition, through one mutation, so the invalidation is written once. */
-export type LabOrderStep = 'send' | 'ready' | 'receive' | 'fit' | 'cancel';
+export type LabOrderStep = "send" | "ready" | "receive" | "fit" | "cancel";
 
 export function useLabOrderStep() {
   return useLabMutation(({ id, step }: { id: string; step: LabOrderStep }) =>
-    labOrdersApi[step === 'cancel' ? 'cancel' : step](id),
+    labOrdersApi[step === "cancel" ? "cancel" : step](id),
   );
 }
 

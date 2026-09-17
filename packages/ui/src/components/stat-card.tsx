@@ -1,22 +1,22 @@
-import { Children, type JSX, type ReactNode } from 'react';
+import { Children, type JSX, type ReactNode } from "react";
 
-import { Badge } from '@ui/components/badge';
-import { Icon, type IconName } from '@ui/components/icon';
+import { Badge } from "@ui/components/badge";
+import { Icon, type IconName } from "@ui/components/icon";
 
-import { cn } from '@ui/lib/cn';
-import { Ltr } from '@ui/components/ltr';
+import { cn } from "@ui/lib/cn";
+import { Ltr } from "@ui/components/ltr";
 
-export type StatTone = 'primary' | 'success' | 'warning' | 'danger' | 'neutral';
-export type DeltaDirection = 'up' | 'down';
+export type StatTone = "primary" | "success" | "warning" | "danger" | "neutral";
+export type DeltaDirection = "up" | "down";
 
 // The figure takes the tone, as the reference's `.kpi.late` and `.kpi.pending` do: the label chip
 // stays the same barely-there wash on every card so the row reads as one thing.
 const FIGURES: Record<StatTone, string> = {
-  primary: 'text-ink',
-  success: 'text-success-900',
-  warning: 'text-warning-700',
-  danger: 'text-danger-600',
-  neutral: 'text-ink',
+  primary: "text-ink",
+  success: "text-success-900",
+  warning: "text-warning-700",
+  danger: "text-danger-600",
+  neutral: "text-ink",
 };
 
 export interface StatCardProps {
@@ -43,7 +43,7 @@ export function StatCard({
   label,
   value,
   icon,
-  tone = 'primary',
+  tone = "primary",
   caption,
   delta,
   className,
@@ -52,10 +52,10 @@ export function StatCard({
     <div
       data-part="stat-card"
       className={cn(
-        'rounded-card border border-line bg-surface p-[18px_20px] shadow-card',
+        "rounded-card border border-line bg-surface p-[18px_20px] shadow-card",
         // `transition`, which is Tailwind's curated list: it carries `translate` and `scale` — the
         // properties a lift and a press actually move — along with the shadow and the colours.
-        'transition duration-[250ms] ease-in-out hover:-translate-y-0.5 hover:shadow-card-hover',
+        "transition duration-[250ms] ease-in-out hover:-translate-y-0.5 hover:shadow-card-hover",
         className,
       )}
     >
@@ -70,7 +70,7 @@ export function StatCard({
       <Ltr
         as="p"
         data-part="stat-card-figure"
-        className={cn('mt-2 text-kpi font-medium', FIGURES[tone])}
+        className={cn("mt-2 text-kpi font-medium", FIGURES[tone])}
       >
         {value}
       </Ltr>
@@ -81,12 +81,12 @@ export function StatCard({
             <span
               data-part="stat-card-delta"
               className={cn(
-                'pill-text inline-flex items-center gap-1 text-meta font-medium',
-                delta.isGood ? 'text-success-700' : 'text-danger-700',
+                "pill-text inline-flex items-center gap-1 text-meta font-medium",
+                delta.isGood ? "text-success-700" : "text-danger-700",
               )}
             >
               <Icon
-                name={delta.direction === 'up' ? 'trend-up' : 'trend-down'}
+                name={delta.direction === "up" ? "trend-up" : "trend-down"}
                 className="size-3.5"
               />
               {delta.text}
@@ -109,11 +109,11 @@ export function StatCard({
 // Written out because Tailwind reads class names as literal strings — `xl:grid-cols-${n}` is never
 // generated.
 const WIDE_COLUMNS: Record<number, string> = {
-  1: 'xl:grid-cols-1',
-  2: 'xl:grid-cols-2',
-  3: 'xl:grid-cols-3',
-  4: 'xl:grid-cols-4',
-  5: 'xl:grid-cols-5',
+  1: "xl:grid-cols-1",
+  2: "xl:grid-cols-2",
+  3: "xl:grid-cols-3",
+  4: "xl:grid-cols-4",
+  5: "xl:grid-cols-5",
 };
 
 export function StatRow({
@@ -128,7 +128,7 @@ export function StatRow({
   return (
     <div
       data-part="stat-row"
-      className={cn('mb-5 grid grid-cols-2 gap-3', WIDE_COLUMNS[count] ?? 'xl:grid-cols-4')}
+      className={cn("mb-5 grid grid-cols-2 gap-3", WIDE_COLUMNS[count] ?? "xl:grid-cols-4")}
     >
       {children}
     </div>

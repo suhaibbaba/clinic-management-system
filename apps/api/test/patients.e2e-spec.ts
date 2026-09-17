@@ -1,17 +1,17 @@
-import { USER_ROLE, type UserRole } from '@clinic/shared';
+import { USER_ROLE, type UserRole } from "@clinic/shared";
 
-import { createPatient, seedClinicFixtures, uniquePhone } from '@test/helpers/patient-fixtures';
-import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
+import { createPatient, seedClinicFixtures, uniquePhone } from "@test/helpers/patient-fixtures";
+import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
-describe('Patients (e2e)', () => {
+describe("Patients (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
   const tokens = {} as Record<UserRole, string>;
 
   const names = {
-    ahmad: 'أحمد خالد الحسن',
-    layla: 'ليلى محمود العلي',
-    omar: 'عمر سامي الخطيب',
+    ahmad: "أحمد خالد الحسن",
+    layla: "ليلى محمود العلي",
+    omar: "عمر سامي الخطيب",
   };
 
   let ahmadId: string;
@@ -34,9 +34,9 @@ describe('Patients (e2e)', () => {
     ahmadId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
       fullName: names.ahmad,
       phone: uniquePhone(),
-      dateOfBirth: '1988-03-14',
-      gender: 'male',
-      address: 'المزة، دمشق',
+      dateOfBirth: "1988-03-14",
+      gender: "male",
+      address: "المزة، دمشق",
     });
 
     laylaPhone = uniquePhone();
@@ -50,7 +50,7 @@ describe('Patients (e2e)', () => {
     });
 
     const created = await context.app.inject({
-      method: 'GET',
+      method: "GET",
       url: `/patients/${ahmadId}`,
       headers: auth(tokens[USER_ROLE.ADMIN]),
     });
@@ -63,7 +63,7 @@ describe('Patients (e2e)', () => {
 
   const search = async (term: string, role: UserRole = USER_ROLE.ADMIN) => {
     const response = await context.app.inject({
-      method: 'GET',
+      method: "GET",
       url: `/patients?search=${encodeURIComponent(term)}`,
       headers: auth(tokens[role]),
     });
@@ -72,77 +72,77 @@ describe('Patients (e2e)', () => {
     return response.json() as { items: { id: string; fullName: string }[]; total: number };
   };
 
-  describe('file numbers', () => {
-    it('generates a sequential, zero-padded file number per clinic', async () => {
+  describe("file numbers", () => {
+    it("generates a sequential, zero-padded file number per clinic", async () => {
       expect(ahmadFileNumber).toMatch(/^\d{5}$/);
 
       const otherClinic = await context.createClinic();
       const otherToken = await context.login(otherClinic.phones[USER_ROLE.ADMIN]);
       const otherId = await createPatient(context, otherToken, {
-        fullName: 'مريض عيادة أخرى',
+        fullName: "مريض عيادة أخرى",
         phone: uniquePhone(),
       });
 
       const other = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/patients/${otherId}`,
         headers: auth(otherToken),
       });
 
       // Numbering restarts per clinic: the first patient of a fresh clinic is 1.
-      expect((other.json() as { fileNumber: string }).fileNumber).toBe('00001');
+      expect((other.json() as { fileNumber: string }).fileNumber).toBe("00001");
     });
 
-    it('never accepts a file number from the client', async () => {
+    it("never accepts a file number from the client", async () => {
       const id = await createPatient(context, tokens[USER_ROLE.ADMIN], {
-        fullName: 'مريض بدون رقم ملف',
+        fullName: "مريض بدون رقم ملف",
         phone: uniquePhone(),
-        fileNumber: '99999',
+        fileNumber: "99999",
       });
 
       const response = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/patients/${id}`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
       });
 
-      expect((response.json() as { fileNumber: string }).fileNumber).not.toBe('99999');
+      expect((response.json() as { fileNumber: string }).fileNumber).not.toBe("99999");
     });
   });
 
-  describe('search', () => {
-    it('finds a patient by a fragment of the Arabic name', async () => {
-      const result = await search('خالد');
+  describe("search", () => {
+    it("finds a patient by a fragment of the Arabic name", async () => {
+      const result = await search("خالد");
 
       expect(result.items.map((item) => item.id)).toContain(ahmadId);
       expect(result.items.map((item) => item.fullName)).not.toContain(names.layla);
     });
 
-    it('finds a patient by phone', async () => {
+    it("finds a patient by phone", async () => {
       const result = await search(laylaPhone.slice(-6));
 
       expect(result.items.map((item) => item.fullName)).toContain(names.layla);
     });
 
-    it('finds a patient by file number', async () => {
+    it("finds a patient by file number", async () => {
       const result = await search(ahmadFileNumber);
 
       expect(result.items.map((item) => item.id)).toContain(ahmadId);
     });
 
-    it('returns an empty page rather than everything for an unmatched term', async () => {
-      const result = await search('لا-يوجد-هذا-الاسم');
+    it("returns an empty page rather than everything for an unmatched term", async () => {
+      const result = await search("لا-يوجد-هذا-الاسم");
 
       expect(result.items).toHaveLength(0);
       expect(result.total).toBe(0);
     });
 
-    it('never reaches another clinic, even by exact id', async () => {
+    it("never reaches another clinic, even by exact id", async () => {
       const otherClinic = await context.createClinic();
       const otherToken = await context.login(otherClinic.phones[USER_ROLE.ADMIN]);
 
       const response = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/patients/${ahmadId}`,
         headers: auth(otherToken),
       });
@@ -152,33 +152,33 @@ describe('Patients (e2e)', () => {
     });
   });
 
-  describe('role views (ROLES.md field-level security)', () => {
-    it('gives admin and doctor the full clinical view', async () => {
+  describe("role views (ROLES.md field-level security)", () => {
+    it("gives admin and doctor the full clinical view", async () => {
       for (const role of [USER_ROLE.ADMIN, USER_ROLE.DOCTOR]) {
         const response = await context.app.inject({
-          method: 'GET',
+          method: "GET",
           url: `/patients/${ahmadId}`,
           headers: auth(tokens[role]),
         });
 
         expect(response.statusCode).toBe(200);
-        expect(response.json()).toMatchObject({ address: 'المزة، دمشق', gender: 'male' });
+        expect(response.json()).toMatchObject({ address: "المزة، دمشق", gender: "male" });
       }
     });
 
-    it('strips the clinical fields for a receptionist and a technician', async () => {
+    it("strips the clinical fields for a receptionist and a technician", async () => {
       const publicFields = [
-        'dateOfBirth',
-        'fileNumber',
-        'fullName',
-        'id',
-        'phone',
-        'profileIncomplete',
+        "dateOfBirth",
+        "fileNumber",
+        "fullName",
+        "id",
+        "phone",
+        "profileIncomplete",
       ];
 
       for (const role of [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN]) {
         const response = await context.app.inject({
-          method: 'GET',
+          method: "GET",
           url: `/patients/${ahmadId}`,
           headers: auth(tokens[role]),
         });
@@ -190,26 +190,26 @@ describe('Patients (e2e)', () => {
         // The receptionist also gets the computed balance; the technician does
         // not, because ROLES.md keeps financial data out of their responses.
         expect(Object.keys(body).sort()).toEqual(
-          (role === USER_ROLE.RECEPTIONIST ? [...publicFields, 'balance'] : publicFields).sort(),
+          (role === USER_ROLE.RECEPTIONIST ? [...publicFields, "balance"] : publicFields).sort(),
         );
-        expect(body).not.toHaveProperty('address');
-        expect(body).not.toHaveProperty('notes');
+        expect(body).not.toHaveProperty("address");
+        expect(body).not.toHaveProperty("notes");
       }
     });
 
-    it('strips them in the list response too', async () => {
-      const result = await search('خالد', USER_ROLE.RECEPTIONIST);
+    it("strips them in the list response too", async () => {
+      const result = await search("خالد", USER_ROLE.RECEPTIONIST);
 
       for (const item of result.items) {
-        expect(item).not.toHaveProperty('address');
+        expect(item).not.toHaveProperty("address");
       }
     });
   });
 
-  describe('write permissions (ROLES.md patients matrix)', () => {
-    it('lets a receptionist create and update basic info', async () => {
+  describe("write permissions (ROLES.md patients matrix)", () => {
+    it("lets a receptionist create and update basic info", async () => {
       const response = await context.app.inject({
-        method: 'PATCH',
+        method: "PATCH",
         url: `/patients/${ahmadId}`,
         headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
         payload: { phone: uniquePhone() },
@@ -218,32 +218,32 @@ describe('Patients (e2e)', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('refuses a technician write — the matrix gives them read only', async () => {
+    it("refuses a technician write — the matrix gives them read only", async () => {
       const response = await context.app.inject({
-        method: 'POST',
-        url: '/patients',
+        method: "POST",
+        url: "/patients",
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
-        payload: { fullName: 'محاولة من الفني', phone: uniquePhone() },
+        payload: { fullName: "محاولة من الفني", phone: uniquePhone() },
       });
 
       expect(response.statusCode).toBe(403);
     });
 
-    it('refuses a non-admin delete and soft-deletes for admin', async () => {
+    it("refuses a non-admin delete and soft-deletes for admin", async () => {
       const id = await createPatient(context, tokens[USER_ROLE.ADMIN], {
-        fullName: 'مريض للحذف',
+        fullName: "مريض للحذف",
         phone: uniquePhone(),
       });
 
       const asDoctor = await context.app.inject({
-        method: 'DELETE',
+        method: "DELETE",
         url: `/patients/${id}`,
         headers: auth(tokens[USER_ROLE.DOCTOR]),
       });
       expect(asDoctor.statusCode).toBe(403);
 
       const asAdmin = await context.app.inject({
-        method: 'DELETE',
+        method: "DELETE",
         url: `/patients/${id}`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
       });
@@ -251,7 +251,7 @@ describe('Patients (e2e)', () => {
 
       // Soft delete: the row is gone from the API but still in the table.
       const afterDelete = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/patients/${id}`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
       });
@@ -259,14 +259,14 @@ describe('Patients (e2e)', () => {
 
       const rows = await context.db.execute(`select deleted_at from patients where id = '${id}'`);
       expect([...rows]).toHaveLength(1);
-      expect([...rows][0]?.['deleted_at']).not.toBeNull();
+      expect([...rows][0]?.["deleted_at"]).not.toBeNull();
     });
   });
 
-  describe('medical history and allergy flags', () => {
-    it('refuses a receptionist the medical history entirely', async () => {
+  describe("medical history and allergy flags", () => {
+    it("refuses a receptionist the medical history entirely", async () => {
       const response = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/patients/${ahmadId}/medical-history`,
         headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
       });
@@ -274,21 +274,21 @@ describe('Patients (e2e)', () => {
       expect(response.statusCode).toBe(403);
     });
 
-    it('gives a technician the allergy flags and nothing else', async () => {
+    it("gives a technician the allergy flags and nothing else", async () => {
       await context.app.inject({
-        method: 'PATCH',
+        method: "PATCH",
         url: `/patients/${ahmadId}/medical-history`,
         headers: auth(tokens[USER_ROLE.DOCTOR]),
         payload: {
-          allergies: ['البنسلين'],
-          chronicConditions: ['ارتفاع ضغط الدم'],
-          currentMedications: ['أملوديبين'],
-          notes: 'ملاحظة سريرية',
+          allergies: ["البنسلين"],
+          chronicConditions: ["ارتفاع ضغط الدم"],
+          currentMedications: ["أملوديبين"],
+          notes: "ملاحظة سريرية",
         },
       });
 
       const flags = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/patients/${ahmadId}/allergy-flags`,
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
       });
@@ -297,11 +297,11 @@ describe('Patients (e2e)', () => {
       expect(flags.json()).toEqual({
         patientId: ahmadId,
         hasAllergies: true,
-        allergies: ['البنسلين'],
+        allergies: ["البنسلين"],
       });
 
       const history = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/patients/${ahmadId}/medical-history`,
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
       });
@@ -309,14 +309,14 @@ describe('Patients (e2e)', () => {
       expect(history.statusCode).toBe(403);
     });
 
-    it('returns an empty history rather than 404 before anything is recorded', async () => {
+    it("returns an empty history rather than 404 before anything is recorded", async () => {
       const id = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
-        fullName: 'مريض جديد',
+        fullName: "مريض جديد",
         phone: uniquePhone(),
       });
 
       const response = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/patients/${id}/medical-history`,
         headers: auth(tokens[USER_ROLE.DOCTOR]),
       });
@@ -325,24 +325,24 @@ describe('Patients (e2e)', () => {
       expect(response.json()).toMatchObject({ allergies: [], chronicConditions: [] });
     });
   });
-  describe('?visitedSince', () => {
-    it('returns only patients seen on or after the date, once each', async () => {
+  describe("?visitedSince", () => {
+    it("returns only patients seen on or after the date, once each", async () => {
       const fixtures = await seedClinicFixtures(context, clinic, tokens[USER_ROLE.ADMIN]);
 
       const seen = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
-        fullName: 'مريض زار العيادة',
+        fullName: "مريض زار العيادة",
         phone: uniquePhone(),
       });
       const unseen = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
-        fullName: 'مريض لم يزر العيادة',
+        fullName: "مريض لم يزر العيادة",
         phone: uniquePhone(),
       });
 
       // Twice, so a filter that joined rather than tested existence would show this patient twice.
-      for (const complaint of ['ألم', 'متابعة']) {
+      for (const complaint of ["ألم", "متابعة"]) {
         const visit = await context.app.inject({
-          method: 'POST',
-          url: '/visits',
+          method: "POST",
+          url: "/visits",
           headers: auth(tokens[USER_ROLE.DOCTOR]),
           payload: { patientId: seen, doctorId: fixtures.doctorId, complaint },
         });
@@ -351,8 +351,8 @@ describe('Patients (e2e)', () => {
       }
 
       const response = await context.app.inject({
-        method: 'GET',
-        url: '/patients?visitedSince=2000-01-01&limit=100',
+        method: "GET",
+        url: "/patients?visitedSince=2000-01-01&limit=100",
         headers: auth(tokens[USER_ROLE.DOCTOR]),
       });
 
@@ -364,10 +364,10 @@ describe('Patients (e2e)', () => {
       expect(ids).not.toContain(unseen);
     });
 
-    it('excludes a visit older than the date', async () => {
+    it("excludes a visit older than the date", async () => {
       const response = await context.app.inject({
-        method: 'GET',
-        url: '/patients?visitedSince=2999-01-01&limit=100',
+        method: "GET",
+        url: "/patients?visitedSince=2999-01-01&limit=100",
         headers: auth(tokens[USER_ROLE.DOCTOR]),
       });
 

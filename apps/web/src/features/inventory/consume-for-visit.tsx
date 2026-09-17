@@ -1,12 +1,12 @@
-import type { PatientClinicalView } from '@clinic/shared';
-import { LOOKUP_LIST, MOVEMENT_TYPE } from '@clinic/shared';
-import { useEffect, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { PatientClinicalView } from "@clinic/shared";
+import { LOOKUP_LIST, MOVEMENT_TYPE } from "@clinic/shared";
+import { useEffect, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Button, FormField, Modal, Select } from '@clinic/ui';
-import { useLookupLabels } from '@web/features/lookups/queries';
-import { MovementModal } from '@web/features/inventory/movement-modal';
-import { useInventoryItems } from '@web/features/inventory/queries';
+import { Button, FormField, Modal, Select } from "@clinic/ui";
+import { useLookupLabels } from "@web/features/lookups/queries";
+import { MovementModal } from "@web/features/inventory/movement-modal";
+import { useInventoryItems } from "@web/features/inventory/queries";
 
 export function ConsumeForVisit({
   open,
@@ -19,13 +19,13 @@ export function ConsumeForVisit({
 }): JSX.Element | null {
   const { t } = useTranslation();
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
-  const [itemId, setItemId] = useState('');
+  const [itemId, setItemId] = useState("");
 
   const items = useInventoryItems({ limit: 100 });
 
   useEffect(() => {
     if (open) {
-      setItemId('');
+      setItemId("");
     }
   }, [open]);
 
@@ -57,11 +57,11 @@ export function ConsumeForVisit({
     <Modal
       open
       onOpenChange={(next) => !next && onClose()}
-      title={t('inventory.movement.consumeFromVisit')}
-      description={t('inventory.movement.consumeFromVisitDescription')}
+      title={t("inventory.movement.consumeFromVisit")}
+      description={t("inventory.movement.consumeFromVisitDescription")}
       footer={
         <Button variant="secondary" onClick={onClose}>
-          {t('common.cancel')}
+          {t("common.cancel")}
         </Button>
       }
     >
@@ -69,7 +69,7 @@ export function ConsumeForVisit({
         <Select
           id="consume-item"
           value={itemId}
-          placeholder={t('inventory.movement.selectItem')}
+          placeholder={t("inventory.movement.selectItem")}
           onChange={(event) => setItemId(event.target.value)}
           options={(items.data?.items ?? []).map((item) => ({
             value: item.id,

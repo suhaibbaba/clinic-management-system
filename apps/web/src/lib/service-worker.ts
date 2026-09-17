@@ -14,11 +14,11 @@ function announce(): void {
 }
 
 export function registerServiceWorker(): void {
-  if (!('serviceWorker' in navigator)) {
+  if (!("serviceWorker" in navigator)) {
     return;
   }
 
-  void import('virtual:pwa-register').then(({ registerSW }) => {
+  void import("virtual:pwa-register").then(({ registerSW }) => {
     const updateSW = registerSW({
       immediate: true,
       onNeedRefresh: () => {

@@ -1,24 +1,24 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import {
   LAB_STATEMENT_ENTRY_KIND,
   personName,
   type LabStatement,
   type Money,
   type StatementQuery,
-} from '@clinic/shared';
-import { eq } from 'drizzle-orm';
+} from "@clinic/shared";
+import { eq } from "drizzle-orm";
 
-import { documentDirection, documentStrings } from '@api/billing/pdf/document-strings';
-import { LetterheadService } from '@api/billing/pdf/letterhead.service';
-import { RtlPdf } from '@api/billing/pdf/pdf-builder';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { doctors, labWorkTypes, labs, patients, users } from '@api/database/schema';
-import { labOrders } from '@api/database/schema';
-import { LabLedgerService } from '@api/labs/lab-ledger.service';
+import { documentDirection, documentStrings } from "@api/billing/pdf/document-strings";
+import { LetterheadService } from "@api/billing/pdf/letterhead.service";
+import { RtlPdf } from "@api/billing/pdf/pdf-builder";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { doctors, labWorkTypes, labs, patients, users } from "@api/database/schema";
+import { labOrders } from "@api/database/schema";
+import { LabLedgerService } from "@api/labs/lab-ledger.service";
 
 /** Technical values read left to right even inside an Arabic document. */
-const LTR = { dir: 'ltr' } as const;
+const LTR = { dir: "ltr" } as const;
 
 @Injectable()
 export class LabDocumentsService {
@@ -48,7 +48,7 @@ export class LabDocumentsService {
       .limit(1);
 
     if (!row || row.order.clinicId !== actor.clinicId || row.order.deletedAt !== null) {
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
 
     const clinic = await this.letterheads.load(actor.clinicId);
@@ -56,7 +56,7 @@ export class LabDocumentsService {
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
     await this.letterheads.draw(pdf, clinic);
-    pdf.text(strings.title, { size: 16, weight: 'bold', align: 'centre', gap: 14 });
+    pdf.text(strings.title, { size: 16, weight: "bold", align: "centre", gap: 14 });
 
     pdf.field(strings.lab, row.labName);
     pdf.field(strings.number, shortId(row.order.id), LTR);
@@ -70,19 +70,19 @@ export class LabDocumentsService {
     );
     pdf.space(6);
 
-    pdf.field(strings.workType, row.workTypeName ?? '—');
-    pdf.field(strings.teeth, row.order.teeth.length > 0 ? row.order.teeth.join('، ') : '—', LTR);
-    pdf.field(strings.material, row.order.material ?? '—');
-    pdf.field(strings.shade, row.order.shade ?? '—', LTR);
+    pdf.field(strings.workType, row.workTypeName ?? "—");
+    pdf.field(strings.teeth, row.order.teeth.length > 0 ? row.order.teeth.join("، ") : "—", LTR);
+    pdf.field(strings.material, row.order.material ?? "—");
+    pdf.field(strings.shade, row.order.shade ?? "—", LTR);
     pdf.field(
       strings.expected,
-      row.order.expectedAt ? formatDate(row.order.expectedAt.toISOString()) : '—',
+      row.order.expectedAt ? formatDate(row.order.expectedAt.toISOString()) : "—",
       LTR,
     );
 
     if (row.order.instructions) {
       pdf.space(8);
-      pdf.text(strings.instructions, { size: 12, weight: 'bold', gap: 4 });
+      pdf.text(strings.instructions, { size: 12, weight: "bold", gap: 4 });
       pdf.text(row.order.instructions, { size: 11 });
     }
 
@@ -101,7 +101,7 @@ export class LabDocumentsService {
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
     await this.letterheads.draw(pdf, clinic);
-    pdf.text(strings.title, { size: 16, weight: 'bold', align: 'centre', gap: 14 });
+    pdf.text(strings.title, { size: 16, weight: "bold", align: "centre", gap: 14 });
 
     pdf.field(strings.lab, statement.labName);
     pdf.field(statement.from ? strings.period : strings.periodUntil, formatPeriod(statement), LTR);
@@ -117,9 +117,9 @@ export class LabDocumentsService {
         [
           { width: 1.4, header: strings.columns.date },
           { width: 3.4, header: strings.columns.description },
-          { width: 1.2, header: strings.columns.order, align: 'end' },
-          { width: 1.2, header: strings.columns.payment, align: 'end' },
-          { width: 1.4, header: strings.columns.balance, align: 'end' },
+          { width: 1.2, header: strings.columns.order, align: "end" },
+          { width: 1.2, header: strings.columns.payment, align: "end" },
+          { width: 1.4, header: strings.columns.balance, align: "end" },
         ],
         statement.entries.map((entry) => {
           const isPayment = entry.kind === LAB_STATEMENT_ENTRY_KIND.PAYMENT;
@@ -130,8 +130,8 @@ export class LabDocumentsService {
           return [
             formatDate(entry.occurredAt),
             description || (isPayment ? strings.columns.payment : strings.columns.order),
-            isPayment ? '' : entry.amount,
-            isPayment ? entry.amount.replace('-', '') : '',
+            isPayment ? "" : entry.amount,
+            isPayment ? entry.amount.replace("-", "") : "",
             entry.runningBalance,
           ];
         }),
@@ -142,7 +142,7 @@ export class LabDocumentsService {
     pdf.rule();
     pdf.field(strings.closingBalance, formatAmount(statement.closingBalance, clinic.currency), {
       size: 13,
-      dir: 'ltr',
+      dir: "ltr",
     });
 
     return pdf.save();
@@ -156,7 +156,7 @@ const firstName = (fullName: string): string => fullName.trim().split(/\s+/)[0] 
 
 function formatDate(iso: string): string {
   const date = new Date(iso);
-  const pad = (value: number): string => String(value).padStart(2, '0');
+  const pad = (value: number): string => String(value).padStart(2, "0");
 
   return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())}`;
 }

@@ -1,5 +1,5 @@
-import { LOOKUP_LIST_KEYS, SYSTEM_LOOKUPS } from '@clinic/shared';
-import { sql, type SQL } from 'drizzle-orm';
+import { LOOKUP_LIST_KEYS, SYSTEM_LOOKUPS } from "@clinic/shared";
+import { sql, type SQL } from "drizzle-orm";
 
 interface Executor {
   execute(query: SQL): Promise<{ readonly length: number }>;

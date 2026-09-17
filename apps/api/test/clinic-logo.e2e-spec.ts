@@ -11,12 +11,12 @@ import {
   type PresignClinicIconsResponse,
   type PresignClinicLogoResponse,
   type UserRole,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
-import { StorageService, type StoredObject } from '@api/storage/storage.service';
+import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
+import { StorageService, type StoredObject } from "@api/storage/storage.service";
 
-describe('Clinic logo (e2e)', () => {
+describe("Clinic logo (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
   let storage: StorageService;
@@ -27,7 +27,7 @@ describe('Clinic logo (e2e)', () => {
   let deleted: string[];
 
   /** The derived set lives under the logo's own key, so a stat tells the two apart by path. */
-  const iconNameIn = (key: string): string | undefined => key.split('/icons/')[1];
+  const iconNameIn = (key: string): string | undefined => key.split("/icons/")[1];
   const isLogoKey = (key: string): boolean => iconNameIn(key) === undefined;
 
   beforeAll(async () => {
@@ -52,7 +52,7 @@ describe('Clinic logo (e2e)', () => {
   });
 
   beforeEach(() => {
-    storedObject = { sizeBytes: 40_000, mime: 'image/png' };
+    storedObject = { sizeBytes: 40_000, mime: "image/png" };
     storedIcon = (name) => {
       const icon = clinicIcon(name);
 
@@ -72,22 +72,22 @@ describe('Clinic logo (e2e)', () => {
 
   const presign = async (payload: Record<string, unknown> = {}) =>
     context.app.inject({
-      method: 'POST',
-      url: '/clinic/logo/presign',
+      method: "POST",
+      url: "/clinic/logo/presign",
       headers: asAdmin(),
-      payload: { filename: 'logo.png', mime: 'image/png', sizeBytes: 40_000, ...payload },
+      payload: { filename: "logo.png", mime: "image/png", sizeBytes: 40_000, ...payload },
     });
 
   const confirm = async (key: string, token = tokens[USER_ROLE.ADMIN]) =>
     context.app.inject({
-      method: 'POST',
-      url: '/clinic/logo',
+      method: "POST",
+      url: "/clinic/logo",
       headers: auth(token),
       payload: { key },
     });
 
-  describe('the happy path', () => {
-    it('signs an upload, records the key, and hands back a URL to draw it with', async () => {
+  describe("the happy path", () => {
+    it("signs an upload, records the key, and hands back a URL to draw it with", async () => {
       const signed = await presign();
       expect(signed.statusCode).toBe(200);
 
@@ -106,11 +106,11 @@ describe('Clinic logo (e2e)', () => {
       expect(body.logoUrl).toContain(upload.key);
 
       // And it is there on the next read, for the sidebar to draw.
-      const read = await context.app.inject({ method: 'GET', url: '/clinic', headers: asAdmin() });
+      const read = await context.app.inject({ method: "GET", url: "/clinic", headers: asAdmin() });
       expect((read.json() as Clinic).logoUrl).toContain(upload.key);
     });
 
-    it('drops the image it replaces — a logo is one current mark, not a history', async () => {
+    it("drops the image it replaces — a logo is one current mark, not a history", async () => {
       const first = ((await presign()).json() as PresignClinicLogoResponse).key;
       await confirm(first);
 
@@ -125,14 +125,14 @@ describe('Clinic logo (e2e)', () => {
       );
     });
 
-    it('goes back to the generated mark, and takes the object with it', async () => {
+    it("goes back to the generated mark, and takes the object with it", async () => {
       const key = ((await presign()).json() as PresignClinicLogoResponse).key;
       await confirm(key);
       deleted = [];
 
       const response = await context.app.inject({
-        method: 'DELETE',
-        url: '/clinic/logo',
+        method: "DELETE",
+        url: "/clinic/logo",
         headers: asAdmin(),
       });
 
@@ -143,16 +143,16 @@ describe('Clinic logo (e2e)', () => {
     });
   });
 
-  describe('the icons derived from it', () => {
+  describe("the icons derived from it", () => {
     const presignIcons = async (token = tokens[USER_ROLE.ADMIN]) =>
       context.app.inject({
-        method: 'POST',
-        url: '/clinic/branding/icons/presign',
+        method: "POST",
+        url: "/clinic/branding/icons/presign",
         headers: auth(token),
       });
 
     const confirmIcons = async (token = tokens[USER_ROLE.ADMIN]) =>
-      context.app.inject({ method: 'POST', url: '/clinic/branding/icons', headers: auth(token) });
+      context.app.inject({ method: "POST", url: "/clinic/branding/icons", headers: auth(token) });
 
     const uploadLogo = async (): Promise<string> => {
       const key = ((await presign()).json() as PresignClinicLogoResponse).key;
@@ -160,13 +160,13 @@ describe('Clinic logo (e2e)', () => {
       return key;
     };
 
-    it('has nothing to render from until a picture is there', async () => {
-      await context.app.inject({ method: 'DELETE', url: '/clinic/logo', headers: asAdmin() });
+    it("has nothing to render from until a picture is there", async () => {
+      await context.app.inject({ method: "DELETE", url: "/clinic/logo", headers: asAdmin() });
 
       expect((await presignIcons()).statusCode).toBe(400);
     });
 
-    it('signs a slot per icon under the logo, and hands back the logo to re-read', async () => {
+    it("signs a slot per icon under the logo, and hands back the logo to re-read", async () => {
       const key = await uploadLogo();
 
       const slots = (await presignIcons()).json() as PresignClinicIconsResponse;
@@ -181,53 +181,53 @@ describe('Clinic logo (e2e)', () => {
       }
     });
 
-    it('records the set, and serves the tab mark to a stranger', async () => {
+    it("records the set, and serves the tab mark to a stranger", async () => {
       const key = await uploadLogo();
       const confirmed = await confirmIcons();
 
       expect((confirmed.json() as Clinic).logoIconsAt).not.toBeNull();
 
-      const branding = await context.app.inject({ method: 'GET', url: '/clinic/branding' });
+      const branding = await context.app.inject({ method: "GET", url: "/clinic/branding" });
       expect((branding.json() as ClinicBranding).iconsAt).not.toBeNull();
 
       // No token: a browser fetches a favicon and a manifest icon without one.
-      const icon = await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' });
+      const icon = await context.app.inject({ method: "GET", url: "/clinic/icon/favicon.ico" });
 
       expect(icon.statusCode).toBe(302);
-      expect(icon.headers['location']).toContain(`${key}/icons/favicon.ico`);
-      expect(icon.headers['cache-control']).toContain('max-age=');
+      expect(icon.headers["location"]).toContain(`${key}/icons/favicon.ico`);
+      expect(icon.headers["cache-control"]).toContain("max-age=");
     });
 
     // The logo is still the clinic's; only its tab mark falls back to the product's.
-    it('leaves the tab on the product mark while the set is missing', async () => {
+    it("leaves the tab on the product mark while the set is missing", async () => {
       await uploadLogo();
 
-      const branding = await context.app.inject({ method: 'GET', url: '/clinic/branding' });
+      const branding = await context.app.inject({ method: "GET", url: "/clinic/branding" });
       expect((branding.json() as ClinicBranding).iconsAt).toBeNull();
 
       expect(
-        (await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' })).statusCode,
+        (await context.app.inject({ method: "GET", url: "/clinic/icon/favicon.ico" })).statusCode,
       ).toBe(404);
     });
 
-    it('refuses a half-written set, and sweeps up what did arrive', async () => {
+    it("refuses a half-written set, and sweeps up what did arrive", async () => {
       await uploadLogo();
       storedIcon = (name) =>
-        name === 'favicon.ico' ? null : { sizeBytes: 3_000, mime: clinicIcon(name)?.mime };
+        name === "favicon.ico" ? null : { sizeBytes: 3_000, mime: clinicIcon(name)?.mime };
       deleted = [];
 
       expect((await confirmIcons()).statusCode).toBe(400);
       expect(deleted).toHaveLength(CLINIC_ICONS.length);
     });
 
-    it('refuses an icon whose bytes are not the type its slot was signed for', async () => {
+    it("refuses an icon whose bytes are not the type its slot was signed for", async () => {
       await uploadLogo();
-      storedIcon = () => ({ sizeBytes: 3_000, mime: 'application/zip' });
+      storedIcon = () => ({ sizeBytes: 3_000, mime: "application/zip" });
 
       expect((await confirmIcons()).statusCode).toBe(400);
     });
 
-    it('refuses an icon over the ceiling', async () => {
+    it("refuses an icon over the ceiling", async () => {
       await uploadLogo();
       storedIcon = (name) => ({
         sizeBytes: MAX_CLINIC_ICON_BYTES + 1,
@@ -237,20 +237,20 @@ describe('Clinic logo (e2e)', () => {
       expect((await confirmIcons()).statusCode).toBe(400);
     });
 
-    it('answers nothing for a name the app never generates', async () => {
+    it("answers nothing for a name the app never generates", async () => {
       await uploadLogo();
       await confirmIcons();
 
       const response = await context.app.inject({
-        method: 'GET',
-        url: '/clinic/icon/..%2F..%2Flogo.png',
+        method: "GET",
+        url: "/clinic/icon/..%2F..%2Flogo.png",
       });
 
       expect(response.statusCode).toBe(404);
     });
 
     it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
-      'refuses %s the rendering',
+      "refuses %s the rendering",
       async (role) => {
         expect((await presignIcons(tokens[role])).statusCode).toBe(403);
         expect((await confirmIcons(tokens[role])).statusCode).toBe(403);
@@ -258,52 +258,52 @@ describe('Clinic logo (e2e)', () => {
     );
   });
 
-  describe('the manifest a home screen installs from', () => {
+  describe("the manifest a home screen installs from", () => {
     const manifest = async () =>
-      context.app.inject({ method: 'GET', url: '/clinic/manifest.webmanifest' });
+      context.app.inject({ method: "GET", url: "/clinic/manifest.webmanifest" });
 
-    it('names itself after the clinic, and is readable without a token', async () => {
+    it("names itself after the clinic, and is readable without a token", async () => {
       const response = await manifest();
 
       expect(response.statusCode).toBe(200);
-      expect(response.headers['content-type']).toContain('application/manifest+json');
+      expect(response.headers["content-type"]).toContain("application/manifest+json");
 
       const body = response.json() as ClinicManifest;
-      const branding = await context.app.inject({ method: 'GET', url: '/clinic/branding' });
+      const branding = await context.app.inject({ method: "GET", url: "/clinic/branding" });
 
       // One resolution of the label: iOS reads the branding payload, Android reads this.
       expect(body.name).toBe((branding.json() as ClinicBranding).appName);
-      expect(body.name).not.toBe('');
+      expect(body.name).not.toBe("");
       expect(body.short_name.length).toBeLessThanOrEqual(MAX_APP_SHORT_NAME_LENGTH);
-      expect(body).toMatchObject({ lang: 'ar', dir: 'rtl', display: 'standalone', scope: '/' });
+      expect(body).toMatchObject({ lang: "ar", dir: "rtl", display: "standalone", scope: "/" });
     });
 
     // Chromium declines to install without a 192 and a 512, which is better than being handed an
     // address that answers 404.
-    it('offers no icons until a set has been rendered', async () => {
-      await context.app.inject({ method: 'DELETE', url: '/clinic/logo', headers: asAdmin() });
+    it("offers no icons until a set has been rendered", async () => {
+      await context.app.inject({ method: "DELETE", url: "/clinic/logo", headers: asAdmin() });
 
       expect(manifestBody(await manifest()).icons).toEqual([]);
     });
 
-    it('offers the installable sizes, versioned so a re-render is fetched again', async () => {
+    it("offers the installable sizes, versioned so a re-render is fetched again", async () => {
       const key = ((await presign()).json() as PresignClinicLogoResponse).key;
       await confirm(key);
       await context.app.inject({
-        method: 'POST',
-        url: '/clinic/branding/icons/presign',
+        method: "POST",
+        url: "/clinic/branding/icons/presign",
         headers: asAdmin(),
       });
       await context.app.inject({
-        method: 'POST',
-        url: '/clinic/branding/icons',
+        method: "POST",
+        url: "/clinic/branding/icons",
         headers: asAdmin(),
       });
 
       const icons = manifestBody(await manifest()).icons;
 
-      expect(icons.map((icon) => icon.sizes)).toEqual(['192x192', '512x512', '512x512']);
-      expect(icons.map((icon) => icon.purpose)).toEqual(['any', 'any', 'maskable']);
+      expect(icons.map((icon) => icon.sizes)).toEqual(["192x192", "512x512", "512x512"]);
+      expect(icons.map((icon) => icon.purpose)).toEqual(["any", "any", "maskable"]);
 
       for (const icon of icons) {
         expect(icon.src).toMatch(/^\/api\/clinic\/icon\/.+\?v=/);
@@ -311,33 +311,33 @@ describe('Clinic logo (e2e)', () => {
     });
   });
 
-  describe('the app icon, for a clinic whose logo is a wordmark', () => {
+  describe("the app icon, for a clinic whose logo is a wordmark", () => {
     const presignAppIcon = async (token = tokens[USER_ROLE.ADMIN]) =>
       context.app.inject({
-        method: 'POST',
-        url: '/clinic/app-icon/presign',
+        method: "POST",
+        url: "/clinic/app-icon/presign",
         headers: auth(token),
-        payload: { filename: 'icon.png', mime: 'image/png', sizeBytes: 40_000 },
+        payload: { filename: "icon.png", mime: "image/png", sizeBytes: 40_000 },
       });
 
     const confirmAppIcon = async (key: string, token = tokens[USER_ROLE.ADMIN]) =>
       context.app.inject({
-        method: 'POST',
-        url: '/clinic/app-icon',
+        method: "POST",
+        url: "/clinic/app-icon",
         headers: auth(token),
         payload: { key },
       });
 
     const renderIcons = async () => {
       await context.app.inject({
-        method: 'POST',
-        url: '/clinic/branding/icons/presign',
+        method: "POST",
+        url: "/clinic/branding/icons/presign",
         headers: asAdmin(),
       });
 
       return context.app.inject({
-        method: 'POST',
-        url: '/clinic/branding/icons',
+        method: "POST",
+        url: "/clinic/branding/icons",
         headers: asAdmin(),
       });
     };
@@ -352,7 +352,7 @@ describe('Clinic logo (e2e)', () => {
       return { logo, appIcon };
     };
 
-    it('sweeps up the set the logo had rendered, which is nobody’s icon now', async () => {
+    it("sweeps up the set the logo had rendered, which is nobody’s icon now", async () => {
       const logo = ((await presign()).json() as PresignClinicLogoResponse).key;
       await confirm(logo);
       await renderIcons();
@@ -366,35 +366,35 @@ describe('Clinic logo (e2e)', () => {
       );
     });
 
-    it('takes over as what the icons are rendered from', async () => {
+    it("takes over as what the icons are rendered from", async () => {
       const { appIcon } = await uploadBoth();
 
-      const icon = await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' });
+      const icon = await context.app.inject({ method: "GET", url: "/clinic/icon/favicon.ico" });
 
       expect(icon.statusCode).toBe(302);
-      expect(icon.headers['location']).toContain(`${appIcon}/icons/favicon.ico`);
+      expect(icon.headers["location"]).toContain(`${appIcon}/icons/favicon.ico`);
     });
 
     // The source did not change, so the set it rendered is still a picture of it.
-    it('keeps the set when the logo changes underneath it', async () => {
+    it("keeps the set when the logo changes underneath it", async () => {
       const { appIcon } = await uploadBoth();
 
       const replacement = ((await presign()).json() as PresignClinicLogoResponse).key;
       await confirm(replacement);
 
-      const icon = await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' });
+      const icon = await context.app.inject({ method: "GET", url: "/clinic/icon/favicon.ico" });
 
       expect(icon.statusCode).toBe(302);
-      expect(icon.headers['location']).toContain(`${appIcon}/icons/favicon.ico`);
+      expect(icon.headers["location"]).toContain(`${appIcon}/icons/favicon.ico`);
     });
 
-    it('drops the set when it goes, and points back at the logo once re-rendered', async () => {
+    it("drops the set when it goes, and points back at the logo once re-rendered", async () => {
       const { logo, appIcon } = await uploadBoth();
       deleted = [];
 
       const removed = await context.app.inject({
-        method: 'DELETE',
-        url: '/clinic/app-icon',
+        method: "DELETE",
+        url: "/clinic/app-icon",
         headers: asAdmin(),
       });
 
@@ -405,23 +405,23 @@ describe('Clinic logo (e2e)', () => {
 
       // Until the client re-renders, the tab is on the product mark.
       expect(
-        (await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' })).statusCode,
+        (await context.app.inject({ method: "GET", url: "/clinic/icon/favicon.ico" })).statusCode,
       ).toBe(404);
 
       await renderIcons();
 
-      const icon = await context.app.inject({ method: 'GET', url: '/clinic/icon/favicon.ico' });
-      expect(icon.headers['location']).toContain(`${logo}/icons/favicon.ico`);
+      const icon = await context.app.inject({ method: "GET", url: "/clinic/icon/favicon.ico" });
+      expect(icon.headers["location"]).toContain(`${logo}/icons/favicon.ico`);
     });
 
     it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
-      'refuses %s the upload and the removal',
+      "refuses %s the upload and the removal",
       async (role) => {
         expect((await presignAppIcon(tokens[role])).statusCode).toBe(403);
 
         const removed = await context.app.inject({
-          method: 'DELETE',
-          url: '/clinic/app-icon',
+          method: "DELETE",
+          url: "/clinic/app-icon",
           headers: auth(tokens[role]),
         });
 
@@ -430,14 +430,14 @@ describe('Clinic logo (e2e)', () => {
     );
   });
 
-  describe('what it refuses', () => {
-    it('refuses a file that is not an image, before signing anything', async () => {
-      const response = await presign({ filename: 'logo.pdf', mime: 'application/pdf' });
+  describe("what it refuses", () => {
+    it("refuses a file that is not an image, before signing anything", async () => {
+      const response = await presign({ filename: "logo.pdf", mime: "application/pdf" });
 
       expect(response.statusCode).toBe(400);
     });
 
-    it('refuses one over the ceiling, before signing anything', async () => {
+    it("refuses one over the ceiling, before signing anything", async () => {
       const response = await presign({ sizeBytes: MAX_CLINIC_LOGO_BYTES + 1 });
 
       expect(response.statusCode).toBe(400);
@@ -445,9 +445,9 @@ describe('Clinic logo (e2e)', () => {
 
     // The claim in the request body is not the file: what is checked on confirm is what the bytes
     // turned out to be.
-    it('refuses bytes that turned out not to be an image, and deletes them', async () => {
+    it("refuses bytes that turned out not to be an image, and deletes them", async () => {
       const key = ((await presign()).json() as PresignClinicLogoResponse).key;
-      storedObject = { sizeBytes: 40_000, mime: 'application/zip' };
+      storedObject = { sizeBytes: 40_000, mime: "application/zip" };
 
       const response = await confirm(key);
 
@@ -455,9 +455,9 @@ describe('Clinic logo (e2e)', () => {
       expect(deleted).toEqual([key]);
     });
 
-    it('refuses bytes that turned out to be too big, and deletes them', async () => {
+    it("refuses bytes that turned out to be too big, and deletes them", async () => {
       const key = ((await presign()).json() as PresignClinicLogoResponse).key;
-      storedObject = { sizeBytes: MAX_CLINIC_LOGO_BYTES + 1, mime: 'image/png' };
+      storedObject = { sizeBytes: MAX_CLINIC_LOGO_BYTES + 1, mime: "image/png" };
 
       const response = await confirm(key);
 
@@ -465,14 +465,14 @@ describe('Clinic logo (e2e)', () => {
       expect(deleted).toEqual([key]);
     });
 
-    it('refuses a key that was never uploaded to', async () => {
+    it("refuses a key that was never uploaded to", async () => {
       const key = ((await presign()).json() as PresignClinicLogoResponse).key;
       storedObject = null;
 
       expect((await confirm(key)).statusCode).toBe(400);
     });
 
-    it('refuses a key belonging to another clinic', async () => {
+    it("refuses a key belonging to another clinic", async () => {
       const other = await context.createClinic();
 
       const response = await confirm(`clinic/${other.id}/branding/whatever.png`);
@@ -481,7 +481,7 @@ describe('Clinic logo (e2e)', () => {
     });
 
     /* A patient's X-ray is not the clinic's letterhead. */
-    it('refuses a key from inside a patient folder', async () => {
+    it("refuses a key from inside a patient folder", async () => {
       const response = await confirm(`clinic/${clinic.id}/patients/x/xray_panoramic/scan.png`);
 
       expect(response.statusCode).toBe(400);
@@ -490,13 +490,13 @@ describe('Clinic logo (e2e)', () => {
 
   describe("permissions (ROLES.md: clinic settings are the admin's)", () => {
     it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
-      'refuses %s the upload',
+      "refuses %s the upload",
       async (role) => {
         const response = await context.app.inject({
-          method: 'POST',
-          url: '/clinic/logo/presign',
+          method: "POST",
+          url: "/clinic/logo/presign",
           headers: auth(tokens[role]),
-          payload: { filename: 'logo.png', mime: 'image/png', sizeBytes: 40_000 },
+          payload: { filename: "logo.png", mime: "image/png", sizeBytes: 40_000 },
         });
 
         expect(response.statusCode).toBe(403);
@@ -504,11 +504,11 @@ describe('Clinic logo (e2e)', () => {
     );
 
     it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
-      'refuses %s the removal',
+      "refuses %s the removal",
       async (role) => {
         const response = await context.app.inject({
-          method: 'DELETE',
-          url: '/clinic/logo',
+          method: "DELETE",
+          url: "/clinic/logo",
           headers: auth(tokens[role]),
         });
 
@@ -517,14 +517,14 @@ describe('Clinic logo (e2e)', () => {
     );
 
     /* Every role draws the sidebar, so every role reads the logo. */
-    it('lets every signed-in role read it', async () => {
+    it("lets every signed-in role read it", async () => {
       const key = ((await presign()).json() as PresignClinicLogoResponse).key;
       await confirm(key);
 
       for (const role of Object.values(USER_ROLE)) {
         const response = await context.app.inject({
-          method: 'GET',
-          url: '/clinic',
+          method: "GET",
+          url: "/clinic",
           headers: auth(tokens[role]),
         });
 
@@ -534,16 +534,16 @@ describe('Clinic logo (e2e)', () => {
   });
 
   /** Public because the sign-in screen has no token, and quiet unless the answer is a single clinic. */
-  describe('the sign-in screen', () => {
-    it('answers without a token', async () => {
-      const response = await context.app.inject({ method: 'GET', url: '/clinic/branding' });
+  describe("the sign-in screen", () => {
+    it("answers without a token", async () => {
+      const response = await context.app.inject({ method: "GET", url: "/clinic/branding" });
 
       expect(response.statusCode).toBe(200);
-      expect(Object.keys(response.json() as ClinicBranding).sort()).toEqual(['logoUrl', 'name']);
+      expect(Object.keys(response.json() as ClinicBranding).sort()).toEqual(["logoUrl", "name"]);
     });
 
-    it('names no clinic when the deployment serves several', async () => {
-      const response = await context.app.inject({ method: 'GET', url: '/clinic/branding' });
+    it("names no clinic when the deployment serves several", async () => {
+      const response = await context.app.inject({ method: "GET", url: "/clinic/branding" });
 
       expect(response.json()).toEqual({ name: null, logoUrl: null });
     });
@@ -551,11 +551,11 @@ describe('Clinic logo (e2e)', () => {
 
   // A logo is not medical data, and a URL that changed on every response is a URL no browser could
   // ever reuse — which is the whole reason the rail used to flash on every page.
-  describe('a URL a browser can cache', () => {
+  describe("a URL a browser can cache", () => {
     const logoUrl = async (): Promise<string> => {
-      const read = await context.app.inject({ method: 'GET', url: '/clinic', headers: asAdmin() });
+      const read = await context.app.inject({ method: "GET", url: "/clinic", headers: asAdmin() });
 
-      return (read.json() as Clinic).logoUrl ?? '';
+      return (read.json() as Clinic).logoUrl ?? "";
     };
 
     beforeAll(async () => {
@@ -563,27 +563,27 @@ describe('Clinic logo (e2e)', () => {
       await confirm(key);
     });
 
-    it('hands out the same URL byte for byte on every read', async () => {
+    it("hands out the same URL byte for byte on every read", async () => {
       expect(await logoUrl()).toBe(await logoUrl());
     });
 
-    it('outlives a working day, unlike a medical image URL', async () => {
-      const expires = Number(new URL(await logoUrl()).searchParams.get('X-Amz-Expires'));
+    it("outlives a working day, unlike a medical image URL", async () => {
+      const expires = Number(new URL(await logoUrl()).searchParams.get("X-Amz-Expires"));
 
       expect(expires).toBeGreaterThanOrEqual(24 * 60 * 60);
     });
 
-    it('tells the browser to keep it', async () => {
-      const cacheControl = new URL(await logoUrl()).searchParams.get('response-cache-control');
+    it("tells the browser to keep it", async () => {
+      const cacheControl = new URL(await logoUrl()).searchParams.get("response-cache-control");
 
       expect(cacheControl).toMatch(/^public, max-age=\d+/);
       // Inside the signature, so it cannot be stripped or forged on the way.
-      expect(new URL(await logoUrl()).searchParams.get('X-Amz-SignedHeaders')).not.toBeNull();
+      expect(new URL(await logoUrl()).searchParams.get("X-Amz-SignedHeaders")).not.toBeNull();
     });
 
     // The chrome is drawn from the session's own response, so nothing waits on a second request.
-    it('travels with the session bootstrap', async () => {
-      const response = await context.app.inject({ method: 'GET', url: '/me', headers: asAdmin() });
+    it("travels with the session bootstrap", async () => {
+      const response = await context.app.inject({ method: "GET", url: "/me", headers: asAdmin() });
       const profile = response.json() as { clinic: { name: unknown; logoUrl: string } };
 
       expect(profile.clinic.logoUrl).toBe(await logoUrl());

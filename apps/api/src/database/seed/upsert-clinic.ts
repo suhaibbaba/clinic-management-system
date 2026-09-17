@@ -1,14 +1,14 @@
-import type { PersonName } from '@clinic/shared';
-import { and, asc, count, eq, isNull, ne, or, type InferInsertModel } from 'drizzle-orm';
+import type { PersonName } from "@clinic/shared";
+import { and, asc, count, eq, isNull, ne, or, type InferInsertModel } from "drizzle-orm";
 
-import type { Database } from '@api/database/database.module';
-import { clinics, users } from '@api/database/schema';
+import type { Database } from "@api/database/database.module";
+import { clinics, users } from "@api/database/schema";
 
 type Db = Database;
 
 type ClinicDefaults = Omit<
   InferInsertModel<typeof clinics>,
-  'nameAr' | 'nameEn' | 'slug' | 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'
+  "nameAr" | "nameEn" | "slug" | "id" | "createdAt" | "updatedAt" | "deletedAt"
 >;
 
 export interface SeedClinicSpec {
@@ -53,7 +53,7 @@ export async function upsertSeedClinic(db: Db, spec: SeedClinicSpec): Promise<Se
       .returning({ id: clinics.id });
 
     if (!row) {
-      throw new Error('Failed to create the seed clinic');
+      throw new Error("Failed to create the seed clinic");
     }
 
     return { id: row.id, notes: [] };
@@ -67,7 +67,7 @@ export async function upsertSeedClinic(db: Db, spec: SeedClinicSpec): Promise<Se
   if (squatter && (await retireStray(db, squatter))) {
     notes.push(
       `Retired an empty duplicate clinic that was holding the slug "${spec.slug}" — it had no ` +
-        'accounts, so nobody could reach it. Its rows are soft-deleted, not removed.',
+        "accounts, so nobody could reach it. Its rows are soft-deleted, not removed.",
     );
   } else if (squatter) {
     return { id: adopted.id, notes };

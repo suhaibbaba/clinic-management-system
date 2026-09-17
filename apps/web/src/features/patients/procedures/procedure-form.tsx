@@ -8,19 +8,19 @@ import {
   type PerformedProcedureStatus,
   type ProcedureCatalogItem,
   type UserRole,
-} from '@clinic/shared';
-import { useEffect, useId, useState, type FormEvent, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useEffect, useId, useState, type FormEvent, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Button, FormField, Icon, Input, MoneyInput, Select, usePersonName } from '@clinic/ui';
+import { Button, FormField, Icon, Input, MoneyInput, Select, usePersonName } from "@clinic/ui";
 import {
   SurfaceSelector,
   type SelectableSurface,
-} from '@web/features/patients/chart/surface-selector';
-import { canSeePrices } from '@web/features/patients/permissions';
-import { useCurrency } from '@web/features/clinic/queries';
+} from "@web/features/patients/chart/surface-selector";
+import { canSeePrices } from "@web/features/patients/permissions";
+import { useCurrency } from "@web/features/clinic/queries";
 
-export type ProcedureFormValues = Omit<CreatePerformedProcedureInput, 'patientId'>;
+export type ProcedureFormValues = Omit<CreatePerformedProcedureInput, "patientId">;
 
 export interface ProcedureFormProps {
   readonly role: UserRole;
@@ -53,15 +53,15 @@ export function ProcedureForm({
   const fieldId = useId();
   const isEdit = procedure !== undefined;
 
-  const [procedureId, setProcedureId] = useState(procedure?.procedureId ?? '');
-  const [doctorId, setDoctorId] = useState(procedure?.doctorId ?? doctors[0]?.id ?? '');
+  const [procedureId, setProcedureId] = useState(procedure?.procedureId ?? "");
+  const [doctorId, setDoctorId] = useState(procedure?.doctorId ?? doctors[0]?.id ?? "");
   const [status, setStatus] = useState<PerformedProcedureStatus>(
     procedure?.status ?? PERFORMED_PROCEDURE_STATUS.DONE,
   );
   const [surfaces, setSurfaces] = useState<SelectableSurface[]>(initialSurfaces(procedure, tooth));
-  const [price, setPrice] = useState(procedure?.price ?? '');
-  const [discount, setDiscount] = useState(procedure?.discount ?? '');
-  const [discountReason, setDiscountReason] = useState(procedure?.discountReason ?? '');
+  const [price, setPrice] = useState(procedure?.price ?? "");
+  const [discount, setDiscount] = useState(procedure?.discount ?? "");
+  const [discountReason, setDiscountReason] = useState(procedure?.discountReason ?? "");
   const [error, setError] = useState<string | null>(null);
 
   const showPrices = canSeePrices(role);
@@ -71,7 +71,7 @@ export function ProcedureForm({
   // snapshot: what was charged is history, not a default.
   useEffect(() => {
     if (!isEdit) {
-      setPrice(selected?.defaultPrice ?? '');
+      setPrice(selected?.defaultPrice ?? "");
     }
   }, [selected, isEdit]);
 
@@ -85,13 +85,13 @@ export function ProcedureForm({
     event.preventDefault();
 
     if (!procedureId || !doctorId) {
-      setError('chart.panel.selectProcedure');
+      setError("chart.panel.selectProcedure");
       return;
     }
 
-    const hasDiscount = discount !== '' && discount !== '0' && discount !== '0.00';
-    if (hasDiscount && discountReason.trim() === '') {
-      setError('chart.panel.discountNeedsReason');
+    const hasDiscount = discount !== "" && discount !== "0" && discount !== "0.00";
+    if (hasDiscount && discountReason.trim() === "") {
+      setError("chart.panel.discountNeedsReason");
       return;
     }
 
@@ -101,8 +101,8 @@ export function ProcedureForm({
       doctorId,
       procedureId,
       status,
-      discount: hasDiscount ? discount : '0.00',
-      ...(showPrices && price !== '' && { price }),
+      discount: hasDiscount ? discount : "0.00",
+      ...(showPrices && price !== "" && { price }),
       ...(hasDiscount && { discountReason: discountReason.trim() }),
       ...(visitId !== undefined && { visitId }),
       chartMarks:
@@ -119,7 +119,7 @@ export function ProcedureForm({
           id={`${fieldId}-procedure`}
           value={procedureId}
           onChange={(event) => setProcedureId(event.target.value)}
-          placeholder={t('chart.panel.selectProcedure')}
+          placeholder={t("chart.panel.selectProcedure")}
           options={catalog.map((item) => ({ value: item.id, label: item.nameAr }))}
         />
       </FormField>
@@ -151,7 +151,7 @@ export function ProcedureForm({
       {/* Surfaces only mean something once a tooth is in play. */}
       {tooth !== undefined && (
         <div className="flex flex-col gap-1.5">
-          <span className="text-value font-medium text-ink">{t('chart.panel.surfaces')}</span>
+          <span className="text-value font-medium text-ink">{t("chart.panel.surfaces")}</span>
           <SurfaceSelector value={surfaces} onChange={setSurfaces} />
         </div>
       )}
@@ -177,7 +177,7 @@ export function ProcedureForm({
             />
           </FormField>
 
-          {discount !== '' && discount !== '0' && discount !== '0.00' && (
+          {discount !== "" && discount !== "0" && discount !== "0.00" && (
             <FormField label="chart.panel.discountReason" htmlFor={`${fieldId}-reason`}>
               <Input
                 id={`${fieldId}-reason`}
@@ -203,10 +203,10 @@ export function ProcedureForm({
           size="sm"
           onClick={onCancel}
         >
-          {t('common.cancel')}
+          {t("common.cancel")}
         </Button>
         <Button icon={<Icon name="check" />} type="submit" size="sm" disabled={submitting}>
-          {t(submitting ? 'common.saving' : 'common.save')}
+          {t(submitting ? "common.saving" : "common.save")}
         </Button>
       </div>
     </form>

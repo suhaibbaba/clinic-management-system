@@ -1,7 +1,7 @@
-import type { JSX, ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { JSX, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Icon, type IconName } from '@ui/components/icon';
+import { Icon, type IconName } from "@ui/components/icon";
 
 export interface EmptyStateProps {
   title: string;
@@ -10,7 +10,7 @@ export interface EmptyStateProps {
   icon?: IconName | undefined;
 }
 
-export function EmptyState({ title, hint, action, icon = 'file' }: EmptyStateProps): JSX.Element {
+export function EmptyState({ title, hint, action, icon = "file" }: EmptyStateProps): JSX.Element {
   const { t } = useTranslation();
 
   return (

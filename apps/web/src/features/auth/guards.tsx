@@ -1,11 +1,11 @@
-import type { UserRole } from '@clinic/shared';
-import type { JSX, ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Navigate, useLocation } from 'react-router-dom';
+import type { UserRole } from "@clinic/shared";
+import type { JSX, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { Navigate, useLocation } from "react-router-dom";
 
-import { Skeleton, SkeletonStatus } from '@clinic/ui/components/skeleton';
-import { useSession } from '@web/features/auth/session';
-import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
+import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import { useSession } from "@web/features/auth/session";
+import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 function FullPageMessage({ messageKey }: { messageKey: string }): JSX.Element {
   const { t } = useTranslation();
@@ -38,11 +38,11 @@ export function RequireAuth({ children }: { children: ReactNode }): JSX.Element 
   const { status } = useSession();
   const location = useLocation();
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return <BootSkeleton />;
   }
 
-  if (status === 'unauthenticated') {
+  if (status === "unauthenticated") {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 

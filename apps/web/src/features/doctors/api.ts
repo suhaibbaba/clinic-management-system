@@ -6,27 +6,27 @@ import type {
   Specialty,
   UpdateDoctorInput,
   UpdateDoctorScheduleInput,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { apiRequest } from '@web/lib/api-client';
+import { apiRequest } from "@web/lib/api-client";
 
 export const doctorsApi = {
   list: (query: Partial<ListDoctorsQuery>): Promise<Paginated<Doctor>> =>
-    apiRequest('/doctors', {
+    apiRequest("/doctors", {
       query: { page: query.page, limit: query.limit, search: query.search },
     }),
 
   get: (id: string): Promise<Doctor> => apiRequest(`/doctors/${id}`),
 
   create: (body: CreateDoctorInput): Promise<Doctor> =>
-    apiRequest('/doctors', { method: 'POST', body }),
+    apiRequest("/doctors", { method: "POST", body }),
 
   update: (id: string, body: UpdateDoctorInput): Promise<Doctor> =>
-    apiRequest(`/doctors/${id}`, { method: 'PATCH', body }),
+    apiRequest(`/doctors/${id}`, { method: "PATCH", body }),
 
   updateSchedule: (id: string, body: UpdateDoctorScheduleInput): Promise<Doctor> =>
-    apiRequest(`/doctors/${id}/schedule`, { method: 'PATCH', body }),
+    apiRequest(`/doctors/${id}/schedule`, { method: "PATCH", body }),
 
   specialties: (): Promise<Paginated<Specialty>> =>
-    apiRequest('/specialties', { query: { limit: 100 } }),
+    apiRequest("/specialties", { query: { limit: 100 } }),
 };

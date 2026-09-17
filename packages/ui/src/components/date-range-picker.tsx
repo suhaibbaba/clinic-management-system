@@ -1,16 +1,16 @@
-import { format } from 'date-fns';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { format } from "date-fns";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Button } from '@ui/components/button';
-import { Calendar } from '@ui/components/calendar';
-import { fromIsoDate, toIsoDate } from '@ui/components/date-picker';
-import { fieldShell } from '@ui/components/field';
-import { Icon } from '@ui/components/icon';
-import { openOnArrowDown, usePickerOpen } from '@ui/components/picker-open';
-import { Popover } from '@ui/components/popover';
-import { cn } from '@ui/lib/cn';
-import { Ltr } from '@ui/components/ltr';
+import { Button } from "@ui/components/button";
+import { Calendar } from "@ui/components/calendar";
+import { fromIsoDate, toIsoDate } from "@ui/components/date-picker";
+import { fieldShell } from "@ui/components/field";
+import { Icon } from "@ui/components/icon";
+import { openOnArrowDown, usePickerOpen } from "@ui/components/picker-open";
+import { Popover } from "@ui/components/popover";
+import { cn } from "@ui/lib/cn";
+import { Ltr } from "@ui/components/ltr";
 
 export interface DateRange {
   readonly from: string;
@@ -39,8 +39,8 @@ export function DateRangePicker({
 
   const from = fromIsoDate(value.from);
   const to = fromIsoDate(value.to);
-  const dates = [from ? format(from, 'dd/MM/yyyy') : '…', to ? format(to, 'dd/MM/yyyy') : '…'].join(
-    ' — ',
+  const dates = [from ? format(from, "dd/MM/yyyy") : "…", to ? format(to, "dd/MM/yyyy") : "…"].join(
+    " — ",
   );
 
   return (
@@ -59,8 +59,8 @@ export function DateRangePicker({
           onKeyDown={openOnArrowDown(picker.show)}
           className={cn(
             fieldShell({}),
-            'cursor-pointer text-start text-field focus-visible:outline-none',
-            from || to ? 'text-ink' : 'text-ink-subtle',
+            "cursor-pointer text-start text-field focus-visible:outline-none",
+            from || to ? "text-ink" : "text-ink-subtle",
             className,
           )}
         >
@@ -70,7 +70,7 @@ export function DateRangePicker({
             {from || to ? (
               <Ltr className="truncate tabular-nums">{dates}</Ltr>
             ) : (
-              t('common.placeholders.dateRange')
+              t("common.placeholders.dateRange")
             )}
           </span>
           <Icon name="calendar" className="size-4 shrink-0 text-ink-faint" />
@@ -83,8 +83,8 @@ export function DateRangePicker({
         defaultMonth={from ?? to ?? new Date()}
         onSelect={(range) => {
           onChange({
-            from: range?.from ? toIsoDate(range.from) : '',
-            to: range?.to ? toIsoDate(range.to) : '',
+            from: range?.from ? toIsoDate(range.from) : "",
+            to: range?.to ? toIsoDate(range.to) : "",
           });
         }}
       />
@@ -98,11 +98,11 @@ export function DateRangePicker({
           variant="quiet"
           icon={<Icon name="x" />}
           onClick={() => {
-            onChange({ from: '', to: '' });
+            onChange({ from: "", to: "" });
             picker.onOpenChange(false);
           }}
         >
-          {t('common.clear')}
+          {t("common.clear")}
         </Button>
 
         <Button
@@ -111,7 +111,7 @@ export function DateRangePicker({
           icon={<Icon name="check" />}
           onClick={() => picker.onOpenChange(false)}
         >
-          {t('common.done')}
+          {t("common.done")}
         </Button>
       </div>
     </Popover>

@@ -1,8 +1,8 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, Module } from "@nestjs/common";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { AuditController } from '@api/audit/audit.controller';
-import { AuditService } from '@api/audit/audit.service';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { AuditController } from "@api/audit/audit.controller";
+import { AuditService } from "@api/audit/audit.service";
 
 @Global()
 @Module({

@@ -1,7 +1,7 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { TIMELINE_ENTRY_TYPES } from '@shared/enums';
-import { paginationQuerySchema } from '@shared/schemas/common';
+import { TIMELINE_ENTRY_TYPES } from "@shared/enums";
+import { paginationQuerySchema } from "@shared/schemas/common";
 
 export const timelineEntrySchema = z.object({
   id: z.uuid(),

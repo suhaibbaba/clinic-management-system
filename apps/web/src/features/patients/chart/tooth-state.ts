@@ -9,11 +9,11 @@ import {
   type ToothArea,
   type ToothChartBehaviour,
   type ToothState,
-} from '@clinic/shared';
-import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
-import { useLookupList } from '@web/features/lookups/queries';
+import { useLookupList } from "@web/features/lookups/queries";
 
 // Derived on every render, never stored, from the procedure's status and the catalog item's chart
 // outcome. The states are the clinic's own list; only the handful the drawing names are in code.
@@ -42,35 +42,35 @@ export interface ToothStateStyle {
 const FILLED = (token: string): ToothStateStyle => ({
   fill: `var(--color-tooth-${token})`,
   stroke: `var(--color-tooth-${token})`,
-  ink: 'var(--color-tooth-ink)',
+  ink: "var(--color-tooth-ink)",
   dashed: false,
 });
 
 const PALE = (token: string): ToothStateStyle => ({
   fill: `var(--color-tooth-${token})`,
   stroke: `var(--color-tooth-${token}-line)`,
-  ink: 'var(--color-tooth-ink-dark)',
+  ink: "var(--color-tooth-ink-dark)",
   dashed: false,
 });
 
 export const BUILTIN_STYLES: Record<string, ToothStateStyle> = {
   [TOOTH_STATE.HEALTHY]: {
-    fill: 'var(--color-tooth-healthy)',
-    stroke: 'var(--color-tooth-healthy-line)',
-    ink: 'var(--color-tooth-ink-muted)',
+    fill: "var(--color-tooth-healthy)",
+    stroke: "var(--color-tooth-healthy-line)",
+    ink: "var(--color-tooth-ink-muted)",
     dashed: false,
   },
-  [TOOTH_STATE.PLANNED]: FILLED('planned'),
-  [TOOTH_STATE.IN_PROGRESS]: FILLED('in-progress'),
-  [TOOTH_STATE.FILLING]: FILLED('filling'),
-  [TOOTH_STATE.ROOT_CANAL]: FILLED('root-canal'),
-  [TOOTH_STATE.CROWN]: PALE('crown'),
-  [TOOTH_STATE.IMPLANT]: FILLED('implant'),
-  [TOOTH_STATE.BRIDGE]: PALE('bridge'),
+  [TOOTH_STATE.PLANNED]: FILLED("planned"),
+  [TOOTH_STATE.IN_PROGRESS]: FILLED("in-progress"),
+  [TOOTH_STATE.FILLING]: FILLED("filling"),
+  [TOOTH_STATE.ROOT_CANAL]: FILLED("root-canal"),
+  [TOOTH_STATE.CROWN]: PALE("crown"),
+  [TOOTH_STATE.IMPLANT]: FILLED("implant"),
+  [TOOTH_STATE.BRIDGE]: PALE("bridge"),
   [TOOTH_STATE.MISSING]: {
-    fill: 'var(--color-tooth-missing)',
-    stroke: 'var(--color-tooth-missing-line)',
-    ink: 'var(--color-tooth-ink-muted)',
+    fill: "var(--color-tooth-missing)",
+    stroke: "var(--color-tooth-missing-line)",
+    ink: "var(--color-tooth-ink-muted)",
     dashed: true,
   },
 };
@@ -82,18 +82,18 @@ function customStyle(colour: string): ToothStateStyle {
   return {
     fill: colour,
     stroke: colour,
-    ink: isLight(colour) ? 'var(--color-tooth-ink-dark)' : 'var(--color-tooth-ink)',
+    ink: isLight(colour) ? "var(--color-tooth-ink-dark)" : "var(--color-tooth-ink)",
     dashed: false,
   };
 }
 
 /** Rec. 601 luma, which is close enough to decide black text or white. */
 function isLight(colour: string): boolean {
-  const hex = colour.trim().replace('#', '');
+  const hex = colour.trim().replace("#", "");
   const full =
     hex.length === 3
-      ? [...hex].map((channel) => channel + channel).join('')
-      : hex.slice(0, 6).padEnd(6, '0');
+      ? [...hex].map((channel) => channel + channel).join("")
+      : hex.slice(0, 6).padEnd(6, "0");
   const value = Number.parseInt(full, 16);
 
   /* istanbul ignore next -- the colour picker cannot produce a non-hex value. */
@@ -112,7 +112,7 @@ export interface ToothStateInfo {
   readonly style: ToothStateStyle;
   readonly area: ToothArea;
   /** Set only on the built-in states the drawing is written against. */
-  readonly shape: ToothChartBehaviour['shape'];
+  readonly shape: ToothChartBehaviour["shape"];
 }
 
 export interface ToothStates {
@@ -137,7 +137,7 @@ export function buildToothStates(options: readonly LookupOption[], language: str
         : (BUILTIN_STYLES[option.code] ?? UNKNOWN_STYLE),
       // A custom state paints the whole tooth: the chart cannot know that somebody's "veneer"
       // belongs on the crown, and guessing would put it in the wrong place.
-      area: behaviour?.area ?? 'whole',
+      area: behaviour?.area ?? "whole",
       shape: behaviour?.shape,
     };
   });
@@ -156,7 +156,7 @@ export function buildToothStates(options: readonly LookupOption[], language: str
         code,
         label: code,
         style: UNKNOWN_STYLE,
-        area: 'whole',
+        area: "whole",
         shape: undefined,
       },
     all: infos,
@@ -168,7 +168,7 @@ export function buildToothStates(options: readonly LookupOption[], language: str
 function chartBehaviour(meta: unknown): ToothChartBehaviour | undefined {
   const behaviour = (meta as { chartBehavior?: unknown } | null)?.chartBehavior;
 
-  return typeof behaviour === 'object' && behaviour !== null
+  return typeof behaviour === "object" && behaviour !== null
     ? (behaviour as ToothChartBehaviour)
     : undefined;
 }
@@ -183,20 +183,20 @@ export function useToothStates(): ToothStates {
 
 export function areaState(
   summary: ToothSummary,
-  area: 'crown' | 'root',
+  area: "crown" | "root",
   states: ToothStates,
 ): string {
   return (
     summary.states.find((state) => {
       const stateArea = states.info(state).area;
-      return stateArea === area || stateArea === 'whole';
+      return stateArea === area || stateArea === "whole";
     }) ?? HEALTHY
   );
 }
 
 export function hasShape(
   summary: ToothSummary,
-  shape: NonNullable<ToothChartBehaviour['shape']>,
+  shape: NonNullable<ToothChartBehaviour["shape"]>,
   states: ToothStates,
 ): boolean {
   return summary.states.some((state) => states.info(state).shape === shape);
@@ -213,7 +213,7 @@ export interface ToothSummary {
 export type OutcomeLookup = ReadonlyMap<string, ProcedureOutcome | null>;
 
 export function procedureToothState(
-  procedure: Pick<PerformedProcedure, 'status' | 'procedureId'>,
+  procedure: Pick<PerformedProcedure, "status" | "procedureId">,
   outcomes: OutcomeLookup,
 ): ToothState | null {
   if (procedure.status === PERFORMED_PROCEDURE_STATUS.PLANNED) {
@@ -240,7 +240,7 @@ export function deriveToothSummaries(
     for (const mark of procedure.chartMarks ?? []) {
       const location = mark.location as { tooth?: number; surfaces?: string[] };
 
-      if (typeof location.tooth !== 'number') {
+      if (typeof location.tooth !== "number") {
         continue;
       }
 

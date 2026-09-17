@@ -1,23 +1,23 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Patch } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch } from "@nestjs/common";
 import {
   updateRolePermissionSchema,
   USER_ROLE,
   USER_ROLES,
   type Permissions,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import { CapabilityRegistry } from '@api/permissions/capability-registry.service';
-import { PermissionsService } from '@api/permissions/permissions.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
+import { PermissionsService } from "@api/permissions/permissions.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 
 class UpdateRolePermissionDto extends createZodDto(updateRolePermissionSchema) {}
 
 // Who may edit permissions is itself a permission nobody but an admin holds, and it is not one of
 // the editable ones: the guard lets an admin through before it reads a single stored row.
-@Controller('permissions')
+@Controller("permissions")
 @Roles(USER_ROLE.ADMIN)
 export class PermissionsController {
   constructor(

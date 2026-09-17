@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   AllergyFlags,
   Attachment,
@@ -24,20 +24,20 @@ import type {
   UpdateTreatmentPlanItemInput,
   UpdateVisitInput,
   Visit,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { patientsApi, uploadToStorage } from '@web/features/patients/api';
+import { patientsApi, uploadToStorage } from "@web/features/patients/api";
 
-export const PATIENT_KEY = 'patient';
-export const PATIENT_PROCEDURES_KEY = 'patient-procedures';
-export const PATIENT_ALLERGIES_KEY = 'patient-allergies';
-export const TOOTH_HISTORY_KEY = 'tooth-history';
-export const CATALOG_KEY = 'procedure-catalog';
-export const PATIENTS_KEY = 'patients';
-export const PATIENT_VISITS_KEY = 'patient-visits';
-export const PATIENT_PLANS_KEY = 'patient-treatment-plans';
-export const PATIENT_ATTACHMENTS_KEY = 'patient-attachments';
-export const PATIENT_TIMELINE_KEY = 'patient-timeline';
+export const PATIENT_KEY = "patient";
+export const PATIENT_PROCEDURES_KEY = "patient-procedures";
+export const PATIENT_ALLERGIES_KEY = "patient-allergies";
+export const TOOTH_HISTORY_KEY = "tooth-history";
+export const CATALOG_KEY = "procedure-catalog";
+export const PATIENTS_KEY = "patients";
+export const PATIENT_VISITS_KEY = "patient-visits";
+export const PATIENT_PLANS_KEY = "patient-treatment-plans";
+export const PATIENT_ATTACHMENTS_KEY = "patient-attachments";
+export const PATIENT_TIMELINE_KEY = "patient-timeline";
 
 export function usePatients(
   query: Partial<ListPatientsQuery>,
@@ -79,7 +79,7 @@ export function usePatient(id: string): UseQueryResult<PatientClinicalView> {
     queryFn: () => patientsApi.get(id),
     // `GET /patients/` is a 400, every time. A component that has no id yet is
     // mid-render, not in error, so it should not be firing a doomed request.
-    enabled: id !== '',
+    enabled: id !== "",
   });
 }
 
@@ -116,7 +116,7 @@ export function useToothHistory(
 /** One signed URL per attachment, fetched only when the panel shows it. */
 export function useAttachment(id: string, enabled: boolean): UseQueryResult<Attachment> {
   return useQuery({
-    queryKey: ['attachment', id],
+    queryKey: ["attachment", id],
     queryFn: () => patientsApi.attachment(id),
     enabled,
     staleTime: 60_000,
@@ -156,7 +156,7 @@ export function useCreateProcedure(patientId: string) {
 }
 
 /** Placeholder id: replaced by the server's row as soon as the write settles. */
-const OPTIMISTIC_PREFIX = 'optimistic:';
+const OPTIMISTIC_PREFIX = "optimistic:";
 
 export const isOptimistic = (id: string): boolean => id.startsWith(OPTIMISTIC_PREFIX);
 
@@ -168,12 +168,12 @@ function optimisticProcedure(
 
   return {
     id: `${OPTIMISTIC_PREFIX}${now}`,
-    clinicId: '',
+    clinicId: "",
     patientId,
     visitId: body.visitId ?? null,
     doctorId: body.doctorId,
     procedureId: body.procedureId,
-    price: body.price ?? '0.00',
+    price: body.price ?? "0.00",
     discount: body.discount,
     discountReason: body.discountReason ?? null,
     status: body.status,
@@ -184,7 +184,7 @@ function optimisticProcedure(
     updatedAt: now,
     chartMarks: body.chartMarks.map((mark, index) => ({
       id: `${OPTIMISTIC_PREFIX}${index}`,
-      clinicId: '',
+      clinicId: "",
       performedProcedureId: `${OPTIMISTIC_PREFIX}${now}`,
       chartType: mark.chartType,
       location: mark.location,
@@ -287,7 +287,7 @@ export function usePatientAttachments(
 
 export interface UploadAttachmentInput {
   readonly file: File;
-  readonly type: PresignAttachmentUploadInput['type'];
+  readonly type: PresignAttachmentUploadInput["type"];
   readonly tooth?: number | null | undefined;
   readonly note?: string | null | undefined;
   readonly visitId?: string | null | undefined;
@@ -302,7 +302,7 @@ export function useUploadAttachment(patientId: string) {
     mutationFn: async (input: UploadAttachmentInput): Promise<Attachment> => {
       const presigned = await patientsApi.presignUpload(patientId, {
         filename: input.file.name,
-        mime: input.file.type as PresignAttachmentUploadInput['mime'],
+        mime: input.file.type as PresignAttachmentUploadInput["mime"],
         sizeBytes: input.file.size,
         type: input.type,
       });
@@ -314,7 +314,7 @@ export function useUploadAttachment(patientId: string) {
         filename: input.file.name,
         type: input.type,
         ...(input.tooth != null && { tooth: input.tooth }),
-        ...(input.note != null && input.note !== '' && { note: input.note }),
+        ...(input.note != null && input.note !== "" && { note: input.note }),
         ...(input.visitId != null && { visitId: input.visitId }),
       };
 
@@ -339,6 +339,6 @@ export function usePatientTimeline(patientId: string): UseQueryResult<Paginated<
   return useQuery({
     queryKey: [PATIENT_TIMELINE_KEY, patientId],
     queryFn: () => patientsApi.timeline(patientId, { limit: 50 }),
-    enabled: patientId !== '',
+    enabled: patientId !== "",
   });
 }

@@ -1,8 +1,8 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID } from "node:crypto";
 
-import { CHART_TYPE, PROCEDURE_OUTCOME, USER_ROLE } from '@clinic/shared';
+import { CHART_TYPE, PROCEDURE_OUTCOME, USER_ROLE } from "@clinic/shared";
 
-import { auth, type TestClinic, type TestContext } from '@test/helpers/test-app';
+import { auth, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 export interface PatientFixtures {
   readonly doctorId: string;
@@ -17,13 +17,13 @@ export async function seedClinicFixtures(
   adminToken: string,
 ): Promise<PatientFixtures> {
   const doctor = await context.app.inject({
-    method: 'POST',
-    url: '/doctors',
+    method: "POST",
+    url: "/doctors",
     headers: auth(adminToken),
     payload: {
       userId: clinic.userIds[USER_ROLE.DOCTOR],
       specialtyId: clinic.specialtyId,
-      weeklySchedule: [{ weekday: 1, ranges: [{ start: '09:00', end: '17:00' }] }],
+      weeklySchedule: [{ weekday: 1, ranges: [{ start: "09:00", end: "17:00" }] }],
       defaultAppointmentDurationMinutes: 30,
     },
   });
@@ -33,15 +33,15 @@ export async function seedClinicFixtures(
   }
 
   const catalogItem = await context.app.inject({
-    method: 'POST',
-    url: '/procedure-catalog',
+    method: "POST",
+    url: "/procedure-catalog",
     headers: auth(adminToken),
     payload: {
       specialtyId: clinic.specialtyId,
       code: `PROC-${randomUUID().slice(0, 8)}`,
-      nameAr: 'حشوة تجميلية',
-      nameEn: 'Composite filling',
-      defaultPrice: '60.00',
+      nameAr: "حشوة تجميلية",
+      nameEn: "Composite filling",
+      defaultPrice: "60.00",
       chartOutcome: PROCEDURE_OUTCOME.FILLING,
     },
   });
@@ -64,8 +64,8 @@ export async function createPatient(
   payload: { fullName: string; phone: string; [key: string]: unknown },
 ): Promise<string> {
   const response = await context.app.inject({
-    method: 'POST',
-    url: '/patients',
+    method: "POST",
+    url: "/patients",
     headers: auth(token),
     payload,
   });
@@ -91,7 +91,7 @@ export function procedurePayload(input: {
     chartMarks: [
       {
         chartType: CHART_TYPE.TOOTH_FDI,
-        location: { tooth: input.tooth, surfaces: input.surfaces ?? ['O'] },
+        location: { tooth: input.tooth, surfaces: input.surfaces ?? ["O"] },
       },
     ],
   };

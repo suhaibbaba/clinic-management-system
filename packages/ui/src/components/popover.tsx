@@ -1,8 +1,8 @@
-import * as PopoverPrimitive from '@radix-ui/react-popover';
-import type { JSX, ReactNode } from 'react';
+import * as PopoverPrimitive from "@radix-ui/react-popover";
+import type { JSX, ReactNode } from "react";
 
-import { useDialogLayer } from '@ui/components/dialog-layer';
-import { cn } from '@ui/lib/cn';
+import { useDialogLayer } from "@ui/components/dialog-layer";
+import { cn } from "@ui/lib/cn";
 
 export interface PopoverProps {
   readonly open: boolean;
@@ -44,11 +44,11 @@ export function Popover({
             onOpenAutoFocus: (event: Event) => event.preventDefault(),
           })}
           className={cn(
-            'z-50 max-h-[min(32rem,var(--radix-popover-content-available-height))] overflow-y-auto',
-            'rounded-card border border-line bg-surface p-3 shadow-float',
-            'origin-(--radix-popover-content-transform-origin)',
-            'data-[state=open]:animate-[menu-in_150ms_ease-out]',
-            'data-[state=closed]:animate-[menu-out_150ms_ease-in]',
+            "z-50 max-h-[min(32rem,var(--radix-popover-content-available-height))] overflow-y-auto",
+            "rounded-card border border-line bg-surface p-3 shadow-float",
+            "origin-(--radix-popover-content-transform-origin)",
+            "data-[state=open]:animate-[menu-in_150ms_ease-out]",
+            "data-[state=closed]:animate-[menu-out_150ms_ease-in]",
           )}
         >
           {children}

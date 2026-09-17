@@ -1,18 +1,18 @@
-import { LOOKUP_LIST, type CalendarAppointment, type ClinicClosure } from '@clinic/shared';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { LOOKUP_LIST, type CalendarAppointment, type ClinicClosure } from "@clinic/shared";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { EmptyState, Ltr } from '@clinic/ui';
-import { useLookupLabels } from '@web/features/lookups/queries';
-import { APPOINTMENT_STATUS_STYLES } from '@web/features/appointments/status';
+import { EmptyState, Ltr } from "@clinic/ui";
+import { useLookupLabels } from "@web/features/lookups/queries";
+import { APPOINTMENT_STATUS_STYLES } from "@web/features/appointments/status";
 import {
   minutesOf,
   toIsoDate,
   toTimeLabel,
   weekDates,
-} from '@web/features/appointments/calendar-time';
-import { cn } from '@clinic/ui/lib/cn';
-import { formatDate } from '@web/lib/format';
+} from "@web/features/appointments/calendar-time";
+import { cn } from "@clinic/ui/lib/cn";
+import { formatDate } from "@web/lib/format";
 
 export interface WeekViewProps {
   readonly date: string;
@@ -56,20 +56,20 @@ export function WeekView({
           const closure = closureOn(day);
 
           return (
-            <div key={day} className={cn('min-w-40 flex-1', closure && 'bg-sunken')}>
+            <div key={day} className={cn("min-w-40 flex-1", closure && "bg-sunken")}>
               <button
                 type="button"
                 onClick={() => onPickDay(day)}
                 className={cn(
-                  'block w-full cursor-pointer border-b border-line px-3 py-2.5 text-center',
-                  'transition-colors duration-150 hover:bg-row-hover',
-                  closure ? 'bg-warning-50' : day === today && 'bg-primary-50',
+                  "block w-full cursor-pointer border-b border-line px-3 py-2.5 text-center",
+                  "transition-colors duration-150 hover:bg-row-hover",
+                  closure ? "bg-warning-50" : day === today && "bg-primary-50",
                 )}
               >
                 <span
                   className={cn(
-                    'block text-label font-medium',
-                    day === today ? 'text-primary-700' : 'text-ink',
+                    "block text-label font-medium",
+                    day === today ? "text-primary-700" : "text-ink",
                   )}
                 >
                   {formatDate(day)}
@@ -77,7 +77,7 @@ export function WeekView({
                 {/* The reason, not the word "closed": a clinic writes what it
                     wants reception to read out. */}
                 <span className="block truncate text-[11px] text-ink-muted">
-                  {closure ? closure.reason : t('pagination.total', { total: ofDay.length })}
+                  {closure ? closure.reason : t("pagination.total", { total: ofDay.length })}
                 </span>
               </button>
 
@@ -95,8 +95,8 @@ export function WeekView({
                         appointment.patientName
                       } — ${t(`appointments.statuses.${appointment.status}`)}`}
                       className={cn(
-                        'cursor-pointer rounded-panel border px-2 py-1.5 text-start',
-                        'transition-shadow duration-150 hover:shadow-card',
+                        "cursor-pointer rounded-panel border px-2 py-1.5 text-start",
+                        "transition-shadow duration-150 hover:shadow-card",
                         style.block,
                       )}
                     >

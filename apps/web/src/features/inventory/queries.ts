@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   AdjustStockInput,
   ConsumeStockInput,
@@ -19,17 +19,17 @@ import type {
   SupplierSummary,
   UpdateInventoryItemInput,
   UpdateSupplierInput,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { inventoryApi, suppliersApi } from '@web/features/inventory/api';
+import { inventoryApi, suppliersApi } from "@web/features/inventory/api";
 
-export const ITEMS_KEY = 'inventory-items';
-export const MOVEMENTS_KEY = 'stock-movements';
-export const BATCHES_KEY = 'item-batches';
-export const ALERTS_KEY = 'inventory-alerts';
-export const SHOPPING_LIST_KEY = 'shopping-list';
-export const SUPPLIERS_KEY = 'suppliers';
-export const SUPPLIER_STATEMENT_KEY = 'supplier-statement';
+export const ITEMS_KEY = "inventory-items";
+export const MOVEMENTS_KEY = "stock-movements";
+export const BATCHES_KEY = "item-batches";
+export const ALERTS_KEY = "inventory-alerts";
+export const SHOPPING_LIST_KEY = "shopping-list";
+export const SUPPLIERS_KEY = "suppliers";
+export const SUPPLIER_STATEMENT_KEY = "supplier-statement";
 
 const STOCK_KEYS = [
   ITEMS_KEY,
@@ -66,9 +66,9 @@ export function useInventoryItems(
 
 export function useInventoryItem(id: string): UseQueryResult<InventoryItemRow> {
   return useQuery({
-    queryKey: [ITEMS_KEY, 'one', id],
+    queryKey: [ITEMS_KEY, "one", id],
     queryFn: () => inventoryApi.item(id),
-    enabled: id !== '',
+    enabled: id !== "",
   });
 }
 
@@ -76,7 +76,7 @@ export function useItemBatches(id: string): UseQueryResult<ItemBatches> {
   return useQuery({
     queryKey: [BATCHES_KEY, id],
     queryFn: () => inventoryApi.batches(id),
-    enabled: id !== '',
+    enabled: id !== "",
   });
 }
 
@@ -88,7 +88,7 @@ export function useItemMovements(
     queryKey: [MOVEMENTS_KEY, id, query],
     queryFn: () => inventoryApi.itemMovements(id, query),
     placeholderData: (previous) => previous,
-    enabled: id !== '',
+    enabled: id !== "",
   });
 }
 
@@ -118,7 +118,7 @@ export function useSupplierStatement(
     queryKey: [SUPPLIER_STATEMENT_KEY, id, query],
     queryFn: () => suppliersApi.statement(id, query),
     placeholderData: (previous) => previous,
-    enabled: id !== '',
+    enabled: id !== "",
   });
 }
 

@@ -1,19 +1,19 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from "@nestjs/common";
 import {
   CHART_TYPE,
   type ChartMark,
   type PerformedProcedure,
   type ToothHistory,
-} from '@clinic/shared';
-import { desc, eq, inArray } from 'drizzle-orm';
+} from "@clinic/shared";
+import { desc, eq, inArray } from "drizzle-orm";
 
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { chartMarks, performedProcedures } from '@api/database/schema';
-import { AttachmentsService } from '@api/patients/attachments.service';
-import { PatientAccessService } from '@api/patients/patient-access.service';
-import { toChartMark, toProcedure } from '@api/patients/procedures.service';
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { chartMarks, performedProcedures } from "@api/database/schema";
+import { AttachmentsService } from "@api/patients/attachments.service";
+import { PatientAccessService } from "@api/patients/patient-access.service";
+import { toChartMark, toProcedure } from "@api/patients/procedures.service";
 
 // Starts from `chart_marks.tooth`, the column denormalised out of the JSONB precisely so this is an
 // index scan.

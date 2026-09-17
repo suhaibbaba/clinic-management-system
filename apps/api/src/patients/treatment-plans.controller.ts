@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   convertPlanItemSchema,
@@ -24,19 +24,19 @@ import {
   type PerformedProcedure,
   type TreatmentPlan,
   type TreatmentPlanItem,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { PERFORMED_PROCEDURES_ENTITY } from '@api/patients/procedures.service';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { PERFORMED_PROCEDURES_ENTITY } from "@api/patients/procedures.service";
 import {
   TREATMENT_PLAN_ITEMS_ENTITY,
   TREATMENT_PLANS_ENTITY,
   TreatmentPlansService,
-} from '@api/patients/treatment-plans.service';
+} from "@api/patients/treatment-plans.service";
 
 class CreateTreatmentPlanDto extends createZodDto(createTreatmentPlanSchema) {}
 class UpdateTreatmentPlanDto extends createZodDto(updateTreatmentPlanSchema) {}
@@ -47,7 +47,7 @@ class ListTreatmentPlansQueryDto extends createZodDto(listTreatmentPlansQuerySch
 class IdParamDto extends createZodDto(idParamSchema) {}
 
 /** Admin CRUD, doctor CRU, nothing for technician or receptionist (ROLES.md patients matrix). */
-@Controller('treatment-plans')
+@Controller("treatment-plans")
 @Roles(USER_ROLE.DOCTOR)
 export class TreatmentPlansController {
   constructor(private readonly plans: TreatmentPlansService) {}
@@ -60,7 +60,7 @@ export class TreatmentPlansController {
     return this.plans.list(actor, query);
   }
 
-  @Get(':id')
+  @Get(":id")
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -77,7 +77,7 @@ export class TreatmentPlansController {
     return this.plans.create(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Audit(TREATMENT_PLANS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,
@@ -87,7 +87,7 @@ export class TreatmentPlansController {
     return this.plans.update(actor, params.id, body);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(TREATMENT_PLANS_ENTITY, AUDIT_ACTION.DELETE)
@@ -98,8 +98,8 @@ export class TreatmentPlansController {
     await this.plans.softDelete(actor, params.id);
   }
 
-  @Post(':id/items')
-  @Audit(TREATMENT_PLAN_ITEMS_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: 'response' })
+  @Post(":id/items")
+  @Audit(TREATMENT_PLAN_ITEMS_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: "response" })
   addItem(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -110,12 +110,12 @@ export class TreatmentPlansController {
 }
 
 /** Plan items are addressed on their own so a client never has to know the plan. */
-@Controller('plan-items')
+@Controller("plan-items")
 @Roles(USER_ROLE.DOCTOR)
 export class PlanItemsController {
   constructor(private readonly plans: TreatmentPlansService) {}
 
-  @Patch(':id')
+  @Patch(":id")
   @Audit(TREATMENT_PLAN_ITEMS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,
@@ -125,7 +125,7 @@ export class PlanItemsController {
     return this.plans.updateItem(actor, params.id, body);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(TREATMENT_PLAN_ITEMS_ENTITY, AUDIT_ACTION.DELETE)
@@ -138,8 +138,8 @@ export class PlanItemsController {
 
   // The row this writes is a performed procedure, not the plan item, so the audit entry is keyed by
   // the response id rather than `:id`.
-  @Post(':id/convert')
-  @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: 'response' })
+  @Post(":id/convert")
+  @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: "response" })
   convert(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,

@@ -1,8 +1,8 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
-@import '@clinic/ui/styles/base.css';
-@import '../theme.css';
-@import '../base.css';
+@import "@clinic/ui/styles/base.css";
+@import "../theme.css";
+@import "../base.css";
 
 /* Kept here rather than inline so the reduced-motion rule in base.css can reach it. */
 @keyframes booking-fade-in {

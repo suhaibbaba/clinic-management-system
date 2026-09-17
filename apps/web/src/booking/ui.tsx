@@ -5,7 +5,7 @@ import {
   type InputHTMLAttributes,
   type JSX,
   type ReactNode,
-} from 'react';
+} from "react";
 
 // Not `@clinic/ui`: that library is Radix-backed, and one button from it pulls much of the
 // dashboard's dependency graph into an 80 KB budget.
@@ -13,15 +13,15 @@ import {
 /** Joins class names. No `tailwind-merge` here — 6 KB to resolve conflicts
  *  this file simply does not create. */
 export const cx = (...parts: (string | false | undefined | null)[]): string =>
-  parts.filter(Boolean).join(' ');
+  parts.filter(Boolean).join(" ");
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-primary-600 text-ink-inverse hover:bg-primary-700 active:bg-primary-800',
-  secondary: 'bg-inset text-ink hover:bg-neutral-200 active:bg-neutral-300',
-  ghost: 'text-primary-700 hover:bg-primary-50',
-  danger: 'bg-danger-600 text-ink-inverse hover:bg-danger-700 active:bg-danger-800',
+  primary: "bg-primary-600 text-ink-inverse hover:bg-primary-700 active:bg-primary-800",
+  secondary: "bg-inset text-ink hover:bg-neutral-200 active:bg-neutral-300",
+  ghost: "text-primary-700 hover:bg-primary-50",
+  danger: "bg-danger-600 text-ink-inverse hover:bg-danger-700 active:bg-danger-800",
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -31,7 +31,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export function Button({
-  variant = 'primary',
+  variant = "primary",
   busy = false,
   full = false,
   className,
@@ -43,15 +43,15 @@ export function Button({
     <button
       type="button"
       className={cx(
-        'pill-text inline-flex items-center min-h-(--control-h) cursor-pointer justify-center gap-2 rounded-control',
-        'px-5 text-field font-medium transition-colors duration-150',
-        'disabled:cursor-not-allowed disabled:opacity-45',
+        "pill-text inline-flex items-center min-h-(--control-h) cursor-pointer justify-center gap-2 rounded-control",
+        "px-5 text-field font-medium transition-colors duration-150",
+        "disabled:cursor-not-allowed disabled:opacity-45",
         BUTTON_VARIANTS[variant],
-        full && 'w-full',
+        full && "w-full",
         className,
       )}
       disabled={disabled === true || busy}
-      {...(busy && { 'aria-busy': true })}
+      {...(busy && { "aria-busy": true })}
       {...rest}
     >
       {busy && <Spinner />}
@@ -78,7 +78,7 @@ export function Card({
 }): JSX.Element {
   return (
     <section
-      className={cx('border border-line rounded-card bg-surface p-4 shadow-card', className)}
+      className={cx("border border-line rounded-card bg-surface p-4 shadow-card", className)}
     >
       {children}
     </section>
@@ -106,11 +106,11 @@ export function ChoiceCard({
       aria-label={label}
       onClick={onClick}
       className={cx(
-        'flex w-full cursor-pointer items-center gap-3 rounded-card p-4 text-start',
-        'transition-colors duration-150',
+        "flex w-full cursor-pointer items-center gap-3 rounded-card p-4 text-start",
+        "transition-colors duration-150",
         selected
-          ? 'bg-selected ring-2 ring-primary-600'
-          : 'border border-line bg-surface shadow-card hover:bg-row-hover',
+          ? "bg-selected ring-2 ring-primary-600"
+          : "border border-line bg-surface shadow-card hover:bg-row-hover",
       )}
     >
       {children}
@@ -119,10 +119,10 @@ export function ChoiceCard({
 }
 
 export function Alert({
-  tone = 'danger',
+  tone = "danger",
   children,
 }: {
-  readonly tone?: 'danger' | 'info';
+  readonly tone?: "danger" | "info";
   readonly children: ReactNode;
 }): JSX.Element {
   return (
@@ -131,8 +131,8 @@ export function Alert({
       // error the page did not report.
       role="status"
       className={cx(
-        'rounded-panel px-3 py-2.5 text-value',
-        tone === 'danger' ? 'bg-danger-50 text-danger-800' : 'bg-primary-50 text-primary-900',
+        "rounded-panel px-3 py-2.5 text-value",
+        tone === "danger" ? "bg-danger-50 text-danger-800" : "bg-primary-50 text-primary-900",
       )}
     >
       {children}
@@ -141,7 +141,7 @@ export function Alert({
 }
 
 export function Skeleton({ className }: { readonly className?: string }): JSX.Element {
-  return <span aria-hidden className={cx('skeleton block rounded-panel', className)} />;
+  return <span aria-hidden className={cx("skeleton block rounded-panel", className)} />;
 }
 
 // The dashboard's `Img` in miniature — the wall keeps `@web/components` out of this bundle. Same
@@ -161,11 +161,11 @@ export function Img({
   readonly priority?: boolean;
   readonly fallback?: ReactNode;
 }): JSX.Element {
-  const [state, setState] = useState<'loading' | 'loaded' | 'failed'>('loading');
+  const [state, setState] = useState<"loading" | "loaded" | "failed">("loading");
 
-  useEffect(() => setState('loading'), [src]);
+  useEffect(() => setState("loading"), [src]);
 
-  const missing = src === null || src === undefined || src === '';
+  const missing = src === null || src === undefined || src === "";
 
   return (
     <span style={{ width, height }} className="relative block max-w-full shrink-0 overflow-hidden">
@@ -173,22 +173,22 @@ export function Img({
         <img
           src={src}
           alt={alt}
-          onLoad={() => setState('loaded')}
-          onError={() => setState('failed')}
-          {...(priority ? { loading: 'eager', fetchPriority: 'high' } : { loading: 'lazy' })}
+          onLoad={() => setState("loaded")}
+          onError={() => setState("failed")}
+          {...(priority ? { loading: "eager", fetchPriority: "high" } : { loading: "lazy" })}
           decoding="async"
           className={cx(
-            'size-full object-contain transition-opacity duration-[120ms]',
-            state === 'loaded' ? 'opacity-100' : 'opacity-0',
+            "size-full object-contain transition-opacity duration-[120ms]",
+            state === "loaded" ? "opacity-100" : "opacity-0",
           )}
         />
       )}
 
-      {!missing && state === 'loading' && (
+      {!missing && state === "loading" && (
         <Skeleton className="absolute inset-0 size-full rounded-none" />
       )}
 
-      {(missing || state === 'failed') && fallback}
+      {(missing || state === "failed") && fallback}
     </span>
   );
 }
@@ -216,18 +216,18 @@ export function Field({ label, error, hint, id, className, ...rest }: FieldProps
       <input
         id={fieldId}
         className={cx(
-          'min-h-(--control-h) w-full rounded-control border-[1.5px] bg-surface px-3 text-field text-ink',
-          'placeholder:text-ink-subtle',
+          "min-h-(--control-h) w-full rounded-control border-[1.5px] bg-surface px-3 text-field text-ink",
+          "placeholder:text-ink-subtle",
           // `dir="ltr"` keeps the digits in order, but the alignment belongs to the page — by its
           // own direction the field sat left of an Arabic form, under a label on the right.
-          rest.dir === 'ltr' ? 'page-rtl:text-right page-ltr:text-left' : 'text-start',
+          rest.dir === "ltr" ? "page-rtl:text-right page-ltr:text-left" : "text-start",
           error
-            ? 'border-danger-600 shadow-field-error'
-            : 'border-line-strong hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus',
+            ? "border-danger-600 shadow-field-error"
+            : "border-line-strong hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus",
           className,
         )}
-        {...(describedBy && { 'aria-describedby': describedBy })}
-        {...(error && { 'aria-invalid': true })}
+        {...(describedBy && { "aria-describedby": describedBy })}
+        {...(error && { "aria-invalid": true })}
         {...rest}
       />
 

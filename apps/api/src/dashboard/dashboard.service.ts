@@ -1,15 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 import {
   APPOINTMENT_STATUS,
   DASHBOARD_SCHEDULE_LIMIT,
   USER_ROLE,
   type DashboardSummary,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { AppointmentAccessService } from '@api/appointments/appointment-access.service';
-import { AppointmentsService } from '@api/appointments/appointments.service';
-import { OverdueService } from '@api/billing/overdue.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
+import { AppointmentAccessService } from "@api/appointments/appointment-access.service";
+import { AppointmentsService } from "@api/appointments/appointments.service";
+import { OverdueService } from "@api/billing/overdue.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 
 @Injectable()
 export class DashboardService {

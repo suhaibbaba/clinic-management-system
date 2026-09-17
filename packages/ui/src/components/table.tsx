@@ -1,18 +1,18 @@
-import type { JSX, ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { JSX, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Icon } from '@ui/components/icon';
-import { Ltr } from '@ui/components/ltr';
-import { Select } from '@ui/components/select';
+import { Icon } from "@ui/components/icon";
+import { Ltr } from "@ui/components/ltr";
+import { Select } from "@ui/components/select";
 import {
   RefreshBar,
   SkeletonStatus,
   SkeletonTable,
   SkeletonTableCards,
-} from '@ui/components/skeleton';
-import { cn } from '@ui/lib/cn';
-import { useDelayedLoading } from '@ui/lib/use-delayed-loading';
-import { useIsMobile } from '@ui/lib/use-media-query';
+} from "@ui/components/skeleton";
+import { cn } from "@ui/lib/cn";
+import { useDelayedLoading } from "@ui/lib/use-delayed-loading";
+import { useIsMobile } from "@ui/lib/use-media-query";
 
 export interface Column<TRow> {
   readonly key: string;
@@ -27,7 +27,7 @@ export interface Column<TRow> {
   readonly primary?: boolean | undefined;
   readonly actions?: boolean | undefined;
   /** Numeric values: lining, tabular figures so columns of money line up. */
-  readonly align?: 'start' | 'end' | 'numeric' | undefined;
+  readonly align?: "start" | "end" | "numeric" | undefined;
 }
 
 export interface TableProps<TRow> {
@@ -60,13 +60,13 @@ export interface PaginationProps {
 /** What a list offers as its page sizes. A clinic's screen is a laptop or a phone, not a wall. */
 export const PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;
 
-const alignClass = (align: Column<never>['align']): string =>
-  align === 'numeric' ? 'text-end tabular-nums' : align === 'end' ? 'text-end' : 'text-start';
+const alignClass = (align: Column<never>["align"]): string =>
+  align === "numeric" ? "text-end tabular-nums" : align === "end" ? "text-end" : "text-start";
 
 // End-alignment is a property of a column, and a card has no column: it pushed the balance to the
 // far side while the phone and age sat at the start. Only `tabular-nums` is kept.
-const cardAlignClass = (align: Column<never>['align']): string =>
-  align === 'numeric' ? 'text-start tabular-nums' : 'text-start';
+const cardAlignClass = (align: Column<never>["align"]): string =>
+  align === "numeric" ? "text-start tabular-nums" : "text-start";
 
 // Both shapes read the same `columns` array, so a card's label is the header above it. Only one is
 // rendered — `md:hidden` left the duplicate in the document, read twice and with duplicate ids.
@@ -127,7 +127,7 @@ export function Table<TRow>({
 
               const shown = detail.filter((column) => {
                 const value = column.render(row);
-                return value !== null && value !== undefined && value !== false && value !== '';
+                return value !== null && value !== undefined && value !== false && value !== "";
               });
 
               const body = (
@@ -154,11 +154,11 @@ export function Table<TRow>({
                           className={cn(
                             // `pe-4` is the label's own end padding — without it a label wider than
                             // its minimum runs straight into its value.
-                            'py-2.5 pe-4 text-start text-label text-ink-muted',
+                            "py-2.5 pe-4 text-start text-label text-ink-muted",
                             // The label carries the value's line height: different line boxes split
                             // the row, and `items-baseline` breaks the hairline.
-                            'leading-6',
-                            index > 0 && 'border-t border-line',
+                            "leading-6",
+                            index > 0 && "border-t border-line",
                           )}
                         >
                           {t(column.header)}
@@ -166,9 +166,9 @@ export function Table<TRow>({
                         <dd
                           data-part="table-card-value"
                           className={cn(
-                            'py-2.5 text-value text-ink',
+                            "py-2.5 text-value text-ink",
                             cardAlignClass(column.align),
-                            index > 0 && 'border-t border-line',
+                            index > 0 && "border-t border-line",
                           )}
                         >
                           {column.render(row)}
@@ -181,8 +181,8 @@ export function Table<TRow>({
                     <div
                       data-part="table-row-actions"
                       className={cn(
-                        'relative z-10 mt-3 flex flex-wrap items-center justify-end gap-2',
-                        'border-t border-line pt-3',
+                        "relative z-10 mt-3 flex flex-wrap items-center justify-end gap-2",
+                        "border-t border-line pt-3",
                       )}
                     >
                       {rowActions}
@@ -192,7 +192,7 @@ export function Table<TRow>({
               );
 
               const cardClass =
-                'border border-line rounded-card bg-surface p-4 text-start shadow-card transition duration-[250ms] ease-in-out';
+                "border border-line rounded-card bg-surface p-4 text-start shadow-card transition duration-[250ms] ease-in-out";
 
               return onRowClick === undefined ? (
                 <div key={rowKey(row)} data-row data-part="table-card" className={cardClass}>
@@ -205,13 +205,13 @@ export function Table<TRow>({
                   key={rowKey(row)}
                   data-row
                   data-part="table-card"
-                  className={cn(cardClass, 'relative')}
+                  className={cn(cardClass, "relative")}
                 >
                   <button
                     type="button"
                     data-part="table-card-overlay"
                     onClick={() => onRowClick(row)}
-                    {...(rowLabel && { 'aria-label': rowLabel(row) })}
+                    {...(rowLabel && { "aria-label": rowLabel(row) })}
                     className="absolute inset-0 z-0 cursor-pointer rounded-card"
                   />
                   {body}
@@ -259,8 +259,8 @@ export function Table<TRow>({
                   data-part="table-head-cell"
                   scope="col"
                   className={cn(
-                    'whitespace-nowrap border-b border-line bg-table-head px-[18px] py-[13px]',
-                    'text-micro font-medium text-ink-muted',
+                    "whitespace-nowrap border-b border-line bg-table-head px-[18px] py-[13px]",
+                    "text-micro font-medium text-ink-muted",
                     alignClass(column.align),
                     column.className,
                   )}
@@ -282,10 +282,10 @@ export function Table<TRow>({
                   data-part="table-body-row"
                   {...(onRowClick && {
                     onClick: () => onRowClick(row),
-                    className: 'cursor-pointer transition-colors duration-150 hover:bg-row-hover',
+                    className: "cursor-pointer transition-colors duration-150 hover:bg-row-hover",
                   })}
                   {...(!onRowClick && {
-                    className: 'transition-colors duration-150 hover:bg-row-hover',
+                    className: "transition-colors duration-150 hover:bg-row-hover",
                   })}
                 >
                   {wideColumns.map((column) => (
@@ -293,7 +293,7 @@ export function Table<TRow>({
                       key={column.key}
                       data-part="table-body-cell"
                       className={cn(
-                        'px-[18px] py-[13px] align-middle',
+                        "px-[18px] py-[13px] align-middle",
                         alignClass(column.align),
                         column.className,
                       )}
@@ -343,20 +343,20 @@ export function Pagination({
     <nav
       data-part="pagination"
       className={cn(
-        'flex flex-wrap items-center justify-between gap-2',
-        'border-t border-line bg-table-head px-[18px] py-3',
+        "flex flex-wrap items-center justify-between gap-2",
+        "border-t border-line bg-table-head px-[18px] py-3",
       )}
-      aria-label={t('pagination.label')}
+      aria-label={t("pagination.label")}
     >
       <div className="flex items-center gap-3">
         <p data-part="pagination-total" className="text-meta text-ink-muted">
-          {t('pagination.total', { total })}
+          {t("pagination.total", { total })}
         </p>
 
         {/* The size of a page is the reader's: a laptop shows fifty rows where a phone shows ten. */}
         {perPage !== undefined && onPerPageChange !== undefined && (
           <label className="flex items-center gap-2 text-meta text-ink-muted">
-            {t('pagination.perPage')}
+            {t("pagination.perPage")}
             <Select
               className="w-[5.5rem]"
               value={String(perPage)}
@@ -374,7 +374,7 @@ export function Pagination({
           arrows and a "page 1 of 2" that has to be read to be understood. */}
       <div data-part="pagination-pages" className="flex items-center gap-1.5">
         <PageButton
-          label={t('pagination.previous')}
+          label={t("pagination.previous")}
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
@@ -394,7 +394,7 @@ export function Pagination({
           ) : (
             <PageButton
               key={entry}
-              label={t('pagination.goToPage', { page: entry })}
+              label={t("pagination.goToPage", { page: entry })}
               current={entry === page}
               onClick={() => onPageChange(entry)}
             >
@@ -404,7 +404,7 @@ export function Pagination({
         )}
 
         <PageButton
-          label={t('pagination.next')}
+          label={t("pagination.next")}
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
         >
@@ -433,16 +433,16 @@ function PageButton({
       type="button"
       data-part="pagination-page"
       aria-label={label}
-      aria-current={current ? 'page' : undefined}
+      aria-current={current ? "page" : undefined}
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'pill-text inline-flex items-center size-(--control-h) cursor-pointer justify-center lg:size-(--control-h-sm)',
-        'rounded-chip border text-label tabular-nums transition-colors duration-[250ms] ease-in-out',
+        "pill-text inline-flex items-center size-(--control-h) cursor-pointer justify-center lg:size-(--control-h-sm)",
+        "rounded-chip border text-label tabular-nums transition-colors duration-[250ms] ease-in-out",
         current
-          ? 'border-primary-600 bg-primary-600 font-medium text-ink-inverse'
-          : 'border-line bg-surface text-ink-muted hover:bg-inset hover:border-primary-600 hover:text-primary-700',
-        'disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line',
+          ? "border-primary-600 bg-primary-600 font-medium text-ink-inverse"
+          : "border-line bg-surface text-ink-muted hover:bg-inset hover:border-primary-600 hover:text-primary-700",
+        "disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line",
       )}
     >
       {children}

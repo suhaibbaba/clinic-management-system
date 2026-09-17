@@ -1,14 +1,14 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 import {
   BOOKING_NAME_LENGTH,
   BOOKING_PHONE_LENGTH,
   BOOKING_PHONE_PATTERN,
-} from '@shared/constants/booking';
-import { BOOKING_CONFIRMATION_MODE, BOOKING_CONFIRMATION_MODES } from '@shared/enums';
-import { isoDateSchema, slotSchema } from '@shared/schemas/appointments';
-import { personNameSchema } from '@shared/schemas/person-name';
-import { timeOfDaySchema, uuidSchema } from '@shared/schemas/common';
+} from "@shared/constants/booking";
+import { BOOKING_CONFIRMATION_MODE, BOOKING_CONFIRMATION_MODES } from "@shared/enums";
+import { isoDateSchema, slotSchema } from "@shared/schemas/appointments";
+import { personNameSchema } from "@shared/schemas/person-name";
+import { timeOfDaySchema, uuidSchema } from "@shared/schemas/common";
 
 export const bookingSettingsSchema = z.object({
   enabled: z.boolean().default(false),
@@ -23,8 +23,8 @@ export type BookingSettings = z.infer<typeof bookingSettingsSchema>;
 /** Never throws: a malformed blob must read as "booking is off", not as a 500. */
 export function bookingSettings(settings: unknown): BookingSettings {
   const raw =
-    typeof settings === 'object' && settings !== null
-      ? (settings as Record<string, unknown>)['booking']
+    typeof settings === "object" && settings !== null
+      ? (settings as Record<string, unknown>)["booking"]
       : undefined;
 
   const parsed = bookingSettingsSchema.safeParse(raw ?? {});
@@ -73,7 +73,7 @@ export const publicSlotsSchema = z.object({
   date: isoDateSchema,
   /** Only bookable ones — a stranger has no use for a greyed grid. */
   slots: z.array(slotSchema.omit({ available: true })),
-  closedReason: z.enum(['clinic_closure', 'doctor_time_off']).nullable(),
+  closedReason: z.enum(["clinic_closure", "doctor_time_off"]).nullable(),
   closedNote: z.string().nullable(),
 });
 export type PublicSlots = z.infer<typeof publicSlotsSchema>;
@@ -85,7 +85,7 @@ export const bookingPhoneSchema = z
   .trim()
   .min(BOOKING_PHONE_LENGTH.min)
   .max(BOOKING_PHONE_LENGTH.max)
-  .regex(BOOKING_PHONE_PATTERN, 'Expected a phone number');
+  .regex(BOOKING_PHONE_PATTERN, "Expected a phone number");
 
 export const createBookingSchema = z.object({
   fullName: z.string().trim().min(BOOKING_NAME_LENGTH.min).max(BOOKING_NAME_LENGTH.max),
@@ -101,7 +101,7 @@ export type CreateBookingInput = z.infer<typeof createBookingSchema>;
 export const bookingReceiptSchema = z.object({
   /** Signed, opaque. Not a database id. */
   token: z.string(),
-  status: z.enum(['pending_otp', 'pending_confirmation']),
+  status: z.enum(["pending_otp", "pending_confirmation"]),
   otpExpiresInSeconds: z.number().int().nullable(),
   holdExpiresAt: z.iso.datetime(),
 });
@@ -112,7 +112,7 @@ export const verifyOtpSchema = z.object({
   code: z
     .string()
     .trim()
-    .regex(/^\d{6}$/, 'Expected a six-digit code'),
+    .regex(/^\d{6}$/, "Expected a six-digit code"),
 });
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
 

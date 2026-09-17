@@ -1,10 +1,10 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { healthResponseSchema, type HealthResponse } from '@clinic/shared';
-import { sql } from 'drizzle-orm';
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { healthResponseSchema, type HealthResponse } from "@clinic/shared";
+import { sql } from "drizzle-orm";
 
-import type { Env } from '@api/config/env.schema';
-import { DATABASE, type Database } from '@api/database/database.module';
+import type { Env } from "@api/config/env.schema";
+import { DATABASE, type Database } from "@api/database/database.module";
 
 @Injectable()
 export class HealthService {
@@ -16,14 +16,14 @@ export class HealthService {
   ) {}
 
   version(): string {
-    return this.config.get('APP_VERSION', { infer: true });
+    return this.config.get("APP_VERSION", { infer: true });
   }
 
   async check(): Promise<HealthResponse> {
-    const database = (await this.pingDatabase()) ? 'up' : 'down';
+    const database = (await this.pingDatabase()) ? "up" : "down";
 
     return healthResponseSchema.parse({
-      status: database === 'up' ? 'ok' : 'degraded',
+      status: database === "up" ? "ok" : "degraded",
       database,
       version: this.version(),
       timestamp: new Date().toISOString(),
@@ -37,7 +37,7 @@ export class HealthService {
       return true;
     } catch (error: unknown) {
       this.logger.error(
-        'Database health probe failed',
+        "Database health probe failed",
         error instanceof Error ? error.stack : error,
       );
       return false;
