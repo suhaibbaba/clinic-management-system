@@ -146,6 +146,31 @@ describe("Patient page", () => {
     });
   });
 
+  describe("booking from the file (ROLES.md appointments matrix)", () => {
+    it.each([USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST])(
+      "offers %s a new appointment",
+      async (role) => {
+        await renderPatientPage(role);
+
+        expect(
+          await screen.findByRole("button", { name: ar.appointments.create }),
+        ).toBeInTheDocument();
+      },
+    );
+
+    it("opens the form on the patient whose file is open, with no search to do", async () => {
+      await renderPatientPage(USER_ROLE.RECEPTIONIST);
+
+      await userEvent.click(await screen.findByRole("button", { name: ar.appointments.create }));
+
+      const form = await screen.findByRole("dialog");
+
+      // The patient is settled, so the picker shows the chosen card rather than a search box.
+      expect(within(form).getByText(makePatient().fullName)).toBeInTheDocument();
+      expect(within(form).queryByRole("combobox", { name: ar.patients.search })).toBeNull();
+    });
+  });
+
   describe("header", () => {
     it("shows the file number, age and phone", async () => {
       await renderPatientPage(USER_ROLE.DOCTOR);
