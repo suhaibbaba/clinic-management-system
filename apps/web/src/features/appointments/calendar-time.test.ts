@@ -22,9 +22,9 @@ const appointment = (startsAt: string, durationMinutes: number) =>
 
 describe("calendar time", () => {
   it("labels minutes on a 12-hour clock", () => {
-    expect(toTimeLabel(GRID_START_MINUTE)).toBe("7:00 ص");
-    expect(toTimeLabel(9 * 60 + 30)).toBe("9:30 ص");
-    expect(toTimeLabel(GRID_END_MINUTE)).toBe("10:00 م");
+    expect(toTimeLabel(GRID_START_MINUTE)).toBe("7:00 AM");
+    expect(toTimeLabel(9 * 60 + 30)).toBe("9:30 AM");
+    expect(toTimeLabel(GRID_END_MINUTE)).toBe("10:00 PM");
   });
 
   it("draws an hour line for every hour of the grid, inclusive of both ends", () => {
