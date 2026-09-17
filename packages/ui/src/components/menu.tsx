@@ -4,6 +4,7 @@ import type { JSX, ReactNode } from "react";
 import { Icon, type IconName } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
 import { documentDirection } from "@ui/lib/direction";
+import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 
 export function Menu({ children }: { readonly children: ReactNode }): JSX.Element {
   return (
@@ -17,15 +18,16 @@ export function MenuContent({
   children,
   align = "end",
   className,
+  "data-testid": testId,
 }: {
   readonly children: ReactNode;
   readonly align?: "start" | "center" | "end" | undefined;
   readonly className?: string | undefined;
-}): JSX.Element {
+} & TestIdProps): JSX.Element {
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
-        data-part="menu"
+        {...parts("menu", testId)()}
         align={align}
         sideOffset={8}
         className={cn(
@@ -42,7 +44,7 @@ export function MenuContent({
   );
 }
 
-export interface MenuItemProps {
+export interface MenuItemProps extends TestIdProps {
   readonly icon: IconName;
   readonly children: ReactNode;
   readonly onSelect?: (() => void) | undefined;
@@ -56,10 +58,12 @@ export function MenuItem({
   onSelect,
   tone = "default",
   trailing,
+  "data-testid": testId,
 }: MenuItemProps): JSX.Element {
   return (
     <DropdownMenuPrimitive.Item
       data-part="menu-item"
+      {...testid(testId)}
       {...(onSelect && { onSelect })}
       className={cn(
         "flex min-h-(--control-h) cursor-pointer select-none items-center gap-2 rounded-control px-3 py-2",
@@ -74,7 +78,11 @@ export function MenuItem({
       )}
     >
       <Icon name={icon} className={tone === "danger" ? "text-danger-600" : "text-ink-muted"} />
-      <span data-part="menu-item-label" className="flex-1 truncate text-start">
+      <span
+        data-part="menu-item-label"
+        {...testid(testId, "label")}
+        className="flex-1 truncate text-start"
+      >
         {children}
       </span>
       {trailing}
@@ -82,10 +90,14 @@ export function MenuItem({
   );
 }
 
-export function MenuLabel({ children }: { readonly children: ReactNode }): JSX.Element {
+export function MenuLabel({
+  children,
+  "data-testid": testId,
+}: { readonly children: ReactNode } & TestIdProps): JSX.Element {
   return (
     <DropdownMenuPrimitive.Label
       data-part="menu-label"
+      {...testid(testId)}
       className="px-3 pb-1 pt-2 text-meta font-medium text-ink-subtle"
     >
       {children}
@@ -99,17 +111,18 @@ export function MenuSeparator(): JSX.Element {
   );
 }
 
-export interface RowMenuProps {
+export interface RowMenuProps extends TestIdProps {
   /** Named for screen readers; the trigger is a glyph. */
   readonly label: string;
   readonly children: ReactNode;
 }
 
-export function RowMenu({ label, children }: RowMenuProps): JSX.Element {
+export function RowMenu({ label, children, "data-testid": testId }: RowMenuProps): JSX.Element {
   return (
     <Menu>
       <MenuTrigger
         data-part="row-menu-trigger"
+        {...testid(testId)}
         aria-label={label}
         className={cn(
           "inline-grid size-(--control-h) shrink-0 cursor-pointer place-items-center",
@@ -122,7 +135,7 @@ export function RowMenu({ label, children }: RowMenuProps): JSX.Element {
         <Icon name="more-vertical" className="size-4" />
       </MenuTrigger>
 
-      <MenuContent>{children}</MenuContent>
+      <MenuContent {...testid(testId, "menu")}>{children}</MenuContent>
     </Menu>
   );
 }

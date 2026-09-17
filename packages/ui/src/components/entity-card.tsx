@@ -4,6 +4,7 @@ import { Badge, type BadgeTone } from "@ui/components/badge";
 import { Icon, type IconName } from "@ui/components/icon";
 import { ProgressBar, type ProgressTone } from "@ui/components/progress-bar";
 import { cn } from "@ui/lib/cn";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export interface EntityCardMeta {
   readonly label: string;
@@ -12,7 +13,7 @@ export interface EntityCardMeta {
   readonly ltr?: boolean | undefined;
 }
 
-export interface EntityCardProps {
+export interface EntityCardProps extends TestIdProps {
   readonly icon: IconName;
   readonly title: string;
   readonly subtitle?: string | undefined;
@@ -53,10 +54,13 @@ export function EntityCard({
   isSelected = false,
   className,
   children,
+  "data-testid": testId,
 }: EntityCardProps): JSX.Element {
+  const part = parts("entity-card", testId);
+
   return (
     <article
-      data-part="entity-card"
+      {...part()}
       data-entity-card
       className={cn(
         "flex flex-col border border-line rounded-card bg-surface p-4 shadow-card",
@@ -68,27 +72,28 @@ export function EntityCard({
     >
       <div className="flex items-start gap-3">
         <span
-          data-part="entity-card-icon"
+          {...part("icon")}
           className="inline-flex size-9 shrink-0 items-center justify-center rounded-field bg-primary-100 text-primary-700"
         >
           <Icon name={icon} />
         </span>
 
         <div className="min-w-0 flex-1">
-          <h3 data-part="entity-card-title" className="truncate text-value font-medium text-ink">
+          <h3 {...part("title")} className="truncate text-value font-medium text-ink">
             {title}
           </h3>
           {subtitle !== undefined && (
-            <p
-              data-part="entity-card-subtitle"
-              className="mt-0.5 truncate text-meta text-ink-muted"
-            >
+            <p {...part("subtitle")} className="mt-0.5 truncate text-meta text-ink-muted">
               {subtitle}
             </p>
           )}
         </div>
 
-        {status !== undefined && <Badge tone={status.tone}>{status.label}</Badge>}
+        {status !== undefined && (
+          <Badge tone={status.tone} {...part("status")}>
+            {status.label}
+          </Badge>
+        )}
       </div>
 
       {progress !== undefined && (
@@ -108,7 +113,7 @@ export function EntityCard({
       {children}
 
       <div className="mt-3 flex items-end justify-between gap-3 border-t border-line pt-3">
-        <dl data-part="entity-card-meta" className="flex min-w-0 flex-wrap gap-x-5 gap-y-2">
+        <dl {...part("meta")} className="flex min-w-0 flex-wrap gap-x-5 gap-y-2">
           {(meta ?? []).map((entry) => (
             <div key={entry.label} className="min-w-0">
               <dt className="text-meta text-ink-subtle">{entry.label}</dt>
@@ -127,7 +132,7 @@ export function EntityCard({
         {action !== undefined && (
           <button
             type="button"
-            data-part="entity-card-action"
+            {...part("action")}
             onClick={action.onClick}
             disabled={action.disabled === true}
             aria-label={action.label}
@@ -148,9 +153,12 @@ export function EntityCard({
   );
 }
 
-export function EntityGrid({ children }: { readonly children: ReactNode }): JSX.Element {
+export function EntityGrid({
+  children,
+  "data-testid": testId,
+}: { readonly children: ReactNode } & TestIdProps): JSX.Element {
   return (
-    <div data-part="entity-grid" className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+    <div {...parts("entity-grid", testId)()} className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       {children}
     </div>
   );

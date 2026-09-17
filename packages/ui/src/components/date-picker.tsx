@@ -9,6 +9,7 @@ import { Icon } from "@ui/components/icon";
 import { openOnArrowDown, usePickerOpen } from "@ui/lib/picker-open";
 import { Popover } from "@ui/components/popover";
 import { cn } from "@ui/lib/cn";
+import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 
 /** The wire format everywhere: what the API takes and returns. */
 const ISO = "yyyy-MM-dd";
@@ -33,7 +34,7 @@ export function fromIsoDate(value: string | null | undefined): Date | undefined 
   return isValid(parsed) ? parsed : undefined;
 }
 
-export interface DatePickerProps {
+export interface DatePickerProps extends TestIdProps {
   readonly id: string;
   readonly value: string;
   readonly onChange: (value: string) => void;
@@ -56,9 +57,12 @@ export function DatePicker({
   hasError = false,
   startView,
   className,
+  "data-testid": testId,
 }: DatePickerProps): JSX.Element {
   const { t, i18n } = useTranslation();
   const picker = usePickerOpen();
+  const id_ = testId ?? id;
+  const part = parts("date-picker", id_);
   const selected = fromIsoDate(value);
   const [typed, setTyped] = useState(() => (selected ? format(selected, TYPED) : ""));
 
@@ -89,11 +93,12 @@ export function DatePicker({
       onOpenChange={picker.onOpenChange}
       focusOnOpen={picker.focusOnOpen}
       title={label}
+      {...part("popover")}
       anchor={
-        <div data-part="date-picker" className={cn(fieldShell({ hasError, disabled }), className)}>
+        <div {...part()} className={cn(fieldShell({ hasError, disabled }), className)}>
           <input
             id={id}
-            data-part="date-picker-input"
+            {...part("input")}
             type="text"
             inputMode="numeric"
             dir="ltr"
@@ -109,11 +114,11 @@ export function DatePicker({
           />
 
           {disabled ? (
-            <FieldLock />
+            <FieldLock {...part("lock")} />
           ) : (
             <button
               type="button"
-              data-part="date-picker-trigger"
+              {...part("trigger")}
               aria-label={t("common.openCalendar")}
               {...picker.opens(true)}
               className={FIELD_BUTTON}
@@ -138,12 +143,14 @@ export function DatePicker({
 
       <div
         data-part="picker-footer"
+        {...testid(id_, "footer")}
         className="mt-2 flex items-center justify-between gap-2 border-t border-line pt-2"
       >
         <Button
           size="sm"
           variant="quiet"
           icon={<Icon name="x" />}
+          {...testid(id_, "clear")}
           onClick={() => {
             onChange("");
             picker.onOpenChange(false);
@@ -156,6 +163,7 @@ export function DatePicker({
           size="sm"
           variant="ghost"
           icon={<Icon name="calendar" />}
+          {...testid(id_, "today")}
           onClick={() => {
             onChange(toIsoDate(new Date()));
             picker.onOpenChange(false);

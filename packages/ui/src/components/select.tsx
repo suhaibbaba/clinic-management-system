@@ -5,6 +5,7 @@ import { useDialogLayer } from "@ui/components/dialog-layer";
 import { FieldLock, fieldShell } from "@ui/components/field";
 import { Icon } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
+import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 import { documentDirection } from "@ui/lib/direction";
 
 export interface SelectOption {
@@ -12,10 +13,8 @@ export interface SelectOption {
   readonly label: string;
 }
 
-export interface SelectProps extends Omit<
-  SelectHTMLAttributes<HTMLSelectElement>,
-  "onChange" | "value"
-> {
+export interface SelectProps
+  extends Omit<SelectHTMLAttributes<HTMLSelectElement>, "onChange" | "value">, TestIdProps {
   options: readonly SelectOption[];
   /** Shown while nothing is chosen, and offered as the way back to nothing. */
   placeholder?: string | undefined;
@@ -46,7 +45,9 @@ export function Select({
   required,
   "aria-label": ariaLabel,
   "aria-describedby": describedBy,
+  "data-testid": testId,
 }: SelectProps): JSX.Element {
+  const part = parts("select", testId);
   // Radix Dialog makes the body inert, so a listbox portalled to `document.body` from inside one
   // ignores every click. A no-op elsewhere.
   const dialogLayer = useDialogLayer();
@@ -76,7 +77,7 @@ export function Select({
     >
       <SelectPrimitive.Trigger
         id={id}
-        data-part="select"
+        {...part()}
         onBlur={onBlur}
         aria-label={ariaLabel}
         aria-describedby={describedBy}
@@ -93,7 +94,7 @@ export function Select({
         {/* The value truncates and the chevron does not: a long doctor's name ellipsises rather
             than pushing the chevron out of the field. */}
         <span
-          data-part="select-value"
+          {...part("value")}
           className={cn(
             "min-w-0 flex-1 truncate",
             // Ours rather than `data-[placeholder]`: the empty state is a real selection here, so
@@ -105,12 +106,12 @@ export function Select({
         </span>
 
         {disabled ? (
-          <FieldLock />
+          <FieldLock {...testid(testId, "lock")} />
         ) : (
           <SelectPrimitive.Icon asChild>
             <Icon
               name="chevron-down"
-              data-part="select-chevron"
+              {...part("chevron")}
               className={cn(
                 "size-4 shrink-0 transition-colors duration-150",
                 hasError ? "text-danger-600" : "text-ink-faint",
@@ -122,7 +123,7 @@ export function Select({
 
       <SelectPrimitive.Portal {...(dialogLayer && { container: dialogLayer })}>
         <SelectPrimitive.Content
-          data-part="select-list"
+          {...part("list")}
           position="popper"
           sideOffset={6}
           className={cn(
@@ -138,10 +139,12 @@ export function Select({
           </SelectPrimitive.ScrollUpButton>
 
           <SelectPrimitive.Viewport>
-            {placeholder !== undefined && <Row value={NONE} label={placeholder} muted />}
+            {placeholder !== undefined && (
+              <Row value={NONE} label={placeholder} muted testId={testId} />
+            )}
 
             {options.map((option) => (
-              <Row key={option.value} value={option.value} label={option.label} />
+              <Row key={option.value} value={option.value} label={option.label} testId={testId} />
             ))}
           </SelectPrimitive.Viewport>
 
@@ -158,15 +161,18 @@ function Row({
   value,
   label,
   muted = false,
+  testId,
 }: {
   readonly value: string;
   readonly label: string;
   readonly muted?: boolean | undefined;
+  readonly testId?: string | undefined;
 }): JSX.Element {
   return (
     <SelectPrimitive.Item
       value={value}
       data-part="select-option"
+      {...testid(testId, `option-${value}`)}
       className={cn(
         "flex min-h-(--control-h) cursor-pointer items-center justify-between gap-2 rounded-control",
         "lg:min-h-(--control-h-sm) px-3 py-2 text-start text-field outline-none select-none",
@@ -180,7 +186,12 @@ function Row({
       <SelectPrimitive.ItemText>{label}</SelectPrimitive.ItemText>
 
       <SelectPrimitive.ItemIndicator asChild>
-        <Icon name="check" data-part="select-tick" className="size-4 shrink-0 text-primary-600" />
+        <Icon
+          name="check"
+          data-part="select-tick"
+          {...testid(testId, `option-${value}-tick`)}
+          className="size-4 shrink-0 text-primary-600"
+        />
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
   );

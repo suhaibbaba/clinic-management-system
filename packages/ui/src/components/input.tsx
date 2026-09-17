@@ -3,8 +3,9 @@ import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 import { FIELD_TEXT, FieldClear, FieldIcon, FieldLock, fieldShell } from "@ui/components/field";
 import type { IconName } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
+import { testid, type TestIdProps } from "@ui/lib/testid";
 
-export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends InputHTMLAttributes<HTMLInputElement>, TestIdProps {
   hasError?: boolean | undefined;
   adornment?: IconName | undefined;
   /** Draws a clear button at the inline end; the caller decides what empty means. */
@@ -25,6 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     clearLabel,
     suffix,
     "data-part": part = "input",
+    "data-testid": testId,
     ...props
   },
   ref,
@@ -33,14 +35,24 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const clearable = onClear !== undefined && !disabled && String(props.value ?? "") !== "";
 
   return (
-    <div data-part={part} className={cn(fieldShell({ hasError, disabled }), className)}>
+    <div
+      data-part={part}
+      {...testid(testId)}
+      className={cn(fieldShell({ hasError, disabled }), className)}
+    >
       {adornment !== undefined && (
-        <FieldIcon name={adornment} hasError={hasError} disabled={disabled} />
+        <FieldIcon
+          name={adornment}
+          hasError={hasError}
+          disabled={disabled}
+          {...testid(testId, "icon")}
+        />
       )}
 
       <input
         ref={ref}
         data-part="input-control"
+        {...testid(testId, "control")}
         aria-invalid={hasError || undefined}
         className={cn(
           FIELD_TEXT,
@@ -54,15 +66,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         {...props}
       />
 
-      {clearable && clearLabel !== undefined && <FieldClear label={clearLabel} onClear={onClear} />}
+      {clearable && clearLabel !== undefined && (
+        <FieldClear label={clearLabel} onClear={onClear} {...testid(testId, "clear")} />
+      )}
 
       {suffix !== undefined && (
-        <span data-part="input-suffix" className="shrink-0 text-value text-ink-muted">
+        <span
+          data-part="input-suffix"
+          {...testid(testId, "suffix")}
+          className="shrink-0 text-value text-ink-muted"
+        >
           {suffix}
         </span>
       )}
 
-      {disabled && <FieldLock />}
+      {disabled && <FieldLock {...testid(testId, "lock")} />}
     </div>
   );
 });

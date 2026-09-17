@@ -13,6 +13,7 @@ import {
 import { cn } from "@ui/lib/cn";
 import { useDelayedLoading } from "@ui/lib/use-delayed-loading";
 import { useIsMobile } from "@ui/lib/use-media-query";
+import { testid, type TestIdProps } from "@ui/lib/testid";
 
 export interface Column<TRow> {
   readonly key: string;
@@ -30,7 +31,7 @@ export interface Column<TRow> {
   readonly align?: "start" | "end" | "numeric" | undefined;
 }
 
-export interface TableProps<TRow> {
+export interface TableProps<TRow> extends TestIdProps {
   columns: readonly Column<TRow>[];
   rows: readonly TRow[];
   rowKey: (row: TRow) => string;
@@ -46,7 +47,7 @@ export interface TableProps<TRow> {
   header?: ReactNode | undefined;
 }
 
-export interface PaginationProps {
+export interface PaginationProps extends TestIdProps {
   page: number;
   totalPages: number;
   total: number;
@@ -81,15 +82,20 @@ export function Table<TRow>({
   onRowClick,
   rowLabel,
   header,
+  "data-testid": testId,
 }: TableProps<TRow>): JSX.Element {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const showSkeleton = useDelayedLoading(isLoading);
 
+  // Every node a row owns hangs off one id, so a failing selector names the row it missed.
+  const rowId = (row: TRow): string | undefined =>
+    testId === undefined ? undefined : `${testId}-row-${rowKey(row)}`;
+
   if (!isLoading && rows.length === 0 && empty !== undefined) {
     return (
       <>
-        {header !== undefined && <PanelHead>{header}</PanelHead>}
+        {header !== undefined && <PanelHead {...testid(testId, "header")}>{header}</PanelHead>}
         {empty}
       </>
     );
@@ -106,10 +112,10 @@ export function Table<TRow>({
   if (isMobile) {
     return (
       <>
-        {header !== undefined && <PanelHead>{header}</PanelHead>}
+        {header !== undefined && <PanelHead {...testid(testId, "header")}>{header}</PanelHead>}
 
         {/* One card per row */}
-        <div data-part="table-cards" className="flex flex-col gap-3">
+        <div data-part="table-cards" {...testid(testId)} className="flex flex-col gap-3">
           <RefreshBar active={isRefreshing} />
 
           {showSkeleton && (
@@ -135,6 +141,7 @@ export function Table<TRow>({
                   {primary && (
                     <p
                       data-part="table-card-title"
+                      {...testid(rowId(row), "title")}
                       className="mb-3 text-value font-medium text-ink"
                     >
                       {primary.render(row)}
@@ -145,12 +152,14 @@ export function Table<TRow>({
                       every hairline in the middle. The label pads its own end instead. */}
                   <dl
                     data-part="table-card-meta"
+                    {...testid(rowId(row), "meta")}
                     className="grid grid-cols-[minmax(5.5rem,auto)_1fr]"
                   >
                     {shown.map((column, index) => (
                       <div key={column.key} className="contents">
                         <dt
                           data-part="table-card-label"
+                          {...testid(rowId(row), `${column.key}-label`)}
                           className={cn(
                             // `pe-4` is the label's own end padding — without it a label wider than
                             // its minimum runs straight into its value.
@@ -165,6 +174,7 @@ export function Table<TRow>({
                         </dt>
                         <dd
                           data-part="table-card-value"
+                          {...testid(rowId(row), column.key)}
                           className={cn(
                             "py-2.5 text-value text-ink",
                             cardAlignClass(column.align),
@@ -180,6 +190,7 @@ export function Table<TRow>({
                   {rowActions !== null && (
                     <div
                       data-part="table-row-actions"
+                      {...testid(rowId(row), "actions")}
                       className={cn(
                         "relative z-10 mt-3 flex flex-wrap items-center justify-end gap-2",
                         "border-t border-line pt-3",
@@ -195,7 +206,13 @@ export function Table<TRow>({
                 "border border-line rounded-card bg-surface p-4 text-start shadow-card transition duration-[250ms] ease-in-out";
 
               return onRowClick === undefined ? (
-                <div key={rowKey(row)} data-row data-part="table-card" className={cardClass}>
+                <div
+                  key={rowKey(row)}
+                  data-row
+                  data-part="table-card"
+                  {...testid(rowId(row))}
+                  className={cardClass}
+                >
                   {body}
                 </div>
               ) : (
@@ -205,11 +222,13 @@ export function Table<TRow>({
                   key={rowKey(row)}
                   data-row
                   data-part="table-card"
+                  {...testid(rowId(row))}
                   className={cn(cardClass, "relative")}
                 >
                   <button
                     type="button"
                     data-part="table-card-overlay"
+                    {...testid(rowId(row), "open")}
                     onClick={() => onRowClick(row)}
                     {...(rowLabel && { "aria-label": rowLabel(row) })}
                     className="absolute inset-0 z-0 cursor-pointer rounded-card"
@@ -223,9 +242,10 @@ export function Table<TRow>({
         {pagination !== undefined && (
           <div
             data-part="table-pagination"
+            {...testid(testId, "pagination")}
             className="mt-3 border border-line rounded-card bg-surface shadow-card"
           >
-            <Pagination {...pagination} />
+            <Pagination {...pagination} {...testid(testId, "pagination-nav")} />
           </div>
         )}
       </>
@@ -235,11 +255,13 @@ export function Table<TRow>({
   return (
     <div
       data-part="table"
+      {...testid(testId)}
       className="overflow-hidden border border-line rounded-card bg-surface shadow-card"
     >
       {header !== undefined && (
         <div
           data-part="table-header"
+          {...testid(testId, "header")}
           className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-[22px] py-[18px]"
         >
           {header}
@@ -249,7 +271,7 @@ export function Table<TRow>({
       {showSkeleton && <SkeletonStatus />}
       <RefreshBar active={isRefreshing} />
 
-      <div data-part="table-scroll" className="overflow-x-auto">
+      <div data-part="table-scroll" {...testid(testId, "scroll")} className="overflow-x-auto">
         <table className="w-full border-collapse text-value">
           <thead>
             <tr>
@@ -257,6 +279,7 @@ export function Table<TRow>({
                 <th
                   key={column.key}
                   data-part="table-head-cell"
+                  {...testid(testId, `head-${column.key}`)}
                   scope="col"
                   className={cn(
                     "whitespace-nowrap border-b border-line bg-table-head px-[18px] py-[13px]",
@@ -280,6 +303,7 @@ export function Table<TRow>({
                   key={rowKey(row)}
                   data-row
                   data-part="table-body-row"
+                  {...testid(rowId(row))}
                   {...(onRowClick && {
                     onClick: () => onRowClick(row),
                     className: "cursor-pointer transition-colors duration-150 hover:bg-row-hover",
@@ -292,6 +316,7 @@ export function Table<TRow>({
                     <td
                       key={column.key}
                       data-part="table-body-cell"
+                      {...testid(rowId(row), column.key)}
                       className={cn(
                         "px-[18px] py-[13px] align-middle",
                         alignClass(column.align),
@@ -307,16 +332,23 @@ export function Table<TRow>({
         </table>
       </div>
 
-      {pagination !== undefined && <Pagination {...pagination} />}
+      {pagination !== undefined && <Pagination {...pagination} {...testid(testId, "pagination")} />}
     </div>
   );
 }
 
 // On a phone the rows are separate cards, so the head cannot sit inside one; it becomes the row
 // above them, carrying the same spacing.
-function PanelHead({ children }: { readonly children: ReactNode }): JSX.Element {
+function PanelHead({
+  children,
+  "data-testid": testId,
+}: { readonly children: ReactNode } & TestIdProps): JSX.Element {
   return (
-    <div data-part="table-header" className="flex flex-wrap items-center justify-between gap-3">
+    <div
+      data-part="table-header"
+      {...testid(testId)}
+      className="flex flex-wrap items-center justify-between gap-3"
+    >
       {children}
     </div>
   );
@@ -335,6 +367,7 @@ export function Pagination({
   perPage,
   perPageOptions = PER_PAGE_OPTIONS,
   onPerPageChange,
+  "data-testid": testId,
 }: PaginationProps): JSX.Element {
   const { t } = useTranslation();
   const pages = pageWindow(page, totalPages);
@@ -342,6 +375,7 @@ export function Pagination({
   return (
     <nav
       data-part="pagination"
+      {...testid(testId)}
       className={cn(
         "flex flex-wrap items-center justify-between gap-2",
         "border-t border-line bg-table-head px-[18px] py-3",
@@ -349,7 +383,11 @@ export function Pagination({
       aria-label={t("pagination.label")}
     >
       <div className="flex items-center gap-3">
-        <p data-part="pagination-total" className="text-meta text-ink-muted">
+        <p
+          data-part="pagination-total"
+          {...testid(testId, "total")}
+          className="text-meta text-ink-muted"
+        >
           {t("pagination.total", { total })}
         </p>
 
@@ -359,6 +397,7 @@ export function Pagination({
             {t("pagination.perPage")}
             <Select
               className="w-[5.5rem]"
+              {...testid(testId, "per-page")}
               value={String(perPage)}
               onChange={(event) => onPerPageChange(Number(event.target.value))}
               options={sizes(perPage, perPageOptions).map((size) => ({
@@ -372,11 +411,16 @@ export function Pagination({
 
       {/* Numbered, as the reference draws it: on two or three pages, naming them beats a pair of
           arrows and a "page 1 of 2" that has to be read to be understood. */}
-      <div data-part="pagination-pages" className="flex items-center gap-1.5">
+      <div
+        data-part="pagination-pages"
+        {...testid(testId, "pages")}
+        className="flex items-center gap-1.5"
+      >
         <PageButton
           label={t("pagination.previous")}
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
+          {...testid(testId, "previous")}
         >
           <Icon name="chevron-start" className="size-3.5" />
         </PageButton>
@@ -386,6 +430,7 @@ export function Pagination({
             <span
               key={`gap-${String(entry)}`}
               data-part="pagination-gap"
+              {...testid(testId, "gap")}
               aria-hidden="true"
               className="px-1 text-ink-faint"
             >
@@ -397,6 +442,7 @@ export function Pagination({
               label={t("pagination.goToPage", { page: entry })}
               current={entry === page}
               onClick={() => onPageChange(entry)}
+              {...testid(testId, `page-${String(entry)}`)}
             >
               <Ltr>{entry}</Ltr>
             </PageButton>
@@ -407,6 +453,7 @@ export function Pagination({
           label={t("pagination.next")}
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
+          {...testid(testId, "next")}
         >
           <Icon name="chevron-end" className="size-3.5" />
         </PageButton>
@@ -421,17 +468,19 @@ function PageButton({
   disabled = false,
   onClick,
   children,
+  "data-testid": testId,
 }: {
   readonly label: string;
   readonly current?: boolean;
   readonly disabled?: boolean;
   readonly onClick: () => void;
   readonly children: ReactNode;
-}): JSX.Element {
+} & TestIdProps): JSX.Element {
   return (
     <button
       type="button"
       data-part="pagination-page"
+      {...testid(testId)}
       aria-label={label}
       aria-current={current ? "page" : undefined}
       disabled={disabled}

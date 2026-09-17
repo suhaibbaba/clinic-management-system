@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 
 import { cn } from "@ui/lib/cn";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export type ProgressTone = "primary" | "success" | "warning" | "danger";
 
@@ -11,7 +12,7 @@ const TONES: Record<ProgressTone, string> = {
   danger: "bg-danger-500",
 };
 
-export interface ProgressBarProps {
+export interface ProgressBarProps extends TestIdProps {
   /** Completed units. Clamped into `0…total`, so a bad count cannot overflow. */
   readonly value: number;
   readonly total: number;
@@ -29,14 +30,16 @@ export function ProgressBar({
   label,
   tone = "primary",
   className,
+  "data-testid": testId,
 }: ProgressBarProps): JSX.Element {
+  const part = parts("progress-bar", testId);
   const safeTotal = Math.max(total, 0);
   const done = Math.min(Math.max(value, 0), safeTotal);
   const percent = safeTotal === 0 ? 0 : (done / safeTotal) * 100;
 
   return (
     <div
-      data-part="progress-bar"
+      {...part()}
       role="progressbar"
       aria-label={label}
       aria-valuenow={done}
@@ -47,7 +50,7 @@ export function ProgressBar({
       {/* Width is the only inline style: a computed length, and there is no utility class for an
           arbitrary percentage. */}
       <div
-        data-part="progress-bar-fill"
+        {...part("fill")}
         className={cn("h-full rounded-pill transition-[width] duration-500", TONES[tone])}
         style={{ width: `${percent}%` }}
       />

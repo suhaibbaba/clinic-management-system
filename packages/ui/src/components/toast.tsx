@@ -119,6 +119,8 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
           <ToastPrimitive.Root
             key={message.id}
             data-part="toast"
+            data-testid="toast"
+            data-tone={message.tone}
             open
             onOpenChange={(open) => {
               if (!open) {
@@ -138,6 +140,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
           >
             <span
               data-part="toast-chip"
+              data-testid="toast-chip"
               aria-hidden="true"
               className={cn(
                 "grid size-8 shrink-0 place-items-center rounded-pill text-ink-inverse",
@@ -151,6 +154,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
             <div className="min-w-0 flex-1">
               <ToastPrimitive.Title
                 data-part="toast-title"
+                data-testid="toast-title"
                 className="text-value font-medium text-ink"
               >
                 {t(message.messageKey, message.values ?? {})}
@@ -159,6 +163,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               {message.descriptionKey !== undefined && (
                 <ToastPrimitive.Description
                   data-part="toast-message"
+                  data-testid="toast-message"
                   className="mt-0.5 text-label text-ink-muted"
                 >
                   {t(message.descriptionKey, message.values ?? {})}
@@ -168,6 +173,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
 
             <ToastPrimitive.Close
               data-part="toast-close"
+              data-testid="toast-close"
               aria-label={t("common.close")}
               className={cn(
                 "inline-grid size-(--control-h-sm) shrink-0 cursor-pointer place-items-center",
@@ -182,6 +188,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
                 — so the line is dropped while hovered and runs again from full on the way out. */}
             <span
               data-part="toast-life"
+              data-testid="toast-life"
               aria-hidden="true"
               style={{ animationDuration: `${TOAST_MS}ms` }}
               className={cn(
@@ -199,6 +206,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
             buttons and of anything a hand covers on a phone. */}
         <ToastPrimitive.Viewport
           data-part="toast-viewport"
+          data-testid="toast-viewport"
           className="fixed top-4 end-4 z-[60] flex w-80 max-w-[calc(100dvw-2rem)] flex-col gap-2 outline-none"
         />
       </ToastPrimitive.Provider>

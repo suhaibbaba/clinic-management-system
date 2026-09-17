@@ -3,6 +3,7 @@ import { useEffect, useState, type CSSProperties, type JSX, type ReactNode } fro
 import { Icon } from "@ui/components/icon";
 import { Skeleton } from "@ui/components/skeleton";
 import { cn } from "@ui/lib/cn";
+import { testid, type TestIdProps } from "@ui/lib/testid";
 
 interface FluidSizing {
   /** CSS `aspect-ratio`, e.g. `"4/3"`. The box takes its width from the layout. */
@@ -17,7 +18,7 @@ interface FixedSizing {
   readonly aspectRatio?: never;
 }
 
-interface ImgBase {
+interface ImgBase extends TestIdProps {
   readonly src: string | null | undefined;
   readonly alt: string;
   readonly className?: string | undefined;
@@ -43,6 +44,7 @@ export function Img({
   priority = false,
   fallback,
   "data-part": part = "img",
+  "data-testid": testId,
   ...sizing
 }: ImgProps): JSX.Element {
   const [state, setState] = useState<ImgState>("loading");
@@ -61,12 +63,14 @@ export function Img({
     <span
       style={box}
       data-part={part}
+      {...testid(testId)}
       data-img-box
       className={cn("relative block max-w-full shrink-0 overflow-hidden", className)}
     >
       {!missing && state !== "failed" && (
         <img
           data-part="img-file"
+          {...testid(testId, "file")}
           src={src}
           alt={alt}
           onLoad={() => setState("loaded")}
@@ -91,6 +95,7 @@ export function Img({
         (fallback ?? (
           <span
             data-part="img-fallback"
+            {...testid(testId, "fallback")}
             aria-hidden="true"
             className="absolute inset-0 flex items-center justify-center bg-inset text-ink-subtle"
           >

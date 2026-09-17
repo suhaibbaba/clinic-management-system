@@ -11,13 +11,14 @@ import { openOnArrowDown, usePickerOpen } from "@ui/lib/picker-open";
 import { Popover } from "@ui/components/popover";
 import { cn } from "@ui/lib/cn";
 import { Ltr } from "@ui/components/ltr";
+import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 
 export interface DateRange {
   readonly from: string;
   readonly to: string;
 }
 
-export interface DateRangePickerProps {
+export interface DateRangePickerProps extends TestIdProps {
   readonly id: string;
   readonly value: DateRange;
   readonly onChange: (value: DateRange) => void;
@@ -33,9 +34,12 @@ export function DateRangePicker({
   onChange,
   label,
   className,
+  "data-testid": testId,
 }: DateRangePickerProps): JSX.Element {
   const { t } = useTranslation();
   const picker = usePickerOpen();
+  const id_ = testId ?? id;
+  const part = parts("date-range-picker", id_);
 
   const from = fromIsoDate(value.from);
   const to = fromIsoDate(value.to);
@@ -49,9 +53,10 @@ export function DateRangePicker({
       onOpenChange={picker.onOpenChange}
       focusOnOpen={picker.focusOnOpen}
       title={label}
+      {...part("popover")}
       anchor={
         <button
-          data-part="date-range-picker"
+          {...part()}
           id={id}
           type="button"
           aria-label={label}
@@ -66,7 +71,7 @@ export function DateRangePicker({
         >
           {/* The island isolates the digits; the span around it is the page's direction, so the
               value sits at the inline start of an Arabic form rather than at its far left. */}
-          <span data-part="date-range-picker-value" className="min-w-0 flex-1 truncate">
+          <span {...part("value")} className="min-w-0 flex-1 truncate">
             {from || to ? (
               <Ltr className="truncate tabular-nums">{dates}</Ltr>
             ) : (
@@ -91,12 +96,14 @@ export function DateRangePicker({
 
       <div
         data-part="picker-footer"
+        {...testid(id_, "footer")}
         className="mt-2 flex items-center justify-between gap-2 border-t border-line pt-2"
       >
         <Button
           size="sm"
           variant="quiet"
           icon={<Icon name="x" />}
+          {...testid(id_, "clear")}
           onClick={() => {
             onChange({ from: "", to: "" });
             picker.onOpenChange(false);
@@ -109,6 +116,7 @@ export function DateRangePicker({
           size="sm"
           variant="ghost"
           icon={<Icon name="check" />}
+          {...testid(id_, "done")}
           onClick={() => picker.onOpenChange(false)}
         >
           {t("common.done")}

@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import { PILL_BASE } from "@ui/components/badge";
 import { cn } from "@ui/lib/cn";
 import { Ltr } from "@ui/components/ltr";
+import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 
 export interface TabDefinition<TId extends string> {
   readonly id: TId;
@@ -12,7 +13,7 @@ export interface TabDefinition<TId extends string> {
   readonly count?: number | undefined;
 }
 
-export interface TabsProps<TId extends string> {
+export interface TabsProps<TId extends string> extends TestIdProps {
   readonly tabs: readonly TabDefinition<TId>[];
   readonly value: TId;
   readonly onChange: (id: TId) => void;
@@ -28,12 +29,14 @@ export function Tabs<TId extends string>({
   onChange,
   label,
   className,
+  "data-testid": testId,
 }: TabsProps<TId>): JSX.Element {
   const { t } = useTranslation();
 
   return (
     <div
       data-part="tabs"
+      {...testid(testId)}
       role="tablist"
       aria-label={t(label)}
       className={cn(
@@ -53,6 +56,7 @@ export function Tabs<TId extends string>({
             key={tab.id}
             type="button"
             data-part="tab"
+            {...testid(testId, tab.id)}
             role="tab"
             id={`tab-${tab.id}`}
             aria-selected={selected}
@@ -72,6 +76,7 @@ export function Tabs<TId extends string>({
             {tab.count !== undefined && tab.count > 0 && (
               <Ltr
                 data-part="tab-count"
+                {...testid(testId, `${tab.id}-count`)}
                 className={cn(
                   // A declared lozenge, as the rail's badge is: one digit is a circle and three
                   // do not spill. Its height is drawn, never a line-height's leftovers.
@@ -90,16 +95,21 @@ export function Tabs<TId extends string>({
   );
 }
 
-export interface TabPanelProps {
+export interface TabPanelProps extends TestIdProps {
   readonly id: string;
   readonly children: ReactNode;
   readonly className?: string | undefined;
 }
 
-export function TabPanel({ id, children, className }: TabPanelProps): JSX.Element {
+export function TabPanel({
+  id,
+  children,
+  className,
+  "data-testid": testId,
+}: TabPanelProps): JSX.Element {
   return (
     <div
-      data-part="tab-panel"
+      {...parts("tab-panel", testId ?? `panel-${id}`)()}
       role="tabpanel"
       id={`panel-${id}`}
       aria-labelledby={`tab-${id}`}

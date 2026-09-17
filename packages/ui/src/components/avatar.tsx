@@ -2,8 +2,9 @@ import type { JSX } from "react";
 
 import { Img } from "@ui/components/img";
 import { cn } from "@ui/lib/cn";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
-export interface AvatarProps {
+export interface AvatarProps extends TestIdProps {
   readonly name: string;
   readonly tintKey?: string | undefined;
   readonly src?: string | null | undefined;
@@ -37,7 +38,9 @@ export function Avatar({
   src,
   size = DEFAULT_SIZE,
   className,
+  "data-testid": testId,
 }: AvatarProps): JSX.Element {
+  const part = parts("avatar", testId);
   const initials = name
     .trim()
     .split(/\s+/)
@@ -52,7 +55,7 @@ export function Avatar({
   if (src === null || src === undefined || src === "") {
     return (
       <span
-        data-part="avatar"
+        {...part()}
         aria-hidden="true"
         style={{ width: size, height: size }}
         className={cn(shape, "justify-center text-label font-medium", tint, className)}
@@ -64,7 +67,7 @@ export function Avatar({
 
   return (
     <Img
-      data-part="avatar"
+      {...part()}
       src={src}
       alt=""
       width={size}
@@ -74,7 +77,7 @@ export function Avatar({
       fit="cover"
       fallback={
         <span
-          data-part="avatar-initials"
+          {...part("initials")}
           aria-hidden="true"
           className={cn(
             "absolute inset-0 flex items-center justify-center text-label font-medium",

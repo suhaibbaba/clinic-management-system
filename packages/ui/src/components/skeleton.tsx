@@ -4,11 +4,15 @@ import { useTranslation } from "react-i18next";
 import { StatRow } from "@ui/components/stat-card";
 import type { Column } from "@ui/components/table";
 import { cn } from "@ui/lib/cn";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
-export function Skeleton({ className }: { readonly className?: string }): JSX.Element {
+export function Skeleton({
+  className,
+  "data-testid": testId,
+}: { readonly className?: string } & TestIdProps): JSX.Element {
   return (
     <span
-      data-part="skeleton"
+      {...parts("skeleton", testId)()}
       aria-hidden="true"
       className={cn("skeleton block rounded-pill", className)}
     />

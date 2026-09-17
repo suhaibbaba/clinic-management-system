@@ -5,8 +5,9 @@ import { useTranslation } from "react-i18next";
 import { DialogLayerProvider } from "@ui/components/dialog-layer";
 import { cn } from "@ui/lib/cn";
 import { documentDirection } from "@ui/lib/direction";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
-export interface ModalProps {
+export interface ModalProps extends TestIdProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
@@ -29,15 +30,17 @@ export function Modal({
   children,
   footer,
   size = "md",
+  "data-testid": testId,
 }: ModalProps): JSX.Element {
   const { t } = useTranslation();
   const [layer, setLayer] = useState<HTMLElement | null>(null);
+  const part = parts("modal", testId);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay
-          data-part="modal-overlay"
+          {...part("overlay")}
           className={cn(
             "fixed inset-0 z-40 bg-ink/40",
             "data-[state=open]:animate-[fade-in_200ms_ease-out]",
@@ -46,7 +49,7 @@ export function Modal({
         />
         <Dialog.Content
           ref={setLayer}
-          data-part="modal"
+          {...part()}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
             (event.currentTarget as HTMLElement | null)?.focus();
@@ -67,15 +70,12 @@ export function Modal({
             "data-[state=closed]:animate-[modal-out_120ms_ease-in]",
           )}
         >
-          <Dialog.Title data-part="modal-title" className="text-section font-medium text-ink">
+          <Dialog.Title {...part("title")} className="text-section font-medium text-ink">
             {t(title, titleValues ?? {})}
           </Dialog.Title>
 
           {description !== undefined ? (
-            <Dialog.Description
-              data-part="modal-description"
-              className="mt-1 text-meta text-ink-muted"
-            >
+            <Dialog.Description {...part("description")} className="mt-1 text-meta text-ink-muted">
               {t(description)}
             </Dialog.Description>
           ) : (
@@ -87,7 +87,7 @@ export function Modal({
           {/* The focus ring is 2px with a 2px offset, so a field flush against a scroll container's
               edge is clipped; the inner padding and negative margin give it room. */}
           <div
-            data-part="modal-body"
+            {...part("body")}
             className="scroll-lane -mx-1.5 mt-4 flex-1 overflow-y-auto px-1.5 py-1.5"
           >
             {/* Date and time pickers inside a dialog portal into it rather than
@@ -97,7 +97,7 @@ export function Modal({
 
           {footer !== undefined && (
             <div
-              data-part="modal-footer"
+              {...part("footer")}
               className="mt-5 flex shrink-0 items-center justify-end gap-2 border-t border-line pt-4"
             >
               <DialogLayerProvider container={layer}>{footer}</DialogLayerProvider>

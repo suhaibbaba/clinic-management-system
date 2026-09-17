@@ -56,6 +56,7 @@ import {
 import type { JSX } from "react";
 
 import { cn } from "@ui/lib/cn";
+import type { TestIdProps } from "@ui/lib/testid";
 
 // One size and stroke for every icon, or the set drifts one call site at a time. Names go through
 // `IconName` so swapping the set is one file; nothing is mirrored automatically.
@@ -192,7 +193,7 @@ const DIRECTIONAL: Partial<
 
 const MIRRORED: ReadonlySet<IconName> = new Set(["login", "logout"]);
 
-export interface IconProps {
+export interface IconProps extends TestIdProps {
   readonly name: IconName;
   readonly size?: "sm" | "md" | undefined;
   /** Sizing overrides and colour only — an icon has no colour of its own. */
@@ -201,14 +202,14 @@ export interface IconProps {
   readonly "data-part"?: string | undefined;
 }
 
-export function Icon({ name, size = "sm", className, ...parts }: IconProps): JSX.Element {
+export function Icon({ name, size = "sm", className, ...attrs }: IconProps): JSX.Element {
   const directional = DIRECTIONAL[name];
   const isRtl = typeof document !== "undefined" && document.documentElement.dir === "rtl";
   const Glyph = directional ? (isRtl ? directional.rtl : directional.ltr) : ICONS[name];
 
   return (
     <Glyph
-      {...parts}
+      {...attrs}
       aria-hidden="true"
       focusable="false"
       strokeWidth={1.75}

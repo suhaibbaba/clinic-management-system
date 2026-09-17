@@ -49,13 +49,14 @@ export interface BannerIconProps {
   readonly chartTypes: readonly ChartType[];
   readonly className?: string | undefined;
   readonly "data-part"?: string | undefined;
+  readonly "data-testid"?: string | undefined;
 }
 
 /** The dashboard banner's decorative scene, drawn in theme tokens and keyed to the clinic's chart. */
-export function BannerIcon({ chartTypes, className, ...parts }: BannerIconProps): JSX.Element {
+export function BannerIcon({ chartTypes, className, ...attrs }: BannerIconProps): JSX.Element {
   return (
     <svg
-      {...parts}
+      {...attrs}
       viewBox="0 0 440 170"
       preserveAspectRatio="xMidYMid slice"
       aria-hidden="true"

@@ -2,8 +2,9 @@ import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { useRef, type JSX, type ReactNode } from "react";
 import { useDialogLayer } from "@ui/components/dialog-layer";
 import { cn } from "@ui/lib/cn";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
-export interface PopoverProps {
+export interface PopoverProps extends TestIdProps {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly anchor: ReactNode;
@@ -26,6 +27,7 @@ export function Popover({
   focusOnOpen = true,
   className,
   children,
+  "data-testid": testId,
 }: PopoverProps): JSX.Element {
   // Radix Dialog makes the body inert, so a popover portalled to `document.body` from inside one
   // renders and ignores every click. Portalling into the dialog is a no-op elsewhere.
@@ -41,7 +43,7 @@ export function Popover({
       </PopoverPrimitive.Anchor>
       <PopoverPrimitive.Portal {...(dialogLayer && { container: dialogLayer })}>
         <PopoverPrimitive.Content
-          data-part="popover"
+          {...parts("popover", testId)()}
           align="start"
           sideOffset={6}
           collisionPadding={12}

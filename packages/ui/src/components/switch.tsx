@@ -2,8 +2,9 @@ import * as SwitchPrimitive from "@radix-ui/react-switch";
 import type { JSX } from "react";
 
 import { cn } from "@ui/lib/cn";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
-export interface SwitchProps {
+export interface SwitchProps extends TestIdProps {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   label: string;
@@ -18,10 +19,13 @@ export function Switch({
   label,
   disabled = false,
   id,
+  "data-testid": testId,
 }: SwitchProps): JSX.Element {
+  const part = parts("switch", testId);
+
   return (
     <SwitchPrimitive.Root
-      data-part="switch"
+      {...part()}
       id={id}
       checked={checked}
       onCheckedChange={onCheckedChange}
@@ -39,7 +43,7 @@ export function Switch({
       )}
     >
       <SwitchPrimitive.Thumb
-        data-part="switch-thumb"
+        {...part("thumb")}
         className={cn(
           "block size-5 rounded-full bg-surface shadow-pill transition-transform",
           "absolute top-0.5 start-0.5",

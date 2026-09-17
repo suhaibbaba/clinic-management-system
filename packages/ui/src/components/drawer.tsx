@@ -6,8 +6,9 @@ import { Icon } from "@ui/components/icon";
 import { DialogLayerProvider } from "@ui/components/dialog-layer";
 import { cn } from "@ui/lib/cn";
 import { documentDirection } from "@ui/lib/direction";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
-export interface DrawerProps {
+export interface DrawerProps extends TestIdProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Already-resolved title: a drawer usually names a record, not a screen. */
@@ -26,15 +27,17 @@ export function Drawer({
   descriptionKey,
   children,
   footer,
+  "data-testid": testId,
 }: DrawerProps): JSX.Element {
   const { t } = useTranslation();
   const [layer, setLayer] = useState<HTMLElement | null>(null);
+  const part = parts("drawer", testId);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay
-          data-part="drawer-overlay"
+          {...part("overlay")}
           className={cn(
             "fixed inset-0 z-40 bg-ink/40",
             "data-[state=open]:animate-[fade-in_200ms_ease-out]",
@@ -43,7 +46,7 @@ export function Drawer({
         />
         <Dialog.Content
           ref={setLayer}
-          data-part="drawer"
+          {...part()}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
             (event.currentTarget as HTMLElement | null)?.focus();
@@ -58,14 +61,14 @@ export function Drawer({
           )}
         >
           <div
-            data-part="drawer-header"
+            {...part("header")}
             className="flex items-start justify-between gap-3 border-b border-line px-4 py-3"
           >
-            <Dialog.Title data-part="drawer-title" className="text-section font-medium text-ink">
+            <Dialog.Title {...part("title")} className="text-section font-medium text-ink">
               {title}
             </Dialog.Title>
             <Dialog.Close
-              data-part="drawer-close"
+              {...part("close")}
               className={cn(
                 "inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill",
                 "text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink",
@@ -78,13 +81,13 @@ export function Drawer({
 
           <Dialog.Description className="sr-only">{t(descriptionKey)}</Dialog.Description>
 
-          <div data-part="drawer-body" className="scroll-lane flex-1 overflow-y-auto px-4 py-4">
+          <div {...part("body")} className="scroll-lane flex-1 overflow-y-auto px-4 py-4">
             {/* As in `Modal`: a picker in here portals into the drawer. */}
             <DialogLayerProvider container={layer}>{children}</DialogLayerProvider>
           </div>
 
           {footer !== undefined && (
-            <div data-part="drawer-footer" className="shrink-0 border-t border-line px-4 py-3">
+            <div {...part("footer")} className="shrink-0 border-t border-line px-4 py-3">
               {footer}
             </div>
           )}

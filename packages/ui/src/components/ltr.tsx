@@ -1,8 +1,9 @@
 import type { JSX, ReactNode } from "react";
 
 import { cn } from "@ui/lib/cn";
+import { testid, type TestIdProps } from "@ui/lib/testid";
 
-export interface LtrProps {
+export interface LtrProps extends TestIdProps {
   readonly children: ReactNode;
   readonly className?: string | undefined;
   /** Names this island for a product's own CSS — see the package README. */
@@ -22,6 +23,7 @@ export function Ltr({
   href,
   title,
   "data-part": part = "ltr",
+  "data-testid": testId,
 }: LtrProps): JSX.Element {
   const Tag = as;
 
@@ -29,6 +31,7 @@ export function Ltr({
     <Tag
       dir="ltr"
       data-part={part}
+      {...testid(testId)}
       className={cn(
         // `inline-block` lets the parent's text-align place it, `w-fit` stops a flex item
         // stretching, `nowrap` because an amount is one word, `max-w-full` so `truncate` has a box.
