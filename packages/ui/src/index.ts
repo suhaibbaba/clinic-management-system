@@ -23,6 +23,7 @@ export { PageHeader } from "@ui/components/page-header";
 export { PasswordInput } from "@ui/components/password-input";
 export { PhoneInput } from "@ui/components/phone-input";
 export { PersonName, usePersonName } from "@ui/components/person-name";
+export { Popover, type PopoverProps } from "@ui/components/popover";
 export { ProgressBar } from "@ui/components/progress-bar";
 export { SearchField } from "@ui/components/search-field";
 export { SegmentedControl } from "@ui/components/segmented-control";
