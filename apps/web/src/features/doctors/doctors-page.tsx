@@ -56,11 +56,12 @@ export function DoctorsPage(): JSX.Element {
         render: (row) => (
           <span className="flex items-center gap-3">
             <Avatar
+              data-testid="doctor-avatar"
               name={personName(row.user.name, i18n.language)}
               tintKey={row.user.id}
               src={row.user.photoUrl}
             />
-            <PersonName name={row.user.name} showBoth />
+            <PersonName name={row.user.name} showBoth data-testid="doctor-name" />
           </span>
         ),
       },
@@ -72,7 +73,11 @@ export function DoctorsPage(): JSX.Element {
       {
         key: "specialty",
         header: "doctors.specialty",
-        render: (row) => <Badge tone="info">{row.specialty.name}</Badge>,
+        render: (row) => (
+          <Badge tone="info" data-testid="doctor-specialty">
+            {row.specialty.name}
+          </Badge>
+        ),
       },
       {
         key: "duration",
@@ -99,7 +104,7 @@ export function DoctorsPage(): JSX.Element {
             size="sm"
             variant="quiet"
             icon={<Icon name="clock" />}
-
+            data-testid="doctor-open-schedule"
             onClick={() => navigate(`/doctors/${row.id}`)}
           >
             {t("doctors.openSchedule")}
@@ -110,6 +115,7 @@ export function DoctorsPage(): JSX.Element {
               size="sm"
               variant="ghost"
               icon={<Icon name="edit" />}
+              data-testid="doctor-edit"
               onClick={() => {
                 setFormDoctor(row);
                 setFormOpen(true);
@@ -128,8 +134,9 @@ export function DoctorsPage(): JSX.Element {
   const data = query.data;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="doctors-page" className="flex flex-col gap-5">
       <PageHeader
+        data-testid="doctors-header"
         title="doctors.title"
         subtitle="doctors.subtitle"
         {...(query.data !== undefined && {
@@ -139,6 +146,7 @@ export function DoctorsPage(): JSX.Element {
           isAdmin ? (
             <Button
               icon={<Icon name="user-plus" />}
+              data-testid="doctors-create"
               onClick={() => {
                 setFormDoctor(null);
                 setFormOpen(true);
@@ -152,6 +160,7 @@ export function DoctorsPage(): JSX.Element {
 
       <div>
         <SearchField
+          data-testid="doctors-search"
           className="w-full min-w-0 sm:max-w-md"
           label={t("common.search")}
           shortcut="/"
@@ -170,12 +179,20 @@ export function DoctorsPage(): JSX.Element {
       </div>
 
       <Table
+        data-testid="doctors-table"
         columns={columns}
         rows={data?.items ?? []}
         rowKey={(row) => row.id}
         isLoading={query.isPending}
         isRefreshing={isRefetching(query)}
-        empty={<EmptyState icon="stethoscope" title="doctors.empty" hint="doctors.emptyHint" />}
+        empty={
+          <EmptyState
+            icon="stethoscope"
+            data-testid="doctors-empty"
+            title="doctors.empty"
+            hint="doctors.emptyHint"
+          />
+        }
         {...(data && {
           pagination: {
             page: data.page,
@@ -188,7 +205,12 @@ export function DoctorsPage(): JSX.Element {
         })}
       />
 
-      <DoctorFormModal open={formOpen} onOpenChange={setFormOpen} doctor={formDoctor} />
+      <DoctorFormModal
+        data-testid="doctor-form-modal"
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        doctor={formDoctor}
+      />
     </div>
   );
 }

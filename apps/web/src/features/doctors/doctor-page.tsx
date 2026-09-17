@@ -67,14 +67,16 @@ export function DoctorPage(): JSX.Element {
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="doctor-page" className="flex flex-col gap-5">
       <PageHeader
+        data-testid="doctor-header"
         title="doctors.pageTitle"
         subtitle="doctors.pageSubtitle"
         actions={
           canEdit ? (
             <Button
               icon={<Icon name="check" />}
+              data-testid="doctor-save-schedule"
               disabled={!fits}
               isLoading={updateSchedule.isPending}
               onClick={() => void save()}
@@ -89,16 +91,22 @@ export function DoctorPage(): JSX.Element {
         <PersonName
           name={doctor.data.user.name}
           showBoth
+          data-testid="doctor-name"
           className="text-section font-medium text-ink"
         />
-        <Badge tone="info">{doctor.data.specialty.name}</Badge>
+        <Badge tone="info" data-testid="doctor-specialty">
+          {doctor.data.specialty.name}
+        </Badge>
         <span className="text-label text-ink-muted">
           {doctor.data.defaultAppointmentDurationMinutes} {t("doctors.durationUnit")}
         </span>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="border border-line rounded-card bg-surface shadow-card p-4">
+        <section
+          data-testid="doctor-schedule"
+          className="border border-line rounded-card bg-surface shadow-card p-4"
+        >
           <p className="mb-3 text-value font-medium text-ink">{t("doctors.schedule")}</p>
 
           <WorkingHours
@@ -111,13 +119,16 @@ export function DoctorPage(): JSX.Element {
           />
 
           {!fits && (
-            <p className="mt-3 text-label text-warning-700">
+            <p data-testid="doctor-schedule-warning" className="mt-3 text-label text-warning-700">
               {t("schedule.outsideBounds", { bounds: t("schedule.clinicHours") })}
             </p>
           )}
         </section>
 
-        <section className="border border-line rounded-card bg-surface shadow-card p-4">
+        <section
+          data-testid="doctor-time-off"
+          className="border border-line rounded-card bg-surface shadow-card p-4"
+        >
           <TimeOffPanel doctorId={id} canEdit={canEdit} />
         </section>
       </div>

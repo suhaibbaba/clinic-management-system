@@ -10,6 +10,7 @@ import { useLookupLabels } from "@web/features/lookups/queries";
 import { cn } from "@clinic/ui/lib/cn";
 
 export interface ScheduleTimelineProps {
+  readonly "data-testid"?: string | undefined;
   readonly rows: readonly CalendarAppointment[];
   /** A technician reads the day, but the file behind the name is not theirs. */
   readonly linkPatients: boolean;
@@ -30,6 +31,7 @@ export function ScheduleTimeline({
   linkPatients,
   onConfirm,
   nowMinute,
+  "data-testid": testId = "schedule-timeline",
 }: ScheduleTimelineProps): JSX.Element {
   const { t } = useTranslation();
   // The clinic's own list, never a constant: a clinic that added "تبييض" sees it here too.
@@ -37,7 +39,7 @@ export function ScheduleTimeline({
   const slots = groupByTime(rows);
 
   return (
-    <ol className="relative px-[22px] pt-2 pb-[22px]">
+    <ol data-testid={testId} className="relative px-[22px] pt-2 pb-[22px]">
       {slots.map((slot, index) => {
         const spent = slot.appointments.every((row) => SPENT_STATUSES.includes(row.status));
         const isNow = nowMinute !== null && isCurrentSlot(slots, index, nowMinute);
@@ -45,6 +47,7 @@ export function ScheduleTimeline({
         return (
           <li
             key={slot.minute}
+            data-testid={`${testId}-slot-${String(slot.minute)}`}
             className="relative grid grid-cols-[52px_14px_1fr] gap-x-3.5 sm:grid-cols-[64px_14px_1fr]"
           >
             <Ltr className="pt-5 text-start text-label font-medium text-ink-muted">
@@ -82,6 +85,7 @@ export function ScheduleTimeline({
               {slot.appointments.map((appointment) => (
                 <div
                   key={appointment.id}
+                  data-testid={`${testId}-appointment-${appointment.id}`}
                   className={cn(
                     "my-2 flex items-center gap-3 rounded-panel border bg-surface px-4 py-3",
                     SPENT_STATUSES.includes(appointment.status) && "opacity-55",
@@ -99,6 +103,7 @@ export function ScheduleTimeline({
                     {linkPatients ? (
                       <Link
                         to={`/patients/${appointment.patientId}`}
+                        data-testid={`${testId}-patient-${appointment.id}`}
                         className={cn(
                           "block truncate text-section font-medium text-ink",
                           "transition-colors duration-150 hover:text-primary-700",
@@ -122,7 +127,10 @@ export function ScheduleTimeline({
                     </span>
                   </div>
 
-                  <Badge tone={APPOINTMENT_STATUS_STYLES[appointment.status].tone}>
+                  <Badge
+                    tone={APPOINTMENT_STATUS_STYLES[appointment.status].tone}
+                    data-testid={`${testId}-status-${appointment.id}`}
+                  >
                     {t(statusLabelKey(appointment.status))}
                   </Badge>
 
@@ -132,12 +140,14 @@ export function ScheduleTimeline({
                     <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
                       {onConfirm && (
                         <QuickAction
+                          data-testid={`${testId}-confirm-${appointment.id}`}
                           label={t("appointments.actions.confirm")}
                           icon="check"
                           onClick={() => onConfirm(appointment)}
                         />
                       )}
                       <QuickAction
+                        data-testid={`${testId}-call-${appointment.id}`}
                         label={t("dashboard.call")}
                         icon="phone"
                         href={`tel:${appointment.patientPhone.replace(/[\s-]/g, "")}`}
@@ -159,7 +169,9 @@ function QuickAction({
   icon,
   onClick,
   href,
+  "data-testid": testId,
 }: {
+  readonly "data-testid"?: string | undefined;
   readonly label: string;
   readonly icon: "check" | "phone";
   readonly onClick?: (() => void) | undefined;
@@ -172,11 +184,18 @@ function QuickAction({
   );
 
   return href === undefined ? (
-    <button type="button" aria-label={label} title={label} onClick={onClick} className={className}>
+    <button
+      type="button"
+      data-testid={testId}
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className={className}
+    >
       <Icon name={icon} className="size-3.5" />
     </button>
   ) : (
-    <a href={href} aria-label={label} title={label} className={className}>
+    <a href={href} data-testid={testId} aria-label={label} title={label} className={className}>
       <Icon name={icon} className="size-3.5" />
     </a>
   );

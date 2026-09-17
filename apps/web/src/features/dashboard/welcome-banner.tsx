@@ -20,13 +20,19 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
   const today = date === undefined ? null : dayAndDate(date);
 
   return (
-    <section className="relative flex min-h-[158px] items-center overflow-hidden rounded-card border border-line px-[30px] py-[26px] shadow-card banner-wash">
+    <section
+      data-testid="welcome-banner"
+      className="relative flex min-h-[158px] items-center overflow-hidden rounded-card border border-line px-[30px] py-[26px] shadow-card banner-wash"
+    >
       <div className="pointer-events-none absolute inset-y-0 end-0 w-[46%] opacity-100 max-[900px]:opacity-35 max-[760px]:hidden">
         <BannerIcon chartTypes={user?.clinic.chartTypes ?? []} />
       </div>
 
       <div className="relative z-10 min-w-0">
-        <h1 className="flex items-center gap-2.5 text-display font-medium text-primary-900">
+        <h1
+          data-testid="welcome-banner-greeting"
+          className="flex items-center gap-2.5 text-display font-medium text-primary-900"
+        >
           {user ? (
             <>
               {t(`dashboard.greeting.${partOfDay()}`)}
@@ -42,7 +48,10 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
           )}
         </h1>
 
-        <p className="mt-[5px] flex flex-wrap items-center gap-1.5 text-value text-banner-ink">
+        <p
+          data-testid="welcome-banner-date"
+          className="mt-[5px] flex flex-wrap items-center gap-1.5 text-value text-banner-ink"
+        >
           {today === null ? (
             t("dashboard.subtitle")
           ) : (
@@ -54,7 +63,10 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
         </p>
 
         {bounds && (
-          <p className="pill-text inline-flex items-center mt-[13px] h-(--control-h-sm) gap-2 rounded-pill border border-primary-600/20 bg-surface/75 px-3 text-nav font-medium text-primary-700 backdrop-blur-[6px]">
+          <p
+            data-testid="welcome-banner-hours"
+            className="pill-text inline-flex items-center mt-[13px] h-(--control-h-sm) gap-2 rounded-pill border border-primary-600/20 bg-surface/75 px-3 text-nav font-medium text-primary-700 backdrop-blur-[6px]"
+          >
             <Icon name="clock" className="size-3.5 shrink-0" />
             <span>
               {t("dashboard.firstAppointment")} <Ltr>{bounds.first}</Ltr>

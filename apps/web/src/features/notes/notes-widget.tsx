@@ -29,14 +29,15 @@ export function NotesWidget(): JSX.Element {
   };
 
   return (
-    <Widget title={t("notes.title")}>
-      <ul className="flex flex-col">
+    <Widget title={t("notes.title")} data-testid="notes-widget">
+      <ul data-testid="notes-list" className="flex flex-col">
         {(notes.data?.items ?? []).map((note) => {
           const canRemove = user?.role === "admin" || note.authorId === user?.id;
 
           return (
             <li
               key={note.id}
+              data-testid={`note-${note.id}`}
               className={cn(
                 "mt-2.5 flex items-start gap-2 rounded-control border border-note-line bg-note-bg",
                 "px-3 py-2.5 text-meta leading-relaxed text-note-ink",
@@ -58,6 +59,7 @@ export function NotesWidget(): JSX.Element {
               {canRemove && (
                 <button
                   type="button"
+                  data-testid={`note-remove-${note.id}`}
                   aria-label={t("notes.remove")}
                   onClick={() => remove.mutate(note.id)}
                   disabled={remove.isPending}
@@ -77,12 +79,15 @@ export function NotesWidget(): JSX.Element {
       </ul>
 
       {notes.data?.items.length === 0 && (
-        <p className="mt-2.5 text-meta text-ink-subtle">{t("notes.empty")}</p>
+        <p data-testid="notes-empty" className="mt-2.5 text-meta text-ink-subtle">
+          {t("notes.empty")}
+        </p>
       )}
 
       {/* A dashed box rather than a field: it reads as somewhere to add rather than somewhere to
           search, which is the difference the reference draws. */}
       <form
+        data-testid="notes-form"
         onSubmit={submit}
         className={cn(
           "mt-3 flex items-center gap-2 rounded-control border border-dashed border-line px-3",
@@ -92,6 +97,7 @@ export function NotesWidget(): JSX.Element {
         <Icon name="edit" className="size-3.5 shrink-0 text-ink-faint" aria-hidden="true" />
         <input
           type="text"
+          data-testid="notes-input"
           value={draft}
           maxLength={500}
           onChange={(event) => setDraft(event.target.value)}
@@ -105,6 +111,7 @@ export function NotesWidget(): JSX.Element {
         {draft.trim().length >= 2 && (
           <button
             type="submit"
+            data-testid="notes-save"
             disabled={create.isPending}
             aria-label={t("notes.save")}
             className={cn(

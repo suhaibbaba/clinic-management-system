@@ -55,35 +55,55 @@ export function ProfilePage(): JSX.Element {
   });
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="profile-page" className="flex flex-col gap-5">
       <PageHeader
+        data-testid="profile-header"
         title="profile.title"
         subtitle="profile.subtitle"
         {...(user && {
           primaryAction: (
-            <Button icon={<Icon name="edit" />} onClick={() => setEditing(true)}>
+            <Button
+              icon={<Icon name="edit" />}
+              data-testid="profile-edit"
+              onClick={() => setEditing(true)}
+            >
               {t("profile.edit")}
             </Button>
           ),
         })}
       />
 
-      {user && <ProfileFormModal open={editing} onOpenChange={setEditing} user={user} />}
+      {user && (
+        <ProfileFormModal
+          data-testid="profile-form-modal"
+          open={editing}
+          onOpenChange={setEditing}
+          user={user}
+        />
+      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="border border-line rounded-card bg-surface shadow-card p-4">
+        <section
+          data-testid="profile-details"
+          className="border border-line rounded-card bg-surface shadow-card p-4"
+        >
           <h2 className="text-section font-medium text-ink">{t("profile.details")}</h2>
 
           {/* Read-only here: a staff photo is set by the admin on the users screen, where accounts
               are managed. */}
           <div className="mt-3 flex items-center gap-3">
             <Avatar
+              data-testid="profile-avatar"
               name={personName(user?.name, i18n.language)}
               tintKey={user?.id ?? ""}
               src={user?.photoUrl}
               size={64}
             />
-            <PersonName name={user?.name} className="text-value font-medium text-ink" />
+            <PersonName
+              name={user?.name}
+              data-testid="profile-name"
+              className="text-value font-medium text-ink"
+            />
           </div>
 
           {/* The summary box the drawers and the patient file use: a 12px
@@ -113,16 +133,28 @@ export function ProfilePage(): JSX.Element {
             <div className="min-w-0">
               <dt className="text-meta text-ink-muted">{t("users.role")}</dt>
               <dd className="mt-0.5">
-                {user && <Badge tone="info">{t(`roles.${user.role}`)}</Badge>}
+                {user && (
+                  <Badge tone="info" data-testid="profile-role">
+                    {t(`roles.${user.role}`)}
+                  </Badge>
+                )}
               </dd>
             </div>
           </dl>
         </section>
 
-        <section className="border border-line rounded-card bg-surface shadow-card p-4">
+        <section
+          data-testid="profile-password"
+          className="border border-line rounded-card bg-surface shadow-card p-4"
+        >
           <h2 className="text-section font-medium text-ink">{t("profile.changePassword")}</h2>
 
-          <form className="mt-3 flex flex-col gap-4" onSubmit={onSubmit} noValidate>
+          <form
+            data-testid="profile-password-form"
+            className="mt-3 flex flex-col gap-4"
+            onSubmit={onSubmit}
+            noValidate
+          >
             <FormField
               label="profile.currentPassword"
               htmlFor="current-password"
@@ -132,6 +164,7 @@ export function ProfilePage(): JSX.Element {
               <PasswordInput
                 placeholder={t("common.placeholders.password")}
                 id="current-password"
+                data-testid="profile-field-current-password"
                 autoComplete="current-password"
                 hasError={errors.currentPassword !== undefined}
                 {...register("currentPassword")}
@@ -153,6 +186,7 @@ export function ProfilePage(): JSX.Element {
               <PasswordInput
                 placeholder={t("common.placeholders.password")}
                 id="new-password"
+                data-testid="profile-field-new-password"
                 autoComplete="new-password"
                 hasError={errors.newPassword !== undefined}
                 {...register("newPassword")}
@@ -162,6 +196,7 @@ export function ProfilePage(): JSX.Element {
             <Button
               icon={<Icon name="key" />}
               type="submit"
+              data-testid="profile-change-password"
               isLoading={isSubmitting}
               className="self-start"
             >

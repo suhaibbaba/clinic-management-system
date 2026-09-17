@@ -14,6 +14,7 @@ import { useSession } from "@web/features/auth/session";
 import { errorMessageKey } from "@web/lib/api-error";
 
 interface ProfileFormModalProps {
+  readonly "data-testid"?: string | undefined;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly user: AuthenticatedUserProfile;
@@ -21,7 +22,12 @@ interface ProfileFormModalProps {
 
 /** What somebody may change about themselves. Their role and whether the account is live are the
  *  admin's, and the photo is set with the account, on the users screen. */
-export function ProfileFormModal({ open, onOpenChange, user }: ProfileFormModalProps): JSX.Element {
+export function ProfileFormModal({
+  open,
+  onOpenChange,
+  user,
+  "data-testid": testId = "profile-form-modal",
+}: ProfileFormModalProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
   const { refreshProfile } = useSession();
@@ -54,16 +60,23 @@ export function ProfileFormModal({ open, onOpenChange, user }: ProfileFormModalP
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       title="profile.edit"
       footer={
         <>
-          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            icon={<Icon name="x" />}
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
+            data-testid={`${testId}-save`}
             form="profile-form"
             type="submit"
             isLoading={isSubmitting}
@@ -73,13 +86,20 @@ export function ProfileFormModal({ open, onOpenChange, user }: ProfileFormModalP
         </>
       }
     >
-      <form id="profile-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
+      <form
+        id="profile-form"
+        data-testid={`${testId}-form`}
+        className="flex flex-col gap-4"
+        onSubmit={onSubmit}
+        noValidate
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label="users.nameAr" htmlFor="profile-name-ar" error={errors.name?.ar}>
             <Input
               placeholder={t("common.placeholders.fullNameAr")}
               adornment="user"
               id="profile-name-ar"
+              data-testid="profile-field-name-ar"
               hasError={errors.name?.ar !== undefined}
               {...register("name.ar")}
             />
@@ -90,6 +110,7 @@ export function ProfileFormModal({ open, onOpenChange, user }: ProfileFormModalP
               placeholder={t("common.placeholders.fullNameEn")}
               adornment="user"
               id="profile-name-en"
+              data-testid="profile-field-name-en"
               dir="ltr"
               hasError={errors.name?.en !== undefined}
               {...register("name.en")}
@@ -108,6 +129,7 @@ export function ProfileFormModal({ open, onOpenChange, user }: ProfileFormModalP
             placeholder={t("common.placeholders.phone")}
             adornment="phone"
             id="profile-phone"
+            data-testid="profile-field-phone"
             hasError={errors.phone !== undefined}
             {...register("phone")}
           />
@@ -124,6 +146,7 @@ export function ProfileFormModal({ open, onOpenChange, user }: ProfileFormModalP
             placeholder={t("common.placeholders.email")}
             adornment="mail"
             id="profile-email"
+            data-testid="profile-field-email"
             type="email"
             hasError={errors.email !== undefined}
             {...register("email", { setValueAs: (value: string) => (value === "" ? null : value) })}

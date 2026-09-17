@@ -22,6 +22,7 @@ import { useUsers } from "@web/features/users/queries";
 import { errorMessageKey } from "@web/lib/api-error";
 
 interface DoctorFormModalProps {
+  "data-testid"?: string | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   doctor: Doctor | null;
@@ -43,7 +44,12 @@ interface NewUserFields {
 
 const EMPTY_USER: NewUserFields = { nameAr: "", nameEn: "", phone: "", email: "", password: "" };
 
-export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalProps): JSX.Element {
+export function DoctorFormModal({
+  open,
+  onOpenChange,
+  doctor,
+  "data-testid": testId = "doctor-form-modal",
+}: DoctorFormModalProps): JSX.Element {
   const { t, i18n } = useTranslation();
   const toast = useToast();
   const createDoctor = useCreateDoctor();
@@ -139,17 +145,24 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
       title={isEdit ? "doctors.edit" : "doctors.create"}
       footer={
         <>
-          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            icon={<Icon name="x" />}
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
+            data-testid={`${testId}-save`}
             disabled={!canSubmit}
             isLoading={isSaving}
             onClick={() => void submit()}
@@ -159,10 +172,11 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
         </>
       }
     >
-      <div className="flex flex-col gap-4">
+      <div data-testid={`${testId}-form`} className="flex flex-col gap-4">
         {!isEdit && (
           <>
             <SegmentedControl<Mode>
+              data-testid="doctor-field-mode"
               label={t("doctors.account")}
               value={mode}
               onChange={setMode}
@@ -174,6 +188,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
                 <FormField label="users.nameAr" htmlFor="doctor-name-ar" required>
                   <Input
                     id="doctor-name-ar"
+                    data-testid="doctor-field-name-ar"
                     adornment="user"
                     placeholder={t("common.placeholders.fullNameAr")}
                     value={newUser.nameAr}
@@ -184,6 +199,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
                 <FormField label="users.nameEn" htmlFor="doctor-name-en" required>
                   <Input
                     id="doctor-name-en"
+                    data-testid="doctor-field-name-en"
                     adornment="user"
                     dir="ltr"
                     placeholder={t("common.placeholders.fullNameEn")}
@@ -195,6 +211,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
                 <FormField label="users.phone" htmlFor="doctor-phone" required>
                   <PhoneInput
                     id="doctor-phone"
+                    data-testid="doctor-field-phone"
                     placeholder={t("common.placeholders.phone")}
                     value={newUser.phone}
                     onChange={(event) => setNewUser({ ...newUser, phone: event.target.value })}
@@ -204,6 +221,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
                 <FormField label="users.email" htmlFor="doctor-email" optional>
                   <Input
                     id="doctor-email"
+                    data-testid="doctor-field-email"
                     type="email"
                     dir="ltr"
                     placeholder={t("common.placeholders.email")}
@@ -220,6 +238,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
                 >
                   <PasswordInput
                     id="doctor-password"
+                    data-testid="doctor-field-password"
                     autoComplete="new-password"
                     placeholder={t("common.placeholders.password")}
                     value={newUser.password}
@@ -231,6 +250,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
               <FormField label="doctors.user" htmlFor="doctor-user" hint="doctors.linkPromotes">
                 <Select
                   id="doctor-user"
+                  data-testid="doctor-field-user"
                   options={userOptions}
                   placeholder={t("doctors.selectUser")}
                   value={userId}
@@ -244,6 +264,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
         <FormField label="doctors.specialty" htmlFor="doctor-specialty" required>
           <Select
             id="doctor-specialty"
+            data-testid="doctor-field-specialty"
             options={specialtyOptions}
             placeholder={t("doctors.selectSpecialty")}
             value={specialtyId}
@@ -255,6 +276,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
           <Input
             placeholder={t("common.placeholders.minutes")}
             id="doctor-duration"
+            data-testid="doctor-field-duration"
             // Not `type="number"`: it accepts `e`, `+`, `-` and `.`, and reads back an empty
             // string for any of them, so the field looks filled and submits nothing.
             inputMode="numeric"
