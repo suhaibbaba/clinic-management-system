@@ -9,9 +9,9 @@ import {
   type PerformedProcedureStatus,
   type PrescriptionItem,
   type ToothLocation,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import type { Rng } from '@api/database/seed/random';
+import type { Rng } from "@api/database/seed/random";
 
 /** The FDI numbers a mouth of this age actually has. */
 export function teethFor(ageYears: number): readonly number[] {
@@ -36,16 +36,16 @@ export function toothLocation(rng: Rng, tooth: number): ToothLocation {
 export const CHART_MARK_TYPE = CHART_TYPE.TOOTH_FDI;
 
 const DISCOUNT_REASONS: readonly string[] = [
-  'خصم عائلي',
-  'حالة اجتماعية',
-  'خصم على الدفع النقدي',
-  'مراجعة قديمة',
+  "خصم عائلي",
+  "حالة اجتماعية",
+  "خصم على الدفع النقدي",
+  "مراجعة قديمة",
 ];
 
 /** A discount on roughly one procedure in twelve, which is what a practice actually gives. */
 export function discountFor(rng: Rng, price: number): { amount: string; reason: string | null } {
   if (!rng.bool(0.08)) {
-    return { amount: '0.00', reason: null };
+    return { amount: "0.00", reason: null };
   }
 
   const percent = rng.pick([5, 10, 15, 20]);
@@ -63,11 +63,11 @@ export function procedureStatus(rng: Rng, isPast: boolean): PerformedProcedureSt
 }
 
 const PLAN_TITLES: readonly string[] = [
-  'خطة علاج شاملة',
-  'إعادة تأهيل الفك العلوي',
-  'معالجة لبية وتتويج',
-  'خطة تجميلية',
-  'علاج اللثة ثم التركيبات',
+  "خطة علاج شاملة",
+  "إعادة تأهيل الفك العلوي",
+  "معالجة لبية وتتويج",
+  "خطة تجميلية",
+  "علاج اللثة ثم التركيبات",
 ];
 
 export const PLAN_STATUSES = [
@@ -91,46 +91,46 @@ export function planTitle(rng: Rng): string {
 
 const DRUGS: readonly PrescriptionItem[] = [
   {
-    drug: 'أموكسيسيلين 500 ملغ',
-    dose: 'كبسولة',
-    frequency: 'كل 8 ساعات',
-    duration: '5 أيام',
+    drug: "أموكسيسيلين 500 ملغ",
+    dose: "كبسولة",
+    frequency: "كل 8 ساعات",
+    duration: "5 أيام",
     note: null,
   },
   {
-    drug: 'أموكسيسيلين/كلافولانيك 1 غ',
-    dose: 'قرص',
-    frequency: 'كل 12 ساعة',
-    duration: '7 أيام',
+    drug: "أموكسيسيلين/كلافولانيك 1 غ",
+    dose: "قرص",
+    frequency: "كل 12 ساعة",
+    duration: "7 أيام",
     note: null,
   },
   {
-    drug: 'ميترونيدازول 500 ملغ',
-    dose: 'قرص',
-    frequency: 'كل 8 ساعات',
-    duration: '5 أيام',
-    note: 'يُمنع مع الكحول',
+    drug: "ميترونيدازول 500 ملغ",
+    dose: "قرص",
+    frequency: "كل 8 ساعات",
+    duration: "5 أيام",
+    note: "يُمنع مع الكحول",
   },
   {
-    drug: 'إيبوبروفين 400 ملغ',
-    dose: 'قرص',
-    frequency: 'عند اللزوم',
-    duration: '3 أيام',
-    note: 'بعد الأكل',
+    drug: "إيبوبروفين 400 ملغ",
+    dose: "قرص",
+    frequency: "عند اللزوم",
+    duration: "3 أيام",
+    note: "بعد الأكل",
   },
   {
-    drug: 'باراسيتامول 500 ملغ',
-    dose: 'قرص',
-    frequency: 'كل 6 ساعات',
-    duration: '3 أيام',
+    drug: "باراسيتامول 500 ملغ",
+    dose: "قرص",
+    frequency: "كل 6 ساعات",
+    duration: "3 أيام",
     note: null,
   },
   {
-    drug: 'غسول كلورهيكسيدين',
-    dose: '10 مل',
-    frequency: 'مرتين يومياً',
-    duration: '10 أيام',
-    note: 'المضمضة دون بلع',
+    drug: "غسول كلورهيكسيدين",
+    dose: "10 مل",
+    frequency: "مرتين يومياً",
+    duration: "10 أيام",
+    note: "المضمضة دون بلع",
   },
 ];
 
@@ -147,22 +147,22 @@ export interface MedicalHistorySeed {
 }
 
 const CONDITIONS: readonly string[] = [
-  'السكري من النمط الثاني',
-  'ارتفاع ضغط الدم',
-  'الربو',
-  'قصور قلبي',
-  'فقر دم',
-  'قصور الغدة الدرقية',
+  "السكري من النمط الثاني",
+  "ارتفاع ضغط الدم",
+  "الربو",
+  "قصور قلبي",
+  "فقر دم",
+  "قصور الغدة الدرقية",
 ];
 
-const ALLERGIES: readonly string[] = ['البنسلين', 'اللاتكس', 'الأسبرين', 'اليود', 'مخدر موضعي'];
+const ALLERGIES: readonly string[] = ["البنسلين", "اللاتكس", "الأسبرين", "اليود", "مخدر موضعي"];
 
 const MEDICATIONS: readonly string[] = [
-  'ميتفورمين 850 ملغ',
-  'أملوديبين 5 ملغ',
-  'وارفارين 5 ملغ',
-  'ليفوثيروكسين 50 مكغ',
-  'بخاخ سالبوتامول',
+  "ميتفورمين 850 ملغ",
+  "أملوديبين 5 ملغ",
+  "وارفارين 5 ملغ",
+  "ليفوثيروكسين 50 مكغ",
+  "بخاخ سالبوتامول",
 ];
 
 export function medicalHistory(
@@ -182,6 +182,6 @@ export function medicalHistory(
     allergies: rng.bool(0.55) ? rng.sample(ALLERGIES, 1) : [],
     currentMedications: hasCondition ? rng.sample(MEDICATIONS, 1) : [],
     isPregnant: isFemale ? pregnant : null,
-    notes: pregnant ? 'حامل — تجنب الصور الشعاعية' : null,
+    notes: pregnant ? "حامل — تجنب الصور الشعاعية" : null,
   };
 }

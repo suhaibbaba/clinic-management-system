@@ -18,7 +18,7 @@ export interface IcoImage {
  */
 export function packIco(images: readonly IcoImage[]): Uint8Array<ArrayBuffer> {
   if (images.length === 0) {
-    throw new Error('An .ico needs at least one image');
+    throw new Error("An .ico needs at least one image");
   }
 
   const oversized = images.find((image) => image.size < 1 || image.size > MAX_DIMENSION);

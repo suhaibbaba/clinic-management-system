@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from "@nestjs/common";
 import {
   APPOINTMENT_STATUS,
   APPOINTMENT_RELEASED_STATUSES,
@@ -9,14 +9,14 @@ import {
   SCHEDULE_CONFLICT_ERROR,
   type ConflictingAppointment,
   type ScheduleConflictOptions,
-} from '@clinic/shared';
-import { and, asc, eq, lt, notInArray, sql } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, asc, eq, lt, notInArray, sql } from "drizzle-orm";
 
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { appointments, clinics, patients } from '@api/database/schema';
-import { NotificationsService } from '@api/notifications/notifications.service';
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { appointments, clinics, patients } from "@api/database/schema";
+import { NotificationsService } from "@api/notifications/notifications.service";
 
 // The first attempt fails with 409 and who is affected; the caller returns having decided. Two
 // flags, because a practice rings three patients by hand and a cancellation cannot be undone.
@@ -85,7 +85,7 @@ export class ScheduleConflictsService {
       throw new ConflictException({
         statusCode: 409,
         error: SCHEDULE_CONFLICT_ERROR,
-        message: 'Appointments fall inside this period',
+        message: "Appointments fall inside this period",
         appointments: conflicts,
       });
     }
@@ -130,7 +130,7 @@ export class ScheduleConflictsService {
         template: NOTIFICATION_TEMPLATE.BOOKING_CANCELLED,
         appointmentId: conflict.id,
         vars: {
-          clinic: clinic?.nameAr ?? '',
+          clinic: clinic?.nameAr ?? "",
           date: localDate(startsAt, zone),
           time: timeIn(zone, startsAt),
         },
@@ -142,10 +142,10 @@ export class ScheduleConflictsService {
 }
 
 function timeIn(timeZone: string, instant: Date): string {
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat("en-GB", {
     timeZone,
-    hour: '2-digit',
-    minute: '2-digit',
+    hour: "2-digit",
+    minute: "2-digit",
     hour12: false,
   }).format(instant);
 }

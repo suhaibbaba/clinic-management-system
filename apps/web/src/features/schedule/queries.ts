@@ -11,15 +11,15 @@ import {
   type ListDoctorTimeOffQuery,
   type Paginated,
   type ScheduleConflictOptions,
-} from '@clinic/shared';
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
+} from "@clinic/shared";
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 
-import { AVAILABILITY_KEY, CALENDAR_KEY } from '@web/features/appointments/queries';
-import { closuresApi, timeOffApi } from '@web/features/schedule/api';
-import { ApiError } from '@web/lib/api-error';
+import { AVAILABILITY_KEY, CALENDAR_KEY } from "@web/features/appointments/queries";
+import { closuresApi, timeOffApi } from "@web/features/schedule/api";
+import { ApiError } from "@web/lib/api-error";
 
-const CLOSURES_KEY = 'clinic-closures';
-const TIME_OFF_KEY = 'doctor-time-off';
+const CLOSURES_KEY = "clinic-closures";
+const TIME_OFF_KEY = "doctor-time-off";
 
 export function useClinicClosures(
   query: Partial<ListClinicClosuresQuery> = {},
@@ -37,7 +37,7 @@ export function useDoctorTimeOff(
 ): UseQueryResult<Paginated<DoctorTimeOff>> {
   return useQuery({
     queryKey: [TIME_OFF_KEY, doctorId, query],
-    queryFn: () => timeOffApi.list(doctorId ?? '', query),
+    queryFn: () => timeOffApi.list(doctorId ?? "", query),
     enabled: doctorId !== undefined,
     placeholderData: (previous) => previous,
   });

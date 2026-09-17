@@ -1,19 +1,19 @@
-import { Global, Inject, Module, type OnApplicationShutdown } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import postgres, { type Sql } from 'postgres';
+import { Global, Inject, Module, type OnApplicationShutdown } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import postgres, { type Sql } from "postgres";
 
-import type { Env } from '@api/config/env.schema';
-import * as schema from '@api/database/schema';
+import type { Env } from "@api/config/env.schema";
+import * as schema from "@api/database/schema";
 
-export const DATABASE = Symbol('DATABASE');
-export const POSTGRES_CLIENT = Symbol('POSTGRES_CLIENT');
+export const DATABASE = Symbol("DATABASE");
+export const POSTGRES_CLIENT = Symbol("POSTGRES_CLIENT");
 
 export type Database = PostgresJsDatabase<typeof schema>;
 
 // Services that must compose into a caller's transaction take this rather than injecting the
 // database: a charge and its procedure commit together.
-export type Transaction = Parameters<Parameters<Database['transaction']>[0]>[0];
+export type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 export type DatabaseExecutor = Database | Transaction;
 
 @Global()
@@ -23,8 +23,8 @@ export type DatabaseExecutor = Database | Transaction;
       provide: POSTGRES_CLIENT,
       inject: [ConfigService],
       useFactory: (config: ConfigService<Env, true>): Sql =>
-        postgres(config.get('DATABASE_URL', { infer: true }), {
-          max: config.get('DATABASE_POOL_MAX', { infer: true }),
+        postgres(config.get("DATABASE_URL", { infer: true }), {
+          max: config.get("DATABASE_POOL_MAX", { infer: true }),
           connect_timeout: 10,
         }),
     },

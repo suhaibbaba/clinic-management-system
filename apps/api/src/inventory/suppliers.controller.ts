@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   USER_ROLE,
@@ -22,15 +22,15 @@ import {
   type Supplier,
   type SupplierStatement,
   type SupplierSummary,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { InventoryReportsService } from '@api/inventory/inventory-reports.service';
-import { SUPPLIERS_ENTITY, SuppliersService } from '@api/inventory/suppliers.service';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { InventoryReportsService } from "@api/inventory/inventory-reports.service";
+import { SUPPLIERS_ENTITY, SuppliersService } from "@api/inventory/suppliers.service";
 
 class CreateSupplierDto extends createZodDto(createSupplierSchema) {}
 class UpdateSupplierDto extends createZodDto(updateSupplierSchema) {}
@@ -38,7 +38,7 @@ class ListSuppliersQueryDto extends createZodDto(listSuppliersQuerySchema) {}
 class StatementQueryDto extends createZodDto(statementRangeQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-@Controller('suppliers')
+@Controller("suppliers")
 export class SuppliersController {
   constructor(
     private readonly suppliers: SuppliersService,
@@ -54,7 +54,7 @@ export class SuppliersController {
     return this.suppliers.list(actor, query);
   }
 
-  @Get(':id')
+  @Get(":id")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
@@ -63,7 +63,7 @@ export class SuppliersController {
     return this.suppliers.findOne(actor, params.id);
   }
 
-  @Get(':id/statement')
+  @Get(":id/statement")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   statement(
     @CurrentUser() actor: AuthenticatedUser,
@@ -83,7 +83,7 @@ export class SuppliersController {
     return this.suppliers.create(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(SUPPLIERS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -94,7 +94,7 @@ export class SuppliersController {
     return this.suppliers.update(actor, params.id, body);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(SUPPLIERS_ENTITY, AUDIT_ACTION.DELETE)

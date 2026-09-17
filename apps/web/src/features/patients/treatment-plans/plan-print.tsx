@@ -1,10 +1,10 @@
-import type { Clinic, ProcedureCatalogItem, TreatmentPlan } from '@clinic/shared';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { Clinic, ProcedureCatalogItem, TreatmentPlan } from "@clinic/shared";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { PrintLetterhead } from '@web/components/brand/print-letterhead';
+import { PrintLetterhead } from "@web/components/brand/print-letterhead";
 
-import { planRemaining, planTotal } from '@web/features/patients/treatment-plans/plan-total';
+import { planRemaining, planTotal } from "@web/features/patients/treatment-plans/plan-total";
 
 interface PlanPrintProps {
   readonly plan: TreatmentPlan;
@@ -27,32 +27,32 @@ export function PlanPrint({
 }: PlanPrintProps): JSX.Element {
   const { t } = useTranslation();
   const items = plan.items ?? [];
-  const currency = clinic?.currency ?? '';
+  const currency = clinic?.currency ?? "";
 
   const nameOf = (procedureId: string): string =>
-    catalog.find((item) => item.id === procedureId)?.nameAr ?? t('chart.panel.procedure');
+    catalog.find((item) => item.id === procedureId)?.nameAr ?? t("chart.panel.procedure");
 
   return (
     <div className="print-sheet" dir="rtl" lang="ar">
       <PrintLetterhead clinic={clinic} />
 
-      <h2 className="print-title">{t('treatmentPlans.printTitle')}</h2>
+      <h2 className="print-title">{t("treatmentPlans.printTitle")}</h2>
 
       <dl className="print-meta">
         <div>
-          <dt>{t('patients.fullName')}</dt>
+          <dt>{t("patients.fullName")}</dt>
           <dd>{patientName}</dd>
         </div>
         <div>
-          <dt>{t('patients.fileNumber')}</dt>
+          <dt>{t("patients.fileNumber")}</dt>
           <dd dir="ltr">{fileNumber}</dd>
         </div>
         <div>
-          <dt>{t('treatmentPlans.plan')}</dt>
+          <dt>{t("treatmentPlans.plan")}</dt>
           <dd>{plan.title}</dd>
         </div>
         <div>
-          <dt>{t('visits.doctor')}</dt>
+          <dt>{t("visits.doctor")}</dt>
           <dd>{doctorName}</dd>
         </div>
       </dl>
@@ -61,9 +61,9 @@ export function PlanPrint({
         <thead>
           <tr>
             <th scope="col">#</th>
-            <th scope="col">{t('chart.panel.procedure')}</th>
-            <th scope="col">{t('treatmentPlans.status')}</th>
-            <th scope="col">{t('treatmentPlans.estimatedPrice')}</th>
+            <th scope="col">{t("chart.panel.procedure")}</th>
+            <th scope="col">{t("treatmentPlans.status")}</th>
+            <th scope="col">{t("treatmentPlans.estimatedPrice")}</th>
           </tr>
         </thead>
         <tbody>
@@ -81,7 +81,7 @@ export function PlanPrint({
         <tfoot>
           <tr>
             <th scope="row" colSpan={3}>
-              {t('treatmentPlans.total')}
+              {t("treatmentPlans.total")}
             </th>
             <td dir="ltr">
               {planTotal(items)} {currency}
@@ -89,7 +89,7 @@ export function PlanPrint({
           </tr>
           <tr>
             <th scope="row" colSpan={3}>
-              {t('treatmentPlans.remaining')}
+              {t("treatmentPlans.remaining")}
             </th>
             <td dir="ltr">
               {planRemaining(items)} {currency}
@@ -100,11 +100,11 @@ export function PlanPrint({
 
       {plan.notes && <p className="print-notes">{plan.notes}</p>}
 
-      <p className="print-disclaimer">{t('treatmentPlans.printDisclaimer')}</p>
+      <p className="print-disclaimer">{t("treatmentPlans.printDisclaimer")}</p>
 
       <div className="print-signature">
-        <span>{t('treatmentPlans.signatureDoctor')}</span>
-        <span>{t('treatmentPlans.signaturePatient')}</span>
+        <span>{t("treatmentPlans.signatureDoctor")}</span>
+        <span>{t("treatmentPlans.signaturePatient")}</span>
       </div>
     </div>
   );

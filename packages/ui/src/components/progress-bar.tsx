@@ -1,14 +1,14 @@
-import type { JSX } from 'react';
+import type { JSX } from "react";
 
-import { cn } from '@ui/lib/cn';
+import { cn } from "@ui/lib/cn";
 
-export type ProgressTone = 'primary' | 'success' | 'warning' | 'danger';
+export type ProgressTone = "primary" | "success" | "warning" | "danger";
 
 const TONES: Record<ProgressTone, string> = {
-  primary: 'bg-primary-600',
-  success: 'bg-success-500',
-  warning: 'bg-warning-500',
-  danger: 'bg-danger-500',
+  primary: "bg-primary-600",
+  success: "bg-success-500",
+  warning: "bg-warning-500",
+  danger: "bg-danger-500",
 };
 
 export interface ProgressBarProps {
@@ -27,7 +27,7 @@ export function ProgressBar({
   value,
   total,
   label,
-  tone = 'primary',
+  tone = "primary",
   className,
 }: ProgressBarProps): JSX.Element {
   const safeTotal = Math.max(total, 0);
@@ -42,13 +42,13 @@ export function ProgressBar({
       aria-valuenow={done}
       aria-valuemin={0}
       aria-valuemax={safeTotal}
-      className={cn('h-1.5 w-full overflow-hidden rounded-pill bg-inset', className)}
+      className={cn("h-1.5 w-full overflow-hidden rounded-pill bg-inset", className)}
     >
       {/* Width is the only inline style: a computed length, and there is no utility class for an
           arbitrary percentage. */}
       <div
         data-part="progress-bar-fill"
-        className={cn('h-full rounded-pill transition-[width] duration-500', TONES[tone])}
+        className={cn("h-full rounded-pill transition-[width] duration-500", TONES[tone])}
         style={{ width: `${percent}%` }}
       />
     </div>

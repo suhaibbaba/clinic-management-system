@@ -1,11 +1,11 @@
-import { forwardRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { forwardRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import { FIELD_BUTTON } from '@ui/components/field';
-import { Icon } from '@ui/components/icon';
-import { Input, type InputProps } from '@ui/components/input';
+import { FIELD_BUTTON } from "@ui/components/field";
+import { Icon } from "@ui/components/icon";
+import { Input, type InputProps } from "@ui/components/input";
 
-export type PasswordInputProps = Omit<InputProps, 'type'>;
+export type PasswordInputProps = Omit<InputProps, "type">;
 
 export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
   function PasswordInput({ ...props }, ref) {
@@ -17,7 +17,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
       <Input
         ref={ref}
         data-part="password-input"
-        type={revealed ? 'text' : 'password'}
+        type={revealed ? "text" : "password"}
         {...props}
         // After the spread: a caller's `suffix` must not replace the only way to read the field.
         {...(!disabled && {
@@ -29,12 +29,12 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
               // field and the button somebody is heading for.
               tabIndex={-1}
               aria-pressed={revealed}
-              aria-label={t(revealed ? 'common.hidePassword' : 'common.showPassword')}
-              title={t(revealed ? 'common.hidePassword' : 'common.showPassword')}
+              aria-label={t(revealed ? "common.hidePassword" : "common.showPassword")}
+              title={t(revealed ? "common.hidePassword" : "common.showPassword")}
               onClick={() => setRevealed((shown) => !shown)}
               className={FIELD_BUTTON}
             >
-              <Icon name={revealed ? 'eye-off' : 'eye'} className="size-4" />
+              <Icon name={revealed ? "eye-off" : "eye"} className="size-4" />
             </button>
           ),
         })}

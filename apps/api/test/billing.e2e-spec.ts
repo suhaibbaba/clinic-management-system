@@ -7,21 +7,21 @@ import {
   type Payment,
   type PerformedProcedure,
   type Statement,
-} from '@clinic/shared';
-import { and, eq, isNull } from 'drizzle-orm';
-import { PDFDocument } from 'pdf-lib';
+} from "@clinic/shared";
+import { and, eq, isNull } from "drizzle-orm";
+import { PDFDocument } from "pdf-lib";
 
-import { charges } from '@api/database/schema';
+import { charges } from "@api/database/schema";
 import {
   createPatient,
   procedurePayload,
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
-} from '@test/helpers/patient-fixtures';
-import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
+} from "@test/helpers/patient-fixtures";
+import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
-describe('Billing', () => {
+describe("Billing", () => {
   let context: TestContext;
   let clinic: TestClinic;
   let fixtures: PatientFixtures;
@@ -47,15 +47,15 @@ describe('Billing', () => {
   });
 
   const newPatient = async (): Promise<string> =>
-    createPatient(context, adminToken, { fullName: 'سامي الأحمد', phone: uniquePhone() });
+    createPatient(context, adminToken, { fullName: "سامي الأحمد", phone: uniquePhone() });
 
   const recordProcedure = async (
     patientId: string,
     overrides: Record<string, unknown> = {},
   ): Promise<PerformedProcedure> => {
     const response = await context.app.inject({
-      method: 'POST',
-      url: '/performed-procedures',
+      method: "POST",
+      url: "/performed-procedures",
       headers: auth(doctorToken),
       payload: {
         ...procedurePayload({
@@ -75,7 +75,7 @@ describe('Billing', () => {
 
   const balanceOf = async (patientId: string, token = adminToken): Promise<PatientBalance> => {
     const response = await context.app.inject({
-      method: 'GET',
+      method: "GET",
       url: `/patients/${patientId}/balance`,
       headers: auth(token),
     });
@@ -91,8 +91,8 @@ describe('Billing', () => {
     token = receptionistToken,
   ): Promise<Payment> => {
     const response = await context.app.inject({
-      method: 'POST',
-      url: '/payments',
+      method: "POST",
+      url: "/payments",
       headers: auth(token),
       payload: { patientId, amount, method: PAYMENT_METHOD.CASH },
     });
@@ -102,98 +102,98 @@ describe('Billing', () => {
     return response.json() as Payment;
   };
 
-  describe('balance', () => {
-    it('is sum(charges) − sum(payments), reversals included', async () => {
+  describe("balance", () => {
+    it("is sum(charges) − sum(payments), reversals included", async () => {
       const patientId = await newPatient();
 
-      await recordProcedure(patientId, { price: '150.00' });
-      expect((await balanceOf(patientId)).balance).toBe('150.00');
+      await recordProcedure(patientId, { price: "150.00" });
+      expect((await balanceOf(patientId)).balance).toBe("150.00");
 
-      await pay(patientId, '50.00');
-      expect((await balanceOf(patientId)).balance).toBe('100.00');
+      await pay(patientId, "50.00");
+      expect((await balanceOf(patientId)).balance).toBe("100.00");
 
-      const reversed = await pay(patientId, '30.00');
-      expect((await balanceOf(patientId)).balance).toBe('70.00');
+      const reversed = await pay(patientId, "30.00");
+      expect((await balanceOf(patientId)).balance).toBe("70.00");
 
       const reversal = await context.app.inject({
-        method: 'POST',
+        method: "POST",
         url: `/payments/${reversed.id}/reverse`,
         headers: auth(adminToken),
-        payload: { reason: 'Recorded against the wrong patient' },
+        payload: { reason: "Recorded against the wrong patient" },
       });
 
       expect(reversal.statusCode).toBe(201);
-      expect((reversal.json() as Payment).amount).toBe('-30.00');
+      expect((reversal.json() as Payment).amount).toBe("-30.00");
 
       // Back to where it was: the reversal is an ordinary negative row in the
       // same sum, and the original payment is still there to be read.
       const after = await balanceOf(patientId);
-      expect(after.balance).toBe('100.00');
-      expect(after.charged).toBe('150.00');
-      expect(after.paid).toBe('50.00');
+      expect(after.balance).toBe("100.00");
+      expect(after.charged).toBe("150.00");
+      expect(after.paid).toBe("50.00");
     });
 
-    it('nets a discount off the charge', async () => {
+    it("nets a discount off the charge", async () => {
       const patientId = await newPatient();
 
       await recordProcedure(patientId, {
-        price: '200.00',
-        discount: '25.00',
-        discountReason: 'Family rate',
+        price: "200.00",
+        discount: "25.00",
+        discountReason: "Family rate",
       });
 
-      expect((await balanceOf(patientId)).balance).toBe('175.00');
+      expect((await balanceOf(patientId)).balance).toBe("175.00");
     });
 
-    it('is only raised by work that has started', async () => {
+    it("is only raised by work that has started", async () => {
       const patientId = await newPatient();
 
       const procedure = await recordProcedure(patientId, {
-        price: '90.00',
+        price: "90.00",
         status: PERFORMED_PROCEDURE_STATUS.PLANNED,
       });
 
-      expect((await balanceOf(patientId)).balance).toBe('0.00');
+      expect((await balanceOf(patientId)).balance).toBe("0.00");
 
       const update = await context.app.inject({
-        method: 'PATCH',
+        method: "PATCH",
         url: `/performed-procedures/${procedure.id}`,
         headers: auth(doctorToken),
         payload: { status: PERFORMED_PROCEDURE_STATUS.DONE },
       });
 
       expect(update.statusCode).toBe(200);
-      expect((await balanceOf(patientId)).balance).toBe('90.00');
+      expect((await balanceOf(patientId)).balance).toBe("90.00");
     });
 
-    it('rides along in the patient header, and never for a technician', async () => {
+    it("rides along in the patient header, and never for a technician", async () => {
       const patientId = await newPatient();
-      await recordProcedure(patientId, { price: '120.00' });
+      await recordProcedure(patientId, { price: "120.00" });
 
       const forReception = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/patients/${patientId}`,
         headers: auth(receptionistToken),
       });
 
       expect(forReception.statusCode).toBe(200);
-      expect(forReception.json()).toMatchObject({ balance: '120.00' });
+      expect(forReception.json()).toMatchObject({ balance: "120.00" });
 
       const forTechnician = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/patients/${patientId}`,
         headers: auth(technicianToken),
       });
 
       expect(forTechnician.statusCode).toBe(200);
-      expect(forTechnician.json()).not.toHaveProperty('balance');
+      expect(forTechnician.json()).not.toHaveProperty("balance");
     });
   });
 
-  describe('corrections', () => {
-    it('re-prices a procedure by reversal, never by editing the charge', async () => {
+  describe("corrections", () => {
+    it("re-prices a procedure by reversal, never by editing the charge", async () => {
       const patientId = await newPatient();
-      const procedure = await recordProcedure(patientId, { price: '100.00' });
+      const procedure = await recordProcedure(patientId, { price: "100.00" });
 
       const original = await context.db
         .select()
@@ -201,13 +201,13 @@ describe('Billing', () => {
         .where(eq(charges.performedProcedureId, procedure.id));
 
       expect(original).toHaveLength(1);
-      expect(original[0]?.amount).toBe('100.00');
+      expect(original[0]?.amount).toBe("100.00");
 
       const update = await context.app.inject({
-        method: 'PATCH',
+        method: "PATCH",
         url: `/performed-procedures/${procedure.id}`,
         headers: auth(doctorToken),
-        payload: { price: '130.00' },
+        payload: { price: "130.00" },
       });
 
       expect(update.statusCode).toBe(200);
@@ -220,25 +220,25 @@ describe('Billing', () => {
       // Three rows, not one edited row: the original untouched, its reversal,
       // and the corrected charge.
       expect(rows).toHaveLength(3);
-      expect(rows.find((row) => row.id === original[0]?.id)?.amount).toBe('100.00');
+      expect(rows.find((row) => row.id === original[0]?.id)?.amount).toBe("100.00");
       expect(rows.filter((row) => row.reversesId !== null).map((row) => row.amount)).toEqual([
-        '-100.00',
+        "-100.00",
       ]);
-      expect((await balanceOf(patientId)).balance).toBe('130.00');
+      expect((await balanceOf(patientId)).balance).toBe("130.00");
     });
 
-    it('reverses the charge when a procedure is soft-deleted', async () => {
+    it("reverses the charge when a procedure is soft-deleted", async () => {
       const patientId = await newPatient();
-      const procedure = await recordProcedure(patientId, { price: '75.00' });
+      const procedure = await recordProcedure(patientId, { price: "75.00" });
 
       const removal = await context.app.inject({
-        method: 'DELETE',
+        method: "DELETE",
         url: `/performed-procedures/${procedure.id}`,
         headers: auth(adminToken),
       });
 
       expect(removal.statusCode).toBe(204);
-      expect((await balanceOf(patientId)).balance).toBe('0.00');
+      expect((await balanceOf(patientId)).balance).toBe("0.00");
 
       // Reversed, not deleted: both rows are still live and readable.
       const rows = await context.db
@@ -249,7 +249,7 @@ describe('Billing', () => {
       expect(rows).toHaveLength(2);
     });
 
-    it('leaves no orphan charge when the procedure insert fails', async () => {
+    it("leaves no orphan charge when the procedure insert fails", async () => {
       const patientId = await newPatient();
       const before = await context.db
         .select()
@@ -259,15 +259,15 @@ describe('Billing', () => {
       // The mark is rejected after the row would have been written, which is exactly the window a
       // charge outside the transaction would leak through.
       const response = await context.app.inject({
-        method: 'POST',
-        url: '/performed-procedures',
+        method: "POST",
+        url: "/performed-procedures",
         headers: auth(doctorToken),
         payload: {
           patientId,
           doctorId: fixtures.doctorId,
           procedureId: fixtures.catalogId,
-          price: '10.00',
-          chartMarks: [{ chartType: 'body_region', location: { region: 'knee', side: 'left' } }],
+          price: "10.00",
+          chartMarks: [{ chartType: "body_region", location: { region: "knee", side: "left" } }],
         },
       });
 
@@ -276,21 +276,21 @@ describe('Billing', () => {
       const after = await context.db.select().from(charges).where(eq(charges.patientId, patientId));
 
       expect(after).toHaveLength(before.length);
-      expect((await balanceOf(patientId)).balance).toBe('0.00');
+      expect((await balanceOf(patientId)).balance).toBe("0.00");
     });
   });
 
-  describe('payments', () => {
-    it('numbers receipts without gaps under concurrent writes', async () => {
+  describe("payments", () => {
+    it("numbers receipts without gaps under concurrent writes", async () => {
       const patientId = await newPatient();
 
       const results = await Promise.all(
         Array.from({ length: 8 }, () =>
           context.app.inject({
-            method: 'POST',
-            url: '/payments',
+            method: "POST",
+            url: "/payments",
             headers: auth(receptionistToken),
-            payload: { patientId, amount: '10.00', method: PAYMENT_METHOD.CARD },
+            payload: { patientId, amount: "10.00", method: PAYMENT_METHOD.CARD },
           }),
         ),
       );
@@ -304,33 +304,33 @@ describe('Billing', () => {
       expect(numbers.at(-1)! - numbers[0]!).toBe(numbers.length - 1);
     });
 
-    it('refuses to reverse the same payment twice', async () => {
+    it("refuses to reverse the same payment twice", async () => {
       const patientId = await newPatient();
-      const payment = await pay(patientId, '20.00');
+      const payment = await pay(patientId, "20.00");
 
       const first = await context.app.inject({
-        method: 'POST',
+        method: "POST",
         url: `/payments/${payment.id}/reverse`,
         headers: auth(adminToken),
-        payload: { reason: 'Duplicate entry' },
+        payload: { reason: "Duplicate entry" },
       });
       const second = await context.app.inject({
-        method: 'POST',
+        method: "POST",
         url: `/payments/${payment.id}/reverse`,
         headers: auth(adminToken),
-        payload: { reason: 'Duplicate entry' },
+        payload: { reason: "Duplicate entry" },
       });
 
       expect(first.statusCode).toBe(201);
       expect(second.statusCode).toBe(400);
     });
 
-    it('gives a receptionist create and read, and nothing else', async () => {
+    it("gives a receptionist create and read, and nothing else", async () => {
       const patientId = await newPatient();
-      const payment = await pay(patientId, '15.00');
+      const payment = await pay(patientId, "15.00");
 
       const list = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/payments?patientId=${patientId}`,
         headers: auth(receptionistToken),
       });
@@ -340,35 +340,35 @@ describe('Billing', () => {
 
       // ROLES.md: "receptionist updating or deleting a payment → 403".
       const reversal = await context.app.inject({
-        method: 'POST',
+        method: "POST",
         url: `/payments/${payment.id}/reverse`,
         headers: auth(receptionistToken),
-        payload: { reason: 'Should not be allowed' },
+        payload: { reason: "Should not be allowed" },
       });
       const removal = await context.app.inject({
-        method: 'DELETE',
+        method: "DELETE",
         url: `/payments/${payment.id}`,
         headers: auth(receptionistToken),
-        payload: { reason: 'Should not be allowed' },
+        payload: { reason: "Should not be allowed" },
       });
 
       expect(reversal.statusCode).toBe(403);
       expect(removal.statusCode).toBe(403);
     });
 
-    it('keeps a technician away from the money entirely', async () => {
+    it("keeps a technician away from the money entirely", async () => {
       const patientId = await newPatient();
 
       const attempts = await Promise.all([
-        context.app.inject({ method: 'GET', url: '/payments', headers: auth(technicianToken) }),
+        context.app.inject({ method: "GET", url: "/payments", headers: auth(technicianToken) }),
         context.app.inject({
-          method: 'GET',
+          method: "GET",
           url: `/patients/${patientId}/balance`,
           headers: auth(technicianToken),
         }),
         context.app.inject({
-          method: 'GET',
-          url: '/billing/overdue',
+          method: "GET",
+          url: "/billing/overdue",
           headers: auth(technicianToken),
         }),
       ]);
@@ -377,14 +377,14 @@ describe('Billing', () => {
     });
   });
 
-  describe('statement', () => {
-    it('runs a balance down the entries and names the procedure only', async () => {
+  describe("statement", () => {
+    it("runs a balance down the entries and names the procedure only", async () => {
       const patientId = await newPatient();
-      await recordProcedure(patientId, { price: '100.00' });
-      await pay(patientId, '40.00');
+      await recordProcedure(patientId, { price: "100.00" });
+      await pay(patientId, "40.00");
 
       const response = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/patients/${patientId}/statement`,
         headers: auth(receptionistToken),
       });
@@ -393,70 +393,70 @@ describe('Billing', () => {
 
       const statement = response.json() as Statement;
 
-      expect(statement.entries.map((entry) => entry.runningBalance)).toEqual(['100.00', '60.00']);
-      expect(statement.closingBalance).toBe('60.00');
+      expect(statement.entries.map((entry) => entry.runningBalance)).toEqual(["100.00", "60.00"]);
+      expect(statement.closingBalance).toBe("60.00");
       // The catalog name, and nothing clinical alongside it.
-      expect(statement.entries[0]?.description).toBe('حشوة تجميلية');
+      expect(statement.entries[0]?.description).toBe("حشوة تجميلية");
     });
 
-    it('renders a PDF with the Arabic text embedded', async () => {
+    it("renders a PDF with the Arabic text embedded", async () => {
       const patientId = await newPatient();
-      await recordProcedure(patientId, { price: '100.00' });
+      await recordProcedure(patientId, { price: "100.00" });
 
       const response = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/patients/${patientId}/statement.pdf`,
         headers: auth(receptionistToken),
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.headers['content-type']).toContain('application/pdf');
+      expect(response.headers["content-type"]).toContain("application/pdf");
 
       const pdf = response.rawPayload;
 
-      expect(pdf.subarray(0, 5).toString('latin1')).toBe('%PDF-');
-      expect(pdf.subarray(-6).toString('latin1')).toContain('%%EOF');
+      expect(pdf.subarray(0, 5).toString("latin1")).toBe("%PDF-");
+      expect(pdf.subarray(-6).toString("latin1")).toContain("%%EOF");
 
       const document = await PDFDocument.load(pdf);
       const names = document.context
         .enumerateIndirectObjects()
         .map(([, value]) => String(value))
-        .join(' ');
+        .join(" ");
 
-      expect(names).toContain('Amiri');
-      expect(names).toContain('CIDFontType2');
+      expect(names).toContain("Amiri");
+      expect(names).toContain("CIDFontType2");
       expect(pdf.byteLength).toBeGreaterThan(50_000);
     });
 
-    it('prints a receipt for every payment', async () => {
+    it("prints a receipt for every payment", async () => {
       const patientId = await newPatient();
-      const payment = await pay(patientId, '35.00');
+      const payment = await pay(patientId, "35.00");
 
       const response = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/payments/${payment.id}/receipt`,
         headers: auth(receptionistToken),
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.rawPayload.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+      expect(response.rawPayload.subarray(0, 5).toString("latin1")).toBe("%PDF-");
     });
   });
 
-  describe('overdue', () => {
-    it('lists debtors who have not paid inside the window', async () => {
+  describe("overdue", () => {
+    it("lists debtors who have not paid inside the window", async () => {
       const owing = await newPatient();
       const paid = await newPatient();
 
-      await recordProcedure(owing, { price: '300.00' });
-      await recordProcedure(paid, { price: '80.00' });
-      await pay(paid, '80.00');
+      await recordProcedure(owing, { price: "300.00" });
+      await recordProcedure(paid, { price: "80.00" });
+      await pay(paid, "80.00");
 
       // `afterDays` of one day means everything charged today counts, since the
       // owing patient has never paid at all.
       const response = await context.app.inject({
-        method: 'GET',
-        url: '/billing/overdue?afterDays=1&limit=100',
+        method: "GET",
+        url: "/billing/overdue?afterDays=1&limit=100",
         headers: auth(receptionistToken),
       });
 
@@ -467,24 +467,24 @@ describe('Billing', () => {
 
       expect(ids).toContain(owing);
       expect(ids).not.toContain(paid);
-      expect(page.items.find((item) => item.patientId === owing)?.balance).toBe('300.00');
+      expect(page.items.find((item) => item.patientId === owing)?.balance).toBe("300.00");
     });
   });
 
   // A server-side filter because a balance is an aggregate: filtering the page in hand would answer
   // "which of these twenty owe" and page wrongly.
-  describe('patients?hasBalance', () => {
-    it('returns only the patients who owe, and pages over those', async () => {
+  describe("patients?hasBalance", () => {
+    it("returns only the patients who owe, and pages over those", async () => {
       const owing = await newPatient();
       const settled = await newPatient();
 
-      await recordProcedure(owing, { price: '120.00' });
-      await recordProcedure(settled, { price: '75.00' });
-      await pay(settled, '75.00');
+      await recordProcedure(owing, { price: "120.00" });
+      await recordProcedure(settled, { price: "75.00" });
+      await pay(settled, "75.00");
 
       const response = await context.app.inject({
-        method: 'GET',
-        url: '/patients?hasBalance=true&limit=100',
+        method: "GET",
+        url: "/patients?hasBalance=true&limit=100",
         headers: auth(receptionistToken),
       });
 
@@ -498,22 +498,22 @@ describe('Billing', () => {
       // The total is the count of debtors, not of patients — which is the
       // whole reason the filter is not applied after the page is cut.
       expect(page.total).toBe(page.items.length);
-      expect(page.items.every((item) => Number(item.balance ?? '0') > 0)).toBe(true);
+      expect(page.items.every((item) => Number(item.balance ?? "0") > 0)).toBe(true);
     });
 
-    it('is ignored for a technician, whose responses carry no money at all', async () => {
+    it("is ignored for a technician, whose responses carry no money at all", async () => {
       const owing = await newPatient();
-      await recordProcedure(owing, { price: '90.00' });
+      await recordProcedure(owing, { price: "90.00" });
 
       const [filtered, unfiltered] = await Promise.all([
         context.app.inject({
-          method: 'GET',
-          url: '/patients?hasBalance=true&limit=100',
+          method: "GET",
+          url: "/patients?hasBalance=true&limit=100",
           headers: auth(technicianToken),
         }),
         context.app.inject({
-          method: 'GET',
-          url: '/patients?limit=100',
+          method: "GET",
+          url: "/patients?limit=100",
           headers: auth(technicianToken),
         }),
       ]);
@@ -524,7 +524,7 @@ describe('Billing', () => {
         (unfiltered.json() as Paginated<unknown>).total,
       );
       expect((filtered.json() as Paginated<{ balance?: string }>).items[0]).not.toHaveProperty(
-        'balance',
+        "balance",
       );
     });
   });

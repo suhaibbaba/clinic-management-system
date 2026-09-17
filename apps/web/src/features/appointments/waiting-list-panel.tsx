@@ -4,9 +4,9 @@ import {
   WAITING_LIST_SOURCE,
   WAITING_LIST_STATUS,
   type WaitingListEntry,
-} from '@clinic/shared';
-import { useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Badge,
@@ -22,14 +22,14 @@ import {
   Textarea,
   usePersonName,
   useToast,
-} from '@clinic/ui';
-import { useDoctors } from '@web/features/doctors/queries';
+} from "@clinic/ui";
+import { useDoctors } from "@web/features/doctors/queries";
 import {
   useAddToWaitingList,
   useContactWaitingEntry,
   useDeclineWaitingEntry,
   useWaitingList,
-} from '@web/features/appointments/queries';
+} from "@web/features/appointments/queries";
 import {
   isDraftComplete,
   PatientPicker,
@@ -37,15 +37,15 @@ import {
   toPatientRef,
   type PatientChoice,
   type PickedPatient,
-} from '@web/features/appointments/patient-picker';
-import { errorMessageKey } from '@web/lib/api-error';
-import { formatDateTime } from '@web/lib/format';
-import type { BadgeTone } from '@clinic/ui/components/badge';
+} from "@web/features/appointments/patient-picker";
+import { errorMessageKey } from "@web/lib/api-error";
+import { formatDateTime } from "@web/lib/format";
+import type { BadgeTone } from "@clinic/ui/components/badge";
 
 const PRIORITY_TONE: Record<string, BadgeTone> = {
-  [WAITING_LIST_PRIORITY.URGENT]: 'danger',
-  [WAITING_LIST_PRIORITY.HIGH]: 'warning',
-  [WAITING_LIST_PRIORITY.NORMAL]: 'neutral',
+  [WAITING_LIST_PRIORITY.URGENT]: "danger",
+  [WAITING_LIST_PRIORITY.HIGH]: "warning",
+  [WAITING_LIST_PRIORITY.NORMAL]: "neutral",
 };
 
 export interface WaitingListPanelProps {
@@ -75,7 +75,7 @@ export function WaitingListPanel({
   const markContacted = async (id: string): Promise<void> => {
     try {
       await contact.mutateAsync(id);
-      toast.success('appointments.waiting.contacted');
+      toast.success("appointments.waiting.contacted");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -86,19 +86,19 @@ export function WaitingListPanel({
       <Drawer
         open={open}
         onOpenChange={onOpenChange}
-        title={t('appointments.waiting.title')}
+        title={t("appointments.waiting.title")}
         descriptionKey="appointments.waiting.title"
         footer={
           canManage ? (
             <Button icon={<Icon name="user-plus" />} onClick={() => setAddOpen(true)}>
-              {t('appointments.waiting.add')}
+              {t("appointments.waiting.add")}
             </Button>
           ) : undefined
         }
       >
         {entries.data?.items.length === 0 && (
           <p className="rounded-control bg-inset px-3 py-6 text-center text-value text-ink-muted">
-            {t('appointments.waiting.empty')}
+            {t("appointments.waiting.empty")}
           </p>
         )}
 
@@ -113,9 +113,9 @@ export function WaitingListPanel({
                 </div>
                 <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
                   {entry.source === WAITING_LIST_SOURCE.ONLINE && (
-                    <Badge tone="info">{t('appointments.waiting.online')}</Badge>
+                    <Badge tone="info">{t("appointments.waiting.online")}</Badge>
                   )}
-                  <Badge tone={PRIORITY_TONE[entry.priority] ?? 'neutral'}>
+                  <Badge tone={PRIORITY_TONE[entry.priority] ?? "neutral"}>
                     {t(`appointments.waiting.priorities.${entry.priority}`)}
                   </Badge>
                 </div>
@@ -126,12 +126,12 @@ export function WaitingListPanel({
               <p className="mt-1 text-label text-ink-subtle">
                 <PersonName
                   name={entry.doctorName}
-                  fallback={t('appointments.waiting.anyDoctor')}
-                />{' '}
-                ·{' '}
-                {t('appointments.waiting.waitingSince', { time: formatDateTime(entry.createdAt) })}
+                  fallback={t("appointments.waiting.anyDoctor")}
+                />{" "}
+                ·{" "}
+                {t("appointments.waiting.waitingSince", { time: formatDateTime(entry.createdAt) })}
                 {entry.status === WAITING_LIST_STATUS.CONTACTED && (
-                  <> · {t('appointments.waiting.statuses.contacted')}</>
+                  <> · {t("appointments.waiting.statuses.contacted")}</>
                 )}
               </p>
 
@@ -142,7 +142,7 @@ export function WaitingListPanel({
                     icon={<Icon name="calendar" />}
                     onClick={() => onSchedule(entry)}
                   >
-                    {t('appointments.waiting.schedule')}
+                    {t("appointments.waiting.schedule")}
                   </Button>
                   {entry.status === WAITING_LIST_STATUS.PENDING && (
                     <Button
@@ -152,7 +152,7 @@ export function WaitingListPanel({
                       isLoading={contact.isPending}
                       onClick={() => void markContacted(entry.id)}
                     >
-                      {t('appointments.waiting.markContacted')}
+                      {t("appointments.waiting.markContacted")}
                     </Button>
                   )}
                   <Button
@@ -161,7 +161,7 @@ export function WaitingListPanel({
                     icon={<Icon name="x" />}
                     onClick={() => setDeclining(entry)}
                   >
-                    {t('appointments.waiting.decline')}
+                    {t("appointments.waiting.decline")}
                   </Button>
                 </div>
               )}
@@ -192,9 +192,9 @@ function AddWalkInModal({
 
   const [patient, setPatient] = useState<PatientChoice | null>(null);
   const [clash, setClash] = useState<PickedPatient | null>(null);
-  const [doctorId, setDoctorId] = useState('');
+  const [doctorId, setDoctorId] = useState("");
   const [priority, setPriority] = useState<string>(WAITING_LIST_PRIORITY.NORMAL);
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState("");
 
   const submit = async (): Promise<void> => {
     if (!patient) {
@@ -204,14 +204,14 @@ function AddWalkInModal({
     try {
       await add.mutateAsync({
         ...toPatientRef(patient),
-        doctorId: doctorId === '' ? null : doctorId,
-        reason: reason.trim() === '' ? null : reason.trim(),
+        doctorId: doctorId === "" ? null : doctorId,
+        reason: reason.trim() === "" ? null : reason.trim(),
         priority: priority as (typeof WAITING_LIST_PRIORITIES)[number],
       });
 
-      toast.success('appointments.waiting.added');
+      toast.success("appointments.waiting.added");
       setPatient(null);
-      setReason('');
+      setReason("");
       onOpenChange(false);
     } catch (error) {
       const existing = patientPhoneClash(error);
@@ -233,14 +233,14 @@ function AddWalkInModal({
       footer={
         <>
           <Button variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
             isLoading={add.isPending}
             disabled={!isDraftComplete(patient)}
             onClick={() => void submit()}
           >
-            {t('common.save')}
+            {t("common.save")}
           </Button>
         </>
       }
@@ -262,7 +262,7 @@ function AddWalkInModal({
           <Select
             id="waiting-doctor"
             value={doctorId}
-            placeholder={t('appointments.waiting.anyDoctor')}
+            placeholder={t("appointments.waiting.anyDoctor")}
             options={(doctors.data?.items ?? []).map((doctor) => ({
               value: doctor.id,
               label: doctorName(doctor.user.name),
@@ -306,13 +306,13 @@ function DeclineModal({
   const toast = useToast();
   const decline = useDeclineWaitingEntry();
 
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState("");
   const notify = entry.source === WAITING_LIST_SOURCE.ONLINE;
 
   const submit = async (): Promise<void> => {
     try {
       await decline.mutateAsync({ id: entry.id, body: { reason: reason.trim(), notify } });
-      toast.success('appointments.waiting.declined');
+      toast.success("appointments.waiting.declined");
       onClose();
     } catch (error) {
       toast.error(errorMessageKey(error));
@@ -327,14 +327,14 @@ function DeclineModal({
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
             isLoading={decline.isPending}
             disabled={reason.trim().length < 3}
             onClick={() => void submit()}
           >
-            {t('common.save')}
+            {t("common.save")}
           </Button>
         </>
       }
@@ -345,7 +345,7 @@ function DeclineModal({
         <FormField
           label="appointments.waiting.declineReason"
           htmlFor="decline-reason"
-          hint={notify ? 'appointments.waiting.declineNotifies' : undefined}
+          hint={notify ? "appointments.waiting.declineNotifies" : undefined}
           required
         >
           <Textarea

@@ -1,27 +1,27 @@
-import type { ButtonHTMLAttributes, JSX, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, JSX, ReactNode } from "react";
 
-import { Icon, type IconName } from '@ui/components/icon';
-import { cn } from '@ui/lib/cn';
+import { Icon, type IconName } from "@ui/components/icon";
+import { cn } from "@ui/lib/cn";
 
-export type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'info';
+export type BadgeTone = "neutral" | "success" | "warning" | "danger" | "info";
 
 /** The label chip that names what a figure counts — the reference's `.tag`, never a status. */
-export type BadgeVariant = BadgeTone | 'wash';
+export type BadgeVariant = BadgeTone | "wash";
 
 const TONES: Record<BadgeVariant, string> = {
-  neutral: 'bg-sunken text-ink-muted',
-  success: 'bg-success-100 text-success-900',
-  warning: 'bg-warning-100 text-warning-700',
-  danger: 'bg-danger-100 text-danger-600',
-  info: 'bg-primary-100 text-primary-600',
+  neutral: "bg-sunken text-ink-muted",
+  success: "bg-success-100 text-success-900",
+  warning: "bg-warning-100 text-warning-700",
+  danger: "bg-danger-100 text-danger-600",
+  info: "bg-primary-100 text-primary-600",
   // The reference's `.tag`: the label that names what a KPI figure counts, or what a panel lists.
-  wash: 'tag-wash text-primary-900',
+  wash: "tag-wash text-primary-900",
 };
 
 /** One pill for the whole app: a status, a count, a filter — the same box in every one of them. */
 export const PILL_BASE = cn(
-  'pill-text inline-flex items-center h-(--control-h-sm) gap-2 whitespace-nowrap rounded-pill px-3',
-  'text-nav font-normal',
+  "pill-text inline-flex items-center h-(--control-h-sm) gap-2 whitespace-nowrap rounded-pill px-3",
+  "text-nav font-normal",
 );
 
 export interface BadgeProps {
@@ -34,14 +34,14 @@ export interface BadgeProps {
 }
 
 export function Badge({
-  tone = 'neutral',
+  tone = "neutral",
   plain = false,
   icon,
   className,
   children,
 }: BadgeProps): JSX.Element {
   return (
-    <span data-part="badge" className={cn(PILL_BASE, 'min-w-0', TONES[tone], className)}>
+    <span data-part="badge" className={cn(PILL_BASE, "min-w-0", TONES[tone], className)}>
       {icon !== undefined && <Icon name={icon} className="size-3.5 shrink-0" />}
       {!plain && icon === undefined && (
         <span
@@ -66,7 +66,7 @@ export function Chip({
   selected = false,
   className,
   children,
-  type = 'button',
+  type = "button",
   ...props
 }: ChipProps): JSX.Element {
   const disabled = props.disabled === true;
@@ -78,13 +78,13 @@ export function Chip({
       aria-pressed={selected}
       className={cn(
         PILL_BASE,
-        'h-(--control-h) shrink-0 cursor-pointer border-[1.5px]',
-        'transition-[background-color,border-color,color] duration-[250ms] ease-in-out',
-        disabled && 'cursor-not-allowed border-transparent bg-inset text-ink-faint',
+        "h-(--control-h) shrink-0 cursor-pointer border-[1.5px]",
+        "transition-[background-color,border-color,color] duration-[250ms] ease-in-out",
+        disabled && "cursor-not-allowed border-transparent bg-inset text-ink-faint",
         !disabled &&
           (selected
-            ? 'border-primary-600 bg-primary-100 text-primary-700'
-            : 'border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink'),
+            ? "border-primary-600 bg-primary-100 text-primary-700"
+            : "border-line-strong bg-surface text-ink-muted hover:bg-inset hover:border-neutral-400 hover:text-ink"),
         className,
       )}
       {...props}

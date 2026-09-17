@@ -1,11 +1,11 @@
-import * as Dialog from '@radix-ui/react-dialog';
-import { useState, type JSX, type ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+import * as Dialog from "@radix-ui/react-dialog";
+import { useState, type JSX, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Icon } from '@ui/components/icon';
-import { DialogLayerProvider } from '@ui/components/dialog-layer';
-import { cn } from '@ui/lib/cn';
-import { documentDirection } from '@ui/lib/direction';
+import { Icon } from "@ui/components/icon";
+import { DialogLayerProvider } from "@ui/components/dialog-layer";
+import { cn } from "@ui/lib/cn";
+import { documentDirection } from "@ui/lib/direction";
 
 export interface DrawerProps {
   open: boolean;
@@ -36,9 +36,9 @@ export function Drawer({
         <Dialog.Overlay
           data-part="drawer-overlay"
           className={cn(
-            'fixed inset-0 z-40 bg-ink/40',
-            'data-[state=open]:animate-[fade-in_200ms_ease-out]',
-            'data-[state=closed]:animate-[fade-out_150ms_ease-in]',
+            "fixed inset-0 z-40 bg-ink/40",
+            "data-[state=open]:animate-[fade-in_200ms_ease-out]",
+            "data-[state=closed]:animate-[fade-out_150ms_ease-in]",
           )}
         />
         <Dialog.Content
@@ -51,10 +51,10 @@ export function Drawer({
           tabIndex={-1}
           dir={documentDirection()}
           className={cn(
-            'fixed inset-y-0 end-0 z-50 flex w-full max-w-md flex-col bg-surface shadow-float',
-            'border-s border-line',
-            'data-[state=open]:animate-[drawer-end-in_220ms_cubic-bezier(0.32,0.72,0,1)]',
-            'data-[state=closed]:animate-[drawer-end-out_180ms_ease-in]',
+            "fixed inset-y-0 end-0 z-50 flex w-full max-w-md flex-col bg-surface shadow-float",
+            "border-s border-line",
+            "data-[state=open]:animate-[drawer-end-in_220ms_cubic-bezier(0.32,0.72,0,1)]",
+            "data-[state=closed]:animate-[drawer-end-out_180ms_ease-in]",
           )}
         >
           <div
@@ -67,10 +67,10 @@ export function Drawer({
             <Dialog.Close
               data-part="drawer-close"
               className={cn(
-                'inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill',
-                'text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink',
+                "inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill",
+                "text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink",
               )}
-              aria-label={t('common.close')}
+              aria-label={t("common.close")}
             >
               <Icon name="x" />
             </Dialog.Close>

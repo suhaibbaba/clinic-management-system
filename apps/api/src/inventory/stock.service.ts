@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from "@nestjs/common";
 import {
   batchesRemaining,
   compareQuantity,
@@ -9,11 +9,11 @@ import {
   type BatchInflow,
   type BatchOutflow,
   type ItemBatch,
-} from '@clinic/shared';
-import { eq, sql } from 'drizzle-orm';
+} from "@clinic/shared";
+import { eq, sql } from "drizzle-orm";
 
-import { DATABASE, type Database } from '@api/database/database.module';
-import { clinics } from '@api/database/schema';
+import { DATABASE, type Database } from "@api/database/database.module";
+import { clinics } from "@api/database/schema";
 
 export interface ItemStock {
   readonly quantity: string;
@@ -26,9 +26,9 @@ export interface ItemStock {
 }
 
 const EMPTY: ItemStock = {
-  quantity: '0',
+  quantity: "0",
   batches: [],
-  unbatched: '0',
+  unbatched: "0",
   nearestExpiry: null,
   isExpiring: false,
   isExpired: false,

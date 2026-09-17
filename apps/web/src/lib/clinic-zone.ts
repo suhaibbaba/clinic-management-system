@@ -1,12 +1,12 @@
-import { clinicScheduleSettings, type Clinic } from '@clinic/shared';
+import { clinicScheduleSettings, type Clinic } from "@clinic/shared";
 
 let zone = resolveBrowserZone();
 
 function resolveBrowserZone(): string {
   try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
   } catch {
-    return 'UTC';
+    return "UTC";
   }
 }
 

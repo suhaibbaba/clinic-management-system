@@ -1,6 +1,6 @@
-import { Suspense, lazy, type JSX, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
+import { Suspense, lazy, type JSX, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 
 import {
   Avatar,
@@ -12,48 +12,48 @@ import {
   TabPanel,
   Tabs,
   useTabParam,
-} from '@clinic/ui';
-import { Skeleton, SkeletonStatus } from '@clinic/ui/components/skeleton';
-import { useSession } from '@web/features/auth/session';
-import { AccountTab } from '@web/features/billing/account-tab';
-import { PatientBalanceCard } from '@web/features/billing/patient-balance-card';
-import { canSeeBilling } from '@web/features/billing/permissions';
-import { ageInYears } from '@web/features/patients/age';
-import { AllergyBanner } from '@web/features/patients/allergy-banner';
-import { PatientFormModal } from '@web/features/patients/patient-form-modal';
-import { canEditPatient, canViewChart } from '@web/features/patients/permissions';
-import { usePatient } from '@web/features/patients/queries';
-import { TimelineTab } from '@web/features/patients/timeline/timeline-tab';
-import { TreatmentPlansTab } from '@web/features/patients/treatment-plans/treatment-plans-tab';
-import { VisitsTab } from '@web/features/patients/visits/visits-tab';
-import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
+} from "@clinic/ui";
+import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import { useSession } from "@web/features/auth/session";
+import { AccountTab } from "@web/features/billing/account-tab";
+import { PatientBalanceCard } from "@web/features/billing/patient-balance-card";
+import { canSeeBilling } from "@web/features/billing/permissions";
+import { ageInYears } from "@web/features/patients/age";
+import { AllergyBanner } from "@web/features/patients/allergy-banner";
+import { PatientFormModal } from "@web/features/patients/patient-form-modal";
+import { canEditPatient, canViewChart } from "@web/features/patients/permissions";
+import { usePatient } from "@web/features/patients/queries";
+import { TimelineTab } from "@web/features/patients/timeline/timeline-tab";
+import { TreatmentPlansTab } from "@web/features/patients/treatment-plans/treatment-plans-tab";
+import { VisitsTab } from "@web/features/patients/visits/visits-tab";
+import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 const ChartTab = lazy(async () => ({
-  default: (await import('@web/features/patients/chart/chart-tab')).ChartTab,
+  default: (await import("@web/features/patients/chart/chart-tab")).ChartTab,
 }));
 
 const ImagingTab = lazy(async () => ({
-  default: (await import('@web/features/patients/imaging/imaging-tab')).ImagingTab,
+  default: (await import("@web/features/patients/imaging/imaging-tab")).ImagingTab,
 }));
 
 const TABS = [
-  { id: 'chart', label: 'patients.tabs.chart', clinical: true },
-  { id: 'visits', label: 'patients.tabs.visits', clinical: true },
-  { id: 'treatmentPlans', label: 'patients.tabs.treatmentPlans', clinical: true },
-  { id: 'attachments', label: 'patients.tabs.attachments', clinical: true },
-  { id: 'prescriptions', label: 'patients.tabs.prescriptions', clinical: true },
-  { id: 'timeline', label: 'patients.tabs.timeline', clinical: true },
-  { id: 'billing', label: 'patients.tabs.billing', clinical: false },
+  { id: "chart", label: "patients.tabs.chart", clinical: true },
+  { id: "visits", label: "patients.tabs.visits", clinical: true },
+  { id: "treatmentPlans", label: "patients.tabs.treatmentPlans", clinical: true },
+  { id: "attachments", label: "patients.tabs.attachments", clinical: true },
+  { id: "prescriptions", label: "patients.tabs.prescriptions", clinical: true },
+  { id: "timeline", label: "patients.tabs.timeline", clinical: true },
+  { id: "billing", label: "patients.tabs.billing", clinical: false },
 ] as const;
 
-type TabId = (typeof TABS)[number]['id'];
+type TabId = (typeof TABS)[number]["id"];
 
-const PLACEHOLDER_TABS: readonly TabId[] = ['prescriptions'];
+const PLACEHOLDER_TABS: readonly TabId[] = ["prescriptions"];
 
 export function PatientPage(): JSX.Element {
   const { t } = useTranslation();
   const { user, can } = useSession();
-  const { id = '' } = useParams();
+  const { id = "" } = useParams();
 
   const role = user?.role;
   const tabs = TABS.filter((tab) => (tab.clinical ? role && canViewChart(role) : true));
@@ -61,9 +61,9 @@ export function PatientPage(): JSX.Element {
   // `?tab=` like every other section: in `useState` nobody could link into a patient's X-rays. The
   // list is filtered by role first, so a pasted `?tab=chart` resolves to what the reader may see.
   const [activeTab, setActiveTab] = useTabParam<TabId>(
-    'tab',
+    "tab",
     tabs.map((tab) => tab.id),
-    tabs[0]?.id ?? 'billing',
+    tabs[0]?.id ?? "billing",
   );
 
   const patient = usePatient(id);
@@ -77,7 +77,7 @@ export function PatientPage(): JSX.Element {
       <header className="border border-line rounded-card bg-surface p-4 shadow-card">
         {showSkeleton && <PatientHeaderSkeleton />}
 
-        {patient.isError && <p className="text-value text-danger-600">{t('errors.notFound')}</p>}
+        {patient.isError && <p className="text-value text-danger-600">{t("errors.notFound")}</p>}
 
         {patient.data && (
           <>
@@ -112,7 +112,7 @@ export function PatientPage(): JSX.Element {
                     icon={<Icon name="edit" />}
                     onClick={() => setEditing(true)}
                   >
-                    {t('patients.edit')}
+                    {t("patients.edit")}
                   </Button>
                 )}
               </div>
@@ -120,23 +120,23 @@ export function PatientPage(): JSX.Element {
 
             <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 lg:grid-cols-3">
               <div className="min-w-0">
-                <dt className="text-value text-ink-muted">{t('patients.fileNumber')}</dt>
+                <dt className="text-value text-ink-muted">{t("patients.fileNumber")}</dt>
                 <Ltr as="dd" className="mt-0.5 truncate text-value text-ink tabular-nums">
                   {patient.data.fileNumber}
                 </Ltr>
               </div>
 
               <div className="min-w-0">
-                <dt className="text-value text-ink-muted">{t('patients.age')}</dt>
+                <dt className="text-value text-ink-muted">{t("patients.age")}</dt>
                 <dd className="mt-0.5 truncate text-value text-ink">
                   {patient.data.dateOfBirth
-                    ? t('patients.years', { count: ageInYears(patient.data.dateOfBirth) })
-                    : '—'}
+                    ? t("patients.years", { count: ageInYears(patient.data.dateOfBirth) })
+                    : "—"}
                 </dd>
               </div>
 
               <div className="min-w-0">
-                <dt className="text-value text-ink-muted">{t('patients.phone')}</dt>
+                <dt className="text-value text-ink-muted">{t("patients.phone")}</dt>
                 {/* The 44px band is an absolutely positioned `::after`, and an `overflow-hidden`
                     ancestor cuts it down to the line box. */}
                 <dd className="mt-0.5 min-w-0 text-value text-ink">
@@ -163,22 +163,22 @@ export function PatientPage(): JSX.Element {
         {/* The chart and the imaging grid are the two heaviest things in the app — an SVG of 52
             teeth and a lightbox — and most visits to a file never open either. */}
         <Suspense fallback={<TabFallback />}>
-          {activeTab === 'chart' && (
+          {activeTab === "chart" && (
             <ChartTab
               patientId={id}
               dateOfBirth={patient.data?.dateOfBirth}
               patient={patient.data}
             />
           )}
-          {activeTab === 'attachments' && <ImagingTab patientId={id} />}
+          {activeTab === "attachments" && <ImagingTab patientId={id} />}
         </Suspense>
 
-        {activeTab === 'visits' && <VisitsTab patientId={id} patient={patient.data} />}
-        {activeTab === 'treatmentPlans' && (
+        {activeTab === "visits" && <VisitsTab patientId={id} patient={patient.data} />}
+        {activeTab === "treatmentPlans" && (
           <TreatmentPlansTab patientId={id} patient={patient.data} />
         )}
-        {activeTab === 'timeline' && <TimelineTab patientId={id} />}
-        {activeTab === 'billing' && <AccountTab patientId={id} patient={patient.data} />}
+        {activeTab === "timeline" && <TimelineTab patientId={id} />}
+        {activeTab === "billing" && <AccountTab patientId={id} patient={patient.data} />}
 
         {PLACEHOLDER_TABS.includes(activeTab) && (
           <EmptyState

@@ -3,9 +3,9 @@ import {
   type SupplierStatement,
   type SupplierStatementLine,
   type SupplierSummary,
-} from '@clinic/shared';
-import { useMemo, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useMemo, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Badge,
@@ -20,24 +20,24 @@ import {
   PhoneLink,
   SearchField,
   Table,
-} from '@clinic/ui';
-import { useSession } from '@web/features/auth/session';
-import { useLookupLabels } from '@web/features/lookups/queries';
-import { Money } from '@web/features/billing/money';
-import { useClinic } from '@web/features/clinic/queries';
-import { canManageSuppliers } from '@web/features/inventory/permissions';
-import { useSuppliers, useSupplierStatement } from '@web/features/inventory/queries';
-import { SupplierFormModal } from '@web/features/inventory/supplier-form-modal';
-import { endOfNextDayIso, formatDate, startOfDayIso } from '@web/lib/format';
-import { useDebounced } from '@web/lib/use-debounced';
-import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
+} from "@clinic/ui";
+import { useSession } from "@web/features/auth/session";
+import { useLookupLabels } from "@web/features/lookups/queries";
+import { Money } from "@web/features/billing/money";
+import { useClinic } from "@web/features/clinic/queries";
+import { canManageSuppliers } from "@web/features/inventory/permissions";
+import { useSuppliers, useSupplierStatement } from "@web/features/inventory/queries";
+import { SupplierFormModal } from "@web/features/inventory/supplier-form-modal";
+import { endOfNextDayIso, formatDate, startOfDayIso } from "@web/lib/format";
+import { useDebounced } from "@web/lib/use-debounced";
+import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 export function SuppliersPage(): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();
   const clinic = useClinic();
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<SupplierSummary | undefined>();
   const [selected, setSelected] = useState<SupplierSummary | null>(null);
@@ -46,15 +46,15 @@ export function SuppliersPage(): JSX.Element {
   const suppliers = useSuppliers({
     limit: 50,
     includeInactive: true,
-    ...(debounced.trim() !== '' && { search: debounced.trim() }),
+    ...(debounced.trim() !== "" && { search: debounced.trim() }),
   });
 
   const mayManage = canManageSuppliers(can);
 
   const columns: readonly Column<SupplierSummary>[] = [
     {
-      key: 'name',
-      header: 'inventory.suppliers.name',
+      key: "name",
+      header: "inventory.suppliers.name",
       primary: true,
       render: (row) => (
         <span className="flex flex-col">
@@ -66,34 +66,34 @@ export function SuppliersPage(): JSX.Element {
       ),
     },
     {
-      key: 'phone',
-      header: 'inventory.suppliers.phone',
+      key: "phone",
+      header: "inventory.suppliers.phone",
       hideOnMobile: true,
       render: (row) => <PhoneLink value={row.phone} />,
     },
     {
-      key: 'items',
-      header: 'inventory.suppliers.items',
-      align: 'numeric',
+      key: "items",
+      header: "inventory.suppliers.items",
+      align: "numeric",
       render: (row) => row.itemCount,
     },
     {
-      key: 'purchased',
-      header: 'inventory.suppliers.purchased',
-      align: 'numeric',
+      key: "purchased",
+      header: "inventory.suppliers.purchased",
+      align: "numeric",
       render: (row) => <Money amount={row.purchased} currency={clinic.data?.currency} />,
     },
     {
-      key: 'state',
-      header: 'inventory.suppliers.state',
+      key: "state",
+      header: "inventory.suppliers.state",
       render: (row) =>
-        row.isActive ? null : <Badge tone="neutral">{t('inventory.suppliers.inactive')}</Badge>,
+        row.isActive ? null : <Badge tone="neutral">{t("inventory.suppliers.inactive")}</Badge>,
     },
     ...(mayManage
       ? [
           {
-            key: 'actions',
-            header: 'inventory.suppliers.actions',
+            key: "actions",
+            header: "inventory.suppliers.actions",
             actions: true,
             render: (row: SupplierSummary) => (
               <Button
@@ -104,7 +104,7 @@ export function SuppliersPage(): JSX.Element {
                   setEditing(row);
                 }}
               >
-                {t('common.edit')}
+                {t("common.edit")}
               </Button>
             ),
           } satisfies Column<SupplierSummary>,
@@ -118,12 +118,12 @@ export function SuppliersPage(): JSX.Element {
         title="inventory.suppliers.title"
         subtitle="inventory.suppliers.subtitle"
         {...(suppliers.data !== undefined && {
-          count: t('pagination.total', { total: suppliers.data.total }),
+          count: t("pagination.total", { total: suppliers.data.total }),
         })}
         primaryAction={
           mayManage ? (
             <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
-              {t('inventory.suppliers.add')}
+              {t("inventory.suppliers.add")}
             </Button>
           ) : undefined
         }
@@ -131,13 +131,13 @@ export function SuppliersPage(): JSX.Element {
 
       <SearchField
         className="w-full min-w-0 sm:max-w-md"
-        label={t('inventory.suppliers.search')}
+        label={t("inventory.suppliers.search")}
         shortcut="/"
-        placeholder={t('inventory.suppliers.searchPlaceholder')}
+        placeholder={t("inventory.suppliers.searchPlaceholder")}
         value={search}
         onChange={(event) => setSearch(event.target.value)}
-        clearLabel={t('common.clear')}
-        onClear={() => setSearch('')}
+        clearLabel={t("common.clear")}
+        onClear={() => setSearch("")}
       />
 
       <Table
@@ -181,8 +181,8 @@ function Statement({
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const clinic = useClinic();
 
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
 
   const query = useMemo(
     () => ({
@@ -196,26 +196,26 @@ function Statement({
 
   const columns: readonly Column<SupplierStatementLine>[] = [
     {
-      key: 'date',
-      header: 'inventory.suppliers.statement.date',
+      key: "date",
+      header: "inventory.suppliers.statement.date",
       render: (row) => <Ltr>{formatDate(row.occurredAt)}</Ltr>,
     },
     {
-      key: 'item',
-      header: 'inventory.suppliers.statement.item',
+      key: "item",
+      header: "inventory.suppliers.statement.item",
       primary: true,
       render: (row) => (
         <span className="flex flex-wrap items-center gap-2">
           <span>{row.itemName}</span>
           {row.batchNo && <Ltr className="text-label text-ink-muted">{row.batchNo}</Ltr>}
-          {row.isReversal && <Badge tone="neutral">{t('inventory.history.reversal')}</Badge>}
+          {row.isReversal && <Badge tone="neutral">{t("inventory.history.reversal")}</Badge>}
         </span>
       ),
     },
     {
-      key: 'quantity',
-      header: 'inventory.suppliers.statement.quantity',
-      align: 'numeric',
+      key: "quantity",
+      header: "inventory.suppliers.statement.quantity",
+      align: "numeric",
       render: (row) => (
         <span className="flex items-baseline justify-end gap-1.5">
           <Ltr>{row.quantity}</Ltr>
@@ -224,21 +224,21 @@ function Statement({
       ),
     },
     {
-      key: 'unitPrice',
-      header: 'inventory.suppliers.statement.unitPrice',
-      align: 'numeric',
+      key: "unitPrice",
+      header: "inventory.suppliers.statement.unitPrice",
+      align: "numeric",
       render: (row) =>
-        row.unitPrice ? <Money amount={row.unitPrice} currency={clinic.data?.currency} /> : '—',
+        row.unitPrice ? <Money amount={row.unitPrice} currency={clinic.data?.currency} /> : "—",
     },
     {
-      key: 'total',
-      header: 'inventory.suppliers.statement.total',
-      align: 'numeric',
+      key: "total",
+      header: "inventory.suppliers.statement.total",
+      align: "numeric",
       render: (row) =>
         row.total ? (
           <Money amount={row.total} currency={clinic.data?.currency} className="font-medium" />
         ) : (
-          '—'
+          "—"
         ),
     },
   ];
@@ -247,18 +247,18 @@ function Statement({
     <section className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <h2 className="text-value font-medium text-ink">
-          {t('inventory.suppliers.statement.title', { supplier: supplier.name })}
+          {t("inventory.suppliers.statement.title", { supplier: supplier.name })}
         </h2>
 
         <Button variant="ghost" size="sm" icon={<Icon name="x" />} onClick={onClose}>
-          {t('common.close')}
+          {t("common.close")}
         </Button>
       </div>
 
       <DateRangePicker
         id="supplier-statement-range"
         className="w-full sm:w-72"
-        label={t('inventory.suppliers.statement.range')}
+        label={t("inventory.suppliers.statement.range")}
         value={{ from, to }}
         onChange={(range) => {
           setFrom(range.from);
@@ -284,10 +284,10 @@ function Statement({
       <Card>
         <div className="flex items-baseline justify-between">
           <span className="text-value font-medium text-ink">
-            {t('inventory.suppliers.statement.periodTotal')}
+            {t("inventory.suppliers.statement.periodTotal")}
           </span>
           <Money
-            amount={(statement.data as SupplierStatement | undefined)?.total ?? '0.00'}
+            amount={(statement.data as SupplierStatement | undefined)?.total ?? "0.00"}
             currency={clinic.data?.currency}
             className="text-value font-medium"
           />

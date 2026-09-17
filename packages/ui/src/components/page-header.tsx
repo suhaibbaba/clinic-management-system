@@ -1,10 +1,10 @@
-import type { JSX, ReactNode } from 'react';
-import { createPortal } from 'react-dom';
-import { useTranslation } from 'react-i18next';
+import type { JSX, ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 
-import { usePageActionSlot } from '@ui/lib/page-action-slot';
-import { Badge } from '@ui/components/badge';
-import { useDocumentTitle } from '@ui/lib/page-title';
+import { usePageActionSlot } from "@ui/lib/page-action-slot";
+import { Badge } from "@ui/components/badge";
+import { useDocumentTitle } from "@ui/lib/page-title";
 
 export interface PageHeaderProps {
   title: string;

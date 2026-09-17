@@ -1,30 +1,30 @@
-import { isDeciduousTooth, type PatientClinicalView } from '@clinic/shared';
-import { useMemo, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { isDeciduousTooth, type PatientClinicalView } from "@clinic/shared";
+import { useMemo, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { EmptyState, SegmentedControl, useToast } from '@clinic/ui';
-import { useDoctors } from '@web/features/doctors/queries';
-import type { Dentition } from '@web/features/patients/chart/fdi-layout';
-import type { NewProcedureInput } from '@web/features/patients/chart/add-procedure-form';
-import { ToothChart, ToothChartSkeleton } from '@web/features/patients/chart/tooth-chart';
-import { ToothLegend } from '@web/features/patients/chart/tooth-legend';
-import { ToothPanel } from '@web/features/patients/chart/tooth-panel';
+import { EmptyState, SegmentedControl, useToast } from "@clinic/ui";
+import { useDoctors } from "@web/features/doctors/queries";
+import type { Dentition } from "@web/features/patients/chart/fdi-layout";
+import type { NewProcedureInput } from "@web/features/patients/chart/add-procedure-form";
+import { ToothChart, ToothChartSkeleton } from "@web/features/patients/chart/tooth-chart";
+import { ToothLegend } from "@web/features/patients/chart/tooth-legend";
+import { ToothPanel } from "@web/features/patients/chart/tooth-panel";
 import {
   deriveToothSummaries,
   healthyTooth,
   useToothStates,
-} from '@web/features/patients/chart/tooth-state';
+} from "@web/features/patients/chart/tooth-state";
 import {
   useCreateProcedure,
   useProcedureCatalog,
   usePatientProcedures,
-} from '@web/features/patients/queries';
-import { useSession } from '@web/features/auth/session';
-import { OrderFormModal, type LabOrderDefaults } from '@web/features/labs/order-form-modal';
-import { canCreateLabOrder } from '@web/features/labs/permissions';
-import { ageInYears } from '@web/features/patients/age';
-import { errorMessageKey } from '@web/lib/api-error';
-import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
+} from "@web/features/patients/queries";
+import { useSession } from "@web/features/auth/session";
+import { OrderFormModal, type LabOrderDefaults } from "@web/features/labs/order-form-modal";
+import { canCreateLabOrder } from "@web/features/labs/permissions";
+import { ageInYears } from "@web/features/patients/age";
+import { errorMessageKey } from "@web/lib/api-error";
+import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 const PERMANENT_DENTITION_AGE = 13;
 
@@ -42,7 +42,7 @@ export function ChartTab({
   const { user, can } = useSession();
   const toast = useToast();
 
-  const [dentition, setDentition] = useState<Dentition>('permanent');
+  const [dentition, setDentition] = useState<Dentition>("permanent");
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
   const [labOrder, setLabOrder] = useState<LabOrderDefaults | undefined>();
 
@@ -91,7 +91,7 @@ export function ChartTab({
     createProcedure.mutate(
       { ...input, patientId },
       {
-        onSuccess: () => toast.success('chart.panel.recorded'),
+        onSuccess: () => toast.success("chart.panel.recorded"),
         // The cache rollback happens in the mutation; this is what tells the
         // user why the tooth they just watched change colour changed back.
         onError: (error) => toast.error(errorMessageKey(error)),
@@ -104,13 +104,13 @@ export function ChartTab({
       <div className="flex flex-wrap items-center justify-between gap-3">
         {showDentitionToggle && (
           <SegmentedControl
-            label={t('chart.dentition')}
+            label={t("chart.dentition")}
             value={dentition}
             onChange={(next) => {
               setDentition(next);
               setSelectedTooth(null);
             }}
-            options={(['permanent', 'deciduous'] as const).map((option) => ({
+            options={(["permanent", "deciduous"] as const).map((option) => ({
               value: option,
               label: t(`chart.${option}`),
             }))}
@@ -119,7 +119,7 @@ export function ChartTab({
 
         {/* `ms-auto`, so the hint stays at the far end whether or not the
             toggle beside it exists. */}
-        <p className="ms-auto text-label text-ink-muted">{t('chart.keyboardHint')}</p>
+        <p className="ms-auto text-label text-ink-muted">{t("chart.keyboardHint")}</p>
       </div>
 
       {/* A new patient still gets a chart — every tooth healthy — with a line

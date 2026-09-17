@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   CreateDoctorInput,
   Doctor,
@@ -7,12 +7,12 @@ import type {
   Specialty,
   UpdateDoctorInput,
   WeeklySchedule,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { doctorsApi } from '@web/features/doctors/api';
+import { doctorsApi } from "@web/features/doctors/api";
 
-const DOCTORS_KEY = 'doctors';
-const SPECIALTIES_KEY = 'specialties';
+const DOCTORS_KEY = "doctors";
+const SPECIALTIES_KEY = "specialties";
 
 export function useDoctors(query: Partial<ListDoctorsQuery>): UseQueryResult<Paginated<Doctor>> {
   return useQuery({
@@ -24,8 +24,8 @@ export function useDoctors(query: Partial<ListDoctorsQuery>): UseQueryResult<Pag
 
 export function useDoctor(id: string | undefined): UseQueryResult<Doctor> {
   return useQuery({
-    queryKey: [DOCTORS_KEY, 'one', id],
-    queryFn: () => doctorsApi.get(id ?? ''),
+    queryKey: [DOCTORS_KEY, "one", id],
+    queryFn: () => doctorsApi.get(id ?? ""),
     enabled: id !== undefined,
   });
 }

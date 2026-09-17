@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
   type OnModuleInit,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   awaitingLab,
   canTransitionLabOrder,
@@ -20,17 +20,17 @@ import {
   type ListLabOrdersQuery,
   type Paginated,
   type UpdateLabOrderInput,
-} from '@clinic/shared';
-import { and, asc, desc, eq, inArray, isNotNull, isNull, lt, or, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, asc, desc, eq, inArray, isNotNull, isNull, lt, or, sql, type SQL } from "drizzle-orm";
 
-import { AppointmentAccessService } from '@api/appointments/appointment-access.service';
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { arabicNameSearch } from '@api/common/database/arabic-search';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toPersonName } from '@api/common/person-name';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
+import { AppointmentAccessService } from "@api/appointments/appointment-access.service";
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { arabicNameSearch } from "@api/common/database/arabic-search";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toPersonName } from "@api/common/person-name";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
 import {
   chartMarks,
   doctors,
@@ -39,15 +39,15 @@ import {
   labs,
   patients,
   users,
-} from '@api/database/schema';
-import { LabWorkTypesService } from '@api/labs/lab-work-types.service';
-import { LabsService } from '@api/labs/labs.service';
-import { LookupsService } from '@api/lookups/lookups.service';
-import { PatientRegistrationService } from '@api/patients/patient-registration.service';
+} from "@api/database/schema";
+import { LabWorkTypesService } from "@api/labs/lab-work-types.service";
+import { LabsService } from "@api/labs/labs.service";
+import { LookupsService } from "@api/lookups/lookups.service";
+import { PatientRegistrationService } from "@api/patients/patient-registration.service";
 
 type OrderRow = typeof labOrders.$inferSelect;
 
-export const LAB_ORDERS_ENTITY = 'lab_orders';
+export const LAB_ORDERS_ENTITY = "lab_orders";
 
 @Injectable()
 export class LabOrdersService implements OnModuleInit {
@@ -125,7 +125,7 @@ export class LabOrdersService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
 
     return toLabOrderRow(row);
@@ -157,7 +157,7 @@ export class LabOrdersService implements OnModuleInit {
       : null;
 
     if (workType && workType.labId !== input.labId) {
-      throw new BadRequestException('That work type belongs to another lab');
+      throw new BadRequestException("That work type belongs to another lab");
     }
 
     const teeth =
@@ -170,8 +170,8 @@ export class LabOrdersService implements OnModuleInit {
     // theirs is the list price whatever they sent.
     const price =
       actor.role === USER_ROLE.DOCTOR
-        ? (workType?.defaultPrice ?? '0.00')
-        : (input.price ?? workType?.defaultPrice ?? '0.00');
+        ? (workType?.defaultPrice ?? "0.00")
+        : (input.price ?? workType?.defaultPrice ?? "0.00");
 
     const [row] = await this.registration.withPatient(actor, input, (executor, patientId) =>
       executor
@@ -197,7 +197,7 @@ export class LabOrdersService implements OnModuleInit {
     );
 
     if (!row) {
-      throw new Error('Failed to create the lab order');
+      throw new Error("Failed to create the lab order");
     }
 
     return this.findOne(actor, row.id);
@@ -215,11 +215,11 @@ export class LabOrdersService implements OnModuleInit {
     await this.requireOwnOrder(actor, existing);
 
     if (existing.status !== LAB_ORDER_STATUS.DRAFT) {
-      throw new BadRequestException('Only a draft order can be edited');
+      throw new BadRequestException("Only a draft order can be edited");
     }
 
     if (input.price !== undefined && actor.role === USER_ROLE.DOCTOR) {
-      throw new ForbiddenException('A doctor may not set the price of lab work');
+      throw new ForbiddenException("A doctor may not set the price of lab work");
     }
 
     if (input.labId) {
@@ -270,7 +270,7 @@ export class LabOrdersService implements OnModuleInit {
     }
 
     if (next === LAB_ORDER_STATUS.RETURNED && !reason?.trim()) {
-      throw new BadRequestException('A return must state a reason');
+      throw new BadRequestException("A return must state a reason");
     }
 
     const now = new Date();
@@ -345,7 +345,7 @@ export class LabOrdersService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
   }
 
@@ -363,7 +363,7 @@ export class LabOrdersService implements OnModuleInit {
 
     const teeth = rows
       .map((row) => (row.location as { tooth?: number }).tooth)
-      .filter((tooth): tooth is number => typeof tooth === 'number');
+      .filter((tooth): tooth is number => typeof tooth === "number");
 
     return [...new Set(teeth)].sort((left, right) => left - right);
   }

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   Availability,
   AvailabilityQuery,
@@ -14,13 +14,13 @@ import type {
   PromoteWaitingListEntryInput,
   UpdateAppointmentInput,
   WaitingListEntry,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { appointmentsApi, waitingListApi } from '@web/features/appointments/api';
+import { appointmentsApi, waitingListApi } from "@web/features/appointments/api";
 
-export const CALENDAR_KEY = 'appointments-calendar';
-export const AVAILABILITY_KEY = 'appointments-availability';
-export const WAITING_LIST_KEY = 'waiting-list';
+export const CALENDAR_KEY = "appointments-calendar";
+export const AVAILABILITY_KEY = "appointments-availability";
+export const WAITING_LIST_KEY = "waiting-list";
 
 const CALENDAR_KEYS = [CALENDAR_KEY, AVAILABILITY_KEY, WAITING_LIST_KEY];
 
@@ -41,7 +41,7 @@ export function useAppointments(
   query: Partial<ListAppointmentsQuery>,
 ): UseQueryResult<Paginated<CalendarAppointment>> {
   return useQuery({
-    queryKey: [CALENDAR_KEY, 'list', query],
+    queryKey: [CALENDAR_KEY, "list", query],
     queryFn: () => appointmentsApi.list(query),
     placeholderData: (previous) => previous,
   });
@@ -88,7 +88,7 @@ export const useUpdateAppointment = () =>
     appointmentsApi.update(id, body),
   );
 
-export type AppointmentStep = 'confirm' | 'arrived' | 'start' | 'complete' | 'noShow';
+export type AppointmentStep = "confirm" | "arrived" | "start" | "complete" | "noShow";
 
 export const useAppointmentStep = () =>
   useCalendarMutation(({ id, step }: { id: string; step: AppointmentStep }) =>

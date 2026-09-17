@@ -27,9 +27,9 @@ import type {
   UpdateTreatmentPlanItemInput,
   UpdateVisitInput,
   Visit,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { apiRequest } from '@web/lib/api-client';
+import { apiRequest } from "@web/lib/api-client";
 
 /** Server maximum for a page; the chart needs every row, so it pages through. */
 const PAGE_LIMIT = 100;
@@ -53,7 +53,7 @@ async function fetchAllPages<TItem>(
 
 export const patientsApi = {
   list: (query: Partial<ListPatientsQuery>): Promise<Paginated<PatientView>> =>
-    apiRequest('/patients', {
+    apiRequest("/patients", {
       query: {
         page: query.page,
         limit: query.limit,
@@ -64,25 +64,25 @@ export const patientsApi = {
     }),
 
   create: (body: CreatePatientInput): Promise<PatientClinicalView> =>
-    apiRequest('/patients', { method: 'POST', body }),
+    apiRequest("/patients", { method: "POST", body }),
 
   get: (id: string): Promise<PatientClinicalView> => apiRequest(`/patients/${id}`),
 
   update: (id: string, body: UpdatePatientInput): Promise<PatientClinicalView> =>
-    apiRequest(`/patients/${id}`, { method: 'PATCH', body }),
+    apiRequest(`/patients/${id}`, { method: "PATCH", body }),
 
   allergyFlags: (id: string): Promise<AllergyFlags> => apiRequest(`/patients/${id}/allergy-flags`),
 
   procedures: (patientId: string): Promise<PerformedProcedure[]> =>
     fetchAllPages((page) =>
-      apiRequest<Paginated<PerformedProcedure>>('/performed-procedures', {
+      apiRequest<Paginated<PerformedProcedure>>("/performed-procedures", {
         query: { patientId, page, limit: PAGE_LIMIT },
       }),
     ),
 
   catalog: (): Promise<ProcedureCatalogItem[]> =>
     fetchAllPages((page) =>
-      apiRequest<Paginated<ProcedureCatalogItem>>('/procedure-catalog', {
+      apiRequest<Paginated<ProcedureCatalogItem>>("/procedure-catalog", {
         query: { page, limit: PAGE_LIMIT, isActive: true },
       }),
     ),
@@ -93,47 +93,47 @@ export const patientsApi = {
   attachment: (id: string): Promise<Attachment> => apiRequest(`/attachments/${id}`),
 
   createProcedure: (body: CreatePerformedProcedureInput): Promise<PerformedProcedure> =>
-    apiRequest('/performed-procedures', { method: 'POST', body }),
+    apiRequest("/performed-procedures", { method: "POST", body }),
 
   updateProcedure: (id: string, body: UpdatePerformedProcedureInput): Promise<PerformedProcedure> =>
-    apiRequest(`/performed-procedures/${id}`, { method: 'PATCH', body }),
+    apiRequest(`/performed-procedures/${id}`, { method: "PATCH", body }),
 
   visits: (patientId: string): Promise<Visit[]> =>
     fetchAllPages((page) =>
-      apiRequest<Paginated<Visit>>('/visits', {
+      apiRequest<Paginated<Visit>>("/visits", {
         query: { patientId, page, limit: PAGE_LIMIT },
       }),
     ),
 
   createVisit: (body: CreateVisitInput): Promise<Visit> =>
-    apiRequest('/visits', { method: 'POST', body }),
+    apiRequest("/visits", { method: "POST", body }),
 
   updateVisit: (id: string, body: UpdateVisitInput): Promise<Visit> =>
-    apiRequest(`/visits/${id}`, { method: 'PATCH', body }),
+    apiRequest(`/visits/${id}`, { method: "PATCH", body }),
 
   treatmentPlans: (patientId: string): Promise<TreatmentPlan[]> =>
     fetchAllPages((page) =>
-      apiRequest<Paginated<TreatmentPlan>>('/treatment-plans', {
+      apiRequest<Paginated<TreatmentPlan>>("/treatment-plans", {
         query: { patientId, page, limit: PAGE_LIMIT },
       }),
     ),
 
   createTreatmentPlan: (body: CreateTreatmentPlanInput): Promise<TreatmentPlan> =>
-    apiRequest('/treatment-plans', { method: 'POST', body }),
+    apiRequest("/treatment-plans", { method: "POST", body }),
 
   updateTreatmentPlan: (id: string, body: UpdateTreatmentPlanInput): Promise<TreatmentPlan> =>
-    apiRequest(`/treatment-plans/${id}`, { method: 'PATCH', body }),
+    apiRequest(`/treatment-plans/${id}`, { method: "PATCH", body }),
 
   addPlanItem: (planId: string, body: CreateTreatmentPlanItemInput): Promise<TreatmentPlanItem> =>
-    apiRequest(`/treatment-plans/${planId}/items`, { method: 'POST', body }),
+    apiRequest(`/treatment-plans/${planId}/items`, { method: "POST", body }),
 
   updatePlanItem: (
     itemId: string,
     body: UpdateTreatmentPlanItemInput,
-  ): Promise<TreatmentPlanItem> => apiRequest(`/plan-items/${itemId}`, { method: 'PATCH', body }),
+  ): Promise<TreatmentPlanItem> => apiRequest(`/plan-items/${itemId}`, { method: "PATCH", body }),
 
   convertPlanItem: (itemId: string): Promise<PerformedProcedure> =>
-    apiRequest(`/plan-items/${itemId}/convert`, { method: 'POST', body: {} }),
+    apiRequest(`/plan-items/${itemId}/convert`, { method: "POST", body: {} }),
 
   attachments: (
     patientId: string,
@@ -149,13 +149,13 @@ export const patientsApi = {
     patientId: string,
     body: PresignAttachmentUploadInput,
   ): Promise<PresignAttachmentUploadResponse> =>
-    apiRequest(`/patients/${patientId}/attachments/presign-upload`, { method: 'POST', body }),
+    apiRequest(`/patients/${patientId}/attachments/presign-upload`, { method: "POST", body }),
 
   confirmUpload: (patientId: string, body: ConfirmAttachmentUploadInput): Promise<Attachment> =>
-    apiRequest(`/patients/${patientId}/attachments/confirm`, { method: 'POST', body }),
+    apiRequest(`/patients/${patientId}/attachments/confirm`, { method: "POST", body }),
 
   deleteAttachment: (id: string): Promise<void> =>
-    apiRequest(`/attachments/${id}`, { method: 'DELETE' }),
+    apiRequest(`/attachments/${id}`, { method: "DELETE" }),
 
   /** Which entry types come back is decided by the caller's role, not by this query. */
   timeline: (
@@ -175,8 +175,8 @@ export async function uploadToStorage(
   contentType: string = body.type,
 ): Promise<void> {
   const response = await fetch(uploadUrl, {
-    method: 'PUT',
-    headers: { 'content-type': contentType },
+    method: "PUT",
+    headers: { "content-type": contentType },
     body,
   });
 

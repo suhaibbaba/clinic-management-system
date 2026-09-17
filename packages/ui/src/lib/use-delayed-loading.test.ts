@@ -1,14 +1,14 @@
-import { act, renderHook } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   isRefetching,
   SKELETON_DELAY_MS,
   SKELETON_MIN_VISIBLE_MS,
   useDelayedLoading,
-} from '@ui/lib/use-delayed-loading';
+} from "@ui/lib/use-delayed-loading";
 
-describe('useDelayedLoading', () => {
+describe("useDelayedLoading", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -17,7 +17,7 @@ describe('useDelayedLoading', () => {
     vi.useRealTimers();
   });
 
-  it('paints nothing while a response arrives inside the delay', () => {
+  it("paints nothing while a response arrives inside the delay", () => {
     const { result, rerender } = renderHook(({ loading }) => useDelayedLoading(loading), {
       initialProps: { loading: true },
     });
@@ -35,7 +35,7 @@ describe('useDelayedLoading', () => {
     expect(result.current).toBe(false);
   });
 
-  it('shows the skeleton once loading outlasts the delay', () => {
+  it("shows the skeleton once loading outlasts the delay", () => {
     const { result } = renderHook(() => useDelayedLoading(true));
 
     act(() => {
@@ -45,7 +45,7 @@ describe('useDelayedLoading', () => {
     expect(result.current).toBe(true);
   });
 
-  it('holds a shown skeleton for its minimum, then drops it', () => {
+  it("holds a shown skeleton for its minimum, then drops it", () => {
     const { result, rerender } = renderHook(({ loading }) => useDelayedLoading(loading), {
       initialProps: { loading: true },
     });
@@ -67,7 +67,7 @@ describe('useDelayedLoading', () => {
     expect(result.current).toBe(false);
   });
 
-  it('drops it immediately when the minimum has already elapsed', () => {
+  it("drops it immediately when the minimum has already elapsed", () => {
     const { result, rerender } = renderHook(({ loading }) => useDelayedLoading(loading), {
       initialProps: { loading: true },
     });
@@ -85,8 +85,8 @@ describe('useDelayedLoading', () => {
   });
 });
 
-describe('isRefetching', () => {
-  it('is a refetch only where data is already on screen', () => {
+describe("isRefetching", () => {
+  it("is a refetch only where data is already on screen", () => {
     expect(isRefetching({ isPending: true, isFetching: true })).toBe(false);
     expect(isRefetching({ isPending: false, isFetching: true })).toBe(true);
     expect(isRefetching({ isPending: false, isFetching: false })).toBe(false);

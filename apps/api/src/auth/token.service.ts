@@ -1,14 +1,14 @@
-import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
-import { Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { and, eq, isNull } from 'drizzle-orm';
+import { Inject, Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import { and, eq, isNull } from "drizzle-orm";
 
-import type { AccessTokenPayload } from '@api/common/types/authenticated-user';
-import type { Env } from '@api/config/env.schema';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { refreshTokens, type users } from '@api/database/schema';
+import type { AccessTokenPayload } from "@api/common/types/authenticated-user";
+import type { Env } from "@api/config/env.schema";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { refreshTokens, type users } from "@api/database/schema";
 
 type UserRow = typeof users.$inferSelect;
 
@@ -30,10 +30,10 @@ export class TokenService {
   ) {}
 
   get accessTokenTtlSeconds(): number {
-    return this.config.get('JWT_ACCESS_TTL_SECONDS', { infer: true });
+    return this.config.get("JWT_ACCESS_TTL_SECONDS", { infer: true });
   }
 
-  async createAccessToken(user: Pick<UserRow, 'id' | 'clinicId' | 'role'>): Promise<string> {
+  async createAccessToken(user: Pick<UserRow, "id" | "clinicId" | "role">): Promise<string> {
     const payload: AccessTokenPayload = {
       sub: user.id,
       clinicId: user.clinicId,
@@ -41,7 +41,7 @@ export class TokenService {
     };
 
     return this.jwtService.signAsync(payload, {
-      secret: this.config.get('JWT_SECRET', { infer: true }),
+      secret: this.config.get("JWT_SECRET", { infer: true }),
       expiresIn: this.accessTokenTtlSeconds,
     });
   }
@@ -49,20 +49,20 @@ export class TokenService {
   // A digest, not argon2: the token is high-entropy random, so it needs no brute-force hardening
   // and refresh stays a cheap indexed lookup.
   digest(token: string): string {
-    return createHash('sha256').update(token).digest('hex');
+    return createHash("sha256").update(token).digest("hex");
   }
 
   /** Constant-time comparison for digests, to keep lookups from leaking timing. */
   digestsMatch(left: string, right: string): boolean {
-    const a = Buffer.from(left, 'utf8');
-    const b = Buffer.from(right, 'utf8');
+    const a = Buffer.from(left, "utf8");
+    const b = Buffer.from(right, "utf8");
     return a.length === b.length && timingSafeEqual(a, b);
   }
 
-  async issueRefreshToken(user: Pick<UserRow, 'id' | 'clinicId'>): Promise<IssuedRefreshToken> {
-    const token = randomBytes(REFRESH_TOKEN_BYTES).toString('base64url');
+  async issueRefreshToken(user: Pick<UserRow, "id" | "clinicId">): Promise<IssuedRefreshToken> {
+    const token = randomBytes(REFRESH_TOKEN_BYTES).toString("base64url");
     const expiresAt = new Date(
-      Date.now() + this.config.get('JWT_REFRESH_TTL_DAYS', { infer: true }) * 24 * 60 * 60 * 1000,
+      Date.now() + this.config.get("JWT_REFRESH_TTL_DAYS", { infer: true }) * 24 * 60 * 60 * 1000,
     );
 
     const [row] = await this.db
@@ -78,7 +78,7 @@ export class TokenService {
       .returning({ id: refreshTokens.id });
 
     if (!row) {
-      throw new Error('Failed to persist refresh token');
+      throw new Error("Failed to persist refresh token");
     }
 
     return { id: row.id, token };

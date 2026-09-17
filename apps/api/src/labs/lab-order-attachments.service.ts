@@ -1,17 +1,17 @@
-import { BadRequestException, ConflictException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable } from "@nestjs/common";
 import {
   ALLOWED_ATTACHMENT_MIME_TYPES,
   MAX_ATTACHMENT_BYTES,
   type LabOrderAttachment,
   type PresignAttachmentUploadResponse,
-} from '@clinic/shared';
-import { and, asc, eq, isNull } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, asc, eq, isNull } from "drizzle-orm";
 
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { labOrderAttachments } from '@api/database/schema';
-import { LabOrdersService } from '@api/labs/lab-orders.service';
-import { StorageService } from '@api/storage/storage.service';
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { labOrderAttachments } from "@api/database/schema";
+import { LabOrdersService } from "@api/labs/lab-orders.service";
+import { StorageService } from "@api/storage/storage.service";
 
 type AttachmentRow = typeof labOrderAttachments.$inferSelect;
 
@@ -47,7 +47,7 @@ export class LabOrderAttachmentsService {
     const order = await this.orders.requireRow(actor.clinicId, orderId);
 
     if (!isAllowedMime(input.mime)) {
-      throw new BadRequestException('Unsupported file type');
+      throw new BadRequestException("Unsupported file type");
     }
 
     const key = this.storage.buildPatientObjectKey({
@@ -77,7 +77,7 @@ export class LabOrderAttachmentsService {
     const order = await this.orders.requireRow(actor.clinicId, orderId);
 
     if (!this.storage.isKeyOwnedBy(input.key, actor.clinicId, order.patientId)) {
-      throw new BadRequestException('This key does not belong to this order');
+      throw new BadRequestException("This key does not belong to this order");
     }
 
     const [existing] = await this.db
@@ -87,12 +87,12 @@ export class LabOrderAttachmentsService {
       .limit(1);
 
     if (existing) {
-      throw new ConflictException('This upload has already been confirmed');
+      throw new ConflictException("This upload has already been confirmed");
     }
 
     const stored = await this.storage.statObject(input.key);
     if (!stored) {
-      throw new BadRequestException('No uploaded file found for this key');
+      throw new BadRequestException("No uploaded file found for this key");
     }
 
     if (
@@ -103,8 +103,8 @@ export class LabOrderAttachmentsService {
       await this.storage.deleteObject(input.key);
       throw new BadRequestException(
         isAllowedMime(stored.mime)
-          ? 'Uploaded file size is outside the allowed range'
-          : 'Unsupported file type',
+          ? "Uploaded file size is outside the allowed range"
+          : "Unsupported file type",
       );
     }
 
@@ -122,7 +122,7 @@ export class LabOrderAttachmentsService {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to record the attachment');
+      throw new Error("Failed to record the attachment");
     }
 
     return this.withUrl(row);

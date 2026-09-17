@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   createPatientSchema,
@@ -19,15 +19,15 @@ import {
   USER_ROLE,
   type Paginated,
   type PatientView,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { PATIENTS_ENTITY } from '@api/patients/patient-view';
-import { PatientsService } from '@api/patients/patients.service';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { PATIENTS_ENTITY } from "@api/patients/patient-view";
+import { PatientsService } from "@api/patients/patients.service";
 
 class CreatePatientDto extends createZodDto(createPatientSchema) {}
 class UpdatePatientDto extends createZodDto(updatePatientSchema) {}
@@ -36,7 +36,7 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 
 // The response shape is chosen by role inside the service: a receptionist and a technician receive
 // `PatientPublicView`, never the clinical one.
-@Controller('patients')
+@Controller("patients")
 export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
@@ -48,7 +48,7 @@ export class PatientsController {
     return this.patientsService.list(actor, query);
   }
 
-  @Get(':id')
+  @Get(":id")
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -66,7 +66,7 @@ export class PatientsController {
     return this.patientsService.create(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST)
   @Audit(PATIENTS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -78,7 +78,7 @@ export class PatientsController {
   }
 
   /** Soft delete, admin only (ROLES.md: only admin may delete). */
-  @Delete(':id')
+  @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(PATIENTS_ENTITY, AUDIT_ACTION.DELETE)

@@ -4,7 +4,7 @@ import {
   Inject,
   Injectable,
   type OnModuleInit,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ALLOWED_ATTACHMENT_MIME_TYPES,
   LOOKUP_LIST,
@@ -17,22 +17,22 @@ import {
   type Paginated,
   type PresignAttachmentUploadInput,
   type PresignAttachmentUploadResponse,
-} from '@clinic/shared';
-import { desc, eq, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { desc, eq, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { attachments, visits } from '@api/database/schema';
-import { PatientAccessService } from '@api/patients/patient-access.service';
-import { StorageService } from '@api/storage/storage.service';
-import { LookupsService } from '@api/lookups/lookups.service';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { attachments, visits } from "@api/database/schema";
+import { PatientAccessService } from "@api/patients/patient-access.service";
+import { StorageService } from "@api/storage/storage.service";
+import { LookupsService } from "@api/lookups/lookups.service";
 
 type AttachmentRow = typeof attachments.$inferSelect;
 
-export const ATTACHMENTS_ENTITY = 'attachments';
+export const ATTACHMENTS_ENTITY = "attachments";
 
 // Bytes never pass through the API, and every read hands back a short-lived signed GET — nothing
 // here ever serialises an object key.
@@ -149,7 +149,7 @@ export class AttachmentsService implements OnModuleInit {
     await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ATTACHMENT_TYPE, input.type);
 
     if (!this.storage.isKeyOwnedBy(input.key, actor.clinicId, patientId)) {
-      throw new BadRequestException('This key does not belong to this patient');
+      throw new BadRequestException("This key does not belong to this patient");
     }
     if (input.visitId) {
       await this.requireVisit(actor, input.visitId, patientId);
@@ -162,19 +162,19 @@ export class AttachmentsService implements OnModuleInit {
       .limit(1);
 
     if (existing) {
-      throw new ConflictException('This upload has already been confirmed');
+      throw new ConflictException("This upload has already been confirmed");
     }
 
     const stored = await this.storage.statObject(input.key);
     if (!stored) {
-      throw new BadRequestException('No uploaded file found for this key');
+      throw new BadRequestException("No uploaded file found for this key");
     }
 
     const mime = assertAllowedMime(stored.mime);
     if (!mime || stored.sizeBytes <= 0 || stored.sizeBytes > MAX_ATTACHMENT_BYTES) {
       await this.storage.deleteObject(input.key);
       throw new BadRequestException(
-        mime ? 'Uploaded file size is outside the allowed range' : 'Unsupported file type',
+        mime ? "Uploaded file size is outside the allowed range" : "Unsupported file type",
       );
     }
 
@@ -197,7 +197,7 @@ export class AttachmentsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to record attachment');
+      throw new Error("Failed to record attachment");
     }
 
     return toAttachment(row);
@@ -259,7 +259,7 @@ export class AttachmentsService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new BadRequestException('Visit not found for this patient');
+      throw new BadRequestException("Visit not found for this patient");
     }
   }
 }
@@ -284,7 +284,7 @@ export function toAttachment(row: AttachmentRow): Attachment {
 
 /** Storage reports the content type it stored; only the allow-list is accepted. */
 function assertAllowedMime(mime: string | undefined): AttachmentMime | null {
-  const candidate = mime?.split(';')[0]?.trim();
+  const candidate = mime?.split(";")[0]?.trim();
 
   return ALLOWED_ATTACHMENT_MIME_TYPES.find((allowed) => allowed === candidate) ?? null;
 }

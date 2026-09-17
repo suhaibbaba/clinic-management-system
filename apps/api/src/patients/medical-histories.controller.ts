@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch } from "@nestjs/common";
 import {
   AUDIT_ACTION,
   patientIdParamSchema,
@@ -6,28 +6,28 @@ import {
   USER_ROLE,
   type AllergyFlags,
   type MedicalHistory,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import {
   MEDICAL_HISTORIES_ENTITY,
   MedicalHistoriesService,
-} from '@api/patients/medical-histories.service';
+} from "@api/patients/medical-histories.service";
 
 class UpdateMedicalHistoryDto extends createZodDto(updateMedicalHistorySchema) {}
 class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 
 // One row per patient, so the route carries no history id and the audit entry is keyed by the
 // patient — the same shape as `PATCH /clinic`.
-@Controller('patients/:patientId')
+@Controller("patients/:patientId")
 export class MedicalHistoriesController {
   constructor(private readonly medicalHistories: MedicalHistoriesService) {}
 
-  @Get('medical-history')
+  @Get("medical-history")
   @Roles(USER_ROLE.DOCTOR)
   get(
     @CurrentUser() actor: AuthenticatedUser,
@@ -36,9 +36,9 @@ export class MedicalHistoriesController {
     return this.medicalHistories.get(actor, params.patientId);
   }
 
-  @Patch('medical-history')
+  @Patch("medical-history")
   @Roles(USER_ROLE.DOCTOR)
-  @Audit(MEDICAL_HISTORIES_ENTITY, AUDIT_ACTION.UPDATE, { entityIdSource: 'patient' })
+  @Audit(MEDICAL_HISTORIES_ENTITY, AUDIT_ACTION.UPDATE, { entityIdSource: "patient" })
   update(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: PatientIdParamDto,
@@ -47,7 +47,7 @@ export class MedicalHistoriesController {
     return this.medicalHistories.update(actor, params.patientId, body);
   }
 
-  @Get('allergy-flags')
+  @Get("allergy-flags")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   allergyFlags(
     @CurrentUser() actor: AuthenticatedUser,

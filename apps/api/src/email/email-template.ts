@@ -12,17 +12,17 @@ const escape = (value: string): string =>
   value.replace(
     /[&<>"']/g,
     (character) =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character] ??
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character] ??
       character,
   );
 
 // Hard-coded rather than read from the theme: an email is opened somewhere the app's stylesheet
 // will never reach, so the two cannot share a token. Kept to the brand's blue and a neutral ink.
-const INK = '#12303f';
-const MUTED = '#4e6975';
-const LINE = '#e0eaee';
-const CANVAS = '#f1f6f7';
-const PRIMARY = '#1b6f97';
+const INK = "#12303f";
+const MUTED = "#4e6975";
+const LINE = "#e0eaee";
+const CANVAS = "#f1f6f7";
+const PRIMARY = "#1b6f97";
 
 export function renderEmail(layout: EmailLayout): { html: string; text: string } {
   const mark = layout.logoContentId
@@ -34,7 +34,7 @@ export function renderEmail(layout: EmailLayout): { html: string; text: string }
       (line) =>
         `<p style="margin:0 0 12px;font:400 15px/1.7 Tahoma,Arial,sans-serif;color:${MUTED}">${escape(line)}</p>`,
     )
-    .join('');
+    .join("");
 
   const html = `<!doctype html>
 <html dir="rtl" lang="ar"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><title>${escape(layout.heading)}</title></head>
@@ -61,15 +61,15 @@ export function renderEmail(layout: EmailLayout): { html: string; text: string }
 
   const text = [
     layout.clinicName,
-    '',
+    "",
     layout.heading,
-    '',
+    "",
     ...layout.body,
-    '',
+    "",
     `${layout.action.label}: ${layout.action.url}`,
-    '',
+    "",
     layout.footer,
-  ].join('\n');
+  ].join("\n");
 
   return { html, text };
 }

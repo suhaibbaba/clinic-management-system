@@ -1,10 +1,10 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
-@import '@clinic/ui/styles/base.css';
+@import "@clinic/ui/styles/base.css";
 
-@import './theme.css';
+@import "./theme.css";
 
-@import './base.css';
+@import "./base.css";
 
 /* The sheet lives in the page, so print cannot drift from screen. Hiding is by `visibility`: the
    sheet is nested inside `#root`, and `display: none` on an ancestor would take it too. */
@@ -103,7 +103,7 @@
   }
 
   .print-meta dt::after {
-    content: ':';
+    content: ":";
   }
 
   .print-meta dd {

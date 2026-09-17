@@ -1,6 +1,6 @@
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from "react-router-dom";
 
-import { PER_PAGE_OPTIONS } from '@ui/components/table';
+import { PER_PAGE_OPTIONS } from "@ui/components/table";
 
 export interface PageParams {
   readonly page: number;
@@ -17,8 +17,8 @@ export function usePageParams(
 ): PageParams {
   const [params, setParams] = useSearchParams();
 
-  const page = Math.max(1, Number.parseInt(params.get('page') ?? '', 10) || 1);
-  const requested = Number.parseInt(params.get('perPage') ?? '', 10);
+  const page = Math.max(1, Number.parseInt(params.get("page") ?? "", 10) || 1);
+  const requested = Number.parseInt(params.get("perPage") ?? "", 10);
   const perPage = options.includes(requested) ? requested : defaultPerPage;
 
   // Every write goes through the updater form, never a captured copy: a filter that sets its own
@@ -38,9 +38,9 @@ export function usePageParams(
 
   const putPage = (next: URLSearchParams, value: number): void => {
     if (value <= 1) {
-      next.delete('page');
+      next.delete("page");
     } else {
-      next.set('page', String(value));
+      next.set("page", String(value));
     }
   };
 
@@ -54,9 +54,9 @@ export function usePageParams(
         putPage(next, 1);
 
         if (value === defaultPerPage) {
-          next.delete('perPage');
+          next.delete("perPage");
         } else {
-          next.set('perPage', String(value));
+          next.set("perPage", String(value));
         }
       }),
   };

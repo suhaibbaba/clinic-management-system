@@ -1,7 +1,7 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { calendarAppointmentSchema } from '@shared/schemas/appointments';
-import { moneySchema } from '@shared/schemas/money';
+import { calendarAppointmentSchema } from "@shared/schemas/appointments";
+import { moneySchema } from "@shared/schemas/money";
 
 export const DASHBOARD_SCHEDULE_LIMIT = 20;
 

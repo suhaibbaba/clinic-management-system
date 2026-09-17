@@ -1,6 +1,6 @@
-import { USER_ROLE, type UserRole } from '@clinic/shared';
-import { useMemo, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { useMemo, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Card,
@@ -11,10 +11,10 @@ import {
   Switch,
   useTabParam,
   useToast,
-} from '@clinic/ui';
-import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
-import { usePermissions, useUpdateRolePermission } from '@web/features/permissions/queries';
-import { errorMessageKey } from '@web/lib/api-error';
+} from "@clinic/ui";
+import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
+import { usePermissions, useUpdateRolePermission } from "@web/features/permissions/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 
 const EDITABLE = [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN] as const;
 const ROLE_TABS: readonly UserRole[] = [...EDITABLE, USER_ROLE.ADMIN];
@@ -28,12 +28,12 @@ interface Permission {
 // Two endpoints, one act: the browser asks for a signed URL and then says the file arrived. Drawn
 // as one switch, because half an upload permission is an upload that never finishes.
 const PAIRED: Record<string, string> = {
-  'patient-attachments.presignUpload': 'patient-attachments.confirmUpload',
-  'clinics.presignLogo': 'clinics.confirmLogo',
-  'clinics.presignAppIcon': 'clinics.confirmAppIcon',
-  'clinics.presignIcons': 'clinics.confirmIcons',
-  'users.presignPhoto': 'users.confirmPhoto',
-  'lab-orders.presign': 'lab-orders.confirmAttachment',
+  "patient-attachments.presignUpload": "patient-attachments.confirmUpload",
+  "clinics.presignLogo": "clinics.confirmLogo",
+  "clinics.presignAppIcon": "clinics.confirmAppIcon",
+  "clinics.presignIcons": "clinics.confirmIcons",
+  "users.presignPhoto": "users.confirmPhoto",
+  "lab-orders.presign": "lab-orders.confirmAttachment",
 };
 const FOLDED = new Set(Object.values(PAIRED));
 
@@ -53,7 +53,7 @@ export function PermissionsPage(): JSX.Element {
   const { showSkeleton } = useQueryLoading(permissions);
 
   // In the address, like every other tab in the app: a permission question is one somebody links to.
-  const [role, setRole] = useTabParam<UserRole>('role', ROLE_TABS, EDITABLE[0]);
+  const [role, setRole] = useTabParam<UserRole>("role", ROLE_TABS, EDITABLE[0]);
 
   const current = permissions.data?.roles.find((entry) => entry.role === role);
   const locked = current?.locked ?? false;
@@ -69,12 +69,12 @@ export function PermissionsPage(): JSX.Element {
       const title = t(`permissions.resources.${capability.resource}`, {
         defaultValue: capability.resource,
       });
-      const section = byTitle.get(title) ?? { title, hint: '', permissions: [] };
+      const section = byTitle.get(title) ?? { title, hint: "", permissions: [] };
       const paired = PAIRED[capability.key];
 
       // Two resources can share a section — time off hangs off `doctors` and `doctor-time-off` —
       // and the sentence is written once, on whichever of them carries it.
-      section.hint ||= t(`permissions.hints.${capability.resource}`, { defaultValue: '' });
+      section.hint ||= t(`permissions.hints.${capability.resource}`, { defaultValue: "" });
       section.permissions.push({
         keys: paired ? [capability.key, paired] : [capability.key],
         label: t(`permissions.capabilities.${capability.key}`, { defaultValue: capability.key }),
@@ -103,10 +103,10 @@ export function PermissionsPage(): JSX.Element {
     <div className="flex flex-col gap-4">
       <PageHeader title="permissions.title" subtitle="permissions.subtitle" />
 
-      <p className="text-value text-ink-muted">{t('permissions.intro')}</p>
+      <p className="text-value text-ink-muted">{t("permissions.intro")}</p>
 
       <SegmentedControl
-        label={t('permissions.role')}
+        label={t("permissions.role")}
         value={role}
         onChange={setRole}
         options={ROLE_TABS.map((value) => ({ value, label: t(`roles.${value}`) }))}
@@ -117,11 +117,11 @@ export function PermissionsPage(): JSX.Element {
       {locked && (
         <p className="flex items-center gap-2 rounded-panel border border-primary-200 bg-primary-50 px-3.5 py-2.5 text-value text-primary-900">
           <Icon name="lock" className="size-4 shrink-0" />
-          {t('permissions.adminLocked')}
+          {t("permissions.adminLocked")}
         </p>
       )}
 
-      {showSkeleton && <p className="text-value text-ink-muted">{t('common.loading')}</p>}
+      {showSkeleton && <p className="text-value text-ink-muted">{t("common.loading")}</p>}
 
       {permissions.isError && <EmptyState icon="alert" title="errors.unknown" />}
 

@@ -1,11 +1,11 @@
-import { CHART_TYPE, type CalendarAppointment, type ChartType } from '@clinic/shared';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { CHART_TYPE, type CalendarAppointment, type ChartType } from "@clinic/shared";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Icon, Ltr, PersonName } from '@clinic/ui';
-import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
-import { useSession } from '@web/features/auth/session';
-import { dayAndDate } from '@web/lib/format';
+import { Icon, Ltr, PersonName } from "@clinic/ui";
+import { minutesOf, toTimeLabel } from "@web/features/appointments/calendar-time";
+import { useSession } from "@web/features/auth/session";
+import { dayAndDate } from "@web/lib/format";
 
 export interface WelcomeBannerProps {
   readonly date: string | undefined;
@@ -36,13 +36,13 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
               <span aria-hidden="true">{t(`dashboard.greetingMark.${partOfDay()}`)}</span>
             </>
           ) : (
-            t('dashboard.title')
+            t("dashboard.title")
           )}
         </h1>
 
         <p className="mt-[5px] flex flex-wrap items-center gap-1.5 text-value text-banner-ink">
           {today === null ? (
-            t('dashboard.subtitle')
+            t("dashboard.subtitle")
           ) : (
             <>
               <span>{today.weekday}</span>
@@ -55,11 +55,11 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
           <p className="pill-text inline-flex items-center mt-[13px] h-(--control-h-sm) gap-2 rounded-pill border border-primary-600/20 bg-surface/75 px-3 text-nav font-medium text-primary-700 backdrop-blur-[6px]">
             <Icon name="clock" className="size-3.5 shrink-0" />
             <span>
-              {t('dashboard.firstAppointment')} <Ltr>{bounds.first}</Ltr>
+              {t("dashboard.firstAppointment")} <Ltr>{bounds.first}</Ltr>
             </span>
             <span aria-hidden="true">·</span>
             <span>
-              {t('dashboard.lastAppointment')} <Ltr>{bounds.last}</Ltr>
+              {t("dashboard.lastAppointment")} <Ltr>{bounds.last}</Ltr>
             </span>
           </p>
         )}
@@ -70,8 +70,8 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
 
 // The clinic's wall clock, not the reader's: a receptionist in another timezone is still greeted by
 // the hour the clinic is keeping. Noon is the turn, which is where Arabic puts it.
-function partOfDay(): 'morning' | 'evening' {
-  return minutesOf(new Date().toISOString()) < 12 * 60 ? 'morning' : 'evening';
+function partOfDay(): "morning" | "evening" {
+  return minutesOf(new Date().toISOString()) < 12 * 60 ? "morning" : "evening";
 }
 
 function dayBounds(

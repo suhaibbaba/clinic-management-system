@@ -1,17 +1,17 @@
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   reversePaymentSchema,
   type ReversePaymentInput,
   type StatementEntry,
-} from '@clinic/shared';
-import { useEffect, type JSX } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useEffect, type JSX } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
-import { Button, FormField, Icon, Input, Modal, useToast } from '@clinic/ui';
-import { Money } from '@web/features/billing/money';
-import { useReversePayment } from '@web/features/billing/queries';
-import { errorMessageKey } from '@web/lib/api-error';
+import { Button, FormField, Icon, Input, Modal, useToast } from "@clinic/ui";
+import { Money } from "@web/features/billing/money";
+import { useReversePayment } from "@web/features/billing/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 
 interface ReversePaymentModalProps {
   payment: StatementEntry | null;
@@ -39,7 +39,7 @@ export function ReversePaymentModal({
 
   useEffect(() => {
     if (payment) {
-      reset({ reason: '' });
+      reset({ reason: "" });
     }
   }, [payment, reset]);
 
@@ -50,7 +50,7 @@ export function ReversePaymentModal({
 
     try {
       await reverse.mutateAsync({ id: payment.id, body: values });
-      toast.success('billing.paymentReversed');
+      toast.success("billing.paymentReversed");
       onOpenChange(false);
     } catch (error) {
       toast.error(errorMessageKey(error));
@@ -65,7 +65,7 @@ export function ReversePaymentModal({
       footer={
         <>
           <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
@@ -73,7 +73,7 @@ export function ReversePaymentModal({
             form="reverse-payment-form"
             isLoading={isSubmitting}
           >
-            {t(isSubmitting ? 'common.saving' : 'billing.confirmReversal')}
+            {t(isSubmitting ? "common.saving" : "billing.confirmReversal")}
           </Button>
         </>
       }
@@ -85,21 +85,21 @@ export function ReversePaymentModal({
         noValidate
       >
         <p className="text-value text-ink-muted">
-          {t('billing.reverseExplainer')}
+          {t("billing.reverseExplainer")}
           {payment && (
             <>
-              {' '}
-              <Money amount={payment.amount.replace('-', '')} currency={currency} />
+              {" "}
+              <Money amount={payment.amount.replace("-", "")} currency={currency} />
             </>
           )}
         </p>
 
         <FormField label="billing.reason" htmlFor="reverse-reason" error={errors.reason}>
           <Input
-            placeholder={t('common.placeholders.reason')}
+            placeholder={t("common.placeholders.reason")}
             id="reverse-reason"
             hasError={Boolean(errors.reason)}
-            {...register('reason')}
+            {...register("reason")}
           />
         </FormField>
       </form>

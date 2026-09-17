@@ -1,18 +1,18 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID } from "node:crypto";
 
-import { Test } from '@nestjs/testing';
-import { type NestFastifyApplication } from '@nestjs/platform-fastify';
-import { ThrottlerStorage } from '@nestjs/throttler';
-import { hash } from '@node-rs/argon2';
-import { CHART_TYPE, SPECIALTY_CODE, USER_ROLES, type UserRole } from '@clinic/shared';
+import { Test } from "@nestjs/testing";
+import { type NestFastifyApplication } from "@nestjs/platform-fastify";
+import { ThrottlerStorage } from "@nestjs/throttler";
+import { hash } from "@node-rs/argon2";
+import { CHART_TYPE, SPECIALTY_CODE, USER_ROLES, type UserRole } from "@clinic/shared";
 
-import { AppModule } from '@api/app.module';
-import { createFastifyAdapter, registerFastifyPlugins } from '@api/bootstrap';
-import { DATABASE, POSTGRES_CLIENT, type Database } from '@api/database/database.module';
-import { clinics, specialties, users } from '@api/database/schema';
-import { ensureSystemLookups } from '@api/database/system-lookups';
+import { AppModule } from "@api/app.module";
+import { createFastifyAdapter, registerFastifyPlugins } from "@api/bootstrap";
+import { DATABASE, POSTGRES_CLIENT, type Database } from "@api/database/database.module";
+import { clinics, specialties, users } from "@api/database/schema";
+import { ensureSystemLookups } from "@api/database/system-lookups";
 
-export const TEST_PASSWORD = 'TestPassword123!';
+export const TEST_PASSWORD = "TestPassword123!";
 
 /** argon2 is deliberately slow, so the digest for the shared test password is computed once per run. */
 let passwordHashPromise: Promise<string> | undefined;
@@ -71,8 +71,8 @@ export async function createTestContext(): Promise<TestContext> {
 
     async login(phone: string): Promise<string> {
       const response = await app.inject({
-        method: 'POST',
-        url: '/auth/login',
+        method: "POST",
+        url: "/auth/login",
         payload: { identifier: phone, password: TEST_PASSWORD },
       });
 
@@ -85,7 +85,7 @@ export async function createTestContext(): Promise<TestContext> {
 
     async createClinic(): Promise<TestClinic> {
       const passwordHash = await testPasswordHash();
-      const suffix = randomUUID().replaceAll('-', '').slice(0, 10);
+      const suffix = randomUUID().replaceAll("-", "").slice(0, 10);
 
       const [clinic] = await db
         .insert(clinics)
@@ -98,7 +98,7 @@ export async function createTestContext(): Promise<TestContext> {
         .returning({ id: clinics.id, slug: clinics.slug });
 
       if (!clinic) {
-        throw new Error('Failed to create the test clinic');
+        throw new Error("Failed to create the test clinic");
       }
 
       // The choice lists are rows now, and the services check codes against
@@ -110,13 +110,13 @@ export async function createTestContext(): Promise<TestContext> {
         .values({
           clinicId: clinic.id,
           code: SPECIALTY_CODE.DENTAL,
-          name: 'Dentistry',
+          name: "Dentistry",
           chartType: CHART_TYPE.TOOTH_FDI,
         })
         .returning({ id: specialties.id });
 
       if (!specialty) {
-        throw new Error('Failed to create the test specialty');
+        throw new Error("Failed to create the test specialty");
       }
 
       const userIds = {} as Record<UserRole, string>;

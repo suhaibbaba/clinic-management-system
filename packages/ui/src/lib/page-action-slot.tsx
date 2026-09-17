@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext } from "react";
 
 const PageActionSlotContext = createContext<HTMLElement | null>(null);
 
@@ -12,9 +12,9 @@ export function usePageActionSlot(): HTMLElement | null {
 // Created detached rather than read back off a ref, so a page's portal finds it on its first render
 // and the button is never a frame late into a bar that has already painted.
 export function createPageActionSlot(): HTMLDivElement {
-  const slot = document.createElement('div');
+  const slot = document.createElement("div");
 
-  slot.className = 'flex items-center gap-2.5';
+  slot.className = "flex items-center gap-2.5";
 
   return slot;
 }

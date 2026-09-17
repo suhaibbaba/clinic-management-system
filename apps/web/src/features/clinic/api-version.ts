@@ -1,7 +1,7 @@
-import { versionResponseSchema, type VersionResponse } from '@clinic/shared';
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { versionResponseSchema, type VersionResponse } from "@clinic/shared";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 
-import { apiRequest } from '@web/lib/api-client';
+import { apiRequest } from "@web/lib/api-client";
 
 /** This bundle's version, fixed when it was built (`vite.config.ts`). */
 export const WEB_VERSION = __APP_VERSION__;
@@ -10,8 +10,8 @@ export const WEB_VERSION = __APP_VERSION__;
 // server is the only way to notice. `/version`, so no database probe. Never retried.
 export function useApiVersion(): UseQueryResult<VersionResponse> {
   return useQuery({
-    queryKey: ['version'],
-    queryFn: async () => versionResponseSchema.parse(await apiRequest('/version')),
+    queryKey: ["version"],
+    queryFn: async () => versionResponseSchema.parse(await apiRequest("/version")),
     staleTime: Infinity,
     retry: false,
   });

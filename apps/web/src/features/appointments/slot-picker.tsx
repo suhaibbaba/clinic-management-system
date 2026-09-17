@@ -1,10 +1,10 @@
-import type { Availability } from '@clinic/shared';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { Availability } from "@clinic/shared";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Icon } from '@clinic/ui';
-import { Skeleton, SkeletonStatus } from '@clinic/ui/components/skeleton';
-import { cn } from '@clinic/ui/lib/cn';
+import { Icon } from "@clinic/ui";
+import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import { cn } from "@clinic/ui/lib/cn";
 
 export interface SlotPickerProps {
   readonly availability: Availability | undefined;
@@ -25,7 +25,7 @@ export function SlotPicker({
   const { t } = useTranslation();
 
   if (!ready) {
-    return <Hint icon="info">{t('appointments.slots.chooseDoctorAndDate')}</Hint>;
+    return <Hint icon="info">{t("appointments.slots.chooseDoctorAndDate")}</Hint>;
   }
 
   if (isLoading) {
@@ -41,7 +41,7 @@ export function SlotPicker({
 
   if (!availability || availability.slots.length === 0) {
     return (
-      <Hint icon="calendar">{t(`appointments.slots.${availability?.closedReason ?? 'none'}`)}</Hint>
+      <Hint icon="calendar">{t(`appointments.slots.${availability?.closedReason ?? "none"}`)}</Hint>
     );
   }
 
@@ -49,7 +49,7 @@ export function SlotPicker({
     <div className="flex flex-col gap-2">
       <div
         role="radiogroup"
-        aria-label={t('appointments.slots.label')}
+        aria-label={t("appointments.slots.label")}
         className="grid max-h-56 grid-cols-3 gap-1.5 overflow-y-auto sm:grid-cols-4"
       >
         {availability.slots.map((slot) => {
@@ -65,13 +65,13 @@ export function SlotPicker({
               onClick={() => onChange(slot.startsAt)}
               dir="ltr"
               className={cn(
-                'rounded-control border px-2 py-1.5 text-value tabular-nums',
-                'transition-colors duration-150',
+                "rounded-control border px-2 py-1.5 text-value tabular-nums",
+                "transition-colors duration-150",
                 slot.available
-                  ? 'cursor-pointer border-line-strong text-ink hover:border-primary-500 hover:bg-primary-50'
-                  : 'cursor-not-allowed border-line bg-inset text-ink-subtle line-through',
+                  ? "cursor-pointer border-line-strong text-ink hover:border-primary-500 hover:bg-primary-50"
+                  : "cursor-not-allowed border-line bg-inset text-ink-subtle line-through",
                 selected &&
-                  'border-primary-600 bg-primary-600 text-ink-inverse hover:bg-primary-700',
+                  "border-primary-600 bg-primary-600 text-ink-inverse hover:bg-primary-700",
               )}
             >
               {slot.start}
@@ -80,14 +80,14 @@ export function SlotPicker({
         })}
       </div>
 
-      {availability.closedReason === 'fully_booked' && (
-        <p className="text-label text-warning-700">{t('appointments.slots.fully_booked')}</p>
+      {availability.closedReason === "fully_booked" && (
+        <p className="text-label text-warning-700">{t("appointments.slots.fully_booked")}</p>
       )}
     </div>
   );
 }
 
-function Hint({ icon, children }: { icon: 'info' | 'calendar'; children: string }) {
+function Hint({ icon, children }: { icon: "info" | "calendar"; children: string }) {
   return (
     <p className="flex items-center gap-2 rounded-control bg-inset px-3 py-2.5 text-label text-ink-muted">
       <Icon name={icon} className="size-4" />

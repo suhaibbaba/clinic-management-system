@@ -7,9 +7,9 @@ import type {
   ReversePaymentInput,
   Statement,
   StatementQuery,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { apiDownload, apiRequest } from '@web/lib/api-client';
+import { apiDownload, apiRequest } from "@web/lib/api-client";
 
 // Nothing here updates an amount, because nothing server-side would accept it: a payment is created
 // or reversed, never edited.
@@ -24,13 +24,13 @@ export const billingApi = {
     apiDownload(`/patients/${patientId}/statement.pdf`, { ...query }),
 
   payments: (query: Partial<ListPaymentsQuery>): Promise<Paginated<Payment>> =>
-    apiRequest('/payments', { query: { ...query } }),
+    apiRequest("/payments", { query: { ...query } }),
 
   createPayment: (body: CreatePaymentInput): Promise<Payment> =>
-    apiRequest('/payments', { method: 'POST', body }),
+    apiRequest("/payments", { method: "POST", body }),
 
   reversePayment: (id: string, body: ReversePaymentInput): Promise<Payment> =>
-    apiRequest(`/payments/${id}/reverse`, { method: 'POST', body }),
+    apiRequest(`/payments/${id}/reverse`, { method: "POST", body }),
 
   receiptPdf: (paymentId: string): Promise<Blob> => apiDownload(`/payments/${paymentId}/receipt`),
 };

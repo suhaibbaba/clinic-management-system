@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { randomUUID } from "node:crypto";
 
 import {
   APPOINTMENT_STATUS,
@@ -23,13 +23,13 @@ import {
   localWeekday,
   occupiesSlot,
   type LabOrderStatus,
-} from '@clinic/shared';
-import { and, eq, isNull } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, eq, isNull } from "drizzle-orm";
 
-import type { BusyInterval } from '@api/appointments/slots';
-import { ChargesService } from '@api/billing/charges.service';
-import { nextReceiptNumber } from '@api/billing/payments.service';
-import type { Database } from '@api/database/database.module';
+import type { BusyInterval } from "@api/appointments/slots";
+import { ChargesService } from "@api/billing/charges.service";
+import { nextReceiptNumber } from "@api/billing/payments.service";
+import type { Database } from "@api/database/database.module";
 import {
   appointments,
   chartMarks,
@@ -57,8 +57,8 @@ import {
   treatmentPlans,
   visits,
   waitingList,
-} from '@api/database/schema';
-import { ensureSystemLookups } from '@api/database/system-lookups';
+} from "@api/database/schema";
+import { ensureSystemLookups } from "@api/database/system-lookups";
 import {
   ACCOUNTS,
   CATALOG,
@@ -71,7 +71,7 @@ import {
   DIAGNOSES,
   DOCTOR_SCHEDULES,
   EXAMINATIONS,
-} from '@api/database/seed/clinic';
+} from "@api/database/seed/clinic";
 import {
   CHART_MARK_TYPE,
   PLAN_ITEM_STATUSES,
@@ -83,9 +83,9 @@ import {
   procedureStatus,
   teethFor,
   toothLocation,
-} from '@api/database/seed/clinical';
-import { planAppointments, type PlannedAppointment } from '@api/database/seed/calendar';
-import { buildPeople } from '@api/database/seed/people';
+} from "@api/database/seed/clinical";
+import { planAppointments, type PlannedAppointment } from "@api/database/seed/calendar";
+import { buildPeople } from "@api/database/seed/people";
 import {
   ADJUST_REASONS,
   ITEMS,
@@ -95,10 +95,10 @@ import {
   LABS,
   SUPPLIERS,
   WAITING_REASONS,
-} from '@api/database/seed/practice';
-import { Rng } from '@api/database/seed/random';
-import { upsertSeedClinic } from '@api/database/seed/upsert-clinic';
-import { upsertUser, type SeedAccount } from '@api/database/seed/users';
+} from "@api/database/seed/practice";
+import { Rng } from "@api/database/seed/random";
+import { upsertSeedClinic } from "@api/database/seed/upsert-clinic";
+import { upsertUser, type SeedAccount } from "@api/database/seed/users";
 
 export interface SeedOptions {
   /** Overridden by the specs so a seeded scratch clinic cannot collide with the real one. */
@@ -131,7 +131,7 @@ const DEFAULT_RANDOM_SEED = 20_260_914;
 export async function seedDatabase(db: Database, options: SeedOptions): Promise<SeedSummary> {
   const rng = new Rng(options.randomSeed ?? DEFAULT_RANDOM_SEED);
   const slug = options.slug ?? CLINIC_SLUG;
-  const prefix = options.identifierPrefix ?? '';
+  const prefix = options.identifierPrefix ?? "";
   const patientCount = options.patientCount ?? DEFAULT_PATIENTS;
   const daysBack = options.daysBack ?? DEFAULT_DAYS_BACK;
   const daysForward = options.daysForward ?? DEFAULT_DAYS_FORWARD;
@@ -166,7 +166,7 @@ export async function seedDatabase(db: Database, options: SeedOptions): Promise<
     .map((entry) => entry.id);
 
   if (!adminId || doctorUserIds.length < 2) {
-    throw new Error('The seed needs an admin and two doctors');
+    throw new Error("The seed needs an admin and two doctors");
   }
 
   const doctorIds: string[] = [];
@@ -198,7 +198,7 @@ export async function seedDatabase(db: Database, options: SeedOptions): Promise<
     .values(
       people.map((person, index) => ({
         clinicId: clinic.id,
-        fileNumber: String(index + 1).padStart(5, '0'),
+        fileNumber: String(index + 1).padStart(5, "0"),
         fullName: person.fullName,
         phone: `${person.phone}${prefix}`,
         dateOfBirth: person.incomplete ? null : person.dateOfBirth,
@@ -214,7 +214,7 @@ export async function seedDatabase(db: Database, options: SeedOptions): Promise<
     id: row.id,
     index,
     ageYears: ageOf(people[index]?.dateOfBirth ?? today, today),
-    isFemale: people[index]?.gender === 'female',
+    isFemale: people[index]?.gender === "female",
   }));
 
   const histories = seededPatients
@@ -278,7 +278,7 @@ export async function seedDatabase(db: Database, options: SeedOptions): Promise<
 
   await db.insert(clinicNotes).values({
     clinicId: clinic.id,
-    body: 'تذكير: طلبيات مخبر الدقة تُسلَّم يوم الأحد.',
+    body: "تذكير: طلبيات مخبر الدقة تُسلَّم يوم الأحد.",
     authorId: adminId,
     ...audit,
   });
@@ -609,9 +609,9 @@ async function writeMoney(
       clinicId: ctx.clinicId,
       patientId: procedure.patientId,
       performedProcedureId: procedure.id,
-      price: String(Math.round(Number(procedure.price) * 0.8)) + '.00',
-      discount: '0.00',
-      discountReason: 'تصحيح السعر',
+      price: String(Math.round(Number(procedure.price) * 0.8)) + ".00",
+      discount: "0.00",
+      discountReason: "تصحيح السعر",
       status: procedure.status,
       actorId: ctx.actorId,
     });
@@ -676,7 +676,7 @@ async function writeMoney(
           PAYMENT_METHOD.CARD,
           PAYMENT_METHOD.TRANSFER,
         ]),
-        note: instalments > 1 ? `دفعة ${index + 1} من ${instalments}` : 'تسديد',
+        note: instalments > 1 ? `دفعة ${index + 1} من ${instalments}` : "تسديد",
         receiptNumber,
         receivedBy: ctx.actorId,
         createdAt: earlier(last, -ctx.rng.int(0, 20)),
@@ -778,7 +778,7 @@ async function writeLabs(
       shade: ctx.rng.pick(LAB_SHADES),
       teeth: procedure.tooth === null ? [] : [procedure.tooth],
       instructions: ctx.rng.pick(LAB_INSTRUCTIONS),
-      price: workType?.price ?? '300.00',
+      price: workType?.price ?? "300.00",
       status,
       sentAt,
       expectedAt,
@@ -790,7 +790,7 @@ async function writeLabs(
         status === LAB_ORDER_STATUS.FITTED
           ? new Date(procedure.performedAt.getTime() + 9 * 86_400_000)
           : null,
-      returnReason: status === LAB_ORDER_STATUS.RETURNED ? 'عدم انطباق الحواف' : null,
+      returnReason: status === LAB_ORDER_STATUS.RETURNED ? "عدم انطباق الحواف" : null,
       createdAt: procedure.performedAt,
       ...ctx.audit,
     };
@@ -810,7 +810,7 @@ async function writeLabs(
       labId: lab.id,
       amount: `${Math.round(billed * (index === 0 ? 0.6 : 0.35))}.00`,
       method: PAYMENT_METHOD.TRANSFER,
-      note: 'دفعة على الحساب',
+      note: "دفعة على الحساب",
       paidBy: ctx.actorId,
       createdAt: earlier(ctx.now, 20 + index * 9),
       ...ctx.audit,
@@ -975,7 +975,7 @@ async function writeNotifications(
   await db.insert(notificationsLog).values(
     recent.map(({ entry, id }, index) => ({
       clinicId: ctx.clinicId,
-      to: `+9705999000${String(index).padStart(2, '0')}`,
+      to: `+9705999000${String(index).padStart(2, "0")}`,
       channel: NOTIFICATION_CHANNEL.SMS,
       template:
         index % 3 === 0
@@ -985,7 +985,7 @@ async function writeNotifications(
             : NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED,
       vars: { clinic: CLINIC_NAME.ar, time: entry.startsAt.toISOString() },
       status: index % 17 === 0 ? NOTIFICATION_STATUS.FAILED : NOTIFICATION_STATUS.SENT,
-      error: index % 17 === 0 ? 'gateway timeout' : null,
+      error: index % 17 === 0 ? "gateway timeout" : null,
       appointmentId: id as string,
       createdAt: earlier(entry.startsAt, 1),
     })),
@@ -999,7 +999,7 @@ async function writeAbsences(db: Database, ctx: WriteContext): Promise<SeedCount
     clinicId: ctx.clinicId,
     startsOn: ctx.closureStart,
     endsOn: addDays(ctx.closureStart, 2),
-    reason: 'عطلة عيد',
+    reason: "عطلة عيد",
     isAnnual: false,
     ...ctx.audit,
   });
@@ -1022,7 +1022,7 @@ async function writeAbsences(db: Database, ctx: WriteContext): Promise<SeedCount
       doctorId: firstDoctor,
       startsAt: at(ctx.cleanTimeOffDate, 9 * 60),
       endsAt: at(ctx.cleanTimeOffDate, 13 * 60),
-      reason: 'مؤتمر طب أسنان',
+      reason: "مؤتمر طب أسنان",
       ...ctx.audit,
     },
     ...(overlapping
@@ -1032,7 +1032,7 @@ async function writeAbsences(db: Database, ctx: WriteContext): Promise<SeedCount
             doctorId: firstDoctor,
             startsAt: at(overlapping.isoDate, Math.max(0, overlapping.startMinute - 30)),
             endsAt: at(overlapping.isoDate, overlapping.startMinute + 120),
-            reason: 'التزام شخصي',
+            reason: "التزام شخصي",
             ...ctx.audit,
           },
         ]
@@ -1101,13 +1101,13 @@ async function upsertSpecialty(db: Database, clinicId: string): Promise<string> 
     .values({
       clinicId,
       code: SPECIALTY_CODE.DENTAL,
-      name: 'طب الأسنان',
+      name: "طب الأسنان",
       chartType: CHART_TYPE.TOOTH_FDI,
     })
     .returning({ id: specialties.id });
 
   if (!row) {
-    throw new Error('Failed to create the seed specialty');
+    throw new Error("Failed to create the seed specialty");
   }
 
   return row.id;
@@ -1144,7 +1144,7 @@ async function upsertDoctor(
     .returning({ id: doctors.id });
 
   if (!row) {
-    throw new Error('Failed to create the seed doctor');
+    throw new Error("Failed to create the seed doctor");
   }
 
   return row.id;

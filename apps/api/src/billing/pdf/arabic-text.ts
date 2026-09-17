@@ -1,4 +1,4 @@
-import bidiFactory from 'bidi-js';
+import bidiFactory from "bidi-js";
 
 const bidi = bidiFactory();
 
@@ -110,7 +110,7 @@ export function shapeArabic(input: string): string {
   return String.fromCodePoint(...out);
 }
 
-export type TextDirection = 'rtl' | 'ltr';
+export type TextDirection = "rtl" | "ltr";
 
 export interface TextRun {
   /** Shaped, still in logical order — the PDF library reverses RTL runs. */
@@ -119,8 +119,8 @@ export interface TextRun {
   readonly level: number;
 }
 
-export function visualRuns(text: string, base: TextDirection = 'rtl'): TextRun[] {
-  if (text === '') {
+export function visualRuns(text: string, base: TextDirection = "rtl"): TextRun[] {
+  if (text === "") {
     return [];
   }
 
@@ -132,7 +132,7 @@ export function visualRuns(text: string, base: TextDirection = 'rtl'): TextRun[]
   for (let i = 1; i <= chars.length; i += 1) {
     if (i === chars.length || levels[i] !== levels[start]) {
       runs.push({
-        text: shapeArabic(chars.slice(start, i).join('')),
+        text: shapeArabic(chars.slice(start, i).join("")),
         level: levels[start] ?? 0,
       });
       start = i;

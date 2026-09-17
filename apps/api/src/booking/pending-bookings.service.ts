@@ -1,5 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Inject, Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   APPOINTMENT_STATUS,
   clinicScheduleSettings,
@@ -8,17 +8,17 @@ import {
   minutesFromLocalMidnight,
   NOTIFICATION_TEMPLATE,
   type CalendarAppointment,
-} from '@clinic/shared';
-import { eq } from 'drizzle-orm';
+} from "@clinic/shared";
+import { eq } from "drizzle-orm";
 
-import { AppointmentsService } from '@api/appointments/appointments.service';
-import { BookingTokenService } from '@api/booking/booking-token.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import type { Env } from '@api/config/env.schema';
-import { notificationName } from '@api/common/person-name';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { clinics } from '@api/database/schema';
-import { NotificationsService } from '@api/notifications/notifications.service';
+import { AppointmentsService } from "@api/appointments/appointments.service";
+import { BookingTokenService } from "@api/booking/booking-token.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import type { Env } from "@api/config/env.schema";
+import { notificationName } from "@api/common/person-name";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { clinics } from "@api/database/schema";
+import { NotificationsService } from "@api/notifications/notifications.service";
 
 // The transition goes through `changeStatus` like every other. A message that fails to send never
 // fails the confirmation — a dead gateway must not block reception.
@@ -91,15 +91,15 @@ export class PendingBookingsService {
       .limit(1);
 
     return {
-      name: row ? notificationName({ ar: row.nameAr, en: row.nameEn }) : '',
+      name: row ? notificationName({ ar: row.nameAr, en: row.nameEn }) : "",
       timeZone: clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE,
     };
   }
 
   private manageLink(appointmentId: string): string {
-    const base = this.config.get('PUBLIC_BASE_URL', { infer: true });
+    const base = this.config.get("PUBLIC_BASE_URL", { infer: true });
 
-    return `${base.replace(/\/$/, '')}/booking/manage/${this.tokens.sign(appointmentId)}`;
+    return `${base.replace(/\/$/, "")}/booking/manage/${this.tokens.sign(appointmentId)}`;
   }
 }
 
@@ -107,5 +107,5 @@ function timeIn(timeZone: string, at: Date): string {
   const minutes = minutesFromLocalMidnight(at, localDate(at, timeZone), timeZone);
   const hours = Math.floor(minutes / 60);
 
-  return `${String(hours).padStart(2, '0')}:${String(Math.round(minutes % 60)).padStart(2, '0')}`;
+  return `${String(hours).padStart(2, "0")}:${String(Math.round(minutes % 60)).padStart(2, "0")}`;
 }

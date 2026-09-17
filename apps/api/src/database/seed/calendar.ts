@@ -6,11 +6,11 @@ import {
   occupiesSlot,
   type AppointmentStatus,
   type WeeklySchedule,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { computeDaySlots, type BusyInterval } from '@api/appointments/slots';
-import type { CatalogEntry } from '@api/database/seed/clinic';
-import type { Rng } from '@api/database/seed/random';
+import { computeDaySlots, type BusyInterval } from "@api/appointments/slots";
+import type { CatalogEntry } from "@api/database/seed/clinic";
+import type { Rng } from "@api/database/seed/random";
 
 export interface CalendarDoctor {
   readonly id: string;
@@ -49,24 +49,24 @@ export interface CalendarPlanInput {
 }
 
 const REASONS: readonly string[] = [
-  'ألم في الضرس',
-  'فحص دوري',
-  'متابعة معالجة',
-  'تنظيف',
-  'كسر في الحشوة',
-  'تركيب التاج',
-  'مراجعة بعد القلع',
-  'استشارة تقويم',
+  "ألم في الضرس",
+  "فحص دوري",
+  "متابعة معالجة",
+  "تنظيف",
+  "كسر في الحشوة",
+  "تركيب التاج",
+  "مراجعة بعد القلع",
+  "استشارة تقويم",
 ];
 
 const CANCELLED_REASONS: readonly string[] = [
-  'اعتذر المريض',
-  'ظرف طارئ',
-  'تأجيل بطلب المريض',
-  'تعارض مع موعد آخر',
+  "اعتذر المريض",
+  "ظرف طارئ",
+  "تأجيل بطلب المريض",
+  "تعارض مع موعد آخر",
 ];
 
-const APPOINTMENT_TYPES: readonly string[] = ['checkup', 'treatment', 'followup', 'emergency'];
+const APPOINTMENT_TYPES: readonly string[] = ["checkup", "treatment", "followup", "emergency"];
 
 export function planAppointments(input: CalendarPlanInput): PlannedAppointment[] {
   const planned: PlannedAppointment[] = [];
@@ -205,11 +205,11 @@ function statusFor(rng: Rng, offset: number): AppointmentStatus {
 }
 
 function appointmentType(rng: Rng, procedure: CatalogEntry): string {
-  if (procedure.code === 'EXAM') {
-    return 'checkup';
+  if (procedure.code === "EXAM") {
+    return "checkup";
   }
 
-  return rng.bool(0.08) ? 'emergency' : rng.pick(APPOINTMENT_TYPES.slice(0, 3));
+  return rng.bool(0.08) ? "emergency" : rng.pick(APPOINTMENT_TYPES.slice(0, 3));
 }
 
 function pickProcedure(rng: Rng, catalog: readonly CatalogEntry[]): CatalogEntry {

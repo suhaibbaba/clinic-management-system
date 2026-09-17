@@ -1,11 +1,11 @@
-import { addMoney, type Money, type TreatmentPlanItem } from '@clinic/shared';
+import { addMoney, type Money, type TreatmentPlanItem } from "@clinic/shared";
 
 // Summed through the shared money helpers in integer minor units — adding prices as floats is how a
 // three-item plan quotes 599.9999.
 export function planTotal(items: readonly TreatmentPlanItem[]): Money {
-  return items.reduce<Money>((total, item) => addMoney(total, item.estimatedPrice), '0.00');
+  return items.reduce<Money>((total, item) => addMoney(total, item.estimatedPrice), "0.00");
 }
 
 export function planRemaining(items: readonly TreatmentPlanItem[]): Money {
-  return planTotal(items.filter((item) => item.status === 'planned'));
+  return planTotal(items.filter((item) => item.status === "planned"));
 }

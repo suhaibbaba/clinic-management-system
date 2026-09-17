@@ -1,19 +1,19 @@
-import { BadRequestException, ConflictException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable } from "@nestjs/common";
 import {
   AUDIT_ACTION,
   PATIENT_REF_MESSAGE,
   type CreatePatientInput,
   type InlinePatientInput,
-} from '@clinic/shared';
-import { eq, sql } from 'drizzle-orm';
+} from "@clinic/shared";
+import { eq, sql } from "drizzle-orm";
 
-import { AuditService } from '@api/audit/audit.service';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database, type DatabaseExecutor } from '@api/database/database.module';
-import { patients } from '@api/database/schema';
-import type { PatientRow } from '@api/patients/patient-access.service';
-import { PATIENTS_ENTITY, toPublicView } from '@api/patients/patient-view';
+import { AuditService } from "@api/audit/audit.service";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
+import { patients } from "@api/database/schema";
+import type { PatientRow } from "@api/patients/patient-access.service";
+import { PATIENTS_ENTITY, toPublicView } from "@api/patients/patient-view";
 
 /** File numbers are zero-padded so they sort and read like a paper file. */
 const FILE_NUMBER_WIDTH = 5;
@@ -90,7 +90,7 @@ export class PatientRegistrationService {
     actor: AuthenticatedUser,
     phone: string,
   ): Promise<void> {
-    const digits = phone.replaceAll(/\D/g, '');
+    const digits = phone.replaceAll(/\D/g, "");
 
     const [existing] = await executor
       .select()
@@ -107,8 +107,8 @@ export class PatientRegistrationService {
     if (existing) {
       throw new ConflictException({
         statusCode: 409,
-        error: 'Conflict',
-        message: 'A patient is already registered with this phone number',
+        error: "Conflict",
+        message: "A patient is already registered with this phone number",
         existingPatient: toPublicView(existing),
       });
     }
@@ -146,7 +146,7 @@ export class PatientRegistrationService {
             .returning();
 
           if (!row) {
-            throw new Error('Failed to register the patient');
+            throw new Error("Failed to register the patient");
           }
 
           return row;
@@ -158,7 +158,7 @@ export class PatientRegistrationService {
       }
     }
 
-    throw new ConflictException('Could not allocate a file number, please retry');
+    throw new ConflictException("Could not allocate a file number, please retry");
   }
 
   private async nextFileNumber(
@@ -173,12 +173,12 @@ export class PatientRegistrationService {
       .from(patients)
       .where(eq(patients.clinicId, clinicId));
 
-    return String((result?.max ?? 0) + 1 + offset).padStart(FILE_NUMBER_WIDTH, '0');
+    return String((result?.max ?? 0) + 1 + offset).padStart(FILE_NUMBER_WIDTH, "0");
   }
 }
 
 function isUniqueViolation(error: unknown): boolean {
   return (
-    typeof error === 'object' && error !== null && (error as { code?: string }).code === '23505'
+    typeof error === "object" && error !== null && (error as { code?: string }).code === "23505"
   );
 }

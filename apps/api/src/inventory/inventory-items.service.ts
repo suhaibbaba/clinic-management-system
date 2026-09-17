@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
   LOOKUP_LIST,
   type CreateInventoryItemInput,
@@ -8,22 +8,22 @@ import {
   type ListInventoryItemsQuery,
   type Paginated,
   type UpdateInventoryItemInput,
-} from '@clinic/shared';
-import { and, asc, eq, isNull, ne, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, asc, eq, isNull, ne, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { inventoryItems, suppliers } from '@api/database/schema';
-import { isLowStock, normalise, StockService, type ItemStock } from '@api/inventory/stock.service';
-import { SuppliersService } from '@api/inventory/suppliers.service';
-import { LookupsService } from '@api/lookups/lookups.service';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { inventoryItems, suppliers } from "@api/database/schema";
+import { isLowStock, normalise, StockService, type ItemStock } from "@api/inventory/stock.service";
+import { SuppliersService } from "@api/inventory/suppliers.service";
+import { LookupsService } from "@api/lookups/lookups.service";
 
 type ItemRow = typeof inventoryItems.$inferSelect;
 
-export const INVENTORY_ITEMS_ENTITY = 'inventory_items';
+export const INVENTORY_ITEMS_ENTITY = "inventory_items";
 
 // Half stored, half computed: name, category, unit and reorder level are columns; quantity, expiry
 // and the flags come from the ledger on every read.
@@ -122,7 +122,7 @@ export class InventoryItemsService implements OnModuleInit {
     ]);
 
     if (!item) {
-      throw new Error('Failed to load the item');
+      throw new Error("Failed to load the item");
     }
 
     return item;
@@ -160,7 +160,7 @@ export class InventoryItemsService implements OnModuleInit {
         nameAr: input.nameAr,
         category: input.category,
         unit: input.unit,
-        minQuantity: input.minQuantity ?? '0',
+        minQuantity: input.minQuantity ?? "0",
         defaultSupplierId: input.defaultSupplierId ?? null,
         notes: input.notes ?? null,
         ...(input.isActive !== undefined && { isActive: input.isActive }),
@@ -170,7 +170,7 @@ export class InventoryItemsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to create the item');
+      throw new Error("Failed to create the item");
     }
 
     return toInventoryItem(row);
@@ -214,7 +214,7 @@ export class InventoryItemsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to update the item');
+      throw new Error("Failed to update the item");
     }
 
     return toInventoryItem(row);
@@ -269,7 +269,7 @@ export class InventoryItemsService implements OnModuleInit {
       .limit(1);
 
     if (clash) {
-      throw new ConflictException('An item with this name already exists');
+      throw new ConflictException("An item with this name already exists");
     }
   }
 }
@@ -297,7 +297,7 @@ export function toItemRow(
   supplierName: string | null,
   stock: ItemStock | undefined,
 ): InventoryItemRow {
-  const quantity = stock?.quantity ?? '0';
+  const quantity = stock?.quantity ?? "0";
 
   return {
     ...toInventoryItem(row),

@@ -4,7 +4,7 @@ import {
   Inject,
   Injectable,
   type OnModuleInit,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   addDays,
   APPOINTMENT_STATUS,
@@ -26,17 +26,17 @@ import {
   type Paginated,
   type UpdateAppointmentInput,
   type Visit,
-} from '@clinic/shared';
-import { and, asc, eq, gt, gte, lt, lte, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, asc, eq, gt, gte, lt, lte, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { AppointmentAccessService } from '@api/appointments/appointment-access.service';
-import { toClinicClosure, toDoctorTimeOff } from '@api/appointments/availability.service';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toPersonName } from '@api/common/person-name';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { AppointmentAccessService } from "@api/appointments/appointment-access.service";
+import { toClinicClosure, toDoctorTimeOff } from "@api/appointments/availability.service";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toPersonName } from "@api/common/person-name";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
 import {
   appointments,
   clinicClosures,
@@ -46,28 +46,28 @@ import {
   patients,
   users,
   visits,
-} from '@api/database/schema';
-import { PatientAccessService } from '@api/patients/patient-access.service';
-import { PatientRegistrationService } from '@api/patients/patient-registration.service';
-import { toVisit } from '@api/patients/visits.service';
-import { LookupsService } from '@api/lookups/lookups.service';
+} from "@api/database/schema";
+import { PatientAccessService } from "@api/patients/patient-access.service";
+import { PatientRegistrationService } from "@api/patients/patient-registration.service";
+import { toVisit } from "@api/patients/visits.service";
+import { LookupsService } from "@api/lookups/lookups.service";
 
 type AppointmentRow = typeof appointments.$inferSelect;
 
-export const APPOINTMENTS_ENTITY = 'appointments';
+export const APPOINTMENTS_ENTITY = "appointments";
 
 /** Postgres raises this when an `EXCLUDE` constraint rejects a row. */
-const EXCLUSION_VIOLATION = '23P01';
+const EXCLUSION_VIOLATION = "23P01";
 
-const DEADLOCK = '40P01';
+const DEADLOCK = "40P01";
 
 // Walked down the `cause` chain: drizzle wraps the driver's error, so the SQLSTATE is a level or
 // two below. Reading the top level made every double booking a 500.
 function hasSqlState(error: unknown, state: string): boolean {
   for (let current = error, depth = 0; current && depth < 5; depth += 1) {
     if (
-      typeof current === 'object' &&
-      'code' in current &&
+      typeof current === "object" &&
+      "code" in current &&
       (current as { code?: unknown }).code === state
     ) {
       return true;
@@ -158,7 +158,7 @@ export class AppointmentsService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new BadRequestException('Appointment not found');
+      throw new BadRequestException("Appointment not found");
     }
 
     return toCalendarAppointment(row);
@@ -290,7 +290,7 @@ export class AppointmentsService implements OnModuleInit {
     }
 
     if (!occupiesSlot(existing.status) || existing.status === APPOINTMENT_STATUS.COMPLETED) {
-      throw new BadRequestException('This appointment is closed and can no longer be moved');
+      throw new BadRequestException("This appointment is closed and can no longer be moved");
     }
 
     await this.insert(() =>
@@ -332,7 +332,7 @@ export class AppointmentsService implements OnModuleInit {
     }
 
     if (next === APPOINTMENT_STATUS.CANCELLED && !cancelledReason?.trim()) {
-      throw new BadRequestException('A cancellation must state a reason');
+      throw new BadRequestException("A cancellation must state a reason");
     }
 
     await this.db
@@ -360,14 +360,14 @@ export class AppointmentsService implements OnModuleInit {
     await this.access.requireOwnCalendar(actor, existing.doctorId);
 
     if (existing.visitId) {
-      throw new BadRequestException('This appointment already has a visit');
+      throw new BadRequestException("This appointment already has a visit");
     }
 
     if (
       existing.status !== APPOINTMENT_STATUS.ARRIVED &&
       existing.status !== APPOINTMENT_STATUS.IN_PROGRESS
     ) {
-      throw new BadRequestException('Mark the patient as arrived before opening a visit');
+      throw new BadRequestException("Mark the patient as arrived before opening a visit");
     }
 
     return this.db.transaction(async (tx) => {
@@ -385,7 +385,7 @@ export class AppointmentsService implements OnModuleInit {
         .returning();
 
       if (!visit) {
-        throw new Error('Failed to create the visit');
+        throw new Error("Failed to create the visit");
       }
 
       await tx
@@ -422,7 +422,7 @@ export class AppointmentsService implements OnModuleInit {
       // Deadlock included: the retry below has already run, so anything still arriving here lost
       // the slot rather than the coin toss.
       if (hasSqlState(error, EXCLUSION_VIOLATION)) {
-        throw new ConflictException('That time is already booked for this doctor');
+        throw new ConflictException("That time is already booked for this doctor");
       }
 
       throw error;
@@ -431,7 +431,7 @@ export class AppointmentsService implements OnModuleInit {
     const row = rows[0];
 
     if (!row) {
-      throw new Error('Failed to write the appointment');
+      throw new Error("Failed to write the appointment");
     }
 
     return row;
@@ -474,7 +474,7 @@ export class AppointmentsService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new BadRequestException('Doctor not found in this clinic');
+      throw new BadRequestException("Doctor not found in this clinic");
     }
 
     return row.duration;
@@ -498,28 +498,28 @@ export class AppointmentsService implements OnModuleInit {
 }
 
 /** Inclusive first day drawn for a range, from any date inside it. */
-export function calendarRangeStart(isoDate: string, range: CalendarQuery['range']): string {
-  if (range === 'week') {
+export function calendarRangeStart(isoDate: string, range: CalendarQuery["range"]): string {
+  if (range === "week") {
     return startOfWeek(isoDate);
   }
 
-  return range === 'month' ? `${isoDate.slice(0, 7)}-01` : isoDate;
+  return range === "month" ? `${isoDate.slice(0, 7)}-01` : isoDate;
 }
 
 /** Exclusive last day. A month is added in months, or a 31-day January would overshoot February. */
-export function calendarRangeEnd(from: string, range: CalendarQuery['range']): string {
-  if (range !== 'month') {
-    return addDays(from, range === 'week' ? 7 : 1);
+export function calendarRangeEnd(from: string, range: CalendarQuery["range"]): string {
+  if (range !== "month") {
+    return addDays(from, range === "week" ? 7 : 1);
   }
 
-  const [year = 0, month = 1] = from.split('-').map(Number);
+  const [year = 0, month = 1] = from.split("-").map(Number);
 
   return new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
 }
 
 /** Sunday of the week a date falls in, matching `DaySchedule.weekday` 0 = Sunday. */
 export function startOfWeek(isoDate: string): string {
-  const [year = 0, month = 1, day = 1] = isoDate.split('-').map(Number);
+  const [year = 0, month = 1, day = 1] = isoDate.split("-").map(Number);
   const at = new Date(Date.UTC(year, month - 1, day));
 
   return addDays(isoDate, -at.getUTCDay());

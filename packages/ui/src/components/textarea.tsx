@@ -1,6 +1,6 @@
-import { forwardRef, type TextareaHTMLAttributes } from 'react';
+import { forwardRef, type TextareaHTMLAttributes } from "react";
 
-import { cn } from '@ui/lib/cn';
+import { cn } from "@ui/lib/cn";
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   hasError?: boolean | undefined;
@@ -19,17 +19,17 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
       rows={rows}
       aria-invalid={hasError || undefined}
       className={cn(
-        'block min-h-(--control-h) w-full resize-y rounded-control border-[1.5px] px-3.5 py-2.5',
-        '[unicode-bidi:plaintext] page-rtl:text-right page-ltr:text-left',
-        'text-field text-ink placeholder:text-ink-subtle',
-        'transition-[border-color,box-shadow,background-color] duration-150 outline-none',
+        "block min-h-(--control-h) w-full resize-y rounded-control border-[1.5px] px-3.5 py-2.5",
+        "[unicode-bidi:plaintext] page-rtl:text-right page-ltr:text-left",
+        "text-field text-ink placeholder:text-ink-subtle",
+        "transition-[border-color,box-shadow,background-color] duration-150 outline-none",
         disabled
-          ? 'cursor-not-allowed border-transparent bg-inset text-ink-faint'
+          ? "cursor-not-allowed border-transparent bg-inset text-ink-faint"
           : cn(
-              'bg-surface',
+              "bg-surface",
               hasError
-                ? 'border-danger-600 shadow-field-error focus:shadow-field-error-ring'
-                : 'border-line-strong hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus',
+                ? "border-danger-600 shadow-field-error focus:shadow-field-error-ring"
+                : "border-line-strong hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus",
             ),
         className,
       )}

@@ -1,9 +1,9 @@
-import { LAB_ORDER_STATUS, canTransitionLabOrder, type LabOrderStatus } from '@clinic/shared';
+import { LAB_ORDER_STATUS, canTransitionLabOrder, type LabOrderStatus } from "@clinic/shared";
 
-import type { BadgeTone } from '@clinic/ui/components/badge';
-import { TONE_SURFACE } from '@clinic/ui/components/tone';
-import type { Can } from '@web/features/auth/session';
-import type { LabOrderStep } from '@web/features/labs/queries';
+import type { BadgeTone } from "@clinic/ui/components/badge";
+import { TONE_SURFACE } from "@clinic/ui/components/tone";
+import type { Can } from "@web/features/auth/session";
+import type { LabOrderStep } from "@web/features/labs/queries";
 
 // The column header, the badge and the chip all read this, so a status cannot be amber in one place
 // and grey in another. The colour itself comes from `TONE_SURFACE`.
@@ -20,13 +20,13 @@ const column = (tone: BadgeTone, label: string): LabStatusStyle => ({
 });
 
 export const LAB_ORDER_STATUS_STYLES: Record<LabOrderStatus, LabStatusStyle> = {
-  [LAB_ORDER_STATUS.DRAFT]: column('neutral', 'labs.status.draft'),
-  [LAB_ORDER_STATUS.SENT]: column('info', 'labs.status.sent'),
-  [LAB_ORDER_STATUS.READY]: column('warning', 'labs.status.ready'),
-  [LAB_ORDER_STATUS.RECEIVED]: column('success', 'labs.status.received'),
-  [LAB_ORDER_STATUS.FITTED]: column('neutral', 'labs.status.fitted'),
-  [LAB_ORDER_STATUS.RETURNED]: column('danger', 'labs.status.returned'),
-  [LAB_ORDER_STATUS.CANCELLED]: column('neutral', 'labs.status.cancelled'),
+  [LAB_ORDER_STATUS.DRAFT]: column("neutral", "labs.status.draft"),
+  [LAB_ORDER_STATUS.SENT]: column("info", "labs.status.sent"),
+  [LAB_ORDER_STATUS.READY]: column("warning", "labs.status.ready"),
+  [LAB_ORDER_STATUS.RECEIVED]: column("success", "labs.status.received"),
+  [LAB_ORDER_STATUS.FITTED]: column("neutral", "labs.status.fitted"),
+  [LAB_ORDER_STATUS.RETURNED]: column("danger", "labs.status.returned"),
+  [LAB_ORDER_STATUS.CANCELLED]: column("neutral", "labs.status.cancelled"),
 };
 
 export const BOARD_COLUMNS: readonly LabOrderStatus[] = [
@@ -47,34 +47,34 @@ interface StepDefinition {
 
 const STEPS: readonly StepDefinition[] = [
   {
-    step: 'send',
+    step: "send",
     to: LAB_ORDER_STATUS.SENT,
-    label: 'labs.actions.send',
-    capability: 'lab-orders.send',
+    label: "labs.actions.send",
+    capability: "lab-orders.send",
   },
   {
-    step: 'ready',
+    step: "ready",
     to: LAB_ORDER_STATUS.READY,
-    label: 'labs.actions.ready',
-    capability: 'lab-orders.ready',
+    label: "labs.actions.ready",
+    capability: "lab-orders.ready",
   },
   {
-    step: 'receive',
+    step: "receive",
     to: LAB_ORDER_STATUS.RECEIVED,
-    label: 'labs.actions.receive',
-    capability: 'lab-orders.receive',
+    label: "labs.actions.receive",
+    capability: "lab-orders.receive",
   },
   {
-    step: 'fit',
+    step: "fit",
     to: LAB_ORDER_STATUS.FITTED,
-    label: 'labs.actions.fit',
-    capability: 'lab-orders.fit',
+    label: "labs.actions.fit",
+    capability: "lab-orders.fit",
   },
   {
-    step: 'cancel',
+    step: "cancel",
     to: LAB_ORDER_STATUS.CANCELLED,
-    label: 'labs.actions.cancel',
-    capability: 'lab-orders.cancel',
+    label: "labs.actions.cancel",
+    capability: "lab-orders.cancel",
   },
 ];
 
@@ -86,5 +86,5 @@ export function availableSteps(status: LabOrderStatus, can: Can): readonly StepD
 
 /** Returning is its own action: it needs a reason, so it opens a dialog. */
 export function canReturn(status: LabOrderStatus, can: Can): boolean {
-  return canTransitionLabOrder(status, LAB_ORDER_STATUS.RETURNED) && can('lab-orders.return');
+  return canTransitionLabOrder(status, LAB_ORDER_STATUS.RETURNED) && can("lab-orders.return");
 }

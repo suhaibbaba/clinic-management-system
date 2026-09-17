@@ -1,6 +1,6 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { paginationQuerySchema } from '@shared/schemas/common';
+import { paginationQuerySchema } from "@shared/schemas/common";
 
 /** A clinical encounter. Admin and doctor only (ROLES.md). */
 export const visitSchema = z.object({
@@ -37,7 +37,7 @@ export type CreateVisitInput = z.infer<typeof createVisitSchema>;
 export const updateVisitSchema = z
   .object(visitWritableFields)
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateVisitInput = z.infer<typeof updateVisitSchema>;
 
 export const listVisitsQuerySchema = paginationQuerySchema.extend({

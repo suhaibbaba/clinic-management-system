@@ -1,4 +1,4 @@
-import type { AuthenticatedUserProfile, LoginInput, UserRole } from '@clinic/shared';
+import type { AuthenticatedUserProfile, LoginInput, UserRole } from "@clinic/shared";
 import {
   createContext,
   useCallback,
@@ -8,13 +8,13 @@ import {
   useState,
   type JSX,
   type ReactNode,
-} from 'react';
+} from "react";
 
-import { authApi } from '@web/features/auth/api';
-import { restoreSession } from '@web/lib/api-client';
-import { authTokens } from '@web/lib/auth-tokens';
+import { authApi } from "@web/features/auth/api";
+import { restoreSession } from "@web/lib/api-client";
+import { authTokens } from "@web/lib/auth-tokens";
 
-export type SessionStatus = 'loading' | 'authenticated' | 'unauthenticated';
+export type SessionStatus = "loading" | "authenticated" | "unauthenticated";
 
 /** Asks whether the clinic lets this reader do one thing. What the feature `permissions.ts` files
  *  are written against, so a screen never repeats a role list the admin can change. */
@@ -38,7 +38,7 @@ export function useSession(): SessionValue {
   const context = useContext(SessionContext);
 
   if (!context) {
-    throw new Error('useSession must be used inside <SessionProvider>');
+    throw new Error("useSession must be used inside <SessionProvider>");
   }
 
   return context;
@@ -47,7 +47,7 @@ export function useSession(): SessionValue {
 // No access token is persisted, so a cold load first tries a silent refresh against the httpOnly
 // cookie — which is what keeps a reload signed in.
 export function SessionProvider({ children }: { children: ReactNode }): JSX.Element {
-  const [status, setStatus] = useState<SessionStatus>('loading');
+  const [status, setStatus] = useState<SessionStatus>("loading");
   const [user, setUser] = useState<AuthenticatedUserProfile | null>(null);
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
 
       if (!restored) {
         if (!cancelled) {
-          setStatus('unauthenticated');
+          setStatus("unauthenticated");
         }
         return;
       }
@@ -67,11 +67,11 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
         const profile = await authApi.me();
         if (!cancelled) {
           setUser(profile);
-          setStatus('authenticated');
+          setStatus("authenticated");
         }
       } catch {
         if (!cancelled) {
-          setStatus('unauthenticated');
+          setStatus("unauthenticated");
         }
       }
     })();
@@ -86,7 +86,7 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
     () =>
       authTokens.onSessionEnded(() => {
         setUser(null);
-        setStatus('unauthenticated');
+        setStatus("unauthenticated");
       }),
     [],
   );
@@ -95,7 +95,7 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
     const response = await authApi.login(input);
     authTokens.set(response.accessToken);
     setUser(response.user);
-    setStatus('authenticated');
+    setStatus("authenticated");
   }, []);
 
   const refreshProfile = useCallback(async () => {
@@ -112,7 +112,7 @@ export function SessionProvider({ children }: { children: ReactNode }): JSX.Elem
     } finally {
       authTokens.clear();
       setUser(null);
-      setStatus('unauthenticated');
+      setStatus("unauthenticated");
     }
   }, []);
 

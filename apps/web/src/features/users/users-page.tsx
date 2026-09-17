@@ -1,6 +1,6 @@
-import { USER_ROLES, type User, type UserRole } from '@clinic/shared';
-import { useMemo, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { USER_ROLES, type User, type UserRole } from "@clinic/shared";
+import { useMemo, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Avatar,
@@ -23,20 +23,20 @@ import {
   usePersonName,
   useToast,
   type Column,
-} from '@clinic/ui';
-import { useSession } from '@web/features/auth/session';
+} from "@clinic/ui";
+import { useSession } from "@web/features/auth/session";
 import {
   useDeleteUser,
   useInviteUser,
   useSendPasswordReset,
   useUpdateUser,
   useUsers,
-} from '@web/features/users/queries';
-import { ResetPasswordModal } from '@web/features/users/reset-password-modal';
-import { UserFormModal } from '@web/features/users/user-form-modal';
-import { errorMessageKey } from '@web/lib/api-error';
-import { formatDate } from '@web/lib/format';
-import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
+} from "@web/features/users/queries";
+import { ResetPasswordModal } from "@web/features/users/reset-password-modal";
+import { UserFormModal } from "@web/features/users/user-form-modal";
+import { errorMessageKey } from "@web/lib/api-error";
+import { formatDate } from "@web/lib/format";
+import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 export function UsersPage(): JSX.Element {
   const { t } = useTranslation();
@@ -49,7 +49,7 @@ export function UsersPage(): JSX.Element {
 
   const send = async (
     run: Promise<unknown>,
-    successKey: 'users.inviteSent' | 'users.resetLinkSent',
+    successKey: "users.inviteSent" | "users.resetLinkSent",
   ): Promise<void> => {
     try {
       await run;
@@ -60,8 +60,8 @@ export function UsersPage(): JSX.Element {
   };
 
   const { page, perPage, setPage, setPerPage, resetPage } = usePageParams(10);
-  const [search, setSearch] = useState('');
-  const [role, setRole] = useState<UserRole | ''>('');
+  const [search, setSearch] = useState("");
+  const [role, setRole] = useState<UserRole | "">("");
   const [formUserId, setFormUserId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [resetUser, setResetUser] = useState<User | null>(null);
@@ -70,8 +70,8 @@ export function UsersPage(): JSX.Element {
   const query = useUsers({
     page,
     limit: perPage,
-    ...(search !== '' && { search }),
-    ...(role !== '' && { role }),
+    ...(search !== "" && { search }),
+    ...(role !== "" && { role }),
   });
   const updateUser = useUpdateUser();
 
@@ -89,7 +89,7 @@ export function UsersPage(): JSX.Element {
 
     try {
       await removeUser.mutateAsync(deleting.id);
-      toast.success('users.deleted');
+      toast.success("users.deleted");
       setDeleting(null);
     } catch (error) {
       toast.error(errorMessageKey(error));
@@ -99,7 +99,7 @@ export function UsersPage(): JSX.Element {
   const toggleActive = async (row: User): Promise<void> => {
     try {
       await updateUser.mutateAsync({ id: row.id, body: { isActive: !row.isActive } });
-      toast.success('users.updated');
+      toast.success("users.updated");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -108,8 +108,8 @@ export function UsersPage(): JSX.Element {
   const columns = useMemo<Column<User>[]>(
     () => [
       {
-        key: 'name',
-        header: 'users.name',
+        key: "name",
+        header: "users.name",
         primary: true,
         render: (row) => (
           <span className="flex items-center gap-3">
@@ -133,24 +133,24 @@ export function UsersPage(): JSX.Element {
         ),
       },
       {
-        key: 'phone',
-        header: 'users.phone',
+        key: "phone",
+        header: "users.phone",
         render: (row) => <PhoneLink value={row.phone} />,
       },
       {
-        key: 'email',
-        header: 'users.email',
+        key: "email",
+        header: "users.email",
         hideOnDesktop: true,
         render: (row) => <EmailLink value={row.email} />,
       },
       {
-        key: 'role',
-        header: 'users.role',
+        key: "role",
+        header: "users.role",
         render: (row) => <Badge tone="info">{t(`roles.${row.role}`)}</Badge>,
       },
       {
-        key: 'status',
-        header: 'users.status',
+        key: "status",
+        header: "users.status",
         render: (row) => (
           <div className="flex items-center gap-2">
             <Switch
@@ -158,34 +158,34 @@ export function UsersPage(): JSX.Element {
               // Deactivating yourself is refused by the API; do not offer it.
               disabled={row.id === currentUser?.id}
               onCheckedChange={() => void toggleActive(row)}
-              label={row.isActive ? t('users.deactivate') : t('users.activate')}
+              label={row.isActive ? t("users.deactivate") : t("users.activate")}
             />
             {/* Plain text, not a badge: a switch that is on beside a green pill
                 reading "Active" states the same fact twice, in the width of
                 two columns. */}
             <span className="text-label text-ink-muted">
-              {row.isActive ? t('users.active') : t('users.inactive')}
+              {row.isActive ? t("users.active") : t("users.inactive")}
             </span>
 
             {/* An account nobody has claimed yet: the switch says it is live, and it is — there is
                 simply no password on it until its owner sets one. */}
-            {!row.activated && <Badge tone="warning">{t('users.pending')}</Badge>}
+            {!row.activated && <Badge tone="warning">{t("users.pending")}</Badge>}
           </div>
         ),
       },
       {
-        key: 'createdAt',
-        header: 'audit.when',
+        key: "createdAt",
+        header: "audit.when",
         hideOnMobile: true,
         render: (row) => formatDate(row.createdAt),
       },
       {
-        key: 'actions',
-        header: 'common.actions',
+        key: "actions",
+        header: "common.actions",
         actions: true,
         render: (row) => (
-          <RowMenu label={t('users.rowMenu')}>
-            {can('users.update') && (
+          <RowMenu label={t("users.rowMenu")}>
+            {can("users.update") && (
               <MenuItem
                 icon="edit"
                 onSelect={() => {
@@ -193,44 +193,44 @@ export function UsersPage(): JSX.Element {
                   setFormOpen(true);
                 }}
               >
-                {t('common.edit')}
+                {t("common.edit")}
               </MenuItem>
             )}
 
             {/* Offered only where it can do anything: an account with no address has no link to
                 send, one already activated does not need this one, and a disabled account is
                 refused the letter. */}
-            {!row.activated && row.email && row.isActive && can('users.invite') && (
+            {!row.activated && row.email && row.isActive && can("users.invite") && (
               <MenuItem
                 icon="mail"
-                onSelect={() => void send(invite.mutateAsync(row.id), 'users.inviteSent')}
+                onSelect={() => void send(invite.mutateAsync(row.id), "users.inviteSent")}
               >
-                {t('users.resendInvite')}
+                {t("users.resendInvite")}
               </MenuItem>
             )}
 
             {/* Changing a password is for somebody who has one: an account still waiting to be
                 claimed gets the activation letter above instead. An address is needed to receive
                 either, and a disabled account has nothing to come back to. */}
-            {row.activated && row.email && row.isActive && can('users.sendPasswordReset') && (
+            {row.activated && row.email && row.isActive && can("users.sendPasswordReset") && (
               <MenuItem
                 icon="key"
-                onSelect={() => void send(sendReset.mutateAsync(row.id), 'users.resetLinkSent')}
+                onSelect={() => void send(sendReset.mutateAsync(row.id), "users.resetLinkSent")}
               >
-                {t('users.sendResetLink')}
+                {t("users.sendResetLink")}
               </MenuItem>
             )}
 
-            {!row.email && can('users.resetPassword') && (
+            {!row.email && can("users.resetPassword") && (
               <MenuItem icon="key" onSelect={() => setResetUser(row)}>
-                {t('users.resetPassword')}
+                {t("users.resetPassword")}
               </MenuItem>
             )}
 
             {/* Deleting your own account is refused by the API; do not offer it. */}
-            {row.id !== currentUser?.id && can('users.remove') && (
+            {row.id !== currentUser?.id && can("users.remove") && (
               <MenuItem icon="trash" tone="danger" onSelect={() => setDeleting(row)}>
-                {t('users.delete')}
+                {t("users.delete")}
               </MenuItem>
             )}
           </RowMenu>
@@ -248,7 +248,7 @@ export function UsersPage(): JSX.Element {
         title="users.title"
         subtitle="users.subtitle"
         {...(query.data !== undefined && {
-          count: t('pagination.total', { total: query.data.total }),
+          count: t("pagination.total", { total: query.data.total }),
         })}
         primaryAction={
           <Button
@@ -258,7 +258,7 @@ export function UsersPage(): JSX.Element {
               setFormOpen(true);
             }}
           >
-            {t('users.create')}
+            {t("users.create")}
           </Button>
         }
       />
@@ -268,29 +268,29 @@ export function UsersPage(): JSX.Element {
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <SearchField
           className="w-full min-w-0 sm:max-w-md sm:flex-1"
-          label={t('common.search')}
+          label={t("common.search")}
           shortcut="/"
-          placeholder={t('users.searchPlaceholder')}
+          placeholder={t("users.searchPlaceholder")}
           value={search}
           onChange={(event) => {
             setSearch(event.target.value);
             resetPage();
           }}
-          clearLabel={t('common.clear')}
+          clearLabel={t("common.clear")}
           onClear={() => {
-            setSearch('');
+            setSearch("");
             resetPage();
           }}
         />
 
         <Select
           className="w-full sm:ms-auto sm:w-48"
-          aria-label={t('users.filterRole')}
-          placeholder={t('common.all')}
+          aria-label={t("users.filterRole")}
+          placeholder={t("common.all")}
           options={USER_ROLES.map((value) => ({ value, label: t(`roles.${value}`) }))}
           value={role}
           onChange={(event) => {
-            setRole(event.target.value as UserRole | '');
+            setRole(event.target.value as UserRole | "");
             resetPage();
           }}
         />
@@ -314,7 +314,7 @@ export function UsersPage(): JSX.Element {
                   setFormOpen(true);
                 }}
               >
-                {t('users.create')}
+                {t("users.create")}
               </Button>
             }
           />
@@ -351,7 +351,7 @@ export function UsersPage(): JSX.Element {
         footer={
           <>
             <Button variant="secondary" onClick={() => setDeleting(null)}>
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button
               variant="danger"
@@ -359,13 +359,13 @@ export function UsersPage(): JSX.Element {
               isLoading={removeUser.isPending}
               onClick={() => void remove()}
             >
-              {t('users.delete')}
+              {t("users.delete")}
             </Button>
           </>
         }
       >
         <p className="text-value text-ink">
-          {t('users.deleteQuestion', { name: displayName(deleting?.name) })}
+          {t("users.deleteQuestion", { name: displayName(deleting?.name) })}
         </p>
       </Modal>
     </>

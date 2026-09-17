@@ -5,8 +5,8 @@ import {
   Inject,
   Injectable,
   type OnModuleInit,
-} from '@nestjs/common';
-import { and, count, desc, eq, ilike, isNull, or, type SQL } from 'drizzle-orm';
+} from "@nestjs/common";
+import { and, count, desc, eq, ilike, isNull, or, type SQL } from "drizzle-orm";
 import {
   DOCTOR_USER_REF_MESSAGE,
   USER_ROLE,
@@ -18,22 +18,22 @@ import {
   type UpdateDoctorInput,
   type UpdateDoctorScheduleInput,
   type WeeklySchedule,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { arabicNameSearch } from '@api/common/database/arabic-search';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database, type DatabaseExecutor } from '@api/database/database.module';
-import { StorageService } from '@api/storage/storage.service';
-import { TokenService } from '@api/auth/token.service';
-import { UsersService } from '@api/users/users.service';
-import { doctors, specialties, users } from '@api/database/schema';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { arabicNameSearch } from "@api/common/database/arabic-search";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
+import { StorageService } from "@api/storage/storage.service";
+import { TokenService } from "@api/auth/token.service";
+import { UsersService } from "@api/users/users.service";
+import { doctors, specialties, users } from "@api/database/schema";
 
 type DoctorRow = typeof doctors.$inferSelect;
 
-export const DOCTORS_ENTITY = 'doctors';
+export const DOCTORS_ENTITY = "doctors";
 
 const doctorColumns = {
   id: doctors.id,
@@ -159,7 +159,7 @@ export class DoctorsService implements OnModuleInit {
       .limit(1);
 
     if (!specialty) {
-      throw new BadRequestException('Specialty not found in this clinic');
+      throw new BadRequestException("Specialty not found in this clinic");
     }
 
     const created = await this.db.transaction(async (tx) => {
@@ -187,7 +187,7 @@ export class DoctorsService implements OnModuleInit {
         .returning({ id: doctors.id });
 
       if (!row) {
-        throw new Error('Failed to create doctor');
+        throw new Error("Failed to create doctor");
       }
 
       return row;
@@ -215,11 +215,11 @@ export class DoctorsService implements OnModuleInit {
       .limit(1);
 
     if (!user) {
-      throw new BadRequestException('User not found in this clinic');
+      throw new BadRequestException("User not found in this clinic");
     }
 
     if (user.id === actor.id && user.role !== USER_ROLE.DOCTOR) {
-      throw new BadRequestException('You cannot change your own role');
+      throw new BadRequestException("You cannot change your own role");
     }
 
     const [existing] = await executor
@@ -229,7 +229,7 @@ export class DoctorsService implements OnModuleInit {
       .limit(1);
 
     if (existing) {
-      throw new ConflictException('This user already has a doctor profile');
+      throw new ConflictException("This user already has a doctor profile");
     }
 
     if (user.role !== USER_ROLE.DOCTOR) {
@@ -253,7 +253,7 @@ export class DoctorsService implements OnModuleInit {
         .limit(1);
 
       if (!specialty) {
-        throw new BadRequestException('Specialty not found in this clinic');
+        throw new BadRequestException("Specialty not found in this clinic");
       }
     }
 
@@ -282,7 +282,7 @@ export class DoctorsService implements OnModuleInit {
     const doctor = await this.scope.findOneOrFail<DoctorRow>(doctors, actor.clinicId, id);
 
     if (actor.role !== USER_ROLE.ADMIN && doctor.userId !== actor.id) {
-      throw new ForbiddenException('You may only change your own schedule');
+      throw new ForbiddenException("You may only change your own schedule");
     }
 
     await this.db
@@ -343,7 +343,7 @@ export class DoctorsService implements OnModuleInit {
       // Same 404 as a non-existent id: another clinic's id must not be
       // distinguishable (ROLES.md global rule 1).
       await this.scope.findOneOrFail<DoctorRow>(doctors, clinicId, id);
-      throw new Error('Doctor row is missing its user or specialty');
+      throw new Error("Doctor row is missing its user or specialty");
     }
 
     return row;

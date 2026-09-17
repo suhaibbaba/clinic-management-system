@@ -1,12 +1,12 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { documentSettings, personName } from '@clinic/shared';
-import { eq } from 'drizzle-orm';
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { documentSettings, personName } from "@clinic/shared";
+import { eq } from "drizzle-orm";
 
-import type { DocumentLanguage } from '@api/billing/pdf/document-strings';
-import type { RtlPdf } from '@api/billing/pdf/pdf-builder';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { clinics } from '@api/database/schema';
-import { StorageService, type FetchedObject } from '@api/storage/storage.service';
+import type { DocumentLanguage } from "@api/billing/pdf/document-strings";
+import type { RtlPdf } from "@api/billing/pdf/pdf-builder";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { clinics } from "@api/database/schema";
+import { StorageService, type FetchedObject } from "@api/storage/storage.service";
 
 export interface Letterhead {
   readonly name: string;
@@ -42,14 +42,14 @@ export class LetterheadService {
       .limit(1);
 
     if (!row) {
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
 
     const language = documentSettings(row.settings).language;
 
     return {
       name: personName({ ar: row.nameAr, en: row.nameEn }, language),
-      contact: [row.phone, row.address].filter(Boolean).join(' — '),
+      contact: [row.phone, row.address].filter(Boolean).join(" — "),
       currency: row.currency,
       language,
       logo: row.logoKey ? await this.storage.getObject(row.logoKey) : null,
@@ -61,15 +61,15 @@ export class LetterheadService {
       await pdf.image(clinic.logo.bytes, clinic.logo.mime);
     }
 
-    pdf.text(clinic.name, { size: 18, weight: 'bold', align: 'centre', gap: 4 });
+    pdf.text(clinic.name, { size: 18, weight: "bold", align: "centre", gap: 4 });
 
     if (clinic.contact) {
       pdf.text(clinic.contact, {
         size: 9,
-        align: 'centre',
+        align: "centre",
         colour: [0.35, 0.35, 0.35],
         // A phone number keeps its leading `+` on the left, as it is dialled.
-        dir: 'ltr',
+        dir: "ltr",
       });
     }
 

@@ -1,6 +1,6 @@
-import { bothNames, personName, type PersonName as Name } from '@clinic/shared';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { bothNames, personName, type PersonName as Name } from "@clinic/shared";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 export interface PersonNameProps {
   /** A staff or clinic name. Patient names are a plain string — see below. */
@@ -16,7 +16,7 @@ export interface PersonNameProps {
 export function PersonName({
   name,
   className,
-  fallback = '—',
+  fallback = "—",
   showBoth = false,
 }: PersonNameProps): JSX.Element {
   const { i18n } = useTranslation();
@@ -26,9 +26,9 @@ export function PersonName({
     <span
       data-part="person-name"
       className={className}
-      {...(showBoth && name && resolved !== '' && { title: bothNames(name) })}
+      {...(showBoth && name && resolved !== "" && { title: bothNames(name) })}
     >
-      {resolved === '' ? fallback : resolved}
+      {resolved === "" ? fallback : resolved}
     </span>
   );
 }

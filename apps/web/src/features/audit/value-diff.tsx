@@ -1,5 +1,5 @@
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 export interface ValueDiffProps {
   oldValue: unknown;
@@ -9,7 +9,7 @@ export interface ValueDiffProps {
 type Row = { key: string; before: string | null; after: string | null };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
-  return value && typeof value === 'object' && !Array.isArray(value)
+  return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : null;
 }
@@ -19,14 +19,14 @@ function present(value: unknown): string | null {
     return null;
   }
 
-  return typeof value === 'object' ? JSON.stringify(value, null, 1) : String(value);
+  return typeof value === "object" ? JSON.stringify(value, null, 1) : String(value);
 }
 
 function Value({
   tone,
   children,
 }: {
-  tone: 'before' | 'after';
+  tone: "before" | "after";
   children: string | null;
 }): JSX.Element {
   if (children === null) {
@@ -37,12 +37,12 @@ function Value({
     <span
       dir="ltr"
       className={[
-        'inline-block max-w-[20rem] overflow-x-auto whitespace-pre-wrap break-all rounded',
+        "inline-block max-w-[20rem] overflow-x-auto whitespace-pre-wrap break-all rounded",
         // `text-start` inside the LTR box above is the same edge as
         // `text-left`, and keeps physical alignment out of the codebase.
-        'px-1.5 py-0.5 text-start font-mono text-label',
-        tone === 'before' ? 'bg-danger-50 text-danger-800' : 'bg-success-50 text-success-800',
-      ].join(' ')}
+        "px-1.5 py-0.5 text-start font-mono text-label",
+        tone === "before" ? "bg-danger-50 text-danger-800" : "bg-success-50 text-success-800",
+      ].join(" ")}
     >
       {children}
     </span>
@@ -61,7 +61,7 @@ export function ValueDiff({ oldValue, newValue }: ValueDiffProps): JSX.Element {
     .filter((row) => row.before !== row.after);
 
   if (rows.length === 0) {
-    return <p className="text-value text-ink-muted">{t('audit.noChanges')}</p>;
+    return <p className="text-value text-ink-muted">{t("audit.noChanges")}</p>;
   }
 
   return (
@@ -70,13 +70,13 @@ export function ValueDiff({ oldValue, newValue }: ValueDiffProps): JSX.Element {
         <thead>
           <tr className="bg-canvas">
             <th scope="col" className="px-3 py-2 text-start text-label font-medium text-ink-muted">
-              {t('audit.changes')}
+              {t("audit.changes")}
             </th>
             <th scope="col" className="px-3 py-2 text-start text-label font-medium text-ink-muted">
-              {t('audit.oldValue')}
+              {t("audit.oldValue")}
             </th>
             <th scope="col" className="px-3 py-2 text-start text-label font-medium text-ink-muted">
-              {t('audit.newValue')}
+              {t("audit.newValue")}
             </th>
           </tr>
         </thead>

@@ -1,8 +1,8 @@
-import { isFdiTooth } from '@clinic/shared';
-import { useState, type JSX, type KeyboardEvent } from 'react';
-import { useTranslation } from 'react-i18next';
+import { isFdiTooth } from "@clinic/shared";
+import { useState, type JSX, type KeyboardEvent } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Icon, Input } from '@clinic/ui';
+import { Icon, Input } from "@clinic/ui";
 
 // Chips rather than free text, so "1 4" and "١٤" are refused as they are typed instead of the API
 // rejecting the lot with one message. Numbers are an LTR island.
@@ -16,19 +16,19 @@ export function TeethField({
   readonly onChange: (teeth: number[]) => void;
 }): JSX.Element {
   const { t } = useTranslation();
-  const [draft, setDraft] = useState('');
+  const [draft, setDraft] = useState("");
   const [invalid, setInvalid] = useState(false);
 
   const add = (raw: string): void => {
     const parsed = Number(raw.trim());
 
     if (!Number.isInteger(parsed) || !isFdiTooth(parsed)) {
-      setInvalid(raw.trim() !== '');
+      setInvalid(raw.trim() !== "");
       return;
     }
 
     setInvalid(false);
-    setDraft('');
+    setDraft("");
 
     if (!value.includes(parsed)) {
       onChange([...value, parsed].sort((a, b) => a - b));
@@ -36,13 +36,13 @@ export function TeethField({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
-    if (event.key === 'Enter' || event.key === ',' || event.key === ' ') {
+    if (event.key === "Enter" || event.key === "," || event.key === " ") {
       event.preventDefault();
       add(draft);
       return;
     }
 
-    if (event.key === 'Backspace' && draft === '' && value.length > 0) {
+    if (event.key === "Backspace" && draft === "" && value.length > 0) {
       onChange(value.slice(0, -1));
     }
   };
@@ -60,7 +60,7 @@ export function TeethField({
                 {tooth}
                 <button
                   type="button"
-                  aria-label={t('labs.order.removeTooth', { tooth })}
+                  aria-label={t("labs.order.removeTooth", { tooth })}
                   onClick={() => onChange(value.filter((item) => item !== tooth))}
                   className="cursor-pointer rounded-pill p-0.5 text-ink-subtle transition-colors duration-150 hover:text-ink"
                 >
@@ -84,11 +84,11 @@ export function TeethField({
           setInvalid(false);
         }}
         onKeyDown={onKeyDown}
-        onBlur={() => draft !== '' && add(draft)}
+        onBlur={() => draft !== "" && add(draft)}
       />
 
-      <p className={invalid ? 'text-label text-danger-600' : 'text-label text-ink-muted'}>
-        {t(invalid ? 'labs.order.toothInvalid' : 'labs.order.toothHint')}
+      <p className={invalid ? "text-label text-danger-600" : "text-label text-ink-muted"}>
+        {t(invalid ? "labs.order.toothInvalid" : "labs.order.toothHint")}
       </p>
     </div>
   );

@@ -1,12 +1,12 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { settingsSchema, weeklyScheduleSchema, optionalPhoneSchema } from '@shared/schemas/common';
-import { personNameInputSchema, personNameSchema } from '@shared/schemas/person-name';
-import { DEFAULT_TIME_ZONE } from '@shared/time/zone';
+import { settingsSchema, weeklyScheduleSchema, optionalPhoneSchema } from "@shared/schemas/common";
+import { personNameInputSchema, personNameSchema } from "@shared/schemas/person-name";
+import { DEFAULT_TIME_ZONE } from "@shared/time/zone";
 
 // A closed list: a typo would quietly relabel every figure. Adding one needs its i18n label and its
 // `CURRENCY_SYMBOLS` symbol too.
-export const CURRENCIES = ['JOD', 'ILS', 'USD'] as const;
+export const CURRENCIES = ["JOD", "ILS", "USD"] as const;
 export type Currency = (typeof CURRENCIES)[number];
 
 export const clinicScheduleSettingsSchema = z.object({
@@ -23,26 +23,26 @@ export function clinicScheduleSettings(settings: unknown): ClinicScheduleSetting
 }
 
 export const documentSettingsSchema = z.object({
-  language: z.enum(['ar', 'en']).default('ar'),
+  language: z.enum(["ar", "en"]).default("ar"),
 });
 export type DocumentSettings = z.infer<typeof documentSettingsSchema>;
 
 export function documentSettings(settings: unknown): DocumentSettings {
   const raw =
-    typeof settings === 'object' && settings !== null
-      ? (settings as Record<string, unknown>)['documents']
+    typeof settings === "object" && settings !== null
+      ? (settings as Record<string, unknown>)["documents"]
       : undefined;
 
   const parsed = documentSettingsSchema.safeParse(raw ?? {});
 
-  return parsed.success ? parsed.data : { language: 'ar' };
+  return parsed.success ? parsed.data : { language: "ar" };
 }
 
 /** Small on purpose: fetched on every page load and drawn into every PDF the clinic prints. */
 export const MAX_CLINIC_LOGO_BYTES = 2 * 1024 * 1024;
 
 /** No SVG — it can carry script and is rendered inside the app's own origin. */
-export const ALLOWED_CLINIC_LOGO_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
+export const ALLOWED_CLINIC_LOGO_MIME_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
 
 export const clinicLogoMimeSchema = z.enum(ALLOWED_CLINIC_LOGO_MIME_TYPES);
 export type ClinicLogoMime = z.infer<typeof clinicLogoMimeSchema>;
@@ -52,12 +52,12 @@ export const CLINIC_FAVICON_SIZES = [16, 32, 48] as const;
 
 /** Square renderings of the icon source, stored beside it under `${source_key}/icons/`. */
 export const CLINIC_ICONS = [
-  { name: 'favicon.ico', mime: 'image/x-icon', size: 48, purpose: 'any' },
-  { name: 'apple-touch-icon.png', mime: 'image/png', size: 180, purpose: 'any' },
-  { name: 'icon-192.png', mime: 'image/png', size: 192, purpose: 'any' },
-  { name: 'icon-512.png', mime: 'image/png', size: 512, purpose: 'any' },
+  { name: "favicon.ico", mime: "image/x-icon", size: 48, purpose: "any" },
+  { name: "apple-touch-icon.png", mime: "image/png", size: 180, purpose: "any" },
+  { name: "icon-192.png", mime: "image/png", size: 192, purpose: "any" },
+  { name: "icon-512.png", mime: "image/png", size: 512, purpose: "any" },
   // Android crops to a circle or a squircle, so this one is padded into the central safe zone.
-  { name: 'icon-maskable-512.png', mime: 'image/png', size: 512, purpose: 'maskable' },
+  { name: "icon-maskable-512.png", mime: "image/png", size: 512, purpose: "maskable" },
 ] as const;
 
 export type ClinicIcon = (typeof CLINIC_ICONS)[number];
@@ -124,16 +124,16 @@ export const clinicManifestSchema = z.object({
   name: z.string(),
   short_name: z.string(),
   lang: z.string(),
-  dir: z.enum(['rtl', 'ltr']),
+  dir: z.enum(["rtl", "ltr"]),
   start_url: z.string(),
   scope: z.string(),
-  display: z.literal('standalone'),
+  display: z.literal("standalone"),
   icons: z.array(
     z.object({
       src: z.string(),
       sizes: z.string(),
       type: z.string(),
-      purpose: z.enum(['any', 'maskable']),
+      purpose: z.enum(["any", "maskable"]),
     }),
   ),
 });
@@ -159,7 +159,7 @@ export type ClinicBranding = z.infer<typeof clinicBrandingSchema>;
 const coordinateSchema = (limit: number) =>
   z
     .string()
-    .regex(/^-?\d{1,3}(\.\d{1,6})?$/, 'Expected a decimal coordinate')
+    .regex(/^-?\d{1,3}(\.\d{1,6})?$/, "Expected a decimal coordinate")
     .refine((value) => Math.abs(Number(value)) <= limit, `Expected between -${limit} and ${limit}`);
 
 export const latitudeSchema = coordinateSchema(90);
@@ -216,12 +216,12 @@ export const updateClinicSchema = z
     settings: settingsSchema,
   })
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided')
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided")
   .refine(
     (input) =>
       (input.latitude ?? null) === null
         ? (input.longitude ?? null) === null
         : input.longitude != null,
-    { message: 'Latitude and longitude must be given together', path: ['longitude'] },
+    { message: "Latitude and longitude must be given together", path: ["longitude"] },
   );
 export type UpdateClinicInput = z.infer<typeof updateClinicSchema>;

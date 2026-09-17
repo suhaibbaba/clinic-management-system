@@ -1,10 +1,10 @@
-import type { AuditLogEntry, ListAuditLogQuery, Paginated } from '@clinic/shared';
+import type { AuditLogEntry, ListAuditLogQuery, Paginated } from "@clinic/shared";
 
-import { apiRequest } from '@web/lib/api-client';
+import { apiRequest } from "@web/lib/api-client";
 
 export const auditApi = {
   list: (query: Partial<ListAuditLogQuery>): Promise<Paginated<AuditLogEntry>> =>
-    apiRequest('/audit-log', {
+    apiRequest("/audit-log", {
       query: {
         page: query.page,
         limit: query.limit,

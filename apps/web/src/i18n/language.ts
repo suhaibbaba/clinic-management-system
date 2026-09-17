@@ -1,9 +1,9 @@
-import i18n, { DEFAULT_LANGUAGE, isRtl } from '@web/i18n';
+import i18n, { DEFAULT_LANGUAGE, isRtl } from "@web/i18n";
 
-export const LANGUAGES = ['ar', 'en'] as const;
+export const LANGUAGES = ["ar", "en"] as const;
 export type Language = (typeof LANGUAGES)[number];
 
-const STORAGE_KEY = 'clinic.language';
+const STORAGE_KEY = "clinic.language";
 
 const isLanguage = (value: string | null): value is Language =>
   value !== null && (LANGUAGES as readonly string[]).includes(value);
@@ -25,7 +25,7 @@ export function applyLanguageToDocument(language: string): void {
   const root = document.documentElement;
 
   root.lang = language;
-  root.dir = isRtl(language) ? 'rtl' : 'ltr';
+  root.dir = isRtl(language) ? "rtl" : "ltr";
 }
 
 // The document is updated first: the language change is what re-renders, and direction-relative

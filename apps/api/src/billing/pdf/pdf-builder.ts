@@ -1,16 +1,16 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
-import fontkit from '@pdf-lib/fontkit';
-import { PDFDocument, rgb, type PDFFont, type PDFImage, type PDFPage } from 'pdf-lib';
+import fontkit from "@pdf-lib/fontkit";
+import { PDFDocument, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
 
-import { visualRuns, type TextDirection } from '@api/billing/pdf/arabic-text';
+import { visualRuns, type TextDirection } from "@api/billing/pdf/arabic-text";
 
-const FONT_DIR = join(__dirname, 'fonts');
+const FONT_DIR = join(__dirname, "fonts");
 
 const FONTS = {
-  regular: join(FONT_DIR, 'Amiri-Regular.ttf'),
-  bold: join(FONT_DIR, 'Amiri-Bold.ttf'),
+  regular: join(FONT_DIR, "Amiri-Regular.ttf"),
+  bold: join(FONT_DIR, "Amiri-Bold.ttf"),
 } as const;
 
 // `subset: false` — pdf-lib's subsetter drops presentation-form glyphs. `locl: false` — Amiri's
@@ -24,7 +24,7 @@ export interface Column {
   readonly width: number;
   readonly header: string;
   /** Numbers read better left-aligned even on an RTL sheet. */
-  readonly align?: 'start' | 'end';
+  readonly align?: "start" | "end";
 }
 
 export class RtlPdf {
@@ -50,16 +50,16 @@ export class RtlPdf {
     const bold = await doc.embedFont(readFileSync(FONTS.bold), EMBED_OPTIONS);
     const page = doc.addPage([size.width, size.height]);
 
-    return new RtlPdf(doc, regular, bold, page, size.height - MARGIN, options.direction ?? 'rtl');
+    return new RtlPdf(doc, regular, bold, page, size.height - MARGIN, options.direction ?? "rtl");
   }
 
   /** The edge a line begins at: the right on an Arabic sheet, the left on an English one. */
   private get startEdge(): number {
-    return this.pageDir === 'rtl' ? this.right : this.left;
+    return this.pageDir === "rtl" ? this.right : this.left;
   }
 
   private get flow(): 1 | -1 {
-    return this.pageDir === 'rtl' ? -1 : 1;
+    return this.pageDir === "rtl" ? -1 : 1;
   }
 
   get direction(): TextDirection {
@@ -78,15 +78,15 @@ export class RtlPdf {
     return MARGIN;
   }
 
-  font(weight: 'regular' | 'bold' = 'regular'): PDFFont {
-    return weight === 'bold' ? this.bold : this.regular;
+  font(weight: "regular" | "bold" = "regular"): PDFFont {
+    return weight === "bold" ? this.bold : this.regular;
   }
 
   widthOf(
     text: string,
     size: number,
-    weight: 'regular' | 'bold' = 'regular',
-    dir: TextDirection = 'rtl',
+    weight: "regular" | "bold" = "regular",
+    dir: TextDirection = "rtl",
   ): number {
     const font = this.font(weight);
 
@@ -102,18 +102,18 @@ export class RtlPdf {
       x: number;
       y: number;
       size: number;
-      weight?: 'regular' | 'bold';
+      weight?: "regular" | "bold";
       colour?: [number, number, number];
       // The PDF's equivalent of the web app's `dir="ltr"` island: without it bidi floats a leading
       // `+` to the far side and swaps the ends of a range.
       dir?: TextDirection;
     },
   ): number {
-    const font = this.font(options.weight ?? 'regular');
+    const font = this.font(options.weight ?? "regular");
     const [r, g, b] = options.colour ?? [0, 0, 0];
     let x = options.x;
 
-    for (const run of visualRuns(text, options.dir ?? 'rtl')) {
+    for (const run of visualRuns(text, options.dir ?? "rtl")) {
       this.page.drawText(run.text, {
         x,
         y: options.y,
@@ -131,10 +131,10 @@ export class RtlPdf {
     value: string,
     options: {
       size?: number;
-      weight?: 'regular' | 'bold';
+      weight?: "regular" | "bold";
       colour?: [number, number, number];
       gap?: number;
-      align?: 'start' | 'end' | 'centre';
+      align?: "start" | "end" | "centre";
       dir?: TextDirection;
     } = {},
   ): void {
@@ -142,9 +142,9 @@ export class RtlPdf {
     const width = this.widthOf(value, size, options.weight, options.dir);
 
     const x =
-      options.align === 'centre'
+      options.align === "centre"
         ? (this.page.getWidth() - width) / 2
-        : (options.align === 'end') === (this.pageDir === 'rtl')
+        : (options.align === "end") === (this.pageDir === "rtl")
           ? this.left
           : this.right - width;
 
@@ -189,10 +189,10 @@ export class RtlPdf {
 
   private async embed(bytes: Buffer, mime: string): Promise<PDFImage | undefined> {
     try {
-      if (mime === 'image/png') {
+      if (mime === "image/png") {
         return await this.doc.embedPng(bytes);
       }
-      if (mime === 'image/jpeg') {
+      if (mime === "image/jpeg") {
         return await this.doc.embedJpg(bytes);
       }
     } catch {
@@ -217,14 +217,14 @@ export class RtlPdf {
     const size = options.size ?? 11;
     const dir = options.dir ?? this.pageDir;
     const labelText = `${label}: `;
-    const labelWidth = this.widthOf(labelText, size, 'bold');
-    const valueWidth = this.widthOf(value, size, 'regular', dir);
+    const labelWidth = this.widthOf(labelText, size, "bold");
+    const valueWidth = this.widthOf(value, size, "regular", dir);
 
-    const labelX = this.pageDir === 'rtl' ? this.right - labelWidth : this.left;
+    const labelX = this.pageDir === "rtl" ? this.right - labelWidth : this.left;
     const valueX =
-      this.pageDir === 'rtl' ? this.right - labelWidth - valueWidth : this.left + labelWidth;
+      this.pageDir === "rtl" ? this.right - labelWidth - valueWidth : this.left + labelWidth;
 
-    this.drawLine(labelText, { x: labelX, y: this.cursor, size, weight: 'bold' });
+    this.drawLine(labelText, { x: labelX, y: this.cursor, size, weight: "bold" });
     this.drawLine(value, { x: valueX, y: this.cursor, size, dir });
 
     this.cursor -= size + 5;
@@ -235,20 +235,20 @@ export class RtlPdf {
     const total = columns.reduce((sum, column) => sum + column.width, 0);
     const widths = columns.map((column) => (column.width / total) * usable);
 
-    const drawRow = (cells: readonly string[], weight: 'regular' | 'bold'): void => {
+    const drawRow = (cells: readonly string[], weight: "regular" | "bold"): void => {
       let x = this.startEdge;
 
       cells.forEach((cell, index) => {
         const columnWidth = widths[index] ?? 0;
-        const align = columns[index]?.align ?? 'start';
+        const align = columns[index]?.align ?? "start";
         const cellWidth = this.widthOf(cell, size, weight);
 
         const cellX =
-          this.pageDir === 'rtl'
-            ? align === 'end'
+          this.pageDir === "rtl"
+            ? align === "end"
               ? x - columnWidth + 4
               : x - cellWidth - 4
-            : align === 'end'
+            : align === "end"
               ? x + columnWidth - cellWidth - 4
               : x + 4;
 
@@ -261,7 +261,7 @@ export class RtlPdf {
 
     drawRow(
       columns.map((column) => column.header),
-      'bold',
+      "bold",
     );
     this.rule([0.4, 0.4, 0.4]);
 
@@ -271,12 +271,12 @@ export class RtlPdf {
         this.cursor = this.page.getHeight() - MARGIN;
         drawRow(
           columns.map((column) => column.header),
-          'bold',
+          "bold",
         );
         this.rule([0.4, 0.4, 0.4]);
       }
 
-      drawRow(row, 'regular');
+      drawRow(row, "regular");
     }
   }
 

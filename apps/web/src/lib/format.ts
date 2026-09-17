@@ -1,24 +1,24 @@
-import i18n from '@web/i18n';
+import i18n from "@web/i18n";
 
-import { clinicTimeZone } from '@web/lib/clinic-zone';
+import { clinicTimeZone } from "@web/lib/clinic-zone";
 
 // Two things are pinned in both languages: the Gregorian calendar, since `ar` selects the Islamic
 // one in some runtimes, and Latin digits.
 const dateLocale = (): string =>
-  i18n.language.startsWith('en') ? 'en-GB-u-ca-gregory-nu-latn' : 'ar-SY-u-ca-gregory-nu-latn';
+  i18n.language.startsWith("en") ? "en-GB-u-ca-gregory-nu-latn" : "ar-SY-u-ca-gregory-nu-latn";
 
 // The Arabic locale interleaves RTL marks between the parts of a date; they survive into the DOM
 // and render `08/05/2026` as `082026/05/`.
-const stripBidiMarks = (value: string): string => value.replace(/[\u200e\u200f]/g, '');
+const stripBidiMarks = (value: string): string => value.replace(/[\u200e\u200f]/g, "");
 
 export function formatDateTime(iso: string): string {
   return stripBidiMarks(
     new Date(iso).toLocaleString(dateLocale(), {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
     }),
   );
 }
@@ -26,9 +26,9 @@ export function formatDateTime(iso: string): string {
 export function formatDate(iso: string): string {
   return stripBidiMarks(
     new Date(iso).toLocaleDateString(dateLocale(), {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
     }),
   );
 }
@@ -37,34 +37,34 @@ export function dayAndDate(iso: string): { readonly weekday: string; readonly da
   const at = new Date(iso);
 
   return {
-    weekday: stripBidiMarks(at.toLocaleDateString(dateLocale(), { weekday: 'long' })),
+    weekday: stripBidiMarks(at.toLocaleDateString(dateLocale(), { weekday: "long" })),
     date: stripBidiMarks(
-      at.toLocaleDateString(dateLocale(), { year: '2-digit', month: '2-digit', day: '2-digit' }),
+      at.toLocaleDateString(dateLocale(), { year: "2-digit", month: "2-digit", day: "2-digit" }),
     ),
   };
 }
 
 export function formatClinicTime(iso: string): string {
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat("en-GB", {
     timeZone: clinicTimeZone(),
-    hour: '2-digit',
-    minute: '2-digit',
+    hour: "2-digit",
+    minute: "2-digit",
     hour12: false,
   }).format(new Date(iso));
 }
 
 export function formatClinicDate(iso: string): string {
-  const parts = new Intl.DateTimeFormat('en-GB', {
+  const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: clinicTimeZone(),
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
   }).formatToParts(new Date(iso));
 
   const read = (type: Intl.DateTimeFormatPartTypes): string =>
-    parts.find((part) => part.type === type)?.value ?? '';
+    parts.find((part) => part.type === type)?.value ?? "";
 
-  return `${read('day')}/${read('month')}/${read('year')}`;
+  return `${read("day")}/${read("month")}/${read("year")}`;
 }
 
 export function formatClinicPeriod(startsAt: string, endsAt: string): string {
@@ -96,5 +96,5 @@ export function endOfNextDayIso(value: string): string | undefined {
 // The separator is punctuation, and Arabic's is not the Latin comma — `join(', ')` in an Arabic
 // sentence is the same mistake as the wrong script, only quieter.
 export function formatList(items: readonly string[]): string {
-  return items.join(i18n.language.startsWith('en') ? ', ' : '، ');
+  return items.join(i18n.language.startsWith("en") ? ", " : "، ");
 }

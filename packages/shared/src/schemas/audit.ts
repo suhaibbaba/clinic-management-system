@@ -1,7 +1,7 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { AUDIT_ACTIONS } from '@shared/enums';
-import { paginationQuerySchema } from '@shared/schemas/common';
+import { AUDIT_ACTIONS } from "@shared/enums";
+import { paginationQuerySchema } from "@shared/schemas/common";
 
 /** Immutable: there is no update or delete endpoint for this resource anywhere in the API. */
 export const auditLogEntrySchema = z.object({

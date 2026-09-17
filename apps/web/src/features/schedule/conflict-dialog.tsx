@@ -1,9 +1,9 @@
-import type { ConflictingAppointment } from '@clinic/shared';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { ConflictingAppointment } from "@clinic/shared";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Button, Icon, Ltr, Modal } from '@clinic/ui';
-import { formatClinicDate, formatClinicTime } from '@web/lib/format';
+import { Button, Icon, Ltr, Modal } from "@clinic/ui";
+import { formatClinicDate, formatClinicTime } from "@web/lib/format";
 
 export interface ConflictDialogProps {
   readonly open: boolean;
@@ -38,7 +38,7 @@ export function ConflictDialog({
       footer={
         <>
           <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="trash" />}
@@ -46,10 +46,10 @@ export function ConflictDialog({
             isLoading={isSaving}
             onClick={onCancelThem}
           >
-            {t('schedule.conflicts.cancelThem')}
+            {t("schedule.conflicts.cancelThem")}
           </Button>
           <Button icon={<Icon name="check" />} isLoading={isSaving} onClick={onKeepThem}>
-            {t('schedule.conflicts.keepThem')}
+            {t("schedule.conflicts.keepThem")}
           </Button>
         </>
       }
@@ -74,7 +74,7 @@ export function ConflictDialog({
         ))}
       </ul>
 
-      <p className="mt-4 text-label text-ink-subtle">{t('schedule.conflicts.notifyNote')}</p>
+      <p className="mt-4 text-label text-ink-subtle">{t("schedule.conflicts.notifyNote")}</p>
     </Modal>
   );
 }

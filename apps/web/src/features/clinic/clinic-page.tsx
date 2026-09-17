@@ -5,9 +5,9 @@ import {
   USER_ROLE,
   type Currency,
   type WeeklySchedule,
-} from '@clinic/shared';
-import { useEffect, useRef, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useEffect, useRef, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Button,
@@ -20,14 +20,14 @@ import {
   PhoneInput,
   Select,
   useToast,
-} from '@clinic/ui';
-import { WorkingHours } from '@web/components/schedule/working-hours';
-import { isShortMapLink, mapsUrl, parseCoordinates } from '@clinic/shared';
-import { SkeletonForm } from '@clinic/ui/components/skeleton';
-import { InstallCard } from '@web/components/pwa/install-card';
-import { ClosuresPanel } from '@web/features/schedule/closures-panel';
-import { useSession } from '@web/features/auth/session';
-import { useApiVersion, WEB_VERSION } from '@web/features/clinic/api-version';
+} from "@clinic/ui";
+import { WorkingHours } from "@web/components/schedule/working-hours";
+import { isShortMapLink, mapsUrl, parseCoordinates } from "@clinic/shared";
+import { SkeletonForm } from "@clinic/ui/components/skeleton";
+import { InstallCard } from "@web/components/pwa/install-card";
+import { ClosuresPanel } from "@web/features/schedule/closures-panel";
+import { useSession } from "@web/features/auth/session";
+import { useApiVersion, WEB_VERSION } from "@web/features/clinic/api-version";
 import {
   useClinic,
   useRemoveAppIcon,
@@ -36,10 +36,10 @@ import {
   useUpdateClinic,
   useUploadAppIcon,
   useUploadClinicLogo,
-} from '@web/features/clinic/queries';
-import { errorMessageKey } from '@web/lib/api-error';
-import { setClinicTimeZone } from '@web/lib/clinic-zone';
-import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
+} from "@web/features/clinic/queries";
+import { errorMessageKey } from "@web/lib/api-error";
+import { setClinicTimeZone } from "@web/lib/clinic-zone";
+import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 const isCurrency = (value: string): value is Currency =>
   (CURRENCIES as readonly string[]).includes(value);
@@ -56,12 +56,12 @@ export function ClinicPage(): JSX.Element {
   const updateClinic = useUpdateClinic();
   const resolveLocation = useResolveLocation();
 
-  const [nameAr, setNameAr] = useState('');
-  const [nameEn, setNameEn] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [address, setAddress] = useState('');
-  const [location, setLocation] = useState('');
+  const [nameAr, setNameAr] = useState("");
+  const [nameEn, setNameEn] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [location, setLocation] = useState("");
   const [currency, setCurrency] = useState<Currency>(CURRENCIES[0]);
   const [workingHours, setWorkingHours] = useState<WeeklySchedule>([]);
 
@@ -74,9 +74,9 @@ export function ClinicPage(): JSX.Element {
 
     setNameAr(data.name.ar);
     setNameEn(data.name.en);
-    setPhone(data.phone ?? '');
-    setEmail(data.email ?? '');
-    setAddress(data.address ?? '');
+    setPhone(data.phone ?? "");
+    setEmail(data.email ?? "");
+    setAddress(data.address ?? "");
     // Through the parser on the way in too: `numeric(9,6)` reads back as `32.221000`, and a box
     // full of trailing zeros looks like something the screen did rather than something you typed.
     const stored =
@@ -84,7 +84,7 @@ export function ClinicPage(): JSX.Element {
         ? parseCoordinates(`${data.latitude}, ${data.longitude}`)
         : null;
 
-    setLocation(stored ? `${stored.latitude}, ${stored.longitude}` : '');
+    setLocation(stored ? `${stored.latitude}, ${stored.longitude}` : "");
     setCurrency(isCurrency(data.currency) ? data.currency : CURRENCIES[0]);
     setWorkingHours(data.workingHours);
     setClinicTimeZone(data);
@@ -92,7 +92,7 @@ export function ClinicPage(): JSX.Element {
 
   const pin = parseCoordinates(location);
   const shortLink = pin === null && isShortMapLink(location);
-  const unreadable = location.trim() !== '' && pin === null && !shortLink;
+  const unreadable = location.trim() !== "" && pin === null && !shortLink;
 
   useEffect(() => {
     if (!shortLink) {
@@ -119,15 +119,15 @@ export function ClinicPage(): JSX.Element {
     try {
       await updateClinic.mutateAsync({
         name: { ar: nameAr, en: nameEn },
-        phone: phone === '' ? null : phone,
-        email: email === '' ? null : email,
-        address: address === '' ? null : address,
+        phone: phone === "" ? null : phone,
+        email: email === "" ? null : email,
+        address: address === "" ? null : address,
         latitude: pin?.latitude ?? null,
         longitude: pin?.longitude ?? null,
         currency,
         workingHours,
       });
-      toast.success('clinic.updated');
+      toast.success("clinic.updated");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -141,7 +141,7 @@ export function ClinicPage(): JSX.Element {
     <>
       <PageHeader
         title="clinic.title"
-        subtitle={canEdit ? 'clinic.subtitle' : 'clinic.readOnly'}
+        subtitle={canEdit ? "clinic.subtitle" : "clinic.readOnly"}
         actions={
           canEdit ? (
             <Button
@@ -149,7 +149,7 @@ export function ClinicPage(): JSX.Element {
               isLoading={updateClinic.isPending}
               onClick={() => void save()}
             >
-              {t('common.save')}
+              {t("common.save")}
             </Button>
           ) : undefined
         }
@@ -161,7 +161,7 @@ export function ClinicPage(): JSX.Element {
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField label="clinic.nameAr" htmlFor="clinic-name-ar">
                 <Input
-                  placeholder={t('common.placeholders.fullNameAr')}
+                  placeholder={t("common.placeholders.fullNameAr")}
                   id="clinic-name-ar"
                   value={nameAr}
                   disabled={!canEdit}
@@ -171,7 +171,7 @@ export function ClinicPage(): JSX.Element {
 
               <FormField label="clinic.nameEn" htmlFor="clinic-name-en">
                 <Input
-                  placeholder={t('common.placeholders.fullNameEn')}
+                  placeholder={t("common.placeholders.fullNameEn")}
                   id="clinic-name-en"
                   dir="ltr"
                   value={nameEn}
@@ -183,7 +183,7 @@ export function ClinicPage(): JSX.Element {
 
             <FormField label="clinic.phone" htmlFor="clinic-phone" optional>
               <PhoneInput
-                placeholder={t('common.placeholders.phone')}
+                placeholder={t("common.placeholders.phone")}
                 adornment="phone"
                 id="clinic-phone"
                 value={phone}
@@ -194,7 +194,7 @@ export function ClinicPage(): JSX.Element {
 
             <FormField label="clinic.email" htmlFor="clinic-email" optional>
               <Input
-                placeholder={t('common.placeholders.email')}
+                placeholder={t("common.placeholders.email")}
                 adornment="mail"
                 id="clinic-email"
                 type="email"
@@ -206,7 +206,7 @@ export function ClinicPage(): JSX.Element {
 
             <FormField label="clinic.address" htmlFor="clinic-address" optional>
               <Input
-                placeholder={t('common.placeholders.address')}
+                placeholder={t("common.placeholders.address")}
                 id="clinic-address"
                 value={address}
                 disabled={!canEdit}
@@ -221,21 +221,21 @@ export function ClinicPage(): JSX.Element {
                 unreadable
                   ? undefined
                   : shortLink
-                    ? 'clinic.locationResolving'
-                    : 'clinic.locationHint'
+                    ? "clinic.locationResolving"
+                    : "clinic.locationHint"
               }
               errorKey={
                 unreadable
                   ? resolveLocation.isError
-                    ? 'clinic.locationShortLinkFailed'
-                    : 'clinic.locationUnreadable'
+                    ? "clinic.locationShortLinkFailed"
+                    : "clinic.locationUnreadable"
                   : undefined
               }
-              error={unreadable ? { type: 'custom' } : undefined}
+              error={unreadable ? { type: "custom" } : undefined}
               optional
             >
               <Input
-                placeholder={t('common.placeholders.location')}
+                placeholder={t("common.placeholders.location")}
                 adornment="map-pin"
                 id="clinic-location"
                 dir="ltr"
@@ -257,7 +257,7 @@ export function ClinicPage(): JSX.Element {
                   rel="noreferrer noopener"
                   className="text-primary-600 underline underline-offset-2 hover:text-primary-700"
                 >
-                  {t('clinic.locationVerify')}
+                  {t("clinic.locationVerify")}
                 </a>
               </p>
             )}
@@ -278,18 +278,18 @@ export function ClinicPage(): JSX.Element {
           </div>
 
           <div className="mt-6 border-t border-line pt-4">
-            <p className="text-value font-medium text-ink">{t('clinic.logo')}</p>
+            <p className="text-value font-medium text-ink">{t("clinic.logo")}</p>
             <LogoField src={clinic.data?.logoUrl ?? null} canEdit={canEdit} />
           </div>
 
           <div className="mt-6 border-t border-line pt-4">
-            <p className="text-value font-medium text-ink">{t('clinic.appIcon')}</p>
+            <p className="text-value font-medium text-ink">{t("clinic.appIcon")}</p>
             <AppIconField src={clinic.data?.appIconUrl ?? null} canEdit={canEdit} />
           </div>
         </section>
 
         <section className="border border-line rounded-card bg-surface shadow-card p-4">
-          <p className="mb-3 text-value font-medium text-ink">{t('clinic.workingHours')}</p>
+          <p className="mb-3 text-value font-medium text-ink">{t("clinic.workingHours")}</p>
           <WorkingHours
             value={workingHours}
             onChange={setWorkingHours}
@@ -341,12 +341,12 @@ function BrandingImageField({
     }
 
     if (!ALLOWED_CLINIC_LOGO_MIME_TYPES.some((allowed) => allowed === file.type)) {
-      toast.error('clinic.logoUnsupported');
+      toast.error("clinic.logoUnsupported");
       return;
     }
 
     if (file.size > MAX_CLINIC_LOGO_BYTES) {
-      toast.error('clinic.logoTooLarge');
+      toast.error("clinic.logoTooLarge");
       return;
     }
 
@@ -398,10 +398,10 @@ function BrandingImageField({
               ref={inputRef}
               type="file"
               className="hidden"
-              accept={ALLOWED_CLINIC_LOGO_MIME_TYPES.join(',')}
+              accept={ALLOWED_CLINIC_LOGO_MIME_TYPES.join(",")}
               onChange={(event) => {
                 void pick(event.target.files?.[0]);
-                event.target.value = '';
+                event.target.value = "";
               }}
             />
 
@@ -423,7 +423,7 @@ function BrandingImageField({
                 isLoading={remove.isPending}
                 onClick={() => void clear()}
               >
-                {t('common.delete')}
+                {t("common.delete")}
               </Button>
             )}
           </span>
@@ -434,23 +434,23 @@ function BrandingImageField({
 }
 
 const LOGO_LABELS = {
-  alt: 'clinic.logo',
-  placeholder: 'clinic.logoPlaceholder',
-  hint: 'clinic.logoHint',
-  upload: 'clinic.uploadLogo',
-  replace: 'clinic.replaceLogo',
-  uploaded: 'clinic.logoUpdated',
-  removed: 'clinic.logoRemoved',
+  alt: "clinic.logo",
+  placeholder: "clinic.logoPlaceholder",
+  hint: "clinic.logoHint",
+  upload: "clinic.uploadLogo",
+  replace: "clinic.replaceLogo",
+  uploaded: "clinic.logoUpdated",
+  removed: "clinic.logoRemoved",
 } as const;
 
 const APP_ICON_LABELS = {
-  alt: 'clinic.appIcon',
-  placeholder: 'clinic.appIconPlaceholder',
-  hint: 'clinic.appIconHint',
-  upload: 'clinic.uploadAppIcon',
-  replace: 'clinic.replaceAppIcon',
-  uploaded: 'clinic.appIconUpdated',
-  removed: 'clinic.appIconRemoved',
+  alt: "clinic.appIcon",
+  placeholder: "clinic.appIconPlaceholder",
+  hint: "clinic.appIconHint",
+  upload: "clinic.uploadAppIcon",
+  replace: "clinic.replaceAppIcon",
+  uploaded: "clinic.appIconUpdated",
+  removed: "clinic.appIconRemoved",
 } as const;
 
 function LogoField({
@@ -506,11 +506,11 @@ function AboutSection(): JSX.Element {
 
   return (
     <section className="border border-line rounded-card bg-surface shadow-card p-4">
-      <p className="mb-3 text-value font-medium text-ink">{t('clinic.about')}</p>
+      <p className="mb-3 text-value font-medium text-ink">{t("clinic.about")}</p>
 
       <dl className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-4">
-          <dt className="text-label text-ink-muted">{t('clinic.version')}</dt>
+          <dt className="text-label text-ink-muted">{t("clinic.version")}</dt>
           <Ltr as="dd" className="font-mono text-value text-ink">
             v{WEB_VERSION}
           </Ltr>
@@ -518,7 +518,7 @@ function AboutSection(): JSX.Element {
 
         {mismatched && (
           <div className="flex items-baseline justify-between gap-4">
-            <dt className="text-label text-ink-muted">{t('clinic.apiVersion')}</dt>
+            <dt className="text-label text-ink-muted">{t("clinic.apiVersion")}</dt>
             <Ltr as="dd" className="font-mono text-value text-warning-700">
               v{apiVersion}
             </Ltr>
@@ -527,7 +527,7 @@ function AboutSection(): JSX.Element {
       </dl>
 
       {mismatched && (
-        <p className="mt-2 text-label text-ink-subtle">{t('clinic.versionMismatch')}</p>
+        <p className="mt-2 text-label text-ink-subtle">{t("clinic.versionMismatch")}</p>
       )}
 
       <InstallCard />

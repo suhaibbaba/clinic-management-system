@@ -4,9 +4,9 @@ import {
   WAITING_LIST_SOURCE,
   type CalendarAppointment,
   type WaitingListEntry,
-} from '@clinic/shared';
-import { useEffect, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useEffect, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Button,
@@ -18,15 +18,15 @@ import {
   Textarea,
   usePersonName,
   useToast,
-} from '@clinic/ui';
-import { useDoctors } from '@web/features/doctors/queries';
-import { useLookupOptions } from '@web/features/lookups/queries';
+} from "@clinic/ui";
+import { useDoctors } from "@web/features/doctors/queries";
+import { useLookupOptions } from "@web/features/lookups/queries";
 import {
   useAvailability,
   useCreateAppointment,
   usePromoteWaitingEntry,
   useUpdateAppointment,
-} from '@web/features/appointments/queries';
+} from "@web/features/appointments/queries";
 import {
   isDraftComplete,
   PatientPicker,
@@ -34,10 +34,10 @@ import {
   toPatientRef,
   type PatientChoice,
   type PickedPatient,
-} from '@web/features/appointments/patient-picker';
-import { SlotPicker } from '@web/features/appointments/slot-picker';
-import { toIsoDate, todayIso } from '@web/features/appointments/calendar-time';
-import { errorMessageKey } from '@web/lib/api-error';
+} from "@web/features/appointments/patient-picker";
+import { SlotPicker } from "@web/features/appointments/slot-picker";
+import { toIsoDate, todayIso } from "@web/features/appointments/calendar-time";
+import { errorMessageKey } from "@web/lib/api-error";
 
 export interface AppointmentFormModalProps {
   readonly open: boolean;
@@ -76,13 +76,13 @@ export function AppointmentFormModal({
 
   const [patient, setPatient] = useState<PatientChoice | null>(null);
   const [clash, setClash] = useState<PickedPatient | null>(null);
-  const [doctorId, setDoctorId] = useState('');
+  const [doctorId, setDoctorId] = useState("");
   const [date, setDate] = useState(todayIso());
   const [startsAt, setStartsAt] = useState<string | null>(null);
-  const [durationMinutes, setDurationMinutes] = useState('30');
+  const [durationMinutes, setDurationMinutes] = useState("30");
   const [type, setType] = useState<string>(APPOINTMENT_TYPE.CHECKUP);
-  const [reason, setReason] = useState('');
-  const [notes, setNotes] = useState('');
+  const [reason, setReason] = useState("");
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     if (!open) {
@@ -93,7 +93,7 @@ export function AppointmentFormModal({
 
     if (appointment) {
       setPatient({
-        kind: 'existing',
+        kind: "existing",
         patient: {
           id: appointment.patientId,
           fullName: appointment.patientName,
@@ -106,34 +106,34 @@ export function AppointmentFormModal({
       setStartsAt(appointment.startsAt);
       setDurationMinutes(String(appointment.durationMinutes));
       setType(appointment.type);
-      setReason(appointment.reason ?? '');
-      setNotes(appointment.notes ?? '');
+      setReason(appointment.reason ?? "");
+      setNotes(appointment.notes ?? "");
       return;
     }
 
     if (waitingEntry) {
       setPatient({
-        kind: 'existing',
+        kind: "existing",
         patient: {
           id: waitingEntry.patientId,
           fullName: waitingEntry.patientName,
           phone: waitingEntry.patientPhone,
-          fileNumber: '',
+          fileNumber: "",
         },
       });
-      setDoctorId(waitingEntry.doctorId ?? '');
-      setReason(waitingEntry.reason ?? '');
+      setDoctorId(waitingEntry.doctorId ?? "");
+      setReason(waitingEntry.reason ?? "");
     } else {
       setPatient(null);
-      setDoctorId(defaults?.doctorId ?? '');
-      setReason('');
+      setDoctorId(defaults?.doctorId ?? "");
+      setReason("");
     }
 
     setDate(defaults?.date ?? todayIso());
     setStartsAt(defaults?.startsAt ?? null);
-    setDurationMinutes('30');
+    setDurationMinutes("30");
     setType(APPOINTMENT_TYPE.CHECKUP);
-    setNotes('');
+    setNotes("");
   }, [open, appointment, defaults, waitingEntry]);
 
   const availability = useAvailability(
@@ -160,14 +160,14 @@ export function AppointmentFormModal({
       startsAt,
       durationMinutes: Number(durationMinutes),
       type,
-      reason: reason.trim() === '' ? null : reason.trim(),
-      notes: notes.trim() === '' ? null : notes.trim(),
+      reason: reason.trim() === "" ? null : reason.trim(),
+      notes: notes.trim() === "" ? null : notes.trim(),
     };
 
     try {
       if (appointment) {
         await update.mutateAsync({ id: appointment.id, body });
-        toast.success('appointments.updated');
+        toast.success("appointments.updated");
       } else if (waitingEntry) {
         await promote.mutateAsync({
           id: waitingEntry.id,
@@ -179,14 +179,14 @@ export function AppointmentFormModal({
             notify: waitingEntry.source === WAITING_LIST_SOURCE.ONLINE,
           },
         });
-        toast.success('appointments.waiting.scheduled');
+        toast.success("appointments.waiting.scheduled");
       } else {
         if (!patient) {
           return;
         }
 
         await create.mutateAsync({ ...body, ...toPatientRef(patient) });
-        toast.success('appointments.created');
+        toast.success("appointments.created");
       }
 
       onBooked?.({ date: toIsoDate(new Date(startsAt)), doctorId });
@@ -205,10 +205,10 @@ export function AppointmentFormModal({
 
   const isPending = create.isPending || update.isPending || promote.isPending;
   const title = appointment
-    ? 'appointments.edit'
+    ? "appointments.edit"
     : waitingEntry
-      ? 'appointments.waiting.schedule'
-      : 'appointments.create';
+      ? "appointments.waiting.schedule"
+      : "appointments.create";
 
   return (
     <Modal
@@ -219,10 +219,10 @@ export function AppointmentFormModal({
       footer={
         <>
           <Button variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button isLoading={isPending} disabled={!canSubmit} onClick={() => void submit()}>
-            {t('common.save')}
+            {t("common.save")}
           </Button>
         </>
       }
@@ -246,7 +246,7 @@ export function AppointmentFormModal({
             <Select
               id="appointment-doctor"
               value={doctorId}
-              placeholder={t('appointments.allDoctors')}
+              placeholder={t("appointments.allDoctors")}
               options={(doctors.data?.items ?? []).map((doctor) => ({
                 value: doctor.id,
                 label: doctorName(doctor.user.name),
@@ -261,7 +261,7 @@ export function AppointmentFormModal({
           <FormField label="appointments.date" htmlFor="appointment-date">
             <DatePicker
               id="appointment-date"
-              label={t('appointments.date')}
+              label={t("appointments.date")}
               value={date}
               onChange={(next) => {
                 setDate(next);
@@ -283,9 +283,9 @@ export function AppointmentFormModal({
             <Select
               id="appointment-duration"
               value={durationMinutes}
-              options={['15', '30', '45', '60', '90'].map((value) => ({
+              options={["15", "30", "45", "60", "90"].map((value) => ({
                 value,
-                label: t('appointments.durationMinutes', { count: Number(value) }),
+                label: t("appointments.durationMinutes", { count: Number(value) }),
               }))}
               onChange={(event) => {
                 setDurationMinutes(event.target.value);
@@ -312,7 +312,7 @@ export function AppointmentFormModal({
         <FormField label="appointments.reason" htmlFor="appointment-reason" optional>
           <Input
             id="appointment-reason"
-            placeholder={t('appointments.reason')}
+            placeholder={t("appointments.reason")}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
           />

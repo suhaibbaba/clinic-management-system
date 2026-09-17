@@ -1,7 +1,7 @@
-import { personName, type Doctor, type WeeklySchedule } from '@clinic/shared';
-import { useEffect, useState, type JSX } from 'react';
-import { foldDigits } from '@clinic/ui/lib/digits';
-import { useTranslation } from 'react-i18next';
+import { personName, type Doctor, type WeeklySchedule } from "@clinic/shared";
+import { useEffect, useState, type JSX } from "react";
+import { foldDigits } from "@clinic/ui/lib/digits";
+import { useTranslation } from "react-i18next";
 
 import {
   Button,
@@ -14,12 +14,12 @@ import {
   SegmentedControl,
   Select,
   useToast,
-} from '@clinic/ui';
-import { WorkingHours } from '@web/components/schedule/working-hours';
-import { useClinic } from '@web/features/clinic/queries';
-import { useCreateDoctor, useSpecialties, useUpdateDoctor } from '@web/features/doctors/queries';
-import { useUsers } from '@web/features/users/queries';
-import { errorMessageKey } from '@web/lib/api-error';
+} from "@clinic/ui";
+import { WorkingHours } from "@web/components/schedule/working-hours";
+import { useClinic } from "@web/features/clinic/queries";
+import { useCreateDoctor, useSpecialties, useUpdateDoctor } from "@web/features/doctors/queries";
+import { useUsers } from "@web/features/users/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 
 interface DoctorFormModalProps {
   open: boolean;
@@ -30,7 +30,7 @@ interface DoctorFormModalProps {
 const DEFAULT_DURATION = 30;
 
 /** New by default: linking an account that already exists is the rare case, not the usual one. */
-const MODES = ['new', 'link'] as const;
+const MODES = ["new", "link"] as const;
 type Mode = (typeof MODES)[number];
 
 interface NewUserFields {
@@ -41,7 +41,7 @@ interface NewUserFields {
   password: string;
 }
 
-const EMPTY_USER: NewUserFields = { nameAr: '', nameEn: '', phone: '', email: '', password: '' };
+const EMPTY_USER: NewUserFields = { nameAr: "", nameEn: "", phone: "", email: "", password: "" };
 
 export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalProps): JSX.Element {
   const { t, i18n } = useTranslation();
@@ -53,10 +53,10 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
   const doctorUsers = useUsers({ limit: 100 });
 
   const isEdit = doctor !== null;
-  const [mode, setMode] = useState<Mode>('new');
+  const [mode, setMode] = useState<Mode>("new");
   const [newUser, setNewUser] = useState<NewUserFields>(EMPTY_USER);
-  const [userId, setUserId] = useState('');
-  const [specialtyId, setSpecialtyId] = useState('');
+  const [userId, setUserId] = useState("");
+  const [specialtyId, setSpecialtyId] = useState("");
   const [duration, setDuration] = useState(String(DEFAULT_DURATION));
   const [schedule, setSchedule] = useState<WeeklySchedule>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -66,10 +66,10 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
       return;
     }
 
-    setMode('new');
+    setMode("new");
     setNewUser(EMPTY_USER);
-    setUserId(doctor?.userId ?? '');
-    setSpecialtyId(doctor?.specialtyId ?? '');
+    setUserId(doctor?.userId ?? "");
+    setSpecialtyId(doctor?.specialtyId ?? "");
     setDuration(String(doctor?.defaultAppointmentDurationMinutes ?? DEFAULT_DURATION));
     setSchedule(doctor?.weeklySchedule ?? clinic.data?.workingHours ?? []);
   }, [open, doctor, clinic.data]);
@@ -99,16 +99,16 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
             weeklySchedule: schedule,
           },
         });
-        toast.success('doctors.updated');
+        toast.success("doctors.updated");
       } else {
         await createDoctor.mutateAsync({
-          ...(mode === 'new'
+          ...(mode === "new"
             ? {
                 newUser: {
                   name: { ar: newUser.nameAr.trim(), en: newUser.nameEn.trim() },
                   phone: newUser.phone.trim(),
                   password: newUser.password,
-                  ...(newUser.email.trim() !== '' && { email: newUser.email.trim() }),
+                  ...(newUser.email.trim() !== "" && { email: newUser.email.trim() }),
                 },
               }
             : { userId }),
@@ -116,7 +116,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
           defaultAppointmentDurationMinutes: durationMinutes,
           weeklySchedule: schedule,
         });
-        toast.success('doctors.created');
+        toast.success("doctors.created");
       }
 
       onOpenChange(false);
@@ -128,25 +128,25 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
   };
 
   const accountReady =
-    mode === 'link'
-      ? userId !== ''
-      : newUser.nameAr.trim() !== '' &&
-        newUser.nameEn.trim() !== '' &&
-        newUser.phone.trim() !== '' &&
+    mode === "link"
+      ? userId !== ""
+      : newUser.nameAr.trim() !== "" &&
+        newUser.nameEn.trim() !== "" &&
+        newUser.phone.trim() !== "" &&
         newUser.password.length >= 8;
 
-  const canSubmit = specialtyId !== '' && (isEdit || accountReady);
+  const canSubmit = specialtyId !== "" && (isEdit || accountReady);
 
   return (
     <Modal
       open={open}
       onOpenChange={onOpenChange}
       size="lg"
-      title={isEdit ? 'doctors.edit' : 'doctors.create'}
+      title={isEdit ? "doctors.edit" : "doctors.create"}
       footer={
         <>
           <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
@@ -154,7 +154,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
             isLoading={isSaving}
             onClick={() => void submit()}
           >
-            {t('common.save')}
+            {t("common.save")}
           </Button>
         </>
       }
@@ -163,19 +163,19 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
         {!isEdit && (
           <>
             <SegmentedControl<Mode>
-              label={t('doctors.account')}
+              label={t("doctors.account")}
               value={mode}
               onChange={setMode}
               options={MODES.map((value) => ({ value, label: t(`doctors.modes.${value}`) }))}
             />
 
-            {mode === 'new' ? (
+            {mode === "new" ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField label="users.nameAr" htmlFor="doctor-name-ar" required>
                   <Input
                     id="doctor-name-ar"
                     adornment="user"
-                    placeholder={t('common.placeholders.fullNameAr')}
+                    placeholder={t("common.placeholders.fullNameAr")}
                     value={newUser.nameAr}
                     onChange={(event) => setNewUser({ ...newUser, nameAr: event.target.value })}
                   />
@@ -186,7 +186,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
                     id="doctor-name-en"
                     adornment="user"
                     dir="ltr"
-                    placeholder={t('common.placeholders.fullNameEn')}
+                    placeholder={t("common.placeholders.fullNameEn")}
                     value={newUser.nameEn}
                     onChange={(event) => setNewUser({ ...newUser, nameEn: event.target.value })}
                   />
@@ -195,7 +195,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
                 <FormField label="users.phone" htmlFor="doctor-phone" required>
                   <PhoneInput
                     id="doctor-phone"
-                    placeholder={t('common.placeholders.phone')}
+                    placeholder={t("common.placeholders.phone")}
                     value={newUser.phone}
                     onChange={(event) => setNewUser({ ...newUser, phone: event.target.value })}
                   />
@@ -206,7 +206,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
                     id="doctor-email"
                     type="email"
                     dir="ltr"
-                    placeholder={t('common.placeholders.email')}
+                    placeholder={t("common.placeholders.email")}
                     value={newUser.email}
                     onChange={(event) => setNewUser({ ...newUser, email: event.target.value })}
                   />
@@ -221,7 +221,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
                   <PasswordInput
                     id="doctor-password"
                     autoComplete="new-password"
-                    placeholder={t('common.placeholders.password')}
+                    placeholder={t("common.placeholders.password")}
                     value={newUser.password}
                     onChange={(event) => setNewUser({ ...newUser, password: event.target.value })}
                   />
@@ -232,7 +232,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
                 <Select
                   id="doctor-user"
                   options={userOptions}
-                  placeholder={t('doctors.selectUser')}
+                  placeholder={t("doctors.selectUser")}
                   value={userId}
                   onChange={(event) => setUserId(event.target.value)}
                 />
@@ -245,7 +245,7 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
           <Select
             id="doctor-specialty"
             options={specialtyOptions}
-            placeholder={t('doctors.selectSpecialty')}
+            placeholder={t("doctors.selectSpecialty")}
             value={specialtyId}
             onChange={(event) => setSpecialtyId(event.target.value)}
           />
@@ -253,21 +253,21 @@ export function DoctorFormModal({ open, onOpenChange, doctor }: DoctorFormModalP
 
         <FormField label="doctors.duration" htmlFor="doctor-duration" hint="doctors.durationUnit">
           <Input
-            placeholder={t('common.placeholders.minutes')}
+            placeholder={t("common.placeholders.minutes")}
             id="doctor-duration"
             // Not `type="number"`: it accepts `e`, `+`, `-` and `.`, and reads back an empty
             // string for any of them, so the field looks filled and submits nothing.
             inputMode="numeric"
             dir="ltr"
             value={duration}
-            onChange={(event) => setDuration(foldDigits(event.target.value).replace(/\D/g, ''))}
+            onChange={(event) => setDuration(foldDigits(event.target.value).replace(/\D/g, ""))}
           />
         </FormField>
 
         <div>
-          <p className="mb-1 text-value font-medium text-ink">{t('doctors.schedule')}</p>
+          <p className="mb-1 text-value font-medium text-ink">{t("doctors.schedule")}</p>
           {!isEdit && (
-            <p className="mb-2 text-label text-ink-muted">{t('doctors.scheduleDefault')}</p>
+            <p className="mb-2 text-label text-ink-muted">{t("doctors.scheduleDefault")}</p>
           )}
           <WorkingHours value={schedule} onChange={setSchedule} idPrefix="doctor-form-hours" />
         </div>

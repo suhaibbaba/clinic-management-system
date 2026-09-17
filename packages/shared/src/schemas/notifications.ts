@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 import {
   NOTIFICATION_CHANNEL,
@@ -7,8 +7,8 @@ import {
   NOTIFICATION_TEMPLATE,
   NOTIFICATION_TEMPLATES,
   type NotificationTemplate,
-} from '@shared/enums';
-import { paginationQuerySchema, uuidSchema } from '@shared/schemas/common';
+} from "@shared/enums";
+import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
 
 /** Append-only like the ledgers: a failed message is a row saying so, never an absence. */
 export const notificationLogEntrySchema = z.object({
@@ -46,28 +46,28 @@ export type NotificationSettings = z.infer<typeof notificationSettingsSchema>;
 /** Arabic: the UI's English mode is for staff, and an SMS is not the UI. */
 export const DEFAULT_NOTIFICATION_TEMPLATES: Record<NotificationTemplate, string> = {
   [NOTIFICATION_TEMPLATE.BOOKING_OTP]:
-    'رمز تأكيد حجزك في {clinic} هو {code}. صالح لمدة {minutes} دقائق.',
+    "رمز تأكيد حجزك في {clinic} هو {code}. صالح لمدة {minutes} دقائق.",
   [NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED]:
-    'تم تأكيد موعدك في {clinic} مع {doctor} يوم {date} الساعة {time}. لإدارة الموعد: {link}',
+    "تم تأكيد موعدك في {clinic} مع {doctor} يوم {date} الساعة {time}. لإدارة الموعد: {link}",
   [NOTIFICATION_TEMPLATE.REMINDER_24H]:
-    'تذكير: لديك موعد غداً في {clinic} مع {doctor} الساعة {time}.',
+    "تذكير: لديك موعد غداً في {clinic} مع {doctor} الساعة {time}.",
   [NOTIFICATION_TEMPLATE.REMINDER_2H]:
-    'تذكير: موعدك في {clinic} مع {doctor} بعد ساعتين، الساعة {time}.',
+    "تذكير: موعدك في {clinic} مع {doctor} بعد ساعتين، الساعة {time}.",
   [NOTIFICATION_TEMPLATE.BOOKING_CANCELLED]:
-    'تم إلغاء موعدك في {clinic} يوم {date} الساعة {time}. للحجز من جديد تواصل معنا.',
+    "تم إلغاء موعدك في {clinic} يوم {date} الساعة {time}. للحجز من جديد تواصل معنا.",
   [NOTIFICATION_TEMPLATE.URGENT_RECEIVED]:
-    'وصلنا طلبك العاجل في {clinic}. سنتواصل معك بأقرب وقت على هذا الرقم.',
+    "وصلنا طلبك العاجل في {clinic}. سنتواصل معك بأقرب وقت على هذا الرقم.",
   [NOTIFICATION_TEMPLATE.URGENT_SCHEDULED]:
-    'حجزنا لك موعداً في {clinic} مع {doctor} يوم {date} الساعة {time}.',
+    "حجزنا لك موعداً في {clinic} مع {doctor} يوم {date} الساعة {time}.",
   [NOTIFICATION_TEMPLATE.URGENT_DECLINED]:
-    'بخصوص طلبك العاجل في {clinic}: {reason}. للاستفسار تواصل معنا.',
+    "بخصوص طلبك العاجل في {clinic}: {reason}. للاستفسار تواصل معنا.",
 };
 
 /** Never throws: unreadable settings must not stop a reminder from going out. */
 export function notificationSettings(settings: unknown): NotificationSettings {
   const raw =
-    typeof settings === 'object' && settings !== null
-      ? (settings as Record<string, unknown>)['notifications']
+    typeof settings === "object" && settings !== null
+      ? (settings as Record<string, unknown>)["notifications"]
       : undefined;
 
   const parsed = notificationSettingsSchema.safeParse(raw ?? {});

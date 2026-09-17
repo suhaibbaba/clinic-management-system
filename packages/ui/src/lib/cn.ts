@@ -1,34 +1,34 @@
-import clsx, { type ClassValue } from 'clsx';
-import { extendTailwindMerge } from 'tailwind-merge';
+import clsx, { type ClassValue } from "clsx";
+import { extendTailwindMerge } from "tailwind-merge";
 
 export const FONT_SIZE_KEYS = [
-  'micro',
-  'meta',
-  'label',
-  'value',
-  'nav',
-  'section',
-  'title',
-  'display',
-  'kpi',
-  'field',
+  "micro",
+  "meta",
+  "label",
+  "value",
+  "nav",
+  "section",
+  "title",
+  "display",
+  "kpi",
+  "field",
 ] as const;
 
 export const RADIUS_KEYS = [
-  'brand',
-  'card',
-  'chip',
-  'control',
-  'field',
-  'nav',
-  'panel',
-  'pill',
+  "brand",
+  "card",
+  "chip",
+  "control",
+  "field",
+  "nav",
+  "panel",
+  "pill",
 ] as const;
 
 const merge = extendTailwindMerge({
   extend: {
     classGroups: {
-      'font-size': [{ text: [...FONT_SIZE_KEYS] }],
+      "font-size": [{ text: [...FONT_SIZE_KEYS] }],
       rounded: [{ rounded: [...RADIUS_KEYS] }],
     },
   },

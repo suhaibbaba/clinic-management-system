@@ -1,16 +1,16 @@
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { StatRow } from '@ui/components/stat-card';
-import type { Column } from '@ui/components/table';
-import { cn } from '@ui/lib/cn';
+import { StatRow } from "@ui/components/stat-card";
+import type { Column } from "@ui/components/table";
+import { cn } from "@ui/lib/cn";
 
 export function Skeleton({ className }: { readonly className?: string }): JSX.Element {
   return (
     <span
       data-part="skeleton"
       aria-hidden="true"
-      className={cn('skeleton block rounded-pill', className)}
+      className={cn("skeleton block rounded-pill", className)}
     />
   );
 }
@@ -20,7 +20,7 @@ export function SkeletonStatus(): JSX.Element {
 
   return (
     <span role="status" className="sr-only">
-      {t('common.loading')}
+      {t("common.loading")}
     </span>
   );
 }
@@ -35,18 +35,18 @@ export function RefreshBar({ active }: { readonly active: boolean }): JSX.Elemen
 
   return (
     <div role="status" aria-live="polite" className="px-4 pt-3">
-      <span className="sr-only">{t('common.updating')}</span>
+      <span className="sr-only">{t("common.updating")}</span>
       <Skeleton className="h-0.5 w-full rounded-none" />
     </div>
   );
 }
 
-const CELL_WIDTHS = ['w-28', 'w-20', 'w-32', 'w-24'] as const;
+const CELL_WIDTHS = ["w-28", "w-20", "w-32", "w-24"] as const;
 
-const cellWidth = (index: number): string => CELL_WIDTHS[index % CELL_WIDTHS.length] ?? 'w-24';
+const cellWidth = (index: number): string => CELL_WIDTHS[index % CELL_WIDTHS.length] ?? "w-24";
 
-const endAligned = (align: Column<never>['align']): boolean =>
-  align === 'numeric' || align === 'end';
+const endAligned = (align: Column<never>["align"]): boolean =>
+  align === "numeric" || align === "end";
 
 /** The caller's own columns, so every bar sits at the width its data will occupy. */
 export function SkeletonTable<TRow>({
@@ -61,9 +61,9 @@ export function SkeletonTable<TRow>({
       {Array.from({ length: rows }, (_, row) => (
         <tr key={row} aria-hidden="true">
           {columns.map((column, index) => (
-            <td key={column.key} className={cn('px-4 py-3 align-middle', column.className)}>
+            <td key={column.key} className={cn("px-4 py-3 align-middle", column.className)}>
               <Skeleton
-                className={cn('h-3', cellWidth(index + row), endAligned(column.align) && 'ms-auto')}
+                className={cn("h-3", cellWidth(index + row), endAligned(column.align) && "ms-auto")}
               />
             </td>
           ))}
@@ -99,7 +99,7 @@ export function SkeletonTableCards<TRow>({
             {Array.from({ length: Math.max(details, 3) }, (_, row) => (
               <div key={row} className="flex items-center justify-between gap-4">
                 <Skeleton className="h-3 w-20" />
-                <Skeleton className={cn('h-3', cellWidth(row + card))} />
+                <Skeleton className={cn("h-3", cellWidth(row + card))} />
               </div>
             ))}
           </div>
@@ -205,10 +205,10 @@ export function SkeletonTimeline({ entries = 4 }: { readonly entries?: number })
 }
 
 const BLOCKS = [
-  'start-1 end-1 top-[8%] h-[12%]',
-  'start-1 end-1 top-[26%] h-[9%]',
-  'start-1 end-1 top-[44%] h-[16%]',
-  'start-1 end-1 top-[68%] h-[11%]',
+  "start-1 end-1 top-[8%] h-[12%]",
+  "start-1 end-1 top-[26%] h-[9%]",
+  "start-1 end-1 top-[44%] h-[16%]",
+  "start-1 end-1 top-[68%] h-[11%]",
 ] as const;
 
 /** The grid's own shape: an hour gutter beside one column of blocks per doctor. */
@@ -234,7 +234,7 @@ export function SkeletonCalendarDay({ columns = 3 }: { readonly columns?: number
 
               <div className="relative h-72 rounded-panel bg-inset">
                 {BLOCKS.slice(0, 3 + (column % 2)).map((block) => (
-                  <Skeleton key={block} className={cn('absolute rounded-panel', block)} />
+                  <Skeleton key={block} className={cn("absolute rounded-panel", block)} />
                 ))}
               </div>
             </div>

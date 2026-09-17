@@ -1,0 +1,16 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 100
+
+# Kept exactly as authored, so an editor touches them no more than Prettier does
+# (.prettierignore).
+[{CLAUDE.md,ROLES.md,docs/design-reference.html}]
+insert_final_newline = false
+trim_trailing_whitespace = false

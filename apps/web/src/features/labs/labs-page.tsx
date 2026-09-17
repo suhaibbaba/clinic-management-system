@@ -1,7 +1,7 @@
-import type { LabSummary } from '@clinic/shared';
-import { useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import type { LabSummary } from "@clinic/shared";
+import { useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 import {
   Button,
@@ -14,16 +14,16 @@ import {
   SearchField,
   StatCard,
   StatRow,
-} from '@clinic/ui';
-import { RefreshBar, SkeletonCard, SkeletonKpi } from '@clinic/ui/components/skeleton';
-import { useClinic } from '@web/features/clinic/queries';
-import { LabFormModal } from '@web/features/labs/lab-form-modal';
-import { useLabs } from '@web/features/labs/queries';
-import { canManageLabs } from '@web/features/labs/permissions';
-import { useSession } from '@web/features/auth/session';
-import { Money } from '@web/features/billing/money';
-import { useDebounced } from '@web/lib/use-debounced';
-import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
+} from "@clinic/ui";
+import { RefreshBar, SkeletonCard, SkeletonKpi } from "@clinic/ui/components/skeleton";
+import { useClinic } from "@web/features/clinic/queries";
+import { LabFormModal } from "@web/features/labs/lab-form-modal";
+import { useLabs } from "@web/features/labs/queries";
+import { canManageLabs } from "@web/features/labs/permissions";
+import { useSession } from "@web/features/auth/session";
+import { Money } from "@web/features/billing/money";
+import { useDebounced } from "@web/lib/use-debounced";
+import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 // Cards, because a clinic deals with two or three labs and each is a relationship. The balance is
 // money owed, so it is never celebrated in green.
@@ -31,7 +31,7 @@ export function LabsPage(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { can } = useSession();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
 
   const clinic = useClinic();
@@ -49,12 +49,12 @@ export function LabsPage(): JSX.Element {
         title="labs.title"
         subtitle="labs.subtitle"
         {...(labs.data !== undefined && {
-          count: t('pagination.total', { total: labs.data.total }),
+          count: t("pagination.total", { total: labs.data.total }),
         })}
         primaryAction={
           canManageLabs(can) ? (
             <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
-              {t('labs.add')}
+              {t("labs.add")}
             </Button>
           ) : undefined
         }
@@ -66,30 +66,30 @@ export function LabsPage(): JSX.Element {
         <StatRow>
           <StatCard
             icon="money"
-            tone={owed > 0 ? 'warning' : 'success'}
-            label={t('labs.kpi.owed')}
+            tone={owed > 0 ? "warning" : "success"}
+            label={t("labs.kpi.owed")}
             value={<Money amount={owed.toFixed(2)} currency={clinic.data?.currency} />}
-            caption={t('labs.kpi.owedCaption')}
+            caption={t("labs.kpi.owedCaption")}
           />
           <StatCard
             icon="clipboard"
             tone="primary"
-            label={t('labs.kpi.open')}
+            label={t("labs.kpi.open")}
             value={openOrders}
-            caption={t('labs.kpi.openCaption')}
+            caption={t("labs.kpi.openCaption")}
           />
         </StatRow>
       )}
 
       <SearchField
         className="w-full min-w-0 sm:max-w-md"
-        label={t('labs.search')}
+        label={t("labs.search")}
         shortcut="/"
-        placeholder={t('labs.searchPlaceholder')}
+        placeholder={t("labs.searchPlaceholder")}
         value={search}
         onChange={(event) => setSearch(event.target.value)}
-        clearLabel={t('common.clear')}
-        onClear={() => setSearch('')}
+        clearLabel={t("common.clear")}
+        onClear={() => setSearch("")}
       />
 
       <RefreshBar active={isRefreshing} />
@@ -142,23 +142,23 @@ function LabCard({
       status={
         lab.isActive
           ? {
-              label: t(balance > 0 ? 'labs.owing' : 'labs.settled'),
-              tone: balance > 0 ? 'warning' : 'neutral',
+              label: t(balance > 0 ? "labs.owing" : "labs.settled"),
+              tone: balance > 0 ? "warning" : "neutral",
             }
-          : { label: t('labs.inactive'), tone: 'neutral' }
+          : { label: t("labs.inactive"), tone: "neutral" }
       }
       meta={[
         {
-          label: t('labs.card.balance'),
+          label: t("labs.card.balance"),
           value: <Money amount={lab.balance} currency={currency} />,
           ltr: true,
         },
-        { label: t('labs.card.open'), value: lab.openOrders, ltr: true },
+        { label: t("labs.card.open"), value: lab.openOrders, ltr: true },
         ...(lab.phone
-          ? [{ label: t('labs.card.phone'), value: <PhoneLink value={lab.phone} /> }]
+          ? [{ label: t("labs.card.phone"), value: <PhoneLink value={lab.phone} /> }]
           : []),
       ]}
-      action={{ label: t('labs.card.view'), onClick: onOpen }}
+      action={{ label: t("labs.card.view"), onClick: onOpen }}
     />
   );
 }

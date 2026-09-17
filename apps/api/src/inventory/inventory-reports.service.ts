@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from "@nestjs/common";
 import {
   MOVEMENT_TYPE,
   compareQuantity,
@@ -14,15 +14,15 @@ import {
   type StatementRangeQuery,
   type SupplierStatement,
   type SupplierStatementLine,
-} from '@clinic/shared';
-import { and, asc, eq, gte, isNull, lt, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, asc, eq, gte, isNull, lt, type SQL } from "drizzle-orm";
 
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { inventoryItems, stockMovements, suppliers } from '@api/database/schema';
-import { InventoryItemsService } from '@api/inventory/inventory-items.service';
-import { StockService } from '@api/inventory/stock.service';
-import { SuppliersService } from '@api/inventory/suppliers.service';
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { inventoryItems, stockMovements, suppliers } from "@api/database/schema";
+import { InventoryItemsService } from "@api/inventory/inventory-items.service";
+import { StockService } from "@api/inventory/stock.service";
+import { SuppliersService } from "@api/inventory/suppliers.service";
 
 // All three read the same computed stock as the items screen: one definition of "low" and one of
 // "expiring", in `StockService`.
@@ -146,7 +146,7 @@ function byUrgency(left: InventoryItemRow, right: InventoryItemRow): number {
 
 /** Soonest to go off first — that is the order somebody works through them. */
 function byExpiry(left: InventoryItemRow, right: InventoryItemRow): number {
-  return (left.nearestExpiry ?? '9999-12-31').localeCompare(right.nearestExpiry ?? '9999-12-31');
+  return (left.nearestExpiry ?? "9999-12-31").localeCompare(right.nearestExpiry ?? "9999-12-31");
 }
 
 function toShoppingLine(item: InventoryItemRow): ShoppingListLine {
@@ -160,7 +160,7 @@ function toShoppingLine(item: InventoryItemRow): ShoppingListLine {
     unit: item.unit,
     quantity: item.quantity,
     minQuantity: item.minQuantity,
-    suggested: compareQuantity(suggested, '0') > 0 ? suggested : '0',
+    suggested: compareQuantity(suggested, "0") > 0 ? suggested : "0",
     supplierName: item.supplierName,
   };
 }

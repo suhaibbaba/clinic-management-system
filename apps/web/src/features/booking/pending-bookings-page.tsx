@@ -1,6 +1,6 @@
-import type { CalendarAppointment } from '@clinic/shared';
-import { useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { CalendarAppointment } from "@clinic/shared";
+import { useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Badge,
@@ -19,21 +19,21 @@ import {
   usePageParams,
   useToast,
   type Column,
-} from '@clinic/ui';
-import { toTimeLabel, minutesOf } from '@web/features/appointments/calendar-time';
-import { setClinicTimeZone } from '@web/lib/clinic-zone';
+} from "@clinic/ui";
+import { toTimeLabel, minutesOf } from "@web/features/appointments/calendar-time";
+import { setClinicTimeZone } from "@web/lib/clinic-zone";
 import {
   canConfirmBooking,
   canRejectBooking,
   useConfirmBooking,
   usePendingBookings,
   useRejectBooking,
-} from '@web/features/booking/queries';
-import { useSession } from '@web/features/auth/session';
-import { useClinic } from '@web/features/clinic/queries';
-import { errorMessageKey } from '@web/lib/api-error';
-import { formatDate, formatDateTime } from '@web/lib/format';
-import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
+} from "@web/features/booking/queries";
+import { useSession } from "@web/features/auth/session";
+import { useClinic } from "@web/features/clinic/queries";
+import { errorMessageKey } from "@web/lib/api-error";
+import { formatDate, formatDateTime } from "@web/lib/format";
+import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 // Anything in `requested` came from the booking page — either a clinic confirming by hand, or an
 // unfinished OTP, which expires by itself. Both decisions also tell the patient.
@@ -43,7 +43,7 @@ export function PendingBookingsPage(): JSX.Element {
   const toast = useToast();
   const { page, perPage, setPage, setPerPage } = usePageParams(25);
   const [rejecting, setRejecting] = useState<CalendarAppointment>();
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState("");
 
   // Every time here is the clinic's wall clock: reception reading 13:30 for a 16:30 appointment
   // would ring the wrong patient.
@@ -61,7 +61,7 @@ export function PendingBookingsPage(): JSX.Element {
   const onConfirm = async (row: CalendarAppointment): Promise<void> => {
     try {
       await confirm.mutateAsync(row.id);
-      toast.success('booking.pending.confirmed');
+      toast.success("booking.pending.confirmed");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -75,8 +75,8 @@ export function PendingBookingsPage(): JSX.Element {
     try {
       await reject.mutateAsync({ id: rejecting.id, reason: reason.trim() });
       setRejecting(undefined);
-      setReason('');
-      toast.success('booking.pending.rejected');
+      setReason("");
+      toast.success("booking.pending.rejected");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -84,31 +84,31 @@ export function PendingBookingsPage(): JSX.Element {
 
   const columns: readonly Column<CalendarAppointment>[] = [
     {
-      key: 'patient',
-      header: 'booking.pending.columns.patient',
+      key: "patient",
+      header: "booking.pending.columns.patient",
       primary: true,
       render: (row) => (
         <span className="flex flex-col items-start gap-1">
           <span className="font-medium text-ink">{row.patientName}</span>
           {/* A record from the booking page has no file number of the clinic's making — nobody has
               seen this person's ID yet, and saying so stops it being discovered at the chair. */}
-          {row.patientUnverified && <Badge tone="warning">{t('booking.pending.unverified')}</Badge>}
+          {row.patientUnverified && <Badge tone="warning">{t("booking.pending.unverified")}</Badge>}
         </span>
       ),
     },
     {
-      key: 'phone',
-      header: 'booking.pending.columns.phone',
+      key: "phone",
+      header: "booking.pending.columns.phone",
       render: (row) => <PhoneLink value={row.patientPhone} />,
     },
     {
-      key: 'doctor',
-      header: 'booking.pending.columns.doctor',
+      key: "doctor",
+      header: "booking.pending.columns.doctor",
       render: (row) => <PersonName name={row.doctorName} />,
     },
     {
-      key: 'slot',
-      header: 'booking.pending.columns.slot',
+      key: "slot",
+      header: "booking.pending.columns.slot",
       render: (row) => (
         <span className="flex flex-wrap items-center gap-2">
           <Ltr>{formatDate(row.startsAt)}</Ltr>
@@ -117,14 +117,14 @@ export function PendingBookingsPage(): JSX.Element {
       ),
     },
     {
-      key: 'requestedAt',
-      header: 'booking.pending.columns.requestedAt',
+      key: "requestedAt",
+      header: "booking.pending.columns.requestedAt",
       hideOnMobile: true,
       render: (row) => <Ltr>{formatDateTime(row.createdAt)}</Ltr>,
     },
     {
-      key: 'actions',
-      header: 'booking.pending.columns.actions',
+      key: "actions",
+      header: "booking.pending.columns.actions",
       actions: true,
       render: (row) => (
         <span className="flex items-center gap-3">
@@ -135,7 +135,7 @@ export function PendingBookingsPage(): JSX.Element {
               onClick={() => void onConfirm(row)}
               disabled={confirm.isPending}
             >
-              {t('booking.pending.confirm')}
+              {t("booking.pending.confirm")}
             </Button>
           )}
           {canRejectBooking(can) && (
@@ -144,10 +144,10 @@ export function PendingBookingsPage(): JSX.Element {
               variant="quiet"
               onClick={() => {
                 setRejecting(row);
-                setReason('');
+                setReason("");
               }}
             >
-              {t('booking.pending.reject')}
+              {t("booking.pending.reject")}
             </Button>
           )}
         </span>
@@ -164,16 +164,16 @@ export function PendingBookingsPage(): JSX.Element {
           <StatCard
             icon="calendar"
             tone="primary"
-            label={t('booking.pending.kpi.waiting')}
+            label={t("booking.pending.kpi.waiting")}
             value={pending.data?.total ?? 0}
-            caption={t('booking.pending.kpi.waitingCaption')}
+            caption={t("booking.pending.kpi.waitingCaption")}
           />
           <StatCard
             icon="clock"
             tone="warning"
-            label={t('booking.pending.kpi.today')}
+            label={t("booking.pending.kpi.today")}
             value={todayCount}
-            caption={t('booking.pending.kpi.todayCaption')}
+            caption={t("booking.pending.kpi.todayCaption")}
           />
         </StatRow>
       )}
@@ -204,12 +204,12 @@ export function PendingBookingsPage(): JSX.Element {
       <Modal
         open={rejecting !== undefined}
         onOpenChange={(open) => !open && setRejecting(undefined)}
-        title={t('booking.pending.rejectTitle')}
-        description={t('booking.pending.rejectBody')}
+        title={t("booking.pending.rejectTitle")}
+        description={t("booking.pending.rejectBody")}
         footer={
           <>
             <Button variant="secondary" onClick={() => setRejecting(undefined)}>
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button
               variant="danger"
@@ -217,7 +217,7 @@ export function PendingBookingsPage(): JSX.Element {
               disabled={reason.trim().length < 3}
               onClick={() => void onReject()}
             >
-              {t('booking.pending.reject')}
+              {t("booking.pending.reject")}
             </Button>
           </>
         }

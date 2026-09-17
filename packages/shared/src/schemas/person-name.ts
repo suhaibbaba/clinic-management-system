@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Staff and clinic names only — a patient's is the one field reception copied off an ID card. One
 // object on the wire, so `personName()` takes a single value.
@@ -18,16 +18,16 @@ export type PersonNameInput = z.infer<typeof personNameInputSchema>;
 // filled only Arabic must not get a blank English calendar. `language` matches by prefix.
 export function personName(name: PersonName | null | undefined, language: string): string {
   if (!name) {
-    return '';
+    return "";
   }
 
-  const english = language.startsWith('en');
-  const ar = typeof name.ar === 'string' ? name.ar : '';
-  const en = typeof name.en === 'string' ? name.en : '';
+  const english = language.startsWith("en");
+  const ar = typeof name.ar === "string" ? name.ar : "";
+  const en = typeof name.en === "string" ? name.en : "";
 
   const preferred = english ? en : ar;
 
-  return preferred.trim() !== '' ? preferred : english ? ar : en;
+  return preferred.trim() !== "" ? preferred : english ? ar : en;
 }
 
 export const bothNames = (name: PersonName): string =>

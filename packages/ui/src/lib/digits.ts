@@ -3,7 +3,7 @@ const EASTERN_ARABIC_INDIC = 0x06f0;
 
 /** Rewrites Arabic-Indic digits as ASCII and leaves everything else alone. */
 export function foldDigits(value: string): string {
-  let out = '';
+  let out = "";
 
   for (const character of value) {
     const code = character.codePointAt(0) ?? 0;

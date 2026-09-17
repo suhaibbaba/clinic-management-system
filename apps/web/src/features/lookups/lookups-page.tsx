@@ -4,22 +4,22 @@ import {
   lookupLabel,
   type LookupListKey,
   type LookupOption,
-} from '@clinic/shared';
-import { useMemo, useState, type DragEvent, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useMemo, useState, type DragEvent, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Badge, Button, EmptyState, Icon, Ltr, PageHeader, Switch, useToast } from '@clinic/ui';
-import { LookupOptionModal } from '@web/features/lookups/lookup-option-modal';
-import { ToothSwatch } from '@web/features/patients/chart/tooth-swatch';
-import { useToothStates } from '@web/features/patients/chart/tooth-state';
+import { Badge, Button, EmptyState, Icon, Ltr, PageHeader, Switch, useToast } from "@clinic/ui";
+import { LookupOptionModal } from "@web/features/lookups/lookup-option-modal";
+import { ToothSwatch } from "@web/features/patients/chart/tooth-swatch";
+import { useToothStates } from "@web/features/patients/chart/tooth-state";
 import {
   useDeleteLookupOption,
   useLookupList,
   useReorderLookupOptions,
   useUpdateLookupOption,
-} from '@web/features/lookups/queries';
-import { errorMessageKey } from '@web/lib/api-error';
-import { cn } from '@clinic/ui/lib/cn';
+} from "@web/features/lookups/queries";
+import { errorMessageKey } from "@web/lib/api-error";
+import { cn } from "@clinic/ui/lib/cn";
 
 export function LookupsPage(): JSX.Element {
   const { t } = useTranslation();
@@ -27,26 +27,26 @@ export function LookupsPage(): JSX.Element {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title={t('lookups.title')} subtitle={t('lookups.subtitle')} />
+      <PageHeader title={t("lookups.title")} subtitle={t("lookups.subtitle")} />
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <nav
-          aria-label={t('lookups.pickList')}
+          aria-label={t("lookups.pickList")}
           className="flex gap-1 overflow-x-auto border border-line rounded-card bg-surface p-2 shadow-card lg:w-64 lg:shrink-0 lg:flex-col lg:overflow-visible"
         >
           {LOOKUP_LIST_KEYS.map((key) => (
             <button
               key={key}
               type="button"
-              aria-current={key === listKey ? 'true' : undefined}
+              aria-current={key === listKey ? "true" : undefined}
               onClick={() => setListKey(key)}
               className={cn(
-                'flex min-h-(--control-h) shrink-0 items-center rounded-control px-3 py-2',
-                'lg:min-h-(--control-h-sm)',
-                'text-start text-value transition-colors',
+                "flex min-h-(--control-h) shrink-0 items-center rounded-control px-3 py-2",
+                "lg:min-h-(--control-h-sm)",
+                "text-start text-value transition-colors",
                 key === listKey
-                  ? 'bg-primary-50 font-medium text-primary-700'
-                  : 'text-ink-muted hover:bg-sunken hover:text-ink',
+                  ? "bg-primary-50 font-medium text-primary-700"
+                  : "text-ink-muted hover:bg-sunken hover:text-ink",
               )}
             >
               {t(`lookups.lists.${key}`)}
@@ -107,7 +107,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
   };
 
   const destroy = async (option: LookupOption): Promise<void> => {
-    const question = option.isSystem ? 'lookups.confirmDeleteSystem' : 'lookups.confirmDelete';
+    const question = option.isSystem ? "lookups.confirmDeleteSystem" : "lookups.confirmDelete";
 
     if (!window.confirm(t(question, { name: lookupLabel(option, i18n.language) }))) {
       return;
@@ -115,7 +115,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
 
     try {
       await remove.mutateAsync(option.id);
-      toast.success('lookups.deleted');
+      toast.success("lookups.deleted");
     } catch (error) {
       fail(error);
     }
@@ -130,7 +130,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
         </div>
 
         <Button icon={<Icon name="plus" />} size="sm" onClick={() => setAdding(true)}>
-          {t('lookups.add')}
+          {t("lookups.add")}
         </Button>
       </div>
 
@@ -149,11 +149,11 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
               className={cn(
                 // Two lines below `md`: on one line the name got what the badge, the switch and two
                 // actions left over — about sixty pixels.
-                'flex flex-wrap items-center gap-x-3 gap-y-1 md:flex-nowrap',
-                'rounded-control border border-transparent px-2 py-2',
-                'hover:border-line hover:bg-sunken',
-                dragging === option.id && 'opacity-40',
-                !option.isActive && 'opacity-60',
+                "flex flex-wrap items-center gap-x-3 gap-y-1 md:flex-nowrap",
+                "rounded-control border border-transparent px-2 py-2",
+                "hover:border-line hover:bg-sunken",
+                dragging === option.id && "opacity-40",
+                !option.isActive && "opacity-60",
               )}
             >
               <span className="cursor-grab text-ink-subtle" aria-hidden="true">
@@ -177,11 +177,11 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
               </span>
 
               <span className="flex w-full shrink-0 items-center gap-3 md:w-auto">
-                {option.isSystem && <Badge tone="neutral">{t('lookups.system')}</Badge>}
+                {option.isSystem && <Badge tone="neutral">{t("lookups.system")}</Badge>}
 
                 <Switch
                   checked={option.isActive}
-                  label={t('lookups.active')}
+                  label={t("lookups.active")}
                   onCheckedChange={() => void toggle(option)}
                 />
 
@@ -191,7 +191,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
                   icon={<Icon name="edit" />}
                   onClick={() => setEditing(option)}
                 >
-                  {t('common.edit')}
+                  {t("common.edit")}
                 </Button>
 
                 <Button
@@ -201,7 +201,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
 
                   onClick={() => void destroy(option)}
                 >
-                  {t('common.delete')}
+                  {t("common.delete")}
                 </Button>
               </span>
             </li>

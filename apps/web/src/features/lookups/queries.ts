@@ -6,14 +6,14 @@ import {
   type LookupOption,
   type ReorderLookupOptionsInput,
   type UpdateLookupOptionInput,
-} from '@clinic/shared';
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
-import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
-import { lookupsApi } from '@web/features/lookups/api';
+import { lookupsApi } from "@web/features/lookups/api";
 
-const LOOKUPS_KEY = 'lookups';
+const LOOKUPS_KEY = "lookups";
 
 /** One key per variant, so the settings screen's inactive rows never leak into a dropdown. */
 export const lookupBundleKey = (includeInactive: boolean) =>
@@ -66,7 +66,7 @@ export function useLookupLabels(listKey: LookupListKey): (code: string | null) =
   return useMemo(() => {
     const labels = new Map(options.map((option) => [option.code, lookupLabel(option, language)]));
 
-    return (code: string | null): string => (code ? (labels.get(code) ?? code) : '');
+    return (code: string | null): string => (code ? (labels.get(code) ?? code) : "");
   }, [options, language]);
 }
 

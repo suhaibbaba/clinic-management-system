@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import type { NotificationChannel } from '@clinic/shared';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import type { NotificationChannel } from "@clinic/shared";
 
-import type { Env } from '@api/config/env.schema';
+import type { Env } from "@api/config/env.schema";
 
 export interface OutboundMessage {
   readonly to: string;
@@ -17,15 +17,15 @@ export interface NotificationProvider {
   send(message: OutboundMessage): Promise<void>;
 }
 
-export const NOTIFICATION_PROVIDER = Symbol('NOTIFICATION_PROVIDER');
+export const NOTIFICATION_PROVIDER = Symbol("NOTIFICATION_PROVIDER");
 
 // Not a stub: it is the correct provider wherever there is no gateway, and the message still
 // reaches `notifications_log`, so the OTP flow works end to end.
 @Injectable()
 export class LogNotificationProvider implements NotificationProvider {
-  readonly name = 'log';
+  readonly name = "log";
 
-  private readonly logger = new Logger('Notifications');
+  private readonly logger = new Logger("Notifications");
 
   send(message: OutboundMessage): Promise<void> {
     this.logger.log(`[${message.channel}] → ${message.to}: ${message.body}`);
@@ -38,31 +38,31 @@ export class LogNotificationProvider implements NotificationProvider {
 // expose. The timeout is not optional — a gateway that never answers would hold a booking open.
 @Injectable()
 export class HttpNotificationProvider implements NotificationProvider {
-  readonly name = 'http';
+  readonly name = "http";
 
-  private readonly logger = new Logger('Notifications');
+  private readonly logger = new Logger("Notifications");
 
   constructor(private readonly config: ConfigService<Env, true>) {}
 
   async send(message: OutboundMessage): Promise<void> {
-    const url = this.config.get('NOTIFICATIONS_HTTP_URL', { infer: true });
+    const url = this.config.get("NOTIFICATIONS_HTTP_URL", { infer: true });
 
     if (!url) {
-      throw new Error('NOTIFICATIONS_HTTP_URL is not configured');
+      throw new Error("NOTIFICATIONS_HTTP_URL is not configured");
     }
 
-    const token = this.config.get('NOTIFICATIONS_HTTP_TOKEN', { infer: true });
+    const token = this.config.get("NOTIFICATIONS_HTTP_TOKEN", { infer: true });
     const controller = new AbortController();
     const timeout = setTimeout(
       () => controller.abort(),
-      this.config.get('NOTIFICATIONS_HTTP_TIMEOUT_MS', { infer: true }),
+      this.config.get("NOTIFICATIONS_HTTP_TIMEOUT_MS", { infer: true }),
     );
 
     try {
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'content-type': 'application/json',
+          "content-type": "application/json",
           ...(token ? { authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
@@ -76,7 +76,7 @@ export class HttpNotificationProvider implements NotificationProvider {
       if (!response.ok) {
         // The body is read for the log, not for the caller: a gateway's error
         // text is diagnostic and must never reach a patient's screen.
-        const detail = await response.text().catch(() => '');
+        const detail = await response.text().catch(() => "");
         throw new Error(`Gateway responded ${response.status}: ${detail.slice(0, 200)}`);
       }
     } finally {

@@ -1,4 +1,4 @@
-const PREFIX = 'clinic.branding.';
+const PREFIX = "clinic.branding.";
 
 export interface CachedBranding {
   readonly logoUrl: string | null;
@@ -9,13 +9,13 @@ export function readBranding(scope: string): CachedBranding | null {
     const raw = localStorage.getItem(PREFIX + scope);
     const parsed: unknown = raw === null ? null : JSON.parse(raw);
 
-    if (typeof parsed !== 'object' || parsed === null) {
+    if (typeof parsed !== "object" || parsed === null) {
       return null;
     }
 
     const { logoUrl } = parsed as { logoUrl?: unknown };
 
-    return typeof logoUrl === 'string' || logoUrl === null ? { logoUrl: logoUrl ?? null } : null;
+    return typeof logoUrl === "string" || logoUrl === null ? { logoUrl: logoUrl ?? null } : null;
   } catch {
     return null;
   }

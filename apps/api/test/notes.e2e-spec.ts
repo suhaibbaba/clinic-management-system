@@ -1,10 +1,10 @@
-import { USER_ROLE, type ClinicNote, type Paginated, type UserRole } from '@clinic/shared';
+import { USER_ROLE, type ClinicNote, type Paginated, type UserRole } from "@clinic/shared";
 
-import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
+import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 // The noticeboard is shared, so the interesting boundary is not "who may read it" — everyone may —
 // but "whose note is whose" (ROLES.md core matrix), plus the clinic scope every table carries.
-describe('Clinic notes (e2e)', () => {
+describe("Clinic notes (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
   let otherClinic: TestClinic;
@@ -29,8 +29,8 @@ describe('Clinic notes (e2e)', () => {
 
   const write = async (body: string, token: string): Promise<ClinicNote> => {
     const response = await context.app.inject({
-      method: 'POST',
-      url: '/notes',
+      method: "POST",
+      url: "/notes",
       headers: auth(token),
       payload: { body },
     });
@@ -42,8 +42,8 @@ describe('Clinic notes (e2e)', () => {
 
   const read = async (token: string): Promise<Paginated<ClinicNote>> => {
     const response = await context.app.inject({
-      method: 'GET',
-      url: '/notes',
+      method: "GET",
+      url: "/notes",
       headers: auth(token),
     });
 
@@ -52,8 +52,8 @@ describe('Clinic notes (e2e)', () => {
     return response.json<Paginated<ClinicNote>>();
   };
 
-  it('lets every role write to the board and read the whole of it', async () => {
-    const written = await write('اتصل بالمختبر قبل الثانية', tokens[USER_ROLE.RECEPTIONIST]);
+  it("lets every role write to the board and read the whole of it", async () => {
+    const written = await write("اتصل بالمختبر قبل الثانية", tokens[USER_ROLE.RECEPTIONIST]);
 
     expect(written.authorRole).toBe(USER_ROLE.RECEPTIONIST);
     expect(written.authorName?.ar).toBeTruthy();
@@ -64,29 +64,29 @@ describe('Clinic notes (e2e)', () => {
   });
 
   it("refuses to edit or delete somebody else's note, and lets the admin", async () => {
-    const note = await write('ملاحظة الاستقبال', tokens[USER_ROLE.RECEPTIONIST]);
+    const note = await write("ملاحظة الاستقبال", tokens[USER_ROLE.RECEPTIONIST]);
 
     const edit = await context.app.inject({
-      method: 'PATCH',
+      method: "PATCH",
       url: `/notes/${note.id}`,
       headers: auth(tokens[USER_ROLE.DOCTOR]),
-      payload: { body: 'تعديل من طبيب' },
+      payload: { body: "تعديل من طبيب" },
     });
 
     expect(edit.statusCode).toBe(403);
 
     const own = await context.app.inject({
-      method: 'PATCH',
+      method: "PATCH",
       url: `/notes/${note.id}`,
       headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
-      payload: { body: 'تعديل من صاحبها' },
+      payload: { body: "تعديل من صاحبها" },
     });
 
     expect(own.statusCode).toBe(200);
-    expect(own.json<ClinicNote>().body).toBe('تعديل من صاحبها');
+    expect(own.json<ClinicNote>().body).toBe("تعديل من صاحبها");
 
     const byAdmin = await context.app.inject({
-      method: 'DELETE',
+      method: "DELETE",
       url: `/notes/${note.id}`,
       headers: auth(tokens[USER_ROLE.ADMIN]),
     });
@@ -99,17 +99,17 @@ describe('Clinic notes (e2e)', () => {
   });
 
   it("never shows one clinic another's board", async () => {
-    const mine = await write('خاص بعيادتنا', tokens[USER_ROLE.ADMIN]);
+    const mine = await write("خاص بعيادتنا", tokens[USER_ROLE.ADMIN]);
     const theirs = await read(otherClinicToken);
 
     expect(theirs.items.map((note) => note.id)).not.toContain(mine.id);
 
     // Another clinic's id is 404, not 403: a 403 confirms the row exists somewhere.
     const reach = await context.app.inject({
-      method: 'PATCH',
+      method: "PATCH",
       url: `/notes/${mine.id}`,
       headers: auth(otherClinicToken),
-      payload: { body: 'محاولة' },
+      payload: { body: "محاولة" },
     });
 
     expect(reach.statusCode).toBe(404);

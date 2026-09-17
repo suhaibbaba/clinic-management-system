@@ -1,19 +1,19 @@
-import { format, isValid, parse } from 'date-fns';
-import { useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { format, isValid, parse } from "date-fns";
+import { useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Button } from '@ui/components/button';
-import { Calendar, dateLocale, type CalendarView } from '@ui/components/calendar';
-import { FIELD_BUTTON, FIELD_TEXT, FieldLock, fieldShell } from '@ui/components/field';
-import { Icon } from '@ui/components/icon';
-import { openOnArrowDown, usePickerOpen } from '@ui/components/picker-open';
-import { Popover } from '@ui/components/popover';
-import { cn } from '@ui/lib/cn';
+import { Button } from "@ui/components/button";
+import { Calendar, dateLocale, type CalendarView } from "@ui/components/calendar";
+import { FIELD_BUTTON, FIELD_TEXT, FieldLock, fieldShell } from "@ui/components/field";
+import { Icon } from "@ui/components/icon";
+import { openOnArrowDown, usePickerOpen } from "@ui/components/picker-open";
+import { Popover } from "@ui/components/popover";
+import { cn } from "@ui/lib/cn";
 
 /** The wire format everywhere: what the API takes and returns. */
-const ISO = 'yyyy-MM-dd';
+const ISO = "yyyy-MM-dd";
 /** What a person types and reads. Gregorian, Latin digits, day first. */
-const TYPED = 'dd/MM/yyyy';
+const TYPED = "dd/MM/yyyy";
 
 export const toIsoDate = (date: Date): string => format(date, ISO);
 
@@ -60,9 +60,9 @@ export function DatePicker({
   const { t, i18n } = useTranslation();
   const picker = usePickerOpen();
   const selected = fromIsoDate(value);
-  const [typed, setTyped] = useState(() => (selected ? format(selected, TYPED) : ''));
+  const [typed, setTyped] = useState(() => (selected ? format(selected, TYPED) : ""));
 
-  const display = selected ? format(selected, TYPED) : '';
+  const display = selected ? format(selected, TYPED) : "";
   const [lastValue, setLastValue] = useState(value);
   if (value !== lastValue) {
     setLastValue(value);
@@ -72,8 +72,8 @@ export function DatePicker({
   const commit = (text: string): void => {
     setTyped(text);
 
-    if (text.trim() === '') {
-      onChange('');
+    if (text.trim() === "") {
+      onChange("");
       return;
     }
 
@@ -100,12 +100,12 @@ export function DatePicker({
             autoComplete="off"
             disabled={disabled}
             aria-invalid={hasError || undefined}
-            placeholder={t('common.placeholders.date')}
+            placeholder={t("common.placeholders.date")}
             value={typed}
             onChange={(event) => commit(event.target.value)}
             {...picker.opens(false)}
             onKeyDown={openOnArrowDown(picker.show)}
-            className={cn(FIELD_TEXT, 'page-rtl:text-right page-ltr:text-left', 'tabular-nums')}
+            className={cn(FIELD_TEXT, "page-rtl:text-right page-ltr:text-left", "tabular-nums")}
           />
 
           {disabled ? (
@@ -114,7 +114,7 @@ export function DatePicker({
             <button
               type="button"
               data-part="date-picker-trigger"
-              aria-label={t('common.openCalendar')}
+              aria-label={t("common.openCalendar")}
               {...picker.opens(true)}
               className={FIELD_BUTTON}
             >
@@ -145,11 +145,11 @@ export function DatePicker({
           variant="quiet"
           icon={<Icon name="x" />}
           onClick={() => {
-            onChange('');
+            onChange("");
             picker.onOpenChange(false);
           }}
         >
-          {t('common.clear')}
+          {t("common.clear")}
         </Button>
 
         <Button
@@ -161,13 +161,13 @@ export function DatePicker({
             picker.onOpenChange(false);
           }}
         >
-          {t('common.today')}
+          {t("common.today")}
         </Button>
       </div>
 
       {/* Announces the current selection to a screen reader on open. */}
       <p className="sr-only">
-        {selected ? format(selected, 'PPP', { locale: dateLocale(i18n.language) }) : ''}
+        {selected ? format(selected, "PPP", { locale: dateLocale(i18n.language) }) : ""}
       </p>
     </Popover>
   );

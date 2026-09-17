@@ -1,7 +1,7 @@
-import { forwardRef, type InputHTMLAttributes } from 'react';
+import { forwardRef, type InputHTMLAttributes } from "react";
 
-import { FIELD_TEXT, FieldClear, FieldIcon, fieldShell } from '@ui/components/field';
-import { cn } from '@ui/lib/cn';
+import { FIELD_TEXT, FieldClear, FieldIcon, fieldShell } from "@ui/components/field";
+import { cn } from "@ui/lib/cn";
 
 export interface SearchFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   /** Names the field for screen readers; there is no visible label. */
@@ -17,7 +17,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
   { label, shortcut, className, onClear, clearLabel, ...props },
   ref,
 ) {
-  const clearable = onClear !== undefined && String(props.value ?? '') !== '';
+  const clearable = onClear !== undefined && String(props.value ?? "") !== "";
 
   return (
     <div data-part="search-field" className={cn(fieldShell({}), className)}>
@@ -30,8 +30,8 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
         aria-label={label}
         className={cn(
           FIELD_TEXT,
-          'page-rtl:text-right page-ltr:text-left',
-          '[&::-webkit-search-decoration]:appearance-none [&::-webkit-search-cancel-button]:appearance-none',
+          "page-rtl:text-right page-ltr:text-left",
+          "[&::-webkit-search-decoration]:appearance-none [&::-webkit-search-cancel-button]:appearance-none",
         )}
         {...props}
       />
@@ -43,8 +43,8 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
           data-part="search-field-shortcut"
           aria-hidden="true"
           className={cn(
-            'pill-text inline-flex items-center hidden h-5 min-w-5 shrink-0 justify-center rounded-chip md:inline-flex',
-            'border border-line bg-sunken px-1.5 font-sans text-label text-ink-faint',
+            "pill-text inline-flex items-center hidden h-5 min-w-5 shrink-0 justify-center rounded-chip md:inline-flex",
+            "border border-line bg-sunken px-1.5 font-sans text-label text-ink-faint",
           )}
         >
           {shortcut}

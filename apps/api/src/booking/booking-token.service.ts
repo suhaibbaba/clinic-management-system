@@ -1,14 +1,14 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
-import type { Env } from '@api/config/env.schema';
+import type { Env } from "@api/config/env.schema";
 
 /** `v1.<payload>.<signature>`, all base64url. */
-const PREFIX = 'v1';
+const PREFIX = "v1";
 
-const encode = (value: string): string => Buffer.from(value, 'utf8').toString('base64url');
-const decode = (value: string): string => Buffer.from(value, 'base64url').toString('utf8');
+const encode = (value: string): string => Buffer.from(value, "utf8").toString("base64url");
+const decode = (value: string): string => Buffer.from(value, "base64url").toString("utf8");
 
 // An HMAC over the appointment id, not the id itself, so a guessed token is a typo and is rejected
 // before any query. `cancel` and `manage` sign separately, under their own secret.
@@ -18,8 +18,8 @@ export class BookingTokenService {
 
   constructor(config: ConfigService<Env, true>) {
     this.secret =
-      config.get('BOOKING_TOKEN_SECRET', { infer: true }) ??
-      config.get('JWT_SECRET', { infer: true });
+      config.get("BOOKING_TOKEN_SECRET", { infer: true }) ??
+      config.get("JWT_SECRET", { infer: true });
   }
 
   sign(appointmentId: string): string {
@@ -31,13 +31,13 @@ export class BookingTokenService {
   // Every failure is the same exception with the same message: a nearly-right token must not be
   // distinguishable from nonsense, or the error text is a forging oracle.
   verify(token: string): string {
-    const parts = token.split('.');
+    const parts = token.split(".");
 
     if (parts.length !== 3 || parts[0] !== PREFIX) {
-      throw new UnauthorizedException('Invalid booking link');
+      throw new UnauthorizedException("Invalid booking link");
     }
 
-    const [, payload = '', signature = ''] = parts;
+    const [, payload = "", signature = ""] = parts;
     const expected = this.signature(payload);
 
     // Constant time: a byte-by-byte comparison leaks how much of a forged
@@ -46,19 +46,19 @@ export class BookingTokenService {
     const want = Buffer.from(expected);
 
     if (given.length !== want.length || !timingSafeEqual(given, want)) {
-      throw new UnauthorizedException('Invalid booking link');
+      throw new UnauthorizedException("Invalid booking link");
     }
 
     const id = decode(payload);
 
     if (!/^[0-9a-f-]{36}$/i.test(id)) {
-      throw new UnauthorizedException('Invalid booking link');
+      throw new UnauthorizedException("Invalid booking link");
     }
 
     return id;
   }
 
   private signature(payload: string): string {
-    return createHmac('sha256', this.secret).update(`${PREFIX}.${payload}`).digest('base64url');
+    return createHmac("sha256", this.secret).update(`${PREFIX}.${payload}`).digest("base64url");
   }
 }

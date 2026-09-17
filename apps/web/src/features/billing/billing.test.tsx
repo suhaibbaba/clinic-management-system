@@ -1,11 +1,11 @@
-import { USER_ROLE, type UserRole } from '@clinic/shared';
-import { screen, waitFor, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AppRoutes } from '@web/app/router';
-import ar from '@web/i18n/locales/ar.json';
-import { authTokens } from '@web/lib/auth-tokens';
+import { AppRoutes } from "@web/app/router";
+import ar from "@web/i18n/locales/ar.json";
+import { authTokens } from "@web/lib/auth-tokens";
 import {
   makeBalance,
   makeClinic,
@@ -15,18 +15,18 @@ import {
   makeStatement,
   paginated,
   PATIENT_ID,
-} from '@test/helpers/fixtures';
-import { mockApi, renderWithProviders, type MockResponse } from '@test/helpers/render';
+} from "@test/helpers/fixtures";
+import { mockApi, renderWithProviders, type MockResponse } from "@test/helpers/render";
 
 function handlers(role: UserRole, overrides: Record<string, MockResponse> = {}) {
   return {
-    'POST /auth/refresh': { status: 200, body: { accessToken: 'access', expiresIn: 900 } },
-    'GET /me': { status: 200, body: makeProfile({ role }) },
-    'GET /clinic': { status: 200, body: makeClinic() },
-    'GET /patients': { status: 200, body: paginated([]) },
-    'GET /doctors': { status: 200, body: paginated([]) },
-    'GET /performed-procedures': { status: 200, body: paginated([]) },
-    'GET /procedure-catalog': { status: 200, body: paginated([]) },
+    "POST /auth/refresh": { status: 200, body: { accessToken: "access", expiresIn: 900 } },
+    "GET /me": { status: 200, body: makeProfile({ role }) },
+    "GET /clinic": { status: 200, body: makeClinic() },
+    "GET /patients": { status: 200, body: paginated([]) },
+    "GET /doctors": { status: 200, body: paginated([]) },
+    "GET /performed-procedures": { status: 200, body: paginated([]) },
+    "GET /procedure-catalog": { status: 200, body: paginated([]) },
     [`GET /patients/${PATIENT_ID}`]: { status: 200, body: makePatient() },
     [`GET /patients/${PATIENT_ID}/allergy-flags`]: {
       status: 200,
@@ -34,7 +34,7 @@ function handlers(role: UserRole, overrides: Record<string, MockResponse> = {}) 
     },
     [`GET /patients/${PATIENT_ID}/balance`]: { status: 200, body: makeBalance() },
     [`GET /patients/${PATIENT_ID}/statement`]: { status: 200, body: makeStatement() },
-    'POST /payments': { status: 201, body: makePayment() },
+    "POST /payments": { status: 201, body: makePayment() },
     ...overrides,
   } as Record<string, MockResponse>;
 }
@@ -44,70 +44,70 @@ async function renderAccountTab(role: UserRole, overrides: Record<string, MockRe
   const api = mockApi(handlers(role, overrides));
   renderWithProviders(<AppRoutes />, { route: `/patients/${PATIENT_ID}` });
 
-  const tab = await screen.findByRole('tab', { name: ar.patients.tabs.billing });
+  const tab = await screen.findByRole("tab", { name: ar.patients.tabs.billing });
   await userEvent.click(tab);
 
   return api;
 }
 
-const NBSP = '\u00A0';
+const NBSP = "\u00A0";
 
-describe('Billing', () => {
+describe("Billing", () => {
   beforeEach(() => {
     authTokens.clear();
     // The receipt opens in a new tab from a blob; jsdom has neither.
-    vi.stubGlobal('open', vi.fn());
-    URL.createObjectURL = vi.fn(() => 'blob:receipt');
+    vi.stubGlobal("open", vi.fn());
+    URL.createObjectURL = vi.fn(() => "blob:receipt");
     URL.revokeObjectURL = vi.fn();
   });
 
-  describe('account tab', () => {
-    it('runs the balance down the statement', async () => {
+  describe("account tab", () => {
+    it("runs the balance down the statement", async () => {
       await renderAccountTab(USER_ROLE.DOCTOR);
 
-      const table = await screen.findByRole('table');
-      const rows = within(table).getAllByRole('row').slice(1);
+      const table = await screen.findByRole("table");
+      const rows = within(table).getAllByRole("row").slice(1);
 
       const cells = (row: HTMLElement): string[] =>
         within(row)
-          .getAllByRole('cell')
-          .map((cell) => cell.textContent?.trim() ?? '');
+          .getAllByRole("cell")
+          .map((cell) => cell.textContent?.trim() ?? "");
 
       expect(rows).toHaveLength(2);
       // Whole numbers and the clinic's symbol. The space between figure and symbol is non-breaking,
       // so a narrow column cannot split them.
       expect(cells(rows[0]!).slice(1, 5)).toEqual([
-        'حشوة تجميلية',
+        "حشوة تجميلية",
         `150${NBSP}$`,
-        '',
+        "",
         `150${NBSP}$`,
       ]);
-      expect(cells(rows[1]!).slice(2, 5)).toEqual(['', `50${NBSP}$`, `100${NBSP}$`]);
+      expect(cells(rows[1]!).slice(2, 5)).toEqual(["", `50${NBSP}$`, `100${NBSP}$`]);
     });
 
-    it('names the procedure and nothing clinical beside it', async () => {
+    it("names the procedure and nothing clinical beside it", async () => {
       await renderAccountTab(USER_ROLE.RECEPTIONIST);
 
-      expect(await screen.findByText('حشوة تجميلية')).toBeInTheDocument();
+      expect(await screen.findByText("حشوة تجميلية")).toBeInTheDocument();
       expect(screen.queryByText(/تشخيص/)).not.toBeInTheDocument();
     });
 
-    it('records a payment and prints its receipt', async () => {
+    it("records a payment and prints its receipt", async () => {
       const api = await renderAccountTab(USER_ROLE.RECEPTIONIST, {
         [`GET /payments/${makePayment().id}/receipt`]: { status: 200, body: {} },
       });
 
-      await userEvent.click(await screen.findByRole('button', { name: ar.billing.recordPayment }));
+      await userEvent.click(await screen.findByRole("button", { name: ar.billing.recordPayment }));
 
       const amount = await screen.findByLabelText(new RegExp(ar.billing.amount));
       await userEvent.clear(amount);
       // The field refuses a separator outright, so the dot never lands.
-      await userEvent.type(amount, '40.00');
-      await userEvent.click(screen.getByRole('button', { name: ar.billing.recordAndPrint }));
+      await userEvent.type(amount, "40.00");
+      await userEvent.click(screen.getByRole("button", { name: ar.billing.recordAndPrint }));
 
       const posted = await vi.waitFor(() => {
         const call = api.calls.find(
-          (entry) => entry.method === 'POST' && entry.url.endsWith('/payments'),
+          (entry) => entry.method === "POST" && entry.url.endsWith("/payments"),
         );
         expect(call).toBeDefined();
         return call!;
@@ -117,8 +117,8 @@ describe('Billing', () => {
         patientId: PATIENT_ID,
         // The separator never lands, and the schema normalises to the stored
         // scale: "40.00" typed into a whole-number field is forty hundred.
-        amount: '4000.00',
-        method: 'cash',
+        amount: "4000.00",
+        method: "cash",
       });
 
       // The receipt is the point of taking the payment, so it is fetched too.
@@ -129,66 +129,66 @@ describe('Billing', () => {
       });
     });
 
-    it('is read-only for a doctor', async () => {
+    it("is read-only for a doctor", async () => {
       await renderAccountTab(USER_ROLE.DOCTOR);
 
-      await screen.findByRole('table');
+      await screen.findByRole("table");
       expect(
-        screen.queryByRole('button', { name: ar.billing.recordPayment }),
+        screen.queryByRole("button", { name: ar.billing.recordPayment }),
       ).not.toBeInTheDocument();
     });
 
-    it('offers the reversal to an admin', async () => {
+    it("offers the reversal to an admin", async () => {
       await renderAccountTab(USER_ROLE.ADMIN);
 
-      await screen.findByRole('table');
-      expect(screen.getByRole('button', { name: ar.billing.reverse })).toBeVisible();
+      await screen.findByRole("table");
+      expect(screen.getByRole("button", { name: ar.billing.reverse })).toBeVisible();
     });
 
-    it('does not offer it to a receptionist — only an admin may correct a payment', async () => {
+    it("does not offer it to a receptionist — only an admin may correct a payment", async () => {
       await renderAccountTab(USER_ROLE.RECEPTIONIST);
 
-      await screen.findByRole('table');
-      expect(screen.queryByRole('button', { name: ar.billing.reverse })).not.toBeInTheDocument();
+      await screen.findByRole("table");
+      expect(screen.queryByRole("button", { name: ar.billing.reverse })).not.toBeInTheDocument();
     });
 
-    it('suggests the outstanding balance without committing to it', async () => {
+    it("suggests the outstanding balance without committing to it", async () => {
       await renderAccountTab(USER_ROLE.RECEPTIONIST);
 
-      await userEvent.click(await screen.findByRole('button', { name: ar.billing.recordPayment }));
+      await userEvent.click(await screen.findByRole("button", { name: ar.billing.recordPayment }));
 
       // Prefilled, because a patient usually settles what they owe — but it is
       // an editable field, because often they do not.
-      expect(await screen.findByLabelText(new RegExp(ar.billing.amount))).toHaveValue('100.00');
+      expect(await screen.findByLabelText(new RegExp(ar.billing.amount))).toHaveValue("100.00");
     });
   });
 
   // The standalone overdue screen is gone; the address is not — it lands on the patients-list
   // filter that replaced it.
-  describe('the retired overdue screen', () => {
-    it('carries its old address to the patients list, already filtered', async () => {
+  describe("the retired overdue screen", () => {
+    it("carries its old address to the patients list, already filtered", async () => {
       authTokens.clear();
       const api = mockApi(handlers(USER_ROLE.RECEPTIONIST));
-      renderWithProviders(<AppRoutes />, { route: '/billing/overdue' });
+      renderWithProviders(<AppRoutes />, { route: "/billing/overdue" });
 
-      expect(await screen.findByRole('heading', { name: ar.patients.title })).toBeVisible();
-      expect(screen.getByRole('radio', { name: new RegExp(ar.patients.owing) })).toBeChecked();
+      expect(await screen.findByRole("heading", { name: ar.patients.title })).toBeVisible();
+      expect(screen.getByRole("radio", { name: new RegExp(ar.patients.owing) })).toBeChecked();
 
       await waitFor(() =>
         expect(
           api.calls.some(
-            (call) => call.url.includes('/patients?') && call.url.includes('hasBalance=true'),
+            (call) => call.url.includes("/patients?") && call.url.includes("hasBalance=true"),
           ),
         ).toBe(true),
       );
     });
 
-    it('sends a doctor there too — they read balances, just not that page', async () => {
+    it("sends a doctor there too — they read balances, just not that page", async () => {
       authTokens.clear();
       mockApi(handlers(USER_ROLE.DOCTOR));
-      renderWithProviders(<AppRoutes />, { route: '/billing/overdue' });
+      renderWithProviders(<AppRoutes />, { route: "/billing/overdue" });
 
-      expect(await screen.findByRole('heading', { name: ar.patients.title })).toBeVisible();
+      expect(await screen.findByRole("heading", { name: ar.patients.title })).toBeVisible();
     });
   });
 });

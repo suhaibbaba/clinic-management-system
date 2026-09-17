@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Query } from "@nestjs/common";
 import {
   APPOINTMENT_STATUS,
   listAppointmentsQuerySchema,
@@ -6,15 +6,15 @@ import {
   USER_ROLE,
   type CalendarAppointment,
   type Paginated,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
+import { z } from "zod";
 
-import { AppointmentsService } from '@api/appointments/appointments.service';
-import { PendingBookingsService } from '@api/booking/pending-bookings.service';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
+import { AppointmentsService } from "@api/appointments/appointments.service";
+import { PendingBookingsService } from "@api/booking/pending-bookings.service";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 
 class PendingQueryDto extends createZodDto(listAppointmentsQuerySchema.omit({ status: true })) {}
 class IdParamDto extends createZodDto(z.object({ id: uuidSchema })) {}
@@ -24,7 +24,7 @@ class RejectBookingDto extends createZodDto(rejectBookingSchema) {}
 
 // `requested` is itself the marker for "came from the public page" — reception's own bookings start
 // `confirmed`, so no extra column is needed.
-@Controller('appointments/pending-confirmation')
+@Controller("appointments/pending-confirmation")
 @Roles(USER_ROLE.RECEPTIONIST)
 export class PendingBookingsController {
   constructor(
@@ -43,7 +43,7 @@ export class PendingBookingsController {
     });
   }
 
-  @Patch(':id/confirm')
+  @Patch(":id/confirm")
   confirm(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -51,7 +51,7 @@ export class PendingBookingsController {
     return this.pending.confirm(actor, params.id);
   }
 
-  @Patch(':id/reject')
+  @Patch(":id/reject")
   reject(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,

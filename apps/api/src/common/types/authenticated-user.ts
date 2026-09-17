@@ -1,4 +1,4 @@
-import type { UserRole } from '@clinic/shared';
+import type { UserRole } from "@clinic/shared";
 
 // `clinicId` here is the only source of clinic scope — never read from a body, path or query
 // (ROLES.md global rule 1).

@@ -1,4 +1,4 @@
-import { TIMELINE_ENTRY_TYPE, USER_ROLE, type UserRole } from '@clinic/shared';
+import { TIMELINE_ENTRY_TYPE, USER_ROLE, type UserRole } from "@clinic/shared";
 
 import {
   createPatient,
@@ -6,8 +6,8 @@ import {
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
-} from '@test/helpers/patient-fixtures';
-import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
+} from "@test/helpers/patient-fixtures";
+import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 interface Entry {
   id: string;
@@ -17,7 +17,7 @@ interface Entry {
   detail: Record<string, unknown>;
 }
 
-describe('Patient timeline (e2e)', () => {
+describe("Patient timeline (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
   let fixtures: PatientFixtures;
@@ -41,28 +41,28 @@ describe('Patient timeline (e2e)', () => {
     fixtures = await seedClinicFixtures(context, clinic, tokens[USER_ROLE.ADMIN]);
 
     patientId = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
-      fullName: 'مريض الخط الزمني',
+      fullName: "مريض الخط الزمني",
       phone: uniquePhone(),
     });
 
     const asDoctor = auth(tokens[USER_ROLE.DOCTOR]);
 
     await context.app.inject({
-      method: 'POST',
-      url: '/visits',
+      method: "POST",
+      url: "/visits",
       headers: asDoctor,
       payload: {
         patientId,
         doctorId: fixtures.doctorId,
         visitDate: new Date(Date.now() - 3 * 86_400_000).toISOString(),
-        complaint: 'ألم عند المضغ',
-        diagnosis: 'التهاب لب سني عكوس',
+        complaint: "ألم عند المضغ",
+        diagnosis: "التهاب لب سني عكوس",
       },
     });
 
     await context.app.inject({
-      method: 'POST',
-      url: '/performed-procedures',
+      method: "POST",
+      url: "/performed-procedures",
       headers: asDoctor,
       payload: {
         ...procedurePayload({
@@ -76,26 +76,26 @@ describe('Patient timeline (e2e)', () => {
     });
 
     await context.app.inject({
-      method: 'POST',
-      url: '/prescriptions',
+      method: "POST",
+      url: "/prescriptions",
       headers: asDoctor,
       payload: {
         patientId,
         doctorId: fixtures.doctorId,
         items: [
-          { drug: 'أموكسيسيلين', dose: '٥٠٠ ملغ', frequency: 'كل ٨ ساعات', duration: '٥ أيام' },
+          { drug: "أموكسيسيلين", dose: "٥٠٠ ملغ", frequency: "كل ٨ ساعات", duration: "٥ أيام" },
         ],
       },
     });
 
     await context.app.inject({
-      method: 'POST',
-      url: '/treatment-plans',
+      method: "POST",
+      url: "/treatment-plans",
       headers: asDoctor,
       payload: {
         patientId,
         doctorId: fixtures.doctorId,
-        title: 'خطة معالجة',
+        title: "خطة معالجة",
         items: [{ procedureId: fixtures.catalogId }],
       },
     });
@@ -105,14 +105,14 @@ describe('Patient timeline (e2e)', () => {
     await context.close();
   });
 
-  const timeline = async (role: UserRole, query = '') =>
+  const timeline = async (role: UserRole, query = "") =>
     context.app.inject({
-      method: 'GET',
+      method: "GET",
       url: `/patients/${patientId}/timeline${query}`,
       headers: auth(tokens[role]),
     });
 
-  it('merges every record type into one reverse-chronological stream', async () => {
+  it("merges every record type into one reverse-chronological stream", async () => {
     const response = await timeline(USER_ROLE.DOCTOR);
 
     expect(response.statusCode).toBe(200);
@@ -133,9 +133,9 @@ describe('Patient timeline (e2e)', () => {
     expect([...timestamps].sort((a, b) => b - a)).toEqual(timestamps);
   });
 
-  it('paginates across the merged stream, not per source', async () => {
-    const first = await timeline(USER_ROLE.ADMIN, '?limit=2&page=1');
-    const second = await timeline(USER_ROLE.ADMIN, '?limit=2&page=2');
+  it("paginates across the merged stream, not per source", async () => {
+    const first = await timeline(USER_ROLE.ADMIN, "?limit=2&page=1");
+    const second = await timeline(USER_ROLE.ADMIN, "?limit=2&page=2");
 
     const firstPage = first.json() as { items: Entry[]; total: number; totalPages: number };
     const secondPage = second.json() as { items: Entry[] };
@@ -149,23 +149,23 @@ describe('Patient timeline (e2e)', () => {
     expect(new Set(ids).size).toBe(4);
   });
 
-  it('narrows to one type on request', async () => {
+  it("narrows to one type on request", async () => {
     const response = await timeline(USER_ROLE.DOCTOR, `?type=${TIMELINE_ENTRY_TYPE.VISIT}`);
 
     const { items } = response.json() as { items: Entry[] };
     expect(items).toHaveLength(1);
-    expect(items[0]?.title).toBe('التهاب لب سني عكوس');
+    expect(items[0]?.title).toBe("التهاب لب سني عكوس");
   });
 
-  it('carries money as a string, never a JSON number', async () => {
+  it("carries money as a string, never a JSON number", async () => {
     const response = await timeline(USER_ROLE.DOCTOR, `?type=${TIMELINE_ENTRY_TYPE.PROCEDURE}`);
 
     const entry = (response.json() as { items: Entry[] }).items[0];
-    expect(entry?.detail['price']).toBe('60.00');
-    expect(typeof entry?.detail['price']).toBe('string');
+    expect(entry?.detail["price"]).toBe("60.00");
+    expect(typeof entry?.detail["price"]).toBe("string");
   });
 
-  it('gives a receptionist only the financial and appointment entries', async () => {
+  it("gives a receptionist only the financial and appointment entries", async () => {
     const response = await timeline(USER_ROLE.RECEPTIONIST);
 
     expect(response.statusCode).toBe(200);
@@ -177,25 +177,25 @@ describe('Patient timeline (e2e)', () => {
     expect(total).toBe(0);
   });
 
-  it('cannot be widened by the type query parameter', async () => {
+  it("cannot be widened by the type query parameter", async () => {
     const response = await timeline(USER_ROLE.RECEPTIONIST, `?type=${TIMELINE_ENTRY_TYPE.VISIT}`);
 
     expect(response.statusCode).toBe(200);
     expect((response.json() as { items: Entry[] }).items).toEqual([]);
   });
 
-  it('refuses a technician entirely', async () => {
+  it("refuses a technician entirely", async () => {
     const response = await timeline(USER_ROLE.TECHNICIAN);
 
     expect(response.statusCode).toBe(403);
   });
 
-  it('never reaches another clinic', async () => {
+  it("never reaches another clinic", async () => {
     const otherClinic = await context.createClinic();
     const otherToken = await context.login(otherClinic.phones[USER_ROLE.ADMIN]);
 
     const response = await context.app.inject({
-      method: 'GET',
+      method: "GET",
       url: `/patients/${patientId}/timeline`,
       headers: auth(otherToken),
     });

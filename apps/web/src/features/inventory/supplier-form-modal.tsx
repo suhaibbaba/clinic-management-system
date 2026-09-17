@@ -1,6 +1,6 @@
-import type { SupplierSummary } from '@clinic/shared';
-import { useEffect, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { SupplierSummary } from "@clinic/shared";
+import { useEffect, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Button,
@@ -11,9 +11,9 @@ import {
   Switch,
   Textarea,
   useToast,
-} from '@clinic/ui';
-import { useCreateSupplier, useUpdateSupplier } from '@web/features/inventory/queries';
-import { errorMessageKey } from '@web/lib/api-error';
+} from "@clinic/ui";
+import { useCreateSupplier, useUpdateSupplier } from "@web/features/inventory/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 
 export function SupplierFormModal({
   open,
@@ -30,10 +30,10 @@ export function SupplierFormModal({
   const create = useCreateSupplier();
   const update = useUpdateSupplier();
 
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [contactPerson, setContactPerson] = useState('');
-  const [notes, setNotes] = useState('');
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [contactPerson, setContactPerson] = useState("");
+  const [notes, setNotes] = useState("");
   const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
@@ -41,10 +41,10 @@ export function SupplierFormModal({
       return;
     }
 
-    setName(supplier?.name ?? '');
-    setPhone(supplier?.phone ?? '');
-    setContactPerson(supplier?.contactPerson ?? '');
-    setNotes(supplier?.notes ?? '');
+    setName(supplier?.name ?? "");
+    setPhone(supplier?.phone ?? "");
+    setContactPerson(supplier?.contactPerson ?? "");
+    setNotes(supplier?.notes ?? "");
     setIsActive(supplier?.isActive ?? true);
   }, [open, supplier]);
 
@@ -52,9 +52,9 @@ export function SupplierFormModal({
     try {
       const body = {
         name: name.trim(),
-        phone: phone.trim() === '' ? null : phone.trim(),
-        contactPerson: contactPerson.trim() === '' ? null : contactPerson.trim(),
-        notes: notes.trim() === '' ? null : notes.trim(),
+        phone: phone.trim() === "" ? null : phone.trim(),
+        contactPerson: contactPerson.trim() === "" ? null : contactPerson.trim(),
+        notes: notes.trim() === "" ? null : notes.trim(),
         isActive,
       };
 
@@ -64,7 +64,7 @@ export function SupplierFormModal({
         await create.mutateAsync(body);
       }
 
-      toast.success(supplier ? 'inventory.suppliers.updated' : 'inventory.suppliers.created');
+      toast.success(supplier ? "inventory.suppliers.updated" : "inventory.suppliers.created");
       onOpenChange(false);
     } catch (error) {
       toast.error(errorMessageKey(error));
@@ -75,18 +75,18 @@ export function SupplierFormModal({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title={t(supplier ? 'inventory.suppliers.editTitle' : 'inventory.suppliers.newTitle')}
+      title={t(supplier ? "inventory.suppliers.editTitle" : "inventory.suppliers.newTitle")}
       footer={
         <>
           <Button variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
             disabled={name.trim().length < 2}
             isLoading={create.isPending || update.isPending}
             onClick={() => void submit()}
           >
-            {t('common.save')}
+            {t("common.save")}
           </Button>
         </>
       }
@@ -130,7 +130,7 @@ export function SupplierFormModal({
         <Switch
           checked={isActive}
           onCheckedChange={setIsActive}
-          label={t('inventory.suppliers.active')}
+          label={t("inventory.suppliers.active")}
         />
       </div>
     </Modal>

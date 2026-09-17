@@ -1,7 +1,7 @@
-import type { LabStatementEntry, LabWorkType } from '@clinic/shared';
-import { useMemo, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
+import type { LabStatementEntry, LabWorkType } from "@clinic/shared";
+import { useMemo, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 
 import {
   Badge,
@@ -18,38 +18,38 @@ import {
   StatRow,
   Table,
   useTabParam,
-} from '@clinic/ui';
-import { useSession } from '@web/features/auth/session';
-import { Money } from '@web/features/billing/money';
-import { useClinic } from '@web/features/clinic/queries';
-import { downloadLabStatement } from '@web/features/labs/documents';
-import { LabFormModal } from '@web/features/labs/lab-form-modal';
-import { LabOrdersTable } from '@web/features/labs/lab-orders-table';
-import { LabPaymentModal } from '@web/features/labs/lab-payment-modal';
-import { WorkTypeModal } from '@web/features/labs/work-type-modal';
-import { canManageLabs, canPayLab } from '@web/features/labs/permissions';
+} from "@clinic/ui";
+import { useSession } from "@web/features/auth/session";
+import { Money } from "@web/features/billing/money";
+import { useClinic } from "@web/features/clinic/queries";
+import { downloadLabStatement } from "@web/features/labs/documents";
+import { LabFormModal } from "@web/features/labs/lab-form-modal";
+import { LabOrdersTable } from "@web/features/labs/lab-orders-table";
+import { LabPaymentModal } from "@web/features/labs/lab-payment-modal";
+import { WorkTypeModal } from "@web/features/labs/work-type-modal";
+import { canManageLabs, canPayLab } from "@web/features/labs/permissions";
 import {
   useLab,
   useLabBalance,
   useLabOrders,
   useLabStatement,
   useLabWorkTypes,
-} from '@web/features/labs/queries';
-import { endOfNextDayIso, formatDate, startOfDayIso } from '@web/lib/format';
-import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
+} from "@web/features/labs/queries";
+import { endOfNextDayIso, formatDate, startOfDayIso } from "@web/lib/format";
+import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
-const TAB_IDS = ['orders', 'prices', 'statement'] as const;
+const TAB_IDS = ["orders", "prices", "statement"] as const;
 
 type Tab = (typeof TAB_IDS)[number];
 
 export function LabPage(): JSX.Element {
   const { t } = useTranslation();
-  const { id = '' } = useParams<{ id: string }>();
+  const { id = "" } = useParams<{ id: string }>();
   const { can } = useSession();
 
   // A lab's statement is the thing somebody sends to somebody else, and in `useState` it had no
   // address to send.
-  const [tab, setTab] = useTabParam<Tab>('tab', TAB_IDS, 'orders', ['page']);
+  const [tab, setTab] = useTabParam<Tab>("tab", TAB_IDS, "orders", ["page"]);
   const [editing, setEditing] = useState(false);
   const [paying, setPaying] = useState(false);
 
@@ -66,7 +66,7 @@ export function LabPage(): JSX.Element {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
           <h1 className="truncate text-title font-medium text-primary-900">
-            {lab.data?.name ?? '…'}
+            {lab.data?.name ?? "…"}
           </h1>
           {/* Not a joined string: the `+` is neutral and bidi hands it to the Arabic around it,
               drawing the number as `963115556677+`. */}
@@ -74,7 +74,7 @@ export function LabPage(): JSX.Element {
             {lab.data?.contactPerson && <span>{lab.data.contactPerson}</span>}
             {lab.data?.contactPerson && lab.data?.phone && <span aria-hidden>—</span>}
             {lab.data?.phone && <PhoneLink value={lab.data.phone} />}
-            {!lab.data?.contactPerson && !lab.data?.phone && t('labs.subtitle')}
+            {!lab.data?.contactPerson && !lab.data?.phone && t("labs.subtitle")}
           </p>
         </div>
 
@@ -85,12 +85,12 @@ export function LabPage(): JSX.Element {
               icon={<Icon name="edit" />}
               onClick={() => setEditing(true)}
             >
-              {t('common.edit')}
+              {t("common.edit")}
             </Button>
           )}
           {canPayLab(can) && (
             <Button icon={<Icon name="money" />} onClick={() => setPaying(true)}>
-              {t('labs.payment.action')}
+              {t("labs.payment.action")}
             </Button>
           )}
         </div>
@@ -99,51 +99,51 @@ export function LabPage(): JSX.Element {
       <StatRow>
         <StatCard
           icon="money"
-          tone={Number(balance.data?.balance ?? '0') > 0 ? 'warning' : 'success'}
-          label={t('labs.kpi.balance')}
-          value={<Money amount={balance.data?.balance ?? '0.00'} currency={currency} />}
-          caption={t('labs.kpi.balanceCaption')}
+          tone={Number(balance.data?.balance ?? "0") > 0 ? "warning" : "success"}
+          label={t("labs.kpi.balance")}
+          value={<Money amount={balance.data?.balance ?? "0.00"} currency={currency} />}
+          caption={t("labs.kpi.balanceCaption")}
         />
         <StatCard
           icon="clipboard"
           tone="primary"
-          label={t('labs.kpi.owedTotal')}
-          value={<Money amount={balance.data?.owed ?? '0.00'} currency={currency} />}
-          caption={t('labs.kpi.owedTotalCaption')}
+          label={t("labs.kpi.owedTotal")}
+          value={<Money amount={balance.data?.owed ?? "0.00"} currency={currency} />}
+          caption={t("labs.kpi.owedTotalCaption")}
         />
         <StatCard
           icon="check"
           tone="success"
-          label={t('labs.kpi.paid')}
-          value={<Money amount={balance.data?.paid ?? '0.00'} currency={currency} />}
+          label={t("labs.kpi.paid")}
+          value={<Money amount={balance.data?.paid ?? "0.00"} currency={currency} />}
           {...(balance.data?.lastPaymentAt && {
             caption: formatDate(balance.data.lastPaymentAt),
           })}
         />
         <StatCard
           icon="clock"
-          tone={(lab.data?.openOrders ?? 0) > 0 ? 'warning' : 'neutral'}
-          label={t('labs.kpi.open')}
+          tone={(lab.data?.openOrders ?? 0) > 0 ? "warning" : "neutral"}
+          label={t("labs.kpi.open")}
           value={lab.data?.openOrders ?? 0}
-          caption={t('labs.kpi.openCaption')}
+          caption={t("labs.kpi.openCaption")}
         />
       </StatRow>
 
       <SegmentedControl
-        label={t('labs.tabs.label')}
+        label={t("labs.tabs.label")}
         value={tab}
         onChange={setTab}
         options={[
-          { value: 'orders', label: t('labs.tabs.orders') },
-          { value: 'prices', label: t('labs.tabs.prices') },
-          { value: 'statement', label: t('labs.tabs.statement') },
+          { value: "orders", label: t("labs.tabs.orders") },
+          { value: "prices", label: t("labs.tabs.prices") },
+          { value: "statement", label: t("labs.tabs.statement") },
         ]}
       />
 
-      {tab === 'orders' && <LabOrdersTab labId={id} />}
-      {tab === 'prices' && <PriceListTab labId={id} />}
-      {tab === 'statement' && (
-        <StatementTab labId={id} labName={lab.data?.name ?? ''} currency={currency} />
+      {tab === "orders" && <LabOrdersTab labId={id} />}
+      {tab === "prices" && <PriceListTab labId={id} />}
+      {tab === "statement" && (
+        <StatementTab labId={id} labName={lab.data?.name ?? ""} currency={currency} />
       )}
 
       {lab.data && (
@@ -188,32 +188,32 @@ function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
   const mayEdit = canManageLabs(can);
 
   const columns: readonly Column<LabWorkType>[] = [
-    { key: 'name', header: 'labs.prices.name', primary: true, render: (row) => row.nameAr },
+    { key: "name", header: "labs.prices.name", primary: true, render: (row) => row.nameAr },
     {
-      key: 'price',
-      header: 'labs.prices.price',
-      align: 'numeric',
+      key: "price",
+      header: "labs.prices.price",
+      align: "numeric",
       render: (row) => <Money amount={row.defaultPrice} currency={clinic.data?.currency} />,
     },
     {
-      key: 'active',
-      header: 'labs.prices.state',
+      key: "active",
+      header: "labs.prices.state",
       render: (row) =>
         row.isActive ? (
-          <Badge tone="success">{t('labs.prices.active')}</Badge>
+          <Badge tone="success">{t("labs.prices.active")}</Badge>
         ) : (
-          <Badge tone="neutral">{t('labs.prices.inactive')}</Badge>
+          <Badge tone="neutral">{t("labs.prices.inactive")}</Badge>
         ),
     },
     ...(mayEdit
       ? [
           {
-            key: 'actions',
-            header: 'labs.prices.actions',
+            key: "actions",
+            header: "labs.prices.actions",
             actions: true,
             render: (row: LabWorkType) => (
               <Button size="sm" variant="ghost" onClick={() => setEditing(row)}>
-                {t('common.edit')}
+                {t("common.edit")}
               </Button>
             ),
           } satisfies Column<LabWorkType>,
@@ -226,7 +226,7 @@ function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
       {mayEdit && (
         <div className="flex justify-end">
           <Button variant="secondary" icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
-            {t('labs.prices.add')}
+            {t("labs.prices.add")}
           </Button>
         </div>
       )}
@@ -240,7 +240,7 @@ function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
         empty={<EmptyState icon="money" title="labs.prices.empty" hint="labs.prices.emptyHint" />}
       />
 
-      <p className="text-label text-ink-muted">{t('labs.prices.snapshotNote')}</p>
+      <p className="text-label text-ink-muted">{t("labs.prices.snapshotNote")}</p>
 
       <WorkTypeModal
         open={creating || editing !== undefined}
@@ -267,8 +267,8 @@ function StatementTab({
   readonly currency: string | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
 
   const query = useMemo(
     () => ({
@@ -282,41 +282,41 @@ function StatementTab({
 
   const columns: readonly Column<LabStatementEntry>[] = [
     {
-      key: 'date',
-      header: 'labs.statement.date',
+      key: "date",
+      header: "labs.statement.date",
       render: (row) => <Ltr>{formatDate(row.occurredAt)}</Ltr>,
     },
     {
-      key: 'description',
-      header: 'labs.statement.description',
+      key: "description",
+      header: "labs.statement.description",
       primary: true,
       render: (row) => (
         <span className="flex flex-wrap items-center gap-2">
           <span>{row.description || t(`labs.statement.kind.${row.kind}`)}</span>
-          {row.isReversal && <Badge tone="neutral">{t('labs.statement.reversal')}</Badge>}
+          {row.isReversal && <Badge tone="neutral">{t("labs.statement.reversal")}</Badge>}
         </span>
       ),
     },
     {
-      key: 'owed',
-      header: 'labs.statement.owed',
-      align: 'numeric',
+      key: "owed",
+      header: "labs.statement.owed",
+      align: "numeric",
       render: (row) =>
-        row.kind === 'order' ? <Money amount={row.amount} currency={currency} /> : null,
+        row.kind === "order" ? <Money amount={row.amount} currency={currency} /> : null,
     },
     {
-      key: 'paid',
-      header: 'labs.statement.paid',
-      align: 'numeric',
+      key: "paid",
+      header: "labs.statement.paid",
+      align: "numeric",
       render: (row) =>
-        row.kind === 'payment' ? (
-          <Money amount={row.amount.replace('-', '')} currency={currency} />
+        row.kind === "payment" ? (
+          <Money amount={row.amount.replace("-", "")} currency={currency} />
         ) : null,
     },
     {
-      key: 'balance',
-      header: 'labs.statement.balance',
-      align: 'numeric',
+      key: "balance",
+      header: "labs.statement.balance",
+      align: "numeric",
       render: (row) => (
         <Money amount={row.runningBalance} currency={currency} className="font-medium" />
       ),
@@ -329,7 +329,7 @@ function StatementTab({
         <DateRangePicker
           id="lab-statement-range"
           className="w-full sm:w-72"
-          label={t('labs.statement.range')}
+          label={t("labs.statement.range")}
           value={{ from, to }}
           onChange={(range) => {
             setFrom(range.from);
@@ -343,14 +343,14 @@ function StatementTab({
           icon={<Icon name="print" />}
           onClick={() => void downloadLabStatement(labId, labName, query)}
         >
-          {t('labs.statement.print')}
+          {t("labs.statement.print")}
         </Button>
       </div>
 
       <Card>
         <div className="flex items-baseline justify-between">
-          <span className="text-label text-ink-muted">{t('labs.statement.opening')}</span>
-          <Money amount={statement.data?.openingBalance ?? '0.00'} currency={currency} />
+          <span className="text-label text-ink-muted">{t("labs.statement.opening")}</span>
+          <Money amount={statement.data?.openingBalance ?? "0.00"} currency={currency} />
         </div>
       </Card>
 
@@ -367,9 +367,9 @@ function StatementTab({
 
       <Card>
         <div className="flex items-baseline justify-between">
-          <span className="text-value font-medium text-ink">{t('labs.statement.closing')}</span>
+          <span className="text-value font-medium text-ink">{t("labs.statement.closing")}</span>
           <Money
-            amount={statement.data?.closingBalance ?? '0.00'}
+            amount={statement.data?.closingBalance ?? "0.00"}
             currency={currency}
             className="text-value font-medium"
           />

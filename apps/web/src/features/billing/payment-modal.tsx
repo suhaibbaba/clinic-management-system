@@ -1,14 +1,14 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createPaymentSchema, LOOKUP_LIST, type CreatePaymentInput } from '@clinic/shared';
-import { useEffect, type JSX } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createPaymentSchema, LOOKUP_LIST, type CreatePaymentInput } from "@clinic/shared";
+import { useEffect, type JSX } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
-import { Button, FormField, Icon, Input, Modal, MoneyInput, Select, useToast } from '@clinic/ui';
-import { openReceipt } from '@web/features/billing/documents';
-import { useLookupOptions } from '@web/features/lookups/queries';
-import { useCreatePayment } from '@web/features/billing/queries';
-import { errorMessageKey } from '@web/lib/api-error';
+import { Button, FormField, Icon, Input, Modal, MoneyInput, Select, useToast } from "@clinic/ui";
+import { openReceipt } from "@web/features/billing/documents";
+import { useLookupOptions } from "@web/features/lookups/queries";
+import { useCreatePayment } from "@web/features/billing/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 
 interface PaymentModalProps {
   open: boolean;
@@ -44,9 +44,9 @@ export function PaymentModal({
     if (open) {
       reset({
         patientId,
-        amount: suggestedAmount && Number(suggestedAmount) > 0 ? suggestedAmount : '',
-        method: 'cash',
-        note: '',
+        amount: suggestedAmount && Number(suggestedAmount) > 0 ? suggestedAmount : "",
+        method: "cash",
+        note: "",
       });
     }
   }, [open, patientId, suggestedAmount, reset]);
@@ -54,7 +54,7 @@ export function PaymentModal({
   const onSubmit = handleSubmit(async (values) => {
     try {
       const payment = await createPayment.mutateAsync({ ...values, patientId });
-      toast.success('billing.paymentRecorded');
+      toast.success("billing.paymentRecorded");
       onOpenChange(false);
 
       await openReceipt(payment.id);
@@ -71,7 +71,7 @@ export function PaymentModal({
       footer={
         <>
           <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
@@ -79,7 +79,7 @@ export function PaymentModal({
             form="payment-form"
             isLoading={isSubmitting}
           >
-            {t(isSubmitting ? 'common.saving' : 'billing.recordAndPrint')}
+            {t(isSubmitting ? "common.saving" : "billing.recordAndPrint")}
           </Button>
         </>
       }
@@ -87,11 +87,11 @@ export function PaymentModal({
       <form id="payment-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
         <FormField label="billing.amount" htmlFor="payment-amount" error={errors.amount}>
           <MoneyInput
-            placeholder={t('common.placeholders.amount')}
+            placeholder={t("common.placeholders.amount")}
             id="payment-amount"
             currency={currency}
             hasError={Boolean(errors.amount)}
-            {...register('amount')}
+            {...register("amount")}
           />
         </FormField>
 
@@ -101,10 +101,10 @@ export function PaymentModal({
             control={control}
             render={({ field }) => (
               <Select
-                placeholder={t('common.placeholders.selectMethod')}
+                placeholder={t("common.placeholders.selectMethod")}
                 id="payment-method"
                 options={methods}
-                value={field.value ?? ''}
+                value={field.value ?? ""}
                 onBlur={field.onBlur}
                 onChange={(event) => field.onChange(event.target.value)}
               />
@@ -114,9 +114,9 @@ export function PaymentModal({
 
         <FormField label="billing.note" htmlFor="payment-note" error={errors.note} optional>
           <Input
-            placeholder={t('common.placeholders.note')}
+            placeholder={t("common.placeholders.note")}
             id="payment-note"
-            {...register('note', { setValueAs: (value) => (value === '' ? null : value) })}
+            {...register("note", { setValueAs: (value) => (value === "" ? null : value) })}
           />
         </FormField>
       </form>

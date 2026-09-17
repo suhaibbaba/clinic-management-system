@@ -1,11 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { USER_ROLE, type UserRole } from '@clinic/shared';
-import { eq } from 'drizzle-orm';
+import { Inject, Injectable } from "@nestjs/common";
+import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { eq } from "drizzle-orm";
 
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { patients } from '@api/database/schema';
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { patients } from "@api/database/schema";
 
 export type PatientRow = typeof patients.$inferSelect;
 

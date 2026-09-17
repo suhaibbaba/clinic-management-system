@@ -20,7 +20,12 @@ coverage/
 npm-debug.log*
 .DS_Store
 .idea/
-.vscode/
+# The directory rather than the folder, because git cannot re-include a file
+# out of an excluded folder: the settings that apply the formatter on save, and
+# the extensions behind them, are shared rather than personal.
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 
 # Screenshots and QA output are never committed, anywhere: visual evidence
 # belongs in the pull request description, and docs/ holds source-of-truth

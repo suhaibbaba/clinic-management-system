@@ -3,9 +3,9 @@ import {
   localDate,
   minutesFromLocalMidnight,
   type CalendarAppointment,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { clinicTimeZone } from '@web/lib/clinic-zone';
+import { clinicTimeZone } from "@web/lib/clinic-zone";
 
 // Minutes from midnight in the clinic's timezone, not the browser's: a laptop set elsewhere would
 // draw 09:00 and book it as 06:00.
@@ -41,7 +41,7 @@ export const toIsoDate = (at: Date): string => localDate(at, clinicTimeZone());
 export const todayIso = (): string => toIsoDate(new Date());
 
 export function addDays(isoDate: string, days: number): string {
-  const [year = 0, month = 1, day = 1] = isoDate.split('-').map(Number);
+  const [year = 0, month = 1, day = 1] = isoDate.split("-").map(Number);
 
   // Plain calendar arithmetic on the date parts, in UTC so no zone can shift
   // the answer by a day.
@@ -50,7 +50,7 @@ export function addDays(isoDate: string, days: number): string {
 
 /** Sunday of the week a date falls in — the API snaps weeks the same way. */
 export function startOfWeek(isoDate: string): string {
-  const [year = 0, month = 1, day = 1] = isoDate.split('-').map(Number);
+  const [year = 0, month = 1, day = 1] = isoDate.split("-").map(Number);
 
   return addDays(isoDate, -new Date(Date.UTC(year, month - 1, day)).getUTCDay());
 }
@@ -62,7 +62,7 @@ export function toTimeLabel(minute: number): string {
   const hours = Math.floor(minute / 60);
   const minutes = minute % 60;
 
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
 // The same arithmetic as a block but against two instants, clamped to the drawn hours — an absence

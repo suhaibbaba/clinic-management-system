@@ -5,8 +5,8 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   APPOINTMENT_STATUS,
   APPOINTMENT_TYPE,
@@ -29,16 +29,16 @@ import {
   type PublicSlots,
   type PublicSlotsQuery,
   type UrgentRequestReceipt,
-} from '@clinic/shared';
-import { and, asc, count, eq, gte, isNull, sql } from 'drizzle-orm';
-import { createHash, randomInt } from 'node:crypto';
+} from "@clinic/shared";
+import { and, asc, count, eq, gte, isNull, sql } from "drizzle-orm";
+import { createHash, randomInt } from "node:crypto";
 
-import { AvailabilityService } from '@api/appointments/availability.service';
-import { WaitingListService } from '@api/appointments/waiting-list.service';
-import { BookingTokenService } from '@api/booking/booking-token.service';
-import type { Env } from '@api/config/env.schema';
-import { notificationName, toPersonName } from '@api/common/person-name';
-import { DATABASE, type Database } from '@api/database/database.module';
+import { AvailabilityService } from "@api/appointments/availability.service";
+import { WaitingListService } from "@api/appointments/waiting-list.service";
+import { BookingTokenService } from "@api/booking/booking-token.service";
+import type { Env } from "@api/config/env.schema";
+import { notificationName, toPersonName } from "@api/common/person-name";
+import { DATABASE, type Database } from "@api/database/database.module";
 import {
   appointments,
   bookingOtps,
@@ -47,21 +47,21 @@ import {
   patients,
   specialties,
   users,
-} from '@api/database/schema';
-import { NotificationsService } from '@api/notifications/notifications.service';
-import { StorageService } from '@api/storage/storage.service';
+} from "@api/database/schema";
+import { NotificationsService } from "@api/notifications/notifications.service";
+import { StorageService } from "@api/storage/storage.service";
 
 const OTP_TTL_SECONDS = 5 * 60;
 const OTP_MAX_ATTEMPTS = 3;
 
 /** Postgres raises this when the overlap constraint rejects a row. */
-const EXCLUSION_VIOLATION = '23P01';
+const EXCLUSION_VIOLATION = "23P01";
 
 const isOverlapConflict = (error: unknown): boolean => {
   for (let current = error, depth = 0; current && depth < 5; depth += 1) {
     if (
-      typeof current === 'object' &&
-      'code' in current &&
+      typeof current === "object" &&
+      "code" in current &&
       (current as { code?: unknown }).code === EXCLUSION_VIOLATION
     ) {
       return true;
@@ -74,7 +74,7 @@ const isOverlapConflict = (error: unknown): boolean => {
 };
 
 /** Digits only, so `0931 000 001` and `+963931000001` are not two people. */
-const normalisePhone = (phone: string): string => phone.replaceAll(/[^\d]/g, '');
+const normalisePhone = (phone: string): string => phone.replaceAll(/[^\d]/g, "");
 
 interface ClinicContext {
   readonly id: string;
@@ -162,8 +162,8 @@ export class BookingService {
       .map(({ start, end, startsAt }) => ({ start, end, startsAt }));
 
     const dated =
-      availability.closedReason === 'clinic_closure' ||
-      availability.closedReason === 'doctor_time_off'
+      availability.closedReason === "clinic_closure" ||
+      availability.closedReason === "doctor_time_off"
         ? availability.closedReason
         : null;
 
@@ -187,7 +187,7 @@ export class BookingService {
     // Same cap as a booking, and the same wording: a stranger must not learn
     // that it is their own number being limited.
     if (open >= clinic.booking.maxActivePerPhone) {
-      throw new ForbiddenException('Booking is not available right now');
+      throw new ForbiddenException("Booking is not available right now");
     }
 
     const patientId = await this.linkOrCreatePatient(clinic.id, phone, input.fullName);
@@ -234,13 +234,13 @@ export class BookingService {
         .returning({ id: appointments.id });
 
       if (!row) {
-        throw new Error('Failed to hold the slot');
+        throw new Error("Failed to hold the slot");
       }
 
       appointmentId = row.id;
     } catch (error) {
       if (isOverlapConflict(error)) {
-        throw new BadRequestException('That time is no longer available');
+        throw new BadRequestException("That time is no longer available");
       }
 
       throw error;
@@ -252,7 +252,7 @@ export class BookingService {
     if (clinic.booking.confirmationMode === BOOKING_CONFIRMATION_MODE.MANUAL) {
       return {
         token,
-        status: 'pending_confirmation',
+        status: "pending_confirmation",
         otpExpiresInSeconds: null,
         holdExpiresAt: holdExpiresAt.toISOString(),
       };
@@ -262,7 +262,7 @@ export class BookingService {
 
     return {
       token,
-      status: 'pending_otp',
+      status: "pending_otp",
       otpExpiresInSeconds: OTP_TTL_SECONDS,
       holdExpiresAt: holdExpiresAt.toISOString(),
     };
@@ -278,7 +278,7 @@ export class BookingService {
       .where(and(eq(bookingOtps.appointmentId, appointmentId), eq(bookingOtps.clinicId, clinic.id)))
       .limit(1);
 
-    const invalid = new UnauthorizedException('That code is not valid');
+    const invalid = new UnauthorizedException("That code is not valid");
 
     if (!otp || otp.consumedAt || otp.expiresAt <= new Date() || otp.attempts >= OTP_MAX_ATTEMPTS) {
       throw invalid;
@@ -340,7 +340,7 @@ export class BookingService {
       .update(appointments)
       .set({
         status: APPOINTMENT_STATUS.CANCELLED,
-        cancelledReason: reason?.trim() || 'ألغى المريض الحجز عبر الرابط',
+        cancelledReason: reason?.trim() || "ألغى المريض الحجز عبر الرابط",
         updatedAt: new Date(),
       })
       .where(eq(appointments.id, appointmentId));
@@ -375,7 +375,7 @@ export class BookingService {
         .where(eq(appointments.id, appointmentId));
     } catch (error) {
       if (isOverlapConflict(error)) {
-        throw new BadRequestException('That time is no longer available');
+        throw new BadRequestException("That time is no longer available");
       }
 
       throw error;
@@ -392,7 +392,7 @@ export class BookingService {
   ): Promise<void> {
     // `randomInt` rather than `Math.random`: this is a credential, and a
     // predictable one is no credential at all.
-    const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
+    const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
 
     await this.db.delete(bookingOtps).where(eq(bookingOtps.appointmentId, appointmentId));
 
@@ -451,12 +451,12 @@ export class BookingService {
         phone,
         // No `created_by`: nobody on staff created this record, and attributing
         // it to one would be a lie in the audit trail.
-        notes: 'أُنشئ من الحجز الإلكتروني — لم يُتحقق من الهوية بعد',
+        notes: "أُنشئ من الحجز الإلكتروني — لم يُتحقق من الهوية بعد",
       })
       .returning({ id: patients.id });
 
     if (!created) {
-      throw new Error('Failed to create the patient');
+      throw new Error("Failed to create the patient");
     }
 
     return created.id;
@@ -468,7 +468,7 @@ export class BookingService {
       .from(patients)
       .where(and(eq(patients.clinicId, clinicId), sql`${patients.fileNumber} ~ '^[0-9]+$'`));
 
-    return String((row?.value ?? 0) + 1).padStart(5, '0');
+    return String((row?.value ?? 0) + 1).padStart(5, "0");
   }
 
   // Anti-abuse, worded exactly like a closed booking page: a stranger must not learn that this
@@ -489,7 +489,7 @@ export class BookingService {
       );
 
     if ((row?.value ?? 0) >= clinic.booking.maxActivePerPhone) {
-      throw new ForbiddenException('Booking is not available right now');
+      throw new ForbiddenException("Booking is not available right now");
     }
   }
 
@@ -508,11 +508,11 @@ export class BookingService {
     const latest = new Date(Date.now() + clinic.booking.maxDaysAhead * 86_400_000);
 
     if (at > latest) {
-      throw new BadRequestException('That date is too far ahead');
+      throw new BadRequestException("That date is too far ahead");
     }
 
     if (!options.dateOnly && at < this.earliestBookable(clinic)) {
-      throw new BadRequestException('That time is too soon to book online');
+      throw new BadRequestException("That time is too soon to book online");
     }
   }
 
@@ -526,7 +526,7 @@ export class BookingService {
       .limit(1);
 
     if (!row) {
-      throw new BadRequestException('That doctor is not available');
+      throw new BadRequestException("That doctor is not available");
     }
 
     return row.duration;
@@ -547,7 +547,7 @@ export class BookingService {
       .limit(1);
 
     if (!row) {
-      throw new NotFoundException('Clinic not found');
+      throw new NotFoundException("Clinic not found");
     }
 
     return {
@@ -564,7 +564,7 @@ export class BookingService {
     const clinic = await this.requireClinic(slug);
 
     if (!clinic.booking.enabled) {
-      throw new NotFoundException('Booking is not available right now');
+      throw new NotFoundException("Booking is not available right now");
     }
 
     return clinic;
@@ -581,7 +581,7 @@ export class BookingService {
     if (!row) {
       // Same exception a bad signature raises: a valid token for a deleted
       // booking must not be distinguishable from a forged one.
-      throw new UnauthorizedException('Invalid booking link');
+      throw new UnauthorizedException("Invalid booking link");
     }
 
     return this.requireClinic(row.slug);
@@ -608,13 +608,13 @@ export class BookingService {
       .limit(1);
 
     if (!row) {
-      throw new UnauthorizedException('Invalid booking link');
+      throw new UnauthorizedException("Invalid booking link");
     }
 
     // A cancelled booking's link is spent. Re-using it must not resurrect the
     // appointment, and must not report anything about it either.
     if (!occupiesSlot(row.status) || row.status === APPOINTMENT_STATUS.COMPLETED) {
-      throw new BadRequestException('This booking can no longer be changed');
+      throw new BadRequestException("This booking can no longer be changed");
     }
 
     return { startsAt: row.startsAt, doctorId: row.doctorId };
@@ -637,11 +637,11 @@ export class BookingService {
     const slot = availability.slots.find((candidate) => candidate.startsAt === at.toISOString());
 
     if (!slot) {
-      throw new BadRequestException('That time is not offered');
+      throw new BadRequestException("That time is not offered");
     }
 
     if (!slot.available) {
-      throw new BadRequestException('That time is no longer available');
+      throw new BadRequestException("That time is no longer available");
     }
   }
 
@@ -667,7 +667,7 @@ export class BookingService {
       .limit(1);
 
     if (!row) {
-      throw new UnauthorizedException('Invalid booking link');
+      throw new UnauthorizedException("Invalid booking link");
     }
 
     return {
@@ -692,23 +692,23 @@ export class BookingService {
       .where(eq(appointments.id, appointmentId))
       .limit(1);
 
-    return row?.phone ?? '';
+    return row?.phone ?? "";
   }
 
   private manageLink(token: string): string {
-    const base = this.config.get('PUBLIC_BASE_URL', { infer: true });
+    const base = this.config.get("PUBLIC_BASE_URL", { infer: true });
 
-    return `${base.replace(/\/$/, '')}/booking/manage/${token}`;
+    return `${base.replace(/\/$/, "")}/booking/manage/${token}`;
   }
 }
 
 // A digest, not argon2: the code is CSPRNG output and the three-attempt limit stops online
 // guessing. What matters is that the column never holds the code itself.
-export const hashCode = (code: string): string => createHash('sha256').update(code).digest('hex');
+export const hashCode = (code: string): string => createHash("sha256").update(code).digest("hex");
 
 function timeIn(timeZone: string, at: Date): string {
   const minutes = minutesFromLocalMidnight(at, localDate(at, timeZone), timeZone);
   const hours = Math.floor(minutes / 60);
 
-  return `${String(hours).padStart(2, '0')}:${String(Math.round(minutes % 60)).padStart(2, '0')}`;
+  return `${String(hours).padStart(2, "0")}:${String(Math.round(minutes % 60)).padStart(2, "0")}`;
 }

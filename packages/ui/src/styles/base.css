@@ -2,7 +2,7 @@
    rather than branded. A product overrides values on top of this (see a product's `theme.css`);
    the package alone must still render a usable, neutral interface. */
 
-@import './fonts.css';
+@import "./fonts.css";
 
 /* Tailwind scans the consuming app from its own root, which does not reach a sibling package. */
 @source "../";
@@ -90,7 +90,7 @@
 
   /* One family for both scripts. The fallback is size-adjusted in `fonts.css` so the swap moves no
      text. A product swaps the family by overriding this one token. */
-  --font-sans: Tajawal, 'Tajawal Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: Tajawal, "Tajawal Fallback", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 /* Radii, largest first: a panel's corner, a row inside it, then a control. */
@@ -187,12 +187,12 @@
   --color-tag-to: #e4eaf0;
 }
 
-[dir='rtl'] {
+[dir="rtl"] {
   --drawer-direction: -1;
   --wash-to: left;
 }
 
-[dir='ltr'] {
+[dir="ltr"] {
   --drawer-direction: 1;
   --wash-to: right;
 }
@@ -407,7 +407,7 @@ body {
   animation: skeleton-sweep 1.2s ease-in-out infinite;
 }
 
-[dir='rtl'] .skeleton {
+[dir="rtl"] .skeleton {
   animation-direction: reverse;
 }
 
@@ -478,10 +478,10 @@ body {
    arrow keys and the pointer alike — and a ring on top is a second marker, drawn with an offset the
    list's own `overflow: hidden` cuts off at both ends. */
 :where(
-  [role='option'],
-  [role='menuitem'],
-  [role='menuitemcheckbox'],
-  [role='menuitemradio']
+  [role="option"],
+  [role="menuitem"],
+  [role="menuitemcheckbox"],
+  [role="menuitemradio"]
 ):focus-visible {
   outline: none;
 }

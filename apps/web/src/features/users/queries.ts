@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   CreateUserInput,
   ListUsersQuery,
@@ -6,15 +6,15 @@ import type {
   PresignUserPhotoInput,
   UpdateUserInput,
   User,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { useSession } from '@web/features/auth/session';
-import { uploadToStorage } from '@web/features/patients/api';
-import { usersApi } from '@web/features/users/api';
+import { useSession } from "@web/features/auth/session";
+import { uploadToStorage } from "@web/features/patients/api";
+import { usersApi } from "@web/features/users/api";
 
-const USERS_KEY = 'users';
+const USERS_KEY = "users";
 /** The doctors list draws the same faces, so it is stale after a photo changes. */
-const DOCTORS_KEY = 'doctors';
+const DOCTORS_KEY = "doctors";
 
 export function useUsers(query: Partial<ListUsersQuery>): UseQueryResult<Paginated<User>> {
   return useQuery({
@@ -80,7 +80,7 @@ export function useUploadUserPhoto() {
     mutationFn: async ({ id, file }: { id: string; file: File }): Promise<User> => {
       const presigned = await usersApi.presignPhoto(id, {
         filename: file.name,
-        mime: file.type as PresignUserPhotoInput['mime'],
+        mime: file.type as PresignUserPhotoInput["mime"],
         sizeBytes: file.size,
       });
 

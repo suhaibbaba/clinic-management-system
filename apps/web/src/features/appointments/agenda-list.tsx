@@ -1,12 +1,12 @@
-import { LOOKUP_LIST, type CalendarAppointment, type ClinicClosure } from '@clinic/shared';
-import type { JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { LOOKUP_LIST, type CalendarAppointment, type ClinicClosure } from "@clinic/shared";
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Badge, EmptyState, Icon, Ltr, PersonName } from '@clinic/ui';
-import { useLookupLabels } from '@web/features/lookups/queries';
-import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from '@web/features/appointments/status';
-import { minutesOf, toTimeLabel } from '@web/features/appointments/calendar-time';
-import { cn } from '@clinic/ui/lib/cn';
+import { Badge, EmptyState, Icon, Ltr, PersonName } from "@clinic/ui";
+import { useLookupLabels } from "@web/features/lookups/queries";
+import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/features/appointments/status";
+import { minutesOf, toTimeLabel } from "@web/features/appointments/calendar-time";
+import { cn } from "@clinic/ui/lib/cn";
 
 export interface AgendaListProps {
   readonly appointments: readonly CalendarAppointment[];
@@ -28,7 +28,7 @@ export function AgendaList({
   const closedNotice = closure ? (
     <p className="flex items-center gap-2 rounded-card bg-warning-50 px-3 py-2 text-label text-warning-800">
       <Icon name="alert" />
-      {t('appointments.grid.closedOn', { reason: closure.reason })}
+      {t("appointments.grid.closedOn", { reason: closure.reason })}
     </p>
   ) : null;
 
@@ -56,15 +56,15 @@ export function AgendaList({
               onClick={() => onOpen(appointment)}
               data-appointment={appointment.id}
               className={cn(
-                'flex w-full cursor-pointer items-stretch gap-3 rounded-card border border-line bg-surface p-3',
-                'text-start shadow-card transition-shadow duration-150 hover:shadow-float',
+                "flex w-full cursor-pointer items-stretch gap-3 rounded-card border border-line bg-surface p-3",
+                "text-start shadow-card transition-shadow duration-150 hover:shadow-float",
               )}
             >
               {/* The status stripe: the colour the grid uses, in the shape a
                   card can carry it. */}
               <span
                 aria-hidden="true"
-                className={cn('w-1 shrink-0 rounded-pill border-4', style.block)}
+                className={cn("w-1 shrink-0 rounded-pill border-4", style.block)}
               />
 
               <span className="flex min-w-0 flex-1 flex-col gap-1">
@@ -83,7 +83,7 @@ export function AgendaList({
                   <span>{typeLabel(appointment.type)}</span>
                   <span aria-hidden="true">·</span>
                   <span>
-                    {t('appointments.durationMinutes', { count: appointment.durationMinutes })}
+                    {t("appointments.durationMinutes", { count: appointment.durationMinutes })}
                   </span>
                   {showDoctor && (
                     <>

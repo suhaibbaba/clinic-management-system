@@ -1,24 +1,24 @@
-import { authTokens } from '@web/lib/auth-tokens';
-import { ApiError, NetworkError } from '@web/lib/api-error';
+import { authTokens } from "@web/lib/auth-tokens";
+import { ApiError, NetworkError } from "@web/lib/api-error";
 
 // Same-origin in every environment, which is also what lets the httpOnly refresh cookie ride along
 // without CORS credentials.
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
-const REFRESH_PATH = '/auth/refresh';
+const REFRESH_PATH = "/auth/refresh";
 
 // Shared by every request that hit a 401 at once, so a burst of parallel queries triggers exactly
 // one refresh.
 let refreshInFlight: Promise<boolean> | null = null;
 
 export interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
+  method?: "GET" | "POST" | "PATCH" | "DELETE";
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined>;
   signal?: AbortSignal;
 }
 
-function buildUrl(path: string, query: RequestOptions['query']): string {
+function buildUrl(path: string, query: RequestOptions["query"]): string {
   const url = `${API_BASE_URL}${path}`;
 
   if (!query) {
@@ -27,7 +27,7 @@ function buildUrl(path: string, query: RequestOptions['query']): string {
 
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined && value !== '') {
+    if (value !== undefined && value !== "") {
       params.set(key, String(value));
     }
   }
@@ -39,20 +39,20 @@ function buildUrl(path: string, query: RequestOptions['query']): string {
 async function send(path: string, options: RequestOptions): Promise<Response> {
   const token = authTokens.get();
 
-  const headers: Record<string, string> = { accept: 'application/json' };
+  const headers: Record<string, string> = { accept: "application/json" };
   if (options.body !== undefined) {
-    headers['content-type'] = 'application/json';
+    headers["content-type"] = "application/json";
   }
   if (token) {
-    headers['authorization'] = `Bearer ${token}`;
+    headers["authorization"] = `Bearer ${token}`;
   }
 
   try {
     return await fetch(buildUrl(path, options.query), {
-      method: options.method ?? 'GET',
+      method: options.method ?? "GET",
       headers,
       // Sends the httpOnly refresh cookie on same-origin calls.
-      credentials: 'same-origin',
+      credentials: "same-origin",
       ...(options.body !== undefined && { body: JSON.stringify(options.body) }),
       ...(options.signal && { signal: options.signal }),
     });
@@ -65,7 +65,7 @@ async function send(path: string, options: RequestOptions): Promise<Response> {
 async function refreshSession(): Promise<boolean> {
   refreshInFlight ??= (async () => {
     try {
-      const response = await send(REFRESH_PATH, { method: 'POST', body: {} });
+      const response = await send(REFRESH_PATH, { method: "POST", body: {} });
 
       if (!response.ok) {
         return false;
@@ -126,7 +126,7 @@ export async function apiRequest<TResult>(
   return parse<TResult>(response);
 }
 
-export async function apiDownload(path: string, query?: RequestOptions['query']): Promise<Blob> {
+export async function apiDownload(path: string, query?: RequestOptions["query"]): Promise<Blob> {
   const options: RequestOptions = query ? { query } : {};
   let response = await send(path, options);
 

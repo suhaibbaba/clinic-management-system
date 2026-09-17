@@ -1,7 +1,7 @@
-import type { PatientClinicalView, PatientView } from '@clinic/shared';
-import { useEffect, useMemo, useRef, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import type { PatientClinicalView, PatientView } from "@clinic/shared";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
   Avatar,
@@ -18,36 +18,36 @@ import {
   Table,
   usePageParams,
   type Column,
-} from '@clinic/ui';
-import { useSession } from '@web/features/auth/session';
-import { Money } from '@web/features/billing/money';
-import { canSeeBilling } from '@web/features/billing/permissions';
-import { useClinic } from '@web/features/clinic/queries';
-import { PatientFormModal } from '@web/features/patients/patient-form-modal';
-import { canCreatePatient, seesClinicalPatientFields } from '@web/features/patients/permissions';
-import { usePatients } from '@web/features/patients/queries';
-import { ageInYears } from '@web/features/patients/age';
-import { cn } from '@clinic/ui/lib/cn';
-import { useDebounced } from '@web/lib/use-debounced';
-import { isRefetching } from '@clinic/ui/lib/use-delayed-loading';
+} from "@clinic/ui";
+import { useSession } from "@web/features/auth/session";
+import { Money } from "@web/features/billing/money";
+import { canSeeBilling } from "@web/features/billing/permissions";
+import { useClinic } from "@web/features/clinic/queries";
+import { PatientFormModal } from "@web/features/patients/patient-form-modal";
+import { canCreatePatient, seesClinicalPatientFields } from "@web/features/patients/permissions";
+import { usePatients } from "@web/features/patients/queries";
+import { ageInYears } from "@web/features/patients/age";
+import { cn } from "@clinic/ui/lib/cn";
+import { useDebounced } from "@web/lib/use-debounced";
+import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 const DEFAULT_PER_PAGE = 10;
 
 /** The address the dashboard's overdue card and the retired standalone overdue screen both point at. */
-const BALANCE_FILTER = 'balance';
-const VISITED_FILTER = 'visited';
+const BALANCE_FILTER = "balance";
+const VISITED_FILTER = "visited";
 
-type PatientFilter = typeof BALANCE_FILTER | typeof VISITED_FILTER | 'all';
+type PatientFilter = typeof BALANCE_FILTER | typeof VISITED_FILTER | "all";
 
 /** Local midnight on the first of this month, as a date the API reads without a timezone of its own. */
 function startOfThisMonth(): string {
   const now = new Date();
 
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
 }
 
 function isClinicalView(patient: PatientView): patient is PatientClinicalView {
-  return 'gender' in patient;
+  return "gender" in patient;
 }
 
 // The search runs on the server — a client-side filter over one page cannot find a patient among
@@ -61,18 +61,18 @@ export function PatientsPage(): JSX.Element {
   // seeded at mount would ignore a search typed from another screen.
   const { page, perPage, setPage, setPerPage, resetPage } = usePageParams(DEFAULT_PER_PAGE);
   const [params, setParams] = useSearchParams();
-  const search = params.get('q') ?? '';
+  const search = params.get("q") ?? "";
   const [createOpen, setCreateOpen] = useState(false);
 
-  const raw = params.get('filter');
-  const filter: PatientFilter = raw === BALANCE_FILTER || raw === VISITED_FILTER ? raw : 'all';
+  const raw = params.get("filter");
+  const filter: PatientFilter = raw === BALANCE_FILTER || raw === VISITED_FILTER ? raw : "all";
   // One write, not two: this form replaces the whole query string, so the page goes with it — and a
   // second `resetPage()` here would land on the params as they were and put the filter back.
   const setFilter = (next: PatientFilter): void => {
     setParams(
       {
-        ...(search.trim() !== '' && { q: search }),
-        ...(next !== 'all' && { filter: next }),
+        ...(search.trim() !== "" && { q: search }),
+        ...(next !== "all" && { filter: next }),
         ...(perPage !== DEFAULT_PER_PAGE && { perPage: String(perPage) }),
       },
       { replace: true },
@@ -98,7 +98,7 @@ export function PatientsPage(): JSX.Element {
   const query = usePatients({
     page,
     limit: perPage,
-    ...(debouncedSearch.trim() !== '' && { search: debouncedSearch.trim() }),
+    ...(debouncedSearch.trim() !== "" && { search: debouncedSearch.trim() }),
     ...(filter === BALANCE_FILTER && showBalance && { hasBalance: true }),
     ...(filter === VISITED_FILTER && { visitedSince: startOfThisMonth() }),
   });
@@ -109,8 +109,8 @@ export function PatientsPage(): JSX.Element {
   const columns = useMemo<Column<PatientView>[]>(() => {
     const base: Column<PatientView>[] = [
       {
-        key: 'fullName',
-        header: 'patients.fullName',
+        key: "fullName",
+        header: "patients.fullName",
         primary: true,
         render: (row) => (
           <span className="flex items-center gap-3">
@@ -121,29 +121,29 @@ export function PatientsPage(): JSX.Element {
             </span>
             {/* Registered mid-booking or online, and never finished — the reminder to take the
                 rest of it when they walk in. */}
-            {row.profileIncomplete && <Badge tone="warning">{t('patients.incomplete')}</Badge>}
+            {row.profileIncomplete && <Badge tone="warning">{t("patients.incomplete")}</Badge>}
           </span>
         ),
       },
       {
-        key: 'phone',
-        header: 'patients.phone',
+        key: "phone",
+        header: "patients.phone",
         render: (row) => <PhoneLink value={row.phone} />,
       },
       {
-        key: 'age',
-        header: 'patients.age',
+        key: "age",
+        header: "patients.age",
         render: (row) =>
-          row.dateOfBirth ? t('patients.years', { count: ageInYears(row.dateOfBirth) }) : '—',
+          row.dateOfBirth ? t("patients.years", { count: ageInYears(row.dateOfBirth) }) : "—",
       },
     ];
 
     if (showClinical) {
       base.push({
-        key: 'address',
+        key: "address",
         hideOnMobile: true,
-        header: 'patients.address',
-        render: (row) => (isClinicalView(row) ? (row.address ?? '—') : '—'),
+        header: "patients.address",
+        render: (row) => (isClinicalView(row) ? (row.address ?? "—") : "—"),
       });
     }
 
@@ -151,12 +151,12 @@ export function PatientsPage(): JSX.Element {
     // when the response carries it.
     if (showBalance) {
       base.push({
-        key: 'balance',
-        header: 'patients.balance',
-        align: 'numeric',
+        key: "balance",
+        header: "patients.balance",
+        align: "numeric",
         render: (row) => {
           if (row.balance === undefined) {
-            return '—';
+            return "—";
           }
 
           const owes = Number(row.balance) > 0;
@@ -168,9 +168,9 @@ export function PatientsPage(): JSX.Element {
               amount={row.balance}
               currency={currency}
               className={cn(
-                'pill-text inline-flex items-center h-(--control-h-sm) justify-center rounded-pill px-3',
-                'text-nav font-medium',
-                owes ? 'bg-danger-100 text-danger-600' : 'bg-quiet-bg text-quiet-ink',
+                "pill-text inline-flex items-center h-(--control-h-sm) justify-center rounded-pill px-3",
+                "text-nav font-medium",
+                owes ? "bg-danger-100 text-danger-600" : "bg-quiet-bg text-quiet-ink",
               )}
             />
           );
@@ -179,27 +179,27 @@ export function PatientsPage(): JSX.Element {
     }
 
     base.push({
-      key: 'actions',
-      header: 'common.actions',
+      key: "actions",
+      header: "common.actions",
       actions: true,
       render: (row) => (
         <span className="flex items-center gap-1.5">
           <Button size="sm" variant="ghost" onClick={() => navigate(`/patients/${row.id}`)}>
-            {t('patients.openFile')}
+            {t("patients.openFile")}
             <Icon name="chevron-end" className="size-4" />
           </Button>
 
           {/* The file's tabs are addresses, so the menu is shortcuts into them — each gated by the
               permission that gates the tab, so nothing here bounces the reader. */}
-          <RowMenu label={t('patients.rowMenu')}>
+          <RowMenu label={t("patients.rowMenu")}>
             {showClinical && (
               <MenuItem icon="clock" onSelect={() => navigate(`/patients/${row.id}?tab=timeline`)}>
-                {t('patients.tabs.timeline')}
+                {t("patients.tabs.timeline")}
               </MenuItem>
             )}
             {showBalance && (
               <MenuItem icon="money" onSelect={() => navigate(`/patients/${row.id}?tab=billing`)}>
-                {t('patients.tabs.billing')}
+                {t("patients.tabs.billing")}
               </MenuItem>
             )}
             {showClinical && (
@@ -207,7 +207,7 @@ export function PatientsPage(): JSX.Element {
                 icon="image"
                 onSelect={() => navigate(`/patients/${row.id}?tab=attachments`)}
               >
-                {t('patients.tabs.attachments')}
+                {t("patients.tabs.attachments")}
               </MenuItem>
             )}
           </RowMenu>
@@ -219,7 +219,7 @@ export function PatientsPage(): JSX.Element {
   }, [showClinical, showBalance, currency, navigate, t]);
 
   const canCreate = canCreatePatient(can);
-  const isSearching = search.trim() !== '';
+  const isSearching = search.trim() !== "";
   const rows = query.data?.items ?? [];
 
   return (
@@ -228,12 +228,12 @@ export function PatientsPage(): JSX.Element {
         title="patients.title"
         subtitle="patients.subtitle"
         {...(query.data !== undefined && {
-          count: t('pagination.total', { total: query.data.total }),
+          count: t("pagination.total", { total: query.data.total }),
         })}
         primaryAction={
           canCreate ? (
             <Button icon={<Icon name="user-plus" />} onClick={() => setCreateOpen(true)}>
-              {t('patients.create')}
+              {t("patients.create")}
             </Button>
           ) : undefined
         }
@@ -241,21 +241,21 @@ export function PatientsPage(): JSX.Element {
 
       <div className="mb-3.5 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
         <SegmentedControl<PatientFilter>
-          label={t('patients.filterLabel')}
+          label={t("patients.filterLabel")}
           value={filter}
           onChange={setFilter}
           options={[
-            { value: 'all', label: t('common.all') },
+            { value: "all", label: t("common.all") },
             ...(showBalance
               ? [
                   {
                     value: BALANCE_FILTER as PatientFilter,
-                    label: t('patients.owing'),
+                    label: t("patients.owing"),
                     ...(owing.data !== undefined && { count: owing.data.total }),
                   },
                 ]
               : []),
-            { value: VISITED_FILTER, label: t('patients.visitedThisMonth') },
+            { value: VISITED_FILTER, label: t("patients.visitedThisMonth") },
           ]}
         />
       </div>
@@ -268,12 +268,12 @@ export function PatientsPage(): JSX.Element {
         isRefreshing={isRefetching(query)}
         empty={
           <EmptyState
-            title={isSearching ? 'patients.noMatches' : 'patients.empty'}
-            hint={isSearching ? 'patients.noMatchesHint' : 'patients.emptyHint'}
+            title={isSearching ? "patients.noMatches" : "patients.empty"}
+            hint={isSearching ? "patients.noMatchesHint" : "patients.emptyHint"}
             action={
               canCreate && !isSearching ? (
                 <Button icon={<Icon name="user-plus" />} onClick={() => setCreateOpen(true)}>
-                  {t('patients.create')}
+                  {t("patients.create")}
                 </Button>
               ) : undefined
             }

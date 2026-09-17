@@ -1,15 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { LOOKUP_LIST } from '@clinic/shared';
+import { Injectable } from "@nestjs/common";
+import { LOOKUP_LIST } from "@clinic/shared";
 
-import { documentDirection, documentStrings } from '@api/billing/pdf/document-strings';
-import { LetterheadService } from '@api/billing/pdf/letterhead.service';
-import { RtlPdf } from '@api/billing/pdf/pdf-builder';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { InventoryReportsService } from '@api/inventory/inventory-reports.service';
-import { LookupsService } from '@api/lookups/lookups.service';
+import { documentDirection, documentStrings } from "@api/billing/pdf/document-strings";
+import { LetterheadService } from "@api/billing/pdf/letterhead.service";
+import { RtlPdf } from "@api/billing/pdf/pdf-builder";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { InventoryReportsService } from "@api/inventory/inventory-reports.service";
+import { LookupsService } from "@api/lookups/lookups.service";
 
 /** Technical values read left to right even inside an Arabic document. */
-const LTR = { dir: 'ltr' } as const;
+const LTR = { dir: "ltr" } as const;
 
 @Injectable()
 export class InventoryDocumentsService {
@@ -28,7 +28,7 @@ export class InventoryDocumentsService {
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
     await this.letterheads.draw(pdf, clinic);
-    pdf.text(strings.title, { size: 16, weight: 'bold', align: 'centre', gap: 14 });
+    pdf.text(strings.title, { size: 16, weight: "bold", align: "centre", gap: 14 });
     pdf.field(strings.printedAt, formatDate(list.generatedAt), LTR);
     pdf.space(8);
 
@@ -39,9 +39,9 @@ export class InventoryDocumentsService {
         [
           { width: 3, header: strings.columns.item },
           { width: 1.1, header: strings.columns.unit },
-          { width: 1.1, header: strings.columns.current, align: 'end' },
-          { width: 1.1, header: strings.columns.minimum, align: 'end' },
-          { width: 1.4, header: strings.columns.suggested, align: 'end' },
+          { width: 1.1, header: strings.columns.current, align: "end" },
+          { width: 1.1, header: strings.columns.minimum, align: "end" },
+          { width: 1.4, header: strings.columns.suggested, align: "end" },
           { width: 2, header: strings.columns.supplier },
         ],
         list.lines.map((line) => [
@@ -50,7 +50,7 @@ export class InventoryDocumentsService {
           line.quantity,
           line.minQuantity,
           line.suggested,
-          line.supplierName ?? '—',
+          line.supplierName ?? "—",
         ]),
       );
 
@@ -69,7 +69,7 @@ export class InventoryDocumentsService {
 /** Gregorian, day first — the convention the rest of the printed documents use. */
 function formatDate(iso: string): string {
   const date = new Date(iso);
-  const pad = (value: number): string => String(value).padStart(2, '0');
+  const pad = (value: number): string => String(value).padStart(2, "0");
 
   return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()}`;
 }

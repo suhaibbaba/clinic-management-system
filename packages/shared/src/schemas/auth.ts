@@ -1,7 +1,7 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { CHART_TYPES, USER_ROLES } from '@shared/enums';
-import { personNameSchema } from '@shared/schemas/person-name';
+import { CHART_TYPES, USER_ROLES } from "@shared/enums";
+import { personNameSchema } from "@shared/schemas/person-name";
 
 export const PASSWORD_MIN_LENGTH = 8;
 /** Upper bound so a huge body can never turn into an expensive hash. */
@@ -44,8 +44,8 @@ export const changePasswordSchema = z
     newPassword: passwordSchema,
   })
   .refine((input) => input.currentPassword !== input.newPassword, {
-    message: 'New password must differ from the current one',
-    path: ['newPassword'],
+    message: "New password must differ from the current one",
+    path: ["newPassword"],
   });
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 

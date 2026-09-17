@@ -1,9 +1,9 @@
-import type { DaySchedule, TimeRange, WeeklySchedule } from '@clinic/shared';
-import * as Accordion from '@radix-ui/react-accordion';
-import { useMemo, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { DaySchedule, TimeRange, WeeklySchedule } from "@clinic/shared";
+import * as Accordion from "@radix-ui/react-accordion";
+import { useMemo, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Badge, Button, Icon, Ltr, Switch, TimePicker } from '@clinic/ui';
+import { Badge, Button, Icon, Ltr, Switch, TimePicker } from "@clinic/ui";
 import {
   DEFAULT_RANGE,
   daySummary,
@@ -11,8 +11,8 @@ import {
   rangesOutsideBounds,
   WEEKDAYS_FROM_SATURDAY,
   withDay,
-} from '@web/components/schedule/week';
-import { cn } from '@clinic/ui/lib/cn';
+} from "@web/components/schedule/week";
+import { cn } from "@clinic/ui/lib/cn";
 
 export interface WorkingHoursProps {
   readonly value: WeeklySchedule;
@@ -30,7 +30,7 @@ export function WorkingHours({
   disabled = false,
   within,
   withinLabel,
-  idPrefix = 'hours',
+  idPrefix = "hours",
 }: WorkingHoursProps): JSX.Element {
   const { t } = useTranslation();
 
@@ -66,9 +66,9 @@ export function WorkingHours({
             <Accordion.Header>
               <Accordion.Trigger
                 className={cn(
-                  'flex min-h-(--control-h) w-full cursor-pointer items-center justify-between gap-2 px-3 py-2',
-                  'text-start transition-colors duration-150 hover:bg-inset',
-                  'group',
+                  "flex min-h-(--control-h) w-full cursor-pointer items-center justify-between gap-2 px-3 py-2",
+                  "text-start transition-colors duration-150 hover:bg-inset",
+                  "group",
                 )}
               >
                 {/* `flex-1` is `flex: 1 1 0%`, and a percentage basis with no definite width falls
@@ -87,18 +87,18 @@ export function WorkingHours({
                     // live on the element around it.
                     <span
                       className="flex text-warning-700"
-                      aria-label={t('schedule.outsideBounds', { bounds: withinLabel ?? '' })}
+                      aria-label={t("schedule.outsideBounds", { bounds: withinLabel ?? "" })}
                     >
                       <Icon name="alert" />
                     </span>
                   )}
-                  <Badge tone={isWorking ? 'success' : 'neutral'}>
+                  <Badge tone={isWorking ? "success" : "neutral"}>
                     {/* An LTR island: without it bidi hands the hyphens and middot to the Arabic
                         paragraph and the summary renders back to front. */}
                     {isWorking ? (
-                      <Ltr className="tabular-nums">{daySummary(day.ranges, '')}</Ltr>
+                      <Ltr className="tabular-nums">{daySummary(day.ranges, "")}</Ltr>
                     ) : (
-                      t('schedule.closed')
+                      t("schedule.closed")
                     )}
                   </Badge>
                 </span>
@@ -146,7 +146,7 @@ export function WorkingHours({
 
                     {outside.has(weekday) && withinLabel !== undefined && (
                       <p className="text-label text-warning-700">
-                        {t('schedule.outsideBounds', { bounds: withinLabel })}
+                        {t("schedule.outsideBounds", { bounds: withinLabel })}
                       </p>
                     )}
 
@@ -160,7 +160,7 @@ export function WorkingHours({
                             replaceDay({ weekday, ranges: [...day.ranges, { ...DEFAULT_RANGE }] })
                           }
                         >
-                          {t('schedule.addRange')}
+                          {t("schedule.addRange")}
                         </Button>
 
                         <Button
@@ -169,7 +169,7 @@ export function WorkingHours({
                           variant="ghost"
                           onClick={() => onChange(copyToOtherDays(value, day))}
                         >
-                          {t('schedule.copyToOthers')}
+                          {t("schedule.copyToOthers")}
                         </Button>
                       </div>
                     )}
@@ -211,10 +211,10 @@ function RangeRow({
   return (
     <div className="flex flex-wrap items-end gap-2">
       <label className="flex flex-col gap-1 text-label text-ink-muted" htmlFor={`${id}-start`}>
-        {t('schedule.from')}
+        {t("schedule.from")}
         <TimePicker
           id={`${id}-start`}
-          label={t('schedule.from')}
+          label={t("schedule.from")}
           className="w-32"
           disabled={disabled}
           value={range.start}
@@ -223,10 +223,10 @@ function RangeRow({
       </label>
 
       <label className="flex flex-col gap-1 text-label text-ink-muted" htmlFor={`${id}-end`}>
-        {t('schedule.to')}
+        {t("schedule.to")}
         <TimePicker
           id={`${id}-end`}
-          label={t('schedule.to')}
+          label={t("schedule.to")}
           className="w-32"
           disabled={disabled}
           // The end cannot precede the start, so the list starts there — the
@@ -239,7 +239,7 @@ function RangeRow({
 
       {!disabled && removable && (
         <Button icon={<Icon name="trash" />} size="sm" variant="ghost" onClick={onRemove}>
-          {t('schedule.removeRange')}
+          {t("schedule.removeRange")}
         </Button>
       )}
     </div>

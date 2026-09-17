@@ -3,8 +3,8 @@ export {
   themeVariables,
   type ThemeOverride,
   type ThemeVariables,
-} from '@ui/theme/create-theme';
-export { UiProvider, type Direction, type UiProviderProps } from '@ui/theme/ui-provider';
+} from "@ui/theme/create-theme";
+export { UiProvider, type Direction, type UiProviderProps } from "@ui/theme/ui-provider";
 export type {
   AnimationToken,
   ColorToken,
@@ -15,4 +15,4 @@ export type {
   SurfaceToken,
   TextToken,
   TintToken,
-} from '@ui/theme/tokens';
+} from "@ui/theme/tokens";

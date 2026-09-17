@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   confirmUserPhotoSchema,
@@ -23,15 +23,15 @@ import {
   type Paginated,
   type PresignUserPhotoResponse,
   type User,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { AccountInvitationsService } from '@api/email/account-invitations.service';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { USERS_ENTITY, UsersService } from '@api/users/users.service';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { AccountInvitationsService } from "@api/email/account-invitations.service";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { USERS_ENTITY, UsersService } from "@api/users/users.service";
 
 class CreateUserDto extends createZodDto(createUserSchema) {}
 class UpdateUserDto extends createZodDto(updateUserSchema) {}
@@ -43,7 +43,7 @@ class ConfirmUserPhotoDto extends createZodDto(confirmUserPhotoSchema) {}
 
 // Admin only, every verb. No handler accepts a `clinicId` — it comes from the token, via
 // `ClinicScopeService`.
-@Controller('users')
+@Controller("users")
 @Roles(USER_ROLE.ADMIN)
 export class UsersController {
   constructor(
@@ -59,7 +59,7 @@ export class UsersController {
     return this.usersService.list(actor, query);
   }
 
-  @Get(':id')
+  @Get(":id")
   findOne(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<User> {
     return this.usersService.findOne(actor, params.id);
   }
@@ -70,7 +70,7 @@ export class UsersController {
     return this.usersService.create(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Audit(USERS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,
@@ -80,28 +80,28 @@ export class UsersController {
     return this.usersService.update(actor, params.id, body);
   }
 
-  @Post(':id/invite')
+  @Post(":id/invite")
   @HttpCode(HttpStatus.NO_CONTENT)
   async invite(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
   ): Promise<void> {
-    await this.invitations.invite(params.id, actor.clinicId, 'activate');
+    await this.invitations.invite(params.id, actor.clinicId, "activate");
   }
 
   /** The emailed alternative to setting somebody's password for them. */
-  @Post(':id/send-password-reset')
+  @Post(":id/send-password-reset")
   @HttpCode(HttpStatus.NO_CONTENT)
   async sendPasswordReset(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
   ): Promise<void> {
-    await this.invitations.invite(params.id, actor.clinicId, 'reset');
+    await this.invitations.invite(params.id, actor.clinicId, "reset");
   }
 
   // Not `@Audit(...)`: a password has no value that may be stored, so the service writes an
   // explicit "password was reset" entry instead.
-  @Post(':id/reset-password')
+  @Post(":id/reset-password")
   @HttpCode(HttpStatus.NO_CONTENT)
   async resetPassword(
     @CurrentUser() actor: AuthenticatedUser,
@@ -111,7 +111,7 @@ export class UsersController {
     await this.usersService.resetPassword(actor, params.id, body.newPassword);
   }
 
-  @Post(':id/photo/presign')
+  @Post(":id/photo/presign")
   @HttpCode(HttpStatus.OK)
   presignPhoto(
     @CurrentUser() actor: AuthenticatedUser,
@@ -122,7 +122,7 @@ export class UsersController {
   }
 
   /** Step 2: the bytes are read back from storage and the key is recorded. */
-  @Post(':id/photo')
+  @Post(":id/photo")
   @HttpCode(HttpStatus.OK)
   @Audit(USERS_ENTITY, AUDIT_ACTION.UPDATE)
   confirmPhoto(
@@ -133,13 +133,13 @@ export class UsersController {
     return this.usersService.confirmPhoto(actor, params.id, body);
   }
 
-  @Delete(':id/photo')
+  @Delete(":id/photo")
   @Audit(USERS_ENTITY, AUDIT_ACTION.UPDATE)
   removePhoto(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<User> {
     return this.usersService.removePhoto(actor, params.id);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(USERS_ENTITY, AUDIT_ACTION.DELETE)
   async remove(

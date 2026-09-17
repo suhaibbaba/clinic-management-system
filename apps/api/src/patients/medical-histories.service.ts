@@ -1,17 +1,17 @@
-import { Inject, Injectable, type OnModuleInit } from '@nestjs/common';
-import type { AllergyFlags, MedicalHistory, UpdateMedicalHistoryInput } from '@clinic/shared';
-import { eq } from 'drizzle-orm';
+import { Inject, Injectable, type OnModuleInit } from "@nestjs/common";
+import type { AllergyFlags, MedicalHistory, UpdateMedicalHistoryInput } from "@clinic/shared";
+import { eq } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { medicalHistories } from '@api/database/schema';
-import { PatientAccessService } from '@api/patients/patient-access.service';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { medicalHistories } from "@api/database/schema";
+import { PatientAccessService } from "@api/patients/patient-access.service";
 
 type MedicalHistoryRow = typeof medicalHistories.$inferSelect;
 
-export const MEDICAL_HISTORIES_ENTITY = 'medical_histories';
+export const MEDICAL_HISTORIES_ENTITY = "medical_histories";
 
 @Injectable()
 export class MedicalHistoriesService implements OnModuleInit {
@@ -89,7 +89,7 @@ export class MedicalHistoriesService implements OnModuleInit {
         .returning();
 
       if (!created) {
-        throw new Error('Failed to create medical history');
+        throw new Error("Failed to create medical history");
       }
 
       return toMedicalHistory(created);
@@ -116,7 +116,7 @@ export class MedicalHistoriesService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to update medical history');
+      throw new Error("Failed to update medical history");
     }
 
     return toMedicalHistory(row);
@@ -157,7 +157,7 @@ function emptyHistory(clinicId: string, patientId: string): MedicalHistory {
   const now = new Date().toISOString();
 
   return {
-    id: '00000000-0000-4000-8000-000000000000',
+    id: "00000000-0000-4000-8000-000000000000",
     clinicId,
     patientId,
     chronicConditions: [],

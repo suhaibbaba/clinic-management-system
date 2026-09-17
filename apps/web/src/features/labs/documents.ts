@@ -1,17 +1,17 @@
-import type { StatementQuery } from '@clinic/shared';
+import type { StatementQuery } from "@clinic/shared";
 
-import { labOrdersApi, labsApi } from '@web/features/labs/api';
+import { labOrdersApi, labsApi } from "@web/features/labs/api";
 
 async function present(blob: Blob, filename: string, download: boolean): Promise<void> {
   const url = URL.createObjectURL(blob);
 
   if (download) {
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = filename;
     link.click();
   } else {
-    window.open(url, '_blank', 'noopener');
+    window.open(url, "_blank", "noopener");
   }
 
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000);

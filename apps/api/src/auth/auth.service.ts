@@ -1,5 +1,5 @@
-import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { and, eq, isNull, or, sql } from 'drizzle-orm';
+import { Inject, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import { and, eq, isNull, or, sql } from "drizzle-orm";
 import type {
   AuthenticatedUserProfile,
   ChangePasswordInput,
@@ -8,20 +8,20 @@ import type {
   LoginResponse,
   SessionClinic,
   UserRole,
-} from '@clinic/shared';
+} from "@clinic/shared";
 
-import { PasswordService } from '@api/auth/password.service';
-import { TokenService } from '@api/auth/token.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { PermissionsService } from '@api/permissions/permissions.service';
-import { StorageService } from '@api/storage/storage.service';
-import { clinics, specialties, users } from '@api/database/schema';
+import { PasswordService } from "@api/auth/password.service";
+import { TokenService } from "@api/auth/token.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { PermissionsService } from "@api/permissions/permissions.service";
+import { StorageService } from "@api/storage/storage.service";
+import { clinics, specialties, users } from "@api/database/schema";
 
 type UserRow = typeof users.$inferSelect;
 
 /** One message for every credential failure — the API never reveals which part was wrong. */
-const INVALID_CREDENTIALS = 'Invalid credentials';
+const INVALID_CREDENTIALS = "Invalid credentials";
 
 @Injectable()
 export class AuthService {
@@ -78,24 +78,24 @@ export class AuthService {
     const stored = await this.tokenService.findByToken(presentedToken);
 
     if (!stored) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException("Invalid refresh token");
     }
 
     if (stored.revokedAt) {
       this.logger.warn(`Refresh token reuse detected for user ${stored.userId}; revoking session`);
       await this.tokenService.revokeAllForUser(stored.userId);
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException("Invalid refresh token");
     }
 
     if (stored.expiresAt.getTime() <= Date.now()) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException("Invalid refresh token");
     }
 
     const user = await this.findActiveById(stored.userId);
 
     if (!user) {
       await this.tokenService.revokeAllForUser(stored.userId);
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException("Invalid refresh token");
     }
 
     const issued = await this.tokenService.issueRefreshToken(user);
@@ -121,7 +121,7 @@ export class AuthService {
     const user = await this.findActiveById(actor.id);
 
     if (!user) {
-      throw new UnauthorizedException('Account is no longer available');
+      throw new UnauthorizedException("Account is no longer available");
     }
 
     return this.toProfile(user);
@@ -132,7 +132,7 @@ export class AuthService {
     const user = await this.findActiveById(actor.id);
 
     if (!user) {
-      throw new UnauthorizedException('Account is no longer available');
+      throw new UnauthorizedException("Account is no longer available");
     }
 
     // Somebody who never set one cannot change it; they activate instead.
@@ -141,7 +141,7 @@ export class AuthService {
       (await this.passwordService.verify(user.passwordHash, input.currentPassword));
 
     if (!matches) {
-      throw new UnauthorizedException('Current password is incorrect');
+      throw new UnauthorizedException("Current password is incorrect");
     }
 
     const passwordHash = await this.passwordService.hash(input.newPassword);
@@ -191,7 +191,7 @@ export class AuthService {
 
   /** Spends roughly one verification's worth of time on an unknown identifier. */
   private async burnTiming(password: string): Promise<void> {
-    this.decoyHash ??= await this.passwordService.hash('decoy-password-for-timing');
+    this.decoyHash ??= await this.passwordService.hash("decoy-password-for-timing");
     await this.passwordService.verify(this.decoyHash, password);
   }
 
@@ -239,7 +239,7 @@ export class AuthService {
     ]);
 
     if (!row) {
-      return { name: { ar: '', en: '' }, logoUrl: null, chartTypes: [] };
+      return { name: { ar: "", en: "" }, logoUrl: null, chartTypes: [] };
     }
 
     return {

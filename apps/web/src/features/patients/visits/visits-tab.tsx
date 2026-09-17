@@ -1,29 +1,29 @@
-import type { PatientClinicalView, PerformedProcedure, Visit } from '@clinic/shared';
-import { useMemo, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { PatientClinicalView, PerformedProcedure, Visit } from "@clinic/shared";
+import { useMemo, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Badge, Button, EmptyState, Icon, Ltr, usePersonName, useToast } from '@clinic/ui';
-import { SkeletonCard, SkeletonStatus } from '@clinic/ui/components/skeleton';
-import { useSession } from '@web/features/auth/session';
-import { useDoctors } from '@web/features/doctors/queries';
-import { ConsumeForVisit } from '@web/features/inventory/consume-for-visit';
-import { canConsumeStock } from '@web/features/inventory/permissions';
+import { Badge, Button, EmptyState, Icon, Ltr, usePersonName, useToast } from "@clinic/ui";
+import { SkeletonCard, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import { useSession } from "@web/features/auth/session";
+import { useDoctors } from "@web/features/doctors/queries";
+import { ConsumeForVisit } from "@web/features/inventory/consume-for-visit";
+import { canConsumeStock } from "@web/features/inventory/permissions";
 import {
   ProcedureForm,
   type ProcedureFormValues,
-} from '@web/features/patients/procedures/procedure-form';
+} from "@web/features/patients/procedures/procedure-form";
 import {
   useCreateProcedure,
   usePatientProcedures,
   usePatientVisits,
   useProcedureCatalog,
   useUpdateProcedure,
-} from '@web/features/patients/queries';
-import { VisitFormModal } from '@web/features/patients/visits/visit-form-modal';
-import { errorMessageKey } from '@web/lib/api-error';
-import { formatDateTime } from '@web/lib/format';
-import { cn } from '@clinic/ui/lib/cn';
-import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
+} from "@web/features/patients/queries";
+import { VisitFormModal } from "@web/features/patients/visits/visit-form-modal";
+import { errorMessageKey } from "@web/lib/api-error";
+import { formatDateTime } from "@web/lib/format";
+import { cn } from "@clinic/ui/lib/cn";
+import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 export function VisitsTab({
   patientId,
@@ -70,10 +70,10 @@ export function VisitsTab({
 
   const displayName = usePersonName();
   const doctorName = (id: string): string =>
-    displayName(doctors.data?.items.find((doctor) => doctor.id === id)?.user.name) || '—';
+    displayName(doctors.data?.items.find((doctor) => doctor.id === id)?.user.name) || "—";
 
   const catalogName = (id: string): string =>
-    catalog.data?.find((item) => item.id === id)?.nameAr ?? t('chart.panel.procedure');
+    catalog.data?.find((item) => item.id === id)?.nameAr ?? t("chart.panel.procedure");
 
   if (showSkeleton) {
     return (
@@ -100,10 +100,10 @@ export function VisitsTab({
     try {
       if (editing) {
         await updateProcedure.mutateAsync({ id: editing.id, body: values });
-        toast.success('visits.procedureUpdated');
+        toast.success("visits.procedureUpdated");
       } else {
         await createProcedure.mutateAsync({ ...values, patientId, visitId });
-        toast.success('chart.panel.recorded');
+        toast.success("chart.panel.recorded");
       }
 
       setProcedureFor(null);
@@ -116,7 +116,7 @@ export function VisitsTab({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-value font-medium text-ink">
-          {t('visits.count', { count: ordered.length })}
+          {t("visits.count", { count: ordered.length })}
         </h2>
         <Button
           icon={<Icon name="plus" />}
@@ -126,7 +126,7 @@ export function VisitsTab({
             setFormOpen(true);
           }}
         >
-          {t('visits.create')}
+          {t("visits.create")}
         </Button>
       </div>
 
@@ -150,7 +150,7 @@ export function VisitsTab({
                     {formatDateTime(visit.visitDate)}
                   </Ltr>
                   <p className="mt-0.5 text-label text-ink-muted">
-                    {t('visits.doctor')}: {doctorName(visit.doctorId)}
+                    {t("visits.doctor")}: {doctorName(visit.doctorId)}
                   </p>
                 </div>
 
@@ -164,7 +164,7 @@ export function VisitsTab({
                       size="sm"
                       onClick={() => setConsumingFor(visit.id)}
                     >
-                      {t('inventory.movement.consumeFromVisit')}
+                      {t("inventory.movement.consumeFromVisit")}
                     </Button>
                   )}
 
@@ -177,7 +177,7 @@ export function VisitsTab({
                       setFormOpen(true);
                     }}
                   >
-                    {t('common.edit')}
+                    {t("common.edit")}
                   </Button>
                 </div>
               </div>
@@ -192,7 +192,7 @@ export function VisitsTab({
               <section className="mt-4 border-t border-line pt-3">
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="text-label font-medium uppercase tracking-wide text-ink-muted">
-                    {t('visits.procedures')}
+                    {t("visits.procedures")}
                   </h3>
 
                   {!showingForm && (
@@ -202,13 +202,13 @@ export function VisitsTab({
                       size="sm"
                       onClick={() => setProcedureFor({ visitId: visit.id, procedure: null })}
                     >
-                      {t('chart.panel.addProcedure')}
+                      {t("chart.panel.addProcedure")}
                     </Button>
                   )}
                 </div>
 
                 {visitProcedures.length === 0 && !showingForm && (
-                  <p className="mt-2 text-label text-ink-muted">{t('visits.noProcedures')}</p>
+                  <p className="mt-2 text-label text-ink-muted">{t("visits.noProcedures")}</p>
                 )}
 
                 {visitProcedures.length > 0 && (
@@ -238,7 +238,7 @@ export function VisitsTab({
                             size="sm"
                             onClick={() => setProcedureFor({ visitId: visit.id, procedure })}
                           >
-                            {t('common.edit')}
+                            {t("common.edit")}
                           </Button>
                         </span>
                       </li>
@@ -310,8 +310,8 @@ function Field({
       <dt className="text-label text-ink-muted">{t(label)}</dt>
       <dd
         className={cn(
-          'mt-0.5 whitespace-pre-wrap text-value',
-          emphasise ? 'font-medium text-ink' : 'text-ink',
+          "mt-0.5 whitespace-pre-wrap text-value",
+          emphasise ? "font-medium text-ink" : "text-ink",
         )}
       >
         {value}
@@ -329,15 +329,15 @@ function toothOf(procedure: PerformedProcedure): { tooth?: number } {
 function toothLabel(procedure: PerformedProcedure): string {
   const teeth = (procedure.chartMarks ?? [])
     .map((mark) => (mark.location as { tooth?: number }).tooth)
-    .filter((tooth): tooth is number => typeof tooth === 'number');
+    .filter((tooth): tooth is number => typeof tooth === "number");
 
-  return teeth.length === 0 ? '' : teeth.join(' · ');
+  return teeth.length === 0 ? "" : teeth.join(" · ");
 }
 
-function statusTone(status: PerformedProcedure['status']): 'success' | 'warning' | 'neutral' {
-  if (status === 'done') {
-    return 'success';
+function statusTone(status: PerformedProcedure["status"]): "success" | "warning" | "neutral" {
+  if (status === "done") {
+    return "success";
   }
 
-  return status === 'in_progress' ? 'warning' : 'neutral';
+  return status === "in_progress" ? "warning" : "neutral";
 }

@@ -1,11 +1,11 @@
-import * as SelectPrimitive from '@radix-ui/react-select';
-import type { ChangeEvent, JSX, SelectHTMLAttributes } from 'react';
+import * as SelectPrimitive from "@radix-ui/react-select";
+import type { ChangeEvent, JSX, SelectHTMLAttributes } from "react";
 
-import { useDialogLayer } from '@ui/components/dialog-layer';
-import { FieldLock, fieldShell } from '@ui/components/field';
-import { Icon } from '@ui/components/icon';
-import { cn } from '@ui/lib/cn';
-import { documentDirection } from '@ui/lib/direction';
+import { useDialogLayer } from "@ui/components/dialog-layer";
+import { FieldLock, fieldShell } from "@ui/components/field";
+import { Icon } from "@ui/components/icon";
+import { cn } from "@ui/lib/cn";
+import { documentDirection } from "@ui/lib/direction";
 
 export interface SelectOption {
   readonly value: string;
@@ -14,7 +14,7 @@ export interface SelectOption {
 
 export interface SelectProps extends Omit<
   SelectHTMLAttributes<HTMLSelectElement>,
-  'onChange' | 'value'
+  "onChange" | "value"
 > {
   options: readonly SelectOption[];
   /** Shown while nothing is chosen, and offered as the way back to nothing. */
@@ -29,7 +29,7 @@ export interface SelectProps extends Omit<
 
 // `<Select.Item value="">` throws by design, so the placeholder row travels under a sentinel and
 // comes back out as the `''` every caller already uses.
-const NONE = '__none__';
+const NONE = "__none__";
 
 // Not a native `<select>`: on a clinic's iPhone tapping one did nothing in Safari, and a native
 // picker cannot be tested off the device. Radix gives ordinary DOM a test can drive.
@@ -44,18 +44,18 @@ export function Select({
   onBlur,
   id,
   required,
-  'aria-label': ariaLabel,
-  'aria-describedby': describedBy,
+  "aria-label": ariaLabel,
+  "aria-describedby": describedBy,
 }: SelectProps): JSX.Element {
   // Radix Dialog makes the body inert, so a listbox portalled to `document.body` from inside one
   // ignores every click. A no-op elsewhere.
   const dialogLayer = useDialogLayer();
   // Always controlled, `NONE` standing in for "nothing chosen": leaving `value` off would make it
   // uncontrolled until the first choice, and a form reset could not clear it.
-  const empty = value === '' || value === undefined;
+  const empty = value === "" || value === undefined;
 
   const emit = (next: string): void => {
-    const chosen = next === NONE ? '' : next;
+    const chosen = next === NONE ? "" : next;
 
     // Enough of a change event for what a caller reads off it: `target.value`
     // is the entire contract every one of them uses.
@@ -84,9 +84,9 @@ export function Select({
         aria-invalid={hasError || undefined}
         className={cn(
           fieldShell({ hasError, disabled }),
-          'cursor-pointer text-start text-field',
-          'focus-visible:outline-none',
-          disabled && 'text-ink-faint',
+          "cursor-pointer text-start text-field",
+          "focus-visible:outline-none",
+          disabled && "text-ink-faint",
           className,
         )}
       >
@@ -95,10 +95,10 @@ export function Select({
         <span
           data-part="select-value"
           className={cn(
-            'min-w-0 flex-1 truncate',
+            "min-w-0 flex-1 truncate",
             // Ours rather than `data-[placeholder]`: the empty state is a real selection here, so
             // Radix does not consider the trigger to be showing a placeholder.
-            disabled ? 'text-ink-faint' : empty ? 'text-ink-subtle' : 'text-ink',
+            disabled ? "text-ink-faint" : empty ? "text-ink-subtle" : "text-ink",
           )}
         >
           <SelectPrimitive.Value placeholder={placeholder} />
@@ -112,8 +112,8 @@ export function Select({
               name="chevron-down"
               data-part="select-chevron"
               className={cn(
-                'size-4 shrink-0 transition-colors duration-150',
-                hasError ? 'text-danger-600' : 'text-ink-faint',
+                "size-4 shrink-0 transition-colors duration-150",
+                hasError ? "text-danger-600" : "text-ink-faint",
               )}
             />
           </SelectPrimitive.Icon>
@@ -126,11 +126,11 @@ export function Select({
           position="popper"
           sideOffset={6}
           className={cn(
-            'z-50 max-h-[min(24rem,var(--radix-select-content-available-height))]',
-            'w-[var(--radix-select-trigger-width)] overflow-hidden rounded-panel border border-line bg-surface p-1 shadow-float',
-            'origin-(--radix-select-content-transform-origin)',
-            'data-[state=open]:animate-[menu-in_150ms_ease-out]',
-            'data-[state=closed]:animate-[menu-out_150ms_ease-in]',
+            "z-50 max-h-[min(24rem,var(--radix-select-content-available-height))]",
+            "w-[var(--radix-select-trigger-width)] overflow-hidden rounded-panel border border-line bg-surface p-1 shadow-float",
+            "origin-(--radix-select-content-transform-origin)",
+            "data-[state=open]:animate-[menu-in_150ms_ease-out]",
+            "data-[state=closed]:animate-[menu-out_150ms_ease-in]",
           )}
         >
           <SelectPrimitive.ScrollUpButton className="flex h-6 items-center justify-center text-ink-subtle">
@@ -168,13 +168,13 @@ function Row({
       value={value}
       data-part="select-option"
       className={cn(
-        'flex min-h-(--control-h) cursor-pointer items-center justify-between gap-2 rounded-control',
-        'lg:min-h-(--control-h-sm) px-3 py-2 text-start text-field outline-none select-none',
+        "flex min-h-(--control-h) cursor-pointer items-center justify-between gap-2 rounded-control",
+        "lg:min-h-(--control-h-sm) px-3 py-2 text-start text-field outline-none select-none",
         // `data-highlighted` rather than `hover:`, because it is the keyboard's
         // row as much as the pointer's.
-        'transition-colors duration-150',
-        'data-[highlighted]:bg-inset data-[state=checked]:font-medium',
-        muted ? 'text-ink-subtle' : 'text-ink',
+        "transition-colors duration-150",
+        "data-[highlighted]:bg-inset data-[state=checked]:font-medium",
+        muted ? "text-ink-subtle" : "text-ink",
       )}
     >
       <SelectPrimitive.ItemText>{label}</SelectPrimitive.ItemText>

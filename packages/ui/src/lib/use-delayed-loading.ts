@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 export const SKELETON_DELAY_MS = 150;
 export const SKELETON_MIN_VISIBLE_MS = 300;

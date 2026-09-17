@@ -1,11 +1,11 @@
-import '@testing-library/jest-dom/vitest';
+import "@testing-library/jest-dom/vitest";
 
-import { cleanup } from '@testing-library/react';
-import { afterEach, vi } from 'vitest';
+import { cleanup } from "@testing-library/react";
+import { afterEach, vi } from "vitest";
 
 // The app renders RTL; jsdom needs to be told, since index.html is not used.
-document.documentElement.setAttribute('dir', 'rtl');
-document.documentElement.setAttribute('lang', 'ar');
+document.documentElement.setAttribute("dir", "rtl");
+document.documentElement.setAttribute("lang", "ar");
 
 afterEach(() => {
   cleanup();

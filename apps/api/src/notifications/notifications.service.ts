@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import {
   DEFAULT_NOTIFICATION_TEMPLATES,
   NOTIFICATION_STATUS,
@@ -7,15 +7,15 @@ import {
   type NotificationChannel,
   type NotificationSettings,
   type NotificationTemplate,
-} from '@clinic/shared';
-import { and, eq } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, eq } from "drizzle-orm";
 
-import { DATABASE, type Database } from '@api/database/database.module';
-import { clinics, notificationsLog } from '@api/database/schema';
+import { DATABASE, type Database } from "@api/database/database.module";
+import { clinics, notificationsLog } from "@api/database/schema";
 import {
   NOTIFICATION_PROVIDER,
   type NotificationProvider,
-} from '@api/notifications/notification-provider';
+} from "@api/notifications/notification-provider";
 
 export interface SendNotification {
   readonly clinicId: string;
@@ -70,7 +70,7 @@ export class NotificationsService {
       .returning({ id: notificationsLog.id });
 
     if (!row) {
-      throw new Error('Failed to record the notification');
+      throw new Error("Failed to record the notification");
     }
 
     try {
@@ -126,7 +126,7 @@ export class NotificationsService {
   private bodyFor(settings: NotificationSettings, template: NotificationTemplate): string {
     const custom = settings.templates[template];
 
-    return typeof custom === 'string' && custom.trim() !== ''
+    return typeof custom === "string" && custom.trim() !== ""
       ? custom
       : DEFAULT_NOTIFICATION_TEMPLATES[template];
   }

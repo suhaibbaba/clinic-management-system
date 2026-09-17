@@ -1,4 +1,4 @@
-import { addQuantity, formatThousandths, toThousandths } from '@shared/schemas/quantity';
+import { addQuantity, formatThousandths, toThousandths } from "@shared/schemas/quantity";
 
 // Derived for the screen, never stored: the ledger is batch-agnostic, so batches assume oldest-
 // first (earliest expiry, else purchase date). `sum(quantity)` is unaffected.

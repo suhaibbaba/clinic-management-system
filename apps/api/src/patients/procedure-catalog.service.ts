@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
   USER_ROLE,
   type CreateProcedureCatalogItemInput,
@@ -8,20 +8,20 @@ import {
   type ProcedureCatalogPriceView,
   type UpdateProcedureCatalogItemInput,
   type UserRole,
-} from '@clinic/shared';
-import { and, asc, eq, isNull, ne, or, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, asc, eq, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { procedureCatalog, specialties } from '@api/database/schema';
-import { LookupsService } from '@api/lookups/lookups.service';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { procedureCatalog, specialties } from "@api/database/schema";
+import { LookupsService } from "@api/lookups/lookups.service";
 
 type CatalogRow = typeof procedureCatalog.$inferSelect;
 
-export const PROCEDURE_CATALOG_ENTITY = 'procedure_catalog';
+export const PROCEDURE_CATALOG_ENTITY = "procedure_catalog";
 
 export type CatalogView = ProcedureCatalogItem | ProcedureCatalogPriceView;
 
@@ -123,7 +123,7 @@ export class ProcedureCatalogService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to create catalog item');
+      throw new Error("Failed to create catalog item");
     }
 
     return toRoleView(row, actor.role);
@@ -162,7 +162,7 @@ export class ProcedureCatalogService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to update catalog item');
+      throw new Error("Failed to update catalog item");
     }
 
     return toRoleView(row, actor.role);
@@ -199,7 +199,7 @@ export class ProcedureCatalogService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new ConflictException('Specialty not found in this clinic');
+      throw new ConflictException("Specialty not found in this clinic");
     }
   }
 
@@ -222,7 +222,7 @@ export class ProcedureCatalogService implements OnModuleInit {
       .limit(1);
 
     if (clash) {
-      throw new ConflictException('Procedure code is already in use');
+      throw new ConflictException("Procedure code is already in use");
     }
   }
 }

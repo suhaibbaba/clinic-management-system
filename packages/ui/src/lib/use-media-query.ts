@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from "react";
 
 export const MD_BREAKPOINT = 768;
 
@@ -7,16 +7,16 @@ export const MD_BREAKPOINT = 768;
 export function useMediaQuery(query: string): boolean {
   return useSyncExternalStore(
     (onChange) => {
-      if (typeof window === 'undefined' || !window.matchMedia) {
+      if (typeof window === "undefined" || !window.matchMedia) {
         return () => undefined;
       }
 
       const list = window.matchMedia(query);
-      list.addEventListener('change', onChange);
-      return () => list.removeEventListener('change', onChange);
+      list.addEventListener("change", onChange);
+      return () => list.removeEventListener("change", onChange);
     },
     () =>
-      typeof window !== 'undefined' && window.matchMedia ? window.matchMedia(query).matches : false,
+      typeof window !== "undefined" && window.matchMedia ? window.matchMedia(query).matches : false,
     () => false,
   );
 }

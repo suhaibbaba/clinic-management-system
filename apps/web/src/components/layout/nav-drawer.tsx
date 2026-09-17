@@ -1,8 +1,8 @@
-import * as DialogPrimitive from '@radix-ui/react-dialog';
-import type { JSX, ReactNode } from 'react';
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import type { JSX, ReactNode } from "react";
 
-import { Icon } from '@clinic/ui/components/icon';
-import { cn } from '@clinic/ui/lib/cn';
+import { Icon } from "@clinic/ui/components/icon";
+import { cn } from "@clinic/ui/lib/cn";
 
 export interface NavDrawerProps {
   readonly open: boolean;
@@ -28,9 +28,9 @@ export function NavDrawer({
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
           className={cn(
-            'fixed inset-0 z-40 bg-ink/40 md:hidden',
-            'data-[state=open]:animate-[fade-in_200ms_ease-out]',
-            'data-[state=closed]:animate-[fade-out_150ms_ease-in]',
+            "fixed inset-0 z-40 bg-ink/40 md:hidden",
+            "data-[state=open]:animate-[fade-in_200ms_ease-out]",
+            "data-[state=closed]:animate-[fade-out_150ms_ease-in]",
           )}
         />
 
@@ -44,12 +44,12 @@ export function NavDrawer({
           tabIndex={-1}
           aria-label={title}
           className={cn(
-            'fixed inset-y-0 start-0 z-50 flex w-[86%] max-w-[320px] flex-col md:hidden',
+            "fixed inset-y-0 start-0 z-50 flex w-[86%] max-w-[320px] flex-col md:hidden",
             // `bg-rail`, not `bg-surface`: on a phone this panel is the rail, and it carries the
             // same tint the rail does on a laptop.
-            'bg-rail shadow-float',
-            'data-[state=open]:animate-[drawer-in_220ms_cubic-bezier(0.32,0.72,0,1)]',
-            'data-[state=closed]:animate-[drawer-out_180ms_ease-in]',
+            "bg-rail shadow-float",
+            "data-[state=open]:animate-[drawer-in_220ms_cubic-bezier(0.32,0.72,0,1)]",
+            "data-[state=closed]:animate-[drawer-out_180ms_ease-in]",
           )}
         >
           <div className="flex shrink-0 items-center gap-3 border-b border-line px-3 py-3">
@@ -62,8 +62,8 @@ export function NavDrawer({
             <DialogPrimitive.Close
               aria-label={closeLabel}
               className={cn(
-                'inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill',
-                'text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink',
+                "inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill",
+                "text-ink-muted transition-colors duration-150 hover:bg-inset hover:text-ink",
               )}
             >
               <Icon name="x" />

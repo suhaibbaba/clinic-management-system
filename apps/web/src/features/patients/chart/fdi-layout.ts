@@ -1,9 +1,9 @@
-import { FDI_DECIDUOUS_TEETH, FDI_PERMANENT_TEETH } from '@clinic/shared';
+import { FDI_DECIDUOUS_TEETH, FDI_PERMANENT_TEETH } from "@clinic/shared";
 
-import { toothTypeOf, type ToothType } from '@web/features/patients/chart/tooth-shapes';
+import { toothTypeOf, type ToothType } from "@web/features/patients/chart/tooth-shapes";
 
-export type Dentition = 'permanent' | 'deciduous';
-export type Arch = 'upper' | 'lower';
+export type Dentition = "permanent" | "deciduous";
+export type Arch = "upper" | "lower";
 
 export interface ToothSlot {
   readonly tooth: number;
@@ -14,8 +14,8 @@ export interface ToothSlot {
 }
 
 export function archRow(dentition: Dentition, arch: Arch): readonly number[] {
-  const all = dentition === 'permanent' ? FDI_PERMANENT_TEETH : FDI_DECIDUOUS_TEETH;
-  const quadrants = dentition === 'permanent' ? [1, 2, 3, 4] : [5, 6, 7, 8];
+  const all = dentition === "permanent" ? FDI_PERMANENT_TEETH : FDI_DECIDUOUS_TEETH;
+  const quadrants = dentition === "permanent" ? [1, 2, 3, 4] : [5, 6, 7, 8];
 
   const [upperRight, upperLeft, lowerLeft, lowerRight] = quadrants as [
     number,
@@ -27,7 +27,7 @@ export function archRow(dentition: Dentition, arch: Arch): readonly number[] {
   const inQuadrant = (quadrant: number): number[] =>
     all.filter((tooth) => Math.floor(tooth / 10) === quadrant);
 
-  return arch === 'upper'
+  return arch === "upper"
     ? [...inQuadrant(upperRight).reverse(), ...inQuadrant(upperLeft)]
     : [...inQuadrant(lowerRight).reverse(), ...inQuadrant(lowerLeft)];
 }
@@ -42,7 +42,7 @@ export function layoutRow(dentition: Dentition, arch: Arch): ToothSlot[] {
 }
 
 export function layoutTeeth(dentition: Dentition): ToothSlot[] {
-  return [...layoutRow(dentition, 'upper'), ...layoutRow(dentition, 'lower')];
+  return [...layoutRow(dentition, "upper"), ...layoutRow(dentition, "lower")];
 }
 
 /** Arrow keys walk this list, so focus moves the way the eye does. */

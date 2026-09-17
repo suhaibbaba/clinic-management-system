@@ -7,17 +7,17 @@ import {
   type CSSProperties,
   type JSX,
   type KeyboardEvent,
-} from 'react';
-import { useTranslation } from 'react-i18next';
+} from "react";
+import { useTranslation } from "react-i18next";
 
-import { Skeleton, SkeletonStatus } from '@clinic/ui/components/skeleton';
-import { layoutRow, type Dentition, type ToothSlot } from '@web/features/patients/chart/fdi-layout';
+import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import { layoutRow, type Dentition, type ToothSlot } from "@web/features/patients/chart/fdi-layout";
 import {
   CROWN_LINE,
   IMPLANT_POST,
   TOOTH_SHAPES,
   TOOTH_VIEWBOX,
-} from '@web/features/patients/chart/tooth-shapes';
+} from "@web/features/patients/chart/tooth-shapes";
 import {
   areaState,
   hasShape,
@@ -25,9 +25,9 @@ import {
   useToothStates,
   type ToothStates,
   type ToothSummary,
-} from '@web/features/patients/chart/tooth-state';
-import { cn } from '@clinic/ui/lib/cn';
-import { documentDirection } from '@clinic/ui/lib/direction';
+} from "@web/features/patients/chart/tooth-state";
+import { cn } from "@clinic/ui/lib/cn";
+import { documentDirection } from "@clinic/ui/lib/direction";
 
 export interface ToothChartProps {
   readonly dentition: Dentition;
@@ -47,8 +47,8 @@ export function ToothChart({
   const { t } = useTranslation();
   const states = useToothStates();
 
-  const upper = useMemo(() => layoutRow(dentition, 'upper'), [dentition]);
-  const lower = useMemo(() => layoutRow(dentition, 'lower'), [dentition]);
+  const upper = useMemo(() => layoutRow(dentition, "upper"), [dentition]);
+  const lower = useMemo(() => layoutRow(dentition, "lower"), [dentition]);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -73,8 +73,8 @@ export function ToothChart({
   // page's reading direction would send focus the wrong way in Arabic.
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLButtonElement>, slot: ToothSlot): void => {
-      const row = slot.arch === 'upper' ? upper : lower;
-      const other = slot.arch === 'upper' ? lower : upper;
+      const row = slot.arch === "upper" ? upper : lower;
+      const other = slot.arch === "upper" ? lower : upper;
 
       const move = (target: ToothSlot | undefined): void => {
         if (target) {
@@ -84,20 +84,20 @@ export function ToothChart({
       };
 
       switch (event.key) {
-        case 'ArrowRight':
+        case "ArrowRight":
           return move(row[slot.index + 1]);
-        case 'ArrowLeft':
+        case "ArrowLeft":
           return move(row[slot.index - 1]);
-        case 'ArrowUp':
-          return slot.arch === 'lower' ? move(other[slot.index]) : undefined;
-        case 'ArrowDown':
-          return slot.arch === 'upper' ? move(other[slot.index]) : undefined;
-        case 'Home':
+        case "ArrowUp":
+          return slot.arch === "lower" ? move(other[slot.index]) : undefined;
+        case "ArrowDown":
+          return slot.arch === "upper" ? move(other[slot.index]) : undefined;
+        case "Home":
           return move(row[0]);
-        case 'End':
+        case "End":
           return move(row[row.length - 1]);
-        case 'Enter':
-        case ' ':
+        case "Enter":
+        case " ":
           event.preventDefault();
           onSelect(slot.tooth);
           return;
@@ -109,7 +109,7 @@ export function ToothChart({
   );
 
   const renderRow = (slots: readonly ToothSlot[]): JSX.Element => (
-    <div className={cn('flex justify-center gap-px', slots[0]?.arch === 'lower' && 'chart-lower')}>
+    <div className={cn("flex justify-center gap-px", slots[0]?.arch === "lower" && "chart-lower")}>
       {slots.map((slot) => (
         <Tooth
           key={slot.tooth}
@@ -136,13 +136,13 @@ export function ToothChart({
       className="overflow-x-auto rounded-card border border-chart-border bg-chart-surface px-2 pb-3 pt-9"
       style={
         {
-          '--tooth-w': dentition === 'permanent' ? '30px' : '36px',
+          "--tooth-w": dentition === "permanent" ? "30px" : "36px",
         } as CSSProperties
       }
     >
       <div
         role="group"
-        aria-label={t('chart.title')}
+        aria-label={t("chart.title")}
         className="relative mx-auto w-max min-w-full sm:[--tooth-w:38px] md:[--tooth-w:44px] lg:[--tooth-w:52px]"
       >
         {/* At 50% rather than counted in teeth: both rows hold the same number, so the container's
@@ -169,7 +169,7 @@ function summarise(summaries: ReadonlyMap<number, ToothSummary>, tooth: number):
   return summaries.get(tooth) ?? healthyTooth(tooth);
 }
 
-type BridgeSpan = 'start' | 'middle' | 'end' | null;
+type BridgeSpan = "start" | "middle" | "end" | null;
 
 function bridgeSpan(
   slots: readonly ToothSlot[],
@@ -179,7 +179,7 @@ function bridgeSpan(
 ): BridgeSpan {
   const isBridge = (at: number): boolean => {
     const slot = slots[at];
-    return slot !== undefined && hasShape(summarise(summaries, slot.tooth), 'bridge', states);
+    return slot !== undefined && hasShape(summarise(summaries, slot.tooth), "bridge", states);
   };
 
   if (!isBridge(index)) {
@@ -190,10 +190,10 @@ function bridgeSpan(
   const after = isBridge(index + 1);
 
   if (before && after) {
-    return 'middle';
+    return "middle";
   }
 
-  return after ? 'start' : before ? 'end' : null;
+  return after ? "start" : before ? "end" : null;
 }
 
 interface ToothProps {
@@ -224,19 +224,19 @@ function Tooth({
   const shape = TOOTH_SHAPES[slot.type];
   // Read from the state's own `shape` rather than its code, so a row a clinic renamed still draws
   // as the absence, the post or the bar it is.
-  const missing = states.info(summary.state).shape === 'missing';
-  const implant = hasShape(summary, 'implant', states);
+  const missing = states.info(summary.state).shape === "missing";
+  const implant = hasShape(summary, "implant", states);
 
-  const crown = states.info(areaState(summary, 'crown', states)).style;
-  const root = states.info(areaState(summary, 'root', states)).style;
+  const crown = states.info(areaState(summary, "crown", states)).style;
+  const root = states.info(areaState(summary, "root", states)).style;
   const stateLabel = states.info(summary.state).label;
-  const implantStyle = states.info(areaState(summary, 'root', states)).style;
+  const implantStyle = states.info(areaState(summary, "root", states)).style;
   const bridgeStyle = crown;
 
   const label =
     summary.procedureCount === 0
-      ? t('chart.toothLabel', { tooth: slot.tooth, state: stateLabel })
-      : t('chart.toothLabelWithCount', {
+      ? t("chart.toothLabel", { tooth: slot.tooth, state: stateLabel })
+      : t("chart.toothLabelWithCount", {
           tooth: slot.tooth,
           state: stateLabel,
           count: summary.procedureCount,
@@ -251,16 +251,16 @@ function Tooth({
       // Colour is never the only channel: the condition is in the name, in
       // words, so a screen reader announces "tooth 46, filling, 2 procedures".
       aria-label={label}
-      aria-current={selected ? 'true' : undefined}
+      aria-current={selected ? "true" : undefined}
       onClick={() => onSelect(slot.tooth)}
       onKeyDown={(event) => onKeyDown(event, slot)}
       onFocus={() => onFocusChange(slot.tooth)}
       className={cn(
-        'group relative flex shrink-0 cursor-pointer flex-col items-center gap-0.5',
-        'rounded-panel px-px py-0.5 transition-colors duration-150',
-        slot.arch === 'lower' && 'flex-col-reverse',
+        "group relative flex shrink-0 cursor-pointer flex-col items-center gap-0.5",
+        "rounded-panel px-px py-0.5 transition-colors duration-150",
+        slot.arch === "lower" && "flex-col-reverse",
       )}
-      style={{ width: 'var(--tooth-w)' }}
+      style={{ width: "var(--tooth-w)" }}
     >
       <svg
         viewBox={`0 0 ${TOOTH_VIEWBOX.width} ${TOOTH_VIEWBOX.height}`}
@@ -269,8 +269,8 @@ function Tooth({
         style={{
           // The bridge bar reaches past the tooth's own box to meet its
           // neighbour, so the SVG must not clip it.
-          overflow: 'visible',
-          transform: slot.arch === 'lower' ? 'scaleY(-1)' : undefined,
+          overflow: "visible",
+          transform: slot.arch === "lower" ? "scaleY(-1)" : undefined,
         }}
       >
         {missing ? (
@@ -311,7 +311,7 @@ function Tooth({
                   d={path}
                   fill={root.fill}
                   stroke={root.stroke}
-                  strokeDasharray={root.dashed ? '4 3' : undefined}
+                  strokeDasharray={root.dashed ? "4 3" : undefined}
                 />
               ))
             )}
@@ -320,17 +320,17 @@ function Tooth({
               d={shape.crown}
               fill={crown.fill}
               stroke={crown.stroke}
-              strokeDasharray={crown.dashed ? '4 3' : undefined}
+              strokeDasharray={crown.dashed ? "4 3" : undefined}
             />
 
             {bridge !== null && (
               <rect
                 fill={bridgeStyle.stroke}
-                x={bridge === 'start' ? 8 : -6}
-                width={bridge === 'middle' ? 60 : 46}
+                x={bridge === "start" ? 8 : -6}
+                width={bridge === "middle" ? 60 : 46}
                 y={CROWN_LINE - 10}
                 height={8}
-                rx={bridge === 'middle' ? 0 : 4}
+                rx={bridge === "middle" ? 0 : 4}
               />
             )}
           </g>
@@ -340,8 +340,8 @@ function Tooth({
       <span
         aria-hidden="true"
         className={cn(
-          'pill-text inline-flex items-center text-[10px] font-medium tabular-nums',
-          selected ? 'text-primary-600' : 'text-chart-text',
+          "pill-text inline-flex items-center text-[10px] font-medium tabular-nums",
+          selected ? "text-primary-600" : "text-chart-text",
         )}
       >
         {slot.tooth}
@@ -352,11 +352,11 @@ function Tooth({
       <span
         aria-hidden="true"
         className={cn(
-          'pointer-events-none absolute -inset-px rounded-panel border-2 border-primary-600',
-          'transition-opacity duration-150',
+          "pointer-events-none absolute -inset-px rounded-panel border-2 border-primary-600",
+          "transition-opacity duration-150",
           selected
-            ? 'opacity-100'
-            : 'opacity-0 group-hover:opacity-40 group-focus-visible:opacity-100',
+            ? "opacity-100"
+            : "opacity-0 group-hover:opacity-40 group-focus-visible:opacity-100",
         )}
       />
 
@@ -378,11 +378,11 @@ function Tooltip({
       aria-hidden="true"
       dir={documentDirection()}
       className={cn(
-        'pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2',
-        'pill-text inline-flex items-center gap-1 whitespace-nowrap rounded-pill bg-ink px-2.5 py-1 text-[11px]',
-        'text-ink-inverse shadow-float',
-        'opacity-0 transition-opacity duration-150',
-        'group-hover:opacity-100 group-focus-visible:opacity-100',
+        "pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2",
+        "pill-text inline-flex items-center gap-1 whitespace-nowrap rounded-pill bg-ink px-2.5 py-1 text-[11px]",
+        "text-ink-inverse shadow-float",
+        "opacity-0 transition-opacity duration-150",
+        "group-hover:opacity-100 group-focus-visible:opacity-100",
       )}
     >
       <span className="font-medium" dir="ltr">
@@ -393,7 +393,7 @@ function Tooltip({
       {summary.surfaces.length > 0 && (
         <>
           <span>·</span>
-          <span dir="ltr">{summary.surfaces.join(' ')}</span>
+          <span dir="ltr">{summary.surfaces.join(" ")}</span>
         </>
       )}
     </span>

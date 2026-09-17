@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Resend } from 'resend';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Resend } from "resend";
 
-import type { Env } from '@api/config/env.schema';
+import type { Env } from "@api/config/env.schema";
 
 export interface EmailAttachment {
   readonly filename: string;
@@ -29,13 +29,13 @@ export interface EmailProvider {
   send(email: OutboundEmail): Promise<void>;
 }
 
-export const EMAIL_PROVIDER = Symbol('EMAIL_PROVIDER');
+export const EMAIL_PROVIDER = Symbol("EMAIL_PROVIDER");
 
 @Injectable()
 export class LogEmailProvider implements EmailProvider {
-  readonly name = 'log';
+  readonly name = "log";
 
-  private readonly logger = new Logger('Email');
+  private readonly logger = new Logger("Email");
 
   send(email: OutboundEmail): Promise<void> {
     this.logger.log(`→ ${email.to}: ${email.subject}\n${email.text}`);
@@ -46,7 +46,7 @@ export class LogEmailProvider implements EmailProvider {
 
 @Injectable()
 export class ResendEmailProvider implements EmailProvider {
-  readonly name = 'resend';
+  readonly name = "resend";
 
   private readonly resend: Resend;
   private readonly from: string;
@@ -54,14 +54,14 @@ export class ResendEmailProvider implements EmailProvider {
   private readonly fromAddress: string;
 
   constructor(config: ConfigService<Env, true>) {
-    const key = config.get('RESEND_API_KEY', { infer: true });
+    const key = config.get("RESEND_API_KEY", { infer: true });
 
     if (!key) {
-      throw new Error('EMAIL_PROVIDER=resend requires RESEND_API_KEY');
+      throw new Error("EMAIL_PROVIDER=resend requires RESEND_API_KEY");
     }
 
     this.resend = new Resend(key);
-    this.from = config.get('EMAIL_FROM', { infer: true });
+    this.from = config.get("EMAIL_FROM", { infer: true });
     this.fromAddress = this.from.match(/<([^>]+)>/)?.[1] ?? this.from;
   }
 
@@ -77,7 +77,7 @@ export class ResendEmailProvider implements EmailProvider {
         ? {
             attachments: email.attachments.map((file) => ({
               filename: file.filename,
-              content: file.content.toString('base64'),
+              content: file.content.toString("base64"),
               contentId: file.contentId,
             })),
           }

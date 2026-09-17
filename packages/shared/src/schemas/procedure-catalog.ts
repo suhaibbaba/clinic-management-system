@@ -1,8 +1,8 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { moneySchema, wholeMoneySchema } from '@shared/schemas/money';
-import { paginationQuerySchema } from '@shared/schemas/common';
-import { lookupCodeSchema } from '@shared/schemas/lookups';
+import { moneySchema, wholeMoneySchema } from "@shared/schemas/money";
+import { paginationQuerySchema } from "@shared/schemas/common";
+import { lookupCodeSchema } from "@shared/schemas/lookups";
 
 export const procedureCatalogItemSchema = z.object({
   id: z.uuid(),
@@ -49,7 +49,7 @@ export type CreateProcedureCatalogItemInput = z.infer<typeof createProcedureCata
 export const updateProcedureCatalogItemSchema = z
   .object(catalogWritableFields)
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateProcedureCatalogItemInput = z.infer<typeof updateProcedureCatalogItemSchema>;
 
 export const listProcedureCatalogQuerySchema = paginationQuerySchema.extend({

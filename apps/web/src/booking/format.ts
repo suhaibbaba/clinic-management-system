@@ -1,12 +1,12 @@
-import { personName, type PersonName } from '@clinic/shared';
+import { personName, type PersonName } from "@clinic/shared";
 
 /** Gregorian, Arabic labels, Latin digits — the same choice the app makes. */
-const DATE_LOCALE = 'ar-SY-u-ca-gregory-nu-latn';
+const DATE_LOCALE = "ar-SY-u-ca-gregory-nu-latn";
 
 /** The Arabic locale interleaves bidi marks that reorder digits inside an LTR box. */
-const stripBidiMarks = (value: string): string => value.replace(/[\u200e\u200f]/g, '');
+const stripBidiMarks = (value: string): string => value.replace(/[\u200e\u200f]/g, "");
 
-const pad = (value: number): string => String(value).padStart(2, '0');
+const pad = (value: number): string => String(value).padStart(2, "0");
 
 export function isoDate(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
@@ -56,12 +56,12 @@ export function dayChips(from: string, count: number, maxDaysAhead: number): Day
       date,
       label:
         distance === 0
-          ? 'today'
+          ? "today"
           : distance === 1
-            ? 'tomorrow'
-            : stripBidiMarks(at.toLocaleDateString(DATE_LOCALE, { weekday: 'long' })),
+            ? "tomorrow"
+            : stripBidiMarks(at.toLocaleDateString(DATE_LOCALE, { weekday: "long" })),
       dayNumber: pad(at.getDate()),
-      monthLabel: stripBidiMarks(at.toLocaleDateString(DATE_LOCALE, { month: 'short' })),
+      monthLabel: stripBidiMarks(at.toLocaleDateString(DATE_LOCALE, { month: "short" })),
     });
   }
 
@@ -71,7 +71,7 @@ export function dayChips(from: string, count: number, maxDaysAhead: number): Day
 let clinicOffsetMinutes: number | undefined;
 
 export function learnClinicOffset(startsAt: string, localLabel: string): void {
-  const [hours = '0', minutes = '0'] = localLabel.split(':');
+  const [hours = "0", minutes = "0"] = localLabel.split(":");
   const local = Number(hours) * 60 + Number(minutes);
 
   const at = new Date(startsAt);
@@ -108,9 +108,9 @@ export function formatTime(iso: string): string {
 export function formatLongDate(iso: string): string {
   return stripBidiMarks(
     inClinicZone(iso).toLocaleDateString(DATE_LOCALE, {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
+      weekday: "long",
+      day: "numeric",
+      month: "long",
     }),
   );
 }
@@ -122,5 +122,5 @@ export function clinicDate(iso: string): string {
 // The booking page has no language switcher, so this is `personName(name, 'ar')` with English as
 // the fallback.
 export function bookingName(name: PersonName | null | undefined): string {
-  return personName(name, 'ar');
+  return personName(name, "ar");
 }

@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   createVisitSchema,
@@ -19,14 +19,14 @@ import {
   USER_ROLE,
   type Paginated,
   type Visit,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { VISITS_ENTITY, VisitsService } from '@api/patients/visits.service';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { VISITS_ENTITY, VisitsService } from "@api/patients/visits.service";
 
 class CreateVisitDto extends createZodDto(createVisitSchema) {}
 class UpdateVisitDto extends createZodDto(updateVisitSchema) {}
@@ -35,7 +35,7 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 
 // Admin CRUD, doctor CRU, nothing for technician or receptionist — their responses must never carry
 // a diagnosis or a visit note.
-@Controller('visits')
+@Controller("visits")
 @Roles(USER_ROLE.DOCTOR)
 export class VisitsController {
   constructor(private readonly visitsService: VisitsService) {}
@@ -48,7 +48,7 @@ export class VisitsController {
     return this.visitsService.list(actor, query);
   }
 
-  @Get(':id')
+  @Get(":id")
   findOne(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<Visit> {
     return this.visitsService.findOne(actor, params.id);
   }
@@ -59,7 +59,7 @@ export class VisitsController {
     return this.visitsService.create(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Audit(VISITS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,
@@ -69,7 +69,7 @@ export class VisitsController {
     return this.visitsService.update(actor, params.id, body);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(VISITS_ENTITY, AUDIT_ACTION.DELETE)

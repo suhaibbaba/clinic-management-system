@@ -1,110 +1,110 @@
-import { GENDER, type Gender } from '@clinic/shared';
+import { GENDER, type Gender } from "@clinic/shared";
 
-import type { Rng } from '@api/database/seed/random';
+import type { Rng } from "@api/database/seed/random";
 
 const AREAS: readonly string[] = [
-  'نابلس، رفيديا',
-  'نابلس، شارع فيصل',
-  'نابلس، المخفية',
-  'نابلس، جبل النار',
-  'نابلس، البلدة القديمة',
-  'بيت وزن',
-  'حوارة',
-  'عصيرة الشمالية',
-  'بيتا',
-  'سبسطية',
-  'عورتا',
-  'برقة',
+  "نابلس، رفيديا",
+  "نابلس، شارع فيصل",
+  "نابلس، المخفية",
+  "نابلس، جبل النار",
+  "نابلس، البلدة القديمة",
+  "بيت وزن",
+  "حوارة",
+  "عصيرة الشمالية",
+  "بيتا",
+  "سبسطية",
+  "عورتا",
+  "برقة",
 ];
 
 const MALE_FIRST: readonly string[] = [
-  'أحمد',
-  'محمود',
-  'يوسف',
-  'خليل',
-  'عمر',
-  'إبراهيم',
-  'مصعب',
-  'زيد',
-  'كرم',
-  'عبد الرحمن',
-  'باسل',
-  'رامي',
-  'وسام',
-  'أنس',
-  'معتز',
-  'سامي',
-  'نادر',
-  'حمزة',
+  "أحمد",
+  "محمود",
+  "يوسف",
+  "خليل",
+  "عمر",
+  "إبراهيم",
+  "مصعب",
+  "زيد",
+  "كرم",
+  "عبد الرحمن",
+  "باسل",
+  "رامي",
+  "وسام",
+  "أنس",
+  "معتز",
+  "سامي",
+  "نادر",
+  "حمزة",
 ];
 
 const FEMALE_FIRST: readonly string[] = [
-  'ليان',
-  'سلمى',
-  'جنى',
-  'تالا',
-  'حلا',
-  'رهف',
-  'دانا',
-  'مريم',
-  'نور',
-  'ريم',
-  'شهد',
-  'لين',
-  'يارا',
-  'إسراء',
-  'هبة',
-  'آية',
-  'سجى',
-  'رغد',
+  "ليان",
+  "سلمى",
+  "جنى",
+  "تالا",
+  "حلا",
+  "رهف",
+  "دانا",
+  "مريم",
+  "نور",
+  "ريم",
+  "شهد",
+  "لين",
+  "يارا",
+  "إسراء",
+  "هبة",
+  "آية",
+  "سجى",
+  "رغد",
 ];
 
 const MIDDLE: readonly string[] = [
-  'أحمد',
-  'محمد',
-  'خالد',
-  'سامي',
-  'نبيل',
-  'عادل',
-  'فادي',
-  'رياض',
-  'زياد',
-  'ماهر',
-  'عصام',
-  'جمال',
+  "أحمد",
+  "محمد",
+  "خالد",
+  "سامي",
+  "نبيل",
+  "عادل",
+  "فادي",
+  "رياض",
+  "زياد",
+  "ماهر",
+  "عصام",
+  "جمال",
 ];
 
 const FAMILIES: readonly string[] = [
-  'طوقان',
-  'النابلسي',
-  'المصري',
-  'كنعان',
-  'عنبتاوي',
-  'الشكعة',
-  'حجاوي',
-  'دويكات',
-  'أبو صالح',
-  'قبلاوي',
-  'الأقرع',
-  'عاصي',
-  'حنبلي',
-  'جرار',
-  'صلاح',
-  'عودة',
-  'دراغمة',
-  'البرغوثي',
-  'الحاج',
-  'أبو بكر',
+  "طوقان",
+  "النابلسي",
+  "المصري",
+  "كنعان",
+  "عنبتاوي",
+  "الشكعة",
+  "حجاوي",
+  "دويكات",
+  "أبو صالح",
+  "قبلاوي",
+  "الأقرع",
+  "عاصي",
+  "حنبلي",
+  "جرار",
+  "صلاح",
+  "عودة",
+  "دراغمة",
+  "البرغوثي",
+  "الحاج",
+  "أبو بكر",
 ];
 
-const SPELLING_VARIANTS: readonly string[] = ['أحمد خالد النابلسي', 'احمد خالد النابلسي'];
-const SPELLING_VARIANTS_FEMALE: readonly string[] = ['فاطمة سامي طوقان', 'فاطمه سامي طوقان'];
+const SPELLING_VARIANTS: readonly string[] = ["أحمد خالد النابلسي", "احمد خالد النابلسي"];
+const SPELLING_VARIANTS_FEMALE: readonly string[] = ["فاطمة سامي طوقان", "فاطمه سامي طوقان"];
 
 // Three names that a table column cannot hold, because the truncation has to be looked at.
 const LONG_NAMES: readonly string[] = [
-  'عبد الرحمن بن محمد بن عبد الله الشيخ البرغوثي المقدسي',
-  'محمد نور الدين عبد الفتاح أبو صالح الدويكات',
-  'فاطمة الزهراء عبد المعطي الحاج قاسم النابلسي',
+  "عبد الرحمن بن محمد بن عبد الله الشيخ البرغوثي المقدسي",
+  "محمد نور الدين عبد الفتاح أبو صالح الدويكات",
+  "فاطمة الزهراء عبد المعطي الحاج قاسم النابلسي",
 ];
 
 export interface SeedPerson {
@@ -126,7 +126,7 @@ export function buildPeople(rng: Rng, count: number, today: Date): SeedPerson[] 
     let attempt = 0;
 
     while (takenNames.has(candidate) && attempt < FAMILIES.length) {
-      candidate = `${name.split(' ').slice(0, -1).join(' ')} ${FAMILIES[attempt] as string}`;
+      candidate = `${name.split(" ").slice(0, -1).join(" ")} ${FAMILIES[attempt] as string}`;
       attempt += 1;
     }
 
@@ -169,7 +169,7 @@ export function buildPeople(rng: Rng, count: number, today: Date): SeedPerson[] 
 
 /** `+9705x…`, which is what every mobile in the West Bank starts with. */
 function palestinianMobile(rng: Rng, index: number): string {
-  const prefix = rng.pick(['59', '56', '52']);
+  const prefix = rng.pick(["59", "56", "52"]);
   const serial = String(100_000 + index * 7 + rng.int(0, 6)).slice(-6);
 
   return `+9705${prefix.slice(1)}${serial}`;
@@ -180,5 +180,5 @@ function birthDate(rng: Rng, today: Date, age: number): string {
   const month = rng.int(1, 12);
   const day = rng.int(1, 28);
 
-  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }

@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
   type OnModuleInit,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   USER_ROLE,
   type ClinicNote,
@@ -12,20 +12,20 @@ import {
   type ListClinicNotesQuery,
   type Paginated,
   type UpdateClinicNoteInput,
-} from '@clinic/shared';
-import { desc, eq, sql } from 'drizzle-orm';
+} from "@clinic/shared";
+import { desc, eq, sql } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { clinicNotes, users } from '@api/database/schema';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { clinicNotes, users } from "@api/database/schema";
 
-export const CLINIC_NOTES_ENTITY = 'clinic_notes';
+export const CLINIC_NOTES_ENTITY = "clinic_notes";
 
 type NoteRow = typeof clinicNotes.$inferSelect;
-type AuthorRow = { nameAr: string; nameEn: string; role: ClinicNote['authorRole'] } | null;
+type AuthorRow = { nameAr: string; nameEn: string; role: ClinicNote["authorRole"] } | null;
 
 @Injectable()
 export class NotesService implements OnModuleInit {
@@ -123,7 +123,7 @@ export class NotesService implements OnModuleInit {
 
   private requireOwnership(actor: AuthenticatedUser, note: NoteRow): void {
     if (actor.role !== USER_ROLE.ADMIN && note.authorId !== actor.id) {
-      throw new ForbiddenException('A note may only be changed by the person who wrote it');
+      throw new ForbiddenException("A note may only be changed by the person who wrote it");
     }
   }
 
@@ -140,7 +140,7 @@ export class NotesService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new NotFoundException('Note not found');
+      throw new NotFoundException("Note not found");
     }
 
     return toClinicNote(row.note, row.author);

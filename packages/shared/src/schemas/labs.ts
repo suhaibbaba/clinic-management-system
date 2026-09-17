@@ -1,17 +1,17 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { isFdiTooth } from '@shared/constants/dental';
-import { LAB_ORDER_STATUSES } from '@shared/enums';
-import { isoDateSchema } from '@shared/schemas/appointments';
+import { isFdiTooth } from "@shared/constants/dental";
+import { LAB_ORDER_STATUSES } from "@shared/enums";
+import { isoDateSchema } from "@shared/schemas/appointments";
 import {
   hasExactlyOnePatient,
   patientRefFields,
   PATIENT_REF_MESSAGE,
-} from '@shared/schemas/patients';
-import { personNameSchema } from '@shared/schemas/person-name';
-import { paginationQuerySchema, uuidSchema, optionalPhoneSchema } from '@shared/schemas/common';
-import { moneySchema, signedMoneySchema, wholeMoneySchema } from '@shared/schemas/money';
-import { lookupCodeSchema } from '@shared/schemas/lookups';
+} from "@shared/schemas/patients";
+import { personNameSchema } from "@shared/schemas/person-name";
+import { paginationQuerySchema, uuidSchema, optionalPhoneSchema } from "@shared/schemas/common";
+import { moneySchema, signedMoneySchema, wholeMoneySchema } from "@shared/schemas/money";
+import { lookupCodeSchema } from "@shared/schemas/lookups";
 
 // Two ledgers, never confused: the patient owes the clinic (`charges`/`payments`), the clinic owes
 // the lab (`lab_orders`/`lab_payments`), and neither cancels the other.
@@ -81,7 +81,7 @@ export type UpdateLabWorkTypeInput = z.infer<typeof updateLabWorkTypeSchema>;
 
 /** FDI numbers the work is for. A bridge is several; a denture may be none. */
 export const labTeethSchema = z
-  .array(z.number().int().refine(isFdiTooth, 'Not a valid FDI tooth number'))
+  .array(z.number().int().refine(isFdiTooth, "Not a valid FDI tooth number"))
   .max(32);
 
 export const labOrderSchema = z.object({
@@ -206,7 +206,7 @@ export const createLabPaymentSchema = z.object({
   labId: uuidSchema,
   amount: wholeMoneySchema.refine(
     (value) => Number(value) > 0,
-    'A payment must be greater than zero',
+    "A payment must be greater than zero",
   ),
   method: lookupCodeSchema,
   note: z.string().trim().max(500).nullish(),
@@ -230,8 +230,8 @@ export const labBalanceSchema = z.object({
 export type LabBalance = z.infer<typeof labBalanceSchema>;
 
 export const LAB_STATEMENT_ENTRY_KIND = {
-  ORDER: 'order',
-  PAYMENT: 'payment',
+  ORDER: "order",
+  PAYMENT: "payment",
 } as const;
 export type LabStatementEntryKind =
   (typeof LAB_STATEMENT_ENTRY_KIND)[keyof typeof LAB_STATEMENT_ENTRY_KIND];

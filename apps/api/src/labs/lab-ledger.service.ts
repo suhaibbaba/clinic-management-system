@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from "@nestjs/common";
 import {
   addMoney,
   formatMinorUnits,
@@ -12,12 +12,12 @@ import {
   type LabStatementEntryKind,
   type Money,
   type StatementQuery,
-} from '@clinic/shared';
-import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 
-import { DATABASE, type Database } from '@api/database/database.module';
-import { labOrders, labPayments, labWorkTypes } from '@api/database/schema';
-import { LabsService } from '@api/labs/labs.service';
+import { DATABASE, type Database } from "@api/database/database.module";
+import { labOrders, labPayments, labWorkTypes } from "@api/database/schema";
+import { LabsService } from "@api/labs/labs.service";
 
 interface LedgerLine {
   readonly id: string;
@@ -68,8 +68,8 @@ export class LabLedgerService {
     `);
 
     const row = rows[0];
-    const owed = normalise(row?.owed ?? '0');
-    const paid = normalise(row?.paid ?? '0');
+    const owed = normalise(row?.owed ?? "0");
+    const paid = normalise(row?.paid ?? "0");
 
     return {
       labId,
@@ -139,13 +139,13 @@ export class LabLedgerService {
         kind: LAB_STATEMENT_ENTRY_KIND.PAYMENT,
         occurredAt: row.createdAt,
         amount: formatMinorUnits(-toMinorUnits(row.amount)),
-        description: row.note ?? '',
+        description: row.note ?? "",
         isReversal: row.reversesId !== null,
       })),
     ].sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime() || a.id.localeCompare(b.id));
 
-    let running: Money = '0.00';
-    let opening: Money = '0.00';
+    let running: Money = "0.00";
+    let opening: Money = "0.00";
     const entries: LabStatementEntry[] = [];
 
     for (const line of lines) {
@@ -184,14 +184,14 @@ export class LabLedgerService {
 }
 
 function describeOrder(workTypeName: string | null, teeth: readonly number[]): string {
-  const name = workTypeName ?? 'عمل مخبري';
+  const name = workTypeName ?? "عمل مخبري";
 
-  return teeth.length > 0 ? `${name} — ${teeth.join('، ')}` : name;
+  return teeth.length > 0 ? `${name} — ${teeth.join("، ")}` : name;
 }
 
 /** Postgres returns `numeric` unpadded; money is always two decimals here. */
 function normalise(value: string): string {
-  const [whole = '0', fraction = ''] = value.split('.');
+  const [whole = "0", fraction = ""] = value.split(".");
 
-  return `${whole}.${fraction.padEnd(2, '0').slice(0, 2)}`;
+  return `${whole}.${fraction.padEnd(2, "0").slice(0, 2)}`;
 }

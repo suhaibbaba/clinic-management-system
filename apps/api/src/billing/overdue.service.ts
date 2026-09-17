@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from "@nestjs/common";
 import {
   DEFAULT_OVERDUE_AFTER_DAYS,
   formatMinorUnits,
@@ -8,12 +8,12 @@ import {
   type Money,
   type OverduePatient,
   type Paginated,
-} from '@clinic/shared';
-import { eq, sql } from 'drizzle-orm';
+} from "@clinic/shared";
+import { eq, sql } from "drizzle-orm";
 
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { clinics } from '@api/database/schema';
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { clinics } from "@api/database/schema";
 
 export interface OverdueTotal {
   readonly total: Money;
@@ -121,7 +121,7 @@ export class OverdueService {
     const row = rows[0];
 
     return {
-      total: formatMinorUnits(toMinorUnits(row?.total ?? '0')),
+      total: formatMinorUnits(toMinorUnits(row?.total ?? "0")),
       patients: row?.patients ?? 0,
     };
   }
@@ -135,7 +135,7 @@ export class OverdueService {
 
     const configured = row?.settings?.[OVERDUE_AFTER_DAYS_SETTING];
 
-    return typeof configured === 'number' && Number.isInteger(configured) && configured > 0
+    return typeof configured === "number" && Number.isInteger(configured) && configured > 0
       ? configured
       : DEFAULT_OVERDUE_AFTER_DAYS;
   }

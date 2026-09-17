@@ -4,20 +4,20 @@ import {
   TOOTH_STATE,
   type LookupBundle,
   type ToothState,
-} from '@clinic/shared';
-import { screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+} from "@clinic/shared";
+import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
-import { ToothChart } from '@web/features/patients/chart/tooth-chart';
+import { ToothChart } from "@web/features/patients/chart/tooth-chart";
 import {
   buildToothStates,
   deriveToothSummaries,
   type ToothSummary,
-} from '@web/features/patients/chart/tooth-state';
-import '@web/i18n';
-import { makeLookupBundle, makeProcedure } from '@test/helpers/fixtures';
-import { renderWithProviders } from '@test/helpers/render';
+} from "@web/features/patients/chart/tooth-state";
+import "@web/i18n";
+import { makeLookupBundle, makeProcedure } from "@test/helpers/fixtures";
+import { renderWithProviders } from "@test/helpers/render";
 
 const CATALOG_ID = makeProcedure(11).procedureId;
 
@@ -29,11 +29,11 @@ function renderChart(
   summaries: ReadonlyMap<number, ToothSummary> = new Map(),
   {
     selected = null as number | null,
-    dentition = 'permanent' as const,
+    dentition = "permanent" as const,
     lookups = makeLookupBundle(),
   }: {
     selected?: number | null;
-    dentition?: 'permanent' | 'deciduous';
+    dentition?: "permanent" | "deciduous";
     lookups?: LookupBundle;
   } = {},
 ) {
@@ -53,12 +53,12 @@ function renderChart(
 }
 
 const tooth = (fdi: number): HTMLElement =>
-  screen.getByRole('button', { name: new RegExp(`\\b${fdi}\\b`) });
+  screen.getByRole("button", { name: new RegExp(`\\b${fdi}\\b`) });
 
 /** The CSS variables the chart paints with, so a test names a token not a hue. */
 const TOKEN = {
-  crown: 'var(--color-tooth-crown)',
-  rootCanal: 'var(--color-tooth-root-canal)',
+  crown: "var(--color-tooth-crown)",
+  rootCanal: "var(--color-tooth-root-canal)",
 };
 
 const charted = (fdi: number, states: readonly ToothState[]): Map<number, ToothSummary> =>
@@ -75,39 +75,39 @@ const charted = (fdi: number, states: readonly ToothState[]): Map<number, ToothS
     ],
   ]);
 
-describe('ToothChart', () => {
-  it('renders every tooth as a button', () => {
+describe("ToothChart", () => {
+  it("renders every tooth as a button", () => {
     renderChart();
 
-    expect(screen.getAllByRole('button')).toHaveLength(32);
+    expect(screen.getAllByRole("button")).toHaveLength(32);
   });
 
-  it('names each tooth by its number and its condition, not by colour alone', () => {
+  it("names each tooth by its number and its condition, not by colour alone", () => {
     const summaries = deriveToothSummaries(
       [makeProcedure(46, { procedureId: CATALOG_ID })],
-      new Map([[CATALOG_ID, 'filling' as const]]),
-      buildToothStates(makeLookupBundle()[LOOKUP_LIST.TOOTH_STATE] ?? [], 'ar'),
+      new Map([[CATALOG_ID, "filling" as const]]),
+      buildToothStates(makeLookupBundle()[LOOKUP_LIST.TOOTH_STATE] ?? [], "ar"),
     );
 
     renderChart(summaries);
 
     // The name comes off the clinic's own row, not an i18n key.
     expect(
-      screen.getByRole('button', { name: `السن 46 — ${named('filling')}، 1 معالجة` }),
+      screen.getByRole("button", { name: `السن 46 — ${named("filling")}، 1 معالجة` }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: `السن 11 — ${named('healthy')}` }),
+      screen.getByRole("button", { name: `السن 11 — ${named("healthy")}` }),
     ).toBeInTheDocument();
   });
 
-  it('marks the selected tooth as current', () => {
+  it("marks the selected tooth as current", () => {
     renderChart(new Map(), { selected: 24 });
 
-    expect(tooth(24)).toHaveAttribute('aria-current', 'true');
-    expect(tooth(25)).not.toHaveAttribute('aria-current');
+    expect(tooth(24)).toHaveAttribute("aria-current", "true");
+    expect(tooth(25)).not.toHaveAttribute("aria-current");
   });
 
-  it('opens a tooth when it is clicked', async () => {
+  it("opens a tooth when it is clicked", async () => {
     const { onSelect } = renderChart();
 
     await userEvent.click(tooth(36));
@@ -115,92 +115,92 @@ describe('ToothChart', () => {
     expect(onSelect).toHaveBeenCalledWith(36);
   });
 
-  describe('keyboard navigation', () => {
-    it('puts exactly one tooth in the tab order', () => {
+  describe("keyboard navigation", () => {
+    it("puts exactly one tooth in the tab order", () => {
       renderChart();
 
       const focusable = screen
-        .getAllByRole('button')
-        .filter((element) => element.getAttribute('tabindex') === '0');
+        .getAllByRole("button")
+        .filter((element) => element.getAttribute("tabindex") === "0");
 
       expect(focusable).toHaveLength(1);
-      expect(focusable[0]).toHaveAccessibleName(new RegExp('\\b18\\b'));
+      expect(focusable[0]).toHaveAccessibleName(new RegExp("\\b18\\b"));
     });
 
-    it('starts the tab order on the selected tooth once there is one', () => {
+    it("starts the tab order on the selected tooth once there is one", () => {
       renderChart(new Map(), { selected: 33 });
 
-      expect(tooth(33)).toHaveAttribute('tabindex', '0');
+      expect(tooth(33)).toHaveAttribute("tabindex", "0");
     });
 
-    it('moves along the arch with the arrow keys, visually left to right', async () => {
+    it("moves along the arch with the arrow keys, visually left to right", async () => {
       renderChart();
       tooth(18).focus();
 
       // 18 is the viewer's far left, so "right" walks towards the midline.
-      await userEvent.keyboard('{ArrowRight}');
+      await userEvent.keyboard("{ArrowRight}");
       expect(tooth(17)).toHaveFocus();
 
-      await userEvent.keyboard('{ArrowRight}');
+      await userEvent.keyboard("{ArrowRight}");
       expect(tooth(16)).toHaveFocus();
 
-      await userEvent.keyboard('{ArrowLeft}');
+      await userEvent.keyboard("{ArrowLeft}");
       expect(tooth(17)).toHaveFocus();
     });
 
-    it('crosses the midline rather than stopping at it', async () => {
+    it("crosses the midline rather than stopping at it", async () => {
       renderChart();
       tooth(11).focus();
 
-      await userEvent.keyboard('{ArrowRight}');
+      await userEvent.keyboard("{ArrowRight}");
 
       expect(tooth(21)).toHaveFocus();
     });
 
-    it('stops at the ends of the arch', async () => {
+    it("stops at the ends of the arch", async () => {
       renderChart();
       tooth(18).focus();
 
-      await userEvent.keyboard('{ArrowLeft}');
+      await userEvent.keyboard("{ArrowLeft}");
 
       expect(tooth(18)).toHaveFocus();
     });
 
-    it('crosses between the arches, keeping the same position', async () => {
+    it("crosses between the arches, keeping the same position", async () => {
       renderChart();
       tooth(16).focus();
 
-      await userEvent.keyboard('{ArrowDown}');
+      await userEvent.keyboard("{ArrowDown}");
       expect(tooth(46)).toHaveFocus();
 
-      await userEvent.keyboard('{ArrowUp}');
+      await userEvent.keyboard("{ArrowUp}");
       expect(tooth(16)).toHaveFocus();
     });
 
-    it('does not leave the chart at the top or the bottom', async () => {
+    it("does not leave the chart at the top or the bottom", async () => {
       renderChart();
       tooth(16).focus();
 
-      await userEvent.keyboard('{ArrowUp}');
+      await userEvent.keyboard("{ArrowUp}");
       expect(tooth(16)).toHaveFocus();
 
       tooth(46).focus();
-      await userEvent.keyboard('{ArrowDown}');
+      await userEvent.keyboard("{ArrowDown}");
       expect(tooth(46)).toHaveFocus();
     });
 
-    it('jumps to the ends of the arch with Home and End', async () => {
+    it("jumps to the ends of the arch with Home and End", async () => {
       renderChart();
       tooth(13).focus();
 
-      await userEvent.keyboard('{Home}');
+      await userEvent.keyboard("{Home}");
       expect(tooth(18)).toHaveFocus();
 
-      await userEvent.keyboard('{End}');
+      await userEvent.keyboard("{End}");
       expect(tooth(28)).toHaveFocus();
     });
 
-    it.each(['{Enter}', ' '])('opens the focused tooth with %s', async (key) => {
+    it.each(["{Enter}", " "])("opens the focused tooth with %s", async (key) => {
       const { onSelect } = renderChart();
       tooth(26).focus();
 
@@ -210,82 +210,82 @@ describe('ToothChart', () => {
     });
   });
 
-  describe('deciduous mode', () => {
-    it('shows 20 teeth instead of 32', () => {
-      renderChart(new Map(), { dentition: 'deciduous' });
+  describe("deciduous mode", () => {
+    it("shows 20 teeth instead of 32", () => {
+      renderChart(new Map(), { dentition: "deciduous" });
 
-      expect(screen.getAllByRole('button')).toHaveLength(20);
-      expect(screen.getByRole('button', { name: new RegExp('\\b55\\b') })).toBeInTheDocument();
+      expect(screen.getAllByRole("button")).toHaveLength(20);
+      expect(screen.getByRole("button", { name: new RegExp("\\b55\\b") })).toBeInTheDocument();
     });
   });
 
-  it('shows a missing tooth with a dashed outline, not colour alone', () => {
+  it("shows a missing tooth with a dashed outline, not colour alone", () => {
     renderChart(charted(18, [TOOTH_STATE.MISSING]));
 
     const button = tooth(18);
-    expect(button.querySelector('[stroke-dasharray]')).not.toBeNull();
-    expect(button).toHaveAccessibleName(new RegExp(named('missing')));
+    expect(button.querySelector("[stroke-dasharray]")).not.toBeNull();
+    expect(button).toHaveAccessibleName(new RegExp(named("missing")));
   });
 
-  it('paints a state the clinic invented in the colour they chose', () => {
-    renderChart(charted(16, ['veneer']), {
+  it("paints a state the clinic invented in the colour they chose", () => {
+    renderChart(charted(16, ["veneer"]), {
       lookups: makeLookupBundle({
         [LOOKUP_LIST.TOOTH_STATE]: [
-          { code: 'veneer', nameAr: 'وجه تجميلي', nameEn: 'Veneer', color: '#7c3aed' },
+          { code: "veneer", nameAr: "وجه تجميلي", nameEn: "Veneer", color: "#7c3aed" },
         ],
       }),
     });
 
     const button = tooth(16);
-    const fills = [...button.querySelectorAll('path')].map((path) => path.getAttribute('fill'));
+    const fills = [...button.querySelectorAll("path")].map((path) => path.getAttribute("fill"));
 
     // Whole tooth: the chart cannot know which half a new state belongs on.
-    expect(new Set(fills)).toEqual(new Set(['#7c3aed']));
-    expect(button).toHaveAccessibleName(new RegExp('وجه تجميلي'));
+    expect(new Set(fills)).toEqual(new Set(["#7c3aed"]));
+    expect(button).toHaveAccessibleName(new RegExp("وجه تجميلي"));
   });
 
-  describe('anatomy', () => {
-    it('draws the midline the quadrants are read against', () => {
+  describe("anatomy", () => {
+    it("draws the midline the quadrants are read against", () => {
       const { container } = renderChart();
 
       // Left of it is the patient's right (quadrants 1 and 4), right of it the
       // patient's left. Without it "the fifth one" has two answers.
-      expect(container.querySelector('[data-chart-midline]')).not.toBeNull();
+      expect(container.querySelector("[data-chart-midline]")).not.toBeNull();
     });
 
-    it('draws an upper molar with three roots and a lower one with two', () => {
+    it("draws an upper molar with three roots and a lower one with two", () => {
       renderChart();
 
       // Four paths for an upper molar: three roots and a crown.
-      expect(tooth(16).querySelectorAll('path')).toHaveLength(4);
+      expect(tooth(16).querySelectorAll("path")).toHaveLength(4);
       // Three for a lower one: two roots and a crown.
-      expect(tooth(46).querySelectorAll('path')).toHaveLength(3);
-      expect(tooth(11).querySelectorAll('path')).toHaveLength(2);
+      expect(tooth(46).querySelectorAll("path")).toHaveLength(3);
+      expect(tooth(11).querySelectorAll("path")).toHaveLength(2);
     });
 
-    it('paints the root and the crown of one tooth differently', () => {
+    it("paints the root and the crown of one tooth differently", () => {
       // The case the old single-fill chart could not show: a canal *under* a
       // crown. Precedence used to pick one and drop the other.
       renderChart(charted(16, [TOOTH_STATE.CROWN, TOOTH_STATE.ROOT_CANAL]));
 
-      const paths = [...tooth(16).querySelectorAll('path')];
-      const fills = paths.map((path) => path.getAttribute('fill'));
+      const paths = [...tooth(16).querySelectorAll("path")];
+      const fills = paths.map((path) => path.getAttribute("fill"));
 
       expect(fills.slice(0, 3)).toEqual(Array.from({ length: 3 }, () => TOKEN.rootCanal));
       expect(fills[3]).toBe(TOKEN.crown);
     });
 
-    it('replaces the root of an implant with a post rather than colouring it', () => {
+    it("replaces the root of an implant with a post rather than colouring it", () => {
       renderChart(charted(36, [TOOTH_STATE.IMPLANT, TOOTH_STATE.CROWN]));
 
       const button = tooth(36);
       // The threads are the tell: no other tooth draws lines inside itself.
-      expect(button.querySelectorAll('line').length).toBeGreaterThan(0);
-      const crown = [...button.querySelectorAll('path')].at(-1);
-      expect(crown).toHaveAttribute('fill', TOKEN.crown);
+      expect(button.querySelectorAll("line").length).toBeGreaterThan(0);
+      const crown = [...button.querySelectorAll("path")].at(-1);
+      expect(crown).toHaveAttribute("fill", TOKEN.crown);
     });
 
-    it('joins adjacent bridged teeth with one bar', () => {
+    it("joins adjacent bridged teeth with one bar", () => {
       const summaries = new Map<number, ToothSummary>([
         ...charted(24, [TOOTH_STATE.BRIDGE]),
         ...charted(25, [TOOTH_STATE.BRIDGE]),
@@ -295,10 +295,10 @@ describe('ToothChart', () => {
       renderChart(summaries);
 
       const bar = (fdi: number) => {
-        const rect = tooth(fdi).querySelector('rect');
+        const rect = tooth(fdi).querySelector("rect");
         return {
-          from: Number(rect?.getAttribute('x')),
-          to: Number(rect?.getAttribute('x')) + Number(rect?.getAttribute('width')),
+          from: Number(rect?.getAttribute("x")),
+          to: Number(rect?.getAttribute("x")) + Number(rect?.getAttribute("width")),
         };
       };
 
@@ -311,7 +311,7 @@ describe('ToothChart', () => {
       expect(bar(25).from).toBeLessThan(0);
 
       // A bridged tooth on its own is not a bridge span.
-      expect(tooth(34).querySelector('rect')).toBeNull();
+      expect(tooth(34).querySelector("rect")).toBeNull();
     });
   });
 });

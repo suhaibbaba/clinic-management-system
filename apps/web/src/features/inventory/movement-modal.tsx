@@ -3,9 +3,9 @@ import {
   MOVEMENT_TYPE,
   type InventoryItemRow,
   type MovementType,
-} from '@clinic/shared';
-import { useEffect, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@clinic/shared";
+import { useEffect, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Button,
@@ -18,27 +18,27 @@ import {
   Select,
   Textarea,
   useToast,
-} from '@clinic/ui';
+} from "@clinic/ui";
 import {
   PatientPicker,
   type PatientChoice,
   type PickedPatient,
-} from '@web/features/appointments/patient-picker';
-import { useLookupLabels } from '@web/features/lookups/queries';
-import { useSession, type Can } from '@web/features/auth/session';
+} from "@web/features/appointments/patient-picker";
+import { useLookupLabels } from "@web/features/lookups/queries";
+import { useSession, type Can } from "@web/features/auth/session";
 import {
   canAdjustStock,
   canConsumeStock,
   canPurchaseStock,
-} from '@web/features/inventory/permissions';
+} from "@web/features/inventory/permissions";
 import {
   useAdjustStock,
   useConsumeStock,
   usePurchaseStock,
   useSuppliers,
-} from '@web/features/inventory/queries';
-import { errorMessageKey } from '@web/lib/api-error';
-import { useCurrency } from '@web/features/clinic/queries';
+} from "@web/features/inventory/queries";
+import { errorMessageKey } from "@web/lib/api-error";
+import { useCurrency } from "@web/features/clinic/queries";
 
 /** Which permission each form asks for, as a lookup. */
 export const mayRecord = (type: MovementType, can: Can): boolean =>
@@ -77,13 +77,13 @@ export function MovementModal({
 
   const suppliers = useSuppliers({ limit: 100 });
 
-  const [quantity, setQuantity] = useState('');
-  const [unitPrice, setUnitPrice] = useState('');
-  const [supplierId, setSupplierId] = useState('');
-  const [batchNo, setBatchNo] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
-  const [reason, setReason] = useState('');
-  const [direction, setDirection] = useState<'add' | 'remove'>('remove');
+  const [quantity, setQuantity] = useState("");
+  const [unitPrice, setUnitPrice] = useState("");
+  const [supplierId, setSupplierId] = useState("");
+  const [batchNo, setBatchNo] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [reason, setReason] = useState("");
+  const [direction, setDirection] = useState<"add" | "remove">("remove");
   const [linkedPatient, setLinkedPatient] = useState<PatientChoice | null>(null);
 
   useEffect(() => {
@@ -91,14 +91,14 @@ export function MovementModal({
       return;
     }
 
-    setQuantity('');
-    setUnitPrice('');
-    setSupplierId(item?.defaultSupplierId ?? '');
-    setBatchNo('');
-    setExpiryDate('');
-    setReason('');
-    setDirection('remove');
-    setLinkedPatient(patient ? { kind: 'existing', patient } : null);
+    setQuantity("");
+    setUnitPrice("");
+    setSupplierId(item?.defaultSupplierId ?? "");
+    setBatchNo("");
+    setExpiryDate("");
+    setReason("");
+    setDirection("remove");
+    setLinkedPatient(patient ? { kind: "existing", patient } : null);
   }, [type, item, patient]);
 
   if (type === null || !item) {
@@ -107,7 +107,7 @@ export function MovementModal({
 
   const busy = purchase.isPending || consume.isPending || adjust.isPending;
   const canSubmit =
-    quantity.trim() !== '' && (type !== MOVEMENT_TYPE.ADJUST || reason.trim().length >= 3);
+    quantity.trim() !== "" && (type !== MOVEMENT_TYPE.ADJUST || reason.trim().length >= 3);
 
   const submit = async (): Promise<void> => {
     try {
@@ -115,26 +115,26 @@ export function MovementModal({
         await purchase.mutateAsync({
           itemId: item.id,
           quantity: quantity.trim(),
-          ...(unitPrice.trim() !== '' && { unitPrice: unitPrice.trim() }),
-          ...(supplierId !== '' && { supplierId }),
-          ...(batchNo.trim() !== '' && { batchNo: batchNo.trim() }),
-          ...(expiryDate !== '' && { expiryDate }),
+          ...(unitPrice.trim() !== "" && { unitPrice: unitPrice.trim() }),
+          ...(supplierId !== "" && { supplierId }),
+          ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
+          ...(expiryDate !== "" && { expiryDate }),
         });
       } else if (type === MOVEMENT_TYPE.CONSUME) {
         await consume.mutateAsync({
           itemId: item.id,
           quantity: quantity.trim(),
-          ...(linkedPatient?.kind === 'existing' && { patientId: linkedPatient.patient.id }),
+          ...(linkedPatient?.kind === "existing" && { patientId: linkedPatient.patient.id }),
           ...(performedProcedureId && { performedProcedureId }),
-          ...(batchNo.trim() !== '' && { batchNo: batchNo.trim() }),
-          ...(reason.trim() !== '' && { reason: reason.trim() }),
+          ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
+          ...(reason.trim() !== "" && { reason: reason.trim() }),
         });
       } else {
         await adjust.mutateAsync({
           itemId: item.id,
-          quantity: `${direction === 'remove' ? '-' : ''}${quantity.trim()}`,
+          quantity: `${direction === "remove" ? "-" : ""}${quantity.trim()}`,
           reason: reason.trim(),
-          ...(batchNo.trim() !== '' && { batchNo: batchNo.trim() }),
+          ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
         });
       }
 
@@ -154,7 +154,7 @@ export function MovementModal({
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button disabled={!canSubmit} isLoading={busy} onClick={() => void submit()}>
             {t(`inventory.movement.submit.${type}`)}
@@ -166,7 +166,7 @@ export function MovementModal({
         {/* What is on the shelf right now, so the number being typed has
             something to be judged against. */}
         <div className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2">
-          <span className="text-label text-ink-muted">{t('inventory.movement.onHand')}</span>
+          <span className="text-label text-ink-muted">{t("inventory.movement.onHand")}</span>
           <span className="flex items-baseline gap-1.5">
             <Ltr className="font-medium tabular-nums text-ink">{item.quantity}</Ltr>
             <span className="text-label text-ink-muted">{unitLabel(item.unit)}</span>
@@ -178,10 +178,10 @@ export function MovementModal({
             <Select
               id="movement-direction"
               value={direction}
-              onChange={(event) => setDirection(event.target.value as 'add' | 'remove')}
+              onChange={(event) => setDirection(event.target.value as "add" | "remove")}
               options={[
-                { value: 'remove', label: t('inventory.movement.directions.remove') },
-                { value: 'add', label: t('inventory.movement.directions.add') },
+                { value: "remove", label: t("inventory.movement.directions.remove") },
+                { value: "add", label: t("inventory.movement.directions.add") },
               ]}
             />
           </FormField>
@@ -220,7 +220,7 @@ export function MovementModal({
                 <Select
                   id="movement-supplier"
                   value={supplierId}
-                  placeholder={t('inventory.movement.selectSupplier')}
+                  placeholder={t("inventory.movement.selectSupplier")}
                   onChange={(event) => setSupplierId(event.target.value)}
                   options={(suppliers.data?.items ?? []).map((supplier) => ({
                     value: supplier.id,
@@ -244,7 +244,7 @@ export function MovementModal({
               <FormField label="inventory.movement.expiry" htmlFor="movement-expiry" optional>
                 <DatePicker
                   id="movement-expiry"
-                  label={t('inventory.movement.expiry')}
+                  label={t("inventory.movement.expiry")}
                   value={expiryDate}
                   onChange={setExpiryDate}
                 />
@@ -268,24 +268,24 @@ export function MovementModal({
 
         {type === MOVEMENT_TYPE.CONSUME && performedProcedureId && (
           <p className="rounded-panel bg-inset px-3 py-2 text-label text-ink-muted">
-            {t('inventory.movement.linkedToProcedure')}
+            {t("inventory.movement.linkedToProcedure")}
           </p>
         )}
 
         <FormField
           label={
-            type === MOVEMENT_TYPE.ADJUST ? 'inventory.movement.reason' : 'inventory.movement.note'
+            type === MOVEMENT_TYPE.ADJUST ? "inventory.movement.reason" : "inventory.movement.note"
           }
           htmlFor="movement-reason"
           {...(type === MOVEMENT_TYPE.ADJUST
-            ? { required: true, hint: t('inventory.movement.reasonHint') }
+            ? { required: true, hint: t("inventory.movement.reasonHint") }
             : { optional: true })}
         >
           <Textarea
             id="movement-reason"
             rows={2}
             placeholder={
-              type === MOVEMENT_TYPE.ADJUST ? t('inventory.movement.reasonPlaceholder') : ''
+              type === MOVEMENT_TYPE.ADJUST ? t("inventory.movement.reasonPlaceholder") : ""
             }
             value={reason}
             onChange={(event) => setReason(event.target.value)}
@@ -295,7 +295,7 @@ export function MovementModal({
         {/* Cosmetic only: the API refuses the same thing, and says so. */}
         {!mayRecord(type, can) && (
           <p role="alert" className="text-label text-danger-600">
-            {t('inventory.movement.notAllowed')}
+            {t("inventory.movement.notAllowed")}
           </p>
         )}
       </div>

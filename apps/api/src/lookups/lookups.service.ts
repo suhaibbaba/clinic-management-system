@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
   type OnModuleInit,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   LOOKUP_LIST,
   LOOKUP_LIST_KEYS,
@@ -18,19 +18,19 @@ import {
   type ReorderLookupOptionsInput,
   type ToothChartBehaviour,
   type UpdateLookupOptionInput,
-} from '@clinic/shared';
-import { and, asc, eq, inArray, isNull, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { and, asc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { lookupOptions } from '@api/database/schema';
-import { ensureSystemLookups } from '@api/database/system-lookups';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { lookupOptions } from "@api/database/schema";
+import { ensureSystemLookups } from "@api/database/system-lookups";
 
 type LookupRow = typeof lookupOptions.$inferSelect;
 
-export const LOOKUP_OPTIONS_ENTITY = 'lookup_options';
+export const LOOKUP_OPTIONS_ENTITY = "lookup_options";
 
 // Every row is the clinic's to rename, switch off or delete, built-in ones included: `is_system` is
 // a label the screen warns on, not a lock. A deleted code stops resolving; nothing is corrupted.
@@ -119,7 +119,7 @@ export class LookupsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to create the list option');
+      throw new Error("Failed to create the list option");
     }
 
     return toLookupOption(row);
@@ -147,7 +147,7 @@ export class LookupsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to update the list option');
+      throw new Error("Failed to update the list option");
     }
 
     return toLookupOption(row);
@@ -170,7 +170,7 @@ export class LookupsService implements OnModuleInit {
       );
 
     if (rows.length !== input.ids.length) {
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
 
     await this.db.transaction(async (tx) => {
@@ -223,7 +223,7 @@ export class LookupsService implements OnModuleInit {
   // A procedure may not leave a tooth `healthy`: the state-only rows say so in their own
   // `chartBehavior`, read from the row rather than a second hardcoded list.
   async assertChartOutcome(clinicId: string, code: string | null | undefined): Promise<void> {
-    if (code === null || code === undefined || code === '') {
+    if (code === null || code === undefined || code === "") {
       return;
     }
 
@@ -252,7 +252,7 @@ export class LookupsService implements OnModuleInit {
     listKey: LookupListKey,
     code: string | null | undefined,
   ): Promise<void> {
-    if (code !== null && code !== undefined && code !== '') {
+    if (code !== null && code !== undefined && code !== "") {
       await this.assertCode(clinicId, listKey, code);
     }
   }
@@ -306,7 +306,7 @@ export class LookupsService implements OnModuleInit {
       .limit(1);
 
     if (clash) {
-      throw new ConflictException('An option with this code already exists in this list');
+      throw new ConflictException("An option with this code already exists in this list");
     }
   }
 }
@@ -315,7 +315,7 @@ export function toLookupOption(row: LookupRow): LookupOption {
   return {
     id: row.id,
     clinicId: row.clinicId,
-    listKey: row.listKey as LookupOption['listKey'],
+    listKey: row.listKey as LookupOption["listKey"],
     code: row.code,
     nameAr: row.nameAr,
     nameEn: row.nameEn,
@@ -332,17 +332,17 @@ export function toLookupOption(row: LookupRow): LookupOption {
 function deriveCode(name: string): string {
   const slug = name
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
     .slice(0, 48);
 
-  return slug === '' ? `opt_${Date.now().toString(36)}` : slug;
+  return slug === "" ? `opt_${Date.now().toString(36)}` : slug;
 }
 
 function chartBehaviour(meta: unknown): ToothChartBehaviour | undefined {
   const behaviour = (meta as { chartBehavior?: unknown } | null)?.chartBehavior;
 
-  return typeof behaviour === 'object' && behaviour !== null
+  return typeof behaviour === "object" && behaviour !== null
     ? (behaviour as ToothChartBehaviour)
     : undefined;
 }

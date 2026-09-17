@@ -1,11 +1,11 @@
-import { LOOKUP_LIST, type InventoryItemRow } from '@clinic/shared';
-import { useEffect, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { LOOKUP_LIST, type InventoryItemRow } from "@clinic/shared";
+import { useEffect, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Button, FormField, Input, Modal, Select, Switch, Textarea, useToast } from '@clinic/ui';
-import { useLookupOptions } from '@web/features/lookups/queries';
-import { useCreateItem, useSuppliers, useUpdateItem } from '@web/features/inventory/queries';
-import { errorMessageKey } from '@web/lib/api-error';
+import { Button, FormField, Input, Modal, Select, Switch, Textarea, useToast } from "@clinic/ui";
+import { useLookupOptions } from "@web/features/lookups/queries";
+import { useCreateItem, useSuppliers, useUpdateItem } from "@web/features/inventory/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 
 // No quantity field — stock moves only through a movement — and the unit cannot change once the
 // item exists, since every movement recorded is a number in it.
@@ -27,12 +27,12 @@ export function ItemFormModal({
   const update = useUpdateItem();
   const suppliers = useSuppliers({ limit: 100 });
 
-  const [nameAr, setNameAr] = useState('');
-  const [category, setCategory] = useState('');
-  const [unit, setUnit] = useState('');
-  const [minQuantity, setMinQuantity] = useState('');
-  const [supplierId, setSupplierId] = useState('');
-  const [notes, setNotes] = useState('');
+  const [nameAr, setNameAr] = useState("");
+  const [category, setCategory] = useState("");
+  const [unit, setUnit] = useState("");
+  const [minQuantity, setMinQuantity] = useState("");
+  const [supplierId, setSupplierId] = useState("");
+  const [notes, setNotes] = useState("");
   const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
@@ -40,12 +40,12 @@ export function ItemFormModal({
       return;
     }
 
-    setNameAr(item?.nameAr ?? '');
-    setCategory(item?.category ?? categoryOptions[0]?.value ?? '');
-    setUnit(item?.unit ?? unitOptions[0]?.value ?? '');
-    setMinQuantity(item?.minQuantity ?? '');
-    setSupplierId(item?.defaultSupplierId ?? '');
-    setNotes(item?.notes ?? '');
+    setNameAr(item?.nameAr ?? "");
+    setCategory(item?.category ?? categoryOptions[0]?.value ?? "");
+    setUnit(item?.unit ?? unitOptions[0]?.value ?? "");
+    setMinQuantity(item?.minQuantity ?? "");
+    setSupplierId(item?.defaultSupplierId ?? "");
+    setNotes(item?.notes ?? "");
     setIsActive(item?.isActive ?? true);
   }, [open, item, categoryOptions, unitOptions]);
 
@@ -54,9 +54,9 @@ export function ItemFormModal({
       const shared = {
         nameAr: nameAr.trim(),
         category,
-        minQuantity: minQuantity.trim() === '' ? '0' : minQuantity.trim(),
-        defaultSupplierId: supplierId === '' ? null : supplierId,
-        notes: notes.trim() === '' ? null : notes.trim(),
+        minQuantity: minQuantity.trim() === "" ? "0" : minQuantity.trim(),
+        defaultSupplierId: supplierId === "" ? null : supplierId,
+        notes: notes.trim() === "" ? null : notes.trim(),
         isActive,
       };
 
@@ -66,7 +66,7 @@ export function ItemFormModal({
         await create.mutateAsync({ ...shared, unit });
       }
 
-      toast.success(item ? 'inventory.item.updated' : 'inventory.item.created');
+      toast.success(item ? "inventory.item.updated" : "inventory.item.created");
       onOpenChange(false);
     } catch (error) {
       toast.error(errorMessageKey(error));
@@ -77,18 +77,18 @@ export function ItemFormModal({
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title={t(item ? 'inventory.item.editTitle' : 'inventory.item.newTitle')}
+      title={t(item ? "inventory.item.editTitle" : "inventory.item.newTitle")}
       footer={
         <>
           <Button variant="secondary" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
             disabled={nameAr.trim().length < 2}
             isLoading={create.isPending || update.isPending}
             onClick={() => void submit()}
           >
-            {t('common.save')}
+            {t("common.save")}
           </Button>
         </>
       }
@@ -115,7 +115,7 @@ export function ItemFormModal({
           <FormField
             label="inventory.item.unit"
             htmlFor="item-unit"
-            {...(item ? { hint: t('inventory.item.unitLocked') } : { required: true })}
+            {...(item ? { hint: t("inventory.item.unitLocked") } : { required: true })}
           >
             <Select
               id="item-unit"
@@ -131,7 +131,7 @@ export function ItemFormModal({
           <FormField
             label="inventory.item.minQuantity"
             htmlFor="item-min"
-            hint={t('inventory.item.minHint')}
+            hint={t("inventory.item.minHint")}
           >
             <Input
               id="item-min"
@@ -147,7 +147,7 @@ export function ItemFormModal({
             <Select
               id="item-supplier"
               value={supplierId}
-              placeholder={t('inventory.movement.selectSupplier')}
+              placeholder={t("inventory.movement.selectSupplier")}
               onChange={(event) => setSupplierId(event.target.value)}
               options={(suppliers.data?.items ?? []).map((supplier) => ({
                 value: supplier.id,
@@ -169,7 +169,7 @@ export function ItemFormModal({
         <Switch
           checked={isActive}
           onCheckedChange={setIsActive}
-          label={t('inventory.item.active')}
+          label={t("inventory.item.active")}
         />
       </div>
     </Modal>

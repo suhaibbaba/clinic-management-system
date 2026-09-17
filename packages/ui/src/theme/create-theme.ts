@@ -5,7 +5,7 @@ import type {
   RadiusToken,
   ShadowToken,
   TextToken,
-} from '@ui/theme/tokens';
+} from "@ui/theme/tokens";
 
 export interface ThemeOverride {
   readonly color?: Partial<Record<ColorToken, string>> | undefined;
@@ -57,15 +57,15 @@ export function themeVariables(theme: ThemeOverride): ThemeVariables {
   }
 
   if (theme.fontSans !== undefined) {
-    variables['--font-sans'] = theme.fontSans;
+    variables["--font-sans"] = theme.fontSans;
   }
 
   if (theme.spacing !== undefined) {
-    variables['--spacing'] = theme.spacing;
+    variables["--spacing"] = theme.spacing;
   }
 
   if (theme.trackingBody !== undefined) {
-    variables['--tracking-body'] = theme.trackingBody;
+    variables["--tracking-body"] = theme.trackingBody;
   }
 
   return variables;
@@ -76,5 +76,5 @@ export function createTheme(theme: ThemeOverride): string {
     ([name, value]) => `  ${name}: ${value};`,
   );
 
-  return declarations.length === 0 ? '' : `:root {\n${declarations.join('\n')}\n}\n`;
+  return declarations.length === 0 ? "" : `:root {\n${declarations.join("\n")}\n}\n`;
 }

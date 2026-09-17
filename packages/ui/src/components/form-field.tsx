@@ -1,11 +1,11 @@
-import { Label } from '@radix-ui/react-label';
-import type { JSX, ReactNode } from 'react';
-import type { FieldError } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+import { Label } from "@radix-ui/react-label";
+import type { JSX, ReactNode } from "react";
+import type { FieldError } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 
-import { Icon } from '@ui/components/icon';
-import { cn } from '@ui/lib/cn';
-import { validationMessageKey } from '@ui/lib/validation-message';
+import { Icon } from "@ui/components/icon";
+import { cn } from "@ui/lib/cn";
+import { validationMessageKey } from "@ui/lib/validation-message";
 
 export interface FormFieldProps {
   label: string;
@@ -52,7 +52,7 @@ export function FormField({
         )}
         {optional && (
           <span data-part="form-field-optional" className="ms-1 text-label text-ink-subtle">
-            ({t('common.optional')})
+            ({t("common.optional")})
           </span>
         )}
       </Label>
@@ -70,7 +70,7 @@ export function FormField({
           id={errorId}
           data-part="form-field-error"
           role="alert"
-          className={cn('flex items-center gap-1.5 text-value text-danger-700')}
+          className={cn("flex items-center gap-1.5 text-value text-danger-700")}
         >
           <Icon name="error" className="size-4" />
           {t(messageKey)}

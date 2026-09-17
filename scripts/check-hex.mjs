@@ -3,29 +3,29 @@
 // is a value that cannot be themed, cannot be audited, and survives a redesign by being invisible
 // to it.
 
-import { readdir, readFile } from 'node:fs/promises';
-import { dirname, join, relative, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { readdir, readFile } from "node:fs/promises";
+import { dirname, join, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 /** The token files themselves, and the places a hex is data rather than design. */
 const ALLOWED = new Set([
   // The library's neutral defaults: the only colours inside the package, and none of them branded.
-  'packages/ui/src/styles/base.css',
+  "packages/ui/src/styles/base.css",
   // This product's values, in the two layers that carry them.
-  'apps/web/src/theme.css',
-  'apps/web/src/theme.ts',
+  "apps/web/src/theme.css",
+  "apps/web/src/theme.ts",
   // A clinic picks its own colours for the painted lists, and the seed carries the defaults.
-  'packages/shared/src/constants/lookups.ts',
+  "packages/shared/src/constants/lookups.ts",
 ]);
 
 const SEARCH = [
-  'apps/web/src',
-  'apps/web/index.html',
-  'apps/web/booking.html',
-  'apps/web/public',
-  'packages/ui/src',
+  "apps/web/src",
+  "apps/web/index.html",
+  "apps/web/booking.html",
+  "apps/web/public",
+  "packages/ui/src",
 ];
 
 const EXTENSIONS = /\.(?:tsx?|css|html|svg)$/;
@@ -67,33 +67,33 @@ for (const target of SEARCH) {
 // the tab mark — so a `var()` cannot reach them. They are not exempt: the value they carry must be
 // the brand blue the token file names, or this fails like any other drift.
 const PINNED = new Set([
-  'apps/web/index.html',
-  'apps/web/booking.html',
-  'apps/web/public/favicon.svg',
+  "apps/web/index.html",
+  "apps/web/booking.html",
+  "apps/web/public/favicon.svg",
 ]);
 
-const theme = await readFile(resolve(repoRoot, 'apps/web/src/theme.css'), 'utf8');
+const theme = await readFile(resolve(repoRoot, "apps/web/src/theme.css"), "utf8");
 const brand = /--color-primary-600:\s*(#[0-9a-fA-F]{6})/.exec(theme)?.[1]?.toLowerCase();
 
 if (!brand) {
-  console.error('theme.css names no --color-primary-600; nothing to pin the entry documents to.');
+  console.error("theme.css names no --color-primary-600; nothing to pin the entry documents to.");
   process.exit(1);
 }
 
-const PINNED_ALLOWED = new Set([brand, '#fff', '#ffffff']);
+const PINNED_ALLOWED = new Set([brand, "#fff", "#ffffff"]);
 
 const offenders = [];
 
 for (const file of files) {
-  const path = relative(repoRoot, file).split('\\').join('/');
+  const path = relative(repoRoot, file).split("\\").join("/");
 
   if (ALLOWED.has(path) || /\.test\.tsx?$/.test(path)) {
     continue;
   }
 
-  const source = await readFile(file, 'utf8');
+  const source = await readFile(file, "utf8");
 
-  source.split('\n').forEach((line, index) => {
+  source.split("\n").forEach((line, index) => {
     const found = line.match(LITERAL) ?? [];
     const bad = PINNED.has(path)
       ? found.filter((value) => !PINNED_ALLOWED.has(value.toLowerCase()))
@@ -110,7 +110,7 @@ if (offenders.length > 0) {
     "Colours are named in packages/ui/src/styles/base.css (the library's defaults) and in a " +
       `product's theme.css/theme.ts, and nowhere else. ${offenders.length} literal(s):\n`,
   );
-  console.error(offenders.join('\n'));
+  console.error(offenders.join("\n"));
   process.exit(1);
 }
 

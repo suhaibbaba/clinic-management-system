@@ -1,26 +1,26 @@
-import type { Doctor, PerformedProcedure, ProcedureCatalogItem, UserRole } from '@clinic/shared';
-import { useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { Doctor, PerformedProcedure, ProcedureCatalogItem, UserRole } from "@clinic/shared";
+import { useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Badge, Button, Drawer, EmptyState, Icon, Ltr, Money, usePersonName } from '@clinic/ui';
+import { Badge, Button, Drawer, EmptyState, Icon, Ltr, Money, usePersonName } from "@clinic/ui";
 import {
   AddProcedureForm,
   type NewProcedureInput,
-} from '@web/features/patients/chart/add-procedure-form';
-import { SkeletonTimeline } from '@clinic/ui/components/skeleton';
-import { SurfaceSelector } from '@web/features/patients/chart/surface-selector';
-import { ToothAttachments } from '@web/features/patients/chart/tooth-attachments';
-import { useToothStates, type ToothSummary } from '@web/features/patients/chart/tooth-state';
+} from "@web/features/patients/chart/add-procedure-form";
+import { SkeletonTimeline } from "@clinic/ui/components/skeleton";
+import { SurfaceSelector } from "@web/features/patients/chart/surface-selector";
+import { ToothAttachments } from "@web/features/patients/chart/tooth-attachments";
+import { useToothStates, type ToothSummary } from "@web/features/patients/chart/tooth-state";
 import {
   canRecordProcedure,
   canSeeAttachments,
   canSeePrices,
-} from '@web/features/patients/permissions';
-import { useClinic } from '@web/features/clinic/queries';
-import { useSession } from '@web/features/auth/session';
-import { useToothHistory } from '@web/features/patients/queries';
-import { formatDate } from '@web/lib/format';
-import { useDelayedLoading } from '@clinic/ui/lib/use-delayed-loading';
+} from "@web/features/patients/permissions";
+import { useClinic } from "@web/features/clinic/queries";
+import { useSession } from "@web/features/auth/session";
+import { useToothHistory } from "@web/features/patients/queries";
+import { formatDate } from "@web/lib/format";
+import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 export interface ToothPanelProps {
   readonly patientId: string;
@@ -77,7 +77,7 @@ export function ToothPanel({
       descriptionKey="chart.panel.description"
       title={
         <span className="flex items-center gap-2">
-          {t('chart.panel.title')}
+          {t("chart.panel.title")}
           <Ltr className="font-mono">{tooth}</Ltr>
           {summary && <Badge tone="neutral">{states.info(summary.state).label}</Badge>}
         </span>
@@ -92,21 +92,21 @@ export function ToothPanel({
               </Ltr>
 
               <div className="min-w-0">
-                <p className="text-label text-ink-muted">{t('chart.panel.title')}</p>
+                <p className="text-label text-ink-muted">{t("chart.panel.title")}</p>
                 <p className="text-value font-medium text-ink">
                   {states.info(summary.state).label}
                 </p>
               </div>
 
-              <Badge className="ms-auto" tone={summary.surfaces.length > 0 ? 'info' : 'neutral'}>
-                {t('chart.panel.procedureCount', { count: data?.procedures.length ?? 0 })}
+              <Badge className="ms-auto" tone={summary.surfaces.length > 0 ? "info" : "neutral"}>
+                {t("chart.panel.procedureCount", { count: data?.procedures.length ?? 0 })}
               </Badge>
             </div>
 
             {summary.surfaces.length > 0 && (
               <div className="mt-4 border-t border-line pt-4">
                 <h3 className="mb-2 text-label font-medium text-ink-muted">
-                  {t('chart.panel.surfaces')}
+                  {t("chart.panel.surfaces")}
                 </h3>
                 <SurfaceSelector value={summary.surfaces} readOnly />
               </div>
@@ -116,7 +116,7 @@ export function ToothPanel({
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-value font-medium text-ink">{t('chart.panel.history')}</h3>
+            <h3 className="text-value font-medium text-ink">{t("chart.panel.history")}</h3>
 
             <div className="flex flex-wrap items-center gap-2">
               {/* The crown starts here far more often than on the lab board:
@@ -128,7 +128,7 @@ export function ToothPanel({
                   variant="secondary"
                   onClick={() => onSendToLab({ teeth: [tooth] })}
                 >
-                  {t('labs.sendToLab')}
+                  {t("labs.sendToLab")}
                 </Button>
               )}
 
@@ -139,14 +139,14 @@ export function ToothPanel({
                   variant="secondary"
                   onClick={() => setAdding(true)}
                 >
-                  {t('chart.panel.addProcedure')}
+                  {t("chart.panel.addProcedure")}
                 </Button>
               )}
             </div>
           </div>
 
           {showSkeleton && <SkeletonTimeline entries={2} />}
-          {isError && <p className="text-value text-danger-600">{t('errors.generic')}</p>}
+          {isError && <p className="text-value text-danger-600">{t("errors.generic")}</p>}
 
           {data && data.procedures.length === 0 && (
             <EmptyState icon="tooth" title="chart.panel.noProcedures" />
@@ -179,7 +179,7 @@ export function ToothPanel({
         {adding && tooth !== null && (
           <section className="rounded-panel bg-sunken p-4">
             <h3 className="mb-3 text-value font-medium text-ink">
-              {t('chart.panel.addProcedure')}
+              {t("chart.panel.addProcedure")}
             </h3>
             <AddProcedureForm
               tooth={tooth}
@@ -198,7 +198,7 @@ export function ToothPanel({
 
         {showAttachments && (
           <section className="flex flex-col gap-2">
-            <h3 className="text-value font-medium text-ink">{t('chart.panel.attachments')}</h3>
+            <h3 className="text-value font-medium text-ink">{t("chart.panel.attachments")}</h3>
             {data && <ToothAttachments attachments={data.attachments} />}
           </section>
         )}
@@ -229,7 +229,7 @@ function ProcedureRow({
     <li className="rounded-panel bg-canvas p-3">
       <div className="flex items-start justify-between gap-2">
         <span className="text-value font-medium text-ink">
-          {name ?? t('chart.panel.procedure')}
+          {name ?? t("chart.panel.procedure")}
         </span>
         <Badge tone={statusTone(procedure.status)}>
           {t(`chart.procedureStatus.${procedure.status}`)}
@@ -238,13 +238,13 @@ function ProcedureRow({
 
       <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-label text-ink-muted">
         <div className="flex gap-1">
-          <dt>{t('chart.panel.date')}:</dt>
+          <dt>{t("chart.panel.date")}:</dt>
           <Ltr as="dd">{formatDate(procedure.performedAt)}</Ltr>
         </div>
 
         {doctorName && (
           <div className="flex gap-1">
-            <dt>{t('chart.panel.doctor')}:</dt>
+            <dt>{t("chart.panel.doctor")}:</dt>
             <dd>{doctorName}</dd>
           </div>
         )}
@@ -252,16 +252,16 @@ function ProcedureRow({
         {/* ROLES.md: financial detail is not shown to roles without billing access. */}
         {showPrice && (
           <div className="flex gap-1">
-            <dt>{t('chart.panel.price')}:</dt>
+            <dt>{t("chart.panel.price")}:</dt>
             <dd>
               <Money amount={procedure.price} currency={currency} />
             </dd>
           </div>
         )}
 
-        {showPrice && procedure.discount !== '0.00' && (
+        {showPrice && procedure.discount !== "0.00" && (
           <div className="flex gap-1">
-            <dt>{t('chart.panel.discount')}:</dt>
+            <dt>{t("chart.panel.discount")}:</dt>
             <dd>
               <Money amount={procedure.discount} currency={currency} />
             </dd>
@@ -271,17 +271,17 @@ function ProcedureRow({
 
       {onSendToLab && (
         <Button className="mt-2" size="sm" variant="ghost" onClick={onSendToLab}>
-          {t('labs.sendToLab')}
+          {t("labs.sendToLab")}
         </Button>
       )}
     </li>
   );
 }
 
-function statusTone(status: PerformedProcedure['status']): 'success' | 'warning' | 'neutral' {
-  if (status === 'done') {
-    return 'success';
+function statusTone(status: PerformedProcedure["status"]): "success" | "warning" | "neutral" {
+  if (status === "done") {
+    return "success";
   }
 
-  return status === 'in_progress' ? 'warning' : 'neutral';
+  return status === "in_progress" ? "warning" : "neutral";
 }

@@ -1,16 +1,16 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { MOVEMENT_TYPE, MOVEMENT_TYPES } from '@shared/enums';
-import { isoDateSchema } from '@shared/schemas/appointments';
-import { paginationQuerySchema, uuidSchema, optionalPhoneSchema } from '@shared/schemas/common';
-import { moneySchema, signedMoneySchema, wholeMoneySchema } from '@shared/schemas/money';
-import { personNameSchema } from '@shared/schemas/person-name';
+import { MOVEMENT_TYPE, MOVEMENT_TYPES } from "@shared/enums";
+import { isoDateSchema } from "@shared/schemas/appointments";
+import { paginationQuerySchema, uuidSchema, optionalPhoneSchema } from "@shared/schemas/common";
+import { moneySchema, signedMoneySchema, wholeMoneySchema } from "@shared/schemas/money";
+import { personNameSchema } from "@shared/schemas/person-name";
 import {
   movementQuantitySchema,
   quantitySchema,
   signedQuantitySchema,
-} from '@shared/schemas/quantity';
-import { lookupCodeSchema } from '@shared/schemas/lookups';
+} from "@shared/schemas/quantity";
+import { lookupCodeSchema } from "@shared/schemas/lookups";
 
 // An item's quantity is the sum of its movements, computed on read; a miscount is corrected by an
 // `adjust` that says why.
@@ -50,7 +50,7 @@ export type CreateSupplierInput = z.infer<typeof createSupplierSchema>;
 // name would otherwise succeed silently.
 export const updateSupplierSchema = createSupplierSchema
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateSupplierInput = z.infer<typeof updateSupplierSchema>;
 
 export const listSuppliersQuerySchema = paginationQuerySchema.extend({
@@ -103,7 +103,7 @@ export type CreateInventoryItemInput = z.infer<typeof createInventoryItemSchema>
 export const updateInventoryItemSchema = createInventoryItemSchema
   .omit({ unit: true })
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateInventoryItemInput = z.infer<typeof updateInventoryItemSchema>;
 
 export const listInventoryItemsQuerySchema = paginationQuerySchema.extend({
@@ -152,7 +152,7 @@ export type StockMovementRow = z.infer<typeof stockMovementRowSchema>;
 
 export const purchaseStockSchema = z.object({
   itemId: uuidSchema,
-  quantity: quantitySchema.refine((value) => Number(value) > 0, 'A purchase must be positive'),
+  quantity: quantitySchema.refine((value) => Number(value) > 0, "A purchase must be positive"),
   unitPrice: wholeMoneySchema.optional(),
   supplierId: uuidSchema.nullish(),
   batchNo: z.string().trim().max(64).nullish(),
@@ -163,7 +163,7 @@ export type PurchaseStockInput = z.infer<typeof purchaseStockSchema>;
 
 export const consumeStockSchema = z.object({
   itemId: uuidSchema,
-  quantity: quantitySchema.refine((value) => Number(value) > 0, 'A consumption must be positive'),
+  quantity: quantitySchema.refine((value) => Number(value) > 0, "A consumption must be positive"),
   patientId: uuidSchema.nullish(),
   performedProcedureId: uuidSchema.nullish(),
   batchNo: z.string().trim().max(64).nullish(),
@@ -283,8 +283,8 @@ export type InventorySettings = z.infer<typeof inventorySettingsSchema>;
 
 export function inventorySettings(settings: unknown): InventorySettings {
   const raw =
-    typeof settings === 'object' && settings !== null
-      ? (settings as Record<string, unknown>)['inventory']
+    typeof settings === "object" && settings !== null
+      ? (settings as Record<string, unknown>)["inventory"]
       : undefined;
 
   const parsed = inventorySettingsSchema.safeParse(raw ?? {});

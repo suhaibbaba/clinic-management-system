@@ -1,6 +1,6 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { paginationQuerySchema } from '@shared/schemas/common';
+import { paginationQuerySchema } from "@shared/schemas/common";
 
 export const prescriptionItemSchema = z.object({
   drug: z.string().trim().min(1).max(160),
@@ -41,7 +41,7 @@ export type CreatePrescriptionInput = z.infer<typeof createPrescriptionSchema>;
 export const updatePrescriptionSchema = z
   .object(prescriptionWritableFields)
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdatePrescriptionInput = z.infer<typeof updatePrescriptionSchema>;
 
 export const listPrescriptionsQuerySchema = paginationQuerySchema.extend({

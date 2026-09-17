@@ -1,11 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
-import type { HealthResponse, VersionResponse } from '@clinic/shared';
+import { Controller, Get } from "@nestjs/common";
+import type { HealthResponse, VersionResponse } from "@clinic/shared";
 
-import { Public } from '@api/common/decorators/public.decorator';
-import { HealthService } from '@api/health/health.service';
+import { Public } from "@api/common/decorators/public.decorator";
+import { HealthService } from "@api/health/health.service";
 
 /** Unauthenticated by design: container healthchecks call it. */
-@Controller('health')
+@Controller("health")
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
@@ -16,7 +16,7 @@ export class HealthController {
   }
 }
 
-@Controller('version')
+@Controller("version")
 export class VersionController {
   constructor(private readonly healthService: HealthService) {}
 

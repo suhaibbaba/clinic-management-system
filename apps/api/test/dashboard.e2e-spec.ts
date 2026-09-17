@@ -6,27 +6,27 @@ import {
   USER_ROLE,
   type DashboardSummary,
   type UserRole,
-} from '@clinic/shared';
-import { eq } from 'drizzle-orm';
+} from "@clinic/shared";
+import { eq } from "drizzle-orm";
 
-import { clinics } from '@api/database/schema';
+import { clinics } from "@api/database/schema";
 import {
   createPatient,
   procedurePayload,
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
-} from '@test/helpers/patient-fixtures';
-import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
+} from "@test/helpers/patient-fixtures";
+import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
-const TIME_ZONE = 'Asia/Damascus';
+const TIME_ZONE = "Asia/Damascus";
 
 const at = (date: string, minuteOfDay: number): string =>
   instantFromLocal(date, minuteOfDay, TIME_ZONE).toISOString();
 
 // The figures must agree with the pages the cards link to, and the response must be shaped by role
 // — a KPI is a fact about the clinic like any row.
-describe('Dashboard (e2e)', () => {
+describe("Dashboard (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
   let fixtures: PatientFixtures;
@@ -36,8 +36,8 @@ describe('Dashboard (e2e)', () => {
 
   const summary = async (role: UserRole): Promise<DashboardSummary> => {
     const response = await context.app.inject({
-      method: 'GET',
-      url: '/dashboard/summary',
+      method: "GET",
+      url: "/dashboard/summary",
       headers: auth(tokens[role]),
     });
 
@@ -68,7 +68,7 @@ describe('Dashboard (e2e)', () => {
       .set({
         workingHours: [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({
           weekday,
-          ranges: [{ start: '00:00', end: '23:59' }],
+          ranges: [{ start: "00:00", end: "23:59" }],
         })),
         settings: { timezone: TIME_ZONE },
       })
@@ -81,7 +81,7 @@ describe('Dashboard (e2e)', () => {
     await context.close();
   });
 
-  it('reports today in the clinic timezone, not the server one', async () => {
+  it("reports today in the clinic timezone, not the server one", async () => {
     const body = await summary(USER_ROLE.ADMIN);
 
     expect(body.date).toBe(localDate(new Date(), TIME_ZONE));
@@ -89,7 +89,7 @@ describe('Dashboard (e2e)', () => {
 
   it("counts today's appointments and lists them earliest first", async () => {
     const patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: 'مريض اللوحة',
+      fullName: "مريض اللوحة",
       phone: uniquePhone(),
     });
 
@@ -97,15 +97,15 @@ describe('Dashboard (e2e)', () => {
     // so it has to come back in the order the day happens.
     for (const minute of [15 * 60, 10 * 60]) {
       const booked = await context.app.inject({
-        method: 'POST',
-        url: '/appointments',
+        method: "POST",
+        url: "/appointments",
         headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
         payload: {
           patientId,
           doctorId: fixtures.doctorId,
           startsAt: at(today, minute),
           durationMinutes: 30,
-          type: 'checkup',
+          type: "checkup",
         },
       });
 
@@ -121,15 +121,15 @@ describe('Dashboard (e2e)', () => {
     );
   });
 
-  it('agrees with the overdue list rather than computing its own total', async () => {
+  it("agrees with the overdue list rather than computing its own total", async () => {
     const patientId = await createPatient(context, tokens[USER_ROLE.ADMIN], {
-      fullName: 'مريض مدين',
+      fullName: "مريض مدين",
       phone: uniquePhone(),
     });
 
     const procedure = await context.app.inject({
-      method: 'POST',
-      url: '/performed-procedures',
+      method: "POST",
+      url: "/performed-procedures",
       headers: auth(tokens[USER_ROLE.ADMIN]),
       payload: {
         ...procedurePayload({
@@ -139,7 +139,7 @@ describe('Dashboard (e2e)', () => {
           tooth: 16,
         }),
         status: PERFORMED_PROCEDURE_STATUS.DONE,
-        price: '250.00',
+        price: "250.00",
       },
     });
 
@@ -153,8 +153,8 @@ describe('Dashboard (e2e)', () => {
     expect(Number(before.overdueTotal)).toBeGreaterThanOrEqual(250);
 
     const list = await context.app.inject({
-      method: 'GET',
-      url: '/billing/overdue?limit=100',
+      method: "GET",
+      url: "/billing/overdue?limit=100",
       headers: auth(tokens[USER_ROLE.ADMIN]),
     });
 
@@ -166,10 +166,10 @@ describe('Dashboard (e2e)', () => {
 
     // And it moves with the ledger rather than with anything stored.
     const paid = await context.app.inject({
-      method: 'POST',
-      url: '/payments',
+      method: "POST",
+      url: "/payments",
       headers: auth(tokens[USER_ROLE.ADMIN]),
-      payload: { patientId, amount: '250.00', method: PAYMENT_METHOD.CASH },
+      payload: { patientId, amount: "250.00", method: PAYMENT_METHOD.CASH },
     });
 
     expect(paid.statusCode).toBe(201);
@@ -179,15 +179,15 @@ describe('Dashboard (e2e)', () => {
     expect(Number(after.overdueTotal)).toBeCloseTo(Number(before.overdueTotal) - 250, 2);
   });
 
-  it('excludes a patient who has paid inside the window', async () => {
+  it("excludes a patient who has paid inside the window", async () => {
     const patientId = await createPatient(context, tokens[USER_ROLE.ADMIN], {
-      fullName: 'مريض دفع حديثاً',
+      fullName: "مريض دفع حديثاً",
       phone: uniquePhone(),
     });
 
     const procedure = await context.app.inject({
-      method: 'POST',
-      url: '/performed-procedures',
+      method: "POST",
+      url: "/performed-procedures",
       headers: auth(tokens[USER_ROLE.ADMIN]),
       payload: {
         ...procedurePayload({
@@ -197,7 +197,7 @@ describe('Dashboard (e2e)', () => {
           tooth: 26,
         }),
         status: PERFORMED_PROCEDURE_STATUS.DONE,
-        price: '400.00',
+        price: "400.00",
       },
     });
 
@@ -205,17 +205,17 @@ describe('Dashboard (e2e)', () => {
 
     // A part payment today: still owing, but not yet overdue.
     await context.app.inject({
-      method: 'POST',
-      url: '/payments',
+      method: "POST",
+      url: "/payments",
       headers: auth(tokens[USER_ROLE.ADMIN]),
-      payload: { patientId, amount: '10.00', method: PAYMENT_METHOD.CASH },
+      payload: { patientId, amount: "10.00", method: PAYMENT_METHOD.CASH },
     });
 
     const body = await summary(USER_ROLE.ADMIN);
 
     const list = await context.app.inject({
-      method: 'GET',
-      url: '/billing/overdue?limit=100',
+      method: "GET",
+      url: "/billing/overdue?limit=100",
       headers: auth(tokens[USER_ROLE.ADMIN]),
     });
 
@@ -225,23 +225,23 @@ describe('Dashboard (e2e)', () => {
     expect(body.overduePatients).toBe(items.length);
   });
 
-  it('counts the online bookings waiting on an answer', async () => {
+  it("counts the online bookings waiting on an answer", async () => {
     const patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: 'حجز إلكتروني',
+      fullName: "حجز إلكتروني",
       phone: uniquePhone(),
     });
 
     const requested = await context.app.inject({
-      method: 'POST',
-      url: '/appointments',
+      method: "POST",
+      url: "/appointments",
       headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
       payload: {
         patientId,
         doctorId: fixtures.doctorId,
         startsAt: at(today, 12 * 60),
         durationMinutes: 30,
-        type: 'checkup',
-        status: 'requested',
+        type: "checkup",
+        status: "requested",
       },
     });
 
@@ -250,8 +250,8 @@ describe('Dashboard (e2e)', () => {
     const body = await summary(USER_ROLE.RECEPTIONIST);
 
     const queue = await context.app.inject({
-      method: 'GET',
-      url: '/appointments/pending-confirmation?limit=1',
+      method: "GET",
+      url: "/appointments/pending-confirmation?limit=1",
       headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
     });
 
@@ -261,21 +261,21 @@ describe('Dashboard (e2e)', () => {
 
   /* Role shaping — ROLES.md, applied to the response and not the rendering. */
 
-  it('gives a technician no financial figure and no booking queue', async () => {
+  it("gives a technician no financial figure and no booking queue", async () => {
     const body = await summary(USER_ROLE.TECHNICIAN);
 
-    expect(body).not.toHaveProperty('overdueTotal');
-    expect(body).not.toHaveProperty('overduePatients');
-    expect(body).not.toHaveProperty('pendingBookings');
+    expect(body).not.toHaveProperty("overdueTotal");
+    expect(body).not.toHaveProperty("overduePatients");
+    expect(body).not.toHaveProperty("pendingBookings");
   });
 
-  it('gives a doctor their own day, and no overdue list they may not read', async () => {
+  it("gives a doctor their own day, and no overdue list they may not read", async () => {
     const body = await summary(USER_ROLE.DOCTOR);
 
     // ROLES.md billing matrix: the overdue list is admin and reception only.
-    expect(body).not.toHaveProperty('overdueTotal');
+    expect(body).not.toHaveProperty("overdueTotal");
     // Chasing unconfirmed bookings is front-desk work.
-    expect(body).not.toHaveProperty('pendingBookings');
+    expect(body).not.toHaveProperty("pendingBookings");
 
     // "R (own KPIs)": every row it does carry is theirs.
     for (const entry of body.schedule) {
@@ -283,7 +283,7 @@ describe('Dashboard (e2e)', () => {
     }
   });
 
-  it('gives reception both figures', async () => {
+  it("gives reception both figures", async () => {
     const body = await summary(USER_ROLE.RECEPTIONIST);
 
     expect(body.overdueTotal).toEqual(expect.any(String));

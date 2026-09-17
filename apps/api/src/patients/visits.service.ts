@@ -1,24 +1,24 @@
-import { BadRequestException, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import type {
   CreateVisitInput,
   ListVisitsQuery,
   Paginated,
   UpdateVisitInput,
   Visit,
-} from '@clinic/shared';
-import { desc, eq, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { desc, eq, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { doctors, visits } from '@api/database/schema';
-import { PatientAccessService } from '@api/patients/patient-access.service';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { doctors, visits } from "@api/database/schema";
+import { PatientAccessService } from "@api/patients/patient-access.service";
 
 type VisitRow = typeof visits.$inferSelect;
 
-export const VISITS_ENTITY = 'visits';
+export const VISITS_ENTITY = "visits";
 
 /** Visits are clinical: admin and doctor only (ROLES.md patients matrix). */
 @Injectable()
@@ -98,7 +98,7 @@ export class VisitsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to create visit');
+      throw new Error("Failed to create visit");
     }
 
     return toVisit(row);
@@ -127,7 +127,7 @@ export class VisitsService implements OnModuleInit {
       .returning();
 
     if (!row) {
-      throw new Error('Failed to update visit');
+      throw new Error("Failed to update visit");
     }
 
     return toVisit(row);
@@ -151,7 +151,7 @@ export class VisitsService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new BadRequestException('Doctor not found in this clinic');
+      throw new BadRequestException("Doctor not found in this clinic");
     }
   }
 }

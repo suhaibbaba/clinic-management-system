@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   USER_ROLE,
@@ -19,21 +19,21 @@ import {
   updateClinicNoteSchema,
   type ClinicNote,
   type Paginated,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { CLINIC_NOTES_ENTITY, NotesService } from '@api/notes/notes.service';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { CLINIC_NOTES_ENTITY, NotesService } from "@api/notes/notes.service";
 
 class CreateNoteDto extends createZodDto(createClinicNoteSchema) {}
 class UpdateNoteDto extends createZodDto(updateClinicNoteSchema) {}
 class ListNotesQueryDto extends createZodDto(listClinicNotesQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-@Controller('notes')
+@Controller("notes")
 export class NotesController {
   constructor(private readonly notes: NotesService) {}
 
@@ -56,7 +56,7 @@ export class NotesController {
     return this.notes.create(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(CLINIC_NOTES_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -67,7 +67,7 @@ export class NotesController {
     return this.notes.update(actor, params.id, body);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   @Audit(CLINIC_NOTES_ENTITY, AUDIT_ACTION.DELETE)

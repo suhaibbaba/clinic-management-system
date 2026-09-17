@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import {
   LOOKUP_LIST,
   LEDGER_ENTRY_KIND,
@@ -6,28 +6,28 @@ import {
   type Money,
   type Statement,
   type StatementQuery,
-} from '@clinic/shared';
-import { eq } from 'drizzle-orm';
+} from "@clinic/shared";
+import { eq } from "drizzle-orm";
 
-import { LedgerService } from '@api/billing/ledger.service';
-import { toPayment } from '@api/billing/payments.service';
+import { LedgerService } from "@api/billing/ledger.service";
+import { toPayment } from "@api/billing/payments.service";
 import {
   documentDirection,
   documentStrings,
   type DocumentStrings,
-} from '@api/billing/pdf/document-strings';
-import { LetterheadService } from '@api/billing/pdf/letterhead.service';
-import { LookupsService } from '@api/lookups/lookups.service';
-import { A4, RtlPdf } from '@api/billing/pdf/pdf-builder';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database } from '@api/database/database.module';
-import { payments } from '@api/database/schema';
-import { PatientAccessService } from '@api/patients/patient-access.service';
+} from "@api/billing/pdf/document-strings";
+import { LetterheadService } from "@api/billing/pdf/letterhead.service";
+import { LookupsService } from "@api/lookups/lookups.service";
+import { A4, RtlPdf } from "@api/billing/pdf/pdf-builder";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { payments } from "@api/database/schema";
+import { PatientAccessService } from "@api/patients/patient-access.service";
 
 // Keeps a leading `+` on the left and stops the bidi algorithm swapping the ends of a date range in
 // an Arabic document.
-const LTR = { dir: 'ltr' } as const;
+const LTR = { dir: "ltr" } as const;
 
 @Injectable()
 export class DocumentsService {
@@ -49,7 +49,7 @@ export class DocumentsService {
       .limit(1);
 
     if (!row) {
-      throw new NotFoundException('Resource not found');
+      throw new NotFoundException("Resource not found");
     }
 
     const payment = toPayment(row);
@@ -70,8 +70,8 @@ export class DocumentsService {
     await this.letterheads.draw(pdf, clinic);
     pdf.text(isReversal ? strings.reversalTitle : strings.title, {
       size: 16,
-      weight: 'bold',
-      align: 'centre',
+      weight: "bold",
+      align: "centre",
       gap: 14,
     });
 
@@ -119,7 +119,7 @@ export class DocumentsService {
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
     await this.letterheads.draw(pdf, clinic);
-    pdf.text(strings.title, { size: 16, weight: 'bold', align: 'centre', gap: 14 });
+    pdf.text(strings.title, { size: 16, weight: "bold", align: "centre", gap: 14 });
 
     pdf.field(strings.patient, patient.fullName);
     pdf.field(strings.fileNumber, patient.fileNumber, LTR);
@@ -136,9 +136,9 @@ export class DocumentsService {
         [
           { width: 1.4, header: strings.columns.date },
           { width: 3.4, header: strings.columns.description },
-          { width: 1.2, header: strings.columns.charge, align: 'end' },
-          { width: 1.2, header: strings.columns.payment, align: 'end' },
-          { width: 1.4, header: strings.columns.balance, align: 'end' },
+          { width: 1.2, header: strings.columns.charge, align: "end" },
+          { width: 1.2, header: strings.columns.payment, align: "end" },
+          { width: 1.4, header: strings.columns.balance, align: "end" },
         ],
         statement.entries.map((entry) => {
           const minor = toMinorUnits(entry.amount);
@@ -149,8 +149,8 @@ export class DocumentsService {
           return [
             formatDate(entry.occurredAt),
             description || describeKind(entry.kind, strings),
-            entry.kind === LEDGER_ENTRY_KIND.CHARGE ? formatPlain(entry.amount) : '',
-            entry.kind === LEDGER_ENTRY_KIND.PAYMENT ? formatPlain(negateText(minor)) : '',
+            entry.kind === LEDGER_ENTRY_KIND.CHARGE ? formatPlain(entry.amount) : "",
+            entry.kind === LEDGER_ENTRY_KIND.PAYMENT ? formatPlain(negateText(minor)) : "",
             formatPlain(entry.runningBalance),
           ];
         }),
@@ -161,7 +161,7 @@ export class DocumentsService {
     pdf.rule();
     pdf.field(strings.closingBalance, formatAmount(statement.closingBalance, clinic.currency), {
       size: 13,
-      dir: 'ltr',
+      dir: "ltr",
     });
 
     return pdf.save();
@@ -179,8 +179,8 @@ export class DocumentsService {
 }
 
 function describeKind(
-  kind: Statement['entries'][number]['kind'],
-  strings: DocumentStrings['statement'],
+  kind: Statement["entries"][number]["kind"],
+  strings: DocumentStrings["statement"],
 ): string {
   return kind === LEDGER_ENTRY_KIND.PAYMENT ? strings.columns.payment : strings.columns.charge;
 }
@@ -189,7 +189,7 @@ function describeKind(
 // date laid out right-to-left.
 function formatDate(iso: string): string {
   const date = new Date(iso);
-  const pad = (value: number): string => String(value).padStart(2, '0');
+  const pad = (value: number): string => String(value).padStart(2, "0");
 
   return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())}`;
 }
@@ -201,7 +201,7 @@ function formatPeriod(statement: Statement): string {
 }
 
 function formatSequence(value: number): string {
-  return String(value).padStart(6, '0');
+  return String(value).padStart(6, "0");
 }
 
 function formatAmount(amount: Money, currency: string): string {
@@ -216,5 +216,5 @@ function formatPlain(amount: Money): string {
 function negateText(minorUnits: number): Money {
   const absolute = Math.abs(minorUnits);
 
-  return `${Math.floor(absolute / 100)}.${String(absolute % 100).padStart(2, '0')}`;
+  return `${Math.floor(absolute / 100)}.${String(absolute % 100).padStart(2, "0")}`;
 }

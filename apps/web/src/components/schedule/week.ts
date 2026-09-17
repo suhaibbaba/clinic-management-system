@@ -1,8 +1,8 @@
-import type { DaySchedule, TimeRange, WeeklySchedule } from '@clinic/shared';
+import type { DaySchedule, TimeRange, WeeklySchedule } from "@clinic/shared";
 
 export const WEEKDAYS_FROM_SATURDAY = [6, 0, 1, 2, 3, 4, 5] as const;
 
-export const DEFAULT_RANGE: TimeRange = { start: '09:00', end: '17:00' };
+export const DEFAULT_RANGE: TimeRange = { start: "09:00", end: "17:00" };
 
 export const rangesFor = (week: WeeklySchedule, weekday: number): TimeRange[] =>
   week.find((day) => day.weekday === weekday)?.ranges ?? [];
@@ -20,7 +20,7 @@ export function daySummary(ranges: readonly TimeRange[], closedLabel: string): s
     return closedLabel;
   }
 
-  return ranges.map((range) => `${range.start} - ${range.end}`).join(' · ');
+  return ranges.map((range) => `${range.start} - ${range.end}`).join(" · ");
 }
 
 // Latin digits joined by neutral characters: rendered straight into an Arabic paragraph the summary
@@ -28,7 +28,7 @@ export function daySummary(ranges: readonly TimeRange[], closedLabel: string): s
 
 /** `09:30` → 570. Assumes the `HH:MM` shape the schema already enforces. */
 const toMinutes = (time: string): number => {
-  const [hours = '0', minutes = '0'] = time.split(':');
+  const [hours = "0", minutes = "0"] = time.split(":");
 
   return Number(hours) * 60 + Number(minutes);
 };

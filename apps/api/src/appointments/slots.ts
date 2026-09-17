@@ -1,4 +1,4 @@
-import type { TimeRange } from '@clinic/shared';
+import type { TimeRange } from "@clinic/shared";
 
 // Pure arithmetic on minutes from local midnight — no database, no clock — so reception and the
 // anonymous booking page get the same answer. Instants are the caller's problem.
@@ -15,12 +15,12 @@ export interface ComputedSlot {
 }
 
 export type ClosedReason =
-  | 'clinic_closed'
-  | 'clinic_closure'
-  | 'doctor_off'
-  | 'doctor_time_off'
-  | 'fully_booked'
-  | 'day_over';
+  | "clinic_closed"
+  | "clinic_closure"
+  | "doctor_off"
+  | "doctor_time_off"
+  | "fully_booked"
+  | "day_over";
 
 export interface SlotComputation {
   /** Null when at least one slot is bookable. */
@@ -50,7 +50,7 @@ const MINUTES_PER_DAY = 24 * 60;
 
 /** `09:30` → 570. Assumes the `HH:MM` shape `timeOfDaySchema` already enforces. */
 export function toMinutes(time: string): number {
-  const [hours = '0', minutes = '0'] = time.split(':');
+  const [hours = "0", minutes = "0"] = time.split(":");
   return Number(hours) * 60 + Number(minutes);
 }
 
@@ -60,7 +60,7 @@ export function toTimeOfDay(minute: number): string {
   const hours = Math.floor(clamped / 60);
   const minutes = clamped % 60;
 
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
 interface Interval {
@@ -99,15 +99,15 @@ const overlaps = (a: Interval, b: BusyInterval): boolean =>
 
 export function computeDaySlots(input: SlotComputationInput): SlotComputation {
   if (input.isClosed) {
-    return { closedReason: 'clinic_closure', slots: [] };
+    return { closedReason: "clinic_closure", slots: [] };
   }
 
   if (input.clinicRanges.length === 0) {
-    return { closedReason: 'clinic_closed', slots: [] };
+    return { closedReason: "clinic_closed", slots: [] };
   }
 
   if (input.doctorRanges.length === 0) {
-    return { closedReason: 'doctor_off', slots: [] };
+    return { closedReason: "doctor_off", slots: [] };
   }
 
   const windows = intersectRanges(input.clinicRanges, input.doctorRanges);
@@ -154,7 +154,7 @@ function closedBecause(
   timeOff: readonly BusyInterval[],
 ): ClosedReason {
   if (slots.length > 0 && slots.every((slot) => slot.startMinute < notBefore)) {
-    return 'day_over';
+    return "day_over";
   }
 
   const allAway =
@@ -163,5 +163,5 @@ function closedBecause(
       timeOff.some((off) => overlaps({ start: slot.startMinute, end: slot.endMinute }, off)),
     );
 
-  return allAway ? 'doctor_time_off' : 'fully_booked';
+  return allAway ? "doctor_time_off" : "fully_booked";
 }

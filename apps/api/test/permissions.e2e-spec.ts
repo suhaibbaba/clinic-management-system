@@ -1,11 +1,11 @@
-import { ITEM_CATEGORY, ITEM_UNIT, USER_ROLE, type Permissions } from '@clinic/shared';
+import { ITEM_CATEGORY, ITEM_UNIT, USER_ROLE, type Permissions } from "@clinic/shared";
 
-import { auth, createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
+import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 /** A capability the receptionist does not ship with, reached by one GET. */
-const AUDIT = { capability: 'audit.list', url: '/audit-log' };
+const AUDIT = { capability: "audit.list", url: "/audit-log" };
 
-describe('Permissions (e2e)', () => {
+describe("Permissions (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
   let otherClinic: TestClinic;
@@ -15,15 +15,15 @@ describe('Permissions (e2e)', () => {
 
   const grant = (role: string, capability: string, allowed: boolean, token = adminToken) =>
     context.app.inject({
-      method: 'PATCH',
-      url: '/permissions',
+      method: "PATCH",
+      url: "/permissions",
       headers: auth(token),
       payload: { role, capability, allowed },
     });
 
   const reachesAuditLog = async (token: string): Promise<number> => {
     const response = await context.app.inject({
-      method: 'GET',
+      method: "GET",
       url: AUDIT.url,
       headers: auth(token),
     });
@@ -44,10 +44,10 @@ describe('Permissions (e2e)', () => {
     await context.close();
   });
 
-  it('lists every capability the route table declares, and an answer per role', async () => {
+  it("lists every capability the route table declares, and an answer per role", async () => {
     const response = await context.app.inject({
-      method: 'GET',
-      url: '/permissions',
+      method: "GET",
+      url: "/permissions",
       headers: auth(adminToken),
     });
     const body = response.json<Permissions>();
@@ -68,10 +68,10 @@ describe('Permissions (e2e)', () => {
     expect(roles[USER_ROLE.RECEPTIONIST]?.allows[AUDIT.capability]).toBe(false);
   });
 
-  it('refuses a receptionist both the list and the switch', async () => {
+  it("refuses a receptionist both the list and the switch", async () => {
     const list = await context.app.inject({
-      method: 'GET',
-      url: '/permissions',
+      method: "GET",
+      url: "/permissions",
       headers: auth(receptionToken),
     });
 
@@ -81,7 +81,7 @@ describe('Permissions (e2e)', () => {
     );
   });
 
-  it('a granted capability is reachable, and reachable no longer once it is taken back', async () => {
+  it("a granted capability is reachable, and reachable no longer once it is taken back", async () => {
     expect(await reachesAuditLog(receptionToken)).toBe(403);
 
     expect((await grant(USER_ROLE.RECEPTIONIST, AUDIT.capability, true)).statusCode).toBe(204);
@@ -91,29 +91,29 @@ describe('Permissions (e2e)', () => {
     expect(await reachesAuditLog(receptionToken)).toBe(403);
   });
 
-  it('a capability the role ships with can be taken away', async () => {
+  it("a capability the role ships with can be taken away", async () => {
     const before = await context.app.inject({
-      method: 'GET',
-      url: '/patients',
+      method: "GET",
+      url: "/patients",
       headers: auth(receptionToken),
     });
 
     expect(before.statusCode).toBe(200);
 
-    expect((await grant(USER_ROLE.RECEPTIONIST, 'patients.create', false)).statusCode).toBe(204);
+    expect((await grant(USER_ROLE.RECEPTIONIST, "patients.create", false)).statusCode).toBe(204);
 
     const create = await context.app.inject({
-      method: 'POST',
-      url: '/patients',
+      method: "POST",
+      url: "/patients",
       headers: auth(receptionToken),
-      payload: { name: 'مريض جديد', phone: '+970599111222' },
+      payload: { name: "مريض جديد", phone: "+970599111222" },
     });
 
     expect(create.statusCode).toBe(403);
-    await grant(USER_ROLE.RECEPTIONIST, 'patients.create', true);
+    await grant(USER_ROLE.RECEPTIONIST, "patients.create", true);
   });
 
-  it('a grant belongs to the clinic that made it', async () => {
+  it("a grant belongs to the clinic that made it", async () => {
     expect((await grant(USER_ROLE.RECEPTIONIST, AUDIT.capability, true)).statusCode).toBe(204);
 
     expect(await reachesAuditLog(receptionToken)).toBe(200);
@@ -122,21 +122,21 @@ describe('Permissions (e2e)', () => {
     await grant(USER_ROLE.RECEPTIONIST, AUDIT.capability, false);
   });
 
-  it('the session carries what the reader may do, so a screen can hide what they cannot', async () => {
+  it("the session carries what the reader may do, so a screen can hide what they cannot", async () => {
     const before = await context.app.inject({
-      method: 'GET',
-      url: '/me',
+      method: "GET",
+      url: "/me",
       headers: auth(receptionToken),
     });
 
     expect(before.json<{ capabilities: string[] }>().capabilities).not.toContain(AUDIT.capability);
-    expect(before.json<{ capabilities: string[] }>().capabilities).toContain('patients.create');
+    expect(before.json<{ capabilities: string[] }>().capabilities).toContain("patients.create");
 
     await grant(USER_ROLE.RECEPTIONIST, AUDIT.capability, true);
 
     const after = await context.app.inject({
-      method: 'GET',
-      url: '/me',
+      method: "GET",
+      url: "/me",
       headers: auth(receptionToken),
     });
 
@@ -144,15 +144,15 @@ describe('Permissions (e2e)', () => {
     await grant(USER_ROLE.RECEPTIONIST, AUDIT.capability, false);
   });
 
-  it('a grant is the whole answer — no service keeps a second role table behind the guard', async () => {
+  it("a grant is the whole answer — no service keeps a second role table behind the guard", async () => {
     // Three stock movements are three endpoints with three permissions; the module used to check
     // the role again on the way past, which made a granted switch do nothing at all.
     const item = await context.app.inject({
-      method: 'POST',
-      url: '/inventory/items',
+      method: "POST",
+      url: "/inventory/items",
       headers: auth(adminToken),
       payload: {
-        nameAr: 'قفازات',
+        nameAr: "قفازات",
         category: ITEM_CATEGORY.CONSUMABLE,
         unit: ITEM_UNIT.PIECE,
       },
@@ -160,25 +160,25 @@ describe('Permissions (e2e)', () => {
     const itemId = item.json<{ id: string }>().id;
     const purchase = () =>
       context.app.inject({
-        method: 'POST',
-        url: '/inventory/movements/purchase',
+        method: "POST",
+        url: "/inventory/movements/purchase",
         headers: auth(receptionToken),
-        payload: { itemId, quantity: '1', unitCost: '10' },
+        payload: { itemId, quantity: "1", unitCost: "10" },
       });
 
     expect(item.statusCode).toBe(201);
     expect((await purchase()).statusCode).toBe(403);
 
-    await grant(USER_ROLE.RECEPTIONIST, 'inventory.purchase', true);
+    await grant(USER_ROLE.RECEPTIONIST, "inventory.purchase", true);
     expect((await purchase()).statusCode).toBe(201);
 
-    await grant(USER_ROLE.RECEPTIONIST, 'inventory.purchase', false);
+    await grant(USER_ROLE.RECEPTIONIST, "inventory.purchase", false);
     expect((await purchase()).statusCode).toBe(403);
   });
 
-  it('the administrator cannot be edited, and an unknown permission is not stored', async () => {
+  it("the administrator cannot be edited, and an unknown permission is not stored", async () => {
     const admin = await grant(USER_ROLE.ADMIN, AUDIT.capability, false);
-    const nonsense = await grant(USER_ROLE.DOCTOR, 'made.up', true);
+    const nonsense = await grant(USER_ROLE.DOCTOR, "made.up", true);
 
     expect(admin.statusCode).toBe(400);
     expect(nonsense.statusCode).toBe(400);

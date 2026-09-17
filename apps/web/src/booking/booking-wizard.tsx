@@ -1,22 +1,22 @@
-import type { ManagedBooking, PublicDoctor } from '@clinic/shared';
-import { BOOKING_CONFIRMATION_MODE } from '@shared/enums';
-import { useEffect, useMemo, useState, type JSX } from 'react';
+import type { ManagedBooking, PublicDoctor } from "@clinic/shared";
+import { BOOKING_CONFIRMATION_MODE } from "@shared/enums";
+import { useEffect, useMemo, useState, type JSX } from "react";
 
-import { BookingError, bookingApi, failureKey } from '@web/booking/api';
-import { dayChips, learnClinicOffset, todayIso } from '@web/booking/format';
-import { t } from '@web/booking/i18n';
-import { useClinicLogo } from '@web/booking/branding';
-import { FullPageMessage, PageShell, StepHeader } from '@web/booking/layout';
-import { rememberClinic } from '@web/booking/route';
-import { DetailsStep, type BookingDetails } from '@web/booking/steps/details-step';
-import { DoctorStep } from '@web/booking/steps/doctor-step';
-import { OtpStep } from '@web/booking/steps/otp-step';
-import { PendingView, SuccessView } from '@web/booking/steps/success-view';
-import { UrgentSentView, UrgentStep, type UrgentDetails } from '@web/booking/steps/urgent-step';
-import { WhenStep, type SlotOption } from '@web/booking/steps/when-step';
-import { Alert, Button, Card, Skeleton } from '@web/booking/ui';
-import { useAsync } from '@web/booking/use-async';
-import { bookingName } from '@web/booking/format';
+import { BookingError, bookingApi, failureKey } from "@web/booking/api";
+import { dayChips, learnClinicOffset, todayIso } from "@web/booking/format";
+import { t } from "@web/booking/i18n";
+import { useClinicLogo } from "@web/booking/branding";
+import { FullPageMessage, PageShell, StepHeader } from "@web/booking/layout";
+import { rememberClinic } from "@web/booking/route";
+import { DetailsStep, type BookingDetails } from "@web/booking/steps/details-step";
+import { DoctorStep } from "@web/booking/steps/doctor-step";
+import { OtpStep } from "@web/booking/steps/otp-step";
+import { PendingView, SuccessView } from "@web/booking/steps/success-view";
+import { UrgentSentView, UrgentStep, type UrgentDetails } from "@web/booking/steps/urgent-step";
+import { WhenStep, type SlotOption } from "@web/booking/steps/when-step";
+import { Alert, Button, Card, Skeleton } from "@web/booking/ui";
+import { useAsync } from "@web/booking/use-async";
+import { bookingName } from "@web/booking/format";
 
 const byDate = (days: readonly { date: string; slots: unknown[] }[]) =>
   new Map(days.map((day) => [day.date, day.slots]));
@@ -26,7 +26,7 @@ const VISIBLE_DAYS = 7;
 
 const OTP_ATTEMPTS = 3;
 
-type Stage = 'doctor' | 'when' | 'details' | 'otp' | 'done' | 'urgent' | 'urgentSent';
+type Stage = "doctor" | "when" | "details" | "otp" | "done" | "urgent" | "urgentSent";
 
 const STAGE_STEP: Record<Stage, number> = {
   doctor: 1,
@@ -39,13 +39,13 @@ const STAGE_STEP: Record<Stage, number> = {
 };
 
 const STAGE_TITLE: Record<Stage, string> = {
-  doctor: 'doctor.heading',
-  when: 'when.heading',
-  details: 'details.heading',
-  otp: 'otp.heading',
-  done: 'success.heading',
-  urgent: 'urgent.heading',
-  urgentSent: 'urgent.sentHeading',
+  doctor: "doctor.heading",
+  when: "when.heading",
+  details: "details.heading",
+  otp: "otp.heading",
+  done: "success.heading",
+  urgent: "urgent.heading",
+  urgentSent: "urgent.sentHeading",
 };
 
 export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element {
@@ -53,13 +53,13 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
   const logoUrl = useClinicLogo(slug, clinic.data?.logoUrl);
   const doctors = useAsync(() => bookingApi.doctors(slug), [slug], clinic.data?.bookingEnabled);
 
-  const [stage, setStage] = useState<Stage>('doctor');
+  const [stage, setStage] = useState<Stage>("doctor");
   const [doctor, setDoctor] = useState<PublicDoctor>();
   const [from, setFrom] = useState(todayIso());
   const [date, setDate] = useState(todayIso());
   const [slot, setSlot] = useState<SlotOption>();
-  const [details, setDetails] = useState<BookingDetails>({ fullName: '', phone: '', reason: '' });
-  const [urgent, setUrgent] = useState<UrgentDetails>({ fullName: '', phone: '', complaint: '' });
+  const [details, setDetails] = useState<BookingDetails>({ fullName: "", phone: "", reason: "" });
+  const [urgent, setUrgent] = useState<UrgentDetails>({ fullName: "", phone: "", complaint: "" });
 
   const [token, setToken] = useState<string>();
   const [booking, setBooking] = useState<ManagedBooking>();
@@ -76,7 +76,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
   const week = useAsync(
     async () => {
       const days = await Promise.all(
-        chips.map((chip) => bookingApi.slots(slug, doctor?.id ?? '', chip.date)),
+        chips.map((chip) => bookingApi.slots(slug, doctor?.id ?? "", chip.date)),
       );
 
       const sample = days.flatMap((day) => day.slots)[0];
@@ -104,7 +104,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   const backToSlots = (): void => {
     setSlot(undefined);
-    setStage('when');
+    setStage("when");
     week.reload();
   };
 
@@ -131,15 +131,15 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
       // it is opened on this phone — see `route.ts`.
       rememberClinic(receipt.token, slug);
 
-      if (receipt.status === 'pending_otp') {
-        setStage('otp');
+      if (receipt.status === "pending_otp") {
+        setStage("otp");
       } else {
-        setStage('done');
+        setStage("done");
       }
     } catch (error) {
       setFailure(t(failureKey(error)));
 
-      if (error instanceof BookingError && error.failure === 'slotTaken') {
+      if (error instanceof BookingError && error.failure === "slotTaken") {
         backToSlots();
       }
     } finally {
@@ -159,7 +159,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
         ...(doctor && { doctorId: doctor.id }),
       });
 
-      setStage('urgentSent');
+      setStage("urgentSent");
     } catch (error) {
       setFailure(t(failureKey(error)));
     } finally {
@@ -177,11 +177,11 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
     try {
       setBooking(await bookingApi.verifyOtp(slug, token, code));
-      setStage('done');
+      setStage("done");
     } catch {
       const remaining = attemptsLeft - 1;
       setAttemptsLeft(remaining);
-      setOtpError(remaining > 0 ? t('otp.wrong', { attempts: remaining }) : t('otp.spent'));
+      setOtpError(remaining > 0 ? t("otp.wrong", { attempts: remaining }) : t("otp.spent"));
     } finally {
       setBusy(false);
     }
@@ -225,7 +225,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
           title={t(failureKey(clinic.error))}
           action={
             <Button variant="secondary" onClick={clinic.reload}>
-              {t('common.retry')}
+              {t("common.retry")}
             </Button>
           }
         />
@@ -237,7 +237,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
     return (
       <PageShell clinicName={bookingName(clinic.data.name)} logoUrl={logoUrl}>
         <FullPageMessage
-          title={t('errors.closed')}
+          title={t("errors.closed")}
           {...(clinic.data.phone && { body: clinic.data.phone })}
         />
       </PageShell>
@@ -246,7 +246,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
   const manualMode = clinic.data.confirmationMode === BOOKING_CONFIRMATION_MODE.MANUAL;
 
-  if (stage === 'done') {
+  if (stage === "done") {
     return (
       <PageShell clinicName={bookingName(clinic.data.name)} logoUrl={logoUrl}>
         {booking ? <SuccessView booking={booking} /> : <PendingView />}
@@ -254,7 +254,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
     );
   }
 
-  if (stage === 'urgentSent') {
+  if (stage === "urgentSent") {
     return (
       <PageShell clinicName={bookingName(clinic.data.name)} logoUrl={logoUrl}>
         <UrgentSentView />
@@ -267,22 +267,22 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
       clinicName={bookingName(clinic.data.name)}
       logoUrl={logoUrl}
       footer={
-        stage === 'doctor' ? (
-          <Button full disabled={!doctor} onClick={() => setStage('when')}>
-            {t('common.next')}
+        stage === "doctor" ? (
+          <Button full disabled={!doctor} onClick={() => setStage("when")}>
+            {t("common.next")}
           </Button>
-        ) : stage === 'when' ? (
+        ) : stage === "when" ? (
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={() => setStage('doctor')}>
-              {t('common.back')}
+            <Button variant="secondary" onClick={() => setStage("doctor")}>
+              {t("common.back")}
             </Button>
-            <Button full disabled={!slot} onClick={() => setStage('details')}>
-              {t('common.next')}
+            <Button full disabled={!slot} onClick={() => setStage("details")}>
+              {t("common.next")}
             </Button>
           </div>
-        ) : stage === 'details' ? (
+        ) : stage === "details" ? (
           <Button variant="secondary" full onClick={backToSlots}>
-            {t('common.back')}
+            {t("common.back")}
           </Button>
         ) : undefined
       }
@@ -290,25 +290,25 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
       <div key={stage} className="booking-step">
         <StepHeader current={STAGE_STEP[stage]} title={t(STAGE_TITLE[stage])} />
 
-        {failure && stage !== 'otp' && (
+        {failure && stage !== "otp" && (
           <div className="mb-4">
             <Alert>{failure}</Alert>
           </div>
         )}
 
-        {stage === 'doctor' && (
+        {stage === "doctor" && (
           <DoctorStep
             doctors={doctors}
             selectedId={doctor?.id}
             onSelect={(next) => {
               setDoctor(next);
               setSlot(undefined);
-              setStage('when');
+              setStage("when");
             }}
           />
         )}
 
-        {stage === 'when' && (
+        {stage === "when" && (
           <WhenStep
             chips={chips}
             week={week}
@@ -324,26 +324,26 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
             selected={slot?.startsAt}
             onSelect={(next) => {
               setSlot(next);
-              setStage('details');
+              setStage("details");
             }}
             onUrgent={() => {
               setFailure(undefined);
-              setStage('urgent');
+              setStage("urgent");
             }}
           />
         )}
 
-        {stage === 'urgent' && (
+        {stage === "urgent" && (
           <UrgentStep
             details={urgent}
             onChange={setUrgent}
             onSubmit={() => void sendUrgent()}
-            onBack={() => setStage('when')}
+            onBack={() => setStage("when")}
             busy={busy}
           />
         )}
 
-        {stage === 'details' && (
+        {stage === "details" && (
           <DetailsStep
             details={details}
             onChange={setDetails}
@@ -351,7 +351,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
             busy={busy}
             summary={
               <Card className="bg-primary-50 shadow-none">
-                <p className="text-label text-ink-muted">{t('details.summary')}</p>
+                <p className="text-label text-ink-muted">{t("details.summary")}</p>
                 <p className="mt-1 text-value font-medium text-ink">{bookingName(doctor?.name)}</p>
                 {/* The time hugs its content: as a block it aligned left inside an RTL card,
                     stranding it on the far side of the box. */}
@@ -365,7 +365,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
           />
         )}
 
-        {stage === 'otp' && (
+        {stage === "otp" && (
           <OtpStep
             phone={details.phone}
             busy={busy}
@@ -376,8 +376,8 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
           />
         )}
 
-        {manualMode && stage === 'details' && (
-          <p className="mt-4 text-label text-ink-muted">{t('success.manualBody')}</p>
+        {manualMode && stage === "details" && (
+          <p className="mt-4 text-label text-ink-muted">{t("success.manualBody")}</p>
         )}
       </div>
     </PageShell>

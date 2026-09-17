@@ -1,8 +1,8 @@
-import { z } from 'zod';
+import { z } from "zod";
 
-import { TREATMENT_PLAN_ITEM_STATUSES, TREATMENT_PLAN_STATUSES } from '@shared/enums';
-import { paginationQuerySchema } from '@shared/schemas/common';
-import { moneySchema, wholeMoneySchema } from '@shared/schemas/money';
+import { TREATMENT_PLAN_ITEM_STATUSES, TREATMENT_PLAN_STATUSES } from "@shared/enums";
+import { paginationQuerySchema } from "@shared/schemas/common";
+import { moneySchema, wholeMoneySchema } from "@shared/schemas/money";
 
 export const treatmentPlanItemSchema = z.object({
   id: z.uuid(),
@@ -49,7 +49,7 @@ export type CreateTreatmentPlanItemInput = z.infer<typeof createTreatmentPlanIte
 export const updateTreatmentPlanItemSchema = z
   .object({ ...planItemWritableFields, status: z.enum(TREATMENT_PLAN_ITEM_STATUSES) })
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateTreatmentPlanItemInput = z.infer<typeof updateTreatmentPlanItemSchema>;
 
 const planWritableFields = {
@@ -62,7 +62,7 @@ const planWritableFields = {
 export const createTreatmentPlanSchema = z.object({
   ...planWritableFields,
   patientId: z.uuid(),
-  status: z.enum(TREATMENT_PLAN_STATUSES).default('draft'),
+  status: z.enum(TREATMENT_PLAN_STATUSES).default("draft"),
   items: z.array(createTreatmentPlanItemSchema).max(64).default([]),
 });
 export type CreateTreatmentPlanInput = z.infer<typeof createTreatmentPlanSchema>;
@@ -70,7 +70,7 @@ export type CreateTreatmentPlanInput = z.infer<typeof createTreatmentPlanSchema>
 export const updateTreatmentPlanSchema = z
   .object(planWritableFields)
   .partial()
-  .refine((input) => Object.keys(input).length > 0, 'At least one field must be provided');
+  .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateTreatmentPlanInput = z.infer<typeof updateTreatmentPlanSchema>;
 
 export const convertPlanItemSchema = z.object({

@@ -10,7 +10,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   USER_ROLE,
@@ -31,23 +31,23 @@ import {
   type ShoppingList,
   type StockMovement,
   type StockMovementRow,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { InventoryDocumentsService } from '@api/inventory/inventory-documents.service';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { InventoryDocumentsService } from "@api/inventory/inventory-documents.service";
 import {
   INVENTORY_ITEMS_ENTITY,
   InventoryItemsService,
-} from '@api/inventory/inventory-items.service';
-import { InventoryReportsService } from '@api/inventory/inventory-reports.service';
+} from "@api/inventory/inventory-items.service";
+import { InventoryReportsService } from "@api/inventory/inventory-reports.service";
 import {
   STOCK_MOVEMENTS_ENTITY,
   StockMovementsService,
-} from '@api/inventory/stock-movements.service';
+} from "@api/inventory/stock-movements.service";
 
 class CreateItemDto extends createZodDto(createInventoryItemSchema) {}
 class UpdateItemDto extends createZodDto(updateInventoryItemSchema) {}
@@ -61,7 +61,7 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 
 // A receptionist is in no row of the matrix, so every call is a 403. A doctor reads all and writes
 // only a consumption — hence three routes, since a guard sees the route, not a body.
-@Controller('inventory')
+@Controller("inventory")
 export class InventoryController {
   constructor(
     private readonly items: InventoryItemsService,
@@ -71,28 +71,28 @@ export class InventoryController {
   ) {}
 
   /** Before `:id`, or Nest reads "alerts" as an item id. */
-  @Get('alerts')
+  @Get("alerts")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   alerts(@CurrentUser() actor: AuthenticatedUser): Promise<InventoryAlerts> {
     return this.reports.alerts(actor);
   }
 
-  @Get('shopping-list')
+  @Get("shopping-list")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   shoppingList(@CurrentUser() actor: AuthenticatedUser): Promise<ShoppingList> {
     return this.reports.shoppingList(actor);
   }
 
   /** The same list as paper. `@Header` rather than `@Res`: house style. */
-  @Get('shopping-list.pdf')
+  @Get("shopping-list.pdf")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
-  @Header('Content-Type', 'application/pdf')
-  @Header('Content-Disposition', 'inline; filename="shopping-list.pdf"')
+  @Header("Content-Type", "application/pdf")
+  @Header("Content-Disposition", 'inline; filename="shopping-list.pdf"')
   shoppingListPdf(@CurrentUser() actor: AuthenticatedUser): Promise<Buffer> {
     return this.documents.shoppingList(actor);
   }
 
-  @Get('movements')
+  @Get("movements")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   listMovements(
     @CurrentUser() actor: AuthenticatedUser,
@@ -102,7 +102,7 @@ export class InventoryController {
   }
 
   /** Technician and admin (the service enforces it; the guard opens the door). */
-  @Post('movements/purchase')
+  @Post("movements/purchase")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.CREATE)
   purchase(
@@ -112,7 +112,7 @@ export class InventoryController {
     return this.movements.purchase(actor, body);
   }
 
-  @Post('movements/consume')
+  @Post("movements/consume")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.CREATE)
   consume(
@@ -122,14 +122,14 @@ export class InventoryController {
     return this.movements.consume(actor, body);
   }
 
-  @Post('movements/adjust')
+  @Post("movements/adjust")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.CREATE)
   adjust(@CurrentUser() actor: AuthenticatedUser, @Body() body: AdjustDto): Promise<StockMovement> {
     return this.movements.adjust(actor, body);
   }
 
-  @Patch('movements/:id/reverse')
+  @Patch("movements/:id/reverse")
   @Roles(USER_ROLE.ADMIN)
   @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.UPDATE)
   reverse(
@@ -140,7 +140,7 @@ export class InventoryController {
     return this.movements.reverse(actor, params.id, body);
   }
 
-  @Get('items')
+  @Get("items")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   list(
     @CurrentUser() actor: AuthenticatedUser,
@@ -149,7 +149,7 @@ export class InventoryController {
     return this.items.list(actor, query);
   }
 
-  @Get('items/:id')
+  @Get("items/:id")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
@@ -159,7 +159,7 @@ export class InventoryController {
   }
 
   /** What is left of each batch, oldest first. Derived — see `StockService`. */
-  @Get('items/:id/batches')
+  @Get("items/:id/batches")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   batches(
     @CurrentUser() actor: AuthenticatedUser,
@@ -168,7 +168,7 @@ export class InventoryController {
     return this.items.batches(actor, params.id);
   }
 
-  @Get('items/:id/movements')
+  @Get("items/:id/movements")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   itemMovements(
     @CurrentUser() actor: AuthenticatedUser,
@@ -178,7 +178,7 @@ export class InventoryController {
     return this.movements.list(actor, { ...query, itemId: params.id });
   }
 
-  @Post('items')
+  @Post("items")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(INVENTORY_ITEMS_ENTITY, AUDIT_ACTION.CREATE)
   create(
@@ -188,7 +188,7 @@ export class InventoryController {
     return this.items.create(actor, body);
   }
 
-  @Patch('items/:id')
+  @Patch("items/:id")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(INVENTORY_ITEMS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -200,7 +200,7 @@ export class InventoryController {
   }
 
   /** Admin only — an item carries a ledger, and retiring it is not housekeeping. */
-  @Delete('items/:id')
+  @Delete("items/:id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(INVENTORY_ITEMS_ENTITY, AUDIT_ACTION.DELETE)

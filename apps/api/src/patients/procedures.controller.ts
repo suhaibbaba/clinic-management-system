@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   createPerformedProcedureSchema,
@@ -19,14 +19,14 @@ import {
   USER_ROLE,
   type Paginated,
   type PerformedProcedure,
-} from '@clinic/shared';
-import { createZodDto } from 'nestjs-zod';
+} from "@clinic/shared";
+import { createZodDto } from "nestjs-zod";
 
-import { Audit } from '@api/common/decorators/audit.decorator';
-import { CurrentUser } from '@api/common/decorators/current-user.decorator';
-import { Roles } from '@api/common/decorators/roles.decorator';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { PERFORMED_PROCEDURES_ENTITY, ProceduresService } from '@api/patients/procedures.service';
+import { Audit } from "@api/common/decorators/audit.decorator";
+import { CurrentUser } from "@api/common/decorators/current-user.decorator";
+import { Roles } from "@api/common/decorators/roles.decorator";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { PERFORMED_PROCEDURES_ENTITY, ProceduresService } from "@api/patients/procedures.service";
 
 class CreateProcedureDto extends createZodDto(createPerformedProcedureSchema) {}
 class UpdateProcedureDto extends createZodDto(updatePerformedProcedureSchema) {}
@@ -35,7 +35,7 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 
 // Recording a procedure is what makes a patient owe money, so every mutation is audited and hands
 // the billing seam an event.
-@Controller('performed-procedures')
+@Controller("performed-procedures")
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
 export class ProceduresController {
   constructor(private readonly procedures: ProceduresService) {}
@@ -49,7 +49,7 @@ export class ProceduresController {
     return this.procedures.list(actor, query);
   }
 
-  @Get(':id')
+  @Get(":id")
   @Roles(USER_ROLE.DOCTOR)
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
@@ -68,7 +68,7 @@ export class ProceduresController {
     return this.procedures.create(actor, body);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @Roles(USER_ROLE.DOCTOR)
   @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -79,7 +79,7 @@ export class ProceduresController {
     return this.procedures.update(actor, params.id, body);
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.DELETE)

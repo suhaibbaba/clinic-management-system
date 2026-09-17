@@ -1,22 +1,22 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
-import { useClinicBranding } from '@web/features/clinic/queries';
+import { useClinicBranding } from "@web/features/clinic/queries";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
 /** What `index.html` declares, and what the tab falls back to when a clinic has no logo. */
-const PRODUCT_MARK = { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' } as const;
+const PRODUCT_MARK = { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" } as const;
 
 const CLINIC_MARKS = [
-  { rel: 'icon', type: 'image/x-icon', name: 'favicon.ico' },
-  { rel: 'apple-touch-icon', type: 'image/png', name: 'apple-touch-icon.png' },
+  { rel: "icon", type: "image/x-icon", name: "favicon.ico" },
+  { rel: "apple-touch-icon", type: "image/png", name: "apple-touch-icon.png" },
 ] as const;
 
-const MANAGED = 'data-clinic-icon';
+const MANAGED = "data-clinic-icon";
 
 /** iOS reads neither the manifest's name nor its icons; this is where its home-screen label comes
  *  from, and without it the label is the page title with the route still on the front. */
-const APPLE_TITLE = 'apple-mobile-web-app-title';
+const APPLE_TITLE = "apple-mobile-web-app-title";
 
 /**
  * Points the tab at the clinic's own mark, or back at the product's when it has none. The
@@ -52,21 +52,21 @@ export function applyDocumentIcon(iconsAt: string | null): void {
 export function applyAppTitle(appName: string): void {
   const existing = document.head.querySelector(`meta[name="${APPLE_TITLE}"]`);
 
-  if (appName === '') {
+  if (appName === "") {
     existing?.remove();
     return;
   }
 
-  const meta = existing ?? document.head.appendChild(document.createElement('meta'));
+  const meta = existing ?? document.head.appendChild(document.createElement("meta"));
 
-  meta.setAttribute('name', APPLE_TITLE);
-  meta.setAttribute('content', appName);
+  meta.setAttribute("name", APPLE_TITLE);
+  meta.setAttribute("content", appName);
 }
 
 function managedLink(rel: string, type: string, href: string): HTMLLinkElement {
-  const link = document.createElement('link');
+  const link = document.createElement("link");
 
-  link.setAttribute(MANAGED, '');
+  link.setAttribute(MANAGED, "");
   link.rel = rel;
   link.type = type;
   link.href = href;
@@ -81,7 +81,7 @@ function managedLink(rel: string, type: string, href: string): HTMLLinkElement {
 export function DocumentBranding(): null {
   const { data } = useClinicBranding();
   const iconsAt = data?.iconsAt ?? null;
-  const appName = data?.appName ?? '';
+  const appName = data?.appName ?? "";
 
   useEffect(() => {
     applyDocumentIcon(iconsAt);

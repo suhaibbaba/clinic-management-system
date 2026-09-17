@@ -3,14 +3,14 @@ import {
   UnauthorizedException,
   type CanActivate,
   type ExecutionContext,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Reflector } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Reflector } from "@nestjs/core";
+import { JwtService } from "@nestjs/jwt";
 
-import { IS_PUBLIC_KEY } from '@api/common/decorators/public.decorator';
-import type { AccessTokenPayload, RequestWithUser } from '@api/common/types/authenticated-user';
-import type { Env } from '@api/config/env.schema';
+import { IS_PUBLIC_KEY } from "@api/common/decorators/public.decorator";
+import type { AccessTokenPayload, RequestWithUser } from "@api/common/types/authenticated-user";
+import type { Env } from "@api/config/env.schema";
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -34,18 +34,18 @@ export class JwtAuthGuard implements CanActivate {
     const token = extractBearerToken(request);
 
     if (!token) {
-      throw new UnauthorizedException('Missing access token');
+      throw new UnauthorizedException("Missing access token");
     }
 
     let payload: AccessTokenPayload;
     try {
       payload = await this.jwtService.verifyAsync<AccessTokenPayload>(token, {
-        secret: this.config.get('JWT_SECRET', { infer: true }),
+        secret: this.config.get("JWT_SECRET", { infer: true }),
       });
     } catch {
       // Expired and malformed tokens are indistinguishable to the caller on
       // purpose — the client refreshes on any 401 from a protected route.
-      throw new UnauthorizedException('Invalid or expired access token');
+      throw new UnauthorizedException("Invalid or expired access token");
     }
 
     request.user = {
@@ -59,13 +59,13 @@ export class JwtAuthGuard implements CanActivate {
 }
 
 function extractBearerToken(request: RequestWithUser): string | null {
-  const header = request.headers['authorization'];
+  const header = request.headers["authorization"];
   const value = Array.isArray(header) ? header[0] : header;
 
   if (!value) {
     return null;
   }
 
-  const [scheme, token] = value.split(' ');
-  return scheme?.toLowerCase() === 'bearer' && token ? token : null;
+  const [scheme, token] = value.split(" ");
+  return scheme?.toLowerCase() === "bearer" && token ? token : null;
 }

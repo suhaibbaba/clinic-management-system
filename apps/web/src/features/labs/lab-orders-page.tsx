@@ -1,6 +1,6 @@
-import { LAB_ORDER_STATUSES, type LabOrderRow, type LabOrderStatus } from '@clinic/shared';
-import { useMemo, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { LAB_ORDER_STATUSES, type LabOrderRow, type LabOrderStatus } from "@clinic/shared";
+import { useMemo, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Badge,
@@ -13,23 +13,23 @@ import {
   SearchField,
   Select,
   useToast,
-} from '@clinic/ui';
-import { RefreshBar, SkeletonCard, SkeletonStatus } from '@clinic/ui/components/skeleton';
-import { useSession } from '@web/features/auth/session';
-import { Money } from '@web/features/billing/money';
-import { useClinic } from '@web/features/clinic/queries';
-import { LabOrdersTable } from '@web/features/labs/lab-orders-table';
-import { OrderDrawer } from '@web/features/labs/order-drawer';
-import { OrderFormModal } from '@web/features/labs/order-form-modal';
-import { canCreateLabOrder } from '@web/features/labs/permissions';
-import { useLabOrders, useLabOrderStep, useLabs } from '@web/features/labs/queries';
-import { availableSteps, BOARD_COLUMNS, LAB_ORDER_STATUS_STYLES } from '@web/features/labs/status';
-import { errorMessageKey } from '@web/lib/api-error';
-import { cn } from '@clinic/ui/lib/cn';
-import { formatDate } from '@web/lib/format';
-import { useDebounced } from '@web/lib/use-debounced';
-import { useQueryLoading } from '@clinic/ui/lib/use-delayed-loading';
-import { useIsMobile } from '@clinic/ui/lib/use-media-query';
+} from "@clinic/ui";
+import { RefreshBar, SkeletonCard, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import { useSession } from "@web/features/auth/session";
+import { Money } from "@web/features/billing/money";
+import { useClinic } from "@web/features/clinic/queries";
+import { LabOrdersTable } from "@web/features/labs/lab-orders-table";
+import { OrderDrawer } from "@web/features/labs/order-drawer";
+import { OrderFormModal } from "@web/features/labs/order-form-modal";
+import { canCreateLabOrder } from "@web/features/labs/permissions";
+import { useLabOrders, useLabOrderStep, useLabs } from "@web/features/labs/queries";
+import { availableSteps, BOARD_COLUMNS, LAB_ORDER_STATUS_STYLES } from "@web/features/labs/status";
+import { errorMessageKey } from "@web/lib/api-error";
+import { cn } from "@clinic/ui/lib/cn";
+import { formatDate } from "@web/lib/format";
+import { useDebounced } from "@web/lib/use-debounced";
+import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
+import { useIsMobile } from "@clinic/ui/lib/use-media-query";
 
 // A board on a wide screen answers "what is at the lab right now" in one look; below `md` it is the
 // shared `Table`, already a stack of cards there.
@@ -38,9 +38,9 @@ export function LabOrdersPage(): JSX.Element {
   const { can } = useSession();
   const isMobile = useIsMobile();
 
-  const [search, setSearch] = useState('');
-  const [labId, setLabId] = useState('');
-  const [status, setStatus] = useState<LabOrderStatus | ''>('');
+  const [search, setSearch] = useState("");
+  const [labId, setLabId] = useState("");
+  const [status, setStatus] = useState<LabOrderStatus | "">("");
   const [overdueOnly, setOverdueOnly] = useState(false);
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<LabOrderRow | undefined>();
@@ -52,9 +52,9 @@ export function LabOrdersPage(): JSX.Element {
   const query = useMemo(
     () => ({
       limit: 100,
-      ...(debounced.trim() !== '' && { search: debounced.trim() }),
-      ...(labId !== '' && { labId }),
-      ...(status !== '' && { status }),
+      ...(debounced.trim() !== "" && { search: debounced.trim() }),
+      ...(labId !== "" && { labId }),
+      ...(status !== "" && { status }),
       ...(overdueOnly && { overdue: true }),
     }),
     [debounced, labId, status, overdueOnly],
@@ -75,7 +75,7 @@ export function LabOrdersPage(): JSX.Element {
         primaryAction={
           canCreateLabOrder(can) ? (
             <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
-              {t('labs.orders.add')}
+              {t("labs.orders.add")}
             </Button>
           ) : undefined
         }
@@ -84,23 +84,23 @@ export function LabOrdersPage(): JSX.Element {
       <div className="flex flex-wrap items-end gap-3">
         <SearchField
           className="w-full min-w-0 sm:max-w-xs"
-          label={t('labs.orders.search')}
+          label={t("labs.orders.search")}
           shortcut="/"
-          placeholder={t('labs.orders.searchPlaceholder')}
+          placeholder={t("labs.orders.searchPlaceholder")}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          clearLabel={t('common.clear')}
-          onClear={() => setSearch('')}
+          clearLabel={t("common.clear")}
+          onClear={() => setSearch("")}
         />
 
         <div className="min-w-44">
           <label htmlFor="lab-orders-lab" className="mb-1 block text-label text-ink-muted">
-            {t('labs.orders.filterLab')}
+            {t("labs.orders.filterLab")}
           </label>
           <Select
             id="lab-orders-lab"
             value={labId}
-            placeholder={t('common.all')}
+            placeholder={t("common.all")}
             onChange={(event) => setLabId(event.target.value)}
             options={(labs.data?.items ?? []).map((lab) => ({ value: lab.id, label: lab.name }))}
           />
@@ -110,13 +110,13 @@ export function LabOrdersPage(): JSX.Element {
             way to narrow it — on a wide screen it is a shortcut, not the path. */}
         <div className="min-w-44">
           <label htmlFor="lab-orders-status" className="mb-1 block text-label text-ink-muted">
-            {t('labs.orders.filterStatus')}
+            {t("labs.orders.filterStatus")}
           </label>
           <Select
             id="lab-orders-status"
             value={status}
-            placeholder={t('common.all')}
-            onChange={(event) => setStatus(event.target.value as LabOrderStatus | '')}
+            placeholder={t("common.all")}
+            onChange={(event) => setStatus(event.target.value as LabOrderStatus | "")}
             options={LAB_ORDER_STATUSES.map((value) => ({
               value,
               label: t(LAB_ORDER_STATUS_STYLES[value].label),
@@ -128,11 +128,11 @@ export function LabOrdersPage(): JSX.Element {
             emphasis: what is on is what is bordered blue. */}
         <Chip selected={overdueOnly} onClick={() => setOverdueOnly((previous) => !previous)}>
           <Icon name="clock" className="size-3.5 shrink-0" />
-          {t('labs.orders.overdueFilter', { count: overdueCount })}
+          {t("labs.orders.overdueFilter", { count: overdueCount })}
         </Chip>
       </div>
 
-      {isMobile || status !== '' || overdueOnly ? (
+      {isMobile || status !== "" || overdueOnly ? (
         <LabOrdersTable
           orders={rows}
           isLoading={showSkeleton}
@@ -198,7 +198,7 @@ function Board({
           <section key={status} className="flex min-w-0 flex-col gap-2">
             <header
               className={cn(
-                'flex items-center justify-between gap-2 rounded-panel border px-3 py-2',
+                "flex items-center justify-between gap-2 rounded-panel border px-3 py-2",
                 style.column,
               )}
             >
@@ -210,7 +210,7 @@ function Board({
 
             {!isLoading && column.length === 0 && (
               <p className="rounded-panel border border-dashed border-line px-3 py-4 text-center text-label text-ink-muted">
-                {t('labs.orders.columnEmpty')}
+                {t("labs.orders.columnEmpty")}
               </p>
             )}
 
@@ -250,7 +250,7 @@ function OrderCard({
   const move = async (next: (typeof steps)[number]): Promise<void> => {
     try {
       await step.mutateAsync({ id: order.id, step: next.step });
-      toast.success('labs.order.moved');
+      toast.success("labs.order.moved");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -259,8 +259,8 @@ function OrderCard({
   return (
     <div
       className={cn(
-        'border border-line rounded-card bg-surface p-3 shadow-card transition-shadow duration-150 hover:shadow-float',
-        order.isOverdue && 'border border-danger-200',
+        "border border-line rounded-card bg-surface p-3 shadow-card transition-shadow duration-150 hover:shadow-float",
+        order.isOverdue && "border border-danger-200",
       )}
     >
       {/* The card body is the button — the actions below it are their own
@@ -272,12 +272,12 @@ function OrderCard({
         className="w-full cursor-pointer text-start"
       >
         <p className="truncate text-value font-medium text-ink">
-          {order.workTypeName ?? t('labs.orders.custom')}
+          {order.workTypeName ?? t("labs.orders.custom")}
         </p>
         <p className="truncate text-label text-ink-muted">{order.patientName}</p>
 
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-label text-ink-muted">
-          {order.teeth.length > 0 && <Ltr className="tabular-nums">{order.teeth.join(' · ')}</Ltr>}
+          {order.teeth.length > 0 && <Ltr className="tabular-nums">{order.teeth.join(" · ")}</Ltr>}
           <Money
             amount={order.price}
             currency={clinic.data?.currency}
@@ -292,15 +292,15 @@ function OrderCard({
             {order.expectedAt && (
               <Ltr
                 className={cn(
-                  'text-label tabular-nums',
-                  order.isOverdue ? 'text-danger-600' : 'text-ink-subtle',
+                  "text-label tabular-nums",
+                  order.isOverdue ? "text-danger-600" : "text-ink-subtle",
                 )}
               >
                 {formatDate(order.expectedAt)}
               </Ltr>
             )}
 
-            {order.isOverdue && <Badge tone="danger">{t('labs.orders.overdue')}</Badge>}
+            {order.isOverdue && <Badge tone="danger">{t("labs.orders.overdue")}</Badge>}
           </div>
         )}
       </button>
@@ -308,7 +308,7 @@ function OrderCard({
       {steps.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5 border-t border-line pt-2">
           {steps
-            .filter((next) => next.step !== 'cancel')
+            .filter((next) => next.step !== "cancel")
             .map((next) => (
               <Button
                 key={next.step}

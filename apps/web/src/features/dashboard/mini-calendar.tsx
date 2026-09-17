@@ -1,13 +1,13 @@
-import { useMemo, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
-import { Icon, Ltr, Widget } from '@clinic/ui';
-import { toIsoDate, todayIso } from '@web/features/appointments/calendar-time';
-import { useCalendar } from '@web/features/appointments/queries';
-import { cn } from '@clinic/ui/lib/cn';
+import { Icon, Ltr, Widget } from "@clinic/ui";
+import { toIsoDate, todayIso } from "@web/features/appointments/calendar-time";
+import { useCalendar } from "@web/features/appointments/queries";
+import { cn } from "@clinic/ui/lib/cn";
 
-const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
+const WEEKDAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
 
 // A month at a glance: which days have somebody booked, and a way into that day's calendar. The
 // dots come from the calendar feed's own month range, so they cannot disagree with the calendar.
@@ -17,7 +17,7 @@ export function MiniCalendar(): JSX.Element {
   const today = todayIso();
   const [month, setMonth] = useState(() => today.slice(0, 7));
 
-  const feed = useCalendar({ date: `${month}-01`, range: 'month' });
+  const feed = useCalendar({ date: `${month}-01`, range: "month" });
 
   const booked = useMemo(() => {
     const days = new Set<string>();
@@ -32,8 +32,8 @@ export function MiniCalendar(): JSX.Element {
   const cells = useMemo(() => monthCells(month), [month]);
 
   const monthLabel = new Intl.DateTimeFormat(
-    i18n.language.startsWith('en') ? 'en-GB-u-ca-gregory-nu-latn' : 'ar-SY-u-ca-gregory-nu-latn',
-    { month: 'long', year: 'numeric' },
+    i18n.language.startsWith("en") ? "en-GB-u-ca-gregory-nu-latn" : "ar-SY-u-ca-gregory-nu-latn",
+    { month: "long", year: "numeric" },
   ).format(new Date(`${month}-01T12:00:00Z`));
 
   return (
@@ -43,12 +43,12 @@ export function MiniCalendar(): JSX.Element {
 
         <div className="flex gap-1">
           <StepButton
-            label={t('dashboard.calendar.previous')}
+            label={t("dashboard.calendar.previous")}
             icon="chevron-start"
             onClick={() => setMonth((current) => shiftMonth(current, -1))}
           />
           <StepButton
-            label={t('dashboard.calendar.next')}
+            label={t("dashboard.calendar.next")}
             icon="chevron-end"
             onClick={() => setMonth((current) => shiftMonth(current, 1))}
           />
@@ -72,7 +72,7 @@ export function MiniCalendar(): JSX.Element {
               isToday={cell === today}
               hasAppointments={booked.has(cell)}
               onOpen={() => void navigate(`/appointments?date=${cell}`)}
-              label={t('dashboard.calendar.open')}
+              label={t("dashboard.calendar.open")}
             />
           ),
         )}
@@ -99,12 +99,12 @@ function Day({
       type="button"
       onClick={onOpen}
       aria-label={`${label} ${date}`}
-      aria-current={isToday ? 'date' : undefined}
+      aria-current={isToday ? "date" : undefined}
       className={cn(
-        'pill-text inline-flex items-center relative cursor-pointer justify-center rounded-chip py-1.5 text-label font-medium',
-        'min-h-(--control-h) lg:min-h-0',
-        'transition-colors duration-150',
-        isToday ? 'today-wash text-ink-inverse' : 'text-ink hover:bg-primary-100',
+        "pill-text inline-flex items-center relative cursor-pointer justify-center rounded-chip py-1.5 text-label font-medium",
+        "min-h-(--control-h) lg:min-h-0",
+        "transition-colors duration-150",
+        isToday ? "today-wash text-ink-inverse" : "text-ink hover:bg-primary-100",
       )}
     >
       <Ltr>{Number(date.slice(8))}</Ltr>
@@ -113,8 +113,8 @@ function Day({
         <span
           aria-hidden="true"
           className={cn(
-            'absolute bottom-0.5 start-1/2 size-1 -translate-x-1/2 rounded-pill rtl:translate-x-1/2',
-            isToday ? 'bg-ink-inverse' : 'bg-success-500',
+            "absolute bottom-0.5 start-1/2 size-1 -translate-x-1/2 rounded-pill rtl:translate-x-1/2",
+            isToday ? "bg-ink-inverse" : "bg-success-500",
           )}
         />
       )}
@@ -128,7 +128,7 @@ function StepButton({
   onClick,
 }: {
   readonly label: string;
-  readonly icon: 'chevron-start' | 'chevron-end';
+  readonly icon: "chevron-start" | "chevron-end";
   readonly onClick: () => void;
 }): JSX.Element {
   return (
@@ -137,9 +137,9 @@ function StepButton({
       aria-label={label}
       onClick={onClick}
       className={cn(
-        'inline-flex size-(--control-h) cursor-pointer items-center justify-center lg:size-(--control-h-sm)',
-        'rounded-chip border border-line bg-canvas text-ink-muted',
-        'transition-colors duration-150 hover:border-primary-600 hover:text-primary-700',
+        "inline-flex size-(--control-h) cursor-pointer items-center justify-center lg:size-(--control-h-sm)",
+        "rounded-chip border border-line bg-canvas text-ink-muted",
+        "transition-colors duration-150 hover:border-primary-600 hover:text-primary-700",
       )}
     >
       <Icon name={icon} className="size-3.5" />
@@ -149,7 +149,7 @@ function StepButton({
 
 /** Seven columns starting on Sunday, padded at both ends so every week is a full row. */
 function monthCells(month: string): readonly (string | null)[] {
-  const [year = 0, index = 1] = month.split('-').map(Number);
+  const [year = 0, index = 1] = month.split("-").map(Number);
   const first = new Date(Date.UTC(year, index - 1, 1));
   const days = new Date(Date.UTC(year, index, 0)).getUTCDate();
   const lead = first.getUTCDay();
@@ -157,7 +157,7 @@ function monthCells(month: string): readonly (string | null)[] {
   const cells: (string | null)[] = Array.from({ length: lead }, () => null);
 
   for (let day = 1; day <= days; day += 1) {
-    cells.push(`${month}-${String(day).padStart(2, '0')}`);
+    cells.push(`${month}-${String(day).padStart(2, "0")}`);
   }
 
   while (cells.length % 7 !== 0) {
@@ -168,7 +168,7 @@ function monthCells(month: string): readonly (string | null)[] {
 }
 
 function shiftMonth(month: string, delta: number): string {
-  const [year = 0, index = 1] = month.split('-').map(Number);
+  const [year = 0, index = 1] = month.split("-").map(Number);
   const shifted = new Date(Date.UTC(year, index - 1 + delta, 1));
 
   return shifted.toISOString().slice(0, 7);

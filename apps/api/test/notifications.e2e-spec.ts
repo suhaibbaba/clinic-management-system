@@ -10,26 +10,26 @@ import {
   instantFromLocal,
   localDate,
   localWeekday,
-} from '@clinic/shared';
-import { eq } from 'drizzle-orm';
-import { randomUUID } from 'node:crypto';
+} from "@clinic/shared";
+import { eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 
-import { appointments, clinics, doctors, notificationsLog, users } from '@api/database/schema';
+import { appointments, clinics, doctors, notificationsLog, users } from "@api/database/schema";
 import {
   NOTIFICATION_PROVIDER,
   type NotificationProvider,
-} from '@api/notifications/notification-provider';
-import { NotificationsService } from '@api/notifications/notifications.service';
-import { RemindersScheduler } from '@api/notifications/reminders.scheduler';
+} from "@api/notifications/notification-provider";
+import { NotificationsService } from "@api/notifications/notifications.service";
+import { RemindersScheduler } from "@api/notifications/reminders.scheduler";
 import {
   createPatient,
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
-} from '@test/helpers/patient-fixtures';
-import { createTestContext, type TestClinic, type TestContext } from '@test/helpers/test-app';
+} from "@test/helpers/patient-fixtures";
+import { createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
-const TIME_ZONE = 'Asia/Damascus';
+const TIME_ZONE = "Asia/Damascus";
 const HOUR = 3_600_000;
 const MINUTE = 60_000;
 
@@ -45,7 +45,7 @@ function nextMonday(): string {
   return date;
 }
 
-describe('Notifications and schedulers (e2e)', () => {
+describe("Notifications and schedulers (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
   let fixtures: PatientFixtures;
@@ -86,7 +86,7 @@ describe('Notifications and schedulers (e2e)', () => {
   // Two appointments due for the same reminder are minutes apart, which one doctor cannot have: the
   // overlap constraint is real, so a second reminder needs a second diary.
   async function createDoctor(): Promise<string> {
-    const suffix = randomUUID().replaceAll('-', '').slice(0, 10);
+    const suffix = randomUUID().replaceAll("-", "").slice(0, 10);
 
     const [user] = await context.db
       .insert(users)
@@ -96,7 +96,7 @@ describe('Notifications and schedulers (e2e)', () => {
         nameEn: `Test doctor ${suffix}`,
         phone: `+98${suffix}`,
         email: `doctor.${suffix}@test.local`,
-        passwordHash: 'not-a-login',
+        passwordHash: "not-a-login",
         role: USER_ROLE.DOCTOR,
       })
       .returning({ id: users.id });
@@ -105,14 +105,14 @@ describe('Notifications and schedulers (e2e)', () => {
       .insert(doctors)
       .values({
         clinicId: clinic.id,
-        userId: user?.id ?? '',
+        userId: user?.id ?? "",
         specialtyId: clinic.specialtyId,
-        weeklySchedule: [{ weekday: 1, ranges: [{ start: '09:00', end: '17:00' }] }],
+        weeklySchedule: [{ weekday: 1, ranges: [{ start: "09:00", end: "17:00" }] }],
       })
       .returning({ id: doctors.id });
 
     if (!doctor) {
-      throw new Error('Failed to insert the test doctor');
+      throw new Error("Failed to insert the test doctor");
     }
 
     return doctor.id;
@@ -138,7 +138,7 @@ describe('Notifications and schedulers (e2e)', () => {
       .returning({ id: appointments.id });
 
     if (!row) {
-      throw new Error('Failed to insert the test appointment');
+      throw new Error("Failed to insert the test appointment");
     }
 
     return row.id;
@@ -173,13 +173,13 @@ describe('Notifications and schedulers (e2e)', () => {
     await context.db
       .update(clinics)
       .set({
-        workingHours: [{ weekday: 1, ranges: [{ start: '09:00', end: '17:00' }] }],
+        workingHours: [{ weekday: 1, ranges: [{ start: "09:00", end: "17:00" }] }],
         settings: settings(),
       })
       .where(eq(clinics.id, clinic.id));
 
     patientId = await createPatient(context, receptionToken, {
-      fullName: 'مريض التذكيرات',
+      fullName: "مريض التذكيرات",
       phone: uniquePhone(),
     });
 
@@ -196,35 +196,35 @@ describe('Notifications and schedulers (e2e)', () => {
     await context.close();
   });
 
-  describe('sending', () => {
-    it('renders the clinic default and logs what went out', async () => {
+  describe("sending", () => {
+    it("renders the clinic default and logs what went out", async () => {
       const to = uniquePhone();
 
       const result = await notifications.send({
         clinicId: clinic.id,
         to,
         template: NOTIFICATION_TEMPLATE.BOOKING_OTP,
-        vars: { clinic: 'عيادة الاختبار', code: '123456', minutes: '5' },
+        vars: { clinic: "عيادة الاختبار", code: "123456", minutes: "5" },
       });
 
       expect(result?.status).toBe(NOTIFICATION_STATUS.SENT);
-      expect(result?.body).toBe('رمز تأكيد حجزك في عيادة الاختبار هو 123456. صالح لمدة 5 دقائق.');
+      expect(result?.body).toBe("رمز تأكيد حجزك في عيادة الاختبار هو 123456. صالح لمدة 5 دقائق.");
 
       const [row] = await context.db
         .select({ status: notificationsLog.status, channel: notificationsLog.channel })
         .from(notificationsLog)
-        .where(eq(notificationsLog.id, result?.id ?? ''));
+        .where(eq(notificationsLog.id, result?.id ?? ""));
 
       expect(row?.status).toBe(NOTIFICATION_STATUS.SENT);
       expect(row?.channel).toBe(NOTIFICATION_CHANNEL.SMS);
     });
 
-    it('prefers the clinic wording, and leaves a placeholder it cannot fill', async () => {
+    it("prefers the clinic wording, and leaves a placeholder it cannot fill", async () => {
       await context.db
         .update(clinics)
         .set({
           settings: settings({
-            templates: { [NOTIFICATION_TEMPLATE.REMINDER_2H]: 'موعدك مع {doctor} في {branch}' },
+            templates: { [NOTIFICATION_TEMPLATE.REMINDER_2H]: "موعدك مع {doctor} في {branch}" },
           }),
         })
         .where(eq(clinics.id, clinic.id));
@@ -233,22 +233,22 @@ describe('Notifications and schedulers (e2e)', () => {
         clinicId: clinic.id,
         to: uniquePhone(),
         template: NOTIFICATION_TEMPLATE.REMINDER_2H,
-        vars: { doctor: 'د. سامي' },
+        vars: { doctor: "د. سامي" },
       });
 
       // `{branch}` stays visible: "في {branch}" is a bug somebody reports, where "في " looks fine
       // and says nothing.
-      expect(result?.body).toBe('موعدك مع د. سامي في {branch}');
+      expect(result?.body).toBe("موعدك مع د. سامي في {branch}");
     });
 
-    it('records a gateway failure instead of raising it', async () => {
-      jest.spyOn(provider, 'send').mockRejectedValue(new Error('gateway unreachable'));
+    it("records a gateway failure instead of raising it", async () => {
+      jest.spyOn(provider, "send").mockRejectedValue(new Error("gateway unreachable"));
 
       const result = await notifications.send({
         clinicId: clinic.id,
         to: uniquePhone(),
         template: NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED,
-        vars: { clinic: 'عيادة الاختبار' },
+        vars: { clinic: "عيادة الاختبار" },
       });
 
       expect(result?.status).toBe(NOTIFICATION_STATUS.FAILED);
@@ -258,13 +258,13 @@ describe('Notifications and schedulers (e2e)', () => {
       const [row] = await context.db
         .select({ status: notificationsLog.status, error: notificationsLog.error })
         .from(notificationsLog)
-        .where(eq(notificationsLog.id, result?.id ?? ''));
+        .where(eq(notificationsLog.id, result?.id ?? ""));
 
       expect(row?.status).toBe(NOTIFICATION_STATUS.FAILED);
-      expect(row?.error).toBe('gateway unreachable');
+      expect(row?.error).toBe("gateway unreachable");
     });
 
-    it('sends nothing at all when the clinic has notifications off', async () => {
+    it("sends nothing at all when the clinic has notifications off", async () => {
       await context.db
         .update(clinics)
         .set({ settings: settings({ enabled: false }) })
@@ -286,8 +286,8 @@ describe('Notifications and schedulers (e2e)', () => {
     });
   });
 
-  describe('reminders', () => {
-    it('reminds a day and two hours ahead, and never twice', async () => {
+  describe("reminders", () => {
+    it("reminds a day and two hours ahead, and never twice", async () => {
       const tomorrow = await insertAppointment({
         startsAt: new Date(Date.now() + 24 * HOUR + 5 * MINUTE),
         doctorId: await createDoctor(),
@@ -310,17 +310,17 @@ describe('Notifications and schedulers (e2e)', () => {
       expect(forSoon.map((row) => row.template)).toEqual([NOTIFICATION_TEMPLATE.REMINDER_2H]);
       // The Arabic spelling: a reminder is a text to a patient, not a screen
       // with a language toggle on it.
-      expect(forTomorrow[0]?.vars['doctor']).toMatch(/^طبيب اختبار/);
-      expect(forTomorrow[0]?.vars['time']).toMatch(/^\d{2}:\d{2}$/);
+      expect(forTomorrow[0]?.vars["doctor"]).toMatch(/^طبيب اختبار/);
+      expect(forTomorrow[0]?.vars["time"]).toMatch(/^\d{2}:\d{2}$/);
     });
 
-    it('counts a failed reminder as sent, so a dead gateway is not retried forever', async () => {
+    it("counts a failed reminder as sent, so a dead gateway is not retried forever", async () => {
       const appointmentId = await insertAppointment({
         startsAt: new Date(Date.now() + 24 * HOUR + 5 * MINUTE),
         doctorId: await createDoctor(),
       });
 
-      const send = jest.spyOn(provider, 'send').mockRejectedValue(new Error('gateway unreachable'));
+      const send = jest.spyOn(provider, "send").mockRejectedValue(new Error("gateway unreachable"));
 
       await scheduler.sendReminders();
 
@@ -334,7 +334,7 @@ describe('Notifications and schedulers (e2e)', () => {
       expect(rows[0]?.status).toBe(NOTIFICATION_STATUS.FAILED);
     });
 
-    it('respects the per-reminder switch', async () => {
+    it("respects the per-reminder switch", async () => {
       await context.db
         .update(clinics)
         .set({ settings: settings({ remind24h: false }) })
@@ -350,7 +350,7 @@ describe('Notifications and schedulers (e2e)', () => {
       expect(await logged(appointmentId)).toHaveLength(0);
     });
 
-    it('leaves alone anything that is not a confirmed appointment', async () => {
+    it("leaves alone anything that is not a confirmed appointment", async () => {
       const requested = await insertAppointment({
         startsAt: new Date(Date.now() + 24 * HOUR + 5 * MINUTE),
         status: APPOINTMENT_STATUS.REQUESTED,
@@ -370,7 +370,7 @@ describe('Notifications and schedulers (e2e)', () => {
       expect(await logged(cancelled)).toHaveLength(0);
     });
 
-    it('says nothing about an appointment that is neither a day nor two hours away', async () => {
+    it("says nothing about an appointment that is neither a day nor two hours away", async () => {
       const appointmentId = await insertAppointment({
         startsAt: new Date(Date.now() + 8 * HOUR),
         doctorId: await createDoctor(),
@@ -382,8 +382,8 @@ describe('Notifications and schedulers (e2e)', () => {
     });
   });
 
-  describe('hold expiry', () => {
-    it('gives back the slot of a booking nobody confirmed', async () => {
+  describe("hold expiry", () => {
+    it("gives back the slot of a booking nobody confirmed", async () => {
       const startsAt = nextSlot();
       const appointmentId = await insertAppointment({
         startsAt: new Date(startsAt),
@@ -392,7 +392,7 @@ describe('Notifications and schedulers (e2e)', () => {
       });
 
       const taken = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/public/booking/${clinic.slug}/slots?doctorId=${fixtures.doctorId}&date=${monday}`,
       });
 
@@ -415,10 +415,10 @@ describe('Notifications and schedulers (e2e)', () => {
       // tried to book and did not finish.
       expect(row?.status).toBe(APPOINTMENT_STATUS.CANCELLED);
       expect(row?.deletedAt).toBeNull();
-      expect(row?.reason).toBe('انتهت مهلة تأكيد الحجز الإلكتروني');
+      expect(row?.reason).toBe("انتهت مهلة تأكيد الحجز الإلكتروني");
 
       const free = await context.app.inject({
-        method: 'GET',
+        method: "GET",
         url: `/public/booking/${clinic.slug}/slots?doctorId=${fixtures.doctorId}&date=${monday}`,
       });
 
@@ -427,7 +427,7 @@ describe('Notifications and schedulers (e2e)', () => {
       ).toContain(startsAt);
     });
 
-    it('keeps a hold that is still inside its window', async () => {
+    it("keeps a hold that is still inside its window", async () => {
       const appointmentId = await insertAppointment({
         startsAt: new Date(nextSlot()),
         status: APPOINTMENT_STATUS.REQUESTED,
@@ -444,7 +444,7 @@ describe('Notifications and schedulers (e2e)', () => {
       expect(row?.status).toBe(APPOINTMENT_STATUS.REQUESTED);
     });
 
-    it('never touches a clinic that confirms by hand', async () => {
+    it("never touches a clinic that confirms by hand", async () => {
       await context.db
         .update(clinics)
         .set({
@@ -477,8 +477,8 @@ describe('Notifications and schedulers (e2e)', () => {
     });
   });
 
-  describe('templates', () => {
-    it('ships an Arabic default for every message the system sends', () => {
+  describe("templates", () => {
+    it("ships an Arabic default for every message the system sends", () => {
       for (const template of Object.values(NOTIFICATION_TEMPLATE)) {
         const body = DEFAULT_NOTIFICATION_TEMPLATES[template];
 
@@ -488,15 +488,15 @@ describe('Notifications and schedulers (e2e)', () => {
     });
   });
 
-  describe('booking messages', () => {
-    it('logs the OTP against the appointment it belongs to', async () => {
+  describe("booking messages", () => {
+    it("logs the OTP against the appointment it belongs to", async () => {
       const startsAt = nextSlot();
 
       const response = await context.app.inject({
-        method: 'POST',
+        method: "POST",
         url: `/public/booking/${clinic.slug}`,
         payload: {
-          fullName: 'زائر التذكيرات',
+          fullName: "زائر التذكيرات",
           phone: uniquePhone(),
           doctorId: fixtures.doctorId,
           startsAt,
@@ -505,13 +505,13 @@ describe('Notifications and schedulers (e2e)', () => {
 
       expect(response.statusCode).toBe(201);
       const token = (response.json() as { token: string }).token;
-      const appointmentId = Buffer.from(token.split('.')[1] ?? '', 'base64url').toString('utf8');
+      const appointmentId = Buffer.from(token.split(".")[1] ?? "", "base64url").toString("utf8");
 
       const [row] = await logged(appointmentId);
 
       expect(row?.template).toBe(NOTIFICATION_TEMPLATE.BOOKING_OTP);
       expect(row?.status).toBe(NOTIFICATION_STATUS.SENT);
-      expect(row?.vars['code']).toMatch(/^\d{6}$/);
+      expect(row?.vars["code"]).toMatch(/^\d{6}$/);
     });
   });
 });

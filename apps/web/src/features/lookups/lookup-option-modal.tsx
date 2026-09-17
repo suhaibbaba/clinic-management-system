@@ -1,10 +1,10 @@
-import { DEFAULT_LOOKUP_COLOUR, type LookupListKey, type LookupOption } from '@clinic/shared';
-import { useEffect, useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import { DEFAULT_LOOKUP_COLOUR, type LookupListKey, type LookupOption } from "@clinic/shared";
+import { useEffect, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Badge, Button, FormField, Input, Ltr, Modal, useToast } from '@clinic/ui';
-import { useCreateLookupOption, useUpdateLookupOption } from '@web/features/lookups/queries';
-import { errorMessageKey } from '@web/lib/api-error';
+import { Badge, Button, FormField, Input, Ltr, Modal, useToast } from "@clinic/ui";
+import { useCreateLookupOption, useUpdateLookupOption } from "@web/features/lookups/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 
 // Both names, or an English screen shows a code. The code itself is never edited — every recorded
 // row refers to it — so it is derived from the English name for new rows.
@@ -28,8 +28,8 @@ export function LookupOptionModal({
   const create = useCreateLookupOption();
   const update = useUpdateLookupOption();
 
-  const [nameAr, setNameAr] = useState('');
-  const [nameEn, setNameEn] = useState('');
+  const [nameAr, setNameAr] = useState("");
+  const [nameEn, setNameEn] = useState("");
   const [color, setColor] = useState(DEFAULT_LOOKUP_COLOUR);
 
   useEffect(() => {
@@ -37,8 +37,8 @@ export function LookupOptionModal({
       return;
     }
 
-    setNameAr(option?.nameAr ?? '');
-    setNameEn(option?.nameEn ?? '');
+    setNameAr(option?.nameAr ?? "");
+    setNameEn(option?.nameEn ?? "");
     setColor(option?.color ?? DEFAULT_LOOKUP_COLOUR);
   }, [open, option]);
 
@@ -52,7 +52,7 @@ export function LookupOptionModal({
           id: option.id,
           body: { nameAr: nameAr.trim(), nameEn: nameEn.trim(), color: chosen },
         });
-        toast.success('lookups.updated');
+        toast.success("lookups.updated");
       } else {
         await create.mutateAsync({
           listKey,
@@ -60,7 +60,7 @@ export function LookupOptionModal({
           nameEn: nameEn.trim(),
           color: chosen,
         });
-        toast.success('lookups.created');
+        toast.success("lookups.created");
       }
 
       onClose();
@@ -77,18 +77,18 @@ export function LookupOptionModal({
           onClose();
         }
       }}
-      title={t(option ? 'lookups.editTitle' : 'lookups.newTitle')}
+      title={t(option ? "lookups.editTitle" : "lookups.newTitle")}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            {t('common.cancel')}
+            {t("common.cancel")}
           </Button>
           <Button
-            disabled={nameAr.trim() === '' || nameEn.trim() === ''}
+            disabled={nameAr.trim() === "" || nameEn.trim() === ""}
             isLoading={create.isPending || update.isPending}
             onClick={() => void submit()}
           >
-            {t('common.save')}
+            {t("common.save")}
           </Button>
         </>
       }
@@ -96,8 +96,8 @@ export function LookupOptionModal({
       <div className="flex flex-col gap-4">
         {option?.isSystem && (
           <p className="flex items-center gap-2 rounded-control bg-sunken px-3 py-2 text-label text-ink-muted">
-            <Badge tone="neutral">{t('lookups.system')}</Badge>
-            {t('lookups.systemHint')}
+            <Badge tone="neutral">{t("lookups.system")}</Badge>
+            {t("lookups.systemHint")}
           </p>
         )}
 
@@ -122,7 +122,7 @@ export function LookupOptionModal({
         </div>
 
         {coloured && (
-          <FormField label="lookups.color" htmlFor="lookup-color" hint={t('lookups.colorHint')}>
+          <FormField label="lookups.color" htmlFor="lookup-color" hint={t("lookups.colorHint")}>
             <span className="flex items-center gap-3">
               <input
                 id="lookup-color"
@@ -137,7 +137,7 @@ export function LookupOptionModal({
         )}
 
         {option && (
-          <FormField label="lookups.code" htmlFor="lookup-code" hint={t('lookups.codeHint')}>
+          <FormField label="lookups.code" htmlFor="lookup-code" hint={t("lookups.codeHint")}>
             <Input id="lookup-code" dir="ltr" value={option.code} disabled readOnly />
           </FormField>
         )}

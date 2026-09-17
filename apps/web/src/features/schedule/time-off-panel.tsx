@@ -1,6 +1,6 @@
-import type { ConflictingAppointment, DoctorTimeOff } from '@clinic/shared';
-import { useState, type JSX } from 'react';
-import { useTranslation } from 'react-i18next';
+import type { ConflictingAppointment, DoctorTimeOff } from "@clinic/shared";
+import { useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   Badge,
@@ -15,16 +15,16 @@ import {
   Switch,
   TimePicker,
   useToast,
-} from '@clinic/ui';
-import { ConflictDialog } from '@web/features/schedule/conflict-dialog';
+} from "@clinic/ui";
+import { ConflictDialog } from "@web/features/schedule/conflict-dialog";
 import {
   scheduleConflicts,
   useCreateTimeOff,
   useDeleteTimeOff,
   useDoctorTimeOff,
-} from '@web/features/schedule/queries';
-import { errorMessageKey } from '@web/lib/api-error';
-import { formatClinicDate, formatClinicPeriod } from '@web/lib/format';
+} from "@web/features/schedule/queries";
+import { errorMessageKey } from "@web/lib/api-error";
+import { formatClinicDate, formatClinicPeriod } from "@web/lib/format";
 
 export interface TimeOffPanelProps {
   readonly doctorId: string;
@@ -58,28 +58,28 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
 
   const [adding, setAdding] = useState(false);
   const [wholeDay, setWholeDay] = useState(true);
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
-  const [startTime, setStartTime] = useState('14:00');
-  const [endTime, setEndTime] = useState('18:00');
-  const [reason, setReason] = useState('');
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [startTime, setStartTime] = useState("14:00");
+  const [endTime, setEndTime] = useState("18:00");
+  const [reason, setReason] = useState("");
   const [conflicts, setConflicts] = useState<ConflictingAppointment[] | null>(null);
 
   const reset = (): void => {
     setWholeDay(true);
-    setFrom('');
-    setTo('');
-    setStartTime('14:00');
-    setEndTime('18:00');
-    setReason('');
+    setFrom("");
+    setTo("");
+    setStartTime("14:00");
+    setEndTime("18:00");
+    setReason("");
     setConflicts(null);
   };
 
   const canSubmit =
-    from !== '' && reason.trim().length >= 2 && (wholeDay || (startTime !== '' && endTime !== ''));
+    from !== "" && reason.trim().length >= 2 && (wholeDay || (startTime !== "" && endTime !== ""));
 
   const save = async (choice?: { force: boolean; cancelAppointments: boolean }): Promise<void> => {
-    const lastDay = to === '' ? from : to;
+    const lastDay = to === "" ? from : to;
     const dayAfter = new Date(`${lastDay}T00:00:00`);
     dayAfter.setDate(dayAfter.getDate() + 1);
 
@@ -87,7 +87,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
       const result = await createTimeOff.mutateAsync({
         doctorId,
         body: {
-          startsAt: wholeDay ? instant(from, '00:00') : instant(from, startTime),
+          startsAt: wholeDay ? instant(from, "00:00") : instant(from, startTime),
           endsAt: wholeDay ? dayAfter.toISOString() : instant(from, endTime),
           reason: reason.trim(),
         },
@@ -95,11 +95,11 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
       });
 
       if (result.cancelledAppointments > 0) {
-        toast.success('schedule.timeOff.addedAndCancelled', {
+        toast.success("schedule.timeOff.addedAndCancelled", {
           count: result.cancelledAppointments,
         });
       } else {
-        toast.success('schedule.timeOff.added');
+        toast.success("schedule.timeOff.added");
       }
 
       setAdding(false);
@@ -119,7 +119,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
   const remove = async (entry: DoctorTimeOff): Promise<void> => {
     try {
       await deleteTimeOff.mutateAsync(entry.id);
-      toast.success('schedule.timeOff.removed');
+      toast.success("schedule.timeOff.removed");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -130,7 +130,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-value font-medium text-ink">{t('schedule.timeOff.title')}</p>
+        <p className="text-value font-medium text-ink">{t("schedule.timeOff.title")}</p>
 
         {canEdit && (
           <Button
@@ -142,7 +142,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
               setAdding(true);
             }}
           >
-            {t('schedule.timeOff.add')}
+            {t("schedule.timeOff.add")}
           </Button>
         )}
       </div>
@@ -171,8 +171,8 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
                 </span>
 
                 <span className="flex items-center gap-2">
-                  <Badge tone={whole ? 'neutral' : 'warning'}>
-                    {t(whole ? 'schedule.timeOff.wholeDay' : 'schedule.timeOff.partial')}
+                  <Badge tone={whole ? "neutral" : "warning"}>
+                    {t(whole ? "schedule.timeOff.wholeDay" : "schedule.timeOff.partial")}
                   </Badge>
                   {canEdit && (
                     <Button
@@ -182,7 +182,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
 
                       onClick={() => void remove(entry)}
                     >
-                      {t('common.delete')}
+                      {t("common.delete")}
                     </Button>
                   )}
                 </span>
@@ -204,7 +204,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
         footer={
           <>
             <Button icon={<Icon name="x" />} variant="secondary" onClick={() => setAdding(false)}>
-              {t('common.cancel')}
+              {t("common.cancel")}
             </Button>
             <Button
               icon={<Icon name="check" />}
@@ -212,7 +212,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
               isLoading={createTimeOff.isPending}
               onClick={() => void save()}
             >
-              {t('common.save')}
+              {t("common.save")}
             </Button>
           </>
         }
@@ -220,7 +220,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
         <div className="flex flex-col gap-4">
           <Switch
             checked={wholeDay}
-            label={t('schedule.timeOff.wholeDay')}
+            label={t("schedule.timeOff.wholeDay")}
             onCheckedChange={setWholeDay}
           />
 
@@ -228,7 +228,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
             <FormField label="schedule.timeOff.from" htmlFor="time-off-from">
               <DatePicker
                 id="time-off-from"
-                label={t('schedule.timeOff.from')}
+                label={t("schedule.timeOff.from")}
                 value={from}
                 onChange={setFrom}
               />
@@ -238,7 +238,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
               <FormField label="schedule.timeOff.to" htmlFor="time-off-to" optional>
                 <DatePicker
                   id="time-off-to"
-                  label={t('schedule.timeOff.to')}
+                  label={t("schedule.timeOff.to")}
                   value={to}
                   onChange={setTo}
                 />
@@ -250,7 +250,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
                 <FormField label="schedule.from" htmlFor="time-off-start">
                   <TimePicker
                     id="time-off-start"
-                    label={t('schedule.from')}
+                    label={t("schedule.from")}
                     value={startTime}
                     onChange={setStartTime}
                   />
@@ -259,7 +259,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
                 <FormField label="schedule.to" htmlFor="time-off-end">
                   <TimePicker
                     id="time-off-end"
-                    label={t('schedule.to')}
+                    label={t("schedule.to")}
                     min={startTime}
                     value={endTime}
                     onChange={setEndTime}
@@ -272,7 +272,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
           <FormField label="schedule.timeOff.reason" htmlFor="time-off-reason">
             <Input
               id="time-off-reason"
-              placeholder={t('schedule.timeOff.reasonPlaceholder')}
+              placeholder={t("schedule.timeOff.reasonPlaceholder")}
               value={reason}
               onChange={(event) => setReason(event.target.value)}
             />

@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, type OnModuleInit } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import {
   CHART_TYPE,
   USER_ROLE,
@@ -9,23 +9,23 @@ import {
   type Paginated,
   type PerformedProcedure,
   type UpdatePerformedProcedureInput,
-} from '@clinic/shared';
-import { desc, eq, inArray, sql, type SQL } from 'drizzle-orm';
+} from "@clinic/shared";
+import { desc, eq, inArray, sql, type SQL } from "drizzle-orm";
 
-import { AuditSnapshotRegistry } from '@api/audit/audit-snapshot.registry';
-import { ChargesService } from '@api/billing/charges.service';
-import { ClinicScopeService } from '@api/common/database/clinic-scope.service';
-import { toLimitOffset, toPaginated } from '@api/common/database/pagination';
-import type { AuthenticatedUser } from '@api/common/types/authenticated-user';
-import { DATABASE, type Database, type DatabaseExecutor } from '@api/database/database.module';
-import { chartMarks, doctors, performedProcedures, specialties } from '@api/database/schema';
-import { PatientAccessService } from '@api/patients/patient-access.service';
-import { ProcedureCatalogService } from '@api/patients/procedure-catalog.service';
+import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { ChargesService } from "@api/billing/charges.service";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
+import { chartMarks, doctors, performedProcedures, specialties } from "@api/database/schema";
+import { PatientAccessService } from "@api/patients/patient-access.service";
+import { ProcedureCatalogService } from "@api/patients/procedure-catalog.service";
 
 type ProcedureRow = typeof performedProcedures.$inferSelect;
 type ChartMarkRow = typeof chartMarks.$inferSelect;
 
-export const PERFORMED_PROCEDURES_ENTITY = 'performed_procedures';
+export const PERFORMED_PROCEDURES_ENTITY = "performed_procedures";
 
 @Injectable()
 export class ProceduresService implements OnModuleInit {
@@ -151,7 +151,7 @@ export class ProceduresService implements OnModuleInit {
         .returning();
 
       if (!row) {
-        throw new Error('Failed to create performed procedure');
+        throw new Error("Failed to create performed procedure");
       }
 
       const marks = await this.replaceMarks(tx, actor, row.id, input.chartMarks);
@@ -221,7 +221,7 @@ export class ProceduresService implements OnModuleInit {
         .returning();
 
       if (!row) {
-        throw new Error('Failed to update performed procedure');
+        throw new Error("Failed to update performed procedure");
       }
 
       const marks = input.chartMarks
@@ -368,11 +368,11 @@ export class ProceduresService implements OnModuleInit {
       .limit(1);
 
     if (!specialty) {
-      throw new BadRequestException('Specialty not found in this clinic');
+      throw new BadRequestException("Specialty not found in this clinic");
     }
 
     if (specialty.chartType === CHART_TYPE.NONE) {
-      throw new BadRequestException('This specialty does not use a chart');
+      throw new BadRequestException("This specialty does not use a chart");
     }
 
     const mismatched = marks.find((mark) => mark.chartType !== specialty.chartType);
@@ -391,7 +391,7 @@ export class ProceduresService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      throw new BadRequestException('Doctor not found in this clinic');
+      throw new BadRequestException("Doctor not found in this clinic");
     }
   }
 }
@@ -401,7 +401,7 @@ export function toChartMark(row: ChartMarkRow): ChartMark {
     id: row.id,
     clinicId: row.clinicId,
     performedProcedureId: row.performedProcedureId,
-    chartType: row.chartType as ChartMark['chartType'],
+    chartType: row.chartType as ChartMark["chartType"],
     location: row.location,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
