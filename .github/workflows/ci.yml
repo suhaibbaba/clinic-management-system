@@ -1,7 +1,9 @@
 name: CI
 
-# Called by the deploy, never triggered on its own: `workflow_call` alone keeps
-# it out of the Actions list, and its jobs show inside the run that needs them.
+# Reusable, and called rather than triggered: every deploy runs these same
+# checks, so a second environment adds a caller instead of a second copy. It
+# still gets a row in the Actions list — GitHub lists every workflow file and
+# has no way to hide one — but with no runs of its own.
 on:
   workflow_call:
 
