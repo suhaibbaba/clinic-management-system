@@ -134,7 +134,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-value font-medium text-ink">{t(`lookups.lists.${listKey}`)}</h2>
+          <h2 className="text-heading font-medium text-ink">{t(`lookups.lists.${listKey}`)}</h2>
           <p className="text-label text-ink-subtle">{t(`lookups.hints.${listKey}`)}</p>
         </div>
 

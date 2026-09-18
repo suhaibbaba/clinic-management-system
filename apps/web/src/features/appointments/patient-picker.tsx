@@ -109,7 +109,7 @@ export function PatientPicker({
         className="flex items-center gap-3 rounded-control border border-line bg-inset px-3 py-2"
       >
         <Avatar name={value.patient.fullName} tintKey={value.patient.id} />
-        <span className="flex min-w-0 flex-1 flex-col leading-snug">
+        <span className="flex min-w-0 flex-1 flex-col leading-label">
           <span
             data-testid="patient-picker-name"
             className="truncate text-value font-medium text-ink"
@@ -274,7 +274,7 @@ export function PatientPicker({
               )}
             >
               <Avatar name={patient.fullName} tintKey={patient.id} />
-              <span className="flex min-w-0 flex-col leading-snug">
+              <span className="flex min-w-0 flex-col leading-label">
                 <span className="truncate text-value text-ink">{patient.fullName}</span>
                 <Ltr className="truncate text-label tabular-nums text-ink-subtle">
                   {patient.fileNumber} · {patient.phone}

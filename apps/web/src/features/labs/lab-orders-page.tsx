@@ -227,7 +227,7 @@ function Board({
                 style.column,
               )}
             >
-              <h2 className="truncate text-label font-medium">{t(style.label)}</h2>
+              <h2 className="truncate text-heading font-medium">{t(style.label)}</h2>
               <Ltr className="text-label tabular-nums">{column.length}</Ltr>
             </header>
 

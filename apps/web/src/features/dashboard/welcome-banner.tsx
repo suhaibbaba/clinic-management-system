@@ -31,7 +31,7 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
       <div className="relative z-10 min-w-0">
         <h1
           data-testid="welcome-banner-greeting"
-          className="flex items-center gap-2.5 text-display font-medium text-primary-900"
+          className="flex items-center gap-2.5 text-title font-medium text-primary-900"
         >
           {user ? (
             <>
@@ -65,7 +65,7 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
         {bounds && (
           <p
             data-testid="welcome-banner-hours"
-            className="pill-text inline-flex items-center mt-[13px] h-(--control-h-sm) gap-2 rounded-pill border border-primary-600/20 bg-surface/75 px-3 text-nav font-medium text-primary-700 backdrop-blur-[6px]"
+            className="pill-text inline-flex items-center mt-[13px] h-(--control-h-sm) gap-2 rounded-pill border border-primary-600/20 bg-surface/75 px-3 text-label font-medium text-primary-700 backdrop-blur-[6px]"
           >
             <Icon name="clock" className="size-3.5 shrink-0" />
             <span>

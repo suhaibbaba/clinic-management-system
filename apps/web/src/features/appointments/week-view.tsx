@@ -91,7 +91,7 @@ export function WeekView({
                 </span>
                 {/* The reason, not the word "closed": a clinic writes what it
                     wants reception to read out. */}
-                <span className="block truncate text-[11px] text-ink-muted">
+                <span className="block truncate text-meta text-ink-muted">
                   {closure ? closure.reason : t("pagination.total", { total: ofDay.length })}
                 </span>
               </button>
@@ -116,13 +116,11 @@ export function WeekView({
                         style.block,
                       )}
                     >
-                      <Ltr className="text-[11px] font-medium tabular-nums">
+                      <Ltr className="text-meta font-medium tabular-nums">
                         {toTimeLabel(minutesOf(appointment.startsAt))}
                       </Ltr>
-                      <span className="block truncate text-[11px] leading-snug">
-                        {appointment.patientName}
-                      </span>
-                      <span className="block truncate text-[10px] leading-snug opacity-80">
+                      <span className="block truncate text-meta">{appointment.patientName}</span>
+                      <span className="block truncate text-micro opacity-80">
                         {typeLabel(appointment.type)}
                       </span>
                     </button>

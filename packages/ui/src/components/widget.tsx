@@ -32,7 +32,7 @@ export function Widget({
       {title !== undefined && (
         <h3
           {...part("title")}
-          className="flex items-center justify-between gap-2 text-section font-medium"
+          className="flex items-center justify-between gap-2 text-label font-semibold"
         >
           {title}
           {action}

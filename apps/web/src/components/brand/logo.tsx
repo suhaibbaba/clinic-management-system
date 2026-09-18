@@ -66,6 +66,8 @@ export function InitialMark({
       className="absolute inset-0 flex items-center justify-center"
     >
       <span
+        // The generated mark's initial is a fraction of its own box, which no fixed size can name.
+        // check-type-disable-next-line
         style={{ width: size, height: size, fontSize: Math.round(size * 0.45) }}
         className={cn(
           "flex items-center justify-center rounded-card",

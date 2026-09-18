@@ -231,7 +231,7 @@ function NavRow({
         aria-current={isActive ? "page" : undefined}
         className={cn(
           "mb-0.5 flex min-h-(--control-h) cursor-pointer items-center gap-[11px] rounded-nav px-3",
-          "text-nav font-medium transition-[background-color,color,box-shadow] duration-150",
+          "text-label font-medium transition-[background-color,color,box-shadow] duration-150",
           isActive
             ? "nav-active-wash text-ink-inverse shadow-nav-active"
             : "text-ink-muted hover:bg-primary-100 hover:text-primary-700",

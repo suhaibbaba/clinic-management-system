@@ -75,7 +75,7 @@ function AttachmentThumbnail({ attachment }: { attachment: Attachment }): JSX.El
         )}
       </div>
 
-      <figcaption className="truncate text-[11px] text-ink-muted" title={attachment.filename}>
+      <figcaption className="truncate text-micro text-ink-muted" title={attachment.filename}>
         {formatDate(attachment.createdAt)}
       </figcaption>
     </figure>

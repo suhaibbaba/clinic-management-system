@@ -119,7 +119,7 @@ export function UsersPage(): JSX.Element {
               src={row.photoUrl}
               data-testid="user-avatar"
             />
-            <span className="flex min-w-0 flex-col leading-snug">
+            <span className="flex min-w-0 flex-col leading-label">
               {/* Both spellings on hover: this is the screen where somebody
                   checks how a name is written on a letterhead. */}
               <PersonName

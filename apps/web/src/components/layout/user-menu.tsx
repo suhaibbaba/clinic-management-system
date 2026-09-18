@@ -56,7 +56,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
           className="bg-success-100 text-success-700"
         />
 
-        <span className="flex min-w-0 flex-1 flex-col leading-snug text-start">
+        <span className="flex min-w-0 flex-1 flex-col leading-label text-start">
           <PersonName
             name={user.name}
             data-testid="user-menu-name"

@@ -6,10 +6,21 @@ export const FONT_SIZE_KEYS = [
   "meta",
   "label",
   "value",
-  "nav",
   "section",
+  "heading",
   "title",
-  "display",
+  "kpi",
+  "field",
+] as const;
+
+export const LEADING_KEYS = [
+  "micro",
+  "meta",
+  "label",
+  "value",
+  "section",
+  "heading",
+  "title",
   "kpi",
   "field",
 ] as const;
@@ -29,6 +40,7 @@ const merge = extendTailwindMerge({
   extend: {
     classGroups: {
       "font-size": [{ text: [...FONT_SIZE_KEYS] }],
+      leading: [{ leading: [...LEADING_KEYS] }],
       rounded: [{ rounded: [...RADIUS_KEYS] }],
     },
   },

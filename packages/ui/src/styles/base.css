@@ -130,34 +130,42 @@
   --shadow-field-error-ring: 0 0 0 0.5px var(--color-danger-600), 0 0 0 3.5px rgb(169 66 54 / 0.15);
 
   /* Against a 16px root: the browser's own default, which is what every readability guideline is
-     written in terms of. Nothing carrying content sits below 13px. */
-  --text-micro: 0.75rem; /* 12px — rail captions, table headers, badges */
-  --text-micro--line-height: 1rem;
-  --text-meta: 0.8125rem; /* 13px — sub-lines, captions, small buttons */
-  --text-meta--line-height: 1.25rem;
-  --text-label: 0.875rem; /* 14px — chips, pills, counts */
-  --text-label--line-height: 1.25rem;
+     written in terms of. Nothing carrying content sits below 12px. Each size carries its own line
+     height, so `text-label` sets both; `leading-label` below is for overriding one alone. */
+  --text-micro: 0.75rem; /* 12px — rail captions, table headers, badges, numeric captions */
+  --text-micro--line-height: 1rem; /* 16px */
+  --text-meta: 0.8125rem; /* 13px — sub-lines, captions, small buttons, dense tile content */
+  --text-meta--line-height: 1.25rem; /* 20px */
+  --text-label: 0.875rem; /* 14px — chips, pills, counts, and every control's label */
+  --text-label--line-height: 1.25rem; /* 20px */
   --text-value: 0.9375rem; /* 15px — table cells, body text */
-  --text-value--line-height: 1.5rem;
-  /* The label on a control: a button, a chip, a tab, a segment, a badge — and a rail row, which is
-     the same thing in a column. */
-  --text-nav: 0.875rem; /* 14px */
-  --text-nav--line-height: 1.375rem;
-  /* Above `--text-nav`: a panel's title used to be set smaller than the buttons inside it. */
+  --text-value--line-height: 1.5rem; /* 24px */
   --text-section: 1rem; /* 16px — a card's or panel's title */
-  --text-section--line-height: 1.5rem;
+  --text-section--line-height: 1.5rem; /* 24px */
+  --text-heading: 1.125rem; /* 18px — a section heading between a page title and a card's */
+  --text-heading--line-height: 1.625rem; /* 26px */
   --text-title: 1.375rem; /* 22px — a page heading */
-  --text-title--line-height: 1.875rem;
-  --text-display: 1.5rem; /* 24px — the dashboard banner's greeting */
-  --text-display--line-height: 2rem;
+  --text-title--line-height: 1.875rem; /* 30px */
   --text-kpi: 2rem; /* 32px — the figure on a KPI card */
   --text-kpi--line-height: 1;
 
   /* The value inside a field, and the one size that never moves: iOS Safari zooms when a field
-     under 16px takes focus and does not zoom back. A control's *label* is `--text-nav`; this is
+     under 16px takes focus and does not zoom back. A control's *label* is `--text-label`; this is
      only ever what somebody typed. */
   --text-field: 1rem; /* 16px — never lower */
-  --text-field--line-height: 1.5rem;
+  --text-field--line-height: 1.5rem; /* 24px */
+
+  /* The same line heights as their sizes, for the rare node that sets one on its own. A raw
+     `leading-6` or `leading-snug` is a hardcoded value `lint:type` refuses. */
+  --leading-micro: 1rem; /* 16px */
+  --leading-meta: 1.25rem; /* 20px */
+  --leading-label: 1.25rem; /* 20px */
+  --leading-value: 1.5rem; /* 24px */
+  --leading-section: 1.5rem; /* 24px */
+  --leading-field: 1.5rem; /* 24px */
+  --leading-heading: 1.625rem; /* 26px */
+  --leading-title: 1.875rem; /* 30px */
+  --leading-kpi: 1;
 
   /* 4px, which at a 16px root is Tailwind's own default — every padding in the system stays a
      whole number of pixels. */

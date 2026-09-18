@@ -32,9 +32,9 @@ const VARIANTS: Record<ButtonVariant, string> = {
 // The two scale tokens and nothing else. A compact button is the tall one below `lg`, because a
 // thumb does not shrink with the viewport; `min-w` matches, so an icon-only button stays square.
 const SIZES: Record<ButtonSize, string> = {
-  sm: "min-h-(--control-h) min-w-(--control-h) gap-2 px-3 text-nav lg:h-(--control-h-sm) lg:min-h-0 lg:min-w-(--control-h-sm)",
-  // `text-nav`, not `text-field`: this is a label, and 16px is reserved for what somebody typed.
-  md: "h-(--control-h) min-w-(--control-h) gap-2 px-3.5 text-nav",
+  sm: "min-h-(--control-h) min-w-(--control-h) gap-2 px-3 text-label lg:h-(--control-h-sm) lg:min-h-0 lg:min-w-(--control-h-sm)",
+  // `text-label`, not `text-field`: this is a label, and 16px is reserved for what somebody typed.
+  md: "h-(--control-h) min-w-(--control-h) gap-2 px-3.5 text-label",
 };
 
 export function Button({

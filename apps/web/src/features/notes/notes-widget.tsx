@@ -40,7 +40,7 @@ export function NotesWidget(): JSX.Element {
               data-testid={`note-${note.id}`}
               className={cn(
                 "mt-2.5 flex items-start gap-2 rounded-control border border-note-line bg-note-bg",
-                "px-3 py-2.5 text-meta leading-relaxed text-note-ink",
+                "px-3 py-2.5 text-meta text-note-ink",
               )}
             >
               <div className="min-w-0 flex-1">

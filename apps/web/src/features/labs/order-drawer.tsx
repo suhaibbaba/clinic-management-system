@@ -291,7 +291,7 @@ function OrderHistory({ order }: { readonly order: LabOrderRow }): JSX.Element {
 
   return (
     <section data-testid="lab-order-history" className="flex flex-col gap-2">
-      <h3 className="text-value font-medium text-ink">{t("labs.order.history.title")}</h3>
+      <h3 className="text-label font-semibold text-ink">{t("labs.order.history.title")}</h3>
 
       <ol className="flex flex-col gap-2">
         {stamps.map((stamp) => (
@@ -337,7 +337,7 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
   return (
     <section data-testid="lab-order-attachments" className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-value font-medium text-ink">{t("labs.order.attachments")}</h3>
+        <h3 className="text-label font-semibold text-ink">{t("labs.order.attachments")}</h3>
 
         <Button
           size="sm"

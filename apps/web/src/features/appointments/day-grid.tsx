@@ -142,7 +142,7 @@ export function DayGrid({
               <span
                 key={minute}
                 dir="ltr"
-                className="absolute -translate-y-1/2 pe-2 text-end text-[11px] tabular-nums text-ink-subtle"
+                className="absolute -translate-y-1/2 pe-2 text-end text-meta tabular-nums text-ink-subtle"
                 style={{
                   top: `${((minute - GRID_START_MINUTE) / 60) * HOUR_HEIGHT}px`,
                   insetInlineEnd: 0,
@@ -277,9 +277,9 @@ function AppointmentBlock({
       className={cn(
         "absolute inset-x-1 overflow-hidden rounded-panel border px-2 text-start",
         "cursor-pointer transition-shadow duration-150 hover:shadow-card",
-        // A 20px block — the floor a very short appointment is drawn at — has
-        // room for one 11px line and 4px of padding, and nothing else.
-        compact ? "py-0.5" : "py-1",
+        // A 20px block is the floor a very short appointment is drawn at, and its 1px border spends
+        // 2px of that: one 16px line and 2px of padding is all that fits.
+        compact ? "py-px" : "py-0.5",
         draggable && "active:cursor-grabbing",
         dragging && "opacity-40",
         style.block,
@@ -287,16 +287,18 @@ function AppointmentBlock({
       style={position}
     >
       {compact ? (
-        <span className="flex items-baseline gap-1.5 leading-tight">
-          <Ltr className="shrink-0 text-[10px] tabular-nums opacity-80">{time}</Ltr>
-          <span className="truncate text-[11px] font-medium">{appointment.patientName}</span>
+        <span className="flex items-baseline gap-1.5">
+          <Ltr className="shrink-0 text-micro tabular-nums opacity-80">{time}</Ltr>
+          <span className="truncate text-meta leading-micro font-medium">
+            {appointment.patientName}
+          </span>
         </span>
       ) : (
         <>
-          <span className="block truncate text-[11px] font-medium leading-snug">
+          <span className="block truncate text-meta leading-micro font-medium">
             {appointment.patientName}
           </span>
-          <span className="block truncate text-[10px] leading-snug opacity-80">
+          <span className="block truncate text-micro opacity-80">
             <Ltr className="tabular-nums">{time}</Ltr> · {typeLabel(appointment.type)}
           </span>
         </>

@@ -104,7 +104,7 @@ export function NotificationBell(): JSX.Element {
             aria-hidden="true"
             className={cn(
               "absolute -top-1 -end-1 inline-flex min-w-4 items-center justify-center rounded-pill",
-              "bg-danger-600 px-1 text-[11px] font-medium text-ink-inverse tabular-nums",
+              "bg-danger-600 px-1 text-micro font-medium text-ink-inverse tabular-nums",
             )}
           >
             {total}

@@ -376,7 +376,7 @@ function ImageCard({
           )}
         </span>
 
-        <Ltr className="text-[11px] text-ink-muted">{formatDate(attachment.createdAt)}</Ltr>
+        <Ltr className="text-micro text-ink-muted">{formatDate(attachment.createdAt)}</Ltr>
 
         {canRemove && (
           <Button

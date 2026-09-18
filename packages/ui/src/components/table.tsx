@@ -168,7 +168,7 @@ export function Table<TRow>({
                             "py-2.5 pe-4 text-start text-label text-ink-muted",
                             // The label carries the value's line height: different line boxes split
                             // the row, and `items-baseline` breaks the hairline.
-                            "leading-6",
+                            "leading-value",
                             index > 0 && "border-t border-line",
                           )}
                         >
