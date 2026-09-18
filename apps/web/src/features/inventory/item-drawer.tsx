@@ -1,6 +1,7 @@
 import {
   LOOKUP_LIST,
   MOVEMENT_TYPE,
+  subtractQuantity,
   type ItemBatch,
   type MovementType,
   type StockMovementRow,
@@ -348,6 +349,10 @@ function History({
                 {/* The icon set's arrow, not a literal `→`: a typed arrow points right in both
                     languages. It sits outside the island so the row decides its side. */}
                 <span className="flex items-baseline gap-1 text-label text-ink-muted">
+                  <span className="sr-only">{t("inventory.history.balance")}</span>
+                  <Ltr className="tabular-nums">
+                    {subtractQuantity(movement.runningQuantity, movement.quantity)}
+                  </Ltr>
                   <Icon name="chevron-end" className="size-3.5 self-center" />
                   <Ltr className="tabular-nums">{movement.runningQuantity}</Ltr>
                 </span>
