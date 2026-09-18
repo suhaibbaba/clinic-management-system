@@ -114,6 +114,37 @@ One rule when adding a part: **its value must not spell a Tailwind utility.** Ta
 source text, so `data-part="table-cell"` generated a real `.table-cell { display: table-cell }` rule
 for a class nothing wears. That is why the table's parts are `table-body-cell` and `table-body-row`.
 
+## Naming a component for tests
+
+**Every component takes `data-testid`, and one id names the whole subtree.** Each inner node's id is
+its own `data-part` with the component's name swapped for the caller's, so the two are the same
+shape and there is nothing to memorise per component:
+
+```tsx
+<Modal data-testid="payment" …>
+// data-testid="payment", "payment-title", "payment-body", "payment-footer", "payment-overlay"
+//    data-part="modal",     "modal-title",    "modal-body",    "modal-footer",    "modal-overlay"
+```
+
+A component given no `data-testid` renders exactly the DOM it did before, so the ids cost nothing
+where nobody asked for them.
+
+Ids that already exist are reused rather than asked for twice: `FormField` falls back to its
+`htmlFor` (`patient-name` labels `patient-name-field`), and `DatePicker`, `TimePicker` and
+`DateRangePicker` to their `id`. That covers every form in the app without a call site naming a
+field a second time.
+
+Where a component draws a list, each row's id carries the row's identity and its children hang off
+it — `Table` derives `<testid>-row-<rowKey>` and then `<testid>-row-<rowKey>-<column.key>`, so a
+selector that misses names the row it missed. `Select` does the same for its options, `Tabs` for its
+tabs, and `SegmentedControl` for its segments.
+
+The two singletons with no call site to name them, `Toast` and `Calendar`, carry fixed ids
+(`toast`, `toast-title`, `calendar`, `calendar-day-2026-09-17`); a toast also carries `data-tone`.
+
+`data-testid` is for tests and devtools, `data-part` for a product's CSS. Keep styling off the
+testid: it is the one attribute a test may rename.
+
 ## The components
 
 | Module                                        | Contract                                                                              |

@@ -50,7 +50,7 @@ export function WorkingHours({
   }, [value, within]);
 
   return (
-    <Accordion.Root type="multiple" className="flex flex-col gap-2">
+    <Accordion.Root data-testid="working-hours" type="multiple" className="flex flex-col gap-2">
       {WEEKDAYS_FROM_SATURDAY.map((weekday) => {
         const day = { weekday, ranges: rangesFor(value, weekday) };
         const isWorking = day.ranges.length > 0;
@@ -65,6 +65,7 @@ export function WorkingHours({
           >
             <Accordion.Header>
               <Accordion.Trigger
+                data-testid={`hours-day-${weekday}-trigger`}
                 className={cn(
                   "flex min-h-(--control-h) w-full cursor-pointer items-center justify-between gap-2 px-3 py-2",
                   "text-start transition-colors duration-150 hover:bg-inset",
@@ -92,7 +93,10 @@ export function WorkingHours({
                       <Icon name="alert" />
                     </span>
                   )}
-                  <Badge tone={isWorking ? "success" : "neutral"}>
+                  <Badge
+                    tone={isWorking ? "success" : "neutral"}
+                    data-testid={`hours-day-${weekday}-summary`}
+                  >
                     {/* An LTR island: without it bidi hands the hyphens and middot to the Arabic
                         paragraph and the summary renders back to front. */}
                     {isWorking ? (
@@ -108,6 +112,7 @@ export function WorkingHours({
             <Accordion.Content className="overflow-hidden">
               <div className="flex flex-col gap-3 border-t border-line px-3 py-3">
                 <Switch
+                  data-testid={`hours-day-${weekday}-working`}
                   checked={isWorking}
                   disabled={disabled}
                   label={weekdayName}
@@ -145,7 +150,10 @@ export function WorkingHours({
                     ))}
 
                     {outside.has(weekday) && withinLabel !== undefined && (
-                      <p className="text-label text-warning-700">
+                      <p
+                        data-testid={`hours-day-${weekday}-warning`}
+                        className="text-label text-warning-700"
+                      >
                         {t("schedule.outsideBounds", { bounds: withinLabel })}
                       </p>
                     )}
@@ -156,6 +164,7 @@ export function WorkingHours({
                           icon={<Icon name="plus" />}
                           size="sm"
                           variant="secondary"
+                          data-testid={`hours-day-${weekday}-add-range`}
                           onClick={() =>
                             replaceDay({ weekday, ranges: [...day.ranges, { ...DEFAULT_RANGE }] })
                           }
@@ -167,6 +176,7 @@ export function WorkingHours({
                           icon={<Icon name="copy" />}
                           size="sm"
                           variant="ghost"
+                          data-testid={`hours-day-${weekday}-copy`}
                           onClick={() => onChange(copyToOtherDays(value, day))}
                         >
                           {t("schedule.copyToOthers")}
@@ -209,11 +219,12 @@ function RangeRow({
   const id = `${idPrefix}-${weekday}-${index}`;
 
   return (
-    <div className="flex flex-wrap items-end gap-2">
+    <div data-testid={`hours-range-${weekday}-${index}`} className="flex flex-wrap items-end gap-2">
       <label className="flex flex-col gap-1 text-label text-ink-muted" htmlFor={`${id}-start`}>
         {t("schedule.from")}
         <TimePicker
           id={`${id}-start`}
+          data-testid={`hours-range-${weekday}-${index}-start`}
           label={t("schedule.from")}
           className="w-32"
           disabled={disabled}
@@ -226,6 +237,7 @@ function RangeRow({
         {t("schedule.to")}
         <TimePicker
           id={`${id}-end`}
+          data-testid={`hours-range-${weekday}-${index}-end`}
           label={t("schedule.to")}
           className="w-32"
           disabled={disabled}
@@ -238,7 +250,13 @@ function RangeRow({
       </label>
 
       {!disabled && removable && (
-        <Button icon={<Icon name="trash" />} size="sm" variant="ghost" onClick={onRemove}>
+        <Button
+          icon={<Icon name="trash" />}
+          size="sm"
+          variant="ghost"
+          data-testid={`hours-range-${weekday}-${index}-remove`}
+          onClick={onRemove}
+        >
           {t("schedule.removeRange")}
         </Button>
       )}

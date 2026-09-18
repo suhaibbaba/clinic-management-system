@@ -39,7 +39,7 @@ export function DoctorStep({
     return (
       <div className="flex flex-col gap-3">
         <Alert>{t(failureKey(doctors.error))}</Alert>
-        <Button variant="secondary" onClick={doctors.reload}>
+        <Button variant="secondary" data-testid="doctor-step-retry" onClick={doctors.reload}>
           {t("common.retry")}
         </Button>
       </div>
@@ -49,14 +49,19 @@ export function DoctorStep({
   const list = doctors.data ?? [];
 
   if (list.length === 0) {
-    return <Alert tone="info">{t("doctor.empty")}</Alert>;
+    return (
+      <Alert tone="info" data-testid="doctor-step-empty">
+        {t("doctor.empty")}
+      </Alert>
+    );
   }
 
   return (
-    <ul className="flex flex-col gap-3">
+    <ul data-testid="doctor-step-list" className="flex flex-col gap-3">
       {list.map((doctor) => (
         <li key={doctor.id}>
           <ChoiceCard
+            data-testid={`doctor-option-${doctor.id}`}
             selected={doctor.id === selectedId}
             onClick={() => onSelect(doctor)}
             label={t("doctor.choose", { name: bookingName(doctor.name) })}

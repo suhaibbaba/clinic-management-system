@@ -42,10 +42,11 @@ export function DetailsStep({
   return (
     // `noValidate`: the browser's own bubble is English and unstyled, and it
     // would fire before the Arabic message below the field.
-    <form noValidate onSubmit={submit} className="flex flex-col gap-4">
+    <form data-testid="details-step" noValidate onSubmit={submit} className="flex flex-col gap-4">
       {summary}
 
       <Field
+        data-testid="details-field-name"
         label={t("details.name")}
         name="fullName"
         autoComplete="name"
@@ -56,6 +57,7 @@ export function DetailsStep({
       />
 
       <Field
+        data-testid="details-field-phone"
         label={t("details.phone")}
         name="phone"
         // `tel` gives the phone's own keypad; `dir="ltr"` keeps a leading +
@@ -72,6 +74,7 @@ export function DetailsStep({
       />
 
       <Field
+        data-testid="details-field-reason"
         label={t("details.reason")}
         name="reason"
         placeholder={t("details.reasonPlaceholder")}
@@ -81,7 +84,7 @@ export function DetailsStep({
 
       <p className="text-label text-ink-muted">{t("details.terms")}</p>
 
-      <Button type="submit" full busy={busy}>
+      <Button type="submit" full data-testid="details-submit" busy={busy}>
         {t("details.submit")}
       </Button>
     </form>

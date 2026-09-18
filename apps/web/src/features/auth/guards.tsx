@@ -11,7 +11,10 @@ function FullPageMessage({ messageKey }: { messageKey: string }): JSX.Element {
   const { t } = useTranslation();
 
   return (
-    <div className="flex min-h-full items-center justify-center p-8 text-value text-ink-muted">
+    <div
+      data-testid="full-page-message"
+      className="flex min-h-full items-center justify-center p-8 text-value text-ink-muted"
+    >
       {t(messageKey)}
     </div>
   );
@@ -25,7 +28,7 @@ function BootSkeleton(): JSX.Element {
   }
 
   return (
-    <div className="flex min-h-full flex-col gap-4 p-8">
+    <div data-testid="boot-skeleton" className="flex min-h-full flex-col gap-4 p-8">
       <SkeletonStatus />
       <Skeleton className="h-6 w-48" />
       <Skeleton className="h-32 w-full rounded-card" />

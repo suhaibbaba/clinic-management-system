@@ -72,12 +72,15 @@ function Spinner(): JSX.Element {
 export function Card({
   children,
   className,
+  "data-testid": testId,
 }: {
   readonly children: ReactNode;
   readonly className?: string;
+  readonly "data-testid"?: string | undefined;
 }): JSX.Element {
   return (
     <section
+      data-testid={testId}
       className={cx("border border-line rounded-card bg-surface p-4 shadow-card", className)}
     >
       {children}
@@ -92,16 +95,19 @@ export function ChoiceCard({
   onClick,
   label,
   children,
+  "data-testid": testId,
 }: {
   readonly selected: boolean;
   readonly onClick: () => void;
   /** What a screen reader announces; the visible content can be richer. */
   readonly label: string;
   readonly children: ReactNode;
+  readonly "data-testid"?: string | undefined;
 }): JSX.Element {
   return (
     <button
       type="button"
+      data-testid={testId}
       aria-pressed={selected}
       aria-label={label}
       onClick={onClick}
@@ -121,15 +127,18 @@ export function ChoiceCard({
 export function Alert({
   tone = "danger",
   children,
+  "data-testid": testId = "booking-alert",
 }: {
   readonly tone?: "danger" | "info";
   readonly children: ReactNode;
+  readonly "data-testid"?: string | undefined;
 }): JSX.Element {
   return (
     <p
       // Announced when it appears: an error a screen reader never reads is an
       // error the page did not report.
       role="status"
+      data-testid={testId}
       className={cx(
         "rounded-panel px-3 py-2.5 text-value",
         tone === "danger" ? "bg-danger-50 text-danger-800" : "bg-primary-50 text-primary-900",
@@ -153,7 +162,9 @@ export function Img({
   height,
   priority = false,
   fallback,
+  "data-testid": testId,
 }: {
+  readonly "data-testid"?: string | undefined;
   readonly src: string | null | undefined;
   readonly alt: string;
   readonly width: number;
@@ -168,7 +179,11 @@ export function Img({
   const missing = src === null || src === undefined || src === "";
 
   return (
-    <span style={{ width, height }} className="relative block max-w-full shrink-0 overflow-hidden">
+    <span
+      style={{ width, height }}
+      data-testid={testId}
+      className="relative block max-w-full shrink-0 overflow-hidden"
+    >
       {!missing && (
         <img
           src={src}
@@ -194,6 +209,7 @@ export function Img({
 }
 
 export interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
+  readonly "data-testid"?: string | undefined;
   readonly label: string;
   readonly error?: string | undefined;
   readonly hint?: string | undefined;
@@ -201,20 +217,29 @@ export interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
 
 // 16px is not a style choice: iOS Safari zooms the page when a smaller field takes focus and never
 // zooms back.
-export function Field({ label, error, hint, id, className, ...rest }: FieldProps): JSX.Element {
+export function Field({
+  label,
+  error,
+  hint,
+  id,
+  className,
+  "data-testid": testId,
+  ...rest
+}: FieldProps): JSX.Element {
   const fieldId = id ?? `field-${rest.name ?? label}`;
   const errorId = `${fieldId}-error`;
   const hintId = `${fieldId}-hint`;
   const describedBy = cx(error && errorId, hint && hintId) || undefined;
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div data-testid={testId && `${testId}-field`} className="flex flex-col gap-1.5">
       <label htmlFor={fieldId} className="text-value font-medium text-ink">
         {label}
       </label>
 
       <input
         id={fieldId}
+        data-testid={testId}
         className={cx(
           "min-h-(--control-h) w-full rounded-control border-[1.5px] bg-surface px-3 text-field text-ink",
           "placeholder:text-ink-subtle",
@@ -232,13 +257,22 @@ export function Field({ label, error, hint, id, className, ...rest }: FieldProps
       />
 
       {hint && !error && (
-        <span id={hintId} className="text-label text-ink-muted">
+        <span
+          id={hintId}
+          data-testid={testId && `${testId}-hint`}
+          className="text-label text-ink-muted"
+        >
           {hint}
         </span>
       )}
 
       {error && (
-        <span id={errorId} role="alert" className="text-label font-medium text-danger-700">
+        <span
+          id={errorId}
+          role="alert"
+          data-testid={testId && `${testId}-error`}
+          className="text-label font-medium text-danger-700"
+        >
           {error}
         </span>
       )}

@@ -14,7 +14,9 @@ export function LookupOptionModal({
   coloured,
   option,
   onClose,
+  "data-testid": testId = "lookup-option-modal",
 }: {
+  readonly "data-testid"?: string | undefined;
   readonly open: boolean;
   readonly listKey: LookupListKey;
   /** Only the tooth chart paints with a colour; elsewhere the field is noise. */
@@ -71,6 +73,7 @@ export function LookupOptionModal({
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={(next) => {
         if (!next) {
@@ -80,10 +83,11 @@ export function LookupOptionModal({
       title={t(option ? "lookups.editTitle" : "lookups.newTitle")}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" data-testid={`${testId}-cancel`} onClick={onClose}>
             {t("common.cancel")}
           </Button>
           <Button
+            data-testid={`${testId}-save`}
             disabled={nameAr.trim() === "" || nameEn.trim() === ""}
             isLoading={create.isPending || update.isPending}
             onClick={() => void submit()}
@@ -93,9 +97,12 @@ export function LookupOptionModal({
         </>
       }
     >
-      <div className="flex flex-col gap-4">
+      <div data-testid={`${testId}-form`} className="flex flex-col gap-4">
         {option?.isSystem && (
-          <p className="flex items-center gap-2 rounded-control bg-sunken px-3 py-2 text-label text-ink-muted">
+          <p
+            data-testid={`${testId}-system-hint`}
+            className="flex items-center gap-2 rounded-control bg-sunken px-3 py-2 text-label text-ink-muted"
+          >
             <Badge tone="neutral">{t("lookups.system")}</Badge>
             {t("lookups.systemHint")}
           </p>
@@ -105,6 +112,7 @@ export function LookupOptionModal({
           <FormField label="lookups.nameAr" htmlFor="lookup-name-ar" required>
             <Input
               id="lookup-name-ar"
+              data-testid="lookup-field-name-ar"
               dir="auto"
               value={nameAr}
               onChange={(event) => setNameAr(event.target.value)}
@@ -114,6 +122,7 @@ export function LookupOptionModal({
           <FormField label="lookups.nameEn" htmlFor="lookup-name-en" required>
             <Input
               id="lookup-name-en"
+              data-testid="lookup-field-name-en"
               dir="ltr"
               value={nameEn}
               onChange={(event) => setNameEn(event.target.value)}
@@ -126,6 +135,7 @@ export function LookupOptionModal({
             <span className="flex items-center gap-3">
               <input
                 id="lookup-color"
+                data-testid="lookup-field-color"
                 type="color"
                 value={color}
                 onChange={(event) => setColor(event.target.value)}
@@ -138,7 +148,14 @@ export function LookupOptionModal({
 
         {option && (
           <FormField label="lookups.code" htmlFor="lookup-code" hint={t("lookups.codeHint")}>
-            <Input id="lookup-code" dir="ltr" value={option.code} disabled readOnly />
+            <Input
+              id="lookup-code"
+              data-testid="lookup-field-code"
+              dir="ltr"
+              value={option.code}
+              disabled
+              readOnly
+            />
           </FormField>
         )}
       </div>

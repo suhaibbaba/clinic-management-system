@@ -38,8 +38,8 @@ export function WhenStep({
       : t("when.noSlots");
 
   return (
-    <div className="flex flex-col gap-4">
-      <section aria-label={t("when.daysLabel")}>
+    <div data-testid="when-step" className="flex flex-col gap-4">
+      <section data-testid="when-step-days" aria-label={t("when.daysLabel")}>
         {/* Scrolls sideways: a week that wraps to two rows stops being a strip. */}
         <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
           {chips.map((chip) => {
@@ -51,6 +51,7 @@ export function WhenStep({
               <li key={chip.date} className="shrink-0">
                 <button
                   type="button"
+                  data-testid={`when-day-${chip.date}`}
                   disabled={closed}
                   aria-pressed={active}
                   aria-label={t("when.chooseDay", {
@@ -87,7 +88,7 @@ export function WhenStep({
         </ul>
       </section>
 
-      <section aria-label={t("when.slotsLabel")}>
+      <section data-testid="when-step-slots" aria-label={t("when.slotsLabel")}>
         {week.loading ? (
           <ul className="grid grid-cols-3 gap-2">
             {[0, 1, 2, 3, 4, 5].map((index) => (
@@ -99,15 +100,17 @@ export function WhenStep({
         ) : week.error ? (
           <div className="flex flex-col gap-3">
             <Alert>{t(failureKey(week.error))}</Alert>
-            <Button variant="secondary" onClick={week.reload}>
+            <Button variant="secondary" data-testid="when-step-retry" onClick={week.reload}>
               {t("common.retry")}
             </Button>
           </div>
         ) : slots.length === 0 ? (
           <div className="flex flex-col gap-3">
-            <Alert tone="info">{emptyMessage}</Alert>
+            <Alert tone="info" data-testid="when-step-empty">
+              {emptyMessage}
+            </Alert>
             {onUrgent && (
-              <Button variant="secondary" full onClick={onUrgent}>
+              <Button variant="secondary" full data-testid="when-step-urgent" onClick={onUrgent}>
                 {t("urgent.cta")}
               </Button>
             )}
@@ -121,6 +124,7 @@ export function WhenStep({
                 <li key={slot.startsAt}>
                   <button
                     type="button"
+                    data-testid={`when-slot-${slot.start}`}
                     aria-pressed={active}
                     aria-label={t("when.chooseSlot", { time: slot.start })}
                     onClick={() => onSelect(slot)}

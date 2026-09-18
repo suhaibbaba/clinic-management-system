@@ -40,12 +40,13 @@ export function UrgentStep({
   };
 
   return (
-    <form noValidate onSubmit={submit} className="flex flex-col gap-4">
-      <Card className="bg-primary-50 shadow-none">
+    <form data-testid="urgent-step" noValidate onSubmit={submit} className="flex flex-col gap-4">
+      <Card data-testid="urgent-promise" className="bg-primary-50 shadow-none">
         <p className="text-value text-ink">{t("urgent.promise")}</p>
       </Card>
 
       <Field
+        data-testid="urgent-field-name"
         label={t("details.name")}
         name="fullName"
         autoComplete="name"
@@ -56,6 +57,7 @@ export function UrgentStep({
       />
 
       <Field
+        data-testid="urgent-field-phone"
         label={t("details.phone")}
         name="phone"
         type="tel"
@@ -70,6 +72,7 @@ export function UrgentStep({
       />
 
       <Field
+        data-testid="urgent-field-complaint"
         label={t("urgent.complaint")}
         name="complaint"
         placeholder={t("urgent.complaintPlaceholder")}
@@ -78,11 +81,11 @@ export function UrgentStep({
         onChange={(event) => onChange({ ...details, complaint: event.target.value })}
       />
 
-      <Button type="submit" full busy={busy}>
+      <Button type="submit" full data-testid="urgent-submit" busy={busy}>
         {t("urgent.submit")}
       </Button>
 
-      <Button type="button" variant="ghost" full onClick={onBack}>
+      <Button type="button" variant="ghost" full data-testid="urgent-back" onClick={onBack}>
         {t("common.back")}
       </Button>
     </form>
@@ -92,8 +95,10 @@ export function UrgentStep({
 /** No time, no queue position — the page must not imply either. */
 export function UrgentSentView(): JSX.Element {
   return (
-    <div className="flex flex-col gap-4 text-center">
-      <p className="text-heading font-medium text-ink">{t("urgent.sentHeading")}</p>
+    <div data-testid="urgent-sent" className="flex flex-col gap-4 text-center">
+      <p data-testid="urgent-sent-heading" className="text-heading font-medium text-ink">
+        {t("urgent.sentHeading")}
+      </p>
       <p className="text-value text-ink-muted">{t("urgent.sentBody")}</p>
     </div>
   );

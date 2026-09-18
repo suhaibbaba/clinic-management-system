@@ -92,7 +92,11 @@ export function PendingBookingsPage(): JSX.Element {
           <span className="font-medium text-ink">{row.patientName}</span>
           {/* A record from the booking page has no file number of the clinic's making — nobody has
               seen this person's ID yet, and saying so stops it being discovered at the chair. */}
-          {row.patientUnverified && <Badge tone="warning">{t("booking.pending.unverified")}</Badge>}
+          {row.patientUnverified && (
+            <Badge tone="warning" data-testid="pending-booking-unverified">
+              {t("booking.pending.unverified")}
+            </Badge>
+          )}
         </span>
       ),
     },
@@ -132,6 +136,7 @@ export function PendingBookingsPage(): JSX.Element {
             <Button
               size="sm"
               variant="ghost"
+              data-testid="pending-booking-confirm"
               onClick={() => void onConfirm(row)}
               disabled={confirm.isPending}
             >
@@ -142,6 +147,7 @@ export function PendingBookingsPage(): JSX.Element {
             <Button
               size="sm"
               variant="quiet"
+              data-testid="pending-booking-reject"
               onClick={() => {
                 setRejecting(row);
                 setReason("");
@@ -156,14 +162,19 @@ export function PendingBookingsPage(): JSX.Element {
   ];
 
   return (
-    <div className="flex flex-col gap-5">
-      <PageHeader title="booking.pending.title" subtitle="booking.pending.subtitle" />
+    <div data-testid="pending-bookings-page" className="flex flex-col gap-5">
+      <PageHeader
+        data-testid="pending-bookings-header"
+        title="booking.pending.title"
+        subtitle="booking.pending.subtitle"
+      />
 
       {rows.length > 0 && (
-        <StatRow>
+        <StatRow data-testid="pending-bookings-kpis">
           <StatCard
             icon="calendar"
             tone="primary"
+            data-testid="pending-bookings-kpi-waiting"
             label={t("booking.pending.kpi.waiting")}
             value={pending.data?.total ?? 0}
             caption={t("booking.pending.kpi.waitingCaption")}
@@ -171,6 +182,7 @@ export function PendingBookingsPage(): JSX.Element {
           <StatCard
             icon="clock"
             tone="warning"
+            data-testid="pending-bookings-kpi-today"
             label={t("booking.pending.kpi.today")}
             value={todayCount}
             caption={t("booking.pending.kpi.todayCaption")}
@@ -179,6 +191,7 @@ export function PendingBookingsPage(): JSX.Element {
       )}
 
       <Table
+        data-testid="pending-bookings-table"
         columns={columns}
         rows={rows}
         rowKey={(row) => row.id}
@@ -187,6 +200,7 @@ export function PendingBookingsPage(): JSX.Element {
         empty={
           <EmptyState
             icon="calendar"
+            data-testid="pending-bookings-empty"
             title="booking.pending.empty"
             hint="booking.pending.emptyHint"
           />
@@ -202,17 +216,23 @@ export function PendingBookingsPage(): JSX.Element {
       />
 
       <Modal
+        data-testid="pending-booking-reject-modal"
         open={rejecting !== undefined}
         onOpenChange={(open) => !open && setRejecting(undefined)}
         title={t("booking.pending.rejectTitle")}
         description={t("booking.pending.rejectBody")}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setRejecting(undefined)}>
+            <Button
+              variant="secondary"
+              data-testid="pending-booking-reject-cancel"
+              onClick={() => setRejecting(undefined)}
+            >
               {t("common.cancel")}
             </Button>
             <Button
               variant="danger"
+              data-testid="pending-booking-reject-confirm"
               isLoading={reject.isPending}
               disabled={reason.trim().length < 3}
               onClick={() => void onReject()}
@@ -225,6 +245,7 @@ export function PendingBookingsPage(): JSX.Element {
         <FormField label="booking.pending.reasonLabel" htmlFor="reject-reason">
           <Textarea
             id="reject-reason"
+            data-testid="pending-booking-reject-reason"
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             rows={3}
