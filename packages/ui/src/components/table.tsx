@@ -1,7 +1,7 @@
 import type { JSX, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Icon } from "@ui/components/icon";
+import { Icon, type IconName } from "@ui/components/icon";
 import { Ltr } from "@ui/components/ltr";
 import { Select } from "@ui/components/select";
 import {
@@ -19,6 +19,8 @@ export interface Column<TRow> {
   readonly key: string;
   /** i18n key for the header cell — the same string labels the mobile card. */
   readonly header: string;
+  /** Drawn beside the label on the mobile card, where each row answers what its value means. */
+  readonly icon?: IconName | undefined;
   readonly render: (row: TRow) => ReactNode;
   readonly className?: string | undefined;
   readonly hideOnMobile?: boolean | undefined;
@@ -170,7 +172,14 @@ export function Table<TRow>({
                             index > 0 && "border-t border-line",
                           )}
                         >
-                          {t(column.header)}
+                          {column.icon === undefined ? (
+                            t(column.header)
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5">
+                              <Icon name={column.icon} className="size-4 shrink-0" />
+                              {t(column.header)}
+                            </span>
+                          )}
                         </dt>
                         <dd
                           data-part="table-card-value"
