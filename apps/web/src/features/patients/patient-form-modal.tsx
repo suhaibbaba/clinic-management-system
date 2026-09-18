@@ -8,7 +8,6 @@ import {
 import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
 import {
   Button,
   DatePicker,
@@ -22,6 +21,7 @@ import {
 } from "@clinic/ui";
 import { useCreatePatient, useUpdatePatient } from "@web/features/patients/queries";
 import { errorMessageKey } from "@web/lib/api-error";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 interface PatientFormModalProps {
   "data-testid"?: string | undefined;
@@ -115,7 +115,7 @@ export function PatientFormModal({
             data-testid={`${testId}-save`}
             isLoading={isSubmitting}
           >
-            {t(isSubmitting ? "common.saving" : "common.save")}
+            {isSubmitting ? ellipsis(t("common.saving")) : t("common.save")}
           </Button>
         </>
       }

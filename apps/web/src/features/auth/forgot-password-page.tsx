@@ -4,12 +4,12 @@ import { useState, type JSX } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-
 import { Button, FormField, Icon, Input, PersonName } from "@clinic/ui";
 import { Logo } from "@web/components/brand/logo";
 import { authApi } from "@web/features/auth/api";
 import { BRANDING_SCOPE, useClinicBranding } from "@web/features/clinic/queries";
 import { useClinicLogo } from "@web/lib/use-clinic-logo";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 export function ForgotPasswordPage(): JSX.Element {
   const { t } = useTranslation();
@@ -101,7 +101,7 @@ export function ForgotPasswordPage(): JSX.Element {
                 isLoading={isSubmitting}
                 className="mt-2 w-full"
               >
-                {isSubmitting ? t("auth.submitting") : t("auth.forgotSubmit")}
+                {isSubmitting ? ellipsis(t("auth.submitting")) : t("auth.forgotSubmit")}
               </Button>
             </form>
           </>

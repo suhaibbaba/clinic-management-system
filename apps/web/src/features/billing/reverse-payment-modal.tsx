@@ -7,11 +7,11 @@ import {
 import { useEffect, type JSX } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
 import { Button, FormField, Icon, Input, Modal, useToast } from "@clinic/ui";
 import { Money } from "@web/features/billing/money";
 import { useReversePayment } from "@web/features/billing/queries";
 import { errorMessageKey } from "@web/lib/api-error";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 interface ReversePaymentModalProps {
   "data-testid"?: string | undefined;
@@ -82,7 +82,7 @@ export function ReversePaymentModal({
             data-testid={`${testId}-confirm`}
             isLoading={isSubmitting}
           >
-            {t(isSubmitting ? "common.saving" : "billing.confirmReversal")}
+            {isSubmitting ? ellipsis(t("common.saving")) : t("billing.confirmReversal")}
           </Button>
         </>
       }

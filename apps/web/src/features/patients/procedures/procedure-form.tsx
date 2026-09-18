@@ -11,7 +11,6 @@ import {
 } from "@clinic/shared";
 import { useEffect, useId, useState, type FormEvent, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Button, FormField, Icon, Input, MoneyInput, Select, usePersonName } from "@clinic/ui";
 import {
   SurfaceSelector,
@@ -19,6 +18,7 @@ import {
 } from "@web/features/patients/chart/surface-selector";
 import { canSeePrices } from "@web/features/patients/permissions";
 import { useCurrency } from "@web/features/clinic/queries";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 export type ProcedureFormValues = Omit<CreatePerformedProcedureInput, "patientId">;
 
@@ -224,7 +224,7 @@ export function ProcedureForm({
           data-testid="procedure-form-save"
           disabled={submitting}
         >
-          {t(submitting ? "common.saving" : "common.save")}
+          {submitting ? ellipsis(t("common.saving")) : t("common.save")}
         </Button>
       </div>
     </form>

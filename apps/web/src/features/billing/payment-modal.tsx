@@ -3,12 +3,12 @@ import { createPaymentSchema, LOOKUP_LIST, type CreatePaymentInput } from "@clin
 import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
 import { Button, FormField, Icon, Input, Modal, MoneyInput, Select, useToast } from "@clinic/ui";
 import { openReceipt } from "@web/features/billing/documents";
 import { useLookupOptions } from "@web/features/lookups/queries";
 import { useCreatePayment } from "@web/features/billing/queries";
 import { errorMessageKey } from "@web/lib/api-error";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 interface PaymentModalProps {
   "data-testid"?: string | undefined;
@@ -88,7 +88,7 @@ export function PaymentModal({
             data-testid={`${testId}-save`}
             isLoading={isSubmitting}
           >
-            {t(isSubmitting ? "common.saving" : "billing.recordAndPrint")}
+            {isSubmitting ? ellipsis(t("common.saving")) : t("billing.recordAndPrint")}
           </Button>
         </>
       }
@@ -131,7 +131,7 @@ export function PaymentModal({
 
         <FormField label="billing.note" htmlFor="payment-note" error={errors.note} optional>
           <Input
-            placeholder={t("common.placeholders.note")}
+            placeholder={ellipsis(t("common.placeholders.note"))}
             id="payment-note"
             data-testid="payment-field-note"
             {...register("note", { setValueAs: (value) => (value === "" ? null : value) })}
