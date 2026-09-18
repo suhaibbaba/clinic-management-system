@@ -129,38 +129,39 @@
   --shadow-field-error: 0 0 0 0.5px var(--color-danger-600);
   --shadow-field-error-ring: 0 0 0 0.5px var(--color-danger-600), 0 0 0 3.5px rgb(169 66 54 / 0.15);
 
-  /* Against the 93.75% root this file sets. Converting these to a 16px root drifts every size by
-     6% — visibly, once the two are put side by side. */
-  --text-micro: 0.7rem; /* 10.5px — rail captions, table headers, badges */
+  /* Against a 16px root: the browser's own default, which is what every readability guideline is
+     written in terms of. Nothing carrying content sits below 13px. */
+  --text-micro: 0.75rem; /* 12px — rail captions, table headers, badges */
   --text-micro--line-height: 1rem;
-  --text-meta: 0.76rem; /* 11.4px — sub-lines, captions, small buttons */
-  --text-meta--line-height: 1.1rem;
-  --text-label: 0.78rem; /* 11.7px — chips, pills, counts */
-  --text-label--line-height: 1.2rem;
-  --text-value: 0.86rem; /* 12.9px — table cells, body text */
-  --text-value--line-height: 1.35rem;
+  --text-meta: 0.8125rem; /* 13px — sub-lines, captions, small buttons */
+  --text-meta--line-height: 1.25rem;
+  --text-label: 0.875rem; /* 14px — chips, pills, counts */
+  --text-label--line-height: 1.25rem;
+  --text-value: 0.9375rem; /* 15px — table cells, body text */
+  --text-value--line-height: 1.5rem;
   /* The label on a control: a button, a chip, a tab, a segment, a badge — and a rail row, which is
      the same thing in a column. */
-  --text-nav: 0.9333rem; /* 14px */
-  --text-nav--line-height: 1.35rem;
-  --text-section: 0.92rem; /* 13.8px — a card's or panel's title */
-  --text-section--line-height: 1.4rem;
-  --text-title: 1.35rem; /* 20.25px — a page heading */
-  --text-title--line-height: 1.8rem;
-  --text-display: 1.5rem; /* 22.5px — the dashboard banner's greeting */
+  --text-nav: 0.875rem; /* 14px */
+  --text-nav--line-height: 1.375rem;
+  /* Above `--text-nav`: a panel's title used to be set smaller than the buttons inside it. */
+  --text-section: 1rem; /* 16px — a card's or panel's title */
+  --text-section--line-height: 1.5rem;
+  --text-title: 1.375rem; /* 22px — a page heading */
+  --text-title--line-height: 1.875rem;
+  --text-display: 1.5rem; /* 24px — the dashboard banner's greeting */
   --text-display--line-height: 2rem;
-  --text-kpi: 2.1rem; /* 31.5px — the figure on a KPI card */
+  --text-kpi: 2rem; /* 32px — the figure on a KPI card */
   --text-kpi--line-height: 1;
 
   /* The value inside a field, and the one size that never moves: iOS Safari zooms when a field
      under 16px takes focus and does not zoom back. A control's *label* is `--text-nav`; this is
      only ever what somebody typed. */
-  --text-field: 1.0667rem; /* 16px — never lower */
+  --text-field: 1rem; /* 16px — never lower */
   --text-field--line-height: 1.5rem;
 
-  /* 4px at the 93.75% root. Tailwind's default 0.25rem would be 3.75, and every padding in the
-     system is a whole number of pixels. */
-  --spacing: 0.2667rem;
+  /* 4px, which at a 16px root is Tailwind's own default — every padding in the system stays a
+     whole number of pixels. */
+  --spacing: 0.25rem;
 }
 
 /* Six soft pairs for an initials avatar. The colour carries no meaning; it only makes the same
@@ -333,11 +334,11 @@
   }
 }
 
-/* The root the type scale is measured against. A percentage rather than `15px`, so a reader who has
-   raised their browser's default still gets it raised — the ratio is what the design fixes, not the
-   pixel. */
+/* The root the type scale is measured against. 100%, so a reader gets the size their browser is set
+   to rather than 6% under it, and a percentage rather than `16px` so raising that default still
+   raises this. */
 html {
-  font-size: 93.75%;
+  font-size: 100%;
 }
 
 html,
