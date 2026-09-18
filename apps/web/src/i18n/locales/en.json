@@ -1600,18 +1600,17 @@
     "searchPlaceholder": "Search by text or key",
     "section": "Section",
     "key": "Key",
-    "default": "Shipped text",
-    "value": "Your text",
-    "language": "Language",
     "changedOnly": "Changed only ({{count}})",
     "changed": "Changed",
     "save": "Save",
-    "reset": "Reset to default",
     "saved": "Text saved",
-    "wasReset": "Back to the shipped text",
     "empty": "No text matches",
     "emptyHint": "Try another word, or a different section",
     "allSections": "All sections",
-    "hint": "Keys you never change keep following the system's updates"
+    "hint": "Keys you never change keep following the system's updates",
+    "original": "Original",
+    "arabic": "Arabic",
+    "english": "English",
+    "pending": "{{count}} unsaved change"
   }
 }

@@ -1,8 +1,7 @@
 import type {
-  DeleteTranslationOverrideInput,
+  SaveTranslationOverridesInput,
   TranslationBundle,
   TranslationOverride,
-  UpsertTranslationOverrideInput,
 } from "@clinic/shared";
 
 import { apiRequest } from "@web/lib/api-client";
@@ -10,8 +9,6 @@ import { apiRequest } from "@web/lib/api-client";
 export const translationsApi = {
   bundle: (): Promise<TranslationBundle> => apiRequest("/translations"),
   overrides: (): Promise<TranslationOverride[]> => apiRequest("/translations/overrides"),
-  upsert: (body: UpsertTranslationOverrideInput): Promise<TranslationOverride> =>
-    apiRequest("/translations", { method: "POST", body }),
-  reset: (body: DeleteTranslationOverrideInput): Promise<void> =>
-    apiRequest("/translations/reset", { method: "POST", body }),
+  save: (body: SaveTranslationOverridesInput): Promise<void> =>
+    apiRequest("/translations/save", { method: "POST", body }),
 };
