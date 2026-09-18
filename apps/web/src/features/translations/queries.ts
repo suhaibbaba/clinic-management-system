@@ -1,8 +1,7 @@
 import type {
-  DeleteTranslationOverrideInput,
+  SaveTranslationOverridesInput,
   TranslationBundle,
   TranslationOverride,
-  UpsertTranslationOverrideInput,
 } from "@clinic/shared";
 import {
   useMutation,
@@ -11,7 +10,6 @@ import {
   type UseMutationResult,
   type UseQueryResult,
 } from "@tanstack/react-query";
-
 import { translationsApi } from "@web/features/translations/api";
 
 const TRANSLATIONS_KEY = "translations";
@@ -37,28 +35,15 @@ export function useTranslationOverrides(): UseQueryResult<TranslationOverride[]>
   });
 }
 
-export function useSaveTranslation(): UseMutationResult<
-  TranslationOverride,
-  Error,
-  UpsertTranslationOverrideInput
-> {
-  const client = useQueryClient();
-
-  return useMutation({
-    mutationFn: translationsApi.upsert,
-    onSuccess: () => invalidate(client),
-  });
-}
-
-export function useResetTranslation(): UseMutationResult<
+export function useSaveTranslations(): UseMutationResult<
   void,
   Error,
-  DeleteTranslationOverrideInput
+  SaveTranslationOverridesInput
 > {
   const client = useQueryClient();
 
   return useMutation({
-    mutationFn: translationsApi.reset,
+    mutationFn: translationsApi.save,
     onSuccess: () => invalidate(client),
   });
 }

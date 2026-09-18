@@ -1,7 +1,6 @@
 import type { Availability } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Icon } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { cn } from "@clinic/ui/lib/cn";

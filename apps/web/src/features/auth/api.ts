@@ -7,7 +7,6 @@ import type {
   SetPasswordInput,
   UpdateOwnProfileInput,
 } from "@clinic/shared";
-
 import { apiRequest } from "@web/lib/api-client";
 
 export const authApi = {

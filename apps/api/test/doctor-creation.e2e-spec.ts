@@ -1,6 +1,5 @@
 import { USER_ROLE, type Doctor, type Paginated, type User } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-
 import { users } from "@api/database/schema";
 import {
   auth,

@@ -1,6 +1,5 @@
 import { Global, Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
-
 import { AuthController } from "@api/auth/auth.controller";
 import { AuthService } from "@api/auth/auth.service";
 import { PasswordService } from "@api/auth/password.service";

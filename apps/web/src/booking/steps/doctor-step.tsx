@@ -1,6 +1,5 @@
 import type { PublicDoctor } from "@clinic/shared";
 import type { JSX } from "react";
-
 import { failureKey } from "@web/booking/api";
 import { t } from "@web/booking/i18n";
 import { Alert, Button, ChoiceCard, Skeleton } from "@web/booking/ui";

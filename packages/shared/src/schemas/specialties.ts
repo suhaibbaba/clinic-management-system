@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { CHART_TYPES } from "@shared/enums";
 import { paginationQuerySchema } from "@shared/schemas/common";
 

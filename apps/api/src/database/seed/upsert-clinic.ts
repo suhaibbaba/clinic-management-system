@@ -1,6 +1,5 @@
 import type { PersonName } from "@clinic/shared";
 import { and, asc, count, eq, isNull, ne, or, type InferInsertModel } from "drizzle-orm";
-
 import type { Database } from "@api/database/database.module";
 import { clinics, users } from "@api/database/schema";
 

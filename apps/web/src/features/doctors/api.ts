@@ -7,7 +7,6 @@ import type {
   UpdateDoctorInput,
   UpdateDoctorScheduleInput,
 } from "@clinic/shared";
-
 import { apiRequest } from "@web/lib/api-client";
 
 export const doctorsApi = {

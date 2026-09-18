@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { MOVEMENT_TYPE, MOVEMENT_TYPES } from "@shared/enums";
 import { isoDateSchema } from "@shared/schemas/appointments";
 import { paginationQuerySchema, uuidSchema, optionalPhoneSchema } from "@shared/schemas/common";

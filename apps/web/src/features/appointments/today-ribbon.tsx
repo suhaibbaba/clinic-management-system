@@ -1,7 +1,6 @@
 import { APPOINTMENT_STATUS, type CalendarAppointment } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Button, Icon, Ltr, PersonName, useToast } from "@clinic/ui";
 import { useAppointmentStep } from "@web/features/appointments/queries";
 import { APPOINTMENT_STATUS_STYLES } from "@web/features/appointments/status";

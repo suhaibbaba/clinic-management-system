@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { settingsSchema, weeklyScheduleSchema, optionalPhoneSchema } from "@shared/schemas/common";
 import { personNameInputSchema, personNameSchema } from "@shared/schemas/person-name";
 import { DEFAULT_TIME_ZONE } from "@shared/time/zone";

@@ -15,7 +15,6 @@ import type {
   UpdateAppointmentInput,
   WaitingListEntry,
 } from "@clinic/shared";
-
 import { appointmentsApi, waitingListApi } from "@web/features/appointments/api";
 
 export const CALENDAR_KEY = "appointments-calendar";

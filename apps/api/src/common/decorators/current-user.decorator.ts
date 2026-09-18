@@ -1,5 +1,4 @@
 import { createParamDecorator, UnauthorizedException, type ExecutionContext } from "@nestjs/common";
-
 import type { AuthenticatedUser, RequestWithUser } from "@api/common/types/authenticated-user";
 
 export const CurrentUser = createParamDecorator(

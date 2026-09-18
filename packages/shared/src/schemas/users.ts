@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { USER_ROLES } from "@shared/enums";
 import { passwordSchema } from "@shared/schemas/auth";
 import { paginationQuerySchema, phoneSchema } from "@shared/schemas/common";

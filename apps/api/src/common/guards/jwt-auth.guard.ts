@@ -7,7 +7,6 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
-
 import { IS_PUBLIC_KEY } from "@api/common/decorators/public.decorator";
 import type { AccessTokenPayload, RequestWithUser } from "@api/common/types/authenticated-user";
 import type { Env } from "@api/config/env.schema";

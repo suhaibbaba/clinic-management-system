@@ -1,6 +1,5 @@
 import * as SelectPrimitive from "@radix-ui/react-select";
 import type { ChangeEvent, JSX, SelectHTMLAttributes } from "react";
-
 import { useDialogLayer } from "@ui/components/dialog-layer";
 import { FieldLock, fieldShell } from "@ui/components/field";
 import { Icon } from "@ui/components/icon";

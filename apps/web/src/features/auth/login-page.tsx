@@ -3,15 +3,14 @@ import { loginSchema, type LoginInput } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
 import { Logo } from "@web/components/brand/logo";
 import { useClinicBranding, BRANDING_SCOPE } from "@web/features/clinic/queries";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
-
 import { Button, FormField, Icon, Input, PasswordInput, PersonName } from "@clinic/ui";
 import { useSession } from "@web/features/auth/session";
 import { ApiError, errorMessageKey } from "@web/lib/api-error";
 import { useClinicLogo } from "@web/lib/use-clinic-logo";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 interface LocationState {
   from?: string;
@@ -135,7 +134,7 @@ export function LoginPage(): JSX.Element {
             isLoading={isSubmitting}
             className="mt-2 w-full"
           >
-            {isSubmitting ? t("auth.submitting") : t("auth.submit")}
+            {isSubmitting ? ellipsis(t("auth.submitting")) : t("auth.submit")}
           </Button>
 
           {/* Under the button rather than beside the field: it is what you reach for after the

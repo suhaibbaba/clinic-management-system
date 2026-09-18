@@ -7,7 +7,6 @@ import {
   type PerformedProcedureStatus,
 } from "@clinic/shared";
 import { and, eq, isNull, type SQL } from "drizzle-orm";
-
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import { charges } from "@api/database/schema";
 

@@ -2,7 +2,6 @@ import { createVisitSchema, type CreateVisitInput, type Doctor, type Visit } fro
 import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
 import {
   Button,
   DatePicker,
@@ -17,6 +16,7 @@ import {
 } from "@clinic/ui";
 import { useSaveVisit } from "@web/features/patients/queries";
 import { errorMessageKey } from "@web/lib/api-error";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 interface VisitFormModalProps {
   "data-testid"?: string | undefined;
@@ -165,7 +165,7 @@ export function VisitFormModal({
             data-testid={`${testId}-save`}
             isLoading={isSubmitting}
           >
-            {t(isSubmitting ? "common.saving" : "common.save")}
+            {isSubmitting ? ellipsis(t("common.saving")) : t("common.save")}
           </Button>
         </>
       }
@@ -241,7 +241,7 @@ export function VisitFormModal({
 
         <FormField label="visits.examination" htmlFor="visit-exam" error={errors.examination}>
           <Textarea
-            placeholder={t("common.placeholders.examination")}
+            placeholder={ellipsis(t("common.placeholders.examination"))}
             id="visit-exam"
             data-testid="visit-field-examination"
             rows={3}
@@ -251,7 +251,7 @@ export function VisitFormModal({
 
         <FormField label="visits.diagnosis" htmlFor="visit-diagnosis" error={errors.diagnosis}>
           <Textarea
-            placeholder={t("common.placeholders.diagnosis")}
+            placeholder={ellipsis(t("common.placeholders.diagnosis"))}
             id="visit-diagnosis"
             data-testid="visit-field-diagnosis"
             rows={2}
@@ -261,7 +261,7 @@ export function VisitFormModal({
 
         <FormField label="visits.notes" htmlFor="visit-notes" error={errors.notes} optional>
           <Textarea
-            placeholder={t("common.placeholders.visitNotes")}
+            placeholder={ellipsis(t("common.placeholders.visitNotes"))}
             id="visit-notes"
             data-testid="visit-field-notes"
             rows={2}

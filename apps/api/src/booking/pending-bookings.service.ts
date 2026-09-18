@@ -10,7 +10,6 @@ import {
   type CalendarAppointment,
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-
 import { AppointmentsService } from "@api/appointments/appointments.service";
 import { BookingTokenService } from "@api/booking/booking-token.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";

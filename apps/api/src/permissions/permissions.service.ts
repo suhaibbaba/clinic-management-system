@@ -1,7 +1,6 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import { and, eq } from "drizzle-orm";
 import { USER_ROLE, type UserRole } from "@clinic/shared";
-
 import { DATABASE, type Database } from "@api/database/database.module";
 import { roleCapabilities } from "@api/database/schema";
 import { CapabilityRegistry } from "@api/permissions/capability-registry.service";

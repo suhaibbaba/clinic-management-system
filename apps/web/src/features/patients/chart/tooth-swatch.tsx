@@ -1,5 +1,4 @@
 import type { JSX } from "react";
-
 import type { ToothStateStyle } from "@web/features/patients/chart/tooth-state";
 
 // Drawn from the same style object the teeth are, so a state cannot be one colour on the chart and

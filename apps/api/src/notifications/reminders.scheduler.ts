@@ -11,7 +11,6 @@ import {
   type NotificationTemplate,
 } from "@clinic/shared";
 import { and, eq, gt, isNull, lt } from "drizzle-orm";
-
 import { notificationName } from "@api/common/person-name";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { appointments, clinics, doctors, patients, users } from "@api/database/schema";

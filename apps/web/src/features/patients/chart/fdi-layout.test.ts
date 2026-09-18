@@ -1,6 +1,5 @@
 import { FDI_DECIDUOUS_TEETH, FDI_PERMANENT_TEETH } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
-
 import {
   archRow,
   layoutRow,

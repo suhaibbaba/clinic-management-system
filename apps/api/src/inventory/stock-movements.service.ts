@@ -21,7 +21,6 @@ import {
   type StockMovementRow,
 } from "@clinic/shared";
 import { and, desc, eq, gte, lt, sql, type SQL } from "drizzle-orm";
-
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toOptionalPersonName } from "@api/common/person-name";

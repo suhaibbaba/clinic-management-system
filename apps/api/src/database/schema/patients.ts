@@ -23,7 +23,6 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-
 import { chartTypeEnum, clinics, doctors, specialties } from "@api/database/schema/core";
 import { normalizedName } from "@api/database/schema/normalized-name";
 

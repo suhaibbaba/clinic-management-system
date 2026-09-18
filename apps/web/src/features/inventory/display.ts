@@ -7,7 +7,6 @@ import {
   type InventoryItemRow,
   type MovementType,
 } from "@clinic/shared";
-
 import type { BadgeTone } from "@clinic/ui/components/badge";
 import type { ProgressTone } from "@clinic/ui/components/progress-bar";
 

@@ -1,7 +1,5 @@
 import { Module } from "@nestjs/common";
-
 import { BillingModule } from "@api/billing/billing.module";
-
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import {
   AttachmentsController,

@@ -1,5 +1,4 @@
 import type { IncomingMessage } from "node:http";
-
 import type { ProxyOptions } from "vite";
 
 export const DEFAULT_API_PROXY_TARGET = "http://localhost:3000";

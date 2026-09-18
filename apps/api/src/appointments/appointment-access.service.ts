@@ -1,7 +1,6 @@
 import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { USER_ROLE } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";

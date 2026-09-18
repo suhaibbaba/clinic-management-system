@@ -4,7 +4,6 @@ import {
   minutesFromLocalMidnight,
   type CalendarAppointment,
 } from "@clinic/shared";
-
 import i18n from "@web/i18n";
 import { clinicTimeZone } from "@web/lib/clinic-zone";
 

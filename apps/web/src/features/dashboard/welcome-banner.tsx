@@ -1,7 +1,6 @@
 import type { CalendarAppointment } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { BannerIcon, Icon, Ltr, PersonName } from "@clinic/ui";
 import { minutesOf, toTimeLabel } from "@web/features/appointments/calendar-time";
 import { useSession } from "@web/features/auth/session";

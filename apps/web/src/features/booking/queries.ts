@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type { CalendarAppointment, ListAppointmentsQuery, Paginated } from "@clinic/shared";
-
 import { pendingBookingsApi } from "@web/features/booking/api";
 import type { Can } from "@web/features/auth/session";
 import { CALENDAR_KEY } from "@web/features/appointments/queries";

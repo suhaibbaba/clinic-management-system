@@ -1,7 +1,5 @@
 import { randomUUID } from "node:crypto";
-
 import { CHART_TYPE, PROCEDURE_OUTCOME, USER_ROLE } from "@clinic/shared";
-
 import { auth, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 export interface PatientFixtures {

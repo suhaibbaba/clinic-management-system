@@ -1,5 +1,4 @@
 import { ATTACHMENT_TYPE, MAX_ATTACHMENT_BYTES, USER_ROLE, type UserRole } from "@clinic/shared";
-
 import { createPatient, uniquePhone } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 import { StorageService, type StoredObject } from "@api/storage/storage.service";

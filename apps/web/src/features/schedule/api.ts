@@ -12,7 +12,6 @@ import type {
   UpdateClinicClosureInput,
   UpdateDoctorTimeOffInput,
 } from "@clinic/shared";
-
 import { apiRequest } from "@web/lib/api-client";
 
 // Query parameters, not body fields: they are what the caller decided about the 409 they were

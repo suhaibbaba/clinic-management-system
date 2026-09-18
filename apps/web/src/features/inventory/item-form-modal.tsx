@@ -1,7 +1,6 @@
 import { LOOKUP_LIST, type InventoryItemRow } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Button, FormField, Input, Modal, Select, Switch, Textarea, useToast } from "@clinic/ui";
 import { useLookupOptions } from "@web/features/lookups/queries";
 import { useCreateItem, useSuppliers, useUpdateItem } from "@web/features/inventory/queries";

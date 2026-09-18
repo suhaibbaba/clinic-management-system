@@ -8,7 +8,6 @@ import {
 } from "@clinic/shared";
 import { useRef, useState, type ChangeEvent, type DragEvent, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Badge, Button, EmptyState, Icon, Img, Input, Ltr, Select, useToast } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/features/auth/session";
@@ -24,6 +23,7 @@ import { errorMessageKey } from "@web/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
 import { formatDate } from "@web/lib/format";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 // Presign, PUT, confirm: the API builds the key and re-reads the real size and type afterwards, so
 // nothing here is trusted. Thumbnails ask for their own signed URLs.
@@ -281,7 +281,7 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
           isLoading={upload.isPending}
           onClick={() => inputRef.current?.click()}
         >
-          {t(upload.isPending ? "imaging.uploading" : "imaging.upload")}
+          {upload.isPending ? ellipsis(t("imaging.uploading")) : t("imaging.upload")}
         </Button>
 
         <p className="mt-1 text-label text-ink-subtle">{t("imaging.uploadHint")}</p>

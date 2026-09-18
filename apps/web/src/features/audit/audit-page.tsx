@@ -1,7 +1,6 @@
 import { AUDIT_ACTIONS, type AuditAction, type AuditLogEntry } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import {
   Badge,
   Button,

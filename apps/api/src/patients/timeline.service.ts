@@ -9,7 +9,6 @@ import {
   type UserRole,
 } from "@clinic/shared";
 import { sql, type SQL } from "drizzle-orm";
-
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";

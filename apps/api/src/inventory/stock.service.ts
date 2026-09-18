@@ -11,7 +11,6 @@ import {
   type ItemBatch,
 } from "@clinic/shared";
 import { eq, sql } from "drizzle-orm";
-
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics } from "@api/database/schema";
 

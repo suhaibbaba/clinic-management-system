@@ -8,7 +8,6 @@ import type {
   Statement,
   StatementQuery,
 } from "@clinic/shared";
-
 import { apiDownload, apiRequest } from "@web/lib/api-client";
 
 // Nothing here updates an amount, because nothing server-side would accept it: a payment is created

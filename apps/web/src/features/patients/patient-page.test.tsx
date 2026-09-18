@@ -2,7 +2,6 @@ import { LOOKUP_LIST, SYSTEM_LOOKUPS, USER_ROLE, type UserRole } from "@clinic/s
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
-
 import { AppRoutes } from "@web/app/router";
 import { ageInYears } from "@web/features/patients/age";
 import ar from "@web/i18n/locales/ar.json";

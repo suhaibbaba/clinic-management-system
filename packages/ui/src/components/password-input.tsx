@@ -1,6 +1,5 @@
 import { forwardRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-
 import { FIELD_BUTTON } from "@ui/components/field";
 import { Icon } from "@ui/components/icon";
 import { Input, type InputProps } from "@ui/components/input";

@@ -9,7 +9,6 @@ import {
   type KeyboardEvent,
 } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { layoutRow, type Dentition, type ToothSlot } from "@web/features/patients/chart/fdi-layout";
 import {

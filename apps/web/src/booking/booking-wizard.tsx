@@ -1,7 +1,6 @@
 import type { ManagedBooking, PublicDoctor } from "@clinic/shared";
 import { BOOKING_CONFIRMATION_MODE } from "@shared/enums";
 import { useEffect, useMemo, useState, type JSX } from "react";
-
 import { BookingError, bookingApi, failureKey } from "@web/booking/api";
 import { dayChips, learnClinicOffset, todayIso } from "@web/booking/format";
 import { t } from "@web/booking/i18n";

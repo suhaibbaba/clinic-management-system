@@ -11,7 +11,6 @@ import {
   type ScheduleConflictOptions,
 } from "@clinic/shared";
 import { and, asc, eq, lt, notInArray, sql } from "drizzle-orm";
-
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";

@@ -1,7 +1,6 @@
 import { USER_ROLE, type UserRole } from "@clinic/shared";
 import { useMemo, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import {
   Card,
   EmptyState,
@@ -15,6 +14,7 @@ import {
 import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { usePermissions, useUpdateRolePermission } from "@web/features/permissions/queries";
 import { errorMessageKey } from "@web/lib/api-error";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 const EDITABLE = [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN] as const;
 const ROLE_TABS: readonly UserRole[] = [...EDITABLE, USER_ROLE.ADMIN];
@@ -131,7 +131,7 @@ export function PermissionsPage(): JSX.Element {
         </p>
       )}
 
-      {showSkeleton && <p className="text-value text-ink-muted">{t("common.loading")}</p>}
+      {showSkeleton && <p className="text-value text-ink-muted">{ellipsis(t("common.loading"))}</p>}
 
       {permissions.isError && (
         <EmptyState icon="alert" data-testid="permissions-error" title="errors.unknown" />

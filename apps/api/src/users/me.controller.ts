@@ -6,7 +6,6 @@ import {
   type AuthenticatedUserProfile,
 } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
-
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { AuthService } from "@api/auth/auth.service";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";

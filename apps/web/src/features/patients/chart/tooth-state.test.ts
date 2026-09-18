@@ -6,7 +6,6 @@ import {
   type ToothState,
 } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
-
 import {
   areaState,
   buildToothStates,

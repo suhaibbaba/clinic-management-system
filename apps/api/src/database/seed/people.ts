@@ -1,5 +1,4 @@
 import { GENDER, type Gender } from "@clinic/shared";
-
 import type { Rng } from "@api/database/seed/random";
 
 const AREAS: readonly string[] = [

@@ -10,7 +10,6 @@ import {
   type Paginated,
 } from "@clinic/shared";
 import { eq, sql } from "drizzle-orm";
-
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics } from "@api/database/schema";

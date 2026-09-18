@@ -2,7 +2,6 @@ import { APPOINTMENT_STATUS, LOOKUP_LIST, type CalendarAppointment } from "@clin
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-
 import {
   Badge,
   EmptyState,

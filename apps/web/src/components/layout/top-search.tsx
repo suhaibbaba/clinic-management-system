@@ -1,12 +1,12 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-
 import { Icon, Ltr, SearchField } from "@clinic/ui";
 import { useSession } from "@web/features/auth/session";
 import { canOpenPatientFile } from "@web/features/patients/permissions";
 import { usePatients } from "@web/features/patients/queries";
 import { useDebounced } from "@web/lib/use-debounced";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 const PATIENTS = "/patients";
 /** Enough to answer with, few enough to read without scrolling the bar's panel. */
@@ -99,7 +99,7 @@ export function TopSearch(): JSX.Element {
       <SearchField
         data-testid="top-search-field"
         label={t("nav.search")}
-        placeholder={t("nav.searchPlaceholder")}
+        placeholder={ellipsis(t("nav.searchPlaceholder"))}
         value={term}
         role="combobox"
         aria-expanded={showing}
@@ -139,7 +139,7 @@ export function TopSearch(): JSX.Element {
         >
           {rows.length === 0 ? (
             <p data-testid="top-search-empty" className="px-3 py-2 text-label text-ink-muted">
-              {results.isPending ? t("common.loading") : t("nav.searchEmpty")}
+              {results.isPending ? ellipsis(t("common.loading")) : t("nav.searchEmpty")}
             </p>
           ) : (
             <ul>

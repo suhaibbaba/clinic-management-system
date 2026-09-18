@@ -1,5 +1,4 @@
 import type { JSX } from "react";
-
 import { PILL_BASE } from "@ui/components/badge";
 import { cn } from "@ui/lib/cn";
 import { Ltr } from "@ui/components/ltr";

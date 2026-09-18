@@ -10,7 +10,6 @@ import {
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-
 import { lookupsApi } from "@web/features/lookups/api";
 
 const LOOKUPS_KEY = "lookups";

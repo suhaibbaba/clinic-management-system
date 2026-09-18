@@ -1,5 +1,4 @@
 import type { StatementQuery } from "@clinic/shared";
-
 import { billingApi } from "@web/features/billing/api";
 
 // These endpoints need the bearer token, so a plain link cannot follow them: the PDF is fetched,

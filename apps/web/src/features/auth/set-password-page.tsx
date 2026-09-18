@@ -4,13 +4,13 @@ import { useState, type JSX } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
-
 import { Button, FormField, Icon, PasswordInput, PersonName } from "@clinic/ui";
 import { Logo } from "@web/components/brand/logo";
 import { authApi } from "@web/features/auth/api";
 import { BRANDING_SCOPE, useClinicBranding } from "@web/features/clinic/queries";
 import { errorMessageKey } from "@web/lib/api-error";
 import { useClinicLogo } from "@web/lib/use-clinic-logo";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 export function SetPasswordPage({ purpose }: { purpose: "activate" | "reset" }): JSX.Element {
   const { t } = useTranslation();
@@ -122,7 +122,7 @@ export function SetPasswordPage({ purpose }: { purpose: "activate" | "reset" }):
                 isLoading={isSubmitting}
                 className="mt-2 w-full"
               >
-                {isSubmitting ? t("auth.submitting") : t("auth.setPassword")}
+                {isSubmitting ? ellipsis(t("auth.submitting")) : t("auth.setPassword")}
               </Button>
             </form>
           </>

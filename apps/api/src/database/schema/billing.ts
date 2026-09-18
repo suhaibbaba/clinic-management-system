@@ -9,7 +9,6 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-
 import { clinics, users } from "@api/database/schema/core";
 import { patients, performedProcedures } from "@api/database/schema/patients";
 

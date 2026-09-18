@@ -1,5 +1,4 @@
 import { forwardRef, type InputHTMLAttributes } from "react";
-
 import { FIELD_TEXT, FieldClear, FieldIcon, fieldShell } from "@ui/components/field";
 import { cn } from "@ui/lib/cn";
 import { parts, testid, type TestIdProps } from "@ui/lib/testid";

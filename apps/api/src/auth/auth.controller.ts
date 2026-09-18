@@ -20,7 +20,6 @@ import {
 } from "@clinic/shared";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { createZodDto } from "nestjs-zod";
-
 import { AccountInvitationsService } from "@api/email/account-invitations.service";
 import { AuthService } from "@api/auth/auth.service";
 import { clearRefreshCookie, readRefreshToken, setRefreshCookie } from "@api/auth/refresh-cookie";

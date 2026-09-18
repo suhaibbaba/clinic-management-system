@@ -4,7 +4,6 @@ import {
   type TranslationOverride,
   type UserRole,
 } from "@clinic/shared";
-
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 describe("Translations (e2e)", () => {
@@ -90,6 +89,94 @@ describe("Translations (e2e)", () => {
     });
 
     expect(response.statusCode).toBe(201);
+  });
+
+  describe("saving a screenful at once", () => {
+    it("writes every row of the batch", async () => {
+      const response = await post("/translations/save", tokens[USER_ROLE.ADMIN], {
+        items: [
+          { language: "ar", key: "nav.patients", value: "المراجعون" },
+          { language: "en", key: "nav.patients", value: "Clients" },
+          { language: "ar", key: "nav.labs", value: "المخابر" },
+        ],
+      });
+
+      expect(response.statusCode).toBe(204);
+
+      const saved = await bundle(tokens[USER_ROLE.ADMIN]);
+
+      expect(saved.ar).toMatchObject({ nav: { patients: "المراجعون", labs: "المخابر" } });
+      expect(saved.en).toMatchObject({ nav: { patients: "Clients" } });
+    });
+
+    // Clearing the box is how the shipped wording comes back, so a blank value deletes the row
+    // rather than storing an empty label.
+    it("treats a blank value as a reset", async () => {
+      const response = await post("/translations/save", tokens[USER_ROLE.ADMIN], {
+        items: [
+          { language: "ar", key: "nav.patients", value: "   " },
+          { language: "en", key: "nav.patients", value: "" },
+        ],
+      });
+
+      expect(response.statusCode).toBe(204);
+
+      const saved = await bundle(tokens[USER_ROLE.ADMIN]);
+
+      expect(saved.ar.nav).not.toHaveProperty("patients");
+      expect(saved.en).not.toHaveProperty("nav");
+    });
+
+    it("trims what it stores, so a stray space is not the wording", async () => {
+      await post("/translations/save", tokens[USER_ROLE.ADMIN], {
+        items: [{ language: "ar", key: "nav.appointments", value: "  الحجوزات  " }],
+      });
+
+      const saved = await bundle(tokens[USER_ROLE.ADMIN]);
+
+      expect((saved.ar as { nav: { appointments: string } }).nav.appointments).toBe("الحجوزات");
+    });
+
+    // Refused whole by the schema, before a row is written: the transaction behind it never starts,
+    // which is the same outcome the footer needs — all of it or none.
+    it("writes none of the batch when one row is refused", async () => {
+      const before = await bundle(tokens[USER_ROLE.ADMIN]);
+
+      const response = await post("/translations/save", tokens[USER_ROLE.ADMIN], {
+        items: [
+          { language: "ar", key: "nav.inventory", value: "المخزن" },
+          { language: "ar", key: "__proto__.polluted", value: "x" },
+        ],
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(await bundle(tokens[USER_ROLE.ADMIN])).toEqual(before);
+    });
+
+    it("refuses an empty batch and one beyond its cap", async () => {
+      const empty = await post("/translations/save", tokens[USER_ROLE.ADMIN], { items: [] });
+      const tooMany = await post("/translations/save", tokens[USER_ROLE.ADMIN], {
+        items: Array.from({ length: 201 }, (_, index) => ({
+          language: "ar" as const,
+          key: `nav.k${index}`,
+          value: "x",
+        })),
+      });
+
+      expect(empty.statusCode).toBe(400);
+      expect(tooMany.statusCode).toBe(400);
+    });
+
+    it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(
+      "refuses a batch from %s",
+      async (role) => {
+        const response = await post("/translations/save", tokens[role], {
+          items: [{ language: "ar", key: "nav.patients", value: "x" }],
+        });
+
+        expect(response.statusCode).toBe(403);
+      },
+    );
   });
 
   it.each([USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN])(

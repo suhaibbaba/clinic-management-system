@@ -7,7 +7,6 @@ import {
   type PatientView,
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-
 import { clinics } from "@api/database/schema";
 import {
   createPatient,

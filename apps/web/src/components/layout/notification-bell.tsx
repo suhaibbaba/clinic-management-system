@@ -2,7 +2,6 @@ import { WAITING_LIST_SOURCE } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-
 import { Icon, Menu, MenuContent, MenuItem, MenuTrigger, type IconName } from "@clinic/ui";
 import { useWaitingList } from "@web/features/appointments/queries";
 import { useSession } from "@web/features/auth/session";

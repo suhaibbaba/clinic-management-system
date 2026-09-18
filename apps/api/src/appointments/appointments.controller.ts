@@ -28,7 +28,6 @@ import {
   type Visit,
 } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
-
 import { AvailabilityService } from "@api/appointments/availability.service";
 import { APPOINTMENTS_ENTITY, AppointmentsService } from "@api/appointments/appointments.service";
 import { Audit } from "@api/common/decorators/audit.decorator";

@@ -1,7 +1,6 @@
 import { Controller, Get, Param } from "@nestjs/common";
 import { patientToothParamSchema, USER_ROLE, type ToothHistory } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
-
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";

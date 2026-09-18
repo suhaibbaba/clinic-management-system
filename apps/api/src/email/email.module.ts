@@ -1,6 +1,5 @@
 import { forwardRef, Global, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-
 import type { Env } from "@api/config/env.schema";
 import { AccountEmailService } from "@api/email/account-email.service";
 import {

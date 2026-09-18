@@ -1,10 +1,8 @@
 import { randomUUID } from "node:crypto";
-
 import { USER_ROLE } from "@clinic/shared";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { and, eq, isNull } from "drizzle-orm";
 import postgres from "postgres";
-
 import type { Database } from "@api/database/database.module";
 import * as schema from "@api/database/schema";
 import { doctors, users } from "@api/database/schema";

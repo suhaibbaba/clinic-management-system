@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type { Clinic, ClinicBranding, PresignClinicLogoInput } from "@clinic/shared";
 import type { UpdateClinicInput } from "@clinic/shared";
-
 import { buildClinicIconSet } from "@web/features/clinic/logo-icons";
 import { clinicApi } from "@web/features/clinic/api";
 import { uploadToStorage } from "@web/features/patients/api";

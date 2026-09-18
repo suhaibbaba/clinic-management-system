@@ -11,7 +11,6 @@ import {
   type Statement,
 } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
-
 import { DocumentsService } from "@api/billing/documents.service";
 import { LedgerService } from "@api/billing/ledger.service";
 import { OverdueService } from "@api/billing/overdue.service";

@@ -13,7 +13,6 @@ import {
   type TimelineEntry,
   type UserRole,
 } from "@clinic/shared";
-
 import {
   createPatient,
   procedurePayload,

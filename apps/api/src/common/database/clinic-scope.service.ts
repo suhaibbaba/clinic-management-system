@@ -1,7 +1,6 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { and, eq, isNull, type SQL } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
-
 import { DATABASE, type Database } from "@api/database/database.module";
 
 export type ClinicScopedTable = PgTable & {

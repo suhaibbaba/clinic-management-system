@@ -1,7 +1,6 @@
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-
 import { Icon, Ltr, Widget } from "@clinic/ui";
 import { toIsoDate, todayIso } from "@web/features/appointments/calendar-time";
 import { useCalendar } from "@web/features/appointments/queries";

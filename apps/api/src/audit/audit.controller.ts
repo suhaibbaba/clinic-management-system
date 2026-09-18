@@ -6,7 +6,6 @@ import {
   type Paginated,
 } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
-
 import { AuditService } from "@api/audit/audit.service";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";

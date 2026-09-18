@@ -1,9 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
-
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { personName, type PersonName } from "@clinic/shared";
-
 import type { Env } from "@api/config/env.schema";
 import { EMAIL_PROVIDER, type EmailProvider } from "@api/email/email-provider";
 import { renderEmail } from "@api/email/email-template";

@@ -12,7 +12,6 @@ import {
   type PresignClinicLogoResponse,
   type UserRole,
 } from "@clinic/shared";
-
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 import { StorageService, type StoredObject } from "@api/storage/storage.service";
 

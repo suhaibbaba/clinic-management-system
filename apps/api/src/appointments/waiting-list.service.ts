@@ -22,7 +22,6 @@ import {
   type WaitingListStatus,
 } from "@clinic/shared";
 import { asc, eq, isNull, sql, type SQL } from "drizzle-orm";
-
 import { AppointmentsService } from "@api/appointments/appointments.service";
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";

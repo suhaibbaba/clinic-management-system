@@ -1,7 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { NotificationChannel } from "@clinic/shared";
-
 import type { Env } from "@api/config/env.schema";
 
 export interface OutboundMessage {

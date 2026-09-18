@@ -7,7 +7,6 @@ import {
 } from "@clinic/shared";
 import { useMemo, useState, type DragEvent, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Badge, Button, EmptyState, Icon, Ltr, PageHeader, Switch, useToast } from "@clinic/ui";
 import { LookupOptionModal } from "@web/features/lookups/lookup-option-modal";
 import { ToothSwatch } from "@web/features/patients/chart/tooth-swatch";

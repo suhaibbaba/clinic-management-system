@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { moneySchema, wholeMoneySchema } from "@shared/schemas/money";
 import { paginationQuerySchema } from "@shared/schemas/common";
 import { lookupCodeSchema } from "@shared/schemas/lookups";

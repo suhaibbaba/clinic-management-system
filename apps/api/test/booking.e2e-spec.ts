@@ -10,7 +10,6 @@ import {
   localWeekday,
 } from "@clinic/shared";
 import { and, desc, eq, sql } from "drizzle-orm";
-
 import { hashCode } from "@api/booking/booking.service";
 import {
   appointments,

@@ -1,9 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
-
 import { visualRuns, type TextDirection } from "@api/billing/pdf/arabic-text";
 
 const FONT_DIR = join(__dirname, "fonts");

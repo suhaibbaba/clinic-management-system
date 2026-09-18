@@ -1,7 +1,6 @@
 import { MOVEMENT_TYPE, USER_ROLE } from "@clinic/shared";
 import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-
 import ar from "@web/i18n/locales/ar.json";
 import { ItemDrawer } from "@web/features/inventory/item-drawer";
 import { authTokens } from "@web/lib/auth-tokens";

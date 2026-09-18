@@ -3,7 +3,6 @@ import { changePasswordSchema, personName, type ChangePasswordInput } from "@cli
 import { useState, type JSX } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
 import {
   Avatar,
   Badge,

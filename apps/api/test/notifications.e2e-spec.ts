@@ -13,7 +13,6 @@ import {
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
-
 import { appointments, clinics, doctors, notificationsLog, users } from "@api/database/schema";
 import {
   NOTIFICATION_PROVIDER,

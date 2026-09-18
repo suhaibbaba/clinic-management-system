@@ -1,6 +1,5 @@
 import { currencySymbol } from "@clinic/shared";
 import { forwardRef, type InputHTMLAttributes } from "react";
-
 import { Input } from "@ui/components/input";
 import { cn } from "@ui/lib/cn";
 import { foldDigits } from "@ui/lib/digits";

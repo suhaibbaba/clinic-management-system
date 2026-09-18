@@ -1,10 +1,8 @@
 import "reflect-metadata";
-
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { type NestFastifyApplication } from "@nestjs/platform-fastify";
-
 import { AppModule } from "@api/app.module";
 import { createFastifyAdapter, registerFastifyPlugins } from "@api/bootstrap";
 import type { Env } from "@api/config/env.schema";

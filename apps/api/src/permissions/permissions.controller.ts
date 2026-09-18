@@ -6,7 +6,6 @@ import {
   type Permissions,
 } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
-
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { CapabilityRegistry } from "@api/permissions/capability-registry.service";

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import ar from "@web/i18n/locales/ar.json";
 import en from "@web/i18n/locales/en.json";
 

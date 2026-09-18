@@ -1,8 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-
 import { describe, expect, it } from "vitest";
-
 import { cn, FONT_SIZE_KEYS, LEADING_KEYS, RADIUS_KEYS } from "@ui/lib/cn";
 
 const theme = readFileSync(join(__dirname, "..", "styles", "base.css"), "utf8");

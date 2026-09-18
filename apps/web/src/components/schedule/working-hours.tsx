@@ -2,7 +2,6 @@ import type { DaySchedule, TimeRange, WeeklySchedule } from "@clinic/shared";
 import * as Accordion from "@radix-ui/react-accordion";
 import { useMemo, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Badge, Button, Icon, Ltr, Switch, TimePicker } from "@clinic/ui";
 import {
   DEFAULT_RANGE,

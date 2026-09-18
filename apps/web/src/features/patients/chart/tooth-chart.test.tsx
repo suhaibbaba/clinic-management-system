@@ -8,7 +8,6 @@ import {
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-
 import { ToothChart } from "@web/features/patients/chart/tooth-chart";
 import {
   buildToothStates,

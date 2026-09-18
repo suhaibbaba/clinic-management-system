@@ -1,7 +1,6 @@
 import { LEDGER_ENTRY_KIND, type PatientView, type StatementEntry } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import {
   Badge,
   Button,

@@ -3,7 +3,6 @@ import { resetUserPasswordSchema, type ResetUserPasswordInput, type User } from 
 import { useEffect, type JSX } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
 import { Button, FormField, Icon, Modal, PasswordInput, usePersonName, useToast } from "@clinic/ui";
 import { useResetUserPassword } from "@web/features/users/queries";
 import { errorMessageKey } from "@web/lib/api-error";

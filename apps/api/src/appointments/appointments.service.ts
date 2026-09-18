@@ -28,7 +28,6 @@ import {
   type Visit,
 } from "@clinic/shared";
 import { and, asc, eq, gt, gte, lt, lte, sql, type SQL } from "drizzle-orm";
-
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { AppointmentAccessService } from "@api/appointments/appointment-access.service";
 import { toClinicClosure, toDoctorTimeOff } from "@api/appointments/availability.service";

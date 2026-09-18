@@ -17,7 +17,6 @@ import {
   type ReverseLabPaymentInput,
 } from "@clinic/shared";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
-
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";

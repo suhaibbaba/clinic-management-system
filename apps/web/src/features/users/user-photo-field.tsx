@@ -6,7 +6,6 @@ import {
 } from "@clinic/shared";
 import { useRef, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Avatar, Button, Icon, useToast } from "@clinic/ui";
 import { useRemoveUserPhoto, useUploadUserPhoto } from "@web/features/users/queries";
 import { errorMessageKey } from "@web/lib/api-error";

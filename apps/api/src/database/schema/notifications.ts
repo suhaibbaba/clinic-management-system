@@ -4,7 +4,6 @@ import {
   NOTIFICATION_TEMPLATES,
 } from "@clinic/shared";
 import { index, integer, jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-
 import { appointments } from "@api/database/schema/appointments";
 import { clinics } from "@api/database/schema/core";
 import { patients } from "@api/database/schema/patients";

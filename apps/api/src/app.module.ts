@@ -1,10 +1,8 @@
 import { Module } from "@nestjs/common";
 import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { ZodValidationPipe } from "nestjs-zod";
-
 import { ScheduleModule } from "@nestjs/schedule";
 import { ThrottlerModule } from "@nestjs/throttler";
-
 import { AppointmentsModule } from "@api/appointments/appointments.module";
 import { AuditInterceptor } from "@api/audit/audit.interceptor";
 import { AuditModule } from "@api/audit/audit.module";

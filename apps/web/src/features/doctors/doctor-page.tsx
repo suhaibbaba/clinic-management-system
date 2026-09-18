@@ -2,7 +2,6 @@ import { USER_ROLE, type WeeklySchedule } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useParams } from "react-router-dom";
-
 import { Badge, Button, Icon, PageHeader, PersonName, useToast } from "@clinic/ui";
 import { WorkingHours } from "@web/components/schedule/working-hours";
 import { weekFitsWithin } from "@web/components/schedule/week";

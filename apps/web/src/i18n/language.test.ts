@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, it } from "vitest";
-
 import i18n from "@web/i18n";
 import {
   applyLanguageToDocument,

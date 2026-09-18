@@ -1,7 +1,6 @@
 import { GENDERS } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Button, DatePicker, FormField, Icon, Input, Select } from "@clinic/ui";
 import type { PatientDraft, PickedPatient } from "@web/features/appointments/patient-picker";
 

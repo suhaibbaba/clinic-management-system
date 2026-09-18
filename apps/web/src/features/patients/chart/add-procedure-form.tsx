@@ -1,6 +1,5 @@
 import type { Doctor, ProcedureCatalogItem, UserRole } from "@clinic/shared";
 import type { JSX } from "react";
-
 import {
   ProcedureForm,
   type ProcedureFormValues,

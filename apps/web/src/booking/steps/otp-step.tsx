@@ -6,7 +6,6 @@ import {
   type JSX,
   type KeyboardEvent,
 } from "react";
-
 import { t } from "@web/booking/i18n";
 import { Alert, Button, cx } from "@web/booking/ui";
 

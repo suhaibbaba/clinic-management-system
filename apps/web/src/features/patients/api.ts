@@ -28,7 +28,6 @@ import type {
   UpdateVisitInput,
   Visit,
 } from "@clinic/shared";
-
 import { apiRequest } from "@web/lib/api-client";
 
 /** Server maximum for a page; the chart needs every row, so it pages through. */

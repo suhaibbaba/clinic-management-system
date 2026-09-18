@@ -1,7 +1,6 @@
 import type { ConflictingAppointment } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Button, Icon, Ltr, Modal } from "@clinic/ui";
 import { formatClinicDate, formatClinicTime } from "@web/lib/format";
 

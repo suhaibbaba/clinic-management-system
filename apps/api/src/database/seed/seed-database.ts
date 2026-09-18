@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-
 import {
   APPOINTMENT_STATUS,
   CHART_TYPE,
@@ -25,7 +24,6 @@ import {
   type LabOrderStatus,
 } from "@clinic/shared";
 import { and, eq, isNull } from "drizzle-orm";
-
 import type { BusyInterval } from "@api/appointments/slots";
 import { ChargesService } from "@api/billing/charges.service";
 import { nextReceiptNumber } from "@api/billing/payments.service";

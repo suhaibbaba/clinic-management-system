@@ -1,6 +1,5 @@
 import type { PersonName } from "@clinic/shared";
 import type { JSX } from "react";
-
 import { Img } from "@clinic/ui/components/img";
 import { usePersonName } from "@clinic/ui/components/person-name";
 import { cn } from "@clinic/ui/lib/cn";

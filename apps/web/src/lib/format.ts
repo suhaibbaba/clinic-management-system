@@ -1,5 +1,4 @@
 import i18n from "@web/i18n";
-
 import { clinicTimeZone } from "@web/lib/clinic-zone";
 
 // Two things are pinned in both languages: the Gregorian calendar, since `ar` selects the Islamic

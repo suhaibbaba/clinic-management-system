@@ -7,7 +7,6 @@ import {
   type StatementQuery,
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-
 import { documentDirection, documentStrings } from "@api/billing/pdf/document-strings";
 import { LetterheadService } from "@api/billing/pdf/letterhead.service";
 import { RtlPdf } from "@api/billing/pdf/pdf-builder";

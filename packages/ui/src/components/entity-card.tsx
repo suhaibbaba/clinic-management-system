@@ -1,5 +1,4 @@
 import type { JSX, ReactNode } from "react";
-
 import { Badge, type BadgeTone } from "@ui/components/badge";
 import { Icon, type IconName } from "@ui/components/icon";
 import { ProgressBar, type ProgressTone } from "@ui/components/progress-bar";

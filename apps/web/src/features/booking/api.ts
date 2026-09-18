@@ -1,5 +1,4 @@
 import type { CalendarAppointment, ListAppointmentsQuery, Paginated } from "@clinic/shared";
-
 import { apiRequest } from "@web/lib/api-client";
 
 const query = (params: Record<string, string | number | undefined>): string => {

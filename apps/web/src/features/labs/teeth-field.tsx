@@ -1,7 +1,6 @@
 import { isFdiTooth } from "@clinic/shared";
 import { useState, type JSX, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Icon, Input } from "@clinic/ui";
 
 // Chips rather than free text, so "1 4" and "١٤" are refused as they are typed instead of the API

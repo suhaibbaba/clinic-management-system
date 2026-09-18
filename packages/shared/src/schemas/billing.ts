@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { LEDGER_ENTRY_KINDS } from "@shared/enums";
 import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
 import { signedMoneySchema, wholeMoneySchema } from "@shared/schemas/money";

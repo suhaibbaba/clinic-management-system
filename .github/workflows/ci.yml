@@ -1,19 +1,22 @@
 name: CI
 
+# Main only, like the deploy that waits on it: a branch is checked when it lands.
 on:
-  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # The deploy waits on this run, so cancelling one ships the next commit unchecked.
+  cancel-in-progress: false
 
 jobs:
   quality:
     name: Lint, typecheck, build, test
     runs-on: ubuntu-latest
 
-    # The API tests run against a real Postgres so clinic scoping, the audit
-    # writes and the auth flow are exercised end to end rather than mocked.
+    # Real Postgres: clinic scoping, audit writes and auth are end to end, not mocked.
     services:
       postgres:
         image: postgres:17-alpine
@@ -32,8 +35,7 @@ jobs:
     env:
       DATABASE_URL: postgres://clinic:clinic_test_password@localhost:5432/clinic_test
       JWT_SECRET: ci-only-jwt-secret-value-at-least-32-characters
-      # Presigning is offline, so the storage tests need a configured client but
-      # no bucket to talk to; the one networked call is stubbed in the suite.
+      # Presigning is offline: a configured client, no bucket to reach.
       STORAGE_ENDPOINT: http://localhost:9000
       STORAGE_BUCKET: clinic-test-files
       STORAGE_ACCESS_KEY_ID: ci_access_key
@@ -43,7 +45,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Reads the pnpm version from the root package.json "packageManager" field.
       - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
@@ -54,23 +55,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Build first: the API and its tests consume packages/shared through its
-      # built type declarations, so nothing typechecks on a clean checkout until
-      # the shared package has been compiled.
+      # First: the API consumes packages/shared as built declarations, so nothing
+      # typechecks on a clean checkout until it is compiled.
       - name: Build all workspaces
         run: pnpm build
 
       - name: Lint
         run: pnpm lint
 
-      # Nothing outside apps/web/src/theme.css names a colour, and the two entry
-      # documents and the tab mark — read before any stylesheet exists — carry
-      # the brand blue that file names rather than a value of their own.
       - name: Check colour literals
         run: pnpm lint:hex
 
-      # Unused files, exports, dependencies and devDependencies. A permanent
-      # check rather than a one-off sweep: dead code arrives one merge at a time.
       - name: Check for dead code
         run: pnpm knip
 
@@ -80,28 +75,23 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      # Zero static text (CLAUDE.md): no Arabic written into a component, and
-      # every key present in both locales. A key added to one and forgotten in
-      # the other is text that silently falls back to Arabic in an English
-      # interface, which nobody notices until a user does.
       - name: Check i18n
         run: pnpm --filter @clinic/web check:i18n
 
       - name: Test
         run: pnpm test
 
-      # The public booking page is a separate bundle with its own budget: it is
-      # opened from a WhatsApp link on mobile data, and the way it gets heavy is
-      # one innocuous import of a dashboard component. `pnpm build` above already
-      # produced dist/, so this only weighs it.
+      # Opened from a WhatsApp link on mobile data; it gets heavy one stray
+      # dashboard import at a time. `pnpm build` above already produced dist/.
       - name: Check the booking bundle size
         run: pnpm --filter @clinic/web size:booking
 
   docker:
     name: Docker images
     runs-on: ubuntu-latest
+    # After the cheap checks: a failing lint makes building two images pointless.
+    needs: quality
 
-    # Used by the smoke test below, which boots the built API image for real.
     services:
       postgres:
         image: postgres:17-alpine
@@ -127,12 +117,9 @@ jobs:
           cp .env.example .env
           docker compose config --quiet
           docker compose -f docker-compose.prod.yml config --quiet
-          # The sandbox stack is deployed from this file verbatim, so a typo in
-          # it would only ever surface on the server.
+          # Deployed verbatim, so a typo here would only surface on the server.
           docker compose -f docker-compose.sandbox.yml config --quiet
 
-      # Both images build from the repository root as a single context, so the
-      # workspace (and packages/shared) is never duplicated per app.
       - name: Build API image
         uses: docker/build-push-action@v6
         with:
@@ -144,9 +131,8 @@ jobs:
           cache-from: type=gha,scope=api
           cache-to: type=gha,scope=api,mode=max
 
-      # Building the image proves it compiles; running it proves the Alpine
-      # runtime actually works — in particular that argon2's musl native binding
-      # loads, which a build alone would never catch.
+      # Running it, not just building it: argon2's musl binding either loads on
+      # Alpine or it does not, and a build never finds out.
       - name: Smoke-test the API image
         run: |
           set -euo pipefail
@@ -169,8 +155,7 @@ jobs:
           curl -fsS http://localhost:3000/health | tee /tmp/health.json
           grep -q '"database":"up"' /tmp/health.json
 
-          # A 401 rather than a 500 means argon2 hashed the decoy password
-          # natively instead of the module failing to load.
+          # 401 not 500: argon2 hashed the decoy rather than failing to load.
           echo "--- login rejects unknown credentials ---"
           status=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:3000/auth/login \
             -H 'content-type: application/json' \

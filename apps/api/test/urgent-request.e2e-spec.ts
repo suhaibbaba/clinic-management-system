@@ -10,7 +10,6 @@ import {
   type WaitingListEntry,
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-
 import { clinics } from "@api/database/schema";
 import { seedClinicFixtures, type PatientFixtures } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";

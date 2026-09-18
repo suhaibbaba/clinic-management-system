@@ -2,13 +2,13 @@ import {
   AUDIT_ACTION,
   USER_ROLE,
   deleteTranslationOverrideSchema,
+  saveTranslationOverridesSchema,
   upsertTranslationOverrideSchema,
   type TranslationBundle,
   type TranslationOverride,
 } from "@clinic/shared";
 import { Body, Controller, Get, HttpCode, HttpStatus, Post } from "@nestjs/common";
 import { createZodDto } from "nestjs-zod";
-
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
@@ -20,6 +20,7 @@ import {
 
 class UpsertTranslationDto extends createZodDto(upsertTranslationOverrideSchema) {}
 class ResetTranslationDto extends createZodDto(deleteTranslationOverrideSchema) {}
+class SaveTranslationsDto extends createZodDto(saveTranslationOverridesSchema) {}
 
 @Controller("translations")
 export class TranslationsController {
@@ -46,6 +47,15 @@ export class TranslationsController {
     @Body() body: UpsertTranslationDto,
   ): Promise<TranslationOverride> {
     return this.translations.upsert(user, body);
+  }
+
+  // A screenful of edits in one request: the footer either saves them all or none of them.
+  @Post("save")
+  @Roles(USER_ROLE.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Audit(TRANSLATION_OVERRIDES_ENTITY, AUDIT_ACTION.UPDATE, { entityIdSource: "clinic" })
+  save(@CurrentUser() user: AuthenticatedUser, @Body() body: SaveTranslationsDto): Promise<void> {
+    return this.translations.save(user, body);
   }
 
   // A reset is a delete of the row, not a write of the shipped string, so the default keeps moving

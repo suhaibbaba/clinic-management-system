@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createHmac, timingSafeEqual } from "node:crypto";
-
 import type { Env } from "@api/config/env.schema";
 
 /** `v1.<payload>.<signature>`, all base64url. */

@@ -20,7 +20,6 @@ import type {
   UpdateInventoryItemInput,
   UpdateSupplierInput,
 } from "@clinic/shared";
-
 import { inventoryApi, suppliersApi } from "@web/features/inventory/api";
 
 export const ITEMS_KEY = "inventory-items";

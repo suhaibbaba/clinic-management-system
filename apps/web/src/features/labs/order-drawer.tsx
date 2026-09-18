@@ -2,7 +2,6 @@ import { LAB_ORDER_STATUS, type LabOrderRow } from "@clinic/shared";
 import { useRef, useState, type ChangeEvent, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-
 import {
   Badge,
   Button,

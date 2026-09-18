@@ -5,7 +5,6 @@ import type {
   PatientView,
   UserRole,
 } from "@clinic/shared";
-
 import type { PatientRow } from "@api/patients/patient-access.service";
 import { PatientAccessService } from "@api/patients/patient-access.service";
 

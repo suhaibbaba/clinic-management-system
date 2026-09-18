@@ -6,7 +6,6 @@ import {
   type ToothHistory,
 } from "@clinic/shared";
 import { desc, eq, inArray } from "drizzle-orm";
-
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";

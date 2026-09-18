@@ -1,7 +1,6 @@
 import type { InventoryItemRow } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Badge, Card, Icon, Ltr } from "@clinic/ui";
 import { useSession } from "@web/features/auth/session";
 import { seesInventory } from "@web/features/inventory/permissions";

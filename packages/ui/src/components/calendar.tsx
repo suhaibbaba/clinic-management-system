@@ -8,7 +8,6 @@ import {
   type Modifiers,
 } from "react-day-picker";
 import { useTranslation } from "react-i18next";
-
 import { Icon } from "@ui/components/icon";
 import { Ltr } from "@ui/components/ltr";
 import { cn } from "@ui/lib/cn";

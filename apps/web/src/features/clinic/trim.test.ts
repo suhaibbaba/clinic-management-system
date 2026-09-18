@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { opaqueBounds } from "@web/features/clinic/trim";
 
 function frame(width: number, height: number, ink: readonly [number, number][], alpha = 255) {

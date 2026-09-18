@@ -23,7 +23,6 @@ import type {
   UpdateInventoryItemInput,
   UpdateSupplierInput,
 } from "@clinic/shared";
-
 import { apiDownload, apiRequest } from "@web/lib/api-client";
 
 const query = (params: Record<string, string | number | boolean | undefined>): string => {

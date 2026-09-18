@@ -1,6 +1,5 @@
 import type { JSX, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Icon, type IconName } from "@ui/components/icon";
 import { Ltr } from "@ui/components/ltr";
 import { Select } from "@ui/components/select";

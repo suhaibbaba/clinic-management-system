@@ -1,7 +1,6 @@
 import { Button, Icon } from "@clinic/ui";
 import { useSyncExternalStore, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { applyUpdate, subscribeToUpdate, updateWaiting } from "@web/lib/service-worker";
 import { useInstallPrompt } from "@web/lib/use-install-prompt";
 

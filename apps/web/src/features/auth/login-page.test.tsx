@@ -1,7 +1,6 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
-
 import { AppRoutes } from "@web/app/router";
 import { LoginPage } from "@web/features/auth/login-page";
 import ar from "@web/i18n/locales/ar.json";

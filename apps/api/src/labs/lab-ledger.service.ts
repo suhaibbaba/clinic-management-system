@@ -14,7 +14,6 @@ import {
   type StatementQuery,
 } from "@clinic/shared";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
-
 import { DATABASE, type Database } from "@api/database/database.module";
 import { labOrders, labPayments, labWorkTypes } from "@api/database/schema";
 import { LabsService } from "@api/labs/labs.service";

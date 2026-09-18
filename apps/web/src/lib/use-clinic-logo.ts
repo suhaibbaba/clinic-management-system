@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import { readBranding, writeBranding } from "@web/lib/branding-cache";
 
 export function useClinicLogo(

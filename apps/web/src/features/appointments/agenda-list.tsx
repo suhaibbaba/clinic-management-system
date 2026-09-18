@@ -1,7 +1,6 @@
 import { LOOKUP_LIST, type CalendarAppointment, type ClinicClosure } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Badge, EmptyState, Icon, Ltr, PersonName } from "@clinic/ui";
 import { useLookupLabels } from "@web/features/lookups/queries";
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/features/appointments/status";

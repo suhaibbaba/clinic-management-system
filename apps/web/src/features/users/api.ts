@@ -8,7 +8,6 @@ import type {
   UpdateUserInput,
   User,
 } from "@clinic/shared";
-
 import { apiRequest } from "@web/lib/api-client";
 
 export const usersApi = {

@@ -6,7 +6,6 @@ import {
 } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Avatar, Badge, Icon, Ltr, Popover, SearchField } from "@clinic/ui";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { NewPatientFields } from "@web/features/appointments/new-patient-fields";
@@ -14,6 +13,7 @@ import { usePatients } from "@web/features/patients/queries";
 import { ApiError } from "@web/lib/api-error";
 import { useDebounced } from "@web/lib/use-debounced";
 import { cn } from "@clinic/ui/lib/cn";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 export interface PickedPatient {
   readonly id: string;
@@ -194,7 +194,7 @@ export function PatientPicker({
             id={id}
             data-testid="patient-picker-search"
             label={t("patients.search")}
-            placeholder={t("patients.searchPlaceholder")}
+            placeholder={ellipsis(t("patients.searchPlaceholder"))}
             value={search}
             role="combobox"
             aria-expanded={open}

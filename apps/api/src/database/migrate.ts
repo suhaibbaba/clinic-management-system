@@ -1,9 +1,7 @@
 import { join } from "node:path";
-
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
-
 import { validateEnv } from "@api/config/env.schema";
 import { ensureSystemLookups } from "@api/database/system-lookups";
 

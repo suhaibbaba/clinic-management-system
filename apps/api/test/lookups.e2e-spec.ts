@@ -12,7 +12,6 @@ import {
   type LookupOption,
   type UserRole,
 } from "@clinic/shared";
-
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 import { ensureSystemLookups } from "@api/database/system-lookups";
 

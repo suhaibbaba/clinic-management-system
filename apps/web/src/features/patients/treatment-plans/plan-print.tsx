@@ -1,9 +1,7 @@
 import type { Clinic, ProcedureCatalogItem, TreatmentPlan } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { PrintLetterhead } from "@web/components/brand/print-letterhead";
-
 import { planRemaining, planTotal } from "@web/features/patients/treatment-plans/plan-total";
 
 interface PlanPrintProps {

@@ -1,6 +1,5 @@
 import { ITEM_CATEGORY, ITEM_UNIT, type InventoryItemRow } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
-
 import { stockScale, stockTone } from "@web/features/inventory/display";
 
 const item = (quantity: string, minQuantity: string, isLow = false): InventoryItemRow => ({

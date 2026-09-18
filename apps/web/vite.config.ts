@@ -2,12 +2,10 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath, URL } from "node:url";
-
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Connect, type Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
-
 import { apiProxy } from "./vite/dev-proxy.ts";
 
 const sharedSrc = fileURLToPath(new URL("../../packages/shared/src/index.ts", import.meta.url));

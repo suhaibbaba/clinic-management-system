@@ -1,7 +1,6 @@
 import type { Doctor, PerformedProcedure, ProcedureCatalogItem, UserRole } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Badge, Button, Drawer, EmptyState, Icon, Ltr, Money, usePersonName } from "@clinic/ui";
 import {
   AddProcedureForm,

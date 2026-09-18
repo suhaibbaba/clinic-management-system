@@ -9,7 +9,6 @@ import {
 } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
-
 import { AppointmentsService } from "@api/appointments/appointments.service";
 import { PendingBookingsService } from "@api/booking/pending-bookings.service";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";

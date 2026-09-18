@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { CHART_TYPE } from "@shared/enums";
 import { isFdiTooth, TOOTH_SURFACES } from "@shared/constants/dental";
 

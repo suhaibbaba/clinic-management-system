@@ -1,6 +1,5 @@
 import { normalizeArabic, USER_ROLE, type PatientView } from "@clinic/shared";
 import { sql } from "drizzle-orm";
-
 import { createPatient, uniquePhone } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 

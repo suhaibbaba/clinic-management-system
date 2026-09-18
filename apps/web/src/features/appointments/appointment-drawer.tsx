@@ -2,7 +2,6 @@ import { LOOKUP_LIST, APPOINTMENT_STATUS, type CalendarAppointment } from "@clin
 import { useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-
 import {
   Badge,
   Button,
@@ -36,6 +35,7 @@ import { minutesOf, toTimeLabel } from "@web/features/appointments/calendar-time
 import { errorMessageKey } from "@web/lib/api-error";
 import { formatDate } from "@web/lib/format";
 import { cn } from "@clinic/ui/lib/cn";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 export interface AppointmentDrawerProps {
   readonly "data-testid"?: string | undefined;
@@ -317,7 +317,7 @@ export function AppointmentDrawer({
           id="cancel-reason"
           data-testid="appointment-cancel-reason"
           rows={3}
-          placeholder={t("appointments.cancel.reasonPlaceholder")}
+          placeholder={ellipsis(t("appointments.cancel.reasonPlaceholder"))}
           value={cancelReason}
           onChange={(event) => setCancelReason(event.target.value)}
         />

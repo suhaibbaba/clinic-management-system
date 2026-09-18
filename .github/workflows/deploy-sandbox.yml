@@ -1,38 +1,24 @@
 name: Deploy sandbox
 
-# push to main -> build on the server -> healthcheck.
-#
-# There is no registry in this pipeline. The VPS holds the repository at
-# /opt/clinic/sandbox, so a deploy is: fast-forward that checkout to origin/main
-# and rebuild the two images in place. The runner never builds an image and
-# never pushes one anywhere.
-#
-# No actions/checkout here on purpose: the build happens on the VPS, from the
-# VPS's own clone. The equivalent of checkout's `fetch-depth: 0` therefore
-# lives in the script below — the app's version is <major>.<minor> plus the
-# repo's commit count, and a shallow clone would report a commit count of 1
-# forever (see scripts/app-version.mjs).
-#
-# The VPS is shared with other projects, so this workflow only ever touches
-# /opt/clinic/sandbox and the `clinic-sandbox` compose project. It installs no
-# reverse proxy and no TLS: the host-level nginx already fronts the machine and
-# reaches this stack over 127.0.0.1.
+# CI green on main -> build on the server -> healthcheck. No registry and no
+# checkout: the VPS builds from its own clone of the repo. See DEPLOY.md.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
     inputs:
       reset_data:
-        # A free-text confirmation rather than a checkbox, because a checkbox
-        # next to "Run workflow" is one mis-click away from deleting the
-        # sandbox's database. Typing the word is the whole safety mechanism.
+        # Typed, not a checkbox: a checkbox beside "Run workflow" is one
+        # mis-click from deleting the database.
         description: "Wipe the sandbox database and object store before deploying. Type RESET to confirm — anything else is ignored."
         required: false
         default: ""
         type: string
 
-# Never let two deploys reach the server at once, and never cancel one
-# mid-flight — a half-applied migration is worse than a queued deploy.
+# Never two at once, never cancelled: a half-applied migration is worse than a
+# queued deploy.
 concurrency:
   group: deploy-sandbox
   cancel-in-progress: false
@@ -46,11 +32,19 @@ jobs:
   deploy:
     name: Deploy to sandbox VPS
     runs-on: ubuntu-latest
+    # CI reports here however it ended, so the gate is the conclusion. One line
+    # and no `${{ }}`: a folded scalar round an expression yields a truthy
+    # string, and a gate that is always true is worse than none.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
 
     steps:
-      # A typo in the confirmation must stop the job rather than quietly
-      # deploying without the reset the operator asked for — "I clicked reset
-      # and it did not reset" is the failure mode this exists to prevent.
+      - name: Name the run this is deploying
+        if: github.event_name == 'workflow_run'
+        run: |
+          echo "CI ${{ github.event.workflow_run.conclusion }} for ${{ github.event.workflow_run.head_sha }}"
+          echo "::notice::deploying after CI ${{ github.event.workflow_run.conclusion }} on ${{ github.event.workflow_run.head_sha }}"
+
+      # A typo must stop the job, not deploy without the reset that was asked for.
       - name: Check the reset confirmation
         env:
           RESET: ${{ inputs.reset_data }}
@@ -64,49 +58,53 @@ jobs:
           echo "::error::reset_data must be empty or exactly RESET — got \"${RESET}\""
           exit 1
 
-      # The VPS is shared, and twice now a deploy has died before it began:
-      # `dial tcp …:22: i/o timeout`, exactly 30 seconds in, with a manual
-      # re-run minutes later working unchanged. The box was simply not
-      # answering on 22 for about a minute.
-      #
-      # So knock on the port first. A blip becomes a pause instead of a failed
-      # deploy of a commit that is already on main, and a real outage becomes a
-      # message that says the server never answered — rather than a stack trace
-      # from a tool that got as far as reading its own version.
+      # Waits by signing in, not by knocking: a bare TCP probe drops the
+      # connection without an identification string, which fail2ban bans the
+      # runner for — so the old loop banned itself and then saw no answer.
       - name: Wait for the VPS to accept SSH
         env:
           SSH_HOST: ${{ secrets.SANDBOX_HOST }}
           SSH_PORT: ${{ secrets.SANDBOX_SSH_PORT || 22 }}
+          SSH_USER: ${{ secrets.SANDBOX_USER }}
+          SSH_KEY: ${{ secrets.SANDBOX_SSH_KEY }}
         run: |
           set -uo pipefail
 
-          for attempt in $(seq 1 30); do
-            # Bash's own /dev/tcp: no netcat, no assumptions about the image.
-            if timeout 5 bash -c "cat < /dev/null > /dev/tcp/${SSH_HOST}/${SSH_PORT}" 2>/dev/null; then
-              echo "accepted a connection after ${attempt} attempt(s)"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/sandbox_probe
+          chmod 600 ~/.ssh/sandbox_probe
+
+          for attempt in $(seq 1 12); do
+            if ssh -i ~/.ssh/sandbox_probe -p "$SSH_PORT" \
+                 -o BatchMode=yes \
+                 -o ConnectTimeout=10 \
+                 -o StrictHostKeyChecking=accept-new \
+                 -o LogLevel=ERROR \
+                 "$SSH_USER@$SSH_HOST" true 2>/tmp/ssh-probe.err; then
+              echo "signed in after ${attempt} attempt(s)"
               exit 0
             fi
 
-            echo "attempt ${attempt}: no answer yet"
-            sleep 10
+            reason="$(tr -d '\r' < /tmp/ssh-probe.err | tail -1)"
+            echo "attempt ${attempt}: ${reason:-no answer}"
+
+            # Retrying cannot fix a refused key, and repeating one gets banned.
+            case "$reason" in
+              *"Permission denied"* | *"Too many authentication failures"* | *"no matching host key"*)
+                echo "::error::the VPS answered and refused the deploy key — this is not a blip, check the key and the authorized_keys on the server"
+                exit 1
+                ;;
+            esac
+
+            sleep 20
           done
 
-          echo "::error::the sandbox VPS never accepted a TCP connection on port ${SSH_PORT} — 30 attempts over about six minutes"
+          echo "::error::the sandbox VPS never accepted an SSH login on port ${SSH_PORT} — 12 attempts over about four minutes"
           exit 1
 
-      # ── Optional, manual, and never reachable from a push to main ────────
-      #
-      # The seed only ever populates an *empty* clinic: every module returns
-      # early once its own rows exist, and `upsertSeedClinic` deliberately
-      # leaves an adopted clinic's address, currency and settings alone,
-      # because those are things a practice edits about itself. That is right
-      # for a real deployment and wrong for a demo — it means changing the seed
-      # cannot change what the sandbox shows. Only a wipe can.
-      #
-      # So: a dump first, then the two data volumes, then the ordinary deploy
-      # below recreates them and seeds into the empty database. `clinic_backups`
-      # is deliberately not removed — which is what `down -v` would have done,
-      # and the reason this does not use it.
+      # Manual only. The seed populates an empty clinic and leaves an adopted
+      # one alone, so changing it cannot change the sandbox — only a wipe can.
+      # Dumps first, and keeps the backups volume, which is why not `down -v`.
       - name: Wipe the sandbox data
         if: ${{ inputs.reset_data == 'RESET' }}
         uses: appleboy/ssh-action@v1.2.0
@@ -126,9 +124,7 @@ jobs:
               docker compose -p ${{ env.COMPOSE_PROJECT }} -f docker-compose.sandbox.yml "$@"
             }
 
-            # Wiping a database that will not be re-seeded leaves an empty
-            # sandbox nobody can sign into, which is worse than the state this
-            # is being run to fix. Refuse before deleting anything.
+            # A wipe with no re-seed leaves a sandbox nobody can sign into.
             if ! grep -qE '^SEED_ON_BOOT=["'\''"]?true["'\''"]?[[:space:]]*$' .env; then
               echo "::error::SEED_ON_BOOT is not true in .env — a wipe would leave the sandbox empty"
               exit 1
@@ -146,9 +142,7 @@ jobs:
 
             echo "==> Wiped. The deploy below recreates them and seeds from scratch."
 
-      # Everything happens on the server: it already has the sources, and the
-      # secrets that configure them live in /opt/clinic/sandbox/.env, which is
-      # created once by hand and never touched by CI (see DEPLOY.md).
+      # On the server: it has the sources, and .env is made by hand, never by CI.
       - name: Build and restart the stack
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -157,11 +151,8 @@ jobs:
           key: ${{ secrets.SANDBOX_SSH_KEY }}
           port: ${{ secrets.SANDBOX_SSH_PORT || 22 }}
           script_stop: true
-          # The dial itself, not the script: the default 30s is what expired on
-          # a machine that was busy rather than gone.
+          # The dial, not the script: 30s expired on a box that was busy, not gone.
           timeout: 60s
-          # A build on a shared VPS is slower than a registry pull, and the
-          # first one has no layer cache at all.
           command_timeout: 30m
           script: |
             set -eu
@@ -172,9 +163,7 @@ jobs:
               exit 1
             }
 
-            # Hard reset rather than merge: the server holds no local commits,
-            # and a deploy must land exactly what is on main. `.env` is
-            # gitignored, so it survives this untouched.
+            # Reset, not merge: the deploy lands exactly main. `.env` is gitignored.
             git fetch origin main
             git reset --hard origin/main
             echo "deploying $(git rev-parse --short HEAD)"
@@ -186,13 +175,9 @@ jobs:
             fi
 
             echo "==> Resolving app version"
-            # One number for the whole deploy: the API reports it at
-            # /api/version and the web app shows it on the settings screen, so
-            # a mismatch between them is exactly the stale-build symptom this
-            # is here to expose. scripts/app-version.mjs is the reference
-            # implementation; the shell below mirrors it for a VPS with no node
-            # installed. `.git` is excluded from the Docker build context, so
-            # the images cannot work this out for themselves — it is passed in.
+            # Passed in: `.git` is outside the build context, so the images
+            # cannot work it out. Mirrors scripts/app-version.mjs for a VPS
+            # without node.
             if command -v node >/dev/null 2>&1; then
               APP_VERSION="$(node scripts/app-version.mjs)"
             else
@@ -205,30 +190,21 @@ jobs:
             # Fail loudly rather than booting a stack with empty passwords.
             test -f .env || { echo "missing ${{ env.REMOTE_DIR }}/.env — see DEPLOY.md"; exit 1; }
 
-            # --pull refreshes the base images too, so a rebuild picks up
-            # security updates to node:22-alpine and nginx rather than sitting
-            # on whatever was cached the first time.
+            # --pull so a rebuild picks up base image security updates.
             docker compose -p ${{ env.COMPOSE_PROJECT }} -f docker-compose.sandbox.yml build --pull
             docker compose -p ${{ env.COMPOSE_PROJECT }} -f docker-compose.sandbox.yml up -d --remove-orphans
 
             docker compose -p ${{ env.COMPOSE_PROJECT }} -f docker-compose.sandbox.yml ps
 
-            # Only dangling layers — including the images this build just
-            # superseded. Other projects on this machine keep their tagged
-            # images, and building here makes this prune matter: without it the
-            # disk fills with every previous build's layers.
+            # Dangling only: the machine is shared, and building here fills the
+            # disk with every previous build's layers.
             docker image prune -f
 
-      # Without this a deploy that dies inside a container leaves the operator
-      # with one line — "dependency failed to start: container ... is
-      # unhealthy" — and no way to see what the container actually said. Only
-      # api and postgres are dumped: they are what fails, and this log is
-      # public, so the fewer services piped into it the better.
+      # "container is unhealthy" alone says nothing about what the container
+      # said. Two services only: this log is public.
       - name: Container logs on failure
         if: failure()
-        # A dump that cannot reach the server must not add a second, louder
-        # failure on top of the real one — the job is already red, and the
-        # first error is the one worth reading.
+        # A dump that cannot reach the server must not bury the real failure.
         continue-on-error: true
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -237,7 +213,6 @@ jobs:
           key: ${{ secrets.SANDBOX_SSH_KEY }}
           port: ${{ secrets.SANDBOX_SSH_PORT || 22 }}
           timeout: 60s
-          # Best-effort: a missing service must not abort the rest of the dump.
           script_stop: false
           script: |
             cd ${{ env.REMOTE_DIR }} || exit 0
@@ -252,9 +227,8 @@ jobs:
                 logs --tail=80 --no-color "${service}" || true
             done
 
-      # From the runner, over the public hostname: this proves the whole path
-      # works — host nginx, TLS, the web container's /api proxy and the API's
-      # database connection — not just that a container started.
+      # Over the public hostname: proves nginx, TLS, the /api proxy and the
+      # database, not just that a container started.
       - name: Healthcheck through the public hostname
         run: |
           set -euo pipefail
@@ -267,8 +241,7 @@ jobs:
               echo "healthy after ${attempt} attempt(s)"
               printf '%s\n' "$body"
 
-              # A reachable API with an unreachable database is not a deploy
-              # anyone should call successful.
+              # A reachable API over a dead database is not a successful deploy.
               if ! printf '%s' "$body" | grep -q '"database":"up"'; then
                 echo "::error::API is up but reports the database down"
                 exit 1

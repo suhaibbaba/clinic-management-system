@@ -1,6 +1,5 @@
 import { and, asc, eq, isNull, ne, or, sql } from "drizzle-orm";
 import type { PersonName, UserRole } from "@clinic/shared";
-
 import type { Database } from "@api/database/database.module";
 import { users } from "@api/database/schema";
 

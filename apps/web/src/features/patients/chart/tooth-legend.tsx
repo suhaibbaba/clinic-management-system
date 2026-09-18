@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { ToothSwatch } from "@web/features/patients/chart/tooth-swatch";
 import { useToothStates } from "@web/features/patients/chart/tooth-state";
 

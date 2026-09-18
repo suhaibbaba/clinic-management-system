@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { paginationQuerySchema, weeklyScheduleSchema } from "@shared/schemas/common";
 import { specialtySummarySchema } from "@shared/schemas/specialties";
 import { passwordSchema } from "@shared/schemas/auth";

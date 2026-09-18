@@ -14,7 +14,6 @@ import {
   type UpdateClinicClosureInput,
 } from "@clinic/shared";
 import { and, asc, count, eq, gte, lte, type SQL } from "drizzle-orm";
-
 import { toClinicClosure } from "@api/appointments/availability.service";
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";

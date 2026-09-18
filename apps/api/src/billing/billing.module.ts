@@ -1,5 +1,4 @@
 import { Module } from "@nestjs/common";
-
 import { BillingController, PatientBillingController } from "@api/billing/billing.controller";
 import { ChargesService } from "@api/billing/charges.service";
 import { DocumentsService } from "@api/billing/documents.service";

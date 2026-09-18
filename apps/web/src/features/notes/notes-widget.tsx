@@ -1,11 +1,11 @@
 import { useState, type FormEvent, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Button, Icon, PersonName, Widget } from "@clinic/ui";
 import { useSession } from "@web/features/auth/session";
 import { useCreateNote, useDeleteNote, useNotes } from "@web/features/notes/queries";
 import { formatDate } from "@web/lib/format";
 import { cn } from "@clinic/ui/lib/cn";
+import { ellipsis } from "@web/i18n/ellipsis";
 
 // The clinic's noticeboard, not a patient's record: one line the next person at the desk needs to
 // read. Anything about a patient belongs on the patient, where it is scoped and audited as such.
@@ -97,7 +97,7 @@ export function NotesWidget(): JSX.Element {
           maxLength={500}
           onChange={(event) => setDraft(event.target.value)}
           aria-label={t("notes.add")}
-          placeholder={t("notes.placeholder")}
+          placeholder={ellipsis(t("notes.placeholder"))}
           className={cn(
             "w-full min-w-0 self-stretch border-none bg-transparent text-field text-ink outline-none",
             "placeholder:text-ink-subtle",

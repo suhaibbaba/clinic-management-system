@@ -28,7 +28,6 @@ import {
   type ResolvedLocation,
 } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
-
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { CLINICS_ENTITY, ClinicsService } from "@api/clinics/clinics.service";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";

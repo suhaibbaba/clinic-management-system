@@ -7,7 +7,6 @@ import {
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
-
 import {
   Badge,
   Button,

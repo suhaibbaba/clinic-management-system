@@ -7,7 +7,6 @@ import {
 import { useEffect, type JSX } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
 import { Button, FormField, Icon, Input, Modal, PhoneInput, useToast } from "@clinic/ui";
 import { authApi } from "@web/features/auth/api";
 import { useSession } from "@web/features/auth/session";

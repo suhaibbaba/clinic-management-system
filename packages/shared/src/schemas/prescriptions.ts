@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { paginationQuerySchema } from "@shared/schemas/common";
 
 export const prescriptionItemSchema = z.object({

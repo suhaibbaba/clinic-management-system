@@ -1,5 +1,4 @@
 import type { StatementQuery } from "@clinic/shared";
-
 import { labOrdersApi, labsApi } from "@web/features/labs/api";
 
 async function present(blob: Blob, filename: string, download: boolean): Promise<void> {
