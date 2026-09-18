@@ -397,6 +397,7 @@ function History({
                   className="mt-2"
                   size="sm"
                   variant="ghost"
+                  icon={<Icon name="reset" />}
                   data-testid="item-movement-reverse"
                   onClick={() => setReversing(movement)}
                 >
@@ -426,6 +427,7 @@ function History({
             </Button>
             <Button
               variant="danger"
+              icon={<Icon name="reset" />}
               data-testid="movement-reverse-confirm"
               isLoading={reverse.isPending}
               disabled={reason.trim().length < 3}

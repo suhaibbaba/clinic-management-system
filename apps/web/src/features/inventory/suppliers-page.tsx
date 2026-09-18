@@ -103,6 +103,7 @@ export function SuppliersPage(): JSX.Element {
               <Button
                 size="sm"
                 variant="ghost"
+                icon={<Icon name="edit" />}
                 data-testid="supplier-edit"
                 onClick={(event) => {
                   event.stopPropagation();

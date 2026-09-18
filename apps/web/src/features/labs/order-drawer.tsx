@@ -389,16 +389,16 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
               <span className="min-w-0 flex-1 truncate text-ink">{file.filename}</span>
             )}
 
-            <button
-              type="button"
+            <Button
+              size="sm"
+              variant="quiet"
+              className="shrink-0 hover:text-danger-600"
+              icon={<Icon name="trash" />}
               data-testid="lab-order-attachment-delete"
               aria-label={t("common.delete")}
               disabled={remove.isPending}
               onClick={() => void remove.mutateAsync({ orderId, id: file.id })}
-              className="cursor-pointer rounded-control p-1 text-ink-subtle transition-colors duration-150 hover:text-danger-600"
-            >
-              <Icon name="trash" className="size-4" />
-            </button>
+            />
           </li>
         ))}
       </ul>

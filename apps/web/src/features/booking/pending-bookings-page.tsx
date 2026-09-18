@@ -7,6 +7,7 @@ import {
   Button,
   EmptyState,
   FormField,
+  Icon,
   Ltr,
   Modal,
   PageHeader,
@@ -136,6 +137,7 @@ export function PendingBookingsPage(): JSX.Element {
             <Button
               size="sm"
               variant="ghost"
+              icon={<Icon name="check" />}
               data-testid="pending-booking-confirm"
               onClick={() => void onConfirm(row)}
               disabled={confirm.isPending}
@@ -147,6 +149,7 @@ export function PendingBookingsPage(): JSX.Element {
             <Button
               size="sm"
               variant="quiet"
+              icon={<Icon name="x" />}
               data-testid="pending-booking-reject"
               onClick={() => {
                 setRejecting(row);
@@ -232,6 +235,7 @@ export function PendingBookingsPage(): JSX.Element {
             </Button>
             <Button
               variant="danger"
+              icon={<Icon name="x" />}
               data-testid="pending-booking-reject-confirm"
               isLoading={reject.isPending}
               disabled={reason.trim().length < 3}

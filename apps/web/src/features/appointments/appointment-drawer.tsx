@@ -299,6 +299,7 @@ export function AppointmentDrawer({
             </Button>
             <Button
               variant="danger"
+              icon={<Icon name="x" />}
               data-testid="appointment-cancel-confirm"
               isLoading={cancel.isPending}
               disabled={cancelReason.trim().length < 3}

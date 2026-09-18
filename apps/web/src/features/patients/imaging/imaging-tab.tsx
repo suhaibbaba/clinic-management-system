@@ -381,7 +381,7 @@ function ImageCard({
         {canRemove && (
           <Button
             icon={<Icon name="trash" />}
-            variant="ghost"
+            variant="quiet"
             size="sm"
             data-testid="imaging-card-delete"
             disabled={remove.isPending}

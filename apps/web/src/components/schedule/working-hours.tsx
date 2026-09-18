@@ -253,7 +253,7 @@ function RangeRow({
         <Button
           icon={<Icon name="trash" />}
           size="sm"
-          variant="ghost"
+          variant="quiet"
           data-testid={`hours-range-${weekday}-${index}-remove`}
           onClick={onRemove}
         >

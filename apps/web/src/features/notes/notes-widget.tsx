@@ -1,7 +1,7 @@
 import { useState, type FormEvent, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Icon, PersonName, Widget } from "@clinic/ui";
+import { Button, Icon, PersonName, Widget } from "@clinic/ui";
 import { useSession } from "@web/features/auth/session";
 import { useCreateNote, useDeleteNote, useNotes } from "@web/features/notes/queries";
 import { formatDate } from "@web/lib/format";
@@ -57,21 +57,16 @@ export function NotesWidget(): JSX.Element {
               </div>
 
               {canRemove && (
-                <button
-                  type="button"
+                <Button
+                  size="sm"
+                  variant="quiet"
+                  className="shrink-0 hover:text-danger-600"
+                  icon={<Icon name="trash" />}
                   data-testid={`note-remove-${note.id}`}
                   aria-label={t("notes.remove")}
-                  onClick={() => remove.mutate(note.id)}
                   disabled={remove.isPending}
-                  className={cn(
-                    "inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center",
-                    "lg:size-(--control-h-sm)",
-                    "rounded-chip text-note-meta transition-colors duration-150",
-                    "hover:text-danger-600 disabled:cursor-not-allowed disabled:opacity-40",
-                  )}
-                >
-                  <Icon name="x" className="size-3.5" />
-                </button>
+                  onClick={() => remove.mutate(note.id)}
+                />
               )}
             </li>
           );
