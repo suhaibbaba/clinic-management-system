@@ -1,156 +1,202 @@
 # CLAUDE.md — Clinic Management System
 
-## Project overview
+A web-based clinic management system. The first client is a dental clinic; the system is
+**multi-specialty by design**. Never put dental-only logic outside the dental specialty
+configuration.
 
-A web-based clinic management system. The first client is a dental clinic, but the system is **multi-specialty by design** (dentistry, orthopedics, ...). Never hardcode dental-only logic outside the dental specialty configuration.
+Everything hangs off the **patient record**: appointments, visits, treatments, X-rays, lab orders
+and payments attach to the patient and appear in one timeline.
 
-Everything revolves around the **patient record**: appointments, visits, treatments, X-rays, lab orders, and payments all attach to the patient and appear in one timeline. Balances and stock quantities are **always computed from transactions — never stored as editable fields**.
+## Roles
 
-Roles and permissions are specified in **ROLES.md** — read it before implementing any endpoint.
+`admin` · `doctor` · `technician` · `receptionist`, plus anonymous **public** on the booking page.
+One clinic, one role per user. `admin` passes every role check within its own clinic.
+
+**`ROLES.md` is the specification — read it before implementing any endpoint.** Its five global
+rules, in short:
+
+1. Every request is scoped to the caller's `clinic_id`, taken from the token and never from the
+   body, path or query. Another clinic's row is a 404, never a 403.
+2. Role decides **which fields are serialized**, not only which endpoints answer. A field a role may
+   not read is absent, not null.
+3. Financial and medical mutations always write an audit entry with old and new values.
+4. Nothing is hard-deleted. Only `admin` may soft-delete financial records or view deleted rows.
+5. Doctors see the records of patients in their clinic (v1); `STRICT_DOCTOR_SCOPE` exists to tighten
+   this later.
 
 ## Tech stack
 
-- **Backend:** NestJS on the **Fastify adapter**, TypeScript strict mode
-- **ORM:** Drizzle ORM + PostgreSQL, migrations via `drizzle-kit`
-- **Frontend:** React + Vite, RTL-first Arabic UI with i18n (Arabic default, English later)
-- **Shared:** monorepo (pnpm workspaces) with `packages/shared` for Zod schemas and TypeScript types used by both API and web, and `packages/ui` for the interface system
-- **Validation:** Zod everywhere — DTOs are Zod schemas (via `nestjs-zod`), reused on the frontend
-- **File storage:** Cloudflare R2 (S3-compatible) via presigned URLs — no files in the DB, no public URLs for medical images
-- **Notifications:** WhatsApp Business API / local SMS gateway behind a `NotificationsService` abstraction; reminders via `@nestjs/schedule`
-- **Auth:** JWT (short-lived access + refresh), role-based guards
-- **Target infra:** single cheap VPS (Node + Postgres), R2 for files. Keep memory footprint low — no heavyweight dependencies without justification.
-
-## Repo layout
+- **API** NestJS on Fastify, TypeScript strict
+- **Database** Drizzle ORM + PostgreSQL, migrations via `drizzle-kit`
+- **Web** React + Vite, RTL-first Arabic, i18n (Arabic default)
+- **Shared** pnpm workspaces: `packages/shared` (Zod schemas, types, enums), `packages/ui` (the
+  interface system)
+- **Validation** Zod everywhere; DTOs are shared schemas via `nestjs-zod`
+- **Files** Cloudflare R2 (S3-compatible), presigned URLs, never public
+- **Auth** JWT (short access + refresh cookie), role guards
+- **Infra** one small VPS. Keep the memory footprint low.
 
 ```
-apps/
-  api/        NestJS app — one Nest module per domain module below
-  web/        React app — one feature folder per domain module
-packages/
-  shared/     Zod schemas, shared types, enums, constants (FDI numbering, statuses)
-  ui/         the interface system: components, tokens, the theme contract (see its README)
+apps/api    one Nest module per domain module
+apps/web    one feature folder per domain module, tests in apps/web/test
+packages/shared   Zod schemas, types, enums, constants
+packages/ui       components, tokens, the theme contract
 ```
 
-## Architecture decisions
+## Modules, in build order
 
-1. **Multi-clinic + multi-specialty from day one.** Every domain table carries `clinic_id`. Specialty-specific behavior (tooth chart vs. skeleton chart, procedure catalogs, lab work types) is configuration/data, not code branches.
-2. **Ledger pattern for money and stock.** `charges`, `payments`, `lab_orders`, `lab_payments`, `stock_movements` are append-only. Patient balance = sum(charges) − sum(payments). Lab balance and stock quantity are computed the same way (SQL aggregate or view). Corrections are new reversing entries, not edits.
-3. **Soft delete only** for medical and financial records (`deleted_at`), plus `created_by` / `updated_by` / `created_at` / `updated_at` on every table.
-4. **Audit log** on every create/update/delete of financial and medical data: user, time, entity, old value, new value (JSONB). Implemented as a NestJS interceptor + service. Immutable — no update/delete API for it.
-5. **Interactive charts:** teeth use FDI numbering (11–48, deciduous 51–85). A `chart_marks` table links a treatment to a location (tooth + surface, or body region) generically per specialty.
-6. **Public booking is anonymous:** no patient accounts. Phone number is the identity key; OTP or reception confirms. Slot computation from doctor schedules minus existing appointments — never store "free slots".
-7. **State machines as data:** statuses are string enums in `packages/shared`; allowed transitions validated in services (e.g. lab order: draft → sent → ready → received → fitted, with sent ← returned loop).
-8. **Every user-facing choice list is data, never a hardcoded array.** Options live in `lookup_options`, one row per option, scoped per clinic and grouped by `list_key` — tooth states, lab work types, materials and shades, attachment types, appointment types, inventory categories and units, payment methods, frequent drugs. A clinic adds "veneer" to the tooth chart or "شيك" to the payment methods in settings → القوائم, without a deploy. Adding a list is a `list_key` plus its rows in `SYSTEM_LOOKUPS`; adding an option is not a code change at all. Built-in rows are seeded with `is_system = true`, and that flag is a **label, not a lock**: it marks a row the application draws behaviour from, so the screen can warn before it goes. Every row of every list can be renamed, recoloured, reordered, switched off or deleted, the built-in ones included — a clinic that never fits a bridge should not be stuck with it in the dropdown. The two ways to retire an option differ in what they keep, and the wording on screen has to say which: **switching off** takes an option out of every dropdown and leaves it resolving to its name, so last year's receipt still reads "نقداً"; **deleting** is a soft delete that takes the name with it, and a record holding the code falls back to showing the code. Codes are never edited either way, which is what keeps a stored value unambiguous.
-   **The exception is a status that drives a state machine** (decision 7 above): appointment status, lab order status, stock movement direction. Those stay code enums, because the transition table, the permissions and the arithmetic are written against those exact values, and making them editable would let a clinic add a status nothing knows how to move out of. Behaviour is code; the words on a dropdown are data.
+core · patients · billing · appointments · booking · notifications · labs · inventory · reports
 
-9. **Availability is one service, and it subtracts four things.** `AvailabilityService` is the only place that decides whether a minute is bookable — the internal calendar, the booking form's slot picker and the anonymous public booking page all arrive there, so a day the calendar shades is a day booking refuses. It subtracts, in this order: **clinic closures** (`clinic_closures`, dated whole days with a reason, replacing the old `settings.holidays` array), the **clinic's working hours** for that weekday, the **doctor's weekly schedule** intersected with them, and **doctor time off** (`doctor_time_off`, two instants, so whole days and partial hours are one shape) plus the appointments already booked. `closedReason` names which of them shut the day, because "we are closed on Fridays" and "we are closed for Eid" are different sentences on the phone.
-   **A closure or an absence over booked appointments is refused, not applied.** The first attempt answers 409 with the list of who is in the way; the caller comes back with `force` (write it anyway) and optionally `cancelAppointments` (cancel them and notify each patient). Two flags, because "shut the clinic" and "cancel three patients" are separate decisions and only one of them is reversible. Every cancellation's reason names the row that caused it.
-10. **Staff and clinic names are bilingual; patient names are not.** `users` and `clinics` carry `name_ar` and `name_en`, travelling as one `{ ar, en }` value and rendered through the single `<PersonName>` component and `personName()` helper — never a per-screen language ternary. **A patient's name stays one field**: it is what reception copied off an ID card, and asking for a transliteration at the desk invents data rather than recording it. Printed documents use the *clinic's* document language, not the reader's.
-11. **Money is whole numbers in the interface, and a symbol.** Prices are entered and displayed as whole units — `wholeMoneySchema` gates every write path, money inputs refuse a decimal separator as it is typed, and displays format with zero decimals. **Storage is unchanged**: the columns stay `numeric(10,2)` and every read schema stays `moneySchema`, because the ledgers already hold values with fractions and rounding live balances to fix a data-entry preference would be the wrong trade. The currency is shown as its **symbol** (`CURRENCY_SYMBOLS`: JOD → د.ا, ILS → ₪), never its code or its name.
+**Phase 1** core, patients, billing, internal appointments, roles, audit log.
+**Phase 2** public booking, notifications, labs, inventory.
+**Phase 3** reports, dashboard, prescriptions, a second specialty chart, expenses.
 
-## Modules (build in this order)
+## Architecture
 
-1. **core** — clinics, specialties, doctors, users/roles, settings, audit log
-2. **patients** — patients, medical history, visits, treatment plans, performed procedures, chart marks, attachments (X-rays), prescriptions
-3. **billing** — procedure catalog (prices per specialty), charges, payments, receipts/invoices (PDF), statements
-4. **appointments** — internal calendar, statuses, conflict prevention, waiting list
-5. **booking** — public booking endpoints + page, slot computation, OTP confirm, cancel/reschedule links
-6. **notifications** — templates, WhatsApp/SMS sending, reminder scheduler
-7. **labs** — labs, lab orders (state machine), lab payments, statements
-8. **inventory** — items, stock movements (purchase/consume/adjust), suppliers, expiry & low-stock alerts
-9. **reports** — dashboard, revenue/patients/appointments/labs/inventory reports, Excel/PDF export
+1. **Multi-clinic, multi-specialty from day one.** Every domain table carries `clinic_id`.
+   Specialty behaviour is configuration and data, never a code branch.
+2. **Ledgers, not balances.** `charges`, `payments`, `lab_orders`, `lab_payments`,
+   `stock_movements` are append-only. A balance and a quantity are `sum()` over them, computed on
+   read. A correction is a new reversing row. **Never store an editable balance or quantity.**
+3. **Soft delete** for everything medical and financial, plus `created_by`/`updated_by`/
+   `created_at`/`updated_at`.
+4. **Audit log** on every financial and medical mutation: user, time, entity, old and new value.
+   Immutable — no update or delete path.
+5. **Charts** use FDI numbering (11–48, 51–85). `chart_marks` links a treatment to a location
+   generically per specialty.
+6. **Public booking is anonymous.** No patient accounts; the phone number is the identity. Slots are
+   computed, never stored.
+7. **State machines are code enums**, in `packages/shared`; transitions validated in services.
+8. **Every user-facing choice list is data**, in `lookup_options`, scoped per clinic and grouped by
+   `list_key`. Adding an option is not a code change. `is_system` is a label, not a lock: every row
+   can be renamed, recoloured, reordered, switched off or deleted. Switching off keeps the name
+   resolving; deleting takes it and the stored code falls back to itself. Codes are never edited.
+   **The exception is a status that drives a state machine** — appointment status, lab order status,
+   stock movement direction — which stays an enum.
+9. **`AvailabilityService` is the only place that decides whether a minute is bookable.** It
+   subtracts, in order: clinic closures, clinic working hours, the doctor's schedule, doctor time
+   off, and booked appointments. `closedReason` says which. A closure or absence over booked
+   appointments answers 409 with who is in the way; the caller returns with `force` and optionally
+   `cancelAppointments`.
+10. **Staff and clinic names are bilingual, patient names are not.** `{ ar, en }` through
+    `<PersonName>` / `personName()`, never a per-screen ternary. A patient's name is one field.
+    Printed documents use the clinic's document language.
+11. **Money is whole numbers in the interface, and a symbol.** `wholeMoneySchema` gates every write;
+    money inputs refuse a decimal separator; displays format with zero decimals. Storage stays
+    `numeric(10,2)` and read schemas stay `moneySchema`. The currency is its symbol from
+    `CURRENCY_SYMBOLS`, never a code or a name.
+12. **Translations are editable per clinic.** `translation_overrides` stores only what an admin
+    changed; the locale files remain the default, so improved wording still reaches untouched keys
+    and a reset is a row delete.
 
-## Conventions & rules
+## Backend
 
-### Backend (NestJS)
-- One Nest module per domain module; inside: `controller` (thin) → `service` (business logic) → Drizzle queries. No business logic in controllers or schemas.
-- DTOs: Zod schemas from `packages/shared` wrapped with `createZodDto`. Never duplicate validation.
-- Guards: `JwtAuthGuard` global; `@Roles(...)` + `RolesGuard` per endpoint; object-level checks (clinic scope, doctor-owns-patient) inside services. See ROLES.md.
-- Every list endpoint: pagination (`page`/`limit`), filtering via query params, scoped to the caller's `clinic_id` automatically.
-- Money: Postgres `numeric(10,2)`, handled as strings/`Decimal` in TS — **never float**.
-- Errors: Nest exceptions with a consistent shape `{ statusCode, message, error }`; Arabic-facing messages resolved on the frontend by error code, not by backend strings.
-- Migrations: every schema change through `drizzle-kit generate` + committed SQL. Never edit an applied migration.
+- `controller` (thin) → `service` (logic) → Drizzle. No business logic in controllers or schemas.
+- DTOs are shared Zod schemas. Never duplicate validation.
+- `JwtAuthGuard` global; `@Roles(...)` per endpoint; object-level checks inside services.
+- Every list endpoint paginates, filters by query param, and is clinic-scoped automatically.
+- Money is `numeric(10,2)`, handled as strings. **Never float.**
+- Errors are `{ statusCode, message, error }`; Arabic wording is resolved on the front end by code.
+- Every schema change is a committed `drizzle-kit generate` migration. Never edit an applied one.
 
-### Frontend (React)
-- Functional components + hooks; feature folders mirror backend modules; TanStack Query for server state.
-- RTL layout by default (`dir="rtl"`); test every screen in RTL. Gregorian dates, Arabic labels via i18n files — never hardcode Arabic strings in components.
-- Role-aware UI: hide what the role can't do, but treat UI hiding as cosmetic — the API is the real boundary.
-- Dropdowns read the clinic's own lists through `useLookupOptions` / `useLookupLabels`, never a constant. `pnpm --filter @clinic/web check:i18n` fails CI on an Arabic literal in any `.ts`/`.tsx` under `src`, and on a key present in one locale file and missing from the other.
-- **The top bar reads search-first, actions-last.** The search field takes the inline start — the right in Arabic, the left in English — and the notification bell with the page's portalled primary action sit together at the far end. Logical properties, so the two mirror with the language rather than being positioned per direction.
-- **Navigation is one table.** `app/navigation.ts` lists the sidebar's sections and its settings group with the roles that see each; the route guards in `app/router.tsx` are built from the same sets, so a hidden entry is not reachable by typing its address either. Adding a screen means adding a row there, not a `<Route>` somewhere and a link somewhere else.
-- **A view somebody can reach is a view somebody can link to.** Tabs and list filters live in the URL (`useTabParam`, or a query param read straight from `useSearchParams`) — never in `useState`. A panel whose state is invisible to the address bar cannot be linked to, bookmarked, deep-linked from the dashboard, or redirected to from the route it replaced.
-- **A retired route redirects, it does not disappear.** When a page is merged into a tab or a filter, its old address stays in the router as a `<Navigate>` to the tab that replaced it.
-- **A dialog focuses nothing when it opens.** Radix's default is the first focusable element, which in this app is usually a date field — a caret in an untouched form, and a calendar unfolding over it. `Modal` and `Drawer` prevent `onOpenAutoFocus` and focus the container instead; the trap, Escape and the first Tab are unchanged. The root cause is fixed alongside it: `Popover` **anchors** rather than triggers, so a picker opens only on an explicit click, Enter, Space or ArrowDown — never on focus. It is one popover on every screen — it used to be a bottom sheet below `md`, which was a second primitive and a second set of behaviour for one question. A scrollable dialog body carries enough inner padding for a full focus ring (3px plus a 2px offset).
-- **Every interactive control is `--control-h` (34px) or `--control-h-sm` (28px); a third height requires changing the tokens, never an inline value.** 34px is a field, a button, a chip; 28px is the compact row a laptop gets for a chip, a tab, a segment or a table-row button. Each token is one value at every width — the scale does not change under a thumb, so 34px is what a finger gets as well. That clears the 24px WCAG 2.5.8 (AA) minimum; the 44px this used to hold is 2.5.5, which is AAA. Both scales share one anatomy: 10px radius (full for a pill), a **14px label** (`--text-label`), and an 8px gap between a control's icon and its words.
-- **A control's label is 14px; the value inside a field is 16px and never less.** `--text-label` is what a button, chip, tab, segment or badge writes its label at. `--text-field` is only ever what somebody typed — iOS Safari zooms a field under 16px on focus and does not zoom back, so that token has no smaller variant at any width or pointer.
-- **A field's state is its edge and its fill, and there is one set of them.** `fieldShell()` draws every input, select, search box and picker trigger: white on the page's tint with a 1.5px border at rest, a step darker on hover, primary with a soft ring on focus, a solid grey fill with no border and a lock when disabled, danger when it fails. A field is a flex row — the adornments never shrink and the value truncates before them, so an icon does not move when the text gets longer.
-- **`Select` is Radix's, not the platform's.** It was a native `<select>`, and on a clinic's iPhone tapping one did nothing at all, on every screen, in Safari — the field present, enabled, uncovered and populated, and the platform picker simply never arriving. A native picker is not part of the page, so that failure can be neither reproduced nor regression-tested anywhere but on the device, which is the reason to stop depending on it rather than to keep guessing at it. It is now `@radix-ui/react-select` — the primitive shadcn/ui builds the same control from — drawn with the app's own tokens: one control on every platform, made of ordinary DOM a test at 390px can drive, with the list in the app's type rather than the OS's, a tick on the row that is set, 44px rows, and typeahead and the arrow keys from the primitive. It keeps the native `value`/`onChange` signature, so a caller still reads `event.target.value`; inside `react-hook-form` it takes a `Controller` rather than `register`, because there is no longer an element for a ref to hold. Radix reserves the empty string for clearing a selection, so the placeholder row travels under a sentinel and comes back out as `''`.
-- **Every phone number dials and every email opens a message** — `<PhoneLink>` and `<EmailLink>` from `@clinic/ui`, never bare text. Reception's job is largely ringing people, and a number they have to read off the screen and key into a handset is a number the app did not help with. `tel:` gets the digits stripped of spacing; the visible text stays exactly as it was entered, because that is what gets read out loud. Both are `<Ltr>` islands and both draw a dash rather than an empty link when the field is null. Printed documents are the exception: a link on paper is nothing.
-- **Never a raw `<img>`; always the shared `Img` with explicit sizing** — `aspectRatio` for fluid layouts, `width`+`height` for fixed elements. The sizing prop is a discriminated union, so neither omitting it nor giving both compiles. `Img` reserves its box before the file loads and keeps the same dimensions while it loads, once it has loaded and if it fails, which is what keeps any image in the app from shifting the layout under it. **There is no bundled logo** — this is a multi-clinic product, so `Logo` draws the clinic's own uploaded image and nothing else; a clinic without one gets a generated mark of its initial, never a second piece of artwork, and a printed sheet gets its name in text.
-- **Every amount is `<Money>`, every price field is `<MoneyInput>`, every staff name is `<PersonName>`.** They live in `@clinic/ui` because inventory, labs, the dashboard and patients draw them as much as billing does, and a shared control inside one feature is a control other features import across a boundary they should not.
-- **The interface system is a package, not a folder: `packages/ui`, imported as `@clinic/ui`.** It is one library and many branded copies — so nothing inside it names a clinic or a colour. `packages/ui/src/styles/base.css` declares every token with a neutral default; a product's `theme.css` supplies its values and `theme.ts` states the same values as a typed `ThemeOverride` for `UiProvider`, with a test failing on any drift between the two. A product supplies **values, never new token names**. The only sanctioned way to change how a component looks is its `className` or a `data-part` on one of its inner parts — never a fork, and never a reach into its markup. ESLint fails the build on `packages/ui` importing from `apps/*`, and on an app importing through the package's internal `@ui/…` alias.
-- **Every component is addressable from the DOM: one `data-testid`, and it names the whole subtree.** A page of utility classes says nothing about which component drew which node, so every primitive in `@clinic/ui` takes `data-testid` and derives each inner part's id from the `data-part` it already carried — `<Modal data-testid="payment">` gives `payment`, `payment-title`, `payment-body`. One rule, no per-component vocabulary. Ids already on the page are reused rather than asked for twice: `FormField` falls back to its `htmlFor`, the pickers to their `id`. A list row carries its own identity and its children hang off it (`<testid>-row-<id>`), so a selector that misses names the row it missed. A component given no id renders the DOM it always did. Testids are for tests and devtools; `data-part` stays the styling hook, and nothing selects on a testid in CSS.
-- **A response's shape is the permission.** Where the API omits a field a role may not read, the screen draws what it was sent rather than consulting a copy of the matrix — a card with no figure behind it is not rendered at all. And never link to a page the reader would be bounced off: check the same helper the route guard uses.
+## Frontend
 
-### Files & images
-- Upload via presigned R2 URLs from the API; store only key + metadata in DB; serve via short-lived signed URLs. Receptionist role never receives attachment URLs.
-- **Staff have a photo; patients do not.** A rota, a calendar column and a lab sheet are all read by scanning for a person, and a face is faster than a name at 36px — so `users.photo_key` holds one, uploaded and removed by the admin on the users screen (ROLES.md: users & roles are the admin's) and drawn by `<Avatar src>`, which falls back to initials both when there is none and when the signed URL has expired in a tab left open. A patient's record holds what reception was handed; a portrait of them is not that.
-- **Colours are named in two files and nowhere else:** `packages/ui/src/styles/base.css` (the library's neutral defaults) and a product's `theme.css`/`theme.ts`. `check:hex` covers both packages and fails on a literal anywhere else.
-- **Screenshots and visual evidence go in the PR description only — never committed to the repo.** `docs/` holds source-of-truth inputs, not outputs: `design-reference.html` is what the app is drawn against, and a picture of what the app currently looks like is a review artefact with a shelf life of one merge. `.gitignore` refuses them everywhere rather than in one rooted directory.
+- Functional components, hooks, TanStack Query. Feature folders mirror the API modules.
+- **RTL by default.** Gregorian dates, Arabic through i18n. `check:i18n` fails on an Arabic literal
+  in a component and on a key missing from either locale.
+- Dropdowns read the clinic's lists through `useLookupOptions` / `useLookupLabels`, never a constant.
+- Role-aware UI is cosmetic; the API is the boundary. Never link to a page the reader would be
+  bounced off — check the helper the route guard uses.
+- **A view somebody can reach is a view somebody can link to.** Tabs and filters live in the URL,
+  never `useState`. A retired route redirects, it does not disappear.
+- **Navigation is one table.** `app/navigation.ts` lists sections and roles; the route guards are
+  built from the same sets.
+- The top bar reads search-first, actions-last, in logical properties.
 
-### Testing
-- Backend: Jest. Minimum required coverage: balance computation, slot availability/conflicts, permission boundaries per role (see ROLES.md test matrix), lab-order state transitions, audit log writes.
-- Frontend: Vitest. Every role's sidebar is asserted as a whole list, not one label at a time — the failure that matters is an entry appearing for somebody it was never meant for, which a test of what *should* be there cannot see. Each route guard is asserted per role, and each retired address is asserted to land on its replacement.
-- **Direction and spacing are verified by looking, by a person, on the sandbox.** There is no automated browser QA and no component test suite for `@clinic/ui`: a screenshot sweep asserted that the app still looked the way it looked, which is a test of the past rather than of the design, and it cost a CI job and a browser download to say so. A pull request that changes what a screen looks like carries screenshots in its description, taken from the app running locally, in Arabic RTL and at the widths the change touches; the reviewer opens the sandbox and looks. What a browser measures better than an eye — overflow, tap targets, clipped text — is measured while making the change, not stored as a fixture.
+### The interface system
 
-### Language
-- Code, comments, commits, API: English. UI strings: Arabic via i18n. Commits: conventional commits (`feat(billing): ...`).
+`packages/ui`, imported as `@clinic/ui`. One library, many branded copies, so nothing inside names a
+clinic or a colour. `base.css` declares every token with a neutral default; a product's
+`theme.css`/`theme.ts` supplies values — **values, never new token names**. Change a component
+through its `className` or a `data-part`, never a fork.
 
-### Versioning
-- The version is **`<major>.<minor>` from the root `package.json` plus the repository's commit count** — `1.0` and 312 commits is `1.0.312`. It is resolved by the deploy (`scripts/app-version.mjs`, mirrored in shell for a VPS without node) and never stored: nothing bumps a file, nothing tags, nothing commits back to the branch. Every commit that reaches `main` is a new version, for free.
-- **Major and minor are the human decision** and live in the root `package.json`; the third number says which build this is. Its patch field is ignored.
-- The images cannot work it out — `.git` is not in the Docker build context — so it is **passed in**: `APP_VERSION` as an environment variable to the API, `VITE_APP_VERSION` as a build arg to the web, which inlines it. Anything started without them reports `0.0.0-dev`, which is the honest answer and looks like one.
-- The API serves it at `/version`; the web shows it on the settings screen and shows the API's beside it **only when they differ**, which is how a browser holding a stale bundle announces itself.
+- **Two control heights and no third:** `--control-h` for a target (field, button, chip),
+  `--control-h-sm` for a compact row (tab, segment, table-row button, badge). A third is a token
+  change.
+- **Type comes from a token.** `pnpm lint:type` fails on any font size or line height written at a
+  call site. The scale is in `base.css` against a 16px root; nothing carrying content is under 12px.
+- **One of each primitive.** One pill, one menu, one field box; the rest are variants. `fieldShell()`
+  draws every input, select and picker trigger.
+- **A dialog focuses nothing when it opens**, and a picker opens on click, Enter, Space or
+  ArrowDown — never on focus.
+- `Select` is Radix's, not the platform's: a native `<select>` did nothing on iOS Safari and cannot
+  be tested off the device.
+- **Use the shared control:** `<Money>`, `<MoneyInput>`, `<PersonName>`, `<PhoneLink>`,
+  `<EmailLink>`, `<Img>` (always sized), `<Avatar>`. Never a raw `<img>`, never a phone number as
+  inert text.
+- **There is no bundled logo.** `Logo` draws the clinic's own upload, or a generated mark.
+- **Every component is addressable:** one `data-testid` naming the whole subtree, inner parts
+  derived from `data-part`. A row carries its own id. Nothing selects on a testid in CSS.
+- Colours are named in `packages/ui/src/styles/base.css` and a product's `theme.css`/`theme.ts`.
+  `lint:hex` fails on a literal anywhere else.
+
+## Files & images
+
+Upload through presigned R2 URLs; store the key and metadata, serve short-lived signed URLs. A
+receptionist never receives an attachment URL. **Staff have a photo, patients do not.**
+
+## Testing
+
+- **API** Jest against a real Postgres. Required: balance computation, slot availability and
+  conflicts, permission boundaries per role, lab-order transitions, audit writes.
+- **Web** Vitest, all specs under `apps/web/test`, in three lanes:
+  - `pnpm test` — jsdom, the fast lane, everything that is logic or behaviour.
+  - `pnpm --filter @clinic/web test:browser` — `*.browser.test.tsx` in real Chromium, for what jsdom
+    cannot do: computed tokens, layout and geometry, focus, direction. A browser session will not
+    attach while jsdom runs beside it, so it is a separate step.
+  - the node lane for the dev proxy.
+- Every role's sidebar is asserted **as a whole list** — the failure that matters is an entry
+  appearing for somebody it was never meant for. Each route guard is asserted per role, and each
+  retired address is asserted to land on its replacement.
+- **Direction and spacing are still verified by a person on the sandbox.** A pull request that
+  changes what a screen looks like carries screenshots in its description, in Arabic RTL, at the
+  widths it touches. Screenshots are never committed.
+
+## Versioning & deploy
+
+The version is `<major>.<minor>` from the root `package.json` plus the commit count, resolved at
+deploy and never stored. `APP_VERSION` reaches the API as an environment variable and the web as a
+build arg; without them the answer is `0.0.0-dev`. The API serves `/version`; the web shows the
+API's beside its own only when they differ.
+
+CI and the deploy are one chain on `main` only: checks, then images, then the sandbox. A failure
+stops the deploy.
 
 ## Never
-- put a tab or a list filter in `useState` when somebody might link to it — it belongs in the URL
-- drop a route that a page used to live at; redirect it to whatever replaced it
-- hardcode a user-facing choice list — it belongs in `lookup_options` (see architecture decision 8); a status that drives a state machine is the exception, and stays an enum
-- give a control a height of its own — it is `--control-h` or `--control-h-sm`, and a third one is a token change
-- write a second pill, a second menu, or a second field box; there is one of each and the rest are variants
-- write a raw `<img>`, or an `Img` whose box is not sized — a picture that arrives and pushes the page down is a bug
-- ship artwork for one clinic — the logo is uploaded, and its absence is a generated mark or a name
-- print a phone number or an email address as inert text — it is `<PhoneLink>` or `<EmailLink>`
-- ship a component nothing can select from the DOM — a root `data-testid`, and one on every control and row inside it
-- write a user-facing string in a component — every word comes from the locale files, in both languages
-- render a staff or clinic name with an inline language ternary — it is `<PersonName>` or `personName()`, once
-- give a patient a second name field; theirs is one field, entered as it was written
-- print a currency code or a currency name beside an amount — the symbol, from `CURRENCY_SYMBOLS`
-- accept a decimal separator in a money input, or draw a figure with decimals
-- let a dialog focus a field, or a picker open on focus
+
+- store or expose an editable balance or quantity
+- hard-delete a medical or financial row
+- use a float for money
+- skip the audit interceptor on a financial or medical mutation
+- return medical fields in a receptionist response
+- put dental logic in core, billing or appointments
+- hardcode a user-facing choice list, a colour, a font size or a control height
 - decide whether a minute is bookable anywhere but `AvailabilityService`
-- write a closure or a period of time off over booked appointments without the caller having seen them
-- store or expose a manually editable "balance" or "quantity" field
-- hard-delete medical or financial rows
-- return medical fields in receptionist-role responses (see ROLES.md field rules)
-- put dental-specific logic in core/billing/appointments modules
-- use floats for money
-- skip the audit interceptor on a financial/medical mutation
-- commit secrets — environment variables only (`.env` gitignored, `.env.example` maintained)
+- put a tab or filter in `useState`, or drop a route without redirecting it
+- write a user-facing string in a component
+- commit a secret or a screenshot
 
-## Current phase
+## Language & commits
 
-**Phase 1 (MVP):** core + patients (tooth chart & X-rays) + billing + internal appointments + roles & audit log.
-**Phase 2:** public booking + notifications, labs, inventory.
-**Phase 3:** reports & dashboard, prescriptions/medical reports polish, second specialty chart, expenses, Excel import.
+Code, comments, commits and the API are English. UI strings are Arabic through i18n. Conventional
+commits (`feat(billing): ...`).
 
+## Comments
 
-## Comment policy (strict)
-- Default is NO comment. Code must be self-explanatory via naming.
-- A comment is allowed ONLY for: a non-obvious WHY that cannot be
-  expressed in code (workaround + link, security/bidi/ledger invariant),
-  or JSDoc on shared/public utilities (one line, max two).
-- Maximum 3 lines per comment. No narrative prose, no essays, no
-  storytelling tone, no design rationale in code (that goes in the PR
-  description), no comments that restate the obvious.
-- Sweep the whole repo now to comply; keep deletions in their own commits.
+**Default: no comment.** Code explains itself through naming.
+
+A comment is allowed only for a non-obvious **why** that code cannot express — a workaround and its
+cause, a security, bidi or ledger invariant — or a one-line JSDoc on a shared or public utility.
+
+**Maximum three lines.** No narrative, no storytelling, no design rationale in code — that belongs in
+the pull request description. Never restate what the code already says.

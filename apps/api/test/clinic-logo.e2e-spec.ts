@@ -12,7 +12,9 @@ import {
   type PresignClinicLogoResponse,
   type UserRole,
 } from "@clinic/shared";
+import { and, inArray, isNull, ne } from "drizzle-orm";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
+import { clinics } from "@api/database/schema/core";
 import { StorageService, type StoredObject } from "@api/storage/storage.service";
 
 describe("Clinic logo (e2e)", () => {
@@ -24,6 +26,8 @@ describe("Clinic logo (e2e)", () => {
   let storedObject: StoredObject | null;
   let storedIcon: (name: string) => StoredObject | null;
   let deleted: string[];
+  /** Clinics other specs left behind, hidden for the length of this one — see `beforeAll`. */
+  let hidden: string[] = [];
 
   /** The derived set lives under the logo's own key, so a stat tells the two apart by path. */
   const iconNameIn = (key: string): string | undefined => key.split("/icons/")[1];
@@ -48,6 +52,29 @@ describe("Clinic logo (e2e)", () => {
     storage.deleteObject = async (key: string): Promise<void> => {
       deleted.push(key);
     };
+
+    // `branding`, `manifest` and the icon redirect answer only where the deployment serves exactly
+    // one clinic. The specs share one database and nothing truncates between them, so whatever ran
+    // first would otherwise decide whether this one passes.
+    const others = await context.db
+      .select({ id: clinics.id })
+      .from(clinics)
+      .where(and(isNull(clinics.deletedAt), ne(clinics.id, clinic.id)));
+
+    hidden = others.map((row) => row.id);
+
+    if (hidden.length > 0) {
+      await context.db
+        .update(clinics)
+        .set({ deletedAt: new Date() })
+        .where(inArray(clinics.id, hidden));
+    }
+  });
+
+  afterAll(async () => {
+    if (hidden.length > 0) {
+      await context.db.update(clinics).set({ deletedAt: null }).where(inArray(clinics.id, hidden));
+    }
   });
 
   beforeEach(() => {
@@ -538,13 +565,20 @@ describe("Clinic logo (e2e)", () => {
       const response = await context.app.inject({ method: "GET", url: "/clinic/branding" });
 
       expect(response.statusCode).toBe(200);
-      expect(Object.keys(response.json() as ClinicBranding).sort()).toEqual(["logoUrl", "name"]);
+      // The tab mark and the home-screen label are read before anyone signs in, so they travel
+      // with the name and the logo — and nothing else does.
+      expect(Object.keys(response.json() as ClinicBranding).sort()).toEqual([
+        "appName",
+        "iconsAt",
+        "logoUrl",
+        "name",
+      ]);
     });
 
     it("names no clinic when the deployment serves several", async () => {
       const response = await context.app.inject({ method: "GET", url: "/clinic/branding" });
 
-      expect(response.json()).toEqual({ name: null, logoUrl: null });
+      expect(response.json()).toEqual({ name: null, logoUrl: null, iconsAt: null, appName: "" });
     });
   });
 
