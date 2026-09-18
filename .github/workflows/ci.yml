@@ -1,15 +1,9 @@
 name: CI
 
-# Main only, like the deploy that waits on it: a branch is checked when it lands.
+# Called by the deploy, never triggered on its own: `workflow_call` alone keeps
+# it out of the Actions list, and its jobs show inside the run that needs them.
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  # The deploy waits on this run, so cancelling one ships the next commit unchecked.
-  cancel-in-progress: false
+  workflow_call:
 
 jobs:
   quality:

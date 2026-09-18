@@ -3,9 +3,7 @@ name: Deploy sandbox
 # CI green on main -> build on the server -> healthcheck. No registry and no
 # checkout: the VPS builds from its own clone of the repo. See DEPLOY.md.
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
+  push:
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -29,21 +27,22 @@ env:
   COMPOSE_PROJECT: clinic-sandbox
 
 jobs:
+  ci:
+    name: CI
+    # Skipped on a manual run: that is the path for redeploying or wiping while
+    # main is red, which is when it is most needed.
+    if: github.event_name != 'workflow_dispatch'
+    uses: ./.github/workflows/ci.yml
+
   deploy:
     name: Deploy to sandbox VPS
     runs-on: ubuntu-latest
-    # CI reports here however it ended, so the gate is the conclusion. One line
-    # and no `${{ }}`: a folded scalar round an expression yields a truthy
-    # string, and a gate that is always true is worse than none.
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    needs: ci
+    # `needs` alone would treat a skipped CI as a reason not to run, so the
+    # result is read rather than assumed.
+    if: always() && (needs.ci.result == 'success' || needs.ci.result == 'skipped')
 
     steps:
-      - name: Name the run this is deploying
-        if: github.event_name == 'workflow_run'
-        run: |
-          echo "CI ${{ github.event.workflow_run.conclusion }} for ${{ github.event.workflow_run.head_sha }}"
-          echo "::notice::deploying after CI ${{ github.event.workflow_run.conclusion }} on ${{ github.event.workflow_run.head_sha }}"
-
       # A typo must stop the job, not deploy without the reset that was asked for.
       - name: Check the reset confirmation
         env:
