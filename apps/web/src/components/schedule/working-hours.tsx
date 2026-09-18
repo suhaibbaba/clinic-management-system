@@ -116,6 +116,7 @@ export function WorkingHours({
                   checked={isWorking}
                   disabled={disabled}
                   label={weekdayName}
+                  hideLabel
                   onCheckedChange={(checked) =>
                     replaceDay({ weekday, ranges: checked ? [{ ...DEFAULT_RANGE }] : [] })
                   }

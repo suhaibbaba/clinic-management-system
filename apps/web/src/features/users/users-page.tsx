@@ -174,6 +174,7 @@ export function UsersPage(): JSX.Element {
               disabled={row.id === currentUser?.id}
               onCheckedChange={() => void toggleActive(row)}
               label={row.isActive ? t("users.deactivate") : t("users.activate")}
+              hideLabel
             />
             {/* Plain text, not a badge: a switch that is on beside a green pill
                 reading "Active" states the same fact twice, in the width of

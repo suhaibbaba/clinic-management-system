@@ -161,6 +161,7 @@ export function PermissionsPage(): JSX.Element {
                     disabled={locked}
                     onCheckedChange={(next) => void toggle(permission.keys, next)}
                     label={permission.label}
+                    hideLabel
                   />
                 </li>
               ))}

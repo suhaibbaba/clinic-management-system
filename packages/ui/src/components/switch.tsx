@@ -1,5 +1,5 @@
 import * as SwitchPrimitive from "@radix-ui/react-switch";
-import type { JSX } from "react";
+import { useId, type JSX } from "react";
 
 import { cn } from "@ui/lib/cn";
 import { parts, type TestIdProps } from "@ui/lib/testid";
@@ -8,6 +8,8 @@ export interface SwitchProps extends TestIdProps {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   label: string;
+  /** Drops the words where the text beside the switch already names what it does. */
+  hideLabel?: boolean | undefined;
   disabled?: boolean | undefined;
   id?: string | undefined;
 }
@@ -17,20 +19,22 @@ export function Switch({
   checked,
   onCheckedChange,
   label,
+  hideLabel = false,
   disabled = false,
   id,
   "data-testid": testId,
 }: SwitchProps): JSX.Element {
   const part = parts("switch", testId);
+  const labelId = useId();
 
-  return (
+  const track = (
     <SwitchPrimitive.Root
       {...part()}
       id={id}
       checked={checked}
       onCheckedChange={onCheckedChange}
       disabled={disabled}
-      aria-label={label}
+      {...(hideLabel ? { "aria-label": label } : { "aria-labelledby": labelId })}
       className={cn(
         "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full",
         "transition-colors duration-150",
@@ -51,5 +55,26 @@ export function Switch({
         )}
       />
     </SwitchPrimitive.Root>
+  );
+
+  if (hideLabel) {
+    return track;
+  }
+
+  return (
+    <span {...part("row")} className="inline-flex items-center gap-2.5">
+      {track}
+      <span
+        id={labelId}
+        {...part("label")}
+        onClick={() => !disabled && onCheckedChange(!checked)}
+        className={cn(
+          "select-none text-value text-ink",
+          disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
+        )}
+      >
+        {label}
+      </span>
+    </span>
   );
 }
