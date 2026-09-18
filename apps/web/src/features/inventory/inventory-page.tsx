@@ -28,6 +28,10 @@ import { formatDate } from "@web/lib/format";
 import { useDebounced } from "@web/lib/use-debounced";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
+// Search (20rem) + gap-3 (0.75rem) + category (11rem). Not a calc(): Tailwind's scanner drops a
+// candidate containing `+`, so the class would be emitted with no rule behind it.
+const FILTER_FIELDS_WIDTH = "max-w-[31.75rem]";
+
 // The quantity is a bar against the reorder level rather than a number to compare with another
 // number. Everything here is computed from the ledger; there is nothing to edit.
 export function InventoryPage(): JSX.Element {
@@ -149,6 +153,7 @@ export function InventoryPage(): JSX.Element {
           There is no dashboard yet (reports are Phase 3); when one lands, this
           is the component that moves onto it. */}
       <InventoryAlertCards
+        className={FILTER_FIELDS_WIDTH}
         onSelectItem={setOpenItemId}
         onShowLow={() => {
           setLow(true);

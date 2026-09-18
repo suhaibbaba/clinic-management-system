@@ -13,10 +13,12 @@ export function InventoryAlertCards({
   onSelectItem,
   onShowLow,
   onShowExpiring,
+  className,
 }: {
   readonly onSelectItem: (id: string) => void;
   readonly onShowLow: () => void;
   readonly onShowExpiring: () => void;
+  readonly className?: string | undefined;
 }): JSX.Element | null {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -34,7 +36,7 @@ export function InventoryAlertCards({
   }
 
   return (
-    <div data-testid="inventory-alerts" className="grid gap-3 lg:grid-cols-2">
+    <div data-testid="inventory-alerts" className={cn("grid gap-3", className)}>
       {low.length > 0 && (
         <AlertCard
           data-testid="inventory-alert-low"
