@@ -7,7 +7,7 @@ import { abuObaidTheme } from "@web/theme";
 // theme.css and theme.ts are the only places a colour is named. Reaching past them is the change
 // that passes review one utility at a time and leaves the brand in forty files.
 
-const SRC = join(__dirname);
+const SRC = join(__dirname, "..", "src");
 const UI_SRC = join(__dirname, "..", "..", "..", "packages", "ui", "src");
 const THEME_CSS = readFileSync(join(SRC, "theme.css"), "utf8");
 

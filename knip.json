@@ -17,14 +17,9 @@
       "project": ["src/**/*.ts", "test/**/*.ts", "scripts/*.mjs"]
     },
     "apps/web": {
-      "entry": [
-        "src/booking/main.tsx",
-        "scripts/*.mjs",
-        "src/**/*.test.{ts,tsx}",
-        "vite/**/*.test.ts"
-      ],
+      "entry": ["src/booking/main.tsx", "scripts/*.mjs", "test/**/*.test.{ts,tsx}"],
       "project": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", "vite/**/*.ts", "scripts/*.mjs"],
-      "ignoreDependencies": ["@fontsource/tajawal"]
+      "ignoreDependencies": ["@fontsource/tajawal", "@vitest/browser"]
     },
     "packages/shared": {
       "project": ["src/**/*.ts"]

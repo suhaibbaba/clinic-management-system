@@ -12,6 +12,7 @@
     "paths": {
       "@web/*": ["./src/*"],
       "@test/*": ["./test/*"],
+      "@web-vite/*": ["./vite/*"],
       /* The web app compiles the shared package's source, so it must resolve
          that package's own alias too. */
       "@shared/*": ["../../packages/shared/src/*"],

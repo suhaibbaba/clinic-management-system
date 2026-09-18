@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-const SRC = __dirname;
+const SRC = join(__dirname, "..", "src");
 const UI = join(SRC, "..", "..", "..", "packages", "ui", "src", "components");
 
 function sources(directory: string): string[] {

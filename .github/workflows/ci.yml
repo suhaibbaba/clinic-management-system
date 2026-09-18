@@ -74,8 +74,18 @@ jobs:
       - name: Check i18n
         run: pnpm --filter @clinic/web check:i18n
 
+      # Browser mode drives a real Chromium: the type scale, control heights and
+      # anything measured rather than asserted about run there.
+      - name: Install the browser the component tests drive
+        run: pnpm --filter @clinic/web exec playwright install --with-deps chromium
+
       - name: Test
         run: pnpm test
+
+      # Its own step, not part of `pnpm test`: a browser session will not attach
+      # while the jsdom project is running beside it, and this lane is slower.
+      - name: Test in a real browser
+        run: pnpm --filter @clinic/web test:browser
 
       # Opened from a WhatsApp link on mobile data; it gets heavy one stray
       # dashboard import at a time. `pnpm build` above already produced dist/.

@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import { playwright } from "@vitest/browser-playwright";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath, URL } from "node:url";
@@ -127,6 +128,9 @@ export default defineConfig({
       // to resolve in this context too.
       { find: "@shared", replacement: sharedSrcDir },
       { find: "@test", replacement: fileURLToPath(new URL("./test", import.meta.url)) },
+      // Not "@vite": Vite serves its own HMR client as `@vite/client`, and an
+      // alias that captures it leaves the page unable to connect back.
+      { find: "@web-vite", replacement: fileURLToPath(new URL("./vite", import.meta.url)) },
       { find: "@clinic/shared", replacement: sharedSrc },
       { find: /^@clinic\/ui$/, replacement: uiSrc },
       { find: /^@clinic\/ui\//, replacement: `${uiSrcDir}/` },
@@ -175,7 +179,8 @@ export default defineConfig({
           environment: "jsdom",
           globals: true,
           setupFiles: ["./test/setup.ts"],
-          include: ["src/**/*.test.{ts,tsx}"],
+          include: ["test/**/*.test.{ts,tsx}"],
+          exclude: ["test/vite/**", "test/**/*.browser.test.{ts,tsx}"],
           css: false,
         },
       },
@@ -185,7 +190,29 @@ export default defineConfig({
           name: "dev-proxy",
           environment: "node",
           globals: true,
-          include: ["vite/**/*.test.ts"],
+          include: ["test/vite/**/*.test.ts"],
+        },
+      },
+      // A real browser, for what jsdom can only pretend to have: computed styles,
+      // layout and overflow, focus traps, and logical properties under `dir="rtl"`.
+      // Only `.browser.test.tsx` runs here — the rest stay in jsdom, where they
+      // are milliseconds rather than seconds.
+      {
+        extends: true,
+        test: {
+          name: "browser",
+          globals: true,
+          // The point of this project: real styles, so a computed value is the
+          // one the app ships rather than jsdom's empty string.
+          css: true,
+          setupFiles: ["./test/setup.browser.ts"],
+          include: ["test/**/*.browser.test.{ts,tsx}"],
+          browser: {
+            enabled: true,
+            provider: playwright(),
+            headless: true,
+            instances: [{ browser: "chromium" }],
+          },
         },
       },
     ],
