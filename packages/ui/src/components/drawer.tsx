@@ -1,7 +1,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-
+import { Button } from "@ui/components/button";
 import { Icon } from "@ui/components/icon";
 import { DialogLayerProvider } from "@ui/components/dialog-layer";
 import { cn } from "@ui/lib/cn";
@@ -86,11 +86,21 @@ export function Drawer({
             <DialogLayerProvider container={layer}>{children}</DialogLayerProvider>
           </div>
 
-          {footer !== undefined && (
-            <div {...part("footer")} className="shrink-0 border-t border-line px-4 py-3">
-              {footer}
-            </div>
-          )}
+          <div
+            {...part("footer")}
+            className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line px-4 py-3"
+          >
+            {footer}
+            <Button
+              {...part("footer-close")}
+              variant="secondary"
+              className="ms-auto"
+              icon={<Icon name="x" />}
+              onClick={() => onOpenChange(false)}
+            >
+              {t("common.close")}
+            </Button>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
