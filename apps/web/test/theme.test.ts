@@ -4,8 +4,10 @@ import { themeVariables } from "@clinic/ui/theme";
 import { describe, expect, it } from "vitest";
 import { abuObaidTheme } from "@web/theme";
 
-// theme.css and theme.ts are the only places a colour is named. Reaching past them is the change
-// that passes review one utility at a time and leaves the brand in forty files.
+// theme.css and theme.ts are the only places a colour is named. The literal itself is `lint:hex`'s
+// to refuse — over more file types than this, and with its own test. What is left here is what that
+// check cannot see: a stock palette class, a colour in a style prop, and drift between the two
+// layers that carry the palette.
 
 const SRC = join(__dirname, "..", "src");
 const UI_SRC = join(__dirname, "..", "..", "..", "packages", "ui", "src");
@@ -17,13 +19,7 @@ function sourceFiles(dir: string, acc: string[] = []): string[] {
 
     if (statSync(path).isDirectory()) {
       sourceFiles(path, acc);
-    } else if (
-      /\.tsx?$/.test(entry) &&
-      !/\.test\.tsx?$/.test(entry) &&
-      // `hex-guard.test.ts` plants a colour literal in this tree and takes it away again. Both
-      // suites read the same files, so without this the two race and this one fails at random.
-      !/-fixture\.tsx?$/.test(entry)
-    ) {
+    } else if (/\.tsx?$/.test(entry) && !/\.test\.tsx?$/.test(entry)) {
       acc.push(path);
     }
   }
@@ -98,14 +94,6 @@ describe("design tokens", () => {
       /\b(?:[a-z-]+:)?(?:text|bg|border|ring|divide|placeholder|fill|stroke|outline|from|via|to)-(?:gray|slate|zinc|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|brand|white|black)(?:-\d{2,3})?\b/;
 
     const offenders = FILES.filter((file) => stock.test(file.source)).map((file) => file.path);
-
-    expect(offenders).toEqual([]);
-  });
-
-  it("names no colour by hex, rgb() or hsl()", () => {
-    const literal = /#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?\b|\brgba?\(|\bhsla?\(/;
-
-    const offenders = FILES.filter((file) => literal.test(file.source)).map((file) => file.path);
 
     expect(offenders).toEqual([]);
   });

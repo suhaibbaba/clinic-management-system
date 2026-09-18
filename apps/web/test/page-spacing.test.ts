@@ -3,7 +3,6 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const SRC = join(__dirname, "..", "src");
-const UI = join(SRC, "..", "..", "..", "packages", "ui", "src", "components");
 
 function sources(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -17,16 +16,9 @@ function sources(directory: string): string[] {
   });
 }
 
-// A page header that carries its own margin is counted twice wherever the page already spaces its
-// sections, which is how one screen ended up 36px below its title and another 16px.
+// The header's own margin is measured in `page-spacing.browser.test.tsx`; this is the sweep across
+// every page, which needs the sources rather than a render.
 describe("page spacing", () => {
-  it("leaves the header's outer spacing to the page", () => {
-    const header = readFileSync(join(UI, "page-header.tsx"), "utf8");
-    const outer = header.slice(0, header.indexOf("{hosted &&"));
-
-    expect(outer).not.toMatch(/\bm[btxy]?-[\d.]+/);
-  });
-
   it("spaces every page's sections the same way", () => {
     const offenders = sources(join(SRC, "features"))
       .filter((path) => readFileSync(path, "utf8").includes("<PageHeader"))
