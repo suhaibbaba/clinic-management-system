@@ -211,7 +211,10 @@ export default defineConfig({
             enabled: true,
             provider: playwright(),
             headless: true,
+            // A laptop, pinned: half the scale is breakpoint-conditional, so a
+            // height assertion means nothing without a width to read it at.
             instances: [{ browser: "chromium" }],
+            viewport: { width: 1280, height: 800 },
           },
         },
       },

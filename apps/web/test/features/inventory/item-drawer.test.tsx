@@ -80,14 +80,13 @@ const rowFor = async (amount: string): Promise<HTMLElement> =>
   (await screen.findByText(amount)).closest("li") as HTMLElement;
 
 describe("stock movement history", () => {
+  // The sign, not the colour: what a class is called is not what a reader sees, and the colour
+  // itself is asserted where a browser can resolve it — see `stock-history.browser.test.tsx`.
   it("reads a purchase as a rise and a withdrawal as a fall", async () => {
     render();
 
-    const bought = await rowFor("+5");
-    const used = await rowFor("-2");
-
-    expect(within(bought).getByText("+5").className).toContain("text-success-900");
-    expect(within(used).getByText("-2").className).toContain("text-danger-600");
+    expect(within(await rowFor("+5")).getByText("+5")).toBeInTheDocument();
+    expect(within(await rowFor("-2")).getByText("-2")).toBeInTheDocument();
   });
 
   it("says what the stock was before the movement and what it left behind", async () => {
