@@ -33,6 +33,7 @@ export * from "@shared/schemas/performed-procedures";
 export * from "@shared/schemas/prescriptions";
 export * from "@shared/schemas/procedure-catalog";
 export * from "@shared/schemas/quantity";
+export * from "@shared/schemas/translations";
 export * from "@shared/schemas/specialties";
 export * from "@shared/schemas/timeline";
 export * from "@shared/schemas/tooth-history";

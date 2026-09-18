@@ -19,6 +19,8 @@ import {
   type NavItem,
 } from "@web/app/navigation";
 import { useSession } from "@web/features/auth/session";
+import { useTranslationBundle } from "@web/features/translations/queries";
+import { useApplyTranslationOverrides } from "@web/features/translations/use-translation-overrides";
 import { seesPendingBookings, usePendingBookingsCount } from "@web/features/booking/queries";
 import { cn } from "@clinic/ui/lib/cn";
 import { useClinicLogo } from "@web/lib/use-clinic-logo";
@@ -27,6 +29,9 @@ import { useClinicLogo } from "@web/lib/use-clinic-logo";
 const PATIENTS = "/patients";
 
 export function AppLayout(): JSX.Element {
+  const overrides = useTranslationBundle(true);
+  useApplyTranslationOverrides(overrides.data);
+
   const { t } = useTranslation();
   const { user, logout, can } = useSession();
   const { pathname } = useLocation();
