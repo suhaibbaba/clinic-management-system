@@ -1,6 +1,5 @@
 import { sql } from "drizzle-orm";
 import { index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-
 import { clinics } from "@api/database/schema/core";
 
 // Only the strings a clinic changed. The locale files remain the default for everything else, so

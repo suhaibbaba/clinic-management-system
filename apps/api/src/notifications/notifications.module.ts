@@ -1,7 +1,5 @@
 import { Module } from "@nestjs/common";
-
 import { ConfigService } from "@nestjs/config";
-
 import { AppConfigModule } from "@api/config/config.module";
 import type { Env } from "@api/config/env.schema";
 import { DatabaseModule } from "@api/database/database.module";

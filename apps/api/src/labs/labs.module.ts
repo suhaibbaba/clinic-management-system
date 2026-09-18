@@ -1,5 +1,4 @@
 import { Module } from "@nestjs/common";
-
 import { AppointmentsModule } from "@api/appointments/appointments.module";
 import { AuditModule } from "@api/audit/audit.module";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";

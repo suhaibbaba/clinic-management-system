@@ -1,5 +1,4 @@
 import { Module } from "@nestjs/common";
-
 import { AuthModule } from "@api/auth/auth.module";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { DoctorsController } from "@api/doctors/doctors.controller";

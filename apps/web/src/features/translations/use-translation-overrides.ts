@@ -1,6 +1,5 @@
 import { TRANSLATION_LANGUAGES, type TranslationBundle } from "@clinic/shared";
 import { useEffect } from "react";
-
 import i18n from "@web/i18n";
 
 // Merged over the bundled locale files rather than replacing them: a clinic stores only the strings

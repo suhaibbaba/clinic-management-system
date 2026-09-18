@@ -1,8 +1,6 @@
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { USER_ROLE } from "@clinic/shared";
-
 import { Icon } from "@clinic/ui";
 import { useSession } from "@web/features/auth/session";
 import { useAllergyFlags } from "@web/features/patients/queries";

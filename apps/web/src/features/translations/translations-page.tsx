@@ -2,7 +2,6 @@ import type { TranslationLanguage } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
-
 import {
   Button,
   Chip,

@@ -14,7 +14,6 @@ import {
 } from "@clinic/shared";
 import { and, eq, isNull, sql, type SQL } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
-
 import { DATABASE, type Database } from "@api/database/database.module";
 import { charges, payments, performedProcedures, procedureCatalog } from "@api/database/schema";
 

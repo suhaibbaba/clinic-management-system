@@ -2,7 +2,6 @@ import type { PatientClinicalView, PatientView } from "@clinic/shared";
 import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-
 import {
   Avatar,
   Badge,

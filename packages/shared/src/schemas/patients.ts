@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { GENDERS } from "@shared/enums";
 import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
 import { signedMoneySchema } from "@shared/schemas/money";

@@ -23,7 +23,6 @@ import {
   type WaitingListEntry,
 } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
-
 import { WAITING_LIST_ENTITY, WaitingListService } from "@api/appointments/waiting-list.service";
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";

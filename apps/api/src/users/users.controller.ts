@@ -25,7 +25,6 @@ import {
   type User,
 } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
-
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { AccountInvitationsService } from "@api/email/account-invitations.service";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";

@@ -8,7 +8,6 @@ import {
   type UpdateSupplierInput,
 } from "@clinic/shared";
 import { and, asc, eq, isNull, ne, or, sql, type SQL } from "drizzle-orm";
-
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { arabicNameSearch } from "@api/common/database/arabic-search";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";

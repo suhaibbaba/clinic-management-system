@@ -1,5 +1,4 @@
 import { USER_ROLE, USER_ROLES, type UserRole } from "@clinic/shared";
-
 import type { IconName } from "@clinic/ui/components/icon";
 
 export interface NavItem {

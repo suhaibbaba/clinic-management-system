@@ -1,5 +1,4 @@
 import { AUDIT_ACTION, USER_ROLE, type PersonName, type UserRole } from "@clinic/shared";
-
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 interface AuditEntry {

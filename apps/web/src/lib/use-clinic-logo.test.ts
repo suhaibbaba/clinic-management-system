@@ -1,6 +1,5 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-
 import { useClinicLogo } from "@web/lib/use-clinic-logo";
 
 const CLINIC = "11111111-1111-4111-8111-111111111111";

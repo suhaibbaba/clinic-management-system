@@ -1,7 +1,6 @@
 import type { CookieSerializeOptions } from "@fastify/cookie";
 import type { ConfigService } from "@nestjs/config";
 import type { FastifyReply, FastifyRequest } from "fastify";
-
 import type { Env } from "@api/config/env.schema";
 
 /** Set by the API and never readable from JavaScript, so an XSS on the web app cannot exfiltrate it. */

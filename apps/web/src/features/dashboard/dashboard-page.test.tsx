@@ -8,7 +8,6 @@ import {
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-
 import { AppRoutes } from "@web/app/router";
 import ar from "@web/i18n/locales/ar.json";
 import { authTokens } from "@web/lib/auth-tokens";

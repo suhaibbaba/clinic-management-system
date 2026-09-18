@@ -6,7 +6,6 @@ import {
   type PresignAttachmentUploadResponse,
 } from "@clinic/shared";
 import { and, asc, eq, isNull } from "drizzle-orm";
-
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { labOrderAttachments } from "@api/database/schema";

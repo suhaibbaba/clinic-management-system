@@ -8,7 +8,6 @@ import {
   type ProcedureOutcome,
   type WeeklySchedule,
 } from "@clinic/shared";
-
 import type { SeedAccount } from "@api/database/seed/users";
 
 export const CLINIC_NAME: PersonName = {

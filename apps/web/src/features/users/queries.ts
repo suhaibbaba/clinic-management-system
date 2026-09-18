@@ -7,7 +7,6 @@ import type {
   UpdateUserInput,
   User,
 } from "@clinic/shared";
-
 import { useSession } from "@web/features/auth/session";
 import { uploadToStorage } from "@web/features/patients/api";
 import { usersApi } from "@web/features/users/api";

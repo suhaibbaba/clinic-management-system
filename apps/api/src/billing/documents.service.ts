@@ -8,7 +8,6 @@ import {
   type StatementQuery,
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-
 import { LedgerService } from "@api/billing/ledger.service";
 import { toPayment } from "@api/billing/payments.service";
 import {

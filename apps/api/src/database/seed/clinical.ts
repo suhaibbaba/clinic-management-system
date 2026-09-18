@@ -10,7 +10,6 @@ import {
   type PrescriptionItem,
   type ToothLocation,
 } from "@clinic/shared";
-
 import type { Rng } from "@api/database/seed/random";
 
 /** The FDI numbers a mouth of this age actually has. */

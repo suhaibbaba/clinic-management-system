@@ -2,7 +2,6 @@ import { APPOINTMENT_STATUS, LOOKUP_LIST, type CalendarAppointment } from "@clin
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-
 import { Avatar, Badge, Icon, Ltr, PersonName } from "@clinic/ui";
 import { minutesOf, toTimeLabel } from "@web/features/appointments/calendar-time";
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/features/appointments/status";

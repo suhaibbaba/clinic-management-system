@@ -1,7 +1,6 @@
 import type { PatientClinicalView, PerformedProcedure, Visit } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Badge, Button, EmptyState, Icon, Ltr, usePersonName, useToast } from "@clinic/ui";
 import { SkeletonCard, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/features/auth/session";

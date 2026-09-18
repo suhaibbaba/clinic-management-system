@@ -4,7 +4,6 @@ import userEvent from "@testing-library/user-event";
 import type { JSX } from "react";
 import { useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { AppRoutes } from "@web/app/router";
 import ar from "@web/i18n/locales/ar.json";
 import { authTokens } from "@web/lib/auth-tokens";

@@ -1,7 +1,6 @@
 import type { JSX, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
-
 import { PILL_BASE } from "@ui/components/badge";
 import { cn } from "@ui/lib/cn";
 import { Ltr } from "@ui/components/ltr";

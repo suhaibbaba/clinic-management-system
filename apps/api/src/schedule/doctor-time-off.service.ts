@@ -10,7 +10,6 @@ import {
   type UpdateDoctorTimeOffInput,
 } from "@clinic/shared";
 import { and, asc, count, eq, gt, lt, type SQL } from "drizzle-orm";
-
 import { AppointmentAccessService } from "@api/appointments/appointment-access.service";
 import { toDoctorTimeOff } from "@api/appointments/availability.service";
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";

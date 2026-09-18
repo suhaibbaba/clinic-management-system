@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { StatRow } from "@ui/components/stat-card";
 import type { Column } from "@ui/components/table";
 import { cn } from "@ui/lib/cn";

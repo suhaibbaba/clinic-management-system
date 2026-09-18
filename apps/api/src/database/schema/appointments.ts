@@ -6,7 +6,6 @@ import {
 } from "@clinic/shared";
 import { sql } from "drizzle-orm";
 import { index, integer, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-
 import { clinics, doctors } from "@api/database/schema/core";
 import { patients, visits } from "@api/database/schema/patients";
 

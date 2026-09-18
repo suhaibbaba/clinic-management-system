@@ -1,5 +1,4 @@
 import { USER_ROLE, type UserRole } from "@clinic/shared";
-
 import type { Can } from "@web/features/auth/session";
 
 const isClinical = (role: UserRole): boolean =>

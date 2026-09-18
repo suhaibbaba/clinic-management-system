@@ -2,7 +2,6 @@ import type { AuthenticatedUserProfile } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-
 import { Avatar } from "@clinic/ui/components/avatar";
 import {
   Menu,

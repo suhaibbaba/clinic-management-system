@@ -16,7 +16,6 @@ import {
   type SupplierStatementLine,
 } from "@clinic/shared";
 import { and, asc, eq, gte, isNull, lt, type SQL } from "drizzle-orm";
-
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { inventoryItems, stockMovements, suppliers } from "@api/database/schema";

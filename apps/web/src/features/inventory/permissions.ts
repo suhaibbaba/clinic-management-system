@@ -1,5 +1,4 @@
 import { USER_ROLE, type UserRole } from "@clinic/shared";
-
 import type { Can } from "@web/features/auth/session";
 
 /** Who sees the module at all — a route, which is a role rather than a permission. */

@@ -1,7 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Resend } from "resend";
-
 import type { Env } from "@api/config/env.schema";
 
 export interface EmailAttachment {

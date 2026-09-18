@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-
 import {
   DeleteObjectCommand,
   GetObjectCommand,
@@ -10,7 +9,6 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Injectable, Logger, type OnApplicationShutdown } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-
 import type { Env } from "@api/config/env.schema";
 
 export interface SignedUpload {

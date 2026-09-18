@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { calendarAppointmentSchema } from "@shared/schemas/appointments";
 import { moneySchema } from "@shared/schemas/money";
 

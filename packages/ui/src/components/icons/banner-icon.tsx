@@ -1,6 +1,5 @@
 import { CHART_TYPE, type ChartType } from "@clinic/shared";
 import type { JSX } from "react";
-
 import { cn } from "@ui/lib/cn";
 
 function SpecialtyGlyph({

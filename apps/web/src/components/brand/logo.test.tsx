@@ -1,9 +1,7 @@
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
-
 import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-
 import { Logo } from "@web/components/brand/logo";
 import "@web/i18n";
 

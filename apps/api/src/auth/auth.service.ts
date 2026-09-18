@@ -9,7 +9,6 @@ import type {
   SessionClinic,
   UserRole,
 } from "@clinic/shared";
-
 import { PasswordService } from "@api/auth/password.service";
 import { TokenService } from "@api/auth/token.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";

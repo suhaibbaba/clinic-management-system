@@ -1,5 +1,4 @@
 import { TIMELINE_ENTRY_TYPE, USER_ROLE, type UserRole } from "@clinic/shared";
-
 import {
   createPatient,
   procedurePayload,

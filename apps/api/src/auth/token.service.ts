@@ -1,10 +1,8 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
-
 import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { and, eq, isNull } from "drizzle-orm";
-
 import type { AccessTokenPayload } from "@api/common/types/authenticated-user";
 import type { Env } from "@api/config/env.schema";
 import { DATABASE, type Database } from "@api/database/database.module";

@@ -1,5 +1,4 @@
 import { USER_ROLE, USER_ROLES, type UserRole } from "@clinic/shared";
-
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 /** Every endpoint ROLES.md restricts to admin, with the verb it is reached by. */

@@ -1,7 +1,6 @@
 import { USER_ROLE } from "@clinic/shared";
 import { lazy, Suspense, type JSX } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-
 import { AppLayout } from "@web/components/layout/app-layout";
 import { RequireAuth, RequireRole } from "@web/features/auth/guards";
 import { ForgotPasswordPage } from "@web/features/auth/forgot-password-page";

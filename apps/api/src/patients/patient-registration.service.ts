@@ -6,7 +6,6 @@ import {
   type InlinePatientInput,
 } from "@clinic/shared";
 import { eq, sql } from "drizzle-orm";
-
 import { AuditService } from "@api/audit/audit.service";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";

@@ -7,7 +7,6 @@ import type {
   ResolvedLocation,
   UpdateClinicInput,
 } from "@clinic/shared";
-
 import { apiRequest } from "@web/lib/api-client";
 
 export const clinicApi = {

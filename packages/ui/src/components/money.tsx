@@ -1,8 +1,6 @@
 import { currencySymbol, formatWholeMoney } from "@clinic/shared";
 import type { JSX } from "react";
-
 import { Ltr } from "@ui/components/ltr";
-
 import { cn } from "@ui/lib/cn";
 import { parts, type TestIdProps } from "@ui/lib/testid";
 

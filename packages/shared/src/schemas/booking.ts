@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import {
   BOOKING_NAME_LENGTH,
   BOOKING_PHONE_LENGTH,

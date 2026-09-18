@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Icon, type IconName } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
 import { documentDirection } from "@ui/lib/direction";

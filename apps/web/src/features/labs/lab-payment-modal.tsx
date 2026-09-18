@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
 import { Button, FormField, Modal, MoneyInput, Select, Textarea, useToast } from "@clinic/ui";
 import { Money } from "@web/features/billing/money";
 import { useLookupOptions } from "@web/features/lookups/queries";

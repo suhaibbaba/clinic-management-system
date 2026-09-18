@@ -2,7 +2,6 @@ import { LOOKUP_LIST, type InventoryItemRow } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-
 import {
   Badge,
   Button,

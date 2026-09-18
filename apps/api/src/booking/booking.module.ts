@@ -1,5 +1,4 @@
 import { Module } from "@nestjs/common";
-
 import { AppointmentsModule } from "@api/appointments/appointments.module";
 import { BookingController } from "@api/booking/booking.controller";
 import { BookingTokenService } from "@api/booking/booking-token.service";

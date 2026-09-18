@@ -2,7 +2,6 @@ import { Global, Inject, Module, type OnApplicationShutdown } from "@nestjs/comm
 import { ConfigService } from "@nestjs/config";
 import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres, { type Sql } from "postgres";
-
 import type { Env } from "@api/config/env.schema";
 import * as schema from "@api/database/schema";
 

@@ -25,9 +25,7 @@ import {
   type PresignClinicLogoResponse,
   type UpdateClinicInput,
 } from "@clinic/shared";
-
 import { documentSettings } from "@clinic/shared";
-
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";

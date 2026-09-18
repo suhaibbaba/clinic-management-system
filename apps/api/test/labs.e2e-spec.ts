@@ -5,7 +5,6 @@ import {
   type LabOrderRow,
   type UserRole,
 } from "@clinic/shared";
-
 import {
   createPatient,
   procedurePayload,

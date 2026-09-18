@@ -1,5 +1,4 @@
 import type { JSX } from "react";
-
 import { TabPanel, Tabs, useTabParam, type TabDefinition } from "@clinic/ui";
 import { LabOrdersPage } from "@web/features/labs/lab-orders-page";
 import { LabsPage } from "@web/features/labs/labs-page";

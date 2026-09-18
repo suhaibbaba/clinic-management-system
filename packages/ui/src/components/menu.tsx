@@ -1,6 +1,5 @@
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import type { JSX, ReactNode } from "react";
-
 import { Icon, type IconName } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
 import { documentDirection } from "@ui/lib/direction";

@@ -1,6 +1,5 @@
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { FIELD_BUTTON, FIELD_TEXT, FieldLock, fieldShell } from "@ui/components/field";
 import { Icon } from "@ui/components/icon";
 import { openOnArrowDown, usePickerOpen } from "@ui/lib/picker-open";

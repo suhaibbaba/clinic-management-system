@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-
 import { useClinicBranding } from "@web/features/clinic/queries";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";

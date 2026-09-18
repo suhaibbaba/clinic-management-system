@@ -1,5 +1,4 @@
 import { UnprocessableEntityException } from "@nestjs/common";
-
 import { MapLinkResolver } from "@api/clinics/map-link.resolver";
 
 describe("MapLinkResolver", () => {

@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { and, eq, gt, isNull, or, sql } from "drizzle-orm";
 import { Inject } from "@nestjs/common";
-
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, users } from "@api/database/schema";
 import {

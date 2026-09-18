@@ -8,7 +8,6 @@ import type {
   UpdatePatientInput,
 } from "@clinic/shared";
 import { and, desc, eq, exists, gte, isNull, or, sql, type SQL } from "drizzle-orm";
-
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { LedgerService } from "@api/billing/ledger.service";
 import { arabicNameSearch } from "@api/common/database/arabic-search";

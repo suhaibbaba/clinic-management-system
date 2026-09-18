@@ -10,7 +10,6 @@ import {
   type Payment,
 } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
-
 import { DocumentsService } from "@api/billing/documents.service";
 import { PAYMENTS_ENTITY, PaymentsService } from "@api/billing/payments.service";
 import { Audit } from "@api/common/decorators/audit.decorator";

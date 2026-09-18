@@ -1,5 +1,4 @@
 import { CLINIC_FAVICON_SIZES, CLINIC_ICONS } from "@clinic/shared";
-
 import { opaqueBounds, type Bounds } from "@web/features/clinic/trim";
 import { packIco } from "@web/features/clinic/ico";
 

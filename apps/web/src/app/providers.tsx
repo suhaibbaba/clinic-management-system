@@ -3,7 +3,6 @@ import { UiProvider } from "@clinic/ui/theme";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useMemo, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-
 import { createQueryClient } from "@web/app/query-client";
 import { SessionProvider } from "@web/features/auth/session";
 import { isRtl } from "@web/i18n";

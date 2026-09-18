@@ -9,7 +9,6 @@ import {
 } from "@clinic/shared";
 import { Inject, Injectable } from "@nestjs/common";
 import { eq, isNull } from "drizzle-orm";
-
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";

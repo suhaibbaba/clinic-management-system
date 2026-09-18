@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { isFdiTooth } from "@shared/constants/dental";
 import { attachmentSchema } from "@shared/schemas/attachments";
 import { uuidSchema } from "@shared/schemas/common";

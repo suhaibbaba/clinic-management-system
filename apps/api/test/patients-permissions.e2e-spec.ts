@@ -1,5 +1,4 @@
 import { USER_ROLE, type UserRole } from "@clinic/shared";
-
 import {
   createPatient,
   seedClinicFixtures,

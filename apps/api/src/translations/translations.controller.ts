@@ -9,7 +9,6 @@ import {
 } from "@clinic/shared";
 import { Body, Controller, Get, HttpCode, HttpStatus, Post } from "@nestjs/common";
 import { createZodDto } from "nestjs-zod";
-
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";

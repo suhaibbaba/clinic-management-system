@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { planRemaining, planTotal } from "@web/features/patients/treatment-plans/plan-total";
 import { makePlanItem } from "@test/helpers/fixtures";
 

@@ -1,7 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
-
 import { BookingWizard } from "@web/booking/booking-wizard";
 import { resetClinicOffset } from "@web/booking/format";
 import ar from "@web/booking/locales/ar.json";

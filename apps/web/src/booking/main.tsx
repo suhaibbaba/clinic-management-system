@@ -1,6 +1,5 @@
 import { StrictMode, type JSX } from "react";
 import { createRoot } from "react-dom/client";
-
 import "@web/booking/booking.css";
 import { BookingWizard } from "@web/booking/booking-wizard";
 import { BOOKING_LANGUAGE, t } from "@web/booking/i18n";

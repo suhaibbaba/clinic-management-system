@@ -9,7 +9,6 @@ import {
   type NotificationTemplate,
 } from "@clinic/shared";
 import { and, eq } from "drizzle-orm";
-
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, notificationsLog } from "@api/database/schema";
 import {

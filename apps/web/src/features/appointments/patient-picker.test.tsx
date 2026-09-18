@@ -2,7 +2,6 @@ import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState, type JSX } from "react";
 import { describe, expect, it } from "vitest";
-
 import { PatientPicker, type PatientChoice } from "@web/features/appointments/patient-picker";
 import ar from "@web/i18n/locales/ar.json";
 import { paginated } from "@test/helpers/fixtures";

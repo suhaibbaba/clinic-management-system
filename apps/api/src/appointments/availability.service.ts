@@ -16,7 +16,6 @@ import {
   type WeeklySchedule,
 } from "@clinic/shared";
 import { and, eq, gt, gte, lt, lte, ne, notInArray, or, sql } from "drizzle-orm";
-
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { DATABASE, type Database } from "@api/database/database.module";
 import {

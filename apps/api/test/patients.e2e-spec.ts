@@ -1,5 +1,4 @@
 import { USER_ROLE, type UserRole } from "@clinic/shared";
-
 import { createPatient, seedClinicFixtures, uniquePhone } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 

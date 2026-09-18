@@ -1,5 +1,4 @@
 import { useEffect, useState, type CSSProperties, type JSX, type ReactNode } from "react";
-
 import { Icon } from "@ui/components/icon";
 import { Skeleton } from "@ui/components/skeleton";
 import { cn } from "@ui/lib/cn";

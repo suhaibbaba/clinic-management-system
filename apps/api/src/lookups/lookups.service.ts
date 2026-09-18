@@ -20,7 +20,6 @@ import {
   type UpdateLookupOptionInput,
 } from "@clinic/shared";
 import { and, asc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
-
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";

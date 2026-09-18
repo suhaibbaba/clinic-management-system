@@ -1,6 +1,5 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-
 import { App } from "@web/App";
 import "@web/i18n";
 import { initLanguage } from "@web/i18n/language";

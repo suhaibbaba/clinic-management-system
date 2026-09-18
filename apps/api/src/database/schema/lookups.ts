@@ -9,7 +9,6 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-
 import { clinics } from "@api/database/schema/core";
 
 // What was an enum is now `text` holding a `code` from here, so a clinic adds an option without a

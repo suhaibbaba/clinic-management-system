@@ -1,5 +1,4 @@
 import type { AuditLogEntry, ListAuditLogQuery, Paginated } from "@clinic/shared";
-
 import { apiRequest } from "@web/lib/api-client";
 
 export const auditApi = {

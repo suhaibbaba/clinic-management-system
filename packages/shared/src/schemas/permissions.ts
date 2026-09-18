@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { USER_ROLES } from "@shared/enums";
 
 /** One thing the API can be asked to do. Its route and the roles it ships for stay on the server:

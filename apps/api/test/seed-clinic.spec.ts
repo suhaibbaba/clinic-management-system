@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-
 import {
   PERFORMED_PROCEDURE_STATUS,
   localWeekday,
@@ -9,7 +8,6 @@ import {
 import { drizzle } from "drizzle-orm/postgres-js";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import postgres from "postgres";
-
 import type { Database } from "@api/database/database.module";
 import * as schema from "@api/database/schema";
 import {

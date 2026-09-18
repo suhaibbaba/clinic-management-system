@@ -9,7 +9,6 @@ import {
   type JSX,
   type ReactNode,
 } from "react";
-
 import { authApi } from "@web/features/auth/api";
 import { restoreSession } from "@web/lib/api-client";
 import { authTokens } from "@web/lib/auth-tokens";

@@ -1,6 +1,5 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-
 import ar from "@web/i18n/locales/ar.json";
 import en from "@web/i18n/locales/en.json";
 

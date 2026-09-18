@@ -2,7 +2,6 @@ import { Label } from "@radix-ui/react-label";
 import type { JSX, ReactNode } from "react";
 import type { FieldError } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
 import { Icon } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
 import { validationMessageKey } from "@ui/lib/validation-message";

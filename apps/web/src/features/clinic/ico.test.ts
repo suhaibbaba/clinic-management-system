@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { packIco } from "@web/features/clinic/ico";
 
 const png = (length: number, fill: number): Uint8Array => new Uint8Array(length).fill(fill);

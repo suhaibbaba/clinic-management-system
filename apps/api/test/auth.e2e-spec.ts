@@ -1,5 +1,4 @@
 import { USER_ROLE } from "@clinic/shared";
-
 import { REFRESH_COOKIE_NAME } from "@api/auth/refresh-cookie";
 import {
   auth,

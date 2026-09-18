@@ -12,7 +12,6 @@ import {
 } from "@clinic/shared";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-
 import { useLookupList } from "@web/features/lookups/queries";
 
 // Derived on every render, never stored, from the procedure's status and the catalog item's chart

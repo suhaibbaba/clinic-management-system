@@ -2,7 +2,6 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Link, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
-
 import { PageHeader } from "@clinic/ui/components/page-header";
 import ar from "@web/i18n/locales/ar.json";
 import { documentTitle } from "@web/lib/document-title";

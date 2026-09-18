@@ -7,7 +7,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-
 import { Button, FormField, Input, Modal, MoneyInput, Switch, useToast } from "@clinic/ui";
 import { useCreateWorkType, useUpdateWorkType } from "@web/features/labs/queries";
 import { errorMessageKey } from "@web/lib/api-error";

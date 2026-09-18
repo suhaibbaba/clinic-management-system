@@ -7,7 +7,6 @@ import {
   type UserRole,
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-
 import { clinics, users } from "@api/database/schema";
 import {
   createPatient,

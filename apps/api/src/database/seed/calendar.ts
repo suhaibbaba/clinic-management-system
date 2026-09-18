@@ -7,7 +7,6 @@ import {
   type AppointmentStatus,
   type WeeklySchedule,
 } from "@clinic/shared";
-
 import { computeDaySlots, type BusyInterval } from "@api/appointments/slots";
 import type { CatalogEntry } from "@api/database/seed/clinic";
 import type { Rng } from "@api/database/seed/random";

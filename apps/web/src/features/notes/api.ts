@@ -6,7 +6,6 @@ import {
   type Paginated,
   type UpdateClinicNoteInput,
 } from "@clinic/shared";
-
 import { apiRequest } from "@web/lib/api-client";
 
 const listSchema = paginatedSchema(clinicNoteSchema);

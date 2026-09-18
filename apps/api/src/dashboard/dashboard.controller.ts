@@ -1,6 +1,5 @@
 import { Controller, Get } from "@nestjs/common";
 import type { DashboardSummary } from "@clinic/shared";
-
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DashboardService } from "@api/dashboard/dashboard.service";

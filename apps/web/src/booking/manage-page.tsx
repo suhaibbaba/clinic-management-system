@@ -1,7 +1,6 @@
 import type { ManagedBooking } from "@clinic/shared";
 import { APPOINTMENT_STATUS } from "@shared/enums";
 import { useMemo, useState, type JSX } from "react";
-
 import { bookingApi, failureKey } from "@web/booking/api";
 import { clinicDate, dayChips, learnClinicOffset } from "@web/booking/format";
 import { t } from "@web/booking/i18n";

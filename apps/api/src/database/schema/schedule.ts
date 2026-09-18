@@ -1,5 +1,4 @@
 import { boolean, date, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-
 import { clinics, doctors } from "@api/database/schema/core";
 
 const auditColumns = {

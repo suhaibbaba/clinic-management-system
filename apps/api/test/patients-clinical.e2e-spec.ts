@@ -1,5 +1,4 @@
 import { CHART_TYPE, USER_ROLE, type UserRole } from "@clinic/shared";
-
 import {
   createPatient,
   procedurePayload,

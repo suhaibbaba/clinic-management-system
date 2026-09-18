@@ -1,6 +1,5 @@
 import { useId, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { cn } from "@clinic/ui/lib/cn";
 
 /** Codes match `TOOTH_SURFACES` in the shared package, which is what the API stores on a chart mark. */

@@ -1,5 +1,4 @@
 import type { Permissions, UpdateRolePermissionInput } from "@clinic/shared";
-
 import { apiRequest } from "@web/lib/api-client";
 
 export const permissionsApi = {

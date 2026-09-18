@@ -19,7 +19,6 @@ import {
   type UpdateTreatmentPlanItemInput,
 } from "@clinic/shared";
 import { asc, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
-
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";

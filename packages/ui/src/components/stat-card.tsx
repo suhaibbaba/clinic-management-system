@@ -1,8 +1,6 @@
 import { Children, type JSX, type ReactNode } from "react";
-
 import { Badge } from "@ui/components/badge";
 import { Icon, type IconName } from "@ui/components/icon";
-
 import { cn } from "@ui/lib/cn";
 import { Ltr } from "@ui/components/ltr";
 import { parts, type TestIdProps } from "@ui/lib/testid";

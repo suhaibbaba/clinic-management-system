@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from "vitest";
-
 import { applyAppTitle, applyDocumentIcon } from "@web/lib/document-branding";
 
 const hrefs = (rel: string): string[] =>

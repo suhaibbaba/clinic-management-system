@@ -29,7 +29,6 @@ import {
 } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
-
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { Capability } from "@api/common/decorators/capability.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";

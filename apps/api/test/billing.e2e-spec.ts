@@ -10,7 +10,6 @@ import {
 } from "@clinic/shared";
 import { and, eq, isNull } from "drizzle-orm";
 import { PDFDocument } from "pdf-lib";
-
 import { charges } from "@api/database/schema";
 import {
   createPatient,

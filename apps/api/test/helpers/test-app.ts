@@ -1,11 +1,9 @@
 import { randomUUID } from "node:crypto";
-
 import { Test } from "@nestjs/testing";
 import { type NestFastifyApplication } from "@nestjs/platform-fastify";
 import { ThrottlerStorage } from "@nestjs/throttler";
 import { hash } from "@node-rs/argon2";
 import { CHART_TYPE, SPECIALTY_CODE, USER_ROLES, type UserRole } from "@clinic/shared";
-
 import { AppModule } from "@api/app.module";
 import { createFastifyAdapter, registerFastifyPlugins } from "@api/bootstrap";
 import { DATABASE, POSTGRES_CLIENT, type Database } from "@api/database/database.module";

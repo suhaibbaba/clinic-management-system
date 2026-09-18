@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { isFdiTooth } from "@shared/constants/dental";
 import { paginationQuerySchema } from "@shared/schemas/common";
 import { lookupCodeSchema } from "@shared/schemas/lookups";

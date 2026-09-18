@@ -1,5 +1,4 @@
 import { APPOINTMENT_STATUS, type AppointmentStatus } from "@clinic/shared";
-
 import type { BadgeTone } from "@clinic/ui/components/badge";
 import { TONE_SURFACE } from "@clinic/ui/components/tone";
 

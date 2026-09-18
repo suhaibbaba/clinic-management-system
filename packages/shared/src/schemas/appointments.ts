@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import {
   APPOINTMENT_STATUSES,
   APPOINTMENT_TYPE,

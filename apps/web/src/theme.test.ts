@@ -1,9 +1,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-
 import { themeVariables } from "@clinic/ui/theme";
 import { describe, expect, it } from "vitest";
-
 import { abuObaidTheme } from "@web/theme";
 
 // theme.css and theme.ts are the only places a colour is named. Reaching past them is the change

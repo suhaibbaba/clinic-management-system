@@ -1,5 +1,4 @@
 import { LAB_ORDER_STATUS, canTransitionLabOrder, type LabOrderStatus } from "@clinic/shared";
-
 import type { BadgeTone } from "@clinic/ui/components/badge";
 import { TONE_SURFACE } from "@clinic/ui/components/tone";
 import type { Can } from "@web/features/auth/session";

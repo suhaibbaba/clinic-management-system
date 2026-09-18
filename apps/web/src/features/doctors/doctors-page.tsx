@@ -2,7 +2,6 @@ import { personName, USER_ROLE, type Doctor } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-
 import {
   Avatar,
   Badge,

@@ -1,6 +1,5 @@
 import { isBookingName, isBookingPhone } from "@shared/constants/booking";
 import { useState, type FormEvent, type JSX } from "react";
-
 import { t } from "@web/booking/i18n";
 import { Button, Field } from "@web/booking/ui";
 

@@ -3,7 +3,6 @@ import { DiscoveryService, MetadataScanner, Reflector } from "@nestjs/core";
 import { PATH_METADATA, METHOD_METADATA } from "@nestjs/common/constants";
 import { RequestMethod } from "@nestjs/common";
 import type { UserRole } from "@clinic/shared";
-
 import { CAPABILITY_KEY } from "@api/common/decorators/capability.decorator";
 import { ROLES_KEY } from "@api/common/decorators/roles.decorator";
 import { IS_PUBLIC_KEY } from "@api/common/decorators/public.decorator";

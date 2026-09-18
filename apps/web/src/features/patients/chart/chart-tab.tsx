@@ -1,7 +1,6 @@
 import { isDeciduousTooth, type PatientClinicalView } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { EmptyState, SegmentedControl, useToast } from "@clinic/ui";
 import { useDoctors } from "@web/features/doctors/queries";
 import type { Dentition } from "@web/features/patients/chart/fdi-layout";

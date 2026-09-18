@@ -1,5 +1,4 @@
 import { FDI_DECIDUOUS_TEETH, FDI_PERMANENT_TEETH } from "@clinic/shared";
-
 import { toothTypeOf, type ToothType } from "@web/features/patients/chart/tooth-shapes";
 
 export type Dentition = "permanent" | "deciduous";

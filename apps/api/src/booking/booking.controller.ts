@@ -26,7 +26,6 @@ import {
 } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
-
 import { BookingService } from "@api/booking/booking.service";
 import { Public } from "@api/common/decorators/public.decorator";
 

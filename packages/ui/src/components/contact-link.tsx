@@ -1,5 +1,4 @@
 import type { JSX } from "react";
-
 import { Ltr } from "@ui/components/ltr";
 import { cn } from "@ui/lib/cn";
 import { testid, type TestIdProps } from "@ui/lib/testid";

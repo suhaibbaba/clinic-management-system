@@ -10,7 +10,6 @@ import {
   type UseMutationResult,
   type UseQueryResult,
 } from "@tanstack/react-query";
-
 import { translationsApi } from "@web/features/translations/api";
 
 const TRANSLATIONS_KEY = "translations";

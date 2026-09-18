@@ -1,5 +1,4 @@
 import { USER_ROLE, type ClinicNote, type Paginated, type UserRole } from "@clinic/shared";
-
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 // The noticeboard is shared, so the interesting boundary is not "who may read it" — everyone may —

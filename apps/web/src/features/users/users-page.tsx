@@ -1,7 +1,6 @@
 import { USER_ROLES, type User, type UserRole } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import {
   Avatar,
   Badge,

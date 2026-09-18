@@ -1,5 +1,4 @@
 import { ITEM_CATEGORY, ITEM_UNIT, USER_ROLE, type Permissions } from "@clinic/shared";
-
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 /** A capability the receptionist does not ship with, reached by one GET. */

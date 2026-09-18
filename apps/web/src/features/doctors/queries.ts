@@ -8,7 +8,6 @@ import type {
   UpdateDoctorInput,
   WeeklySchedule,
 } from "@clinic/shared";
-
 import { doctorsApi } from "@web/features/doctors/api";
 
 const DOCTORS_KEY = "doctors";

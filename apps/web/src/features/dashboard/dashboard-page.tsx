@@ -2,7 +2,6 @@ import type { CalendarAppointment } from "@clinic/shared";
 import { useEffect, useMemo, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
-
 import {
   Badge,
   Button,

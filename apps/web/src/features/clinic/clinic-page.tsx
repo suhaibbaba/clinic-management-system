@@ -8,7 +8,6 @@ import {
 } from "@clinic/shared";
 import { useEffect, useRef, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import {
   Button,
   FormField,

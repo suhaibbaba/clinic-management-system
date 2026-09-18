@@ -1,7 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-
 import { DialogLayerProvider } from "@ui/components/dialog-layer";
 import { cn } from "@ui/lib/cn";
 import { documentDirection } from "@ui/lib/direction";

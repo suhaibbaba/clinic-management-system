@@ -1,5 +1,4 @@
 import type { JSX } from "react";
-
 import { TabPanel, Tabs, useTabParam, type TabDefinition } from "@clinic/ui";
 import { AppointmentsPage } from "@web/features/appointments/appointments-page";
 import { ConfirmedBookings } from "@web/features/appointments/confirmed-bookings";

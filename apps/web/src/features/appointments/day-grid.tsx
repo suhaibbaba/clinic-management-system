@@ -7,7 +7,6 @@ import {
 } from "@clinic/shared";
 import { useMemo, useRef, useState, type CSSProperties, type DragEvent, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { APPOINTMENT_STATUS_STYLES } from "@web/features/appointments/status";
 import { useLookupLabels } from "@web/features/lookups/queries";
 import {

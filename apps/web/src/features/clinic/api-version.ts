@@ -1,6 +1,5 @@
 import { versionResponseSchema, type VersionResponse } from "@clinic/shared";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
-
 import { apiRequest } from "@web/lib/api-client";
 
 /** This bundle's version, fixed when it was built (`vite.config.ts`). */

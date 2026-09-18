@@ -14,7 +14,6 @@ import {
   type ReversePaymentInput,
 } from "@clinic/shared";
 import { desc, eq, sql, type SQL } from "drizzle-orm";
-
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { negate } from "@api/billing/charges.service";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";

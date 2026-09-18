@@ -1,6 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import type { JSX, ReactNode } from "react";
-
 import { Icon } from "@clinic/ui/components/icon";
 import { cn } from "@clinic/ui/lib/cn";
 

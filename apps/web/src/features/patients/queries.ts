@@ -25,7 +25,6 @@ import type {
   UpdateVisitInput,
   Visit,
 } from "@clinic/shared";
-
 import { patientsApi, uploadToStorage } from "@web/features/patients/api";
 
 export const PATIENT_KEY = "patient";

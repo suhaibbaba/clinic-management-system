@@ -1,6 +1,5 @@
 import { LAB_ORDER_STATUS, USER_ROLE, type UserRole } from "@clinic/shared";
 import { describe, expect, it } from "vitest";
-
 import { availableSteps, canReturn } from "@web/features/labs/status";
 import { canFor } from "@test/helpers/fixtures";
 

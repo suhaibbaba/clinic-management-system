@@ -3,7 +3,6 @@ import type {
   TranslationBundle,
   TranslationOverride,
 } from "@clinic/shared";
-
 import { apiRequest } from "@web/lib/api-client";
 
 export const translationsApi = {

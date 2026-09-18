@@ -1,7 +1,6 @@
 import { bothNames, personName, type PersonName as Name } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { testid, type TestIdProps } from "@ui/lib/testid";
 
 export interface PersonNameProps extends TestIdProps {

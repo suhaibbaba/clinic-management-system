@@ -1,7 +1,6 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { documentSettings, personName } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-
 import type { DocumentLanguage } from "@api/billing/pdf/document-strings";
 import type { RtlPdf } from "@api/billing/pdf/pdf-builder";
 import { DATABASE, type Database } from "@api/database/database.module";

@@ -1,7 +1,6 @@
 import { LOOKUP_LIST, type ShoppingListLine } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Badge, Button, EmptyState, Icon, Ltr, PageHeader, Table, type Column } from "@clinic/ui";
 import { inventoryApi } from "@web/features/inventory/api";
 import { useLookupLabels } from "@web/features/lookups/queries";

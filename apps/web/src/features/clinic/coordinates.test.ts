@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { isShortMapLink, mapsUrl, parseCoordinates } from "@clinic/shared";
 
 const NABLUS = { latitude: "32.221", longitude: "35.254444" };

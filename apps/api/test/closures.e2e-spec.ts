@@ -11,7 +11,6 @@ import {
   type UserRole,
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-
 import {
   appointments,
   clinicClosures,

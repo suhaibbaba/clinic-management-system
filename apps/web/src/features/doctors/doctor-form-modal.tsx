@@ -2,7 +2,6 @@ import { personName, type Doctor, type WeeklySchedule } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { foldDigits } from "@clinic/ui/lib/digits";
 import { useTranslation } from "react-i18next";
-
 import {
   Button,
   FormField,

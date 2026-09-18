@@ -1,5 +1,4 @@
 import { forwardRef } from "react";
-
 import { Input, type InputProps } from "@ui/components/input";
 import { cn } from "@ui/lib/cn";
 import { foldDigits } from "@ui/lib/digits";

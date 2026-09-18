@@ -1,5 +1,4 @@
 import { useEffect, type JSX, type ReactNode } from "react";
-
 import { t } from "@web/booking/i18n";
 import { cx, Img } from "@web/booking/ui";
 

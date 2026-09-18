@@ -2,7 +2,6 @@ import { PageTitleProvider } from "@clinic/ui/lib/page-title";
 import { useEffect, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
-
 import { routeTitle } from "@web/app/navigation";
 import { usePersonName } from "@clinic/ui/components/person-name";
 import { useSession } from "@web/features/auth/session";

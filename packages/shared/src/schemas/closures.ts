@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
 
 // A clinic closure is whole days for everybody; doctor time off is one person's and often part of a

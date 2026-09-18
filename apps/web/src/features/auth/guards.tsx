@@ -2,7 +2,6 @@ import type { UserRole } from "@clinic/shared";
 import type { JSX, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useLocation } from "react-router-dom";
-
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/features/auth/session";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";

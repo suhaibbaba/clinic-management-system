@@ -7,7 +7,6 @@ import {
 } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import { Badge, EmptyState, Icon, Ltr, type IconName } from "@clinic/ui";
 import { SkeletonTimeline } from "@clinic/ui/components/skeleton";
 import { useLookupLabels } from "@web/features/lookups/queries";

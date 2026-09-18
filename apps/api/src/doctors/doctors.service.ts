@@ -19,7 +19,6 @@ import {
   type UpdateDoctorScheduleInput,
   type WeeklySchedule,
 } from "@clinic/shared";
-
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { arabicNameSearch } from "@api/common/database/arabic-search";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";

@@ -7,7 +7,6 @@ import {
 } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import {
   Button,
   DatePicker,

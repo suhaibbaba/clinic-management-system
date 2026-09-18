@@ -22,7 +22,6 @@ import {
   type UpdateLabOrderInput,
 } from "@clinic/shared";
 import { and, asc, desc, eq, inArray, isNotNull, isNull, lt, or, sql, type SQL } from "drizzle-orm";
-
 import { AppointmentAccessService } from "@api/appointments/appointment-access.service";
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { arabicNameSearch } from "@api/common/database/arabic-search";

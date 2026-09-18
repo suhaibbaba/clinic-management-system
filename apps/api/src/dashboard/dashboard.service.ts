@@ -5,7 +5,6 @@ import {
   USER_ROLE,
   type DashboardSummary,
 } from "@clinic/shared";
-
 import { AppointmentAccessService } from "@api/appointments/appointment-access.service";
 import { AppointmentsService } from "@api/appointments/appointments.service";
 import { OverdueService } from "@api/billing/overdue.service";

@@ -1,5 +1,4 @@
 import { useSearchParams } from "react-router-dom";
-
 import { PER_PAGE_OPTIONS } from "@ui/components/table";
 
 export interface PageParams {

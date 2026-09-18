@@ -1,6 +1,5 @@
 import type { ManagedBooking } from "@clinic/shared";
 import type { JSX } from "react";
-
 import { formatLongDate, formatTime } from "@web/booking/format";
 import { t } from "@web/booking/i18n";
 import { downloadIcs } from "@web/booking/ics";

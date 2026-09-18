@@ -14,7 +14,6 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-
 import { normalizedName } from "@api/database/schema/normalized-name";
 
 export const userRoleEnum = pgEnum("user_role", USER_ROLES);

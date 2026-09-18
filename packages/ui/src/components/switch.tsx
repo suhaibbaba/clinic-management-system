@@ -1,6 +1,5 @@
 import * as SwitchPrimitive from "@radix-ui/react-switch";
 import { useId, type JSX } from "react";
-
 import { cn } from "@ui/lib/cn";
 import { parts, type TestIdProps } from "@ui/lib/testid";
 

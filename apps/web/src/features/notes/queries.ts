@@ -6,7 +6,6 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import type { ClinicNote, CreateClinicNoteInput, Paginated } from "@clinic/shared";
-
 import { notesApi } from "@web/features/notes/api";
 
 export const NOTES_KEY = "clinic-notes";

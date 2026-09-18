@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { TREATMENT_PLAN_ITEM_STATUSES, TREATMENT_PLAN_STATUSES } from "@shared/enums";
 import { paginationQuerySchema } from "@shared/schemas/common";
 import { moneySchema, wholeMoneySchema } from "@shared/schemas/money";

@@ -1,7 +1,6 @@
 import { Inject, Injectable, type OnModuleInit } from "@nestjs/common";
 import type { AllergyFlags, MedicalHistory, UpdateMedicalHistoryInput } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";

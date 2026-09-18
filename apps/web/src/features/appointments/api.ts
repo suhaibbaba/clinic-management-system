@@ -15,7 +15,6 @@ import type {
   Visit,
   WaitingListEntry,
 } from "@clinic/shared";
-
 import { apiRequest } from "@web/lib/api-client";
 
 const query = (params: Record<string, string | number | boolean | undefined>): string => {

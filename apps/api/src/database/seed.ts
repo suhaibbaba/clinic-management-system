@@ -1,7 +1,6 @@
 import { hash } from "@node-rs/argon2";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-
 import { validateEnv } from "@api/config/env.schema";
 import * as schema from "@api/database/schema";
 import { CLINIC_NAME } from "@api/database/seed/clinic";

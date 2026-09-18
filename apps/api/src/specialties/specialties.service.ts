@@ -1,7 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { asc, count, eq, type SQL } from "drizzle-orm";
 import type { ListSpecialtiesQuery, Paginated, Specialty } from "@clinic/shared";
-
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";

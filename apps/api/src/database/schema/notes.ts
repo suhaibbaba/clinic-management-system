@@ -1,5 +1,4 @@
 import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-
 import { clinics, users } from "@api/database/schema/core";
 
 // The clinic's noticeboard. `author_id` is nullable and not cascaded: a note outlives the account

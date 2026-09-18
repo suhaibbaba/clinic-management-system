@@ -1,7 +1,6 @@
 import type { ConflictingAppointment, DoctorTimeOff } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-
 import {
   Badge,
   Button,

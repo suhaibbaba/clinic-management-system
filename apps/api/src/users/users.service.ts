@@ -21,7 +21,6 @@ import {
   type UpdateUserInput,
   type User,
 } from "@clinic/shared";
-
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { AuditService } from "@api/audit/audit.service";
 import { PasswordService } from "@api/auth/password.service";

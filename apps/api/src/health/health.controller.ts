@@ -1,6 +1,5 @@
 import { Controller, Get } from "@nestjs/common";
 import type { HealthResponse, VersionResponse } from "@clinic/shared";
-
 import { Public } from "@api/common/decorators/public.decorator";
 import { HealthService } from "@api/health/health.service";
 

@@ -1,6 +1,5 @@
 import type { PublicSlots } from "@clinic/shared";
 import type { JSX } from "react";
-
 import { failureKey } from "@web/booking/api";
 import type { DayChip } from "@web/booking/format";
 import { t } from "@web/booking/i18n";

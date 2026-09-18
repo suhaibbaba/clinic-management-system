@@ -1,7 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-
 import { OtpStep } from "@web/booking/steps/otp-step";
 
 function renderStep(overrides: Partial<Parameters<typeof OtpStep>[0]> = {}) {

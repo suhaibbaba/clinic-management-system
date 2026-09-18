@@ -32,7 +32,6 @@ import {
 } from "@clinic/shared";
 import { and, asc, count, eq, gte, isNull, sql } from "drizzle-orm";
 import { createHash, randomInt } from "node:crypto";
-
 import { AvailabilityService } from "@api/appointments/availability.service";
 import { WaitingListService } from "@api/appointments/waiting-list.service";
 import { BookingTokenService } from "@api/booking/booking-token.service";

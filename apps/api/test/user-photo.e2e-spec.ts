@@ -8,7 +8,6 @@ import {
   type User,
   type UserRole,
 } from "@clinic/shared";
-
 import { seedClinicFixtures } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 import { StorageService, type StoredObject } from "@api/storage/storage.service";

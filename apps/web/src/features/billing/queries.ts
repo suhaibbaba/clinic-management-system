@@ -6,7 +6,6 @@ import type {
   Statement,
   StatementQuery,
 } from "@clinic/shared";
-
 import { billingApi } from "@web/features/billing/api";
 import { DASHBOARD_KEY } from "@web/features/dashboard/queries";
 import { PATIENT_KEY, PATIENTS_KEY } from "@web/features/patients/queries";

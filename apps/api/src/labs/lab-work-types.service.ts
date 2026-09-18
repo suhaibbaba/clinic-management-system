@@ -5,7 +5,6 @@ import {
   type UpdateLabWorkTypeInput,
 } from "@clinic/shared";
 import { and, asc, eq, isNull } from "drizzle-orm";
-
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { LabsService } from "@api/labs/labs.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
