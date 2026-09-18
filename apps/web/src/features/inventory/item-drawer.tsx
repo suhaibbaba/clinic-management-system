@@ -214,7 +214,7 @@ function Batches({
 
   return (
     <section data-testid="item-batches" className="flex flex-col gap-2">
-      <h3 className="text-value font-medium text-ink">{t("inventory.batches.title")}</h3>
+      <h3 className="text-label font-semibold text-ink">{t("inventory.batches.title")}</h3>
 
       {live.length === 0 ? (
         <p data-testid="item-batches-empty" className="text-label text-ink-muted">
@@ -299,7 +299,7 @@ function History({
 
   return (
     <section data-testid="item-history" className="flex flex-col gap-2">
-      <h3 className="text-value font-medium text-ink">{t("inventory.history.title")}</h3>
+      <h3 className="text-label font-semibold text-ink">{t("inventory.history.title")}</h3>
 
       <RefreshBar active={isRefreshing} />
 
@@ -397,6 +397,7 @@ function History({
                   className="mt-2"
                   size="sm"
                   variant="ghost"
+                  icon={<Icon name="reset" />}
                   data-testid="item-movement-reverse"
                   onClick={() => setReversing(movement)}
                 >
@@ -426,6 +427,7 @@ function History({
             </Button>
             <Button
               variant="danger"
+              icon={<Icon name="reset" />}
               data-testid="movement-reverse-confirm"
               isLoading={reverse.isPending}
               disabled={reason.trim().length < 3}

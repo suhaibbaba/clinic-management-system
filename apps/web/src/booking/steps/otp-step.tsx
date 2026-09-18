@@ -143,7 +143,7 @@ export function OtpStep({
               aria-label={t("otp.digitLabel", { index: index + 1 })}
               className={cx(
                 "h-14 w-full min-w-0 rounded-control border bg-surface text-center",
-                "text-[1.25rem] font-medium tabular-nums text-ink",
+                "text-heading font-medium tabular-nums text-ink",
                 error ? "border-danger-500" : "border-line-strong focus:border-primary-600",
               )}
             />

@@ -122,7 +122,7 @@ export function VisitsTab({
   return (
     <div data-testid="visits-tab" className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 data-testid="visits-count" className="text-value font-medium text-ink">
+        <h2 data-testid="visits-count" className="text-heading font-medium text-ink">
           {t("visits.count", { count: ordered.length })}
         </h2>
         <Button
@@ -207,7 +207,7 @@ export function VisitsTab({
 
               <section className="mt-4 border-t border-line pt-3">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-label font-medium uppercase tracking-wide text-ink-muted">
+                  <h3 className="text-label font-semibold uppercase tracking-wide text-ink-muted">
                     {t("visits.procedures")}
                   </h3>
 

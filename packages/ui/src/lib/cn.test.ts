@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { cn, FONT_SIZE_KEYS, RADIUS_KEYS } from "@ui/lib/cn";
+import { cn, FONT_SIZE_KEYS, LEADING_KEYS, RADIUS_KEYS } from "@ui/lib/cn";
 
 const theme = readFileSync(join(__dirname, "..", "styles", "base.css"), "utf8");
 
@@ -53,6 +53,7 @@ describe("cn", () => {
   // about: the failure is silent otherwise — the class is simply dropped.
   it.each([
     ["text", FONT_SIZE_KEYS],
+    ["leading", LEADING_KEYS],
     ["radius", RADIUS_KEYS],
   ])("registers every %s token base.css names", (prefix, registered) => {
     expect([...registered].sort()).toEqual(tokensOf(prefix as string).sort());

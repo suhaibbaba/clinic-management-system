@@ -103,6 +103,7 @@ export function SuppliersPage(): JSX.Element {
               <Button
                 size="sm"
                 variant="ghost"
+                icon={<Icon name="edit" />}
                 data-testid="supplier-edit"
                 onClick={(event) => {
                   event.stopPropagation();
@@ -268,7 +269,7 @@ function Statement({
   return (
     <section data-testid="supplier-statement" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <h2 data-testid="supplier-statement-title" className="text-value font-medium text-ink">
+        <h2 data-testid="supplier-statement-title" className="text-heading font-medium text-ink">
           {t("inventory.suppliers.statement.title", { supplier: supplier.name })}
         </h2>
 

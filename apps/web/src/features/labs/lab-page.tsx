@@ -239,6 +239,7 @@ function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
               <Button
                 size="sm"
                 variant="ghost"
+                icon={<Icon name="edit" />}
                 data-testid="lab-price-edit"
                 onClick={() => setEditing(row)}
               >

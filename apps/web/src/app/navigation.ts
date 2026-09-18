@@ -65,6 +65,12 @@ export const NAV_SETTINGS: NavGroup = {
     { to: "/doctors", label: "nav.doctors", roles: [USER_ROLE.ADMIN], icon: "stethoscope" },
     { to: "/users", label: "nav.users", roles: [USER_ROLE.ADMIN], icon: "shield" },
     { to: "/clinic/lists", label: "nav.lists", roles: [USER_ROLE.ADMIN], icon: "list" },
+    {
+      to: "/clinic/translations",
+      label: "nav.translations",
+      roles: [USER_ROLE.ADMIN],
+      icon: "language",
+    },
     { to: "/permissions", label: "nav.permissions", roles: [USER_ROLE.ADMIN], icon: "key" },
     { to: "/audit-log", label: "nav.audit", roles: [USER_ROLE.ADMIN], icon: "clipboard" },
   ],

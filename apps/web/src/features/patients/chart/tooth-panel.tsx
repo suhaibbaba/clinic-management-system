@@ -117,7 +117,7 @@ export function ToothPanel({
 
             {summary.surfaces.length > 0 && (
               <div className="mt-4 border-t border-line pt-4">
-                <h3 className="mb-2 text-label font-medium text-ink-muted">
+                <h3 className="mb-2 text-label font-semibold text-ink-muted">
                   {t("chart.panel.surfaces")}
                 </h3>
                 <SurfaceSelector value={summary.surfaces} readOnly />
@@ -128,7 +128,7 @@ export function ToothPanel({
 
         <section className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-value font-medium text-ink">{t("chart.panel.history")}</h3>
+            <h3 className="text-label font-semibold text-ink">{t("chart.panel.history")}</h3>
 
             <div className="flex flex-wrap items-center gap-2">
               {/* The crown starts here far more often than on the lab board:
@@ -200,7 +200,7 @@ export function ToothPanel({
 
         {adding && tooth !== null && (
           <section data-testid="tooth-panel-add" className="rounded-panel bg-sunken p-4">
-            <h3 className="mb-3 text-value font-medium text-ink">
+            <h3 className="mb-3 text-label font-semibold text-ink">
               {t("chart.panel.addProcedure")}
             </h3>
             <AddProcedureForm
@@ -220,7 +220,7 @@ export function ToothPanel({
 
         {showAttachments && (
           <section data-testid="tooth-panel-attachments" className="flex flex-col gap-2">
-            <h3 className="text-value font-medium text-ink">{t("chart.panel.attachments")}</h3>
+            <h3 className="text-label font-semibold text-ink">{t("chart.panel.attachments")}</h3>
             {data && <ToothAttachments attachments={data.attachments} />}
           </section>
         )}

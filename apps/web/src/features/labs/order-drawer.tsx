@@ -291,7 +291,7 @@ function OrderHistory({ order }: { readonly order: LabOrderRow }): JSX.Element {
 
   return (
     <section data-testid="lab-order-history" className="flex flex-col gap-2">
-      <h3 className="text-value font-medium text-ink">{t("labs.order.history.title")}</h3>
+      <h3 className="text-label font-semibold text-ink">{t("labs.order.history.title")}</h3>
 
       <ol className="flex flex-col gap-2">
         {stamps.map((stamp) => (
@@ -337,7 +337,7 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
   return (
     <section data-testid="lab-order-attachments" className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-value font-medium text-ink">{t("labs.order.attachments")}</h3>
+        <h3 className="text-label font-semibold text-ink">{t("labs.order.attachments")}</h3>
 
         <Button
           size="sm"
@@ -389,16 +389,16 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
               <span className="min-w-0 flex-1 truncate text-ink">{file.filename}</span>
             )}
 
-            <button
-              type="button"
+            <Button
+              size="sm"
+              variant="quiet"
+              className="shrink-0 hover:text-danger-600"
+              icon={<Icon name="trash" />}
               data-testid="lab-order-attachment-delete"
               aria-label={t("common.delete")}
               disabled={remove.isPending}
               onClick={() => void remove.mutateAsync({ orderId, id: file.id })}
-              className="cursor-pointer rounded-control p-1 text-ink-subtle transition-colors duration-150 hover:text-danger-600"
-            >
-              <Icon name="trash" className="size-4" />
-            </button>
+            />
           </li>
         ))}
       </ul>

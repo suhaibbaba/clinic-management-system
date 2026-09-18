@@ -58,7 +58,7 @@ export function TodayRibbon({
     >
       <div className="mb-3 flex items-center gap-2">
         <Icon name="clock" className="size-4 text-primary-600" />
-        <h2 className="text-value font-medium text-ink">{t("appointments.ribbon.title")}</h2>
+        <h2 className="text-heading font-medium text-ink">{t("appointments.ribbon.title")}</h2>
       </div>
 
       {upcoming.length === 0 ? (
@@ -95,7 +95,7 @@ export function TodayRibbon({
                     <span className="block truncate text-label font-medium">
                       {appointment.patientName}
                     </span>
-                    <span className="block truncate text-[11px] opacity-80">
+                    <span className="block truncate text-micro opacity-80">
                       <PersonName name={appointment.doctorName} />
                     </span>
                   </button>

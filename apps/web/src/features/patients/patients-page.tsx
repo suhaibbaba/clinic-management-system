@@ -115,7 +115,7 @@ export function PatientsPage(): JSX.Element {
         render: (row) => (
           <span className="flex items-center gap-3">
             <Avatar name={row.fullName} tintKey={row.id} data-testid="patient-avatar" />
-            <span className="flex min-w-0 flex-col leading-snug">
+            <span className="flex min-w-0 flex-col leading-label">
               <span data-testid="patient-name" className="truncate font-medium text-ink">
                 {row.fullName}
               </span>
@@ -175,7 +175,7 @@ export function PatientsPage(): JSX.Element {
               currency={currency}
               className={cn(
                 "pill-text inline-flex items-center h-(--control-h-sm) justify-center rounded-pill px-3",
-                "text-nav font-medium",
+                "text-label font-medium",
                 owes ? "bg-danger-100 text-danger-600" : "bg-quiet-bg text-quiet-ink",
               )}
             />

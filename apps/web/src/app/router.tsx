@@ -38,6 +38,10 @@ const LookupsPage = lazy(async () => ({
   default: (await import("@web/features/lookups/lookups-page")).LookupsPage,
 }));
 
+const TranslationsPage = lazy(async () => ({
+  default: (await import("@web/features/translations/translations-page")).TranslationsPage,
+}));
+
 const ADMIN_ONLY = [USER_ROLE.ADMIN] as const;
 
 // Mirrors `NAV_ITEMS`, because a hidden entry still reachable by typing its address is not hidden.
@@ -179,6 +183,16 @@ export function AppRoutes(): JSX.Element {
             <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
               <RouteChunk>
                 <LookupsPage />
+              </RouteChunk>
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/clinic/translations"
+          element={
+            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
+              <RouteChunk>
+                <TranslationsPage />
               </RouteChunk>
             </RequireRole>
           }

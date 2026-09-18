@@ -119,7 +119,7 @@ export function UsersPage(): JSX.Element {
               src={row.photoUrl}
               data-testid="user-avatar"
             />
-            <span className="flex min-w-0 flex-col leading-snug">
+            <span className="flex min-w-0 flex-col leading-label">
               {/* Both spellings on hover: this is the screen where somebody
                   checks how a name is written on a letterhead. */}
               <PersonName
@@ -174,6 +174,7 @@ export function UsersPage(): JSX.Element {
               disabled={row.id === currentUser?.id}
               onCheckedChange={() => void toggleActive(row)}
               label={row.isActive ? t("users.deactivate") : t("users.activate")}
+              hideLabel
             />
             {/* Plain text, not a badge: a switch that is on beside a green pill
                 reading "Active" states the same fact twice, in the width of

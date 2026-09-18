@@ -169,7 +169,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
                 data-testid={`time-off-${entry.id}`}
                 className="flex flex-wrap items-center justify-between gap-2 rounded-panel bg-canvas px-3 py-2"
               >
-                <span className="flex min-w-0 flex-col leading-snug">
+                <span className="flex min-w-0 flex-col leading-label">
                   <span className="truncate text-value font-medium text-ink">{entry.reason}</span>
                   {/* The clinic's zone and a 24-hour clock, so the period is Latin inside one island
                       — an Arabic "ص" reorders the string it is embedded in. */}

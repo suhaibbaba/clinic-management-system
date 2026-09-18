@@ -134,7 +134,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
               data-testid={`closure-${closure.id}`}
               className="flex flex-wrap items-center justify-between gap-2 rounded-panel bg-canvas px-3 py-2"
             >
-              <span className="flex min-w-0 flex-col leading-snug">
+              <span className="flex min-w-0 flex-col leading-label">
                 <span className="truncate text-value font-medium text-ink">{closure.reason}</span>
                 {/* One island around the pair: the em dash between two dates
                     is a neutral character, and left to the Arabic paragraph it

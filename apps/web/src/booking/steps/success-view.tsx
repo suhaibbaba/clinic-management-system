@@ -13,7 +13,7 @@ export function SuccessView({ booking }: { readonly booking: ManagedBooking }): 
       <div className="flex flex-col items-center gap-2 pt-2 text-center">
         <span
           aria-hidden
-          className="flex size-14 items-center justify-center rounded-pill bg-success-100 text-[1.75rem] text-success-700"
+          className="flex size-14 items-center justify-center rounded-pill bg-success-100 text-title text-success-700"
         >
           ✓
         </span>
@@ -48,7 +48,7 @@ export function PendingView({ booking }: { readonly booking?: ManagedBooking }):
       <div className="flex flex-col items-center gap-2 pt-2 text-center">
         <span
           aria-hidden
-          className="flex size-14 items-center justify-center rounded-pill bg-warning-100 text-[1.5rem] text-warning-700"
+          className="flex size-14 items-center justify-center rounded-pill bg-warning-100 text-title text-warning-700"
         >
           ⏳
         </span>

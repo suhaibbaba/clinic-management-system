@@ -87,7 +87,7 @@ export function ProfilePage(): JSX.Element {
           data-testid="profile-details"
           className="border border-line rounded-card bg-surface shadow-card p-4"
         >
-          <h2 className="text-section font-medium text-ink">{t("profile.details")}</h2>
+          <h2 className="text-heading font-medium text-ink">{t("profile.details")}</h2>
 
           {/* Read-only here: a staff photo is set by the admin on the users screen, where accounts
               are managed. */}
@@ -147,7 +147,7 @@ export function ProfilePage(): JSX.Element {
           data-testid="profile-password"
           className="border border-line rounded-card bg-surface shadow-card p-4"
         >
-          <h2 className="text-section font-medium text-ink">{t("profile.changePassword")}</h2>
+          <h2 className="text-heading font-medium text-ink">{t("profile.changePassword")}</h2>
 
           <form
             data-testid="profile-password-form"

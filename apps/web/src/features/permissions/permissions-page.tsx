@@ -141,7 +141,7 @@ export function PermissionsPage(): JSX.Element {
         current &&
         sections.map((section) => (
           <Card key={section.title} data-testid={`permissions-section-${section.title}`}>
-            <h2 className="text-section font-medium text-ink">{section.title}</h2>
+            <h2 className="text-heading font-medium text-ink">{section.title}</h2>
             {section.hint && <p className="mt-0.5 text-meta text-ink-muted">{section.hint}</p>}
 
             {/* Two columns where there is room: 162 switches in one lane is a page nobody reaches
@@ -161,6 +161,7 @@ export function PermissionsPage(): JSX.Element {
                     disabled={locked}
                     onCheckedChange={(next) => void toggle(permission.keys, next)}
                     label={permission.label}
+                    hideLabel
                   />
                 </li>
               ))}

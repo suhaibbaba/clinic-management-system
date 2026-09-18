@@ -19,6 +19,8 @@ import {
   type NavItem,
 } from "@web/app/navigation";
 import { useSession } from "@web/features/auth/session";
+import { useTranslationBundle } from "@web/features/translations/queries";
+import { useApplyTranslationOverrides } from "@web/features/translations/use-translation-overrides";
 import { seesPendingBookings, usePendingBookingsCount } from "@web/features/booking/queries";
 import { cn } from "@clinic/ui/lib/cn";
 import { useClinicLogo } from "@web/lib/use-clinic-logo";
@@ -27,6 +29,9 @@ import { useClinicLogo } from "@web/lib/use-clinic-logo";
 const PATIENTS = "/patients";
 
 export function AppLayout(): JSX.Element {
+  const overrides = useTranslationBundle(true);
+  useApplyTranslationOverrides(overrides.data);
+
   const { t } = useTranslation();
   const { user, logout, can } = useSession();
   const { pathname } = useLocation();
@@ -231,7 +236,7 @@ function NavRow({
         aria-current={isActive ? "page" : undefined}
         className={cn(
           "mb-0.5 flex min-h-(--control-h) cursor-pointer items-center gap-[11px] rounded-nav px-3",
-          "text-nav font-medium transition-[background-color,color,box-shadow] duration-150",
+          "text-label font-medium transition-[background-color,color,box-shadow] duration-150",
           isActive
             ? "nav-active-wash text-ink-inverse shadow-nav-active"
             : "text-ink-muted hover:bg-primary-100 hover:text-primary-700",

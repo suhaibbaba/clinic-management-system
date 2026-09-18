@@ -89,8 +89,8 @@ export function ManagePage({
             data-testid="manage-status"
             className={
               cancelled
-                ? "pill-text inline-flex items-center h-(--control-h-sm) rounded-pill bg-inset px-3 text-nav font-medium text-ink-muted"
-                : "pill-text inline-flex items-center h-(--control-h-sm) rounded-pill bg-success-100 px-3 text-nav font-medium text-success-800"
+                ? "pill-text inline-flex items-center h-(--control-h-sm) rounded-pill bg-inset px-3 text-label font-medium text-ink-muted"
+                : "pill-text inline-flex items-center h-(--control-h-sm) rounded-pill bg-success-100 px-3 text-label font-medium text-success-800"
             }
           >
             {t(STATUS_KEY[booking.status] ?? "manage.statusRequested")}
@@ -122,7 +122,7 @@ export function ManagePage({
           </Card>
         ) : mode === "confirming-cancel" ? (
           <Card data-testid="manage-cancel-panel">
-            <h2 className="text-field font-medium text-ink">{t("manage.cancelTitle")}</h2>
+            <h2 className="text-heading font-medium text-ink">{t("manage.cancelTitle")}</h2>
             <p className="mt-1 text-value text-ink-muted">{t("manage.cancelBody")}</p>
 
             <label htmlFor="cancel-reason" className="mt-3 block text-value font-medium text-ink">
@@ -247,7 +247,7 @@ function ReschedulePanel({
 
   return (
     <div data-testid="reschedule-panel" className="flex flex-col gap-3">
-      <h2 className="text-field font-medium text-ink">{t("manage.rescheduleTitle")}</h2>
+      <h2 className="text-heading font-medium text-ink">{t("manage.rescheduleTitle")}</h2>
 
       <WhenStep
         chips={chips}

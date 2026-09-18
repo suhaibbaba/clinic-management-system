@@ -79,7 +79,7 @@ export function EntityCard({
         </span>
 
         <div className="min-w-0 flex-1">
-          <h3 {...part("title")} className="truncate text-value font-medium text-ink">
+          <h3 {...part("title")} className="truncate text-label font-semibold text-ink">
             {title}
           </h3>
           {subtitle !== undefined && (

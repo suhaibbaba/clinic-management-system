@@ -376,12 +376,12 @@ function ImageCard({
           )}
         </span>
 
-        <Ltr className="text-[11px] text-ink-muted">{formatDate(attachment.createdAt)}</Ltr>
+        <Ltr className="text-micro text-ink-muted">{formatDate(attachment.createdAt)}</Ltr>
 
         {canRemove && (
           <Button
             icon={<Icon name="trash" />}
-            variant="ghost"
+            variant="quiet"
             size="sm"
             data-testid="imaging-card-delete"
             disabled={remove.isPending}

@@ -113,7 +113,8 @@
     "searchPlaceholder": "Search by name, phone, or file number…",
     "settings": "Clinic settings",
     "users": "Users",
-    "waitingCount": "{{count}} awaiting confirmation"
+    "waitingCount": "{{count}} awaiting confirmation",
+    "translations": "Interface text"
   },
   "roles": {
     "admin": "Admin",
@@ -1591,5 +1592,26 @@
     "installed": "The app is installed on this device",
     "update": "Update to the newest version",
     "offline": "No internet connection — nothing is stored on the device, and the screens return when the connection does"
+  },
+  "translations": {
+    "title": "Interface text",
+    "subtitle": "Change any word the system shows",
+    "search": "Search the text",
+    "searchPlaceholder": "Search by text or key",
+    "section": "Section",
+    "key": "Key",
+    "default": "Shipped text",
+    "value": "Your text",
+    "language": "Language",
+    "changedOnly": "Changed only ({{count}})",
+    "changed": "Changed",
+    "save": "Save",
+    "reset": "Reset to default",
+    "saved": "Text saved",
+    "wasReset": "Back to the shipped text",
+    "empty": "No text matches",
+    "emptyHint": "Try another word, or a different section",
+    "allSections": "All sections",
+    "hint": "Keys you never change keep following the system's updates"
   }
 }
