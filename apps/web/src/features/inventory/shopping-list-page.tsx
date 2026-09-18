@@ -35,7 +35,9 @@ export function ShoppingListPage(): JSX.Element {
       header: "inventory.columns.category",
       hideOnMobile: true,
       render: (row) => (
-        <Badge tone={categoryTone(row.category)}>{categoryLabel(row.category)}</Badge>
+        <Badge tone={categoryTone(row.category)} data-testid="shopping-list-category">
+          {categoryLabel(row.category)}
+        </Badge>
       ),
     },
     {
@@ -72,13 +74,15 @@ export function ShoppingListPage(): JSX.Element {
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="shopping-list-page" className="flex flex-col gap-5">
       <PageHeader
+        data-testid="shopping-list-header"
         title="inventory.shoppingList.title"
         subtitle="inventory.shoppingList.subtitle"
         actions={
           <Button
             icon={<Icon name="print" />}
+            data-testid="shopping-list-print"
             disabled={(list.data?.lines.length ?? 0) === 0}
             onClick={() => void print()}
           >
@@ -88,6 +92,7 @@ export function ShoppingListPage(): JSX.Element {
       />
 
       <Table
+        data-testid="shopping-list-table"
         columns={columns}
         rows={list.data?.lines ?? []}
         rowKey={(row) => row.itemId}
@@ -96,6 +101,7 @@ export function ShoppingListPage(): JSX.Element {
         empty={
           <EmptyState
             icon="check"
+            data-testid="shopping-list-empty"
             title="inventory.shoppingList.empty"
             hint="inventory.shoppingList.emptyHint"
           />
@@ -103,7 +109,7 @@ export function ShoppingListPage(): JSX.Element {
       />
 
       {list.data && list.data.lines.length > 0 && (
-        <p className="text-label text-ink-muted">
+        <p data-testid="shopping-list-note" className="text-label text-ink-muted">
           {t("inventory.shoppingList.note")} — <Ltr>{formatDate(list.data.generatedAt)}</Ltr>
         </p>
       )}

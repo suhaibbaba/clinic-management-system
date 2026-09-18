@@ -9,7 +9,7 @@ import { bookingName } from "@web/booking/format";
 
 export function SuccessView({ booking }: { readonly booking: ManagedBooking }): JSX.Element {
   return (
-    <div className="booking-step flex flex-col gap-4">
+    <div data-testid="booking-success" className="booking-step flex flex-col gap-4">
       <div className="flex flex-col items-center gap-2 pt-2 text-center">
         <span
           aria-hidden
@@ -17,12 +17,22 @@ export function SuccessView({ booking }: { readonly booking: ManagedBooking }): 
         >
           ✓
         </span>
-        <h1 className="text-title font-medium text-primary-900">{t("success.heading")}</h1>
+        <h1
+          data-testid="booking-success-heading"
+          className="text-title font-medium text-primary-900"
+        >
+          {t("success.heading")}
+        </h1>
       </div>
 
       <BookingFacts booking={booking} />
 
-      <Button variant="secondary" full onClick={() => downloadIcs(booking)}>
+      <Button
+        variant="secondary"
+        full
+        data-testid="booking-add-to-calendar"
+        onClick={() => downloadIcs(booking)}
+      >
         {t("success.addToCalendar")}
       </Button>
 
@@ -34,7 +44,7 @@ export function SuccessView({ booking }: { readonly booking: ManagedBooking }): 
 /** Manual-confirmation clinics: reception rings back, so say exactly that. */
 export function PendingView({ booking }: { readonly booking?: ManagedBooking }): JSX.Element {
   return (
-    <div className="booking-step flex flex-col gap-4">
+    <div data-testid="booking-pending" className="booking-step flex flex-col gap-4">
       <div className="flex flex-col items-center gap-2 pt-2 text-center">
         <span
           aria-hidden
@@ -42,7 +52,12 @@ export function PendingView({ booking }: { readonly booking?: ManagedBooking }):
         >
           ⏳
         </span>
-        <h1 className="text-title font-medium text-primary-900">{t("success.manual")}</h1>
+        <h1
+          data-testid="booking-pending-heading"
+          className="text-title font-medium text-primary-900"
+        >
+          {t("success.manual")}
+        </h1>
         <p className="text-value text-ink-muted">{t("success.manualBody")}</p>
       </div>
 
@@ -53,7 +68,7 @@ export function PendingView({ booking }: { readonly booking?: ManagedBooking }):
 
 export function BookingFacts({ booking }: { readonly booking: ManagedBooking }): JSX.Element {
   return (
-    <Card>
+    <Card data-testid="booking-facts">
       <dl className="flex flex-col gap-3">
         <Row label={t("success.doctor")} value={bookingName(booking.doctorName)} />
         <Row label={t("success.date")} value={formatLongDate(booking.startsAt)} />
@@ -74,7 +89,7 @@ function Row({
   readonly ltr?: boolean;
 }): JSX.Element {
   return (
-    <div className="flex items-baseline justify-between gap-3">
+    <div data-testid="booking-fact" className="flex items-baseline justify-between gap-3">
       <dt className="shrink-0 text-label text-ink-muted">{label}</dt>
       <dd
         className={cx("min-w-0 truncate text-value font-medium text-ink", ltr && "tabular-nums")}

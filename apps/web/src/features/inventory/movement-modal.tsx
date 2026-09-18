@@ -49,6 +49,7 @@ export const mayRecord = (type: MovementType, can: Can): boolean =>
   })[type](can);
 
 export interface MovementModalProps {
+  readonly "data-testid"?: string | undefined;
   readonly type: MovementType | null;
   readonly item: InventoryItemRow | undefined;
   readonly onClose: () => void;
@@ -64,6 +65,7 @@ export function MovementModal({
   onClose,
   patient,
   performedProcedureId,
+  "data-testid": testId = "movement-modal",
 }: MovementModalProps): JSX.Element | null {
   const { t } = useTranslation();
   const currency = useCurrency();
@@ -147,25 +149,34 @@ export function MovementModal({
 
   return (
     <Modal
+      data-testid={testId}
       open
       onOpenChange={(open) => !open && onClose()}
       title={t(`inventory.movement.title.${type}`, { item: item.nameAr })}
       description={t(`inventory.movement.description.${type}`)}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" data-testid={`${testId}-cancel`} onClick={onClose}>
             {t("common.cancel")}
           </Button>
-          <Button disabled={!canSubmit} isLoading={busy} onClick={() => void submit()}>
+          <Button
+            data-testid={`${testId}-save`}
+            disabled={!canSubmit}
+            isLoading={busy}
+            onClick={() => void submit()}
+          >
             {t(`inventory.movement.submit.${type}`)}
           </Button>
         </>
       }
     >
-      <div className="flex flex-col gap-4">
+      <div data-testid={`${testId}-form`} className="flex flex-col gap-4">
         {/* What is on the shelf right now, so the number being typed has
             something to be judged against. */}
-        <div className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2">
+        <div
+          data-testid={`${testId}-on-hand`}
+          className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2"
+        >
           <span className="text-label text-ink-muted">{t("inventory.movement.onHand")}</span>
           <span className="flex items-baseline gap-1.5">
             <Ltr className="font-medium tabular-nums text-ink">{item.quantity}</Ltr>
@@ -177,6 +188,7 @@ export function MovementModal({
           <FormField label="inventory.movement.direction" htmlFor="movement-direction">
             <Select
               id="movement-direction"
+              data-testid="movement-field-direction"
               value={direction}
               onChange={(event) => setDirection(event.target.value as "add" | "remove")}
               options={[
@@ -195,6 +207,7 @@ export function MovementModal({
         >
           <Input
             id="movement-quantity"
+            data-testid="movement-field-quantity"
             dir="ltr"
             inputMode="decimal"
             placeholder="0"
@@ -209,6 +222,7 @@ export function MovementModal({
               <FormField label="inventory.movement.unitPrice" htmlFor="movement-price" optional>
                 <MoneyInput
                   id="movement-price"
+                  data-testid="movement-field-price"
                   currency={currency}
                   placeholder="0"
                   value={unitPrice}
@@ -219,6 +233,7 @@ export function MovementModal({
               <FormField label="inventory.movement.supplier" htmlFor="movement-supplier" optional>
                 <Select
                   id="movement-supplier"
+                  data-testid="movement-field-supplier"
                   value={supplierId}
                   placeholder={t("inventory.movement.selectSupplier")}
                   onChange={(event) => setSupplierId(event.target.value)}
@@ -234,6 +249,7 @@ export function MovementModal({
               <FormField label="inventory.movement.batchNo" htmlFor="movement-batch" optional>
                 <Input
                   id="movement-batch"
+                  data-testid="movement-field-batch"
                   dir="ltr"
                   placeholder="LX-2451"
                   value={batchNo}
@@ -244,6 +260,7 @@ export function MovementModal({
               <FormField label="inventory.movement.expiry" htmlFor="movement-expiry" optional>
                 <DatePicker
                   id="movement-expiry"
+                  data-testid="movement-field-expiry"
                   label={t("inventory.movement.expiry")}
                   value={expiryDate}
                   onChange={setExpiryDate}
@@ -267,7 +284,10 @@ export function MovementModal({
         )}
 
         {type === MOVEMENT_TYPE.CONSUME && performedProcedureId && (
-          <p className="rounded-panel bg-inset px-3 py-2 text-label text-ink-muted">
+          <p
+            data-testid={`${testId}-linked-procedure`}
+            className="rounded-panel bg-inset px-3 py-2 text-label text-ink-muted"
+          >
             {t("inventory.movement.linkedToProcedure")}
           </p>
         )}
@@ -283,6 +303,7 @@ export function MovementModal({
         >
           <Textarea
             id="movement-reason"
+            data-testid="movement-field-reason"
             rows={2}
             placeholder={
               type === MOVEMENT_TYPE.ADJUST ? t("inventory.movement.reasonPlaceholder") : ""
@@ -294,7 +315,11 @@ export function MovementModal({
 
         {/* Cosmetic only: the API refuses the same thing, and says so. */}
         {!mayRecord(type, can) && (
-          <p role="alert" className="text-label text-danger-600">
+          <p
+            role="alert"
+            data-testid={`${testId}-not-allowed`}
+            className="text-label text-danger-600"
+          >
             {t("inventory.movement.notAllowed")}
           </p>
         )}

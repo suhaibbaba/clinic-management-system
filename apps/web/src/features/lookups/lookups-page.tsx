@@ -26,11 +26,16 @@ export function LookupsPage(): JSX.Element {
   const [listKey, setListKey] = useState<LookupListKey>(LOOKUP_LIST_KEYS[0]);
 
   return (
-    <div className="flex flex-col gap-5">
-      <PageHeader title={t("lookups.title")} subtitle={t("lookups.subtitle")} />
+    <div data-testid="lookups-page" className="flex flex-col gap-5">
+      <PageHeader
+        data-testid="lookups-header"
+        title={t("lookups.title")}
+        subtitle={t("lookups.subtitle")}
+      />
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <nav
+          data-testid="lookups-nav"
           aria-label={t("lookups.pickList")}
           className="flex gap-1 overflow-x-auto border border-line rounded-card bg-surface p-2 shadow-card lg:w-64 lg:shrink-0 lg:flex-col lg:overflow-visible"
         >
@@ -38,6 +43,7 @@ export function LookupsPage(): JSX.Element {
             <button
               key={key}
               type="button"
+              data-testid={`lookups-list-${key}`}
               aria-current={key === listKey ? "true" : undefined}
               onClick={() => setListKey(key)}
               className={cn(
@@ -122,25 +128,34 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
   };
 
   return (
-    <section className="min-w-0 flex-1 border border-line rounded-card bg-surface p-4 shadow-card">
+    <section
+      data-testid="lookup-list"
+      className="min-w-0 flex-1 border border-line rounded-card bg-surface p-4 shadow-card"
+    >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-value font-medium text-ink">{t(`lookups.lists.${listKey}`)}</h2>
           <p className="text-label text-ink-subtle">{t(`lookups.hints.${listKey}`)}</p>
         </div>
 
-        <Button icon={<Icon name="plus" />} size="sm" onClick={() => setAdding(true)}>
+        <Button
+          icon={<Icon name="plus" />}
+          size="sm"
+          data-testid="lookup-add"
+          onClick={() => setAdding(true)}
+        >
           {t("lookups.add")}
         </Button>
       </div>
 
       {options.length === 0 ? (
-        <EmptyState icon="list" title="lookups.empty" />
+        <EmptyState icon="list" data-testid="lookup-list-empty" title="lookups.empty" />
       ) : (
-        <ul className="flex flex-col gap-1">
+        <ul data-testid="lookup-options" className="flex flex-col gap-1">
           {options.map((option) => (
             <li
               key={option.id}
+              data-testid={`lookup-option-${option.code}`}
               draggable
               onDragStart={() => setDragging(option.id)}
               onDragEnd={() => setDragging(null)}
@@ -177,9 +192,14 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
               </span>
 
               <span className="flex w-full shrink-0 items-center gap-3 md:w-auto">
-                {option.isSystem && <Badge tone="neutral">{t("lookups.system")}</Badge>}
+                {option.isSystem && (
+                  <Badge tone="neutral" data-testid="lookup-option-system">
+                    {t("lookups.system")}
+                  </Badge>
+                )}
 
                 <Switch
+                  data-testid="lookup-option-active"
                   checked={option.isActive}
                   label={t("lookups.active")}
                   onCheckedChange={() => void toggle(option)}
@@ -189,6 +209,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
                   size="sm"
                   variant="ghost"
                   icon={<Icon name="edit" />}
+                  data-testid="lookup-option-edit"
                   onClick={() => setEditing(option)}
                 >
                   {t("common.edit")}
@@ -198,7 +219,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
                   size="sm"
                   variant="quiet"
                   icon={<Icon name="trash" />}
-
+                  data-testid="lookup-option-delete"
                   onClick={() => void destroy(option)}
                 >
                   {t("common.delete")}
@@ -210,6 +231,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
       )}
 
       <LookupOptionModal
+        data-testid="lookup-option-modal"
         open={adding || editing !== null}
         listKey={listKey}
         coloured={coloured}

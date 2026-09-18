@@ -17,13 +17,17 @@ export function ToothAttachments({
   const { t } = useTranslation();
 
   if (attachments.length === 0) {
-    return <p className="text-value text-ink-muted">{t("chart.panel.noAttachments")}</p>;
+    return (
+      <p data-testid="tooth-attachments-empty" className="text-value text-ink-muted">
+        {t("chart.panel.noAttachments")}
+      </p>
+    );
   }
 
   return (
-    <ul className="grid grid-cols-3 gap-2">
+    <ul data-testid="tooth-attachments" className="grid grid-cols-3 gap-2">
       {attachments.map((attachment) => (
-        <li key={attachment.id}>
+        <li key={attachment.id} data-testid={`tooth-attachment-${attachment.id}`}>
           <AttachmentThumbnail attachment={attachment} />
         </li>
       ))}
@@ -38,14 +42,19 @@ function AttachmentThumbnail({ attachment }: { attachment: Attachment }): JSX.El
   const isImage = attachment.mime.startsWith("image/");
 
   return (
-    <figure className="flex flex-col gap-1">
+    <figure data-testid="attachment-thumbnail" className="flex flex-col gap-1">
       <div className="flex aspect-square items-center justify-center overflow-hidden rounded-control border border-line bg-canvas">
         {isPending && <Skeleton className="size-full rounded-none" />}
 
-        {isError && <span className="text-label text-danger-500">{t("errors.generic")}</span>}
+        {isError && (
+          <span data-testid="attachment-thumbnail-error" className="text-label text-danger-500">
+            {t("errors.generic")}
+          </span>
+        )}
 
         {data?.downloadUrl && isImage && (
           <Img
+            data-testid="attachment-thumbnail-image"
             src={data.downloadUrl}
             alt={attachment.filename}
             aspectRatio="1/1"
@@ -56,6 +65,7 @@ function AttachmentThumbnail({ attachment }: { attachment: Attachment }): JSX.El
         {data?.downloadUrl && !isImage && (
           <a
             href={data.downloadUrl}
+            data-testid="attachment-thumbnail-open"
             target="_blank"
             rel="noreferrer"
             className="px-1 text-center text-label text-primary-600 underline"

@@ -74,9 +74,10 @@ export function AppLayout(): JSX.Element {
 
   return (
     <PageActionSlotProvider value={isMobile ? null : actionSlot}>
-      <div className="flex min-h-full flex-col md:flex-row">
+      <div data-testid="app-layout" className="flex min-h-full flex-col md:flex-row">
         {/* Desktop: a permanent rail. */}
         <aside
+          data-testid="app-rail"
           className={cn(
             "z-30 hidden shrink-0 bg-rail md:block md:w-[266px]",
             "md:sticky md:top-0 md:h-dvh",
@@ -86,7 +87,10 @@ export function AppLayout(): JSX.Element {
           <div className="flex h-full flex-col px-[18px] pt-5 pb-[18px]">
             {/* The logo on its own white plate, as the reference draws it — the rail's ground is a
               tint, so a mark sitting straight on it has no edge. */}
-            <div className="mb-[22px] shrink-0 rounded-brand border border-line bg-surface px-4 py-3.5">
+            <div
+              data-testid="app-rail-brand"
+              className="mb-[22px] shrink-0 rounded-brand border border-line bg-surface px-4 py-3.5"
+            >
               <Logo size="chrome" src={logoUrl} name={user?.clinic.name} alt={t("app.title")} />
             </div>
 
@@ -95,7 +99,7 @@ export function AppLayout(): JSX.Element {
             </div>
 
             {user && (
-              <div className="mt-auto shrink-0 pt-4">
+              <div data-testid="app-rail-user" className="mt-auto shrink-0 pt-4">
                 <UserMenu user={user} onLogout={() => void logout()} />
               </div>
             )}
@@ -125,6 +129,7 @@ export function AppLayout(): JSX.Element {
             not frame scrolled content, and it reserves the bar's own height either way. */}
           <div className="sticky top-0 z-20 bg-canvas px-4 pt-4 pb-4 md:px-[34px] md:pt-[26px]">
             <header
+              data-testid="app-topbar"
               className={cn(
                 "flex min-h-[70px] flex-wrap items-center gap-3.5",
                 "rounded-card border border-line bg-surface px-4 py-3 shadow-card",
@@ -133,6 +138,7 @@ export function AppLayout(): JSX.Element {
               <Button
                 variant="secondary"
                 size="sm"
+                data-testid="app-nav-toggle"
                 className="-ms-1 md:hidden"
                 aria-expanded={drawerOpen}
                 onClick={() => setDrawerOpen(true)}
@@ -147,7 +153,7 @@ export function AppLayout(): JSX.Element {
               {searchable && <TopSearch />}
 
               {/* The reference's `.top-actions`: its own 9px pair, then the bar's 14px to the field. */}
-              <div className="ms-auto flex items-center gap-[9px]">
+              <div data-testid="app-topbar-actions" className="ms-auto flex items-center gap-[9px]">
                 <NotificationBell />
                 {/* The page's own "new …" button, portalled in. `contents` so the slot's row is this
                   one and the button sits beside the bell rather than in a box of its own. */}
@@ -156,7 +162,7 @@ export function AppLayout(): JSX.Element {
             </header>
           </div>
 
-          <main className="min-w-0 flex-1 px-4 pb-10 md:px-[34px] md:pb-12">
+          <main data-testid="app-main" className="min-w-0 flex-1 px-4 pb-10 md:px-[34px] md:pb-12">
             <div className="mx-auto w-full max-w-[1180px]">
               <Outlet />
             </div>
@@ -179,7 +185,7 @@ function NavList({
   const { t } = useTranslation();
 
   return (
-    <nav aria-label={t("nav.menu")} className="min-w-0 flex-1">
+    <nav data-testid="nav-menu" aria-label={t("nav.menu")} className="min-w-0 flex-1">
       {groups.map((group) =>
         group.label === undefined ? (
           <ul key="loose">
@@ -221,6 +227,7 @@ function NavRow({
     <li>
       <Link
         to={item.to}
+        data-testid={`nav-item-${item.to.replace(/^\//, "").replaceAll("/", "-")}`}
         aria-current={isActive ? "page" : undefined}
         className={cn(
           "mb-0.5 flex min-h-(--control-h) cursor-pointer items-center gap-[11px] rounded-nav px-3",
@@ -235,6 +242,7 @@ function NavRow({
 
         {count > 0 && (
           <span
+            data-testid={`nav-badge-${item.to.replace(/^\//, "").replaceAll("/", "-")}`}
             aria-label={t("nav.waitingCount", { count })}
             className={cn(
               // A lozenge that stays at least as wide as it is tall, so one digit is a circle and
@@ -268,6 +276,7 @@ function NavSection({
       <hr className="my-3.5 mx-1 border-0 border-t border-line" />
 
       <div
+        data-testid={`nav-section-${label}`}
         className={cn(
           "px-3 pt-1 pb-2 text-micro font-medium tracking-[0.02em] text-ink-subtle",
           "page-ltr:uppercase",

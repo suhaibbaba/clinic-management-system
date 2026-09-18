@@ -10,13 +10,19 @@ import { errorMessageKey } from "@web/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
 
 export interface TodayRibbonProps {
+  readonly "data-testid"?: string | undefined;
   readonly appointments: readonly CalendarAppointment[];
   readonly onOpen: (appointment: CalendarAppointment) => void;
   /** Reception marks arrivals; a technician sees the ribbon but no button. */
   readonly canMark: boolean;
 }
 
-export function TodayRibbon({ appointments, onOpen, canMark }: TodayRibbonProps): JSX.Element {
+export function TodayRibbon({
+  appointments,
+  onOpen,
+  canMark,
+  "data-testid": testId = "today-ribbon",
+}: TodayRibbonProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
   const step = useAppointmentStep();
@@ -46,6 +52,7 @@ export function TodayRibbon({ appointments, onOpen, canMark }: TodayRibbonProps)
 
   return (
     <section
+      data-testid={testId}
       aria-label={t("appointments.ribbon.title")}
       className="border border-line rounded-card bg-surface p-4 shadow-card"
     >
@@ -55,20 +62,30 @@ export function TodayRibbon({ appointments, onOpen, canMark }: TodayRibbonProps)
       </div>
 
       {upcoming.length === 0 ? (
-        <p className="text-label text-ink-muted">{t("appointments.ribbon.none")}</p>
+        <p data-testid={`${testId}-empty`} className="text-label text-ink-muted">
+          {t("appointments.ribbon.none")}
+        </p>
       ) : (
-        <ul className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:thin]">
+        <ul
+          data-testid={`${testId}-list`}
+          className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:thin]"
+        >
           {upcoming.map((appointment) => {
             const style = APPOINTMENT_STATUS_STYLES[appointment.status];
             const arrived = appointment.status === APPOINTMENT_STATUS.ARRIVED;
 
             return (
-              <li key={appointment.id} className="shrink-0">
+              <li
+                key={appointment.id}
+                data-testid={`${testId}-item-${appointment.id}`}
+                className="shrink-0"
+              >
                 <div
                   className={cn("flex w-52 flex-col gap-1.5 rounded-panel border p-3", style.block)}
                 >
                   <button
                     type="button"
+                    data-testid={`${testId}-open-${appointment.id}`}
                     onClick={() => onOpen(appointment)}
                     className="cursor-pointer text-start"
                   >
@@ -87,6 +104,7 @@ export function TodayRibbon({ appointments, onOpen, canMark }: TodayRibbonProps)
                     <Button
                       size="sm"
                       variant="secondary"
+                      data-testid={`${testId}-arrived-${appointment.id}`}
                       isLoading={step.isPending}
                       onClick={() => void markArrived(appointment.id)}
                     >

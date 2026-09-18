@@ -36,12 +36,18 @@ export function AppointmentsSection(): JSX.Element {
   );
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="appointments-section" className="flex flex-col gap-5">
       {tabs.length > 1 && (
-        <Tabs tabs={tabs} value={active} onChange={setActive} label="appointments.tabs.label" />
+        <Tabs
+          data-testid="appointments-section-tabs"
+          tabs={tabs}
+          value={active}
+          onChange={setActive}
+          label="appointments.tabs.label"
+        />
       )}
 
-      <TabPanel id={active}>
+      <TabPanel id={active} data-testid="appointments-section-panel">
         {active === ALL && <AppointmentsPage />}
         {active === PENDING && <PendingBookingsPage />}
         {active === CONFIRMED && <ConfirmedBookings />}

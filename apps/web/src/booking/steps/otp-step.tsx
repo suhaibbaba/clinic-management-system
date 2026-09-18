@@ -111,8 +111,8 @@ export function OtpStep({
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-value text-ink-muted">
+    <div data-testid="otp-step" className="flex flex-col gap-4">
+      <p data-testid="otp-sent-to" className="text-value text-ink-muted">
         {t("otp.sentTo", { phone: "" })}
         <span dir="ltr" className="bidi-auto font-medium text-ink">
           {phone}
@@ -128,6 +128,7 @@ export function OtpStep({
             <input
               // Positional and never reordered, so the index is the identity.
               key={index}
+              data-testid={`otp-digit-${String(index)}`}
               ref={(element) => {
                 boxes.current[index] = element;
               }}
@@ -150,20 +151,31 @@ export function OtpStep({
         </div>
       </fieldset>
 
-      {error && <Alert>{error}</Alert>}
+      {error && <Alert data-testid="otp-error">{error}</Alert>}
 
-      <Button full busy={busy} disabled={code.length < LENGTH} onClick={() => onVerify(code)}>
+      <Button
+        full
+        data-testid="otp-verify"
+        busy={busy}
+        disabled={code.length < LENGTH}
+        onClick={() => onVerify(code)}
+      >
         {t("otp.verify")}
       </Button>
 
       {seconds > 0 ? (
-        <p aria-live="polite" className="text-center text-label text-ink-muted">
+        <p
+          data-testid="otp-resend-timer"
+          aria-live="polite"
+          className="text-center text-label text-ink-muted"
+        >
           {t("otp.resendIn", { seconds })}
         </p>
       ) : (
         <Button
           variant="ghost"
           full
+          data-testid="otp-resend"
           disabled={attemptsLeft <= 0}
           onClick={() => {
             setSeconds(RESEND_SECONDS);

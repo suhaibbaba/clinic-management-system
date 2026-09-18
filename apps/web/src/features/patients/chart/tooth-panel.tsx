@@ -67,6 +67,7 @@ export function ToothPanel({
 
   return (
     <Drawer
+      data-testid="tooth-panel"
       open={tooth !== null}
       onOpenChange={(open) => {
         if (!open) {
@@ -79,13 +80,20 @@ export function ToothPanel({
         <span className="flex items-center gap-2">
           {t("chart.panel.title")}
           <Ltr className="font-mono">{tooth}</Ltr>
-          {summary && <Badge tone="neutral">{states.info(summary.state).label}</Badge>}
+          {summary && (
+            <Badge tone="neutral" data-testid="tooth-panel-state">
+              {states.info(summary.state).label}
+            </Badge>
+          )}
         </span>
       }
     >
       <div className="flex flex-col gap-6">
         {summary && (
-          <section className="rounded-card border border-line bg-canvas p-4 shadow-float">
+          <section
+            data-testid="tooth-panel-summary"
+            className="rounded-card border border-line bg-canvas p-4 shadow-float"
+          >
             <div className="flex items-center gap-3">
               <Ltr className="inline-flex size-12 shrink-0 items-center justify-center rounded-panel bg-surface font-mono text-section font-medium text-ink shadow-pill">
                 {tooth}
@@ -98,7 +106,11 @@ export function ToothPanel({
                 </p>
               </div>
 
-              <Badge className="ms-auto" tone={summary.surfaces.length > 0 ? "info" : "neutral"}>
+              <Badge
+                className="ms-auto"
+                data-testid="tooth-panel-count"
+                tone={summary.surfaces.length > 0 ? "info" : "neutral"}
+              >
                 {t("chart.panel.procedureCount", { count: data?.procedures.length ?? 0 })}
               </Badge>
             </div>
@@ -126,6 +138,7 @@ export function ToothPanel({
                   icon={<Icon name="clipboard" />}
                   size="sm"
                   variant="secondary"
+                  data-testid="tooth-panel-send-to-lab"
                   onClick={() => onSendToLab({ teeth: [tooth] })}
                 >
                   {t("labs.sendToLab")}
@@ -137,6 +150,7 @@ export function ToothPanel({
                   icon={<Icon name="plus" />}
                   size="sm"
                   variant="secondary"
+                  data-testid="tooth-panel-add-procedure"
                   onClick={() => setAdding(true)}
                 >
                   {t("chart.panel.addProcedure")}
@@ -146,14 +160,22 @@ export function ToothPanel({
           </div>
 
           {showSkeleton && <SkeletonTimeline entries={2} />}
-          {isError && <p className="text-value text-danger-600">{t("errors.generic")}</p>}
+          {isError && (
+            <p data-testid="tooth-panel-error" className="text-value text-danger-600">
+              {t("errors.generic")}
+            </p>
+          )}
 
           {data && data.procedures.length === 0 && (
-            <EmptyState icon="tooth" title="chart.panel.noProcedures" />
+            <EmptyState
+              icon="tooth"
+              data-testid="tooth-panel-empty"
+              title="chart.panel.noProcedures"
+            />
           )}
 
           {data && data.procedures.length > 0 && (
-            <ol className="flex flex-col gap-2">
+            <ol data-testid="tooth-panel-history" className="flex flex-col gap-2">
               {[...data.procedures]
                 .sort((a, b) => b.performedAt.localeCompare(a.performedAt))
                 .map((procedure) => (
@@ -177,7 +199,7 @@ export function ToothPanel({
         </section>
 
         {adding && tooth !== null && (
-          <section className="rounded-panel bg-sunken p-4">
+          <section data-testid="tooth-panel-add" className="rounded-panel bg-sunken p-4">
             <h3 className="mb-3 text-value font-medium text-ink">
               {t("chart.panel.addProcedure")}
             </h3>
@@ -197,7 +219,7 @@ export function ToothPanel({
         )}
 
         {showAttachments && (
-          <section className="flex flex-col gap-2">
+          <section data-testid="tooth-panel-attachments" className="flex flex-col gap-2">
             <h3 className="text-value font-medium text-ink">{t("chart.panel.attachments")}</h3>
             {data && <ToothAttachments attachments={data.attachments} />}
           </section>
@@ -226,12 +248,12 @@ function ProcedureRow({
   const currency = useClinic().data?.currency;
 
   return (
-    <li className="rounded-panel bg-canvas p-3">
+    <li data-testid={`tooth-procedure-${procedure.id}`} className="rounded-panel bg-canvas p-3">
       <div className="flex items-start justify-between gap-2">
         <span className="text-value font-medium text-ink">
           {name ?? t("chart.panel.procedure")}
         </span>
-        <Badge tone={statusTone(procedure.status)}>
+        <Badge tone={statusTone(procedure.status)} data-testid="tooth-procedure-status">
           {t(`chart.procedureStatus.${procedure.status}`)}
         </Badge>
       </div>
@@ -270,7 +292,13 @@ function ProcedureRow({
       </dl>
 
       {onSendToLab && (
-        <Button className="mt-2" size="sm" variant="ghost" onClick={onSendToLab}>
+        <Button
+          className="mt-2"
+          size="sm"
+          variant="ghost"
+          data-testid="tooth-procedure-send-to-lab"
+          onClick={onSendToLab}
+        >
           {t("labs.sendToLab")}
         </Button>
       )}

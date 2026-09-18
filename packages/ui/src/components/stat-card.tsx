@@ -5,6 +5,7 @@ import { Icon, type IconName } from "@ui/components/icon";
 
 import { cn } from "@ui/lib/cn";
 import { Ltr } from "@ui/components/ltr";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export type StatTone = "primary" | "success" | "warning" | "danger" | "neutral";
 export type DeltaDirection = "up" | "down";
@@ -19,7 +20,7 @@ const FIGURES: Record<StatTone, string> = {
   neutral: "text-ink",
 };
 
-export interface StatCardProps {
+export interface StatCardProps extends TestIdProps {
   readonly label: string;
   /** Already formatted — this component never formats money or dates. */
   readonly value: ReactNode;
@@ -47,10 +48,13 @@ export function StatCard({
   caption,
   delta,
   className,
+  "data-testid": testId,
 }: StatCardProps): JSX.Element {
+  const part = parts("stat-card", testId);
+
   return (
     <div
-      data-part="stat-card"
+      {...part()}
       className={cn(
         "rounded-card border border-line bg-surface p-[18px_20px] shadow-card",
         // `transition`, which is Tailwind's curated list: it carries `translate` and `scale` — the
@@ -62,16 +66,12 @@ export function StatCard({
       {/* The icon and its label are one chip: the reference's `.tag`, a wash running from green
           into blue, naming what the figure below counts. */}
       <div className="flex min-h-[26px] items-center justify-between gap-2">
-        <Badge tone="wash" icon={icon}>
+        <Badge tone="wash" icon={icon} {...part("label")}>
           {label}
         </Badge>
       </div>
 
-      <Ltr
-        as="p"
-        data-part="stat-card-figure"
-        className={cn("mt-2 text-kpi font-medium", FIGURES[tone])}
-      >
+      <Ltr as="p" {...part("figure")} className={cn("mt-2 text-kpi font-medium", FIGURES[tone])}>
         {value}
       </Ltr>
 
@@ -79,7 +79,7 @@ export function StatCard({
         <div className="mt-[7px] flex flex-wrap items-center gap-x-2">
           {delta !== undefined && (
             <span
-              data-part="stat-card-delta"
+              {...part("delta")}
               className={cn(
                 "pill-text inline-flex items-center gap-1 text-meta font-medium",
                 delta.isGood ? "text-success-700" : "text-danger-700",
@@ -93,10 +93,7 @@ export function StatCard({
             </span>
           )}
           {caption !== undefined && (
-            <span
-              data-part="stat-card-caption"
-              className="min-w-0 line-clamp-2 text-meta text-ink-subtle"
-            >
+            <span {...part("caption")} className="min-w-0 line-clamp-2 text-meta text-ink-subtle">
               {caption}
             </span>
           )}
@@ -119,15 +116,16 @@ const WIDE_COLUMNS: Record<number, string> = {
 export function StatRow({
   children,
   cards,
+  "data-testid": testId,
 }: {
   readonly children: ReactNode;
   readonly cards?: number | undefined;
-}): JSX.Element {
+} & TestIdProps): JSX.Element {
   const count = cards ?? Children.count(children);
 
   return (
     <div
-      data-part="stat-row"
+      {...parts("stat-row", testId)()}
       className={cn("mb-5 grid grid-cols-2 gap-3", WIDE_COLUMNS[count] ?? "xl:grid-cols-4")}
     >
       {children}

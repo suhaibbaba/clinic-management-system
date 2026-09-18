@@ -16,7 +16,9 @@ export function LabOrdersTable({
   isRefreshing = false,
   onOpen,
   hideLab = false,
+  "data-testid": testId = "lab-orders-table",
 }: {
+  readonly "data-testid"?: string | undefined;
   readonly orders: readonly LabOrderRow[];
   readonly isLoading: boolean;
   readonly isRefreshing?: boolean | undefined;
@@ -67,10 +69,14 @@ export function LabOrdersTable({
       header: "labs.orders.columns.status",
       render: (row) => (
         <span className="flex flex-wrap items-center gap-1.5">
-          <Badge tone={LAB_ORDER_STATUS_STYLES[row.status].tone}>
+          <Badge tone={LAB_ORDER_STATUS_STYLES[row.status].tone} data-testid="lab-order-status">
             {t(LAB_ORDER_STATUS_STYLES[row.status].label)}
           </Badge>
-          {row.isOverdue && <Badge tone="danger">{t("labs.orders.overdue")}</Badge>}
+          {row.isOverdue && (
+            <Badge tone="danger" data-testid="lab-order-overdue">
+              {t("labs.orders.overdue")}
+            </Badge>
+          )}
         </span>
       ),
     },
@@ -90,13 +96,21 @@ export function LabOrdersTable({
 
   return (
     <Table
+      data-testid={testId}
       columns={columns}
       rows={orders}
       rowKey={(row) => row.id}
       isLoading={isLoading}
       isRefreshing={isRefreshing}
       {...(onOpen && { onRowClick: onOpen, rowLabel: (row: LabOrderRow) => row.patientName })}
-      empty={<EmptyState icon="clipboard" title="labs.orders.empty" hint="labs.orders.emptyHint" />}
+      empty={
+        <EmptyState
+          icon="clipboard"
+          data-testid={`${testId}-empty`}
+          title="labs.orders.empty"
+          hint="labs.orders.emptyHint"
+        />
+      }
     />
   );
 }

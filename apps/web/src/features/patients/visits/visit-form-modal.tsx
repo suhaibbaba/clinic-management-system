@@ -19,6 +19,7 @@ import { useSaveVisit } from "@web/features/patients/queries";
 import { errorMessageKey } from "@web/lib/api-error";
 
 interface VisitFormModalProps {
+  "data-testid"?: string | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   patientId: string;
@@ -53,6 +54,7 @@ export function VisitFormModal({
   patientId,
   doctors,
   visit,
+  "data-testid": testId = "visit-form-modal",
 }: VisitFormModalProps): JSX.Element {
   const { t } = useTranslation();
   const doctorName = usePersonName();
@@ -141,19 +143,26 @@ export function VisitFormModal({
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       title={visit ? "visits.edit" : "visits.create"}
       size="lg"
       footer={
         <>
-          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            icon={<Icon name="x" />}
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
             type="submit"
             form="visit-form"
+            data-testid={`${testId}-save`}
             isLoading={isSubmitting}
           >
             {t(isSubmitting ? "common.saving" : "common.save")}
@@ -161,7 +170,13 @@ export function VisitFormModal({
         </>
       }
     >
-      <form id="visit-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
+      <form
+        id="visit-form"
+        data-testid={`${testId}-form`}
+        className="flex flex-col gap-4"
+        onSubmit={onSubmit}
+        noValidate
+      >
         <FormField label="visits.doctor" htmlFor="visit-doctor" error={errors.doctorId}>
           <Controller
             name="doctorId"
@@ -169,6 +184,7 @@ export function VisitFormModal({
             render={({ field }) => (
               <Select
                 id="visit-doctor"
+                data-testid="visit-field-doctor"
                 options={doctors.map((doctor) => ({
                   value: doctor.id,
                   label: doctorName(doctor.user.name),
@@ -192,6 +208,7 @@ export function VisitFormModal({
                 <div className="flex flex-wrap gap-2">
                   <DatePicker
                     id="visit-date"
+                    data-testid="visit-field-date"
                     className="min-w-40 flex-1"
                     label={t("visits.date")}
                     value={date}
@@ -200,6 +217,7 @@ export function VisitFormModal({
                   />
                   <TimePicker
                     id="visit-time"
+                    data-testid="visit-field-time"
                     className="w-32"
                     label={t("visits.time")}
                     value={time}
@@ -215,6 +233,7 @@ export function VisitFormModal({
           <Textarea
             placeholder={t("common.placeholders.complaint")}
             id="visit-complaint"
+            data-testid="visit-field-complaint"
             rows={2}
             {...register("complaint", { setValueAs: (v) => (v === "" ? null : v) })}
           />
@@ -224,6 +243,7 @@ export function VisitFormModal({
           <Textarea
             placeholder={t("common.placeholders.examination")}
             id="visit-exam"
+            data-testid="visit-field-examination"
             rows={3}
             {...register("examination", { setValueAs: (v) => (v === "" ? null : v) })}
           />
@@ -233,6 +253,7 @@ export function VisitFormModal({
           <Textarea
             placeholder={t("common.placeholders.diagnosis")}
             id="visit-diagnosis"
+            data-testid="visit-field-diagnosis"
             rows={2}
             {...register("diagnosis", { setValueAs: (v) => (v === "" ? null : v) })}
           />
@@ -242,6 +263,7 @@ export function VisitFormModal({
           <Textarea
             placeholder={t("common.placeholders.visitNotes")}
             id="visit-notes"
+            data-testid="visit-field-notes"
             rows={2}
             {...register("notes", { setValueAs: (v) => (v === "" ? null : v) })}
           />

@@ -27,6 +27,7 @@ import { errorMessageKey } from "@web/lib/api-error";
 import { Modal } from "@clinic/ui/components/modal";
 
 interface UserFormModalProps {
+  "data-testid"?: string | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User | null;
@@ -34,7 +35,12 @@ interface UserFormModalProps {
 
 type FormValues = CreateUserInput & { password?: string };
 
-export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps): JSX.Element {
+export function UserFormModal({
+  open,
+  onOpenChange,
+  user,
+  "data-testid": testId = "user-form-modal",
+}: UserFormModalProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
   const createUser = useCreateUser();
@@ -100,16 +106,23 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       title={isEdit ? "users.edit" : "users.create"}
       footer={
         <>
-          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            icon={<Icon name="x" />}
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
+            data-testid={`${testId}-save`}
             form="user-form"
             type="submit"
             isLoading={isSubmitting}
@@ -119,7 +132,13 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
         </>
       }
     >
-      <form id="user-form" className="flex flex-col gap-4" onSubmit={onSubmit} noValidate>
+      <form
+        id="user-form"
+        data-testid={`${testId}-form`}
+        className="flex flex-col gap-4"
+        onSubmit={onSubmit}
+        noValidate
+      >
         {/* Outside the form's fields: the photo has already left the browser by the time "save" is
             pressed, and there is no id to address until the user exists. */}
         {user && <UserPhotoField user={user} />}
@@ -132,6 +151,7 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
               placeholder={t("common.placeholders.fullNameAr")}
               adornment="user"
               id="user-name-ar"
+              data-testid="user-field-name-ar"
               hasError={errors.name?.ar !== undefined}
               {...register("name.ar")}
             />
@@ -142,6 +162,7 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
               placeholder={t("common.placeholders.fullNameEn")}
               adornment="user"
               id="user-name-en"
+              data-testid="user-field-name-en"
               dir="ltr"
               hasError={errors.name?.en !== undefined}
               {...register("name.en")}
@@ -159,6 +180,7 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
             placeholder={t("common.placeholders.phone")}
             adornment="phone"
             id="user-phone"
+            data-testid="user-field-phone"
             hasError={errors.phone !== undefined}
             {...register("phone")}
           />
@@ -175,6 +197,7 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
             placeholder={t("common.placeholders.email")}
             adornment="mail"
             id="user-email"
+            data-testid="user-field-email"
             type="email"
             hasError={errors.email !== undefined}
             // An untouched optional field must clear the value, not fail
@@ -190,6 +213,7 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
             render={({ field }) => (
               <Select
                 id="user-role"
+                data-testid="user-field-role"
                 options={roleOptions}
                 placeholder={t("users.selectRole")}
                 hasError={errors.role !== undefined}
@@ -206,7 +230,10 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
             the admin still has to set something and hand it over. */}
         {!isEdit &&
           (email ? (
-            <p className="rounded-panel border border-primary-200 bg-primary-50 px-3.5 py-2.5 text-label text-primary-900">
+            <p
+              data-testid="user-will-be-invited"
+              className="rounded-panel border border-primary-200 bg-primary-50 px-3.5 py-2.5 text-label text-primary-900"
+            >
               {t("users.willBeInvited", { email })}
             </p>
           ) : (
@@ -220,6 +247,7 @@ export function UserFormModal({ open, onOpenChange, user }: UserFormModalProps):
               <PasswordInput
                 placeholder={t("common.placeholders.password")}
                 id="user-password"
+                data-testid="user-field-password"
                 autoComplete="new-password"
                 hasError={errors.password !== undefined}
                 {...register("password")}

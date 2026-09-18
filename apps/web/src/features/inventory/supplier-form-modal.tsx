@@ -19,7 +19,9 @@ export function SupplierFormModal({
   open,
   onOpenChange,
   supplier,
+  "data-testid": testId = "supplier-form-modal",
 }: {
+  readonly "data-testid"?: string | undefined;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly supplier?: SupplierSummary | undefined;
@@ -73,15 +75,21 @@ export function SupplierFormModal({
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       title={t(supplier ? "inventory.suppliers.editTitle" : "inventory.suppliers.newTitle")}
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
           <Button
+            data-testid={`${testId}-save`}
             disabled={name.trim().length < 2}
             isLoading={create.isPending || update.isPending}
             onClick={() => void submit()}
@@ -91,10 +99,11 @@ export function SupplierFormModal({
         </>
       }
     >
-      <div className="flex flex-col gap-4">
+      <div data-testid={`${testId}-form`} className="flex flex-col gap-4">
         <FormField label="inventory.suppliers.name" htmlFor="supplier-name" required>
           <Input
             id="supplier-name"
+            data-testid="supplier-field-name"
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
@@ -104,6 +113,7 @@ export function SupplierFormModal({
           <FormField label="inventory.suppliers.phone" htmlFor="supplier-phone" optional>
             <PhoneInput
               id="supplier-phone"
+              data-testid="supplier-field-phone"
               value={phone}
               onChange={(event) => setPhone(event.target.value)}
             />
@@ -112,6 +122,7 @@ export function SupplierFormModal({
           <FormField label="inventory.suppliers.contact" htmlFor="supplier-contact" optional>
             <Input
               id="supplier-contact"
+              data-testid="supplier-field-contact"
               value={contactPerson}
               onChange={(event) => setContactPerson(event.target.value)}
             />
@@ -121,6 +132,7 @@ export function SupplierFormModal({
         <FormField label="inventory.notes" htmlFor="supplier-notes" optional>
           <Textarea
             id="supplier-notes"
+            data-testid="supplier-field-notes"
             rows={2}
             value={notes}
             onChange={(event) => setNotes(event.target.value)}

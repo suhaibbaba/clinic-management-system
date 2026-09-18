@@ -17,26 +17,44 @@ export function InstallCard(): JSX.Element | null {
   }
 
   return (
-    <div className="mt-4 flex flex-col items-start gap-2 border-t border-line pt-4">
+    <div
+      data-testid="pwa-install-card"
+      className="mt-4 flex flex-col items-start gap-2 border-t border-line pt-4"
+    >
       {state === "available" && (
         <>
           <p className="text-label text-ink-muted">{t("pwa.installHint")}</p>
-          <Button icon={<Icon name="plus" />} variant="secondary" size="sm" onClick={install}>
+          <Button
+            icon={<Icon name="plus" />}
+            variant="secondary"
+            size="sm"
+            data-testid="pwa-install"
+            onClick={install}
+          >
             {t("pwa.install")}
           </Button>
         </>
       )}
 
       {/* Safari has no install event at all, so the only thing to offer is the recipe. */}
-      {state === "manual" && <p className="text-label text-ink-muted">{t("pwa.installIos")}</p>}
+      {state === "manual" && (
+        <p data-testid="pwa-install-ios" className="text-label text-ink-muted">
+          {t("pwa.installIos")}
+        </p>
+      )}
 
-      {state === "installed" && <p className="text-label text-ink-muted">{t("pwa.installed")}</p>}
+      {state === "installed" && (
+        <p data-testid="pwa-installed" className="text-label text-ink-muted">
+          {t("pwa.installed")}
+        </p>
+      )}
 
       {waiting && (
         <Button
           icon={<Icon name="reset" />}
           variant="secondary"
           size="sm"
+          data-testid="pwa-update"
           onClick={() => void applyUpdate()}
         >
           {t("pwa.update")}

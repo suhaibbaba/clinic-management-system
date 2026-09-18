@@ -138,14 +138,16 @@ export function ClinicPage(): JSX.Element {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="clinic-page" className="flex flex-col gap-5">
       <PageHeader
+        data-testid="clinic-header"
         title="clinic.title"
         subtitle={canEdit ? "clinic.subtitle" : "clinic.readOnly"}
         actions={
           canEdit ? (
             <Button
               icon={<Icon name="check" />}
+              data-testid="clinic-save"
               isLoading={updateClinic.isPending}
               onClick={() => void save()}
             >
@@ -156,13 +158,17 @@ export function ClinicPage(): JSX.Element {
       />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="border border-line rounded-card bg-surface shadow-card p-4">
+        <section
+          data-testid="clinic-details"
+          className="border border-line rounded-card bg-surface shadow-card p-4"
+        >
           <div className="flex flex-col gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField label="clinic.nameAr" htmlFor="clinic-name-ar">
                 <Input
                   placeholder={t("common.placeholders.fullNameAr")}
                   id="clinic-name-ar"
+                  data-testid="clinic-field-name-ar"
                   value={nameAr}
                   disabled={!canEdit}
                   onChange={(event) => setNameAr(event.target.value)}
@@ -173,6 +179,7 @@ export function ClinicPage(): JSX.Element {
                 <Input
                   placeholder={t("common.placeholders.fullNameEn")}
                   id="clinic-name-en"
+                  data-testid="clinic-field-name-en"
                   dir="ltr"
                   value={nameEn}
                   disabled={!canEdit}
@@ -186,6 +193,7 @@ export function ClinicPage(): JSX.Element {
                 placeholder={t("common.placeholders.phone")}
                 adornment="phone"
                 id="clinic-phone"
+                data-testid="clinic-field-phone"
                 value={phone}
                 disabled={!canEdit}
                 onChange={(event) => setPhone(event.target.value)}
@@ -197,6 +205,7 @@ export function ClinicPage(): JSX.Element {
                 placeholder={t("common.placeholders.email")}
                 adornment="mail"
                 id="clinic-email"
+                data-testid="clinic-field-email"
                 type="email"
                 value={email}
                 disabled={!canEdit}
@@ -208,6 +217,7 @@ export function ClinicPage(): JSX.Element {
               <Input
                 placeholder={t("common.placeholders.address")}
                 id="clinic-address"
+                data-testid="clinic-field-address"
                 value={address}
                 disabled={!canEdit}
                 onChange={(event) => setAddress(event.target.value)}
@@ -238,6 +248,7 @@ export function ClinicPage(): JSX.Element {
                 placeholder={t("common.placeholders.location")}
                 adornment="map-pin"
                 id="clinic-location"
+                data-testid="clinic-field-location"
                 dir="ltr"
                 value={location}
                 hasError={unreadable}
@@ -249,10 +260,14 @@ export function ClinicPage(): JSX.Element {
             {/* What was understood, and a way to check it before it is saved: a pin in the wrong
                 street looks exactly like a pin in the right one until somebody opens it. */}
             {pin && (
-              <p className="-mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-label text-ink-muted">
+              <p
+                data-testid="clinic-location-pin"
+                className="-mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-label text-ink-muted"
+              >
                 <Ltr className="tabular-nums">{`${pin.latitude}, ${pin.longitude}`}</Ltr>
                 <a
                   href={mapsUrl(pin)}
+                  data-testid="clinic-location-verify"
                   target="_blank"
                   rel="noreferrer noopener"
                   className="text-primary-600 underline underline-offset-2 hover:text-primary-700"
@@ -265,6 +280,7 @@ export function ClinicPage(): JSX.Element {
             <FormField label="clinic.currency" htmlFor="clinic-currency" hint="clinic.currencyHint">
               <Select
                 id="clinic-currency"
+                data-testid="clinic-field-currency"
                 className="w-56"
                 value={currency}
                 disabled={!canEdit}
@@ -277,18 +293,21 @@ export function ClinicPage(): JSX.Element {
             </FormField>
           </div>
 
-          <div className="mt-6 border-t border-line pt-4">
+          <div data-testid="clinic-logo-section" className="mt-6 border-t border-line pt-4">
             <p className="text-value font-medium text-ink">{t("clinic.logo")}</p>
             <LogoField src={clinic.data?.logoUrl ?? null} canEdit={canEdit} />
           </div>
 
-          <div className="mt-6 border-t border-line pt-4">
+          <div data-testid="clinic-app-icon-section" className="mt-6 border-t border-line pt-4">
             <p className="text-value font-medium text-ink">{t("clinic.appIcon")}</p>
             <AppIconField src={clinic.data?.appIconUrl ?? null} canEdit={canEdit} />
           </div>
         </section>
 
-        <section className="border border-line rounded-card bg-surface shadow-card p-4">
+        <section
+          data-testid="clinic-working-hours"
+          className="border border-line rounded-card bg-surface shadow-card p-4"
+        >
           <p className="mb-3 text-value font-medium text-ink">{t("clinic.workingHours")}</p>
           <WorkingHours
             value={workingHours}
@@ -298,7 +317,10 @@ export function ClinicPage(): JSX.Element {
           />
         </section>
 
-        <section className="border border-line rounded-card bg-surface shadow-card p-4">
+        <section
+          data-testid="clinic-closures"
+          className="border border-line rounded-card bg-surface shadow-card p-4"
+        >
           <ClosuresPanel canEdit={canEdit} />
         </section>
 
@@ -368,9 +390,10 @@ function BrandingImageField({
   };
 
   return (
-    <div className="mt-2 flex items-center gap-3">
+    <div data-testid="branding-image-field" className="mt-2 flex items-center gap-3">
       {src ? (
         <Img
+          data-testid="branding-image"
           src={src}
           alt={t(labels.alt)}
           width={64}
@@ -382,6 +405,7 @@ function BrandingImageField({
         />
       ) : (
         <span
+          data-testid="branding-image-placeholder"
           aria-label={t(labels.placeholder)}
           className="flex size-16 shrink-0 items-center justify-center rounded-control border border-dashed border-line-strong text-ink-subtle"
         >
@@ -397,6 +421,7 @@ function BrandingImageField({
             <input
               ref={inputRef}
               type="file"
+              data-testid="branding-image-input"
               className="hidden"
               accept={ALLOWED_CLINIC_LOGO_MIME_TYPES.join(",")}
               onChange={(event) => {
@@ -409,6 +434,7 @@ function BrandingImageField({
               icon={<Icon name="upload" />}
               variant="secondary"
               size="sm"
+              data-testid="branding-image-upload"
               isLoading={upload.isPending}
               onClick={() => inputRef.current?.click()}
             >
@@ -420,6 +446,7 @@ function BrandingImageField({
                 icon={<Icon name="trash" />}
                 variant="secondary"
                 size="sm"
+                data-testid="branding-image-remove"
                 isLoading={remove.isPending}
                 onClick={() => void clear()}
               >
@@ -505,13 +532,16 @@ function AboutSection(): JSX.Element {
   const mismatched = apiVersion !== undefined && apiVersion !== WEB_VERSION;
 
   return (
-    <section className="border border-line rounded-card bg-surface shadow-card p-4">
+    <section
+      data-testid="clinic-about"
+      className="border border-line rounded-card bg-surface shadow-card p-4"
+    >
       <p className="mb-3 text-value font-medium text-ink">{t("clinic.about")}</p>
 
       <dl className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-4">
           <dt className="text-label text-ink-muted">{t("clinic.version")}</dt>
-          <Ltr as="dd" className="font-mono text-value text-ink">
+          <Ltr as="dd" data-testid="clinic-web-version" className="font-mono text-value text-ink">
             v{WEB_VERSION}
           </Ltr>
         </div>
@@ -519,7 +549,11 @@ function AboutSection(): JSX.Element {
         {mismatched && (
           <div className="flex items-baseline justify-between gap-4">
             <dt className="text-label text-ink-muted">{t("clinic.apiVersion")}</dt>
-            <Ltr as="dd" className="font-mono text-value text-warning-700">
+            <Ltr
+              as="dd"
+              data-testid="clinic-api-version"
+              className="font-mono text-value text-warning-700"
+            >
               v{apiVersion}
             </Ltr>
           </div>
@@ -527,7 +561,9 @@ function AboutSection(): JSX.Element {
       </dl>
 
       {mismatched && (
-        <p className="mt-2 text-label text-ink-subtle">{t("clinic.versionMismatch")}</p>
+        <p data-testid="clinic-version-mismatch" className="mt-2 text-label text-ink-subtle">
+          {t("clinic.versionMismatch")}
+        </p>
       )}
 
       <InstallCard />

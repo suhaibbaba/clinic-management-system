@@ -1,10 +1,11 @@
 import type { HTMLAttributes, JSX, ReactNode } from "react";
 
 import { cn } from "@ui/lib/cn";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export type CardTone = "default" | "selected";
 
-export interface CardProps extends HTMLAttributes<HTMLDivElement> {
+export interface CardProps extends HTMLAttributes<HTMLDivElement>, TestIdProps {
   readonly tone?: CardTone | undefined;
   /** Drops the built-in padding for cards that manage their own (tables). */
   readonly flush?: boolean | undefined;
@@ -20,11 +21,12 @@ export function Card({
   interactive = false,
   className,
   children,
+  "data-testid": testId,
   ...props
 }: CardProps): JSX.Element {
   return (
     <div
-      data-part="card"
+      {...parts("card", testId)()}
       className={cn(
         "rounded-card border border-line bg-surface shadow-card",
         // A quarter of a second, and Tailwind's curated property list: a lift moves `translate`,

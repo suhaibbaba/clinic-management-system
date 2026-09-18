@@ -2,6 +2,7 @@ import type { ButtonHTMLAttributes, JSX, ReactNode } from "react";
 
 import { Icon, type IconName } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export type BadgeTone = "neutral" | "success" | "warning" | "danger" | "info";
 
@@ -24,7 +25,7 @@ export const PILL_BASE = cn(
   "text-nav font-normal",
 );
 
-export interface BadgeProps {
+export interface BadgeProps extends TestIdProps {
   readonly tone?: BadgeVariant | undefined;
   /** Drops the dot where the badge is already inside a coloured context, or leads with an icon. */
   readonly plain?: boolean | undefined;
@@ -39,25 +40,28 @@ export function Badge({
   icon,
   className,
   children,
+  "data-testid": testId,
 }: BadgeProps): JSX.Element {
+  const part = parts("badge", testId);
+
   return (
-    <span data-part="badge" className={cn(PILL_BASE, "min-w-0", TONES[tone], className)}>
+    <span {...part()} className={cn(PILL_BASE, "min-w-0", TONES[tone], className)}>
       {icon !== undefined && <Icon name={icon} className="size-3.5 shrink-0" />}
       {!plain && icon === undefined && (
         <span
-          data-part="badge-dot"
+          {...part("dot")}
           aria-hidden="true"
           className="size-1.5 shrink-0 rounded-pill bg-current"
         />
       )}
-      <span data-part="badge-label" className="min-w-0 truncate">
+      <span {...part("label")} className="min-w-0 truncate">
         {children}
       </span>
     </span>
   );
 }
 
-export interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement>, TestIdProps {
   readonly selected?: boolean | undefined;
   readonly children: ReactNode;
 }
@@ -67,6 +71,7 @@ export function Chip({
   className,
   children,
   type = "button",
+  "data-testid": testId,
   ...props
 }: ChipProps): JSX.Element {
   const disabled = props.disabled === true;
@@ -74,7 +79,7 @@ export function Chip({
   return (
     <button
       type={type}
-      data-part="chip"
+      {...parts("chip", testId)()}
       aria-pressed={selected}
       className={cn(
         PILL_BASE,

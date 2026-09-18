@@ -113,10 +113,16 @@ export function ProcedureForm({
   };
 
   return (
-    <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+    <form
+      data-testid="procedure-form"
+      className="flex flex-col gap-4"
+      onSubmit={handleSubmit}
+      noValidate
+    >
       <FormField label="chart.panel.procedure" htmlFor={`${fieldId}-procedure`}>
         <Select
           id={`${fieldId}-procedure`}
+          data-testid="procedure-field-procedure"
           value={procedureId}
           onChange={(event) => setProcedureId(event.target.value)}
           placeholder={t("chart.panel.selectProcedure")}
@@ -127,6 +133,7 @@ export function ProcedureForm({
       <FormField label="chart.panel.doctor" htmlFor={`${fieldId}-doctor`}>
         <Select
           id={`${fieldId}-doctor`}
+          data-testid="procedure-field-doctor"
           value={doctorId}
           onChange={(event) => setDoctorId(event.target.value)}
           options={doctors.map((doctor) => ({
@@ -139,6 +146,7 @@ export function ProcedureForm({
       <FormField label="chart.panel.status" htmlFor={`${fieldId}-status`}>
         <Select
           id={`${fieldId}-status`}
+          data-testid="procedure-field-status"
           value={status}
           onChange={(event) => setStatus(event.target.value as PerformedProcedureStatus)}
           options={PERFORMED_PROCEDURE_STATUSES.map((value) => ({
@@ -162,6 +170,7 @@ export function ProcedureForm({
             {/* Money is a string all the way through — never a number input. */}
             <MoneyInput
               id={`${fieldId}-price`}
+              data-testid="procedure-field-price"
               currency={currency}
               value={price}
               onChange={(event) => setPrice(event.target.value)}
@@ -171,6 +180,7 @@ export function ProcedureForm({
           <FormField label="chart.panel.discount" htmlFor={`${fieldId}-discount`} optional>
             <MoneyInput
               id={`${fieldId}-discount`}
+              data-testid="procedure-field-discount"
               currency={currency}
               value={discount}
               onChange={(event) => setDiscount(event.target.value)}
@@ -181,6 +191,7 @@ export function ProcedureForm({
             <FormField label="chart.panel.discountReason" htmlFor={`${fieldId}-reason`}>
               <Input
                 id={`${fieldId}-reason`}
+                data-testid="procedure-field-discount-reason"
                 value={discountReason}
                 onChange={(event) => setDiscountReason(event.target.value)}
               />
@@ -190,7 +201,7 @@ export function ProcedureForm({
       )}
 
       {error && (
-        <p role="alert" className="text-label text-danger-600">
+        <p role="alert" data-testid="procedure-form-error" className="text-label text-danger-600">
           {t(error)}
         </p>
       )}
@@ -201,11 +212,18 @@ export function ProcedureForm({
           type="button"
           variant="secondary"
           size="sm"
+          data-testid="procedure-form-cancel"
           onClick={onCancel}
         >
           {t("common.cancel")}
         </Button>
-        <Button icon={<Icon name="check" />} type="submit" size="sm" disabled={submitting}>
+        <Button
+          icon={<Icon name="check" />}
+          type="submit"
+          size="sm"
+          data-testid="procedure-form-save"
+          disabled={submitting}
+        >
           {t(submitting ? "common.saving" : "common.save")}
         </Button>
       </div>

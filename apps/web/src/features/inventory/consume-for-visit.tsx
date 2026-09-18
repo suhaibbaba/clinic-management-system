@@ -12,7 +12,9 @@ export function ConsumeForVisit({
   open,
   onClose,
   patient,
+  "data-testid": testId = "consume-for-visit",
 }: {
+  readonly "data-testid"?: string | undefined;
   readonly open: boolean;
   readonly onClose: () => void;
   readonly patient: PatientClinicalView | undefined;
@@ -38,6 +40,7 @@ export function ConsumeForVisit({
   if (chosen) {
     return (
       <MovementModal
+        data-testid={`${testId}-movement`}
         type={MOVEMENT_TYPE.CONSUME}
         item={chosen}
         onClose={onClose}
@@ -55,12 +58,13 @@ export function ConsumeForVisit({
 
   return (
     <Modal
+      data-testid={testId}
       open
       onOpenChange={(next) => !next && onClose()}
       title={t("inventory.movement.consumeFromVisit")}
       description={t("inventory.movement.consumeFromVisitDescription")}
       footer={
-        <Button variant="secondary" onClick={onClose}>
+        <Button variant="secondary" data-testid={`${testId}-cancel`} onClick={onClose}>
           {t("common.cancel")}
         </Button>
       }
@@ -68,6 +72,7 @@ export function ConsumeForVisit({
       <FormField label="inventory.movement.item" htmlFor="consume-item" required>
         <Select
           id="consume-item"
+          data-testid="consume-field-item"
           value={itemId}
           placeholder={t("inventory.movement.selectItem")}
           onChange={(event) => setItemId(event.target.value)}

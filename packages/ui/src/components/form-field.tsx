@@ -6,8 +6,9 @@ import { useTranslation } from "react-i18next";
 import { Icon } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
 import { validationMessageKey } from "@ui/lib/validation-message";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
-export interface FormFieldProps {
+export interface FormFieldProps extends TestIdProps {
   label: string;
   htmlFor: string;
   error?: FieldError | undefined;
@@ -30,28 +31,32 @@ export function FormField({
   optional = false,
   required = false,
   children,
+  "data-testid": testId,
 }: FormFieldProps): JSX.Element {
   const { t } = useTranslation();
   const messageKey = error ? (errorKey ?? validationMessageKey(error)) : undefined;
   const errorId = `${htmlFor}-error`;
+  // Defaults to the control it labels, so every form in the app is addressable without a call site
+  // naming each field twice.
+  const part = parts("form-field", testId ?? `${htmlFor}-field`);
 
   return (
-    <div data-part="form-field" className="flex flex-col gap-1.5">
+    <div {...part()} className="flex flex-col gap-1.5">
       <Label
         htmlFor={htmlFor}
-        data-part="form-field-label"
+        {...part("label")}
         className="cursor-pointer text-label font-medium text-ink"
       >
         {t(label)}
         {required && (
           // Decorative: the control itself carries `required`/`aria-required`,
           // which is what a screen reader announces.
-          <span data-part="form-field-required" aria-hidden="true" className="ms-1 text-danger-600">
+          <span {...part("required")} aria-hidden="true" className="ms-1 text-danger-600">
             *
           </span>
         )}
         {optional && (
-          <span data-part="form-field-optional" className="ms-1 text-label text-ink-subtle">
+          <span {...part("optional")} className="ms-1 text-label text-ink-subtle">
             ({t("common.optional")})
           </span>
         )}
@@ -60,7 +65,7 @@ export function FormField({
       {children}
 
       {hint !== undefined && !messageKey && (
-        <p data-part="form-field-hint" className="text-label text-ink-muted">
+        <p {...part("hint")} className="text-label text-ink-muted">
           {t(hint)}
         </p>
       )}
@@ -68,7 +73,7 @@ export function FormField({
       {messageKey !== undefined && (
         <p
           id={errorId}
-          data-part="form-field-error"
+          {...part("error")}
           role="alert"
           className={cn("flex items-center gap-1.5 text-value text-danger-700")}
         >

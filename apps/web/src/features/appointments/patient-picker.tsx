@@ -104,10 +104,18 @@ export function PatientPicker({
 
   if (value?.kind === "existing") {
     return (
-      <div className="flex items-center gap-3 rounded-control border border-line bg-inset px-3 py-2">
+      <div
+        data-testid="patient-picker-selected"
+        className="flex items-center gap-3 rounded-control border border-line bg-inset px-3 py-2"
+      >
         <Avatar name={value.patient.fullName} tintKey={value.patient.id} />
         <span className="flex min-w-0 flex-1 flex-col leading-snug">
-          <span className="truncate text-value font-medium text-ink">{value.patient.fullName}</span>
+          <span
+            data-testid="patient-picker-name"
+            className="truncate text-value font-medium text-ink"
+          >
+            {value.patient.fullName}
+          </span>
           <Ltr className="truncate text-label tabular-nums text-ink-subtle">
             {value.patient.phone}
           </Ltr>
@@ -117,6 +125,7 @@ export function PatientPicker({
         )}
         <button
           type="button"
+          data-testid="patient-picker-clear"
           onClick={() => onChange(null)}
           aria-label={t("common.clear")}
           className="cursor-pointer rounded-control p-1 text-ink-subtle transition-colors duration-150 hover:text-ink"
@@ -183,6 +192,7 @@ export function PatientPicker({
         <div>
           <SearchField
             id={id}
+            data-testid="patient-picker-search"
             label={t("patients.search")}
             placeholder={t("patients.searchPlaceholder")}
             value={search}
@@ -222,7 +232,12 @@ export function PatientPicker({
         </div>
       }
     >
-      <div id={`${id}-listbox`} role="listbox" aria-label={t("patients.search")}>
+      <div
+        id={`${id}-listbox`}
+        data-testid="patient-picker-results"
+        role="listbox"
+        aria-label={t("patients.search")}
+      >
         <div role="presentation" className="max-h-56 overflow-y-auto">
           {!settled &&
             [0, 1, 2].map((row) => (
@@ -236,13 +251,19 @@ export function PatientPicker({
             ))}
 
           {settled && visible.length === 0 && (
-            <p className="px-3 py-2.5 text-label text-ink-muted">{t("patients.noMatches")}</p>
+            <p
+              data-testid="patient-picker-no-matches"
+              className="px-3 py-2.5 text-label text-ink-muted"
+            >
+              {t("patients.noMatches")}
+            </p>
           )}
 
           {visible.map((patient, index) => (
             <div
               key={patient.id}
               id={optionId(index)}
+              data-testid={`patient-picker-option-${patient.id}`}
               role="option"
               aria-selected={index === activeIndex}
               onClick={() => choose(index)}
@@ -271,6 +292,7 @@ export function PatientPicker({
         {offerNew && (
           <div
             id={optionId(newPatientIndex)}
+            data-testid="patient-picker-create"
             role="option"
             aria-selected={newPatientIndex === activeIndex}
             data-new-patient

@@ -109,7 +109,10 @@ export function ToothChart({
   );
 
   const renderRow = (slots: readonly ToothSlot[]): JSX.Element => (
-    <div className={cn("flex justify-center gap-px", slots[0]?.arch === "lower" && "chart-lower")}>
+    <div
+      data-testid={`tooth-row-${slots[0]?.arch ?? "upper"}`}
+      className={cn("flex justify-center gap-px", slots[0]?.arch === "lower" && "chart-lower")}
+    >
       {slots.map((slot) => (
         <Tooth
           key={slot.tooth}
@@ -131,6 +134,7 @@ export function ToothChart({
     <div
       dir="ltr"
       ref={containerRef}
+      data-testid="tooth-chart"
       // `pt-9` is for the tooltip: `overflow-x: auto` makes this a scroll container on both axes,
       // so a bubble above the top row was clipped to a sliver.
       className="overflow-x-auto rounded-card border border-chart-border bg-chart-surface px-2 pb-3 pt-9"
@@ -142,6 +146,7 @@ export function ToothChart({
     >
       <div
         role="group"
+        data-testid="tooth-chart-arches"
         aria-label={t("chart.title")}
         className="relative mx-auto w-max min-w-full sm:[--tooth-w:38px] md:[--tooth-w:44px] lg:[--tooth-w:52px]"
       >
@@ -246,6 +251,7 @@ function Tooth({
     <button
       type="button"
       data-tooth={slot.tooth}
+      data-testid={`tooth-${slot.tooth}`}
       data-state={summary.state}
       tabIndex={tabIndex}
       // Colour is never the only channel: the condition is in the name, in

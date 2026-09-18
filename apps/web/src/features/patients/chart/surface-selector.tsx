@@ -68,7 +68,12 @@ export function SurfaceSelector({
   };
 
   return (
-    <div role="group" aria-labelledby={groupId} className="inline-flex flex-col items-center gap-2">
+    <div
+      role="group"
+      data-testid="surface-selector"
+      aria-labelledby={groupId}
+      className="inline-flex flex-col items-center gap-2"
+    >
       <span id={groupId} className="sr-only">
         {t("chart.surfaces.legend")}
       </span>
@@ -124,6 +129,7 @@ export function SurfaceSelector({
             <button
               key={surface}
               type="button"
+              data-testid={`surface-${surface}`}
               disabled={readOnly}
               aria-pressed={selected}
               onClick={() => toggle(surface)}

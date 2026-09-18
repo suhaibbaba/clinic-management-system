@@ -4,8 +4,9 @@ import type { JSX } from "react";
 import { Ltr } from "@ui/components/ltr";
 
 import { cn } from "@ui/lib/cn";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
-export interface MoneyProps {
+export interface MoneyProps extends TestIdProps {
   /** A `numeric(10,2)` string exactly as the API sent it — never a float. */
   readonly amount: string;
   /** ISO-4217 from the clinic setting. Rendered as its symbol, never its code. */
@@ -15,21 +16,28 @@ export interface MoneyProps {
   readonly signed?: boolean | undefined;
 }
 
-export function Money({ amount, currency, className, signed = false }: MoneyProps): JSX.Element {
+export function Money({
+  amount,
+  currency,
+  className,
+  signed = false,
+  "data-testid": testId,
+}: MoneyProps): JSX.Element {
+  const part = parts("money", testId);
   const negative = amount.startsWith("-");
   const zero = Number(amount) === 0;
   const symbol = currencySymbol(currency);
 
   return (
     <span
-      data-part="money"
+      {...part()}
       className={cn(
         "tabular-nums",
         signed && !zero && (negative ? "text-success-700" : "text-danger-700"),
         className,
       )}
     >
-      <Ltr data-part="money-figure">
+      <Ltr {...part("figure")}>
         {formatWholeMoney(amount)}
         {symbol !== "" && (
           <>

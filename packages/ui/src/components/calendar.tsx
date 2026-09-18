@@ -82,12 +82,7 @@ function dayInk(modifiers: Modifiers): string {
   );
 }
 
-function CalendarDayButton({
-  day: _day,
-  modifiers,
-  className,
-  ...props
-}: DayButtonProps): JSX.Element {
+function CalendarDayButton({ day, modifiers, className, ...props }: DayButtonProps): JSX.Element {
   const ref = useRef<HTMLButtonElement>(null);
   const isFocused = modifiers["focused"] === true;
 
@@ -101,6 +96,7 @@ function CalendarDayButton({
     <button
       ref={ref}
       data-part="day-cell"
+      data-testid={`calendar-day-${format(day.date, "yyyy-MM-dd")}`}
       {...props}
       className={cn(className, dayInk(modifiers))}
     />
@@ -139,11 +135,13 @@ function CalendarHeader({ label, zoomOut, previous, next }: CalendarHeaderProps)
   return (
     <div
       data-part="calendar-header"
+      data-testid="calendar-header"
       className="flex h-(--control-h-sm) items-center justify-between gap-2"
     >
       <button
         type="button"
         data-part="calendar-previous"
+        data-testid="calendar-previous"
         aria-label={previous.label}
         disabled={!previous.can}
         onClick={previous.onClick}
@@ -156,6 +154,7 @@ function CalendarHeader({ label, zoomOut, previous, next }: CalendarHeaderProps)
         <button
           type="button"
           data-part="calendar-caption"
+          data-testid="calendar-caption"
           aria-label={zoomOut.label}
           onClick={zoomOut.onClick}
           className={CAPTION_BUTTON}
@@ -164,7 +163,11 @@ function CalendarHeader({ label, zoomOut, previous, next }: CalendarHeaderProps)
           <Icon name="chevron-down" className="size-4 text-ink-subtle" />
         </button>
       ) : (
-        <span data-part="calendar-caption" className="text-value font-medium text-ink">
+        <span
+          data-part="calendar-caption"
+          data-testid="calendar-caption"
+          className="text-value font-medium text-ink"
+        >
           {label}
         </span>
       )}
@@ -172,6 +175,7 @@ function CalendarHeader({ label, zoomOut, previous, next }: CalendarHeaderProps)
       <button
         type="button"
         data-part="calendar-next"
+        data-testid="calendar-next"
         aria-label={next.label}
         disabled={!next.can}
         onClick={next.onClick}
@@ -220,6 +224,7 @@ function PeriodGrid({ label, columns, options, onPick }: PeriodGridProps): JSX.E
   return (
     <div
       data-part="calendar-periods"
+      data-testid="calendar-periods"
       role="group"
       aria-label={label}
       className={cn("grid gap-1 pt-2", columns === 3 ? "grid-cols-3" : "grid-cols-4")}
@@ -229,6 +234,7 @@ function PeriodGrid({ label, columns, options, onPick }: PeriodGridProps): JSX.E
           key={option.key}
           type="button"
           data-part="calendar-period"
+          data-testid={`calendar-period-${String(option.key)}`}
           disabled={option.isDisabled}
           aria-current={option.isSelected ? "true" : undefined}
           onClick={() => onPick(option.key)}
@@ -388,7 +394,7 @@ export function Calendar({ startView = "days", ...props }: CalendarProps): JSX.E
           };
 
   return (
-    <div data-part="calendar" className="w-70">
+    <div data-part="calendar" data-testid="calendar" className="w-70">
       <CalendarHeader {...header} />
       {body}
     </div>

@@ -13,6 +13,7 @@ export function ToothSwatch({
 }): JSX.Element {
   return (
     <span
+      data-testid="tooth-swatch"
       aria-hidden="true"
       className={className ?? "inline-block size-3.5 shrink-0 rounded-sm border"}
       style={{

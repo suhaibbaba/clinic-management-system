@@ -28,6 +28,7 @@ export function OfflineBar(): JSX.Element | null {
   return (
     <div
       role="status"
+      data-testid="offline-bar"
       className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-center gap-2 bg-warning-100 px-4 py-2 text-label text-warning-800"
       style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
     >

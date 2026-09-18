@@ -52,8 +52,9 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
   };
 
   return (
-    <div className="flex items-center gap-3">
+    <div data-testid="user-photo-field" className="flex items-center gap-3">
       <Avatar
+        data-testid="user-photo-avatar"
         name={personName(user.name, i18n.language)}
         tintKey={user.id}
         src={user.photoUrl}
@@ -67,6 +68,7 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
           <input
             ref={inputRef}
             type="file"
+            data-testid="user-photo-input"
             className="hidden"
             accept={ALLOWED_USER_PHOTO_MIME_TYPES.join(",")}
             aria-label={t("users.photo")}
@@ -80,6 +82,7 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
             icon={<Icon name="upload" />}
             variant="secondary"
             size="sm"
+            data-testid="user-photo-upload"
             isLoading={upload.isPending}
             onClick={() => inputRef.current?.click()}
           >
@@ -91,6 +94,7 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
               icon={<Icon name="trash" />}
               variant="secondary"
               size="sm"
+              data-testid="user-photo-remove"
               isLoading={remove.isPending}
               onClick={() => void clear()}
             >

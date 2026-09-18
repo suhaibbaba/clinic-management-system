@@ -2,8 +2,9 @@ import { forwardRef, type InputHTMLAttributes } from "react";
 
 import { FIELD_TEXT, FieldClear, FieldIcon, fieldShell } from "@ui/components/field";
 import { cn } from "@ui/lib/cn";
+import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 
-export interface SearchFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface SearchFieldProps extends InputHTMLAttributes<HTMLInputElement>, TestIdProps {
   /** Names the field for screen readers; there is no visible label. */
   readonly label: string;
   readonly shortcut?: string | undefined;
@@ -14,18 +15,19 @@ export interface SearchFieldProps extends InputHTMLAttributes<HTMLInputElement> 
 // `type="search"` for the platform's clear button; its WebKit decoration is stripped because it
 // lands on the wrong side in RTL and duplicates the button beside it.
 export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(function SearchField(
-  { label, shortcut, className, onClear, clearLabel, ...props },
+  { label, shortcut, className, onClear, clearLabel, "data-testid": testId, ...props },
   ref,
 ) {
   const clearable = onClear !== undefined && String(props.value ?? "") !== "";
+  const part = parts("search-field", testId);
 
   return (
-    <div data-part="search-field" className={cn(fieldShell({}), className)}>
-      <FieldIcon name="search" />
+    <div {...part()} className={cn(fieldShell({}), className)}>
+      <FieldIcon name="search" {...testid(testId, "icon")} />
 
       <input
         ref={ref}
-        data-part="search-field-control"
+        {...part("control")}
         type="search"
         aria-label={label}
         className={cn(
@@ -36,11 +38,13 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
         {...props}
       />
 
-      {clearable && clearLabel !== undefined && <FieldClear label={clearLabel} onClear={onClear} />}
+      {clearable && clearLabel !== undefined && (
+        <FieldClear label={clearLabel} onClear={onClear} {...testid(testId, "clear")} />
+      )}
 
       {shortcut !== undefined && (
         <kbd
-          data-part="search-field-shortcut"
+          {...part("shortcut")}
           aria-hidden="true"
           className={cn(
             "pill-text inline-flex items-center hidden h-5 min-w-5 shrink-0 justify-center rounded-chip md:inline-flex",

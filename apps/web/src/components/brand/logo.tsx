@@ -17,6 +17,7 @@ const SIZES: Record<LogoSize, { readonly width: number; readonly height: number 
 
 export interface LogoProps {
   size?: LogoSize | undefined;
+  "data-testid"?: string | undefined;
   /** The clinic's own uploaded logo. There is no bundled one — see `InitialMark`. */
   src?: string | null | undefined;
   /** Supplies the letter the mark falls back to. */
@@ -25,12 +26,20 @@ export interface LogoProps {
   alt?: string | undefined;
 }
 
-export function Logo({ size = "print", src, name, className, alt }: LogoProps): JSX.Element {
+export function Logo({
+  size = "print",
+  src,
+  name,
+  className,
+  alt,
+  "data-testid": testId = "logo",
+}: LogoProps): JSX.Element {
   const resolve = usePersonName();
   const { width, height } = SIZES[size];
 
   return (
     <Img
+      data-testid={testId}
       src={src}
       alt={alt ?? ""}
       width={width}
@@ -51,7 +60,11 @@ export function InitialMark({
   readonly size: number;
 }): JSX.Element {
   return (
-    <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center">
+    <span
+      data-testid="logo-initial"
+      aria-hidden="true"
+      className="absolute inset-0 flex items-center justify-center"
+    >
       <span
         style={{ width: size, height: size, fontSize: Math.round(size * 0.45) }}
         className={cn(

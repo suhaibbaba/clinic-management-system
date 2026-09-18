@@ -40,6 +40,7 @@ import { toIsoDate, todayIso } from "@web/features/appointments/calendar-time";
 import { errorMessageKey } from "@web/lib/api-error";
 
 export interface AppointmentFormModalProps {
+  readonly "data-testid"?: string | undefined;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   /** Editing when present, booking when not. */
@@ -66,6 +67,7 @@ export function AppointmentFormModal({
   waitingEntry,
   forPatient,
   onBooked,
+  "data-testid": testId = "appointment-form-modal",
 }: AppointmentFormModalProps): JSX.Element {
   const { t } = useTranslation();
   const doctorName = usePersonName();
@@ -215,22 +217,32 @@ export function AppointmentFormModal({
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       title={title}
       size="lg"
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
-          <Button isLoading={isPending} disabled={!canSubmit} onClick={() => void submit()}>
+          <Button
+            isLoading={isPending}
+            data-testid={`${testId}-save`}
+            disabled={!canSubmit}
+            onClick={() => void submit()}
+          >
             {t("common.save")}
           </Button>
         </>
       }
     >
-      <div className="flex flex-col gap-4">
+      <div data-testid={`${testId}-form`} className="flex flex-col gap-4">
         <FormField label="appointments.patient" htmlFor="appointment-patient">
           <PatientPicker
             id="appointment-patient"
@@ -248,6 +260,7 @@ export function AppointmentFormModal({
           <FormField label="appointments.doctor" htmlFor="appointment-doctor">
             <Select
               id="appointment-doctor"
+              data-testid="appointment-field-doctor"
               value={doctorId}
               placeholder={t("appointments.allDoctors")}
               options={(doctors.data?.items ?? []).map((doctor) => ({
@@ -264,6 +277,7 @@ export function AppointmentFormModal({
           <FormField label="appointments.date" htmlFor="appointment-date">
             <DatePicker
               id="appointment-date"
+              data-testid="appointment-field-date"
               label={t("appointments.date")}
               value={date}
               onChange={(next) => {
@@ -276,6 +290,7 @@ export function AppointmentFormModal({
           <FormField label="appointments.type" htmlFor="appointment-type">
             <Select
               id="appointment-type"
+              data-testid="appointment-field-type"
               value={type}
               options={typeOptions}
               onChange={(event) => setType(event.target.value)}
@@ -285,6 +300,7 @@ export function AppointmentFormModal({
           <FormField label="appointments.duration" htmlFor="appointment-duration">
             <Select
               id="appointment-duration"
+              data-testid="appointment-field-duration"
               value={durationMinutes}
               options={["15", "30", "45", "60", "90"].map((value) => ({
                 value,
@@ -315,6 +331,7 @@ export function AppointmentFormModal({
         <FormField label="appointments.reason" htmlFor="appointment-reason" optional>
           <Input
             id="appointment-reason"
+            data-testid="appointment-field-reason"
             placeholder={t("appointments.reason")}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
@@ -324,6 +341,7 @@ export function AppointmentFormModal({
         <FormField label="appointments.notes" htmlFor="appointment-notes" optional>
           <Textarea
             id="appointment-notes"
+            data-testid="appointment-field-notes"
             rows={2}
             value={notes}
             onChange={(event) => setNotes(event.target.value)}

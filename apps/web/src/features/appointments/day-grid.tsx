@@ -28,6 +28,7 @@ import { Ltr } from "@clinic/ui/components/ltr";
 import { PersonName } from "@clinic/ui/components/person-name";
 
 export interface DayGridProps {
+  readonly "data-testid"?: string | undefined;
   readonly date: string;
   /** One column each. A doctor sees a single column: their own. */
   readonly doctors: readonly Doctor[];
@@ -74,6 +75,7 @@ export function DayGrid({
   onOpen,
   onMove,
   onPick,
+  "data-testid": testId = "day-grid",
 }: DayGridProps): JSX.Element {
   const { t } = useTranslation();
   const [dragging, setDragging] = useState<string | null>(null);
@@ -102,9 +104,15 @@ export function DayGrid({
   };
 
   return (
-    <div className="overflow-x-auto border border-line rounded-card bg-surface shadow-card">
+    <div
+      data-testid={testId}
+      className="overflow-x-auto border border-line rounded-card bg-surface shadow-card"
+    >
       {closure && (
-        <p className="flex items-center gap-2 border-b border-line bg-warning-50 px-4 py-2 text-label text-warning-800">
+        <p
+          data-testid={`${testId}-closure`}
+          className="flex items-center gap-2 border-b border-line bg-warning-50 px-4 py-2 text-label text-warning-800"
+        >
           <Icon name="alert" />
           {t("appointments.grid.closedOn", { reason: closure.reason })}
         </p>
@@ -112,12 +120,14 @@ export function DayGrid({
 
       <div className="min-w-max">
         <div
+          data-testid={`${testId}-head`}
           className="sticky top-0 z-10 flex border-b border-line bg-surface"
           style={{ paddingInlineStart: 56 }}
         >
           {doctors.map((doctor) => (
             <div
               key={doctor.id}
+              data-testid={`${testId}-head-${doctor.id}`}
               className="min-w-40 flex-1 truncate px-3 py-2.5 text-center text-label font-medium text-ink"
             >
               <PersonName name={doctor.user.name} />
@@ -127,7 +137,7 @@ export function DayGrid({
 
         <div className={cn("relative flex", closure && "bg-sunken")} style={{ height: bodyHeight }}>
           {/* Hour ruler */}
-          <div className="relative w-14 shrink-0">
+          <div data-testid={`${testId}-ruler`} className="relative w-14 shrink-0">
             {hours.map((minute) => (
               <span
                 key={minute}
@@ -149,6 +159,7 @@ export function DayGrid({
             return (
               <div
                 key={doctor.id}
+                data-testid={`${testId}-column-${doctor.id}`}
                 ref={(element) => {
                   columnRefs.current.set(doctor.id, element);
                 }}
@@ -183,6 +194,7 @@ export function DayGrid({
                       title={entry.reason}
                       aria-label={`${t("schedule.timeOff.title")}: ${entry.reason}`}
                       data-time-off={entry.id}
+                      data-testid={`${testId}-time-off-${entry.id}`}
                       className="absolute inset-x-0 hatched border-y border-line-strong/60"
                       style={position}
                     />
@@ -211,7 +223,10 @@ export function DayGrid({
       </div>
 
       {onMove && (
-        <p className="border-t border-line px-4 py-2 text-label text-ink-subtle">
+        <p
+          data-testid={`${testId}-drag-hint`}
+          className="border-t border-line px-4 py-2 text-label text-ink-subtle"
+        >
           {t("appointments.grid.dragHint")}
         </p>
       )}
@@ -252,6 +267,7 @@ function AppointmentBlock({
       onDragEnd={onDragEnd}
       onClick={onOpen}
       data-appointment={appointment.id}
+      data-testid={`appointment-block-${appointment.id}`}
       title={`${time} · ${appointment.patientName} · ${typeLabel(appointment.type)}`}
       // The block's colour is a status, and a status is never only a colour:
       // the accessible name says it in words.

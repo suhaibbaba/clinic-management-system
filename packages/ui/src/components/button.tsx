@@ -2,11 +2,12 @@ import type { ButtonHTMLAttributes, JSX, ReactNode } from "react";
 
 import { Icon } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
+import { parts, type PartAttrs, type TestIdProps } from "@ui/lib/testid";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "quiet" | "danger";
 export type ButtonSize = "sm" | "md";
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, TestIdProps {
   variant?: ButtonVariant | undefined;
   size?: ButtonSize | undefined;
   isLoading?: boolean | undefined;
@@ -46,12 +47,15 @@ export function Button({
   disabled,
   children,
   type = "button",
+  "data-testid": testId,
   ...props
 }: ButtonProps): JSX.Element {
+  const part = parts("button", testId);
+
   return (
     <button
       type={type}
-      data-part="button"
+      {...part()}
       className={cn(
         "pill-text inline-flex items-center cursor-pointer justify-center rounded-control font-medium",
         // A control of a fixed height cannot wrap: a narrow table column turned "فتح الملف" into
@@ -72,15 +76,15 @@ export function Button({
     >
       {/* The spinner takes the icon's place: a button whose chevron trails its label must not have
           the label jump sideways when it starts working. */}
-      {isLoading && iconPosition === "start" && <Spinner />}
+      {isLoading && iconPosition === "start" && <Spinner {...part("spinner")} />}
       {!isLoading && iconPosition === "start" && icon}
       {children}
-      {isLoading && iconPosition === "end" && <Spinner />}
+      {isLoading && iconPosition === "end" && <Spinner {...part("spinner")} />}
       {!isLoading && iconPosition === "end" && icon}
     </button>
   );
 }
 
-function Spinner(): JSX.Element {
-  return <Icon name="spinner" data-part="button-spinner" className="animate-spin" />;
+function Spinner(attrs: PartAttrs): JSX.Element {
+  return <Icon {...attrs} name="spinner" className="animate-spin" />;
 }

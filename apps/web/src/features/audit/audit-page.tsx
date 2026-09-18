@@ -73,7 +73,9 @@ export function AuditPage(): JSX.Element {
         key: "action",
         header: "audit.action",
         render: (row) => (
-          <Badge tone={ACTION_TONES[row.action]}>{t(`audit.actions.${row.action}`)}</Badge>
+          <Badge tone={ACTION_TONES[row.action]} data-testid="audit-action">
+            {t(`audit.actions.${row.action}`)}
+          </Badge>
         ),
       },
       {
@@ -91,6 +93,7 @@ export function AuditPage(): JSX.Element {
             icon={<Icon name="file" />}
             size="sm"
             variant="ghost"
+            data-testid="audit-view-changes"
             onClick={() => setSelected(row)}
           >
             {t("audit.viewChanges")}
@@ -104,8 +107,9 @@ export function AuditPage(): JSX.Element {
   const data = query.data;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="audit-page" className="flex flex-col gap-5">
       <PageHeader
+        data-testid="audit-header"
         title="audit.title"
         subtitle="audit.subtitle"
         {...(query.data !== undefined && {
@@ -113,8 +117,12 @@ export function AuditPage(): JSX.Element {
         })}
       />
 
-      <Card className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:items-end">
+      <Card
+        data-testid="audit-filters"
+        className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:items-end"
+      >
         <Select
+          data-testid="audit-filter-entity"
           className="w-full sm:w-44"
           aria-label={t("audit.filterEntity")}
           placeholder={t("common.all")}
@@ -130,6 +138,7 @@ export function AuditPage(): JSX.Element {
         />
 
         <Select
+          data-testid="audit-filter-action"
           className="w-full sm:w-40"
           aria-label={t("audit.filterAction")}
           placeholder={t("common.all")}
@@ -145,6 +154,7 @@ export function AuditPage(): JSX.Element {
         />
 
         <Select
+          data-testid="audit-filter-user"
           className="w-full sm:w-52"
           aria-label={t("audit.filterUser")}
           placeholder={t("common.all")}
@@ -165,6 +175,7 @@ export function AuditPage(): JSX.Element {
           {t("audit.period")}
           <DateRangePicker
             id="audit-period"
+            data-testid="audit-filter-period"
             className="w-full sm:w-64"
             label={t("audit.period")}
             value={{ from, to }}
@@ -178,12 +189,20 @@ export function AuditPage(): JSX.Element {
       </Card>
 
       <Table
+        data-testid="audit-table"
         columns={columns}
         rows={data?.items ?? []}
         rowKey={(row) => row.id}
         isLoading={query.isPending}
         isRefreshing={isRefetching(query)}
-        empty={<EmptyState icon="clipboard" title="audit.empty" hint="audit.emptyHint" />}
+        empty={
+          <EmptyState
+            icon="clipboard"
+            data-testid="audit-empty"
+            title="audit.empty"
+            hint="audit.emptyHint"
+          />
+        }
         {...(data && {
           pagination: {
             page: data.page,
@@ -197,6 +216,7 @@ export function AuditPage(): JSX.Element {
       />
 
       <Modal
+        data-testid="audit-changes-modal"
         open={selected !== null}
         onOpenChange={(open) => {
           if (!open) {

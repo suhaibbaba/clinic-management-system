@@ -18,7 +18,9 @@ export function WorkTypeModal({
   onOpenChange,
   labId,
   workType,
+  "data-testid": testId = "work-type-modal",
 }: {
+  readonly "data-testid"?: string | undefined;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly labId: string;
@@ -68,23 +70,36 @@ export function WorkTypeModal({
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       title={t(workType ? "labs.prices.editTitle" : "labs.prices.addTitle")}
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
-          <Button isLoading={isSubmitting} onClick={() => void submit()}>
+          <Button
+            isLoading={isSubmitting}
+            data-testid={`${testId}-save`}
+            onClick={() => void submit()}
+          >
             {t("common.save")}
           </Button>
         </>
       }
     >
-      <form className="flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
+      <form
+        data-testid={`${testId}-form`}
+        className="flex flex-col gap-4"
+        onSubmit={(event) => void submit(event)}
+      >
         <FormField label="labs.prices.name" htmlFor="work-type-name" error={errors.nameAr}>
-          <Input id="work-type-name" {...register("nameAr")} />
+          <Input id="work-type-name" data-testid="work-type-field-name" {...register("nameAr")} />
         </FormField>
 
         <FormField
@@ -95,6 +110,7 @@ export function WorkTypeModal({
         >
           <MoneyInput
             id="work-type-price"
+            data-testid="work-type-field-price"
             currency={currency}
             placeholder="0"
             hasError={Boolean(errors.defaultPrice)}

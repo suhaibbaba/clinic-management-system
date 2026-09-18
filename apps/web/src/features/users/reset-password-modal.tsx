@@ -9,6 +9,7 @@ import { useResetUserPassword } from "@web/features/users/queries";
 import { errorMessageKey } from "@web/lib/api-error";
 
 interface ResetPasswordModalProps {
+  "data-testid"?: string | undefined;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User | null;
@@ -18,6 +19,7 @@ export function ResetPasswordModal({
   open,
   onOpenChange,
   user,
+  "data-testid": testId = "reset-password-modal",
 }: ResetPasswordModalProps): JSX.Element {
   const { t } = useTranslation();
   const displayName = usePersonName();
@@ -56,17 +58,24 @@ export function ResetPasswordModal({
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       title="users.resetPasswordFor"
       titleValues={{ name: displayName(user?.name) }}
       footer={
         <>
-          <Button icon={<Icon name="x" />} variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            icon={<Icon name="x" />}
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
           <Button
             icon={<Icon name="check" />}
+            data-testid={`${testId}-save`}
             form="reset-password-form"
             type="submit"
             isLoading={isSubmitting}
@@ -76,7 +85,7 @@ export function ResetPasswordModal({
         </>
       }
     >
-      <form id="reset-password-form" onSubmit={onSubmit} noValidate>
+      <form id="reset-password-form" data-testid={`${testId}-form`} onSubmit={onSubmit} noValidate>
         <FormField
           label="users.newPassword"
           htmlFor="reset-password"
@@ -86,6 +95,7 @@ export function ResetPasswordModal({
           <PasswordInput
             placeholder={t("common.placeholders.password")}
             id="reset-password"
+            data-testid="reset-field-password"
             autoComplete="new-password"
             hasError={errors.newPassword !== undefined}
             {...register("newPassword")}

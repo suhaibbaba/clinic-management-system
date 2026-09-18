@@ -74,13 +74,20 @@ export function PatientPage(): JSX.Element {
   const showSkeleton = useDelayedLoading(patient.isPending);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="patient-page" className="flex flex-col gap-5">
       {/* The labels are drawn rather than `sr-only`: a file number, an age and a phone read as a
           dot-separated run only if you know the order, and reception reads this aloud. */}
-      <header className="border border-line rounded-card bg-surface p-4 shadow-card">
+      <header
+        data-testid="patient-header"
+        className="border border-line rounded-card bg-surface p-4 shadow-card"
+      >
         {showSkeleton && <PatientHeaderSkeleton />}
 
-        {patient.isError && <p className="text-value text-danger-600">{t("errors.notFound")}</p>}
+        {patient.isError && (
+          <p data-testid="patient-not-found" className="text-value text-danger-600">
+            {t("errors.notFound")}
+          </p>
+        )}
 
         {patient.data && (
           <>
@@ -90,11 +97,15 @@ export function PatientPage(): JSX.Element {
                   name={patient.data.fullName}
                   tintKey={id}
                   size={40}
+                  data-testid="patient-avatar"
                   className="text-value"
                 />
 
                 <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-                  <h1 className="truncate text-title font-medium text-primary-900">
+                  <h1
+                    data-testid="patient-name"
+                    className="truncate text-title font-medium text-primary-900"
+                  >
                     {patient.data.fullName}
                   </h1>
                   {/* Beside the name it qualifies, and it appears the moment
@@ -109,6 +120,7 @@ export function PatientPage(): JSX.Element {
                     size="sm"
                     variant="secondary"
                     icon={<Icon name="calendar" />}
+                    data-testid="patient-book"
                     onClick={() => setBooking(true)}
                   >
                     {t("appointments.create")}
@@ -122,6 +134,7 @@ export function PatientPage(): JSX.Element {
                     size="sm"
                     variant="secondary"
                     icon={<Icon name="edit" />}
+                    data-testid="patient-edit"
                     onClick={() => setEditing(true)}
                   >
                     {t("patients.edit")}
@@ -130,17 +143,24 @@ export function PatientPage(): JSX.Element {
               </div>
             </div>
 
-            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 lg:grid-cols-4">
+            <dl
+              data-testid="patient-summary"
+              className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line pt-4 lg:grid-cols-4"
+            >
               <div className="min-w-0">
                 <dt className="text-value text-ink-muted">{t("patients.fileNumber")}</dt>
-                <Ltr as="dd" className="mt-0.5 truncate text-value text-ink tabular-nums">
+                <Ltr
+                  as="dd"
+                  data-testid="patient-file-number"
+                  className="mt-0.5 truncate text-value text-ink tabular-nums"
+                >
                   {patient.data.fileNumber}
                 </Ltr>
               </div>
 
               <div className="min-w-0">
                 <dt className="text-value text-ink-muted">{t("patients.age")}</dt>
-                <dd className="mt-0.5 truncate text-value text-ink">
+                <dd data-testid="patient-age" className="mt-0.5 truncate text-value text-ink">
                   {patient.data.dateOfBirth
                     ? t("patients.years", { count: ageInYears(patient.data.dateOfBirth) })
                     : "—"}
@@ -152,7 +172,7 @@ export function PatientPage(): JSX.Element {
                 {/* The 44px band is an absolutely positioned `::after`, and an `overflow-hidden`
                     ancestor cuts it down to the line box. */}
                 <dd className="mt-0.5 min-w-0 text-value text-ink">
-                  <PhoneLink value={patient.data.phone} />
+                  <PhoneLink value={patient.data.phone} data-testid="patient-phone" />
                 </dd>
               </div>
 
@@ -163,11 +183,17 @@ export function PatientPage(): JSX.Element {
       </header>
 
       {patient.data && (
-        <PatientFormModal open={editing} onOpenChange={setEditing} patient={patient.data} />
+        <PatientFormModal
+          data-testid="patient-edit-modal"
+          open={editing}
+          onOpenChange={setEditing}
+          patient={patient.data}
+        />
       )}
 
       {patient.data && (
         <AppointmentFormModal
+          data-testid="patient-book-modal"
           open={booking}
           onOpenChange={setBooking}
           forPatient={{
@@ -180,13 +206,14 @@ export function PatientPage(): JSX.Element {
       )}
 
       <Tabs
+        data-testid="patient-tabs"
         tabs={tabs.map((tab) => ({ id: tab.id, label: tab.label }))}
         value={activeTab}
         onChange={setActiveTab}
         label="patients.tabs.label"
       />
 
-      <TabPanel id={activeTab}>
+      <TabPanel id={activeTab} data-testid="patient-tab-panel">
         {/* The chart and the imaging grid are the two heaviest things in the app — an SVG of 52
             teeth and a lightbox — and most visits to a file never open either. */}
         <Suspense fallback={<TabFallback />}>
@@ -210,6 +237,7 @@ export function PatientPage(): JSX.Element {
         {PLACEHOLDER_TABS.includes(activeTab) && (
           <EmptyState
             icon="clipboard"
+            data-testid="patient-tab-placeholder"
             title="patients.tabs.comingSoon"
             hint="patients.tabs.comingSoonHint"
           />

@@ -97,7 +97,10 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
 
   return (
     <>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+      <div
+        data-testid="closures-panel"
+        className="mb-3 flex flex-wrap items-center justify-between gap-2"
+      >
         <p className="text-value font-medium text-ink">{t("schedule.closures.title")}</p>
 
         {canEdit && (
@@ -105,6 +108,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
             icon={<Icon name="plus" />}
             size="sm"
             variant="secondary"
+            data-testid="closures-add"
             onClick={() => {
               reset();
               setAdding(true);
@@ -118,14 +122,16 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
       {rows.length === 0 ? (
         <EmptyState
           icon="calendar"
+          data-testid="closures-empty"
           title="schedule.closures.empty"
           hint="schedule.closures.emptyHint"
         />
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul data-testid="closures-list" className="flex flex-col gap-2">
           {rows.map((closure) => (
             <li
               key={closure.id}
+              data-testid={`closure-${closure.id}`}
               className="flex flex-wrap items-center justify-between gap-2 rounded-panel bg-canvas px-3 py-2"
             >
               <span className="flex min-w-0 flex-col leading-snug">
@@ -141,13 +147,17 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
               </span>
 
               <span className="flex items-center gap-2">
-                {closure.isAnnual && <Badge tone="info">{t("schedule.closures.annual")}</Badge>}
+                {closure.isAnnual && (
+                  <Badge tone="info" data-testid="closure-annual">
+                    {t("schedule.closures.annual")}
+                  </Badge>
+                )}
                 {canEdit && (
                   <Button
                     size="sm"
                     variant="quiet"
                     icon={<Icon name="trash" />}
-
+                    data-testid="closure-delete"
                     onClick={() => void remove(closure)}
                   >
                     {t("common.delete")}
@@ -160,6 +170,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
       )}
 
       <Modal
+        data-testid="closure-add-modal"
         open={adding}
         onOpenChange={(open) => {
           setAdding(open);
@@ -170,11 +181,17 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
         title="schedule.closures.add"
         footer={
           <>
-            <Button icon={<Icon name="x" />} variant="secondary" onClick={() => setAdding(false)}>
+            <Button
+              icon={<Icon name="x" />}
+              variant="secondary"
+              data-testid="closure-add-cancel"
+              onClick={() => setAdding(false)}
+            >
               {t("common.cancel")}
             </Button>
             <Button
               icon={<Icon name="check" />}
+              data-testid="closure-add-save"
               disabled={!canSubmit}
               isLoading={createClosure.isPending}
               onClick={() => void save()}
@@ -188,6 +205,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
           <FormField label="schedule.closures.dates" htmlFor="closure-dates">
             <DateRangePicker
               id="closure-dates"
+              data-testid="closure-field-dates"
               label={t("schedule.closures.dates")}
               value={range}
               onChange={setRange}
@@ -197,6 +215,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
           <FormField label="schedule.closures.reason" htmlFor="closure-reason">
             <Input
               id="closure-reason"
+              data-testid="closure-field-reason"
               placeholder={t("schedule.closures.reasonPlaceholder")}
               value={reason}
               onChange={(event) => setReason(event.target.value)}
@@ -205,6 +224,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
 
           <div>
             <Switch
+              data-testid="closure-field-annual"
               checked={isAnnual}
               label={t("schedule.closures.annual")}
               onCheckedChange={setIsAnnual}

@@ -57,23 +57,36 @@ export function DashboardPage(): JSX.Element {
   const pending = data?.pendingBookings;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-testid="dashboard-page" className="flex flex-col gap-4">
       <WelcomeBanner date={data?.date} schedule={data?.schedule ?? []} />
 
       {/* The day's one action. It rides in the bar beside the bell, and on a phone — where the bar
           keeps no slot — it falls in here, under the banner that is this screen's heading. */}
       {canBookAppointment(can) && (
         <PageAction>
-          <Button icon={<Icon name="plus" />} onClick={() => setBooking(true)}>
+          <Button
+            icon={<Icon name="plus" />}
+            data-testid="dashboard-create-appointment"
+            onClick={() => setBooking(true)}
+          >
             {t("appointments.create")}
           </Button>
         </PageAction>
       )}
 
-      <AppointmentFormModal open={booking} onOpenChange={setBooking} />
+      <AppointmentFormModal
+        data-testid="dashboard-appointment-modal"
+        open={booking}
+        onOpenChange={setBooking}
+      />
 
       {summary.isError && (
-        <EmptyState icon="alert" title="errors.unknown" hint="dashboard.failed" />
+        <EmptyState
+          icon="alert"
+          data-testid="dashboard-error"
+          title="errors.unknown"
+          hint="dashboard.failed"
+        />
       )}
 
       {/* The reference's two-column body: the day beside a narrow column of things you glance at.
@@ -85,10 +98,11 @@ export function DashboardPage(): JSX.Element {
           {/* At `sm` a third column left each card 141px wide with 40px of padding — 101px for a
               figure that is 128px. */}
           {!showSkeleton && (
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-              <KpiLink to="/appointments">
+            <div data-testid="dashboard-kpis" className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+              <KpiLink to="/appointments" data-testid="dashboard-kpi-today-link">
                 <StatCard
                   icon="calendar"
+                  data-testid="dashboard-kpi-today"
                   label={t("dashboard.kpi.today")}
                   value={data?.appointmentsToday ?? "—"}
                   caption={data ? formatDate(data.date) : undefined}
@@ -96,9 +110,10 @@ export function DashboardPage(): JSX.Element {
               </KpiLink>
 
               {pending !== undefined && (
-                <KpiLink to="/appointments?status=pending">
+                <KpiLink to="/appointments?status=pending" data-testid="dashboard-kpi-pending-link">
                   <StatCard
                     icon="clock"
+                    data-testid="dashboard-kpi-pending"
                     tone={toneFor(pending > 0, "warning")}
                     label={t("dashboard.kpi.pending")}
                     value={pending}
@@ -108,9 +123,10 @@ export function DashboardPage(): JSX.Element {
               )}
 
               {overdue !== undefined && (
-                <KpiLink to="/patients?filter=balance">
+                <KpiLink to="/patients?filter=balance" data-testid="dashboard-kpi-overdue-link">
                   <StatCard
                     icon="money"
+                    data-testid="dashboard-kpi-overdue"
                     tone={toneFor(Number(overdue) > 0, "danger")}
                     label={t("dashboard.kpi.overdue")}
                     value={<Money amount={overdue} currency={currency} />}
@@ -132,7 +148,10 @@ export function DashboardPage(): JSX.Element {
         </div>
 
         {/* Side by side below 1220px too, until there is no room for two of anything. */}
-        <aside className="flex min-w-0 flex-col gap-4 max-[1219px]:flex-row max-[759px]:flex-col">
+        <aside
+          data-testid="dashboard-side"
+          className="flex min-w-0 flex-col gap-4 max-[1219px]:flex-row max-[759px]:flex-col"
+        >
           <MiniCalendar />
           <NotesWidget />
         </aside>
@@ -146,13 +165,16 @@ const toneFor = (active: boolean, tone: StatTone): StatTone => (active ? tone : 
 function KpiLink({
   to,
   children,
+  "data-testid": testId,
 }: {
   readonly to: string;
   readonly children: ReactNode;
+  readonly "data-testid"?: string | undefined;
 }): JSX.Element {
   return (
     <Link
       to={to}
+      data-testid={testId}
       className={cn(
         "block rounded-card",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-success-500",
@@ -186,13 +208,14 @@ function TodaySchedule({
   const head = (
     <>
       <h2>
-        <Badge tone="wash" plain>
+        <Badge tone="wash" plain data-testid="dashboard-schedule-title">
           {t("dashboard.schedule.title")}
         </Badge>
       </h2>
 
       {doctors.length > 1 && (
         <SegmentedControl
+          data-testid="dashboard-schedule-doctor"
           label={t("dashboard.schedule.byDoctor")}
           value={doctorId ?? ALL_DOCTORS}
           onChange={(value) => setDoctorId(value === ALL_DOCTORS ? null : value)}
@@ -205,6 +228,7 @@ function TodaySchedule({
 
       <Link
         to="/appointments"
+        data-testid="dashboard-schedule-see-all"
         className="inline-flex min-h-(--control-h) items-center gap-1 text-label font-medium text-primary-600 transition-colors duration-150 hover:text-primary-700 lg:min-h-0"
       >
         {t("dashboard.schedule.seeAll")}
@@ -219,10 +243,15 @@ function TodaySchedule({
 
   if (shown.length === 0) {
     return (
-      <section aria-label={t("dashboard.schedule.title")} className="flex flex-col gap-3">
+      <section
+        data-testid="dashboard-schedule"
+        aria-label={t("dashboard.schedule.title")}
+        className="flex flex-col gap-3"
+      >
         <div className="flex flex-wrap items-center justify-between gap-3">{head}</div>
         <EmptyState
           icon="calendar"
+          data-testid="dashboard-schedule-empty"
           title="dashboard.schedule.empty"
           hint="dashboard.schedule.emptyHint"
         />
@@ -232,6 +261,7 @@ function TodaySchedule({
 
   return (
     <section
+      data-testid="dashboard-schedule"
       aria-label={t("dashboard.schedule.title")}
       className="overflow-hidden rounded-card border border-line bg-surface shadow-card"
     >
@@ -242,6 +272,7 @@ function TodaySchedule({
       <RefreshBar active={isRefreshing} />
 
       <ScheduleTimeline
+        data-testid="dashboard-timeline"
         rows={shown}
         linkPatients={linkPatients}
         nowMinute={nowMinute}

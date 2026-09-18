@@ -68,13 +68,18 @@ export function LabOrdersPage(): JSX.Element {
   const overdueCount = rows.filter((row) => row.isOverdue).length;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="lab-orders-page" className="flex flex-col gap-5">
       <PageHeader
+        data-testid="lab-orders-header"
         title="labs.orders.title"
         subtitle="labs.orders.subtitle"
         primaryAction={
           canCreateLabOrder(can) ? (
-            <Button icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
+            <Button
+              icon={<Icon name="plus" />}
+              data-testid="lab-orders-add"
+              onClick={() => setCreating(true)}
+            >
               {t("labs.orders.add")}
             </Button>
           ) : undefined
@@ -83,6 +88,7 @@ export function LabOrdersPage(): JSX.Element {
 
       <div className="flex flex-wrap items-end gap-3">
         <SearchField
+          data-testid="lab-orders-search"
           className="w-full min-w-0 sm:max-w-xs"
           label={t("labs.orders.search")}
           shortcut="/"
@@ -99,6 +105,7 @@ export function LabOrdersPage(): JSX.Element {
           </label>
           <Select
             id="lab-orders-lab"
+            data-testid="lab-orders-filter-lab"
             value={labId}
             placeholder={t("common.all")}
             onChange={(event) => setLabId(event.target.value)}
@@ -114,6 +121,7 @@ export function LabOrdersPage(): JSX.Element {
           </label>
           <Select
             id="lab-orders-status"
+            data-testid="lab-orders-filter-status"
             value={status}
             placeholder={t("common.all")}
             onChange={(event) => setStatus(event.target.value as LabOrderStatus | "")}
@@ -126,7 +134,11 @@ export function LabOrdersPage(): JSX.Element {
 
         {/* A filter, so it is a chip and takes the fields' state language rather than a button's
             emphasis: what is on is what is bordered blue. */}
-        <Chip selected={overdueOnly} onClick={() => setOverdueOnly((previous) => !previous)}>
+        <Chip
+          selected={overdueOnly}
+          data-testid="lab-orders-filter-overdue"
+          onClick={() => setOverdueOnly((previous) => !previous)}
+        >
           <Icon name="clock" className="size-3.5 shrink-0" />
           {t("labs.orders.overdueFilter", { count: overdueCount })}
         </Chip>
@@ -134,6 +146,7 @@ export function LabOrdersPage(): JSX.Element {
 
       {isMobile || status !== "" || overdueOnly ? (
         <LabOrdersTable
+          data-testid="lab-orders-table"
           orders={rows}
           isLoading={showSkeleton}
           isRefreshing={isRefreshing}
@@ -141,6 +154,7 @@ export function LabOrdersPage(): JSX.Element {
         />
       ) : (
         <Board
+          data-testid="lab-orders-board"
           rows={rows}
           isLoading={showSkeleton}
           isRefreshing={isRefreshing}
@@ -149,6 +163,7 @@ export function LabOrdersPage(): JSX.Element {
       )}
 
       <OrderDrawer
+        data-testid="lab-order-drawer"
         order={openOrder}
         onClose={() => setOpenOrderId(null)}
         onEdit={(row) => {
@@ -157,9 +172,14 @@ export function LabOrdersPage(): JSX.Element {
         }}
       />
 
-      <OrderFormModal open={creating} onOpenChange={setCreating} />
+      <OrderFormModal
+        data-testid="lab-order-create-modal"
+        open={creating}
+        onOpenChange={setCreating}
+      />
 
       <OrderFormModal
+        data-testid="lab-order-edit-modal"
         open={editing !== undefined}
         onOpenChange={(open) => !open && setEditing(undefined)}
         order={editing}
@@ -173,20 +193,29 @@ function Board({
   isLoading,
   isRefreshing,
   onOpen,
+  "data-testid": testId = "lab-orders-board",
 }: {
   readonly rows: readonly LabOrderRow[];
   readonly isLoading: boolean;
   readonly isRefreshing: boolean;
   readonly onOpen: (id: string) => void;
+  readonly "data-testid"?: string | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
 
   if (!isLoading && rows.length === 0) {
-    return <EmptyState icon="clipboard" title="labs.orders.empty" hint="labs.orders.emptyHint" />;
+    return (
+      <EmptyState
+        icon="clipboard"
+        data-testid={`${testId}-empty`}
+        title="labs.orders.empty"
+        hint="labs.orders.emptyHint"
+      />
+    );
   }
 
   return (
-    <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
+    <div data-testid={testId} className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
       <RefreshBar active={isRefreshing} />
       {isLoading && <SkeletonStatus />}
 
@@ -195,7 +224,11 @@ function Board({
         const style = LAB_ORDER_STATUS_STYLES[status];
 
         return (
-          <section key={status} className="flex min-w-0 flex-col gap-2">
+          <section
+            key={status}
+            data-testid={`${testId}-column-${status}`}
+            className="flex min-w-0 flex-col gap-2"
+          >
             <header
               className={cn(
                 "flex items-center justify-between gap-2 rounded-panel border px-3 py-2",
@@ -209,7 +242,10 @@ function Board({
             {isLoading && <SkeletonCard count={2} />}
 
             {!isLoading && column.length === 0 && (
-              <p className="rounded-panel border border-dashed border-line px-3 py-4 text-center text-label text-ink-muted">
+              <p
+                data-testid={`${testId}-column-${status}-empty`}
+                className="rounded-panel border border-dashed border-line px-3 py-4 text-center text-label text-ink-muted"
+              >
                 {t("labs.orders.columnEmpty")}
               </p>
             )}
@@ -258,6 +294,7 @@ function OrderCard({
 
   return (
     <div
+      data-testid={`lab-order-card-${order.id}`}
       className={cn(
         "border border-line rounded-card bg-surface p-3 shadow-card transition-shadow duration-150 hover:shadow-float",
         order.isOverdue && "border border-danger-200",
@@ -269,6 +306,7 @@ function OrderCard({
         type="button"
         onClick={onOpen}
         data-lab-order={order.id}
+        data-testid={`lab-order-open-${order.id}`}
         className="w-full cursor-pointer text-start"
       >
         <p className="truncate text-value font-medium text-ink">
@@ -300,7 +338,11 @@ function OrderCard({
               </Ltr>
             )}
 
-            {order.isOverdue && <Badge tone="danger">{t("labs.orders.overdue")}</Badge>}
+            {order.isOverdue && (
+              <Badge tone="danger" data-testid="lab-order-overdue">
+                {t("labs.orders.overdue")}
+              </Badge>
+            )}
           </div>
         )}
       </button>
@@ -314,6 +356,7 @@ function OrderCard({
                 key={next.step}
                 size="sm"
                 variant="secondary"
+                data-testid={`lab-order-step-${next.step}`}
                 isLoading={step.isPending}
                 onClick={() => void move(next)}
               >

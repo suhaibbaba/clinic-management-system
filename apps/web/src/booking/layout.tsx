@@ -23,20 +23,31 @@ export function PageShell({
   }, [clinicName]);
 
   return (
-    <div className="flex min-h-full flex-col">
-      <header className="flex items-center justify-center gap-2.5 px-4 py-5">
+    <div data-testid="booking-shell" className="flex min-h-full flex-col">
+      <header
+        data-testid="booking-header"
+        className="flex items-center justify-center gap-2.5 px-4 py-5"
+      >
         {/* Only the clinic's own: with none there is the name alone, never a mark belonging to
             somebody else. */}
         {logoUrl !== null && logoUrl !== undefined && (
-          <Img src={logoUrl} alt="" width={32} height={32} priority />
+          <Img src={logoUrl} alt="" width={32} height={32} priority data-testid="booking-logo" />
         )}
-        <span className="text-value font-medium tracking-[-0.02em] text-ink">{name}</span>
+        <span
+          data-testid="booking-clinic-name"
+          className="text-value font-medium tracking-[-0.02em] text-ink"
+        >
+          {name}
+        </span>
       </header>
 
-      <main className="mx-auto w-full max-w-[480px] flex-1 px-4 pb-6">{children}</main>
+      <main data-testid="booking-main" className="mx-auto w-full max-w-[480px] flex-1 px-4 pb-6">
+        {children}
+      </main>
 
       {footer && (
         <div
+          data-testid="booking-footer"
           className={cx(
             "sticky bottom-0 z-10 border-t border-line bg-surface",
             "px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]",
@@ -62,12 +73,18 @@ export function StepHeader({
   readonly title: string;
 }): JSX.Element {
   return (
-    <div className="mb-4">
-      <p aria-live="polite" className="text-label font-medium text-ink-muted">
+    <div data-testid="booking-step-header" className="mb-4">
+      <p
+        aria-live="polite"
+        data-testid="booking-step-counter"
+        className="text-label font-medium text-ink-muted"
+      >
         {t("steps.counter", { current, total: STEP_KEYS.length })}
       </p>
 
-      <h1 className="mt-1 text-title font-medium text-primary-900">{title}</h1>
+      <h1 data-testid="booking-step-title" className="mt-1 text-title font-medium text-primary-900">
+        {title}
+      </h1>
 
       <ol aria-hidden className="mt-3 flex gap-1.5">
         {STEP_KEYS.map((key, index) => (
@@ -94,9 +111,18 @@ export function FullPageMessage({
   readonly action?: ReactNode;
 }): JSX.Element {
   return (
-    <div className="mt-10 flex flex-col items-center gap-3 text-center">
-      <h1 className="text-title font-medium text-primary-900">{title}</h1>
-      {body && <p className="text-value text-ink-muted">{body}</p>}
+    <div
+      data-testid="booking-message"
+      className="mt-10 flex flex-col items-center gap-3 text-center"
+    >
+      <h1 data-testid="booking-message-title" className="text-title font-medium text-primary-900">
+        {title}
+      </h1>
+      {body && (
+        <p data-testid="booking-message-body" className="text-value text-ink-muted">
+          {body}
+        </p>
+      )}
       {action}
     </div>
   );

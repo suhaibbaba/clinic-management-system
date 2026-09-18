@@ -12,7 +12,9 @@ export function LabFormModal({
   open,
   onOpenChange,
   lab,
+  "data-testid": testId = "lab-form-modal",
 }: {
+  readonly "data-testid"?: string | undefined;
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly lab?: Lab | undefined;
@@ -61,27 +63,40 @@ export function LabFormModal({
 
   return (
     <Modal
+      data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
       title={t(lab ? "labs.editTitle" : "labs.addTitle")}
       footer={
         <>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
             {t("common.cancel")}
           </Button>
-          <Button isLoading={isSubmitting} onClick={() => void submit()}>
+          <Button
+            isLoading={isSubmitting}
+            data-testid={`${testId}-save`}
+            onClick={() => void submit()}
+          >
             {t("common.save")}
           </Button>
         </>
       }
     >
-      <form className="flex flex-col gap-4" onSubmit={(event) => void submit(event)}>
+      <form
+        data-testid={`${testId}-form`}
+        className="flex flex-col gap-4"
+        onSubmit={(event) => void submit(event)}
+      >
         <FormField label="labs.fields.name" htmlFor="lab-name" error={errors.name}>
-          <Input id="lab-name" {...register("name")} />
+          <Input id="lab-name" data-testid="lab-field-name" {...register("name")} />
         </FormField>
 
         <FormField label="labs.fields.contactPerson" htmlFor="lab-contact" optional>
-          <Input id="lab-contact" {...register("contactPerson")} />
+          <Input id="lab-contact" data-testid="lab-field-contact" {...register("contactPerson")} />
         </FormField>
 
         <FormField
@@ -91,15 +106,20 @@ export function LabFormModal({
           errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
           optional
         >
-          <PhoneInput id="lab-phone" hasError={Boolean(errors.phone)} {...register("phone")} />
+          <PhoneInput
+            id="lab-phone"
+            data-testid="lab-field-phone"
+            hasError={Boolean(errors.phone)}
+            {...register("phone")}
+          />
         </FormField>
 
         <FormField label="labs.fields.address" htmlFor="lab-address" optional>
-          <Input id="lab-address" {...register("address")} />
+          <Input id="lab-address" data-testid="lab-field-address" {...register("address")} />
         </FormField>
 
         <FormField label="labs.fields.notes" htmlFor="lab-notes" optional>
-          <Textarea id="lab-notes" rows={2} {...register("notes")} />
+          <Textarea id="lab-notes" data-testid="lab-field-notes" rows={2} {...register("notes")} />
         </FormField>
       </form>
     </Modal>

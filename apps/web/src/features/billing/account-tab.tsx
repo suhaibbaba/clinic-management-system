@@ -76,7 +76,11 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
       render: (entry) => (
         <span className="flex flex-wrap items-center gap-2">
           {entry.description || t(`billing.kinds.${entry.kind}`)}
-          {entry.isReversal && <Badge tone="warning">{t("billing.reversal")}</Badge>}
+          {entry.isReversal && (
+            <Badge tone="warning" data-testid="statement-reversal">
+              {t("billing.reversal")}
+            </Badge>
+          )}
           {entry.receiptNumber !== null && (
             <Ltr className="text-label text-ink-muted">
               #{String(entry.receiptNumber).padStart(6, "0")}
@@ -123,6 +127,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
             <Button
               icon={<Icon name="print" />}
               variant="ghost"
+              data-testid="statement-receipt"
               onClick={() => void print(() => openReceipt(entry.id))}
             >
               {t("billing.receipt")}
@@ -131,6 +136,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
               <Button
                 icon={<Icon name="reset" />}
                 variant="ghost"
+                data-testid="statement-reverse"
                 onClick={() => setReversing(entry)}
               >
                 {t("billing.reverse")}
@@ -142,8 +148,11 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
   ];
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card className="flex flex-wrap items-end justify-between gap-4">
+    <div data-testid="account-tab" className="flex flex-col gap-4">
+      <Card
+        data-testid="account-balance-card"
+        className="flex flex-wrap items-end justify-between gap-4"
+      >
         <div>
           <span className="block text-label font-medium text-ink-muted">
             {t("billing.outstanding")}
@@ -152,6 +161,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
             amount={balance.data?.balance ?? "0.00"}
             currency={currency}
             signed
+            data-testid="account-balance"
             className="text-kpi font-medium tabular-nums"
           />
           {balance.data?.lastPaymentAt && (
@@ -163,13 +173,18 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
 
         <div className="flex flex-wrap gap-2">
           {canRecordPayment(can) && (
-            <Button icon={<Icon name="money" />} onClick={() => setPaying(true)}>
+            <Button
+              icon={<Icon name="money" />}
+              data-testid="account-record-payment"
+              onClick={() => setPaying(true)}
+            >
               {t("billing.recordPayment")}
             </Button>
           )}
           <Button
             icon={<Icon name="file" />}
             variant="secondary"
+            data-testid="account-download-statement"
             onClick={() =>
               void print(() => downloadStatement(patientId, patient?.fileNumber ?? "", query))
             }
@@ -179,11 +194,12 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
         </div>
       </Card>
 
-      <Card className="flex flex-wrap items-end gap-3">
+      <Card data-testid="account-filters" className="flex flex-wrap items-end gap-3">
         <label className="flex w-full flex-col gap-1 text-label text-ink-muted sm:w-auto">
           {t("billing.period")}
           <DateRangePicker
             id="statement-period"
+            data-testid="account-period"
             className="w-full sm:w-64"
             label={t("billing.period")}
             value={{ from, to }}
@@ -197,6 +213,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
           <Button
             icon={<Icon name="reset" />}
             variant="ghost"
+            data-testid="account-reset-period"
             onClick={() => {
               setFrom("");
               setTo("");
@@ -208,22 +225,31 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
       </Card>
 
       {statement.data && Number(statement.data.openingBalance) !== 0 && (
-        <p className="text-value text-ink-muted">
+        <p data-testid="account-opening-balance" className="text-value text-ink-muted">
           {t("billing.openingBalance")}:{" "}
           <Money amount={statement.data.openingBalance} currency={currency} />
         </p>
       )}
 
       <Table
+        data-testid="statement-table"
         columns={columns}
         rows={statement.data?.entries ?? []}
         rowKey={(entry) => entry.id}
         isLoading={statement.isPending}
         isRefreshing={isRefetching(statement)}
-        empty={<EmptyState icon="money" title="billing.empty" hint="billing.emptyHint" />}
+        empty={
+          <EmptyState
+            icon="money"
+            data-testid="statement-empty"
+            title="billing.empty"
+            hint="billing.emptyHint"
+          />
+        }
       />
 
       <PaymentModal
+        data-testid="account-payment-modal"
         open={paying}
         onOpenChange={setPaying}
         patientId={patientId}
@@ -232,6 +258,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
       />
 
       <ReversePaymentModal
+        data-testid="account-reverse-modal"
         payment={reversing}
         onOpenChange={(open) => !open && setReversing(null)}
         currency={currency}

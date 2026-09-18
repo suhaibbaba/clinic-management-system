@@ -40,6 +40,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
   return (
     <Menu>
       <MenuTrigger
+        data-testid="user-menu"
         className={cn(
           "group flex w-full cursor-pointer items-center gap-[11px] rounded-panel p-3",
           "border border-line bg-surface transition-colors duration-150",
@@ -49,14 +50,21 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
         {/* Round and green, as the reference draws the rail's footer: this is the one avatar on the
             page that is not a row in a list, so it does not take a list's rotating tint. */}
         <Avatar
+          data-testid="user-menu-avatar"
           name={displayName(user.name)}
           size={38}
           className="bg-success-100 text-success-700"
         />
 
         <span className="flex min-w-0 flex-1 flex-col leading-snug text-start">
-          <PersonName name={user.name} className="truncate text-value font-bold text-ink" />
-          <span className="truncate text-meta text-ink-muted">{t(`roles.${user.role}`)}</span>
+          <PersonName
+            name={user.name}
+            data-testid="user-menu-name"
+            className="truncate text-value font-bold text-ink"
+          />
+          <span data-testid="user-menu-role" className="truncate text-meta text-ink-muted">
+            {t(`roles.${user.role}`)}
+          </span>
         </span>
 
         <Icon
@@ -68,8 +76,12 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
         />
       </MenuTrigger>
 
-      <MenuContent align="start">
-        <MenuItem icon="user" onSelect={() => void navigate("/profile")}>
+      <MenuContent align="start" data-testid="user-menu-content">
+        <MenuItem
+          icon="user"
+          data-testid="user-menu-profile"
+          onSelect={() => void navigate("/profile")}
+        >
           {t("nav.profile")}
         </MenuItem>
 
@@ -80,6 +92,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
         {LANGUAGES.map((language) => (
           <MenuItem
             key={language}
+            data-testid={`user-menu-language-${language}`}
             icon={language === "ar" ? "language" : "globe"}
             onSelect={() => void changeLanguage(language)}
             {...(language === current && {
@@ -92,7 +105,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
 
         <MenuSeparator />
 
-        <MenuItem icon="logout" tone="danger" onSelect={onLogout}>
+        <MenuItem icon="logout" tone="danger" data-testid="user-menu-logout" onSelect={onLogout}>
           {t("nav.logout")}
         </MenuItem>
 
@@ -100,7 +113,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
 
         {/* Not a menu item: there is nothing to select, and making it one would put a version number
             in the tab order between "sign out" and the edge. */}
-        <p className="px-2 py-1.5 text-meta text-ink-subtle">
+        <p data-testid="user-menu-version" className="px-2 py-1.5 text-meta text-ink-subtle">
           <span>{t("clinic.version")}</span> <Ltr className="font-mono">v{WEB_VERSION}</Ltr>
         </p>
       </MenuContent>

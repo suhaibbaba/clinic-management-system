@@ -224,7 +224,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
         <FullPageMessage
           title={t(failureKey(clinic.error))}
           action={
-            <Button variant="secondary" onClick={clinic.reload}>
+            <Button variant="secondary" data-testid="booking-retry" onClick={clinic.reload}>
               {t("common.retry")}
             </Button>
           }
@@ -268,26 +268,40 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
       logoUrl={logoUrl}
       footer={
         stage === "doctor" ? (
-          <Button full disabled={!doctor} onClick={() => setStage("when")}>
+          <Button
+            full
+            data-testid="booking-next-doctor"
+            disabled={!doctor}
+            onClick={() => setStage("when")}
+          >
             {t("common.next")}
           </Button>
         ) : stage === "when" ? (
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={() => setStage("doctor")}>
+            <Button
+              variant="secondary"
+              data-testid="booking-back-doctor"
+              onClick={() => setStage("doctor")}
+            >
               {t("common.back")}
             </Button>
-            <Button full disabled={!slot} onClick={() => setStage("details")}>
+            <Button
+              full
+              data-testid="booking-next-when"
+              disabled={!slot}
+              onClick={() => setStage("details")}
+            >
               {t("common.next")}
             </Button>
           </div>
         ) : stage === "details" ? (
-          <Button variant="secondary" full onClick={backToSlots}>
+          <Button variant="secondary" full data-testid="booking-back-slots" onClick={backToSlots}>
             {t("common.back")}
           </Button>
         ) : undefined
       }
     >
-      <div key={stage} className="booking-step">
+      <div key={stage} data-testid={`booking-stage-${stage}`} className="booking-step">
         <StepHeader current={STAGE_STEP[stage]} title={t(STAGE_TITLE[stage])} />
 
         {failure && stage !== "otp" && (
@@ -350,7 +364,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
             onSubmit={() => void submit()}
             busy={busy}
             summary={
-              <Card className="bg-primary-50 shadow-none">
+              <Card data-testid="booking-summary" className="bg-primary-50 shadow-none">
                 <p className="text-label text-ink-muted">{t("details.summary")}</p>
                 <p className="mt-1 text-value font-medium text-ink">{bookingName(doctor?.name)}</p>
                 {/* The time hugs its content: as a block it aligned left inside an RTL card,

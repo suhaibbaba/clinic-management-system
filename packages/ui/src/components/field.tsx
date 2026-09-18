@@ -2,6 +2,7 @@ import type { JSX } from "react";
 
 import { Icon, type IconName } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
+import { testid, type TestIdProps } from "@ui/lib/testid";
 
 export interface FieldState {
   readonly hasError?: boolean | undefined;
@@ -38,7 +39,7 @@ export const FIELD_TEXT = cn(
   "disabled:cursor-not-allowed disabled:text-ink-faint",
 );
 
-export interface FieldIconProps extends FieldState {
+export interface FieldIconProps extends FieldState, TestIdProps {
   readonly name: IconName;
 }
 
@@ -48,11 +49,13 @@ export function FieldIcon({
   name,
   hasError = false,
   disabled = false,
+  "data-testid": testId,
 }: FieldIconProps): JSX.Element {
   return (
     <Icon
       name={name}
       data-part="field-icon"
+      {...testid(testId)}
       aria-hidden="true"
       className={cn(
         "size-4 shrink-0 transition-colors duration-150",
@@ -70,27 +73,33 @@ export const FIELD_BUTTON = cn(
 );
 
 /** The lock that names a disabled field, beside the fill that already said so. */
-export function FieldLock(): JSX.Element {
+export function FieldLock({ "data-testid": testId }: TestIdProps = {}): JSX.Element {
   return (
     <Icon
       name="lock"
       data-part="field-lock"
+      {...testid(testId)}
       aria-hidden="true"
       className="size-4 shrink-0 text-ink-faint"
     />
   );
 }
 
-export interface FieldClearProps {
+export interface FieldClearProps extends TestIdProps {
   readonly label: string;
   readonly onClear: () => void;
 }
 
-export function FieldClear({ label, onClear }: FieldClearProps): JSX.Element {
+export function FieldClear({
+  label,
+  onClear,
+  "data-testid": testId,
+}: FieldClearProps): JSX.Element {
   return (
     <button
       type="button"
       data-part="field-clear"
+      {...testid(testId)}
       aria-label={label}
       onClick={onClear}
       className={cn(

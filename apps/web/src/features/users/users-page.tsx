@@ -113,11 +113,21 @@ export function UsersPage(): JSX.Element {
         primary: true,
         render: (row) => (
           <span className="flex items-center gap-3">
-            <Avatar name={displayName(row.name)} tintKey={row.id} src={row.photoUrl} />
+            <Avatar
+              name={displayName(row.name)}
+              tintKey={row.id}
+              src={row.photoUrl}
+              data-testid="user-avatar"
+            />
             <span className="flex min-w-0 flex-col leading-snug">
               {/* Both spellings on hover: this is the screen where somebody
                   checks how a name is written on a letterhead. */}
-              <PersonName name={row.name} showBoth className="truncate font-medium text-ink" />
+              <PersonName
+                name={row.name}
+                showBoth
+                data-testid="user-name"
+                className="truncate font-medium text-ink"
+              />
               {/* The wide shape only: on a card the email is already its own labelled row, and since
                   it became a link that would be two identical links. */}
               {row.email !== null && row.email !== undefined && (
@@ -146,7 +156,11 @@ export function UsersPage(): JSX.Element {
       {
         key: "role",
         header: "users.role",
-        render: (row) => <Badge tone="info">{t(`roles.${row.role}`)}</Badge>,
+        render: (row) => (
+          <Badge tone="info" data-testid="user-role">
+            {t(`roles.${row.role}`)}
+          </Badge>
+        ),
       },
       {
         key: "status",
@@ -154,6 +168,7 @@ export function UsersPage(): JSX.Element {
         render: (row) => (
           <div className="flex items-center gap-2">
             <Switch
+              data-testid="user-active-switch"
               checked={row.isActive}
               // Deactivating yourself is refused by the API; do not offer it.
               disabled={row.id === currentUser?.id}
@@ -163,13 +178,17 @@ export function UsersPage(): JSX.Element {
             {/* Plain text, not a badge: a switch that is on beside a green pill
                 reading "Active" states the same fact twice, in the width of
                 two columns. */}
-            <span className="text-label text-ink-muted">
+            <span data-testid="user-active-label" className="text-label text-ink-muted">
               {row.isActive ? t("users.active") : t("users.inactive")}
             </span>
 
             {/* An account nobody has claimed yet: the switch says it is live, and it is — there is
                 simply no password on it until its owner sets one. */}
-            {!row.activated && <Badge tone="warning">{t("users.pending")}</Badge>}
+            {!row.activated && (
+              <Badge tone="warning" data-testid="user-pending">
+                {t("users.pending")}
+              </Badge>
+            )}
           </div>
         ),
       },
@@ -184,10 +203,11 @@ export function UsersPage(): JSX.Element {
         header: "common.actions",
         actions: true,
         render: (row) => (
-          <RowMenu label={t("users.rowMenu")}>
+          <RowMenu label={t("users.rowMenu")} data-testid="user-menu">
             {can("users.update") && (
               <MenuItem
                 icon="edit"
+                data-testid="user-menu-edit"
                 onSelect={() => {
                   setFormUserId(row.id);
                   setFormOpen(true);
@@ -203,6 +223,7 @@ export function UsersPage(): JSX.Element {
             {!row.activated && row.email && row.isActive && can("users.invite") && (
               <MenuItem
                 icon="mail"
+                data-testid="user-menu-resend-invite"
                 onSelect={() => void send(invite.mutateAsync(row.id), "users.inviteSent")}
               >
                 {t("users.resendInvite")}
@@ -215,6 +236,7 @@ export function UsersPage(): JSX.Element {
             {row.activated && row.email && row.isActive && can("users.sendPasswordReset") && (
               <MenuItem
                 icon="key"
+                data-testid="user-menu-send-reset"
                 onSelect={() => void send(sendReset.mutateAsync(row.id), "users.resetLinkSent")}
               >
                 {t("users.sendResetLink")}
@@ -222,14 +244,23 @@ export function UsersPage(): JSX.Element {
             )}
 
             {!row.email && can("users.resetPassword") && (
-              <MenuItem icon="key" onSelect={() => setResetUser(row)}>
+              <MenuItem
+                icon="key"
+                data-testid="user-menu-reset-password"
+                onSelect={() => setResetUser(row)}
+              >
                 {t("users.resetPassword")}
               </MenuItem>
             )}
 
             {/* Deleting your own account is refused by the API; do not offer it. */}
             {row.id !== currentUser?.id && can("users.remove") && (
-              <MenuItem icon="trash" tone="danger" onSelect={() => setDeleting(row)}>
+              <MenuItem
+                icon="trash"
+                tone="danger"
+                data-testid="user-menu-delete"
+                onSelect={() => setDeleting(row)}
+              >
                 {t("users.delete")}
               </MenuItem>
             )}
@@ -243,8 +274,9 @@ export function UsersPage(): JSX.Element {
   const data = query.data;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="users-page" className="flex flex-col gap-5">
       <PageHeader
+        data-testid="users-header"
         title="users.title"
         subtitle="users.subtitle"
         {...(query.data !== undefined && {
@@ -253,6 +285,7 @@ export function UsersPage(): JSX.Element {
         primaryAction={
           <Button
             icon={<Icon name="user-plus" />}
+            data-testid="users-create"
             onClick={() => {
               setFormUserId(null);
               setFormOpen(true);
@@ -267,6 +300,7 @@ export function UsersPage(): JSX.Element {
           then the filters, on their own line at 390px. */}
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <SearchField
+          data-testid="users-search"
           className="w-full min-w-0 sm:max-w-md sm:flex-1"
           label={t("common.search")}
           shortcut="/"
@@ -284,6 +318,7 @@ export function UsersPage(): JSX.Element {
         />
 
         <Select
+          data-testid="users-filter-role"
           className="w-full sm:ms-auto sm:w-48"
           aria-label={t("users.filterRole")}
           placeholder={t("common.all")}
@@ -297,6 +332,7 @@ export function UsersPage(): JSX.Element {
       </div>
 
       <Table
+        data-testid="users-table"
         columns={columns}
         rows={data?.items ?? []}
         rowKey={(row) => row.id}
@@ -304,11 +340,13 @@ export function UsersPage(): JSX.Element {
         isRefreshing={isRefetching(query)}
         empty={
           <EmptyState
+            data-testid="users-empty"
             title="users.empty"
             hint="users.emptyHint"
             action={
               <Button
                 icon={<Icon name="user-plus" />}
+                data-testid="users-empty-create"
                 onClick={() => {
                   setFormUserId(null);
                   setFormOpen(true);
@@ -331,8 +369,14 @@ export function UsersPage(): JSX.Element {
         })}
       />
 
-      <UserFormModal open={formOpen} onOpenChange={setFormOpen} user={formUser} />
+      <UserFormModal
+        data-testid="user-form-modal"
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        user={formUser}
+      />
       <ResetPasswordModal
+        data-testid="reset-password-modal"
         open={resetUser !== null}
         onOpenChange={(open) => {
           if (!open) {
@@ -345,17 +389,23 @@ export function UsersPage(): JSX.Element {
       {/* A soft delete, and one the API refuses for your own account. Named in the question, because
           a row menu closes over the row it belonged to. */}
       <Modal
+        data-testid="user-delete-modal"
         open={deleting !== null}
         onOpenChange={(open) => !open && setDeleting(null)}
         title="users.deleteTitle"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setDeleting(null)}>
+            <Button
+              variant="secondary"
+              data-testid="user-delete-cancel"
+              onClick={() => setDeleting(null)}
+            >
               {t("common.cancel")}
             </Button>
             <Button
               variant="danger"
               icon={<Icon name="trash" />}
+              data-testid="user-delete-confirm"
               isLoading={removeUser.isPending}
               onClick={() => void remove()}
             >
@@ -364,7 +414,7 @@ export function UsersPage(): JSX.Element {
           </>
         }
       >
-        <p className="text-value text-ink">
+        <p data-testid="user-delete-question" className="text-value text-ink">
           {t("users.deleteQuestion", { name: displayName(deleting?.name) })}
         </p>
       </Modal>

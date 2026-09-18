@@ -37,17 +37,21 @@ export function MiniCalendar(): JSX.Element {
   ).format(new Date(`${month}-01T12:00:00Z`));
 
   return (
-    <Widget>
+    <Widget data-testid="mini-calendar">
       <div className="mb-2.5 flex items-center justify-between gap-2">
-        <b className="text-section font-bold">{monthLabel}</b>
+        <b data-testid="mini-calendar-month" className="text-section font-bold">
+          {monthLabel}
+        </b>
 
         <div className="flex gap-1">
           <StepButton
+            data-testid="mini-calendar-previous"
             label={t("dashboard.calendar.previous")}
             icon="chevron-start"
             onClick={() => setMonth((current) => shiftMonth(current, -1))}
           />
           <StepButton
+            data-testid="mini-calendar-next"
             label={t("dashboard.calendar.next")}
             icon="chevron-end"
             onClick={() => setMonth((current) => shiftMonth(current, 1))}
@@ -55,7 +59,7 @@ export function MiniCalendar(): JSX.Element {
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-[3px] text-center">
+      <div data-testid="mini-calendar-grid" className="grid grid-cols-7 gap-[3px] text-center">
         {WEEKDAY_KEYS.map((key) => (
           <b key={key} className="py-1 text-micro font-medium text-ink-muted">
             {t(`dashboard.calendar.weekday.${key}`)}
@@ -97,6 +101,7 @@ function Day({
   return (
     <button
       type="button"
+      data-testid={`mini-calendar-day-${date}`}
       onClick={onOpen}
       aria-label={`${label} ${date}`}
       aria-current={isToday ? "date" : undefined}
@@ -126,14 +131,17 @@ function StepButton({
   label,
   icon,
   onClick,
+  "data-testid": testId,
 }: {
   readonly label: string;
   readonly icon: "chevron-start" | "chevron-end";
   readonly onClick: () => void;
+  readonly "data-testid"?: string | undefined;
 }): JSX.Element {
   return (
     <button
       type="button"
+      data-testid={testId}
       aria-label={label}
       onClick={onClick}
       className={cn(

@@ -46,6 +46,7 @@ export function ConfirmedBookings(): JSX.Element {
       render: (row) => (
         <Link
           to={`/patients/${row.patientId}`}
+          data-testid="confirmed-booking-patient"
           className="font-medium text-primary-600 transition-colors duration-150 hover:text-primary-700"
         >
           {row.patientName}
@@ -80,7 +81,10 @@ export function ConfirmedBookings(): JSX.Element {
       render: (row) => (
         <span className="flex items-center gap-2">
           {typeLabel(row.type)}
-          <Badge tone={APPOINTMENT_STATUS_STYLES[row.status].tone}>
+          <Badge
+            tone={APPOINTMENT_STATUS_STYLES[row.status].tone}
+            data-testid="confirmed-booking-status"
+          >
             {t(statusLabelKey(row.status))}
           </Badge>
         </span>
@@ -89,10 +93,15 @@ export function ConfirmedBookings(): JSX.Element {
   ];
 
   return (
-    <div className="flex flex-col gap-5">
-      <PageHeader title="appointments.confirmed.title" subtitle="appointments.confirmed.subtitle" />
+    <div data-testid="confirmed-bookings" className="flex flex-col gap-5">
+      <PageHeader
+        data-testid="confirmed-bookings-header"
+        title="appointments.confirmed.title"
+        subtitle="appointments.confirmed.subtitle"
+      />
 
       <Table
+        data-testid="confirmed-bookings-table"
         columns={columns}
         rows={query.data?.items ?? []}
         rowKey={(row) => row.id}
@@ -100,6 +109,7 @@ export function ConfirmedBookings(): JSX.Element {
         empty={
           <EmptyState
             icon="calendar"
+            data-testid="confirmed-bookings-empty"
             title="appointments.confirmed.empty"
             hint="appointments.confirmed.emptyHint"
           />

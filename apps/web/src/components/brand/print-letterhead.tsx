@@ -9,7 +9,7 @@ import { PersonName } from "@clinic/ui/components/person-name";
 // clinic is passed in, keeping a printable sheet a pure function.
 export function PrintLetterhead({ clinic }: { clinic: Clinic | undefined }): JSX.Element {
   return (
-    <header className="print-letterhead">
+    <header data-testid="print-letterhead" className="print-letterhead">
       <div className="print-brand">
         {/* Only when the clinic has one: a sheet with no logo carries its name, never a stand-in
             mark, which on paper would read as somebody else's branding. */}
@@ -17,12 +17,12 @@ export function PrintLetterhead({ clinic }: { clinic: Clinic | undefined }): JSX
         <div>
           {/* In the reader's language: this sheet prints from the browser, unlike the API's PDFs,
               which use the clinic's document language. */}
-          <h1 className="print-clinic-name">
+          <h1 data-testid="print-clinic-name" className="print-clinic-name">
             <PersonName name={clinic?.name} fallback="" />
           </h1>
           {/* Its own run, not half a joined string: joined with an Arabic address the leading `+` is
               neutral and bidi gave it to the Arabic, printing `963110000000+`. */}
-          <p className="print-clinic-contact">
+          <p data-testid="print-clinic-contact" className="print-clinic-contact">
             {clinic?.phone && (
               <span dir="ltr" className="inline-block w-fit whitespace-nowrap">
                 {clinic.phone}
@@ -34,7 +34,7 @@ export function PrintLetterhead({ clinic }: { clinic: Clinic | undefined }): JSX
         </div>
       </div>
 
-      <p className="print-issued" dir="ltr">
+      <p data-testid="print-issued" className="print-issued" dir="ltr">
         {formatDate(new Date().toISOString())}
       </p>
     </header>

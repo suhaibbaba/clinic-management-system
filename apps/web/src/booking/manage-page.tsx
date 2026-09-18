@@ -78,12 +78,15 @@ export function ManagePage({
 
   return (
     <PageShell clinicName={bookingName(booking.clinicName)}>
-      <h1 className="mb-4 text-title font-medium text-primary-900">{t("manage.heading")}</h1>
+      <h1 data-testid="manage-heading" className="mb-4 text-title font-medium text-primary-900">
+        {t("manage.heading")}
+      </h1>
 
-      <div className="flex flex-col gap-4">
+      <div data-testid="manage-page" className="flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <span className="text-label text-ink-muted">{t("manage.status")}</span>
           <span
+            data-testid="manage-status"
             className={
               cancelled
                 ? "pill-text inline-flex items-center h-(--control-h-sm) rounded-pill bg-inset px-3 text-nav font-medium text-ink-muted"
@@ -99,15 +102,18 @@ export function ManagePage({
         {failure && <Alert>{failure}</Alert>}
 
         {cancelled ? (
-          <Alert tone="info">{t("manage.cancelled")}</Alert>
+          <Alert tone="info" data-testid="manage-cancelled">
+            {t("manage.cancelled")}
+          </Alert>
         ) : !booking.canModify ? (
-          <Card className="bg-inset shadow-none">
+          <Card data-testid="manage-locked" className="bg-inset shadow-none">
             <p className="text-value text-ink-muted">
               {t("manage.locked", { phone: booking.clinicPhone ?? "" })}
             </p>
             {booking.clinicPhone && (
               <a
                 href={`tel:${booking.clinicPhone}`}
+                data-testid="manage-call-clinic"
                 className="mt-2 inline-block text-value font-medium text-primary-700"
               >
                 {t("manage.callClinic")}
@@ -115,7 +121,7 @@ export function ManagePage({
             )}
           </Card>
         ) : mode === "confirming-cancel" ? (
-          <Card>
+          <Card data-testid="manage-cancel-panel">
             <h2 className="text-field font-medium text-ink">{t("manage.cancelTitle")}</h2>
             <p className="mt-1 text-value text-ink-muted">{t("manage.cancelBody")}</p>
 
@@ -124,6 +130,7 @@ export function ManagePage({
             </label>
             <input
               id="cancel-reason"
+              data-testid="manage-cancel-reason"
               value={reason}
               onChange={(event) => setReason(event.target.value)}
               className={cx(
@@ -138,12 +145,18 @@ export function ManagePage({
               <Button
                 variant="danger"
                 full
+                data-testid="manage-cancel-confirm"
                 busy={busy}
                 onClick={() => void act(() => bookingApi.cancel(token, reason.trim() || undefined))}
               >
                 {t("manage.cancelConfirm")}
               </Button>
-              <Button variant="secondary" full onClick={() => setMode("view")}>
+              <Button
+                variant="secondary"
+                full
+                data-testid="manage-cancel-keep"
+                onClick={() => setMode("view")}
+              >
                 {t("manage.cancelKeep")}
               </Button>
             </div>
@@ -158,10 +171,20 @@ export function ManagePage({
           />
         ) : (
           <div className="flex flex-col gap-2">
-            <Button variant="secondary" full onClick={() => setMode("rescheduling")}>
+            <Button
+              variant="secondary"
+              full
+              data-testid="manage-reschedule"
+              onClick={() => setMode("rescheduling")}
+            >
               {t("manage.reschedule")}
             </Button>
-            <Button variant="ghost" full onClick={() => setMode("confirming-cancel")}>
+            <Button
+              variant="ghost"
+              full
+              data-testid="manage-cancel"
+              onClick={() => setMode("confirming-cancel")}
+            >
               {t("manage.cancel")}
             </Button>
           </div>
@@ -214,7 +237,7 @@ function ReschedulePanel({
 
   if (!slug || (doctors.data && !doctorId)) {
     return (
-      <Card className="bg-inset shadow-none">
+      <Card data-testid="reschedule-locked" className="bg-inset shadow-none">
         <p className="text-value text-ink-muted">
           {t("manage.locked", { phone: booking.clinicPhone ?? "" })}
         </p>
@@ -223,7 +246,7 @@ function ReschedulePanel({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div data-testid="reschedule-panel" className="flex flex-col gap-3">
       <h2 className="text-field font-medium text-ink">{t("manage.rescheduleTitle")}</h2>
 
       <WhenStep
@@ -235,7 +258,13 @@ function ReschedulePanel({
         onSelect={onPick}
       />
 
-      <Button variant="secondary" full disabled={busy} onClick={onClose}>
+      <Button
+        variant="secondary"
+        full
+        data-testid="reschedule-back"
+        disabled={busy}
+        onClick={onClose}
+      >
         {t("common.back")}
       </Button>
     </div>

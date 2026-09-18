@@ -2,7 +2,9 @@ import { bothNames, personName, type PersonName as Name } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 
-export interface PersonNameProps {
+import { testid, type TestIdProps } from "@ui/lib/testid";
+
+export interface PersonNameProps extends TestIdProps {
   /** A staff or clinic name. Patient names are a plain string — see below. */
   readonly name: Name | null | undefined;
   readonly className?: string | undefined;
@@ -18,6 +20,7 @@ export function PersonName({
   className,
   fallback = "—",
   showBoth = false,
+  "data-testid": testId,
 }: PersonNameProps): JSX.Element {
   const { i18n } = useTranslation();
   const resolved = personName(name, i18n.language);
@@ -25,6 +28,7 @@ export function PersonName({
   return (
     <span
       data-part="person-name"
+      {...testid(testId)}
       className={className}
       {...(showBoth && name && resolved !== "" && { title: bothNames(name) })}
     >

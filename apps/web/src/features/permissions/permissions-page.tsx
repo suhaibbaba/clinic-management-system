@@ -100,12 +100,19 @@ export function PermissionsPage(): JSX.Element {
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      <PageHeader title="permissions.title" subtitle="permissions.subtitle" />
+    <div data-testid="permissions-page" className="flex flex-col gap-5">
+      <PageHeader
+        data-testid="permissions-header"
+        title="permissions.title"
+        subtitle="permissions.subtitle"
+      />
 
-      <p className="text-value text-ink-muted">{t("permissions.intro")}</p>
+      <p data-testid="permissions-intro" className="text-value text-ink-muted">
+        {t("permissions.intro")}
+      </p>
 
       <SegmentedControl
+        data-testid="permissions-role"
         label={t("permissions.role")}
         value={role}
         onChange={setRole}
@@ -115,7 +122,10 @@ export function PermissionsPage(): JSX.Element {
       {/* The administrator is shown rather than hidden: somebody checking who can do what should
           see the answer for every role, including the one whose answer is "everything". */}
       {locked && (
-        <p className="flex items-center gap-2 rounded-panel border border-primary-200 bg-primary-50 px-3.5 py-2.5 text-value text-primary-900">
+        <p
+          data-testid="permissions-admin-locked"
+          className="flex items-center gap-2 rounded-panel border border-primary-200 bg-primary-50 px-3.5 py-2.5 text-value text-primary-900"
+        >
           <Icon name="lock" className="size-4 shrink-0" />
           {t("permissions.adminLocked")}
         </p>
@@ -123,12 +133,14 @@ export function PermissionsPage(): JSX.Element {
 
       {showSkeleton && <p className="text-value text-ink-muted">{t("common.loading")}</p>}
 
-      {permissions.isError && <EmptyState icon="alert" title="errors.unknown" />}
+      {permissions.isError && (
+        <EmptyState icon="alert" data-testid="permissions-error" title="errors.unknown" />
+      )}
 
       {!showSkeleton &&
         current &&
         sections.map((section) => (
-          <Card key={section.title}>
+          <Card key={section.title} data-testid={`permissions-section-${section.title}`}>
             <h2 className="text-section font-medium text-ink">{section.title}</h2>
             {section.hint && <p className="mt-0.5 text-meta text-ink-muted">{section.hint}</p>}
 
@@ -138,11 +150,13 @@ export function PermissionsPage(): JSX.Element {
               {section.permissions.map((permission) => (
                 <li
                   key={permission.keys[0]}
+                  data-testid={`permission-${permission.keys[0] ?? ""}`}
                   className="flex items-center justify-between gap-4 border-t border-line py-2"
                 >
                   <span className="min-w-0 truncate text-value text-ink">{permission.label}</span>
 
                   <Switch
+                    data-testid={`permission-switch-${permission.keys[0] ?? ""}`}
                     checked={permission.keys.every((key) => current.allows[key])}
                     disabled={locked}
                     onCheckedChange={(next) => void toggle(permission.keys, next)}

@@ -5,8 +5,9 @@ import { useTranslation } from "react-i18next";
 import { usePageActionSlot } from "@ui/lib/page-action-slot";
 import { Badge } from "@ui/components/badge";
 import { useDocumentTitle } from "@ui/lib/page-title";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
-export interface PageHeaderProps {
+export interface PageHeaderProps extends TestIdProps {
   title: string;
   subtitle?: string | undefined;
   /** Acts on what is already here — save, print. Stays with the page it belongs to. */
@@ -23,9 +24,11 @@ export function PageHeader({
   actions,
   primaryAction,
   count,
+  "data-testid": testId,
 }: PageHeaderProps): JSX.Element {
   const { t } = useTranslation();
   const slot = usePageActionSlot();
+  const part = parts("page-header", testId);
 
   useDocumentTitle(t(title));
 
@@ -33,19 +36,16 @@ export function PageHeader({
   const inRow = hosted ? undefined : primaryAction;
 
   return (
-    <header
-      data-part="page-header"
-      className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
-    >
+    <header {...part()} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       {hosted && createPortal(primaryAction, slot)}
 
       <div className="min-w-0">
         {/* Blue rather than ink, as the reference sets every page's title. */}
-        <h1 data-part="page-header-title" className="text-title font-medium text-primary-900">
+        <h1 {...part("title")} className="text-title font-medium text-primary-900">
           {t(title)}
         </h1>
         {subtitle !== undefined && (
-          <p data-part="page-header-subtitle" className="mt-1 text-value text-ink-muted">
+          <p {...part("subtitle")} className="mt-1 text-value text-ink-muted">
             {t(subtitle)}
           </p>
         )}
@@ -53,7 +53,7 @@ export function PageHeader({
 
       {(actions !== undefined || inRow !== undefined || count !== undefined) && (
         <div
-          data-part="page-header-actions"
+          {...part("actions")}
           className="flex shrink-0 flex-col gap-2.5 sm:ms-auto sm:flex-row sm:items-center"
         >
           {(inRow !== undefined || actions !== undefined) && (
@@ -69,7 +69,7 @@ export function PageHeader({
               count in. `self-start` because a count is not a control: stretched to the width of a
               phone it reads as a banner. */}
           {count !== undefined && (
-            <Badge tone="wash" plain className="shrink-0 self-start">
+            <Badge tone="wash" plain className="shrink-0 self-start" {...part("count")}>
               {count}
             </Badge>
           )}

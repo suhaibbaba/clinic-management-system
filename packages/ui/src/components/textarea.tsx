@@ -1,13 +1,14 @@
 import { forwardRef, type TextareaHTMLAttributes } from "react";
 
 import { cn } from "@ui/lib/cn";
+import { parts, type TestIdProps } from "@ui/lib/testid";
 
-export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement>, TestIdProps {
   hasError?: boolean | undefined;
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
-  { className, hasError = false, rows = 3, ...props },
+  { className, hasError = false, rows = 3, "data-testid": testId, ...props },
   ref,
 ) {
   const disabled = props.disabled === true;
@@ -15,7 +16,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function 
   return (
     <textarea
       ref={ref}
-      data-part="textarea"
+      {...parts("textarea", testId)()}
       rows={rows}
       aria-invalid={hasError || undefined}
       className={cn(

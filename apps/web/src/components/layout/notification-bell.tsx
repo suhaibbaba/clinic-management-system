@@ -84,6 +84,7 @@ export function NotificationBell(): JSX.Element {
   return (
     <Menu>
       <MenuTrigger
+        data-testid="notification-bell"
         aria-label={
           total > 0 ? t("nav.notifications", { count: total }) : t("nav.notificationsEmpty")
         }
@@ -99,6 +100,7 @@ export function NotificationBell(): JSX.Element {
         {total > 0 && (
           <span
             data-part="notification-count"
+            data-testid="notification-count"
             aria-hidden="true"
             className={cn(
               "absolute -top-1 -end-1 inline-flex min-w-4 items-center justify-center rounded-pill",
@@ -110,13 +112,16 @@ export function NotificationBell(): JSX.Element {
         )}
       </MenuTrigger>
 
-      <MenuContent className="min-w-72">
+      <MenuContent data-testid="notification-menu" className="min-w-72">
         {waiting.length === 0 ? (
-          <p className="px-3 py-2 text-label text-ink-muted">{t("nav.notificationsEmpty")}</p>
+          <p data-testid="notification-empty" className="px-3 py-2 text-label text-ink-muted">
+            {t("nav.notificationsEmpty")}
+          </p>
         ) : (
           waiting.map((entry) => (
             <MenuItem
               key={entry.key}
+              data-testid={`notification-${entry.key}`}
               icon={entry.icon}
               onSelect={() => void navigate(entry.to)}
               trailing={

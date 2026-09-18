@@ -6,6 +6,7 @@ import { Icon } from "@ui/components/icon";
 import { openOnArrowDown, usePickerOpen } from "@ui/lib/picker-open";
 import { Popover } from "@ui/components/popover";
 import { cn } from "@ui/lib/cn";
+import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 
 /** `HH:mm`, 24-hour, Latin digits — the same shape the API stores. */
 const TIME = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -32,7 +33,7 @@ export function timeSlots(from = "00:00", to = "23:45", stepMinutes = 15): reado
   return slots;
 }
 
-export interface TimePickerProps {
+export interface TimePickerProps extends TestIdProps {
   readonly id: string;
   readonly value: string;
   readonly onChange: (value: string) => void;
@@ -59,9 +60,11 @@ export function TimePicker({
   disabled = false,
   hasError = false,
   className,
+  "data-testid": testId,
 }: TimePickerProps): JSX.Element {
   const { t } = useTranslation();
   const picker = usePickerOpen();
+  const part = parts("time-picker", testId ?? id);
   const [typed, setTyped] = useState(value);
 
   const [lastValue, setLastValue] = useState(value);
@@ -91,11 +94,12 @@ export function TimePicker({
       onOpenChange={picker.onOpenChange}
       focusOnOpen={picker.focusOnOpen}
       title={label}
+      {...part("popover")}
       anchor={
-        <div data-part="time-picker" className={cn(fieldShell({ hasError, disabled }), className)}>
+        <div {...part()} className={cn(fieldShell({ hasError, disabled }), className)}>
           <input
             id={id}
-            data-part="time-picker-input"
+            {...part("input")}
             type="text"
             inputMode="numeric"
             dir="ltr"
@@ -111,11 +115,11 @@ export function TimePicker({
           />
 
           {disabled ? (
-            <FieldLock />
+            <FieldLock {...part("lock")} />
           ) : (
             <button
               type="button"
-              data-part="time-picker-trigger"
+              {...part("trigger")}
               aria-label={t("common.openTimes")}
               {...picker.opens(true)}
               className={FIELD_BUTTON}
@@ -127,7 +131,7 @@ export function TimePicker({
       }
     >
       <ul
-        data-part="time-picker-list"
+        {...part("list")}
         aria-label={label}
         className="max-h-64 w-full min-w-40 overflow-y-auto md:max-h-72"
       >
@@ -136,6 +140,7 @@ export function TimePicker({
             <button
               type="button"
               data-part="time-picker-slot"
+              {...testid(testId ?? id, `slot-${slot}`)}
               onClick={() => {
                 onChange(slot);
                 picker.onOpenChange(false);

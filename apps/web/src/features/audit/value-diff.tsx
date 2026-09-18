@@ -36,6 +36,7 @@ function Value({
   return (
     <span
       dir="ltr"
+      data-testid={`value-diff-${tone}`}
       className={[
         "inline-block max-w-[20rem] overflow-x-auto whitespace-pre-wrap break-all rounded",
         // `text-start` inside the LTR box above is the same edge as
@@ -61,11 +62,15 @@ export function ValueDiff({ oldValue, newValue }: ValueDiffProps): JSX.Element {
     .filter((row) => row.before !== row.after);
 
   if (rows.length === 0) {
-    return <p className="text-value text-ink-muted">{t("audit.noChanges")}</p>;
+    return (
+      <p data-testid="value-diff-empty" className="text-value text-ink-muted">
+        {t("audit.noChanges")}
+      </p>
+    );
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div data-testid="value-diff" className="overflow-x-auto">
       <table className="w-full border-collapse text-value">
         <thead>
           <tr className="bg-canvas">
@@ -82,7 +87,7 @@ export function ValueDiff({ oldValue, newValue }: ValueDiffProps): JSX.Element {
         </thead>
         <tbody className="divide-y divide-line">
           {rows.map((row) => (
-            <tr key={row.key}>
+            <tr key={row.key} data-testid={`value-diff-row-${row.key}`}>
               <td className="px-3 py-2 text-start font-medium text-ink">{row.key}</td>
               <td className="px-3 py-2 text-start">
                 <Value tone="before">{row.before}</Value>

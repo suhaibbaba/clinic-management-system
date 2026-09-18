@@ -2,8 +2,9 @@ import type { JSX } from "react";
 
 import { Ltr } from "@ui/components/ltr";
 import { cn } from "@ui/lib/cn";
+import { testid, type TestIdProps } from "@ui/lib/testid";
 
-export interface ContactLinkProps {
+export interface ContactLinkProps extends TestIdProps {
   /** The number or address as it is stored. Rendered verbatim. */
   readonly value: string | null | undefined;
   readonly className?: string | undefined;
@@ -22,7 +23,12 @@ const LINK_CLASS = cn(
 
 // `tel:` gets the digits stripped of spacing while the visible text stays as entered — that is what
 // reception reads aloud. `<Ltr>`, or a leading `+` renders as `970599…+`.
-export function PhoneLink({ value, className, fallback = "—" }: ContactLinkProps): JSX.Element {
+export function PhoneLink({
+  value,
+  className,
+  fallback = "—",
+  "data-testid": testId,
+}: ContactLinkProps): JSX.Element {
   if (value === null || value === undefined || value.trim() === "") {
     return <>{fallback}</>;
   }
@@ -31,6 +37,7 @@ export function PhoneLink({ value, className, fallback = "—" }: ContactLinkPro
     <Ltr
       as="a"
       data-part="phone-link"
+      {...testid(testId)}
       href={`tel:${value.replace(/[^+\d]/g, "")}`}
       className={cn(LINK_CLASS, "tabular-nums", className)}
     >
@@ -41,7 +48,12 @@ export function PhoneLink({ value, className, fallback = "—" }: ContactLinkPro
 
 // Same `<Ltr>` reasoning: the dot before a top-level domain is as neutral as the plus in a phone
 // number.
-export function EmailLink({ value, className, fallback = "—" }: ContactLinkProps): JSX.Element {
+export function EmailLink({
+  value,
+  className,
+  fallback = "—",
+  "data-testid": testId,
+}: ContactLinkProps): JSX.Element {
   if (value === null || value === undefined || value.trim() === "") {
     return <>{fallback}</>;
   }
@@ -50,6 +62,7 @@ export function EmailLink({ value, className, fallback = "—" }: ContactLinkPro
     <Ltr
       as="a"
       data-part="email-link"
+      {...testid(testId)}
       href={`mailto:${value.trim()}`}
       className={cn(LINK_CLASS, className)}
     >

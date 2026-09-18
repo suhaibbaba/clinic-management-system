@@ -60,12 +60,15 @@ export function LabPage(): JSX.Element {
   const currency = clinic.data?.currency;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div data-testid="lab-page" className="flex flex-col gap-5">
       {/* The lab's own name is data, not an i18n key, so this header is
           written here rather than through `PageHeader`. */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <header
+        data-testid="lab-header"
+        className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
+      >
         <div className="min-w-0">
-          <h1 className="truncate text-title font-medium text-primary-900">
+          <h1 data-testid="lab-name" className="truncate text-title font-medium text-primary-900">
             {lab.data?.name ?? "…"}
           </h1>
           {/* Not a joined string: the `+` is neutral and bidi hands it to the Arabic around it,
@@ -83,22 +86,28 @@ export function LabPage(): JSX.Element {
             <Button
               variant="secondary"
               icon={<Icon name="edit" />}
+              data-testid="lab-edit"
               onClick={() => setEditing(true)}
             >
               {t("common.edit")}
             </Button>
           )}
           {canPayLab(can) && (
-            <Button icon={<Icon name="money" />} onClick={() => setPaying(true)}>
+            <Button
+              icon={<Icon name="money" />}
+              data-testid="lab-pay"
+              onClick={() => setPaying(true)}
+            >
               {t("labs.payment.action")}
             </Button>
           )}
         </div>
       </header>
 
-      <StatRow>
+      <StatRow data-testid="lab-kpis">
         <StatCard
           icon="money"
+          data-testid="lab-kpi-balance"
           tone={Number(balance.data?.balance ?? "0") > 0 ? "warning" : "success"}
           label={t("labs.kpi.balance")}
           value={<Money amount={balance.data?.balance ?? "0.00"} currency={currency} />}
@@ -106,6 +115,7 @@ export function LabPage(): JSX.Element {
         />
         <StatCard
           icon="clipboard"
+          data-testid="lab-kpi-owed"
           tone="primary"
           label={t("labs.kpi.owedTotal")}
           value={<Money amount={balance.data?.owed ?? "0.00"} currency={currency} />}
@@ -113,6 +123,7 @@ export function LabPage(): JSX.Element {
         />
         <StatCard
           icon="check"
+          data-testid="lab-kpi-paid"
           tone="success"
           label={t("labs.kpi.paid")}
           value={<Money amount={balance.data?.paid ?? "0.00"} currency={currency} />}
@@ -122,6 +133,7 @@ export function LabPage(): JSX.Element {
         />
         <StatCard
           icon="clock"
+          data-testid="lab-kpi-open"
           tone={(lab.data?.openOrders ?? 0) > 0 ? "warning" : "neutral"}
           label={t("labs.kpi.open")}
           value={lab.data?.openOrders ?? 0}
@@ -130,6 +142,7 @@ export function LabPage(): JSX.Element {
       </StatRow>
 
       <SegmentedControl
+        data-testid="lab-tabs"
         label={t("labs.tabs.label")}
         value={tab}
         onChange={setTab}
@@ -148,8 +161,14 @@ export function LabPage(): JSX.Element {
 
       {lab.data && (
         <>
-          <LabFormModal open={editing} onOpenChange={setEditing} lab={lab.data} />
+          <LabFormModal
+            data-testid="lab-edit-modal"
+            open={editing}
+            onOpenChange={setEditing}
+            lab={lab.data}
+          />
           <LabPaymentModal
+            data-testid="lab-payment-modal"
             open={paying}
             onOpenChange={setPaying}
             labId={id}
@@ -168,6 +187,7 @@ function LabOrdersTab({ labId }: { readonly labId: string }): JSX.Element {
 
   return (
     <LabOrdersTable
+      data-testid="lab-orders-table"
       orders={orders.data?.items ?? []}
       isLoading={orders.isPending}
       isRefreshing={isRefetching(orders)}
@@ -200,9 +220,13 @@ function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
       header: "labs.prices.state",
       render: (row) =>
         row.isActive ? (
-          <Badge tone="success">{t("labs.prices.active")}</Badge>
+          <Badge tone="success" data-testid="lab-price-state">
+            {t("labs.prices.active")}
+          </Badge>
         ) : (
-          <Badge tone="neutral">{t("labs.prices.inactive")}</Badge>
+          <Badge tone="neutral" data-testid="lab-price-state">
+            {t("labs.prices.inactive")}
+          </Badge>
         ),
     },
     ...(mayEdit
@@ -212,7 +236,12 @@ function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
             header: "labs.prices.actions",
             actions: true,
             render: (row: LabWorkType) => (
-              <Button size="sm" variant="ghost" onClick={() => setEditing(row)}>
+              <Button
+                size="sm"
+                variant="ghost"
+                data-testid="lab-price-edit"
+                onClick={() => setEditing(row)}
+              >
                 {t("common.edit")}
               </Button>
             ),
@@ -225,24 +254,38 @@ function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
     <div className="flex flex-col gap-3">
       {mayEdit && (
         <div className="flex justify-end">
-          <Button variant="secondary" icon={<Icon name="plus" />} onClick={() => setCreating(true)}>
+          <Button
+            variant="secondary"
+            icon={<Icon name="plus" />}
+            data-testid="lab-price-add"
+            onClick={() => setCreating(true)}
+          >
             {t("labs.prices.add")}
           </Button>
         </div>
       )}
 
       <Table
+        data-testid="lab-prices-table"
         columns={columns}
         rows={workTypes.data ?? []}
         rowKey={(row) => row.id}
         isLoading={workTypes.isPending}
         isRefreshing={isRefetching(workTypes)}
-        empty={<EmptyState icon="money" title="labs.prices.empty" hint="labs.prices.emptyHint" />}
+        empty={
+          <EmptyState
+            icon="money"
+            data-testid="lab-prices-empty"
+            title="labs.prices.empty"
+            hint="labs.prices.emptyHint"
+          />
+        }
       />
 
       <p className="text-label text-ink-muted">{t("labs.prices.snapshotNote")}</p>
 
       <WorkTypeModal
+        data-testid="lab-work-type-modal"
         open={creating || editing !== undefined}
         onOpenChange={(open) => {
           if (!open) {
@@ -293,7 +336,11 @@ function StatementTab({
       render: (row) => (
         <span className="flex flex-wrap items-center gap-2">
           <span>{row.description || t(`labs.statement.kind.${row.kind}`)}</span>
-          {row.isReversal && <Badge tone="neutral">{t("labs.statement.reversal")}</Badge>}
+          {row.isReversal && (
+            <Badge tone="neutral" data-testid="lab-statement-reversal">
+              {t("labs.statement.reversal")}
+            </Badge>
+          )}
         </span>
       ),
     },
@@ -328,6 +375,7 @@ function StatementTab({
       <div className="flex flex-wrap items-end gap-3">
         <DateRangePicker
           id="lab-statement-range"
+          data-testid="lab-statement-range"
           className="w-full sm:w-72"
           label={t("labs.statement.range")}
           value={{ from, to }}
@@ -340,6 +388,7 @@ function StatementTab({
         <Button
           variant="secondary"
           className="ms-auto"
+          data-testid="lab-statement-print"
           icon={<Icon name="print" />}
           onClick={() => void downloadLabStatement(labId, labName, query)}
         >
@@ -347,7 +396,7 @@ function StatementTab({
         </Button>
       </div>
 
-      <Card>
+      <Card data-testid="lab-statement-opening">
         <div className="flex items-baseline justify-between">
           <span className="text-label text-ink-muted">{t("labs.statement.opening")}</span>
           <Money amount={statement.data?.openingBalance ?? "0.00"} currency={currency} />
@@ -355,17 +404,23 @@ function StatementTab({
       </Card>
 
       <Table
+        data-testid="lab-statement-table"
         columns={columns}
         rows={statement.data?.entries ?? []}
         rowKey={(row) => `${row.kind}-${row.id}`}
         isLoading={statement.isPending}
         isRefreshing={isRefetching(statement)}
         empty={
-          <EmptyState icon="money" title="labs.statement.empty" hint="labs.statement.emptyHint" />
+          <EmptyState
+            icon="money"
+            data-testid="lab-statement-empty"
+            title="labs.statement.empty"
+            hint="labs.statement.emptyHint"
+          />
         }
       />
 
-      <Card>
+      <Card data-testid="lab-statement-closing">
         <div className="flex items-baseline justify-between">
           <span className="text-value font-medium text-ink">{t("labs.statement.closing")}</span>
           <Money

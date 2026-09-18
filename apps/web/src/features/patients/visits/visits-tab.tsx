@@ -77,7 +77,7 @@ export function VisitsTab({
 
   if (showSkeleton) {
     return (
-      <div className="flex flex-col gap-3">
+      <div data-testid="visits-tab-loading" className="flex flex-col gap-3">
         <SkeletonStatus />
         <SkeletonCard count={3} />
       </div>
@@ -89,7 +89,14 @@ export function VisitsTab({
   }
 
   if (visits.isError) {
-    return <EmptyState icon="alert" title="errors.generic" hint="visits.loadFailed" />;
+    return (
+      <EmptyState
+        icon="alert"
+        data-testid="visits-error"
+        title="errors.generic"
+        hint="visits.loadFailed"
+      />
+    );
   }
 
   const ordered = [...(visits.data ?? [])].sort((a, b) => b.visitDate.localeCompare(a.visitDate));
@@ -113,14 +120,15 @@ export function VisitsTab({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div data-testid="visits-tab" className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-value font-medium text-ink">
+        <h2 data-testid="visits-count" className="text-value font-medium text-ink">
           {t("visits.count", { count: ordered.length })}
         </h2>
         <Button
           icon={<Icon name="plus" />}
           size="sm"
+          data-testid="visits-create"
           onClick={() => {
             setEditingVisit(null);
             setFormOpen(true);
@@ -131,10 +139,15 @@ export function VisitsTab({
       </div>
 
       {ordered.length === 0 && (
-        <EmptyState icon="calendar" title="visits.empty" hint="visits.emptyHint" />
+        <EmptyState
+          icon="calendar"
+          data-testid="visits-empty"
+          title="visits.empty"
+          hint="visits.emptyHint"
+        />
       )}
 
-      <ol className="flex flex-col gap-4">
+      <ol data-testid="visits-list" className="flex flex-col gap-4">
         {ordered.map((visit) => {
           const visitProcedures = byVisit.get(visit.id) ?? [];
           const showingForm = procedureFor?.visitId === visit.id;
@@ -142,14 +155,15 @@ export function VisitsTab({
           return (
             <li
               key={visit.id}
+              data-testid={`visit-${visit.id}`}
               className="border border-line rounded-card bg-surface shadow-card p-4"
             >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
-                  <Ltr as="p" className="text-value font-medium text-ink">
+                  <Ltr as="p" data-testid="visit-date" className="text-value font-medium text-ink">
                     {formatDateTime(visit.visitDate)}
                   </Ltr>
-                  <p className="mt-0.5 text-label text-ink-muted">
+                  <p data-testid="visit-doctor" className="mt-0.5 text-label text-ink-muted">
                     {t("visits.doctor")}: {doctorName(visit.doctorId)}
                   </p>
                 </div>
@@ -162,6 +176,7 @@ export function VisitsTab({
                       icon={<Icon name="clipboard" />}
                       variant="secondary"
                       size="sm"
+                      data-testid="visit-consume"
                       onClick={() => setConsumingFor(visit.id)}
                     >
                       {t("inventory.movement.consumeFromVisit")}
@@ -172,6 +187,7 @@ export function VisitsTab({
                     icon={<Icon name="edit" />}
                     variant="ghost"
                     size="sm"
+                    data-testid="visit-edit"
                     onClick={() => {
                       setEditingVisit(visit);
                       setFormOpen(true);
@@ -200,6 +216,7 @@ export function VisitsTab({
                       icon={<Icon name="plus" />}
                       variant="secondary"
                       size="sm"
+                      data-testid="visit-add-procedure"
                       onClick={() => setProcedureFor({ visitId: visit.id, procedure: null })}
                     >
                       {t("chart.panel.addProcedure")}
@@ -208,14 +225,17 @@ export function VisitsTab({
                 </div>
 
                 {visitProcedures.length === 0 && !showingForm && (
-                  <p className="mt-2 text-label text-ink-muted">{t("visits.noProcedures")}</p>
+                  <p data-testid="visit-no-procedures" className="mt-2 text-label text-ink-muted">
+                    {t("visits.noProcedures")}
+                  </p>
                 )}
 
                 {visitProcedures.length > 0 && (
-                  <ul className="mt-2 flex flex-col gap-1.5">
+                  <ul data-testid="visit-procedures" className="mt-2 flex flex-col gap-1.5">
                     {visitProcedures.map((procedure) => (
                       <li
                         key={procedure.id}
+                        data-testid={`visit-procedure-${procedure.id}`}
                         className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-canvas px-3 py-2"
                       >
                         {/* Flex, not a margin: the tooth number is an LTR
@@ -229,13 +249,17 @@ export function VisitsTab({
                         </span>
 
                         <span className="flex items-center gap-2">
-                          <Badge tone={statusTone(procedure.status)}>
+                          <Badge
+                            tone={statusTone(procedure.status)}
+                            data-testid="visit-procedure-status"
+                          >
                             {t(`chart.procedureStatus.${procedure.status}`)}
                           </Badge>
                           <Button
                             icon={<Icon name="edit" />}
                             variant="ghost"
                             size="sm"
+                            data-testid="visit-procedure-edit"
                             onClick={() => setProcedureFor({ visitId: visit.id, procedure })}
                           >
                             {t("common.edit")}
@@ -247,7 +271,10 @@ export function VisitsTab({
                 )}
 
                 {showingForm && (
-                  <div className="mt-3 rounded-panel bg-sunken p-3">
+                  <div
+                    data-testid="visit-procedure-form"
+                    className="mt-3 rounded-panel bg-sunken p-3"
+                  >
                     {user && (
                       <ProcedureForm
                         role={user.role}
@@ -274,12 +301,14 @@ export function VisitsTab({
       </ol>
 
       <ConsumeForVisit
+        data-testid="visit-consume-modal"
         open={consumingFor !== null}
         onClose={() => setConsumingFor(null)}
         patient={patient}
       />
 
       <VisitFormModal
+        data-testid="visit-form-modal"
         open={formOpen}
         onOpenChange={setFormOpen}
         patientId={patientId}
@@ -306,7 +335,7 @@ function Field({
   }
 
   return (
-    <div>
+    <div data-testid={`visit-field-${label.split(".").pop() ?? label}`}>
       <dt className="text-label text-ink-muted">{t(label)}</dt>
       <dd
         className={cn(

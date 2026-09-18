@@ -76,6 +76,7 @@ export function TopSearch(): JSX.Element {
   return (
     <form
       ref={form}
+      data-testid="top-search"
       role="search"
       // Shares the bar's one row at every width. `w-full order-last` gave it a row of its own on a
       // phone, which made the header two rows tall on every single page.
@@ -96,6 +97,7 @@ export function TopSearch(): JSX.Element {
       }}
     >
       <SearchField
+        data-testid="top-search-field"
         label={t("nav.search")}
         placeholder={t("nav.searchPlaceholder")}
         value={term}
@@ -126,6 +128,7 @@ export function TopSearch(): JSX.Element {
           id={panelId}
           ref={panel}
           data-part="search-results"
+          data-testid="top-search-results"
           // The measurement travels as a variable, or an inline `top` would also win at `md`, where
           // the panel hangs off the field again.
           style={{ "--panel-top": `${under}px` } as CSSProperties}
@@ -135,7 +138,7 @@ export function TopSearch(): JSX.Element {
           onMouseDown={(event) => event.preventDefault()}
         >
           {rows.length === 0 ? (
-            <p className="px-3 py-2 text-label text-ink-muted">
+            <p data-testid="top-search-empty" className="px-3 py-2 text-label text-ink-muted">
               {results.isPending ? t("common.loading") : t("nav.searchEmpty")}
             </p>
           ) : (
@@ -144,6 +147,7 @@ export function TopSearch(): JSX.Element {
                 <li key={row.id}>
                   <button
                     type="button"
+                    data-testid={`top-search-result-${row.id}`}
                     className="flex w-full min-h-(--control-h) cursor-pointer items-center justify-between gap-3 rounded-control px-3 py-2 text-start transition-colors duration-[250ms] ease-in-out hover:bg-inset"
                     onClick={() => openFile(row.id)}
                   >
@@ -157,6 +161,7 @@ export function TopSearch(): JSX.Element {
 
           <button
             type="button"
+            data-testid="top-search-all"
             className="mt-1 flex w-full min-h-(--control-h) cursor-pointer items-center justify-center gap-1.5 rounded-control border-t border-line px-3 py-2 text-label font-medium text-primary-600 transition-colors duration-[250ms] ease-in-out hover:bg-inset"
             onClick={toList}
           >
