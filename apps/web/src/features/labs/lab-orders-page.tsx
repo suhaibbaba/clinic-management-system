@@ -1,13 +1,13 @@
 import { LAB_ORDER_STATUSES, type LabOrderRow, type LabOrderStatus } from "@clinic/shared";
-import { useMemo, useState, type JSX } from "react";
+import { useMemo, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-
 import {
   Badge,
   Button,
   Chip,
   EmptyState,
   Icon,
+  type IconName,
   Ltr,
   PageHeader,
   SearchField,
@@ -18,6 +18,7 @@ import { RefreshBar, SkeletonCard, SkeletonStatus } from "@clinic/ui/components/
 import { useSession } from "@web/features/auth/session";
 import { Money } from "@web/features/billing/money";
 import { useClinic } from "@web/features/clinic/queries";
+import { LAB_ORDER_FIELDS } from "@web/features/labs/fields";
 import { LabOrdersTable } from "@web/features/labs/lab-orders-table";
 import { OrderDrawer } from "@web/features/labs/order-drawer";
 import { OrderFormModal } from "@web/features/labs/order-form-modal";
@@ -31,8 +32,6 @@ import { useDebounced } from "@web/lib/use-debounced";
 import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { useIsMobile } from "@clinic/ui/lib/use-media-query";
 
-// A board on a wide screen answers "what is at the lab right now" in one look; below `md` it is the
-// shared `Table`, already a stack of cards there.
 export function LabOrdersPage(): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();
@@ -86,10 +85,10 @@ export function LabOrdersPage(): JSX.Element {
         }
       />
 
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="grid items-end gap-3 md:grid-cols-3 xl:grid-cols-5">
         <SearchField
           data-testid="lab-orders-search"
-          className="w-full min-w-0 sm:max-w-xs"
+          className="w-full min-w-0 md:col-span-2"
           label={t("labs.orders.search")}
           shortcut="/"
           placeholder={t("labs.orders.searchPlaceholder")}
@@ -99,7 +98,7 @@ export function LabOrdersPage(): JSX.Element {
           onClear={() => setSearch("")}
         />
 
-        <div className="min-w-44">
+        <div className="min-w-0">
           <label htmlFor="lab-orders-lab" className="mb-1 block text-label text-ink-muted">
             {t("labs.orders.filterLab")}
           </label>
@@ -113,9 +112,7 @@ export function LabOrdersPage(): JSX.Element {
           />
         </div>
 
-        {/* On a phone the board is a table, so the status filter is the only
-            way to narrow it — on a wide screen it is a shortcut, not the path. */}
-        <div className="min-w-44">
+        <div className="min-w-0">
           <label htmlFor="lab-orders-status" className="mb-1 block text-label text-ink-muted">
             {t("labs.orders.filterStatus")}
           </label>
@@ -131,19 +128,17 @@ export function LabOrdersPage(): JSX.Element {
             }))}
           />
         </div>
-
-        {/* A filter, so it is a chip and takes the fields' state language rather than a button's
-            emphasis: what is on is what is bordered blue. */}
-        <Chip
-          selected={overdueOnly}
-          data-testid="lab-orders-filter-overdue"
-          onClick={() => setOverdueOnly((previous) => !previous)}
-        >
-          <Icon name="clock" className="size-3.5 shrink-0" />
-          {t("labs.orders.overdueFilter", { count: overdueCount })}
-        </Chip>
+        <div className="flex min-w-0 items-end">
+          <Chip
+            selected={overdueOnly}
+            data-testid="lab-orders-filter-overdue"
+            onClick={() => setOverdueOnly((previous) => !previous)}
+          >
+            <Icon name="clock" className="size-3.5 shrink-0" />
+            {t("labs.orders.overdueFilter", { count: overdueCount })}
+          </Chip>
+        </div>
       </div>
-
       {isMobile || status !== "" || overdueOnly ? (
         <LabOrdersTable
           data-testid="lab-orders-table"
@@ -161,7 +156,6 @@ export function LabOrdersPage(): JSX.Element {
           onOpen={setOpenOrderId}
         />
       )}
-
       <OrderDrawer
         data-testid="lab-order-drawer"
         order={openOrder}
@@ -171,13 +165,11 @@ export function LabOrdersPage(): JSX.Element {
           setEditing(row);
         }}
       />
-
       <OrderFormModal
         data-testid="lab-order-create-modal"
         open={creating}
         onOpenChange={setCreating}
       />
-
       <OrderFormModal
         data-testid="lab-order-edit-modal"
         open={editing !== undefined}
@@ -266,8 +258,30 @@ function Board({
   );
 }
 
-// The buttons along the foot are the moves this person may make, so working through "what came back
-// today" never opens anything.
+function CardMeta({
+  icon,
+  label,
+  children,
+  "data-testid": testId,
+}: {
+  readonly icon: IconName;
+  readonly label: string;
+  readonly children: ReactNode;
+  readonly "data-testid"?: string | undefined;
+}): JSX.Element {
+  return (
+    <span data-testid={testId} className="flex items-center gap-2">
+      <span className="flex shrink-0 items-center gap-1.5 text-ink-subtle">
+        <Icon name={icon} className="size-4 shrink-0" />
+        {label}
+      </span>
+      <span className="ms-auto flex min-w-0 items-center justify-end gap-1.5 font-medium text-ink">
+        {children}
+      </span>
+    </span>
+  );
+}
+
 function OrderCard({
   order,
   onOpen,
@@ -300,8 +314,6 @@ function OrderCard({
         order.isOverdue && "border border-danger-200",
       )}
     >
-      {/* The card body is the button — the actions below it are their own
-          buttons, and a button inside a button is not valid HTML. */}
       <button
         type="button"
         onClick={onOpen}
@@ -312,41 +324,50 @@ function OrderCard({
         <p className="truncate text-value font-medium text-ink">
           {order.workTypeName ?? t("labs.orders.custom")}
         </p>
-        <p className="truncate text-label text-ink-muted">{order.patientName}</p>
-
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-label text-ink-muted">
-          {order.teeth.length > 0 && <Ltr className="tabular-nums">{order.teeth.join(" · ")}</Ltr>}
-          <Money
-            amount={order.price}
-            currency={clinic.data?.currency}
-            className="ms-auto text-ink"
-          />
-        </div>
-
-        {/* One row, so the date and the pill get a gap: `Ltr` is inline-block and the two sat
-            against each other with the badge's own margin doing nothing between them. */}
-        {(order.expectedAt || order.isOverdue) && (
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            {order.expectedAt && (
-              <Ltr
-                className={cn(
-                  "text-label tabular-nums",
-                  order.isOverdue ? "text-danger-600" : "text-ink-subtle",
-                )}
-              >
+        <div className="mt-2 flex flex-col gap-1 text-label">
+          <CardMeta
+            icon={LAB_ORDER_FIELDS.patient.icon}
+            label={t(LAB_ORDER_FIELDS.patient.label)}
+            data-testid={`lab-order-patient-${order.id}`}
+          >
+            <span className="truncate">{order.patientName}</span>
+          </CardMeta>
+          {order.teeth.length > 0 && (
+            <CardMeta
+              icon={LAB_ORDER_FIELDS.teeth.icon}
+              label={t(LAB_ORDER_FIELDS.teeth.label)}
+              data-testid={`lab-order-teeth-${order.id}`}
+            >
+              <Ltr className="truncate tabular-nums">{order.teeth.join(" · ")}</Ltr>
+            </CardMeta>
+          )}
+          <CardMeta
+            icon={LAB_ORDER_FIELDS.price.icon}
+            label={t(LAB_ORDER_FIELDS.price.label)}
+            data-testid={`lab-order-price-${order.id}`}
+          >
+            <Money amount={order.price} currency={clinic.data?.currency} />
+          </CardMeta>
+          {order.expectedAt && (
+            <CardMeta
+              icon={LAB_ORDER_FIELDS.expected.icon}
+              label={t(LAB_ORDER_FIELDS.expected.label)}
+              data-testid={`lab-order-expected-${order.id}`}
+            >
+              <Ltr className={cn("tabular-nums", order.isOverdue && "text-danger-600")}>
                 {formatDate(order.expectedAt)}
               </Ltr>
-            )}
-
-            {order.isOverdue && (
+            </CardMeta>
+          )}
+          {order.isOverdue && (
+            <span className="mt-0.5 flex">
               <Badge tone="danger" data-testid="lab-order-overdue">
                 {t("labs.orders.overdue")}
               </Badge>
-            )}
-          </div>
-        )}
+            </span>
+          )}
+        </div>
       </button>
-
       {steps.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1.5 border-t border-line pt-2">
           {steps
