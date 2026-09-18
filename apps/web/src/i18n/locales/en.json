@@ -1064,6 +1064,7 @@
       "title": "Movements",
       "empty": "Nothing recorded yet",
       "when": "Date",
+      "balance": "Balance",
       "reversal": "Reversal",
       "reversed": "Reversed",
       "reverse": "Reverse",

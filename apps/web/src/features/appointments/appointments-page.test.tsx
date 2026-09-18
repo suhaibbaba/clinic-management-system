@@ -190,7 +190,7 @@ describe("Appointments page", () => {
   it("offers a visit only once the patient has arrived", async () => {
     await renderCalendar(USER_ROLE.DOCTOR);
 
-    await userEvent.click(await block(/14:00/));
+    await userEvent.click(await block(/2:00 PM/));
     const drawer = await screen.findByRole("dialog");
 
     expect(
@@ -201,7 +201,7 @@ describe("Appointments page", () => {
   it("does not offer a receptionist the visit button — a visit is clinical", async () => {
     await renderCalendar(USER_ROLE.RECEPTIONIST);
 
-    await userEvent.click(await block(/14:00/));
+    await userEvent.click(await block(/2:00 PM/));
     const drawer = await screen.findByRole("dialog");
 
     expect(
@@ -264,8 +264,8 @@ describe("Appointments page", () => {
       },
     });
 
-    // 10:00 UTC is 19:00 in Tokyo.
-    expect(await block(/19:00/)).toBeInTheDocument();
+    // 10:00 UTC is 19:00 in Tokyo, which the calendar clock reads as 7 in the evening.
+    expect(await block(/7:00 PM/)).toBeInTheDocument();
     expect(
       within(await calendar()).queryByRole("button", { name: /\b10:00\b/ }),
     ).not.toBeInTheDocument();
@@ -286,6 +286,7 @@ describe("Appointments page", () => {
 
     const slots = await within(dialog).findAllByRole("radio");
 
+    // The picker prints the slot the API offered, not the calendar's 12-hour label.
     expect(slots.map((slot) => slot.textContent)).toEqual(["09:00", "09:30"]);
 
     // A taken slot is drawn and disabled: a hole in the grid says "that one is
