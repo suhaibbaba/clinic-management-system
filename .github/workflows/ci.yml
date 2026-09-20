@@ -1,23 +1,41 @@
 name: CI
 
 # Reusable, and called rather than triggered: every deploy runs these same
-# checks, so a second environment adds a caller instead of a second copy. It
-# still gets a row in the Actions list — GitHub lists every workflow file and
-# has no way to hide one — but with no runs of its own.
+# checks, so a second environment adds a caller instead of a second copy.
 on:
   workflow_call:
+  # On demand as well, because a change to this file is otherwise unverifiable:
+  # the deploy runs on main only, so a PR touching CI gets no CI. Run it against
+  # the branch first.
+  workflow_dispatch:
 
-# Four jobs, no `needs` between them: the runners are free on a public repo and
-# the only thing a chain buys is a later answer. The deploy waits on the whole
-# workflow, so the gate is unchanged — a red check still never reaches the VPS.
+# No `needs` anywhere: the runners are free on a public repo and the only thing
+# a chain buys is a later answer. The deploy waits on the whole workflow, so the
+# gate is unchanged — a red check still never reaches the VPS.
+#
+# The suites are sharded because they are CPU-bound and a runner has about four
+# cores: the web suite alone spends 100s of CPU, which is 9s on a laptop and 76s
+# here. Split across runners it is the length of one shard.
+#
+# Only two things need a build: the API, which consumes packages/shared as built
+# declarations, and the bundle-size check, which reads dist/. Everything else
+# resolves the workspace from source through the Vite aliases.
 #
 # The static checks — lint, typecheck, formatting, dead code, colour literals,
 # i18n — are deliberately not here. They are still `pnpm lint`, `pnpm typecheck`
 # and the rest, run locally; CI gates on tests and images only.
 jobs:
   test-api:
-    name: API tests
+    name: API tests ${{ matrix.shard }}/2
     runs-on: ubuntu-latest
+
+    # One database per shard, so a fresh schema rather than the shared one the
+    # suite runs against locally. Specs build their own clinic, so they do not
+    # read each other's rows.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
 
     # Real Postgres: clinic scoping, audit writes and auth are end to end, not mocked.
     services:
@@ -52,28 +70,43 @@ jobs:
       - name: Build the API and what it depends on
         run: pnpm --filter @clinic/api... build
 
-      # One worker, one database: the suite shares a schema, so the run is as
-      # long as the suite is. It is the longest job here and sets the pace.
+      # Still one worker inside a shard: the schema is shared within it.
       - name: Test
-        run: pnpm --filter @clinic/api test
+        run: pnpm --filter @clinic/api exec jest --shard=${{ matrix.shard }}/2
 
   test-web:
-    name: Web and UI tests
+    name: Web tests ${{ matrix.shard }}/3
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
 
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/workspace
 
-      # `size:booking` reads dist/. The API is not in this job's way.
-      - name: Build the web app and what it depends on
-        run: pnpm --filter '@clinic/web...' build
+      - name: Test
+        run: >-
+          pnpm --filter @clinic/web exec vitest run
+          --project app --shard=${{ matrix.shard }}/3
+
+  test-browser:
+    name: Browser, interface and proxy tests
+    runs-on: ubuntu-latest
+
+    # The three small lanes together, because each is seconds and a runner costs
+    # half a minute to reach the first one.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/workspace
 
       - name: Test the interface system
         run: pnpm --filter @clinic/ui test
 
-      - name: Test
-        run: pnpm --filter @clinic/web test
+      - name: Test the dev proxy
+        run: pnpm --filter @clinic/web exec vitest run --project dev-proxy
 
       # Browser mode drives a real Chromium: the type scale, control heights and
       # anything measured rather than asserted about run there.
@@ -81,12 +114,23 @@ jobs:
         run: pnpm --filter @clinic/web exec playwright install --with-deps chromium
 
       # Its own step, not part of `pnpm test`: a browser session will not attach
-      # while the jsdom project is running beside it, and this lane is slower.
+      # while the jsdom project is running beside it.
       - name: Test in a real browser
         run: pnpm --filter @clinic/web test:browser
 
-      # Opened from a WhatsApp link on mobile data; it gets heavy one stray
-      # dashboard import at a time. `pnpm build` above already produced dist/.
+  bundle:
+    name: Booking bundle size
+    runs-on: ubuntu-latest
+
+    # Opened from a WhatsApp link on mobile data; it gets heavy one stray
+    # dashboard import at a time. The only web job that needs a build.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/workspace
+
+      - name: Build the web app and what it depends on
+        run: pnpm --filter '@clinic/web...' build
+
       - name: Check the booking bundle size
         run: pnpm --filter @clinic/web size:booking
 
