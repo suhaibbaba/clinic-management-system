@@ -4,6 +4,7 @@ import {
   ListOrdered,
   Activity,
   AlertTriangle,
+  ArrowDown,
   Bell,
   Building2,
   CalendarDays,
@@ -32,6 +33,7 @@ import {
   Mail,
   MapPin,
   Menu,
+  MessageSquare,
   Package,
   Pencil,
   Phone,
@@ -39,8 +41,11 @@ import {
   Printer,
   RotateCcw,
   Search,
+  Send,
   Settings,
   Shield,
+  Sparkles,
+  Square,
   Stethoscope,
   Trash2,
   TrendingDown,
@@ -61,6 +66,7 @@ import type { TestIdProps } from "@ui/lib/testid";
 // `IconName` so swapping the set is one file; nothing is mirrored automatically.
 export type IconName =
   | "activity"
+  | "arrow-down"
   | "alert"
   | "bell"
   | "building"
@@ -92,12 +98,16 @@ export type IconName =
   | "mail"
   | "map-pin"
   | "menu"
+  | "message"
   | "money"
   | "more-vertical"
   | "package"
   | "phone"
   | "plus"
   | "print"
+  | "send"
+  | "sparkles"
+  | "stop"
   | "reset"
   | "key"
   | "search"
@@ -127,6 +137,7 @@ const ToothGlyph: LucideIcon = ((props) => (
 const ICONS: Record<IconName, LucideIcon> = {
   activity: Activity,
   alert: AlertTriangle,
+  "arrow-down": ArrowDown,
   bell: Bell,
   building: Building2,
   calendar: CalendarDays,
@@ -159,16 +170,20 @@ const ICONS: Record<IconName, LucideIcon> = {
   mail: Mail,
   "map-pin": MapPin,
   menu: Menu,
+  message: MessageSquare,
   money: CreditCard,
   package: Package,
   phone: Phone,
   plus: Plus,
   print: Printer,
   key: KeyRound,
+  send: Send,
   reset: RotateCcw,
   search: Search,
   shield: Shield,
+  sparkles: Sparkles,
   spinner: Loader2,
+  stop: Square,
   stethoscope: Stethoscope,
   tooth: ToothGlyph,
   trash: Trash2,
@@ -190,7 +205,8 @@ const DIRECTIONAL: Partial<
   "chevron-start": { rtl: ChevronRight, ltr: ChevronLeft },
 };
 
-const MIRRORED: ReadonlySet<IconName> = new Set(["login", "logout"]);
+// A paper plane points the way the text runs; unmirrored it flies back into the composer.
+const MIRRORED: ReadonlySet<IconName> = new Set(["login", "logout", "send"]);
 
 export interface IconProps extends TestIdProps {
   readonly name: IconName;

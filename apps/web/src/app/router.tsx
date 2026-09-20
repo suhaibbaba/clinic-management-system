@@ -25,6 +25,11 @@ const AppointmentsSection = lazy(async () => ({
   default: (await import("@web/features/appointments/appointments-section")).AppointmentsSection,
 }));
 
+// Lazy: the markdown renderer is this screen's alone and has no business in the dashboard's chunk.
+const AssistantPage = lazy(async () => ({
+  default: (await import("@web/features/assistant/assistant-page")).AssistantPage,
+}));
+
 const AuditPage = lazy(async () => ({
   default: (await import("@web/features/audit/audit-page")).AuditPage,
 }));
@@ -83,6 +88,24 @@ export function AppRoutes(): JSX.Element {
         <Route index element={<Navigate to={HOME} replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+
+        {/* No `RequireRole`: every role may ask, and which tools answer is the API's decision. */}
+        <Route
+          path="/assistant"
+          element={
+            <RouteChunk>
+              <AssistantPage />
+            </RouteChunk>
+          }
+        />
+        <Route
+          path="/assistant/:conversationId"
+          element={
+            <RouteChunk>
+              <AssistantPage />
+            </RouteChunk>
+          }
+        />
 
         <Route
           path="/patients"

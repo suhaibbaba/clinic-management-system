@@ -79,6 +79,35 @@ export function formatClinicPeriod(startsAt: string, endsAt: string): string {
     : `${from} ${formatClinicTime(startsAt)} - ${to} ${formatClinicTime(endsAt)}`;
 }
 
+const MINUTE = 60_000;
+const HOUR = 3_600_000;
+const DAY = 86_400_000;
+
+// Relative, because what a conversation is worth is "this morning" rather than a timestamp. Past a
+// week it becomes a date: "٣٤ يوم" is a distance nobody can place on a calendar.
+export function formatRelativeTime(iso: string): string {
+  const elapsed = Date.now() - new Date(iso).getTime();
+  const days = Math.floor(elapsed / DAY);
+
+  if (days >= 7) {
+    return formatDate(iso);
+  }
+
+  const relative = new Intl.RelativeTimeFormat(dateLocale(), { numeric: "auto" });
+
+  if (days >= 1) {
+    return stripBidiMarks(relative.format(-days, "day"));
+  }
+
+  const hours = Math.floor(elapsed / HOUR);
+
+  if (hours >= 1) {
+    return stripBidiMarks(relative.format(-hours, "hour"));
+  }
+
+  return stripBidiMarks(relative.format(-Math.max(0, Math.floor(elapsed / MINUTE)), "minute"));
+}
+
 /** `<input type="date">` value → an inclusive ISO instant for the API. */
 export function startOfDayIso(value: string): string | undefined {
   return value ? new Date(`${value}T00:00:00`).toISOString() : undefined;

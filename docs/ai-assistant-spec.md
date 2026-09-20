@@ -61,7 +61,9 @@ Split the work into 3 PRs as described below. Keep PRs lean per repo policy: onl
 
 ## PR 2 — Chat page (admin UI)
 
-Route `/assistant` in the admin. Follow the existing design system exactly (light gray background, white cards, single blue accent, pill buttons, 44px unified control height, white-bordered field states). New chat primitives go into `packages/ui` so all branded copies get them.
+Routes `/assistant` and `/assistant/:conversationId` in the admin — an open conversation is an address, so it can be linked and the back button walks the thread (CLAUDE.md). Follow the existing design system exactly (light gray background, white cards, single blue accent, pill buttons, white-bordered field states, and the library's two control heights — `--control-h` for a target and `--control-h-sm` for a compact row; there is no third and no 44px). New chat primitives go into `packages/ui` so all branded copies get them: `ChatBubble`, `ChatThread`, `ChatComposer`, `ConversationItem` and `SuggestionChips`. Their few words arrive as props rather than through the host's locale keys, so the library gains no vocabulary of its own.
+
+The Markdown renderer stays in `apps/web`: it is the one piece that needs a parser, and `packages/ui` is kept free of that dependency — the public booking entry shares the library's chunk and has its own gzip budget.
 
 ### Layout
 
@@ -69,8 +71,8 @@ Route `/assistant` in the admin. Follow the existing design system exactly (ligh
 - **Thread**: message bubbles — user right-aligned accent, assistant left on white card. Full RTL support with correct handling of mixed Arabic/English lines and LTR code/numbers spans.
 - **Assistant messages render Markdown** (tables, lists, bold) — sanitize HTML output.
 - **Tool activity indicator**: while the agent runs tools, show a subtle inline status ("يبحث في المواعيد…", "يجهّز الملخص المالي…") derived from SSE events, then replace with the streamed answer.
-- **Streaming**: token-by-token via SSE with a typing cursor; graceful error bubble with a retry action on failure.
-- **Composer**: auto-growing textarea (Enter sends, Shift+Enter newline), disabled state while streaming with a stop button.
+- **Streaming**: token-by-token via SSE with a typing cursor; graceful error bubble with a retry action on failure. Every `AI_ERROR_CODE` maps to Arabic on this side. The two limits are the exception to the frame union: they are refused before the stream is opened, so they arrive as HTTP 429 carrying the code as `message` and are mapped the same way.
+- **Composer**: auto-growing textarea to five lines (Enter sends, Shift+Enter newline), disabled state while streaming with a stop button. Stopping abandons the half-written answer: PR 1's loop records an assistant message only once a turn completes, so the question is kept and the partial answer is not.
 - **Suggestion chips** above the composer on empty conversations: "ملخص اليوم" · "مواعيد بكرا" · "الوضع المالي هذا الشهر" · "مين ما راجع من 6 شهور؟" — clicking sends the chip text.
 - **Empty state**: friendly intro card explaining what the assistant can do (in Arabic), with the chips.
 - Auto-scroll to bottom on new tokens unless the user scrolled up (show a "↓ الأحدث" pill).
@@ -82,7 +84,8 @@ Route `/assistant` in the admin. Follow the existing design system exactly (ligh
 
 ### Tests (lean)
 
-- Component tests for the message renderer (markdown + RTL) and the SSE hook (append/stream/error). No visual/e2e suites.
+- Component tests for the message renderer (markdown + RTL, and that HTML in an answer is printed rather than run) and the SSE hook (frames split across chunks, append, tool status, error codes, retry). No visual/e2e suites.
+- The sidebar list each role sees is asserted whole, as every role's is (CLAUDE.md).
 
 ---
 

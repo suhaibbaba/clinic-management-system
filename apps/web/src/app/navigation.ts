@@ -18,7 +18,12 @@ export interface NavGroup {
 
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
-    items: [{ to: "/dashboard", label: "nav.dashboard", roles: USER_ROLES, icon: "activity" }],
+    items: [
+      { to: "/dashboard", label: "nav.dashboard", roles: USER_ROLES, icon: "activity" },
+      // Every role has one: what it will answer is decided per tool by the clinic's own
+      // permissions, not by hiding the page.
+      { to: "/assistant", label: "nav.assistant", roles: USER_ROLES, icon: "sparkles" },
+    ],
   },
   {
     label: "nav.groups.care",

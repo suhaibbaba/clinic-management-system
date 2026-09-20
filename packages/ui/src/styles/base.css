@@ -420,6 +420,19 @@ body {
   animation-direction: reverse;
 }
 
+/* The caret after a streaming answer's last word: a blink, and nothing under reduced motion —
+   the component only asks for it inside `motion-safe`. */
+@keyframes chat-caret {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
 @keyframes skeleton-sweep {
   from {
     background-position: 150% 0;
