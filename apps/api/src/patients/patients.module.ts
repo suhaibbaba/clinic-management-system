@@ -66,6 +66,7 @@ import { VisitsService } from "@api/patients/visits.service";
     PatientRegistrationService,
     PatientsService,
     ProcedureCatalogService,
+    TimelineService,
   ],
 })
 export class PatientsModule {}

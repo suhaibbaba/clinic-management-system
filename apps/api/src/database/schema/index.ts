@@ -1,4 +1,5 @@
 export * from "@api/database/schema/core";
+export * from "@api/database/schema/ai";
 export * from "@api/database/schema/patients";
 export * from "@api/database/schema/billing";
 export * from "@api/database/schema/appointments";
