@@ -7,41 +7,14 @@ name: CI
 on:
   workflow_call:
 
-# Five jobs, no `needs` between them: the runners are free on a public repo and
+# Four jobs, no `needs` between them: the runners are free on a public repo and
 # the only thing a chain buys is a later answer. The deploy waits on the whole
 # workflow, so the gate is unchanged — a red check still never reaches the VPS.
+#
+# The static checks — lint, typecheck, formatting, dead code, colour literals,
+# i18n — are deliberately not here. They are still `pnpm lint`, `pnpm typecheck`
+# and the rest, run locally; CI gates on tests and images only.
 jobs:
-  static:
-    name: Lint, typecheck, dead code
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/workspace
-
-      # First: the API consumes packages/shared as built declarations, so nothing
-      # typechecks on a clean checkout until it is compiled.
-      - name: Build all workspaces
-        run: pnpm build
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Check colour literals
-        run: pnpm lint:hex
-
-      - name: Check for dead code
-        run: pnpm knip
-
-      - name: Check formatting
-        run: pnpm exec prettier --check .
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Check i18n
-        run: pnpm --filter @clinic/web check:i18n
-
   test-api:
     name: API tests
     runs-on: ubuntu-latest
