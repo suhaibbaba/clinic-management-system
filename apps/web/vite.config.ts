@@ -75,9 +75,13 @@ function pwa(): Plugin[] {
   return VitePWA({
     // The manifest is per clinic and served by the API; `index.html` links it directly.
     manifest: false,
-    registerType: "prompt",
+    // A stale shell pins the whole old build, and a clinic has no one to talk a receptionist
+    // through a hard reload. The worker takes over the moment it installs and reloads the tab.
+    registerType: "autoUpdate",
     injectRegister: null,
     workbox: {
+      skipWaiting: true,
+      clientsClaim: true,
       globPatterns: ["**/*.{js,css,html,woff2,svg,ico,png}"],
       navigateFallback: "/index.html",
       // The API answers for itself, and the public booking page is nginx's own entry.
