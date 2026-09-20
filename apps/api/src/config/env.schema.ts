@@ -100,6 +100,22 @@ export const envSchema = z.object({
   EMAIL_LINK_TTL_HOURS: z.coerce.number().int().min(1).max(336).default(48),
 
   PUBLIC_BASE_URL: z.string().url().default("http://localhost:5173"),
+
+  // `log` answers with a fixed line and calls nobody, so the assistant boots and its tests run on a
+  // machine with no account at all — the same shape as the notification and email providers.
+  AI_PROVIDER: z.enum(["log", "openai"]).default("log"),
+  OPENAI_API_KEY: z.string().optional(),
+  AI_MODEL: z.string().min(1).default("gpt-4o-mini"),
+  /** Ceiling on one answer. A question wants a paragraph, not an essay. */
+  AI_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(64).max(4_096).default(800),
+  AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).default(30_000),
+  /** How many past messages the model is shown. Older ones are dropped, never sent. */
+  AI_HISTORY_MESSAGES: z.coerce.number().int().min(2).max(100).default(20),
+  /** How many tool rounds one question may take before the loop gives up. */
+  AI_MAX_TOOL_STEPS: z.coerce.number().int().min(1).max(10).default(5),
+  AI_RATE_LIMIT_PER_HOUR: z.coerce.number().int().min(1).max(1_000).default(30),
+  /** Tokens a whole clinic may spend in its own day, across every user. */
+  AI_DAILY_TOKEN_BUDGET: z.coerce.number().int().min(1_000).default(200_000),
 });
 
 export type Env = z.infer<typeof envSchema>;

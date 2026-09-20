@@ -4,6 +4,7 @@ export * from "@shared/enums";
 export * from "@shared/geo/coordinates";
 export * from "@shared/text/arabic";
 export * from "@shared/time/zone";
+export * from "@shared/schemas/ai";
 export * from "@shared/schemas/appointments";
 export * from "@shared/schemas/attachments";
 export * from "@shared/schemas/booking";

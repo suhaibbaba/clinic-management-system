@@ -17,6 +17,12 @@ import type { PgColumn } from "drizzle-orm/pg-core";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { charges, payments, performedProcedures, procedureCatalog } from "@api/database/schema";
 
+export interface PeriodTotals {
+  readonly charged: Money;
+  readonly collected: Money;
+  readonly payments: number;
+}
+
 interface LedgerLine {
   readonly id: string;
   readonly kind: LedgerEntryKind;
@@ -78,6 +84,41 @@ export class LedgerService {
       paid,
       balance: subtractMoney(charged, paid),
       lastPaymentAt: row?.last_payment_at ? new Date(row.last_payment_at).toISOString() : null,
+    };
+  }
+
+  // What the clinic took and what it raised between two instants. A sum over the ledger like
+  // every other figure — there is no stored total to disagree with it.
+  async totalsBetween(clinicId: string, from: Date, to: Date): Promise<PeriodTotals> {
+    const rows = await this.db.execute<{
+      charged: string;
+      collected: string;
+      payments: number;
+    }>(sql`
+      select
+        coalesce((
+          select sum(amount - discount) from charges
+          where clinic_id = ${clinicId} and deleted_at is null
+            and created_at >= ${from} and created_at < ${to}
+        ), 0)::text as charged,
+        coalesce((
+          select sum(amount) from payments
+          where clinic_id = ${clinicId} and deleted_at is null
+            and created_at >= ${from} and created_at < ${to}
+        ), 0)::text as collected,
+        (
+          select count(*)::int from payments
+          where clinic_id = ${clinicId} and deleted_at is null
+            and created_at >= ${from} and created_at < ${to}
+        ) as payments
+    `);
+
+    const row = rows[0];
+
+    return {
+      charged: normalise(row?.charged ?? "0"),
+      collected: normalise(row?.collected ?? "0"),
+      payments: row?.payments ?? 0,
     };
   }
 

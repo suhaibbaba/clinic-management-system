@@ -3,6 +3,7 @@ import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { ZodValidationPipe } from "nestjs-zod";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ThrottlerModule } from "@nestjs/throttler";
+import { AiModule } from "@api/ai/ai.module";
 import { AppointmentsModule } from "@api/appointments/appointments.module";
 import { AuditInterceptor } from "@api/audit/audit.interceptor";
 import { AuditModule } from "@api/audit/audit.module";
@@ -64,6 +65,7 @@ import { UsersModule } from "@api/users/users.module";
     PermissionsModule,
     BookingModule,
     DashboardModule,
+    AiModule,
   ],
   providers: [
     // Global validation: every DTO is a Zod schema from @clinic/shared wrapped

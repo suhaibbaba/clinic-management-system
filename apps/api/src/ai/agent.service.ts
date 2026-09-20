@@ -1,0 +1,171 @@
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  AI_ERROR_CODE,
+  AI_MESSAGE_ROLE,
+  AI_STREAM_EVENT,
+  clinicScheduleSettings,
+  DEFAULT_TIME_ZONE,
+  localDate,
+  type AiChatRequest,
+  type AiStreamEvent,
+  type PersonName,
+} from "@clinic/shared";
+import { eq } from "drizzle-orm";
+import {
+  CHAT_PROVIDER,
+  ChatProviderError,
+  type ChatMessage,
+  type ChatProvider,
+  type ChatToolCall,
+  type ChatUsage,
+} from "@api/ai/chat-provider";
+import { AiConversationsService } from "@api/ai/ai-conversations.service";
+import { SYSTEM_PROMPT_VERSION, systemPrompt } from "@api/ai/system-prompt";
+import { isAiToolName, ToolRunnerService } from "@api/ai/tools/tool-runner.service";
+import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { clinics } from "@api/database/schema";
+import type { Env } from "@api/config/env.schema";
+
+// The loop: ask, run whatever the model asked for, ask again with the answers, until it stops
+// asking. The actor rides along untouched — nothing the model returns can change who is calling.
+@Injectable()
+export class AgentService {
+  private readonly logger = new Logger("Assistant");
+
+  constructor(
+    @Inject(DATABASE) private readonly db: Database,
+    @Inject(CHAT_PROVIDER) private readonly provider: ChatProvider,
+    private readonly conversations: AiConversationsService,
+    private readonly tools: ToolRunnerService,
+    private readonly config: ConfigService<Env, true>,
+  ) {}
+
+  async *run(actor: AuthenticatedUser, request: AiChatRequest): AsyncGenerator<AiStreamEvent> {
+    const conversation = request.conversationId
+      ? await this.conversations.requireOwn(actor, request.conversationId)
+      : await this.conversations.start(actor, request.message);
+
+    yield { type: AI_STREAM_EVENT.CONVERSATION, conversationId: conversation.id };
+
+    const history = await this.conversations.history(
+      conversation.id,
+      this.config.get("AI_HISTORY_MESSAGES", { infer: true }),
+    );
+
+    await this.conversations.append(actor, conversation.id, {
+      role: AI_MESSAGE_ROLE.USER,
+      content: request.message,
+    });
+
+    const messages: ChatMessage[] = [
+      { role: "system", content: systemPrompt(await this.context(actor)) },
+      ...history,
+      { role: "user", content: request.message },
+    ];
+
+    const spent = { inputTokens: 0, outputTokens: 0 };
+    const steps = this.config.get("AI_MAX_TOOL_STEPS", { infer: true });
+
+    for (let step = 0; step < steps; step += 1) {
+      let completed: { text: string; toolCalls: readonly ChatToolCall[] } | undefined;
+
+      try {
+        const stream = this.provider.stream({ messages, tools: this.tools.definitions() });
+
+        for await (const chunk of stream) {
+          if (chunk.type === "delta") {
+            yield { type: AI_STREAM_EVENT.DELTA, text: chunk.text };
+            continue;
+          }
+
+          add(spent, chunk.usage);
+          completed = { text: chunk.text, toolCalls: chunk.toolCalls };
+        }
+      } catch (error) {
+        // Already logged with its cause by the provider; the user is told only that it failed.
+        if (!(error instanceof ChatProviderError)) {
+          this.logger.error(`The agent loop failed: ${String(error)}`);
+        }
+
+        await this.record(actor, conversation.id, "", spent);
+        yield { type: AI_STREAM_EVENT.ERROR, code: AI_ERROR_CODE.PROVIDER_UNAVAILABLE };
+
+        return;
+      }
+
+      // Set by the `completed` chunk every provider ends with; a stream without one answered
+      // nothing, and an empty answer ends the turn rather than looping.
+      const answer = completed ?? { text: "", toolCalls: [] };
+
+      if (answer.toolCalls.length === 0) {
+        const { id } = await this.record(actor, conversation.id, answer.text, spent);
+
+        yield { type: AI_STREAM_EVENT.DONE, messageId: id };
+
+        return;
+      }
+
+      messages.push({ role: "assistant", content: answer.text, toolCalls: [...answer.toolCalls] });
+
+      for (const call of answer.toolCalls) {
+        if (isAiToolName(call.name)) {
+          yield { type: AI_STREAM_EVENT.TOOL, tool: call.name };
+        }
+
+        const run = await this.tools.run(actor, conversation.id, call);
+
+        messages.push({ role: "tool", toolCallId: call.id, content: run.content });
+        await this.conversations.append(actor, conversation.id, {
+          role: AI_MESSAGE_ROLE.TOOL,
+          content: run.content,
+          toolName: run.name,
+        });
+      }
+    }
+
+    // The model kept asking for tools and never answered. Better a said-so than a silent stop.
+    await this.record(actor, conversation.id, "", spent);
+    yield { type: AI_STREAM_EVENT.ERROR, code: AI_ERROR_CODE.STEP_LIMIT };
+  }
+
+  // Recorded even for a turn that failed: the tokens were spent, and the clinic's daily budget is
+  // a sum over these rows.
+  private record(
+    actor: AuthenticatedUser,
+    conversationId: string,
+    content: string,
+    usage: ChatUsage,
+  ): Promise<{ id: string }> {
+    return this.conversations.append(actor, conversationId, {
+      role: AI_MESSAGE_ROLE.ASSISTANT,
+      content,
+      usage,
+      promptVersion: SYSTEM_PROMPT_VERSION,
+    });
+  }
+
+  private async context(
+    actor: AuthenticatedUser,
+  ): Promise<{ clinicName: PersonName; role: AuthenticatedUser["role"]; today: string }> {
+    const [clinic] = await this.db
+      .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, settings: clinics.settings })
+      .from(clinics)
+      .where(eq(clinics.id, actor.clinicId))
+      .limit(1);
+
+    const timeZone = clinicScheduleSettings(clinic?.settings).timezone || DEFAULT_TIME_ZONE;
+
+    return {
+      clinicName: { ar: clinic?.nameAr ?? "", en: clinic?.nameEn ?? "" },
+      role: actor.role,
+      today: localDate(new Date(), timeZone),
+    };
+  }
+}
+
+function add(total: { inputTokens: number; outputTokens: number }, usage: ChatUsage): void {
+  total.inputTokens += usage.inputTokens;
+  total.outputTokens += usage.outputTokens;
+}

@@ -469,3 +469,88 @@ export const MOVEMENT_SIGN: Record<MovementType, 1 | -1 | null> = {
   [MOVEMENT_TYPE.CONSUME]: -1,
   [MOVEMENT_TYPE.ADJUST]: null,
 };
+
+// The assistant's own vocabulary: what a stored message was. A state machine rather than a lookup
+// list — the agent loop is written against these exact values (CLAUDE.md decision 8).
+export const AI_MESSAGE_ROLE = {
+  USER: "user",
+  ASSISTANT: "assistant",
+  TOOL: "tool",
+} as const satisfies Record<string, string>;
+export type AiMessageRole = EnumValue<typeof AI_MESSAGE_ROLE>;
+
+export const AI_MESSAGE_ROLES = [
+  AI_MESSAGE_ROLE.USER,
+  AI_MESSAGE_ROLE.ASSISTANT,
+  AI_MESSAGE_ROLE.TOOL,
+] as const;
+
+// Every tool the model may call. A name the model invents is refused before anything runs, and the
+// web resolves each to its Arabic progress line by code.
+export const AI_TOOL = {
+  GET_APPOINTMENTS: "get_appointments",
+  SEARCH_PATIENTS: "search_patients",
+  GET_PATIENT_SUMMARY: "get_patient_summary",
+  GET_DAILY_STATS: "get_daily_stats",
+  GET_FINANCIAL_SUMMARY: "get_financial_summary",
+  GET_OVERDUE_LAB_ORDERS: "get_overdue_lab_orders",
+  GET_LOW_STOCK_ITEMS: "get_low_stock_items",
+} as const satisfies Record<string, string>;
+export type AiToolName = EnumValue<typeof AI_TOOL>;
+
+export const AI_TOOL_NAMES = [
+  AI_TOOL.GET_APPOINTMENTS,
+  AI_TOOL.SEARCH_PATIENTS,
+  AI_TOOL.GET_PATIENT_SUMMARY,
+  AI_TOOL.GET_DAILY_STATS,
+  AI_TOOL.GET_FINANCIAL_SUMMARY,
+  AI_TOOL.GET_OVERDUE_LAB_ORDERS,
+  AI_TOOL.GET_LOW_STOCK_ITEMS,
+] as const;
+
+export const AI_STREAM_EVENT = {
+  /** First frame: which conversation this turn belongs to, so a new one gets an id immediately. */
+  CONVERSATION: "conversation",
+  TOOL: "tool",
+  DELTA: "delta",
+  DONE: "done",
+  ERROR: "error",
+} as const satisfies Record<string, string>;
+export type AiStreamEventType = EnumValue<typeof AI_STREAM_EVENT>;
+
+export const AI_STREAM_EVENTS = [
+  AI_STREAM_EVENT.CONVERSATION,
+  AI_STREAM_EVENT.TOOL,
+  AI_STREAM_EVENT.DELTA,
+  AI_STREAM_EVENT.DONE,
+  AI_STREAM_EVENT.ERROR,
+] as const;
+
+// Codes, never sentences: the stream carries one of these and the web writes the Arabic. A provider
+// failure is `provider_unavailable` whatever it actually said.
+export const AI_ERROR_CODE = {
+  RATE_LIMITED: "rate_limited",
+  BUDGET_EXHAUSTED: "budget_exhausted",
+  PROVIDER_UNAVAILABLE: "provider_unavailable",
+  STEP_LIMIT: "step_limit",
+  FAILED: "failed",
+} as const satisfies Record<string, string>;
+export type AiErrorCode = EnumValue<typeof AI_ERROR_CODE>;
+
+export const AI_ERROR_CODES = [
+  AI_ERROR_CODE.RATE_LIMITED,
+  AI_ERROR_CODE.BUDGET_EXHAUSTED,
+  AI_ERROR_CODE.PROVIDER_UNAVAILABLE,
+  AI_ERROR_CODE.STEP_LIMIT,
+  AI_ERROR_CODE.FAILED,
+] as const;
+
+// What a tool answers with when it will not run. The model reads these as data and explains itself
+// to the user; none of them carries an internal detail.
+export const AI_TOOL_ERROR = {
+  INVALID_ARGUMENTS: "invalid_arguments",
+  NOT_PERMITTED: "not_permitted",
+  NOT_FOUND: "not_found",
+  FAILED: "failed",
+} as const satisfies Record<string, string>;
+export type AiToolError = EnumValue<typeof AI_TOOL_ERROR>;
