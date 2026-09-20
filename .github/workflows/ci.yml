@@ -7,9 +7,43 @@ name: CI
 on:
   workflow_call:
 
+# Five jobs, no `needs` between them: the runners are free on a public repo and
+# the only thing a chain buys is a later answer. The deploy waits on the whole
+# workflow, so the gate is unchanged — a red check still never reaches the VPS.
 jobs:
-  quality:
-    name: Lint, typecheck, build, test
+  static:
+    name: Lint, typecheck, dead code
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/workspace
+
+      # First: the API consumes packages/shared as built declarations, so nothing
+      # typechecks on a clean checkout until it is compiled.
+      - name: Build all workspaces
+        run: pnpm build
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Check colour literals
+        run: pnpm lint:hex
+
+      - name: Check for dead code
+        run: pnpm knip
+
+      - name: Check formatting
+        run: pnpm exec prettier --check .
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Check i18n
+        run: pnpm --filter @clinic/web check:i18n
+
+  test-api:
+    name: API tests
     runs-on: ubuntu-latest
 
     # Real Postgres: clinic scoping, audit writes and auth are end to end, not mocked.
@@ -40,47 +74,38 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/workspace
 
-      - uses: pnpm/action-setup@v4
+      - name: Build the API and what it depends on
+        run: pnpm --filter @clinic/api... build
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+      # One worker, one database: the suite shares a schema, so the run is as
+      # long as the suite is. It is the longest job here and sets the pace.
+      - name: Test
+        run: pnpm --filter @clinic/api test
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+  test-web:
+    name: Web and UI tests
+    runs-on: ubuntu-latest
 
-      # First: the API consumes packages/shared as built declarations, so nothing
-      # typechecks on a clean checkout until it is compiled.
-      - name: Build all workspaces
-        run: pnpm build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/workspace
 
-      - name: Lint
-        run: pnpm lint
+      # `size:booking` reads dist/. The API is not in this job's way.
+      - name: Build the web app and what it depends on
+        run: pnpm --filter '@clinic/web...' build
 
-      - name: Check colour literals
-        run: pnpm lint:hex
+      - name: Test the interface system
+        run: pnpm --filter @clinic/ui test
 
-      - name: Check for dead code
-        run: pnpm knip
-
-      - name: Check formatting
-        run: pnpm exec prettier --check .
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Check i18n
-        run: pnpm --filter @clinic/web check:i18n
+      - name: Test
+        run: pnpm --filter @clinic/web test
 
       # Browser mode drives a real Chromium: the type scale, control heights and
       # anything measured rather than asserted about run there.
       - name: Install the browser the component tests drive
         run: pnpm --filter @clinic/web exec playwright install --with-deps chromium
-
-      - name: Test
-        run: pnpm test
 
       # Its own step, not part of `pnpm test`: a browser session will not attach
       # while the jsdom project is running beside it, and this lane is slower.
@@ -92,11 +117,9 @@ jobs:
       - name: Check the booking bundle size
         run: pnpm --filter @clinic/web size:booking
 
-  docker:
-    name: Docker images
+  image-api:
+    name: API image
     runs-on: ubuntu-latest
-    # After the cheap checks: a failing lint makes building two images pointless.
-    needs: quality
 
     services:
       postgres:
@@ -115,16 +138,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: docker/setup-buildx-action@v3
-
-      - name: Validate compose files
-        run: |
-          cp .env.example .env
-          docker compose config --quiet
-          docker compose -f docker-compose.prod.yml config --quiet
-          # Deployed verbatim, so a typo here would only surface on the server.
-          docker compose -f docker-compose.sandbox.yml config --quiet
 
       - name: Build API image
         uses: docker/build-push-action@v6
@@ -172,6 +186,22 @@ jobs:
       - name: API container logs
         if: always()
         run: docker logs api-smoke || true
+
+  image-web:
+    name: Web image and compose files
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Validate compose files
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
+          docker compose -f docker-compose.prod.yml config --quiet
+          # Deployed verbatim, so a typo here would only surface on the server.
+          docker compose -f docker-compose.sandbox.yml config --quiet
 
       - name: Build web image
         uses: docker/build-push-action@v6
