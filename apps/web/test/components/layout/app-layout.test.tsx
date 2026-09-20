@@ -59,6 +59,7 @@ describe("Sidebar navigation", () => {
     // the rail's list and are asserted with the rest of it.
     expect(linkNames()).toEqual([
       ar.nav.dashboard,
+      ar.nav.assistant,
       ar.nav.patients,
       ar.nav.appointments,
       ar.nav.labs,
@@ -74,9 +75,15 @@ describe("Sidebar navigation", () => {
   });
 
   it.each([
-    [USER_ROLE.DOCTOR, [ar.nav.dashboard, ar.nav.patients, ar.nav.appointments, ar.nav.labs]],
-    [USER_ROLE.TECHNICIAN, [ar.nav.dashboard, ar.nav.labs, ar.nav.inventory]],
-    [USER_ROLE.RECEPTIONIST, [ar.nav.dashboard, ar.nav.patients, ar.nav.appointments]],
+    [
+      USER_ROLE.DOCTOR,
+      [ar.nav.dashboard, ar.nav.assistant, ar.nav.patients, ar.nav.appointments, ar.nav.labs],
+    ],
+    [USER_ROLE.TECHNICIAN, [ar.nav.dashboard, ar.nav.assistant, ar.nav.labs, ar.nav.inventory]],
+    [
+      USER_ROLE.RECEPTIONIST,
+      [ar.nav.dashboard, ar.nav.assistant, ar.nav.patients, ar.nav.appointments],
+    ],
   ])("gives %s exactly their sections and no settings rows", async (role, expected) => {
     await renderAs(role);
 

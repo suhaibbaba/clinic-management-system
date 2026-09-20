@@ -1,0 +1,235 @@
+import { AI_MESSAGE_ROLE, type AiMessage } from "@clinic/shared";
+import { useCallback, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  Button,
+  ChatBubble,
+  ChatComposer,
+  ChatThread,
+  Icon,
+  SuggestionChips,
+  type Suggestion,
+} from "@clinic/ui";
+import { useQueryClient } from "@tanstack/react-query";
+import { assistantApi } from "@web/features/assistant/api";
+import { MarkdownMessage } from "@web/features/assistant/markdown-message";
+import { ConversationRail } from "@web/features/assistant/conversation-rail";
+import { errorMessageKey, toolStatusKey } from "@web/features/assistant/messages";
+import {
+  CONVERSATIONS_KEY,
+  MESSAGES_KEY,
+  useConversationMessages,
+  useConversations,
+} from "@web/features/assistant/queries";
+import { SUGGESTIONS } from "@web/features/assistant/suggestions";
+import { useAssistantStream } from "@web/features/assistant/use-assistant-stream";
+import { ellipsis } from "@web/i18n/ellipsis";
+import { cn } from "@clinic/ui/lib/cn";
+import { useDocumentTitle } from "@clinic/ui/lib/page-title";
+
+export function AssistantPage(): JSX.Element {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const client = useQueryClient();
+  // The open conversation is an address, not a piece of state: it is linkable, and the back button
+  // walks the thread somebody was reading (CLAUDE.md).
+  const { conversationId } = useParams<{ conversationId: string }>();
+
+  const [draft, setDraft] = useState("");
+  const [railOpen, setRailOpen] = useState(false);
+
+  useDocumentTitle(t("nav.assistant"));
+
+  const conversations = useConversations();
+  const messages = useConversationMessages(conversationId);
+
+  const onConversationStarted = useCallback(
+    (id: string) => {
+      // `replace`: the empty conversation this turn began in is not a place to go back to.
+      void navigate(`/assistant/${id}`, { replace: true });
+    },
+    [navigate],
+  );
+
+  // Written into the cache rather than invalidated, so the stored thread and the end of the live
+  // turn land in one render: an invalidation repaints on its own clock, and for a frame the
+  // question was on screen twice.
+  const onFinished = useCallback(
+    async (id: string) => {
+      client.setQueryData([MESSAGES_KEY, id], await assistantApi.messages(id));
+      void client.invalidateQueries({ queryKey: [CONVERSATIONS_KEY] });
+    },
+    [client],
+  );
+
+  const stream = useAssistantStream({ conversationId, onConversationStarted, onFinished });
+
+  const ask = (text: string): void => {
+    const question = text.trim();
+
+    if (question.length === 0 || stream.streaming) {
+      return;
+    }
+
+    setDraft("");
+    stream.send(question);
+  };
+
+  const stored = messages.data ?? [];
+  const empty = stored.length === 0 && stream.turn === null;
+
+  const suggestions: Suggestion[] = SUGGESTIONS.map((suggestion) => ({
+    key: suggestion.key,
+    label: t(suggestion.labelKey),
+  }));
+
+  return (
+    // The shell scrolls the document, so a pane that scrolls its own thread has to be told how
+    // tall it is: the viewport less the top bar and the main region's bottom padding.
+    <div data-testid="assistant-page" className="flex h-[calc(100dvh-8rem)] gap-4">
+      <ConversationRail
+        conversations={conversations.data?.items ?? []}
+        loading={conversations.isPending}
+        selectedId={conversationId}
+        onSelect={(id) => {
+          setRailOpen(false);
+          void navigate(id === undefined ? "/assistant" : `/assistant/${id}`);
+        }}
+        onDeleted={(id) => {
+          if (id === conversationId) {
+            void navigate("/assistant", { replace: true });
+          }
+        }}
+        className={cn(
+          "w-72 shrink-0 rounded-card border border-line bg-surface p-3 shadow-card",
+          // Off-canvas below `md`, where the thread needs the whole width. It leaves by the edge
+          // it sits against, which is the other one in Arabic — `page-rtl` rather than a bare
+          // `rtl:`, which this theme does not define.
+          "max-md:fixed max-md:inset-y-16 max-md:start-3 max-md:z-30 max-md:w-[17rem]",
+          "max-md:transition-transform max-md:duration-200",
+          !railOpen && "max-md:page-ltr:-translate-x-[120%] max-md:page-rtl:translate-x-[120%]",
+        )}
+      />
+
+      <section
+        aria-label={t("nav.assistant")}
+        className="flex min-w-0 flex-1 flex-col rounded-card border border-line bg-canvas"
+      >
+        <header className="flex items-center gap-2 border-b border-line px-4 py-2.5 md:hidden">
+          <Button
+            variant="quiet"
+            size="sm"
+            icon={<Icon name="menu" />}
+            aria-label={t("assistant.conversations")}
+            onClick={() => setRailOpen((open) => !open)}
+          />
+          <span className="truncate text-label text-ink-muted">{t("nav.assistant")}</span>
+        </header>
+
+        <ChatThread data-testid="assistant-thread" jumpLabel={t("assistant.jumpToLatest")}>
+          {empty && <EmptyIntro />}
+
+          {stored.map((message: AiMessage) => (
+            <ChatBubble
+              key={message.id}
+              data-testid={`assistant-message-${message.id}`}
+              author={message.role === AI_MESSAGE_ROLE.USER ? "user" : "assistant"}
+            >
+              {message.role === AI_MESSAGE_ROLE.USER ? (
+                <span className="whitespace-pre-wrap">{message.content}</span>
+              ) : (
+                <MarkdownMessage content={message.content} />
+              )}
+            </ChatBubble>
+          ))}
+
+          {stream.turn && (
+            <>
+              <ChatBubble author="user" data-testid="assistant-live-question">
+                <span className="whitespace-pre-wrap">{stream.turn.question}</span>
+              </ChatBubble>
+
+              <ChatBubble
+                author="assistant"
+                data-testid="assistant-live-answer"
+                tone={stream.turn.error ? "danger" : "default"}
+                streaming={stream.turn.streaming && stream.turn.answer.length > 0}
+                status={
+                  stream.turn.answer.length === 0 && !stream.turn.error
+                    ? ellipsis(
+                        stream.turn.tool
+                          ? t(toolStatusKey(stream.turn.tool))
+                          : t("assistant.thinking"),
+                      )
+                    : undefined
+                }
+                footer={
+                  stream.turn.error ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      icon={<Icon name="reset" />}
+                      data-testid="assistant-retry"
+                      onClick={stream.retry}
+                    >
+                      {t("common.retry")}
+                    </Button>
+                  ) : undefined
+                }
+              >
+                {stream.turn.error ? (
+                  <span>{t(errorMessageKey(stream.turn.error))}</span>
+                ) : stream.turn.answer.length > 0 ? (
+                  <MarkdownMessage content={stream.turn.answer} />
+                ) : undefined}
+              </ChatBubble>
+            </>
+          )}
+        </ChatThread>
+
+        <div className="border-t border-line bg-surface p-3 sm:px-6 sm:py-4">
+          <div className="mx-auto max-w-3xl">
+            <ChatComposer
+              data-testid="assistant-composer"
+              value={draft}
+              onValueChange={setDraft}
+              onSend={() => ask(draft)}
+              onStop={stream.stop}
+              streaming={stream.streaming}
+              placeholder={t("assistant.placeholder")}
+              sendLabel={t("assistant.send")}
+              stopLabel={t("assistant.stop")}
+            >
+              {empty && (
+                <SuggestionChips
+                  data-testid="assistant-suggestions"
+                  suggestions={suggestions}
+                  disabled={stream.streaming}
+                  onPick={(suggestion) => ask(suggestion.label)}
+                />
+              )}
+            </ChatComposer>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function EmptyIntro(): JSX.Element {
+  const { t } = useTranslation();
+
+  return (
+    <div
+      data-testid="assistant-empty"
+      className="rounded-card border border-line bg-surface p-5 text-center shadow-card"
+    >
+      <span className="mx-auto grid size-11 place-items-center rounded-field bg-primary-100 text-primary-600">
+        <Icon name="sparkles" />
+      </span>
+      <h2 className="mt-3 text-heading text-ink">{t("assistant.emptyTitle")}</h2>
+      <p className="mt-1.5 text-value text-ink-muted">{t("assistant.emptyBody")}</p>
+    </div>
+  );
+}

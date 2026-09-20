@@ -147,55 +147,62 @@ testid: it is the one attribute a test may rename.
 
 ## The components
 
-| Module                                        | Contract                                                                              |
-| --------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `avatar` — `Avatar`                           | A person at a glance: photo, or initials on a tint keyed to a stable id.              |
-| `badge` — `Badge`, `Chip`, `PILL_BASE`        | The one pill. `Badge` states, `Chip` chooses; never a solid fill.                     |
-| `button` — `Button`                           | Five variants, two heights. One filled primary per page.                              |
-| `calendar` — `Calendar`                       | Days, months, years; `startView="years"` for a date of birth.                         |
-| `card` — `Card`                               | The panel: hairline, soft shadow, optional selected outline that takes no layout.     |
-| `contact-link` — `PhoneLink`, `EmailLink`     | A number dials and an address opens a message; a dash where there is neither.         |
-| `date-picker` — `DatePicker`                  | A typed field that also anchors a calendar. Never opens on focus.                     |
-| `date-range-picker` — `DateRangePicker`       | Two dates as one control, with a clear.                                               |
-| `dialog-layer` — `DialogLayerProvider`        | Publishes a dialog's node so a popover inside it escapes the inert body.              |
-| `drawer` — `Drawer`                           | The record panel from the inline end. Focuses nothing on open.                        |
-| `empty-state` — `EmptyState`                  | Why a list is empty, and the one thing to do about it.                                |
-| `entity-card` — `EntityCard`, `EntityGrid`    | A record as a card: icon, title, status, progress, meta, one action.                  |
-| `field` — `fieldShell`, `FieldIcon`, …        | The field's edge and fill, and the parts that sit in it. Every input draws from here. |
-| `form-field` — `FormField`                    | Label, control, and one slot shared by hint and error so the form never grows.        |
-| `icon` — `Icon`                               | The whole glyph set, two sizes, mirrored where a glyph is a direction.                |
-| `img` — `Img`                                 | Never a raw `<img>`: the box is reserved before the file lands and never moves.       |
-| `input` — `Input`                             | The text field, with an optional adornment, clear and suffix.                         |
-| `ltr` — `Ltr`                                 | A left-to-right island for Latin digits inside Arabic text.                           |
-| `menu` — `Menu`, `MenuItem`, `RowMenu`        | The one menu. A row's second-rank actions behind one glyph.                           |
-| `modal` — `Modal`                             | The centred dialog. Focuses its container, not your first date field.                 |
-| `money` — `Money`                             | Whole units and the currency **symbol**, in one LTR island.                           |
-| `money-input` — `MoneyInput`                  | Refuses a decimal separator as it is typed.                                           |
-| `page-header` — `PageHeader`                  | A screen's title, subtitle, count and actions; registers the tab title.               |
-| `person-name` — `PersonName`, `usePersonName` | A bilingual `{ ar, en }` name, resolved once instead of a ternary per screen.         |
-| `picker-open` — `usePickerOpen`               | The open/close gesture a picker needs: click, Enter, Space, ArrowDown — never focus.  |
-| `popover` — `Popover`                         | Anchors rather than triggers, and portals into a dialog when it is inside one.        |
-| `progress-bar` — `ProgressBar`                | A real `progressbar` with its numbers attached, so it reads as "3 of 8".              |
-| `search-field` — `SearchField`                | The field shell as a search box, with a clear and an optional shortcut chip.          |
-| `segmented-control` — `SegmentedControl`      | A radio group: exactly one of these, with arrow keys.                                 |
-| `select` — `Select`                           | Radix, not the platform: one control everywhere, and testable off the device.         |
-| `skeleton` — `Skeleton`, and the shapes       | The loading shapes, one sweep, flat under reduced motion.                             |
-| `stat-card` — `StatCard`, `StatRow`           | A KPI: label chip, figure, optional delta and caption. Values arrive formatted.       |
-| `switch` — `Switch`                           | A 44px target over a drawn track; the knob slides the right way in RTL.               |
-| `table` — `Table`, `Pagination`               | Rows on a wide screen, cards on a phone, one column definition for both.              |
-| `tabs` — `Tabs`, `TabPanel`, `useTabParam`    | Panels, and the hook that keeps the chosen one in the address bar.                    |
-| `textarea` — `Textarea`                       | The field's edge and fill, growing vertically only.                                   |
-| `time-picker` — `TimePicker`                  | A typed time that also anchors a list of slots.                                       |
-| `toast` — `ToastProvider`, `useToast`         | Both methods take an i18n key, never a ready-made string.                             |
-| `tone` — `TONE_SURFACE`                       | A tone as a block rather than a pill, so a status is one colour in every view.        |
-| `widget` — `Widget`                           | The panel's smaller sibling for a side column.                                        |
+| Module                                        | Contract                                                                                     |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `avatar` — `Avatar`                           | A person at a glance: photo, or initials on a tint keyed to a stable id.                     |
+| `badge` — `Badge`, `Chip`, `PILL_BASE`        | The one pill. `Badge` states, `Chip` chooses; never a solid fill.                            |
+| `button` — `Button`                           | Five variants, two heights. One filled primary per page.                                     |
+| `calendar` — `Calendar`                       | Days, months, years; `startView="years"` for a date of birth.                                |
+| `card` — `Card`                               | The panel: hairline, soft shadow, optional selected outline that takes no layout.            |
+| `chat-bubble` — `ChatBubble`                  | A turn in a conversation: the question hugs its text, the answer fills the column.           |
+| `chat-composer` — `ChatComposer`              | The box a question is typed in. Enter sends, Shift+Enter breaks, and it grows to five lines. |
+| `chat-thread` — `ChatThread`                  | Follows the answer as it arrives, and stops the moment somebody scrolls up to read.          |
+| `contact-link` — `PhoneLink`, `EmailLink`     | A number dials and an address opens a message; a dash where there is neither.                |
+| `conversation-item` — `ConversationItem`      | A saved conversation in the rail: its name, when it last moved, and its own address.         |
+| `date-picker` — `DatePicker`                  | A typed field that also anchors a calendar. Never opens on focus.                            |
+| `date-range-picker` — `DateRangePicker`       | Two dates as one control, with a clear.                                                      |
+| `dialog-layer` — `DialogLayerProvider`        | Publishes a dialog's node so a popover inside it escapes the inert body.                     |
+| `drawer` — `Drawer`                           | The record panel from the inline end. Focuses nothing on open.                               |
+| `empty-state` — `EmptyState`                  | Why a list is empty, and the one thing to do about it.                                       |
+| `entity-card` — `EntityCard`, `EntityGrid`    | A record as a card: icon, title, status, progress, meta, one action.                         |
+| `field` — `fieldShell`, `FieldIcon`, …        | The field's edge and fill, and the parts that sit in it. Every input draws from here.        |
+| `form-field` — `FormField`                    | Label, control, and one slot shared by hint and error so the form never grows.               |
+| `icon` — `Icon`                               | The whole glyph set, two sizes, mirrored where a glyph is a direction.                       |
+| `img` — `Img`                                 | Never a raw `<img>`: the box is reserved before the file lands and never moves.              |
+| `input` — `Input`                             | The text field, with an optional adornment, clear and suffix.                                |
+| `ltr` — `Ltr`                                 | A left-to-right island for Latin digits inside Arabic text.                                  |
+| `menu` — `Menu`, `MenuItem`, `RowMenu`        | The one menu. A row's second-rank actions behind one glyph.                                  |
+| `modal` — `Modal`                             | The centred dialog. Focuses its container, not your first date field.                        |
+| `money` — `Money`                             | Whole units and the currency **symbol**, in one LTR island.                                  |
+| `money-input` — `MoneyInput`                  | Refuses a decimal separator as it is typed.                                                  |
+| `page-header` — `PageHeader`                  | A screen's title, subtitle, count and actions; registers the tab title.                      |
+| `person-name` — `PersonName`, `usePersonName` | A bilingual `{ ar, en }` name, resolved once instead of a ternary per screen.                |
+| `picker-open` — `usePickerOpen`               | The open/close gesture a picker needs: click, Enter, Space, ArrowDown — never focus.         |
+| `popover` — `Popover`                         | Anchors rather than triggers, and portals into a dialog when it is inside one.               |
+| `progress-bar` — `ProgressBar`                | A real `progressbar` with its numbers attached, so it reads as "3 of 8".                     |
+| `search-field` — `SearchField`                | The field shell as a search box, with a clear and an optional shortcut chip.                 |
+| `segmented-control` — `SegmentedControl`      | A radio group: exactly one of these, with arrow keys.                                        |
+| `select` — `Select`                           | Radix, not the platform: one control everywhere, and testable off the device.                |
+| `skeleton` — `Skeleton`, and the shapes       | The loading shapes, one sweep, flat under reduced motion.                                    |
+| `stat-card` — `StatCard`, `StatRow`           | A KPI: label chip, figure, optional delta and caption. Values arrive formatted.              |
+| `suggestion-chips` — `SuggestionChips`        | The openers on an empty conversation, so nobody faces a blank field.                         |
+| `switch` — `Switch`                           | A 44px target over a drawn track; the knob slides the right way in RTL.                      |
+| `table` — `Table`, `Pagination`               | Rows on a wide screen, cards on a phone, one column definition for both.                     |
+| `tabs` — `Tabs`, `TabPanel`, `useTabParam`    | Panels, and the hook that keeps the chosen one in the address bar.                           |
+| `textarea` — `Textarea`                       | The field's edge and fill, growing vertically only.                                          |
+| `time-picker` — `TimePicker`                  | A typed time that also anchors a list of slots.                                              |
+| `toast` — `ToastProvider`, `useToast`         | Both methods take an i18n key, never a ready-made string.                                    |
+| `tone` — `TONE_SURFACE`                       | A tone as a block rather than a pill, so a status is one colour in every view.               |
+| `widget` — `Widget`                           | The panel's smaller sibling for a side column.                                               |
 
 ## What the host must provide
 
 The library is not self-contained by design, and these are the seams:
 
 - **i18n.** Components call `useTranslation()` and expect keys under `common.*`, `pagination.*` and
-  `errors.validation.*` in both locales. `pnpm --filter @clinic/web check:i18n` scans this package
+  `errors.validation.*` in both locales. The chat primitives are the exception: their few words —
+  a placeholder, a send label, the jump pill — arrive as props, because they belong to the screen
+  that uses them rather than to the library's shared vocabulary. `pnpm --filter @clinic/web check:i18n` scans this package
   too, so an Arabic literal in here fails the build exactly as it would in a screen.
 - **A router.** `useTabParam` reads `useSearchParams`.
 - **`@clinic/shared`.** The one domain dependency: `Money`, `MoneyInput` and `PersonName` use its

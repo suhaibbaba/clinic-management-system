@@ -126,6 +126,35 @@ export async function apiRequest<TResult>(
   return parse<TResult>(response);
 }
 
+// A streamed response, kept apart from `apiRequest` because there is no body to parse and no
+// status to turn into a value: the caller reads frames off it. The refresh-once dance is the same,
+// and has to be — a long conversation outlives an access token.
+export async function apiStream(
+  path: string,
+  body: unknown,
+  signal?: AbortSignal,
+): Promise<Response> {
+  const options: RequestOptions = { method: "POST", body, ...(signal && { signal }) };
+  let response = await send(path, options);
+
+  if (response.status === 401) {
+    const refreshed = await refreshSession();
+
+    if (!refreshed) {
+      authTokens.notifySessionEnded();
+      throw new ApiError(401);
+    }
+
+    response = await send(path, options);
+  }
+
+  if (!response.ok) {
+    throw new ApiError(response.status, await response.json().catch(() => undefined));
+  }
+
+  return response;
+}
+
 export async function apiDownload(path: string, query?: RequestOptions["query"]): Promise<Blob> {
   const options: RequestOptions = query ? { query } : {};
   let response = await send(path, options);
