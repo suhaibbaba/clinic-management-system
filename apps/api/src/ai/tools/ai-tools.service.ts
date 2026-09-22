@@ -21,6 +21,7 @@ import { AppointmentsService } from "@api/appointments/appointments.service";
 import { LedgerService } from "@api/billing/ledger.service";
 import { OverdueService } from "@api/billing/overdue.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DoctorsService } from "@api/doctors/doctors.service";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, visits } from "@api/database/schema";
 import { InventoryReportsService } from "@api/inventory/inventory-reports.service";
@@ -68,6 +69,7 @@ export class AiToolsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly appointments: AppointmentsService,
+    private readonly doctors: DoctorsService,
     private readonly patients: PatientsService,
     private readonly timeline: TimelineService,
     private readonly ledger: LedgerService,
@@ -89,21 +91,31 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_APPOINTMENTS,
         description:
-          "List the clinic's appointments between two dates, newest first, optionally narrowed " +
-          "to one status. Dates are the clinic's own local dates and both ends are inclusive.",
+          "List appointments between two dates, newest first, optionally narrowed to one status " +
+          "and one doctor. Dates are the clinic's own local dates and both ends are inclusive. " +
+          'For "my appointments" pass the speaker\'s own doctor_id from the system prompt; omit ' +
+          "doctor_id only when the question is about the whole clinic.",
         capability: null,
         schema: z.object({
           date_from: dateSchema,
           date_to: dateSchema,
           status: z.enum(APPOINTMENT_STATUSES).optional(),
+          doctor_id: z.uuid().optional(),
         }),
         run: async (actor, args) => {
+          // Another clinic's doctor, or an id the model made up, is a not_found rather than an
+          // empty day that reads as "no appointments".
+          if (args.doctor_id) {
+            await this.doctors.findOne(actor, args.doctor_id);
+          }
+
           const page = await this.appointments.list(actor, {
             page: 1,
             limit: TOOL_ROW_LIMIT,
             from: args.date_from,
             to: args.date_to,
             ...(args.status && { status: args.status }),
+            ...(args.doctor_id && { doctorId: args.doctor_id }),
           });
 
           return capped(page.items.map(toAppointmentSummary), page.total);
@@ -114,7 +126,9 @@ export class AiToolsService {
         name: AI_TOOL.SEARCH_PATIENTS,
         description:
           "Find patients by name, file number or phone. Returns the file number, the name, a " +
-          "masked phone and the date of the last visit. Use it to turn a name into a patient id.",
+          "masked phone and the date of the last visit. Use it to turn a name into a patient id. " +
+          "When the user named a person and more than one row matches, ask which one, showing " +
+          "each file number — never pick one yourself.",
         capability: null,
         schema: z.object({ query: z.string().trim().min(2).max(120) }),
         run: async (actor, args) => {

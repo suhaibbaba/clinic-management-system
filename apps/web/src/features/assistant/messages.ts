@@ -15,9 +15,21 @@ const ERROR_KEYS: Record<AiErrorCode, string> = {
   [AI_ERROR_CODE.RATE_LIMITED]: "assistant.errors.rateLimited",
   [AI_ERROR_CODE.BUDGET_EXHAUSTED]: "assistant.errors.budgetExhausted",
   [AI_ERROR_CODE.PROVIDER_UNAVAILABLE]: "assistant.errors.providerUnavailable",
+  [AI_ERROR_CODE.PROVIDER_REJECTED]: "assistant.errors.providerRejected",
+  [AI_ERROR_CODE.PROVIDER_QUOTA]: "assistant.errors.providerQuota",
   [AI_ERROR_CODE.STEP_LIMIT]: "assistant.errors.stepLimit",
   [AI_ERROR_CODE.FAILED]: "assistant.errors.failed",
+  [AI_ERROR_CODE.CONNECTION_LOST]: "assistant.errors.connectionLost",
+  [AI_ERROR_CODE.OFFLINE]: "assistant.errors.offline",
 };
+
+/** Failures an admin fixes under the provider keys rather than by trying again. */
+const KEY_FAILURES: ReadonlySet<AiErrorCode> = new Set([
+  AI_ERROR_CODE.PROVIDER_REJECTED,
+  AI_ERROR_CODE.PROVIDER_QUOTA,
+]);
+
+export const isKeyFailure = (code: AiErrorCode): boolean => KEY_FAILURES.has(code);
 
 const TOOL_KEYS: Record<AiToolName, string> = {
   [AI_TOOL.GET_APPOINTMENTS]: "assistant.tools.appointments",

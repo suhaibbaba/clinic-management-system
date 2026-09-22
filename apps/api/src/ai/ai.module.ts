@@ -20,6 +20,7 @@ import { BillingModule } from "@api/billing/billing.module";
 import { AppConfigModule } from "@api/config/config.module";
 import type { Env } from "@api/config/env.schema";
 import { DatabaseModule } from "@api/database/database.module";
+import { DoctorsModule } from "@api/doctors/doctors.module";
 import { InventoryModule } from "@api/inventory/inventory.module";
 import { LabsModule } from "@api/labs/labs.module";
 import { NotificationsModule } from "@api/notifications/notifications.module";
@@ -36,6 +37,7 @@ import { SecretsModule } from "@api/secrets/secrets.module";
     AppConfigModule,
     PermissionsModule,
     AppointmentsModule,
+    DoctorsModule,
     PatientsModule,
     BillingModule,
     LabsModule,

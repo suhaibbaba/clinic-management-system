@@ -3,11 +3,12 @@ import {
   AI_OUTBOUND_TRIGGER,
   type AiMessage,
   type AiProposal,
+  type AiErrorCode,
   type AiProposalStatusEvent,
 } from "@clinic/shared";
 import { useCallback, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Button,
   ChatBubble,
@@ -22,7 +23,7 @@ import { assistantApi } from "@web/features/assistant/api";
 import { MarkdownMessage } from "@web/features/assistant/markdown-message";
 import { ProposalCard, SEND_CAPABILITY } from "@web/features/assistant/proposal-card";
 import { ConversationRail } from "@web/features/assistant/conversation-rail";
-import { errorMessageKey, toolStatusKey } from "@web/features/assistant/messages";
+import { errorMessageKey, isKeyFailure, toolStatusKey } from "@web/features/assistant/messages";
 import {
   applyProposalStatus,
   CONVERSATIONS_KEY,
@@ -32,12 +33,15 @@ import {
   useConversations,
   usePendingProposals,
 } from "@web/features/assistant/queries";
+import { canReachNavItem } from "@web/app/navigation";
 import { useSession } from "@web/features/auth/session";
 import { SUGGESTIONS } from "@web/features/assistant/suggestions";
 import { useAssistantStream } from "@web/features/assistant/use-assistant-stream";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { cn } from "@clinic/ui/lib/cn";
 import { useDocumentTitle } from "@clinic/ui/lib/page-title";
+
+const KEYS_SETTINGS = "/assistant/settings";
 
 export function AssistantPage(): JSX.Element {
   const { t } = useTranslation();
@@ -198,40 +202,28 @@ export function AssistantPage(): JSX.Element {
                 <ProposalCard key={proposal.id} id={proposal.id} initial={proposal} />
               ))}
 
-              <ChatBubble
-                author="assistant"
-                data-testid="assistant-live-answer"
-                tone={stream.turn.error ? "danger" : "default"}
-                streaming={stream.turn.streaming && stream.turn.answer.length > 0}
-                status={
-                  stream.turn.answer.length === 0 && !stream.turn.error
-                    ? ellipsis(
-                        stream.turn.tool
-                          ? t(toolStatusKey(stream.turn.tool))
-                          : t("assistant.thinking"),
-                      )
-                    : undefined
-                }
-                footer={
-                  stream.turn.error ? (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      icon={<Icon name="reset" />}
-                      data-testid="assistant-retry"
-                      onClick={stream.retry}
-                    >
-                      {t("common.retry")}
-                    </Button>
-                  ) : undefined
-                }
-              >
-                {stream.turn.error ? (
-                  <span>{t(errorMessageKey(stream.turn.error))}</span>
-                ) : stream.turn.answer.length > 0 ? (
-                  <MarkdownMessage content={stream.turn.answer} />
-                ) : undefined}
-              </ChatBubble>
+              {(stream.turn.error === null || stream.turn.answer.length > 0) && (
+                <ChatBubble
+                  author="assistant"
+                  data-testid="assistant-live-answer"
+                  streaming={stream.turn.streaming && stream.turn.answer.length > 0}
+                  status={
+                    stream.turn.answer.length === 0
+                      ? ellipsis(
+                          stream.turn.tool
+                            ? t(toolStatusKey(stream.turn.tool))
+                            : t("assistant.thinking"),
+                        )
+                      : undefined
+                  }
+                >
+                  {stream.turn.answer.length > 0 ? (
+                    <MarkdownMessage content={stream.turn.answer} />
+                  ) : undefined}
+                </ChatBubble>
+              )}
+
+              {stream.turn.error && <TurnError code={stream.turn.error} onRetry={stream.retry} />}
             </>
           )}
         </ChatThread>
@@ -262,6 +254,47 @@ export function AssistantPage(): JSX.Element {
         </div>
       </section>
     </div>
+  );
+}
+
+// Never silent: the code's own words, a retry, and for a key the clinic has to fix, the way there
+// for whoever may follow it.
+function TurnError({ code, onRetry }: { code: AiErrorCode; onRetry: () => void }): JSX.Element {
+  const { t } = useTranslation();
+  const { user } = useSession();
+  const toKeys = isKeyFailure(code) && canReachNavItem(KEYS_SETTINGS, user?.role);
+
+  return (
+    <ChatBubble
+      author="assistant"
+      tone="danger"
+      data-testid="assistant-turn-error"
+      data-code={code}
+      footer={
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<Icon name="reset" />}
+            data-testid="assistant-retry"
+            onClick={onRetry}
+          >
+            {t("common.retry")}
+          </Button>
+          {toKeys && (
+            <Link
+              to={`${KEYS_SETTINGS}?tab=keys`}
+              data-testid="assistant-check-keys"
+              className="text-label font-medium text-primary-600 hover:underline"
+            >
+              {t("assistant.checkKeys")}
+            </Link>
+          )}
+        </div>
+      }
+    >
+      <span role="alert">{t(errorMessageKey(code))}</span>
+    </ChatBubble>
   );
 }
 

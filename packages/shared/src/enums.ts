@@ -536,14 +536,19 @@ export const AI_STREAM_EVENTS = [
   AI_STREAM_EVENT.PROPOSAL_STATUS,
 ] as const;
 
-// Codes, never sentences: the stream carries one of these and the web writes the Arabic. A provider
-// failure is `provider_unavailable` whatever it actually said.
+// Codes, never sentences: the stream carries one of these and the web writes the Arabic. The last
+// two are the page's own: a stream that closed without a terminal frame, and no network at all.
 export const AI_ERROR_CODE = {
   RATE_LIMITED: "rate_limited",
   BUDGET_EXHAUSTED: "budget_exhausted",
   PROVIDER_UNAVAILABLE: "provider_unavailable",
+  /** The provider refused the key (401/403): an admin has to fix it, a retry will not. */
+  PROVIDER_REJECTED: "provider_rejected",
+  PROVIDER_QUOTA: "provider_quota",
   STEP_LIMIT: "step_limit",
   FAILED: "failed",
+  CONNECTION_LOST: "connection_lost",
+  OFFLINE: "offline",
 } as const satisfies Record<string, string>;
 export type AiErrorCode = EnumValue<typeof AI_ERROR_CODE>;
 
@@ -551,8 +556,12 @@ export const AI_ERROR_CODES = [
   AI_ERROR_CODE.RATE_LIMITED,
   AI_ERROR_CODE.BUDGET_EXHAUSTED,
   AI_ERROR_CODE.PROVIDER_UNAVAILABLE,
+  AI_ERROR_CODE.PROVIDER_REJECTED,
+  AI_ERROR_CODE.PROVIDER_QUOTA,
   AI_ERROR_CODE.STEP_LIMIT,
   AI_ERROR_CODE.FAILED,
+  AI_ERROR_CODE.CONNECTION_LOST,
+  AI_ERROR_CODE.OFFLINE,
 ] as const;
 
 // What a tool answers with when it will not run. The model reads these as data and explains itself

@@ -11,7 +11,7 @@ import {
 } from "@clinic/shared";
 import type { ConfigService } from "@nestjs/config";
 import { AgentService } from "@api/ai/agent.service";
-import { SYSTEM_PROMPT_VERSION } from "@api/ai/system-prompt";
+import { SYSTEM_PROMPT_VERSION, systemPrompt } from "@api/ai/system-prompt";
 import type { AiConversationsService } from "@api/ai/ai-conversations.service";
 import type { ChatProviderResolver } from "@api/ai/chat-provider.resolver";
 import {
@@ -24,6 +24,7 @@ import {
 import type { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import type { Database } from "@api/database/database.module";
+import { clinics, doctors, users } from "@api/database/schema";
 import type { Env } from "@api/config/env.schema";
 
 const ACTOR: AuthenticatedUser = {
@@ -72,7 +73,13 @@ function scripted(scripts: ChatChunk[][]): {
 
 function harness(
   provider: ChatProvider,
-  options: { maxSteps?: number; toolContent?: string; proposal?: AiProposal } = {},
+  options: {
+    maxSteps?: number;
+    toolContent?: string;
+    proposal?: AiProposal;
+    toolThrows?: boolean;
+    doctorId?: string | null;
+  } = {},
 ): {
   agent: AgentService;
   appended: AppendedMessage[];
@@ -97,6 +104,10 @@ function harness(
     run: (actor: AuthenticatedUser, _conversationId: string, call: ChatToolCall) => {
       toolRuns.push({ actor, call });
 
+      if (options.toolThrows) {
+        return Promise.reject(new Error("relation ai_audit_log does not exist"));
+      }
+
       return Promise.resolve({
         name: call.name,
         content: options.toolContent ?? '{"tool":"x","untrusted_clinic_data":true,"result":[]}',
@@ -114,13 +125,16 @@ function harness(
     get: (key: keyof Env) => settings[key],
   } as unknown as ConfigService<Env, true>;
 
-  // The only thing the agent reads directly: the clinic's name and time zone for the prompt.
+  // The agent reads three rows directly, for the prompt: the clinic, the speaker, their doctor row.
+  const rows = new Map<unknown, unknown[]>([
+    [clinics, [{ nameAr: "عيادة", nameEn: "Clinic", settings: {} }]],
+    [users, [{ nameAr: "سارة", nameEn: "Sara" }]],
+    [doctors, options.doctorId ? [{ id: options.doctorId }] : []],
+  ]);
   const db = {
     select: () => ({
-      from: () => ({
-        where: () => ({
-          limit: () => Promise.resolve([{ nameAr: "عيادة", nameEn: "Clinic", settings: {} }]),
-        }),
+      from: (table: unknown) => ({
+        where: () => ({ limit: () => Promise.resolve(rows.get(table) ?? []) }),
       }),
     }),
   } as unknown as Database;
@@ -300,4 +314,150 @@ describe("the agent loop", () => {
     );
     expect(JSON.stringify(requests[1]?.messages)).not.toContain("مرحباً سمير");
   });
+
+  // Every way out of a turn is a terminal frame: the page reports a stream that closes without one
+  // as a lost connection.
+  describe("ends every turn in a terminal frame", () => {
+    const call: ChatToolCall = { id: "call_1", name: AI_TOOL.GET_LOW_STOCK_ITEMS, arguments: "{}" };
+    const terminal = [AI_STREAM_EVENT.DONE, AI_STREAM_EVENT.ERROR] as const;
+
+    const failing = (error: Error): ChatProvider => ({
+      name: "broken",
+      // eslint-disable-next-line require-yield
+      async *stream(): AsyncIterable<ChatChunk> {
+        throw error;
+      },
+    });
+
+    it.each([
+      ["the provider fails", () => harness(failing(new ChatProviderError(new Error("x"))))],
+      ["the provider throws something else", () => harness(failing(new TypeError("x")))],
+      [
+        "a tool throws",
+        () => harness(scripted([[completed("", [call])]]).provider, { toolThrows: true }),
+      ],
+      [
+        "the step limit is reached",
+        () => harness(scripted([[completed("", [call])]]).provider, { maxSteps: 1 }),
+      ],
+      ["the model answers", () => harness(scripted([[completed("تمام")]]).provider)],
+    ])("when %s", async (_path, build) => {
+      const events = await collect(build().agent);
+      const ends = events.filter((event) => (terminal as readonly string[]).includes(event.type));
+
+      expect(ends).toHaveLength(1);
+      expect(events.at(-1)).toBe(ends[0]);
+    });
+  });
+
+  // An admin should be told to check the key rather than to try again.
+  it.each([AI_ERROR_CODE.PROVIDER_REJECTED, AI_ERROR_CODE.PROVIDER_QUOTA] as const)(
+    "passes the provider failure's kind on as %s",
+    async (code) => {
+      const provider: ChatProvider = {
+        name: "broken",
+        // eslint-disable-next-line require-yield
+        async *stream(): AsyncIterable<ChatChunk> {
+          throw new ChatProviderError(new Error("x"), code);
+        },
+      };
+
+      const events = await collect(harness(provider).agent);
+
+      expect(events.at(-1)).toEqual({ type: AI_STREAM_EVENT.ERROR, code });
+    },
+  );
 });
+
+describe("who the assistant is speaking to", () => {
+  const DOCTOR_ID = "66666666-6666-4666-8666-666666666666";
+
+  it("names the speaker's doctor row when their user is linked to one", async () => {
+    const { agent } = harness(scripted([]).provider, { doctorId: DOCTOR_ID });
+
+    await expect(agent.context(ACTOR)).resolves.toMatchObject({
+      user: { name: { ar: "سارة", en: "Sara" }, role: USER_ROLE.DOCTOR },
+      doctor: { id: DOCTOR_ID, name: { ar: "سارة", en: "Sara" } },
+    });
+  });
+
+  it("has no doctor for a speaker who is not one", async () => {
+    const { agent } = harness(scripted([]).provider, { doctorId: null });
+
+    await expect(agent.context({ ...ACTOR, role: USER_ROLE.ADMIN })).resolves.toMatchObject({
+      user: { role: USER_ROLE.ADMIN },
+      doctor: null,
+    });
+  });
+
+  // The system prompt is the first message, and it carries the doctor's id, so "my appointments"
+  // has an id to pass that came from the server rather than from the model.
+  it("tells the model the speaker's doctor_id", async () => {
+    const { provider, requests } = scripted([[completed("تمام")]]);
+    const { agent } = harness(provider, { doctorId: DOCTOR_ID });
+
+    await collect(agent, "مواعيدي اليوم");
+
+    expect(requests[0]?.messages[0]?.content).toContain(`doctor_id ${DOCTOR_ID}`);
+  });
+});
+
+describe("the system prompt", () => {
+  const base = {
+    clinicName: { ar: "عيادة النور", en: "Al Noor Clinic" },
+    today: "2026-09-22",
+  } as const;
+
+  it("reads for a doctor", () => {
+    expect(
+      actorLines(
+        systemPrompt({
+          ...base,
+          user: { name: { ar: "سارة", en: "Sara" }, role: USER_ROLE.DOCTOR },
+          doctor: { id: "66666666-6666-4666-8666-666666666666", name: { ar: "سارة", en: "Sara" } },
+        }),
+      ),
+    ).toMatchInlineSnapshot(`
+      "The clinic is عيادة النور (Al Noor Clinic). Today is 2026-09-22 in its own time zone.
+      You are speaking to سارة (Sara), whose role is "doctor".
+      They are the doctor "سارة (Sara)" (doctor_id 66666666-6666-4666-8666-666666666666)."
+    `);
+  });
+
+  it("reads for an admin who is not a doctor", () => {
+    expect(
+      actorLines(
+        systemPrompt({
+          ...base,
+          user: { name: { ar: "منى", en: "Mona" }, role: USER_ROLE.ADMIN },
+          doctor: null,
+        }),
+      ),
+    ).toMatchInlineSnapshot(`
+      "The clinic is عيادة النور (Al Noor Clinic). Today is 2026-09-22 in its own time zone.
+      You are speaking to منى (Mona), whose role is "admin".
+      They are not a doctor: they have no appointments, patients or schedule of their own."
+    `);
+  });
+
+  // The provider caches the longest identical prefix; the speaker goes last so that is all of it.
+  it("keeps everything before the speaker identical for every speaker", () => {
+    const doctor = systemPrompt({
+      ...base,
+      user: { name: { ar: "سارة", en: "Sara" }, role: USER_ROLE.DOCTOR },
+      doctor: { id: "66666666-6666-4666-8666-666666666666", name: { ar: "سارة", en: "Sara" } },
+    });
+    const admin = systemPrompt({
+      ...base,
+      user: { name: { ar: "منى", en: "Mona" }, role: USER_ROLE.ADMIN },
+      doctor: null,
+    });
+    const prefix = (prompt: string) => prompt.slice(0, prompt.indexOf("The clinic is"));
+
+    expect(prefix(doctor)).toBe(prefix(admin));
+    expect(prefix(doctor).length).toBeGreaterThan(1000);
+  });
+});
+
+/** The part of the prompt that changes per speaker, which is what the snapshots are about. */
+const actorLines = (prompt: string): string => prompt.slice(prompt.indexOf("The clinic is"));

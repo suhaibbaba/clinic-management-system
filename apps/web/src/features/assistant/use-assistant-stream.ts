@@ -44,6 +44,9 @@ export interface AssistantStreamOptions {
   readonly onProposalStatus?: ((event: AiProposalStatusEvent) => void) | undefined;
 }
 
+/** Three missed heartbeats: the server pings every 15 s while a turn runs. */
+export const AI_STREAM_IDLE_MS = 45_000;
+
 const FRAME_SEPARATOR = "\n\n";
 const DATA_PREFIX = "data: ";
 
@@ -114,6 +117,7 @@ export function useAssistantStream({
   const [turn, setTurn] = useState<LiveTurn | null>(null);
   const inFlight = useRef<AbortController | null>(null);
   const lastQuestion = useRef<string>("");
+  const stopped = useRef(false);
 
   // The conversation in hand may be the one this turn just created, so the id is tracked here
   // rather than read from a prop that has not re-rendered yet.
@@ -143,9 +147,48 @@ export function useAssistantStream({
       const controller = new AbortController();
       inFlight.current = controller;
       lastQuestion.current = message;
+      stopped.current = false;
       setTurn(idle(message));
 
+      const fail = (code: AiErrorCode): void => {
+        // A turn another one replaced has nothing left on screen to mark.
+        if (inFlight.current !== null && inFlight.current !== controller) {
+          return;
+        }
+
+        setTurn((current) =>
+          current ? { ...current, tool: null, error: code, streaming: false } : current,
+        );
+      };
+
+      if (!navigator.onLine) {
+        inFlight.current = null;
+        fail(AI_ERROR_CODE.OFFLINE);
+
+        return;
+      }
+
       let opened = activeConversation.current;
+      // Why the fetch was aborted when the user did not press stop: the watchdog, or the network.
+      let lost: AiErrorCode | null = null;
+      let watchdog: ReturnType<typeof setTimeout> | undefined;
+      let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+
+      // The reader is cancelled as well: a read already waiting is not always released by the
+      // abort alone, and a stalled line is exactly when nothing else would release it.
+      const abortAs = (code: AiErrorCode): void => {
+        lost ??= code;
+        controller.abort();
+        void reader?.cancel().catch(() => undefined);
+      };
+      const feed = (): void => {
+        clearTimeout(watchdog);
+        watchdog = setTimeout(() => abortAs(AI_ERROR_CODE.CONNECTION_LOST), AI_STREAM_IDLE_MS);
+      };
+      const onOffline = (): void => abortAs(AI_ERROR_CODE.OFFLINE);
+
+      window.addEventListener("offline", onOffline);
+      feed();
 
       try {
         const response = await assistantApi.chat(
@@ -153,7 +196,7 @@ export function useAssistantStream({
           controller.signal,
         );
 
-        const reader = response.body?.getReader();
+        reader = response.body?.getReader();
 
         if (!reader) {
           throw new Error("The assistant answered with no body");
@@ -162,6 +205,9 @@ export function useAssistantStream({
         const decoder = new TextDecoder();
         let buffer = "";
         let failed: AiErrorCode | null = null;
+        // A turn ends in `done` or `error`. A body that closes on neither was cut off — the API
+        // died, a proxy timed out — and saying nothing would pass half an answer off as whole.
+        let terminal = false;
 
         for (;;) {
           const { done, value } = await reader.read();
@@ -170,6 +216,7 @@ export function useAssistantStream({
             break;
           }
 
+          feed();
           buffer += decoder.decode(value, { stream: true });
 
           const { events, rest } = parseFrames(buffer);
@@ -196,6 +243,7 @@ export function useAssistantStream({
                 break;
 
               case AI_STREAM_EVENT.ERROR:
+                terminal = true;
                 failed = event.code;
                 break;
 
@@ -216,15 +264,18 @@ export function useAssistantStream({
                 break;
 
               case AI_STREAM_EVENT.DONE:
+                terminal = true;
                 break;
             }
           }
         }
 
+        if (!terminal) {
+          failed = lost ?? AI_ERROR_CODE.CONNECTION_LOST;
+        }
+
         if (failed) {
-          setTurn((current) =>
-            current ? { ...current, tool: null, error: failed, streaming: false } : current,
-          );
+          fail(failed);
 
           return;
         }
@@ -237,7 +288,7 @@ export function useAssistantStream({
 
         setTurn(null);
       } catch (error) {
-        if (controller.signal.aborted) {
+        if (stopped.current) {
           // Stopped on purpose. The question was recorded; the half-written answer was not, so the
           // stored thread is what the reader is left with.
           if (opened !== undefined) {
@@ -249,12 +300,21 @@ export function useAssistantStream({
           return;
         }
 
-        const code = codeFromError(error);
+        // Replaced by a newer turn, or the page went away: nobody is waiting on this one.
+        if (controller.signal.aborted && lost === null) {
+          return;
+        }
 
-        setTurn((current) =>
-          current ? { ...current, tool: null, error: code, streaming: false } : current,
+        // What was streamed stays on screen under the error: hiding it is worse than showing half.
+        // A refusal with a status carries its code; a read that died mid-body is a lost line.
+        fail(
+          lost ??
+            (error instanceof ApiError ? codeFromError(error) : AI_ERROR_CODE.CONNECTION_LOST),
         );
       } finally {
+        clearTimeout(watchdog);
+        window.removeEventListener("offline", onOffline);
+
         if (inFlight.current === controller) {
           inFlight.current = null;
         }
@@ -270,7 +330,9 @@ export function useAssistantStream({
     [run],
   );
 
+  // Flagged before the abort, so the user's own stop is never reported as a lost connection.
   const stop = useCallback(() => {
+    stopped.current = true;
     inFlight.current?.abort();
   }, []);
 

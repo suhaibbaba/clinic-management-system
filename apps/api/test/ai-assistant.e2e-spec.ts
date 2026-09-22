@@ -5,8 +5,11 @@ import {
   type AiStreamEvent,
   type UserRole,
 } from "@clinic/shared";
+import { AgentService } from "@api/ai/agent.service";
+import { AiConversationsService } from "@api/ai/ai-conversations.service";
 import { AiToolsService } from "@api/ai/tools/ai-tools.service";
 import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
+import { doctors } from "@api/database/schema";
 import { PermissionsService } from "@api/permissions/permissions.service";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -131,6 +134,71 @@ describe("Clinic assistant (e2e)", () => {
         true,
         clinic.userIds[USER_ROLE.ADMIN],
       );
+    });
+  });
+
+  // From the database, never the request: an admin asking for "my appointments" must not be
+  // answered with the clinic's whole day.
+  describe("who is asking", () => {
+    let doctorId: string;
+
+    beforeAll(async () => {
+      const [doctor] = await context.db
+        .insert(doctors)
+        .values({
+          clinicId: clinic.id,
+          userId: clinic.userIds[USER_ROLE.DOCTOR],
+          specialtyId: clinic.specialtyId,
+        })
+        .returning({ id: doctors.id });
+
+      doctorId = doctor?.id ?? "";
+    });
+
+    const actor = (role: UserRole) => ({ id: clinic.userIds[role], clinicId: clinic.id, role });
+
+    it("links a doctor's account to their doctor row", async () => {
+      const resolved = await context.app.get(AgentService).context(actor(USER_ROLE.DOCTOR));
+
+      expect(resolved.doctor?.id).toBe(doctorId);
+    });
+
+    it("has no doctor for an admin who is not one", async () => {
+      const resolved = await context.app.get(AgentService).context(actor(USER_ROLE.ADMIN));
+
+      expect(resolved.doctor).toBeNull();
+    });
+
+    it("answers not_found for a doctor_id from another clinic, rather than an empty day", async () => {
+      const other = await context.createClinic();
+      const [foreign] = await context.db
+        .insert(doctors)
+        .values({
+          clinicId: other.id,
+          userId: other.userIds[USER_ROLE.DOCTOR],
+          specialtyId: other.specialtyId,
+        })
+        .returning({ id: doctors.id });
+
+      const admin = actor(USER_ROLE.ADMIN);
+      const conversation = await context.app.get(AiConversationsService).start(admin, "مواعيد");
+      const run = (id: string) =>
+        context.app.get(ToolRunnerService).run(admin, conversation.id, {
+          id: "call_1",
+          name: AI_TOOL.GET_APPOINTMENTS,
+          arguments: JSON.stringify({
+            date_from: "2026-09-22",
+            date_to: "2026-09-22",
+            doctor_id: id,
+          }),
+        });
+
+      expect(JSON.parse((await run(foreign?.id ?? "")).content)).toMatchObject({
+        error: "not_found",
+      });
+      expect(JSON.parse((await run(doctorId)).content)).toMatchObject({
+        result: { items: [], truncated: false },
+      });
     });
   });
 

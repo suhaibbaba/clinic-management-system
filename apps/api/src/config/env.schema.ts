@@ -115,7 +115,15 @@ export const envSchema = z.object({
   // machine with no account at all — the same shape as the notification and email providers.
   AI_PROVIDER: z.enum(["log", "openai"]).default("log"),
   OPENAI_API_KEY: z.string().optional(),
-  AI_MODEL: z.string().min(1).default("gpt-4o-mini"),
+  AI_MODEL: z.string().min(1).default("gpt-5.6-luna"),
+  // Chat Completions rejects function tools with any effort but `none` (GPT-5.4 on). The other
+  // values are declared for the Responses API, and refused below until the provider moves there.
+  AI_REASONING_EFFORT: z
+    .enum(["none", "low", "medium"])
+    .default("none")
+    .refine((value) => value === "none", {
+      message: "Only `none` works with tools on Chat Completions",
+    }),
   /** Ceiling on one answer. A question wants a paragraph, not an essay. */
   AI_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(64).max(4_096).default(800),
   AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).default(30_000),

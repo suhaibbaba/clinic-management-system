@@ -1659,8 +1659,12 @@
       "rateLimited": "Too many questions too quickly. Try again shortly.",
       "budgetExhausted": "The clinic's assistant allowance for today is used up. It returns tomorrow.",
       "providerUnavailable": "The assistant could not be reached. Try again.",
+      "providerRejected": "The service key was rejected — check the settings",
+      "providerQuota": "The service quota has been exceeded",
       "stepLimit": "I could not get to an answer. Try asking more directly.",
-      "failed": "Something unexpected went wrong. Try again."
+      "failed": "Something unexpected went wrong. Try again.",
+      "connectionLost": "The connection dropped before the answer was complete",
+      "offline": "No internet connection"
     },
     "outboundErrors": {
       "expired": "This draft has expired. Ask the assistant to prepare it again.",
@@ -1692,7 +1696,8 @@
       "cancel": "Cancel",
       "expiresAt": "Expires at {{time}}",
       "sentSummary": "{{sent}} sent, {{failed}} failed"
-    }
+    },
+    "checkKeys": "Review the provider keys"
   },
   "assistantSettings": {
     "title": "Assistant settings",
