@@ -74,7 +74,9 @@ export class OpenAiChatProvider implements ChatProvider {
     } catch (error) {
       // The provider's own words stay in the log: they quote the prompt back, which here is
       // patient data.
-      this.logger.error(`OpenAI request failed: ${describe(error)}`);
+      this.logger.error(
+        `OpenAI request failed (model ${this.config.get("AI_MODEL", { infer: true })}): ${describe(error)}`,
+      );
       throw new ChatProviderError(error);
     }
 
@@ -137,5 +139,19 @@ const toOpenAiTool = (tool: ChatRequest["tools"][number]): OpenAiTool => ({
   },
 });
 
-const describe = (error: unknown): string =>
-  error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+// Status, type and code name the failure — a rejected key, an unknown model, an exhausted quota —
+// which the message alone does not always do.
+function describe(error: unknown): string {
+  if (error instanceof OpenAI.APIError) {
+    const detail = [
+      `status=${error.status ?? "none"}`,
+      `type=${error.type ?? "none"}`,
+      `code=${error.code ?? "none"}`,
+      ...(error.param ? [`param=${error.param}`] : []),
+    ].join(" ");
+
+    return `${error.name} (${detail}): ${error.message}`;
+  }
+
+  return error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+}
