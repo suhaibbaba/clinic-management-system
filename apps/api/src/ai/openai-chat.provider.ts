@@ -31,12 +31,14 @@ export class OpenAiChatProvider implements ChatProvider {
   constructor(private readonly config: ConfigService<Env, true>) {}
 
   async *stream(request: ChatRequest): AsyncIterable<ChatChunk> {
-    const client = this.openai();
     const text: string[] = [];
     const calls = new Map<number, PartialToolCall>();
     let usage = { inputTokens: 0, outputTokens: 0 };
 
     try {
+      // Inside the try: an unconfigured key is the likeliest failure of all, and thrown from
+      // outside it reached the user as `provider_unavailable` having logged nothing at all.
+      const client = this.openai();
       const stream = await client.chat.completions.create({
         model: this.config.get("AI_MODEL", { infer: true }),
         max_completion_tokens: this.config.get("AI_MAX_OUTPUT_TOKENS", { infer: true }),
@@ -93,7 +95,7 @@ export class OpenAiChatProvider implements ChatProvider {
       const apiKey = this.config.get("OPENAI_API_KEY", { infer: true });
 
       if (!apiKey) {
-        throw new ChatProviderError(new Error("OPENAI_API_KEY is not configured"));
+        throw new Error("OPENAI_API_KEY is not configured");
       }
 
       this.client = new OpenAI({
