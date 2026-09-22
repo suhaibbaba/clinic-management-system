@@ -1653,7 +1653,14 @@
       "financialSummary": "Preparing the financial summary",
       "labOrders": "Checking the lab orders",
       "lowStock": "Checking what is low",
-      "draftMessage": "Drafting the messages"
+      "draftMessage": "Drafting the messages",
+      "appointmentStatus": "Updating the appointment",
+      "patientNote": "Adding the note",
+      "createAppointment": "Preparing the booking",
+      "rescheduleAppointment": "Preparing the reschedule",
+      "cancelAppointments": "Preparing the cancellation",
+      "createPatient": "Preparing the patient file",
+      "recordPayment": "Preparing the payment"
     },
     "errors": {
       "rateLimited": "Too many questions too quickly. Try again shortly.",
@@ -1697,13 +1704,80 @@
       "expiresAt": "Expires at {{time}}",
       "sentSummary": "{{sent}} sent, {{failed}} failed"
     },
-    "checkKeys": "Review the provider keys"
+    "checkKeys": "Review the provider keys",
+    "action": {
+      "kinds": {
+        "appointment_create": "Book an appointment",
+        "appointment_update": "Reschedule an appointment",
+        "appointment_status": "Change an appointment's status",
+        "appointment_cancel": "Cancel appointments",
+        "patient_create": "Add a patient",
+        "patient_note": "Add a note to the patient",
+        "payment_create": "Record a payment",
+        "message": "Message to patients"
+      },
+      "tiers": {
+        "auto": "Automatic",
+        "confirm": "Needs confirmation",
+        "typed": "Typed confirmation"
+      },
+      "status": {
+        "draft": "Awaiting confirmation",
+        "sending": "Running",
+        "sent": "Sent",
+        "done": "Done",
+        "failed": "Not done",
+        "cancelled": "Cancelled",
+        "expired": "Expired"
+      },
+      "fields": {
+        "patient": "Patient",
+        "phone": "Phone",
+        "doctor": "Doctor",
+        "when": "When",
+        "from": "From",
+        "to": "To",
+        "status": "New status",
+        "amount": "Amount",
+        "method": "Payment method",
+        "reason": "Reason",
+        "note": "Note",
+        "appointments_one": "One appointment",
+        "appointments_other": "{{count}} appointments"
+      },
+      "typeToConfirm": "Type \"{{phrase}}\" to confirm",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "open": "Open",
+      "done": {
+        "appointment_create": "The appointment is booked.",
+        "appointment_update": "The appointment was moved.",
+        "appointment_status": "The appointment's status changed.",
+        "appointment_cancel": "The appointments were cancelled.",
+        "patient_create": "The patient was added.",
+        "patient_note": "The note was added.",
+        "payment_create": "The payment was recorded.",
+        "message": "The message was sent."
+      },
+      "redraft": "Prepare the request again"
+    },
+    "actionErrors": {
+      "phraseMismatch": "The typed phrase does not match.",
+      "notPermitted": "You are not permitted to do this.",
+      "disabled": "The clinic switched this action off in the assistant settings.",
+      "slotTaken": "That time is taken. Ask the assistant for another.",
+      "invalidTransition": "The record changed and this is no longer possible.",
+      "notFound": "The record no longer exists.",
+      "duplicate": "A patient with this phone is already registered.",
+      "failed": "The action could not be completed."
+    }
   },
   "assistantSettings": {
     "title": "Assistant settings",
     "subtitle": "Automatic patient messages, sending limits and the log of what was sent",
     "tabs": {
       "rules": "Daily follow-up",
+      "actions": "Assistant actions",
       "outbound": "Message log",
       "keys": "Provider keys"
     },
@@ -1779,6 +1853,22 @@
         "whatsapp_phone_number_id": "Phone number ID",
         "whatsapp_template_name": "Template name"
       }
+    },
+    "actions": {
+      "tier": "Minimum confirmation",
+      "tools": {
+        "set_appointment_status": "Change an appointment's status",
+        "add_patient_note": "Add a note to a patient",
+        "create_appointment": "Book an appointment",
+        "reschedule_appointment": "Reschedule an appointment",
+        "cancel_appointments": "Cancel appointments",
+        "create_patient": "Add a patient",
+        "record_payment": "Record a payment"
+      },
+      "paymentTypedAbove": "Typed confirmation for payments from",
+      "paymentTypedAboveHint": "A payment of this amount or more needs the confirmation phrase typed.",
+      "cancelTypedAbove": "Typed confirmation to cancel more than",
+      "cancelTypedAboveHint": "Cancelling more appointments than this at once needs the confirmation phrase typed."
     }
   }
 }

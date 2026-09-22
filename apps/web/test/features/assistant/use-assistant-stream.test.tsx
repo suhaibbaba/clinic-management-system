@@ -2,6 +2,7 @@ import {
   AI_ERROR_CODE,
   AI_OUTBOUND_TARGET,
   AI_OUTBOUND_TRIGGER,
+  AI_PROPOSAL_KIND,
   AI_PROPOSAL_STATUS,
   AI_STREAM_EVENT,
   AI_TOOL,
@@ -235,6 +236,7 @@ describe("A turn", () => {
 describe("A turn that drafts a message", () => {
   const proposal: AiProposal = {
     id: "9a1d2f2e-2222-4222-8222-222222222222",
+    kind: AI_PROPOSAL_KIND.MESSAGE,
     status: AI_PROPOSAL_STATUS.DRAFT,
     trigger: AI_OUTBOUND_TRIGGER.COMMAND,
     target: AI_OUTBOUND_TARGET.UNPAID_INVOICES,
@@ -249,6 +251,11 @@ describe("A turn that drafts a message", () => {
     sentAt: null,
     sentCount: 0,
     failedCount: 0,
+    tier: null,
+    typedPhrase: null,
+    summary: null,
+    result: null,
+    error: null,
   };
 
   it("holds the proposal for its card and hands it to the page's cache", async () => {

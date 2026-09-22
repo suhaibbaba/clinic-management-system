@@ -498,6 +498,13 @@ export const AI_TOOL = {
   GET_OVERDUE_LAB_ORDERS: "get_overdue_lab_orders",
   GET_LOW_STOCK_ITEMS: "get_low_stock_items",
   DRAFT_BULK_MESSAGE: "draft_bulk_message",
+  SET_APPOINTMENT_STATUS: "set_appointment_status",
+  ADD_PATIENT_NOTE: "add_patient_note",
+  CREATE_APPOINTMENT: "create_appointment",
+  RESCHEDULE_APPOINTMENT: "reschedule_appointment",
+  CANCEL_APPOINTMENTS: "cancel_appointments",
+  CREATE_PATIENT: "create_patient",
+  RECORD_PAYMENT: "record_payment",
 } as const satisfies Record<string, string>;
 export type AiToolName = EnumValue<typeof AI_TOOL>;
 
@@ -510,6 +517,100 @@ export const AI_TOOL_NAMES = [
   AI_TOOL.GET_OVERDUE_LAB_ORDERS,
   AI_TOOL.GET_LOW_STOCK_ITEMS,
   AI_TOOL.DRAFT_BULK_MESSAGE,
+  AI_TOOL.SET_APPOINTMENT_STATUS,
+  AI_TOOL.ADD_PATIENT_NOTE,
+  AI_TOOL.CREATE_APPOINTMENT,
+  AI_TOOL.RESCHEDULE_APPOINTMENT,
+  AI_TOOL.CANCEL_APPOINTMENTS,
+  AI_TOOL.CREATE_PATIENT,
+  AI_TOOL.RECORD_PAYMENT,
+] as const;
+
+/** The tools that change something. Each one a clinic may switch off or tighten. */
+export const AI_ACTION_TOOLS = [
+  AI_TOOL.SET_APPOINTMENT_STATUS,
+  AI_TOOL.ADD_PATIENT_NOTE,
+  AI_TOOL.CREATE_APPOINTMENT,
+  AI_TOOL.RESCHEDULE_APPOINTMENT,
+  AI_TOOL.CANCEL_APPOINTMENTS,
+  AI_TOOL.CREATE_PATIENT,
+  AI_TOOL.RECORD_PAYMENT,
+] as const;
+export type AiActionTool = (typeof AI_ACTION_TOOLS)[number];
+
+// How much a person must do before an action runs. Ordered: a tier is only ever raised, by the
+// clinic or by what the call turned out to touch, never lowered.
+export const AI_RISK_TIER = {
+  AUTO: "auto",
+  CONFIRM: "confirm",
+  TYPED: "typed",
+} as const satisfies Record<string, string>;
+export type AiRiskTier = EnumValue<typeof AI_RISK_TIER>;
+
+export const AI_RISK_TIERS = [AI_RISK_TIER.AUTO, AI_RISK_TIER.CONFIRM, AI_RISK_TIER.TYPED] as const;
+
+/** The stricter of two tiers. */
+export const maxRiskTier = (...tiers: readonly AiRiskTier[]): AiRiskTier =>
+  tiers.reduce<AiRiskTier>(
+    (strictest, tier) =>
+      AI_RISK_TIERS.indexOf(tier) > AI_RISK_TIERS.indexOf(strictest) ? tier : strictest,
+    AI_RISK_TIER.AUTO,
+  );
+
+/**
+ * The tier the code gives each action — the floor a clinic's settings can only raise, and what the
+ * API runs against. A call can raise it further (`cancel_appointments` of several, a large payment).
+ */
+export const AI_ACTION_BASE_TIER: Record<AiActionTool, AiRiskTier> = {
+  [AI_TOOL.SET_APPOINTMENT_STATUS]: AI_RISK_TIER.AUTO,
+  [AI_TOOL.ADD_PATIENT_NOTE]: AI_RISK_TIER.AUTO,
+  [AI_TOOL.CREATE_APPOINTMENT]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.RESCHEDULE_APPOINTMENT]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.CANCEL_APPOINTMENTS]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.CREATE_PATIENT]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.RECORD_PAYMENT]: AI_RISK_TIER.CONFIRM,
+};
+
+/** What a pending proposal will do once a person confirms it. */
+export const AI_PROPOSAL_KIND = {
+  MESSAGE: "message",
+  APPOINTMENT_CREATE: "appointment_create",
+  APPOINTMENT_UPDATE: "appointment_update",
+  APPOINTMENT_STATUS: "appointment_status",
+  APPOINTMENT_CANCEL: "appointment_cancel",
+  PATIENT_CREATE: "patient_create",
+  PATIENT_NOTE: "patient_note",
+  PAYMENT_CREATE: "payment_create",
+} as const satisfies Record<string, string>;
+export type AiProposalKind = EnumValue<typeof AI_PROPOSAL_KIND>;
+
+export const AI_PROPOSAL_KINDS = [
+  AI_PROPOSAL_KIND.MESSAGE,
+  AI_PROPOSAL_KIND.APPOINTMENT_CREATE,
+  AI_PROPOSAL_KIND.APPOINTMENT_UPDATE,
+  AI_PROPOSAL_KIND.APPOINTMENT_STATUS,
+  AI_PROPOSAL_KIND.APPOINTMENT_CANCEL,
+  AI_PROPOSAL_KIND.PATIENT_CREATE,
+  AI_PROPOSAL_KIND.PATIENT_NOTE,
+  AI_PROPOSAL_KIND.PAYMENT_CREATE,
+] as const;
+
+// Not errors: the model relays each one as a question and does not retry around it. Only a
+// sanity check can be acknowledged, and only after the user answered it.
+export const AI_ACTION_CHECK = {
+  LARGE_CANCELLATION: "large_cancellation",
+  EXCEEDS_BALANCE: "exceeds_balance",
+  DORMANT_PATIENT: "dormant_patient",
+  /** A new patient on a phone another patient already has — a parent and child share a handset. */
+  POSSIBLE_DUPLICATE: "possible_duplicate",
+} as const satisfies Record<string, string>;
+export type AiActionCheck = EnumValue<typeof AI_ACTION_CHECK>;
+
+export const AI_ACTION_CHECKS = [
+  AI_ACTION_CHECK.LARGE_CANCELLATION,
+  AI_ACTION_CHECK.EXCEEDS_BALANCE,
+  AI_ACTION_CHECK.DORMANT_PATIENT,
+  AI_ACTION_CHECK.POSSIBLE_DUPLICATE,
 ] as const;
 
 export const AI_STREAM_EVENT = {
@@ -571,17 +672,22 @@ export const AI_TOOL_ERROR = {
   NOT_PERMITTED: "not_permitted",
   NOT_FOUND: "not_found",
   FAILED: "failed",
+  /** The clinic switched this tool off in its assistant settings. */
+  DISABLED: "disabled",
 } as const satisfies Record<string, string>;
 export type AiToolError = EnumValue<typeof AI_TOOL_ERROR>;
 
-// `sending` is the claim that stops a second click from sending twice; `expired` is written when
-// somebody acts on a draft past its time, and served for one that is merely past it.
+// `sending` is the claim that stops a second click from sending (or running) twice; `expired` is
+// written when somebody acts on a draft past its time, and served for one that is merely past it.
+// A message ends `sent`; an action ends `done`, or `failed` with the domain's refusal.
 export const AI_PROPOSAL_STATUS = {
   DRAFT: "draft",
   SENDING: "sending",
   SENT: "sent",
   CANCELLED: "cancelled",
   EXPIRED: "expired",
+  DONE: "done",
+  FAILED: "failed",
 } as const satisfies Record<string, string>;
 export type AiProposalStatus = EnumValue<typeof AI_PROPOSAL_STATUS>;
 
@@ -591,6 +697,8 @@ export const AI_PROPOSAL_STATUSES = [
   AI_PROPOSAL_STATUS.SENT,
   AI_PROPOSAL_STATUS.CANCELLED,
   AI_PROPOSAL_STATUS.EXPIRED,
+  AI_PROPOSAL_STATUS.DONE,
+  AI_PROPOSAL_STATUS.FAILED,
 ] as const;
 
 export const AI_PROPOSAL_STATUS_TRANSITIONS = {
@@ -599,10 +707,16 @@ export const AI_PROPOSAL_STATUS_TRANSITIONS = {
     AI_PROPOSAL_STATUS.CANCELLED,
     AI_PROPOSAL_STATUS.EXPIRED,
   ],
-  [AI_PROPOSAL_STATUS.SENDING]: [AI_PROPOSAL_STATUS.SENT],
+  [AI_PROPOSAL_STATUS.SENDING]: [
+    AI_PROPOSAL_STATUS.SENT,
+    AI_PROPOSAL_STATUS.DONE,
+    AI_PROPOSAL_STATUS.FAILED,
+  ],
   [AI_PROPOSAL_STATUS.SENT]: [],
   [AI_PROPOSAL_STATUS.CANCELLED]: [],
   [AI_PROPOSAL_STATUS.EXPIRED]: [],
+  [AI_PROPOSAL_STATUS.DONE]: [],
+  [AI_PROPOSAL_STATUS.FAILED]: [],
 } as const satisfies Record<AiProposalStatus, readonly AiProposalStatus[]>;
 
 export function canTransitionAiProposal(from: AiProposalStatus, to: AiProposalStatus): boolean {
@@ -688,6 +802,31 @@ export const AI_OUTBOUND_ERRORS = [
   AI_OUTBOUND_ERROR.DAILY_CAP,
   AI_OUTBOUND_ERROR.NO_RECIPIENTS,
   AI_OUTBOUND_ERROR.NOTIFICATIONS_DISABLED,
+] as const;
+
+// Why an action did not run: refused at the click, or refused by the domain once it did. Codes the
+// card writes the Arabic for; a domain error the card does not know reads as `action_failed`.
+export const AI_ACTION_ERROR = {
+  PHRASE_MISMATCH: "phrase_mismatch",
+  NOT_PERMITTED: "action_not_permitted",
+  DISABLED: "action_disabled",
+  SLOT_TAKEN: "slot_taken",
+  INVALID_TRANSITION: "invalid_transition",
+  NOT_FOUND: "action_target_not_found",
+  DUPLICATE: "possible_duplicate",
+  FAILED: "action_failed",
+} as const satisfies Record<string, string>;
+export type AiActionError = EnumValue<typeof AI_ACTION_ERROR>;
+
+export const AI_ACTION_ERRORS = [
+  AI_ACTION_ERROR.PHRASE_MISMATCH,
+  AI_ACTION_ERROR.NOT_PERMITTED,
+  AI_ACTION_ERROR.DISABLED,
+  AI_ACTION_ERROR.SLOT_TAKEN,
+  AI_ACTION_ERROR.INVALID_TRANSITION,
+  AI_ACTION_ERROR.NOT_FOUND,
+  AI_ACTION_ERROR.DUPLICATE,
+  AI_ACTION_ERROR.FAILED,
 ] as const;
 
 // A clinic's own provider credentials. Stored encrypted and never served back: a screen learns

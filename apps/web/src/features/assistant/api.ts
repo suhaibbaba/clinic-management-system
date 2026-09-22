@@ -1,4 +1,5 @@
 import {
+  aiActionsSettingsSchema,
   aiAutomationSettingsSchema,
   aiConversationSchema,
   aiMessageSchema,
@@ -7,6 +8,7 @@ import {
   aiProposalStatusEventSchema,
   clinicSecretsSchema,
   paginatedSchema,
+  type AiActionsSettings,
   type AiAutomationSettings,
   type AiChatRequest,
   type AiConversation,
@@ -53,6 +55,31 @@ export const assistantApi = {
   actOnProposal: async (id: string, action: "send" | "cancel"): Promise<AiProposalStatusEvent> =>
     aiProposalStatusEventSchema.parse(
       await apiRequest(`/ai/proposals/${id}/${action}`, { method: "POST" }),
+    ),
+
+  /** A proposed action, which only its author may read. */
+  action: async (id: string): Promise<AiProposal> =>
+    aiProposalSchema.parse(await apiRequest(`/ai/actions/${id}`)),
+
+  confirmAction: async (id: string, typedPhrase?: string): Promise<AiProposalStatusEvent> =>
+    aiProposalStatusEventSchema.parse(
+      await apiRequest(`/ai/proposals/${id}/confirm`, {
+        method: "POST",
+        body: typedPhrase === undefined ? {} : { typedPhrase },
+      }),
+    ),
+
+  cancelAction: async (id: string): Promise<AiProposalStatusEvent> =>
+    aiProposalStatusEventSchema.parse(
+      await apiRequest(`/ai/actions/${id}/cancel`, { method: "POST" }),
+    ),
+
+  actionsSettings: async (): Promise<AiActionsSettings> =>
+    aiActionsSettingsSchema.parse(await apiRequest("/ai/actions/settings")),
+
+  saveActionsSettings: async (body: AiActionsSettings): Promise<AiActionsSettings> =>
+    aiActionsSettingsSchema.parse(
+      await apiRequest("/ai/actions/settings", { method: "PUT", body }),
     ),
 
   automationSettings: async (): Promise<AiAutomationSettings> =>

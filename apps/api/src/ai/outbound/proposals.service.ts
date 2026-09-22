@@ -2,10 +2,14 @@ import { HttpStatus, Inject, Injectable, Logger, NotFoundException } from "@nest
 import { ConfigService } from "@nestjs/config";
 import {
   addDays,
+  AI_ACTION_ENTITIES,
+  AI_ACTION_ERROR,
+  AI_ACTION_ERRORS,
   AI_OUTBOUND_ERROR,
   AI_OUTBOUND_TARGET,
   AI_OUTBOUND_TARGETS,
   AI_OUTBOUND_TRIGGER,
+  AI_PROPOSAL_KIND,
   AI_PROPOSAL_STATUS,
   AI_STREAM_EVENT,
   aiAutomationSettings,
@@ -14,6 +18,8 @@ import {
   NOTIFICATION_CHANNEL,
   NOTIFICATION_STATUS,
   NOTIFICATION_TEMPLATE,
+  type AiActionError,
+  type AiActionResult,
   type AiAutomationRule,
   type AiAutomationSettings,
   type AiOutboundError,
@@ -59,7 +65,7 @@ export class OutboundError extends Error {
   }
 }
 
-type ProposalRow = typeof aiProposals.$inferSelect;
+export type ProposalRow = typeof aiProposals.$inferSelect;
 
 export interface DraftRequest {
   readonly target: AiOutboundTarget;
@@ -281,7 +287,13 @@ export class ProposalsService {
       const [row] = await tx
         .select()
         .from(aiProposals)
-        .where(and(eq(aiProposals.id, id), eq(aiProposals.clinicId, clinicId)))
+        .where(
+          and(
+            eq(aiProposals.id, id),
+            eq(aiProposals.clinicId, clinicId),
+            eq(aiProposals.kind, AI_PROPOSAL_KIND.MESSAGE),
+          ),
+        )
         .for("update");
 
       if (!row) {
@@ -440,8 +452,10 @@ export class ProposalsService {
       }
     }
 
+    // Messages only: an action is confirmed through its own route, which checks its own permission.
     return and(
       eq(aiProposals.clinicId, actor.clinicId),
+      eq(aiProposals.kind, AI_PROPOSAL_KIND.MESSAGE),
       or(
         eq(aiProposals.userId, actor.id),
         and(isNull(aiProposals.userId), inArray(aiProposals.target, readable)),
@@ -464,6 +478,7 @@ function thresholdDays(settings: AiAutomationSettings, target: AiOutboundTarget)
 function recipientCap(settings: AiAutomationSettings, row: ProposalRow): number {
   if (
     row.trigger === AI_OUTBOUND_TRIGGER.COMMAND ||
+    row.target === null ||
     row.target === AI_OUTBOUND_TARGET.PATIENT_IDS
   ) {
     return settings.recipientCap;
@@ -498,6 +513,7 @@ const servedStatus = (row: ProposalRow): AiProposal["status"] =>
 
 export const toProposal = (row: ProposalRow): AiProposal => ({
   id: row.id,
+  kind: row.kind,
   status: servedStatus(row),
   trigger: row.trigger,
   target: row.target,
@@ -510,12 +526,34 @@ export const toProposal = (row: ProposalRow): AiProposal => ({
   sentAt: row.sentAt?.toISOString() ?? null,
   sentCount: row.sentCount,
   failedCount: row.failedCount,
+  tier: row.tier,
+  typedPhrase: row.typedPhrase,
+  summary: row.resolvedSummary,
+  result: toResult(row),
+  error: toActionError(row.errorCode),
 });
 
-const statusEvent = (row: ProposalRow): AiProposalStatusEvent => ({
+export const statusEvent = (row: ProposalRow): AiProposalStatusEvent => ({
   type: AI_STREAM_EVENT.PROPOSAL_STATUS,
   proposalId: row.id,
   status: servedStatus(row),
   sentCount: row.sentCount,
   failedCount: row.failedCount,
+  ...(row.kind !== AI_PROPOSAL_KIND.MESSAGE && {
+    result: toResult(row),
+    error: toActionError(row.errorCode),
+  }),
 });
+
+function toResult(row: ProposalRow): AiActionResult | null {
+  const entity = AI_ACTION_ENTITIES.find((candidate) => candidate === row.resultEntity);
+
+  return entity && row.resultId
+    ? { entity, id: row.resultId, patientId: row.resultPatientId }
+    : null;
+}
+
+const toActionError = (code: string | null): AiActionError | null =>
+  code === null
+    ? null
+    : (AI_ACTION_ERRORS.find((known) => known === code) ?? AI_ACTION_ERROR.FAILED);

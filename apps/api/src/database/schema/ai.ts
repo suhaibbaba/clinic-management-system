@@ -1,4 +1,7 @@
 import {
+  AI_PROPOSAL_KINDS,
+  AI_RISK_TIERS,
+  type AiActionSummary,
   AI_AUTOMATION_RULES,
   AI_AUTOMATION_RUN_STATUSES,
   AI_MESSAGE_ROLES,
@@ -24,6 +27,8 @@ import { notificationChannelEnum, notificationsLog } from "@api/database/schema/
 import { patients } from "@api/database/schema/patients";
 
 export const aiMessageRoleEnum = pgEnum("ai_message_role", AI_MESSAGE_ROLES);
+export const aiProposalKindEnum = pgEnum("ai_proposal_kind", AI_PROPOSAL_KINDS);
+export const aiRiskTierEnum = pgEnum("ai_risk_tier", AI_RISK_TIERS);
 export const aiProposalStatusEnum = pgEnum("ai_proposal_status", AI_PROPOSAL_STATUSES);
 export const aiOutboundTargetEnum = pgEnum("ai_outbound_target", AI_OUTBOUND_TARGETS);
 export const aiOutboundTriggerEnum = pgEnum("ai_outbound_trigger", AI_OUTBOUND_TRIGGERS);
@@ -128,6 +133,9 @@ export const aiAuditLog = pgTable(
     recipient: text("recipient"),
     renderedText: text("rendered_text"),
     notificationId: uuid("notification_id").references(() => notificationsLog.id),
+    /** What an action changed, beside the domain's own audit entry for the same row. */
+    entity: text("entity"),
+    entityId: uuid("entity_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
@@ -137,8 +145,9 @@ export const aiAuditLog = pgTable(
   ],
 );
 
-// A drafted bulk message. The model can create one and nothing else: sending is a person pressing
-// the card's button, against a row whose clinic, author and expiry the server checks.
+// Every pending action: a drafted bulk message, or a change the model proposed. The model can create
+// one and nothing else — running it is a person pressing the card's button, against a row whose
+// clinic, author, expiry and tier the server checks again at the click.
 export const aiProposals = pgTable(
   "ai_proposals",
   {
@@ -149,11 +158,22 @@ export const aiProposals = pgTable(
     /** Null when the daily automation drafted it; any holder of the send permission may act. */
     userId: uuid("user_id").references(() => users.id),
     conversationId: uuid("conversation_id").references(() => aiConversations.id),
+    kind: aiProposalKindEnum("kind").notNull().default("message"),
     trigger: aiOutboundTriggerEnum("trigger").notNull(),
-    target: aiOutboundTargetEnum("target").notNull(),
-    intent: text("intent").notNull(),
-    recipients: jsonb("recipients").$type<StoredRecipient[]>().notNull(),
-    recipientCount: integer("recipient_count").notNull(),
+    /** A message's audience; null on an action. */
+    target: aiOutboundTargetEnum("target"),
+    intent: text("intent"),
+    recipients: jsonb("recipients").$type<StoredRecipient[]>().notNull().default([]),
+    recipientCount: integer("recipient_count").notNull().default(0),
+    /** An action's validated arguments, ids resolved by the server — what runs on confirm. */
+    payload: jsonb("payload").$type<Record<string, unknown>>(),
+    tier: aiRiskTierEnum("tier"),
+    typedPhrase: text("typed_phrase"),
+    resolvedSummary: jsonb("resolved_summary").$type<AiActionSummary>(),
+    resultEntity: text("result_entity"),
+    resultId: uuid("result_id"),
+    resultPatientId: uuid("result_patient_id"),
+    errorCode: text("error_code"),
     status: aiProposalStatusEnum("status").notNull().default("draft"),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     /** Set when the send is claimed: the daily cap counts from here. */

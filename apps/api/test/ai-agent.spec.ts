@@ -3,6 +3,7 @@ import {
   AI_MESSAGE_ROLE,
   AI_OUTBOUND_TARGET,
   AI_OUTBOUND_TRIGGER,
+  AI_PROPOSAL_KIND,
   AI_PROPOSAL_STATUS,
   AI_STREAM_EVENT,
   AI_TOOL,
@@ -280,6 +281,7 @@ describe("the agent loop", () => {
   it("hands a drafted proposal to the card, and marks the row it was drafted on", async () => {
     const proposal: AiProposal = {
       id: "44444444-4444-4444-8444-444444444444",
+      kind: AI_PROPOSAL_KIND.MESSAGE,
       status: AI_PROPOSAL_STATUS.DRAFT,
       trigger: AI_OUTBOUND_TRIGGER.COMMAND,
       target: AI_OUTBOUND_TARGET.UNPAID_INVOICES,
@@ -294,6 +296,11 @@ describe("the agent loop", () => {
       sentAt: null,
       sentCount: 0,
       failedCount: 0,
+      tier: null,
+      typedPhrase: null,
+      summary: null,
+      result: null,
+      error: null,
     };
     const call: ChatToolCall = {
       id: "call_1",

@@ -1,5 +1,7 @@
 import { Logger, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { AiActionsController } from "@api/ai/actions/ai-actions.controller";
+import { AiActionsService } from "@api/ai/actions/ai-actions.service";
 import { AgentService } from "@api/ai/agent.service";
 import { AiBudgetService } from "@api/ai/ai-budget.service";
 import { AiController } from "@api/ai/ai.controller";
@@ -45,7 +47,7 @@ import { SecretsModule } from "@api/secrets/secrets.module";
     NotificationsModule,
     SecretsModule,
   ],
-  controllers: [AiController, OutboundController],
+  controllers: [AiController, OutboundController, AiActionsController],
   providers: [
     LogChatProvider,
     OpenAiChatProvider,
@@ -81,6 +83,7 @@ import { SecretsModule } from "@api/secrets/secrets.module";
     ProposalsService,
     AutomationService,
     OutboundLogService,
+    AiActionsService,
   ],
 })
 export class AiModule {}

@@ -1,10 +1,11 @@
 import type { JSX } from "react";
 import { PageHeader, TabPanel, Tabs, useTabParam } from "@clinic/ui";
+import { ActionsPanel } from "@web/features/assistant/settings/actions-panel";
 import { AutomationRulesPanel } from "@web/features/assistant/settings/automation-rules-panel";
 import { OutboundLogPanel } from "@web/features/assistant/settings/outbound-log-panel";
 import { ProviderKeysPanel } from "@web/features/assistant/settings/provider-keys-panel";
 
-const TABS = ["rules", "outbound", "keys"] as const;
+const TABS = ["rules", "actions", "outbound", "keys"] as const;
 type Tab = (typeof TABS)[number];
 
 export function AssistantSettingsPage(): JSX.Element {
@@ -34,6 +35,7 @@ export function AssistantSettingsPage(): JSX.Element {
 
       <TabPanel id={tab}>
         {tab === "rules" && <AutomationRulesPanel />}
+        {tab === "actions" && <ActionsPanel />}
         {tab === "outbound" && <OutboundLogPanel />}
         {tab === "keys" && <ProviderKeysPanel />}
       </TabPanel>

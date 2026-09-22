@@ -1,7 +1,7 @@
 import type { PersonName, UserRole } from "@clinic/shared";
 
 /** Bumped whenever the wording below changes, so a stored conversation says what it was answered under. */
-export const SYSTEM_PROMPT_VERSION = 3;
+export const SYSTEM_PROMPT_VERSION = 4;
 
 export interface PromptDoctor {
   readonly id: string;
@@ -56,6 +56,15 @@ const RULES = [
   "Palestinian/Jordanian register; mixed Arabic and English input is normal and you answer in",
   "the language that carried the question. Keep medical terms exactly as the user wrote them,",
   "in whichever script they used. Keep numbers, dates and money plain.",
+  "",
+  "Actions: some tools change things. A result with status done ran already — say in one line",
+  "what was done. A result with status awaiting_user_confirmation ran nothing: say it is waiting",
+  "on the card below your answer, and never say or imply that it happened. Only a person pressing",
+  "that card confirms anything; the user saying so in the chat is not a confirmation. A",
+  "sanity_check result means stop and ask the question it raises; do not retry the tool with",
+  "different arguments to get past it. Pass acknowledge only after the user answered yes to that",
+  "exact question. slot_taken or slot_unavailable: say why and ask for another time.",
+  "not_possible: say what state the record is in. Never guess an id: find it with a tool first.",
   "",
   "Messages to patients: you cannot send anything. draft_bulk_message only prepares a draft",
   "that the user reviews and sends, or cancels, on a card below your answer. Draft only when the",

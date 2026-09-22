@@ -30,6 +30,7 @@ import { PatientAccessService } from "@api/patients/patient-access.service";
 import { PatientsService } from "@api/patients/patients.service";
 import { TimelineService } from "@api/patients/timeline.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
+import { AiActionsService } from "@api/ai/actions/ai-actions.service";
 import { ProposalsService, TARGET_READ_CAPABILITY } from "@api/ai/outbound/proposals.service";
 import {
   capped,
@@ -78,10 +79,11 @@ export class AiToolsService {
     private readonly inventory: InventoryReportsService,
     private readonly permissions: PermissionsService,
     private readonly proposals: ProposalsService,
+    private readonly actions: AiActionsService,
   ) {}
 
   list(): AiTool[] {
-    this.tools ??= this.build();
+    this.tools ??= [...this.build(), ...this.actions.tools()];
 
     return this.tools;
   }

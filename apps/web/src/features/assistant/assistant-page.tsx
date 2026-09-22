@@ -1,6 +1,8 @@
 import {
   AI_MESSAGE_ROLE,
   AI_OUTBOUND_TRIGGER,
+  AI_PROPOSAL_KIND,
+  AI_TOOL,
   type AiMessage,
   type AiProposal,
   type AiErrorCode,
@@ -19,12 +21,14 @@ import {
   type Suggestion,
 } from "@clinic/ui";
 import { useQueryClient } from "@tanstack/react-query";
+import { ActionCard } from "@web/features/assistant/action-card";
 import { assistantApi } from "@web/features/assistant/api";
 import { MarkdownMessage } from "@web/features/assistant/markdown-message";
 import { ProposalCard, SEND_CAPABILITY } from "@web/features/assistant/proposal-card";
 import { ConversationRail } from "@web/features/assistant/conversation-rail";
 import { errorMessageKey, isKeyFailure, toolStatusKey } from "@web/features/assistant/messages";
 import {
+  ACTION_KEY,
   applyProposalStatus,
   CONVERSATIONS_KEY,
   MESSAGES_KEY,
@@ -79,7 +83,11 @@ export function AssistantPage(): JSX.Element {
   );
 
   const onProposal = useCallback(
-    (proposal: AiProposal) => client.setQueryData([PROPOSAL_KEY, proposal.id], proposal),
+    (proposal: AiProposal) =>
+      client.setQueryData(
+        [proposal.kind === AI_PROPOSAL_KIND.MESSAGE ? PROPOSAL_KEY : ACTION_KEY, proposal.id],
+        proposal,
+      ),
     [client],
   );
 
@@ -108,6 +116,9 @@ export function AssistantPage(): JSX.Element {
     setDraft("");
     stream.send(question);
   };
+
+  // A failed action is drafted again, never confirmed again: the model re-reads the record first.
+  const redraft = (): void => ask(t("assistant.action.redraft"));
 
   const stored = messages.data ?? [];
   const empty = stored.length === 0 && stream.turn === null;
@@ -176,7 +187,11 @@ export function AssistantPage(): JSX.Element {
 
           {stored.map((message: AiMessage) =>
             message.proposalId ? (
-              <ProposalCard key={message.id} id={message.proposalId} />
+              message.toolName === AI_TOOL.DRAFT_BULK_MESSAGE ? (
+                <ProposalCard key={message.id} id={message.proposalId} />
+              ) : (
+                <ActionCard key={message.id} id={message.proposalId} onRedraft={redraft} />
+              )
             ) : (
               <ChatBubble
                 key={message.id}
@@ -198,9 +213,18 @@ export function AssistantPage(): JSX.Element {
                 <span className="whitespace-pre-wrap">{stream.turn.question}</span>
               </ChatBubble>
 
-              {stream.turn.proposals.map((proposal) => (
-                <ProposalCard key={proposal.id} id={proposal.id} initial={proposal} />
-              ))}
+              {stream.turn.proposals.map((proposal) =>
+                proposal.kind === AI_PROPOSAL_KIND.MESSAGE ? (
+                  <ProposalCard key={proposal.id} id={proposal.id} initial={proposal} />
+                ) : (
+                  <ActionCard
+                    key={proposal.id}
+                    id={proposal.id}
+                    initial={proposal}
+                    onRedraft={redraft}
+                  />
+                ),
+              )}
 
               {(stream.turn.error === null || stream.turn.answer.length > 0) && (
                 <ChatBubble
