@@ -60,6 +60,8 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: Record<NotificationTemplate, string
     "حجزنا لك موعداً في {clinic} مع {doctor} يوم {date} الساعة {time}.",
   [NOTIFICATION_TEMPLATE.URGENT_DECLINED]:
     "بخصوص طلبك العاجل في {clinic}: {reason}. للاستفسار تواصل معنا.",
+  // Already written in full by the assistant and confirmed by a person; the template only frames it.
+  [NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE]: "{body}",
 };
 
 /** Never throws: unreadable settings must not stop a reminder from going out. */

@@ -1,6 +1,8 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   DEFAULT_NOTIFICATION_TEMPLATES,
+  NOTIFICATION_CHANNEL,
   NOTIFICATION_STATUS,
   notificationSettings,
   renderTemplate,
@@ -9,12 +11,16 @@ import {
   type NotificationTemplate,
 } from "@clinic/shared";
 import { and, eq } from "drizzle-orm";
+import type { Env } from "@api/config/env.schema";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, notificationsLog } from "@api/database/schema";
 import {
   NOTIFICATION_PROVIDER,
+  WhatsAppNotificationProvider,
   type NotificationProvider,
+  type OutboundMessage,
 } from "@api/notifications/notification-provider";
+import { SecretsService } from "@api/secrets/secrets.service";
 
 export interface SendNotification {
   readonly clinicId: string;
@@ -43,6 +49,9 @@ export class NotificationsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject(NOTIFICATION_PROVIDER) private readonly provider: NotificationProvider,
+    private readonly whatsapp: WhatsAppNotificationProvider,
+    private readonly secrets: SecretsService,
+    private readonly config: ConfigService<Env, true>,
   ) {}
 
   async send(input: SendNotification): Promise<SendResult | null> {
@@ -73,7 +82,7 @@ export class NotificationsService {
     }
 
     try {
-      await this.provider.send({ to: input.to, channel, body });
+      await this.deliver(input.clinicId, { to: input.to, channel, body });
 
       await this.db
         .update(notificationsLog)
@@ -93,6 +102,23 @@ export class NotificationsService {
 
       return { id: row.id, status: NOTIFICATION_STATUS.FAILED, body };
     }
+  }
+
+  // A clinic that entered its own WhatsApp account sends through it; everything else goes through
+  // the environment's provider. Inside the try, so an unreadable key is a `failed` row.
+  private async deliver(clinicId: string, message: OutboundMessage): Promise<void> {
+    if (
+      message.channel === NOTIFICATION_CHANNEL.WHATSAPP &&
+      this.config.get("NODE_ENV", { infer: true }) !== "test"
+    ) {
+      const own = await this.secrets.whatsApp(clinicId);
+
+      if (own) {
+        return this.whatsapp.sendWith(own, message);
+      }
+    }
+
+    return this.provider.send(message);
   }
 
   // The reminder dedupe, and why there is no "sent markers" table. A `failed` row counts as sent:

@@ -1,5 +1,7 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import {
+  AI_OUTBOUND_TARGET,
+  AI_RECIPIENT_CAP_MAX,
   AI_TOOL,
   APPOINTMENT_STATUS,
   APPOINTMENT_STATUSES,
@@ -27,7 +29,15 @@ import { PatientAccessService } from "@api/patients/patient-access.service";
 import { PatientsService } from "@api/patients/patients.service";
 import { TimelineService } from "@api/patients/timeline.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
-import { capped, defineTool, maskPhone, TOOL_ROW_LIMIT, type AiTool } from "@api/ai/tools/ai-tool";
+import { ProposalsService, TARGET_READ_CAPABILITY } from "@api/ai/outbound/proposals.service";
+import {
+  capped,
+  defineTool,
+  maskPhone,
+  ProposalResult,
+  TOOL_ROW_LIMIT,
+  type AiTool,
+} from "@api/ai/tools/ai-tool";
 
 // The capability each tool borrows from the endpoint that already answers the same question. A
 // clinic that takes `billing.list` off its receptionists takes it off the assistant with it.
@@ -37,7 +47,14 @@ const CAPABILITY = {
   OVERDUE: "billing.list",
   LAB_ORDERS_OVERDUE: "lab-orders.overdue",
   INVENTORY_ALERTS: "inventory.alerts",
+  OUTBOUND_SEND: "ai-outbound.send",
 } as const;
+
+const DRAFT_TARGETS = [
+  AI_OUTBOUND_TARGET.OVERDUE_LABS,
+  AI_OUTBOUND_TARGET.UNPAID_INVOICES,
+  AI_OUTBOUND_TARGET.PATIENT_IDS,
+] as const;
 
 const dateSchema = z.iso.date();
 
@@ -58,6 +75,7 @@ export class AiToolsService {
     private readonly labOrders: LabOrdersService,
     private readonly inventory: InventoryReportsService,
     private readonly permissions: PermissionsService,
+    private readonly proposals: ProposalsService,
   ) {}
 
   list(): AiTool[] {
@@ -229,6 +247,53 @@ export class AiToolsService {
           const alerts = await this.inventory.alerts(actor);
 
           return capped(alerts.low.map(toStockSummary));
+        },
+      }),
+
+      defineTool({
+        name: AI_TOOL.DRAFT_BULK_MESSAGE,
+        description:
+          "Draft a WhatsApp message to a group of patients for the user to review. This sends " +
+          "NOTHING: it creates a proposal the user confirms or cancels on a card in the chat. " +
+          "target is overdue_labs (patients whose lab work is overdue), unpaid_invoices (patients " +
+          "with an overdue balance) or patient_ids (the ids you pass, from search_patients). " +
+          "message_intent is what the message should say, in the user's words. Afterwards tell " +
+          "the user the draft is waiting for their confirmation below; never say it was sent.",
+        capability: CAPABILITY.OUTBOUND_SEND,
+        schema: z
+          .object({
+            target: z.enum(DRAFT_TARGETS),
+            patient_ids: z.array(z.uuid()).min(1).max(AI_RECIPIENT_CAP_MAX).optional(),
+            message_intent: z.string().trim().min(3).max(500),
+          })
+          .refine(
+            (args) =>
+              args.target !== AI_OUTBOUND_TARGET.PATIENT_IDS || (args.patient_ids?.length ?? 0) > 0,
+            { path: ["patient_ids"], message: "Required when target is patient_ids" },
+          ),
+        run: async (actor, args, context) => {
+          // Drafting to a group reads that group: a role that cannot list overdue balances cannot
+          // message everybody who has one.
+          const read = TARGET_READ_CAPABILITY[args.target];
+
+          if (read && !(await this.allows(actor, read))) {
+            throw new ForbiddenException();
+          }
+
+          const proposal = await this.proposals.draftForUser(actor, context.conversationId, {
+            target: args.target,
+            intent: args.message_intent,
+            patientIds: args.patient_ids,
+          });
+
+          // The count and the id, not the messages: the model has no use for the rendered text,
+          // and the person confirming reads it on the card.
+          return new ProposalResult(proposal, {
+            proposal_id: proposal.id,
+            recipient_count: proposal.recipients.length,
+            status: "awaiting_user_confirmation",
+            expires_at: proposal.expiresAt,
+          });
         },
       }),
     ];

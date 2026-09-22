@@ -69,6 +69,7 @@ describe("Sidebar navigation", () => {
       ar.nav.users,
       ar.nav.lists,
       ar.nav.translations,
+      ar.nav.assistantSettings,
       ar.nav.permissions,
       ar.nav.audit,
     ]);
@@ -182,6 +183,7 @@ describe("Route guards", () => {
     [USER_ROLE.RECEPTIONIST, "/labs"],
     [USER_ROLE.RECEPTIONIST, "/users"],
     [USER_ROLE.DOCTOR, "/audit-log"],
+    [USER_ROLE.RECEPTIONIST, "/assistant/settings"],
   ])("redirects %s away from %s and onto the dashboard", async (role, route) => {
     await renderAs(role, route);
 

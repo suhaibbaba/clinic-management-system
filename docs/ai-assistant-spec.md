@@ -4,7 +4,7 @@ Build an AI assistant for the clinic management system. It answers any question 
 
 Stack context: NestJS + PostgreSQL backend, React + Vite SPA admin, multi-tenant SaaS, Tailwind + Radix owned components in `packages/ui`, Docker dev/prod.
 
-Split the work into 3 PRs as described below. Keep PRs lean per repo policy: only important-path tests (api/feature/lib), no e2e, no api tests for untouched apis, no committed screenshots or docs artifacts (screenshots go in PR descriptions only).
+Split the work into 3 PRs as described below. Keep PRs lean per repo policy: only important-path tests (api/feature/lib), no e2e (PR 3 is the exception: it runs its end-to-end suites in CI), no api tests for untouched apis, no committed screenshots or docs artifacts (screenshots go in PR descriptions only).
 
 ---
 
@@ -91,32 +91,66 @@ The Markdown renderer stays in `apps/web`: it is the one piece that needs a pars
 
 ## PR 3 — Outbound messaging + automation
 
-### New tools (write/send — confirmation required)
+The "manager role" in this section is `admin` in this codebase.
 
-- `draft_bulk_message(target: overdue_labs | unpaid_invoices | patient_ids[], message_intent)` — READ side: resolves recipients + drafts per-recipient message text; returns a proposal (recipients list + messages) and a server-generated `proposal_id` stored in DB with a short TTL.
-- `send_proposal(proposal_id)` — executes sending via the existing WhatsApp Cloud API notification infrastructure (utility templates).
+### Tool (drafting only)
+
+- `draft_bulk_message(target: overdue_labs | unpaid_invoices | patient_ids, patient_ids?, message_intent)` — resolves recipients, drafts one message per recipient, stores a proposal (`ai_proposals`: clinic, author, conversation, recipients with rendered text, TTL, status) and streams it to the chat as a `proposal` frame. The model is told only the proposal id, the count and that it awaits confirmation — never the rendered messages.
+- There is **no send tool.** `send_proposal` from the original draft is the endpoint `POST /ai/proposals/:id/send`, reached only from the confirmation card. The model has no way to send anything.
+- Drafting needs `ai-outbound.send`, plus the read capability of the list it targets (`lab-orders.overdue` for overdue labs, `billing.list` for unpaid balances), so a role cannot message a group it may not list.
+
+### Phrasing
+
+The model phrases **one template per proposal** from the intent, using only the placeholders its target allows (`{name}`, `{clinic}`, plus `{days}`, `{balance}` or `{time}`/`{doctor}`). The server fills them per recipient, so the model never sees a patient's name, number or balance. A template with a link, an unknown placeholder or a stray brace is refused and the target's Arabic default stands in; with the `log` provider the default is always used. Phrasing calls are small and bounded (one per proposal) and are not counted in the daily token budget.
 
 ### Two-phase confirmation (hard server-side rule)
 
-- The model can only CREATE proposals; sending requires the user clicking an explicit **confirmation card** in the chat UI (shows recipients count, expandable list, message preview, "إرسال" / "إلغاء"). The confirm click calls `send_proposal` with the stored `proposal_id` — the model cannot fabricate or bypass it because execution validates proposal ownership (tenant + user) and TTL server-side.
-- Per-run recipient cap (configurable, default 100) and per-tenant daily outbound cap.
+- The card (inline in the thread, from the `proposal` frame, and redrawn from the stored tool row's `proposalId` on reload) shows the recipient count, an expandable list with every message, and إرسال / إلغاء. It follows the proposal to sent / expired / cancelled.
+- `POST /ai/proposals/:id/send` and `/cancel` answer with a `proposal_status` frame — the same union member the stream carries — so one reducer updates the card either way.
+- The server checks the clinic, the author (another user's proposal is a 404, like another clinic's), the TTL, the status and `ai-outbound.send`. The send is claimed by flipping `draft → sending` under a per-clinic advisory lock, so a double click or two tabs cannot send twice.
+- TTL: `AI_PROPOSAL_TTL_MINUTES` (15) for a chat proposal; an automation proposal waits until the end of the clinic's local day.
+- Caps, both configurable per clinic: a per-proposal recipient cap (default 100, per rule for the automation) and a per-clinic daily cap (default 300) counted over claimed proposals in the clinic's own day. Going over either is refused whole with a typed code (`recipient_cap_exceeded`, `daily_cap_exceeded`) — never a partial send. Other codes: `proposal_expired`, `proposal_not_pending`, `no_recipients`, `notifications_disabled`.
+
+### Delivery
+
+Sending goes through `NotificationsService` (template `assistant_message`, channel WhatsApp), so every message also lands in `notifications_log`. The repo had no WhatsApp Cloud API code, so this PR adds a `whatsapp` `NotificationProvider`: every body travels as the single body parameter of one approved utility template (`WHATSAPP_TEMPLATE_NAME`). A number without a `+` country code is refused rather than guessed. `log` stays the default, and a test run never leaves it whatever the environment says.
+
+### Provider keys in settings (per clinic)
+
+- An admin enters the clinic's own OpenAI key and WhatsApp credentials under `/assistant/settings` → keys. This supersedes PR 1's "OpenAI key from env only": the environment's keys remain the fallback for a clinic that sets none.
+- Stored AES-256-GCM encrypted under `SECRETS_MASTER_KEY` (env, 32 bytes), with `clinic_id:kind` as authenticated data, so a ciphertext moved to another clinic's row does not decrypt. Without a master key nothing can be saved.
+- Write-only: no endpoint returns a value; the status shows set/unset, the last four characters and when it changed. Setting and clearing are admin-only in the service whatever the permission matrix says, and each writes an `audit_log` row naming the key and its last four characters, never the value.
+- A key the provider quotes back in an error is redacted before logging. A stored key that fails to decrypt fails the call rather than silently falling back to the platform's account.
 
 ### Scheduled automation (deterministic detection, AI phrasing)
 
-- NestJS `@Cron` daily job per tenant: plain SQL/service queries find (a) lab orders overdue ≥ N days, (b) invoices unpaid ≥ N days, (c) tomorrow's appointments.
-- For each finding, AI drafts the message; sending obeys per-rule settings.
-- **Settings page** (`/assistant/settings`, manager role only): per rule — Off / Propose in chat / Auto-send, plus thresholds (days) and daily send cap. Defaults: everything "Propose" (never auto-send out of the box).
+- An hourly `@Cron` runs each clinic once its local hour reaches `AI_AUTOMATION_HOUR` (9), so a clinic runs on its own clock and a restart does not lose the day.
+- Plain queries find (a) lab orders the lab promised at least N days ago and has not delivered, (b) patients where money charged at least N days ago is still uncovered by payments — not the overdue list's rule, which counts a never-paid balance from its first day — and (c) tomorrow's **confirmed** appointments. Rule (c) overlaps the 24-hour reminder notification; a clinic using both should switch one off.
+- Per rule: off / propose / auto-send, with thresholds and a recipient cap. Defaults are propose everywhere. A proposal the automation drafts belongs to nobody: any holder of `ai-outbound.send` in the clinic who may also read its list (`billing.list` for balances, `lab-orders.overdue` for labs) can see and send it, and nobody else learns it exists. They wait on a new conversation's screen.
+- Idempotency: `ai_automation_runs` has one row per (clinic, rule, local date), claimed before anything is drafted. A re-run finds it and does nothing, and a run that crashed mid-send is never retried into a second message. One rule's or one clinic's failure is recorded on its run row and does not stop the others.
+
+### Permissions
+
+| Capability                                         | Endpoint                  | Ships with                                      |
+| -------------------------------------------------- | ------------------------- | ----------------------------------------------- |
+| `ai-outbound.list` / `.read` / `.send` / `.cancel` | `/ai/proposals…`          | admin, receptionist                             |
+| `ai-automation.settings` / `.update-settings`      | `/ai/automation/settings` | admin                                           |
+| `ai-outbound.audit`                                | `/ai/outbound`            | admin                                           |
+| `ai-secrets.status` / `.update`                    | `/ai/secrets`             | admin (update is admin-only in the service too) |
 
 ### Audit & safety
 
-- Extend `ai_audit_log` usage: every outbound message logs recipient, rendered text, channel, trigger (command vs cron), acting user or "system", proposal_id.
-- Simple audit view tab under `/assistant/settings` listing recent outbound messages with filters.
-- Idempotency: cron runs are recorded per (tenant, rule, date) so a re-run never double-sends.
+- Every outbound message writes an `ai_audit_log` row (`tool_name = send_proposal`) with the recipient, rendered text, channel, trigger (`command` | `cron`), acting user (null for the automation) and proposal id.
+- `/assistant/settings` has three tabs in the URL: the rules, the outbound log (filters for trigger and outcome in the URL too) and the provider keys.
 
-### Tests (lean)
+### Tests
 
-- Proposal lifecycle (create → confirm → send, TTL expiry, ownership rejection).
-- Cron detection queries (fixture-based) and idempotency guard.
+Unlike PRs 1–2 this PR runs its end-to-end suites: CI now runs on every pull request against Postgres, and nothing here merges without them.
+
+- Proposal lifecycle (create → confirm → send, second click, TTL expiry, cancel), ownership and capability rejection, both caps.
+- Cron detection queries on fixtures, the idempotency guard, auto-send only when chosen, one failing rule not stopping the others.
+- Key encryption (context binding, tampering, write-only responses, admin-only), template validation.
+- Web: the stream hook's proposal frames, and the admin sidebar asserted whole with the new settings entry.
 
 ---
 

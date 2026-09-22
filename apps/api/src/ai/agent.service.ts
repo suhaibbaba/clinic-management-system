@@ -13,13 +13,12 @@ import {
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
 import {
-  CHAT_PROVIDER,
   ChatProviderError,
   type ChatMessage,
-  type ChatProvider,
   type ChatToolCall,
   type ChatUsage,
 } from "@api/ai/chat-provider";
+import { ChatProviderResolver } from "@api/ai/chat-provider.resolver";
 import { AiConversationsService } from "@api/ai/ai-conversations.service";
 import { SYSTEM_PROMPT_VERSION, systemPrompt } from "@api/ai/system-prompt";
 import { isAiToolName, ToolRunnerService } from "@api/ai/tools/tool-runner.service";
@@ -36,7 +35,7 @@ export class AgentService {
 
   constructor(
     @Inject(DATABASE) private readonly db: Database,
-    @Inject(CHAT_PROVIDER) private readonly provider: ChatProvider,
+    private readonly providers: ChatProviderResolver,
     private readonly conversations: AiConversationsService,
     private readonly tools: ToolRunnerService,
     private readonly config: ConfigService<Env, true>,
@@ -65,6 +64,7 @@ export class AgentService {
       { role: "user", content: request.message },
     ];
 
+    const provider = await this.providers.for(actor.clinicId);
     const spent = { inputTokens: 0, outputTokens: 0 };
     const steps = this.config.get("AI_MAX_TOOL_STEPS", { infer: true });
 
@@ -72,7 +72,7 @@ export class AgentService {
       let completed: { text: string; toolCalls: readonly ChatToolCall[] } | undefined;
 
       try {
-        const stream = this.provider.stream({ messages, tools: this.tools.definitions() });
+        const stream = provider.stream({ messages, tools: this.tools.definitions() });
 
         for await (const chunk of stream) {
           if (chunk.type === "delta") {
@@ -121,7 +121,12 @@ export class AgentService {
           role: AI_MESSAGE_ROLE.TOOL,
           content: run.content,
           toolName: run.name,
+          ...(run.proposal && { proposalId: run.proposal.id }),
         });
+
+        if (run.proposal) {
+          yield { type: AI_STREAM_EVENT.PROPOSAL, proposal: run.proposal };
+        }
       }
     }
 

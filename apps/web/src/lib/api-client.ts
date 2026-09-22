@@ -12,7 +12,7 @@ const REFRESH_PATH = "/auth/refresh";
 let refreshInFlight: Promise<boolean> | null = null;
 
 export interface RequestOptions {
-  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined>;
   signal?: AbortSignal;

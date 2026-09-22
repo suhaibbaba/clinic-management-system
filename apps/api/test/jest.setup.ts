@@ -11,3 +11,6 @@ process.env["STORAGE_BUCKET"] ??= "clinic-test-files";
 process.env["STORAGE_ACCESS_KEY_ID"] ??= "test_access_key";
 process.env["STORAGE_SECRET_ACCESS_KEY"] ??= "test_secret_key";
 process.env["STORAGE_FORCE_PATH_STYLE"] ??= "true";
+
+// A fixed key, so the settings suite can store a provider key; no test ever sends with one.
+process.env["SECRETS_MASTER_KEY"] ??= Buffer.alloc(32, 7).toString("base64");

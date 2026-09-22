@@ -1,6 +1,7 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import {
   AI_MESSAGE_ROLE,
+  AI_TOOL,
   AI_TITLE_MAX_LENGTH,
   type AiConversation,
   type AiMessage,
@@ -8,7 +9,7 @@ import {
   type ListAiConversationsQuery,
   type Paginated,
 } from "@clinic/shared";
-import { and, asc, desc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, isNull, ne, or, sql } from "drizzle-orm";
 import type { ChatMessage, ChatUsage } from "@api/ai/chat-provider";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -56,7 +57,8 @@ export class AiConversationsService {
   }
 
   // The thread as a person reads it. Tool rows are kept for the audit trail but never served: they
-  // are the model's working, and they carry records in a shape no screen checked.
+  // are the model's working, and they carry records in a shape no screen checked. The one that
+  // drafted a proposal is served empty, as the place its confirmation card goes.
   async messages(actor: AuthenticatedUser, conversationId: string): Promise<AiMessage[]> {
     await this.requireOwn(actor, conversationId);
 
@@ -67,7 +69,7 @@ export class AiConversationsService {
         and(
           eq(aiMessages.conversationId, conversationId),
           isNull(aiMessages.deletedAt),
-          inArray(aiMessages.role, SERVED_ROLES),
+          or(inArray(aiMessages.role, SERVED_ROLES), isNotNull(aiMessages.proposalId)),
           // A turn that failed leaves an empty assistant row carrying only its token cost.
           ne(aiMessages.content, ""),
         ),
@@ -158,6 +160,7 @@ export class AiConversationsService {
       toolName?: string;
       usage?: ChatUsage;
       promptVersion?: number;
+      proposalId?: string;
     },
   ): Promise<AppendedMessage> {
     const [row] = await this.db
@@ -171,6 +174,7 @@ export class AiConversationsService {
         inputTokens: message.usage?.inputTokens ?? null,
         outputTokens: message.usage?.outputTokens ?? null,
         promptVersion: message.promptVersion ?? null,
+        proposalId: message.proposalId ?? null,
         createdBy: actor.id,
         updatedBy: actor.id,
       })
@@ -242,11 +246,22 @@ const toConversation = (row: ConversationRow): AiConversation => ({
   updatedAt: row.updatedAt.toISOString(),
 });
 
-const toMessage = (row: MessageRow): AiMessage => ({
-  id: row.id,
-  role: row.role,
-  content: row.content,
-  // Only user and assistant rows are served, and neither carries one.
-  toolName: null,
-  createdAt: row.createdAt.toISOString(),
-});
+const toMessage = (row: MessageRow): AiMessage =>
+  row.proposalId
+    ? {
+        id: row.id,
+        role: row.role,
+        // The envelope stays behind: the card reads the proposal itself.
+        content: "",
+        toolName: AI_TOOL.DRAFT_BULK_MESSAGE,
+        proposalId: row.proposalId,
+        createdAt: row.createdAt.toISOString(),
+      }
+    : {
+        id: row.id,
+        role: row.role,
+        content: row.content,
+        toolName: null,
+        proposalId: null,
+        createdAt: row.createdAt.toISOString(),
+      };

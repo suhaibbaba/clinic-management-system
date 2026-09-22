@@ -7,6 +7,10 @@
     "node": ">=22"
   },
   "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:api": "node scripts/dev.mjs api",
+    "dev:web": "node scripts/dev.mjs web",
+    "db:migrate": "pnpm --filter @clinic/shared build && pnpm --filter @clinic/api build && pnpm --filter @clinic/api db:migrate",
     "build": "pnpm -r build",
     "lint": "eslint .",
     "knip": "knip --no-progress",

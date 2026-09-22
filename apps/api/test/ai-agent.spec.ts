@@ -1,14 +1,19 @@
 import {
   AI_ERROR_CODE,
   AI_MESSAGE_ROLE,
+  AI_OUTBOUND_TARGET,
+  AI_OUTBOUND_TRIGGER,
+  AI_PROPOSAL_STATUS,
   AI_STREAM_EVENT,
   AI_TOOL,
   USER_ROLE,
+  type AiProposal,
 } from "@clinic/shared";
 import type { ConfigService } from "@nestjs/config";
 import { AgentService } from "@api/ai/agent.service";
 import { SYSTEM_PROMPT_VERSION } from "@api/ai/system-prompt";
 import type { AiConversationsService } from "@api/ai/ai-conversations.service";
+import type { ChatProviderResolver } from "@api/ai/chat-provider.resolver";
 import {
   ChatProviderError,
   type ChatChunk,
@@ -35,6 +40,7 @@ interface AppendedMessage {
   toolName?: string;
   usage?: { inputTokens: number; outputTokens: number };
   promptVersion?: number;
+  proposalId?: string;
 }
 
 function completed(text: string, toolCalls: ChatToolCall[] = []): ChatChunk {
@@ -66,7 +72,7 @@ function scripted(scripts: ChatChunk[][]): {
 
 function harness(
   provider: ChatProvider,
-  options: { maxSteps?: number; toolContent?: string } = {},
+  options: { maxSteps?: number; toolContent?: string; proposal?: AiProposal } = {},
 ): {
   agent: AgentService;
   appended: AppendedMessage[];
@@ -94,6 +100,7 @@ function harness(
       return Promise.resolve({
         name: call.name,
         content: options.toolContent ?? '{"tool":"x","untrusted_clinic_data":true,"result":[]}',
+        ...(options.proposal && { proposal: options.proposal }),
       });
     },
   } as unknown as ToolRunnerService;
@@ -119,7 +126,13 @@ function harness(
   } as unknown as Database;
 
   return {
-    agent: new AgentService(db, provider, conversations, tools, config),
+    agent: new AgentService(
+      db,
+      { for: () => Promise.resolve(provider) } as unknown as ChatProviderResolver,
+      conversations,
+      tools,
+      config,
+    ),
     appended,
     toolRuns,
   };
@@ -247,5 +260,44 @@ describe("the agent loop", () => {
       type: AI_STREAM_EVENT.ERROR,
       code: AI_ERROR_CODE.STEP_LIMIT,
     });
+  });
+
+  // The card is drawn from the frame and the tool row; the model only ever hears the id and a count.
+  it("hands a drafted proposal to the card, and marks the row it was drafted on", async () => {
+    const proposal: AiProposal = {
+      id: "44444444-4444-4444-8444-444444444444",
+      status: AI_PROPOSAL_STATUS.DRAFT,
+      trigger: AI_OUTBOUND_TRIGGER.COMMAND,
+      target: AI_OUTBOUND_TARGET.UNPAID_INVOICES,
+      intent: "ذكّرهم بالرصيد",
+      conversationId: CONVERSATION_ID,
+      createdBy: ACTOR.id,
+      recipients: [
+        { patientId: "55555555-5555-4555-8555-555555555555", name: "سمير", text: "مرحباً سمير" },
+      ],
+      expiresAt: "2026-09-23T10:15:00.000Z",
+      createdAt: "2026-09-23T10:00:00.000Z",
+      sentAt: null,
+      sentCount: 0,
+      failedCount: 0,
+    };
+    const call: ChatToolCall = {
+      id: "call_1",
+      name: AI_TOOL.DRAFT_BULK_MESSAGE,
+      arguments: '{"target":"unpaid_invoices","message_intent":"ذكّرهم بالرصيد"}',
+    };
+    const { provider, requests } = scripted([[completed("", [call])], [completed("جاهزة")]]);
+    const { agent, appended } = harness(provider, {
+      toolContent: `{"result":{"proposal_id":"${proposal.id}","recipient_count":1}}`,
+      proposal,
+    });
+
+    const events = await collect(agent);
+
+    expect(events).toContainEqual({ type: AI_STREAM_EVENT.PROPOSAL, proposal });
+    expect(appended).toContainEqual(
+      expect.objectContaining({ role: AI_MESSAGE_ROLE.TOOL, proposalId: proposal.id }),
+    );
+    expect(JSON.stringify(requests[1]?.messages)).not.toContain("مرحباً سمير");
   });
 });

@@ -479,11 +479,22 @@ describe("Notifications and schedulers (e2e)", () => {
   describe("templates", () => {
     it("ships an Arabic default for every message the system sends", () => {
       for (const template of Object.values(NOTIFICATION_TEMPLATE)) {
+        // The assistant's message arrives written in full; its Arabic defaults are the drafter's.
+        if (template === NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE) {
+          continue;
+        }
+
         const body = DEFAULT_NOTIFICATION_TEMPLATES[template];
 
         expect(body).toBeDefined();
         expect(body).toMatch(/[؀-ۿ]/);
       }
+    });
+
+    it("passes an assistant message through untouched", () => {
+      expect(DEFAULT_NOTIFICATION_TEMPLATES[NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE]).toBe(
+        "{body}",
+      );
     });
   });
 

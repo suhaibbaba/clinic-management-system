@@ -30,6 +30,11 @@ const AssistantPage = lazy(async () => ({
   default: (await import("@web/features/assistant/assistant-page")).AssistantPage,
 }));
 
+const AssistantSettingsPage = lazy(async () => ({
+  default: (await import("@web/features/assistant/settings/assistant-settings-page"))
+    .AssistantSettingsPage,
+}));
+
 const AuditPage = lazy(async () => ({
   default: (await import("@web/features/audit/audit-page")).AuditPage,
 }));
@@ -224,6 +229,16 @@ export function AppRoutes(): JSX.Element {
           element={
             <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
               <UsersPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/assistant/settings"
+          element={
+            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
+              <RouteChunk>
+                <AssistantSettingsPage />
+              </RouteChunk>
             </RequireRole>
           }
         />

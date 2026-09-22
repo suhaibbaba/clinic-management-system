@@ -1,4 +1,13 @@
-import { AI_ERROR_CODE, AI_STREAM_EVENT, AI_TOOL, type AiStreamEvent } from "@clinic/shared";
+import {
+  AI_ERROR_CODE,
+  AI_OUTBOUND_TARGET,
+  AI_OUTBOUND_TRIGGER,
+  AI_PROPOSAL_STATUS,
+  AI_STREAM_EVENT,
+  AI_TOOL,
+  type AiProposal,
+  type AiStreamEvent,
+} from "@clinic/shared";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -217,5 +226,72 @@ describe("A turn", () => {
 
     expect(result.current.turn?.question).toBe("مين ما راجع؟");
     await waitFor(() => expect(result.current.turn).toBeNull());
+  });
+});
+
+describe("A turn that drafts a message", () => {
+  const proposal: AiProposal = {
+    id: "9a1d2f2e-2222-4222-8222-222222222222",
+    status: AI_PROPOSAL_STATUS.DRAFT,
+    trigger: AI_OUTBOUND_TRIGGER.COMMAND,
+    target: AI_OUTBOUND_TARGET.UNPAID_INVOICES,
+    intent: "ذكّرهم بالرصيد",
+    conversationId: CONVERSATION,
+    createdBy: null,
+    recipients: [
+      { patientId: "9a1d2f2e-3333-4333-8333-333333333333", name: "سمير", text: "مرحباً سمير" },
+    ],
+    expiresAt: "2026-09-23T10:15:00.000Z",
+    createdAt: "2026-09-23T10:00:00.000Z",
+    sentAt: null,
+    sentCount: 0,
+    failedCount: 0,
+  };
+
+  it("holds the proposal for its card and hands it to the page's cache", async () => {
+    mockChat(
+      [
+        frame({ type: AI_STREAM_EVENT.CONVERSATION, conversationId: CONVERSATION }),
+        frame({ type: AI_STREAM_EVENT.TOOL, tool: AI_TOOL.DRAFT_BULK_MESSAGE }),
+        frame({ type: AI_STREAM_EVENT.PROPOSAL, proposal }),
+      ],
+      false,
+    );
+
+    const onProposal = vi.fn();
+    const { result } = harness({ onProposal });
+
+    act(() => {
+      result.current.send("ابعت تذكير للي عليهم رصيد");
+    });
+
+    await waitFor(() => expect(result.current.turn?.proposals).toEqual([proposal]));
+    expect(onProposal).toHaveBeenCalledWith(proposal);
+    expect(result.current.turn?.tool).toBeNull();
+  });
+
+  it("passes a status frame on, the way the card's buttons do", async () => {
+    const event = {
+      type: AI_STREAM_EVENT.PROPOSAL_STATUS,
+      proposalId: proposal.id,
+      status: AI_PROPOSAL_STATUS.SENT,
+      sentCount: 1,
+      failedCount: 0,
+    } as const;
+
+    mockChat([
+      frame({ type: AI_STREAM_EVENT.CONVERSATION, conversationId: CONVERSATION }),
+      frame(event),
+      frame({ type: AI_STREAM_EVENT.DONE, messageId: CONVERSATION }),
+    ]);
+
+    const onProposalStatus = vi.fn();
+    const { result } = harness({ onProposalStatus });
+
+    act(() => {
+      result.current.send("شو صار بالرسالة؟");
+    });
+
+    await waitFor(() => expect(onProposalStatus).toHaveBeenCalledWith(event));
   });
 });
