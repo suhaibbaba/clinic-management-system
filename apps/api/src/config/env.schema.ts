@@ -83,10 +83,20 @@ export const envSchema = z.object({
 
   // `log` is the default everywhere, sandbox included: it records the message and sends nothing,
   // which is what every test relies on.
-  NOTIFICATIONS_PROVIDER: z.enum(["log", "http"]).default("log"),
+  NOTIFICATIONS_PROVIDER: z.enum(["log", "http", "whatsapp"]).default("log"),
   NOTIFICATIONS_HTTP_URL: z.string().url().optional(),
   NOTIFICATIONS_HTTP_TOKEN: z.string().optional(),
   NOTIFICATIONS_HTTP_TIMEOUT_MS: z.coerce.number().int().min(500).max(30_000).default(5_000),
+  // WhatsApp Cloud API. A business-initiated message must be an approved template, so every body
+  // travels as the single body parameter of one utility template the clinic's account owns.
+  WHATSAPP_ACCESS_TOKEN: z.string().optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
+  WHATSAPP_TEMPLATE_NAME: z.string().optional(),
+  WHATSAPP_TEMPLATE_LANGUAGE: z.string().min(2).default("ar"),
+  WHATSAPP_API_VERSION: z
+    .string()
+    .regex(/^v\d+\.\d+$/)
+    .default("v21.0"),
 
   // Separate from `JWT_SECRET`: this one goes to a stranger over SMS and lives for weeks. It falls
   // back to it only so development boots without a second variable.
@@ -116,6 +126,16 @@ export const envSchema = z.object({
   AI_RATE_LIMIT_PER_HOUR: z.coerce.number().int().min(1).max(1_000).default(30),
   /** Tokens a whole clinic may spend in its own day, across every user. */
   AI_DAILY_TOKEN_BUDGET: z.coerce.number().int().min(1_000).default(200_000),
+  // Encrypts the provider keys a clinic enters in its settings. 32 random bytes, base64. Without it
+  // the settings refuse to store a key and every clinic falls back to the variables above.
+  SECRETS_MASTER_KEY: z
+    .string()
+    .refine((value) => Buffer.from(value, "base64").length === 32, "Expected 32 bytes, base64")
+    .optional(),
+  /** How long a proposal drafted in the chat waits for its confirmation card. */
+  AI_PROPOSAL_TTL_MINUTES: z.coerce.number().int().min(1).max(120).default(15),
+  /** The clinic-local hour from which the daily automation runs for that day. */
+  AI_AUTOMATION_HOUR: z.coerce.number().int().min(0).max(23).default(9),
 });
 
 export type Env = z.infer<typeof envSchema>;

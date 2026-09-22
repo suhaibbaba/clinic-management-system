@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import OpenAI from "openai";
@@ -10,6 +11,8 @@ import {
   type ChatRequest,
   type ChatToolCall,
 } from "@api/ai/chat-provider";
+
+const MAX_CLINIC_CLIENTS = 50;
 
 type OpenAiMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 type OpenAiTool = OpenAI.Chat.Completions.ChatCompletionFunctionTool;
@@ -27,10 +30,24 @@ export class OpenAiChatProvider implements ChatProvider {
 
   private readonly logger = new Logger("Assistant");
   private client: OpenAI | undefined;
+  /** One client per clinic key, found by its digest so the map never holds a key as its index. */
+  private readonly clinicClients = new Map<string, OpenAI>();
 
   constructor(private readonly config: ConfigService<Env, true>) {}
 
-  async *stream(request: ChatRequest): AsyncIterable<ChatChunk> {
+  stream(request: ChatRequest): AsyncIterable<ChatChunk> {
+    return this.streamWith(() => this.openai(), request);
+  }
+
+  /** The same provider on a clinic's own key, entered in its settings. */
+  withKey(apiKey: string): ChatProvider {
+    return {
+      name: this.name,
+      stream: (request) => this.streamWith(() => this.clientFor(apiKey), request),
+    };
+  }
+
+  private async *streamWith(client: () => OpenAI, request: ChatRequest): AsyncIterable<ChatChunk> {
     const text: string[] = [];
     const calls = new Map<number, PartialToolCall>();
     let usage = { inputTokens: 0, outputTokens: 0 };
@@ -38,8 +55,7 @@ export class OpenAiChatProvider implements ChatProvider {
     try {
       // Inside the try: an unconfigured key is the likeliest failure of all, and thrown from
       // outside it reached the user as `provider_unavailable` having logged nothing at all.
-      const client = this.openai();
-      const stream = await client.chat.completions.create({
+      const stream = await client().chat.completions.create({
         model: this.config.get("AI_MODEL", { infer: true }),
         max_completion_tokens: this.config.get("AI_MAX_OUTPUT_TOKENS", { infer: true }),
         messages: request.messages.map(toOpenAiMessage),
@@ -98,14 +114,41 @@ export class OpenAiChatProvider implements ChatProvider {
         throw new Error("OPENAI_API_KEY is not configured");
       }
 
-      this.client = new OpenAI({
-        apiKey,
-        timeout: this.config.get("AI_REQUEST_TIMEOUT_MS", { infer: true }),
-        maxRetries: 1,
-      });
+      this.client = this.create(apiKey);
     }
 
     return this.client;
+  }
+
+  private clientFor(apiKey: string): OpenAI {
+    const digest = createHash("sha256").update(apiKey).digest("hex");
+    const cached = this.clinicClients.get(digest);
+
+    if (cached) {
+      return cached;
+    }
+
+    // A replaced key leaves its client behind; the cap keeps that from growing without end.
+    if (this.clinicClients.size >= MAX_CLINIC_CLIENTS) {
+      const oldest = this.clinicClients.keys().next().value;
+
+      if (oldest !== undefined) {
+        this.clinicClients.delete(oldest);
+      }
+    }
+
+    const client = this.create(apiKey);
+    this.clinicClients.set(digest, client);
+
+    return client;
+  }
+
+  private create(apiKey: string): OpenAI {
+    return new OpenAI({
+      apiKey,
+      timeout: this.config.get("AI_REQUEST_TIMEOUT_MS", { infer: true }),
+      maxRetries: 1,
+    });
   }
 }
 
@@ -152,8 +195,12 @@ function describe(error: unknown): string {
       ...(error.param ? [`param=${error.param}`] : []),
     ].join(" ");
 
-    return `${error.name} (${detail}): ${error.message}`;
+    return redactKeys(`${error.name} (${detail}): ${error.message}`);
   }
 
-  return error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  return redactKeys(error instanceof Error ? `${error.name}: ${error.message}` : String(error));
 }
+
+/** A rejected key is quoted back in the error, and a clinic's key must not reach the log. */
+export const redactKeys = (text: string): string =>
+  text.replace(/sk-[A-Za-z0-9_*.-]{4,}/g, "sk-<redacted>");

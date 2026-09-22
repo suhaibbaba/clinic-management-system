@@ -5,7 +5,14 @@ import { AiBudgetService } from "@api/ai/ai-budget.service";
 import { AiController } from "@api/ai/ai.controller";
 import { AiConversationsService } from "@api/ai/ai-conversations.service";
 import { CHAT_PROVIDER, LogChatProvider, type ChatProvider } from "@api/ai/chat-provider";
+import { ChatProviderResolver } from "@api/ai/chat-provider.resolver";
 import { OpenAiChatProvider } from "@api/ai/openai-chat.provider";
+import { AutomationService } from "@api/ai/outbound/automation.service";
+import { MessageDrafterService } from "@api/ai/outbound/message-drafter.service";
+import { OutboundController } from "@api/ai/outbound/outbound.controller";
+import { OutboundLogService } from "@api/ai/outbound/outbound-log.service";
+import { OutboundRecipientsService } from "@api/ai/outbound/outbound-recipients.service";
+import { ProposalsService } from "@api/ai/outbound/proposals.service";
 import { AiToolsService } from "@api/ai/tools/ai-tools.service";
 import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
 import { AppointmentsModule } from "@api/appointments/appointments.module";
@@ -15,8 +22,10 @@ import type { Env } from "@api/config/env.schema";
 import { DatabaseModule } from "@api/database/database.module";
 import { InventoryModule } from "@api/inventory/inventory.module";
 import { LabsModule } from "@api/labs/labs.module";
+import { NotificationsModule } from "@api/notifications/notifications.module";
 import { PatientsModule } from "@api/patients/patients.module";
 import { PermissionsModule } from "@api/permissions/permissions.module";
+import { SecretsModule } from "@api/secrets/secrets.module";
 
 // Owns no domain table beyond its own transcript: every tool answers through the service that
 // already answers the same question for a screen, so the assistant and the screen cannot disagree
@@ -31,8 +40,10 @@ import { PermissionsModule } from "@api/permissions/permissions.module";
     BillingModule,
     LabsModule,
     InventoryModule,
+    NotificationsModule,
+    SecretsModule,
   ],
-  controllers: [AiController],
+  controllers: [AiController, OutboundController],
   providers: [
     LogChatProvider,
     OpenAiChatProvider,
@@ -57,11 +68,17 @@ import { PermissionsModule } from "@api/permissions/permissions.module";
         return provider;
       },
     },
+    ChatProviderResolver,
     AiToolsService,
     ToolRunnerService,
     AiConversationsService,
     AiBudgetService,
     AgentService,
+    OutboundRecipientsService,
+    MessageDrafterService,
+    ProposalsService,
+    AutomationService,
+    OutboundLogService,
   ],
 })
 export class AiModule {}

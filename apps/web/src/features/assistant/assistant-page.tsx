@@ -1,4 +1,10 @@
-import { AI_MESSAGE_ROLE, type AiMessage } from "@clinic/shared";
+import {
+  AI_MESSAGE_ROLE,
+  AI_OUTBOUND_TRIGGER,
+  type AiMessage,
+  type AiProposal,
+  type AiProposalStatusEvent,
+} from "@clinic/shared";
 import { useCallback, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
@@ -14,14 +20,19 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { assistantApi } from "@web/features/assistant/api";
 import { MarkdownMessage } from "@web/features/assistant/markdown-message";
+import { ProposalCard, SEND_CAPABILITY } from "@web/features/assistant/proposal-card";
 import { ConversationRail } from "@web/features/assistant/conversation-rail";
 import { errorMessageKey, toolStatusKey } from "@web/features/assistant/messages";
 import {
+  applyProposalStatus,
   CONVERSATIONS_KEY,
   MESSAGES_KEY,
+  PROPOSAL_KEY,
   useConversationMessages,
   useConversations,
+  usePendingProposals,
 } from "@web/features/assistant/queries";
+import { useSession } from "@web/features/auth/session";
 import { SUGGESTIONS } from "@web/features/assistant/suggestions";
 import { useAssistantStream } from "@web/features/assistant/use-assistant-stream";
 import { ellipsis } from "@web/i18n/ellipsis";
@@ -63,7 +74,25 @@ export function AssistantPage(): JSX.Element {
     [client],
   );
 
-  const stream = useAssistantStream({ conversationId, onConversationStarted, onFinished });
+  const onProposal = useCallback(
+    (proposal: AiProposal) => client.setQueryData([PROPOSAL_KEY, proposal.id], proposal),
+    [client],
+  );
+
+  const onProposalStatus = useCallback(
+    (event: AiProposalStatusEvent) => applyProposalStatus(client, event),
+    [client],
+  );
+
+  const stream = useAssistantStream({
+    conversationId,
+    onConversationStarted,
+    onFinished,
+    onProposal,
+    onProposalStatus,
+  });
+
+  const { can } = useSession();
 
   const ask = (text: string): void => {
     const question = text.trim();
@@ -78,6 +107,12 @@ export function AssistantPage(): JSX.Element {
 
   const stored = messages.data ?? [];
   const empty = stored.length === 0 && stream.turn === null;
+
+  // The automation's drafts belong to nobody's conversation, so a fresh one is where they wait.
+  const pending = usePendingProposals(conversationId === undefined && can(SEND_CAPABILITY));
+  const automated = (pending.data?.items ?? []).filter(
+    (proposal) => proposal.trigger === AI_OUTBOUND_TRIGGER.CRON,
+  );
 
   const suggestions: Suggestion[] = SUGGESTIONS.map((suggestion) => ({
     key: suggestion.key,
@@ -130,25 +165,38 @@ export function AssistantPage(): JSX.Element {
         <ChatThread data-testid="assistant-thread" jumpLabel={t("assistant.jumpToLatest")}>
           {empty && <EmptyIntro />}
 
-          {stored.map((message: AiMessage) => (
-            <ChatBubble
-              key={message.id}
-              data-testid={`assistant-message-${message.id}`}
-              author={message.role === AI_MESSAGE_ROLE.USER ? "user" : "assistant"}
-            >
-              {message.role === AI_MESSAGE_ROLE.USER ? (
-                <span className="whitespace-pre-wrap">{message.content}</span>
-              ) : (
-                <MarkdownMessage content={message.content} />
-              )}
-            </ChatBubble>
-          ))}
+          {empty &&
+            automated.map((proposal) => (
+              <ProposalCard key={proposal.id} id={proposal.id} initial={proposal} />
+            ))}
+
+          {stored.map((message: AiMessage) =>
+            message.proposalId ? (
+              <ProposalCard key={message.id} id={message.proposalId} />
+            ) : (
+              <ChatBubble
+                key={message.id}
+                data-testid={`assistant-message-${message.id}`}
+                author={message.role === AI_MESSAGE_ROLE.USER ? "user" : "assistant"}
+              >
+                {message.role === AI_MESSAGE_ROLE.USER ? (
+                  <span className="whitespace-pre-wrap">{message.content}</span>
+                ) : (
+                  <MarkdownMessage content={message.content} />
+                )}
+              </ChatBubble>
+            ),
+          )}
 
           {stream.turn && (
             <>
               <ChatBubble author="user" data-testid="assistant-live-question">
                 <span className="whitespace-pre-wrap">{stream.turn.question}</span>
               </ChatBubble>
+
+              {stream.turn.proposals.map((proposal) => (
+                <ProposalCard key={proposal.id} id={proposal.id} initial={proposal} />
+              ))}
 
               <ChatBubble
                 author="assistant"

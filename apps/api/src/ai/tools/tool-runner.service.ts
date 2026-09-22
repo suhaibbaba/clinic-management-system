@@ -6,10 +6,18 @@ import {
   NotFoundException,
   type OnApplicationBootstrap,
 } from "@nestjs/common";
-import { AI_TOOL, AI_TOOL_ERROR, type AiToolError, type AiToolName } from "@clinic/shared";
+import {
+  AI_TOOL,
+  AI_TOOL_ERROR,
+  type AiOutboundError,
+  type AiProposal,
+  type AiToolError,
+  type AiToolName,
+} from "@clinic/shared";
 import type { ChatToolCall, ChatToolDefinition } from "@api/ai/chat-provider";
+import { OutboundError } from "@api/ai/outbound/proposals.service";
 import { AiToolsService } from "@api/ai/tools/ai-tools.service";
-import type { AiTool } from "@api/ai/tools/ai-tool";
+import type { AiTool, ToolContext } from "@api/ai/tools/ai-tool";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { aiAuditLog } from "@api/database/schema";
@@ -21,6 +29,8 @@ export interface ToolRun {
   readonly name: string;
   /** The JSON handed back to the model, envelope and all. */
   readonly content: string;
+  /** Set when the tool drafted a proposal: the stream sends it to the card, never to the model. */
+  readonly proposal?: AiProposal;
 }
 
 interface Envelope {
@@ -28,8 +38,13 @@ interface Envelope {
   /** Read by the model together with the system prompt's rule about what that means. */
   readonly untrusted_clinic_data?: true;
   readonly result?: unknown;
-  readonly error?: AiToolError;
+  readonly error?: AiToolError | AiOutboundError;
   readonly details?: string[];
+}
+
+interface Executed {
+  readonly envelope: Envelope;
+  readonly proposal?: AiProposal;
 }
 
 // Everything between the model asking for a tool and the model being handed an answer: the
@@ -97,37 +112,57 @@ export class ToolRunnerService implements OnApplicationBootstrap {
       });
     }
 
-    return this.finish(
+    const executed = await this.execute(actor, tool, args, { conversationId });
+    const run = await this.finish(
       actor,
       conversationId,
       tool.name,
       args,
       started,
-      await this.execute(actor, tool, args),
+      executed.envelope,
     );
+
+    return executed.proposal ? { ...run, proposal: executed.proposal } : run;
   }
 
-  private async execute(actor: AuthenticatedUser, tool: AiTool, args: unknown): Promise<Envelope> {
+  private async execute(
+    actor: AuthenticatedUser,
+    tool: AiTool,
+    args: unknown,
+    context: ToolContext,
+  ): Promise<Executed> {
     try {
-      const outcome = await tool.execute(actor, args);
+      const outcome = await tool.execute(actor, args, context);
 
-      return outcome.ok
-        ? { tool: tool.name, untrusted_clinic_data: true, result: outcome.data }
-        : { tool: tool.name, error: outcome.error, details: outcome.details };
+      if (!outcome.ok) {
+        return {
+          envelope: { tool: tool.name, error: outcome.error, details: outcome.details },
+        };
+      }
+
+      return {
+        envelope: { tool: tool.name, untrusted_clinic_data: true, result: outcome.data },
+        ...(outcome.proposal && { proposal: outcome.proposal }),
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
-        return { tool: tool.name, error: AI_TOOL_ERROR.NOT_FOUND };
+        return { envelope: { tool: tool.name, error: AI_TOOL_ERROR.NOT_FOUND } };
       }
 
       if (error instanceof ForbiddenException) {
-        return { tool: tool.name, error: AI_TOOL_ERROR.NOT_PERMITTED };
+        return { envelope: { tool: tool.name, error: AI_TOOL_ERROR.NOT_PERMITTED } };
+      }
+
+      // A cap or an empty list: the model hears the code and explains it to the user.
+      if (error instanceof OutboundError) {
+        return { envelope: { tool: tool.name, error: error.code } };
       }
 
       // The message stays here: it names tables and ids, and the model's context is quoted back
       // to the user.
       this.logger.error(`Tool ${tool.name} failed: ${describe(error)}`);
 
-      return { tool: tool.name, error: AI_TOOL_ERROR.FAILED };
+      return { envelope: { tool: tool.name, error: AI_TOOL_ERROR.FAILED } };
     }
   }
 

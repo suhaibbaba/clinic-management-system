@@ -75,6 +75,12 @@ export const NAV_SETTINGS: NavGroup = {
       roles: [USER_ROLE.ADMIN],
       icon: "language",
     },
+    {
+      to: "/assistant/settings",
+      label: "nav.assistantSettings",
+      roles: [USER_ROLE.ADMIN],
+      icon: "sparkles",
+    },
     { to: "/permissions", label: "nav.permissions", roles: [USER_ROLE.ADMIN], icon: "key" },
     { to: "/audit-log", label: "nav.audit", roles: [USER_ROLE.ADMIN], icon: "clipboard" },
   ],

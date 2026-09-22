@@ -331,6 +331,7 @@ export const NOTIFICATION_TEMPLATE = {
   URGENT_RECEIVED: "urgent_received",
   URGENT_SCHEDULED: "urgent_scheduled",
   URGENT_DECLINED: "urgent_declined",
+  ASSISTANT_MESSAGE: "assistant_message",
 } as const satisfies Record<string, string>;
 export type NotificationTemplate = EnumValue<typeof NOTIFICATION_TEMPLATE>;
 
@@ -343,6 +344,7 @@ export const NOTIFICATION_TEMPLATES = [
   NOTIFICATION_TEMPLATE.URGENT_RECEIVED,
   NOTIFICATION_TEMPLATE.URGENT_SCHEDULED,
   NOTIFICATION_TEMPLATE.URGENT_DECLINED,
+  NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE,
 ] as const;
 
 // `queued` is written before the provider is called, so a provider that throws still leaves a
@@ -495,6 +497,7 @@ export const AI_TOOL = {
   GET_FINANCIAL_SUMMARY: "get_financial_summary",
   GET_OVERDUE_LAB_ORDERS: "get_overdue_lab_orders",
   GET_LOW_STOCK_ITEMS: "get_low_stock_items",
+  DRAFT_BULK_MESSAGE: "draft_bulk_message",
 } as const satisfies Record<string, string>;
 export type AiToolName = EnumValue<typeof AI_TOOL>;
 
@@ -506,6 +509,7 @@ export const AI_TOOL_NAMES = [
   AI_TOOL.GET_FINANCIAL_SUMMARY,
   AI_TOOL.GET_OVERDUE_LAB_ORDERS,
   AI_TOOL.GET_LOW_STOCK_ITEMS,
+  AI_TOOL.DRAFT_BULK_MESSAGE,
 ] as const;
 
 export const AI_STREAM_EVENT = {
@@ -515,6 +519,10 @@ export const AI_STREAM_EVENT = {
   DELTA: "delta",
   DONE: "done",
   ERROR: "error",
+  /** A drafted bulk message awaiting the user's confirmation card. */
+  PROPOSAL: "proposal",
+  /** A proposal moved: the send and cancel endpoints answer with this frame too. */
+  PROPOSAL_STATUS: "proposal_status",
 } as const satisfies Record<string, string>;
 export type AiStreamEventType = EnumValue<typeof AI_STREAM_EVENT>;
 
@@ -524,6 +532,8 @@ export const AI_STREAM_EVENTS = [
   AI_STREAM_EVENT.DELTA,
   AI_STREAM_EVENT.DONE,
   AI_STREAM_EVENT.ERROR,
+  AI_STREAM_EVENT.PROPOSAL,
+  AI_STREAM_EVENT.PROPOSAL_STATUS,
 ] as const;
 
 // Codes, never sentences: the stream carries one of these and the web writes the Arabic. A provider
@@ -554,3 +564,142 @@ export const AI_TOOL_ERROR = {
   FAILED: "failed",
 } as const satisfies Record<string, string>;
 export type AiToolError = EnumValue<typeof AI_TOOL_ERROR>;
+
+// `sending` is the claim that stops a second click from sending twice; `expired` is written when
+// somebody acts on a draft past its time, and served for one that is merely past it.
+export const AI_PROPOSAL_STATUS = {
+  DRAFT: "draft",
+  SENDING: "sending",
+  SENT: "sent",
+  CANCELLED: "cancelled",
+  EXPIRED: "expired",
+} as const satisfies Record<string, string>;
+export type AiProposalStatus = EnumValue<typeof AI_PROPOSAL_STATUS>;
+
+export const AI_PROPOSAL_STATUSES = [
+  AI_PROPOSAL_STATUS.DRAFT,
+  AI_PROPOSAL_STATUS.SENDING,
+  AI_PROPOSAL_STATUS.SENT,
+  AI_PROPOSAL_STATUS.CANCELLED,
+  AI_PROPOSAL_STATUS.EXPIRED,
+] as const;
+
+export const AI_PROPOSAL_STATUS_TRANSITIONS = {
+  [AI_PROPOSAL_STATUS.DRAFT]: [
+    AI_PROPOSAL_STATUS.SENDING,
+    AI_PROPOSAL_STATUS.CANCELLED,
+    AI_PROPOSAL_STATUS.EXPIRED,
+  ],
+  [AI_PROPOSAL_STATUS.SENDING]: [AI_PROPOSAL_STATUS.SENT],
+  [AI_PROPOSAL_STATUS.SENT]: [],
+  [AI_PROPOSAL_STATUS.CANCELLED]: [],
+  [AI_PROPOSAL_STATUS.EXPIRED]: [],
+} as const satisfies Record<AiProposalStatus, readonly AiProposalStatus[]>;
+
+export function canTransitionAiProposal(from: AiProposalStatus, to: AiProposalStatus): boolean {
+  return (AI_PROPOSAL_STATUS_TRANSITIONS[from] as readonly AiProposalStatus[]).includes(to);
+}
+
+/** Who a bulk message goes to. The first three are also the daily automation rules. */
+export const AI_OUTBOUND_TARGET = {
+  OVERDUE_LABS: "overdue_labs",
+  UNPAID_INVOICES: "unpaid_invoices",
+  TOMORROW_APPOINTMENTS: "tomorrow_appointments",
+  PATIENT_IDS: "patient_ids",
+} as const satisfies Record<string, string>;
+export type AiOutboundTarget = EnumValue<typeof AI_OUTBOUND_TARGET>;
+
+export const AI_OUTBOUND_TARGETS = [
+  AI_OUTBOUND_TARGET.OVERDUE_LABS,
+  AI_OUTBOUND_TARGET.UNPAID_INVOICES,
+  AI_OUTBOUND_TARGET.TOMORROW_APPOINTMENTS,
+  AI_OUTBOUND_TARGET.PATIENT_IDS,
+] as const;
+
+export const AI_AUTOMATION_RULES = [
+  AI_OUTBOUND_TARGET.OVERDUE_LABS,
+  AI_OUTBOUND_TARGET.UNPAID_INVOICES,
+  AI_OUTBOUND_TARGET.TOMORROW_APPOINTMENTS,
+] as const;
+export type AiAutomationRule = (typeof AI_AUTOMATION_RULES)[number];
+
+export const AI_AUTOMATION_MODE = {
+  OFF: "off",
+  PROPOSE: "propose",
+  AUTO_SEND: "auto_send",
+} as const satisfies Record<string, string>;
+export type AiAutomationMode = EnumValue<typeof AI_AUTOMATION_MODE>;
+
+export const AI_AUTOMATION_MODES = [
+  AI_AUTOMATION_MODE.OFF,
+  AI_AUTOMATION_MODE.PROPOSE,
+  AI_AUTOMATION_MODE.AUTO_SEND,
+] as const;
+
+export const AI_OUTBOUND_TRIGGER = {
+  COMMAND: "command",
+  CRON: "cron",
+} as const satisfies Record<string, string>;
+export type AiOutboundTrigger = EnumValue<typeof AI_OUTBOUND_TRIGGER>;
+
+export const AI_OUTBOUND_TRIGGERS = [
+  AI_OUTBOUND_TRIGGER.COMMAND,
+  AI_OUTBOUND_TRIGGER.CRON,
+] as const;
+
+export const AI_AUTOMATION_RUN_STATUS = {
+  RUNNING: "running",
+  DONE: "done",
+  FAILED: "failed",
+} as const satisfies Record<string, string>;
+export type AiAutomationRunStatus = EnumValue<typeof AI_AUTOMATION_RUN_STATUS>;
+
+export const AI_AUTOMATION_RUN_STATUSES = [
+  AI_AUTOMATION_RUN_STATUS.RUNNING,
+  AI_AUTOMATION_RUN_STATUS.DONE,
+  AI_AUTOMATION_RUN_STATUS.FAILED,
+] as const;
+
+// Why a proposal was refused, as the `message` of the error the send endpoint answers with, and as
+// the tool error the model reads when a draft cannot be made. The web writes the Arabic.
+export const AI_OUTBOUND_ERROR = {
+  EXPIRED: "proposal_expired",
+  NOT_PENDING: "proposal_not_pending",
+  RECIPIENT_CAP: "recipient_cap_exceeded",
+  DAILY_CAP: "daily_cap_exceeded",
+  NO_RECIPIENTS: "no_recipients",
+  NOTIFICATIONS_DISABLED: "notifications_disabled",
+} as const satisfies Record<string, string>;
+export type AiOutboundError = EnumValue<typeof AI_OUTBOUND_ERROR>;
+
+export const AI_OUTBOUND_ERRORS = [
+  AI_OUTBOUND_ERROR.EXPIRED,
+  AI_OUTBOUND_ERROR.NOT_PENDING,
+  AI_OUTBOUND_ERROR.RECIPIENT_CAP,
+  AI_OUTBOUND_ERROR.DAILY_CAP,
+  AI_OUTBOUND_ERROR.NO_RECIPIENTS,
+  AI_OUTBOUND_ERROR.NOTIFICATIONS_DISABLED,
+] as const;
+
+// A clinic's own provider credentials. Stored encrypted and never served back: a screen learns
+// only whether one is set and how it ends.
+export const CLINIC_SECRET_KIND = {
+  OPENAI_API_KEY: "openai_api_key",
+  WHATSAPP_ACCESS_TOKEN: "whatsapp_access_token",
+  WHATSAPP_PHONE_NUMBER_ID: "whatsapp_phone_number_id",
+  WHATSAPP_TEMPLATE_NAME: "whatsapp_template_name",
+} as const satisfies Record<string, string>;
+export type ClinicSecretKind = EnumValue<typeof CLINIC_SECRET_KIND>;
+
+export const CLINIC_SECRET_KINDS = [
+  CLINIC_SECRET_KIND.OPENAI_API_KEY,
+  CLINIC_SECRET_KIND.WHATSAPP_ACCESS_TOKEN,
+  CLINIC_SECRET_KIND.WHATSAPP_PHONE_NUMBER_ID,
+  CLINIC_SECRET_KIND.WHATSAPP_TEMPLATE_NAME,
+] as const;
+
+export const CLINIC_SECRET_ERROR = {
+  /** The server has no master key, so nothing can be stored encrypted. */
+  UNAVAILABLE: "secrets_unavailable",
+} as const satisfies Record<string, string>;
+export type ClinicSecretError = EnumValue<typeof CLINIC_SECRET_ERROR>;

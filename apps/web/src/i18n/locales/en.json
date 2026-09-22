@@ -115,7 +115,8 @@
     "settings": "Clinic settings",
     "translations": "Interface text",
     "users": "Users",
-    "waitingCount": "{{count}} awaiting confirmation"
+    "waitingCount": "{{count}} awaiting confirmation",
+    "assistantSettings": "Assistant settings"
   },
   "roles": {
     "admin": "Admin",
@@ -1521,7 +1522,17 @@
         "promote": "Turn a waiting-list entry into an appointment",
         "remove": "Remove from the waiting list",
         "update": "Edit a waiting-list entry"
-      }
+      },
+      "ai.chat": "Ask the assistant",
+      "ai-outbound.list": "See proposed messages",
+      "ai-outbound.read": "Open a proposed message",
+      "ai-outbound.send": "Send the assistant's messages to patients",
+      "ai-outbound.cancel": "Cancel a proposed message",
+      "ai-outbound.audit": "Assistant message log",
+      "ai-automation.settings": "See the daily follow-up settings",
+      "ai-automation.update-settings": "Change the daily follow-up settings",
+      "ai-secrets.status": "See the provider keys' status",
+      "ai-secrets.update": "Change the provider keys"
     },
     "hints": {
       "appointments": "The Appointments screen: booking, confirming and cancelling, marking a patient arrived, and the bookings the public page sends in.",
@@ -1574,7 +1585,8 @@
       "treatment-plans": "Treatment plans",
       "users": "Users",
       "visits": "Visits",
-      "waiting-list": "Waiting list"
+      "waiting-list": "Waiting list",
+      "ai": "Assistant"
     },
     "role": "Role",
     "subtitle": "What each role is able to do",
@@ -1640,7 +1652,8 @@
       "dailyStats": "Counting the days",
       "financialSummary": "Preparing the financial summary",
       "labOrders": "Checking the lab orders",
-      "lowStock": "Checking what is low"
+      "lowStock": "Checking what is low",
+      "draftMessage": "Drafting the messages"
     },
     "errors": {
       "rateLimited": "Too many questions too quickly. Try again shortly.",
@@ -1648,6 +1661,119 @@
       "providerUnavailable": "The assistant could not be reached. Try again.",
       "stepLimit": "I could not get to an answer. Try asking more directly.",
       "failed": "Something unexpected went wrong. Try again."
+    },
+    "outboundErrors": {
+      "expired": "This draft has expired. Ask the assistant to prepare it again.",
+      "notPending": "This draft was already sent or cancelled.",
+      "recipientCap": "There are more recipients than one message may reach.",
+      "dailyCap": "The clinic has reached its daily message limit. Try tomorrow or raise it in settings.",
+      "noRecipients": "No patients match this message.",
+      "notificationsDisabled": "The clinic's notifications are switched off, so nothing can be sent."
+    },
+    "proposal": {
+      "title": "Message ready to send",
+      "recipients_one": "{{count}} recipient",
+      "recipients_other": "{{count}} recipients",
+      "status": {
+        "draft": "Awaiting confirmation",
+        "sending": "Sending",
+        "sent": "Sent",
+        "cancelled": "Cancelled",
+        "expired": "Expired"
+      },
+      "rules": {
+        "overdue_labs": "From the daily follow-up: overdue lab orders",
+        "unpaid_invoices": "From the daily follow-up: unpaid balances",
+        "tomorrow_appointments": "From the daily follow-up: tomorrow's appointments"
+      },
+      "showRecipients": "Show recipients and messages",
+      "hideRecipients": "Hide recipients",
+      "send": "Send",
+      "cancel": "Cancel",
+      "expiresAt": "Expires at {{time}}",
+      "sentSummary": "{{sent}} sent, {{failed}} failed"
+    }
+  },
+  "assistantSettings": {
+    "title": "Assistant settings",
+    "subtitle": "Automatic patient messages, sending limits and the log of what was sent",
+    "tabs": {
+      "rules": "Daily follow-up",
+      "outbound": "Message log",
+      "keys": "Provider keys"
+    },
+    "mode": "Mode",
+    "modes": {
+      "off": "Off",
+      "propose": "Propose in chat",
+      "auto_send": "Auto-send"
+    },
+    "autoSendWarning": "With auto-send, messages reach patients without anybody reviewing them.",
+    "days": "After how many days",
+    "cap": "Most recipients",
+    "recipientCap": "Most recipients for a message from the chat",
+    "recipientCapHint": "Above this the message is not drafted at all.",
+    "dailyCap": "Most messages per day",
+    "dailyCapHint": "For the whole clinic, chat and daily follow-up together.",
+    "saved": "Settings saved",
+    "rules": {
+      "overdue_labs": {
+        "title": "Overdue lab orders",
+        "hint": "Patients whose lab work is late."
+      },
+      "unpaid_invoices": {
+        "title": "Unpaid balances",
+        "hint": "Patients who have owed money for a while."
+      },
+      "tomorrow_appointments": {
+        "title": "Tomorrow's appointments",
+        "hint": "A reminder to patients confirmed for tomorrow."
+      }
+    },
+    "triggers": {
+      "command": "From the chat",
+      "cron": "Daily follow-up"
+    },
+    "outcomes": {
+      "sent": "Sent",
+      "failed": "Failed"
+    },
+    "outbound": {
+      "when": "When",
+      "recipient": "Recipient",
+      "text": "Message",
+      "trigger": "Source",
+      "user": "By",
+      "outcome": "Outcome",
+      "proposal": "Draft",
+      "system": "System",
+      "empty": "No messages sent yet",
+      "emptyHint": "Messages the assistant sends appear here."
+    },
+    "keys": {
+      "unavailable": "The server has no encryption key, so keys cannot be saved here. The clinic uses the server's settings.",
+      "saved": "Keys saved",
+      "clear": "Remove",
+      "current": "Saved, ending {{hint}} — changed {{date}}",
+      "notSet": "Not saved — the clinic uses the server's settings",
+      "groups": {
+        "openai": {
+          "title": "OpenAI",
+          "hint": "The clinic's own key for the assistant. Usage is billed to the clinic's account.",
+          "confirmClear": "Remove the OpenAI key? The assistant goes back to the server's settings."
+        },
+        "whatsapp": {
+          "title": "WhatsApp Business",
+          "hint": "The clinic's WhatsApp account for messages and reminders. The template must be approved by Meta.",
+          "confirmClear": "Remove the WhatsApp details? Messages go back to the server's settings."
+        }
+      },
+      "kinds": {
+        "openai_api_key": "API key",
+        "whatsapp_access_token": "Access token",
+        "whatsapp_phone_number_id": "Phone number ID",
+        "whatsapp_template_name": "Template name"
+      }
     }
   }
 }

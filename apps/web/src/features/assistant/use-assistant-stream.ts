@@ -3,6 +3,8 @@ import {
   AI_STREAM_EVENT,
   aiStreamEventSchema,
   type AiErrorCode,
+  type AiProposal,
+  type AiProposalStatusEvent,
   type AiStreamEvent,
   type AiToolName,
 } from "@clinic/shared";
@@ -19,6 +21,8 @@ export interface LiveTurn {
   readonly tool: AiToolName | null;
   readonly error: AiErrorCode | null;
   readonly streaming: boolean;
+  /** Drafts this turn made, drawn as confirmation cards until the stored thread takes over. */
+  readonly proposals: readonly AiProposal[];
 }
 
 export interface AssistantStream {
@@ -35,6 +39,9 @@ export interface AssistantStreamOptions {
   readonly onConversationStarted: (id: string) => void;
   /** Ran before the live turn is dropped, so the stored messages are in hand when it goes. */
   readonly onFinished: (conversationId: string) => Promise<unknown> | unknown;
+  /** A drafted proposal, for the page to seed its card's cache with. */
+  readonly onProposal?: ((proposal: AiProposal) => void) | undefined;
+  readonly onProposalStatus?: ((event: AiProposalStatusEvent) => void) | undefined;
 }
 
 const FRAME_SEPARATOR = "\n\n";
@@ -91,6 +98,7 @@ const idle = (question: string): LiveTurn => ({
   tool: null,
   error: null,
   streaming: true,
+  proposals: [],
 });
 
 // One turn at a time, held here rather than in the query cache: it is not the server's state yet.
@@ -100,6 +108,8 @@ export function useAssistantStream({
   conversationId,
   onConversationStarted,
   onFinished,
+  onProposal,
+  onProposalStatus,
 }: AssistantStreamOptions): AssistantStream {
   const [turn, setTurn] = useState<LiveTurn | null>(null);
   const inFlight = useRef<AbortController | null>(null);
@@ -189,6 +199,22 @@ export function useAssistantStream({
                 failed = event.code;
                 break;
 
+              case AI_STREAM_EVENT.PROPOSAL: {
+                const { proposal } = event;
+
+                onProposal?.(proposal);
+                setTurn((current) =>
+                  current
+                    ? { ...current, tool: null, proposals: [...current.proposals, proposal] }
+                    : current,
+                );
+                break;
+              }
+
+              case AI_STREAM_EVENT.PROPOSAL_STATUS:
+                onProposalStatus?.(event);
+                break;
+
               case AI_STREAM_EVENT.DONE:
                 break;
             }
@@ -234,7 +260,7 @@ export function useAssistantStream({
         }
       }
     },
-    [onConversationStarted, onFinished],
+    [onConversationStarted, onFinished, onProposal, onProposalStatus],
   );
 
   const send = useCallback(

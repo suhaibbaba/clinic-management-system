@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AI_TOOL_ERROR, type AiToolName } from "@clinic/shared";
+import { AI_TOOL_ERROR, type AiProposal, type AiToolName } from "@clinic/shared";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 
 /** Nothing the model asks for returns more than this, whatever it asked for. */
@@ -12,7 +12,21 @@ export interface ToolRejection {
   readonly details: string[];
 }
 
-export type ToolOutcome = { readonly ok: true; readonly data: unknown } | ToolRejection;
+export type ToolOutcome =
+  { readonly ok: true; readonly data: unknown; readonly proposal?: AiProposal } | ToolRejection;
+
+/** Where the call was made. Server-side, like the actor: the model supplies neither. */
+export interface ToolContext {
+  readonly conversationId: string;
+}
+
+/** What a drafting tool returns: the proposal for the card, and the little the model is told. */
+export class ProposalResult {
+  constructor(
+    readonly proposal: AiProposal,
+    readonly forModel: unknown,
+  ) {}
+}
 
 // Type-erased on purpose: the registry holds one array of these, and each tool's own argument type
 // survives inside `defineTool`, which is the only place that casts nothing.
@@ -27,7 +41,7 @@ export interface AiTool {
   readonly capability: string | null;
   /** JSON Schema for the model, derived from the same Zod schema that validates the call. */
   readonly parameters: Record<string, unknown>;
-  execute(actor: AuthenticatedUser, raw: unknown): Promise<ToolOutcome>;
+  execute(actor: AuthenticatedUser, raw: unknown, context: ToolContext): Promise<ToolOutcome>;
 }
 
 export interface ToolDefinition<TSchema extends z.ZodType> {
@@ -35,7 +49,7 @@ export interface ToolDefinition<TSchema extends z.ZodType> {
   readonly description: string;
   readonly capability: string | null;
   readonly schema: TSchema;
-  run(actor: AuthenticatedUser, args: z.output<TSchema>): Promise<unknown>;
+  run(actor: AuthenticatedUser, args: z.output<TSchema>, context: ToolContext): Promise<unknown>;
 }
 
 export function defineTool<TSchema extends z.ZodType>(definition: ToolDefinition<TSchema>): AiTool {
@@ -47,7 +61,11 @@ export function defineTool<TSchema extends z.ZodType>(definition: ToolDefinition
     capability: definition.capability,
     parameters,
 
-    async execute(actor: AuthenticatedUser, raw: unknown): Promise<ToolOutcome> {
+    async execute(
+      actor: AuthenticatedUser,
+      raw: unknown,
+      context: ToolContext,
+    ): Promise<ToolOutcome> {
       const parsed = definition.schema.safeParse(raw ?? {});
 
       if (!parsed.success) {
@@ -60,7 +78,11 @@ export function defineTool<TSchema extends z.ZodType>(definition: ToolDefinition
         };
       }
 
-      return { ok: true, data: await definition.run(actor, parsed.data) };
+      const result = await definition.run(actor, parsed.data, context);
+
+      return result instanceof ProposalResult
+        ? { ok: true, data: result.forModel, proposal: result.proposal }
+        : { ok: true, data: result };
     },
   };
 }
