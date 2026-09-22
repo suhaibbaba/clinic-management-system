@@ -2,10 +2,12 @@ import { createHash } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import OpenAI from "openai";
+import { AI_ERROR_CODE } from "@clinic/shared";
 import type { Env } from "@api/config/env.schema";
 import {
   ChatProviderError,
   type ChatChunk,
+  type ChatProviderFailure,
   type ChatMessage,
   type ChatProvider,
   type ChatRequest,
@@ -58,6 +60,8 @@ export class OpenAiChatProvider implements ChatProvider {
       const stream = await client().chat.completions.create({
         model: this.config.get("AI_MODEL", { infer: true }),
         max_completion_tokens: this.config.get("AI_MAX_OUTPUT_TOKENS", { infer: true }),
+        // Anything but `none` is a 400 on Chat Completions once tools are attached (GPT-5.4 on).
+        reasoning_effort: this.config.get("AI_REASONING_EFFORT", { infer: true }),
         messages: request.messages.map(toOpenAiMessage),
         ...(request.tools.length > 0 && { tools: request.tools.map(toOpenAiTool) }),
         stream: true,
@@ -95,7 +99,7 @@ export class OpenAiChatProvider implements ChatProvider {
       this.logger.error(
         `OpenAI request failed (model ${this.config.get("AI_MODEL", { infer: true })}): ${describe(error)}`,
       );
-      throw new ChatProviderError(error);
+      throw new ChatProviderError(error, classify(error));
     }
 
     yield {
@@ -183,6 +187,23 @@ const toOpenAiTool = (tool: ChatRequest["tools"][number]): OpenAiTool => ({
     parameters: tool.parameters,
   },
 });
+
+/** A rejected key and an exhausted quota are the admin's to fix; everything else is worth a retry. */
+export function classify(error: unknown): ChatProviderFailure {
+  if (!(error instanceof OpenAI.APIError)) {
+    return AI_ERROR_CODE.PROVIDER_UNAVAILABLE;
+  }
+
+  if (error.status === 401 || error.status === 403) {
+    return AI_ERROR_CODE.PROVIDER_REJECTED;
+  }
+
+  if (error.status === 429 || error.code === "insufficient_quota") {
+    return AI_ERROR_CODE.PROVIDER_QUOTA;
+  }
+
+  return AI_ERROR_CODE.PROVIDER_UNAVAILABLE;
+}
 
 // Status, type and code name the failure — a rejected key, an unknown model, an exhausted quota —
 // which the message alone does not always do.

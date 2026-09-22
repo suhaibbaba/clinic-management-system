@@ -1,5 +1,10 @@
 import { z } from "zod";
 import {
+  AI_ACTION_ERRORS,
+  AI_ACTION_TOOLS,
+  AI_PROPOSAL_KINDS,
+  AI_RISK_TIERS,
+  APPOINTMENT_STATUSES,
   AI_AUTOMATION_MODE,
   AI_AUTOMATION_MODES,
   AI_ERROR_CODES,
@@ -14,6 +19,8 @@ import {
   NOTIFICATION_CHANNELS,
 } from "@shared/enums";
 import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
+import { moneySchema } from "@shared/schemas/money";
+import { personNameSchema } from "@shared/schemas/person-name";
 
 /** A question, not a document: anything longer is a paste the agent has no use for. */
 export const AI_MESSAGE_MAX_LENGTH = 2000;
@@ -34,6 +41,93 @@ export const aiConversationSchema = z.object({
 });
 export type AiConversation = z.infer<typeof aiConversationSchema>;
 
+// What a read tool hands the page beside the model's result: data, not prose, so a list of
+// appointments is drawn as the same table every turn. Labels are i18n keys the page translates;
+// money, dates and names are formatted on the page.
+export const AI_VIEW_COLUMN_KINDS = [
+  "text",
+  "number",
+  "date",
+  "time",
+  "money",
+  "status",
+  "code",
+  "phone",
+  "link",
+  "person",
+] as const;
+export type AiViewColumnKind = (typeof AI_VIEW_COLUMN_KINDS)[number];
+
+export const aiViewColumnSchema = z.object({
+  key: z.string(),
+  /** An i18n key. */
+  label: z.string(),
+  kind: z.enum(AI_VIEW_COLUMN_KINDS),
+  /** `code` only: the i18n prefix the value is looked up under. */
+  prefix: z.string().optional(),
+});
+export type AiViewColumn = z.infer<typeof aiViewColumnSchema>;
+
+/** A `link` cell. The address is one of the app's own screens. */
+export const aiViewLinkSchema = z.object({ href: z.string().startsWith("/"), label: z.string() });
+export type AiViewLink = z.infer<typeof aiViewLinkSchema>;
+
+export const aiTableViewSchema = z.object({
+  type: z.literal("table"),
+  columns: z.array(aiViewColumnSchema),
+  rows: z.array(z.record(z.string(), z.unknown())),
+  truncated: z.boolean(),
+  total: z.number().int().optional(),
+  /** The screen showing the whole list, with the same filters in its address. */
+  href: z.string().startsWith("/").optional(),
+});
+export type AiTableView = z.infer<typeof aiTableViewSchema>;
+
+export const aiStatTileSchema = z.object({
+  label: z.string(),
+  value: z.string(),
+  kind: z.enum(["number", "money"]),
+});
+export type AiStatTile = z.infer<typeof aiStatTileSchema>;
+
+export const aiViewSchema = z.discriminatedUnion("type", [
+  aiTableViewSchema,
+  z.object({
+    type: z.literal("stats"),
+    tiles: z.array(aiStatTileSchema).min(1).max(4),
+    table: aiTableViewSchema.optional(),
+  }),
+  z.object({
+    type: z.literal("patient"),
+    patient: z.object({
+      id: uuidSchema,
+      fullName: z.string(),
+      fileNumber: z.string(),
+      /** Masked. */
+      phone: z.string(),
+    }),
+    /** Absent where the role may not read it. */
+    balance: z.string().optional(),
+    table: aiTableViewSchema,
+  }),
+  z.object({
+    type: z.literal("list"),
+    items: z.array(
+      z.object({
+        title: z.string(),
+        subtitle: z.string().optional(),
+        /** A date the item is about, formatted on the page. */
+        date: z.string().optional(),
+        href: z.string().startsWith("/").optional(),
+      }),
+    ),
+    truncated: z.boolean(),
+    total: z.number().int().optional(),
+    href: z.string().startsWith("/").optional(),
+  }),
+]);
+export type AiView = z.infer<typeof aiViewSchema>;
+
 export const aiMessageSchema = z.object({
   id: uuidSchema,
   role: z.enum(AI_MESSAGE_ROLES),
@@ -42,6 +136,8 @@ export const aiMessageSchema = z.object({
   toolName: z.enum(AI_TOOL_NAMES).nullable(),
   /** Set on the row that drafted a proposal: the thread draws its confirmation card there. */
   proposalId: uuidSchema.nullable(),
+  /** Set on a tool row whose result the thread draws as a table or card. */
+  view: aiViewSchema.nullable(),
   createdAt: z.iso.datetime(),
 });
 export type AiMessage = z.infer<typeof aiMessageSchema>;
@@ -62,13 +158,61 @@ export const aiProposalRecipientSchema = z.object({
 });
 export type AiProposalRecipient = z.infer<typeof aiProposalRecipientSchema>;
 
+/**
+ * What an action card shows, resolved on the server when the action was drafted: names and file
+ * numbers for the ids the action carries. Ids, not names, are what runs.
+ */
+export const aiActionSummarySchema = z.object({
+  patient: z.object({ id: uuidSchema, fullName: z.string(), fileNumber: z.string() }).optional(),
+  doctor: z.object({ id: uuidSchema, name: personNameSchema }).optional(),
+  /** A patient the action registers, as the user gave it — the card is where they check it. */
+  newPatient: z
+    .object({ fullName: z.string(), phone: z.string(), dateOfBirth: z.string().nullable() })
+    .optional(),
+  startsAt: z.iso.datetime().optional(),
+  previousStartsAt: z.iso.datetime().optional(),
+  durationMinutes: z.number().int().optional(),
+  /** The status an appointment moves to. */
+  status: z.enum(APPOINTMENT_STATUSES).optional(),
+  reason: z.string().optional(),
+  note: z.string().optional(),
+  amount: moneySchema.optional(),
+  /** A payment method's lookup code. */
+  method: z.string().optional(),
+  appointments: z
+    .array(
+      z.object({
+        id: uuidSchema,
+        startsAt: z.iso.datetime(),
+        patientName: z.string(),
+        patientFileNumber: z.string(),
+        doctorName: personNameSchema,
+      }),
+    )
+    .optional(),
+});
+export type AiActionSummary = z.infer<typeof aiActionSummarySchema>;
+
+export const AI_ACTION_ENTITIES = ["appointment", "patient", "payment"] as const;
+
+/** The row an action created or changed, for the card's link to it. */
+export const aiActionResultSchema = z.object({
+  entity: z.enum(AI_ACTION_ENTITIES),
+  id: uuidSchema,
+  /** The patient the row belongs to, for a link into their file. */
+  patientId: uuidSchema.nullable(),
+});
+export type AiActionResult = z.infer<typeof aiActionResultSchema>;
+
 // No phone numbers: the card is for checking who and what, and the number is on the patient's file.
+// A message carries its target and recipients; an action its tier and summary.
 export const aiProposalSchema = z.object({
   id: uuidSchema,
+  kind: z.enum(AI_PROPOSAL_KINDS),
   status: z.enum(AI_PROPOSAL_STATUSES),
   trigger: z.enum(AI_OUTBOUND_TRIGGERS),
-  target: z.enum(AI_OUTBOUND_TARGETS),
-  intent: z.string(),
+  target: z.enum(AI_OUTBOUND_TARGETS).nullable(),
+  intent: z.string().nullable(),
   conversationId: uuidSchema.nullable(),
   /** Null for a proposal the daily automation made. */
   createdBy: uuidSchema.nullable(),
@@ -78,6 +222,13 @@ export const aiProposalSchema = z.object({
   sentAt: z.iso.datetime().nullable(),
   sentCount: z.number().int(),
   failedCount: z.number().int(),
+  tier: z.enum(AI_RISK_TIERS).nullable(),
+  /** Set on a `typed` action: exactly what the confirming person must type. */
+  typedPhrase: z.string().nullable(),
+  summary: aiActionSummarySchema.nullable(),
+  result: aiActionResultSchema.nullable(),
+  /** Why a `failed` action did not run. */
+  error: z.enum(AI_ACTION_ERRORS).nullable(),
 });
 export type AiProposal = z.infer<typeof aiProposalSchema>;
 
@@ -133,6 +284,38 @@ export function aiAutomationSettings(settings: unknown): AiAutomationSettings {
   return parsed.success ? parsed.data : aiAutomationSettingsSchema.parse({});
 }
 
+/** The confirmation card's button. A `typed` action carries what the person typed. */
+export const confirmAiProposalSchema = z.object({
+  typedPhrase: z.string().max(200).optional(),
+});
+export type ConfirmAiProposalInput = z.infer<typeof confirmAiProposalSchema>;
+
+// A clinic may only tighten: switch a tool off, or raise its tier. Nothing here can lower the tier
+// the code gives a tool, and the server takes the strictest of the three it knows.
+export const aiActionsSettingsSchema = z.object({
+  disabled: z.array(z.enum(AI_ACTION_TOOLS)).max(AI_ACTION_TOOLS.length).default([]),
+  minTier: z.partialRecord(z.enum(AI_ACTION_TOOLS), z.enum(AI_RISK_TIERS)).default({}),
+  /** A payment at or above this, in whole money, needs the typed phrase. */
+  paymentTypedAbove: z.number().int().min(1).max(99_999_999).default(500),
+  /** Cancelling more appointments than this at once needs the typed phrase. */
+  cancelTypedAbove: z.number().int().min(0).max(50).default(1),
+});
+export type AiActionsSettings = z.infer<typeof aiActionsSettingsSchema>;
+
+export const AI_ACTIONS_SETTINGS_KEY = "assistantActions";
+
+/** Never throws: an unreadable setting falls back to the defaults, which are the code's own tiers. */
+export function aiActionsSettings(settings: unknown): AiActionsSettings {
+  const raw =
+    typeof settings === "object" && settings !== null
+      ? (settings as Record<string, unknown>)[AI_ACTIONS_SETTINGS_KEY]
+      : undefined;
+
+  const parsed = aiActionsSettingsSchema.safeParse(raw ?? {});
+
+  return parsed.success ? parsed.data : aiActionsSettingsSchema.parse({});
+}
+
 export const aiOutboundLogEntrySchema = z.object({
   id: uuidSchema,
   proposalId: uuidSchema.nullable(),
@@ -165,6 +348,8 @@ export const aiProposalStatusEventSchema = z.object({
   status: z.enum(AI_PROPOSAL_STATUSES),
   sentCount: z.number().int(),
   failedCount: z.number().int(),
+  result: aiActionResultSchema.nullable().optional(),
+  error: z.enum(AI_ACTION_ERRORS).nullable().optional(),
 });
 export type AiProposalStatusEvent = z.infer<typeof aiProposalStatusEventSchema>;
 
@@ -178,6 +363,7 @@ export const aiStreamEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal(AI_STREAM_EVENT.ERROR), code: z.enum(AI_ERROR_CODES) }),
   z.object({ type: z.literal(AI_STREAM_EVENT.PROPOSAL), proposal: aiProposalSchema }),
   aiProposalStatusEventSchema,
+  z.object({ type: z.literal(AI_STREAM_EVENT.VIEW), toolCallId: z.string(), view: aiViewSchema }),
 ]);
 export type AiStreamEvent = z.infer<typeof aiStreamEventSchema>;
 

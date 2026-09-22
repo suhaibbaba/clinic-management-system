@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { AI_TOOL_ERROR, type AiProposal, type AiToolName } from "@clinic/shared";
+import {
+  AI_TOOL_ERROR,
+  type AiProposal,
+  type AiRiskTier,
+  type AiToolError,
+  type AiToolName,
+  type AiView,
+} from "@clinic/shared";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 
 /** Nothing the model asks for returns more than this, whatever it asked for. */
@@ -12,8 +19,29 @@ export interface ToolRejection {
   readonly details: string[];
 }
 
+/** The row an action changed, for the assistant's own audit row beside the domain's entry. */
+export interface ToolAuditTarget {
+  readonly entity: string;
+  readonly entityId: string;
+}
+
 export type ToolOutcome =
-  { readonly ok: true; readonly data: unknown; readonly proposal?: AiProposal } | ToolRejection;
+  | {
+      readonly ok: true;
+      readonly data: unknown;
+      readonly proposal?: AiProposal;
+      readonly audit?: ToolAuditTarget;
+      readonly view?: AiView;
+    }
+  | ToolRejection;
+
+/** A tool declining to run, with the code the model is told. Never carries an internal. */
+export class ToolRefusal extends Error {
+  constructor(readonly code: AiToolError) {
+    super(code);
+    this.name = "ToolRefusal";
+  }
+}
 
 /** Where the call was made. Server-side, like the actor: the model supplies neither. */
 export interface ToolContext {
@@ -28,6 +56,22 @@ export class ProposalResult {
   ) {}
 }
 
+/** A result the page also draws: the model is handed `result`, never `view`. */
+export class Viewed {
+  constructor(
+    readonly result: unknown,
+    readonly view: AiView,
+  ) {}
+}
+
+/** What an action that ran inside the call returns: what the model is told, and what changed. */
+export class ActionDone {
+  constructor(
+    readonly forModel: unknown,
+    readonly audit: ToolAuditTarget,
+  ) {}
+}
+
 // Type-erased on purpose: the registry holds one array of these, and each tool's own argument type
 // survives inside `defineTool`, which is the only place that casts nothing.
 export interface AiTool {
@@ -39,6 +83,11 @@ export interface AiTool {
    * read what the screen would refuse.
    */
   readonly capability: string | null;
+  /**
+   * The tier the code gives an action, which a clinic or the call itself may only raise. Null on
+   * a tool that reads.
+   */
+  readonly risk: AiRiskTier | null;
   /** JSON Schema for the model, derived from the same Zod schema that validates the call. */
   readonly parameters: Record<string, unknown>;
   execute(actor: AuthenticatedUser, raw: unknown, context: ToolContext): Promise<ToolOutcome>;
@@ -48,6 +97,7 @@ export interface ToolDefinition<TSchema extends z.ZodType> {
   readonly name: AiToolName;
   readonly description: string;
   readonly capability: string | null;
+  readonly risk?: AiRiskTier;
   readonly schema: TSchema;
   run(actor: AuthenticatedUser, args: z.output<TSchema>, context: ToolContext): Promise<unknown>;
 }
@@ -59,6 +109,7 @@ export function defineTool<TSchema extends z.ZodType>(definition: ToolDefinition
     name: definition.name,
     description: definition.description,
     capability: definition.capability,
+    risk: definition.risk ?? null,
     parameters,
 
     async execute(
@@ -80,8 +131,16 @@ export function defineTool<TSchema extends z.ZodType>(definition: ToolDefinition
 
       const result = await definition.run(actor, parsed.data, context);
 
-      return result instanceof ProposalResult
-        ? { ok: true, data: result.forModel, proposal: result.proposal }
+      if (result instanceof ProposalResult) {
+        return { ok: true, data: result.forModel, proposal: result.proposal };
+      }
+
+      if (result instanceof Viewed) {
+        return { ok: true, data: result.result, view: result.view };
+      }
+
+      return result instanceof ActionDone
+        ? { ok: true, data: result.forModel, audit: result.audit }
         : { ok: true, data: result };
     },
   };

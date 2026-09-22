@@ -1,5 +1,7 @@
 import { Logger, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { AiActionsController } from "@api/ai/actions/ai-actions.controller";
+import { AiActionsService } from "@api/ai/actions/ai-actions.service";
 import { AgentService } from "@api/ai/agent.service";
 import { AiBudgetService } from "@api/ai/ai-budget.service";
 import { AiController } from "@api/ai/ai.controller";
@@ -20,6 +22,7 @@ import { BillingModule } from "@api/billing/billing.module";
 import { AppConfigModule } from "@api/config/config.module";
 import type { Env } from "@api/config/env.schema";
 import { DatabaseModule } from "@api/database/database.module";
+import { DoctorsModule } from "@api/doctors/doctors.module";
 import { InventoryModule } from "@api/inventory/inventory.module";
 import { LabsModule } from "@api/labs/labs.module";
 import { NotificationsModule } from "@api/notifications/notifications.module";
@@ -36,6 +39,7 @@ import { SecretsModule } from "@api/secrets/secrets.module";
     AppConfigModule,
     PermissionsModule,
     AppointmentsModule,
+    DoctorsModule,
     PatientsModule,
     BillingModule,
     LabsModule,
@@ -43,7 +47,7 @@ import { SecretsModule } from "@api/secrets/secrets.module";
     NotificationsModule,
     SecretsModule,
   ],
-  controllers: [AiController, OutboundController],
+  controllers: [AiController, OutboundController, AiActionsController],
   providers: [
     LogChatProvider,
     OpenAiChatProvider,
@@ -79,6 +83,7 @@ import { SecretsModule } from "@api/secrets/secrets.module";
     ProposalsService,
     AutomationService,
     OutboundLogService,
+    AiActionsService,
   ],
 })
 export class AiModule {}

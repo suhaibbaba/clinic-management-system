@@ -95,11 +95,30 @@ export class AiController {
       "x-accel-buffering": "no",
     });
 
+    let running = true;
+    let conversationId = body.conversationId;
+
+    // A proxy with a 60 s idle limit would otherwise close a slow tool call mid-turn. A comment
+    // line is not a frame, so the page skips it.
+    const heartbeat = setInterval(() => reply.raw.write(HEARTBEAT), HEARTBEAT_MS);
+
+    reply.raw.on("close", () => {
+      if (running) {
+        this.logger.warn(
+          `Turn interrupted: the connection closed (conversation ${conversationId ?? "new"})`,
+        );
+      }
+    });
+
     try {
       for await (const event of this.agent.run(actor, body)) {
         // A browser that walked away stops the loop; what ran up to here is already recorded.
         if (reply.raw.destroyed) {
           return;
+        }
+
+        if (event.type === AI_STREAM_EVENT.CONVERSATION) {
+          conversationId = event.conversationId;
         }
 
         reply.raw.write(frame(event));
@@ -109,6 +128,9 @@ export class AiController {
       // the turn ends as a frame the page can render instead of a socket that never closes.
       this.logger.error(`The assistant stream failed: ${String(error)}`);
       reply.raw.write(frame({ type: AI_STREAM_EVENT.ERROR, code: AI_ERROR_CODE.FAILED }));
+    } finally {
+      running = false;
+      clearInterval(heartbeat);
     }
 
     reply.raw.end();
@@ -154,3 +176,6 @@ export class AiController {
 }
 
 const frame = (event: AiStreamEvent): string => `data: ${JSON.stringify(event)}\n\n`;
+
+const HEARTBEAT = ": ping\n\n";
+const HEARTBEAT_MS = 15_000;

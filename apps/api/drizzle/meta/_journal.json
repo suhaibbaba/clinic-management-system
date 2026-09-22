@@ -162,6 +162,20 @@
       "when": 1790115284893,
       "tag": "0022_ai_outbound",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1790119423438,
+      "tag": "0023_ai_actions",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1790120526289,
+      "tag": "0024_ai_views",
+      "breakpoints": true
     }
   ]
 }

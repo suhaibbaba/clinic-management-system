@@ -1,8 +1,10 @@
 import {
+  AI_ACTION_ERROR,
   AI_ERROR_CODE,
   AI_OUTBOUND_ERROR,
   AI_TOOL,
   CLINIC_SECRET_ERROR,
+  type AiActionError,
   type AiErrorCode,
   type AiOutboundError,
   type AiToolName,
@@ -15,9 +17,21 @@ const ERROR_KEYS: Record<AiErrorCode, string> = {
   [AI_ERROR_CODE.RATE_LIMITED]: "assistant.errors.rateLimited",
   [AI_ERROR_CODE.BUDGET_EXHAUSTED]: "assistant.errors.budgetExhausted",
   [AI_ERROR_CODE.PROVIDER_UNAVAILABLE]: "assistant.errors.providerUnavailable",
+  [AI_ERROR_CODE.PROVIDER_REJECTED]: "assistant.errors.providerRejected",
+  [AI_ERROR_CODE.PROVIDER_QUOTA]: "assistant.errors.providerQuota",
   [AI_ERROR_CODE.STEP_LIMIT]: "assistant.errors.stepLimit",
   [AI_ERROR_CODE.FAILED]: "assistant.errors.failed",
+  [AI_ERROR_CODE.CONNECTION_LOST]: "assistant.errors.connectionLost",
+  [AI_ERROR_CODE.OFFLINE]: "assistant.errors.offline",
 };
+
+/** Failures an admin fixes under the provider keys rather than by trying again. */
+const KEY_FAILURES: ReadonlySet<AiErrorCode> = new Set([
+  AI_ERROR_CODE.PROVIDER_REJECTED,
+  AI_ERROR_CODE.PROVIDER_QUOTA,
+]);
+
+export const isKeyFailure = (code: AiErrorCode): boolean => KEY_FAILURES.has(code);
 
 const TOOL_KEYS: Record<AiToolName, string> = {
   [AI_TOOL.GET_APPOINTMENTS]: "assistant.tools.appointments",
@@ -28,7 +42,42 @@ const TOOL_KEYS: Record<AiToolName, string> = {
   [AI_TOOL.GET_OVERDUE_LAB_ORDERS]: "assistant.tools.labOrders",
   [AI_TOOL.GET_LOW_STOCK_ITEMS]: "assistant.tools.lowStock",
   [AI_TOOL.DRAFT_BULK_MESSAGE]: "assistant.tools.draftMessage",
+  [AI_TOOL.SET_APPOINTMENT_STATUS]: "assistant.tools.appointmentStatus",
+  [AI_TOOL.ADD_PATIENT_NOTE]: "assistant.tools.patientNote",
+  [AI_TOOL.CREATE_APPOINTMENT]: "assistant.tools.createAppointment",
+  [AI_TOOL.RESCHEDULE_APPOINTMENT]: "assistant.tools.rescheduleAppointment",
+  [AI_TOOL.CANCEL_APPOINTMENTS]: "assistant.tools.cancelAppointments",
+  [AI_TOOL.CREATE_PATIENT]: "assistant.tools.createPatient",
+  [AI_TOOL.RECORD_PAYMENT]: "assistant.tools.recordPayment",
 };
+
+const ACTION_ERROR_KEYS: Record<AiActionError, string> = {
+  [AI_ACTION_ERROR.PHRASE_MISMATCH]: "assistant.actionErrors.phraseMismatch",
+  [AI_ACTION_ERROR.NOT_PERMITTED]: "assistant.actionErrors.notPermitted",
+  [AI_ACTION_ERROR.DISABLED]: "assistant.actionErrors.disabled",
+  [AI_ACTION_ERROR.SLOT_TAKEN]: "assistant.actionErrors.slotTaken",
+  [AI_ACTION_ERROR.INVALID_TRANSITION]: "assistant.actionErrors.invalidTransition",
+  [AI_ACTION_ERROR.NOT_FOUND]: "assistant.actionErrors.notFound",
+  [AI_ACTION_ERROR.DUPLICATE]: "assistant.actionErrors.duplicate",
+  [AI_ACTION_ERROR.FAILED]: "assistant.actionErrors.failed",
+};
+
+/** Why an action failed once it ran, as the proposal records it. */
+export const actionErrorKey = (code: AiActionError): string => ACTION_ERROR_KEYS[code];
+
+/** A refusal at the card's button: an action's own code, a proposal's, or the status's wording. */
+export function actionRefusalKey(error: unknown): string {
+  const message =
+    error instanceof ApiError
+      ? (error.payload as { message?: unknown } | undefined)?.message
+      : undefined;
+
+  if (typeof message === "string" && message in ACTION_ERROR_KEYS) {
+    return ACTION_ERROR_KEYS[message as AiActionError];
+  }
+
+  return outboundErrorKey(error);
+}
 
 const OUTBOUND_ERROR_KEYS: Record<AiOutboundError, string> = {
   [AI_OUTBOUND_ERROR.EXPIRED]: "assistant.outboundErrors.expired",

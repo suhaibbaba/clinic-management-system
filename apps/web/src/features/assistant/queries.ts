@@ -7,6 +7,7 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import type {
+  AiActionsSettings,
   AiAutomationSettings,
   AiConversation,
   AiMessage,
@@ -23,6 +24,8 @@ import { assistantApi } from "@web/features/assistant/api";
 export const CONVERSATIONS_KEY = "ai-conversations";
 export const MESSAGES_KEY = "ai-messages";
 export const PROPOSAL_KEY = "ai-proposal";
+export const ACTION_KEY = "ai-action";
+export const ACTIONS_SETTINGS_KEY = "ai-actions-settings";
 export const PENDING_PROPOSALS_KEY = "ai-proposals-pending";
 export const AUTOMATION_SETTINGS_KEY = "ai-automation-settings";
 export const OUTBOUND_KEY = "ai-outbound";
@@ -93,16 +96,72 @@ export function usePendingProposals(enabled: boolean): UseQueryResult<Paginated<
 
 /** The one place a status frame lands, whether the stream or a button delivered it. */
 export function applyProposalStatus(client: QueryClient, event: AiProposalStatusEvent): void {
-  client.setQueryData<AiProposal>([PROPOSAL_KEY, event.proposalId], (current) =>
+  const apply = (current: AiProposal | undefined): AiProposal | undefined =>
     current
       ? {
           ...current,
           status: event.status,
           sentCount: event.sentCount,
           failedCount: event.failedCount,
+          ...(event.result !== undefined && { result: event.result }),
+          ...(event.error !== undefined && { error: event.error }),
         }
-      : current,
-  );
+      : current;
+
+  client.setQueryData<AiProposal>([PROPOSAL_KEY, event.proposalId], apply);
+  client.setQueryData<AiProposal>([ACTION_KEY, event.proposalId], apply);
+}
+
+/** Seeded from the stream's frame, like a message's card. */
+export function useAction(id: string, initial?: AiProposal): UseQueryResult<AiProposal> {
+  return useQuery({
+    queryKey: [ACTION_KEY, id],
+    queryFn: () => assistantApi.action(id),
+    ...(initial && { initialData: initial }),
+    refetchOnWindowFocus: true,
+  });
+}
+
+export type ActionDecision =
+  | { readonly id: string; readonly decision: "confirm"; readonly typedPhrase?: string }
+  | { readonly id: string; readonly decision: "cancel" };
+
+export function useActionDecision(): UseMutationResult<
+  AiProposalStatusEvent,
+  Error,
+  ActionDecision
+> {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: ActionDecision) =>
+      input.decision === "confirm"
+        ? assistantApi.confirmAction(input.id, input.typedPhrase)
+        : assistantApi.cancelAction(input.id),
+    onSuccess: (event) => applyProposalStatus(client, event),
+    // A wrong phrase leaves the card pending; anything else may mean the row moved underneath it.
+    onError: (_error, { id }) => client.invalidateQueries({ queryKey: [ACTION_KEY, id] }),
+  });
+}
+
+export function useActionsSettings(): UseQueryResult<AiActionsSettings> {
+  return useQuery({
+    queryKey: [ACTIONS_SETTINGS_KEY],
+    queryFn: () => assistantApi.actionsSettings(),
+  });
+}
+
+export function useSaveActionsSettings(): UseMutationResult<
+  AiActionsSettings,
+  Error,
+  AiActionsSettings
+> {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: AiActionsSettings) => assistantApi.saveActionsSettings(body),
+    onSuccess: (saved) => client.setQueryData([ACTIONS_SETTINGS_KEY], saved),
+  });
 }
 
 export function useProposalAction(): UseMutationResult<

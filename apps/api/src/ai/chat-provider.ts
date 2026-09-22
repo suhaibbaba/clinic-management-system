@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { AI_ERROR_CODE } from "@clinic/shared";
 
 export interface ChatToolCall {
   readonly id: string;
@@ -47,9 +48,18 @@ export interface ChatProvider {
 
 export const CHAT_PROVIDER = Symbol("CHAT_PROVIDER");
 
-/** What every provider failure becomes. The cause is logged; the caller only learns that it failed. */
+/** How a provider failed, as far as the person reading the error can act on it. */
+export type ChatProviderFailure =
+  | typeof AI_ERROR_CODE.PROVIDER_UNAVAILABLE
+  | typeof AI_ERROR_CODE.PROVIDER_REJECTED
+  | typeof AI_ERROR_CODE.PROVIDER_QUOTA;
+
+/** What every provider failure becomes. The cause is logged; the caller learns only its kind. */
 export class ChatProviderError extends Error {
-  constructor(cause: unknown) {
+  constructor(
+    cause: unknown,
+    readonly code: ChatProviderFailure = AI_ERROR_CODE.PROVIDER_UNAVAILABLE,
+  ) {
     super("The chat provider failed", { cause });
     this.name = "ChatProviderError";
   }

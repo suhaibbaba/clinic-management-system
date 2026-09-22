@@ -13,11 +13,17 @@ import {
   type AiProposal,
   type AiToolError,
   type AiToolName,
+  type AiView,
 } from "@clinic/shared";
 import type { ChatToolCall, ChatToolDefinition } from "@api/ai/chat-provider";
 import { OutboundError } from "@api/ai/outbound/proposals.service";
 import { AiToolsService } from "@api/ai/tools/ai-tools.service";
-import type { AiTool, ToolContext } from "@api/ai/tools/ai-tool";
+import {
+  ToolRefusal,
+  type AiTool,
+  type ToolAuditTarget,
+  type ToolContext,
+} from "@api/ai/tools/ai-tool";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { aiAuditLog } from "@api/database/schema";
@@ -31,6 +37,8 @@ export interface ToolRun {
   readonly content: string;
   /** Set when the tool drafted a proposal: the stream sends it to the card, never to the model. */
   readonly proposal?: AiProposal;
+  /** Set when the page draws the result: the stream sends it as its own frame. */
+  readonly view?: AiView;
 }
 
 interface Envelope {
@@ -45,6 +53,8 @@ interface Envelope {
 interface Executed {
   readonly envelope: Envelope;
   readonly proposal?: AiProposal;
+  readonly audit?: ToolAuditTarget;
+  readonly view?: AiView;
 }
 
 // Everything between the model asking for a tool and the model being handed an answer: the
@@ -120,9 +130,14 @@ export class ToolRunnerService implements OnApplicationBootstrap {
       args,
       started,
       executed.envelope,
+      executed.audit,
     );
 
-    return executed.proposal ? { ...run, proposal: executed.proposal } : run;
+    return {
+      ...run,
+      ...(executed.proposal && { proposal: executed.proposal }),
+      ...(executed.view && { view: executed.view }),
+    };
   }
 
   private async execute(
@@ -143,8 +158,14 @@ export class ToolRunnerService implements OnApplicationBootstrap {
       return {
         envelope: { tool: tool.name, untrusted_clinic_data: true, result: outcome.data },
         ...(outcome.proposal && { proposal: outcome.proposal }),
+        ...(outcome.audit && { audit: outcome.audit }),
+        ...(outcome.view && { view: outcome.view }),
       };
     } catch (error) {
+      if (error instanceof ToolRefusal) {
+        return { envelope: { tool: tool.name, error: error.code } };
+      }
+
       if (error instanceof NotFoundException) {
         return { envelope: { tool: tool.name, error: AI_TOOL_ERROR.NOT_FOUND } };
       }
@@ -181,6 +202,7 @@ export class ToolRunnerService implements OnApplicationBootstrap {
     args: unknown,
     started: number,
     envelope: Envelope,
+    audit?: ToolAuditTarget,
   ): Promise<ToolRun> {
     const content = JSON.stringify(envelope);
 
@@ -193,6 +215,7 @@ export class ToolRunnerService implements OnApplicationBootstrap {
       outcome: envelope.error ?? "ok",
       resultSize: content.length,
       durationMs: Date.now() - started,
+      ...(audit && { entity: audit.entity, entityId: audit.entityId }),
     });
 
     return { name, content };
@@ -208,15 +231,17 @@ function parseArguments(raw: string): unknown {
   }
 }
 
-// The ids and dates are kept — they are what makes a row worth reading. A free-text search is a
-// patient's name typed by a human, so the log records that one was searched for, not who.
+// The ids and dates are kept — they are what makes a row worth reading. Free text typed about a
+// patient — a search, a note, a new patient's name and number — is recorded as given, not what.
+const REDACTED_ARGS = new Set(["query", "note", "full_name", "phone"]);
+
 function redact(args: unknown): unknown {
   if (!args || typeof args !== "object") {
     return args;
   }
 
   const entries = Object.entries(args as Record<string, unknown>).map(([key, value]) =>
-    key === "query" ? [key, "<redacted>"] : [key, value],
+    REDACTED_ARGS.has(key) ? [key, "<redacted>"] : [key, value],
   );
 
   return Object.fromEntries(entries);

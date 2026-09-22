@@ -2,6 +2,7 @@ import {
   AI_ERROR_CODE,
   AI_OUTBOUND_TARGET,
   AI_OUTBOUND_TRIGGER,
+  AI_PROPOSAL_KIND,
   AI_PROPOSAL_STATUS,
   AI_STREAM_EVENT,
   AI_TOOL,
@@ -10,7 +11,10 @@ import {
 } from "@clinic/shared";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import i18n from "@web/i18n";
+import { errorMessageKey } from "@web/features/assistant/messages";
 import {
+  AI_STREAM_IDLE_MS,
   parseFrames,
   useAssistantStream,
   type AssistantStreamOptions,
@@ -86,6 +90,32 @@ describe("Reading the assistant's stream", () => {
     const second = parseFrames(first.rest + whole.slice(cut));
     expect(second.events).toEqual([{ type: AI_STREAM_EVENT.DELTA, text: "مرحبا" }]);
     expect(second.rest).toBe("");
+  });
+
+  it("reads a view frame and keeps it for the turn, in order", async () => {
+    const view = {
+      type: "stats" as const,
+      tiles: [{ label: "assistant.view.stats.total", value: "4", kind: "number" as const }],
+    };
+
+    mockChat(
+      [
+        frame({ type: AI_STREAM_EVENT.CONVERSATION, conversationId: CONVERSATION }),
+        frame({ type: AI_STREAM_EVENT.TOOL, tool: AI_TOOL.GET_DAILY_STATS }),
+        frame({ type: AI_STREAM_EVENT.VIEW, toolCallId: "call_1", view }),
+      ],
+      false,
+    );
+
+    const { result } = harness();
+
+    act(() => {
+      result.current.send("ملخص اليوم");
+    });
+
+    await waitFor(() =>
+      expect(result.current.turn?.views).toEqual([{ toolCallId: "call_1", view }]),
+    );
   });
 
   // An older page against a newer API: the frames it knows still stream.
@@ -232,6 +262,7 @@ describe("A turn", () => {
 describe("A turn that drafts a message", () => {
   const proposal: AiProposal = {
     id: "9a1d2f2e-2222-4222-8222-222222222222",
+    kind: AI_PROPOSAL_KIND.MESSAGE,
     status: AI_PROPOSAL_STATUS.DRAFT,
     trigger: AI_OUTBOUND_TRIGGER.COMMAND,
     target: AI_OUTBOUND_TARGET.UNPAID_INVOICES,
@@ -246,6 +277,11 @@ describe("A turn that drafts a message", () => {
     sentAt: null,
     sentCount: 0,
     failedCount: 0,
+    tier: null,
+    typedPhrase: null,
+    summary: null,
+    result: null,
+    error: null,
   };
 
   it("holds the proposal for its card and hands it to the page's cache", async () => {
@@ -293,5 +329,129 @@ describe("A turn that drafts a message", () => {
     });
 
     await waitFor(() => expect(onProposalStatus).toHaveBeenCalledWith(event));
+  });
+});
+
+// A turn ends in `done`, `error` or the user's own stop. Anything else is a failure the user sees.
+describe("A turn that never finished", () => {
+  it("reports a stream that closed without a terminal frame, and keeps what was written", async () => {
+    mockChat([
+      frame({ type: AI_STREAM_EVENT.CONVERSATION, conversationId: CONVERSATION }),
+      frame({ type: AI_STREAM_EVENT.DELTA, text: "عندك ٣ مواعيد، أولها" }),
+    ]);
+
+    const { result, onFinished } = harness();
+
+    act(() => {
+      result.current.send("مواعيد اليوم");
+    });
+
+    await waitFor(() => expect(result.current.turn?.error).toBe(AI_ERROR_CODE.CONNECTION_LOST));
+    expect(result.current.turn?.answer).toBe("عندك ٣ مواعيد، أولها");
+    expect(result.current.streaming).toBe(false);
+    expect(onFinished).not.toHaveBeenCalled();
+  });
+
+  it("gives up on a stream that goes quiet for three missed heartbeats", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    try {
+      mockChat([frame({ type: AI_STREAM_EVENT.DELTA, text: "لحظة" })], false);
+
+      const { result } = harness({ conversationId: CONVERSATION });
+
+      act(() => {
+        result.current.send("الوضع المالي");
+      });
+
+      await waitFor(() => expect(result.current.turn?.answer).toBe("لحظة"));
+      expect(result.current.turn?.error).toBeNull();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(AI_STREAM_IDLE_MS + 1);
+      });
+
+      await waitFor(() => expect(result.current.turn?.error).toBe(AI_ERROR_CODE.CONNECTION_LOST));
+      expect(result.current.turn?.answer).toBe("لحظة");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not mistake the user's own stop for a lost connection", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            init.signal?.addEventListener("abort", () =>
+              reject(new DOMException("aborted", "AbortError")),
+            );
+          }),
+      ),
+    );
+
+    const { result, onFinished } = harness({ conversationId: CONVERSATION });
+
+    act(() => {
+      result.current.send("ملخص اليوم");
+    });
+
+    act(() => {
+      result.current.stop();
+    });
+
+    await waitFor(() => expect(result.current.turn).toBeNull());
+    expect(onFinished).toHaveBeenCalledWith(CONVERSATION);
+  });
+
+  it("says there is no connection rather than trying, when the browser is offline", async () => {
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+
+    try {
+      const { result } = harness();
+
+      act(() => {
+        result.current.send("ملخص اليوم");
+      });
+
+      await waitFor(() => expect(result.current.turn?.error).toBe(AI_ERROR_CODE.OFFLINE));
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("stops at once when the network drops mid-answer", async () => {
+    mockChat([frame({ type: AI_STREAM_EVENT.DELTA, text: "أول" })], false);
+
+    const { result } = harness({ conversationId: CONVERSATION });
+
+    act(() => {
+      result.current.send("مواعيد بكرا");
+    });
+
+    await waitFor(() => expect(result.current.turn?.answer).toBe("أول"));
+
+    act(() => {
+      window.dispatchEvent(new Event("offline"));
+    });
+
+    await waitFor(() => expect(result.current.turn?.error).toBe(AI_ERROR_CODE.OFFLINE));
+  });
+});
+
+describe("The words for a failure", () => {
+  it.each([
+    [AI_ERROR_CODE.CONNECTION_LOST, "انقطع الاتصال قبل اكتمال الرد"],
+    [AI_ERROR_CODE.OFFLINE, "لا يوجد اتصال بالإنترنت"],
+    [AI_ERROR_CODE.PROVIDER_REJECTED, "مفتاح الخدمة مرفوض — راجع الإعدادات"],
+    [AI_ERROR_CODE.PROVIDER_QUOTA, "تم تجاوز حصة الخدمة"],
+  ] as const)("reads %s in Arabic", async (code, arabic) => {
+    await i18n.changeLanguage("ar");
+
+    expect(i18n.t(errorMessageKey(code))).toBe(arabic);
   });
 });

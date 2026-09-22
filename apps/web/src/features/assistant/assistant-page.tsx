@@ -1,13 +1,16 @@
 import {
   AI_MESSAGE_ROLE,
   AI_OUTBOUND_TRIGGER,
+  AI_PROPOSAL_KIND,
+  AI_TOOL,
   type AiMessage,
   type AiProposal,
+  type AiErrorCode,
   type AiProposalStatusEvent,
 } from "@clinic/shared";
 import { useCallback, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Button,
   ChatBubble,
@@ -18,12 +21,15 @@ import {
   type Suggestion,
 } from "@clinic/ui";
 import { useQueryClient } from "@tanstack/react-query";
+import { ActionCard } from "@web/features/assistant/action-card";
+import { AssistantView } from "@web/features/assistant/assistant-view";
 import { assistantApi } from "@web/features/assistant/api";
 import { MarkdownMessage } from "@web/features/assistant/markdown-message";
 import { ProposalCard, SEND_CAPABILITY } from "@web/features/assistant/proposal-card";
 import { ConversationRail } from "@web/features/assistant/conversation-rail";
-import { errorMessageKey, toolStatusKey } from "@web/features/assistant/messages";
+import { errorMessageKey, isKeyFailure, toolStatusKey } from "@web/features/assistant/messages";
 import {
+  ACTION_KEY,
   applyProposalStatus,
   CONVERSATIONS_KEY,
   MESSAGES_KEY,
@@ -32,12 +38,17 @@ import {
   useConversations,
   usePendingProposals,
 } from "@web/features/assistant/queries";
+import { canReachNavItem } from "@web/app/navigation";
+import { useClinic } from "@web/features/clinic/queries";
+import { setClinicTimeZone } from "@web/lib/clinic-zone";
 import { useSession } from "@web/features/auth/session";
 import { SUGGESTIONS } from "@web/features/assistant/suggestions";
 import { useAssistantStream } from "@web/features/assistant/use-assistant-stream";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { cn } from "@clinic/ui/lib/cn";
 import { useDocumentTitle } from "@clinic/ui/lib/page-title";
+
+const KEYS_SETTINGS = "/assistant/settings";
 
 export function AssistantPage(): JSX.Element {
   const { t } = useTranslation();
@@ -51,6 +62,10 @@ export function AssistantPage(): JSX.Element {
   const [railOpen, setRailOpen] = useState(false);
 
   useDocumentTitle(t("nav.assistant"));
+
+  // Times on cards and tables are the clinic's, not the browser's.
+  const clinic = useClinic();
+  setClinicTimeZone(clinic.data);
 
   const conversations = useConversations();
   const messages = useConversationMessages(conversationId);
@@ -75,7 +90,11 @@ export function AssistantPage(): JSX.Element {
   );
 
   const onProposal = useCallback(
-    (proposal: AiProposal) => client.setQueryData([PROPOSAL_KEY, proposal.id], proposal),
+    (proposal: AiProposal) =>
+      client.setQueryData(
+        [proposal.kind === AI_PROPOSAL_KIND.MESSAGE ? PROPOSAL_KEY : ACTION_KEY, proposal.id],
+        proposal,
+      ),
     [client],
   );
 
@@ -104,6 +123,9 @@ export function AssistantPage(): JSX.Element {
     setDraft("");
     stream.send(question);
   };
+
+  // A failed action is drafted again, never confirmed again: the model re-reads the record first.
+  const redraft = (): void => ask(t("assistant.action.redraft"));
 
   const stored = messages.data ?? [];
   const empty = stored.length === 0 && stream.turn === null;
@@ -171,8 +193,18 @@ export function AssistantPage(): JSX.Element {
             ))}
 
           {stored.map((message: AiMessage) =>
-            message.proposalId ? (
-              <ProposalCard key={message.id} id={message.proposalId} />
+            message.view && !message.proposalId ? (
+              <AssistantView
+                key={message.id}
+                view={message.view}
+                data-testid={`assistant-view-${message.id}`}
+              />
+            ) : message.proposalId ? (
+              message.toolName === AI_TOOL.DRAFT_BULK_MESSAGE ? (
+                <ProposalCard key={message.id} id={message.proposalId} />
+              ) : (
+                <ActionCard key={message.id} id={message.proposalId} onRedraft={redraft} />
+              )
             ) : (
               <ChatBubble
                 key={message.id}
@@ -194,44 +226,49 @@ export function AssistantPage(): JSX.Element {
                 <span className="whitespace-pre-wrap">{stream.turn.question}</span>
               </ChatBubble>
 
-              {stream.turn.proposals.map((proposal) => (
-                <ProposalCard key={proposal.id} id={proposal.id} initial={proposal} />
+              {stream.turn.proposals.map((proposal) =>
+                proposal.kind === AI_PROPOSAL_KIND.MESSAGE ? (
+                  <ProposalCard key={proposal.id} id={proposal.id} initial={proposal} />
+                ) : (
+                  <ActionCard
+                    key={proposal.id}
+                    id={proposal.id}
+                    initial={proposal}
+                    onRedraft={redraft}
+                  />
+                ),
+              )}
+
+              {stream.turn.views.map(({ toolCallId, view }) => (
+                <AssistantView
+                  key={toolCallId}
+                  view={view}
+                  data-testid={`assistant-live-view-${toolCallId}`}
+                />
               ))}
 
-              <ChatBubble
-                author="assistant"
-                data-testid="assistant-live-answer"
-                tone={stream.turn.error ? "danger" : "default"}
-                streaming={stream.turn.streaming && stream.turn.answer.length > 0}
-                status={
-                  stream.turn.answer.length === 0 && !stream.turn.error
-                    ? ellipsis(
-                        stream.turn.tool
-                          ? t(toolStatusKey(stream.turn.tool))
-                          : t("assistant.thinking"),
-                      )
-                    : undefined
-                }
-                footer={
-                  stream.turn.error ? (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      icon={<Icon name="reset" />}
-                      data-testid="assistant-retry"
-                      onClick={stream.retry}
-                    >
-                      {t("common.retry")}
-                    </Button>
-                  ) : undefined
-                }
-              >
-                {stream.turn.error ? (
-                  <span>{t(errorMessageKey(stream.turn.error))}</span>
-                ) : stream.turn.answer.length > 0 ? (
-                  <MarkdownMessage content={stream.turn.answer} />
-                ) : undefined}
-              </ChatBubble>
+              {(stream.turn.error === null || stream.turn.answer.length > 0) && (
+                <ChatBubble
+                  author="assistant"
+                  data-testid="assistant-live-answer"
+                  streaming={stream.turn.streaming && stream.turn.answer.length > 0}
+                  status={
+                    stream.turn.answer.length === 0
+                      ? ellipsis(
+                          stream.turn.tool
+                            ? t(toolStatusKey(stream.turn.tool))
+                            : t("assistant.thinking"),
+                        )
+                      : undefined
+                  }
+                >
+                  {stream.turn.answer.length > 0 ? (
+                    <MarkdownMessage content={stream.turn.answer} />
+                  ) : undefined}
+                </ChatBubble>
+              )}
+
+              {stream.turn.error && <TurnError code={stream.turn.error} onRetry={stream.retry} />}
             </>
           )}
         </ChatThread>
@@ -262,6 +299,47 @@ export function AssistantPage(): JSX.Element {
         </div>
       </section>
     </div>
+  );
+}
+
+// Never silent: the code's own words, a retry, and for a key the clinic has to fix, the way there
+// for whoever may follow it.
+function TurnError({ code, onRetry }: { code: AiErrorCode; onRetry: () => void }): JSX.Element {
+  const { t } = useTranslation();
+  const { user } = useSession();
+  const toKeys = isKeyFailure(code) && canReachNavItem(KEYS_SETTINGS, user?.role);
+
+  return (
+    <ChatBubble
+      author="assistant"
+      tone="danger"
+      data-testid="assistant-turn-error"
+      data-code={code}
+      footer={
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<Icon name="reset" />}
+            data-testid="assistant-retry"
+            onClick={onRetry}
+          >
+            {t("common.retry")}
+          </Button>
+          {toKeys && (
+            <Link
+              to={`${KEYS_SETTINGS}?tab=keys`}
+              data-testid="assistant-check-keys"
+              className="text-label font-medium text-primary-600 hover:underline"
+            >
+              {t("assistant.checkKeys")}
+            </Link>
+          )}
+        </div>
+      }
+    >
+      <span role="alert">{t(errorMessageKey(code))}</span>
+    </ChatBubble>
   );
 }
 

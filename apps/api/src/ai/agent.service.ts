@@ -11,7 +11,7 @@ import {
   type AiStreamEvent,
   type PersonName,
 } from "@clinic/shared";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import {
   ChatProviderError,
   type ChatMessage,
@@ -20,11 +20,11 @@ import {
 } from "@api/ai/chat-provider";
 import { ChatProviderResolver } from "@api/ai/chat-provider.resolver";
 import { AiConversationsService } from "@api/ai/ai-conversations.service";
-import { SYSTEM_PROMPT_VERSION, systemPrompt } from "@api/ai/system-prompt";
+import { SYSTEM_PROMPT_VERSION, systemPrompt, type SystemPromptInput } from "@api/ai/system-prompt";
 import { isAiToolName, ToolRunnerService } from "@api/ai/tools/tool-runner.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { clinics } from "@api/database/schema";
+import { clinics, doctors, users } from "@api/database/schema";
 import type { Env } from "@api/config/env.schema";
 
 // The loop: ask, run whatever the model asked for, ask again with the answers, until it stops
@@ -48,24 +48,42 @@ export class AgentService {
 
     yield { type: AI_STREAM_EVENT.CONVERSATION, conversationId: conversation.id };
 
+    const spent = { inputTokens: 0, outputTokens: 0 };
+
+    // A turn ends in `done` or `error`, never in silence: the page reports a stream that closes
+    // without either as a lost connection, which would be the wrong thing to tell the user.
+    try {
+      yield* this.turn(actor, conversation.id, request.message, spent);
+    } catch (error) {
+      this.logger.error(`The agent loop failed: ${String(error)}`);
+      await this.record(actor, conversation.id, "", spent).catch(() => undefined);
+      yield { type: AI_STREAM_EVENT.ERROR, code: AI_ERROR_CODE.FAILED };
+    }
+  }
+
+  private async *turn(
+    actor: AuthenticatedUser,
+    conversationId: string,
+    question: string,
+    spent: { inputTokens: number; outputTokens: number },
+  ): AsyncGenerator<AiStreamEvent> {
     const history = await this.conversations.history(
-      conversation.id,
+      conversationId,
       this.config.get("AI_HISTORY_MESSAGES", { infer: true }),
     );
 
-    await this.conversations.append(actor, conversation.id, {
+    await this.conversations.append(actor, conversationId, {
       role: AI_MESSAGE_ROLE.USER,
-      content: request.message,
+      content: question,
     });
 
     const messages: ChatMessage[] = [
       { role: "system", content: systemPrompt(await this.context(actor)) },
       ...history,
-      { role: "user", content: request.message },
+      { role: "user", content: question },
     ];
 
     const provider = await this.providers.for(actor.clinicId);
-    const spent = { inputTokens: 0, outputTokens: 0 };
     const steps = this.config.get("AI_MAX_TOOL_STEPS", { infer: true });
 
     for (let step = 0; step < steps; step += 1) {
@@ -84,13 +102,17 @@ export class AgentService {
           completed = { text: chunk.text, toolCalls: chunk.toolCalls };
         }
       } catch (error) {
-        // Already logged with its cause by the provider; the user is told only that it failed.
+        // Already logged with its cause by the provider; the user is told only what kind it was.
         if (!(error instanceof ChatProviderError)) {
           this.logger.error(`The agent loop failed: ${String(error)}`);
         }
 
-        await this.record(actor, conversation.id, "", spent);
-        yield { type: AI_STREAM_EVENT.ERROR, code: AI_ERROR_CODE.PROVIDER_UNAVAILABLE };
+        await this.record(actor, conversationId, "", spent);
+        yield {
+          type: AI_STREAM_EVENT.ERROR,
+          code:
+            error instanceof ChatProviderError ? error.code : AI_ERROR_CODE.PROVIDER_UNAVAILABLE,
+        };
 
         return;
       }
@@ -100,7 +122,7 @@ export class AgentService {
       const answer = completed ?? { text: "", toolCalls: [] };
 
       if (answer.toolCalls.length === 0) {
-        const { id } = await this.record(actor, conversation.id, answer.text, spent);
+        const { id } = await this.record(actor, conversationId, answer.text, spent);
 
         yield { type: AI_STREAM_EVENT.DONE, messageId: id };
 
@@ -114,15 +136,20 @@ export class AgentService {
           yield { type: AI_STREAM_EVENT.TOOL, tool: call.name };
         }
 
-        const run = await this.tools.run(actor, conversation.id, call);
+        const run = await this.tools.run(actor, conversationId, call);
 
         messages.push({ role: "tool", toolCallId: call.id, content: run.content });
-        await this.conversations.append(actor, conversation.id, {
+        await this.conversations.append(actor, conversationId, {
           role: AI_MESSAGE_ROLE.TOOL,
           content: run.content,
           toolName: run.name,
           ...(run.proposal && { proposalId: run.proposal.id }),
+          ...(run.view && { view: run.view }),
         });
+
+        if (run.view) {
+          yield { type: AI_STREAM_EVENT.VIEW, toolCallId: call.id, view: run.view };
+        }
 
         if (run.proposal) {
           yield { type: AI_STREAM_EVENT.PROPOSAL, proposal: run.proposal };
@@ -131,7 +158,7 @@ export class AgentService {
     }
 
     // The model kept asking for tools and never answered. Better a said-so than a silent stop.
-    await this.record(actor, conversation.id, "", spent);
+    await this.record(actor, conversationId, "", spent);
     yield { type: AI_STREAM_EVENT.ERROR, code: AI_ERROR_CODE.STEP_LIMIT };
   }
 
@@ -151,20 +178,40 @@ export class AgentService {
     });
   }
 
-  private async context(
-    actor: AuthenticatedUser,
-  ): Promise<{ clinicName: PersonName; role: AuthenticatedUser["role"]; today: string }> {
-    const [clinic] = await this.db
-      .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, settings: clinics.settings })
-      .from(clinics)
-      .where(eq(clinics.id, actor.clinicId))
-      .limit(1);
+  /** Who is asking, from the database and never from the request or the model. */
+  async context(actor: AuthenticatedUser): Promise<SystemPromptInput> {
+    const [[clinic], [user], [doctor]] = await Promise.all([
+      this.db
+        .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, settings: clinics.settings })
+        .from(clinics)
+        .where(eq(clinics.id, actor.clinicId))
+        .limit(1),
+      this.db
+        .select({ nameAr: users.nameAr, nameEn: users.nameEn })
+        .from(users)
+        .where(and(eq(users.id, actor.id), eq(users.clinicId, actor.clinicId)))
+        .limit(1),
+      this.db
+        .select({ id: doctors.id })
+        .from(doctors)
+        .where(
+          and(
+            eq(doctors.userId, actor.id),
+            eq(doctors.clinicId, actor.clinicId),
+            isNull(doctors.deletedAt),
+          ),
+        )
+        .limit(1),
+    ]);
 
     const timeZone = clinicScheduleSettings(clinic?.settings).timezone || DEFAULT_TIME_ZONE;
+    const name: PersonName = { ar: user?.nameAr ?? "", en: user?.nameEn ?? "" };
 
     return {
       clinicName: { ar: clinic?.nameAr ?? "", en: clinic?.nameEn ?? "" },
-      role: actor.role,
+      user: { name, role: actor.role },
+      // A doctor's name is their user's name; the row only says that they are one.
+      doctor: doctor ? { id: doctor.id, name } : null,
       today: localDate(new Date(), timeZone),
     };
   }

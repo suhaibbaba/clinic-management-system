@@ -22,6 +22,8 @@ const STATUS_TONES: Record<AiProposalStatus, BadgeTone> = {
   [AI_PROPOSAL_STATUS.SENT]: "success",
   [AI_PROPOSAL_STATUS.CANCELLED]: "neutral",
   [AI_PROPOSAL_STATUS.EXPIRED]: "warning",
+  [AI_PROPOSAL_STATUS.DONE]: "success",
+  [AI_PROPOSAL_STATUS.FAILED]: "danger",
 };
 
 export interface ProposalCardProps {

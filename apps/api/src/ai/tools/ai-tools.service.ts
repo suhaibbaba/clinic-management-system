@@ -21,6 +21,7 @@ import { AppointmentsService } from "@api/appointments/appointments.service";
 import { LedgerService } from "@api/billing/ledger.service";
 import { OverdueService } from "@api/billing/overdue.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DoctorsService } from "@api/doctors/doctors.service";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, visits } from "@api/database/schema";
 import { InventoryReportsService } from "@api/inventory/inventory-reports.service";
@@ -29,6 +30,7 @@ import { PatientAccessService } from "@api/patients/patient-access.service";
 import { PatientsService } from "@api/patients/patients.service";
 import { TimelineService } from "@api/patients/timeline.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
+import { AiActionsService } from "@api/ai/actions/ai-actions.service";
 import { ProposalsService, TARGET_READ_CAPABILITY } from "@api/ai/outbound/proposals.service";
 import {
   capped,
@@ -36,8 +38,18 @@ import {
   maskPhone,
   ProposalResult,
   TOOL_ROW_LIMIT,
+  Viewed,
   type AiTool,
 } from "@api/ai/tools/ai-tool";
+import {
+  appointmentsView,
+  dailyStatsView,
+  financialView,
+  labOrdersView,
+  lowStockView,
+  patientsView,
+  patientView,
+} from "@api/ai/tools/ai-views";
 
 // The capability each tool borrows from the endpoint that already answers the same question. A
 // clinic that takes `billing.list` off its receptionists takes it off the assistant with it.
@@ -68,6 +80,7 @@ export class AiToolsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly appointments: AppointmentsService,
+    private readonly doctors: DoctorsService,
     private readonly patients: PatientsService,
     private readonly timeline: TimelineService,
     private readonly ledger: LedgerService,
@@ -76,10 +89,11 @@ export class AiToolsService {
     private readonly inventory: InventoryReportsService,
     private readonly permissions: PermissionsService,
     private readonly proposals: ProposalsService,
+    private readonly actions: AiActionsService,
   ) {}
 
   list(): AiTool[] {
-    this.tools ??= this.build();
+    this.tools ??= [...this.build(), ...this.actions.tools()];
 
     return this.tools;
   }
@@ -89,24 +103,43 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_APPOINTMENTS,
         description:
-          "List the clinic's appointments between two dates, newest first, optionally narrowed " +
-          "to one status. Dates are the clinic's own local dates and both ends are inclusive.",
+          "List appointments between two dates, newest first, optionally narrowed to one status " +
+          "and one doctor. Dates are the clinic's own local dates and both ends are inclusive. " +
+          'For "my appointments" pass the speaker\'s own doctor_id from the system prompt; omit ' +
+          "doctor_id only when the question is about the whole clinic.",
         capability: null,
         schema: z.object({
           date_from: dateSchema,
           date_to: dateSchema,
           status: z.enum(APPOINTMENT_STATUSES).optional(),
+          doctor_id: z.uuid().optional(),
         }),
         run: async (actor, args) => {
+          // Another clinic's doctor, or an id the model made up, is a not_found rather than an
+          // empty day that reads as "no appointments".
+          if (args.doctor_id) {
+            await this.doctors.findOne(actor, args.doctor_id);
+          }
+
           const page = await this.appointments.list(actor, {
             page: 1,
             limit: TOOL_ROW_LIMIT,
             from: args.date_from,
             to: args.date_to,
             ...(args.status && { status: args.status }),
+            ...(args.doctor_id && { doctorId: args.doctor_id }),
           });
 
-          return capped(page.items.map(toAppointmentSummary), page.total);
+          const list = capped(page.items, page.total);
+
+          return new Viewed(
+            { ...list, items: list.items.map(toAppointmentSummary) },
+            appointmentsView(list, {
+              from: args.date_from,
+              to: args.date_to,
+              doctorId: args.doctor_id,
+            }),
+          );
         },
       }),
 
@@ -114,7 +147,9 @@ export class AiToolsService {
         name: AI_TOOL.SEARCH_PATIENTS,
         description:
           "Find patients by name, file number or phone. Returns the file number, the name, a " +
-          "masked phone and the date of the last visit. Use it to turn a name into a patient id.",
+          "masked phone and the date of the last visit. Use it to turn a name into a patient id. " +
+          "When the user named a person and more than one row matches, ask which one, showing " +
+          "each file number — never pick one yourself.",
         capability: null,
         schema: z.object({ query: z.string().trim().min(2).max(120) }),
         run: async (actor, args) => {
@@ -126,7 +161,7 @@ export class AiToolsService {
 
           const lastVisits = await this.lastVisits(actor, page.items);
 
-          return capped(
+          const list = capped(
             page.items.map((patient) => ({
               id: patient.id,
               fileNumber: patient.fileNumber,
@@ -136,6 +171,8 @@ export class AiToolsService {
             })),
             page.total,
           );
+
+          return new Viewed(list, patientsView(list, args.query));
         },
       }),
 
@@ -152,15 +189,18 @@ export class AiToolsService {
             this.timeline.list(actor, args.patient_id, { page: 1, limit: TOOL_ROW_LIMIT }),
           ]);
 
-          return {
-            patient: toPatientSummary(patient),
-            // Absent rather than null where the role may not read it: a null is still an answer
-            // about somebody's debt (ROLES.md field rules).
-            ...((await this.allows(actor, CAPABILITY.PATIENT_BALANCE)) && {
-              balance: await this.ledger.balanceFor(actor.clinicId, args.patient_id),
-            }),
-            history: capped(history.items, history.total),
-          };
+          // Absent rather than null where the role may not read it: a null is still an answer
+          // about somebody's debt (ROLES.md field rules).
+          const balance = (await this.allows(actor, CAPABILITY.PATIENT_BALANCE))
+            ? await this.ledger.balanceFor(actor.clinicId, args.patient_id)
+            : undefined;
+          const summary = toPatientSummary(patient);
+          const recent = capped(history.items, history.total);
+
+          return new Viewed(
+            { patient: summary, ...(balance && { balance }), history: recent },
+            patientView(summary, balance?.balance, recent),
+          );
         },
       }),
 
@@ -180,7 +220,10 @@ export class AiToolsService {
             this.countAppointments(actor, range, APPOINTMENT_STATUS.NO_SHOW),
           ]);
 
-          return { ...range, total, completed, cancelled, noShow };
+          return new Viewed(
+            { ...range, total, completed, cancelled, noShow },
+            dailyStatsView({ total, completed, cancelled, noShow }),
+          );
         },
       }),
 
@@ -204,7 +247,7 @@ export class AiToolsService {
             this.overdue.list(actor.clinicId, { page: 1, limit: 5 }),
           ]);
 
-          return {
+          const summary = {
             period: args.period,
             from,
             // The range is half-open inside, so the day the caller sees is the last one counted.
@@ -219,6 +262,8 @@ export class AiToolsService {
               daysSinceLastPayment: debtor.daysSinceLastPayment,
             })),
           };
+
+          return new Viewed(summary, financialView(summary));
         },
       }),
 
@@ -230,9 +275,12 @@ export class AiToolsService {
         capability: CAPABILITY.LAB_ORDERS_OVERDUE,
         schema: z.object({}),
         run: async (actor) => {
-          const orders = await this.labOrders.overdue(actor, TOOL_ROW_LIMIT + 1);
+          const orders = capped(await this.labOrders.overdue(actor, TOOL_ROW_LIMIT + 1));
 
-          return capped(orders.map(toLabOrderSummary));
+          return new Viewed(
+            { ...orders, items: orders.items.map(toLabOrderSummary) },
+            labOrdersView(orders),
+          );
         },
       }),
 
@@ -244,9 +292,9 @@ export class AiToolsService {
         capability: CAPABILITY.INVENTORY_ALERTS,
         schema: z.object({}),
         run: async (actor) => {
-          const alerts = await this.inventory.alerts(actor);
+          const low = capped((await this.inventory.alerts(actor)).low);
 
-          return capped(alerts.low.map(toStockSummary));
+          return new Viewed({ ...low, items: low.items.map(toStockSummary) }, lowStockView(low));
         },
       }),
 
