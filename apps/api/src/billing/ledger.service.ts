@@ -90,6 +90,9 @@ export class LedgerService {
   // What the clinic took and what it raised between two instants. A sum over the ledger like
   // every other figure — there is no stored total to disagree with it.
   async totalsBetween(clinicId: string, from: Date, to: Date): Promise<PeriodTotals> {
+    // A raw `sql` template hands a Date to the driver unserialized, and postgres-js rejects it.
+    const start = sql`${from.toISOString()}::timestamptz`;
+    const end = sql`${to.toISOString()}::timestamptz`;
     const rows = await this.db.execute<{
       charged: string;
       collected: string;
@@ -99,17 +102,17 @@ export class LedgerService {
         coalesce((
           select sum(amount - discount) from charges
           where clinic_id = ${clinicId} and deleted_at is null
-            and created_at >= ${from} and created_at < ${to}
+            and created_at >= ${start} and created_at < ${end}
         ), 0)::text as charged,
         coalesce((
           select sum(amount) from payments
           where clinic_id = ${clinicId} and deleted_at is null
-            and created_at >= ${from} and created_at < ${to}
+            and created_at >= ${start} and created_at < ${end}
         ), 0)::text as collected,
         (
           select count(*)::int from payments
           where clinic_id = ${clinicId} and deleted_at is null
-            and created_at >= ${from} and created_at < ${to}
+            and created_at >= ${start} and created_at < ${end}
         ) as payments
     `);
 
