@@ -2,6 +2,7 @@ import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import {
   AI_MESSAGE_ROLE,
   AI_TOOL,
+  AI_TOOL_NAMES,
   AI_TITLE_MAX_LENGTH,
   type AiConversation,
   type AiMessage,
@@ -251,9 +252,10 @@ const toMessage = (row: MessageRow): AiMessage =>
     ? {
         id: row.id,
         role: row.role,
-        // The envelope stays behind: the card reads the proposal itself.
+        // The envelope stays behind: the card reads the proposal itself, and the tool that drafted
+        // it says which card — a message's or an action's.
         content: "",
-        toolName: AI_TOOL.DRAFT_BULK_MESSAGE,
+        toolName: AI_TOOL_NAMES.find((name) => name === row.toolName) ?? AI_TOOL.DRAFT_BULK_MESSAGE,
         proposalId: row.proposalId,
         createdAt: row.createdAt.toISOString(),
       }

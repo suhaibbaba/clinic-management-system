@@ -1,6 +1,7 @@
 import {
   AI_ACTION_CHECK,
   AI_ACTION_ERROR,
+  AI_MESSAGE_ROLE,
   AI_OUTBOUND_ERROR,
   AI_PROPOSAL_STATUS,
   AI_RISK_TIER,
@@ -294,6 +295,33 @@ describe("Assistant actions (e2e)", () => {
 
       expect(second.statusCode).toBe(409);
       expect(second.json()).toMatchObject({ message: AI_OUTBOUND_ERROR.NOT_PENDING });
+    });
+
+    // The reloaded thread draws the card the tool calls for, not a message's.
+    it("serves the stored row with the tool that drafted it", async () => {
+      const receptionist = actor(USER_ROLE.RECEPTIONIST);
+      const conversations = context.app.get(AiConversationsService);
+      const conversation = await conversations.start(receptionist, "احجز موعد");
+      const { result } = await tool(USER_ROLE.RECEPTIONIST, AI_TOOL.CREATE_APPOINTMENT, {
+        patient_id: patientId,
+        doctor_id: doctorId,
+        date: monday(3),
+        time: "13:00",
+      });
+
+      await conversations.append(receptionist, conversation.id, {
+        role: AI_MESSAGE_ROLE.TOOL,
+        content: "{}",
+        toolName: AI_TOOL.CREATE_APPOINTMENT,
+        proposalId: result?.proposal_id ?? "",
+      });
+
+      await expect(conversations.messages(receptionist, conversation.id)).resolves.toEqual([
+        expect.objectContaining({
+          toolName: AI_TOOL.CREATE_APPOINTMENT,
+          proposalId: result?.proposal_id,
+        }),
+      ]);
     });
   });
 
