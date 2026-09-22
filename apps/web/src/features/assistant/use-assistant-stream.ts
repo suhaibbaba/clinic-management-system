@@ -7,6 +7,7 @@ import {
   type AiProposalStatusEvent,
   type AiStreamEvent,
   type AiToolName,
+  type AiView,
 } from "@clinic/shared";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { assistantApi } from "@web/features/assistant/api";
@@ -23,6 +24,13 @@ export interface LiveTurn {
   readonly streaming: boolean;
   /** Drafts this turn made, drawn as confirmation cards until the stored thread takes over. */
   readonly proposals: readonly AiProposal[];
+  /** Tables and cards the tools returned, drawn between the tool line and the answer. */
+  readonly views: readonly LiveView[];
+}
+
+export interface LiveView {
+  readonly toolCallId: string;
+  readonly view: AiView;
 }
 
 export interface AssistantStream {
@@ -102,6 +110,7 @@ const idle = (question: string): LiveTurn => ({
   error: null,
   streaming: true,
   proposals: [],
+  views: [],
 });
 
 // One turn at a time, held here rather than in the query cache: it is not the server's state yet.
@@ -262,6 +271,17 @@ export function useAssistantStream({
               case AI_STREAM_EVENT.PROPOSAL_STATUS:
                 onProposalStatus?.(event);
                 break;
+
+              case AI_STREAM_EVENT.VIEW: {
+                const { toolCallId, view } = event;
+
+                setTurn((current) =>
+                  current
+                    ? { ...current, views: [...current.views, { toolCallId, view }] }
+                    : current,
+                );
+                break;
+              }
 
               case AI_STREAM_EVENT.DONE:
                 terminal = true;

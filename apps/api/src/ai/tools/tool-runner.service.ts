@@ -13,6 +13,7 @@ import {
   type AiProposal,
   type AiToolError,
   type AiToolName,
+  type AiView,
 } from "@clinic/shared";
 import type { ChatToolCall, ChatToolDefinition } from "@api/ai/chat-provider";
 import { OutboundError } from "@api/ai/outbound/proposals.service";
@@ -36,6 +37,8 @@ export interface ToolRun {
   readonly content: string;
   /** Set when the tool drafted a proposal: the stream sends it to the card, never to the model. */
   readonly proposal?: AiProposal;
+  /** Set when the page draws the result: the stream sends it as its own frame. */
+  readonly view?: AiView;
 }
 
 interface Envelope {
@@ -51,6 +54,7 @@ interface Executed {
   readonly envelope: Envelope;
   readonly proposal?: AiProposal;
   readonly audit?: ToolAuditTarget;
+  readonly view?: AiView;
 }
 
 // Everything between the model asking for a tool and the model being handed an answer: the
@@ -129,7 +133,11 @@ export class ToolRunnerService implements OnApplicationBootstrap {
       executed.audit,
     );
 
-    return executed.proposal ? { ...run, proposal: executed.proposal } : run;
+    return {
+      ...run,
+      ...(executed.proposal && { proposal: executed.proposal }),
+      ...(executed.view && { view: executed.view }),
+    };
   }
 
   private async execute(
@@ -151,6 +159,7 @@ export class ToolRunnerService implements OnApplicationBootstrap {
         envelope: { tool: tool.name, untrusted_clinic_data: true, result: outcome.data },
         ...(outcome.proposal && { proposal: outcome.proposal }),
         ...(outcome.audit && { audit: outcome.audit }),
+        ...(outcome.view && { view: outcome.view }),
       };
     } catch (error) {
       if (error instanceof ToolRefusal) {

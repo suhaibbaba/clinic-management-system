@@ -22,7 +22,8 @@ export interface StatCardProps extends TestIdProps {
   readonly label: string;
   /** Already formatted — this component never formats money or dates. */
   readonly value: ReactNode;
-  readonly icon: IconName;
+  /** Left out where a row of figures is read as one thing, as in the assistant's replies. */
+  readonly icon?: IconName | undefined;
   readonly tone?: StatTone | undefined;
   readonly caption?: string | undefined;
   readonly delta?:

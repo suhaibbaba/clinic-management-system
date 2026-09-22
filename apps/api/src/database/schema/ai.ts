@@ -2,6 +2,7 @@ import {
   AI_PROPOSAL_KINDS,
   AI_RISK_TIERS,
   type AiActionSummary,
+  type AiView,
   AI_AUTOMATION_RULES,
   AI_AUTOMATION_RUN_STATUSES,
   AI_MESSAGE_ROLES,
@@ -97,6 +98,8 @@ export const aiMessages = pgTable(
     promptVersion: integer("prompt_version"),
     /** On the tool row that drafted one, so a reloaded thread draws the card where it was. */
     proposalId: uuid("proposal_id").references(() => aiProposals.id),
+    /** On a tool row: the table or card the page drew. The model is never handed it. */
+    view: jsonb("view").$type<AiView>(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     createdBy: uuid("created_by"),

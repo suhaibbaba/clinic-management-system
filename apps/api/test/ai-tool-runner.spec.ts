@@ -1,7 +1,7 @@
 import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { AI_TOOL, AI_TOOL_ERROR, USER_ROLE } from "@clinic/shared";
 import { z } from "zod";
-import { defineTool, type AiTool } from "@api/ai/tools/ai-tool";
+import { defineTool, Viewed, type AiTool } from "@api/ai/tools/ai-tool";
 import type { AiToolsService } from "@api/ai/tools/ai-tools.service";
 import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -91,6 +91,36 @@ describe("running a tool the model asked for", () => {
         userId: ACTOR.id,
       }),
     ]);
+  });
+
+  // The page draws the table; the model reads the result and nothing of the view.
+  it("hands the view to the page and keeps it out of what the model reads", async () => {
+    const view = {
+      type: "stats" as const,
+      tiles: [{ label: "assistant.view.stats.total", value: "7", kind: "number" as const }],
+    };
+    const tool = defineTool({
+      name: AI_TOOL.GET_DAILY_STATS,
+      description: "test",
+      capability: null,
+      schema: z.object({}),
+      run: () => Promise.resolve(new Viewed({ total: 7 }, view)),
+    });
+    const { runner } = harness([tool]);
+
+    const run = await runner.run(ACTOR, CONVERSATION_ID, {
+      id: "call_1",
+      name: AI_TOOL.GET_DAILY_STATS,
+      arguments: "{}",
+    });
+
+    expect(parse(run.content)).toEqual({
+      tool: AI_TOOL.GET_DAILY_STATS,
+      untrusted_clinic_data: true,
+      result: { total: 7 },
+    });
+    expect(run.content).not.toContain("assistant.view");
+    expect(run.view).toEqual(view);
   });
 
   it("refuses a tool the clinic has not granted this role, without running it", async () => {

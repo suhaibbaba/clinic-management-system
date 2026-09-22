@@ -1,7 +1,7 @@
 import type { PersonName, UserRole } from "@clinic/shared";
 
 /** Bumped whenever the wording below changes, so a stored conversation says what it was answered under. */
-export const SYSTEM_PROMPT_VERSION = 4;
+export const SYSTEM_PROMPT_VERSION = 5;
 
 export interface PromptDoctor {
   readonly id: string;
@@ -47,6 +47,11 @@ const RULES = [
   "4. Say what was not checked. A result with truncated: true — say how many are shown and that",
   "   more exist.",
   '5. Empty is an answer. "No appointments tomorrow" is stated plainly, not padded.',
+  "",
+  "Tables and cards: the results of get_appointments, search_patients, get_patient_summary,",
+  "get_daily_stats, get_financial_summary, get_overdue_lab_orders and get_low_stock_items are",
+  "already drawn for the user as a table or card above your answer. Write two lines at most —",
+  "the headline and anything they should act on. Do not repeat the rows, and do not draw tables.",
   "",
   "Permissions: a tool may answer that it is not permitted. That is the clinic's own permission",
   "matrix and it is final. Say the information is not available to this role; never work around",

@@ -1,7 +1,9 @@
 import {
+  AI_MESSAGE_ROLE,
   AI_STREAM_EVENT,
   AI_TOOL,
   USER_ROLE,
+  aiViewSchema,
   type AiStreamEvent,
   type UserRole,
 } from "@clinic/shared";
@@ -216,8 +218,14 @@ describe("Clinic assistant (e2e)", () => {
       expect(JSON.parse((await run(foreign?.id ?? "")).content)).toMatchObject({
         error: "not_found",
       });
-      expect(JSON.parse((await run(doctorId)).content)).toMatchObject({
-        result: { items: [], truncated: false },
+      const own = await run(doctorId);
+
+      expect(JSON.parse(own.content)).toMatchObject({ result: { items: [], truncated: false } });
+      // The page's copy: the day's calendar for that doctor, as the screen's own address.
+      expect(aiViewSchema.parse(own.view)).toMatchObject({
+        type: "table",
+        rows: [],
+        href: `/appointments?view=day&date=2026-09-22&doctor=${doctorId}`,
       });
     });
   });
@@ -262,6 +270,37 @@ describe("Clinic assistant (e2e)", () => {
       expect(messages.json()).toMatchObject([
         { role: "user", content: "كم موعد اليوم؟" },
         { role: "assistant" },
+      ]);
+    });
+
+    // A reloaded thread redraws the table where the tool ran; the envelope the model read stays.
+    it("serves a tool row's view, and never its envelope", async () => {
+      const doctor = {
+        id: clinic.userIds[USER_ROLE.DOCTOR],
+        clinicId: clinic.id,
+        role: USER_ROLE.DOCTOR,
+      };
+      const conversations = context.app.get(AiConversationsService);
+      const conversation = await conversations.start(doctor, "إحصائيات");
+      const view = {
+        type: "stats" as const,
+        tiles: [{ label: "assistant.view.stats.total", value: "3", kind: "number" as const }],
+      };
+
+      await conversations.append(doctor, conversation.id, {
+        role: AI_MESSAGE_ROLE.TOOL,
+        content: '{"tool":"get_daily_stats","result":{"total":3}}',
+        toolName: AI_TOOL.GET_DAILY_STATS,
+        view,
+      });
+
+      await expect(conversations.messages(doctor, conversation.id)).resolves.toEqual([
+        expect.objectContaining({
+          role: AI_MESSAGE_ROLE.TOOL,
+          content: "",
+          toolName: AI_TOOL.GET_DAILY_STATS,
+          view,
+        }),
       ]);
     });
 

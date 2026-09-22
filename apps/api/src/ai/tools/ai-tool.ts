@@ -5,6 +5,7 @@ import {
   type AiRiskTier,
   type AiToolError,
   type AiToolName,
+  type AiView,
 } from "@clinic/shared";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 
@@ -30,6 +31,7 @@ export type ToolOutcome =
       readonly data: unknown;
       readonly proposal?: AiProposal;
       readonly audit?: ToolAuditTarget;
+      readonly view?: AiView;
     }
   | ToolRejection;
 
@@ -51,6 +53,14 @@ export class ProposalResult {
   constructor(
     readonly proposal: AiProposal,
     readonly forModel: unknown,
+  ) {}
+}
+
+/** A result the page also draws: the model is handed `result`, never `view`. */
+export class Viewed {
+  constructor(
+    readonly result: unknown,
+    readonly view: AiView,
   ) {}
 }
 
@@ -123,6 +133,10 @@ export function defineTool<TSchema extends z.ZodType>(definition: ToolDefinition
 
       if (result instanceof ProposalResult) {
         return { ok: true, data: result.forModel, proposal: result.proposal };
+      }
+
+      if (result instanceof Viewed) {
+        return { ok: true, data: result.result, view: result.view };
       }
 
       return result instanceof ActionDone

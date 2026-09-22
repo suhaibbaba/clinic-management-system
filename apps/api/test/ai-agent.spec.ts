@@ -9,6 +9,7 @@ import {
   AI_TOOL,
   USER_ROLE,
   type AiProposal,
+  type AiView,
 } from "@clinic/shared";
 import type { ConfigService } from "@nestjs/config";
 import { AgentService } from "@api/ai/agent.service";
@@ -43,6 +44,7 @@ interface AppendedMessage {
   usage?: { inputTokens: number; outputTokens: number };
   promptVersion?: number;
   proposalId?: string;
+  view?: unknown;
 }
 
 function completed(text: string, toolCalls: ChatToolCall[] = []): ChatChunk {
@@ -80,6 +82,7 @@ function harness(
     proposal?: AiProposal;
     toolThrows?: boolean;
     doctorId?: string | null;
+    view?: AiView;
   } = {},
 ): {
   agent: AgentService;
@@ -113,6 +116,7 @@ function harness(
         name: call.name,
         content: options.toolContent ?? '{"tool":"x","untrusted_clinic_data":true,"result":[]}',
         ...(options.proposal && { proposal: options.proposal }),
+        ...(options.view && { view: options.view }),
       });
     },
   } as unknown as ToolRunnerService;
@@ -324,6 +328,31 @@ describe("the agent loop", () => {
 
   // Every way out of a turn is a terminal frame: the page reports a stream that closes without one
   // as a lost connection.
+  it("sends each tool's view as its own frame, once, and stores it on the tool row", async () => {
+    const view: AiView = {
+      type: "stats",
+      tiles: [{ label: "assistant.view.stats.total", value: "7", kind: "number" }],
+    };
+    const calls: ChatToolCall[] = [
+      { id: "call_1", name: AI_TOOL.GET_DAILY_STATS, arguments: "{}" },
+      { id: "call_2", name: AI_TOOL.GET_DAILY_STATS, arguments: "{}" },
+    ];
+    const { provider } = scripted([[completed("", calls)], [completed("٧ مواعيد")]]);
+    const { agent, appended } = harness(provider, { view });
+
+    const events = await collect(agent);
+    const frames = events.filter((event) => event.type === AI_STREAM_EVENT.VIEW);
+
+    expect(frames).toEqual([
+      { type: AI_STREAM_EVENT.VIEW, toolCallId: "call_1", view },
+      { type: AI_STREAM_EVENT.VIEW, toolCallId: "call_2", view },
+    ]);
+    expect(appended.filter((message) => message.role === AI_MESSAGE_ROLE.TOOL)).toEqual([
+      expect.objectContaining({ view }),
+      expect.objectContaining({ view }),
+    ]);
+  });
+
   describe("ends every turn in a terminal frame", () => {
     const call: ChatToolCall = { id: "call_1", name: AI_TOOL.GET_LOW_STOCK_ITEMS, arguments: "{}" };
     const terminal = [AI_STREAM_EVENT.DONE, AI_STREAM_EVENT.ERROR] as const;

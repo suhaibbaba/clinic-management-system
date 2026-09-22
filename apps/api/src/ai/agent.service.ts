@@ -144,7 +144,12 @@ export class AgentService {
           content: run.content,
           toolName: run.name,
           ...(run.proposal && { proposalId: run.proposal.id }),
+          ...(run.view && { view: run.view }),
         });
+
+        if (run.view) {
+          yield { type: AI_STREAM_EVENT.VIEW, toolCallId: call.id, view: run.view };
+        }
 
         if (run.proposal) {
           yield { type: AI_STREAM_EVENT.PROPOSAL, proposal: run.proposal };

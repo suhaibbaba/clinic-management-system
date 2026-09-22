@@ -22,6 +22,7 @@ import {
 } from "@clinic/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { ActionCard } from "@web/features/assistant/action-card";
+import { AssistantView } from "@web/features/assistant/assistant-view";
 import { assistantApi } from "@web/features/assistant/api";
 import { MarkdownMessage } from "@web/features/assistant/markdown-message";
 import { ProposalCard, SEND_CAPABILITY } from "@web/features/assistant/proposal-card";
@@ -38,6 +39,8 @@ import {
   usePendingProposals,
 } from "@web/features/assistant/queries";
 import { canReachNavItem } from "@web/app/navigation";
+import { useClinic } from "@web/features/clinic/queries";
+import { setClinicTimeZone } from "@web/lib/clinic-zone";
 import { useSession } from "@web/features/auth/session";
 import { SUGGESTIONS } from "@web/features/assistant/suggestions";
 import { useAssistantStream } from "@web/features/assistant/use-assistant-stream";
@@ -59,6 +62,10 @@ export function AssistantPage(): JSX.Element {
   const [railOpen, setRailOpen] = useState(false);
 
   useDocumentTitle(t("nav.assistant"));
+
+  // Times on cards and tables are the clinic's, not the browser's.
+  const clinic = useClinic();
+  setClinicTimeZone(clinic.data);
 
   const conversations = useConversations();
   const messages = useConversationMessages(conversationId);
@@ -186,7 +193,13 @@ export function AssistantPage(): JSX.Element {
             ))}
 
           {stored.map((message: AiMessage) =>
-            message.proposalId ? (
+            message.view && !message.proposalId ? (
+              <AssistantView
+                key={message.id}
+                view={message.view}
+                data-testid={`assistant-view-${message.id}`}
+              />
+            ) : message.proposalId ? (
               message.toolName === AI_TOOL.DRAFT_BULK_MESSAGE ? (
                 <ProposalCard key={message.id} id={message.proposalId} />
               ) : (
@@ -225,6 +238,14 @@ export function AssistantPage(): JSX.Element {
                   />
                 ),
               )}
+
+              {stream.turn.views.map(({ toolCallId, view }) => (
+                <AssistantView
+                  key={toolCallId}
+                  view={view}
+                  data-testid={`assistant-live-view-${toolCallId}`}
+                />
+              ))}
 
               {(stream.turn.error === null || stream.turn.answer.length > 0) && (
                 <ChatBubble

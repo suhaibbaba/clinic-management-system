@@ -624,6 +624,8 @@ export const AI_STREAM_EVENT = {
   PROPOSAL: "proposal",
   /** A proposal moved: the send and cancel endpoints answer with this frame too. */
   PROPOSAL_STATUS: "proposal_status",
+  /** A tool's result drawn as a table or card, which the model never sees. */
+  VIEW: "view",
 } as const satisfies Record<string, string>;
 export type AiStreamEventType = EnumValue<typeof AI_STREAM_EVENT>;
 
@@ -635,6 +637,7 @@ export const AI_STREAM_EVENTS = [
   AI_STREAM_EVENT.ERROR,
   AI_STREAM_EVENT.PROPOSAL,
   AI_STREAM_EVENT.PROPOSAL_STATUS,
+  AI_STREAM_EVENT.VIEW,
 ] as const;
 
 // Codes, never sentences: the stream carries one of these and the web writes the Arabic. The last

@@ -92,6 +92,32 @@ describe("Reading the assistant's stream", () => {
     expect(second.rest).toBe("");
   });
 
+  it("reads a view frame and keeps it for the turn, in order", async () => {
+    const view = {
+      type: "stats" as const,
+      tiles: [{ label: "assistant.view.stats.total", value: "4", kind: "number" as const }],
+    };
+
+    mockChat(
+      [
+        frame({ type: AI_STREAM_EVENT.CONVERSATION, conversationId: CONVERSATION }),
+        frame({ type: AI_STREAM_EVENT.TOOL, tool: AI_TOOL.GET_DAILY_STATS }),
+        frame({ type: AI_STREAM_EVENT.VIEW, toolCallId: "call_1", view }),
+      ],
+      false,
+    );
+
+    const { result } = harness();
+
+    act(() => {
+      result.current.send("ملخص اليوم");
+    });
+
+    await waitFor(() =>
+      expect(result.current.turn?.views).toEqual([{ toolCallId: "call_1", view }]),
+    );
+  });
+
   // An older page against a newer API: the frames it knows still stream.
   it("skips a frame it does not understand rather than failing the turn", () => {
     const { events } = parseFrames(

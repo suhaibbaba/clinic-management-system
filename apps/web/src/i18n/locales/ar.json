@@ -1794,6 +1794,35 @@
       "notFound": "السجل مش موجود أو انحذف.",
       "duplicate": "في مريض مسجّل بنفس الرقم.",
       "failed": "ما قدرنا ننفّذ الإجراء."
+    },
+    "view": {
+      "columns": {
+        "date": "التاريخ",
+        "time": "الساعة",
+        "patient": "المريض",
+        "doctor": "الطبيب",
+        "status": "الحالة",
+        "fileNumber": "رقم الملف",
+        "phone": "الهاتف",
+        "lastVisit": "آخر زيارة",
+        "entry": "النوع",
+        "title": "التفاصيل",
+        "balance": "الرصيد",
+        "daysSinceLastPayment": "أيام من آخر دفعة"
+      },
+      "stats": {
+        "total": "كل المواعيد",
+        "completed": "منجزة",
+        "cancelled": "ملغاة",
+        "noShow": "لم يحضر",
+        "charged": "المستحق",
+        "collected": "المحصّل",
+        "outstanding": "الذمم"
+      },
+      "empty": "لا توجد نتائج",
+      "truncated": "عرض {{shown}} من {{total}}",
+      "openFull": "افتح القائمة الكاملة",
+      "balance": "الرصيد"
     }
   },
   "assistantSettings": {

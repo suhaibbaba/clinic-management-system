@@ -41,6 +41,93 @@ export const aiConversationSchema = z.object({
 });
 export type AiConversation = z.infer<typeof aiConversationSchema>;
 
+// What a read tool hands the page beside the model's result: data, not prose, so a list of
+// appointments is drawn as the same table every turn. Labels are i18n keys the page translates;
+// money, dates and names are formatted on the page.
+export const AI_VIEW_COLUMN_KINDS = [
+  "text",
+  "number",
+  "date",
+  "time",
+  "money",
+  "status",
+  "code",
+  "phone",
+  "link",
+  "person",
+] as const;
+export type AiViewColumnKind = (typeof AI_VIEW_COLUMN_KINDS)[number];
+
+export const aiViewColumnSchema = z.object({
+  key: z.string(),
+  /** An i18n key. */
+  label: z.string(),
+  kind: z.enum(AI_VIEW_COLUMN_KINDS),
+  /** `code` only: the i18n prefix the value is looked up under. */
+  prefix: z.string().optional(),
+});
+export type AiViewColumn = z.infer<typeof aiViewColumnSchema>;
+
+/** A `link` cell. The address is one of the app's own screens. */
+export const aiViewLinkSchema = z.object({ href: z.string().startsWith("/"), label: z.string() });
+export type AiViewLink = z.infer<typeof aiViewLinkSchema>;
+
+export const aiTableViewSchema = z.object({
+  type: z.literal("table"),
+  columns: z.array(aiViewColumnSchema),
+  rows: z.array(z.record(z.string(), z.unknown())),
+  truncated: z.boolean(),
+  total: z.number().int().optional(),
+  /** The screen showing the whole list, with the same filters in its address. */
+  href: z.string().startsWith("/").optional(),
+});
+export type AiTableView = z.infer<typeof aiTableViewSchema>;
+
+export const aiStatTileSchema = z.object({
+  label: z.string(),
+  value: z.string(),
+  kind: z.enum(["number", "money"]),
+});
+export type AiStatTile = z.infer<typeof aiStatTileSchema>;
+
+export const aiViewSchema = z.discriminatedUnion("type", [
+  aiTableViewSchema,
+  z.object({
+    type: z.literal("stats"),
+    tiles: z.array(aiStatTileSchema).min(1).max(4),
+    table: aiTableViewSchema.optional(),
+  }),
+  z.object({
+    type: z.literal("patient"),
+    patient: z.object({
+      id: uuidSchema,
+      fullName: z.string(),
+      fileNumber: z.string(),
+      /** Masked. */
+      phone: z.string(),
+    }),
+    /** Absent where the role may not read it. */
+    balance: z.string().optional(),
+    table: aiTableViewSchema,
+  }),
+  z.object({
+    type: z.literal("list"),
+    items: z.array(
+      z.object({
+        title: z.string(),
+        subtitle: z.string().optional(),
+        /** A date the item is about, formatted on the page. */
+        date: z.string().optional(),
+        href: z.string().startsWith("/").optional(),
+      }),
+    ),
+    truncated: z.boolean(),
+    total: z.number().int().optional(),
+    href: z.string().startsWith("/").optional(),
+  }),
+]);
+export type AiView = z.infer<typeof aiViewSchema>;
+
 export const aiMessageSchema = z.object({
   id: uuidSchema,
   role: z.enum(AI_MESSAGE_ROLES),
@@ -49,6 +136,8 @@ export const aiMessageSchema = z.object({
   toolName: z.enum(AI_TOOL_NAMES).nullable(),
   /** Set on the row that drafted a proposal: the thread draws its confirmation card there. */
   proposalId: uuidSchema.nullable(),
+  /** Set on a tool row whose result the thread draws as a table or card. */
+  view: aiViewSchema.nullable(),
   createdAt: z.iso.datetime(),
 });
 export type AiMessage = z.infer<typeof aiMessageSchema>;
@@ -274,6 +363,7 @@ export const aiStreamEventSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal(AI_STREAM_EVENT.ERROR), code: z.enum(AI_ERROR_CODES) }),
   z.object({ type: z.literal(AI_STREAM_EVENT.PROPOSAL), proposal: aiProposalSchema }),
   aiProposalStatusEventSchema,
+  z.object({ type: z.literal(AI_STREAM_EVENT.VIEW), toolCallId: z.string(), view: aiViewSchema }),
 ]);
 export type AiStreamEvent = z.infer<typeof aiStreamEventSchema>;
 

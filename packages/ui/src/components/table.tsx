@@ -46,6 +46,11 @@ export interface TableProps<TRow> extends TestIdProps {
   // The reference's `.panel-head`: a title and its filters ride inside the panel, above the rule
   // that starts the rows, rather than floating above the card with nothing holding them.
   header?: ReactNode | undefined;
+  /**
+   * `compact` sits inside another card: no box of its own, `--control-h-sm` rows, a sticky head,
+   * and it scrolls sideways on a phone rather than turning into cards.
+   */
+  density?: "default" | "compact" | undefined;
 }
 
 export interface PaginationProps extends TestIdProps {
@@ -83,10 +88,12 @@ export function Table<TRow>({
   onRowClick,
   rowLabel,
   header,
+  density = "default",
   "data-testid": testId,
 }: TableProps<TRow>): JSX.Element {
   const { t } = useTranslation();
-  const isMobile = useIsMobile();
+  const compact = density === "compact";
+  const isMobile = useIsMobile() && !compact;
   const showSkeleton = useDelayedLoading(isLoading);
 
   // Every node a row owns hangs off one id, so a failing selector names the row it missed.
@@ -263,8 +270,12 @@ export function Table<TRow>({
   return (
     <div
       data-part="table"
+      data-density={density}
       {...testid(testId)}
-      className="overflow-hidden border border-line rounded-card bg-surface shadow-card"
+      className={cn(
+        "overflow-hidden bg-surface",
+        !compact && "border border-line rounded-card shadow-card",
+      )}
     >
       {header !== undefined && (
         <div
@@ -290,7 +301,8 @@ export function Table<TRow>({
                   {...testid(testId, `head-${column.key}`)}
                   scope="col"
                   className={cn(
-                    "whitespace-nowrap border-b border-line bg-table-head px-[18px] py-[13px]",
+                    "whitespace-nowrap border-b border-line bg-table-head",
+                    compact ? "sticky top-0 h-(--control-h-sm) px-3" : "px-[18px] py-[13px]",
                     "text-micro font-medium text-ink-muted",
                     alignClass(column.align),
                     column.className,
@@ -326,7 +338,9 @@ export function Table<TRow>({
                       data-part="table-body-cell"
                       {...testid(rowId(row), column.key)}
                       className={cn(
-                        "px-[18px] py-[13px] align-middle",
+                        compact
+                          ? "h-(--control-h-sm) whitespace-nowrap px-3 py-1 align-middle"
+                          : "px-[18px] py-[13px] align-middle",
                         alignClass(column.align),
                         column.className,
                       )}

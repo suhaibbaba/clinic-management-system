@@ -7,6 +7,7 @@ import {
   type AiConversation,
   type AiMessage,
   type AiMessageRole,
+  type AiView,
   type ListAiConversationsQuery,
   type Paginated,
 } from "@clinic/shared";
@@ -70,7 +71,11 @@ export class AiConversationsService {
         and(
           eq(aiMessages.conversationId, conversationId),
           isNull(aiMessages.deletedAt),
-          or(inArray(aiMessages.role, SERVED_ROLES), isNotNull(aiMessages.proposalId)),
+          or(
+            inArray(aiMessages.role, SERVED_ROLES),
+            isNotNull(aiMessages.proposalId),
+            isNotNull(aiMessages.view),
+          ),
           // A turn that failed leaves an empty assistant row carrying only its token cost.
           ne(aiMessages.content, ""),
         ),
@@ -162,6 +167,7 @@ export class AiConversationsService {
       usage?: ChatUsage;
       promptVersion?: number;
       proposalId?: string;
+      view?: AiView;
     },
   ): Promise<AppendedMessage> {
     const [row] = await this.db
@@ -176,6 +182,7 @@ export class AiConversationsService {
         outputTokens: message.usage?.outputTokens ?? null,
         promptVersion: message.promptVersion ?? null,
         proposalId: message.proposalId ?? null,
+        view: message.view ?? null,
         createdBy: actor.id,
         updatedBy: actor.id,
       })
@@ -247,16 +254,17 @@ const toConversation = (row: ConversationRow): AiConversation => ({
   updatedAt: row.updatedAt.toISOString(),
 });
 
+// A tool row is served only for what the page draws from it — a card, or a table — and never with
+// its envelope, which is what the model read.
 const toMessage = (row: MessageRow): AiMessage =>
-  row.proposalId
+  row.proposalId || row.view
     ? {
         id: row.id,
         role: row.role,
-        // The envelope stays behind: the card reads the proposal itself, and the tool that drafted
-        // it says which card — a message's or an action's.
         content: "",
         toolName: AI_TOOL_NAMES.find((name) => name === row.toolName) ?? AI_TOOL.DRAFT_BULK_MESSAGE,
         proposalId: row.proposalId,
+        view: row.view,
         createdAt: row.createdAt.toISOString(),
       }
     : {
@@ -265,5 +273,6 @@ const toMessage = (row: MessageRow): AiMessage =>
         content: row.content,
         toolName: null,
         proposalId: null,
+        view: null,
         createdAt: row.createdAt.toISOString(),
       };

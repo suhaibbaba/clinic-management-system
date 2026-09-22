@@ -1770,6 +1770,35 @@
       "notFound": "The record no longer exists.",
       "duplicate": "A patient with this phone is already registered.",
       "failed": "The action could not be completed."
+    },
+    "view": {
+      "columns": {
+        "date": "Date",
+        "time": "Time",
+        "patient": "Patient",
+        "doctor": "Doctor",
+        "status": "Status",
+        "fileNumber": "File no.",
+        "phone": "Phone",
+        "lastVisit": "Last visit",
+        "entry": "Type",
+        "title": "Details",
+        "balance": "Balance",
+        "daysSinceLastPayment": "Days since last payment"
+      },
+      "stats": {
+        "total": "All appointments",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "noShow": "No-show",
+        "charged": "Charged",
+        "collected": "Collected",
+        "outstanding": "Outstanding"
+      },
+      "empty": "No results",
+      "truncated": "Showing {{shown}} of {{total}}",
+      "openFull": "Open the full list",
+      "balance": "Balance"
     }
   },
   "assistantSettings": {
