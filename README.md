@@ -63,6 +63,22 @@ docker compose run --rm --no-deps api pnpm install
 docker compose up
 ```
 
+### Without Docker
+
+With Node 22.9+, pnpm and a Postgres of your own (for example `brew install postgresql@17`), with
+`DATABASE_URL` in `.env` pointing at it:
+
+```bash
+pnpm install
+pnpm db:migrate   # build, then apply the migrations to DATABASE_URL
+pnpm seed         # optional: the demo clinic
+pnpm dev          # API on :3000 and web on :5173, both reloading on save
+pnpm dev:api      # or one at a time
+pnpm dev:web
+```
+
+`pnpm dev` never migrates on its own: run `pnpm db:migrate` when a pull brings a new migration.
+
 ### Against a remote API
 
 The frontend does not need the rest of the stack. Point `API_PROXY_TARGET` at a
