@@ -15,7 +15,7 @@ port binds to `127.0.0.1` and the host nginx reaches it over loopback.
 | Images           | built on the server: `clinic-sandbox-api`, `clinic-sandbox-web` |
 
 ```
-push to main ─▶ ssh ─▶ git reset --hard origin/main ─▶ resolve APP_VERSION
+manual run ─▶ ssh ─▶ git reset --hard origin/main ─▶ resolve APP_VERSION
                             ─▶ compose build ─▶ up -d ─▶ curl /api/health
 ```
 

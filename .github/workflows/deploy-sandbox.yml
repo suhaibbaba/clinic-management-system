@@ -1,10 +1,8 @@
 name: Deploy sandbox
 
-# CI green on main -> build on the server -> healthcheck. No registry and no
+# Manual only. Build on the server -> healthcheck. No registry and no
 # checkout: the VPS builds from its own clone of the repo. See DEPLOY.md.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       reset_data:

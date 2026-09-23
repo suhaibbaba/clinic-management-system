@@ -2,18 +2,14 @@ name: CI
 
 # Reusable, and called rather than triggered: every deploy runs these same
 # checks, so a second environment adds a caller instead of a second copy.
+# Manual only: nothing runs on a push or a pull request.
 on:
   workflow_call:
-  # Every pull request, so the API suites — the assistant's outbound and
-  # authorization paths among them — run against Postgres before anything merges.
-  # Only the deploy stays on main.
-  pull_request:
   workflow_dispatch:
 
-# A newer push to the same PR makes the older run moot.
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ci-${{ github.run_id }}
+  cancel-in-progress: false
 
 # No `needs` anywhere: the runners are free on a public repo and the only thing
 # a chain buys is a later answer. The deploy waits on the whole workflow, so the
