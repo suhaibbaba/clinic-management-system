@@ -77,6 +77,8 @@ const ACTION_ERROR_KEYS: Record<AiActionError, string> = {
   [AI_ACTION_ERROR.NOT_FOUND]: "assistant.actionErrors.notFound",
   [AI_ACTION_ERROR.DUPLICATE]: "assistant.actionErrors.duplicate",
   [AI_ACTION_ERROR.SCHEDULE_CONFLICT]: "assistant.actionErrors.scheduleConflict",
+  [AI_ACTION_ERROR.CHANGED_SINCE_DRAFT]: "assistant.actionErrors.changedSinceDraft",
+  [AI_ACTION_ERROR.INPUT_REQUIRED]: "assistant.actionErrors.inputRequired",
   [AI_ACTION_ERROR.FAILED]: "assistant.actionErrors.failed",
 };
 

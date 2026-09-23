@@ -937,6 +937,10 @@ export const AI_ACTION_ERROR = {
   DUPLICATE: "possible_duplicate",
   /** Appointments booked into the period after the card was drafted. */
   SCHEDULE_CONFLICT: "schedule_conflict",
+  /** A plan step re-checked before it ran no longer matches what the card showed. */
+  CHANGED_SINCE_DRAFT: "changed_since_draft",
+  /** A plan step still has a field the person must fill in on the card. */
+  INPUT_REQUIRED: "input_required",
   FAILED: "action_failed",
 } as const satisfies Record<string, string>;
 export type AiActionError = EnumValue<typeof AI_ACTION_ERROR>;
@@ -950,6 +954,8 @@ export const AI_ACTION_ERRORS = [
   AI_ACTION_ERROR.NOT_FOUND,
   AI_ACTION_ERROR.DUPLICATE,
   AI_ACTION_ERROR.SCHEDULE_CONFLICT,
+  AI_ACTION_ERROR.CHANGED_SINCE_DRAFT,
+  AI_ACTION_ERROR.INPUT_REQUIRED,
   AI_ACTION_ERROR.FAILED,
 ] as const;
 

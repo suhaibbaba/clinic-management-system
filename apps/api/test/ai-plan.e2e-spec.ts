@@ -87,13 +87,27 @@ describe("Assistant plans (e2e)", () => {
     return (response.json() as { id: string }).id;
   }
 
-  const confirm = (id: string) =>
+  const confirm = (id: string, inputs?: Record<string, Record<string, string>>, path = "confirm") =>
     context.app.inject({
       method: "POST",
-      url: `/ai/proposals/${id}/confirm`,
+      url: `/ai/proposals/${id}/${path}`,
       headers: auth(tokens[USER_ROLE.ADMIN]),
-      payload: {},
+      payload: inputs ? { inputs } : {},
     });
+
+  const steps = async (id: string) => {
+    const [row] = await context.db
+      .select({ status: aiProposals.status, summary: aiProposals.resolvedSummary })
+      .from(aiProposals)
+      .where(eq(aiProposals.id, id));
+
+    return {
+      status: row?.status,
+      steps: (
+        (row?.summary as { steps?: { status?: string; error?: string }[] } | null)?.steps ?? []
+      ).map((step) => step.error ?? step.status),
+    };
+  };
 
   const doctorOf = async (appointmentId: string) => {
     const [row] = await context.db
@@ -114,7 +128,8 @@ describe("Assistant plans (e2e)", () => {
   };
 
   /** Rasha works Basel's hours on `day`, both his patients move to her, and he is off. */
-  const cover = (day: string, moves: { id: string; time: string }[]) => ({
+  const cover = (day: string, moves: { id: string; time: string | null }[]) => ({
+    title: "رشا بتغطي باسل",
     steps: [
       {
         tool: AI_TOOL.ADD_DOCTOR_EXTRA_HOURS,
@@ -259,29 +274,113 @@ describe("Assistant plans (e2e)", () => {
     expect(await rows(doctorExtraHours, rasha)).toBe(1);
   });
 
-  it("runs none of it when a step fails on the click", async () => {
+  it("keeps the steps that ran when a later one fails, and continues once it can", async () => {
     const day = thursday(4);
     const first = await book(basel, patients[0] ?? "", day, "12:00");
 
     const { result } = await tool(AI_TOOL.PROPOSE_PLAN, cover(day, [{ id: first, time: "12:00" }]));
-    const extraBefore = await rows(doctorExtraHours, rasha);
+    const id = result?.proposal_id ?? "";
 
     // Somebody books Basel after the card was drafted: the time off would now collide.
-    await book(basel, patients[1] ?? "", day, "15:00");
+    const late = await book(basel, patients[1] ?? "", day, "15:00");
 
-    await confirm(result?.proposal_id ?? "");
+    await confirm(id);
 
-    const [proposal] = await context.db
-      .select({ status: aiProposals.status, error: aiProposals.errorCode })
-      .from(aiProposals)
-      .where(eq(aiProposals.id, result?.proposal_id ?? ""));
-
-    expect(proposal).toEqual({
+    expect(await steps(id)).toEqual({
       status: AI_PROPOSAL_STATUS.FAILED,
-      error: AI_ACTION_ERROR.SCHEDULE_CONFLICT,
+      steps: ["done", "done", AI_ACTION_ERROR.SCHEDULE_CONFLICT],
     });
-    expect(await rows(doctorExtraHours, rasha)).toBe(extraBefore);
+    expect((await doctorOf(first))?.doctorId).toBe(rasha);
+    expect(await rows(doctorTimeOff, basel)).toBe(0);
+
+    // The late patient moves too; continuing checks the time off again and runs it.
+    await context.db.update(appointments).set({ doctorId: rasha }).where(eq(appointments.id, late));
+
+    expect((await confirm(id, undefined, "continue")).statusCode).toBe(200);
+    expect(await steps(id)).toEqual({
+      status: AI_PROPOSAL_STATUS.DONE,
+      steps: ["done", "done", "done"],
+    });
+    expect(await rows(doctorTimeOff, basel)).toBe(1);
+  });
+
+  it("asks the person for a time the model left open, and will not run without it", async () => {
+    const day = thursday(5);
+    const first = await book(basel, patients[0] ?? "", day, "09:00");
+
+    const { result } = await tool(AI_TOOL.PROPOSE_PLAN, cover(day, [{ id: first, time: null }]));
+    const id = result?.proposal_id ?? "";
+
+    expect((await confirm(id)).statusCode).toBe(422);
+    expect(await rows(doctorExtraHours, rasha)).toBe(0);
+
+    expect((await confirm(id, { "1": { time: "11:30" } })).statusCode).toBe(200);
+    expect((await doctorOf(first))?.startsAt.toISOString()).toBe(
+      new Date(`${day}T11:30:00+03:00`).toISOString(),
+    );
+  });
+
+  it("takes the strictest tier of its steps", async () => {
+    const day = thursday(6);
+    const first = await book(basel, patients[0] ?? "", day, "10:00");
+
+    const { result } = await tool(AI_TOOL.PROPOSE_PLAN, {
+      title: "إجازة وإلغاء",
+      steps: [
+        {
+          tool: AI_TOOL.ADD_DOCTOR_TIME_OFF,
+          args: {
+            doctor_id: basel,
+            date_from: day,
+            date_to: day,
+            reason: "إجازة",
+            on_conflict: "cancel_appointments",
+          },
+        },
+      ],
+    });
+
+    expect(result).toMatchObject({ status: "awaiting_user_confirmation", tier: "typed" });
     expect((await doctorOf(first))?.doctorId).toBe(basel);
+  });
+
+  it("refuses a read inside a plan, and a reference to a later step", async () => {
+    const read = await tool(AI_TOOL.PROPOSE_PLAN, {
+      title: "قراءة",
+      steps: [{ tool: "lab_orders_list", args: {} }],
+    });
+    const dangling = await tool(AI_TOOL.PROPOSE_PLAN, {
+      title: "مرجع",
+      steps: [
+        { tool: AI_TOOL.DELETE_DOCTOR_TIME_OFF, args: { time_off_id: { $ref: "steps[1].id" } } },
+        {
+          tool: AI_TOOL.ADD_DOCTOR_TIME_OFF,
+          args: { doctor_id: basel, date_from: thursday(9), date_to: thursday(9), reason: "إجازة" },
+        },
+      ],
+    });
+
+    expect(read.result).toMatchObject({ status: "read_tool_in_plan", step: 0 });
+    expect(dangling.result).toMatchObject({ status: "dangling_ref", step: 0 });
+  });
+
+  it("resolves a step's reference to the row an earlier step created", async () => {
+    const day = thursday(8);
+    const { result } = await tool(AI_TOOL.PROPOSE_PLAN, {
+      title: "إجازة ثم تراجع",
+      steps: [
+        {
+          tool: AI_TOOL.ADD_DOCTOR_TIME_OFF,
+          args: { doctor_id: basel, date_from: day, date_to: day, reason: "إجازة" },
+        },
+        { tool: AI_TOOL.DELETE_DOCTOR_TIME_OFF, args: { time_off_id: { $ref: "steps[0].id" } } },
+      ],
+    });
+    const before = await rows(doctorTimeOff, basel);
+
+    expect((await confirm(result?.proposal_id ?? "")).statusCode).toBe(200);
+    expect(await steps(result?.proposal_id ?? "")).toMatchObject({ steps: ["done", "done"] });
+    expect(await rows(doctorTimeOff, basel)).toBe(before);
   });
 
   it("remembers earlier tool results, and what became of their cards", async () => {

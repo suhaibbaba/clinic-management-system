@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 import type {
   AiActionsSettings,
+  AiPlanInputs,
   AiAutomationSettings,
   AiConversation,
   AiMessage,
@@ -123,7 +124,12 @@ export function useAction(id: string, initial?: AiProposal): UseQueryResult<AiPr
 }
 
 export type ActionDecision =
-  | { readonly id: string; readonly decision: "confirm"; readonly typedPhrase?: string }
+  | {
+      readonly id: string;
+      readonly decision: "confirm" | "continue";
+      readonly typedPhrase?: string;
+      readonly inputs?: AiPlanInputs;
+    }
   | { readonly id: string; readonly decision: "cancel" };
 
 export function useActionDecision(): UseMutationResult<
@@ -135,10 +141,20 @@ export function useActionDecision(): UseMutationResult<
 
   return useMutation({
     mutationFn: (input: ActionDecision) =>
-      input.decision === "confirm"
-        ? assistantApi.confirmAction(input.id, input.typedPhrase)
-        : assistantApi.cancelAction(input.id),
-    onSuccess: (event) => applyProposalStatus(client, event),
+      input.decision === "cancel"
+        ? assistantApi.cancelAction(input.id)
+        : assistantApi.confirmAction(input.id, {
+            ...(input.typedPhrase !== undefined && { typedPhrase: input.typedPhrase }),
+            ...(input.inputs && { inputs: input.inputs }),
+            resume: input.decision === "continue",
+          }),
+    onSuccess: (event, input) => {
+      applyProposalStatus(client, event);
+      // A plan's steps land on its summary one by one; the status event does not carry them.
+      if (input.decision !== "cancel") {
+        void client.invalidateQueries({ queryKey: [ACTION_KEY, input.id] });
+      }
+    },
     // A wrong phrase leaves the card pending; anything else may mean the row moved underneath it.
     onError: (_error, { id }) => client.invalidateQueries({ queryKey: [ACTION_KEY, id] }),
   });

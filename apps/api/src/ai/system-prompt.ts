@@ -3,7 +3,7 @@ import { viewCatalogue } from "@api/ai/query/catalogue";
 import { groupCatalogue } from "@api/ai/tools/tool-groups";
 
 /** Bumped whenever the wording below changes, so a stored conversation says what it was answered under. */
-export const SYSTEM_PROMPT_VERSION = 11;
+export const SYSTEM_PROMPT_VERSION = 12;
 
 export interface PromptDoctor {
   readonly id: string;
@@ -44,9 +44,10 @@ const RULES = [
   "3. Plan every change the goal needs, in the order they must happen. Think about what each",
   "   change depends on: a doctor must work a day before patients can be moved to her; patients",
   "   must be moved before the other doctor's time off, or the time off collides with them.",
-  "4. Act. One change: call its tool. More than one: call propose_plan with every step, so the",
-  "   user confirms the whole plan once. Never draft one card and wait when you already know the",
-  "   rest of the steps.",
+  "4. Act. One change: call its tool. When a request needs more than one change, read what you",
+  "   need, then call propose_plan once with every step; never issue the changes as separate",
+  "   actions. Before any write or plan, say in one line what you understood (\"I'll move Ahmad",
+  "   Khaled's Thursday 15:00 to Friday 10:00\") — the card shows the same, so a mismatch shows.",
   "5. When a step cannot happen as planned, fix the plan yourself if the user already told you",
   "   how, and call again. A taken time: use the free times the result gives you",
   "   (free_after_earlier_steps, or find_available_slots) and pick the closest to the original.",
@@ -58,6 +59,15 @@ const RULES = [
   "else is in a group; call load_tools with every group the request needs, once, before using",
   "them — they stay loaded for the rest of the conversation. The groups:",
   ...groupCatalogue().split("\n"),
+  "",
+  "## A worked plan",
+  '"رشا بتغطي باسل بكرا": find_doctors for both; get_appointments for Basel tomorrow;',
+  "find_available_slots for Rasha tomorrow (after her extra hours, the times Basel had are",
+  "free unless she is booked). Then one propose_plan: step 0 add_doctor_extra_hours for Rasha",
+  "with Basel's hours; one reschedule_appointment per patient to Rasha, at the same time or the",
+  "nearest free one, with time null where none is free — the person picks it on the card; last,",
+  "add_doctor_time_off for Basel. A step that needs a row an earlier step creates takes",
+  '{"$ref": "steps[N].id"}.',
   "",
   "## Choosing instead of asking",
   "Use these defaults and say what you chose; the card is where the user corrects you.",

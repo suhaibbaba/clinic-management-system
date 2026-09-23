@@ -20,6 +20,7 @@ import {
   type ListAiOutboundQuery,
   type Paginated,
   type UpdateClinicSecretsInput,
+  type AiPlanInputs,
 } from "@clinic/shared";
 import { z } from "zod";
 import { apiRequest, apiStream } from "@web/lib/api-client";
@@ -61,11 +62,18 @@ export const assistantApi = {
   action: async (id: string): Promise<AiProposal> =>
     aiProposalSchema.parse(await apiRequest(`/ai/actions/${id}`)),
 
-  confirmAction: async (id: string, typedPhrase?: string): Promise<AiProposalStatusEvent> =>
+  /** `continue` resumes a plan that stopped part-way; `inputs` are the fields its card asked for. */
+  confirmAction: async (
+    id: string,
+    options: { typedPhrase?: string; inputs?: AiPlanInputs; resume?: boolean } = {},
+  ): Promise<AiProposalStatusEvent> =>
     aiProposalStatusEventSchema.parse(
-      await apiRequest(`/ai/proposals/${id}/confirm`, {
+      await apiRequest(`/ai/proposals/${id}/${options.resume ? "continue" : "confirm"}`, {
         method: "POST",
-        body: typedPhrase === undefined ? {} : { typedPhrase },
+        body: {
+          ...(options.typedPhrase !== undefined && { typedPhrase: options.typedPhrase }),
+          ...(options.inputs && { inputs: options.inputs }),
+        },
       }),
     ),
 

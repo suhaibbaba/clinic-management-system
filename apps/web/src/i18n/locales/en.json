@@ -1836,8 +1836,18 @@
         "cancel_appointments": "Will be cancelled, and each patient notified",
         "keep_appointments": "Stay booked"
       },
-      "planRolledBack": "Nothing was changed — a plan runs whole or not at all.",
-      "step": "Step {{number}}"
+      "step": "Step {{number}}",
+      "continueFrom": "Continue from step {{number}}",
+      "planInput": {
+        "time": "Pick a time",
+        "date": "Pick a date",
+        "text": "Enter the value"
+      },
+      "stepStatus": {
+        "pending": "Not run",
+        "done": "Done",
+        "failed": "Failed"
+      }
     },
     "actionErrors": {
       "phraseMismatch": "The typed phrase does not match.",
@@ -1848,7 +1858,9 @@
       "notFound": "The record no longer exists.",
       "duplicate": "A patient with this phone is already registered.",
       "failed": "The action could not be completed.",
-      "scheduleConflict": "New appointments were booked into the period since the card was drafted. Ask the assistant to draft it again."
+      "scheduleConflict": "New appointments were booked into the period since the card was drafted. Ask the assistant to draft it again.",
+      "changedSinceDraft": "Something changed since the card was prepared. Ask the assistant to prepare it again.",
+      "inputRequired": "Fill in the missing fields on the card first."
     },
     "view": {
       "columns": {
