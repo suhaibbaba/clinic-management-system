@@ -20,6 +20,8 @@ import {
   AI_PROPOSAL_KIND,
   AI_PROPOSAL_STATUS,
   AI_RISK_TIER,
+  AI_SCHEDULE_CONFLICT_CHOICE,
+  AI_SCHEDULE_CONFLICT_CHOICES,
   AI_TOOL,
   AI_TOOL_ERROR,
   AI_ACTIONS_SETTINGS_KEY,
@@ -48,6 +50,7 @@ import {
   type AiProposalKind,
   type AiProposalStatusEvent,
   type AiRiskTier,
+  type AiScheduleConflictChoice,
   type AuditAction,
   type CalendarAppointment,
   type PatientView,
@@ -86,6 +89,15 @@ import { DoctorsService } from "@api/doctors/doctors.service";
 import { PATIENTS_ENTITY } from "@api/patients/patient-view";
 import { PatientsService } from "@api/patients/patients.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
+import {
+  CLINIC_CLOSURES_ENTITY,
+  ClinicClosuresService,
+} from "@api/schedule/clinic-closures.service";
+import {
+  DOCTOR_TIME_OFF_ENTITY,
+  DoctorTimeOffService,
+} from "@api/schedule/doctor-time-off.service";
+import { ScheduleConflictsService } from "@api/schedule/schedule-conflicts.service";
 
 type ActionKind = Exclude<AiProposalKind, typeof AI_PROPOSAL_KIND.MESSAGE>;
 
@@ -98,6 +110,8 @@ export const TYPED_PHRASES: Record<ActionKind, string> = {
   [AI_PROPOSAL_KIND.PATIENT_CREATE]: "تأكيد إضافة المريض",
   [AI_PROPOSAL_KIND.PATIENT_NOTE]: "تأكيد إضافة الملاحظة",
   [AI_PROPOSAL_KIND.PAYMENT_CREATE]: "تأكيد تسجيل الدفعة",
+  [AI_PROPOSAL_KIND.TIME_OFF_CREATE]: "تأكيد إجازة الطبيب",
+  [AI_PROPOSAL_KIND.CLOSURE_CREATE]: "تأكيد إغلاق العيادة",
 };
 
 const DORMANT_AFTER_DAYS = 730;
@@ -136,6 +150,55 @@ const acknowledgeSchema = z
   );
 const dateSchema = z.iso.date();
 const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Expected HH:MM");
+
+const periodFields = z.object({
+  date_from: dateSchema,
+  date_to: dateSchema,
+  reason: z.string().trim().min(2).max(200),
+  on_conflict: z
+    .enum(AI_SCHEDULE_CONFLICT_CHOICES)
+    .optional()
+    .describe("Only after the user answered a schedule_conflict: what to do with them."),
+});
+
+const timeOffSchema = periodFields
+  .extend({
+    doctor_id: z.uuid(),
+    time_from: timeSchema.optional(),
+    time_to: timeSchema.optional(),
+  })
+  .refine((args) => args.date_from <= args.date_to, {
+    path: ["date_to"],
+    message: "Must not be before date_from",
+  })
+  .refine((args) => (args.time_from === undefined) === (args.time_to === undefined), {
+    path: ["time_to"],
+    message: "Pass time_from and time_to together, or neither for whole days",
+  });
+const closureSchema = periodFields.refine((args) => args.date_from <= args.date_to, {
+  path: ["date_to"],
+  message: "Must not be before date_from",
+});
+
+interface ConflictDecision {
+  readonly onConflict: AiScheduleConflictChoice | null;
+  readonly conflictIds: readonly string[];
+}
+
+interface TimeOffPayload extends ConflictDecision {
+  readonly doctorId: string;
+  readonly startsAt: string;
+  readonly endsAt: string;
+  readonly reason: string;
+}
+
+interface ClosurePayload extends ConflictDecision {
+  readonly startsOn: string;
+  readonly endsOn: string;
+  readonly startsAt: string;
+  readonly endsAt: string;
+  readonly reason: string;
+}
 
 const statusSchema = z.object({
   appointment_id: z.uuid(),
@@ -203,6 +266,9 @@ export class AiActionsService {
     private readonly patients: PatientsService,
     private readonly payments: PaymentsService,
     private readonly ledger: LedgerService,
+    private readonly timeOff: DoctorTimeOffService,
+    private readonly closures: ClinicClosuresService,
+    private readonly conflicts: ScheduleConflictsService,
     private readonly permissions: PermissionsService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
     private readonly audit: AuditService,
@@ -890,6 +956,152 @@ export class AiActionsService {
         },
       }),
 
+      defineAction<typeof timeOffSchema, TimeOffPayload>({
+        tool: AI_TOOL.ADD_DOCTOR_TIME_OFF,
+        kind: AI_PROPOSAL_KIND.TIME_OFF_CREATE,
+        description:
+          "Give a doctor time off: whole days from date_from to date_to (local, inclusive), or " +
+          "part of a day with time_from and time_to (HH:MM). Takes a doctor_id from " +
+          "find_doctors. Appointments inside the period come back as schedule_conflict: ask " +
+          "the user whether to cancel them (each patient is notified), keep them, or change the " +
+          "period, then call again with on_conflict. Waits on a card the user confirms.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.ADD_DOCTOR_TIME_OFF],
+        capability: "doctor-time-off.create",
+        schema: timeOffSchema,
+        prepare: async (actor, args) => {
+          const doctor = await this.doctors.findOne(actor, args.doctor_id);
+
+          await this.access.requireOwnCalendar(actor, doctor.id);
+
+          const window = await this.period(actor.clinicId, args);
+
+          if (window instanceof Stop) {
+            return window;
+          }
+
+          const conflicts = await this.periodConflicts(actor, window, args.on_conflict, doctor.id);
+
+          if (conflicts instanceof Stop) {
+            return conflicts;
+          }
+
+          return {
+            payload: {
+              doctorId: doctor.id,
+              startsAt: window.from.toISOString(),
+              endsAt: window.to.toISOString(),
+              reason: args.reason,
+              onConflict: args.on_conflict ?? null,
+              conflictIds: conflicts.map((appointment) => appointment.id),
+            },
+            summary: {
+              doctor: { id: doctor.id, name: doctor.user.name },
+              startsAt: window.from.toISOString(),
+              endsAt: window.to.toISOString(),
+              reason: args.reason,
+              ...conflictSummary(conflicts, args.on_conflict),
+            },
+          };
+        },
+        escalate: escalateConflict,
+        execute: async (actor, payload) => {
+          const window = { from: new Date(payload.startsAt), to: new Date(payload.endsAt) };
+
+          await this.assertNoNewConflicts(actor, window, payload.conflictIds, payload.doctorId);
+
+          const created = await this.audited(
+            actor,
+            DOCTOR_TIME_OFF_ENTITY,
+            AUDIT_ACTION.CREATE,
+            undefined,
+            async () =>
+              (
+                await this.timeOff.create(
+                  actor,
+                  payload.doctorId,
+                  { startsAt: payload.startsAt, endsAt: payload.endsAt, reason: payload.reason },
+                  conflictOptions(payload),
+                )
+              ).item,
+          );
+
+          return { result: null, audit: { entity: DOCTOR_TIME_OFF_ENTITY, entityId: created.id } };
+        },
+      }),
+
+      defineAction<typeof closureSchema, ClosurePayload>({
+        tool: AI_TOOL.ADD_CLINIC_CLOSURE,
+        kind: AI_PROPOSAL_KIND.CLOSURE_CREATE,
+        description:
+          "Close the whole clinic for whole days, date_from to date_to (local, inclusive) — a " +
+          "holiday, not one doctor's absence. Appointments inside it come back as " +
+          "schedule_conflict: ask the user whether to cancel them (each patient is notified), " +
+          "keep them, or change the dates, then call again with on_conflict. Waits on a card " +
+          "the user confirms.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.ADD_CLINIC_CLOSURE],
+        capability: "clinic-closures.create",
+        schema: closureSchema,
+        prepare: async (actor, args) => {
+          const window = await this.period(actor.clinicId, args);
+
+          if (window instanceof Stop) {
+            return window;
+          }
+
+          const conflicts = await this.periodConflicts(actor, window, args.on_conflict);
+
+          if (conflicts instanceof Stop) {
+            return conflicts;
+          }
+
+          return {
+            payload: {
+              startsOn: args.date_from,
+              endsOn: args.date_to,
+              startsAt: window.from.toISOString(),
+              endsAt: window.to.toISOString(),
+              reason: args.reason,
+              onConflict: args.on_conflict ?? null,
+              conflictIds: conflicts.map((appointment) => appointment.id),
+            },
+            summary: {
+              startsOn: args.date_from,
+              endsOn: args.date_to,
+              reason: args.reason,
+              ...conflictSummary(conflicts, args.on_conflict),
+            },
+          };
+        },
+        escalate: escalateConflict,
+        execute: async (actor, payload) => {
+          const window = { from: new Date(payload.startsAt), to: new Date(payload.endsAt) };
+
+          await this.assertNoNewConflicts(actor, window, payload.conflictIds);
+
+          const created = await this.audited(
+            actor,
+            CLINIC_CLOSURES_ENTITY,
+            AUDIT_ACTION.CREATE,
+            undefined,
+            async () =>
+              (
+                await this.closures.create(
+                  actor,
+                  {
+                    startsOn: payload.startsOn,
+                    endsOn: payload.endsOn,
+                    reason: payload.reason,
+                    isAnnual: false,
+                  },
+                  conflictOptions(payload),
+                )
+              ).item,
+          );
+
+          return { result: null, audit: { entity: CLINIC_CLOSURES_ENTITY, entityId: created.id } };
+        },
+      }),
+
       defineAction({
         tool: AI_TOOL.CREATE_PATIENT,
         kind: AI_PROPOSAL_KIND.PATIENT_CREATE,
@@ -1164,6 +1376,74 @@ export class AiActionsService {
     return false;
   }
 
+  // Whole days run to midnight after `date_to`, the same window a closure's inclusive `endsOn` has.
+  private async period(
+    clinicId: string,
+    args: {
+      date_from: string;
+      date_to: string;
+      time_from?: string | undefined;
+      time_to?: string | undefined;
+    },
+  ): Promise<{ from: Date; to: Date } | Stop> {
+    const zone = await this.timeZone(clinicId);
+    const from = instantFromLocal(
+      args.date_from,
+      args.time_from ? minutes(args.time_from) : 0,
+      zone,
+    );
+    const to = args.time_to
+      ? instantFromLocal(args.date_to, minutes(args.time_to), zone)
+      : instantFromLocal(addDays(args.date_to, 1), 0, zone);
+
+    return from < to
+      ? { from, to }
+      : new Stop({ status: "not_possible", reason: "ends_before_start" });
+  }
+
+  /** Who is booked inside the period; a question for the user until they have said what to do. */
+  private async periodConflicts(
+    actor: AuthenticatedUser,
+    window: { from: Date; to: Date },
+    choice: AiScheduleConflictChoice | undefined,
+    doctorId?: string,
+  ): Promise<CalendarAppointment[] | Stop> {
+    const found = await this.conflicts.findConflicts(actor.clinicId, window, doctorId);
+
+    if (found.length > 0 && !choice) {
+      return new Stop({
+        status: "schedule_conflict",
+        appointments: found.map((appointment) => ({
+          id: appointment.id,
+          startsAt: appointment.startsAt,
+          patientName: appointment.patientName,
+        })),
+        instruction:
+          "Stop and ask the user whether to cancel these appointments (each patient is " +
+          "notified), keep them, or change the period. Call again with on_conflict only after " +
+          "they answer.",
+      });
+    }
+
+    return Promise.all(
+      found.map((appointment) => this.appointments.findOne(actor, appointment.id)),
+    );
+  }
+
+  // The card listed who would be affected; somebody booked since then was never shown to anybody.
+  private async assertNoNewConflicts(
+    actor: AuthenticatedUser,
+    window: { from: Date; to: Date },
+    known: readonly string[],
+    doctorId?: string,
+  ): Promise<void> {
+    const current = await this.conflicts.findConflicts(actor.clinicId, window, doctorId);
+
+    if (current.some((appointment) => !known.includes(appointment.id))) {
+      throw new ConflictException("Appointments were booked into the period since the draft");
+    }
+  }
+
   /** Somebody not seen in two years is as likely a namesake as the person meant. */
   private async dormant(
     actor: AuthenticatedUser,
@@ -1301,8 +1581,17 @@ function sanityCheck(check: string, details: Record<string, unknown>): Stop {
   });
 }
 
+const SCHEDULE_KINDS: readonly ActionKind[] = [
+  AI_PROPOSAL_KIND.TIME_OFF_CREATE,
+  AI_PROPOSAL_KIND.CLOSURE_CREATE,
+];
+
 function domainFailure(kind: ActionKind, error: unknown): AiActionError {
   if (error instanceof ConflictException) {
+    if (SCHEDULE_KINDS.includes(kind)) {
+      return AI_ACTION_ERROR.SCHEDULE_CONFLICT;
+    }
+
     return kind === AI_PROPOSAL_KIND.PATIENT_CREATE
       ? AI_ACTION_ERROR.DUPLICATE
       : AI_ACTION_ERROR.SLOT_TAKEN;
@@ -1322,6 +1611,34 @@ function domainFailure(kind: ActionKind, error: unknown): AiActionError {
 
   return AI_ACTION_ERROR.FAILED;
 }
+
+// Cancelling booked patients is not undone by anybody, so it asks for the phrase.
+const escalateConflict = (payload: ConflictDecision): AiRiskTier =>
+  payload.onConflict === AI_SCHEDULE_CONFLICT_CHOICE.CANCEL && payload.conflictIds.length > 0
+    ? AI_RISK_TIER.TYPED
+    : AI_RISK_TIER.AUTO;
+
+const conflictOptions = (payload: ConflictDecision) => ({
+  force: payload.conflictIds.length > 0,
+  cancelAppointments: payload.onConflict === AI_SCHEDULE_CONFLICT_CHOICE.CANCEL,
+});
+
+const conflictSummary = (
+  conflicts: readonly CalendarAppointment[],
+  choice: AiScheduleConflictChoice | undefined,
+): Pick<AiActionSummary, "onConflict" | "appointments"> =>
+  conflicts.length > 0 && choice
+    ? {
+        onConflict: choice,
+        appointments: conflicts.map((appointment) => ({
+          id: appointment.id,
+          startsAt: appointment.startsAt,
+          patientName: appointment.patientName,
+          patientFileNumber: appointment.patientFileNumber,
+          doctorName: appointment.doctorName,
+        })),
+      }
+    : {};
 
 const patientSummary = (patient: PatientView) => ({
   id: patient.id,

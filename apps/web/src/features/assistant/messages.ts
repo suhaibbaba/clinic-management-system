@@ -49,6 +49,9 @@ const TOOL_KEYS: Record<AiToolName, string> = {
   [AI_TOOL.CANCEL_APPOINTMENTS]: "assistant.tools.cancelAppointments",
   [AI_TOOL.CREATE_PATIENT]: "assistant.tools.createPatient",
   [AI_TOOL.RECORD_PAYMENT]: "assistant.tools.recordPayment",
+  [AI_TOOL.FIND_DOCTORS]: "assistant.tools.findDoctors",
+  [AI_TOOL.ADD_DOCTOR_TIME_OFF]: "assistant.tools.doctorTimeOff",
+  [AI_TOOL.ADD_CLINIC_CLOSURE]: "assistant.tools.clinicClosure",
 };
 
 const ACTION_ERROR_KEYS: Record<AiActionError, string> = {
@@ -59,6 +62,7 @@ const ACTION_ERROR_KEYS: Record<AiActionError, string> = {
   [AI_ACTION_ERROR.INVALID_TRANSITION]: "assistant.actionErrors.invalidTransition",
   [AI_ACTION_ERROR.NOT_FOUND]: "assistant.actionErrors.notFound",
   [AI_ACTION_ERROR.DUPLICATE]: "assistant.actionErrors.duplicate",
+  [AI_ACTION_ERROR.SCHEDULE_CONFLICT]: "assistant.actionErrors.scheduleConflict",
   [AI_ACTION_ERROR.FAILED]: "assistant.actionErrors.failed",
 };
 

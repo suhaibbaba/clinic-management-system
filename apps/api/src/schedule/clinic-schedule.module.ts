@@ -21,6 +21,6 @@ import { ScheduleConflictsService } from "@api/schedule/schedule-conflicts.servi
     ClinicClosuresService,
     DoctorTimeOffService,
   ],
-  exports: [ClinicClosuresService, DoctorTimeOffService],
+  exports: [ClinicClosuresService, DoctorTimeOffService, ScheduleConflictsService],
 })
 export class ClinicScheduleModule {}

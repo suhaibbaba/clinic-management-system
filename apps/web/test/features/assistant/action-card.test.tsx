@@ -3,6 +3,7 @@ import {
   AI_PROPOSAL_KIND,
   AI_PROPOSAL_STATUS,
   AI_RISK_TIER,
+  AI_SCHEDULE_CONFLICT_CHOICE,
   AI_STREAM_EVENT,
   USER_ROLE,
   type AiProposal,
@@ -151,6 +152,44 @@ describe("An action's confirmation card", () => {
     expect(screen.getByRole("link", { name: ar.assistant.action.open })).toHaveAttribute(
       "href",
       `/patients/${PATIENT_ID}`,
+    );
+  });
+
+  it("names the doctor's time off and the patients it cancels", () => {
+    const appointmentId = "7c2e3f3a-5555-4555-8555-555555555555";
+
+    render(
+      proposal({
+        kind: AI_PROPOSAL_KIND.TIME_OFF_CREATE,
+        typedPhrase: "تأكيد إجازة الطبيب",
+        summary: {
+          doctor: { id: PATIENT_ID, name: { ar: "باسل حداد", en: "Basel Haddad" } },
+          startsAt: "2099-01-05T07:00:00.000Z",
+          endsAt: "2099-01-06T07:00:00.000Z",
+          reason: "إجازة",
+          onConflict: AI_SCHEDULE_CONFLICT_CHOICE.CANCEL,
+          appointments: [
+            {
+              id: appointmentId,
+              startsAt: "2099-01-05T08:00:00.000Z",
+              patientName: "سمير خليل",
+              patientFileNumber: "1042",
+              doctorName: { ar: "باسل حداد", en: "Basel Haddad" },
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(
+      screen.getByRole("region", { name: ar.assistant.action.kinds.time_off_create }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(ar.assistant.action.fields.period)).toBeInTheDocument();
+    expect(
+      screen.getByText(ar.assistant.action.onConflict.cancel_appointments),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId(`action-appointment-${appointmentId}`)).toHaveTextContent(
+      "سمير خليل",
     );
   });
 });

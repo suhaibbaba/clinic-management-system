@@ -505,6 +505,9 @@ export const AI_TOOL = {
   CANCEL_APPOINTMENTS: "cancel_appointments",
   CREATE_PATIENT: "create_patient",
   RECORD_PAYMENT: "record_payment",
+  FIND_DOCTORS: "find_doctors",
+  ADD_DOCTOR_TIME_OFF: "add_doctor_time_off",
+  ADD_CLINIC_CLOSURE: "add_clinic_closure",
 } as const satisfies Record<string, string>;
 export type AiToolName = EnumValue<typeof AI_TOOL>;
 
@@ -524,6 +527,9 @@ export const AI_TOOL_NAMES = [
   AI_TOOL.CANCEL_APPOINTMENTS,
   AI_TOOL.CREATE_PATIENT,
   AI_TOOL.RECORD_PAYMENT,
+  AI_TOOL.FIND_DOCTORS,
+  AI_TOOL.ADD_DOCTOR_TIME_OFF,
+  AI_TOOL.ADD_CLINIC_CLOSURE,
 ] as const;
 
 /** The tools that change something. Each one a clinic may switch off or tighten. */
@@ -535,6 +541,8 @@ export const AI_ACTION_TOOLS = [
   AI_TOOL.CANCEL_APPOINTMENTS,
   AI_TOOL.CREATE_PATIENT,
   AI_TOOL.RECORD_PAYMENT,
+  AI_TOOL.ADD_DOCTOR_TIME_OFF,
+  AI_TOOL.ADD_CLINIC_CLOSURE,
 ] as const;
 export type AiActionTool = (typeof AI_ACTION_TOOLS)[number];
 
@@ -569,6 +577,8 @@ export const AI_ACTION_BASE_TIER: Record<AiActionTool, AiRiskTier> = {
   [AI_TOOL.CANCEL_APPOINTMENTS]: AI_RISK_TIER.CONFIRM,
   [AI_TOOL.CREATE_PATIENT]: AI_RISK_TIER.CONFIRM,
   [AI_TOOL.RECORD_PAYMENT]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.ADD_DOCTOR_TIME_OFF]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.ADD_CLINIC_CLOSURE]: AI_RISK_TIER.CONFIRM,
 };
 
 /** What a pending proposal will do once a person confirms it. */
@@ -581,6 +591,8 @@ export const AI_PROPOSAL_KIND = {
   PATIENT_CREATE: "patient_create",
   PATIENT_NOTE: "patient_note",
   PAYMENT_CREATE: "payment_create",
+  TIME_OFF_CREATE: "time_off_create",
+  CLOSURE_CREATE: "closure_create",
 } as const satisfies Record<string, string>;
 export type AiProposalKind = EnumValue<typeof AI_PROPOSAL_KIND>;
 
@@ -593,6 +605,8 @@ export const AI_PROPOSAL_KINDS = [
   AI_PROPOSAL_KIND.PATIENT_CREATE,
   AI_PROPOSAL_KIND.PATIENT_NOTE,
   AI_PROPOSAL_KIND.PAYMENT_CREATE,
+  AI_PROPOSAL_KIND.TIME_OFF_CREATE,
+  AI_PROPOSAL_KIND.CLOSURE_CREATE,
 ] as const;
 
 // Not errors: the model relays each one as a question and does not retry around it. Only a
@@ -605,6 +619,18 @@ export const AI_ACTION_CHECK = {
   POSSIBLE_DUPLICATE: "possible_duplicate",
 } as const satisfies Record<string, string>;
 export type AiActionCheck = EnumValue<typeof AI_ACTION_CHECK>;
+
+/** What the user chose for the appointments inside a period they are closing. */
+export const AI_SCHEDULE_CONFLICT_CHOICE = {
+  CANCEL: "cancel_appointments",
+  KEEP: "keep_appointments",
+} as const satisfies Record<string, string>;
+export type AiScheduleConflictChoice = EnumValue<typeof AI_SCHEDULE_CONFLICT_CHOICE>;
+
+export const AI_SCHEDULE_CONFLICT_CHOICES = [
+  AI_SCHEDULE_CONFLICT_CHOICE.CANCEL,
+  AI_SCHEDULE_CONFLICT_CHOICE.KEEP,
+] as const;
 
 export const AI_ACTION_CHECKS = [
   AI_ACTION_CHECK.LARGE_CANCELLATION,
@@ -817,6 +843,8 @@ export const AI_ACTION_ERROR = {
   INVALID_TRANSITION: "invalid_transition",
   NOT_FOUND: "action_target_not_found",
   DUPLICATE: "possible_duplicate",
+  /** Appointments booked into the period after the card was drafted. */
+  SCHEDULE_CONFLICT: "schedule_conflict",
   FAILED: "action_failed",
 } as const satisfies Record<string, string>;
 export type AiActionError = EnumValue<typeof AI_ACTION_ERROR>;
@@ -829,6 +857,7 @@ export const AI_ACTION_ERRORS = [
   AI_ACTION_ERROR.INVALID_TRANSITION,
   AI_ACTION_ERROR.NOT_FOUND,
   AI_ACTION_ERROR.DUPLICATE,
+  AI_ACTION_ERROR.SCHEDULE_CONFLICT,
   AI_ACTION_ERROR.FAILED,
 ] as const;
 
