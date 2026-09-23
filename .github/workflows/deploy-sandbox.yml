@@ -1,10 +1,9 @@
 name: Deploy sandbox
 
-# Manual only. Build on the server -> healthcheck. No registry and no
-# checkout: the VPS builds from its own clone of the repo. See DEPLOY.md.
+# Manual only, and without the CI checks: run CI by hand first when it matters.
+# Build on the server -> healthcheck. No registry and no checkout: the VPS
+# builds from its own clone of the repo. See DEPLOY.md.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       reset_data:
@@ -19,7 +18,7 @@ on:
 # queued deploy.
 concurrency:
   group: deploy-sandbox
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   SANDBOX_URL: https://clinic-sandbox.organza-moda.com
@@ -27,20 +26,9 @@ env:
   COMPOSE_PROJECT: clinic-sandbox
 
 jobs:
-  # ci:
-  #   name: CI
-  #   # Skipped on a manual run: that is the path for redeploying or wiping while
-  #   # main is red, which is when it is most needed.
-  #   if: github.event_name != 'workflow_dispatch'
-  #   uses: ./.github/workflows/ci.yml
-
   deploy:
     name: Deploy to sandbox VPS
     runs-on: ubuntu-latest
-    needs: ci
-    # `needs` alone would treat a skipped CI as a reason not to run, so the
-    # result is read rather than assumed.
-    if: always() && (needs.ci.result == 'success' || needs.ci.result == 'skipped')
 
     steps:
       # A typo must stop the job, not deploy without the reset that was asked for.
@@ -199,33 +187,6 @@ jobs:
             # disk with every previous build's layers.
             docker image prune -f
 
-      # "container is unhealthy" alone says nothing about what the container
-      # said. Two services only: this log is public.
-      - name: Container logs on failure
-        if: failure()
-        # A dump that cannot reach the server must not bury the real failure.
-        continue-on-error: true
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SANDBOX_HOST }}
-          username: ${{ secrets.SANDBOX_USER }}
-          key: ${{ secrets.SANDBOX_SSH_KEY }}
-          port: ${{ secrets.SANDBOX_SSH_PORT || 22 }}
-          timeout: 60s
-          script_stop: false
-          script: |
-            cd ${{ env.REMOTE_DIR }} || exit 0
-
-            echo "───────── container states ─────────"
-            docker compose -p ${{ env.COMPOSE_PROJECT }} -f docker-compose.sandbox.yml ps -a || true
-
-            for service in api postgres; do
-              echo
-              echo "───────── ${service} ─────────"
-              docker compose -p ${{ env.COMPOSE_PROJECT }} -f docker-compose.sandbox.yml \
-                logs --tail=80 --no-color "${service}" || true
-            done
-
       # Over the public hostname: proves nginx, TLS, the /api proxy and the
       # database, not just that a container started.
       - name: Healthcheck through the public hostname
@@ -256,3 +217,30 @@ jobs:
           echo "::error::${url} did not report healthy after 30 attempts, 5s apart"
           echo "last response: ${body:-<no response>}"
           exit 1
+
+      # "container is unhealthy" alone says nothing about what the container
+      # said. Two services only: this log is public.
+      - name: Container logs on failure
+        if: failure()
+        # A dump that cannot reach the server must not bury the real failure.
+        continue-on-error: true
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SANDBOX_HOST }}
+          username: ${{ secrets.SANDBOX_USER }}
+          key: ${{ secrets.SANDBOX_SSH_KEY }}
+          port: ${{ secrets.SANDBOX_SSH_PORT || 22 }}
+          timeout: 60s
+          script_stop: false
+          script: |
+            cd ${{ env.REMOTE_DIR }} || exit 0
+
+            echo "───────── container states ─────────"
+            docker compose -p ${{ env.COMPOSE_PROJECT }} -f docker-compose.sandbox.yml ps -a || true
+
+            for service in api postgres; do
+              echo
+              echo "───────── ${service} ─────────"
+              docker compose -p ${{ env.COMPOSE_PROJECT }} -f docker-compose.sandbox.yml \
+                logs --tail=80 --no-color "${service}" || true
+            done
