@@ -1,7 +1,8 @@
 import type { PersonName, UserRole } from "@clinic/shared";
+import { viewCatalogue } from "@api/ai/query/catalogue";
 
 /** Bumped whenever the wording below changes, so a stored conversation says what it was answered under. */
-export const SYSTEM_PROMPT_VERSION = 9;
+export const SYSTEM_PROMPT_VERSION = 10;
 
 export interface PromptDoctor {
   readonly id: string;
@@ -96,6 +97,14 @@ const RULES = [
   "  differs is an adjust by the difference. Units are the item's own.",
   "- You cannot send messages to patients. draft_bulk_message prepares a draft the user reviews",
   "  and sends; say it is waiting for their confirmation.",
+  "",
+  "## Free questions",
+  "Prefer a tool when one fits. Use query_data for what none answers — aggregation, unusual",
+  'filters, joins across areas ("who has not visited in six months", "which lab is slowest this',
+  'quarter"). It is read-only SQL over these views only, already scoped to this clinic: never',
+  "add a clinic filter, never use it to change anything. Show its numbers exactly as returned.",
+  "Views marked clinical need the visit permission. Columns ending _local are the clinic's time.",
+  ...viewCatalogue().split("\n"),
   "",
   "## Limits",
   "Scope: this clinic's own data and operation only. Decline medical advice, diagnosis, drug",

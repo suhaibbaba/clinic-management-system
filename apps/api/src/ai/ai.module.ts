@@ -15,7 +15,9 @@ import { OutboundController } from "@api/ai/outbound/outbound.controller";
 import { OutboundLogService } from "@api/ai/outbound/outbound-log.service";
 import { OutboundRecipientsService } from "@api/ai/outbound/outbound-recipients.service";
 import { ProposalsService } from "@api/ai/outbound/proposals.service";
+import { AI_READ_CLIENT, QueryDataService } from "@api/ai/query/query-data.service";
 import { AiToolsService } from "@api/ai/tools/ai-tools.service";
+import postgres, { type Sql } from "postgres";
 import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
 import { AppointmentsModule } from "@api/appointments/appointments.module";
 import { BillingModule } from "@api/billing/billing.module";
@@ -86,6 +88,14 @@ import { SecretsModule } from "@api/secrets/secrets.module";
     AutomationService,
     OutboundLogService,
     AiActionsService,
+    {
+      provide: AI_READ_CLIENT,
+      inject: [ConfigService],
+      // Its own two connections, so a slow report never holds one the screens are waiting on.
+      useFactory: (config: ConfigService<Env, true>): Sql =>
+        postgres(config.get("DATABASE_URL", { infer: true }), { max: 2, connect_timeout: 10 }),
+    },
+    QueryDataService,
   ],
 })
 export class AiModule {}

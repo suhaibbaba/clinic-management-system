@@ -37,7 +37,11 @@ export type ToolOutcome =
 
 /** A tool declining to run, with the code the model is told. Never carries an internal. */
 export class ToolRefusal extends Error {
-  constructor(readonly code: AiToolError) {
+  constructor(
+    readonly code: AiToolError,
+    /** What to change, when the code alone does not say — never an internal. */
+    readonly details?: string[],
+  ) {
     super(code);
     this.name = "ToolRefusal";
   }

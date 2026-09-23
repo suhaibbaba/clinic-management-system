@@ -38,6 +38,7 @@ import { PatientsService } from "@api/patients/patients.service";
 import { TimelineService } from "@api/patients/timeline.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
 import { DoctorTimeOffService } from "@api/schedule/doctor-time-off.service";
+import { QUERY_CAPABILITY, QueryDataService, queryView } from "@api/ai/query/query-data.service";
 import { AiActionsService } from "@api/ai/actions/ai-actions.service";
 import { ProposalsService, TARGET_READ_CAPABILITY } from "@api/ai/outbound/proposals.service";
 import {
@@ -67,6 +68,7 @@ const CAPABILITY = {
   OVERDUE: "billing.list",
   LAB_ORDERS_OVERDUE: "lab-orders.overdue",
   INVENTORY_ALERTS: "inventory.alerts",
+  QUERY: QUERY_CAPABILITY,
   LAB_ORDERS_LIST: "lab-orders.list",
   INVENTORY_ITEMS: "inventory.list",
   INVENTORY_MOVEMENTS: "inventory.listMovements",
@@ -107,6 +109,7 @@ export class AiToolsService {
     private readonly inventory: InventoryReportsService,
     private readonly stockItems: InventoryItemsService,
     private readonly timeOff: DoctorTimeOffService,
+    private readonly query: QueryDataService,
     private readonly payments: PaymentsService,
     private readonly labs: LabsService,
     private readonly labPayments: LabPaymentsService,
@@ -562,6 +565,29 @@ export class AiToolsService {
           const low = capped((await this.inventory.alerts(actor)).low);
 
           return new Viewed({ ...low, items: low.items.map(toStockSummary) }, lowStockView(low));
+        },
+      }),
+
+      defineTool({
+        name: AI_TOOL.QUERY_DATA,
+        description:
+          "Read-only SQL over the ai_read views listed in the system prompt, for what no other " +
+          "tool answers: counts, sums, unusual filters, joins across areas. Not when a tool " +
+          "fits (find_*, get_*). One SELECT or WITH; at most 200 rows. Returns columns and rows.",
+        capability: CAPABILITY.QUERY,
+        schema: z.object({
+          sql: z.string().trim().min(8).max(4000),
+          purpose: z
+            .string()
+            .trim()
+            .min(3)
+            .max(300)
+            .describe("What the user asked, in a few words; recorded for the clinic's admin."),
+        }),
+        run: async (actor, args) => {
+          const result = await this.query.run(actor, args.sql);
+
+          return new Viewed(result, queryView(result));
         },
       }),
 

@@ -497,6 +497,7 @@ export const AI_TOOL = {
   GET_FINANCIAL_SUMMARY: "get_financial_summary",
   GET_OVERDUE_LAB_ORDERS: "get_overdue_lab_orders",
   GET_LOW_STOCK_ITEMS: "get_low_stock_items",
+  QUERY_DATA: "query_data",
   DRAFT_BULK_MESSAGE: "draft_bulk_message",
   SET_APPOINTMENT_STATUS: "set_appointment_status",
   ADD_PATIENT_NOTE: "add_patient_note",
@@ -538,6 +539,7 @@ export const AI_TOOL_NAMES = [
   AI_TOOL.GET_FINANCIAL_SUMMARY,
   AI_TOOL.GET_OVERDUE_LAB_ORDERS,
   AI_TOOL.GET_LOW_STOCK_ITEMS,
+  AI_TOOL.QUERY_DATA,
   AI_TOOL.DRAFT_BULK_MESSAGE,
   AI_TOOL.SET_APPOINTMENT_STATUS,
   AI_TOOL.ADD_PATIENT_NOTE,
@@ -790,6 +792,16 @@ export const AI_TOOL_ERROR = {
   FAILED: "failed",
   /** The clinic switched this tool off in its assistant settings. */
   DISABLED: "disabled",
+  // query_data: each refusal its own code, so the model knows what to change.
+  QUERY_UNPARSEABLE: "query_unparseable",
+  QUERY_MULTIPLE_STATEMENTS: "query_multiple_statements",
+  QUERY_NOT_SELECT: "query_not_select",
+  QUERY_RELATION_NOT_ALLOWED: "query_relation_not_allowed",
+  QUERY_FUNCTION_NOT_ALLOWED: "query_function_not_allowed",
+  QUERY_CLINICAL_NOT_PERMITTED: "query_clinical_not_permitted",
+  QUERY_TIMEOUT: "query_timeout",
+  /** Postgres rejected it — a column that does not exist, a type mismatch. */
+  QUERY_ERROR: "query_error",
 } as const satisfies Record<string, string>;
 export type AiToolError = EnumValue<typeof AI_TOOL_ERROR>;
 

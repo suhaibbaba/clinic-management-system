@@ -1532,7 +1532,10 @@
       "ai-automation.settings": "See the daily follow-up settings",
       "ai-automation.update-settings": "Change the daily follow-up settings",
       "ai-secrets.status": "See the provider keys' status",
-      "ai-secrets.update": "Change the provider keys"
+      "ai-secrets.update": "Change the provider keys",
+      "reports": {
+        "list": "The assistant's free questions over the clinic's data"
+      }
     },
     "hints": {
       "appointments": "The Appointments screen: booking, confirming and cancelling, marking a patient arrived, and the bookings the public page sends in.",
@@ -1586,7 +1589,8 @@
       "users": "Users",
       "visits": "Visits",
       "waiting-list": "Waiting list",
-      "ai": "Assistant"
+      "ai": "Assistant",
+      "reports": "Reports"
     },
     "role": "Role",
     "subtitle": "What each role is able to do",

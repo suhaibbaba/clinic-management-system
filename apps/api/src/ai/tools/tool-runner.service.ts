@@ -171,7 +171,13 @@ export class ToolRunnerService implements OnApplicationBootstrap {
       };
     } catch (error) {
       if (error instanceof ToolRefusal) {
-        return { envelope: { tool: tool.name, error: error.code } };
+        return {
+          envelope: {
+            tool: tool.name,
+            error: error.code,
+            ...(error.details && { details: error.details }),
+          },
+        };
       }
 
       if (error instanceof NotFoundException) {
