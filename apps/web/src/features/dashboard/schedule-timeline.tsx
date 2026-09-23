@@ -23,10 +23,10 @@ const SPENT_STATUSES: readonly string[] = [
   APPOINTMENT_STATUS.CANCELLED,
 ];
 
-// `dir="auto"` so an Arabic name in the English interface is cut at its own end, not its first
-// letters; the alignment stays the page's.
+// `dir="auto"` so an Arabic name in the English interface keeps its own order when it wraps; the
+// alignment stays the page's.
 const PATIENT_NAME = cn(
-  "block truncate text-label font-medium text-ink",
+  "block text-label font-medium text-ink [overflow-wrap:anywhere]",
   "page-ltr:text-left page-rtl:text-right",
 );
 
@@ -87,9 +87,6 @@ export function ScheduleTimeline({
                   className={cn(
                     PATIENT_NAME,
                     "transition-colors duration-150 hover:text-primary-700",
-                    // The hit box, not the line box: `truncate` clips an ::after overlay,
-                    // so the target is grown with padding an equal negative margin undoes.
-                    "-my-2 py-2 lg:my-0 lg:py-0",
                   )}
                 >
                   {appointment.patientName}
@@ -100,12 +97,24 @@ export function ScheduleTimeline({
                 </b>
               )}
 
-              <span
-                data-testid={`${testId}-detail-${appointment.id}`}
-                className="block truncate text-micro text-ink-muted"
-              >
-                {typeLabel(appointment.type)} · <PersonName name={appointment.doctorName} />
-              </span>
+              {/* The chip shares this row and drops under the line when both do not fit, so
+                  nothing on the card is ever cut short. */}
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span
+                  data-testid={`${testId}-detail-${appointment.id}`}
+                  className="text-micro text-ink-muted"
+                >
+                  {typeLabel(appointment.type)} · <PersonName name={appointment.doctorName} />
+                </span>
+
+                <Badge
+                  tone={APPOINTMENT_STATUS_STYLES[appointment.status].tone}
+                  data-testid={`${testId}-status-${appointment.id}`}
+                  className="ms-auto shrink-0 gap-1.5 px-2 text-micro"
+                >
+                  {t(statusLabelKey(appointment.status))}
+                </Badge>
+              </div>
             </div>
 
             {/* Only where there is something to do: a confirm button beside a completed
@@ -128,14 +137,6 @@ export function ScheduleTimeline({
                 />
               </div>
             )}
-
-            <Badge
-              tone={APPOINTMENT_STATUS_STYLES[appointment.status].tone}
-              data-testid={`${testId}-status-${appointment.id}`}
-              className="shrink-0 gap-1.5 px-2 text-micro"
-            >
-              {t(statusLabelKey(appointment.status))}
-            </Badge>
           </li>
         );
       })}
