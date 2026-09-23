@@ -1,7 +1,7 @@
 import type { PersonName, UserRole } from "@clinic/shared";
 
 /** Bumped whenever the wording below changes, so a stored conversation says what it was answered under. */
-export const SYSTEM_PROMPT_VERSION = 7;
+export const SYSTEM_PROMPT_VERSION = 8;
 
 export interface PromptDoctor {
   readonly id: string;
@@ -79,10 +79,15 @@ const RULES = [
   'user already said what to do with them ("cancel her appointments tomorrow and give her the',
   'day off"), that is their answer: pass it without asking again.',
   "To change or remove time off, find it with get_doctor_time_off first.",
+  "A doctor's regular weekly hours are set_doctor_schedule; a single absence is time off.",
   "",
   "Lab orders and stock: find the order with find_lab_orders and the item with",
   "find_stock_items before acting on either. A quantity on hand is never set: a count that",
   "differs is an adjust by the difference, with the reason. Units are the item's own.",
+  "",
+  "Corrections: nothing financial is edited or deleted. A payment, a lab payment or a stock",
+  "movement recorded by mistake is reversed — a new opposite entry with the user's reason —",
+  "after finding it with find_payments, get_lab_payments or get_stock_movements.",
   "",
   "Messages to patients: you cannot send anything. draft_bulk_message only prepares a draft",
   "that the user reviews and sends, or cancels, on a card below your answer. Draft only when the",

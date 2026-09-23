@@ -21,7 +21,12 @@ import {
   CLINIC_SECRET_KINDS,
   NOTIFICATION_CHANNELS,
 } from "@shared/enums";
-import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
+import {
+  paginationQuerySchema,
+  timeRangeSchema,
+  uuidSchema,
+  weekdaySchema,
+} from "@shared/schemas/common";
 import { moneySchema } from "@shared/schemas/money";
 import { personNameSchema } from "@shared/schemas/person-name";
 
@@ -205,6 +210,21 @@ export const aiActionSummarySchema = z.object({
   movementType: z.enum(MOVEMENT_TYPES).optional(),
   /** Signed for an adjustment, in the item's own unit. */
   quantity: z.string().optional(),
+  lab: z.object({ id: uuidSchema, name: z.string() }).optional(),
+  /** When the entry a reversal cancels was recorded. */
+  recordedAt: z.iso.datetime().optional(),
+  /** The weekdays a new weekly schedule changes, before and after. */
+  scheduleChanges: z
+    .array(
+      z.object({
+        weekday: weekdaySchema,
+        before: z.array(timeRangeSchema),
+        after: z.array(timeRangeSchema),
+      }),
+    )
+    .optional(),
+  /** The listed appointments stay booked outside the new hours. */
+  outsideHours: z.boolean().optional(),
   appointments: z
     .array(
       z.object({

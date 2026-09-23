@@ -217,4 +217,24 @@ describe("An action's confirmation card", () => {
     expect(screen.getByText(ar.labs.status.draft)).toBeInTheDocument();
     expect(screen.getByText(ar.labs.status.sent)).toBeInTheDocument();
   });
+
+  it("draws each changed weekday's hours before and after", () => {
+    render(
+      proposal({
+        kind: AI_PROPOSAL_KIND.DOCTOR_SCHEDULE,
+        tier: AI_RISK_TIER.CONFIRM,
+        typedPhrase: null,
+        summary: {
+          doctor: { id: PATIENT_ID, name: { ar: "باسل حداد", en: "Basel Haddad" } },
+          scheduleChanges: [{ weekday: 4, before: [{ start: "09:00", end: "17:00" }], after: [] }],
+        },
+      }),
+    );
+
+    const thursday = screen.getByTestId("action-schedule-4");
+
+    expect(screen.getByText(ar.schedule.weekday["4"])).toBeInTheDocument();
+    expect(thursday).toHaveTextContent("09:00–17:00");
+    expect(thursday).toHaveTextContent(ar.assistant.action.fields.dayOff);
+  });
 });
