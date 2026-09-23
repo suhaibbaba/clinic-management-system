@@ -1604,7 +1604,11 @@
     "installHint": "Install the system on this device so it opens from the home screen in its own window",
     "installIos": "To install on an iPhone or iPad: open the share menu in Safari, then choose “Add to Home Screen”",
     "installed": "The app is installed on this device",
-    "offline": "No internet connection — nothing is stored on the device, and the screens return when the connection does"
+    "offline": "No internet connection — nothing is stored on the device, and the screens return when the connection does",
+    "updating": "Updating to the new version…",
+    "pullToRefresh": "Pull to refresh",
+    "releaseToRefresh": "Release to refresh",
+    "refreshing": "Refreshing…"
   },
   "translations": {
     "title": "Interface text",

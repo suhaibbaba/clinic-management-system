@@ -7,6 +7,7 @@ import { createQueryClient } from "@web/app/query-client";
 import { SessionProvider } from "@web/features/auth/session";
 import { isRtl } from "@web/i18n";
 import { OfflineBar } from "@web/components/pwa/offline-bar";
+import { UpdateBar } from "@web/components/pwa/update-bar";
 import { DocumentBranding } from "@web/lib/document-branding";
 import { DocumentTitleProvider } from "@web/lib/document-title";
 import { abuObaidTheme } from "@web/theme";
@@ -28,6 +29,7 @@ export function AppProviders({ children }: { children: ReactNode }): JSX.Element
           <SessionProvider>
             <DocumentBranding />
             <OfflineBar />
+            <UpdateBar />
             <DocumentTitleProvider>{children}</DocumentTitleProvider>
           </SessionProvider>
         </ToastProvider>

@@ -5,6 +5,7 @@ import { Logo } from "@web/components/brand/logo";
 import { NavDrawer } from "@web/components/layout/nav-drawer";
 import { createPageActionSlot, PageActionSlotProvider } from "@clinic/ui/lib/page-action-slot";
 import { useIsMobile } from "@clinic/ui/lib/use-media-query";
+import { PullToRefresh } from "@web/components/pwa/pull-to-refresh";
 import { NotificationBell } from "@web/components/layout/notification-bell";
 import { TopSearch } from "@web/components/layout/top-search";
 import { UserMenu } from "@web/components/layout/user-menu";
@@ -79,6 +80,7 @@ export function AppLayout(): JSX.Element {
 
   return (
     <PageActionSlotProvider value={isMobile ? null : actionSlot}>
+      <PullToRefresh />
       <div data-testid="app-layout" className="flex min-h-full flex-col md:flex-row">
         {/* Desktop: a permanent rail. */}
         <aside
