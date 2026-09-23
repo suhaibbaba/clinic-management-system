@@ -6,9 +6,6 @@
   "common": {
     "clock": {
       "am": "AM",
-      "evening": "PM",
-      "morning": "AM",
-      "noon": "PM",
       "pm": "PM"
     },
     "save": "Save",
@@ -1284,7 +1281,8 @@
       "status": "Status",
       "empty": "Nothing booked today",
       "emptyHint": "Appointments booked for today appear here",
-      "byDoctor": "By doctor"
+      "byDoctor": "By doctor",
+      "arrived": "Arrived"
     },
     "subtitle": "Today at the clinic, at a glance",
     "title": "Dashboard"

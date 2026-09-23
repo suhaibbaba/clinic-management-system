@@ -3,7 +3,7 @@ import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Avatar, Badge, Icon, Ltr, PersonName } from "@clinic/ui";
-import { minutesOf, toClockParts } from "@web/features/appointments/calendar-time";
+import { minutesOf, toTimeLabel } from "@web/features/appointments/calendar-time";
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/features/appointments/status";
 import { useLookupLabels } from "@web/features/lookups/queries";
 import { cn } from "@clinic/ui/lib/cn";
@@ -23,10 +23,9 @@ const SPENT_STATUSES: readonly string[] = [
   APPOINTMENT_STATUS.CANCELLED,
 ];
 
-// `dir="auto"` so an Arabic name in the English interface keeps its own order when it wraps; the
-// alignment stays the page's.
+// `dir="auto"` so an Arabic name in the English interface keeps its own order.
 const PATIENT_NAME = cn(
-  "block text-label font-medium text-ink [overflow-wrap:anywhere]",
+  "block text-label font-medium text-ink",
   "page-ltr:text-left page-rtl:text-right",
 );
 
@@ -50,7 +49,6 @@ export function ScheduleTimeline({
     >
       {ordered.map((appointment) => {
         const minute = minutesOf(appointment.startsAt);
-        const clock = toClockParts(minute);
         const isNow = minute === currentMinute;
 
         return (
@@ -58,27 +56,62 @@ export function ScheduleTimeline({
             key={appointment.id}
             data-testid={`${testId}-appointment-${appointment.id}`}
             className={cn(
-              "flex items-center gap-2 rounded-panel border bg-surface px-3 py-3",
+              "flex items-center gap-3 rounded-panel border bg-surface px-3 py-2.5",
               SPENT_STATUSES.includes(appointment.status) && "opacity-55",
               isNow ? "border-success-500 shadow-now" : "border-line",
             )}
           >
-            <span
-              data-testid={`${testId}-time-${appointment.id}`}
-              className="flex w-[42px] shrink-0 flex-col items-center"
-            >
-              <Ltr className="text-label font-bold text-ink tabular-nums">{clock.time}</Ltr>
-              <span className="text-micro text-ink-muted">{t(clock.periodKey)}</span>
-            </span>
-
+            {/* A phone has no room to spare for a picture of initials. */}
             <Avatar
               name={appointment.patientName}
               tintKey={appointment.patientId}
-              size={32}
-              className="shrink-0 text-micro"
+              size={34}
+              className="hidden shrink-0 text-meta md:inline-flex"
             />
 
             <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <Ltr
+                  data-testid={`${testId}-time-${appointment.id}`}
+                  className="text-label font-bold text-ink tabular-nums"
+                >
+                  {toTimeLabel(minute)}
+                </Ltr>
+
+                {/* Only where there is something to do: a confirm button beside a completed
+                    appointment is a button that does nothing. */}
+                {appointment.status === APPOINTMENT_STATUS.REQUESTED && (
+                  <div className="ms-auto hidden shrink-0 items-center gap-1.5 sm:flex">
+                    {onConfirm && (
+                      <QuickAction
+                        data-testid={`${testId}-confirm-${appointment.id}`}
+                        label={t("appointments.actions.confirm")}
+                        icon="check"
+                        onClick={() => onConfirm(appointment)}
+                      />
+                    )}
+                    <QuickAction
+                      data-testid={`${testId}-call-${appointment.id}`}
+                      label={t("dashboard.call")}
+                      icon="phone"
+                      href={`tel:${appointment.patientPhone.replace(/[\s-]/g, "")}`}
+                    />
+                  </div>
+                )}
+
+                <Badge
+                  tone={APPOINTMENT_STATUS_STYLES[appointment.status].tone}
+                  data-testid={`${testId}-status-${appointment.id}`}
+                  className="ms-auto shrink-0 gap-1.5 px-2 text-micro"
+                >
+                  {t(
+                    appointment.status === APPOINTMENT_STATUS.ARRIVED
+                      ? "dashboard.schedule.arrived"
+                      : statusLabelKey(appointment.status),
+                  )}
+                </Badge>
+              </div>
+
               {linkPatients ? (
                 <Link
                   to={`/patients/${appointment.patientId}`}
@@ -97,46 +130,13 @@ export function ScheduleTimeline({
                 </b>
               )}
 
-              {/* The chip shares this row and drops under the line when both do not fit, so
-                  nothing on the card is ever cut short. */}
-              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-                <span
-                  data-testid={`${testId}-detail-${appointment.id}`}
-                  className="text-micro text-ink-muted"
-                >
-                  {typeLabel(appointment.type)} · <PersonName name={appointment.doctorName} />
-                </span>
-
-                <Badge
-                  tone={APPOINTMENT_STATUS_STYLES[appointment.status].tone}
-                  data-testid={`${testId}-status-${appointment.id}`}
-                  className="ms-auto shrink-0 gap-1.5 px-2 text-micro"
-                >
-                  {t(statusLabelKey(appointment.status))}
-                </Badge>
-              </div>
+              <span
+                data-testid={`${testId}-detail-${appointment.id}`}
+                className="block text-micro text-ink-muted"
+              >
+                {typeLabel(appointment.type)} · <PersonName name={appointment.doctorName} />
+              </span>
             </div>
-
-            {/* Only where there is something to do: a confirm button beside a completed
-                appointment is a button that does nothing. */}
-            {appointment.status === APPOINTMENT_STATUS.REQUESTED && (
-              <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
-                {onConfirm && (
-                  <QuickAction
-                    data-testid={`${testId}-confirm-${appointment.id}`}
-                    label={t("appointments.actions.confirm")}
-                    icon="check"
-                    onClick={() => onConfirm(appointment)}
-                  />
-                )}
-                <QuickAction
-                  data-testid={`${testId}-call-${appointment.id}`}
-                  label={t("dashboard.call")}
-                  icon="phone"
-                  href={`tel:${appointment.patientPhone.replace(/[\s-]/g, "")}`}
-                />
-              </div>
-            )}
           </li>
         );
       })}

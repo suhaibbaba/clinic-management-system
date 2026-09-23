@@ -68,21 +68,6 @@ export function toTimeLabel(minute: number): string {
   return `${((hours + 11) % 12) + 1}:${String(minutes).padStart(2, "0")} ${marker}`;
 }
 
-/** A clock face with its period apart, for a label that sets the period on a line of its own. */
-export function toClockParts(minute: number): {
-  readonly time: string;
-  readonly periodKey: string;
-} {
-  const hours = Math.floor(minute / 60) % 24;
-  const minutes = Math.floor(minute % 60);
-  const period = hours < 12 ? "morning" : hours < 15 ? "noon" : "evening";
-
-  return {
-    time: `${((hours + 11) % 12) + 1}:${String(minutes).padStart(2, "0")}`,
-    periodKey: `common.clock.${period}`,
-  };
-}
-
 // The same arithmetic as a block but against two instants, clamped to the drawn hours — an absence
 // from yesterday evening is not drawn off the top. Null when it does not touch the day.
 export function periodPosition(
