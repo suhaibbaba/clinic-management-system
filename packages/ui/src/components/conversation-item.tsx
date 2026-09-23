@@ -4,8 +4,8 @@ import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export interface ConversationItemProps extends TestIdProps {
   readonly title: string;
-  /** Already formatted by the caller — the library owns no locale. */
-  readonly timestamp: string;
+  /** Already formatted by the caller — the library owns no locale. Left out under a day heading. */
+  readonly timestamp?: string | undefined;
   readonly selected?: boolean | undefined;
   /** The row's own address, so it opens in a new tab like any other link. */
   readonly href: string;
@@ -67,9 +67,11 @@ export function ConversationItem({
         <span {...part("title")} className="block truncate text-label [unicode-bidi:plaintext]">
           {title}
         </span>
-        <span {...part("time")} className="mt-0.5 block truncate text-micro text-ink-faint">
-          {timestamp}
-        </span>
+        {timestamp !== undefined && (
+          <span {...part("time")} className="mt-0.5 block truncate text-micro text-ink-faint">
+            {timestamp}
+          </span>
+        )}
       </a>
 
       {trailing !== undefined && (

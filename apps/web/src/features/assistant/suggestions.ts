@@ -5,3 +5,10 @@ export const SUGGESTIONS = [
   { key: "finances", labelKey: "assistant.suggestions.finances" },
   { key: "lapsed", labelKey: "assistant.suggestions.lapsed" },
 ] as const;
+
+/** The three things the assistant is for, on an empty conversation; each asks its own opener. */
+export const TOPICS = [
+  { key: "appointments", icon: "calendar", prefix: "assistant.topics.appointments" },
+  { key: "patients", icon: "user", prefix: "assistant.topics.patients" },
+  { key: "finance", icon: "trend-up", prefix: "assistant.topics.finance" },
+] as const;
