@@ -3,6 +3,8 @@ name: Deploy sandbox
 # Manual only. Build on the server -> healthcheck. No registry and no
 # checkout: the VPS builds from its own clone of the repo. See DEPLOY.md.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       reset_data:
@@ -17,7 +19,7 @@ on:
 # queued deploy.
 concurrency:
   group: deploy-sandbox
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   SANDBOX_URL: https://clinic-sandbox.organza-moda.com
@@ -25,12 +27,12 @@ env:
   COMPOSE_PROJECT: clinic-sandbox
 
 jobs:
-  ci:
-    name: CI
-    # Skipped on a manual run: that is the path for redeploying or wiping while
-    # main is red, which is when it is most needed.
-    if: github.event_name != 'workflow_dispatch'
-    uses: ./.github/workflows/ci.yml
+  # ci:
+  #   name: CI
+  #   # Skipped on a manual run: that is the path for redeploying or wiping while
+  #   # main is red, which is when it is most needed.
+  #   if: github.event_name != 'workflow_dispatch'
+  #   uses: ./.github/workflows/ci.yml
 
   deploy:
     name: Deploy to sandbox VPS

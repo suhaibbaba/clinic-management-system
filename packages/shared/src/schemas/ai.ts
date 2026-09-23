@@ -6,6 +6,8 @@ import {
   AI_RISK_TIERS,
   AI_SCHEDULE_CONFLICT_CHOICES,
   APPOINTMENT_STATUSES,
+  LAB_ORDER_STATUSES,
+  MOVEMENT_TYPES,
   AI_AUTOMATION_MODE,
   AI_AUTOMATION_MODES,
   AI_ERROR_CODES,
@@ -174,6 +176,7 @@ export const aiActionSummarySchema = z.object({
   previousStartsAt: z.iso.datetime().optional(),
   /** The end of a time-off period, exclusive. */
   endsAt: z.iso.datetime().optional(),
+  previousEndsAt: z.iso.datetime().optional(),
   /** A clinic closure's inclusive local days. */
   startsOn: z.iso.date().optional(),
   endsOn: z.iso.date().optional(),
@@ -187,6 +190,21 @@ export const aiActionSummarySchema = z.object({
   amount: moneySchema.optional(),
   /** A payment method's lookup code. */
   method: z.string().optional(),
+  labOrder: z
+    .object({
+      id: uuidSchema,
+      labName: z.string(),
+      workTypeName: z.string().nullable(),
+      status: z.enum(LAB_ORDER_STATUSES),
+    })
+    .optional(),
+  /** The status a lab order moves to. */
+  labStatus: z.enum(LAB_ORDER_STATUSES).optional(),
+  /** A stock item; `unit` is a code on the clinic's unit list. */
+  stockItem: z.object({ id: uuidSchema, name: z.string(), unit: z.string() }).optional(),
+  movementType: z.enum(MOVEMENT_TYPES).optional(),
+  /** Signed for an adjustment, in the item's own unit. */
+  quantity: z.string().optional(),
   appointments: z
     .array(
       z.object({

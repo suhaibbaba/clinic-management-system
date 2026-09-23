@@ -508,6 +508,13 @@ export const AI_TOOL = {
   FIND_DOCTORS: "find_doctors",
   ADD_DOCTOR_TIME_OFF: "add_doctor_time_off",
   ADD_CLINIC_CLOSURE: "add_clinic_closure",
+  GET_DOCTOR_TIME_OFF: "get_doctor_time_off",
+  UPDATE_DOCTOR_TIME_OFF: "update_doctor_time_off",
+  DELETE_DOCTOR_TIME_OFF: "delete_doctor_time_off",
+  FIND_LAB_ORDERS: "find_lab_orders",
+  SET_LAB_ORDER_STATUS: "set_lab_order_status",
+  FIND_STOCK_ITEMS: "find_stock_items",
+  RECORD_STOCK_MOVEMENT: "record_stock_movement",
 } as const satisfies Record<string, string>;
 export type AiToolName = EnumValue<typeof AI_TOOL>;
 
@@ -530,6 +537,13 @@ export const AI_TOOL_NAMES = [
   AI_TOOL.FIND_DOCTORS,
   AI_TOOL.ADD_DOCTOR_TIME_OFF,
   AI_TOOL.ADD_CLINIC_CLOSURE,
+  AI_TOOL.GET_DOCTOR_TIME_OFF,
+  AI_TOOL.UPDATE_DOCTOR_TIME_OFF,
+  AI_TOOL.DELETE_DOCTOR_TIME_OFF,
+  AI_TOOL.FIND_LAB_ORDERS,
+  AI_TOOL.SET_LAB_ORDER_STATUS,
+  AI_TOOL.FIND_STOCK_ITEMS,
+  AI_TOOL.RECORD_STOCK_MOVEMENT,
 ] as const;
 
 /** The tools that change something. Each one a clinic may switch off or tighten. */
@@ -543,6 +557,10 @@ export const AI_ACTION_TOOLS = [
   AI_TOOL.RECORD_PAYMENT,
   AI_TOOL.ADD_DOCTOR_TIME_OFF,
   AI_TOOL.ADD_CLINIC_CLOSURE,
+  AI_TOOL.UPDATE_DOCTOR_TIME_OFF,
+  AI_TOOL.DELETE_DOCTOR_TIME_OFF,
+  AI_TOOL.SET_LAB_ORDER_STATUS,
+  AI_TOOL.RECORD_STOCK_MOVEMENT,
 ] as const;
 export type AiActionTool = (typeof AI_ACTION_TOOLS)[number];
 
@@ -579,6 +597,10 @@ export const AI_ACTION_BASE_TIER: Record<AiActionTool, AiRiskTier> = {
   [AI_TOOL.RECORD_PAYMENT]: AI_RISK_TIER.CONFIRM,
   [AI_TOOL.ADD_DOCTOR_TIME_OFF]: AI_RISK_TIER.CONFIRM,
   [AI_TOOL.ADD_CLINIC_CLOSURE]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.UPDATE_DOCTOR_TIME_OFF]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.DELETE_DOCTOR_TIME_OFF]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.SET_LAB_ORDER_STATUS]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.RECORD_STOCK_MOVEMENT]: AI_RISK_TIER.CONFIRM,
 };
 
 /** What a pending proposal will do once a person confirms it. */
@@ -593,6 +615,10 @@ export const AI_PROPOSAL_KIND = {
   PAYMENT_CREATE: "payment_create",
   TIME_OFF_CREATE: "time_off_create",
   CLOSURE_CREATE: "closure_create",
+  TIME_OFF_UPDATE: "time_off_update",
+  TIME_OFF_DELETE: "time_off_delete",
+  LAB_ORDER_STATUS: "lab_order_status",
+  STOCK_MOVEMENT: "stock_movement",
 } as const satisfies Record<string, string>;
 export type AiProposalKind = EnumValue<typeof AI_PROPOSAL_KIND>;
 
@@ -607,6 +633,10 @@ export const AI_PROPOSAL_KINDS = [
   AI_PROPOSAL_KIND.PAYMENT_CREATE,
   AI_PROPOSAL_KIND.TIME_OFF_CREATE,
   AI_PROPOSAL_KIND.CLOSURE_CREATE,
+  AI_PROPOSAL_KIND.TIME_OFF_UPDATE,
+  AI_PROPOSAL_KIND.TIME_OFF_DELETE,
+  AI_PROPOSAL_KIND.LAB_ORDER_STATUS,
+  AI_PROPOSAL_KIND.STOCK_MOVEMENT,
 ] as const;
 
 // Not errors: the model relays each one as a question and does not retry around it. Only a

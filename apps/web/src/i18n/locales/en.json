@@ -1667,7 +1667,14 @@
       "recordPayment": "Preparing the payment",
       "findDoctors": "Looking up the doctors",
       "doctorTimeOff": "Preparing the time off",
-      "clinicClosure": "Preparing the closure"
+      "clinicClosure": "Preparing the closure",
+      "doctorTimeOffList": "Checking the doctor's time off",
+      "updateTimeOff": "Preparing the change",
+      "deleteTimeOff": "Preparing the removal",
+      "findLabOrders": "Searching the lab orders",
+      "labOrderStatus": "Preparing the status change",
+      "findStockItems": "Searching the stock",
+      "stockMovement": "Preparing the stock movement"
     },
     "errors": {
       "rateLimited": "Too many questions too quickly. Try again shortly.",
@@ -1723,7 +1730,11 @@
         "payment_create": "Record a payment",
         "message": "Message to patients",
         "time_off_create": "Doctor time off",
-        "closure_create": "Close the clinic"
+        "closure_create": "Close the clinic",
+        "time_off_update": "Change doctor time off",
+        "time_off_delete": "Remove doctor time off",
+        "lab_order_status": "Move a lab order",
+        "stock_movement": "Stock movement"
       },
       "tiers": {
         "auto": "Automatic",
@@ -1754,7 +1765,13 @@
         "appointments_one": "One appointment",
         "appointments_other": "{{count}} appointments",
         "period": "Period",
-        "onConflict": "Appointments in the period"
+        "onConflict": "Appointments in the period",
+        "previousPeriod": "Current period",
+        "labOrder": "Order",
+        "item": "Item",
+        "movement": "Movement",
+        "quantity": "Quantity",
+        "unitPrice": "Unit price"
       },
       "typeToConfirm": "Type \"{{phrase}}\" to confirm",
       "confirm": "Confirm",
@@ -1770,7 +1787,11 @@
         "payment_create": "The payment was recorded.",
         "message": "The message was sent.",
         "time_off_create": "The time off was recorded.",
-        "closure_create": "The closure was recorded."
+        "closure_create": "The closure was recorded.",
+        "time_off_update": "The time off was changed.",
+        "time_off_delete": "The time off was removed.",
+        "lab_order_status": "The lab order moved.",
+        "stock_movement": "The stock movement was recorded."
       },
       "redraft": "Prepare the request again",
       "onConflict": {
@@ -1912,7 +1933,11 @@
         "create_patient": "Add a patient",
         "record_payment": "Record a payment",
         "add_doctor_time_off": "Doctor time off",
-        "add_clinic_closure": "Close the clinic"
+        "add_clinic_closure": "Close the clinic",
+        "update_doctor_time_off": "Change doctor time off",
+        "delete_doctor_time_off": "Remove doctor time off",
+        "set_lab_order_status": "Move a lab order",
+        "record_stock_movement": "Stock movement"
       },
       "paymentTypedAbove": "Typed confirmation for payments from",
       "paymentTypedAboveHint": "A payment of this amount or more needs the confirmation phrase typed.",

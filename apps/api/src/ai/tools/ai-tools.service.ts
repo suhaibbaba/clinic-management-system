@@ -5,6 +5,7 @@ import {
   AI_TOOL,
   APPOINTMENT_STATUS,
   APPOINTMENT_STATUSES,
+  LAB_ORDER_STATUSES,
   addDays,
   clinicScheduleSettings,
   DEFAULT_TIME_ZONE,
@@ -24,12 +25,14 @@ import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DoctorsService } from "@api/doctors/doctors.service";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, visits } from "@api/database/schema";
+import { InventoryItemsService } from "@api/inventory/inventory-items.service";
 import { InventoryReportsService } from "@api/inventory/inventory-reports.service";
 import { LabOrdersService } from "@api/labs/lab-orders.service";
 import { PatientAccessService } from "@api/patients/patient-access.service";
 import { PatientsService } from "@api/patients/patients.service";
 import { TimelineService } from "@api/patients/timeline.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
+import { DoctorTimeOffService } from "@api/schedule/doctor-time-off.service";
 import { AiActionsService } from "@api/ai/actions/ai-actions.service";
 import { ProposalsService, TARGET_READ_CAPABILITY } from "@api/ai/outbound/proposals.service";
 import {
@@ -59,6 +62,8 @@ const CAPABILITY = {
   OVERDUE: "billing.list",
   LAB_ORDERS_OVERDUE: "lab-orders.overdue",
   INVENTORY_ALERTS: "inventory.alerts",
+  LAB_ORDERS_LIST: "lab-orders.list",
+  INVENTORY_ITEMS: "inventory.list",
   OUTBOUND_SEND: "ai-outbound.send",
 } as const;
 
@@ -87,6 +92,8 @@ export class AiToolsService {
     private readonly overdue: OverdueService,
     private readonly labOrders: LabOrdersService,
     private readonly inventory: InventoryReportsService,
+    private readonly stockItems: InventoryItemsService,
+    private readonly timeOff: DoctorTimeOffService,
     private readonly permissions: PermissionsService,
     private readonly proposals: ProposalsService,
     private readonly actions: AiActionsService,
@@ -170,6 +177,84 @@ export class AiToolsService {
             })),
             page.total,
           );
+        },
+      }),
+
+      defineTool({
+        name: AI_TOOL.GET_DOCTOR_TIME_OFF,
+        description:
+          "A doctor's time off overlapping two local dates (inclusive), or all of it with no " +
+          "dates. Use it to find the time_off_id to change or remove.",
+        capability: null,
+        schema: z.object({
+          doctor_id: z.uuid(),
+          date_from: dateSchema.optional(),
+          date_to: dateSchema.optional(),
+        }),
+        run: async (actor, args) => {
+          const timeZone = await this.timeZone(actor.clinicId);
+          const page = await this.timeOff.list(actor, args.doctor_id, {
+            page: 1,
+            limit: TOOL_ROW_LIMIT,
+            ...(args.date_from && {
+              from: instantFromLocal(args.date_from, 0, timeZone).toISOString(),
+            }),
+            ...(args.date_to && {
+              to: instantFromLocal(addDays(args.date_to, 1), 0, timeZone).toISOString(),
+            }),
+          });
+
+          return capped(
+            page.items.map((row) => ({
+              id: row.id,
+              startsAt: row.startsAt,
+              endsAt: row.endsAt,
+              reason: row.reason,
+            })),
+            page.total,
+          );
+        },
+      }),
+
+      defineTool({
+        name: AI_TOOL.FIND_LAB_ORDERS,
+        description:
+          "Lab orders, narrowed by status, by patient (an id from search_patients) or by a " +
+          "search over the patient's name and the lab's. Use it to find the order to move along.",
+        capability: CAPABILITY.LAB_ORDERS_LIST,
+        schema: z.object({
+          status: z.enum(LAB_ORDER_STATUSES).optional(),
+          patient_id: z.uuid().optional(),
+          search: z.string().trim().min(2).max(160).optional(),
+        }),
+        run: async (actor, args) => {
+          const page = await this.labOrders.list(actor, {
+            page: 1,
+            limit: TOOL_ROW_LIMIT,
+            ...(args.status && { status: args.status }),
+            ...(args.patient_id && { patientId: args.patient_id }),
+            ...(args.search && { search: args.search }),
+          });
+
+          return capped(page.items.map(toLabOrderSummary), page.total);
+        },
+      }),
+
+      defineTool({
+        name: AI_TOOL.FIND_STOCK_ITEMS,
+        description:
+          "Stock items by name, with the quantity on hand in the item's own unit. Use it to " +
+          "find the item_id for a purchase, a use or a count.",
+        capability: CAPABILITY.INVENTORY_ITEMS,
+        schema: z.object({ query: z.string().trim().min(1).max(160).optional() }),
+        run: async (actor, args) => {
+          const page = await this.stockItems.list(actor, {
+            page: 1,
+            limit: TOOL_ROW_LIMIT,
+            ...(args.query && { search: args.query }),
+          });
+
+          return capped(page.items.map(toStockSummary), page.total);
         },
       }),
 
@@ -429,19 +514,23 @@ export class AiToolsService {
     );
   }
 
-  // Resolved server-side against the clinic's own calendar: a model doing date arithmetic is a
-  // financial figure for the wrong month. `to` is exclusive.
-  private async resolvePeriod(
-    clinicId: string,
-    period: Period,
-  ): Promise<{ from: string; to: string; timeZone: string }> {
+  private async timeZone(clinicId: string): Promise<string> {
     const [row] = await this.db
       .select({ settings: clinics.settings })
       .from(clinics)
       .where(eq(clinics.id, clinicId))
       .limit(1);
 
-    const timeZone = clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE;
+    return clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE;
+  }
+
+  // Resolved server-side against the clinic's own calendar: a model doing date arithmetic is a
+  // financial figure for the wrong month. `to` is exclusive.
+  private async resolvePeriod(
+    clinicId: string,
+    period: Period,
+  ): Promise<{ from: string; to: string; timeZone: string }> {
+    const timeZone = await this.timeZone(clinicId);
     const today = localDate(new Date(), timeZone);
     const [year = 0, month = 1, day = 1] = today.split("-").map(Number);
     const firstOfMonth = `${pad(year, 4)}-${pad(month, 2)}-01`;
@@ -498,6 +587,8 @@ const toPatientSummary = (patient: PatientView) => ({
 
 const toLabOrderSummary = (order: LabOrderRow) => ({
   id: order.id,
+  patientId: order.patientId,
+  patientFileNumber: order.patientFileNumber,
   patientName: order.patientName,
   labName: order.labName,
   workTypeName: order.workTypeName,

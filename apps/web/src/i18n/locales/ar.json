@@ -1683,7 +1683,14 @@
       "recordPayment": "عم بجهّز الدفعة",
       "findDoctors": "عم بدوّر بالأطباء",
       "doctorTimeOff": "عم بجهّز إجازة الطبيب",
-      "clinicClosure": "عم بجهّز إغلاق العيادة"
+      "clinicClosure": "عم بجهّز إغلاق العيادة",
+      "doctorTimeOffList": "عم بشوف إجازات الطبيب",
+      "updateTimeOff": "عم بجهّز تعديل الإجازة",
+      "deleteTimeOff": "عم بجهّز حذف الإجازة",
+      "findLabOrders": "عم بدوّر بطلبيات المختبر",
+      "labOrderStatus": "عم بجهّز تغيير حالة الطلبية",
+      "findStockItems": "عم بدوّر بالمخزون",
+      "stockMovement": "عم بجهّز حركة المخزون"
     },
     "errors": {
       "rateLimited": "أسئلة كتير بوقت قصير. جرّب بعد شوي.",
@@ -1743,7 +1750,11 @@
         "payment_create": "تسجيل دفعة",
         "message": "رسالة للمرضى",
         "time_off_create": "إجازة طبيب",
-        "closure_create": "إغلاق العيادة"
+        "closure_create": "إغلاق العيادة",
+        "time_off_update": "تعديل إجازة طبيب",
+        "time_off_delete": "حذف إجازة طبيب",
+        "lab_order_status": "تغيير حالة طلبية مختبر",
+        "stock_movement": "حركة مخزون"
       },
       "tiers": {
         "auto": "تلقائي",
@@ -1778,7 +1789,13 @@
         "appointments_many": "{{count}} موعداً",
         "appointments_other": "{{count}} موعد",
         "period": "الفترة",
-        "onConflict": "المواعيد بالفترة"
+        "onConflict": "المواعيد بالفترة",
+        "previousPeriod": "الفترة الحالية",
+        "labOrder": "الطلبية",
+        "item": "المادة",
+        "movement": "نوع الحركة",
+        "quantity": "الكمية",
+        "unitPrice": "سعر الوحدة"
       },
       "typeToConfirm": "اكتب \"{{phrase}}\" للتأكيد",
       "confirm": "تأكيد",
@@ -1794,7 +1811,11 @@
         "payment_create": "انسجّلت الدفعة.",
         "message": "انبعتت الرسالة.",
         "time_off_create": "انسجّلت إجازة الطبيب.",
-        "closure_create": "انسجّل إغلاق العيادة."
+        "closure_create": "انسجّل إغلاق العيادة.",
+        "time_off_update": "انعدّلت الإجازة.",
+        "time_off_delete": "انحذفت الإجازة.",
+        "lab_order_status": "تغيّرت حالة الطلبية.",
+        "stock_movement": "انسجّلت حركة المخزون."
       },
       "redraft": "جهّز الطلب من جديد",
       "onConflict": {
@@ -1936,7 +1957,11 @@
         "create_patient": "إضافة مريض",
         "record_payment": "تسجيل دفعة",
         "add_doctor_time_off": "إجازة طبيب",
-        "add_clinic_closure": "إغلاق العيادة"
+        "add_clinic_closure": "إغلاق العيادة",
+        "update_doctor_time_off": "تعديل إجازة طبيب",
+        "delete_doctor_time_off": "حذف إجازة طبيب",
+        "set_lab_order_status": "تغيير حالة طلبية مختبر",
+        "record_stock_movement": "حركة مخزون"
       },
       "paymentTypedAbove": "تأكيد بالكتابة للدفعات من مبلغ",
       "paymentTypedAboveHint": "أي دفعة بهالمبلغ أو أكتر بتحتاج كتابة عبارة التأكيد.",

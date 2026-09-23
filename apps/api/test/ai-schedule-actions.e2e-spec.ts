@@ -309,6 +309,84 @@ describe("Assistant schedule actions (e2e)", () => {
     });
   });
 
+  describe("changing and removing time off", () => {
+    async function addTimeOff(day: string, from: string, to: string): Promise<string> {
+      const response = await context.app.inject({
+        method: "POST",
+        url: `/doctors/${doctorId}/time-off`,
+        headers: auth(tokens[USER_ROLE.ADMIN]),
+        payload: {
+          startsAt: new Date(`${day}T${from}:00+03:00`).toISOString(),
+          endsAt: new Date(`${day}T${to}:00+03:00`).toISOString(),
+          reason: "اجتماع",
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+
+      return (response.json() as { item: { id: string } }).item.id;
+    }
+
+    it("finds the time off, then asks before growing it over an appointment", async () => {
+      const day = monday(8);
+      const timeOffId = await addTimeOff(day, "09:00", "10:00");
+      const appointmentId = await book(day, "11:00");
+
+      const listed = await tool(USER_ROLE.ADMIN, AI_TOOL.GET_DOCTOR_TIME_OFF, {
+        doctor_id: doctorId,
+        date_from: day,
+        date_to: day,
+      });
+
+      expect(listed.result?.items?.map((item) => item.id)).toEqual([timeOffId]);
+
+      const change = {
+        time_off_id: timeOffId,
+        date_from: day,
+        date_to: day,
+        time_from: "09:00",
+        time_to: "12:00",
+      };
+      const asked = await tool(USER_ROLE.ADMIN, AI_TOOL.UPDATE_DOCTOR_TIME_OFF, change);
+
+      expect(asked.result?.status).toBe("schedule_conflict");
+
+      const { result } = await tool(USER_ROLE.ADMIN, AI_TOOL.UPDATE_DOCTOR_TIME_OFF, {
+        ...change,
+        on_conflict: AI_SCHEDULE_CONFLICT_CHOICE.KEEP,
+      });
+
+      expect((await confirm(result?.proposal_id ?? "")).statusCode).toBe(200);
+      expect(await appointmentStatus(appointmentId)).toBe(APPOINTMENT_STATUS.CONFIRMED);
+
+      const [row] = await context.db
+        .select()
+        .from(doctorTimeOff)
+        .where(eq(doctorTimeOff.id, timeOffId));
+
+      expect(row?.endsAt.toISOString()).toBe(new Date(`${day}T12:00:00+03:00`).toISOString());
+    });
+
+    it("removes it behind a card", async () => {
+      const day = monday(9);
+      const timeOffId = await addTimeOff(day, "09:00", "10:00");
+
+      const { result } = await tool(USER_ROLE.ADMIN, AI_TOOL.DELETE_DOCTOR_TIME_OFF, {
+        time_off_id: timeOffId,
+      });
+
+      expect(result).toMatchObject({ status: "awaiting_user_confirmation", tier: "confirm" });
+      expect((await confirm(result?.proposal_id ?? "")).statusCode).toBe(200);
+
+      const [row] = await context.db
+        .select({ deletedAt: doctorTimeOff.deletedAt })
+        .from(doctorTimeOff)
+        .where(eq(doctorTimeOff.id, timeOffId));
+
+      expect(row?.deletedAt).not.toBeNull();
+    });
+  });
+
   describe("add_clinic_closure", () => {
     it("closes the clinic and cancels the appointments the user agreed to", async () => {
       const day = monday(7);
