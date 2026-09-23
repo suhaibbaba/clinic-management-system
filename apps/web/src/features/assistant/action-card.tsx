@@ -7,6 +7,7 @@ import {
   type AiActionSummary,
   type AiProposal,
   type AiProposalStatus,
+  type TimeRange,
 } from "@clinic/shared";
 import { useId, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -238,6 +239,7 @@ function ActionSummaryList({ summary }: { summary: AiActionSummary }): JSX.Eleme
           </Row>
         </>
       )}
+      {summary.lab && <Row label={t("assistant.action.fields.lab")}>{summary.lab.name}</Row>}
       {summary.doctor && (
         <Row label={t("assistant.action.fields.doctor")}>
           <PersonName name={summary.doctor.name} />
@@ -327,7 +329,28 @@ function ActionSummaryList({ summary }: { summary: AiActionSummary }): JSX.Eleme
       {summary.method && (
         <Row label={t("assistant.action.fields.method")}>{methodLabel(summary.method)}</Row>
       )}
+      {summary.scheduleChanges?.map((change) => (
+        <Row key={change.weekday} label={t(`schedule.weekday.${change.weekday}`)}>
+          <span data-testid={`action-schedule-${change.weekday}`}>
+            <span className="text-ink-muted">
+              <Hours ranges={change.before} />
+            </span>
+            <Icon name="chevron-end" className="mx-1 inline-block align-middle text-ink-subtle" />
+            <Hours ranges={change.after} />
+          </span>
+        </Row>
+      ))}
+      {summary.recordedAt && (
+        <Row label={t("assistant.action.fields.recordedAt")}>
+          <span dir="ltr">{when(summary.recordedAt)}</span>
+        </Row>
+      )}
       {summary.reason && <Row label={t("assistant.action.fields.reason")}>{summary.reason}</Row>}
+      {summary.outsideHours && (
+        <p data-part="action-outside-hours" className="col-span-2 text-label text-warning-700">
+          {t("assistant.action.fields.outsideHours")}
+        </p>
+      )}
       {summary.onConflict && (
         <Row label={t("assistant.action.fields.onConflict")}>
           <span data-part="action-on-conflict">
@@ -366,6 +389,16 @@ function ActionSummaryList({ summary }: { summary: AiActionSummary }): JSX.Eleme
         </div>
       )}
     </dl>
+  );
+}
+
+function Hours({ ranges }: { ranges: readonly TimeRange[] }): JSX.Element {
+  const { t } = useTranslation();
+
+  return ranges.length === 0 ? (
+    <>{t("assistant.action.fields.dayOff")}</>
+  ) : (
+    <span dir="ltr">{ranges.map((range) => `${range.start}–${range.end}`).join(", ")}</span>
   );
 }
 

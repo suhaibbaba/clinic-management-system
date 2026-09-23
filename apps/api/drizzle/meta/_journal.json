@@ -190,6 +190,13 @@
       "when": 1790195841197,
       "tag": "0026_ai_lab_stock_actions",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1790196321484,
+      "tag": "0027_ai_schedule_money_actions",
+      "breakpoints": true
     }
   ]
 }

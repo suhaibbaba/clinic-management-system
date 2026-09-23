@@ -1690,7 +1690,16 @@
       "findLabOrders": "عم بدوّر بطلبيات المختبر",
       "labOrderStatus": "عم بجهّز تغيير حالة الطلبية",
       "findStockItems": "عم بدوّر بالمخزون",
-      "stockMovement": "عم بجهّز حركة المخزون"
+      "stockMovement": "عم بجهّز حركة المخزون",
+      "doctorSchedule": "عم بجهّز تعديل الدوام",
+      "findPayments": "عم بشوف دفعات المريض",
+      "reversePayment": "عم بجهّز عكس الدفعة",
+      "findLabs": "عم بدوّر بالمختبرات",
+      "labPayments": "عم بشوف دفعات المختبر",
+      "labPayment": "عم بجهّز دفعة المختبر",
+      "reverseLabPayment": "عم بجهّز عكس دفعة المختبر",
+      "stockMovements": "عم بشوف حركات المادة",
+      "reverseStockMovement": "عم بجهّز عكس الحركة"
     },
     "errors": {
       "rateLimited": "أسئلة كتير بوقت قصير. جرّب بعد شوي.",
@@ -1754,7 +1763,12 @@
         "time_off_update": "تعديل إجازة طبيب",
         "time_off_delete": "حذف إجازة طبيب",
         "lab_order_status": "تغيير حالة طلبية مختبر",
-        "stock_movement": "حركة مخزون"
+        "stock_movement": "حركة مخزون",
+        "doctor_schedule": "تعديل دوام طبيب",
+        "payment_reverse": "عكس دفعة مريض",
+        "lab_payment_create": "دفعة لمختبر",
+        "lab_payment_reverse": "عكس دفعة مختبر",
+        "stock_reverse": "عكس حركة مخزون"
       },
       "tiers": {
         "auto": "تلقائي",
@@ -1795,7 +1809,11 @@
         "item": "المادة",
         "movement": "نوع الحركة",
         "quantity": "الكمية",
-        "unitPrice": "سعر الوحدة"
+        "unitPrice": "سعر الوحدة",
+        "lab": "المختبر",
+        "recordedAt": "تاريخ التسجيل",
+        "dayOff": "عطلة",
+        "outsideHours": "رح تضل هالمواعيد محجوزة برّا الدوام الجديد"
       },
       "typeToConfirm": "اكتب \"{{phrase}}\" للتأكيد",
       "confirm": "تأكيد",
@@ -1815,7 +1833,12 @@
         "time_off_update": "انعدّلت الإجازة.",
         "time_off_delete": "انحذفت الإجازة.",
         "lab_order_status": "تغيّرت حالة الطلبية.",
-        "stock_movement": "انسجّلت حركة المخزون."
+        "stock_movement": "انسجّلت حركة المخزون.",
+        "doctor_schedule": "انعدّل الدوام.",
+        "payment_reverse": "انعكست الدفعة.",
+        "lab_payment_create": "انسجّلت دفعة المختبر.",
+        "lab_payment_reverse": "انعكست دفعة المختبر.",
+        "stock_reverse": "انعكست الحركة."
       },
       "redraft": "جهّز الطلب من جديد",
       "onConflict": {
@@ -1961,7 +1984,12 @@
         "update_doctor_time_off": "تعديل إجازة طبيب",
         "delete_doctor_time_off": "حذف إجازة طبيب",
         "set_lab_order_status": "تغيير حالة طلبية مختبر",
-        "record_stock_movement": "حركة مخزون"
+        "record_stock_movement": "حركة مخزون",
+        "set_doctor_schedule": "تعديل دوام طبيب",
+        "reverse_payment": "عكس دفعة مريض",
+        "record_lab_payment": "دفعة لمختبر",
+        "reverse_lab_payment": "عكس دفعة مختبر",
+        "reverse_stock_movement": "عكس حركة مخزون"
       },
       "paymentTypedAbove": "تأكيد بالكتابة للدفعات من مبلغ",
       "paymentTypedAboveHint": "أي دفعة بهالمبلغ أو أكتر بتحتاج كتابة عبارة التأكيد.",

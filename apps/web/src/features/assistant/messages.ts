@@ -59,6 +59,15 @@ const TOOL_KEYS: Record<AiToolName, string> = {
   [AI_TOOL.SET_LAB_ORDER_STATUS]: "assistant.tools.labOrderStatus",
   [AI_TOOL.FIND_STOCK_ITEMS]: "assistant.tools.findStockItems",
   [AI_TOOL.RECORD_STOCK_MOVEMENT]: "assistant.tools.stockMovement",
+  [AI_TOOL.SET_DOCTOR_SCHEDULE]: "assistant.tools.doctorSchedule",
+  [AI_TOOL.FIND_PAYMENTS]: "assistant.tools.findPayments",
+  [AI_TOOL.REVERSE_PAYMENT]: "assistant.tools.reversePayment",
+  [AI_TOOL.FIND_LABS]: "assistant.tools.findLabs",
+  [AI_TOOL.GET_LAB_PAYMENTS]: "assistant.tools.labPayments",
+  [AI_TOOL.RECORD_LAB_PAYMENT]: "assistant.tools.labPayment",
+  [AI_TOOL.REVERSE_LAB_PAYMENT]: "assistant.tools.reverseLabPayment",
+  [AI_TOOL.GET_STOCK_MOVEMENTS]: "assistant.tools.stockMovements",
+  [AI_TOOL.REVERSE_STOCK_MOVEMENT]: "assistant.tools.reverseStockMovement",
 };
 
 const ACTION_ERROR_KEYS: Record<AiActionError, string> = {

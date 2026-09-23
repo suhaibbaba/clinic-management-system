@@ -21,13 +21,17 @@ import { z } from "zod";
 import { AppointmentsService } from "@api/appointments/appointments.service";
 import { LedgerService } from "@api/billing/ledger.service";
 import { OverdueService } from "@api/billing/overdue.service";
+import { PaymentsService } from "@api/billing/payments.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DoctorsService } from "@api/doctors/doctors.service";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, visits } from "@api/database/schema";
 import { InventoryItemsService } from "@api/inventory/inventory-items.service";
+import { StockMovementsService } from "@api/inventory/stock-movements.service";
 import { InventoryReportsService } from "@api/inventory/inventory-reports.service";
 import { LabOrdersService } from "@api/labs/lab-orders.service";
+import { LabPaymentsService } from "@api/labs/lab-payments.service";
+import { LabsService } from "@api/labs/labs.service";
 import { PatientAccessService } from "@api/patients/patient-access.service";
 import { PatientsService } from "@api/patients/patients.service";
 import { TimelineService } from "@api/patients/timeline.service";
@@ -64,6 +68,10 @@ const CAPABILITY = {
   INVENTORY_ALERTS: "inventory.alerts",
   LAB_ORDERS_LIST: "lab-orders.list",
   INVENTORY_ITEMS: "inventory.list",
+  INVENTORY_MOVEMENTS: "inventory.listMovements",
+  PAYMENTS_LIST: "payments.list",
+  LABS_LIST: "labs.list",
+  LAB_PAYMENTS_LIST: "lab-ledger.listPayments",
   OUTBOUND_SEND: "ai-outbound.send",
 } as const;
 
@@ -94,6 +102,10 @@ export class AiToolsService {
     private readonly inventory: InventoryReportsService,
     private readonly stockItems: InventoryItemsService,
     private readonly timeOff: DoctorTimeOffService,
+    private readonly payments: PaymentsService,
+    private readonly labs: LabsService,
+    private readonly labPayments: LabPaymentsService,
+    private readonly movements: StockMovementsService,
     private readonly permissions: PermissionsService,
     private readonly proposals: ProposalsService,
     private readonly actions: AiActionsService,
@@ -174,6 +186,7 @@ export class AiToolsService {
               id: doctor.id,
               name: doctor.user.name,
               isActive: doctor.user.isActive,
+              weeklySchedule: doctor.weeklySchedule,
             })),
             page.total,
           );
@@ -255,6 +268,97 @@ export class AiToolsService {
           });
 
           return capped(page.items.map(toStockSummary), page.total);
+        },
+      }),
+
+      defineTool({
+        name: AI_TOOL.FIND_PAYMENTS,
+        description:
+          "A patient's payments, newest first, with their receipt numbers. A row with " +
+          "reversesId is a reversal of the payment it names. Use it to find the payment_id " +
+          "to reverse.",
+        capability: CAPABILITY.PAYMENTS_LIST,
+        schema: z.object({ patient_id: z.uuid() }),
+        run: async (actor, args) => {
+          const page = await this.payments.list(actor, {
+            page: 1,
+            limit: TOOL_ROW_LIMIT,
+            patientId: args.patient_id,
+          });
+
+          return capped(page.items.map(toPaymentSummary), page.total);
+        },
+      }),
+
+      defineTool({
+        name: AI_TOOL.FIND_LABS,
+        description:
+          "The clinic's labs by name, with what the clinic owes each and how many orders are " +
+          "open. Use it to turn a lab's name into a lab_id.",
+        capability: CAPABILITY.LABS_LIST,
+        schema: z.object({ query: z.string().trim().min(1).max(160).optional() }),
+        run: async (actor, args) => {
+          const page = await this.labs.list(actor, {
+            page: 1,
+            limit: TOOL_ROW_LIMIT,
+            ...(args.query && { search: args.query }),
+          });
+
+          return capped(
+            page.items.map((lab) => ({
+              id: lab.id,
+              name: lab.name,
+              balance: lab.balance,
+              openOrders: lab.openOrders,
+            })),
+            page.total,
+          );
+        },
+      }),
+
+      defineTool({
+        name: AI_TOOL.GET_LAB_PAYMENTS,
+        description:
+          "What the clinic paid one lab, newest first. A row with reversesId is a reversal of " +
+          "the payment it names. Use it to find the lab_payment_id to reverse.",
+        capability: CAPABILITY.LAB_PAYMENTS_LIST,
+        schema: z.object({ lab_id: z.uuid() }),
+        run: async (actor, args) => {
+          const page = await this.labPayments.list(actor, args.lab_id, {
+            page: 1,
+            limit: TOOL_ROW_LIMIT,
+          });
+
+          return capped(page.items.map(toPaymentSummary), page.total);
+        },
+      }),
+
+      defineTool({
+        name: AI_TOOL.GET_STOCK_MOVEMENTS,
+        description:
+          "One stock item's movements, newest first: purchases, uses and counts. A row with " +
+          "reversesId is a reversal. Use it to find the movement_id to reverse.",
+        capability: CAPABILITY.INVENTORY_MOVEMENTS,
+        schema: z.object({ item_id: z.uuid() }),
+        run: async (actor, args) => {
+          const page = await this.movements.list(actor, {
+            page: 1,
+            limit: TOOL_ROW_LIMIT,
+            itemId: args.item_id,
+          });
+
+          return capped(
+            page.items.map((movement) => ({
+              id: movement.id,
+              type: movement.type,
+              quantity: movement.quantity,
+              reason: movement.reason,
+              reversesId: movement.reversesId,
+              reversedAt: movement.reversedAt,
+              createdAt: movement.createdAt,
+            })),
+            page.total,
+          );
         },
       }),
 
@@ -595,6 +699,24 @@ const toLabOrderSummary = (order: LabOrderRow) => ({
   status: order.status,
   expectedAt: order.expectedAt,
   teeth: order.teeth,
+});
+
+const toPaymentSummary = (payment: {
+  id: string;
+  amount: string;
+  method: string;
+  note: string | null;
+  reversesId: string | null;
+  createdAt: string;
+  receiptNumber?: number | null;
+}) => ({
+  id: payment.id,
+  amount: payment.amount,
+  method: payment.method,
+  receiptNumber: payment.receiptNumber ?? null,
+  note: payment.note,
+  reversesId: payment.reversesId,
+  createdAt: payment.createdAt,
 });
 
 const toStockSummary = (item: InventoryItemRow) => ({

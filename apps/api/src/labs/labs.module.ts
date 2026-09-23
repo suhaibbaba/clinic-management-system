@@ -31,6 +31,6 @@ import { StorageModule } from "@api/storage/storage.module";
     LabPaymentsService,
     LabDocumentsService,
   ],
-  exports: [LabOrdersService, LabLedgerService],
+  exports: [LabOrdersService, LabLedgerService, LabsService, LabPaymentsService],
 })
 export class LabsModule {}

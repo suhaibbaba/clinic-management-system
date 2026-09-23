@@ -25,6 +25,10 @@ import {
   AI_TOOL,
   AI_TOOL_ERROR,
   adjustStockSchema,
+  weeklyScheduleSchema,
+  type DaySchedule,
+  type TimeRange,
+  type WeeklySchedule,
   canTransitionLabOrder,
   consumeStockSchema,
   LAB_ORDER_STATUS,
@@ -92,17 +96,23 @@ import {
   aiProposals,
   appointments,
   clinics,
+  labPayments,
   lookupOptions,
   patients,
+  payments,
+  stockMovements,
   visits,
 } from "@api/database/schema";
-import { DoctorsService } from "@api/doctors/doctors.service";
+import { DOCTORS_ENTITY, DoctorsService } from "@api/doctors/doctors.service";
 import {
   STOCK_MOVEMENTS_ENTITY,
   StockMovementsService,
 } from "@api/inventory/stock-movements.service";
 import { InventoryItemsService } from "@api/inventory/inventory-items.service";
+import { LabLedgerService } from "@api/labs/lab-ledger.service";
 import { LAB_ORDERS_ENTITY, LabOrdersService } from "@api/labs/lab-orders.service";
+import { LAB_PAYMENTS_ENTITY, LabPaymentsService } from "@api/labs/lab-payments.service";
+import { LabsService } from "@api/labs/labs.service";
 import { PATIENTS_ENTITY } from "@api/patients/patient-view";
 import { PatientsService } from "@api/patients/patients.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
@@ -133,6 +143,11 @@ export const TYPED_PHRASES: Record<ActionKind, string> = {
   [AI_PROPOSAL_KIND.TIME_OFF_DELETE]: "تأكيد حذف الإجازة",
   [AI_PROPOSAL_KIND.LAB_ORDER_STATUS]: "تأكيد تغيير حالة الطلبية",
   [AI_PROPOSAL_KIND.STOCK_MOVEMENT]: "تأكيد حركة المخزون",
+  [AI_PROPOSAL_KIND.DOCTOR_SCHEDULE]: "تأكيد تعديل الدوام",
+  [AI_PROPOSAL_KIND.PAYMENT_REVERSE]: "تأكيد عكس الدفعة",
+  [AI_PROPOSAL_KIND.LAB_PAYMENT_CREATE]: "تأكيد دفعة المختبر",
+  [AI_PROPOSAL_KIND.LAB_PAYMENT_REVERSE]: "تأكيد عكس دفعة المختبر",
+  [AI_PROPOSAL_KIND.STOCK_REVERSE]: "تأكيد عكس الحركة",
 };
 
 const DORMANT_AFTER_DAYS = 730;
@@ -250,6 +265,50 @@ const movementSchema = z.object({
   reason: z.string().trim().max(500).optional().describe("Required for an adjust."),
 });
 
+const scheduleSchema = z.object({
+  doctor_id: z.uuid(),
+  days: z
+    .array(
+      z.object({
+        weekday: z.number().int().min(0).max(6).describe("0 is Sunday, 6 is Saturday."),
+        ranges: z
+          .array(z.object({ start: timeSchema, end: timeSchema }))
+          .max(6)
+          .describe("The working hours that day; empty for a day off."),
+      }),
+    )
+    .min(1)
+    .max(7),
+  acknowledge: acknowledgeSchema,
+});
+
+const reversalReason = z.string().trim().min(3).max(500);
+
+const labPaymentSchema = z.object({
+  lab_id: z.uuid(),
+  amount: z.number().int().min(1).max(99_999_999),
+  method: z.string().trim().min(1).max(64).optional(),
+  note: z.string().trim().max(500).optional(),
+  acknowledge: acknowledgeSchema,
+});
+
+interface SchedulePayload {
+  readonly doctorId: string;
+  readonly weeklySchedule: WeeklySchedule;
+}
+
+interface ReversalPayload {
+  readonly id: string;
+  readonly reason: string;
+}
+
+interface LabPaymentPayload {
+  readonly labId: string;
+  readonly amount: string;
+  readonly method: string;
+  readonly note: string | null;
+}
+
 type MovementInput =
   | { readonly type: typeof MOVEMENT_TYPE.PURCHASE; readonly input: PurchaseStockInput }
   | { readonly type: typeof MOVEMENT_TYPE.CONSUME; readonly input: ConsumeStockInput }
@@ -363,6 +422,9 @@ export class AiActionsService {
     private readonly labOrders: LabOrdersService,
     private readonly stockItems: InventoryItemsService,
     private readonly movements: StockMovementsService,
+    private readonly labs: LabsService,
+    private readonly labPaymentsService: LabPaymentsService,
+    private readonly labLedger: LabLedgerService,
     private readonly permissions: PermissionsService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
     private readonly audit: AuditService,
@@ -1450,6 +1512,324 @@ export class AiActionsService {
         },
       }),
 
+      defineAction<typeof scheduleSchema, SchedulePayload>({
+        tool: AI_TOOL.SET_DOCTOR_SCHEDULE,
+        kind: AI_PROPOSAL_KIND.DOCTOR_SCHEDULE,
+        description:
+          "Change a doctor's weekly working hours. Pass only the weekdays that change, each " +
+          "with its full new hours (empty for a day off); the others stay as they are — read " +
+          "them from find_doctors. Appointments left outside the new hours come back as a " +
+          "sanity_check. For one day or a few days away, use add_doctor_time_off instead. " +
+          "Waits on a card the user confirms.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.SET_DOCTOR_SCHEDULE],
+        capability: "doctors.updateSchedule",
+        schema: scheduleSchema,
+        prepare: async (actor, args) => {
+          const doctor = await this.doctors.findOne(actor, args.doctor_id);
+          const changed = new Map(args.days.map((day) => [day.weekday, day.ranges]));
+          const next = weeklyScheduleSchema.safeParse(
+            [
+              ...doctor.weeklySchedule.filter((day) => !changed.has(day.weekday)),
+              ...[...changed].map(([weekday, ranges]) => ({ weekday, ranges })),
+            ].sort((a, b) => a.weekday - b.weekday),
+          );
+
+          if (!next.success) {
+            return new Stop({
+              status: "invalid_arguments",
+              details: next.error.issues.map(
+                (issue) => `${issue.path.join(".")}: ${issue.message}`,
+              ),
+            });
+          }
+
+          const outside = await this.outsideHours(actor, doctor.id, next.data, [...changed.keys()]);
+
+          if (
+            outside.length > 0 &&
+            !(args.acknowledge ?? []).includes(AI_ACTION_CHECK.OUTSIDE_SCHEDULE)
+          ) {
+            return sanityCheck(AI_ACTION_CHECK.OUTSIDE_SCHEDULE, {
+              appointments: outside.map((appointment) => ({
+                id: appointment.id,
+                startsAt: appointment.startsAt,
+                patientName: appointment.patientName,
+              })),
+              note:
+                "They stay booked outside the new hours; nothing cancels them. Ask whether " +
+                "that is right, or whether they should be moved or cancelled first.",
+            });
+          }
+
+          return {
+            payload: { doctorId: doctor.id, weeklySchedule: next.data },
+            summary: {
+              doctor: { id: doctor.id, name: doctor.user.name },
+              scheduleChanges: [...changed.keys()]
+                .sort((a, b) => a - b)
+                .map((weekday) => ({
+                  weekday,
+                  before: rangesOn(doctor.weeklySchedule, weekday),
+                  after: rangesOn(next.data, weekday),
+                })),
+              ...(outside.length > 0 && {
+                outsideHours: true,
+                appointments: outside.map((appointment) => ({
+                  id: appointment.id,
+                  startsAt: appointment.startsAt,
+                  patientName: appointment.patientName,
+                  patientFileNumber: appointment.patientFileNumber,
+                  doctorName: appointment.doctorName,
+                })),
+              }),
+            },
+          };
+        },
+        execute: async (actor, payload) => {
+          await this.audited(actor, DOCTORS_ENTITY, AUDIT_ACTION.UPDATE, payload.doctorId, () =>
+            this.doctors.updateSchedule(actor, payload.doctorId, {
+              weeklySchedule: payload.weeklySchedule,
+            }),
+          );
+
+          return { result: null, audit: { entity: DOCTORS_ENTITY, entityId: payload.doctorId } };
+        },
+      }),
+
+      defineAction<
+        z.ZodObject<{ payment_id: z.ZodUUID; reason: typeof reversalReason }>,
+        ReversalPayload
+      >({
+        tool: AI_TOOL.REVERSE_PAYMENT,
+        kind: AI_PROPOSAL_KIND.PAYMENT_REVERSE,
+        description:
+          "Reverse a patient's payment recorded by mistake: a new negative entry cancels it, " +
+          "and the original stays on the record. Takes a payment_id from find_payments and the " +
+          "reason the user gave. Always needs a typed confirmation.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.REVERSE_PAYMENT],
+        capability: "payments.reverse",
+        schema: z.object({ payment_id: z.uuid(), reason: reversalReason }),
+        prepare: async (actor, args) => {
+          const payment = await this.payments.findOne(actor, args.payment_id);
+          const [row] = await this.db
+            .select({ reversesId: payments.reversesId, reversedAt: payments.reversedAt })
+            .from(payments)
+            .where(and(eq(payments.id, payment.id), eq(payments.clinicId, actor.clinicId)));
+          const stop = irreversible(row);
+
+          if (stop) {
+            return stop;
+          }
+
+          const patient = await this.patients.findOne(actor, payment.patientId);
+
+          return {
+            payload: { id: payment.id, reason: args.reason },
+            summary: {
+              patient: patientSummary(patient),
+              amount: payment.amount,
+              method: payment.method,
+              recordedAt: payment.createdAt,
+              reason: args.reason,
+            },
+          };
+        },
+        execute: async (actor, payload) => {
+          await this.audited(actor, PAYMENTS_ENTITY, AUDIT_ACTION.UPDATE, payload.id, async () => {
+            await this.payments.reverse(actor, payload.id, { reason: payload.reason });
+
+            return { id: payload.id };
+          });
+
+          return { result: null, audit: { entity: PAYMENTS_ENTITY, entityId: payload.id } };
+        },
+      }),
+
+      defineAction<typeof labPaymentSchema, LabPaymentPayload>({
+        tool: AI_TOOL.RECORD_LAB_PAYMENT,
+        kind: AI_PROPOSAL_KIND.LAB_PAYMENT_CREATE,
+        description:
+          "Record money the clinic paid a lab, as a whole amount, with the payment method's " +
+          "code (omit it for the clinic's first method). Takes a lab_id from find_labs. Waits " +
+          "on a card the user confirms; a large one needs a typed confirmation.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.RECORD_LAB_PAYMENT],
+        capability: "lab-payments.create",
+        schema: labPaymentSchema,
+        prepare: async (actor, args) => {
+          const lab = await this.labs.findOne(actor, args.lab_id);
+          const methods = await this.paymentMethods(actor.clinicId);
+          const method = args.method ?? methods[0];
+
+          if (!method || !methods.includes(method)) {
+            return new Stop({ status: "unknown_method", methods });
+          }
+
+          const amount = wholeMoneySchema.parse(String(args.amount));
+          const { balance } = await this.labLedger.balanceFor(actor.clinicId, lab.id);
+
+          if (
+            !(args.acknowledge ?? []).includes(AI_ACTION_CHECK.EXCEEDS_BALANCE) &&
+            toMinorUnits(amount) > EXCEEDS_BALANCE_FACTOR * Math.max(toMinorUnits(balance), 0)
+          ) {
+            return sanityCheck(AI_ACTION_CHECK.EXCEEDS_BALANCE, { amount, balance });
+          }
+
+          return {
+            payload: { labId: lab.id, amount, method, note: args.note ?? null },
+            summary: {
+              lab: { id: lab.id, name: lab.name },
+              amount,
+              method,
+              ...(args.note && { note: args.note }),
+            },
+          };
+        },
+        escalate: (payload, settings) =>
+          toMinorUnits(payload.amount) >= settings.paymentTypedAbove * 100
+            ? AI_RISK_TIER.TYPED
+            : AI_RISK_TIER.AUTO,
+        execute: async (actor, payload) => {
+          const payment = await this.audited(
+            actor,
+            LAB_PAYMENTS_ENTITY,
+            AUDIT_ACTION.CREATE,
+            undefined,
+            () => this.labPaymentsService.create(actor, payload),
+          );
+
+          return { result: null, audit: { entity: LAB_PAYMENTS_ENTITY, entityId: payment.id } };
+        },
+      }),
+
+      defineAction<
+        z.ZodObject<{ lab_payment_id: z.ZodUUID; reason: typeof reversalReason }>,
+        ReversalPayload
+      >({
+        tool: AI_TOOL.REVERSE_LAB_PAYMENT,
+        kind: AI_PROPOSAL_KIND.LAB_PAYMENT_REVERSE,
+        description:
+          "Reverse a payment to a lab recorded by mistake: a new negative entry cancels it. " +
+          "Takes a lab_payment_id from get_lab_payments and the reason the user gave. Always " +
+          "needs a typed confirmation.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.REVERSE_LAB_PAYMENT],
+        capability: "lab-payments.reverse",
+        schema: z.object({ lab_payment_id: z.uuid(), reason: reversalReason }),
+        prepare: async (actor, args) => {
+          const [row] = await this.db
+            .select()
+            .from(labPayments)
+            .where(
+              and(
+                eq(labPayments.id, args.lab_payment_id),
+                eq(labPayments.clinicId, actor.clinicId),
+                isNull(labPayments.deletedAt),
+              ),
+            );
+
+          if (!row) {
+            throw new NotFoundException("Resource not found");
+          }
+
+          const stop = irreversible(row);
+
+          if (stop) {
+            return stop;
+          }
+
+          const lab = await this.labs.findOne(actor, row.labId);
+
+          return {
+            payload: { id: row.id, reason: args.reason },
+            summary: {
+              lab: { id: lab.id, name: lab.name },
+              amount: row.amount,
+              method: row.method,
+              recordedAt: row.createdAt.toISOString(),
+              reason: args.reason,
+            },
+          };
+        },
+        execute: async (actor, payload) => {
+          await this.audited(
+            actor,
+            LAB_PAYMENTS_ENTITY,
+            AUDIT_ACTION.UPDATE,
+            payload.id,
+            async () => {
+              await this.labPaymentsService.reverse(actor, payload.id, { reason: payload.reason });
+
+              return { id: payload.id };
+            },
+          );
+
+          return { result: null, audit: { entity: LAB_PAYMENTS_ENTITY, entityId: payload.id } };
+        },
+      }),
+
+      defineAction<
+        z.ZodObject<{ movement_id: z.ZodUUID; reason: typeof reversalReason }>,
+        ReversalPayload
+      >({
+        tool: AI_TOOL.REVERSE_STOCK_MOVEMENT,
+        kind: AI_PROPOSAL_KIND.STOCK_REVERSE,
+        description:
+          "Reverse a stock movement recorded by mistake: a new opposite entry cancels it. " +
+          "Takes a movement_id from get_stock_movements and the reason the user gave. A count " +
+          "that was merely off is an adjust, not a reversal. Always needs a typed confirmation.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.REVERSE_STOCK_MOVEMENT],
+        capability: "inventory.reverse",
+        schema: z.object({ movement_id: z.uuid(), reason: reversalReason }),
+        prepare: async (actor, args) => {
+          const [row] = await this.db
+            .select()
+            .from(stockMovements)
+            .where(
+              and(
+                eq(stockMovements.id, args.movement_id),
+                eq(stockMovements.clinicId, actor.clinicId),
+              ),
+            );
+
+          if (!row) {
+            throw new NotFoundException("Resource not found");
+          }
+
+          const stop = irreversible(row);
+
+          if (stop) {
+            return stop;
+          }
+
+          const item = await this.stockItems.findOne(actor, row.itemId);
+
+          return {
+            payload: { id: row.id, reason: args.reason },
+            summary: {
+              stockItem: { id: item.id, name: item.nameAr, unit: item.unit },
+              movementType: row.type,
+              quantity: row.quantity,
+              recordedAt: row.createdAt.toISOString(),
+              reason: args.reason,
+            },
+          };
+        },
+        execute: async (actor, payload) => {
+          await this.audited(
+            actor,
+            STOCK_MOVEMENTS_ENTITY,
+            AUDIT_ACTION.UPDATE,
+            payload.id,
+            async () => {
+              await this.movements.reverse(actor, payload.id, { reason: payload.reason });
+
+              return { id: payload.id };
+            },
+          );
+
+          return { result: null, audit: { entity: STOCK_MOVEMENTS_ENTITY, entityId: payload.id } };
+        },
+      }),
+
       defineAction({
         tool: AI_TOOL.CREATE_PATIENT,
         kind: AI_PROPOSAL_KIND.PATIENT_CREATE,
@@ -1792,6 +2172,55 @@ export class AiActionsService {
     }
   }
 
+  /** Booked appointments from now on, on the changed weekdays, that no longer fit the hours. */
+  private async outsideHours(
+    actor: AuthenticatedUser,
+    doctorId: string,
+    schedule: WeeklySchedule,
+    weekdays: readonly number[],
+  ): Promise<CalendarAppointment[]> {
+    const zone = await this.timeZone(actor.clinicId);
+    const rows = await this.db
+      .select({
+        id: appointments.id,
+        startsAt: appointments.startsAt,
+        durationMinutes: appointments.durationMinutes,
+        status: appointments.status,
+      })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.clinicId, actor.clinicId),
+          eq(appointments.doctorId, doctorId),
+          isNull(appointments.deletedAt),
+          gte(appointments.startsAt, new Date()),
+        ),
+      )
+      .orderBy(asc(appointments.startsAt));
+
+    const outside = rows.filter((row) => {
+      if (!occupiesSlot(row.status)) {
+        return false;
+      }
+
+      const { weekday, minute } = clockIn(zone, row.startsAt);
+
+      return (
+        weekdays.includes(weekday) &&
+        !rangesOn(schedule, weekday).some(
+          (range) =>
+            minutes(range.start) <= minute && minute + row.durationMinutes <= minutes(range.end),
+        )
+      );
+    });
+
+    return Promise.all(
+      outside
+        .slice(0, LARGE_CANCELLATION * 5)
+        .map((row) => this.appointments.findOne(actor, row.id)),
+    );
+  }
+
   /** Somebody not seen in two years is as likely a namesake as the person meant. */
   private async dormant(
     actor: AuthenticatedUser,
@@ -2024,6 +2453,54 @@ function parseMovement(args: z.output<typeof movementSchema>): MovementInput | S
         details: parsed.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`),
       })
     : parsed;
+}
+
+/** A reversing entry, or one already reversed, is where the ledger stops. */
+function irreversible(
+  row: { reversesId: string | null; reversedAt: Date | null } | undefined,
+): Stop | null {
+  if (!row) {
+    throw new NotFoundException("Resource not found");
+  }
+
+  if (row.reversesId !== null) {
+    return new Stop({ status: "not_possible", reason: "is_a_reversal" });
+  }
+
+  return row.reversedAt === null
+    ? null
+    : new Stop({ status: "not_possible", reason: "already_reversed" });
+}
+
+const rangesOn = (schedule: readonly DaySchedule[], weekday: number): TimeRange[] =>
+  schedule.find((day) => day.weekday === weekday)?.ranges ?? [];
+
+const WEEKDAY_INDEX: Record<string, number> = {
+  Sun: 0,
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+};
+
+// The clinic's weekday and minute of the day, as `DaySchedule` counts them.
+function clockIn(timeZone: string, instant: Date): { weekday: number; minute: number } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(instant);
+  const read = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((part) => part.type === type)?.value ?? "";
+
+  return {
+    weekday: WEEKDAY_INDEX[read("weekday")] ?? 0,
+    minute: Number(read("hour")) * 60 + Number(read("minute")),
+  };
 }
 
 const patientSummary = (patient: PatientView) => ({

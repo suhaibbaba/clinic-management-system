@@ -1674,7 +1674,16 @@
       "findLabOrders": "Searching the lab orders",
       "labOrderStatus": "Preparing the status change",
       "findStockItems": "Searching the stock",
-      "stockMovement": "Preparing the stock movement"
+      "stockMovement": "Preparing the stock movement",
+      "doctorSchedule": "Preparing the new hours",
+      "findPayments": "Checking the patient's payments",
+      "reversePayment": "Preparing the reversal",
+      "findLabs": "Searching the labs",
+      "labPayments": "Checking the lab's payments",
+      "labPayment": "Preparing the lab payment",
+      "reverseLabPayment": "Preparing the reversal",
+      "stockMovements": "Checking the item's movements",
+      "reverseStockMovement": "Preparing the reversal"
     },
     "errors": {
       "rateLimited": "Too many questions too quickly. Try again shortly.",
@@ -1734,7 +1743,12 @@
         "time_off_update": "Change doctor time off",
         "time_off_delete": "Remove doctor time off",
         "lab_order_status": "Move a lab order",
-        "stock_movement": "Stock movement"
+        "stock_movement": "Stock movement",
+        "doctor_schedule": "Change a doctor's hours",
+        "payment_reverse": "Reverse a patient payment",
+        "lab_payment_create": "Pay a lab",
+        "lab_payment_reverse": "Reverse a lab payment",
+        "stock_reverse": "Reverse a stock movement"
       },
       "tiers": {
         "auto": "Automatic",
@@ -1771,7 +1785,11 @@
         "item": "Item",
         "movement": "Movement",
         "quantity": "Quantity",
-        "unitPrice": "Unit price"
+        "unitPrice": "Unit price",
+        "lab": "Lab",
+        "recordedAt": "Recorded",
+        "dayOff": "Day off",
+        "outsideHours": "These appointments stay booked outside the new hours"
       },
       "typeToConfirm": "Type \"{{phrase}}\" to confirm",
       "confirm": "Confirm",
@@ -1791,7 +1809,12 @@
         "time_off_update": "The time off was changed.",
         "time_off_delete": "The time off was removed.",
         "lab_order_status": "The lab order moved.",
-        "stock_movement": "The stock movement was recorded."
+        "stock_movement": "The stock movement was recorded.",
+        "doctor_schedule": "The hours were changed.",
+        "payment_reverse": "The payment was reversed.",
+        "lab_payment_create": "The lab payment was recorded.",
+        "lab_payment_reverse": "The lab payment was reversed.",
+        "stock_reverse": "The movement was reversed."
       },
       "redraft": "Prepare the request again",
       "onConflict": {
@@ -1937,7 +1960,12 @@
         "update_doctor_time_off": "Change doctor time off",
         "delete_doctor_time_off": "Remove doctor time off",
         "set_lab_order_status": "Move a lab order",
-        "record_stock_movement": "Stock movement"
+        "record_stock_movement": "Stock movement",
+        "set_doctor_schedule": "Change a doctor's hours",
+        "reverse_payment": "Reverse a patient payment",
+        "record_lab_payment": "Pay a lab",
+        "reverse_lab_payment": "Reverse a lab payment",
+        "reverse_stock_movement": "Reverse a stock movement"
       },
       "paymentTypedAbove": "Typed confirmation for payments from",
       "paymentTypedAboveHint": "A payment of this amount or more needs the confirmation phrase typed.",

@@ -515,6 +515,15 @@ export const AI_TOOL = {
   SET_LAB_ORDER_STATUS: "set_lab_order_status",
   FIND_STOCK_ITEMS: "find_stock_items",
   RECORD_STOCK_MOVEMENT: "record_stock_movement",
+  SET_DOCTOR_SCHEDULE: "set_doctor_schedule",
+  FIND_PAYMENTS: "find_payments",
+  REVERSE_PAYMENT: "reverse_payment",
+  FIND_LABS: "find_labs",
+  GET_LAB_PAYMENTS: "get_lab_payments",
+  RECORD_LAB_PAYMENT: "record_lab_payment",
+  REVERSE_LAB_PAYMENT: "reverse_lab_payment",
+  GET_STOCK_MOVEMENTS: "get_stock_movements",
+  REVERSE_STOCK_MOVEMENT: "reverse_stock_movement",
 } as const satisfies Record<string, string>;
 export type AiToolName = EnumValue<typeof AI_TOOL>;
 
@@ -544,6 +553,15 @@ export const AI_TOOL_NAMES = [
   AI_TOOL.SET_LAB_ORDER_STATUS,
   AI_TOOL.FIND_STOCK_ITEMS,
   AI_TOOL.RECORD_STOCK_MOVEMENT,
+  AI_TOOL.SET_DOCTOR_SCHEDULE,
+  AI_TOOL.FIND_PAYMENTS,
+  AI_TOOL.REVERSE_PAYMENT,
+  AI_TOOL.FIND_LABS,
+  AI_TOOL.GET_LAB_PAYMENTS,
+  AI_TOOL.RECORD_LAB_PAYMENT,
+  AI_TOOL.REVERSE_LAB_PAYMENT,
+  AI_TOOL.GET_STOCK_MOVEMENTS,
+  AI_TOOL.REVERSE_STOCK_MOVEMENT,
 ] as const;
 
 /** The tools that change something. Each one a clinic may switch off or tighten. */
@@ -561,6 +579,11 @@ export const AI_ACTION_TOOLS = [
   AI_TOOL.DELETE_DOCTOR_TIME_OFF,
   AI_TOOL.SET_LAB_ORDER_STATUS,
   AI_TOOL.RECORD_STOCK_MOVEMENT,
+  AI_TOOL.SET_DOCTOR_SCHEDULE,
+  AI_TOOL.REVERSE_PAYMENT,
+  AI_TOOL.RECORD_LAB_PAYMENT,
+  AI_TOOL.REVERSE_LAB_PAYMENT,
+  AI_TOOL.REVERSE_STOCK_MOVEMENT,
 ] as const;
 export type AiActionTool = (typeof AI_ACTION_TOOLS)[number];
 
@@ -601,6 +624,12 @@ export const AI_ACTION_BASE_TIER: Record<AiActionTool, AiRiskTier> = {
   [AI_TOOL.DELETE_DOCTOR_TIME_OFF]: AI_RISK_TIER.CONFIRM,
   [AI_TOOL.SET_LAB_ORDER_STATUS]: AI_RISK_TIER.CONFIRM,
   [AI_TOOL.RECORD_STOCK_MOVEMENT]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.SET_DOCTOR_SCHEDULE]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.RECORD_LAB_PAYMENT]: AI_RISK_TIER.CONFIRM,
+  // A reversal makes money or stock appear to come back, and only an admin may: always typed.
+  [AI_TOOL.REVERSE_PAYMENT]: AI_RISK_TIER.TYPED,
+  [AI_TOOL.REVERSE_LAB_PAYMENT]: AI_RISK_TIER.TYPED,
+  [AI_TOOL.REVERSE_STOCK_MOVEMENT]: AI_RISK_TIER.TYPED,
 };
 
 /** What a pending proposal will do once a person confirms it. */
@@ -619,6 +648,11 @@ export const AI_PROPOSAL_KIND = {
   TIME_OFF_DELETE: "time_off_delete",
   LAB_ORDER_STATUS: "lab_order_status",
   STOCK_MOVEMENT: "stock_movement",
+  DOCTOR_SCHEDULE: "doctor_schedule",
+  PAYMENT_REVERSE: "payment_reverse",
+  LAB_PAYMENT_CREATE: "lab_payment_create",
+  LAB_PAYMENT_REVERSE: "lab_payment_reverse",
+  STOCK_REVERSE: "stock_reverse",
 } as const satisfies Record<string, string>;
 export type AiProposalKind = EnumValue<typeof AI_PROPOSAL_KIND>;
 
@@ -637,6 +671,11 @@ export const AI_PROPOSAL_KINDS = [
   AI_PROPOSAL_KIND.TIME_OFF_DELETE,
   AI_PROPOSAL_KIND.LAB_ORDER_STATUS,
   AI_PROPOSAL_KIND.STOCK_MOVEMENT,
+  AI_PROPOSAL_KIND.DOCTOR_SCHEDULE,
+  AI_PROPOSAL_KIND.PAYMENT_REVERSE,
+  AI_PROPOSAL_KIND.LAB_PAYMENT_CREATE,
+  AI_PROPOSAL_KIND.LAB_PAYMENT_REVERSE,
+  AI_PROPOSAL_KIND.STOCK_REVERSE,
 ] as const;
 
 // Not errors: the model relays each one as a question and does not retry around it. Only a
@@ -647,6 +686,8 @@ export const AI_ACTION_CHECK = {
   DORMANT_PATIENT: "dormant_patient",
   /** A new patient on a phone another patient already has — a parent and child share a handset. */
   POSSIBLE_DUPLICATE: "possible_duplicate",
+  /** A new weekly schedule that leaves booked appointments outside its hours. */
+  OUTSIDE_SCHEDULE: "outside_schedule",
 } as const satisfies Record<string, string>;
 export type AiActionCheck = EnumValue<typeof AI_ACTION_CHECK>;
 
@@ -667,6 +708,7 @@ export const AI_ACTION_CHECKS = [
   AI_ACTION_CHECK.EXCEEDS_BALANCE,
   AI_ACTION_CHECK.DORMANT_PATIENT,
   AI_ACTION_CHECK.POSSIBLE_DUPLICATE,
+  AI_ACTION_CHECK.OUTSIDE_SCHEDULE,
 ] as const;
 
 export const AI_STREAM_EVENT = {
