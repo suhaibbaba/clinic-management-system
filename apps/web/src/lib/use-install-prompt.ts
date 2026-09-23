@@ -16,7 +16,8 @@ export type InstallState =
   /** A desktop browser with nothing to offer, or a tab that has not been offered it. */
   | "unavailable";
 
-const standalone = (): boolean =>
+/** True when the app runs from a home screen rather than a browser tab. */
+export const isStandalone = (): boolean =>
   // An embedded webview may implement neither; not installed is the safe answer.
   window.matchMedia?.("(display-mode: standalone)").matches === true ||
   // iOS never adopted `display-mode`, and reports this on `navigator` instead.
@@ -35,7 +36,7 @@ export function useInstallPrompt(): {
   const [installed, setInstalled] = useState(false);
 
   useEffect(() => {
-    setInstalled(standalone());
+    setInstalled(isStandalone());
 
     const offered = (raised: Event): void => {
       // Without this Chromium shows its own bar as well, and the page says the same thing twice.
