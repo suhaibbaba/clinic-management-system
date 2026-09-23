@@ -23,6 +23,8 @@ export interface ChatToolDefinition {
 export interface ChatRequest {
   readonly messages: readonly ChatMessage[];
   readonly tools: readonly ChatToolDefinition[];
+  /** A lower budget for this step; never above `AI_MAX_OUTPUT_TOKENS`. */
+  readonly maxOutputTokens?: number;
 }
 
 export interface ChatUsage {
@@ -37,6 +39,8 @@ export type ChatChunk =
       readonly text: string;
       readonly toolCalls: readonly ChatToolCall[];
       readonly usage: ChatUsage;
+      /** The budget ran out before the model finished: a tool call's arguments may be cut. */
+      readonly truncated?: boolean;
     };
 
 // One method, because a completion with tools is all any provider has to offer here. A provider

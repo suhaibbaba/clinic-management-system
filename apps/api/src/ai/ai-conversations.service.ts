@@ -25,6 +25,35 @@ const REPLAYED_ROLES = [...SERVED_ROLES, AI_MESSAGE_ROLE.TOOL];
 /** A long listing replayed whole would crowd out the conversation it belongs to. */
 const REPLAY_MAX_CHARS = 4000;
 
+/**
+ * The last two tool results, verbatim, so "and the one after him?" has the list it refers to;
+ * older ones are dropped, oldest first, and the pair together stays under a budget.
+ */
+const REPLAYED_RESULTS = 2;
+const REPLAY_BUDGET_CHARS = 6000;
+
+export function replayable<TRow extends { role: string; content: string }>(rows: TRow[]): TRow[] {
+  const keep = new Set<TRow>();
+  let spent = 0;
+
+  for (const row of [...rows].reverse()) {
+    if (row.role !== AI_MESSAGE_ROLE.TOOL) {
+      continue;
+    }
+
+    const size = Math.min(row.content.length, REPLAY_MAX_CHARS);
+
+    if (keep.size === REPLAYED_RESULTS || spent + size > REPLAY_BUDGET_CHARS) {
+      break;
+    }
+
+    keep.add(row);
+    spent += size;
+  }
+
+  return rows.filter((row) => row.role !== AI_MESSAGE_ROLE.TOOL || keep.has(row));
+}
+
 function replayed(
   content: string,
   outcome: { status: string; error: string | null } | undefined,
@@ -278,7 +307,7 @@ export class AiConversationsService {
 
     // The cut can land inside a turn; a thread that opens on a tool result is one the model rejects.
     const first = rows.findIndex((row) => row.role === AI_MESSAGE_ROLE.USER);
-    const kept = first === -1 ? [] : rows.slice(first);
+    const kept = replayable(first === -1 ? [] : rows.slice(first));
     const outcomes = await this.cardOutcomes(kept);
     const messages: ChatMessage[] = [];
     let calls: { id: string; name: string; content: string }[] = [];

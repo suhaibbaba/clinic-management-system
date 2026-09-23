@@ -13,6 +13,7 @@ import {
 } from "@clinic/shared";
 import type { ConfigService } from "@nestjs/config";
 import { AgentService } from "@api/ai/agent.service";
+import { replayable } from "@api/ai/ai-conversations.service";
 import { SYSTEM_PROMPT_VERSION, systemPrompt } from "@api/ai/system-prompt";
 import type { AiConversationsService } from "@api/ai/ai-conversations.service";
 import type { ChatProviderResolver } from "@api/ai/chat-provider.resolver";
@@ -538,6 +539,75 @@ describe("loading tools by group", () => {
 
     expect(requests[1]?.messages.at(-1)?.content).toContain("invalid_arguments");
     expect(offered).toEqual([[], []]);
+  });
+});
+
+describe("the reply budget", () => {
+  const read: ChatToolCall = {
+    id: "call_read",
+    name: AI_TOOL.GET_APPOINTMENTS,
+    arguments: '{"date_from":"2026-09-24","date_to":"2026-09-24"}',
+  };
+  const view: AiView = { type: "stats", tiles: [] };
+
+  it("drops to a short answer once a table or card was drawn, and not before", async () => {
+    const { provider, requests } = scripted([[completed("", [read])], [completed("٣ مواعيد")]]);
+    const { agent } = harness(provider, { view });
+
+    await collect(agent);
+
+    expect(requests.map((request) => request.maxOutputTokens)).toEqual([undefined, 200]);
+  });
+
+  it("asks again in full for a tool call the short budget cut off", async () => {
+    const plan: ChatToolCall = {
+      id: "call_plan",
+      name: AI_TOOL.PROPOSE_PLAN,
+      arguments: '{"title":"x',
+    };
+    const cut: ChatChunk = { ...completed("", [plan]), truncated: true } as ChatChunk;
+    const { provider, requests } = scripted([[completed("", [read])], [cut], [completed("جاهزة")]]);
+    const { agent, toolRuns } = harness(provider, { view });
+
+    await collect(agent);
+
+    expect(requests.map((request) => request.maxOutputTokens)).toEqual([undefined, 200, undefined]);
+    // The cut call never ran.
+    expect(toolRuns.map((run) => run.call.id)).toEqual(["call_read"]);
+  });
+});
+
+describe("what the history replays", () => {
+  const row = (role: string, content: string) => ({ role, content });
+
+  it("keeps the last two tool results and drops older ones", () => {
+    const rows = [
+      row(AI_MESSAGE_ROLE.USER, "q1"),
+      row(AI_MESSAGE_ROLE.TOOL, "first"),
+      row(AI_MESSAGE_ROLE.ASSISTANT, "a1"),
+      row(AI_MESSAGE_ROLE.USER, "q2"),
+      row(AI_MESSAGE_ROLE.TOOL, "second"),
+      row(AI_MESSAGE_ROLE.TOOL, "third"),
+      row(AI_MESSAGE_ROLE.ASSISTANT, "a2"),
+    ];
+
+    expect(replayable(rows).map((kept) => kept.content)).toEqual([
+      "q1",
+      "a1",
+      "q2",
+      "second",
+      "third",
+      "a2",
+    ]);
+  });
+
+  it("drops the older of the two when both would not fit the budget", () => {
+    const rows = [
+      row(AI_MESSAGE_ROLE.TOOL, "x".repeat(4000)),
+      row(AI_MESSAGE_ROLE.TOOL, "y".repeat(4000)),
+    ];
+
+    expect(replayable(rows).map((kept) => kept.content[0])).toEqual(["y"]);
   });
 });
 

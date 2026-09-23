@@ -53,13 +53,15 @@ export class OpenAiChatProvider implements ChatProvider {
     const text: string[] = [];
     const calls = new Map<number, PartialToolCall>();
     let usage = { inputTokens: 0, outputTokens: 0 };
+    let truncated = false;
+    const ceiling = this.config.get("AI_MAX_OUTPUT_TOKENS", { infer: true });
 
     try {
       // Inside the try: an unconfigured key is the likeliest failure of all, and thrown from
       // outside it reached the user as `provider_unavailable` having logged nothing at all.
       const stream = await client().chat.completions.create({
         model: this.config.get("AI_MODEL", { infer: true }),
-        max_completion_tokens: this.config.get("AI_MAX_OUTPUT_TOKENS", { infer: true }),
+        max_completion_tokens: Math.min(request.maxOutputTokens ?? ceiling, ceiling),
         // Anything but `none` is a 400 on Chat Completions once tools are attached (GPT-5.4 on).
         reasoning_effort: this.config.get("AI_REASONING_EFFORT", { infer: true }),
         messages: request.messages.map(toOpenAiMessage),
@@ -70,6 +72,8 @@ export class OpenAiChatProvider implements ChatProvider {
 
       for await (const chunk of stream) {
         const delta = chunk.choices[0]?.delta;
+
+        truncated ||= chunk.choices[0]?.finish_reason === "length";
 
         if (delta?.content) {
           text.push(delta.content);
@@ -107,6 +111,7 @@ export class OpenAiChatProvider implements ChatProvider {
       text: text.join(""),
       toolCalls: [...calls.values()].filter((call): call is ChatToolCall => call.id !== ""),
       usage,
+      ...(truncated && { truncated }),
     };
   }
 

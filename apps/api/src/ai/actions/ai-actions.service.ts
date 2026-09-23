@@ -870,9 +870,7 @@ export class AiActionsService {
         tool: AI_TOOL.SET_APPOINTMENT_STATUS,
         kind: AI_PROPOSAL_KIND.APPOINTMENT_STATUS,
         description:
-          "Move one appointment along: arrived, in_progress (started), completed — these run at " +
-          "once and you say what was done — or confirmed / no_show, which wait on a card the user " +
-          "confirms. Takes an appointment id from get_appointments.",
+          "Moves one appointment along: arrived, in_progress and completed run at once; confirmed and no_show wait on a card. Not for cancelling — cancel_appointments.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.SET_APPOINTMENT_STATUS],
         capability: STATUS_CAPABILITY[APPOINTMENT_STATUS.ARRIVED],
         capabilityFor: (payload) => STATUS_CAPABILITY[payload.status],
@@ -916,8 +914,7 @@ export class AiActionsService {
         tool: AI_TOOL.ADD_PATIENT_NOTE,
         kind: AI_PROPOSAL_KIND.PATIENT_NOTE,
         description:
-          "Append a short note to a patient's file. It is added after what is there; nothing is " +
-          "edited or removed. Takes a patient id from search_patients.",
+          "Adds a dated note to a patient's file, in the user's words. Not for correcting their details — patients_update. Runs at once.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.ADD_PATIENT_NOTE],
         capability: "patients.update",
         schema: z.object({
@@ -964,9 +961,7 @@ export class AiActionsService {
         tool: AI_TOOL.CREATE_APPOINTMENT,
         kind: AI_PROPOSAL_KIND.APPOINTMENT_CREATE,
         description:
-          "Book an appointment for a patient with a doctor at a local date and time (HH:MM). " +
-          "The slot is checked first: slot_taken or slot_unavailable means ask the user for " +
-          "another time — never try to force it. Waits on a card the user confirms.",
+          "Books a patient with a doctor at a local date and time (HH:MM), the slot checked first; take the time from find_available_slots. Waits on a card; slot_taken means ask for another.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.CREATE_APPOINTMENT],
         capability: "appointments.create",
         schema: z.object({
@@ -1043,8 +1038,7 @@ export class AiActionsService {
         tool: AI_TOOL.RESCHEDULE_APPOINTMENT,
         kind: AI_PROPOSAL_KIND.APPOINTMENT_UPDATE,
         description:
-          "Move one appointment to another local date and time (HH:MM), optionally to another " +
-          "doctor. Checked like a new booking; waits on a card the user confirms.",
+          "Moves one appointment to another time, and optionally another doctor, checked like a booking. Several moves at once go in propose_plan. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.RESCHEDULE_APPOINTMENT],
         capability: "appointments.update",
         schema: z.object({
@@ -1120,9 +1114,7 @@ export class AiActionsService {
         tool: AI_TOOL.CANCEL_APPOINTMENTS,
         kind: AI_PROPOSAL_KIND.APPOINTMENT_CANCEL,
         description:
-          "Cancel one or more appointments by id, with the reason the user gave — ask for one " +
-          "if they did not. Waits on a card the user confirms; several at once, or one with a " +
-          "visit, need a typed confirmation.",
+          "Cancels appointments by id with the user's reason. Not for a doctor's absence (add_doctor_time_off) or a shut clinic (add_clinic_closure). Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.CANCEL_APPOINTMENTS],
         capability: "appointments.cancel",
         schema: z.object({
@@ -1219,11 +1211,7 @@ export class AiActionsService {
         tool: AI_TOOL.ADD_DOCTOR_TIME_OFF,
         kind: AI_PROPOSAL_KIND.TIME_OFF_CREATE,
         description:
-          "Give a doctor time off: whole days from date_from to date_to (local, inclusive), or " +
-          "part of a day with time_from and time_to (HH:MM). Takes a doctor_id from " +
-          "find_doctors. Appointments inside the period come back as schedule_conflict: ask " +
-          "the user whether to cancel them (each patient is notified), keep them, or change the " +
-          "period, then call again with on_conflict. Waits on a card the user confirms.",
+          "Gives a doctor time off, whole days or hours (time_from/time_to); appointments inside come back as schedule_conflict — ask, then pass on_conflict. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.ADD_DOCTOR_TIME_OFF],
         capability: "doctor-time-off.create",
         schema: timeOffSchema,
@@ -1292,11 +1280,7 @@ export class AiActionsService {
         tool: AI_TOOL.ADD_CLINIC_CLOSURE,
         kind: AI_PROPOSAL_KIND.CLOSURE_CREATE,
         description:
-          "Close the whole clinic for whole days, date_from to date_to (local, inclusive) — a " +
-          "holiday, not one doctor's absence. Appointments inside it come back as " +
-          "schedule_conflict: ask the user whether to cancel them (each patient is notified), " +
-          "keep them, or change the dates, then call again with on_conflict. Waits on a card " +
-          "the user confirms.",
+          "Shuts the whole clinic for whole days; not for one doctor (add_doctor_time_off). Appointments inside come back as schedule_conflict, answered with on_conflict. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.ADD_CLINIC_CLOSURE],
         capability: "clinic-closures.create",
         schema: closureSchema,
@@ -1365,10 +1349,7 @@ export class AiActionsService {
         tool: AI_TOOL.UPDATE_DOCTOR_TIME_OFF,
         kind: AI_PROPOSAL_KIND.TIME_OFF_UPDATE,
         description:
-          "Change a doctor's time off to a new period — pass the whole new period, as for " +
-          "add_doctor_time_off. Takes a time_off_id from doctor_time_off_list. A period that " +
-          "grows over appointments comes back as schedule_conflict, answered with on_conflict. " +
-          "Waits on a card the user confirms.",
+          "Changes a doctor's time off to a whole new period, found with doctor_time_off_list; one that grows over appointments asks as a new one does. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.UPDATE_DOCTOR_TIME_OFF],
         capability: "doctor-time-off.update",
         schema: timeOffUpdateSchema,
@@ -1456,8 +1437,7 @@ export class AiActionsService {
         tool: AI_TOOL.DELETE_DOCTOR_TIME_OFF,
         kind: AI_PROPOSAL_KIND.TIME_OFF_DELETE,
         description:
-          "Remove a doctor's time off, so the period is bookable again. Takes a time_off_id " +
-          "from doctor_time_off_list. Waits on a card the user confirms.",
+          "Removes a doctor's time off so the period is bookable again, found with doctor_time_off_list. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.DELETE_DOCTOR_TIME_OFF],
         capability: "doctor-time-off.remove",
         schema: z.object({ time_off_id: z.uuid() }),
@@ -1502,10 +1482,7 @@ export class AiActionsService {
         tool: AI_TOOL.SET_LAB_ORDER_STATUS,
         kind: AI_PROPOSAL_KIND.LAB_ORDER_STATUS,
         description:
-          "Move a lab order along: sent (out to the lab), ready (the lab finished), received " +
-          "(back at the clinic), fitted (in the patient's mouth), returned (sent back, with the " +
-          "reason) or cancelled. Takes a lab_order_id from lab_orders_list. Waits on a card " +
-          "the user confirms.",
+          "Moves a lab order along — sent, ready, received, fitted, returned (with its reason) or cancelled — found with lab_orders_list. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.SET_LAB_ORDER_STATUS],
         capability: "lab-orders.list",
         capabilityFor: (payload) => LAB_STATUS_CAPABILITY[payload.status],
@@ -1559,10 +1536,7 @@ export class AiActionsService {
         tool: AI_TOOL.RECORD_STOCK_MOVEMENT,
         kind: AI_PROPOSAL_KIND.STOCK_MOVEMENT,
         description:
-          "Record stock coming in (purchase), used (consume) or counted (adjust, a signed " +
-          "correction with its reason). Takes an item_id from inventory_list. The quantity " +
-          "on hand is never set directly: it is the sum of these. Waits on a card the user " +
-          "confirms.",
+          "Records stock bought (purchase), used (consume) or counted (adjust by the difference, with its reason); the item from inventory_list. Never sets a quantity. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.RECORD_STOCK_MOVEMENT],
         capability: "inventory.list",
         capabilityFor: (payload) => MOVEMENT_CAPABILITY[payload.type],
@@ -1619,11 +1593,7 @@ export class AiActionsService {
         tool: AI_TOOL.SET_DOCTOR_SCHEDULE,
         kind: AI_PROPOSAL_KIND.DOCTOR_SCHEDULE,
         description:
-          "Change a doctor's weekly working hours. Pass only the weekdays that change, each " +
-          "with its full new hours (empty for a day off); the others stay as they are — read " +
-          "them from find_doctors. Appointments left outside the new hours come back as a " +
-          "sanity_check. For one day or a few days away, use add_doctor_time_off instead. " +
-          "Waits on a card the user confirms.",
+          "Changes a doctor's regular weekly hours, only the weekdays named. Not one day away (add_doctor_time_off) or one extra day (add_doctor_extra_hours). Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.SET_DOCTOR_SCHEDULE],
         capability: "doctors.updateSchedule",
         schema: scheduleSchema,
@@ -1706,9 +1676,7 @@ export class AiActionsService {
         tool: AI_TOOL.REVERSE_PAYMENT,
         kind: AI_PROPOSAL_KIND.PAYMENT_REVERSE,
         description:
-          "Reverse a patient's payment recorded by mistake: a new negative entry cancels it, " +
-          "and the original stays on the record. Takes a payment_id from payments_list and the " +
-          "reason the user gave. Always needs a typed confirmation.",
+          "Reverses a patient's payment recorded by mistake with a new negative entry, found with payments_list. Never an edit. Always typed.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.REVERSE_PAYMENT],
         capability: "payments.reverse",
         schema: z.object({ payment_id: z.uuid(), reason: reversalReason }),
@@ -1752,9 +1720,7 @@ export class AiActionsService {
         tool: AI_TOOL.RECORD_LAB_PAYMENT,
         kind: AI_PROPOSAL_KIND.LAB_PAYMENT_CREATE,
         description:
-          "Record money the clinic paid a lab, as a whole amount, with the payment method's " +
-          "code (omit it for the clinic's first method). Takes a lab_id from labs_list. Waits " +
-          "on a card the user confirms; a large one needs a typed confirmation.",
+          "Records money the clinic paid a lab, found with labs_list; a mistake is reverse_lab_payment. Waits on a card; a large one is typed.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.RECORD_LAB_PAYMENT],
         capability: "lab-payments.create",
         schema: labPaymentSchema,
@@ -1811,9 +1777,7 @@ export class AiActionsService {
         tool: AI_TOOL.REVERSE_LAB_PAYMENT,
         kind: AI_PROPOSAL_KIND.LAB_PAYMENT_REVERSE,
         description:
-          "Reverse a payment to a lab recorded by mistake: a new negative entry cancels it. " +
-          "Takes a lab_payment_id from lab_ledger_list_payments and the reason the user gave. Always " +
-          "needs a typed confirmation.",
+          "Reverses a lab payment recorded by mistake, found with lab_ledger_list_payments. Always typed.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.REVERSE_LAB_PAYMENT],
         capability: "lab-payments.reverse",
         schema: z.object({ lab_payment_id: z.uuid(), reason: reversalReason }),
@@ -1876,9 +1840,7 @@ export class AiActionsService {
         tool: AI_TOOL.REVERSE_STOCK_MOVEMENT,
         kind: AI_PROPOSAL_KIND.STOCK_REVERSE,
         description:
-          "Reverse a stock movement recorded by mistake: a new opposite entry cancels it. " +
-          "Takes a movement_id from inventory_item_movements and the reason the user gave. A count " +
-          "that was merely off is an adjust, not a reversal. Always needs a typed confirmation.",
+          "Reverses a stock movement recorded by mistake, found with inventory_item_movements; a count that is merely off is an adjust. Always typed.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.REVERSE_STOCK_MOVEMENT],
         capability: "inventory.reverse",
         schema: z.object({ movement_id: z.uuid(), reason: reversalReason }),
@@ -1937,10 +1899,7 @@ export class AiActionsService {
         tool: AI_TOOL.ADD_DOCTOR_EXTRA_HOURS,
         kind: AI_PROPOSAL_KIND.EXTRA_HOURS_CREATE,
         description:
-          "Record that a doctor works on one date beyond their weekly schedule — covering for a " +
-          "colleague, an extra clinic day — with the hours (HH:MM) and why. Those hours become " +
-          "bookable. For a permanent change use set_doctor_schedule. Waits on a card the user " +
-          "confirms.",
+          "Hours a doctor works on one date beyond the weekly schedule — covering for a colleague, an extra day. Not a permanent change (set_doctor_schedule). Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.ADD_DOCTOR_EXTRA_HOURS],
         capability: "doctor-extra-hours.create",
         schema: extraHoursSchema,
@@ -2033,9 +1992,7 @@ export class AiActionsService {
         tool: AI_TOOL.CREATE_PATIENT,
         kind: AI_PROPOSAL_KIND.PATIENT_CREATE,
         description:
-          "Register a new patient with the name and phone the user gave. A phone another " +
-          "patient already has comes back as possible_duplicate with their file number: ask " +
-          "whether it is the same person. Waits on a card the user confirms.",
+          "Registers a new patient with a name and phone; a phone already on file comes back as possible_duplicate — ask if it is the same person. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.CREATE_PATIENT],
         capability: "patients.create",
         schema: z.object({
@@ -2096,10 +2053,7 @@ export class AiActionsService {
         tool: AI_TOOL.RECORD_PAYMENT,
         kind: AI_PROPOSAL_KIND.PAYMENT_CREATE,
         description:
-          "Record money a patient paid, as a whole amount in the clinic's currency, with the " +
-          "payment method's code (omit it for the clinic's first method). A payment never edits " +
-          "one already recorded. Waits on a card the user confirms; a large one needs a typed " +
-          "confirmation.",
+          "Records money a patient paid, a whole amount with the method's code. Never edits a payment — a mistake is reverse_payment. Waits on a card; a large one is typed.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.RECORD_PAYMENT],
         capability: "payments.create",
         schema: z.object({

@@ -11,8 +11,9 @@
         "src/database/migrate.ts",
         "src/database/seed.ts",
         "scripts/*.mjs",
-        "test/**/*.{spec,e2e-spec}.ts",
-        "src/**/*.spec.ts"
+        "test/**/*.{spec,e2e-spec,live-spec}.ts",
+        "src/**/*.spec.ts",
+        "test/no-database.global-setup.ts"
       ],
       "project": ["src/**/*.ts", "test/**/*.ts", "scripts/*.mjs"]
     },

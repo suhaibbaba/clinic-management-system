@@ -92,12 +92,21 @@ export class AgentService {
     // Per turn, preloaded from the conversation: a follow-up does not pay the load step again.
     const loaded = new Set(await this.conversations.loadedGroups(conversationId));
     let loads = 0;
+    // Once a table or card is drawn the answer beneath it is two lines, so its budget drops.
+    let viewShown = false;
+    let fullBudget = false;
 
     for (let step = 0; step < steps; step += 1) {
-      let completed: { text: string; toolCalls: readonly ChatToolCall[] } | undefined;
+      let completed:
+        { text: string; toolCalls: readonly ChatToolCall[]; truncated?: boolean } | undefined;
+      const reduced = viewShown && !fullBudget;
 
       try {
-        const stream = provider.stream({ messages, tools: this.tools.definitions(loaded) });
+        const stream = provider.stream({
+          messages,
+          tools: this.tools.definitions(loaded),
+          ...(reduced && { maxOutputTokens: VIEW_REPLY_TOKENS }),
+        });
 
         for await (const chunk of stream) {
           if (chunk.type === "delta") {
@@ -106,7 +115,11 @@ export class AgentService {
           }
 
           add(spent, chunk.usage);
-          completed = { text: chunk.text, toolCalls: chunk.toolCalls };
+          completed = {
+            text: chunk.text,
+            toolCalls: chunk.toolCalls,
+            ...(chunk.truncated && { truncated: true }),
+          };
         }
       } catch (error) {
         // Already logged with its cause by the provider; the user is told only what kind it was.
@@ -127,6 +140,15 @@ export class AgentService {
       // Set by the `completed` chunk every provider ends with; a stream without one answered
       // nothing, and an empty answer ends the turn rather than looping.
       const answer = completed ?? { text: "", toolCalls: [] };
+
+      // The short budget is for prose; a tool call it cut off is asked for again, in full, once.
+      if (reduced && answer.truncated && answer.toolCalls.length > 0) {
+        fullBudget = true;
+        step -= 1;
+        continue;
+      }
+
+      fullBudget = false;
 
       if (answer.toolCalls.length === 0) {
         const { id } = await this.record(actor, conversationId, answer.text, spent);
@@ -173,6 +195,7 @@ export class AgentService {
         });
 
         if (run.view) {
+          viewShown = true;
           yield { type: AI_STREAM_EVENT.VIEW, toolCallId: call.id, view: run.view };
         }
 
@@ -287,6 +310,9 @@ function clock(timeZone: string): { now: string; weekday: string } {
 
   return { now: `${read("hour")}:${read("minute")}`, weekday: read("weekday") };
 }
+
+/** The answer under a table or card: the headline and what to act on, no more. */
+const VIEW_REPLY_TOKENS = 200;
 
 /** How many steps that only loaded tools are free in one turn. */
 const MAX_LOADS = 3;

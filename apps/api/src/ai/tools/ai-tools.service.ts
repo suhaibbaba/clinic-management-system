@@ -113,10 +113,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_APPOINTMENTS,
         description:
-          "List appointments between two dates, newest first, optionally narrowed to one status " +
-          "and one doctor. Dates are the clinic's own local dates and both ends are inclusive. " +
-          'For "my appointments" pass the speaker\'s own doctor_id from the system prompt; omit ' +
-          "doctor_id only when the question is about the whole clinic.",
+          'Appointments between two local dates (inclusive), optionally for one doctor or status; "my" means the speaker\'s doctor_id. Not for free times — find_available_slots. Returns rows, drawn as a table.',
         capability: null,
         schema: z.object({
           date_from: dateSchema,
@@ -156,9 +153,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.FIND_DOCTORS,
         description:
-          "The clinic's doctors, by name in Arabic or English, or all of them with no query. " +
-          "Use it to turn a doctor's name into a doctor_id. When more than one doctor matches " +
-          "the name the user gave, ask which one — never pick one yourself.",
+          "The clinic's doctors by name, Arabic or English, with their weekly hours — how a name becomes a doctor_id; two matches is a question. Returns ids, names, schedules.",
         capability: null,
         schema: z.object({
           query: z.string().trim().min(1).max(120).optional(),
@@ -187,10 +182,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.FIND_AVAILABLE_SLOTS,
         description:
-          "The start times a doctor can still take an appointment of a given length, day by day " +
-          "from date for up to 7 days, as the booking screen computes them. A day with none says " +
-          "why (the doctor's day off, time off, the clinic closed). Use it to suggest times, to " +
-          "find where each of several appointments can move, and before proposing any new time.",
+          "Free start times for one doctor, day by day for up to 7 days, as booking computes them. Before proposing any new time. Returns free times per day, or why a day has none.",
         capability: null,
         schema: z.object({
           doctor_id: z.uuid(),
@@ -230,10 +222,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.SEARCH_PATIENTS,
         description:
-          "Find patients by name, file number or phone. Returns the file number, the name, a " +
-          "masked phone and the date of the last visit. Use it to turn a name into a patient id. " +
-          "When the user named a person and more than one row matches, ask which one, showing " +
-          "each file number — never pick one yourself.",
+          "Finds patients by name, file number or phone — how a name becomes a patient id; two matches is a question, by file number. Returns ids, names, masked phones, last visit.",
         capability: null,
         schema: z.object({ query: z.string().trim().min(2).max(120) }),
         run: async (actor, args) => {
@@ -263,8 +252,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_PATIENT_SUMMARY,
         description:
-          "One patient's record: their details, their recent history — visits, treatments, " +
-          "appointments, payments — and their balance. Takes a patient id from search_patients.",
+          "One patient's file: details, recent history and balance, from a patient id. For older history use timeline_list. Returns a card.",
         capability: CAPABILITY.PATIENT_TIMELINE,
         schema: z.object({ patient_id: z.uuid() }),
         run: async (actor, args) => {
@@ -291,8 +279,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_DAILY_STATS,
         description:
-          "Counts of appointments between two dates: how many in total, how many were completed, " +
-          "cancelled or marked a no-show. Use it for attendance questions, not for lists.",
+          "Counts of appointments between two dates: total, completed, cancelled, no-show. For attendance, not lists (get_appointments). Returns counts.",
         capability: null,
         schema: z.object({ date_from: dateSchema, date_to: dateSchema }),
         run: async (actor, args) => {
@@ -314,8 +301,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_FINANCIAL_SUMMARY,
         description:
-          "The clinic's money over a period: what was charged, what was collected, what is " +
-          "outstanding, and the patients who owe the most.",
+          "The clinic's money over a period: charged, collected, outstanding, top debtors. For one patient use get_patient_summary. Returns a card.",
         capability: CAPABILITY.OVERDUE,
         schema: z.object({ period: z.enum(PERIOD) }),
         run: async (actor, args) => {
@@ -354,8 +340,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_OVERDUE_LAB_ORDERS,
         description:
-          "Lab orders that are past the date the lab promised them and are not back yet, the " +
-          "most overdue first.",
+          "Lab orders past their promised date and not back, most overdue first. For any other lab question use lab_orders_list. Returns a table.",
         capability: CAPABILITY.LAB_ORDERS_OVERDUE,
         schema: z.object({}),
         run: async (actor) => {
@@ -371,8 +356,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_LOW_STOCK_ITEMS,
         description:
-          "Stock items at or below their minimum quantity, the most urgent first. Use it for " +
-          "what needs ordering.",
+          "Stock at or below its minimum, most urgent first. For what to order by supplier use inventory_shopping_list. Returns a table.",
         capability: CAPABILITY.INVENTORY_ALERTS,
         schema: z.object({}),
         run: async (actor) => {
@@ -408,12 +392,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.DRAFT_BULK_MESSAGE,
         description:
-          "Draft a WhatsApp message to a group of patients for the user to review. This sends " +
-          "NOTHING: it creates a proposal the user confirms or cancels on a card in the chat. " +
-          "target is overdue_labs (patients whose lab work is overdue), unpaid_invoices (patients " +
-          "with an overdue balance) or patient_ids (the ids you pass, from search_patients). " +
-          "message_intent is what the message should say, in the user's words. Afterwards tell " +
-          "the user the draft is waiting for their confirmation below; never say it was sent.",
+          "Drafts a WhatsApp message to a group — overdue labs, overdue balances or chosen patients — for the user to review; sends nothing. Only when asked to message. Returns the draft's id.",
         capability: CAPABILITY.OUTBOUND_SEND,
         schema: z
           .object({
