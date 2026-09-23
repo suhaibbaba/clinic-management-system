@@ -36,6 +36,8 @@ import {
   TREATMENT_PLANS_ENTITY,
   TreatmentPlansService,
 } from "@api/patients/treatment-plans.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
+import { AI_RISK_TIER } from "@clinic/shared";
 
 class CreateTreatmentPlanDto extends createZodDto(createTreatmentPlanSchema) {}
 class UpdateTreatmentPlanDto extends createZodDto(updateTreatmentPlanSchema) {}
@@ -51,6 +53,10 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 export class TreatmentPlansController {
   constructor(private readonly plans: TreatmentPlansService) {}
 
+  @AiTool({
+    group: "patients",
+    description: "Treatment plans, filtered by patient or status. Clinical.",
+  })
   @Get()
   list(
     @CurrentUser() actor: AuthenticatedUser,
@@ -59,6 +65,10 @@ export class TreatmentPlansController {
     return this.plans.list(actor, query);
   }
 
+  @AiTool({
+    group: "patients",
+    description: "One treatment plan with its items and totals. Clinical.",
+  })
   @Get(":id")
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
@@ -67,6 +77,10 @@ export class TreatmentPlansController {
     return this.plans.findOne(actor, params.id);
   }
 
+  @AiTool({
+    group: "patients",
+    description: "Start a treatment plan for a patient. Waits on a card.",
+  })
   @Post()
   @Audit(TREATMENT_PLANS_ENTITY, AUDIT_ACTION.CREATE)
   create(
@@ -76,6 +90,10 @@ export class TreatmentPlansController {
     return this.plans.create(actor, body);
   }
 
+  @AiTool({
+    group: "patients",
+    description: "Change a treatment plan's title, status or notes. Waits on a card.",
+  })
   @Patch(":id")
   @Audit(TREATMENT_PLANS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -86,6 +104,10 @@ export class TreatmentPlansController {
     return this.plans.update(actor, params.id, body);
   }
 
+  @AiTool({
+    group: "patients",
+    description: "Archive a treatment plan. Waits on a typed confirmation.",
+  })
   @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -97,6 +119,10 @@ export class TreatmentPlansController {
     await this.plans.softDelete(actor, params.id);
   }
 
+  @AiTool({
+    group: "patients",
+    description: "Add a planned procedure to a treatment plan. Waits on a card.",
+  })
   @Post(":id/items")
   @Audit(TREATMENT_PLAN_ITEMS_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: "response" })
   addItem(
@@ -114,6 +140,10 @@ export class TreatmentPlansController {
 export class PlanItemsController {
   constructor(private readonly plans: TreatmentPlansService) {}
 
+  @AiTool({
+    group: "patients",
+    description: "Change a planned item — its tooth, price or order. Waits on a card.",
+  })
   @Patch(":id")
   @Audit(TREATMENT_PLAN_ITEMS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -124,6 +154,10 @@ export class PlanItemsController {
     return this.plans.updateItem(actor, params.id, body);
   }
 
+  @AiTool({
+    group: "patients",
+    description: "Remove a planned item from its plan. Waits on a typed confirmation.",
+  })
   @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -137,6 +171,12 @@ export class PlanItemsController {
 
   // The row this writes is a performed procedure, not the plan item, so the audit entry is keyed by
   // the response id rather than `:id`.
+  @AiTool({
+    group: "patients",
+    description:
+      "Turn a planned item into a performed treatment, with its charge. Waits on a typed confirmation.",
+    risk: AI_RISK_TIER.TYPED,
+  })
   @Post(":id/convert")
   @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.CREATE, { entityIdSource: "response" })
   convert(

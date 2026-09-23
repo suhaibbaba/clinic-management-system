@@ -21,6 +21,7 @@ import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { LabDocumentsService } from "@api/labs/lab-documents.service";
 import { LabLedgerService } from "@api/labs/lab-ledger.service";
 import { LAB_PAYMENTS_ENTITY, LabPaymentsService } from "@api/labs/lab-payments.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreateLabPaymentDto extends createZodDto(createLabPaymentSchema) {}
 class ReverseLabPaymentDto extends createZodDto(reverseLabPaymentSchema) {}
@@ -39,6 +40,10 @@ export class LabLedgerController {
     private readonly documents: LabDocumentsService,
   ) {}
 
+  @AiTool({
+    group: "labs",
+    description: "What the clinic owes one lab: owed, paid, balance, computed from the ledger.",
+  })
   @Get("balance")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   balance(
@@ -48,6 +53,10 @@ export class LabLedgerController {
     return this.ledger.balanceFor(actor.clinicId, params.labId);
   }
 
+  @AiTool({
+    group: "labs",
+    description: "One lab's statement over dates: every order owed and payment made, in order.",
+  })
   @Get("statement")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   statement(
@@ -70,6 +79,11 @@ export class LabLedgerController {
     return this.documents.statement(actor, params.labId, query);
   }
 
+  @AiTool({
+    group: "labs",
+    description:
+      "What the clinic paid one lab, newest first; a row with reversesId is a reversal. Use to find the lab payment to reverse.",
+  })
   @Get("payments")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   listPayments(

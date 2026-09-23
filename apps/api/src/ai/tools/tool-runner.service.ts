@@ -20,7 +20,7 @@ import {
 import type { ChatToolCall, ChatToolDefinition } from "@api/ai/chat-provider";
 import { OutboundError } from "@api/ai/outbound/proposals.service";
 import { AiToolsService } from "@api/ai/tools/ai-tools.service";
-import { isVisible, TOOL_GROUP, TOOL_GROUP_NAMES } from "@api/ai/tools/tool-groups";
+import { isVisible, TOOL_GROUP_NAMES } from "@api/ai/tools/tool-groups";
 import {
   localizeInstants,
   ToolRefusal,
@@ -122,7 +122,7 @@ export class ToolRunnerService implements OnApplicationBootstrap {
     return [
       ...this.tools
         .list()
-        .filter((tool) => isVisible(tool.name, loaded))
+        .filter((tool) => isVisible(tool, loaded))
         .map((tool) => ({
           name: tool.name,
           description: tool.description,
@@ -136,7 +136,7 @@ export class ToolRunnerService implements OnApplicationBootstrap {
   toolsIn(groups: readonly string[]): string[] {
     return this.tools
       .list()
-      .filter((tool) => groups.includes(TOOL_GROUP[tool.name]))
+      .filter((tool) => groups.includes(tool.group))
       .map((tool) => tool.name);
   }
 
@@ -160,11 +160,11 @@ export class ToolRunnerService implements OnApplicationBootstrap {
     const args = parseArguments(call.arguments);
 
     // A tool the model was never shown this turn: it loads the group, then calls it.
-    if (!isVisible(tool.name, loaded)) {
+    if (!isVisible(tool, loaded)) {
       return this.finish(actor, conversationId, tool.name, args, started, {
         tool: tool.name,
         error: AI_TOOL_ERROR.NOT_LOADED,
-        details: [`call load_tools with groups ["${TOOL_GROUP[tool.name]}"] first`],
+        details: [`call load_tools with groups ["${tool.group}"] first`],
       });
     }
 

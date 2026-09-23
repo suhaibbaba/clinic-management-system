@@ -39,6 +39,7 @@ import { TimelineService } from "@api/patients/timeline.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
 import { DoctorTimeOffService } from "@api/schedule/doctor-time-off.service";
 import { QUERY_CAPABILITY, QueryDataService, queryView } from "@api/ai/query/query-data.service";
+import { RouteToolRegistry } from "@api/ai/tools/route-tools";
 import { AiActionsService } from "@api/ai/actions/ai-actions.service";
 import { ProposalsService, TARGET_READ_CAPABILITY } from "@api/ai/outbound/proposals.service";
 import {
@@ -110,6 +111,7 @@ export class AiToolsService {
     private readonly stockItems: InventoryItemsService,
     private readonly timeOff: DoctorTimeOffService,
     private readonly query: QueryDataService,
+    private readonly routes: RouteToolRegistry,
     private readonly payments: PaymentsService,
     private readonly labs: LabsService,
     private readonly labPayments: LabPaymentsService,
@@ -120,7 +122,7 @@ export class AiToolsService {
   ) {}
 
   list(): AiTool[] {
-    this.tools ??= [...this.build(), ...this.actions.tools()];
+    this.tools ??= [...this.build(), ...this.routeReads(), ...this.actions.tools()];
 
     return this.tools;
   }
@@ -640,6 +642,24 @@ export class AiToolsService {
     ];
   }
 
+  // A route's read, as its screen would get it — and phone numbers to their last four, as every
+  // hand-written read gives them: the model is answering, not dialling.
+  private routeReads(): AiTool[] {
+    return this.routes
+      .list()
+      .filter((route) => route.risk === null)
+      .map((route) =>
+        defineTool({
+          name: route.name,
+          group: route.group,
+          description: route.description,
+          capability: route.capability,
+          schema: route.schema,
+          run: async (actor, args) => maskPhones(await route.invoke(actor, args)),
+        }),
+      );
+  }
+
   private allows(actor: AuthenticatedUser, capability: string): Promise<boolean> {
     return this.permissions.allows(actor.clinicId, actor.role, capability);
   }
@@ -792,6 +812,23 @@ const toPaymentSummary = (payment: {
   reversesId: payment.reversesId,
   createdAt: payment.createdAt,
 });
+
+function maskPhones(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(maskPhones);
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        /phone/i.test(key) && typeof item === "string" ? maskPhone(item) : maskPhones(item),
+      ]),
+    );
+  }
+
+  return value;
+}
 
 const toStockSummary = (item: InventoryItemRow) => ({
   id: item.id,

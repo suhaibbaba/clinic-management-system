@@ -73,8 +73,5 @@ export function groupCatalogue(): string {
   return TOOL_GROUP_NAMES.map((group) => `${group} — ${TOOL_GROUPS[group]}`).join("\n");
 }
 
-export const isVisible = (name: string, loaded: ReadonlySet<string>): boolean => {
-  const group = TOOL_GROUP[name as AiToolName] as string | undefined;
-
-  return group === CORE || (group !== undefined && loaded.has(group));
-};
+export const isVisible = (tool: { group: string }, loaded: ReadonlySet<string>): boolean =>
+  tool.group === CORE || loaded.has(tool.group);

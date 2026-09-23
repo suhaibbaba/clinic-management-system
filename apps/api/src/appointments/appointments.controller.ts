@@ -34,6 +34,7 @@ import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreateAppointmentDto extends createZodDto(createAppointmentSchema) {}
 class UpdateAppointmentDto extends createZodDto(updateAppointmentSchema) {}
@@ -75,6 +76,11 @@ export class AppointmentsController {
     return this.availabilityService.forDay(actor.clinicId, query);
   }
 
+  @AiTool({
+    group: "appointments",
+    description:
+      "One appointment by id, with its patient, doctor, time and status. Use after get_appointments when you need one row in full; not to list — use get_appointments.",
+  })
   @Get(":id")
   findOne(
     @CurrentUser() actor: AuthenticatedUser,

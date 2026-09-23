@@ -37,6 +37,7 @@ import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { LabDocumentsService } from "@api/labs/lab-documents.service";
 import { LabOrderAttachmentsService } from "@api/labs/lab-order-attachments.service";
 import { LAB_ORDERS_ENTITY, LabOrdersService } from "@api/labs/lab-orders.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreateLabOrderDto extends createZodDto(createLabOrderSchema) {}
 class UpdateLabOrderDto extends createZodDto(updateLabOrderSchema) {}
@@ -61,6 +62,11 @@ export class LabOrdersController {
     private readonly documents: LabDocumentsService,
   ) {}
 
+  @AiTool({
+    group: "labs",
+    description:
+      "Lab orders, filtered by status, patient, lab, doctor or a search. Use to find the order to move along. For overdue ones use get_overdue_lab_orders.",
+  })
   @Get()
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   list(
@@ -76,6 +82,10 @@ export class LabOrdersController {
     return this.orders.overdue(actor);
   }
 
+  @AiTool({
+    group: "labs",
+    description: "One lab order in full: work type, teeth, shade, dates, price, status.",
+  })
   @Get(":id")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   findOne(
@@ -94,6 +104,11 @@ export class LabOrdersController {
     return this.documents.orderSheet(actor, params.id);
   }
 
+  @AiTool({
+    group: "labs",
+    description:
+      "Order work from a lab for a patient: lab, work type, teeth (FDI), shade, instructions as dictated. Its steps afterwards are set_lab_order_status. Waits on a card.",
+  })
   @Post()
   @Roles(USER_ROLE.DOCTOR)
   @Audit(LAB_ORDERS_ENTITY, AUDIT_ACTION.CREATE)
@@ -104,6 +119,10 @@ export class LabOrdersController {
     return this.orders.create(actor, body);
   }
 
+  @AiTool({
+    group: "labs",
+    description: "Correct a lab order's details before it is sent. Waits on a card.",
+  })
   @Patch(":id")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(LAB_ORDERS_ENTITY, AUDIT_ACTION.UPDATE)
@@ -173,6 +192,10 @@ export class LabOrdersController {
     return this.orders.changeStatus(actor, params.id, LAB_ORDER_STATUS.CANCELLED);
   }
 
+  @AiTool({
+    group: "labs",
+    description: "Archive a lab order recorded by mistake. Waits on a typed confirmation.",
+  })
   @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)

@@ -31,6 +31,7 @@ import {
   CLINIC_CLOSURES_ENTITY,
   ClinicClosuresService,
 } from "@api/schedule/clinic-closures.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreateClinicClosureDto extends createZodDto(createClinicClosureSchema) {}
 class UpdateClinicClosureDto extends createZodDto(updateClinicClosureSchema) {}
@@ -44,6 +45,10 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 export class ClinicClosuresController {
   constructor(private readonly closures: ClinicClosuresService) {}
 
+  @AiTool({
+    group: "schedule",
+    description: "The days the whole clinic is shut, past and future. Returns a page of closures.",
+  })
   @Get()
   list(
     @CurrentUser() actor: AuthenticatedUser,
@@ -63,6 +68,12 @@ export class ClinicClosuresController {
     return this.closures.create(actor, body, options);
   }
 
+  @AiTool({
+    group: "schedule",
+    description:
+      "Change a closure's dates or reason. To add one use add_clinic_closure. Fails if appointments fall inside the new days — say so. Waits on a card.",
+    exclude: ["force", "cancelAppointments"],
+  })
   @Patch(":id")
   @Roles(USER_ROLE.ADMIN)
   @Audit(CLINIC_CLOSURES_ENTITY, AUDIT_ACTION.UPDATE)
@@ -75,6 +86,10 @@ export class ClinicClosuresController {
     return this.closures.update(actor, params.id, body, options);
   }
 
+  @AiTool({
+    group: "schedule",
+    description: "Reopen days a closure shut. Waits on a typed confirmation.",
+  })
   @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)

@@ -16,6 +16,7 @@ import {
   MEDICAL_HISTORIES_ENTITY,
   MedicalHistoriesService,
 } from "@api/patients/medical-histories.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class UpdateMedicalHistoryDto extends createZodDto(updateMedicalHistorySchema) {}
 class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
@@ -26,6 +27,11 @@ class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 export class MedicalHistoriesController {
   constructor(private readonly medicalHistories: MedicalHistoriesService) {}
 
+  @AiTool({
+    group: "patients",
+    description:
+      "A patient's medical history: conditions, medications, allergies. Clinical — for a role that may read it. Returns the record.",
+  })
   @Get("medical-history")
   @Roles(USER_ROLE.DOCTOR)
   get(
@@ -35,6 +41,11 @@ export class MedicalHistoriesController {
     return this.medicalHistories.get(actor, params.patientId);
   }
 
+  @AiTool({
+    group: "patients",
+    description:
+      "Update a patient's medical history with what the user said, word for word. Waits on a card.",
+  })
   @Patch("medical-history")
   @Roles(USER_ROLE.DOCTOR)
   @Audit(MEDICAL_HISTORIES_ENTITY, AUDIT_ACTION.UPDATE, { entityIdSource: "patient" })
@@ -46,6 +57,11 @@ export class MedicalHistoriesController {
     return this.medicalHistories.update(actor, params.patientId, body);
   }
 
+  @AiTool({
+    group: "patients",
+    description:
+      "A patient's allergy flags only — the quick check before a treatment. Returns the flags.",
+  })
   @Get("allergy-flags")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   allergyFlags(

@@ -26,6 +26,7 @@ import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { PRESCRIPTIONS_ENTITY, PrescriptionsService } from "@api/patients/prescriptions.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreatePrescriptionDto extends createZodDto(createPrescriptionSchema) {}
 class UpdatePrescriptionDto extends createZodDto(updatePrescriptionSchema) {}
@@ -39,6 +40,10 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 export class PrescriptionsController {
   constructor(private readonly prescriptions: PrescriptionsService) {}
 
+  @AiTool({
+    group: "patients",
+    description: "Prescriptions, filtered by patient or visit. Clinical.",
+  })
   @Get()
   list(
     @CurrentUser() actor: AuthenticatedUser,
@@ -47,6 +52,10 @@ export class PrescriptionsController {
     return this.prescriptions.list(actor, query);
   }
 
+  @AiTool({
+    group: "patients",
+    description: "One prescription in full. Clinical.",
+  })
   @Get(":id")
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
@@ -55,6 +64,11 @@ export class PrescriptionsController {
     return this.prescriptions.findOne(actor, params.id);
   }
 
+  @AiTool({
+    group: "patients",
+    description:
+      "Write a prescription exactly as the doctor dictated — never choose a drug or dose yourself. Waits on a card.",
+  })
   @Post()
   @Audit(PRESCRIPTIONS_ENTITY, AUDIT_ACTION.CREATE)
   create(
@@ -64,6 +78,10 @@ export class PrescriptionsController {
     return this.prescriptions.create(actor, body);
   }
 
+  @AiTool({
+    group: "patients",
+    description: "Correct a prescription exactly as the doctor dictated. Waits on a card.",
+  })
   @Patch(":id")
   @Audit(PRESCRIPTIONS_ENTITY, AUDIT_ACTION.UPDATE)
   update(
@@ -74,6 +92,10 @@ export class PrescriptionsController {
     return this.prescriptions.update(actor, params.id, body);
   }
 
+  @AiTool({
+    group: "patients",
+    description: "Void a prescription. Waits on a typed confirmation.",
+  })
   @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)

@@ -8,6 +8,7 @@ import {
   type AiView,
 } from "@clinic/shared";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { TOOL_GROUP } from "@api/ai/tools/tool-groups";
 
 /** Nothing the model asks for returns more than this, whatever it asked for. */
 export const TOOL_ROW_LIMIT = 50;
@@ -79,7 +80,10 @@ export class ActionDone {
 // Type-erased on purpose: the registry holds one array of these, and each tool's own argument type
 // survives inside `defineTool`, which is the only place that casts nothing.
 export interface AiTool {
-  readonly name: AiToolName;
+  /** A hand-written tool's `AiToolName`, or a route's generated `<controller>_<method>`. */
+  readonly name: string;
+  /** `core`, or the group `load_tools` loads it with. */
+  readonly group: string;
   readonly description: string;
   /**
    * The capability key of the endpoint this mirrors, or null where that endpoint is open to
@@ -98,7 +102,9 @@ export interface AiTool {
 }
 
 export interface ToolDefinition<TSchema extends z.ZodType> {
-  readonly name: AiToolName;
+  readonly name: string;
+  /** Defaults to the hand-written tool's entry in `TOOL_GROUP`. */
+  readonly group?: string;
   readonly description: string;
   readonly capability: string | null;
   readonly risk?: AiRiskTier;
@@ -111,6 +117,7 @@ export function defineTool<TSchema extends z.ZodType>(definition: ToolDefinition
 
   return {
     name: definition.name,
+    group: definition.group ?? TOOL_GROUP[definition.name as AiToolName],
     description: definition.description,
     capability: definition.capability,
     risk: definition.risk ?? null,

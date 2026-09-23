@@ -18,6 +18,7 @@ import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { PatientAccessService } from "@api/patients/patient-access.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 class StatementQueryDto extends createZodDto(statementQuerySchema) {}
@@ -34,6 +35,11 @@ export class PatientBillingController {
     private readonly patientAccess: PatientAccessService,
   ) {}
 
+  @AiTool({
+    group: "billing",
+    description:
+      "One patient's balance: charged, paid, owed, computed from the ledger. Use get_patient_summary for the whole file.",
+  })
   @Get("balance")
   async balance(
     @CurrentUser() actor: AuthenticatedUser,
@@ -44,6 +50,10 @@ export class PatientBillingController {
     return this.ledger.balanceFor(actor.clinicId, params.patientId);
   }
 
+  @AiTool({
+    group: "billing",
+    description: "One patient's statement over dates: every charge and payment, in order.",
+  })
   @Get("statement")
   async statement(
     @CurrentUser() actor: AuthenticatedUser,
@@ -71,6 +81,11 @@ export class PatientBillingController {
 export class BillingController {
   constructor(private readonly overdue: OverdueService) {}
 
+  @AiTool({
+    group: "billing",
+    description:
+      "Patients with an overdue balance, the largest first. Use for who owes; to message them use draft_bulk_message.",
+  })
   @Get("overdue")
   @Roles(USER_ROLE.RECEPTIONIST)
   list(

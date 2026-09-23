@@ -28,6 +28,7 @@ import {
   DOCTOR_EXTRA_HOURS_ENTITY,
   DoctorExtraHoursService,
 } from "@api/schedule/doctor-extra-hours.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreateDoctorExtraHoursDto extends createZodDto(createDoctorExtraHoursSchema) {}
 class ListDoctorExtraHoursQueryDto extends createZodDto(listDoctorExtraHoursQuerySchema) {}
@@ -38,6 +39,11 @@ class DoctorParamDto extends createZodDto(z.object({ doctorId: z.uuid() })) {}
 export class DoctorExtraHoursController {
   constructor(private readonly extraHours: DoctorExtraHoursService) {}
 
+  @AiTool({
+    group: "schedule",
+    description:
+      "A doctor's extra hours on specific dates. Returns a page of dates with their hours.",
+  })
   @Get("doctors/:doctorId/extra-hours")
   list(
     @CurrentUser() actor: AuthenticatedUser,
@@ -58,6 +64,10 @@ export class DoctorExtraHoursController {
     return this.extraHours.create(actor, params.doctorId, body);
   }
 
+  @AiTool({
+    group: "schedule",
+    description: "Take back extra hours given on a date. Waits on a typed confirmation.",
+  })
   @Delete("doctor-extra-hours/:id")
   @Roles(USER_ROLE.DOCTOR)
   @HttpCode(HttpStatus.NO_CONTENT)

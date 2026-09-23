@@ -16,6 +16,7 @@ import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreatePaymentDto extends createZodDto(createPaymentSchema) {}
 class ReversePaymentDto extends createZodDto(reversePaymentSchema) {}
@@ -32,6 +33,11 @@ export class PaymentsController {
     private readonly documents: DocumentsService,
   ) {}
 
+  @AiTool({
+    group: "billing",
+    description:
+      "Payments, by patient, newest first, with receipt numbers; a row with reversesId is a reversal. Use to find the payment to reverse.",
+  })
   @Get()
   list(
     @CurrentUser() actor: AuthenticatedUser,
@@ -40,6 +46,10 @@ export class PaymentsController {
     return this.payments.list(actor, query);
   }
 
+  @AiTool({
+    group: "billing",
+    description: "One payment with its receipt number and method.",
+  })
   @Get(":id")
   findOne(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<Payment> {
     return this.payments.findOne(actor, params.id);

@@ -133,6 +133,7 @@ import {
   DoctorExtraHoursService,
 } from "@api/schedule/doctor-extra-hours.service";
 import { commitTogether, rehearse } from "@api/database/unit-of-work";
+import { RouteToolRegistry, type RouteTool } from "@api/ai/tools/route-tools";
 
 type ActionKind = Exclude<AiProposalKind, typeof AI_PROPOSAL_KIND.MESSAGE>;
 
@@ -158,6 +159,7 @@ export const TYPED_PHRASES: Record<ActionKind, string> = {
   [AI_PROPOSAL_KIND.STOCK_REVERSE]: "تأكيد عكس الحركة",
   [AI_PROPOSAL_KIND.EXTRA_HOURS_CREATE]: "تأكيد الدوام الإضافي",
   [AI_PROPOSAL_KIND.PLAN]: "تأكيد الخطة",
+  [AI_PROPOSAL_KIND.ROUTE_CALL]: "تأكيد الإجراء",
 };
 
 const DORMANT_AFTER_DAYS = 730;
@@ -334,7 +336,7 @@ const planSchema = z.object({
 });
 
 interface PlanPayload {
-  readonly steps: readonly { readonly tool: AiActionTool; readonly payload: unknown }[];
+  readonly steps: readonly { readonly tool: string; readonly payload: unknown }[];
 }
 
 /** A step that failed on the click, carrying the step's own kind so the card says why. */
@@ -436,7 +438,10 @@ interface Executed {
 }
 
 interface ActionSpec<TSchema extends z.ZodType, TPayload> {
-  readonly tool: AiActionTool;
+  /** An `AiActionTool`, or a generated route write's name. */
+  readonly tool: string;
+  /** Defaults to the hand-written tool's entry in `TOOL_GROUP`. */
+  readonly group?: string;
   readonly kind: ActionKind;
   readonly description: string;
   readonly risk: AiRiskTier;
@@ -455,7 +460,7 @@ interface ActionSpec<TSchema extends z.ZodType, TPayload> {
 
 /** The same spec with its payload type erased, so the registry holds one list. */
 interface Action {
-  readonly tool: AiActionTool;
+  readonly tool: string;
   readonly kind: ActionKind;
   readonly risk: AiRiskTier;
   readonly schema: z.ZodType;
@@ -495,6 +500,7 @@ export class AiActionsService {
     private readonly labPaymentsService: LabPaymentsService,
     private readonly labLedger: LabLedgerService,
     private readonly extraHours: DoctorExtraHoursService,
+    private readonly routes: RouteToolRegistry,
     private readonly permissions: PermissionsService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
     private readonly audit: AuditService,
@@ -630,7 +636,7 @@ export class AiActionsService {
     const settings = await this.settings(actor.clinicId);
     const tier = AiActionsService.resolveTier(
       action.risk,
-      settings.minTier[action.tool],
+      minTierFor(settings, action.tool),
       action.escalate(draft.payload, settings),
     );
 
@@ -656,7 +662,7 @@ export class AiActionsService {
   }
 
   async assertEnabled(actor: AuthenticatedUser, action: Action): Promise<void> {
-    if ((await this.settings(actor.clinicId)).disabled.includes(action.tool)) {
+    if (isDisabled(await this.settings(actor.clinicId), action.tool)) {
       throw new ToolRefusal(AI_TOOL_ERROR.DISABLED);
     }
   }
@@ -719,7 +725,7 @@ export class AiActionsService {
         throw new NotFoundException("Resource not found");
       }
 
-      const action = this.list().find((candidate) => candidate.kind === row.kind);
+      const action = this.actionForRow(row);
 
       if (!action) {
         throw new NotFoundException("Resource not found");
@@ -737,7 +743,7 @@ export class AiActionsService {
         return { expired: true } as const;
       }
 
-      if (settings.disabled.includes(action.tool)) {
+      if (isDisabled(settings, action.tool)) {
         throw new ActionRefusal(AI_ACTION_ERROR.DISABLED, HttpStatus.FORBIDDEN);
       }
 
@@ -750,7 +756,7 @@ export class AiActionsService {
 
       const tier = AiActionsService.resolveTier(
         row.tier ?? action.risk,
-        settings.minTier[action.tool],
+        minTierFor(settings, action.tool),
         action.escalate(row.payload, settings),
       );
 
@@ -822,7 +828,7 @@ export class AiActionsService {
   }
 
   private list(): Action[] {
-    this.actions ??= this.build();
+    this.actions ??= [...this.build(), ...this.routeActions()];
 
     return this.actions;
   }
@@ -1984,7 +1990,7 @@ export class AiActionsService {
 
               return AiActionsService.resolveTier(
                 action.risk,
-                settings.minTier[action.tool],
+                minTierFor(settings, action.tool),
                 action.escalate(step.payload, settings),
               );
             }),
@@ -1998,7 +2004,7 @@ export class AiActionsService {
               const action = this.actionFor(step.tool);
 
               try {
-                if (settings.disabled.includes(action.tool)) {
+                if (isDisabled(settings, action.tool)) {
                   throw new ForbiddenException();
                 }
 
@@ -2360,7 +2366,93 @@ export class AiActionsService {
     }
   }
 
-  private actionFor(tool: AiActionTool): Action {
+  // A route's write, drafted and confirmed like every hand-written action: validated by the
+  // route's own schemas, summarised with names, and run through its handler on the click.
+  private routeActions(): Action[] {
+    return this.routes
+      .list()
+      .filter((route) => route.risk !== null)
+      .map((route) =>
+        defineAction<z.ZodObject, RoutePayload>({
+          tool: route.name,
+          group: route.group,
+          kind: AI_PROPOSAL_KIND.ROUTE_CALL,
+          description: route.description,
+          risk: route.risk ?? AI_RISK_TIER.CONFIRM,
+          capability: route.capability,
+          schema: route.schema,
+          prepare: async (actor, args) => {
+            try {
+              route.parse(args);
+            } catch (error) {
+              if (error instanceof z.ZodError) {
+                return new Stop({
+                  status: "invalid_arguments",
+                  details: error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`),
+                });
+              }
+              throw error;
+            }
+
+            return {
+              payload: { tool: route.name, args },
+              summary: await this.routeSummary(actor, route, args),
+            };
+          },
+          execute: async (actor, payload) => {
+            const result = await route.invoke(actor, payload.args);
+
+            return {
+              result: null,
+              audit: { entity: route.name, entityId: idOf(result) ?? route.name },
+            };
+          },
+        }),
+      );
+  }
+
+  // Names for the ids a person recognises; every other field as sent, so the card hides nothing.
+  private async routeSummary(
+    actor: AuthenticatedUser,
+    route: RouteTool,
+    args: Record<string, unknown>,
+  ): Promise<AiActionSummary> {
+    const patientId = typeof args["patientId"] === "string" ? args["patientId"] : null;
+    const doctorId = typeof args["doctorId"] === "string" ? args["doctorId"] : null;
+    const [patient, doctor] = await Promise.all([
+      patientId ? this.patients.findOne(actor, patientId) : null,
+      doctorId ? this.doctors.findOne(actor, doctorId) : null,
+    ]);
+    const shown = new Set([...(patient ? ["patientId"] : []), ...(doctor ? ["doctorId"] : [])]);
+
+    return {
+      ...(patient && { patient: patientSummary(patient) }),
+      ...(doctor && { doctor: { id: doctor.id, name: doctor.user.name } }),
+      route: {
+        tool: route.name,
+        capability: route.capability,
+        fields: Object.entries(args)
+          .filter(([name, value]) => !shown.has(name) && value !== undefined && value !== null)
+          .map(([name, value]) => ({
+            name,
+            value: (typeof value === "string" ? value : JSON.stringify(value)).slice(0, 300),
+          })),
+      },
+    };
+  }
+
+  /** A route call is found by the tool it carries: every one of them shares its kind. */
+  private actionForRow(row: ProposalRow): Action | undefined {
+    if (row.kind === AI_PROPOSAL_KIND.ROUTE_CALL) {
+      const tool = (row.payload as Partial<RoutePayload> | null)?.tool;
+
+      return this.list().find((candidate) => candidate.tool === tool);
+    }
+
+    return this.list().find((candidate) => candidate.kind === row.kind);
+  }
+
+  private actionFor(tool: string): Action {
     const action = this.list().find((candidate) => candidate.tool === tool);
 
     if (!action) {
@@ -2381,13 +2473,13 @@ export class AiActionsService {
     const settings = await this.settings(actor.clinicId);
 
     return rehearse(this.db, async () => {
-      const planned: { tool: AiActionTool; payload: unknown; summary: AiActionSummary }[] = [];
+      const planned: { tool: string; payload: unknown; summary: AiActionSummary }[] = [];
 
       for (const [index, step] of steps.entries()) {
         const action = this.actionFor(step.tool);
         const at = { step: index, tool: step.tool };
 
-        if (settings.disabled.includes(action.tool)) {
+        if (isDisabled(settings, action.tool)) {
           return new Stop({ status: "disabled", ...at });
         }
 
@@ -2646,6 +2738,7 @@ function defineAction<TSchema extends z.ZodType, TPayload>(
     asTool: (service) =>
       defineTool({
         name: spec.tool,
+        ...(spec.group && { group: spec.group }),
         description: spec.description,
         capability: spec.capability,
         risk: spec.risk,
@@ -2795,6 +2888,25 @@ function irreversible(
   return row.reversedAt === null
     ? null
     : new Stop({ status: "not_possible", reason: "already_reversed" });
+}
+
+interface RoutePayload {
+  readonly tool: string;
+  readonly args: Record<string, unknown>;
+}
+
+// The clinic's switches and floors are kept per hand-written action; a generated one has none yet.
+const isDisabled = (settings: AiActionsSettings, tool: string): boolean =>
+  (settings.disabled as readonly string[]).includes(tool);
+
+const minTierFor = (settings: AiActionsSettings, tool: string): AiRiskTier | undefined =>
+  (settings.minTier as Partial<Record<string, AiRiskTier>>)[tool];
+
+function idOf(result: unknown): string | undefined {
+  const own = (result as { id?: unknown } | null)?.id;
+  const item = (result as { item?: { id?: unknown } } | null)?.item?.id;
+
+  return typeof own === "string" ? own : typeof item === "string" ? item : undefined;
 }
 
 const withoutSteps = ({ steps: _steps, ...summary }: AiActionSummary): AiActionStepSummary =>

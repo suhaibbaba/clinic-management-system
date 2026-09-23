@@ -225,6 +225,17 @@ const actionSummaryFields = z.object({
     .optional(),
   /** The listed appointments stay booked outside the new hours. */
   outsideHours: z.boolean().optional(),
+  /**
+   * A generated write: the route's capability, which the card titles it by, and the fields it
+   * sends that no other row of the summary already shows.
+   */
+  route: z
+    .object({
+      tool: z.string(),
+      capability: z.string().nullable(),
+      fields: z.array(z.object({ name: z.string(), value: z.string() })),
+    })
+    .optional(),
   /** Hours a doctor works on one date beyond the weekly schedule. */
   extraHours: z.object({ date: z.iso.date(), ranges: z.array(timeRangeSchema) }).optional(),
   appointments: z

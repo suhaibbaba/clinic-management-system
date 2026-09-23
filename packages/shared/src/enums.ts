@@ -670,6 +670,8 @@ export const AI_PROPOSAL_KIND = {
   STOCK_REVERSE: "stock_reverse",
   EXTRA_HOURS_CREATE: "extra_hours_create",
   PLAN: "plan",
+  /** A write generated from a route: its tool name travels in the payload. */
+  ROUTE_CALL: "route_call",
 } as const satisfies Record<string, string>;
 export type AiProposalKind = EnumValue<typeof AI_PROPOSAL_KIND>;
 
@@ -695,6 +697,7 @@ export const AI_PROPOSAL_KINDS = [
   AI_PROPOSAL_KIND.STOCK_REVERSE,
   AI_PROPOSAL_KIND.EXTRA_HOURS_CREATE,
   AI_PROPOSAL_KIND.PLAN,
+  AI_PROPOSAL_KIND.ROUTE_CALL,
 ] as const;
 
 // Not errors: the model relays each one as a question and does not retry around it. Only a

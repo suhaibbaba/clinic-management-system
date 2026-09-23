@@ -1,4 +1,5 @@
 import { Logger, Module } from "@nestjs/common";
+import { DiscoveryModule } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
 import { AiActionsController } from "@api/ai/actions/ai-actions.controller";
 import { AiActionsService } from "@api/ai/actions/ai-actions.service";
@@ -17,6 +18,7 @@ import { OutboundRecipientsService } from "@api/ai/outbound/outbound-recipients.
 import { ProposalsService } from "@api/ai/outbound/proposals.service";
 import { AI_READ_CLIENT, QueryDataService } from "@api/ai/query/query-data.service";
 import { AiToolsService } from "@api/ai/tools/ai-tools.service";
+import { RouteToolRegistry } from "@api/ai/tools/route-tools";
 import postgres, { type Sql } from "postgres";
 import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
 import { AppointmentsModule } from "@api/appointments/appointments.module";
@@ -50,6 +52,7 @@ import { SecretsModule } from "@api/secrets/secrets.module";
     InventoryModule,
     NotificationsModule,
     SecretsModule,
+    DiscoveryModule,
   ],
   controllers: [AiController, OutboundController, AiActionsController],
   providers: [
@@ -96,6 +99,7 @@ import { SecretsModule } from "@api/secrets/secrets.module";
         postgres(config.get("DATABASE_URL", { infer: true }), { max: 2, connect_timeout: 10 }),
     },
     QueryDataService,
+    RouteToolRegistry,
   ],
 })
 export class AiModule {}
