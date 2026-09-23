@@ -23,6 +23,8 @@ import {
 } from "@clinic/ui";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { statusLabelKey } from "@web/features/appointments/status";
+import { movementLabel } from "@web/features/inventory/display";
+import { LAB_ORDER_STATUS_STYLES } from "@web/features/labs/status";
 import { useCurrency } from "@web/features/clinic/queries";
 import { actionErrorKey, actionRefusalKey } from "@web/features/assistant/messages";
 import { useAction, useActionDecision } from "@web/features/assistant/queries";
@@ -212,6 +214,7 @@ function ActionSummaryList({ summary }: { summary: AiActionSummary }): JSX.Eleme
   const { t } = useTranslation();
   const currency = useCurrency();
   const methodLabel = useLookupLabels(LOOKUP_LIST.PAYMENT_METHOD);
+  const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const when = (iso: string): string => `${formatClinicDate(iso)} ${formatClinicTime(iso)}`;
 
   return (
@@ -240,7 +243,14 @@ function ActionSummaryList({ summary }: { summary: AiActionSummary }): JSX.Eleme
           <PersonName name={summary.doctor.name} />
         </Row>
       )}
-      {summary.previousStartsAt && (
+      {summary.previousStartsAt && summary.previousEndsAt && (
+        <Row label={t("assistant.action.fields.previousPeriod")}>
+          <span dir="ltr">
+            {formatClinicPeriod(summary.previousStartsAt, summary.previousEndsAt)}
+          </span>
+        </Row>
+      )}
+      {summary.previousStartsAt && !summary.previousEndsAt && (
         <Row label={t("assistant.action.fields.from")}>
           <span dir="ltr">{when(summary.previousStartsAt)}</span>
         </Row>
@@ -273,8 +283,44 @@ function ActionSummaryList({ summary }: { summary: AiActionSummary }): JSX.Eleme
       {summary.status && (
         <Row label={t("assistant.action.fields.status")}>{t(statusLabelKey(summary.status))}</Row>
       )}
+      {summary.labOrder && (
+        <Row label={t("assistant.action.fields.labOrder")}>
+          {summary.labOrder.labName}
+          {summary.labOrder.workTypeName && (
+            <span className="text-ink-muted"> · {summary.labOrder.workTypeName}</span>
+          )}
+        </Row>
+      )}
+      {summary.labOrder && summary.labStatus && (
+        <Row label={t("assistant.action.fields.status")}>
+          <span className="text-ink-muted">
+            {t(LAB_ORDER_STATUS_STYLES[summary.labOrder.status].label)}
+          </span>
+          <Icon name="chevron-end" className="mx-1 inline-block align-middle text-ink-subtle" />
+          {t(LAB_ORDER_STATUS_STYLES[summary.labStatus].label)}
+        </Row>
+      )}
+      {summary.stockItem && (
+        <Row label={t("assistant.action.fields.item")}>{summary.stockItem.name}</Row>
+      )}
+      {summary.movementType && (
+        <Row label={t("assistant.action.fields.movement")}>
+          {t(movementLabel(summary.movementType))}
+        </Row>
+      )}
+      {summary.quantity && summary.stockItem && (
+        <Row label={t("assistant.action.fields.quantity")}>
+          <span dir="ltr">{summary.quantity}</span> {unitLabel(summary.stockItem.unit)}
+        </Row>
+      )}
       {summary.amount && (
-        <Row label={t("assistant.action.fields.amount")}>
+        <Row
+          label={t(
+            summary.movementType
+              ? "assistant.action.fields.unitPrice"
+              : "assistant.action.fields.amount",
+          )}
+        >
           <Money amount={summary.amount} currency={currency} />
         </Row>
       )}

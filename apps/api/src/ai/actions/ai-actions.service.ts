@@ -24,6 +24,17 @@ import {
   AI_SCHEDULE_CONFLICT_CHOICES,
   AI_TOOL,
   AI_TOOL_ERROR,
+  adjustStockSchema,
+  canTransitionLabOrder,
+  consumeStockSchema,
+  LAB_ORDER_STATUS,
+  MOVEMENT_TYPE,
+  MOVEMENT_TYPES,
+  purchaseStockSchema,
+  type AdjustStockInput,
+  type ConsumeStockInput,
+  type MovementType,
+  type PurchaseStockInput,
   AI_ACTIONS_SETTINGS_KEY,
   aiActionsSettings,
   APPOINTMENT_STATUS,
@@ -86,6 +97,12 @@ import {
   visits,
 } from "@api/database/schema";
 import { DoctorsService } from "@api/doctors/doctors.service";
+import {
+  STOCK_MOVEMENTS_ENTITY,
+  StockMovementsService,
+} from "@api/inventory/stock-movements.service";
+import { InventoryItemsService } from "@api/inventory/inventory-items.service";
+import { LAB_ORDERS_ENTITY, LabOrdersService } from "@api/labs/lab-orders.service";
 import { PATIENTS_ENTITY } from "@api/patients/patient-view";
 import { PatientsService } from "@api/patients/patients.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
@@ -112,6 +129,10 @@ export const TYPED_PHRASES: Record<ActionKind, string> = {
   [AI_PROPOSAL_KIND.PAYMENT_CREATE]: "تأكيد تسجيل الدفعة",
   [AI_PROPOSAL_KIND.TIME_OFF_CREATE]: "تأكيد إجازة الطبيب",
   [AI_PROPOSAL_KIND.CLOSURE_CREATE]: "تأكيد إغلاق العيادة",
+  [AI_PROPOSAL_KIND.TIME_OFF_UPDATE]: "تأكيد تعديل الإجازة",
+  [AI_PROPOSAL_KIND.TIME_OFF_DELETE]: "تأكيد حذف الإجازة",
+  [AI_PROPOSAL_KIND.LAB_ORDER_STATUS]: "تأكيد تغيير حالة الطلبية",
+  [AI_PROPOSAL_KIND.STOCK_MOVEMENT]: "تأكيد حركة المخزون",
 };
 
 const DORMANT_AFTER_DAYS = 730;
@@ -161,24 +182,78 @@ const periodFields = z.object({
     .describe("Only after the user answered a schedule_conflict: what to do with them."),
 });
 
+const orderedDates = (args: { date_from: string; date_to: string }): boolean =>
+  args.date_from <= args.date_to;
+const pairedTimes = (args: { time_from?: string | undefined; time_to?: string | undefined }) =>
+  (args.time_from === undefined) === (args.time_to === undefined);
+const DATES_ORDERED = { path: ["date_to"], message: "Must not be before date_from" };
+const TIMES_PAIRED = {
+  path: ["time_to"],
+  message: "Pass time_from and time_to together, or neither for whole days",
+};
+const partOfDay = { time_from: timeSchema.optional(), time_to: timeSchema.optional() };
+
 const timeOffSchema = periodFields
+  .extend({ doctor_id: z.uuid(), ...partOfDay })
+  .refine(orderedDates, DATES_ORDERED)
+  .refine(pairedTimes, TIMES_PAIRED);
+const timeOffUpdateSchema = periodFields
   .extend({
-    doctor_id: z.uuid(),
-    time_from: timeSchema.optional(),
-    time_to: timeSchema.optional(),
+    time_off_id: z.uuid(),
+    reason: z.string().trim().min(2).max(200).optional(),
+    ...partOfDay,
   })
-  .refine((args) => args.date_from <= args.date_to, {
-    path: ["date_to"],
-    message: "Must not be before date_from",
+  .refine(orderedDates, DATES_ORDERED)
+  .refine(pairedTimes, TIMES_PAIRED);
+const closureSchema = periodFields.refine(orderedDates, DATES_ORDERED);
+
+/** The statuses the assistant may move a lab order to, and the endpoint each borrows. */
+const LAB_STATUS_CAPABILITY = {
+  [LAB_ORDER_STATUS.SENT]: "lab-orders.send",
+  [LAB_ORDER_STATUS.READY]: "lab-orders.ready",
+  [LAB_ORDER_STATUS.RECEIVED]: "lab-orders.receive",
+  [LAB_ORDER_STATUS.FITTED]: "lab-orders.fit",
+  [LAB_ORDER_STATUS.RETURNED]: "lab-orders.return",
+  [LAB_ORDER_STATUS.CANCELLED]: "lab-orders.cancel",
+} as const;
+type SettableLabStatus = keyof typeof LAB_STATUS_CAPABILITY;
+const SETTABLE_LAB_STATUSES = Object.keys(LAB_STATUS_CAPABILITY) as [
+  SettableLabStatus,
+  ...SettableLabStatus[],
+];
+
+const labStatusSchema = z
+  .object({
+    lab_order_id: z.uuid(),
+    status: z.enum(SETTABLE_LAB_STATUSES),
+    reason: z.string().trim().min(3).max(500).optional(),
   })
-  .refine((args) => (args.time_from === undefined) === (args.time_to === undefined), {
-    path: ["time_to"],
-    message: "Pass time_from and time_to together, or neither for whole days",
+  .refine((args) => args.status !== LAB_ORDER_STATUS.RETURNED || args.reason !== undefined, {
+    path: ["reason"],
+    message: "A return must say why",
   });
-const closureSchema = periodFields.refine((args) => args.date_from <= args.date_to, {
-  path: ["date_to"],
-  message: "Must not be before date_from",
+
+const MOVEMENT_CAPABILITY: Record<MovementType, string> = {
+  [MOVEMENT_TYPE.PURCHASE]: "inventory.purchase",
+  [MOVEMENT_TYPE.CONSUME]: "inventory.consume",
+  [MOVEMENT_TYPE.ADJUST]: "inventory.adjust",
+};
+
+const movementSchema = z.object({
+  item_id: z.uuid(),
+  type: z.enum(MOVEMENT_TYPES),
+  quantity: z
+    .string()
+    .describe("In the item's own unit, as a string. Negative only for an adjust that removes."),
+  unit_price: z.string().optional().describe("A purchase's whole price per unit."),
+  patient_id: z.uuid().optional().describe("A consume for one patient's treatment."),
+  reason: z.string().trim().max(500).optional().describe("Required for an adjust."),
 });
+
+type MovementInput =
+  | { readonly type: typeof MOVEMENT_TYPE.PURCHASE; readonly input: PurchaseStockInput }
+  | { readonly type: typeof MOVEMENT_TYPE.CONSUME; readonly input: ConsumeStockInput }
+  | { readonly type: typeof MOVEMENT_TYPE.ADJUST; readonly input: AdjustStockInput };
 
 interface ConflictDecision {
   readonly onConflict: AiScheduleConflictChoice | null;
@@ -190,6 +265,22 @@ interface TimeOffPayload extends ConflictDecision {
   readonly startsAt: string;
   readonly endsAt: string;
   readonly reason: string;
+}
+
+interface TimeOffUpdatePayload extends ConflictDecision {
+  readonly timeOffId: string;
+  readonly doctorId: string;
+  readonly startsAt: string;
+  readonly endsAt: string;
+  readonly reason: string | null;
+  /** Only a period that grew can have somebody new inside it. */
+  readonly grew: boolean;
+}
+
+interface LabStatusPayload {
+  readonly labOrderId: string;
+  readonly status: SettableLabStatus;
+  readonly reason: string | null;
 }
 
 interface ClosurePayload extends ConflictDecision {
@@ -269,6 +360,9 @@ export class AiActionsService {
     private readonly timeOff: DoctorTimeOffService,
     private readonly closures: ClinicClosuresService,
     private readonly conflicts: ScheduleConflictsService,
+    private readonly labOrders: LabOrdersService,
+    private readonly stockItems: InventoryItemsService,
+    private readonly movements: StockMovementsService,
     private readonly permissions: PermissionsService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
     private readonly audit: AuditService,
@@ -1102,6 +1196,260 @@ export class AiActionsService {
         },
       }),
 
+      defineAction<typeof timeOffUpdateSchema, TimeOffUpdatePayload>({
+        tool: AI_TOOL.UPDATE_DOCTOR_TIME_OFF,
+        kind: AI_PROPOSAL_KIND.TIME_OFF_UPDATE,
+        description:
+          "Change a doctor's time off to a new period — pass the whole new period, as for " +
+          "add_doctor_time_off. Takes a time_off_id from get_doctor_time_off. A period that " +
+          "grows over appointments comes back as schedule_conflict, answered with on_conflict. " +
+          "Waits on a card the user confirms.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.UPDATE_DOCTOR_TIME_OFF],
+        capability: "doctor-time-off.update",
+        schema: timeOffUpdateSchema,
+        prepare: async (actor, args) => {
+          const existing = await this.timeOff.findOne(actor, args.time_off_id);
+
+          await this.access.requireOwnCalendar(actor, existing.doctorId);
+
+          const window = await this.period(actor.clinicId, args);
+
+          if (window instanceof Stop) {
+            return window;
+          }
+
+          const grew =
+            window.from < new Date(existing.startsAt) || window.to > new Date(existing.endsAt);
+          const conflicts = grew
+            ? await this.periodConflicts(actor, window, args.on_conflict, existing.doctorId)
+            : [];
+
+          if (conflicts instanceof Stop) {
+            return conflicts;
+          }
+
+          const doctor = await this.doctors.findOne(actor, existing.doctorId);
+
+          return {
+            payload: {
+              timeOffId: existing.id,
+              doctorId: existing.doctorId,
+              startsAt: window.from.toISOString(),
+              endsAt: window.to.toISOString(),
+              reason: args.reason ?? null,
+              grew,
+              onConflict: args.on_conflict ?? null,
+              conflictIds: conflicts.map((appointment) => appointment.id),
+            },
+            summary: {
+              doctor: { id: doctor.id, name: doctor.user.name },
+              previousStartsAt: existing.startsAt,
+              previousEndsAt: existing.endsAt,
+              startsAt: window.from.toISOString(),
+              endsAt: window.to.toISOString(),
+              reason: args.reason ?? existing.reason,
+              ...conflictSummary(conflicts, args.on_conflict),
+            },
+          };
+        },
+        escalate: escalateConflict,
+        execute: async (actor, payload) => {
+          if (payload.grew) {
+            await this.assertNoNewConflicts(
+              actor,
+              { from: new Date(payload.startsAt), to: new Date(payload.endsAt) },
+              payload.conflictIds,
+              payload.doctorId,
+            );
+          }
+
+          const updated = await this.audited(
+            actor,
+            DOCTOR_TIME_OFF_ENTITY,
+            AUDIT_ACTION.UPDATE,
+            payload.timeOffId,
+            async () =>
+              (
+                await this.timeOff.update(
+                  actor,
+                  payload.timeOffId,
+                  {
+                    startsAt: payload.startsAt,
+                    endsAt: payload.endsAt,
+                    ...(payload.reason !== null && { reason: payload.reason }),
+                  },
+                  conflictOptions(payload),
+                )
+              ).item,
+          );
+
+          return { result: null, audit: { entity: DOCTOR_TIME_OFF_ENTITY, entityId: updated.id } };
+        },
+      }),
+
+      defineAction({
+        tool: AI_TOOL.DELETE_DOCTOR_TIME_OFF,
+        kind: AI_PROPOSAL_KIND.TIME_OFF_DELETE,
+        description:
+          "Remove a doctor's time off, so the period is bookable again. Takes a time_off_id " +
+          "from get_doctor_time_off. Waits on a card the user confirms.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.DELETE_DOCTOR_TIME_OFF],
+        capability: "doctor-time-off.remove",
+        schema: z.object({ time_off_id: z.uuid() }),
+        prepare: async (actor, args) => {
+          const existing = await this.timeOff.findOne(actor, args.time_off_id);
+
+          await this.access.requireOwnCalendar(actor, existing.doctorId);
+
+          const doctor = await this.doctors.findOne(actor, existing.doctorId);
+
+          return {
+            payload: { timeOffId: existing.id },
+            summary: {
+              doctor: { id: doctor.id, name: doctor.user.name },
+              startsAt: existing.startsAt,
+              endsAt: existing.endsAt,
+              reason: existing.reason,
+            },
+          };
+        },
+        execute: async (actor, payload) => {
+          await this.audited(
+            actor,
+            DOCTOR_TIME_OFF_ENTITY,
+            AUDIT_ACTION.DELETE,
+            payload.timeOffId,
+            async () => {
+              await this.timeOff.softDelete(actor, payload.timeOffId);
+
+              return { id: payload.timeOffId };
+            },
+          );
+
+          return {
+            result: null,
+            audit: { entity: DOCTOR_TIME_OFF_ENTITY, entityId: payload.timeOffId },
+          };
+        },
+      }),
+
+      defineAction<typeof labStatusSchema, LabStatusPayload>({
+        tool: AI_TOOL.SET_LAB_ORDER_STATUS,
+        kind: AI_PROPOSAL_KIND.LAB_ORDER_STATUS,
+        description:
+          "Move a lab order along: sent (out to the lab), ready (the lab finished), received " +
+          "(back at the clinic), fitted (in the patient's mouth), returned (sent back, with the " +
+          "reason) or cancelled. Takes a lab_order_id from find_lab_orders. Waits on a card " +
+          "the user confirms.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.SET_LAB_ORDER_STATUS],
+        capability: "lab-orders.list",
+        capabilityFor: (payload) => LAB_STATUS_CAPABILITY[payload.status],
+        schema: labStatusSchema,
+        prepare: async (actor, args) => {
+          const order = await this.labOrders.findOne(actor, args.lab_order_id);
+
+          if (!canTransitionLabOrder(order.status, args.status)) {
+            return new Stop({ status: "not_possible", current_status: order.status });
+          }
+
+          return {
+            payload: { labOrderId: order.id, status: args.status, reason: args.reason ?? null },
+            summary: {
+              patient: {
+                id: order.patientId,
+                fullName: order.patientName,
+                fileNumber: order.patientFileNumber,
+              },
+              labOrder: {
+                id: order.id,
+                labName: order.labName,
+                workTypeName: order.workTypeName,
+                status: order.status,
+              },
+              labStatus: args.status,
+              ...(args.reason && { reason: args.reason }),
+            },
+          };
+        },
+        execute: async (actor, payload) => {
+          const order = await this.audited(
+            actor,
+            LAB_ORDERS_ENTITY,
+            AUDIT_ACTION.UPDATE,
+            payload.labOrderId,
+            () =>
+              this.labOrders.changeStatus(
+                actor,
+                payload.labOrderId,
+                payload.status,
+                payload.reason ?? undefined,
+              ),
+          );
+
+          return { result: null, audit: { entity: LAB_ORDERS_ENTITY, entityId: order.id } };
+        },
+      }),
+
+      defineAction<typeof movementSchema, MovementInput>({
+        tool: AI_TOOL.RECORD_STOCK_MOVEMENT,
+        kind: AI_PROPOSAL_KIND.STOCK_MOVEMENT,
+        description:
+          "Record stock coming in (purchase), used (consume) or counted (adjust, a signed " +
+          "correction with its reason). Takes an item_id from find_stock_items. The quantity " +
+          "on hand is never set directly: it is the sum of these. Waits on a card the user " +
+          "confirms.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.RECORD_STOCK_MOVEMENT],
+        capability: "inventory.list",
+        capabilityFor: (payload) => MOVEMENT_CAPABILITY[payload.type],
+        schema: movementSchema,
+        prepare: async (actor, args) => {
+          const item = await this.stockItems.findOne(actor, args.item_id);
+          const movement = parseMovement(args);
+
+          if (movement instanceof Stop) {
+            return movement;
+          }
+
+          const patient =
+            movement.type === MOVEMENT_TYPE.CONSUME && movement.input.patientId
+              ? await this.patients.findOne(actor, movement.input.patientId)
+              : null;
+
+          return {
+            payload: movement,
+            summary: {
+              stockItem: { id: item.id, name: item.nameAr, unit: item.unit },
+              movementType: movement.type,
+              quantity: movement.input.quantity,
+              ...(movement.type === MOVEMENT_TYPE.PURCHASE &&
+                movement.input.unitPrice && { amount: movement.input.unitPrice }),
+              ...(patient && { patient: patientSummary(patient) }),
+              ...(movement.input.reason && { reason: movement.input.reason }),
+            },
+          };
+        },
+        execute: async (actor, payload) => {
+          const created = await this.audited(
+            actor,
+            STOCK_MOVEMENTS_ENTITY,
+            AUDIT_ACTION.CREATE,
+            undefined,
+            () => {
+              switch (payload.type) {
+                case MOVEMENT_TYPE.PURCHASE:
+                  return this.movements.purchase(actor, payload.input);
+                case MOVEMENT_TYPE.CONSUME:
+                  return this.movements.consume(actor, payload.input);
+                case MOVEMENT_TYPE.ADJUST:
+                  return this.movements.adjust(actor, payload.input);
+              }
+            },
+          );
+
+          return { result: null, audit: { entity: STOCK_MOVEMENTS_ENTITY, entityId: created.id } };
+        },
+      }),
+
       defineAction({
         tool: AI_TOOL.CREATE_PATIENT,
         kind: AI_PROPOSAL_KIND.PATIENT_CREATE,
@@ -1583,6 +1931,7 @@ function sanityCheck(check: string, details: Record<string, unknown>): Stop {
 
 const SCHEDULE_KINDS: readonly ActionKind[] = [
   AI_PROPOSAL_KIND.TIME_OFF_CREATE,
+  AI_PROPOSAL_KIND.TIME_OFF_UPDATE,
   AI_PROPOSAL_KIND.CLOSURE_CREATE,
 ];
 
@@ -1639,6 +1988,43 @@ const conflictSummary = (
         })),
       }
     : {};
+
+// Through the endpoint's own schema, so the card never shows a movement the screen would refuse.
+function parseMovement(args: z.output<typeof movementSchema>): MovementInput | Stop {
+  const base = { itemId: args.item_id, quantity: args.quantity, reason: args.reason ?? null };
+  const parsed = (() => {
+    switch (args.type) {
+      case MOVEMENT_TYPE.PURCHASE: {
+        const result = purchaseStockSchema.safeParse({
+          ...base,
+          ...(args.unit_price !== undefined && { unitPrice: args.unit_price }),
+        });
+
+        return result.success ? { type: args.type, input: result.data } : result.error;
+      }
+      case MOVEMENT_TYPE.CONSUME: {
+        const result = consumeStockSchema.safeParse({
+          ...base,
+          patientId: args.patient_id ?? null,
+        });
+
+        return result.success ? { type: args.type, input: result.data } : result.error;
+      }
+      case MOVEMENT_TYPE.ADJUST: {
+        const result = adjustStockSchema.safeParse({ ...base, reason: args.reason });
+
+        return result.success ? { type: args.type, input: result.data } : result.error;
+      }
+    }
+  })();
+
+  return parsed instanceof z.ZodError
+    ? new Stop({
+        status: "invalid_arguments",
+        details: parsed.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`),
+      })
+    : parsed;
+}
 
 const patientSummary = (patient: PatientView) => ({
   id: patient.id,

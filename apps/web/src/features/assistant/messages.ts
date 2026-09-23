@@ -52,6 +52,13 @@ const TOOL_KEYS: Record<AiToolName, string> = {
   [AI_TOOL.FIND_DOCTORS]: "assistant.tools.findDoctors",
   [AI_TOOL.ADD_DOCTOR_TIME_OFF]: "assistant.tools.doctorTimeOff",
   [AI_TOOL.ADD_CLINIC_CLOSURE]: "assistant.tools.clinicClosure",
+  [AI_TOOL.GET_DOCTOR_TIME_OFF]: "assistant.tools.doctorTimeOffList",
+  [AI_TOOL.UPDATE_DOCTOR_TIME_OFF]: "assistant.tools.updateTimeOff",
+  [AI_TOOL.DELETE_DOCTOR_TIME_OFF]: "assistant.tools.deleteTimeOff",
+  [AI_TOOL.FIND_LAB_ORDERS]: "assistant.tools.findLabOrders",
+  [AI_TOOL.SET_LAB_ORDER_STATUS]: "assistant.tools.labOrderStatus",
+  [AI_TOOL.FIND_STOCK_ITEMS]: "assistant.tools.findStockItems",
+  [AI_TOOL.RECORD_STOCK_MOVEMENT]: "assistant.tools.stockMovement",
 };
 
 const ACTION_ERROR_KEYS: Record<AiActionError, string> = {

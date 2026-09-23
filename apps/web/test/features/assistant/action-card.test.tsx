@@ -5,6 +5,7 @@ import {
   AI_RISK_TIER,
   AI_SCHEDULE_CONFLICT_CHOICE,
   AI_STREAM_EVENT,
+  LAB_ORDER_STATUS,
   USER_ROLE,
   type AiProposal,
 } from "@clinic/shared";
@@ -191,5 +192,29 @@ describe("An action's confirmation card", () => {
     expect(screen.getByTestId(`action-appointment-${appointmentId}`)).toHaveTextContent(
       "سمير خليل",
     );
+  });
+
+  it("shows a lab order's move from its current status to the new one", () => {
+    render(
+      proposal({
+        kind: AI_PROPOSAL_KIND.LAB_ORDER_STATUS,
+        tier: AI_RISK_TIER.CONFIRM,
+        typedPhrase: null,
+        summary: {
+          patient: { id: PATIENT_ID, fullName: "ليلى ناصر", fileNumber: "1043" },
+          labOrder: {
+            id: PROPOSAL_ID,
+            labName: "مخبر النور",
+            workTypeName: "تاج زيركون",
+            status: LAB_ORDER_STATUS.DRAFT,
+          },
+          labStatus: LAB_ORDER_STATUS.SENT,
+        },
+      }),
+    );
+
+    expect(screen.getByText("مخبر النور")).toBeInTheDocument();
+    expect(screen.getByText(ar.labs.status.draft)).toBeInTheDocument();
+    expect(screen.getByText(ar.labs.status.sent)).toBeInTheDocument();
   });
 });

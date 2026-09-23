@@ -79,6 +79,12 @@ export class DoctorTimeOffService implements OnModuleInit {
     return toPaginated(rows.map(toDoctorTimeOff), totals?.value ?? 0, query);
   }
 
+  async findOne(actor: AuthenticatedUser, id: string): Promise<DoctorTimeOff> {
+    return toDoctorTimeOff(
+      await this.scope.findOneOrFail<TimeOffRow>(doctorTimeOff, actor.clinicId, id),
+    );
+  }
+
   async inRange(
     clinicId: string,
     from: Date,

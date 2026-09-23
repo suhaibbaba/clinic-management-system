@@ -25,6 +25,6 @@ import { SuppliersService } from "@api/inventory/suppliers.service";
     InventoryReportsService,
     InventoryDocumentsService,
   ],
-  exports: [StockService, InventoryItemsService, InventoryReportsService],
+  exports: [StockService, InventoryItemsService, InventoryReportsService, StockMovementsService],
 })
 export class InventoryModule {}
