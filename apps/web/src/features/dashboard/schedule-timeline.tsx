@@ -3,7 +3,7 @@ import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Avatar, Badge, Icon, Ltr, PersonName } from "@clinic/ui";
-import { minutesOf, toTimeLabel } from "@web/features/appointments/calendar-time";
+import { minutesOf, toClockParts } from "@web/features/appointments/calendar-time";
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/features/appointments/status";
 import { useLookupLabels } from "@web/features/lookups/queries";
 import { cn } from "@clinic/ui/lib/cn";
@@ -23,8 +23,13 @@ const SPENT_STATUSES: readonly string[] = [
   APPOINTMENT_STATUS.CANCELLED,
 ];
 
-// The day as a rail rather than a table: a row of times down one edge says what is behind, what is
-// next and where "now" falls, which four sortable columns never do.
+// `dir="auto"` so an Arabic name in the English interface is cut at its own end, not its first
+// letters; the alignment stays the page's.
+const PATIENT_NAME = cn(
+  "block truncate text-label font-medium text-ink",
+  "page-ltr:text-left page-rtl:text-right",
+);
+
 export function ScheduleTimeline({
   rows,
   linkPatients,
@@ -35,127 +40,102 @@ export function ScheduleTimeline({
   const { t } = useTranslation();
   // The clinic's own list, never a constant: a clinic that added "تبييض" sees it here too.
   const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
-  const slots = groupByTime(rows);
+  const ordered = [...rows].sort((a, b) => minutesOf(a.startsAt) - minutesOf(b.startsAt));
+  const currentMinute = nowMinute === null ? null : currentStart(ordered, nowMinute);
 
   return (
-    <ol data-testid={testId} className="relative px-[22px] pt-2 pb-[22px]">
-      {slots.map((slot, index) => {
-        const spent = slot.appointments.every((row) => SPENT_STATUSES.includes(row.status));
-        const isNow = nowMinute !== null && isCurrentSlot(slots, index, nowMinute);
+    <ol
+      data-testid={testId}
+      className="flex flex-col gap-2 px-3 pt-3 pb-4 md:px-[22px] md:pb-[22px]"
+    >
+      {ordered.map((appointment) => {
+        const minute = minutesOf(appointment.startsAt);
+        const clock = toClockParts(minute);
+        const isNow = minute === currentMinute;
 
         return (
           <li
-            key={slot.minute}
-            data-testid={`${testId}-slot-${String(slot.minute)}`}
-            className="relative grid grid-cols-[52px_14px_1fr] gap-x-3.5 sm:grid-cols-[64px_14px_1fr]"
+            key={appointment.id}
+            data-testid={`${testId}-appointment-${appointment.id}`}
+            className={cn(
+              "flex items-center gap-2 rounded-panel border bg-surface px-3 py-3",
+              SPENT_STATUSES.includes(appointment.status) && "opacity-55",
+              isNow ? "border-success-500 shadow-now" : "border-line",
+            )}
           >
-            <Ltr className="pt-5 text-start text-label font-medium text-ink-muted">
-              {toTimeLabel(slot.minute)}
-            </Ltr>
-
-            {/* The rail: a hairline down the column with one node at the slot's time. The first and
-                last slots start and stop it short so it does not run off the panel. */}
             <span
-              aria-hidden="true"
-              className={cn(
-                "relative",
-                "before:absolute before:end-[6px] before:w-0.5 before:bg-line before:content-['']",
-                index === 0 ? "before:top-[26px]" : "before:top-0",
-                index === slots.length - 1 ? "before:h-[26px]" : "before:bottom-0",
-              )}
+              data-testid={`${testId}-time-${appointment.id}`}
+              className="flex w-[42px] shrink-0 flex-col items-center"
             >
-              <span
-                className={cn(
-                  "absolute top-6 end-[1.5px] size-[11px] rounded-pill border-[3px]",
-                  spent
-                    ? "border-neutral-400 bg-neutral-400"
-                    : isNow
-                      ? "border-success-500 bg-surface shadow-[0_0_0_4px_rgb(57_186_151_/_0.22)]"
-                      : "border-primary-600 bg-surface",
-                )}
-              />
+              <Ltr className="text-label font-bold text-ink tabular-nums">{clock.time}</Ltr>
+              <span className="text-micro text-ink-muted">{t(clock.periodKey)}</span>
             </span>
 
-            {/* Two patients at 09:30 stack under one time and one node, as the reference draws
-                them. */}
-            <div className="relative min-w-0">
-              {isNow && <NowLine label={t("dashboard.now")} minute={nowMinute} />}
+            <Avatar
+              name={appointment.patientName}
+              tintKey={appointment.patientId}
+              size={32}
+              className="shrink-0 text-micro"
+            />
 
-              {slot.appointments.map((appointment) => (
-                <div
-                  key={appointment.id}
-                  data-testid={`${testId}-appointment-${appointment.id}`}
+            <div className="min-w-0 flex-1">
+              {linkPatients ? (
+                <Link
+                  to={`/patients/${appointment.patientId}`}
+                  data-testid={`${testId}-patient-${appointment.id}`}
+                  dir="auto"
                   className={cn(
-                    "my-2 flex items-center gap-3 rounded-panel border bg-surface px-4 py-3",
-                    SPENT_STATUSES.includes(appointment.status) && "opacity-55",
-                    isNow ? "border-success-500 shadow-now" : "border-line",
+                    PATIENT_NAME,
+                    "transition-colors duration-150 hover:text-primary-700",
+                    // The hit box, not the line box: `truncate` clips an ::after overlay,
+                    // so the target is grown with padding an equal negative margin undoes.
+                    "-my-2 py-2 lg:my-0 lg:py-0",
                   )}
                 >
-                  <Avatar
-                    name={appointment.patientName}
-                    tintKey={appointment.patientId}
-                    size={34}
-                    className="text-meta"
-                  />
+                  {appointment.patientName}
+                </Link>
+              ) : (
+                <b dir="auto" className={PATIENT_NAME}>
+                  {appointment.patientName}
+                </b>
+              )}
 
-                  <div className="min-w-0 flex-1">
-                    {linkPatients ? (
-                      <Link
-                        to={`/patients/${appointment.patientId}`}
-                        data-testid={`${testId}-patient-${appointment.id}`}
-                        className={cn(
-                          "block truncate text-section font-medium text-ink",
-                          "transition-colors duration-150 hover:text-primary-700",
-                          // The hit box, not the line box: `truncate` clips an ::after overlay,
-                          // so the target is grown with padding an equal negative margin undoes.
-                          "-my-[11px] py-[11px] lg:my-0 lg:py-0",
-                        )}
-                      >
-                        {appointment.patientName}
-                      </Link>
-                    ) : (
-                      <b className="block truncate text-section font-medium text-ink">
-                        {appointment.patientName}
-                      </b>
-                    )}
-
-                    <span className="flex flex-wrap items-center gap-1 text-meta text-ink-muted">
-                      <PersonName name={appointment.doctorName} />
-                      <span aria-hidden="true">·</span>
-                      <span className="truncate">{typeLabel(appointment.type)}</span>
-                    </span>
-                  </div>
-
-                  <Badge
-                    tone={APPOINTMENT_STATUS_STYLES[appointment.status].tone}
-                    data-testid={`${testId}-status-${appointment.id}`}
-                  >
-                    {t(statusLabelKey(appointment.status))}
-                  </Badge>
-
-                  {/* Only where there is something to do: a confirm button beside a completed
-                      appointment is a button that does nothing. */}
-                  {appointment.status === APPOINTMENT_STATUS.REQUESTED && (
-                    <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
-                      {onConfirm && (
-                        <QuickAction
-                          data-testid={`${testId}-confirm-${appointment.id}`}
-                          label={t("appointments.actions.confirm")}
-                          icon="check"
-                          onClick={() => onConfirm(appointment)}
-                        />
-                      )}
-                      <QuickAction
-                        data-testid={`${testId}-call-${appointment.id}`}
-                        label={t("dashboard.call")}
-                        icon="phone"
-                        href={`tel:${appointment.patientPhone.replace(/[\s-]/g, "")}`}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
+              <span
+                data-testid={`${testId}-detail-${appointment.id}`}
+                className="block truncate text-micro text-ink-muted"
+              >
+                {typeLabel(appointment.type)} · <PersonName name={appointment.doctorName} />
+              </span>
             </div>
+
+            {/* Only where there is something to do: a confirm button beside a completed
+                appointment is a button that does nothing. */}
+            {appointment.status === APPOINTMENT_STATUS.REQUESTED && (
+              <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
+                {onConfirm && (
+                  <QuickAction
+                    data-testid={`${testId}-confirm-${appointment.id}`}
+                    label={t("appointments.actions.confirm")}
+                    icon="check"
+                    onClick={() => onConfirm(appointment)}
+                  />
+                )}
+                <QuickAction
+                  data-testid={`${testId}-call-${appointment.id}`}
+                  label={t("dashboard.call")}
+                  icon="phone"
+                  href={`tel:${appointment.patientPhone.replace(/[\s-]/g, "")}`}
+                />
+              </div>
+            )}
+
+            <Badge
+              tone={APPOINTMENT_STATUS_STYLES[appointment.status].tone}
+              data-testid={`${testId}-status-${appointment.id}`}
+              className="shrink-0 gap-1.5 px-2 text-micro"
+            >
+              {t(statusLabelKey(appointment.status))}
+            </Badge>
           </li>
         );
       })}
@@ -200,60 +180,10 @@ function QuickAction({
   );
 }
 
-function NowLine({
-  label,
-  minute,
-}: {
-  readonly label: string;
-  readonly minute: number;
-}): JSX.Element {
-  return (
-    <span
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 top-1 z-[2] border-t-2 border-dashed border-success-500"
-    >
-      {/* Over the rail rather than the card, which is the gap the reference leaves for it. */}
-      <span className="absolute -top-[11px] start-[-54px] rounded-md bg-success-800 px-2 py-[3px] text-micro font-medium text-ink-inverse">
-        <Ltr>
-          {label} {toTimeLabel(minute)}
-        </Ltr>
-      </span>
-    </span>
-  );
-}
+/** The start "now" falls in: the latest already begun, or the first if the day has not. */
+function currentStart(ordered: readonly CalendarAppointment[], nowMinute: number): number | null {
+  const starts = ordered.map((row) => minutesOf(row.startsAt));
+  const begun = starts.filter((minute) => minute <= nowMinute);
 
-interface Slot {
-  readonly minute: number;
-  readonly appointments: readonly CalendarAppointment[];
-}
-
-/** Two patients at 09:30 share one time label and one node column, as the reference draws them. */
-function groupByTime(rows: readonly CalendarAppointment[]): readonly Slot[] {
-  const byMinute = new Map<number, CalendarAppointment[]>();
-
-  for (const row of rows) {
-    const minute = minutesOf(row.startsAt);
-    const existing = byMinute.get(minute);
-
-    if (existing) {
-      existing.push(row);
-    } else {
-      byMinute.set(minute, [row]);
-    }
-  }
-
-  return [...byMinute.entries()]
-    .sort(([a], [b]) => a - b)
-    .map(([minute, appointments]) => ({ minute, appointments }));
-}
-
-/** The slot "now" sits in: the last one already started, or the first if the day has not begun. */
-function isCurrentSlot(slots: readonly Slot[], index: number, nowMinute: number): boolean {
-  const started = slots.filter((slot) => slot.minute <= nowMinute);
-
-  if (started.length === 0) {
-    return index === 0 && slots[0] !== undefined && nowMinute < slots[0].minute;
-  }
-
-  return slots[started.length - 1]?.minute === slots[index]?.minute;
+  return begun.at(-1) ?? starts[0] ?? null;
 }

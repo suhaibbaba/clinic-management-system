@@ -158,14 +158,15 @@ describe("Dashboard", () => {
     );
 
     const schedule = screen.getByRole("region", { name: ar.dashboard.schedule.title });
-    await within(schedule).findByText(`9:00 ${ar.common.clock.am}`);
+    await within(schedule).findByText("9:00");
 
-    // One slot per time, in order down the rail.
+    // One card per appointment, in order.
     const slots = within(schedule).getAllByRole("listitem");
 
     expect(slots).toHaveLength(2);
-    expect(within(slots[0]!).getByText(`9:00 ${ar.common.clock.am}`)).toBeInTheDocument();
-    expect(within(slots[1]!).getByText(`11:30 ${ar.common.clock.am}`)).toBeInTheDocument();
+    expect(within(slots[0]!).getByText("9:00")).toBeInTheDocument();
+    expect(within(slots[0]!).getByText(ar.common.clock.morning)).toBeInTheDocument();
+    expect(within(slots[1]!).getByText("11:30")).toBeInTheDocument();
 
     expect(within(slots[0]!).getByRole("link", { name: "أحمد خالد الحسن" })).toHaveAttribute(
       "href",

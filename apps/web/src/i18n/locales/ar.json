@@ -6,6 +6,9 @@
   "common": {
     "clock": {
       "am": "AM",
+      "evening": "مساءً",
+      "morning": "صباحاً",
+      "noon": "ظهراً",
       "pm": "PM"
     },
     "save": "حفظ",
