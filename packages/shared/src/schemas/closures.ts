@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
+import { paginationQuerySchema, timeRangeSchema, uuidSchema } from "@shared/schemas/common";
 
 // A clinic closure is whole days for everybody; doctor time off is one person's and often part of a
 // day. Both are subtracted by `AvailabilityService`, the only place that decides.
@@ -148,3 +148,30 @@ export const closureCancellationReason = (closureId: string): string =>
 
 export const timeOffCancellationReason = (timeOffId: string): string =>
   `${TIME_OFF_CANCELLATION_PREFIX}${timeOffId}`;
+
+/** Hours a doctor works on one date beyond the weekly schedule, added to that day's hours. */
+export const doctorExtraHoursSchema = z.object({
+  id: uuidSchema,
+  clinicId: uuidSchema,
+  doctorId: uuidSchema,
+  date: z.iso.date(),
+  ranges: z.array(timeRangeSchema),
+  reason: z.string(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});
+export type DoctorExtraHours = z.infer<typeof doctorExtraHoursSchema>;
+
+export const createDoctorExtraHoursSchema = z.object({
+  date: z.iso.date(),
+  ranges: z.array(timeRangeSchema).min(1).max(6),
+  reason: z.string().trim().min(2).max(200),
+});
+export type CreateDoctorExtraHoursInput = z.infer<typeof createDoctorExtraHoursSchema>;
+
+export const listDoctorExtraHoursQuerySchema = paginationQuerySchema.extend({
+  /** Inclusive local dates, both optional. */
+  from: z.iso.date().optional(),
+  to: z.iso.date().optional(),
+});
+export type ListDoctorExtraHoursQuery = z.infer<typeof listDoctorExtraHoursQuerySchema>;

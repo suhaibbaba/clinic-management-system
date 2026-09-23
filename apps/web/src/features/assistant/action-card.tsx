@@ -1,15 +1,20 @@
 import {
+  AI_PROPOSAL_KIND,
   AI_PROPOSAL_STATUS,
   AI_RISK_TIER,
   LOOKUP_LIST,
   localDate,
   type AiActionResult,
+  type AiActionStepSummary,
   type AiActionSummary,
+  type AiPlanInputs,
+  type AiPlanStepStatus,
   type AiProposal,
   type AiProposalStatus,
   type TimeRange,
 } from "@clinic/shared";
 import { useId, useState, type JSX, type ReactNode } from "react";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
@@ -63,6 +68,7 @@ export function ActionCard({ id, initial, onRedraft }: ActionCardProps): JSX.Ele
   const action = useAction(id, initial);
   const decide = useActionDecision();
   const [phrase, setPhrase] = useState("");
+  const [inputs, setInputs] = useState<AiPlanInputs>({});
   const phraseId = useId();
 
   if (!action.data) {
@@ -80,6 +86,27 @@ export function ActionCard({ id, initial, onRedraft }: ActionCardProps): JSX.Ele
   const typed = data.tier === AI_RISK_TIER.TYPED && data.typedPhrase !== null;
   const phraseMatches = !typed || phrase.trim() === data.typedPhrase;
   const href = data.result ? resultHref(data.result, data.summary) : null;
+  const steps = data.summary?.steps ?? [];
+  // A plan that stopped part-way continues from its first step not done, checked again first.
+  const resumeAt = steps.findIndex((step) => step.status !== "done");
+  const resumable =
+    data.kind === AI_PROPOSAL_KIND.PLAN &&
+    data.status === AI_PROPOSAL_STATUS.FAILED &&
+    resumeAt >= 0;
+  const inputsFilled = steps.every(
+    (step, index) =>
+      step.status === "done" ||
+      (step.needs ?? []).every((need) => (inputs[String(index)]?.[need.name] ?? "") !== ""),
+  );
+  const setInput = (index: number, name: string, value: string): void =>
+    setInputs((current) => ({
+      ...current,
+      [String(index)]: { ...current[String(index)], [name]: value },
+    }));
+  const confirmation = {
+    ...(typed && { typedPhrase: phrase }),
+    ...(data.kind === AI_PROPOSAL_KIND.PLAN && { inputs }),
+  };
 
   return (
     <section
@@ -93,9 +120,7 @@ export function ActionCard({ id, initial, onRedraft }: ActionCardProps): JSX.Ele
         <span className="grid size-8 place-items-center rounded-field bg-primary-100 text-primary-600">
           <Icon name="sparkles" />
         </span>
-        <h3 className="text-label font-semibold text-ink">
-          {t(`assistant.action.kinds.${data.kind}`)}
-        </h3>
+        <h3 className="text-label font-semibold text-ink">{cardTitle(t, data)}</h3>
         {data.tier && (
           <span data-part="action-tier" className="text-label text-ink-subtle">
             {t(`assistant.action.tiers.${data.tier}`)}
@@ -106,13 +131,29 @@ export function ActionCard({ id, initial, onRedraft }: ActionCardProps): JSX.Ele
         </Badge>
       </header>
 
-      {data.summary && <ActionSummaryList summary={data.summary} />}
+      {data.summary?.title && (
+        <p data-part="action-title" className="mt-2 text-value font-medium text-ink">
+          {data.summary.title}
+        </p>
+      )}
+
+      {data.summary &&
+        (data.summary.steps ? (
+          <PlanSteps
+            steps={data.summary.steps}
+            inputs={inputs}
+            editable={pending || resumable}
+            onInput={setInput}
+          />
+        ) : (
+          <ActionSummaryList summary={data.summary} />
+        ))}
 
       <footer
         data-part="action-footer"
         className="mt-4 flex flex-col gap-3 border-t border-line pt-3"
       >
-        {pending && typed && (
+        {(pending || resumable) && typed && (
           <div className="flex flex-col gap-1.5">
             <label htmlFor={phraseId} className="text-label font-medium text-ink">
               {t("assistant.action.typeToConfirm", { phrase: data.typedPhrase })}
@@ -133,14 +174,8 @@ export function ActionCard({ id, initial, onRedraft }: ActionCardProps): JSX.Ele
               data-part="action-confirm"
               size="sm"
               icon={<Icon name="check" />}
-              disabled={!phraseMatches || decide.isPending}
-              onClick={() =>
-                decide.mutate({
-                  id,
-                  decision: "confirm",
-                  ...(typed && { typedPhrase: phrase }),
-                })
-              }
+              disabled={!phraseMatches || !inputsFilled || decide.isPending}
+              onClick={() => decide.mutate({ id, decision: "confirm", ...confirmation })}
             >
               {t("assistant.action.confirm")}
             </Button>
@@ -179,7 +214,18 @@ export function ActionCard({ id, initial, onRedraft }: ActionCardProps): JSX.Ele
             <p role="alert" data-part="action-failure" className="text-label text-danger-600">
               {t(actionErrorKey(data.error ?? "action_failed"))}
             </p>
-            {onRedraft && (
+            {resumable && (
+              <Button
+                data-part="action-continue"
+                size="sm"
+                icon={<Icon name="reset" />}
+                disabled={!phraseMatches || !inputsFilled || decide.isPending}
+                onClick={() => decide.mutate({ id, decision: "continue", ...confirmation })}
+              >
+                {t("assistant.action.continueFrom", { number: resumeAt + 1 })}
+              </Button>
+            )}
+            {onRedraft && !resumable && (
               <Button
                 data-part="action-redraft"
                 variant="secondary"
@@ -212,6 +258,77 @@ export function ActionCard({ id, initial, onRedraft }: ActionCardProps): JSX.Ele
 }
 
 function ActionSummaryList({ summary }: { summary: AiActionSummary }): JSX.Element {
+  return <StepSummary summary={summary} />;
+}
+
+const STEP_TONES: Record<AiPlanStepStatus, BadgeTone> = {
+  pending: "neutral",
+  done: "success",
+  failed: "danger",
+};
+
+// Each step drawn the way its own card would draw it, numbered in the order they run, with what
+// became of it and any field the model left for the person.
+function PlanSteps({
+  steps,
+  inputs,
+  editable,
+  onInput,
+}: {
+  steps: NonNullable<AiActionSummary["steps"]>;
+  inputs: AiPlanInputs;
+  editable: boolean;
+  onInput: (index: number, name: string, value: string) => void;
+}): JSX.Element {
+  const { t } = useTranslation();
+
+  return (
+    <ol data-part="action-steps" className="mt-3 flex flex-col gap-3">
+      {steps.map((step, index) => (
+        <li
+          key={index}
+          data-testid={`action-step-${index}`}
+          data-status={step.status}
+          className="rounded-field border border-line p-3"
+        >
+          <p className="flex flex-wrap items-center gap-2 text-label font-semibold text-ink">
+            {t("assistant.action.step", { number: index + 1 })}
+            <span className="text-ink-muted"> · {t(`assistant.action.kinds.${step.kind}`)}</span>
+            {step.status && (
+              <Badge tone={STEP_TONES[step.status]} className="ms-auto">
+                {t(`assistant.action.stepStatus.${step.status}`)}
+              </Badge>
+            )}
+          </p>
+          {step.note && <p className="mt-1 text-label text-ink-muted">{step.note}</p>}
+          <StepSummary summary={step.summary} />
+          {editable && step.status !== "done" && (step.needs ?? []).length > 0 && (
+            <div className="mt-2 flex flex-col gap-2">
+              {(step.needs ?? []).map((need) => (
+                <label key={need.name} className="flex flex-col gap-1 text-label text-ink">
+                  {t(`assistant.action.planInput.${need.kind}`)}
+                  <Input
+                    data-part="action-step-input"
+                    type={need.kind}
+                    value={inputs[String(index)]?.[need.name] ?? ""}
+                    onChange={(event) => onInput(index, need.name, event.target.value)}
+                  />
+                </label>
+              ))}
+            </div>
+          )}
+          {step.error && (
+            <p role="alert" className="mt-2 text-label text-danger-600">
+              {t(actionErrorKey(step.error))}
+            </p>
+          )}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function StepSummary({ summary }: { summary: AiActionStepSummary }): JSX.Element {
   const { t } = useTranslation();
   const currency = useCurrency();
   const methodLabel = useLookupLabels(LOOKUP_LIST.PAYMENT_METHOD);
@@ -340,6 +457,21 @@ function ActionSummaryList({ summary }: { summary: AiActionSummary }): JSX.Eleme
           </span>
         </Row>
       ))}
+      {summary.extraHours && (
+        <Row label={t("assistant.action.fields.extraHours")}>
+          <span data-part="action-extra-hours">
+            <span dir="ltr">{formatDate(summary.extraHours.date)}</span>{" "}
+            <Hours ranges={summary.extraHours.ranges} />
+          </span>
+        </Row>
+      )}
+      {summary.route?.fields.map((field) => (
+        <Row key={field.name} label={field.name}>
+          <span dir="auto" className="[unicode-bidi:plaintext]">
+            {field.value}
+          </span>
+        </Row>
+      ))}
       {summary.recordedAt && (
         <Row label={t("assistant.action.fields.recordedAt")}>
           <span dir="ltr">{when(summary.recordedAt)}</span>
@@ -400,6 +532,16 @@ function Hours({ ranges }: { ranges: readonly TimeRange[] }): JSX.Element {
   ) : (
     <span dir="ltr">{ranges.map((range) => `${range.start}–${range.end}`).join(", ")}</span>
   );
+}
+
+// A generated write is titled by the permission it borrows, which the permissions screen already
+// names in the clinic's words; a hand-written one by its kind.
+function cardTitle(t: TFunction, data: AiProposal): string {
+  const capability = data.summary?.route?.capability;
+
+  return data.kind === AI_PROPOSAL_KIND.ROUTE_CALL && capability
+    ? t(`permissions.capabilities.${capability}`, { defaultValue: data.summary?.route?.tool ?? "" })
+    : t(`assistant.action.kinds.${data.kind}`);
 }
 
 function Row({ label, children }: { label: string; children: ReactNode }): JSX.Element {

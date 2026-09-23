@@ -197,6 +197,34 @@
       "when": 1790196321484,
       "tag": "0027_ai_schedule_money_actions",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1790198988508,
+      "tag": "0028_ai_plans_extra_hours",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1790199423792,
+      "tag": "0029_ai_read_views",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1790199897153,
+      "tag": "0030_ai_loaded_groups",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1790200478411,
+      "tag": "0031_ai_route_call",
+      "breakpoints": true
     }
   ]
 }

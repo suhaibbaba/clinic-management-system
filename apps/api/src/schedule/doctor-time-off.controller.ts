@@ -32,6 +32,7 @@ import {
   DOCTOR_TIME_OFF_ENTITY,
   DoctorTimeOffService,
 } from "@api/schedule/doctor-time-off.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreateDoctorTimeOffDto extends createZodDto(createDoctorTimeOffSchema) {}
 class UpdateDoctorTimeOffDto extends createZodDto(updateDoctorTimeOffSchema) {}
@@ -46,6 +47,11 @@ class DoctorParamDto extends createZodDto(z.object({ doctorId: z.uuid() })) {}
 export class DoctorTimeOffController {
   constructor(private readonly timeOff: DoctorTimeOffService) {}
 
+  @AiTool({
+    group: "schedule",
+    description:
+      "A doctor's time off overlapping a window of instants. Use to find the time_off_id to change or remove.",
+  })
   @Get("doctors/:doctorId/time-off")
   list(
     @CurrentUser() actor: AuthenticatedUser,

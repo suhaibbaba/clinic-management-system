@@ -5,7 +5,6 @@ import {
   AI_TOOL,
   APPOINTMENT_STATUS,
   APPOINTMENT_STATUSES,
-  LAB_ORDER_STATUSES,
   addDays,
   clinicScheduleSettings,
   DEFAULT_TIME_ZONE,
@@ -19,24 +18,21 @@ import {
 import { and, eq, inArray, isNull, max } from "drizzle-orm";
 import { z } from "zod";
 import { AppointmentsService } from "@api/appointments/appointments.service";
+import { AvailabilityService } from "@api/appointments/availability.service";
 import { LedgerService } from "@api/billing/ledger.service";
 import { OverdueService } from "@api/billing/overdue.service";
-import { PaymentsService } from "@api/billing/payments.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DoctorsService } from "@api/doctors/doctors.service";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, visits } from "@api/database/schema";
-import { InventoryItemsService } from "@api/inventory/inventory-items.service";
-import { StockMovementsService } from "@api/inventory/stock-movements.service";
 import { InventoryReportsService } from "@api/inventory/inventory-reports.service";
 import { LabOrdersService } from "@api/labs/lab-orders.service";
-import { LabPaymentsService } from "@api/labs/lab-payments.service";
-import { LabsService } from "@api/labs/labs.service";
 import { PatientAccessService } from "@api/patients/patient-access.service";
 import { PatientsService } from "@api/patients/patients.service";
 import { TimelineService } from "@api/patients/timeline.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
-import { DoctorTimeOffService } from "@api/schedule/doctor-time-off.service";
+import { QUERY_CAPABILITY, QueryDataService, queryView } from "@api/ai/query/query-data.service";
+import { RouteToolRegistry } from "@api/ai/tools/route-tools";
 import { AiActionsService } from "@api/ai/actions/ai-actions.service";
 import { ProposalsService, TARGET_READ_CAPABILITY } from "@api/ai/outbound/proposals.service";
 import {
@@ -66,12 +62,7 @@ const CAPABILITY = {
   OVERDUE: "billing.list",
   LAB_ORDERS_OVERDUE: "lab-orders.overdue",
   INVENTORY_ALERTS: "inventory.alerts",
-  LAB_ORDERS_LIST: "lab-orders.list",
-  INVENTORY_ITEMS: "inventory.list",
-  INVENTORY_MOVEMENTS: "inventory.listMovements",
-  PAYMENTS_LIST: "payments.list",
-  LABS_LIST: "labs.list",
-  LAB_PAYMENTS_LIST: "lab-ledger.listPayments",
+  QUERY: QUERY_CAPABILITY,
   OUTBOUND_SEND: "ai-outbound.send",
 } as const;
 
@@ -83,6 +74,9 @@ const DRAFT_TARGETS = [
 
 const dateSchema = z.iso.date();
 
+/** Enough to choose from; the rest is a count rather than a wall of times. */
+const SLOTS_PER_DAY = 40;
+
 const PERIOD = ["today", "this_week", "this_month", "last_month"] as const;
 type Period = (typeof PERIOD)[number];
 
@@ -93,6 +87,7 @@ export class AiToolsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly appointments: AppointmentsService,
+    private readonly availability: AvailabilityService,
     private readonly doctors: DoctorsService,
     private readonly patients: PatientsService,
     private readonly timeline: TimelineService,
@@ -100,19 +95,15 @@ export class AiToolsService {
     private readonly overdue: OverdueService,
     private readonly labOrders: LabOrdersService,
     private readonly inventory: InventoryReportsService,
-    private readonly stockItems: InventoryItemsService,
-    private readonly timeOff: DoctorTimeOffService,
-    private readonly payments: PaymentsService,
-    private readonly labs: LabsService,
-    private readonly labPayments: LabPaymentsService,
-    private readonly movements: StockMovementsService,
+    private readonly query: QueryDataService,
+    private readonly routes: RouteToolRegistry,
     private readonly permissions: PermissionsService,
     private readonly proposals: ProposalsService,
     private readonly actions: AiActionsService,
   ) {}
 
   list(): AiTool[] {
-    this.tools ??= [...this.build(), ...this.actions.tools()];
+    this.tools ??= [...this.build(), ...this.routeReads(), ...this.actions.tools()];
 
     return this.tools;
   }
@@ -122,10 +113,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_APPOINTMENTS,
         description:
-          "List appointments between two dates, newest first, optionally narrowed to one status " +
-          "and one doctor. Dates are the clinic's own local dates and both ends are inclusive. " +
-          'For "my appointments" pass the speaker\'s own doctor_id from the system prompt; omit ' +
-          "doctor_id only when the question is about the whole clinic.",
+          'Appointments between two local dates (inclusive), optionally for one doctor or status; "my" means the speaker\'s doctor_id. Not for free times — find_available_slots. Returns rows, drawn as a table.',
         capability: null,
         schema: z.object({
           date_from: dateSchema,
@@ -165,9 +153,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.FIND_DOCTORS,
         description:
-          "The clinic's doctors, by name in Arabic or English, or all of them with no query. " +
-          "Use it to turn a doctor's name into a doctor_id. When more than one doctor matches " +
-          "the name the user gave, ask which one — never pick one yourself.",
+          "The clinic's doctors by name, Arabic or English, with their weekly hours — how a name becomes a doctor_id; two matches is a question. Returns ids, names, schedules.",
         capability: null,
         schema: z.object({
           query: z.string().trim().min(1).max(120).optional(),
@@ -194,181 +180,49 @@ export class AiToolsService {
       }),
 
       defineTool({
-        name: AI_TOOL.GET_DOCTOR_TIME_OFF,
+        name: AI_TOOL.FIND_AVAILABLE_SLOTS,
         description:
-          "A doctor's time off overlapping two local dates (inclusive), or all of it with no " +
-          "dates. Use it to find the time_off_id to change or remove.",
+          "Free start times for one doctor, day by day for up to 7 days, as booking computes them. Before proposing any new time. Returns free times per day, or why a day has none.",
         capability: null,
         schema: z.object({
           doctor_id: z.uuid(),
-          date_from: dateSchema.optional(),
-          date_to: dateSchema.optional(),
+          date: dateSchema,
+          days: z.number().int().min(1).max(7).optional(),
+          duration_minutes: z.number().int().min(5).max(480).optional(),
         }),
         run: async (actor, args) => {
-          const timeZone = await this.timeZone(actor.clinicId);
-          const page = await this.timeOff.list(actor, args.doctor_id, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-            ...(args.date_from && {
-              from: instantFromLocal(args.date_from, 0, timeZone).toISOString(),
-            }),
-            ...(args.date_to && {
-              to: instantFromLocal(addDays(args.date_to, 1), 0, timeZone).toISOString(),
-            }),
-          });
+          await this.doctors.findOne(actor, args.doctor_id);
 
-          return capped(
-            page.items.map((row) => ({
-              id: row.id,
-              startsAt: row.startsAt,
-              endsAt: row.endsAt,
-              reason: row.reason,
-            })),
-            page.total,
-          );
-        },
-      }),
+          const days = [];
 
-      defineTool({
-        name: AI_TOOL.FIND_LAB_ORDERS,
-        description:
-          "Lab orders, narrowed by status, by patient (an id from search_patients) or by a " +
-          "search over the patient's name and the lab's. Use it to find the order to move along.",
-        capability: CAPABILITY.LAB_ORDERS_LIST,
-        schema: z.object({
-          status: z.enum(LAB_ORDER_STATUSES).optional(),
-          patient_id: z.uuid().optional(),
-          search: z.string().trim().min(2).max(160).optional(),
-        }),
-        run: async (actor, args) => {
-          const page = await this.labOrders.list(actor, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-            ...(args.status && { status: args.status }),
-            ...(args.patient_id && { patientId: args.patient_id }),
-            ...(args.search && { search: args.search }),
-          });
+          for (let offset = 0; offset < (args.days ?? 1); offset += 1) {
+            const date = addDays(args.date, offset);
+            const day = await this.availability.forDay(actor.clinicId, {
+              doctorId: args.doctor_id,
+              date,
+              ...(args.duration_minutes !== undefined && {
+                durationMinutes: args.duration_minutes,
+              }),
+            });
+            const free = day.slots.filter((slot) => slot.available).map((slot) => slot.start);
 
-          return capped(page.items.map(toLabOrderSummary), page.total);
-        },
-      }),
+            days.push({
+              date,
+              durationMinutes: day.durationMinutes,
+              free: free.slice(0, SLOTS_PER_DAY),
+              ...(free.length > SLOTS_PER_DAY && { moreFree: free.length - SLOTS_PER_DAY }),
+              ...(free.length === 0 && { closedReason: day.closedReason ?? "fully_booked" }),
+            });
+          }
 
-      defineTool({
-        name: AI_TOOL.FIND_STOCK_ITEMS,
-        description:
-          "Stock items by name, with the quantity on hand in the item's own unit. Use it to " +
-          "find the item_id for a purchase, a use or a count.",
-        capability: CAPABILITY.INVENTORY_ITEMS,
-        schema: z.object({ query: z.string().trim().min(1).max(160).optional() }),
-        run: async (actor, args) => {
-          const page = await this.stockItems.list(actor, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-            ...(args.query && { search: args.query }),
-          });
-
-          return capped(page.items.map(toStockSummary), page.total);
-        },
-      }),
-
-      defineTool({
-        name: AI_TOOL.FIND_PAYMENTS,
-        description:
-          "A patient's payments, newest first, with their receipt numbers. A row with " +
-          "reversesId is a reversal of the payment it names. Use it to find the payment_id " +
-          "to reverse.",
-        capability: CAPABILITY.PAYMENTS_LIST,
-        schema: z.object({ patient_id: z.uuid() }),
-        run: async (actor, args) => {
-          const page = await this.payments.list(actor, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-            patientId: args.patient_id,
-          });
-
-          return capped(page.items.map(toPaymentSummary), page.total);
-        },
-      }),
-
-      defineTool({
-        name: AI_TOOL.FIND_LABS,
-        description:
-          "The clinic's labs by name, with what the clinic owes each and how many orders are " +
-          "open. Use it to turn a lab's name into a lab_id.",
-        capability: CAPABILITY.LABS_LIST,
-        schema: z.object({ query: z.string().trim().min(1).max(160).optional() }),
-        run: async (actor, args) => {
-          const page = await this.labs.list(actor, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-            ...(args.query && { search: args.query }),
-          });
-
-          return capped(
-            page.items.map((lab) => ({
-              id: lab.id,
-              name: lab.name,
-              balance: lab.balance,
-              openOrders: lab.openOrders,
-            })),
-            page.total,
-          );
-        },
-      }),
-
-      defineTool({
-        name: AI_TOOL.GET_LAB_PAYMENTS,
-        description:
-          "What the clinic paid one lab, newest first. A row with reversesId is a reversal of " +
-          "the payment it names. Use it to find the lab_payment_id to reverse.",
-        capability: CAPABILITY.LAB_PAYMENTS_LIST,
-        schema: z.object({ lab_id: z.uuid() }),
-        run: async (actor, args) => {
-          const page = await this.labPayments.list(actor, args.lab_id, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-          });
-
-          return capped(page.items.map(toPaymentSummary), page.total);
-        },
-      }),
-
-      defineTool({
-        name: AI_TOOL.GET_STOCK_MOVEMENTS,
-        description:
-          "One stock item's movements, newest first: purchases, uses and counts. A row with " +
-          "reversesId is a reversal. Use it to find the movement_id to reverse.",
-        capability: CAPABILITY.INVENTORY_MOVEMENTS,
-        schema: z.object({ item_id: z.uuid() }),
-        run: async (actor, args) => {
-          const page = await this.movements.list(actor, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-            itemId: args.item_id,
-          });
-
-          return capped(
-            page.items.map((movement) => ({
-              id: movement.id,
-              type: movement.type,
-              quantity: movement.quantity,
-              reason: movement.reason,
-              reversesId: movement.reversesId,
-              reversedAt: movement.reversedAt,
-              createdAt: movement.createdAt,
-            })),
-            page.total,
-          );
+          return { doctorId: args.doctor_id, days };
         },
       }),
 
       defineTool({
         name: AI_TOOL.SEARCH_PATIENTS,
         description:
-          "Find patients by name, file number or phone. Returns the file number, the name, a " +
-          "masked phone and the date of the last visit. Use it to turn a name into a patient id. " +
-          "When the user named a person and more than one row matches, ask which one, showing " +
-          "each file number — never pick one yourself.",
+          "Finds patients by name, file number or phone — how a name becomes a patient id; two matches is a question, by file number. Returns ids, names, masked phones, last visit.",
         capability: null,
         schema: z.object({ query: z.string().trim().min(2).max(120) }),
         run: async (actor, args) => {
@@ -398,8 +252,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_PATIENT_SUMMARY,
         description:
-          "One patient's record: their details, their recent history — visits, treatments, " +
-          "appointments, payments — and their balance. Takes a patient id from search_patients.",
+          "One patient's file: details, recent history and balance, from a patient id. For older history use timeline_list. Returns a card.",
         capability: CAPABILITY.PATIENT_TIMELINE,
         schema: z.object({ patient_id: z.uuid() }),
         run: async (actor, args) => {
@@ -426,8 +279,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_DAILY_STATS,
         description:
-          "Counts of appointments between two dates: how many in total, how many were completed, " +
-          "cancelled or marked a no-show. Use it for attendance questions, not for lists.",
+          "Counts of appointments between two dates: total, completed, cancelled, no-show. For attendance, not lists (get_appointments). Returns counts.",
         capability: null,
         schema: z.object({ date_from: dateSchema, date_to: dateSchema }),
         run: async (actor, args) => {
@@ -449,8 +301,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_FINANCIAL_SUMMARY,
         description:
-          "The clinic's money over a period: what was charged, what was collected, what is " +
-          "outstanding, and the patients who owe the most.",
+          "The clinic's money over a period: charged, collected, outstanding, top debtors. For one patient use get_patient_summary. Returns a card.",
         capability: CAPABILITY.OVERDUE,
         schema: z.object({ period: z.enum(PERIOD) }),
         run: async (actor, args) => {
@@ -489,8 +340,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_OVERDUE_LAB_ORDERS,
         description:
-          "Lab orders that are past the date the lab promised them and are not back yet, the " +
-          "most overdue first.",
+          "Lab orders past their promised date and not back, most overdue first. For any other lab question use lab_orders_list. Returns a table.",
         capability: CAPABILITY.LAB_ORDERS_OVERDUE,
         schema: z.object({}),
         run: async (actor) => {
@@ -506,8 +356,7 @@ export class AiToolsService {
       defineTool({
         name: AI_TOOL.GET_LOW_STOCK_ITEMS,
         description:
-          "Stock items at or below their minimum quantity, the most urgent first. Use it for " +
-          "what needs ordering.",
+          "Stock at or below its minimum, most urgent first. For what to order by supplier use inventory_shopping_list. Returns a table.",
         capability: CAPABILITY.INVENTORY_ALERTS,
         schema: z.object({}),
         run: async (actor) => {
@@ -518,14 +367,32 @@ export class AiToolsService {
       }),
 
       defineTool({
+        name: AI_TOOL.QUERY_DATA,
+        description:
+          "Read-only SQL over the ai_read views listed in the system prompt, for what no other " +
+          "tool answers: counts, sums, unusual filters, joins across areas. Not when a tool " +
+          "fits (find_*, get_*). One SELECT or WITH; at most 200 rows. Returns columns and rows.",
+        capability: CAPABILITY.QUERY,
+        schema: z.object({
+          sql: z.string().trim().min(8).max(4000),
+          purpose: z
+            .string()
+            .trim()
+            .min(3)
+            .max(300)
+            .describe("What the user asked, in a few words; recorded for the clinic's admin."),
+        }),
+        run: async (actor, args) => {
+          const result = await this.query.run(actor, args.sql);
+
+          return new Viewed(result, queryView(result));
+        },
+      }),
+
+      defineTool({
         name: AI_TOOL.DRAFT_BULK_MESSAGE,
         description:
-          "Draft a WhatsApp message to a group of patients for the user to review. This sends " +
-          "NOTHING: it creates a proposal the user confirms or cancels on a card in the chat. " +
-          "target is overdue_labs (patients whose lab work is overdue), unpaid_invoices (patients " +
-          "with an overdue balance) or patient_ids (the ids you pass, from search_patients). " +
-          "message_intent is what the message should say, in the user's words. Afterwards tell " +
-          "the user the draft is waiting for their confirmation below; never say it was sent.",
+          "Drafts a WhatsApp message to a group — overdue labs, overdue balances or chosen patients — for the user to review; sends nothing. Only when asked to message. Returns the draft's id.",
         capability: CAPABILITY.OUTBOUND_SEND,
         schema: z
           .object({
@@ -564,6 +431,24 @@ export class AiToolsService {
         },
       }),
     ];
+  }
+
+  // A route's read, as its screen would get it — and phone numbers to their last four, as every
+  // hand-written read gives them: the model is answering, not dialling.
+  private routeReads(): AiTool[] {
+    return this.routes
+      .list()
+      .filter((route) => route.risk === null)
+      .map((route) =>
+        defineTool({
+          name: route.name,
+          group: route.group,
+          description: route.description,
+          capability: route.capability,
+          schema: route.schema,
+          run: async (actor, args) => maskPhones(await route.invoke(actor, args)),
+        }),
+      );
   }
 
   private allows(actor: AuthenticatedUser, capability: string): Promise<boolean> {
@@ -701,23 +586,22 @@ const toLabOrderSummary = (order: LabOrderRow) => ({
   teeth: order.teeth,
 });
 
-const toPaymentSummary = (payment: {
-  id: string;
-  amount: string;
-  method: string;
-  note: string | null;
-  reversesId: string | null;
-  createdAt: string;
-  receiptNumber?: number | null;
-}) => ({
-  id: payment.id,
-  amount: payment.amount,
-  method: payment.method,
-  receiptNumber: payment.receiptNumber ?? null,
-  note: payment.note,
-  reversesId: payment.reversesId,
-  createdAt: payment.createdAt,
-});
+function maskPhones(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(maskPhones);
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        /phone/i.test(key) && typeof item === "string" ? maskPhone(item) : maskPhones(item),
+      ]),
+    );
+  }
+
+  return value;
+}
 
 const toStockSummary = (item: InventoryItemRow) => ({
   id: item.id,

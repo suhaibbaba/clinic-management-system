@@ -1,0 +1,1 @@
+ALTER TYPE "public"."ai_proposal_kind" ADD VALUE 'route_call';

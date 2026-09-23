@@ -332,10 +332,10 @@ describe("Assistant schedule actions (e2e)", () => {
       const timeOffId = await addTimeOff(day, "09:00", "10:00");
       const appointmentId = await book(day, "11:00");
 
-      const listed = await tool(USER_ROLE.ADMIN, AI_TOOL.GET_DOCTOR_TIME_OFF, {
-        doctor_id: doctorId,
-        date_from: day,
-        date_to: day,
+      const listed = await tool(USER_ROLE.ADMIN, "doctor_time_off_list", {
+        doctorId,
+        from: new Date(`${day}T00:00:00+03:00`).toISOString(),
+        to: new Date(`${day}T23:59:00+03:00`).toISOString(),
       });
 
       expect(listed.result?.items?.map((item) => item.id)).toEqual([timeOffId]);

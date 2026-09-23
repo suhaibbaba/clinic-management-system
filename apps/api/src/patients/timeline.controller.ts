@@ -11,6 +11,7 @@ import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { TimelineService } from "@api/patients/timeline.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class ListTimelineQueryDto extends createZodDto(listTimelineQuerySchema) {}
 class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
@@ -22,6 +23,11 @@ class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 export class TimelineController {
   constructor(private readonly timeline: TimelineService) {}
 
+  @AiTool({
+    group: "patients",
+    description:
+      "A patient's history page by page — visits, treatments, appointments, payments, newest first. Use for older history than get_patient_summary shows.",
+  })
   @Get()
   list(
     @CurrentUser() actor: AuthenticatedUser,

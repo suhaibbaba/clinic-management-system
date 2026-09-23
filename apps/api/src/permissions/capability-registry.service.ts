@@ -118,6 +118,14 @@ export class CapabilityRegistry implements OnApplicationBootstrap {
     return `${scopeOf(controller)}.${handler.name}`;
   }
 
+  /**
+   * A permission no route carries — the assistant's free reads. Listed and granted like any other,
+   * so a clinic can take it away.
+   */
+  declare(capability: Capability): void {
+    this.byKey.set(capability.key, capability);
+  }
+
   all(): Capability[] {
     return [...this.byKey.values()].sort(
       (a, b) => a.resource.localeCompare(b.resource) || a.key.localeCompare(b.key),

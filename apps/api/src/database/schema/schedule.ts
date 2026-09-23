@@ -1,4 +1,5 @@
-import { boolean, date, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import type { TimeRange } from "@clinic/shared";
+import { boolean, date, index, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { clinics, doctors } from "@api/database/schema/core";
 
 const auditColumns = {
@@ -58,5 +59,29 @@ export const doctorTimeOff = pgTable(
   (table) => [
     index("doctor_time_off_clinic_idx").on(table.clinicId),
     index("doctor_time_off_doctor_starts_idx").on(table.doctorId, table.startsAt),
+  ],
+);
+
+// Hours a doctor works on one date beyond their weekly schedule — covering for a colleague, an
+// extra clinic day. Added to that weekday's hours by `AvailabilityService`, never a replacement.
+export const doctorExtraHours = pgTable(
+  "doctor_extra_hours",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => clinics.id),
+    doctorId: uuid("doctor_id")
+      .notNull()
+      .references(() => doctors.id),
+    date: date("date", { mode: "string" }).notNull(),
+    ranges: jsonb("ranges").$type<TimeRange[]>().notNull(),
+    reason: text("reason").notNull(),
+    ...auditColumns,
+    ...softDeleteColumn,
+  },
+  (table) => [
+    index("doctor_extra_hours_clinic_idx").on(table.clinicId),
+    index("doctor_extra_hours_doctor_date_idx").on(table.doctorId, table.date),
   ],
 );

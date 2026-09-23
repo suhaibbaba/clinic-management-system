@@ -27,6 +27,7 @@ import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { PATIENTS_ENTITY } from "@api/patients/patient-view";
 import { PatientsService } from "@api/patients/patients.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreatePatientDto extends createZodDto(createPatientSchema) {}
 class UpdatePatientDto extends createZodDto(updatePatientSchema) {}
@@ -65,6 +66,11 @@ export class PatientsController {
     return this.patientsService.create(actor, body);
   }
 
+  @AiTool({
+    group: "patients",
+    description:
+      "Correct a patient's details — name, phone, date of birth, address. Not for notes: use add_patient_note. Waits on a card.",
+  })
   @Patch(":id")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST)
   @Audit(PATIENTS_ENTITY, AUDIT_ACTION.UPDATE)
@@ -77,6 +83,11 @@ export class PatientsController {
   }
 
   /** Soft delete, admin only (ROLES.md: only admin may delete). */
+  @AiTool({
+    group: "patients",
+    description:
+      "Archive a patient's file (never deleted). Only when the user asks for exactly that. Waits on a typed confirmation.",
+  })
   @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)

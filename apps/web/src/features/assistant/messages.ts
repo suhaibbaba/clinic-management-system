@@ -52,22 +52,20 @@ const TOOL_KEYS: Record<AiToolName, string> = {
   [AI_TOOL.FIND_DOCTORS]: "assistant.tools.findDoctors",
   [AI_TOOL.ADD_DOCTOR_TIME_OFF]: "assistant.tools.doctorTimeOff",
   [AI_TOOL.ADD_CLINIC_CLOSURE]: "assistant.tools.clinicClosure",
-  [AI_TOOL.GET_DOCTOR_TIME_OFF]: "assistant.tools.doctorTimeOffList",
   [AI_TOOL.UPDATE_DOCTOR_TIME_OFF]: "assistant.tools.updateTimeOff",
   [AI_TOOL.DELETE_DOCTOR_TIME_OFF]: "assistant.tools.deleteTimeOff",
-  [AI_TOOL.FIND_LAB_ORDERS]: "assistant.tools.findLabOrders",
   [AI_TOOL.SET_LAB_ORDER_STATUS]: "assistant.tools.labOrderStatus",
-  [AI_TOOL.FIND_STOCK_ITEMS]: "assistant.tools.findStockItems",
   [AI_TOOL.RECORD_STOCK_MOVEMENT]: "assistant.tools.stockMovement",
   [AI_TOOL.SET_DOCTOR_SCHEDULE]: "assistant.tools.doctorSchedule",
-  [AI_TOOL.FIND_PAYMENTS]: "assistant.tools.findPayments",
   [AI_TOOL.REVERSE_PAYMENT]: "assistant.tools.reversePayment",
-  [AI_TOOL.FIND_LABS]: "assistant.tools.findLabs",
-  [AI_TOOL.GET_LAB_PAYMENTS]: "assistant.tools.labPayments",
   [AI_TOOL.RECORD_LAB_PAYMENT]: "assistant.tools.labPayment",
   [AI_TOOL.REVERSE_LAB_PAYMENT]: "assistant.tools.reverseLabPayment",
-  [AI_TOOL.GET_STOCK_MOVEMENTS]: "assistant.tools.stockMovements",
   [AI_TOOL.REVERSE_STOCK_MOVEMENT]: "assistant.tools.reverseStockMovement",
+  [AI_TOOL.FIND_AVAILABLE_SLOTS]: "assistant.tools.findSlots",
+  [AI_TOOL.ADD_DOCTOR_EXTRA_HOURS]: "assistant.tools.extraHours",
+  [AI_TOOL.PROPOSE_PLAN]: "assistant.tools.plan",
+  [AI_TOOL.QUERY_DATA]: "assistant.tools.queryData",
+  [AI_TOOL.LOAD_TOOLS]: "assistant.tools.loadTools",
 };
 
 const ACTION_ERROR_KEYS: Record<AiActionError, string> = {
@@ -79,6 +77,8 @@ const ACTION_ERROR_KEYS: Record<AiActionError, string> = {
   [AI_ACTION_ERROR.NOT_FOUND]: "assistant.actionErrors.notFound",
   [AI_ACTION_ERROR.DUPLICATE]: "assistant.actionErrors.duplicate",
   [AI_ACTION_ERROR.SCHEDULE_CONFLICT]: "assistant.actionErrors.scheduleConflict",
+  [AI_ACTION_ERROR.CHANGED_SINCE_DRAFT]: "assistant.actionErrors.changedSinceDraft",
+  [AI_ACTION_ERROR.INPUT_REQUIRED]: "assistant.actionErrors.inputRequired",
   [AI_ACTION_ERROR.FAILED]: "assistant.actionErrors.failed",
 };
 

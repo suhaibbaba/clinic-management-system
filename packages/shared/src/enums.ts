@@ -497,6 +497,8 @@ export const AI_TOOL = {
   GET_FINANCIAL_SUMMARY: "get_financial_summary",
   GET_OVERDUE_LAB_ORDERS: "get_overdue_lab_orders",
   GET_LOW_STOCK_ITEMS: "get_low_stock_items",
+  QUERY_DATA: "query_data",
+  LOAD_TOOLS: "load_tools",
   DRAFT_BULK_MESSAGE: "draft_bulk_message",
   SET_APPOINTMENT_STATUS: "set_appointment_status",
   ADD_PATIENT_NOTE: "add_patient_note",
@@ -508,22 +510,18 @@ export const AI_TOOL = {
   FIND_DOCTORS: "find_doctors",
   ADD_DOCTOR_TIME_OFF: "add_doctor_time_off",
   ADD_CLINIC_CLOSURE: "add_clinic_closure",
-  GET_DOCTOR_TIME_OFF: "get_doctor_time_off",
   UPDATE_DOCTOR_TIME_OFF: "update_doctor_time_off",
   DELETE_DOCTOR_TIME_OFF: "delete_doctor_time_off",
-  FIND_LAB_ORDERS: "find_lab_orders",
   SET_LAB_ORDER_STATUS: "set_lab_order_status",
-  FIND_STOCK_ITEMS: "find_stock_items",
   RECORD_STOCK_MOVEMENT: "record_stock_movement",
   SET_DOCTOR_SCHEDULE: "set_doctor_schedule",
-  FIND_PAYMENTS: "find_payments",
   REVERSE_PAYMENT: "reverse_payment",
-  FIND_LABS: "find_labs",
-  GET_LAB_PAYMENTS: "get_lab_payments",
   RECORD_LAB_PAYMENT: "record_lab_payment",
   REVERSE_LAB_PAYMENT: "reverse_lab_payment",
-  GET_STOCK_MOVEMENTS: "get_stock_movements",
   REVERSE_STOCK_MOVEMENT: "reverse_stock_movement",
+  FIND_AVAILABLE_SLOTS: "find_available_slots",
+  ADD_DOCTOR_EXTRA_HOURS: "add_doctor_extra_hours",
+  PROPOSE_PLAN: "propose_plan",
 } as const satisfies Record<string, string>;
 export type AiToolName = EnumValue<typeof AI_TOOL>;
 
@@ -535,6 +533,8 @@ export const AI_TOOL_NAMES = [
   AI_TOOL.GET_FINANCIAL_SUMMARY,
   AI_TOOL.GET_OVERDUE_LAB_ORDERS,
   AI_TOOL.GET_LOW_STOCK_ITEMS,
+  AI_TOOL.QUERY_DATA,
+  AI_TOOL.LOAD_TOOLS,
   AI_TOOL.DRAFT_BULK_MESSAGE,
   AI_TOOL.SET_APPOINTMENT_STATUS,
   AI_TOOL.ADD_PATIENT_NOTE,
@@ -546,22 +546,18 @@ export const AI_TOOL_NAMES = [
   AI_TOOL.FIND_DOCTORS,
   AI_TOOL.ADD_DOCTOR_TIME_OFF,
   AI_TOOL.ADD_CLINIC_CLOSURE,
-  AI_TOOL.GET_DOCTOR_TIME_OFF,
   AI_TOOL.UPDATE_DOCTOR_TIME_OFF,
   AI_TOOL.DELETE_DOCTOR_TIME_OFF,
-  AI_TOOL.FIND_LAB_ORDERS,
   AI_TOOL.SET_LAB_ORDER_STATUS,
-  AI_TOOL.FIND_STOCK_ITEMS,
   AI_TOOL.RECORD_STOCK_MOVEMENT,
   AI_TOOL.SET_DOCTOR_SCHEDULE,
-  AI_TOOL.FIND_PAYMENTS,
   AI_TOOL.REVERSE_PAYMENT,
-  AI_TOOL.FIND_LABS,
-  AI_TOOL.GET_LAB_PAYMENTS,
   AI_TOOL.RECORD_LAB_PAYMENT,
   AI_TOOL.REVERSE_LAB_PAYMENT,
-  AI_TOOL.GET_STOCK_MOVEMENTS,
   AI_TOOL.REVERSE_STOCK_MOVEMENT,
+  AI_TOOL.FIND_AVAILABLE_SLOTS,
+  AI_TOOL.ADD_DOCTOR_EXTRA_HOURS,
+  AI_TOOL.PROPOSE_PLAN,
 ] as const;
 
 /** The tools that change something. Each one a clinic may switch off or tighten. */
@@ -584,6 +580,8 @@ export const AI_ACTION_TOOLS = [
   AI_TOOL.RECORD_LAB_PAYMENT,
   AI_TOOL.REVERSE_LAB_PAYMENT,
   AI_TOOL.REVERSE_STOCK_MOVEMENT,
+  AI_TOOL.ADD_DOCTOR_EXTRA_HOURS,
+  AI_TOOL.PROPOSE_PLAN,
 ] as const;
 export type AiActionTool = (typeof AI_ACTION_TOOLS)[number];
 
@@ -626,6 +624,9 @@ export const AI_ACTION_BASE_TIER: Record<AiActionTool, AiRiskTier> = {
   [AI_TOOL.RECORD_STOCK_MOVEMENT]: AI_RISK_TIER.CONFIRM,
   [AI_TOOL.SET_DOCTOR_SCHEDULE]: AI_RISK_TIER.CONFIRM,
   [AI_TOOL.RECORD_LAB_PAYMENT]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.ADD_DOCTOR_EXTRA_HOURS]: AI_RISK_TIER.CONFIRM,
+  // Several changes at once never run without somebody reading them.
+  [AI_TOOL.PROPOSE_PLAN]: AI_RISK_TIER.CONFIRM,
   // A reversal makes money or stock appear to come back, and only an admin may: always typed.
   [AI_TOOL.REVERSE_PAYMENT]: AI_RISK_TIER.TYPED,
   [AI_TOOL.REVERSE_LAB_PAYMENT]: AI_RISK_TIER.TYPED,
@@ -653,6 +654,10 @@ export const AI_PROPOSAL_KIND = {
   LAB_PAYMENT_CREATE: "lab_payment_create",
   LAB_PAYMENT_REVERSE: "lab_payment_reverse",
   STOCK_REVERSE: "stock_reverse",
+  EXTRA_HOURS_CREATE: "extra_hours_create",
+  PLAN: "plan",
+  /** A write generated from a route: its tool name travels in the payload. */
+  ROUTE_CALL: "route_call",
 } as const satisfies Record<string, string>;
 export type AiProposalKind = EnumValue<typeof AI_PROPOSAL_KIND>;
 
@@ -676,6 +681,9 @@ export const AI_PROPOSAL_KINDS = [
   AI_PROPOSAL_KIND.LAB_PAYMENT_CREATE,
   AI_PROPOSAL_KIND.LAB_PAYMENT_REVERSE,
   AI_PROPOSAL_KIND.STOCK_REVERSE,
+  AI_PROPOSAL_KIND.EXTRA_HOURS_CREATE,
+  AI_PROPOSAL_KIND.PLAN,
+  AI_PROPOSAL_KIND.ROUTE_CALL,
 ] as const;
 
 // Not errors: the model relays each one as a question and does not retry around it. Only a
@@ -775,6 +783,18 @@ export const AI_TOOL_ERROR = {
   FAILED: "failed",
   /** The clinic switched this tool off in its assistant settings. */
   DISABLED: "disabled",
+  // query_data: each refusal its own code, so the model knows what to change.
+  QUERY_UNPARSEABLE: "query_unparseable",
+  QUERY_MULTIPLE_STATEMENTS: "query_multiple_statements",
+  QUERY_NOT_SELECT: "query_not_select",
+  QUERY_RELATION_NOT_ALLOWED: "query_relation_not_allowed",
+  QUERY_FUNCTION_NOT_ALLOWED: "query_function_not_allowed",
+  QUERY_CLINICAL_NOT_PERMITTED: "query_clinical_not_permitted",
+  QUERY_TIMEOUT: "query_timeout",
+  /** Postgres rejected it — a column that does not exist, a type mismatch. */
+  QUERY_ERROR: "query_error",
+  /** A tool of a group this turn has not loaded: load_tools first. */
+  NOT_LOADED: "tool_not_loaded",
 } as const satisfies Record<string, string>;
 export type AiToolError = EnumValue<typeof AI_TOOL_ERROR>;
 
@@ -917,6 +937,10 @@ export const AI_ACTION_ERROR = {
   DUPLICATE: "possible_duplicate",
   /** Appointments booked into the period after the card was drafted. */
   SCHEDULE_CONFLICT: "schedule_conflict",
+  /** A plan step re-checked before it ran no longer matches what the card showed. */
+  CHANGED_SINCE_DRAFT: "changed_since_draft",
+  /** A plan step still has a field the person must fill in on the card. */
+  INPUT_REQUIRED: "input_required",
   FAILED: "action_failed",
 } as const satisfies Record<string, string>;
 export type AiActionError = EnumValue<typeof AI_ACTION_ERROR>;
@@ -930,6 +954,8 @@ export const AI_ACTION_ERRORS = [
   AI_ACTION_ERROR.NOT_FOUND,
   AI_ACTION_ERROR.DUPLICATE,
   AI_ACTION_ERROR.SCHEDULE_CONFLICT,
+  AI_ACTION_ERROR.CHANGED_SINCE_DRAFT,
+  AI_ACTION_ERROR.INPUT_REQUIRED,
   AI_ACTION_ERROR.FAILED,
 ] as const;
 

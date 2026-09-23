@@ -75,7 +75,20 @@ export class AiActionsController {
     @Param() params: IdParamDto,
     @Body() body: ConfirmDto,
   ): Promise<AiProposalStatusEvent> {
-    return refusals(this.actions.confirm(actor, params.id, body.typedPhrase));
+    return refusals(this.actions.confirm(actor, params.id, body.typedPhrase, body.inputs));
+  }
+
+  /** "Continue from step N": the remaining steps of a plan that stopped, checked again first. */
+  @Post("proposals/:id/continue")
+  @Roles(...STAFF)
+  @Capability("ai-actions.confirm")
+  @HttpCode(HttpStatus.OK)
+  continuePlan(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Param() params: IdParamDto,
+    @Body() body: ConfirmDto,
+  ): Promise<AiProposalStatusEvent> {
+    return refusals(this.actions.confirm(actor, params.id, body.typedPhrase, body.inputs, true));
   }
 
   @Post("actions/:id/cancel")

@@ -47,6 +47,7 @@ import {
   STOCK_MOVEMENTS_ENTITY,
   StockMovementsService,
 } from "@api/inventory/stock-movements.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreateItemDto extends createZodDto(createInventoryItemSchema) {}
 class UpdateItemDto extends createZodDto(updateInventoryItemSchema) {}
@@ -76,6 +77,11 @@ export class InventoryController {
     return this.reports.alerts(actor);
   }
 
+  @AiTool({
+    group: "inventory",
+    description:
+      "What to order, grouped by supplier, from items at or below their minimum. For low stock alone use get_low_stock_items.",
+  })
   @Get("shopping-list")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   shoppingList(@CurrentUser() actor: AuthenticatedUser): Promise<ShoppingList> {
@@ -91,6 +97,11 @@ export class InventoryController {
     return this.documents.shoppingList(actor);
   }
 
+  @AiTool({
+    group: "inventory",
+    description:
+      "Stock movements across items, filtered by type, item, supplier, patient or dates. For one item use inventory_item_movements.",
+  })
   @Get("movements")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   listMovements(
@@ -139,6 +150,11 @@ export class InventoryController {
     return this.movements.reverse(actor, params.id, body);
   }
 
+  @AiTool({
+    group: "inventory",
+    description:
+      "Stock items by name or category, with the quantity on hand in each item's unit. Use to find an itemId.",
+  })
   @Get("items")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   list(
@@ -148,6 +164,10 @@ export class InventoryController {
     return this.items.list(actor, query);
   }
 
+  @AiTool({
+    group: "inventory",
+    description: "One stock item with its quantity on hand, minimum and supplier.",
+  })
   @Get("items/:id")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   findOne(
@@ -158,6 +178,10 @@ export class InventoryController {
   }
 
   /** What is left of each batch, oldest first. Derived — see `StockService`. */
+  @AiTool({
+    group: "inventory",
+    description: "One item's batches with their expiry dates and what is left of each.",
+  })
   @Get("items/:id/batches")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   batches(
@@ -167,6 +191,11 @@ export class InventoryController {
     return this.items.batches(actor, params.id);
   }
 
+  @AiTool({
+    group: "inventory",
+    description:
+      "One item's movements, newest first; a row with reversesId is a reversal. Use to find the movement to reverse.",
+  })
   @Get("items/:id/movements")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   itemMovements(
@@ -177,6 +206,11 @@ export class InventoryController {
     return this.movements.list(actor, { ...query, itemId: params.id });
   }
 
+  @AiTool({
+    group: "inventory",
+    description:
+      "Add a stock item with its category, unit and minimum. The quantity comes from purchases, never set. Waits on a card.",
+  })
   @Post("items")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(INVENTORY_ITEMS_ENTITY, AUDIT_ACTION.CREATE)
@@ -187,6 +221,11 @@ export class InventoryController {
     return this.items.create(actor, body);
   }
 
+  @AiTool({
+    group: "inventory",
+    description:
+      "Change a stock item's name, minimum or supplier — never its quantity or unit. Waits on a card.",
+  })
   @Patch("items/:id")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(INVENTORY_ITEMS_ENTITY, AUDIT_ACTION.UPDATE)
@@ -199,6 +238,10 @@ export class InventoryController {
   }
 
   /** Admin only — an item carries a ledger, and retiring it is not housekeeping. */
+  @AiTool({
+    group: "inventory",
+    description: "Archive a stock item. Waits on a typed confirmation.",
+  })
   @Delete("items/:id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)

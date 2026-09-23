@@ -26,6 +26,8 @@ import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { PERFORMED_PROCEDURES_ENTITY, ProceduresService } from "@api/patients/procedures.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
+import { AI_RISK_TIER } from "@clinic/shared";
 
 class CreateProcedureDto extends createZodDto(createPerformedProcedureSchema) {}
 class UpdateProcedureDto extends createZodDto(updatePerformedProcedureSchema) {}
@@ -40,6 +42,11 @@ export class ProceduresController {
   constructor(private readonly procedures: ProceduresService) {}
 
   /** A technician's page is filtered to lab-linked rows inside the service. */
+  @AiTool({
+    group: "patients",
+    description:
+      "Treatments performed, filtered by patient, visit or status. Clinical. Returns a page with prices.",
+  })
   @Get()
   list(
     @CurrentUser() actor: AuthenticatedUser,
@@ -48,6 +55,10 @@ export class ProceduresController {
     return this.procedures.list(actor, query);
   }
 
+  @AiTool({
+    group: "patients",
+    description: "One performed treatment in full. Clinical.",
+  })
   @Get(":id")
   @Roles(USER_ROLE.DOCTOR)
   findOne(
@@ -57,6 +68,12 @@ export class ProceduresController {
     return this.procedures.findOne(actor, params.id);
   }
 
+  @AiTool({
+    group: "patients",
+    description:
+      "Record a treatment performed on a patient, from the procedure catalogue; it adds its charge to the patient's balance. Waits on a typed confirmation.",
+    risk: AI_RISK_TIER.TYPED,
+  })
   @Post()
   @Roles(USER_ROLE.DOCTOR)
   @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.CREATE)
@@ -67,6 +84,12 @@ export class ProceduresController {
     return this.procedures.create(actor, body);
   }
 
+  @AiTool({
+    group: "patients",
+    description:
+      "Change a performed treatment — its status, price or notes; the charge follows. Waits on a typed confirmation.",
+    risk: AI_RISK_TIER.TYPED,
+  })
   @Patch(":id")
   @Roles(USER_ROLE.DOCTOR)
   @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.UPDATE)
@@ -78,6 +101,11 @@ export class ProceduresController {
     return this.procedures.update(actor, params.id, body);
   }
 
+  @AiTool({
+    group: "patients",
+    description:
+      "Void a treatment recorded by mistake; its charge is reversed. Waits on a typed confirmation.",
+  })
   @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)

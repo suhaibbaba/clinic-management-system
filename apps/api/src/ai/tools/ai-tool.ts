@@ -8,6 +8,7 @@ import {
   type AiView,
 } from "@clinic/shared";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { TOOL_GROUP } from "@api/ai/tools/tool-groups";
 
 /** Nothing the model asks for returns more than this, whatever it asked for. */
 export const TOOL_ROW_LIMIT = 50;
@@ -37,7 +38,11 @@ export type ToolOutcome =
 
 /** A tool declining to run, with the code the model is told. Never carries an internal. */
 export class ToolRefusal extends Error {
-  constructor(readonly code: AiToolError) {
+  constructor(
+    readonly code: AiToolError,
+    /** What to change, when the code alone does not say — never an internal. */
+    readonly details?: string[],
+  ) {
     super(code);
     this.name = "ToolRefusal";
   }
@@ -75,7 +80,10 @@ export class ActionDone {
 // Type-erased on purpose: the registry holds one array of these, and each tool's own argument type
 // survives inside `defineTool`, which is the only place that casts nothing.
 export interface AiTool {
-  readonly name: AiToolName;
+  /** A hand-written tool's `AiToolName`, or a route's generated `<controller>_<method>`. */
+  readonly name: string;
+  /** `core`, or the group `load_tools` loads it with. */
+  readonly group: string;
   readonly description: string;
   /**
    * The capability key of the endpoint this mirrors, or null where that endpoint is open to
@@ -94,7 +102,9 @@ export interface AiTool {
 }
 
 export interface ToolDefinition<TSchema extends z.ZodType> {
-  readonly name: AiToolName;
+  readonly name: string;
+  /** Defaults to the hand-written tool's entry in `TOOL_GROUP`. */
+  readonly group?: string;
   readonly description: string;
   readonly capability: string | null;
   readonly risk?: AiRiskTier;
@@ -107,6 +117,7 @@ export function defineTool<TSchema extends z.ZodType>(definition: ToolDefinition
 
   return {
     name: definition.name,
+    group: definition.group ?? TOOL_GROUP[definition.name as AiToolName],
     description: definition.description,
     capability: definition.capability,
     risk: definition.risk ?? null,
@@ -167,3 +178,41 @@ export const maskPhone = (phone: string): string => {
 
   return digits.length <= 4 ? "****" : `****${digits.slice(-4)}`;
 };
+
+const INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?Z$/;
+
+// The model reads the clinic's wall clock, never UTC: handed `07:00Z` it booked 07:00 for a patient
+// due at 10:00. Every instant in a result becomes `YYYY-MM-DD HH:MM` in the clinic's own zone.
+export function localizeInstants(value: unknown, timeZone: string): unknown {
+  if (typeof value === "string") {
+    return INSTANT.test(value) ? localClock(new Date(value), timeZone) : value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => localizeInstants(item, timeZone));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, localizeInstants(item, timeZone)]),
+    );
+  }
+
+  return value;
+}
+
+function localClock(instant: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(instant);
+  const read = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((part) => part.type === type)?.value ?? "";
+
+  return `${read("year")}-${read("month")}-${read("day")} ${read("hour")}:${read("minute")}`;
+}

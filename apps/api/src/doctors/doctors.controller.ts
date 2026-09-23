@@ -27,6 +27,7 @@ import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DOCTORS_ENTITY, DoctorsService } from "@api/doctors/doctors.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreateDoctorDto extends createZodDto(createDoctorSchema) {}
 class UpdateDoctorDto extends createZodDto(updateDoctorSchema) {}
@@ -46,6 +47,11 @@ export class DoctorsController {
     return this.doctorsService.list(actor, query);
   }
 
+  @AiTool({
+    group: "schedule",
+    description:
+      "One doctor in full: name, specialty, weekly hours, default appointment length. Use find_doctors to find the id.",
+  })
   @Get(":id")
   findOne(@CurrentUser() actor: AuthenticatedUser, @Param() params: IdParamDto): Promise<Doctor> {
     return this.doctorsService.findOne(actor, params.id);
@@ -58,6 +64,11 @@ export class DoctorsController {
     return this.doctorsService.create(actor, body);
   }
 
+  @AiTool({
+    group: "schedule",
+    description:
+      "Change a doctor's profile — specialty or default appointment length. Not their hours: use set_doctor_schedule. Waits on a card.",
+  })
   @Patch(":id")
   @Roles(USER_ROLE.ADMIN)
   @Audit(DOCTORS_ENTITY, AUDIT_ACTION.UPDATE)

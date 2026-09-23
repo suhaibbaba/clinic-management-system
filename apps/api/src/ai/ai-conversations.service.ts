@@ -16,10 +16,67 @@ import type { ChatMessage, ChatUsage } from "@api/ai/chat-provider";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { aiConversations, aiMessages } from "@api/database/schema";
+import { aiConversations, aiMessages, aiProposals } from "@api/database/schema";
 
 /** Tool rows are the model's working: recorded, never replayed and never served. */
 const SERVED_ROLES = [AI_MESSAGE_ROLE.USER, AI_MESSAGE_ROLE.ASSISTANT];
+const REPLAYED_ROLES = [...SERVED_ROLES, AI_MESSAGE_ROLE.TOOL];
+
+/** A long listing replayed whole would crowd out the conversation it belongs to. */
+const REPLAY_MAX_CHARS = 4000;
+
+/**
+ * The last two tool results, verbatim, so "and the one after him?" has the list it refers to;
+ * older ones are dropped, oldest first, and the pair together stays under a budget.
+ */
+const REPLAYED_RESULTS = 2;
+const REPLAY_BUDGET_CHARS = 6000;
+
+export function replayable<TRow extends { role: string; content: string }>(rows: TRow[]): TRow[] {
+  const keep = new Set<TRow>();
+  let spent = 0;
+
+  for (const row of [...rows].reverse()) {
+    if (row.role !== AI_MESSAGE_ROLE.TOOL) {
+      continue;
+    }
+
+    const size = Math.min(row.content.length, REPLAY_MAX_CHARS);
+
+    if (keep.size === REPLAYED_RESULTS || spent + size > REPLAY_BUDGET_CHARS) {
+      break;
+    }
+
+    keep.add(row);
+    spent += size;
+  }
+
+  return rows.filter((row) => row.role !== AI_MESSAGE_ROLE.TOOL || keep.has(row));
+}
+
+function replayed(
+  content: string,
+  outcome: { status: string; error: string | null } | undefined,
+): string {
+  let text = content;
+
+  if (outcome) {
+    try {
+      const envelope = JSON.parse(content) as Record<string, unknown>;
+
+      text = JSON.stringify({
+        ...envelope,
+        card_outcome: { status: outcome.status, ...(outcome.error && { error: outcome.error }) },
+      });
+    } catch {
+      // Not ours to reshape; replayed as it was stored.
+    }
+  }
+
+  return text.length > REPLAY_MAX_CHARS
+    ? `${text.slice(0, REPLAY_MAX_CHARS)}… (cut here; call the tool again for the rest)`
+    : text;
+}
 
 type ConversationRow = typeof aiConversations.$inferSelect;
 type MessageRow = typeof aiMessages.$inferSelect;
@@ -123,6 +180,32 @@ export class AiConversationsService {
     });
   }
 
+  async loadedGroups(conversationId: string): Promise<string[]> {
+    const [row] = await this.db
+      .select({ loadedGroups: aiConversations.loadedGroups })
+      .from(aiConversations)
+      .where(eq(aiConversations.id, conversationId))
+      .limit(1);
+
+    return row?.loadedGroups ?? [];
+  }
+
+  /** Adds groups to what the conversation keeps loaded; returns the whole set. */
+  async loadGroups(conversationId: string, groups: readonly string[]): Promise<string[]> {
+    const [row] = await this.db
+      .update(aiConversations)
+      .set({
+        loadedGroups: sql`(
+          SELECT coalesce(jsonb_agg(DISTINCT value), '[]'::jsonb)
+          FROM jsonb_array_elements_text(${aiConversations.loadedGroups} || ${JSON.stringify(groups)}::jsonb)
+        )`,
+      })
+      .where(eq(aiConversations.id, conversationId))
+      .returning({ loadedGroups: aiConversations.loadedGroups });
+
+    return row?.loadedGroups ?? [];
+  }
+
   async requireOwn(actor: AuthenticatedUser, conversationId: string): Promise<ConversationRow> {
     const [row] = await this.db
       .select()
@@ -203,28 +286,88 @@ export class AiConversationsService {
   // What the model is shown of what came before: the last N turns, oldest first. Tool rows are
   // left out — replaying one without the call that asked for it is not a valid transcript, and
   // the answer it produced is already in the assistant row beside it.
+  // What the model worked with, replayed: its tool results, so an id found three messages ago is
+  // not looked up again, and each card's outcome, so it knows what a confirmation actually did.
   async history(conversationId: string, limit: number): Promise<ChatMessage[]> {
-    const rows = await this.db
-      .select()
-      .from(aiMessages)
-      .where(
-        and(
-          eq(aiMessages.conversationId, conversationId),
-          isNull(aiMessages.deletedAt),
-          inArray(aiMessages.role, SERVED_ROLES),
-          ne(aiMessages.content, ""),
-        ),
-      )
-      .orderBy(desc(aiMessages.createdAt))
-      .limit(limit);
+    const rows = (
+      await this.db
+        .select()
+        .from(aiMessages)
+        .where(
+          and(
+            eq(aiMessages.conversationId, conversationId),
+            isNull(aiMessages.deletedAt),
+            inArray(aiMessages.role, REPLAYED_ROLES),
+            ne(aiMessages.content, ""),
+          ),
+        )
+        .orderBy(desc(aiMessages.createdAt))
+        .limit(limit)
+    ).reverse();
 
-    return rows
-      .reverse()
-      .map((row) =>
+    // The cut can land inside a turn; a thread that opens on a tool result is one the model rejects.
+    const first = rows.findIndex((row) => row.role === AI_MESSAGE_ROLE.USER);
+    const kept = replayable(first === -1 ? [] : rows.slice(first));
+    const outcomes = await this.cardOutcomes(kept);
+    const messages: ChatMessage[] = [];
+    let calls: { id: string; name: string; content: string }[] = [];
+
+    const flush = (): void => {
+      if (calls.length === 0) {
+        return;
+      }
+
+      messages.push({
+        role: "assistant",
+        content: "",
+        toolCalls: calls.map((call) => ({ id: call.id, name: call.name, arguments: "{}" })),
+      });
+
+      for (const call of calls) {
+        messages.push({ role: "tool", toolCallId: call.id, content: call.content });
+      }
+
+      calls = [];
+    };
+
+    for (const row of kept) {
+      if (row.role === AI_MESSAGE_ROLE.TOOL) {
+        calls.push({
+          id: `replay_${row.id}`,
+          name: row.toolName ?? "tool",
+          content: replayed(row.content, row.proposalId ? outcomes.get(row.proposalId) : undefined),
+        });
+        continue;
+      }
+
+      flush();
+      messages.push(
         row.role === AI_MESSAGE_ROLE.USER
-          ? ({ role: "user", content: row.content } as const)
-          : ({ role: "assistant", content: row.content } as const),
+          ? { role: "user", content: row.content }
+          : { role: "assistant", content: row.content },
       );
+    }
+
+    flush();
+
+    return messages;
+  }
+
+  private async cardOutcomes(
+    rows: readonly { proposalId: string | null }[],
+  ): Promise<Map<string, { status: string; error: string | null }>> {
+    const ids = rows.flatMap((row) => (row.proposalId ? [row.proposalId] : []));
+
+    if (ids.length === 0) {
+      return new Map();
+    }
+
+    const proposals = await this.db
+      .select({ id: aiProposals.id, status: aiProposals.status, error: aiProposals.errorCode })
+      .from(aiProposals)
+      .where(inArray(aiProposals.id, ids));
+
+    return new Map(proposals.map((row) => [row.id, { status: row.status, error: row.error }]));
   }
 
   private ownScope(actor: AuthenticatedUser, conversationId?: string) {

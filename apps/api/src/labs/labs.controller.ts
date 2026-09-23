@@ -32,6 +32,7 @@ import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { LAB_WORK_TYPES_ENTITY, LabWorkTypesService } from "@api/labs/lab-work-types.service";
 import { LABS_ENTITY, LabsService } from "@api/labs/labs.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreateLabDto extends createZodDto(createLabSchema) {}
 class UpdateLabDto extends createZodDto(updateLabSchema) {}
@@ -53,6 +54,11 @@ export class LabsController {
     private readonly workTypes: LabWorkTypesService,
   ) {}
 
+  @AiTool({
+    group: "labs",
+    description:
+      "The clinic's labs by name, with what the clinic owes each and its open orders. Use to turn a lab's name into a labId.",
+  })
   @Get()
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   list(
@@ -62,6 +68,10 @@ export class LabsController {
     return this.labs.list(actor, query);
   }
 
+  @AiTool({
+    group: "labs",
+    description: "One lab with its contact, balance and open orders.",
+  })
   @Get(":id")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   findOne(
@@ -71,6 +81,10 @@ export class LabsController {
     return this.labs.findOne(actor, params.id);
   }
 
+  @AiTool({
+    group: "labs",
+    description: "Add a lab to the directory. Waits on a card.",
+  })
   @Post()
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(LABS_ENTITY, AUDIT_ACTION.CREATE)
@@ -78,6 +92,10 @@ export class LabsController {
     return this.labs.create(actor, body);
   }
 
+  @AiTool({
+    group: "labs",
+    description: "Change a lab's contact details, or switch it off. Waits on a card.",
+  })
   @Patch(":id")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(LABS_ENTITY, AUDIT_ACTION.UPDATE)
@@ -89,6 +107,10 @@ export class LabsController {
     return this.labs.update(actor, params.id, body);
   }
 
+  @AiTool({
+    group: "labs",
+    description: "Archive a lab. Waits on a typed confirmation.",
+  })
   @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -100,6 +122,10 @@ export class LabsController {
     await this.labs.softDelete(actor, params.id);
   }
 
+  @AiTool({
+    group: "labs",
+    description: "A lab's work types and their prices. Use to find a workTypeId for an order.",
+  })
   @Get(":labId/work-types")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   listWorkTypes(
@@ -110,6 +136,10 @@ export class LabsController {
     return this.workTypes.list(actor, params.labId, query.includeInactive ?? false);
   }
 
+  @AiTool({
+    group: "labs",
+    description: "Add a work type with its price to a lab's list. Waits on a card.",
+  })
   @Post(":labId/work-types")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(LAB_WORK_TYPES_ENTITY, AUDIT_ACTION.CREATE)
@@ -121,6 +151,10 @@ export class LabsController {
     return this.workTypes.create(actor, params.labId, body);
   }
 
+  @AiTool({
+    group: "labs",
+    description: "Change a work type's name or price. Waits on a card.",
+  })
   @Patch("work-types/:id")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(LAB_WORK_TYPES_ENTITY, AUDIT_ACTION.UPDATE)
@@ -132,6 +166,10 @@ export class LabsController {
     return this.workTypes.update(actor, params.id, body);
   }
 
+  @AiTool({
+    group: "labs",
+    description: "Retire a work type. Waits on a typed confirmation.",
+  })
   @Delete("work-types/:id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)

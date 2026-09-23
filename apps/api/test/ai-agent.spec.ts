@@ -13,6 +13,7 @@ import {
 } from "@clinic/shared";
 import type { ConfigService } from "@nestjs/config";
 import { AgentService } from "@api/ai/agent.service";
+import { replayable } from "@api/ai/ai-conversations.service";
 import { SYSTEM_PROMPT_VERSION, systemPrompt } from "@api/ai/system-prompt";
 import type { AiConversationsService } from "@api/ai/ai-conversations.service";
 import type { ChatProviderResolver } from "@api/ai/chat-provider.resolver";
@@ -83,19 +84,32 @@ function harness(
     toolThrows?: boolean;
     doctorId?: string | null;
     view?: AiView;
+    loadedStore?: Map<string, string[]>;
+    newConversationId?: string;
   } = {},
 ): {
   agent: AgentService;
   appended: AppendedMessage[];
-  toolRuns: { actor: AuthenticatedUser; call: ChatToolCall }[];
+  toolRuns: { actor: AuthenticatedUser; call: ChatToolCall; loaded: string[] }[];
+  offered: string[][];
 } {
   const appended: AppendedMessage[] = [];
-  const toolRuns: { actor: AuthenticatedUser; call: ChatToolCall }[] = [];
+  const toolRuns: { actor: AuthenticatedUser; call: ChatToolCall; loaded: string[] }[] = [];
+  const offered: string[][] = [];
+  const loadedStore = options.loadedStore ?? new Map<string, string[]>();
 
   const conversations = {
-    requireOwn: () => Promise.resolve({ id: CONVERSATION_ID }),
-    start: () => Promise.resolve({ id: CONVERSATION_ID }),
+    requireOwn: (_actor: AuthenticatedUser, id: string) => Promise.resolve({ id }),
+    start: () => Promise.resolve({ id: options.newConversationId ?? CONVERSATION_ID }),
     history: () => Promise.resolve([]),
+    loadedGroups: (id: string) => Promise.resolve(loadedStore.get(id) ?? []),
+    loadGroups: (id: string, groups: string[]) => {
+      const merged = [...new Set([...(loadedStore.get(id) ?? []), ...groups])];
+
+      loadedStore.set(id, merged);
+
+      return Promise.resolve(merged);
+    },
     append: (_actor: AuthenticatedUser, _id: string, message: AppendedMessage) => {
       appended.push(message);
 
@@ -104,9 +118,19 @@ function harness(
   } as unknown as AiConversationsService;
 
   const tools = {
-    definitions: () => [],
-    run: (actor: AuthenticatedUser, _conversationId: string, call: ChatToolCall) => {
-      toolRuns.push({ actor, call });
+    definitions: (loaded: ReadonlySet<string>) => {
+      offered.push([...loaded].sort());
+
+      return [];
+    },
+    toolsIn: (groups: string[]) => groups.map((group) => `${group}_tool`),
+    run: (
+      actor: AuthenticatedUser,
+      _conversationId: string,
+      call: ChatToolCall,
+      loaded: ReadonlySet<string>,
+    ) => {
+      toolRuns.push({ actor, call, loaded: [...loaded].sort() });
 
       if (options.toolThrows) {
         return Promise.reject(new Error("relation ai_audit_log does not exist"));
@@ -154,6 +178,7 @@ function harness(
     ),
     appended,
     toolRuns,
+    offered,
   };
 }
 
@@ -438,10 +463,160 @@ describe("who the assistant is speaking to", () => {
   });
 });
 
+describe("loading tools by group", () => {
+  const load = (groups: string[]): ChatToolCall => ({
+    id: "call_load",
+    name: AI_TOOL.LOAD_TOOLS,
+    arguments: JSON.stringify({ groups }),
+  });
+  const payment: ChatToolCall = {
+    id: "call_pay",
+    name: AI_TOOL.RECORD_PAYMENT,
+    arguments: '{"patient_id":"44444444-4444-4444-8444-444444444444","amount":50}',
+  };
+
+  it("offers the core set until a group is loaded, then that group for the rest of the turn", async () => {
+    const { provider } = scripted([
+      [completed("", [payment])],
+      [completed("", [load(["billing"])])],
+      [completed("", [payment])],
+      [completed("تمام")],
+    ]);
+    const { agent, toolRuns, offered } = harness(provider);
+
+    await collect(agent);
+
+    expect(toolRuns.map((run) => run.loaded)).toEqual([[], ["billing"]]);
+    expect(offered).toEqual([[], [], ["billing"], ["billing"]]);
+  });
+
+  it("does not count a step that only loaded tools", async () => {
+    const { provider } = scripted([[completed("", [load(["schedule"])])], [completed("جاهز")]]);
+    const { agent } = harness(provider, { maxSteps: 1 });
+
+    const events = await collect(agent);
+
+    expect(events.at(-1)).toMatchObject({ type: AI_STREAM_EVENT.DONE });
+  });
+
+  it("keeps a conversation's groups for its next turn, and not for a new conversation", async () => {
+    const loadedStore = new Map<string, string[]>();
+    const first = harness(
+      scripted([[completed("", [load(["labs"])])], [completed("تمام")]]).provider,
+      { loadedStore },
+    );
+
+    await collect(first.agent);
+
+    const followUp = harness(scripted([[completed("هاي هي")]]).provider, { loadedStore });
+
+    for await (const _event of followUp.agent.run(ACTOR, {
+      message: "والتانية؟",
+      conversationId: CONVERSATION_ID,
+    })) {
+      // drained
+    }
+
+    const fresh = harness(scripted([[completed("أهلا")]]).provider, {
+      loadedStore,
+      newConversationId: "55555555-5555-4555-8555-555555555555",
+    });
+
+    await collect(fresh.agent);
+
+    expect(followUp.offered).toEqual([["labs"]]);
+    expect(fresh.offered).toEqual([[]]);
+  });
+
+  it("refuses an unknown group without loading anything", async () => {
+    const { provider, requests } = scripted([
+      [completed("", [load(["secrets"])])],
+      [completed("")],
+    ]);
+    const { agent, offered } = harness(provider);
+
+    await collect(agent);
+
+    expect(requests[1]?.messages.at(-1)?.content).toContain("invalid_arguments");
+    expect(offered).toEqual([[], []]);
+  });
+});
+
+describe("the reply budget", () => {
+  const read: ChatToolCall = {
+    id: "call_read",
+    name: AI_TOOL.GET_APPOINTMENTS,
+    arguments: '{"date_from":"2026-09-24","date_to":"2026-09-24"}',
+  };
+  const view: AiView = { type: "stats", tiles: [] };
+
+  it("drops to a short answer once a table or card was drawn, and not before", async () => {
+    const { provider, requests } = scripted([[completed("", [read])], [completed("٣ مواعيد")]]);
+    const { agent } = harness(provider, { view });
+
+    await collect(agent);
+
+    expect(requests.map((request) => request.maxOutputTokens)).toEqual([undefined, 200]);
+  });
+
+  it("asks again in full for a tool call the short budget cut off", async () => {
+    const plan: ChatToolCall = {
+      id: "call_plan",
+      name: AI_TOOL.PROPOSE_PLAN,
+      arguments: '{"title":"x',
+    };
+    const cut: ChatChunk = { ...completed("", [plan]), truncated: true } as ChatChunk;
+    const { provider, requests } = scripted([[completed("", [read])], [cut], [completed("جاهزة")]]);
+    const { agent, toolRuns } = harness(provider, { view });
+
+    await collect(agent);
+
+    expect(requests.map((request) => request.maxOutputTokens)).toEqual([undefined, 200, undefined]);
+    // The cut call never ran.
+    expect(toolRuns.map((run) => run.call.id)).toEqual(["call_read"]);
+  });
+});
+
+describe("what the history replays", () => {
+  const row = (role: string, content: string) => ({ role, content });
+
+  it("keeps the last two tool results and drops older ones", () => {
+    const rows = [
+      row(AI_MESSAGE_ROLE.USER, "q1"),
+      row(AI_MESSAGE_ROLE.TOOL, "first"),
+      row(AI_MESSAGE_ROLE.ASSISTANT, "a1"),
+      row(AI_MESSAGE_ROLE.USER, "q2"),
+      row(AI_MESSAGE_ROLE.TOOL, "second"),
+      row(AI_MESSAGE_ROLE.TOOL, "third"),
+      row(AI_MESSAGE_ROLE.ASSISTANT, "a2"),
+    ];
+
+    expect(replayable(rows).map((kept) => kept.content)).toEqual([
+      "q1",
+      "a1",
+      "q2",
+      "second",
+      "third",
+      "a2",
+    ]);
+  });
+
+  it("drops the older of the two when both would not fit the budget", () => {
+    const rows = [
+      row(AI_MESSAGE_ROLE.TOOL, "x".repeat(4000)),
+      row(AI_MESSAGE_ROLE.TOOL, "y".repeat(4000)),
+    ];
+
+    expect(replayable(rows).map((kept) => kept.content[0])).toEqual(["y"]);
+  });
+});
+
 describe("the system prompt", () => {
   const base = {
     clinicName: { ar: "عيادة النور", en: "Al Noor Clinic" },
     today: "2026-09-22",
+    now: "23:57",
+    weekday: "Tuesday",
   } as const;
 
   it("reads for a doctor", () => {
@@ -454,7 +629,7 @@ describe("the system prompt", () => {
         }),
       ),
     ).toMatchInlineSnapshot(`
-      "The clinic is عيادة النور (Al Noor Clinic). Today is 2026-09-22 in its own time zone.
+      "The clinic is عيادة النور (Al Noor Clinic). In its own time zone it is now Tuesday 2026-09-22, 23:57.
       You are speaking to سارة (Sara), whose role is "doctor".
       They are the doctor "سارة (Sara)" (doctor_id 66666666-6666-4666-8666-666666666666)."
     `);
@@ -470,7 +645,7 @@ describe("the system prompt", () => {
         }),
       ),
     ).toMatchInlineSnapshot(`
-      "The clinic is عيادة النور (Al Noor Clinic). Today is 2026-09-22 in its own time zone.
+      "The clinic is عيادة النور (Al Noor Clinic). In its own time zone it is now Tuesday 2026-09-22, 23:57.
       You are speaking to منى (Mona), whose role is "admin".
       They are not a doctor: they have no appointments, patients or schedule of their own."
     `);

@@ -170,7 +170,7 @@ export type AiProposalRecipient = z.infer<typeof aiProposalRecipientSchema>;
  * What an action card shows, resolved on the server when the action was drafted: names and file
  * numbers for the ids the action carries. Ids, not names, are what runs.
  */
-export const aiActionSummarySchema = z.object({
+const actionSummaryFields = z.object({
   patient: z.object({ id: uuidSchema, fullName: z.string(), fileNumber: z.string() }).optional(),
   doctor: z.object({ id: uuidSchema, name: personNameSchema }).optional(),
   /** A patient the action registers, as the user gave it — the card is where they check it. */
@@ -225,6 +225,19 @@ export const aiActionSummarySchema = z.object({
     .optional(),
   /** The listed appointments stay booked outside the new hours. */
   outsideHours: z.boolean().optional(),
+  /**
+   * A generated write: the route's capability, which the card titles it by, and the fields it
+   * sends that no other row of the summary already shows.
+   */
+  route: z
+    .object({
+      tool: z.string(),
+      capability: z.string().nullable(),
+      fields: z.array(z.object({ name: z.string(), value: z.string() })),
+    })
+    .optional(),
+  /** Hours a doctor works on one date beyond the weekly schedule. */
+  extraHours: z.object({ date: z.iso.date(), ranges: z.array(timeRangeSchema) }).optional(),
   appointments: z
     .array(
       z.object({
@@ -237,7 +250,35 @@ export const aiActionSummarySchema = z.object({
     )
     .optional(),
 });
+export const AI_PLAN_STEP_STATUSES = ["pending", "done", "failed"] as const;
+export type AiPlanStepStatus = (typeof AI_PLAN_STEP_STATUSES)[number];
+
+/** A field a plan left for the person to fill in on the card, and how the card asks for it. */
+export const aiPlanInputSchema = z.object({
+  name: z.string(),
+  kind: z.enum(["time", "date", "text"]),
+});
+export type AiPlanInput = z.infer<typeof aiPlanInputSchema>;
+
+export const aiPlanStepSchema = z.object({
+  kind: z.enum(AI_PROPOSAL_KINDS),
+  summary: actionSummaryFields,
+  note: z.string().optional(),
+  needs: z.array(aiPlanInputSchema).optional(),
+  status: z.enum(AI_PLAN_STEP_STATUSES).optional(),
+  error: z.enum(AI_ACTION_ERRORS).optional(),
+  /** The row the step created or changed, for a later step's `$ref`. */
+  resultId: z.string().optional(),
+});
+export type AiPlanStep = z.infer<typeof aiPlanStepSchema>;
+
+/** A plan's card lists each step's own summary, in the order the steps run, with its progress. */
+export const aiActionSummarySchema = actionSummaryFields.extend({
+  title: z.string().optional(),
+  steps: z.array(aiPlanStepSchema).optional(),
+});
 export type AiActionSummary = z.infer<typeof aiActionSummarySchema>;
+export type AiActionStepSummary = z.infer<typeof actionSummaryFields>;
 
 export const AI_ACTION_ENTITIES = ["appointment", "patient", "payment"] as const;
 
@@ -331,8 +372,16 @@ export function aiAutomationSettings(settings: unknown): AiAutomationSettings {
 }
 
 /** The confirmation card's button. A `typed` action carries what the person typed. */
+/** What the person filled in on a plan's card: step index → field → value. */
+export const aiPlanInputsSchema = z.record(
+  z.string().regex(/^\d+$/),
+  z.record(z.string().max(64), z.string().trim().min(1).max(200)),
+);
+export type AiPlanInputs = z.infer<typeof aiPlanInputsSchema>;
+
 export const confirmAiProposalSchema = z.object({
   typedPhrase: z.string().max(200).optional(),
+  inputs: aiPlanInputsSchema.optional(),
 });
 export type ConfirmAiProposalInput = z.infer<typeof confirmAiProposalSchema>;
 

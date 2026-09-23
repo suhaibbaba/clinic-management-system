@@ -9,6 +9,8 @@ import {
 import {
   AI_TOOL,
   AI_TOOL_ERROR,
+  clinicScheduleSettings,
+  DEFAULT_TIME_ZONE,
   type AiOutboundError,
   type AiProposal,
   type AiToolError,
@@ -18,7 +20,9 @@ import {
 import type { ChatToolCall, ChatToolDefinition } from "@api/ai/chat-provider";
 import { OutboundError } from "@api/ai/outbound/proposals.service";
 import { AiToolsService } from "@api/ai/tools/ai-tools.service";
+import { isVisible, TOOL_GROUP_NAMES } from "@api/ai/tools/tool-groups";
 import {
+  localizeInstants,
   ToolRefusal,
   type AiTool,
   type ToolAuditTarget,
@@ -26,9 +30,33 @@ import {
 } from "@api/ai/tools/ai-tool";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { aiAuditLog } from "@api/database/schema";
+import { aiAuditLog, clinics } from "@api/database/schema";
+import { eq } from "drizzle-orm";
 import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
+
+/** Outside a conversation — a test, a script — every group counts as loaded. */
+const ALL_GROUPS: ReadonlySet<string> = new Set(TOOL_GROUP_NAMES);
+
+const LOAD_TOOLS_DEFINITION: ChatToolDefinition = {
+  name: AI_TOOL.LOAD_TOOLS,
+  description:
+    "Load one or more tool groups (listed in the system prompt) so their tools can be called " +
+    "for the rest of this conversation. Load before calling a tool you do not have; never to " +
+    "read — the core tools and query_data need no loading. Returns the names now available.",
+  parameters: {
+    type: "object",
+    properties: {
+      groups: {
+        type: "array",
+        items: { type: "string", enum: [...TOOL_GROUP_NAMES] },
+        minItems: 1,
+      },
+    },
+    required: ["groups"],
+    additionalProperties: false,
+  },
+};
 
 export interface ToolRun {
   /** As the model asked for it, which is not necessarily a tool that exists. */
@@ -89,18 +117,34 @@ export class ToolRunnerService implements OnApplicationBootstrap {
     }
   }
 
-  definitions(): ChatToolDefinition[] {
-    return this.tools.list().map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-      parameters: tool.parameters,
-    }));
+  /** The core set, the groups this turn has loaded, and `load_tools` to load more. */
+  definitions(loaded: ReadonlySet<string> = ALL_GROUPS): ChatToolDefinition[] {
+    return [
+      ...this.tools
+        .list()
+        .filter((tool) => isVisible(tool, loaded))
+        .map((tool) => ({
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.parameters,
+        })),
+      LOAD_TOOLS_DEFINITION,
+    ];
+  }
+
+  /** The tools a group holds, as `load_tools` reports them to the model. */
+  toolsIn(groups: readonly string[]): string[] {
+    return this.tools
+      .list()
+      .filter((tool) => groups.includes(tool.group))
+      .map((tool) => tool.name);
   }
 
   async run(
     actor: AuthenticatedUser,
     conversationId: string,
     call: ChatToolCall,
+    loaded: ReadonlySet<string> = ALL_GROUPS,
   ): Promise<ToolRun> {
     const started = Date.now();
     const tool = this.tools.list().find((candidate) => candidate.name === call.name);
@@ -114,6 +158,15 @@ export class ToolRunnerService implements OnApplicationBootstrap {
     }
 
     const args = parseArguments(call.arguments);
+
+    // A tool the model was never shown this turn: it loads the group, then calls it.
+    if (!isVisible(tool, loaded)) {
+      return this.finish(actor, conversationId, tool.name, args, started, {
+        tool: tool.name,
+        error: AI_TOOL_ERROR.NOT_LOADED,
+        details: [`call load_tools with groups ["${tool.group}"] first`],
+      });
+    }
 
     if (!(await this.permitted(actor, tool))) {
       return this.finish(actor, conversationId, tool.name, args, started, {
@@ -156,14 +209,24 @@ export class ToolRunnerService implements OnApplicationBootstrap {
       }
 
       return {
-        envelope: { tool: tool.name, untrusted_clinic_data: true, result: outcome.data },
+        envelope: {
+          tool: tool.name,
+          untrusted_clinic_data: true,
+          result: localizeInstants(outcome.data, await this.timeZone(actor.clinicId)),
+        },
         ...(outcome.proposal && { proposal: outcome.proposal }),
         ...(outcome.audit && { audit: outcome.audit }),
         ...(outcome.view && { view: outcome.view }),
       };
     } catch (error) {
       if (error instanceof ToolRefusal) {
-        return { envelope: { tool: tool.name, error: error.code } };
+        return {
+          envelope: {
+            tool: tool.name,
+            error: error.code,
+            ...(error.details && { details: error.details }),
+          },
+        };
       }
 
       if (error instanceof NotFoundException) {
@@ -185,6 +248,16 @@ export class ToolRunnerService implements OnApplicationBootstrap {
 
       return { envelope: { tool: tool.name, error: AI_TOOL_ERROR.FAILED } };
     }
+  }
+
+  private async timeZone(clinicId: string): Promise<string> {
+    const [row] = await this.db
+      .select({ settings: clinics.settings })
+      .from(clinics)
+      .where(eq(clinics.id, clinicId))
+      .limit(1);
+
+    return clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE;
   }
 
   private permitted(actor: AuthenticatedUser, tool: AiTool): Promise<boolean> {

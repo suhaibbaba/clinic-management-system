@@ -40,6 +40,10 @@ function harness(
         return Promise.resolve();
       },
     }),
+    // The clinic's time zone, read to localise results: none stored, so the default.
+    select: () => ({
+      from: () => ({ where: () => ({ limit: () => Promise.resolve([]) }) }),
+    }),
   } as unknown as Database;
 
   const permissions = {
@@ -90,6 +94,38 @@ describe("running a tool the model asked for", () => {
         clinicId: ACTOR.clinicId,
         userId: ACTOR.id,
       }),
+    ]);
+  });
+
+  it("refuses a tool of a group the turn has not loaded, naming the group", async () => {
+    const { runner, audit } = harness([echoTool()]);
+    const call = {
+      id: "call_1",
+      name: AI_TOOL.GET_FINANCIAL_SUMMARY,
+      arguments: '{"period":"today"}',
+    };
+
+    const refused = parse((await runner.run(ACTOR, CONVERSATION_ID, call, new Set())).content);
+    const loaded = parse(
+      (await runner.run(ACTOR, CONVERSATION_ID, call, new Set(["reports"]))).content,
+    );
+
+    expect(refused).toEqual({
+      tool: AI_TOOL.GET_FINANCIAL_SUMMARY,
+      error: AI_TOOL_ERROR.NOT_LOADED,
+      details: ['call load_tools with groups ["reports"] first'],
+    });
+    expect(loaded).toMatchObject({ untrusted_clinic_data: true });
+    expect(audit.map((row) => row.outcome)).toEqual([AI_TOOL_ERROR.NOT_LOADED, "ok"]);
+  });
+
+  it("offers only the core set and load_tools until a group is loaded", () => {
+    const { runner } = harness([echoTool()]);
+
+    expect(runner.definitions(new Set()).map((tool) => tool.name)).toEqual([AI_TOOL.LOAD_TOOLS]);
+    expect(runner.definitions(new Set(["reports"])).map((tool) => tool.name)).toEqual([
+      AI_TOOL.GET_FINANCIAL_SUMMARY,
+      AI_TOOL.LOAD_TOOLS,
     ]);
   });
 

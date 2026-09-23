@@ -237,4 +237,42 @@ describe("An action's confirmation card", () => {
     expect(thursday).toHaveTextContent("09:00–17:00");
     expect(thursday).toHaveTextContent(ar.assistant.action.fields.dayOff);
   });
+
+  it("numbers a plan's steps and draws each the way its own card would", () => {
+    render(
+      proposal({
+        kind: AI_PROPOSAL_KIND.PLAN,
+        tier: AI_RISK_TIER.CONFIRM,
+        typedPhrase: null,
+        summary: {
+          steps: [
+            {
+              kind: AI_PROPOSAL_KIND.EXTRA_HOURS_CREATE,
+              summary: {
+                doctor: { id: PATIENT_ID, name: { ar: "د. رشا", en: "Dr. Rasha" } },
+                extraHours: { date: "2099-01-08", ranges: [{ start: "09:00", end: "17:00" }] },
+              },
+            },
+            {
+              kind: AI_PROPOSAL_KIND.TIME_OFF_CREATE,
+              summary: {
+                doctor: { id: PATIENT_ID, name: { ar: "د. باسل", en: "Dr. Basel" } },
+                startsAt: "2099-01-07T22:00:00.000Z",
+                endsAt: "2099-01-08T22:00:00.000Z",
+              },
+            },
+          ],
+        },
+      }),
+    );
+
+    const first = screen.getByTestId("action-step-0");
+
+    expect(first).toHaveTextContent(ar.assistant.action.step.replace("{{number}}", "1"));
+    expect(first).toHaveTextContent(ar.assistant.action.kinds.extra_hours_create);
+    expect(first).toHaveTextContent("09:00–17:00");
+    expect(screen.getByTestId("action-step-1")).toHaveTextContent(
+      ar.assistant.action.kinds.time_off_create,
+    );
+  });
 });

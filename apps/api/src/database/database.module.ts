@@ -4,6 +4,7 @@ import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres, { type Sql } from "postgres";
 import type { Env } from "@api/config/env.schema";
 import * as schema from "@api/database/schema";
+import { joinUnitOfWork } from "@api/database/unit-of-work";
 
 export const DATABASE = Symbol("DATABASE");
 export const POSTGRES_CLIENT = Symbol("POSTGRES_CLIENT");
@@ -30,7 +31,7 @@ export type DatabaseExecutor = Database | Transaction;
     {
       provide: DATABASE,
       inject: [POSTGRES_CLIENT],
-      useFactory: (client: Sql): Database => drizzle(client, { schema }),
+      useFactory: (client: Sql): Database => joinUnitOfWork(drizzle(client, { schema })),
     },
   ],
   exports: [DATABASE, POSTGRES_CLIENT],

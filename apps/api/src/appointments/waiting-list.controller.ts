@@ -28,6 +28,7 @@ import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreateWaitingListEntryDto extends createZodDto(createWaitingListEntrySchema) {}
 class UpdateWaitingListEntryDto extends createZodDto(updateWaitingListEntrySchema) {}
@@ -43,6 +44,11 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 export class WaitingListController {
   constructor(private readonly waitingList: WaitingListService) {}
 
+  @AiTool({
+    group: "appointments",
+    description:
+      "The waiting list: patients waiting for a slot, filtered as the query allows. Use to see who could take a freed time. Returns a page of entries.",
+  })
   @Get()
   list(
     @CurrentUser() actor: AuthenticatedUser,
@@ -51,6 +57,11 @@ export class WaitingListController {
     return this.waitingList.list(actor, query);
   }
 
+  @AiTool({
+    group: "appointments",
+    description:
+      "One waiting-list entry by id. Returns the entry with its patient and what they wait for.",
+  })
   @Get(":id")
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
@@ -59,6 +70,11 @@ export class WaitingListController {
     return this.waitingList.findOne(actor, params.id);
   }
 
+  @AiTool({
+    group: "appointments",
+    description:
+      "Put a patient on the waiting list for a doctor or any doctor, with what they are waiting for. Not a booking — use create_appointment for that. Waits on a card.",
+  })
   @Post()
   @Roles(USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.CREATE)
@@ -69,6 +85,10 @@ export class WaitingListController {
     return this.waitingList.create(actor, body);
   }
 
+  @AiTool({
+    group: "appointments",
+    description: "Change a waiting-list entry's preferences or note. Waits on a card.",
+  })
   @Patch(":id")
   @Roles(USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
@@ -80,6 +100,11 @@ export class WaitingListController {
     return this.waitingList.update(actor, params.id, body);
   }
 
+  @AiTool({
+    group: "appointments",
+    description:
+      "Book a waiting-list entry into a real appointment at a free time. Check the time with find_available_slots first. Waits on a card.",
+  })
   @Post(":id/promote")
   @Roles(USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
@@ -92,6 +117,10 @@ export class WaitingListController {
   }
 
   /** Rang back, nothing decided — the one action that leaves the entry in the queue. */
+  @AiTool({
+    group: "appointments",
+    description: "Record that a waiting-list patient was contacted. Waits on a card.",
+  })
   @Patch(":id/contacted")
   @Roles(USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
@@ -102,6 +131,10 @@ export class WaitingListController {
     return this.waitingList.markContacted(actor, params.id);
   }
 
+  @AiTool({
+    group: "appointments",
+    description: "Record that a waiting-list patient declined the time offered. Waits on a card.",
+  })
   @Patch(":id/decline")
   @Roles(USER_ROLE.RECEPTIONIST)
   @Audit(WAITING_LIST_ENTITY, AUDIT_ACTION.UPDATE)
@@ -113,6 +146,10 @@ export class WaitingListController {
     return this.waitingList.decline(actor, params.id, body);
   }
 
+  @AiTool({
+    group: "appointments",
+    description: "Take an entry off the waiting list. Waits on a typed confirmation.",
+  })
   @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)

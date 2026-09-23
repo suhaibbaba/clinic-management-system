@@ -126,8 +126,8 @@ describe("Assistant lab and stock actions (e2e)", () => {
 
   describe("lab orders", () => {
     it("finds the patient's order and sends it behind a card, with the domain's audit entry", async () => {
-      const found = await tool(USER_ROLE.TECHNICIAN, AI_TOOL.FIND_LAB_ORDERS, {
-        patient_id: patientId,
+      const found = await tool(USER_ROLE.TECHNICIAN, "lab_orders_list", {
+        patientId,
       });
 
       expect(found.result?.items?.map((item) => item.id)).toEqual([labOrderId]);
@@ -184,7 +184,7 @@ describe("Assistant lab and stock actions (e2e)", () => {
     });
 
     it("is not permitted to a receptionist", async () => {
-      const { error } = await tool(USER_ROLE.RECEPTIONIST, AI_TOOL.FIND_LAB_ORDERS, {});
+      const { error } = await tool(USER_ROLE.RECEPTIONIST, "lab_orders_list", {});
 
       expect(error).toBe(AI_TOOL_ERROR.NOT_PERMITTED);
     });
@@ -208,8 +208,8 @@ describe("Assistant lab and stock actions (e2e)", () => {
 
       expect(proposal?.status).toBe(AI_PROPOSAL_STATUS.DONE);
 
-      const found = await tool(USER_ROLE.TECHNICIAN, AI_TOOL.FIND_STOCK_ITEMS, {
-        query: "قفازات",
+      const found = await tool(USER_ROLE.TECHNICIAN, "inventory_list", {
+        search: "قفازات",
       });
 
       const [item] = found.result?.items ?? [];

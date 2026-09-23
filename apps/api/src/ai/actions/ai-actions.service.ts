@@ -24,6 +24,8 @@ import {
   AI_SCHEDULE_CONFLICT_CHOICES,
   AI_TOOL,
   AI_TOOL_ERROR,
+  AI_TOOL_NAMES,
+  createDoctorExtraHoursSchema,
   adjustStockSchema,
   weeklyScheduleSchema,
   type DaySchedule,
@@ -60,7 +62,10 @@ import {
   type AiActionResult,
   type AiActionsSettings,
   type AiActionSummary,
-  type AiActionTool,
+  type AiActionStepSummary,
+  type AiPlanInput,
+  type AiPlanInputs,
+  type AiPlanStep,
   type AiProposal,
   type AiProposalKind,
   type AiProposalStatusEvent,
@@ -125,6 +130,12 @@ import {
   DoctorTimeOffService,
 } from "@api/schedule/doctor-time-off.service";
 import { ScheduleConflictsService } from "@api/schedule/schedule-conflicts.service";
+import {
+  DOCTOR_EXTRA_HOURS_ENTITY,
+  DoctorExtraHoursService,
+} from "@api/schedule/doctor-extra-hours.service";
+import { commitTogether, rehearse } from "@api/database/unit-of-work";
+import { RouteToolRegistry, type RouteTool } from "@api/ai/tools/route-tools";
 
 type ActionKind = Exclude<AiProposalKind, typeof AI_PROPOSAL_KIND.MESSAGE>;
 
@@ -148,6 +159,9 @@ export const TYPED_PHRASES: Record<ActionKind, string> = {
   [AI_PROPOSAL_KIND.LAB_PAYMENT_CREATE]: "تأكيد دفعة المختبر",
   [AI_PROPOSAL_KIND.LAB_PAYMENT_REVERSE]: "تأكيد عكس دفعة المختبر",
   [AI_PROPOSAL_KIND.STOCK_REVERSE]: "تأكيد عكس الحركة",
+  [AI_PROPOSAL_KIND.EXTRA_HOURS_CREATE]: "تأكيد الدوام الإضافي",
+  [AI_PROPOSAL_KIND.PLAN]: "تأكيد تنفيذ الخطة",
+  [AI_PROPOSAL_KIND.ROUTE_CALL]: "تأكيد الإجراء",
 };
 
 const DORMANT_AFTER_DAYS = 730;
@@ -284,6 +298,73 @@ const scheduleSchema = z.object({
 
 const reversalReason = z.string().trim().min(3).max(500);
 
+const extraHoursSchema = z.object({
+  doctor_id: z.uuid(),
+  date: dateSchema,
+  ranges: z
+    .array(z.object({ start: timeSchema, end: timeSchema }))
+    .min(1)
+    .max(6)
+    .describe("The hours worked that date on top of the weekly schedule."),
+  reason: z.string().trim().min(2).max(200),
+});
+
+interface ExtraHoursPayload {
+  readonly doctorId: string;
+  readonly date: string;
+  readonly ranges: readonly { start: string; end: string }[];
+  readonly reason: string;
+}
+
+const MAX_PLAN_STEPS = 8;
+
+const planSchema = z.object({
+  title: z.string().trim().min(2).max(120).describe("What the plan does, in the user's words."),
+  steps: z
+    .array(
+      z.object({
+        tool: z.string().min(1).describe("A write tool, loaded or not; never a read."),
+        args: z
+          .record(z.string(), z.unknown())
+          .describe(
+            "Exactly what that tool takes alone. null for a value the user must fill in on the " +
+              'card (a time nobody is free at); {"$ref": "steps[N].id"} for the row an earlier ' +
+              "step creates.",
+          ),
+        note: z.string().trim().max(200).optional(),
+      }),
+    )
+    .min(1)
+    .max(MAX_PLAN_STEPS),
+});
+
+interface PlanStepPayload {
+  readonly tool: string;
+  readonly args: Record<string, unknown>;
+  readonly note?: string;
+  /** The fields the person fills in on the card. */
+  readonly needs: readonly string[];
+  /** What the rehearsal prepared: run as is on the first click, or null to prepare at the click. */
+  readonly prepared: unknown;
+}
+
+interface PlanPayload {
+  readonly title: string;
+  readonly steps: readonly PlanStepPayload[];
+}
+
+const REF = /^steps\[(\d+)\]\.id$/;
+
+/** A plan step's own refusal, carried to the card as an error code. */
+class PlanStepStopped extends Error {
+  constructor(readonly stop: Stop) {
+    super(`Plan step stopped: ${String(stop.forModel["status"])}`);
+    this.name = "PlanStepStopped";
+  }
+}
+
+class ChangedSinceDraft extends Error {}
+
 const labPaymentSchema = z.object({
   lab_id: z.uuid(),
   amount: z.number().int().min(1).max(99_999_999),
@@ -372,12 +453,18 @@ interface Executed {
 }
 
 interface ActionSpec<TSchema extends z.ZodType, TPayload> {
-  readonly tool: AiActionTool;
+  /** An `AiActionTool`, or a generated route write's name. */
+  readonly tool: string;
+  /** Defaults to the hand-written tool's entry in `TOOL_GROUP`. */
+  readonly group?: string;
   readonly kind: ActionKind;
   readonly description: string;
   readonly risk: AiRiskTier;
-  /** The endpoint this borrows its permission from; `capabilityFor` narrows it per call. */
-  readonly capability: string;
+  /**
+   * The endpoint this borrows its permission from; `capabilityFor` narrows it per call. Null only
+   * for a plan, whose every step is checked against its own.
+   */
+  readonly capability: string | null;
   readonly capabilityFor?: (payload: NoInfer<TPayload>) => string;
   readonly schema: TSchema;
   prepare(actor: AuthenticatedUser, args: z.output<TSchema>): Promise<Draft<TPayload> | Stop>;
@@ -388,11 +475,13 @@ interface ActionSpec<TSchema extends z.ZodType, TPayload> {
 
 /** The same spec with its payload type erased, so the registry holds one list. */
 interface Action {
-  readonly tool: AiActionTool;
+  readonly tool: string;
   readonly kind: ActionKind;
   readonly risk: AiRiskTier;
-  capabilityFor(payload: unknown): string;
+  readonly schema: z.ZodType;
+  capabilityFor(payload: unknown): string | null;
   escalate(payload: unknown, settings: AiActionsSettings): AiRiskTier;
+  prepare(actor: AuthenticatedUser, args: unknown): Promise<Draft<unknown> | Stop>;
   execute(actor: AuthenticatedUser, payload: unknown): Promise<Executed>;
   asTool(service: AiActionsService): AiTool;
 }
@@ -425,6 +514,8 @@ export class AiActionsService {
     private readonly labs: LabsService,
     private readonly labPaymentsService: LabPaymentsService,
     private readonly labLedger: LabLedgerService,
+    private readonly extraHours: DoctorExtraHoursService,
+    private readonly routes: RouteToolRegistry,
     private readonly permissions: PermissionsService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
     private readonly audit: AuditService,
@@ -500,14 +591,20 @@ export class AiActionsService {
     actor: AuthenticatedUser,
     id: string,
     typedPhrase: string | undefined,
+    inputs?: AiPlanInputs,
+    resume = false,
   ): Promise<AiProposalStatusEvent> {
-    const { row, action } = await this.claim(actor, id, typedPhrase);
+    const { row, action } = await this.claim(actor, id, typedPhrase, inputs, resume);
     const started = Date.now();
     let executed: Executed | undefined;
     let failure: AiActionError | undefined;
 
     try {
-      executed = await action.execute(actor, row.payload);
+      if (action.kind === AI_PROPOSAL_KIND.PLAN) {
+        ({ executed, failure } = await this.runPlan(actor, row, inputs));
+      } else {
+        executed = await action.execute(actor, row.payload);
+      }
     } catch (error) {
       failure = domainFailure(action.kind, error);
 
@@ -560,7 +657,7 @@ export class AiActionsService {
     const settings = await this.settings(actor.clinicId);
     const tier = AiActionsService.resolveTier(
       action.risk,
-      settings.minTier[action.tool],
+      minTierFor(settings, action.tool),
       action.escalate(draft.payload, settings),
     );
 
@@ -586,13 +683,13 @@ export class AiActionsService {
   }
 
   async assertEnabled(actor: AuthenticatedUser, action: Action): Promise<void> {
-    if ((await this.settings(actor.clinicId)).disabled.includes(action.tool)) {
+    if (isDisabled(await this.settings(actor.clinicId), action.tool)) {
       throw new ToolRefusal(AI_TOOL_ERROR.DISABLED);
     }
   }
 
-  async assertAllowed(actor: AuthenticatedUser, capability: string): Promise<void> {
-    if (!(await this.permissions.allows(actor.clinicId, actor.role, capability))) {
+  async assertAllowed(actor: AuthenticatedUser, capability: string | null): Promise<void> {
+    if (capability && !(await this.permissions.allows(actor.clinicId, actor.role, capability))) {
       throw new ForbiddenException();
     }
   }
@@ -635,6 +732,8 @@ export class AiActionsService {
     actor: AuthenticatedUser,
     id: string,
     typedPhrase: string | undefined,
+    inputs: AiPlanInputs | undefined,
+    resume: boolean,
   ): Promise<{ row: ProposalRow; action: Action }> {
     const settings = await this.settings(actor.clinicId);
 
@@ -649,7 +748,7 @@ export class AiActionsService {
         throw new NotFoundException("Resource not found");
       }
 
-      const action = this.list().find((candidate) => candidate.kind === row.kind);
+      const action = this.actionForRow(row);
 
       if (!action) {
         throw new NotFoundException("Resource not found");
@@ -659,32 +758,36 @@ export class AiActionsService {
         throw new OutboundError(AI_OUTBOUND_ERROR.EXPIRED, HttpStatus.CONFLICT);
       }
 
-      if (row.status !== AI_PROPOSAL_STATUS.DRAFT) {
+      // "Continue from step N" takes a plan that stopped part-way; nothing else leaves `draft`.
+      const resumable =
+        resume && row.kind === AI_PROPOSAL_KIND.PLAN && row.status === AI_PROPOSAL_STATUS.FAILED;
+
+      if (row.status !== AI_PROPOSAL_STATUS.DRAFT && !resumable) {
         throw new OutboundError(AI_OUTBOUND_ERROR.NOT_PENDING, HttpStatus.CONFLICT);
+      }
+
+      if (row.kind === AI_PROPOSAL_KIND.PLAN && !planInputsGiven(row, inputs)) {
+        throw new ActionRefusal(AI_ACTION_ERROR.INPUT_REQUIRED, HttpStatus.UNPROCESSABLE_ENTITY);
       }
 
       if (row.expiresAt.getTime() <= Date.now()) {
         return { expired: true } as const;
       }
 
-      if (settings.disabled.includes(action.tool)) {
+      if (isDisabled(settings, action.tool)) {
         throw new ActionRefusal(AI_ACTION_ERROR.DISABLED, HttpStatus.FORBIDDEN);
       }
 
       // The matrix may have changed since the draft; the one in force at the click decides.
-      if (
-        !(await this.permissions.allows(
-          actor.clinicId,
-          actor.role,
-          action.capabilityFor(row.payload),
-        ))
-      ) {
+      const capability = action.capabilityFor(row.payload);
+
+      if (capability && !(await this.permissions.allows(actor.clinicId, actor.role, capability))) {
         throw new ActionRefusal(AI_ACTION_ERROR.NOT_PERMITTED, HttpStatus.FORBIDDEN);
       }
 
       const tier = AiActionsService.resolveTier(
         row.tier ?? action.risk,
-        settings.minTier[action.tool],
+        minTierFor(settings, action.tool),
         action.escalate(row.payload, settings),
       );
 
@@ -756,7 +859,7 @@ export class AiActionsService {
   }
 
   private list(): Action[] {
-    this.actions ??= this.build();
+    this.actions ??= [...this.build(), ...this.routeActions()];
 
     return this.actions;
   }
@@ -767,9 +870,7 @@ export class AiActionsService {
         tool: AI_TOOL.SET_APPOINTMENT_STATUS,
         kind: AI_PROPOSAL_KIND.APPOINTMENT_STATUS,
         description:
-          "Move one appointment along: arrived, in_progress (started), completed — these run at " +
-          "once and you say what was done — or confirmed / no_show, which wait on a card the user " +
-          "confirms. Takes an appointment id from get_appointments.",
+          "Moves one appointment along: arrived, in_progress and completed run at once; confirmed and no_show wait on a card. Not for cancelling — cancel_appointments.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.SET_APPOINTMENT_STATUS],
         capability: STATUS_CAPABILITY[APPOINTMENT_STATUS.ARRIVED],
         capabilityFor: (payload) => STATUS_CAPABILITY[payload.status],
@@ -813,8 +914,7 @@ export class AiActionsService {
         tool: AI_TOOL.ADD_PATIENT_NOTE,
         kind: AI_PROPOSAL_KIND.PATIENT_NOTE,
         description:
-          "Append a short note to a patient's file. It is added after what is there; nothing is " +
-          "edited or removed. Takes a patient id from search_patients.",
+          "Adds a dated note to a patient's file, in the user's words. Not for correcting their details — patients_update. Runs at once.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.ADD_PATIENT_NOTE],
         capability: "patients.update",
         schema: z.object({
@@ -861,9 +961,7 @@ export class AiActionsService {
         tool: AI_TOOL.CREATE_APPOINTMENT,
         kind: AI_PROPOSAL_KIND.APPOINTMENT_CREATE,
         description:
-          "Book an appointment for a patient with a doctor at a local date and time (HH:MM). " +
-          "The slot is checked first: slot_taken or slot_unavailable means ask the user for " +
-          "another time — never try to force it. Waits on a card the user confirms.",
+          "Books a patient with a doctor at a local date and time (HH:MM), the slot checked first; take the time from find_available_slots. Waits on a card; slot_taken means ask for another.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.CREATE_APPOINTMENT],
         capability: "appointments.create",
         schema: z.object({
@@ -940,8 +1038,7 @@ export class AiActionsService {
         tool: AI_TOOL.RESCHEDULE_APPOINTMENT,
         kind: AI_PROPOSAL_KIND.APPOINTMENT_UPDATE,
         description:
-          "Move one appointment to another local date and time (HH:MM), optionally to another " +
-          "doctor. Checked like a new booking; waits on a card the user confirms.",
+          "Moves one appointment to another time, and optionally another doctor, checked like a booking. Several moves at once go in propose_plan. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.RESCHEDULE_APPOINTMENT],
         capability: "appointments.update",
         schema: z.object({
@@ -1017,9 +1114,7 @@ export class AiActionsService {
         tool: AI_TOOL.CANCEL_APPOINTMENTS,
         kind: AI_PROPOSAL_KIND.APPOINTMENT_CANCEL,
         description:
-          "Cancel one or more appointments by id, with the reason the user gave — ask for one " +
-          "if they did not. Waits on a card the user confirms; several at once, or one with a " +
-          "visit, need a typed confirmation.",
+          "Cancels appointments by id with the user's reason. Not for a doctor's absence (add_doctor_time_off) or a shut clinic (add_clinic_closure). Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.CANCEL_APPOINTMENTS],
         capability: "appointments.cancel",
         schema: z.object({
@@ -1116,11 +1211,7 @@ export class AiActionsService {
         tool: AI_TOOL.ADD_DOCTOR_TIME_OFF,
         kind: AI_PROPOSAL_KIND.TIME_OFF_CREATE,
         description:
-          "Give a doctor time off: whole days from date_from to date_to (local, inclusive), or " +
-          "part of a day with time_from and time_to (HH:MM). Takes a doctor_id from " +
-          "find_doctors. Appointments inside the period come back as schedule_conflict: ask " +
-          "the user whether to cancel them (each patient is notified), keep them, or change the " +
-          "period, then call again with on_conflict. Waits on a card the user confirms.",
+          "Gives a doctor time off, whole days or hours (time_from/time_to); appointments inside come back as schedule_conflict — ask, then pass on_conflict. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.ADD_DOCTOR_TIME_OFF],
         capability: "doctor-time-off.create",
         schema: timeOffSchema,
@@ -1189,11 +1280,7 @@ export class AiActionsService {
         tool: AI_TOOL.ADD_CLINIC_CLOSURE,
         kind: AI_PROPOSAL_KIND.CLOSURE_CREATE,
         description:
-          "Close the whole clinic for whole days, date_from to date_to (local, inclusive) — a " +
-          "holiday, not one doctor's absence. Appointments inside it come back as " +
-          "schedule_conflict: ask the user whether to cancel them (each patient is notified), " +
-          "keep them, or change the dates, then call again with on_conflict. Waits on a card " +
-          "the user confirms.",
+          "Shuts the whole clinic for whole days; not for one doctor (add_doctor_time_off). Appointments inside come back as schedule_conflict, answered with on_conflict. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.ADD_CLINIC_CLOSURE],
         capability: "clinic-closures.create",
         schema: closureSchema,
@@ -1262,10 +1349,7 @@ export class AiActionsService {
         tool: AI_TOOL.UPDATE_DOCTOR_TIME_OFF,
         kind: AI_PROPOSAL_KIND.TIME_OFF_UPDATE,
         description:
-          "Change a doctor's time off to a new period — pass the whole new period, as for " +
-          "add_doctor_time_off. Takes a time_off_id from get_doctor_time_off. A period that " +
-          "grows over appointments comes back as schedule_conflict, answered with on_conflict. " +
-          "Waits on a card the user confirms.",
+          "Changes a doctor's time off to a whole new period, found with doctor_time_off_list; one that grows over appointments asks as a new one does. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.UPDATE_DOCTOR_TIME_OFF],
         capability: "doctor-time-off.update",
         schema: timeOffUpdateSchema,
@@ -1353,8 +1437,7 @@ export class AiActionsService {
         tool: AI_TOOL.DELETE_DOCTOR_TIME_OFF,
         kind: AI_PROPOSAL_KIND.TIME_OFF_DELETE,
         description:
-          "Remove a doctor's time off, so the period is bookable again. Takes a time_off_id " +
-          "from get_doctor_time_off. Waits on a card the user confirms.",
+          "Removes a doctor's time off so the period is bookable again, found with doctor_time_off_list. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.DELETE_DOCTOR_TIME_OFF],
         capability: "doctor-time-off.remove",
         schema: z.object({ time_off_id: z.uuid() }),
@@ -1399,10 +1482,7 @@ export class AiActionsService {
         tool: AI_TOOL.SET_LAB_ORDER_STATUS,
         kind: AI_PROPOSAL_KIND.LAB_ORDER_STATUS,
         description:
-          "Move a lab order along: sent (out to the lab), ready (the lab finished), received " +
-          "(back at the clinic), fitted (in the patient's mouth), returned (sent back, with the " +
-          "reason) or cancelled. Takes a lab_order_id from find_lab_orders. Waits on a card " +
-          "the user confirms.",
+          "Moves a lab order along — sent, ready, received, fitted, returned (with its reason) or cancelled — found with lab_orders_list. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.SET_LAB_ORDER_STATUS],
         capability: "lab-orders.list",
         capabilityFor: (payload) => LAB_STATUS_CAPABILITY[payload.status],
@@ -1456,10 +1536,7 @@ export class AiActionsService {
         tool: AI_TOOL.RECORD_STOCK_MOVEMENT,
         kind: AI_PROPOSAL_KIND.STOCK_MOVEMENT,
         description:
-          "Record stock coming in (purchase), used (consume) or counted (adjust, a signed " +
-          "correction with its reason). Takes an item_id from find_stock_items. The quantity " +
-          "on hand is never set directly: it is the sum of these. Waits on a card the user " +
-          "confirms.",
+          "Records stock bought (purchase), used (consume) or counted (adjust by the difference, with its reason); the item from inventory_list. Never sets a quantity. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.RECORD_STOCK_MOVEMENT],
         capability: "inventory.list",
         capabilityFor: (payload) => MOVEMENT_CAPABILITY[payload.type],
@@ -1516,11 +1593,7 @@ export class AiActionsService {
         tool: AI_TOOL.SET_DOCTOR_SCHEDULE,
         kind: AI_PROPOSAL_KIND.DOCTOR_SCHEDULE,
         description:
-          "Change a doctor's weekly working hours. Pass only the weekdays that change, each " +
-          "with its full new hours (empty for a day off); the others stay as they are — read " +
-          "them from find_doctors. Appointments left outside the new hours come back as a " +
-          "sanity_check. For one day or a few days away, use add_doctor_time_off instead. " +
-          "Waits on a card the user confirms.",
+          "Changes a doctor's regular weekly hours, only the weekdays named. Not one day away (add_doctor_time_off) or one extra day (add_doctor_extra_hours). Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.SET_DOCTOR_SCHEDULE],
         capability: "doctors.updateSchedule",
         schema: scheduleSchema,
@@ -1603,9 +1676,7 @@ export class AiActionsService {
         tool: AI_TOOL.REVERSE_PAYMENT,
         kind: AI_PROPOSAL_KIND.PAYMENT_REVERSE,
         description:
-          "Reverse a patient's payment recorded by mistake: a new negative entry cancels it, " +
-          "and the original stays on the record. Takes a payment_id from find_payments and the " +
-          "reason the user gave. Always needs a typed confirmation.",
+          "Reverses a patient's payment recorded by mistake with a new negative entry, found with payments_list. Never an edit. Always typed.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.REVERSE_PAYMENT],
         capability: "payments.reverse",
         schema: z.object({ payment_id: z.uuid(), reason: reversalReason }),
@@ -1649,9 +1720,7 @@ export class AiActionsService {
         tool: AI_TOOL.RECORD_LAB_PAYMENT,
         kind: AI_PROPOSAL_KIND.LAB_PAYMENT_CREATE,
         description:
-          "Record money the clinic paid a lab, as a whole amount, with the payment method's " +
-          "code (omit it for the clinic's first method). Takes a lab_id from find_labs. Waits " +
-          "on a card the user confirms; a large one needs a typed confirmation.",
+          "Records money the clinic paid a lab, found with labs_list; a mistake is reverse_lab_payment. Waits on a card; a large one is typed.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.RECORD_LAB_PAYMENT],
         capability: "lab-payments.create",
         schema: labPaymentSchema,
@@ -1708,9 +1777,7 @@ export class AiActionsService {
         tool: AI_TOOL.REVERSE_LAB_PAYMENT,
         kind: AI_PROPOSAL_KIND.LAB_PAYMENT_REVERSE,
         description:
-          "Reverse a payment to a lab recorded by mistake: a new negative entry cancels it. " +
-          "Takes a lab_payment_id from get_lab_payments and the reason the user gave. Always " +
-          "needs a typed confirmation.",
+          "Reverses a lab payment recorded by mistake, found with lab_ledger_list_payments. Always typed.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.REVERSE_LAB_PAYMENT],
         capability: "lab-payments.reverse",
         schema: z.object({ lab_payment_id: z.uuid(), reason: reversalReason }),
@@ -1773,9 +1840,7 @@ export class AiActionsService {
         tool: AI_TOOL.REVERSE_STOCK_MOVEMENT,
         kind: AI_PROPOSAL_KIND.STOCK_REVERSE,
         description:
-          "Reverse a stock movement recorded by mistake: a new opposite entry cancels it. " +
-          "Takes a movement_id from get_stock_movements and the reason the user gave. A count " +
-          "that was merely off is an adjust, not a reversal. Always needs a typed confirmation.",
+          "Reverses a stock movement recorded by mistake, found with inventory_item_movements; a count that is merely off is an adjust. Always typed.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.REVERSE_STOCK_MOVEMENT],
         capability: "inventory.reverse",
         schema: z.object({ movement_id: z.uuid(), reason: reversalReason }),
@@ -1830,13 +1895,104 @@ export class AiActionsService {
         },
       }),
 
+      defineAction<typeof extraHoursSchema, ExtraHoursPayload>({
+        tool: AI_TOOL.ADD_DOCTOR_EXTRA_HOURS,
+        kind: AI_PROPOSAL_KIND.EXTRA_HOURS_CREATE,
+        description:
+          "Hours a doctor works on one date beyond the weekly schedule — covering for a colleague, an extra day. Not a permanent change (set_doctor_schedule). Waits on a card.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.ADD_DOCTOR_EXTRA_HOURS],
+        capability: "doctor-extra-hours.create",
+        schema: extraHoursSchema,
+        prepare: async (actor, args) => {
+          const doctor = await this.doctors.findOne(actor, args.doctor_id);
+
+          await this.access.requireOwnCalendar(actor, doctor.id);
+
+          const input = createDoctorExtraHoursSchema.safeParse({
+            date: args.date,
+            ranges: args.ranges,
+            reason: args.reason,
+          });
+
+          if (!input.success) {
+            return new Stop({
+              status: "invalid_arguments",
+              details: input.error.issues.map(
+                (issue) => `${issue.path.join(".")}: ${issue.message}`,
+              ),
+            });
+          }
+
+          return {
+            payload: {
+              doctorId: doctor.id,
+              date: input.data.date,
+              ranges: input.data.ranges,
+              reason: input.data.reason,
+            },
+            summary: {
+              doctor: { id: doctor.id, name: doctor.user.name },
+              extraHours: { date: input.data.date, ranges: input.data.ranges },
+              reason: input.data.reason,
+            },
+          };
+        },
+        execute: async (actor, payload) => {
+          const created = await this.audited(
+            actor,
+            DOCTOR_EXTRA_HOURS_ENTITY,
+            AUDIT_ACTION.CREATE,
+            undefined,
+            () =>
+              this.extraHours.create(actor, payload.doctorId, {
+                date: payload.date,
+                ranges: [...payload.ranges],
+                reason: payload.reason,
+              }),
+          );
+
+          return {
+            result: null,
+            audit: { entity: DOCTOR_EXTRA_HOURS_ENTITY, entityId: created.id },
+          };
+        },
+      }),
+
+      defineAction<typeof planSchema, PlanPayload>({
+        tool: AI_TOOL.PROPOSE_PLAN,
+        kind: AI_PROPOSAL_KIND.PLAN,
+        description:
+          "Several changes as one card the user confirms once — the only way to make more than " +
+          "one change. Read what you need first; then every step, in order, each a write tool " +
+          "with its own arguments. Checked now, against the real records; a step that cannot " +
+          "happen comes back with its index and why, and nothing is stored.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.PROPOSE_PLAN],
+        capability: null,
+        schema: planSchema,
+        prepare: (actor, args) => this.proposePlan(actor, args),
+        escalate: (payload, settings) =>
+          maxRiskTier(
+            ...payload.steps.map((step) => {
+              const action = this.actionFor(step.tool);
+
+              return AiActionsService.resolveTier(
+                action.risk,
+                minTierFor(settings, action.tool),
+                step.prepared === null
+                  ? AI_RISK_TIER.AUTO
+                  : action.escalate(step.prepared, settings),
+              );
+            }),
+          ),
+        // A plan runs step by step from the card, through `runPlan`; never as one execute.
+        execute: () => Promise.reject(new BadRequestException("A plan runs from its card")),
+      }),
+
       defineAction({
         tool: AI_TOOL.CREATE_PATIENT,
         kind: AI_PROPOSAL_KIND.PATIENT_CREATE,
         description:
-          "Register a new patient with the name and phone the user gave. A phone another " +
-          "patient already has comes back as possible_duplicate with their file number: ask " +
-          "whether it is the same person. Waits on a card the user confirms.",
+          "Registers a new patient with a name and phone; a phone already on file comes back as possible_duplicate — ask if it is the same person. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.CREATE_PATIENT],
         capability: "patients.create",
         schema: z.object({
@@ -1897,10 +2053,7 @@ export class AiActionsService {
         tool: AI_TOOL.RECORD_PAYMENT,
         kind: AI_PROPOSAL_KIND.PAYMENT_CREATE,
         description:
-          "Record money a patient paid, as a whole amount in the clinic's currency, with the " +
-          "payment method's code (omit it for the clinic's first method). A payment never edits " +
-          "one already recorded. Waits on a card the user confirms; a large one needs a typed " +
-          "confirmation.",
+          "Records money a patient paid, a whole amount with the method's code. Never edits a payment — a mistake is reverse_payment. Waits on a card; a large one is typed.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.RECORD_PAYMENT],
         capability: "payments.create",
         schema: z.object({
@@ -2172,6 +2325,470 @@ export class AiActionsService {
     }
   }
 
+  // A route's write, drafted and confirmed like every hand-written action: validated by the
+  // route's own schemas, summarised with names, and run through its handler on the click.
+  private routeActions(): Action[] {
+    return this.routes
+      .list()
+      .filter((route) => route.risk !== null)
+      .map((route) =>
+        defineAction<z.ZodObject, RoutePayload>({
+          tool: route.name,
+          group: route.group,
+          kind: AI_PROPOSAL_KIND.ROUTE_CALL,
+          description: route.description,
+          risk: route.risk ?? AI_RISK_TIER.CONFIRM,
+          capability: route.capability,
+          schema: route.schema,
+          prepare: async (actor, args) => {
+            try {
+              route.parse(args);
+            } catch (error) {
+              if (error instanceof z.ZodError) {
+                return new Stop({
+                  status: "invalid_arguments",
+                  details: error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`),
+                });
+              }
+              throw error;
+            }
+
+            return {
+              payload: { tool: route.name, args },
+              summary: await this.routeSummary(actor, route, args),
+            };
+          },
+          execute: async (actor, payload) => {
+            const result = await route.invoke(actor, payload.args);
+
+            return {
+              result: null,
+              audit: { entity: route.name, entityId: idOf(result) ?? route.name },
+            };
+          },
+        }),
+      );
+  }
+
+  // Names for the ids a person recognises; every other field as sent, so the card hides nothing.
+  private async routeSummary(
+    actor: AuthenticatedUser,
+    route: RouteTool,
+    args: Record<string, unknown>,
+  ): Promise<AiActionSummary> {
+    const patientId = typeof args["patientId"] === "string" ? args["patientId"] : null;
+    const doctorId = typeof args["doctorId"] === "string" ? args["doctorId"] : null;
+    const [patient, doctor] = await Promise.all([
+      patientId ? this.patients.findOne(actor, patientId) : null,
+      doctorId ? this.doctors.findOne(actor, doctorId) : null,
+    ]);
+    const shown = new Set([...(patient ? ["patientId"] : []), ...(doctor ? ["doctorId"] : [])]);
+
+    return {
+      ...(patient && { patient: patientSummary(patient) }),
+      ...(doctor && { doctor: { id: doctor.id, name: doctor.user.name } }),
+      route: {
+        tool: route.name,
+        capability: route.capability,
+        fields: Object.entries(args)
+          .filter(([name, value]) => !shown.has(name) && value !== undefined && value !== null)
+          .map(([name, value]) => ({
+            name,
+            value: (typeof value === "string" ? value : JSON.stringify(value)).slice(0, 300),
+          })),
+      },
+    };
+  }
+
+  /** A route call is found by the tool it carries: every one of them shares its kind. */
+  private actionForRow(row: ProposalRow): Action | undefined {
+    if (row.kind === AI_PROPOSAL_KIND.ROUTE_CALL) {
+      const tool = (row.payload as Partial<RoutePayload> | null)?.tool;
+
+      return this.list().find((candidate) => candidate.tool === tool);
+    }
+
+    return this.list().find((candidate) => candidate.kind === row.kind);
+  }
+
+  private actionFor(tool: string): Action {
+    const action = this.list().find((candidate) => candidate.tool === tool);
+
+    if (!action) {
+      throw new NotFoundException("Resource not found");
+    }
+
+    return action;
+  }
+
+  /**
+   * Checks a plan without keeping anything: every step a permitted write with valid references;
+   * the steps before the first that waits on the person rehearsed through their real services
+   * inside a rolled-back transaction, each seeing the ones before it.
+   */
+  private async proposePlan(
+    actor: AuthenticatedUser,
+    plan: z.output<typeof planSchema>,
+  ): Promise<Draft<PlanPayload> | Stop> {
+    const settings = await this.settings(actor.clinicId);
+
+    for (const [index, step] of plan.steps.entries()) {
+      const at = { step: index, tool: step.tool };
+      const action = this.list().find((candidate) => candidate.tool === step.tool);
+
+      if (step.tool === AI_TOOL.PROPOSE_PLAN) {
+        return new Stop({ status: "nested_plan", ...at });
+      }
+
+      if (!action) {
+        return new Stop({
+          status: this.isReadTool(step.tool) ? "read_tool_in_plan" : "unknown_tool",
+          ...at,
+          instruction: "A plan holds writes only: read first, then propose the changes.",
+        });
+      }
+
+      if (isDisabled(settings, action.tool)) {
+        return new Stop({ status: "disabled", ...at });
+      }
+
+      const dangling = refsIn(step.args).find((ref) => ref >= index);
+
+      if (dangling !== undefined) {
+        return new Stop({ status: "dangling_ref", ...at, ref: `steps[${dangling}].id` });
+      }
+    }
+
+    const needs = plan.steps.map((step) =>
+      Object.entries(step.args)
+        .filter(([, value]) => value === null)
+        .map(([name]) => name),
+    );
+    const firstWaiting = needs.findIndex((fields) => fields.length > 0);
+    const rehearsedUntil = firstWaiting === -1 ? plan.steps.length : firstWaiting;
+
+    const rehearsed = await rehearse(this.db, async () => {
+      const results: (string | undefined)[] = [];
+      const prepared: Draft<unknown>[] = [];
+
+      for (const [index, step] of plan.steps.slice(0, rehearsedUntil).entries()) {
+        const action = this.actionFor(step.tool);
+        const at = { step: index, tool: step.tool };
+
+        try {
+          const args = action.schema.safeParse(resolveRefs(step.args, results));
+
+          if (!args.success) {
+            return new Stop({ status: "invalid_arguments", ...at, details: issues(args.error) });
+          }
+
+          const draft = await action.prepare(actor, args.data);
+
+          if (draft instanceof Stop) {
+            return new Stop({
+              ...draft.forModel,
+              ...at,
+              ...(await this.freeTimesAfter(actor, draft, step.args)),
+            });
+          }
+
+          const capability = action.capabilityFor(draft.payload);
+
+          if (
+            capability &&
+            !(await this.permissions.allows(actor.clinicId, actor.role, capability))
+          ) {
+            return new Stop({ status: "not_permitted", ...at });
+          }
+
+          const executed = await action.execute(actor, draft.payload);
+
+          results[index] = executed.result?.id ?? executed.audit.entityId;
+          prepared.push(draft);
+        } catch (error) {
+          return new Stop({
+            status: "step_failed",
+            ...at,
+            error: domainFailure(action.kind, error),
+          });
+        }
+      }
+
+      return prepared;
+    });
+
+    if (rehearsed instanceof Stop) {
+      return rehearsed;
+    }
+
+    const steps = await Promise.all(
+      plan.steps.map(async (step, index) => {
+        const action = this.actionFor(step.tool);
+        const draft = rehearsed[index];
+        const summary = draft
+          ? withoutSteps(draft.summary)
+          : await this.describeStep(actor, step.args);
+
+        return {
+          payload: {
+            tool: step.tool,
+            args: step.args,
+            ...(step.note && { note: step.note }),
+            needs: needs[index] ?? [],
+            // A step that points at an earlier one's row is prepared at the click, never from the
+            // rehearsal: the row it pointed at was rolled back.
+            prepared: draft && refsIn(step.args).length === 0 ? draft.payload : null,
+          } satisfies PlanStepPayload,
+          summary: {
+            kind: action.kind,
+            summary,
+            ...(step.note && { note: step.note }),
+            ...((needs[index]?.length ?? 0) > 0 && {
+              needs: (needs[index] ?? []).map((name) => ({ name, kind: inputKind(name) })),
+            }),
+            status: "pending" as const,
+          },
+        };
+      }),
+    );
+
+    return {
+      payload: { title: plan.title, steps: steps.map((step) => step.payload) },
+      summary: { title: plan.title, steps: steps.map((step) => step.summary) },
+    };
+  }
+
+  /**
+   * Runs a plan's steps from `from`, each in its own transaction: a clinic's day does not roll back
+   * six moves because the seventh found its slot taken. Progress lands on the card after each.
+   */
+  async runPlan(
+    actor: AuthenticatedUser,
+    row: ProposalRow,
+    inputs: AiPlanInputs | undefined,
+  ): Promise<{ executed?: Executed; failure?: AiActionError }> {
+    const payload = row.payload as unknown as PlanPayload;
+    const summary = structuredClone(row.resolvedSummary) as AiActionSummary;
+    const cards = summary.steps ?? [];
+    const results = cards.map((card) => card.resultId);
+    const from = Math.max(
+      0,
+      cards.findIndex((card) => card.status !== "done"),
+    );
+    const resuming = cards.some((card) => card.status === "failed");
+    const settings = await this.settings(actor.clinicId);
+    let last: Executed | undefined;
+
+    for (let index = from; index < payload.steps.length; index += 1) {
+      const step = payload.steps[index] as PlanStepPayload;
+      const card = cards[index];
+      const action = this.actionFor(step.tool);
+      const given = inputs?.[String(index)] ?? {};
+      const started = Date.now();
+
+      try {
+        if (step.needs.some((name) => !(name in given))) {
+          throw new ActionRefusal(AI_ACTION_ERROR.INPUT_REQUIRED, HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+
+        if (isDisabled(settings, action.tool)) {
+          throw new ForbiddenException();
+        }
+
+        const run =
+          step.prepared !== null && step.needs.length === 0 && !resuming
+            ? step.prepared
+            : await this.prepareAtClick(actor, action, step, given, results, card);
+
+        await this.assertAllowed(actor, action.capabilityFor(run));
+
+        const executed = await commitTogether(this.db, () => action.execute(actor, run));
+
+        last = executed;
+        results[index] = executed.result?.id ?? executed.audit.entityId;
+        cards[index] = { ...card, status: "done", resultId: results[index] } as AiPlanStep;
+        await this.stepAudit(actor, row, step.tool, "ok", started, executed.audit);
+      } catch (error) {
+        const failure = planStepFailure(action.kind, error);
+
+        cards[index] = { ...card, status: "failed", error: failure } as AiPlanStep;
+        await this.stepAudit(actor, row, step.tool, failure, started);
+        await this.saveProgress(row.id, { ...summary, steps: cards });
+
+        return { failure };
+      } finally {
+        await this.saveProgress(row.id, { ...summary, steps: cards });
+      }
+    }
+
+    return last ? { executed: last } : { failure: AI_ACTION_ERROR.FAILED };
+  }
+
+  // Availability may have moved since the card was drawn: prepared again, and refused if what it
+  // would do is no longer what the person read.
+  private async prepareAtClick(
+    actor: AuthenticatedUser,
+    action: Action,
+    step: PlanStepPayload,
+    given: Record<string, string>,
+    results: readonly (string | undefined)[],
+    card: AiPlanStep | undefined,
+  ): Promise<unknown> {
+    const args = action.schema.parse(resolveRefs({ ...step.args, ...given }, results));
+    const draft = await action.prepare(actor, args);
+
+    if (draft instanceof Stop) {
+      throw new PlanStepStopped(draft);
+    }
+
+    const compared = step.prepared !== null && refsIn(step.args).length === 0;
+
+    if (
+      compared &&
+      card &&
+      JSON.stringify(withoutSteps(draft.summary)) !== JSON.stringify(card.summary)
+    ) {
+      throw new ChangedSinceDraft();
+    }
+
+    return draft.payload;
+  }
+
+  private async saveProgress(id: string, summary: AiActionSummary): Promise<void> {
+    await this.db
+      .update(aiProposals)
+      .set({ resolvedSummary: summary, updatedAt: new Date() })
+      .where(eq(aiProposals.id, id));
+  }
+
+  // Each step its own row beside the domain's entry; the plan's own row, written by `confirm`,
+  // carries the proposal id that links them.
+  private async stepAudit(
+    actor: AuthenticatedUser,
+    row: ProposalRow,
+    tool: string,
+    outcome: string,
+    started: number,
+    target?: ToolAuditTarget,
+  ): Promise<void> {
+    await this.db.insert(aiAuditLog).values({
+      clinicId: actor.clinicId,
+      userId: actor.id,
+      conversationId: row.conversationId,
+      toolName: tool,
+      argsJson: { proposal_id: row.id, plan_step: true },
+      outcome,
+      resultSize: 0,
+      durationMs: Date.now() - started,
+      proposalId: row.id,
+      ...(target && { entity: target.entity, entityId: target.entityId }),
+    });
+  }
+
+  /** A step not rehearsed — it waits on the person — is shown by the names its ids stand for. */
+  private async describeStep(
+    actor: AuthenticatedUser,
+    args: Record<string, unknown>,
+  ): Promise<AiActionStepSummary> {
+    const text = (key: string, alt: string): string | null => {
+      const value = args[key] ?? args[alt];
+
+      return typeof value === "string" ? value : null;
+    };
+    const appointmentId = text("appointment_id", "appointmentId");
+    const patientId = text("patient_id", "patientId");
+    const doctorId = text("doctor_id", "doctorId");
+    const [appointment, patient, doctor] = await Promise.all([
+      appointmentId ? this.appointments.findOne(actor, appointmentId) : null,
+      patientId ? this.patients.findOne(actor, patientId) : null,
+      doctorId ? this.doctors.findOne(actor, doctorId) : null,
+    ]);
+    const shown = new Set([
+      "appointment_id",
+      "appointmentId",
+      "patient_id",
+      "patientId",
+      "doctor_id",
+      "doctorId",
+    ]);
+
+    return {
+      ...(appointment && {
+        ...appointmentSummary(appointment),
+        previousStartsAt: appointment.startsAt,
+      }),
+      ...(patient && { patient: patientSummary(patient) }),
+      ...(doctor && { doctor: { id: doctor.id, name: doctor.user.name } }),
+      route: {
+        tool: "",
+        capability: null,
+        fields: Object.entries(args)
+          .filter(([name, value]) => !shown.has(name) && value !== null && value !== undefined)
+          .map(([name, value]) => ({
+            name,
+            value: isRef(value)
+              ? `$ref ${value.$ref}`
+              : typeof value === "string"
+                ? value
+                : JSON.stringify(value),
+          })),
+      },
+    };
+  }
+
+  private isReadTool(name: string): boolean {
+    return (
+      (AI_TOOL_NAMES as readonly string[]).includes(name) || this.routes.get(name)?.risk === null
+    );
+  }
+
+  // For a booking step whose time is taken: what the doctor has free that day once the steps
+  // before it have happened — computed inside the same rehearsal, so it counts them.
+  private async freeTimesAfter(
+    actor: AuthenticatedUser,
+    stop: Stop,
+    args: Record<string, unknown>,
+  ): Promise<{ free_after_earlier_steps?: string[] }> {
+    const status = stop.forModel["status"];
+
+    if (
+      (status !== "slot_taken" && status !== "slot_unavailable") ||
+      typeof args["date"] !== "string"
+    ) {
+      return {};
+    }
+
+    const appointment =
+      typeof args["appointment_id"] === "string"
+        ? await this.appointments.findOne(actor, args["appointment_id"])
+        : null;
+    const doctorId =
+      typeof args["doctor_id"] === "string" ? args["doctor_id"] : appointment?.doctorId;
+
+    if (!doctorId) {
+      return {};
+    }
+
+    const day = await this.availability.forDay(actor.clinicId, {
+      doctorId,
+      date: args["date"],
+      ...(appointment && {
+        durationMinutes: appointment.durationMinutes,
+        excludeAppointmentId: appointment.id,
+      }),
+    });
+    const wanted = typeof args["time"] === "string" ? minutes(args["time"]) : 0;
+
+    return {
+      free_after_earlier_steps: day.slots
+        .filter((slot) => slot.available)
+        .sort((a, b) => Math.abs(minutes(a.start) - wanted) - Math.abs(minutes(b.start) - wanted))
+        .slice(0, 8)
+        .map((slot) => slot.start)
+        .sort(),
+    };
+  }
+
   /** Booked appointments from now on, on the changed weekdays, that no longer fit the hours. */
   private async outsideHours(
     actor: AuthenticatedUser,
@@ -2318,13 +2935,16 @@ function defineAction<TSchema extends z.ZodType, TPayload>(
     tool: spec.tool,
     kind: spec.kind,
     risk: spec.risk,
+    schema: spec.schema,
     capabilityFor: (payload) => spec.capabilityFor?.(payload as TPayload) ?? spec.capability,
+    prepare: (actor, args) => spec.prepare(actor, args as z.output<TSchema>),
     escalate: (payload, settings) =>
       spec.escalate?.(payload as TPayload, settings) ?? AI_RISK_TIER.AUTO,
     execute: (actor, payload) => spec.execute(actor, payload as TPayload),
     asTool: (service) =>
       defineTool({
         name: spec.tool,
+        ...(spec.group && { group: spec.group }),
         description: spec.description,
         capability: spec.capability,
         risk: spec.risk,
@@ -2471,6 +3091,123 @@ function irreversible(
     ? null
     : new Stop({ status: "not_possible", reason: "already_reversed" });
 }
+
+interface RoutePayload {
+  readonly tool: string;
+  readonly args: Record<string, unknown>;
+}
+
+// The clinic's switches and floors are kept per hand-written action; a generated one has none yet.
+const isDisabled = (settings: AiActionsSettings, tool: string): boolean =>
+  (settings.disabled as readonly string[]).includes(tool);
+
+const minTierFor = (settings: AiActionsSettings, tool: string): AiRiskTier | undefined =>
+  (settings.minTier as Partial<Record<string, AiRiskTier>>)[tool];
+
+function idOf(result: unknown): string | undefined {
+  const own = (result as { id?: unknown } | null)?.id;
+  const item = (result as { item?: { id?: unknown } } | null)?.item?.id;
+
+  return typeof own === "string" ? own : typeof item === "string" ? item : undefined;
+}
+
+function refsIn(value: unknown): number[] {
+  if (isRef(value)) {
+    const match = REF.exec(value.$ref);
+
+    return [match ? Number(match[1]) : Number.POSITIVE_INFINITY];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap(refsIn);
+  }
+
+  return value && typeof value === "object" ? Object.values(value).flatMap(refsIn) : [];
+}
+
+function resolveRefs(value: unknown, results: readonly (string | undefined)[]): unknown {
+  if (isRef(value)) {
+    const match = REF.exec(value.$ref);
+    const id = match ? results[Number(match[1])] : undefined;
+
+    if (!id) {
+      throw new BadRequestException(`Unresolved ${value.$ref}`);
+    }
+
+    return id;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => resolveRefs(item, results));
+  }
+
+  return value && typeof value === "object"
+    ? Object.fromEntries(
+        Object.entries(value).map(([key, item]) => [key, resolveRefs(item, results)]),
+      )
+    : value;
+}
+
+const isRef = (value: unknown): value is { $ref: string } =>
+  typeof value === "object" &&
+  value !== null &&
+  typeof (value as { $ref?: unknown }).$ref === "string" &&
+  Object.keys(value).length === 1;
+
+const inputKind = (name: string): AiPlanInput["kind"] =>
+  /time$/i.test(name) ? "time" : /date|_on$|On$/i.test(name) ? "date" : "text";
+
+const issues = (error: z.ZodError): string[] =>
+  error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`);
+
+/** Every step still waiting on a field has it among the inputs the card sent. */
+function planInputsGiven(row: ProposalRow, inputs: AiPlanInputs | undefined): boolean {
+  const steps = (row.payload as unknown as PlanPayload).steps;
+  const cards = (row.resolvedSummary as AiActionSummary | null)?.steps ?? [];
+
+  return steps.every(
+    (step, index) =>
+      cards[index]?.status === "done" ||
+      step.needs.every((name) => name in (inputs?.[String(index)] ?? {})),
+  );
+}
+
+// A step's own refusal as the card's error code: the plan's card says what stopped it.
+function planStepFailure(kind: ActionKind, error: unknown): AiActionError {
+  if (error instanceof ActionRefusal) {
+    return error.code;
+  }
+
+  if (error instanceof ChangedSinceDraft) {
+    return AI_ACTION_ERROR.CHANGED_SINCE_DRAFT;
+  }
+
+  if (error instanceof PlanStepStopped) {
+    switch (error.stop.forModel["status"]) {
+      case "slot_taken":
+      case "slot_unavailable":
+        return AI_ACTION_ERROR.SLOT_TAKEN;
+      case "schedule_conflict":
+        return AI_ACTION_ERROR.SCHEDULE_CONFLICT;
+      case "not_possible":
+        return AI_ACTION_ERROR.INVALID_TRANSITION;
+      default:
+        return AI_ACTION_ERROR.CHANGED_SINCE_DRAFT;
+    }
+  }
+
+  if (error instanceof z.ZodError) {
+    return AI_ACTION_ERROR.FAILED;
+  }
+
+  return domainFailure(kind, error);
+}
+
+const withoutSteps = ({
+  steps: _steps,
+  title: _title,
+  ...summary
+}: AiActionSummary): AiActionStepSummary => summary;
 
 const rangesOn = (schedule: readonly DaySchedule[], weekday: number): TimeRange[] =>
   schedule.find((day) => day.weekday === weekday)?.ranges ?? [];

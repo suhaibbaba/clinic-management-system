@@ -30,6 +30,7 @@ import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { InventoryReportsService } from "@api/inventory/inventory-reports.service";
 import { SUPPLIERS_ENTITY, SuppliersService } from "@api/inventory/suppliers.service";
+import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreateSupplierDto extends createZodDto(createSupplierSchema) {}
 class UpdateSupplierDto extends createZodDto(updateSupplierSchema) {}
@@ -44,6 +45,10 @@ export class SuppliersController {
     private readonly reports: InventoryReportsService,
   ) {}
 
+  @AiTool({
+    group: "inventory",
+    description: "The clinic's suppliers by name. Use to find a supplierId.",
+  })
   @Get()
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   list(
@@ -53,6 +58,10 @@ export class SuppliersController {
     return this.suppliers.list(actor, query);
   }
 
+  @AiTool({
+    group: "inventory",
+    description: "One supplier with their contact.",
+  })
   @Get(":id")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   findOne(
@@ -62,6 +71,10 @@ export class SuppliersController {
     return this.suppliers.findOne(actor, params.id);
   }
 
+  @AiTool({
+    group: "inventory",
+    description: "What was bought from one supplier over dates.",
+  })
   @Get(":id/statement")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   statement(
@@ -72,6 +85,10 @@ export class SuppliersController {
     return this.reports.supplierStatement(actor, params.id, query);
   }
 
+  @AiTool({
+    group: "inventory",
+    description: "Add a supplier. Waits on a card.",
+  })
   @Post()
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(SUPPLIERS_ENTITY, AUDIT_ACTION.CREATE)
@@ -82,6 +99,10 @@ export class SuppliersController {
     return this.suppliers.create(actor, body);
   }
 
+  @AiTool({
+    group: "inventory",
+    description: "Change a supplier's details, or switch them off. Waits on a card.",
+  })
   @Patch(":id")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(SUPPLIERS_ENTITY, AUDIT_ACTION.UPDATE)
@@ -93,6 +114,10 @@ export class SuppliersController {
     return this.suppliers.update(actor, params.id, body);
   }
 
+  @AiTool({
+    group: "inventory",
+    description: "Archive a supplier. Waits on a typed confirmation.",
+  })
   @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
