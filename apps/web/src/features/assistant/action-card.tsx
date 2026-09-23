@@ -14,6 +14,7 @@ import {
   type TimeRange,
 } from "@clinic/shared";
 import { useId, useState, type JSX, type ReactNode } from "react";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
@@ -119,9 +120,7 @@ export function ActionCard({ id, initial, onRedraft }: ActionCardProps): JSX.Ele
         <span className="grid size-8 place-items-center rounded-field bg-primary-100 text-primary-600">
           <Icon name="sparkles" />
         </span>
-        <h3 className="text-label font-semibold text-ink">
-          {t(`assistant.action.kinds.${data.kind}`)}
-        </h3>
+        <h3 className="text-label font-semibold text-ink">{cardTitle(t, data)}</h3>
         {data.tier && (
           <span data-part="action-tier" className="text-label text-ink-subtle">
             {t(`assistant.action.tiers.${data.tier}`)}
@@ -466,6 +465,13 @@ function StepSummary({ summary }: { summary: AiActionStepSummary }): JSX.Element
           </span>
         </Row>
       )}
+      {summary.route?.fields.map((field) => (
+        <Row key={field.name} label={field.name}>
+          <span dir="auto" className="[unicode-bidi:plaintext]">
+            {field.value}
+          </span>
+        </Row>
+      ))}
       {summary.recordedAt && (
         <Row label={t("assistant.action.fields.recordedAt")}>
           <span dir="ltr">{when(summary.recordedAt)}</span>
@@ -526,6 +532,16 @@ function Hours({ ranges }: { ranges: readonly TimeRange[] }): JSX.Element {
   ) : (
     <span dir="ltr">{ranges.map((range) => `${range.start}–${range.end}`).join(", ")}</span>
   );
+}
+
+// A generated write is titled by the permission it borrows, which the permissions screen already
+// names in the clinic's words; a hand-written one by its kind.
+function cardTitle(t: TFunction, data: AiProposal): string {
+  const capability = data.summary?.route?.capability;
+
+  return data.kind === AI_PROPOSAL_KIND.ROUTE_CALL && capability
+    ? t(`permissions.capabilities.${capability}`, { defaultValue: data.summary?.route?.tool ?? "" })
+    : t(`assistant.action.kinds.${data.kind}`);
 }
 
 function Row({ label, children }: { label: string; children: ReactNode }): JSX.Element {

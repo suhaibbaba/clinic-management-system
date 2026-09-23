@@ -1760,7 +1760,8 @@
         "lab_payment_reverse": "Reverse a lab payment",
         "stock_reverse": "Reverse a stock movement",
         "extra_hours_create": "Doctor extra hours",
-        "plan": "Plan"
+        "plan": "Plan",
+        "route_call": "Action"
       },
       "tiers": {
         "auto": "Automatic",
@@ -1829,7 +1830,8 @@
         "lab_payment_reverse": "The lab payment was reversed.",
         "stock_reverse": "The movement was reversed.",
         "extra_hours_create": "The extra hours were recorded.",
-        "plan": "Every step of the plan is done."
+        "plan": "Every step of the plan is done.",
+        "route_call": "Done."
       },
       "redraft": "Prepare the request again",
       "onConflict": {
