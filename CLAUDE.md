@@ -169,8 +169,8 @@ deploy and never stored. `APP_VERSION` reaches the API as an environment variabl
 build arg; without them the answer is `0.0.0-dev`. The API serves `/version`; the web shows the
 API's beside its own only when they differ.
 
-CI and the deploy are one chain on `main`: checks, then images, then the sandbox. A failure stops
-the deploy. The same checks also run on every pull request, so nothing merges untested.
+CI and the sandbox deploy run only when started by hand (`workflow_dispatch`); nothing runs on a
+push or a pull request.
 
 ## Never
 
