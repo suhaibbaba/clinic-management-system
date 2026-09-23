@@ -9,6 +9,8 @@ import {
 import {
   AI_TOOL,
   AI_TOOL_ERROR,
+  clinicScheduleSettings,
+  DEFAULT_TIME_ZONE,
   type AiOutboundError,
   type AiProposal,
   type AiToolError,
@@ -19,6 +21,7 @@ import type { ChatToolCall, ChatToolDefinition } from "@api/ai/chat-provider";
 import { OutboundError } from "@api/ai/outbound/proposals.service";
 import { AiToolsService } from "@api/ai/tools/ai-tools.service";
 import {
+  localizeInstants,
   ToolRefusal,
   type AiTool,
   type ToolAuditTarget,
@@ -26,7 +29,8 @@ import {
 } from "@api/ai/tools/ai-tool";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { aiAuditLog } from "@api/database/schema";
+import { aiAuditLog, clinics } from "@api/database/schema";
+import { eq } from "drizzle-orm";
 import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
 
@@ -156,7 +160,11 @@ export class ToolRunnerService implements OnApplicationBootstrap {
       }
 
       return {
-        envelope: { tool: tool.name, untrusted_clinic_data: true, result: outcome.data },
+        envelope: {
+          tool: tool.name,
+          untrusted_clinic_data: true,
+          result: localizeInstants(outcome.data, await this.timeZone(actor.clinicId)),
+        },
         ...(outcome.proposal && { proposal: outcome.proposal }),
         ...(outcome.audit && { audit: outcome.audit }),
         ...(outcome.view && { view: outcome.view }),
@@ -185,6 +193,16 @@ export class ToolRunnerService implements OnApplicationBootstrap {
 
       return { envelope: { tool: tool.name, error: AI_TOOL_ERROR.FAILED } };
     }
+  }
+
+  private async timeZone(clinicId: string): Promise<string> {
+    const [row] = await this.db
+      .select({ settings: clinics.settings })
+      .from(clinics)
+      .where(eq(clinics.id, clinicId))
+      .limit(1);
+
+    return clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE;
   }
 
   private permitted(actor: AuthenticatedUser, tool: AiTool): Promise<boolean> {

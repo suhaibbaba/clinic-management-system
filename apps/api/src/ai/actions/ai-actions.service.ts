@@ -24,6 +24,8 @@ import {
   AI_SCHEDULE_CONFLICT_CHOICES,
   AI_TOOL,
   AI_TOOL_ERROR,
+  AI_ACTION_TOOLS,
+  createDoctorExtraHoursSchema,
   adjustStockSchema,
   weeklyScheduleSchema,
   type DaySchedule,
@@ -60,6 +62,7 @@ import {
   type AiActionResult,
   type AiActionsSettings,
   type AiActionSummary,
+  type AiActionStepSummary,
   type AiActionTool,
   type AiProposal,
   type AiProposalKind,
@@ -125,6 +128,11 @@ import {
   DoctorTimeOffService,
 } from "@api/schedule/doctor-time-off.service";
 import { ScheduleConflictsService } from "@api/schedule/schedule-conflicts.service";
+import {
+  DOCTOR_EXTRA_HOURS_ENTITY,
+  DoctorExtraHoursService,
+} from "@api/schedule/doctor-extra-hours.service";
+import { commitTogether, rehearse } from "@api/database/unit-of-work";
 
 type ActionKind = Exclude<AiProposalKind, typeof AI_PROPOSAL_KIND.MESSAGE>;
 
@@ -148,6 +156,8 @@ export const TYPED_PHRASES: Record<ActionKind, string> = {
   [AI_PROPOSAL_KIND.LAB_PAYMENT_CREATE]: "تأكيد دفعة المختبر",
   [AI_PROPOSAL_KIND.LAB_PAYMENT_REVERSE]: "تأكيد عكس دفعة المختبر",
   [AI_PROPOSAL_KIND.STOCK_REVERSE]: "تأكيد عكس الحركة",
+  [AI_PROPOSAL_KIND.EXTRA_HOURS_CREATE]: "تأكيد الدوام الإضافي",
+  [AI_PROPOSAL_KIND.PLAN]: "تأكيد الخطة",
 };
 
 const DORMANT_AFTER_DAYS = 730;
@@ -284,6 +294,60 @@ const scheduleSchema = z.object({
 
 const reversalReason = z.string().trim().min(3).max(500);
 
+const extraHoursSchema = z.object({
+  doctor_id: z.uuid(),
+  date: dateSchema,
+  ranges: z
+    .array(z.object({ start: timeSchema, end: timeSchema }))
+    .min(1)
+    .max(6)
+    .describe("The hours worked that date on top of the weekly schedule."),
+  reason: z.string().trim().min(2).max(200),
+});
+
+interface ExtraHoursPayload {
+  readonly doctorId: string;
+  readonly date: string;
+  readonly ranges: readonly { start: string; end: string }[];
+  readonly reason: string;
+}
+
+const PLAN_STEP_TOOLS = AI_ACTION_TOOLS.filter(
+  (tool): tool is Exclude<AiActionTool, typeof AI_TOOL.PROPOSE_PLAN> =>
+    tool !== AI_TOOL.PROPOSE_PLAN,
+) as [Exclude<AiActionTool, "propose_plan">, ...Exclude<AiActionTool, "propose_plan">[]];
+
+const MAX_PLAN_STEPS = 30;
+
+const planSchema = z.object({
+  steps: z
+    .array(
+      z.object({
+        tool: z.enum(PLAN_STEP_TOOLS),
+        args: z
+          .record(z.string(), z.unknown())
+          .describe("Exactly the arguments that tool takes on its own."),
+      }),
+    )
+    .min(1)
+    .max(MAX_PLAN_STEPS),
+});
+
+interface PlanPayload {
+  readonly steps: readonly { readonly tool: AiActionTool; readonly payload: unknown }[];
+}
+
+/** A step that failed on the click, carrying the step's own kind so the card says why. */
+class PlanStepFailure extends Error {
+  constructor(
+    readonly kind: ActionKind,
+    override readonly cause: unknown,
+  ) {
+    super(`Plan step ${kind} failed`);
+    this.name = "PlanStepFailure";
+  }
+}
+
 const labPaymentSchema = z.object({
   lab_id: z.uuid(),
   amount: z.number().int().min(1).max(99_999_999),
@@ -376,8 +440,11 @@ interface ActionSpec<TSchema extends z.ZodType, TPayload> {
   readonly kind: ActionKind;
   readonly description: string;
   readonly risk: AiRiskTier;
-  /** The endpoint this borrows its permission from; `capabilityFor` narrows it per call. */
-  readonly capability: string;
+  /**
+   * The endpoint this borrows its permission from; `capabilityFor` narrows it per call. Null only
+   * for a plan, whose every step is checked against its own.
+   */
+  readonly capability: string | null;
   readonly capabilityFor?: (payload: NoInfer<TPayload>) => string;
   readonly schema: TSchema;
   prepare(actor: AuthenticatedUser, args: z.output<TSchema>): Promise<Draft<TPayload> | Stop>;
@@ -391,8 +458,10 @@ interface Action {
   readonly tool: AiActionTool;
   readonly kind: ActionKind;
   readonly risk: AiRiskTier;
-  capabilityFor(payload: unknown): string;
+  readonly schema: z.ZodType;
+  capabilityFor(payload: unknown): string | null;
   escalate(payload: unknown, settings: AiActionsSettings): AiRiskTier;
+  prepare(actor: AuthenticatedUser, args: unknown): Promise<Draft<unknown> | Stop>;
   execute(actor: AuthenticatedUser, payload: unknown): Promise<Executed>;
   asTool(service: AiActionsService): AiTool;
 }
@@ -425,6 +494,7 @@ export class AiActionsService {
     private readonly labs: LabsService,
     private readonly labPaymentsService: LabPaymentsService,
     private readonly labLedger: LabLedgerService,
+    private readonly extraHours: DoctorExtraHoursService,
     private readonly permissions: PermissionsService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
     private readonly audit: AuditService,
@@ -591,8 +661,8 @@ export class AiActionsService {
     }
   }
 
-  async assertAllowed(actor: AuthenticatedUser, capability: string): Promise<void> {
-    if (!(await this.permissions.allows(actor.clinicId, actor.role, capability))) {
+  async assertAllowed(actor: AuthenticatedUser, capability: string | null): Promise<void> {
+    if (capability && !(await this.permissions.allows(actor.clinicId, actor.role, capability))) {
       throw new ForbiddenException();
     }
   }
@@ -672,13 +742,9 @@ export class AiActionsService {
       }
 
       // The matrix may have changed since the draft; the one in force at the click decides.
-      if (
-        !(await this.permissions.allows(
-          actor.clinicId,
-          actor.role,
-          action.capabilityFor(row.payload),
-        ))
-      ) {
+      const capability = action.capabilityFor(row.payload);
+
+      if (capability && !(await this.permissions.allows(actor.clinicId, actor.role, capability))) {
         throw new ActionRefusal(AI_ACTION_ERROR.NOT_PERMITTED, HttpStatus.FORBIDDEN);
       }
 
@@ -1830,6 +1896,128 @@ export class AiActionsService {
         },
       }),
 
+      defineAction<typeof extraHoursSchema, ExtraHoursPayload>({
+        tool: AI_TOOL.ADD_DOCTOR_EXTRA_HOURS,
+        kind: AI_PROPOSAL_KIND.EXTRA_HOURS_CREATE,
+        description:
+          "Record that a doctor works on one date beyond their weekly schedule — covering for a " +
+          "colleague, an extra clinic day — with the hours (HH:MM) and why. Those hours become " +
+          "bookable. For a permanent change use set_doctor_schedule. Waits on a card the user " +
+          "confirms.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.ADD_DOCTOR_EXTRA_HOURS],
+        capability: "doctor-extra-hours.create",
+        schema: extraHoursSchema,
+        prepare: async (actor, args) => {
+          const doctor = await this.doctors.findOne(actor, args.doctor_id);
+
+          await this.access.requireOwnCalendar(actor, doctor.id);
+
+          const input = createDoctorExtraHoursSchema.safeParse({
+            date: args.date,
+            ranges: args.ranges,
+            reason: args.reason,
+          });
+
+          if (!input.success) {
+            return new Stop({
+              status: "invalid_arguments",
+              details: input.error.issues.map(
+                (issue) => `${issue.path.join(".")}: ${issue.message}`,
+              ),
+            });
+          }
+
+          return {
+            payload: {
+              doctorId: doctor.id,
+              date: input.data.date,
+              ranges: input.data.ranges,
+              reason: input.data.reason,
+            },
+            summary: {
+              doctor: { id: doctor.id, name: doctor.user.name },
+              extraHours: { date: input.data.date, ranges: input.data.ranges },
+              reason: input.data.reason,
+            },
+          };
+        },
+        execute: async (actor, payload) => {
+          const created = await this.audited(
+            actor,
+            DOCTOR_EXTRA_HOURS_ENTITY,
+            AUDIT_ACTION.CREATE,
+            undefined,
+            () =>
+              this.extraHours.create(actor, payload.doctorId, {
+                date: payload.date,
+                ranges: [...payload.ranges],
+                reason: payload.reason,
+              }),
+          );
+
+          return {
+            result: null,
+            audit: { entity: DOCTOR_EXTRA_HOURS_ENTITY, entityId: created.id },
+          };
+        },
+      }),
+
+      defineAction<typeof planSchema, PlanPayload>({
+        tool: AI_TOOL.PROPOSE_PLAN,
+        kind: AI_PROPOSAL_KIND.PLAN,
+        description:
+          "Carry out several changes as one plan the user confirms once — the way to do " +
+          "anything that takes more than one change. Each step is any other action tool with " +
+          "exactly the arguments it takes alone, in the order they must happen. The whole plan " +
+          "is rehearsed against the real records first, each step seeing the ones before it, " +
+          "then thrown away: a step that would fail comes back with its index and why — and, " +
+          "for a time that is taken, the free times as they would be after the earlier steps — " +
+          "so you fix the plan and call again. On the card it runs all or nothing.",
+        risk: AI_ACTION_BASE_TIER[AI_TOOL.PROPOSE_PLAN],
+        capability: null,
+        schema: planSchema,
+        prepare: (actor, args) => this.rehearsePlan(actor, args.steps),
+        escalate: (payload, settings) =>
+          maxRiskTier(
+            ...payload.steps.map((step) => {
+              const action = this.actionFor(step.tool);
+
+              return AiActionsService.resolveTier(
+                action.risk,
+                settings.minTier[action.tool],
+                action.escalate(step.payload, settings),
+              );
+            }),
+          ),
+        execute: async (actor, payload) => {
+          const settings = await this.settings(actor.clinicId);
+          let last: Executed | undefined;
+
+          await commitTogether(this.db, async () => {
+            for (const step of payload.steps) {
+              const action = this.actionFor(step.tool);
+
+              try {
+                if (settings.disabled.includes(action.tool)) {
+                  throw new ForbiddenException();
+                }
+
+                await this.assertAllowed(actor, action.capabilityFor(step.payload));
+                last = await action.execute(actor, step.payload);
+              } catch (error) {
+                throw new PlanStepFailure(action.kind, error);
+              }
+            }
+          });
+
+          if (!last) {
+            throw new BadRequestException("An empty plan");
+          }
+
+          return { result: null, audit: last.audit };
+        },
+      }),
+
       defineAction({
         tool: AI_TOOL.CREATE_PATIENT,
         kind: AI_PROPOSAL_KIND.PATIENT_CREATE,
@@ -2172,6 +2360,137 @@ export class AiActionsService {
     }
   }
 
+  private actionFor(tool: AiActionTool): Action {
+    const action = this.list().find((candidate) => candidate.tool === tool);
+
+    if (!action) {
+      throw new NotFoundException("Resource not found");
+    }
+
+    return action;
+  }
+
+  /**
+   * Every step prepared and run through its real service, in order, inside one transaction that
+   * is then rolled back: a later step sees what the earlier ones did, and nothing is kept.
+   */
+  private async rehearsePlan(
+    actor: AuthenticatedUser,
+    steps: z.output<typeof planSchema>["steps"],
+  ): Promise<Draft<PlanPayload> | Stop> {
+    const settings = await this.settings(actor.clinicId);
+
+    return rehearse(this.db, async () => {
+      const planned: { tool: AiActionTool; payload: unknown; summary: AiActionSummary }[] = [];
+
+      for (const [index, step] of steps.entries()) {
+        const action = this.actionFor(step.tool);
+        const at = { step: index, tool: step.tool };
+
+        if (settings.disabled.includes(action.tool)) {
+          return new Stop({ status: "disabled", ...at });
+        }
+
+        const args = action.schema.safeParse(step.args);
+
+        if (!args.success) {
+          return new Stop({
+            status: "invalid_arguments",
+            ...at,
+            details: args.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`),
+          });
+        }
+
+        try {
+          const draft = await action.prepare(actor, args.data);
+
+          if (draft instanceof Stop) {
+            return new Stop({
+              ...draft.forModel,
+              ...at,
+              ...(await this.freeTimesAfter(actor, draft, step.args)),
+            });
+          }
+
+          const capability = action.capabilityFor(draft.payload);
+
+          if (
+            capability &&
+            !(await this.permissions.allows(actor.clinicId, actor.role, capability))
+          ) {
+            return new Stop({ status: "not_permitted", ...at });
+          }
+
+          await action.execute(actor, draft.payload);
+          planned.push({ tool: action.tool, payload: draft.payload, summary: draft.summary });
+        } catch (error) {
+          return new Stop({
+            status: "step_failed",
+            ...at,
+            error: domainFailure(action.kind, error),
+          });
+        }
+      }
+
+      return {
+        payload: { steps: planned.map(({ tool, payload }) => ({ tool, payload })) },
+        summary: {
+          steps: planned.map(({ tool, summary }) => ({
+            kind: this.actionFor(tool).kind,
+            summary: withoutSteps(summary),
+          })),
+        },
+      };
+    });
+  }
+
+  // For a booking step whose time is taken: what the doctor has free that day once the steps
+  // before it have happened — computed inside the same rehearsal, so it counts them.
+  private async freeTimesAfter(
+    actor: AuthenticatedUser,
+    stop: Stop,
+    args: Record<string, unknown>,
+  ): Promise<{ free_after_earlier_steps?: string[] }> {
+    const status = stop.forModel["status"];
+
+    if (
+      (status !== "slot_taken" && status !== "slot_unavailable") ||
+      typeof args["date"] !== "string"
+    ) {
+      return {};
+    }
+
+    const appointment =
+      typeof args["appointment_id"] === "string"
+        ? await this.appointments.findOne(actor, args["appointment_id"])
+        : null;
+    const doctorId =
+      typeof args["doctor_id"] === "string" ? args["doctor_id"] : appointment?.doctorId;
+
+    if (!doctorId) {
+      return {};
+    }
+
+    const day = await this.availability.forDay(actor.clinicId, {
+      doctorId,
+      date: args["date"],
+      ...(appointment && {
+        durationMinutes: appointment.durationMinutes,
+        excludeAppointmentId: appointment.id,
+      }),
+    });
+    const wanted = typeof args["time"] === "string" ? minutes(args["time"]) : 0;
+
+    return {
+      free_after_earlier_steps: day.slots
+        .filter((slot) => slot.available)
+        .sort((a, b) => Math.abs(minutes(a.start) - wanted) - Math.abs(minutes(b.start) - wanted))
+        .slice(0, 8)
+        .map((slot) => slot.start)
+        .sort(),
+    };
+  }
+
   /** Booked appointments from now on, on the changed weekdays, that no longer fit the hours. */
   private async outsideHours(
     actor: AuthenticatedUser,
@@ -2318,7 +2637,9 @@ function defineAction<TSchema extends z.ZodType, TPayload>(
     tool: spec.tool,
     kind: spec.kind,
     risk: spec.risk,
+    schema: spec.schema,
     capabilityFor: (payload) => spec.capabilityFor?.(payload as TPayload) ?? spec.capability,
+    prepare: (actor, args) => spec.prepare(actor, args as z.output<TSchema>),
     escalate: (payload, settings) =>
       spec.escalate?.(payload as TPayload, settings) ?? AI_RISK_TIER.AUTO,
     execute: (actor, payload) => spec.execute(actor, payload as TPayload),
@@ -2365,6 +2686,10 @@ const SCHEDULE_KINDS: readonly ActionKind[] = [
 ];
 
 function domainFailure(kind: ActionKind, error: unknown): AiActionError {
+  if (error instanceof PlanStepFailure) {
+    return domainFailure(error.kind, error.cause);
+  }
+
   if (error instanceof ConflictException) {
     if (SCHEDULE_KINDS.includes(kind)) {
       return AI_ACTION_ERROR.SCHEDULE_CONFLICT;
@@ -2471,6 +2796,9 @@ function irreversible(
     ? null
     : new Stop({ status: "not_possible", reason: "already_reversed" });
 }
+
+const withoutSteps = ({ steps: _steps, ...summary }: AiActionSummary): AiActionStepSummary =>
+  summary;
 
 const rangesOn = (schedule: readonly DaySchedule[], weekday: number): TimeRange[] =>
   schedule.find((day) => day.weekday === weekday)?.ranges ?? [];

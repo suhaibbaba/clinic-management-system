@@ -170,7 +170,7 @@ export type AiProposalRecipient = z.infer<typeof aiProposalRecipientSchema>;
  * What an action card shows, resolved on the server when the action was drafted: names and file
  * numbers for the ids the action carries. Ids, not names, are what runs.
  */
-export const aiActionSummarySchema = z.object({
+const actionSummaryFields = z.object({
   patient: z.object({ id: uuidSchema, fullName: z.string(), fileNumber: z.string() }).optional(),
   doctor: z.object({ id: uuidSchema, name: personNameSchema }).optional(),
   /** A patient the action registers, as the user gave it — the card is where they check it. */
@@ -225,6 +225,8 @@ export const aiActionSummarySchema = z.object({
     .optional(),
   /** The listed appointments stay booked outside the new hours. */
   outsideHours: z.boolean().optional(),
+  /** Hours a doctor works on one date beyond the weekly schedule. */
+  extraHours: z.object({ date: z.iso.date(), ranges: z.array(timeRangeSchema) }).optional(),
   appointments: z
     .array(
       z.object({
@@ -237,7 +239,14 @@ export const aiActionSummarySchema = z.object({
     )
     .optional(),
 });
+/** A plan's card lists each step's own summary, in the order the steps run. */
+export const aiActionSummarySchema = actionSummaryFields.extend({
+  steps: z
+    .array(z.object({ kind: z.enum(AI_PROPOSAL_KINDS), summary: actionSummaryFields }))
+    .optional(),
+});
 export type AiActionSummary = z.infer<typeof aiActionSummarySchema>;
+export type AiActionStepSummary = z.infer<typeof actionSummaryFields>;
 
 export const AI_ACTION_ENTITIES = ["appointment", "patient", "payment"] as const;
 

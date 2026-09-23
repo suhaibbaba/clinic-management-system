@@ -22,6 +22,7 @@ import {
   appointments,
   clinicClosures,
   clinics,
+  doctorExtraHours,
   doctors,
   doctorTimeOff,
 } from "@api/database/schema";
@@ -114,15 +115,16 @@ export class AvailabilityService {
     const timeZone = settings.timezone || DEFAULT_TIME_ZONE;
     const weekday = localWeekday(query.date, timeZone);
 
-    const [closure, absences] = await Promise.all([
+    const [closure, absences, extra] = await Promise.all([
       this.closureOn(clinicId, query.date),
       this.timeOffOn(clinicId, query.doctorId, query.date, timeZone),
+      this.extraHoursOn(clinicId, query.doctorId, query.date),
     ]);
 
     return {
       timeZone,
       clinicRanges: rangesFor(clinic.workingHours, weekday),
-      doctorRanges: rangesFor(doctor.weeklySchedule, weekday),
+      doctorRanges: mergeRanges([...rangesFor(doctor.weeklySchedule, weekday), ...extra]),
       closure,
       timeOff: absences.map((row) => ({
         startMinute: minutesFromLocalMidnight(row.startsAt, query.date, timeZone),
@@ -159,6 +161,22 @@ export class AvailabilityService {
       .limit(1);
 
     return row ? toClinicClosure(row) : null;
+  }
+
+  /** Hours worked on this one date beyond the weekly schedule, added to that day's hours. */
+  async extraHoursOn(clinicId: string, doctorId: string, isoDate: string): Promise<TimeRange[]> {
+    const rows = await this.db
+      .select({ ranges: doctorExtraHours.ranges })
+      .from(doctorExtraHours)
+      .where(
+        this.scope.where(
+          doctorExtraHours,
+          clinicId,
+          and(eq(doctorExtraHours.doctorId, doctorId), eq(doctorExtraHours.date, isoDate)),
+        ),
+      );
+
+    return rows.flatMap((row) => row.ranges);
   }
 
   async timeOffOn(
@@ -275,4 +293,25 @@ export function toDoctorTimeOff(row: typeof doctorTimeOff.$inferSelect): DoctorT
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
+}
+
+/** Overlapping or touching ranges become one, so an extra shift beside the usual one is one span. */
+function mergeRanges(ranges: readonly TimeRange[]): TimeRange[] {
+  const sorted = [...ranges].sort((a, b) => a.start.localeCompare(b.start));
+  const merged: TimeRange[] = [];
+
+  for (const range of sorted) {
+    const last = merged.at(-1);
+
+    if (last && range.start <= last.end) {
+      merged[merged.length - 1] = {
+        start: last.start,
+        end: range.end > last.end ? range.end : last.end,
+      };
+    } else {
+      merged.push({ ...range });
+    }
+  }
+
+  return merged;
 }

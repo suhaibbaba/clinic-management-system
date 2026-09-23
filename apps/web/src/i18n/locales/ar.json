@@ -1700,7 +1700,10 @@
       "labPayment": "عم بجهّز دفعة المختبر",
       "reverseLabPayment": "عم بجهّز عكس دفعة المختبر",
       "stockMovements": "عم بشوف حركات المادة",
-      "reverseStockMovement": "عم بجهّز عكس الحركة"
+      "reverseStockMovement": "عم بجهّز عكس الحركة",
+      "findSlots": "عم بدوّر على أوقات فاضية",
+      "extraHours": "عم بجهّز الدوام الإضافي",
+      "plan": "عم بجرّب الخطة على السجلات"
     },
     "errors": {
       "rateLimited": "أسئلة كتير بوقت قصير. جرّب بعد شوي.",
@@ -1769,7 +1772,9 @@
         "payment_reverse": "عكس دفعة مريض",
         "lab_payment_create": "دفعة لمختبر",
         "lab_payment_reverse": "عكس دفعة مختبر",
-        "stock_reverse": "عكس حركة مخزون"
+        "stock_reverse": "عكس حركة مخزون",
+        "extra_hours_create": "دوام إضافي لطبيب",
+        "plan": "الخطة"
       },
       "tiers": {
         "auto": "تلقائي",
@@ -1814,7 +1819,8 @@
         "lab": "المختبر",
         "recordedAt": "تاريخ التسجيل",
         "dayOff": "عطلة",
-        "outsideHours": "رح تضل هالمواعيد محجوزة برّا الدوام الجديد"
+        "outsideHours": "رح تضل هالمواعيد محجوزة برّا الدوام الجديد",
+        "extraHours": "الدوام الإضافي"
       },
       "typeToConfirm": "اكتب \"{{phrase}}\" للتأكيد",
       "confirm": "تأكيد",
@@ -1839,13 +1845,17 @@
         "payment_reverse": "انعكست الدفعة.",
         "lab_payment_create": "انسجّلت دفعة المختبر.",
         "lab_payment_reverse": "انعكست دفعة المختبر.",
-        "stock_reverse": "انعكست الحركة."
+        "stock_reverse": "انعكست الحركة.",
+        "extra_hours_create": "انسجّل الدوام الإضافي.",
+        "plan": "تمّت كل خطوات الخطة."
       },
       "redraft": "جهّز الطلب من جديد",
       "onConflict": {
         "cancel_appointments": "رح تنلغي ويوصل المرضى إشعار",
         "keep_appointments": "بتضل محجوزة"
-      }
+      },
+      "planRolledBack": "ما تغيّر أي شي — الخطة بتنفّذ كاملة أو ما بتنفّذ.",
+      "step": "الخطوة {{number}}"
     },
     "actionErrors": {
       "phraseMismatch": "العبارة المكتوبة مش مطابقة.",
@@ -2012,7 +2022,9 @@
         "reverse_payment": "عكس دفعة مريض",
         "record_lab_payment": "دفعة لمختبر",
         "reverse_lab_payment": "عكس دفعة مختبر",
-        "reverse_stock_movement": "عكس حركة مخزون"
+        "reverse_stock_movement": "عكس حركة مخزون",
+        "add_doctor_extra_hours": "دوام إضافي لطبيب",
+        "propose_plan": "خطة من عدة خطوات"
       },
       "paymentTypedAbove": "تأكيد بالكتابة للدفعات من مبلغ",
       "paymentTypedAboveHint": "أي دفعة بهالمبلغ أو أكتر بتحتاج كتابة عبارة التأكيد.",

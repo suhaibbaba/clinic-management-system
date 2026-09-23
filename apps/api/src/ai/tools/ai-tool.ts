@@ -167,3 +167,41 @@ export const maskPhone = (phone: string): string => {
 
   return digits.length <= 4 ? "****" : `****${digits.slice(-4)}`;
 };
+
+const INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?Z$/;
+
+// The model reads the clinic's wall clock, never UTC: handed `07:00Z` it booked 07:00 for a patient
+// due at 10:00. Every instant in a result becomes `YYYY-MM-DD HH:MM` in the clinic's own zone.
+export function localizeInstants(value: unknown, timeZone: string): unknown {
+  if (typeof value === "string") {
+    return INSTANT.test(value) ? localClock(new Date(value), timeZone) : value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => localizeInstants(item, timeZone));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, localizeInstants(item, timeZone)]),
+    );
+  }
+
+  return value;
+}
+
+function localClock(instant: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(instant);
+  const read = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((part) => part.type === type)?.value ?? "";
+
+  return `${read("year")}-${read("month")}-${read("day")} ${read("hour")}:${read("minute")}`;
+}

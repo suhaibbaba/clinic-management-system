@@ -128,7 +128,7 @@ export const envSchema = z.object({
   AI_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(64).max(4_096).default(800),
   AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).default(30_000),
   /** How many past messages the model is shown. Older ones are dropped, never sent. */
-  AI_HISTORY_MESSAGES: z.coerce.number().int().min(2).max(100).default(20),
+  AI_HISTORY_MESSAGES: z.coerce.number().int().min(2).max(100).default(60),
   /** How many tool rounds one question may take before the loop gives up. */
   AI_MAX_TOOL_STEPS: z.coerce.number().int().min(1).max(10).default(5),
   AI_RATE_LIMIT_PER_HOUR: z.coerce.number().int().min(1).max(1_000).default(30),

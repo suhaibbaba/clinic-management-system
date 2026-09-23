@@ -1684,7 +1684,10 @@
       "labPayment": "Preparing the lab payment",
       "reverseLabPayment": "Preparing the reversal",
       "stockMovements": "Checking the item's movements",
-      "reverseStockMovement": "Preparing the reversal"
+      "reverseStockMovement": "Preparing the reversal",
+      "findSlots": "Looking for free times",
+      "extraHours": "Preparing the extra hours",
+      "plan": "Rehearsing the plan against the records"
     },
     "errors": {
       "rateLimited": "Too many questions too quickly. Try again shortly.",
@@ -1749,7 +1752,9 @@
         "payment_reverse": "Reverse a patient payment",
         "lab_payment_create": "Pay a lab",
         "lab_payment_reverse": "Reverse a lab payment",
-        "stock_reverse": "Reverse a stock movement"
+        "stock_reverse": "Reverse a stock movement",
+        "extra_hours_create": "Doctor extra hours",
+        "plan": "Plan"
       },
       "tiers": {
         "auto": "Automatic",
@@ -1790,7 +1795,8 @@
         "lab": "Lab",
         "recordedAt": "Recorded",
         "dayOff": "Day off",
-        "outsideHours": "These appointments stay booked outside the new hours"
+        "outsideHours": "These appointments stay booked outside the new hours",
+        "extraHours": "Extra hours"
       },
       "typeToConfirm": "Type \"{{phrase}}\" to confirm",
       "confirm": "Confirm",
@@ -1815,13 +1821,17 @@
         "payment_reverse": "The payment was reversed.",
         "lab_payment_create": "The lab payment was recorded.",
         "lab_payment_reverse": "The lab payment was reversed.",
-        "stock_reverse": "The movement was reversed."
+        "stock_reverse": "The movement was reversed.",
+        "extra_hours_create": "The extra hours were recorded.",
+        "plan": "Every step of the plan is done."
       },
       "redraft": "Prepare the request again",
       "onConflict": {
         "cancel_appointments": "Will be cancelled, and each patient notified",
         "keep_appointments": "Stay booked"
-      }
+      },
+      "planRolledBack": "Nothing was changed — a plan runs whole or not at all.",
+      "step": "Step {{number}}"
     },
     "actionErrors": {
       "phraseMismatch": "The typed phrase does not match.",
@@ -1988,7 +1998,9 @@
         "reverse_payment": "Reverse a patient payment",
         "record_lab_payment": "Pay a lab",
         "reverse_lab_payment": "Reverse a lab payment",
-        "reverse_stock_movement": "Reverse a stock movement"
+        "reverse_stock_movement": "Reverse a stock movement",
+        "add_doctor_extra_hours": "Doctor extra hours",
+        "propose_plan": "A plan of several steps"
       },
       "paymentTypedAbove": "Typed confirmation for payments from",
       "paymentTypedAboveHint": "A payment of this amount or more needs the confirmation phrase typed.",

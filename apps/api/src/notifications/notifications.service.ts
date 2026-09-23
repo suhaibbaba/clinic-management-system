@@ -14,6 +14,7 @@ import { and, eq } from "drizzle-orm";
 import type { Env } from "@api/config/env.schema";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, notificationsLog } from "@api/database/schema";
+import { afterCommit, inRehearsal } from "@api/database/unit-of-work";
 import {
   NOTIFICATION_PROVIDER,
   WhatsAppNotificationProvider,
@@ -57,7 +58,8 @@ export class NotificationsService {
   async send(input: SendNotification): Promise<SendResult | null> {
     const settings = await this.settingsFor(input.clinicId);
 
-    if (!settings.enabled) {
+    // An assistant's plan being rehearsed sends nothing: it is about to be thrown away.
+    if (!settings.enabled || inRehearsal()) {
       return null;
     }
 
@@ -81,15 +83,31 @@ export class NotificationsService {
       throw new Error("Failed to record the notification");
     }
 
+    let result: SendResult = { id: row.id, status: NOTIFICATION_STATUS.QUEUED, body };
+
+    // Inside a plan the patient hears once it commits; a plan that fails sends nothing.
+    await afterCommit(async () => {
+      result = await this.dispatch(row.id, input, channel, body);
+    });
+
+    return result;
+  }
+
+  private async dispatch(
+    id: string,
+    input: SendNotification,
+    channel: NotificationChannel,
+    body: string,
+  ): Promise<SendResult> {
     try {
       await this.deliver(input.clinicId, { to: input.to, channel, body });
 
       await this.db
         .update(notificationsLog)
         .set({ status: NOTIFICATION_STATUS.SENT })
-        .where(eq(notificationsLog.id, row.id));
+        .where(eq(notificationsLog.id, id));
 
-      return { id: row.id, status: NOTIFICATION_STATUS.SENT, body };
+      return { id, status: NOTIFICATION_STATUS.SENT, body };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
 
@@ -98,9 +116,9 @@ export class NotificationsService {
       await this.db
         .update(notificationsLog)
         .set({ status: NOTIFICATION_STATUS.FAILED, error: message.slice(0, 500) })
-        .where(eq(notificationsLog.id, row.id));
+        .where(eq(notificationsLog.id, id));
 
-      return { id: row.id, status: NOTIFICATION_STATUS.FAILED, body };
+      return { id, status: NOTIFICATION_STATUS.FAILED, body };
     }
   }
 

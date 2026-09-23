@@ -524,6 +524,9 @@ export const AI_TOOL = {
   REVERSE_LAB_PAYMENT: "reverse_lab_payment",
   GET_STOCK_MOVEMENTS: "get_stock_movements",
   REVERSE_STOCK_MOVEMENT: "reverse_stock_movement",
+  FIND_AVAILABLE_SLOTS: "find_available_slots",
+  ADD_DOCTOR_EXTRA_HOURS: "add_doctor_extra_hours",
+  PROPOSE_PLAN: "propose_plan",
 } as const satisfies Record<string, string>;
 export type AiToolName = EnumValue<typeof AI_TOOL>;
 
@@ -562,6 +565,9 @@ export const AI_TOOL_NAMES = [
   AI_TOOL.REVERSE_LAB_PAYMENT,
   AI_TOOL.GET_STOCK_MOVEMENTS,
   AI_TOOL.REVERSE_STOCK_MOVEMENT,
+  AI_TOOL.FIND_AVAILABLE_SLOTS,
+  AI_TOOL.ADD_DOCTOR_EXTRA_HOURS,
+  AI_TOOL.PROPOSE_PLAN,
 ] as const;
 
 /** The tools that change something. Each one a clinic may switch off or tighten. */
@@ -584,6 +590,8 @@ export const AI_ACTION_TOOLS = [
   AI_TOOL.RECORD_LAB_PAYMENT,
   AI_TOOL.REVERSE_LAB_PAYMENT,
   AI_TOOL.REVERSE_STOCK_MOVEMENT,
+  AI_TOOL.ADD_DOCTOR_EXTRA_HOURS,
+  AI_TOOL.PROPOSE_PLAN,
 ] as const;
 export type AiActionTool = (typeof AI_ACTION_TOOLS)[number];
 
@@ -626,6 +634,9 @@ export const AI_ACTION_BASE_TIER: Record<AiActionTool, AiRiskTier> = {
   [AI_TOOL.RECORD_STOCK_MOVEMENT]: AI_RISK_TIER.CONFIRM,
   [AI_TOOL.SET_DOCTOR_SCHEDULE]: AI_RISK_TIER.CONFIRM,
   [AI_TOOL.RECORD_LAB_PAYMENT]: AI_RISK_TIER.CONFIRM,
+  [AI_TOOL.ADD_DOCTOR_EXTRA_HOURS]: AI_RISK_TIER.CONFIRM,
+  // Several changes at once never run without somebody reading them.
+  [AI_TOOL.PROPOSE_PLAN]: AI_RISK_TIER.CONFIRM,
   // A reversal makes money or stock appear to come back, and only an admin may: always typed.
   [AI_TOOL.REVERSE_PAYMENT]: AI_RISK_TIER.TYPED,
   [AI_TOOL.REVERSE_LAB_PAYMENT]: AI_RISK_TIER.TYPED,
@@ -653,6 +664,8 @@ export const AI_PROPOSAL_KIND = {
   LAB_PAYMENT_CREATE: "lab_payment_create",
   LAB_PAYMENT_REVERSE: "lab_payment_reverse",
   STOCK_REVERSE: "stock_reverse",
+  EXTRA_HOURS_CREATE: "extra_hours_create",
+  PLAN: "plan",
 } as const satisfies Record<string, string>;
 export type AiProposalKind = EnumValue<typeof AI_PROPOSAL_KIND>;
 
@@ -676,6 +689,8 @@ export const AI_PROPOSAL_KINDS = [
   AI_PROPOSAL_KIND.LAB_PAYMENT_CREATE,
   AI_PROPOSAL_KIND.LAB_PAYMENT_REVERSE,
   AI_PROPOSAL_KIND.STOCK_REVERSE,
+  AI_PROPOSAL_KIND.EXTRA_HOURS_CREATE,
+  AI_PROPOSAL_KIND.PLAN,
 ] as const;
 
 // Not errors: the model relays each one as a question and does not retry around it. Only a

@@ -68,6 +68,9 @@ const TOOL_KEYS: Record<AiToolName, string> = {
   [AI_TOOL.REVERSE_LAB_PAYMENT]: "assistant.tools.reverseLabPayment",
   [AI_TOOL.GET_STOCK_MOVEMENTS]: "assistant.tools.stockMovements",
   [AI_TOOL.REVERSE_STOCK_MOVEMENT]: "assistant.tools.reverseStockMovement",
+  [AI_TOOL.FIND_AVAILABLE_SLOTS]: "assistant.tools.findSlots",
+  [AI_TOOL.ADD_DOCTOR_EXTRA_HOURS]: "assistant.tools.extraHours",
+  [AI_TOOL.PROPOSE_PLAN]: "assistant.tools.plan",
 };
 
 const ACTION_ERROR_KEYS: Record<AiActionError, string> = {

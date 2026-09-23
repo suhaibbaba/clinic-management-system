@@ -19,6 +19,7 @@ import {
 import { and, eq, inArray, isNull, max } from "drizzle-orm";
 import { z } from "zod";
 import { AppointmentsService } from "@api/appointments/appointments.service";
+import { AvailabilityService } from "@api/appointments/availability.service";
 import { LedgerService } from "@api/billing/ledger.service";
 import { OverdueService } from "@api/billing/overdue.service";
 import { PaymentsService } from "@api/billing/payments.service";
@@ -83,6 +84,9 @@ const DRAFT_TARGETS = [
 
 const dateSchema = z.iso.date();
 
+/** Enough to choose from; the rest is a count rather than a wall of times. */
+const SLOTS_PER_DAY = 40;
+
 const PERIOD = ["today", "this_week", "this_month", "last_month"] as const;
 type Period = (typeof PERIOD)[number];
 
@@ -93,6 +97,7 @@ export class AiToolsService {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     private readonly appointments: AppointmentsService,
+    private readonly availability: AvailabilityService,
     private readonly doctors: DoctorsService,
     private readonly patients: PatientsService,
     private readonly timeline: TimelineService,
@@ -190,6 +195,49 @@ export class AiToolsService {
             })),
             page.total,
           );
+        },
+      }),
+
+      defineTool({
+        name: AI_TOOL.FIND_AVAILABLE_SLOTS,
+        description:
+          "The start times a doctor can still take an appointment of a given length, day by day " +
+          "from date for up to 7 days, as the booking screen computes them. A day with none says " +
+          "why (the doctor's day off, time off, the clinic closed). Use it to suggest times, to " +
+          "find where each of several appointments can move, and before proposing any new time.",
+        capability: null,
+        schema: z.object({
+          doctor_id: z.uuid(),
+          date: dateSchema,
+          days: z.number().int().min(1).max(7).optional(),
+          duration_minutes: z.number().int().min(5).max(480).optional(),
+        }),
+        run: async (actor, args) => {
+          await this.doctors.findOne(actor, args.doctor_id);
+
+          const days = [];
+
+          for (let offset = 0; offset < (args.days ?? 1); offset += 1) {
+            const date = addDays(args.date, offset);
+            const day = await this.availability.forDay(actor.clinicId, {
+              doctorId: args.doctor_id,
+              date,
+              ...(args.duration_minutes !== undefined && {
+                durationMinutes: args.duration_minutes,
+              }),
+            });
+            const free = day.slots.filter((slot) => slot.available).map((slot) => slot.start);
+
+            days.push({
+              date,
+              durationMinutes: day.durationMinutes,
+              free: free.slice(0, SLOTS_PER_DAY),
+              ...(free.length > SLOTS_PER_DAY && { moreFree: free.length - SLOTS_PER_DAY }),
+              ...(free.length === 0 && { closedReason: day.closedReason ?? "fully_booked" }),
+            });
+          }
+
+          return { doctorId: args.doctor_id, days };
         },
       }),
 

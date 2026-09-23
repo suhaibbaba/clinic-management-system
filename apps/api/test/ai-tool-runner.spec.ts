@@ -40,6 +40,10 @@ function harness(
         return Promise.resolve();
       },
     }),
+    // The clinic's time zone, read to localise results: none stored, so the default.
+    select: () => ({
+      from: () => ({ where: () => ({ limit: () => Promise.resolve([]) }) }),
+    }),
   } as unknown as Database;
 
   const permissions = {

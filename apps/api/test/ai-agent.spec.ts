@@ -442,6 +442,8 @@ describe("the system prompt", () => {
   const base = {
     clinicName: { ar: "عيادة النور", en: "Al Noor Clinic" },
     today: "2026-09-22",
+    now: "23:57",
+    weekday: "Tuesday",
   } as const;
 
   it("reads for a doctor", () => {
@@ -454,7 +456,7 @@ describe("the system prompt", () => {
         }),
       ),
     ).toMatchInlineSnapshot(`
-      "The clinic is عيادة النور (Al Noor Clinic). Today is 2026-09-22 in its own time zone.
+      "The clinic is عيادة النور (Al Noor Clinic). In its own time zone it is now Tuesday 2026-09-22, 23:57.
       You are speaking to سارة (Sara), whose role is "doctor".
       They are the doctor "سارة (Sara)" (doctor_id 66666666-6666-4666-8666-666666666666)."
     `);
@@ -470,7 +472,7 @@ describe("the system prompt", () => {
         }),
       ),
     ).toMatchInlineSnapshot(`
-      "The clinic is عيادة النور (Al Noor Clinic). Today is 2026-09-22 in its own time zone.
+      "The clinic is عيادة النور (Al Noor Clinic). In its own time zone it is now Tuesday 2026-09-22, 23:57.
       You are speaking to منى (Mona), whose role is "admin".
       They are not a doctor: they have no appointments, patients or schedule of their own."
     `);

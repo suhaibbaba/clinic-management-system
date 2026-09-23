@@ -1,9 +1,11 @@
 import {
+  AI_PROPOSAL_KIND,
   AI_PROPOSAL_STATUS,
   AI_RISK_TIER,
   LOOKUP_LIST,
   localDate,
   type AiActionResult,
+  type AiActionStepSummary,
   type AiActionSummary,
   type AiProposal,
   type AiProposalStatus,
@@ -178,6 +180,7 @@ export function ActionCard({ id, initial, onRedraft }: ActionCardProps): JSX.Ele
           <div className="flex flex-wrap items-center gap-2">
             <p role="alert" data-part="action-failure" className="text-label text-danger-600">
               {t(actionErrorKey(data.error ?? "action_failed"))}
+              {data.kind === AI_PROPOSAL_KIND.PLAN && ` ${t("assistant.action.planRolledBack")}`}
             </p>
             {onRedraft && (
               <Button
@@ -212,6 +215,33 @@ export function ActionCard({ id, initial, onRedraft }: ActionCardProps): JSX.Ele
 }
 
 function ActionSummaryList({ summary }: { summary: AiActionSummary }): JSX.Element {
+  return summary.steps ? <PlanSteps steps={summary.steps} /> : <StepSummary summary={summary} />;
+}
+
+// Each step drawn the way its own card would draw it, numbered in the order they run.
+function PlanSteps({ steps }: { steps: NonNullable<AiActionSummary["steps"]> }): JSX.Element {
+  const { t } = useTranslation();
+
+  return (
+    <ol data-part="action-steps" className="mt-3 flex flex-col gap-3">
+      {steps.map((step, index) => (
+        <li
+          key={index}
+          data-testid={`action-step-${index}`}
+          className="rounded-field border border-line p-3"
+        >
+          <p className="text-label font-semibold text-ink">
+            {t("assistant.action.step", { number: index + 1 })}
+            <span className="text-ink-muted"> · {t(`assistant.action.kinds.${step.kind}`)}</span>
+          </p>
+          <StepSummary summary={step.summary} />
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function StepSummary({ summary }: { summary: AiActionStepSummary }): JSX.Element {
   const { t } = useTranslation();
   const currency = useCurrency();
   const methodLabel = useLookupLabels(LOOKUP_LIST.PAYMENT_METHOD);
@@ -340,6 +370,14 @@ function ActionSummaryList({ summary }: { summary: AiActionSummary }): JSX.Eleme
           </span>
         </Row>
       ))}
+      {summary.extraHours && (
+        <Row label={t("assistant.action.fields.extraHours")}>
+          <span data-part="action-extra-hours">
+            <span dir="ltr">{formatDate(summary.extraHours.date)}</span>{" "}
+            <Hours ranges={summary.extraHours.ranges} />
+          </span>
+        </Row>
+      )}
       {summary.recordedAt && (
         <Row label={t("assistant.action.fields.recordedAt")}>
           <span dir="ltr">{when(summary.recordedAt)}</span>

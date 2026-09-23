@@ -213,6 +213,7 @@ export class AgentService {
       // A doctor's name is their user's name; the row only says that they are one.
       doctor: doctor ? { id: doctor.id, name } : null,
       today: localDate(new Date(), timeZone),
+      ...clock(timeZone),
     };
   }
 }
@@ -220,4 +221,18 @@ export class AgentService {
 function add(total: { inputTokens: number; outputTokens: number }, usage: ChatUsage): void {
   total.inputTokens += usage.inputTokens;
   total.outputTokens += usage.outputTokens;
+}
+
+function clock(timeZone: string): { now: string; weekday: string } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
+  const read = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((part) => part.type === type)?.value ?? "";
+
+  return { now: `${read("hour")}:${read("minute")}`, weekday: read("weekday") };
 }
