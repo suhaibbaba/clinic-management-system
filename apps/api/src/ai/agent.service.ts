@@ -4,6 +4,8 @@ import {
   AI_ERROR_CODE,
   AI_MESSAGE_ROLE,
   AI_STREAM_EVENT,
+  AI_TOOL,
+  AI_TOOL_ERROR,
   clinicScheduleSettings,
   DEFAULT_TIME_ZONE,
   localDate,
@@ -21,7 +23,9 @@ import {
 import { ChatProviderResolver } from "@api/ai/chat-provider.resolver";
 import { AiConversationsService } from "@api/ai/ai-conversations.service";
 import { SYSTEM_PROMPT_VERSION, systemPrompt, type SystemPromptInput } from "@api/ai/system-prompt";
+import { TOOL_GROUP_NAMES } from "@api/ai/tools/tool-groups";
 import { isAiToolName, ToolRunnerService } from "@api/ai/tools/tool-runner.service";
+import { z } from "zod";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, doctors, users } from "@api/database/schema";
@@ -85,12 +89,15 @@ export class AgentService {
 
     const provider = await this.providers.for(actor.clinicId);
     const steps = this.config.get("AI_MAX_TOOL_STEPS", { infer: true });
+    // Per turn, preloaded from the conversation: a follow-up does not pay the load step again.
+    const loaded = new Set(await this.conversations.loadedGroups(conversationId));
+    let loads = 0;
 
     for (let step = 0; step < steps; step += 1) {
       let completed: { text: string; toolCalls: readonly ChatToolCall[] } | undefined;
 
       try {
-        const stream = provider.stream({ messages, tools: this.tools.definitions() });
+        const stream = provider.stream({ messages, tools: this.tools.definitions(loaded) });
 
         for await (const chunk of stream) {
           if (chunk.type === "delta") {
@@ -131,12 +138,30 @@ export class AgentService {
 
       messages.push({ role: "assistant", content: answer.text, toolCalls: [...answer.toolCalls] });
 
+      // Loading tools is bookkeeping, not work: a step that only loaded does not count, up to a few.
+      if (answer.toolCalls.every((call) => call.name === AI_TOOL.LOAD_TOOLS) && loads < MAX_LOADS) {
+        loads += 1;
+        step -= 1;
+      }
+
       for (const call of answer.toolCalls) {
+        if (call.name === AI_TOOL.LOAD_TOOLS) {
+          const content = await this.loadTools(conversationId, call.arguments, loaded);
+
+          messages.push({ role: "tool", toolCallId: call.id, content });
+          await this.conversations.append(actor, conversationId, {
+            role: AI_MESSAGE_ROLE.TOOL,
+            content,
+            toolName: AI_TOOL.LOAD_TOOLS,
+          });
+          continue;
+        }
+
         if (isAiToolName(call.name)) {
           yield { type: AI_STREAM_EVENT.TOOL, tool: call.name };
         }
 
-        const run = await this.tools.run(actor, conversationId, call);
+        const run = await this.tools.run(actor, conversationId, call, loaded);
 
         messages.push({ role: "tool", toolCallId: call.id, content: run.content });
         await this.conversations.append(actor, conversationId, {
@@ -160,6 +185,32 @@ export class AgentService {
     // The model kept asking for tools and never answered. Better a said-so than a silent stop.
     await this.record(actor, conversationId, "", spent);
     yield { type: AI_STREAM_EVENT.ERROR, code: AI_ERROR_CODE.STEP_LIMIT };
+  }
+
+  // The schemas reach the model through the next request's `tools`; the result only names them.
+  private async loadTools(
+    conversationId: string,
+    raw: string,
+    loaded: Set<string>,
+  ): Promise<string> {
+    const parsed = loadToolsSchema.safeParse(parseJson(raw));
+
+    if (!parsed.success) {
+      return JSON.stringify({
+        tool: AI_TOOL.LOAD_TOOLS,
+        error: AI_TOOL_ERROR.INVALID_ARGUMENTS,
+        details: [`groups: one or more of ${TOOL_GROUP_NAMES.join(", ")}`],
+      });
+    }
+
+    for (const group of await this.conversations.loadGroups(conversationId, parsed.data.groups)) {
+      loaded.add(group);
+    }
+
+    return JSON.stringify({
+      tool: AI_TOOL.LOAD_TOOLS,
+      result: { loaded: this.tools.toolsIn(parsed.data.groups) },
+    });
   }
 
   // Recorded even for a turn that failed: the tokens were spent, and the clinic's daily budget is
@@ -235,4 +286,17 @@ function clock(timeZone: string): { now: string; weekday: string } {
     parts.find((part) => part.type === type)?.value ?? "";
 
   return { now: `${read("hour")}:${read("minute")}`, weekday: read("weekday") };
+}
+
+/** How many steps that only loaded tools are free in one turn. */
+const MAX_LOADS = 3;
+
+const loadToolsSchema = z.object({ groups: z.array(z.enum(TOOL_GROUP_NAMES)).min(1) });
+
+function parseJson(raw: string): unknown {
+  try {
+    return JSON.parse(raw || "{}");
+  } catch {
+    return {};
+  }
 }

@@ -71,6 +71,8 @@ const TOOL_KEYS: Record<AiToolName, string> = {
   [AI_TOOL.FIND_AVAILABLE_SLOTS]: "assistant.tools.findSlots",
   [AI_TOOL.ADD_DOCTOR_EXTRA_HOURS]: "assistant.tools.extraHours",
   [AI_TOOL.PROPOSE_PLAN]: "assistant.tools.plan",
+  [AI_TOOL.QUERY_DATA]: "assistant.tools.queryData",
+  [AI_TOOL.LOAD_TOOLS]: "assistant.tools.loadTools",
 };
 
 const ACTION_ERROR_KEYS: Record<AiActionError, string> = {

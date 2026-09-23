@@ -1,8 +1,9 @@
 import type { PersonName, UserRole } from "@clinic/shared";
 import { viewCatalogue } from "@api/ai/query/catalogue";
+import { groupCatalogue } from "@api/ai/tools/tool-groups";
 
 /** Bumped whenever the wording below changes, so a stored conversation says what it was answered under. */
-export const SYSTEM_PROMPT_VERSION = 10;
+export const SYSTEM_PROMPT_VERSION = 11;
 
 export interface PromptDoctor {
   readonly id: string;
@@ -50,6 +51,13 @@ const RULES = [
   "   how, and call again. A taken time: use the free times the result gives you",
   "   (free_after_earlier_steps, or find_available_slots) and pick the closest to the original.",
   "   Say in your answer which times you changed. Ask only when no reasonable choice exists.",
+  "",
+  "## Tools",
+  "You start with a core set: search_patients, get_appointments, find_doctors,",
+  "get_patient_summary, query_data, draft_bulk_message, propose_plan and load_tools. Everything",
+  "else is in a group; call load_tools with every group the request needs, once, before using",
+  "them — they stay loaded for the rest of the conversation. The groups:",
+  ...groupCatalogue().split("\n"),
   "",
   "## Choosing instead of asking",
   "Use these defaults and say what you chose; the card is where the user corrects you.",

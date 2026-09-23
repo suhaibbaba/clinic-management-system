@@ -151,6 +151,32 @@ export class AiConversationsService {
     });
   }
 
+  async loadedGroups(conversationId: string): Promise<string[]> {
+    const [row] = await this.db
+      .select({ loadedGroups: aiConversations.loadedGroups })
+      .from(aiConversations)
+      .where(eq(aiConversations.id, conversationId))
+      .limit(1);
+
+    return row?.loadedGroups ?? [];
+  }
+
+  /** Adds groups to what the conversation keeps loaded; returns the whole set. */
+  async loadGroups(conversationId: string, groups: readonly string[]): Promise<string[]> {
+    const [row] = await this.db
+      .update(aiConversations)
+      .set({
+        loadedGroups: sql`(
+          SELECT coalesce(jsonb_agg(DISTINCT value), '[]'::jsonb)
+          FROM jsonb_array_elements_text(${aiConversations.loadedGroups} || ${JSON.stringify(groups)}::jsonb)
+        )`,
+      })
+      .where(eq(aiConversations.id, conversationId))
+      .returning({ loadedGroups: aiConversations.loadedGroups });
+
+    return row?.loadedGroups ?? [];
+  }
+
   async requireOwn(actor: AuthenticatedUser, conversationId: string): Promise<ConversationRow> {
     const [row] = await this.db
       .select()

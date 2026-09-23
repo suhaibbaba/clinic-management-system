@@ -83,19 +83,32 @@ function harness(
     toolThrows?: boolean;
     doctorId?: string | null;
     view?: AiView;
+    loadedStore?: Map<string, string[]>;
+    newConversationId?: string;
   } = {},
 ): {
   agent: AgentService;
   appended: AppendedMessage[];
-  toolRuns: { actor: AuthenticatedUser; call: ChatToolCall }[];
+  toolRuns: { actor: AuthenticatedUser; call: ChatToolCall; loaded: string[] }[];
+  offered: string[][];
 } {
   const appended: AppendedMessage[] = [];
-  const toolRuns: { actor: AuthenticatedUser; call: ChatToolCall }[] = [];
+  const toolRuns: { actor: AuthenticatedUser; call: ChatToolCall; loaded: string[] }[] = [];
+  const offered: string[][] = [];
+  const loadedStore = options.loadedStore ?? new Map<string, string[]>();
 
   const conversations = {
-    requireOwn: () => Promise.resolve({ id: CONVERSATION_ID }),
-    start: () => Promise.resolve({ id: CONVERSATION_ID }),
+    requireOwn: (_actor: AuthenticatedUser, id: string) => Promise.resolve({ id }),
+    start: () => Promise.resolve({ id: options.newConversationId ?? CONVERSATION_ID }),
     history: () => Promise.resolve([]),
+    loadedGroups: (id: string) => Promise.resolve(loadedStore.get(id) ?? []),
+    loadGroups: (id: string, groups: string[]) => {
+      const merged = [...new Set([...(loadedStore.get(id) ?? []), ...groups])];
+
+      loadedStore.set(id, merged);
+
+      return Promise.resolve(merged);
+    },
     append: (_actor: AuthenticatedUser, _id: string, message: AppendedMessage) => {
       appended.push(message);
 
@@ -104,9 +117,19 @@ function harness(
   } as unknown as AiConversationsService;
 
   const tools = {
-    definitions: () => [],
-    run: (actor: AuthenticatedUser, _conversationId: string, call: ChatToolCall) => {
-      toolRuns.push({ actor, call });
+    definitions: (loaded: ReadonlySet<string>) => {
+      offered.push([...loaded].sort());
+
+      return [];
+    },
+    toolsIn: (groups: string[]) => groups.map((group) => `${group}_tool`),
+    run: (
+      actor: AuthenticatedUser,
+      _conversationId: string,
+      call: ChatToolCall,
+      loaded: ReadonlySet<string>,
+    ) => {
+      toolRuns.push({ actor, call, loaded: [...loaded].sort() });
 
       if (options.toolThrows) {
         return Promise.reject(new Error("relation ai_audit_log does not exist"));
@@ -154,6 +177,7 @@ function harness(
     ),
     appended,
     toolRuns,
+    offered,
   };
 }
 
@@ -435,6 +459,85 @@ describe("who the assistant is speaking to", () => {
     await collect(agent, "مواعيدي اليوم");
 
     expect(requests[0]?.messages[0]?.content).toContain(`doctor_id ${DOCTOR_ID}`);
+  });
+});
+
+describe("loading tools by group", () => {
+  const load = (groups: string[]): ChatToolCall => ({
+    id: "call_load",
+    name: AI_TOOL.LOAD_TOOLS,
+    arguments: JSON.stringify({ groups }),
+  });
+  const payment: ChatToolCall = {
+    id: "call_pay",
+    name: AI_TOOL.RECORD_PAYMENT,
+    arguments: '{"patient_id":"44444444-4444-4444-8444-444444444444","amount":50}',
+  };
+
+  it("offers the core set until a group is loaded, then that group for the rest of the turn", async () => {
+    const { provider } = scripted([
+      [completed("", [payment])],
+      [completed("", [load(["billing"])])],
+      [completed("", [payment])],
+      [completed("تمام")],
+    ]);
+    const { agent, toolRuns, offered } = harness(provider);
+
+    await collect(agent);
+
+    expect(toolRuns.map((run) => run.loaded)).toEqual([[], ["billing"]]);
+    expect(offered).toEqual([[], [], ["billing"], ["billing"]]);
+  });
+
+  it("does not count a step that only loaded tools", async () => {
+    const { provider } = scripted([[completed("", [load(["schedule"])])], [completed("جاهز")]]);
+    const { agent } = harness(provider, { maxSteps: 1 });
+
+    const events = await collect(agent);
+
+    expect(events.at(-1)).toMatchObject({ type: AI_STREAM_EVENT.DONE });
+  });
+
+  it("keeps a conversation's groups for its next turn, and not for a new conversation", async () => {
+    const loadedStore = new Map<string, string[]>();
+    const first = harness(
+      scripted([[completed("", [load(["labs"])])], [completed("تمام")]]).provider,
+      { loadedStore },
+    );
+
+    await collect(first.agent);
+
+    const followUp = harness(scripted([[completed("هاي هي")]]).provider, { loadedStore });
+
+    for await (const _event of followUp.agent.run(ACTOR, {
+      message: "والتانية؟",
+      conversationId: CONVERSATION_ID,
+    })) {
+      // drained
+    }
+
+    const fresh = harness(scripted([[completed("أهلا")]]).provider, {
+      loadedStore,
+      newConversationId: "55555555-5555-4555-8555-555555555555",
+    });
+
+    await collect(fresh.agent);
+
+    expect(followUp.offered).toEqual([["labs"]]);
+    expect(fresh.offered).toEqual([[]]);
+  });
+
+  it("refuses an unknown group without loading anything", async () => {
+    const { provider, requests } = scripted([
+      [completed("", [load(["secrets"])])],
+      [completed("")],
+    ]);
+    const { agent, offered } = harness(provider);
+
+    await collect(agent);
+
+    expect(requests[1]?.messages.at(-1)?.content).toContain("invalid_arguments");
+    expect(offered).toEqual([[], []]);
   });
 });
 

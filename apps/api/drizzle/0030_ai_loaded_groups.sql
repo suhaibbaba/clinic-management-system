@@ -1,0 +1,1 @@
+ALTER TABLE "ai_conversations" ADD COLUMN "loaded_groups" jsonb DEFAULT '[]'::jsonb NOT NULL;

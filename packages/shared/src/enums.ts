@@ -498,6 +498,7 @@ export const AI_TOOL = {
   GET_OVERDUE_LAB_ORDERS: "get_overdue_lab_orders",
   GET_LOW_STOCK_ITEMS: "get_low_stock_items",
   QUERY_DATA: "query_data",
+  LOAD_TOOLS: "load_tools",
   DRAFT_BULK_MESSAGE: "draft_bulk_message",
   SET_APPOINTMENT_STATUS: "set_appointment_status",
   ADD_PATIENT_NOTE: "add_patient_note",
@@ -540,6 +541,7 @@ export const AI_TOOL_NAMES = [
   AI_TOOL.GET_OVERDUE_LAB_ORDERS,
   AI_TOOL.GET_LOW_STOCK_ITEMS,
   AI_TOOL.QUERY_DATA,
+  AI_TOOL.LOAD_TOOLS,
   AI_TOOL.DRAFT_BULK_MESSAGE,
   AI_TOOL.SET_APPOINTMENT_STATUS,
   AI_TOOL.ADD_PATIENT_NOTE,
@@ -802,6 +804,8 @@ export const AI_TOOL_ERROR = {
   QUERY_TIMEOUT: "query_timeout",
   /** Postgres rejected it — a column that does not exist, a type mismatch. */
   QUERY_ERROR: "query_error",
+  /** A tool of a group this turn has not loaded: load_tools first. */
+  NOT_LOADED: "tool_not_loaded",
 } as const satisfies Record<string, string>;
 export type AiToolError = EnumValue<typeof AI_TOOL_ERROR>;
 

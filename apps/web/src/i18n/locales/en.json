@@ -1691,7 +1691,9 @@
       "reverseStockMovement": "Preparing the reversal",
       "findSlots": "Looking for free times",
       "extraHours": "Preparing the extra hours",
-      "plan": "Rehearsing the plan against the records"
+      "plan": "Rehearsing the plan against the records",
+      "queryData": "Asking the clinic's data",
+      "loadTools": "Getting the tools ready"
     },
     "errors": {
       "rateLimited": "Too many questions too quickly. Try again shortly.",

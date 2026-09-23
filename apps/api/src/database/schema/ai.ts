@@ -63,6 +63,8 @@ export const aiConversations = pgTable(
       .references(() => users.id),
     /** Taken from the first question; an admin may rename it. */
     title: text("title").notNull(),
+    /** The tool groups loaded in this conversation, preloaded on its next turn. */
+    loadedGroups: jsonb("loaded_groups").$type<string[]>().notNull().default([]),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     createdBy: uuid("created_by"),

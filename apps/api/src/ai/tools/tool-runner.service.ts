@@ -20,6 +20,7 @@ import {
 import type { ChatToolCall, ChatToolDefinition } from "@api/ai/chat-provider";
 import { OutboundError } from "@api/ai/outbound/proposals.service";
 import { AiToolsService } from "@api/ai/tools/ai-tools.service";
+import { isVisible, TOOL_GROUP, TOOL_GROUP_NAMES } from "@api/ai/tools/tool-groups";
 import {
   localizeInstants,
   ToolRefusal,
@@ -33,6 +34,29 @@ import { aiAuditLog, clinics } from "@api/database/schema";
 import { eq } from "drizzle-orm";
 import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
+
+/** Outside a conversation — a test, a script — every group counts as loaded. */
+const ALL_GROUPS: ReadonlySet<string> = new Set(TOOL_GROUP_NAMES);
+
+const LOAD_TOOLS_DEFINITION: ChatToolDefinition = {
+  name: AI_TOOL.LOAD_TOOLS,
+  description:
+    "Load one or more tool groups (listed in the system prompt) so their tools can be called " +
+    "for the rest of this conversation. Load before calling a tool you do not have; never to " +
+    "read — the core tools and query_data need no loading. Returns the names now available.",
+  parameters: {
+    type: "object",
+    properties: {
+      groups: {
+        type: "array",
+        items: { type: "string", enum: [...TOOL_GROUP_NAMES] },
+        minItems: 1,
+      },
+    },
+    required: ["groups"],
+    additionalProperties: false,
+  },
+};
 
 export interface ToolRun {
   /** As the model asked for it, which is not necessarily a tool that exists. */
@@ -93,18 +117,34 @@ export class ToolRunnerService implements OnApplicationBootstrap {
     }
   }
 
-  definitions(): ChatToolDefinition[] {
-    return this.tools.list().map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-      parameters: tool.parameters,
-    }));
+  /** The core set, the groups this turn has loaded, and `load_tools` to load more. */
+  definitions(loaded: ReadonlySet<string> = ALL_GROUPS): ChatToolDefinition[] {
+    return [
+      ...this.tools
+        .list()
+        .filter((tool) => isVisible(tool.name, loaded))
+        .map((tool) => ({
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.parameters,
+        })),
+      LOAD_TOOLS_DEFINITION,
+    ];
+  }
+
+  /** The tools a group holds, as `load_tools` reports them to the model. */
+  toolsIn(groups: readonly string[]): string[] {
+    return this.tools
+      .list()
+      .filter((tool) => groups.includes(TOOL_GROUP[tool.name]))
+      .map((tool) => tool.name);
   }
 
   async run(
     actor: AuthenticatedUser,
     conversationId: string,
     call: ChatToolCall,
+    loaded: ReadonlySet<string> = ALL_GROUPS,
   ): Promise<ToolRun> {
     const started = Date.now();
     const tool = this.tools.list().find((candidate) => candidate.name === call.name);
@@ -118,6 +158,15 @@ export class ToolRunnerService implements OnApplicationBootstrap {
     }
 
     const args = parseArguments(call.arguments);
+
+    // A tool the model was never shown this turn: it loads the group, then calls it.
+    if (!isVisible(tool.name, loaded)) {
+      return this.finish(actor, conversationId, tool.name, args, started, {
+        tool: tool.name,
+        error: AI_TOOL_ERROR.NOT_LOADED,
+        details: [`call load_tools with groups ["${TOOL_GROUP[tool.name]}"] first`],
+      });
+    }
 
     if (!(await this.permitted(actor, tool))) {
       return this.finish(actor, conversationId, tool.name, args, started, {
