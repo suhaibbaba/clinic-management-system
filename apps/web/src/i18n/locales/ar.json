@@ -1680,7 +1680,10 @@
       "rescheduleAppointment": "عم بجهّز تعديل الموعد",
       "cancelAppointments": "عم بجهّز إلغاء المواعيد",
       "createPatient": "عم بجهّز ملف المريض",
-      "recordPayment": "عم بجهّز الدفعة"
+      "recordPayment": "عم بجهّز الدفعة",
+      "findDoctors": "عم بدوّر بالأطباء",
+      "doctorTimeOff": "عم بجهّز إجازة الطبيب",
+      "clinicClosure": "عم بجهّز إغلاق العيادة"
     },
     "errors": {
       "rateLimited": "أسئلة كتير بوقت قصير. جرّب بعد شوي.",
@@ -1738,7 +1741,9 @@
         "patient_create": "إضافة مريض",
         "patient_note": "إضافة ملاحظة للمريض",
         "payment_create": "تسجيل دفعة",
-        "message": "رسالة للمرضى"
+        "message": "رسالة للمرضى",
+        "time_off_create": "إجازة طبيب",
+        "closure_create": "إغلاق العيادة"
       },
       "tiers": {
         "auto": "تلقائي",
@@ -1771,7 +1776,9 @@
         "appointments_two": "موعدان",
         "appointments_few": "{{count}} مواعيد",
         "appointments_many": "{{count}} موعداً",
-        "appointments_other": "{{count}} موعد"
+        "appointments_other": "{{count}} موعد",
+        "period": "الفترة",
+        "onConflict": "المواعيد بالفترة"
       },
       "typeToConfirm": "اكتب \"{{phrase}}\" للتأكيد",
       "confirm": "تأكيد",
@@ -1785,9 +1792,15 @@
         "patient_create": "انضاف المريض.",
         "patient_note": "انضافت الملاحظة.",
         "payment_create": "انسجّلت الدفعة.",
-        "message": "انبعتت الرسالة."
+        "message": "انبعتت الرسالة.",
+        "time_off_create": "انسجّلت إجازة الطبيب.",
+        "closure_create": "انسجّل إغلاق العيادة."
       },
-      "redraft": "جهّز الطلب من جديد"
+      "redraft": "جهّز الطلب من جديد",
+      "onConflict": {
+        "cancel_appointments": "رح تنلغي ويوصل المرضى إشعار",
+        "keep_appointments": "بتضل محجوزة"
+      }
     },
     "actionErrors": {
       "phraseMismatch": "العبارة المكتوبة مش مطابقة.",
@@ -1797,7 +1810,8 @@
       "invalidTransition": "حالة السجل تغيّرت وما عاد الإجراء ممكن.",
       "notFound": "السجل مش موجود أو انحذف.",
       "duplicate": "في مريض مسجّل بنفس الرقم.",
-      "failed": "ما قدرنا ننفّذ الإجراء."
+      "failed": "ما قدرنا ننفّذ الإجراء.",
+      "scheduleConflict": "انحجزت مواعيد جديدة بالفترة بعد تجهيز البطاقة. اطلب من المساعد يجهّزها من جديد."
     },
     "view": {
       "columns": {
@@ -1920,7 +1934,9 @@
         "reschedule_appointment": "تعديل موعد",
         "cancel_appointments": "إلغاء مواعيد",
         "create_patient": "إضافة مريض",
-        "record_payment": "تسجيل دفعة"
+        "record_payment": "تسجيل دفعة",
+        "add_doctor_time_off": "إجازة طبيب",
+        "add_clinic_closure": "إغلاق العيادة"
       },
       "paymentTypedAbove": "تأكيد بالكتابة للدفعات من مبلغ",
       "paymentTypedAboveHint": "أي دفعة بهالمبلغ أو أكتر بتحتاج كتابة عبارة التأكيد.",

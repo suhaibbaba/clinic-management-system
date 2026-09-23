@@ -28,7 +28,12 @@ import { actionErrorKey, actionRefusalKey } from "@web/features/assistant/messag
 import { useAction, useActionDecision } from "@web/features/assistant/queries";
 import { useLookupLabels } from "@web/features/lookups/queries";
 import { clinicTimeZone } from "@web/lib/clinic-zone";
-import { formatClinicDate, formatClinicTime } from "@web/lib/format";
+import {
+  formatClinicDate,
+  formatClinicPeriod,
+  formatClinicTime,
+  formatDate,
+} from "@web/lib/format";
 
 const STATUS_TONES: Record<AiProposalStatus, BadgeTone> = {
   [AI_PROPOSAL_STATUS.DRAFT]: "info",
@@ -240,7 +245,21 @@ function ActionSummaryList({ summary }: { summary: AiActionSummary }): JSX.Eleme
           <span dir="ltr">{when(summary.previousStartsAt)}</span>
         </Row>
       )}
-      {summary.startsAt && (
+      {summary.startsAt && summary.endsAt && (
+        <Row label={t("assistant.action.fields.period")}>
+          <span dir="ltr">{formatClinicPeriod(summary.startsAt, summary.endsAt)}</span>
+        </Row>
+      )}
+      {summary.startsOn && summary.endsOn && (
+        <Row label={t("assistant.action.fields.period")}>
+          <span dir="ltr">
+            {summary.startsOn === summary.endsOn
+              ? formatDate(summary.startsOn)
+              : `${formatDate(summary.startsOn)} — ${formatDate(summary.endsOn)}`}
+          </span>
+        </Row>
+      )}
+      {summary.startsAt && !summary.endsAt && (
         <Row
           label={t(
             summary.previousStartsAt
@@ -263,6 +282,13 @@ function ActionSummaryList({ summary }: { summary: AiActionSummary }): JSX.Eleme
         <Row label={t("assistant.action.fields.method")}>{methodLabel(summary.method)}</Row>
       )}
       {summary.reason && <Row label={t("assistant.action.fields.reason")}>{summary.reason}</Row>}
+      {summary.onConflict && (
+        <Row label={t("assistant.action.fields.onConflict")}>
+          <span data-part="action-on-conflict">
+            {t(`assistant.action.onConflict.${summary.onConflict}`)}
+          </span>
+        </Row>
+      )}
       {summary.note && (
         <Row label={t("assistant.action.fields.note")}>
           <span className="whitespace-pre-wrap [unicode-bidi:plaintext]">{summary.note}</span>

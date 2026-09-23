@@ -28,6 +28,7 @@ import { LabsModule } from "@api/labs/labs.module";
 import { NotificationsModule } from "@api/notifications/notifications.module";
 import { PatientsModule } from "@api/patients/patients.module";
 import { PermissionsModule } from "@api/permissions/permissions.module";
+import { ClinicScheduleModule } from "@api/schedule/clinic-schedule.module";
 import { SecretsModule } from "@api/secrets/secrets.module";
 
 // Owns no domain table beyond its own transcript: every tool answers through the service that
@@ -39,6 +40,7 @@ import { SecretsModule } from "@api/secrets/secrets.module";
     AppConfigModule,
     PermissionsModule,
     AppointmentsModule,
+    ClinicScheduleModule,
     DoctorsModule,
     PatientsModule,
     BillingModule,

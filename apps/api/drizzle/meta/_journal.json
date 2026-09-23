@@ -176,6 +176,13 @@
       "when": 1790120526289,
       "tag": "0024_ai_views",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1790194905168,
+      "tag": "0025_ai_schedule_actions",
+      "breakpoints": true
     }
   ]
 }

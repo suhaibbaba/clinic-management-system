@@ -4,6 +4,7 @@ import {
   AI_ACTION_TOOLS,
   AI_PROPOSAL_KINDS,
   AI_RISK_TIERS,
+  AI_SCHEDULE_CONFLICT_CHOICES,
   APPOINTMENT_STATUSES,
   AI_AUTOMATION_MODE,
   AI_AUTOMATION_MODES,
@@ -171,6 +172,13 @@ export const aiActionSummarySchema = z.object({
     .optional(),
   startsAt: z.iso.datetime().optional(),
   previousStartsAt: z.iso.datetime().optional(),
+  /** The end of a time-off period, exclusive. */
+  endsAt: z.iso.datetime().optional(),
+  /** A clinic closure's inclusive local days. */
+  startsOn: z.iso.date().optional(),
+  endsOn: z.iso.date().optional(),
+  /** What happens to the appointments listed below: cancelled, or kept in the closed period. */
+  onConflict: z.enum(AI_SCHEDULE_CONFLICT_CHOICES).optional(),
   durationMinutes: z.number().int().optional(),
   /** The status an appointment moves to. */
   status: z.enum(APPOINTMENT_STATUSES).optional(),

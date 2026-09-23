@@ -144,6 +144,36 @@ export class AiToolsService {
       }),
 
       defineTool({
+        name: AI_TOOL.FIND_DOCTORS,
+        description:
+          "The clinic's doctors, by name in Arabic or English, or all of them with no query. " +
+          "Use it to turn a doctor's name into a doctor_id. When more than one doctor matches " +
+          "the name the user gave, ask which one — never pick one yourself.",
+        capability: null,
+        schema: z.object({
+          query: z.string().trim().min(1).max(120).optional(),
+          include_inactive: z.boolean().optional(),
+        }),
+        run: async (actor, args) => {
+          const page = await this.doctors.list(actor, {
+            page: 1,
+            limit: TOOL_ROW_LIMIT,
+            ...(args.query && { search: args.query }),
+            ...(!args.include_inactive && { isActive: true }),
+          });
+
+          return capped(
+            page.items.map((doctor) => ({
+              id: doctor.id,
+              name: doctor.user.name,
+              isActive: doctor.user.isActive,
+            })),
+            page.total,
+          );
+        },
+      }),
+
+      defineTool({
         name: AI_TOOL.SEARCH_PATIENTS,
         description:
           "Find patients by name, file number or phone. Returns the file number, the name, a " +

@@ -1664,7 +1664,10 @@
       "rescheduleAppointment": "Preparing the reschedule",
       "cancelAppointments": "Preparing the cancellation",
       "createPatient": "Preparing the patient file",
-      "recordPayment": "Preparing the payment"
+      "recordPayment": "Preparing the payment",
+      "findDoctors": "Looking up the doctors",
+      "doctorTimeOff": "Preparing the time off",
+      "clinicClosure": "Preparing the closure"
     },
     "errors": {
       "rateLimited": "Too many questions too quickly. Try again shortly.",
@@ -1718,7 +1721,9 @@
         "patient_create": "Add a patient",
         "patient_note": "Add a note to the patient",
         "payment_create": "Record a payment",
-        "message": "Message to patients"
+        "message": "Message to patients",
+        "time_off_create": "Doctor time off",
+        "closure_create": "Close the clinic"
       },
       "tiers": {
         "auto": "Automatic",
@@ -1747,7 +1752,9 @@
         "reason": "Reason",
         "note": "Note",
         "appointments_one": "One appointment",
-        "appointments_other": "{{count}} appointments"
+        "appointments_other": "{{count}} appointments",
+        "period": "Period",
+        "onConflict": "Appointments in the period"
       },
       "typeToConfirm": "Type \"{{phrase}}\" to confirm",
       "confirm": "Confirm",
@@ -1761,9 +1768,15 @@
         "patient_create": "The patient was added.",
         "patient_note": "The note was added.",
         "payment_create": "The payment was recorded.",
-        "message": "The message was sent."
+        "message": "The message was sent.",
+        "time_off_create": "The time off was recorded.",
+        "closure_create": "The closure was recorded."
       },
-      "redraft": "Prepare the request again"
+      "redraft": "Prepare the request again",
+      "onConflict": {
+        "cancel_appointments": "Will be cancelled, and each patient notified",
+        "keep_appointments": "Stay booked"
+      }
     },
     "actionErrors": {
       "phraseMismatch": "The typed phrase does not match.",
@@ -1773,7 +1786,8 @@
       "invalidTransition": "The record changed and this is no longer possible.",
       "notFound": "The record no longer exists.",
       "duplicate": "A patient with this phone is already registered.",
-      "failed": "The action could not be completed."
+      "failed": "The action could not be completed.",
+      "scheduleConflict": "New appointments were booked into the period since the card was drafted. Ask the assistant to draft it again."
     },
     "view": {
       "columns": {
@@ -1896,7 +1910,9 @@
         "reschedule_appointment": "Reschedule an appointment",
         "cancel_appointments": "Cancel appointments",
         "create_patient": "Add a patient",
-        "record_payment": "Record a payment"
+        "record_payment": "Record a payment",
+        "add_doctor_time_off": "Doctor time off",
+        "add_clinic_closure": "Close the clinic"
       },
       "paymentTypedAbove": "Typed confirmation for payments from",
       "paymentTypedAboveHint": "A payment of this amount or more needs the confirmation phrase typed.",
