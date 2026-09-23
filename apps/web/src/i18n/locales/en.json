@@ -1642,7 +1642,8 @@
     "thinking": "Thinking",
     "jumpToLatest": "Latest",
     "emptyTitle": "How can I help?",
-    "emptyBody": "Ask about today's appointments, a patient's file, the finances, lab orders or what is running low. I answer from this clinic's data only.",
+    "emptyTitleNamed": "How can I help, {{name}}?",
+    "emptyBody": "Ask about today's appointments, a patient's file, the finances or lab orders — I answer straight from the clinic's data.",
     "suggestions": {
       "today": "Today's summary",
       "tomorrow": "Tomorrow's appointments",
@@ -1861,6 +1862,28 @@
       "truncated": "Showing {{shown}} of {{total}}",
       "openFull": "Open the full list",
       "balance": "Balance"
+    },
+    "groups": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "earlier": "Earlier"
+    },
+    "topics": {
+      "appointments": {
+        "title": "Appointments",
+        "body": "Today's schedule, free slots, cancellations and confirmations",
+        "prompt": "What is today's schedule?"
+      },
+      "patients": {
+        "title": "Patients",
+        "body": "A file summary, the last visit, who needs a follow-up",
+        "prompt": "Which patients need a follow-up?"
+      },
+      "finance": {
+        "title": "Finance and lab",
+        "body": "Revenue for the period, balances due, overdue lab orders",
+        "prompt": "How are this month's finances, and which lab orders are overdue?"
+      }
     }
   },
   "assistantSettings": {

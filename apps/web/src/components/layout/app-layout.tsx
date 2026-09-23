@@ -9,10 +9,12 @@ import { PullToRefresh } from "@web/components/pwa/pull-to-refresh";
 import { NotificationBell } from "@web/components/layout/notification-bell";
 import { TopSearch } from "@web/components/layout/top-search";
 import { UserMenu } from "@web/components/layout/user-menu";
+import { WorkspaceTopBarProvider } from "@web/components/layout/workspace-top-bar";
 import { Button, Icon } from "@clinic/ui";
 import {
   activeNavItem,
   canReachNavItem,
+  isWorkspacePath,
   NAV_SETTINGS,
   visibleNavGroups,
   visibleSettingsItems,
@@ -77,6 +79,45 @@ export function AppLayout(): JSX.Element {
   }, []);
 
   const isMobile = useIsMobile();
+  const workspace = isWorkspacePath(pathname);
+
+  const topBar = (
+    <header
+      data-testid="app-topbar"
+      data-variant={workspace ? "flat" : undefined}
+      className={cn(
+        "flex min-h-[70px] flex-wrap items-center gap-3.5",
+        workspace
+          ? "px-4 py-3 md:px-6"
+          : "rounded-card border border-line bg-surface px-4 py-3 shadow-card",
+      )}
+    >
+      <Button
+        variant="secondary"
+        size="sm"
+        data-testid="app-nav-toggle"
+        className="-ms-1 md:hidden"
+        aria-expanded={drawerOpen}
+        onClick={() => setDrawerOpen(true)}
+        icon={<Icon name="menu" />}
+        aria-label={t("nav.menu")}
+      />
+
+      {/* Search first, actions last, in logical order: the field opens where reading begins
+          — the right in Arabic, the left in English — and the bell and the page's own
+          button sit together at the far end. `ms-auto` pins them there on a page with no
+          search field, so the pair does not drift into the middle of an empty bar. */}
+      {searchable && <TopSearch />}
+
+      {/* The reference's `.top-actions`: its own 9px pair, then the bar's 14px to the field. */}
+      <div data-testid="app-topbar-actions" className="ms-auto flex items-center gap-[9px]">
+        <NotificationBell />
+        {/* The page's own "new …" button, portalled in. `contents` so the slot's row is this
+          one and the button sits beside the bell rather than in a box of its own. */}
+        <span className="contents" ref={(host) => void host?.appendChild(actionSlot)} />
+      </div>
+    </header>
+  );
 
   return (
     <PageActionSlotProvider value={isMobile ? null : actionSlot}>
@@ -131,49 +172,31 @@ export function AppLayout(): JSX.Element {
         </NavDrawer>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          {/* A floating rounded bar inside the page's padding rather than a full-bleed strip, as the
-            reference draws it. The sticky wrapper carries the page ground so the bar's corners do
-            not frame scrolled content, and it reserves the bar's own height either way. */}
-          <div className="sticky top-0 z-20 bg-canvas px-4 pt-4 pb-4 md:px-[34px] md:pt-[26px]">
-            <header
-              data-testid="app-topbar"
-              className={cn(
-                "flex min-h-[70px] flex-wrap items-center gap-3.5",
-                "rounded-card border border-line bg-surface px-4 py-3 shadow-card",
-              )}
-            >
-              <Button
-                variant="secondary"
-                size="sm"
-                data-testid="app-nav-toggle"
-                className="-ms-1 md:hidden"
-                aria-expanded={drawerOpen}
-                onClick={() => setDrawerOpen(true)}
-                icon={<Icon name="menu" />}
-                aria-label={t("nav.menu")}
-              />
-
-              {/* Search first, actions last, in logical order: the field opens where reading begins
-                  — the right in Arabic, the left in English — and the bell and the page's own
-                  button sit together at the far end. `ms-auto` pins them there on a page with no
-                  search field, so the pair does not drift into the middle of an empty bar. */}
-              {searchable && <TopSearch />}
-
-              {/* The reference's `.top-actions`: its own 9px pair, then the bar's 14px to the field. */}
-              <div data-testid="app-topbar-actions" className="ms-auto flex items-center gap-[9px]">
-                <NotificationBell />
-                {/* The page's own "new …" button, portalled in. `contents` so the slot's row is this
-                  one and the button sits beside the bell rather than in a box of its own. */}
-                <span className="contents" ref={(host) => void host?.appendChild(actionSlot)} />
+          {workspace ? (
+            <main data-testid="app-main" className="flex h-dvh min-w-0 flex-1 flex-col">
+              <WorkspaceTopBarProvider value={topBar}>
+                <Outlet />
+              </WorkspaceTopBarProvider>
+            </main>
+          ) : (
+            <>
+              {/* A floating rounded bar inside the page's padding rather than a full-bleed strip, as
+                the reference draws it. The sticky wrapper carries the page ground so the bar's
+                corners do not frame scrolled content, and it reserves the bar's own height. */}
+              <div className="sticky top-0 z-20 bg-canvas px-4 pt-4 pb-4 md:px-[34px] md:pt-[26px]">
+                {topBar}
               </div>
-            </header>
-          </div>
 
-          <main data-testid="app-main" className="min-w-0 flex-1 px-4 pb-10 md:px-[34px] md:pb-12">
-            <div className="mx-auto w-full max-w-[1180px]">
-              <Outlet />
-            </div>
-          </main>
+              <main
+                data-testid="app-main"
+                className="min-w-0 flex-1 px-4 pb-10 md:px-[34px] md:pb-12"
+              >
+                <div className="mx-auto w-full max-w-[1180px]">
+                  <Outlet />
+                </div>
+              </main>
+            </>
+          )}
         </div>
       </div>
     </PageActionSlotProvider>

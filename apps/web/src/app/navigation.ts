@@ -116,6 +116,12 @@ export function canReachNavItem(to: string, role: UserRole | undefined): boolean
 
 // The longest destination that prefixes the URL: `/clinic/lists` sits under `/clinic`, and a plain
 // prefix test lit two rows at once.
+/** Pages that fill the viewport and carry the top bar in a column of their own. */
+const WORKSPACE_PREFIXES = ["/assistant"] as const;
+
+export const isWorkspacePath = (pathname: string): boolean =>
+  WORKSPACE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+
 export function activeNavItem(pathname: string): NavItem | undefined {
   return ALL_NAV_ITEMS.filter(
     (item) => pathname === item.to || pathname.startsWith(`${item.to}/`),

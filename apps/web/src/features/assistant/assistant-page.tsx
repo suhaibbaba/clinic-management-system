@@ -3,6 +3,7 @@ import {
   AI_OUTBOUND_TRIGGER,
   AI_PROPOSAL_KIND,
   AI_TOOL,
+  personName,
   type AiMessage,
   type AiProposal,
   type AiErrorCode,
@@ -42,8 +43,9 @@ import { canReachNavItem } from "@web/app/navigation";
 import { useClinic } from "@web/features/clinic/queries";
 import { setClinicTimeZone } from "@web/lib/clinic-zone";
 import { useSession } from "@web/features/auth/session";
-import { SUGGESTIONS } from "@web/features/assistant/suggestions";
+import { SUGGESTIONS, TOPICS } from "@web/features/assistant/suggestions";
 import { useAssistantStream } from "@web/features/assistant/use-assistant-stream";
+import { useWorkspaceTopBar } from "@web/components/layout/workspace-top-bar";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { cn } from "@clinic/ui/lib/cn";
 import { useDocumentTitle } from "@clinic/ui/lib/page-title";
@@ -112,6 +114,7 @@ export function AssistantPage(): JSX.Element {
   });
 
   const { can } = useSession();
+  const topBar = useWorkspaceTopBar();
 
   const ask = (text: string): void => {
     const question = text.trim();
@@ -142,9 +145,9 @@ export function AssistantPage(): JSX.Element {
   }));
 
   return (
-    // The shell scrolls the document, so a pane that scrolls its own thread has to be told how
-    // tall it is: the viewport less the top bar and the main region's bottom padding.
-    <div data-testid="assistant-page" className="flex h-[calc(100dvh-8rem)] gap-4">
+    // A workspace page: the shell hands over the viewport and its top bar, which sits above the
+    // thread only, so the conversation list runs the full height beside the navigation.
+    <div data-testid="assistant-page" className="flex min-h-0 flex-1 overflow-hidden">
       <ConversationRail
         conversations={conversations.data?.items ?? []}
         loading={conversations.isPending}
@@ -159,7 +162,8 @@ export function AssistantPage(): JSX.Element {
           }
         }}
         className={cn(
-          "w-72 shrink-0 rounded-card border border-line bg-surface p-3 shadow-card",
+          "w-72 shrink-0 bg-surface p-3 pt-5 md:border-e md:border-line",
+          "max-md:rounded-card max-md:border max-md:border-line max-md:pt-3 max-md:shadow-card",
           // Off-canvas below `md`, where the thread needs the whole width. It leaves by the edge
           // it sits against, which is the other one in Arabic — `page-rtl` rather than a bare
           // `rtl:`, which this theme does not define.
@@ -169,11 +173,10 @@ export function AssistantPage(): JSX.Element {
         )}
       />
 
-      <section
-        aria-label={t("nav.assistant")}
-        className="flex min-w-0 flex-1 flex-col rounded-card border border-line bg-canvas"
-      >
-        <header className="flex items-center gap-2 border-b border-line px-4 py-2.5 md:hidden">
+      <section aria-label={t("nav.assistant")} className="flex min-w-0 flex-1 flex-col bg-canvas">
+        {topBar}
+
+        <header className="flex items-center gap-2 border-y border-line px-4 py-2.5 md:hidden">
           <Button
             variant="quiet"
             size="sm"
@@ -184,96 +187,100 @@ export function AssistantPage(): JSX.Element {
           <span className="truncate text-label text-ink-muted">{t("nav.assistant")}</span>
         </header>
 
-        <ChatThread data-testid="assistant-thread" jumpLabel={t("assistant.jumpToLatest")}>
-          {empty && <EmptyIntro />}
-
-          {empty &&
-            automated.map((proposal) => (
-              <ProposalCard key={proposal.id} id={proposal.id} initial={proposal} />
-            ))}
-
-          {stored.map((message: AiMessage) =>
-            message.view && !message.proposalId ? (
-              <AssistantView
-                key={message.id}
-                view={message.view}
-                data-testid={`assistant-view-${message.id}`}
-              />
-            ) : message.proposalId ? (
-              message.toolName === AI_TOOL.DRAFT_BULK_MESSAGE ? (
-                <ProposalCard key={message.id} id={message.proposalId} />
-              ) : (
-                <ActionCard key={message.id} id={message.proposalId} onRedraft={redraft} />
-              )
-            ) : (
-              <ChatBubble
-                key={message.id}
-                data-testid={`assistant-message-${message.id}`}
-                author={message.role === AI_MESSAGE_ROLE.USER ? "user" : "assistant"}
-              >
-                {message.role === AI_MESSAGE_ROLE.USER ? (
-                  <span className="whitespace-pre-wrap">{message.content}</span>
-                ) : (
-                  <MarkdownMessage content={message.content} />
-                )}
-              </ChatBubble>
-            ),
-          )}
-
-          {stream.turn && (
-            <>
-              <ChatBubble author="user" data-testid="assistant-live-question">
-                <span className="whitespace-pre-wrap">{stream.turn.question}</span>
-              </ChatBubble>
-
-              {stream.turn.proposals.map((proposal) =>
-                proposal.kind === AI_PROPOSAL_KIND.MESSAGE ? (
-                  <ProposalCard key={proposal.id} id={proposal.id} initial={proposal} />
-                ) : (
-                  <ActionCard
-                    key={proposal.id}
-                    id={proposal.id}
-                    initial={proposal}
-                    onRedraft={redraft}
-                  />
-                ),
-              )}
-
-              {stream.turn.views.map(({ toolCallId, view }) => (
-                <AssistantView
-                  key={toolCallId}
-                  view={view}
-                  data-testid={`assistant-live-view-${toolCallId}`}
-                />
+        {empty ? (
+          <div data-testid="assistant-thread" className="flex min-h-0 flex-1 overflow-y-auto">
+            <div className="m-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-8 sm:px-6">
+              <EmptyIntro disabled={stream.streaming} onAsk={ask} />
+              {automated.map((proposal) => (
+                <ProposalCard key={proposal.id} id={proposal.id} initial={proposal} />
               ))}
-
-              {(stream.turn.error === null || stream.turn.answer.length > 0) && (
+            </div>
+          </div>
+        ) : (
+          <ChatThread data-testid="assistant-thread" jumpLabel={t("assistant.jumpToLatest")}>
+            {stored.map((message: AiMessage) =>
+              message.view && !message.proposalId ? (
+                <AssistantView
+                  key={message.id}
+                  view={message.view}
+                  data-testid={`assistant-view-${message.id}`}
+                />
+              ) : message.proposalId ? (
+                message.toolName === AI_TOOL.DRAFT_BULK_MESSAGE ? (
+                  <ProposalCard key={message.id} id={message.proposalId} />
+                ) : (
+                  <ActionCard key={message.id} id={message.proposalId} onRedraft={redraft} />
+                )
+              ) : (
                 <ChatBubble
-                  author="assistant"
-                  data-testid="assistant-live-answer"
-                  streaming={stream.turn.streaming && stream.turn.answer.length > 0}
-                  status={
-                    stream.turn.answer.length === 0
-                      ? ellipsis(
-                          stream.turn.tool
-                            ? t(toolStatusKey(stream.turn.tool))
-                            : t("assistant.thinking"),
-                        )
-                      : undefined
-                  }
+                  key={message.id}
+                  data-testid={`assistant-message-${message.id}`}
+                  author={message.role === AI_MESSAGE_ROLE.USER ? "user" : "assistant"}
                 >
-                  {stream.turn.answer.length > 0 ? (
-                    <MarkdownMessage content={stream.turn.answer} />
-                  ) : undefined}
+                  {message.role === AI_MESSAGE_ROLE.USER ? (
+                    <span className="whitespace-pre-wrap">{message.content}</span>
+                  ) : (
+                    <MarkdownMessage content={message.content} />
+                  )}
                 </ChatBubble>
-              )}
+              ),
+            )}
 
-              {stream.turn.error && <TurnError code={stream.turn.error} onRetry={stream.retry} />}
-            </>
-          )}
-        </ChatThread>
+            {stream.turn && (
+              <>
+                <ChatBubble author="user" data-testid="assistant-live-question">
+                  <span className="whitespace-pre-wrap">{stream.turn.question}</span>
+                </ChatBubble>
 
-        <div className="border-t border-line bg-surface p-3 sm:px-6 sm:py-4">
+                {stream.turn.proposals.map((proposal) =>
+                  proposal.kind === AI_PROPOSAL_KIND.MESSAGE ? (
+                    <ProposalCard key={proposal.id} id={proposal.id} initial={proposal} />
+                  ) : (
+                    <ActionCard
+                      key={proposal.id}
+                      id={proposal.id}
+                      initial={proposal}
+                      onRedraft={redraft}
+                    />
+                  ),
+                )}
+
+                {stream.turn.views.map(({ toolCallId, view }) => (
+                  <AssistantView
+                    key={toolCallId}
+                    view={view}
+                    data-testid={`assistant-live-view-${toolCallId}`}
+                  />
+                ))}
+
+                {(stream.turn.error === null || stream.turn.answer.length > 0) && (
+                  <ChatBubble
+                    author="assistant"
+                    data-testid="assistant-live-answer"
+                    streaming={stream.turn.streaming && stream.turn.answer.length > 0}
+                    status={
+                      stream.turn.answer.length === 0
+                        ? ellipsis(
+                            stream.turn.tool
+                              ? t(toolStatusKey(stream.turn.tool))
+                              : t("assistant.thinking"),
+                          )
+                        : undefined
+                    }
+                  >
+                    {stream.turn.answer.length > 0 ? (
+                      <MarkdownMessage content={stream.turn.answer} />
+                    ) : undefined}
+                  </ChatBubble>
+                )}
+
+                {stream.turn.error && <TurnError code={stream.turn.error} onRetry={stream.retry} />}
+              </>
+            )}
+          </ChatThread>
+        )}
+
+        <div className="px-3 pb-3 sm:px-6 sm:pb-5">
           <div className="mx-auto max-w-3xl">
             <ChatComposer
               data-testid="assistant-composer"
@@ -292,6 +299,7 @@ export function AssistantPage(): JSX.Element {
                   suggestions={suggestions}
                   disabled={stream.streaming}
                   onPick={(suggestion) => ask(suggestion.label)}
+                  className="justify-center max-sm:flex-nowrap max-sm:justify-start max-sm:overflow-x-auto max-sm:pb-1"
                 />
               )}
             </ChatComposer>
@@ -343,19 +351,56 @@ function TurnError({ code, onRetry }: { code: AiErrorCode; onRetry: () => void }
   );
 }
 
-function EmptyIntro(): JSX.Element {
-  const { t } = useTranslation();
+function EmptyIntro({
+  disabled,
+  onAsk,
+}: {
+  disabled: boolean;
+  onAsk: (question: string) => void;
+}): JSX.Element {
+  const { t, i18n } = useTranslation();
+  const { user } = useSession();
 
   return (
-    <div
-      data-testid="assistant-empty"
-      className="rounded-card border border-line bg-surface p-5 text-center shadow-card"
-    >
-      <span className="mx-auto grid size-11 place-items-center rounded-field bg-primary-100 text-primary-600">
+    <div data-testid="assistant-empty" className="flex flex-col items-center text-center">
+      <span className="grid size-14 place-items-center rounded-card border border-line bg-surface text-primary-600 shadow-card">
         <Icon name="sparkles" />
       </span>
-      <h2 className="mt-3 text-heading text-ink">{t("assistant.emptyTitle")}</h2>
-      <p className="mt-1.5 text-value text-ink-muted">{t("assistant.emptyBody")}</p>
+      <h2 className="mt-4 text-title font-bold text-ink">
+        {user
+          ? t("assistant.emptyTitleNamed", { name: personName(user.name, i18n.language) })
+          : t("assistant.emptyTitle")}
+      </h2>
+      <p className="mt-2 max-w-md text-value text-ink-muted">{t("assistant.emptyBody")}</p>
+
+      <ul className="mt-6 grid w-full gap-2 sm:grid-cols-3 sm:gap-3">
+        {TOPICS.map((topic) => (
+          <li key={topic.key}>
+            <button
+              type="button"
+              data-testid={`assistant-topic-${topic.key}`}
+              disabled={disabled}
+              onClick={() => onAsk(t(`${topic.prefix}.prompt`))}
+              className={cn(
+                "flex h-full w-full cursor-pointer items-center gap-3 rounded-card border border-line",
+                "bg-surface p-3 text-start shadow-card transition-colors duration-150",
+                "sm:flex-col sm:items-start sm:gap-1 sm:p-4",
+                "hover:border-primary-300 hover:bg-primary-50",
+                "outline-none focus-visible:ring-2 focus-visible:ring-primary-300",
+                "disabled:cursor-not-allowed disabled:opacity-60",
+              )}
+            >
+              <Icon name={topic.icon} className="text-primary-600" />
+              <span className="text-label font-semibold text-ink sm:mt-1">
+                {t(`${topic.prefix}.title`)}
+              </span>
+              <span className="text-label text-ink-muted max-sm:hidden">
+                {t(`${topic.prefix}.body`)}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
