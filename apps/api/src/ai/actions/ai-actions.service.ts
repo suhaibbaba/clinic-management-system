@@ -1335,7 +1335,7 @@ export class AiActionsService {
         kind: AI_PROPOSAL_KIND.TIME_OFF_UPDATE,
         description:
           "Change a doctor's time off to a new period — pass the whole new period, as for " +
-          "add_doctor_time_off. Takes a time_off_id from get_doctor_time_off. A period that " +
+          "add_doctor_time_off. Takes a time_off_id from doctor_time_off_list. A period that " +
           "grows over appointments comes back as schedule_conflict, answered with on_conflict. " +
           "Waits on a card the user confirms.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.UPDATE_DOCTOR_TIME_OFF],
@@ -1426,7 +1426,7 @@ export class AiActionsService {
         kind: AI_PROPOSAL_KIND.TIME_OFF_DELETE,
         description:
           "Remove a doctor's time off, so the period is bookable again. Takes a time_off_id " +
-          "from get_doctor_time_off. Waits on a card the user confirms.",
+          "from doctor_time_off_list. Waits on a card the user confirms.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.DELETE_DOCTOR_TIME_OFF],
         capability: "doctor-time-off.remove",
         schema: z.object({ time_off_id: z.uuid() }),
@@ -1473,7 +1473,7 @@ export class AiActionsService {
         description:
           "Move a lab order along: sent (out to the lab), ready (the lab finished), received " +
           "(back at the clinic), fitted (in the patient's mouth), returned (sent back, with the " +
-          "reason) or cancelled. Takes a lab_order_id from find_lab_orders. Waits on a card " +
+          "reason) or cancelled. Takes a lab_order_id from lab_orders_list. Waits on a card " +
           "the user confirms.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.SET_LAB_ORDER_STATUS],
         capability: "lab-orders.list",
@@ -1529,7 +1529,7 @@ export class AiActionsService {
         kind: AI_PROPOSAL_KIND.STOCK_MOVEMENT,
         description:
           "Record stock coming in (purchase), used (consume) or counted (adjust, a signed " +
-          "correction with its reason). Takes an item_id from find_stock_items. The quantity " +
+          "correction with its reason). Takes an item_id from inventory_list. The quantity " +
           "on hand is never set directly: it is the sum of these. Waits on a card the user " +
           "confirms.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.RECORD_STOCK_MOVEMENT],
@@ -1676,7 +1676,7 @@ export class AiActionsService {
         kind: AI_PROPOSAL_KIND.PAYMENT_REVERSE,
         description:
           "Reverse a patient's payment recorded by mistake: a new negative entry cancels it, " +
-          "and the original stays on the record. Takes a payment_id from find_payments and the " +
+          "and the original stays on the record. Takes a payment_id from payments_list and the " +
           "reason the user gave. Always needs a typed confirmation.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.REVERSE_PAYMENT],
         capability: "payments.reverse",
@@ -1722,7 +1722,7 @@ export class AiActionsService {
         kind: AI_PROPOSAL_KIND.LAB_PAYMENT_CREATE,
         description:
           "Record money the clinic paid a lab, as a whole amount, with the payment method's " +
-          "code (omit it for the clinic's first method). Takes a lab_id from find_labs. Waits " +
+          "code (omit it for the clinic's first method). Takes a lab_id from labs_list. Waits " +
           "on a card the user confirms; a large one needs a typed confirmation.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.RECORD_LAB_PAYMENT],
         capability: "lab-payments.create",
@@ -1781,7 +1781,7 @@ export class AiActionsService {
         kind: AI_PROPOSAL_KIND.LAB_PAYMENT_REVERSE,
         description:
           "Reverse a payment to a lab recorded by mistake: a new negative entry cancels it. " +
-          "Takes a lab_payment_id from get_lab_payments and the reason the user gave. Always " +
+          "Takes a lab_payment_id from lab_ledger_list_payments and the reason the user gave. Always " +
           "needs a typed confirmation.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.REVERSE_LAB_PAYMENT],
         capability: "lab-payments.reverse",
@@ -1846,7 +1846,7 @@ export class AiActionsService {
         kind: AI_PROPOSAL_KIND.STOCK_REVERSE,
         description:
           "Reverse a stock movement recorded by mistake: a new opposite entry cancels it. " +
-          "Takes a movement_id from get_stock_movements and the reason the user gave. A count " +
+          "Takes a movement_id from inventory_item_movements and the reason the user gave. A count " +
           "that was merely off is an adjust, not a reversal. Always needs a typed confirmation.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.REVERSE_STOCK_MOVEMENT],
         capability: "inventory.reverse",

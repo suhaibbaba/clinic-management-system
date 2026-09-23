@@ -40,28 +40,21 @@ export const TOOL_GROUP: Record<AiToolName, ToolGroup | typeof CORE> = {
 
   [AI_TOOL.ADD_DOCTOR_TIME_OFF]: "schedule",
   [AI_TOOL.ADD_CLINIC_CLOSURE]: "schedule",
-  [AI_TOOL.GET_DOCTOR_TIME_OFF]: "schedule",
   [AI_TOOL.UPDATE_DOCTOR_TIME_OFF]: "schedule",
   [AI_TOOL.DELETE_DOCTOR_TIME_OFF]: "schedule",
   [AI_TOOL.SET_DOCTOR_SCHEDULE]: "schedule",
   [AI_TOOL.ADD_DOCTOR_EXTRA_HOURS]: "schedule",
 
   [AI_TOOL.GET_OVERDUE_LAB_ORDERS]: "labs",
-  [AI_TOOL.FIND_LAB_ORDERS]: "labs",
   [AI_TOOL.SET_LAB_ORDER_STATUS]: "labs",
-  [AI_TOOL.FIND_LABS]: "labs",
-  [AI_TOOL.GET_LAB_PAYMENTS]: "labs",
   [AI_TOOL.RECORD_LAB_PAYMENT]: "labs",
   [AI_TOOL.REVERSE_LAB_PAYMENT]: "labs",
 
   [AI_TOOL.GET_LOW_STOCK_ITEMS]: "inventory",
-  [AI_TOOL.FIND_STOCK_ITEMS]: "inventory",
   [AI_TOOL.RECORD_STOCK_MOVEMENT]: "inventory",
-  [AI_TOOL.GET_STOCK_MOVEMENTS]: "inventory",
   [AI_TOOL.REVERSE_STOCK_MOVEMENT]: "inventory",
 
   [AI_TOOL.RECORD_PAYMENT]: "billing",
-  [AI_TOOL.FIND_PAYMENTS]: "billing",
   [AI_TOOL.REVERSE_PAYMENT]: "billing",
 
   [AI_TOOL.GET_DAILY_STATS]: "reports",

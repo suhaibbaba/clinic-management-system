@@ -5,7 +5,6 @@ import {
   AI_TOOL,
   APPOINTMENT_STATUS,
   APPOINTMENT_STATUSES,
-  LAB_ORDER_STATUSES,
   addDays,
   clinicScheduleSettings,
   DEFAULT_TIME_ZONE,
@@ -22,22 +21,16 @@ import { AppointmentsService } from "@api/appointments/appointments.service";
 import { AvailabilityService } from "@api/appointments/availability.service";
 import { LedgerService } from "@api/billing/ledger.service";
 import { OverdueService } from "@api/billing/overdue.service";
-import { PaymentsService } from "@api/billing/payments.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DoctorsService } from "@api/doctors/doctors.service";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, visits } from "@api/database/schema";
-import { InventoryItemsService } from "@api/inventory/inventory-items.service";
-import { StockMovementsService } from "@api/inventory/stock-movements.service";
 import { InventoryReportsService } from "@api/inventory/inventory-reports.service";
 import { LabOrdersService } from "@api/labs/lab-orders.service";
-import { LabPaymentsService } from "@api/labs/lab-payments.service";
-import { LabsService } from "@api/labs/labs.service";
 import { PatientAccessService } from "@api/patients/patient-access.service";
 import { PatientsService } from "@api/patients/patients.service";
 import { TimelineService } from "@api/patients/timeline.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
-import { DoctorTimeOffService } from "@api/schedule/doctor-time-off.service";
 import { QUERY_CAPABILITY, QueryDataService, queryView } from "@api/ai/query/query-data.service";
 import { RouteToolRegistry } from "@api/ai/tools/route-tools";
 import { AiActionsService } from "@api/ai/actions/ai-actions.service";
@@ -70,12 +63,6 @@ const CAPABILITY = {
   LAB_ORDERS_OVERDUE: "lab-orders.overdue",
   INVENTORY_ALERTS: "inventory.alerts",
   QUERY: QUERY_CAPABILITY,
-  LAB_ORDERS_LIST: "lab-orders.list",
-  INVENTORY_ITEMS: "inventory.list",
-  INVENTORY_MOVEMENTS: "inventory.listMovements",
-  PAYMENTS_LIST: "payments.list",
-  LABS_LIST: "labs.list",
-  LAB_PAYMENTS_LIST: "lab-ledger.listPayments",
   OUTBOUND_SEND: "ai-outbound.send",
 } as const;
 
@@ -108,14 +95,8 @@ export class AiToolsService {
     private readonly overdue: OverdueService,
     private readonly labOrders: LabOrdersService,
     private readonly inventory: InventoryReportsService,
-    private readonly stockItems: InventoryItemsService,
-    private readonly timeOff: DoctorTimeOffService,
     private readonly query: QueryDataService,
     private readonly routes: RouteToolRegistry,
-    private readonly payments: PaymentsService,
-    private readonly labs: LabsService,
-    private readonly labPayments: LabPaymentsService,
-    private readonly movements: StockMovementsService,
     private readonly permissions: PermissionsService,
     private readonly proposals: ProposalsService,
     private readonly actions: AiActionsService,
@@ -243,175 +224,6 @@ export class AiToolsService {
           }
 
           return { doctorId: args.doctor_id, days };
-        },
-      }),
-
-      defineTool({
-        name: AI_TOOL.GET_DOCTOR_TIME_OFF,
-        description:
-          "A doctor's time off overlapping two local dates (inclusive), or all of it with no " +
-          "dates. Use it to find the time_off_id to change or remove.",
-        capability: null,
-        schema: z.object({
-          doctor_id: z.uuid(),
-          date_from: dateSchema.optional(),
-          date_to: dateSchema.optional(),
-        }),
-        run: async (actor, args) => {
-          const timeZone = await this.timeZone(actor.clinicId);
-          const page = await this.timeOff.list(actor, args.doctor_id, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-            ...(args.date_from && {
-              from: instantFromLocal(args.date_from, 0, timeZone).toISOString(),
-            }),
-            ...(args.date_to && {
-              to: instantFromLocal(addDays(args.date_to, 1), 0, timeZone).toISOString(),
-            }),
-          });
-
-          return capped(
-            page.items.map((row) => ({
-              id: row.id,
-              startsAt: row.startsAt,
-              endsAt: row.endsAt,
-              reason: row.reason,
-            })),
-            page.total,
-          );
-        },
-      }),
-
-      defineTool({
-        name: AI_TOOL.FIND_LAB_ORDERS,
-        description:
-          "Lab orders, narrowed by status, by patient (an id from search_patients) or by a " +
-          "search over the patient's name and the lab's. Use it to find the order to move along.",
-        capability: CAPABILITY.LAB_ORDERS_LIST,
-        schema: z.object({
-          status: z.enum(LAB_ORDER_STATUSES).optional(),
-          patient_id: z.uuid().optional(),
-          search: z.string().trim().min(2).max(160).optional(),
-        }),
-        run: async (actor, args) => {
-          const page = await this.labOrders.list(actor, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-            ...(args.status && { status: args.status }),
-            ...(args.patient_id && { patientId: args.patient_id }),
-            ...(args.search && { search: args.search }),
-          });
-
-          return capped(page.items.map(toLabOrderSummary), page.total);
-        },
-      }),
-
-      defineTool({
-        name: AI_TOOL.FIND_STOCK_ITEMS,
-        description:
-          "Stock items by name, with the quantity on hand in the item's own unit. Use it to " +
-          "find the item_id for a purchase, a use or a count.",
-        capability: CAPABILITY.INVENTORY_ITEMS,
-        schema: z.object({ query: z.string().trim().min(1).max(160).optional() }),
-        run: async (actor, args) => {
-          const page = await this.stockItems.list(actor, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-            ...(args.query && { search: args.query }),
-          });
-
-          return capped(page.items.map(toStockSummary), page.total);
-        },
-      }),
-
-      defineTool({
-        name: AI_TOOL.FIND_PAYMENTS,
-        description:
-          "A patient's payments, newest first, with their receipt numbers. A row with " +
-          "reversesId is a reversal of the payment it names. Use it to find the payment_id " +
-          "to reverse.",
-        capability: CAPABILITY.PAYMENTS_LIST,
-        schema: z.object({ patient_id: z.uuid() }),
-        run: async (actor, args) => {
-          const page = await this.payments.list(actor, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-            patientId: args.patient_id,
-          });
-
-          return capped(page.items.map(toPaymentSummary), page.total);
-        },
-      }),
-
-      defineTool({
-        name: AI_TOOL.FIND_LABS,
-        description:
-          "The clinic's labs by name, with what the clinic owes each and how many orders are " +
-          "open. Use it to turn a lab's name into a lab_id.",
-        capability: CAPABILITY.LABS_LIST,
-        schema: z.object({ query: z.string().trim().min(1).max(160).optional() }),
-        run: async (actor, args) => {
-          const page = await this.labs.list(actor, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-            ...(args.query && { search: args.query }),
-          });
-
-          return capped(
-            page.items.map((lab) => ({
-              id: lab.id,
-              name: lab.name,
-              balance: lab.balance,
-              openOrders: lab.openOrders,
-            })),
-            page.total,
-          );
-        },
-      }),
-
-      defineTool({
-        name: AI_TOOL.GET_LAB_PAYMENTS,
-        description:
-          "What the clinic paid one lab, newest first. A row with reversesId is a reversal of " +
-          "the payment it names. Use it to find the lab_payment_id to reverse.",
-        capability: CAPABILITY.LAB_PAYMENTS_LIST,
-        schema: z.object({ lab_id: z.uuid() }),
-        run: async (actor, args) => {
-          const page = await this.labPayments.list(actor, args.lab_id, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-          });
-
-          return capped(page.items.map(toPaymentSummary), page.total);
-        },
-      }),
-
-      defineTool({
-        name: AI_TOOL.GET_STOCK_MOVEMENTS,
-        description:
-          "One stock item's movements, newest first: purchases, uses and counts. A row with " +
-          "reversesId is a reversal. Use it to find the movement_id to reverse.",
-        capability: CAPABILITY.INVENTORY_MOVEMENTS,
-        schema: z.object({ item_id: z.uuid() }),
-        run: async (actor, args) => {
-          const page = await this.movements.list(actor, {
-            page: 1,
-            limit: TOOL_ROW_LIMIT,
-            itemId: args.item_id,
-          });
-
-          return capped(
-            page.items.map((movement) => ({
-              id: movement.id,
-              type: movement.type,
-              quantity: movement.quantity,
-              reason: movement.reason,
-              reversesId: movement.reversesId,
-              reversedAt: movement.reversedAt,
-              createdAt: movement.createdAt,
-            })),
-            page.total,
-          );
         },
       }),
 
@@ -793,24 +605,6 @@ const toLabOrderSummary = (order: LabOrderRow) => ({
   status: order.status,
   expectedAt: order.expectedAt,
   teeth: order.teeth,
-});
-
-const toPaymentSummary = (payment: {
-  id: string;
-  amount: string;
-  method: string;
-  note: string | null;
-  reversesId: string | null;
-  createdAt: string;
-  receiptNumber?: number | null;
-}) => ({
-  id: payment.id,
-  amount: payment.amount,
-  method: payment.method,
-  receiptNumber: payment.receiptNumber ?? null,
-  note: payment.note,
-  reversesId: payment.reversesId,
-  createdAt: payment.createdAt,
 });
 
 function maskPhones(value: unknown): unknown {

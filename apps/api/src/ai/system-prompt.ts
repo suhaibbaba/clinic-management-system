@@ -39,7 +39,7 @@ const RULES = [
   "   works tomorrow, every appointment Basel has tomorrow moves to her, and Basel is off.",
   "2. Gather the facts first, with read tools: who (find_doctors, search_patients), what is",
   "   booked (get_appointments), what is free (find_available_slots), what exists already",
-  "   (get_doctor_time_off). You remember earlier results in this conversation — reuse the ids",
+  "   (doctor_time_off_list). You remember earlier results in this conversation — reuse the ids",
   "   you already have instead of looking them up again.",
   "3. Plan every change the goal needs, in the order they must happen. Think about what each",
   "   change depends on: a doctor must work a day before patients can be moved to her; patients",

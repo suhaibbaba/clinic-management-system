@@ -15,7 +15,12 @@ function runner(): ToolRunnerService {
     new (type as unknown as new (...args: unknown[]) => T)(...Array<unknown>(30).fill(standIn));
   const tools = construct(AiToolsService);
 
-  Object.assign(tools, { actions: construct(AiActionsService) });
+  const actions = construct(AiActionsService);
+  // No routes here: the ceiling is about the core set, which no generated tool belongs to.
+  const routes = { list: () => [] };
+
+  Object.assign(actions, { routes });
+  Object.assign(tools, { actions, routes });
 
   return new ToolRunnerService(
     standIn as Database,
