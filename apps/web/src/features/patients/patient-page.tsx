@@ -170,11 +170,11 @@ export function PatientPage(): JSX.Element {
                 <dt className="text-value text-ink-muted">{t("patients.phone")}</dt>
                 {/* The 44px band is an absolutely positioned `::after`, and an `overflow-hidden`
                     ancestor cuts it down to the line box. */}
-                <dd className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-value text-ink">
+                <dd className="mt-0.5 flex min-w-0 flex-col items-start gap-1 text-value text-ink">
                   <PhoneLink value={patient.data.phone} data-testid="patient-phone" />
                   <WhatsAppLink
                     value={whatsAppNumber(patient.data)}
-                    label={t("patients.whatsapp")}
+                    label={t("patients.chatOnWhatsapp")}
                     data-testid="patient-whatsapp"
                   />
                 </dd>

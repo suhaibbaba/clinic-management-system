@@ -108,7 +108,6 @@ export function NewPatientFields({
           <DatePicker
             id={`${id}-dob`}
             data-testid="new-patient-dob"
-            startView="years"
             label={t("patients.dateOfBirth")}
             value={draft.dateOfBirth ?? ""}
             onChange={(next) => onChange({ ...draft, dateOfBirth: next })}

@@ -32,6 +32,15 @@ export interface Column<TRow> {
   readonly besideTitleOnMobile?: boolean | undefined;
   /** Numeric values: lining, tabular figures so columns of money line up. */
   readonly align?: "start" | "end" | "numeric" | undefined;
+  /** Makes the header a button that orders the list by this key; the table's `sort` says how. */
+  readonly sortKey?: string | undefined;
+}
+
+export interface TableSort {
+  /** The column's `sortKey` the list is ordered by; null is the list's own order. */
+  readonly key: string | null;
+  readonly dir: "asc" | "desc";
+  readonly onChange: (key: string | null, dir: "asc" | "desc") => void;
 }
 
 export interface TableProps<TRow> extends TestIdProps {
@@ -53,6 +62,8 @@ export interface TableProps<TRow> extends TestIdProps {
    * and it scrolls sideways on a phone rather than turning into cards.
    */
   density?: "default" | "compact" | undefined;
+  /** Server-side ordering: the table draws the headers, the caller fetches in that order. */
+  sort?: TableSort | undefined;
 }
 
 export interface PaginationProps extends TestIdProps {
@@ -91,6 +102,7 @@ export function Table<TRow>({
   rowLabel,
   header,
   density = "default",
+  sort,
   "data-testid": testId,
 }: TableProps<TRow>): JSX.Element {
   const { t } = useTranslation();
@@ -318,6 +330,15 @@ export function Table<TRow>({
                   data-part="table-head-cell"
                   {...testid(testId, `head-${column.key}`)}
                   scope="col"
+                  {...(column.sortKey !== undefined &&
+                    sort !== undefined && {
+                      "aria-sort":
+                        sort.key === column.sortKey
+                          ? sort.dir === "asc"
+                            ? "ascending"
+                            : "descending"
+                          : "none",
+                    })}
                   className={cn(
                     "whitespace-nowrap border-b border-line bg-table-head",
                     compact ? "sticky top-0 h-(--control-h-sm) px-3" : "px-[18px] py-[13px]",
@@ -326,7 +347,16 @@ export function Table<TRow>({
                     column.className,
                   )}
                 >
-                  {t(column.header)}
+                  {column.sortKey !== undefined && sort !== undefined ? (
+                    <SortButton
+                      label={t(column.header)}
+                      columnKey={column.sortKey}
+                      sort={sort}
+                      {...testid(testId, `sort-${column.key}`)}
+                    />
+                  ) : (
+                    t(column.header)
+                  )}
                 </th>
               ))}
             </tr>
@@ -374,6 +404,55 @@ export function Table<TRow>({
 
       {pagination !== undefined && <Pagination {...pagination} {...testid(testId, "pagination")} />}
     </div>
+  );
+}
+
+// Highest first is the question a column of figures is sorted to answer, so it comes first; a
+// third press returns the list to its own order.
+function SortButton({
+  label,
+  columnKey,
+  sort,
+  "data-testid": testId,
+}: {
+  readonly label: string;
+  readonly columnKey: string;
+  readonly sort: TableSort;
+} & TestIdProps): JSX.Element {
+  const active = sort.key === columnKey;
+
+  const next = (): void => {
+    if (!active) {
+      sort.onChange(columnKey, "desc");
+    } else if (sort.dir === "desc") {
+      sort.onChange(columnKey, "asc");
+    } else {
+      sort.onChange(null, "desc");
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      data-part="table-sort"
+      {...testid(testId)}
+      onClick={next}
+      className={cn(
+        "group inline-flex cursor-pointer items-center gap-1 rounded-control",
+        "transition-colors duration-150 hover:text-ink",
+        active && "text-ink",
+      )}
+    >
+      {label}
+      {/* Both chevrons while the list keeps its own order, the one it runs in once sorted. */}
+      <Icon
+        name={active ? (sort.dir === "asc" ? "chevron-up" : "chevron-down") : "chevrons-up-down"}
+        className={cn(
+          "size-3.5 transition-opacity duration-150",
+          active ? "opacity-100" : "opacity-50 group-hover:opacity-80",
+        )}
+      />
+    </button>
   );
 }
 

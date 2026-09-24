@@ -102,7 +102,7 @@ export function WhatsAppLink({
       title={value ?? undefined}
       className={cn(LINK_CLASS, "inline-flex items-center gap-1", className)}
     >
-      <Icon name="message" className="size-4 shrink-0" />
+      <Icon name="whatsapp" className="size-4 shrink-0 text-success-700" />
       {label}
     </a>
   );

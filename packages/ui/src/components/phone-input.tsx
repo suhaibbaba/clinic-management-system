@@ -167,7 +167,7 @@ export function PhoneInput({
           const entry = PHONE_COUNTRIES.find((item) => item.country === option.value);
 
           return entry ? (
-            <span className="inline-flex items-center gap-2 tabular-nums">
+            <span className="inline-flex items-center gap-2 tabular-nums" dir="ltr">
               <Flag country={entry.country} />
               {entry.dial}
             </span>

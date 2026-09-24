@@ -62,6 +62,8 @@ export const patientsApi = {
         search: query.search,
         hasBalance: query.hasBalance,
         visitedSince: query.visitedSince,
+        sort: query.sort,
+        dir: query.dir,
       },
     }),
 

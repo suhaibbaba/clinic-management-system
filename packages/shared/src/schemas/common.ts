@@ -37,6 +37,7 @@ export interface Paginated<TItem> {
 export const phoneSchema = z
   .string()
   .trim()
+  .min(1)
   .max(32)
   .refine(
     (value) => value.startsWith("+") || value.startsWith("00"),

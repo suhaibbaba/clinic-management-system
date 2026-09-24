@@ -77,9 +77,7 @@
       "previousMonth": "الشهر السابق",
       "nextMonth": "الشهر التالي",
       "previousYear": "السنة السابقة",
-      "nextYear": "السنة التالية",
-      "previousYears": "السنوات السابقة",
-      "nextYears": "السنوات التالية"
+      "nextYear": "السنة التالية"
     },
     "showPassword": "إظهار كلمة المرور",
     "hidePassword": "إخفاء كلمة المرور"
@@ -445,8 +443,9 @@
     }
   },
   "patients": {
-    "whatsapp": "واتساب",
-    "whatsappHint": "اتركه فارغاً إذا كان الواتساب على رقم الهاتف نفسه",
+    "whatsapp": "WhatsApp",
+    "whatsappHint": "اتركه فارغاً إذا كان WhatsApp على رقم الهاتف نفسه",
+    "chatOnWhatsapp": "تحدث عبر WhatsApp",
     "address": "العنوان",
     "age": "العمر",
     "allergies": "تحسّس",
@@ -2069,9 +2068,9 @@
           "confirmClear": "إزالة مفتاح OpenAI؟ المساعد برجع يستخدم إعدادات الخادم."
         },
         "whatsapp": {
-          "title": "واتساب للأعمال",
-          "hint": "حساب واتساب العيادة للرسائل والتذكيرات. لازم القالب يكون معتمد من Meta.",
-          "confirmClear": "إزالة بيانات واتساب؟ الرسائل برجع تنبعت بإعدادات الخادم."
+          "title": "WhatsApp Business",
+          "hint": "حساب WhatsApp العيادة للرسائل والتذكيرات. لازم القالب يكون معتمد من Meta.",
+          "confirmClear": "إزالة بيانات WhatsApp؟ الرسائل برجع تنبعت بإعدادات الخادم."
         }
       },
       "kinds": {

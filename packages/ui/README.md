@@ -152,7 +152,7 @@ testid: it is the one attribute a test may rename.
 | `avatar` — `Avatar`                           | A person at a glance: photo, or initials on a tint keyed to a stable id.                     |
 | `badge` — `Badge`, `Chip`, `PILL_BASE`        | The one pill. `Badge` states, `Chip` chooses; never a solid fill.                            |
 | `button` — `Button`                           | Five variants, two heights. One filled primary per page.                                     |
-| `calendar` — `Calendar`                       | Days, months, years; `startView="years"` for a date of birth.                                |
+| `calendar` — `Calendar`                       | Opens on the days; the caption zooms out to months, then a scrolling list of years.          |
 | `card` — `Card`                               | The panel: hairline, soft shadow, optional selected outline that takes no layout.            |
 | `chat-bubble` — `ChatBubble`                  | A turn in a conversation: the question hugs its text, the answer fills the column.           |
 | `chat-composer` — `ChatComposer`              | The box a question is typed in. Enter sends, Shift+Enter breaks, and it grows to five lines. |
