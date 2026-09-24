@@ -302,9 +302,9 @@ export function PatientsPage(): JSX.Element {
         />
 
         {query.data !== undefined && (
-          <p data-testid="patients-count" className="text-meta text-ink-muted">
+          <Badge tone="wash" plain data-testid="patients-count" className="shrink-0">
             {t("pagination.total", { total: query.data.total })}
-          </p>
+          </Badge>
         )}
       </div>
 
