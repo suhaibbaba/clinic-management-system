@@ -188,6 +188,28 @@ describe("Patients permission boundaries (e2e)", () => {
     }
   });
 
+  it("keeps a prescription to its own patient's visit, with the dose and frequency optional", async () => {
+    const otherPatientId = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
+      ...nameParts("مريض آخر"),
+      phone: uniquePhone(),
+    });
+    const prescribe = (forPatient: string) =>
+      context.app.inject({
+        method: "POST",
+        url: "/prescriptions",
+        headers: auth(tokens[USER_ROLE.DOCTOR]),
+        payload: {
+          patientId: forPatient,
+          visitId,
+          doctorId: fixtures.doctorId,
+          items: [{ drug: "مضاد التهاب", duration: "٥ أيام" }],
+        },
+      });
+
+    expect((await prescribe(otherPatientId)).statusCode).toBe(400);
+    expect((await prescribe(patientId)).statusCode).toBe(201);
+  });
+
   it("gives a receptionist the procedure catalog as names and prices only", async () => {
     const response = await context.app.inject({
       method: "GET",

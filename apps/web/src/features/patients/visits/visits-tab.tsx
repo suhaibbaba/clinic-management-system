@@ -1,4 +1,9 @@
-import type { PatientClinicalView, PerformedProcedure, Visit } from "@clinic/shared";
+import type {
+  PatientClinicalView,
+  PerformedProcedure,
+  PrescriptionItem,
+  Visit,
+} from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, EmptyState, Icon, Ltr, usePersonName, useToast } from "@clinic/ui";
@@ -11,8 +16,10 @@ import {
   ProcedureForm,
   type ProcedureFormValues,
 } from "@web/features/patients/procedures/procedure-form";
+import { describeItem } from "@web/features/patients/prescriptions/prescriptions-tab";
 import {
   useCreateProcedure,
+  usePatientPrescriptions,
   usePatientProcedures,
   usePatientVisits,
   useProcedureCatalog,
@@ -38,6 +45,7 @@ export function VisitsTab({
   const visits = usePatientVisits(patientId);
   const showSkeleton = useDelayedLoading(visits.isPending);
   const procedures = usePatientProcedures(patientId);
+  const prescriptions = usePatientPrescriptions(patientId);
   const catalog = useProcedureCatalog();
   const doctors = useDoctors({ limit: 100 });
 
@@ -66,6 +74,21 @@ export function VisitsTab({
 
     return grouped;
   }, [procedures.data]);
+
+  const prescriptionsByVisit = useMemo(() => {
+    const grouped = new Map<string, PrescriptionItem[]>();
+
+    for (const prescription of prescriptions.data ?? []) {
+      if (prescription.visitId) {
+        grouped.set(prescription.visitId, [
+          ...(grouped.get(prescription.visitId) ?? []),
+          ...prescription.items,
+        ]);
+      }
+    }
+
+    return grouped;
+  }, [prescriptions.data]);
 
   const displayName = usePersonName();
   const doctorName = (id: string): string =>
@@ -294,6 +317,27 @@ export function VisitsTab({
                   </div>
                 )}
               </section>
+
+              {(prescriptionsByVisit.get(visit.id) ?? []).length > 0 && (
+                <section
+                  data-testid="visit-prescriptions"
+                  className="mt-4 border-t border-line pt-3"
+                >
+                  <h3 className="text-label font-semibold uppercase tracking-wide text-ink-muted">
+                    {t("patients.tabs.prescriptions")}
+                  </h3>
+                  <ul className="mt-2 flex flex-col gap-1">
+                    {(prescriptionsByVisit.get(visit.id) ?? []).map((item, index) => (
+                      <li key={index} className="text-value text-ink">
+                        <span className="font-medium">{item.drug}</span>
+                        {describeItem(item) && (
+                          <span className="text-ink-muted"> · {describeItem(item)}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
             </li>
           );
         })}

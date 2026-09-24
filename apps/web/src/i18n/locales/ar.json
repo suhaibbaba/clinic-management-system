@@ -478,9 +478,7 @@
       "attachments": "الأشعة والمرفقات",
       "prescriptions": "الوصفات",
       "timeline": "الخط الزمني",
-      "billing": "الحساب المالي",
-      "comingSoon": "هذا القسم قيد التطوير",
-      "comingSoonHint": "سيتوفّر مع الوحدة الخاصة به."
+      "billing": "الحساب المالي"
     },
     "timeline": {
       "empty": "لا توجد أحداث بعد",
@@ -561,6 +559,33 @@
       "recorded": "تم تسجيل المعالجة",
       "procedureCount": "{{count}} معالجة"
     }
+  },
+  "prescriptions": {
+    "count": "{{count}} وصفة",
+    "create": "إضافة وصفة",
+    "edit": "تعديل الوصفة",
+    "created": "تم حفظ الوصفة",
+    "updated": "تم تعديل الوصفة",
+    "empty": "لا توجد وصفات بعد",
+    "emptyHint": "سجّل ما وصفته في كل مراجعة لتتذكّره لاحقاً",
+    "loadFailed": "تعذّر تحميل الوصفات",
+    "noVisits": "لا توجد مراجعات لهذا المريض",
+    "noVisitsHint": "أضف مراجعة من تبويب المراجعات أولاً، ثم اربط الوصفة بها",
+    "visit": "المراجعة",
+    "forVisit": "مراجعة {{date}}",
+    "withoutVisit": "بدون مراجعة",
+    "drug": "الدواء",
+    "dose": "الجرعة",
+    "frequency": "عدد المرات",
+    "duration": "المدة",
+    "notes": "ملاحظات",
+    "drugPlaceholder": "مثلاً: مضاد التهاب",
+    "dosePlaceholder": "مثلاً: 400 ملغ",
+    "frequencyPlaceholder": "مثلاً: مرتين يومياً",
+    "durationPlaceholder": "مثلاً: 5 أيام",
+    "addDrug": "إضافة دواء",
+    "removeDrug": "حذف الدواء",
+    "drugNumber": "الدواء {{number}}"
   },
   "visits": {
     "create": "تسجيل زيارة",

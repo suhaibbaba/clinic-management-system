@@ -24,6 +24,9 @@ export const canManageAttachments = (can: Can): boolean => can("patient-attachme
 /** Soft-deleting an attachment; nothing here is ever hard-deleted. */
 export const canDeleteAttachment = (can: Can): boolean => can("attachments.remove");
 
+/** Writing or correcting a prescription: admin and doctor. */
+export const canWritePrescription = (can: Can): boolean => can("prescriptions.create");
+
 export const canCreatePatient = (can: Can): boolean => can("patients.create");
 
 export const canEditPatient = (can: Can): boolean => can("patients.update");

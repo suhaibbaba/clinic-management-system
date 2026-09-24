@@ -4,6 +4,7 @@ import type {
   ConfirmAttachmentUploadInput,
   CreatePatientInput,
   CreatePerformedProcedureInput,
+  CreatePrescriptionInput,
   CreateTreatmentPlanInput,
   CreateTreatmentPlanItemInput,
   CreateVisitInput,
@@ -14,6 +15,7 @@ import type {
   PatientClinicalView,
   PatientView,
   PerformedProcedure,
+  Prescription,
   PresignAttachmentUploadInput,
   PresignAttachmentUploadResponse,
   ProcedureCatalogItem,
@@ -23,6 +25,7 @@ import type {
   TreatmentPlanItem,
   UpdatePatientInput,
   UpdatePerformedProcedureInput,
+  UpdatePrescriptionInput,
   UpdateTreatmentPlanInput,
   UpdateTreatmentPlanItemInput,
   UpdateVisitInput,
@@ -112,6 +115,19 @@ export const patientsApi = {
 
   updateVisit: (id: string, body: UpdateVisitInput): Promise<Visit> =>
     apiRequest(`/visits/${id}`, { method: "PATCH", body }),
+
+  prescriptions: (patientId: string): Promise<Prescription[]> =>
+    fetchAllPages((page) =>
+      apiRequest<Paginated<Prescription>>("/prescriptions", {
+        query: { patientId, page, limit: PAGE_LIMIT },
+      }),
+    ),
+
+  createPrescription: (body: CreatePrescriptionInput): Promise<Prescription> =>
+    apiRequest("/prescriptions", { method: "POST", body }),
+
+  updatePrescription: (id: string, body: UpdatePrescriptionInput): Promise<Prescription> =>
+    apiRequest(`/prescriptions/${id}`, { method: "PATCH", body }),
 
   treatmentPlans: (patientId: string): Promise<TreatmentPlan[]> =>
     fetchAllPages((page) =>

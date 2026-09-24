@@ -46,6 +46,7 @@ function handlers(overrides: Record<string, MockResponse | unknown> = {}) {
     "GET /procedure-catalog": { status: 200, body: paginated([CATALOG, CROWN]) },
     "GET /performed-procedures": { status: 200, body: paginated([]) },
     "GET /visits": { status: 200, body: paginated([]) },
+    "GET /prescriptions": { status: 200, body: paginated([]) },
     "GET /treatment-plans": { status: 200, body: paginated([]) },
     [`GET /patients/${PATIENT_ID}/attachments`]: { status: 200, body: paginated([]) },
     ...overrides,
@@ -182,6 +183,43 @@ describe("Visits tab", () => {
       expect(call?.body).toMatchObject({ patientId: PATIENT_ID, visitId: visit.id });
       // No tooth was named here, so nothing is charted.
       expect((call?.body as { chartMarks: unknown[] }).chartMarks).toEqual([]);
+    });
+  });
+});
+
+describe("Prescriptions tab", () => {
+  beforeEach(() => authTokens.clear());
+
+  it("keeps a drug and its duration against the visit, dose and frequency left out", async () => {
+    const visit = makeVisit();
+    const api = await openTab(ar.patients.tabs.prescriptions, {
+      "GET /visits": { status: 200, body: paginated([visit]) },
+      "POST /prescriptions": { status: 201, body: {} },
+    });
+
+    await userEvent.click(await screen.findByRole("button", { name: ar.prescriptions.create }));
+
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(
+      within(dialog).getByRole("textbox", { name: ar.prescriptions.drug }),
+      "مضاد التهاب",
+    );
+    await userEvent.type(
+      within(dialog).getByRole("textbox", { name: ar.prescriptions.duration }),
+      "5 أيام",
+    );
+    await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
+
+    await waitFor(() => {
+      const call = api.calls.find(
+        (entry) => entry.method === "POST" && entry.url.endsWith("/prescriptions"),
+      );
+      expect(call?.body).toMatchObject({
+        patientId: PATIENT_ID,
+        visitId: visit.id,
+        doctorId: visit.doctorId,
+        items: [{ drug: "مضاد التهاب", dose: null, frequency: null, duration: "5 أيام" }],
+      });
     });
   });
 });

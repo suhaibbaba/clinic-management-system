@@ -5,6 +5,7 @@ import type {
   ConfirmAttachmentUploadInput,
   CreatePatientInput,
   CreatePerformedProcedureInput,
+  CreatePrescriptionInput,
   CreateTreatmentPlanInput,
   CreateTreatmentPlanItemInput,
   CreateVisitInput,
@@ -14,6 +15,7 @@ import type {
   PatientClinicalView,
   PatientView,
   PerformedProcedure,
+  Prescription,
   PresignAttachmentUploadInput,
   ProcedureCatalogItem,
   TimelineEntry,
@@ -34,6 +36,7 @@ export const TOOTH_HISTORY_KEY = "tooth-history";
 export const CATALOG_KEY = "procedure-catalog";
 export const PATIENTS_KEY = "patients";
 export const PATIENT_VISITS_KEY = "patient-visits";
+export const PATIENT_PRESCRIPTIONS_KEY = "patient-prescriptions";
 export const PATIENT_PLANS_KEY = "patient-treatment-plans";
 export const PATIENT_ATTACHMENTS_KEY = "patient-attachments";
 export const PATIENT_TIMELINE_KEY = "patient-timeline";
@@ -216,6 +219,33 @@ export function useSaveVisit(patientId: string) {
     mutationFn: ({ id, body }: { id?: string | undefined; body: CreateVisitInput }) =>
       id ? patientsApi.updateVisit(id, body as UpdateVisitInput) : patientsApi.createVisit(body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENT_VISITS_KEY, patientId] }),
+  });
+}
+
+export function usePatientPrescriptions(patientId: string): UseQueryResult<Prescription[]> {
+  return useQuery({
+    queryKey: [PATIENT_PRESCRIPTIONS_KEY, patientId],
+    queryFn: () => patientsApi.prescriptions(patientId),
+  });
+}
+
+export function useSavePrescription(patientId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, body }: { id?: string | undefined; body: CreatePrescriptionInput }) => {
+      if (!id) {
+        return patientsApi.createPrescription(body);
+      }
+
+      const { patientId: _patient, ...changes } = body;
+
+      return patientsApi.updatePrescription(id, changes);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: [PATIENT_PRESCRIPTIONS_KEY, patientId] });
+      void queryClient.invalidateQueries({ queryKey: [PATIENT_TIMELINE_KEY, patientId] });
+    },
   });
 }
 
