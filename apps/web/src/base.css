@@ -25,19 +25,6 @@
   background-image: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-900));
 }
 
-/* The calendar's hour rules, painted rather than built: fifteen absolutely-positioned divs per
-   doctor column is a static grid React re-created on every commit. The row height arrives as
-   `--hour-height`, which is a length rather than a colour. */
-@utility hour-rules {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    var(--color-line) 0,
-    var(--color-line) 1px,
-    transparent 1px,
-    transparent var(--hour-height, 60px)
-  );
-}
-
 /* Hatching, not a fill: a fill is what an appointment is, and a block that reads as one is a block
    somebody clicks looking for a patient. */
 .hatched {

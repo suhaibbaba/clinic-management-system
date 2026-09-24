@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 import type {
   Availability,
   AvailabilityQuery,
@@ -65,6 +71,30 @@ export function useAvailability(
     queryFn: () => appointmentsApi.availability(query as AvailabilityQuery),
     enabled: ready,
     staleTime: 0,
+  });
+}
+
+/** One availability answer per doctor for a day, keyed by doctor id; a missing key is loading. */
+export function useDayAvailability(
+  date: string,
+  doctorIds: readonly string[],
+  stepMinutes: number,
+  enabled: boolean,
+): ReadonlyMap<string, Availability> {
+  return useQueries({
+    queries: doctorIds.map((doctorId) => {
+      const query: AvailabilityQuery = { doctorId, date, durationMinutes: stepMinutes };
+
+      return {
+        queryKey: [AVAILABILITY_KEY, query],
+        queryFn: () => appointmentsApi.availability(query),
+        enabled,
+      };
+    }),
+    combine: (results) =>
+      new Map(
+        results.flatMap((result) => (result.data ? [[result.data.doctorId, result.data]] : [])),
+      ),
   });
 }
 

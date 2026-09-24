@@ -713,7 +713,6 @@
     "loadFailed": "Could not load the calendar.",
     "created": "Appointment booked",
     "updated": "Appointment updated",
-    "moved": "Appointment moved",
     "conflict": "That time is already booked for this doctor",
     "statuses": {
       "requested": "Awaiting confirmation",
@@ -805,8 +804,15 @@
       }
     },
     "grid": {
-      "dragHint": "Drag an appointment to change its time.",
       "closedOn": "The clinic is closed: {{reason}}"
+    },
+    "queue": {
+      "free": "Free",
+      "offDuty": "Off duty",
+      "overlap": "Overlapping",
+      "now": "Now",
+      "timeOff": "Away",
+      "closed": "Clinic closed"
     },
     "tabs": {
       "label": "Appointment views",

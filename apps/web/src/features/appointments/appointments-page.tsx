@@ -19,7 +19,6 @@ import {
   StatCard,
   StatRow,
   usePersonName,
-  useToast,
 } from "@clinic/ui";
 import { RefreshBar, SkeletonCalendarDay } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/features/auth/session";
@@ -32,11 +31,12 @@ import { AppointmentFormModal } from "@web/features/appointments/appointment-for
 import {
   addDays,
   instantAt,
+  QUEUE_STEP_MINUTES,
   startOfWeek,
   todayIso,
 } from "@web/features/appointments/calendar-time";
 import { setClinicTimeZone } from "@web/lib/clinic-zone";
-import { DayGrid } from "@web/features/appointments/day-grid";
+import { DayQueue } from "@web/features/appointments/day-queue";
 import {
   canBookAppointment,
   canManageWaitingList,
@@ -44,14 +44,14 @@ import {
 } from "@web/features/appointments/permissions";
 import {
   useCalendar,
-  useUpdateAppointment,
+  useDayAvailability,
   useWaitingList,
 } from "@web/features/appointments/queries";
 import { TodayRibbon } from "@web/features/appointments/today-ribbon";
 import { WaitingListPanel } from "@web/features/appointments/waiting-list-panel";
 import { WeekView } from "@web/features/appointments/week-view";
-import { errorMessageKey } from "@web/lib/api-error";
-import { formatDate } from "@web/lib/format";
+import { useNowMinute } from "@web/features/appointments/use-now-minute";
+import { dayAndDate, formatDate } from "@web/lib/format";
 import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { useIsMobile } from "@clinic/ui/lib/use-media-query";
 
@@ -63,11 +63,9 @@ export function AppointmentsPage(): JSX.Element {
   const { t } = useTranslation();
   const doctorName = usePersonName();
   const { user, can } = useSession();
-  const toast = useToast();
   const isMobile = useIsMobile();
 
   const doctors = useDoctors({ limit: 100 });
-  const update = useUpdateAppointment();
 
   // Every time on this page is drawn in the clinic's zone, not the browser's —
   // see `clinic-zone.ts` for why that distinction is not academic.
@@ -197,19 +195,6 @@ export function AppointmentsPage(): JSX.Element {
   const step = (direction: -1 | 1): void =>
     setDate(addDays(date, effectiveRange === "week" ? direction * 7 : direction));
 
-  const move = async (appointment: CalendarAppointment, minute: number): Promise<void> => {
-    try {
-      await update.mutateAsync({
-        id: appointment.id,
-        body: { startsAt: instantAt(date, minute) },
-      });
-      toast.success("appointments.moved");
-    } catch (error) {
-      // A 409 lands here: the slot was taken between the drag and the drop.
-      toast.error(errorMessageKey(error));
-    }
-  };
-
   const openForm = (defaults?: { date?: string; doctorId?: string; startsAt?: string }): void => {
     setEditing(undefined);
     setScheduling(undefined);
@@ -224,10 +209,33 @@ export function AppointmentsPage(): JSX.Element {
     setFormOpen(true);
   };
 
+  const queueShown = effectiveRange === "day" && !isMobile;
+  const availability = useDayAvailability(
+    date,
+    columns.map((doctor) => doctor.id),
+    QUEUE_STEP_MINUTES,
+    queueShown,
+  );
+  const nowMinute = useNowMinute();
+
+  const weekStart = startOfWeek(date);
+  const longDay = dayAndDate(date);
+
   const label =
-    effectiveRange === "week"
-      ? `${formatDate(startOfWeek(date))} – ${formatDate(addDays(startOfWeek(date), 6))}`
-      : formatDate(date);
+    effectiveRange === "week" ? (
+      <>
+        <Ltr>{formatDate(weekStart)}</Ltr>
+        <span>–</span>
+        <Ltr>{formatDate(addDays(weekStart, 6))}</Ltr>
+      </>
+    ) : queueShown ? (
+      <>
+        <span>{longDay.weekday}</span>
+        <Ltr>{longDay.date}</Ltr>
+      </>
+    ) : (
+      <Ltr>{formatDate(date)}</Ltr>
+    );
 
   return (
     <div data-testid="appointments-page" className="flex flex-col gap-5">
@@ -267,54 +275,47 @@ export function AppointmentsPage(): JSX.Element {
         }
       />
 
-      {/* Last on a phone, where four cards and a ribbon fill the screen before
-          the calendar starts. The summary is worth reading; it is not worth
-          reading *first* on the device the day is checked on. */}
-      <div className="order-last sm:order-none">
-        <StatRow data-testid="appointments-kpis">
+      <StatRow data-testid="appointments-kpis">
+        <StatCard
+          icon="calendar"
+          data-testid="appointments-kpi-today"
+          label={t("appointments.kpi.today")}
+          value={todayStats.total}
+          caption={formatDate(todayIso())}
+        />
+        <StatCard
+          icon="user-plus"
+          tone="success"
+          data-testid="appointments-kpi-arrived"
+          label={t("appointments.kpi.arrived")}
+          value={todayStats.attended}
+        />
+        <StatCard
+          icon="clock"
+          tone="warning"
+          data-testid="appointments-kpi-remaining"
+          label={t("appointments.kpi.remaining")}
+          value={todayStats.remaining}
+        />
+        <StatCard
+          icon="activity"
+          data-testid="appointments-kpi-attendance"
+          tone={todayStats.attendance !== null && todayStats.attendance < 70 ? "danger" : "primary"}
+          label={t("appointments.kpi.attendance")}
+          value={todayStats.attendance === null ? "—" : `${todayStats.attendance}%`}
+          caption={t("appointments.kpi.attendanceCaption")}
+        />
+        {frontDesk && (
           <StatCard
-            icon="calendar"
-            data-testid="appointments-kpi-today"
-            label={t("appointments.kpi.today")}
-            value={todayStats.total}
-            caption={formatDate(todayIso())}
+            icon="globe"
+            data-testid="appointments-kpi-online-today"
+            tone={(onlineToday.data?.total ?? 0) > 0 ? "warning" : "primary"}
+            label={t("appointments.kpi.onlineToday")}
+            value={onlineToday.data?.total ?? 0}
+            caption={t("appointments.kpi.onlineTodayCaption")}
           />
-          <StatCard
-            icon="user-plus"
-            tone="success"
-            data-testid="appointments-kpi-arrived"
-            label={t("appointments.kpi.arrived")}
-            value={todayStats.attended}
-          />
-          <StatCard
-            icon="clock"
-            tone="warning"
-            data-testid="appointments-kpi-remaining"
-            label={t("appointments.kpi.remaining")}
-            value={todayStats.remaining}
-          />
-          <StatCard
-            icon="activity"
-            data-testid="appointments-kpi-attendance"
-            tone={
-              todayStats.attendance !== null && todayStats.attendance < 70 ? "danger" : "primary"
-            }
-            label={t("appointments.kpi.attendance")}
-            value={todayStats.attendance === null ? "—" : `${todayStats.attendance}%`}
-            caption={t("appointments.kpi.attendanceCaption")}
-          />
-          {frontDesk && (
-            <StatCard
-              icon="globe"
-              data-testid="appointments-kpi-online-today"
-              tone={(onlineToday.data?.total ?? 0) > 0 ? "warning" : "primary"}
-              label={t("appointments.kpi.onlineToday")}
-              value={onlineToday.data?.total ?? 0}
-              caption={t("appointments.kpi.onlineTodayCaption")}
-            />
-          )}
-        </StatRow>
-      </div>
+        )}
+      </StatRow>
 
       <TodayRibbon
         data-testid="appointments-today-ribbon"
@@ -349,14 +350,14 @@ export function AppointmentsPage(): JSX.Element {
             aria-label={t("appointments.next")}
             onClick={() => step(1)}
           />
-          {/* One island, not two dates: read as ordinary text in an RTL paragraph the neutral dash
-              let the halves swap, announcing the week as `12/09 – 06/09`. */}
-          <Ltr
+          {/* An island per date in a row that follows the page, so Arabic reads the start first, on
+              the right. One island for the whole range put the end date there. */}
+          <span
             data-testid="appointments-range-label"
-            className="ms-1 text-value font-medium text-ink"
+            className="ms-1 inline-flex items-center gap-1.5 text-value font-medium text-ink"
           >
             {label}
-          </Ltr>
+          </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 sm:ms-auto">
@@ -435,16 +436,17 @@ export function AppointmentsPage(): JSX.Element {
           />
         )}
 
-        {!showSkeleton && !calendar.isError && effectiveRange === "day" && !isMobile && (
-          <DayGrid
-            data-testid="appointments-day-grid"
+        {!showSkeleton && !calendar.isError && queueShown && (
+          <DayQueue
+            data-testid="appointments-day-queue"
             date={date}
             doctors={columns}
             appointments={appointments}
+            availability={availability}
             timeOff={timeOff}
             {...(closureToday && { closure: closureToday })}
+            nowMinute={date === todayIso() ? nowMinute : null}
             onOpen={(appointment) => setSelectedId(appointment.id)}
-            {...(mayBook && { onMove: (appointment, minute) => void move(appointment, minute) })}
             {...(mayBook && {
               onPick: (doctorId, minute) =>
                 openForm({ date, doctorId, startsAt: instantAt(date, minute) }),
