@@ -33,7 +33,7 @@ class UpdatePrescriptionDto extends createZodDto(updatePrescriptionSchema) {}
 class ListPrescriptionsQueryDto extends createZodDto(listPrescriptionsQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// Admin CRUD, doctor CRU, nothing for technician or receptionist — a receptionist response must
+// Admin and doctor CRUD, nothing for technician or receptionist — a receptionist response must
 // never contain a prescription.
 @Controller("prescriptions")
 @Roles(USER_ROLE.DOCTOR)
@@ -97,7 +97,6 @@ export class PrescriptionsController {
     description: "Void a prescription. Waits on a typed confirmation.",
   })
   @Delete(":id")
-  @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(PRESCRIPTIONS_ENTITY, AUDIT_ACTION.DELETE)
   async remove(

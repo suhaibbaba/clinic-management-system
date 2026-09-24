@@ -1,12 +1,17 @@
 import type { Prescription, PrescriptionItem } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, EmptyState, Icon, Ltr } from "@clinic/ui";
+import { Button, EmptyState, Icon, Ltr, useToast } from "@clinic/ui";
 import { SkeletonCard, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/features/auth/session";
-import { canWritePrescription } from "@web/features/patients/permissions";
+import { canDeletePrescription, canWritePrescription } from "@web/features/patients/permissions";
 import { PrescriptionFormModal } from "@web/features/patients/prescriptions/prescription-form-modal";
-import { usePatientPrescriptions, usePatientVisits } from "@web/features/patients/queries";
+import {
+  useDeletePrescription,
+  usePatientPrescriptions,
+  usePatientVisits,
+} from "@web/features/patients/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 import { formatDateTime } from "@web/lib/format";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
@@ -17,7 +22,23 @@ export const describeItem = (item: PrescriptionItem): string =>
 export function PrescriptionsTab({ patientId }: { readonly patientId: string }): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();
+  const toast = useToast();
   const mayWrite = canWritePrescription(can);
+  const mayDelete = canDeletePrescription(can);
+  const remove = useDeletePrescription(patientId);
+
+  const destroy = async (prescription: Prescription): Promise<void> => {
+    if (!window.confirm(t("prescriptions.confirmDelete"))) {
+      return;
+    }
+
+    try {
+      await remove.mutateAsync(prescription.id);
+      toast.success("prescriptions.deleted");
+    } catch (error) {
+      toast.error(errorMessageKey(error));
+    }
+  };
 
   const prescriptions = usePatientPrescriptions(patientId);
   const visits = usePatientVisits(patientId);
@@ -153,20 +174,33 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
                     )}
                   </div>
 
-                  {mayWrite && (
-                    <Button
-                      icon={<Icon name="edit" />}
-                      variant="ghost"
-                      size="sm"
-                      data-testid={`prescription-${prescription.id}-edit`}
-                      onClick={() => {
-                        setEditing(prescription);
-                        setFormOpen(true);
-                      }}
-                    >
-                      {t("common.edit")}
-                    </Button>
-                  )}
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {mayWrite && (
+                      <Button
+                        icon={<Icon name="edit" />}
+                        variant="ghost"
+                        size="sm"
+                        data-testid={`prescription-${prescription.id}-edit`}
+                        onClick={() => {
+                          setEditing(prescription);
+                          setFormOpen(true);
+                        }}
+                      >
+                        {t("common.edit")}
+                      </Button>
+                    )}
+                    {mayDelete && (
+                      <Button
+                        icon={<Icon name="trash" />}
+                        variant="quiet"
+                        size="sm"
+                        data-testid={`prescription-${prescription.id}-delete`}
+                        onClick={() => void destroy(prescription)}
+                      >
+                        {t("common.delete")}
+                      </Button>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>

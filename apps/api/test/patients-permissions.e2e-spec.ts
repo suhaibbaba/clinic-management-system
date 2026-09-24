@@ -188,7 +188,7 @@ describe("Patients permission boundaries (e2e)", () => {
     }
   });
 
-  it("keeps a prescription to its own patient's visit, with the dose and frequency optional", async () => {
+  it("keeps a prescription to its own patient's visit, dose and frequency optional, and lets its doctor delete it", async () => {
     const otherPatientId = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
       ...nameParts("مريض آخر"),
       phone: uniquePhone(),
@@ -207,7 +207,16 @@ describe("Patients permission boundaries (e2e)", () => {
       });
 
     expect((await prescribe(otherPatientId)).statusCode).toBe(400);
-    expect((await prescribe(patientId)).statusCode).toBe(201);
+
+    const created = await prescribe(patientId);
+    expect(created.statusCode).toBe(201);
+
+    const removed = await context.app.inject({
+      method: "DELETE",
+      url: `/prescriptions/${(created.json() as { id: string }).id}`,
+      headers: auth(tokens[USER_ROLE.DOCTOR]),
+    });
+    expect(removed.statusCode).toBe(204);
   });
 
   it("gives a receptionist the procedure catalog as names and prices only", async () => {

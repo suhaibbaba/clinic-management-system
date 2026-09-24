@@ -129,6 +129,9 @@ export const patientsApi = {
   updatePrescription: (id: string, body: UpdatePrescriptionInput): Promise<Prescription> =>
     apiRequest(`/prescriptions/${id}`, { method: "PATCH", body }),
 
+  removePrescription: (id: string): Promise<void> =>
+    apiRequest(`/prescriptions/${id}`, { method: "DELETE" }),
+
   treatmentPlans: (patientId: string): Promise<TreatmentPlan[]> =>
     fetchAllPages((page) =>
       apiRequest<Paginated<TreatmentPlan>>("/treatment-plans", {

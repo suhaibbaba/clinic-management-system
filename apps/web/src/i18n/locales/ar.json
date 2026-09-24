@@ -585,7 +585,9 @@
     "durationPlaceholder": "مثلاً: 5 أيام",
     "addDrug": "إضافة دواء",
     "removeDrug": "حذف الدواء",
-    "drugNumber": "الدواء {{number}}"
+    "drugNumber": "الدواء {{number}}",
+    "confirmDelete": "حذف هذه الوصفة؟ تختفي من ملف المريض والخط الزمني، ويبقى أثرها في سجل التدقيق.",
+    "deleted": "تم حذف الوصفة"
   },
   "visits": {
     "create": "تسجيل زيارة",

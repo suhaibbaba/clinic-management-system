@@ -249,6 +249,18 @@ export function useSavePrescription(patientId: string) {
   });
 }
 
+export function useDeletePrescription(patientId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => patientsApi.removePrescription(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: [PATIENT_PRESCRIPTIONS_KEY, patientId] });
+      void queryClient.invalidateQueries({ queryKey: [PATIENT_TIMELINE_KEY, patientId] });
+    },
+  });
+}
+
 /** Invalidates the chart too: a price or status change moves the tooth it was recorded on. */
 export function useUpdateProcedure(patientId: string) {
   const queryClient = useQueryClient();

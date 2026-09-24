@@ -47,7 +47,7 @@ Legend: **C** create · **R** read · **U** update · **D** soft-delete · — n
 | Performed procedures & chart marks | CRUD | CRU | R (lab-linked only) | — |
 | Treatment plans | CRUD | CRU | — | — |
 | Attachments / X-rays | CRUD | CRU | R (lab-linked only) | — |
-| Prescriptions | CRUD | CRU | — | — |
+| Prescriptions | CRUD | CRUD | — | — |
 | Patient timeline (full) | R | R | — | R (financial + appointment entries only) |
 
 ### Billing
