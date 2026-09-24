@@ -72,6 +72,15 @@ export function useCreatePatient() {
   });
 }
 
+export function useDeletePatient() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => patientsApi.remove(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENTS_KEY] }),
+  });
+}
+
 export function usePatient(id: string): UseQueryResult<PatientClinicalView> {
   return useQuery({
     queryKey: [PATIENT_KEY, id],
