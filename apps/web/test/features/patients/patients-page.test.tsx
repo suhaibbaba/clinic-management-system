@@ -59,6 +59,22 @@ describe("Patients list", () => {
     expect(within(row!).getByText("+963931000001")).toBeInTheDocument();
   });
 
+  it("opens a file from the name, and keeps the row menu to editing and deleting", async () => {
+    await renderList(USER_ROLE.ADMIN);
+
+    const row = (await screen.findByText(PATIENTS[0]!.fullName)).closest("tr")!;
+    expect(
+      within(row).getByRole("link", { name: new RegExp(PATIENTS[0]!.fullName) }),
+    ).toHaveAttribute("href", `/patients/${PATIENTS[0]!.id}`);
+
+    await userEvent.click(within(row).getByRole("button", { name: ar.patients.rowMenu }));
+
+    expect((await screen.findAllByRole("menuitem")).map((item) => item.textContent)).toEqual([
+      ar.patients.edit,
+      ar.common.delete,
+    ]);
+  });
+
   it("keeps the page on screen while the next one loads, and says it is updating", async () => {
     const user = userEvent.setup();
     let release: (() => void) | undefined;

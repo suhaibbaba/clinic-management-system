@@ -1,7 +1,7 @@
 import type { PatientClinicalView, PatientView } from "@clinic/shared";
 import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Avatar,
   Badge,
@@ -27,9 +27,10 @@ import { PatientFormModal } from "@web/features/patients/patient-form-modal";
 import {
   canCreatePatient,
   canDeletePatient,
+  canEditPatient,
   seesClinicalPatientFields,
 } from "@web/features/patients/permissions";
-import { useDeletePatient, usePatients } from "@web/features/patients/queries";
+import { useDeletePatient, usePatient, usePatients } from "@web/features/patients/queries";
 import { errorMessageKey } from "@web/lib/api-error";
 import { ageInYears } from "@web/features/patients/age";
 import { cn } from "@clinic/ui/lib/cn";
@@ -68,6 +69,9 @@ export function PatientsPage(): JSX.Element {
   const [params, setParams] = useSearchParams();
   const search = params.get("q") ?? "";
   const [createOpen, setCreateOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  // The form edits the full record, which a list row does not carry for every role.
+  const editing = usePatient(editingId ?? "");
 
   const raw = params.get("filter");
   const filter: PatientFilter = raw === BALANCE_FILTER || raw === VISITED_FILTER ? raw : "all";
@@ -98,6 +102,7 @@ export function PatientsPage(): JSX.Element {
   const showClinical = user ? seesClinicalPatientFields(user.role) : false;
   const showBalance = user ? canSeeBilling(user.role) : false;
   const showDelete = canDeletePatient(can);
+  const showEdit = canEditPatient(can);
   const toast = useToast();
   const { mutateAsync: deletePatient } = useDeletePatient();
 
@@ -138,13 +143,22 @@ export function PatientsPage(): JSX.Element {
         primary: true,
         render: (row) => (
           <span className="flex items-center gap-3">
-            <Avatar name={row.fullName} tintKey={row.id} data-testid="patient-avatar" />
-            <span className="flex min-w-0 flex-col leading-label">
-              <span data-testid="patient-name" className="truncate font-medium text-ink">
-                {row.fullName}
+            <Link
+              to={`/patients/${row.id}`}
+              data-testid="patient-link"
+              className="group flex min-w-0 items-center gap-3 rounded-control"
+            >
+              <Avatar name={row.fullName} tintKey={row.id} data-testid="patient-avatar" />
+              <span className="flex min-w-0 flex-col leading-label">
+                <span
+                  data-testid="patient-name"
+                  className="truncate font-medium text-ink group-hover:text-primary-700 group-hover:underline"
+                >
+                  {row.fullName}
+                </span>
+                <Ltr className="text-micro tabular-nums text-ink-subtle">{row.fileNumber}</Ltr>
               </span>
-              <Ltr className="text-micro tabular-nums text-ink-subtle">{row.fileNumber}</Ltr>
-            </span>
+            </Link>
             {/* Registered mid-booking or online, and never finished — the reminder to take the
                 rest of it when they walk in. */}
             {row.profileIncomplete && (
@@ -208,50 +222,21 @@ export function PatientsPage(): JSX.Element {
       });
     }
 
-    base.push({
-      key: "actions",
-      header: "common.actions",
-      actions: true,
-      render: (row) => (
-        <span className="flex items-center gap-1.5">
-          <Button
-            size="sm"
-            variant="ghost"
-            data-testid="patient-open"
-            onClick={() => navigate(`/patients/${row.id}`)}
-          >
-            {t("patients.openFile")}
-            <Icon name="chevron-end" className="size-4" />
-          </Button>
-
-          {/* The file's tabs are addresses, so the menu is shortcuts into them — each gated by the
-              permission that gates the tab, so nothing here bounces the reader. */}
+    if (showEdit || showDelete) {
+      base.push({
+        key: "actions",
+        header: "common.actions",
+        actions: true,
+        besideTitleOnMobile: true,
+        render: (row) => (
           <RowMenu label={t("patients.rowMenu")} data-testid="patient-menu">
-            {showClinical && (
+            {showEdit && (
               <MenuItem
-                icon="clock"
-                data-testid="patient-menu-timeline"
-                onSelect={() => navigate(`/patients/${row.id}?tab=timeline`)}
+                icon="edit"
+                data-testid="patient-menu-edit"
+                onSelect={() => setEditingId(row.id)}
               >
-                {t("patients.tabs.timeline")}
-              </MenuItem>
-            )}
-            {showBalance && (
-              <MenuItem
-                icon="money"
-                data-testid="patient-menu-billing"
-                onSelect={() => navigate(`/patients/${row.id}?tab=billing`)}
-              >
-                {t("patients.tabs.billing")}
-              </MenuItem>
-            )}
-            {showClinical && (
-              <MenuItem
-                icon="image"
-                data-testid="patient-menu-attachments"
-                onSelect={() => navigate(`/patients/${row.id}?tab=attachments`)}
-              >
-                {t("patients.tabs.attachments")}
+                {t("patients.edit")}
               </MenuItem>
             )}
             {showDelete && (
@@ -265,12 +250,12 @@ export function PatientsPage(): JSX.Element {
               </MenuItem>
             )}
           </RowMenu>
-        </span>
-      ),
-    });
+        ),
+      });
+    }
 
     return base;
-  }, [showClinical, showBalance, showDelete, destroy, currency, navigate, t]);
+  }, [showClinical, showBalance, showEdit, showDelete, destroy, currency, t]);
 
   const canCreate = canCreatePatient(can);
   const isSearching = search.trim() !== "";
@@ -282,9 +267,6 @@ export function PatientsPage(): JSX.Element {
         data-testid="patients-header"
         title="patients.title"
         subtitle="patients.subtitle"
-        {...(query.data !== undefined && {
-          count: t("pagination.total", { total: query.data.total }),
-        })}
         primaryAction={
           canCreate ? (
             <Button
@@ -298,7 +280,7 @@ export function PatientsPage(): JSX.Element {
         }
       />
 
-      <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
+      <div className="flex flex-wrap items-center justify-between gap-2.5">
         <SegmentedControl<PatientFilter>
           data-testid="patients-filter"
           label={t("patients.filterLabel")}
@@ -318,6 +300,12 @@ export function PatientsPage(): JSX.Element {
             { value: VISITED_FILTER, label: t("patients.visitedThisMonth") },
           ]}
         />
+
+        {query.data !== undefined && (
+          <p data-testid="patients-count" className="text-meta text-ink-muted">
+            {t("pagination.total", { total: query.data.total })}
+          </p>
+        )}
       </div>
 
       <Table
@@ -354,6 +342,15 @@ export function PatientsPage(): JSX.Element {
           onPerPageChange: setPerPage,
         }}
       />
+
+      {editing.data && (
+        <PatientFormModal
+          data-testid="patients-edit-modal"
+          open={editingId !== null}
+          onOpenChange={(open) => !open && setEditingId(null)}
+          patient={editing.data}
+        />
+      )}
 
       <PatientFormModal
         data-testid="patients-create-modal"

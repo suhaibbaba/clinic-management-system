@@ -65,6 +65,7 @@ export const SHIPPED_CAPABILITIES: Record<UserRole, readonly string[]> = {
     "labs.create",
     "patient-attachments.presignUpload",
     "patients.create",
+    "patients.remove",
     "patients.update",
     "payments.create",
     "payments.reverse",
