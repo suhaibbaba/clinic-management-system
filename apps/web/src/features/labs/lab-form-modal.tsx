@@ -1,7 +1,7 @@
 import { createLabSchema, type Lab, type CreateLabInput } from "@clinic/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, type JSX } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Input, Modal, PhoneInput, Textarea, useToast } from "@clinic/ui";
 import { useCreateLab, useUpdateLab } from "@web/features/labs/queries";
@@ -27,17 +27,18 @@ export function LabFormModal({
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<CreateLabInput>({
     resolver: zodResolver(createLabSchema),
-    defaultValues: { name: "", phone: "", address: "", contactPerson: "", notes: "" },
+    defaultValues: { name: "", phone: null, address: "", contactPerson: "", notes: "" },
   });
 
   useEffect(() => {
     if (open) {
       reset({
         name: lab?.name ?? "",
-        phone: lab?.phone ?? "",
+        phone: lab?.phone ?? null,
         address: lab?.address ?? "",
         contactPerson: lab?.contactPerson ?? "",
         notes: lab?.notes ?? "",
@@ -105,11 +106,19 @@ export function LabFormModal({
           errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
           optional
         >
-          <PhoneInput
-            id="lab-phone"
-            data-testid="lab-field-phone"
-            hasError={Boolean(errors.phone)}
-            {...register("phone")}
+          <Controller
+            name="phone"
+            control={control}
+            render={({ field }) => (
+              <PhoneInput
+                id="lab-phone"
+                data-testid="lab-field-phone"
+                hasError={Boolean(errors.phone)}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
           />
         </FormField>
 

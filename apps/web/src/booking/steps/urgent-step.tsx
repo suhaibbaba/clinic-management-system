@@ -1,4 +1,5 @@
 import { isBookingPhone } from "@shared/constants/booking";
+import { dialCodeOf, joinPhone, type PhoneCountry } from "@shared/constants/phone";
 import { useState, type FormEvent, type JSX } from "react";
 import { t } from "@web/booking/i18n";
 import { isBookingNameComplete, NameFields } from "@web/booking/steps/name-fields";
@@ -17,17 +18,24 @@ export function UrgentStep({
   onSubmit,
   onBack,
   busy,
+  country,
 }: {
   readonly details: UrgentDetails;
   readonly onChange: (details: UrgentDetails) => void;
   readonly onSubmit: () => void;
   readonly onBack: () => void;
   readonly busy: boolean;
+  /** The clinic's, whose code a local number is dialled under. */
+  readonly country: PhoneCountry;
 }): JSX.Element {
   const [touched, setTouched] = useState(false);
 
   const nameError = !isBookingNameComplete(details);
-  const phoneError = isBookingPhone(details.phone) ? undefined : t("details.phoneError");
+  const phoneError = isBookingPhone(joinPhone(country, details.phone) ?? "")
+    ? undefined
+    : t("details.phoneError");
+  // A number typed whole, from abroad, carries its own code.
+  const typedWhole = /^\s*(\+|00)/.test(details.phone);
   const complaintError =
     details.complaint.trim().length >= 3 ? undefined : t("urgent.complaintError");
 
@@ -55,6 +63,7 @@ export function UrgentStep({
 
       <Field
         data-testid="urgent-field-phone"
+        {...(!typedWhole && { prefix: dialCodeOf(country) })}
         label={t("details.phone")}
         name="phone"
         type="tel"

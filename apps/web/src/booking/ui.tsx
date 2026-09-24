@@ -213,6 +213,8 @@ export interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   readonly label: string;
   readonly error?: string | undefined;
   readonly hint?: string | undefined;
+  /** Fixed text before the box, left to right — a phone's dialling code. */
+  readonly prefix?: string | undefined;
 }
 
 // 16px is not a style choice: iOS Safari zooms the page when a smaller field takes focus and never
@@ -221,6 +223,7 @@ export function Field({
   label,
   error,
   hint,
+  prefix,
   id,
   className,
   "data-testid": testId,
@@ -231,30 +234,51 @@ export function Field({
   const hintId = `${fieldId}-hint`;
   const describedBy = cx(error && errorId, hint && hintId) || undefined;
 
+  const input = (
+    <input
+      id={fieldId}
+      data-testid={testId}
+      className={cx(
+        "min-h-(--control-h) w-full min-w-0 rounded-control border-[1.5px] bg-surface px-3 text-field text-ink",
+        "placeholder:text-ink-subtle",
+        // `dir="ltr"` keeps the digits in order, but the alignment belongs to the page — by its
+        // own direction the field sat left of an Arabic form, under a label on the right.
+        // Beside a prefix it reads on from the code instead.
+        prefix !== undefined
+          ? "text-left"
+          : rest.dir === "ltr"
+            ? "page-rtl:text-right page-ltr:text-left"
+            : "text-start",
+        error
+          ? "border-danger-600 shadow-field-error"
+          : "border-line-strong hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus",
+        className,
+      )}
+      {...(describedBy && { "aria-describedby": describedBy })}
+      {...(error && { "aria-invalid": true })}
+      {...rest}
+    />
+  );
+
   return (
     <div data-testid={testId && `${testId}-field`} className="flex flex-col gap-1.5">
       <label htmlFor={fieldId} className="text-value font-medium text-ink">
         {label}
       </label>
 
-      <input
-        id={fieldId}
-        data-testid={testId}
-        className={cx(
-          "min-h-(--control-h) w-full rounded-control border-[1.5px] bg-surface px-3 text-field text-ink",
-          "placeholder:text-ink-subtle",
-          // `dir="ltr"` keeps the digits in order, but the alignment belongs to the page — by its
-          // own direction the field sat left of an Arabic form, under a label on the right.
-          rest.dir === "ltr" ? "page-rtl:text-right page-ltr:text-left" : "text-start",
-          error
-            ? "border-danger-600 shadow-field-error"
-            : "border-line-strong hover:border-neutral-400 focus:border-primary-600 focus:shadow-field-focus",
-          className,
-        )}
-        {...(describedBy && { "aria-describedby": describedBy })}
-        {...(error && { "aria-invalid": true })}
-        {...rest}
-      />
+      {prefix === undefined ? (
+        input
+      ) : (
+        <div dir="ltr" className="flex gap-2">
+          <span
+            data-testid={testId && `${testId}-prefix`}
+            className="inline-flex min-h-(--control-h) shrink-0 items-center rounded-control border-[1.5px] border-line bg-sunken px-3 text-field tabular-nums text-ink-muted"
+          >
+            {prefix}
+          </span>
+          {input}
+        </div>
+      )}
 
       {hint && !error && (
         <span

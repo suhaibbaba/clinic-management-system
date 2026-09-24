@@ -295,6 +295,9 @@ importers:
       '@clinic/shared':
         specifier: workspace:*
         version: link:../shared
+      country-flag-icons:
+        specifier: ^1.6.20
+        version: 1.6.20
     devDependencies:
       '@radix-ui/react-dialog':
         specifier: ^1.1.23
@@ -4199,6 +4202,9 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
+
+  country-flag-icons@1.6.20:
+    resolution: {integrity: sha512-py8JiEKzjhYw6HPJ0L7SxLgCYim36UPRTZX43/kqGueUCZLSvnrqAiwW8HtQibur7mdkFQUkjOgdK+o/9FBtaw==}
 
   cron@4.4.0:
     resolution: {integrity: sha512-fkdfq+b+AHI4cKdhZlppHveI/mgz2qpiYxcm+t5E5TsxX7QrLS1VE0+7GENEk9z0EeGPcpSciGv6ez24duWhwQ==}
@@ -11044,6 +11050,8 @@ snapshots:
       path-type: 4.0.0
     optionalDependencies:
       typescript: 5.9.3
+
+  country-flag-icons@1.6.20: {}
 
   cron@4.4.0:
     dependencies:

@@ -181,6 +181,7 @@ describe("Patients (e2e)", () => {
         "middleName",
         "phone",
         "profileIncomplete",
+        "whatsapp",
       ];
 
       for (const role of [USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN]) {
@@ -223,6 +224,22 @@ describe("Patients (e2e)", () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it("keeps a WhatsApp number only in international form, 00 stored as +", async () => {
+      const set = (whatsapp: string) =>
+        context.app.inject({
+          method: "PATCH",
+          url: `/patients/${ahmadId}`,
+          headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+          payload: { whatsapp },
+        });
+
+      expect((await set("0599123456")).statusCode).toBe(400);
+
+      const saved = await set("00972599123456");
+      expect(saved.statusCode).toBe(200);
+      expect((saved.json() as { whatsapp: string }).whatsapp).toBe("+972599123456");
     });
 
     it("refuses a technician write — the matrix gives them read only", async () => {

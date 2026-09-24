@@ -1,13 +1,15 @@
 import { Inject, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
-import { and, eq, isNull, or, sql } from "drizzle-orm";
-import type {
-  AuthenticatedUserProfile,
-  ChangePasswordInput,
-  IssuedSession,
-  LoginInput,
-  LoginResponse,
-  SessionClinic,
-  UserRole,
+import { and, eq, isNull, like, sql } from "drizzle-orm";
+import {
+  DEFAULT_PHONE_COUNTRY,
+  normalizePhone,
+  type AuthenticatedUserProfile,
+  type ChangePasswordInput,
+  type IssuedSession,
+  type LoginInput,
+  type LoginResponse,
+  type SessionClinic,
+  type UserRole,
 } from "@clinic/shared";
 import { PasswordService } from "@api/auth/password.service";
 import { TokenService } from "@api/auth/token.service";
@@ -21,6 +23,9 @@ type UserRow = typeof users.$inferSelect;
 
 /** One message for every credential failure — the API never reveals which part was wrong. */
 const INVALID_CREDENTIALS = "Invalid credentials";
+
+/** The shortest national number worth matching on; fewer digits would match strangers. */
+const PHONE_MIN_DIGITS = 7;
 
 @Injectable()
 export class AuthService {
@@ -163,19 +168,43 @@ export class AuthService {
     };
   }
 
+  // A phone matches however it is typed: `+970 59…`, `0097059…` or a local `059…`. A local number
+  // matches on its national digits, and two accounts matching is no match — a login never guesses.
   private async findByIdentifier(identifier: string): Promise<UserRow | undefined> {
-    const [user] = await this.db
+    const trimmed = identifier.trim();
+
+    if (trimmed.includes("@")) {
+      const [user] = await this.db
+        .select()
+        .from(users)
+        .where(and(isNull(users.deletedAt), eq(sql`lower(${users.email})`, trimmed.toLowerCase())))
+        .limit(1);
+
+      return user;
+    }
+
+    const international = trimmed.startsWith("+") || trimmed.startsWith("00");
+    const digits = international
+      ? normalizePhone(trimmed).slice(1)
+      : trimmed.replace(/\D/g, "").replace(/^0/, "");
+
+    if (digits.length < PHONE_MIN_DIGITS) {
+      return undefined;
+    }
+
+    const storedDigits = sql<string>`regexp_replace(${users.phone}, '[^0-9]', '', 'g')`;
+    const matches = await this.db
       .select()
       .from(users)
       .where(
         and(
           isNull(users.deletedAt),
-          or(eq(users.phone, identifier), eq(sql`lower(${users.email})`, identifier.toLowerCase())),
+          international ? eq(storedDigits, digits) : like(storedDigits, `%${digits}`),
         ),
       )
-      .limit(1);
+      .limit(2);
 
-    return user;
+    return matches.length === 1 ? matches[0] : undefined;
   }
 
   private async findActiveById(id: string): Promise<UserRow | undefined> {
@@ -223,7 +252,12 @@ export class AuthService {
   private async sessionClinic(clinicId: string): Promise<SessionClinic> {
     const [[row], chartTypes] = await Promise.all([
       this.db
-        .select({ nameAr: clinics.nameAr, nameEn: clinics.nameEn, logoKey: clinics.logoKey })
+        .select({
+          nameAr: clinics.nameAr,
+          nameEn: clinics.nameEn,
+          logoKey: clinics.logoKey,
+          country: clinics.country,
+        })
         .from(clinics)
         .where(and(eq(clinics.id, clinicId), isNull(clinics.deletedAt)))
         .limit(1),
@@ -240,13 +274,19 @@ export class AuthService {
     ]);
 
     if (!row) {
-      return { name: { ar: "", en: "" }, logoUrl: null, chartTypes: [] };
+      return {
+        name: { ar: "", en: "" },
+        logoUrl: null,
+        chartTypes: [],
+        country: DEFAULT_PHONE_COUNTRY,
+      };
     }
 
     return {
       name: { ar: row.nameAr, en: row.nameEn },
       logoUrl: row.logoKey ? (await this.storage.createBrandingUrl(row.logoKey)).url : null,
       chartTypes: chartTypes.map((specialty) => specialty.chartType),
+      country: row.country,
     };
   }
 }

@@ -1,12 +1,16 @@
 import {
   ALLOWED_CLINIC_LOGO_MIME_TYPES,
   CURRENCIES,
+  DEFAULT_PHONE_COUNTRY,
+  isPhoneCountry,
   MAX_CLINIC_LOGO_BYTES,
+  PHONE_COUNTRIES,
   USER_ROLE,
   type Currency,
+  type PhoneCountry,
   type WeeklySchedule,
 } from "@clinic/shared";
-import { useEffect, useRef, useState, type JSX } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -17,6 +21,7 @@ import {
   Ltr,
   PageHeader,
   PhoneInput,
+  Flag,
   Select,
   useToast,
 } from "@clinic/ui";
@@ -45,9 +50,9 @@ const isCurrency = (value: string): value is Currency =>
 
 /** Admin edits; every other role sees the same screen read-only (ROLES.md). */
 export function ClinicPage(): JSX.Element {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const toast = useToast();
-  const { hasRole } = useSession();
+  const { hasRole, refreshProfile } = useSession();
   const canEdit = hasRole(USER_ROLE.ADMIN);
 
   const clinic = useClinic();
@@ -62,6 +67,11 @@ export function ClinicPage(): JSX.Element {
   const [address, setAddress] = useState("");
   const [location, setLocation] = useState("");
   const [currency, setCurrency] = useState<Currency>(CURRENCIES[0]);
+  const [country, setCountry] = useState<PhoneCountry>(DEFAULT_PHONE_COUNTRY);
+  const countryNames = useMemo(
+    () => new Intl.DisplayNames([i18n.language], { type: "region" }),
+    [i18n.language],
+  );
   const [workingHours, setWorkingHours] = useState<WeeklySchedule>([]);
 
   useEffect(() => {
@@ -85,6 +95,7 @@ export function ClinicPage(): JSX.Element {
 
     setLocation(stored ? `${stored.latitude}, ${stored.longitude}` : "");
     setCurrency(isCurrency(data.currency) ? data.currency : CURRENCIES[0]);
+    setCountry(isPhoneCountry(data.country) ? data.country : DEFAULT_PHONE_COUNTRY);
     setWorkingHours(data.workingHours);
     setClinicTimeZone(data);
   }, [clinic.data]);
@@ -124,8 +135,11 @@ export function ClinicPage(): JSX.Element {
         latitude: pin?.latitude ?? null,
         longitude: pin?.longitude ?? null,
         currency,
+        country,
         workingHours,
       });
+      // The session carries the country every phone field starts on.
+      void refreshProfile();
       toast.success("clinic.updated");
     } catch (error) {
       toast.error(errorMessageKey(error));
@@ -190,12 +204,11 @@ export function ClinicPage(): JSX.Element {
             <FormField label="clinic.phone" htmlFor="clinic-phone" optional>
               <PhoneInput
                 placeholder={t("common.placeholders.phone")}
-                adornment="phone"
                 id="clinic-phone"
                 data-testid="clinic-field-phone"
                 value={phone}
                 disabled={!canEdit}
-                onChange={(event) => setPhone(event.target.value)}
+                onChange={(next) => setPhone(next ?? "")}
               />
             </FormField>
 
@@ -288,6 +301,26 @@ export function ClinicPage(): JSX.Element {
                   label: `${t(`clinic.currencies.${code}`)} (${code})`,
                 }))}
                 onChange={(event) => setCurrency(event.target.value as Currency)}
+              />
+            </FormField>
+
+            <FormField label="clinic.country" htmlFor="clinic-country" hint="clinic.countryHint">
+              <Select
+                id="clinic-country"
+                data-testid="clinic-field-country"
+                className="w-56"
+                value={country}
+                disabled={!canEdit}
+                options={PHONE_COUNTRIES.map((entry) => ({
+                  value: entry.country,
+                  label: `${countryNames.of(entry.country) ?? entry.country} ${entry.dial}`,
+                  icon: <Flag country={entry.country} />,
+                }))}
+                onChange={(event) => {
+                  if (isPhoneCountry(event.target.value)) {
+                    setCountry(event.target.value);
+                  }
+                }}
               />
             </FormField>
           </div>

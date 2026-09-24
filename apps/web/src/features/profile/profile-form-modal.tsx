@@ -5,7 +5,7 @@ import {
   type UpdateOwnProfileInput,
 } from "@clinic/shared";
 import { useEffect, type JSX } from "react";
-import { useForm, type UseFormRegister } from "react-hook-form";
+import { Controller, useForm, type UseFormRegister } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Icon, Input, Modal, PhoneInput, useToast } from "@clinic/ui";
 import { authApi } from "@web/features/auth/api";
@@ -36,6 +36,7 @@ export function ProfileFormModal({
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<UpdateOwnProfileInput>({
     resolver: zodResolver(updateOwnProfileSchema),
@@ -111,13 +112,20 @@ export function ProfileFormModal({
           error={errors.phone}
           errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
         >
-          <PhoneInput
-            placeholder={t("common.placeholders.phone")}
-            adornment="phone"
-            id="profile-phone"
-            data-testid="profile-field-phone"
-            hasError={errors.phone !== undefined}
-            {...register("phone")}
+          <Controller
+            name="phone"
+            control={control}
+            render={({ field }) => (
+              <PhoneInput
+                placeholder={t("common.placeholders.phone")}
+                id="profile-phone"
+                data-testid="profile-field-phone"
+                hasError={errors.phone !== undefined}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
           />
         </FormField>
 

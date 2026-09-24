@@ -1,13 +1,9 @@
 import { z } from "zod";
-import {
-  BOOKING_NAME_LENGTH,
-  BOOKING_PHONE_LENGTH,
-  BOOKING_PHONE_PATTERN,
-} from "@shared/constants/booking";
+import { BOOKING_NAME_LENGTH } from "@shared/constants/booking";
 import { BOOKING_CONFIRMATION_MODE, BOOKING_CONFIRMATION_MODES } from "@shared/enums";
 import { isoDateSchema, slotSchema } from "@shared/schemas/appointments";
 import { personNameSchema } from "@shared/schemas/person-name";
-import { timeOfDaySchema, uuidSchema } from "@shared/schemas/common";
+import { phoneSchema, timeOfDaySchema, uuidSchema } from "@shared/schemas/common";
 
 export const bookingSettingsSchema = z.object({
   enabled: z.boolean().default(false),
@@ -46,6 +42,8 @@ export const publicClinicSchema = z.object({
   /** Long-lived signed URL, so the booking page draws the mark from cache on a repeat visit. */
   logoUrl: z.url().nullable(),
   phone: z.string().nullable(),
+  /** The dialling code the page's phone picker starts on. */
+  country: z.string(),
   address: z.string().nullable(),
   bookingEnabled: z.boolean(),
   confirmationMode: z.enum(BOOKING_CONFIRMATION_MODES),
@@ -77,14 +75,9 @@ export const publicSlotsSchema = z.object({
 });
 export type PublicSlots = z.infer<typeof publicSlotsSchema>;
 
-// Bounds and pattern come from `constants/booking`, which the Zod-free public page also uses — one
-// definition, checked twice.
-export const bookingPhoneSchema = z
-  .string()
-  .trim()
-  .min(BOOKING_PHONE_LENGTH.min)
-  .max(BOOKING_PHONE_LENGTH.max)
-  .regex(BOOKING_PHONE_PATTERN, "Expected a phone number");
+// The phone is the identity here, so it is held to the same international shape as a staff-entered
+// one — the page's picker composes it.
+export const bookingPhoneSchema = phoneSchema;
 
 export const createBookingSchema = z.object({
   firstName: z.string().trim().min(BOOKING_NAME_LENGTH.min).max(BOOKING_NAME_LENGTH.max),

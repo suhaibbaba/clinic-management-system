@@ -136,6 +136,7 @@ export class PatientRegistrationService {
               lastName: input.lastName,
               fullName: joinPatientName(input),
               phone: input.phone,
+              whatsapp: input.whatsapp ?? null,
               dateOfBirth: input.dateOfBirth ?? null,
               gender: input.gender ?? null,
               address: input.address ?? null,

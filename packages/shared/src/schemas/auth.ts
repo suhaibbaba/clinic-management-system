@@ -54,6 +54,8 @@ export const sessionClinicSchema = z.object({
   name: personNameSchema,
   logoUrl: z.url().nullable(),
   chartTypes: z.array(z.enum(CHART_TYPES)),
+  /** ISO 3166-1 alpha-2, so every phone field starts on the clinic's own dialling code. */
+  country: z.string(),
 });
 export type SessionClinic = z.infer<typeof sessionClinicSchema>;
 

@@ -7,6 +7,7 @@ import ar from "@web/i18n/locales/ar.json";
 import { authTokens } from "@web/lib/auth-tokens";
 import { makePatient, makeProfile, paginated, PATIENT_ID } from "@test/helpers/fixtures";
 import { mockApi, renderWithProviders, type MockResponse } from "@test/helpers/render";
+import { choose } from "@test/select";
 
 const PATIENTS = [
   makePatient(),
@@ -254,6 +255,29 @@ describe("Patients list", () => {
         });
         // The file number is the API's to allocate.
         expect(call?.body).not.toHaveProperty("fileNumber");
+      });
+    });
+
+    it("stores every number international: the clinic's code by default, another when picked", async () => {
+      const api = await renderList(USER_ROLE.RECEPTIONIST, {
+        "POST /patients": { status: 201, body: makePatient() },
+      });
+
+      await userEvent.click(screen.getAllByRole("button", { name: ar.patients.create })[0]!);
+
+      const dialog = await screen.findByRole("dialog");
+      await userEvent.type(within(dialog).getByLabelText(ar.patients.firstName), "سامر");
+      await userEvent.type(within(dialog).getByLabelText(ar.patients.lastName), "التلاوي");
+      await userEvent.type(within(dialog).getByLabelText(ar.patients.phone), "0599 123 456");
+      await choose(within(dialog).getByTestId("patient-field-whatsapp-country"), /\+962/);
+      await userEvent.type(within(dialog).getByRole("textbox", { name: /واتساب/ }), "0791234567");
+      await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
+
+      await waitFor(() => {
+        const call = api.calls.find(
+          (entry) => entry.method === "POST" && entry.url.endsWith("/patients"),
+        );
+        expect(call?.body).toMatchObject({ phone: "+970599123456", whatsapp: "+962791234567" });
       });
     });
 

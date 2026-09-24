@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { INTERNATIONAL_PHONE_PATTERN, normalizePhone } from "@shared/constants/phone";
 
 export const uuidSchema = z.uuid();
 
@@ -30,21 +31,22 @@ export interface Paginated<TItem> {
   totalPages: number;
 }
 
-/** E.164 caps a number at 15 digits; 7 is the shortest a national number gets. */
-const PHONE_DIGITS = { min: 7, max: 15 } as const;
-
-const digitCount = (value: string): number => (value.match(/\d/g) ?? []).length;
-
+// Stored international, always: a local number means nothing without its country, and a clinic's
+// country is the picker's default, not the API's to guess. `00…`, spacing and a trunk 0 after a
+// known code are normalised first.
 export const phoneSchema = z
   .string()
   .trim()
   .max(32)
-  .regex(/^\+?[\d\s-]+$/, "Expected digits, optionally prefixed with +")
-  .refine((value) => {
-    const digits = digitCount(value);
-
-    return digits >= PHONE_DIGITS.min && digits <= PHONE_DIGITS.max;
-  }, `Expected between ${PHONE_DIGITS.min} and ${PHONE_DIGITS.max} digits`);
+  .refine(
+    (value) => value.startsWith("+") || value.startsWith("00"),
+    "Expected an international number starting with + or 00",
+  )
+  .transform((value) => normalizePhone(value))
+  .refine(
+    (value) => INTERNATIONAL_PHONE_PATTERN.test(value),
+    "Expected a + and between 7 and 15 digits",
+  );
 
 /** The same rule where the field may be left empty — an optional contact number. */
 export const optionalPhoneSchema = phoneSchema.nullish();

@@ -223,7 +223,7 @@ export function DoctorFormModal({
                     data-testid="doctor-field-phone"
                     placeholder={t("common.placeholders.phone")}
                     value={newUser.phone}
-                    onChange={(event) => setNewUser({ ...newUser, phone: event.target.value })}
+                    onChange={(next) => setNewUser({ ...newUser, phone: next ?? "" })}
                   />
                 </FormField>
 

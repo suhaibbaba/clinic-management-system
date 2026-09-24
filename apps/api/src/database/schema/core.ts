@@ -59,6 +59,8 @@ export const clinics = pgTable(
     longitude: numeric("longitude", { precision: 9, scale: 6 }),
     /** ISO-4217. Money columns are `numeric(10,2)` and never floats. */
     currency: varchar("currency", { length: 3 }).notNull().default("USD"),
+    /** ISO 3166-1 alpha-2; the dialling code every phone field starts on. */
+    country: varchar("country", { length: 2 }).notNull().default("PS"),
     workingHours: jsonb("working_hours").$type<WeeklySchedule>().notNull().default([]),
     settings: jsonb("settings").$type<Record<string, unknown>>().notNull().default({}),
     ...auditColumns,

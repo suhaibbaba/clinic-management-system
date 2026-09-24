@@ -25,6 +25,7 @@ export function toClinicalView(row: PatientRow): PatientClinicalView {
     middleName: row.middleName,
     lastName: row.lastName,
     phone: row.phone,
+    whatsapp: row.whatsapp,
     dateOfBirth: row.dateOfBirth,
     gender: row.gender,
     address: row.address,
@@ -47,6 +48,7 @@ export function toPublicView(row: PatientRow): PatientPublicView {
     middleName: row.middleName,
     lastName: row.lastName,
     phone: row.phone,
+    whatsapp: row.whatsapp,
     dateOfBirth: row.dateOfBirth,
     profileIncomplete: isProfileIncomplete(row),
   };

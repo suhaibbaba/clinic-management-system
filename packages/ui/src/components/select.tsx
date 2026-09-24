@@ -1,5 +1,5 @@
 import * as SelectPrimitive from "@radix-ui/react-select";
-import type { ChangeEvent, JSX, SelectHTMLAttributes } from "react";
+import type { ChangeEvent, JSX, ReactNode, SelectHTMLAttributes } from "react";
 import { useDialogLayer } from "@ui/components/dialog-layer";
 import { FieldLock, fieldShell } from "@ui/components/field";
 import { Icon } from "@ui/components/icon";
@@ -10,6 +10,8 @@ import { documentDirection } from "@ui/lib/direction";
 export interface SelectOption {
   readonly value: string;
   readonly label: string;
+  /** Drawn before the label, in the list and in the field: a flag, a swatch. */
+  readonly icon?: ReactNode | undefined;
 }
 
 export interface SelectProps
@@ -23,6 +25,10 @@ export interface SelectProps
   onChange?: ((event: ChangeEvent<HTMLSelectElement>) => void) | undefined;
   onBlur?: (() => void) | undefined;
   hasError?: boolean | undefined;
+  /** What the closed field shows for the chosen option, when that is shorter than its list row. */
+  renderValue?: ((option: SelectOption) => ReactNode) | undefined;
+  /** Classes for the open list — a narrow field whose rows need more room than it has. */
+  listClassName?: string | undefined;
 }
 
 // `<Select.Item value="">` throws by design, so the placeholder row travels under a sentinel and
@@ -42,6 +48,8 @@ export function Select({
   onBlur,
   id,
   required,
+  renderValue,
+  listClassName,
   "aria-label": ariaLabel,
   "aria-describedby": describedBy,
   "data-testid": testId,
@@ -53,6 +61,8 @@ export function Select({
   // Always controlled, `NONE` standing in for "nothing chosen": leaving `value` off would make it
   // uncontrolled until the first choice, and a form reset could not clear it.
   const empty = value === "" || value === undefined;
+  const shown =
+    renderValue && !empty ? options.find((option) => option.value === value) : undefined;
 
   const emit = (next: string): void => {
     const chosen = next === NONE ? "" : next;
@@ -101,7 +111,9 @@ export function Select({
             disabled ? "text-ink-faint" : empty ? "text-ink-subtle" : "text-ink",
           )}
         >
-          <SelectPrimitive.Value placeholder={placeholder} />
+          <SelectPrimitive.Value placeholder={placeholder}>
+            {shown && renderValue?.(shown)}
+          </SelectPrimitive.Value>
         </span>
 
         {disabled ? (
@@ -129,6 +141,7 @@ export function Select({
             "z-50 max-h-[min(24rem,var(--radix-select-content-available-height))]",
             "w-[var(--radix-select-trigger-width)] overflow-hidden rounded-panel border border-line bg-surface p-1 shadow-float",
             "origin-(--radix-select-content-transform-origin)",
+            listClassName,
             "data-[state=open]:animate-[menu-in_150ms_ease-out]",
             "data-[state=closed]:animate-[menu-out_150ms_ease-in]",
           )}
@@ -143,7 +156,13 @@ export function Select({
             )}
 
             {options.map((option) => (
-              <Row key={option.value} value={option.value} label={option.label} testId={testId} />
+              <Row
+                key={option.value}
+                value={option.value}
+                label={option.label}
+                icon={option.icon}
+                testId={testId}
+              />
             ))}
           </SelectPrimitive.Viewport>
 
@@ -159,11 +178,13 @@ export function Select({
 function Row({
   value,
   label,
+  icon,
   muted = false,
   testId,
 }: {
   readonly value: string;
   readonly label: string;
+  readonly icon?: ReactNode | undefined;
   readonly muted?: boolean | undefined;
   readonly testId?: string | undefined;
 }): JSX.Element {
@@ -182,7 +203,16 @@ function Row({
         muted ? "text-ink-subtle" : "text-ink",
       )}
     >
-      <SelectPrimitive.ItemText>{label}</SelectPrimitive.ItemText>
+      <SelectPrimitive.ItemText>
+        {icon === undefined ? (
+          label
+        ) : (
+          <span className="inline-flex items-center gap-2">
+            {icon}
+            {label}
+          </span>
+        )}
+      </SelectPrimitive.ItemText>
 
       <SelectPrimitive.ItemIndicator asChild>
         <Icon

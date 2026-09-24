@@ -114,7 +114,7 @@ export function SupplierFormModal({
               id="supplier-phone"
               data-testid="supplier-field-phone"
               value={phone}
-              onChange={(event) => setPhone(event.target.value)}
+              onChange={(next) => setPhone(next ?? "")}
             />
           </FormField>
 

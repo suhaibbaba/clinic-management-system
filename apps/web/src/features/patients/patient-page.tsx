@@ -1,7 +1,17 @@
 import { Suspense, lazy, type JSX, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
-import { Avatar, Button, Icon, Ltr, PhoneLink, TabPanel, Tabs, useTabParam } from "@clinic/ui";
+import {
+  Avatar,
+  Button,
+  Icon,
+  Ltr,
+  PhoneLink,
+  TabPanel,
+  Tabs,
+  useTabParam,
+  WhatsAppLink,
+} from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { AppointmentFormModal } from "@web/features/appointments/appointment-form-modal";
 import { canBookAppointment } from "@web/features/appointments/permissions";
@@ -19,6 +29,7 @@ import { TimelineTab } from "@web/features/patients/timeline/timeline-tab";
 import { TreatmentPlansTab } from "@web/features/patients/treatment-plans/treatment-plans-tab";
 import { VisitsTab } from "@web/features/patients/visits/visits-tab";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
+import { whatsAppNumber } from "@web/lib/whatsapp";
 
 const ChartTab = lazy(async () => ({
   default: (await import("@web/features/patients/chart/chart-tab")).ChartTab,
@@ -159,8 +170,13 @@ export function PatientPage(): JSX.Element {
                 <dt className="text-value text-ink-muted">{t("patients.phone")}</dt>
                 {/* The 44px band is an absolutely positioned `::after`, and an `overflow-hidden`
                     ancestor cuts it down to the line box. */}
-                <dd className="mt-0.5 min-w-0 text-value text-ink">
+                <dd className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-value text-ink">
                   <PhoneLink value={patient.data.phone} data-testid="patient-phone" />
+                  <WhatsAppLink
+                    value={whatsAppNumber(patient.data)}
+                    label={t("patients.whatsapp")}
+                    data-testid="patient-whatsapp"
+                  />
                 </dd>
               </div>
 

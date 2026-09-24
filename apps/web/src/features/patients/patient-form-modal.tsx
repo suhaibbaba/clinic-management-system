@@ -65,6 +65,7 @@ export function PatientFormModal({
             middleName: patient.middleName,
             lastName: patient.lastName,
             phone: patient.phone,
+            whatsapp: patient.whatsapp,
             dateOfBirth: patient.dateOfBirth,
             gender: patient.gender,
             address: patient.address,
@@ -177,13 +178,45 @@ export function PatientFormModal({
           error={errors.phone}
           errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
         >
-          <PhoneInput
-            placeholder={t("common.placeholders.phone")}
-            adornment="phone"
-            id="patient-phone"
-            data-testid="patient-field-phone"
-            hasError={Boolean(errors.phone)}
-            {...register("phone")}
+          <Controller
+            name="phone"
+            control={control}
+            render={({ field }) => (
+              <PhoneInput
+                placeholder={t("common.placeholders.phone")}
+                id="patient-phone"
+                data-testid="patient-field-phone"
+                hasError={Boolean(errors.phone)}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
+          />
+        </FormField>
+
+        <FormField
+          label="patients.whatsapp"
+          htmlFor="patient-whatsapp"
+          error={errors.whatsapp}
+          errorKey={errors.whatsapp ? "errors.validation.invalidPhone" : undefined}
+          hint="patients.whatsappHint"
+          optional
+        >
+          <Controller
+            name="whatsapp"
+            control={control}
+            render={({ field }) => (
+              <PhoneInput
+                placeholder={t("common.placeholders.phone")}
+                id="patient-whatsapp"
+                data-testid="patient-field-whatsapp"
+                hasError={Boolean(errors.whatsapp)}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
           />
         </FormField>
 
@@ -270,16 +303,20 @@ export function PatientFormModal({
           error={errors.emergencyContactPhone}
           optional
         >
-          <Input
-            placeholder={t("common.placeholders.phone")}
-            adornment="phone"
-            id="patient-emergency-phone"
-            data-testid="patient-field-emergency-phone"
-            dir="ltr"
-            inputMode="tel"
-            {...register("emergencyContactPhone", {
-              setValueAs: (value) => (value === "" ? null : value),
-            })}
+          <Controller
+            name="emergencyContactPhone"
+            control={control}
+            render={({ field }) => (
+              <PhoneInput
+                placeholder={t("common.placeholders.phone")}
+                id="patient-emergency-phone"
+                data-testid="patient-field-emergency-phone"
+                hasError={Boolean(errors.emergencyContactPhone)}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
           />
         </FormField>
       </form>

@@ -44,7 +44,8 @@
     "tailwind-merge": "^3.6.0"
   },
   "dependencies": {
-    "@clinic/shared": "workspace:*"
+    "@clinic/shared": "workspace:*",
+    "country-flag-icons": "^1.6.20"
   },
   "devDependencies": {
     "@radix-ui/react-dialog": "^1.1.23",

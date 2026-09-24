@@ -74,13 +74,15 @@ const isOverlapConflict = (error: unknown): boolean => {
 };
 
 /** Digits only, so `0931 000 001` and `+963931000001` are not two people. */
-const normalisePhone = (phone: string): string => phone.replaceAll(/[^\d]/g, "");
+// Matched on digits alone, so a stored `+970 59…` and a typed `+97059…` are the same person.
+const phoneDigits = (phone: string): string => phone.replaceAll(/[^\d]/g, "");
 
 interface ClinicContext {
   readonly id: string;
   readonly name: PersonName;
   readonly logoKey: string | null;
   readonly phone: string | null;
+  readonly country: string;
   readonly timeZone: string;
   readonly booking: BookingSettings;
 }
@@ -107,6 +109,7 @@ export class BookingService {
       slug,
       logoUrl: clinic.logoKey ? (await this.storage.createBrandingUrl(clinic.logoKey)).url : null,
       phone: clinic.phone,
+      country: clinic.country,
       address: null,
       bookingEnabled: clinic.booking.enabled,
       confirmationMode: clinic.booking.confirmationMode,
@@ -180,9 +183,9 @@ export class BookingService {
     input: CreateUrgentRequestInput,
   ): Promise<UrgentRequestReceipt> {
     const clinic = await this.requireBookingEnabled(slug);
-    const phone = normalisePhone(input.phone);
+    const { phone } = input;
 
-    const open = await this.waitingList.openUrgentCount(clinic.id, phone);
+    const open = await this.waitingList.openUrgentCount(clinic.id, phoneDigits(phone));
 
     // Same cap as a booking, and the same wording: a stranger must not learn
     // that it is their own number being limited.
@@ -210,7 +213,7 @@ export class BookingService {
 
     await this.requireOfferedSlot(clinic, input.doctorId, input.startsAt);
 
-    const phone = normalisePhone(input.phone);
+    const { phone } = input;
     await this.requireUnderActiveLimit(clinic, phone);
 
     const patientId = await this.linkOrCreatePatient(clinic.id, phone, input);
@@ -431,7 +434,7 @@ export class BookingService {
         and(
           eq(patients.clinicId, clinicId),
           isNull(patients.deletedAt),
-          sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') = ${phone}`,
+          sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') = ${phoneDigits(phone)}`,
         ),
       )
       .limit(1);
@@ -486,7 +489,7 @@ export class BookingService {
           isNull(appointments.deletedAt),
           eq(appointments.status, APPOINTMENT_STATUS.REQUESTED),
           gte(appointments.startsAt, new Date()),
-          sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') = ${phone}`,
+          sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') = ${phoneDigits(phone)}`,
         ),
       );
 
@@ -542,6 +545,7 @@ export class BookingService {
         nameEn: clinics.nameEn,
         logoKey: clinics.logoKey,
         phone: clinics.phone,
+        country: clinics.country,
         settings: clinics.settings,
       })
       .from(clinics)
@@ -557,6 +561,7 @@ export class BookingService {
       name: toPersonName(row.nameAr, row.nameEn),
       logoKey: row.logoKey,
       phone: row.phone,
+      country: row.country,
       timeZone: clinicScheduleSettings(row.settings).timezone || DEFAULT_TIME_ZONE,
       booking: bookingSettings(row.settings),
     };

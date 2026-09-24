@@ -2,6 +2,7 @@ import { z } from "zod";
 import { settingsSchema, weeklyScheduleSchema, optionalPhoneSchema } from "@shared/schemas/common";
 import { personNameInputSchema, personNameSchema } from "@shared/schemas/person-name";
 import { DEFAULT_TIME_ZONE } from "@shared/time/zone";
+import { PHONE_COUNTRY_CODES } from "@shared/constants/phone";
 
 // A closed list: a typo would quietly relabel every figure. Adding one needs its i18n label and its
 // `CURRENCY_SYMBOLS` symbol too.
@@ -194,6 +195,8 @@ export const clinicSchema = z.object({
   // Read as a plain string, not the enum: a row stored before the list existed must still parse, or
   // the settings screen cannot load to fix it.
   currency: z.string(),
+  /** ISO 3166-1 alpha-2. Read as a string for the same reason `currency` is. */
+  country: z.string(),
   workingHours: weeklyScheduleSchema,
   settings: settingsSchema,
   createdAt: z.iso.datetime(),
@@ -211,6 +214,7 @@ export const updateClinicSchema = z
     longitude: longitudeSchema.nullish(),
     /** Writes are held to the list, even though reads are not. */
     currency: z.enum(CURRENCIES),
+    country: z.enum(PHONE_COUNTRY_CODES),
     workingHours: weeklyScheduleSchema,
     settings: settingsSchema,
   })

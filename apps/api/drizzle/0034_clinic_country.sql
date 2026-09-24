@@ -1,0 +1,1 @@
+ALTER TABLE "clinics" ADD COLUMN "country" varchar(2) DEFAULT 'PS' NOT NULL;

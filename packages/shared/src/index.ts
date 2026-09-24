@@ -21,6 +21,7 @@ export * from "@shared/schemas/health";
 export * from "@shared/schemas/inventory";
 export * from "@shared/schemas/inventory-batches";
 export * from "@shared/constants/lookups";
+export * from "@shared/constants/phone";
 export * from "@shared/schemas/labs";
 export * from "@shared/schemas/lookups";
 export * from "@shared/schemas/medical-histories";

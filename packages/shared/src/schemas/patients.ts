@@ -26,6 +26,8 @@ export const patientClinicalViewSchema = z.object({
   middleName: z.string().nullable(),
   lastName: z.string(),
   phone: z.string(),
+  /** Null when WhatsApp is on `phone` itself. */
+  whatsapp: z.string().nullable(),
   dateOfBirth: dateOnlySchema.nullable(),
   gender: z.enum(GENDERS).nullable(),
   address: z.string().nullable(),
@@ -54,6 +56,7 @@ export const patientPublicViewSchema = patientClinicalViewSchema
     middleName: true,
     lastName: true,
     phone: true,
+    whatsapp: true,
     dateOfBirth: true,
     profileIncomplete: true,
   })
@@ -72,6 +75,7 @@ const nameParts = {
 const patientWritableFields = {
   ...nameParts,
   phone: phoneSchema,
+  whatsapp: phoneSchema.nullish(),
   dateOfBirth: dateOnlySchema.nullish(),
   gender: z.enum(GENDERS).nullish(),
   address: z.string().trim().max(500).nullish(),

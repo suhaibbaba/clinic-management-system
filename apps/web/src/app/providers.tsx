@@ -1,10 +1,11 @@
-import { ToastProvider } from "@clinic/ui";
+import { DEFAULT_PHONE_COUNTRY, isPhoneCountry } from "@clinic/shared";
+import { PhoneCountryProvider, ToastProvider } from "@clinic/ui";
 import { UiProvider } from "@clinic/ui/theme";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useMemo, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { createQueryClient } from "@web/app/query-client";
-import { SessionProvider } from "@web/features/auth/session";
+import { SessionProvider, useSession } from "@web/features/auth/session";
 import { isRtl } from "@web/i18n";
 import { OfflineBar } from "@web/components/pwa/offline-bar";
 import { UpdateBar } from "@web/components/pwa/update-bar";
@@ -30,10 +31,23 @@ export function AppProviders({ children }: { children: ReactNode }): JSX.Element
             <DocumentBranding />
             <OfflineBar />
             <UpdateBar />
-            <DocumentTitleProvider>{children}</DocumentTitleProvider>
+            <ClinicPhoneCountry>
+              <DocumentTitleProvider>{children}</DocumentTitleProvider>
+            </ClinicPhoneCountry>
           </SessionProvider>
         </ToastProvider>
       </QueryClientProvider>
     </UiProvider>
+  );
+}
+
+/** Every phone field starts on the clinic's own dialling code. */
+function ClinicPhoneCountry({ children }: { readonly children: ReactNode }): JSX.Element {
+  const country = useSession().user?.clinic.country;
+
+  return (
+    <PhoneCountryProvider country={isPhoneCountry(country) ? country : DEFAULT_PHONE_COUNTRY}>
+      {children}
+    </PhoneCountryProvider>
   );
 }

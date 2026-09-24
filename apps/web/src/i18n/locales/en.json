@@ -4,6 +4,7 @@
     "shortTitle": "Clinic"
   },
   "common": {
+    "diallingCode": "Dialling code",
     "clock": {
       "am": "AM",
       "pm": "PM"
@@ -302,6 +303,8 @@
     }
   },
   "clinic": {
+    "country": "Country",
+    "countryHint": "Every phone field starts on this country's dialling code",
     "title": "Clinic settings",
     "subtitle": "Clinic details and opening hours",
     "name": "Clinic name",
@@ -430,6 +433,8 @@
     }
   },
   "patients": {
+    "whatsapp": "WhatsApp",
+    "whatsappHint": "Leave empty if WhatsApp is on the phone number",
     "address": "Address",
     "age": "Age",
     "allergies": "Allergies",

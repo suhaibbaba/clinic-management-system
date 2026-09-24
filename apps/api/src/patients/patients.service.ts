@@ -80,10 +80,16 @@ export class PatientsService implements OnModuleInit {
 
     if (query.search) {
       const pattern = `%${query.search.trim()}%`;
+      // Numbers are stored `+970599…` and typed `0599…`: compared on digits, less a trunk 0.
+      const digits = query.search.replace(/\D/g, "").replace(/^0+/, "");
+
       filters.push(
         or(
           byName?.match,
           sql`${patients.phone} ilike ${pattern}`,
+          digits.length >= 3
+            ? sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') like ${`%${digits}%`}`
+            : undefined,
           sql`${patients.fileNumber} ilike ${pattern}`,
         ),
       );
@@ -159,6 +165,7 @@ export class PatientsService implements OnModuleInit {
           ? { ...name, fullName: joinPatientName(name) }
           : {}),
         ...(input.phone !== undefined && { phone: input.phone }),
+        ...(input.whatsapp !== undefined && { whatsapp: input.whatsapp ?? null }),
         ...(input.dateOfBirth !== undefined && { dateOfBirth: input.dateOfBirth ?? null }),
         ...(input.gender !== undefined && { gender: input.gender ?? null }),
         ...(input.address !== undefined && { address: input.address ?? null }),

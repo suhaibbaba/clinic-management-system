@@ -164,13 +164,20 @@ export function UserFormModal({
           error={errors.phone}
           errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
         >
-          <PhoneInput
-            placeholder={t("common.placeholders.phone")}
-            adornment="phone"
-            id="user-phone"
-            data-testid="user-field-phone"
-            hasError={errors.phone !== undefined}
-            {...register("phone")}
+          <Controller
+            name="phone"
+            control={control}
+            render={({ field }) => (
+              <PhoneInput
+                placeholder={t("common.placeholders.phone")}
+                id="user-phone"
+                data-testid="user-field-phone"
+                hasError={errors.phone !== undefined}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
           />
         </FormField>
 

@@ -86,6 +86,34 @@ describe("Patient page", () => {
     authTokens.clear();
   });
 
+  it("links to a WhatsApp chat on the patient's own number, else on their phone", async () => {
+    await renderPatientPage(USER_ROLE.RECEPTIONIST, {
+      [`GET /patients/${PATIENT_ID}`]: {
+        status: 200,
+        body: makePatient({ phone: "+970599123456" }),
+      },
+    });
+
+    expect(await screen.findByRole("link", { name: ar.patients.whatsapp })).toHaveAttribute(
+      "href",
+      "https://wa.me/970599123456",
+    );
+  });
+
+  it("uses the WhatsApp number when the file has one", async () => {
+    await renderPatientPage(USER_ROLE.RECEPTIONIST, {
+      [`GET /patients/${PATIENT_ID}`]: {
+        status: 200,
+        body: makePatient({ phone: "+970599123456", whatsapp: "+972599123456" }),
+      },
+    });
+
+    expect(await screen.findByRole("link", { name: ar.patients.whatsapp })).toHaveAttribute(
+      "href",
+      "https://wa.me/972599123456",
+    );
+  });
+
   describe("route access (ROLES.md patients matrix)", () => {
     it.each([USER_ROLE.ADMIN, USER_ROLE.DOCTOR])("lets %s open the chart", async (role) => {
       await renderPatientPage(role);

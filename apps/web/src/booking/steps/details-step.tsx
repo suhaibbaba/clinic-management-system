@@ -1,4 +1,5 @@
 import { isBookingPhone } from "@shared/constants/booking";
+import { dialCodeOf, joinPhone, type PhoneCountry } from "@shared/constants/phone";
 import { useState, type FormEvent, type JSX } from "react";
 import { t } from "@web/booking/i18n";
 import { isBookingNameComplete, NameFields } from "@web/booking/steps/name-fields";
@@ -18,18 +19,25 @@ export function DetailsStep({
   onChange,
   onSubmit,
   busy,
+  country,
   summary,
 }: {
   readonly details: BookingDetails;
   readonly onChange: (details: BookingDetails) => void;
   readonly onSubmit: () => void;
   readonly busy: boolean;
+  /** The clinic's, whose code a local number is dialled under. */
+  readonly country: PhoneCountry;
   readonly summary: JSX.Element;
 }): JSX.Element {
   const [touched, setTouched] = useState(false);
 
   const nameError = !isBookingNameComplete(details);
-  const phoneError = isBookingPhone(details.phone) ? undefined : t("details.phoneError");
+  const phoneError = isBookingPhone(joinPhone(country, details.phone) ?? "")
+    ? undefined
+    : t("details.phoneError");
+  // A number typed whole, from abroad, carries its own code.
+  const typedWhole = /^\s*(\+|00)/.test(details.phone);
 
   const submit = (event: FormEvent): void => {
     event.preventDefault();
@@ -55,6 +63,7 @@ export function DetailsStep({
 
       <Field
         data-testid="details-field-phone"
+        {...(!typedWhole && { prefix: dialCodeOf(country) })}
         label={t("details.phone")}
         name="phone"
         // `tel` gives the phone's own keypad; `dir="ltr"` keeps a leading +

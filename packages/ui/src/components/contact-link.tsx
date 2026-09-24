@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { Icon } from "@ui/components/icon";
 import { Ltr } from "@ui/components/ltr";
 import { cn } from "@ui/lib/cn";
 import { testid, type TestIdProps } from "@ui/lib/testid";
@@ -67,5 +68,42 @@ export function EmailLink({
     >
       {value}
     </Ltr>
+  );
+}
+
+export interface WhatsAppLinkProps extends TestIdProps {
+  /** International form, `+970599…`; anything else draws nothing. */
+  readonly value: string | null | undefined;
+  /** The visible text, and the name a screen reader announces. */
+  readonly label: string;
+  readonly className?: string | undefined;
+}
+
+// wa.me opens the chat in the app or on the web; nothing is sent until the reader sends it.
+export function WhatsAppLink({
+  value,
+  label,
+  className,
+  "data-testid": testId,
+}: WhatsAppLinkProps): JSX.Element | null {
+  const digits = value?.trim().startsWith("+") ? value.replace(/\D/g, "") : "";
+
+  if (digits === "") {
+    return null;
+  }
+
+  return (
+    <a
+      data-part="whatsapp-link"
+      {...testid(testId)}
+      href={`https://wa.me/${digits}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={value ?? undefined}
+      className={cn(LINK_CLASS, "inline-flex items-center gap-1", className)}
+    >
+      <Icon name="message" className="size-4 shrink-0" />
+      {label}
+    </a>
   );
 }

@@ -1,4 +1,5 @@
 import type { ManagedBooking, PublicDoctor } from "@clinic/shared";
+import { DEFAULT_PHONE_COUNTRY, isPhoneCountry, joinPhone } from "@shared/constants/phone";
 import { BOOKING_CONFIRMATION_MODE } from "@shared/enums";
 import { useEffect, useMemo, useState, type JSX } from "react";
 import { BookingError, bookingApi, failureKey } from "@web/booking/api";
@@ -78,6 +79,9 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
   const [attemptsLeft, setAttemptsLeft] = useState(OTP_ATTEMPTS);
 
   const maxDaysAhead = clinic.data?.maxDaysAhead ?? VISIBLE_DAYS;
+  const country = isPhoneCountry(clinic.data?.country)
+    ? clinic.data.country
+    : DEFAULT_PHONE_COUNTRY;
   const chips = useMemo(() => dayChips(from, VISIBLE_DAYS, maxDaysAhead), [from, maxDaysAhead]);
 
   // Fetching the whole strip is what lets a closed day render as a greyed chip, and gives the
@@ -129,7 +133,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
       const receipt = await bookingApi.book(slug, {
         firstName: details.firstName.trim(),
         lastName: details.lastName.trim(),
-        phone: details.phone.trim(),
+        phone: joinPhone(country, details.phone) ?? "",
         doctorId: doctor.id,
         startsAt: slot.startsAt,
         ...(details.reason.trim() && { reason: details.reason.trim() }),
@@ -165,7 +169,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
       await bookingApi.requestUrgent(slug, {
         firstName: urgent.firstName.trim(),
         lastName: urgent.lastName.trim(),
-        phone: urgent.phone.trim(),
+        phone: joinPhone(country, urgent.phone) ?? "",
         complaint: urgent.complaint.trim(),
         ...(doctor && { doctorId: doctor.id }),
       });
@@ -365,6 +369,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
             onSubmit={() => void sendUrgent()}
             onBack={() => setStage("when")}
             busy={busy}
+            country={country}
           />
         )}
 
@@ -374,6 +379,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
             onChange={setDetails}
             onSubmit={() => void submit()}
             busy={busy}
+            country={country}
             summary={
               <Card data-testid="booking-summary" className="bg-primary-50 shadow-none">
                 <p className="text-label text-ink-muted">{t("details.summary")}</p>
@@ -392,7 +398,7 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
         {stage === "otp" && (
           <OtpStep
-            phone={details.phone}
+            phone={joinPhone(country, details.phone) ?? details.phone}
             busy={busy}
             error={otpError}
             attemptsLeft={attemptsLeft}
