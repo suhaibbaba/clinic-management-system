@@ -1249,7 +1249,10 @@
       "item_unit": "The units inventory is counted in",
       "payment_method": "How payments are taken, and how labs are paid",
       "frequent_drug": "The drugs offered first when writing a prescription"
-    }
+    },
+    "rowMenu": "More options",
+    "moveUp": "Move up",
+    "moveDown": "Move down"
   },
   "dashboard": {
     "calendar": {
