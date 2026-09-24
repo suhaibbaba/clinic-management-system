@@ -9,7 +9,7 @@ import {
   type AiErrorCode,
   type AiProposalStatusEvent,
 } from "@clinic/shared";
-import { useCallback, useState, type JSX } from "react";
+import { useCallback, useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
@@ -64,6 +64,21 @@ export function AssistantPage(): JSX.Element {
   const [railOpen, setRailOpen] = useState(false);
 
   useDocumentTitle(t("nav.assistant"));
+
+  useEffect(() => {
+    if (!railOpen) {
+      return;
+    }
+
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") {
+        setRailOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [railOpen]);
 
   // Times on cards and tables are the clinic's, not the browser's.
   const clinic = useClinic();
@@ -148,6 +163,20 @@ export function AssistantPage(): JSX.Element {
     // A workspace page: the shell hands over the viewport and its top bar, which sits above the
     // thread only, so the conversation list runs the full height beside the navigation.
     <div data-testid="assistant-page" className="flex min-h-0 flex-1 overflow-hidden">
+      {railOpen && (
+        <button
+          type="button"
+          data-testid="assistant-rail-backdrop"
+          aria-label={t("common.close")}
+          tabIndex={-1}
+          className={cn(
+            "fixed inset-0 z-20 cursor-default bg-ink/50 backdrop-blur-[2px] md:hidden",
+            "animate-[fade-in_200ms_ease-out]",
+          )}
+          onClick={() => setRailOpen(false)}
+        />
+      )}
+
       <ConversationRail
         conversations={conversations.data?.items ?? []}
         loading={conversations.isPending}
