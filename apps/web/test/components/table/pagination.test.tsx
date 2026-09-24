@@ -14,14 +14,19 @@ function setViewport(isMobile: boolean): void {
   }));
 }
 
-function renderPager(page = 1, totalPages = 9) {
+function renderPager(page = 1, totalPages = 9, perPage?: number) {
   const onPageChange = vi.fn();
   render(
     <Table
       columns={[{ key: "name", header: "common.name", primary: true, render: (row) => row.name }]}
       rows={[{ id: "1", name: "row" }]}
       rowKey={(row) => row.id}
-      pagination={{ page, totalPages, onPageChange }}
+      pagination={{
+        page,
+        totalPages,
+        onPageChange,
+        ...(perPage !== undefined && { perPage, onPerPageChange: () => undefined }),
+      }}
       data-testid="list"
     />,
   );
@@ -43,6 +48,14 @@ describe("Pagination on a phone", () => {
     expect(screen.queryByTestId("list-pagination-page-1")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: ar.pagination.previous })).toBeEnabled();
     expect(screen.getByRole("button", { name: ar.pagination.next })).toBeEnabled();
+  });
+
+  it("keeps the page size on the same row, named but without the words beside it", () => {
+    setViewport(true);
+    renderPager(1, 9, 10);
+
+    expect(screen.getByRole("combobox", { name: ar.pagination.perPage })).toHaveTextContent("10");
+    expect(screen.getByText(ar.pagination.perPage)).toHaveClass("sr-only");
   });
 
   it("goes to a typed page on Enter, reading Arabic-Indic digits", async () => {

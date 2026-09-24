@@ -525,8 +525,8 @@ export function Pagination({
       data-part="pagination"
       {...testid(testId)}
       className={cn(
-        "flex flex-wrap items-center gap-2 border-t border-line bg-table-head py-3",
-        isMobile ? "justify-center gap-x-6 gap-y-3 px-3" : "justify-between px-[18px]",
+        "flex flex-wrap items-center justify-between gap-2 border-t border-line bg-table-head py-3",
+        isMobile ? "px-3" : "px-[18px]",
         className,
       )}
       aria-label={t("pagination.label")}
@@ -539,7 +539,8 @@ export function Pagination({
             isMobile && "order-last",
           )}
         >
-          {t("pagination.perPage")}
+          {/* A phone has no room for the words beside the pager; they stay as the control's name. */}
+          <span className={cn(isMobile && "sr-only")}>{t("pagination.perPage")}</span>
           <Select
             className="w-[5.5rem]"
             {...testid(testId, "per-page")}
