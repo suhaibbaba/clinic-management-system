@@ -24,6 +24,7 @@ describe("Patient timeline (e2e)", () => {
   const tokens = {} as Record<UserRole, string>;
 
   let patientId: string;
+  let visitDate: string;
 
   beforeAll(async () => {
     context = await createTestContext();
@@ -47,7 +48,7 @@ describe("Patient timeline (e2e)", () => {
 
     const asDoctor = auth(tokens[USER_ROLE.DOCTOR]);
 
-    await context.app.inject({
+    const visit = await context.app.inject({
       method: "POST",
       url: "/visits",
       headers: asDoctor,
@@ -59,6 +60,7 @@ describe("Patient timeline (e2e)", () => {
         diagnosis: "التهاب لب سني عكوس",
       },
     });
+    visitDate = (visit.json() as { visitDate: string }).visitDate;
 
     await context.app.inject({
       method: "POST",
@@ -81,6 +83,7 @@ describe("Patient timeline (e2e)", () => {
       headers: asDoctor,
       payload: {
         patientId,
+        visitId: (visit.json() as { id: string }).id,
         doctorId: fixtures.doctorId,
         items: [
           { drug: "أموكسيسيلين", dose: "٥٠٠ ملغ", frequency: "كل ٨ ساعات", duration: "٥ أيام" },
@@ -131,6 +134,13 @@ describe("Patient timeline (e2e)", () => {
 
     const timestamps = items.map((item) => Date.parse(item.occurredAt));
     expect([...timestamps].sort((a, b) => b - a)).toEqual(timestamps);
+  });
+
+  it("dates a prescription by the visit it was written at", async () => {
+    const response = await timeline(USER_ROLE.DOCTOR, `?type=${TIMELINE_ENTRY_TYPE.PRESCRIPTION}`);
+
+    const entry = (response.json() as { items: Entry[] }).items[0];
+    expect(Date.parse(entry?.occurredAt ?? "")).toBe(Date.parse(visitDate));
   });
 
   it("paginates across the merged stream, not per source", async () => {

@@ -71,6 +71,8 @@ export const SHIPPED_CAPABILITIES: Record<UserRole, readonly string[]> = {
     "pending-bookings.confirm",
     "pending-bookings.list",
     "pending-bookings.reject",
+    "prescriptions.create",
+    "prescriptions.remove",
     "procedures.create",
     "suppliers.create",
     "users.invite",
@@ -98,6 +100,8 @@ export const SHIPPED_CAPABILITIES: Record<UserRole, readonly string[]> = {
     "patient-attachments.presignUpload",
     "patients.create",
     "patients.update",
+    "prescriptions.create",
+    "prescriptions.remove",
     "procedures.create",
   ],
   [USER_ROLE.TECHNICIAN]: [

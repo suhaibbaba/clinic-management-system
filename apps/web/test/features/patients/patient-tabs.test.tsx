@@ -1,7 +1,7 @@
 import { LOOKUP_LIST, SYSTEM_LOOKUPS, USER_ROLE } from "@clinic/shared";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "@web/app/router";
 import ar from "@web/i18n/locales/ar.json";
 import { authTokens } from "@web/lib/auth-tokens";
@@ -46,6 +46,7 @@ function handlers(overrides: Record<string, MockResponse | unknown> = {}) {
     "GET /procedure-catalog": { status: 200, body: paginated([CATALOG, CROWN]) },
     "GET /performed-procedures": { status: 200, body: paginated([]) },
     "GET /visits": { status: 200, body: paginated([]) },
+    "GET /prescriptions": { status: 200, body: paginated([]) },
     "GET /treatment-plans": { status: 200, body: paginated([]) },
     [`GET /patients/${PATIENT_ID}/attachments`]: { status: 200, body: paginated([]) },
     ...overrides,
@@ -183,6 +184,77 @@ describe("Visits tab", () => {
       // No tooth was named here, so nothing is charted.
       expect((call?.body as { chartMarks: unknown[] }).chartMarks).toEqual([]);
     });
+  });
+});
+
+describe("Prescriptions tab", () => {
+  beforeEach(() => authTokens.clear());
+
+  it("keeps a drug and its duration against the visit, dose and frequency left out", async () => {
+    const visit = makeVisit();
+    const api = await openTab(ar.patients.tabs.prescriptions, {
+      "GET /visits": { status: 200, body: paginated([visit]) },
+      "POST /prescriptions": { status: 201, body: {} },
+    });
+
+    await userEvent.click(await screen.findByRole("button", { name: ar.prescriptions.create }));
+
+    const dialog = await screen.findByRole("dialog");
+    await userEvent.type(
+      within(dialog).getByRole("textbox", { name: ar.prescriptions.drug }),
+      "مضاد التهاب",
+    );
+    await userEvent.type(
+      within(dialog).getByRole("textbox", { name: ar.prescriptions.duration }),
+      "5 أيام",
+    );
+    await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
+
+    await waitFor(() => {
+      const call = api.calls.find(
+        (entry) => entry.method === "POST" && entry.url.endsWith("/prescriptions"),
+      );
+      expect(call?.body).toMatchObject({
+        patientId: PATIENT_ID,
+        visitId: visit.id,
+        doctorId: visit.doctorId,
+        items: [{ drug: "مضاد التهاب", dose: null, frequency: null, duration: "5 أيام" }],
+      });
+    });
+  });
+
+  it("deletes a prescription only after the confirmation", async () => {
+    const visit = makeVisit();
+    const prescription = {
+      id: "99999999-9999-4999-8999-999999999999",
+      clinicId: visit.clinicId,
+      patientId: PATIENT_ID,
+      visitId: visit.id,
+      doctorId: visit.doctorId,
+      items: [{ drug: "مضاد التهاب", dose: null, frequency: null, duration: "5 أيام" }],
+      notes: null,
+      createdAt: visit.createdAt,
+      updatedAt: visit.updatedAt,
+    };
+    const api = await openTab(ar.patients.tabs.prescriptions, {
+      "GET /visits": { status: 200, body: paginated([visit]) },
+      "GET /prescriptions": { status: 200, body: paginated([prescription]) },
+      [`DELETE /prescriptions/${prescription.id}`]: { status: 204 },
+    });
+    const confirm = vi
+      .spyOn(window, "confirm")
+      .mockReturnValueOnce(false)
+      .mockReturnValueOnce(true);
+    const deleteButton = await screen.findByRole("button", { name: ar.common.delete });
+    const deletes = () => api.calls.filter((entry) => entry.method === "DELETE");
+
+    await userEvent.click(deleteButton);
+    expect(deletes()).toHaveLength(0);
+
+    await userEvent.click(deleteButton);
+    await waitFor(() => expect(deletes()).toHaveLength(1));
+
+    confirm.mockRestore();
   });
 });
 

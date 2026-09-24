@@ -125,11 +125,12 @@ export class TimelineService {
           from attachments a
           where a.clinic_id = ${clinicId} and a.patient_id = ${patientId} and a.deleted_at is null`;
 
+      // Dated by the visit it was written at, so it sits beside that visit, not the day it was typed.
       case TIMELINE_ENTRY_TYPE.PRESCRIPTION:
         return sql`
           select pr.id,
                  ${TIMELINE_ENTRY_TYPE.PRESCRIPTION}::text as type,
-                 pr.created_at as occurred_at,
+                 coalesce(v.visit_date, pr.created_at) as occurred_at,
                  coalesce(pr.items -> 0 ->> 'drug', '') as title,
                  jsonb_build_object(
                    'prescriptionId', pr.id,
@@ -138,6 +139,7 @@ export class TimelineService {
                    'itemCount', jsonb_array_length(pr.items)
                  ) as detail
           from prescriptions pr
+          left join visits v on v.id = pr.visit_id and v.deleted_at is null
           where pr.clinic_id = ${clinicId} and pr.patient_id = ${patientId} and pr.deleted_at is null`;
 
       case TIMELINE_ENTRY_TYPE.TREATMENT_PLAN:

@@ -12,7 +12,7 @@ import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { doctors, prescriptions } from "@api/database/schema";
+import { doctors, prescriptions, visits } from "@api/database/schema";
 import { PatientAccessService } from "@api/patients/patient-access.service";
 
 type PrescriptionRow = typeof prescriptions.$inferSelect;
@@ -85,6 +85,10 @@ export class PrescriptionsService implements OnModuleInit {
     await this.patientAccess.requirePatientId(actor, input.patientId);
     await this.requireDoctor(actor, input.doctorId);
 
+    if (input.visitId) {
+      await this.requireVisit(actor, input.visitId, input.patientId);
+    }
+
     const [row] = await this.db
       .insert(prescriptions)
       .values({
@@ -111,10 +115,18 @@ export class PrescriptionsService implements OnModuleInit {
     id: string,
     input: UpdatePrescriptionInput,
   ): Promise<Prescription> {
-    await this.scope.findOneOrFail<PrescriptionRow>(prescriptions, actor.clinicId, id);
+    const existing = await this.scope.findOneOrFail<PrescriptionRow>(
+      prescriptions,
+      actor.clinicId,
+      id,
+    );
 
     if (input.doctorId) {
       await this.requireDoctor(actor, input.doctorId);
+    }
+
+    if (input.visitId) {
+      await this.requireVisit(actor, input.visitId, existing.patientId);
     }
 
     const [row] = await this.db
@@ -144,6 +156,30 @@ export class PrescriptionsService implements OnModuleInit {
       .update(prescriptions)
       .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
       .where(this.scope.where(prescriptions, actor.clinicId, eq(prescriptions.id, id)));
+  }
+
+  // The foreign key only proves the visit exists somewhere; it must be this patient's, in this clinic.
+  private async requireVisit(
+    actor: AuthenticatedUser,
+    visitId: string,
+    patientId: string,
+  ): Promise<void> {
+    const [row] = await this.db
+      .select({ id: visits.id })
+      .from(visits)
+      .where(
+        this.scope.where(
+          visits,
+          actor.clinicId,
+          eq(visits.id, visitId),
+          eq(visits.patientId, patientId),
+        ),
+      )
+      .limit(1);
+
+    if (!row) {
+      throw new BadRequestException("Visit not found for this patient");
+    }
   }
 
   private async requireDoctor(actor: AuthenticatedUser, doctorId: string): Promise<void> {

@@ -1,17 +1,7 @@
 import { Suspense, lazy, type JSX, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
-import {
-  Avatar,
-  Button,
-  EmptyState,
-  Icon,
-  Ltr,
-  PhoneLink,
-  TabPanel,
-  Tabs,
-  useTabParam,
-} from "@clinic/ui";
+import { Avatar, Button, Icon, Ltr, PhoneLink, TabPanel, Tabs, useTabParam } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { AppointmentFormModal } from "@web/features/appointments/appointment-form-modal";
 import { canBookAppointment } from "@web/features/appointments/permissions";
@@ -23,6 +13,7 @@ import { ageInYears } from "@web/features/patients/age";
 import { AllergyBanner } from "@web/features/patients/allergy-banner";
 import { PatientFormModal } from "@web/features/patients/patient-form-modal";
 import { canEditPatient, canViewChart } from "@web/features/patients/permissions";
+import { PrescriptionsTab } from "@web/features/patients/prescriptions/prescriptions-tab";
 import { usePatient } from "@web/features/patients/queries";
 import { TimelineTab } from "@web/features/patients/timeline/timeline-tab";
 import { TreatmentPlansTab } from "@web/features/patients/treatment-plans/treatment-plans-tab";
@@ -48,8 +39,6 @@ const TABS = [
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
-
-const PLACEHOLDER_TABS: readonly TabId[] = ["prescriptions"];
 
 export function PatientPage(): JSX.Element {
   const { t } = useTranslation();
@@ -230,17 +219,9 @@ export function PatientPage(): JSX.Element {
         {activeTab === "treatmentPlans" && (
           <TreatmentPlansTab patientId={id} patient={patient.data} />
         )}
+        {activeTab === "prescriptions" && <PrescriptionsTab patientId={id} />}
         {activeTab === "timeline" && <TimelineTab patientId={id} />}
         {activeTab === "billing" && <AccountTab patientId={id} patient={patient.data} />}
-
-        {PLACEHOLDER_TABS.includes(activeTab) && (
-          <EmptyState
-            icon="clipboard"
-            data-testid="patient-tab-placeholder"
-            title="patients.tabs.comingSoon"
-            hint="patients.tabs.comingSoonHint"
-          />
-        )}
       </TabPanel>
     </div>
   );

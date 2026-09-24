@@ -3,8 +3,9 @@ import { paginationQuerySchema } from "@shared/schemas/common";
 
 export const prescriptionItemSchema = z.object({
   drug: z.string().trim().min(1).max(160),
-  dose: z.string().trim().min(1).max(80),
-  frequency: z.string().trim().min(1).max(80),
+  // Optional: a prescription is often kept as a reminder of what was given and for how long.
+  dose: z.string().trim().max(80).nullish(),
+  frequency: z.string().trim().max(80).nullish(),
   duration: z.string().trim().min(1).max(80),
   note: z.string().trim().max(300).nullish(),
 });

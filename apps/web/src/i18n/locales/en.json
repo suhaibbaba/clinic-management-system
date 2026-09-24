@@ -466,9 +466,7 @@
       "attachments": "X-rays & files",
       "prescriptions": "Prescriptions",
       "timeline": "Timeline",
-      "billing": "Billing",
-      "comingSoon": "This section is not built yet",
-      "comingSoonHint": "It arrives with its own module."
+      "billing": "Billing"
     },
     "timeline": {
       "empty": "Nothing on the file yet",
@@ -549,6 +547,35 @@
       "recorded": "Procedure recorded",
       "procedureCount": "{{count}} procedures"
     }
+  },
+  "prescriptions": {
+    "count": "{{count}} prescriptions",
+    "create": "Add prescription",
+    "edit": "Edit prescription",
+    "created": "Prescription saved",
+    "updated": "Prescription updated",
+    "empty": "No prescriptions yet",
+    "emptyHint": "Record what you prescribed at each visit so you can recall it later",
+    "loadFailed": "Could not load the prescriptions",
+    "noVisits": "This patient has no visits",
+    "noVisitsHint": "Add a visit from the Visits tab first, then link the prescription to it",
+    "visit": "Visit",
+    "forVisit": "Visit {{date}}",
+    "withoutVisit": "No visit",
+    "drug": "Drug",
+    "dose": "Dose",
+    "frequency": "Frequency",
+    "duration": "Duration",
+    "notes": "Notes",
+    "drugPlaceholder": "e.g. anti-inflammatory",
+    "dosePlaceholder": "e.g. 400 mg",
+    "frequencyPlaceholder": "e.g. twice a day",
+    "durationPlaceholder": "e.g. 5 days",
+    "addDrug": "Add a drug",
+    "removeDrug": "Remove the drug",
+    "drugNumber": "Drug {{number}}",
+    "confirmDelete": "Delete this prescription? It leaves the patient's file and timeline; the audit log keeps a record of it.",
+    "deleted": "Prescription deleted"
   },
   "visits": {
     "create": "Record a visit",
