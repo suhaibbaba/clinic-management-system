@@ -203,7 +203,7 @@ export function AppLayout(): JSX.Element {
                 data-testid="app-main"
                 className="min-w-0 flex-1 px-4 pb-10 md:px-[34px] md:pb-12"
               >
-                <div className="mx-auto w-full max-w-[1180px]">
+                <div className="w-full">
                   <Outlet />
                 </div>
               </main>

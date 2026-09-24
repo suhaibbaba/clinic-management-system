@@ -29,7 +29,14 @@ export function SkeletonStatus(): JSX.Element {
 }
 
 /** Data already on screen stays there; this says the next page of it is on its way. */
-export function RefreshBar({ active }: { readonly active: boolean }): JSX.Element | null {
+export function RefreshBar({
+  active,
+  overlay = false,
+}: {
+  readonly active: boolean;
+  /** Drawn over the top edge of a positioned parent, so it takes no space and moves nothing. */
+  readonly overlay?: boolean;
+}): JSX.Element | null {
   const { t } = useTranslation();
 
   if (!active) {
@@ -37,7 +44,11 @@ export function RefreshBar({ active }: { readonly active: boolean }): JSX.Elemen
   }
 
   return (
-    <div role="status" aria-live="polite" className="px-4 pt-3">
+    <div
+      role="status"
+      aria-live="polite"
+      className={overlay ? "pointer-events-none absolute inset-x-0 top-0 z-10" : "px-4 pt-3"}
+    >
       <span className="sr-only">{t("common.updating")}</span>
       <Skeleton className="h-0.5 w-full rounded-none" />
     </div>

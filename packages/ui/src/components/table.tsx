@@ -28,6 +28,8 @@ export interface Column<TRow> {
   readonly hideOnDesktop?: boolean | undefined;
   readonly primary?: boolean | undefined;
   readonly actions?: boolean | undefined;
+  /** An actions column that is one small control, drawn at the end of the card's title row. */
+  readonly besideTitleOnMobile?: boolean | undefined;
   /** Numeric values: lining, tabular figures so columns of money line up. */
   readonly align?: "start" | "end" | "numeric" | undefined;
 }
@@ -95,6 +97,9 @@ export function Table<TRow>({
   const compact = density === "compact";
   const isMobile = useIsMobile() && !compact;
   const showSkeleton = useDelayedLoading(isLoading);
+  // The skeleton outlives the load by its minimum on-screen time; drawing rows under it for that
+  // moment made the table grow and then snap back.
+  const showRows = !isLoading && !showSkeleton;
 
   // Every node a row owns hangs off one id, so a failing selector names the row it missed.
   const rowId = (row: TRow): string | undefined =>
@@ -123,8 +128,8 @@ export function Table<TRow>({
         {header !== undefined && <PanelHead {...testid(testId, "header")}>{header}</PanelHead>}
 
         {/* One card per row */}
-        <div data-part="table-cards" {...testid(testId)} className="flex flex-col gap-3">
-          <RefreshBar active={isRefreshing} />
+        <div data-part="table-cards" {...testid(testId)} className="relative flex flex-col gap-3">
+          <RefreshBar active={isRefreshing} overlay />
 
           {showSkeleton && (
             <>
@@ -133,7 +138,7 @@ export function Table<TRow>({
             </>
           )}
 
-          {!isLoading &&
+          {showRows &&
             rows.map((row) => {
               // Rendered up front: a row action is often conditional, and an empty actions block
               // still draws its divider under nothing.
@@ -144,16 +149,29 @@ export function Table<TRow>({
                 return value !== null && value !== undefined && value !== false && value !== "";
               });
 
+              const actionsInTitle = actions?.besideTitleOnMobile === true && primary !== undefined;
+
               const body = (
                 <>
                   {primary && (
-                    <p
-                      data-part="table-card-title"
-                      {...testid(rowId(row), "title")}
-                      className="mb-3 text-value font-medium text-ink"
-                    >
-                      {primary.render(row)}
-                    </p>
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <p
+                        data-part="table-card-title"
+                        {...testid(rowId(row), "title")}
+                        className="min-w-0 text-value font-medium text-ink"
+                      >
+                        {primary.render(row)}
+                      </p>
+                      {actionsInTitle && rowActions !== null && (
+                        <div
+                          data-part="table-row-actions"
+                          {...testid(rowId(row), "actions")}
+                          className="relative z-10 shrink-0"
+                        >
+                          {rowActions}
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   {/* No column gap: the row divider is drawn on the two cells, so a gap would break
@@ -202,7 +220,7 @@ export function Table<TRow>({
                     ))}
                   </dl>
 
-                  {rowActions !== null && (
+                  {rowActions !== null && !actionsInTitle && (
                     <div
                       data-part="table-row-actions"
                       {...testid(rowId(row), "actions")}
@@ -273,7 +291,7 @@ export function Table<TRow>({
       data-density={density}
       {...testid(testId)}
       className={cn(
-        "overflow-hidden bg-surface",
+        "relative overflow-hidden bg-surface",
         !compact && "border border-line rounded-card shadow-card",
       )}
     >
@@ -288,7 +306,7 @@ export function Table<TRow>({
       )}
 
       {showSkeleton && <SkeletonStatus />}
-      <RefreshBar active={isRefreshing} />
+      <RefreshBar active={isRefreshing} overlay />
 
       <div data-part="table-scroll" {...testid(testId, "scroll")} className="overflow-x-auto">
         <table className="w-full border-collapse text-value">
@@ -317,7 +335,7 @@ export function Table<TRow>({
           <tbody className="divide-y divide-line">
             {showSkeleton && <SkeletonTable columns={wideColumns} />}
 
-            {!isLoading &&
+            {showRows &&
               rows.map((row) => (
                 <tr
                   key={rowKey(row)}
