@@ -1,4 +1,4 @@
-import type { JSX, ReactNode } from "react";
+import { useEffect, useState, type JSX, type KeyboardEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon, type IconName } from "@ui/components/icon";
 import { Ltr } from "@ui/components/ltr";
@@ -9,7 +9,9 @@ import {
   SkeletonTable,
   SkeletonTableCards,
 } from "@ui/components/skeleton";
+import { FIELD_TEXT, fieldShell } from "@ui/components/field";
 import { cn } from "@ui/lib/cn";
+import { foldDigits } from "@ui/lib/digits";
 import { useDelayedLoading } from "@ui/lib/use-delayed-loading";
 import { useIsMobile } from "@ui/lib/use-media-query";
 import { testid, type TestIdProps } from "@ui/lib/testid";
@@ -69,12 +71,12 @@ export interface TableProps<TRow> extends TestIdProps {
 export interface PaginationProps extends TestIdProps {
   page: number;
   totalPages: number;
-  total: number;
   onPageChange: (page: number) => void;
   /** Rows per page. Offered as a control only when `onPerPageChange` is given with it. */
   perPage?: number | undefined;
   perPageOptions?: readonly number[] | undefined;
   onPerPageChange?: ((perPage: number) => void) | undefined;
+  className?: string | undefined;
 }
 
 /** What a list offers as its page sizes. A clinic's screen is a laptop or a phone, not a wall. */
@@ -288,9 +290,13 @@ export function Table<TRow>({
           <div
             data-part="table-pagination"
             {...testid(testId, "pagination")}
-            className="mt-3 border border-line rounded-card bg-surface shadow-card"
+            className="mt-3 overflow-hidden border border-line rounded-card bg-surface shadow-card"
           >
-            <Pagination {...pagination} {...testid(testId, "pagination-nav")} />
+            <Pagination
+              {...pagination}
+              className="border-t-0"
+              {...testid(testId, "pagination-nav")}
+            />
           </div>
         )}
       </>
@@ -481,103 +487,189 @@ const sizes = (perPage: number, options: readonly number[]): number[] =>
 export function Pagination({
   page,
   totalPages,
-  total,
   onPageChange,
   perPage,
   perPageOptions = PER_PAGE_OPTIONS,
   onPerPageChange,
+  className,
   "data-testid": testId,
 }: PaginationProps): JSX.Element {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const pages = pageWindow(page, totalPages);
+
+  const previous = (
+    <PageButton
+      label={t("pagination.previous")}
+      disabled={page <= 1}
+      onClick={() => onPageChange(page - 1)}
+      {...testid(testId, "previous")}
+    >
+      <Icon name="chevron-start" className="size-3.5" />
+    </PageButton>
+  );
+
+  const next = (
+    <PageButton
+      label={t("pagination.next")}
+      disabled={page >= totalPages}
+      onClick={() => onPageChange(page + 1)}
+      {...testid(testId, "next")}
+    >
+      <Icon name="chevron-end" className="size-3.5" />
+    </PageButton>
+  );
 
   return (
     <nav
       data-part="pagination"
       {...testid(testId)}
       className={cn(
-        "flex flex-wrap items-center justify-between gap-2",
-        "border-t border-line bg-table-head px-[18px] py-3",
+        "flex flex-wrap items-center justify-between gap-2 border-t border-line bg-table-head py-3",
+        isMobile ? "px-3" : "px-[18px]",
+        className,
       )}
       aria-label={t("pagination.label")}
     >
-      <div className="flex items-center gap-3">
-        <p
-          data-part="pagination-total"
-          {...testid(testId, "total")}
-          className="text-meta text-ink-muted"
+      {/* The size of a page is the reader's: a laptop shows fifty rows where a phone shows ten. */}
+      {perPage !== undefined && onPerPageChange !== undefined && (
+        <label
+          className={cn(
+            "flex items-center gap-2 text-meta text-ink-muted",
+            isMobile && "order-last",
+          )}
         >
-          {t("pagination.total", { total })}
-        </p>
+          {/* A phone has no room for the words beside the pager; they stay as the control's name. */}
+          <span className={cn(isMobile && "sr-only")}>{t("pagination.perPage")}</span>
+          <Select
+            className="w-[5.5rem]"
+            {...testid(testId, "per-page")}
+            value={String(perPage)}
+            onChange={(event) => onPerPageChange(Number(event.target.value))}
+            options={sizes(perPage, perPageOptions).map((size) => ({
+              value: String(size),
+              label: String(size),
+            }))}
+          />
+        </label>
+      )}
 
-        {/* The size of a page is the reader's: a laptop shows fifty rows where a phone shows ten. */}
-        {perPage !== undefined && onPerPageChange !== undefined && (
-          <label className="flex items-center gap-2 text-meta text-ink-muted">
-            {t("pagination.perPage")}
-            <Select
-              className="w-[5.5rem]"
-              {...testid(testId, "per-page")}
-              value={String(perPage)}
-              onChange={(event) => onPerPageChange(Number(event.target.value))}
-              options={sizes(perPage, perPageOptions).map((size) => ({
-                value: String(size),
-                label: String(size),
-              }))}
-            />
-          </label>
-        )}
-      </div>
-
-      {/* Numbered, as the reference draws it: on two or three pages, naming them beats a pair of
-          arrows and a "page 1 of 2" that has to be read to be understood. */}
+      {/* A phone has no room for a row of numbers, so it names where the reader is and lets them
+          type where to go; a wider screen names the pages, which beats reading "page 1 of 2". */}
       <div
         data-part="pagination-pages"
         {...testid(testId, "pages")}
         className="flex items-center gap-1.5"
       >
-        <PageButton
-          label={t("pagination.previous")}
-          disabled={page <= 1}
-          onClick={() => onPageChange(page - 1)}
-          {...testid(testId, "previous")}
-        >
-          <Icon name="chevron-start" className="size-3.5" />
-        </PageButton>
+        {previous}
 
-        {pages.map((entry) =>
-          entry === null ? (
-            <span
-              key={`gap-${String(entry)}`}
-              data-part="pagination-gap"
-              {...testid(testId, "gap")}
-              aria-hidden="true"
-              className="px-1 text-ink-faint"
-            >
-              …
-            </span>
-          ) : (
-            <PageButton
-              key={entry}
-              label={t("pagination.goToPage", { page: entry })}
-              current={entry === page}
-              onClick={() => onPageChange(entry)}
-              {...testid(testId, `page-${String(entry)}`)}
-            >
-              <Ltr>{entry}</Ltr>
-            </PageButton>
-          ),
+        {isMobile ? (
+          <PageField
+            page={page}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+            {...testid(testId, "page-field")}
+          />
+        ) : (
+          pages.map((entry, index) =>
+            entry === null ? (
+              <span
+                key={`gap-${String(index)}`}
+                data-part="pagination-gap"
+                {...testid(testId, "gap")}
+                aria-hidden="true"
+                className="px-1 text-ink-faint"
+              >
+                …
+              </span>
+            ) : (
+              <PageButton
+                key={entry}
+                label={t("pagination.goToPage", { page: entry })}
+                current={entry === page}
+                onClick={() => onPageChange(entry)}
+                {...testid(testId, `page-${String(entry)}`)}
+              >
+                <Ltr>{entry}</Ltr>
+              </PageButton>
+            ),
+          )
         )}
 
-        <PageButton
-          label={t("pagination.next")}
-          disabled={page >= totalPages}
-          onClick={() => onPageChange(page + 1)}
-          {...testid(testId, "next")}
-        >
-          <Icon name="chevron-end" className="size-3.5" />
-        </PageButton>
+        {next}
       </div>
     </nav>
+  );
+}
+
+// The draft is the field's own until Enter or blur; a number outside the list snaps back rather
+// than fetching a page that does not exist.
+function PageField({
+  page,
+  totalPages,
+  onPageChange,
+  "data-testid": testId,
+}: {
+  readonly page: number;
+  readonly totalPages: number;
+  readonly onPageChange: (page: number) => void;
+} & TestIdProps): JSX.Element {
+  const { t } = useTranslation();
+  const last = Math.max(totalPages, 1);
+  const [draft, setDraft] = useState(String(page));
+
+  useEffect(() => setDraft(String(page)), [page]);
+
+  const commit = (): void => {
+    const target = Number(draft);
+
+    if (draft !== "" && target >= 1 && target <= last && target !== page) {
+      onPageChange(target);
+    } else {
+      setDraft(String(page));
+    }
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commit();
+    }
+  };
+
+  return (
+    <div
+      data-part="pagination-field"
+      {...testid(testId)}
+      className="flex items-center gap-1.5 px-1"
+    >
+      <div className={cn(fieldShell({}), "w-14 px-2")}>
+        <input
+          {...testid(testId, "input")}
+          type="text"
+          inputMode="numeric"
+          enterKeyHint="go"
+          aria-label={t("pagination.pageOf", { totalPages: last })}
+          value={draft}
+          onChange={(event) => setDraft(foldDigits(event.target.value).replace(/\D/g, ""))}
+          onBlur={commit}
+          onKeyDown={onKeyDown}
+          onFocus={(event) => event.target.select()}
+          className={cn(FIELD_TEXT, "text-center tabular-nums")}
+        />
+      </div>
+      <span aria-hidden="true" className="text-ink-faint">
+        /
+      </span>
+      <span
+        data-part="pagination-count"
+        {...testid(testId, "count")}
+        aria-hidden="true"
+        className="min-w-6 text-center text-label tabular-nums text-ink-muted"
+      >
+        <Ltr>{last}</Ltr>
+      </span>
+    </div>
   );
 }
 

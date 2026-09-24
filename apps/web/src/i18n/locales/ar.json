@@ -87,6 +87,7 @@
     "label": "التنقل بين الصفحات",
     "next": "التالي",
     "page": "صفحة {{page}} من {{totalPages}}",
+    "pageOf": "رقم الصفحة من {{totalPages}}",
     "perPage": "لكل صفحة",
     "previous": "السابق",
     "total": "{{total}} سجل"
