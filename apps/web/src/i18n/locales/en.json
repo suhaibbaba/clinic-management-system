@@ -87,6 +87,7 @@
     "label": "Pagination",
     "next": "Next",
     "page": "Page {{page}} of {{totalPages}}",
+    "pageOf": "Page number, of {{totalPages}}",
     "perPage": "Per page",
     "previous": "Previous",
     "total": "{{total}} records"

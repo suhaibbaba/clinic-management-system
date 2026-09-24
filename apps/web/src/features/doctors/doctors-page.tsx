@@ -196,7 +196,6 @@ export function DoctorsPage(): JSX.Element {
           pagination: {
             page: data.page,
             totalPages: data.totalPages,
-            total: data.total,
             onPageChange: setPage,
             perPage,
             onPerPageChange: setPerPage,

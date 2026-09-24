@@ -360,7 +360,6 @@ export function PatientsPage(): JSX.Element {
         pagination={{
           page,
           totalPages: query.data?.totalPages ?? 0,
-          total: query.data?.total ?? 0,
           onPageChange: setPage,
           perPage,
           onPerPageChange: setPerPage,

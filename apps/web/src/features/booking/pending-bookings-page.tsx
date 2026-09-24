@@ -210,7 +210,6 @@ export function PendingBookingsPage(): JSX.Element {
         pagination={{
           page,
           totalPages: pending.data?.totalPages ?? 0,
-          total: pending.data?.total ?? 0,
           onPageChange: setPage,
           perPage,
           onPerPageChange: setPerPage,

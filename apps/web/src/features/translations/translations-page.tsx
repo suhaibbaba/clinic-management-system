@@ -244,7 +244,6 @@ export function TranslationsPage(): JSX.Element {
         pagination={{
           page: current,
           totalPages,
-          total: matched.length,
           onPageChange: setPage,
           "data-testid": "translations-pagination",
         }}
