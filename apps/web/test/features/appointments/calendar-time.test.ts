@@ -1,37 +1,19 @@
 import { describe, expect, it } from "vitest";
 import {
   addDays,
-  blockMinutes,
-  blockPosition,
-  GRID_END_MINUTE,
-  GRID_START_MINUTE,
-  gridHours,
+  buildQueue,
   instantAt,
-  MIN_BLOCK_MINUTES,
-  minuteFromOffset,
   minutesOf,
   startOfWeek,
   toTimeLabel,
-  TWO_LINE_MINUTES,
   weekDates,
 } from "@web/features/appointments/calendar-time";
 
-const appointment = (startsAt: string, durationMinutes: number) =>
-  ({ startsAt, durationMinutes }) as Parameters<typeof blockPosition>[0];
-
 describe("calendar time", () => {
   it("labels minutes on a 12-hour clock", () => {
-    expect(toTimeLabel(GRID_START_MINUTE)).toBe("7:00 AM");
+    expect(toTimeLabel(7 * 60)).toBe("7:00 AM");
     expect(toTimeLabel(9 * 60 + 30)).toBe("9:30 AM");
-    expect(toTimeLabel(GRID_END_MINUTE)).toBe("10:00 PM");
-  });
-
-  it("draws an hour line for every hour of the grid, inclusive of both ends", () => {
-    const hours = gridHours();
-
-    expect(hours[0]).toBe(GRID_START_MINUTE);
-    expect(hours.at(-1)).toBe(GRID_END_MINUTE);
-    expect(hours).toHaveLength(16);
+    expect(toTimeLabel(22 * 60)).toBe("10:00 PM");
   });
 
   describe("weeks", () => {
@@ -55,62 +37,27 @@ describe("calendar time", () => {
     });
   });
 
-  describe("block position", () => {
-    it("places a block by its start and sizes it by its duration", () => {
-      const { top, height } = blockPosition(appointment(instantAt("2026-09-09", 9 * 60), 60));
-
-      expect(Number.parseFloat(top)).toBeCloseTo((120 / 900) * 100, 4);
-      expect(Number.parseFloat(height)).toBeCloseTo((60 / 900) * 100, 4);
+  it("takes a queue's gaps from the availability answer, so a closure is a strip nobody books", () => {
+    const queue = buildQueue({
+      date: "2026-09-09",
+      appointments: [],
+      timeOff: [],
+      availability: {
+        doctorId: "doctor",
+        date: "2026-09-09",
+        durationMinutes: 15,
+        closedReason: "clinic_closure",
+        closedNote: "Eid",
+        slots: [],
+      },
     });
 
-    it("gives a very short appointment a floor, so it stays clickable", () => {
-      const { height } = blockPosition(appointment(instantAt("2026-09-09", 10 * 60), 5));
-
-      // Twenty minutes of height for a five-minute appointment: below that it
-      // is a hairline nobody can hit.
-      expect(Number.parseFloat(height)).toBeCloseTo((20 / 900) * 100, 4);
-    });
-
-    it("clamps an appointment that starts before the grid does", () => {
-      const { top } = blockPosition(appointment(instantAt("2026-09-09", 6 * 60), 60));
-
-      expect(Number.parseFloat(top)).toBe(0);
-    });
-  });
-
-  describe("drag targets", () => {
-    it("snaps a drop to the nearest quarter hour", () => {
-      // A 900px column is one pixel per minute, so 127px is 09:07 — which a
-      // clinic books as 09:00, not as 09:07.
-      expect(minuteFromOffset(127, 900)).toBe(9 * 60);
-      expect(minuteFromOffset(128, 900)).toBe(9 * 60 + 15);
-      expect(minuteFromOffset(0, 900)).toBe(GRID_START_MINUTE);
-    });
-
-    it("clamps a drop past either edge into the day", () => {
-      expect(minuteFromOffset(-50, 900)).toBe(GRID_START_MINUTE);
-      expect(minuteFromOffset(5000, 900)).toBe(GRID_END_MINUTE - 15);
-    });
-  });
-
-  describe("how tall a block is drawn", () => {
-    it("holds a floor under a very short appointment", () => {
-      expect(blockMinutes(5)).toBe(MIN_BLOCK_MINUTES);
-      expect(blockMinutes(60)).toBe(60);
-    });
-
-    it("puts the clinic default below the two-line threshold", () => {
-      // The grid draws a minute per pixel and two lines of a block need 39 of them, so the clinic's
-      // default 30-minute appointment has to be the one-line shape.
-      expect(blockMinutes(30)).toBeLessThan(TWO_LINE_MINUTES);
-      expect(blockMinutes(5)).toBeLessThan(TWO_LINE_MINUTES);
-      expect(blockMinutes(45)).toBeGreaterThanOrEqual(TWO_LINE_MINUTES);
-    });
+    expect(queue.rows).toEqual([expect.objectContaining({ kind: "blocked", reason: "Eid" })]);
   });
 
   it("round-trips a minute through an instant and back", () => {
-    // The drag reads a minute, sends an instant, and the block is redrawn from
-    // that instant — so a move that changes nothing must land on the same row.
+    // A gap is picked as a minute and booked as an instant, and the card is redrawn from that
+    // instant — so the booking must land where it was picked.
     const iso = instantAt("2026-09-09", 14 * 60 + 30);
 
     expect(minutesOf(iso)).toBe(14 * 60 + 30);

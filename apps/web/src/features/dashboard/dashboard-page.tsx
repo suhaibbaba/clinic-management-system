@@ -1,5 +1,5 @@
 import type { CalendarAppointment } from "@clinic/shared";
-import { useEffect, useMemo, useState, type JSX, type ReactNode } from "react";
+import { useMemo, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -15,10 +15,10 @@ import {
 } from "@clinic/ui";
 import { RefreshBar, SkeletonKpi } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/features/auth/session";
-import { minutesOf } from "@web/features/appointments/calendar-time";
 import { AppointmentFormModal } from "@web/features/appointments/appointment-form-modal";
 import { canBookAppointment, canMoveAppointment } from "@web/features/appointments/permissions";
 import { useAppointmentStep } from "@web/features/appointments/queries";
+import { useNowMinute } from "@web/features/appointments/use-now-minute";
 import { setClinicTimeZone } from "@web/lib/clinic-zone";
 import { Money } from "@web/features/billing/money";
 import { useClinic } from "@web/features/clinic/queries";
@@ -321,24 +321,6 @@ function useDoctorFilter(): readonly [string | null, (id: string | null) => void
   };
 
   return [raw, set];
-}
-
-function useNowMinute(): number | null {
-  const [minute, setMinute] = useState(() => currentClinicMinute());
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setMinute(currentClinicMinute()), 60_000);
-
-    return () => window.clearInterval(timer);
-  }, []);
-
-  return minute;
-}
-
-function currentClinicMinute(): number {
-  // Floored: `minutesOf` carries the seconds through as a fraction, and a label built from it read
-  // "11:35.27".
-  return Math.floor(minutesOf(new Date().toISOString()));
 }
 
 function SkeletonTimeline(): JSX.Element {

@@ -24,6 +24,18 @@ export const APPOINTMENT_STATUS_STYLES: Record<AppointmentStatus, StatusStyle> =
   [APPOINTMENT_STATUS.CANCELLED]: block("neutral", "bg-surface line-through"),
 };
 
+const TONE_ACCENT: Record<BadgeTone, string> = {
+  neutral: "border-s-neutral-400",
+  success: "border-s-success-500",
+  warning: "border-s-warning-500",
+  danger: "border-s-danger-500",
+  info: "border-s-primary-500",
+};
+
+/** The status bar on a card's inline-start edge, a step darker than the card's tint. */
+export const statusAccent = (status: AppointmentStatus): string =>
+  TONE_ACCENT[APPOINTMENT_STATUS_STYLES[status].tone];
+
 /** i18n keys, so no component ever holds an Arabic string. */
 export const statusLabelKey = (status: AppointmentStatus): string =>
   `appointments.statuses.${status}`;
