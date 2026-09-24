@@ -497,7 +497,9 @@
     "useExisting": "Use this patient",
     "firstName": "First name",
     "middleName": "Middle name",
-    "lastName": "Last name"
+    "lastName": "Last name",
+    "confirmDelete": "Delete the file of “{{name}}”? It leaves every list and search; its medical and financial records are kept.",
+    "deleted": "The patient's file was deleted"
   },
   "chart": {
     "title": "Tooth chart",

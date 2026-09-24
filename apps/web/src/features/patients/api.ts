@@ -70,6 +70,9 @@ export const patientsApi = {
   update: (id: string, body: UpdatePatientInput): Promise<PatientClinicalView> =>
     apiRequest(`/patients/${id}`, { method: "PATCH", body }),
 
+  /** A soft delete: the file leaves every list, and its records stay. */
+  remove: (id: string): Promise<void> => apiRequest(`/patients/${id}`, { method: "DELETE" }),
+
   allergyFlags: (id: string): Promise<AllergyFlags> => apiRequest(`/patients/${id}/allergy-flags`),
 
   procedures: (patientId: string): Promise<PerformedProcedure[]> =>

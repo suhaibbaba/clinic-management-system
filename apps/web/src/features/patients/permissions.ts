@@ -28,6 +28,9 @@ export const canCreatePatient = (can: Can): boolean => can("patients.create");
 
 export const canEditPatient = (can: Can): boolean => can("patients.update");
 
+/** A soft delete, admin only; nothing is ever hard-deleted. */
+export const canDeletePatient = (can: Can): boolean => can("patients.remove");
+
 export const PATIENT_FILE_ROLES = [
   USER_ROLE.ADMIN,
   USER_ROLE.DOCTOR,

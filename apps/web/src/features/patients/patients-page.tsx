@@ -1,5 +1,5 @@
 import type { PatientClinicalView, PatientView } from "@clinic/shared";
-import { useEffect, useMemo, useRef, useState, type JSX } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -16,6 +16,7 @@ import {
   SegmentedControl,
   Table,
   usePageParams,
+  useToast,
   type Column,
 } from "@clinic/ui";
 import { useSession } from "@web/features/auth/session";
@@ -23,8 +24,13 @@ import { Money } from "@web/features/billing/money";
 import { canSeeBilling } from "@web/features/billing/permissions";
 import { useClinic } from "@web/features/clinic/queries";
 import { PatientFormModal } from "@web/features/patients/patient-form-modal";
-import { canCreatePatient, seesClinicalPatientFields } from "@web/features/patients/permissions";
-import { usePatients } from "@web/features/patients/queries";
+import {
+  canCreatePatient,
+  canDeletePatient,
+  seesClinicalPatientFields,
+} from "@web/features/patients/permissions";
+import { useDeletePatient, usePatients } from "@web/features/patients/queries";
+import { errorMessageKey } from "@web/lib/api-error";
 import { ageInYears } from "@web/features/patients/age";
 import { cn } from "@clinic/ui/lib/cn";
 import { useDebounced } from "@web/lib/use-debounced";
@@ -91,6 +97,25 @@ export function PatientsPage(): JSX.Element {
 
   const showClinical = user ? seesClinicalPatientFields(user.role) : false;
   const showBalance = user ? canSeeBilling(user.role) : false;
+  const showDelete = canDeletePatient(can);
+  const toast = useToast();
+  const { mutateAsync: deletePatient } = useDeletePatient();
+
+  const destroy = useCallback(
+    async (patient: PatientView): Promise<void> => {
+      if (!window.confirm(t("patients.confirmDelete", { name: patient.fullName }))) {
+        return;
+      }
+
+      try {
+        await deletePatient(patient.id);
+        toast.success("patients.deleted");
+      } catch (error) {
+        toast.error(errorMessageKey(error));
+      }
+    },
+    [deletePatient, t, toast],
+  );
   const clinic = useClinic();
   const currency = clinic.data?.currency;
 
@@ -229,13 +254,23 @@ export function PatientsPage(): JSX.Element {
                 {t("patients.tabs.attachments")}
               </MenuItem>
             )}
+            {showDelete && (
+              <MenuItem
+                icon="trash"
+                tone="danger"
+                data-testid="patient-menu-delete"
+                onSelect={() => void destroy(row)}
+              >
+                {t("common.delete")}
+              </MenuItem>
+            )}
           </RowMenu>
         </span>
       ),
     });
 
     return base;
-  }, [showClinical, showBalance, currency, navigate, t]);
+  }, [showClinical, showBalance, showDelete, destroy, currency, navigate, t]);
 
   const canCreate = canCreatePatient(can);
   const isSearching = search.trim() !== "";
