@@ -34,14 +34,31 @@ const MODES = ["new", "link"] as const;
 type Mode = (typeof MODES)[number];
 
 interface NewUserFields {
-  nameAr: string;
-  nameEn: string;
+  firstNameAr: string;
+  lastNameAr: string;
+  firstNameEn: string;
+  lastNameEn: string;
   phone: string;
   email: string;
   password: string;
 }
 
-const EMPTY_USER: NewUserFields = { nameAr: "", nameEn: "", phone: "", email: "", password: "" };
+const EMPTY_USER: NewUserFields = {
+  firstNameAr: "",
+  lastNameAr: "",
+  firstNameEn: "",
+  lastNameEn: "",
+  phone: "",
+  email: "",
+  password: "",
+};
+
+const NAME_FIELDS = [
+  { key: "firstNameAr", label: "users.firstNameAr", id: "doctor-first-name-ar", ltr: false },
+  { key: "lastNameAr", label: "users.lastNameAr", id: "doctor-last-name-ar", ltr: false },
+  { key: "firstNameEn", label: "users.firstNameEn", id: "doctor-first-name-en", ltr: true },
+  { key: "lastNameEn", label: "users.lastNameEn", id: "doctor-last-name-en", ltr: true },
+] as const;
 
 export function DoctorFormModal({
   open,
@@ -110,7 +127,8 @@ export function DoctorFormModal({
           ...(mode === "new"
             ? {
                 newUser: {
-                  name: { ar: newUser.nameAr.trim(), en: newUser.nameEn.trim() },
+                  firstName: { ar: newUser.firstNameAr.trim(), en: newUser.firstNameEn.trim() },
+                  lastName: { ar: newUser.lastNameAr.trim(), en: newUser.lastNameEn.trim() },
                   phone: newUser.phone.trim(),
                   password: newUser.password,
                   ...(newUser.email.trim() !== "" && { email: newUser.email.trim() }),
@@ -135,8 +153,7 @@ export function DoctorFormModal({
   const accountReady =
     mode === "link"
       ? userId !== ""
-      : newUser.nameAr.trim() !== "" &&
-        newUser.nameEn.trim() !== "" &&
+      : NAME_FIELDS.every((field) => newUser[field.key].trim() !== "") &&
         newUser.phone.trim() !== "" &&
         newUser.password.length >= 8;
 
@@ -184,28 +201,21 @@ export function DoctorFormModal({
 
             {mode === "new" ? (
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormField label="users.nameAr" htmlFor="doctor-name-ar" required>
-                  <Input
-                    id="doctor-name-ar"
-                    data-testid="doctor-field-name-ar"
-                    adornment="user"
-                    placeholder={t("common.placeholders.fullNameAr")}
-                    value={newUser.nameAr}
-                    onChange={(event) => setNewUser({ ...newUser, nameAr: event.target.value })}
-                  />
-                </FormField>
-
-                <FormField label="users.nameEn" htmlFor="doctor-name-en" required>
-                  <Input
-                    id="doctor-name-en"
-                    data-testid="doctor-field-name-en"
-                    adornment="user"
-                    dir="ltr"
-                    placeholder={t("common.placeholders.fullNameEn")}
-                    value={newUser.nameEn}
-                    onChange={(event) => setNewUser({ ...newUser, nameEn: event.target.value })}
-                  />
-                </FormField>
+                {NAME_FIELDS.map((field) => (
+                  <FormField key={field.key} label={field.label} htmlFor={field.id} required>
+                    <Input
+                      id={field.id}
+                      data-testid={field.id.replace("doctor-", "doctor-field-")}
+                      adornment="user"
+                      {...(field.ltr && { dir: "ltr" })}
+                      placeholder={t(`common.placeholders.${field.key}`)}
+                      value={newUser[field.key]}
+                      onChange={(event) =>
+                        setNewUser({ ...newUser, [field.key]: event.target.value })
+                      }
+                    />
+                  </FormField>
+                ))}
 
                 <FormField label="users.phone" htmlFor="doctor-phone" required>
                   <PhoneInput

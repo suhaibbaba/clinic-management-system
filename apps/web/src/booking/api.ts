@@ -107,12 +107,25 @@ export const bookingApi = {
 
   book: (
     slug: string,
-    body: { fullName: string; phone: string; doctorId: string; startsAt: string; reason?: string },
+    body: {
+      firstName: string;
+      lastName: string;
+      phone: string;
+      doctorId: string;
+      startsAt: string;
+      reason?: string;
+    },
   ): Promise<BookingReceipt> => request(`/${encode(slug)}`, "book", { method: "POST", body }),
 
   requestUrgent: (
     slug: string,
-    body: { fullName: string; phone: string; complaint: string; doctorId?: string },
+    body: {
+      firstName: string;
+      lastName: string;
+      phone: string;
+      complaint: string;
+      doctorId?: string;
+    },
   ): Promise<UrgentRequestReceipt> =>
     request(`/${encode(slug)}/urgent-request`, "book", { method: "POST", body }),
 

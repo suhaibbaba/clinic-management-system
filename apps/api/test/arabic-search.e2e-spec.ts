@@ -1,6 +1,6 @@
 import { normalizeArabic, USER_ROLE, type PatientView } from "@clinic/shared";
 import { sql } from "drizzle-orm";
-import { createPatient, uniquePhone } from "@test/helpers/patient-fixtures";
+import { createPatient, uniquePhone, nameParts } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 // A name is written down the way it was heard, so the search has to find it whichever way it was
@@ -45,12 +45,12 @@ describe("Arabic-aware search (e2e)", () => {
     ahmadPhone = uniquePhone();
 
     const ahmadId = await createPatient(context, token, {
-      fullName: names.ahmad,
+      ...nameParts(names.ahmad),
       phone: ahmadPhone,
     });
 
     for (const fullName of [names.fatima, names.muhannad, names.mahmoud, names.muhammad]) {
-      await createPatient(context, token, { fullName, phone: uniquePhone() });
+      await createPatient(context, token, { ...nameParts(fullName), phone: uniquePhone() });
     }
 
     const created = await context.app.inject({

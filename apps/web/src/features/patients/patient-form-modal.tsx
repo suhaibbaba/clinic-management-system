@@ -61,7 +61,9 @@ export function PatientFormModal({
     reset(
       patient
         ? {
-            fullName: patient.fullName,
+            firstName: patient.firstName,
+            middleName: patient.middleName,
+            lastName: patient.lastName,
             phone: patient.phone,
             dateOfBirth: patient.dateOfBirth,
             gender: patient.gender,
@@ -70,7 +72,7 @@ export function PatientFormModal({
             emergencyContactName: patient.emergencyContactName,
             emergencyContactPhone: patient.emergencyContactPhone,
           }
-        : { fullName: "", phone: "" },
+        : { firstName: "", middleName: "", lastName: "", phone: "" },
     );
   }, [open, patient, reset]);
 
@@ -127,14 +129,45 @@ export function PatientFormModal({
         onSubmit={onSubmit}
         noValidate
       >
-        <FormField label="patients.fullName" htmlFor="patient-name" error={errors.fullName}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            label="patients.firstName"
+            htmlFor="patient-first-name"
+            error={errors.firstName}
+          >
+            <Input
+              placeholder={t("common.placeholders.firstName")}
+              adornment="user"
+              id="patient-first-name"
+              data-testid="patient-field-first-name"
+              hasError={Boolean(errors.firstName)}
+              {...register("firstName")}
+            />
+          </FormField>
+
+          <FormField label="patients.lastName" htmlFor="patient-last-name" error={errors.lastName}>
+            <Input
+              placeholder={t("common.placeholders.lastName")}
+              id="patient-last-name"
+              data-testid="patient-field-last-name"
+              hasError={Boolean(errors.lastName)}
+              {...register("lastName")}
+            />
+          </FormField>
+        </div>
+
+        <FormField
+          label="patients.middleName"
+          htmlFor="patient-middle-name"
+          optional
+          error={errors.middleName}
+        >
           <Input
-            placeholder={t("common.placeholders.fullName")}
-            adornment="user"
-            id="patient-name"
-            data-testid="patient-field-name"
-            hasError={Boolean(errors.fullName)}
-            {...register("fullName")}
+            placeholder={t("common.placeholders.middleName")}
+            id="patient-middle-name"
+            data-testid="patient-field-middle-name"
+            hasError={Boolean(errors.middleName)}
+            {...register("middleName")}
           />
         </FormField>
 

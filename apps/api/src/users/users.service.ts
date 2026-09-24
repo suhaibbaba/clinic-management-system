@@ -9,6 +9,7 @@ import { and, count, desc, eq, ilike, isNull, ne, or, sql, type SQL } from "driz
 import {
   ALLOWED_USER_PHOTO_MIME_TYPES,
   AUDIT_ACTION,
+  joinPersonName,
   USER_ROLE,
   type UserRole,
   MAX_USER_PHOTO_BYTES,
@@ -20,6 +21,7 @@ import {
   type PresignUserPhotoResponse,
   type UpdateUserInput,
   type User,
+  type PersonNameInput,
 } from "@clinic/shared";
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { AuditService } from "@api/audit/audit.service";
@@ -47,6 +49,10 @@ const safeColumns = {
   clinicId: users.clinicId,
   nameAr: users.nameAr,
   nameEn: users.nameEn,
+  firstNameAr: users.firstNameAr,
+  lastNameAr: users.lastNameAr,
+  firstNameEn: users.firstNameEn,
+  lastNameEn: users.lastNameEn,
   phone: users.phone,
   email: users.email,
   role: users.role,
@@ -145,8 +151,7 @@ export class UsersService implements OnModuleInit {
       .insert(users)
       .values({
         clinicId: actor.clinicId,
-        nameAr: input.name.ar,
-        nameEn: input.name.en,
+        ...staffNameColumns(input.firstName, input.lastName),
         phone: input.phone,
         email: input.email ?? null,
         passwordHash,
@@ -193,7 +198,11 @@ export class UsersService implements OnModuleInit {
     const [row] = await this.db
       .update(users)
       .set({
-        ...(input.name !== undefined && { nameAr: input.name.ar, nameEn: input.name.en }),
+        ...((input.firstName !== undefined || input.lastName !== undefined) &&
+          staffNameColumns(
+            input.firstName ?? { ar: existing.firstNameAr, en: existing.firstNameEn },
+            input.lastName ?? { ar: existing.lastNameAr, en: existing.lastNameEn },
+          )),
         ...(input.phone !== undefined && { phone: input.phone }),
         ...(input.email !== undefined && { email: input.email ?? null }),
         ...(input.role !== undefined && { role: input.role }),
@@ -400,6 +409,26 @@ export type SafeUserRow = Pick<UserRow, Exclude<keyof typeof safeColumns, "activ
   activated: boolean;
 };
 
+/** The parts as given and the full name joined from them — the only way a staff name is written. */
+export function staffNameColumns(
+  firstName: PersonNameInput,
+  lastName: PersonNameInput,
+): Pick<
+  UserRow,
+  "firstNameAr" | "lastNameAr" | "firstNameEn" | "lastNameEn" | "nameAr" | "nameEn"
+> {
+  const full = joinPersonName(firstName, lastName);
+
+  return {
+    firstNameAr: firstName.ar,
+    lastNameAr: lastName.ar,
+    firstNameEn: firstName.en,
+    lastNameEn: lastName.en,
+    nameAr: full.ar,
+    nameEn: full.en,
+  };
+}
+
 // The orphan guard: a `doctor` user with no `doctors` row can sign in and has no calendar, no
 // schedule and no place in any list. Only `POST /doctors` makes one, and it always writes both.
 function assertNotDoctorRole(role: UserRole): void {
@@ -413,6 +442,8 @@ function toUser(row: SafeUserRow, photoUrl: string | null): User {
     id: row.id,
     clinicId: row.clinicId,
     name: { ar: row.nameAr, en: row.nameEn },
+    firstName: { ar: row.firstNameAr, en: row.firstNameEn },
+    lastName: { ar: row.lastNameAr, en: row.lastNameEn },
     phone: row.phone,
     email: row.email,
     activated: row.activated,

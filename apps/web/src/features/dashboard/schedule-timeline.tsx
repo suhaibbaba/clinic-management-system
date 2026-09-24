@@ -2,7 +2,7 @@ import { APPOINTMENT_STATUS, LOOKUP_LIST, type CalendarAppointment } from "@clin
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { Avatar, Badge, Icon, Ltr, PersonName } from "@clinic/ui";
+import { Avatar, Badge, Icon, Ltr, usePersonName } from "@clinic/ui";
 import { minutesOf, toTimeLabel } from "@web/features/appointments/calendar-time";
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/features/appointments/status";
 import { useLookupLabels } from "@web/features/lookups/queries";
@@ -37,6 +37,7 @@ export function ScheduleTimeline({
   "data-testid": testId = "schedule-timeline",
 }: ScheduleTimelineProps): JSX.Element {
   const { t } = useTranslation();
+  const doctorName = usePersonName();
   // The clinic's own list, never a constant: a clinic that added "تبييض" sees it here too.
   const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
   const ordered = [...rows].sort((a, b) => minutesOf(a.startsAt) - minutesOf(b.startsAt));
@@ -63,7 +64,7 @@ export function ScheduleTimeline({
           >
             {/* A phone has no room to spare for a picture of initials. */}
             <Avatar
-              name={appointment.patientName}
+              name={`${appointment.patientFirstName} ${appointment.patientLastName}`}
               tintKey={appointment.patientId}
               size={34}
               className="hidden shrink-0 text-meta md:inline-flex"
@@ -122,11 +123,11 @@ export function ScheduleTimeline({
                     "transition-colors duration-150 hover:text-primary-700",
                   )}
                 >
-                  {appointment.patientName}
+                  {`${appointment.patientFirstName} ${appointment.patientLastName}`}
                 </Link>
               ) : (
                 <b dir="auto" className={PATIENT_NAME}>
-                  {appointment.patientName}
+                  {`${appointment.patientFirstName} ${appointment.patientLastName}`}
                 </b>
               )}
 
@@ -134,7 +135,8 @@ export function ScheduleTimeline({
                 data-testid={`${testId}-detail-${appointment.id}`}
                 className="block text-micro text-ink-muted"
               >
-                {typeLabel(appointment.type)} · <PersonName name={appointment.doctorName} />
+                {typeLabel(appointment.type)} ·{" "}
+                {t("dashboard.schedule.doctor", { name: doctorName(appointment.doctorName) })}
               </span>
             </div>
           </li>

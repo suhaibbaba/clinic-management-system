@@ -50,6 +50,7 @@ import {
   clinicScheduleSettings,
   DEFAULT_TIME_ZONE,
   GENDERS,
+  joinPatientName,
   instantFromLocal,
   localDate,
   LOOKUP_LIST,
@@ -1992,11 +1993,13 @@ export class AiActionsService {
         tool: AI_TOOL.CREATE_PATIENT,
         kind: AI_PROPOSAL_KIND.PATIENT_CREATE,
         description:
-          "Registers a new patient with a name and phone; a phone already on file comes back as possible_duplicate — ask if it is the same person. Waits on a card.",
+          "Registers a new patient with first and last name (a middle name when given) and phone; a phone already on file comes back as possible_duplicate — ask if it is the same person. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.CREATE_PATIENT],
         capability: "patients.create",
         schema: z.object({
-          full_name: z.string().trim().min(2).max(160),
+          first_name: z.string().trim().min(1).max(60),
+          middle_name: z.string().trim().max(80).optional(),
+          last_name: z.string().trim().min(1).max(60),
           phone: phoneSchema,
           date_of_birth: dateSchema.optional(),
           gender: z.enum(GENDERS).optional(),
@@ -2019,14 +2022,20 @@ export class AiActionsService {
 
           return {
             payload: {
-              fullName: args.full_name,
+              firstName: args.first_name,
+              middleName: args.middle_name || null,
+              lastName: args.last_name,
               phone: args.phone,
               dateOfBirth: args.date_of_birth ?? null,
               gender: args.gender ?? null,
             },
             summary: {
               newPatient: {
-                fullName: args.full_name,
+                fullName: joinPatientName({
+                  firstName: args.first_name,
+                  middleName: args.middle_name,
+                  lastName: args.last_name,
+                }),
                 phone: args.phone,
                 dateOfBirth: args.date_of_birth ?? null,
               },

@@ -11,7 +11,11 @@ import {
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
 import { clinics } from "@api/database/schema";
-import { seedClinicFixtures, type PatientFixtures } from "@test/helpers/patient-fixtures";
+import {
+  seedClinicFixtures,
+  type PatientFixtures,
+  nameParts,
+} from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 const TIME_ZONE = "Asia/Damascus";
@@ -43,7 +47,7 @@ describe("Urgent requests (e2e)", () => {
     return context.app.inject({
       method: "POST",
       url: `/public/booking/${clinic.slug}/urgent-request`,
-      payload: { fullName: "طالب عاجل", complaint: "ألم شديد منذ الليل", ...body },
+      payload: { ...nameParts("طالب عاجل"), complaint: "ألم شديد منذ الليل", ...body },
     });
   };
 
@@ -86,7 +90,7 @@ describe("Urgent requests (e2e)", () => {
   it("takes a request from a stranger and puts it in the queue", async () => {
     const phone = uniquePhone();
 
-    const response = await request({ phone, fullName: "سامي الحلبي" });
+    const response = await request({ phone, ...nameParts("سامي الحلبي") });
 
     expect(response.statusCode).toBe(201);
     expect(response.json()).toEqual({ received: true });
@@ -128,7 +132,7 @@ describe("Urgent requests (e2e)", () => {
 
     beforeEach(async () => {
       const phone = uniquePhone();
-      await request({ phone, fullName: `مريض ${phone.slice(-6)}` });
+      await request({ phone, ...nameParts(`مريض ${phone.slice(-6)}`) });
 
       const found = (await queue()).find((row) => row.patientPhone.endsWith(phone.slice(-6)));
       expect(found).toBeDefined();

@@ -200,6 +200,8 @@ export class AuthService {
       clinicId: user.clinicId,
       clinic: await this.sessionClinic(user.clinicId),
       name: { ar: user.nameAr, en: user.nameEn },
+      firstName: { ar: user.firstNameAr, en: user.firstNameEn },
+      lastName: { ar: user.lastNameAr, en: user.lastNameEn },
       phone: user.phone,
       email: user.email,
       role: user.role,

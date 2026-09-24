@@ -139,9 +139,10 @@ describe("Patient page", () => {
 
       await user.click(await screen.findByRole("button", { name: ar.patients.edit }));
 
-      expect(await screen.findByLabelText(ar.patients.fullName)).toHaveValue(
-        makePatient().fullName,
+      expect(await screen.findByLabelText(ar.patients.firstName)).toHaveValue(
+        makePatient().firstName,
       );
+      expect(screen.getByLabelText(ar.patients.lastName)).toHaveValue(makePatient().lastName);
     });
   });
 

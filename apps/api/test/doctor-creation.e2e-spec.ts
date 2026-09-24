@@ -8,6 +8,7 @@ import {
   type TestClinic,
   type TestContext,
 } from "@test/helpers/test-app";
+import { staffName } from "@test/helpers/staff-name";
 
 /** The one the harness's `login` sends, so a created account can be signed into here. */
 const password = TEST_PASSWORD;
@@ -63,7 +64,7 @@ describe("Doctor creation (e2e)", () => {
     const phone = uniquePhone();
 
     const response = await createDoctor({
-      newUser: { name: { ar: "د. ليلى حداد", en: "Dr. Layla Haddad" }, phone, password },
+      newUser: { ...staffName("د. ليلى حداد", "Dr. Layla Haddad"), phone, password },
       weeklySchedule: [{ weekday: 1, ranges: [{ start: "09:00", end: "17:00" }] }],
     });
 
@@ -85,7 +86,7 @@ describe("Doctor creation (e2e)", () => {
 
     const response = await createDoctor({
       specialtyId: crypto.randomUUID(),
-      newUser: { name: { ar: "د. مرفوض", en: "Dr. Rejected" }, phone, password },
+      newUser: { ...staffName("د. مرفوض", "Dr. Rejected"), phone, password },
     });
 
     expect(response.statusCode).toBe(400);
@@ -98,13 +99,13 @@ describe("Doctor creation (e2e)", () => {
     const phone = uniquePhone();
 
     await createDoctor({
-      newUser: { name: { ar: "د. الأول", en: "Dr. First" }, phone, password },
+      newUser: { ...staffName("د. الأول", "Dr. First"), phone, password },
     });
 
     const before = await listDoctors();
 
     const again = await createDoctor({
-      newUser: { name: { ar: "د. الثاني", en: "Dr. Second" }, phone, password },
+      newUser: { ...staffName("د. الثاني", "Dr. Second"), phone, password },
     });
 
     expect(again.statusCode).toBe(409);
@@ -118,7 +119,7 @@ describe("Doctor creation (e2e)", () => {
         url: "/users",
         headers: auth(token),
         payload: {
-          name: { ar: "يتيم", en: "Orphan" },
+          ...staffName("يتيم", "Orphan"),
           phone: uniquePhone(),
           password,
           role: USER_ROLE.DOCTOR,
@@ -134,7 +135,7 @@ describe("Doctor creation (e2e)", () => {
         url: "/users",
         headers: auth(token),
         payload: {
-          name: { ar: "موظف استقبال", en: "Receptionist" },
+          ...staffName("موظف استقبال", "Receptionist"),
           phone: uniquePhone(),
           password,
           role: USER_ROLE.RECEPTIONIST,
@@ -159,7 +160,7 @@ describe("Doctor creation (e2e)", () => {
         url: "/users",
         headers: auth(token),
         payload: {
-          name: { ar: "فنّي سابق", en: "Former technician" },
+          ...staffName("فنّي سابق", "Former technician"),
           phone: uniquePhone(),
           password,
           role: USER_ROLE.TECHNICIAN,
@@ -179,7 +180,7 @@ describe("Doctor creation (e2e)", () => {
       const phone = uniquePhone();
 
       const created = await createDoctor({
-        newUser: { name: { ar: "د. مغادر", en: "Dr. Leaver" }, phone, password },
+        newUser: { ...staffName("د. مغادر", "Dr. Leaver"), phone, password },
       });
 
       const doctor = created.json() as Doctor;
@@ -199,7 +200,7 @@ describe("Doctor creation (e2e)", () => {
 
     it("refuses a second profile for one account", async () => {
       const created = await createDoctor({
-        newUser: { name: { ar: "د. واحد", en: "Dr. One" }, phone: uniquePhone(), password },
+        newUser: { ...staffName("د. واحد", "Dr. One"), phone: uniquePhone(), password },
       });
 
       const doctor = created.json() as Doctor;

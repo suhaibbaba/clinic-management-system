@@ -2,7 +2,7 @@ import { AI_TOOL, AI_TOOL_ERROR, USER_ROLE, type UserRole } from "@clinic/shared
 import { AiConversationsService } from "@api/ai/ai-conversations.service";
 import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
-import { createPatient } from "@test/helpers/patient-fixtures";
+import { createPatient, nameParts } from "@test/helpers/patient-fixtures";
 import { createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 interface ToolResult {
@@ -33,11 +33,11 @@ describe("query_data (e2e)", () => {
     other = await context.createClinic();
 
     await createPatient(context, await context.login(clinic.phones[USER_ROLE.RECEPTIONIST]), {
-      fullName: "مريض هذه العيادة",
+      ...nameParts("مريض هذه العيادة"),
       phone: "0599000555",
     });
     await createPatient(context, await context.login(other.phones[USER_ROLE.RECEPTIONIST]), {
-      fullName: "مريض عيادة أخرى",
+      ...nameParts("مريض عيادة أخرى"),
       phone: "0599000666",
     });
   });

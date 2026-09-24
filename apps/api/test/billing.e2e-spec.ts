@@ -17,6 +17,7 @@ import {
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
+  nameParts,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -46,7 +47,7 @@ describe("Billing", () => {
   });
 
   const newPatient = async (): Promise<string> =>
-    createPatient(context, adminToken, { fullName: "سامي الأحمد", phone: uniquePhone() });
+    createPatient(context, adminToken, { ...nameParts("سامي الأحمد"), phone: uniquePhone() });
 
   const recordProcedure = async (
     patientId: string,

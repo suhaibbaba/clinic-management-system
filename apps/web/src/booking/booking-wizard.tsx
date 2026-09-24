@@ -57,8 +57,18 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
   const [from, setFrom] = useState(todayIso());
   const [date, setDate] = useState(todayIso());
   const [slot, setSlot] = useState<SlotOption>();
-  const [details, setDetails] = useState<BookingDetails>({ fullName: "", phone: "", reason: "" });
-  const [urgent, setUrgent] = useState<UrgentDetails>({ fullName: "", phone: "", complaint: "" });
+  const [details, setDetails] = useState<BookingDetails>({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    reason: "",
+  });
+  const [urgent, setUrgent] = useState<UrgentDetails>({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    complaint: "",
+  });
 
   const [token, setToken] = useState<string>();
   const [booking, setBooking] = useState<ManagedBooking>();
@@ -117,7 +127,8 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
     try {
       const receipt = await bookingApi.book(slug, {
-        fullName: details.fullName.trim(),
+        firstName: details.firstName.trim(),
+        lastName: details.lastName.trim(),
         phone: details.phone.trim(),
         doctorId: doctor.id,
         startsAt: slot.startsAt,
@@ -152,7 +163,8 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
     try {
       await bookingApi.requestUrgent(slug, {
-        fullName: urgent.fullName.trim(),
+        firstName: urgent.firstName.trim(),
+        lastName: urgent.lastName.trim(),
         phone: urgent.phone.trim(),
         complaint: urgent.complaint.trim(),
         ...(doctor && { doctorId: doctor.id }),

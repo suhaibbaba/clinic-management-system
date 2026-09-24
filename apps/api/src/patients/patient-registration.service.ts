@@ -1,6 +1,7 @@
 import { BadRequestException, ConflictException, Inject, Injectable } from "@nestjs/common";
 import {
   AUDIT_ACTION,
+  joinPatientName,
   PATIENT_REF_MESSAGE,
   type CreatePatientInput,
   type InlinePatientInput,
@@ -130,7 +131,10 @@ export class PatientRegistrationService {
             .values({
               clinicId: actor.clinicId,
               fileNumber,
-              fullName: input.fullName,
+              firstName: input.firstName,
+              middleName: input.middleName || null,
+              lastName: input.lastName,
+              fullName: joinPatientName(input),
               phone: input.phone,
               dateOfBirth: input.dateOfBirth ?? null,
               gender: input.gender ?? null,

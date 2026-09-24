@@ -17,7 +17,12 @@ import {
   doctorTimeOff,
   notificationsLog,
 } from "@api/database/schema";
-import { createPatient, seedClinicFixtures, uniquePhone } from "@test/helpers/patient-fixtures";
+import {
+  createPatient,
+  seedClinicFixtures,
+  uniquePhone,
+  nameParts,
+} from "@test/helpers/patient-fixtures";
 import {
   auth,
   createTestContext,
@@ -25,6 +30,7 @@ import {
   type TestClinic,
   type TestContext,
 } from "@test/helpers/test-app";
+import { staffName } from "@test/helpers/staff-name";
 
 /** A Thursday far enough out to stay bookable: Basel works Thursdays, Rasha does not. */
 function thursday(weeksAhead: number): string {
@@ -185,7 +191,7 @@ describe("Assistant plans (e2e)", () => {
       payload: {
         specialtyId: clinic.specialtyId,
         newUser: {
-          name: { ar: "د. رشا أبو عبيد", en: "Dr. Rasha" },
+          ...staffName("د. رشا أبو عبيد", "Dr. Rasha"),
           phone: uniquePhone(),
           password: TEST_PASSWORD,
         },
@@ -199,11 +205,11 @@ describe("Assistant plans (e2e)", () => {
 
     patients = [
       await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-        fullName: "إسراء طوقان",
+        ...nameParts("إسراء طوقان"),
         phone: uniquePhone(),
       }),
       await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-        fullName: "أحمد النابلسي",
+        ...nameParts("أحمد النابلسي"),
         phone: uniquePhone(),
       }),
     ];

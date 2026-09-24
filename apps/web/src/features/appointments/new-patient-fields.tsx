@@ -58,14 +58,25 @@ export function NewPatientFields({
         </div>
       )}
 
-      <FormField label="patients.fullName" htmlFor={`${id}-name`} required>
-        <Input
-          id={`${id}-name`}
-          data-testid="new-patient-name"
-          value={draft.fullName}
-          onChange={(event) => onChange({ ...draft, fullName: event.target.value })}
-        />
-      </FormField>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <FormField label="patients.firstName" htmlFor={`${id}-first-name`} required>
+          <Input
+            id={`${id}-first-name`}
+            data-testid="new-patient-first-name"
+            value={draft.firstName}
+            onChange={(event) => onChange({ ...draft, firstName: event.target.value })}
+          />
+        </FormField>
+
+        <FormField label="patients.lastName" htmlFor={`${id}-last-name`} required>
+          <Input
+            id={`${id}-last-name`}
+            data-testid="new-patient-last-name"
+            value={draft.lastName}
+            onChange={(event) => onChange({ ...draft, lastName: event.target.value })}
+          />
+        </FormField>
+      </div>
 
       <FormField label="patients.phone" htmlFor={`${id}-phone`} required>
         <Input

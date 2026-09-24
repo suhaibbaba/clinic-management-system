@@ -15,6 +15,7 @@ import {
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
+  nameParts,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -88,7 +89,7 @@ describe("Dashboard (e2e)", () => {
 
   it("counts today's appointments and lists them earliest first", async () => {
     const patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: "مريض اللوحة",
+      ...nameParts("مريض اللوحة"),
       phone: uniquePhone(),
     });
 
@@ -122,7 +123,7 @@ describe("Dashboard (e2e)", () => {
 
   it("agrees with the overdue list rather than computing its own total", async () => {
     const patientId = await createPatient(context, tokens[USER_ROLE.ADMIN], {
-      fullName: "مريض مدين",
+      ...nameParts("مريض مدين"),
       phone: uniquePhone(),
     });
 
@@ -180,7 +181,7 @@ describe("Dashboard (e2e)", () => {
 
   it("excludes a patient who has paid inside the window", async () => {
     const patientId = await createPatient(context, tokens[USER_ROLE.ADMIN], {
-      fullName: "مريض دفع حديثاً",
+      ...nameParts("مريض دفع حديثاً"),
       phone: uniquePhone(),
     });
 
@@ -226,7 +227,7 @@ describe("Dashboard (e2e)", () => {
 
   it("counts the online bookings waiting on an answer", async () => {
     const patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: "حجز إلكتروني",
+      ...nameParts("حجز إلكتروني"),
       phone: uniquePhone(),
     });
 

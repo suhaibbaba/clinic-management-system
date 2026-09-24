@@ -87,7 +87,8 @@ export const bookingPhoneSchema = z
   .regex(BOOKING_PHONE_PATTERN, "Expected a phone number");
 
 export const createBookingSchema = z.object({
-  fullName: z.string().trim().min(BOOKING_NAME_LENGTH.min).max(BOOKING_NAME_LENGTH.max),
+  firstName: z.string().trim().min(BOOKING_NAME_LENGTH.min).max(BOOKING_NAME_LENGTH.max),
+  lastName: z.string().trim().min(BOOKING_NAME_LENGTH.min).max(BOOKING_NAME_LENGTH.max),
   phone: bookingPhoneSchema,
   doctorId: uuidSchema,
   startsAt: z.iso.datetime(),
@@ -139,7 +140,8 @@ export type CancelBookingInput = z.infer<typeof cancelBookingSchema>;
 export const publicSlotTimeSchema = timeOfDaySchema;
 
 export const createUrgentRequestSchema = z.object({
-  fullName: z.string().trim().min(BOOKING_NAME_LENGTH.min).max(BOOKING_NAME_LENGTH.max),
+  firstName: z.string().trim().min(BOOKING_NAME_LENGTH.min).max(BOOKING_NAME_LENGTH.max),
+  lastName: z.string().trim().min(BOOKING_NAME_LENGTH.min).max(BOOKING_NAME_LENGTH.max),
   phone: bookingPhoneSchema,
   complaint: z.string().trim().min(3).max(500),
   /** Who they were looking at when they gave up on the times. */

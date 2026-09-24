@@ -127,6 +127,10 @@ export async function createTestContext(): Promise<TestContext> {
           .insert(users)
           .values({
             clinicId: clinic.id,
+            firstNameAr: "اختبار",
+            lastNameAr: role,
+            firstNameEn: "Test",
+            lastNameEn: role,
             nameAr: `اختبار ${role}`,
             nameEn: `Test ${role}`,
             phone,

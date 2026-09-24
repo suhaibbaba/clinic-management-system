@@ -14,6 +14,7 @@ import {
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
+  nameParts,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -72,7 +73,7 @@ describe("Appointments (e2e)", () => {
       .where(eq(clinics.id, clinic.id));
 
     patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: "مريض المواعيد",
+      ...nameParts("مريض المواعيد"),
       phone: uniquePhone(),
     });
 

@@ -8,6 +8,7 @@ import {
   type TestClinic,
   type TestContext,
 } from "@test/helpers/test-app";
+import { staffName } from "@test/helpers/staff-name";
 
 /** Endpoints added so the web app can manage users and pick a specialty. */
 describe("Admin user management and specialties (e2e)", () => {
@@ -42,7 +43,7 @@ describe("Admin user management and specialties (e2e)", () => {
         method: "PATCH",
         url: "/me",
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
-        payload: { name: { ar: "مؤيد كنعان", en: "Muayyad Kanaan" }, email },
+        payload: { ...staffName("مؤيد كنعان", "Muayyad Kanaan"), email },
       });
       const body = response.json<{ name: { ar: string }; email: string; role: string }>();
 
@@ -80,7 +81,7 @@ describe("Admin user management and specialties (e2e)", () => {
         url: "/users",
         headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: {
-          name: { ar: "زميل", en: "Colleague" },
+          ...staffName("زميل", "Colleague"),
           phone,
           role: USER_ROLE.RECEPTIONIST,
           password: TEST_PASSWORD,

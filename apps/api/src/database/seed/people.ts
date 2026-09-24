@@ -96,18 +96,33 @@ const FAMILIES: readonly string[] = [
   "أبو بكر",
 ];
 
-const SPELLING_VARIANTS: readonly string[] = ["أحمد خالد النابلسي", "احمد خالد النابلسي"];
-const SPELLING_VARIANTS_FEMALE: readonly string[] = ["فاطمة سامي طوقان", "فاطمه سامي طوقان"];
+interface NameParts {
+  readonly firstName: string;
+  readonly middleName: string | null;
+  readonly lastName: string;
+}
 
-// Three names that a table column cannot hold, because the truncation has to be looked at.
-const LONG_NAMES: readonly string[] = [
-  "عبد الرحمن بن محمد بن عبد الله الشيخ البرغوثي المقدسي",
-  "محمد نور الدين عبد الفتاح أبو صالح الدويكات",
-  "فاطمة الزهراء عبد المعطي الحاج قاسم النابلسي",
+const SPELLING_VARIANTS: readonly NameParts[] = [
+  { firstName: "أحمد", middleName: "خالد", lastName: "النابلسي" },
+  { firstName: "احمد", middleName: "خالد", lastName: "النابلسي" },
+];
+const SPELLING_VARIANTS_FEMALE: readonly NameParts[] = [
+  { firstName: "فاطمة", middleName: "سامي", lastName: "طوقان" },
+  { firstName: "فاطمه", middleName: "سامي", lastName: "طوقان" },
 ];
 
-export interface SeedPerson {
-  readonly fullName: string;
+// Three names that a table column cannot hold, because the truncation has to be looked at.
+const LONG_NAMES: readonly NameParts[] = [
+  {
+    firstName: "عبد الرحمن",
+    middleName: "بن محمد بن عبد الله الشيخ",
+    lastName: "البرغوثي المقدسي",
+  },
+  { firstName: "محمد", middleName: "نور الدين عبد الفتاح", lastName: "أبو صالح الدويكات" },
+  { firstName: "فاطمة الزهراء", middleName: "عبد المعطي الحاج قاسم", lastName: "النابلسي" },
+];
+
+export interface SeedPerson extends NameParts {
   readonly gender: Gender;
   readonly dateOfBirth: string;
   readonly phone: string;
@@ -116,20 +131,23 @@ export interface SeedPerson {
   readonly incomplete: boolean;
 }
 
+const joined = (name: NameParts): string =>
+  [name.firstName, name.middleName, name.lastName].filter(Boolean).join(" ");
+
 export function buildPeople(rng: Rng, count: number, today: Date): SeedPerson[] {
   const people: SeedPerson[] = [];
   const takenNames = new Set<string>();
 
-  const addName = (name: string): string => {
+  const addName = (name: NameParts): NameParts => {
     let candidate = name;
     let attempt = 0;
 
-    while (takenNames.has(candidate) && attempt < FAMILIES.length) {
-      candidate = `${name.split(" ").slice(0, -1).join(" ")} ${FAMILIES[attempt] as string}`;
+    while (takenNames.has(joined(candidate)) && attempt < FAMILIES.length) {
+      candidate = { ...name, lastName: FAMILIES[attempt] as string };
       attempt += 1;
     }
 
-    takenNames.add(candidate);
+    takenNames.add(joined(candidate));
     return candidate;
   };
 
@@ -146,15 +164,15 @@ export function buildPeople(rng: Rng, count: number, today: Date): SeedPerson[] 
     const preset = fixed[index];
     const gender = preset?.gender ?? (rng.bool(0.5) ? GENDER.MALE : GENDER.FEMALE);
     const first = rng.pick(gender === GENDER.MALE ? MALE_FIRST : FEMALE_FIRST);
-    const fullName = preset
+    const name = preset
       ? addName(preset.name)
-      : addName(`${first} ${rng.pick(MIDDLE)} ${rng.pick(FAMILIES)}`);
+      : addName({ firstName: first, middleName: rng.pick(MIDDLE), lastName: rng.pick(FAMILIES) });
 
     const age = rng.bool(0.2) ? rng.int(5, 15) : rng.int(16, 78);
     const incomplete = index >= count - 4;
 
     people.push({
-      fullName,
+      ...name,
       gender,
       dateOfBirth: birthDate(rng, today, age),
       phone: palestinianMobile(rng, index),

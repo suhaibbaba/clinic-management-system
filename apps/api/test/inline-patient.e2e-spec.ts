@@ -13,6 +13,7 @@ import {
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
+  nameParts,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -88,7 +89,7 @@ describe("Inline patient registration (e2e)", () => {
     const phone = uniquePhone();
 
     const response = await book("09:00", {
-      newPatient: { fullName: "سلمى أحمد الخطيب", phone, gender: "female" },
+      newPatient: { ...nameParts("سلمى أحمد الخطيب"), phone, gender: "female" },
     });
 
     expect(response.statusCode).toBe(201);
@@ -104,12 +105,12 @@ describe("Inline patient registration (e2e)", () => {
   });
 
   it("rolls the patient back when the booking is refused", async () => {
-    await book("10:00", { newPatient: { fullName: "أول مريض", phone: uniquePhone() } });
+    await book("10:00", { newPatient: { ...nameParts("أول مريض"), phone: uniquePhone() } });
 
     const phone = uniquePhone();
 
     // Same doctor, same minute: the exclusion constraint refuses it.
-    const clash = await book("10:00", { newPatient: { fullName: "مريض مرفوض", phone } });
+    const clash = await book("10:00", { newPatient: { ...nameParts("مريض مرفوض"), phone } });
 
     expect(clash.statusCode).toBe(409);
     expect(await findByPhone(phone)).toHaveLength(0);
@@ -120,7 +121,7 @@ describe("Inline patient registration (e2e)", () => {
   it("audits the registration alongside the appointment", async () => {
     const phone = uniquePhone();
 
-    const response = await book("13:00", { newPatient: { fullName: "مريض مُدقَّق", phone } });
+    const response = await book("13:00", { newPatient: { ...nameParts("مريض مُدقَّق"), phone } });
     const { patientId } = response.json() as { patientId: string };
 
     const trail = await context.app.inject({
@@ -136,9 +137,9 @@ describe("Inline patient registration (e2e)", () => {
 
   it("offers the existing patient rather than registering a second one on the same number", async () => {
     const phone = uniquePhone();
-    const existingId = await createPatient(context, token, { fullName: "مريض قديم", phone });
+    const existingId = await createPatient(context, token, { ...nameParts("مريض قديم"), phone });
 
-    const response = await book("11:00", { newPatient: { fullName: "اسم آخر", phone } });
+    const response = await book("11:00", { newPatient: { ...nameParts("اسم آخر"), phone } });
 
     expect(response.statusCode).toBe(409);
     expect(response.json()).toMatchObject({
@@ -149,7 +150,7 @@ describe("Inline patient registration (e2e)", () => {
   it("refuses a body that names a patient both ways, or neither", async () => {
     const both = await book("12:00", {
       patientId: crypto.randomUUID(),
-      newPatient: { fullName: "كلاهما", phone: uniquePhone() },
+      newPatient: { ...nameParts("كلاهما"), phone: uniquePhone() },
     });
     const neither = await book("12:00", {});
 
@@ -164,7 +165,7 @@ describe("Inline patient registration (e2e)", () => {
       method: "POST",
       url: "/waiting-list",
       headers: auth(token),
-      payload: { newPatient: { fullName: "مريض الانتظار", phone }, priority: "urgent" },
+      payload: { newPatient: { ...nameParts("مريض الانتظار"), phone }, priority: "urgent" },
     });
 
     expect(response.statusCode).toBe(201);

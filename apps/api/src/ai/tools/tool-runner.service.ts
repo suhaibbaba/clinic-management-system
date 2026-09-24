@@ -306,7 +306,15 @@ function parseArguments(raw: string): unknown {
 
 // The ids and dates are kept — they are what makes a row worth reading. Free text typed about a
 // patient — a search, a note, a new patient's name and number — is recorded as given, not what.
-const REDACTED_ARGS = new Set(["query", "note", "full_name", "phone"]);
+const REDACTED_ARGS = new Set([
+  "query",
+  "note",
+  "full_name",
+  "first_name",
+  "middle_name",
+  "last_name",
+  "phone",
+]);
 
 function redact(args: unknown): unknown {
   if (!args || typeof args !== "object") {

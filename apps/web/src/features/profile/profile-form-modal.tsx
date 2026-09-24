@@ -5,11 +5,12 @@ import {
   type UpdateOwnProfileInput,
 } from "@clinic/shared";
 import { useEffect, type JSX } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type UseFormRegister } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Icon, Input, Modal, PhoneInput, useToast } from "@clinic/ui";
 import { authApi } from "@web/features/auth/api";
 import { useSession } from "@web/features/auth/session";
+import { StaffNameFields, type StaffNameValues } from "@web/features/users/staff-name-fields";
 import { errorMessageKey } from "@web/lib/api-error";
 
 interface ProfileFormModalProps {
@@ -42,7 +43,12 @@ export function ProfileFormModal({
 
   useEffect(() => {
     if (open) {
-      reset({ name: user.name, phone: user.phone, email: user.email });
+      reset({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        email: user.email,
+      });
     }
   }, [open, user, reset]);
 
@@ -92,30 +98,11 @@ export function ProfileFormModal({
         onSubmit={onSubmit}
         noValidate
       >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="users.nameAr" htmlFor="profile-name-ar" error={errors.name?.ar}>
-            <Input
-              placeholder={t("common.placeholders.fullNameAr")}
-              adornment="user"
-              id="profile-name-ar"
-              data-testid="profile-field-name-ar"
-              hasError={errors.name?.ar !== undefined}
-              {...register("name.ar")}
-            />
-          </FormField>
-
-          <FormField label="users.nameEn" htmlFor="profile-name-en" error={errors.name?.en}>
-            <Input
-              placeholder={t("common.placeholders.fullNameEn")}
-              adornment="user"
-              id="profile-name-en"
-              data-testid="profile-field-name-en"
-              dir="ltr"
-              hasError={errors.name?.en !== undefined}
-              {...register("name.en")}
-            />
-          </FormField>
-        </div>
+        <StaffNameFields
+          prefix="profile"
+          register={register as unknown as UseFormRegister<StaffNameValues>}
+          errors={errors}
+        />
 
         <FormField
           label="users.phone"

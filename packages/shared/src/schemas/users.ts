@@ -2,12 +2,15 @@ import { z } from "zod";
 import { USER_ROLES } from "@shared/enums";
 import { passwordSchema } from "@shared/schemas/auth";
 import { paginationQuerySchema, phoneSchema } from "@shared/schemas/common";
-import { personNameInputSchema, personNameSchema } from "@shared/schemas/person-name";
+import { personNameSchema, staffNameInputFields } from "@shared/schemas/person-name";
 
 export const userSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
+  /** First and last joined by the API; what every screen shows. */
   name: personNameSchema,
+  firstName: personNameSchema,
+  lastName: personNameSchema,
   phone: z.string(),
   email: z.string().nullable(),
   /** False until they have chosen a password through the link they were sent. */
@@ -25,7 +28,7 @@ export type User = z.infer<typeof userSchema>;
 // No defaults: one survives `.partial()` in `updateUserSchema` and would rewrite a field nobody
 // sent. `clinicId` comes from the caller's token, never the body.
 const userWritableFields = {
-  name: personNameInputSchema,
+  ...staffNameInputFields,
   phone: phoneSchema,
   email: z.email().max(255).nullish(),
   role: z.enum(USER_ROLES),
@@ -54,7 +57,7 @@ export type UpdateUserInput = z.infer<typeof updateUserSchema>;
  *  role and whether the account is live are the admin's, on the users screen. */
 export const updateOwnProfileSchema = z
   .object({
-    name: personNameInputSchema,
+    ...staffNameInputFields,
     phone: phoneSchema,
     email: z.email().max(255).nullish(),
   })

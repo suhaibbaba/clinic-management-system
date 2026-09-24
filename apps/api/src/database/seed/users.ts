@@ -1,5 +1,5 @@
 import { and, asc, eq, isNull, ne, or, sql } from "drizzle-orm";
-import type { PersonName, UserRole } from "@clinic/shared";
+import { joinPersonName, type PersonName, type UserRole } from "@clinic/shared";
 import type { Database } from "@api/database/database.module";
 import { users } from "@api/database/schema";
 
@@ -7,7 +7,8 @@ type Db = Database;
 
 export interface SeedAccount {
   readonly role: UserRole;
-  readonly name: PersonName;
+  readonly firstName: PersonName;
+  readonly lastName: PersonName;
   readonly phone: string;
   readonly email: string;
 }
@@ -99,8 +100,12 @@ export async function upsertUser(
     .insert(users)
     .values({
       clinicId,
-      nameAr: account.name.ar,
-      nameEn: account.name.en,
+      firstNameAr: account.firstName.ar,
+      lastNameAr: account.lastName.ar,
+      firstNameEn: account.firstName.en,
+      lastNameEn: account.lastName.en,
+      nameAr: joinPersonName(account.firstName, account.lastName).ar,
+      nameEn: joinPersonName(account.firstName, account.lastName).en,
       phone: account.phone,
       email: account.email,
       passwordHash,

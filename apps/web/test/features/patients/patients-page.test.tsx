@@ -238,7 +238,8 @@ describe("Patients list", () => {
       await userEvent.click(screen.getAllByRole("button", { name: ar.patients.create })[0]!);
 
       const dialog = await screen.findByRole("dialog");
-      await userEvent.type(within(dialog).getByLabelText(ar.patients.fullName), "سامر التلاوي");
+      await userEvent.type(within(dialog).getByLabelText(ar.patients.firstName), "سامر");
+      await userEvent.type(within(dialog).getByLabelText(ar.patients.lastName), "التلاوي");
       await userEvent.type(within(dialog).getByLabelText(ar.patients.phone), "+963944123456");
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
 
@@ -247,7 +248,8 @@ describe("Patients list", () => {
           (entry) => entry.method === "POST" && entry.url.endsWith("/patients"),
         );
         expect(call?.body).toMatchObject({
-          fullName: "سامر التلاوي",
+          firstName: "سامر",
+          lastName: "التلاوي",
           phone: "+963944123456",
         });
         // The file number is the API's to allocate.

@@ -1,5 +1,6 @@
 import { USER_ROLE, USER_ROLES, type UserRole } from "@clinic/shared";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
+import { staffName } from "@test/helpers/staff-name";
 
 /** Every endpoint ROLES.md restricts to admin, with the verb it is reached by. */
 const ADMIN_ONLY_ROUTES = [
@@ -114,7 +115,7 @@ describe("Authorization (e2e)", () => {
         method: "PATCH",
         url: `/users/${foreignUserId}`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
-        payload: { name: { ar: "مُختطف", en: "Hijacked" } },
+        payload: { ...staffName("مُختطف", "Hijacked") },
       });
 
       expect(response.statusCode).toBe(404);
@@ -172,7 +173,7 @@ describe("Authorization (e2e)", () => {
         url: "/users",
         headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: {
-          name: { ar: "عيادة محقونة", en: "Injected Clinic" },
+          ...staffName("عيادة محقونة", "Injected Clinic"),
           phone: `+9955${Date.now().toString().slice(-8)}`,
           password: "InjectedPass123!",
           role: USER_ROLE.RECEPTIONIST,

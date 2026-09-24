@@ -1,5 +1,6 @@
 import { AUDIT_ACTION, USER_ROLE, type PersonName, type UserRole } from "@clinic/shared";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
+import { staffName } from "@test/helpers/staff-name";
 
 interface AuditEntry {
   action: string;
@@ -55,7 +56,7 @@ describe("Audit log (e2e)", () => {
       payload: {
         // Staff names are bilingual and both halves are required; the Arabic
         // is fixed here because these tests are about the audit trail.
-        name: { ar: "اسم عربي", en: english },
+        ...staffName("اسم عربي", english),
         phone: `+9944${Math.floor(Math.random() * 1_000_000_000)}`,
         password: "CreatedUser123!",
         role: USER_ROLE.RECEPTIONIST,
@@ -90,7 +91,7 @@ describe("Audit log (e2e)", () => {
       method: "PATCH",
       url: `/users/${user.id}`,
       headers: auth(adminToken),
-      payload: { name: { ar: "اسم عربي", en: "After Update" }, isActive: false },
+      payload: { ...staffName("اسم عربي", "After Update"), isActive: false },
     });
 
     expect(updated.statusCode).toBe(200);
@@ -135,7 +136,7 @@ describe("Audit log (e2e)", () => {
       method: "PATCH",
       url: `/users/${user.id}`,
       headers: auth(adminToken),
-      payload: { name: { ar: "اسم عربي", en: "Secret Check Renamed" } },
+      payload: { ...staffName("اسم عربي", "Secret Check Renamed") },
     });
 
     const serialised = JSON.stringify(await entriesFor(user.id));

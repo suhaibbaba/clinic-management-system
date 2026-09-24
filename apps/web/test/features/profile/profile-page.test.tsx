@@ -8,7 +8,12 @@ import { authTokens } from "@web/lib/auth-tokens";
 import { makeClinic, makeProfile } from "@test/helpers/fixtures";
 import { mockApi, renderWithProviders } from "@test/helpers/render";
 
-const profile = makeProfile({ role: USER_ROLE.DOCTOR, name: { ar: "رشا أبو عبيد", en: "Rasha" } });
+const profile = makeProfile({
+  role: USER_ROLE.DOCTOR,
+  name: { ar: "رشا أبو عبيد", en: "Rasha Abu Obeid" },
+  firstName: { ar: "رشا", en: "Rasha" },
+  lastName: { ar: "أبو عبيد", en: "Abu Obeid" },
+});
 
 const handlers = (overrides = {}) =>
   ({
@@ -36,14 +41,17 @@ describe("My profile", () => {
     // Their role is the admin's to set, so it is not a field of this form.
     expect(within(dialog).queryByLabelText(ar.users.role)).not.toBeInTheDocument();
 
-    const nameAr = within(dialog).getByLabelText(ar.users.nameAr);
-    await userEvent.clear(nameAr);
-    await userEvent.type(nameAr, "رشا أبو عبيد المحدّث");
+    const lastNameAr = within(dialog).getByLabelText(ar.users.lastNameAr);
+    await userEvent.clear(lastNameAr);
+    await userEvent.type(lastNameAr, "أبو عبيدة");
     await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
 
     await waitFor(() => {
       const call = api.calls.find((entry) => entry.method === "PATCH" && entry.url.endsWith("/me"));
-      expect(call?.body).toMatchObject({ name: { ar: "رشا أبو عبيد المحدّث", en: "Rasha" } });
+      expect(call?.body).toMatchObject({
+        firstName: { ar: "رشا", en: "Rasha" },
+        lastName: { ar: "أبو عبيدة", en: "Abu Obeid" },
+      });
       expect(call?.body).not.toHaveProperty("role");
     });
   });

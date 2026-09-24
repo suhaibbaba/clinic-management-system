@@ -2,7 +2,7 @@ import { z } from "zod";
 import { paginationQuerySchema, weeklyScheduleSchema } from "@shared/schemas/common";
 import { specialtySummarySchema } from "@shared/schemas/specialties";
 import { passwordSchema } from "@shared/schemas/auth";
-import { personNameInputSchema } from "@shared/schemas/person-name";
+import { staffNameInputFields } from "@shared/schemas/person-name";
 import { phoneSchema } from "@shared/schemas/common";
 import { userSchema } from "@shared/schemas/users";
 
@@ -42,7 +42,7 @@ const doctorWritableFields = {
 // The staff account a doctor signs in with. No `role`: this endpoint only ever makes a doctor, and
 // a role field here would be a second place the answer could be wrong.
 export const newDoctorUserSchema = z.object({
-  name: personNameInputSchema,
+  ...staffNameInputFields,
   phone: phoneSchema,
   email: z.email().max(255).nullish(),
   password: passwordSchema,

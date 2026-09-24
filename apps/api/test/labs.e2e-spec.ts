@@ -11,6 +11,7 @@ import {
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
+  nameParts,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -41,7 +42,7 @@ describe("Labs (e2e)", () => {
     fixtures = await seedClinicFixtures(context, clinic, tokens[USER_ROLE.ADMIN]);
 
     patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: "مريض المخبر",
+      ...nameParts("مريض المخبر"),
       phone: uniquePhone(),
     });
 

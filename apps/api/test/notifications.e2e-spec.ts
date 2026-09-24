@@ -25,6 +25,7 @@ import {
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
+  nameParts,
 } from "@test/helpers/patient-fixtures";
 import { createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -91,6 +92,10 @@ describe("Notifications and schedulers (e2e)", () => {
       .insert(users)
       .values({
         clinicId: clinic.id,
+        firstNameAr: "طبيب",
+        lastNameAr: suffix,
+        firstNameEn: "Doctor",
+        lastNameEn: suffix,
         nameAr: `طبيب اختبار ${suffix}`,
         nameEn: `Test doctor ${suffix}`,
         phone: `+98${suffix}`,
@@ -178,7 +183,7 @@ describe("Notifications and schedulers (e2e)", () => {
       .where(eq(clinics.id, clinic.id));
 
     patientId = await createPatient(context, receptionToken, {
-      fullName: "مريض التذكيرات",
+      ...nameParts("مريض التذكيرات"),
       phone: uniquePhone(),
     });
 
@@ -506,7 +511,7 @@ describe("Notifications and schedulers (e2e)", () => {
         method: "POST",
         url: `/public/booking/${clinic.slug}`,
         payload: {
-          fullName: "زائر التذكيرات",
+          ...nameParts("زائر التذكيرات"),
           phone: uniquePhone(),
           doctorId: fixtures.doctorId,
           startsAt,

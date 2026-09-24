@@ -91,6 +91,10 @@ export const patients = pgTable(
       .notNull()
       .references(() => clinics.id),
     fileNumber: text("file_number").notNull(),
+    firstName: text("first_name").notNull(),
+    middleName: text("middle_name"),
+    lastName: text("last_name").notNull(),
+    /** Written by the service from the parts above; everything that reads a name reads this. */
     fullName: text("full_name").notNull(),
     normalizedName: normalizedName("full_name"),
     phone: text("phone").notNull(),

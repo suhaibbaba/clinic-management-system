@@ -13,6 +13,7 @@ import {
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
+  nameParts,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -68,7 +69,7 @@ describe("Appointments permission boundaries (e2e)", () => {
       .where(eq(clinics.id, clinic.id));
 
     patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: "مريض الصلاحيات",
+      ...nameParts("مريض الصلاحيات"),
       phone: uniquePhone(),
     });
 
@@ -80,6 +81,10 @@ describe("Appointments permission boundaries (e2e)", () => {
       .insert(users)
       .values({
         clinicId: clinic.id,
+        firstNameAr: "طبيب",
+        lastNameAr: "آخر",
+        firstNameEn: "Another",
+        lastNameEn: "doctor",
         nameAr: "طبيب آخر",
         nameEn: "Another doctor",
         phone: uniquePhone(),

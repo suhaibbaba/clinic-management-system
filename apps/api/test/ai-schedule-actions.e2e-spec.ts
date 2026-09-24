@@ -23,7 +23,7 @@ import {
   doctorTimeOff,
   users,
 } from "@api/database/schema";
-import { createPatient, seedClinicFixtures } from "@test/helpers/patient-fixtures";
+import { createPatient, seedClinicFixtures, nameParts } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 function monday(weeksAhead: number): string {
@@ -147,7 +147,7 @@ describe("Assistant schedule actions (e2e)", () => {
     }
 
     patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: "سمير خليل",
+      ...nameParts("سمير خليل"),
       phone: "0599000222",
     });
   });

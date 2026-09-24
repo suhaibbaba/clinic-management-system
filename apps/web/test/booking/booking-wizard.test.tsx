@@ -93,7 +93,8 @@ async function enterCode(user: ReturnType<typeof userEvent.setup>, code: string)
 async function reachDetails(user: ReturnType<typeof userEvent.setup>): Promise<void> {
   await user.click(await screen.findByRole("button", { name: /د\. ليلى حداد/ }));
   await user.click(await screen.findByRole("button", { name: /10:00/ }));
-  await user.type(screen.getByLabelText(ar.details.name), "ريم العلي");
+  await user.type(screen.getByLabelText(ar.details.firstName), "ريم");
+  await user.type(screen.getByLabelText(ar.details.lastName), "العلي");
   await user.type(screen.getByLabelText(ar.details.phone), "0931234567");
 }
 
@@ -119,7 +120,8 @@ describe("Public booking wizard", () => {
     await user.click(screen.getByRole("button", { name: /10:00/ }));
 
     expect(await screen.findByText(ar.details.heading)).toBeInTheDocument();
-    await user.type(screen.getByLabelText(ar.details.name), "ريم العلي");
+    await user.type(screen.getByLabelText(ar.details.firstName), "ريم");
+    await user.type(screen.getByLabelText(ar.details.lastName), "العلي");
     await user.type(screen.getByLabelText(ar.details.phone), "0931234567");
     await user.click(screen.getByRole("button", { name: ar.details.submit }));
 
@@ -140,10 +142,11 @@ describe("Public booking wizard", () => {
 
     await user.click(await screen.findByRole("button", { name: /د\. ليلى حداد/ }));
     await user.click(await screen.findByRole("button", { name: /10:00/ }));
-    await user.type(screen.getByLabelText(ar.details.name), "ر");
+    await user.type(screen.getByLabelText(ar.details.firstName), "ر");
     await user.click(screen.getByRole("button", { name: ar.details.submit }));
 
-    expect(await screen.findByText(ar.details.nameError)).toBeInTheDocument();
+    expect(await screen.findByText(ar.details.firstNameError)).toBeInTheDocument();
+    expect(screen.getByText(ar.details.lastNameError)).toBeInTheDocument();
     expect(api.calls.filter((call) => call.method === "POST")).toHaveLength(0);
   });
 

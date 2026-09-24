@@ -23,7 +23,7 @@ import {
   visits,
 } from "@api/database/schema";
 import { PermissionsService } from "@api/permissions/permissions.service";
-import { createPatient, seedClinicFixtures } from "@test/helpers/patient-fixtures";
+import { createPatient, seedClinicFixtures, nameParts } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 /** A Monday, the only day the test clinic and its doctor work, far enough out to stay bookable. */
@@ -112,7 +112,7 @@ describe("Assistant actions (e2e)", () => {
       })
       .where(eq(clinics.id, clinic.id));
     patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: "سمير خليل",
+      ...nameParts("سمير خليل"),
       phone: "0599000111",
     });
   });
@@ -436,7 +436,7 @@ describe("Assistant actions (e2e)", () => {
 
     it("stops an action on a patient not seen for over two years", async () => {
       const dormantId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-        fullName: "ليلى عمر",
+        ...nameParts("ليلى عمر"),
         phone: "0599000222",
       });
 
@@ -457,7 +457,8 @@ describe("Assistant actions (e2e)", () => {
 
     it("stops a new patient on a phone another patient has", async () => {
       const { result } = await tool(USER_ROLE.RECEPTIONIST, AI_TOOL.CREATE_PATIENT, {
-        full_name: "سمر خليل",
+        first_name: "سمر",
+        last_name: "خليل",
         phone: "0599000111",
       });
 
