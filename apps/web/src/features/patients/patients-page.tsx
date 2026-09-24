@@ -1,4 +1,4 @@
-import type { PatientClinicalView, PatientView } from "@clinic/shared";
+import type { PatientClinicalView, PatientSort, PatientView, SortDirection } from "@clinic/shared";
 import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -75,18 +75,32 @@ export function PatientsPage(): JSX.Element {
 
   const raw = params.get("filter");
   const filter: PatientFilter = raw === BALANCE_FILTER || raw === VISITED_FILTER ? raw : "all";
+  const sortBy: PatientSort | null = params.get("sort") === "balance" ? "balance" : null;
+  const sortDir: SortDirection = params.get("dir") === "asc" ? "asc" : "desc";
+
   // One write, not two: this form replaces the whole query string, so the page goes with it — and a
   // second `resetPage()` here would land on the params as they were and put the filter back.
-  const setFilter = (next: PatientFilter): void => {
+  const writeParams = (next: {
+    readonly filter?: PatientFilter;
+    readonly sort?: PatientSort | null;
+    readonly dir?: SortDirection;
+  }): void => {
+    const nextFilter = next.filter ?? filter;
+    const nextSort = next.sort === undefined ? sortBy : next.sort;
+    const nextDir = next.dir ?? sortDir;
+
     setParams(
       {
         ...(search.trim() !== "" && { q: search }),
-        ...(next !== "all" && { filter: next }),
+        ...(nextFilter !== "all" && { filter: nextFilter }),
+        ...(nextSort !== null && { sort: nextSort }),
+        ...(nextSort !== null && nextDir === "asc" && { dir: nextDir }),
         ...(perPage !== DEFAULT_PER_PAGE && { perPage: String(perPage) }),
       },
       { replace: true },
     );
   };
+  const setFilter = (next: PatientFilter): void => writeParams({ filter: next });
 
   const debouncedSearch = useDebounced(search);
 
@@ -130,6 +144,7 @@ export function PatientsPage(): JSX.Element {
     ...(debouncedSearch.trim() !== "" && { search: debouncedSearch.trim() }),
     ...(filter === BALANCE_FILTER && showBalance && { hasBalance: true }),
     ...(filter === VISITED_FILTER && { visitedSince: startOfThisMonth() }),
+    ...(sortBy !== null && showBalance && { sort: sortBy, dir: sortDir }),
   });
 
   // `limit: 1` — the chip wants the total, not the rows, and the API returns it either way.
@@ -198,6 +213,7 @@ export function PatientsPage(): JSX.Element {
         key: "balance",
         header: "patients.balance",
         align: "numeric",
+        sortKey: "balance",
         render: (row) => {
           if (row.balance === undefined) {
             return "—";
@@ -311,6 +327,14 @@ export function PatientsPage(): JSX.Element {
       <Table
         data-testid="patients-table"
         columns={columns}
+        {...(showBalance && {
+          sort: {
+            key: sortBy,
+            dir: sortDir,
+            onChange: (key, dir) =>
+              writeParams({ sort: key === "balance" ? "balance" : null, dir }),
+          },
+        })}
         rows={rows}
         rowKey={(row) => row.id}
         isLoading={query.isPending}

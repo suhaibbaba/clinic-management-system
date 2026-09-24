@@ -11,6 +11,7 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  ChevronsUpDown,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
@@ -74,6 +75,7 @@ export type IconName =
   | "check"
   | "chevron-down"
   | "chevron-up"
+  | "chevrons-up-down"
   | "chevron-end"
   | "chevron-start"
   | "clipboard"
@@ -152,6 +154,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   check: Check,
   "chevron-down": ChevronDown,
   "chevron-up": ChevronUp,
+  "chevrons-up-down": ChevronsUpDown,
   // Resolved per direction below — these are the LTR defaults.
   "chevron-end": ChevronRight,
   "chevron-start": ChevronLeft,

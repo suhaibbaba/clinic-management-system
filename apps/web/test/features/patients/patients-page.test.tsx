@@ -76,6 +76,23 @@ describe("Patients list", () => {
     ]);
   });
 
+  it("sorts by balance from its header: highest first, then lowest, asked of the server", async () => {
+    const api = await renderList(USER_ROLE.ADMIN);
+    await screen.findByText(PATIENTS[0]!.fullName);
+
+    const header = screen.getByRole("columnheader", { name: new RegExp(ar.patients.balance) });
+    const lastList = () => searchCalls(api).at(-1)?.url ?? "";
+
+    await userEvent.click(within(header).getByRole("button"));
+    await waitFor(() => expect(lastList()).toContain("sort=balance"));
+    expect(lastList()).toContain("dir=desc");
+    expect(header).toHaveAttribute("aria-sort", "descending");
+
+    await userEvent.click(within(header).getByRole("button"));
+    await waitFor(() => expect(lastList()).toContain("dir=asc"));
+    expect(header).toHaveAttribute("aria-sort", "ascending");
+  });
+
   it("keeps the page on screen while the next one loads, and says it is updating", async () => {
     const user = userEvent.setup();
     let release: (() => void) | undefined;

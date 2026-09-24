@@ -528,4 +528,37 @@ describe("Billing", () => {
       );
     });
   });
+
+  describe("patients?sort=balance", () => {
+    it("orders by the computed balance, highest first unless asked otherwise", async () => {
+      const most = await newPatient();
+      const least = await newPatient();
+
+      await recordProcedure(most, { price: "900.00" });
+      await recordProcedure(least, { price: "50.00" });
+      await pay(least, "80.00");
+
+      const order = async (query: string, token: string): Promise<string[]> => {
+        const response = await context.app.inject({
+          method: "GET",
+          url: `/patients?limit=100&${query}`,
+          headers: auth(token),
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        return (response.json() as Paginated<{ id: string }>).items.map((item) => item.id);
+      };
+
+      const descending = await order("sort=balance", receptionistToken);
+      const ascending = await order("sort=balance&dir=asc", receptionistToken);
+
+      expect(descending.indexOf(most)).toBeLessThan(descending.indexOf(least));
+      expect(ascending.indexOf(least)).toBeLessThan(ascending.indexOf(most));
+      // The order alone would tell a technician who owes the most.
+      expect(await order("sort=balance", technicianToken)).toEqual(
+        await order("", technicianToken),
+      );
+    });
+  });
 });

@@ -39,7 +39,8 @@ interface LedgerLine {
 export class LedgerService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  static owesFilter(clinicId: string, patientId: PgColumn): SQL {
+  /** A patient's balance as a SQL expression, for a `where` or an `order by` over many. */
+  static balanceOf(clinicId: string, patientId: PgColumn): SQL {
     return sql`(
       coalesce((
         select sum(amount - discount) from charges
@@ -49,7 +50,11 @@ export class LedgerService {
         select sum(amount) from payments
         where clinic_id = ${clinicId} and patient_id = ${patientId} and deleted_at is null
       ), 0)
-    ) > 0`;
+    )`;
+  }
+
+  static owesFilter(clinicId: string, patientId: PgColumn): SQL {
+    return sql`${LedgerService.balanceOf(clinicId, patientId)} > 0`;
   }
 
   async balanceFor(clinicId: string, patientId: string): Promise<PatientBalance> {

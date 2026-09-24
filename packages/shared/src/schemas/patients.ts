@@ -124,6 +124,12 @@ export const patientPhoneClashSchema = z.object({
 });
 export type PatientPhoneClash = z.infer<typeof patientPhoneClashSchema>;
 
+export const PATIENT_SORTS = ["balance"] as const;
+export type PatientSort = (typeof PATIENT_SORTS)[number];
+
+export const SORT_DIRECTIONS = ["asc", "desc"] as const;
+export type SortDirection = (typeof SORT_DIRECTIONS)[number];
+
 export const listPatientsQuerySchema = paginationQuerySchema.extend({
   search: z.string().trim().min(1).max(120).optional(),
   gender: z.enum(GENDERS).optional(),
@@ -133,5 +139,9 @@ export const listPatientsQuerySchema = paginationQuerySchema.extend({
   // A date rather than a "this month" flag: the month is the caller's arithmetic, in the caller's
   // timezone, and a server that guesses it is wrong for half the clinic's day.
   visitedSince: z.iso.date().optional(),
+  // Ignored for a role not served balances: the order alone would say who owes the most.
+  sort: z.enum(PATIENT_SORTS).optional(),
+  /** Highest first when left out: the question a balance sort asks is who owes the most. */
+  dir: z.enum(SORT_DIRECTIONS).optional(),
 });
 export type ListPatientsQuery = z.infer<typeof listPatientsQuerySchema>;

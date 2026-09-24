@@ -8,7 +8,7 @@ import {
   type PatientView,
   type UpdatePatientInput,
 } from "@clinic/shared";
-import { and, desc, eq, exists, gte, isNull, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, exists, gte, isNull, or, sql, type SQL } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { LedgerService } from "@api/billing/ledger.service";
 import { arabicNameSearch } from "@api/common/database/arabic-search";
@@ -97,13 +97,24 @@ export class PatientsService implements OnModuleInit {
 
     const where = this.scope.where(patients, actor.clinicId, ...filters);
     const { limit, offset } = toLimitOffset(query);
+    const balance = LedgerService.balanceOf(actor.clinicId, patients.id);
+    const byBalance =
+      query.sort === "balance" && PatientAccessService.seesFinancialData(actor.role)
+        ? query.dir === "asc"
+          ? asc(balance)
+          : desc(balance)
+        : null;
 
     const [rows, [totals]] = await Promise.all([
       this.db
         .select()
         .from(patients)
         .where(where)
-        .orderBy(...(byName ? [byName.rank, byName.closeness] : []), desc(patients.createdAt))
+        .orderBy(
+          ...(byBalance ? [byBalance] : []),
+          ...(byName ? [byName.rank, byName.closeness] : []),
+          desc(patients.createdAt),
+        )
         .limit(limit)
         .offset(offset),
       this.db
