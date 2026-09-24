@@ -218,12 +218,24 @@ export function AppointmentsPage(): JSX.Element {
   );
   const nowMinute = useNowMinute();
 
+  const weekStart = startOfWeek(date);
+  const longDay = dayAndDate(date);
+
   const label =
-    effectiveRange === "week"
-      ? `${formatDate(startOfWeek(date))} – ${formatDate(addDays(startOfWeek(date), 6))}`
-      : queueShown
-        ? `${dayAndDate(date).weekday} ${dayAndDate(date).date}`
-        : formatDate(date);
+    effectiveRange === "week" ? (
+      <>
+        <Ltr>{formatDate(weekStart)}</Ltr>
+        <span>–</span>
+        <Ltr>{formatDate(addDays(weekStart, 6))}</Ltr>
+      </>
+    ) : queueShown ? (
+      <>
+        <span>{longDay.weekday}</span>
+        <Ltr>{longDay.date}</Ltr>
+      </>
+    ) : (
+      <Ltr>{formatDate(date)}</Ltr>
+    );
 
   return (
     <div data-testid="appointments-page" className="flex flex-col gap-5">
@@ -263,54 +275,47 @@ export function AppointmentsPage(): JSX.Element {
         }
       />
 
-      {/* Last on a phone, where four cards and a ribbon fill the screen before
-          the calendar starts. The summary is worth reading; it is not worth
-          reading *first* on the device the day is checked on. */}
-      <div className="order-last sm:order-none">
-        <StatRow data-testid="appointments-kpis">
+      <StatRow data-testid="appointments-kpis">
+        <StatCard
+          icon="calendar"
+          data-testid="appointments-kpi-today"
+          label={t("appointments.kpi.today")}
+          value={todayStats.total}
+          caption={formatDate(todayIso())}
+        />
+        <StatCard
+          icon="user-plus"
+          tone="success"
+          data-testid="appointments-kpi-arrived"
+          label={t("appointments.kpi.arrived")}
+          value={todayStats.attended}
+        />
+        <StatCard
+          icon="clock"
+          tone="warning"
+          data-testid="appointments-kpi-remaining"
+          label={t("appointments.kpi.remaining")}
+          value={todayStats.remaining}
+        />
+        <StatCard
+          icon="activity"
+          data-testid="appointments-kpi-attendance"
+          tone={todayStats.attendance !== null && todayStats.attendance < 70 ? "danger" : "primary"}
+          label={t("appointments.kpi.attendance")}
+          value={todayStats.attendance === null ? "—" : `${todayStats.attendance}%`}
+          caption={t("appointments.kpi.attendanceCaption")}
+        />
+        {frontDesk && (
           <StatCard
-            icon="calendar"
-            data-testid="appointments-kpi-today"
-            label={t("appointments.kpi.today")}
-            value={todayStats.total}
-            caption={formatDate(todayIso())}
+            icon="globe"
+            data-testid="appointments-kpi-online-today"
+            tone={(onlineToday.data?.total ?? 0) > 0 ? "warning" : "primary"}
+            label={t("appointments.kpi.onlineToday")}
+            value={onlineToday.data?.total ?? 0}
+            caption={t("appointments.kpi.onlineTodayCaption")}
           />
-          <StatCard
-            icon="user-plus"
-            tone="success"
-            data-testid="appointments-kpi-arrived"
-            label={t("appointments.kpi.arrived")}
-            value={todayStats.attended}
-          />
-          <StatCard
-            icon="clock"
-            tone="warning"
-            data-testid="appointments-kpi-remaining"
-            label={t("appointments.kpi.remaining")}
-            value={todayStats.remaining}
-          />
-          <StatCard
-            icon="activity"
-            data-testid="appointments-kpi-attendance"
-            tone={
-              todayStats.attendance !== null && todayStats.attendance < 70 ? "danger" : "primary"
-            }
-            label={t("appointments.kpi.attendance")}
-            value={todayStats.attendance === null ? "—" : `${todayStats.attendance}%`}
-            caption={t("appointments.kpi.attendanceCaption")}
-          />
-          {frontDesk && (
-            <StatCard
-              icon="globe"
-              data-testid="appointments-kpi-online-today"
-              tone={(onlineToday.data?.total ?? 0) > 0 ? "warning" : "primary"}
-              label={t("appointments.kpi.onlineToday")}
-              value={onlineToday.data?.total ?? 0}
-              caption={t("appointments.kpi.onlineTodayCaption")}
-            />
-          )}
-        </StatRow>
-      </div>
+        )}
+      </StatRow>
 
       <TodayRibbon
         data-testid="appointments-today-ribbon"
@@ -345,14 +350,14 @@ export function AppointmentsPage(): JSX.Element {
             aria-label={t("appointments.next")}
             onClick={() => step(1)}
           />
-          {/* One island, not two dates: read as ordinary text in an RTL paragraph the neutral dash
-              let the halves swap, announcing the week as `12/09 – 06/09`. */}
-          <Ltr
+          {/* An island per date in a row that follows the page, so Arabic reads the start first, on
+              the right. One island for the whole range put the end date there. */}
+          <span
             data-testid="appointments-range-label"
-            className="ms-1 text-value font-medium text-ink"
+            className="ms-1 inline-flex items-center gap-1.5 text-value font-medium text-ink"
           >
             {label}
-          </Ltr>
+          </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 sm:ms-auto">
