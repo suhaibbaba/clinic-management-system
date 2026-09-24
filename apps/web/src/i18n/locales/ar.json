@@ -124,7 +124,8 @@
     "translations": "نصوص الواجهة",
     "users": "المستخدمون",
     "waitingCount": "{{count}} بانتظار التأكيد",
-    "assistantSettings": "إعدادات المساعد"
+    "assistantSettings": "إعدادات المساعد",
+    "settingsPage": "الإعدادات"
   },
   "roles": {
     "admin": "مدير",
