@@ -55,7 +55,14 @@
       "dateRange": "اختر مدة",
       "fullNameAr": "الاسم الكامل بالعربية",
       "fullNameEn": "Full name in English",
-      "location": "32.221, 35.254"
+      "location": "32.221, 35.254",
+      "firstName": "مثال: أحمد",
+      "middleName": "مثال: خالد محمد",
+      "lastName": "مثال: الحسن",
+      "firstNameAr": "الاسم الأول بالعربية",
+      "lastNameAr": "اسم العائلة بالعربية",
+      "firstNameEn": "First name in English",
+      "lastNameEn": "Last name in English"
     },
     "clear": "مسح",
     "today": "اليوم",
@@ -90,6 +97,7 @@
     "appointments": "المواعيد",
     "assistant": "المساعد",
     "audit": "سجل التدقيق",
+    "backToDashboard": "العودة للوحة التحكم",
     "clinic": "بيانات العيادة",
     "dashboard": "لوحة التحكم",
     "doctors": "الأطباء",
@@ -194,7 +202,11 @@
     "title": "المستخدمون",
     "updated": "تم تحديث المستخدم",
     "uploadPhoto": "رفع صورة",
-    "willBeInvited": "سيصل رابط التفعيل إلى {{email}} — يختار صاحب الحساب كلمة المرور بنفسه."
+    "willBeInvited": "سيصل رابط التفعيل إلى {{email}} — يختار صاحب الحساب كلمة المرور بنفسه.",
+    "firstNameAr": "الاسم الأول بالعربية",
+    "lastNameAr": "اسم العائلة بالعربية",
+    "firstNameEn": "الاسم الأول بالإنجليزية",
+    "lastNameEn": "اسم العائلة بالإنجليزية"
   },
   "doctors": {
     "title": "الأطباء",
@@ -494,7 +506,10 @@
     "createInline": "تسجيل مريض جديد",
     "createInlineHint": "يكفي الاسم والهاتف الآن؛ تُستكمل بقية البيانات عند وصول المريض.",
     "phoneTaken": "هذا الرقم مسجّل باسم {{name}}.",
-    "useExisting": "استخدام هذا المريض"
+    "useExisting": "استخدام هذا المريض",
+    "firstName": "الاسم الأول",
+    "middleName": "اسم الأب والجد",
+    "lastName": "اسم العائلة"
   },
   "chart": {
     "title": "مخطط الأسنان",
@@ -1292,11 +1307,12 @@
       "seeAll": "كل المواعيد",
       "time": "الوقت",
       "patient": "المريض",
-      "doctor": "الطبيب",
+      "doctor": "د. {{name}}",
       "status": "الحالة",
       "empty": "لا مواعيد اليوم",
       "emptyHint": "المواعيد المحجوزة لهذا اليوم تظهر هنا",
-      "byDoctor": "حسب الطبيب"
+      "byDoctor": "حسب الطبيب",
+      "arrived": "وصل"
     },
     "subtitle": "ملخّص اليوم في العيادة",
     "title": "لوحة التحكم"

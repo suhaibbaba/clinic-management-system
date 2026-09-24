@@ -54,6 +54,8 @@ describe("Users management", () => {
     authTokens.clear();
     const created = makeUser({
       name: { ar: "سامر خليل", en: "Samer Khalil" },
+      firstName: { ar: "سامر", en: "Samer" },
+      lastName: { ar: "خليل", en: "Khalil" },
       phone: "+963100000009",
     });
 
@@ -68,8 +70,10 @@ describe("Users management", () => {
     await userEvent.click(screen.getAllByRole("button", { name: ar.users.create })[0]!);
 
     const dialog = await screen.findByRole("dialog");
-    await userEvent.type(within(dialog).getByLabelText(ar.users.nameAr), created.name.ar);
-    await userEvent.type(within(dialog).getByLabelText(ar.users.nameEn), created.name.en);
+    await userEvent.type(within(dialog).getByLabelText(ar.users.firstNameAr), created.firstName.ar);
+    await userEvent.type(within(dialog).getByLabelText(ar.users.lastNameAr), created.lastName.ar);
+    await userEvent.type(within(dialog).getByLabelText(ar.users.firstNameEn), created.firstName.en);
+    await userEvent.type(within(dialog).getByLabelText(ar.users.lastNameEn), created.lastName.en);
     await userEvent.type(within(dialog).getByLabelText(ar.users.phone), created.phone);
     await choose(within(dialog).getByLabelText(ar.users.role), ar.roles.receptionist);
     await userEvent.type(within(dialog).getByLabelText(ar.users.password), "NewUserPass123!");
@@ -80,7 +84,8 @@ describe("Users management", () => {
         (entry) => entry.method === "POST" && entry.url.endsWith("/users"),
       );
       expect(call?.body).toMatchObject({
-        name: created.name,
+        firstName: created.firstName,
+        lastName: created.lastName,
         phone: created.phone,
         role: USER_ROLE.RECEPTIONIST,
         password: "NewUserPass123!",
@@ -99,7 +104,7 @@ describe("Users management", () => {
       ...baseHandlers([user]),
       "PATCH /users/33333333-3333-4333-8333-333333333333": {
         status: 200,
-        body: { ...user, name: { ar: "ليلى حداد المحدّث", en: "Layla Haddad (updated)" } },
+        body: { ...user, lastName: { ar: "حداد الحلبي", en: "Haddad" } },
       },
     });
 
@@ -112,17 +117,18 @@ describe("Users management", () => {
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).queryByLabelText(ar.users.password)).not.toBeInTheDocument();
 
-    const nameInput = within(dialog).getByLabelText(ar.users.nameAr);
+    const nameInput = within(dialog).getByLabelText(ar.users.lastNameAr);
     await userEvent.clear(nameInput);
-    await userEvent.type(nameInput, "ليلى حداد المحدّث");
+    await userEvent.type(nameInput, "حداد الحلبي");
     await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
 
     await waitFor(() => {
       const call = api.calls.find((entry) => entry.method === "PATCH");
       // The English spelling is untouched by editing the Arabic one; both go
-      // up together, because the name is one value.
+      // up together, because each part is one value.
       expect(call?.body).toMatchObject({
-        name: { ar: "ليلى حداد المحدّث", en: "Layla Haddad" },
+        firstName: { ar: "ليلى", en: "Layla" },
+        lastName: { ar: "حداد الحلبي", en: "Haddad" },
       });
       expect(call?.body).not.toHaveProperty("password");
     });
@@ -284,8 +290,10 @@ describe("Users management", () => {
     await userEvent.click(screen.getAllByRole("button", { name: ar.users.create })[0]!);
 
     const dialog = await screen.findByRole("dialog");
-    await userEvent.type(within(dialog).getByLabelText(ar.users.nameAr), "اسم مكرر");
-    await userEvent.type(within(dialog).getByLabelText(ar.users.nameEn), "Duplicate name");
+    await userEvent.type(within(dialog).getByLabelText(ar.users.firstNameAr), "اسم");
+    await userEvent.type(within(dialog).getByLabelText(ar.users.lastNameAr), "مكرر");
+    await userEvent.type(within(dialog).getByLabelText(ar.users.firstNameEn), "Duplicate");
+    await userEvent.type(within(dialog).getByLabelText(ar.users.lastNameEn), "name");
     await userEvent.type(within(dialog).getByLabelText(ar.users.phone), "+963100000002");
     await choose(within(dialog).getByLabelText(ar.users.role), ar.roles.doctor);
     await userEvent.type(within(dialog).getByLabelText(ar.users.password), "SomePassword123!");

@@ -225,6 +225,13 @@
       "when": 1790200478411,
       "tag": "0031_ai_route_call",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1790207994164,
+      "tag": "0032_name_parts",
+      "breakpoints": true
     }
   ]
 }

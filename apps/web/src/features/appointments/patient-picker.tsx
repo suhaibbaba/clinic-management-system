@@ -25,7 +25,8 @@ export interface PickedPatient {
 
 /** The least reception can register somebody with while somebody else is on the phone. */
 export interface PatientDraft {
-  readonly fullName: string;
+  readonly firstName: string;
+  readonly lastName: string;
   readonly phone: string;
   readonly gender?: string;
   readonly dateOfBirth?: string;
@@ -43,12 +44,13 @@ export function toPatientRef(
     return { patientId: choice.patient.id };
   }
 
-  const { fullName, phone, dateOfBirth } = choice.draft;
+  const { firstName, lastName, phone, dateOfBirth } = choice.draft;
   const gender = GENDERS.find((option) => option === choice.draft.gender);
 
   return {
     newPatient: {
-      fullName: fullName.trim(),
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
       phone: phone.trim(),
       ...(gender && { gender }),
       ...(dateOfBirth && { dateOfBirth }),
@@ -70,7 +72,9 @@ export const isDraftComplete = (choice: PatientChoice | null): boolean =>
   choice === null
     ? false
     : choice.kind === "existing" ||
-      (choice.draft.fullName.trim() !== "" && choice.draft.phone.trim() !== "");
+      (choice.draft.firstName.trim() !== "" &&
+        choice.draft.lastName.trim() !== "" &&
+        choice.draft.phone.trim() !== "");
 
 export interface PatientPickerProps {
   readonly value: PatientChoice | null;
@@ -165,7 +169,7 @@ export function PatientPicker({
 
   const choose = (index: number): void => {
     if (index === newPatientIndex) {
-      onChange({ kind: "new", draft: { fullName: typed, phone: "" } });
+      onChange({ kind: "new", draft: { firstName: typed.trim(), lastName: "", phone: "" } });
       return;
     }
 

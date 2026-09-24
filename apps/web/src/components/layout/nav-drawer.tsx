@@ -28,7 +28,7 @@ export function NavDrawer({
         <DialogPrimitive.Overlay
           data-testid="nav-drawer-overlay"
           className={cn(
-            "fixed inset-0 z-40 bg-ink/40 md:hidden",
+            "fixed inset-0 z-40 bg-ink/50 backdrop-blur-[2px] md:hidden",
             "data-[state=open]:animate-[fade-in_200ms_ease-out]",
             "data-[state=closed]:animate-[fade-out_150ms_ease-in]",
           )}
@@ -48,7 +48,10 @@ export function NavDrawer({
             "fixed inset-y-0 start-0 z-50 flex w-[86%] max-w-[320px] flex-col md:hidden",
             // `bg-rail`, not `bg-surface`: on a phone this panel is the rail, and it carries the
             // same tint the rail does on a laptop.
-            "bg-rail shadow-float",
+            "bg-rail shadow-drawer",
+            // The attached edge stays square; the keyframes move this element, so the corner and the
+            // shadow travel with it.
+            "rounded-e-card",
             "data-[state=open]:animate-[drawer-in_220ms_cubic-bezier(0.32,0.72,0,1)]",
             "data-[state=closed]:animate-[drawer-out_180ms_ease-in]",
           )}

@@ -8,7 +8,7 @@ import {
   type User,
 } from "@clinic/shared";
 import { useEffect, type JSX } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, type UseFormRegister } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -21,6 +21,7 @@ import {
   useToast,
 } from "@clinic/ui";
 import { useCreateUser, useUpdateUser } from "@web/features/users/queries";
+import { StaffNameFields, type StaffNameValues } from "@web/features/users/staff-name-fields";
 import { UserPhotoField } from "@web/features/users/user-photo-field";
 import { errorMessageKey } from "@web/lib/api-error";
 import { Modal } from "@clinic/ui/components/modal";
@@ -66,14 +67,22 @@ export function UserFormModal({
     reset(
       user
         ? {
-            name: user.name,
+            firstName: user.firstName,
+            lastName: user.lastName,
             phone: user.phone,
             email: user.email,
             role: user.role,
             isActive: user.isActive,
           }
         : // `role` is deliberately absent so the select starts on its placeholder.
-          { name: { ar: "", en: "" }, phone: "", email: null, isActive: true, password: "" },
+          {
+            firstName: { ar: "", en: "" },
+            lastName: { ar: "", en: "" },
+            phone: "",
+            email: null,
+            isActive: true,
+            password: "",
+          },
     );
   }, [open, user, reset]);
 
@@ -85,7 +94,8 @@ export function UserFormModal({
     try {
       if (user) {
         const body: UpdateUserInput = {
-          name: values.name,
+          firstName: values.firstName,
+          lastName: values.lastName,
           phone: values.phone,
           email: values.email ?? null,
           role: values.role,
@@ -142,32 +152,11 @@ export function UserFormModal({
             pressed, and there is no id to address until the user exists. */}
         {user && <UserPhotoField user={user} />}
 
-        {/* Both spellings, both required: staff are a small set the clinic can spell twice. A
-            patient's name is one field and stays one. */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="users.nameAr" htmlFor="user-name-ar" error={errors.name?.ar}>
-            <Input
-              placeholder={t("common.placeholders.fullNameAr")}
-              adornment="user"
-              id="user-name-ar"
-              data-testid="user-field-name-ar"
-              hasError={errors.name?.ar !== undefined}
-              {...register("name.ar")}
-            />
-          </FormField>
-
-          <FormField label="users.nameEn" htmlFor="user-name-en" error={errors.name?.en}>
-            <Input
-              placeholder={t("common.placeholders.fullNameEn")}
-              adornment="user"
-              id="user-name-en"
-              data-testid="user-field-name-en"
-              dir="ltr"
-              hasError={errors.name?.en !== undefined}
-              {...register("name.en")}
-            />
-          </FormField>
-        </div>
+        <StaffNameFields
+          prefix="user"
+          register={register as unknown as UseFormRegister<StaffNameValues>}
+          errors={errors}
+        />
 
         <FormField
           label="users.phone"

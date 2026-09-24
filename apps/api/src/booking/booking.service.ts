@@ -14,6 +14,7 @@ import {
   bookingSettings,
   clinicScheduleSettings,
   DEFAULT_TIME_ZONE,
+  joinPatientName,
   localDate,
   minutesFromLocalMidnight,
   NOTIFICATION_TEMPLATE,
@@ -189,7 +190,7 @@ export class BookingService {
       throw new ForbiddenException("Booking is not available right now");
     }
 
-    const patientId = await this.linkOrCreatePatient(clinic.id, phone, input.fullName);
+    const patientId = await this.linkOrCreatePatient(clinic.id, phone, input);
 
     await this.waitingList.createUrgentRequest(clinic.id, patientId, input);
 
@@ -212,7 +213,7 @@ export class BookingService {
     const phone = normalisePhone(input.phone);
     await this.requireUnderActiveLimit(clinic, phone);
 
-    const patientId = await this.linkOrCreatePatient(clinic.id, phone, input.fullName);
+    const patientId = await this.linkOrCreatePatient(clinic.id, phone, input);
     const duration = await this.durationFor(clinic.id, input.doctorId);
 
     let appointmentId: string;
@@ -421,7 +422,7 @@ export class BookingService {
   private async linkOrCreatePatient(
     clinicId: string,
     phone: string,
-    fullName: string,
+    name: { readonly firstName: string; readonly lastName: string },
   ): Promise<string> {
     const [existing] = await this.db
       .select({ id: patients.id })
@@ -446,7 +447,9 @@ export class BookingService {
       .values({
         clinicId,
         fileNumber,
-        fullName: fullName.trim(),
+        firstName: name.firstName,
+        lastName: name.lastName,
+        fullName: joinPatientName(name),
         phone,
         // No `created_by`: nobody on staff created this record, and attributing
         // it to one would be a lie in the audit trail.

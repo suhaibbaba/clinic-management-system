@@ -1,5 +1,10 @@
 import { USER_ROLE, type UserRole } from "@clinic/shared";
-import { createPatient, seedClinicFixtures, uniquePhone } from "@test/helpers/patient-fixtures";
+import {
+  createPatient,
+  seedClinicFixtures,
+  uniquePhone,
+  nameParts,
+} from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 describe("Patients (e2e)", () => {
@@ -31,7 +36,7 @@ describe("Patients (e2e)", () => {
     }
 
     ahmadId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: names.ahmad,
+      ...nameParts(names.ahmad),
       phone: uniquePhone(),
       dateOfBirth: "1988-03-14",
       gender: "male",
@@ -40,11 +45,11 @@ describe("Patients (e2e)", () => {
 
     laylaPhone = uniquePhone();
     await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: names.layla,
+      ...nameParts(names.layla),
       phone: laylaPhone,
     });
     await createPatient(context, tokens[USER_ROLE.DOCTOR], {
-      fullName: names.omar,
+      ...nameParts(names.omar),
       phone: uniquePhone(),
     });
 
@@ -78,7 +83,7 @@ describe("Patients (e2e)", () => {
       const otherClinic = await context.createClinic();
       const otherToken = await context.login(otherClinic.phones[USER_ROLE.ADMIN]);
       const otherId = await createPatient(context, otherToken, {
-        fullName: "مريض عيادة أخرى",
+        ...nameParts("مريض عيادة أخرى"),
         phone: uniquePhone(),
       });
 
@@ -94,7 +99,7 @@ describe("Patients (e2e)", () => {
 
     it("never accepts a file number from the client", async () => {
       const id = await createPatient(context, tokens[USER_ROLE.ADMIN], {
-        fullName: "مريض بدون رقم ملف",
+        ...nameParts("مريض بدون رقم ملف"),
         phone: uniquePhone(),
         fileNumber: "99999",
       });
@@ -169,8 +174,11 @@ describe("Patients (e2e)", () => {
       const publicFields = [
         "dateOfBirth",
         "fileNumber",
+        "firstName",
         "fullName",
         "id",
+        "lastName",
+        "middleName",
         "phone",
         "profileIncomplete",
       ];
@@ -222,7 +230,7 @@ describe("Patients (e2e)", () => {
         method: "POST",
         url: "/patients",
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
-        payload: { fullName: "محاولة من الفني", phone: uniquePhone() },
+        payload: { ...nameParts("محاولة من الفني"), phone: uniquePhone() },
       });
 
       expect(response.statusCode).toBe(403);
@@ -230,7 +238,7 @@ describe("Patients (e2e)", () => {
 
     it("refuses a non-admin delete and soft-deletes for admin", async () => {
       const id = await createPatient(context, tokens[USER_ROLE.ADMIN], {
-        fullName: "مريض للحذف",
+        ...nameParts("مريض للحذف"),
         phone: uniquePhone(),
       });
 
@@ -310,7 +318,7 @@ describe("Patients (e2e)", () => {
 
     it("returns an empty history rather than 404 before anything is recorded", async () => {
       const id = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
-        fullName: "مريض جديد",
+        ...nameParts("مريض جديد"),
         phone: uniquePhone(),
       });
 
@@ -329,11 +337,11 @@ describe("Patients (e2e)", () => {
       const fixtures = await seedClinicFixtures(context, clinic, tokens[USER_ROLE.ADMIN]);
 
       const seen = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
-        fullName: "مريض زار العيادة",
+        ...nameParts("مريض زار العيادة"),
         phone: uniquePhone(),
       });
       const unseen = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
-        fullName: "مريض لم يزر العيادة",
+        ...nameParts("مريض لم يزر العيادة"),
         phone: uniquePhone(),
       });
 

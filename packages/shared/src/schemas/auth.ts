@@ -63,6 +63,8 @@ export const authenticatedUserSchema = z.object({
   clinicId: z.uuid(),
   clinic: sessionClinicSchema,
   name: personNameSchema,
+  firstName: personNameSchema,
+  lastName: personNameSchema,
   phone: z.string(),
   email: z.string().nullable(),
   role: z.enum(USER_ROLES),

@@ -56,10 +56,32 @@ export async function seedClinicFixtures(
   };
 }
 
+/** A patient's request fields from a sample name: first word, last word, and the rest between. */
+export function nameParts(fullName: string): {
+  firstName: string;
+  middleName?: string;
+  lastName: string;
+} {
+  const words = fullName.trim().split(/\s+/);
+  const firstName = words[0] ?? fullName;
+
+  if (words.length < 2) {
+    return { firstName, lastName: firstName };
+  }
+
+  const middle = words.slice(1, -1).join(" ");
+
+  return {
+    firstName,
+    ...(middle !== "" && { middleName: middle }),
+    lastName: words.at(-1) ?? firstName,
+  };
+}
+
 export async function createPatient(
   context: TestContext,
   token: string,
-  payload: { fullName: string; phone: string; [key: string]: unknown },
+  payload: { firstName: string; lastName: string; phone: string; [key: string]: unknown },
 ): Promise<string> {
   const response = await context.app.inject({
     method: "POST",

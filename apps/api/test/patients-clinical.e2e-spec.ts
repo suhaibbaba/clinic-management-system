@@ -5,6 +5,7 @@ import {
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
+  nameParts,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -40,7 +41,7 @@ describe("Patient clinical records (e2e)", () => {
     fixtures = await seedClinicFixtures(context, clinic, tokens[USER_ROLE.ADMIN]);
 
     patientId = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
-      fullName: "عمر سامي الخطيب",
+      ...nameParts("عمر سامي الخطيب"),
       phone: uniquePhone(),
     });
   });
@@ -224,7 +225,7 @@ describe("Patient clinical records (e2e)", () => {
 
     beforeAll(async () => {
       historyPatientId = await createPatient(context, tokens[USER_ROLE.DOCTOR], {
-        fullName: "مريض سجل الأسنان",
+        ...nameParts("مريض سجل الأسنان"),
         phone: uniquePhone(),
       });
 

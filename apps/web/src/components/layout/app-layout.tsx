@@ -30,6 +30,7 @@ import { useClinicLogo } from "@web/lib/use-clinic-logo";
 
 /** The one list the bar's search leads to; the bell and the slot are the rest of the reference's bar. */
 const PATIENTS = "/patients";
+const DASHBOARD = "/dashboard";
 
 export function AppLayout(): JSX.Element {
   const overrides = useTranslationBundle(true);
@@ -135,12 +136,14 @@ export function AppLayout(): JSX.Element {
           <div className="flex h-full flex-col px-[18px] pt-5 pb-[18px]">
             {/* The logo on its own white plate, as the reference draws it — the rail's ground is a
               tint, so a mark sitting straight on it has no edge. */}
-            <div
+            <Link
+              to={DASHBOARD}
+              aria-label={t("nav.backToDashboard")}
               data-testid="app-rail-brand"
-              className="mb-[22px] shrink-0 rounded-brand border border-line bg-surface px-4 py-3.5"
+              className="mb-[22px] block shrink-0 rounded-brand border border-line bg-surface px-4 py-3.5"
             >
               <Logo size="chrome" src={logoUrl} name={user?.clinic.name} alt={t("app.title")} />
-            </div>
+            </Link>
 
             <div className="scroll-lane min-h-0 flex-1 overflow-y-auto">
               <NavList groups={groups} settings={settings} badges={badges} />
@@ -159,7 +162,17 @@ export function AppLayout(): JSX.Element {
           open={drawerOpen}
           onOpenChange={setDrawerOpen}
           title={t("app.title")}
-          brand={<Logo size="chrome" src={logoUrl} name={user?.clinic.name} />}
+          brand={
+            <Link
+              to={DASHBOARD}
+              aria-label={t("nav.backToDashboard")}
+              data-testid="nav-drawer-brand"
+              className="block rounded-control"
+              onClick={() => setDrawerOpen(false)}
+            >
+              <Logo size="chrome" src={logoUrl} name={user?.clinic.name} />
+            </Link>
+          }
           closeLabel={t("common.close")}
         >
           <NavList groups={groups} settings={settings} badges={badges} />

@@ -24,6 +24,7 @@ import {
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
+  nameParts,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -100,7 +101,7 @@ describe("Closures and time off (e2e)", () => {
       .where(eq(doctors.id, fixtures.doctorId));
 
     patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: "مريض الإغلاقات",
+      ...nameParts("مريض الإغلاقات"),
       phone: uniquePhone(),
     });
 

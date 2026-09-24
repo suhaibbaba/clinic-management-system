@@ -55,7 +55,14 @@
       "dateRange": "Choose a period",
       "fullNameAr": "Full name in Arabic",
       "fullNameEn": "Full name in English",
-      "location": "32.221, 35.254"
+      "location": "32.221, 35.254",
+      "firstName": "e.g. Ahmad",
+      "middleName": "e.g. Khaled Mohammad",
+      "lastName": "e.g. Al-Hasan",
+      "firstNameAr": "First name in Arabic",
+      "lastNameAr": "Last name in Arabic",
+      "firstNameEn": "First name in English",
+      "lastNameEn": "Last name in English"
     },
     "clear": "Clear",
     "today": "Today",
@@ -90,6 +97,7 @@
     "appointments": "Appointments",
     "assistant": "Assistant",
     "audit": "Audit log",
+    "backToDashboard": "Back to the dashboard",
     "clinic": "Clinic details",
     "dashboard": "Dashboard",
     "doctors": "Doctors",
@@ -194,7 +202,11 @@
     "title": "Users",
     "updated": "User updated",
     "uploadPhoto": "Upload photo",
-    "willBeInvited": "An activation link will be sent to {{email}} — they choose their own password."
+    "willBeInvited": "An activation link will be sent to {{email}} — they choose their own password.",
+    "firstNameAr": "First name in Arabic",
+    "lastNameAr": "Last name in Arabic",
+    "firstNameEn": "First name in English",
+    "lastNameEn": "Last name in English"
   },
   "doctors": {
     "title": "Doctors",
@@ -482,7 +494,10 @@
     "createInline": "Register a new patient",
     "createInlineHint": "A name and a phone number are enough for now — the rest of the file is taken when they arrive.",
     "phoneTaken": "This number is already registered to {{name}}.",
-    "useExisting": "Use this patient"
+    "useExisting": "Use this patient",
+    "firstName": "First name",
+    "middleName": "Middle name",
+    "lastName": "Last name"
   },
   "chart": {
     "title": "Tooth chart",
@@ -1276,11 +1291,12 @@
       "seeAll": "All appointments",
       "time": "Time",
       "patient": "Patient",
-      "doctor": "Doctor",
+      "doctor": "Dr. {{name}}",
       "status": "Status",
       "empty": "Nothing booked today",
       "emptyHint": "Appointments booked for today appear here",
-      "byDoctor": "By doctor"
+      "byDoctor": "By doctor",
+      "arrived": "Arrived"
     },
     "subtitle": "Today at the clinic, at a glance",
     "title": "Dashboard"

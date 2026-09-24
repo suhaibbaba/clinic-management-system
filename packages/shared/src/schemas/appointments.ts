@@ -45,7 +45,10 @@ export type Appointment = z.infer<typeof appointmentSchema>;
 // Carries no clinical field, which is what lets a receptionist read the same feed as a doctor
 // (ROLES.md).
 export const calendarAppointmentSchema = appointmentSchema.extend({
+  /** The patient's full name; the two parts below are for a screen short of room. */
   patientName: z.string(),
+  patientFirstName: z.string(),
+  patientLastName: z.string(),
   patientPhone: z.string(),
   patientFileNumber: z.string(),
   doctorName: personNameSchema,

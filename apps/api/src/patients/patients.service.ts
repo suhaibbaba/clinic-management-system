@@ -1,11 +1,12 @@
 import { Inject, Injectable, type OnModuleInit } from "@nestjs/common";
-import type {
-  CreatePatientInput,
-  Money,
-  ListPatientsQuery,
-  Paginated,
-  PatientView,
-  UpdatePatientInput,
+import {
+  joinPatientName,
+  type CreatePatientInput,
+  type Money,
+  type ListPatientsQuery,
+  type Paginated,
+  type PatientView,
+  type UpdatePatientInput,
 } from "@clinic/shared";
 import { and, desc, eq, exists, gte, isNull, or, sql, type SQL } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
@@ -142,12 +143,21 @@ export class PatientsService implements OnModuleInit {
     id: string,
     input: UpdatePatientInput,
   ): Promise<PatientView> {
-    await this.scope.findOneOrFail<PatientRow>(patients, actor.clinicId, id);
+    const current = await this.scope.findOneOrFail<PatientRow>(patients, actor.clinicId, id);
+    const name = {
+      firstName: input.firstName ?? current.firstName,
+      middleName: input.middleName === undefined ? current.middleName : input.middleName || null,
+      lastName: input.lastName ?? current.lastName,
+    };
 
     const [row] = await this.db
       .update(patients)
       .set({
-        ...(input.fullName !== undefined && { fullName: input.fullName }),
+        ...(input.firstName !== undefined ||
+        input.middleName !== undefined ||
+        input.lastName !== undefined
+          ? { ...name, fullName: joinPatientName(name) }
+          : {}),
         ...(input.phone !== undefined && { phone: input.phone }),
         ...(input.dateOfBirth !== undefined && { dateOfBirth: input.dateOfBirth ?? null }),
         ...(input.gender !== undefined && { gender: input.gender ?? null }),

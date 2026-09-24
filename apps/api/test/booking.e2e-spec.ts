@@ -23,6 +23,7 @@ import {
   seedClinicFixtures,
   uniquePhone,
   type PatientFixtures,
+  nameParts,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
@@ -137,7 +138,7 @@ describe("Public booking (e2e)", () => {
       method: "POST",
       url: `/public/booking/${clinic.slug}`,
       payload: {
-        fullName: "زائر الحجز",
+        ...nameParts("زائر الحجز"),
         phone: uniquePhone(),
         doctorId: fixtures.doctorId,
         startsAt: freeSlot(),
@@ -432,12 +433,12 @@ describe("Public booking (e2e)", () => {
       const known = uniquePhone();
 
       await createPatient(context, receptionToken, {
-        fullName: "مريض مسجل",
+        ...nameParts("مريض مسجل"),
         phone: known,
       });
 
-      const first = await book({ phone: known, fullName: "مريض مسجل" });
-      const second = await book({ phone: uniquePhone(), fullName: "زائر جديد" });
+      const first = await book({ phone: known, ...nameParts("مريض مسجل") });
+      const second = await book({ phone: uniquePhone(), ...nameParts("زائر جديد") });
 
       const one = first.json() as Record<string, unknown>;
       const two = second.json() as Record<string, unknown>;
@@ -453,11 +454,11 @@ describe("Public booking (e2e)", () => {
       const digits = known.replaceAll(/[^\d]/g, "");
 
       const patientId = await createPatient(context, receptionToken, {
-        fullName: "مريض قديم",
+        ...nameParts("مريض قديم"),
         phone: known,
       });
 
-      const token = await held({ phone: known, fullName: "اسم مختلف تماماً" });
+      const token = await held({ phone: known, ...nameParts("اسم مختلف تماماً") });
 
       const [appointment] = await context.db
         .select({ patientId: appointments.patientId })
@@ -483,7 +484,7 @@ describe("Public booking (e2e)", () => {
     });
 
     it("flags a record it created itself, and attributes it to nobody", async () => {
-      const token = await held({ fullName: "زائر مجهول" });
+      const token = await held({ ...nameParts("زائر مجهول") });
 
       const [row] = await context.db
         .select({ notes: patients.notes, createdBy: patients.createdBy })

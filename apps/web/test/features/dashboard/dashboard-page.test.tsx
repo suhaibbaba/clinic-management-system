@@ -160,14 +160,14 @@ describe("Dashboard", () => {
     const schedule = screen.getByRole("region", { name: ar.dashboard.schedule.title });
     await within(schedule).findByText(`9:00 ${ar.common.clock.am}`);
 
-    // One slot per time, in order down the rail.
+    // One card per appointment, in order.
     const slots = within(schedule).getAllByRole("listitem");
 
     expect(slots).toHaveLength(2);
     expect(within(slots[0]!).getByText(`9:00 ${ar.common.clock.am}`)).toBeInTheDocument();
     expect(within(slots[1]!).getByText(`11:30 ${ar.common.clock.am}`)).toBeInTheDocument();
 
-    expect(within(slots[0]!).getByRole("link", { name: "أحمد خالد الحسن" })).toHaveAttribute(
+    expect(within(slots[0]!).getByRole("link", { name: "أحمد الحسن" })).toHaveAttribute(
       "href",
       `/patients/${PATIENT_ID}`,
     );
@@ -189,12 +189,10 @@ describe("Dashboard", () => {
 
     const schedule = screen.getByRole("region", { name: ar.dashboard.schedule.title });
 
-    expect(await within(schedule).findByText("أحمد خالد الحسن")).toBeInTheDocument();
+    expect(await within(schedule).findByText("أحمد الحسن")).toBeInTheDocument();
     // A link to a page that would bounce them straight back is worse than the
     // same name in plain text.
-    expect(
-      within(schedule).queryByRole("link", { name: "أحمد خالد الحسن" }),
-    ).not.toBeInTheDocument();
+    expect(within(schedule).queryByRole("link", { name: "أحمد الحسن" })).not.toBeInTheDocument();
   });
 
   it("says so plainly when nothing is booked", async () => {

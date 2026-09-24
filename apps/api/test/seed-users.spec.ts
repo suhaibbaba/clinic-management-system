@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { USER_ROLE } from "@clinic/shared";
+import { joinPatientName, USER_ROLE } from "@clinic/shared";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { and, eq, isNull } from "drizzle-orm";
 import postgres from "postgres";
@@ -49,8 +49,10 @@ describe("the seeded staff", () => {
     // Every account carries both spellings, because a name is printed on a document in the
     // clinic's language and shown on screen in the reader's.
     for (const account of ACCOUNTS) {
-      expect(account.name.ar.length).toBeGreaterThan(0);
-      expect(account.name.en.length).toBeGreaterThan(0);
+      expect(account.firstName.ar.length).toBeGreaterThan(0);
+      expect(account.firstName.en.length).toBeGreaterThan(0);
+      expect(account.lastName.ar.length).toBeGreaterThan(0);
+      expect(account.lastName.en.length).toBeGreaterThan(0);
       expect(account.phone.startsWith("+970")).toBe(true);
     }
   });
@@ -70,9 +72,15 @@ describe("the seeded staff", () => {
 
   it("builds the same patients from the same seed, and different ones from another", () => {
     const reference = new Date("2026-09-14T09:00:00.000Z");
-    const first = buildPeople(new Rng(1234), 20, reference).map((person) => person.fullName);
-    const again = buildPeople(new Rng(1234), 20, reference).map((person) => person.fullName);
-    const other = buildPeople(new Rng(9999), 20, reference).map((person) => person.fullName);
+    const first = buildPeople(new Rng(1234), 20, reference).map((person) =>
+      joinPatientName(person),
+    );
+    const again = buildPeople(new Rng(1234), 20, reference).map((person) =>
+      joinPatientName(person),
+    );
+    const other = buildPeople(new Rng(9999), 20, reference).map((person) =>
+      joinPatientName(person),
+    );
 
     expect(again).toEqual(first);
     expect(other).not.toEqual(first);
@@ -119,7 +127,8 @@ describe("the seeded staff", () => {
     const handle = randomUUID().slice(0, 8);
     const account: SeedAccount = {
       role: USER_ROLE.ADMIN,
-      name: { ar: "مدير", en: "Admin" },
+      firstName: { ar: "مدير", en: "Admin" },
+      lastName: { ar: "العيادة", en: "Clinic" },
       phone: `+9705999${handle.slice(0, 5)}`,
       email: `${handle}@clinic.local`,
     };

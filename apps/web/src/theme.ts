@@ -68,6 +68,7 @@ export const abuObaidTheme: ThemeOverride = {
     "card-hover": "0 18px 34px -18px rgb(27 111 151 / 0.45)",
     "nav-active": "0 8px 18px -10px rgb(27 111 151 / 0.55)",
     float: "0 8px 24px -14px rgb(14 61 85 / 0.35)",
+    drawer: "calc(20px * var(--drawer-direction, 1)) 0 48px -16px rgb(27 111 151 / 0.32)",
     now: "0 10px 22px -14px rgb(34 152 122 / 0.5)",
     pill: "0 1px 2px rgb(18 48 63 / 0.08)",
     "field-focus": "0 0 0 0.5px var(--color-primary-600), 0 0 0 3.5px rgb(27 111 151 / 0.15)",

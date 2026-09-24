@@ -28,7 +28,12 @@ import {
   payments,
 } from "@api/database/schema";
 import { PermissionsService } from "@api/permissions/permissions.service";
-import { createPatient, seedClinicFixtures, uniquePhone } from "@test/helpers/patient-fixtures";
+import {
+  createPatient,
+  seedClinicFixtures,
+  uniquePhone,
+  nameParts,
+} from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 const DAY_MS = 86_400_000;
@@ -80,7 +85,7 @@ describe("Daily outbound automation (e2e)", () => {
       cancelled: 0,
     }) as (keyof typeof patient)[]) {
       patient[key] = await createPatient(context, tokens[USER_ROLE.ADMIN], {
-        fullName: key,
+        ...nameParts(key),
         phone: uniquePhone(),
       });
     }

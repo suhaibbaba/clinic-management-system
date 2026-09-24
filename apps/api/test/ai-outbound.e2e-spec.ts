@@ -26,7 +26,7 @@ import {
   notificationsLog,
 } from "@api/database/schema";
 import { PermissionsService } from "@api/permissions/permissions.service";
-import { createPatient, uniquePhone } from "@test/helpers/patient-fixtures";
+import { createPatient, uniquePhone, nameParts } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 const ROLES = [
@@ -66,7 +66,7 @@ describe("Outbound messages (e2e)", () => {
     for (let index = 0; index < patients; index += 1) {
       patientIds.push(
         await createPatient(context, tokens[USER_ROLE.ADMIN], {
-          fullName: `مريض ${index + 1}`,
+          ...nameParts(`مريض ${index + 1}`),
           phone: uniquePhone(),
         }),
       );

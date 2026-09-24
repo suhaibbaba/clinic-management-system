@@ -14,7 +14,7 @@ import { and, eq } from "drizzle-orm";
 import { AiConversationsService } from "@api/ai/ai-conversations.service";
 import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
 import { aiProposals, auditLog, labOrders } from "@api/database/schema";
-import { createPatient, seedClinicFixtures } from "@test/helpers/patient-fixtures";
+import { createPatient, seedClinicFixtures, nameParts } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 interface ToolResult {
@@ -71,7 +71,7 @@ describe("Assistant lab and stock actions (e2e)", () => {
     const { doctorId } = await seedClinicFixtures(context, clinic, tokens[USER_ROLE.ADMIN]);
 
     patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: "ليلى ناصر",
+      ...nameParts("ليلى ناصر"),
       phone: "0599000333",
     });
 

@@ -79,7 +79,10 @@ core · patients · billing · appointments · booking · notifications · labs 
    appointments answers 409 with who is in the way; the caller returns with `force` and optionally
    `cancelAppointments`.
 10. **Staff and clinic names are bilingual, patient names are not.** `{ ar, en }` through
-    `<PersonName>` / `personName()`, never a per-screen ternary. A patient's name is one field.
+    `<PersonName>` / `personName()`, never a per-screen ternary. A patient's name is one language.
+    Names are stored in parts (patient: first, optional middle, last; staff: first and last per
+    language) and the API writes the full name beside them — `fullName` / `name` in every response,
+    `firstName` / `lastName` where a screen is short of room. The web never splits a full name.
     Printed documents use the clinic's document language.
 11. **Money is whole numbers in the interface, and a symbol.** `wholeMoneySchema` gates every write;
     money inputs refuse a decimal separator; displays format with zero decimals. Storage stays

@@ -453,6 +453,8 @@ export class AppointmentsService implements OnModuleInit {
       .select({
         appointment: appointments,
         patientName: patients.fullName,
+        patientFirstName: patients.firstName,
+        patientLastName: patients.lastName,
         patientPhone: patients.phone,
         patientFileNumber: patients.fileNumber,
         patientUnverified: sql<boolean>`${patients.createdBy} is null`,
@@ -547,6 +549,8 @@ export function toAppointment(row: AppointmentRow): Appointment {
 interface CalendarRow {
   readonly appointment: AppointmentRow;
   readonly patientName: string;
+  readonly patientFirstName: string;
+  readonly patientLastName: string;
   readonly patientPhone: string;
   readonly patientFileNumber: string;
   readonly patientUnverified: boolean;
@@ -558,6 +562,8 @@ export function toCalendarAppointment(row: CalendarRow): CalendarAppointment {
   return {
     ...toAppointment(row.appointment),
     patientName: row.patientName,
+    patientFirstName: row.patientFirstName,
+    patientLastName: row.patientLastName,
     patientPhone: row.patientPhone,
     patientFileNumber: row.patientFileNumber,
     patientUnverified: row.patientUnverified,

@@ -97,6 +97,11 @@ export const users = pgTable(
     clinicId: uuid("clinic_id")
       .notNull()
       .references(() => clinics.id),
+    firstNameAr: text("first_name_ar").notNull(),
+    lastNameAr: text("last_name_ar").notNull(),
+    firstNameEn: text("first_name_en").notNull(),
+    lastNameEn: text("last_name_en").notNull(),
+    /** Written by the service from the parts above; everything that reads a name reads these. */
     nameAr: text("name_ar").notNull(),
     nameEn: text("name_en").notNull(),
     normalizedName: normalizedName("name_ar || ' ' || name_en"),

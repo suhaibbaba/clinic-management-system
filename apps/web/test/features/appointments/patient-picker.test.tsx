@@ -97,7 +97,7 @@ describe("PatientPicker", () => {
 
     await userEvent.keyboard("{Enter}");
 
-    expect(screen.getByLabelText(new RegExp(ar.patients.fullName))).toHaveValue("محمد");
+    expect(screen.getByLabelText(new RegExp(ar.patients.firstName))).toHaveValue("محمد");
   });
 
   it("carries the typed name into the registration form", async () => {
@@ -106,7 +106,7 @@ describe("PatientPicker", () => {
     await screen.findByText("محمد 1");
     await userEvent.click(newPatientOption());
 
-    expect(screen.getByLabelText(new RegExp(ar.patients.fullName))).toHaveValue("محمد");
+    expect(screen.getByLabelText(new RegExp(ar.patients.firstName))).toHaveValue("محمد");
   });
 
   it("never shows the previous term's patients under the new one", async () => {
@@ -182,7 +182,7 @@ describe("PatientPicker", () => {
     // Only the create row is left; a held index past the end must land on it, not on nothing.
     await userEvent.keyboard("{Enter}");
 
-    expect(screen.getByLabelText(new RegExp(ar.patients.fullName))).toHaveValue("محمد");
+    expect(screen.getByLabelText(new RegExp(ar.patients.firstName))).toHaveValue("محمد");
   });
 
   it("offers nothing to register where registering is beside the point", async () => {

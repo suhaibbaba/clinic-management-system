@@ -22,7 +22,7 @@ import {
   payments,
   stockMovements,
 } from "@api/database/schema";
-import { createPatient, seedClinicFixtures } from "@test/helpers/patient-fixtures";
+import { createPatient, seedClinicFixtures, nameParts } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 function monday(weeksAhead: number): string {
@@ -112,7 +112,7 @@ describe("Assistant schedule and money corrections (e2e)", () => {
       .where(eq(clinics.id, clinic.id));
 
     patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
-      fullName: "رامي عودة",
+      ...nameParts("رامي عودة"),
       phone: "0599000444",
     });
   });
