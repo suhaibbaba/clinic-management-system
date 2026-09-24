@@ -144,8 +144,7 @@ export function AppLayout(): JSX.Element {
             >
               <Logo size="chrome" src={logoUrl} name={user?.clinic.name} alt={t("app.title")} />
             </Link>
-
-            <div className="scroll-lane min-h-0 flex-1 overflow-y-auto">
+            <div className="scroll-lane -mx-[18px] min-h-0 flex-1 overflow-y-auto px-[18px]">
               <NavList groups={groups} settings={settings} badges={badges} />
             </div>
 
