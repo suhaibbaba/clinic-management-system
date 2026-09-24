@@ -94,7 +94,7 @@ describe("Patient page", () => {
       },
     });
 
-    expect(await screen.findByRole("link", { name: ar.patients.whatsapp })).toHaveAttribute(
+    expect(await screen.findByRole("link", { name: ar.patients.chatOnWhatsapp })).toHaveAttribute(
       "href",
       "https://wa.me/970599123456",
     );
@@ -108,7 +108,7 @@ describe("Patient page", () => {
       },
     });
 
-    expect(await screen.findByRole("link", { name: ar.patients.whatsapp })).toHaveAttribute(
+    expect(await screen.findByRole("link", { name: ar.patients.chatOnWhatsapp })).toHaveAttribute(
       "href",
       "https://wa.me/972599123456",
     );

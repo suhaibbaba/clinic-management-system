@@ -77,9 +77,7 @@
       "previousMonth": "Previous month",
       "nextMonth": "Next month",
       "previousYear": "Previous year",
-      "nextYear": "Next year",
-      "previousYears": "Previous years",
-      "nextYears": "Next years"
+      "nextYear": "Next year"
     },
     "showPassword": "Show password",
     "hidePassword": "Hide password"
@@ -435,6 +433,7 @@
   "patients": {
     "whatsapp": "WhatsApp",
     "whatsappHint": "Leave empty if WhatsApp is on the phone number",
+    "chatOnWhatsapp": "Chat on WhatsApp",
     "address": "Address",
     "age": "Age",
     "allergies": "Allergies",

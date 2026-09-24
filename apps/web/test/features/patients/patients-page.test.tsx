@@ -286,7 +286,10 @@ describe("Patients list", () => {
       await userEvent.type(within(dialog).getByLabelText(ar.patients.lastName), "التلاوي");
       await userEvent.type(within(dialog).getByLabelText(ar.patients.phone), "0599 123 456");
       await choose(within(dialog).getByTestId("patient-field-whatsapp-country"), /\+962/);
-      await userEvent.type(within(dialog).getByRole("textbox", { name: /واتساب/ }), "0791234567");
+      await userEvent.type(
+        within(dialog).getByRole("textbox", { name: new RegExp(ar.patients.whatsapp) }),
+        "0791234567",
+      );
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
 
       await waitFor(() => {

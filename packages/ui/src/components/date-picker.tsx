@@ -2,7 +2,7 @@ import { format, isValid, parse } from "date-fns";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@ui/components/button";
-import { Calendar, dateLocale, type CalendarView } from "@ui/components/calendar";
+import { Calendar, dateLocale } from "@ui/components/calendar";
 import { FIELD_BUTTON, FIELD_TEXT, FieldLock, fieldShell } from "@ui/components/field";
 import { Icon } from "@ui/components/icon";
 import { openOnArrowDown, usePickerOpen } from "@ui/lib/picker-open";
@@ -40,8 +40,6 @@ export interface DatePickerProps extends TestIdProps {
   readonly label: string;
   readonly disabled?: boolean | undefined;
   readonly hasError?: boolean | undefined;
-  /** `years` for a date of birth, so the picker opens where the answer is. */
-  readonly startView?: CalendarView | undefined;
   readonly className?: string | undefined;
 }
 
@@ -54,7 +52,6 @@ export function DatePicker({
   label,
   disabled = false,
   hasError = false,
-  startView,
   className,
   "data-testid": testId,
 }: DatePickerProps): JSX.Element {
@@ -130,7 +127,6 @@ export function DatePicker({
     >
       <Calendar
         mode="single"
-        {...(startView && { startView })}
         {...(selected && { selected, defaultMonth: selected })}
         onSelect={(date: Date | undefined) => {
           if (date) {

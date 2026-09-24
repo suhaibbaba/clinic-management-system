@@ -33,7 +33,9 @@ export function FormField({
   "data-testid": testId,
 }: FormFieldProps): JSX.Element {
   const { t } = useTranslation();
-  const messageKey = error ? (errorKey ?? validationMessageKey(error)) : undefined;
+  const derived = validationMessageKey(error);
+  const messageKey =
+    derived === "errors.validation.required" ? derived : error ? (errorKey ?? derived) : undefined;
   const errorId = `${htmlFor}-error`;
   // Defaults to the control it labels, so every form in the app is addressable without a call site
   // naming each field twice.
@@ -74,9 +76,9 @@ export function FormField({
           id={errorId}
           {...part("error")}
           role="alert"
-          className={cn("flex items-center gap-1.5 text-value text-danger-700")}
+          className={cn("flex items-start gap-1.5 text-value leading-label text-danger-700")}
         >
-          <Icon name="error" className="size-4" />
+          <Icon name="error" className="mt-0.5 size-4 shrink-0" />
           {t(messageKey)}
         </p>
       )}

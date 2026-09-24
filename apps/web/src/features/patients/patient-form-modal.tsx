@@ -233,7 +233,6 @@ export function PatientFormModal({
               <DatePicker
                 id="patient-dob"
                 data-testid="patient-field-dob"
-                startView="years"
                 label={t("patients.dateOfBirth")}
                 value={field.value ?? ""}
                 hasError={errors.dateOfBirth !== undefined}

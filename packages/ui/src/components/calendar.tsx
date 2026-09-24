@@ -9,7 +9,6 @@ import {
 } from "react-day-picker";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@ui/components/icon";
-import { Ltr } from "@ui/components/ltr";
 import { cn } from "@ui/lib/cn";
 
 export function dateLocale(language: string): Locale {
@@ -18,9 +17,8 @@ export function dateLocale(language: string): Locale {
 
 /** A date of birth: the years have to reach back past any living patient. */
 const FIRST_YEAR = 1900;
-const YEARS_PER_PAGE = 12;
 
-export type CalendarView = "days" | "months" | "years";
+type CalendarView = "days" | "months" | "years";
 
 interface DayState {
   /** The cell's fill: a range band runs edge to edge, which the inset button cannot draw. */
@@ -31,13 +29,21 @@ interface DayState {
 const DAY_STATES = {
   plain: { button: "text-ink hover:bg-inset" },
   muted: { button: "text-ink-faint" },
-  today: { button: "border-[1.5px] border-primary-600 text-primary-700 hover:bg-primary-50" },
+  // Today is green wherever it is, so the chosen date and today never look alike: outlined on its
+  // own, filled when it is also the choice — where a dot under the number used to carry it.
+  today: { button: "border-[1.5px] border-success-600 text-success-800 hover:bg-success-50" },
   selected: { button: "bg-primary-600 text-ink-inverse hover:bg-primary-700" },
+  // A darker green than the outline: white on the brighter ones falls short of 4.5:1 at this size.
+  todaySelected: {
+    button: cn(
+      "bg-linear-to-br from-success-700 to-success-900 text-ink-inverse",
+      "hover:from-success-800 hover:to-success-900",
+    ),
+  },
   rangeMiddle: { cell: "bg-selected", button: "text-ink hover:bg-primary-200" },
 } satisfies Record<string, DayState>;
 
-// Today keeps its identity under a fill it cannot outline: a dot below the number, in whichever ink
-// is already readable on that fill.
+// Inside a range the band is the fill and today cannot be green, so it keeps a green dot instead.
 const TODAY_DOT = cn(
   "after:absolute after:inset-x-0 after:bottom-1 after:mx-auto",
   'after:size-1 after:rounded-pill after:content-[""]',
@@ -60,14 +66,13 @@ function dayInk(modifiers: Modifiers): string {
   }
 
   if (modifiers["range_middle"] === true) {
-    return cn(DAY_STATES.rangeMiddle.button, isToday && cn(TODAY_DOT, "after:bg-primary-600"));
+    return cn(DAY_STATES.rangeMiddle.button, isToday && cn(TODAY_DOT, "after:bg-success-600"));
   }
 
   if (modifiers["selected"] === true) {
     return cn(
-      DAY_STATES.selected.button,
+      isToday ? DAY_STATES.todaySelected.button : DAY_STATES.selected.button,
       rangeRounding(modifiers["range_start"] === true, modifiers["range_end"] === true),
-      isToday && cn(TODAY_DOT, "after:bg-surface"),
     );
   }
 
@@ -113,22 +118,29 @@ const CAPTION_BUTTON = cn(
   "text-value font-medium text-ink transition-colors duration-150 hover:bg-inset",
 );
 
+// A pill at the field's own height: a year or a month is a choice in a list, not a cell of the
+// month's grid, so it reads as a row of buttons with room around each value.
 const PERIOD_CELL = cn(
-  "relative inline-flex min-h-(--control-h) w-full cursor-pointer items-center justify-center",
+  "inline-flex h-(--control-h) w-full cursor-pointer items-center justify-center rounded-pill",
   "text-value tabular-nums transition-colors duration-150",
-  "disabled:cursor-not-allowed lg:min-h-0 lg:h-(--control-h-sm)",
 );
 
 interface CalendarHeaderProps {
   readonly label: ReactNode;
   readonly zoomOut: { readonly label: string; readonly onClick: () => void } | null;
-  readonly previous: {
-    readonly label: string;
-    readonly onClick: () => void;
-    readonly can: boolean;
-  };
-  readonly next: { readonly label: string; readonly onClick: () => void; readonly can: boolean };
+  /** Absent where the page scrolls instead of stepping, as the years do. */
+  readonly previous?: CalendarStep | undefined;
+  readonly next?: CalendarStep | undefined;
 }
+
+interface CalendarStep {
+  readonly label: string;
+  readonly onClick: () => void;
+  readonly can: boolean;
+}
+
+/** Holds the arrow's place, so the caption stays centred without one. */
+const NAV_SPACER = <span aria-hidden="true" className="size-(--control-h-sm) shrink-0" />;
 
 function CalendarHeader({ label, zoomOut, previous, next }: CalendarHeaderProps): JSX.Element {
   return (
@@ -137,17 +149,21 @@ function CalendarHeader({ label, zoomOut, previous, next }: CalendarHeaderProps)
       data-testid="calendar-header"
       className="flex h-(--control-h-sm) items-center justify-between gap-2"
     >
-      <button
-        type="button"
-        data-part="calendar-previous"
-        data-testid="calendar-previous"
-        aria-label={previous.label}
-        disabled={!previous.can}
-        onClick={previous.onClick}
-        className={NAV_BUTTON}
-      >
-        <Icon name="chevron-start" className="size-4" />
-      </button>
+      {previous ? (
+        <button
+          type="button"
+          data-part="calendar-previous"
+          data-testid="calendar-previous"
+          aria-label={previous.label}
+          disabled={!previous.can}
+          onClick={previous.onClick}
+          className={NAV_BUTTON}
+        >
+          <Icon name="chevron-start" className="size-4" />
+        </button>
+      ) : (
+        NAV_SPACER
+      )}
 
       {zoomOut ? (
         <button
@@ -171,17 +187,21 @@ function CalendarHeader({ label, zoomOut, previous, next }: CalendarHeaderProps)
         </span>
       )}
 
-      <button
-        type="button"
-        data-part="calendar-next"
-        data-testid="calendar-next"
-        aria-label={next.label}
-        disabled={!next.can}
-        onClick={next.onClick}
-        className={NAV_BUTTON}
-      >
-        <Icon name="chevron-end" className="size-4" />
-      </button>
+      {next ? (
+        <button
+          type="button"
+          data-part="calendar-next"
+          data-testid="calendar-next"
+          aria-label={next.label}
+          disabled={!next.can}
+          onClick={next.onClick}
+          className={NAV_BUTTON}
+        >
+          <Icon name="chevron-end" className="size-4" />
+        </button>
+      ) : (
+        NAV_SPACER
+      )}
     </div>
   );
 }
@@ -191,25 +211,18 @@ interface PeriodOption {
   readonly label: string;
   readonly isSelected: boolean;
   readonly isCurrent: boolean;
-  readonly isOutside: boolean;
-  readonly isDisabled: boolean;
 }
 
-/** The same states as a day, in the same order — a month or a year is a cell of the same grid. */
+/** The same inks as a day: chosen is filled, this year or month is green like today. */
 function periodInk(option: PeriodOption): string {
-  if (option.isDisabled) {
-    return DAY_STATES.muted.button;
-  }
-
   if (option.isSelected) {
-    return cn(DAY_STATES.selected.button, option.isCurrent && cn(TODAY_DOT, "after:bg-surface"));
+    return cn(
+      option.isCurrent ? DAY_STATES.todaySelected.button : DAY_STATES.selected.button,
+      "font-medium",
+    );
   }
 
-  if (option.isCurrent) {
-    return DAY_STATES.today.button;
-  }
-
-  return option.isOutside ? DAY_STATES.muted.button : DAY_STATES.plain.button;
+  return option.isCurrent ? DAY_STATES.today.button : DAY_STATES.plain.button;
 }
 
 interface PeriodGridProps {
@@ -217,16 +230,41 @@ interface PeriodGridProps {
   readonly columns: 3 | 4;
   readonly options: readonly PeriodOption[];
   readonly onPick: (key: number) => void;
+  /** Scrolls instead of paging, opened on the chosen option. */
+  readonly scrolls?: boolean | undefined;
 }
 
-function PeriodGrid({ label, columns, options, onPick }: PeriodGridProps): JSX.Element {
+function PeriodGrid({
+  label,
+  columns,
+  options,
+  onPick,
+  scrolls = false,
+}: PeriodGridProps): JSX.Element {
+  const list = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = list.current;
+    const chosen = container?.querySelector<HTMLElement>('[aria-current="true"]');
+
+    // `scrollTop`, not `scrollIntoView`: that would scroll the dialog behind the popover too.
+    if (scrolls && container && chosen) {
+      container.scrollTop = chosen.offsetTop - (container.clientHeight - chosen.clientHeight) / 2;
+    }
+  }, [scrolls]);
+
   return (
     <div
+      ref={list}
       data-part="calendar-periods"
       data-testid="calendar-periods"
       role="group"
       aria-label={label}
-      className={cn("grid gap-1 pt-2", columns === 3 ? "grid-cols-3" : "grid-cols-4")}
+      className={cn(
+        "relative mt-3 grid gap-x-2 gap-y-2.5",
+        columns === 3 ? "grid-cols-3" : "grid-cols-4",
+        scrolls && "scroll-lane max-h-60 overflow-y-auto overscroll-contain py-1 pe-2.5",
+      )}
     >
       {options.map((option) => (
         <button
@@ -234,10 +272,9 @@ function PeriodGrid({ label, columns, options, onPick }: PeriodGridProps): JSX.E
           type="button"
           data-part="calendar-period"
           data-testid={`calendar-period-${String(option.key)}`}
-          disabled={option.isDisabled}
           aria-current={option.isSelected ? "true" : undefined}
           onClick={() => onPick(option.key)}
-          className={cn(PERIOD_CELL, periodInk(option), "rounded-control")}
+          className={cn(PERIOD_CELL, periodInk(option))}
         >
           {option.label}
         </button>
@@ -246,25 +283,27 @@ function PeriodGrid({ label, columns, options, onPick }: PeriodGridProps): JSX.E
   );
 }
 
-// `CalendarProps` is not an `Omit` — that collapses the `mode` union.
-export type CalendarProps = DayPickerProps & {
-  /** `years` for a date of birth: 1998 is four pages away there and 340 clicks away in the days. */
-  readonly startView?: CalendarView | undefined;
-};
-
-export function Calendar({ startView = "days", ...props }: CalendarProps): JSX.Element {
+export function Calendar(props: DayPickerProps): JSX.Element {
   const { t, i18n } = useTranslation();
   const locale = dateLocale(i18n.language);
   const isRtl = i18n.language.split("-")[0] === "ar";
 
-  const [view, setView] = useState<CalendarView>(startView);
+  // Opens on the days, as every date picker does; the caption zooms out to months and years.
+  const [view, setView] = useState<CalendarView>("days");
   const [month, goToMonth] = useState(() =>
     startOfMonth(props.month ?? props.defaultMonth ?? new Date()),
   );
 
+  const shownOn = (props.month ?? props.defaultMonth)?.getTime();
+
+  useEffect(() => {
+    if (shownOn !== undefined) {
+      goToMonth(startOfMonth(new Date(shownOn)));
+    }
+  }, [shownOn]);
+
   const lastYear = new Date().getFullYear() + 1;
   const year = month.getFullYear();
-  const decade = Math.floor(year / 10) * 10;
 
   const body =
     view === "days" ? (
@@ -288,9 +327,9 @@ export function Calendar({ startView = "days", ...props }: CalendarProps): JSX.E
           month_caption: "hidden",
           month_grid: "w-full border-collapse",
           weekdays: "flex",
-          weekday: "w-10 pt-2 pb-1 text-label font-medium text-ink-subtle",
+          weekday: "flex-1 pt-2 pb-1 text-micro font-medium text-ink-subtle",
           week: "flex w-full",
-          day: "p-0.5",
+          day: "flex flex-1 justify-center p-0.5",
           day_button: cn(
             "relative inline-flex size-(--control-h-sm) cursor-pointer items-center justify-center",
             "text-value tabular-nums transition-colors duration-150",
@@ -315,8 +354,6 @@ export function Calendar({ startView = "days", ...props }: CalendarProps): JSX.E
           label: format(setMonth(month, index), "LLL", { locale }),
           isSelected: month.getMonth() === index,
           isCurrent: new Date().getFullYear() === year && new Date().getMonth() === index,
-          isOutside: false,
-          isDisabled: false,
         }))}
         onPick={(index) => {
           goToMonth(startOfMonth(setMonth(month, index)));
@@ -327,16 +364,15 @@ export function Calendar({ startView = "days", ...props }: CalendarProps): JSX.E
       <PeriodGrid
         label={t("common.calendar.chooseYear")}
         columns={4}
-        options={Array.from({ length: YEARS_PER_PAGE }, (_, index) => {
-          const value = decade - 1 + index;
+        scrolls
+        options={Array.from({ length: lastYear - FIRST_YEAR + 1 }, (_, index) => {
+          const value = FIRST_YEAR + index;
 
           return {
             key: value,
             label: String(value),
             isSelected: value === year,
             isCurrent: value === new Date().getFullYear(),
-            isOutside: value < decade || value > decade + 9,
-            isDisabled: value < FIRST_YEAR || value > lastYear,
           };
         })}
         onPick={(value) => {
@@ -377,20 +413,7 @@ export function Calendar({ startView = "days", ...props }: CalendarProps): JSX.E
               can: year < lastYear,
             },
           }
-        : {
-            label: <Ltr>{`${decade} – ${decade + 9}`}</Ltr>,
-            zoomOut: null,
-            previous: {
-              label: t("common.calendar.previousYears"),
-              onClick: () => goToMonth(setYear(month, Math.max(year - 10, FIRST_YEAR))),
-              can: decade > FIRST_YEAR,
-            },
-            next: {
-              label: t("common.calendar.nextYears"),
-              onClick: () => goToMonth(setYear(month, Math.min(year + 10, lastYear))),
-              can: decade + 10 <= lastYear,
-            },
-          };
+        : { label: t("common.calendar.chooseYear"), zoomOut: null };
 
   return (
     <div data-part="calendar" data-testid="calendar" className="w-70">
