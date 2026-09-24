@@ -9,6 +9,8 @@ export interface NavItem {
   /** Decorative — the label beside it is what is announced. */
   readonly icon: IconName;
   readonly badge?: "pendingBookings";
+  /** Addresses under other paths that still belong here, e.g. one doctor's page under users. */
+  readonly also?: readonly string[];
 }
 
 export interface NavGroup {
@@ -66,23 +68,15 @@ export const NAV_SETTINGS: NavGroup = {
   label: "nav.settings",
   items: [
     { to: "/clinic", label: "nav.clinic", roles: [USER_ROLE.ADMIN], icon: "building" },
-    { to: "/doctors", label: "nav.doctors", roles: [USER_ROLE.ADMIN], icon: "stethoscope" },
-    { to: "/users", label: "nav.users", roles: [USER_ROLE.ADMIN], icon: "shield" },
+    {
+      to: "/users",
+      label: "nav.users",
+      roles: [USER_ROLE.ADMIN],
+      icon: "users",
+      also: ["/doctors"],
+    },
     { to: "/clinic/lists", label: "nav.lists", roles: [USER_ROLE.ADMIN], icon: "list" },
-    {
-      to: "/clinic/translations",
-      label: "nav.translations",
-      roles: [USER_ROLE.ADMIN],
-      icon: "language",
-    },
-    {
-      to: "/assistant/settings",
-      label: "nav.assistantSettings",
-      roles: [USER_ROLE.ADMIN],
-      icon: "sparkles",
-    },
-    { to: "/permissions", label: "nav.permissions", roles: [USER_ROLE.ADMIN], icon: "key" },
-    { to: "/audit-log", label: "nav.audit", roles: [USER_ROLE.ADMIN], icon: "clipboard" },
+    { to: "/settings", label: "nav.settingsPage", roles: [USER_ROLE.ADMIN], icon: "gear" },
   ],
 };
 
@@ -123,12 +117,14 @@ export const isWorkspacePath = (pathname: string): boolean =>
   WORKSPACE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 
 export function activeNavItem(pathname: string): NavItem | undefined {
-  return ALL_NAV_ITEMS.filter(
-    (item) => pathname === item.to || pathname.startsWith(`${item.to}/`),
-  ).reduce<NavItem | undefined>(
-    (best, item) => (best === undefined || item.to.length > best.to.length ? item : best),
-    undefined,
-  );
+  const under = (prefix: string): boolean =>
+    pathname === prefix || pathname.startsWith(`${prefix}/`);
+  const depth = (item: NavItem): number =>
+    Math.max(...[item.to, ...(item.also ?? [])].filter(under).map((prefix) => prefix.length));
+
+  return ALL_NAV_ITEMS.filter((item) => [item.to, ...(item.also ?? [])].some(under)).reduce<
+    NavItem | undefined
+  >((best, item) => (best === undefined || depth(item) > depth(best) ? item : best), undefined);
 }
 
 /** Screens outside the sidebar still need a name in the tab. */

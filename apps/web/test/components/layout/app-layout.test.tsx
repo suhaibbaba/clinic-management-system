@@ -65,13 +65,9 @@ describe("Sidebar navigation", () => {
       ar.nav.labs,
       ar.nav.inventory,
       ar.nav.clinic,
-      ar.nav.doctors,
       ar.nav.users,
       ar.nav.lists,
-      ar.nav.translations,
-      ar.nav.assistantSettings,
-      ar.nav.permissions,
-      ar.nav.audit,
+      ar.nav.settingsPage,
     ]);
   });
 
@@ -141,7 +137,7 @@ describe("The settings group", () => {
     // and the reference's rail has no control in it at all.
     expect(within(nav()).queryByRole("button")).not.toBeInTheDocument();
 
-    for (const label of [ar.nav.clinic, ar.nav.doctors, ar.nav.users, ar.nav.lists, ar.nav.audit]) {
+    for (const label of [ar.nav.clinic, ar.nav.users, ar.nav.lists, ar.nav.settingsPage]) {
       expect(within(nav()).getByRole("link", { name: label })).toBeInTheDocument();
     }
   });
@@ -184,6 +180,8 @@ describe("Route guards", () => {
     [USER_ROLE.RECEPTIONIST, "/users"],
     [USER_ROLE.DOCTOR, "/audit-log"],
     [USER_ROLE.RECEPTIONIST, "/assistant/settings"],
+    [USER_ROLE.RECEPTIONIST, "/settings"],
+    [USER_ROLE.DOCTOR, "/settings"],
   ])("redirects %s away from %s and onto the dashboard", async (role, route) => {
     await renderAs(role, route);
 
@@ -191,5 +189,28 @@ describe("Route guards", () => {
     expect(
       await screen.findByRole("region", { name: ar.dashboard.schedule.title }),
     ).toBeInTheDocument();
+  });
+});
+
+// Doctors joined users, and four admin screens joined one settings page; the old addresses are
+// still in somebody's bookmarks.
+describe("Retired addresses", () => {
+  it.each([
+    ["/doctors", ar.nav.users, ar.nav.doctors],
+    ["/clinic/translations", ar.nav.settingsPage, ar.nav.translations],
+    ["/assistant/settings", ar.nav.settingsPage, ar.nav.assistant],
+    ["/permissions", ar.nav.settingsPage, ar.nav.permissions],
+    ["/audit-log", ar.nav.settingsPage, ar.nav.audit],
+  ])("sends %s to %s, open on %s", async (route, section, view) => {
+    await renderAs(USER_ROLE.ADMIN, route);
+
+    expect(await screen.findByRole("tab", { name: view, selected: true })).toBeInTheDocument();
+
+    const current = within(nav())
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("aria-current") === "page")
+      .map((link) => link.textContent?.trim());
+
+    expect(current).toEqual([section]);
   });
 });

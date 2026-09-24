@@ -50,7 +50,7 @@ import { ellipsis } from "@web/i18n/ellipsis";
 import { cn } from "@clinic/ui/lib/cn";
 import { useDocumentTitle } from "@clinic/ui/lib/page-title";
 
-const KEYS_SETTINGS = "/assistant/settings";
+const SETTINGS = "/settings";
 
 export function AssistantPage(): JSX.Element {
   const { t } = useTranslation();
@@ -344,7 +344,7 @@ export function AssistantPage(): JSX.Element {
 function TurnError({ code, onRetry }: { code: AiErrorCode; onRetry: () => void }): JSX.Element {
   const { t } = useTranslation();
   const { user } = useSession();
-  const toKeys = isKeyFailure(code) && canReachNavItem(KEYS_SETTINGS, user?.role);
+  const toKeys = isKeyFailure(code) && canReachNavItem(SETTINGS, user?.role);
 
   return (
     <ChatBubble
@@ -365,7 +365,7 @@ function TurnError({ code, onRetry }: { code: AiErrorCode; onRetry: () => void }
           </Button>
           {toKeys && (
             <Link
-              to={`${KEYS_SETTINGS}?tab=keys`}
+              to={`${SETTINGS}?view=assistant&tab=keys`}
               data-testid="assistant-check-keys"
               className="text-label font-medium text-primary-600 hover:underline"
             >

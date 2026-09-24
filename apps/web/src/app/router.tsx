@@ -1,6 +1,6 @@
 import { USER_ROLE } from "@clinic/shared";
 import { lazy, Suspense, type JSX } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppLayout } from "@web/components/layout/app-layout";
 import { RequireAuth, RequireRole } from "@web/features/auth/guards";
 import { ForgotPasswordPage } from "@web/features/auth/forgot-password-page";
@@ -9,7 +9,6 @@ import { SetPasswordPage } from "@web/features/auth/set-password-page";
 import { ClinicPage } from "@web/features/clinic/clinic-page";
 import { DashboardPage } from "@web/features/dashboard/dashboard-page";
 import { DoctorPage } from "@web/features/doctors/doctor-page";
-import { DoctorsPage } from "@web/features/doctors/doctors-page";
 import { InventorySection } from "@web/features/inventory/inventory-section";
 import { ShoppingListPage } from "@web/features/inventory/shopping-list-page";
 import { LabsSection } from "@web/features/labs/labs-section";
@@ -18,7 +17,8 @@ import { PatientPage } from "@web/features/patients/patient-page";
 import { PATIENT_FILE_ROLES } from "@web/features/patients/permissions";
 import { PatientsPage } from "@web/features/patients/patients-page";
 import { ProfilePage } from "@web/features/profile/profile-page";
-import { UsersPage } from "@web/features/users/users-page";
+import { SettingsSection } from "@web/features/settings/settings-section";
+import { UsersSection } from "@web/features/users/users-section";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 
 const AppointmentsSection = lazy(async () => ({
@@ -30,25 +30,8 @@ const AssistantPage = lazy(async () => ({
   default: (await import("@web/features/assistant/assistant-page")).AssistantPage,
 }));
 
-const AssistantSettingsPage = lazy(async () => ({
-  default: (await import("@web/features/assistant/settings/assistant-settings-page"))
-    .AssistantSettingsPage,
-}));
-
-const AuditPage = lazy(async () => ({
-  default: (await import("@web/features/audit/audit-page")).AuditPage,
-}));
-
-const PermissionsPage = lazy(async () => ({
-  default: (await import("@web/features/permissions/permissions-page")).PermissionsPage,
-}));
-
 const LookupsPage = lazy(async () => ({
   default: (await import("@web/features/lookups/lookups-page")).LookupsPage,
-}));
-
-const TranslationsPage = lazy(async () => ({
-  default: (await import("@web/features/translations/translations-page")).TranslationsPage,
 }));
 
 const ADMIN_ONLY = [USER_ROLE.ADMIN] as const;
@@ -64,6 +47,25 @@ const DOCTOR_PAGE = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR] as const;
 
 /** The dashboard is where a role that may not be somewhere is sent instead. */
 const HOME = "/dashboard";
+
+/** A retired address that carries its query on: an old `?tab=keys` still opens the keys. */
+function RedirectKeepingQuery({
+  to,
+  view,
+}: {
+  readonly to: string;
+  readonly view?: string | undefined;
+}): JSX.Element {
+  const params = new URLSearchParams(useLocation().search);
+
+  if (view !== undefined) {
+    params.set("view", view);
+  }
+
+  const query = params.toString();
+
+  return <Navigate to={query === "" ? to : `${to}?${query}`} replace />;
+}
 
 function RouteChunk({ children }: { readonly children: JSX.Element }): JSX.Element {
   return (
@@ -187,10 +189,18 @@ export function AppRoutes(): JSX.Element {
           }
         />
         <Route
-          path="/doctors"
+          path="/users"
           element={
             <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
-              <DoctorsPage />
+              <UsersSection />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
+              <SettingsSection />
             </RequireRole>
           }
         />
@@ -214,54 +224,6 @@ export function AppRoutes(): JSX.Element {
             </RequireRole>
           }
         />
-        <Route
-          path="/clinic/translations"
-          element={
-            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
-              <RouteChunk>
-                <TranslationsPage />
-              </RouteChunk>
-            </RequireRole>
-          }
-        />
-        <Route
-          path="/users"
-          element={
-            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
-              <UsersPage />
-            </RequireRole>
-          }
-        />
-        <Route
-          path="/assistant/settings"
-          element={
-            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
-              <RouteChunk>
-                <AssistantSettingsPage />
-              </RouteChunk>
-            </RequireRole>
-          }
-        />
-        <Route
-          path="/permissions"
-          element={
-            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
-              <RouteChunk>
-                <PermissionsPage />
-              </RouteChunk>
-            </RequireRole>
-          }
-        />
-        <Route
-          path="/audit-log"
-          element={
-            <RequireRole roles={ADMIN_ONLY} redirectTo={HOME}>
-              <RouteChunk>
-                <AuditPage />
-              </RouteChunk>
-            </RequireRole>
-          }
-        />
 
         {/* The addresses this restructure retired */}
         {/* Kept rather than dropped: somebody's browser still knows these, and landing on a
@@ -276,6 +238,17 @@ export function AppRoutes(): JSX.Element {
         />
         <Route path="/lab-orders" element={<Navigate to="/labs?tab=orders" replace />} />
         <Route path="/suppliers" element={<Navigate to="/inventory?tab=suppliers" replace />} />
+        <Route path="/doctors" element={<Navigate to="/users?view=doctors" replace />} />
+        <Route path="/clinic/translations" element={<RedirectKeepingQuery to="/settings" />} />
+        <Route
+          path="/assistant/settings"
+          element={<RedirectKeepingQuery to="/settings" view="assistant" />}
+        />
+        <Route
+          path="/permissions"
+          element={<RedirectKeepingQuery to="/settings" view="permissions" />}
+        />
+        <Route path="/audit-log" element={<RedirectKeepingQuery to="/settings" view="audit" />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

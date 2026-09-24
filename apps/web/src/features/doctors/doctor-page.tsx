@@ -40,7 +40,7 @@ export function DoctorPage(): JSX.Element {
   }, [clinic.data]);
 
   if (id === undefined) {
-    return <Navigate to="/doctors" replace />;
+    return <Navigate to="/users?view=doctors" replace />;
   }
 
   if (doctor.isPending) {
@@ -48,7 +48,7 @@ export function DoctorPage(): JSX.Element {
   }
 
   if (!doctor.data) {
-    return <Navigate to="/doctors" replace />;
+    return <Navigate to="/users?view=doctors" replace />;
   }
 
   const isOwn = doctor.data.userId === user?.id;

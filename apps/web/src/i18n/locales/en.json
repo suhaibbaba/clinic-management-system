@@ -124,7 +124,8 @@
     "translations": "Interface text",
     "users": "Users",
     "waitingCount": "{{count}} awaiting confirmation",
-    "assistantSettings": "Assistant settings"
+    "assistantSettings": "Assistant settings",
+    "settingsPage": "Settings"
   },
   "roles": {
     "admin": "Admin",
