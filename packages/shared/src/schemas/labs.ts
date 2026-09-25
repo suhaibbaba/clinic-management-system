@@ -62,14 +62,14 @@ export type ListLabsQuery = z.infer<typeof listLabsQuerySchema>;
 export const labWorkTypeSchema = z.object({
   id: uuidSchema,
   labId: uuidSchema,
-  nameAr: z.string(),
+  name: z.string(),
   defaultPrice: moneySchema,
   isActive: z.boolean(),
 });
 export type LabWorkType = z.infer<typeof labWorkTypeSchema>;
 
 export const createLabWorkTypeSchema = z.object({
-  nameAr: z.string().trim().min(2).max(160),
+  name: z.string().trim().min(2).max(160),
   defaultPrice: wholeMoneySchema,
   isActive: z.boolean().optional(),
 });

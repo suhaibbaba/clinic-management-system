@@ -151,7 +151,7 @@ describe("Permissions (e2e)", () => {
       url: "/inventory/items",
       headers: auth(adminToken),
       payload: {
-        nameAr: "قفازات",
+        name: "قفازات",
         category: ITEM_CATEGORY.CONSUMABLE,
         unit: ITEM_UNIT.PIECE,
       },

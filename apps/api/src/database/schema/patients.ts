@@ -66,8 +66,7 @@ export const procedureCatalog = pgTable(
       .notNull()
       .references(() => specialties.id),
     code: text("code").notNull(),
-    nameAr: text("name_ar").notNull(),
-    nameEn: text("name_en").notNull(),
+    name: text("name").notNull(),
     defaultPrice: money("default_price").notNull(),
     // A `tooth_state` lookup code for what this leaves on the chart, null for procedures that chart
     // nothing — set per item rather than inferred from the name.

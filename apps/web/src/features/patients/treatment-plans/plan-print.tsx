@@ -28,7 +28,7 @@ export function PlanPrint({
   const currency = clinic?.currency ?? "";
 
   const nameOf = (procedureId: string): string =>
-    catalog.find((item) => item.id === procedureId)?.nameAr ?? t("chart.panel.procedure");
+    catalog.find((item) => item.id === procedureId)?.name ?? t("chart.panel.procedure");
 
   return (
     <div data-testid="plan-print" className="print-sheet" dir="rtl" lang="ar">

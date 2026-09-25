@@ -272,7 +272,7 @@ export function OrderFormModal({
               onChange={(event) => chooseWorkType(event.target.value)}
               options={(workTypes.data ?? []).map((type) => ({
                 value: type.id,
-                label: type.nameAr,
+                label: type.name,
               }))}
             />
           </FormField>

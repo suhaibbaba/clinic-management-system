@@ -86,7 +86,7 @@ describe("Assistant lab and stock actions (e2e)", () => {
       method: "POST",
       url: `/labs/${labId}/work-types`,
       headers: auth(tokens[USER_ROLE.TECHNICIAN]),
-      payload: { nameAr: "تاج زيركون", defaultPrice: "45.00" },
+      payload: { name: "تاج زيركون", defaultPrice: "45.00" },
     });
     const order = await context.app.inject({
       method: "POST",
@@ -109,7 +109,7 @@ describe("Assistant lab and stock actions (e2e)", () => {
       url: "/inventory/items",
       headers: auth(tokens[USER_ROLE.TECHNICIAN]),
       payload: {
-        nameAr: "قفازات طبية",
+        name: "قفازات طبية",
         category: ITEM_CATEGORY.CONSUMABLE,
         unit: ITEM_UNIT.PIECE,
         minQuantity: "5",

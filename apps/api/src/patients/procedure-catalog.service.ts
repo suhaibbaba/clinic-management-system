@@ -56,8 +56,7 @@ export class ProcedureCatalogService implements OnModuleInit {
       const pattern = `%${query.search}%`;
       filters.push(
         or(
-          sql`${procedureCatalog.nameAr} ilike ${pattern}`,
-          sql`${procedureCatalog.nameEn} ilike ${pattern}`,
+          sql`${procedureCatalog.name} ilike ${pattern}`,
           sql`${procedureCatalog.code} ilike ${pattern}`,
         ),
       );
@@ -71,7 +70,7 @@ export class ProcedureCatalogService implements OnModuleInit {
         .select()
         .from(procedureCatalog)
         .where(where)
-        .orderBy(asc(procedureCatalog.nameAr))
+        .orderBy(asc(procedureCatalog.name))
         .limit(limit)
         .offset(offset),
       this.db
@@ -111,8 +110,7 @@ export class ProcedureCatalogService implements OnModuleInit {
         clinicId: actor.clinicId,
         specialtyId: input.specialtyId,
         code: input.code,
-        nameAr: input.nameAr,
-        nameEn: input.nameEn,
+        name: input.name,
         defaultPrice: input.defaultPrice,
         chartOutcome: input.chartOutcome ?? null,
         isActive: input.isActive,
@@ -149,8 +147,7 @@ export class ProcedureCatalogService implements OnModuleInit {
       .set({
         ...(input.specialtyId !== undefined && { specialtyId: input.specialtyId }),
         ...(input.code !== undefined && { code: input.code }),
-        ...(input.nameAr !== undefined && { nameAr: input.nameAr }),
-        ...(input.nameEn !== undefined && { nameEn: input.nameEn }),
+        ...(input.name !== undefined && { name: input.name }),
         ...(input.defaultPrice !== undefined && { defaultPrice: input.defaultPrice }),
         ...(input.chartOutcome !== undefined && { chartOutcome: input.chartOutcome ?? null }),
         ...(input.isActive !== undefined && { isActive: input.isActive }),
@@ -232,8 +229,7 @@ function toCatalogItem(row: CatalogRow): ProcedureCatalogItem {
     clinicId: row.clinicId,
     specialtyId: row.specialtyId,
     code: row.code,
-    nameAr: row.nameAr,
-    nameEn: row.nameEn,
+    name: row.name,
     defaultPrice: row.defaultPrice,
     chartOutcome: row.chartOutcome,
     isActive: row.isActive,
@@ -248,8 +244,7 @@ function toRoleView(row: CatalogRow, role: UserRole): CatalogView {
     return {
       id: row.id,
       code: row.code,
-      nameAr: row.nameAr,
-      nameEn: row.nameEn,
+      name: row.name,
       defaultPrice: row.defaultPrice,
     };
   }

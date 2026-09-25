@@ -199,7 +199,7 @@ export function lowStockView(list: Capped<InventoryItemRow>): AiView {
   return {
     type: "list",
     items: list.items.map((item) => ({
-      title: item.nameAr,
+      title: item.name,
       subtitle: `${item.quantity} / ${item.minQuantity}`,
     })),
     truncated: list.truncated,

@@ -5,7 +5,7 @@ import { stockScale, stockTone } from "@web/features/inventory/display";
 const item = (quantity: string, minQuantity: string, isLow = false): InventoryItemRow => ({
   id: "item",
   clinicId: "clinic",
-  nameAr: "قفازات",
+  name: "قفازات",
   category: ITEM_CATEGORY.CONSUMABLE,
   unit: ITEM_UNIT.BOX,
   minQuantity,

@@ -42,7 +42,6 @@ import {
   ProcedureFormActions,
   type ProcedureFormValues,
 } from "@web/features/patients/procedures/procedure-form";
-import { procedureName } from "@web/features/patients/procedures/procedure-name";
 import {
   useCreateProcedure,
   useDeleteProcedure,
@@ -71,7 +70,7 @@ export function VisitsTab({
   patientId: string;
   patient?: PatientClinicalView | undefined;
 }): JSX.Element {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user, can } = useSession();
   const toast = useToast();
 
@@ -130,7 +129,7 @@ export function VisitsTab({
 
   const catalogName = (id: string): string => {
     const entry = catalog.data?.find((item) => item.id === id);
-    return entry ? procedureName(entry, i18n.language) : t("chart.panel.procedure");
+    return entry ? entry.name : t("chart.panel.procedure");
   };
 
   if (showSkeleton) {

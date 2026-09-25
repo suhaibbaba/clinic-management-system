@@ -196,8 +196,7 @@ describe("Patient clinical records (e2e)", () => {
         payload: {
           specialtyId: clinic.specialtyId,
           code: `CLEAN-${Date.now()}`,
-          nameAr: "تنظيف وتقليح",
-          nameEn: "Scaling",
+          name: "Scaling",
           defaultPrice: "40.00",
         },
       });

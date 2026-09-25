@@ -84,7 +84,7 @@ export function ItemDrawer({
         descriptionKey="inventory.drawer.description"
         title={
           <span className="flex flex-wrap items-center gap-2">
-            {row?.nameAr ?? "…"}
+            {row?.name ?? "…"}
             {row && (
               <Badge tone={categoryTone(row.category)} data-testid={`${testId}-category`}>
                 {categoryLabel(row.category)}

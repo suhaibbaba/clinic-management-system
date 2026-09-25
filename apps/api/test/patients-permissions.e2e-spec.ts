@@ -232,9 +232,7 @@ describe("Patients permission boundaries (e2e)", () => {
     expect(items.length).toBeGreaterThan(0);
 
     for (const item of items) {
-      expect(Object.keys(item).sort()).toEqual(
-        ["code", "defaultPrice", "id", "nameAr", "nameEn"].sort(),
-      );
+      expect(Object.keys(item).sort()).toEqual(["code", "defaultPrice", "id", "name"].sort());
     }
   });
 
@@ -247,8 +245,7 @@ describe("Patients permission boundaries (e2e)", () => {
         payload: {
           specialtyId: clinic.specialtyId,
           code: `X-${role}`,
-          nameAr: "إجراء",
-          nameEn: "Procedure",
+          name: "Procedure",
           defaultPrice: "10.00",
         },
       });

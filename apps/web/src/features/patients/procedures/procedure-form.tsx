@@ -18,7 +18,6 @@ import {
   type SelectableSurface,
 } from "@web/features/patients/chart/surface-selector";
 import { canSeePrices } from "@web/features/patients/permissions";
-import { procedureName } from "@web/features/patients/procedures/procedure-name";
 import { useCurrency } from "@web/features/clinic/queries";
 import { ellipsis } from "@web/i18n/ellipsis";
 
@@ -55,7 +54,7 @@ export function ProcedureForm({
   defaultDoctorId,
   formId,
 }: ProcedureFormProps): JSX.Element {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const currency = useCurrency();
   const doctorName = usePersonName();
   const fieldId = useId();
@@ -148,7 +147,7 @@ export function ProcedureForm({
             placeholder={t("chart.panel.selectProcedure")}
             options={catalog.map((item) => ({
               value: item.id,
-              label: procedureName(item, i18n.language),
+              label: item.name,
             }))}
           />
         </FormField>

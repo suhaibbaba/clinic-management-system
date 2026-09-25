@@ -44,7 +44,7 @@ export class InventoryDocumentsService {
           { width: 2, header: strings.columns.supplier },
         ],
         list.lines.map((line) => [
-          line.nameAr,
+          line.name,
           units.get(line.unit) ?? line.unit,
           line.quantity,
           line.minQuantity,

@@ -17,7 +17,6 @@ import { useCurrency } from "@web/features/clinic/queries";
 import { doctorOptionLabel } from "@web/features/doctors/doctor-label";
 import { canAddVisitingDoctor } from "@web/features/doctors/permissions";
 import { VisitingDoctorModal } from "@web/features/doctors/visiting-doctor-modal";
-import { procedureName } from "@web/features/patients/procedures/procedure-name";
 import { useAddPlanItem, useUpdatePlanItem } from "@web/features/patients/queries";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { errorMessageKey } from "@web/lib/api-error";
@@ -48,7 +47,7 @@ export function PlanItemFormModal({
   showPrices,
   item,
 }: PlanItemFormModalProps): JSX.Element {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { can } = useSession();
   const toast = useToast();
   const currency = useCurrency();
@@ -178,7 +177,7 @@ export function PlanItemFormModal({
               placeholder={t("chart.panel.selectProcedure")}
               options={catalog.map((entry) => ({
                 value: entry.id,
-                label: procedureName(entry, i18n.language),
+                label: entry.name,
               }))}
             />
           </FormField>

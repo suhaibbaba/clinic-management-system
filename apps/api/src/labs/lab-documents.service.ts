@@ -35,7 +35,7 @@ export class LabDocumentsService {
         doctorNameAr: users.nameAr,
         doctorNameEn: users.nameEn,
         labName: labs.name,
-        workTypeName: labWorkTypes.nameAr,
+        workTypeName: labWorkTypes.name,
       })
       .from(labOrders)
       .innerJoin(patients, eq(patients.id, labOrders.patientId))

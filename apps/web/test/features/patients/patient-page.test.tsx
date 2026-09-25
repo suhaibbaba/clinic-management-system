@@ -378,7 +378,7 @@ describe("Patient page", () => {
       await userEvent.click(toothButton(46));
 
       const panel = await screen.findByRole("dialog");
-      expect(within(panel).getByText(CATALOG.nameAr)).toBeInTheDocument();
+      expect(within(panel).getByText(CATALOG.name)).toBeInTheDocument();
       // ROLES.md billing: a doctor reads charges, so the price is shown — as
       // every figure in this app is, through `<Money>`: whole, with a symbol.
       // The figure and its symbol share one island now, so there is no element whose text is bare
@@ -399,7 +399,7 @@ describe("Patient page", () => {
 
     async function submitProcedure() {
       const dialog = screen.getByRole("dialog");
-      await choose(within(dialog).getByLabelText(ar.chart.panel.procedure), CATALOG.nameAr);
+      await choose(within(dialog).getByLabelText(ar.chart.panel.procedure), CATALOG.name);
       await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
     }
 
@@ -467,7 +467,7 @@ describe("Patient page", () => {
       await openAddForm();
 
       const dialog = screen.getByRole("dialog");
-      await choose(within(dialog).getByLabelText(ar.chart.panel.procedure), CATALOG.nameAr);
+      await choose(within(dialog).getByLabelText(ar.chart.panel.procedure), CATALOG.name);
       // The label carries an "(optional)" suffix, hence the loose match.
       await userEvent.type(
         within(dialog).getByLabelText(ar.chart.panel.discount, { exact: false }),

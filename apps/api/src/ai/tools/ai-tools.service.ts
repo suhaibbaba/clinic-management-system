@@ -605,7 +605,7 @@ function maskPhones(value: unknown): unknown {
 
 const toStockSummary = (item: InventoryItemRow) => ({
   id: item.id,
-  name: item.nameAr,
+  name: item.name,
   unit: item.unit,
   quantity: item.quantity,
   minQuantity: item.minQuantity,

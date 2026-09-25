@@ -26,7 +26,7 @@ const CATALOG = makeCatalogItem();
 const CROWN = makeCatalogItem({
   id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
   code: "CROWN-Z",
-  nameAr: "تاج زيركون",
+  name: "Zirconia crown",
   defaultPrice: "250.00",
   chartOutcome: "crown",
 });
@@ -136,11 +136,11 @@ describe("Visits tab", () => {
 
     await screen.findByText(visit.diagnosis!);
     // The card counts them; the details are the modal's.
-    expect(screen.queryByText(CATALOG.nameAr)).not.toBeInTheDocument();
+    expect(screen.queryByText(CATALOG.name)).not.toBeInTheDocument();
     await userEvent.click(screen.getByTestId("visit-procedures-open"));
 
     const modal = await screen.findByTestId("visit-procedures-modal");
-    expect(within(modal).getAllByText(CATALOG.nameAr)).toHaveLength(1);
+    expect(within(modal).getAllByText(CATALOG.name)).toHaveLength(1);
     expect(within(modal).getByText("46")).toBeInTheDocument();
   });
 
@@ -177,7 +177,7 @@ describe("Visits tab", () => {
     await userEvent.click(screen.getByRole("button", { name: ar.visits.addTreatment }));
 
     const form = await screen.findByRole("combobox", { name: ar.chart.panel.procedure });
-    await choose(form, CATALOG.nameAr);
+    await choose(form, CATALOG.name);
     await userEvent.click(screen.getByRole("button", { name: ar.common.save }));
 
     await waitFor(() => {
@@ -299,8 +299,8 @@ describe("Treatment plans tab", () => {
     await openTab(ar.patients.tabs.treatmentPlans, { "GET /treatment-plans": plansResponse });
 
     expect(await screen.findByText(planWithItems.title)).toBeInTheDocument();
-    expect(screen.getByText(CATALOG.nameAr)).toBeInTheDocument();
-    expect(screen.getByText(CROWN.nameAr)).toBeInTheDocument();
+    expect(screen.getByText(CATALOG.name)).toBeInTheDocument();
+    expect(screen.getByText(CROWN.name)).toBeInTheDocument();
     // Quoted total is 40 + 250; only the still-planned item is remaining.
     const total = screen.getByText(ar.treatmentPlans.total).closest("div");
     const remaining = screen.getByText(ar.treatmentPlans.remaining).closest("div");
@@ -461,7 +461,7 @@ describe("Treatment plans tab", () => {
     await userEvent.click(await screen.findByRole("button", { name: ar.treatmentPlans.addItem }));
     const dialog = await screen.findByRole("dialog");
 
-    await choose(within(dialog).getByLabelText(new RegExp(ar.chart.panel.procedure)), CROWN.nameAr);
+    await choose(within(dialog).getByLabelText(new RegExp(ar.chart.panel.procedure)), CROWN.name);
     await choose(
       within(dialog).getByLabelText(new RegExp(ar.treatmentPlans.performer)),
       other.user.name.ar,
@@ -500,7 +500,7 @@ describe("Treatment plans tab", () => {
     const itemDialog = await screen.findByRole("dialog");
     await choose(
       within(itemDialog).getByLabelText(new RegExp(ar.chart.panel.procedure)),
-      CROWN.nameAr,
+      CROWN.name,
     );
     await userEvent.click(
       within(itemDialog).getByRole("button", { name: ar.doctors.visiting.create }),

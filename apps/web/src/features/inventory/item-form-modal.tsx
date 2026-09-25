@@ -28,7 +28,7 @@ export function ItemFormModal({
   const update = useUpdateItem();
   const suppliers = useSuppliers({ limit: 100 });
 
-  const [nameAr, setNameAr] = useState("");
+  const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [unit, setUnit] = useState("");
   const [minQuantity, setMinQuantity] = useState("");
@@ -41,7 +41,7 @@ export function ItemFormModal({
       return;
     }
 
-    setNameAr(item?.nameAr ?? "");
+    setName(item?.name ?? "");
     setCategory(item?.category ?? categoryOptions[0]?.value ?? "");
     setUnit(item?.unit ?? unitOptions[0]?.value ?? "");
     setMinQuantity(item?.minQuantity ?? "");
@@ -53,7 +53,7 @@ export function ItemFormModal({
   const submit = async (): Promise<void> => {
     try {
       const shared = {
-        nameAr: nameAr.trim(),
+        name: name.trim(),
         category,
         minQuantity: minQuantity.trim() === "" ? "0" : minQuantity.trim(),
         defaultSupplierId: supplierId === "" ? null : supplierId,
@@ -91,7 +91,7 @@ export function ItemFormModal({
           </Button>
           <Button
             data-testid={`${testId}-save`}
-            disabled={nameAr.trim().length < 2}
+            disabled={name.trim().length < 2}
             isLoading={create.isPending || update.isPending}
             onClick={() => void submit()}
           >
@@ -101,12 +101,19 @@ export function ItemFormModal({
       }
     >
       <div data-testid={`${testId}-form`} className="flex flex-col gap-4">
-        <FormField label="inventory.item.name" htmlFor="item-name" required>
+        <FormField
+          label="inventory.item.name"
+          htmlFor="item-name"
+          hint="inventory.item.nameHint"
+          required
+        >
           <Input
             id="item-name"
             data-testid="item-field-name"
-            value={nameAr}
-            onChange={(event) => setNameAr(event.target.value)}
+            dir="ltr"
+            placeholder="Composite A2"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
           />
         </FormField>
 

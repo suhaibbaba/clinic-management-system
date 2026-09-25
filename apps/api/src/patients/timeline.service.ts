@@ -96,7 +96,7 @@ export class TimelineService {
           select pp.id,
                  ${TIMELINE_ENTRY_TYPE.PROCEDURE}::text as type,
                  pp.performed_at as occurred_at,
-                 pc.name_ar as title,
+                 pc.name as title,
                  jsonb_build_object(
                    'performedProcedureId', pp.id,
                    'procedureId', pp.procedure_id,
@@ -163,7 +163,7 @@ export class TimelineService {
           select lo.id,
                  ${TIMELINE_ENTRY_TYPE.LAB_ORDER}::text as type,
                  coalesce(lo.sent_at, lo.created_at) as occurred_at,
-                 coalesce(lwt.name_ar, 'عمل مخبري') as title,
+                 lwt.name as title,
                  jsonb_build_object(
                    'labOrderId', lo.id,
                    'labId', lo.lab_id,
@@ -187,7 +187,7 @@ export class TimelineService {
           select sm.id,
                  ${TIMELINE_ENTRY_TYPE.SUPPLY}::text as type,
                  sm.created_at as occurred_at,
-                 ii.name_ar as title,
+                 ii.name as title,
                  jsonb_build_object(
                    'movementId', sm.id,
                    'itemId', ii.id,

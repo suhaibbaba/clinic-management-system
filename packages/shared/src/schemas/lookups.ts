@@ -1,9 +1,11 @@
 import { z } from "zod";
-import { LOOKUP_LIST_KEYS } from "@shared/constants/lookups";
+import {
+  ENGLISH_ONLY_LOOKUP_LISTS,
+  LOOKUP_LIST_KEYS,
+  type LookupListKey,
+} from "@shared/constants/lookups";
 import { uuidSchema } from "@shared/schemas/common";
 
-// `code` is what every column referring to this row stores, so it never changes; names and colour
-// are editable. `isSystem` marks a row the app draws behaviour from — a label, not a lock.
 export const lookupOptionSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
@@ -22,7 +24,6 @@ export const lookupOptionSchema = z.object({
 });
 export type LookupOption = z.infer<typeof lookupOptionSchema>;
 
-/** An identifier, not a label: it appears in URLs, in JSON and in a `where` clause, so no spaces. */
 export const lookupCodeSchema = z
   .string()
   .trim()
@@ -84,6 +85,13 @@ export const lookupBundleSchema = z.record(z.string(), z.array(lookupOptionSchem
 export type LookupBundle = z.infer<typeof lookupBundleSchema>;
 
 /** The label for a row in the language on screen, falling back to Arabic. */
-export function lookupLabel(option: { nameAr: string; nameEn: string }, language: string): string {
-  return language.startsWith("en") ? option.nameEn || option.nameAr : option.nameAr;
+export function lookupLabel(
+  option: { readonly listKey?: LookupListKey; readonly nameAr: string; readonly nameEn: string },
+  language: string,
+): string {
+  const english =
+    language.startsWith("en") ||
+    (option.listKey !== undefined && ENGLISH_ONLY_LOOKUP_LISTS.includes(option.listKey));
+
+  return english ? option.nameEn || option.nameAr : option.nameAr;
 }

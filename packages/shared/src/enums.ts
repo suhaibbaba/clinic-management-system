@@ -990,3 +990,8 @@ export const CLINICAL_DELETE_ERROR = {
   HAS_PAYMENTS: "has_payments",
 } as const satisfies Record<string, string>;
 export type ClinicalDeleteError = EnumValue<typeof CLINICAL_DELETE_ERROR>;
+
+/** Why a stock movement was refused; the page words it from the code. */
+export const STOCK_ERROR = {
+  INSUFFICIENT: "insufficient_stock",
+} as const satisfies Record<string, string>;

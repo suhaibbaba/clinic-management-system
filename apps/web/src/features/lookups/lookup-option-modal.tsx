@@ -1,4 +1,9 @@
-import { DEFAULT_LOOKUP_COLOUR, type LookupListKey, type LookupOption } from "@clinic/shared";
+import {
+  DEFAULT_LOOKUP_COLOUR,
+  ENGLISH_ONLY_LOOKUP_LISTS,
+  type LookupListKey,
+  type LookupOption,
+} from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, FormField, Input, Ltr, Modal, useToast } from "@clinic/ui";
@@ -32,6 +37,9 @@ export function LookupOptionModal({
   const [nameAr, setNameAr] = useState("");
   const [nameEn, setNameEn] = useState("");
   const [color, setColor] = useState(DEFAULT_LOOKUP_COLOUR);
+  // One English name for these; it is stored in both columns so every reader finds it.
+  const englishOnly = ENGLISH_ONLY_LOOKUP_LISTS.includes(listKey);
+  const arabic = englishOnly ? nameEn : nameAr;
 
   useEffect(() => {
     if (!open) {
@@ -51,13 +59,13 @@ export function LookupOptionModal({
       if (option) {
         await update.mutateAsync({
           id: option.id,
-          body: { nameAr: nameAr.trim(), nameEn: nameEn.trim(), color: chosen },
+          body: { nameAr: arabic.trim(), nameEn: nameEn.trim(), color: chosen },
         });
         toast.success("lookups.updated");
       } else {
         await create.mutateAsync({
           listKey,
-          nameAr: nameAr.trim(),
+          nameAr: arabic.trim(),
           nameEn: nameEn.trim(),
           color: chosen,
         });
@@ -87,7 +95,7 @@ export function LookupOptionModal({
           </Button>
           <Button
             data-testid={`${testId}-save`}
-            disabled={nameAr.trim() === "" || nameEn.trim() === ""}
+            disabled={arabic.trim() === "" || nameEn.trim() === ""}
             isLoading={create.isPending || update.isPending}
             onClick={() => void submit()}
           >
@@ -107,16 +115,18 @@ export function LookupOptionModal({
           </p>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="lookups.nameAr" htmlFor="lookup-name-ar" required>
-            <Input
-              id="lookup-name-ar"
-              data-testid="lookup-field-name-ar"
-              dir="auto"
-              value={nameAr}
-              onChange={(event) => setNameAr(event.target.value)}
-            />
-          </FormField>
+        <div className={englishOnly ? "max-w-(--field-max)" : "grid gap-4 sm:grid-cols-2"}>
+          {!englishOnly && (
+            <FormField label="lookups.nameAr" htmlFor="lookup-name-ar" required>
+              <Input
+                id="lookup-name-ar"
+                data-testid="lookup-field-name-ar"
+                dir="auto"
+                value={nameAr}
+                onChange={(event) => setNameAr(event.target.value)}
+              />
+            </FormField>
+          )}
 
           <FormField label="lookups.nameEn" htmlFor="lookup-name-en" required>
             <Input

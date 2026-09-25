@@ -59,13 +59,13 @@ export const labWorkTypes = pgTable(
     labId: uuid("lab_id")
       .notNull()
       .references(() => labs.id),
-    nameAr: text("name_ar").notNull(),
+    name: text("name").notNull(),
     defaultPrice: money("default_price").notNull().default("0.00"),
     isActive: boolean("is_active").notNull().default(true),
     ...auditColumns,
     ...softDeleteColumn,
   },
-  (table) => [index("lab_work_types_lab_idx").on(table.labId, table.nameAr)],
+  (table) => [index("lab_work_types_lab_idx").on(table.labId, table.name)],
 );
 
 // The timestamps are written by the transitions, never a form — only `expected_at` is typed, being
