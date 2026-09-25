@@ -6,7 +6,7 @@ import { Button, FormField, Icon, Input, Modal, Select, Textarea, useToast } fro
 import { useSavePrescription } from "@web/features/patients/queries";
 import { errorMessageKey } from "@web/lib/api-error";
 import { ellipsis } from "@web/i18n/ellipsis";
-import { formatDateTime } from "@web/lib/format";
+import { visitMoment } from "@web/lib/format";
 
 interface PrescriptionFormModalProps {
   readonly "data-testid"?: string | undefined;
@@ -156,7 +156,8 @@ export function PrescriptionFormModal({
         noValidate
       >
         <FormField
-          label="prescriptions.visit"
+          label="prescriptions.linkedVisit"
+          hint="prescriptions.linkedVisitHint"
           htmlFor="prescription-visit"
           error={errors.visitId}
           required
@@ -170,7 +171,7 @@ export function PrescriptionFormModal({
                 data-testid="prescription-field-visit"
                 options={visits.map((visit) => ({
                   value: visit.id,
-                  label: formatDateTime(visit.visitDate),
+                  label: visitMoment(visit.visitDate),
                 }))}
                 value={field.value ?? ""}
                 onBlur={field.onBlur}

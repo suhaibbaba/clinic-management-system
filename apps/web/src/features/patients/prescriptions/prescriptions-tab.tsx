@@ -1,9 +1,24 @@
 import type { Prescription, PrescriptionItem } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, EmptyState, Icon, Ltr, TotalBadge, useConfirm, useToast } from "@clinic/ui";
+import {
+  Button,
+  EmptyState,
+  EntityCard,
+  Icon,
+  Ltr,
+  MenuItem,
+  Modal,
+  NotePreview,
+  RowMenu,
+  TotalBadge,
+  useConfirm,
+  usePersonName,
+  useToast,
+} from "@clinic/ui";
 import { SkeletonCard, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/features/auth/session";
+import { useDoctors } from "@web/features/doctors/queries";
 import { canDeletePrescription, canWritePrescription } from "@web/features/patients/permissions";
 import { PrescriptionFormModal } from "@web/features/patients/prescriptions/prescription-form-modal";
 import {
@@ -12,7 +27,7 @@ import {
   usePatientVisits,
 } from "@web/features/patients/queries";
 import { errorMessageKey } from "@web/lib/api-error";
-import { formatDateTime } from "@web/lib/format";
+import { shortDate, visitMoment } from "@web/lib/format";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 export const describeItem = (item: PrescriptionItem): string =>
@@ -49,40 +64,73 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Prescription | null>(null);
+  const [drugsFor, setDrugsFor] = useState<string | null>(null);
 
   const orderedVisits = useMemo(
     () => [...(visits.data ?? [])].sort((a, b) => b.visitDate.localeCompare(a.visitDate)),
     [visits.data],
   );
 
-  // Grouped under their visit, newest visit first; a prescription with no visit sorts by its own date.
-  const groups = useMemo(() => {
+  const doctors = useDoctors({ limit: 100 });
+  const displayName = usePersonName();
+  const doctorName = (id: string): string =>
+    displayName(doctors.data?.items.find((doctor) => doctor.id === id)?.user.name) || "—";
+
+  // Newest first by the visit it was written at; one with no visit by its own date.
+  const ordered = useMemo(() => {
     const visitDate = new Map(orderedVisits.map((visit) => [visit.id, visit.visitDate]));
-    const byKey = new Map<string, { date: string | null; items: Prescription[] }>();
 
-    for (const prescription of prescriptions.data ?? []) {
-      const key = prescription.visitId ?? `none-${prescription.id}`;
-      const date = prescription.visitId ? (visitDate.get(prescription.visitId) ?? null) : null;
-      const group = byKey.get(key) ?? { date, items: [] };
-
-      group.items.push(prescription);
-      byKey.set(key, group);
-    }
-
-    return [...byKey.entries()]
-      .map(([key, group]) => ({
-        key,
-        ...group,
-        sortBy: group.date ?? group.items[0]?.createdAt ?? "",
+    return [...(prescriptions.data ?? [])]
+      .map((prescription) => ({
+        prescription,
+        visitDate: prescription.visitId ? (visitDate.get(prescription.visitId) ?? null) : null,
       }))
-      .sort((a, b) => b.sortBy.localeCompare(a.sortBy));
+      .sort((a, b) =>
+        (b.visitDate ?? b.prescription.createdAt).localeCompare(
+          a.visitDate ?? a.prescription.createdAt,
+        ),
+      );
   }, [prescriptions.data, orderedVisits]);
+
+  const renderDrug = (
+    prescription: Prescription,
+    item: PrescriptionItem,
+    index: number,
+    prefix: string,
+  ): JSX.Element => (
+    <li
+      key={index}
+      data-testid={`${prefix}-${prescription.id}-drug-${index}`}
+      className="flex gap-3 rounded-panel bg-canvas px-3 py-2"
+    >
+      <Ltr className="pt-0.5 text-label text-ink-subtle">{index + 1}</Ltr>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-value font-medium text-ink" dir="auto">
+          {item.drug}
+        </p>
+        {describeItem(item) && (
+          <p className="truncate text-meta text-ink-muted">{describeItem(item)}</p>
+        )}
+        {item.note && (
+          <NotePreview
+            data-testid={`${prefix}-${prescription.id}-drug-${index}-note`}
+            size="meta"
+            text={item.note}
+            title="prescriptions.noteOf"
+            titleValues={{ name: item.drug }}
+          />
+        )}
+      </div>
+    </li>
+  );
 
   if (showSkeleton) {
     return (
       <div data-testid="prescriptions-tab-loading" className="flex flex-col gap-3">
         <SkeletonStatus />
-        <SkeletonCard count={2} />
+        <div className="grid gap-4 md:grid-cols-2">
+          <SkeletonCard count={2} />
+        </div>
       </div>
     );
   }
@@ -103,6 +151,7 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
   }
 
   const noVisits = orderedVisits.length === 0;
+  const drugsEntry = ordered.find((entry) => entry.prescription.id === drugsFor);
 
   return (
     <div data-testid="prescriptions-tab" className="flex flex-col gap-4">
@@ -128,7 +177,7 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
         )}
       </div>
 
-      {groups.length === 0 && (
+      {ordered.length === 0 && (
         <EmptyState
           icon="clipboard"
           data-testid="prescriptions-empty"
@@ -137,82 +186,94 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
         />
       )}
 
-      <ol data-testid="prescriptions-list" className="flex flex-col gap-4">
-        {groups.map((group) => (
-          <li
-            key={group.key}
-            data-testid={`prescriptions-group-${group.key}`}
-            className="rounded-card border border-line bg-surface p-4 shadow-card"
-          >
-            <h3 className="flex items-center gap-1.5 text-value font-medium text-ink">
-              {group.date ? (
-                <>
-                  <span>{t("prescriptions.visit")}</span>
-                  <Ltr>{formatDateTime(group.date)}</Ltr>
-                </>
-              ) : (
-                t("prescriptions.withoutVisit")
-              )}
-            </h3>
-
-            <ul className="mt-3 flex flex-col gap-2">
-              {group.items.map((prescription) => (
-                <li
-                  key={prescription.id}
-                  data-testid={`prescription-${prescription.id}`}
-                  className="flex items-start justify-between gap-3 rounded-panel bg-canvas px-3 py-2"
-                >
-                  <div className="min-w-0 flex-1">
-                    <ul className="flex flex-col gap-1">
-                      {prescription.items.map((item, index) => (
-                        <li key={index} className="text-value text-ink">
-                          <span className="font-medium">{item.drug}</span>
-                          {describeItem(item) && (
-                            <span className="text-ink-muted"> · {describeItem(item)}</span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                    {prescription.notes && (
-                      <p className="mt-1 whitespace-pre-wrap text-label text-ink-muted">
-                        {prescription.notes}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex shrink-0 items-center gap-1.5">
+      <ol data-testid="prescriptions-list" className="grid gap-4 md:grid-cols-2">
+        {ordered.map(({ prescription, visitDate }) => (
+          <li key={prescription.id} className="flex min-w-0 flex-col">
+            <EntityCard
+              data-testid={`prescription-${prescription.id}`}
+              className="flex-1"
+              icon="file"
+              title={
+                visitDate
+                  ? `${t("prescriptions.visit")} ${visitMoment(visitDate)}`
+                  : t("prescriptions.withoutVisit")
+              }
+              subtitle={`${t("prescriptions.writtenBy")}: ${doctorName(prescription.doctorId)}`}
+              {...((mayWrite || mayDelete) && {
+                menu: (
+                  <RowMenu
+                    label={t("prescriptions.menu")}
+                    data-testid={`prescription-${prescription.id}-menu`}
+                  >
                     {mayWrite && (
-                      <Button
-                        icon={<Icon name="edit" />}
-                        variant="ghost"
-                        size="sm"
+                      <MenuItem
+                        icon="edit"
                         data-testid={`prescription-${prescription.id}-edit`}
-                        onClick={() => {
+                        onSelect={() => {
                           setEditing(prescription);
                           setFormOpen(true);
                         }}
                       >
                         {t("common.edit")}
-                      </Button>
+                      </MenuItem>
                     )}
                     {mayDelete && (
-                      <Button
-                        icon={<Icon name="trash" />}
-                        variant="quiet"
-                        size="sm"
+                      <MenuItem
+                        icon="trash"
+                        tone="danger"
                         data-testid={`prescription-${prescription.id}-delete`}
-                        onClick={() => destroy(prescription)}
+                        onSelect={() => destroy(prescription)}
                       >
                         {t("common.delete")}
-                      </Button>
+                      </MenuItem>
                     )}
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </RowMenu>
+                ),
+              })}
+            >
+              {prescription.notes && (
+                <NotePreview
+                  data-testid={`prescription-${prescription.id}-notes`}
+                  className="mt-3"
+                  text={prescription.notes}
+                  title="prescriptions.notesTitle"
+                />
+              )}
+
+              {prescription.items.length > 0 && (
+                <div className="mt-auto flex pt-4">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon={<Icon name="list" />}
+                    data-testid={`prescription-${prescription.id}-drugs`}
+                    onClick={() => setDrugsFor(prescription.id)}
+                  >
+                    {t("prescriptions.showDrugs", { count: prescription.items.length })}
+                  </Button>
+                </div>
+              )}
+            </EntityCard>
           </li>
         ))}
       </ol>
+
+      <Modal
+        data-testid="prescription-drugs-modal"
+        open={drugsEntry !== undefined}
+        onOpenChange={(open) => !open && setDrugsFor(null)}
+        title={drugsEntry?.visitDate ? "prescriptions.drugsOf" : "prescriptions.drugsTitle"}
+        titleValues={{ date: drugsEntry?.visitDate ? shortDate(drugsEntry.visitDate) : "" }}
+        size="lg"
+      >
+        {drugsEntry && (
+          <ol className="flex flex-col gap-1.5">
+            {drugsEntry.prescription.items.map((item, index) =>
+              renderDrug(drugsEntry.prescription, item, index, "prescription-drugs-modal"),
+            )}
+          </ol>
+        )}
+      </Modal>
 
       <PrescriptionFormModal
         open={formOpen}

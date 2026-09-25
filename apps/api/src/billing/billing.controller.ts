@@ -62,7 +62,9 @@ export class PatientBillingController {
   ): Promise<Statement> {
     await this.patientAccess.requirePatientId(actor, params.patientId);
 
-    return this.ledger.statementFor(actor.clinicId, params.patientId, query);
+    return this.ledger.statementFor(actor.clinicId, params.patientId, query, {
+      includeDeleted: actor.role === USER_ROLE.ADMIN,
+    });
   }
 
   @Get("statement.pdf")

@@ -227,6 +227,77 @@ describe("Prescriptions tab", () => {
     });
   });
 
+  it("names the linked visit by its date and a Latin AM/PM time", async () => {
+    const visit = makeVisit();
+    await openTab(ar.patients.tabs.prescriptions, {
+      "GET /visits": { status: 200, body: paginated([visit]) },
+    });
+
+    await userEvent.click(await screen.findByRole("button", { name: ar.prescriptions.create }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(ar.prescriptions.linkedVisit)).toBeInTheDocument();
+    expect(within(dialog).getByText(ar.prescriptions.linkedVisitHint)).toBeInTheDocument();
+
+    const field = within(dialog).getByTestId("prescription-field-visit");
+    await waitFor(() =>
+      expect(field).toHaveTextContent(/1 Feb 2026\u2069? · \d{1,2}:\d{2} (AM|PM)/),
+    );
+    expect(field.textContent).not.toMatch(/[صم]/);
+  });
+
+  it("shows a prescription as a card: visit and doctor on top, its drugs behind a button", async () => {
+    const visit = makeVisit();
+    const prescription = {
+      id: "77777777-7777-4777-8777-777777777777",
+      clinicId: visit.clinicId,
+      patientId: PATIENT_ID,
+      visitId: visit.id,
+      doctorId: visit.doctorId,
+      items: [
+        {
+          drug: "Amoxicillin 500 mg",
+          dose: "1 capsule",
+          frequency: "every 8 hours",
+          duration: "5 days",
+        },
+        { drug: "Ibuprofen 400 mg", dose: null, frequency: null, duration: "3 days" },
+      ],
+      notes: "Take with food\nStop if a rash appears",
+      createdAt: visit.createdAt,
+      updatedAt: visit.updatedAt,
+    };
+    await openTab(ar.patients.tabs.prescriptions, {
+      "GET /visits": { status: 200, body: paginated([visit]) },
+      "GET /prescriptions": { status: 200, body: paginated([prescription]) },
+    });
+
+    const card = await screen.findByTestId(`prescription-${prescription.id}`);
+    expect(within(card).getByTestId(`prescription-${prescription.id}-title`)).toHaveTextContent(
+      /1 Feb 2026\u2069? · \d{1,2}:\d{2} (AM|PM)/,
+    );
+    expect(within(card).getByRole("button", { name: ar.prescriptions.menu })).toBeInTheDocument();
+
+    expect(card).not.toHaveTextContent("Amoxicillin");
+
+    await userEvent.click(
+      within(card).getByRole("button", {
+        name: ar.prescriptions.showDrugs.replace("{{count}}", "2"),
+      }),
+    );
+
+    const dialog = await screen.findByTestId("prescription-drugs-modal");
+    const drug = within(dialog).getByTestId(`prescription-drugs-modal-${prescription.id}-drug-0`);
+    expect(drug).toHaveTextContent("Amoxicillin 500 mg");
+    expect(drug).toHaveTextContent("1 capsule · every 8 hours · 5 days");
+    expect(within(dialog).getAllByRole("listitem")).toHaveLength(2);
+    await userEvent.keyboard("{Escape}");
+
+    const notes = within(card).getByTestId(`prescription-${prescription.id}-notes`);
+    expect(notes).toHaveTextContent("Take with food");
+    expect(notes).not.toHaveTextContent("rash");
+  });
+
   it("deletes a prescription only after the confirmation", async () => {
     const visit = makeVisit();
     const prescription = {
@@ -245,14 +316,17 @@ describe("Prescriptions tab", () => {
       "GET /prescriptions": { status: 200, body: paginated([prescription]) },
       [`DELETE /prescriptions/${prescription.id}`]: { status: 204 },
     });
-    const deleteButton = await screen.findByRole("button", { name: ar.common.delete });
     const deletes = () => api.calls.filter((entry) => entry.method === "DELETE");
+    const chooseDelete = async (): Promise<void> => {
+      await userEvent.click(await screen.findByRole("button", { name: ar.prescriptions.menu }));
+      await userEvent.click(await screen.findByRole("menuitem", { name: ar.common.delete }));
+    };
 
-    await userEvent.click(deleteButton);
+    await chooseDelete();
     await userEvent.click(await screen.findByRole("button", { name: ar.common.cancel }));
     expect(deletes()).toHaveLength(0);
 
-    await userEvent.click(deleteButton);
+    await chooseDelete();
     await userEvent.click(await screen.findByRole("button", { name: ar.common.deleteForever }));
     await waitFor(() => expect(deletes()).toHaveLength(1));
   });
@@ -307,6 +381,143 @@ describe("Treatment plans tab", () => {
 
     expect(within(total as HTMLElement).getByText(/290/)).toBeInTheDocument();
     expect(within(remaining as HTMLElement).getByText(/40/)).toBeInTheDocument();
+  });
+
+  it("shows a note's first line, and the whole note behind show more", async () => {
+    const noted = makeTreatmentPlan({
+      id: "noted",
+      notes: "Start with the lower molars\nThen the upper crown once the gum heals",
+    });
+
+    await openTab(ar.patients.tabs.treatmentPlans, {
+      "GET /treatment-plans": { status: 200, body: paginated([noted]) },
+    });
+
+    const preview = await screen.findByTestId("treatment-plan-noted-notes");
+    expect(within(preview).getByText("Start with the lower molars")).toBeInTheDocument();
+    expect(within(preview).queryByText(/upper crown/)).toBeNull();
+
+    await userEvent.click(within(preview).getByRole("button", { name: ar.common.showMore }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent("Then the upper crown once the gum heals");
+  });
+
+  it("breaks a tie in added time by the plan's own order, the later step first", async () => {
+    const sameMoment = "2026-01-01T09:00:00.000Z";
+    const tied = makeTreatmentPlan({
+      id: "tied",
+      items: [
+        makePlanItem({ id: "t1", sortOrder: 0, createdAt: sameMoment }),
+        makePlanItem({ id: "t2", sortOrder: 1, createdAt: sameMoment }),
+        makePlanItem({ id: "t3", sortOrder: 2, createdAt: sameMoment }),
+        makePlanItem({ id: "t4", sortOrder: 3, createdAt: "2026-02-01T09:00:00.000Z" }),
+        makePlanItem({ id: "t5", sortOrder: 4, createdAt: "2026-03-01T09:00:00.000Z" }),
+      ],
+    });
+
+    await openTab(ar.patients.tabs.treatmentPlans, {
+      "GET /treatment-plans": { status: 200, body: paginated([tied]) },
+    });
+
+    const card = await screen.findByTestId("treatment-plan-items");
+    const numbers = within(card)
+      .getAllByRole("listitem")
+      .map((row) => row.textContent?.trim().charAt(0));
+    expect(numbers).toEqual(["5", "4", "3"]);
+  });
+
+  it("shows each item's date and its note behind show more", async () => {
+    const plan = makeTreatmentPlan({
+      id: "dated",
+      createdAt: "2026-05-17T09:00:00.000Z",
+      items: [
+        makePlanItem({
+          id: "n1",
+          createdAt: "2026-09-26T09:00:00.000Z",
+          notes: "Check the bite first\nThen polish",
+        }),
+      ],
+    });
+
+    await openTab(ar.patients.tabs.treatmentPlans, {
+      "GET /treatment-plans": { status: 200, body: paginated([plan]) },
+    });
+
+    const row = await screen.findByTestId("treatment-plan-item-n1");
+    expect(within(row).getByTestId("treatment-plan-item-date")).toHaveTextContent("26 Sep 2026");
+    expect(screen.getByTestId("treatment-plan-dated")).toHaveTextContent("17 May 2026");
+
+    const note = within(row).getByTestId("treatment-plan-item-n1-notes");
+    expect(note).toHaveTextContent("Check the bite first");
+    await userEvent.click(within(note).getByRole("button", { name: ar.common.showMore }));
+    expect(await screen.findByRole("dialog")).toHaveTextContent("Then polish");
+  });
+
+  it("keeps a long plan's card to its three newest items, and lists them all in a dialog", async () => {
+    const long = makeTreatmentPlan({
+      id: "long",
+      items: Array.from({ length: 6 }, (_, index) =>
+        makePlanItem({
+          id: `p${index + 1}`,
+          sortOrder: index,
+          createdAt: `2026-01-0${index + 1}T09:00:00.000Z`,
+        }),
+      ),
+    });
+
+    await openTab(ar.patients.tabs.treatmentPlans, {
+      "GET /treatment-plans": { status: 200, body: paginated([long]) },
+    });
+
+    const card = await screen.findByTestId("treatment-plan-items");
+    const onCard = within(card)
+      .getAllByRole("listitem")
+      .map((row) => row.getAttribute("data-testid"));
+    expect(onCard).toEqual([
+      "treatment-plan-item-p6",
+      "treatment-plan-item-p5",
+      "treatment-plan-item-p4",
+    ]);
+
+    await userEvent.click(screen.getByTestId("treatment-plan-long-all-items"));
+
+    const dialog = await screen.findByTestId("treatment-plan-items-modal");
+    const inDialog = within(dialog)
+      .getAllByRole("listitem")
+      .map((row) => row.getAttribute("data-testid"));
+    expect(inDialog).toEqual(
+      [6, 5, 4, 3, 2, 1].map((n) => `treatment-plan-items-modal-item-p${n}`),
+    );
+  });
+
+  it("shows a plan of four whole, with no link to the rest", async () => {
+    const four = makeTreatmentPlan({
+      id: "four",
+      items: Array.from({ length: 4 }, (_, index) =>
+        makePlanItem({ id: `f${index}`, sortOrder: index }),
+      ),
+    });
+
+    await openTab(ar.patients.tabs.treatmentPlans, {
+      "GET /treatment-plans": { status: 200, body: paginated([four]) },
+    });
+
+    const card = await screen.findByTestId("treatment-plan-items");
+    expect(within(card).getAllByRole("listitem")).toHaveLength(4);
+    expect(screen.queryByTestId("treatment-plan-four-all-items")).toBeNull();
+  });
+
+  it("offers no show more for a note that fits on its line", async () => {
+    await openTab(ar.patients.tabs.treatmentPlans, {
+      "GET /treatment-plans": {
+        status: 200,
+        body: paginated([makeTreatmentPlan({ id: "short", notes: "Two visits" })]),
+      },
+    });
+
+    const preview = await screen.findByTestId("treatment-plan-short-notes");
+    expect(within(preview).queryByRole("button", { name: ar.common.showMore })).toBeNull();
   });
 
   it("converts an item through the existing endpoint", async () => {
@@ -616,5 +827,81 @@ describe("Imaging tab", () => {
     await openTab(ar.patients.tabs.attachments);
 
     expect(await screen.findByText(ar.imaging.empty)).toBeInTheDocument();
+  });
+});
+
+describe("Timeline tab", () => {
+  beforeEach(() => authTokens.clear());
+
+  const entry = (id: string, type: "visit" | "payment", title: string) => ({
+    id,
+    type,
+    occurredAt: "2026-07-15T09:45:00.000Z",
+    title,
+    detail: type === "visit" ? { complaint: "Broken old filling" } : {},
+  });
+
+  const timelineUrl = `GET /patients/${PATIENT_ID}/timeline`;
+
+  it("lists the entries as a table, a page at a time, with the count at the end", async () => {
+    const api = await openTab(ar.patients.tabs.timeline, {
+      [timelineUrl]: {
+        status: 200,
+        body: paginated(
+          [
+            entry("11111111-aaaa-4aaa-8aaa-111111111111", "visit", "Impacted tooth"),
+            entry("22222222-aaaa-4aaa-8aaa-222222222222", "payment", "Cash"),
+          ],
+          { total: 60, totalPages: 3 },
+        ),
+      },
+    });
+
+    const table = await screen.findByTestId("timeline-table");
+    expect(within(table).getByText("Impacted tooth")).toBeInTheDocument();
+    expect(within(table).getByText("Broken old filling")).toBeInTheDocument();
+    expect(within(table).getAllByTestId("timeline-row-date")[0]).toHaveTextContent("15 Jul 2026");
+    expect(screen.getByTestId("timeline-count")).toHaveTextContent("60");
+
+    const firstCall = api.calls.find((call) => call.url.includes("/timeline"));
+    expect(firstCall?.url).toContain("page=1");
+    expect(firstCall?.url).toContain("limit=10");
+  });
+
+  it("filters by type through the address, and asks the API for that type from page one", async () => {
+    const api = await openTab(ar.patients.tabs.timeline, {
+      [timelineUrl]: { status: 200, body: paginated([]) },
+    });
+
+    await choose(
+      await screen.findByTestId("timeline-filter-kind"),
+      ar.patients.timeline.types.visit,
+    );
+
+    await waitFor(() => {
+      const last = api.calls.filter((call) => call.url.includes("/timeline")).at(-1);
+      expect(last?.url).toContain("type=visit");
+      expect(last?.url).toContain("page=1");
+    });
+    expect(await screen.findByText(ar.patients.timeline.noneOfType)).toBeInTheDocument();
+  });
+
+  it("keeps the chosen type when filtering from a later page, and goes back to page one", async () => {
+    authTokens.clear();
+    const api = mockApi(
+      handlers({ [timelineUrl]: { status: 200, body: paginated([], { page: 2, totalPages: 3 }) } }),
+    );
+    renderWithProviders(<AppRoutes />, { route: `/patients/${PATIENT_ID}?tab=timeline&page=2` });
+
+    await choose(
+      await screen.findByTestId("timeline-filter-kind"),
+      ar.patients.timeline.types.payment,
+    );
+
+    await waitFor(() => {
+      const last = api.calls.filter((call) => call.url.includes("/timeline")).at(-1);
+      expect(last?.url).toContain("type=payment");
+      expect(last?.url).toContain("page=1");
+    });
   });
 });

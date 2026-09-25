@@ -218,7 +218,7 @@ export function VisitFormModal({
                   <TimePicker
                     id="visit-time"
                     data-testid="visit-field-time"
-                    className="w-32"
+                    className="w-36"
                     label={t("visits.time")}
                     value={time}
                     onChange={(next) => field.onChange(joinLocal(date, next))}

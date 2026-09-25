@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { personNameSchema } from "@shared/schemas/person-name";
 import { LEDGER_ENTRY_KINDS } from "@shared/enums";
 import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
 import { signedMoneySchema, wholeMoneySchema } from "@shared/schemas/money";
@@ -86,6 +87,12 @@ export const statementEntrySchema = z.object({
   runningBalance: signedMoneySchema,
   receiptNumber: z.number().int().positive().nullable(),
   isReversal: z.boolean(),
+  /** A payment an admin has already reversed: nothing more can be done to it. */
+  isReversed: z.boolean(),
+  note: z.string().nullable(),
+  /** Only on an admin's statement: a deleted payment, kept for the record, outside the balance. */
+  deletedAt: z.iso.datetime().optional(),
+  deletedBy: personNameSchema.optional(),
 });
 export type StatementEntry = z.infer<typeof statementEntrySchema>;
 

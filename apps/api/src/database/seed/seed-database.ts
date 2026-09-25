@@ -77,6 +77,7 @@ import {
   PLAN_STATUSES,
   discountFor,
   medicalHistory,
+  planNotes,
   planTitle,
   prescriptionItems,
   procedureStatus,
@@ -515,6 +516,7 @@ async function writePlans(db: Database, ctx: WriteContext): Promise<SeedCounts> 
     patientId: patient.id,
     doctorId: ctx.doctorIds[index % ctx.doctorIds.length] as string,
     title: planTitle(ctx.rng),
+    notes: planNotes(ctx.rng),
     status: PLAN_STATUSES[index % PLAN_STATUSES.length] as (typeof PLAN_STATUSES)[number],
     createdAt: earlier(ctx.now, ctx.rng.int(10, 300)),
     ...ctx.audit,
@@ -539,7 +541,7 @@ async function writePlans(db: Database, ctx: WriteContext): Promise<SeedCounts> 
           : (PLAN_ITEM_STATUSES[
               (planIndex + sortOrder) % PLAN_ITEM_STATUSES.length
             ] as (typeof PLAN_ITEM_STATUSES)[number]),
-      createdAt: plan.createdAt,
+      createdAt: new Date(plan.createdAt.getTime() + sortOrder * 2 * 86_400_000),
       ...ctx.audit,
     })),
   );

@@ -71,3 +71,43 @@ describe("the rail's scrollbar", () => {
     }
   });
 });
+
+// Tablets get the phone's chrome, a 1024px landscape one included: the rail only from 1025px.
+describe("where the rail gives way to the drawer", () => {
+  afterEach(async () => {
+    await page.viewport(1280, 800);
+  });
+
+  const renderDashboard = async (): Promise<void> => {
+    authTokens.clear();
+    mockApi({
+      "POST /auth/refresh": { status: 200, body: { accessToken: "access", expiresIn: 900 } },
+      "GET /me": { status: 200, body: makeProfile({ role: USER_ROLE.ADMIN }) },
+      "GET /clinic": { status: 200, body: makeClinic() },
+      "GET /dashboard/summary": { status: 200, body: makeDashboardSummary() },
+      "GET /appointments/pending-confirmation": { status: 200, body: paginated([]) },
+      "GET /appointments/calendar": { status: 200, body: makeCalendarFeed() },
+      "GET /notes": { status: 200, body: paginated([]) },
+    });
+    renderWithProviders(<AppRoutes />, { route: "/dashboard" });
+    await screen.findByTestId("app-topbar");
+  };
+
+  const shown = (testId: string): boolean => element(testId).getBoundingClientRect().width > 0;
+
+  it.each([390, 820, 1024])("is a menu button and a drawer at %ipx", async (width) => {
+    await page.viewport(width, 800);
+    await renderDashboard();
+
+    expect(shown("app-rail")).toBe(false);
+    expect(shown("app-nav-toggle")).toBe(true);
+  });
+
+  it.each([1025, 1280])("is the rail from %ipx", async (width) => {
+    await page.viewport(width, 800);
+    await renderDashboard();
+
+    expect(shown("app-rail")).toBe(true);
+    expect(shown("app-nav-toggle")).toBe(false);
+  });
+});

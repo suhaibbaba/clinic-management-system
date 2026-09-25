@@ -1,3 +1,4 @@
+import { to12Hour } from "@clinic/ui";
 import i18n from "@web/i18n";
 import { clinicTimeZone } from "@web/lib/clinic-zone";
 
@@ -65,6 +66,12 @@ export function dayMonthYear(iso: string): {
   return { day: read("day"), month: read("month"), year: read("year") };
 }
 
+/** `16 May 2026`, isolated: inside an Arabic sentence "1 Sep" would otherwise read "Sep 1". */
+export function shortDate(iso: string): string {
+  const { day, month, year } = dayMonthYear(iso);
+  return `\u2066${day} ${month} ${year}\u2069`;
+}
+
 export function formatClinicTime(iso: string): string {
   return new Intl.DateTimeFormat("en-GB", {
     timeZone: clinicTimeZone(),
@@ -72,6 +79,11 @@ export function formatClinicTime(iso: string): string {
     minute: "2-digit",
     hour12: false,
   }).format(new Date(iso));
+}
+
+/** `26 Sep 2026 · 9:30 AM` in the clinic's zone: AM/PM in Latin in either language. */
+export function visitMoment(iso: string): string {
+  return `${shortDate(iso)} · ${to12Hour(formatClinicTime(iso))}`;
 }
 
 export function formatClinicDate(iso: string): string {

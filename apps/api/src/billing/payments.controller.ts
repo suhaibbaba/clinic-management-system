@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Header, Param, Post, Query } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Header,
+  HttpCode,
+  Param,
+  Post,
+  Query,
+} from "@nestjs/common";
 import {
   AUDIT_ACTION,
   createPaymentSchema,
@@ -86,11 +96,11 @@ export class PaymentsController {
   @Delete(":id")
   @Roles(USER_ROLE.ADMIN)
   @Audit(PAYMENTS_ENTITY, AUDIT_ACTION.DELETE)
-  remove(
+  @HttpCode(204)
+  async remove(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
-    @Body() body: ReversePaymentDto,
-  ): Promise<Payment> {
-    return this.payments.reverse(actor, params.id, body);
+  ): Promise<void> {
+    await this.payments.softDelete(actor, params.id);
   }
 }

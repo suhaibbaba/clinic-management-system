@@ -28,7 +28,7 @@ export function NavDrawer({
         <DialogPrimitive.Overlay
           data-testid="nav-drawer-overlay"
           className={cn(
-            "fixed inset-0 z-40 bg-ink/50 backdrop-blur-[2px] md:hidden",
+            "fixed inset-0 z-40 bg-ink/50 backdrop-blur-[2px] rail:hidden",
             "data-[state=open]:animate-[fade-in_200ms_ease-out]",
             "data-[state=closed]:animate-[fade-out_150ms_ease-in]",
           )}
@@ -45,7 +45,7 @@ export function NavDrawer({
           tabIndex={-1}
           aria-label={title}
           className={cn(
-            "fixed inset-y-0 start-0 z-50 flex w-[86%] max-w-[320px] flex-col md:hidden",
+            "fixed inset-y-0 start-0 z-50 flex w-[86%] max-w-[320px] flex-col rail:hidden",
             // `bg-rail`, not `bg-surface`: on a phone this panel is the rail, and it carries the
             // same tint the rail does on a laptop.
             "bg-rail shadow-drawer",

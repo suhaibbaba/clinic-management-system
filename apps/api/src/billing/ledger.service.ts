@@ -8,6 +8,7 @@ import {
   type LedgerEntryKind,
   type Money,
   type PatientBalance,
+  type PersonName,
   type Statement,
   type StatementEntry,
   type StatementQuery,
@@ -15,7 +16,14 @@ import {
 import { and, eq, isNull, sql, type SQL } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { charges, payments, performedProcedures, procedureCatalog } from "@api/database/schema";
+import { toPersonName } from "@api/common/person-name";
+import {
+  charges,
+  payments,
+  performedProcedures,
+  procedureCatalog,
+  users,
+} from "@api/database/schema";
 
 export interface PeriodTotals {
   readonly charged: Money;
@@ -31,6 +39,15 @@ interface LedgerLine {
   readonly description: string;
   readonly receiptNumber: number | null;
   readonly isReversal: boolean;
+  readonly isReversed: boolean;
+  readonly note: string | null;
+  readonly deletedAt: Date | null;
+  readonly deletedBy: PersonName | null;
+}
+
+export interface StatementOptions {
+  /** An admin's view: deleted payments stay on the page, outside the balance (ROLES.md rule 4). */
+  readonly includeDeleted?: boolean;
 }
 
 // A balance is never stored: every read is a SQL aggregate, and reversing entries carry negative
@@ -40,7 +57,7 @@ export class LedgerService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
   /** A patient's balance as a SQL expression, for a `where` or an `order by` over many. */
-  static balanceOf(clinicId: string, patientId: PgColumn): SQL {
+  static balanceOf(clinicId: string, patientId: PgColumn | string): SQL {
     return sql`(
       coalesce((
         select sum(amount - discount) from charges
@@ -166,6 +183,7 @@ export class LedgerService {
     clinicId: string,
     patientId: string,
     query: StatementQuery,
+    options: StatementOptions = {},
   ): Promise<Statement> {
     const from = query.from ? new Date(query.from) : null;
     const to = query.to ? new Date(query.to) : null;
@@ -179,6 +197,7 @@ export class LedgerService {
           discount: charges.discount,
           note: charges.note,
           reversesId: charges.reversesId,
+          reversedAt: charges.reversedAt,
           procedureName: procedureCatalog.name,
         })
         .from(charges)
@@ -192,13 +211,19 @@ export class LedgerService {
           ),
         ),
       this.db
-        .select()
+        .select({
+          payment: payments,
+          deletedByAr: users.nameAr,
+          deletedByEn: users.nameEn,
+        })
         .from(payments)
+        // A deleted row is never updated again, so its last editor is whoever deleted it.
+        .leftJoin(users, eq(users.id, payments.updatedBy))
         .where(
           and(
             eq(payments.clinicId, clinicId),
             eq(payments.patientId, patientId),
-            isNull(payments.deletedAt),
+            options.includeDeleted ? undefined : isNull(payments.deletedAt),
           ),
         ),
     ]);
@@ -212,8 +237,12 @@ export class LedgerService {
         description: row.procedureName ?? row.note ?? "",
         receiptNumber: null,
         isReversal: row.reversesId !== null,
+        isReversed: row.reversedAt !== null,
+        note: row.note,
+        deletedAt: null,
+        deletedBy: null,
       })),
-      ...paymentRows.map((row) => ({
+      ...paymentRows.map(({ payment: row, deletedByAr, deletedByEn }) => ({
         id: row.id,
         kind: LEDGER_ENTRY_KIND.PAYMENT,
         occurredAt: row.createdAt,
@@ -221,6 +250,13 @@ export class LedgerService {
         description: row.note ?? "",
         receiptNumber: row.receiptNumber,
         isReversal: row.reversesId !== null,
+        isReversed: row.reversedAt !== null,
+        note: row.note,
+        deletedAt: row.deletedAt,
+        deletedBy:
+          row.deletedAt && deletedByAr !== null && deletedByEn !== null
+            ? toPersonName(deletedByAr, deletedByEn)
+            : null,
       })),
     ].sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime() || a.id.localeCompare(b.id));
 
@@ -233,7 +269,9 @@ export class LedgerService {
         break;
       }
 
-      running = addMoney(running, line.amount);
+      if (!line.deletedAt) {
+        running = addMoney(running, line.amount);
+      }
 
       if (from && line.occurredAt < from) {
         opening = running;
@@ -249,6 +287,12 @@ export class LedgerService {
         runningBalance: running,
         receiptNumber: line.receiptNumber,
         isReversal: line.isReversal,
+        isReversed: line.isReversed,
+        note: line.note,
+        ...(line.deletedAt && {
+          deletedAt: line.deletedAt.toISOString(),
+          ...(line.deletedBy && { deletedBy: line.deletedBy }),
+        }),
       });
     }
 

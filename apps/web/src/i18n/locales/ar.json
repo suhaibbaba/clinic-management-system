@@ -11,11 +11,13 @@
     "save": "حفظ",
     "saving": "جارٍ الحفظ",
     "cancel": "إلغاء",
+    "confirm": "تأكيد",
     "edit": "تعديل",
     "search": "بحث",
     "loading": "جارٍ التحميل",
     "updating": "جارٍ التحديث",
     "actions": "إجراءات",
+    "showMore": "عرض المزيد",
     "close": "إغلاق",
     "retry": "إعادة المحاولة",
     "all": "الكل",
@@ -45,7 +47,7 @@
       "selectMethod": "اختر طريقة الدفع",
       "selectType": "اختر نوع المرفق",
       "date": "يوم/شهر/سنة",
-      "time": "--:--",
+      "time": "اختر الوقت",
       "dateRange": "اختر مدة",
       "fullNameAr": "الاسم الكامل بالعربية",
       "fullNameEn": "الاسم الكامل بالإنجليزية",
@@ -62,7 +64,6 @@
     "today": "اليوم",
     "done": "تم",
     "openCalendar": "فتح التقويم",
-    "openTimes": "اختيار الوقت",
     "notSpecified": "غير محدد",
     "calendar": {
       "chooseMonth": "اختيار الشهر",
@@ -75,7 +76,8 @@
     "showPassword": "إظهار كلمة المرور",
     "hidePassword": "إخفاء كلمة المرور",
     "deleteForever": "حذف نهائي",
-    "noMatches": "لا توجد نتائج"
+    "noMatches": "لا توجد نتائج",
+    "continue": "متابعة"
   },
   "pagination": {
     "goToPage": "الصفحة {{page}}",
@@ -435,6 +437,10 @@
     "clinicalDelete": {
       "hasPayments": "لا يمكن الحذف — يوجد دفعات مرتبطة؛ ألغِ الدفعات أولاً أو استخدم تصحيحاً"
     },
+    "payment": {
+      "exceedsBalance": "المبلغ أكبر من الرصيد المستحق على المريض",
+      "reversed": "لا يمكن حذف دفعة ملغاة أو قيد إلغاء؛ الرصيد يعتمد على الاثنين معاً"
+    },
     "stock": {
       "insufficient": "الكمية أكبر من المتوفّر في المخزون؛ أضِف كمية أو صحّح المخزون أولاً"
     }
@@ -486,6 +492,17 @@
       "empty": "لا توجد أحداث بعد",
       "emptyHint": "ستظهر هنا الزيارات والمعالجات والصور والأعمال المخبرية",
       "loadFailed": "تعذّر تحميل السجل",
+      "count": "{{count}} حدث",
+      "filterByType": "نوع الحدث",
+      "allTypes": "كل الأنواع",
+      "noneOfType": "لا أحداث من هذا النوع",
+      "noneOfTypeHint": "اختر نوعاً آخر أو كل الأنواع»",
+      "columns": {
+        "date": "التاريخ",
+        "title": "الحدث",
+        "type": "النوع",
+        "detail": "التفاصيل"
+      },
       "types": {
         "visit": "زيارة",
         "procedure": "معالجة",
@@ -575,7 +592,16 @@
     "noVisits": "لا توجد زيارات لهذا المريض",
     "noVisitsHint": "أضف زيارة من تبويب «الزيارات» أولاً، ثم اربط الوصفة بها",
     "visit": "الزيارة",
+    "linkedVisit": "الزيارة المرتبطة",
+    "linkedVisitHint": "الزيارة التي كُتبت فيها الوصفة؛ أحدث زيارة مختارة مسبقاً",
     "withoutVisit": "بدون زيارة",
+    "writtenBy": "كتبها",
+    "menu": "خيارات الوصفة",
+    "noteOf": "ملاحظة «{{name}}»",
+    "notesTitle": "ملاحظات الوصفة",
+    "showDrugs": "عرض الأدوية ({{count}})",
+    "drugsOf": "أدوية وصفة زيارة {{date}}",
+    "drugsTitle": "أدوية الوصفة",
     "drug": "الدواء",
     "dose": "الجرعة",
     "frequency": "التكرار",
@@ -692,6 +718,9 @@
     "titleHint": "مثال: ترميم الفك العلوي",
     "responsibleDoctor": "الطبيب المسؤول",
     "notes": "ملاحظات",
+    "notesOf": "ملاحظات «{{title}}»",
+    "showAllItems": "عرض كل البنود ({{count}})",
+    "itemsOf": "بنود «{{title}}»",
     "menu": "خيارات الخطة",
     "itemMenu": "خيارات البند",
     "confirmDelete": {
@@ -731,6 +760,12 @@
     "dueToday": "مستحق اليوم",
     "lastPayment": "آخر دفعة",
     "recordPayment": "تسجيل دفعة",
+    "confirmPayment": {
+      "title": "تسجيل دفعة بقيمة {{amount}}؟",
+      "method": "طريقة الدفع: {{method}}",
+      "remaining": "يبقى على المريض بعدها: {{amount}}",
+      "permanent": "يُطبع الإيصال بعد الحفظ، ولا تُعدّل الدفعة بعد تسجيلها"
+    },
     "recordAndPrint": "تسجيل وطباعة الإيصال",
     "paymentRecorded": "تم تسجيل الدفعة",
     "amount": "المبلغ",
@@ -757,9 +792,21 @@
       "description": "البيان",
       "charge": "مدين",
       "payment": "دائن",
-      "balance": "الرصيد"
+      "balance": "الرصيد",
+      "note": "ملاحظات"
     },
-    "period": "المدة"
+    "period": "المدة",
+    "deleted": "محذوفة",
+    "deletedBy": "حذفها",
+    "paymentDeleted": "حُذفت الدفعة",
+    "noteTitle": "ملاحظة القيد",
+    "confirmDelete": {
+      "title": "حذف الدفعة {{receipt}}؟",
+      "balance": "تُحذف من رصيد المريض",
+      "kept": "تبقى ظاهرة للمدير في كشف الحساب مع اسم من حذفها، ويُسجَّل الحذف في سجل التدقيق"
+    },
+    "entryMenu": "خيارات القيد",
+    "balanceAfter": "الرصيد بعد هذه الدفعة: {{amount}}"
   },
   "appointments": {
     "title": "المواعيد",

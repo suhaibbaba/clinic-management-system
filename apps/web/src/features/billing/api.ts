@@ -31,5 +31,7 @@ export const billingApi = {
   reversePayment: (id: string, body: ReversePaymentInput): Promise<Payment> =>
     apiRequest(`/payments/${id}/reverse`, { method: "POST", body }),
 
+  deletePayment: (id: string): Promise<void> => apiRequest(`/payments/${id}`, { method: "DELETE" }),
+
   receiptPdf: (paymentId: string): Promise<Blob> => apiDownload(`/payments/${paymentId}/receipt`),
 };

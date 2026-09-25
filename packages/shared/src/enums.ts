@@ -991,6 +991,14 @@ export const CLINICAL_DELETE_ERROR = {
 } as const satisfies Record<string, string>;
 export type ClinicalDeleteError = EnumValue<typeof CLINICAL_DELETE_ERROR>;
 
+/** Why a payment was refused; the page words it from the code. */
+export const PAYMENT_ERROR = {
+  EXCEEDS_BALANCE: "payment_exceeds_balance",
+  /** A reversed payment, or a reversal: deleting one half would unbalance the pair. */
+  REVERSED: "payment_reversed",
+} as const satisfies Record<string, string>;
+export type PaymentError = EnumValue<typeof PAYMENT_ERROR>;
+
 /** Why a stock movement was refused; the page words it from the code. */
 export const STOCK_ERROR = {
   INSUFFICIENT: "insufficient_stock",

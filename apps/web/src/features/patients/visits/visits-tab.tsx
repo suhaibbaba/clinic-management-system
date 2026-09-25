@@ -54,7 +54,7 @@ import {
 } from "@web/features/patients/queries";
 import { VisitFormModal } from "@web/features/patients/visits/visit-form-modal";
 import { errorMessageKey } from "@web/lib/api-error";
-import { dayMonthYear, formatDate, formatList } from "@web/lib/format";
+import { dayMonthYear, formatDate, formatList, shortDate } from "@web/lib/format";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 const PROCEDURE_FORM_ID = "visit-procedure-form";
@@ -769,12 +769,6 @@ function AddTreatment({ onClick }: { readonly onClick: () => void }): JSX.Elemen
     </Button>
   );
 }
-
-// Isolated, or "1 Sep" inside an Arabic title reads as "Sep 1".
-const shortDate = (iso: string): string => {
-  const { day, month, year } = dayMonthYear(iso);
-  return `\u2066${day} ${month} ${year}\u2069`;
-};
 
 function toothLabel(procedure: PerformedProcedure): string {
   const teeth = (procedure.chartMarks ?? [])
