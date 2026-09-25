@@ -2,6 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createPatientSchema,
   GENDERS,
+  missingProfileFields,
+  type ProfileCompletionField,
   type CreatePatientInput,
   type PatientClinicalView,
 } from "@clinic/shared";
@@ -22,6 +24,7 @@ import {
 import { useCreatePatient, useUpdatePatient } from "@web/features/patients/queries";
 import { errorMessageKey } from "@web/lib/api-error";
 import { ellipsis } from "@web/i18n/ellipsis";
+import { formatList } from "@web/lib/format";
 
 interface PatientFormModalProps {
   "data-testid"?: string | undefined;
@@ -51,7 +54,15 @@ export function PatientFormModal({
     reset,
     formState: { errors, isSubmitting },
     control,
+    watch,
   } = useForm<CreatePatientInput>({ resolver: zodResolver(createPatientSchema) });
+
+  // Live, so the notice clears field by field as they are filled; shown for a file being completed,
+  // not for one being registered.
+  const missing = editing
+    ? missingProfileFields({ dateOfBirth: watch("dateOfBirth"), gender: watch("gender") })
+    : [];
+  const needed = (field: ProfileCompletionField): boolean => missing.includes(field);
 
   useEffect(() => {
     if (!open) {
@@ -130,6 +141,19 @@ export function PatientFormModal({
         onSubmit={onSubmit}
         noValidate
       >
+        {missing.length > 0 && (
+          <p
+            data-testid={`${testId}-incomplete`}
+            role="status"
+            className="flex items-start gap-2 rounded-panel bg-warning-50 px-3 py-2 text-label text-warning-800"
+          >
+            <Icon name="alert" className="mt-0.5 size-4 shrink-0" />
+            {t("patients.incompleteMissing", {
+              fields: formatList(missing.map((field) => t(`patients.${field}`))),
+            })}
+          </p>
+        )}
+
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             label="patients.firstName"
@@ -224,7 +248,7 @@ export function PatientFormModal({
           label="patients.dateOfBirth"
           htmlFor="patient-dob"
           error={errors.dateOfBirth}
-          optional
+          {...(needed("dateOfBirth") ? { hint: "patients.neededToComplete" } : { optional: true })}
         >
           <Controller
             control={control}
@@ -242,7 +266,12 @@ export function PatientFormModal({
           />
         </FormField>
 
-        <FormField label="patients.gender" htmlFor="patient-gender" error={errors.gender} optional>
+        <FormField
+          label="patients.gender"
+          htmlFor="patient-gender"
+          error={errors.gender}
+          {...(needed("gender") ? { hint: "patients.neededToComplete" } : { optional: true })}
+        >
           {/* `Controller` rather than `register`: the control is Radix's, not
               a native `<select>`, so there is no element for a ref to hold. */}
           <Controller

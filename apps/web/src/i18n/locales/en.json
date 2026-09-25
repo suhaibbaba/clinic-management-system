@@ -431,6 +431,8 @@
     }
   },
   "patients": {
+    "incompleteMissing": "This file is incomplete. Missing: {{fields}}",
+    "neededToComplete": "Needed to complete the file",
     "whatsapp": "WhatsApp",
     "whatsappHint": "Leave empty if WhatsApp is on the phone number",
     "chatOnWhatsapp": "Chat on WhatsApp",
