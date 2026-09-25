@@ -172,6 +172,23 @@ describe("Patient page", () => {
       );
       expect(screen.getByLabelText(ar.patients.lastName)).toHaveValue(makePatient().lastName);
     });
+
+    it("names what an incomplete file is missing, where the badge only says it is", async () => {
+      const user = userEvent.setup();
+      await renderPatientPage(USER_ROLE.ADMIN, {
+        [`GET /patients/${PATIENT_ID}`]: {
+          status: 200,
+          body: makePatient({ dateOfBirth: null, profileIncomplete: true }),
+        },
+      });
+
+      await user.click(await screen.findByRole("button", { name: ar.patients.edit }));
+
+      const notice = await screen.findByTestId("patient-edit-modal-incomplete");
+      expect(notice).toHaveTextContent(ar.patients.dateOfBirth);
+      expect(notice).not.toHaveTextContent(ar.patients.gender);
+      expect(screen.getByText(ar.patients.neededToComplete)).toBeInTheDocument();
+    });
   });
 
   describe("booking from the file (ROLES.md appointments matrix)", () => {

@@ -444,6 +444,8 @@
     }
   },
   "patients": {
+    "incompleteMissing": "الملف غير مكتمل، ينقصه: {{fields}}",
+    "neededToComplete": "يلزم لإكمال الملف",
     "whatsapp": "WhatsApp",
     "whatsappHint": "اتركه فارغاً إذا كان WhatsApp على رقم الهاتف نفسه",
     "chatOnWhatsapp": "تحدث عبر WhatsApp",

@@ -13,6 +13,16 @@ export const dateOnlySchema = z
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected a YYYY-MM-DD date")
   .refine((value) => !Number.isNaN(Date.parse(`${value}T00:00:00Z`)), "Not a valid date");
 
+/** What a file registered in a hurry — a booking by phone or online — is still waiting for. */
+export const PROFILE_COMPLETION_FIELDS = ["dateOfBirth", "gender"] as const;
+export type ProfileCompletionField = (typeof PROFILE_COMPLETION_FIELDS)[number];
+
+/** The fields a file lacks; empty means complete. The API's `profileIncomplete` and the form agree. */
+export const missingProfileFields = (patient: {
+  readonly dateOfBirth?: string | null | undefined;
+  readonly gender?: string | null | undefined;
+}): ProfileCompletionField[] => PROFILE_COMPLETION_FIELDS.filter((field) => !patient[field]);
+
 // ROLES.md `PatientClinicalView` — admin and doctor only. The clinical detail itself lives in the
 // related tables.
 export const patientClinicalViewSchema = z.object({

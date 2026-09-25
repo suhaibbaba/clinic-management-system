@@ -1,9 +1,10 @@
-import type {
-  Money,
-  PatientClinicalView,
-  PatientPublicView,
-  PatientView,
-  UserRole,
+import {
+  missingProfileFields,
+  type Money,
+  type PatientClinicalView,
+  type PatientPublicView,
+  type PatientView,
+  type UserRole,
 } from "@clinic/shared";
 import type { PatientRow } from "@api/patients/patient-access.service";
 import { PatientAccessService } from "@api/patients/patient-access.service";
@@ -12,8 +13,7 @@ export const PATIENTS_ENTITY = "patients";
 
 // Registered mid-flow and never finished — an appointment taken over the phone, an online booking.
 // Derived from the record rather than a column, so completing the file clears it by itself.
-const isProfileIncomplete = (row: PatientRow): boolean =>
-  row.dateOfBirth === null || row.gender === null;
+const isProfileIncomplete = (row: PatientRow): boolean => missingProfileFields(row).length > 0;
 
 export function toClinicalView(row: PatientRow): PatientClinicalView {
   return {
