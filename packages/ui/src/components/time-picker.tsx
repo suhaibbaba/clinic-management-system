@@ -1,4 +1,4 @@
-import { useState, type JSX } from "react";
+import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { FIELD_BUTTON, FIELD_TEXT, FieldLock, fieldShell } from "@ui/components/field";
 import { Icon } from "@ui/components/icon";
@@ -10,7 +10,17 @@ import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 /** `HH:mm`, 24-hour, Latin digits — the same shape the API stores. */
 const TIME = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-export const isValidTime = (value: string): boolean => TIME.test(value);
+/** `21:30` → `9:30 PM`; anything that is not `HH:mm` comes back unchanged. */
+export function to12Hour(value: string): string {
+  const match = TIME.exec(value);
+  if (!match) {
+    return value;
+  }
+
+  const hour = Number(match[1]);
+  const period = hour < 12 ? "AM" : "PM";
+  return `${hour % 12 || 12}:${match[2]} ${period}`;
+}
 
 /** Quarter hours because that is how a clinic books; offering 09:07 invites a diary nobody can read. */
 export function timeSlots(from = "00:00", to = "23:45", stepMinutes = 15): readonly string[] {
@@ -32,6 +42,14 @@ export function timeSlots(from = "00:00", to = "23:45", stepMinutes = 15): reado
   return slots;
 }
 
+// Scrolls the list itself, not the page, so the chosen time is in view when the list opens.
+function scrollToCurrent(list: HTMLUListElement | null): void {
+  const current = list?.querySelector<HTMLElement>("[aria-current]");
+  if (list && current) {
+    list.scrollTop = current.offsetTop - (list.clientHeight - current.offsetHeight) / 2;
+  }
+}
+
 export interface TimePickerProps extends TestIdProps {
   readonly id: string;
   readonly value: string;
@@ -46,8 +64,8 @@ export interface TimePickerProps extends TestIdProps {
   readonly className?: string | undefined;
 }
 
-// Bounded by `min`/`max` so it can follow the clinic's hours, with typing left open for a visit
-// recorded after hours. A native `<select>` of 96 rows is a full-screen wheel.
+// Pick-only: a typed time is how 9:07 and "930" reach a diary. A native `<select>` of 96 rows is a
+// full-screen wheel.
 export function TimePicker({
   id,
   value,
@@ -64,28 +82,7 @@ export function TimePicker({
   const { t } = useTranslation();
   const picker = usePickerOpen();
   const part = parts("time-picker", testId ?? id);
-  const [typed, setTyped] = useState(value);
-
-  const [lastValue, setLastValue] = useState(value);
-  if (value !== lastValue) {
-    setLastValue(value);
-    setTyped(value);
-  }
-
   const slots = timeSlots(min ?? "00:00", max ?? "23:45", stepMinutes);
-
-  const commit = (text: string): void => {
-    setTyped(text);
-
-    if (text.trim() === "") {
-      onChange("");
-      return;
-    }
-
-    if (isValidTime(text)) {
-      onChange(text);
-    }
-  };
 
   return (
     <Popover
@@ -95,44 +92,49 @@ export function TimePicker({
       title={label}
       {...part("popover")}
       anchor={
-        <div {...part()} className={cn(fieldShell({ hasError, disabled }), className)}>
-          <input
-            id={id}
-            {...part("input")}
-            type="text"
-            inputMode="numeric"
-            dir="ltr"
-            autoComplete="off"
-            disabled={disabled}
-            aria-invalid={hasError || undefined}
-            placeholder={t("common.placeholders.time")}
-            value={typed}
-            onChange={(event) => commit(event.target.value)}
-            {...picker.opens(false)}
-            onKeyDown={openOnArrowDown(picker.show)}
-            className={cn(FIELD_TEXT, "page-rtl:text-right page-ltr:text-left", "tabular-nums")}
-          />
+        <button
+          type="button"
+          id={id}
+          {...part()}
+          disabled={disabled}
+          aria-haspopup="listbox"
+          aria-expanded={picker.open}
+          aria-invalid={hasError || undefined}
+          {...picker.opens(true)}
+          onKeyDown={openOnArrowDown(picker.show)}
+          className={cn(
+            fieldShell({ hasError, disabled }),
+            "cursor-pointer disabled:cursor-not-allowed",
+            className,
+          )}
+        >
+          <span
+            {...part("value")}
+            dir={value === "" ? undefined : "ltr"}
+            className={cn(
+              FIELD_TEXT,
+              "self-center page-rtl:text-right page-ltr:text-left tabular-nums",
+              value === "" && "text-ink-subtle",
+            )}
+          >
+            {value === "" ? t("common.placeholders.time") : to12Hour(value)}
+          </span>
 
           {disabled ? (
             <FieldLock {...part("lock")} />
           ) : (
-            <button
-              type="button"
-              {...part("trigger")}
-              aria-label={t("common.openTimes")}
-              {...picker.opens(true)}
-              className={FIELD_BUTTON}
-            >
+            <span {...part("icon")} aria-hidden="true" className={FIELD_BUTTON}>
               <Icon name="clock" className="size-4" />
-            </button>
+            </span>
           )}
-        </div>
+        </button>
       }
     >
       <ul
         {...part("list")}
+        ref={scrollToCurrent}
         aria-label={label}
-        className="max-h-64 w-full min-w-40 overflow-y-auto md:max-h-72"
+        className="relative max-h-64 w-full min-w-40 overflow-y-auto md:max-h-72"
       >
         {slots.map((slot) => (
           <li key={slot}>
@@ -152,7 +154,7 @@ export function TimePicker({
                 slot === value ? "bg-primary-600 text-ink-inverse" : "text-ink hover:bg-inset",
               )}
             >
-              {slot}
+              {to12Hour(slot)}
               {slot === value && <Icon name="check" className="size-4" />}
             </button>
           </li>

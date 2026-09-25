@@ -226,7 +226,7 @@ function RangeRow({
           id={`${id}-start`}
           data-testid={`hours-range-${weekday}-${index}-start`}
           label={t("schedule.from")}
-          className="w-32"
+          className="w-36"
           disabled={disabled}
           value={range.start}
           onChange={(start) => onChange({ ...range, start })}
@@ -239,7 +239,7 @@ function RangeRow({
           id={`${id}-end`}
           data-testid={`hours-range-${weekday}-${index}-end`}
           label={t("schedule.to")}
-          className="w-32"
+          className="w-36"
           disabled={disabled}
           // The end cannot precede the start, so the list starts there — the
           // schema refuses an inverted range and this stops it being offered.

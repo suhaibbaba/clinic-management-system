@@ -45,7 +45,7 @@
       "selectMethod": "اختر طريقة الدفع",
       "selectType": "اختر نوع المرفق",
       "date": "يوم/شهر/سنة",
-      "time": "--:--",
+      "time": "اختر الوقت",
       "dateRange": "اختر مدة",
       "fullNameAr": "الاسم الكامل بالعربية",
       "fullNameEn": "الاسم الكامل بالإنجليزية",
@@ -62,7 +62,6 @@
     "today": "اليوم",
     "done": "تم",
     "openCalendar": "فتح التقويم",
-    "openTimes": "اختيار الوقت",
     "notSpecified": "غير محدد",
     "calendar": {
       "chooseMonth": "اختيار الشهر",

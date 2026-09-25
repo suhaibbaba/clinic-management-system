@@ -45,7 +45,7 @@
       "selectMethod": "Select a payment method",
       "selectType": "Select an attachment type",
       "date": "dd/mm/yyyy",
-      "time": "--:--",
+      "time": "Select a time",
       "dateRange": "Choose a period",
       "fullNameAr": "Full name in Arabic",
       "fullNameEn": "Full name in English",
@@ -62,7 +62,6 @@
     "today": "Today",
     "done": "Done",
     "openCalendar": "Open the calendar",
-    "openTimes": "Choose a time",
     "notSpecified": "Not specified",
     "calendar": {
       "chooseMonth": "Choose month",
