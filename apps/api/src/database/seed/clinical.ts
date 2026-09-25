@@ -90,42 +90,42 @@ export function planTitle(rng: Rng): string {
 
 const DRUGS: readonly PrescriptionItem[] = [
   {
-    drug: "أموكسيسيلين 500 ملغ",
+    drug: "Amoxicillin 500 mg",
     dose: "كبسولة",
     frequency: "كل 8 ساعات",
     duration: "5 أيام",
     note: null,
   },
   {
-    drug: "أموكسيسيلين/كلافولانيك 1 غ",
+    drug: "Amoxicillin/clavulanate 1 g",
     dose: "قرص",
     frequency: "كل 12 ساعة",
     duration: "7 أيام",
     note: null,
   },
   {
-    drug: "ميترونيدازول 500 ملغ",
+    drug: "Metronidazole 500 mg",
     dose: "قرص",
     frequency: "كل 8 ساعات",
     duration: "5 أيام",
     note: "يُمنع مع الكحول",
   },
   {
-    drug: "إيبوبروفين 400 ملغ",
+    drug: "Ibuprofen 400 mg",
     dose: "قرص",
     frequency: "عند اللزوم",
     duration: "3 أيام",
     note: "بعد الأكل",
   },
   {
-    drug: "باراسيتامول 500 ملغ",
+    drug: "Paracetamol 500 mg",
     dose: "قرص",
     frequency: "كل 6 ساعات",
     duration: "3 أيام",
     note: null,
   },
   {
-    drug: "غسول كلورهيكسيدين",
+    drug: "Chlorhexidine rinse",
     dose: "10 مل",
     frequency: "مرتين يومياً",
     duration: "10 أيام",

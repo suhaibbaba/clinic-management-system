@@ -1,5 +1,6 @@
 import type {
   CreateDoctorInput,
+  CreateVisitingDoctorInput,
   Doctor,
   ListDoctorsQuery,
   Paginated,
@@ -19,6 +20,9 @@ export const doctorsApi = {
 
   create: (body: CreateDoctorInput): Promise<Doctor> =>
     apiRequest("/doctors", { method: "POST", body }),
+
+  createVisiting: (body: CreateVisitingDoctorInput): Promise<Doctor> =>
+    apiRequest("/doctors/visiting", { method: "POST", body }),
 
   update: (id: string, body: UpdateDoctorInput): Promise<Doctor> =>
     apiRequest(`/doctors/${id}`, { method: "PATCH", body }),

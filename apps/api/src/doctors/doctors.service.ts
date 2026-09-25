@@ -6,17 +6,20 @@ import {
   Injectable,
   type OnModuleInit,
 } from "@nestjs/common";
-import { and, count, desc, eq, ilike, isNull, or, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, isNull, or, type SQL } from "drizzle-orm";
 import {
   DOCTOR_USER_REF_MESSAGE,
   USER_ROLE,
   type ChartType,
+  DEFAULT_APPOINTMENT_DURATION_MINUTES,
   type CreateDoctorInput,
+  type CreateVisitingDoctorInput,
   type Doctor,
   type ListDoctorsQuery,
   type Paginated,
   type UpdateDoctorInput,
   type UpdateDoctorScheduleInput,
+  type UserRole,
   type WeeklySchedule,
 } from "@clinic/shared";
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
@@ -49,6 +52,7 @@ const doctorColumns = {
   userEmail: users.email,
   userIsActive: users.isActive,
   userPhotoKey: users.photoKey,
+  userRole: users.role,
   specialtyCode: specialties.code,
   specialtyName: specialties.name,
   specialtyChartType: specialties.chartType,
@@ -70,6 +74,7 @@ interface DoctorJoinedRow {
   userEmail: string | null;
   userIsActive: boolean;
   userPhotoKey: string | null;
+  userRole: UserRole;
   specialtyCode: string;
   specialtyName: string;
   specialtyChartType: ChartType;
@@ -193,6 +198,72 @@ export class DoctorsService implements OnModuleInit {
     });
 
     return this.present(await this.findJoinedOrFail(actor.clinicId, created.id));
+  }
+
+  // The specialty defaults to the creator's, then to the clinic's first: whoever adds a visitor from
+  // a plan is rarely thinking about which specialty they belong to.
+  async createVisiting(
+    actor: AuthenticatedUser,
+    input: CreateVisitingDoctorInput,
+  ): Promise<Doctor> {
+    const specialtyId = input.specialtyId ?? (await this.defaultSpecialtyId(actor));
+
+    const created = await this.db.transaction(async (tx) => {
+      const user = await this.users.insertUser(tx, actor, {
+        firstName: input.firstName,
+        lastName: input.lastName,
+        phone: input.phone,
+        email: input.email ?? null,
+        role: USER_ROLE.VISITING_DOCTOR,
+        isActive: true,
+      });
+
+      const [row] = await tx
+        .insert(doctors)
+        .values({
+          clinicId: actor.clinicId,
+          userId: user.id,
+          specialtyId,
+          weeklySchedule: [],
+          defaultAppointmentDurationMinutes: DEFAULT_APPOINTMENT_DURATION_MINUTES,
+          createdBy: actor.id,
+          updatedBy: actor.id,
+        })
+        .returning({ id: doctors.id });
+
+      if (!row) {
+        throw new Error("Failed to create visiting doctor");
+      }
+
+      return row;
+    });
+
+    return this.present(await this.findJoinedOrFail(actor.clinicId, created.id));
+  }
+
+  private async defaultSpecialtyId(actor: AuthenticatedUser): Promise<string> {
+    const [own] = await this.db
+      .select({ specialtyId: doctors.specialtyId })
+      .from(doctors)
+      .where(this.scope.where(doctors, actor.clinicId, eq(doctors.userId, actor.id)))
+      .limit(1);
+
+    if (own) {
+      return own.specialtyId;
+    }
+
+    const [first] = await this.db
+      .select({ id: specialties.id })
+      .from(specialties)
+      .where(this.scope.where(specialties, actor.clinicId))
+      .orderBy(asc(specialties.createdAt))
+      .limit(1);
+
+    if (!first) {
+      throw new BadRequestException("This clinic has no specialty to add a doctor under");
+    }
+
+    return first.id;
   }
 
   // Linking the rare case: an account that already exists takes the doctor role here rather than on
@@ -373,5 +444,6 @@ function toDoctor(row: DoctorJoinedRow, photoUrl: string | null): Doctor {
       name: row.specialtyName,
       chartType: row.specialtyChartType,
     },
+    isVisiting: row.userRole === USER_ROLE.VISITING_DOCTOR,
   };
 }

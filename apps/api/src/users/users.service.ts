@@ -432,7 +432,7 @@ export function staffNameColumns(
 // The orphan guard: a `doctor` user with no `doctors` row can sign in and has no calendar, no
 // schedule and no place in any list. Only `POST /doctors` makes one, and it always writes both.
 function assertNotDoctorRole(role: UserRole): void {
-  if (role === USER_ROLE.DOCTOR) {
+  if (role === USER_ROLE.DOCTOR || role === USER_ROLE.VISITING_DOCTOR) {
     throw new BadRequestException("Create a doctor from the doctors screen, which makes both rows");
   }
 }

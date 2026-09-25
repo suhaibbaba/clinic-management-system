@@ -137,7 +137,7 @@ export interface CatalogEntry {
 export const CATALOG: readonly CatalogEntry[] = [
   {
     code: "EXAM",
-    nameAr: "كشف وفحص",
+    nameAr: "Examination",
     nameEn: "Examination",
     defaultPrice: "50.00",
     chartOutcome: null,
@@ -146,7 +146,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "CLEAN",
-    nameAr: "تنظيف وتقليح",
+    nameAr: "Scaling & polishing",
     nameEn: "Scaling & polishing",
     defaultPrice: "150.00",
     chartOutcome: null,
@@ -155,7 +155,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "FILL-C",
-    nameAr: "حشوة تجميلية",
+    nameAr: "Composite filling",
     nameEn: "Composite filling",
     defaultPrice: "200.00",
     chartOutcome: PROCEDURE_OUTCOME.FILLING,
@@ -164,7 +164,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "FILL-A",
-    nameAr: "حشوة أملغم",
+    nameAr: "Amalgam filling",
     nameEn: "Amalgam filling",
     defaultPrice: "150.00",
     chartOutcome: PROCEDURE_OUTCOME.FILLING,
@@ -173,7 +173,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "RCT",
-    nameAr: "معالجة عصب",
+    nameAr: "Root canal treatment",
     nameEn: "Root canal treatment",
     defaultPrice: "600.00",
     chartOutcome: PROCEDURE_OUTCOME.ROOT_CANAL,
@@ -182,7 +182,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "CROWN-Z",
-    nameAr: "تاج زيركون",
+    nameAr: "Zirconia crown",
     nameEn: "Zirconia crown",
     defaultPrice: "900.00",
     chartOutcome: PROCEDURE_OUTCOME.CROWN,
@@ -192,7 +192,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "CROWN-P",
-    nameAr: "تاج خزف على معدن",
+    nameAr: "PFM crown",
     nameEn: "PFM crown",
     defaultPrice: "650.00",
     chartOutcome: PROCEDURE_OUTCOME.CROWN,
@@ -202,7 +202,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "BRIDGE-3",
-    nameAr: "جسر ثلاثي",
+    nameAr: "Three-unit bridge",
     nameEn: "Three-unit bridge",
     defaultPrice: "2200.00",
     chartOutcome: PROCEDURE_OUTCOME.BRIDGE,
@@ -212,7 +212,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "IMPL",
-    nameAr: "زرعة سنية",
+    nameAr: "Dental implant",
     nameEn: "Dental implant",
     defaultPrice: "2800.00",
     chartOutcome: PROCEDURE_OUTCOME.IMPLANT,
@@ -222,7 +222,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "EXT",
-    nameAr: "قلع بسيط",
+    nameAr: "Simple extraction",
     nameEn: "Simple extraction",
     defaultPrice: "150.00",
     chartOutcome: PROCEDURE_OUTCOME.MISSING,
@@ -231,7 +231,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "EXT-S",
-    nameAr: "قلع جراحي",
+    nameAr: "Surgical extraction",
     nameEn: "Surgical extraction",
     defaultPrice: "400.00",
     chartOutcome: PROCEDURE_OUTCOME.MISSING,
@@ -240,7 +240,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "ORTHO",
-    nameAr: "تقويم أسنان",
+    nameAr: "Orthodontic treatment",
     nameEn: "Orthodontic treatment",
     defaultPrice: "4500.00",
     chartOutcome: null,
@@ -250,7 +250,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "XRAY-P",
-    nameAr: "صورة بانوراما",
+    nameAr: "Panoramic X-ray",
     nameEn: "Panoramic X-ray",
     defaultPrice: "80.00",
     chartOutcome: null,
@@ -259,7 +259,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "WHITEN",
-    nameAr: "تبييض أسنان",
+    nameAr: "Teeth whitening",
     nameEn: "Teeth whitening",
     defaultPrice: "700.00",
     chartOutcome: null,

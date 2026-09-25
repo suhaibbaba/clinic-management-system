@@ -36,7 +36,7 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 // Admin CRUD, doctor CRU, nothing for technician or receptionist — their responses must never carry
 // a diagnosis or a visit note.
 @Controller("visits")
-@Roles(USER_ROLE.DOCTOR)
+@Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
 export class VisitsController {
   constructor(private readonly visitsService: VisitsService) {}
 

@@ -16,7 +16,12 @@ import { usePermissions, useUpdateRolePermission } from "@web/features/permissio
 import { errorMessageKey } from "@web/lib/api-error";
 import { ellipsis } from "@web/i18n/ellipsis";
 
-const EDITABLE = [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST, USER_ROLE.TECHNICIAN] as const;
+const EDITABLE = [
+  USER_ROLE.DOCTOR,
+  USER_ROLE.VISITING_DOCTOR,
+  USER_ROLE.RECEPTIONIST,
+  USER_ROLE.TECHNICIAN,
+] as const;
 const ROLE_TABS: readonly UserRole[] = [...EDITABLE, USER_ROLE.ADMIN];
 
 interface Permission {

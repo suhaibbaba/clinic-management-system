@@ -1,7 +1,7 @@
 import { LOOKUP_LIST, SYSTEM_LOOKUPS, USER_ROLE, type UserRole } from "@clinic/shared";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppRoutes } from "@web/app/router";
 import { ageInYears } from "@web/features/patients/age";
 import ar from "@web/i18n/locales/ar.json";
@@ -18,6 +18,7 @@ import {
   makeToothHistory,
   paginated,
   PATIENT_ID,
+  SHIPPED_CAPABILITIES,
 } from "@test/helpers/fixtures";
 import { mockApi, renderWithProviders, type MockResponse } from "@test/helpers/render";
 import { choose } from "@test/select";
@@ -134,6 +135,16 @@ describe("Patient page", () => {
       expect(screen.queryByText(makePatient().fullName)).not.toBeInTheDocument();
     });
 
+    // An external doctor treats; the clinic's accounts are not theirs to read.
+    it("opens the clinical file for a visiting doctor without the account", async () => {
+      await renderPatientPage(USER_ROLE.VISITING_DOCTOR);
+
+      expect(await screen.findByRole("tab", { name: ar.patients.tabs.chart })).toBeVisible();
+      expect(screen.getByRole("tab", { name: ar.patients.tabs.treatmentPlans })).toBeVisible();
+      expect(screen.queryByRole("tab", { name: ar.patients.tabs.billing })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: ar.patients.rowMenu })).not.toBeInTheDocument();
+    });
+
     it("opens the file for a receptionist with the account tab only", async () => {
       await renderPatientPage(USER_ROLE.RECEPTIONIST);
 
@@ -152,20 +163,64 @@ describe("Patient page", () => {
   // The endpoint existed from the start; the screen to reach it did not, so nobody could correct a
   // misspelt name — an admin least of all, which is how it was noticed.
   describe("editing the file (ROLES.md patients matrix)", () => {
-    it.each([USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST])(
-      "offers %s the edit button",
-      async (role) => {
-        await renderPatientPage(role);
+    const openMenu = async (): Promise<void> => {
+      await userEvent.click(await screen.findByRole("button", { name: ar.patients.rowMenu }));
+    };
 
-        expect(await screen.findByRole("button", { name: ar.patients.edit })).toBeInTheDocument();
-      },
-    );
+    // The header carries one menu rather than a row of buttons; delete is admin-only until the
+    // permissions page grants it to someone else.
+    it.each([
+      [USER_ROLE.ADMIN, [ar.patients.edit, ar.common.delete]],
+      [USER_ROLE.DOCTOR, [ar.patients.edit]],
+      [USER_ROLE.RECEPTIONIST, [ar.patients.edit]],
+    ])("offers %s exactly its file actions", async (role, expected) => {
+      await renderPatientPage(role);
+      await openMenu();
+
+      expect((await screen.findAllByRole("menuitem")).map((item) => item.textContent)).toEqual(
+        expected,
+      );
+    });
+
+    it("offers delete to a doctor the clinic has granted it", async () => {
+      await renderPatientPage(USER_ROLE.DOCTOR, {
+        "GET /me": {
+          status: 200,
+          body: makeProfile({
+            role: USER_ROLE.DOCTOR,
+            capabilities: [...SHIPPED_CAPABILITIES[USER_ROLE.DOCTOR], "patients.remove"],
+          }),
+        },
+      });
+      await openMenu();
+
+      expect(await screen.findByRole("menuitem", { name: ar.common.delete })).toBeInTheDocument();
+    });
+
+    it("deletes the file after confirmation and returns to the list", async () => {
+      const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+      const api = await renderPatientPage(USER_ROLE.ADMIN, {
+        [`DELETE /patients/${PATIENT_ID}`]: { status: 204, body: null },
+      });
+      await openMenu();
+      await userEvent.click(await screen.findByRole("menuitem", { name: ar.common.delete }));
+
+      await waitFor(() =>
+        expect(
+          api.calls.some((call) => call.method === "DELETE" && call.url.endsWith(PATIENT_ID)),
+        ).toBe(true),
+      );
+      expect(await screen.findByTestId("patients-page")).toBeInTheDocument();
+
+      confirm.mockRestore();
+    });
 
     it("opens the form on the record it is editing, not an empty one", async () => {
       const user = userEvent.setup();
       await renderPatientPage(USER_ROLE.ADMIN);
 
-      await user.click(await screen.findByRole("button", { name: ar.patients.edit }));
+      await user.click(await screen.findByRole("button", { name: ar.patients.rowMenu }));
+      await user.click(await screen.findByRole("menuitem", { name: ar.patients.edit }));
 
       expect(await screen.findByLabelText(ar.patients.firstName)).toHaveValue(
         makePatient().firstName,
@@ -182,7 +237,8 @@ describe("Patient page", () => {
         },
       });
 
-      await user.click(await screen.findByRole("button", { name: ar.patients.edit }));
+      await user.click(await screen.findByRole("button", { name: ar.patients.rowMenu }));
+      await user.click(await screen.findByRole("menuitem", { name: ar.patients.edit }));
 
       const notice = await screen.findByTestId("patient-edit-modal-incomplete");
       expect(notice).toHaveTextContent(ar.patients.dateOfBirth);

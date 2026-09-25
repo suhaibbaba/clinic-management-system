@@ -100,7 +100,7 @@ export class AttachmentsService implements OnModuleInit {
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<Attachment> {
-    const row = await this.scope.findOneOrFail<AttachmentRow>(attachments, actor.clinicId, id);
+    const row = await this.patientAccess.requireRow<AttachmentRow>(actor, attachments, id);
     const download = await this.storage.createDownloadUrl(row.r2Key, row.filename);
 
     return {
@@ -205,7 +205,7 @@ export class AttachmentsService implements OnModuleInit {
   // Soft delete only, and the object stays in the bucket: a medical image must remain recoverable
   // by an admin.
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
-    await this.scope.findOneOrFail<AttachmentRow>(attachments, actor.clinicId, id);
+    await this.patientAccess.requireRow<AttachmentRow>(actor, attachments, id);
     const now = new Date();
 
     await this.db

@@ -37,7 +37,7 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 // Recording a procedure is what makes a patient owe money, so every mutation is audited and hands
 // the billing seam an event.
 @Controller("performed-procedures")
-@Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
+@Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
 export class ProceduresController {
   constructor(private readonly procedures: ProceduresService) {}
 
@@ -60,7 +60,7 @@ export class ProceduresController {
     description: "One performed treatment in full. Clinical.",
   })
   @Get(":id")
-  @Roles(USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
@@ -75,7 +75,7 @@ export class ProceduresController {
     risk: AI_RISK_TIER.TYPED,
   })
   @Post()
-  @Roles(USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
   @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.CREATE)
   create(
     @CurrentUser() actor: AuthenticatedUser,
@@ -91,7 +91,7 @@ export class ProceduresController {
     risk: AI_RISK_TIER.TYPED,
   })
   @Patch(":id")
-  @Roles(USER_ROLE.DOCTOR)
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
   @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.UPDATE)
   update(
     @CurrentUser() actor: AuthenticatedUser,

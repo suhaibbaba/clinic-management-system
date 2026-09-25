@@ -19,7 +19,7 @@ class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 // Which entries come back is decided by role inside the service; the `type` parameter can only
 // narrow that set, never widen it.
 @Controller("patients/:patientId/timeline")
-@Roles(USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST)
+@Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.RECEPTIONIST)
 export class TimelineController {
   constructor(private readonly timeline: TimelineService) {}
 

@@ -226,6 +226,16 @@ export function allowedTypes(role: UserRole): TimelineEntryType[] {
         TIMELINE_ENTRY_TYPE.LAB_ORDER,
         TIMELINE_ENTRY_TYPE.SUPPLY,
       ];
+    // Clinical history without the clinic's accounts or its lab and supply work.
+    case USER_ROLE.VISITING_DOCTOR:
+      return [
+        TIMELINE_ENTRY_TYPE.VISIT,
+        TIMELINE_ENTRY_TYPE.PROCEDURE,
+        TIMELINE_ENTRY_TYPE.ATTACHMENT,
+        TIMELINE_ENTRY_TYPE.PRESCRIPTION,
+        TIMELINE_ENTRY_TYPE.TREATMENT_PLAN,
+        TIMELINE_ENTRY_TYPE.APPOINTMENT,
+      ];
     case USER_ROLE.RECEPTIONIST:
       return [
         TIMELINE_ENTRY_TYPE.APPOINTMENT,

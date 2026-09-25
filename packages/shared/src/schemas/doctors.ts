@@ -28,6 +28,8 @@ export const doctorSchema = z.object({
     photoUrl: true,
   }),
   specialty: specialtySummarySchema,
+  /** A `visiting_doctor` account: an external doctor limited to the patients assigned to them. */
+  isVisiting: z.boolean(),
 });
 export type Doctor = z.infer<typeof doctorSchema>;
 
@@ -75,6 +77,16 @@ export const updateDoctorSchema = z
   .partial()
   .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateDoctorInput = z.infer<typeof updateDoctorSchema>;
+
+// Added from where the doctor is needed — a plan item's performer — so no schedule and no password:
+// the account is activated later from the users screen, by invitation or a password set there.
+export const createVisitingDoctorSchema = z.object({
+  ...staffNameInputFields,
+  phone: phoneSchema,
+  email: z.email().max(255).nullish(),
+  specialtyId: z.uuid().optional(),
+});
+export type CreateVisitingDoctorInput = z.infer<typeof createVisitingDoctorSchema>;
 
 // Separate from `updateDoctorSchema`: a doctor may edit their own schedule but nothing else about
 // their row (ROLES.md).

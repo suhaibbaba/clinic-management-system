@@ -4,6 +4,8 @@ export type EnumValue<TEnum extends Record<string, string>> = TEnum[keyof TEnum]
 export const USER_ROLE = {
   ADMIN: "admin",
   DOCTOR: "doctor",
+  /** An external doctor who treats in the clinic; sees only the patients assigned to them. */
+  VISITING_DOCTOR: "visiting_doctor",
   TECHNICIAN: "technician",
   RECEPTIONIST: "receptionist",
 } as const satisfies Record<string, string>;
@@ -13,6 +15,7 @@ export type UserRole = EnumValue<typeof USER_ROLE>;
 export const USER_ROLES = [
   USER_ROLE.ADMIN,
   USER_ROLE.DOCTOR,
+  USER_ROLE.VISITING_DOCTOR,
   USER_ROLE.TECHNICIAN,
   USER_ROLE.RECEPTIONIST,
 ] as const;

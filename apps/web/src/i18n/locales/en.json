@@ -130,6 +130,7 @@
   "roles": {
     "admin": "Admin",
     "doctor": "Doctor",
+    "visiting_doctor": "Visiting doctor",
     "technician": "Technician",
     "receptionist": "Receptionist"
   },
@@ -238,7 +239,14 @@
     },
     "roleLocked": "The account is created with the doctor role.",
     "linkPromotes": "This user's role becomes doctor.",
-    "scheduleDefault": "Starts on the clinic's hours — edit it later on the doctor's own page."
+    "scheduleDefault": "Starts on the clinic's hours — edit it later on the doctor's own page.",
+    "visiting": {
+      "create": "Add visiting doctor",
+      "about": "An external doctor who treats some of this clinic's patients. They see only the patients assigned to them.",
+      "emailHint": "To send them an invitation to sign in later, from the users screen.",
+      "created": "Visiting doctor added",
+      "optionLabel": "{{name}} · visiting"
+    }
   },
   "schedule": {
     "working": "Working",
@@ -610,7 +618,7 @@
     "count": "{{count}} plans",
     "plan": "Plan",
     "empty": "No treatment plans",
-    "emptyHint": "Create a plan and add the proposed procedures to it.",
+    "emptyHint": "Create a plan, add the proposed procedures, and print it for the patient to agree to.",
     "loadFailed": "Could not load treatment plans.",
     "noItems": "This plan has no items",
     "addItem": "Add item",
@@ -644,7 +652,26 @@
     "noneInFilter": "No plans with this status",
     "noneInFilterHint": "Change the filter to see other plans.",
     "progressLabel": "Plan progress",
-    "progressCaption": "{{done}} of {{total}} carried out"
+    "progressCaption": "{{done}} of {{total}} carried out",
+    "about": "A treatment plan is the proposed work and its estimated cost, to agree with the patient before treatment. Each item becomes a recorded procedure, with its charge, once it is carried out.",
+    "edit": "Edit plan",
+    "updated": "Plan updated",
+    "title": "Plan name",
+    "titleHint": "For example: Upper jaw restoration",
+    "responsibleDoctor": "Responsible doctor",
+    "notes": "Notes",
+    "menu": "Plan options",
+    "itemMenu": "Item options",
+    "confirmDelete": "Delete the plan “{{title}}”? Its items go with it; procedures already carried out are kept.",
+    "deleted": "Plan deleted",
+    "confirmDeleteItem": "Remove “{{name}}” from the plan?",
+    "itemDeleted": "Item removed",
+    "editItem": "Edit item",
+    "itemUpdated": "Item updated",
+    "performer": "Performed by",
+    "performerHint": "Leave empty for the plan's responsible doctor.",
+    "performerPlanDoctor": "The plan's doctor",
+    "performedBy": "By {{name}}"
   },
   "imaging": {
     "type": "Type",

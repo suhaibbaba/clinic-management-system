@@ -1,4 +1,4 @@
-import { LOOKUP_LIST, SYSTEM_LOOKUPS, USER_ROLE } from "@clinic/shared";
+import { LOOKUP_LIST, SYSTEM_LOOKUPS, USER_ROLE, type UserRole } from "@clinic/shared";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -274,31 +274,49 @@ describe("Treatment plans tab", () => {
     ],
   });
 
+  const plansResponse = { status: 200, body: paginated([planWithItems]) };
+
+  const asRole = (role: UserRole) => ({
+    "GET /me": { status: 200, body: makeProfile({ role }) },
+  });
+
+  const openItemMenu = async (itemId: string): Promise<void> => {
+    const row = await screen.findByTestId(`treatment-plan-item-${itemId}`);
+    await userEvent.click(within(row).getByRole("button", { name: ar.treatmentPlans.itemMenu }));
+  };
+
+  const openPlanMenu = async (): Promise<void> => {
+    await userEvent.click(await screen.findByRole("button", { name: ar.treatmentPlans.menu }));
+  };
+
+  it("says what a plan is for", async () => {
+    await openTab(ar.patients.tabs.treatmentPlans);
+
+    expect(await screen.findByText(ar.treatmentPlans.about)).toBeInTheDocument();
+  });
+
   it("shows items in order with the quoted total", async () => {
-    await openTab(ar.patients.tabs.treatmentPlans, {
-      "GET /treatment-plans": { status: 200, body: paginated([planWithItems]) },
-    });
+    await openTab(ar.patients.tabs.treatmentPlans, { "GET /treatment-plans": plansResponse });
 
     expect(await screen.findByText(planWithItems.title)).toBeInTheDocument();
     expect(screen.getByText(CATALOG.nameAr)).toBeInTheDocument();
     expect(screen.getByText(CROWN.nameAr)).toBeInTheDocument();
-    // Quoted total is 40.00 + 250.00; only the still-planned item is remaining.
-    // Scoped to the summary rows — 40.00 is also one item's own price.
+    // Quoted total is 40 + 250; only the still-planned item is remaining.
     const total = screen.getByText(ar.treatmentPlans.total).closest("div");
     const remaining = screen.getByText(ar.treatmentPlans.remaining).closest("div");
 
-    expect(within(total as HTMLElement).getByText(/290\.00/)).toBeInTheDocument();
-    expect(within(remaining as HTMLElement).getByText(/40\.00/)).toBeInTheDocument();
+    expect(within(total as HTMLElement).getByText(/290/)).toBeInTheDocument();
+    expect(within(remaining as HTMLElement).getByText(/40/)).toBeInTheDocument();
   });
 
   it("converts an item through the existing endpoint", async () => {
     const api = await openTab(ar.patients.tabs.treatmentPlans, {
-      "GET /treatment-plans": { status: 200, body: paginated([planWithItems]) },
+      "GET /treatment-plans": plansResponse,
       "POST /plan-items/i1/convert": { status: 201, body: makeProcedure(46) },
     });
 
-    await screen.findByText(planWithItems.title);
-    await userEvent.click(screen.getAllByRole("button", { name: ar.treatmentPlans.convert })[0]!);
+    await openItemMenu("i1");
+    await userEvent.click(await screen.findByRole("menuitem", { name: ar.treatmentPlans.convert }));
 
     await waitFor(() => {
       expect(
@@ -309,34 +327,213 @@ describe("Treatment plans tab", () => {
     });
   });
 
-  it("offers convert only on an item that is still planned", async () => {
+  it("offers no actions on an item that is no longer planned", async () => {
+    await openTab(ar.patients.tabs.treatmentPlans, { "GET /treatment-plans": plansResponse });
+
+    const converted = await screen.findByTestId("treatment-plan-item-i2");
+
+    // Converting twice is refused by the API; the menu is not offered at all.
+    expect(
+      within(converted).queryByRole("button", { name: ar.treatmentPlans.itemMenu }),
+    ).not.toBeInTheDocument();
+    expect(within(converted).getByText(ar.treatmentPlans.itemStatus.converted)).toBeVisible();
+  });
+
+  it.each([
+    [
+      USER_ROLE.ADMIN,
+      [ar.treatmentPlans.convert, ar.common.edit, ar.treatmentPlans.cancelItem, ar.common.delete],
+    ],
+    [USER_ROLE.DOCTOR, [ar.treatmentPlans.convert, ar.common.edit, ar.treatmentPlans.cancelItem]],
+  ])("offers %s exactly its item actions", async (role, expected) => {
     await openTab(ar.patients.tabs.treatmentPlans, {
-      "GET /treatment-plans": {
-        status: 200,
-        body: paginated([
-          makeTreatmentPlan({
-            items: [makePlanItem({ id: "done", status: "converted", procedureId: CATALOG.id })],
-          }),
-        ]),
-      },
+      ...asRole(role),
+      "GET /treatment-plans": plansResponse,
     });
 
-    await screen.findByText(CATALOG.nameAr);
+    await openItemMenu("i1");
 
-    // Converting twice is refused by the API; the button is not offered at all.
-    expect(
-      screen.queryByRole("button", { name: ar.treatmentPlans.convert }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText(ar.treatmentPlans.itemStatus.converted)).toBeInTheDocument();
+    expect((await screen.findAllByRole("menuitem")).map((item) => item.textContent)).toEqual(
+      expected,
+    );
+  });
+
+  it.each([
+    [USER_ROLE.ADMIN, [ar.common.edit, ar.treatmentPlans.print, ar.common.delete]],
+    [USER_ROLE.DOCTOR, [ar.common.edit, ar.treatmentPlans.print]],
+  ])("offers %s exactly its plan actions", async (role, expected) => {
+    await openTab(ar.patients.tabs.treatmentPlans, {
+      ...asRole(role),
+      "GET /treatment-plans": plansResponse,
+    });
+
+    await openPlanMenu();
+
+    expect((await screen.findAllByRole("menuitem")).map((item) => item.textContent)).toEqual(
+      expected,
+    );
+  });
+
+  it("creates a plan from the form with its name and doctor", async () => {
+    const api = await openTab(ar.patients.tabs.treatmentPlans, {
+      "POST /treatment-plans": { status: 201, body: makeTreatmentPlan() },
+    });
+
+    await userEvent.click(await screen.findByRole("button", { name: ar.treatmentPlans.create }));
+    const dialog = await screen.findByRole("dialog");
+    const title = within(dialog).getByLabelText(new RegExp(ar.treatmentPlans.title));
+
+    expect(title).toHaveValue(ar.treatmentPlans.defaultTitle);
+    await userEvent.clear(title);
+    await userEvent.type(title, "ترميم الفك العلوي");
+    await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
+
+    await waitFor(() => {
+      const post = api.calls.find(
+        (entry) => entry.method === "POST" && entry.url.endsWith("/treatment-plans"),
+      );
+      expect(post?.body).toMatchObject({
+        patientId: PATIENT_ID,
+        doctorId: makeDoctor().id,
+        title: "ترميم الفك العلوي",
+        status: "draft",
+      });
+    });
+  });
+
+  it("edits a plan in place", async () => {
+    const api = await openTab(ar.patients.tabs.treatmentPlans, {
+      "GET /treatment-plans": plansResponse,
+      [`PATCH /treatment-plans/${planWithItems.id}`]: { status: 200, body: planWithItems },
+    });
+
+    await openPlanMenu();
+    await userEvent.click(await screen.findByRole("menuitem", { name: ar.common.edit }));
+    const dialog = await screen.findByRole("dialog");
+
+    expect(within(dialog).getByLabelText(new RegExp(ar.treatmentPlans.title))).toHaveValue(
+      planWithItems.title,
+    );
+    await choose(
+      within(dialog).getByLabelText(new RegExp(ar.treatmentPlans.status)),
+      ar.treatmentPlans.planStatus.active,
+    );
+    await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
+
+    await waitFor(() => {
+      const patch = api.calls.find((entry) => entry.method === "PATCH");
+      expect(patch?.body).toMatchObject({ status: "active" });
+    });
+  });
+
+  it("deletes a plan after confirmation", async () => {
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+    const api = await openTab(ar.patients.tabs.treatmentPlans, {
+      ...asRole(USER_ROLE.ADMIN),
+      "GET /treatment-plans": plansResponse,
+      [`DELETE /treatment-plans/${planWithItems.id}`]: { status: 204, body: null },
+    });
+
+    await openPlanMenu();
+    await userEvent.click(await screen.findByRole("menuitem", { name: ar.common.delete }));
+
+    await waitFor(() =>
+      expect(
+        api.calls.some(
+          (entry) =>
+            entry.method === "DELETE" && entry.url.endsWith(`/treatment-plans/${planWithItems.id}`),
+        ),
+      ).toBe(true),
+    );
+
+    confirm.mockRestore();
+  });
+
+  it("adds an item with the doctor who will carry it out", async () => {
+    const other = makeDoctor({
+      id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      user: { ...makeDoctor().user, name: { ar: "سامر خوري", en: "Samer Khoury" } },
+    });
+    const api = await openTab(ar.patients.tabs.treatmentPlans, {
+      "GET /doctors": { status: 200, body: paginated([makeDoctor(), other]) },
+      "GET /treatment-plans": plansResponse,
+      [`POST /treatment-plans/${planWithItems.id}/items`]: { status: 201, body: makePlanItem() },
+    });
+
+    await userEvent.click(await screen.findByRole("button", { name: ar.treatmentPlans.addItem }));
+    const dialog = await screen.findByRole("dialog");
+
+    await choose(within(dialog).getByLabelText(new RegExp(ar.chart.panel.procedure)), CROWN.nameAr);
+    await choose(
+      within(dialog).getByLabelText(new RegExp(ar.treatmentPlans.performer)),
+      other.user.name.ar,
+    );
+    await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
+
+    await waitFor(() => {
+      const post = api.calls.find((entry) => entry.url.endsWith("/items"));
+      expect(post?.body).toMatchObject({
+        procedureId: CROWN.id,
+        performerDoctorId: other.id,
+        estimatedPrice: "250",
+        sortOrder: 2,
+      });
+    });
+  });
+
+  it("adds a visiting doctor from the item form and makes them its performer", async () => {
+    const visitor = makeDoctor({
+      id: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+      isVisiting: true,
+      user: { ...makeDoctor().user, name: { ar: "رامي زائر", en: "Rami Visitor" } },
+    });
+    let doctors = [makeDoctor()];
+    const api = await openTab(ar.patients.tabs.treatmentPlans, {
+      "GET /doctors": () => ({ status: 200, body: paginated(doctors) }),
+      "GET /treatment-plans": plansResponse,
+      "POST /doctors/visiting": () => {
+        doctors = [makeDoctor(), visitor];
+        return { status: 201, body: visitor };
+      },
+      [`POST /treatment-plans/${planWithItems.id}/items`]: { status: 201, body: makePlanItem() },
+    });
+
+    await userEvent.click(await screen.findByRole("button", { name: ar.treatmentPlans.addItem }));
+    const itemDialog = await screen.findByRole("dialog");
+    await choose(
+      within(itemDialog).getByLabelText(new RegExp(ar.chart.panel.procedure)),
+      CROWN.nameAr,
+    );
+    await userEvent.click(
+      within(itemDialog).getByRole("button", { name: ar.doctors.visiting.create }),
+    );
+
+    const visitorDialog = await screen.findByTestId("visiting-doctor-modal");
+    const type = async (label: string, value: string) =>
+      userEvent.type(within(visitorDialog).getByLabelText(label), value);
+    await type(ar.users.firstNameAr, "رامي");
+    await type(ar.users.lastNameAr, "زائر");
+    await type(ar.users.firstNameEn, "Rami");
+    await type(ar.users.lastNameEn, "Visitor");
+    await type(ar.users.phone, "599123456");
+    await userEvent.click(within(visitorDialog).getByRole("button", { name: ar.common.save }));
+
+    await waitFor(() =>
+      expect(screen.queryByTestId("visiting-doctor-modal")).not.toBeInTheDocument(),
+    );
+    await userEvent.click(within(itemDialog).getByRole("button", { name: ar.common.save }));
+
+    await waitFor(() => {
+      const post = api.calls.find((entry) => entry.url.endsWith("/items"));
+      expect(post?.body).toMatchObject({ performerDoctorId: visitor.id });
+    });
   });
 
   it("renders the printable sheet on the clinic’s letterhead", async () => {
-    await openTab(ar.patients.tabs.treatmentPlans, {
-      "GET /treatment-plans": { status: 200, body: paginated([planWithItems]) },
-    });
+    await openTab(ar.patients.tabs.treatmentPlans, { "GET /treatment-plans": plansResponse });
 
-    await screen.findByText(planWithItems.title);
-    await userEvent.click(screen.getByRole("button", { name: ar.treatmentPlans.print }));
+    await openPlanMenu();
+    await userEvent.click(await screen.findByRole("menuitem", { name: ar.treatmentPlans.print }));
 
     // Same data, one component: the sheet cannot drift from the screen.
     const heading = await screen.findByText(ar.treatmentPlans.printTitle);

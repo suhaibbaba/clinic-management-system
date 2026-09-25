@@ -1,15 +1,18 @@
 import { Suspense, lazy, type JSX, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Avatar,
   Button,
   Icon,
   Ltr,
+  MenuItem,
   PhoneLink,
+  RowMenu,
   TabPanel,
   Tabs,
   useTabParam,
+  useToast,
   WhatsAppLink,
 } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
@@ -22,13 +25,14 @@ import { canSeeBilling } from "@web/features/billing/permissions";
 import { ageInYears } from "@web/features/patients/age";
 import { AllergyBanner } from "@web/features/patients/allergy-banner";
 import { PatientFormModal } from "@web/features/patients/patient-form-modal";
-import { canEditPatient, canViewChart } from "@web/features/patients/permissions";
+import { canDeletePatient, canEditPatient, canViewChart } from "@web/features/patients/permissions";
 import { PrescriptionsTab } from "@web/features/patients/prescriptions/prescriptions-tab";
-import { usePatient } from "@web/features/patients/queries";
+import { useDeletePatient, usePatient } from "@web/features/patients/queries";
 import { TimelineTab } from "@web/features/patients/timeline/timeline-tab";
 import { TreatmentPlansTab } from "@web/features/patients/treatment-plans/treatment-plans-tab";
 import { VisitsTab } from "@web/features/patients/visits/visits-tab";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
+import { errorMessageKey } from "@web/lib/api-error";
 import { whatsAppNumber } from "@web/lib/whatsapp";
 
 const ChartTab = lazy(async () => ({
@@ -55,9 +59,14 @@ export function PatientPage(): JSX.Element {
   const { t } = useTranslation();
   const { user, can } = useSession();
   const { id = "" } = useParams();
+  const navigate = useNavigate();
+  const toast = useToast();
+  const deletePatient = useDeletePatient();
 
   const role = user?.role;
-  const tabs = TABS.filter((tab) => (tab.clinical ? role && canViewChart(role) : true));
+  const tabs = TABS.filter((tab) =>
+    tab.clinical ? role && canViewChart(role) : role && canSeeBilling(role),
+  );
 
   // `?tab=` like every other section: in `useState` nobody could link into a patient's X-rays. The
   // list is filtered by role first, so a pasted `?tab=chart` resolves to what the reader may see.
@@ -71,6 +80,25 @@ export function PatientPage(): JSX.Element {
   const [editing, setEditing] = useState(false);
   const [booking, setBooking] = useState(false);
   const showSkeleton = useDelayedLoading(patient.isPending);
+  const mayEdit = canEditPatient(can);
+  const mayDelete = canDeletePatient(can);
+
+  const destroy = async (): Promise<void> => {
+    if (
+      !patient.data ||
+      !window.confirm(t("patients.confirmDelete", { name: patient.data.fullName }))
+    ) {
+      return;
+    }
+
+    try {
+      await deletePatient.mutateAsync(patient.data.id);
+      toast.success("patients.deleted");
+      navigate("/patients", { replace: true });
+    } catch (error) {
+      toast.error(errorMessageKey(error));
+    }
+  };
 
   return (
     <div data-testid="patient-page" className="flex flex-col gap-5">
@@ -126,18 +154,28 @@ export function PatientPage(): JSX.Element {
                   </Button>
                 )}
 
-                {/* Editing the file is the header's job, not a tab's: every tab below is about what
-                    was done to the patient, and this is about who they are. */}
-                {canEditPatient(can) && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    icon={<Icon name="edit" />}
-                    data-testid="patient-edit"
-                    onClick={() => setEditing(true)}
-                  >
-                    {t("patients.edit")}
-                  </Button>
+                {(mayEdit || mayDelete) && (
+                  <RowMenu label={t("patients.rowMenu")} data-testid="patient-menu">
+                    {mayEdit && (
+                      <MenuItem
+                        icon="edit"
+                        data-testid="patient-edit"
+                        onSelect={() => setEditing(true)}
+                      >
+                        {t("patients.edit")}
+                      </MenuItem>
+                    )}
+                    {mayDelete && (
+                      <MenuItem
+                        icon="trash"
+                        tone="danger"
+                        data-testid="patient-delete"
+                        onSelect={() => void destroy()}
+                      >
+                        {t("common.delete")}
+                      </MenuItem>
+                    )}
+                  </RowMenu>
                 )}
               </div>
             </div>

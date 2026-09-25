@@ -18,13 +18,18 @@ export interface NavGroup {
   readonly items: readonly NavItem[];
 }
 
+/** Every role but the visiting doctor, whose requests the assistant's endpoints refuse. */
+export const ASSISTANT_ROLES: readonly UserRole[] = USER_ROLES.filter(
+  (role) => role !== USER_ROLE.VISITING_DOCTOR,
+);
+
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
     items: [
       { to: "/dashboard", label: "nav.dashboard", roles: USER_ROLES, icon: "activity" },
-      // Every role has one: what it will answer is decided per tool by the clinic's own
-      // permissions, not by hiding the page.
-      { to: "/assistant", label: "nav.assistant", roles: USER_ROLES, icon: "sparkles" },
+      // What it will answer is decided per tool by the clinic's own permissions, not by hiding the
+      // page.
+      { to: "/assistant", label: "nav.assistant", roles: ASSISTANT_ROLES, icon: "sparkles" },
     ],
   },
   {
@@ -33,13 +38,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       {
         to: "/patients",
         label: "nav.patients",
-        roles: [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST],
+        roles: [USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.RECEPTIONIST],
         icon: "users",
       },
       {
         to: "/appointments",
         label: "nav.appointments",
-        roles: [USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST],
+        roles: [USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.RECEPTIONIST],
         icon: "calendar",
         badge: "pendingBookings",
       },

@@ -54,13 +54,13 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
   [LOOKUP_LIST.TOOTH_STATE]: [
     {
       code: "healthy",
-      nameAr: "سليم",
+      nameAr: "Healthy",
       nameEn: "Healthy",
       meta: { chartBehavior: { area: "whole", stateOnly: true } },
     },
     {
       code: "planned",
-      nameAr: "نخر / مخطّط",
+      nameAr: "مخطّط",
       nameEn: "Planned",
       meta: { chartBehavior: { area: "whole", stateOnly: true } },
     },
@@ -72,58 +72,62 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
     },
     {
       code: "filling",
-      nameAr: "حشوة",
+      nameAr: "Filling",
       nameEn: "Filling",
       meta: { chartBehavior: { area: "crown" } },
     },
     {
       code: "root_canal",
-      nameAr: "معالجة لبية",
+      nameAr: "Root canal",
       nameEn: "Root canal",
       meta: { chartBehavior: { area: "root" } },
     },
-    { code: "crown", nameAr: "تاج", nameEn: "Crown", meta: { chartBehavior: { area: "crown" } } },
+    { code: "crown", nameAr: "Crown", nameEn: "Crown", meta: { chartBehavior: { area: "crown" } } },
     {
       code: "implant",
-      nameAr: "زرعة",
+      nameAr: "Implant",
       nameEn: "Implant",
       meta: { chartBehavior: { area: "root", shape: "implant" } },
     },
     {
       code: "bridge",
-      nameAr: "جسر",
+      nameAr: "Bridge",
       nameEn: "Bridge",
       meta: { chartBehavior: { area: "crown", shape: "bridge" } },
     },
     {
       code: "missing",
-      nameAr: "مفقود",
+      nameAr: "Missing",
       nameEn: "Missing",
       meta: { chartBehavior: { area: "whole", shape: "missing" } },
     },
   ],
 
   [LOOKUP_LIST.LAB_WORK_TYPE]: [
-    { code: "zirconia_crown", nameAr: "تاج زيركون", nameEn: "Zirconia crown" },
-    { code: "pfm_crown", nameAr: "تاج خزف على معدن", nameEn: "Porcelain-fused-to-metal crown" },
-    { code: "bridge_3_unit", nameAr: "جسر ثلاثي", nameEn: "Three-unit bridge" },
-    { code: "full_denture", nameAr: "طقم كامل", nameEn: "Full denture" },
-    { code: "partial_denture", nameAr: "طقم جزئي", nameEn: "Partial denture" },
-    { code: "veneer", nameAr: "فينير", nameEn: "Veneer" },
-    { code: "night_guard", nameAr: "حارس ليلي", nameEn: "Night guard" },
+    { code: "zirconia_crown", nameAr: "Zirconia crown", nameEn: "Zirconia crown" },
+    {
+      code: "pfm_crown",
+      nameAr: "Porcelain-fused-to-metal crown",
+      nameEn: "Porcelain-fused-to-metal crown",
+    },
+    { code: "bridge_3_unit", nameAr: "Three-unit bridge", nameEn: "Three-unit bridge" },
+    { code: "full_denture", nameAr: "Full denture", nameEn: "Full denture" },
+    { code: "partial_denture", nameAr: "Partial denture", nameEn: "Partial denture" },
+    { code: "veneer", nameAr: "Veneer", nameEn: "Veneer" },
+    { code: "night_guard", nameAr: "Night guard", nameEn: "Night guard" },
     {
       code: "ortho_appliance",
-      nameAr: "جهاز تقويم متحرك",
+      nameAr: "Removable orthodontic appliance",
       nameEn: "Removable orthodontic appliance",
     },
   ],
 
   [LOOKUP_LIST.LAB_MATERIAL]: [
-    { code: "zirconia", nameAr: "زيركون", nameEn: "Zirconia" },
-    { code: "emax", nameAr: "إي ماكس", nameEn: "E.max" },
-    { code: "pfm", nameAr: "خزف على معدن", nameEn: "Porcelain-fused-to-metal" },
-    { code: "acrylic", nameAr: "أكريل", nameEn: "Acrylic" },
-    { code: "chrome_cobalt", nameAr: "كروم كوبالت", nameEn: "Chrome cobalt" },
+    { code: "zirconia", nameAr: "Zirconia", nameEn: "Zirconia" },
+    { code: "emax", nameAr: "E.max", nameEn: "E.max" },
+    { code: "pfm", nameAr: "Porcelain-fused-to-metal", nameEn: "Porcelain-fused-to-metal" },
+    { code: "acrylic", nameAr: "Acrylic", nameEn: "Acrylic" },
+    { code: "chrome_cobalt", nameAr: "Chrome cobalt", nameEn: "Chrome cobalt" },
   ],
 
   [LOOKUP_LIST.LAB_SHADE]: [
@@ -138,11 +142,11 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
   ],
 
   [LOOKUP_LIST.ATTACHMENT_TYPE]: [
-    { code: "xray_panoramic", nameAr: "بانوراما", nameEn: "Panoramic X-ray" },
-    { code: "xray_periapical", nameAr: "ذروية", nameEn: "Periapical X-ray" },
-    { code: "xray_bitewing", nameAr: "عضّية", nameEn: "Bitewing X-ray" },
-    { code: "cbct", nameAr: "طبقي مخروطي", nameEn: "CBCT" },
-    { code: "clinical_photo", nameAr: "صورة سريرية", nameEn: "Clinical photo" },
+    { code: "xray_panoramic", nameAr: "Panoramic X-ray", nameEn: "Panoramic X-ray" },
+    { code: "xray_periapical", nameAr: "Periapical X-ray", nameEn: "Periapical X-ray" },
+    { code: "xray_bitewing", nameAr: "Bitewing X-ray", nameEn: "Bitewing X-ray" },
+    { code: "cbct", nameAr: "CBCT", nameEn: "CBCT" },
+    { code: "clinical_photo", nameAr: "Clinical photo", nameEn: "Clinical photo" },
     { code: "document", nameAr: "مستند", nameEn: "Document" },
   ],
 
@@ -176,16 +180,16 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
   ],
 
   [LOOKUP_LIST.FREQUENT_DRUG]: [
-    { code: "amoxicillin_500", nameAr: "أموكسيسيلين 500 ملغ", nameEn: "Amoxicillin 500 mg" },
+    { code: "amoxicillin_500", nameAr: "Amoxicillin 500 mg", nameEn: "Amoxicillin 500 mg" },
     {
       code: "amoxiclav_1g",
-      nameAr: "أموكسيسيلين/كلافولانيك 1 غ",
+      nameAr: "Amoxicillin/clavulanate 1 g",
       nameEn: "Amoxicillin/clavulanate 1 g",
     },
-    { code: "metronidazole_500", nameAr: "ميترونيدازول 500 ملغ", nameEn: "Metronidazole 500 mg" },
-    { code: "ibuprofen_400", nameAr: "إيبوبروفين 400 ملغ", nameEn: "Ibuprofen 400 mg" },
-    { code: "paracetamol_500", nameAr: "باراسيتامول 500 ملغ", nameEn: "Paracetamol 500 mg" },
-    { code: "chlorhexidine_rinse", nameAr: "غسول كلورهيكسيدين", nameEn: "Chlorhexidine rinse" },
+    { code: "metronidazole_500", nameAr: "Metronidazole 500 mg", nameEn: "Metronidazole 500 mg" },
+    { code: "ibuprofen_400", nameAr: "Ibuprofen 400 mg", nameEn: "Ibuprofen 400 mg" },
+    { code: "paracetamol_500", nameAr: "Paracetamol 500 mg", nameEn: "Paracetamol 500 mg" },
+    { code: "chlorhexidine_rinse", nameAr: "Chlorhexidine rinse", nameEn: "Chlorhexidine rinse" },
   ],
 };
 

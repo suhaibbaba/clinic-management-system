@@ -13,6 +13,7 @@ import {
 import {
   AUDIT_ACTION,
   createDoctorSchema,
+  createVisitingDoctorSchema,
   idParamSchema,
   listDoctorsQuerySchema,
   updateDoctorScheduleSchema,
@@ -30,6 +31,7 @@ import { DOCTORS_ENTITY, DoctorsService } from "@api/doctors/doctors.service";
 import { AiTool } from "@api/ai/tools/route-tool.decorator";
 
 class CreateDoctorDto extends createZodDto(createDoctorSchema) {}
+class CreateVisitingDoctorDto extends createZodDto(createVisitingDoctorSchema) {}
 class UpdateDoctorDto extends createZodDto(updateDoctorSchema) {}
 class UpdateDoctorScheduleDto extends createZodDto(updateDoctorScheduleSchema) {}
 class ListDoctorsQueryDto extends createZodDto(listDoctorsQuerySchema) {}
@@ -62,6 +64,17 @@ export class DoctorsController {
   @Audit(DOCTORS_ENTITY, AUDIT_ACTION.CREATE)
   create(@CurrentUser() actor: AuthenticatedUser, @Body() body: CreateDoctorDto): Promise<Doctor> {
     return this.doctorsService.create(actor, body);
+  }
+
+  /** A visiting doctor, added from a treatment plan without leaving the patient's file. */
+  @Post("visiting")
+  @Roles(USER_ROLE.DOCTOR)
+  @Audit(DOCTORS_ENTITY, AUDIT_ACTION.CREATE)
+  createVisiting(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Body() body: CreateVisitingDoctorDto,
+  ): Promise<Doctor> {
+    return this.doctorsService.createVisiting(actor, body);
   }
 
   @AiTool({

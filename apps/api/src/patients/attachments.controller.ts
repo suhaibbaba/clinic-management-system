@@ -37,7 +37,7 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 // A receptionist is on neither controller: their responses must never carry an attachment key or
 // URL. Uploads are two steps so bytes never pass through the API.
 @Controller("patients/:patientId/attachments")
-@Roles(USER_ROLE.DOCTOR)
+@Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
 export class PatientAttachmentsController {
   constructor(private readonly attachments: AttachmentsService) {}
 
@@ -73,7 +73,7 @@ export class PatientAttachmentsController {
 }
 
 @Controller("attachments")
-@Roles(USER_ROLE.DOCTOR)
+@Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
 export class AttachmentsController {
   constructor(private readonly attachments: AttachmentsService) {}
 

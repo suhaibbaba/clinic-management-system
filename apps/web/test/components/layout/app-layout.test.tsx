@@ -76,6 +76,8 @@ describe("Sidebar navigation", () => {
       USER_ROLE.DOCTOR,
       [ar.nav.dashboard, ar.nav.assistant, ar.nav.patients, ar.nav.appointments, ar.nav.labs],
     ],
+    // No assistant: its endpoints refuse a visiting doctor, so the page would only ever fail.
+    [USER_ROLE.VISITING_DOCTOR, [ar.nav.dashboard, ar.nav.patients, ar.nav.appointments]],
     [USER_ROLE.TECHNICIAN, [ar.nav.dashboard, ar.nav.assistant, ar.nav.labs, ar.nav.inventory]],
     [
       USER_ROLE.RECEPTIONIST,
@@ -182,6 +184,11 @@ describe("Route guards", () => {
     [USER_ROLE.RECEPTIONIST, "/assistant/settings"],
     [USER_ROLE.RECEPTIONIST, "/settings"],
     [USER_ROLE.DOCTOR, "/settings"],
+    [USER_ROLE.VISITING_DOCTOR, "/assistant"],
+    [USER_ROLE.VISITING_DOCTOR, "/labs"],
+    [USER_ROLE.VISITING_DOCTOR, "/inventory"],
+    [USER_ROLE.VISITING_DOCTOR, "/users"],
+    [USER_ROLE.VISITING_DOCTOR, "/settings"],
   ])("redirects %s away from %s and onto the dashboard", async (role, route) => {
     await renderAs(role, route);
 
