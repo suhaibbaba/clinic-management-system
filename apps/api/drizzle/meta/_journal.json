@@ -267,6 +267,13 @@
       "when": 1790343512365,
       "tag": "0037_visiting_doctor_role",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1790347575588,
+      "tag": "0038_medical_terms_in_lookups",
+      "breakpoints": true
     }
   ]
 }

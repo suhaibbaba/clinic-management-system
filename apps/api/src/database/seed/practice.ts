@@ -15,10 +15,10 @@ export const LABS: readonly LabSeed[] = [
     address: "نابلس، شارع سفيان",
     contactPerson: "أبو أحمد",
     workTypes: [
-      { nameAr: "تاج زيركون", defaultPrice: "320.00" },
-      { nameAr: "تاج خزف على معدن", defaultPrice: "180.00" },
-      { nameAr: "جسر ثلاثي", defaultPrice: "760.00" },
-      { nameAr: "فينير", defaultPrice: "400.00" },
+      { nameAr: "Zirconia crown", defaultPrice: "320.00" },
+      { nameAr: "PFM crown", defaultPrice: "180.00" },
+      { nameAr: "3-unit bridge", defaultPrice: "760.00" },
+      { nameAr: "Veneer", defaultPrice: "400.00" },
     ],
   },
   {
@@ -27,9 +27,9 @@ export const LABS: readonly LabSeed[] = [
     address: "نابلس، رفيديا",
     contactPerson: "م. سامر",
     workTypes: [
-      { nameAr: "طقم كامل", defaultPrice: "900.00" },
-      { nameAr: "طقم جزئي", defaultPrice: "600.00" },
-      { nameAr: "حارس ليلي", defaultPrice: "250.00" },
+      { nameAr: "Full denture", defaultPrice: "900.00" },
+      { nameAr: "Partial denture", defaultPrice: "600.00" },
+      { nameAr: "Night guard", defaultPrice: "250.00" },
     ],
   },
   {
@@ -38,9 +38,9 @@ export const LABS: readonly LabSeed[] = [
     address: "نابلس، المخفية",
     contactPerson: "أ. هيثم",
     workTypes: [
-      { nameAr: "تاج زيركون", defaultPrice: "300.00" },
-      { nameAr: "جهاز تقويم متحرك", defaultPrice: "450.00" },
-      { nameAr: "جسر ثلاثي", defaultPrice: "720.00" },
+      { nameAr: "Zirconia crown", defaultPrice: "300.00" },
+      { nameAr: "Removable orthodontic appliance", defaultPrice: "450.00" },
+      { nameAr: "3-unit bridge", defaultPrice: "720.00" },
     ],
   },
 ];
@@ -143,7 +143,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "مادة لاصقة (بوندنغ)",
+    nameAr: "بوندنغ",
     category: ITEM_CATEGORY.CONSUMABLE,
     unit: ITEM_UNIT.ML,
     minQuantity: "10",
