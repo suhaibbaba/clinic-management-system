@@ -93,6 +93,12 @@
   --font-sans: Tajawal, "Tajawal Fallback", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
+/* Where the rail replaces the menu button and drawer. Past `lg`, so a 1024px tablet in landscape
+   keeps the drawer. `RAIL_BREAKPOINT` in `use-media-query.ts` is the same number. */
+@theme {
+  --breakpoint-rail: 1025px;
+}
+
 /* Radii, largest first: a panel's corner, a row inside it, then a control. */
 @theme static {
   --radius-card: 20px; /* panels, KPI cards, widgets, the banner, the top bar */

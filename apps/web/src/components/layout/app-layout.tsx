@@ -4,7 +4,7 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { Logo } from "@web/components/brand/logo";
 import { NavDrawer } from "@web/components/layout/nav-drawer";
 import { createPageActionSlot, PageActionSlotProvider } from "@clinic/ui/lib/page-action-slot";
-import { useIsMobile } from "@clinic/ui/lib/use-media-query";
+import { useIsCompactLayout } from "@clinic/ui/lib/use-media-query";
 import { PullToRefresh } from "@web/components/pwa/pull-to-refresh";
 import { NotificationBell } from "@web/components/layout/notification-bell";
 import { TopSearch } from "@web/components/layout/top-search";
@@ -79,7 +79,7 @@ export function AppLayout(): JSX.Element {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  const isMobile = useIsMobile();
+  const isCompact = useIsCompactLayout();
   const workspace = isWorkspacePath(pathname);
 
   const topBar = (
@@ -89,7 +89,7 @@ export function AppLayout(): JSX.Element {
       className={cn(
         "flex min-h-[70px] flex-wrap items-center gap-3.5",
         workspace
-          ? "px-4 py-3 md:px-6"
+          ? "px-4 py-3 rail:px-6"
           : "rounded-card border border-line bg-surface px-4 py-3 shadow-card",
       )}
     >
@@ -97,7 +97,7 @@ export function AppLayout(): JSX.Element {
         variant="secondary"
         size="sm"
         data-testid="app-nav-toggle"
-        className="-ms-1 md:hidden"
+        className="-ms-1 rail:hidden"
         aria-expanded={drawerOpen}
         onClick={() => setDrawerOpen(true)}
         icon={<Icon name="menu" />}
@@ -121,16 +121,16 @@ export function AppLayout(): JSX.Element {
   );
 
   return (
-    <PageActionSlotProvider value={isMobile ? null : actionSlot}>
+    <PageActionSlotProvider value={isCompact ? null : actionSlot}>
       <PullToRefresh />
-      <div data-testid="app-layout" className="flex min-h-full flex-col md:flex-row">
+      <div data-testid="app-layout" className="flex min-h-full flex-col rail:flex-row">
         {/* Desktop: a permanent rail. */}
         <aside
           data-testid="app-rail"
           className={cn(
-            "z-30 hidden shrink-0 bg-rail md:block md:w-[266px]",
-            "md:sticky md:top-0 md:h-dvh",
-            "md:border-e md:border-line",
+            "z-30 hidden shrink-0 bg-rail rail:block rail:w-[266px]",
+            "rail:sticky rail:top-0 rail:h-dvh",
+            "rail:border-e rail:border-line",
           )}
         >
           <div className="flex h-full flex-col px-[18px] pt-5 pb-[18px]">
@@ -156,7 +156,7 @@ export function AppLayout(): JSX.Element {
           </div>
         </aside>
 
-        {/* Mobile: the same list, in a drawer over the page. */}
+        {/* Mobile and tablet: the same list, in a drawer over the page. */}
         <NavDrawer
           open={drawerOpen}
           onOpenChange={setDrawerOpen}
@@ -195,13 +195,13 @@ export function AppLayout(): JSX.Element {
               {/* A floating rounded bar inside the page's padding rather than a full-bleed strip, as
                 the reference draws it. The sticky wrapper carries the page ground so the bar's
                 corners do not frame scrolled content, and it reserves the bar's own height. */}
-              <div className="sticky top-0 z-20 bg-canvas px-4 pt-4 pb-4 md:px-[34px] md:pt-[26px]">
+              <div className="sticky top-0 z-20 bg-canvas px-4 pt-4 pb-4 rail:px-[34px] rail:pt-[26px]">
                 {topBar}
               </div>
 
               <main
                 data-testid="app-main"
-                className="min-w-0 flex-1 px-4 pb-10 md:px-[34px] md:pb-12"
+                className="min-w-0 flex-1 px-4 pb-10 rail:px-[34px] rail:pb-12"
               >
                 <div className="w-full">
                   <Outlet />
