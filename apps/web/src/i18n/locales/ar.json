@@ -1,7 +1,6 @@
 {
   "app": {
-    "title": "نظام إدارة العيادة",
-    "shortTitle": "العيادة"
+    "title": "نظام إدارة العيادة"
   },
   "common": {
     "diallingCode": "رمز الدولة",
@@ -13,23 +12,17 @@
     "saving": "جارٍ الحفظ",
     "cancel": "إلغاء",
     "edit": "تعديل",
-    "create": "إضافة",
     "search": "بحث",
     "loading": "جارٍ التحميل",
     "updating": "جارٍ التحديث",
     "actions": "إجراءات",
-    "confirm": "تأكيد",
     "close": "إغلاق",
     "retry": "إعادة المحاولة",
     "all": "الكل",
     "none": "لا يوجد",
     "optional": "اختياري",
-    "yes": "نعم",
-    "no": "لا",
     "reset": "إعادة تعيين",
     "delete": "حذف",
-    "filters": "عوامل التصفية",
-    "viewAll": "عرض الكل",
     "placeholders": {
       "identifier": "09XXXXXXXX",
       "password": "••••••••",
@@ -46,7 +39,7 @@
       "examination": "Clinical examination findings",
       "diagnosis": "Working diagnosis",
       "visitNotes": "ملاحظات إضافية على الزيارة",
-      "discountReason": "سبب الحسم",
+      "discountReason": "سبب الخصم",
       "selectDoctor": "اختر الطبيب",
       "selectStatus": "اختر الحالة",
       "selectMethod": "اختر طريقة الدفع",
@@ -55,7 +48,7 @@
       "time": "--:--",
       "dateRange": "اختر مدة",
       "fullNameAr": "الاسم الكامل بالعربية",
-      "fullNameEn": "Full name in English",
+      "fullNameEn": "الاسم الكامل بالإنجليزية",
       "location": "32.221, 35.254",
       "firstName": "مثال: أحمد",
       "middleName": "مثال: خالد محمد",
@@ -80,20 +73,20 @@
       "nextYear": "السنة التالية"
     },
     "showPassword": "إظهار كلمة المرور",
-    "hidePassword": "إخفاء كلمة المرور"
+    "hidePassword": "إخفاء كلمة المرور",
+    "deleteForever": "حذف نهائي",
+    "noMatches": "لا توجد نتائج"
   },
   "pagination": {
     "goToPage": "الصفحة {{page}}",
     "label": "التنقل بين الصفحات",
     "next": "التالي",
-    "page": "صفحة {{page}} من {{totalPages}}",
     "pageOf": "رقم الصفحة من {{totalPages}}",
     "perPage": "لكل صفحة",
     "previous": "السابق",
     "total": "{{total}} سجل"
   },
   "nav": {
-    "account": "الحساب",
     "appointments": "المواعيد",
     "assistant": "المساعد",
     "audit": "سجل التدقيق",
@@ -124,7 +117,6 @@
     "translations": "نصوص الواجهة",
     "users": "المستخدمون",
     "waitingCount": "{{count}} بانتظار التأكيد",
-    "assistantSettings": "إعدادات المساعد",
     "settingsPage": "الإعدادات"
   },
   "roles": {
@@ -142,7 +134,6 @@
     "submit": "دخول",
     "submitting": "جارٍ الدخول",
     "invalidCredentials": "بيانات الدخول غير صحيحة",
-    "sessionExpired": "انتهت الجلسة، يرجى تسجيل الدخول مجددًا",
     "activateTitle": "تفعيل حسابك",
     "resetTitle": "إعادة تعيين كلمة المرور",
     "setPasswordSubtitle": "اختر كلمة مرور جديدة لحسابك.",
@@ -164,19 +155,15 @@
     "deactivate": "تعطيل",
     "delete": "حذف الحساب",
     "deleteQuestion": "سيتوقف دخول {{name}} فوراً، وتبقى السجلات المرتبطة بالحساب كما هي. هل تريد المتابعة؟",
-    "deleteTitle": "حذف الحساب",
     "deleted": "حُذف الحساب",
     "edit": "تعديل المستخدم",
     "email": "البريد الإلكتروني",
     "empty": "لا يوجد مستخدمون",
     "emptyHint": "ابدأ بإضافة أول مستخدم للعيادة",
     "filterRole": "تصفية حسب الصلاحية",
-    "filterStatus": "تصفية حسب الحالة",
     "inactive": "معطّل",
     "inviteSent": "تم إرسال الرابط",
     "name": "الاسم",
-    "nameAr": "الاسم بالعربية",
-    "nameEn": "Name in English",
     "newPassword": "كلمة المرور الجديدة",
     "password": "كلمة المرور",
     "passwordNoEmail": "لا يوجد بريد إلكتروني لإرسال رابط، لذلك عيّن كلمة مرور وسلّمها بنفسك.",
@@ -208,7 +195,8 @@
     "firstNameAr": "الاسم الأول بالعربية",
     "lastNameAr": "اسم العائلة بالعربية",
     "firstNameEn": "الاسم الأول بالإنجليزية",
-    "lastNameEn": "اسم العائلة بالإنجليزية"
+    "lastNameEn": "اسم العائلة بالإنجليزية",
+    "confirmRemovePhoto": "إزالة الصورة؟"
   },
   "doctors": {
     "title": "الأطباء",
@@ -222,7 +210,6 @@
     "duration": "مدة الموعد الافتراضية",
     "durationUnit": "دقيقة",
     "schedule": "دوام الأسبوع",
-    "editSchedule": "تعديل الدوام",
     "created": "تمت إضافة الطبيب",
     "updated": "تم تحديث الطبيب",
     "scheduleUpdated": "تم تحديث الدوام",
@@ -249,14 +236,12 @@
     }
   },
   "schedule": {
-    "working": "دوام",
     "off": "عطلة",
     "from": "من",
     "to": "إلى",
     "addRange": "إضافة فترة",
     "removeRange": "حذف الفترة",
     "closed": "مغلق",
-    "invalidRange": "وقت البداية يجب أن يسبق وقت النهاية",
     "weekday": {
       "0": "الأحد",
       "1": "الاثنين",
@@ -286,7 +271,11 @@
       "addedAndCancelled_two": "تم تسجيل الإغلاق وإلغاء موعدين وإبلاغ المرضى",
       "addedAndCancelled_few": "تم تسجيل الإغلاق وإلغاء {{count}} مواعيد وإبلاغ المرضى",
       "addedAndCancelled_many": "تم تسجيل الإغلاق وإلغاء {{count}} موعداً وإبلاغ المرضى",
-      "addedAndCancelled_other": "تم تسجيل الإغلاق وإلغاء {{count}} موعد وإبلاغ المرضى"
+      "addedAndCancelled_other": "تم تسجيل الإغلاق وإلغاء {{count}} موعد وإبلاغ المرضى",
+      "confirmRemove": {
+        "title": "حذف هذا الإغلاق؟",
+        "consequence": "تعود هذه الأيام متاحة للحجز."
+      }
     },
     "timeOff": {
       "title": "إجازات الطبيب",
@@ -306,7 +295,11 @@
       "addedAndCancelled_two": "تم تسجيل الإجازة وإلغاء موعدين وإبلاغ المرضى",
       "addedAndCancelled_few": "تم تسجيل الإجازة وإلغاء {{count}} مواعيد وإبلاغ المرضى",
       "addedAndCancelled_many": "تم تسجيل الإجازة وإلغاء {{count}} موعداً وإبلاغ المرضى",
-      "addedAndCancelled_other": "تم تسجيل الإجازة وإلغاء {{count}} موعد وإبلاغ المرضى"
+      "addedAndCancelled_other": "تم تسجيل الإجازة وإلغاء {{count}} موعد وإبلاغ المرضى",
+      "confirmRemove": {
+        "title": "حذف هذه الإجازة؟",
+        "consequence": "يعود الطبيب متاحاً للحجز في هذه الفترة."
+      }
     },
     "conflicts": {
       "description": "اختر ما يحدث لها قبل حفظ الفترة.",
@@ -326,7 +319,6 @@
     "countryHint": "منها يبدأ رمز الدولة في كل حقول الهاتف",
     "title": "إعدادات العيادة",
     "subtitle": "بيانات العيادة وأوقات العمل",
-    "name": "اسم العيادة",
     "phone": "رقم الهاتف",
     "email": "البريد الإلكتروني",
     "address": "العنوان",
@@ -367,7 +359,15 @@
     "apiVersion": "إصدار الخادم",
     "versionMismatch": "الصفحة المفتوحة أقدم من الخادم — أعد تحميل الصفحة",
     "nameAr": "اسم العيادة بالعربية",
-    "nameEn": "Clinic name in English"
+    "nameEn": "Clinic name in English",
+    "confirmRemoveLogo": {
+      "title": "إزالة الشعار؟",
+      "consequence": "يظهر مكانه شعار مولَّد من اسم العيادة."
+    },
+    "confirmRemoveAppIcon": {
+      "title": "إزالة أيقونة التطبيق؟",
+      "consequence": "تعود الأيقونة الافتراضية على الأجهزة المثبَّت عليها التطبيق."
+    }
   },
   "audit": {
     "title": "سجل التدقيق",
@@ -382,8 +382,6 @@
     "viewChanges": "عرض التغييرات",
     "changesFor": "تغييرات {{entity}}",
     "noChanges": "لا توجد حقول متغيرة",
-    "fromDate": "من تاريخ",
-    "toDate": "إلى تاريخ",
     "filterEntity": "تصفية حسب السجل",
     "filterAction": "تصفية حسب العملية",
     "filterUser": "تصفية حسب المستخدم",
@@ -432,23 +430,10 @@
       "invalidEmail": "بريد إلكتروني غير صحيح",
       "invalidPhone": "رقم هاتف غير صحيح",
       "passwordMin": "كلمة المرور يجب ألا تقل عن ٨ أحرف",
-      "passwordSame": "كلمة المرور الجديدة يجب أن تختلف عن الحالية",
-      "noChanges": "لم يتم تغيير أي حقل"
-    }
-  },
-  "health": {
-    "title": "حالة النظام",
-    "loading": "جارٍ التحقق من حالة النظام",
-    "error": "تعذّر الوصول إلى الخادم",
-    "api": "الخادم",
-    "database": "قاعدة البيانات",
-    "version": "الإصدار",
-    "checkedAt": "وقت الفحص",
-    "status": {
-      "ok": "يعمل",
-      "degraded": "يعمل جزئيًا",
-      "up": "متصلة",
-      "down": "غير متصلة"
+      "passwordSame": "كلمة المرور الجديدة يجب أن تختلف عن الحالية"
+    },
+    "clinicalDelete": {
+      "hasPayments": "لا يمكن الحذف — يوجد دفعات مرتبطة؛ ألغِ الدفعات أولاً أو استخدم تصحيحاً"
     }
   },
   "patients": {
@@ -489,7 +474,7 @@
       "chart": "مخطط الأسنان",
       "visits": "الزيارات",
       "treatmentPlans": "الخطط العلاجية",
-      "attachments": "X-rays والمرفقات",
+      "attachments": "الأشعة والمرفقات",
       "prescriptions": "الوصفات",
       "timeline": "الخط الزمني",
       "billing": "الحساب المالي"
@@ -523,7 +508,10 @@
     "firstName": "الاسم الأول",
     "middleName": "اسم الأب والجد",
     "lastName": "اسم العائلة",
-    "confirmDelete": "حذف ملف «{{name}}»؟ يختفي من القوائم والبحث، وتبقى سجلاته الطبية والمالية محفوظة.",
+    "confirmDelete": {
+      "title": "حذف ملف «{{name}}»؟",
+      "consequence": "يختفي من القوائم والبحث، وتبقى سجلاته الطبية والمالية محفوظة."
+    },
     "deleted": "تم حذف ملف المريض"
   },
   "chart": {
@@ -563,12 +551,10 @@
       "status": "الحالة",
       "surfaces": "السطوح",
       "price": "السعر",
-      "discount": "الحسم",
-      "discountReason": "سبب الحسم",
-      "discountNeedsReason": "الحسم يتطلّب ذكر السبب",
+      "discount": "الخصم",
+      "discountReason": "سبب الخصم",
+      "discountNeedsReason": "الخصم يتطلّب ذكر السبب",
       "date": "التاريخ",
-      "attachments": "X-rays",
-      "noAttachments": "لا توجد X-rays لهذا السن",
       "openFile": "فتح الملف",
       "recorded": "تم تسجيل المعالجة",
       "procedureCount": "{{count}} معالجة"
@@ -586,11 +572,10 @@
     "noVisits": "لا توجد زيارات لهذا المريض",
     "noVisitsHint": "أضف زيارة من تبويب «الزيارات» أولاً، ثم اربط الوصفة بها",
     "visit": "الزيارة",
-    "forVisit": "زيارة {{date}}",
     "withoutVisit": "بدون زيارة",
     "drug": "الدواء",
-    "dose": "Dose",
-    "frequency": "Frequency",
+    "dose": "الجرعة",
+    "frequency": "التكرار",
     "duration": "المدة",
     "notes": "ملاحظات",
     "drugPlaceholder": "مثلاً: Ibuprofen",
@@ -600,7 +585,10 @@
     "addDrug": "إضافة دواء",
     "removeDrug": "حذف الدواء",
     "drugNumber": "الدواء {{number}}",
-    "confirmDelete": "حذف هذه الوصفة؟ تختفي من ملف المريض والخط الزمني، ويبقى أثرها في سجل التدقيق.",
+    "confirmDelete": {
+      "title": "حذف هذه الوصفة؟",
+      "consequence": "تختفي من ملف المريض والخط الزمني، ويبقى أثرها في سجل التدقيق."
+    },
     "deleted": "تم حذف الوصفة"
   },
   "visits": {
@@ -611,9 +599,9 @@
     "count": "{{count}} زيارة",
     "date": "تاريخ الزيارة",
     "doctor": "الطبيب",
-    "complaint": "Chief complaint",
-    "examination": "Clinical examination",
-    "diagnosis": "Diagnosis",
+    "complaint": "الشكوى الرئيسية",
+    "examination": "الفحص السريري",
+    "diagnosis": "التشخيص",
     "notes": "ملاحظات",
     "procedures": "المعالجات المنفّذة",
     "noProcedures": "لا توجد معالجات مسجّلة في هذه الزيارة",
@@ -621,13 +609,42 @@
     "empty": "لا توجد زيارات مسجّلة",
     "emptyHint": "سجّل أول زيارة لهذا المريض.",
     "loadFailed": "تعذّر تحميل الزيارات.",
-    "time": "الوقت"
+    "time": "الوقت",
+    "nothingRecorded": "لم يُسجَّل شيء في هذه الزيارة",
+    "addTreatment": "إضافة علاج",
+    "menu": "خيارات الزيارة",
+    "deleted": "تم حذف الزيارة",
+    "procedureDeleted": "تم حذف المعالجة",
+    "confirmDelete": {
+      "title": "حذف زيارة {{date}}؟",
+      "procedures_zero": "لا معالجات مسجّلة فيها",
+      "procedures_one": "تُحذف معها معالجة واحدة وتُعكس رسومها في الحساب",
+      "procedures_two": "تُحذف معها معالجتان وتُعكس رسومهما في الحساب",
+      "procedures_few": "تُحذف معها {{count}} معالجات وتُعكس رسومها في الحساب",
+      "procedures_many": "تُحذف معها {{count}} معالجة وتُعكس رسومها في الحساب",
+      "procedures_other": "تُحذف معها {{count}} معالجة وتُعكس رسومها في الحساب",
+      "attachments": "تُحذف معها صورها ومرفقاتها وعلامات مخطط الأسنان",
+      "audit": "يبقى كل ذلك في سجل التدقيق"
+    },
+    "confirmProcedure": {
+      "title": "حذف معالجة: {{name}}؟",
+      "titleWithTooth": "حذف معالجة: {{name}} — سن {{tooth}}؟",
+      "charge": "تُعكس رسومها في الحساب بقيد عكسي، ولا يُمحى أيّ قيد",
+      "chart": "تُزال علاماتها من مخطط الأسنان"
+    },
+    "visit": "زيارة",
+    "teeth": "الأسنان",
+    "procedureMenu": "خيارات المعالجة",
+    "addTreatmentTitle": "إضافة علاج — زيارة {{date}}",
+    "editTreatmentTitle": "تعديل: {{name}}",
+    "proceduresTitle": "معالجات زيارة {{date}}",
+    "proceduresTotal": "الإجمالي",
+    "tooth": "السن"
   },
   "treatmentPlans": {
     "create": "خطة جديدة",
     "created": "تم إنشاء الخطة",
     "defaultTitle": "خطة علاجية",
-    "count": "{{count}} خطة",
     "plan": "الخطة",
     "empty": "لا توجد خطط علاجية",
     "emptyHint": "أنشئ خطة، وأضف إليها المعالجات المقترحة، واطبعها ليوافق عليها المريض.",
@@ -674,7 +691,10 @@
     "notes": "ملاحظات",
     "menu": "خيارات الخطة",
     "itemMenu": "خيارات البند",
-    "confirmDelete": "حذف الخطة «{{title}}»؟ تُحذف بنودها معها، وتبقى المعالجات المنفّذة محفوظة.",
+    "confirmDelete": {
+      "title": "حذف الخطة «{{title}}»؟",
+      "consequence": "تُحذف بنودها معها، وتبقى المعالجات المنفّذة محفوظة."
+    },
     "deleted": "تم حذف الخطة",
     "confirmDeleteItem": "إزالة «{{name}}» من الخطة؟",
     "itemDeleted": "تمت إزالة البند",
@@ -686,23 +706,22 @@
     "performedBy": "بواسطة {{name}}"
   },
   "imaging": {
-    "type": "النوع",
-    "tooth": "السن",
-    "invalidTooth": "رقم سن غير صالح",
-    "uploadTitle": "أضف X-ray أو مستنداً",
+    "uploadTitle": "أضف صورة أشعة أو مستنداً",
     "dropHint": "اسحب الملف إلى هنا، أو اختره من جهازك",
     "upload": "رفع صورة",
     "uploading": "جارٍ الرفع",
     "uploaded": "تم رفع الصورة",
-    "uploadHint": "JPEG أو PNG أو WebP أو TIFF أو DICOM أو PDF، بحد أقصى ٥٠ ميغابايت.",
+    "uploadHint": "JPEG أو PNG أو WebP أو TIFF أو DICOM أو PDF، بحد أقصى 50 ميغابايت.",
     "tooLarge": "حجم الملف يتجاوز الحد المسموح",
     "unsupportedType": "نوع الملف غير مدعوم",
     "deleted": "تم حذف الصورة",
     "empty": "لا توجد صور لهذا المريض",
     "loadFailed": "تعذّر تحميل الصور.",
-    "filterTooth": "تصفية حسب السن",
-    "filterType": "تصفية حسب النوع",
-    "emptyHint": "الصور والمستندات المرفوعة تظهر هنا."
+    "emptyHint": "الصور والمستندات المرفوعة تظهر هنا.",
+    "confirmDelete": {
+      "title": "حذف «{{name}}»؟",
+      "consequence": "يختفي من ملف المريض، ويبقى محفوظاً ويستطيع المدير استرجاعه."
+    }
   },
   "billing": {
     "outstanding": "الرصيد المستحق",
@@ -723,8 +742,6 @@
     "confirmReversal": "تأكيد الإلغاء",
     "paymentReversed": "تم تسجيل القيد العكسي",
     "downloadStatement": "تنزيل كشف الحساب",
-    "from": "من تاريخ",
-    "to": "إلى تاريخ",
     "openingBalance": "رصيد أول المدة",
     "empty": "لا توجد حركات مالية",
     "emptyHint": "تظهر هنا الأعمال المنفَّذة والدفعات المسجَّلة.",
@@ -737,24 +754,7 @@
       "description": "البيان",
       "charge": "مدين",
       "payment": "دائن",
-      "balance": "الرصيد",
-      "patient": "المريض",
-      "lastPayment": "آخر دفعة",
-      "phone": "رقم الهاتف"
-    },
-    "overdueTitle": "الأرصدة المتأخرة",
-    "overdueSubtitle": "مرضى عليهم رصيد ولم يسدّدوا خلال المدة المحدّدة في إعدادات العيادة.",
-    "overdueEmpty": "لا توجد أرصدة متأخرة",
-    "overdueEmptyHint": "كل الأرصدة المستحقة ضمن المدة المسموحة.",
-    "daysAgo": "منذ {{count}} يوم",
-    "neverPaid": "لم يسدّد بعد",
-    "kpi": {
-      "patients": "مرضى متأخرون",
-      "patientsCaption": "إجمالي العيادة",
-      "outstanding": "إجمالي المتأخرات",
-      "largest": "أعلى رصيد",
-      "neverPaid": "لم يدفعوا مطلقاً",
-      "thisPage": "في هذه الصفحة"
+      "balance": "الرصيد"
     },
     "period": "المدة"
   },
@@ -778,14 +778,12 @@
     "type": "نوع الموعد",
     "reason": "سبب الزيارة",
     "notes": "ملاحظات",
-    "status": "الحالة",
     "empty": "لا مواعيد في هذا اليوم",
     "emptyHint": "احجز أول موعد من زر «موعد جديد».",
     "emptyWeek": "لا مواعيد في هذا الأسبوع",
     "loadFailed": "تعذّر تحميل التقويم.",
     "created": "تم حجز الموعد",
     "updated": "تم تحديث الموعد",
-    "conflict": "هذا الوقت محجوز لهذا الطبيب",
     "statuses": {
       "requested": "بانتظار التأكيد",
       "confirmed": "مؤكَّد",
@@ -830,15 +828,12 @@
     },
     "ribbon": {
       "title": "مواعيد اليوم",
-      "none": "لا مواعيد متبقّية اليوم",
-      "upcoming": "القادمة",
-      "seeAll": "عرض اليوم كاملاً"
+      "none": "لا مواعيد متبقّية اليوم"
     },
     "kpi": {
       "today": "مواعيد اليوم",
       "arrived": "وصلوا",
       "remaining": "متبقّية",
-      "waiting": "قائمة الانتظار",
       "attendance": "نسبة الحضور",
       "attendanceCaption": "من مواعيد اليوم",
       "onlineToday": "حجوزات إلكترونية اليوم",
@@ -873,10 +868,7 @@
       "urgentCount_many": "{{count}} طلباً عاجلاً",
       "urgentCount_other": "{{count}} طلب عاجل",
       "statuses": {
-        "pending": "بانتظار الاتصال",
-        "contacted": "تم الاتصال",
-        "scheduled": "تم الحجز",
-        "declined": "مغلق"
+        "contacted": "تم الاتصال"
       }
     },
     "grid": {
@@ -1056,11 +1048,7 @@
       "emptyHint": "ستظهر هنا الأعمال فور إنشائها",
       "columns": {
         "work": "العمل",
-        "patient": "المريض",
-        "lab": "المختبر",
-        "status": "الحالة",
-        "expected": "التاريخ المتوقع",
-        "price": "السعر"
+        "status": "الحالة"
       }
     },
     "order": {
@@ -1106,7 +1094,8 @@
         "sent": "أُرسل",
         "received": "استُلم",
         "fitted": "رُكّب"
-      }
+      },
+      "confirmRemoveAttachment": "إزالة «{{name}}» من الطلب؟"
     },
     "section": {
       "label": "أقسام المختبرات",
@@ -1309,8 +1298,14 @@
     "created": "تمت إضافة الخيار",
     "updated": "تم حفظ الخيار",
     "deleted": "تم حذف الخيار",
-    "confirmDelete": "حذف «{{name}}» من هذه القائمة؟ السجلات التي تشير إليه ستعرض رمزه بدل اسمه.",
-    "confirmDeleteSystem": "حذف «{{name}}»؟ هذا خيار أساسي يعتمد عليه البرنامج، والسجلات التي تشير إليه ستعرض رمزه بدل اسمه. للإخفاء من القوائم مع الاحتفاظ بالاسم، عطّله بدل حذفه.",
+    "confirmDelete": {
+      "title": "حذف «{{name}}» من هذه القائمة؟",
+      "consequence": "السجلات التي تشير إليه ستعرض رمزه بدل اسمه."
+    },
+    "confirmDeleteSystem": {
+      "title": "حذف «{{name}}»؟",
+      "consequence": "هذا خيار أساسي يعتمد عليه البرنامج، والسجلات التي تشير إليه ستعرض رمزه بدل اسمه. للإخفاء من القوائم مع الاحتفاظ بالاسم، عطّله بدل حذفه."
+    },
     "lists": {
       "tooth_state": "حالات الأسنان",
       "lab_work_type": "أنواع أعمال المختبر",
@@ -1373,14 +1368,10 @@
       "overdueCaption": "{{count}} مريض"
     },
     "lastAppointment": "آخر موعد",
-    "now": "الآن",
     "schedule": {
       "title": "جدول اليوم",
       "seeAll": "كل المواعيد",
-      "time": "الوقت",
-      "patient": "المريض",
       "doctor": "د. {{name}}",
-      "status": "الحالة",
       "empty": "لا مواعيد اليوم",
       "emptyHint": "المواعيد المحجوزة لهذا اليوم تظهر هنا",
       "byDoctor": "حسب الطبيب",
@@ -1395,7 +1386,8 @@
     "placeholder": "اكتب ملاحظة",
     "save": "حفظ الملاحظة",
     "remove": "حذف الملاحظة",
-    "empty": "لا ملاحظات بعد"
+    "empty": "لا ملاحظات بعد",
+    "confirmRemove": "حذف هذه الملاحظة؟"
   },
   "permissions": {
     "adminLocked": "المدير يملك كل الصلاحيات، ولا يمكن تعديلها — عيادة تستطيع سحب صلاحية من مديرها تستطيع أن تغلق على نفسها الحساب الوحيد القادر على إعادتها.",
@@ -1724,19 +1716,24 @@
     "search": "بحث في النصوص",
     "searchPlaceholder": "ابحث بالنص أو بالمفتاح",
     "section": "القسم",
-    "key": "المفتاح",
     "changedOnly": "المعدّلة فقط ({{count}})",
-    "changed": "معدّل",
     "save": "حفظ",
     "saved": "تم حفظ النص",
     "empty": "لا توجد نصوص مطابقة",
     "emptyHint": "جرّب كلمة أخرى أو غيّر القسم",
     "allSections": "كل الأقسام",
-    "hint": "المفاتيح التي لم تُعدَّل تبقى تتبع تحديثات النظام",
+    "hint": "النص المتكرّر صفّ واحد: تعديله يغيّره في كل مكان يظهر فيه. افتح الصفّ لتكتب صيغة مختلفة لمكان بعينه. وما لا تعدّله يبقى يتبع تحديثات النظام.",
     "original": "الأصل",
     "arabic": "العربية",
     "english": "الإنجليزية",
-    "pending": "{{count}} تعديل غير محفوظ"
+    "pending": "{{count}} تعديل غير محفوظ",
+    "usedIn_zero": "غير مستخدم",
+    "usedIn_one": "مستخدم في مكان واحد",
+    "usedIn_two": "مستخدم في مكانين",
+    "usedIn_few": "مستخدم في {{count}} أماكن",
+    "usedIn_many": "مستخدم في {{count}} مكاناً",
+    "usedIn_other": "مستخدم في {{count}} مكان",
+    "mixed": "صيغته مختلفة في بعض الأماكن"
   },
   "assistant": {
     "conversations": "المحادثات",
@@ -1777,21 +1774,14 @@
       "findDoctors": "عم بدوّر بالأطباء",
       "doctorTimeOff": "عم بجهّز إجازة الطبيب",
       "clinicClosure": "عم بجهّز إغلاق العيادة",
-      "doctorTimeOffList": "عم بشوف إجازات الطبيب",
       "updateTimeOff": "عم بجهّز تعديل الإجازة",
       "deleteTimeOff": "عم بجهّز حذف الإجازة",
-      "findLabOrders": "عم بدوّر بطلبيات المختبر",
       "labOrderStatus": "عم بجهّز تغيير حالة الطلبية",
-      "findStockItems": "عم بدوّر بالمخزون",
       "stockMovement": "عم بجهّز حركة المخزون",
       "doctorSchedule": "عم بجهّز تعديل الدوام",
-      "findPayments": "عم بشوف دفعات المريض",
       "reversePayment": "عم بجهّز عكس الدفعة",
-      "findLabs": "عم بدوّر بالمختبرات",
-      "labPayments": "عم بشوف دفعات المختبر",
       "labPayment": "عم بجهّز دفعة المختبر",
       "reverseLabPayment": "عم بجهّز عكس دفعة المختبر",
-      "stockMovements": "عم بشوف حركات المادة",
       "reverseStockMovement": "عم بجهّز عكس الحركة",
       "findSlots": "عم بدوّر على أوقات فاضية",
       "extraHours": "عم بجهّز الدوام الإضافي",
@@ -2095,12 +2085,18 @@
         "openai": {
           "title": "OpenAI",
           "hint": "مفتاح العيادة الخاص للمساعد. الاستخدام بينحسب على حساب العيادة.",
-          "confirmClear": "إزالة مفتاح OpenAI؟ المساعد برجع يستخدم إعدادات الخادم."
+          "confirmClear": {
+            "title": "إزالة مفتاح OpenAI؟",
+            "consequence": "يعود المساعد إلى استخدام إعدادات الخادم."
+          }
         },
         "whatsapp": {
           "title": "WhatsApp Business",
           "hint": "حساب WhatsApp العيادة للرسائل والتذكيرات. لازم القالب يكون معتمد من Meta.",
-          "confirmClear": "إزالة بيانات WhatsApp؟ الرسائل برجع تنبعت بإعدادات الخادم."
+          "confirmClear": {
+            "title": "إزالة بيانات WhatsApp؟",
+            "consequence": "تعود الرسائل إلى الإرسال بإعدادات الخادم."
+          }
         }
       },
       "kinds": {

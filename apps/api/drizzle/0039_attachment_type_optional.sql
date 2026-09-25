@@ -1,0 +1,1 @@
+ALTER TABLE "attachments" ALTER COLUMN "type" DROP NOT NULL;

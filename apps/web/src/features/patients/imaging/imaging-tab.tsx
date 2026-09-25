@@ -1,17 +1,13 @@
 import {
-  LOOKUP_LIST,
   ALLOWED_ATTACHMENT_MIME_TYPES,
-  isFdiTooth,
   MAX_ATTACHMENT_BYTES,
   type Attachment,
-  type AttachmentType,
 } from "@clinic/shared";
 import { useRef, useState, type ChangeEvent, type DragEvent, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, EmptyState, Icon, Img, Input, Ltr, Select, useToast } from "@clinic/ui";
+import { Button, EmptyState, Icon, Img, Ltr, useConfirm, useToast } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/features/auth/session";
-import { useLookupLabels, useLookupOptions } from "@web/features/lookups/queries";
 import { canDeleteAttachment, canManageAttachments } from "@web/features/patients/permissions";
 import {
   useAttachment,
@@ -26,23 +22,13 @@ import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { ellipsis } from "@web/i18n/ellipsis";
 
 // Presign, PUT, confirm: the API builds the key and re-reads the real size and type afterwards, so
-// nothing here is trusted. Thumbnails ask for their own signed URLs.
+// nothing here is trusted. Thumbnails ask for their own signed URLs. Newest first, and nothing to
+// label on upload: the doctor reads what an image is by looking at it.
 export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
-  const { t } = useTranslation();
-  const attachmentTypes = useLookupOptions(LOOKUP_LIST.ATTACHMENT_TYPE);
   const { can } = useSession();
   const toast = useToast();
 
-  const [typeFilter, setTypeFilter] = useState<AttachmentType | "">("");
-  const [toothFilter, setToothFilter] = useState("");
-
-  const tooth = Number(toothFilter);
-  const toothIsValid = toothFilter !== "" && Number.isInteger(tooth) && isFdiTooth(tooth);
-
-  const attachments = usePatientAttachments(patientId, {
-    ...(typeFilter !== "" && { type: typeFilter }),
-    ...(toothIsValid && { tooth }),
-  });
+  const attachments = usePatientAttachments(patientId);
   const showSkeleton = useDelayedLoading(attachments.isPending);
 
   const canUpload = canManageAttachments(can);
@@ -51,50 +37,6 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
   return (
     <div data-testid="imaging-tab" className="flex flex-col gap-4">
       {canUpload && <UploadRow patientId={patientId} />}
-
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-44">
-          <label htmlFor="imaging-type" className="mb-1 block text-label text-ink-muted">
-            {/* Not "Type": the uploader above has a field by that name, and two
-                identical labels on one screen is a guess about which is which. */}
-            {t("imaging.filterType")}
-          </label>
-          <Select
-            id="imaging-type"
-            data-testid="imaging-filter-type"
-            value={typeFilter}
-            onChange={(event) => setTypeFilter(event.target.value as AttachmentType | "")}
-            placeholder={t("common.all")}
-            options={attachmentTypes}
-          />
-        </div>
-
-        <div className="w-32">
-          <label htmlFor="imaging-tooth" className="mb-1 block text-label text-ink-muted">
-            {t("imaging.filterTooth")}
-          </label>
-          <Input
-            id="imaging-tooth"
-            data-testid="imaging-filter-tooth"
-            dir="ltr"
-            inputMode="numeric"
-            placeholder="46"
-            value={toothFilter}
-            onChange={(event) => setToothFilter(event.target.value)}
-            hasError={toothFilter !== "" && !toothIsValid}
-          />
-        </div>
-
-        {toothFilter !== "" && !toothIsValid && (
-          <p
-            role="alert"
-            data-testid="imaging-invalid-tooth"
-            className="text-label text-danger-600"
-          >
-            {t("imaging.invalidTooth")}
-          </p>
-        )}
-      </div>
 
       {showSkeleton && (
         <>
@@ -151,13 +93,10 @@ export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
 
 function UploadRow({ patientId }: { patientId: string }): JSX.Element {
   const { t } = useTranslation();
-  const attachmentTypes = useLookupOptions(LOOKUP_LIST.ATTACHMENT_TYPE);
   const toast = useToast();
   const upload = useUploadAttachment(patientId);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [type, setType] = useState<AttachmentType>("xray_periapical");
-  const [tooth, setTooth] = useState("");
   const [isOver, setIsOver] = useState(false);
 
   const send = async (file: File): Promise<void> => {
@@ -173,13 +112,9 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
       return;
     }
 
-    const parsed = Number(tooth);
-    const toothNumber = tooth !== "" && isFdiTooth(parsed) ? parsed : null;
-
     try {
-      await upload.mutateAsync({ file, type, tooth: toothNumber });
+      await upload.mutateAsync({ file });
       toast.success("imaging.uploaded");
-      setTooth("");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -211,39 +146,6 @@ function UploadRow({ patientId }: { patientId: string }): JSX.Element {
       data-testid="imaging-upload"
       className="border border-line rounded-card bg-surface p-5 shadow-card"
     >
-      {/* Both fields are sent with the upload, and a drop zone that fires the moment a file lands
-          has to have them answered already. */}
-      <div className="mb-4 flex flex-wrap items-end gap-3">
-        <div className="min-w-44 flex-1 sm:flex-none">
-          <label htmlFor="upload-type" className="mb-1 block text-label text-ink-muted">
-            {t("imaging.type")}
-          </label>
-          <Select
-            placeholder={t("common.placeholders.selectType")}
-            id="upload-type"
-            data-testid="imaging-upload-type"
-            value={type}
-            onChange={(event) => setType(event.target.value as AttachmentType)}
-            options={attachmentTypes}
-          />
-        </div>
-
-        <div className="w-28">
-          <label htmlFor="upload-tooth" className="mb-1 block text-label text-ink-muted">
-            {t("imaging.tooth")}
-          </label>
-          <Input
-            id="upload-tooth"
-            data-testid="imaging-upload-tooth"
-            dir="ltr"
-            inputMode="numeric"
-            placeholder="46"
-            value={tooth}
-            onChange={(event) => setTooth(event.target.value)}
-          />
-        </div>
-      </div>
-
       {/* Not a `<button>`: it contains one, and a button inside a button is invalid. The keyboard
           path is the button in the middle. */}
       <div
@@ -302,27 +204,35 @@ function ImageCard({
   onError: (error: unknown) => void;
 }): JSX.Element {
   const { t } = useTranslation();
-  const attachmentTypeLabel = useLookupLabels(LOOKUP_LIST.ATTACHMENT_TYPE);
   const toast = useToast();
   const { data, isPending } = useAttachment(attachment.id, true);
   const remove = useDeleteAttachment(patientId);
+  const { confirm, dialog } = useConfirm("imaging-confirm-delete");
 
   const isImage = attachment.mime.startsWith("image/");
 
-  const handleDelete = async (): Promise<void> => {
-    try {
-      await remove.mutateAsync(attachment.id);
-      toast.success("imaging.deleted");
-    } catch (error) {
-      onError(error);
-    }
-  };
+  const handleDelete = (): void =>
+    confirm({
+      title: "imaging.confirmDelete.title",
+      titleValues: { name: attachment.filename },
+      consequences: [t("imaging.confirmDelete.consequence")],
+      onConfirm: async () => {
+        try {
+          await remove.mutateAsync(attachment.id);
+          toast.success("imaging.deleted");
+        } catch (error) {
+          onError(error);
+          throw error;
+        }
+      },
+    });
 
   return (
     <figure
       data-testid="imaging-card"
       className="flex flex-col gap-1.5 border border-line rounded-card bg-surface shadow-card p-2"
     >
+      {dialog}
       <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md bg-canvas">
         {isPending && <Skeleton className="size-full rounded-none" />}
 
@@ -365,17 +275,6 @@ function ImageCard({
           {attachment.filename}
         </span>
 
-        <span className="flex flex-wrap items-center gap-1.5">
-          <Badge tone="neutral" data-testid="imaging-card-type">
-            {attachmentTypeLabel(attachment.type)}
-          </Badge>
-          {attachment.tooth !== null && (
-            <Badge tone="info" data-testid="imaging-card-tooth">
-              <Ltr>{attachment.tooth}</Ltr>
-            </Badge>
-          )}
-        </span>
-
         <Ltr className="text-micro text-ink-muted">{formatDate(attachment.createdAt)}</Ltr>
 
         {canRemove && (
@@ -385,7 +284,7 @@ function ImageCard({
             size="sm"
             data-testid="imaging-card-delete"
             disabled={remove.isPending}
-            onClick={() => void handleDelete()}
+            onClick={handleDelete}
           >
             {t("common.delete")}
           </Button>

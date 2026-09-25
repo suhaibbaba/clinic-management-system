@@ -21,6 +21,13 @@ export { Img } from "@ui/components/img";
 export { Input } from "@ui/components/input";
 export { Ltr } from "@ui/components/ltr";
 export { Modal } from "@ui/components/modal";
+export { TotalBadge, type TotalBadgeProps } from "@ui/components/total-badge";
+export {
+  ConfirmDialog,
+  useConfirm,
+  type ConfirmDialogProps,
+  type ConfirmRequest,
+} from "@ui/components/confirm-dialog";
 export { Money } from "@ui/components/money";
 export { MoneyInput } from "@ui/components/money-input";
 export { PageAction } from "@ui/components/page-action";

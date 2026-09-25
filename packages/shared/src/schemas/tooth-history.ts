@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { isFdiTooth } from "@shared/constants/dental";
-import { attachmentSchema } from "@shared/schemas/attachments";
 import { uuidSchema } from "@shared/schemas/common";
 import { chartMarkSchema } from "@shared/schemas/chart-marks";
 import { performedProcedureSchema } from "@shared/schemas/performed-procedures";
@@ -11,7 +10,6 @@ export const toothHistorySchema = z.object({
   /** Each procedure carries only the marks that touch this tooth. */
   procedures: z.array(performedProcedureSchema),
   marks: z.array(chartMarkSchema),
-  attachments: z.array(attachmentSchema),
 });
 export type ToothHistory = z.infer<typeof toothHistorySchema>;
 

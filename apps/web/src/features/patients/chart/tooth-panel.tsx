@@ -8,13 +8,8 @@ import {
 } from "@web/features/patients/chart/add-procedure-form";
 import { SkeletonTimeline } from "@clinic/ui/components/skeleton";
 import { SurfaceSelector } from "@web/features/patients/chart/surface-selector";
-import { ToothAttachments } from "@web/features/patients/chart/tooth-attachments";
 import { useToothStates, type ToothSummary } from "@web/features/patients/chart/tooth-state";
-import {
-  canRecordProcedure,
-  canSeeAttachments,
-  canSeePrices,
-} from "@web/features/patients/permissions";
+import { canRecordProcedure, canSeePrices } from "@web/features/patients/permissions";
 import { useClinic } from "@web/features/clinic/queries";
 import { useSession } from "@web/features/auth/session";
 import { useToothHistory } from "@web/features/patients/queries";
@@ -35,7 +30,7 @@ export interface ToothPanelProps {
     ((input: { teeth: number[]; performedProcedureId?: string }) => void) | undefined;
 }
 
-// Prices and attachments are gated here as well as server-side: the API is the boundary, this is so
+// Prices are gated here as well as server-side: the API is the boundary, this is so
 // a role never sees a control it would only be refused.
 export function ToothPanel({
   patientId,
@@ -59,7 +54,6 @@ export function ToothPanel({
   const showSkeleton = useDelayedLoading(isPending);
 
   const showPrices = canSeePrices(role);
-  const showAttachments = canSeeAttachments(role);
   const canAdd = canRecordProcedure(can);
 
   const catalogNames = new Map(catalog.map((item) => [item.id, item.nameAr]));
@@ -214,13 +208,6 @@ export function ToothPanel({
                 onRecord(input);
               }}
             />
-          </section>
-        )}
-
-        {showAttachments && (
-          <section data-testid="tooth-panel-attachments" className="flex flex-col gap-2">
-            <h3 className="text-label font-semibold text-ink">{t("chart.panel.attachments")}</h3>
-            {data && <ToothAttachments attachments={data.attachments} />}
           </section>
         )}
       </div>

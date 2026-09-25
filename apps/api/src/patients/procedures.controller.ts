@@ -107,7 +107,7 @@ export class ProceduresController {
       "Void a treatment recorded by mistake; its charge is reversed. Waits on a typed confirmation.",
   })
   @Delete(":id")
-  @Roles(USER_ROLE.ADMIN)
+  @Roles(USER_ROLE.DOCTOR)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(PERFORMED_PROCEDURES_ENTITY, AUDIT_ACTION.DELETE)
   async remove(

@@ -1,7 +1,6 @@
 {
   "app": {
-    "title": "Clinic Management System",
-    "shortTitle": "Clinic"
+    "title": "Clinic Management System"
   },
   "common": {
     "diallingCode": "Dialling code",
@@ -13,23 +12,17 @@
     "saving": "Saving",
     "cancel": "Cancel",
     "edit": "Edit",
-    "create": "Add",
     "search": "Search",
     "loading": "Loading",
     "updating": "Updating",
     "actions": "Actions",
-    "confirm": "Confirm",
     "close": "Close",
     "retry": "Retry",
     "all": "All",
     "none": "None",
     "optional": "Optional",
-    "yes": "Yes",
-    "no": "No",
     "reset": "Reset",
     "delete": "Delete",
-    "filters": "Filters",
-    "viewAll": "View all",
     "placeholders": {
       "identifier": "09XXXXXXXX",
       "password": "••••••••",
@@ -80,20 +73,20 @@
       "nextYear": "Next year"
     },
     "showPassword": "Show password",
-    "hidePassword": "Hide password"
+    "hidePassword": "Hide password",
+    "deleteForever": "Delete for good",
+    "noMatches": "No matches"
   },
   "pagination": {
     "goToPage": "Page {{page}}",
     "label": "Pagination",
     "next": "Next",
-    "page": "Page {{page}} of {{totalPages}}",
     "pageOf": "Page number, of {{totalPages}}",
     "perPage": "Per page",
     "previous": "Previous",
     "total": "{{total}} records"
   },
   "nav": {
-    "account": "Account",
     "appointments": "Appointments",
     "assistant": "Assistant",
     "audit": "Audit log",
@@ -124,7 +117,6 @@
     "translations": "Interface text",
     "users": "Users",
     "waitingCount": "{{count}} awaiting confirmation",
-    "assistantSettings": "Assistant settings",
     "settingsPage": "Settings"
   },
   "roles": {
@@ -142,7 +134,6 @@
     "submit": "Sign in",
     "submitting": "Signing in",
     "invalidCredentials": "Invalid credentials",
-    "sessionExpired": "Your session expired, please sign in again",
     "activateTitle": "Activate your account",
     "resetTitle": "Reset your password",
     "setPasswordSubtitle": "Choose a new password for your account.",
@@ -164,19 +155,15 @@
     "deactivate": "Deactivate",
     "delete": "Delete the account",
     "deleteQuestion": "{{name}} will not be able to sign in from now on, and the records tied to the account stay as they are. Go ahead?",
-    "deleteTitle": "Delete the account",
     "deleted": "The account was deleted",
     "edit": "Edit user",
     "email": "Email",
     "empty": "No users",
     "emptyHint": "Start by adding the first clinic user",
     "filterRole": "Filter by role",
-    "filterStatus": "Filter by status",
     "inactive": "Inactive",
     "inviteSent": "The link has been sent",
     "name": "Name",
-    "nameAr": "Name in Arabic",
-    "nameEn": "Name in English",
     "newPassword": "New password",
     "password": "Password",
     "passwordNoEmail": "No email address to send a link to, so set a password and hand it over yourself.",
@@ -208,7 +195,8 @@
     "firstNameAr": "First name in Arabic",
     "lastNameAr": "Last name in Arabic",
     "firstNameEn": "First name in English",
-    "lastNameEn": "Last name in English"
+    "lastNameEn": "Last name in English",
+    "confirmRemovePhoto": "Remove the photo?"
   },
   "doctors": {
     "title": "Doctors",
@@ -222,7 +210,6 @@
     "duration": "Default appointment length",
     "durationUnit": "minutes",
     "schedule": "Weekly schedule",
-    "editSchedule": "Edit schedule",
     "created": "Doctor added",
     "updated": "Doctor updated",
     "scheduleUpdated": "Schedule updated",
@@ -249,14 +236,12 @@
     }
   },
   "schedule": {
-    "working": "Working",
     "off": "Off",
     "from": "From",
     "to": "To",
     "addRange": "Add interval",
     "removeRange": "Remove interval",
     "closed": "Closed",
-    "invalidRange": "Start time must be before end time",
     "weekday": {
       "0": "Sunday",
       "1": "Monday",
@@ -282,7 +267,11 @@
       "empty": "No closures",
       "emptyHint": "Add the holidays and the days the clinic is shut",
       "addedAndCancelled_one": "Closure recorded, 1 appointment cancelled and the patient notified",
-      "addedAndCancelled_other": "Closure recorded, {{count}} appointments cancelled and the patients notified"
+      "addedAndCancelled_other": "Closure recorded, {{count}} appointments cancelled and the patients notified",
+      "confirmRemove": {
+        "title": "Delete this closure?",
+        "consequence": "Those days become bookable again."
+      }
     },
     "timeOff": {
       "title": "Time off",
@@ -298,7 +287,11 @@
       "empty": "No time off",
       "emptyHint": "Record the days or hours this doctor is away",
       "addedAndCancelled_one": "Time off recorded, 1 appointment cancelled and the patient notified",
-      "addedAndCancelled_other": "Time off recorded, {{count}} appointments cancelled and the patients notified"
+      "addedAndCancelled_other": "Time off recorded, {{count}} appointments cancelled and the patients notified",
+      "confirmRemove": {
+        "title": "Delete this time off?",
+        "consequence": "The doctor becomes bookable again for that period."
+      }
     },
     "conflicts": {
       "description": "Choose what happens to them before the period is saved.",
@@ -314,7 +307,6 @@
     "countryHint": "Every phone field starts on this country's dialling code",
     "title": "Clinic settings",
     "subtitle": "Clinic details and opening hours",
-    "name": "Clinic name",
     "phone": "Phone",
     "email": "Email",
     "address": "Address",
@@ -355,7 +347,15 @@
     "apiVersion": "Server version",
     "versionMismatch": "This page is older than the server — reload it",
     "nameAr": "Clinic name in Arabic",
-    "nameEn": "Clinic name in English"
+    "nameEn": "Clinic name in English",
+    "confirmRemoveLogo": {
+      "title": "Remove the logo?",
+      "consequence": "A mark generated from the clinic's name takes its place."
+    },
+    "confirmRemoveAppIcon": {
+      "title": "Remove the app icon?",
+      "consequence": "Installed copies of the app go back to the default icon."
+    }
   },
   "audit": {
     "title": "Audit log",
@@ -370,8 +370,6 @@
     "viewChanges": "View changes",
     "changesFor": "Changes to {{entity}}",
     "noChanges": "No changed fields",
-    "fromDate": "From date",
-    "toDate": "To date",
     "filterEntity": "Filter by record",
     "filterAction": "Filter by action",
     "filterUser": "Filter by user",
@@ -420,23 +418,10 @@
       "invalidEmail": "Invalid email address",
       "invalidPhone": "Not a valid phone number",
       "passwordMin": "Password must be at least 8 characters",
-      "passwordSame": "The new password must differ from the current one",
-      "noChanges": "No field was changed"
-    }
-  },
-  "health": {
-    "title": "System status",
-    "loading": "Checking system status",
-    "error": "Could not reach the API",
-    "api": "API",
-    "database": "Database",
-    "version": "Version",
-    "checkedAt": "Checked at",
-    "status": {
-      "ok": "Operational",
-      "degraded": "Degraded",
-      "up": "Connected",
-      "down": "Unreachable"
+      "passwordSame": "The new password must differ from the current one"
+    },
+    "clinicalDelete": {
+      "hasPayments": "Cannot delete — payments cover it. Reverse the payments first, or record a correction."
     }
   },
   "patients": {
@@ -511,7 +496,10 @@
     "firstName": "First name",
     "middleName": "Middle name",
     "lastName": "Last name",
-    "confirmDelete": "Delete the file of “{{name}}”? It leaves every list and search; its medical and financial records are kept.",
+    "confirmDelete": {
+      "title": "Delete the file of “{{name}}”?",
+      "consequence": "It leaves every list and search; its medical and financial records are kept."
+    },
     "deleted": "The patient's file was deleted"
   },
   "chart": {
@@ -555,8 +543,6 @@
       "discountReason": "Discount reason",
       "discountNeedsReason": "A discount requires a reason",
       "date": "Date",
-      "attachments": "X-rays",
-      "noAttachments": "No images for this tooth",
       "openFile": "Open file",
       "recorded": "Procedure recorded",
       "procedureCount": "{{count}} procedures"
@@ -574,7 +560,6 @@
     "noVisits": "This patient has no visits",
     "noVisitsHint": "Add a visit from the Visits tab first, then link the prescription to it",
     "visit": "Visit",
-    "forVisit": "Visit {{date}}",
     "withoutVisit": "No visit",
     "drug": "Drug",
     "dose": "Dose",
@@ -588,7 +573,10 @@
     "addDrug": "Add a drug",
     "removeDrug": "Remove the drug",
     "drugNumber": "Drug {{number}}",
-    "confirmDelete": "Delete this prescription? It leaves the patient's file and timeline; the audit log keeps a record of it.",
+    "confirmDelete": {
+      "title": "Delete this prescription?",
+      "consequence": "It leaves the patient's file and timeline; the audit log keeps a record of it."
+    },
     "deleted": "Prescription deleted"
   },
   "visits": {
@@ -609,13 +597,38 @@
     "empty": "No visits recorded",
     "emptyHint": "Record this patient's first visit.",
     "loadFailed": "Could not load visits.",
-    "time": "Time"
+    "time": "Time",
+    "nothingRecorded": "Nothing was recorded at this visit",
+    "addTreatment": "Add treatment",
+    "menu": "Visit options",
+    "deleted": "Visit deleted",
+    "procedureDeleted": "Treatment deleted",
+    "confirmDelete": {
+      "title": "Delete the visit of {{date}}?",
+      "procedures_one": "Its {{count}} treatment goes with it, and its charge is reversed",
+      "procedures_other": "Its {{count}} treatments go with it, and their charges are reversed",
+      "attachments": "Its images, attachments and tooth chart marks go with it",
+      "audit": "All of it stays in the audit log"
+    },
+    "confirmProcedure": {
+      "title": "Delete the treatment: {{name}}?",
+      "titleWithTooth": "Delete the treatment: {{name}} — tooth {{tooth}}?",
+      "charge": "Its charge is reversed with a correcting entry; no entry is erased",
+      "chart": "Its marks leave the tooth chart"
+    },
+    "visit": "Visit",
+    "teeth": "Teeth",
+    "procedureMenu": "Treatment options",
+    "addTreatmentTitle": "Add treatment — visit of {{date}}",
+    "editTreatmentTitle": "Edit: {{name}}",
+    "proceduresTitle": "Treatments at the visit of {{date}}",
+    "proceduresTotal": "Total",
+    "tooth": "Tooth"
   },
   "treatmentPlans": {
     "create": "New plan",
     "created": "Plan created",
     "defaultTitle": "Treatment plan",
-    "count": "{{count}} plans",
     "plan": "Plan",
     "empty": "No treatment plans",
     "emptyHint": "Create a plan, add the proposed procedures, and print it for the patient to agree to.",
@@ -662,7 +675,10 @@
     "notes": "Notes",
     "menu": "Plan options",
     "itemMenu": "Item options",
-    "confirmDelete": "Delete the plan “{{title}}”? Its items go with it; procedures already carried out are kept.",
+    "confirmDelete": {
+      "title": "Delete the plan “{{title}}”?",
+      "consequence": "Its items go with it; procedures already carried out are kept."
+    },
     "deleted": "Plan deleted",
     "confirmDeleteItem": "Remove “{{name}}” from the plan?",
     "itemDeleted": "Item removed",
@@ -674,9 +690,6 @@
     "performedBy": "By {{name}}"
   },
   "imaging": {
-    "type": "Type",
-    "tooth": "Tooth",
-    "invalidTooth": "Not a valid tooth number",
     "uploadTitle": "Add an X-ray or a document",
     "dropHint": "Drag a file here, or choose one from your device",
     "upload": "Upload image",
@@ -688,9 +701,11 @@
     "deleted": "Image deleted",
     "empty": "No images for this patient",
     "loadFailed": "Could not load images.",
-    "filterTooth": "Filter by tooth",
-    "filterType": "Filter by type",
-    "emptyHint": "Uploaded images and documents appear here."
+    "emptyHint": "Uploaded images and documents appear here.",
+    "confirmDelete": {
+      "title": "Delete “{{name}}”?",
+      "consequence": "It leaves the patient's file; it is kept, and an admin can restore it."
+    }
   },
   "billing": {
     "outstanding": "Outstanding balance",
@@ -711,8 +726,6 @@
     "confirmReversal": "Confirm reversal",
     "paymentReversed": "Reversing entry recorded",
     "downloadStatement": "Download statement",
-    "from": "From",
-    "to": "To",
     "openingBalance": "Opening balance",
     "empty": "No ledger entries",
     "emptyHint": "Completed work and recorded payments appear here.",
@@ -725,24 +738,7 @@
       "description": "Description",
       "charge": "Debit",
       "payment": "Credit",
-      "balance": "Balance",
-      "patient": "Patient",
-      "lastPayment": "Last payment",
-      "phone": "Phone"
-    },
-    "overdueTitle": "Overdue balances",
-    "overdueSubtitle": "Patients who owe money and have not paid within the clinic's window.",
-    "overdueEmpty": "No overdue balances",
-    "overdueEmptyHint": "Every outstanding balance is inside the allowed window.",
-    "daysAgo": "{{count}} days ago",
-    "neverPaid": "Never paid",
-    "kpi": {
-      "patients": "Overdue patients",
-      "patientsCaption": "Across the clinic",
-      "outstanding": "Outstanding total",
-      "largest": "Largest balance",
-      "neverPaid": "Never paid",
-      "thisPage": "On this page"
+      "balance": "Balance"
     },
     "period": "Period"
   },
@@ -766,14 +762,12 @@
     "type": "Type",
     "reason": "Reason for the visit",
     "notes": "Notes",
-    "status": "Status",
     "empty": "No appointments on this day",
     "emptyHint": "Book the first one from “New appointment”.",
     "emptyWeek": "No appointments this week",
     "loadFailed": "Could not load the calendar.",
     "created": "Appointment booked",
     "updated": "Appointment updated",
-    "conflict": "That time is already booked for this doctor",
     "statuses": {
       "requested": "Awaiting confirmation",
       "confirmed": "Confirmed",
@@ -818,15 +812,12 @@
     },
     "ribbon": {
       "title": "Today's appointments",
-      "none": "Nothing left today",
-      "upcoming": "Next up",
-      "seeAll": "See the whole day"
+      "none": "Nothing left today"
     },
     "kpi": {
       "today": "Today's appointments",
       "arrived": "Arrived",
       "remaining": "Remaining",
-      "waiting": "Waiting list",
       "attendance": "Attendance",
       "attendanceCaption": "of today's appointments",
       "onlineToday": "Online bookings today",
@@ -857,10 +848,7 @@
       "urgentCount_one": "{{count}} urgent",
       "urgentCount_other": "{{count}} urgent",
       "statuses": {
-        "pending": "Waiting for a call",
-        "contacted": "Called back",
-        "scheduled": "Booked",
-        "declined": "Closed"
+        "contacted": "Called back"
       }
     },
     "grid": {
@@ -1040,11 +1028,7 @@
       "emptyHint": "Orders will appear here as they are placed",
       "columns": {
         "work": "Work",
-        "patient": "Patient",
-        "lab": "Lab",
-        "status": "Status",
-        "expected": "Expected",
-        "price": "Price"
+        "status": "Status"
       }
     },
     "order": {
@@ -1090,7 +1074,8 @@
         "sent": "Sent",
         "received": "Received",
         "fitted": "Fitted"
-      }
+      },
+      "confirmRemoveAttachment": "Remove “{{name}}” from the order?"
     },
     "section": {
       "label": "Lab views",
@@ -1293,8 +1278,14 @@
     "created": "Option added",
     "updated": "Option saved",
     "deleted": "Option deleted",
-    "confirmDelete": "Delete “{{name}}” from this list? Records that refer to it will show its code instead of its name.",
-    "confirmDeleteSystem": "Delete “{{name}}”? This is a built-in option the app relies on, and records that refer to it will show its code instead of its name. To take it out of the dropdowns but keep the name, switch it off instead.",
+    "confirmDelete": {
+      "title": "Delete “{{name}}” from this list?",
+      "consequence": "Records that refer to it will show its code instead of its name."
+    },
+    "confirmDeleteSystem": {
+      "title": "Delete “{{name}}”?",
+      "consequence": "This is a built-in option the app relies on, and records that refer to it will show its code instead of its name. To take it out of the dropdowns but keep the name, switch it off instead."
+    },
     "lists": {
       "tooth_state": "Tooth states",
       "lab_work_type": "Lab work types",
@@ -1357,14 +1348,10 @@
       "overdueCaption": "{{count}} patients"
     },
     "lastAppointment": "Last appointment",
-    "now": "Now",
     "schedule": {
       "title": "Today's schedule",
       "seeAll": "All appointments",
-      "time": "Time",
-      "patient": "Patient",
       "doctor": "Dr. {{name}}",
-      "status": "Status",
       "empty": "Nothing booked today",
       "emptyHint": "Appointments booked for today appear here",
       "byDoctor": "By doctor",
@@ -1379,7 +1366,8 @@
     "placeholder": "Write a note",
     "save": "Save note",
     "remove": "Delete note",
-    "empty": "No notes yet"
+    "empty": "No notes yet",
+    "confirmRemove": "Delete this note?"
   },
   "permissions": {
     "adminLocked": "The administrator holds every permission and cannot be edited — a clinic able to take one from its own administrator could lock itself out of the only account that can give it back.",
@@ -1708,19 +1696,20 @@
     "search": "Search the text",
     "searchPlaceholder": "Search by text or key",
     "section": "Section",
-    "key": "Key",
     "changedOnly": "Changed only ({{count}})",
-    "changed": "Changed",
     "save": "Save",
     "saved": "Text saved",
     "empty": "No text matches",
     "emptyHint": "Try another word, or a different section",
     "allSections": "All sections",
-    "hint": "Keys you never change keep following the system's updates",
+    "hint": "Identical wording is one row: changing it changes it everywhere it appears. Open a row to word one place differently. Anything you never change keeps following the system's updates.",
     "original": "Original",
     "arabic": "Arabic",
     "english": "English",
-    "pending": "{{count}} unsaved change"
+    "pending": "{{count}} unsaved change",
+    "usedIn_one": "Used in {{count}} place",
+    "usedIn_other": "Used in {{count}} places",
+    "mixed": "Worded differently in some places"
   },
   "assistant": {
     "conversations": "Conversations",
@@ -1761,21 +1750,14 @@
       "findDoctors": "Looking up the doctors",
       "doctorTimeOff": "Preparing the time off",
       "clinicClosure": "Preparing the closure",
-      "doctorTimeOffList": "Checking the doctor's time off",
       "updateTimeOff": "Preparing the change",
       "deleteTimeOff": "Preparing the removal",
-      "findLabOrders": "Searching the lab orders",
       "labOrderStatus": "Preparing the status change",
-      "findStockItems": "Searching the stock",
       "stockMovement": "Preparing the stock movement",
       "doctorSchedule": "Preparing the new hours",
-      "findPayments": "Checking the patient's payments",
       "reversePayment": "Preparing the reversal",
-      "findLabs": "Searching the labs",
-      "labPayments": "Checking the lab's payments",
       "labPayment": "Preparing the lab payment",
       "reverseLabPayment": "Preparing the reversal",
-      "stockMovements": "Checking the item's movements",
       "reverseStockMovement": "Preparing the reversal",
       "findSlots": "Looking for free times",
       "extraHours": "Preparing the extra hours",
@@ -2071,12 +2053,18 @@
         "openai": {
           "title": "OpenAI",
           "hint": "The clinic's own key for the assistant. Usage is billed to the clinic's account.",
-          "confirmClear": "Remove the OpenAI key? The assistant goes back to the server's settings."
+          "confirmClear": {
+            "title": "Remove the OpenAI key?",
+            "consequence": "The assistant goes back to the server's settings."
+          }
         },
         "whatsapp": {
           "title": "WhatsApp Business",
           "hint": "The clinic's WhatsApp account for messages and reminders. The template must be approved by Meta.",
-          "confirmClear": "Remove the WhatsApp details? Messages go back to the server's settings."
+          "confirmClear": {
+            "title": "Remove the WhatsApp details?",
+            "consequence": "Messages go back to the server's settings."
+          }
         }
       },
       "kinds": {

@@ -1,24 +1,52 @@
-import type {
-  PatientClinicalView,
-  PerformedProcedure,
-  PrescriptionItem,
-  Visit,
+import {
+  addMoney,
+  subtractMoney,
+  type Doctor,
+  type PatientClinicalView,
+  type PerformedProcedure,
+  type PrescriptionItem,
+  type Visit,
 } from "@clinic/shared";
-import { useMemo, useState, type JSX } from "react";
+import { useMemo, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, EmptyState, Icon, Ltr, usePersonName, useToast } from "@clinic/ui";
-import { SkeletonCard, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import {
+  Badge,
+  Button,
+  ConfirmDialog,
+  EmptyState,
+  Icon,
+  Ltr,
+  MenuItem,
+  Modal,
+  Money,
+  PersonName,
+  RowMenu,
+  TotalBadge,
+  useToast,
+} from "@clinic/ui";
+import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import { minutesOf, toTimeLabel } from "@web/features/appointments/calendar-time";
 import { useSession } from "@web/features/auth/session";
+import { useCurrency } from "@web/features/clinic/queries";
 import { useDoctors } from "@web/features/doctors/queries";
 import { ConsumeForVisit } from "@web/features/inventory/consume-for-visit";
 import { canConsumeStock } from "@web/features/inventory/permissions";
 import {
-  ProcedureForm,
-  type ProcedureFormValues,
-} from "@web/features/patients/procedures/procedure-form";
+  canDeleteProcedure,
+  canDeleteVisit,
+  canSeePrices,
+} from "@web/features/patients/permissions";
 import { describeItem } from "@web/features/patients/prescriptions/prescriptions-tab";
 import {
+  ProcedureForm,
+  ProcedureFormActions,
+  type ProcedureFormValues,
+} from "@web/features/patients/procedures/procedure-form";
+import { procedureName } from "@web/features/patients/procedures/procedure-name";
+import {
   useCreateProcedure,
+  useDeleteProcedure,
+  useDeleteVisit,
   usePatientPrescriptions,
   usePatientProcedures,
   usePatientVisits,
@@ -27,9 +55,14 @@ import {
 } from "@web/features/patients/queries";
 import { VisitFormModal } from "@web/features/patients/visits/visit-form-modal";
 import { errorMessageKey } from "@web/lib/api-error";
-import { formatDateTime } from "@web/lib/format";
-import { cn } from "@clinic/ui/lib/cn";
+import { dayMonthYear, formatDate, formatList } from "@web/lib/format";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
+
+const PROCEDURE_FORM_ID = "visit-procedure-form";
+
+type Pending =
+  | { readonly kind: "visit"; readonly visit: Visit; readonly procedures: number }
+  | { readonly kind: "procedure"; readonly procedure: PerformedProcedure };
 
 export function VisitsTab({
   patientId,
@@ -38,7 +71,7 @@ export function VisitsTab({
   patientId: string;
   patient?: PatientClinicalView | undefined;
 }): JSX.Element {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, can } = useSession();
   const toast = useToast();
 
@@ -49,27 +82,28 @@ export function VisitsTab({
   const catalog = useProcedureCatalog();
   const doctors = useDoctors({ limit: 100 });
 
-  const [consumingFor, setConsumingFor] = useState<string | null>(null);
-
   const createProcedure = useCreateProcedure(patientId);
   const updateProcedure = useUpdateProcedure(patientId);
+  const deleteVisit = useDeleteVisit(patientId);
+  const deleteProcedure = useDeleteProcedure(patientId);
 
+  const [consumingFor, setConsumingFor] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editingVisit, setEditingVisit] = useState<Visit | null>(null);
   const [procedureFor, setProcedureFor] = useState<{
     visitId: string;
     procedure: PerformedProcedure | null;
   } | null>(null);
+  const [pending, setPending] = useState<Pending | null>(null);
+  const [detailsFor, setDetailsFor] = useState<Visit | null>(null);
 
   const byVisit = useMemo(() => {
     const grouped = new Map<string, PerformedProcedure[]>();
 
     for (const procedure of procedures.data ?? []) {
-      if (!procedure.visitId) {
-        continue;
+      if (procedure.visitId) {
+        grouped.set(procedure.visitId, [...(grouped.get(procedure.visitId) ?? []), procedure]);
       }
-
-      grouped.set(procedure.visitId, [...(grouped.get(procedure.visitId) ?? []), procedure]);
     }
 
     return grouped;
@@ -90,18 +124,20 @@ export function VisitsTab({
     return grouped;
   }, [prescriptions.data]);
 
-  const displayName = usePersonName();
-  const doctorName = (id: string): string =>
-    displayName(doctors.data?.items.find((doctor) => doctor.id === id)?.user.name) || "—";
+  const doctorList = doctors.data?.items ?? [];
+  const doctorOf = (id: string): Doctor | undefined =>
+    doctorList.find((doctor) => doctor.id === id);
 
-  const catalogName = (id: string): string =>
-    catalog.data?.find((item) => item.id === id)?.nameAr ?? t("chart.panel.procedure");
+  const catalogName = (id: string): string => {
+    const entry = catalog.data?.find((item) => item.id === id);
+    return entry ? procedureName(entry, i18n.language) : t("chart.panel.procedure");
+  };
 
   if (showSkeleton) {
     return (
-      <div data-testid="visits-tab-loading" className="flex flex-col gap-3">
+      <div data-testid="visits-tab-loading" className="flex flex-col gap-4">
         <SkeletonStatus />
-        <SkeletonCard count={3} />
+        <VisitsSkeleton />
       </div>
     );
   }
@@ -141,12 +177,29 @@ export function VisitsTab({
     }
   };
 
+  const confirmDelete = async (): Promise<void> => {
+    if (!pending) {
+      return;
+    }
+
+    try {
+      if (pending.kind === "visit") {
+        await deleteVisit.mutateAsync(pending.visit.id);
+        toast.success("visits.deleted");
+      } else {
+        await deleteProcedure.mutateAsync(pending.procedure.id);
+        toast.success("visits.procedureDeleted");
+      }
+    } catch (error) {
+      toast.error(errorMessageKey(error));
+      throw error;
+    }
+  };
+
   return (
     <div data-testid="visits-tab" className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 data-testid="visits-count" className="text-heading font-medium text-ink">
-          {t("visits.count", { count: ordered.length })}
-        </h2>
+        <TotalBadge data-testid="visits-count" total={ordered.length} label="visits.count" />
         <Button
           icon={<Icon name="plus" />}
           size="sm"
@@ -169,179 +222,126 @@ export function VisitsTab({
         />
       )}
 
-      <ol data-testid="visits-list" className="flex flex-col gap-4">
-        {ordered.map((visit) => {
-          const visitProcedures = byVisit.get(visit.id) ?? [];
-          const showingForm = procedureFor?.visitId === visit.id;
-
-          return (
-            <li
-              key={visit.id}
-              data-testid={`visit-${visit.id}`}
-              className="border border-line rounded-card bg-surface shadow-card p-4"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <Ltr as="p" data-testid="visit-date" className="text-value font-medium text-ink">
-                    {formatDateTime(visit.visitDate)}
-                  </Ltr>
-                  <p data-testid="visit-doctor" className="mt-0.5 text-label text-ink-muted">
-                    {t("visits.doctor")}: {doctorName(visit.doctorId)}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  {/* The alternative is a technician reconstructing a day's consumption from memory,
-                      which is how a stock count stops matching the cupboard. */}
-                  {canConsumeStock(can) && (
-                    <Button
-                      icon={<Icon name="clipboard" />}
-                      variant="secondary"
-                      size="sm"
-                      data-testid="visit-consume"
-                      onClick={() => setConsumingFor(visit.id)}
-                    >
-                      {t("inventory.movement.consumeFromVisit")}
-                    </Button>
-                  )}
-
-                  <Button
-                    icon={<Icon name="edit" />}
-                    variant="ghost"
-                    size="sm"
-                    data-testid="visit-edit"
-                    onClick={() => {
-                      setEditingVisit(visit);
-                      setFormOpen(true);
-                    }}
-                  >
-                    {t("common.edit")}
-                  </Button>
-                </div>
-              </div>
-
-              <dl className="mt-3 grid gap-3 sm:grid-cols-2">
-                <Field label="visits.complaint" value={visit.complaint} />
-                <Field label="visits.diagnosis" value={visit.diagnosis} emphasise />
-                <Field label="visits.examination" value={visit.examination} />
-                <Field label="visits.notes" value={visit.notes} />
-              </dl>
-
-              <section className="mt-4 border-t border-line pt-3">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="text-label font-semibold uppercase tracking-wide text-ink-muted">
-                    {t("visits.procedures")}
-                  </h3>
-
-                  {!showingForm && (
-                    <Button
-                      icon={<Icon name="plus" />}
-                      variant="secondary"
-                      size="sm"
-                      data-testid="visit-add-procedure"
-                      onClick={() => setProcedureFor({ visitId: visit.id, procedure: null })}
-                    >
-                      {t("chart.panel.addProcedure")}
-                    </Button>
-                  )}
-                </div>
-
-                {visitProcedures.length === 0 && !showingForm && (
-                  <p data-testid="visit-no-procedures" className="mt-2 text-label text-ink-muted">
-                    {t("visits.noProcedures")}
-                  </p>
-                )}
-
-                {visitProcedures.length > 0 && (
-                  <ul data-testid="visit-procedures" className="mt-2 flex flex-col gap-1.5">
-                    {visitProcedures.map((procedure) => (
-                      <li
-                        key={procedure.id}
-                        data-testid={`visit-procedure-${procedure.id}`}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-canvas px-3 py-2"
-                      >
-                        {/* Flex, not a margin: the tooth number is an LTR
-                            isolate inside RTL text, and a gap is the only
-                            spacing that survives that reliably. */}
-                        <span className="flex items-center gap-2 text-value text-ink">
-                          {catalogName(procedure.procedureId)}
-                          {toothLabel(procedure) && (
-                            <Ltr className="text-label text-ink-muted">{toothLabel(procedure)}</Ltr>
-                          )}
-                        </span>
-
-                        <span className="flex items-center gap-2">
-                          <Badge
-                            tone={statusTone(procedure.status)}
-                            data-testid="visit-procedure-status"
-                          >
-                            {t(`chart.procedureStatus.${procedure.status}`)}
-                          </Badge>
-                          <Button
-                            icon={<Icon name="edit" />}
-                            variant="ghost"
-                            size="sm"
-                            data-testid="visit-procedure-edit"
-                            onClick={() => setProcedureFor({ visitId: visit.id, procedure })}
-                          >
-                            {t("common.edit")}
-                          </Button>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {showingForm && (
-                  <div
-                    data-testid="visit-procedure-form"
-                    className="mt-3 rounded-panel bg-sunken p-3"
-                  >
-                    {user && (
-                      <ProcedureForm
-                        role={user.role}
-                        catalog={catalog.data ?? []}
-                        doctors={doctors.data?.items ?? []}
-                        submitting={createProcedure.isPending || updateProcedure.isPending}
-                        visitId={visit.id}
-                        {...(procedureFor.procedure
-                          ? {
-                              procedure: procedureFor.procedure,
-                              ...toothOf(procedureFor.procedure),
-                            }
-                          : {})}
-                        onCancel={() => setProcedureFor(null)}
-                        onSubmit={(values) => void submitProcedure(visit.id, values)}
-                      />
-                    )}
-                  </div>
-                )}
-              </section>
-
-              {(prescriptionsByVisit.get(visit.id) ?? []).length > 0 && (
-                <section
-                  data-testid="visit-prescriptions"
-                  className="mt-4 border-t border-line pt-3"
-                >
-                  <h3 className="text-label font-semibold uppercase tracking-wide text-ink-muted">
-                    {t("patients.tabs.prescriptions")}
-                  </h3>
-                  <ul className="mt-2 flex flex-col gap-1">
-                    {(prescriptionsByVisit.get(visit.id) ?? []).map((item, index) => (
-                      <li key={index} className="text-value text-ink">
-                        <span className="font-medium">{item.drug}</span>
-                        {describeItem(item) && (
-                          <span className="text-ink-muted"> · {describeItem(item)}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )}
-            </li>
-          );
-        })}
+      <ol data-testid="visits-list" className="grid gap-x-2.5 md:grid-cols-2 xl:grid-cols-3">
+        {ordered.map((visit) => (
+          <VisitCard
+            key={visit.id}
+            visit={visit}
+            doctor={doctorOf(visit.doctorId)}
+            procedures={byVisit.get(visit.id) ?? []}
+            prescriptions={prescriptionsByVisit.get(visit.id) ?? []}
+            mayConsume={canConsumeStock(can)}
+            mayDelete={canDeleteVisit(can)}
+            onEdit={() => {
+              setEditingVisit(visit);
+              setFormOpen(true);
+            }}
+            onConsume={() => setConsumingFor(visit.id)}
+            onDelete={() =>
+              setPending({
+                kind: "visit",
+                visit,
+                procedures: (byVisit.get(visit.id) ?? []).length,
+              })
+            }
+            onAddProcedure={() => setProcedureFor({ visitId: visit.id, procedure: null })}
+            onShowProcedures={() => setDetailsFor(visit)}
+          />
+        ))}
       </ol>
+
+      {user && (
+        <Modal
+          data-testid="visit-procedure-modal"
+          open={procedureFor !== null}
+          onOpenChange={(open) => !open && setProcedureFor(null)}
+          size="form"
+          {...(procedureFor?.procedure
+            ? {
+                title: "visits.editTreatmentTitle",
+                titleValues: { name: catalogName(procedureFor.procedure.procedureId) },
+              }
+            : {
+                title: "visits.addTreatmentTitle",
+                titleValues: {
+                  date: shortDate(
+                    ordered.find((visit) => visit.id === procedureFor?.visitId)?.visitDate ??
+                      new Date().toISOString(),
+                  ),
+                },
+              })}
+          footer={
+            <ProcedureFormActions
+              formId={PROCEDURE_FORM_ID}
+              submitting={createProcedure.isPending || updateProcedure.isPending}
+              onCancel={() => setProcedureFor(null)}
+            />
+          }
+        >
+          {procedureFor && (
+            <ProcedureForm
+              key={procedureFor.procedure?.id ?? procedureFor.visitId}
+              formId={PROCEDURE_FORM_ID}
+              role={user.role}
+              catalog={catalog.data ?? []}
+              doctors={doctorList}
+              submitting={createProcedure.isPending || updateProcedure.isPending}
+              visitId={procedureFor.visitId}
+              defaultDoctorId={ordered.find((visit) => visit.id === procedureFor.visitId)?.doctorId}
+              {...(procedureFor.procedure && { procedure: procedureFor.procedure })}
+              onCancel={() => setProcedureFor(null)}
+              onSubmit={(values) => void submitProcedure(procedureFor.visitId, values)}
+            />
+          )}
+        </Modal>
+      )}
+
+      <ProceduresModal
+        visit={detailsFor}
+        procedures={detailsFor ? (byVisit.get(detailsFor.id) ?? []) : []}
+        catalogName={catalogName}
+        doctorOf={doctorOf}
+        showPrices={user ? canSeePrices(user.role) : false}
+        mayDelete={canDeleteProcedure(can)}
+        onClose={() => setDetailsFor(null)}
+        onEdit={(procedure) => {
+          setDetailsFor(null);
+          setProcedureFor({ visitId: procedure.visitId ?? "", procedure });
+        }}
+        onDelete={(procedure) => setPending({ kind: "procedure", procedure })}
+      />
+
+      <ConfirmDialog
+        data-testid="visits-confirm-delete"
+        open={pending !== null}
+        onOpenChange={(open) => !open && setPending(null)}
+        onConfirm={confirmDelete}
+        {...(pending?.kind === "visit"
+          ? {
+              title: "visits.confirmDelete.title",
+              titleValues: { date: shortDate(pending.visit.visitDate) },
+              consequences: [
+                t("visits.confirmDelete.procedures", { count: pending.procedures }),
+                t("visits.confirmDelete.attachments"),
+                t("visits.confirmDelete.audit"),
+              ],
+            }
+          : pending?.kind === "procedure"
+            ? {
+                title: toothLabel(pending.procedure)
+                  ? "visits.confirmProcedure.titleWithTooth"
+                  : "visits.confirmProcedure.title",
+                titleValues: {
+                  name: catalogName(pending.procedure.procedureId),
+                  tooth: toothLabel(pending.procedure),
+                },
+                consequences: [
+                  t("visits.confirmProcedure.charge"),
+                  t("visits.confirmProcedure.chart"),
+                ],
+              }
+            : { title: "visits.confirmDelete.title" })}
+      />
 
       <ConsumeForVisit
         data-testid="visit-consume-modal"
@@ -355,48 +355,427 @@ export function VisitsTab({
         open={formOpen}
         onOpenChange={setFormOpen}
         patientId={patientId}
-        doctors={doctors.data?.items ?? []}
+        doctors={doctorList}
         visit={editingVisit}
       />
     </div>
   );
 }
 
-function Field({
-  label,
-  value,
-  emphasise = false,
-}: {
-  label: string;
-  value: string | null;
-  emphasise?: boolean;
-}): JSX.Element | null {
-  const { t } = useTranslation();
+interface VisitCardProps {
+  readonly visit: Visit;
+  readonly doctor: Doctor | undefined;
+  readonly procedures: readonly PerformedProcedure[];
+  readonly prescriptions: readonly PrescriptionItem[];
+  readonly mayConsume: boolean;
+  readonly mayDelete: boolean;
+  readonly onEdit: () => void;
+  readonly onConsume: () => void;
+  readonly onDelete: () => void;
+  readonly onAddProcedure: () => void;
+  readonly onShowProcedures: () => void;
+}
 
-  if (!value) {
-    return null;
-  }
+function VisitCard({
+  visit,
+  doctor,
+  procedures,
+  prescriptions,
+  mayConsume,
+  mayDelete,
+  onEdit,
+  onConsume,
+  onDelete,
+  onAddProcedure,
+  onShowProcedures,
+}: VisitCardProps): JSX.Element {
+  const { t } = useTranslation();
+  const time = toTimeLabel(minutesOf(visit.visitDate));
+
+  const fields = [
+    { key: "complaint", label: "visits.complaint", value: visit.complaint, wide: false },
+    { key: "diagnosis", label: "visits.diagnosis", value: visit.diagnosis, wide: false },
+    { key: "examination", label: "visits.examination", value: visit.examination, wide: true },
+    { key: "notes", label: "visits.notes", value: visit.notes, wide: true },
+  ].filter((field) => field.value);
+
+  // Four children, always, one per row track the grid shares across the row: a card's header,
+  // fields, treatments and prescriptions each line up with its neighbours'. Not a size container:
+  // containment makes a subgrid fall back to its own rows, so the fields hold the container.
+  return (
+    <li
+      data-testid={`visit-${visit.id}`}
+      className="row-span-4 mb-2.5 grid grid-rows-subgrid gap-0 rounded-card border border-line bg-surface p-4 shadow-card"
+    >
+      <header className="flex items-center gap-3 self-start">
+        <DateBlock iso={visit.visitDate} />
+
+        <div className="min-w-0 flex-1">
+          <p data-testid="visit-time" className="text-value font-medium text-ink">
+            {t("visits.visit")} · <Ltr className="tabular-nums">{time}</Ltr>
+          </p>
+          <PersonName
+            name={doctor?.user.name}
+            data-testid="visit-doctor"
+            className="block truncate text-meta text-ink-muted"
+          />
+        </div>
+
+        <RowMenu label={t("visits.menu")} data-testid="visit-menu">
+          <MenuItem icon="edit" data-testid="visit-menu-edit" onSelect={onEdit}>
+            {t("common.edit")}
+          </MenuItem>
+          {mayConsume && (
+            <MenuItem icon="clipboard" data-testid="visit-menu-consume" onSelect={onConsume}>
+              {t("inventory.movement.consumeFromVisit")}
+            </MenuItem>
+          )}
+          {mayDelete && (
+            <MenuItem icon="trash" tone="danger" data-testid="visit-delete" onSelect={onDelete}>
+              {t("common.delete")}
+            </MenuItem>
+          )}
+        </RowMenu>
+      </header>
+
+      <div className="@container mt-4">
+        {fields.length > 0 ? (
+          <dl data-testid="visit-fields" className="grid gap-x-6 gap-y-3 @sm:grid-cols-2">
+            {fields.map((field) => (
+              <div
+                key={field.key}
+                data-testid={`visit-field-${field.key}`}
+                className={field.wide ? "@sm:col-span-full" : undefined}
+              >
+                <dt className="text-micro text-ink-muted">{t(field.label)}</dt>
+                <dd className="mt-0.5 whitespace-pre-wrap text-meta text-ink">{field.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p data-testid="visit-nothing-recorded" className="text-meta text-ink-subtle">
+            {t("visits.nothingRecorded")}
+          </p>
+        )}
+      </div>
+
+      <section className="mt-4 border-t border-line pt-3">
+        <div className="flex items-center justify-between gap-2">
+          {procedures.length > 0 ? (
+            <button
+              type="button"
+              data-testid="visit-procedures-open"
+              onClick={onShowProcedures}
+              className="flex min-w-0 cursor-pointer items-center gap-1 rounded-control text-micro font-medium text-ink-muted hover:text-primary-700"
+            >
+              <span className="truncate">{t("visits.procedures")}</span>
+              <Badge tone="neutral">
+                <Ltr>{procedures.length}</Ltr>
+              </Badge>
+              <Icon name="chevron-end" className="size-3.5" />
+            </button>
+          ) : (
+            <h3 className="truncate text-micro font-medium text-ink-muted">
+              {t("visits.procedures")}
+            </h3>
+          )}
+          <AddTreatment onClick={onAddProcedure} />
+        </div>
+
+        {procedures.length === 0 && (
+          <p data-testid="visit-no-procedures" className="mt-2 text-meta text-ink-subtle">
+            {t("visits.noProcedures")}
+          </p>
+        )}
+      </section>
+
+      <section
+        data-testid={prescriptions.length > 0 ? "visit-prescriptions" : undefined}
+        className={prescriptions.length > 0 ? "mt-4 border-t border-line pt-3" : undefined}
+      >
+        {prescriptions.length > 0 && (
+          <>
+            <h3 className="text-micro font-medium text-ink-muted">
+              {t("patients.tabs.prescriptions")}
+            </h3>
+            <ul className="mt-2 flex flex-col gap-1">
+              {prescriptions.map((item, index) => (
+                <li key={index} className="text-meta text-ink">
+                  <span className="font-medium">{item.drug}</span>
+                  {describeItem(item) && (
+                    <span className="text-ink-muted"> · {describeItem(item)}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </section>
+    </li>
+  );
+}
+
+/** The day large, the month and year under it: a visit two years back reads as one. */
+function DateBlock({ iso }: { readonly iso: string }): JSX.Element {
+  const date = dayMonthYear(iso);
 
   return (
-    <div data-testid={`visit-field-${label.split(".").pop() ?? label}`}>
-      <dt className="text-label text-ink-muted">{t(label)}</dt>
-      <dd
-        className={cn(
-          "mt-0.5 whitespace-pre-wrap text-value",
-          emphasise ? "font-medium text-ink" : "text-ink",
-        )}
-      >
-        {value}
-      </dd>
+    <span
+      data-testid="visit-date"
+      className="flex min-w-14 shrink-0 flex-col items-center rounded-field bg-primary-50 px-2 py-1 text-primary-700"
+    >
+      <Ltr className="text-section font-semibold tabular-nums">{date.day}</Ltr>
+      <Ltr className="text-micro tabular-nums">
+        {date.month} {date.year}
+      </Ltr>
+    </span>
+  );
+}
+
+function ProcedureMenu({
+  procedure,
+  mayDelete,
+  onEdit,
+  onDelete,
+}: {
+  readonly procedure: PerformedProcedure;
+  readonly mayDelete: boolean;
+  readonly onEdit: (procedure: PerformedProcedure) => void;
+  readonly onDelete: (procedure: PerformedProcedure) => void;
+}): JSX.Element {
+  const { t } = useTranslation();
+
+  return (
+    <RowMenu label={t("visits.procedureMenu")} data-testid={`visit-procedure-${procedure.id}-menu`}>
+      <MenuItem icon="edit" data-testid="visit-procedure-edit" onSelect={() => onEdit(procedure)}>
+        {t("common.edit")}
+      </MenuItem>
+      {mayDelete && (
+        <MenuItem
+          icon="trash"
+          tone="danger"
+          data-testid="visit-procedure-delete"
+          onSelect={() => onDelete(procedure)}
+        >
+          {t("common.delete")}
+        </MenuItem>
+      )}
+    </RowMenu>
+  );
+}
+
+interface ProceduresModalProps {
+  readonly visit: Visit | null;
+  readonly procedures: readonly PerformedProcedure[];
+  readonly catalogName: (id: string) => string;
+  readonly doctorOf: (id: string) => Doctor | undefined;
+  readonly showPrices: boolean;
+  readonly mayDelete: boolean;
+  readonly onClose: () => void;
+  readonly onEdit: (procedure: PerformedProcedure) => void;
+  readonly onDelete: (procedure: PerformedProcedure) => void;
+}
+
+// Everything recorded about each treatment, which the card's one line per treatment leaves out.
+function ProceduresModal({
+  visit,
+  procedures,
+  catalogName,
+  doctorOf,
+  showPrices,
+  mayDelete,
+  onClose,
+  onEdit,
+  onDelete,
+}: ProceduresModalProps): JSX.Element {
+  const { t } = useTranslation();
+  const currency = useCurrency();
+  const total = procedures.reduce(
+    (sum, procedure) => addMoney(sum, subtractMoney(procedure.price, procedure.discount)),
+    "0.00",
+  );
+
+  return (
+    <Modal
+      data-testid="visit-procedures-modal"
+      open={visit !== null}
+      onOpenChange={(open) => !open && onClose()}
+      title="visits.proceduresTitle"
+      titleValues={{ date: visit ? shortDate(visit.visitDate) : "" }}
+      size="lg"
+    >
+      <ul className="flex flex-col gap-2">
+        {procedures.map((procedure) => {
+          const surfaces = surfacesOf(procedure);
+          const hasDiscount = Number(procedure.discount) !== 0;
+
+          return (
+            <li
+              key={procedure.id}
+              data-testid={`visit-procedures-modal-${procedure.id}`}
+              className="rounded-panel border border-line p-3"
+            >
+              <div className="flex items-center gap-2">
+                <span className="min-w-0 flex-1 truncate text-value font-medium text-ink">
+                  {catalogName(procedure.procedureId)}
+                </span>
+                <Badge tone={statusTone(procedure.status)} className="shrink-0">
+                  {t(`chart.procedureStatus.${procedure.status}`)}
+                </Badge>
+                <ProcedureMenu
+                  procedure={procedure}
+                  mayDelete={mayDelete}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              </div>
+
+              <dl className="mt-2 grid gap-x-6 gap-y-2 sm:grid-cols-3">
+                <Detail label="visits.teeth">
+                  {toothLabel(procedure) ? <Ltr>{toothLabel(procedure)}</Ltr> : "—"}
+                </Detail>
+                {surfaces.length > 0 && (
+                  <Detail label="chart.panel.surfaces">
+                    {formatList(surfaces.map((surface) => t(`chart.surfaces.${surface}`)))}
+                  </Detail>
+                )}
+                <Detail label="chart.panel.doctor">
+                  <PersonName name={doctorOf(procedure.doctorId)?.user.name} />
+                </Detail>
+                <Detail label="chart.panel.date">
+                  <Ltr>{formatDate(procedure.performedAt)}</Ltr>
+                </Detail>
+                {showPrices && (
+                  <>
+                    <Detail label="chart.panel.price">
+                      <Money amount={procedure.price} currency={currency} />
+                    </Detail>
+                    {hasDiscount && (
+                      <Detail label="chart.panel.discount">
+                        <Money amount={procedure.discount} currency={currency} />
+                        {procedure.discountReason && (
+                          <span className="text-ink-muted"> · {procedure.discountReason}</span>
+                        )}
+                      </Detail>
+                    )}
+                  </>
+                )}
+                {procedure.notes && (
+                  <Detail label="visits.notes" wide>
+                    {procedure.notes}
+                  </Detail>
+                )}
+              </dl>
+            </li>
+          );
+        })}
+      </ul>
+
+      {showPrices && procedures.length > 0 && (
+        <p
+          data-testid="visit-procedures-total"
+          className="mt-3 flex items-center justify-between border-t border-line pt-3 text-value font-medium text-ink"
+        >
+          {t("visits.proceduresTotal")}
+          <Money amount={total} currency={currency} />
+        </p>
+      )}
+    </Modal>
+  );
+}
+
+function Detail({
+  label,
+  wide = false,
+  children,
+}: {
+  readonly label: string;
+  readonly wide?: boolean;
+  readonly children: ReactNode;
+}): JSX.Element {
+  const { t } = useTranslation();
+
+  return (
+    <div className={wide ? "sm:col-span-full" : undefined}>
+      <dt className="text-micro text-ink-muted">{t(label)}</dt>
+      <dd className="mt-0.5 text-meta text-ink">{children}</dd>
     </div>
   );
 }
 
-function toothOf(procedure: PerformedProcedure): { tooth?: number } {
-  const tooth = (procedure.chartMarks?.[0]?.location as { tooth?: number } | undefined)?.tooth;
-
-  return tooth === undefined ? {} : { tooth };
+function surfacesOf(procedure: PerformedProcedure): string[] {
+  return (procedure.chartMarks ?? []).flatMap(
+    (mark) => (mark.location as { surfaces?: string[] }).surfaces ?? [],
+  );
 }
+
+// The card's own shape, so the page does not jump when the visits land.
+function VisitsSkeleton(): JSX.Element {
+  return (
+    <div aria-hidden="true" className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-3">
+        <Skeleton className="h-(--control-h-sm) w-20 rounded-pill" />
+        <Skeleton className="h-(--control-h-sm) w-28 rounded-control" />
+      </div>
+
+      <ul className="grid items-start gap-2.5 md:grid-cols-2 xl:grid-cols-3">
+        {[0, 1, 2].map((card) => (
+          <li key={card} className="rounded-card border border-line bg-surface p-4 shadow-card">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-12 w-12 shrink-0 rounded-field" />
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+              <div className="flex shrink-0 gap-1">
+                {[0, 1, 2].map((button) => (
+                  <Skeleton key={button} className="size-(--control-h-sm) rounded-control" />
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-3">
+              {[0, 1].map((field) => (
+                <div key={field} className="flex flex-col gap-1">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-3.5 w-3/5" />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 border-t border-line pt-3">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="mt-2 h-10 w-full rounded-control" />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function AddTreatment({ onClick }: { readonly onClick: () => void }): JSX.Element {
+  const { t } = useTranslation();
+
+  return (
+    <Button
+      size="sm"
+      variant="quiet"
+      icon={<Icon name="plus" />}
+      data-testid="visit-add-procedure"
+      className="shrink-0"
+      onClick={onClick}
+    >
+      {t("visits.addTreatment")}
+    </Button>
+  );
+}
+
+// Isolated, or "1 Sep" inside an Arabic title reads as "Sep 1".
+const shortDate = (iso: string): string => {
+  const { day, month, year } = dayMonthYear(iso);
+  return `\u2066${day} ${month} ${year}\u2069`;
+};
 
 function toothLabel(procedure: PerformedProcedure): string {
   const teeth = (procedure.chartMarks ?? [])

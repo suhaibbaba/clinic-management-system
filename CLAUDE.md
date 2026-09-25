@@ -123,6 +123,11 @@ clinic or a colour. `base.css` declares every token with a neutral default; a pr
 `theme.css`/`theme.ts` supplies values — **values, never new token names**. Change a component
 through its `className` or a `data-part`, never a fork.
 
+- **Content widths are tokens:** `--form-max` for a form's columns and `--field-max` for one field
+  alone in a wide container (a textarea excepted). No form field or text block may stretch beyond
+  its layout token on wide viewports.
+- **One confirmation:** every destructive action asks through `ConfirmDialog` / `useConfirm`, never
+  `window.confirm`; the title names the thing, the body says what goes with it.
 - **Two control heights and no third:** `--control-h` for a target (field, button, chip),
   `--control-h-sm` for a compact row (tab, segment, table-row button, badge). A third is a token
   change.

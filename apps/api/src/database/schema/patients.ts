@@ -305,7 +305,8 @@ export const attachments = pgTable(
       .notNull()
       .references(() => patients.id),
     visitId: uuid("visit_id").references(() => visits.id),
-    type: text("type").notNull(),
+    /** An `attachment_type` code, or null: the doctor reads what the image is. */
+    type: text("type"),
     r2Key: text("r2_key").notNull(),
     filename: text("filename").notNull(),
     mime: text("mime").$type<AttachmentMime>().notNull(),

@@ -5,7 +5,7 @@ import {
 } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card, FormField, Icon, PasswordInput, useToast } from "@clinic/ui";
+import { Button, Card, FormField, Icon, PasswordInput, useConfirm, useToast } from "@clinic/ui";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { outboundErrorKey } from "@web/features/assistant/messages";
 import { useClinicSecrets, useSaveClinicSecrets } from "@web/features/assistant/queries";
@@ -31,6 +31,7 @@ export function ProviderKeysPanel(): JSX.Element {
   const secrets = useClinicSecrets();
   const save = useSaveClinicSecrets();
   const [typed, setTyped] = useState<Partial<Record<ClinicSecretKind, string>>>({});
+  const { confirm, dialog } = useConfirm("assistant-keys-confirm-clear");
 
   if (!secrets.data) {
     return <Skeleton aria-hidden="true" className="h-96 w-full rounded-card" />;
@@ -50,6 +51,7 @@ export function ProviderKeysPanel(): JSX.Element {
 
   return (
     <div data-testid="assistant-keys" className="flex flex-col gap-4">
+      {dialog}
       {!encryptionAvailable && (
         <p
           role="note"
@@ -126,19 +128,29 @@ export function ProviderKeysPanel(): JSX.Element {
                   variant="secondary"
                   data-testid={`assistant-keys-${group.id}-clear`}
                   disabled={save.isPending}
-                  onClick={() => {
-                    if (
-                      !window.confirm(t(`assistantSettings.keys.groups.${group.id}.confirmClear`))
-                    ) {
-                      return;
-                    }
-
-                    submit(
-                      Object.fromEntries(
-                        group.kinds.map((kind) => [kind, null]),
-                      ) as UpdateClinicSecretsInput,
-                    );
-                  }}
+                  onClick={() =>
+                    confirm({
+                      title: `assistantSettings.keys.groups.${group.id}.confirmClear.title`,
+                      consequences: [
+                        t(`assistantSettings.keys.groups.${group.id}.confirmClear.consequence`),
+                      ],
+                      confirmLabel: "assistantSettings.keys.clear",
+                      onConfirm: async () => {
+                        try {
+                          await save.mutateAsync(
+                            Object.fromEntries(
+                              group.kinds.map((kind) => [kind, null]),
+                            ) as UpdateClinicSecretsInput,
+                          );
+                          setTyped({});
+                          toast.success("assistantSettings.keys.saved");
+                        } catch (error) {
+                          toast.error(outboundErrorKey(error));
+                          throw error;
+                        }
+                      },
+                    })
+                  }
                 >
                   {t("assistantSettings.keys.clear")}
                 </Button>

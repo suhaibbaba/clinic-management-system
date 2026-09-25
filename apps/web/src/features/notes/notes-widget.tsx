@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Icon, PersonName, Widget } from "@clinic/ui";
+import { Button, Icon, PersonName, useConfirm, Widget } from "@clinic/ui";
 import { useSession } from "@web/features/auth/session";
 import { useCreateNote, useDeleteNote, useNotes } from "@web/features/notes/queries";
 import { formatDate } from "@web/lib/format";
@@ -15,6 +15,7 @@ export function NotesWidget(): JSX.Element {
   const notes = useNotes();
   const create = useCreateNote();
   const remove = useDeleteNote();
+  const { confirm, dialog } = useConfirm("notes-confirm-remove");
   const [draft, setDraft] = useState("");
 
   const submit = (event: FormEvent): void => {
@@ -30,6 +31,7 @@ export function NotesWidget(): JSX.Element {
 
   return (
     <Widget title={t("notes.title")} data-testid="notes-widget">
+      {dialog}
       <ul data-testid="notes-list" className="flex flex-col">
         {(notes.data?.items ?? []).map((note) => {
           const canRemove = user?.role === "admin" || note.authorId === user?.id;
@@ -65,7 +67,14 @@ export function NotesWidget(): JSX.Element {
                   data-testid={`note-remove-${note.id}`}
                   aria-label={t("notes.remove")}
                   disabled={remove.isPending}
-                  onClick={() => remove.mutate(note.id)}
+                  onClick={() =>
+                    confirm({
+                      title: "notes.confirmRemove",
+                      onConfirm: async () => {
+                        await remove.mutateAsync(note.id);
+                      },
+                    })
+                  }
                 />
               )}
             </li>

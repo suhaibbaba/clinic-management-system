@@ -9,10 +9,12 @@ export function TeethField({
   id,
   value,
   onChange,
+  single = false,
 }: {
   readonly id: string;
   readonly value: readonly number[];
   readonly onChange: (teeth: number[]) => void;
+  readonly single?: boolean | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
   const [draft, setDraft] = useState("");
@@ -29,7 +31,9 @@ export function TeethField({
     setInvalid(false);
     setDraft("");
 
-    if (!value.includes(parsed)) {
+    if (single) {
+      onChange([parsed]);
+    } else if (!value.includes(parsed)) {
       onChange([...value, parsed].sort((a, b) => a - b));
     }
   };

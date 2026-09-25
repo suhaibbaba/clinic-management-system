@@ -11,6 +11,7 @@ import {
   Modal,
   PersonName,
   Textarea,
+  useConfirm,
   useToast,
 } from "@clinic/ui";
 import { useSession } from "@web/features/auth/session";
@@ -316,6 +317,7 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
   const attachments = useLabOrderAttachments(orderId);
   const upload = useUploadLabOrderAttachment();
   const remove = useDeleteLabOrderAttachment();
+  const { confirm, dialog } = useConfirm("lab-order-attachment-confirm-remove");
 
   const pick = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = event.target.files?.[0];
@@ -335,6 +337,7 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
 
   return (
     <section data-testid="lab-order-attachments" className="flex flex-col gap-2">
+      {dialog}
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-label font-semibold text-ink">{t("labs.order.attachments")}</h3>
 
@@ -396,7 +399,20 @@ function Attachments({ orderId }: { readonly orderId: string }): JSX.Element {
               data-testid="lab-order-attachment-delete"
               aria-label={t("common.delete")}
               disabled={remove.isPending}
-              onClick={() => void remove.mutateAsync({ orderId, id: file.id })}
+              onClick={() =>
+                confirm({
+                  title: "labs.order.confirmRemoveAttachment",
+                  titleValues: { name: file.filename },
+                  onConfirm: async () => {
+                    try {
+                      await remove.mutateAsync({ orderId, id: file.id });
+                    } catch (error) {
+                      toast.error(errorMessageKey(error));
+                      throw error;
+                    }
+                  },
+                })
+              }
             />
           </li>
         ))}

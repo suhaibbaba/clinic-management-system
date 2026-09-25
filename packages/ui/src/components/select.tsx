@@ -1,5 +1,15 @@
+import * as PopoverPrimitive from "@radix-ui/react-popover";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import type { ChangeEvent, JSX, ReactNode, SelectHTMLAttributes } from "react";
+import {
+  useId,
+  useState,
+  type ChangeEvent,
+  type JSX,
+  type KeyboardEvent,
+  type ReactNode,
+  type SelectHTMLAttributes,
+} from "react";
+import { useTranslation } from "react-i18next";
 import { useDialogLayer } from "@ui/components/dialog-layer";
 import { FieldLock, fieldShell } from "@ui/components/field";
 import { Icon } from "@ui/components/icon";
@@ -29,6 +39,8 @@ export interface SelectProps
   renderValue?: ((option: SelectOption) => ReactNode) | undefined;
   /** Classes for the open list — a narrow field whose rows need more room than it has. */
   listClassName?: string | undefined;
+  /** A search box over the list, for one long enough that scrolling it is the slow way. */
+  searchable?: boolean | undefined;
 }
 
 // `<Select.Item value="">` throws by design, so the placeholder row travels under a sentinel and
@@ -37,7 +49,11 @@ const NONE = "__none__";
 
 // Not a native `<select>`: on a clinic's iPhone tapping one did nothing in Safari, and a native
 // picker cannot be tested off the device. Radix gives ordinary DOM a test can drive.
-export function Select({
+export function Select(props: SelectProps): JSX.Element {
+  return props.searchable === true ? <SearchableSelect {...props} /> : <PlainSelect {...props} />;
+}
+
+function PlainSelect({
   options,
   placeholder,
   className,
@@ -223,5 +239,182 @@ function Row({
         />
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
+  );
+}
+
+// Radix's Select owns the keyboard inside its list, so a search box there loses every keystroke; a
+// popover with a listbox keeps the same field and the same `onChange` contract.
+function SearchableSelect({
+  options,
+  placeholder,
+  className,
+  hasError = false,
+  value,
+  onChange,
+  disabled = false,
+  onBlur,
+  id,
+  required,
+  "aria-label": ariaLabel,
+  "aria-describedby": describedBy,
+  "data-testid": testId,
+}: SelectProps): JSX.Element {
+  const { t } = useTranslation();
+  const part = parts("select", testId);
+  const dialogLayer = useDialogLayer();
+  const listId = useId();
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [active, setActive] = useState(0);
+
+  const term = query.trim().toLowerCase();
+  const shown = options.filter((option) => option.label.toLowerCase().includes(term));
+  const chosen = options.find((option) => option.value === value);
+
+  const choose = (next: string): void => {
+    onChange?.({
+      target: { value: next },
+      currentTarget: { value: next },
+    } as ChangeEvent<HTMLSelectElement>);
+    setOpen(false);
+  };
+
+  const openList = (): void => {
+    setQuery("");
+    setActive(
+      Math.max(
+        0,
+        options.findIndex((option) => option.value === value),
+      ),
+    );
+    setOpen(true);
+  };
+
+  const onTriggerKey = (event: KeyboardEvent<HTMLButtonElement>): void => {
+    if (["Enter", " ", "ArrowDown"].includes(event.key)) {
+      event.preventDefault();
+      openList();
+    }
+  };
+
+  const onSearchKey = (event: KeyboardEvent<HTMLInputElement>): void => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      setActive((current) => (current + step + shown.length) % Math.max(shown.length, 1));
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      const option = shown[active];
+      if (option) choose(option.value);
+    }
+  };
+
+  return (
+    <PopoverPrimitive.Root
+      open={open}
+      onOpenChange={(next) => (next ? openList() : setOpen(false))}
+    >
+      <PopoverPrimitive.Trigger
+        id={id}
+        type="button"
+        role="combobox"
+        {...part()}
+        disabled={disabled}
+        onBlur={onBlur}
+        onKeyDown={onTriggerKey}
+        aria-label={ariaLabel}
+        aria-describedby={describedBy}
+        aria-required={required || undefined}
+        aria-invalid={hasError || undefined}
+        aria-expanded={open}
+        aria-controls={listId}
+        className={cn(
+          fieldShell({ hasError, disabled }),
+          "cursor-pointer text-start text-field focus-visible:outline-none",
+          className,
+        )}
+      >
+        <span
+          {...part("value")}
+          className={cn("min-w-0 flex-1 truncate", chosen ? "text-ink" : "text-ink-subtle")}
+        >
+          {chosen?.label ?? placeholder}
+        </span>
+        {disabled ? (
+          <FieldLock {...testid(testId, "lock")} />
+        ) : (
+          <Icon
+            name="chevron-down"
+            {...part("chevron")}
+            className="size-4 shrink-0 text-ink-faint"
+          />
+        )}
+      </PopoverPrimitive.Trigger>
+
+      <PopoverPrimitive.Portal {...(dialogLayer && { container: dialogLayer })}>
+        <PopoverPrimitive.Content
+          {...part("list")}
+          align="start"
+          sideOffset={6}
+          collisionPadding={12}
+          className={cn(
+            "z-50 flex max-h-[min(24rem,var(--radix-popover-content-available-height))] flex-col",
+            "w-[var(--radix-popover-trigger-width)] rounded-panel border border-line bg-surface p-1 shadow-float",
+            "data-[state=open]:animate-[menu-in_150ms_ease-out]",
+          )}
+        >
+          <input
+            {...part("search")}
+            type="search"
+            autoFocus
+            dir={documentDirection()}
+            value={query}
+            aria-label={t("common.search")}
+            aria-controls={listId}
+            placeholder={t("common.search")}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setActive(0);
+            }}
+            onKeyDown={onSearchKey}
+            className="mb-1 h-(--control-h) w-full shrink-0 rounded-control border border-line bg-surface px-3 text-field text-ink outline-none focus:border-primary-600"
+          />
+
+          <ul id={listId} role="listbox" className="scroll-lane overflow-y-auto">
+            {shown.length === 0 && (
+              <li {...part("empty")} className="px-3 py-2 text-label text-ink-subtle">
+                {t("common.noMatches")}
+              </li>
+            )}
+            {shown.map((option, index) => (
+              <li
+                key={option.value}
+                role="option"
+                aria-selected={option.value === value}
+                data-part="select-option"
+                data-highlighted={index === active ? "" : undefined}
+                {...testid(testId, `option-${option.value}`)}
+                onMouseEnter={() => setActive(index)}
+                onClick={() => choose(option.value)}
+                className={cn(
+                  "flex min-h-(--control-h) cursor-pointer items-center justify-between gap-2 rounded-control",
+                  "lg:min-h-(--control-h-sm) px-3 py-2 text-start text-field text-ink select-none",
+                  "transition-colors duration-150 data-[highlighted]:bg-inset",
+                  option.value === value && "font-medium",
+                )}
+              >
+                <span className="inline-flex min-w-0 items-center gap-2 truncate">
+                  {option.icon}
+                  {option.label}
+                </span>
+                {option.value === value && (
+                  <Icon name="check" className="size-4 shrink-0 text-primary-600" />
+                )}
+              </li>
+            ))}
+          </ul>
+        </PopoverPrimitive.Content>
+      </PopoverPrimitive.Portal>
+    </PopoverPrimitive.Root>
   );
 }

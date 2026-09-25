@@ -1,7 +1,7 @@
 import { addDays, localDate, type AiConversation } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, ConversationItem, Icon, MenuItem, RowMenu } from "@clinic/ui";
+import { Button, ConversationItem, Icon, MenuItem, RowMenu, useConfirm } from "@clinic/ui";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { RenameConversationModal } from "@web/features/assistant/rename-conversation-modal";
 import { useDeleteConversation } from "@web/features/assistant/queries";
@@ -52,15 +52,17 @@ export function ConversationRail({
   const remove = useDeleteConversation();
   const [renaming, setRenaming] = useState<AiConversation | null>(null);
 
-  const confirmDelete = async (conversation: AiConversation): Promise<void> => {
-    // The same question the lists screen asks before a row goes.
-    if (!window.confirm(t("assistant.confirmDelete", { title: conversation.title }))) {
-      return;
-    }
+  const { confirm, dialog } = useConfirm("assistant-confirm-delete");
 
-    await remove.mutateAsync(conversation.id);
-    onDeleted(conversation.id);
-  };
+  const confirmDelete = (conversation: AiConversation): void =>
+    confirm({
+      title: "assistant.confirmDelete",
+      titleValues: { title: conversation.title },
+      onConfirm: async () => {
+        await remove.mutateAsync(conversation.id);
+        onDeleted(conversation.id);
+      },
+    });
 
   return (
     <aside
@@ -68,6 +70,7 @@ export function ConversationRail({
       aria-label={t("assistant.conversations")}
       className={cn("flex min-h-0 flex-col gap-3 border-line", className)}
     >
+      {dialog}
       <Button
         icon={<Icon name="plus" />}
         data-testid="assistant-new-conversation"
@@ -120,7 +123,7 @@ export function ConversationRail({
                             <MenuItem
                               icon="trash"
                               tone="danger"
-                              onSelect={() => void confirmDelete(conversation)}
+                              onSelect={() => confirmDelete(conversation)}
                             >
                               {t("common.delete")}
                             </MenuItem>

@@ -11,6 +11,8 @@ const SRC = join(ROOT, "src");
 // The library's components render this app's words too, and the rule does not weaken by crossing a
 // package boundary: every one of them comes from a locale file.
 const UI_SRC = join(ROOT, "..", "..", "packages", "ui", "src");
+// Keys named in shared constants, e.g. a lookup list's label.
+const SHARED_SRC = join(ROOT, "..", "..", "packages", "shared", "src");
 
 const LOCALE_PAIRS = [join(SRC, "i18n", "locales"), join(SRC, "booking", "locales")];
 
@@ -146,7 +148,64 @@ function checkParity(locales) {
   }
 }
 
+// Keys the source cannot show whole. Each is verified by hand: a prefix here keeps every key under
+// it, so it stays as narrow as the code that builds it.
+const BUILT_ELSEWHERE = [
+  // The API names the columns and tiles of an assistant view (`apps/api/src/ai/tools/ai-views.ts`).
+  "assistant.view.columns.",
+  "assistant.view.stats.",
+  // `${topic.prefix}.title` and friends, from `assistant/suggestions.ts`.
+  "assistant.topics.",
+];
+
+const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// A key nothing refers to is a word an admin is asked to translate for a screen that no longer has
+// it. Whole keys are matched as string literals, and a built key keeps the family it is built from.
+function checkUsage() {
+  const locales = join(SRC, "i18n", "locales");
+  const where = relative(ROOT, locales).replaceAll("\\", "/");
+  const en = JSON.parse(readFileSync(join(locales, "en.json"), "utf8"));
+  const source = [...sources(SRC), ...sources(UI_SRC), ...sources(SHARED_SRC)]
+    .map((path) => readFileSync(path, "utf8"))
+    .join("\n");
+
+  // Two segments or more, e.g. `permissions.capabilities.${key}`, name a family wherever they are
+  // built. One segment only counts inside `t(`: `appointments.${step}` is a permission, not a word.
+  const built = [
+    ...[...source.matchAll(/[`"']([A-Za-z][\w-]*(?:\.[\w-]+)+)\.(?:\$\{|[`"']\s*\+)/g)].map(
+      (match) => ({ prefix: `${match[1]}.`, deep: true }),
+    ),
+    ...[...source.matchAll(/\bt\(\s*`([A-Za-z][\w-]*)\.\$\{[^}]*\}`/g)].map((match) => ({
+      prefix: `${match[1]}.`,
+      deep: false,
+    })),
+  ];
+
+  for (const key of keysOf(en)) {
+    const base = baseKey(key);
+
+    if (new RegExp(`["'\`]${escape(base)}["'\`]`).test(source)) {
+      continue;
+    }
+    if (BUILT_ELSEWHERE.some((prefix) => base.startsWith(prefix))) {
+      continue;
+    }
+    if (
+      built.some(
+        ({ prefix, deep }) =>
+          base.startsWith(prefix) && (deep || !base.slice(prefix.length).includes(".")),
+      )
+    ) {
+      continue;
+    }
+
+    failures.push(`${where}/*.json  "${key}" is used nowhere — remove it from both files`);
+  }
+}
+
 checkLiterals();
+checkUsage();
 for (const locales of LOCALE_PAIRS) {
   checkParity(locales);
 }
@@ -158,4 +217,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("i18n: no static Arabic outside the locale files, and both locales agree.");
+console.log(
+  "i18n: no static Arabic outside the locale files, both locales agree, and every key is used.",
+);

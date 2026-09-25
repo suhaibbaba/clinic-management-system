@@ -6,7 +6,7 @@ import {
 } from "@clinic/shared";
 import { useRef, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Avatar, Button, Icon, useToast } from "@clinic/ui";
+import { Avatar, Button, Icon, useConfirm, useToast } from "@clinic/ui";
 import { useRemoveUserPhoto, useUploadUserPhoto } from "@web/features/users/queries";
 import { errorMessageKey } from "@web/lib/api-error";
 
@@ -17,6 +17,7 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
 
   const upload = useUploadUserPhoto();
   const remove = useRemoveUserPhoto();
+  const { confirm, dialog } = useConfirm("user-photo-confirm-remove");
 
   const pick = async (file: File | undefined): Promise<void> => {
     if (!file) {
@@ -41,17 +42,23 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
     }
   };
 
-  const clear = async (): Promise<void> => {
-    try {
-      await remove.mutateAsync(user.id);
-      toast.success("users.photoRemoved");
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  };
+  const clear = (): void =>
+    confirm({
+      title: "users.confirmRemovePhoto",
+      onConfirm: async () => {
+        try {
+          await remove.mutateAsync(user.id);
+          toast.success("users.photoRemoved");
+        } catch (error) {
+          toast.error(errorMessageKey(error));
+          throw error;
+        }
+      },
+    });
 
   return (
     <div data-testid="user-photo-field" className="flex items-center gap-3">
+      {dialog}
       <Avatar
         data-testid="user-photo-avatar"
         name={personName(user.name, i18n.language)}
@@ -95,7 +102,7 @@ export function UserPhotoField({ user }: { readonly user: User }): JSX.Element {
               size="sm"
               data-testid="user-photo-remove"
               isLoading={remove.isPending}
-              onClick={() => void clear()}
+              onClick={clear}
             >
               {t("common.delete")}
             </Button>

@@ -28,6 +28,7 @@ import type {
   UpdateVisitInput,
   Visit,
 } from "@clinic/shared";
+import { BALANCE_KEY, STATEMENT_KEY } from "@web/features/billing/queries";
 import { patientsApi, uploadToStorage } from "@web/features/patients/api";
 
 export const PATIENT_KEY = "patient";
@@ -163,6 +164,7 @@ export function useCreateProcedure(patientId: string) {
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: key });
       void queryClient.invalidateQueries({ queryKey: [TOOTH_HISTORY_KEY, patientId] });
+      void queryClient.invalidateQueries({ queryKey: [BALANCE_KEY, patientId] });
     },
   });
 }
@@ -269,10 +271,48 @@ export function useUpdateProcedure(patientId: string) {
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: UpdatePerformedProcedureInput }) =>
       patientsApi.updateProcedure(id, body),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: [PATIENT_PROCEDURES_KEY, patientId] });
+    // The row changes in place from the response, so the card does not wait on a refetch.
+    onSuccess: (updated) => {
+      queryClient.setQueryData<PerformedProcedure[]>(
+        [PATIENT_PROCEDURES_KEY, patientId],
+        (current = []) => current.map((row) => (row.id === updated.id ? updated : row)),
+      );
       void queryClient.invalidateQueries({ queryKey: [TOOTH_HISTORY_KEY, patientId] });
+      void queryClient.invalidateQueries({ queryKey: [BALANCE_KEY, patientId] });
     },
+  });
+}
+
+// A delete reverses charges, so the account moves with the chart.
+function invalidateClinical(queryClient: ReturnType<typeof useQueryClient>, patientId: string) {
+  for (const key of [
+    PATIENT_VISITS_KEY,
+    PATIENT_PROCEDURES_KEY,
+    TOOTH_HISTORY_KEY,
+    PATIENT_ATTACHMENTS_KEY,
+    PATIENT_TIMELINE_KEY,
+    BALANCE_KEY,
+    STATEMENT_KEY,
+  ]) {
+    void queryClient.invalidateQueries({ queryKey: [key, patientId] });
+  }
+}
+
+export function useDeleteProcedure(patientId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => patientsApi.removeProcedure(id),
+    onSuccess: () => invalidateClinical(queryClient, patientId),
+  });
+}
+
+export function useDeleteVisit(patientId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => patientsApi.removeVisit(id),
+    onSuccess: () => invalidateClinical(queryClient, patientId),
   });
 }
 
@@ -366,8 +406,6 @@ export function usePatientAttachments(
 
 export interface UploadAttachmentInput {
   readonly file: File;
-  readonly type: PresignAttachmentUploadInput["type"];
-  readonly tooth?: number | null | undefined;
   readonly note?: string | null | undefined;
   readonly visitId?: string | null | undefined;
 }
@@ -383,7 +421,6 @@ export function useUploadAttachment(patientId: string) {
         filename: input.file.name,
         mime: input.file.type as PresignAttachmentUploadInput["mime"],
         sizeBytes: input.file.size,
-        type: input.type,
       });
 
       await uploadToStorage(presigned.uploadUrl, input.file);
@@ -391,8 +428,6 @@ export function useUploadAttachment(patientId: string) {
       const body: ConfirmAttachmentUploadInput = {
         key: presigned.key,
         filename: input.file.name,
-        type: input.type,
-        ...(input.tooth != null && { tooth: input.tooth }),
         ...(input.note != null && input.note !== "" && { note: input.note }),
         ...(input.visitId != null && { visitId: input.visitId }),
       };

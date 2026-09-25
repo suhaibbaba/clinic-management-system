@@ -13,6 +13,7 @@ import {
   Modal,
   Switch,
   TimePicker,
+  useConfirm,
   useToast,
 } from "@clinic/ui";
 import { ConflictDialog } from "@web/features/schedule/conflict-dialog";
@@ -54,6 +55,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
   const timeOff = useDoctorTimeOff(doctorId, { limit: 50 });
   const createTimeOff = useCreateTimeOff();
   const deleteTimeOff = useDeleteTimeOff();
+  const { confirm, dialog } = useConfirm("time-off-confirm-remove");
 
   const [adding, setAdding] = useState(false);
   const [wholeDay, setWholeDay] = useState(true);
@@ -115,19 +117,26 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
     }
   };
 
-  const remove = async (entry: DoctorTimeOff): Promise<void> => {
-    try {
-      await deleteTimeOff.mutateAsync(entry.id);
-      toast.success("schedule.timeOff.removed");
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  };
+  const remove = (entry: DoctorTimeOff): void =>
+    confirm({
+      title: "schedule.timeOff.confirmRemove.title",
+      consequences: [t("schedule.timeOff.confirmRemove.consequence")],
+      onConfirm: async () => {
+        try {
+          await deleteTimeOff.mutateAsync(entry.id);
+          toast.success("schedule.timeOff.removed");
+        } catch (error) {
+          toast.error(errorMessageKey(error));
+          throw error;
+        }
+      },
+    });
 
   const rows = timeOff.data?.items ?? [];
 
   return (
     <>
+      {dialog}
       <div
         data-testid="time-off-panel"
         className="mb-3 flex flex-wrap items-center justify-between gap-2"
@@ -189,7 +198,7 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
                       variant="quiet"
                       icon={<Icon name="trash" />}
                       data-testid="time-off-delete"
-                      onClick={() => void remove(entry)}
+                      onClick={() => remove(entry)}
                     >
                       {t("common.delete")}
                     </Button>

@@ -10,10 +10,6 @@ export const canViewChart = isClinical;
 
 export const canSeePrices = isClinical;
 
-// A receptionist response never carries an attachment key or URL, and a technician's read is
-// limited to lab-linked attachments.
-export const canSeeAttachments = isClinical;
-
 export const seesClinicalPatientFields = isClinical;
 
 export const canRecordProcedure = (can: Can): boolean => can("procedures.create");
@@ -61,3 +57,8 @@ export const canEditPlanItem = (can: Can): boolean => can("plan-items.update");
 export const canDeletePlanItem = (can: Can): boolean => can("plan-items.remove");
 
 export const canConvertPlanItem = (can: Can): boolean => can("plan-items.convert");
+
+/** Soft deletes, admin and doctor by default; a paid-for record is refused by the API. */
+export const canDeleteVisit = (can: Can): boolean => can("visits.remove");
+
+export const canDeleteProcedure = (can: Can): boolean => can("procedures.remove");

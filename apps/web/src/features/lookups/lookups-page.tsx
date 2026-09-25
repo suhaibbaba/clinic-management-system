@@ -18,6 +18,7 @@ import {
   RowMenu,
   Select,
   Switch,
+  useConfirm,
   useToast,
 } from "@clinic/ui";
 import { LookupOptionModal } from "@web/features/lookups/lookup-option-modal";
@@ -102,6 +103,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
   const reorder = useReorderLookupOptions();
   const update = useUpdateLookupOption();
   const remove = useDeleteLookupOption();
+  const { confirm, dialog } = useConfirm(`lookup-confirm-delete-${listKey}`);
 
   const [editing, setEditing] = useState<LookupOption | null>(null);
   const [adding, setAdding] = useState(false);
@@ -154,19 +156,27 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
     }
   };
 
-  const destroy = async (option: LookupOption): Promise<void> => {
-    const question = option.isSystem ? "lookups.confirmDeleteSystem" : "lookups.confirmDelete";
-
-    if (!window.confirm(t(question, { name: lookupLabel(option, i18n.language) }))) {
-      return;
-    }
-
-    try {
-      await remove.mutateAsync(option.id);
-      toast.success("lookups.deleted");
-    } catch (error) {
-      fail(error);
-    }
+  const destroy = (option: LookupOption): void => {
+    confirm({
+      title: option.isSystem ? "lookups.confirmDeleteSystem.title" : "lookups.confirmDelete.title",
+      titleValues: { name: lookupLabel(option, i18n.language) },
+      consequences: [
+        t(
+          option.isSystem
+            ? "lookups.confirmDeleteSystem.consequence"
+            : "lookups.confirmDelete.consequence",
+        ),
+      ],
+      onConfirm: async () => {
+        try {
+          await remove.mutateAsync(option.id);
+          toast.success("lookups.deleted");
+        } catch (error) {
+          fail(error);
+          throw error;
+        }
+      },
+    });
   };
 
   return (
@@ -174,6 +184,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
       data-testid="lookup-list"
       className="min-w-0 flex-1 border border-line rounded-card bg-surface p-4 shadow-card"
     >
+      {dialog}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-heading font-medium text-ink">{t(`lookups.lists.${listKey}`)}</h2>
@@ -279,7 +290,7 @@ function LookupList({ listKey }: { readonly listKey: LookupListKey }): JSX.Eleme
                   icon="trash"
                   tone="danger"
                   data-testid="lookup-option-delete"
-                  onSelect={() => void destroy(option)}
+                  onSelect={() => destroy(option)}
                 >
                   {t("common.delete")}
                 </MenuItem>
