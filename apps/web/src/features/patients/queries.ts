@@ -366,8 +366,6 @@ export function usePatientAttachments(
 
 export interface UploadAttachmentInput {
   readonly file: File;
-  readonly type: PresignAttachmentUploadInput["type"];
-  readonly tooth?: number | null | undefined;
   readonly note?: string | null | undefined;
   readonly visitId?: string | null | undefined;
 }
@@ -383,7 +381,6 @@ export function useUploadAttachment(patientId: string) {
         filename: input.file.name,
         mime: input.file.type as PresignAttachmentUploadInput["mime"],
         sizeBytes: input.file.size,
-        type: input.type,
       });
 
       await uploadToStorage(presigned.uploadUrl, input.file);
@@ -391,8 +388,6 @@ export function useUploadAttachment(patientId: string) {
       const body: ConfirmAttachmentUploadInput = {
         key: presigned.key,
         filename: input.file.name,
-        type: input.type,
-        ...(input.tooth != null && { tooth: input.tooth }),
         ...(input.note != null && input.note !== "" && { note: input.note }),
         ...(input.visitId != null && { visitId: input.visitId }),
       };

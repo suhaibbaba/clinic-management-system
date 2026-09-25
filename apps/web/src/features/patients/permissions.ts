@@ -10,10 +10,6 @@ export const canViewChart = isClinical;
 
 export const canSeePrices = isClinical;
 
-// A receptionist response never carries an attachment key or URL, and a technician's read is
-// limited to lab-linked attachments.
-export const canSeeAttachments = isClinical;
-
 export const seesClinicalPatientFields = isClinical;
 
 export const canRecordProcedure = (can: Can): boolean => can("procedures.create");

@@ -348,7 +348,6 @@ export function makeToothHistory(
     tooth,
     procedures: [makeProcedure(tooth)],
     marks: makeProcedure(tooth).chartMarks ?? [],
-    attachments: [] as Attachment[],
     ...overrides,
   };
 }

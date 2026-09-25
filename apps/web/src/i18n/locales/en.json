@@ -519,8 +519,6 @@
       "discountReason": "Discount reason",
       "discountNeedsReason": "A discount requires a reason",
       "date": "Date",
-      "attachments": "X-rays",
-      "noAttachments": "No images for this tooth",
       "openFile": "Open file",
       "recorded": "Procedure recorded",
       "procedureCount": "{{count}} procedures"
@@ -636,9 +634,6 @@
     "performedBy": "By {{name}}"
   },
   "imaging": {
-    "type": "Type",
-    "tooth": "Tooth",
-    "invalidTooth": "Not a valid tooth number",
     "uploadTitle": "Add an X-ray or a document",
     "dropHint": "Drag a file here, or choose one from your device",
     "upload": "Upload image",
@@ -650,8 +645,6 @@
     "deleted": "Image deleted",
     "empty": "No images for this patient",
     "loadFailed": "Could not load images.",
-    "filterTooth": "Filter by tooth",
-    "filterType": "Filter by type",
     "emptyHint": "Uploaded images and documents appear here."
   },
   "billing": {

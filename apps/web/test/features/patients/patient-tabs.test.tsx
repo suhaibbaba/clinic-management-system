@@ -551,7 +551,7 @@ describe("Treatment plans tab", () => {
 describe("Imaging tab", () => {
   beforeEach(() => authTokens.clear());
 
-  it("lists images with their type and tooth", async () => {
+  it("names each file and its date, with no type or tooth to read", async () => {
     const attachment = makeAttachment();
 
     await openTab(ar.patients.tabs.attachments, {
@@ -569,12 +569,11 @@ describe("Imaging tab", () => {
     const caption = (await screen.findByText(attachment.filename)).closest("figcaption");
     expect(caption).not.toBeNull();
 
-    // Scoped to the card: the type also appears in the filter and upload menus.
-    // The name is the clinic's own list row, not an i18n key.
+    expect(caption).toHaveTextContent(attachment.filename);
     expect(
-      within(caption as HTMLElement).getByText(attachmentTypeName("xray_periapical")),
-    ).toBeInTheDocument();
-    expect(within(caption as HTMLElement).getByText("46")).toBeInTheDocument();
+      within(caption as HTMLElement).queryByText(attachmentTypeName("xray_periapical")),
+    ).not.toBeInTheDocument();
+    expect(within(caption as HTMLElement).queryByText("46")).not.toBeInTheDocument();
   });
 
   it("asks for a signed URL per image rather than trusting the list", async () => {
@@ -601,20 +600,18 @@ describe("Imaging tab", () => {
     expect(listCall).toBeDefined();
   });
 
-  it("narrows the list by tooth, and refuses a number that is not a tooth", async () => {
+  // The doctor reads what an image is by looking at it: nothing to fill in before a drop, and the
+  // list is the patient's files, newest first, unfiltered.
+  it("asks nothing before an upload and filters nothing", async () => {
     const api = await openTab(ar.patients.tabs.attachments);
 
-    await userEvent.type(await screen.findByLabelText(ar.imaging.filterTooth), "46");
+    const tab = await screen.findByTestId("imaging-tab");
+    expect(within(tab).queryByRole("combobox")).not.toBeInTheDocument();
+    expect(within(tab).queryByRole("textbox")).not.toBeInTheDocument();
+    expect(within(tab).getByTestId("imaging-upload-button")).toBeVisible();
 
-    await waitFor(() => {
-      expect(api.calls.some((entry) => entry.url.includes("tooth=46"))).toBe(true);
-    });
-
-    await userEvent.clear(screen.getByLabelText(ar.imaging.filterTooth));
-    await userEvent.type(screen.getByLabelText(ar.imaging.filterTooth), "49");
-
-    expect(await screen.findByText(ar.imaging.invalidTooth)).toBeInTheDocument();
-    expect(api.calls.some((entry) => entry.url.includes("tooth=49"))).toBe(false);
+    const list = api.calls.find((entry) => entry.url.includes("/attachments?"));
+    expect(list?.url).not.toMatch(/[?&](type|tooth)=/);
   });
 
   it("shows the empty state before anything is uploaded", async () => {

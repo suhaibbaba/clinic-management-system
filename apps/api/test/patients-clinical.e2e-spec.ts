@@ -264,14 +264,12 @@ describe("Patient clinical records (e2e)", () => {
         tooth: number;
         procedures: { id: string; chartMarks?: unknown[] }[];
         marks: { location: { tooth: number } }[];
-        attachments: unknown[];
       };
 
       expect(body.tooth).toBe(36);
       expect(body.procedures).toHaveLength(2);
       expect(body.marks).toHaveLength(2);
       expect(body.marks.every((mark) => mark.location.tooth === 36)).toBe(true);
-      expect(body.attachments).toEqual([]);
     });
 
     it("does not leak a neighbouring tooth into the result", async () => {
@@ -292,7 +290,7 @@ describe("Patient clinical records (e2e)", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.json()).toMatchObject({ procedures: [], marks: [], attachments: [] });
+      expect(response.json()).toMatchObject({ procedures: [], marks: [] });
     });
 
     it("refuses a receptionist", async () => {

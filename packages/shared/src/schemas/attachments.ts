@@ -26,7 +26,7 @@ export const attachmentSchema = z.object({
   clinicId: z.uuid(),
   patientId: z.uuid(),
   visitId: z.uuid().nullable(),
-  type: lookupCodeSchema,
+  type: lookupCodeSchema.nullable(),
   filename: z.string(),
   mime: attachmentMimeSchema,
   sizeBytes: z.number().int().positive(),
@@ -44,7 +44,7 @@ export const presignAttachmentUploadSchema = z.object({
   filename: z.string().trim().min(1).max(255),
   mime: attachmentMimeSchema,
   sizeBytes: z.number().int().positive().max(MAX_ATTACHMENT_BYTES),
-  type: lookupCodeSchema,
+  type: lookupCodeSchema.nullish(),
 });
 export type PresignAttachmentUploadInput = z.infer<typeof presignAttachmentUploadSchema>;
 
@@ -60,7 +60,7 @@ export type PresignAttachmentUploadResponse = z.infer<typeof presignAttachmentUp
 /** Size and MIME are read back from storage rather than trusted from this body. */
 export const confirmAttachmentUploadSchema = z.object({
   key: z.string().trim().min(1).max(512),
-  type: lookupCodeSchema,
+  type: lookupCodeSchema.nullish(),
   filename: z.string().trim().min(1).max(255),
   visitId: z.uuid().nullish(),
   tooth: z.number().int().refine(isFdiTooth, "Not a valid FDI tooth number").nullish(),

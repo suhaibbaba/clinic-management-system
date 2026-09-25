@@ -531,8 +531,6 @@
       "discountReason": "سبب الحسم",
       "discountNeedsReason": "الحسم يتطلّب ذكر السبب",
       "date": "التاريخ",
-      "attachments": "X-rays",
-      "noAttachments": "لا توجد X-rays لهذا السن",
       "openFile": "فتح الملف",
       "recorded": "تم تسجيل المعالجة",
       "procedureCount": "{{count}} معالجة"
@@ -648,9 +646,6 @@
     "performedBy": "بواسطة {{name}}"
   },
   "imaging": {
-    "type": "النوع",
-    "tooth": "السن",
-    "invalidTooth": "رقم سن غير صالح",
     "uploadTitle": "أضف X-ray أو مستنداً",
     "dropHint": "اسحب الملف إلى هنا، أو اختره من جهازك",
     "upload": "رفع صورة",
@@ -662,8 +657,6 @@
     "deleted": "تم حذف الصورة",
     "empty": "لا توجد صور لهذا المريض",
     "loadFailed": "تعذّر تحميل الصور.",
-    "filterTooth": "تصفية حسب السن",
-    "filterType": "تصفية حسب النوع",
     "emptyHint": "الصور والمستندات المرفوعة تظهر هنا."
   },
   "billing": {

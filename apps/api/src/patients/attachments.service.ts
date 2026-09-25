@@ -9,7 +9,6 @@ import {
   ALLOWED_ATTACHMENT_MIME_TYPES,
   LOOKUP_LIST,
   MAX_ATTACHMENT_BYTES,
-  USER_ROLE,
   type Attachment,
   type AttachmentMime,
   type ConfirmAttachmentUploadInput,
@@ -32,6 +31,9 @@ import { LookupsService } from "@api/lookups/lookups.service";
 type AttachmentRow = typeof attachments.$inferSelect;
 
 export const ATTACHMENTS_ENTITY = "attachments";
+
+/** The storage folder of a file uploaded without a type. */
+const UNTYPED_CATEGORY = "files";
 
 // Bytes never pass through the API, and every read hands back a short-lived signed GET — nothing
 // here ever serialises an object key.
@@ -118,12 +120,14 @@ export class AttachmentsService implements OnModuleInit {
     input: PresignAttachmentUploadInput,
   ): Promise<PresignAttachmentUploadResponse> {
     await this.patientAccess.requirePatientId(actor, patientId);
-    await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ATTACHMENT_TYPE, input.type);
+    if (input.type) {
+      await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ATTACHMENT_TYPE, input.type);
+    }
 
     const key = this.storage.buildPatientObjectKey({
       clinicId: actor.clinicId,
       patientId,
-      category: input.type,
+      category: input.type ?? UNTYPED_CATEGORY,
       filename: input.filename,
     });
 
@@ -145,7 +149,9 @@ export class AttachmentsService implements OnModuleInit {
     input: ConfirmAttachmentUploadInput,
   ): Promise<Attachment> {
     await this.patientAccess.requirePatientId(actor, patientId);
-    await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ATTACHMENT_TYPE, input.type);
+    if (input.type) {
+      await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ATTACHMENT_TYPE, input.type);
+    }
 
     if (!this.storage.isKeyOwnedBy(input.key, actor.clinicId, patientId)) {
       throw new BadRequestException("This key does not belong to this patient");
@@ -183,7 +189,7 @@ export class AttachmentsService implements OnModuleInit {
         clinicId: actor.clinicId,
         patientId,
         visitId: input.visitId ?? null,
-        type: input.type,
+        type: input.type ?? null,
         r2Key: input.key,
         filename: input.filename,
         mime,
@@ -212,31 +218,6 @@ export class AttachmentsService implements OnModuleInit {
       .update(attachments)
       .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
       .where(this.scope.where(attachments, actor.clinicId, eq(attachments.id, id)));
-  }
-
-  async listForTooth(
-    actor: AuthenticatedUser,
-    patientId: string,
-    tooth: number,
-  ): Promise<Attachment[]> {
-    if (actor.role === USER_ROLE.RECEPTIONIST) {
-      return [];
-    }
-
-    const rows = await this.db
-      .select()
-      .from(attachments)
-      .where(
-        this.scope.where(
-          attachments,
-          actor.clinicId,
-          eq(attachments.patientId, patientId),
-          eq(attachments.tooth, tooth),
-        ),
-      )
-      .orderBy(desc(attachments.createdAt));
-
-    return rows.map(toAttachment);
   }
 
   private async requireVisit(

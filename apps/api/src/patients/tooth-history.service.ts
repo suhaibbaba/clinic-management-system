@@ -10,7 +10,6 @@ import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { chartMarks, performedProcedures } from "@api/database/schema";
-import { AttachmentsService } from "@api/patients/attachments.service";
 import { PatientAccessService } from "@api/patients/patient-access.service";
 import { toChartMark, toProcedure } from "@api/patients/procedures.service";
 
@@ -22,7 +21,6 @@ export class ToothHistoryService {
     @Inject(DATABASE) private readonly db: Database,
     private readonly scope: ClinicScopeService,
     private readonly patientAccess: PatientAccessService,
-    private readonly attachments: AttachmentsService,
   ) {}
 
   async get(actor: AuthenticatedUser, patientId: string, tooth: number): Promise<ToothHistory> {
@@ -45,12 +43,9 @@ export class ToothHistoryService {
     const marks: ChartMark[] = markRows.map((row) => toChartMark(row.chart_marks));
     const procedureIds = [...new Set(marks.map((mark) => mark.performedProcedureId))];
 
-    const [procedures, toothAttachments] = await Promise.all([
-      this.proceduresFor(actor, procedureIds, marks),
-      this.attachments.listForTooth(actor, patientId, tooth),
-    ]);
+    const procedures = await this.proceduresFor(actor, procedureIds, marks);
 
-    return { patientId, tooth, procedures, marks, attachments: toothAttachments };
+    return { patientId, tooth, procedures, marks };
   }
 
   private async proceduresFor(
