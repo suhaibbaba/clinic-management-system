@@ -10,10 +10,10 @@ export interface LabSeed {
 
 export const LABS: readonly LabSeed[] = [
   {
-    name: "مخبر الدقة للتركيبات",
+    name: "Precision Dental Lab",
     phone: "+97092380011",
-    address: "نابلس، شارع سفيان",
-    contactPerson: "أبو أحمد",
+    address: "Nablus, Sufyan Street",
+    contactPerson: "Abu Ahmad",
     workTypes: [
       { name: "Zirconia crown", defaultPrice: "320.00" },
       { name: "PFM crown", defaultPrice: "180.00" },
@@ -22,10 +22,10 @@ export const LABS: readonly LabSeed[] = [
     ],
   },
   {
-    name: "مخبر النخبة",
+    name: "Elite Dental Lab",
     phone: "+97092380022",
-    address: "نابلس، رفيديا",
-    contactPerson: "م. سامر",
+    address: "Nablus, Rafidia",
+    contactPerson: "Eng. Samer",
     workTypes: [
       { name: "Full denture", defaultPrice: "900.00" },
       { name: "Partial denture", defaultPrice: "600.00" },
@@ -33,10 +33,10 @@ export const LABS: readonly LabSeed[] = [
     ],
   },
   {
-    name: "مخبر فلسطين للتركيبات",
+    name: "Palestine Prosthetics Lab",
     phone: "+97092380033",
-    address: "نابلس، المخفية",
-    contactPerson: "أ. هيثم",
+    address: "Nablus, Al-Makhfiya",
+    contactPerson: "Mr. Haitham",
     workTypes: [
       { name: "Zirconia crown", defaultPrice: "300.00" },
       { name: "Removable orthodontic appliance", defaultPrice: "450.00" },
@@ -49,11 +49,11 @@ export const LAB_MATERIALS: readonly string[] = ["zirconia", "emax", "pfm", "acr
 export const LAB_SHADES: readonly string[] = ["A1", "A2", "A3", "A3.5", "B1", "B2"];
 
 export const LAB_INSTRUCTIONS: readonly string[] = [
-  "مراعاة خط الابتسامة",
-  "تخفيف نقاط التماس",
-  "اللون حسب العينة المرفقة",
-  "تسليم مستعجل",
-  "إعادة تلميح الحواف",
+  "Follow the smile line",
+  "Lighten the contact points",
+  "Match the enclosed shade sample",
+  "Urgent delivery",
+  "Re-polish the margins",
 ];
 
 export interface SupplierSeed {
@@ -63,8 +63,8 @@ export interface SupplierSeed {
 }
 
 export const SUPPLIERS: readonly SupplierSeed[] = [
-  { name: "مستودع القدس لمواد الأسنان", phone: "+97092390011", contactPerson: "أ. وائل" },
-  { name: "شركة بيرزيت للأدوية", phone: "+97092390022", contactPerson: "أ. لؤي" },
+  { name: "Al-Quds Dental Supplies", phone: "+97092390011", contactPerson: "Mr. Wael" },
+  { name: "Birzeit Pharmaceuticals", phone: "+97092390022", contactPerson: "Mr. Louay" },
 ];
 
 export interface ItemSeed {
