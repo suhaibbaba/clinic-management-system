@@ -1,4 +1,5 @@
 import {
+  TRANSLATION_BATCH_MAX,
   USER_ROLE,
   type TranslationBundle,
   type TranslationOverride,
@@ -156,7 +157,7 @@ describe("Translations (e2e)", () => {
     it("refuses an empty batch and one beyond its cap", async () => {
       const empty = await post("/translations/save", tokens[USER_ROLE.ADMIN], { items: [] });
       const tooMany = await post("/translations/save", tokens[USER_ROLE.ADMIN], {
-        items: Array.from({ length: 201 }, (_, index) => ({
+        items: Array.from({ length: TRANSLATION_BATCH_MAX + 1 }, (_, index) => ({
           language: "ar" as const,
           key: `nav.k${index}`,
           value: "x",

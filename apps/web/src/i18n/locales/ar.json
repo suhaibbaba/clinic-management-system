@@ -1,7 +1,6 @@
 {
   "app": {
-    "title": "نظام إدارة العيادة",
-    "shortTitle": "العيادة"
+    "title": "نظام إدارة العيادة"
   },
   "common": {
     "diallingCode": "رمز الدولة",
@@ -13,23 +12,17 @@
     "saving": "جارٍ الحفظ",
     "cancel": "إلغاء",
     "edit": "تعديل",
-    "create": "إضافة",
     "search": "بحث",
     "loading": "جارٍ التحميل",
     "updating": "جارٍ التحديث",
     "actions": "إجراءات",
-    "confirm": "تأكيد",
     "close": "إغلاق",
     "retry": "إعادة المحاولة",
     "all": "الكل",
     "none": "لا يوجد",
     "optional": "اختياري",
-    "yes": "نعم",
-    "no": "لا",
     "reset": "إعادة تعيين",
     "delete": "حذف",
-    "filters": "عوامل التصفية",
-    "viewAll": "عرض الكل",
     "placeholders": {
       "identifier": "09XXXXXXXX",
       "password": "••••••••",
@@ -86,14 +79,12 @@
     "goToPage": "الصفحة {{page}}",
     "label": "التنقل بين الصفحات",
     "next": "التالي",
-    "page": "صفحة {{page}} من {{totalPages}}",
     "pageOf": "رقم الصفحة من {{totalPages}}",
     "perPage": "لكل صفحة",
     "previous": "السابق",
     "total": "{{total}} سجل"
   },
   "nav": {
-    "account": "الحساب",
     "appointments": "المواعيد",
     "assistant": "المساعد",
     "audit": "سجل التدقيق",
@@ -124,7 +115,6 @@
     "translations": "نصوص الواجهة",
     "users": "المستخدمون",
     "waitingCount": "{{count}} بانتظار التأكيد",
-    "assistantSettings": "إعدادات المساعد",
     "settingsPage": "الإعدادات"
   },
   "roles": {
@@ -142,7 +132,6 @@
     "submit": "دخول",
     "submitting": "جارٍ الدخول",
     "invalidCredentials": "بيانات الدخول غير صحيحة",
-    "sessionExpired": "انتهت الجلسة، يرجى تسجيل الدخول مجددًا",
     "activateTitle": "تفعيل حسابك",
     "resetTitle": "إعادة تعيين كلمة المرور",
     "setPasswordSubtitle": "اختر كلمة مرور جديدة لحسابك.",
@@ -171,12 +160,9 @@
     "empty": "لا يوجد مستخدمون",
     "emptyHint": "ابدأ بإضافة أول مستخدم للعيادة",
     "filterRole": "تصفية حسب الصلاحية",
-    "filterStatus": "تصفية حسب الحالة",
     "inactive": "معطّل",
     "inviteSent": "تم إرسال الرابط",
     "name": "الاسم",
-    "nameAr": "الاسم بالعربية",
-    "nameEn": "Name in English",
     "newPassword": "كلمة المرور الجديدة",
     "password": "كلمة المرور",
     "passwordNoEmail": "لا يوجد بريد إلكتروني لإرسال رابط، لذلك عيّن كلمة مرور وسلّمها بنفسك.",
@@ -222,7 +208,6 @@
     "duration": "مدة الموعد الافتراضية",
     "durationUnit": "دقيقة",
     "schedule": "دوام الأسبوع",
-    "editSchedule": "تعديل الدوام",
     "created": "تمت إضافة الطبيب",
     "updated": "تم تحديث الطبيب",
     "scheduleUpdated": "تم تحديث الدوام",
@@ -249,14 +234,12 @@
     }
   },
   "schedule": {
-    "working": "دوام",
     "off": "عطلة",
     "from": "من",
     "to": "إلى",
     "addRange": "إضافة فترة",
     "removeRange": "حذف الفترة",
     "closed": "مغلق",
-    "invalidRange": "وقت البداية يجب أن يسبق وقت النهاية",
     "weekday": {
       "0": "الأحد",
       "1": "الاثنين",
@@ -326,7 +309,6 @@
     "countryHint": "منها يبدأ رمز الدولة في كل حقول الهاتف",
     "title": "إعدادات العيادة",
     "subtitle": "بيانات العيادة وأوقات العمل",
-    "name": "اسم العيادة",
     "phone": "رقم الهاتف",
     "email": "البريد الإلكتروني",
     "address": "العنوان",
@@ -382,8 +364,6 @@
     "viewChanges": "عرض التغييرات",
     "changesFor": "تغييرات {{entity}}",
     "noChanges": "لا توجد حقول متغيرة",
-    "fromDate": "من تاريخ",
-    "toDate": "إلى تاريخ",
     "filterEntity": "تصفية حسب السجل",
     "filterAction": "تصفية حسب العملية",
     "filterUser": "تصفية حسب المستخدم",
@@ -432,23 +412,7 @@
       "invalidEmail": "بريد إلكتروني غير صحيح",
       "invalidPhone": "رقم هاتف غير صحيح",
       "passwordMin": "كلمة المرور يجب ألا تقل عن ٨ أحرف",
-      "passwordSame": "كلمة المرور الجديدة يجب أن تختلف عن الحالية",
-      "noChanges": "لم يتم تغيير أي حقل"
-    }
-  },
-  "health": {
-    "title": "حالة النظام",
-    "loading": "جارٍ التحقق من حالة النظام",
-    "error": "تعذّر الوصول إلى الخادم",
-    "api": "الخادم",
-    "database": "قاعدة البيانات",
-    "version": "الإصدار",
-    "checkedAt": "وقت الفحص",
-    "status": {
-      "ok": "يعمل",
-      "degraded": "يعمل جزئيًا",
-      "up": "متصلة",
-      "down": "غير متصلة"
+      "passwordSame": "كلمة المرور الجديدة يجب أن تختلف عن الحالية"
     }
   },
   "patients": {
@@ -586,7 +550,6 @@
     "noVisits": "لا توجد زيارات لهذا المريض",
     "noVisitsHint": "أضف زيارة من تبويب «الزيارات» أولاً، ثم اربط الوصفة بها",
     "visit": "الزيارة",
-    "forVisit": "زيارة {{date}}",
     "withoutVisit": "بدون زيارة",
     "drug": "الدواء",
     "dose": "Dose",
@@ -627,7 +590,6 @@
     "create": "خطة جديدة",
     "created": "تم إنشاء الخطة",
     "defaultTitle": "خطة علاجية",
-    "count": "{{count}} خطة",
     "plan": "الخطة",
     "empty": "لا توجد خطط علاجية",
     "emptyHint": "أنشئ خطة، وأضف إليها المعالجات المقترحة، واطبعها ليوافق عليها المريض.",
@@ -723,8 +685,6 @@
     "confirmReversal": "تأكيد الإلغاء",
     "paymentReversed": "تم تسجيل القيد العكسي",
     "downloadStatement": "تنزيل كشف الحساب",
-    "from": "من تاريخ",
-    "to": "إلى تاريخ",
     "openingBalance": "رصيد أول المدة",
     "empty": "لا توجد حركات مالية",
     "emptyHint": "تظهر هنا الأعمال المنفَّذة والدفعات المسجَّلة.",
@@ -737,24 +697,7 @@
       "description": "البيان",
       "charge": "مدين",
       "payment": "دائن",
-      "balance": "الرصيد",
-      "patient": "المريض",
-      "lastPayment": "آخر دفعة",
-      "phone": "رقم الهاتف"
-    },
-    "overdueTitle": "الأرصدة المتأخرة",
-    "overdueSubtitle": "مرضى عليهم رصيد ولم يسدّدوا خلال المدة المحدّدة في إعدادات العيادة.",
-    "overdueEmpty": "لا توجد أرصدة متأخرة",
-    "overdueEmptyHint": "كل الأرصدة المستحقة ضمن المدة المسموحة.",
-    "daysAgo": "منذ {{count}} يوم",
-    "neverPaid": "لم يسدّد بعد",
-    "kpi": {
-      "patients": "مرضى متأخرون",
-      "patientsCaption": "إجمالي العيادة",
-      "outstanding": "إجمالي المتأخرات",
-      "largest": "أعلى رصيد",
-      "neverPaid": "لم يدفعوا مطلقاً",
-      "thisPage": "في هذه الصفحة"
+      "balance": "الرصيد"
     },
     "period": "المدة"
   },
@@ -778,14 +721,12 @@
     "type": "نوع الموعد",
     "reason": "سبب الزيارة",
     "notes": "ملاحظات",
-    "status": "الحالة",
     "empty": "لا مواعيد في هذا اليوم",
     "emptyHint": "احجز أول موعد من زر «موعد جديد».",
     "emptyWeek": "لا مواعيد في هذا الأسبوع",
     "loadFailed": "تعذّر تحميل التقويم.",
     "created": "تم حجز الموعد",
     "updated": "تم تحديث الموعد",
-    "conflict": "هذا الوقت محجوز لهذا الطبيب",
     "statuses": {
       "requested": "بانتظار التأكيد",
       "confirmed": "مؤكَّد",
@@ -830,15 +771,12 @@
     },
     "ribbon": {
       "title": "مواعيد اليوم",
-      "none": "لا مواعيد متبقّية اليوم",
-      "upcoming": "القادمة",
-      "seeAll": "عرض اليوم كاملاً"
+      "none": "لا مواعيد متبقّية اليوم"
     },
     "kpi": {
       "today": "مواعيد اليوم",
       "arrived": "وصلوا",
       "remaining": "متبقّية",
-      "waiting": "قائمة الانتظار",
       "attendance": "نسبة الحضور",
       "attendanceCaption": "من مواعيد اليوم",
       "onlineToday": "حجوزات إلكترونية اليوم",
@@ -873,10 +811,7 @@
       "urgentCount_many": "{{count}} طلباً عاجلاً",
       "urgentCount_other": "{{count}} طلب عاجل",
       "statuses": {
-        "pending": "بانتظار الاتصال",
-        "contacted": "تم الاتصال",
-        "scheduled": "تم الحجز",
-        "declined": "مغلق"
+        "contacted": "تم الاتصال"
       }
     },
     "grid": {
@@ -1056,11 +991,7 @@
       "emptyHint": "ستظهر هنا الأعمال فور إنشائها",
       "columns": {
         "work": "العمل",
-        "patient": "المريض",
-        "lab": "المختبر",
-        "status": "الحالة",
-        "expected": "التاريخ المتوقع",
-        "price": "السعر"
+        "status": "الحالة"
       }
     },
     "order": {
@@ -1373,14 +1304,10 @@
       "overdueCaption": "{{count}} مريض"
     },
     "lastAppointment": "آخر موعد",
-    "now": "الآن",
     "schedule": {
       "title": "جدول اليوم",
       "seeAll": "كل المواعيد",
-      "time": "الوقت",
-      "patient": "المريض",
       "doctor": "د. {{name}}",
-      "status": "الحالة",
       "empty": "لا مواعيد اليوم",
       "emptyHint": "المواعيد المحجوزة لهذا اليوم تظهر هنا",
       "byDoctor": "حسب الطبيب",
@@ -1724,19 +1651,24 @@
     "search": "بحث في النصوص",
     "searchPlaceholder": "ابحث بالنص أو بالمفتاح",
     "section": "القسم",
-    "key": "المفتاح",
     "changedOnly": "المعدّلة فقط ({{count}})",
-    "changed": "معدّل",
     "save": "حفظ",
     "saved": "تم حفظ النص",
     "empty": "لا توجد نصوص مطابقة",
     "emptyHint": "جرّب كلمة أخرى أو غيّر القسم",
     "allSections": "كل الأقسام",
-    "hint": "المفاتيح التي لم تُعدَّل تبقى تتبع تحديثات النظام",
+    "hint": "النص المتكرّر صفّ واحد: تعديله يغيّره في كل مكان يظهر فيه. افتح الصفّ لتكتب صيغة مختلفة لمكان بعينه. وما لا تعدّله يبقى يتبع تحديثات النظام.",
     "original": "الأصل",
     "arabic": "العربية",
     "english": "الإنجليزية",
-    "pending": "{{count}} تعديل غير محفوظ"
+    "pending": "{{count}} تعديل غير محفوظ",
+    "usedIn_zero": "غير مستخدم",
+    "usedIn_one": "مستخدم في مكان واحد",
+    "usedIn_two": "مستخدم في مكانين",
+    "usedIn_few": "مستخدم في {{count}} أماكن",
+    "usedIn_many": "مستخدم في {{count}} مكاناً",
+    "usedIn_other": "مستخدم في {{count}} مكان",
+    "mixed": "صيغته مختلفة في بعض الأماكن"
   },
   "assistant": {
     "conversations": "المحادثات",
@@ -1777,21 +1709,14 @@
       "findDoctors": "عم بدوّر بالأطباء",
       "doctorTimeOff": "عم بجهّز إجازة الطبيب",
       "clinicClosure": "عم بجهّز إغلاق العيادة",
-      "doctorTimeOffList": "عم بشوف إجازات الطبيب",
       "updateTimeOff": "عم بجهّز تعديل الإجازة",
       "deleteTimeOff": "عم بجهّز حذف الإجازة",
-      "findLabOrders": "عم بدوّر بطلبيات المختبر",
       "labOrderStatus": "عم بجهّز تغيير حالة الطلبية",
-      "findStockItems": "عم بدوّر بالمخزون",
       "stockMovement": "عم بجهّز حركة المخزون",
       "doctorSchedule": "عم بجهّز تعديل الدوام",
-      "findPayments": "عم بشوف دفعات المريض",
       "reversePayment": "عم بجهّز عكس الدفعة",
-      "findLabs": "عم بدوّر بالمختبرات",
-      "labPayments": "عم بشوف دفعات المختبر",
       "labPayment": "عم بجهّز دفعة المختبر",
       "reverseLabPayment": "عم بجهّز عكس دفعة المختبر",
-      "stockMovements": "عم بشوف حركات المادة",
       "reverseStockMovement": "عم بجهّز عكس الحركة",
       "findSlots": "عم بدوّر على أوقات فاضية",
       "extraHours": "عم بجهّز الدوام الإضافي",

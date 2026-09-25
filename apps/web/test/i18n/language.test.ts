@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import i18n from "@web/i18n";
 import {
   applyLanguageToDocument,
@@ -25,6 +25,32 @@ describe("language", () => {
     expect(storedLanguage()).toBe("en");
   });
 
+  // English is its own chunk: the strings must be there by the time the switch resolves.
+  it("has the English strings once the switch resolves", async () => {
+    await changeLanguage("en");
+
+    expect(i18n.t("common.save")).toBe("Save");
+  });
+
+  it("keeps a clinic's override when the English file arrives after it", async () => {
+    // A fresh module, so English has not been fetched yet by an earlier test.
+    vi.resetModules();
+    const fresh = await import("@web/i18n");
+    fresh.default.addResourceBundle(
+      "en",
+      "translation",
+      { common: { cancel: "Dismiss" } },
+      true,
+      true,
+    );
+
+    await fresh.loadLanguage("en");
+    await fresh.default.changeLanguage("en");
+
+    expect(fresh.default.t("common.cancel")).toBe("Dismiss");
+    expect(fresh.default.t("common.save")).toBe("Save");
+  });
+
   it("goes back to right-to-left for Arabic", async () => {
     await changeLanguage("en");
     await changeLanguage("ar");
@@ -38,15 +64,15 @@ describe("language", () => {
 
     // A fresh load: the document starts as the HTML shell left it.
     applyLanguageToDocument("ar");
-    initLanguage();
+    await initLanguage();
 
     expect(document.documentElement.dir).toBe("ltr");
     expect(i18n.language).toBe("en");
   });
 
-  it("falls back to Arabic when nothing is stored", () => {
+  it("falls back to Arabic when nothing is stored", async () => {
     window.localStorage.clear();
-    initLanguage();
+    await initLanguage();
 
     expect(document.documentElement.dir).toBe("rtl");
   });

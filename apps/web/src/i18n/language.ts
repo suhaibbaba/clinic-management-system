@@ -1,4 +1,4 @@
-import i18n, { DEFAULT_LANGUAGE, isRtl } from "@web/i18n";
+import i18n, { DEFAULT_LANGUAGE, isRtl, loadLanguage } from "@web/i18n";
 
 export const LANGUAGES = ["ar", "en"] as const;
 export type Language = (typeof LANGUAGES)[number];
@@ -31,6 +31,7 @@ export function applyLanguageToDocument(language: string): void {
 // The document is updated first: the language change is what re-renders, and direction-relative
 // icons read `dir` as they render.
 export async function changeLanguage(language: Language): Promise<void> {
+  await loadLanguage(language);
   applyLanguageToDocument(language);
   await i18n.changeLanguage(language);
 
@@ -41,13 +42,17 @@ export async function changeLanguage(language: Language): Promise<void> {
   }
 }
 
-// Called before the first paint, so the app never renders Arabic-RTL for a frame and then snaps to
-// English-LTR.
-export function initLanguage(): void {
-  const language = storedLanguage() ?? DEFAULT_LANGUAGE;
+// Awaited before the first paint, so the app never renders Arabic-RTL for a frame and then snaps to
+// English-LTR. A language whose chunk cannot be fetched falls back to Arabic rather than blocking.
+export async function initLanguage(): Promise<void> {
+  const stored = storedLanguage() ?? DEFAULT_LANGUAGE;
+  const language = await loadLanguage(stored).then(
+    () => stored,
+    () => DEFAULT_LANGUAGE,
+  );
 
   if (language !== i18n.language) {
-    void i18n.changeLanguage(language);
+    await i18n.changeLanguage(language);
   }
 
   applyLanguageToDocument(language);

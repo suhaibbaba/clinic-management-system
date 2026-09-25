@@ -42,10 +42,13 @@ export const saveTranslationItemSchema = z.object({
   value: z.string().max(2000),
 });
 
+/** A page of grouped wording: 25 texts, each written to every key that shares it, in two languages. */
+export const TRANSLATION_BATCH_MAX = 500;
+
 // One save for a screenful of edits: a footer that says "save" should be one request, and a page
 // half-written is worse than one refused.
 export const saveTranslationOverridesSchema = z.object({
-  items: z.array(saveTranslationItemSchema).min(1).max(200),
+  items: z.array(saveTranslationItemSchema).min(1).max(TRANSLATION_BATCH_MAX),
 });
 export type SaveTranslationOverridesInput = z.infer<typeof saveTranslationOverridesSchema>;
 
