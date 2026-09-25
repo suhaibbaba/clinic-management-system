@@ -11,6 +11,7 @@
     "save": "Save",
     "saving": "Saving",
     "cancel": "Cancel",
+    "confirm": "Confirm",
     "edit": "Edit",
     "search": "Search",
     "loading": "Loading",
@@ -75,7 +76,8 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "deleteForever": "Delete for good",
-    "noMatches": "No matches"
+    "noMatches": "No matches",
+    "continue": "Continue"
   },
   "pagination": {
     "goToPage": "Page {{page}}",
@@ -423,6 +425,10 @@
     "clinicalDelete": {
       "hasPayments": "Cannot delete — payments cover it. Reverse the payments first, or record a correction."
     },
+    "payment": {
+      "exceedsBalance": "The amount is more than the patient owes",
+      "reversed": "A reversed payment, or its reversal, cannot be deleted: the balance depends on both"
+    },
     "stock": {
       "insufficient": "More than is in stock; add stock or correct the count first"
     }
@@ -474,6 +480,17 @@
       "empty": "Nothing on the file yet",
       "emptyHint": "Visits, treatments, images and lab work will appear here",
       "loadFailed": "Could not load the timeline",
+      "count": "{{count}} entries",
+      "filterByType": "Entry type",
+      "allTypes": "All types",
+      "noneOfType": "No entries of this type",
+      "noneOfTypeHint": "Choose another type, or All types",
+      "columns": {
+        "date": "Date",
+        "title": "Entry",
+        "type": "Type",
+        "detail": "Details"
+      },
       "types": {
         "visit": "Visit",
         "procedure": "Treatment",
@@ -563,7 +580,16 @@
     "noVisits": "This patient has no visits",
     "noVisitsHint": "Add a visit from the Visits tab first, then link the prescription to it",
     "visit": "Visit",
+    "linkedVisit": "Linked visit",
+    "linkedVisitHint": "The visit this prescription was written at; the newest is chosen for you",
     "withoutVisit": "No visit",
+    "writtenBy": "Written by",
+    "menu": "Prescription options",
+    "noteOf": "Note on “{{name}}”",
+    "notesTitle": "Prescription notes",
+    "showDrugs": "Show drugs ({{count}})",
+    "drugsOf": "Drugs prescribed at the visit of {{date}}",
+    "drugsTitle": "Prescribed drugs",
     "drug": "Drug",
     "dose": "Dose",
     "frequency": "Frequency",
@@ -718,6 +744,12 @@
     "dueToday": "Due today",
     "lastPayment": "Last payment",
     "recordPayment": "Record payment",
+    "confirmPayment": {
+      "title": "Record a payment of {{amount}}?",
+      "method": "Method: {{method}}",
+      "remaining": "Left to pay afterwards: {{amount}}",
+      "permanent": "The receipt prints after saving, and a recorded payment cannot be edited"
+    },
     "recordAndPrint": "Record and print receipt",
     "paymentRecorded": "Payment recorded",
     "amount": "Amount",
@@ -744,9 +776,21 @@
       "description": "Description",
       "charge": "Debit",
       "payment": "Credit",
-      "balance": "Balance"
+      "balance": "Balance",
+      "note": "Notes"
     },
-    "period": "Period"
+    "period": "Period",
+    "deleted": "Deleted",
+    "deletedBy": "Deleted by",
+    "paymentDeleted": "Payment deleted",
+    "noteTitle": "Entry note",
+    "confirmDelete": {
+      "title": "Delete payment {{receipt}}?",
+      "balance": "It comes off the patient's balance",
+      "kept": "It stays on the admin's statement with who deleted it, and the audit log records the deletion"
+    },
+    "entryMenu": "Entry options",
+    "balanceAfter": "Balance after this payment: {{amount}}"
   },
   "appointments": {
     "title": "Appointments",

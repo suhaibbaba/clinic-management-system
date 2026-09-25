@@ -14,6 +14,7 @@ export interface FormFieldProps extends TestIdProps {
   /** Overrides the code-derived message when a rule needs specific wording. */
   errorKey?: string | undefined;
   hint?: string | undefined;
+  hintValues?: Record<string, string | number> | undefined;
   optional?: boolean | undefined;
   required?: boolean | undefined;
   children: ReactNode;
@@ -27,6 +28,7 @@ export function FormField({
   error,
   errorKey,
   hint,
+  hintValues,
   optional = false,
   required = false,
   children,
@@ -67,7 +69,7 @@ export function FormField({
 
       {hint !== undefined && !messageKey && (
         <p {...part("hint")} className="text-label text-ink-muted">
-          {t(hint)}
+          {t(hint, hintValues ?? {})}
         </p>
       )}
 

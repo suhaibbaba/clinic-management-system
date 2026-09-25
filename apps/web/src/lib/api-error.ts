@@ -1,4 +1,4 @@
-import { CLINICAL_DELETE_ERROR, STOCK_ERROR } from "@clinic/shared";
+import { CLINICAL_DELETE_ERROR, PAYMENT_ERROR, STOCK_ERROR } from "@clinic/shared";
 
 export class ApiError extends Error {
   constructor(
@@ -22,6 +22,8 @@ export class NetworkError extends Error {
 const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [CLINICAL_DELETE_ERROR.HAS_PAYMENTS]: "errors.clinicalDelete.hasPayments",
   [STOCK_ERROR.INSUFFICIENT]: "errors.stock.insufficient",
+  [PAYMENT_ERROR.EXCEEDS_BALANCE]: "errors.payment.exceedsBalance",
+  [PAYMENT_ERROR.REVERSED]: "errors.payment.reversed",
 };
 
 export function errorMessageKey(error: unknown): string {

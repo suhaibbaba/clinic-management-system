@@ -68,3 +68,12 @@ export function useReversePayment() {
     onSuccess: invalidate,
   });
 }
+
+export function useDeletePayment() {
+  const invalidate = useLedgerInvalidation();
+
+  return useMutation({
+    mutationFn: (id: string) => billingApi.deletePayment(id),
+    onSuccess: invalidate,
+  });
+}

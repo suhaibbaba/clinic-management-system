@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -7,6 +8,8 @@ import {
 } from "@nestjs/common";
 import {
   LOOKUP_LIST,
+  PAYMENT_ERROR,
+  toMinorUnits,
   type CreatePaymentInput,
   type ListPaymentsQuery,
   type Paginated,
@@ -16,6 +19,7 @@ import {
 import { desc, eq, sql, type SQL } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { negate } from "@api/billing/charges.service";
+import { LedgerService } from "@api/billing/ledger.service";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -92,6 +96,7 @@ export class PaymentsService implements OnModuleInit {
 
     return this.db.transaction(async (tx) => {
       const receiptNumber = await nextReceiptNumber(tx, actor.clinicId);
+      await assertWithinBalance(tx, actor.clinicId, input.patientId, input.amount);
 
       const [row] = await tx
         .insert(payments)
@@ -113,6 +118,30 @@ export class PaymentsService implements OnModuleInit {
       }
 
       return toPayment(row);
+    });
+  }
+
+  // Kept, not removed: an admin still sees it on the statement, and the balance's `sum()` skips it.
+  async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      const [row] = await tx
+        .select()
+        .from(payments)
+        .where(this.scope.where(payments, actor.clinicId, eq(payments.id, id)))
+        .limit(1)
+        .for("update");
+
+      if (!row) {
+        throw new NotFoundException("Resource not found");
+      }
+      if (row.reversesId !== null || row.reversedAt !== null) {
+        throw new ConflictException(PAYMENT_ERROR.REVERSED);
+      }
+
+      await tx
+        .update(payments)
+        .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
+        .where(eq(payments.id, row.id));
     });
   }
 
@@ -168,6 +197,22 @@ export class PaymentsService implements OnModuleInit {
 
       return toPayment(row);
     });
+  }
+}
+
+// Read after the counter's row lock, so two payments at once cannot both fit the same balance.
+async function assertWithinBalance(
+  tx: DatabaseExecutor,
+  clinicId: string,
+  patientId: string,
+  amount: string,
+): Promise<void> {
+  const [row] = await tx.execute<{ balance: string }>(
+    sql`select ${LedgerService.balanceOf(clinicId, patientId)}::text as balance`,
+  );
+
+  if (toMinorUnits(amount) > toMinorUnits(row?.balance ?? "0")) {
+    throw new ConflictException(PAYMENT_ERROR.EXCEEDS_BALANCE);
   }
 }
 

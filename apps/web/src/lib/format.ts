@@ -1,3 +1,4 @@
+import { to12Hour } from "@clinic/ui";
 import i18n from "@web/i18n";
 import { clinicTimeZone } from "@web/lib/clinic-zone";
 
@@ -78,6 +79,11 @@ export function formatClinicTime(iso: string): string {
     minute: "2-digit",
     hour12: false,
   }).format(new Date(iso));
+}
+
+/** `26 Sep 2026 · 9:30 AM` in the clinic's zone: AM/PM in Latin in either language. */
+export function visitMoment(iso: string): string {
+  return `${shortDate(iso)} · ${to12Hour(formatClinicTime(iso))}`;
 }
 
 export function formatClinicDate(iso: string): string {

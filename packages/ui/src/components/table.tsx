@@ -193,7 +193,9 @@ export function Table<TRow>({
                   <dl
                     data-part="table-card-meta"
                     {...testid(rowId(row), "meta")}
-                    className="grid grid-cols-[minmax(5.5rem,auto)_1fr]"
+                    // `minmax(0, 1fr)`: a bare `1fr` never shrinks below its content, so one long
+                    // line — a note — would widen the card past the screen.
+                    className="grid grid-cols-[minmax(5.5rem,auto)_minmax(0,1fr)]"
                   >
                     {shown.map((column, index) => (
                       <div key={column.key} className="contents">
@@ -223,7 +225,7 @@ export function Table<TRow>({
                           data-part="table-card-value"
                           {...testid(rowId(row), column.key)}
                           className={cn(
-                            "py-2.5 text-value text-ink",
+                            "min-w-0 py-2.5 text-value text-ink",
                             cardAlignClass(column.align),
                             index > 0 && "border-t border-line",
                           )}

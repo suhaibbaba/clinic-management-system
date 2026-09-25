@@ -56,6 +56,8 @@ export function NotePreview({
         {...part("text")}
         className={cn(
           "min-w-0 flex-1 truncate text-ink-muted [unicode-bidi:plaintext]",
+          // Plaintext bidi would otherwise push an Arabic note to the far edge on an English page.
+          "page-rtl:text-right page-ltr:text-left",
           size === "meta" ? "text-meta" : "text-value",
         )}
       >

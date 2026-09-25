@@ -458,6 +458,8 @@ export function makeStatementEntry(overrides: Partial<StatementEntry> = {}): Sta
     runningBalance: "150.00",
     receiptNumber: null,
     isReversal: false,
+    isReversed: false,
+    note: null,
     ...overrides,
   };
 }
@@ -476,6 +478,7 @@ export function makeStatement(overrides: Partial<Statement> = {}): Statement {
         kind: LEDGER_ENTRY_KIND.PAYMENT,
         occurredAt: "2026-09-01T10:00:00.000Z",
         description: "دفعة على الحساب",
+        note: "دفعة على الحساب",
         amount: "-50.00",
         runningBalance: "100.00",
         receiptNumber: 12,

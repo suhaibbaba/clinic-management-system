@@ -227,6 +227,77 @@ describe("Prescriptions tab", () => {
     });
   });
 
+  it("names the linked visit by its date and a Latin AM/PM time", async () => {
+    const visit = makeVisit();
+    await openTab(ar.patients.tabs.prescriptions, {
+      "GET /visits": { status: 200, body: paginated([visit]) },
+    });
+
+    await userEvent.click(await screen.findByRole("button", { name: ar.prescriptions.create }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(ar.prescriptions.linkedVisit)).toBeInTheDocument();
+    expect(within(dialog).getByText(ar.prescriptions.linkedVisitHint)).toBeInTheDocument();
+
+    const field = within(dialog).getByTestId("prescription-field-visit");
+    await waitFor(() =>
+      expect(field).toHaveTextContent(/1 Feb 2026\u2069? · \d{1,2}:\d{2} (AM|PM)/),
+    );
+    expect(field.textContent).not.toMatch(/[صم]/);
+  });
+
+  it("shows a prescription as a card: visit and doctor on top, its drugs behind a button", async () => {
+    const visit = makeVisit();
+    const prescription = {
+      id: "77777777-7777-4777-8777-777777777777",
+      clinicId: visit.clinicId,
+      patientId: PATIENT_ID,
+      visitId: visit.id,
+      doctorId: visit.doctorId,
+      items: [
+        {
+          drug: "Amoxicillin 500 mg",
+          dose: "1 capsule",
+          frequency: "every 8 hours",
+          duration: "5 days",
+        },
+        { drug: "Ibuprofen 400 mg", dose: null, frequency: null, duration: "3 days" },
+      ],
+      notes: "Take with food\nStop if a rash appears",
+      createdAt: visit.createdAt,
+      updatedAt: visit.updatedAt,
+    };
+    await openTab(ar.patients.tabs.prescriptions, {
+      "GET /visits": { status: 200, body: paginated([visit]) },
+      "GET /prescriptions": { status: 200, body: paginated([prescription]) },
+    });
+
+    const card = await screen.findByTestId(`prescription-${prescription.id}`);
+    expect(within(card).getByTestId(`prescription-${prescription.id}-title`)).toHaveTextContent(
+      /1 Feb 2026\u2069? · \d{1,2}:\d{2} (AM|PM)/,
+    );
+    expect(within(card).getByRole("button", { name: ar.prescriptions.menu })).toBeInTheDocument();
+
+    expect(card).not.toHaveTextContent("Amoxicillin");
+
+    await userEvent.click(
+      within(card).getByRole("button", {
+        name: ar.prescriptions.showDrugs.replace("{{count}}", "2"),
+      }),
+    );
+
+    const dialog = await screen.findByTestId("prescription-drugs-modal");
+    const drug = within(dialog).getByTestId(`prescription-drugs-modal-${prescription.id}-drug-0`);
+    expect(drug).toHaveTextContent("Amoxicillin 500 mg");
+    expect(drug).toHaveTextContent("1 capsule · every 8 hours · 5 days");
+    expect(within(dialog).getAllByRole("listitem")).toHaveLength(2);
+    await userEvent.keyboard("{Escape}");
+
+    const notes = within(card).getByTestId(`prescription-${prescription.id}-notes`);
+    expect(notes).toHaveTextContent("Take with food");
+    expect(notes).not.toHaveTextContent("rash");
+  });
+
   it("deletes a prescription only after the confirmation", async () => {
     const visit = makeVisit();
     const prescription = {
@@ -245,14 +316,17 @@ describe("Prescriptions tab", () => {
       "GET /prescriptions": { status: 200, body: paginated([prescription]) },
       [`DELETE /prescriptions/${prescription.id}`]: { status: 204 },
     });
-    const deleteButton = await screen.findByRole("button", { name: ar.common.delete });
     const deletes = () => api.calls.filter((entry) => entry.method === "DELETE");
+    const chooseDelete = async (): Promise<void> => {
+      await userEvent.click(await screen.findByRole("button", { name: ar.prescriptions.menu }));
+      await userEvent.click(await screen.findByRole("menuitem", { name: ar.common.delete }));
+    };
 
-    await userEvent.click(deleteButton);
+    await chooseDelete();
     await userEvent.click(await screen.findByRole("button", { name: ar.common.cancel }));
     expect(deletes()).toHaveLength(0);
 
-    await userEvent.click(deleteButton);
+    await chooseDelete();
     await userEvent.click(await screen.findByRole("button", { name: ar.common.deleteForever }));
     await waitFor(() => expect(deletes()).toHaveLength(1));
   });
@@ -753,5 +827,81 @@ describe("Imaging tab", () => {
     await openTab(ar.patients.tabs.attachments);
 
     expect(await screen.findByText(ar.imaging.empty)).toBeInTheDocument();
+  });
+});
+
+describe("Timeline tab", () => {
+  beforeEach(() => authTokens.clear());
+
+  const entry = (id: string, type: "visit" | "payment", title: string) => ({
+    id,
+    type,
+    occurredAt: "2026-07-15T09:45:00.000Z",
+    title,
+    detail: type === "visit" ? { complaint: "Broken old filling" } : {},
+  });
+
+  const timelineUrl = `GET /patients/${PATIENT_ID}/timeline`;
+
+  it("lists the entries as a table, a page at a time, with the count at the end", async () => {
+    const api = await openTab(ar.patients.tabs.timeline, {
+      [timelineUrl]: {
+        status: 200,
+        body: paginated(
+          [
+            entry("11111111-aaaa-4aaa-8aaa-111111111111", "visit", "Impacted tooth"),
+            entry("22222222-aaaa-4aaa-8aaa-222222222222", "payment", "Cash"),
+          ],
+          { total: 60, totalPages: 3 },
+        ),
+      },
+    });
+
+    const table = await screen.findByTestId("timeline-table");
+    expect(within(table).getByText("Impacted tooth")).toBeInTheDocument();
+    expect(within(table).getByText("Broken old filling")).toBeInTheDocument();
+    expect(within(table).getAllByTestId("timeline-row-date")[0]).toHaveTextContent("15 Jul 2026");
+    expect(screen.getByTestId("timeline-count")).toHaveTextContent("60");
+
+    const firstCall = api.calls.find((call) => call.url.includes("/timeline"));
+    expect(firstCall?.url).toContain("page=1");
+    expect(firstCall?.url).toContain("limit=10");
+  });
+
+  it("filters by type through the address, and asks the API for that type from page one", async () => {
+    const api = await openTab(ar.patients.tabs.timeline, {
+      [timelineUrl]: { status: 200, body: paginated([]) },
+    });
+
+    await choose(
+      await screen.findByTestId("timeline-filter-kind"),
+      ar.patients.timeline.types.visit,
+    );
+
+    await waitFor(() => {
+      const last = api.calls.filter((call) => call.url.includes("/timeline")).at(-1);
+      expect(last?.url).toContain("type=visit");
+      expect(last?.url).toContain("page=1");
+    });
+    expect(await screen.findByText(ar.patients.timeline.noneOfType)).toBeInTheDocument();
+  });
+
+  it("keeps the chosen type when filtering from a later page, and goes back to page one", async () => {
+    authTokens.clear();
+    const api = mockApi(
+      handlers({ [timelineUrl]: { status: 200, body: paginated([], { page: 2, totalPages: 3 }) } }),
+    );
+    renderWithProviders(<AppRoutes />, { route: `/patients/${PATIENT_ID}?tab=timeline&page=2` });
+
+    await choose(
+      await screen.findByTestId("timeline-filter-kind"),
+      ar.patients.timeline.types.payment,
+    );
+
+    await waitFor(() => {
+      const last = api.calls.filter((call) => call.url.includes("/timeline")).at(-1);
+      expect(last?.url).toContain("type=payment");
+      expect(last?.url).toContain("page=1");
+    });
   });
 });

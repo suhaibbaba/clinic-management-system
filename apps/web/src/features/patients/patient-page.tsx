@@ -56,6 +56,9 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"];
 
+// A page number, a page size and a filter belong to the tab they were set in.
+const TAB_OWNED_PARAMS = ["page", "perPage", "type", "plan"] as const;
+
 export function PatientPage(): JSX.Element {
   const { t } = useTranslation();
   const { user, can } = useSession();
@@ -75,6 +78,7 @@ export function PatientPage(): JSX.Element {
     "tab",
     tabs.map((tab) => tab.id),
     tabs[0]?.id ?? "billing",
+    TAB_OWNED_PARAMS,
   );
 
   const patient = usePatient(id);

@@ -11,6 +11,7 @@ import type {
   CreateVisitInput,
   ListAttachmentsQuery,
   ListPatientsQuery,
+  ListTimelineQuery,
   Paginated,
   PatientClinicalView,
   PatientView,
@@ -449,10 +450,14 @@ export function useDeleteAttachment(patientId: string) {
   });
 }
 
-export function usePatientTimeline(patientId: string): UseQueryResult<Paginated<TimelineEntry>> {
+export function usePatientTimeline(
+  patientId: string,
+  query: Partial<ListTimelineQuery> = {},
+): UseQueryResult<Paginated<TimelineEntry>> {
   return useQuery({
-    queryKey: [PATIENT_TIMELINE_KEY, patientId],
-    queryFn: () => patientsApi.timeline(patientId, { limit: 50 }),
+    queryKey: [PATIENT_TIMELINE_KEY, patientId, query],
+    queryFn: () => patientsApi.timeline(patientId, query),
     enabled: patientId !== "",
+    placeholderData: (previous) => previous,
   });
 }

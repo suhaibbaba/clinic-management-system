@@ -1,4 +1,5 @@
 import {
+  PAYMENT_ERROR,
   PAYMENT_METHOD,
   PERFORMED_PROCEDURE_STATUS,
   USER_ROLE,
@@ -283,6 +284,7 @@ describe("Billing", () => {
   describe("payments", () => {
     it("numbers receipts without gaps under concurrent writes", async () => {
       const patientId = await newPatient();
+      await recordProcedure(patientId, { price: "100.00" });
 
       const results = await Promise.all(
         Array.from({ length: 8 }, () =>
@@ -304,8 +306,90 @@ describe("Billing", () => {
       expect(numbers.at(-1)! - numbers[0]!).toBe(numbers.length - 1);
     });
 
+    it("refuses more than the patient owes, and lets them settle it exactly", async () => {
+      const patientId = await newPatient();
+      await recordProcedure(patientId, { price: "100.00" });
+
+      const over = await context.app.inject({
+        method: "POST",
+        url: "/payments",
+        headers: auth(receptionistToken),
+        payload: { patientId, amount: "101.00", method: PAYMENT_METHOD.CASH },
+      });
+
+      expect(over.statusCode).toBe(409);
+      expect(over.json()).toMatchObject({ message: PAYMENT_ERROR.EXCEEDS_BALANCE });
+
+      await pay(patientId, "100.00");
+      expect((await balanceOf(patientId)).balance).toBe("0.00");
+    });
+
+    it("lets an admin delete a payment: off the balance, kept on the admin's statement only", async () => {
+      const patientId = await newPatient();
+      await recordProcedure(patientId, { price: "100.00" });
+      const payment = await pay(patientId, "40.00");
+
+      const removal = await context.app.inject({
+        method: "DELETE",
+        url: `/payments/${payment.id}`,
+        headers: auth(adminToken),
+      });
+
+      expect(removal.statusCode).toBe(204);
+      expect((await balanceOf(patientId)).balance).toBe("100.00");
+
+      const statementFor = async (token: string): Promise<Statement> => {
+        const response = await context.app.inject({
+          method: "GET",
+          url: `/patients/${patientId}/statement`,
+          headers: auth(token),
+        });
+        expect(response.statusCode).toBe(200);
+        return response.json() as Statement;
+      };
+
+      const asAdmin = await statementFor(adminToken);
+      const deleted = asAdmin.entries.find((entry) => entry.id === payment.id);
+
+      expect(deleted?.deletedAt).toBeDefined();
+      expect(deleted?.deletedBy).toMatchObject({ ar: expect.any(String), en: expect.any(String) });
+      expect(deleted?.runningBalance).toBe("100.00");
+      expect(asAdmin.closingBalance).toBe("100.00");
+
+      // ROLES.md rule 4: a deleted row is the admin's to see, and absent for anyone else.
+      const asReceptionist = await statementFor(receptionistToken);
+      expect(asReceptionist.entries.map((entry) => entry.id)).not.toContain(payment.id);
+      expect(asReceptionist.entries.every((entry) => entry.deletedAt === undefined)).toBe(true);
+    });
+
+    it("refuses to delete a reversed payment, or its reversal", async () => {
+      const patientId = await newPatient();
+      await recordProcedure(patientId, { price: "100.00" });
+      const payment = await pay(patientId, "25.00");
+
+      const reversal = await context.app.inject({
+        method: "POST",
+        url: `/payments/${payment.id}/reverse`,
+        headers: auth(adminToken),
+        payload: { reason: "Entered twice" },
+      });
+      expect(reversal.statusCode).toBe(201);
+
+      for (const id of [payment.id, (reversal.json() as Payment).id]) {
+        const removal = await context.app.inject({
+          method: "DELETE",
+          url: `/payments/${id}`,
+          headers: auth(adminToken),
+        });
+
+        expect(removal.statusCode).toBe(409);
+        expect(removal.json()).toMatchObject({ message: PAYMENT_ERROR.REVERSED });
+      }
+    });
+
     it("refuses to reverse the same payment twice", async () => {
       const patientId = await newPatient();
+      await recordProcedure(patientId, { price: "100.00" });
       const payment = await pay(patientId, "20.00");
 
       const first = await context.app.inject({
@@ -327,6 +411,7 @@ describe("Billing", () => {
 
     it("gives a receptionist create and read, and nothing else", async () => {
       const patientId = await newPatient();
+      await recordProcedure(patientId, { price: "100.00" });
       const payment = await pay(patientId, "15.00");
 
       const list = await context.app.inject({
@@ -396,7 +481,7 @@ describe("Billing", () => {
       expect(statement.entries.map((entry) => entry.runningBalance)).toEqual(["100.00", "60.00"]);
       expect(statement.closingBalance).toBe("60.00");
       // The catalog name, and nothing clinical alongside it.
-      expect(statement.entries[0]?.description).toBe("حشوة تجميلية");
+      expect(statement.entries[0]?.description).toBe("Composite filling");
     });
 
     it("renders a PDF with the Arabic text embedded", async () => {
@@ -430,6 +515,7 @@ describe("Billing", () => {
 
     it("prints a receipt for every payment", async () => {
       const patientId = await newPatient();
+      await recordProcedure(patientId, { price: "100.00" });
       const payment = await pay(patientId, "35.00");
 
       const response = await context.app.inject({
@@ -536,7 +622,7 @@ describe("Billing", () => {
 
       await recordProcedure(most, { price: "900.00" });
       await recordProcedure(least, { price: "50.00" });
-      await pay(least, "80.00");
+      await pay(least, "30.00");
 
       const order = async (query: string, token: string): Promise<string[]> => {
         const response = await context.app.inject({
