@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createUserSchema,
   updateUserSchema,
+  USER_ROLE,
   USER_ROLES,
   type CreateUserInput,
   type UpdateUserInput,
@@ -86,7 +87,11 @@ export function UserFormModal({
     );
   }, [open, user, reset]);
 
-  const roleOptions = USER_ROLES.map((role) => ({ value: role, label: t(`roles.${role}`) }));
+  // A visiting doctor is made with their doctor profile, from a treatment plan; this screen only
+  // shows the role on an account that already has it.
+  const roleOptions = USER_ROLES.filter(
+    (role) => role !== USER_ROLE.VISITING_DOCTOR || user?.role === role,
+  ).map((role) => ({ value: role, label: t(`roles.${role}`) }));
 
   const email = watch("email")?.trim() ?? "";
 

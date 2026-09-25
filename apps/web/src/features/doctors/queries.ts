@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   CreateDoctorInput,
+  CreateVisitingDoctorInput,
   Doctor,
   ListDoctorsQuery,
   Paginated,
@@ -38,6 +39,15 @@ export function useCreateDoctor() {
 
   return useMutation({
     mutationFn: (body: CreateDoctorInput) => doctorsApi.create(body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [DOCTORS_KEY] }),
+  });
+}
+
+export function useCreateVisitingDoctor() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: CreateVisitingDoctorInput) => doctorsApi.createVisiting(body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [DOCTORS_KEY] }),
   });
 }

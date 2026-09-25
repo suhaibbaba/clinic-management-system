@@ -23,6 +23,7 @@ import type {
   TreatmentPlan,
   UpdatePatientInput,
   UpdatePerformedProcedureInput,
+  UpdateTreatmentPlanInput,
   UpdateTreatmentPlanItemInput,
   UpdateVisitInput,
   Visit,
@@ -287,6 +288,34 @@ export function useCreateTreatmentPlan(patientId: string) {
 
   return useMutation({
     mutationFn: (body: CreateTreatmentPlanInput) => patientsApi.createTreatmentPlan(body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENT_PLANS_KEY, patientId] }),
+  });
+}
+
+export function useUpdateTreatmentPlan(patientId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: UpdateTreatmentPlanInput }) =>
+      patientsApi.updateTreatmentPlan(id, body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENT_PLANS_KEY, patientId] }),
+  });
+}
+
+export function useDeleteTreatmentPlan(patientId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => patientsApi.removeTreatmentPlan(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENT_PLANS_KEY, patientId] }),
+  });
+}
+
+export function useDeletePlanItem(patientId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (itemId: string) => patientsApi.removePlanItem(itemId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [PATIENT_PLANS_KEY, patientId] }),
   });
 }

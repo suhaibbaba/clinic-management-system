@@ -57,7 +57,9 @@ export class ProceduresService implements OnModuleInit {
       return toPaginated<PerformedProcedure>([], 0, query);
     }
 
-    const filters: (SQL | undefined)[] = [];
+    const filters: (SQL | undefined)[] = [
+      await this.patientAccess.assignedFilter(actor, performedProcedures.patientId),
+    ];
 
     if (query.patientId) {
       await this.patientAccess.requirePatientId(actor, query.patientId);
@@ -100,11 +102,7 @@ export class ProceduresService implements OnModuleInit {
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<PerformedProcedure> {
-    const row = await this.scope.findOneOrFail<ProcedureRow>(
-      performedProcedures,
-      actor.clinicId,
-      id,
-    );
+    const row = await this.patientAccess.requireRow<ProcedureRow>(actor, performedProcedures, id);
     const marks = await this.marksFor(actor.clinicId, [row.id]);
 
     return toProcedure(row, marks.get(row.id) ?? []);
@@ -175,9 +173,9 @@ export class ProceduresService implements OnModuleInit {
     id: string,
     input: UpdatePerformedProcedureInput,
   ): Promise<PerformedProcedure> {
-    const existing = await this.scope.findOneOrFail<ProcedureRow>(
+    const existing = await this.patientAccess.requireRow<ProcedureRow>(
+      actor,
       performedProcedures,
-      actor.clinicId,
       id,
     );
 
@@ -252,7 +250,7 @@ export class ProceduresService implements OnModuleInit {
   }
 
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
-    await this.scope.findOneOrFail<ProcedureRow>(performedProcedures, actor.clinicId, id);
+    await this.patientAccess.requireRow<ProcedureRow>(actor, performedProcedures, id);
     const now = new Date();
 
     await this.db.transaction(async (tx) => {

@@ -49,7 +49,7 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 
 /** Admin CRUD, doctor CRU, nothing for technician or receptionist (ROLES.md patients matrix). */
 @Controller("treatment-plans")
-@Roles(USER_ROLE.DOCTOR)
+@Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
 export class TreatmentPlansController {
   constructor(private readonly plans: TreatmentPlansService) {}
 
@@ -136,7 +136,7 @@ export class TreatmentPlansController {
 
 /** Plan items are addressed on their own so a client never has to know the plan. */
 @Controller("plan-items")
-@Roles(USER_ROLE.DOCTOR)
+@Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
 export class PlanItemsController {
   constructor(private readonly plans: TreatmentPlansService) {}
 

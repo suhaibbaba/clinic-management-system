@@ -10,7 +10,7 @@ import { AiTool } from "@api/ai/tools/route-tool.decorator";
 class PatientToothParamDto extends createZodDto(patientToothParamSchema) {}
 
 @Controller("patients/:patientId/teeth")
-@Roles(USER_ROLE.DOCTOR)
+@Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
 export class ToothHistoryController {
   constructor(private readonly toothHistory: ToothHistoryService) {}
 

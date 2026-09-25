@@ -74,7 +74,9 @@ export class TreatmentPlansService implements OnModuleInit {
     actor: AuthenticatedUser,
     query: ListTreatmentPlansQuery,
   ): Promise<Paginated<TreatmentPlan>> {
-    const filters: (SQL | undefined)[] = [];
+    const filters: (SQL | undefined)[] = [
+      await this.patientAccess.assignedFilter(actor, treatmentPlans.patientId),
+    ];
 
     if (query.patientId) {
       await this.patientAccess.requirePatientId(actor, query.patientId);
@@ -114,7 +116,7 @@ export class TreatmentPlansService implements OnModuleInit {
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<TreatmentPlan> {
-    const row = await this.scope.findOneOrFail<PlanRow>(treatmentPlans, actor.clinicId, id);
+    const row = await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, id);
     const items = await this.itemsFor(actor.clinicId, [row.id]);
 
     return toPlan(row, items.get(row.id) ?? []);
@@ -155,7 +157,7 @@ export class TreatmentPlansService implements OnModuleInit {
     id: string,
     input: UpdateTreatmentPlanInput,
   ): Promise<TreatmentPlan> {
-    await this.scope.findOneOrFail<PlanRow>(treatmentPlans, actor.clinicId, id);
+    await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, id);
 
     if (input.doctorId) {
       await this.requireDoctor(actor, input.doctorId);
@@ -184,7 +186,7 @@ export class TreatmentPlansService implements OnModuleInit {
 
   /** Soft-deletes the plan and the items that only exist inside it. */
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
-    await this.scope.findOneOrFail<PlanRow>(treatmentPlans, actor.clinicId, id);
+    await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, id);
     const now = new Date();
 
     await this.db
@@ -209,7 +211,7 @@ export class TreatmentPlansService implements OnModuleInit {
     planId: string,
     input: CreateTreatmentPlanItemInput,
   ): Promise<TreatmentPlanItem> {
-    await this.scope.findOneOrFail<PlanRow>(treatmentPlans, actor.clinicId, planId);
+    await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, planId);
 
     return this.insertItem(actor, planId, input);
   }
@@ -227,11 +229,17 @@ export class TreatmentPlansService implements OnModuleInit {
     if (input.procedureId) {
       await this.catalog.requirePriced(actor.clinicId, input.procedureId);
     }
+    if (input.performerDoctorId) {
+      await this.requireDoctor(actor, input.performerDoctorId);
+    }
 
     const [row] = await this.db
       .update(treatmentPlanItems)
       .set({
         ...(input.procedureId !== undefined && { procedureId: input.procedureId }),
+        ...(input.performerDoctorId !== undefined && {
+          performerDoctorId: input.performerDoctorId ?? null,
+        }),
         ...(input.estimatedPrice !== undefined && { estimatedPrice: input.estimatedPrice }),
         ...(input.sortOrder !== undefined && { sortOrder: input.sortOrder }),
         ...(input.status !== undefined && { status: input.status }),
@@ -280,9 +288,9 @@ export class TreatmentPlansService implements OnModuleInit {
       throw new ConflictException(`A ${item.status} plan item cannot be converted`);
     }
 
-    const plan = await this.scope.findOneOrFail<PlanRow>(
+    const plan = await this.patientAccess.requireRow<PlanRow>(
+      actor,
       treatmentPlans,
-      actor.clinicId,
       item.treatmentPlanId,
     );
 
@@ -291,7 +299,7 @@ export class TreatmentPlansService implements OnModuleInit {
       {
         patientId: plan.patientId,
         visitId: input.visitId ?? null,
-        doctorId: input.doctorId ?? plan.doctorId,
+        doctorId: input.doctorId ?? item.performerDoctorId ?? plan.doctorId,
         procedureId: item.procedureId,
         price: input.price ?? item.estimatedPrice,
         discount: "0.00",
@@ -323,12 +331,17 @@ export class TreatmentPlansService implements OnModuleInit {
   ): Promise<TreatmentPlanItem> {
     const catalogItem = await this.catalog.requirePriced(actor.clinicId, input.procedureId);
 
+    if (input.performerDoctorId) {
+      await this.requireDoctor(actor, input.performerDoctorId);
+    }
+
     const [row] = await this.db
       .insert(treatmentPlanItems)
       .values({
         clinicId: actor.clinicId,
         treatmentPlanId: planId,
         procedureId: input.procedureId,
+        performerDoctorId: input.performerDoctorId ?? null,
         estimatedPrice: input.estimatedPrice ?? catalogItem.defaultPrice,
         sortOrder: input.sortOrder,
         notes: input.notes ?? null,
@@ -345,7 +358,15 @@ export class TreatmentPlansService implements OnModuleInit {
   }
 
   private async requireItem(actor: AuthenticatedUser, itemId: string): Promise<PlanItemRow> {
-    return this.scope.findOneOrFail<PlanItemRow>(treatmentPlanItems, actor.clinicId, itemId);
+    const item = await this.scope.findOneOrFail<PlanItemRow>(
+      treatmentPlanItems,
+      actor.clinicId,
+      itemId,
+    );
+
+    await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, item.treatmentPlanId);
+
+    return item;
   }
 
   private async itemsFor(
@@ -397,6 +418,7 @@ export function toPlanItem(row: PlanItemRow): TreatmentPlanItem {
     clinicId: row.clinicId,
     treatmentPlanId: row.treatmentPlanId,
     procedureId: row.procedureId,
+    performerDoctorId: row.performerDoctorId,
     estimatedPrice: row.estimatedPrice,
     sortOrder: row.sortOrder,
     status: row.status,

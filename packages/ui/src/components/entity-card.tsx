@@ -37,6 +37,8 @@ export interface EntityCardProps extends TestIdProps {
         readonly disabled?: boolean | undefined;
       }
     | undefined;
+  /** A `RowMenu` beside the status, for what the one action cannot hold. */
+  readonly menu?: ReactNode | undefined;
   readonly isSelected?: boolean | undefined;
   readonly className?: string | undefined;
   readonly children?: ReactNode | undefined;
@@ -50,6 +52,7 @@ export function EntityCard({
   progress,
   meta,
   action,
+  menu,
   isSelected = false,
   className,
   children,
@@ -93,6 +96,8 @@ export function EntityCard({
             {status.label}
           </Badge>
         )}
+
+        {menu}
       </div>
 
       {progress !== undefined && (

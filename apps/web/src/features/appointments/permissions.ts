@@ -17,4 +17,5 @@ export const canManageWaitingList = (can: Can): boolean => can("waiting-list.cre
 
 // Not a permission: the API would serve a doctor the whole clinic — reading is `R` for every role —
 // but a doctor opening the calendar wants their day, not eight columns.
-export const seesWholeClinic = (role: UserRole): boolean => role !== USER_ROLE.DOCTOR;
+export const seesWholeClinic = (role: UserRole): boolean =>
+  role !== USER_ROLE.DOCTOR && role !== USER_ROLE.VISITING_DOCTOR;

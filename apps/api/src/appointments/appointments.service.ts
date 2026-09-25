@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  NotFoundException,
   ConflictException,
   Inject,
   Injectable,
@@ -108,7 +109,9 @@ export class AppointmentsService implements OnModuleInit {
     actor: AuthenticatedUser,
     query: ListAppointmentsQuery,
   ): Promise<Paginated<CalendarAppointment>> {
-    const filters: (SQL | undefined)[] = [];
+    const filters: (SQL | undefined)[] = [
+      await this.access.readableFilter(actor, appointments.doctorId),
+    ];
 
     if (query.patientId) {
       await this.patientAccess.requirePatientId(actor, query.patientId);
@@ -153,11 +156,18 @@ export class AppointmentsService implements OnModuleInit {
     await this.scope.findOneOrFail<AppointmentRow>(appointments, actor.clinicId, id);
 
     const [row] = await this.calendarSelect()
-      .where(this.scope.where(appointments, actor.clinicId, eq(appointments.id, id)))
+      .where(
+        this.scope.where(
+          appointments,
+          actor.clinicId,
+          eq(appointments.id, id),
+          await this.access.readableFilter(actor, appointments.doctorId),
+        ),
+      )
       .limit(1);
 
     if (!row) {
-      throw new BadRequestException("Appointment not found");
+      throw new NotFoundException("Resource not found");
     }
 
     return toCalendarAppointment(row);
@@ -182,6 +192,7 @@ export class AppointmentsService implements OnModuleInit {
               gte(appointments.startsAt, fromInstant),
               lt(appointments.startsAt, toInstant),
               query.doctorId ? eq(appointments.doctorId, query.doctorId) : undefined,
+              await this.access.readableFilter(actor, appointments.doctorId),
             ),
           ),
         )

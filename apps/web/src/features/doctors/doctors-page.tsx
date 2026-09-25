@@ -61,6 +61,11 @@ export function DoctorsPage(): JSX.Element {
               src={row.user.photoUrl}
             />
             <PersonName name={row.user.name} showBoth data-testid="doctor-name" />
+            {row.isVisiting && (
+              <Badge tone="neutral" data-testid="doctor-visiting">
+                {t("roles.visiting_doctor")}
+              </Badge>
+            )}
           </span>
         ),
       },

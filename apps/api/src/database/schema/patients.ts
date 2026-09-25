@@ -209,6 +209,8 @@ export const treatmentPlanItems = pgTable(
     procedureId: uuid("procedure_id")
       .notNull()
       .references(() => procedureCatalog.id),
+    /** Who is to do the work; null means the plan's doctor. */
+    performerDoctorId: uuid("performer_doctor_id").references(() => doctors.id),
     estimatedPrice: money("estimated_price").notNull(),
     sortOrder: integer("sort_order").notNull().default(0),
     status: treatmentPlanItemStatusEnum("status").notNull().default("planned"),

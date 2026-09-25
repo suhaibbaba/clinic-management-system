@@ -8,6 +8,8 @@ export const treatmentPlanItemSchema = z.object({
   clinicId: z.uuid(),
   treatmentPlanId: z.uuid(),
   procedureId: z.uuid(),
+  /** Null means the plan's doctor. */
+  performerDoctorId: z.uuid().nullable(),
   estimatedPrice: moneySchema,
   sortOrder: z.number().int().min(0),
   status: z.enum(TREATMENT_PLAN_ITEM_STATUSES),
@@ -33,6 +35,7 @@ export type TreatmentPlan = z.infer<typeof treatmentPlanSchema>;
 
 const planItemWritableFields = {
   procedureId: z.uuid(),
+  performerDoctorId: z.uuid().nullish(),
   estimatedPrice: wholeMoneySchema,
   sortOrder: z.number().int().min(0).max(999),
   notes: z.string().trim().max(1000).nullish(),

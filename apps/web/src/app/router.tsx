@@ -1,6 +1,7 @@
 import { USER_ROLE } from "@clinic/shared";
 import { lazy, Suspense, type JSX } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { ASSISTANT_ROLES } from "@web/app/navigation";
 import { AppLayout } from "@web/components/layout/app-layout";
 import { RequireAuth, RequireRole } from "@web/features/auth/guards";
 import { ForgotPasswordPage } from "@web/features/auth/forgot-password-page";
@@ -38,8 +39,13 @@ const ADMIN_ONLY = [USER_ROLE.ADMIN] as const;
 
 // Mirrors `NAV_ITEMS`, because a hidden entry still reachable by typing its address is not hidden.
 // The API remains the real boundary.
-const PATIENTS = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST] as const;
-const APPOINTMENTS = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST] as const;
+const PATIENTS = [
+  USER_ROLE.ADMIN,
+  USER_ROLE.DOCTOR,
+  USER_ROLE.VISITING_DOCTOR,
+  USER_ROLE.RECEPTIONIST,
+] as const;
+const APPOINTMENTS = PATIENTS;
 const LABS = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN] as const;
 const INVENTORY = [USER_ROLE.ADMIN, USER_ROLE.TECHNICIAN] as const;
 /** A doctor reaches their own page from the user menu; admin reaches any. */
@@ -96,21 +102,26 @@ export function AppRoutes(): JSX.Element {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
 
-        {/* No `RequireRole`: every role may ask, and which tools answer is the API's decision. */}
+        {/* Which tools answer is the API's decision; the guard only keeps out the one role the
+            assistant's endpoints refuse. */}
         <Route
           path="/assistant"
           element={
-            <RouteChunk>
-              <AssistantPage />
-            </RouteChunk>
+            <RequireRole roles={ASSISTANT_ROLES} redirectTo={HOME}>
+              <RouteChunk>
+                <AssistantPage />
+              </RouteChunk>
+            </RequireRole>
           }
         />
         <Route
           path="/assistant/:conversationId"
           element={
-            <RouteChunk>
-              <AssistantPage />
-            </RouteChunk>
+            <RequireRole roles={ASSISTANT_ROLES} redirectTo={HOME}>
+              <RouteChunk>
+                <AssistantPage />
+              </RouteChunk>
+            </RequireRole>
           }
         />
 

@@ -8,6 +8,7 @@ Authoritative spec for authorization. Every endpoint must map to a row here befo
 |---|---|---|
 | Admin | `admin` | Clinic owner/manager |
 | Doctor | `doctor` | Treating physician (linked to a `doctors` row) |
+| Visiting doctor | `visiting_doctor` | External doctor who treats some of the clinic's patients (linked to a `doctors` row); see [Visiting doctor](#visiting-doctor) |
 | Technician | `technician` | Clinic technician handling labs & inventory |
 | Receptionist | `receptionist` | Front desk: registration, appointments, payments |
 | Public | — | Anonymous patient on the booking page (no account) |
@@ -20,7 +21,8 @@ Users belong to one clinic and have exactly one role (v1). `admin` implicitly pa
 2. **Doctor ownership:** doctors see full medical records of patients they have treated or who have an appointment with them. Admin sees all. (v1 simplification: any doctor in the clinic may open any patient's medical record — flag `STRICT_DOCTOR_SCOPE` exists to tighten later.)
 3. **Field-level security:** role determines not just access to an endpoint but **which fields are serialized**. Separate response schemas per sensitivity level (see below).
 4. **Financial mutations** (charges, payments, lab payments, stock adjustments) always write to the audit log with old/new values.
-5. **Nothing is hard-deleted** by any role. "Delete" = soft delete; only `admin` can soft-delete financial records, and only `admin` can view/restore soft-deleted rows.
+5. **Assigned patients only, for a visiting doctor:** a patient with an appointment, a treatment plan or a plan item assigned to their `doctors` row. Any other patient — and every record hanging off one, by path, by query or by its own id — is a 404, the same answer as another clinic's.
+6. **Nothing is hard-deleted** by any role. "Delete" = soft delete; only `admin` can soft-delete financial records, and only `admin` can view/restore soft-deleted rows.
 
 ## Permission matrix
 
@@ -96,12 +98,29 @@ Legend: **C** create · **R** read · **U** update · **D** soft-delete · — n
 | Labs reports | R | R | R | — |
 | Inventory reports | R | R | R | — |
 
+### Visiting doctor
+
+Everything a `doctor` may do on a patient's clinical record, scoped by global rule 5, and nothing else:
+
+| Resource | visiting_doctor |
+|---|---|
+| Patient basic info | R (assigned) |
+| Medical history & allergies, visits, performed procedures & chart marks, treatment plans, attachments, prescriptions | as `doctor`, on assigned patients |
+| Patient timeline | R (assigned; clinical entries and appointments, no payments, charges, lab or supply entries) |
+| Appointments & calendar | R (own) |
+| Doctors list | R |
+| Billing, labs, inventory, waiting list, reports, assistant | — |
+
+A visiting doctor is created from a treatment plan item (`POST /doctors/visiting`, admin and doctor): the account and its `doctors` row together, without a password. The users screen may not create or assign the role. The admin activates the account later by invitation or by setting a password.
+
+The defaults above, like every other role's, are what the permissions screen starts from; `admin` may widen or narrow them per clinic.
+
 ## Field-level response schemas
 
 Define per-entity serializers in `packages/shared`:
 
 - `PatientPublicView` — id, file number, name, phone, dob, balance. → receptionist, technician.
-- `PatientClinicalView` — everything. → admin, doctor.
+- `PatientClinicalView` — everything but the balance for a visiting doctor. → admin, doctor, visiting_doctor.
 - `LabOrderTechView` — no patient medical context beyond tooth/work info.
 - Receptionist responses must **never** include: diagnoses, visit notes, medical history details, prescriptions, attachment keys/URLs.
 - Technician responses must never include: financial patient data, non-lab medical details (allergy *flag* is allowed for safety).
@@ -130,3 +149,4 @@ For each role, one test per ✗ cell that matters most:
 - any role editing or deleting a clinic note somebody else wrote → 403; the admin → allowed
 - doctor writing time off in another doctor's calendar → 403; in their own → allowed
 - a closure or time off over booked appointments without `force` → 409 carrying the affected appointments
+- visiting doctor opening an unassigned patient, or any record of one, by path, query or id → 404; an assigned one → allowed

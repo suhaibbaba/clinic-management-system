@@ -28,6 +28,7 @@ export class PatientsService implements OnModuleInit {
     private readonly scope: ClinicScopeService,
     private readonly ledger: LedgerService,
     private readonly registration: PatientRegistrationService,
+    private readonly access: PatientAccessService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
   ) {}
 
@@ -44,7 +45,7 @@ export class PatientsService implements OnModuleInit {
   }
 
   async list(actor: AuthenticatedUser, query: ListPatientsQuery): Promise<Paginated<PatientView>> {
-    const filters: (SQL | undefined)[] = [];
+    const filters: (SQL | undefined)[] = [await this.access.assignedFilter(actor, patients.id)];
 
     if (query.gender) {
       filters.push(eq(patients.gender, query.gender));
@@ -139,7 +140,7 @@ export class PatientsService implements OnModuleInit {
 
   /** The patient header, balance included — computed, never stored. */
   async findOne(actor: AuthenticatedUser, id: string): Promise<PatientView> {
-    const row = await this.scope.findOneOrFail<PatientRow>(patients, actor.clinicId, id);
+    const row = await this.access.requirePatient(actor, id);
     const balance = PatientAccessService.seesFinancialData(actor.role)
       ? (await this.ledger.balanceFor(actor.clinicId, row.id)).balance
       : undefined;

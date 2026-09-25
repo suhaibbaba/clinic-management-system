@@ -45,7 +45,9 @@ export class PrescriptionsService implements OnModuleInit {
     actor: AuthenticatedUser,
     query: ListPrescriptionsQuery,
   ): Promise<Paginated<Prescription>> {
-    const filters: (SQL | undefined)[] = [];
+    const filters: (SQL | undefined)[] = [
+      await this.patientAccess.assignedFilter(actor, prescriptions.patientId),
+    ];
 
     if (query.patientId) {
       await this.patientAccess.requirePatientId(actor, query.patientId);
@@ -77,7 +79,7 @@ export class PrescriptionsService implements OnModuleInit {
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<Prescription> {
     return toPrescription(
-      await this.scope.findOneOrFail<PrescriptionRow>(prescriptions, actor.clinicId, id),
+      await this.patientAccess.requireRow<PrescriptionRow>(actor, prescriptions, id),
     );
   }
 
@@ -115,11 +117,7 @@ export class PrescriptionsService implements OnModuleInit {
     id: string,
     input: UpdatePrescriptionInput,
   ): Promise<Prescription> {
-    const existing = await this.scope.findOneOrFail<PrescriptionRow>(
-      prescriptions,
-      actor.clinicId,
-      id,
-    );
+    const existing = await this.patientAccess.requireRow<PrescriptionRow>(actor, prescriptions, id);
 
     if (input.doctorId) {
       await this.requireDoctor(actor, input.doctorId);
@@ -150,7 +148,7 @@ export class PrescriptionsService implements OnModuleInit {
   }
 
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
-    await this.scope.findOneOrFail<PrescriptionRow>(prescriptions, actor.clinicId, id);
+    await this.patientAccess.requireRow<PrescriptionRow>(actor, prescriptions, id);
 
     await this.db
       .update(prescriptions)

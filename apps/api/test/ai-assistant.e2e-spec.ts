@@ -24,7 +24,8 @@ const ROLES = [
 
 // Asserted as whole sets, not one membership at a time: the failure that matters is a tool
 // appearing for somebody it was never meant for.
-const PERMITTED_TOOLS: Record<UserRole, string[]> = {
+// A visiting doctor is not listed: the assistant's own endpoints refuse the role outright.
+const PERMITTED_TOOLS: Record<(typeof ROLES)[number], string[]> = {
   [USER_ROLE.ADMIN]: [
     AI_TOOL.GET_APPOINTMENTS,
     AI_TOOL.SEARCH_PATIENTS,

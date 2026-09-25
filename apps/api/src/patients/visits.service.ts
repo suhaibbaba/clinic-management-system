@@ -42,7 +42,9 @@ export class VisitsService implements OnModuleInit {
   }
 
   async list(actor: AuthenticatedUser, query: ListVisitsQuery): Promise<Paginated<Visit>> {
-    const filters: (SQL | undefined)[] = [];
+    const filters: (SQL | undefined)[] = [
+      await this.patientAccess.assignedFilter(actor, visits.patientId),
+    ];
 
     if (query.patientId) {
       await this.patientAccess.requirePatientId(actor, query.patientId);
@@ -73,7 +75,7 @@ export class VisitsService implements OnModuleInit {
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<Visit> {
-    return toVisit(await this.scope.findOneOrFail<VisitRow>(visits, actor.clinicId, id));
+    return toVisit(await this.patientAccess.requireRow<VisitRow>(actor, visits, id));
   }
 
   async create(actor: AuthenticatedUser, input: CreateVisitInput): Promise<Visit> {
@@ -104,7 +106,7 @@ export class VisitsService implements OnModuleInit {
   }
 
   async update(actor: AuthenticatedUser, id: string, input: UpdateVisitInput): Promise<Visit> {
-    await this.scope.findOneOrFail<VisitRow>(visits, actor.clinicId, id);
+    await this.patientAccess.requireRow<VisitRow>(actor, visits, id);
 
     if (input.doctorId) {
       await this.requireDoctor(actor, input.doctorId);
@@ -133,7 +135,7 @@ export class VisitsService implements OnModuleInit {
   }
 
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
-    await this.scope.findOneOrFail<VisitRow>(visits, actor.clinicId, id);
+    await this.patientAccess.requireRow<VisitRow>(actor, visits, id);
 
     await this.db
       .update(visits)
