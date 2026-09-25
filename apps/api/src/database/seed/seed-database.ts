@@ -280,7 +280,7 @@ export async function seedDatabase(db: Database, options: SeedOptions): Promise<
 
   await db.insert(clinicNotes).values({
     clinicId: clinic.id,
-    body: "تذكير: طلبيات مخبر الدقة تُسلَّم يوم الأحد.",
+    body: "Reminder: Precision Dental Lab delivers orders on Sunday.",
     authorId: adminId,
     ...audit,
   });
@@ -792,7 +792,7 @@ async function writeLabs(
         status === LAB_ORDER_STATUS.FITTED
           ? new Date(procedure.performedAt.getTime() + 9 * 86_400_000)
           : null,
-      returnReason: status === LAB_ORDER_STATUS.RETURNED ? "عدم انطباق الحواف" : null,
+      returnReason: status === LAB_ORDER_STATUS.RETURNED ? "Margins do not fit" : null,
       createdAt: procedure.performedAt,
       ...ctx.audit,
     };
@@ -812,7 +812,7 @@ async function writeLabs(
       labId: lab.id,
       amount: `${Math.round(billed * (index === 0 ? 0.6 : 0.35))}.00`,
       method: PAYMENT_METHOD.TRANSFER,
-      note: "دفعة على الحساب",
+      note: "Payment on account",
       paidBy: ctx.actorId,
       createdAt: earlier(ctx.now, 20 + index * 9),
       ...ctx.audit,
