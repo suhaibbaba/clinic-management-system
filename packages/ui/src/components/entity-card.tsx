@@ -116,43 +116,45 @@ export function EntityCard({
 
       {children}
 
-      <div className="mt-3 flex items-end justify-between gap-3 border-t border-line pt-3">
-        <dl {...part("meta")} className="flex min-w-0 flex-wrap gap-x-5 gap-y-2">
-          {(meta ?? []).map((entry) => (
-            <div key={entry.label} className="min-w-0">
-              <dt className="text-meta text-ink-subtle">{entry.label}</dt>
-              {/* `break-words` rather than `truncate`: a phone number's 44px hit area lives on an
-                  `::after`, which an `overflow-hidden` ancestor clips to the line. */}
-              <dd
-                className="min-w-0 break-words text-value font-medium text-ink tabular-nums"
-                {...(entry.ltr === true && { dir: "ltr" })}
-              >
-                {entry.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
+      {((meta ?? []).length > 0 || action !== undefined) && (
+        <div className="mt-3 flex items-end justify-between gap-3 border-t border-line pt-3">
+          <dl {...part("meta")} className="flex min-w-0 flex-wrap gap-x-5 gap-y-2">
+            {(meta ?? []).map((entry) => (
+              <div key={entry.label} className="min-w-0">
+                <dt className="text-meta text-ink-subtle">{entry.label}</dt>
+                {/* `break-words` rather than `truncate`: a phone number's 44px hit area lives on an
+                    `::after`, which an `overflow-hidden` ancestor clips to the line. */}
+                <dd
+                  className="min-w-0 break-words text-value font-medium text-ink tabular-nums"
+                  {...(entry.ltr === true && { dir: "ltr" })}
+                >
+                  {entry.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
 
-        {action !== undefined && (
-          <button
-            type="button"
-            {...part("action")}
-            onClick={action.onClick}
-            disabled={action.disabled === true}
-            aria-label={action.label}
-            title={action.label}
-            className={cn(
-              "inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill",
-              "lg:size-(--control-h-sm)",
-              "bg-primary-600 text-ink-inverse hover:bg-primary-700",
-              "[transition:background-color_250ms_ease-in-out,scale_120ms_ease-out] active:scale-95",
-              "disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100",
-            )}
-          >
-            <Icon name={action.icon ?? "chevron-end"} className="size-[18px]" />
-          </button>
-        )}
-      </div>
+          {action !== undefined && (
+            <button
+              type="button"
+              {...part("action")}
+              onClick={action.onClick}
+              disabled={action.disabled === true}
+              aria-label={action.label}
+              title={action.label}
+              className={cn(
+                "inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill",
+                "lg:size-(--control-h-sm)",
+                "bg-primary-600 text-ink-inverse hover:bg-primary-700",
+                "[transition:background-color_250ms_ease-in-out,scale_120ms_ease-out] active:scale-95",
+                "disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100",
+              )}
+            >
+              <Icon name={action.icon ?? "chevron-end"} className="size-[18px]" />
+            </button>
+          )}
+        </div>
+      )}
     </article>
   );
 }

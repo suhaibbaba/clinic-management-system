@@ -16,6 +16,7 @@
     "loading": "جارٍ التحميل",
     "updating": "جارٍ التحديث",
     "actions": "إجراءات",
+    "showMore": "عرض المزيد",
     "close": "إغلاق",
     "retry": "إعادة المحاولة",
     "all": "الكل",
@@ -691,6 +692,9 @@
     "titleHint": "مثال: ترميم الفك العلوي",
     "responsibleDoctor": "الطبيب المسؤول",
     "notes": "ملاحظات",
+    "notesOf": "ملاحظات «{{title}}»",
+    "showAllItems": "عرض كل البنود ({{count}})",
+    "itemsOf": "بنود «{{title}}»",
     "menu": "خيارات الخطة",
     "itemMenu": "خيارات البند",
     "confirmDelete": {

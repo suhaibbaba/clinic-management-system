@@ -15,7 +15,9 @@ import {
   Icon,
   Ltr,
   MenuItem,
+  Modal,
   Money,
+  NotePreview,
   RowMenu,
   SegmentedControl,
   useConfirm,
@@ -24,6 +26,7 @@ import {
   useToast,
 } from "@clinic/ui";
 import { SkeletonCard, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import { cn } from "@clinic/ui/lib/cn";
 import { useSession } from "@web/features/auth/session";
 import { useClinic } from "@web/features/clinic/queries";
 import { useDoctors } from "@web/features/doctors/queries";
@@ -50,6 +53,7 @@ import { PlanItemFormModal } from "@web/features/patients/treatment-plans/plan-i
 import { PlanPrint } from "@web/features/patients/treatment-plans/plan-print";
 import { planRemaining, planTotal } from "@web/features/patients/treatment-plans/plan-total";
 import { errorMessageKey } from "@web/lib/api-error";
+import { shortDate } from "@web/lib/format";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 const PLAN_FILTERS = ["all", ...TREATMENT_PLAN_STATUSES] as const;
@@ -88,6 +92,7 @@ export function TreatmentPlansTab({
   const [planEditor, setPlanEditor] = useState<{ plan: TreatmentPlan | null } | null>(null);
   const [itemEditor, setItemEditor] = useState<ItemEditor | null>(null);
   const [printing, setPrinting] = useState<TreatmentPlan | null>(null);
+  const [itemsFor, setItemsFor] = useState<string | null>(null);
 
   const showPrices = user ? canSeePrices(user.role) : false;
   const currency = clinic.data?.currency ?? "";
@@ -114,7 +119,9 @@ export function TreatmentPlansTab({
     return (
       <div data-testid="treatment-plans-loading" className="flex flex-col gap-3">
         <SkeletonStatus />
-        <SkeletonCard count={2} />
+        <div className="grid gap-4 md:grid-cols-2">
+          <SkeletonCard count={2} />
+        </div>
       </div>
     );
   }
@@ -134,6 +141,7 @@ export function TreatmentPlansTab({
     );
   }
 
+  const itemsPlan = plans.data?.find((plan) => plan.id === itemsFor);
   const ordered = [...(plans.data ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const visible = ordered.filter((plan) => statusFilter === "all" || plan.status === statusFilter);
 
@@ -179,6 +187,118 @@ export function TreatmentPlansTab({
     void run(
       () => updateItem.mutateAsync({ itemId: item.id, body: { status: "cancelled" } }),
       "treatmentPlans.itemCancelled",
+    );
+  };
+
+  const renderItem = (
+    plan: TreatmentPlan,
+    item: TreatmentPlanItem,
+    prefix: string,
+  ): JSX.Element => {
+    const items = planOrder(plan);
+    const position = items.indexOf(item) + 1;
+    const nextSortOrder = nextSortOrderOf(items);
+    const planned = item.status === TREATMENT_PLAN_ITEM_STATUS.PLANNED;
+    const hasMenu = planned && (mayConvert || mayEditItem || mayDeleteItem);
+
+    return (
+      <li
+        key={item.id}
+        data-testid={`${prefix}-${item.id}`}
+        className={cn(
+          "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 rounded-panel bg-canvas px-3 py-2",
+          "@md:grid-cols-[auto_minmax(0,1fr)_auto_auto]",
+        )}
+      >
+        <Ltr className="self-start pt-0.5 text-label text-ink-subtle @md:self-center @md:pt-0">
+          {position}
+        </Ltr>
+
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-value text-ink">{catalogName(item.procedureId)}</p>
+          <p
+            data-testid="treatment-plan-item-performer"
+            className="truncate text-meta text-ink-muted"
+          >
+            {t("treatmentPlans.performedBy", {
+              name: doctorName(item.performerDoctorId ?? plan.doctorId),
+            })}
+            {" · "}
+            <span data-testid="treatment-plan-item-date">{shortDate(item.createdAt)}</span>
+          </p>
+          {item.notes && (
+            <NotePreview
+              data-testid={`${prefix}-${item.id}-notes`}
+              size="meta"
+              text={item.notes}
+              title="treatmentPlans.notesOf"
+              titleValues={{ title: catalogName(item.procedureId) }}
+            />
+          )}
+        </div>
+
+        {/* Under the name while the card is narrow, beside it once there is room. */}
+        <div className="col-start-2 row-start-2 flex items-center gap-3 @md:col-start-3 @md:row-start-1">
+          {showPrices && (
+            <Money
+              amount={item.estimatedPrice}
+              currency={currency}
+              className="text-value text-ink-muted"
+            />
+          )}
+
+          <Badge tone={itemTone(item.status)} data-testid="treatment-plan-item-status">
+            {t(`treatmentPlans.itemStatus.${item.status}`)}
+          </Badge>
+        </div>
+
+        {hasMenu && (
+          <div className="col-start-3 row-start-1 self-start @md:col-start-4 @md:self-center">
+            <RowMenu label={t("treatmentPlans.itemMenu")} data-testid={`${prefix}-${item.id}-menu`}>
+              {mayConvert && (
+                <MenuItem
+                  icon="check"
+                  data-testid="treatment-plan-item-convert"
+                  onSelect={() => handleConvert(item)}
+                >
+                  {t("treatmentPlans.convert")}
+                </MenuItem>
+              )}
+              {mayEditItem && (
+                <MenuItem
+                  icon="edit"
+                  data-testid="treatment-plan-item-edit"
+                  onSelect={() => {
+                    setItemsFor(null);
+                    setItemEditor({ planId: plan.id, nextSortOrder, item });
+                  }}
+                >
+                  {t("common.edit")}
+                </MenuItem>
+              )}
+              {mayEditItem && (
+                <MenuItem
+                  icon="x"
+                  data-testid="treatment-plan-item-cancel"
+                  onSelect={() => handleCancelItem(item)}
+                >
+                  {t("treatmentPlans.cancelItem")}
+                </MenuItem>
+              )}
+              {mayDeleteItem && (
+                <MenuItem
+                  icon="trash"
+                  tone="danger"
+                  data-testid="treatment-plan-item-delete"
+                  onSelect={() => handleDeleteItem(item)}
+                >
+                  {t("common.delete")}
+                </MenuItem>
+              )}
+            </RowMenu>
+          </div>
+        )}
+      </li>
     );
   };
 
@@ -237,197 +357,148 @@ export function TreatmentPlansTab({
         />
       )}
 
-      {visible.map((plan) => {
-        const items = [...(plan.items ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
-        const live = items.filter((item) => item.status !== TREATMENT_PLAN_ITEM_STATUS.CANCELLED);
-        const converted = live.filter(
-          (item) => item.status === TREATMENT_PLAN_ITEM_STATUS.CONVERTED,
-        );
-        const nextSortOrder = items.reduce((max, item) => Math.max(max, item.sortOrder + 1), 0);
+      <ol data-testid="treatment-plans-list" className="grid gap-4 md:grid-cols-2">
+        {visible.map((plan) => {
+          const items = planOrder(plan);
+          const newest = newestFirst(items);
+          const shown = newest.length > FULL_LIST_UP_TO ? newest.slice(0, PREVIEW_ITEMS) : newest;
+          const live = items.filter((item) => item.status !== TREATMENT_PLAN_ITEM_STATUS.CANCELLED);
+          const converted = live.filter(
+            (item) => item.status === TREATMENT_PLAN_ITEM_STATUS.CONVERTED,
+          );
+          const nextSortOrder = nextSortOrderOf(items);
 
-        return (
-          <EntityCard
-            key={plan.id}
-            data-testid={`treatment-plan-${plan.id}`}
-            icon="clipboard"
-            title={plan.title}
-            subtitle={`${t("treatmentPlans.responsibleDoctor")}: ${doctorName(plan.doctorId)}`}
-            status={{
-              label: t(`treatmentPlans.planStatus.${plan.status}`),
-              tone: planTone(plan.status),
-            }}
-            menu={
-              <RowMenu
-                label={t("treatmentPlans.menu")}
-                data-testid={`treatment-plan-${plan.id}-menu`}
-              >
-                {mayEdit && (
-                  <MenuItem
-                    icon="edit"
-                    data-testid={`treatment-plan-${plan.id}-edit`}
-                    onSelect={() => setPlanEditor({ plan })}
+          return (
+            <li key={plan.id} className="flex min-w-0 flex-col">
+              <EntityCard
+                data-testid={`treatment-plan-${plan.id}`}
+                className="flex-1"
+                icon="clipboard"
+                title={plan.title}
+                subtitle={`${t("treatmentPlans.responsibleDoctor")}: ${doctorName(plan.doctorId)} · ${shortDate(plan.createdAt)}`}
+                status={{
+                  label: t(`treatmentPlans.planStatus.${plan.status}`),
+                  tone: planTone(plan.status),
+                }}
+                menu={
+                  <RowMenu
+                    label={t("treatmentPlans.menu")}
+                    data-testid={`treatment-plan-${plan.id}-menu`}
                   >
-                    {t("common.edit")}
-                  </MenuItem>
-                )}
-                <MenuItem
-                  icon="file"
-                  data-testid={`treatment-plan-${plan.id}-print`}
-                  onSelect={() => print(plan)}
-                >
-                  {t("treatmentPlans.print")}
-                </MenuItem>
-                {mayDelete && (
-                  <MenuItem
-                    icon="trash"
-                    tone="danger"
-                    data-testid={`treatment-plan-${plan.id}-delete`}
-                    onSelect={() => handleDeletePlan(plan)}
-                  >
-                    {t("common.delete")}
-                  </MenuItem>
-                )}
-              </RowMenu>
-            }
-            {...(live.length > 0 && {
-              progress: {
-                value: converted.length,
-                total: live.length,
-                label: t("treatmentPlans.progressLabel"),
-                caption: t("treatmentPlans.progressCaption", {
-                  done: converted.length,
-                  total: live.length,
-                }),
-              },
-            })}
-            {...(showPrices &&
-              items.length > 0 && {
-                meta: [
-                  {
-                    label: t("treatmentPlans.total"),
-                    value: <Money amount={planTotal(items)} currency={currency} />,
-                  },
-                  {
-                    label: t("treatmentPlans.remaining"),
-                    value: <Money amount={planRemaining(items)} currency={currency} />,
-                  },
-                ],
-              })}
-          >
-            {plan.notes && (
-              <p className="mt-3 whitespace-pre-wrap text-value text-ink-muted">{plan.notes}</p>
-            )}
-
-            {items.length === 0 ? (
-              <p data-testid="treatment-plan-no-items" className="mt-3 text-value text-ink-muted">
-                {t("treatmentPlans.noItems")}
-              </p>
-            ) : (
-              <ol data-testid="treatment-plan-items" className="mt-3 flex flex-col gap-1.5">
-                {items.map((item, index) => {
-                  const planned = item.status === TREATMENT_PLAN_ITEM_STATUS.PLANNED;
-                  const hasMenu = planned && (mayConvert || mayEditItem || mayDeleteItem);
-
-                  return (
-                    <li
-                      key={item.id}
-                      data-testid={`treatment-plan-item-${item.id}`}
-                      className="flex items-center gap-3 rounded-panel bg-canvas px-3 py-2"
+                    {mayEdit && (
+                      <MenuItem
+                        icon="edit"
+                        data-testid={`treatment-plan-${plan.id}-edit`}
+                        onSelect={() => setPlanEditor({ plan })}
+                      >
+                        {t("common.edit")}
+                      </MenuItem>
+                    )}
+                    <MenuItem
+                      icon="file"
+                      data-testid={`treatment-plan-${plan.id}-print`}
+                      onSelect={() => print(plan)}
                     >
-                      <Ltr className="text-label text-ink-subtle">{index + 1}</Ltr>
-
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-value text-ink">
-                          {catalogName(item.procedureId)}
-                        </p>
-                        <p
-                          data-testid="treatment-plan-item-performer"
-                          className="truncate text-meta text-ink-muted"
-                        >
-                          {t("treatmentPlans.performedBy", {
-                            name: doctorName(item.performerDoctorId ?? plan.doctorId),
-                          })}
-                        </p>
-                      </div>
-
-                      {showPrices && (
-                        <Money
-                          amount={item.estimatedPrice}
-                          currency={currency}
-                          className="text-value text-ink-muted"
-                        />
-                      )}
-
-                      <Badge tone={itemTone(item.status)} data-testid="treatment-plan-item-status">
-                        {t(`treatmentPlans.itemStatus.${item.status}`)}
-                      </Badge>
-
-                      {hasMenu && (
-                        <RowMenu
-                          label={t("treatmentPlans.itemMenu")}
-                          data-testid={`treatment-plan-item-${item.id}-menu`}
-                        >
-                          {mayConvert && (
-                            <MenuItem
-                              icon="check"
-                              data-testid="treatment-plan-item-convert"
-                              onSelect={() => handleConvert(item)}
-                            >
-                              {t("treatmentPlans.convert")}
-                            </MenuItem>
-                          )}
-                          {mayEditItem && (
-                            <MenuItem
-                              icon="edit"
-                              data-testid="treatment-plan-item-edit"
-                              onSelect={() =>
-                                setItemEditor({ planId: plan.id, nextSortOrder, item })
-                              }
-                            >
-                              {t("common.edit")}
-                            </MenuItem>
-                          )}
-                          {mayEditItem && (
-                            <MenuItem
-                              icon="x"
-                              data-testid="treatment-plan-item-cancel"
-                              onSelect={() => handleCancelItem(item)}
-                            >
-                              {t("treatmentPlans.cancelItem")}
-                            </MenuItem>
-                          )}
-                          {mayDeleteItem && (
-                            <MenuItem
-                              icon="trash"
-                              tone="danger"
-                              data-testid="treatment-plan-item-delete"
-                              onSelect={() => handleDeleteItem(item)}
-                            >
-                              {t("common.delete")}
-                            </MenuItem>
-                          )}
-                        </RowMenu>
-                      )}
-                    </li>
-                  );
+                      {t("treatmentPlans.print")}
+                    </MenuItem>
+                    {mayDelete && (
+                      <MenuItem
+                        icon="trash"
+                        tone="danger"
+                        data-testid={`treatment-plan-${plan.id}-delete`}
+                        onSelect={() => handleDeletePlan(plan)}
+                      >
+                        {t("common.delete")}
+                      </MenuItem>
+                    )}
+                  </RowMenu>
+                }
+                {...(live.length > 0 && {
+                  progress: {
+                    value: converted.length,
+                    total: live.length,
+                    label: t("treatmentPlans.progressLabel"),
+                    caption: t("treatmentPlans.progressCaption", {
+                      done: converted.length,
+                      total: live.length,
+                    }),
+                  },
                 })}
-              </ol>
-            )}
-
-            {mayAddItem && (
-              <Button
-                icon={<Icon name="plus" />}
-                variant="secondary"
-                className="mt-4 self-start"
-                data-testid="treatment-plan-add-item"
-                onClick={() => setItemEditor({ planId: plan.id, nextSortOrder, item: null })}
+                {...(showPrices &&
+                  items.length > 0 && {
+                    meta: [
+                      {
+                        label: t("treatmentPlans.total"),
+                        value: <Money amount={planTotal(items)} currency={currency} />,
+                      },
+                      {
+                        label: t("treatmentPlans.remaining"),
+                        value: <Money amount={planRemaining(items)} currency={currency} />,
+                      },
+                    ],
+                  })}
               >
-                {t("treatmentPlans.addItem")}
-              </Button>
-            )}
-          </EntityCard>
-        );
-      })}
+                <div className="flex flex-1 flex-col">
+                  {plan.notes && (
+                    <NotePreview
+                      data-testid={`treatment-plan-${plan.id}-notes`}
+                      className="mt-3"
+                      text={plan.notes}
+                      title="treatmentPlans.notesOf"
+                      titleValues={{ title: plan.title }}
+                    />
+                  )}
+
+                  {items.length === 0 ? (
+                    <p
+                      data-testid="treatment-plan-no-items"
+                      className="mt-3 text-value text-ink-muted"
+                    >
+                      {t("treatmentPlans.noItems")}
+                    </p>
+                  ) : (
+                    <>
+                      <ol
+                        data-testid="treatment-plan-items"
+                        className="@container mt-3 flex flex-col gap-1.5"
+                      >
+                        {shown.map((item) => renderItem(plan, item, "treatment-plan-item"))}
+                      </ol>
+                      {shown.length < items.length && (
+                        <button
+                          type="button"
+                          data-testid={`treatment-plan-${plan.id}-all-items`}
+                          onClick={() => setItemsFor(plan.id)}
+                          className="mt-2 flex cursor-pointer items-center gap-1 self-start rounded-control text-meta font-medium text-primary-700 hover:underline"
+                        >
+                          {t("treatmentPlans.showAllItems", { count: items.length })}
+                          <Icon name="chevron-end" className="size-3.5" />
+                        </button>
+                      )}
+                    </>
+                  )}
+
+                  {mayAddItem && (
+                    <div className="mt-auto flex pt-4">
+                      <Button
+                        icon={<Icon name="plus" />}
+                        variant="secondary"
+                        className="self-start"
+                        data-testid="treatment-plan-add-item"
+                        onClick={() =>
+                          setItemEditor({ planId: plan.id, nextSortOrder, item: null })
+                        }
+                      >
+                        {t("treatmentPlans.addItem")}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </EntityCard>
+            </li>
+          );
+        })}
+      </ol>
 
       <PlanFormModal
         open={planEditor !== null}
@@ -436,6 +507,23 @@ export function TreatmentPlansTab({
         doctors={doctorList}
         plan={planEditor?.plan ?? null}
       />
+
+      <Modal
+        data-testid="treatment-plan-items-modal"
+        open={itemsPlan !== undefined}
+        onOpenChange={(open) => !open && setItemsFor(null)}
+        title="treatmentPlans.itemsOf"
+        titleValues={{ title: itemsPlan?.title ?? "" }}
+        size="lg"
+      >
+        {itemsPlan && (
+          <ol className="@container flex flex-col gap-1.5">
+            {newestFirst(planOrder(itemsPlan)).map((item) =>
+              renderItem(itemsPlan, item, "treatment-plan-items-modal-item"),
+            )}
+          </ol>
+        )}
+      </Modal>
 
       <PlanItemFormModal
         open={itemEditor !== null}
@@ -464,6 +552,24 @@ export function TreatmentPlansTab({
       )}
     </div>
   );
+}
+
+// Four items read whole; past that the card keeps the three newest and the rest open in a dialog.
+const FULL_LIST_UP_TO = 4;
+const PREVIEW_ITEMS = 3;
+
+function planOrder(plan: TreatmentPlan): TreatmentPlanItem[] {
+  return [...(plan.items ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+function newestFirst(items: readonly TreatmentPlanItem[]): TreatmentPlanItem[] {
+  return [...items].sort(
+    (a, b) => b.createdAt.localeCompare(a.createdAt) || b.sortOrder - a.sortOrder,
+  );
+}
+
+function nextSortOrderOf(items: readonly TreatmentPlanItem[]): number {
+  return items.reduce((max, item) => Math.max(max, item.sortOrder + 1), 0);
 }
 
 function planTone(status: TreatmentPlan["status"]): "neutral" | "info" | "success" | "danger" {

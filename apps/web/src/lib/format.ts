@@ -65,6 +65,12 @@ export function dayMonthYear(iso: string): {
   return { day: read("day"), month: read("month"), year: read("year") };
 }
 
+/** `16 May 2026`, isolated: inside an Arabic sentence "1 Sep" would otherwise read "Sep 1". */
+export function shortDate(iso: string): string {
+  const { day, month, year } = dayMonthYear(iso);
+  return `\u2066${day} ${month} ${year}\u2069`;
+}
+
 export function formatClinicTime(iso: string): string {
   return new Intl.DateTimeFormat("en-GB", {
     timeZone: clinicTimeZone(),

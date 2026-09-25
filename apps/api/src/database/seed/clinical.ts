@@ -88,6 +88,18 @@ export function planTitle(rng: Rng): string {
   return rng.pick(PLAN_TITLES);
 }
 
+const PLAN_NOTES: readonly string[] = [
+  "Patient prefers morning appointments.",
+  "Start with the lower molars.\nCrown the upper right premolar once the gum has healed.\nReview the X-ray before the final step.",
+  "Staged over three months to spread the cost; agreed with the patient.",
+  "Extraction first, then an implant consultation after four weeks of healing. The patient asked for a written estimate to take to their insurer before committing to the implant stage.",
+];
+
+/** Half the plans carry a note, some longer than a card's line. */
+export function planNotes(rng: Rng): string | null {
+  return rng.bool(0.5) ? rng.pick(PLAN_NOTES) : null;
+}
+
 const DRUGS: readonly PrescriptionItem[] = [
   {
     drug: "Amoxicillin 500 mg",

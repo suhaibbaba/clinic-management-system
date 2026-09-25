@@ -16,6 +16,7 @@
     "loading": "Loading",
     "updating": "Updating",
     "actions": "Actions",
+    "showMore": "Show more",
     "close": "Close",
     "retry": "Retry",
     "all": "All",
@@ -675,6 +676,9 @@
     "titleHint": "For example: Upper jaw restoration",
     "responsibleDoctor": "Responsible doctor",
     "notes": "Notes",
+    "notesOf": "Notes on “{{title}}”",
+    "showAllItems": "Show all {{count}} items",
+    "itemsOf": "Items of “{{title}}”",
     "menu": "Plan options",
     "itemMenu": "Item options",
     "confirmDelete": {
