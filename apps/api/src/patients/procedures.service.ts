@@ -249,30 +249,39 @@ export class ProceduresService implements OnModuleInit {
     });
   }
 
+  // The audit entry for the procedure itself is the interceptor's; a visit's delete calls
+  // `removeInTransaction` directly and records its procedures there.
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
-    await this.patientAccess.requireRow<ProcedureRow>(actor, performedProcedures, id);
-    const now = new Date();
+    const row = await this.patientAccess.requireRow<ProcedureRow>(actor, performedProcedures, id);
 
     await this.db.transaction(async (tx) => {
-      await tx
-        .update(performedProcedures)
-        .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
-        .where(
-          this.scope.where(performedProcedures, actor.clinicId, eq(performedProcedures.id, id)),
-        );
+      await this.charges.assertRemovable(tx, actor.clinicId, row.patientId, [id]);
+      await this.removeInTransaction(tx, actor, id);
+    });
+  }
 
-      await tx
-        .update(chartMarks)
-        .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
-        .where(
-          this.scope.where(chartMarks, actor.clinicId, eq(chartMarks.performedProcedureId, id)),
-        );
+  /** Soft-deletes a procedure with its chart marks and reverses its charge; never checks payments. */
+  async removeInTransaction(
+    tx: DatabaseExecutor,
+    actor: AuthenticatedUser,
+    id: string,
+  ): Promise<void> {
+    const now = new Date();
 
-      await this.charges.onProcedureReversed(tx, {
-        clinicId: actor.clinicId,
-        performedProcedureId: id,
-        actorId: actor.id,
-      });
+    await tx
+      .update(performedProcedures)
+      .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
+      .where(this.scope.where(performedProcedures, actor.clinicId, eq(performedProcedures.id, id)));
+
+    await tx
+      .update(chartMarks)
+      .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
+      .where(this.scope.where(chartMarks, actor.clinicId, eq(chartMarks.performedProcedureId, id)));
+
+    await this.charges.onProcedureReversed(tx, {
+      clinicId: actor.clinicId,
+      performedProcedureId: id,
+      actorId: actor.id,
     });
   }
 

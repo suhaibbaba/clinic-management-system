@@ -15,9 +15,11 @@ import {
   RowMenu,
   SegmentedControl,
   Table,
+  TotalBadge,
+  type Column,
+  useConfirm,
   usePageParams,
   useToast,
-  type Column,
 } from "@clinic/ui";
 import { useSession } from "@web/features/auth/session";
 import { Money } from "@web/features/billing/money";
@@ -119,21 +121,25 @@ export function PatientsPage(): JSX.Element {
   const showEdit = canEditPatient(can);
   const toast = useToast();
   const { mutateAsync: deletePatient } = useDeletePatient();
+  const { confirm, dialog } = useConfirm("patients-confirm-delete");
 
   const destroy = useCallback(
-    async (patient: PatientView): Promise<void> => {
-      if (!window.confirm(t("patients.confirmDelete", { name: patient.fullName }))) {
-        return;
-      }
-
-      try {
-        await deletePatient(patient.id);
-        toast.success("patients.deleted");
-      } catch (error) {
-        toast.error(errorMessageKey(error));
-      }
-    },
-    [deletePatient, t, toast],
+    (patient: PatientView): void =>
+      confirm({
+        title: "patients.confirmDelete.title",
+        titleValues: { name: patient.fullName },
+        consequences: [t("patients.confirmDelete.consequence")],
+        onConfirm: async () => {
+          try {
+            await deletePatient(patient.id);
+            toast.success("patients.deleted");
+          } catch (error) {
+            toast.error(errorMessageKey(error));
+            throw error;
+          }
+        },
+      }),
+    [confirm, deletePatient, t, toast],
   );
   const clinic = useClinic();
   const currency = clinic.data?.currency;
@@ -260,7 +266,7 @@ export function PatientsPage(): JSX.Element {
                 icon="trash"
                 tone="danger"
                 data-testid="patient-menu-delete"
-                onSelect={() => void destroy(row)}
+                onSelect={() => destroy(row)}
               >
                 {t("common.delete")}
               </MenuItem>
@@ -279,6 +285,7 @@ export function PatientsPage(): JSX.Element {
 
   return (
     <div data-testid="patients-page" className="flex flex-col gap-5">
+      {dialog}
       <PageHeader
         data-testid="patients-header"
         title="patients.title"
@@ -318,9 +325,7 @@ export function PatientsPage(): JSX.Element {
         />
 
         {query.data !== undefined && (
-          <Badge tone="wash" plain data-testid="patients-count" className="shrink-0">
-            {t("pagination.total", { total: query.data.total })}
-          </Badge>
+          <TotalBadge data-testid="patients-count" total={query.data.total} />
         )}
       </div>
 

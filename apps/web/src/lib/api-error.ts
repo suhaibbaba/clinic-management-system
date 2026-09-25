@@ -1,3 +1,5 @@
+import { CLINICAL_DELETE_ERROR } from "@clinic/shared";
+
 // Carries the HTTP status only — Arabic copy is resolved from that code on this side, never from
 // the backend's English message.
 export class ApiError extends Error {
@@ -18,12 +20,23 @@ export class NetworkError extends Error {
   }
 }
 
+// Refusals the API names by code, where the status alone would only say "conflict".
+const CODED_MESSAGES: Readonly<Record<string, string>> = {
+  [CLINICAL_DELETE_ERROR.HAS_PAYMENTS]: "errors.clinicalDelete.hasPayments",
+};
+
 export function errorMessageKey(error: unknown): string {
   if (error instanceof NetworkError) {
     return "errors.network";
   }
 
   if (error instanceof ApiError) {
+    const code = (error.payload as { message?: unknown } | undefined)?.message;
+
+    if (typeof code === "string" && code in CODED_MESSAGES) {
+      return CODED_MESSAGES[code] ?? "errors.unknown";
+    }
+
     switch (error.statusCode) {
       case 400:
       case 422:

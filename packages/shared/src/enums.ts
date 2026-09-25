@@ -984,3 +984,9 @@ export const CLINIC_SECRET_ERROR = {
   UNAVAILABLE: "secrets_unavailable",
 } as const satisfies Record<string, string>;
 export type ClinicSecretError = EnumValue<typeof CLINIC_SECRET_ERROR>;
+
+/** Why a procedure or a visit cannot be deleted; the page words it from the code. */
+export const CLINICAL_DELETE_ERROR = {
+  HAS_PAYMENTS: "has_payments",
+} as const satisfies Record<string, string>;
+export type ClinicalDeleteError = EnumValue<typeof CLINICAL_DELETE_ERROR>;

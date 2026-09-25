@@ -12,8 +12,9 @@ import {
   Ltr,
   Modal,
   Switch,
-  useToast,
   type DateRange,
+  useConfirm,
+  useToast,
 } from "@clinic/ui";
 import { ConflictDialog } from "@web/features/schedule/conflict-dialog";
 import {
@@ -32,6 +33,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
   const closures = useClinicClosures({ limit: 50 });
   const createClosure = useCreateClosure();
   const deleteClosure = useDeleteClosure();
+  const { confirm, dialog } = useConfirm("closures-confirm-remove");
 
   const [adding, setAdding] = useState(false);
   const [range, setRange] = useState<DateRange>({ from: "", to: "" });
@@ -83,19 +85,26 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
     }
   };
 
-  const remove = async (closure: ClinicClosure): Promise<void> => {
-    try {
-      await deleteClosure.mutateAsync(closure.id);
-      toast.success("schedule.closures.removed");
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  };
+  const remove = (closure: ClinicClosure): void =>
+    confirm({
+      title: "schedule.closures.confirmRemove.title",
+      consequences: [t("schedule.closures.confirmRemove.consequence")],
+      onConfirm: async () => {
+        try {
+          await deleteClosure.mutateAsync(closure.id);
+          toast.success("schedule.closures.removed");
+        } catch (error) {
+          toast.error(errorMessageKey(error));
+          throw error;
+        }
+      },
+    });
 
   const rows = closures.data?.items ?? [];
 
   return (
     <>
+      {dialog}
       <div
         data-testid="closures-panel"
         className="mb-3 flex flex-wrap items-center justify-between gap-2"
@@ -157,7 +166,7 @@ export function ClosuresPanel({ canEdit }: { readonly canEdit: boolean }): JSX.E
                     variant="quiet"
                     icon={<Icon name="trash" />}
                     data-testid="closure-delete"
-                    onClick={() => void remove(closure)}
+                    onClick={() => remove(closure)}
                   >
                     {t("common.delete")}
                   </Button>

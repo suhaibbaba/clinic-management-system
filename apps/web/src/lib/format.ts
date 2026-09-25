@@ -46,6 +46,25 @@ export function dayAndDate(iso: string): { readonly weekday: string; readonly da
   };
 }
 
+// English in both languages: the region's Arabics name the months differently.
+/** A date block's parts in the clinic's zone: the day number, the month's short name, the year. */
+export function dayMonthYear(iso: string): {
+  readonly day: string;
+  readonly month: string;
+  readonly year: string;
+} {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: clinicTimeZone(),
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).formatToParts(new Date(iso));
+  const read = (type: Intl.DateTimeFormatPartTypes): string =>
+    stripBidiMarks(parts.find((part) => part.type === type)?.value ?? "");
+
+  return { day: read("day"), month: read("month"), year: read("year") };
+}
+
 export function formatClinicTime(iso: string): string {
   return new Intl.DateTimeFormat("en-GB", {
     timeZone: clinicTimeZone(),

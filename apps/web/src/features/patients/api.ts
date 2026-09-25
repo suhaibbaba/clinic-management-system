@@ -105,6 +105,11 @@ export const patientsApi = {
   updateProcedure: (id: string, body: UpdatePerformedProcedureInput): Promise<PerformedProcedure> =>
     apiRequest(`/performed-procedures/${id}`, { method: "PATCH", body }),
 
+  removeProcedure: (id: string): Promise<void> =>
+    apiRequest(`/performed-procedures/${id}`, { method: "DELETE" }),
+
+  removeVisit: (id: string): Promise<void> => apiRequest(`/visits/${id}`, { method: "DELETE" }),
+
   visits: (patientId: string): Promise<Visit[]> =>
     fetchAllPages((page) =>
       apiRequest<Paginated<Visit>>("/visits", {

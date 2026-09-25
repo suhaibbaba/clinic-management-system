@@ -125,6 +125,11 @@
   --control-h: 36px;
   --control-h-sm: 28px;
 
+  /* Content widths on a wide screen: a form's columns, and one field alone in a wide container (a
+     textarea excepted). Nothing stretches past its cap. */
+  --form-max: 40rem;
+  --field-max: 26.25rem;
+
   /* A field's state is its edge. The inner 0.5px turns the resting 1.5px border into 2px without
      the box changing size, so nothing moves when a field is focused or fails. */
   --shadow-field-focus: 0 0 0 0.5px var(--color-primary-600), 0 0 0 3.5px rgb(47 88 120 / 0.15);

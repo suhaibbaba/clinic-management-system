@@ -14,6 +14,7 @@ import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Button,
+  Flag,
   FormField,
   Icon,
   Img,
@@ -21,8 +22,8 @@ import {
   Ltr,
   PageHeader,
   PhoneInput,
-  Flag,
   Select,
+  useConfirm,
   useToast,
 } from "@clinic/ui";
 import { WorkingHours } from "@web/components/schedule/working-hours";
@@ -373,6 +374,8 @@ interface BrandingImageFieldProps {
     readonly replace: string;
     readonly uploaded: string;
     readonly removed: string;
+    readonly confirmTitle: string;
+    readonly confirmConsequence: string;
   };
   readonly upload: ReturnType<typeof useUploadClinicLogo>;
   readonly remove: ReturnType<typeof useRemoveClinicLogo>;
@@ -387,6 +390,7 @@ function BrandingImageField({
 }: BrandingImageFieldProps): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
+  const { confirm, dialog } = useConfirm("branding-image-confirm-remove");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const pick = async (file: File | undefined): Promise<void> => {
@@ -412,17 +416,24 @@ function BrandingImageField({
     }
   };
 
-  const clear = async (): Promise<void> => {
-    try {
-      await remove.mutateAsync();
-      toast.success(labels.removed);
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  };
+  const clear = (): void =>
+    confirm({
+      title: labels.confirmTitle,
+      consequences: [t(labels.confirmConsequence)],
+      onConfirm: async () => {
+        try {
+          await remove.mutateAsync();
+          toast.success(labels.removed);
+        } catch (error) {
+          toast.error(errorMessageKey(error));
+          throw error;
+        }
+      },
+    });
 
   return (
     <div data-testid="branding-image-field" className="mt-2 flex items-center gap-3">
+      {dialog}
       {src ? (
         <Img
           data-testid="branding-image"
@@ -480,7 +491,7 @@ function BrandingImageField({
                 size="sm"
                 data-testid="branding-image-remove"
                 isLoading={remove.isPending}
-                onClick={() => void clear()}
+                onClick={clear}
               >
                 {t("common.delete")}
               </Button>
@@ -500,6 +511,8 @@ const LOGO_LABELS = {
   replace: "clinic.replaceLogo",
   uploaded: "clinic.logoUpdated",
   removed: "clinic.logoRemoved",
+  confirmTitle: "clinic.confirmRemoveLogo.title",
+  confirmConsequence: "clinic.confirmRemoveLogo.consequence",
 } as const;
 
 const APP_ICON_LABELS = {
@@ -510,6 +523,8 @@ const APP_ICON_LABELS = {
   replace: "clinic.replaceAppIcon",
   uploaded: "clinic.appIconUpdated",
   removed: "clinic.appIconRemoved",
+  confirmTitle: "clinic.confirmRemoveAppIcon.title",
+  confirmConsequence: "clinic.confirmRemoveAppIcon.consequence",
 } as const;
 
 function LogoField({

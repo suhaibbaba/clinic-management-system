@@ -18,6 +18,7 @@ import {
   Money,
   RowMenu,
   SegmentedControl,
+  useConfirm,
   usePersonName,
   useTabParam,
   useToast,
@@ -80,6 +81,7 @@ export function TreatmentPlansTab({
   const convertItem = useConvertPlanItem(patientId);
   const deletePlan = useDeleteTreatmentPlan(patientId);
   const deleteItem = useDeletePlanItem(patientId);
+  const { confirm, dialog } = useConfirm("treatment-plans-confirm-delete");
 
   // `?plan=accepted` is what a dentist pastes and what survives a refresh. Its own parameter, since
   // the file's tab strip already owns `tab`.
@@ -145,19 +147,30 @@ export function TreatmentPlansTab({
     }
   };
 
-  const handleDeletePlan = (plan: TreatmentPlan): void => {
-    if (window.confirm(t("treatmentPlans.confirmDelete", { title: plan.title }))) {
-      void run(() => deletePlan.mutateAsync(plan.id), "treatmentPlans.deleted");
+  const removing = (action: () => Promise<unknown>, success: string) => async () => {
+    try {
+      await action();
+      toast.success(success);
+    } catch (error) {
+      toast.error(errorMessageKey(error));
+      throw error;
     }
   };
 
-  const handleDeleteItem = (item: TreatmentPlanItem): void => {
-    if (
-      window.confirm(t("treatmentPlans.confirmDeleteItem", { name: catalogName(item.procedureId) }))
-    ) {
-      void run(() => deleteItem.mutateAsync(item.id), "treatmentPlans.itemDeleted");
-    }
-  };
+  const handleDeletePlan = (plan: TreatmentPlan): void =>
+    confirm({
+      title: "treatmentPlans.confirmDelete.title",
+      titleValues: { title: plan.title },
+      consequences: [t("treatmentPlans.confirmDelete.consequence")],
+      onConfirm: removing(() => deletePlan.mutateAsync(plan.id), "treatmentPlans.deleted"),
+    });
+
+  const handleDeleteItem = (item: TreatmentPlanItem): void =>
+    confirm({
+      title: "treatmentPlans.confirmDeleteItem",
+      titleValues: { name: catalogName(item.procedureId) },
+      onConfirm: removing(() => deleteItem.mutateAsync(item.id), "treatmentPlans.itemDeleted"),
+    });
 
   const handleConvert = (item: TreatmentPlanItem): void => {
     void run(() => convertItem.mutateAsync(item.id), "treatmentPlans.converted");
@@ -178,6 +191,7 @@ export function TreatmentPlansTab({
 
   return (
     <div data-testid="treatment-plans-tab" className="flex flex-col gap-4">
+      {dialog}
       <p data-testid="treatment-plans-about" className="text-value text-ink-muted">
         {t("treatmentPlans.about")}
       </p>

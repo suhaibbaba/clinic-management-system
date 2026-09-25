@@ -10,12 +10,11 @@ export interface ModalProps extends TestIdProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  /** Numbers stay numbers: i18next only pluralises on a numeric `count`, and Arabic has six forms. */
   titleValues?: Record<string, string | number> | undefined;
   description?: string | undefined;
   children: ReactNode;
   footer?: ReactNode | undefined;
-  size?: "md" | "lg" | undefined;
+  size?: "md" | "lg" | "form" | undefined;
 }
 
 // Nothing is focused when it opens: Radix's default put a caret in every dialog's first field,
@@ -63,7 +62,7 @@ export function Modal({
             // Physical centring: `translate-x` is not mirrored in RTL, so the
             // logical `start-*` variant would push the dialog off centre.
             "fixed left-1/2 top-1/2 z-50 w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2",
-            size === "lg" ? "max-w-2xl" : "max-w-md",
+            size === "lg" ? "max-w-2xl" : size === "form" ? "max-w-(--form-max)" : "max-w-md",
             "flex max-h-[calc(100dvh-4rem)] flex-col rounded-card border border-line bg-surface p-5 shadow-float",
             "data-[state=open]:animate-[modal-in_160ms_ease-out]",
             "data-[state=closed]:animate-[modal-out_120ms_ease-in]",

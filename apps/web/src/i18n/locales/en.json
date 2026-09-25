@@ -73,7 +73,9 @@
       "nextYear": "Next year"
     },
     "showPassword": "Show password",
-    "hidePassword": "Hide password"
+    "hidePassword": "Hide password",
+    "deleteForever": "Delete for good",
+    "noMatches": "No matches"
   },
   "pagination": {
     "goToPage": "Page {{page}}",
@@ -153,7 +155,6 @@
     "deactivate": "Deactivate",
     "delete": "Delete the account",
     "deleteQuestion": "{{name}} will not be able to sign in from now on, and the records tied to the account stay as they are. Go ahead?",
-    "deleteTitle": "Delete the account",
     "deleted": "The account was deleted",
     "edit": "Edit user",
     "email": "Email",
@@ -194,7 +195,8 @@
     "firstNameAr": "First name in Arabic",
     "lastNameAr": "Last name in Arabic",
     "firstNameEn": "First name in English",
-    "lastNameEn": "Last name in English"
+    "lastNameEn": "Last name in English",
+    "confirmRemovePhoto": "Remove the photo?"
   },
   "doctors": {
     "title": "Doctors",
@@ -265,7 +267,11 @@
       "empty": "No closures",
       "emptyHint": "Add the holidays and the days the clinic is shut",
       "addedAndCancelled_one": "Closure recorded, 1 appointment cancelled and the patient notified",
-      "addedAndCancelled_other": "Closure recorded, {{count}} appointments cancelled and the patients notified"
+      "addedAndCancelled_other": "Closure recorded, {{count}} appointments cancelled and the patients notified",
+      "confirmRemove": {
+        "title": "Delete this closure?",
+        "consequence": "Those days become bookable again."
+      }
     },
     "timeOff": {
       "title": "Time off",
@@ -281,7 +287,11 @@
       "empty": "No time off",
       "emptyHint": "Record the days or hours this doctor is away",
       "addedAndCancelled_one": "Time off recorded, 1 appointment cancelled and the patient notified",
-      "addedAndCancelled_other": "Time off recorded, {{count}} appointments cancelled and the patients notified"
+      "addedAndCancelled_other": "Time off recorded, {{count}} appointments cancelled and the patients notified",
+      "confirmRemove": {
+        "title": "Delete this time off?",
+        "consequence": "The doctor becomes bookable again for that period."
+      }
     },
     "conflicts": {
       "description": "Choose what happens to them before the period is saved.",
@@ -337,7 +347,15 @@
     "apiVersion": "Server version",
     "versionMismatch": "This page is older than the server — reload it",
     "nameAr": "Clinic name in Arabic",
-    "nameEn": "Clinic name in English"
+    "nameEn": "Clinic name in English",
+    "confirmRemoveLogo": {
+      "title": "Remove the logo?",
+      "consequence": "A mark generated from the clinic's name takes its place."
+    },
+    "confirmRemoveAppIcon": {
+      "title": "Remove the app icon?",
+      "consequence": "Installed copies of the app go back to the default icon."
+    }
   },
   "audit": {
     "title": "Audit log",
@@ -401,6 +419,9 @@
       "invalidPhone": "Not a valid phone number",
       "passwordMin": "Password must be at least 8 characters",
       "passwordSame": "The new password must differ from the current one"
+    },
+    "clinicalDelete": {
+      "hasPayments": "Cannot delete — payments cover it. Reverse the payments first, or record a correction."
     }
   },
   "patients": {
@@ -475,7 +496,10 @@
     "firstName": "First name",
     "middleName": "Middle name",
     "lastName": "Last name",
-    "confirmDelete": "Delete the file of “{{name}}”? It leaves every list and search; its medical and financial records are kept.",
+    "confirmDelete": {
+      "title": "Delete the file of “{{name}}”?",
+      "consequence": "It leaves every list and search; its medical and financial records are kept."
+    },
     "deleted": "The patient's file was deleted"
   },
   "chart": {
@@ -549,7 +573,10 @@
     "addDrug": "Add a drug",
     "removeDrug": "Remove the drug",
     "drugNumber": "Drug {{number}}",
-    "confirmDelete": "Delete this prescription? It leaves the patient's file and timeline; the audit log keeps a record of it.",
+    "confirmDelete": {
+      "title": "Delete this prescription?",
+      "consequence": "It leaves the patient's file and timeline; the audit log keeps a record of it."
+    },
     "deleted": "Prescription deleted"
   },
   "visits": {
@@ -570,7 +597,33 @@
     "empty": "No visits recorded",
     "emptyHint": "Record this patient's first visit.",
     "loadFailed": "Could not load visits.",
-    "time": "Time"
+    "time": "Time",
+    "nothingRecorded": "Nothing was recorded at this visit",
+    "addTreatment": "Add treatment",
+    "menu": "Visit options",
+    "deleted": "Visit deleted",
+    "procedureDeleted": "Treatment deleted",
+    "confirmDelete": {
+      "title": "Delete the visit of {{date}}?",
+      "procedures_one": "Its {{count}} treatment goes with it, and its charge is reversed",
+      "procedures_other": "Its {{count}} treatments go with it, and their charges are reversed",
+      "attachments": "Its images, attachments and tooth chart marks go with it",
+      "audit": "All of it stays in the audit log"
+    },
+    "confirmProcedure": {
+      "title": "Delete the treatment: {{name}}?",
+      "titleWithTooth": "Delete the treatment: {{name}} — tooth {{tooth}}?",
+      "charge": "Its charge is reversed with a correcting entry; no entry is erased",
+      "chart": "Its marks leave the tooth chart"
+    },
+    "visit": "Visit",
+    "teeth": "Teeth",
+    "procedureMenu": "Treatment options",
+    "addTreatmentTitle": "Add treatment — visit of {{date}}",
+    "editTreatmentTitle": "Edit: {{name}}",
+    "proceduresTitle": "Treatments at the visit of {{date}}",
+    "proceduresTotal": "Total",
+    "tooth": "Tooth"
   },
   "treatmentPlans": {
     "create": "New plan",
@@ -622,7 +675,10 @@
     "notes": "Notes",
     "menu": "Plan options",
     "itemMenu": "Item options",
-    "confirmDelete": "Delete the plan “{{title}}”? Its items go with it; procedures already carried out are kept.",
+    "confirmDelete": {
+      "title": "Delete the plan “{{title}}”?",
+      "consequence": "Its items go with it; procedures already carried out are kept."
+    },
     "deleted": "Plan deleted",
     "confirmDeleteItem": "Remove “{{name}}” from the plan?",
     "itemDeleted": "Item removed",
@@ -645,7 +701,11 @@
     "deleted": "Image deleted",
     "empty": "No images for this patient",
     "loadFailed": "Could not load images.",
-    "emptyHint": "Uploaded images and documents appear here."
+    "emptyHint": "Uploaded images and documents appear here.",
+    "confirmDelete": {
+      "title": "Delete “{{name}}”?",
+      "consequence": "It leaves the patient's file; it is kept, and an admin can restore it."
+    }
   },
   "billing": {
     "outstanding": "Outstanding balance",
@@ -1014,7 +1074,8 @@
         "sent": "Sent",
         "received": "Received",
         "fitted": "Fitted"
-      }
+      },
+      "confirmRemoveAttachment": "Remove “{{name}}” from the order?"
     },
     "section": {
       "label": "Lab views",
@@ -1217,8 +1278,14 @@
     "created": "Option added",
     "updated": "Option saved",
     "deleted": "Option deleted",
-    "confirmDelete": "Delete “{{name}}” from this list? Records that refer to it will show its code instead of its name.",
-    "confirmDeleteSystem": "Delete “{{name}}”? This is a built-in option the app relies on, and records that refer to it will show its code instead of its name. To take it out of the dropdowns but keep the name, switch it off instead.",
+    "confirmDelete": {
+      "title": "Delete “{{name}}” from this list?",
+      "consequence": "Records that refer to it will show its code instead of its name."
+    },
+    "confirmDeleteSystem": {
+      "title": "Delete “{{name}}”?",
+      "consequence": "This is a built-in option the app relies on, and records that refer to it will show its code instead of its name. To take it out of the dropdowns but keep the name, switch it off instead."
+    },
     "lists": {
       "tooth_state": "Tooth states",
       "lab_work_type": "Lab work types",
@@ -1299,7 +1366,8 @@
     "placeholder": "Write a note",
     "save": "Save note",
     "remove": "Delete note",
-    "empty": "No notes yet"
+    "empty": "No notes yet",
+    "confirmRemove": "Delete this note?"
   },
   "permissions": {
     "adminLocked": "The administrator holds every permission and cannot be edited — a clinic able to take one from its own administrator could lock itself out of the only account that can give it back.",
@@ -1985,12 +2053,18 @@
         "openai": {
           "title": "OpenAI",
           "hint": "The clinic's own key for the assistant. Usage is billed to the clinic's account.",
-          "confirmClear": "Remove the OpenAI key? The assistant goes back to the server's settings."
+          "confirmClear": {
+            "title": "Remove the OpenAI key?",
+            "consequence": "The assistant goes back to the server's settings."
+          }
         },
         "whatsapp": {
           "title": "WhatsApp Business",
           "hint": "The clinic's WhatsApp account for messages and reminders. The template must be approved by Meta.",
-          "confirmClear": "Remove the WhatsApp details? Messages go back to the server's settings."
+          "confirmClear": {
+            "title": "Remove the WhatsApp details?",
+            "consequence": "Messages go back to the server's settings."
+          }
         }
       },
       "kinds": {

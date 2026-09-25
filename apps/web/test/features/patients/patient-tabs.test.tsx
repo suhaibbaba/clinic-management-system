@@ -1,7 +1,7 @@
 import { LOOKUP_LIST, SYSTEM_LOOKUPS, USER_ROLE, type UserRole } from "@clinic/shared";
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { AppRoutes } from "@web/app/router";
 import ar from "@web/i18n/locales/ar.json";
 import { authTokens } from "@web/lib/auth-tokens";
@@ -135,9 +135,13 @@ describe("Visits tab", () => {
     });
 
     await screen.findByText(visit.diagnosis!);
+    // The card counts them; the details are the modal's.
+    expect(screen.queryByText(CATALOG.nameAr)).not.toBeInTheDocument();
+    await userEvent.click(screen.getByTestId("visit-procedures-open"));
 
-    expect(screen.getAllByText(CATALOG.nameAr)).toHaveLength(1);
-    expect(screen.getByText("46")).toBeInTheDocument();
+    const modal = await screen.findByTestId("visit-procedures-modal");
+    expect(within(modal).getAllByText(CATALOG.nameAr)).toHaveLength(1);
+    expect(within(modal).getByText("46")).toBeInTheDocument();
   });
 
   it("records a visit through the shared schema", async () => {
@@ -170,9 +174,9 @@ describe("Visits tab", () => {
     });
 
     await screen.findByText(visit.diagnosis!);
-    await userEvent.click(screen.getByRole("button", { name: ar.chart.panel.addProcedure }));
+    await userEvent.click(screen.getByRole("button", { name: ar.visits.addTreatment }));
 
-    const form = screen.getByRole("combobox", { name: ar.chart.panel.procedure });
+    const form = await screen.findByRole("combobox", { name: ar.chart.panel.procedure });
     await choose(form, CATALOG.nameAr);
     await userEvent.click(screen.getByRole("button", { name: ar.common.save }));
 
@@ -241,20 +245,16 @@ describe("Prescriptions tab", () => {
       "GET /prescriptions": { status: 200, body: paginated([prescription]) },
       [`DELETE /prescriptions/${prescription.id}`]: { status: 204 },
     });
-    const confirm = vi
-      .spyOn(window, "confirm")
-      .mockReturnValueOnce(false)
-      .mockReturnValueOnce(true);
     const deleteButton = await screen.findByRole("button", { name: ar.common.delete });
     const deletes = () => api.calls.filter((entry) => entry.method === "DELETE");
 
     await userEvent.click(deleteButton);
+    await userEvent.click(await screen.findByRole("button", { name: ar.common.cancel }));
     expect(deletes()).toHaveLength(0);
 
     await userEvent.click(deleteButton);
+    await userEvent.click(await screen.findByRole("button", { name: ar.common.deleteForever }));
     await waitFor(() => expect(deletes()).toHaveLength(1));
-
-    confirm.mockRestore();
   });
 });
 
@@ -427,7 +427,6 @@ describe("Treatment plans tab", () => {
   });
 
   it("deletes a plan after confirmation", async () => {
-    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
     const api = await openTab(ar.patients.tabs.treatmentPlans, {
       ...asRole(USER_ROLE.ADMIN),
       "GET /treatment-plans": plansResponse,
@@ -436,6 +435,7 @@ describe("Treatment plans tab", () => {
 
     await openPlanMenu();
     await userEvent.click(await screen.findByRole("menuitem", { name: ar.common.delete }));
+    await userEvent.click(await screen.findByRole("button", { name: ar.common.deleteForever }));
 
     await waitFor(() =>
       expect(
@@ -445,8 +445,6 @@ describe("Treatment plans tab", () => {
         ),
       ).toBe(true),
     );
-
-    confirm.mockRestore();
   });
 
   it("adds an item with the doctor who will carry it out", async () => {

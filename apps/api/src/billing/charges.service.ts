@@ -1,14 +1,16 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { ConflictException, Inject, Injectable } from "@nestjs/common";
 import {
+  CLINICAL_DELETE_ERROR,
   formatMinorUnits,
   PERFORMED_PROCEDURE_STATUS,
   toMinorUnits,
   type Money,
   type PerformedProcedureStatus,
 } from "@clinic/shared";
-import { and, eq, isNull, type SQL } from "drizzle-orm";
+import { and, eq, isNull, sql, type SQL } from "drizzle-orm";
+import { LedgerService } from "@api/billing/ledger.service";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
-import { charges } from "@api/database/schema";
+import { charges, patients } from "@api/database/schema";
 
 /** What a procedure looks like to billing. No clinical fields cross this line. */
 export interface ProcedureBillingEvent {
@@ -36,6 +38,38 @@ export function isBillable(status: PerformedProcedureStatus): boolean {
 @Injectable()
 export class ChargesService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
+
+  // Payments are not allocated to charges, so "paid towards" is read off the balance: if taking these
+  // charges away would leave the patient in credit, money was taken for them, and deleting would
+  // move it silently. The caller corrects with a reversal instead.
+  async assertRemovable(
+    tx: DatabaseExecutor,
+    clinicId: string,
+    patientId: string,
+    performedProcedureIds: readonly string[],
+  ): Promise<void> {
+    if (performedProcedureIds.length === 0) {
+      return;
+    }
+
+    const ids = sql.join(
+      performedProcedureIds.map((id) => sql`${id}::uuid`),
+      sql`, `,
+    );
+    const rows = await tx.execute<{ removable: boolean }>(sql`
+      select ${LedgerService.balanceOf(clinicId, patients.id)} >= coalesce((
+        select sum(amount - discount) from charges
+        where clinic_id = ${clinicId} and patient_id = ${patientId}
+          and performed_procedure_id in (${ids})
+          and deleted_at is null and reverses_id is null and reversed_at is null
+      ), 0) as removable
+      from patients where id = ${patientId}
+    `);
+
+    if (rows[0]?.removable !== true) {
+      throw new ConflictException(CLINICAL_DELETE_ERROR.HAS_PAYMENTS);
+    }
+  }
 
   async onProcedureRecorded(tx: DatabaseExecutor, event: ProcedureBillingEvent): Promise<void> {
     if (!isBillable(event.status)) {

@@ -9,7 +9,7 @@ import {
   EmptyState,
   Icon,
   MenuItem,
-  Modal,
+  ConfirmDialog,
   PageHeader,
   PersonName,
   PhoneLink,
@@ -89,9 +89,9 @@ export function UsersPage(): JSX.Element {
     try {
       await removeUser.mutateAsync(deleting.id);
       toast.success("users.deleted");
-      setDeleting(null);
     } catch (error) {
       toast.error(errorMessageKey(error));
+      throw error;
     }
   };
 
@@ -387,36 +387,15 @@ export function UsersPage(): JSX.Element {
 
       {/* A soft delete, and one the API refuses for your own account. Named in the question, because
           a row menu closes over the row it belonged to. */}
-      <Modal
+      <ConfirmDialog
         data-testid="user-delete-modal"
         open={deleting !== null}
         onOpenChange={(open) => !open && setDeleting(null)}
-        title="users.deleteTitle"
-        footer={
-          <>
-            <Button
-              variant="secondary"
-              data-testid="user-delete-cancel"
-              onClick={() => setDeleting(null)}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button
-              variant="danger"
-              icon={<Icon name="trash" />}
-              data-testid="user-delete-confirm"
-              isLoading={removeUser.isPending}
-              onClick={() => void remove()}
-            >
-              {t("users.delete")}
-            </Button>
-          </>
-        }
-      >
-        <p data-testid="user-delete-question" className="text-value text-ink">
-          {t("users.deleteQuestion", { name: displayName(deleting?.name) })}
-        </p>
-      </Modal>
+        title="users.deleteQuestion"
+        titleValues={{ name: displayName(deleting?.name) }}
+        confirmLabel="users.delete"
+        onConfirm={remove}
+      />
     </div>
   );
 }

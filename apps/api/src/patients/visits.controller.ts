@@ -92,7 +92,7 @@ export class VisitsController {
     description: "Archive a visit recorded by mistake. Waits on a typed confirmation.",
   })
   @Delete(":id")
-  @Roles(USER_ROLE.ADMIN)
+  @Roles(USER_ROLE.DOCTOR)
   @HttpCode(HttpStatus.NO_CONTENT)
   @Audit(VISITS_ENTITY, AUDIT_ACTION.DELETE)
   async remove(

@@ -1,7 +1,7 @@
 import type { Prescription, PrescriptionItem } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, EmptyState, Icon, Ltr, useToast } from "@clinic/ui";
+import { Button, EmptyState, Icon, Ltr, TotalBadge, useConfirm, useToast } from "@clinic/ui";
 import { SkeletonCard, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/features/auth/session";
 import { canDeletePrescription, canWritePrescription } from "@web/features/patients/permissions";
@@ -15,7 +15,6 @@ import { errorMessageKey } from "@web/lib/api-error";
 import { formatDateTime } from "@web/lib/format";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
-/** One line per drug: the drug first, then whatever of dose, frequency and duration was written. */
 export const describeItem = (item: PrescriptionItem): string =>
   [item.dose, item.frequency, item.duration].filter(Boolean).join(" · ");
 
@@ -27,18 +26,22 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
   const mayDelete = canDeletePrescription(can);
   const remove = useDeletePrescription(patientId);
 
-  const destroy = async (prescription: Prescription): Promise<void> => {
-    if (!window.confirm(t("prescriptions.confirmDelete"))) {
-      return;
-    }
+  const { confirm, dialog } = useConfirm("prescriptions-confirm-delete");
 
-    try {
-      await remove.mutateAsync(prescription.id);
-      toast.success("prescriptions.deleted");
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
-  };
+  const destroy = (prescription: Prescription): void =>
+    confirm({
+      title: "prescriptions.confirmDelete.title",
+      consequences: [t("prescriptions.confirmDelete.consequence")],
+      onConfirm: async () => {
+        try {
+          await remove.mutateAsync(prescription.id);
+          toast.success("prescriptions.deleted");
+        } catch (error) {
+          toast.error(errorMessageKey(error));
+          throw error;
+        }
+      },
+    });
 
   const prescriptions = usePatientPrescriptions(patientId);
   const visits = usePatientVisits(patientId);
@@ -103,10 +106,13 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
 
   return (
     <div data-testid="prescriptions-tab" className="flex flex-col gap-4">
+      {dialog}
       <div className="flex items-center justify-between gap-3">
-        <h2 data-testid="prescriptions-count" className="text-heading font-medium text-ink">
-          {t("prescriptions.count", { count: prescriptions.data.length })}
-        </h2>
+        <TotalBadge
+          data-testid="prescriptions-count"
+          total={prescriptions.data.length}
+          label="prescriptions.count"
+        />
         {mayWrite && !noVisits && (
           <Button
             icon={<Icon name="plus" />}
@@ -195,7 +201,7 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
                         variant="quiet"
                         size="sm"
                         data-testid={`prescription-${prescription.id}-delete`}
-                        onClick={() => void destroy(prescription)}
+                        onClick={() => destroy(prescription)}
                       >
                         {t("common.delete")}
                       </Button>

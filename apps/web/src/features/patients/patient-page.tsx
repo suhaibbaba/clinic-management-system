@@ -11,6 +11,7 @@ import {
   RowMenu,
   TabPanel,
   Tabs,
+  useConfirm,
   useTabParam,
   useToast,
   WhatsAppLink,
@@ -83,25 +84,35 @@ export function PatientPage(): JSX.Element {
   const mayEdit = canEditPatient(can);
   const mayDelete = canDeletePatient(can);
 
-  const destroy = async (): Promise<void> => {
-    if (
-      !patient.data ||
-      !window.confirm(t("patients.confirmDelete", { name: patient.data.fullName }))
-    ) {
+  const { confirm, dialog } = useConfirm("patient-confirm-delete");
+
+  const destroy = (): void => {
+    const file = patient.data;
+
+    if (!file) {
       return;
     }
 
-    try {
-      await deletePatient.mutateAsync(patient.data.id);
-      toast.success("patients.deleted");
-      navigate("/patients", { replace: true });
-    } catch (error) {
-      toast.error(errorMessageKey(error));
-    }
+    confirm({
+      title: "patients.confirmDelete.title",
+      titleValues: { name: file.fullName },
+      consequences: [t("patients.confirmDelete.consequence")],
+      onConfirm: async () => {
+        try {
+          await deletePatient.mutateAsync(file.id);
+          toast.success("patients.deleted");
+          navigate("/patients", { replace: true });
+        } catch (error) {
+          toast.error(errorMessageKey(error));
+          throw error;
+        }
+      },
+    });
   };
 
   return (
     <div data-testid="patient-page" className="flex flex-col gap-5">
+      {dialog}
       {/* The labels are drawn rather than `sr-only`: a file number, an age and a phone read as a
           dot-separated run only if you know the order, and reception reads this aloud. */}
       <header
@@ -170,7 +181,7 @@ export function PatientPage(): JSX.Element {
                         icon="trash"
                         tone="danger"
                         data-testid="patient-delete"
-                        onSelect={() => void destroy()}
+                        onSelect={destroy}
                       >
                         {t("common.delete")}
                       </MenuItem>

@@ -45,8 +45,8 @@ Legend: **C** create · **R** read · **U** update · **D** soft-delete · — n
 |---|---|---|---|---|
 | Patient basic info (name, phone, dob, address) | CRUD | CRU | R | CRU |
 | Medical history & allergies | CRUD | CRU | R (allergy flags only) | — |
-| Visits (complaint, exam, diagnosis) | CRUD | CRU | — | — |
-| Performed procedures & chart marks | CRUD | CRU | R (lab-linked only) | — |
+| Visits (complaint, exam, diagnosis) | CRUD | CRUD (D blocked while payments cover its charges) | — | — |
+| Performed procedures & chart marks | CRUD | CRUD (D blocked while payments cover its charge) | R (lab-linked only) | — |
 | Treatment plans | CRUD | CRU | — | — |
 | Attachments / X-rays | CRUD | CRU | R (lab-linked only) | — |
 | Prescriptions | CRUD | CRUD | — | — |
@@ -149,4 +149,6 @@ For each role, one test per ✗ cell that matters most:
 - any role editing or deleting a clinic note somebody else wrote → 403; the admin → allowed
 - doctor writing time off in another doctor's calendar → 403; in their own → allowed
 - a closure or time off over booked appointments without `force` → 409 carrying the affected appointments
+- deleting a procedure, or a visit, whose charges the patient's payments cover → 409; the charge of one that is removable is reversed, never deleted
+- receptionist deleting a visit or a procedure → 403
 - visiting doctor opening an unassigned patient, or any record of one, by path, query or id → 404; an assigned one → allowed

@@ -5,7 +5,7 @@ import {
 } from "@clinic/shared";
 import { useRef, useState, type ChangeEvent, type DragEvent, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, EmptyState, Icon, Img, Ltr, useToast } from "@clinic/ui";
+import { Button, EmptyState, Icon, Img, Ltr, useConfirm, useToast } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/features/auth/session";
 import { canDeleteAttachment, canManageAttachments } from "@web/features/patients/permissions";
@@ -207,23 +207,32 @@ function ImageCard({
   const toast = useToast();
   const { data, isPending } = useAttachment(attachment.id, true);
   const remove = useDeleteAttachment(patientId);
+  const { confirm, dialog } = useConfirm("imaging-confirm-delete");
 
   const isImage = attachment.mime.startsWith("image/");
 
-  const handleDelete = async (): Promise<void> => {
-    try {
-      await remove.mutateAsync(attachment.id);
-      toast.success("imaging.deleted");
-    } catch (error) {
-      onError(error);
-    }
-  };
+  const handleDelete = (): void =>
+    confirm({
+      title: "imaging.confirmDelete.title",
+      titleValues: { name: attachment.filename },
+      consequences: [t("imaging.confirmDelete.consequence")],
+      onConfirm: async () => {
+        try {
+          await remove.mutateAsync(attachment.id);
+          toast.success("imaging.deleted");
+        } catch (error) {
+          onError(error);
+          throw error;
+        }
+      },
+    });
 
   return (
     <figure
       data-testid="imaging-card"
       className="flex flex-col gap-1.5 border border-line rounded-card bg-surface shadow-card p-2"
     >
+      {dialog}
       <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md bg-canvas">
         {isPending && <Skeleton className="size-full rounded-none" />}
 
@@ -275,7 +284,7 @@ function ImageCard({
             size="sm"
             data-testid="imaging-card-delete"
             disabled={remove.isPending}
-            onClick={() => void handleDelete()}
+            onClick={handleDelete}
           >
             {t("common.delete")}
           </Button>

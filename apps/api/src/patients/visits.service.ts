@@ -1,4 +1,5 @@
 import { BadRequestException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
+import { AUDIT_ACTION } from "@clinic/shared";
 import type {
   CreateVisitInput,
   ListVisitsQuery,
@@ -8,12 +9,16 @@ import type {
 } from "@clinic/shared";
 import { desc, eq, sql, type SQL } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
+import { AuditService } from "@api/audit/audit.service";
+import { ChargesService } from "@api/billing/charges.service";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { doctors, visits } from "@api/database/schema";
+import { attachments, doctors, performedProcedures, visits } from "@api/database/schema";
+import { ATTACHMENTS_ENTITY } from "@api/patients/attachments.service";
 import { PatientAccessService } from "@api/patients/patient-access.service";
+import { PERFORMED_PROCEDURES_ENTITY, ProceduresService } from "@api/patients/procedures.service";
 
 type VisitRow = typeof visits.$inferSelect;
 
@@ -27,6 +32,9 @@ export class VisitsService implements OnModuleInit {
     private readonly scope: ClinicScopeService,
     private readonly patientAccess: PatientAccessService,
     private readonly auditSnapshots: AuditSnapshotRegistry,
+    private readonly audit: AuditService,
+    private readonly charges: ChargesService,
+    private readonly procedures: ProceduresService,
   ) {}
 
   onModuleInit(): void {
@@ -134,13 +142,70 @@ export class VisitsService implements OnModuleInit {
     return toVisit(row);
   }
 
+  // All or nothing: one procedure with money against it keeps the whole visit. What goes with the
+  // visit is audited here, one entry each; the visit's own entry is the interceptor's.
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
-    await this.patientAccess.requireRow<VisitRow>(actor, visits, id);
+    const visit = await this.patientAccess.requireRow<VisitRow>(actor, visits, id);
+    const procedureIds = (
+      await this.db
+        .select({ id: performedProcedures.id })
+        .from(performedProcedures)
+        .where(
+          this.scope.where(
+            performedProcedures,
+            actor.clinicId,
+            eq(performedProcedures.visitId, id),
+          ),
+        )
+    ).map((row) => row.id);
+    const attachmentIds = (
+      await this.db
+        .select({ id: attachments.id })
+        .from(attachments)
+        .where(this.scope.where(attachments, actor.clinicId, eq(attachments.visitId, id)))
+    ).map((row) => row.id);
+    const dependants = [
+      ...procedureIds.map((entityId) => ({ entity: PERFORMED_PROCEDURES_ENTITY, entityId })),
+      ...attachmentIds.map((entityId) => ({ entity: ATTACHMENTS_ENTITY, entityId })),
+    ];
+    const before = await Promise.all(
+      dependants.map(({ entity, entityId }) =>
+        this.auditSnapshots.get(entity)?.(entityId, actor.clinicId),
+      ),
+    );
 
-    await this.db
-      .update(visits)
-      .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
-      .where(this.scope.where(visits, actor.clinicId, eq(visits.id, id)));
+    await this.db.transaction(async (tx) => {
+      await this.charges.assertRemovable(tx, actor.clinicId, visit.patientId, procedureIds);
+
+      for (const procedureId of procedureIds) {
+        await this.procedures.removeInTransaction(tx, actor, procedureId);
+      }
+
+      const now = new Date();
+      await tx
+        .update(attachments)
+        .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
+        .where(this.scope.where(attachments, actor.clinicId, eq(attachments.visitId, id)));
+      await tx
+        .update(visits)
+        .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
+        .where(this.scope.where(visits, actor.clinicId, eq(visits.id, id)));
+
+      for (const [index, { entity, entityId }] of dependants.entries()) {
+        await this.audit.record(
+          {
+            clinicId: actor.clinicId,
+            userId: actor.id,
+            action: AUDIT_ACTION.DELETE,
+            entity,
+            entityId,
+            oldValue: before[index] ?? null,
+            newValue: null,
+          },
+          tx,
+        );
+      }
+    });
   }
 
   /** A visit must reference a doctor in the same clinic. */
