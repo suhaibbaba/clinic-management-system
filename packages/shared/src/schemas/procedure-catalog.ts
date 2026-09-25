@@ -8,8 +8,7 @@ export const procedureCatalogItemSchema = z.object({
   clinicId: z.uuid(),
   specialtyId: z.uuid(),
   code: z.string(),
-  nameAr: z.string(),
-  nameEn: z.string(),
+  name: z.string(),
   defaultPrice: moneySchema,
   /** Null for procedures that chart nothing — an examination, a cleaning, an X-ray. */
   chartOutcome: lookupCodeSchema.nullable(),
@@ -23,8 +22,7 @@ export type ProcedureCatalogItem = z.infer<typeof procedureCatalogItemSchema>;
 export const procedureCatalogPriceViewSchema = procedureCatalogItemSchema.pick({
   id: true,
   code: true,
-  nameAr: true,
-  nameEn: true,
+  name: true,
   defaultPrice: true,
 });
 export type ProcedureCatalogPriceView = z.infer<typeof procedureCatalogPriceViewSchema>;
@@ -32,8 +30,7 @@ export type ProcedureCatalogPriceView = z.infer<typeof procedureCatalogPriceView
 const catalogWritableFields = {
   specialtyId: z.uuid(),
   code: z.string().trim().min(1).max(32),
-  nameAr: z.string().trim().min(1).max(160),
-  nameEn: z.string().trim().min(1).max(160),
+  name: z.string().trim().min(1).max(160),
   defaultPrice: wholeMoneySchema,
   chartOutcome: lookupCodeSchema.nullish(),
   isActive: z.boolean(),
@@ -56,4 +53,5 @@ export const listProcedureCatalogQuerySchema = paginationQuerySchema.extend({
   isActive: z.stringbool().optional(),
   search: z.string().trim().min(1).max(120).optional(),
 });
+
 export type ListProcedureCatalogQuery = z.infer<typeof listProcedureCatalogQuerySchema>;

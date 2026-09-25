@@ -715,7 +715,7 @@ async function writeLabs(
       LABS.flatMap((lab, index) =>
         lab.workTypes.map((type) => ({
           labId: labRows[index]?.id as string,
-          nameAr: type.nameAr,
+          name: type.name,
           defaultPrice: type.defaultPrice,
           ...ctx.audit,
         })),
@@ -847,7 +847,7 @@ async function writeInventory(
     .values(
       ITEMS.map((item) => ({
         clinicId: ctx.clinicId,
-        nameAr: item.nameAr,
+        name: item.name,
         category: item.category,
         unit: item.unit,
         minQuantity: item.minQuantity,
@@ -1059,8 +1059,7 @@ async function seedCatalog(
         clinicId,
         specialtyId,
         code: entry.code,
-        nameAr: entry.nameAr,
-        nameEn: entry.nameEn,
+        name: entry.name,
         defaultPrice: entry.defaultPrice,
         chartOutcome: entry.chartOutcome,
         ...audit,

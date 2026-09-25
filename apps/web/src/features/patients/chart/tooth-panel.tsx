@@ -56,7 +56,7 @@ export function ToothPanel({
   const showPrices = canSeePrices(role);
   const canAdd = canRecordProcedure(can);
 
-  const catalogNames = new Map(catalog.map((item) => [item.id, item.nameAr]));
+  const catalogNames = new Map(catalog.map((item) => [item.id, item.name]));
 
   return (
     <Drawer

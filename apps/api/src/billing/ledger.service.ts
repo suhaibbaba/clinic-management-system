@@ -179,7 +179,7 @@ export class LedgerService {
           discount: charges.discount,
           note: charges.note,
           reversesId: charges.reversesId,
-          procedureName: procedureCatalog.nameAr,
+          procedureName: procedureCatalog.name,
         })
         .from(charges)
         .leftJoin(performedProcedures, eq(performedProcedures.id, charges.performedProcedureId))

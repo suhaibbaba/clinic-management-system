@@ -68,7 +68,7 @@ export class InventoryItemsService implements OnModuleInit {
     }
     if (query.search) {
       const pattern = `%${query.search}%`;
-      filters.push(sql`${inventoryItems.nameAr} ilike ${pattern}`);
+      filters.push(sql`${inventoryItems.name} ilike ${pattern}`);
     }
 
     const where = this.scope.where(inventoryItems, actor.clinicId, ...filters);
@@ -80,7 +80,7 @@ export class InventoryItemsService implements OnModuleInit {
         .from(inventoryItems)
         .leftJoin(suppliers, eq(suppliers.id, inventoryItems.defaultSupplierId))
         .where(where)
-        .orderBy(asc(inventoryItems.nameAr))
+        .orderBy(asc(inventoryItems.name))
         .limit(limit)
         .offset(offset),
       this.db
@@ -143,7 +143,7 @@ export class InventoryItemsService implements OnModuleInit {
   }
 
   async create(actor: AuthenticatedUser, input: CreateInventoryItemInput): Promise<InventoryItem> {
-    await this.assertNameIsFree(actor.clinicId, input.nameAr);
+    await this.assertNameIsFree(actor.clinicId, input.name);
     // Only codes on this clinic's own list — the schema cannot know them.
     await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ITEM_CATEGORY, input.category);
     await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ITEM_UNIT, input.unit);
@@ -156,7 +156,7 @@ export class InventoryItemsService implements OnModuleInit {
       .insert(inventoryItems)
       .values({
         clinicId: actor.clinicId,
-        nameAr: input.nameAr,
+        name: input.name,
         category: input.category,
         unit: input.unit,
         minQuantity: input.minQuantity ?? "0",
@@ -183,8 +183,8 @@ export class InventoryItemsService implements OnModuleInit {
   ): Promise<InventoryItem> {
     await this.requireRow(actor.clinicId, id);
 
-    if (input.nameAr) {
-      await this.assertNameIsFree(actor.clinicId, input.nameAr, id);
+    if (input.name) {
+      await this.assertNameIsFree(actor.clinicId, input.name, id);
     }
     await this.lookups.assertOptionalCode(
       actor.clinicId,
@@ -198,7 +198,7 @@ export class InventoryItemsService implements OnModuleInit {
     const [row] = await this.db
       .update(inventoryItems)
       .set({
-        ...(input.nameAr !== undefined && { nameAr: input.nameAr }),
+        ...(input.name !== undefined && { name: input.name }),
         ...(input.category !== undefined && { category: input.category }),
         ...(input.minQuantity !== undefined && { minQuantity: input.minQuantity }),
         ...(input.defaultSupplierId !== undefined && {
@@ -261,7 +261,7 @@ export class InventoryItemsService implements OnModuleInit {
         and(
           eq(inventoryItems.clinicId, clinicId),
           isNull(inventoryItems.deletedAt),
-          sql`lower(${inventoryItems.nameAr}) = lower(${name})`,
+          sql`lower(${inventoryItems.name}) = lower(${name})`,
           exceptId ? ne(inventoryItems.id, exceptId) : undefined,
         ),
       )
@@ -277,7 +277,7 @@ export function toInventoryItem(row: ItemRow): InventoryItem {
   return {
     id: row.id,
     clinicId: row.clinicId,
-    nameAr: row.nameAr,
+    name: row.name,
     category: row.category,
     unit: row.unit,
     // `numeric` comes back with its scale attached (`5.000`); a reorder level

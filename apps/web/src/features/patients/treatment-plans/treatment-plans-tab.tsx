@@ -37,7 +37,6 @@ import {
   canEditPlanItem,
   canSeePrices,
 } from "@web/features/patients/permissions";
-import { procedureName } from "@web/features/patients/procedures/procedure-name";
 import {
   useConvertPlanItem,
   useDeletePlanItem,
@@ -67,7 +66,7 @@ export function TreatmentPlansTab({
   patientId: string;
   patient: PatientClinicalView | undefined;
 }): JSX.Element {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user, can } = useSession();
   const toast = useToast();
 
@@ -104,7 +103,7 @@ export function TreatmentPlansTab({
 
   const catalogName = (id: string): string => {
     const entry = catalog.data?.find((item) => item.id === id);
-    return entry ? procedureName(entry, i18n.language) : t("chart.panel.procedure");
+    return entry ? entry.name : t("chart.panel.procedure");
   };
 
   const displayName = usePersonName();

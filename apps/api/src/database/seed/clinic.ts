@@ -123,8 +123,7 @@ export const CLINIC_DEFAULTS = {
 
 export interface CatalogEntry {
   readonly code: string;
-  readonly nameAr: string;
-  readonly nameEn: string;
+  readonly name: string;
   readonly defaultPrice: string;
   readonly chartOutcome: ProcedureOutcome | null;
   /** Minutes of chair time, which is what the appointment beside it is booked for. */
@@ -137,8 +136,7 @@ export interface CatalogEntry {
 export const CATALOG: readonly CatalogEntry[] = [
   {
     code: "EXAM",
-    nameAr: "Examination",
-    nameEn: "Examination",
+    name: "Examination",
     defaultPrice: "50.00",
     chartOutcome: null,
     minutes: 20,
@@ -146,8 +144,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "CLEAN",
-    nameAr: "Scaling & polishing",
-    nameEn: "Scaling & polishing",
+    name: "Scaling & polishing",
     defaultPrice: "150.00",
     chartOutcome: null,
     minutes: 30,
@@ -155,8 +152,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "FILL-C",
-    nameAr: "Composite filling",
-    nameEn: "Composite filling",
+    name: "Composite filling",
     defaultPrice: "200.00",
     chartOutcome: PROCEDURE_OUTCOME.FILLING,
     minutes: 40,
@@ -164,8 +160,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "FILL-A",
-    nameAr: "Amalgam filling",
-    nameEn: "Amalgam filling",
+    name: "Amalgam filling",
     defaultPrice: "150.00",
     chartOutcome: PROCEDURE_OUTCOME.FILLING,
     minutes: 40,
@@ -173,8 +168,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "RCT",
-    nameAr: "Root canal treatment",
-    nameEn: "Root canal treatment",
+    name: "Root canal treatment",
     defaultPrice: "600.00",
     chartOutcome: PROCEDURE_OUTCOME.ROOT_CANAL,
     minutes: 60,
@@ -182,8 +176,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "CROWN-Z",
-    nameAr: "Zirconia crown",
-    nameEn: "Zirconia crown",
+    name: "Zirconia crown",
     defaultPrice: "900.00",
     chartOutcome: PROCEDURE_OUTCOME.CROWN,
     minutes: 45,
@@ -192,8 +185,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "CROWN-P",
-    nameAr: "PFM crown",
-    nameEn: "PFM crown",
+    name: "PFM crown",
     defaultPrice: "650.00",
     chartOutcome: PROCEDURE_OUTCOME.CROWN,
     minutes: 45,
@@ -202,8 +194,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "BRIDGE-3",
-    nameAr: "Three-unit bridge",
-    nameEn: "Three-unit bridge",
+    name: "Three-unit bridge",
     defaultPrice: "2200.00",
     chartOutcome: PROCEDURE_OUTCOME.BRIDGE,
     minutes: 60,
@@ -212,8 +203,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "IMPL",
-    nameAr: "Dental implant",
-    nameEn: "Dental implant",
+    name: "Dental implant",
     defaultPrice: "2800.00",
     chartOutcome: PROCEDURE_OUTCOME.IMPLANT,
     minutes: 90,
@@ -222,8 +212,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "EXT",
-    nameAr: "Simple extraction",
-    nameEn: "Simple extraction",
+    name: "Simple extraction",
     defaultPrice: "150.00",
     chartOutcome: PROCEDURE_OUTCOME.MISSING,
     minutes: 30,
@@ -231,8 +220,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "EXT-S",
-    nameAr: "Surgical extraction",
-    nameEn: "Surgical extraction",
+    name: "Surgical extraction",
     defaultPrice: "400.00",
     chartOutcome: PROCEDURE_OUTCOME.MISSING,
     minutes: 45,
@@ -240,8 +228,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "ORTHO",
-    nameAr: "Orthodontic treatment",
-    nameEn: "Orthodontic treatment",
+    name: "Orthodontic treatment",
     defaultPrice: "4500.00",
     chartOutcome: null,
     minutes: 45,
@@ -250,8 +237,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "XRAY-P",
-    nameAr: "Panoramic X-ray",
-    nameEn: "Panoramic X-ray",
+    name: "Panoramic X-ray",
     defaultPrice: "80.00",
     chartOutcome: null,
     minutes: 15,
@@ -259,8 +245,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   },
   {
     code: "WHITEN",
-    nameAr: "Teeth whitening",
-    nameEn: "Teeth whitening",
+    name: "Teeth whitening",
     defaultPrice: "700.00",
     chartOutcome: null,
     minutes: 60,
@@ -269,36 +254,36 @@ export const CATALOG: readonly CatalogEntry[] = [
 ];
 
 export const COMPLAINTS: readonly string[] = [
-  "ألم في الضرس السفلي الأيمن",
-  "حساسية من البارد والساخن",
-  "كسر في حشوة قديمة",
-  "نزيف في اللثة عند التفريش",
-  "ألم عند المضغ",
-  "تورم في اللثة",
-  "فحص دوري",
-  "رائحة فم كريهة",
-  "سن مخلوع جزئياً",
-  "ألم بعد معالجة سابقة",
+  "Pain in the lower right molar",
+  "Sensitivity to hot and cold",
+  "Broken old filling",
+  "Gums bleed when brushing",
+  "Pain on chewing",
+  "Swollen gums",
+  "Routine check-up",
+  "Bad breath",
+  "Partially erupted tooth",
+  "Pain after previous treatment",
 ];
 
 export const DIAGNOSES: readonly string[] = [
-  "نخر عميق في السن",
-  "التهاب لثة مزمن",
-  "التهاب لب سني لا رجعي",
-  "خراج حول ذروي",
-  "تسوس سطحي",
-  "انحسار لثوي",
-  "كسر في الحافة القاطعة",
-  "التهاب حوائط السن",
-  "تراكم جير",
-  "سن مطمور",
+  "Deep caries",
+  "Chronic gingivitis",
+  "Irreversible pulpitis",
+  "Periapical abscess",
+  "Superficial caries",
+  "Gingival recession",
+  "Incisal edge fracture",
+  "Periodontitis",
+  "Calculus build-up",
+  "Impacted tooth",
 ];
 
 export const EXAMINATIONS: readonly string[] = [
-  "الفحص السريري يظهر نخراً واضحاً على السطح الإطباقي",
-  "اللثة محتقنة ونازفة عند السبر",
-  "اختبار الحيوية سلبي",
-  "إيلام بالقرع العمودي",
-  "تراكم قلح على الأسطح اللسانية السفلية",
-  "الفحص الشعاعي يظهر ظلاً حول ذروياً",
+  "Clinical exam shows obvious caries on the occlusal surface",
+  "Gums inflamed and bleeding on probing",
+  "Negative vitality test",
+  "Tender to vertical percussion",
+  "Calculus on the lower lingual surfaces",
+  "Radiograph shows a periapical radiolucency",
 ];

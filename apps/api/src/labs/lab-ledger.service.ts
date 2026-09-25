@@ -98,7 +98,7 @@ export class LabLedgerService {
           price: labOrders.price,
           status: labOrders.status,
           teeth: labOrders.teeth,
-          workTypeName: labWorkTypes.nameAr,
+          workTypeName: labWorkTypes.name,
         })
         .from(labOrders)
         .leftJoin(labWorkTypes, eq(labWorkTypes.id, labOrders.workTypeId))

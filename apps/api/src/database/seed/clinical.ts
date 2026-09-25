@@ -62,11 +62,11 @@ export function procedureStatus(rng: Rng, isPast: boolean): PerformedProcedureSt
 }
 
 const PLAN_TITLES: readonly string[] = [
-  "خطة علاج شاملة",
-  "إعادة تأهيل الفك العلوي",
-  "معالجة لبية وتتويج",
-  "خطة تجميلية",
-  "علاج اللثة ثم التركيبات",
+  "Comprehensive treatment plan",
+  "Upper jaw rehabilitation",
+  "Root canal and crown",
+  "Cosmetic plan",
+  "Periodontal therapy, then prosthetics",
 ];
 
 export const PLAN_STATUSES = [
@@ -91,45 +91,45 @@ export function planTitle(rng: Rng): string {
 const DRUGS: readonly PrescriptionItem[] = [
   {
     drug: "Amoxicillin 500 mg",
-    dose: "كبسولة",
-    frequency: "كل 8 ساعات",
-    duration: "5 أيام",
+    dose: "1 capsule",
+    frequency: "every 8 hours",
+    duration: "5 days",
     note: null,
   },
   {
     drug: "Amoxicillin/clavulanate 1 g",
-    dose: "قرص",
-    frequency: "كل 12 ساعة",
-    duration: "7 أيام",
+    dose: "1 tablet",
+    frequency: "every 12 hours",
+    duration: "7 days",
     note: null,
   },
   {
     drug: "Metronidazole 500 mg",
-    dose: "قرص",
-    frequency: "كل 8 ساعات",
-    duration: "5 أيام",
-    note: "يُمنع مع الكحول",
+    dose: "1 tablet",
+    frequency: "every 8 hours",
+    duration: "5 days",
+    note: "No alcohol",
   },
   {
     drug: "Ibuprofen 400 mg",
-    dose: "قرص",
-    frequency: "عند اللزوم",
-    duration: "3 أيام",
-    note: "بعد الأكل",
+    dose: "1 tablet",
+    frequency: "as needed",
+    duration: "3 days",
+    note: "After meals",
   },
   {
     drug: "Paracetamol 500 mg",
-    dose: "قرص",
-    frequency: "كل 6 ساعات",
-    duration: "3 أيام",
+    dose: "1 tablet",
+    frequency: "every 6 hours",
+    duration: "3 days",
     note: null,
   },
   {
     drug: "Chlorhexidine rinse",
-    dose: "10 مل",
-    frequency: "مرتين يومياً",
-    duration: "10 أيام",
-    note: "المضمضة دون بلع",
+    dose: "10 ml",
+    frequency: "twice daily",
+    duration: "10 days",
+    note: "Rinse, do not swallow",
   },
 ];
 
@@ -146,22 +146,28 @@ export interface MedicalHistorySeed {
 }
 
 const CONDITIONS: readonly string[] = [
-  "السكري من النمط الثاني",
-  "ارتفاع ضغط الدم",
-  "الربو",
-  "قصور قلبي",
-  "فقر دم",
-  "قصور الغدة الدرقية",
+  "Type 2 diabetes",
+  "Hypertension",
+  "Asthma",
+  "Heart failure",
+  "Anaemia",
+  "Hypothyroidism",
 ];
 
-const ALLERGIES: readonly string[] = ["البنسلين", "اللاتكس", "الأسبرين", "اليود", "مخدر موضعي"];
+const ALLERGIES: readonly string[] = [
+  "Penicillin",
+  "Latex",
+  "Aspirin",
+  "Iodine",
+  "Local anaesthetic",
+];
 
 const MEDICATIONS: readonly string[] = [
-  "ميتفورمين 850 ملغ",
-  "أملوديبين 5 ملغ",
-  "وارفارين 5 ملغ",
-  "ليفوثيروكسين 50 مكغ",
-  "بخاخ سالبوتامول",
+  "Metformin 850 mg",
+  "Amlodipine 5 mg",
+  "Warfarin 5 mg",
+  "Levothyroxine 50 mcg",
+  "Salbutamol inhaler",
 ];
 
 export function medicalHistory(

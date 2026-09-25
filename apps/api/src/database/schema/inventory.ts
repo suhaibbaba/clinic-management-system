@@ -62,7 +62,7 @@ export const inventoryItems = pgTable(
     clinicId: uuid("clinic_id")
       .notNull()
       .references(() => clinics.id),
-    nameAr: text("name_ar").notNull(),
+    name: text("name").notNull(),
     /** `item_category` and `item_unit` lookup codes, editable per clinic. */
     category: text("category").notNull(),
     unit: text("unit").notNull(),
@@ -75,7 +75,7 @@ export const inventoryItems = pgTable(
     ...softDeleteColumn,
   },
   (table) => [
-    index("inventory_items_clinic_idx").on(table.clinicId, table.category, table.nameAr),
+    index("inventory_items_clinic_idx").on(table.clinicId, table.category, table.name),
     index("inventory_items_supplier_idx").on(table.defaultSupplierId),
   ],
 );

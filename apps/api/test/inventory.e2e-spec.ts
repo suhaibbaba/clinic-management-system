@@ -113,7 +113,7 @@ describe("Inventory (e2e)", () => {
 
   describe("quantity", () => {
     it("is the sum of every movement, and there is no field to set it with", async () => {
-      const itemId = await createItem({ nameAr: `قفازات ${uniquePhone()}`, minQuantity: "5" });
+      const itemId = await createItem({ name: `قفازات ${uniquePhone()}`, minQuantity: "5" });
 
       expect((await readItem(itemId)).quantity).toBe("0");
 
@@ -143,7 +143,7 @@ describe("Inventory (e2e)", () => {
     });
 
     it("counts a reversal as an ordinary negative row", async () => {
-      const itemId = await createItem({ nameAr: `كمامات ${uniquePhone()}` });
+      const itemId = await createItem({ name: `كمامات ${uniquePhone()}` });
 
       const purchase = await move("purchase", { itemId, quantity: "10", unitPrice: "2.00" });
       const purchaseId = (purchase.json() as StockMovement).id;
@@ -167,7 +167,7 @@ describe("Inventory (e2e)", () => {
     });
 
     it("refuses to reverse the same movement twice, or to reverse a reversal", async () => {
-      const itemId = await createItem({ nameAr: `مرايا ${uniquePhone()}` });
+      const itemId = await createItem({ name: `مرايا ${uniquePhone()}` });
       const purchase = await move("purchase", { itemId, quantity: "5" });
       const purchaseId = (purchase.json() as StockMovement).id;
 
@@ -199,7 +199,7 @@ describe("Inventory (e2e)", () => {
 
     it("keeps fractional units exact over many movements", async () => {
       const itemId = await createItem({
-        nameAr: `محلول ${uniquePhone()}`,
+        name: `محلول ${uniquePhone()}`,
         unit: ITEM_UNIT.ML,
       });
 
@@ -215,7 +215,7 @@ describe("Inventory (e2e)", () => {
 
   describe("movement rules", () => {
     it("requires a reason on an adjustment", async () => {
-      const itemId = await createItem({ nameAr: `أدوات ${uniquePhone()}` });
+      const itemId = await createItem({ name: `أدوات ${uniquePhone()}` });
 
       const without = await move("adjust", { itemId, quantity: "-1" });
       expect(without.statusCode).toBe(400);
@@ -233,7 +233,7 @@ describe("Inventory (e2e)", () => {
     });
 
     it("refuses a zero movement and a negative purchase", async () => {
-      const itemId = await createItem({ nameAr: `شاش ${uniquePhone()}` });
+      const itemId = await createItem({ name: `شاش ${uniquePhone()}` });
 
       expect((await move("adjust", { itemId, quantity: "0", reason: "لا شيء" })).statusCode).toBe(
         400,
@@ -242,7 +242,7 @@ describe("Inventory (e2e)", () => {
     });
 
     it("stores a consumption negative however it was asked for", async () => {
-      const itemId = await createItem({ nameAr: `إبر ${uniquePhone()}` });
+      const itemId = await createItem({ name: `إبر ${uniquePhone()}` });
       await move("purchase", { itemId, quantity: "10" });
 
       const consumed = await move("consume", { itemId, quantity: "3" });
@@ -255,7 +255,7 @@ describe("Inventory (e2e)", () => {
   describe("batches and flags", () => {
     it("drains the batch that goes off first and reports what is left", async () => {
       const itemId = await createItem({
-        nameAr: `مخدر ${uniquePhone()}`,
+        name: `مخدر ${uniquePhone()}`,
         category: ITEM_CATEGORY.MEDICATION,
         unit: ITEM_UNIT.AMPOULE,
         minQuantity: "5",
@@ -298,12 +298,12 @@ describe("Inventory (e2e)", () => {
     });
 
     it("flags low, expiring and expired, and lists them in the alerts", async () => {
-      const lowId = await createItem({ nameAr: `شاش منخفض ${uniquePhone()}`, minQuantity: "10" });
+      const lowId = await createItem({ name: `شاش منخفض ${uniquePhone()}`, minQuantity: "10" });
       await move("purchase", { itemId: lowId, quantity: "12" });
       await move("consume", { itemId: lowId, quantity: "4" });
 
       const expiringId = await createItem({
-        nameAr: `دواء قارب ${uniquePhone()}`,
+        name: `دواء قارب ${uniquePhone()}`,
         category: ITEM_CATEGORY.MEDICATION,
         minQuantity: "1",
       });
@@ -315,7 +315,7 @@ describe("Inventory (e2e)", () => {
       });
 
       const expiredId = await createItem({
-        nameAr: `دواء منتهٍ ${uniquePhone()}`,
+        name: `دواء منتهٍ ${uniquePhone()}`,
         category: ITEM_CATEGORY.MEDICATION,
         minQuantity: "1",
       });
@@ -349,7 +349,7 @@ describe("Inventory (e2e)", () => {
     });
 
     it("does not call an item low when it has no minimum set", async () => {
-      const itemId = await createItem({ nameAr: `بلا حد ${uniquePhone()}` });
+      const itemId = await createItem({ name: `بلا حد ${uniquePhone()}` });
 
       // Nothing bought, nothing used: zero of something nobody set a level for
       // is not a problem, it is an item that has never been stocked.
@@ -358,7 +358,7 @@ describe("Inventory (e2e)", () => {
   });
 
   it("shows the item card with a running quantity, newest first", async () => {
-    const itemId = await createItem({ nameAr: `بند ${uniquePhone()}` });
+    const itemId = await createItem({ name: `بند ${uniquePhone()}` });
 
     await move("purchase", { itemId, quantity: "10", unitPrice: "1.00", supplierId });
     await move("consume", { itemId, quantity: "4" });
@@ -398,7 +398,7 @@ describe("Inventory (e2e)", () => {
     const performedProcedureId = (procedure.json() as { id: string }).id;
 
     const itemId = await createItem({
-      nameAr: `ليدوكائين ${uniquePhone()}`,
+      name: `ليدوكائين ${uniquePhone()}`,
       category: ITEM_CATEGORY.MEDICATION,
       unit: ITEM_UNIT.AMPOULE,
     });
@@ -431,7 +431,7 @@ describe("Inventory (e2e)", () => {
 
   it("suggests twice the minimum less what is on the shelf", async () => {
     const itemId = await createItem({
-      nameAr: `قفازات نافدة ${uniquePhone()}`,
+      name: `قفازات نافدة ${uniquePhone()}`,
       minQuantity: "10",
     });
     await move("purchase", { itemId, quantity: "12" });
@@ -452,7 +452,7 @@ describe("Inventory (e2e)", () => {
   });
 
   it("totals what was bought from one supplier", async () => {
-    const itemId = await createItem({ nameAr: `بند مورّد ${uniquePhone()}` });
+    const itemId = await createItem({ name: `بند مورّد ${uniquePhone()}` });
 
     await move("purchase", { itemId, quantity: "10", unitPrice: "3", supplierId });
     await move("purchase", { itemId, quantity: "4", unitPrice: "3.00", supplierId });
@@ -488,7 +488,7 @@ describe("Inventory (e2e)", () => {
     let itemId: string;
 
     beforeAll(async () => {
-      itemId = await createItem({ nameAr: `بند الصلاحيات ${uniquePhone()}` });
+      itemId = await createItem({ name: `بند الصلاحيات ${uniquePhone()}` });
       await move("purchase", { itemId, quantity: "10" });
     });
 
@@ -540,7 +540,7 @@ describe("Inventory (e2e)", () => {
         method: "POST",
         url: "/inventory/items",
         headers: auth(token),
-        payload: { nameAr: "بند من طبيب", category: ITEM_CATEGORY.TOOL, unit: ITEM_UNIT.PIECE },
+        payload: { name: "بند من طبيب", category: ITEM_CATEGORY.TOOL, unit: ITEM_UNIT.PIECE },
       });
       expect(create.statusCode).toBe(403);
     });

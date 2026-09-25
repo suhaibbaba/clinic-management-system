@@ -241,8 +241,7 @@ describe("Lookups (e2e)", () => {
         payload: {
           specialtyId: clinic.specialtyId,
           code: "VNR-1",
-          nameAr: "وجه تجميلي",
-          nameEn: "Veneer",
+          name: "Veneer",
           defaultPrice: "150.00",
           chartOutcome: "veneer",
         },
@@ -260,8 +259,7 @@ describe("Lookups (e2e)", () => {
         payload: {
           specialtyId: clinic.specialtyId,
           code: "VNR-2",
-          nameAr: "غير معروف",
-          nameEn: "Unknown",
+          name: "Unknown",
           defaultPrice: "150.00",
           chartOutcome: "sparkles",
         },

@@ -128,7 +128,7 @@ export const READ_VIEWS: readonly ReadView[] = [
       { name: "patient_id" },
       { name: "visit_id" },
       { name: "doctor_id" },
-      { name: "procedure_name", sql: "p.name_ar" },
+      { name: "procedure_name", sql: "p.name" },
       { name: "status" },
       { name: "performed_at" },
       { name: "price" },
@@ -217,7 +217,7 @@ export const READ_VIEWS: readonly ReadView[] = [
     softDeleted: true,
     columns: [
       { name: "id" },
-      { name: "name", sql: "t.name_ar" },
+      { name: "name" },
       { name: "category" },
       { name: "unit" },
       { name: "min_quantity" },

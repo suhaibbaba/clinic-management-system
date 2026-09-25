@@ -1,7 +1,5 @@
-import { CLINICAL_DELETE_ERROR } from "@clinic/shared";
+import { CLINICAL_DELETE_ERROR, STOCK_ERROR } from "@clinic/shared";
 
-// Carries the HTTP status only — Arabic copy is resolved from that code on this side, never from
-// the backend's English message.
 export class ApiError extends Error {
   constructor(
     readonly statusCode: number,
@@ -23,6 +21,7 @@ export class NetworkError extends Error {
 // Refusals the API names by code, where the status alone would only say "conflict".
 const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [CLINICAL_DELETE_ERROR.HAS_PAYMENTS]: "errors.clinicalDelete.hasPayments",
+  [STOCK_ERROR.INSUFFICIENT]: "errors.stock.insufficient",
 };
 
 export function errorMessageKey(error: unknown): string {

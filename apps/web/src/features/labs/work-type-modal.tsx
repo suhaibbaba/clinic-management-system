@@ -39,13 +39,13 @@ export function WorkTypeModal({
     formState: { errors, isSubmitting },
   } = useForm<CreateLabWorkTypeInput>({
     resolver: zodResolver(createLabWorkTypeSchema),
-    defaultValues: { nameAr: "", defaultPrice: "", isActive: true },
+    defaultValues: { name: "", defaultPrice: "", isActive: true },
   });
 
   useEffect(() => {
     if (open) {
       reset({
-        nameAr: workType?.nameAr ?? "",
+        name: workType?.name ?? "",
         defaultPrice: workType?.defaultPrice ?? "",
         isActive: workType?.isActive ?? true,
       });
@@ -97,8 +97,14 @@ export function WorkTypeModal({
         className="flex flex-col gap-4"
         onSubmit={(event) => void submit(event)}
       >
-        <FormField label="labs.prices.name" htmlFor="work-type-name" error={errors.nameAr}>
-          <Input id="work-type-name" data-testid="work-type-field-name" {...register("nameAr")} />
+        <FormField label="labs.prices.name" htmlFor="work-type-name" error={errors.name}>
+          <Input
+            id="work-type-name"
+            data-testid="work-type-field-name"
+            dir="ltr"
+            placeholder="Zirconia crown"
+            {...register("name")}
+          />
         </FormField>
 
         <FormField

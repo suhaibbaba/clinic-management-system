@@ -1558,7 +1558,7 @@ export class AiActionsService {
           return {
             payload: movement,
             summary: {
-              stockItem: { id: item.id, name: item.nameAr, unit: item.unit },
+              stockItem: { id: item.id, name: item.name, unit: item.unit },
               movementType: movement.type,
               quantity: movement.input.quantity,
               ...(movement.type === MOVEMENT_TYPE.PURCHASE &&
@@ -1871,7 +1871,7 @@ export class AiActionsService {
           return {
             payload: { id: row.id, reason: args.reason },
             summary: {
-              stockItem: { id: item.id, name: item.nameAr, unit: item.unit },
+              stockItem: { id: item.id, name: item.name, unit: item.unit },
               movementType: row.type,
               quantity: row.quantity,
               recordedAt: row.createdAt.toISOString(),

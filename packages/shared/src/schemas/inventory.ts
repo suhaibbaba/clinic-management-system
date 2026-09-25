@@ -61,7 +61,7 @@ export type ListSuppliersQuery = z.infer<typeof listSuppliersQuerySchema>;
 export const inventoryItemSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
-  nameAr: z.string(),
+  name: z.string(),
   category: lookupCodeSchema,
   /** Fixed for the item's life: it is what makes its movements summable. */
   unit: lookupCodeSchema,
@@ -87,7 +87,7 @@ export const inventoryItemRowSchema = inventoryItemSchema.extend({
 export type InventoryItemRow = z.infer<typeof inventoryItemRowSchema>;
 
 const itemWritableFields = {
-  nameAr: z.string().trim().min(2).max(160),
+  name: z.string().trim().min(2).max(160),
   category: lookupCodeSchema,
   unit: lookupCodeSchema,
   minQuantity: quantitySchema.optional(),
@@ -228,7 +228,7 @@ export type InventoryAlerts = z.infer<typeof inventoryAlertsSchema>;
 // printed sheet, not an order.
 export const shoppingListLineSchema = z.object({
   itemId: uuidSchema,
-  nameAr: z.string(),
+  name: z.string(),
   category: lookupCodeSchema,
   unit: lookupCodeSchema,
   quantity: signedQuantitySchema,

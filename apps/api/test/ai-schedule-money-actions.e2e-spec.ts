@@ -299,7 +299,7 @@ describe("Assistant schedule and money corrections (e2e)", () => {
   describe("reverse_stock_movement", () => {
     it("reverses a purchase recorded by mistake behind a typed phrase", async () => {
       const itemId = await post(USER_ROLE.TECHNICIAN, "/inventory/items", {
-        nameAr: "إبر تخدير",
+        name: "إبر تخدير",
         category: ITEM_CATEGORY.CONSUMABLE,
         unit: ITEM_UNIT.PIECE,
         minQuantity: "5",

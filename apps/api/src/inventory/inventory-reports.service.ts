@@ -79,7 +79,7 @@ export class InventoryReportsService {
     const rows = await this.db
       .select({
         movement: stockMovements,
-        itemName: inventoryItems.nameAr,
+        itemName: inventoryItems.name,
         unit: inventoryItems.unit,
       })
       .from(stockMovements)
@@ -129,7 +129,7 @@ export class InventoryReportsService {
           eq(inventoryItems.isActive, true),
         ),
       )
-      .orderBy(asc(inventoryItems.nameAr));
+      .orderBy(asc(inventoryItems.name));
 
     return rows.map((row) => ({ ...row.item, supplierName: row.supplierName }));
   }
@@ -154,7 +154,7 @@ function toShoppingLine(item: InventoryItemRow): ShoppingListLine {
 
   return {
     itemId: item.id,
-    nameAr: item.nameAr,
+    name: item.name,
     category: item.category,
     unit: item.unit,
     quantity: item.quantity,

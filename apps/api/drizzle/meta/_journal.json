@@ -281,6 +281,34 @@
       "when": 1790349730673,
       "tag": "0039_attachment_type_optional",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1790372722721,
+      "tag": "0040_inventory_names_in_english",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1790373221658,
+      "tag": "0041_item_and_work_type_name",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1790373948424,
+      "tag": "0042_procedure_catalog_name",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1790373949338,
+      "tag": "0043_ai_read_views",
+      "breakpoints": true
     }
   ]
 }

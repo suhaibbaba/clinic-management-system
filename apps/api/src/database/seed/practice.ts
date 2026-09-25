@@ -5,7 +5,7 @@ export interface LabSeed {
   readonly phone: string;
   readonly address: string;
   readonly contactPerson: string;
-  readonly workTypes: readonly { readonly nameAr: string; readonly defaultPrice: string }[];
+  readonly workTypes: readonly { readonly name: string; readonly defaultPrice: string }[];
 }
 
 export const LABS: readonly LabSeed[] = [
@@ -15,10 +15,10 @@ export const LABS: readonly LabSeed[] = [
     address: "نابلس، شارع سفيان",
     contactPerson: "أبو أحمد",
     workTypes: [
-      { nameAr: "Zirconia crown", defaultPrice: "320.00" },
-      { nameAr: "PFM crown", defaultPrice: "180.00" },
-      { nameAr: "3-unit bridge", defaultPrice: "760.00" },
-      { nameAr: "Veneer", defaultPrice: "400.00" },
+      { name: "Zirconia crown", defaultPrice: "320.00" },
+      { name: "PFM crown", defaultPrice: "180.00" },
+      { name: "3-unit bridge", defaultPrice: "760.00" },
+      { name: "Veneer", defaultPrice: "400.00" },
     ],
   },
   {
@@ -27,9 +27,9 @@ export const LABS: readonly LabSeed[] = [
     address: "نابلس، رفيديا",
     contactPerson: "م. سامر",
     workTypes: [
-      { nameAr: "Full denture", defaultPrice: "900.00" },
-      { nameAr: "Partial denture", defaultPrice: "600.00" },
-      { nameAr: "Night guard", defaultPrice: "250.00" },
+      { name: "Full denture", defaultPrice: "900.00" },
+      { name: "Partial denture", defaultPrice: "600.00" },
+      { name: "Night guard", defaultPrice: "250.00" },
     ],
   },
   {
@@ -38,9 +38,9 @@ export const LABS: readonly LabSeed[] = [
     address: "نابلس، المخفية",
     contactPerson: "أ. هيثم",
     workTypes: [
-      { nameAr: "Zirconia crown", defaultPrice: "300.00" },
-      { nameAr: "Removable orthodontic appliance", defaultPrice: "450.00" },
-      { nameAr: "3-unit bridge", defaultPrice: "720.00" },
+      { name: "Zirconia crown", defaultPrice: "300.00" },
+      { name: "Removable orthodontic appliance", defaultPrice: "450.00" },
+      { name: "3-unit bridge", defaultPrice: "720.00" },
     ],
   },
 ];
@@ -68,7 +68,7 @@ export const SUPPLIERS: readonly SupplierSeed[] = [
 ];
 
 export interface ItemSeed {
-  readonly nameAr: string;
+  readonly name: string;
   readonly category: string;
   readonly unit: string;
   readonly minQuantity: string;
@@ -80,7 +80,7 @@ export interface ItemSeed {
 
 export const ITEMS: readonly ItemSeed[] = [
   {
-    nameAr: "قفازات فحص لاتكس — قياس M",
+    name: "Latex exam gloves — size M",
     category: ITEM_CATEGORY.CONSUMABLE,
     unit: ITEM_UNIT.BOX,
     minQuantity: "10",
@@ -89,7 +89,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "كمامات جراحية ثلاثية",
+    name: "3-ply surgical masks",
     category: ITEM_CATEGORY.CONSUMABLE,
     unit: ITEM_UNIT.BOX,
     minQuantity: "8",
@@ -98,7 +98,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "مخدر موضعي ليدوكائين 2%",
+    name: "Lidocaine 2% anaesthetic",
     category: ITEM_CATEGORY.MEDICATION,
     unit: ITEM_UNIT.AMPOULE,
     minQuantity: "30",
@@ -107,7 +107,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 1,
   },
   {
-    nameAr: "مخدر أرتيكائين 4%",
+    name: "Articaine 4% anaesthetic",
     category: ITEM_CATEGORY.MEDICATION,
     unit: ITEM_UNIT.AMPOULE,
     minQuantity: "20",
@@ -116,7 +116,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 1,
   },
   {
-    nameAr: "حشوة كومبوزيت A2",
+    name: "Composite A2",
     category: ITEM_CATEGORY.CONSUMABLE,
     unit: ITEM_UNIT.PIECE,
     minQuantity: "15",
@@ -125,7 +125,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "حشوة كومبوزيت A3",
+    name: "Composite A3",
     category: ITEM_CATEGORY.CONSUMABLE,
     unit: ITEM_UNIT.PIECE,
     minQuantity: "15",
@@ -134,7 +134,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "أسيد إتش 37%",
+    name: "Etching acid 37%",
     category: ITEM_CATEGORY.CONSUMABLE,
     unit: ITEM_UNIT.ML,
     minQuantity: "20",
@@ -143,7 +143,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "بوندنغ",
+    name: "Bonding agent",
     category: ITEM_CATEGORY.CONSUMABLE,
     unit: ITEM_UNIT.ML,
     minQuantity: "10",
@@ -152,7 +152,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "مبارد لبية K-File",
+    name: "K-File endodontic files",
     category: ITEM_CATEGORY.TOOL,
     unit: ITEM_UNIT.PACK,
     minQuantity: "5",
@@ -161,7 +161,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "كون غوتا بيركا",
+    name: "Gutta-percha points",
     category: ITEM_CATEGORY.CONSUMABLE,
     unit: ITEM_UNIT.BOX,
     minQuantity: "4",
@@ -170,7 +170,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "هيبوكلوريت الصوديوم 5%",
+    name: "Sodium hypochlorite 5%",
     category: ITEM_CATEGORY.MEDICATION,
     unit: ITEM_UNIT.ML,
     minQuantity: "200",
@@ -179,7 +179,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 1,
   },
   {
-    nameAr: "أكياس تعقيم ذاتية اللصق",
+    name: "Self-sealing sterilisation pouches",
     category: ITEM_CATEGORY.STERILIZATION,
     unit: ITEM_UNIT.BOX,
     minQuantity: "5",
@@ -188,7 +188,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "شرائط اختبار الأوتوكلاف",
+    name: "Autoclave test strips",
     category: ITEM_CATEGORY.STERILIZATION,
     unit: ITEM_UNIT.PACK,
     minQuantity: "3",
@@ -197,7 +197,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "إبر تخدير 27G",
+    name: "Anaesthetic needles 27G",
     category: ITEM_CATEGORY.CONSUMABLE,
     unit: ITEM_UNIT.BOX,
     minQuantity: "6",
@@ -206,7 +206,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 1,
   },
   {
-    nameAr: "شفاطات لعاب",
+    name: "Saliva ejectors",
     category: ITEM_CATEGORY.CONSUMABLE,
     unit: ITEM_UNIT.PACK,
     minQuantity: "10",
@@ -215,7 +215,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "قوالب طبعة سيليكون",
+    name: "Silicone impression material",
     category: ITEM_CATEGORY.CONSUMABLE,
     unit: ITEM_UNIT.PACK,
     minQuantity: "4",
@@ -224,7 +224,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "جبس أسنان من النوع الرابع",
+    name: "Type IV dental stone",
     category: ITEM_CATEGORY.CONSUMABLE,
     unit: ITEM_UNIT.G,
     minQuantity: "2000",
@@ -233,7 +233,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "فرايز ألماسية",
+    name: "Diamond burs",
     category: ITEM_CATEGORY.TOOL,
     unit: ITEM_UNIT.PACK,
     minQuantity: "6",
@@ -242,7 +242,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "خيط تراجع لثوي",
+    name: "Gingival retraction cord",
     category: ITEM_CATEGORY.CONSUMABLE,
     unit: ITEM_UNIT.PIECE,
     minQuantity: "3",
@@ -251,7 +251,7 @@ export const ITEMS: readonly ItemSeed[] = [
     supplier: 0,
   },
   {
-    nameAr: "محلول كلورهيكسيدين للمضمضة",
+    name: "Chlorhexidine mouthwash",
     category: ITEM_CATEGORY.MEDICATION,
     unit: ITEM_UNIT.ML,
     minQuantity: "500",

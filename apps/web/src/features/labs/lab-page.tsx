@@ -207,7 +207,7 @@ function PriceListTab({ labId }: { readonly labId: string }): JSX.Element {
   const mayEdit = canManageLabs(can);
 
   const columns: readonly Column<LabWorkType>[] = [
-    { key: "name", header: "labs.prices.name", primary: true, render: (row) => row.nameAr },
+    { key: "name", header: "labs.prices.name", primary: true, render: (row) => row.name },
     {
       key: "price",
       header: "labs.prices.price",

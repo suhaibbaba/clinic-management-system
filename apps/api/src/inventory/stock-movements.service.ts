@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -7,6 +8,7 @@ import {
 } from "@nestjs/common";
 import {
   MOVEMENT_TYPE,
+  STOCK_ERROR,
   formatThousandths,
   negateQuantity,
   toThousandths,
@@ -102,7 +104,7 @@ export class StockMovementsService implements OnModuleInit {
           movement: stockMovements,
           supplierName: suppliers.name,
           patientName: patients.fullName,
-          procedureName: procedureCatalog.nameAr,
+          procedureName: procedureCatalog.name,
           createdByNameAr: users.nameAr,
           createdByNameEn: users.nameEn,
           runningQuantity: sql<string>`sum(${stockMovements.quantity}) over (
@@ -168,6 +170,18 @@ export class StockMovementsService implements OnModuleInit {
   // rather than trusted from the request.
   async consume(actor: AuthenticatedUser, input: ConsumeStockInput): Promise<StockMovement> {
     await this.items.requireRow(actor.clinicId, input.itemId);
+
+    // A use cannot take out what is not on the shelf; a miscount is corrected with an adjustment.
+    const [stock] = await this.db
+      .select({ onHand: sql<string>`coalesce(sum(${stockMovements.quantity}), 0)::text` })
+      .from(stockMovements)
+      .where(
+        and(eq(stockMovements.clinicId, actor.clinicId), eq(stockMovements.itemId, input.itemId)),
+      );
+
+    if (toThousandths(input.quantity) > toThousandths(stock?.onHand ?? "0")) {
+      throw new ConflictException(STOCK_ERROR.INSUFFICIENT);
+    }
 
     let patientId = input.patientId ?? null;
 

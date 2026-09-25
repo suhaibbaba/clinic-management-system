@@ -422,6 +422,9 @@
     },
     "clinicalDelete": {
       "hasPayments": "Cannot delete — payments cover it. Reverse the payments first, or record a correction."
+    },
+    "stock": {
+      "insufficient": "More than is in stock; add stock or correct the count first"
     }
   },
   "patients": {
@@ -1154,7 +1157,8 @@
       "minQuantity": "Minimum",
       "minHint": "Reaching it puts the item in the alerts and on the shopping list",
       "supplier": "Default supplier",
-      "active": "Active"
+      "active": "Active",
+      "nameHint": "In English, as it is written on the pack"
     },
     "movement": {
       "onHand": "In stock now",
@@ -1205,7 +1209,10 @@
         "purchase": "Purchase recorded",
         "consume": "Use recorded",
         "adjust": "Adjustment recorded"
-      }
+      },
+      "restock": "Add stock (a purchase)",
+      "backToUse": "Back to using it",
+      "overStock": "More than is in stock"
     },
     "shoppingList": {
       "title": "Shopping list",

@@ -1,6 +1,7 @@
 import {
   LOOKUP_LIST,
   MOVEMENT_TYPE,
+  toThousandths,
   type InventoryItemRow,
   type MovementType,
 } from "@clinic/shared";
@@ -10,6 +11,7 @@ import {
   Button,
   DatePicker,
   FormField,
+  Icon,
   Input,
   Ltr,
   Modal,
@@ -51,6 +53,7 @@ export interface MovementModalProps {
   readonly "data-testid"?: string | undefined;
   readonly type: MovementType | null;
   readonly item: InventoryItemRow | undefined;
+  readonly choices?: readonly InventoryItemRow[] | undefined;
   readonly onClose: () => void;
   readonly patient?: PickedPatient | undefined;
   readonly performedProcedureId?: string | undefined;
@@ -60,7 +63,8 @@ export interface MovementModalProps {
 // sign is never a field — "how many did you use" is positive and stored negative.
 export function MovementModal({
   type,
-  item,
+  item: fixedItem,
+  choices,
   onClose,
   patient,
   performedProcedureId,
@@ -86,6 +90,11 @@ export function MovementModal({
   const [reason, setReason] = useState("");
   const [direction, setDirection] = useState<"add" | "remove">("remove");
   const [linkedPatient, setLinkedPatient] = useState<PatientChoice | null>(null);
+  const [pickedId, setPickedId] = useState("");
+  // Restocking is a purchase of the item in hand, recorded without leaving the use it was for.
+  const [restocking, setRestocking] = useState(false);
+
+  const item = fixedItem ?? choices?.find((choice) => choice.id === pickedId);
 
   useEffect(() => {
     if (type === null) {
@@ -94,25 +103,41 @@ export function MovementModal({
 
     setQuantity("");
     setUnitPrice("");
-    setSupplierId(item?.defaultSupplierId ?? "");
+    setPickedId("");
+    setRestocking(false);
+    setSupplierId(fixedItem?.defaultSupplierId ?? "");
     setBatchNo("");
     setExpiryDate("");
     setReason("");
     setDirection("remove");
     setLinkedPatient(patient ? { kind: "existing", patient } : null);
-  }, [type, item, patient]);
+  }, [type, fixedItem, patient]);
 
-  if (type === null || !item) {
+  if (type === null || (!fixedItem && !choices)) {
     return null;
   }
 
+  const mode = restocking ? MOVEMENT_TYPE.PURCHASE : type;
+  const overdrawn =
+    mode === MOVEMENT_TYPE.CONSUME &&
+    item !== undefined &&
+    quantity.trim() !== "" &&
+    toThousandths(quantity.trim()) > toThousandths(item.quantity);
+
   const busy = purchase.isPending || consume.isPending || adjust.isPending;
   const canSubmit =
-    quantity.trim() !== "" && (type !== MOVEMENT_TYPE.ADJUST || reason.trim().length >= 3);
+    item !== undefined &&
+    quantity.trim() !== "" &&
+    !overdrawn &&
+    (type !== MOVEMENT_TYPE.ADJUST || reason.trim().length >= 3);
 
   const submit = async (): Promise<void> => {
+    if (!item) {
+      return;
+    }
+
     try {
-      if (type === MOVEMENT_TYPE.PURCHASE) {
+      if (mode === MOVEMENT_TYPE.PURCHASE) {
         await purchase.mutateAsync({
           itemId: item.id,
           quantity: quantity.trim(),
@@ -121,7 +146,7 @@ export function MovementModal({
           ...(batchNo.trim() !== "" && { batchNo: batchNo.trim() }),
           ...(expiryDate !== "" && { expiryDate }),
         });
-      } else if (type === MOVEMENT_TYPE.CONSUME) {
+      } else if (mode === MOVEMENT_TYPE.CONSUME) {
         await consume.mutateAsync({
           itemId: item.id,
           quantity: quantity.trim(),
@@ -139,7 +164,17 @@ export function MovementModal({
         });
       }
 
-      toast.success(`inventory.movement.recorded.${type}`);
+      toast.success(`inventory.movement.recorded.${mode}`);
+
+      if (restocking) {
+        setRestocking(false);
+        setQuantity("");
+        setUnitPrice("");
+        setBatchNo("");
+        setExpiryDate("");
+        return;
+      }
+
       onClose();
     } catch (error) {
       toast.error(errorMessageKey(error));
@@ -151,8 +186,16 @@ export function MovementModal({
       data-testid={testId}
       open
       onOpenChange={(open) => !open && onClose()}
-      title={t(`inventory.movement.title.${type}`, { item: item.nameAr })}
-      description={t(`inventory.movement.description.${type}`)}
+      title={
+        item
+          ? t(`inventory.movement.title.${mode}`, { item: item.name })
+          : t("inventory.movement.consumeFromVisit")
+      }
+      description={
+        choices
+          ? t("inventory.movement.consumeFromVisitDescription")
+          : t(`inventory.movement.description.${mode}`)
+      }
       footer={
         <>
           <Button variant="secondary" data-testid={`${testId}-cancel`} onClick={onClose}>
@@ -164,26 +207,58 @@ export function MovementModal({
             isLoading={busy}
             onClick={() => void submit()}
           >
-            {t(`inventory.movement.submit.${type}`)}
+            {t(`inventory.movement.submit.${mode}`)}
           </Button>
         </>
       }
     >
       <div data-testid={`${testId}-form`} className="flex flex-col gap-4">
-        {/* What is on the shelf right now, so the number being typed has
-            something to be judged against. */}
-        <div
-          data-testid={`${testId}-on-hand`}
-          className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2"
-        >
-          <span className="text-label text-ink-muted">{t("inventory.movement.onHand")}</span>
-          <span className="flex items-baseline gap-1.5">
-            <Ltr className="font-medium tabular-nums text-ink">{item.quantity}</Ltr>
-            <span className="text-label text-ink-muted">{unitLabel(item.unit)}</span>
-          </span>
-        </div>
+        {choices && (
+          <FormField label="inventory.movement.item" htmlFor="movement-item" required>
+            <Select
+              searchable
+              id="movement-item"
+              data-testid="movement-field-item"
+              value={pickedId}
+              placeholder={t("inventory.movement.selectItem")}
+              onChange={(event) => setPickedId(event.target.value)}
+              options={choices.map((choice) => ({
+                value: choice.id,
+                label: `${choice.name} — ${choice.quantity} ${unitLabel(choice.unit)}`,
+              }))}
+            />
+          </FormField>
+        )}
+        {item && (
+          <div
+            data-testid={`${testId}-on-hand`}
+            className="flex items-baseline justify-between rounded-panel bg-inset px-3 py-2"
+          >
+            <span className="text-label text-ink-muted">{t("inventory.movement.onHand")}</span>
+            <span className="flex items-baseline gap-1.5">
+              <Ltr className="font-medium tabular-nums text-ink">{item.quantity}</Ltr>
+              <span className="text-label text-ink-muted">{unitLabel(item.unit)}</span>
+            </span>
+          </div>
+        )}
 
-        {type === MOVEMENT_TYPE.ADJUST && (
+        {item && type === MOVEMENT_TYPE.CONSUME && canPurchaseStock(can) && (
+          <Button
+            size="sm"
+            variant="quiet"
+            className="-mt-2 self-start"
+            icon={<Icon name={restocking ? "chevron-start" : "plus"} />}
+            data-testid={`${testId}-restock`}
+            onClick={() => {
+              setRestocking(!restocking);
+              setQuantity("");
+              setSupplierId(item.defaultSupplierId ?? "");
+            }}
+          >
+            {t(restocking ? "inventory.movement.backToUse" : "inventory.movement.restock")}
+          </Button>
+        )}
+        {mode === MOVEMENT_TYPE.ADJUST && (
           <FormField label="inventory.movement.direction" htmlFor="movement-direction">
             <Select
               id="movement-direction"
@@ -197,11 +272,14 @@ export function MovementModal({
             />
           </FormField>
         )}
-
         <FormField
           label="inventory.movement.quantity"
           htmlFor="movement-quantity"
-          hint={unitLabel(item.unit)}
+          {...(item && { hint: unitLabel(item.unit) })}
+          {...(overdrawn && {
+            error: { type: "too_big" },
+            errorKey: "inventory.movement.overStock",
+          })}
           required
         >
           <Input
@@ -215,7 +293,7 @@ export function MovementModal({
           />
         </FormField>
 
-        {type === MOVEMENT_TYPE.PURCHASE && (
+        {mode === MOVEMENT_TYPE.PURCHASE && (
           <>
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField label="inventory.movement.unitPrice" htmlFor="movement-price" optional>
@@ -228,7 +306,6 @@ export function MovementModal({
                   onChange={(event) => setUnitPrice(event.target.value)}
                 />
               </FormField>
-
               <FormField label="inventory.movement.supplier" htmlFor="movement-supplier" optional>
                 <Select
                   id="movement-supplier"
@@ -243,7 +320,6 @@ export function MovementModal({
                 />
               </FormField>
             </div>
-
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField label="inventory.movement.batchNo" htmlFor="movement-batch" optional>
                 <Input
@@ -255,7 +331,6 @@ export function MovementModal({
                   onChange={(event) => setBatchNo(event.target.value)}
                 />
               </FormField>
-
               <FormField label="inventory.movement.expiry" htmlFor="movement-expiry" optional>
                 <DatePicker
                   id="movement-expiry"
@@ -268,8 +343,7 @@ export function MovementModal({
             </div>
           </>
         )}
-
-        {type === MOVEMENT_TYPE.CONSUME && !performedProcedureId && (
+        {mode === MOVEMENT_TYPE.CONSUME && !performedProcedureId && (
           <FormField label="inventory.movement.patient" htmlFor="movement-patient" optional>
             {/* Registering somebody is beside the point here: the patient is optional, so a name
                 the store does not know is simply left off. */}
@@ -281,8 +355,7 @@ export function MovementModal({
             />
           </FormField>
         )}
-
-        {type === MOVEMENT_TYPE.CONSUME && performedProcedureId && (
+        {mode === MOVEMENT_TYPE.CONSUME && performedProcedureId && (
           <p
             data-testid={`${testId}-linked-procedure`}
             className="rounded-panel bg-inset px-3 py-2 text-label text-ink-muted"
@@ -290,13 +363,12 @@ export function MovementModal({
             {t("inventory.movement.linkedToProcedure")}
           </p>
         )}
-
         <FormField
           label={
-            type === MOVEMENT_TYPE.ADJUST ? "inventory.movement.reason" : "inventory.movement.note"
+            mode === MOVEMENT_TYPE.ADJUST ? "inventory.movement.reason" : "inventory.movement.note"
           }
           htmlFor="movement-reason"
-          {...(type === MOVEMENT_TYPE.ADJUST
+          {...(mode === MOVEMENT_TYPE.ADJUST
             ? { required: true, hint: t("inventory.movement.reasonHint") }
             : { optional: true })}
         >
@@ -305,7 +377,7 @@ export function MovementModal({
             data-testid="movement-field-reason"
             rows={2}
             placeholder={
-              type === MOVEMENT_TYPE.ADJUST ? t("inventory.movement.reasonPlaceholder") : ""
+              mode === MOVEMENT_TYPE.ADJUST ? t("inventory.movement.reasonPlaceholder") : ""
             }
             value={reason}
             onChange={(event) => setReason(event.target.value)}
@@ -313,7 +385,7 @@ export function MovementModal({
         </FormField>
 
         {/* Cosmetic only: the API refuses the same thing, and says so. */}
-        {!mayRecord(type, can) && (
+        {!mayRecord(mode, can) && (
           <p
             role="alert"
             data-testid={`${testId}-not-allowed`}

@@ -57,7 +57,7 @@ export class LabWorkTypesService implements OnModuleInit {
           includeInactive ? undefined : eq(labWorkTypes.isActive, true),
         ),
       )
-      .orderBy(asc(labWorkTypes.nameAr));
+      .orderBy(asc(labWorkTypes.name));
 
     return rows.map(toWorkType);
   }
@@ -73,7 +73,7 @@ export class LabWorkTypesService implements OnModuleInit {
       .insert(labWorkTypes)
       .values({
         labId,
-        nameAr: input.nameAr,
+        name: input.name,
         defaultPrice: input.defaultPrice,
         ...(input.isActive !== undefined && { isActive: input.isActive }),
         createdBy: actor.id,
@@ -98,7 +98,7 @@ export class LabWorkTypesService implements OnModuleInit {
     const [row] = await this.db
       .update(labWorkTypes)
       .set({
-        ...(input.nameAr !== undefined && { nameAr: input.nameAr }),
+        ...(input.name !== undefined && { name: input.name }),
         ...(input.defaultPrice !== undefined && { defaultPrice: input.defaultPrice }),
         ...(input.isActive !== undefined && { isActive: input.isActive }),
         updatedAt: new Date(),
@@ -152,7 +152,7 @@ export function toWorkType(row: WorkTypeRow): LabWorkType {
   return {
     id: row.id,
     labId: row.labId,
-    nameAr: row.nameAr,
+    name: row.name,
     defaultPrice: row.defaultPrice,
     isActive: row.isActive,
   };

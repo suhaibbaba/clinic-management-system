@@ -66,12 +66,12 @@ describe("Labs (e2e)", () => {
     await context.close();
   });
 
-  async function createWorkType(nameAr: string, defaultPrice: string): Promise<string> {
+  async function createWorkType(name: string, defaultPrice: string): Promise<string> {
     const response = await context.app.inject({
       method: "POST",
       url: `/labs/${labId}/work-types`,
       headers: auth(tokens[USER_ROLE.TECHNICIAN]),
-      payload: { nameAr, defaultPrice },
+      payload: { name, defaultPrice },
     });
 
     expect(response.statusCode).toBe(201);

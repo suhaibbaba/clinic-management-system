@@ -29,6 +29,13 @@ export const LOOKUP_LIST_KEYS = [
 
 export const COLOURED_LOOKUP_LISTS: readonly LookupListKey[] = [LOOKUP_LIST.TOOTH_STATE];
 
+/** Lists named in English in both languages: units, stock categories and drugs, as a pack reads. */
+export const ENGLISH_ONLY_LOOKUP_LISTS: readonly LookupListKey[] = [
+  LOOKUP_LIST.ITEM_UNIT,
+  LOOKUP_LIST.ITEM_CATEGORY,
+  LOOKUP_LIST.FREQUENT_DRUG,
+];
+
 export const DEFAULT_LOOKUP_COLOUR = "#7c3aed";
 
 export type ToothArea = "crown" | "root" | "whole";
@@ -158,19 +165,19 @@ export const SYSTEM_LOOKUPS: Readonly<Record<LookupListKey, readonly SystemLooku
   ],
 
   [LOOKUP_LIST.ITEM_CATEGORY]: [
-    { code: "medication", nameAr: "أدوية", nameEn: "Medication" },
-    { code: "consumable", nameAr: "مستهلكات", nameEn: "Consumable" },
-    { code: "tool", nameAr: "أدوات", nameEn: "Tool" },
-    { code: "sterilization", nameAr: "تعقيم", nameEn: "Sterilisation" },
+    { code: "medication", nameAr: "Medication", nameEn: "Medication" },
+    { code: "consumable", nameAr: "Consumable", nameEn: "Consumable" },
+    { code: "tool", nameAr: "Tool", nameEn: "Tool" },
+    { code: "sterilization", nameAr: "Sterilisation", nameEn: "Sterilisation" },
   ],
 
   [LOOKUP_LIST.ITEM_UNIT]: [
-    { code: "piece", nameAr: "قطعة", nameEn: "piece" },
-    { code: "box", nameAr: "علبة", nameEn: "box" },
-    { code: "pack", nameAr: "رزمة", nameEn: "pack" },
-    { code: "ml", nameAr: "مل", nameEn: "ml" },
-    { code: "g", nameAr: "غ", nameEn: "g" },
-    { code: "ampoule", nameAr: "أمبولة", nameEn: "ampoule" },
+    { code: "piece", nameAr: "piece", nameEn: "piece" },
+    { code: "box", nameAr: "box", nameEn: "box" },
+    { code: "pack", nameAr: "pack", nameEn: "pack" },
+    { code: "ml", nameAr: "ml", nameEn: "ml" },
+    { code: "g", nameAr: "g", nameEn: "g" },
+    { code: "ampoule", nameAr: "ampoule", nameEn: "ampoule" },
   ],
 
   [LOOKUP_LIST.PAYMENT_METHOD]: [

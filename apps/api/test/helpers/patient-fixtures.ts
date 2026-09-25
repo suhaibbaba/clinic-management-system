@@ -37,8 +37,7 @@ export async function seedClinicFixtures(
     payload: {
       specialtyId: clinic.specialtyId,
       code: `PROC-${randomUUID().slice(0, 8)}`,
-      nameAr: "حشوة تجميلية",
-      nameEn: "Composite filling",
+      name: "Composite filling",
       defaultPrice: "60.00",
       chartOutcome: PROCEDURE_OUTCOME.FILLING,
     },
