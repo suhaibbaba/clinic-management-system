@@ -43,6 +43,9 @@ export function Tabs<TId extends string>({
         // draw a grey bar across the page that the pills then have to fight.
         "flex items-center gap-2",
         "max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        // iOS draws its scroll indicator inside the box's bottom edge whatever the CSS says; the
+        // padding keeps it under the pills rather than across them.
+        "pb-2 sm:pb-0",
         "sm:inline-flex sm:flex-wrap sm:self-start sm:overflow-visible",
         className,
       )}

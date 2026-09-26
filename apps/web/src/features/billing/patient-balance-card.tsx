@@ -1,7 +1,6 @@
 import { LEDGER_ENTRY_KIND } from "@clinic/shared";
 import { type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge } from "@clinic/ui";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { Money } from "@web/features/billing/money";
 import { usePatientBalance, useStatement } from "@web/features/billing/queries";
@@ -38,16 +37,18 @@ export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.El
             className="font-medium"
           />
         )}
-
-        {dueToday > 0 && (
-          <Badge tone="warning" data-testid="patient-due-today">
-            <span className="inline-flex items-center gap-1">
-              {t("billing.dueToday")}:
-              <Money amount={(dueToday / 100).toFixed(2)} currency={currency} />
-            </span>
-          </Badge>
-        )}
       </dd>
+      {/* A line, not a pill: a pill cannot wrap, and a narrow cell cut the amount off. */}
+      {dueToday > 0 && (
+        <p
+          data-testid="patient-due-today"
+          className="mt-1 flex flex-wrap items-center gap-x-1 text-meta font-medium text-warning-700"
+        >
+          <span className="size-1.5 shrink-0 rounded-pill bg-current" aria-hidden="true" />
+          {t("billing.dueToday")}:
+          <Money amount={(dueToday / 100).toFixed(2)} currency={currency} />
+        </p>
+      )}
     </div>
   );
 }

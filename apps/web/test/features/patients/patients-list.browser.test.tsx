@@ -38,5 +38,11 @@ describe("the patients list on a phone", () => {
 
     // Truncated text is wider than the box that shows it.
     expect(name.scrollWidth).toBeLessThanOrEqual(name.clientWidth);
+
+    const badgeLine = (await screen.findByTestId("patient-incomplete"))
+      .parentElement as HTMLElement;
+    expect(
+      Math.round(badgeLine.getBoundingClientRect().top - name.getBoundingClientRect().bottom),
+    ).toBe(8);
   });
 });
