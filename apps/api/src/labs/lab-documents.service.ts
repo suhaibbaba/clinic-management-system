@@ -1,12 +1,22 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import {
+  currencySymbol,
+  formatMinorUnits,
   LAB_STATEMENT_ENTRY_KIND,
   personName,
+  toMinorUnits,
   type LabStatement,
   type Money,
   type StatementQuery,
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
+import { isolateLtr } from "@api/billing/pdf/arabic-text";
+import {
+  documentDate,
+  documentDateTime,
+  documentMoney,
+  fillPage,
+} from "@api/billing/pdf/document-format";
 import { documentDirection, documentStrings } from "@api/billing/pdf/document-strings";
 import { LetterheadService } from "@api/billing/pdf/letterhead.service";
 import { RtlPdf } from "@api/billing/pdf/pdf-builder";
@@ -15,9 +25,6 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { doctors, labWorkTypes, labs, patients, users } from "@api/database/schema";
 import { labOrders } from "@api/database/schema";
 import { LabLedgerService } from "@api/labs/lab-ledger.service";
-
-/** Technical values read left to right even inside an Arabic document. */
-const LTR = { dir: "ltr" } as const;
 
 @Injectable()
 export class LabDocumentsService {
@@ -54,40 +61,50 @@ export class LabDocumentsService {
     const strings = documentStrings(clinic.language).labOrder;
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
-    await this.letterheads.draw(pdf, clinic);
-    pdf.text(strings.title, { size: 16, weight: "bold", align: "centre", gap: 14 });
-
-    pdf.field(strings.lab, row.labName);
-    pdf.field(strings.number, shortId(row.order.id), LTR);
-    pdf.field(strings.date, formatDate(new Date().toISOString()), LTR);
-    pdf.space(6);
-
-    pdf.field(strings.patient, firstName(row.patientName));
-    pdf.field(
-      strings.doctor,
-      personName({ ar: row.doctorNameAr, en: row.doctorNameEn }, clinic.language),
+    const zone = clinic.timeZone;
+    await this.letterheads.draw(pdf, clinic, strings.title, isolateLtr(shortId(row.order.id)));
+    pdf.footer((page, total) =>
+      fillPage(documentStrings(clinic.language).common.page, page, total),
     );
-    pdf.space(6);
 
-    pdf.field(strings.workType, row.workTypeName ?? "—");
-    pdf.field(strings.teeth, row.order.teeth.length > 0 ? row.order.teeth.join("، ") : "—", LTR);
-    pdf.field(strings.material, row.order.material ?? "—");
-    pdf.field(strings.shade, row.order.shade ?? "—", LTR);
-    pdf.field(
-      strings.expected,
-      row.order.expectedAt ? formatDate(row.order.expectedAt.toISOString()) : "—",
-      LTR,
+    pdf.infoGrid([
+      { label: strings.lab, value: row.labName },
+      { label: strings.date, value: documentDate(new Date().toISOString(), zone), ltr: true },
+      { label: strings.patient, value: firstName(row.patientName) },
+      {
+        label: strings.doctor,
+        value: personName({ ar: row.doctorNameAr, en: row.doctorNameEn }, clinic.language),
+      },
+    ]);
+
+    pdf.infoGrid(
+      [
+        { label: strings.workType, value: row.workTypeName ?? "—" },
+        {
+          label: strings.teeth,
+          value: row.order.teeth.length > 0 ? row.order.teeth.join(" · ") : "—",
+          ltr: true,
+        },
+        { label: strings.material, value: row.order.material ?? "—", ltr: true },
+        { label: strings.shade, value: row.order.shade ?? "—", ltr: true },
+        {
+          label: strings.expected,
+          value: row.order.expectedAt
+            ? documentDate(row.order.expectedAt.toISOString(), zone)
+            : "—",
+          ltr: true,
+        },
+      ],
+      3,
     );
 
     if (row.order.instructions) {
-      pdf.space(8);
-      pdf.text(strings.instructions, { size: 12, weight: "bold", gap: 4 });
-      pdf.text(row.order.instructions, { size: 11 });
+      pdf.text(strings.instructions, { size: 11, weight: "bold", gap: 2 });
+      pdf.text(row.order.instructions, { size: 10.5, gap: 12 });
     }
 
-    pdf.space(28);
-    pdf.rule();
-    pdf.text(`${strings.signature}: ____________________`, { size: 10 });
+    pdf.space(12);
+    pdf.signatures([strings.signature]);
 
     return pdf.save();
   }
@@ -99,50 +116,78 @@ export class LabDocumentsService {
     const strings = documentStrings(clinic.language).labStatement;
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
-    await this.letterheads.draw(pdf, clinic);
-    pdf.text(strings.title, { size: 16, weight: "bold", align: "centre", gap: 14 });
+    const zone = clinic.timeZone;
+    const money = (amount: Money): string => documentMoney(amount, clinic.currency);
+    const figure = (amount: Money): string => documentMoney(amount, "");
+    const symbol = currencySymbol(clinic.currency);
+    const withSymbol = (header: string): string => (symbol ? `${header} (${symbol})` : header);
 
-    pdf.field(strings.lab, statement.labName);
-    pdf.field(statement.from ? strings.period : strings.periodUntil, formatPeriod(statement), LTR);
-    pdf.field(strings.printedAt, formatDate(new Date().toISOString()), LTR);
-    pdf.space(8);
-    pdf.field(strings.openingBalance, formatAmount(statement.openingBalance, clinic.currency), LTR);
-    pdf.space(6);
+    await this.letterheads.draw(pdf, clinic, strings.title);
+    pdf.footer((page, total) =>
+      fillPage(documentStrings(clinic.language).common.page, page, total),
+    );
+
+    pdf.infoGrid([
+      { label: strings.lab, value: statement.labName },
+      {
+        label: strings.printedAt,
+        value: documentDateTime(new Date().toISOString(), zone),
+        ltr: true,
+      },
+      {
+        label: statement.from ? strings.period : strings.periodUntil,
+        value: formatPeriod(statement, zone),
+        ltr: true,
+      },
+    ]);
+
+    let owed = 0;
+    let paid = 0;
 
     if (statement.entries.length === 0) {
-      pdf.text(strings.empty, { size: 11 });
+      pdf.text(strings.empty, { size: 11, colour: [0.38, 0.44, 0.49], align: "centre", gap: 12 });
     } else {
       pdf.table(
         [
-          { width: 1.4, header: strings.columns.date },
-          { width: 3.4, header: strings.columns.description },
-          { width: 1.2, header: strings.columns.order, align: "end" },
-          { width: 1.2, header: strings.columns.payment, align: "end" },
-          { width: 1.4, header: strings.columns.balance, align: "end" },
+          { width: 1.3, header: strings.columns.date, ltr: true },
+          { width: 3.6, header: strings.columns.description },
+          { width: 1.2, header: withSymbol(strings.columns.order), align: "end", ltr: true },
+          { width: 1.2, header: withSymbol(strings.columns.payment), align: "end", ltr: true },
+          { width: 1.3, header: withSymbol(strings.columns.balance), align: "end", ltr: true },
         ],
         statement.entries.map((entry) => {
           const isPayment = entry.kind === LAB_STATEMENT_ENTRY_KIND.PAYMENT;
-          const description = entry.isReversal
-            ? `${entry.description} (${strings.reversal})`.trim()
-            : entry.description;
+          const minor = toMinorUnits(entry.amount);
+
+          if (isPayment) {
+            paid -= minor;
+          } else {
+            owed += minor;
+          }
 
           return [
-            formatDate(entry.occurredAt),
-            description || (isPayment ? strings.columns.payment : strings.columns.order),
-            isPayment ? "" : entry.amount,
-            isPayment ? entry.amount.replace("-", "") : "",
-            entry.runningBalance,
+            documentDate(entry.occurredAt, zone),
+            {
+              text:
+                entry.description || (isPayment ? strings.columns.payment : strings.columns.order),
+              sub: entry.isReversal ? strings.reversal : undefined,
+            },
+            isPayment ? "" : figure(entry.amount),
+            isPayment ? figure(formatMinorUnits(-minor)) : "",
+            { text: figure(entry.runningBalance), weight: "medium" as const },
           ];
         }),
       );
     }
 
-    pdf.space(10);
-    pdf.rule();
-    pdf.field(strings.closingBalance, formatAmount(statement.closingBalance, clinic.currency), {
-      size: 13,
-      dir: "ltr",
-    });
+    pdf.totals([
+      ...(Number(statement.openingBalance) !== 0 || statement.from
+        ? [{ label: strings.openingBalance, value: money(statement.openingBalance) }]
+        : []),
+      { label: strings.columns.order, value: money(formatMinorUnits(owed)) },
+      { label: strings.columns.payment, value: money(formatMinorUnits(paid)) },
+      { label: strings.closingBalance, value: money(statement.closingBalance), strong: true },
+    ]);
 
     return pdf.save();
   }
@@ -153,19 +198,8 @@ const shortId = (id: string): string => id.slice(0, 8).toUpperCase();
 
 const firstName = (fullName: string): string => fullName.trim().split(/\s+/)[0] ?? fullName;
 
-function formatDate(iso: string): string {
-  const date = new Date(iso);
-  const pad = (value: number): string => String(value).padStart(2, "0");
+function formatPeriod(statement: LabStatement, timeZone: string): string {
+  const to = documentDate(statement.to ?? new Date().toISOString(), timeZone);
 
-  return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())}`;
-}
-
-function formatPeriod(statement: LabStatement): string {
-  const to = statement.to ? formatDate(statement.to) : formatDate(new Date().toISOString());
-
-  return statement.from ? `${formatDate(statement.from)} – ${to}` : to;
-}
-
-function formatAmount(amount: Money, currency: string): string {
-  return `${amount} ${currency}`;
+  return statement.from ? `${documentDate(statement.from, timeZone)} – ${to}` : to;
 }

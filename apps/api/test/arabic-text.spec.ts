@@ -1,65 +1,85 @@
-import { shapeArabic, visualRuns } from "@api/billing/pdf/arabic-text";
+import { autoDirection, isolateLtr, visualRuns } from "@api/billing/pdf/arabic-text";
+
+const drawn = (text: string, base: "rtl" | "ltr" = "rtl"): string =>
+  visualRuns(text, base)
+    .map((run) => run.text)
+    .join("|");
 
 describe("Arabic text", () => {
-  describe("shaping", () => {
-    it("gives every letter of a word its joining form", () => {
-      // بحث — initial beh, medial hah, final theh.
-      expect(shapeArabic("بحث")).toBe("ﺑﺤﺚ");
-    });
-
-    it("breaks the chain at a letter that never joins forward", () => {
-      // مدرسة — dal takes its final form after meem but leaves reh isolated,
-      // and the word joins up again from seen onwards.
-      expect(shapeArabic("مدرسة")).toBe("ﻣﺪﺭﺳﺔ");
-      // Neither dal nor alef joins forward, so none of these three attach.
-      expect(shapeArabic("دار")).toBe("ﺩﺍﺭ");
-    });
-
-    it("folds lam-alef into its ligature", () => {
-      expect(shapeArabic("لا")).toBe("ﻻ");
-      // Attached to a preceding beh, the ligature takes its final form.
-      expect(shapeArabic("بلا")).toBe("ﺑﻼ");
-    });
-
-    it("joins across a harakat rather than breaking on it", () => {
-      const withFatha = shapeArabic("بَحث");
-
-      expect(withFatha).toContain("ﺑ");
-      expect(withFatha).toContain("َ");
-      expect(withFatha).toContain("ﺤ");
-    });
-
-    it("passes Latin text and digits through untouched", () => {
-      expect(shapeArabic("USD 150.00")).toBe("USD 150.00");
-    });
-  });
-
   describe("visual ordering", () => {
-    it("keeps a pure Arabic line as one right-to-left run", () => {
+    it("keeps a pure Arabic line as one run for fontkit to shape and reverse", () => {
       const runs = visualRuns("إيصال قبض");
 
       expect(runs).toHaveLength(1);
-      expect((runs[0]?.level ?? 0) % 2).toBe(1);
+      expect(runs[0]?.shapedRtl).toBe(true);
+      // Logical order: the font reverses what it shapes.
+      expect(runs[0]?.text).toBe("إيصال قبض");
     });
 
     it("puts a price to the left of the Arabic that introduces it", () => {
-      const runs = visualRuns("المبلغ: 150.00");
+      const runs = visualRuns("المبلغ: 150");
 
-      // The number is the left-to-right run and is drawn first, at the left.
-      expect(runs[0]?.text).toContain("150.00");
+      expect(runs[0]?.text).toContain("150");
       expect((runs[0]?.level ?? 1) % 2).toBe(0);
       expect((runs.at(-1)?.level ?? 0) % 2).toBe(1);
     });
 
     it("reads a date left to right inside a right-to-left line", () => {
-      const runs = visualRuns("التاريخ 2026/09/05");
-      const digits = runs.find((run) => run.text.includes("2026"));
+      const digits = visualRuns("التاريخ 2026/09/05").find((run) => run.text.includes("2026"));
 
       expect(digits?.text.trim()).toBe("2026/09/05");
     });
 
     it("has nothing to order in an empty line", () => {
       expect(visualRuns("")).toEqual([]);
+    });
+  });
+
+  // fontkit mirrors nothing: an unswapped bracket faces out of the words it holds.
+  describe("brackets", () => {
+    it("swaps a bracket inside Arabic, before the font reverses the run", () => {
+      expect(visualRuns("حشوة (مؤقتة)")[0]?.text).toBe("حشوة )مؤقتة(");
+    });
+
+    it("swaps the brackets round a shekel sign after an Arabic word", () => {
+      expect(drawn("الرصيد (₪)")).toBe("الرصيد )₪(");
+    });
+
+    it("swaps and reverses brackets with no Arabic of their own", () => {
+      // An English word inside Arabic brackets: the brackets are right-to-left runs of their own.
+      expect(drawn("قيد (Scaling) عكسي")).toContain(")");
+      expect(drawn("قيد (Scaling) عكسي")).not.toContain("(Scaling)");
+    });
+
+    it("leaves brackets alone in a left-to-right run", () => {
+      expect(drawn("Teeth whitening (temporary)", "ltr")).toBe("Teeth whitening (temporary)");
+    });
+  });
+
+  describe("isolated numbers", () => {
+    it("keeps the hash with its number after Arabic, as the screen does", () => {
+      const runs = visualRuns(`دفعة ${isolateLtr("#000056")}`);
+      const number = runs.find((run) => run.text.includes("000056"));
+
+      expect(number?.text).toBe("#000056");
+    });
+
+    it("never hands the isolate marks to the font", () => {
+      expect(drawn(isolateLtr("#000056"))).not.toMatch(/[⁦-⁩]/u);
+    });
+  });
+
+  describe("direction by first letter", () => {
+    it("reads a note as left to right when it starts in English", () => {
+      expect(autoDirection("Treatment plans (2)", "rtl")).toBe("ltr");
+    });
+
+    it("reads it as right to left when it starts in Arabic", () => {
+      expect(autoDirection("دفعة على الحساب", "ltr")).toBe("rtl");
+    });
+
+    it("falls back to the sheet's direction when there is no letter at all", () => {
+      expect(autoDirection("150 — 200", "rtl")).toBe("rtl");
     });
   });
 });

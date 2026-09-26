@@ -2,13 +2,11 @@ import { Injectable } from "@nestjs/common";
 import { LOOKUP_LIST } from "@clinic/shared";
 import { documentDirection, documentStrings } from "@api/billing/pdf/document-strings";
 import { LetterheadService } from "@api/billing/pdf/letterhead.service";
-import { RtlPdf } from "@api/billing/pdf/pdf-builder";
+import { documentDate, fillPage } from "@api/billing/pdf/document-format";
+import { MUTED, RtlPdf } from "@api/billing/pdf/pdf-builder";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { InventoryReportsService } from "@api/inventory/inventory-reports.service";
 import { LookupsService } from "@api/lookups/lookups.service";
-
-/** Technical values read left to right even inside an Arabic document. */
-const LTR = { dir: "ltr" } as const;
 
 @Injectable()
 export class InventoryDocumentsService {
@@ -26,10 +24,15 @@ export class InventoryDocumentsService {
 
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
 
-    await this.letterheads.draw(pdf, clinic);
-    pdf.text(strings.title, { size: 16, weight: "bold", align: "centre", gap: 14 });
-    pdf.field(strings.printedAt, formatDate(list.generatedAt), LTR);
-    pdf.space(8);
+    await this.letterheads.draw(
+      pdf,
+      clinic,
+      strings.title,
+      documentDate(list.generatedAt, clinic.timeZone),
+    );
+    pdf.footer((page, total) =>
+      fillPage(documentStrings(clinic.language).common.page, page, total),
+    );
 
     if (list.lines.length === 0) {
       pdf.text(strings.empty, { size: 11 });
@@ -38,9 +41,9 @@ export class InventoryDocumentsService {
         [
           { width: 3, header: strings.columns.item },
           { width: 1.1, header: strings.columns.unit },
-          { width: 1.1, header: strings.columns.current, align: "end" },
-          { width: 1.1, header: strings.columns.minimum, align: "end" },
-          { width: 1.4, header: strings.columns.suggested, align: "end" },
+          { width: 1.1, header: strings.columns.current, align: "end", ltr: true },
+          { width: 1.1, header: strings.columns.minimum, align: "end", ltr: true },
+          { width: 1.4, header: strings.columns.suggested, align: "end", ltr: true },
           { width: 2, header: strings.columns.supplier },
         ],
         list.lines.map((line) => [
@@ -48,27 +51,17 @@ export class InventoryDocumentsService {
           units.get(line.unit) ?? line.unit,
           line.quantity,
           line.minQuantity,
-          line.suggested,
+          { text: line.suggested, weight: "bold" as const },
           line.supplierName ?? "—",
         ]),
       );
 
-      pdf.space(8);
-      pdf.text(strings.note, { size: 9, colour: [0.35, 0.35, 0.35] });
+      pdf.text(strings.note, { size: 9, colour: MUTED, gap: 12 });
     }
 
-    pdf.space(28);
-    pdf.rule();
-    pdf.text(`${strings.signature}: ____________________`, { size: 10 });
+    pdf.space(12);
+    pdf.signatures([strings.signature]);
 
     return pdf.save();
   }
-}
-
-/** Gregorian, day first — the convention the rest of the printed documents use. */
-function formatDate(iso: string): string {
-  const date = new Date(iso);
-  const pad = (value: number): string => String(value).padStart(2, "0");
-
-  return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()}`;
 }

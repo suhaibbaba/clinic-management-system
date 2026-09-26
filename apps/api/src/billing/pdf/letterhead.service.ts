@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { documentSettings, personName } from "@clinic/shared";
+import { clinicScheduleSettings, documentSettings, personName } from "@clinic/shared";
 import { eq } from "drizzle-orm";
 import type { DocumentLanguage } from "@api/billing/pdf/document-strings";
 import type { RtlPdf } from "@api/billing/pdf/pdf-builder";
@@ -9,10 +9,13 @@ import { StorageService, type FetchedObject } from "@api/storage/storage.service
 
 export interface Letterhead {
   readonly name: string;
-  readonly contact: string;
+  readonly address: string;
+  readonly phone: string;
   readonly currency: string;
   /** The clinic's own document language — never the reader's. */
   readonly language: DocumentLanguage;
+  /** Dates print in the clinic's zone, not the server's. */
+  readonly timeZone: string;
   readonly logo: FetchedObject | null;
 }
 
@@ -48,30 +51,24 @@ export class LetterheadService {
 
     return {
       name: personName({ ar: row.nameAr, en: row.nameEn }, language),
-      contact: [row.phone, row.address].filter(Boolean).join(" — "),
+      address: row.address ?? "",
+      phone: row.phone ?? "",
       currency: row.currency,
       language,
+      timeZone: clinicScheduleSettings(row.settings).timezone,
       logo: row.logoKey ? await this.storage.getObject(row.logoKey) : null,
     };
   }
 
-  async draw(pdf: RtlPdf, clinic: Letterhead): Promise<void> {
-    if (clinic.logo) {
-      await pdf.image(clinic.logo.bytes, clinic.logo.mime);
-    }
-
-    pdf.text(clinic.name, { size: 18, weight: "bold", align: "centre", gap: 4 });
-
-    if (clinic.contact) {
-      pdf.text(clinic.contact, {
-        size: 9,
-        align: "centre",
-        colour: [0.35, 0.35, 0.35],
-        // A phone number keeps its leading `+` on the left, as it is dialled.
-        dir: "ltr",
-      });
-    }
-
-    pdf.rule();
+  async draw(pdf: RtlPdf, clinic: Letterhead, title: string, subtitle?: string): Promise<void> {
+    pdf.title([title, subtitle, clinic.name].filter(Boolean).join(" — "));
+    await pdf.letterhead({
+      name: clinic.name,
+      address: clinic.address,
+      phone: clinic.phone,
+      logo: clinic.logo,
+      title,
+      subtitle,
+    });
   }
 }
