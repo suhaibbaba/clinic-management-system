@@ -170,7 +170,12 @@ export function PatientsPage(): JSX.Element {
               className="group flex min-w-0 items-center gap-3 rounded-control"
             >
               <Avatar name={row.fullName} tintKey={row.id} data-testid="patient-avatar" />
-              <span className="flex min-w-0 flex-col leading-label">
+              <span
+                className={cn(
+                  "flex min-w-0 flex-col leading-label",
+                  row.profileIncomplete && "gap-2",
+                )}
+              >
                 <span
                   data-testid="patient-name"
                   className="truncate font-medium text-ink group-hover:text-primary-700 group-hover:underline"
