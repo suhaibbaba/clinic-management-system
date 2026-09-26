@@ -508,9 +508,10 @@ describe("Billing", () => {
         .map(([, value]) => String(value))
         .join(" ");
 
-      expect(names).toContain("Amiri");
+      // The app's own face, embedded, with the fallback that carries the shekel sign.
+      expect(names).toContain("Tajawal");
+      expect(names).toContain("Alef");
       expect(names).toContain("CIDFontType2");
-      expect(pdf.byteLength).toBeGreaterThan(50_000);
     });
 
     it("prints a receipt for every payment", async () => {

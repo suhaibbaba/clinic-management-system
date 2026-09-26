@@ -1,19 +1,25 @@
 // Rendered on the server, so labels cannot come from the web app's i18n — and the language is the
 // clinic's setting, not the printer's.
 const AR = {
+  common: {
+    page: "صفحة {page} من {total}",
+  },
   receipt: {
     title: "إيصال قبض",
     number: "رقم الإيصال",
     date: "التاريخ",
     patient: "المريض",
     fileNumber: "رقم الملف",
-    amount: "المبلغ",
+    amount: "المبلغ المقبوض",
+    reversedAmount: "المبلغ المُعاد",
     method: "طريقة الدفع",
     note: "ملاحظات",
-    balanceAfter: "الرصيد بعد الدفع",
+    balanceAfter: "الرصيد المتبقي بعد هذه الدفعة",
+    balanceAfterReversal: "الرصيد بعد هذا الإلغاء",
     reversalTitle: "إيصال إلغاء",
     reversalOf: "إلغاء للإيصال رقم",
-    signature: "التوقيع",
+    signature: "توقيع المستلم",
+    stamp: "ختم العيادة",
   },
   statement: {
     title: "كشف حساب",
@@ -23,7 +29,10 @@ const AR = {
     periodUntil: "الفترة حتى",
     openingBalance: "رصيد أول المدة",
     closingBalance: "الرصيد المستحق",
+    totalCharges: "مجموع المدين",
+    totalPayments: "مجموع الدائن",
     printedAt: "تاريخ الطباعة",
+    all: "كل الحركات حتى",
     columns: {
       date: "التاريخ",
       description: "البيان",
@@ -31,7 +40,10 @@ const AR = {
       payment: "دائن",
       balance: "الرصيد",
     },
+    payment: "دفعة",
+    receipt: "إيصال",
     reversal: "قيد عكسي",
+    reversedPayment: "إلغاء دفعة",
     empty: "لا توجد حركات في هذه الفترة",
   },
   labOrder: {
@@ -87,19 +99,25 @@ const AR = {
 // Typed as `typeof AR` so the compiler refuses a document string that exists in one language and
 // not the other.
 const EN: typeof AR = {
+  common: {
+    page: "Page {page} of {total}",
+  },
   receipt: {
     title: "Payment receipt",
     number: "Receipt no.",
     date: "Date",
     patient: "Patient",
     fileNumber: "File no.",
-    amount: "Amount",
+    amount: "Amount received",
+    reversedAmount: "Amount returned",
     method: "Method",
     note: "Notes",
-    balanceAfter: "Balance after payment",
+    balanceAfter: "Balance left after this payment",
+    balanceAfterReversal: "Balance after this reversal",
     reversalTitle: "Reversal receipt",
     reversalOf: "Reverses receipt no.",
-    signature: "Signature",
+    signature: "Received by",
+    stamp: "Clinic stamp",
   },
   statement: {
     title: "Account statement",
@@ -109,7 +127,10 @@ const EN: typeof AR = {
     periodUntil: "Period to",
     openingBalance: "Opening balance",
     closingBalance: "Balance due",
+    totalCharges: "Total charged",
+    totalPayments: "Total paid",
     printedAt: "Printed",
+    all: "All entries to",
     columns: {
       date: "Date",
       description: "Description",
@@ -117,7 +138,10 @@ const EN: typeof AR = {
       payment: "Payment",
       balance: "Balance",
     },
+    payment: "Payment",
+    receipt: "Receipt",
     reversal: "Reversal",
+    reversedPayment: "Payment reversed",
     empty: "No entries in this period",
   },
   labOrder: {

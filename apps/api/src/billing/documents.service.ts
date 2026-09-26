@@ -1,10 +1,13 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import {
+  currencySymbol,
+  formatMinorUnits,
   LOOKUP_LIST,
   LEDGER_ENTRY_KIND,
   toMinorUnits,
   type Money,
   type Statement,
+  type StatementEntry,
   type StatementQuery,
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
@@ -17,16 +20,19 @@ import {
 } from "@api/billing/pdf/document-strings";
 import { LetterheadService } from "@api/billing/pdf/letterhead.service";
 import { LookupsService } from "@api/lookups/lookups.service";
-import { A4, RtlPdf } from "@api/billing/pdf/pdf-builder";
+import {
+  documentDate,
+  documentDateTime,
+  documentMoney,
+  fillPage,
+  receiptNumber,
+} from "@api/billing/pdf/document-format";
+import { A4, RtlPdf, type Cell } from "@api/billing/pdf/pdf-builder";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { payments } from "@api/database/schema";
 import { PatientAccessService } from "@api/patients/patient-access.service";
-
-// Keeps a leading `+` on the left and stops the bidi algorithm swapping the ends of a date range in
-// an Arabic document.
-const LTR = { dir: "ltr" } as const;
 
 @Injectable()
 export class DocumentsService {
@@ -54,53 +60,64 @@ export class DocumentsService {
     const payment = toPayment(row);
     const patient = await this.patientAccess.requirePatient(actor, payment.patientId);
     const clinic = await this.letterheads.load(actor.clinicId);
-    const balance = await this.ledger.balanceFor(actor.clinicId, payment.patientId);
+    // The balance as this payment left it, not as it stands today: a reprint must not change.
+    const ledger = await this.ledger.statementFor(actor.clinicId, payment.patientId, {});
+    const balanceAfter =
+      ledger.entries.find((entry) => entry.id === payment.id)?.runningBalance ??
+      ledger.closingBalance;
 
     const reversesId = payment.reversesId;
     const isReversal = reversesId !== null;
     const reversedNumber = reversesId === null ? null : await this.receiptNumberOf(reversesId);
 
-    const strings = documentStrings(clinic.language).receipt;
+    const strings = documentStrings(clinic.language);
+    const text = strings.receipt;
     const pdf = await RtlPdf.create({
       size: { width: A4.width, height: A4.height / 2 },
       direction: documentDirection(clinic.language),
+      margin: 32,
     });
 
-    await this.letterheads.draw(pdf, clinic);
-    pdf.text(isReversal ? strings.reversalTitle : strings.title, {
-      size: 16,
-      weight: "bold",
-      align: "centre",
-      gap: 14,
-    });
+    const number =
+      payment.receiptNumber !== null
+        ? receiptNumber(payment.receiptNumber)
+        : reversedNumber !== null
+          ? `${text.reversalOf} ${receiptNumber(reversedNumber)}`
+          : undefined;
+    await this.letterheads.draw(pdf, clinic, isReversal ? text.reversalTitle : text.title, number);
 
-    if (payment.receiptNumber !== null) {
-      pdf.field(strings.number, formatSequence(payment.receiptNumber), LTR);
-    }
-    if (reversedNumber !== null) {
-      pdf.field(strings.reversalOf, formatSequence(reversedNumber), LTR);
-    }
-
-    pdf.field(strings.date, formatDate(payment.createdAt), LTR);
-    pdf.field(strings.patient, patient.fullName);
-    pdf.field(strings.fileNumber, patient.fileNumber, LTR);
-    pdf.field(strings.amount, formatAmount(payment.amount, clinic.currency), LTR);
     const methods = await this.lookups.labels(
       actor.clinicId,
       LOOKUP_LIST.PAYMENT_METHOD,
       clinic.language,
     );
-    pdf.field(strings.method, methods.get(payment.method) ?? payment.method);
+    pdf.infoGrid(
+      [
+        { label: text.patient, value: patient.fullName },
+        { label: text.fileNumber, value: patient.fileNumber, ltr: true },
+        {
+          label: text.date,
+          value: documentDateTime(payment.createdAt, clinic.timeZone),
+          ltr: true,
+        },
+        { label: text.method, value: methods.get(payment.method) ?? payment.method },
+      ],
+      4,
+    );
 
-    if (payment.note) {
-      pdf.field(strings.note, payment.note);
-    }
+    pdf.amount(
+      isReversal ? text.reversedAmount : text.amount,
+      documentMoney(payment.amount.replace("-", ""), clinic.currency),
+      payment.note ? `${text.note}: ${payment.note}` : undefined,
+    );
 
-    pdf.space(4);
-    pdf.field(strings.balanceAfter, formatAmount(balance.balance, clinic.currency), LTR);
-
-    pdf.space(24);
-    pdf.text(`${strings.signature}: ____________________`, { size: 10 });
+    pdf.totals([
+      {
+        label: isReversal ? text.balanceAfterReversal : text.balanceAfter,
+        value: documentMoney(balanceAfter, clinic.currency),
+      },
+    ]);
+    pdf.signatures([text.signature, text.stamp]);
 
     return pdf.save();
   }
@@ -114,54 +131,75 @@ export class DocumentsService {
     const clinic = await this.letterheads.load(actor.clinicId);
     const statement = await this.ledger.statementFor(actor.clinicId, patientId, query);
 
-    const strings = documentStrings(clinic.language).statement;
+    const strings = documentStrings(clinic.language);
+    const text = strings.statement;
     const pdf = await RtlPdf.create({ direction: documentDirection(clinic.language) });
+    const zone = clinic.timeZone;
+    const money = (amount: Money): string => documentMoney(amount, clinic.currency);
+    const figure = (amount: Money): string => documentMoney(amount, "");
 
-    await this.letterheads.draw(pdf, clinic);
-    pdf.text(strings.title, { size: 16, weight: "bold", align: "centre", gap: 14 });
+    await this.letterheads.draw(pdf, clinic, text.title);
+    pdf.footer((page, total) => fillPage(strings.common.page, page, total));
 
-    pdf.field(strings.patient, patient.fullName);
-    pdf.field(strings.fileNumber, patient.fileNumber, LTR);
-    pdf.field(statement.from ? strings.period : strings.periodUntil, formatPeriod(statement), LTR);
-    pdf.field(strings.printedAt, formatDate(new Date().toISOString()), LTR);
-    pdf.space(8);
-    pdf.field(strings.openingBalance, formatAmount(statement.openingBalance, clinic.currency), LTR);
-    pdf.space(6);
+    pdf.infoGrid([
+      { label: text.patient, value: patient.fullName },
+      { label: text.fileNumber, value: patient.fileNumber, ltr: true },
+      // A range stays left to right, or bidi swaps its two ends; "all entries until" reads in the
+      // sheet's own direction.
+      {
+        label: text.period,
+        value: formatPeriod(statement, zone, text.all),
+        ltr: statement.from !== null,
+      },
+      { label: text.printedAt, value: documentDateTime(new Date().toISOString(), zone), ltr: true },
+    ]);
+
+    let charged = 0;
+    let paid = 0;
 
     if (statement.entries.length === 0) {
-      pdf.text(strings.empty, { size: 11 });
+      pdf.text(text.empty, { size: 11, colour: [0.38, 0.44, 0.49], align: "centre", gap: 12 });
     } else {
+      const symbol = currencySymbol(clinic.currency);
+      const withSymbol = (header: string): string => (symbol ? `${header} (${symbol})` : header);
+
       pdf.table(
         [
-          { width: 1.4, header: strings.columns.date },
-          { width: 3.4, header: strings.columns.description },
-          { width: 1.2, header: strings.columns.charge, align: "end" },
-          { width: 1.2, header: strings.columns.payment, align: "end" },
-          { width: 1.4, header: strings.columns.balance, align: "end" },
+          { width: 1.3, header: text.columns.date, ltr: true },
+          { width: 3.6, header: text.columns.description },
+          { width: 1.2, header: withSymbol(text.columns.charge), align: "end", ltr: true },
+          { width: 1.2, header: withSymbol(text.columns.payment), align: "end", ltr: true },
+          { width: 1.3, header: withSymbol(text.columns.balance), align: "end", ltr: true },
         ],
         statement.entries.map((entry) => {
           const minor = toMinorUnits(entry.amount);
-          const description = entry.isReversal
-            ? `${entry.description} (${strings.reversal})`.trim()
-            : entry.description;
+          const isPayment = entry.kind === LEDGER_ENTRY_KIND.PAYMENT;
+
+          if (isPayment) {
+            paid -= minor;
+          } else {
+            charged += minor;
+          }
 
           return [
-            formatDate(entry.occurredAt),
-            description || describeKind(entry.kind, strings),
-            entry.kind === LEDGER_ENTRY_KIND.CHARGE ? formatPlain(entry.amount) : "",
-            entry.kind === LEDGER_ENTRY_KIND.PAYMENT ? formatPlain(negateText(minor)) : "",
-            formatPlain(entry.runningBalance),
+            documentDate(entry.occurredAt, zone),
+            describe(entry, text),
+            isPayment ? "" : figure(entry.amount),
+            isPayment ? figure(formatMinorUnits(-minor)) : "",
+            { text: figure(entry.runningBalance), weight: "medium" as const },
           ];
         }),
       );
     }
 
-    pdf.space(10);
-    pdf.rule();
-    pdf.field(strings.closingBalance, formatAmount(statement.closingBalance, clinic.currency), {
-      size: 13,
-      dir: "ltr",
-    });
+    pdf.totals([
+      ...(Number(statement.openingBalance) !== 0 || statement.from
+        ? [{ label: text.openingBalance, value: money(statement.openingBalance) }]
+        : []),
+      { label: text.totalCharges, value: money(formatMinorUnits(charged)) },
+      { label: text.totalPayments, value: money(formatMinorUnits(paid)) },
+      { label: text.closingBalance, value: money(statement.closingBalance), strong: true },
+    ]);
 
     return pdf.save();
   }
@@ -177,43 +215,26 @@ export class DocumentsService {
   }
 }
 
-function describeKind(
-  kind: Statement["entries"][number]["kind"],
-  strings: DocumentStrings["statement"],
-): string {
-  return kind === LEDGER_ENTRY_KIND.PAYMENT ? strings.columns.payment : strings.columns.charge;
+// What a line is, and under it what was said about it: the note, or that it undoes another line.
+function describe(entry: StatementEntry, text: DocumentStrings["statement"]): Cell {
+  if (entry.kind === LEDGER_ENTRY_KIND.PAYMENT) {
+    const title = entry.isReversal
+      ? text.reversedPayment
+      : entry.receiptNumber !== null
+        ? `${text.payment} ${receiptNumber(entry.receiptNumber)}`
+        : text.payment;
+
+    return { text: title, sub: entry.note ?? undefined };
+  }
+
+  const note = entry.note && entry.note !== entry.description ? entry.note : undefined;
+  const sub = [entry.isReversal ? text.reversal : undefined, note].filter(Boolean).join(" · ");
+
+  return { text: entry.description || text.columns.charge, sub: sub || undefined };
 }
 
-// Never `toLocaleString('ar')`: it wraps output in bidi control marks, which reorder the parts of a
-// date laid out right-to-left.
-function formatDate(iso: string): string {
-  const date = new Date(iso);
-  const pad = (value: number): string => String(value).padStart(2, "0");
+function formatPeriod(statement: Statement, timeZone: string, all: string): string {
+  const to = documentDate(statement.to ?? new Date().toISOString(), timeZone);
 
-  return `${date.getFullYear()}/${pad(date.getMonth() + 1)}/${pad(date.getDate())}`;
-}
-
-function formatPeriod(statement: Statement): string {
-  const to = statement.to ? formatDate(statement.to) : formatDate(new Date().toISOString());
-
-  return statement.from ? `${formatDate(statement.from)} – ${to}` : to;
-}
-
-function formatSequence(value: number): string {
-  return String(value).padStart(6, "0");
-}
-
-function formatAmount(amount: Money, currency: string): string {
-  return `${formatPlain(amount)} ${currency}`;
-}
-
-/** Money keeps its two decimals and its own sign; no thousands grouping. */
-function formatPlain(amount: Money): string {
-  return amount;
-}
-
-function negateText(minorUnits: number): Money {
-  const absolute = Math.abs(minorUnits);
-
-  return `${Math.floor(absolute / 100)}.${String(absolute % 100).padStart(2, "0")}`;
+  return statement.from ? `${documentDate(statement.from, timeZone)} – ${to}` : `${all} ${to}`;
 }
