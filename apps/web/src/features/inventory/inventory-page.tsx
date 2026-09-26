@@ -195,6 +195,7 @@ export function InventoryPage(): JSX.Element {
           variant={low ? "danger" : "secondary"}
           icon={<Icon name="alert" />}
           data-testid="inventory-filter-low"
+          className="font-normal"
           onClick={() => setLow((previous) => !previous)}
         >
           {t("inventory.filterLow")}
@@ -204,6 +205,7 @@ export function InventoryPage(): JSX.Element {
           variant={expiring ? "danger" : "secondary"}
           icon={<Icon name="clock" />}
           data-testid="inventory-filter-expiring"
+          className="font-normal"
           onClick={() => setExpiring((previous) => !previous)}
         >
           {t("inventory.filterExpiring")}
