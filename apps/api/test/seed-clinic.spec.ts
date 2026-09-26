@@ -225,6 +225,16 @@ describe("the seeded clinic", () => {
     expect(numbers).toEqual(numbers.map((_, index) => index + 1));
   });
 
+  it("dates every payment in the past, never ahead of today", async () => {
+    const rows = await db
+      .select({ createdAt: payments.createdAt })
+      .from(payments)
+      .where(eq(payments.clinicId, clinicId));
+
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.filter((row) => row.createdAt.getTime() > Date.now())).toEqual([]);
+  });
+
   it("leaves today with a list somebody can demonstrate", async () => {
     const today = localDateOf(new Date());
 

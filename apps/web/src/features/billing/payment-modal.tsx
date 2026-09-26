@@ -77,7 +77,7 @@ export function PaymentModal({
     if (open) {
       reset({
         patientId,
-        amount: Number(balance) > 0 ? balance : "",
+        amount: "",
         method: "cash",
         note: "",
       });

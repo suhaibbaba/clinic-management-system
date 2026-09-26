@@ -683,7 +683,7 @@ async function writeMoney(
         note: instalments > 1 ? `دفعة ${index + 1} من ${instalments}` : "تسديد",
         receiptNumber,
         receivedBy: ctx.actorId,
-        createdAt: earlier(last, -ctx.rng.int(0, 20)),
+        createdAt: paidAt(last, index, ctx),
         ...ctx.audit,
       });
     }
@@ -1163,6 +1163,15 @@ async function insertInChunks<T>(
   for (let start = 0; start < rows.length; start += size) {
     await insert(rows.slice(start, start + size));
   }
+}
+
+// A week or so apart after the last treatment, and never later than an hour ago: a receipt dated
+// next week is a payment that has not been taken.
+function paidAt(lastTreatment: Date, instalment: number, ctx: WriteContext): Date {
+  const planned = earlier(lastTreatment, -(instalment * 7 + ctx.rng.int(0, 5)));
+  const latest = new Date(ctx.now.getTime() - 3_600_000);
+
+  return planned > latest ? latest : planned;
 }
 
 function earlier(from: Date, days: number): Date {
