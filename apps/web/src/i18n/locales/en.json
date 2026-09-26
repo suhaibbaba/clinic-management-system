@@ -431,7 +431,8 @@
       "reversed": "A reversed payment, or its reversal, cannot be deleted: the balance depends on both"
     },
     "stock": {
-      "insufficient": "More than is in stock; add stock or correct the count first"
+      "insufficient": "More than is in stock; add stock or correct the count first",
+      "belowOne": "Take off at least one whole unit"
     },
     "pageFailed": {
       "title": "This page could not open",
@@ -1162,7 +1163,7 @@
     "movements": {
       "purchase": "Purchase",
       "consume": "Use",
-      "adjust": "Adjustment"
+      "adjust": "Correction"
     },
     "flags": {
       "low": "Low",
@@ -1183,19 +1184,22 @@
       "title": "Batches",
       "empty": "No batches recorded",
       "unlabelled": "No lot number",
-      "unbatched": "Held against no batch",
-      "assumption": "Assumes the oldest stock goes first — the batch expiring soonest — unless a movement names its batch."
+      "unbatched": "Without a batch number",
+      "assumption": "Assumes the oldest stock goes first — the batch expiring soonest — unless a movement names its batch.",
+      "hint": "Each quantity bought together, with one batch number and expiry date: what is left of what was bought."
     },
     "history": {
       "title": "Movements",
       "empty": "Nothing recorded yet",
-      "when": "Date",
-      "balance": "Balance",
       "reversal": "Reversal",
       "reversed": "Reversed",
       "reverse": "Reverse",
       "reverseTitle": "Reverse this movement",
-      "reverseDescription": "The original stays exactly as it is; the opposite entry is written beside it."
+      "reverseDescription": "The original stays exactly as it is; the opposite entry is written beside it.",
+      "batch": "Batch {{batch}}",
+      "unitPrice": "{{price}} per unit",
+      "after": "Stock after",
+      "menu": "Movement options"
     },
     "item": {
       "newTitle": "New item",
@@ -1225,7 +1229,7 @@
       "patient": "Patient",
       "note": "Note",
       "reason": "Reason",
-      "reasonHint": "It stays on the record — an adjustment has no other explanation",
+      "reasonHint": "It stays on the record — a correction has no other explanation",
       "reasonPlaceholder": "e.g. monthly count, two missing",
       "direction": "Direction",
       "directions": {
@@ -1240,31 +1244,32 @@
       "action": {
         "purchase": "Purchase",
         "consume": "Use",
-        "adjust": "Adjust"
+        "adjust": "Correct quantity"
       },
       "title": {
         "purchase": "Purchase — {{item}}",
         "consume": "Use — {{item}}",
-        "adjust": "Adjust — {{item}}"
+        "adjust": "Correct quantity — {{item}}"
       },
       "description": {
         "purchase": "Adds to stock, and the price appears on the supplier's statement.",
         "consume": "Comes off stock. Naming a patient puts it on their file.",
-        "adjust": "For correcting a count. The reason is required and stays on the record."
+        "adjust": "When what is recorded does not match the shelf: a count that differs, a breakage, or expired stock thrown away. The reason is required and stays on the record."
       },
       "submit": {
         "purchase": "Record purchase",
         "consume": "Record use",
-        "adjust": "Record adjustment"
+        "adjust": "Record correction"
       },
       "recorded": {
         "purchase": "Purchase recorded",
         "consume": "Use recorded",
-        "adjust": "Adjustment recorded"
+        "adjust": "Correction recorded"
       },
       "restock": "Add stock (a purchase)",
       "backToUse": "Back to using it",
-      "overStock": "More than is in stock"
+      "overStock": "More than is in stock",
+      "atLeastOne": "Take off at least 1"
     },
     "shoppingList": {
       "title": "Shopping list",
@@ -1479,7 +1484,7 @@
         "updateSchedule": "Edit a doctor’s weekly hours"
       },
       "inventory": {
-        "adjust": "Adjust an item's quantity",
+        "adjust": "Correct an item's quantity",
         "alerts": "See inventory alerts",
         "batches": "See an item's batches",
         "consume": "Record stock consumed",

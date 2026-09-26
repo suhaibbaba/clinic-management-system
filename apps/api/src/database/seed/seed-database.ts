@@ -907,7 +907,7 @@ async function writeInventory(
         clinicId: ctx.clinicId,
         itemId,
         type: MOVEMENT_TYPE.CONSUME,
-        quantity: String(Math.max(1, Math.round(consumed / sessions))),
+        quantity: String(-Math.max(1, Math.round(consumed / sessions))),
         patientId: procedure?.patientId ?? null,
         performedProcedureId: procedure?.id ?? null,
         createdAt: procedure?.performedAt ?? earlier(ctx.now, 30),

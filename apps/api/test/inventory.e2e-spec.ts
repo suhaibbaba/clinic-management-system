@@ -1,4 +1,5 @@
 import {
+  STOCK_ERROR,
   ITEM_CATEGORY,
   ITEM_UNIT,
   USER_ROLE,
@@ -214,8 +215,28 @@ describe("Inventory (e2e)", () => {
   });
 
   describe("movement rules", () => {
+    it("takes off at least one unit, and never more than the shelf holds", async () => {
+      const itemId = await createItem({ name: `إبر ${uniquePhone()}` });
+      await move("purchase", { itemId, quantity: "5", unitPrice: "2" });
+
+      const tooLittle = await move("adjust", { itemId, quantity: "-0.5", reason: "كسر عبوة" });
+      expect(tooLittle.statusCode).toBe(400);
+      expect(tooLittle.json()).toMatchObject({ message: STOCK_ERROR.BELOW_ONE });
+
+      const tooMuch = await move("adjust", { itemId, quantity: "-6", reason: "جرد شهري" });
+      expect(tooMuch.statusCode).toBe(409);
+      expect(tooMuch.json()).toMatchObject({ message: STOCK_ERROR.INSUFFICIENT });
+
+      expect(
+        (await move("adjust", { itemId, quantity: "-5", reason: "إتلاف مادة منتهية" })).statusCode,
+      ).toBe(201);
+      expect((await readItem(itemId)).quantity).toBe("0");
+    });
+
     it("requires a reason on an adjustment", async () => {
       const itemId = await createItem({ name: `أدوات ${uniquePhone()}` });
+      // Something on the shelf to take off: a correction cannot go below nothing.
+      await move("purchase", { itemId, quantity: "3", unitPrice: "2" });
 
       const without = await move("adjust", { itemId, quantity: "-1" });
       expect(without.statusCode).toBe(400);

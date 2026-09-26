@@ -273,7 +273,7 @@ function StockCell({ item }: { readonly item: InventoryItemRow }): JSX.Element {
       />
 
       <span className="text-label text-ink-subtle">
-        {t("inventory.minimum")}: <Ltr>{item.minQuantity}</Ltr>
+        {t("inventory.minimum")}: <Ltr>{item.minQuantity}</Ltr> {unitLabel(item.unit)}
       </span>
     </span>
   );
