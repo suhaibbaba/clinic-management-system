@@ -453,7 +453,7 @@
     "chatOnWhatsapp": "تحدث عبر WhatsApp",
     "address": "العنوان",
     "age": "العمر",
-    "allergies": "Allergies",
+    "allergies": "الحساسية",
     "balance": "الرصيد",
     "create": "مريض جديد",
     "edit": "تعديل الملف",
@@ -1557,7 +1557,7 @@
         "update": "تعديل خيار في قائمة"
       },
       "medical-histories": {
-        "allergyFlags": "عرض تنبيهات Allergies",
+        "allergyFlags": "عرض تنبيهات الحساسية",
         "get": "عرض Medical history",
         "update": "تعديل Medical history"
       },

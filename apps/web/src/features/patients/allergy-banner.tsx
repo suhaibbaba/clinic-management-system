@@ -31,7 +31,10 @@ export function AllergyBanner({ patientId }: { patientId: string }): JSX.Element
     >
       <Icon name="alert" className="size-4 shrink-0 text-danger-600" />
       <span>{t("patients.allergies")}:</span>
-      <span data-testid="allergy-banner-list">{formatList(data.allergies)}</span>
+      {/* Its own direction: two English allergies inside an Arabic line read in their own order. */}
+      <span data-testid="allergy-banner-list" dir="auto">
+        {formatList(data.allergies)}
+      </span>
     </span>
   );
 }
