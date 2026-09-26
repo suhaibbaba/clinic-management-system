@@ -5,6 +5,7 @@ import { Logo } from "@web/components/brand/logo";
 import { NavDrawer } from "@web/components/layout/nav-drawer";
 import { createPageActionSlot, PageActionSlotProvider } from "@clinic/ui/lib/page-action-slot";
 import { useIsCompactLayout } from "@clinic/ui/lib/use-media-query";
+import { PageErrorBoundary } from "@web/components/page-error-boundary";
 import { PullToRefresh } from "@web/components/pwa/pull-to-refresh";
 import { NotificationBell } from "@web/components/layout/notification-bell";
 import { TopSearch } from "@web/components/layout/top-search";
@@ -187,7 +188,9 @@ export function AppLayout(): JSX.Element {
           {workspace ? (
             <main data-testid="app-main" className="flex h-dvh min-w-0 flex-1 flex-col">
               <WorkspaceTopBarProvider value={topBar}>
-                <Outlet />
+                <PageErrorBoundary key={pathname}>
+                  <Outlet />
+                </PageErrorBoundary>
               </WorkspaceTopBarProvider>
             </main>
           ) : (
@@ -204,7 +207,9 @@ export function AppLayout(): JSX.Element {
                 className="min-w-0 flex-1 px-4 pb-10 rail:px-[34px] rail:pb-12"
               >
                 <div className="w-full">
-                  <Outlet />
+                  <PageErrorBoundary key={pathname}>
+                    <Outlet />
+                  </PageErrorBoundary>
                 </div>
               </main>
             </>

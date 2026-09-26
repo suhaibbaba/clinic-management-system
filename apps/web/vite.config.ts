@@ -141,6 +141,9 @@ export default defineConfig({
       { find: "@ui", replacement: uiSrcDir },
     ],
   },
+  optimizeDeps: {
+    entries: ["src/**/*.{ts,tsx}"],
+  },
   server: {
     host: true,
     port: 5173,

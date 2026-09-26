@@ -1,19 +1,20 @@
-import { lazy, Suspense, type JSX } from "react";
+import { Suspense, type JSX } from "react";
+import { lazyPage } from "@web/lib/lazy-page";
 import { TabPanel, useTabParam, type TabDefinition } from "@clinic/ui";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 import { SectionViews } from "@web/components/layout/section-views";
 
-const TranslationsPage = lazy(async () => ({
+const TranslationsPage = lazyPage(async () => ({
   default: (await import("@web/features/translations/translations-page")).TranslationsPage,
 }));
-const AssistantSettingsPage = lazy(async () => ({
+const AssistantSettingsPage = lazyPage(async () => ({
   default: (await import("@web/features/assistant/settings/assistant-settings-page"))
     .AssistantSettingsPage,
 }));
-const PermissionsPage = lazy(async () => ({
+const PermissionsPage = lazyPage(async () => ({
   default: (await import("@web/features/permissions/permissions-page")).PermissionsPage,
 }));
-const AuditPage = lazy(async () => ({
+const AuditPage = lazyPage(async () => ({
   default: (await import("@web/features/audit/audit-page")).AuditPage,
 }));
 

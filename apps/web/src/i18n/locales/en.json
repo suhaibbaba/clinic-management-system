@@ -77,7 +77,8 @@
     "hidePassword": "Hide password",
     "deleteForever": "Delete for good",
     "noMatches": "No matches",
-    "continue": "Continue"
+    "continue": "Continue",
+    "reload": "Reload"
   },
   "pagination": {
     "goToPage": "Page {{page}}",
@@ -431,6 +432,10 @@
     },
     "stock": {
       "insufficient": "More than is in stock; add stock or correct the count first"
+    },
+    "pageFailed": {
+      "title": "This page could not open",
+      "hint": "The app may have been updated, or the connection dropped while loading. Reload the page."
     }
   },
   "patients": {

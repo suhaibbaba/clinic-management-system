@@ -1,5 +1,6 @@
 import { USER_ROLE } from "@clinic/shared";
-import { lazy, Suspense, type JSX } from "react";
+import { lazyPage } from "@web/lib/lazy-page";
+import { Suspense, type JSX } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { ASSISTANT_ROLES } from "@web/app/navigation";
 import { AppLayout } from "@web/components/layout/app-layout";
@@ -22,16 +23,16 @@ import { SettingsSection } from "@web/features/settings/settings-section";
 import { UsersSection } from "@web/features/users/users-section";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 
-const AppointmentsSection = lazy(async () => ({
+const AppointmentsSection = lazyPage(async () => ({
   default: (await import("@web/features/appointments/appointments-section")).AppointmentsSection,
 }));
 
 // Lazy: the markdown renderer is this screen's alone and has no business in the dashboard's chunk.
-const AssistantPage = lazy(async () => ({
+const AssistantPage = lazyPage(async () => ({
   default: (await import("@web/features/assistant/assistant-page")).AssistantPage,
 }));
 
-const LookupsPage = lazy(async () => ({
+const LookupsPage = lazyPage(async () => ({
   default: (await import("@web/features/lookups/lookups-page")).LookupsPage,
 }));
 

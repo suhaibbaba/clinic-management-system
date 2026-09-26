@@ -1,3 +1,4 @@
+import { PageErrorBoundary } from "@web/components/page-error-boundary";
 import type { JSX } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { AppProviders } from "@web/app/providers";
@@ -7,7 +8,9 @@ export function App(): JSX.Element {
   return (
     <BrowserRouter>
       <AppProviders>
-        <AppRoutes />
+        <PageErrorBoundary>
+          <AppRoutes />
+        </PageErrorBoundary>
       </AppProviders>
     </BrowserRouter>
   );
