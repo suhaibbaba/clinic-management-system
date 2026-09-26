@@ -177,16 +177,19 @@ export function PatientsPage(): JSX.Element {
                 >
                   {row.fullName}
                 </span>
-                <Ltr className="text-micro tabular-nums text-ink-subtle">{row.fileNumber}</Ltr>
+                {/* Under the name rather than beside it: on a phone the badge took the name's room. */}
+                <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <Ltr className="text-micro tabular-nums text-ink-subtle">{row.fileNumber}</Ltr>
+                  {/* Registered mid-booking or online, and never finished — the reminder to take
+                      the rest of it when they walk in. */}
+                  {row.profileIncomplete && (
+                    <Badge tone="warning" data-testid="patient-incomplete">
+                      {t("patients.incomplete")}
+                    </Badge>
+                  )}
+                </span>
               </span>
             </Link>
-            {/* Registered mid-booking or online, and never finished — the reminder to take the
-                rest of it when they walk in. */}
-            {row.profileIncomplete && (
-              <Badge tone="warning" data-testid="patient-incomplete">
-                {t("patients.incomplete")}
-              </Badge>
-            )}
           </span>
         ),
       },
