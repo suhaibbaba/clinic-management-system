@@ -1,7 +1,6 @@
 import {
   LOOKUP_LIST,
   MOVEMENT_TYPE,
-  subtractQuantity,
   type ItemBatch,
   type MovementType,
   type StockMovementRow,
@@ -16,15 +15,16 @@ import {
   EmptyState,
   Icon,
   Ltr,
+  MenuItem,
   Modal,
   PersonName,
+  RowMenu,
   Textarea,
   useToast,
 } from "@clinic/ui";
 import { RefreshBar, SkeletonTimeline } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/features/auth/session";
 import { useLookupLabels } from "@web/features/lookups/queries";
-import { Money } from "@web/features/billing/money";
 import { useClinic } from "@web/features/clinic/queries";
 import { categoryTone, MOVEMENT_TONES, movementLabel } from "@web/features/inventory/display";
 import { ItemFormModal } from "@web/features/inventory/item-form-modal";
@@ -38,7 +38,7 @@ import {
 } from "@web/features/inventory/queries";
 import { errorMessageKey } from "@web/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
-import { formatDate, formatDateTime } from "@web/lib/format";
+import { formatDate, moneyText, visitMoment } from "@web/lib/format";
 import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 export function ItemDrawer({
@@ -129,7 +129,8 @@ export function ItemDrawer({
                   </span>
                 </Field>
                 <Field label={t("inventory.minimum")}>
-                  <Ltr className="tabular-nums">{row.minQuantity}</Ltr>
+                  <Ltr className="tabular-nums">{row.minQuantity}</Ltr>{" "}
+                  <span className="text-label text-ink-muted">{unitLabel(row.unit)}</span>
                 </Field>
                 {row.supplierName && (
                   <Field label={t("inventory.movement.supplier")}>{row.supplierName}</Field>
@@ -167,6 +168,7 @@ export function ItemDrawer({
           <Batches
             batches={batches.data?.batches ?? []}
             unbatched={batches.data?.unbatched ?? "0"}
+            unit={row ? unitLabel(row.unit) : ""}
           />
 
           <History
@@ -205,16 +207,21 @@ export function ItemDrawer({
 function Batches({
   batches,
   unbatched,
+  unit,
 }: {
   readonly batches: readonly ItemBatch[];
   readonly unbatched: string;
+  readonly unit: string;
 }): JSX.Element {
   const { t } = useTranslation();
   const live = batches.filter((batch) => Number(batch.remaining) > 0);
 
   return (
     <section data-testid="item-batches" className="flex flex-col gap-2">
-      <h3 className="text-label font-semibold text-ink">{t("inventory.batches.title")}</h3>
+      <div>
+        <h3 className="text-label font-semibold text-ink">{t("inventory.batches.title")}</h3>
+        <p className="text-meta text-ink-muted">{t("inventory.batches.hint")}</p>
+      </div>
 
       {live.length === 0 ? (
         <p data-testid="item-batches-empty" className="text-label text-ink-muted">
@@ -241,10 +248,12 @@ function Batches({
                 {batch.isExpired && <Badge tone="danger">{t("inventory.flags.expired")}</Badge>}
                 {batch.isExpiring && <Badge tone="warning">{t("inventory.flags.expiring")}</Badge>}
               </span>
-
-              <Ltr className="text-label tabular-nums text-ink">
-                {batch.remaining} / {batch.quantity}
-              </Ltr>
+              <span className="flex items-baseline gap-1 text-label text-ink">
+                <Ltr className="tabular-nums">
+                  {batch.remaining} / {batch.quantity}
+                </Ltr>
+                <span className="text-ink-muted">{unit}</span>
+              </span>
             </li>
           ))}
         </ul>
@@ -253,7 +262,10 @@ function Batches({
       {Number(unbatched) > 0 && (
         <p className="flex items-baseline justify-between text-label text-ink-muted">
           <span>{t("inventory.batches.unbatched")}</span>
-          <Ltr className="tabular-nums">{unbatched}</Ltr>
+          <span className="flex items-baseline gap-1">
+            <Ltr className="tabular-nums text-ink">{unbatched}</Ltr>
+            <span>{unit}</span>
+          </span>
         </p>
       )}
 
@@ -313,103 +325,112 @@ function History({
         />
       )}
 
-      <ol className="flex flex-col gap-2">
-        {movements.map((movement) => (
-          <li
-            key={movement.id}
-            data-testid={`item-movement-${movement.id}`}
-            className="rounded-panel bg-canvas p-3"
-          >
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <span className="flex flex-wrap items-center gap-2">
-                <Badge tone={MOVEMENT_TONES[movement.type]} data-testid="item-movement-type">
-                  {t(movementLabel(movement.type))}
-                </Badge>
-                {movement.reversesId && (
-                  <Badge tone="neutral" data-testid="item-movement-reversal">
-                    {t("inventory.history.reversal")}
-                  </Badge>
-                )}
-                {movement.reversedAt && (
-                  <Badge tone="neutral" data-testid="item-movement-reversed">
-                    {t("inventory.history.reversed")}
-                  </Badge>
-                )}
-              </span>
+      <ol className="flex flex-col">
+        {movements.map((movement) => {
+          const out = movement.quantity.startsWith("-");
+          const mayReverse =
+            canReverseMovement(can) && movement.reversedAt === null && movement.reversesId === null;
+          const details = [
+            movement.supplierName,
+            movement.batchNo ? t("inventory.history.batch", { batch: movement.batchNo }) : null,
+            movement.unitPrice
+              ? t("inventory.history.unitPrice", {
+                  price: moneyText(movement.unitPrice, clinic.data?.currency),
+                })
+              : null,
+          ].filter(Boolean);
 
-              <span className="flex items-baseline gap-3">
-                <Ltr
-                  className={cn(
-                    "font-medium tabular-nums",
-                    movement.quantity.startsWith("-") ? "text-danger-600" : "text-success-900",
+          return (
+            <li
+              key={movement.id}
+              data-testid={`item-movement-${movement.id}`}
+              className="flex gap-3 border-b border-line py-3 last:border-b-0"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge tone={MOVEMENT_TONES[movement.type]} data-testid="item-movement-type">
+                    {t(movementLabel(movement.type))}
+                  </Badge>
+                  {movement.reversesId && (
+                    <Badge tone="neutral" data-testid="item-movement-reversal">
+                      {t("inventory.history.reversal")}
+                    </Badge>
                   )}
-                >
-                  {movement.quantity.startsWith("-") ? movement.quantity : `+${movement.quantity}`}
-                </Ltr>
-                {/* The icon set's arrow, not a literal `→`: a typed arrow points right in both
-                    languages. It sits outside the island so the row decides its side. */}
-                <span className="flex items-baseline gap-1 text-label text-ink-muted">
-                  <span className="sr-only">{t("inventory.history.balance")}</span>
-                  <Ltr className="tabular-nums">
-                    {subtractQuantity(movement.runningQuantity, movement.quantity)}
-                  </Ltr>
-                  <Icon name="chevron-end" className="size-3.5 self-center" />
-                  <Ltr className="tabular-nums">{movement.runningQuantity}</Ltr>
-                </span>
-              </span>
-            </div>
+                  {movement.reversedAt && (
+                    <Badge tone="neutral" data-testid="item-movement-reversed">
+                      {t("inventory.history.reversed")}
+                    </Badge>
+                  )}
+                </div>
 
-            <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-label text-ink-muted">
-              <div className="flex gap-1">
-                <dt className="sr-only">{t("inventory.history.when")}</dt>
-                <Ltr as="dd">{formatDateTime(movement.createdAt)}</Ltr>
+                {movement.patientId && (
+                  <button
+                    type="button"
+                    data-testid="item-movement-patient"
+                    onClick={() => onOpenPatient(movement.patientId as string)}
+                    className="mt-1 block max-w-full cursor-pointer truncate text-start text-value font-medium text-primary-700 hover:underline"
+                  >
+                    {movement.patientName}
+                    {movement.procedureName ? ` · ${movement.procedureName}` : ""}
+                  </button>
+                )}
+                {details.length > 0 && (
+                  <p className="mt-1 text-meta text-ink">{details.join(" · ")}</p>
+                )}
+                {movement.reason && (
+                  // Its own reading order, the page's alignment: `dir="auto"` would push an Arabic
+                  // reason to the far edge of an English drawer.
+                  <p className="mt-1 text-meta text-ink [unicode-bidi:plaintext] page-rtl:text-right page-ltr:text-left">
+                    {movement.reason}
+                  </p>
+                )}
+
+                <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-meta text-ink-muted">
+                  <Ltr>{visitMoment(movement.createdAt)}</Ltr>
+                  {movement.createdByName && (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <PersonName name={movement.createdByName} />
+                    </>
+                  )}
+                </p>
               </div>
 
-              {movement.createdByName && (
-                <dd>
-                  <PersonName name={movement.createdByName} />
-                </dd>
-              )}
-              {movement.supplierName && <dd>{movement.supplierName}</dd>}
-              {movement.batchNo && <Ltr as="dd">{movement.batchNo}</Ltr>}
-
-              {movement.unitPrice && (
-                <Ltr as="dd">
-                  <Money amount={movement.unitPrice} currency={clinic.data?.currency} />
-                </Ltr>
-              )}
-            </dl>
-
-            {movement.patientId && (
-              <button
-                type="button"
-                data-testid="item-movement-patient"
-                onClick={() => onOpenPatient(movement.patientId as string)}
-                className="-my-3 cursor-pointer py-3 text-label font-medium text-primary-700 hover:underline lg:my-0 lg:mt-1 lg:py-0"
-              >
-                {movement.patientName}
-                {movement.procedureName ? ` — ${movement.procedureName}` : ""}
-              </button>
-            )}
-
-            {movement.reason && <p className="mt-1 text-label text-ink">{movement.reason}</p>}
-
-            {canReverseMovement(can) &&
-              movement.reversedAt === null &&
-              movement.reversesId === null && (
-                <Button
-                  className="mt-2"
-                  size="sm"
-                  variant="ghost"
-                  icon={<Icon name="reset" />}
-                  data-testid="item-movement-reverse"
-                  onClick={() => setReversing(movement)}
+              <div className="flex shrink-0 flex-col items-end gap-0.5 text-end">
+                <Ltr
+                  data-testid="item-movement-quantity"
+                  className={cn(
+                    "text-value font-semibold tabular-nums",
+                    out ? "text-danger-600" : "text-success-700",
+                  )}
                 >
-                  {t("inventory.history.reverse")}
-                </Button>
+                  {out ? `\u2212${movement.quantity.slice(1)}` : `+${movement.quantity}`}
+                </Ltr>
+                <span className="text-meta text-ink-muted">
+                  {t("inventory.history.after")}{" "}
+                  <Ltr className="tabular-nums text-ink">{movement.runningQuantity}</Ltr>
+                </span>
+              </div>
+
+              {mayReverse ? (
+                <RowMenu
+                  label={t("inventory.history.menu")}
+                  data-testid={`item-movement-${movement.id}-menu`}
+                >
+                  <MenuItem
+                    icon="reset"
+                    data-testid="item-movement-reverse"
+                    onSelect={() => setReversing(movement)}
+                  >
+                    {t("inventory.history.reverse")}
+                  </MenuItem>
+                </RowMenu>
+              ) : (
+                <span className="w-(--control-h-sm) shrink-0" aria-hidden="true" />
               )}
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ol>
 
       {/* A reversal writes the opposite entry rather than deleting anything,

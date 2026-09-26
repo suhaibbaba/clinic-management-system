@@ -1,5 +1,6 @@
 import {
   LOOKUP_LIST,
+  USER_ROLE,
   type SupplierStatement,
   type SupplierStatementLine,
   type SupplierSummary,
@@ -15,26 +16,42 @@ import {
   EmptyState,
   Icon,
   Ltr,
+  MenuItem,
   PageHeader,
   PhoneLink,
+  RowMenu,
   SearchField,
   Table,
+  TotalBadge,
+  useConfirm,
+  usePageParams,
+  useToast,
 } from "@clinic/ui";
 import { useSession } from "@web/features/auth/session";
 import { useLookupLabels } from "@web/features/lookups/queries";
 import { Money } from "@web/features/billing/money";
 import { useClinic } from "@web/features/clinic/queries";
 import { canManageSuppliers } from "@web/features/inventory/permissions";
-import { useSuppliers, useSupplierStatement } from "@web/features/inventory/queries";
+import {
+  useDeleteSupplier,
+  useSuppliers,
+  useSupplierStatement,
+} from "@web/features/inventory/queries";
 import { SupplierFormModal } from "@web/features/inventory/supplier-form-modal";
+import { errorMessageKey } from "@web/lib/api-error";
 import { endOfNextDayIso, formatDate, startOfDayIso } from "@web/lib/format";
 import { useDebounced } from "@web/lib/use-debounced";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
+const STATEMENT_PER_PAGE = 10;
+
 export function SuppliersPage(): JSX.Element {
   const { t } = useTranslation();
-  const { can } = useSession();
+  const { user, can } = useSession();
   const clinic = useClinic();
+  const toast = useToast();
+  const remove = useDeleteSupplier();
+  const { confirm, dialog } = useConfirm("supplier-confirm-delete");
 
   const [search, setSearch] = useState("");
   const [creating, setCreating] = useState(false);
@@ -49,6 +66,30 @@ export function SuppliersPage(): JSX.Element {
   });
 
   const mayManage = canManageSuppliers(can);
+  // The API lets an admin alone archive a supplier.
+  const mayDelete = user?.role === USER_ROLE.ADMIN;
+
+  const askDelete = (supplier: SupplierSummary): void =>
+    confirm({
+      title: "inventory.suppliers.confirmDelete.title",
+      titleValues: { name: supplier.name },
+      consequences: [
+        t("inventory.suppliers.confirmDelete.history"),
+        t("inventory.suppliers.confirmDelete.items"),
+      ],
+      onConfirm: async () => {
+        try {
+          await remove.mutateAsync(supplier.id);
+          toast.success("inventory.suppliers.deleted");
+          if (selected?.id === supplier.id) {
+            setSelected(null);
+          }
+        } catch (error) {
+          toast.error(errorMessageKey(error));
+          throw error;
+        }
+      },
+    });
 
   const columns: readonly Column<SupplierSummary>[] = [
     {
@@ -92,25 +133,38 @@ export function SuppliersPage(): JSX.Element {
           </Badge>
         ),
     },
-    ...(mayManage
+    ...(mayManage || mayDelete
       ? [
           {
             key: "actions",
             header: "inventory.suppliers.actions",
             actions: true,
+            besideTitleOnMobile: true,
             render: (row: SupplierSummary) => (
-              <Button
-                size="sm"
-                variant="ghost"
-                icon={<Icon name="edit" />}
-                data-testid="supplier-edit"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setEditing(row);
-                }}
+              <RowMenu
+                label={t("inventory.suppliers.menu")}
+                data-testid={`supplier-menu-${row.id}`}
               >
-                {t("common.edit")}
-              </Button>
+                {mayManage && (
+                  <MenuItem
+                    icon="edit"
+                    data-testid="supplier-edit"
+                    onSelect={() => setEditing(row)}
+                  >
+                    {t("common.edit")}
+                  </MenuItem>
+                )}
+                {mayDelete && (
+                  <MenuItem
+                    icon="trash"
+                    tone="danger"
+                    data-testid="supplier-delete"
+                    onSelect={() => askDelete(row)}
+                  >
+                    {t("common.delete")}
+                  </MenuItem>
+                )}
+              </RowMenu>
             ),
           } satisfies Column<SupplierSummary>,
         ]
@@ -123,9 +177,6 @@ export function SuppliersPage(): JSX.Element {
         data-testid="suppliers-header"
         title="inventory.suppliers.title"
         subtitle="inventory.suppliers.subtitle"
-        {...(suppliers.data !== undefined && {
-          count: t("pagination.total", { total: suppliers.data.total }),
-        })}
         primaryAction={
           mayManage ? (
             <Button
@@ -139,17 +190,25 @@ export function SuppliersPage(): JSX.Element {
         }
       />
 
-      <SearchField
-        data-testid="suppliers-search"
-        className="w-full min-w-0 sm:max-w-md"
-        label={t("inventory.suppliers.search")}
-        shortcut="/"
-        placeholder={t("inventory.suppliers.searchPlaceholder")}
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-        clearLabel={t("common.clear")}
-        onClear={() => setSearch("")}
-      />
+      {dialog}
+
+      {/* The filter first, its count at the end, on the row the table starts under. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SearchField
+          data-testid="suppliers-search"
+          className="w-full min-w-0 sm:max-w-md"
+          label={t("inventory.suppliers.search")}
+          shortcut="/"
+          placeholder={t("inventory.suppliers.searchPlaceholder")}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          clearLabel={t("common.clear")}
+          onClear={() => setSearch("")}
+        />
+        {suppliers.data !== undefined && (
+          <TotalBadge data-testid="suppliers-count" total={suppliers.data.total} />
+        )}
+      </div>
 
       <Table
         data-testid="suppliers-table"
@@ -211,6 +270,10 @@ function Statement({
   );
 
   const statement = useSupplierStatement(supplier.id, query);
+  // The statement comes whole, with its total; the page shows it a page at a time.
+  const { page, perPage, setPage, setPerPage } = usePageParams(STATEMENT_PER_PAGE);
+  const lines = statement.data?.lines ?? [];
+  const pageLines = lines.slice((page - 1) * perPage, page * perPage);
 
   const columns: readonly Column<SupplierStatementLine>[] = [
     {
@@ -298,10 +361,17 @@ function Statement({
       <Table
         data-testid="supplier-statement-table"
         columns={columns}
-        rows={statement.data?.lines ?? []}
+        rows={pageLines}
         rowKey={(row) => row.movementId}
         isLoading={statement.isPending}
         isRefreshing={isRefetching(statement)}
+        pagination={{
+          page,
+          totalPages: Math.ceil(lines.length / perPage),
+          onPageChange: setPage,
+          perPage,
+          onPerPageChange: setPerPage,
+        }}
         empty={
           <EmptyState
             icon="clipboard"

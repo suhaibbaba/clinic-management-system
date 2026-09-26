@@ -393,6 +393,8 @@ export function Table<TRow>({
                       key={column.key}
                       data-part="table-body-cell"
                       {...testid(rowId(row), column.key)}
+                      {...(column.actions === true &&
+                        onRowClick && { onClick: (event) => event.stopPropagation() })}
                       className={cn(
                         compact
                           ? "h-(--control-h-sm) whitespace-nowrap px-3 py-1 align-middle"

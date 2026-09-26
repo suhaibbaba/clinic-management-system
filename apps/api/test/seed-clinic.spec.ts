@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
+  MOVEMENT_TYPE,
   PERFORMED_PROCEDURE_STATUS,
   localWeekday,
   occupiesSlot,
@@ -18,6 +19,7 @@ import {
   patients,
   payments,
   performedProcedures,
+  stockMovements,
 } from "@api/database/schema";
 import { CLINIC_HOURS, CLINIC_NAME, CLINIC_TIME_ZONE } from "@api/database/seed/clinic";
 import { seedDatabase, type SeedOptions, type SeedSummary } from "@api/database/seed/seed-database";
@@ -223,6 +225,37 @@ describe("the seeded clinic", () => {
 
     expect(numbers.length).toBeGreaterThan(0);
     expect(numbers).toEqual(numbers.map((_, index) => index + 1));
+  });
+
+  it("takes stock away when it is used, and never below nothing", async () => {
+    const rows = await db
+      .select({
+        itemId: stockMovements.itemId,
+        type: stockMovements.type,
+        quantity: stockMovements.quantity,
+      })
+      .from(stockMovements)
+      .where(eq(stockMovements.clinicId, clinicId));
+
+    const uses = rows.filter((row) => row.type === MOVEMENT_TYPE.CONSUME);
+    expect(uses.length).toBeGreaterThan(0);
+    expect(uses.filter((row) => Number(row.quantity) >= 0)).toEqual([]);
+
+    const onHand = new Map<string, number>();
+    for (const row of rows) {
+      onHand.set(row.itemId, (onHand.get(row.itemId) ?? 0) + Number(row.quantity));
+    }
+    expect([...onHand.values()].filter((quantity) => quantity < 0)).toEqual([]);
+  });
+
+  it("dates every payment in the past, never ahead of today", async () => {
+    const rows = await db
+      .select({ createdAt: payments.createdAt })
+      .from(payments)
+      .where(eq(payments.clinicId, clinicId));
+
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.filter((row) => row.createdAt.getTime() > Date.now())).toEqual([]);
   });
 
   it("leaves today with a list somebody can demonstrate", async () => {

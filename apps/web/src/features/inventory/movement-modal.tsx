@@ -16,6 +16,7 @@ import {
   Ltr,
   Modal,
   MoneyInput,
+  QuantityInput,
   Select,
   Textarea,
   useToast,
@@ -118,17 +119,27 @@ export function MovementModal({
   }
 
   const mode = restocking ? MOVEMENT_TYPE.PURCHASE : type;
+  // A use, or a correction taking stock off, cannot take more than the shelf holds.
+  const takingOff =
+    mode === MOVEMENT_TYPE.CONSUME || (mode === MOVEMENT_TYPE.ADJUST && direction === "remove");
   const overdrawn =
-    mode === MOVEMENT_TYPE.CONSUME &&
+    takingOff &&
     item !== undefined &&
     quantity.trim() !== "" &&
     toThousandths(quantity.trim()) > toThousandths(item.quantity);
+
+  const belowOne =
+    mode === MOVEMENT_TYPE.ADJUST &&
+    direction === "remove" &&
+    quantity.trim() !== "" &&
+    toThousandths(quantity.trim()) < 1000;
 
   const busy = purchase.isPending || consume.isPending || adjust.isPending;
   const canSubmit =
     item !== undefined &&
     quantity.trim() !== "" &&
     !overdrawn &&
+    !belowOne &&
     (type !== MOVEMENT_TYPE.ADJUST || reason.trim().length >= 3);
 
   const submit = async (): Promise<void> => {
@@ -280,19 +291,20 @@ export function MovementModal({
             error: { type: "too_big" },
             errorKey: "inventory.movement.overStock",
           })}
+          {...(belowOne && {
+            error: { type: "too_small" },
+            errorKey: "inventory.movement.atLeastOne",
+          })}
           required
         >
-          <Input
+          <QuantityInput
             id="movement-quantity"
             data-testid="movement-field-quantity"
-            dir="ltr"
-            inputMode="decimal"
             placeholder="0"
             value={quantity}
             onChange={(event) => setQuantity(event.target.value)}
           />
         </FormField>
-
         {mode === MOVEMENT_TYPE.PURCHASE && (
           <>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -345,8 +357,6 @@ export function MovementModal({
         )}
         {mode === MOVEMENT_TYPE.CONSUME && !performedProcedureId && (
           <FormField label="inventory.movement.patient" htmlFor="movement-patient" optional>
-            {/* Registering somebody is beside the point here: the patient is optional, so a name
-                the store does not know is simply left off. */}
             <PatientPicker
               id="movement-patient"
               allowNew={false}
@@ -383,8 +393,6 @@ export function MovementModal({
             onChange={(event) => setReason(event.target.value)}
           />
         </FormField>
-
-        {/* Cosmetic only: the API refuses the same thing, and says so. */}
         {!mayRecord(mode, can) && (
           <p
             role="alert"
