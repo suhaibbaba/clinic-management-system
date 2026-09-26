@@ -493,6 +493,46 @@ describe("Inventory (e2e)", () => {
     expect(lines.map((line) => line.total)).toEqual(["30.00", "12.00", null]);
   });
 
+  it("lets an admin archive a supplier: gone as a default, kept on past purchases", async () => {
+    const created = await context.app.inject({
+      method: "POST",
+      url: "/suppliers",
+      headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+      payload: { name: `Archived Supplies ${uniquePhone()}` },
+    });
+    const archivedId = (created.json() as { id: string }).id;
+    const itemId = await createItem({
+      name: `بند مؤرشف ${uniquePhone()}`,
+      defaultSupplierId: archivedId,
+    });
+    await move("purchase", { itemId, quantity: "2", unitPrice: "5", supplierId: archivedId });
+
+    // ROLES.md: a technician has CRU on suppliers, no delete.
+    const byTechnician = await context.app.inject({
+      method: "DELETE",
+      url: `/suppliers/${archivedId}`,
+      headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+    });
+    expect(byTechnician.statusCode).toBe(403);
+
+    const byAdmin = await context.app.inject({
+      method: "DELETE",
+      url: `/suppliers/${archivedId}`,
+      headers: auth(tokens[USER_ROLE.ADMIN]),
+    });
+    expect(byAdmin.statusCode).toBe(204);
+
+    expect((await readItem(itemId)).supplierName).toBeNull();
+
+    const history = await context.app.inject({
+      method: "GET",
+      url: `/inventory/items/${itemId}/movements`,
+      headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+    });
+    const movements = (history.json() as Paginated<StockMovementRow>).items;
+    expect(movements[0]?.supplierName).toMatch(/^Archived Supplies/);
+  });
+
   it("prints the shopping list as a PDF", async () => {
     const response = await context.app.inject({
       method: "GET",

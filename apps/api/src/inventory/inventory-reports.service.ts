@@ -121,7 +121,11 @@ export class InventoryReportsService {
     const rows = await this.db
       .select({ item: inventoryItems, supplierName: suppliers.name })
       .from(inventoryItems)
-      .leftJoin(suppliers, eq(suppliers.id, inventoryItems.defaultSupplierId))
+      // An archived supplier is nobody's default any more; a movement keeps its name as history.
+      .leftJoin(
+        suppliers,
+        and(eq(suppliers.id, inventoryItems.defaultSupplierId), isNull(suppliers.deletedAt)),
+      )
       .where(
         and(
           eq(inventoryItems.clinicId, clinicId),

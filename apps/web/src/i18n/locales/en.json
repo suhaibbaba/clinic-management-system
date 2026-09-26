@@ -1314,6 +1314,13 @@
         "periodTotal": "Period total",
         "empty": "No purchases in this period",
         "emptyHint": "Every purchase from this supplier appears here"
+      },
+      "menu": "Supplier options",
+      "deleted": "Supplier deleted",
+      "confirmDelete": {
+        "title": "Delete the supplier “{{name}}”?",
+        "history": "Past purchases stay on the record and in the statement",
+        "items": "It will no longer show as any item's default supplier"
       }
     },
     "section": {
