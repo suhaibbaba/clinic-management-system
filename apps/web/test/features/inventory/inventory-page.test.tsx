@@ -68,6 +68,14 @@ describe("the inventory page", () => {
     expect(lastList(api)).toContain("page=2");
   });
 
+  it("counts every matching item beside the filters, not only this page", async () => {
+    renderPage();
+
+    const count = await screen.findByTestId("inventory-count");
+    expect(count).toHaveTextContent("2");
+    expect(count.closest("div")).toContainElement(screen.getByTestId("inventory-search"));
+  });
+
   it("opens on the page and filter the address names", async () => {
     const api = renderPage("/inventory?page=2&low=1");
 

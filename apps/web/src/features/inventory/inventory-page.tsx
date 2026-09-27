@@ -13,6 +13,7 @@ import {
   SearchField,
   Select,
   Table,
+  TotalBadge,
   type Column,
   usePageParams,
 } from "@clinic/ui";
@@ -27,8 +28,6 @@ import { useInventoryItems } from "@web/features/inventory/queries";
 import { formatDate } from "@web/lib/format";
 import { useDebounced } from "@web/lib/use-debounced";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
-
-const FILTER_FIELDS_WIDTH = "max-w-[31.75rem]";
 
 interface InventoryFilters {
   readonly category?: string;
@@ -212,7 +211,6 @@ export function InventoryPage(): JSX.Element {
           There is no dashboard yet (reports are Phase 3); when one lands, this
           is the component that moves onto it. */}
       <InventoryAlertCards
-        className={FILTER_FIELDS_WIDTH}
         onSelectItem={setOpenItemId}
         onShowLow={() => setFilters({ low: true, expiring: false })}
         onShowExpiring={() => setFilters({ expiring: true, low: false })}
@@ -221,7 +219,7 @@ export function InventoryPage(): JSX.Element {
       <div className="flex flex-wrap items-end gap-3">
         <SearchField
           data-testid="inventory-search"
-          className="w-full min-w-0 sm:max-w-xs"
+          className="w-full min-w-0 sm:max-w-md"
           label={t("inventory.search")}
           shortcut="/"
           placeholder={t("inventory.searchPlaceholder")}
@@ -264,6 +262,12 @@ export function InventoryPage(): JSX.Element {
         >
           {t("inventory.filterExpiring")}
         </Button>
+
+        {items.data !== undefined && (
+          <span className="ms-auto flex h-(--control-h) items-center">
+            <TotalBadge data-testid="inventory-count" total={items.data.total} />
+          </span>
+        )}
       </div>
 
       <Table

@@ -1175,7 +1175,8 @@
       "lowHint": "At or under the level somebody set for reordering",
       "expiring": "{{count}} items need attention",
       "expiringHint": "Going off within {{days}} days, or already gone",
-      "showAll": "Show all ({{count}})"
+      "showMore": "Show more ({{count}})",
+      "showInTable": "Filter the table"
     },
     "drawer": {
       "description": "Item details and movements"
