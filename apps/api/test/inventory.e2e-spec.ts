@@ -430,6 +430,29 @@ describe("Inventory (e2e)", () => {
     expect(page.items[2]?.supplierName).toBe("مستودع الاختبار");
   });
 
+  it("keeps the running quantity of the whole ledger when the history is filtered", async () => {
+    const itemId = await createItem({ name: `بند مصفّى ${uniquePhone()}` });
+
+    await move("purchase", { itemId, quantity: "10" });
+    await move("consume", { itemId, quantity: "4" });
+    await move("consume", { itemId, quantity: "1" });
+
+    const response = await context.app.inject({
+      method: "GET",
+      url: `/inventory/items/${itemId}/movements?type=consume`,
+      headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+    });
+
+    expect(response.statusCode).toBe(200);
+    const page = response.json() as Paginated<StockMovementRow>;
+
+    expect(page.items.map((row) => [row.quantity, row.runningQuantity])).toEqual([
+      ["-1", "5"],
+      ["-4", "6"],
+    ]);
+    expect(page.total).toBe(2);
+  });
+
   it("puts a consumption linked to a procedure on the patient timeline", async () => {
     const procedure = await context.app.inject({
       method: "POST",

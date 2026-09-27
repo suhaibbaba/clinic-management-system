@@ -98,6 +98,26 @@ export class StockMovementsService implements OnModuleInit {
     const where = and(eq(stockMovements.clinicId, actor.clinicId), ...filters);
     const { limit, offset } = toLimitOffset(query);
 
+    // Summed over the item's whole ledger before any filter: a window in the filtered query would
+    // count only the rows a type or date range let through.
+    const ledger = this.db
+      .select({
+        id: stockMovements.id,
+        runningQuantity: sql<string>`sum(${stockMovements.quantity}) over (
+          partition by ${stockMovements.itemId}
+          order by ${stockMovements.createdAt} asc, ${stockMovements.id} asc
+          rows between unbounded preceding and current row
+        )::text`.as("running_quantity"),
+      })
+      .from(stockMovements)
+      .where(
+        and(
+          eq(stockMovements.clinicId, actor.clinicId),
+          query.itemId ? eq(stockMovements.itemId, query.itemId) : undefined,
+        ),
+      )
+      .as("ledger");
+
     const [rows, [totals]] = await Promise.all([
       this.db
         .select({
@@ -107,13 +127,10 @@ export class StockMovementsService implements OnModuleInit {
           procedureName: procedureCatalog.name,
           createdByNameAr: users.nameAr,
           createdByNameEn: users.nameEn,
-          runningQuantity: sql<string>`sum(${stockMovements.quantity}) over (
-            partition by ${stockMovements.itemId}
-            order by ${stockMovements.createdAt} asc, ${stockMovements.id} asc
-            rows between unbounded preceding and current row
-          )::text`,
+          runningQuantity: ledger.runningQuantity,
         })
         .from(stockMovements)
+        .innerJoin(ledger, eq(ledger.id, stockMovements.id))
         .leftJoin(suppliers, eq(suppliers.id, stockMovements.supplierId))
         .leftJoin(patients, eq(patients.id, stockMovements.patientId))
         .leftJoin(
