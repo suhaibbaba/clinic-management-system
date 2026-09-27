@@ -12,6 +12,7 @@ import { ClinicPage } from "@web/features/clinic/clinic-page";
 import { DashboardPage } from "@web/features/dashboard/dashboard-page";
 import { DoctorPage } from "@web/features/doctors/doctor-page";
 import { InventorySection } from "@web/features/inventory/inventory-section";
+import { ItemPage } from "@web/features/inventory/item-page";
 import { ShoppingListPage } from "@web/features/inventory/shopping-list-page";
 import { LabsSection } from "@web/features/labs/labs-section";
 import { LabPage } from "@web/features/labs/lab-page";
@@ -178,6 +179,15 @@ export function AppRoutes(): JSX.Element {
           element={
             <RequireRole roles={INVENTORY} redirectTo={HOME}>
               <InventorySection />
+            </RequireRole>
+          }
+        />
+
+        <Route
+          path="/inventory/items/:id"
+          element={
+            <RequireRole roles={INVENTORY} redirectTo={HOME}>
+              <ItemPage />
             </RequireRole>
           }
         />

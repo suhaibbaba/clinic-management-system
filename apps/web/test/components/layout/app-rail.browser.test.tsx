@@ -111,3 +111,45 @@ describe("where the rail gives way to the drawer", () => {
     expect(shown("app-nav-toggle")).toBe(false);
   });
 });
+
+// The bar's sticky ground is opaque and above the page, so a first row flush against it lost the
+// top of its focus ring (2px ring, 2px offset). The gap people see stays 16px.
+describe("the page under the top bar", () => {
+  afterEach(async () => {
+    await page.viewport(1280, 800);
+  });
+
+  it.each([390, 1280])(
+    "leaves a focus ring's room below the bar's ground at %ipx",
+    async (width) => {
+      await page.viewport(width, 800);
+      authTokens.clear();
+      mockApi({
+        "POST /auth/refresh": { status: 200, body: { accessToken: "access", expiresIn: 900 } },
+        "GET /me": { status: 200, body: makeProfile({ role: USER_ROLE.ADMIN }) },
+        "GET /clinic": { status: 200, body: makeClinic() },
+        "GET /dashboard/summary": { status: 200, body: makeDashboardSummary() },
+        "GET /appointments/pending-confirmation": { status: 200, body: paginated([]) },
+        "GET /appointments/calendar": { status: 200, body: makeCalendarFeed() },
+        "GET /notes": { status: 200, body: paginated([]) },
+      });
+      renderWithProviders(<AppRoutes />, { route: "/dashboard" });
+      const bar = await screen.findByTestId("app-topbar");
+
+      let ground: HTMLElement | null = bar;
+      while (ground && getComputedStyle(ground).position !== "sticky") {
+        ground = ground.parentElement;
+      }
+      if (!ground) {
+        throw new Error("the top bar has no sticky ground");
+      }
+
+      const main = element("app-main");
+      const contentTop =
+        main.getBoundingClientRect().top + parseFloat(getComputedStyle(main).paddingTop);
+
+      expect(contentTop - ground.getBoundingClientRect().bottom).toBeGreaterThanOrEqual(4);
+      expect(Math.round(contentTop - bar.getBoundingClientRect().bottom)).toBe(16);
+    },
+  );
+});

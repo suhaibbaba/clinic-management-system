@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router-dom";
-import { PER_PAGE_OPTIONS } from "@ui/components/table";
+import { DEFAULT_PER_PAGE, PER_PAGE_OPTIONS } from "@ui/components/table";
 
 export interface PageParams {
   readonly page: number;
@@ -10,15 +10,12 @@ export interface PageParams {
   readonly resetPage: () => void;
 }
 
-export function usePageParams(
-  defaultPerPage: number,
-  options: readonly number[] = PER_PAGE_OPTIONS,
-): PageParams {
+export function usePageParams(options: readonly number[] = PER_PAGE_OPTIONS): PageParams {
   const [params, setParams] = useSearchParams();
 
   const page = Math.max(1, Number.parseInt(params.get("page") ?? "", 10) || 1);
   const requested = Number.parseInt(params.get("perPage") ?? "", 10);
-  const perPage = options.includes(requested) ? requested : defaultPerPage;
+  const perPage = options.includes(requested) ? requested : DEFAULT_PER_PAGE;
 
   // Every write goes through the updater form, never a captured copy: a filter that sets its own
   // param and then resets the page would otherwise put the first write back.
@@ -52,7 +49,7 @@ export function usePageParams(
       write((next) => {
         putPage(next, 1);
 
-        if (value === defaultPerPage) {
+        if (value === DEFAULT_PER_PAGE) {
           next.delete("perPage");
         } else {
           next.set("perPage", String(value));

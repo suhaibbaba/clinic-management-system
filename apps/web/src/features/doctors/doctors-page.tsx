@@ -13,6 +13,7 @@ import {
   PhoneLink,
   SearchField,
   Table,
+  TotalBadge,
   usePageParams,
   type Column,
 } from "@clinic/ui";
@@ -22,14 +23,13 @@ import { useDoctors } from "@web/features/doctors/queries";
 import { formatList } from "@web/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
-/** Readable by every role; only admin sees the write actions (ROLES.md). */
 export function DoctorsPage(): JSX.Element {
   const { t, i18n } = useTranslation();
   const { hasRole } = useSession();
   const navigate = useNavigate();
   const isAdmin = hasRole(USER_ROLE.ADMIN);
 
-  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams(10);
+  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
   const [search, setSearch] = useState("");
   const [formDoctor, setFormDoctor] = useState<Doctor | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -143,9 +143,6 @@ export function DoctorsPage(): JSX.Element {
         data-testid="doctors-header"
         title="doctors.title"
         subtitle="doctors.subtitle"
-        {...(query.data !== undefined && {
-          count: t("pagination.total", { total: query.data.total }),
-        })}
         primaryAction={
           isAdmin ? (
             <Button
@@ -162,7 +159,7 @@ export function DoctorsPage(): JSX.Element {
         }
       />
 
-      <div>
+      <div className="flex flex-wrap items-center gap-3">
         <SearchField
           data-testid="doctors-search"
           className="w-full min-w-0 sm:max-w-md"
@@ -180,6 +177,10 @@ export function DoctorsPage(): JSX.Element {
             resetPage();
           }}
         />
+
+        {query.data !== undefined && (
+          <TotalBadge data-testid="doctors-count" className="ms-auto" total={query.data.total} />
+        )}
       </div>
 
       <Table

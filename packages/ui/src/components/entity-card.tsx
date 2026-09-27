@@ -8,7 +8,6 @@ import { parts, type TestIdProps } from "@ui/lib/testid";
 export interface EntityCardMeta {
   readonly label: string;
   readonly value: ReactNode;
-  /** Latin values — money, dates, file numbers — stay left-to-right. */
   readonly ltr?: boolean | undefined;
 }
 
@@ -27,17 +26,14 @@ export interface EntityCardProps extends TestIdProps {
       }
     | undefined;
   readonly meta?: readonly EntityCardMeta[] | undefined;
+
   readonly action?:
     | {
-        /** The button's accessible name — the icon alone says nothing. */
         readonly label: string;
         readonly onClick: () => void;
-        /** Defaults to the "forward" chevron, which in Arabic points left. */
-        readonly icon?: IconName | undefined;
         readonly disabled?: boolean | undefined;
       }
     | undefined;
-  /** A `RowMenu` beside the status, for what the one action cannot hold. */
   readonly menu?: ReactNode | undefined;
   readonly isSelected?: boolean | undefined;
   readonly className?: string | undefined;
@@ -79,27 +75,38 @@ export function EntityCard({
         >
           <Icon name={icon} />
         </span>
-
         <div className="min-w-0 flex-1">
-          <h3 {...part("title")} className="truncate text-label font-semibold text-ink">
-            {title}
+          <h3 {...part("title")} className="break-words text-label font-semibold text-ink">
+            {action === undefined ? (
+              <bdi>{title}</bdi>
+            ) : (
+              <button
+                type="button"
+                {...part("action")}
+                onClick={action.onClick}
+                disabled={action.disabled === true}
+                title={action.label}
+                className="cursor-pointer text-start text-primary-700 hover:underline disabled:cursor-not-allowed disabled:text-ink disabled:no-underline"
+              >
+                <bdi>{title}</bdi>
+              </button>
+            )}
           </h3>
           {subtitle !== undefined && (
-            <p {...part("subtitle")} className="mt-0.5 truncate text-meta text-ink-muted">
+            <p {...part("subtitle")} className="mt-0.5 break-words text-meta text-ink-muted">
               {subtitle}
             </p>
           )}
+          {status !== undefined && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <Badge tone={status.tone} {...part("status")}>
+                {status.label}
+              </Badge>
+            </div>
+          )}
         </div>
-
-        {status !== undefined && (
-          <Badge tone={status.tone} {...part("status")}>
-            {status.label}
-          </Badge>
-        )}
-
         {menu}
       </div>
-
       {progress !== undefined && (
         <div className="mt-3">
           <ProgressBar
@@ -113,47 +120,35 @@ export function EntityCard({
           )}
         </div>
       )}
-
       {children}
-
-      {((meta ?? []).length > 0 || action !== undefined) && (
-        <div className="mt-3 flex items-end justify-between gap-3 border-t border-line pt-3">
-          <dl {...part("meta")} className="flex min-w-0 flex-wrap gap-x-5 gap-y-2">
-            {(meta ?? []).map((entry) => (
-              <div key={entry.label} className="min-w-0">
-                <dt className="text-meta text-ink-subtle">{entry.label}</dt>
-                {/* `break-words` rather than `truncate`: a phone number's 44px hit area lives on an
-                    `::after`, which an `overflow-hidden` ancestor clips to the line. */}
-                <dd
-                  className="min-w-0 break-words text-value font-medium text-ink tabular-nums"
-                  {...(entry.ltr === true && { dir: "ltr" })}
-                >
+      {(meta ?? []).length > 0 && (
+        <dl
+          {...part("meta")}
+          className="mt-3 grid grid-cols-[minmax(5.5rem,auto)_minmax(0,1fr)] border-t border-line"
+        >
+          {(meta ?? []).map((entry, index) => (
+            <div key={entry.label} className="contents">
+              <dt
+                className={cn(
+                  "py-2 pe-4 text-label leading-value text-ink-muted",
+                  index > 0 && "border-t border-line",
+                )}
+              >
+                {entry.label}
+              </dt>
+              <dd
+                className={cn(
+                  "min-w-0 py-2 text-value font-medium break-words text-ink tabular-nums",
+                  index > 0 && "border-t border-line",
+                )}
+              >
+                <span {...(entry.ltr === true && { dir: "ltr" })} className="inline-block">
                   {entry.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-
-          {action !== undefined && (
-            <button
-              type="button"
-              {...part("action")}
-              onClick={action.onClick}
-              disabled={action.disabled === true}
-              aria-label={action.label}
-              title={action.label}
-              className={cn(
-                "inline-flex size-(--control-h) shrink-0 cursor-pointer items-center justify-center rounded-pill",
-                "lg:size-(--control-h-sm)",
-                "bg-primary-600 text-ink-inverse hover:bg-primary-700",
-                "[transition:background-color_250ms_ease-in-out,scale_120ms_ease-out] active:scale-95",
-                "disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100",
-              )}
-            >
-              <Icon name={action.icon ?? "chevron-end"} className="size-[18px]" />
-            </button>
-          )}
-        </div>
+                </span>
+              </dd>
+            </div>
+          ))}
+        </dl>
       )}
     </article>
   );
@@ -164,7 +159,10 @@ export function EntityGrid({
   "data-testid": testId,
 }: { readonly children: ReactNode } & TestIdProps): JSX.Element {
   return (
-    <div {...parts("entity-grid", testId)()} className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+    <div
+      {...parts("entity-grid", testId)()}
+      className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3"
+    >
       {children}
     </div>
   );

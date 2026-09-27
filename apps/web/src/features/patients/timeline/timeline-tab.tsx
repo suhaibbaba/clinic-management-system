@@ -44,11 +44,9 @@ const ICONS: Record<TimelineEntryType, IconName> = {
 const TYPE_FILTERS = ["all", ...TIMELINE_ENTRY_TYPES] as const;
 type TypeFilter = (typeof TYPE_FILTERS)[number];
 
-const DEFAULT_PER_PAGE = 10;
-
 export function TimelineTab({ patientId }: { readonly patientId: string }): JSX.Element {
   const { t } = useTranslation();
-  const { page, perPage, setPage, setPerPage } = usePageParams(DEFAULT_PER_PAGE);
+  const { page, perPage, setPage, setPerPage } = usePageParams();
   const [kind] = useTabParam<TypeFilter>("type", TYPE_FILTERS, "all");
   const [, setParams] = useSearchParams();
 

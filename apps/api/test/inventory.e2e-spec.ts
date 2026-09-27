@@ -369,6 +369,34 @@ describe("Inventory (e2e)", () => {
       expect(alerts.expired.map((item) => item.id)).toContain(expiredId);
     });
 
+    it("pages the low items across the whole list, not within one page of it", async () => {
+      const prefix = `paged ${uniquePhone()}`;
+      const stocked = await createItem({ name: `${prefix} a`, minQuantity: "1" });
+      const firstLow = await createItem({ name: `${prefix} b`, minQuantity: "10" });
+      const secondLow = await createItem({ name: `${prefix} c`, minQuantity: "10" });
+      await move("purchase", { itemId: stocked, quantity: "5" });
+      await move("purchase", { itemId: firstLow, quantity: "2" });
+      await move("purchase", { itemId: secondLow, quantity: "2" });
+
+      const page = async (number: number): Promise<Paginated<InventoryItemRow>> => {
+        const response = await context.app.inject({
+          method: "GET",
+          url: `/inventory/items?search=${encodeURIComponent(prefix)}&low=true&limit=1&page=${number}`,
+          headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        });
+
+        expect(response.statusCode).toBe(200);
+        return response.json() as Paginated<InventoryItemRow>;
+      };
+
+      const first = await page(1);
+      expect(first.items.map((item) => item.id)).toEqual([firstLow]);
+      expect(first.total).toBe(2);
+      expect(first.totalPages).toBe(2);
+
+      expect((await page(2)).items.map((item) => item.id)).toEqual([secondLow]);
+    });
+
     it("does not call an item low when it has no minimum set", async () => {
       const itemId = await createItem({ name: `بلا حد ${uniquePhone()}` });
 
@@ -400,6 +428,29 @@ describe("Inventory (e2e)", () => {
       ["10", "10"],
     ]);
     expect(page.items[2]?.supplierName).toBe("مستودع الاختبار");
+  });
+
+  it("keeps the running quantity of the whole ledger when the history is filtered", async () => {
+    const itemId = await createItem({ name: `بند مصفّى ${uniquePhone()}` });
+
+    await move("purchase", { itemId, quantity: "10" });
+    await move("consume", { itemId, quantity: "4" });
+    await move("consume", { itemId, quantity: "1" });
+
+    const response = await context.app.inject({
+      method: "GET",
+      url: `/inventory/items/${itemId}/movements?type=consume`,
+      headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+    });
+
+    expect(response.statusCode).toBe(200);
+    const page = response.json() as Paginated<StockMovementRow>;
+
+    expect(page.items.map((row) => [row.quantity, row.runningQuantity])).toEqual([
+      ["-1", "5"],
+      ["-4", "6"],
+    ]);
+    expect(page.total).toBe(2);
   });
 
   it("puts a consumption linked to a procedure on the patient timeline", async () => {

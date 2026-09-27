@@ -22,7 +22,7 @@ export function ShoppingListPage(): JSX.Element {
       primary: true,
       render: (row) => (
         <span className="flex flex-col">
-          <span className="font-medium text-ink">{row.name}</span>
+          <bdi className="font-medium text-ink">{row.name}</bdi>
           {row.supplierName && (
             <span className="text-label text-ink-muted">{row.supplierName}</span>
           )}

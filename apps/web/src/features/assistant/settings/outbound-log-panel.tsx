@@ -28,12 +28,10 @@ type Outcome = (typeof OUTCOMES)[number];
 const pick = <T extends string>(options: readonly T[], raw: string | null): T | undefined =>
   options.find((option) => option === raw);
 
-// Filters in the address like every list here: "yesterday's failed sends" is a link somebody
-// forwards to whoever looks after the WhatsApp account.
 export function OutboundLogPanel(): JSX.Element {
   const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
-  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams(20);
+  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
 
   const trigger = pick(AI_OUTBOUND_TRIGGERS, params.get("trigger"));
   const outcome = pick(OUTCOMES, params.get("outcome"));

@@ -3,6 +3,7 @@ import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import {
+  DEFAULT_PER_PAGE,
   Button,
   Chip,
   EmptyState,
@@ -23,8 +24,6 @@ import { useSaveTranslations, useTranslationOverrides } from "@web/features/tran
 import { errorMessageKey } from "@web/lib/api-error";
 import { useDebounced } from "@web/lib/use-debounced";
 
-// Identical wording is one row: the same word on seven screens is one thing to translate, and the
-// admin changing it expects all seven to follow. A row opens onto its keys to word one differently.
 interface Group {
   readonly id: string;
   readonly keys: readonly string[];
@@ -44,7 +43,6 @@ const SHIPPED: Record<TranslationLanguage, Record<string, string>> = {
 const KEYS = Object.keys(SHIPPED.ar);
 const sectionOf = (key: string): string => key.split(".")[0] ?? "";
 const SECTIONS = [...new Set(KEYS.map(sectionOf))].sort();
-const PER_PAGE = 25;
 
 const GROUPS: readonly Group[] = (() => {
   const byText = new Map<string, string[]>();
@@ -69,7 +67,7 @@ export function TranslationsPage(): JSX.Element {
   const { t } = useTranslation();
   const toast = useToast();
   const [params, setSearchParams] = useSearchParams();
-  const { page, setPage, resetPage } = usePageParams(PER_PAGE, [PER_PAGE]);
+  const { page, perPage, setPage, resetPage } = usePageParams([DEFAULT_PER_PAGE]);
 
   const section = params.get("section") ?? "";
   const changedOnly = params.get("changed") === "1";
@@ -123,10 +121,10 @@ export function TranslationsPage(): JSX.Element {
       );
   }, [section, changedOnly, debounced, saved]);
 
-  const totalPages = Math.max(1, Math.ceil(matched.length / PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(matched.length / perPage));
   const current = Math.min(page, totalPages);
   const rows: Row[] = matched
-    .slice((current - 1) * PER_PAGE, current * PER_PAGE)
+    .slice((current - 1) * perPage, current * perPage)
     .flatMap((group) => [
       { kind: "group" as const, group },
       ...(open.has(group.id)

@@ -1,23 +1,23 @@
 import type { InventoryItemRow } from "@clinic/shared";
-import type { JSX } from "react";
+import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Card, Icon, Ltr } from "@clinic/ui";
+import { Badge, Button, Card, Icon, Ltr, Modal } from "@clinic/ui";
 import { useSession } from "@web/features/auth/session";
 import { seesInventory } from "@web/features/inventory/permissions";
 import { useInventoryAlerts } from "@web/features/inventory/queries";
 import { cn } from "@clinic/ui/lib/cn";
 import { formatDate } from "@web/lib/format";
 
+const PREVIEW_COUNT = 2;
+
 export function InventoryAlertCards({
   onSelectItem,
   onShowLow,
   onShowExpiring,
-  className,
 }: {
   readonly onSelectItem: (id: string) => void;
   readonly onShowLow: () => void;
   readonly onShowExpiring: () => void;
-  readonly className?: string | undefined;
 }): JSX.Element | null {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -35,13 +35,13 @@ export function InventoryAlertCards({
   }
 
   return (
-    <div data-testid="inventory-alerts" className={cn("grid gap-3", className)}>
+    <div data-testid="inventory-alerts" className="grid gap-3 lg:grid-cols-2">
       {low.length > 0 && (
         <AlertCard
           data-testid="inventory-alert-low"
           tone="danger"
           icon="alert"
-          title={t("inventory.alerts.low", { count: low.length })}
+          titleKey="inventory.alerts.low"
           hint={t("inventory.alerts.lowHint")}
           items={low}
           onShowAll={onShowLow}
@@ -55,7 +55,7 @@ export function InventoryAlertCards({
           data-testid="inventory-alert-expiring"
           tone="warning"
           icon="clock"
-          title={t("inventory.alerts.expiring", { count: going.length })}
+          titleKey="inventory.alerts.expiring"
           hint={t("inventory.alerts.expiringHint", { days: alerts.data.expiryWarningDays })}
           items={going}
           onShowAll={onShowExpiring}
@@ -70,7 +70,7 @@ export function InventoryAlertCards({
 function AlertCard({
   tone,
   icon,
-  title,
+  titleKey,
   hint,
   items,
   describe,
@@ -81,7 +81,7 @@ function AlertCard({
   readonly "data-testid": string;
   readonly tone: "danger" | "warning";
   readonly icon: "alert" | "clock";
-  readonly title: string;
+  readonly titleKey: string;
   readonly hint: string;
   readonly items: readonly InventoryItemRow[];
   readonly describe: (item: InventoryItemRow) => string;
@@ -89,6 +89,23 @@ function AlertCard({
   readonly onSelectItem: (id: string) => void;
 }): JSX.Element {
   const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+
+  const row = (item: InventoryItemRow, onClick: () => void): JSX.Element => (
+    <li key={item.id}>
+      <button
+        type="button"
+        data-testid={`${testId}-item-${item.id}`}
+        onClick={onClick}
+        className="flex min-h-(--control-h) w-full cursor-pointer items-baseline justify-between gap-2 rounded-control px-1 py-0.5 text-start transition-colors duration-150 hover:bg-row-hover lg:min-h-(--control-h-sm)"
+      >
+        <span className="truncate text-label text-ink">
+          <bdi>{item.name}</bdi>
+        </span>
+        <Ltr className="shrink-0 text-label tabular-nums text-ink-muted">{describe(item)}</Ltr>
+      </button>
+    </li>
+  );
 
   return (
     <Card data-testid={testId}>
@@ -101,39 +118,21 @@ function AlertCard({
         >
           <Icon name={icon} className="size-4" />
         </span>
-
         <div className="min-w-0 flex-1">
-          <p className="text-value font-medium text-ink">{title}</p>
+          <p className="text-value font-medium text-ink">{t(titleKey, { count: items.length })}</p>
           <p className="text-label text-ink-muted">{hint}</p>
-
-          {/* The first three by name — enough to recognise the problem without
-              turning an alert into a second copy of the table below it. */}
           <ul className="mt-2 flex flex-col gap-1">
-            {items.slice(0, 3).map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  data-testid={`${testId}-item-${item.id}`}
-                  onClick={() => onSelectItem(item.id)}
-                  className="flex min-h-(--control-h) w-full cursor-pointer items-baseline justify-between gap-2 rounded-control px-1 py-0.5 text-start transition-colors duration-150 hover:bg-row-hover lg:min-h-(--control-h-sm)"
-                >
-                  <span className="truncate text-label text-ink">{item.name}</span>
-                  <Ltr className="shrink-0 text-label tabular-nums text-ink-muted">
-                    {describe(item)}
-                  </Ltr>
-                </button>
-              </li>
-            ))}
+            {items.slice(0, PREVIEW_COUNT).map((item) => row(item, () => onSelectItem(item.id)))}
           </ul>
 
-          {items.length > 3 && (
+          {items.length > PREVIEW_COUNT && (
             <button
               type="button"
-              data-testid={`${testId}-show-all`}
-              onClick={onShowAll}
+              data-testid={`${testId}-show-more`}
+              onClick={() => setExpanded(true)}
               className="mt-2 cursor-pointer text-label font-medium text-primary-700 hover:underline"
             >
-              {t("inventory.alerts.showAll", { count: items.length })}
+              {t("inventory.alerts.showMore", { count: items.length })}
             </button>
           )}
         </div>
@@ -142,6 +141,44 @@ function AlertCard({
           {items.length}
         </Badge>
       </div>
+
+      <Modal
+        data-testid={`${testId}-modal`}
+        open={expanded}
+        onOpenChange={setExpanded}
+        title={titleKey}
+        titleValues={{ count: items.length }}
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              data-testid={`${testId}-modal-close`}
+              onClick={() => setExpanded(false)}
+            >
+              {t("common.close")}
+            </Button>
+            <Button
+              data-testid={`${testId}-modal-filter`}
+              onClick={() => {
+                setExpanded(false);
+                onShowAll();
+              }}
+            >
+              {t("inventory.alerts.showInTable")}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-label text-ink-muted">{hint}</p>
+        <ul className="mt-3 flex flex-col gap-1">
+          {items.map((item) =>
+            row(item, () => {
+              setExpanded(false);
+              onSelectItem(item.id);
+            }),
+          )}
+        </ul>
+      </Modal>
     </Card>
   );
 }

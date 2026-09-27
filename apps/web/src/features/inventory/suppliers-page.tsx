@@ -43,8 +43,6 @@ import { endOfNextDayIso, formatDate, startOfDayIso } from "@web/lib/format";
 import { useDebounced } from "@web/lib/use-debounced";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
-const STATEMENT_PER_PAGE = 10;
-
 export function SuppliersPage(): JSX.Element {
   const { t } = useTranslation();
   const { user, can } = useSession();
@@ -270,8 +268,8 @@ function Statement({
   );
 
   const statement = useSupplierStatement(supplier.id, query);
-  // The statement comes whole, with its total; the page shows it a page at a time.
-  const { page, perPage, setPage, setPerPage } = usePageParams(STATEMENT_PER_PAGE);
+
+  const { page, perPage, setPage, setPerPage } = usePageParams();
   const lines = statement.data?.lines ?? [];
   const pageLines = lines.slice((page - 1) * perPage, page * perPage);
 

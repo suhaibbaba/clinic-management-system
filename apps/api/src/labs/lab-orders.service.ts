@@ -10,18 +10,38 @@ import {
   awaitingLab,
   canTransitionLabOrder,
   LAB_ORDER_AWAITING_STATUSES,
+  LAB_ORDER_DONE_STATUSES,
+  LAB_ORDER_STAGE_STATUSES,
+  LAB_ORDER_STAGES,
   LAB_ORDER_STATUS,
   LOOKUP_LIST,
   USER_ROLE,
   type CreateLabOrderInput,
   type LabOrder,
   type LabOrderRow,
+  type LabOrderSort,
+  type LabOrderStage,
+  type LabOrderStageCounts,
+  type LabOrderStageCountsQuery,
   type LabOrderStatus,
   type ListLabOrdersQuery,
   type Paginated,
   type UpdateLabOrderInput,
 } from "@clinic/shared";
-import { and, asc, desc, eq, inArray, isNotNull, isNull, lt, or, sql, type SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  or,
+  sql,
+  type AnyColumn,
+  type SQL,
+} from "drizzle-orm";
 import { AppointmentAccessService } from "@api/appointments/appointment-access.service";
 import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { arabicNameSearch } from "@api/common/database/arabic-search";
@@ -74,13 +94,10 @@ export class LabOrdersService implements OnModuleInit {
   }
 
   async list(actor: AuthenticatedUser, query: ListLabOrdersQuery): Promise<Paginated<LabOrderRow>> {
-    const filters: (SQL | undefined)[] = [];
+    const filters = this.sharedFilters(query);
 
     if (query.status) {
       filters.push(eq(labOrders.status, query.status));
-    }
-    if (query.labId) {
-      filters.push(eq(labOrders.labId, query.labId));
     }
     if (query.patientId) {
       filters.push(eq(labOrders.patientId, query.patientId));
@@ -91,22 +108,31 @@ export class LabOrdersService implements OnModuleInit {
     if (query.overdue) {
       filters.push(overdueFilter());
     }
-    if (query.search) {
-      const pattern = `%${query.search}%`;
-      filters.push(
-        or(
-          arabicNameSearch(patients.normalizedName, query.search)?.match,
-          arabicNameSearch(labs.normalizedName, query.search)?.match,
-          sql`${patients.fileNumber} ilike ${pattern}`,
-        ),
-      );
+    if (query.view === "open") {
+      filters.push(inArray(labOrders.status, OPEN_STATUSES));
+    }
+    if (query.view === "done") {
+      filters.push(inArray(labOrders.status, [...LAB_ORDER_DONE_STATUSES]));
+    }
+    if (query.stage) {
+      filters.push(inArray(labOrders.status, [...LAB_ORDER_STAGE_STATUSES[query.stage]]));
+    }
+    if (query.finishedFrom) {
+      filters.push(sql`${finishedAt} >= ${query.finishedFrom}::timestamptz`);
+    }
+    if (query.finishedTo) {
+      filters.push(sql`${finishedAt} < ${query.finishedTo}::timestamptz`);
     }
 
     const where = this.scope.where(labOrders, actor.clinicId, ...filters);
     const { limit, offset } = toLimitOffset(query);
 
     const [rows, [totals]] = await Promise.all([
-      this.rowsQuery().where(where).orderBy(desc(labOrders.createdAt)).limit(limit).offset(offset),
+      this.rowsQuery()
+        .where(where)
+        .orderBy(...orderFor(query))
+        .limit(limit)
+        .offset(offset),
       this.db
         .select({ value: sql<number>`count(*)::int` })
         .from(labOrders)
@@ -116,6 +142,47 @@ export class LabOrdersService implements OnModuleInit {
     ]);
 
     return toPaginated(rows.map(toLabOrderRow), totals?.value ?? 0, query);
+  }
+
+  async stageCounts(
+    actor: AuthenticatedUser,
+    query: LabOrderStageCountsQuery,
+  ): Promise<LabOrderStageCounts> {
+    const where = this.scope.where(
+      labOrders,
+      actor.clinicId,
+      ...this.sharedFilters(query),
+      inArray(labOrders.status, OPEN_STATUSES),
+    );
+
+    const [byStatus, [overdue]] = await Promise.all([
+      this.db
+        .select({ status: labOrders.status, value: sql<number>`count(*)::int` })
+        .from(labOrders)
+        .innerJoin(patients, eq(patients.id, labOrders.patientId))
+        .innerJoin(labs, eq(labs.id, labOrders.labId))
+        .where(where)
+        .groupBy(labOrders.status),
+      this.db
+        .select({ value: sql<number>`count(*)::int` })
+        .from(labOrders)
+        .innerJoin(patients, eq(patients.id, labOrders.patientId))
+        .innerJoin(labs, eq(labs.id, labOrders.labId))
+        .where(and(where, overdueFilter())),
+    ]);
+
+    const stages = Object.fromEntries(
+      LAB_ORDER_STAGES.map((stage) => [
+        stage,
+        byStatus
+          .filter((row) =>
+            (LAB_ORDER_STAGE_STATUSES[stage] as readonly LabOrderStatus[]).includes(row.status),
+          )
+          .reduce((sum, row) => sum + row.value, 0),
+      ]),
+    ) as Record<LabOrderStage, number>;
+
+    return { stages, overdue: overdue?.value ?? 0 };
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<LabOrderRow> {
@@ -305,6 +372,26 @@ export class LabOrdersService implements OnModuleInit {
     return this.scope.findOneOrFail<OrderRow>(labOrders, clinicId, id);
   }
 
+  private sharedFilters(query: LabOrderStageCountsQuery): (SQL | undefined)[] {
+    const filters: (SQL | undefined)[] = [];
+
+    if (query.labId) {
+      filters.push(eq(labOrders.labId, query.labId));
+    }
+    if (query.search) {
+      const pattern = `%${query.search}%`;
+      filters.push(
+        or(
+          arabicNameSearch(patients.normalizedName, query.search)?.match,
+          arabicNameSearch(labs.normalizedName, query.search)?.match,
+          sql`${patients.fileNumber} ilike ${pattern}`,
+        ),
+      );
+    }
+
+    return filters;
+  }
+
   private rowsQuery() {
     return this.db
       .select({
@@ -366,6 +453,44 @@ export class LabOrdersService implements OnModuleInit {
 
     return [...new Set(teeth)].sort((left, right) => left - right);
   }
+}
+
+const OPEN_STATUSES = LAB_ORDER_STAGES.flatMap((stage) => [...LAB_ORDER_STAGE_STATUSES[stage]]);
+
+/** A cancelled order has no date of its own; its last change is when it was called off. */
+const finishedAt = sql`coalesce(${labOrders.fittedAt}, ${labOrders.updatedAt})`;
+
+/** Work back in the clinic waits on a chair, not on the lab: its promised date no longer ranks it. */
+const dueAt = sql`case when ${labOrders.status} = ${LAB_ORDER_STATUS.RECEIVED} then null else ${labOrders.expectedAt} end`;
+
+const SORT_KEYS: Record<
+  LabOrderSort,
+  { readonly key: SQL | AnyColumn; readonly dir: "asc" | "desc" }
+> = {
+  due: { key: dueAt, dir: "asc" },
+  sent: { key: labOrders.sentAt, dir: "desc" },
+  finished: { key: finishedAt, dir: "desc" },
+  patient: { key: patients.fullName, dir: "asc" },
+  lab: { key: labs.name, dir: "asc" },
+};
+
+// An undated order sorts last either way: "no date" is neither soon nor late.
+function orderFor(query: ListLabOrdersQuery): SQL[] {
+  const sort =
+    query.sort ?? (query.view === "open" ? "due" : query.view === "done" ? "finished" : null);
+
+  if (sort === null) {
+    return [desc(labOrders.createdAt)];
+  }
+
+  const { key, dir: fallback } = SORT_KEYS[sort];
+  const dir = query.dir ?? fallback;
+
+  return [
+    dir === "asc" ? sql`${key} asc nulls last` : sql`${key} desc nulls last`,
+    desc(labOrders.createdAt),
+    asc(labOrders.id),
+  ];
 }
 
 /** Past the date the lab promised, and still out at the lab. */

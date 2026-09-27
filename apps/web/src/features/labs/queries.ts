@@ -7,6 +7,8 @@ import {
   type LabBalance,
   type LabOrderAttachment,
   type LabOrderRow,
+  type LabOrderStageCounts,
+  type LabOrderStageCountsQuery,
   type LabStatement,
   type LabSummary,
   type ListLabOrdersQuery,
@@ -88,6 +90,26 @@ export function useLabStatement(
     queryFn: () => labsApi.statement(labId, query),
     placeholderData: (previous) => previous,
     enabled: labId !== "",
+  });
+}
+
+/** Keyed under the orders, so every step that moves it reloads the open drawer too. */
+export function useLabOrder(id: string): UseQueryResult<LabOrderRow> {
+  return useQuery({
+    queryKey: [LAB_ORDERS_KEY, "one", id],
+    queryFn: () => labOrdersApi.findOne(id),
+    enabled: id !== "",
+  });
+}
+
+/** Keyed under the orders, so every step that moves an order recounts the stages. */
+export function useLabOrderStages(
+  query: Partial<LabOrderStageCountsQuery> = {},
+): UseQueryResult<LabOrderStageCounts> {
+  return useQuery({
+    queryKey: [LAB_ORDERS_KEY, "stages", query],
+    queryFn: () => labOrdersApi.stages(query),
+    placeholderData: (previous) => previous,
   });
 }
 

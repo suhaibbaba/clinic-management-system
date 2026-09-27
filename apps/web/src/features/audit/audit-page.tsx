@@ -34,7 +34,7 @@ const ACTION_TONES: Record<AuditAction, BadgeTone> = {
 export function AuditPage(): JSX.Element {
   const { t } = useTranslation();
 
-  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams(10);
+  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
   const [entity, setEntity] = useState("");
   const [action, setAction] = useState("");
   const [userId, setUserId] = useState("");
