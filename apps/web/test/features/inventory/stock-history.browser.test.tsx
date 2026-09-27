@@ -21,10 +21,10 @@ describe("a stock movement reads as a rise or a fall", () => {
         <span data-testid="body" className="text-ink">
           ١٢٣
         </span>
-        <span data-testid="bought" className="font-medium text-success-900">
+        <span data-testid="bought" className="font-semibold text-success-700">
           +5
         </span>
-        <span data-testid="used" className="font-medium text-danger-600">
+        <span data-testid="used" className="font-semibold text-danger-600">
           -2
         </span>
       </>,

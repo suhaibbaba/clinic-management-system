@@ -1,3 +1,4 @@
+import { currencySymbol, formatWholeMoney } from "@clinic/shared";
 import { to12Hour } from "@clinic/ui";
 import i18n from "@web/i18n";
 import { clinicTimeZone } from "@web/lib/clinic-zone";
@@ -159,4 +160,8 @@ export function endOfNextDayIso(value: string): string | undefined {
 // sentence is the same mistake as the wrong script, only quieter.
 export function formatList(items: readonly string[]): string {
   return items.join(i18n.language.startsWith("en") ? ", " : "، ");
+}
+
+export function moneyText(amount: string, currency: string | undefined): string {
+  return `\u2066${formatWholeMoney(amount)}\u00A0${currencySymbol(currency)}\u2069`;
 }

@@ -1002,4 +1002,5 @@ export type PaymentError = EnumValue<typeof PAYMENT_ERROR>;
 /** Why a stock movement was refused; the page words it from the code. */
 export const STOCK_ERROR = {
   INSUFFICIENT: "insufficient_stock",
+  BELOW_ONE: "stock_take_below_one",
 } as const satisfies Record<string, string>;

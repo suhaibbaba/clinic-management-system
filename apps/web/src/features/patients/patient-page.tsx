@@ -1,4 +1,5 @@
-import { Suspense, lazy, type JSX, useState } from "react";
+import { Suspense, type JSX, useState } from "react";
+import { lazyPage } from "@web/lib/lazy-page";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -36,11 +37,11 @@ import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { errorMessageKey } from "@web/lib/api-error";
 import { whatsAppNumber } from "@web/lib/whatsapp";
 
-const ChartTab = lazy(async () => ({
+const ChartTab = lazyPage(async () => ({
   default: (await import("@web/features/patients/chart/chart-tab")).ChartTab,
 }));
 
-const ImagingTab = lazy(async () => ({
+const ImagingTab = lazyPage(async () => ({
   default: (await import("@web/features/patients/imaging/imaging-tab")).ImagingTab,
 }));
 

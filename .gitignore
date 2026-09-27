@@ -37,3 +37,4 @@ docs/**/*.png
 # Browser mode writes one on a failed assertion. A picture of a past failure is a
 # review artefact, not a fixture — CLAUDE.md keeps them out of the repo.
 **/__screenshots__/
+apps/web/.vitest-attachments

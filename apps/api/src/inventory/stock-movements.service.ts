@@ -171,17 +171,7 @@ export class StockMovementsService implements OnModuleInit {
   async consume(actor: AuthenticatedUser, input: ConsumeStockInput): Promise<StockMovement> {
     await this.items.requireRow(actor.clinicId, input.itemId);
 
-    // A use cannot take out what is not on the shelf; a miscount is corrected with an adjustment.
-    const [stock] = await this.db
-      .select({ onHand: sql<string>`coalesce(sum(${stockMovements.quantity}), 0)::text` })
-      .from(stockMovements)
-      .where(
-        and(eq(stockMovements.clinicId, actor.clinicId), eq(stockMovements.itemId, input.itemId)),
-      );
-
-    if (toThousandths(input.quantity) > toThousandths(stock?.onHand ?? "0")) {
-      throw new ConflictException(STOCK_ERROR.INSUFFICIENT);
-    }
+    await this.assertOnHand(actor.clinicId, input.itemId, input.quantity);
 
     let patientId = input.patientId ?? null;
 
@@ -224,6 +214,12 @@ export class StockMovementsService implements OnModuleInit {
     if (toThousandths(input.quantity) === 0) {
       throw new BadRequestException("An adjustment cannot be zero");
     }
+    if (input.quantity.startsWith("-")) {
+      if (toThousandths(input.quantity.slice(1)) < 1000) {
+        throw new BadRequestException(STOCK_ERROR.BELOW_ONE);
+      }
+      await this.assertOnHand(actor.clinicId, input.itemId, input.quantity.slice(1));
+    }
 
     return this.write(actor, {
       itemId: input.itemId,
@@ -233,6 +229,19 @@ export class StockMovementsService implements OnModuleInit {
       batchNo: input.batchNo ?? null,
       expiryDate: input.expiryDate ?? null,
     });
+  }
+
+  // Nothing leaves the shelf that is not on it: a use, or a correction taking stock off, stops at
+  // zero. A count found higher than recorded is the correction that adds.
+  private async assertOnHand(clinicId: string, itemId: string, taking: string): Promise<void> {
+    const [stock] = await this.db
+      .select({ onHand: sql<string>`coalesce(sum(${stockMovements.quantity}), 0)::text` })
+      .from(stockMovements)
+      .where(and(eq(stockMovements.clinicId, clinicId), eq(stockMovements.itemId, itemId)));
+
+    if (toThousandths(taking) > toThousandths(stock?.onHand ?? "0")) {
+      throw new ConflictException(STOCK_ERROR.INSUFFICIENT);
+    }
   }
 
   // The original keeps everything but a `reversed_at` back-pointer, so the sum needs no special

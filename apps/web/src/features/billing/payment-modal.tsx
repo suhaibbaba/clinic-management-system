@@ -1,9 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createPaymentSchema,
-  currencySymbol,
   formatMinorUnits,
-  formatWholeMoney,
   LOOKUP_LIST,
   toMinorUnits,
   type CreatePaymentInput,
@@ -26,11 +24,8 @@ import { openReceipt } from "@web/features/billing/documents";
 import { useLookupLabels, useLookupOptions } from "@web/features/lookups/queries";
 import { useCreatePayment } from "@web/features/billing/queries";
 import { errorMessageKey } from "@web/lib/api-error";
+import { moneyText } from "@web/lib/format";
 import { ellipsis } from "@web/i18n/ellipsis";
-
-// Isolated, so "150 ₪" keeps its order inside an Arabic sentence.
-const moneyText = (amount: string, currency: string | undefined): string =>
-  `\u2066${formatWholeMoney(amount)}\u00A0${currencySymbol(currency)}\u2069`;
 
 interface PaymentModalProps {
   "data-testid"?: string | undefined;
@@ -77,7 +72,7 @@ export function PaymentModal({
     if (open) {
       reset({
         patientId,
-        amount: Number(balance) > 0 ? balance : "",
+        amount: "",
         method: "cash",
         note: "",
       });

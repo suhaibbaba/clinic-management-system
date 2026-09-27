@@ -37,7 +37,7 @@ const movement = (
   createdAt: "2026-09-18T09:00:00.000Z",
 });
 
-function render() {
+function render(overrides: Record<string, Record<string, unknown>> = {}) {
   authTokens.clear();
   mockApi({
     "POST /auth/refresh": { status: 200, body: { accessToken: "access", expiresIn: 900 } },
@@ -67,8 +67,8 @@ function render() {
     [`GET /inventory/items/${ITEM_ID}/movements`]: {
       status: 200,
       body: paginated([
-        movement("m2", MOVEMENT_TYPE.CONSUME, "-2", "123"),
-        movement("m1", MOVEMENT_TYPE.PURCHASE, "5", "125"),
+        { ...movement("m2", MOVEMENT_TYPE.CONSUME, "-2", "123"), ...overrides["m2"] },
+        { ...movement("m1", MOVEMENT_TYPE.PURCHASE, "5", "125"), ...overrides["m1"] },
       ]),
     },
   });
@@ -82,32 +82,44 @@ const rowFor = async (amount: string): Promise<HTMLElement> =>
 describe("stock movement history", () => {
   // The sign, not the colour: what a class is called is not what a reader sees, and the colour
   // itself is asserted where a browser can resolve it — see `stock-history.browser.test.tsx`.
-  it("reads a purchase as a rise and a withdrawal as a fall", async () => {
+  it("reads a purchase as a rise and a use as a fall, with a real minus sign", async () => {
     render();
 
-    expect(within(await rowFor("+5")).getByText("+5")).toBeInTheDocument();
-    expect(within(await rowFor("-2")).getByText("-2")).toBeInTheDocument();
+    expect(within(await rowFor("+5")).getByTestId("item-movement-quantity")).toHaveTextContent(
+      "+5",
+    );
+    expect(within(await rowFor("\u22122")).getByTestId("item-movement-quantity")).toHaveTextContent(
+      "\u22122",
+    );
   });
 
-  it("says what the stock was before the movement and what it left behind", async () => {
+  it("says what each movement left on the shelf, labelled", async () => {
     render();
 
-    // 120 -> 125 on a purchase of 5; 125 -> 123 on a withdrawal of 2. The figure the row shows is
-    // the stock that movement left, which for an older row is not the stock now.
     const bought = within(await rowFor("+5"));
-    expect(bought.getByText(ar.inventory.history.balance)).toBeInTheDocument();
-    expect(bought.getByText("120")).toBeInTheDocument();
+    expect(bought.getByText(ar.inventory.history.after)).toBeInTheDocument();
     expect(bought.getByText("125")).toBeInTheDocument();
 
-    const used = within(await rowFor("-2"));
-    expect(used.getByText("125")).toBeInTheDocument();
+    const used = within(await rowFor("\u22122"));
     expect(used.getByText("123")).toBeInTheDocument();
   });
 
-  it("names every fact it prints", async () => {
+  it("names the batch and the unit price instead of leaving bare figures", async () => {
+    render({
+      m1: { batchNo: "B1021", unitPrice: "6.00", supplierName: "Birzeit Pharmaceuticals" },
+    });
+
+    const bought = await rowFor("+5");
+    expect(bought).toHaveTextContent(ar.inventory.history.batch.replace("{{batch}}", "B1021"));
+    expect(bought).toHaveTextContent("Birzeit Pharmaceuticals");
+    expect(bought).toHaveTextContent(ar.inventory.history.unitPrice.split("{{price}}")[1]!.trim());
+  });
+
+  it("keeps the reversal in the row's menu rather than a button on every row", async () => {
     render();
 
-    expect(await screen.findAllByText(ar.inventory.history.when)).not.toHaveLength(0);
-    expect(screen.getAllByText(ar.inventory.history.balance)).not.toHaveLength(0);
+    const row = await rowFor("+5");
+    expect(within(row).queryByRole("button", { name: ar.inventory.history.reverse })).toBeNull();
+    expect(within(row).getByRole("button", { name: ar.inventory.history.menu })).toBeVisible();
   });
 });

@@ -258,14 +258,18 @@ describe("Billing", () => {
       expect((await screen.findByTestId("payment-field-note")).tagName).toBe("TEXTAREA");
     });
 
-    it("suggests the outstanding balance without committing to it", async () => {
+    it("starts with no amount, and says what the patient owes", async () => {
       await renderAccountTab(USER_ROLE.RECEPTIONIST);
 
       await userEvent.click(await screen.findByRole("button", { name: ar.billing.recordPayment }));
 
-      // Prefilled, because a patient usually settles what they owe — but it is
-      // an editable field, because often they do not.
-      expect(await screen.findByLabelText(new RegExp(ar.billing.amount))).toHaveValue("100.00");
+      expect(await screen.findByLabelText(new RegExp(ar.billing.amount))).toHaveValue("");
+      // With nothing typed, the balance after is what is owed now.
+      expect(
+        within(screen.getByTestId("account-payment-modal")).getByText(
+          new RegExp(`${ar.billing.balanceAfter.split(":")[0]!}.*100`),
+        ),
+      ).toBeVisible();
     });
   });
 

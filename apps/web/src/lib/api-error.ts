@@ -22,6 +22,7 @@ export class NetworkError extends Error {
 const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [CLINICAL_DELETE_ERROR.HAS_PAYMENTS]: "errors.clinicalDelete.hasPayments",
   [STOCK_ERROR.INSUFFICIENT]: "errors.stock.insufficient",
+  [STOCK_ERROR.BELOW_ONE]: "errors.stock.belowOne",
   [PAYMENT_ERROR.EXCEEDS_BALANCE]: "errors.payment.exceedsBalance",
   [PAYMENT_ERROR.REVERSED]: "errors.payment.reversed",
 };

@@ -158,3 +158,7 @@ export function useUpdateSupplier() {
     suppliersApi.update(id, body),
   );
 }
+
+export function useDeleteSupplier() {
+  return useStockMutation((id: string) => suppliersApi.remove(id));
+}

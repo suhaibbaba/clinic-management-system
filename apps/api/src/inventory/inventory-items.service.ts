@@ -78,7 +78,11 @@ export class InventoryItemsService implements OnModuleInit {
       this.db
         .select({ item: inventoryItems, supplierName: suppliers.name })
         .from(inventoryItems)
-        .leftJoin(suppliers, eq(suppliers.id, inventoryItems.defaultSupplierId))
+        // An archived supplier is nobody's default any more; a movement keeps its name as history.
+        .leftJoin(
+          suppliers,
+          and(eq(suppliers.id, inventoryItems.defaultSupplierId), isNull(suppliers.deletedAt)),
+        )
         .where(where)
         .orderBy(asc(inventoryItems.name))
         .limit(limit)
@@ -112,7 +116,7 @@ export class InventoryItemsService implements OnModuleInit {
       ? await this.db
           .select({ name: suppliers.name })
           .from(suppliers)
-          .where(eq(suppliers.id, row.defaultSupplierId))
+          .where(and(eq(suppliers.id, row.defaultSupplierId), isNull(suppliers.deletedAt)))
           .limit(1)
       : [];
 

@@ -103,30 +103,31 @@ export function SupplierFormModal({
           <Input
             id="supplier-name"
             data-testid="supplier-field-name"
+            autoCapitalize="words"
             value={name}
-            onChange={(event) => setName(event.target.value)}
+            onChange={(event) => setName(capitalizeWords(event.target.value))}
           />
         </FormField>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="inventory.suppliers.phone" htmlFor="supplier-phone" optional>
-            <PhoneInput
-              id="supplier-phone"
-              data-testid="supplier-field-phone"
-              value={phone}
-              onChange={(next) => setPhone(next ?? "")}
-            />
-          </FormField>
+        {/* A row of its own: beside another field the number box shrank to "923…". */}
+        <FormField label="inventory.suppliers.phone" htmlFor="supplier-phone" optional>
+          <PhoneInput
+            id="supplier-phone"
+            data-testid="supplier-field-phone"
+            value={phone}
+            onChange={(next) => setPhone(next ?? "")}
+          />
+        </FormField>
 
-          <FormField label="inventory.suppliers.contact" htmlFor="supplier-contact" optional>
-            <Input
-              id="supplier-contact"
-              data-testid="supplier-field-contact"
-              value={contactPerson}
-              onChange={(event) => setContactPerson(event.target.value)}
-            />
-          </FormField>
-        </div>
+        <FormField label="inventory.suppliers.contact" htmlFor="supplier-contact" optional>
+          <Input
+            id="supplier-contact"
+            data-testid="supplier-field-contact"
+            autoCapitalize="words"
+            value={contactPerson}
+            onChange={(event) => setContactPerson(capitalizeWords(event.target.value))}
+          />
+        </FormField>
 
         <FormField label="inventory.notes" htmlFor="supplier-notes" optional>
           <Textarea
@@ -145,5 +146,13 @@ export function SupplierFormModal({
         />
       </div>
     </Modal>
+  );
+}
+
+/** "birzeit pharmaceuticals" → "Birzeit Pharmaceuticals": each word's first letter, the rest as typed. */
+export function capitalizeWords(value: string): string {
+  return value.replace(
+    /(^|[\s\-(])(\p{Ll})/gu,
+    (_, before: string, letter: string) => `${before}${letter.toUpperCase()}`,
   );
 }

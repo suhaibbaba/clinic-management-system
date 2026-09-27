@@ -1,13 +1,21 @@
 import { LOOKUP_LIST, type InventoryItemRow } from "@clinic/shared";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, FormField, Input, Modal, Select, Switch, Textarea, useToast } from "@clinic/ui";
-import { useLookupOptions } from "@web/features/lookups/queries";
+import {
+  Button,
+  FormField,
+  Input,
+  Modal,
+  QuantityInput,
+  Select,
+  Switch,
+  Textarea,
+  useToast,
+} from "@clinic/ui";
+import { useLookupLabels, useLookupOptions } from "@web/features/lookups/queries";
 import { useCreateItem, useSuppliers, useUpdateItem } from "@web/features/inventory/queries";
 import { errorMessageKey } from "@web/lib/api-error";
 
-// No quantity field — stock moves only through a movement — and the unit cannot change once the
-// item exists, since every movement recorded is a number in it.
 export function ItemFormModal({
   open,
   onOpenChange,
@@ -22,6 +30,7 @@ export function ItemFormModal({
   const { t } = useTranslation();
   const categoryOptions = useLookupOptions(LOOKUP_LIST.ITEM_CATEGORY);
   const unitOptions = useLookupOptions(LOOKUP_LIST.ITEM_UNIT);
+  const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
   const toast = useToast();
 
   const create = useCreateItem();
@@ -116,7 +125,6 @@ export function ItemFormModal({
             onChange={(event) => setName(event.target.value)}
           />
         </FormField>
-
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label="inventory.item.category" htmlFor="item-category" required>
             <Select
@@ -127,7 +135,6 @@ export function ItemFormModal({
               options={categoryOptions}
             />
           </FormField>
-
           <FormField
             label="inventory.item.unit"
             htmlFor="item-unit"
@@ -143,24 +150,22 @@ export function ItemFormModal({
             />
           </FormField>
         </div>
-
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             label="inventory.item.minQuantity"
             htmlFor="item-min"
             hint={t("inventory.item.minHint")}
           >
-            <Input
+            <QuantityInput
               id="item-min"
               data-testid="item-field-min"
-              dir="ltr"
-              inputMode="decimal"
               placeholder="0"
               value={minQuantity}
+              // The unit the minimum is counted in: "5" alone does not say five of what.
+              {...(unit && { suffix: unitLabel(unit) })}
               onChange={(event) => setMinQuantity(event.target.value)}
             />
           </FormField>
-
           <FormField label="inventory.item.supplier" htmlFor="item-supplier" optional>
             <Select
               id="item-supplier"
@@ -175,7 +180,6 @@ export function ItemFormModal({
             />
           </FormField>
         </div>
-
         <FormField label="inventory.notes" htmlFor="item-notes" optional>
           <Textarea
             id="item-notes"
@@ -185,7 +189,6 @@ export function ItemFormModal({
             onChange={(event) => setNotes(event.target.value)}
           />
         </FormField>
-
         <Switch
           data-testid="item-field-active"
           checked={isActive}

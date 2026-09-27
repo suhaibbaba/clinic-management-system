@@ -91,6 +91,8 @@ export const suppliersApi = {
   update: (id: string, body: UpdateSupplierInput) =>
     apiRequest<Supplier>(`/suppliers/${id}`, { method: "PATCH", body }),
 
+  remove: (id: string) => apiRequest<void>(`/suppliers/${id}`, { method: "DELETE" }),
+
   statement: (id: string, params: StatementRangeQuery) =>
     apiRequest<SupplierStatement>(`/suppliers/${id}/statement${query({ ...params })}`),
 };
