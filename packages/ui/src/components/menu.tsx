@@ -114,9 +114,16 @@ export interface RowMenuProps extends TestIdProps {
   /** Named for screen readers; the trigger is a glyph. */
   readonly label: string;
   readonly children: ReactNode;
+  /** `target` stands beside full-height buttons, as in a page header, at every width. */
+  readonly size?: "row" | "target" | undefined;
 }
 
-export function RowMenu({ label, children, "data-testid": testId }: RowMenuProps): JSX.Element {
+export function RowMenu({
+  label,
+  children,
+  size = "row",
+  "data-testid": testId,
+}: RowMenuProps): JSX.Element {
   return (
     <Menu>
       <MenuTrigger
@@ -125,7 +132,8 @@ export function RowMenu({ label, children, "data-testid": testId }: RowMenuProps
         aria-label={label}
         className={cn(
           "inline-grid size-(--control-h) shrink-0 cursor-pointer place-items-center",
-          "lg:size-(--control-h-sm) rounded-control border border-line bg-surface text-ink-muted",
+          size === "row" && "lg:size-(--control-h-sm)",
+          "rounded-control border border-line bg-surface text-ink-muted",
           "transition-colors duration-[250ms] ease-in-out",
           "hover:bg-inset hover:border-primary-600 hover:text-primary-600",
           "data-[state=open]:border-primary-600 data-[state=open]:text-primary-600",

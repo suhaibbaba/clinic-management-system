@@ -14,6 +14,8 @@ import {
 } from "@test/helpers/fixtures";
 import { mockApi, renderWithProviders, type MockResponse } from "@test/helpers/render";
 
+const ITEM_ID = "44444444-4444-4444-8444-444444444444";
+
 function handlers(role: UserRole, overrides: Record<string, MockResponse> = {}) {
   return {
     "POST /auth/refresh": { status: 200, body: { accessToken: "access", expiresIn: 900 } },
@@ -159,6 +161,17 @@ describe("The current row", () => {
     expect(current).toEqual([ar.nav.lists]);
   });
 
+  it("keeps inventory current on one item's page", async () => {
+    await renderAs(USER_ROLE.TECHNICIAN, `/inventory/items/${ITEM_ID}`);
+
+    const current = within(nav())
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("aria-current") === "page")
+      .map((link) => link.textContent?.trim());
+
+    expect(current).toEqual([ar.nav.inventory]);
+  });
+
   it("keeps the section current on a page below it", async () => {
     await renderAs(USER_ROLE.ADMIN, "/clinic");
 
@@ -178,6 +191,8 @@ describe("Route guards", () => {
     [USER_ROLE.TECHNICIAN, "/patients"],
     [USER_ROLE.TECHNICIAN, "/appointments"],
     [USER_ROLE.DOCTOR, "/inventory"],
+    [USER_ROLE.DOCTOR, `/inventory/items/${ITEM_ID}`],
+    [USER_ROLE.RECEPTIONIST, `/inventory/items/${ITEM_ID}`],
     [USER_ROLE.RECEPTIONIST, "/labs"],
     [USER_ROLE.RECEPTIONIST, "/users"],
     [USER_ROLE.DOCTOR, "/audit-log"],
@@ -187,6 +202,7 @@ describe("Route guards", () => {
     [USER_ROLE.VISITING_DOCTOR, "/assistant"],
     [USER_ROLE.VISITING_DOCTOR, "/labs"],
     [USER_ROLE.VISITING_DOCTOR, "/inventory"],
+    [USER_ROLE.VISITING_DOCTOR, `/inventory/items/${ITEM_ID}`],
     [USER_ROLE.VISITING_DOCTOR, "/users"],
     [USER_ROLE.VISITING_DOCTOR, "/settings"],
   ])("redirects %s away from %s and onto the dashboard", async (role, route) => {

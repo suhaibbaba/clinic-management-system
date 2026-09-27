@@ -99,7 +99,9 @@ function AlertCard({
         onClick={onClick}
         className="flex min-h-(--control-h) w-full cursor-pointer items-baseline justify-between gap-2 rounded-control px-1 py-0.5 text-start transition-colors duration-150 hover:bg-row-hover lg:min-h-(--control-h-sm)"
       >
-        <span className="truncate text-label text-ink">{item.name}</span>
+        <span className="truncate text-label text-ink">
+          <bdi>{item.name}</bdi>
+        </span>
         <Ltr className="shrink-0 text-label tabular-nums text-ink-muted">{describe(item)}</Ltr>
       </button>
     </li>

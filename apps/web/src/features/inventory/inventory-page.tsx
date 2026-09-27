@@ -21,7 +21,6 @@ import { useSession } from "@web/features/auth/session";
 import { useLookupLabels, useLookupOptions } from "@web/features/lookups/queries";
 import { InventoryAlertCards } from "@web/features/inventory/alert-cards";
 import { categoryTone, stockScale, stockTone } from "@web/features/inventory/display";
-import { ItemDrawer } from "@web/features/inventory/item-drawer";
 import { ItemFormModal } from "@web/features/inventory/item-form-modal";
 import { canManageInventory } from "@web/features/inventory/permissions";
 import { useInventoryItems } from "@web/features/inventory/queries";
@@ -50,7 +49,7 @@ export function InventoryPage(): JSX.Element {
   const category = params.get("category") ?? "";
   const low = params.get("low") === "1";
   const expiring = params.get("expiring") === "1";
-  const [openItemId, setOpenItemId] = useState<string | null>(null);
+  const openItem = (id: string): void => void navigate(`/inventory/items/${id}`);
   const [creating, setCreating] = useState(false);
 
   // One write per change, and the page goes with it: a narrower list has no page seven.
@@ -130,7 +129,7 @@ export function InventoryPage(): JSX.Element {
       primary: true,
       render: (row) => (
         <span className="flex flex-col">
-          <span className="font-medium text-ink">{row.name}</span>
+          <bdi className="font-medium text-ink">{row.name}</bdi>
           {row.supplierName && (
             <span className="text-label text-ink-muted">{row.supplierName}</span>
           )}
@@ -211,7 +210,7 @@ export function InventoryPage(): JSX.Element {
           There is no dashboard yet (reports are Phase 3); when one lands, this
           is the component that moves onto it. */}
       <InventoryAlertCards
-        onSelectItem={setOpenItemId}
+        onSelectItem={openItem}
         onShowLow={() => setFilters({ low: true, expiring: false })}
         onShowExpiring={() => setFilters({ expiring: true, low: false })}
       />
@@ -277,7 +276,7 @@ export function InventoryPage(): JSX.Element {
         rowKey={(row) => row.id}
         isLoading={items.isPending}
         isRefreshing={isRefetching(items)}
-        onRowClick={(row) => setOpenItemId(row.id)}
+        onRowClick={(row) => openItem(row.id)}
         rowLabel={(row) => row.name}
         empty={
           <EmptyState
@@ -294,12 +293,6 @@ export function InventoryPage(): JSX.Element {
           perPage,
           onPerPageChange: setPerPage,
         }}
-      />
-
-      <ItemDrawer
-        data-testid="inventory-item-drawer"
-        itemId={openItemId}
-        onClose={() => setOpenItemId(null)}
       />
 
       <ItemFormModal

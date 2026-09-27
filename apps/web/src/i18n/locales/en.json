@@ -1178,16 +1178,20 @@
       "showMore": "Show more ({{count}})",
       "showInTable": "Filter the table"
     },
-    "drawer": {
-      "description": "Item details and movements"
-    },
     "batches": {
-      "title": "Batches",
-      "empty": "No batches recorded",
-      "unlabelled": "No lot number",
-      "unbatched": "Without a batch number",
-      "assumption": "Assumes the oldest stock goes first — the batch expiring soonest — unless a movement names its batch.",
-      "hint": "Each quantity bought together, with one batch number and expiry date: what is left of what was bought."
+      "title": "Stock by expiry date",
+      "hint": "What is on the shelf now, by the purchase it came from, soonest to expire first.",
+      "empty": "Nothing on the shelf",
+      "unlabelled": "No batch no.",
+      "unbatched": "Bought without a batch no.",
+      "of": "of {{quantity}}",
+      "assumption": "Each use comes off the batch that expires first, unless the use names its batch.",
+      "columns": {
+        "batch": "Batch no.",
+        "expiry": "Expires",
+        "received": "Bought on",
+        "left": "Left"
+      }
     },
     "history": {
       "title": "Movements",
@@ -1200,7 +1204,22 @@
       "batch": "Batch {{batch}}",
       "unitPrice": "{{price}} per unit",
       "after": "Stock after",
-      "menu": "Movement options"
+      "menu": "Movement options",
+      "filterType": "Type",
+      "range": "Period",
+      "emptyRange": "Nothing recorded in this period",
+      "columns": {
+        "date": "Date",
+        "type": "Type",
+        "quantity": "Quantity",
+        "details": "Details",
+        "by": "Recorded by"
+      }
+    },
+    "itemPage": {
+      "tabs": "Item views",
+      "overview": "Overview",
+      "actions": "Item actions"
     },
     "item": {
       "newTitle": "New item",

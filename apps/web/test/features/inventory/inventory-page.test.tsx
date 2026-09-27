@@ -1,6 +1,7 @@
 import { USER_ROLE, type InventoryItemRow } from "@clinic/shared";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { Route, Routes } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import ar from "@web/i18n/locales/ar.json";
 import { InventoryPage } from "@web/features/inventory/inventory-page";
@@ -47,7 +48,13 @@ function renderPage(route = "/inventory") {
       body: { expiryWarningDays: 30, low: [], expiring: [], expired: [] },
     },
   });
-  renderWithProviders(<InventoryPage />, { route });
+  renderWithProviders(
+    <Routes>
+      <Route path="/inventory" element={<InventoryPage />} />
+      <Route path="/inventory/items/:id" element={<p data-testid="item-page-stub" />} />
+    </Routes>,
+    { route },
+  );
   return api;
 }
 
@@ -82,6 +89,14 @@ describe("the inventory page", () => {
     expect(await screen.findByText(PAGE_TWO.name)).toBeInTheDocument();
     expect(lastList(api)).toContain("page=2");
     expect(lastList(api)).toContain("low=true");
+  });
+
+  it("opens an item's own page from its row", async () => {
+    renderPage();
+
+    await userEvent.click(await screen.findByText(PAGE_ONE.name));
+
+    expect(await screen.findByTestId("item-page-stub")).toBeInTheDocument();
   });
 
   it("goes back to the first page when a filter narrows the list", async () => {
