@@ -29,7 +29,6 @@ import { seesPendingBookings, usePendingBookingsCount } from "@web/features/book
 import { cn } from "@clinic/ui/lib/cn";
 import { useClinicLogo } from "@web/lib/use-clinic-logo";
 
-/** The one list the bar's search leads to; the bell and the slot are the rest of the reference's bar. */
 const PATIENTS = "/patients";
 const DASHBOARD = "/dashboard";
 
@@ -48,7 +47,6 @@ export function AppLayout(): JSX.Element {
   const groups = visibleNavGroups(user?.role);
   const settings = visibleSettingsItems(user?.role);
 
-  /** Asked for once here and handed to both copies of the nav list, rather than fetched twice. */
   const pendingBookings = usePendingBookingsCount(seesPendingBookings(can));
   const badges = { pendingBookings } as const;
 
@@ -56,8 +54,6 @@ export function AppLayout(): JSX.Element {
     setDrawerOpen(false);
   }, [pathname]);
 
-  // `/` focuses the first search input on the page — the bar's, wherever the bar has one — and
-  // never while the user is already typing.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent): void => {
       const target = event.target as HTMLElement | null;
@@ -104,18 +100,10 @@ export function AppLayout(): JSX.Element {
         icon={<Icon name="menu" />}
         aria-label={t("nav.menu")}
       />
-
-      {/* Search first, actions last, in logical order: the field opens where reading begins
-          — the right in Arabic, the left in English — and the bell and the page's own
-          button sit together at the far end. `ms-auto` pins them there on a page with no
-          search field, so the pair does not drift into the middle of an empty bar. */}
       {searchable && <TopSearch />}
-
       {/* The reference's `.top-actions`: its own 9px pair, then the bar's 14px to the field. */}
       <div data-testid="app-topbar-actions" className="ms-auto flex items-center gap-[9px]">
         <NotificationBell />
-        {/* The page's own "new …" button, portalled in. `contents` so the slot's row is this
-          one and the button sits beside the bell rather than in a box of its own. */}
         <span className="contents" ref={(host) => void host?.appendChild(actionSlot)} />
       </div>
     </header>
@@ -156,8 +144,6 @@ export function AppLayout(): JSX.Element {
             )}
           </div>
         </aside>
-
-        {/* Mobile and tablet: the same list, in a drawer over the page. */}
         <NavDrawer
           open={drawerOpen}
           onOpenChange={setDrawerOpen}
@@ -195,16 +181,12 @@ export function AppLayout(): JSX.Element {
             </main>
           ) : (
             <>
-              {/* A floating rounded bar inside the page's padding rather than a full-bleed strip, as
-                the reference draws it. The sticky wrapper carries the page ground so the bar's
-                corners do not frame scrolled content, and it reserves the bar's own height. */}
-              <div className="sticky top-0 z-20 bg-canvas px-4 pt-4 pb-4 rail:px-[34px] rail:pt-[26px]">
+              <div className="sticky top-0 z-20 bg-canvas px-4 pt-4 pb-3 rail:px-[34px] rail:pt-[26px]">
                 {topBar}
               </div>
-
               <main
                 data-testid="app-main"
-                className="min-w-0 flex-1 px-4 pb-10 rail:px-[34px] rail:pb-12"
+                className="min-w-0 flex-1 px-4 pt-1 pb-10 rail:px-[34px] rail:pb-12"
               >
                 <div className="w-full">
                   <PageErrorBoundary key={pathname}>
@@ -266,8 +248,7 @@ function NavRow({
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const count = item.badge ? badges[item.badge] : 0;
-  // A plain `Link`: `NavLink` calls every ancestor path active, so `/clinic/lists` lit the clinic
-  // row too. `activeNavItem` picks the longest match, drawn and announced alike.
+
   const isActive = activeNavItem(pathname)?.to === item.to;
 
   return (
@@ -286,14 +267,11 @@ function NavRow({
       >
         <Icon name={item.icon} className="size-[19px] shrink-0" />
         <span className="truncate">{t(item.label)}</span>
-
         {count > 0 && (
           <span
             data-testid={`nav-badge-${item.to.replace(/^\//, "").replaceAll("/", "-")}`}
             aria-label={t("nav.waitingCount", { count })}
             className={cn(
-              // A lozenge that stays at least as wide as it is tall, so one digit is a circle and
-              // three do not spill — the reference's `min-width:20px;height:20px`.
               "pill-text inline-flex items-center ms-auto h-5 min-w-5 shrink-0 justify-center",
               "rounded-pill px-1.5 text-micro font-medium tabular-nums",
               isActive ? "bg-ink-inverse text-primary-700" : "bg-danger-600 text-ink-inverse",
