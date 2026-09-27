@@ -123,7 +123,6 @@ export function SkeletonTableCards<TRow>({
   );
 }
 
-/** Mirrors `EntityCard`: the icon chip, its two lines, and the progress bar under them. */
 export function SkeletonCard({ count = 3 }: { readonly count?: number }): JSX.Element {
   return (
     <>
@@ -139,9 +138,8 @@ export function SkeletonCard({ count = 3 }: { readonly count?: number }): JSX.El
             <div className="min-w-0 flex-1">
               <Skeleton className="h-4 w-2/5" />
               <Skeleton className="mt-2 h-3 w-1/4" />
+              <Skeleton className="mt-2 h-5 w-16" />
             </div>
-
-            <Skeleton className="h-5 w-16 shrink-0" />
           </div>
 
           <div className="mt-4 flex flex-col gap-2">
