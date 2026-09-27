@@ -435,6 +435,45 @@ export const LAB_ORDER_AWAITING_STATUSES = [LAB_ORDER_STATUS.SENT, LAB_ORDER_STA
 export const awaitingLab = (status: LabOrderStatus): boolean =>
   (LAB_ORDER_AWAITING_STATUSES as readonly LabOrderStatus[]).includes(status);
 
+/** An open order's next step, which is how the work list groups it. Returned work is back at the lab. */
+export const LAB_ORDER_STAGE = {
+  TO_SEND: "to_send",
+  AT_LAB: "at_lab",
+  READY: "ready",
+  TO_FIT: "to_fit",
+} as const satisfies Record<string, string>;
+export type LabOrderStage = EnumValue<typeof LAB_ORDER_STAGE>;
+
+export const LAB_ORDER_STAGES = [
+  LAB_ORDER_STAGE.TO_SEND,
+  LAB_ORDER_STAGE.AT_LAB,
+  LAB_ORDER_STAGE.READY,
+  LAB_ORDER_STAGE.TO_FIT,
+] as const;
+
+export const LAB_ORDER_STAGE_STATUSES = {
+  [LAB_ORDER_STAGE.TO_SEND]: [LAB_ORDER_STATUS.DRAFT],
+  [LAB_ORDER_STAGE.AT_LAB]: [LAB_ORDER_STATUS.SENT, LAB_ORDER_STATUS.RETURNED],
+  [LAB_ORDER_STAGE.READY]: [LAB_ORDER_STATUS.READY],
+  [LAB_ORDER_STAGE.TO_FIT]: [LAB_ORDER_STATUS.RECEIVED],
+} as const satisfies Record<LabOrderStage, readonly LabOrderStatus[]>;
+
+export const labOrderStage = (status: LabOrderStatus): LabOrderStage | null =>
+  LAB_ORDER_STAGES.find((stage) =>
+    (LAB_ORDER_STAGE_STATUSES[stage] as readonly LabOrderStatus[]).includes(status),
+  ) ?? null;
+
+export const LAB_ORDER_DONE_STATUSES = [
+  LAB_ORDER_STATUS.FITTED,
+  LAB_ORDER_STATUS.CANCELLED,
+] as const;
+
+export const LAB_ORDER_VIEWS = ["open", "done"] as const;
+export type LabOrderView = (typeof LAB_ORDER_VIEWS)[number];
+
+export const LAB_ORDER_SORTS = ["due", "sent", "finished", "patient", "lab"] as const;
+export type LabOrderSort = (typeof LAB_ORDER_SORTS)[number];
+
 export const ITEM_CATEGORY = {
   MEDICATION: "medication",
   CONSUMABLE: "consumable",

@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { isFdiTooth } from "@shared/constants/dental";
-import { LAB_ORDER_STATUSES } from "@shared/enums";
+import {
+  LAB_ORDER_SORTS,
+  LAB_ORDER_STAGES,
+  LAB_ORDER_STATUSES,
+  LAB_ORDER_VIEWS,
+} from "@shared/enums";
 import { isoDateSchema } from "@shared/schemas/appointments";
 import {
   hasExactlyOnePatient,
@@ -155,8 +160,29 @@ export const listLabOrdersQuerySchema = paginationQuerySchema.extend({
   doctorId: uuidSchema.optional(),
   overdue: z.coerce.boolean().optional(),
   search: z.string().trim().max(160).optional(),
+  /** `open` is soonest due first across every stage; `done` is newest finished first. */
+  view: z.enum(LAB_ORDER_VIEWS).optional(),
+  stage: z.enum(LAB_ORDER_STAGES).optional(),
+  sort: z.enum(LAB_ORDER_SORTS).optional(),
+  dir: z.enum(["asc", "desc"]).optional(),
+  /** When a done order was fitted or cancelled. */
+  finishedFrom: z.iso.datetime().optional(),
+  finishedTo: z.iso.datetime().optional(),
 });
 export type ListLabOrdersQuery = z.infer<typeof listLabOrdersQuerySchema>;
+
+export const labOrderStageCountsQuerySchema = listLabOrdersQuerySchema.pick({
+  labId: true,
+  search: true,
+});
+export type LabOrderStageCountsQuery = z.infer<typeof labOrderStageCountsQuerySchema>;
+
+/** Open orders per stage, and how many of them are overdue, under the list's lab and search. */
+export const labOrderStageCountsSchema = z.object({
+  stages: z.record(z.enum(LAB_ORDER_STAGES), z.number().int().min(0)),
+  overdue: z.number().int().min(0),
+});
+export type LabOrderStageCounts = z.infer<typeof labOrderStageCountsSchema>;
 
 /** A return says why. The reason travels to the lab and stays on the record. */
 export const returnLabOrderSchema = z.object({

@@ -1,4 +1,6 @@
 import type {
+  LabOrderStageCounts,
+  LabOrderStageCountsQuery,
   ConfirmLabAttachmentInput,
   CreateLabInput,
   CreateLabOrderInput,
@@ -81,6 +83,9 @@ export const labOrdersApi = {
     apiRequest<Paginated<LabOrderRow>>(`/lab-orders${query(params)}`),
 
   overdue: () => apiRequest<LabOrderRow[]>("/lab-orders/overdue"),
+
+  stages: (params: Partial<LabOrderStageCountsQuery> = {}) =>
+    apiRequest<LabOrderStageCounts>(`/lab-orders/stages${query(params)}`),
 
   findOne: (id: string) => apiRequest<LabOrderRow>(`/lab-orders/${id}`),
 

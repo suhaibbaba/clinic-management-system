@@ -1,40 +1,38 @@
-import { LAB_ORDER_STATUS, canTransitionLabOrder, type LabOrderStatus } from "@clinic/shared";
+import {
+  LAB_ORDER_STAGE,
+  LAB_ORDER_STATUS,
+  canTransitionLabOrder,
+  type LabOrderStage,
+  type LabOrderStatus,
+} from "@clinic/shared";
 import type { BadgeTone } from "@clinic/ui/components/badge";
-import { TONE_SURFACE } from "@clinic/ui/components/tone";
 import type { Can } from "@web/features/auth/session";
 import type { LabOrderStep } from "@web/features/labs/queries";
 
-// The column header, the badge and the chip all read this, so a status cannot be amber in one place
-// and grey in another. The colour itself comes from `TONE_SURFACE`.
+// The badge everywhere reads this, so a status cannot be amber in one place and grey in another.
 export interface LabStatusStyle {
   readonly tone: BadgeTone;
-  readonly column: string;
   readonly label: string;
 }
 
-const column = (tone: BadgeTone, label: string): LabStatusStyle => ({
-  tone,
-  column: TONE_SURFACE[tone],
-  label,
-});
+const style = (tone: BadgeTone, label: string): LabStatusStyle => ({ tone, label });
 
-export const LAB_ORDER_STATUS_STYLES: Record<LabOrderStatus, LabStatusStyle> = {
-  [LAB_ORDER_STATUS.DRAFT]: column("neutral", "labs.status.draft"),
-  [LAB_ORDER_STATUS.SENT]: column("info", "labs.status.sent"),
-  [LAB_ORDER_STATUS.READY]: column("warning", "labs.status.ready"),
-  [LAB_ORDER_STATUS.RECEIVED]: column("success", "labs.status.received"),
-  [LAB_ORDER_STATUS.FITTED]: column("neutral", "labs.status.fitted"),
-  [LAB_ORDER_STATUS.RETURNED]: column("danger", "labs.status.returned"),
-  [LAB_ORDER_STATUS.CANCELLED]: column("neutral", "labs.status.cancelled"),
+export const LAB_ORDER_STAGE_TONES: Record<LabOrderStage, BadgeTone> = {
+  [LAB_ORDER_STAGE.TO_SEND]: "neutral",
+  [LAB_ORDER_STAGE.AT_LAB]: "info",
+  [LAB_ORDER_STAGE.READY]: "warning",
+  [LAB_ORDER_STAGE.TO_FIT]: "success",
 };
 
-export const BOARD_COLUMNS: readonly LabOrderStatus[] = [
-  LAB_ORDER_STATUS.DRAFT,
-  LAB_ORDER_STATUS.SENT,
-  LAB_ORDER_STATUS.READY,
-  LAB_ORDER_STATUS.RECEIVED,
-  LAB_ORDER_STATUS.FITTED,
-];
+export const LAB_ORDER_STATUS_STYLES: Record<LabOrderStatus, LabStatusStyle> = {
+  [LAB_ORDER_STATUS.DRAFT]: style("neutral", "labs.status.draft"),
+  [LAB_ORDER_STATUS.SENT]: style("info", "labs.status.sent"),
+  [LAB_ORDER_STATUS.READY]: style("warning", "labs.status.ready"),
+  [LAB_ORDER_STATUS.RECEIVED]: style("success", "labs.status.received"),
+  [LAB_ORDER_STATUS.FITTED]: style("neutral", "labs.status.fitted"),
+  [LAB_ORDER_STATUS.RETURNED]: style("danger", "labs.status.returned"),
+  [LAB_ORDER_STATUS.CANCELLED]: style("neutral", "labs.status.cancelled"),
+};
 
 interface StepDefinition {
   readonly step: LabOrderStep;

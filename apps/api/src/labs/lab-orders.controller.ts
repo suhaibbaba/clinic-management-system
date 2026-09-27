@@ -26,6 +26,8 @@ import {
   type LabOrderRow,
   type Paginated,
   type PresignAttachmentUploadResponse,
+  labOrderStageCountsQuerySchema,
+  type LabOrderStageCounts,
 } from "@clinic/shared";
 import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
@@ -42,6 +44,7 @@ import { AiTool } from "@api/ai/tools/route-tool.decorator";
 class CreateLabOrderDto extends createZodDto(createLabOrderSchema) {}
 class UpdateLabOrderDto extends createZodDto(updateLabOrderSchema) {}
 class ListLabOrdersQueryDto extends createZodDto(listLabOrdersQuerySchema) {}
+class StageCountsQueryDto extends createZodDto(labOrderStageCountsQuerySchema) {}
 class ReturnLabOrderDto extends createZodDto(returnLabOrderSchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
@@ -74,6 +77,16 @@ export class LabOrdersController {
     @Query() query: ListLabOrdersQueryDto,
   ): Promise<Paginated<LabOrderRow>> {
     return this.orders.list(actor, query);
+  }
+
+  /** Before `:id`, or Nest reads "stages" as an order id. */
+  @Get("stages")
+  @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
+  stages(
+    @CurrentUser() actor: AuthenticatedUser,
+    @Query() query: StageCountsQueryDto,
+  ): Promise<LabOrderStageCounts> {
+    return this.orders.stageCounts(actor, query);
   }
 
   @Get("overdue")

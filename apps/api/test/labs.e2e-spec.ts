@@ -3,6 +3,7 @@ import {
   PAYMENT_METHOD,
   USER_ROLE,
   type LabOrderRow,
+  type Paginated,
   type UserRole,
 } from "@clinic/shared";
 import {
@@ -504,6 +505,78 @@ describe("Labs (e2e)", () => {
 
       // Nobody is waiting for it any more, however late it was.
       expect((after.json() as LabOrderRow[]).map((row) => row.id)).not.toContain(order.id);
+    });
+  });
+
+  describe("the work list", () => {
+    const inDays = (days: number): string =>
+      new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+
+    const list = async (query: string): Promise<Paginated<LabOrderRow>> => {
+      const response = await context.app.inject({
+        method: "GET",
+        url: `/lab-orders?${query}`,
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      return response.json() as Paginated<LabOrderRow>;
+    };
+
+    it("lists open work soonest due first across every stage, counts each stage, and keeps the finished apart", async () => {
+      const lab = await context.app.inject({
+        method: "POST",
+        url: "/labs",
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+        payload: { name: `مخبر القائمة ${uniquePhone()}` },
+      });
+      expect(lab.statusCode).toBe(201);
+      const listLabId = (lab.json() as { id: string }).id;
+
+      const order = (expectedAt: string) =>
+        createOrder({ labId: listLabId, workTypeId: null, price: "100", expectedAt });
+
+      const draft = await order(inDays(5));
+      const late = await order(inDays(-2));
+      const soon = await order(inDays(3));
+      const inClinic = await order(inDays(-10));
+      const fitted = await order(inDays(-20));
+
+      for (const id of [late.id, soon.id, inClinic.id, fitted.id]) {
+        await move(id, "send");
+      }
+      for (const step of ["ready", "receive"]) {
+        await move(inClinic.id, step);
+        await move(fitted.id, step);
+      }
+      await move(fitted.id, "fit");
+
+      const open = await list(`view=open&labId=${listLabId}`);
+      // Soonest due first across every stage; work already back in the clinic waits on a chair, not
+      // on its old promised date, so it sorts after everything still out.
+      expect(open.items.map((row) => row.id)).toEqual([late.id, soon.id, draft.id, inClinic.id]);
+
+      const counts = await context.app.inject({
+        method: "GET",
+        url: `/lab-orders/stages?labId=${listLabId}`,
+        headers: auth(tokens[USER_ROLE.TECHNICIAN]),
+      });
+      expect(counts.statusCode).toBe(200);
+      expect(counts.json()).toEqual({
+        stages: { to_send: 1, at_lab: 2, ready: 0, to_fit: 1 },
+        overdue: 1,
+      });
+
+      const atLab = await list(`view=open&labId=${listLabId}&stage=at_lab&sort=due&dir=desc`);
+      expect(atLab.items.map((row) => row.id)).toEqual([soon.id, late.id]);
+
+      expect((await list(`view=done&labId=${listLabId}`)).items.map((row) => row.id)).toEqual([
+        fitted.id,
+      ]);
+
+      const tomorrow = new Date(Date.now() + 86_400_000).toISOString();
+      expect((await list(`view=done&labId=${listLabId}&finishedFrom=${tomorrow}`)).total).toBe(0);
     });
   });
 

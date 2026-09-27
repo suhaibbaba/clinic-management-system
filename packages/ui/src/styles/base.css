@@ -97,6 +97,8 @@
    keeps the drawer. `RAIL_BREAKPOINT` in `use-media-query.ts` is the same number. */
 @theme {
   --breakpoint-rail: 1025px;
+  /* Below it a phone is too narrow for two fields side by side. */
+  --breakpoint-xs: 420px;
 }
 
 /* Radii, largest first: a panel's corner, a row inside it, then a control. */

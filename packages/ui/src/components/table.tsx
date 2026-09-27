@@ -175,7 +175,7 @@ export function Table<TRow>({
                       <p
                         data-part="table-card-title"
                         {...testid(rowId(row), "title")}
-                        className="min-w-0 text-value font-medium text-ink"
+                        className="min-w-0 flex-1 text-value font-medium text-ink"
                       >
                         {primary.render(row)}
                       </p>

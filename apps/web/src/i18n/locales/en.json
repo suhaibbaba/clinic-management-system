@@ -1073,19 +1073,57 @@
       "subtitle": "Every order and where it has got to",
       "add": "New order",
       "search": "Search orders",
-      "searchPlaceholder": "Patient name or work type",
+      "searchPlaceholder": "Patient, file number or lab",
       "filterLab": "Lab",
-      "filterStatus": "Status",
+      "allLabs": "All labs",
       "overdue": "Overdue",
       "overdueFilter": "Overdue ({{count}})",
-      "columnEmpty": "Nothing here",
       "custom": "Custom work",
+      "teeth_one": "Tooth",
+      "teeth_other": "Teeth",
       "empty": "No orders yet",
       "emptyHint": "Orders will appear here as they are placed",
       "columns": {
         "work": "Work",
-        "status": "Status"
-      }
+        "status": "Status",
+        "when": "When",
+        "next": "Next step",
+        "finished": "Finished"
+      },
+      "sortBy": "Sort by",
+      "sort": {
+        "dueAsc": "Due date, soonest first",
+        "dueDesc": "Due date, latest first",
+        "sentDesc": "Sent, newest first",
+        "patientAsc": "Patient, A to Z",
+        "labAsc": "Lab, A to Z",
+        "finishedDesc": "Finished, newest first",
+        "finishedAsc": "Finished, oldest first"
+      },
+      "stages": {
+        "label": "Stage",
+        "all": "All",
+        "to_send": "To send",
+        "at_lab": "At the lab",
+        "ready": "Ready to collect",
+        "to_fit": "To fit",
+        "option": "{{stage}} ({{count}})"
+      },
+      "when": {
+        "received": "Received",
+        "today": "Due today",
+        "late_one": "1 day late",
+        "late_other": "{{count}} days late",
+        "in_one": "Due tomorrow",
+        "in_other": "Due in {{count}} days"
+      },
+      "period": "Finished between",
+      "doneTitle": "Finished orders",
+      "doneSubtitle": "Fitted or cancelled, newest first",
+      "emptyOpen": "No work in progress",
+      "emptyOpenHint": "An order stays here from the moment it is placed until it is fitted",
+      "emptyFiltered": "Nothing matches these filters",
+      "emptyDone": "Nothing finished in this period"
     },
     "order": {
       "newTitle": "New lab order",
@@ -1136,6 +1174,7 @@
     "section": {
       "label": "Lab views",
       "orders": "Work in progress",
+      "done": "Done",
       "directory": "Labs"
     }
   },
