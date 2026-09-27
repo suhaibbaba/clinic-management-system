@@ -18,17 +18,21 @@ const TONES: Record<BadgeVariant, string> = {
   wash: "tag-wash text-primary-900",
 };
 
-/** One pill for the whole app: a status, a count, a filter — the same box in every one of them. */
-export const PILL_BASE = cn(
-  "pill-text inline-flex items-center h-(--control-h-sm) gap-2 whitespace-nowrap rounded-pill px-3",
+const PILL_BOX = cn(
+  "inline-flex items-center h-(--control-h-sm) gap-2 whitespace-nowrap rounded-pill px-3",
   "text-label font-normal",
 );
+
+/** One pill for the whole app: a status, a count, a filter — the same box in every one of them. */
+export const PILL_BASE = cn("pill-text", PILL_BOX);
 
 export interface BadgeProps extends TestIdProps {
   readonly tone?: BadgeVariant | undefined;
   /** Drops the dot where the badge is already inside a coloured context, or leads with an icon. */
   readonly plain?: boolean | undefined;
   readonly icon?: IconName | undefined;
+  /** `2` lets a long label wrap once before it is cut; one line still draws the same pill. */
+  readonly lines?: 1 | 2 | undefined;
   readonly className?: string | undefined;
   readonly children: ReactNode;
 }
@@ -37,14 +41,29 @@ export function Badge({
   tone = "neutral",
   plain = false,
   icon,
+  lines = 1,
   className,
   children,
   "data-testid": testId,
 }: BadgeProps): JSX.Element {
   const part = parts("badge", testId);
+  const wraps = lines === 2;
 
   return (
-    <span {...part()} className={cn(PILL_BASE, "min-w-0", TONES[tone], className)}>
+    <span
+      {...part()}
+      className={cn(
+        // `pill-text` pins line-height 1 and outranks any utility, so a label that may wrap drops it
+        // and keeps its text token's own. A pill's height is the floor and half of it the corner:
+        // one line is unchanged, two read as a rounded box rather than a stretched capsule.
+        wraps ? PILL_BOX : PILL_BASE,
+        "min-w-0",
+        wraps &&
+          "h-auto min-h-(--control-h-sm) whitespace-normal py-1 rounded-[calc(var(--control-h-sm)/2)]",
+        TONES[tone],
+        className,
+      )}
+    >
       {icon !== undefined && <Icon name={icon} className="size-3.5 shrink-0" />}
       {!plain && icon === undefined && (
         <span
@@ -53,7 +72,7 @@ export function Badge({
           className="size-1.5 shrink-0 rounded-pill bg-current"
         />
       )}
-      <span {...part("label")} className="min-w-0 truncate">
+      <span {...part("label")} className={cn("min-w-0", wraps ? "line-clamp-2" : "truncate")}>
         {children}
       </span>
     </span>

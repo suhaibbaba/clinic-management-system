@@ -65,7 +65,7 @@ export function StatCard({
       {/* The icon and its label are one chip: the reference's `.tag`, a wash running from green
           into blue, naming what the figure below counts. */}
       <div className="flex min-h-[26px] items-center justify-between gap-2">
-        <Badge tone="wash" icon={icon} {...part("label")}>
+        <Badge tone="wash" icon={icon} lines={2} className="text-micro" {...part("label")}>
           {label}
         </Badge>
       </div>
