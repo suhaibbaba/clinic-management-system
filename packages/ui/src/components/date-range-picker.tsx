@@ -72,7 +72,7 @@ export function DateRangePicker({
               value sits at the inline start of an Arabic form rather than at its far left. */}
           <span {...part("value")} className="min-w-0 flex-1 truncate">
             {from || to ? (
-              <Ltr className="truncate tabular-nums">{dates}</Ltr>
+              <Ltr className="truncate align-top tabular-nums">{dates}</Ltr>
             ) : (
               t("common.placeholders.dateRange")
             )}
