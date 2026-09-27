@@ -47,7 +47,7 @@ export { Switch } from "@ui/components/switch";
 export { TabPanel, Tabs, useTabParam, type TabDefinition } from "@ui/components/tabs";
 export { usePageParams, type PageParams } from "@ui/lib/use-page-params";
 export { Textarea } from "@ui/components/textarea";
-export { Table, type Column, type TableSort } from "@ui/components/table";
+export { DEFAULT_PER_PAGE, Table, type Column, type TableSort } from "@ui/components/table";
 export { TimePicker, to12Hour } from "@ui/components/time-picker";
 export { ToastProvider, useToast } from "@ui/components/toast";
 export { Widget } from "@ui/components/widget";

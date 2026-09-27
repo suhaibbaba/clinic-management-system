@@ -37,8 +37,6 @@ import { cn } from "@clinic/ui/lib/cn";
 import { endOfNextDayIso, formatDate, shortDate, startOfDayIso } from "@web/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
-const STATEMENT_PER_PAGE = 10;
-
 const receiptLabel = (receiptNumber: number | null): string =>
   receiptNumber === null ? "" : `#${String(receiptNumber).padStart(6, "0")}`;
 
@@ -89,13 +87,13 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
   const statement = useStatement(patientId, query);
 
   const currency = clinic.data?.currency;
-  // The API runs the balance oldest first; the page reads newest first, so each row keeps its own.
+
   const newestFirst = useMemo(
     () => [...(statement.data?.entries ?? [])].reverse(),
     [statement.data?.entries],
   );
-  // The whole statement comes at once, since every line's balance needs the ones before it.
-  const { page, perPage, setPage, setPerPage } = usePageParams(STATEMENT_PER_PAGE);
+
+  const { page, perPage, setPage, setPerPage } = usePageParams();
   const pageRows = newestFirst.slice((page - 1) * perPage, page * perPage);
 
   const print = async (action: () => Promise<void>): Promise<void> => {

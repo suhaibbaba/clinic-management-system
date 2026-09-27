@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from "rea
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
+  DEFAULT_PER_PAGE,
   Avatar,
   Badge,
   Button,
@@ -39,15 +40,11 @@ import { cn } from "@clinic/ui/lib/cn";
 import { useDebounced } from "@web/lib/use-debounced";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
-const DEFAULT_PER_PAGE = 10;
-
-/** The address the dashboard's overdue card and the retired standalone overdue screen both point at. */
 const BALANCE_FILTER = "balance";
 const VISITED_FILTER = "visited";
 
 type PatientFilter = typeof BALANCE_FILTER | typeof VISITED_FILTER | "all";
 
-/** Local midnight on the first of this month, as a date the API reads without a timezone of its own. */
 function startOfThisMonth(): string {
   const now = new Date();
 
@@ -58,21 +55,17 @@ function isClinicalView(patient: PatientView): patient is PatientClinicalView {
   return "gender" in patient;
 }
 
-// The search runs on the server — a client-side filter over one page cannot find a patient among
-// thousands — and is debounced. Columns follow the role's response shape.
 export function PatientsPage(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, can } = useSession();
 
-  // The bar owns the term and writes it here as `?q=`, so the URL is what this reads — a state copy
-  // seeded at mount would ignore a search typed from another screen.
-  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams(DEFAULT_PER_PAGE);
+  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
   const [params, setParams] = useSearchParams();
   const search = params.get("q") ?? "";
   const [createOpen, setCreateOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  // The form edits the full record, which a list row does not carry for every role.
+
   const editing = usePatient(editingId ?? "");
 
   const raw = params.get("filter");
@@ -80,8 +73,6 @@ export function PatientsPage(): JSX.Element {
   const sortBy: PatientSort | null = params.get("sort") === "balance" ? "balance" : null;
   const sortDir: SortDirection = params.get("dir") === "asc" ? "asc" : "desc";
 
-  // One write, not two: this form replaces the whole query string, so the page goes with it — and a
-  // second `resetPage()` here would land on the params as they were and put the filter back.
   const writeParams = (next: {
     readonly filter?: PatientFilter;
     readonly sort?: PatientSort | null;

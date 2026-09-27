@@ -82,6 +82,9 @@ export interface PaginationProps extends TestIdProps {
 /** What a list offers as its page sizes. A clinic's screen is a laptop or a phone, not a wall. */
 export const PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;
 
+/** Every paged list opens at this size; the reader changes it per list through the URL. */
+export const DEFAULT_PER_PAGE = 10;
+
 const alignClass = (align: Column<never>["align"]): string =>
   align === "numeric" ? "text-end tabular-nums" : align === "end" ? "text-end" : "text-start";
 

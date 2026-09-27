@@ -50,7 +50,7 @@ export class InventoryItemsService implements OnModuleInit {
   }
 
   // `low` and `expiring` are applied after the stock is computed, not in SQL — no column holds
-  // those numbers. Hence the raised page size and the alerts endpoint.
+  // those numbers — so with either one the whole filtered set is decorated and the page cut after.
   async list(
     actor: AuthenticatedUser,
     query: ListInventoryItemsQuery,
@@ -73,20 +73,35 @@ export class InventoryItemsService implements OnModuleInit {
 
     const where = this.scope.where(inventoryItems, actor.clinicId, ...filters);
     const { limit, offset } = toLimitOffset(query);
+    const filtersOnStock = Boolean(query.low || query.expiring);
+
+    const select = this.db
+      .select({ item: inventoryItems, supplierName: suppliers.name })
+      .from(inventoryItems)
+      // An archived supplier is nobody's default any more; a movement keeps its name as history.
+      .leftJoin(
+        suppliers,
+        and(eq(suppliers.id, inventoryItems.defaultSupplierId), isNull(suppliers.deletedAt)),
+      )
+      .where(where)
+      .orderBy(asc(inventoryItems.name))
+      .$dynamic();
+
+    if (filtersOnStock) {
+      const items = await this.decorate(
+        actor.clinicId,
+        (await select).map((row) => ({ ...row.item, supplierName: row.supplierName })),
+      );
+      const filtered = items.filter(
+        (item) =>
+          (!query.low || item.isLow) && (!query.expiring || item.isExpiring || item.isExpired),
+      );
+
+      return toPaginated(filtered.slice(offset, offset + limit), filtered.length, query);
+    }
 
     const [rows, [totals]] = await Promise.all([
-      this.db
-        .select({ item: inventoryItems, supplierName: suppliers.name })
-        .from(inventoryItems)
-        // An archived supplier is nobody's default any more; a movement keeps its name as history.
-        .leftJoin(
-          suppliers,
-          and(eq(suppliers.id, inventoryItems.defaultSupplierId), isNull(suppliers.deletedAt)),
-        )
-        .where(where)
-        .orderBy(asc(inventoryItems.name))
-        .limit(limit)
-        .offset(offset),
+      select.limit(limit).offset(offset),
       this.db
         .select({ value: sql<number>`count(*)::int` })
         .from(inventoryItems)
@@ -98,16 +113,7 @@ export class InventoryItemsService implements OnModuleInit {
       rows.map((row) => ({ ...row.item, supplierName: row.supplierName })),
     );
 
-    const filtered = items.filter(
-      (item) =>
-        (!query.low || item.isLow) && (!query.expiring || item.isExpiring || item.isExpired),
-    );
-
-    return toPaginated(
-      filtered,
-      query.low || query.expiring ? filtered.length : (totals?.value ?? 0),
-      query,
-    );
+    return toPaginated(items, totals?.value ?? 0, query);
   }
 
   async findOne(actor: AuthenticatedUser, id: string): Promise<InventoryItemRow> {

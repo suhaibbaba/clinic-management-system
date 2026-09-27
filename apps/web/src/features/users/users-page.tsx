@@ -58,7 +58,7 @@ export function UsersPage(): JSX.Element {
     }
   };
 
-  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams(10);
+  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<UserRole | "">("");
   const [formUserId, setFormUserId] = useState<string | null>(null);

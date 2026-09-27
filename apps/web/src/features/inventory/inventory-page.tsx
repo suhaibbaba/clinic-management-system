@@ -1,7 +1,7 @@
 import { LOOKUP_LIST, type InventoryItemRow } from "@clinic/shared";
-import { useMemo, useState, type JSX } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -14,6 +14,7 @@ import {
   Select,
   Table,
   type Column,
+  usePageParams,
 } from "@clinic/ui";
 import { useSession } from "@web/features/auth/session";
 import { useLookupLabels, useLookupOptions } from "@web/features/lookups/queries";
@@ -27,9 +28,13 @@ import { formatDate } from "@web/lib/format";
 import { useDebounced } from "@web/lib/use-debounced";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
-// Search (20rem) + gap-3 (0.75rem) + category (11rem). Not a calc(): Tailwind's scanner drops a
-// candidate containing `+`, so the class would be emitted with no rule behind it.
 const FILTER_FIELDS_WIDTH = "max-w-[31.75rem]";
+
+interface InventoryFilters {
+  readonly category?: string;
+  readonly low?: boolean;
+  readonly expiring?: boolean;
+}
 
 // The quantity is a bar against the reorder level rather than a number to compare with another
 // number. Everything here is computed from the ledger; there is nothing to edit.
@@ -40,24 +45,79 @@ export function InventoryPage(): JSX.Element {
   const { can } = useSession();
   const navigate = useNavigate();
 
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
-  const [low, setLow] = useState(false);
-  const [expiring, setExpiring] = useState(false);
+  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
+  const [params, setParams] = useSearchParams();
+  const search = params.get("q") ?? "";
+  const category = params.get("category") ?? "";
+  const low = params.get("low") === "1";
+  const expiring = params.get("expiring") === "1";
   const [openItemId, setOpenItemId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
+  // One write per change, and the page goes with it: a narrower list has no page seven.
+  const writeParams = (change: (next: URLSearchParams) => void): void =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+
+        change(next);
+        next.delete("page");
+
+        return next;
+      },
+      { replace: true },
+    );
+
+  const setSearch = (value: string): void =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+
+        if (value === "") {
+          next.delete("q");
+        } else {
+          next.set("q", value);
+        }
+
+        return next;
+      },
+      { replace: true },
+    );
+
+  const setFilters = (filters: InventoryFilters): void =>
+    writeParams((next) => {
+      for (const [key, value] of Object.entries(filters)) {
+        if (value === undefined) {
+          continue;
+        }
+        if (value === "" || value === false) {
+          next.delete(key);
+        } else {
+          next.set(key, value === true ? "1" : value);
+        }
+      }
+    });
+
   const debounced = useDebounced(search);
+  const lastSearch = useRef(debounced);
+
+  useEffect(() => {
+    if (lastSearch.current !== debounced) {
+      lastSearch.current = debounced;
+      resetPage();
+    }
+  }, [debounced]);
 
   const query = useMemo(
     () => ({
-      limit: 100,
+      page,
+      limit: perPage,
       ...(debounced.trim() !== "" && { search: debounced.trim() }),
       ...(category !== "" && { category }),
       ...(low && { low: true }),
       ...(expiring && { expiring: true }),
     }),
-    [debounced, category, low, expiring],
+    [page, perPage, debounced, category, low, expiring],
   );
 
   const items = useInventoryItems(query);
@@ -154,14 +214,8 @@ export function InventoryPage(): JSX.Element {
       <InventoryAlertCards
         className={FILTER_FIELDS_WIDTH}
         onSelectItem={setOpenItemId}
-        onShowLow={() => {
-          setLow(true);
-          setExpiring(false);
-        }}
-        onShowExpiring={() => {
-          setExpiring(true);
-          setLow(false);
-        }}
+        onShowLow={() => setFilters({ low: true, expiring: false })}
+        onShowExpiring={() => setFilters({ expiring: true, low: false })}
       />
 
       <div className="flex flex-wrap items-end gap-3">
@@ -186,7 +240,7 @@ export function InventoryPage(): JSX.Element {
             data-testid="inventory-filter-category"
             value={category}
             placeholder={t("common.all")}
-            onChange={(event) => setCategory(event.target.value)}
+            onChange={(event) => setFilters({ category: event.target.value })}
             options={categoryOptions}
           />
         </div>
@@ -196,7 +250,7 @@ export function InventoryPage(): JSX.Element {
           icon={<Icon name="alert" />}
           data-testid="inventory-filter-low"
           className="font-normal"
-          onClick={() => setLow((previous) => !previous)}
+          onClick={() => setFilters({ low: !low })}
         >
           {t("inventory.filterLow")}
         </Button>
@@ -206,7 +260,7 @@ export function InventoryPage(): JSX.Element {
           icon={<Icon name="clock" />}
           data-testid="inventory-filter-expiring"
           className="font-normal"
-          onClick={() => setExpiring((previous) => !previous)}
+          onClick={() => setFilters({ expiring: !expiring })}
         >
           {t("inventory.filterExpiring")}
         </Button>
@@ -229,6 +283,13 @@ export function InventoryPage(): JSX.Element {
             hint="inventory.emptyHint"
           />
         }
+        pagination={{
+          page,
+          totalPages: items.data?.totalPages ?? 0,
+          onPageChange: setPage,
+          perPage,
+          onPerPageChange: setPerPage,
+        }}
       />
 
       <ItemDrawer

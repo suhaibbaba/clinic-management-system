@@ -35,13 +35,11 @@ import { errorMessageKey } from "@web/lib/api-error";
 import { formatDate, formatDateTime } from "@web/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
-// Anything in `requested` came from the booking page — either a clinic confirming by hand, or an
-// unfinished OTP, which expires by itself. Both decisions also tell the patient.
 export function PendingBookingsPage(): JSX.Element {
   const { t } = useTranslation();
   const { can } = useSession();
   const toast = useToast();
-  const { page, perPage, setPage, setPerPage } = usePageParams(25);
+  const { page, perPage, setPage, setPerPage } = usePageParams();
   const [rejecting, setRejecting] = useState<CalendarAppointment>();
   const [reason, setReason] = useState("");
 
