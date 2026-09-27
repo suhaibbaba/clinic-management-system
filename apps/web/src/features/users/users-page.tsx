@@ -18,6 +18,7 @@ import {
   Select,
   Switch,
   Table,
+  TotalBadge,
   usePageParams,
   usePersonName,
   useToast,
@@ -279,9 +280,6 @@ export function UsersPage(): JSX.Element {
         data-testid="users-header"
         title="users.title"
         subtitle="users.subtitle"
-        {...(query.data !== undefined && {
-          count: t("pagination.total", { total: query.data.total }),
-        })}
         primaryAction={
           <Button
             icon={<Icon name="user-plus" />}
@@ -296,9 +294,7 @@ export function UsersPage(): JSX.Element {
         }
       />
 
-      {/* The same toolbar shape as every other list: the app's search field,
-          then the filters, on their own line at 390px. */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <div className="flex flex-wrap items-center gap-3">
         <SearchField
           data-testid="users-search"
           className="w-full min-w-0 sm:max-w-md sm:flex-1"
@@ -319,7 +315,7 @@ export function UsersPage(): JSX.Element {
 
         <Select
           data-testid="users-filter-role"
-          className="w-full sm:ms-auto sm:w-48"
+          className="w-full sm:w-48"
           aria-label={t("users.filterRole")}
           placeholder={t("common.all")}
           options={USER_ROLES.map((value) => ({ value, label: t(`roles.${value}`) }))}
@@ -329,6 +325,10 @@ export function UsersPage(): JSX.Element {
             resetPage();
           }}
         />
+
+        {query.data !== undefined && (
+          <TotalBadge data-testid="users-count" className="ms-auto" total={query.data.total} />
+        )}
       </div>
 
       <Table

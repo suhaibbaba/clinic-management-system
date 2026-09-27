@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { AppRoutes } from "@web/app/router";
 import ar from "@web/i18n/locales/ar.json";
 import { authTokens } from "@web/lib/auth-tokens";
-import { makeProfile, makeUser, paginated } from "@test/helpers/fixtures";
+import { makeDoctor, makeProfile, makeUser, paginated } from "@test/helpers/fixtures";
 import { mockApi, renderWithProviders } from "@test/helpers/render";
 import { choose } from "@test/select";
 
@@ -42,6 +42,28 @@ describe("Users management", () => {
     expect(within(row!).getByText(user.phone)).toBeInTheDocument();
     expect(within(row!).getByText(ar.roles.doctor)).toBeInTheDocument();
     expect(within(row!).getByText(ar.users.active)).toBeInTheDocument();
+  });
+
+  it("counts the users on the filter row, not in the page header", async () => {
+    await renderUsersPage([makeUser()]);
+
+    const count = await screen.findByTestId("users-count");
+    expect(count.parentElement).toContainElement(screen.getByTestId("users-search"));
+    expect(count.parentElement).toContainElement(screen.getByTestId("users-filter-role"));
+    expect(within(screen.getByTestId("users-header")).queryByText(/1/)).toBeNull();
+  });
+
+  it("counts the doctors on the search row, not in the page header", async () => {
+    authTokens.clear();
+    mockApi({
+      ...baseHandlers([]),
+      "GET /doctors": { status: 200, body: paginated([makeDoctor()]) },
+    });
+    renderWithProviders(<AppRoutes />, { route: "/users?view=doctors" });
+
+    const count = await screen.findByTestId("doctors-count");
+    expect(count.parentElement).toContainElement(screen.getByTestId("doctors-search"));
+    expect(within(screen.getByTestId("doctors-header")).queryByText(/1/)).toBeNull();
   });
 
   it("shows the empty state when the clinic has no users yet", async () => {
