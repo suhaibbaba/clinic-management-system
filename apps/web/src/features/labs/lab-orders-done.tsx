@@ -1,5 +1,5 @@
 import { subMonths } from "date-fns";
-import { useState, type JSX } from "react";
+import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -17,6 +17,7 @@ import {
   OrderSearch,
   SortSelect,
   useListParams,
+  useOpenOrder,
   useOrderColumns,
 } from "@web/features/labs/lab-order-list";
 import { useLabOrders } from "@web/features/labs/queries";
@@ -31,7 +32,7 @@ export function LabOrdersDone(): JSX.Element {
   const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
   const list = useListParams("done", resetPage);
   const [params] = useSearchParams();
-  const [openOrderId, setOpenOrderId] = useState<string | null>(null);
+  const openOrder = useOpenOrder();
 
   const from = params.get("from") ?? toIsoDate(subMonths(new Date(), DEFAULT_MONTHS));
   const to = params.get("to") ?? "";
@@ -92,7 +93,7 @@ export function LabOrdersDone(): JSX.Element {
         rowKey={(row) => row.id}
         isLoading={orders.isPending}
         isRefreshing={isRefetching(orders)}
-        onRowClick={(row) => setOpenOrderId(row.id)}
+        onRowClick={(row) => openOrder(row.id)}
         rowLabel={(row) => `${row.workTypeName ?? t("labs.orders.custom")} — ${row.patientName}`}
         empty={
           <EmptyState
@@ -110,10 +111,7 @@ export function LabOrdersDone(): JSX.Element {
         }}
       />
 
-      <OrderDetails
-        order={rows.find((row) => row.id === openOrderId)}
-        onClose={() => setOpenOrderId(null)}
-      />
+      <OrderDetails rows={rows} />
     </div>
   );
 }

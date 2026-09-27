@@ -16,7 +16,7 @@ import { useClinic } from "@web/features/clinic/queries";
 import { LAB_ORDER_FIELDS } from "@web/features/labs/fields";
 import { OrderDrawer } from "@web/features/labs/order-drawer";
 import { OrderFormModal } from "@web/features/labs/order-form-modal";
-import { useLabOrderStep, useLabs } from "@web/features/labs/queries";
+import { useLabOrder, useLabOrderStep, useLabs } from "@web/features/labs/queries";
 import {
   availableSteps,
   LAB_ORDER_STAGE_TONES,
@@ -450,24 +450,52 @@ export function useOrderColumns(view: LabOrderView): readonly Column<LabOrderRow
   ];
 }
 
-/** The order's drawer and its edit form, for a list that opens one order at a time. */
-export function OrderDetails({
-  order,
-  onClose,
-}: {
-  readonly order: LabOrderRow | undefined;
-  readonly onClose: () => void;
-}): JSX.Element {
+/** Opens an order's drawer by putting it in the address, so an open order can be linked. */
+export function useOpenOrder(): (id: string) => void {
+  const [, setParams] = useSearchParams();
+
+  return (id) =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+
+        next.set("order", id);
+
+        return next;
+      },
+      { replace: true },
+    );
+}
+
+// Fetched by id rather than found in the list: a step can move the order out of the filtered page,
+// and the drawer stays on it. The list's row shows at once while the fetch is in flight.
+export function OrderDetails({ rows }: { readonly rows: readonly LabOrderRow[] }): JSX.Element {
+  const [params, setParams] = useSearchParams();
   const [editing, setEditing] = useState<LabOrderRow | undefined>();
+  const id = params.get("order") ?? "";
+  const fetched = useLabOrder(id);
+  const order = id === "" ? undefined : (fetched.data ?? rows.find((row) => row.id === id));
+
+  const close = (): void =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+
+        next.delete("order");
+
+        return next;
+      },
+      { replace: true },
+    );
 
   return (
     <>
       <OrderDrawer
         data-testid="lab-order-drawer"
         order={order}
-        onClose={onClose}
+        onClose={close}
         onEdit={(row) => {
-          onClose();
+          close();
           setEditing(row);
         }}
       />

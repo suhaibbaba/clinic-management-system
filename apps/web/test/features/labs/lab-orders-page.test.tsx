@@ -2,7 +2,8 @@ import { LAB_ORDER_STATUS, USER_ROLE, type LabOrderRow, type LabOrderStatus } fr
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { subMonths } from "date-fns";
-import type { ReactElement } from "react";
+import type { JSX, ReactElement } from "react";
+import { useLocation } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import ar from "@web/i18n/locales/ar.json";
 import { toIsoDate } from "@web/features/appointments/calendar-time";
@@ -10,7 +11,7 @@ import { LabOrdersDone } from "@web/features/labs/lab-orders-done";
 import { LabOrdersPage } from "@web/features/labs/lab-orders-page";
 import { authTokens } from "@web/lib/auth-tokens";
 import { makeClinic, makeProfile, paginated } from "@test/helpers/fixtures";
-import { mockApi, renderWithProviders } from "@test/helpers/render";
+import { mockApi, renderWithProviders, type MockResponse } from "@test/helpers/render";
 import { choose } from "@test/select";
 
 const DAY = 86_400_000;
@@ -57,7 +58,7 @@ const ROWS = [
   order("4", LAB_ORDER_STATUS.RECEIVED, { receivedAt: "2026-09-20T09:00:00.000Z" }),
 ];
 
-function render(ui: ReactElement, route = "/labs") {
+function render(ui: ReactElement, route = "/labs", extra: Record<string, MockResponse> = {}) {
   authTokens.clear();
   const api = mockApi({
     "POST /auth/refresh": { status: 200, body: { accessToken: "access", expiresIn: 900 } },
@@ -69,9 +70,21 @@ function render(ui: ReactElement, route = "/labs") {
       status: 200,
       body: { stages: { to_send: 1, at_lab: 2, ready: 0, to_fit: 1 }, overdue: 1 },
     },
+    ...extra,
   });
-  renderWithProviders(ui, { route });
+  renderWithProviders(
+    <>
+      {ui}
+      <Address />
+    </>,
+    { route },
+  );
   return api;
+}
+
+function Address(): JSX.Element {
+  const { search } = useLocation();
+  return <output data-testid="address">{search}</output>;
 }
 
 const lastList = (api: ReturnType<typeof render>): URL =>
@@ -139,6 +152,31 @@ describe("the lab work in progress", () => {
     await waitFor(() => expect(lastList(api).searchParams.get("sort")).toBe("patient"));
     expect(lastList(api).searchParams.get("dir")).toBe("asc");
     expect(lastList(api).searchParams.get("stage")).toBeNull();
+  });
+});
+
+describe("an order's drawer", () => {
+  it("opens from its row and puts the order in the address", async () => {
+    const opened = ROWS[1]!;
+    render(<LabOrdersPage />, "/labs", {
+      [`GET /lab-orders/${opened.id}`]: { status: 200, body: opened },
+    });
+
+    await userEvent.click(await screen.findByText("Work 2"));
+
+    expect(await screen.findByTestId("lab-order-drawer")).toBeInTheDocument();
+    expect(screen.getByTestId("address")).toHaveTextContent(`order=${opened.id}`);
+  });
+
+  it("opens from the address alone, for an order the list does not hold", async () => {
+    const elsewhere = order("9", LAB_ORDER_STATUS.FITTED, { workTypeName: "Night guard" });
+    const api = render(<LabOrdersPage />, `/labs?order=${elsewhere.id}`, {
+      [`GET /lab-orders/${elsewhere.id}`]: { status: 200, body: elsewhere },
+    });
+
+    const drawer = await screen.findByTestId("lab-order-drawer");
+    expect(drawer).toHaveTextContent("Night guard");
+    expect(api.calls.some((call) => call.url.endsWith(`/lab-orders/${elsewhere.id}`))).toBe(true);
   });
 });
 

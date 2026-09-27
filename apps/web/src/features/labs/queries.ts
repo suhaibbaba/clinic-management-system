@@ -93,6 +93,15 @@ export function useLabStatement(
   });
 }
 
+/** Keyed under the orders, so every step that moves it reloads the open drawer too. */
+export function useLabOrder(id: string): UseQueryResult<LabOrderRow> {
+  return useQuery({
+    queryKey: [LAB_ORDERS_KEY, "one", id],
+    queryFn: () => labOrdersApi.findOne(id),
+    enabled: id !== "",
+  });
+}
+
 /** Keyed under the orders, so every step that moves an order recounts the stages. */
 export function useLabOrderStages(
   query: Partial<LabOrderStageCountsQuery> = {},

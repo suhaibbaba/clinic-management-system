@@ -21,7 +21,7 @@ export function LabsSection(): JSX.Element {
     "tab",
     TABS.map((tab) => tab.id),
     ORDERS,
-    ["page", "stage", "overdue", "from", "to", "sort", "dir"],
+    ["page", "stage", "overdue", "from", "to", "sort", "dir", "order"],
   );
 
   return (

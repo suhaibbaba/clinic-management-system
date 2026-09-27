@@ -21,6 +21,7 @@ import {
   OrderSearch,
   SortSelect,
   useListParams,
+  useOpenOrder,
   useOrderColumns,
 } from "@web/features/labs/lab-order-list";
 import { OrderFormModal } from "@web/features/labs/order-form-modal";
@@ -39,7 +40,7 @@ export function LabOrdersPage(): JSX.Element {
   const list = useListParams("open", resetPage);
   const [params] = useSearchParams();
   const [creating, setCreating] = useState(false);
-  const [openOrderId, setOpenOrderId] = useState<string | null>(null);
+  const openOrder = useOpenOrder();
 
   const rawStage = params.get("stage");
   const stage = LAB_ORDER_STAGES.find((value) => value === rawStage);
@@ -66,7 +67,6 @@ export function LabOrdersPage(): JSX.Element {
   const columns = useOrderColumns("open");
 
   const rows = orders.data?.items ?? [];
-  const openOrder = rows.find((row) => row.id === openOrderId);
   const stageCount = (value: LabOrderStage): number | undefined => counts.data?.stages[value];
   const allCount = counts.data
     ? LAB_ORDER_STAGES.reduce((sum, value) => sum + (counts.data?.stages[value] ?? 0), 0)
@@ -189,7 +189,7 @@ export function LabOrdersPage(): JSX.Element {
         rowKey={(row) => row.id}
         isLoading={orders.isPending}
         isRefreshing={isRefetching(orders)}
-        onRowClick={(row) => setOpenOrderId(row.id)}
+        onRowClick={(row) => openOrder(row.id)}
         rowLabel={(row) => `${row.workTypeName ?? t("labs.orders.custom")} — ${row.patientName}`}
         empty={empty}
         pagination={{
@@ -201,7 +201,7 @@ export function LabOrdersPage(): JSX.Element {
         }}
       />
 
-      <OrderDetails order={openOrder} onClose={() => setOpenOrderId(null)} />
+      <OrderDetails rows={rows} />
 
       <OrderFormModal
         data-testid="lab-order-create-modal"

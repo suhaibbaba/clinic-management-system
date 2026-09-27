@@ -95,7 +95,7 @@ export function OrderDrawer({
         descriptionKey="labs.order.description"
         title={
           <span className="flex flex-wrap items-center gap-2">
-            {order.workTypeName ?? t("labs.orders.custom")}
+            <bdi>{order.workTypeName ?? t("labs.orders.custom")}</bdi>
             <Badge tone={style.tone} data-testid={`${testId}-status`}>
               {t(style.label)}
             </Badge>
