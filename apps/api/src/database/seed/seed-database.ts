@@ -24,7 +24,7 @@ import {
   occupiesSlot,
   type LabOrderStatus,
 } from "@clinic/shared";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import type { BusyInterval } from "@api/modules/appointments/lib/slots";
 import { ChargesService } from "@api/modules/billing/services/charges.service";
 import { nextReceiptNumber } from "@api/modules/billing/lib/payments";
@@ -613,14 +613,18 @@ async function writeMoney(
     });
   }
 
-  for (const procedure of procedures) {
-    await db
-      .update(charges)
-      .set({ createdAt: procedure.performedAt })
-      .where(
-        and(eq(charges.performedProcedureId, procedure.id), eq(charges.clinicId, ctx.clinicId)),
-      );
-  }
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`set local session_replication_role = replica`);
+
+    for (const procedure of procedures) {
+      await tx
+        .update(charges)
+        .set({ createdAt: procedure.performedAt })
+        .where(
+          and(eq(charges.performedProcedureId, procedure.id), eq(charges.clinicId, ctx.clinicId)),
+        );
+    }
+  });
 
   const owedByPatient = new Map<string, { owed: number; last: Date }>();
   for (const procedure of procedures) {

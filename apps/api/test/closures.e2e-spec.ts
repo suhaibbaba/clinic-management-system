@@ -10,7 +10,7 @@ import {
   timeOffCancellationReason,
   type UserRole,
 } from "@clinic/shared";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import {
   appointments,
   clinicClosures,
@@ -106,10 +106,13 @@ describe("Closures and time off (e2e)", () => {
   });
 
   afterEach(async () => {
-    await context.db.delete(notificationsLog).where(eq(notificationsLog.clinicId, clinic.id));
-    await context.db.delete(appointments).where(eq(appointments.clinicId, clinic.id));
-    await context.db.delete(doctorTimeOff).where(eq(doctorTimeOff.clinicId, clinic.id));
-    await context.db.delete(clinicClosures).where(eq(clinicClosures.clinicId, clinic.id));
+    await context.db.transaction(async (tx) => {
+      await tx.execute(sql`set local session_replication_role = replica`);
+      await tx.delete(notificationsLog).where(eq(notificationsLog.clinicId, clinic.id));
+      await tx.delete(appointments).where(eq(appointments.clinicId, clinic.id));
+      await tx.delete(doctorTimeOff).where(eq(doctorTimeOff.clinicId, clinic.id));
+      await tx.delete(clinicClosures).where(eq(clinicClosures.clinicId, clinic.id));
+    });
   });
 
   const availability = async (date: string) => {

@@ -13,7 +13,7 @@ async function main(): Promise<void> {
     throw new Error("Refusing to seed a production database");
   }
 
-  const client = postgres(env.DATABASE_URL, { max: 1 });
+  const client = postgres(env.MIGRATION_DATABASE_URL ?? env.DATABASE_URL, { max: 1 });
   const db = drizzle(client, { schema });
   const startedAt = Date.now();
 
