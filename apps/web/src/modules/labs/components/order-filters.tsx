@@ -1,4 +1,4 @@
-import type { LabOrderView } from "@clinic/shared";
+import { LAB_ORDER_DONE_STATUSES, type LabOrderView } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { SearchField, Select } from "@clinic/ui";
@@ -7,6 +7,7 @@ import type { ListParams } from "@web/modules/labs/hooks/use-list-params";
 import { sortValue } from "@web/modules/labs/lib/list-params";
 import { putParam } from "@web/shared/lib/url-params";
 import { useLabs } from "@web/modules/labs/queries";
+import { LAB_ORDER_STATUS_STYLES } from "@web/shared/lib/lab-order-status";
 
 export function OrderSearch({ list }: { readonly list: ListParams }): JSX.Element {
   const { t } = useTranslation();
@@ -45,6 +46,31 @@ export function LabFilter({
       placeholder={t("labs.orders.allLabs")}
       onChange={(event) => list.write((next) => putParam(next, "lab", event.target.value))}
       options={(labs.data?.items ?? []).map((lab) => ({ value: lab.id, label: lab.name }))}
+    />
+  );
+}
+
+export function DoneStatusFilter({
+  list,
+  className,
+}: {
+  readonly list: ListParams;
+  readonly className?: string | undefined;
+}): JSX.Element {
+  const { t } = useTranslation();
+
+  return (
+    <Select
+      data-testid="lab-orders-filter-status"
+      className={className}
+      aria-label={t("labs.orders.filterStatus")}
+      value={list.status}
+      placeholder={t("labs.orders.allStatuses")}
+      onChange={(event) => list.write((next) => putParam(next, "status", event.target.value))}
+      options={LAB_ORDER_DONE_STATUSES.map((status) => ({
+        value: status,
+        label: t(LAB_ORDER_STATUS_STYLES[status].label),
+      }))}
     />
   );
 }

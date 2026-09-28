@@ -1,4 +1,4 @@
-import { LAB_ORDER_STATUS, type LabOrderRow } from "@clinic/shared";
+import { LAB_ORDER_STATUS, countsTowardLabBalance, type LabOrderRow } from "@clinic/shared";
 import { useRef, useState, type ChangeEvent, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +31,7 @@ import { LAB_ORDER_STATUS_STYLES } from "@web/shared/lib/lab-order-status";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { formatDate, formatDateTime } from "@web/shared/lib/format";
 import { cn } from "@clinic/ui/lib/cn";
+import { LABS_TAB_DONE } from "@web/modules/labs/constants";
 
 export interface OrderDrawerProps {
   readonly "data-testid"?: string | undefined;
@@ -53,6 +54,7 @@ export function OrderDrawer({
 
   const step = useLabOrderStep();
   const returnToLab = useReturnLabOrder();
+  const { confirm, dialog } = useConfirm("lab-order-confirm-cancel");
 
   const [returning, setReturning] = useState(false);
   const [reason, setReason] = useState("");
@@ -73,6 +75,36 @@ export function OrderDrawer({
       toast.error(errorMessageKey(error));
     }
   };
+
+  const cancel = (): void =>
+    confirm({
+      title: "labs.order.confirmCancel.title",
+      titleValues: {
+        work: order.workTypeName ?? t("labs.orders.custom"),
+        patient: order.patientName,
+      },
+      consequences: [
+        t("labs.order.confirmCancel.moves"),
+        t("labs.order.confirmCancel.final"),
+        ...(countsTowardLabBalance(order.status) ? [t("labs.order.confirmCancel.balance")] : []),
+      ],
+      confirmLabel: "labs.actions.cancel",
+      onConfirm: async () => {
+        try {
+          await step.mutateAsync({ id: order.id, step: "cancel" });
+          toast.success("labs.order.cancelled", undefined, undefined, {
+            labelKey: "labs.order.viewCancelled",
+            onClick: () =>
+              navigate(
+                `/labs?${new URLSearchParams({ tab: LABS_TAB_DONE, status: LAB_ORDER_STATUS.CANCELLED, order: order.id }).toString()}`,
+              ),
+          });
+        } catch (error) {
+          toast.error(errorMessageKey(error));
+          throw error;
+        }
+      },
+    });
 
   const submitReturn = async (): Promise<void> => {
     try {
@@ -113,7 +145,7 @@ export function OrderDrawer({
                 variant={next.step === "cancel" ? "ghost" : "primary"}
                 data-testid={`${testId}-step-${next.step}`}
                 isLoading={busy}
-                onClick={() => void move(next)}
+                onClick={() => (next.step === "cancel" ? cancel() : void move(next))}
               >
                 {t(next.label)}
               </Button>
@@ -266,6 +298,8 @@ export function OrderDrawer({
           onChange={(event) => setReason(event.target.value)}
         />
       </Modal>
+
+      {dialog}
     </>
   );
 }

@@ -38,16 +38,29 @@ const TONES: Record<ToastTone, { chip: string; tint: string; line: string; icon:
 
 const TOAST_MS = 2500;
 
+const TOAST_WITH_ACTION_MS = 6000;
+
+export interface ToastAction {
+  readonly labelKey: string;
+  readonly onClick: () => void;
+}
+
 interface ToastMessage {
   readonly id: number;
   readonly messageKey: string;
   readonly values?: Record<string, string | number>;
   readonly descriptionKey?: string;
   readonly tone: ToastTone;
+  readonly action?: ToastAction;
 }
 
 type Values = Record<string, string | number>;
-type Notify = (messageKey: string, values?: Values, descriptionKey?: string) => void;
+type Notify = (
+  messageKey: string,
+  values?: Values,
+  descriptionKey?: string,
+  action?: ToastAction,
+) => void;
 
 interface ToastApi {
   success: Notify;
@@ -72,7 +85,13 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
   const [messages, setMessages] = useState<ToastMessage[]>([]);
 
   const push = useCallback(
-    (messageKey: string, tone: ToastTone, values?: Values, descriptionKey?: string) => {
+    (
+      messageKey: string,
+      tone: ToastTone,
+      values?: Values,
+      descriptionKey?: string,
+      action?: ToastAction,
+    ) => {
       setMessages((current) => [
         ...current,
         {
@@ -81,6 +100,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
           tone,
           ...(values && { values }),
           ...(descriptionKey !== undefined && { descriptionKey }),
+          ...(action && { action }),
         },
       ]);
     },
@@ -89,11 +109,12 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
 
   const api = useMemo<ToastApi>(
     () => ({
-      success: (messageKey, values, description) =>
-        push(messageKey, "success", values, description),
-      warning: (messageKey, values, description) =>
-        push(messageKey, "warning", values, description),
-      error: (messageKey, values, description) => push(messageKey, "error", values, description),
+      success: (messageKey, values, description, action) =>
+        push(messageKey, "success", values, description, action),
+      warning: (messageKey, values, description, action) =>
+        push(messageKey, "warning", values, description, action),
+      error: (messageKey, values, description, action) =>
+        push(messageKey, "error", values, description, action),
     }),
     [push],
   );
@@ -117,6 +138,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
             data-testid="toast"
             data-tone={message.tone}
             open
+            duration={message.action ? TOAST_WITH_ACTION_MS : TOAST_MS}
             onOpenChange={(open) => {
               if (!open) {
                 dismiss(message.id);
@@ -124,7 +146,9 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
             }}
             className={cn(
               "group relative flex gap-3 overflow-hidden rounded-card border border-line",
-              message.descriptionKey === undefined ? "items-center" : "items-start",
+              message.descriptionKey === undefined && !message.action
+                ? "items-center"
+                : "items-start",
               "toast-wash px-4 py-3.5 shadow-float",
               TONES[message.tone].tint,
               "data-[state=open]:animate-[toast-in_200ms_ease-out]",
@@ -138,7 +162,7 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               aria-hidden="true"
               className={cn(
                 "grid size-8 shrink-0 place-items-center rounded-pill text-ink-inverse",
-                message.descriptionKey !== undefined && "mt-0.5",
+                (message.descriptionKey !== undefined || message.action) && "mt-0.5",
                 TONES[message.tone].chip,
               )}
             >
@@ -163,6 +187,22 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
                   {t(message.descriptionKey, message.values ?? {})}
                 </ToastPrimitive.Description>
               )}
+
+              {message.action && (
+                <ToastPrimitive.Action
+                  data-part="toast-action"
+                  data-testid="toast-action"
+                  altText={t(message.action.labelKey)}
+                  onClick={message.action.onClick}
+                  className={cn(
+                    "mt-1 inline-flex min-h-(--control-h-sm) cursor-pointer items-center",
+                    "text-label font-medium text-primary-700",
+                    "underline-offset-4 hover:underline",
+                  )}
+                >
+                  {t(message.action.labelKey)}
+                </ToastPrimitive.Action>
+              )}
             </div>
 
             <ToastPrimitive.Close
@@ -182,7 +222,9 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               data-part="toast-life"
               data-testid="toast-life"
               aria-hidden="true"
-              style={{ animationDuration: `${TOAST_MS}ms` }}
+              style={{
+                animationDuration: `${message.action ? TOAST_WITH_ACTION_MS : TOAST_MS}ms`,
+              }}
               className={cn(
                 "absolute inset-x-0 bottom-0 h-0.5 animate-[toast-life_linear_forwards]",
                 "page-rtl:origin-right page-ltr:origin-left group-hover:animate-none",

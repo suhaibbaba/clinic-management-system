@@ -1,4 +1,5 @@
 import { useDateRangeParam } from "@web/shared/hooks/use-date-range-param";
+import { LAB_ORDER_DONE_STATUSES } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -10,7 +11,12 @@ import {
   usePageParams,
 } from "@clinic/ui";
 import { OrderDetails } from "@web/modules/labs/components/order-details";
-import { LabFilter, OrderSearch, SortSelect } from "@web/modules/labs/components/order-filters";
+import {
+  DoneStatusFilter,
+  LabFilter,
+  OrderSearch,
+  SortSelect,
+} from "@web/modules/labs/components/order-filters";
 import { useListParams } from "@web/modules/labs/hooks/use-list-params";
 import { useOpenOrder } from "@web/modules/labs/hooks/use-open-order";
 import { useOrderColumns } from "@web/modules/labs/hooks/use-order-columns";
@@ -25,6 +31,7 @@ export function LabOrdersDone(): JSX.Element {
   const openOrder = useOpenOrder();
 
   const { from, to, setRange } = useDateRangeParam();
+  const status = LAB_ORDER_DONE_STATUSES.find((value) => value === list.status);
 
   const orders = useLabOrders({
     view: "done",
@@ -32,6 +39,7 @@ export function LabOrdersDone(): JSX.Element {
     limit: perPage,
     ...(list.debouncedSearch !== "" && { search: list.debouncedSearch }),
     ...(list.labId !== "" && { labId: list.labId }),
+    ...(status && { status }),
     ...(!list.isDefaultSort && { sort: list.sort.sort, dir: list.sort.dir }),
     ...(startOfDayIso(from) && { finishedFrom: startOfDayIso(from) as string }),
     ...(endOfNextDayIso(to) && { finishedTo: endOfNextDayIso(to) as string }),
@@ -51,6 +59,7 @@ export function LabOrdersDone(): JSX.Element {
         <OrderSearch list={list} />
         <div className="grid w-full gap-3 xs:grid-cols-2 sm:contents">
           <LabFilter list={list} className="min-w-0 sm:w-48" />
+          <DoneStatusFilter list={list} className="min-w-0 sm:w-40" />
           <SortSelect view="done" list={list} className="min-w-0 sm:order-1 sm:w-60" />
         </div>
         <DateRangePicker

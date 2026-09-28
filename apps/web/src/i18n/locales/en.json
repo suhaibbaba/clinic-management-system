@@ -1123,7 +1123,9 @@
       "emptyOpen": "No work in progress",
       "emptyOpenHint": "An order stays here from the moment it is placed until it is fitted",
       "emptyFiltered": "Nothing matches these filters",
-      "emptyDone": "Nothing finished in this period"
+      "emptyDone": "Nothing finished in this period",
+      "filterStatus": "Status",
+      "allStatuses": "All statuses"
     },
     "order": {
       "newTitle": "New lab order",
@@ -1133,6 +1135,7 @@
       "created": "Order created",
       "updated": "Order saved",
       "moved": "Order updated",
+      "cancelled": "Order cancelled and moved to finished orders",
       "returned": "Sent back to the lab",
       "patient": "Patient",
       "lab": "Lab",
@@ -1169,7 +1172,14 @@
         "received": "Received",
         "fitted": "Fitted"
       },
-      "confirmRemoveAttachment": "Remove “{{name}}” from the order?"
+      "confirmRemoveAttachment": "Remove “{{name}}” from the order?",
+      "confirmCancel": {
+        "title": "Cancel the “{{work}}” order for {{patient}}?",
+        "moves": "The order moves to finished orders.",
+        "final": "A cancelled order cannot be reopened.",
+        "balance": "Its cost no longer counts toward the lab balance."
+      },
+      "viewCancelled": "View order"
     },
     "section": {
       "label": "Lab views",
