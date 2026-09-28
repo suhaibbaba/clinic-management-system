@@ -252,10 +252,12 @@ const labStatusSchema = z
     status: z.enum(SETTABLE_LAB_STATUSES),
     reason: z.string().trim().min(3).max(500).optional(),
   })
-  .refine((args) => args.status !== LAB_ORDER_STATUS.RETURNED || args.reason !== undefined, {
-    path: ["reason"],
-    message: "A return must say why",
-  });
+  .refine(
+    (args) =>
+      (args.status !== LAB_ORDER_STATUS.RETURNED && args.status !== LAB_ORDER_STATUS.CANCELLED) ||
+      args.reason !== undefined,
+    { path: ["reason"], message: "A return or a cancellation must say why" },
+  );
 
 const MOVEMENT_CAPABILITY: Record<MovementType, string> = {
   [MOVEMENT_TYPE.PURCHASE]: "inventory.purchase",

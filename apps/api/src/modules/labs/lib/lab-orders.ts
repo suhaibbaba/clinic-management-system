@@ -83,6 +83,7 @@ export function toLabOrder(row: OrderRow): LabOrder {
     fittedAt: row.fittedAt?.toISOString() ?? null,
     returnReason: row.returnReason,
     costKept: row.costKept,
+    cancelReason: row.cancelReason,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

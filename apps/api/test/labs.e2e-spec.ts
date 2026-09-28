@@ -216,17 +216,23 @@ describe("Labs (e2e)", () => {
 
     it("cancels before the work is in hand, and returned work, but not after receiving", async () => {
       const draft = await createOrder();
-      expect((await move(draft.id, "cancel")).statusCode).toBe(200);
+      expect(
+        (await move(draft.id, "cancel", USER_ROLE.ADMIN, { reason: "طلب المريض" })).statusCode,
+      ).toBe(200);
 
       const sent = await createOrder();
       await move(sent.id, "send");
-      expect((await move(sent.id, "cancel")).statusCode).toBe(200);
+      expect(
+        (await move(sent.id, "cancel", USER_ROLE.ADMIN, { reason: "طلب المريض" })).statusCode,
+      ).toBe(200);
 
       const received = await createOrder();
       await move(received.id, "send");
       await move(received.id, "ready");
       await move(received.id, "receive");
-      expect((await move(received.id, "cancel")).statusCode).toBe(400);
+      expect(
+        (await move(received.id, "cancel", USER_ROLE.ADMIN, { reason: "طلب المريض" })).statusCode,
+      ).toBe(400);
     });
   });
 
@@ -328,7 +334,7 @@ describe("Labs (e2e)", () => {
       await move(order.id, "send");
       expect(Number((await balance()).owed)).toBe(Number(before.owed) + 120);
 
-      await move(order.id, "cancel");
+      await move(order.id, "cancel", USER_ROLE.ADMIN, { reason: "طلب المريض" });
       expect((await balance()).owed).toBe(before.owed);
     });
 
@@ -338,7 +344,10 @@ describe("Labs (e2e)", () => {
       const order = await createOrder({ workTypeId: bridgeId });
       await move(order.id, "send");
 
-      const cancelled = await move(order.id, "cancel", USER_ROLE.ADMIN, { keepCost: true });
+      const cancelled = await move(order.id, "cancel", USER_ROLE.ADMIN, {
+        reason: "طلب المريض",
+        keepCost: true,
+      });
 
       expect((cancelled.json() as LabOrderRow).costKept).toBe(true);
       expect(Number((await balance()).owed)).toBe(Number(before.owed) + 120);
@@ -358,19 +367,35 @@ describe("Labs (e2e)", () => {
       };
 
       const dropped = await returned();
-      expect((await move(dropped.id, "cancel")).statusCode).toBe(200);
+      expect(
+        (await move(dropped.id, "cancel", USER_ROLE.ADMIN, { reason: "طلب المريض" })).statusCode,
+      ).toBe(200);
       expect((await balance()).owed).toBe(before.owed);
 
       const kept = await returned();
-      await move(kept.id, "cancel", USER_ROLE.ADMIN, { keepCost: true });
+      await move(kept.id, "cancel", USER_ROLE.ADMIN, { reason: "طلب المريض", keepCost: true });
       expect(Number((await balance()).owed)).toBe(Number(before.owed) + 120);
+    });
+
+    it("will not cancel without a reason, and keeps the one given", async () => {
+      const order = await createOrder();
+
+      expect((await move(order.id, "cancel", USER_ROLE.ADMIN, { reason: "" })).statusCode).toBe(
+        400,
+      );
+
+      const cancelled = await move(order.id, "cancel", USER_ROLE.ADMIN, { reason: "طلب المريض" });
+      expect((cancelled.json() as LabOrderRow).cancelReason).toBe("طلب المريض");
     });
 
     it("never charges a draft, whatever the cancel asks", async () => {
       const before = await balance();
 
       const draft = await createOrder({ workTypeId: bridgeId });
-      const cancelled = await move(draft.id, "cancel", USER_ROLE.ADMIN, { keepCost: true });
+      const cancelled = await move(draft.id, "cancel", USER_ROLE.ADMIN, {
+        reason: "طلب المريض",
+        keepCost: true,
+      });
 
       expect((cancelled.json() as LabOrderRow).costKept).toBe(false);
       expect((await balance()).owed).toBe(before.owed);

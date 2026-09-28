@@ -1178,12 +1178,15 @@
         "moves": "The order moves to finished orders.",
         "final": "A cancelled order cannot be reopened.",
         "balance": "Its cost comes off the lab's balance, unless you keep it.",
-        "keepCost": "Keep the cost on the lab's balance"
+        "keepCost": "Keep the cost on the lab's balance",
+        "reason": "Why is it cancelled?",
+        "reasonPlaceholder": "e.g. the patient decided not to go ahead"
       },
       "viewCancelled": "View order",
       "returnExpected": "New expected date",
       "costKept": "Cost kept despite the cancellation",
-      "labBalance": "Lab balance"
+      "labBalance": "Lab balance",
+      "cancelReason": "Cancellation reason"
     },
     "section": {
       "label": "Lab views",

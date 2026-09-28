@@ -335,6 +335,10 @@ export class LabOrdersService implements OnModuleInit {
       throw new BadRequestException("A return must state a reason");
     }
 
+    if (next === LAB_ORDER_STATUS.CANCELLED && !reason?.trim()) {
+      throw new BadRequestException("A cancellation must state a reason");
+    }
+
     if (expectedAt !== undefined) {
       await this.requireNotPast(actor.clinicId, expectedAt);
     }
@@ -357,6 +361,7 @@ export class LabOrdersService implements OnModuleInit {
         }),
         ...(next === LAB_ORDER_STATUS.CANCELLED && {
           costKept: keepCost && countsTowardLabBalance(existing.status),
+          cancelReason: reason?.trim() ?? null,
         }),
         updatedAt: now,
         updatedBy: actor.id,

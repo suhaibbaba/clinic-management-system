@@ -101,6 +101,7 @@ export const labOrderSchema = z.object({
   fittedAt: z.iso.datetime().nullable(),
   returnReason: z.string().nullable(),
   costKept: z.boolean(),
+  cancelReason: z.string().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
@@ -175,6 +176,7 @@ export const returnLabOrderSchema = z.object({
 export type ReturnLabOrderInput = z.infer<typeof returnLabOrderSchema>;
 
 export const cancelLabOrderSchema = z.object({
+  reason: z.string().trim().min(3).max(500),
   keepCost: z.boolean().optional(),
 });
 

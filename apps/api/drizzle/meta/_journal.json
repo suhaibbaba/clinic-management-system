@@ -316,6 +316,13 @@
       "when": 1790597892917,
       "tag": "0044_lab_order_cost_kept",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1790598335024,
+      "tag": "0045_lab_order_cancel_reason",
+      "breakpoints": true
     }
   ]
 }

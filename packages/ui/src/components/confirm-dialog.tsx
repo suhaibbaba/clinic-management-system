@@ -4,6 +4,7 @@ import { Button } from "@ui/components/button";
 import { Icon } from "@ui/components/icon";
 import { Modal } from "@ui/components/modal";
 import { Switch } from "@ui/components/switch";
+import { Textarea } from "@ui/components/textarea";
 import { cn } from "@ui/lib/cn";
 import { testid, type TestIdProps } from "@ui/lib/testid";
 
@@ -16,8 +17,16 @@ export interface ConfirmDialogProps extends TestIdProps {
   readonly confirmLabel?: string | undefined;
   readonly tone?: "danger" | "primary" | undefined;
   readonly toggle?: { readonly label: string } | undefined;
-  readonly onConfirm: (choice: { readonly toggled: boolean }) => Promise<void>;
+  readonly note?: { readonly label: string; readonly placeholder?: string } | undefined;
+  readonly onConfirm: (choice: {
+    readonly toggled: boolean;
+    readonly note: string;
+  }) => Promise<void>;
 }
+
+const NOTE_MIN = 3;
+
+const NOTE_MAX = 500;
 
 export function ConfirmDialog({
   open,
@@ -28,30 +37,36 @@ export function ConfirmDialog({
   confirmLabel,
   tone = "danger",
   toggle,
+  note,
   onConfirm,
   "data-testid": testId = "confirm-dialog",
 }: ConfirmDialogProps): JSX.Element {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [toggled, setToggled] = useState(false);
+  const [written, setWritten] = useState("");
+  const noteId = useId();
+  const consequencesId = useId();
+  const ready = note === undefined || written.trim().length >= NOTE_MIN;
 
   useEffect(() => {
     if (open) {
       setToggled(false);
+      setWritten("");
     }
   }, [open]);
-  const consequencesId = useId();
+
   const hasConsequences = consequences !== undefined && consequences.length > 0;
 
   const confirm = async (): Promise<void> => {
-    if (busy) {
+    if (busy || !ready) {
       return;
     }
 
     setBusy(true);
 
     try {
-      await onConfirm({ toggled });
+      await onConfirm({ toggled, note: written.trim() });
       onOpenChange(false);
     } catch {
     } finally {
@@ -85,6 +100,7 @@ export function ConfirmDialog({
             icon={<Icon name={tone === "danger" ? "trash" : "check"} />}
             {...testid(testId, "confirm")}
             isLoading={busy}
+            disabled={!ready}
             aria-keyshortcuts="Enter"
             onClick={() => void confirm()}
           >
@@ -114,6 +130,24 @@ export function ConfirmDialog({
             ))}
           </ul>
         )}
+        {note !== undefined && (
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor={noteId} className="text-label font-medium text-ink">
+              {t(note.label)}
+            </label>
+            <Textarea
+              id={noteId}
+              {...testid(testId, "note")}
+              rows={3}
+              required
+              maxLength={NOTE_MAX}
+              disabled={busy}
+              {...(note.placeholder !== undefined && { placeholder: t(note.placeholder) })}
+              value={written}
+              onChange={(event) => setWritten(event.target.value)}
+            />
+          </div>
+        )}
         {toggle !== undefined && (
           <Switch
             {...testid(testId, "toggle")}
@@ -130,7 +164,14 @@ export function ConfirmDialog({
 
 export type ConfirmRequest = Pick<
   ConfirmDialogProps,
-  "title" | "titleValues" | "consequences" | "confirmLabel" | "tone" | "toggle" | "onConfirm"
+  | "title"
+  | "titleValues"
+  | "consequences"
+  | "confirmLabel"
+  | "tone"
+  | "toggle"
+  | "note"
+  | "onConfirm"
 >;
 
 export function useConfirm(testId?: string): {
@@ -153,6 +194,7 @@ export function useConfirm(testId?: string): {
         confirmLabel={request?.confirmLabel}
         tone={request?.tone}
         toggle={request?.toggle}
+        note={request?.note}
         onConfirm={request?.onConfirm ?? (async () => undefined)}
       />
     ),

@@ -168,8 +168,18 @@ export type LabOrderStep = "send" | "ready" | "receive" | "fit" | "cancel";
 
 export function useLabOrderStep() {
   return useLabMutation(
-    ({ id, step, keepCost }: { id: string; step: LabOrderStep; keepCost?: boolean }) =>
-      step === "cancel" ? labOrdersApi.cancel(id, { keepCost }) : labOrdersApi[step](id),
+    ({
+      id,
+      step,
+      reason = "",
+      keepCost,
+    }: {
+      id: string;
+      step: LabOrderStep;
+      reason?: string;
+      keepCost?: boolean;
+    }) =>
+      step === "cancel" ? labOrdersApi.cancel(id, { reason, keepCost }) : labOrdersApi[step](id),
   );
 }
 
