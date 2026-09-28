@@ -19,11 +19,13 @@ import {
   aiProposals,
   appointments,
   auditLog,
+  charges,
   clinics,
   visits,
 } from "@api/database/schema";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { createPatient, seedClinicFixtures, nameParts } from "@test/helpers/patient-fixtures";
+import { atClinic } from "@test/helpers/clinic-time";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 function monday(weeksAhead: number): string {
@@ -66,7 +68,7 @@ describe("Assistant actions (e2e)", () => {
       payload: {
         patientId,
         doctorId,
-        startsAt: new Date(`${date}T${time}:00+03:00`).toISOString(),
+        startsAt: atClinic(date, time).toISOString(),
         durationMinutes: 30,
       },
     });
@@ -156,6 +158,7 @@ describe("Assistant actions (e2e)", () => {
           and(
             eq(aiAuditLog.clinicId, clinic.id),
             eq(aiAuditLog.toolName, AI_TOOL.SET_APPOINTMENT_STATUS),
+            eq(aiAuditLog.entityId, appointmentId),
           ),
         );
 
@@ -308,6 +311,8 @@ describe("Assistant actions (e2e)", () => {
 
   describe("a payment", () => {
     it("needs the exact phrase at or above the clinic's threshold", async () => {
+      await context.db.insert(charges).values({ clinicId: clinic.id, patientId, amount: "600.00" });
+
       const { result } = await tool(USER_ROLE.RECEPTIONIST, AI_TOOL.RECORD_PAYMENT, {
         patient_id: patientId,
         amount: 600,

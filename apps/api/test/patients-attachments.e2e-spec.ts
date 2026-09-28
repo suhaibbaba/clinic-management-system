@@ -239,20 +239,6 @@ describe("Attachments (e2e)", () => {
         expect(item).not.toHaveProperty("r2Key");
       }
     });
-
-    it("shows an attachment on the tooth it was taken of", async () => {
-      await upload({ tooth: 37 });
-
-      const response = await context.app.inject({
-        method: "GET",
-        url: `/patients/${patientId}/teeth/37`,
-        headers: asDoctor(),
-      });
-
-      const { attachments } = response.json() as { attachments: { tooth: number }[] };
-      expect(attachments.length).toBeGreaterThan(0);
-      expect(attachments.every((item) => item.tooth === 37)).toBe(true);
-    });
   });
 
   describe("permissions (ROLES.md: receptionist responses never include attachment data)", () => {

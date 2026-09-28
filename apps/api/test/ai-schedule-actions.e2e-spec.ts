@@ -24,6 +24,7 @@ import {
   users,
 } from "@api/database/schema";
 import { createPatient, seedClinicFixtures, nameParts } from "@test/helpers/patient-fixtures";
+import { atClinic } from "@test/helpers/clinic-time";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 function monday(weeksAhead: number): string {
@@ -74,7 +75,7 @@ describe("Assistant schedule actions (e2e)", () => {
       payload: {
         patientId,
         doctorId,
-        startsAt: new Date(`${date}T${time}:00+03:00`).toISOString(),
+        startsAt: atClinic(date, time).toISOString(),
         durationMinutes: 30,
       },
     });
@@ -186,7 +187,7 @@ describe("Assistant schedule actions (e2e)", () => {
       const rows = await timeOffRows();
 
       expect(rows).toHaveLength(1);
-      expect(rows[0]?.startsAt.toISOString()).toBe(new Date(`${day}T00:00:00+03:00`).toISOString());
+      expect(rows[0]?.startsAt.toISOString()).toBe(atClinic(day, "00:00").toISOString());
 
       const [entry] = await context.db
         .select()
@@ -316,8 +317,8 @@ describe("Assistant schedule actions (e2e)", () => {
         url: `/doctors/${doctorId}/time-off`,
         headers: auth(tokens[USER_ROLE.ADMIN]),
         payload: {
-          startsAt: new Date(`${day}T${from}:00+03:00`).toISOString(),
-          endsAt: new Date(`${day}T${to}:00+03:00`).toISOString(),
+          startsAt: atClinic(day, from).toISOString(),
+          endsAt: atClinic(day, to).toISOString(),
           reason: "اجتماع",
         },
       });
@@ -334,8 +335,8 @@ describe("Assistant schedule actions (e2e)", () => {
 
       const listed = await tool(USER_ROLE.ADMIN, "doctor_time_off_list", {
         doctorId,
-        from: new Date(`${day}T00:00:00+03:00`).toISOString(),
-        to: new Date(`${day}T23:59:00+03:00`).toISOString(),
+        from: atClinic(day, "00:00").toISOString(),
+        to: atClinic(day, "23:59").toISOString(),
       });
 
       expect(listed.result?.items?.map((item) => item.id)).toEqual([timeOffId]);
@@ -364,7 +365,7 @@ describe("Assistant schedule actions (e2e)", () => {
         .from(doctorTimeOff)
         .where(eq(doctorTimeOff.id, timeOffId));
 
-      expect(row?.endsAt.toISOString()).toBe(new Date(`${day}T12:00:00+03:00`).toISOString());
+      expect(row?.endsAt.toISOString()).toBe(atClinic(day, "12:00").toISOString());
     });
 
     it("removes it behind a card", async () => {
