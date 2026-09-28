@@ -1,5 +1,13 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
-import { FIELD_TEXT, FieldClear, FieldIcon, FieldLock, fieldShell } from "@ui/components/field";
+import {
+  FIELD_TEXT,
+  FIELD_TEXT_OVERLAID,
+  FieldClear,
+  FieldIcon,
+  FieldLock,
+  FieldText,
+  fieldShell,
+} from "@ui/components/field";
 import type { IconName } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
 import { testid, type TestIdProps } from "@ui/lib/testid";
@@ -45,22 +53,25 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         />
       )}
 
-      <input
-        ref={ref}
-        data-part="input-control"
-        {...testid(testId, "control")}
-        aria-invalid={hasError || undefined}
-        className={cn(
-          FIELD_TEXT,
-          "page-rtl:text-right page-ltr:text-left",
-          "[&::-webkit-calendar-picker-indicator]:cursor-pointer",
-          "[&::-webkit-calendar-picker-indicator]:opacity-60",
-          "[&::-webkit-calendar-picker-indicator]:transition-opacity",
-          "[&::-webkit-calendar-picker-indicator]:duration-150",
-          "[&::-webkit-calendar-picker-indicator]:hover:opacity-100",
-        )}
-        {...props}
-      />
+      <FieldText placeholder={props.placeholder} dir={props.dir}>
+        <input
+          ref={ref}
+          data-part="input-control"
+          {...testid(testId, "control")}
+          aria-invalid={hasError || undefined}
+          className={cn(
+            FIELD_TEXT,
+            FIELD_TEXT_OVERLAID,
+            "page-rtl:text-right page-ltr:text-left",
+            "[&::-webkit-calendar-picker-indicator]:cursor-pointer",
+            "[&::-webkit-calendar-picker-indicator]:opacity-60",
+            "[&::-webkit-calendar-picker-indicator]:transition-opacity",
+            "[&::-webkit-calendar-picker-indicator]:duration-150",
+            "[&::-webkit-calendar-picker-indicator]:hover:opacity-100",
+          )}
+          {...props}
+        />
+      </FieldText>
 
       {clearable && clearLabel !== undefined && (
         <FieldClear label={clearLabel} onClear={onClear} {...testid(testId, "clear")} />

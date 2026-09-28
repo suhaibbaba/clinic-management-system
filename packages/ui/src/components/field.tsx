@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import { Icon, type IconName } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
 import { testid, type TestIdProps } from "@ui/lib/testid";
@@ -32,6 +32,38 @@ export const FIELD_TEXT = cn(
   "placeholder:text-ink-subtle",
   "disabled:cursor-not-allowed disabled:text-ink-faint",
 );
+
+export const FIELD_TEXT_OVERLAID = "peer placeholder:text-transparent";
+
+export function FieldText({
+  placeholder,
+  dir,
+  children,
+}: {
+  readonly placeholder?: string | undefined;
+  readonly dir?: string | undefined;
+  readonly children: ReactNode;
+}): JSX.Element {
+  return (
+    <span data-part="field-text" className="relative flex min-w-0 flex-1 self-stretch">
+      {children}
+      {placeholder !== undefined && placeholder !== "" && (
+        <span
+          aria-hidden="true"
+          data-part="field-placeholder"
+          dir={dir}
+          className={cn(
+            "pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 truncate",
+            "page-rtl:text-right page-ltr:text-left text-field text-ink-subtle [unicode-bidi:plaintext]",
+            "peer-placeholder-shown:block",
+          )}
+        >
+          {placeholder}
+        </span>
+      )}
+    </span>
+  );
+}
 
 export interface FieldIconProps extends FieldState, TestIdProps {
   readonly name: IconName;
