@@ -140,8 +140,8 @@ core · patients · billing · appointments · booking · notifications · labs 
 - **A view somebody can reach is a view somebody can link to.** Tabs and filters live in the URL,
   never `useState`. A retired route redirects, it does not disappear.
 - **Navigation is one table.** `shared/lib/navigation.ts` lists sections and roles; the route guards
-  are built from the same sets. An inner page (a patient, a lab, an item) takes its top-bar back
-  arrow from the same file, `backTarget`: one step back in the app, or its parent list when opened
+  are built from the same sets. An inner page (a patient, a lab, an item) takes the back link above its
+  title from the same file, `backTarget`: one step back in the app, or its parent list when opened
   directly — the installed app has no browser Back.
 - The top bar reads search-first, actions-last, in logical properties.
 
