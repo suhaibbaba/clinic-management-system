@@ -9,6 +9,8 @@ export interface ReadView {
   readonly description: string;
   readonly from: string;
   readonly clinical?: boolean;
+  readonly ownCalendar?: boolean;
+  readonly capability?: string;
   readonly softDeleted?: boolean;
   readonly joins?: string;
   readonly columns: readonly ReadColumn[];
@@ -62,6 +64,7 @@ export const READ_VIEWS: readonly ReadView[] = [
     description: "one row per appointment, any status",
     from: "appointments",
     softDeleted: true,
+    ownCalendar: true,
     columns: [
       { name: "id" },
       { name: "patient_id" },
@@ -190,6 +193,7 @@ export const READ_VIEWS: readonly ReadView[] = [
     description: "what the clinic paid labs; a reversal is a negative row with reverses_id",
     from: "lab_payments",
     softDeleted: true,
+    capability: "lab-ledger.listPayments",
     columns: [
       { name: "id" },
       { name: "lab_id" },
@@ -282,6 +286,14 @@ export const CLINICAL_VIEWS = new Set(
   READ_VIEWS.filter((view) => view.clinical).map((view) => view.name),
 );
 
+export const VIEW_CAPABILITIES = new Map(
+  READ_VIEWS.flatMap((view) =>
+    view.capability === undefined ? [] : [[view.name, view.capability] as const],
+  ),
+);
+
+const OWN_DOCTOR = "nullif(current_setting('app.doctor_id', true), '')::uuid";
+
 export function viewCatalogue(): string {
   return READ_VIEWS.map(
     (view) =>
@@ -298,6 +310,7 @@ export function renderReadSchema(): string {
     const where = [
       "t.clinic_id = nullif(current_setting('app.clinic_id', true), '')::uuid",
       ...(view.softDeleted ? ["t.deleted_at IS NULL"] : []),
+      ...(view.ownCalendar ? [`(${OWN_DOCTOR} IS NULL OR t.doctor_id = ${OWN_DOCTOR})`] : []),
     ].join("\n    AND ");
 
     return [
@@ -326,4 +339,10 @@ export function renderReadSchema(): string {
     `GRANT SELECT ON ALL TABLES IN SCHEMA ${READ_SCHEMA} TO ai_reader;`,
     "GRANT ai_reader TO CURRENT_USER;",
   ].join("\n--> statement-breakpoint\n");
+}
+
+export function renderReadSchemaReplacement(): string {
+  return [`DROP SCHEMA IF EXISTS ${READ_SCHEMA} CASCADE;`, renderReadSchema()].join(
+    "\n--> statement-breakpoint\n",
+  );
 }
