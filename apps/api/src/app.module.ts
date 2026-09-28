@@ -37,10 +37,7 @@ import { UsersModule } from "@api/users/users.module";
   imports: [
     AppConfigModule,
     DatabaseModule,
-    // One process today; with two this needs a lock — the log's dedupe makes a double reminder
-    // survivable, not correct.
     ScheduleModule.forRoot(),
-    /** A default ceiling for every route, which the public booking endpoints tighten sharply. */
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     AuthModule,
     AuditModule,
@@ -68,14 +65,11 @@ import { UsersModule } from "@api/users/users.module";
     AiModule,
   ],
   providers: [
-    // Global validation: every DTO is a Zod schema from @clinic/shared wrapped
-    // with `createZodDto`. Validation is never duplicated per controller.
     { provide: APP_PIPE, useClass: ZodValidationPipe },
 
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
 
-    // Inert unless a handler carries @Audit(...).
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
 })

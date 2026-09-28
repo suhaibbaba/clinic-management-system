@@ -30,8 +30,6 @@ function nextMonday(): string {
   return date;
 }
 
-// The page used to dead-end on "no times". This is the way out of it: a request for a phone call
-// that lands in the queue reception already reads, and the actions that close it again.
 describe("Urgent requests (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
@@ -122,7 +120,6 @@ describe("Urgent requests (e2e)", () => {
 
     const capped = await request({ phone });
 
-    // Worded as a closed booking page, so the cap is not a signal either.
     expect(capped.statusCode).toBe(403);
     expect(capped.json()).toMatchObject({ message: "Booking is not available right now" });
   });
@@ -180,8 +177,6 @@ describe("Urgent requests (e2e)", () => {
       expect((await act("decline", { reason: "بعد فوات الأوان" })).statusCode).toBe(400);
     });
 
-    // The form reception opens is prefilled from the entry, so this asserts the entry carries what
-    // it needs to prefill with and comes back scheduled and linked.
     it("schedules it, carrying the patient and the complaint into the appointment", async () => {
       const response = await context.app.inject({
         method: "POST",

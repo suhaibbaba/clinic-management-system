@@ -29,12 +29,9 @@ import { auth, createTestContext, type TestClinic, type TestContext } from "@tes
 
 const TIME_ZONE = "Asia/Damascus";
 
-/** The clinic opens 09:00–17:00, and every booking here is 30 minutes long. */
 const FIRST_SLOT_MINUTE = 9 * 60;
 const SLOTS_PER_DAY = 16;
 
-// Stepping a UTC date forward is wrong for three hours a day: at 22:00 UTC Sunday it is already
-// Monday in Damascus, so the fixture schedule missed and the suite went red every evening.
 function nextMonday(): string {
   let date = localDate(new Date(), TIME_ZONE);
 
@@ -59,8 +56,6 @@ describe("Public booking (e2e)", () => {
   let doctorToken: string;
   let mondays: string[];
 
-  // Every booking needs its own slot: the overlap constraint is real, and reusing 09:00 would test
-  // conflict handling by accident.
   let cursor = 0;
   const freeSlot = (): string => {
     const index = cursor;
@@ -81,7 +76,6 @@ describe("Public booking (e2e)", () => {
 
   const bookingSettings = {
     enabled: true,
-    // Wide enough to cover the four Mondays the slot allocator walks through.
     maxDaysAhead: 45,
     minHoursBefore: 2,
     confirmationMode: BOOKING_CONFIRMATION_MODE.OTP,
@@ -128,8 +122,6 @@ describe("Public booking (e2e)", () => {
   });
 
   beforeEach(() => {
-    // Five bookings a minute is the right limit for the internet and far too
-    // few for a suite; the throttling test is the one that lets it add up.
     context.resetThrottle();
   });
 
@@ -227,7 +219,6 @@ describe("Public booking (e2e)", () => {
       const [doctor] = response.json() as Record<string, unknown>[];
 
       expect(Object.keys(doctor ?? {}).sort()).toEqual(["id", "name", "specialty"]);
-      // How the clinic runs is not public: no schedule, no slot length, no user id.
       expect(doctor).not.toHaveProperty("weeklySchedule");
       expect(doctor).not.toHaveProperty("userId");
     });
@@ -242,7 +233,6 @@ describe("Public booking (e2e)", () => {
       const offered = (before.json() as { slots: Record<string, unknown>[] }).slots;
 
       expect(offered.map((slot) => slot["startsAt"])).toContain(startsAt);
-      // A greyed grid would say "somebody else has an appointment at ten".
       expect(offered.every((slot) => !("available" in slot))).toBe(true);
 
       await book({ startsAt });
@@ -345,7 +335,6 @@ describe("Public booking (e2e)", () => {
         expect((await verify(token, wrong)).statusCode).toBe(401);
       }
 
-      // The right code no longer helps: three guesses is the whole budget.
       expect((await verify(token, code)).statusCode).toBe(401);
 
       const [appointment] = await context.db
@@ -369,8 +358,6 @@ describe("Public booking (e2e)", () => {
       const response = await verify(token, code);
 
       expect(response.statusCode).toBe(401);
-      // "Expired" told apart from "wrong" says a code was once issued for this
-      // booking, which is a fact about somebody else's appointment.
       expect((response.json() as { message: string }).message).toBe("That code is not valid");
     });
 
@@ -478,8 +465,6 @@ describe("Public booking (e2e)", () => {
         );
 
       expect(rows).toHaveLength(1);
-      // A stranger typing a name against someone else's number must not rename
-      // that patient.
       expect(rows[0]?.fullName).toBe("مريض قديم");
     });
 
@@ -540,13 +525,9 @@ describe("Public booking (e2e)", () => {
       const [, payload = "", signature = ""] = mine.split(".");
 
       const rejected = [
-        // Another booking's id under this booking's signature.
         `v1.${Buffer.from(appointmentIdOf(theirs)).toString("base64url")}.${signature}`,
-        // One character of the signature changed.
         `v1.${payload}.${signature.slice(0, -1)}${signature.at(-1) === "a" ? "b" : "a"}`,
-        // Another booking's signature against this booking's payload.
         `v1.${payload}.${theirs.split(".")[2]}`,
-        // Nonsense of roughly the right shape.
         "v1.aaaaaaaaaaaa.bbbbbbbbbbbb",
       ];
 
@@ -615,8 +596,6 @@ describe("Public booking (e2e)", () => {
       expect(again.statusCode).toBe(400);
       expect(reschedule.statusCode).toBe(400);
 
-      // Still readable — the patient may want to see what happened — but the
-      // link no longer changes anything.
       const view = await context.app.inject({
         method: "GET",
         url: `/public/booking/manage/${token}`,
@@ -675,8 +654,6 @@ describe("Public booking (e2e)", () => {
         ).statusCode,
       ).toBe(200);
 
-      // Chasing unconfirmed bookings is front-desk work; a doctor's own
-      // calendar already shows the ones that concern them.
       expect(
         (
           await context.app.inject({
@@ -701,8 +678,6 @@ describe("Public booking (e2e)", () => {
       expect(response.statusCode).toBe(200);
       expect((response.json() as { status: string }).status).toBe(APPOINTMENT_STATUS.CONFIRMED);
 
-      // The patient is not in the building: a confirmation nobody sends is a
-      // patient who does not know they have an appointment.
       const [sent] = await context.db
         .select({ vars: notificationsLog.vars })
         .from(notificationsLog)
@@ -714,7 +689,6 @@ describe("Public booking (e2e)", () => {
         );
 
       expect(sent).toBeDefined();
-      // And with a working manage link, exactly as the OTP path would have.
       expect(sent?.vars["link"]).toContain("/booking/manage/v1.");
     });
 
@@ -787,8 +761,6 @@ describe("Public booking (e2e)", () => {
     it("cuts off a burst of bookings from one address", async () => {
       const statuses: number[] = [];
 
-      // Fresh phone numbers each time, so it is the address limit that bites
-      // and not the per-phone one.
       for (let index = 0; index < 7; index += 1) {
         statuses.push((await book({ phone: uniquePhone() })).statusCode);
       }

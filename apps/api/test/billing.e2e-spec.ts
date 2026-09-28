@@ -126,8 +126,6 @@ describe("Billing", () => {
       expect(reversal.statusCode).toBe(201);
       expect((reversal.json() as Payment).amount).toBe("-30.00");
 
-      // Back to where it was: the reversal is an ordinary negative row in the
-      // same sum, and the original payment is still there to be read.
       const after = await balanceOf(patientId);
       expect(after.balance).toBe("100.00");
       expect(after.charged).toBe("150.00");
@@ -218,8 +216,6 @@ describe("Billing", () => {
         .from(charges)
         .where(eq(charges.performedProcedureId, procedure.id));
 
-      // Three rows, not one edited row: the original untouched, its reversal,
-      // and the corrected charge.
       expect(rows).toHaveLength(3);
       expect(rows.find((row) => row.id === original[0]?.id)?.amount).toBe("100.00");
       expect(rows.filter((row) => row.reversesId !== null).map((row) => row.amount)).toEqual([
@@ -241,7 +237,6 @@ describe("Billing", () => {
       expect(removal.statusCode).toBe(204);
       expect((await balanceOf(patientId)).balance).toBe("0.00");
 
-      // Reversed, not deleted: both rows are still live and readable.
       const rows = await context.db
         .select()
         .from(charges)
@@ -257,8 +252,6 @@ describe("Billing", () => {
         .from(charges)
         .where(eq(charges.patientId, patientId));
 
-      // The mark is rejected after the row would have been written, which is exactly the window a
-      // charge outside the transaction would leak through.
       const response = await context.app.inject({
         method: "POST",
         url: "/performed-procedures",
@@ -356,7 +349,6 @@ describe("Billing", () => {
       expect(deleted?.runningBalance).toBe("100.00");
       expect(asAdmin.closingBalance).toBe("100.00");
 
-      // ROLES.md rule 4: a deleted row is the admin's to see, and absent for anyone else.
       const asReceptionist = await statementFor(receptionistToken);
       expect(asReceptionist.entries.map((entry) => entry.id)).not.toContain(payment.id);
       expect(asReceptionist.entries.every((entry) => entry.deletedAt === undefined)).toBe(true);
@@ -423,7 +415,6 @@ describe("Billing", () => {
       expect(list.statusCode).toBe(200);
       expect((list.json() as Paginated<Payment>).total).toBe(1);
 
-      // ROLES.md: "receptionist updating or deleting a payment → 403".
       const reversal = await context.app.inject({
         method: "POST",
         url: `/payments/${payment.id}/reverse`,
@@ -480,7 +471,6 @@ describe("Billing", () => {
 
       expect(statement.entries.map((entry) => entry.runningBalance)).toEqual(["100.00", "60.00"]);
       expect(statement.closingBalance).toBe("60.00");
-      // The catalog name, and nothing clinical alongside it.
       expect(statement.entries[0]?.description).toBe("Composite filling");
     });
 
@@ -508,7 +498,6 @@ describe("Billing", () => {
         .map(([, value]) => String(value))
         .join(" ");
 
-      // The app's own face, embedded, with the fallback that carries the shekel sign.
       expect(names).toContain("Tajawal");
       expect(names).toContain("Alef");
       expect(names).toContain("CIDFontType2");
@@ -539,8 +528,6 @@ describe("Billing", () => {
       await recordProcedure(paid, { price: "80.00" });
       await pay(paid, "80.00");
 
-      // `afterDays` of one day means everything charged today counts, since the
-      // owing patient has never paid at all.
       const response = await context.app.inject({
         method: "GET",
         url: "/billing/overdue?afterDays=1&limit=100",
@@ -558,8 +545,6 @@ describe("Billing", () => {
     });
   });
 
-  // A server-side filter because a balance is an aggregate: filtering the page in hand would answer
-  // "which of these twenty owe" and page wrongly.
   describe("patients?hasBalance", () => {
     it("returns only the patients who owe, and pages over those", async () => {
       const owing = await newPatient();
@@ -582,8 +567,6 @@ describe("Billing", () => {
 
       expect(ids).toContain(owing);
       expect(ids).not.toContain(settled);
-      // The total is the count of debtors, not of patients — which is the
-      // whole reason the filter is not applied after the page is cut.
       expect(page.total).toBe(page.items.length);
       expect(page.items.every((item) => Number(item.balance ?? "0") > 0)).toBe(true);
     });
@@ -605,8 +588,6 @@ describe("Billing", () => {
         }),
       ]);
 
-      // Honouring it would leak through the row count exactly what the
-      // stripped `balance` field withholds (ROLES.md field rules).
       expect((filtered.json() as Paginated<unknown>).total).toBe(
         (unfiltered.json() as Paginated<unknown>).total,
       );
@@ -642,7 +623,6 @@ describe("Billing", () => {
 
       expect(descending.indexOf(most)).toBeLessThan(descending.indexOf(least));
       expect(ascending.indexOf(least)).toBeLessThan(ascending.indexOf(most));
-      // The order alone would tell a technician who owes the most.
       expect(await order("sort=balance", technicianToken)).toEqual(
         await order("", technicianToken),
       );

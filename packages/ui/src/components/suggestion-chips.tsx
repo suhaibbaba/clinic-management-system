@@ -4,7 +4,6 @@ import { cn } from "@ui/lib/cn";
 import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export interface Suggestion {
-  /** Stable across locales, so a test and a `data-testid` do not move with the wording. */
   readonly key: string;
   readonly label: string;
 }
@@ -16,7 +15,6 @@ export interface SuggestionChipsProps extends TestIdProps {
   readonly className?: string | undefined;
 }
 
-/** The openers on an empty conversation: one tap instead of a blank field and no idea what to ask. */
 export function SuggestionChips({
   suggestions,
   onPick,

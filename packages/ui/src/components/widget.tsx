@@ -9,8 +9,6 @@ export interface WidgetProps extends TestIdProps {
   readonly children: ReactNode;
 }
 
-// The reference's `.widget`: a panel's smaller sibling for the side column — the same edge and
-// shadow, tighter padding, and a heading that carries its own single action.
 export function Widget({
   title,
   action,

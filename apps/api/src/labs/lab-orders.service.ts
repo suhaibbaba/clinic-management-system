@@ -207,7 +207,6 @@ export class LabOrdersService implements OnModuleInit {
   }
 
   async create(actor: AuthenticatedUser, input: CreateLabOrderInput): Promise<LabOrderRow> {
-    // Only codes on this clinic's own list — the schema cannot know them.
     await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.LAB_MATERIAL, input.material);
     await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.LAB_SHADE, input.shade);
 
@@ -232,8 +231,6 @@ export class LabOrdersService implements OnModuleInit {
         ? await this.teethOfProcedure(actor.clinicId, input.performedProcedureId)
         : []);
 
-    // A doctor may not set the price (ROLES.md: "not financial fields"), so
-    // theirs is the list price whatever they sent.
     const price =
       actor.role === USER_ROLE.DOCTOR
         ? (workType?.defaultPrice ?? "0.00")
@@ -345,8 +342,6 @@ export class LabOrdersService implements OnModuleInit {
       .update(labOrders)
       .set({
         status: next,
-        // Re-sending a returned order overwrites `sent_at`, which is right: it is out again, and
-        // the wait that matters is the one running now.
         ...(next === LAB_ORDER_STATUS.SENT && { sentAt: now, receivedAt: null, fittedAt: null }),
         ...(next === LAB_ORDER_STATUS.RECEIVED && { receivedAt: now }),
         ...(next === LAB_ORDER_STATUS.FITTED && { fittedAt: now }),
@@ -412,7 +407,6 @@ export class LabOrdersService implements OnModuleInit {
       .$dynamic();
   }
 
-  /** ROLES.md: a doctor creates and edits their **own** orders. */
   private async requireOwnOrder(actor: AuthenticatedUser, order: OrderRow): Promise<void> {
     await this.access.requireOwnCalendar(actor, order.doctorId);
   }
@@ -457,10 +451,8 @@ export class LabOrdersService implements OnModuleInit {
 
 const OPEN_STATUSES = LAB_ORDER_STAGES.flatMap((stage) => [...LAB_ORDER_STAGE_STATUSES[stage]]);
 
-/** A cancelled order has no date of its own; its last change is when it was called off. */
 const finishedAt = sql`coalesce(${labOrders.fittedAt}, ${labOrders.updatedAt})`;
 
-/** Work back in the clinic waits on a chair, not on the lab: its promised date no longer ranks it. */
 const dueAt = sql`case when ${labOrders.status} = ${LAB_ORDER_STATUS.RECEIVED} then null else ${labOrders.expectedAt} end`;
 
 const SORT_KEYS: Record<
@@ -474,7 +466,6 @@ const SORT_KEYS: Record<
   lab: { key: labs.name, dir: "asc" },
 };
 
-// An undated order sorts last either way: "no date" is neither soon nor late.
 function orderFor(query: ListLabOrdersQuery): SQL[] {
   const sort =
     query.sort ?? (query.view === "open" ? "due" : query.view === "done" ? "finished" : null);
@@ -493,7 +484,6 @@ function orderFor(query: ListLabOrdersQuery): SQL[] {
   ];
 }
 
-/** Past the date the lab promised, and still out at the lab. */
 function overdueFilter(): SQL {
   return and(
     isNotNull(labOrders.expectedAt),

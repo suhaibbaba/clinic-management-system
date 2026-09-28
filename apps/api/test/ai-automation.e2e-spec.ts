@@ -224,8 +224,6 @@ describe("Daily outbound automation (e2e)", () => {
       expect(response.json()).toMatchObject({ status: AI_PROPOSAL_STATUS.SENT, sentCount: 1 });
     });
 
-    // The unpaid-balances proposal quotes every debt: a role kept off the billing list is kept
-    // off it here too, and nobody reads an overdue-labs proposal without the labs list.
     it("shows an automation proposal only to roles that may read its list", async () => {
       const drafted = await proposalsOf(clinic.id);
       const unpaid = drafted.find((row) => row.target === AI_OUTBOUND_TARGET.UNPAID_INVOICES);
@@ -288,7 +286,6 @@ describe("Daily outbound automation (e2e)", () => {
       expect(runs).toHaveLength(0);
     });
 
-    // A rule over its cap fails with the code and sends nobody; the rules beside it still run.
     it("fails one rule over its cap without stopping the others", async () => {
       await settings({
         rules: {

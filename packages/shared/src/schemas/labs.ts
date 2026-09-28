@@ -17,9 +17,6 @@ import { paginationQuerySchema, uuidSchema, optionalPhoneSchema } from "@shared/
 import { moneySchema, signedMoneySchema, wholeMoneySchema } from "@shared/schemas/money";
 import { lookupCodeSchema } from "@shared/schemas/lookups";
 
-// Two ledgers, never confused: the patient owes the clinic (`charges`/`payments`), the clinic owes
-// the lab (`lab_orders`/`lab_payments`), and neither cancels the other.
-
 export const labSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
@@ -35,7 +32,6 @@ export const labSchema = z.object({
 export type Lab = z.infer<typeof labSchema>;
 
 export const labSummarySchema = labSchema.extend({
-  /** Owed minus paid, computed — never stored (CLAUDE.md). */
   balance: signedMoneySchema,
   openOrders: z.number().int().min(0),
 });
@@ -58,12 +54,10 @@ export type UpdateLabInput = z.infer<typeof updateLabSchema>;
 
 export const listLabsQuerySchema = paginationQuerySchema.extend({
   search: z.string().trim().max(160).optional(),
-  /** Inactive labs stay in the directory but out of the pickers. */
   includeInactive: z.coerce.boolean().optional(),
 });
 export type ListLabsQuery = z.infer<typeof listLabsQuerySchema>;
 
-/** Per lab, not global: two labs charge differently for the same crown. */
 export const labWorkTypeSchema = z.object({
   id: uuidSchema,
   labId: uuidSchema,
@@ -83,7 +77,6 @@ export type CreateLabWorkTypeInput = z.infer<typeof createLabWorkTypeSchema>;
 export const updateLabWorkTypeSchema = createLabWorkTypeSchema.partial();
 export type UpdateLabWorkTypeInput = z.infer<typeof updateLabWorkTypeSchema>;
 
-/** FDI numbers the work is for. A bridge is several; a denture may be none. */
 export const labTeethSchema = z
   .array(z.number().int().refine(isFdiTooth, "Not a valid FDI tooth number"))
   .max(32);
@@ -96,13 +89,10 @@ export const labOrderSchema = z.object({
   doctorId: uuidSchema,
   performedProcedureId: uuidSchema.nullable(),
   workTypeId: uuidSchema.nullable(),
-  /** Both are codes on the clinic's own `lab_material` / `lab_shade` lists. */
   material: lookupCodeSchema.nullable(),
   shade: lookupCodeSchema.nullable(),
   teeth: labTeethSchema,
   instructions: z.string().nullable(),
-  // A snapshot taken when the order was placed — the lab's price list moves, and what the clinic
-  // already owes must not.
   price: moneySchema,
   status: z.enum(LAB_ORDER_STATUSES),
   sentAt: z.iso.datetime().nullable(),
@@ -115,7 +105,6 @@ export const labOrderSchema = z.object({
 });
 export type LabOrder = z.infer<typeof labOrderSchema>;
 
-/** Denormalised on read, and carries no clinical field: a technician reads this list (ROLES.md). */
 export const labOrderRowSchema = labOrderSchema.extend({
   patientName: z.string(),
   patientFileNumber: z.string(),
@@ -135,7 +124,6 @@ const labOrderWritableFields = {
   shade: lookupCodeSchema.nullish(),
   teeth: labTeethSchema.optional(),
   instructions: z.string().trim().max(2000).nullish(),
-  /** Omitted takes the work type's list price. */
   price: wholeMoneySchema.optional(),
   expectedAt: isoDateSchema.nullish(),
 };
@@ -145,8 +133,6 @@ export const createLabOrderSchema = z
   .refine(hasExactlyOnePatient, PATIENT_REF_MESSAGE);
 export type CreateLabOrderInput = z.infer<typeof createLabOrderSchema>;
 
-// `price` is in here but ROLES.md keeps a doctor out of it, so the service — not this schema — is
-// what refuses it. The patient and the doctor are not: an order is re-raised, never reassigned.
 export const updateLabOrderSchema = z
   .object(labOrderWritableFields)
   .omit({ doctorId: true })
@@ -160,12 +146,10 @@ export const listLabOrdersQuerySchema = paginationQuerySchema.extend({
   doctorId: uuidSchema.optional(),
   overdue: z.coerce.boolean().optional(),
   search: z.string().trim().max(160).optional(),
-  /** `open` is soonest due first across every stage; `done` is newest finished first. */
   view: z.enum(LAB_ORDER_VIEWS).optional(),
   stage: z.enum(LAB_ORDER_STAGES).optional(),
   sort: z.enum(LAB_ORDER_SORTS).optional(),
   dir: z.enum(["asc", "desc"]).optional(),
-  /** When a done order was fitted or cancelled. */
   finishedFrom: z.iso.datetime().optional(),
   finishedTo: z.iso.datetime().optional(),
 });
@@ -177,14 +161,12 @@ export const labOrderStageCountsQuerySchema = listLabOrdersQuerySchema.pick({
 });
 export type LabOrderStageCountsQuery = z.infer<typeof labOrderStageCountsQuerySchema>;
 
-/** Open orders per stage, and how many of them are overdue, under the list's lab and search. */
 export const labOrderStageCountsSchema = z.object({
   stages: z.record(z.enum(LAB_ORDER_STAGES), z.number().int().min(0)),
   overdue: z.number().int().min(0),
 });
 export type LabOrderStageCounts = z.infer<typeof labOrderStageCountsSchema>;
 
-/** A return says why. The reason travels to the lab and stays on the record. */
 export const returnLabOrderSchema = z.object({
   reason: z.string().trim().min(3).max(500),
 });
@@ -197,7 +179,6 @@ export const labOrderAttachmentSchema = z.object({
   mime: z.string(),
   sizeBytes: z.number().int().min(0),
   createdAt: z.iso.datetime(),
-  /** Short-lived, minted on read. Never stored, never public. */
   url: z.string().nullable(),
 });
 export type LabOrderAttachment = z.infer<typeof labOrderAttachmentSchema>;
@@ -238,13 +219,11 @@ export const createLabPaymentSchema = z.object({
 });
 export type CreateLabPaymentInput = z.infer<typeof createLabPaymentSchema>;
 
-/** Admin-only, and it writes the opposite entry rather than touching the original. */
 export const reverseLabPaymentSchema = z.object({
   reason: z.string().trim().min(3).max(500),
 });
 export type ReverseLabPaymentInput = z.infer<typeof reverseLabPaymentSchema>;
 
-/** Nothing here is stored: `owed` follows `countsTowardLabBalance`, which is where that rule lives. */
 export const labBalanceSchema = z.object({
   labId: uuidSchema,
   owed: signedMoneySchema,
@@ -266,7 +245,6 @@ export const labStatementEntrySchema = z.object({
   kind: z.enum([LAB_STATEMENT_ENTRY_KIND.ORDER, LAB_STATEMENT_ENTRY_KIND.PAYMENT]),
   occurredAt: z.iso.datetime(),
   description: z.string(),
-  /** Signed: an order adds, a payment subtracts. */
   amount: signedMoneySchema,
   runningBalance: signedMoneySchema,
   isReversal: z.boolean(),

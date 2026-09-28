@@ -27,7 +27,6 @@ const auditColumns = {
 
 const softDeleteColumn = { deletedAt: timestamp("deleted_at", { withTimezone: true }) };
 
-/** Money is `numeric(10, 2)`, read and written as a string — never a float. */
 const money = (name: string) => numeric(name, { precision: 10, scale: 2 });
 
 export const labs = pgTable(
@@ -50,8 +49,6 @@ export const labs = pgTable(
   (table) => [index("labs_clinic_idx").on(table.clinicId, table.name)],
 );
 
-// Per lab, not global. The order keeps its own copy of the price, so a rise never rewrites work
-// already ordered.
 export const labWorkTypes = pgTable(
   "lab_work_types",
   {
@@ -68,8 +65,6 @@ export const labWorkTypes = pgTable(
   (table) => [index("lab_work_types_lab_idx").on(table.labId, table.name)],
 );
 
-// The timestamps are written by the transitions, never a form — only `expected_at` is typed, being
-// a promise. `teeth` is JSONB because a bridge's teeth are read as one value, never queried across.
 export const labOrders = pgTable(
   "lab_orders",
   {
@@ -95,11 +90,9 @@ export const labOrders = pgTable(
     price: money("price").notNull().default("0.00"),
     status: labOrderStatusEnum("status").notNull().default("draft"),
     sentAt: timestamp("sent_at", { withTimezone: true }),
-    /** The date the lab promised. Typed, not derived. */
     expectedAt: timestamp("expected_at", { withTimezone: true }),
     receivedAt: timestamp("received_at", { withTimezone: true }),
     fittedAt: timestamp("fitted_at", { withTimezone: true }),
-    /** Required when the status becomes `returned`, enforced in the service. */
     returnReason: text("return_reason"),
     ...auditColumns,
     ...softDeleteColumn,
@@ -113,8 +106,6 @@ export const labOrders = pgTable(
   ],
 );
 
-// Bytes go straight to R2, so this holds a key and metadata. No `clinic_id`: an attachment belongs
-// to one order, which carries the scope.
 export const labOrderAttachments = pgTable(
   "lab_order_attachments",
   {
@@ -135,8 +126,6 @@ export const labOrderAttachments = pgTable(
   ],
 );
 
-// Append-only; the lab's balance is computed on read and never stored. No receipt number — a
-// receipt is a document the clinic hands out, and this is money going the other way.
 export const labPayments = pgTable(
   "lab_payments",
   {
@@ -147,14 +136,11 @@ export const labPayments = pgTable(
     labId: uuid("lab_id")
       .notNull()
       .references(() => labs.id),
-    /** Signed: a reversing entry carries the negative of what it cancels. */
     amount: money("amount").notNull(),
-    /** The same `payment_method` lookup list the patient ledger reads. */
     method: text("method").notNull(),
     note: text("note"),
     reversesId: uuid("reverses_id"),
     reversedAt: timestamp("reversed_at", { withTimezone: true }),
-    /** The user who handed the money over, kept apart from `created_by`. */
     paidBy: uuid("paid_by").references(() => users.id),
     ...auditColumns,
     ...softDeleteColumn,

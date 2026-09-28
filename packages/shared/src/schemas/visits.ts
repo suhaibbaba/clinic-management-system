@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { paginationQuerySchema } from "@shared/schemas/common";
 
-/** A clinical encounter. Admin and doctor only (ROLES.md). */
 export const visitSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),

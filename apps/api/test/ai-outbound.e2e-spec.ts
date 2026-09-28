@@ -117,7 +117,6 @@ describe("Outbound messages (e2e)", () => {
       });
       expect(proposal.recipients).toHaveLength(2);
       expect(proposal.recipients[0]?.text).toContain(proposal.recipients[0]?.name ?? "?");
-      // The card is served without numbers.
       expect(JSON.stringify(proposal)).not.toMatch(/\+9955/);
       await expect(outboundRows(proposal.id)).resolves.toHaveLength(0);
 
@@ -343,7 +342,6 @@ describe("Outbound messages (e2e)", () => {
       const author = actor(main, USER_ROLE.RECEPTIONIST);
       const conversation = await context.app.get(AiConversationsService).start(author, "رسالة");
 
-      // A receptionist ships without `lab-orders.overdue`.
       const run = await context.app
         .get(ToolRunnerService)
         .run(
@@ -486,8 +484,6 @@ describe("Outbound messages (e2e)", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    // Held to the admin in the service too: a clinic that grants the capability does not
-    // hand a receptionist its billing key.
     it("stays the admin's even when the matrix grants it to somebody else", async () => {
       const permissions = context.app.get(PermissionsService);
       const admin = main.clinic.userIds[USER_ROLE.ADMIN];

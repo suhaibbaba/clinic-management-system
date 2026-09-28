@@ -24,8 +24,6 @@ import {
   type TestContext,
 } from "@test/helpers/test-app";
 
-// A visiting doctor sees the patients assigned to them — an appointment, a plan or a plan item — and
-// nothing else; everybody else's file is a 404, as another clinic's would be.
 describe("Visiting doctor (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;

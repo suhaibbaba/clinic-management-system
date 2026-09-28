@@ -2,8 +2,6 @@ import { z } from "zod";
 import { CHART_TYPES } from "@shared/enums";
 import { paginationQuerySchema } from "@shared/schemas/common";
 
-// `code` is text in the database, so giving a clinic a new specialty is data rather than a
-// migration.
 export const specialtySchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),

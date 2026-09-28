@@ -1,7 +1,4 @@
 #!/usr/bin/env node
-// Drops every table and re-runs the migrations and the seed, in one command. The seed only ever
-// populates an *empty* clinic, so changing it cannot change what a database already holds — only
-// a wipe can, and this is the wipe.
 
 import { spawnSync } from "node:child_process";
 import { dirname, resolve } from "node:path";
@@ -17,7 +14,6 @@ if (!databaseUrl) {
   process.exit(1);
 }
 
-// A wipe of a deployed database is never what somebody meant by "reset".
 if (process.env.NODE_ENV === "production") {
   console.error("Refusing to reset a production database.");
   process.exit(1);

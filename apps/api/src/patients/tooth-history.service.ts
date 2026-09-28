@@ -13,8 +13,6 @@ import { chartMarks, performedProcedures } from "@api/database/schema";
 import { PatientAccessService } from "@api/patients/patient-access.service";
 import { toChartMark, toProcedure } from "@api/patients/procedures.service";
 
-// Starts from `chart_marks.tooth`, the column denormalised out of the JSONB precisely so this is an
-// index scan.
 @Injectable()
 export class ToothHistoryService {
   constructor(

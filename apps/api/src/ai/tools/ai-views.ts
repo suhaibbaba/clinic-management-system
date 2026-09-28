@@ -9,9 +9,6 @@ import type {
   TimelineEntry,
 } from "@clinic/shared";
 
-// The page's side of each read tool: columns name i18n keys, cells carry raw values, and the page
-// formats money, dates and names. Nothing here is a sentence in any language.
-
 const column = (key: string, kind: AiViewColumnKind, prefix?: string): AiViewColumn => ({
   key,
   label: `assistant.view.columns.${key}`,

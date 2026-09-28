@@ -7,8 +7,6 @@ export interface PatientFixtures {
   readonly catalogId: string;
 }
 
-// Through the API rather than by inserting rows, so the fixtures exercise the same validation the
-// suites test around.
 export async function seedClinicFixtures(
   context: TestContext,
   clinic: TestClinic,
@@ -55,7 +53,6 @@ export async function seedClinicFixtures(
   };
 }
 
-/** A patient's request fields from a sample name: first word, last word, and the rest between. */
 export function nameParts(fullName: string): {
   firstName: string;
   middleName?: string;
@@ -116,7 +113,6 @@ export function procedurePayload(input: {
   };
 }
 
-/** Phone numbers are unique system-wide, so every fixture needs a fresh one. */
 export function uniquePhone(): string {
   return `+9955${Math.floor(Math.random() * 1_000_000_000)}`;
 }

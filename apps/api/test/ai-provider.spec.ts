@@ -20,7 +20,6 @@ describe("a provider failure", () => {
   });
 });
 
-// Chat Completions answers 400 to function tools with any reasoning effort but `none`.
 describe("the reasoning effort", () => {
   const base = {
     DATABASE_URL: "postgres://x",

@@ -3,15 +3,11 @@ import type { ToolGroup } from "@api/ai/tools/tool-groups";
 
 export interface EvalCase {
   readonly question: string;
-  /** The groups a good answer loads first; none for a core tool. */
   readonly groups: readonly ToolGroup[];
   readonly tool: string;
-  /** Null for a read, which runs at once. */
   readonly tier: AiRiskTier | null;
 }
 
-// One or more questions per group, Arabic as the clinic writes it and English where staff mix it
-// in. The same list drives the scripted regression spec and the live run against a real model.
 export const EVAL_CASES: readonly EvalCase[] = [
   { question: "شو مواعيد اليوم؟", groups: [], tool: AI_TOOL.GET_APPOINTMENTS, tier: null },
   { question: "مين المريض أحمد خالد؟", groups: [], tool: AI_TOOL.SEARCH_PATIENTS, tier: null },

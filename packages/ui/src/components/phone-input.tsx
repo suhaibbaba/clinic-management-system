@@ -40,7 +40,6 @@ import { cn } from "@ui/lib/cn";
 import { foldDigits } from "@ui/lib/digits";
 import type { TestIdProps } from "@ui/lib/testid";
 
-// Named one by one so the bundle carries these flags and not the other two hundred.
 const FLAGS: Record<PhoneCountry, typeof PS> = {
   PS,
   IL,
@@ -63,7 +62,6 @@ const FLAGS: Record<PhoneCountry, typeof PS> = {
 
 const PhoneCountryContext = createContext<PhoneCountry>(DEFAULT_PHONE_COUNTRY);
 
-/** The country every phone field starts on — the clinic's, set once at the app's root. */
 export function PhoneCountryProvider({
   country,
   children,
@@ -95,19 +93,15 @@ export interface PhoneInputProps
   extends
     Omit<InputProps, "type" | "inputMode" | "dir" | "value" | "defaultValue" | "onChange">,
     TestIdProps {
-  /** International, as stored: `+970599123456`. */
   readonly value: string | null | undefined;
   readonly onChange: (value: string | null) => void;
 }
 
-/** Digits, spaces and dashes, and a `+` only at the front — where a dialling code puts it. */
 const phoneCharacters = (value: string): string =>
   foldDigits(value)
     .replace(/[^\d\s+-]/g, "")
     .replace(/(?!^)\+/g, "");
 
-// A picker and a box, one value: the code is chosen, the rest typed as the patient says it, and
-// what reaches the form is international — `+962` and `079…` arrive as `+96279…`.
 export function PhoneInput({
   value,
   onChange,
@@ -124,7 +118,6 @@ export function PhoneInput({
   const fallback = useContext(PhoneCountryContext);
 
   const [country, setCountry] = useState<PhoneCountry>(() => splitPhone(value, fallback).country);
-  // What was typed, kept as typed: the trunk 0 is dropped from the value, not from the box.
   const [local, setLocal] = useState(() => splitPhone(value, fallback).local);
 
   useEffect(() => {
@@ -148,7 +141,6 @@ export function PhoneInput({
   };
 
   return (
-    // Left to right whatever the page: a number reads code first.
     <div data-part="phone-input" dir="ltr" className={cn("flex gap-2", className)}>
       <Select
         className="w-[7.5rem] shrink-0"

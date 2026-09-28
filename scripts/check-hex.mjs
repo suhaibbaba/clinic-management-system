@@ -1,7 +1,4 @@
 #!/usr/bin/env node
-// Two files name colours: the library's defaults and this product's override. A hex anywhere else
-// is a value that cannot be themed, cannot be audited, and survives a redesign by being invisible
-// to it.
 
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
@@ -9,14 +6,10 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-/** The token files themselves, and the places a hex is data rather than design. */
 const ALLOWED = new Set([
-  // The library's neutral defaults: the only colours inside the package, and none of them branded.
   "packages/ui/src/styles/base.css",
-  // This product's values, in the two layers that carry them.
   "apps/web/src/theme.css",
   "apps/web/src/theme.ts",
-  // A clinic picks its own colours for the painted lists, and the seed carries the defaults.
   "packages/shared/src/constants/lookups.ts",
 ]);
 
@@ -30,7 +23,6 @@ const SEARCH = [
 
 const EXTENSIONS = /\.(?:tsx?|css|html|svg)$/;
 
-// `#rrggbb`, `#rgb`, `#rrggbbaa` — plus `rgb()`/`hsl()`, the same decision spelled out.
 const LITERAL = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/g;
 
 async function walk(path, acc = []) {
@@ -39,7 +31,6 @@ async function walk(path, acc = []) {
   try {
     entries = await readdir(path, { withFileTypes: true });
   } catch {
-    // A path in SEARCH may be a file rather than a directory.
     acc.push(path);
     return acc;
   }
@@ -63,9 +54,6 @@ for (const target of SEARCH) {
   await walk(resolve(repoRoot, target), files);
 }
 
-// Three files are read before the app's CSS exists — the two entry documents' `theme-color` and
-// the tab mark — so a `var()` cannot reach them. They are not exempt: the value they carry must be
-// the brand blue the token file names, or this fails like any other drift.
 const PINNED = new Set([
   "apps/web/index.html",
   "apps/web/booking.html",

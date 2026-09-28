@@ -15,7 +15,6 @@ import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { aiConversations, aiMessages, clinics } from "@api/database/schema";
 
-/** Refused before the model is called, so a limit costs nothing. */
 export class AiLimitError extends Error {
   constructor(readonly code: AiErrorCode) {
     super(code);
@@ -25,8 +24,6 @@ export class AiLimitError extends Error {
 
 const HOUR_MS = 3_600_000;
 
-// Two ceilings, both counted from rows rather than a counter: one person cannot hold the model
-// open all afternoon, and one clinic cannot spend a month's tokens in a morning.
 @Injectable()
 export class AiBudgetService {
   constructor(
@@ -67,8 +64,6 @@ export class AiBudgetService {
     return row?.value ?? 0;
   }
 
-  // The clinic's own day, not the server's: a budget that rolls over at 2am local is one nobody
-  // can reason about.
   private async tokensToday(clinicId: string): Promise<number> {
     const [clinic] = await this.db
       .select({ settings: clinics.settings })

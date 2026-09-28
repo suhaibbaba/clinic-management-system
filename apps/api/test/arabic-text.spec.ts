@@ -12,7 +12,6 @@ describe("Arabic text", () => {
 
       expect(runs).toHaveLength(1);
       expect(runs[0]?.shapedRtl).toBe(true);
-      // Logical order: the font reverses what it shapes.
       expect(runs[0]?.text).toBe("إيصال قبض");
     });
 
@@ -35,7 +34,6 @@ describe("Arabic text", () => {
     });
   });
 
-  // fontkit mirrors nothing: an unswapped bracket faces out of the words it holds.
   describe("brackets", () => {
     it("swaps a bracket inside Arabic, before the font reverses the run", () => {
       expect(visualRuns("حشوة (مؤقتة)")[0]?.text).toBe("حشوة )مؤقتة(");
@@ -46,7 +44,6 @@ describe("Arabic text", () => {
     });
 
     it("swaps and reverses brackets with no Arabic of their own", () => {
-      // An English word inside Arabic brackets: the brackets are right-to-left runs of their own.
       expect(drawn("قيد (Scaling) عكسي")).toContain(")");
       expect(drawn("قيد (Scaling) عكسي")).not.toContain("(Scaling)");
     });

@@ -10,7 +10,6 @@ export const procedureCatalogItemSchema = z.object({
   code: z.string(),
   name: z.string(),
   defaultPrice: moneySchema,
-  /** Null for procedures that chart nothing — an examination, a cleaning, an X-ray. */
   chartOutcome: lookupCodeSchema.nullable(),
   isActive: z.boolean(),
   createdAt: z.iso.datetime(),
@@ -18,7 +17,6 @@ export const procedureCatalogItemSchema = z.object({
 });
 export type ProcedureCatalogItem = z.infer<typeof procedureCatalogItemSchema>;
 
-/** What a receptionist may read: names and prices only (ROLES.md core matrix). */
 export const procedureCatalogPriceViewSchema = procedureCatalogItemSchema.pick({
   id: true,
   code: true,

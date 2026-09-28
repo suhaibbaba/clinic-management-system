@@ -16,8 +16,6 @@ import { AiTool } from "@api/ai/tools/route-tool.decorator";
 class ListTimelineQueryDto extends createZodDto(listTimelineQuerySchema) {}
 class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 
-// Which entries come back is decided by role inside the service; the `type` parameter can only
-// narrow that set, never widen it.
 @Controller("patients/:patientId/timeline")
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.RECEPTIONIST)
 export class TimelineController {

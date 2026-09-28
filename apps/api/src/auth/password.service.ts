@@ -13,7 +13,6 @@ export class PasswordService {
     return hash(plainText, ARGON2_OPTIONS);
   }
 
-  /** Never throws on a malformed digest — a bad stored hash is a failed login. */
   async verify(digest: string, plainText: string): Promise<boolean> {
     try {
       return await verify(digest, plainText, ARGON2_OPTIONS);

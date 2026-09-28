@@ -15,8 +15,6 @@ import { AuditService } from "@api/audit/audit.service";
 import { AUDIT_KEY, type AuditMetadata } from "@api/common/decorators/audit.decorator";
 import type { RequestWithUser } from "@api/common/types/authenticated-user";
 
-// Inert without the `@Audit(...)` decorator. The entry is written only after the handler succeeds,
-// and failing to write it fails the request — an unaudited mutation must never look successful.
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
   constructor(
@@ -45,8 +43,6 @@ export class AuditInterceptor implements NestInterceptor {
     const loader = this.registry.get(metadata.entity);
     const knownEntityId = resolveEntityId(metadata, actor, request.params);
 
-    // Snapshot before the handler runs: for an update or a soft delete this is
-    // the only moment the previous state is still readable.
     return from(snapshot(loader, knownEntityId, actor.clinicId)).pipe(
       concatMap((oldValue) =>
         next.handle().pipe(
@@ -78,8 +74,6 @@ export class AuditInterceptor implements NestInterceptor {
   }
 }
 
-// `response` yields nothing: such a route always creates a row, so the id comes from the result and
-// there is no previous state to snapshot.
 function resolveEntityId(
   metadata: AuditMetadata,
   actor: { clinicId: string; id: string },
@@ -111,8 +105,6 @@ async function snapshot(
   return loader(id, clinicId);
 }
 
-// A create has no `:id` param, so the id comes from the response, or from `{ item, ... }` one level
-// in. Only those two shapes — walking an arbitrary response puts the wrong row in the trail.
 function extractId(result: unknown): string | undefined {
   return idOf(result) ?? idOf((result as { item?: unknown } | null)?.item);
 }

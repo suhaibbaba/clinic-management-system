@@ -47,8 +47,6 @@ describe("Labs (e2e)", () => {
       phone: uniquePhone(),
     });
 
-    // The technician keeps the directory and the price list — ROLES.md gives
-    // them CRU on "labs directory & prices".
     const lab = await context.app.inject({
       method: "POST",
       url: "/labs",
@@ -152,15 +150,12 @@ describe("Labs (e2e)", () => {
     it("refuses every jump the table does not allow", async () => {
       const order = await createOrder();
 
-      // draft → ready: the lab has not even been given the case.
       expect((await move(order.id, "ready")).statusCode).toBe(400);
-      // draft → received, draft → fit: same reason, further along.
       expect((await move(order.id, "receive")).statusCode).toBe(400);
       expect((await move(order.id, "fit")).statusCode).toBe(400);
 
       await move(order.id, "send");
 
-      // sent → fitted skips the two moves that mean the work exists.
       expect((await move(order.id, "fit")).statusCode).toBe(400);
       expect((await move(order.id, "receive")).statusCode).toBe(400);
     });
@@ -177,7 +172,6 @@ describe("Labs (e2e)", () => {
       expect(returned.statusCode).toBe(200);
       expect((returned.json() as LabOrderRow).returnReason).toBe("اللون لا يطابق");
 
-      // Out again — and only that: a returned order cannot jump to ready.
       expect((await move(order.id, "ready")).statusCode).toBe(400);
       expect((await move(order.id, "send")).statusCode).toBe(200);
     });
@@ -200,7 +194,6 @@ describe("Labs (e2e)", () => {
       await move(sent.id, "send");
       expect((await move(sent.id, "cancel")).statusCode).toBe(200);
 
-      // Once the work exists, the way out is a return — somebody made it.
       const received = await createOrder();
       await move(received.id, "send");
       await move(received.id, "ready");
@@ -224,7 +217,6 @@ describe("Labs (e2e)", () => {
       await move(order.id, "ready");
       await move(order.id, "receive");
 
-      // Only the doctor can say a crown fits — they are the one holding it.
       expect((await move(order.id, "fit", USER_ROLE.TECHNICIAN)).statusCode).toBe(403);
       expect((await move(order.id, "fit", USER_ROLE.DOCTOR)).statusCode).toBe(200);
     });
@@ -233,7 +225,6 @@ describe("Labs (e2e)", () => {
       const order = await createOrder();
       await move(order.id, "send", USER_ROLE.DOCTOR);
 
-      // The route guard refuses before the transition is checked, so these are 403 rather than 400.
       expect((await move(order.id, "ready", USER_ROLE.DOCTOR)).statusCode).toBe(403);
       expect((await move(order.id, "receive", USER_ROLE.DOCTOR)).statusCode).toBe(403);
     });
@@ -249,7 +240,6 @@ describe("Labs (e2e)", () => {
       });
 
       expect(response.statusCode).toBe(403);
-      // And the order they created took the list price, not one they chose.
       expect(order.price).toBe("45.00");
     });
 
@@ -293,8 +283,6 @@ describe("Labs (e2e)", () => {
   });
 
   describe("what counts toward the balance", () => {
-    // An order counts from `sent` and stops counting only if `cancelled`. Each test below is one
-    // clause of that sentence.
     it("ignores a draft, counts it once sent", async () => {
       const before = await balance();
 
@@ -346,7 +334,6 @@ describe("Labs (e2e)", () => {
 
       expect((after.json() as LabOrderRow).price).toBe("120.00");
 
-      // Put it back: later tests price a bridge at 120.
       await context.app.inject({
         method: "PATCH",
         url: `/labs/work-types/${bridgeId}`,
@@ -371,7 +358,6 @@ describe("Labs (e2e)", () => {
       const paymentId = (paid.json() as { id: string }).id;
       expect(Number((await balance()).paid)).toBe(Number(before.paid) + 50);
 
-      // A technician may pay but not un-pay.
       const refused = await context.app.inject({
         method: "PATCH",
         url: `/lab-payments/${paymentId}/reverse`,
@@ -388,8 +374,6 @@ describe("Labs (e2e)", () => {
       });
 
       expect(reversed.statusCode).toBe(200);
-      // The reversal is a second row carrying the negative — the original is
-      // untouched, and the balance moves because the two sum.
       expect((reversed.json() as { amount: string }).amount).toBe("-50.00");
       expect((await balance()).paid).toBe(before.paid);
     });
@@ -446,8 +430,6 @@ describe("Labs (e2e)", () => {
       };
 
       expect(statement.entries.length).toBeGreaterThan(0);
-      // Every line is an order or a payment, and the last running balance is
-      // the balance itself — that is what makes a statement reconcilable.
       expect(statement.closingBalance).toBe((await balance()).balance);
       expect(statement.entries.every((entry) => ["order", "payment"].includes(entry.kind))).toBe(
         true,
@@ -503,7 +485,6 @@ describe("Labs (e2e)", () => {
         headers: auth(tokens[USER_ROLE.TECHNICIAN]),
       });
 
-      // Nobody is waiting for it any more, however late it was.
       expect((after.json() as LabOrderRow[]).map((row) => row.id)).not.toContain(order.id);
     });
   });
@@ -553,8 +534,6 @@ describe("Labs (e2e)", () => {
       await move(fitted.id, "fit");
 
       const open = await list(`view=open&labId=${listLabId}`);
-      // Soonest due first across every stage; work already back in the clinic waits on a chair, not
-      // on its old promised date, so it sorts after everything still out.
       expect(open.items.map((row) => row.id)).toEqual([late.id, soon.id, draft.id, inClinic.id]);
 
       const counts = await context.app.inject({
@@ -599,7 +578,6 @@ describe("Labs (e2e)", () => {
 
       const order = await createOrder({ performedProcedureId, teeth: undefined });
 
-      // Nobody retyped 36 — which is the point: a lab cuts metal to that number.
       expect(order.teeth).toEqual([36]);
       expect(order.performedProcedureId).toBe(performedProcedureId);
     });

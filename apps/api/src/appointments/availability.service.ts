@@ -37,7 +37,6 @@ export interface DayAvailabilityContext {
   readonly clinicRanges: readonly TimeRange[];
   readonly doctorRanges: readonly TimeRange[];
   readonly closure: ClinicClosure | null;
-  /** The doctor's absences that touch this day, clipped to it. */
   readonly timeOff: readonly BusyInterval[];
   readonly timeOffReason: string | null;
   readonly busy: readonly BusyInterval[];
@@ -47,8 +46,6 @@ export interface DayAvailabilityContext {
 const rangesFor = (schedule: WeeklySchedule, weekday: number): readonly TimeRange[] =>
   schedule.find((day) => day.weekday === weekday)?.ranges ?? [];
 
-// The only place that decides whether a minute is bookable. Subtracted in the order `closedReason`
-// reports: closures, clinic hours, the doctor's schedule, then time off and bookings.
 @Injectable()
 export class AvailabilityService {
   constructor(
@@ -136,8 +133,6 @@ export class AvailabilityService {
     };
   }
 
-  // Both ends inclusive — a closure names the last day shut, not the day it reopens. An annual one
-  // matches day and month, hence `to_char`; only single-year ranges may be annual.
   async closureOn(clinicId: string, isoDate: string): Promise<ClinicClosure | null> {
     const dayMonth = isoDate.slice(5);
 
@@ -163,7 +158,6 @@ export class AvailabilityService {
     return row ? toClinicClosure(row) : null;
   }
 
-  /** Hours worked on this one date beyond the weekly schedule, added to that day's hours. */
   async extraHoursOn(clinicId: string, doctorId: string, isoDate: string): Promise<TimeRange[]> {
     const rows = await this.db
       .select({ ranges: doctorExtraHours.ranges })
@@ -197,7 +191,6 @@ export class AvailabilityService {
           clinicId,
           and(
             eq(doctorTimeOff.doctorId, doctorId),
-            // Half-open overlap, the same `[)` the appointments use.
             lt(doctorTimeOff.startsAt, dayEnd),
             gt(doctorTimeOff.endsAt, dayStart),
           ),
@@ -206,8 +199,6 @@ export class AvailabilityService {
       .orderBy(doctorTimeOff.startsAt);
   }
 
-  // Excludes exactly the statuses the exclusion constraint does, so an offered slot is one the
-  // insert accepts. Widened a day each side to keep the predicate on the indexed `starts_at`.
   private async busyIntervals(
     clinicId: string,
     query: AvailabilityQuery,
@@ -228,7 +219,6 @@ export class AvailabilityService {
             gte(appointments.startsAt, windowStart),
             lt(appointments.startsAt, windowEnd),
             notInArray(appointments.status, [...APPOINTMENT_RELEASED_STATUSES]),
-            // Rescheduling must not collide with the appointment being moved.
             query.excludeAppointmentId
               ? ne(appointments.id, query.excludeAppointmentId)
               : undefined,
@@ -295,7 +285,6 @@ export function toDoctorTimeOff(row: typeof doctorTimeOff.$inferSelect): DoctorT
   };
 }
 
-/** Overlapping or touching ranges become one, so an extra shift beside the usual one is one span. */
 function mergeRanges(ranges: readonly TimeRange[]): TimeRange[] {
   const sorted = [...ranges].sort((a, b) => a.start.localeCompare(b.start));
   const merged: TimeRange[] = [];

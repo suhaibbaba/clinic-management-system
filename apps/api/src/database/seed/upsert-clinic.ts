@@ -21,8 +21,6 @@ export interface SeedClinicResult {
   readonly notes: readonly string[];
 }
 
-// Not a lookup by slug: `0005` derived slugs from names, so an older database holds a different one
-// and the seed made a second clinic. Matched on slug or either name, oldest wins.
 export async function upsertSeedClinic(db: Db, spec: SeedClinicSpec): Promise<SeedClinicResult> {
   const [adopted] = await db
     .select({ id: clinics.id, slug: clinics.slug })
@@ -61,8 +59,6 @@ export async function upsertSeedClinic(db: Db, spec: SeedClinicSpec): Promise<Se
   const notes: string[] = [];
   const squatter = await clinicOnSlug(db, spec.slug, adopted.id);
 
-  // Retire before renaming: the unique index on the slug covers live rows, so
-  // the squatter has to go first for the real clinic to take its handle back.
   if (squatter && (await retireStray(db, squatter))) {
     notes.push(
       `Retired an empty duplicate clinic that was holding the slug "${spec.slug}" — it had no ` +

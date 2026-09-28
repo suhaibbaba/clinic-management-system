@@ -21,17 +21,14 @@ import { clinics, specialties, users } from "@api/database/schema";
 
 type UserRow = typeof users.$inferSelect;
 
-/** One message for every credential failure — the API never reveals which part was wrong. */
 const INVALID_CREDENTIALS = "Invalid credentials";
 
-/** The shortest national number worth matching on; fewer digits would match strangers. */
 const PHONE_MIN_DIGITS = 7;
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  /** Compared against when no user matches, so login timing does not reveal existence. */
   private decoyHash: string | null = null;
 
   constructor(
@@ -50,8 +47,6 @@ export class AuthService {
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
 
-    // No password yet means the account was created but never activated. Answered exactly as a
-    // wrong password is — anything else tells a stranger which addresses have accounts here.
     if (user.passwordHash === null) {
       await this.burnTiming(input.password);
       throw new UnauthorizedException(INVALID_CREDENTIALS);
@@ -64,8 +59,6 @@ export class AuthService {
     }
 
     if (!user.isActive) {
-      // Deliberately after the password check: a wrong password on a disabled
-      // account must not answer differently from a wrong password on a live one.
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
 
@@ -76,8 +69,6 @@ export class AuthService {
     return { ...tokens, user: await this.toProfile(user) };
   }
 
-  // Rotating refresh: the presented token is revoked and replaced on every call, and presenting a
-  // revoked one means a replay, so the whole family goes.
   async refresh(presentedToken: string): Promise<IssuedSession> {
     const stored = await this.tokenService.findByToken(presentedToken);
 
@@ -112,7 +103,6 @@ export class AuthService {
     };
   }
 
-  /** Idempotent: an unknown or already-revoked token still reports success. */
   async logout(presentedToken: string): Promise<void> {
     const stored = await this.tokenService.findByToken(presentedToken);
 
@@ -131,7 +121,6 @@ export class AuthService {
     return this.toProfile(user);
   }
 
-  /** Changing a password ends every other session for that user. */
   async changePassword(actor: AuthenticatedUser, input: ChangePasswordInput): Promise<void> {
     const user = await this.findActiveById(actor.id);
 
@@ -139,7 +128,6 @@ export class AuthService {
       throw new UnauthorizedException("Account is no longer available");
     }
 
-    // Somebody who never set one cannot change it; they activate instead.
     const matches =
       user.passwordHash !== null &&
       (await this.passwordService.verify(user.passwordHash, input.currentPassword));
@@ -168,8 +156,6 @@ export class AuthService {
     };
   }
 
-  // A phone matches however it is typed: `+970 59…`, `0097059…` or a local `059…`. A local number
-  // matches on its national digits, and two accounts matching is no match — a login never guesses.
   private async findByIdentifier(identifier: string): Promise<UserRow | undefined> {
     const trimmed = identifier.trim();
 
@@ -217,7 +203,6 @@ export class AuthService {
     return user;
   }
 
-  /** Spends roughly one verification's worth of time on an unknown identifier. */
   private async burnTiming(password: string): Promise<void> {
     this.decoyHash ??= await this.passwordService.hash("decoy-password-for-timing");
     await this.passwordService.verify(this.decoyHash, password);
@@ -240,7 +225,6 @@ export class AuthService {
     };
   }
 
-  /** The keys only, so a screen can ask `can('patients.update')` without carrying the false ones. */
   private async allowedCapabilities(clinicId: string, role: UserRole): Promise<string[]> {
     const matrix = await this.permissions.matrix(clinicId, role);
 

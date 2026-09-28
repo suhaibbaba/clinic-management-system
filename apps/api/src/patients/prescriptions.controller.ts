@@ -33,8 +33,6 @@ class UpdatePrescriptionDto extends createZodDto(updatePrescriptionSchema) {}
 class ListPrescriptionsQueryDto extends createZodDto(listPrescriptionsQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// Admin and doctor CRUD, nothing for technician or receptionist — a receptionist response must
-// never contain a prescription.
 @Controller("prescriptions")
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
 export class PrescriptionsController {

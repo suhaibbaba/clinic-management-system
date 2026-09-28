@@ -36,14 +36,12 @@ const TONES: Record<ToastTone, { chip: string; tint: string; line: string; icon:
   },
 };
 
-/** Four seconds: long enough to read a line, short enough not to sit over the next thing done. */
 const TOAST_MS = 2500;
 
 interface ToastMessage {
   readonly id: number;
   readonly messageKey: string;
   readonly values?: Record<string, string | number>;
-  /** A second line under the title, where one sentence does not carry it. */
   readonly descriptionKey?: string;
   readonly tone: ToastTone;
 }
@@ -52,7 +50,6 @@ type Values = Record<string, string | number>;
 type Notify = (messageKey: string, values?: Values, descriptionKey?: string) => void;
 
 interface ToastApi {
-  /** Each takes an i18n key — never a ready-made string. */
   success: Notify;
   warning: Notify;
   error: Notify;
@@ -107,7 +104,6 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
 
   return (
     <ToastContext.Provider value={api}>
-      {/* Swiped towards the nearest edge, which for a toast in the top end corner is the end one. */}
       <ToastPrimitive.Provider
         swipeDirection={documentDirection() === "rtl" ? "left" : "right"}
         duration={TOAST_MS}
@@ -127,7 +123,6 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               }
             }}
             className={cn(
-              // One line sits in the middle of the chip; two lines start level with its top.
               "group relative flex gap-3 overflow-hidden rounded-card border border-line",
               message.descriptionKey === undefined ? "items-center" : "items-start",
               "toast-wash px-4 py-3.5 shadow-float",
@@ -183,16 +178,12 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
               <Icon name="x" className="size-4" />
             </ToastPrimitive.Close>
 
-            {/* The time left. A pointer over the toast does not pause the countdown, it restarts it
-                — so the line is dropped while hovered and runs again from full on the way out. */}
             <span
               data-part="toast-life"
               data-testid="toast-life"
               aria-hidden="true"
               style={{ animationDuration: `${TOAST_MS}ms` }}
               className={cn(
-                // Grown from the side reading starts on: in Arabic it fills from the right, in
-                // English from the left.
                 "absolute inset-x-0 bottom-0 h-0.5 animate-[toast-life_linear_forwards]",
                 "page-rtl:origin-right page-ltr:origin-left group-hover:animate-none",
                 TONES[message.tone].line,
@@ -201,8 +192,6 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
           </ToastPrimitive.Root>
         ))}
 
-        {/* The top end corner — the right in English, the left in Arabic — clear of the bar's own
-            buttons and of anything a hand covers on a phone. */}
         <ToastPrimitive.Viewport
           data-part="toast-viewport"
           data-testid="toast-viewport"

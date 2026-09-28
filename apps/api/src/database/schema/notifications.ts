@@ -12,8 +12,6 @@ export const notificationChannelEnum = pgEnum("notification_channel", NOTIFICATI
 export const notificationTemplateEnum = pgEnum("notification_template", NOTIFICATION_TEMPLATES);
 export const notificationStatusEnum = pgEnum("notification_status", NOTIFICATION_STATUSES);
 
-// Written before the provider is called, so a send that throws still leaves a trace. It is also the
-// reminder dedupe key — a second table holding that fact could disagree with this one.
 export const notificationsLog = pgTable(
   "notifications_log",
   {
@@ -21,12 +19,9 @@ export const notificationsLog = pgTable(
     clinicId: uuid("clinic_id")
       .notNull()
       .references(() => clinics.id),
-    /** Destination, as dialled. Not joined to a patient: a message can go to
-     *  a number that has no record yet, which is exactly the booking case. */
     to: text("to").notNull(),
     channel: notificationChannelEnum("channel").notNull(),
     template: notificationTemplateEnum("template").notNull(),
-    /** The interpolation values, so a sent message can be reconstructed. */
     vars: jsonb("vars").$type<Record<string, string>>().notNull().default({}),
     status: notificationStatusEnum("status").notNull().default("queued"),
     error: text("error"),
@@ -54,7 +49,6 @@ export const bookingOtps = pgTable(
       .references(() => patients.id),
     codeHash: text("code_hash").notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-    /** Wrong guesses so far. Three is the limit; the row is then dead. */
     attempts: integer("attempts").notNull().default(0),
     consumedAt: timestamp("consumed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

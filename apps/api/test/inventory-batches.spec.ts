@@ -11,11 +11,8 @@ import {
   type BatchInflow,
 } from "@clinic/shared";
 
-// Unit-tested rather than driven through the API because both are arithmetic: the interesting cases
-// are ones a seeded database would never contain.
 describe("quantity arithmetic", () => {
   it("never goes through a float", () => {
-    // 0.1 + 0.2 is the canonical float failure; in thousandths it is 300.
     expect(addQuantity("0.1", "0.2")).toBe("0.3");
 
     let total = "0";
@@ -26,7 +23,6 @@ describe("quantity arithmetic", () => {
   });
 
   it("keeps the sign on the whole value, not on its parts", () => {
-    // '-2.5' split naively is -2 and 5, which sums to -1.5 rather than -2.5.
     expect(toThousandths("-2.5")).toBe(-2500);
     expect(formatThousandths(-2500)).toBe("-2.5");
     expect(negateQuantity("-2.5")).toBe("2.5");
@@ -67,7 +63,6 @@ describe("batchesRemaining", () => {
       [{ batchNo: null, quantity: "12" }],
     );
 
-    // Bought second, expires first: it goes first, and takes the overflow with it.
     expect(batches.map((batch) => [batch.batchNo, batch.remaining])).toEqual([
       ["B-1", "0"],
       ["B-2", "8"],
@@ -175,7 +170,6 @@ describe("batchesRemaining", () => {
       [{ batchNo: null, quantity: "5" }],
     );
 
-    // B-1 is used up, so the date the clinic should be watching is B-2's.
     expect(nearestExpiry(batches)).toBe("2026-09-01");
   });
 

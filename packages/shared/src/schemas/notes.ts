@@ -8,7 +8,6 @@ export const clinicNoteSchema = z.object({
   clinicId: uuidSchema,
   body: z.string(),
   authorId: uuidSchema.nullable(),
-  /** Denormalised for the list, which would otherwise fetch every author separately. */
   authorName: personNameSchema.nullable(),
   authorRole: z.enum(USER_ROLES).nullable(),
   createdAt: z.iso.datetime(),
@@ -16,7 +15,6 @@ export const clinicNoteSchema = z.object({
 });
 export type ClinicNote = z.infer<typeof clinicNoteSchema>;
 
-/** One line, not a document: a note longer than this is a patient record in the wrong place. */
 const noteBody = z.string().trim().min(2).max(500);
 
 export const createClinicNoteSchema = z.object({ body: noteBody });

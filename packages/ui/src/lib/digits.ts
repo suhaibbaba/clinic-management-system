@@ -1,7 +1,6 @@
 const ARABIC_INDIC = 0x0660;
 const EASTERN_ARABIC_INDIC = 0x06f0;
 
-/** Rewrites Arabic-Indic digits as ASCII and leaves everything else alone. */
 export function foldDigits(value: string): string {
   let out = "";
 

@@ -32,8 +32,6 @@ const localDateOf = (instant: Date): string =>
     day: "2-digit",
   }).format(instant);
 
-// The seed is the fixture the whole app is demonstrated on, so what is asserted here is what it
-// must never produce: a Friday appointment, two patients in one chair, a charge for planned work.
 describe("the seeded clinic", () => {
   jest.setTimeout(180_000);
 
@@ -53,8 +51,6 @@ describe("the seeded clinic", () => {
     client = postgres(databaseUrl, { max: 1, onnotice: () => {} });
     db = drizzle(client, { schema });
 
-    // A scratch clinic rather than the real slug: staff identifiers are unique system-wide, and
-    // the suite must not adopt whatever a previous run left behind.
     const handle = randomUUID().slice(0, 8);
 
     options = {
@@ -81,7 +77,6 @@ describe("the seeded clinic", () => {
     expect(row?.nameAr).toContain(CLINIC_NAME.ar);
     expect(row?.currency).toBe("ILS");
     expect(row?.address).toContain("نابلس");
-    // Saturday through Thursday: Friday is the one day with no hours at all.
     expect(row?.workingHours.map((day) => day.weekday).sort()).toEqual([0, 1, 2, 3, 4, 6]);
   });
 
@@ -261,7 +256,6 @@ describe("the seeded clinic", () => {
   it("leaves today with a list somebody can demonstrate", async () => {
     const today = localDateOf(new Date());
 
-    // A Friday is the one day the demo has nothing to show, and that is correct.
     if (!CLINIC_HOURS.some((day) => day.weekday === localWeekday(today, CLINIC_TIME_ZONE))) {
       return;
     }

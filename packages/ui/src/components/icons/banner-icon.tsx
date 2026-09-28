@@ -44,14 +44,12 @@ function SpecialtyGlyph({
 }
 
 export interface BannerIconProps {
-  /** Selects the specialty glyph; a specialty with no artwork draws the scene without one. */
   readonly chartTypes: readonly ChartType[];
   readonly className?: string | undefined;
   readonly "data-part"?: string | undefined;
   readonly "data-testid"?: string | undefined;
 }
 
-/** The dashboard banner's decorative scene, drawn in theme tokens and keyed to the clinic's chart. */
 export function BannerIcon({ chartTypes, className, ...attrs }: BannerIconProps): JSX.Element {
   return (
     <svg

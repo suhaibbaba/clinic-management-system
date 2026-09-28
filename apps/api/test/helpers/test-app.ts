@@ -12,7 +12,6 @@ import { ensureSystemLookups } from "@api/database/system-lookups";
 
 export const TEST_PASSWORD = "TestPassword123!";
 
-/** argon2 is deliberately slow, so the digest for the shared test password is computed once per run. */
 let passwordHashPromise: Promise<string> | undefined;
 
 function testPasswordHash(): Promise<string> {
@@ -27,7 +26,6 @@ function testPasswordHash(): Promise<string> {
 
 export interface TestClinic {
   readonly id: string;
-  /** Handle for the public booking routes, which carry no other clinic hint. */
   readonly slug: string;
   readonly specialtyId: string;
   readonly userIds: Record<UserRole, string>;
@@ -39,8 +37,6 @@ export interface TestContext {
   readonly db: Database;
   login(phone: string): Promise<string>;
   createClinic(): Promise<TestClinic>;
-  // Public booking allows five a minute per address, far too few for a suite that books a dozen a
-  // second. The throttling suite simply does not call this.
   resetThrottle(): void;
   close(): Promise<void>;
 }
@@ -48,14 +44,10 @@ export interface TestContext {
 export async function createTestContext(): Promise<TestContext> {
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
 
-  // The production adapter, not a plain one: proxy trust changes what `request.protocol` and
-  // `request.ip` report.
   const app = moduleRef.createNestApplication<NestFastifyApplication>(createFastifyAdapter(), {
     logger: false,
   });
 
-  // Same plugin set as the production bootstrap, so the harness exercises the
-  // real wiring rather than a subset of it.
   await registerFastifyPlugins(app);
 
   await app.init();
@@ -87,7 +79,6 @@ export async function createTestContext(): Promise<TestContext> {
 
       const [clinic] = await db
         .insert(clinics)
-        // The slug is unique system-wide, so each isolated clinic needs its own.
         .values({
           nameAr: `عيادة اختبار ${suffix}`,
           nameEn: `Test Clinic ${suffix}`,
@@ -99,8 +90,6 @@ export async function createTestContext(): Promise<TestContext> {
         throw new Error("Failed to create the test clinic");
       }
 
-      // The choice lists are rows now, and the services check codes against
-      // them — a clinic without them has dropdowns that refuse every value.
       await ensureSystemLookups(db, clinic.id);
 
       const [specialty] = await db
@@ -121,7 +110,6 @@ export async function createTestContext(): Promise<TestContext> {
       const phones = {} as Record<UserRole, string>;
 
       for (const [index, role] of USER_ROLES.entries()) {
-        // Phone and email are unique system-wide, so every suite needs its own.
         const phone = `+99${suffix}${index}`;
         const [user] = await db
           .insert(users)
@@ -160,7 +148,6 @@ export async function createTestContext(): Promise<TestContext> {
     },
 
     async close(): Promise<void> {
-      // Closing the app triggers the module's shutdown hook, which ends the pool.
       await app.close();
       await moduleRef.get(POSTGRES_CLIENT, { strict: false })?.end?.({ timeout: 5 });
     },

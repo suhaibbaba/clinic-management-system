@@ -56,13 +56,10 @@ type AppointmentRow = typeof appointments.$inferSelect;
 
 export const APPOINTMENTS_ENTITY = "appointments";
 
-/** Postgres raises this when an `EXCLUDE` constraint rejects a row. */
 const EXCLUSION_VIOLATION = "23P01";
 
 const DEADLOCK = "40P01";
 
-// Walked down the `cause` chain: drizzle wraps the driver's error, so the SQLSTATE is a level or
-// two below. Reading the top level made every double booking a 500.
 function hasSqlState(error: unknown, state: string): boolean {
   for (let current = error, depth = 0; current && depth < 5; depth += 1) {
     if (
@@ -79,8 +76,6 @@ function hasSqlState(error: unknown, state: string): boolean {
   return false;
 }
 
-// Double booking is prevented by the `appointments_no_overlap` constraint, not by a check-then-act
-// query here; this turns its 23P01 into a 409. Status moves only through `changeStatus`.
 @Injectable()
 export class AppointmentsService implements OnModuleInit {
   constructor(
@@ -130,7 +125,6 @@ export class AppointmentsService implements OnModuleInit {
       filters.push(gte(appointments.startsAt, instantFromLocal(query.from, 0, timeZone)));
     }
     if (query.to) {
-      // Inclusive day: everything before midnight at the end of `to`.
       filters.push(lt(appointments.startsAt, instantFromLocal(addDays(query.to, 1), 0, timeZone)));
     }
 
@@ -173,8 +167,6 @@ export class AppointmentsService implements OnModuleInit {
     return toCalendarAppointment(row);
   }
 
-  // Not paginated: a calendar draws every block in view or it is lying. The range predicate is on
-  // the indexed `starts_at`.
   async calendar(actor: AuthenticatedUser, query: CalendarQuery): Promise<CalendarFeed> {
     const timeZone = await this.timeZone(actor.clinicId);
     const from = calendarRangeStart(query.date, query.range);
@@ -205,8 +197,6 @@ export class AppointmentsService implements OnModuleInit {
           this.scope.where(
             clinicClosures,
             actor.clinicId,
-            // `to` is exclusive as a day boundary, so the last drawn day is
-            // the one before it.
             and(lte(clinicClosures.startsOn, addDays(to, -1)), gte(clinicClosures.endsOn, from)),
           ),
         )
@@ -242,7 +232,6 @@ export class AppointmentsService implements OnModuleInit {
     actor: AuthenticatedUser,
     input: CreateAppointmentInput,
   ): Promise<CalendarAppointment> {
-    // Only codes on this clinic's own list — the schema cannot know them.
     await this.lookups.assertOptionalCode(actor.clinicId, LOOKUP_LIST.APPOINTMENT_TYPE, input.type);
 
     if (input.patientId) {
@@ -264,8 +253,6 @@ export class AppointmentsService implements OnModuleInit {
             startsAt: new Date(input.startsAt),
             durationMinutes: duration,
             type: input.type ?? APPOINTMENT_TYPE.CHECKUP,
-            // Reception booking *is* the confirmation; `requested` exists for
-            // public booking, which has to be confirmed by a person or an OTP.
             status: input.status ?? APPOINTMENT_STATUS.CONFIRMED,
             reason: input.reason ?? null,
             notes: input.notes ?? null,
@@ -279,7 +266,6 @@ export class AppointmentsService implements OnModuleInit {
     return this.findOne(actor, row.id);
   }
 
-  /** Rescheduling and editing. Status is not settable here — see `changeStatus`. */
   async update(
     actor: AuthenticatedUser,
     id: string,
@@ -358,8 +344,6 @@ export class AppointmentsService implements OnModuleInit {
     return this.findOne(actor, id);
   }
 
-  // Idempotent by refusal rather than silence: a second call is a 400, not a second visit for one
-  // attendance.
   async convertToVisit(actor: AuthenticatedUser, id: string): Promise<Visit> {
     const existing = await this.scope.findOneOrFail<AppointmentRow>(
       appointments,
@@ -429,8 +413,6 @@ export class AppointmentsService implements OnModuleInit {
     try {
       rows = await this.writeOnce(write);
     } catch (error) {
-      // Deadlock included: the retry below has already run, so anything still arriving here lost
-      // the slot rather than the coin toss.
       if (hasSqlState(error, EXCLUSION_VIOLATION)) {
         throw new ConflictException("That time is already booked for this doctor");
       }
@@ -492,8 +474,6 @@ export class AppointmentsService implements OnModuleInit {
     return row.duration;
   }
 
-  // The clinic's wall clock, not the server's — otherwise a Damascus clinic reads yesterday's list
-  // for the first hours of every morning.
   async localToday(clinicId: string): Promise<string> {
     return localDate(new Date(), await this.timeZone(clinicId));
   }
@@ -509,7 +489,6 @@ export class AppointmentsService implements OnModuleInit {
   }
 }
 
-/** Inclusive first day drawn for a range, from any date inside it. */
 export function calendarRangeStart(isoDate: string, range: CalendarQuery["range"]): string {
   if (range === "week") {
     return startOfWeek(isoDate);
@@ -518,7 +497,6 @@ export function calendarRangeStart(isoDate: string, range: CalendarQuery["range"
   return range === "month" ? `${isoDate.slice(0, 7)}-01` : isoDate;
 }
 
-/** Exclusive last day. A month is added in months, or a 31-day January would overshoot February. */
 export function calendarRangeEnd(from: string, range: CalendarQuery["range"]): string {
   if (range !== "month") {
     return addDays(from, range === "week" ? 7 : 1);
@@ -529,7 +507,6 @@ export function calendarRangeEnd(from: string, range: CalendarQuery["range"]): s
   return new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
 }
 
-/** Sunday of the week a date falls in, matching `DaySchedule.weekday` 0 = Sunday. */
 export function startOfWeek(isoDate: string): string {
   const [year = 0, month = 1, day = 1] = isoDate.split("-").map(Number);
   const at = new Date(Date.UTC(year, month - 1, day));

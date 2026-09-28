@@ -11,18 +11,15 @@ export interface ThemeOverride {
   readonly color?: Partial<Record<ColorToken, string>> | undefined;
   readonly radius?: Partial<Record<RadiusToken, string>> | undefined;
   readonly shadow?: Partial<Record<ShadowToken, string>> | undefined;
-  /** Each entry is the size and, optionally, the line height that travels with it. */
   readonly text?:
     Partial<Record<TextToken, { readonly size: string; readonly lineHeight?: string }>> | undefined;
   readonly control?: Partial<Record<ControlToken, string>> | undefined;
   readonly animation?: Partial<Record<AnimationToken, string>> | undefined;
   readonly fontSans?: string | undefined;
-  /** The step every padding and gap is a multiple of. */
   readonly spacing?: string | undefined;
   readonly trackingBody?: string | undefined;
 }
 
-/** CSS custom property name → value, in the order the interface declares them. */
 export type ThemeVariables = Readonly<Record<string, string>>;
 
 export function themeVariables(theme: ThemeOverride): ThemeVariables {

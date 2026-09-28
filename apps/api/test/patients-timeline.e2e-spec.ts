@@ -180,8 +180,6 @@ describe("Patient timeline (e2e)", () => {
 
     expect(response.statusCode).toBe(200);
 
-    // Those modules do not exist yet, so the page is empty rather than
-    // carrying a clinical entry a receptionist may not see.
     const { items, total } = response.json() as { items: Entry[]; total: number };
     expect(items).toEqual([]);
     expect(total).toBe(0);

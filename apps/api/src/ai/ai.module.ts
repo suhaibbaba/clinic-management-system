@@ -35,9 +35,6 @@ import { PermissionsModule } from "@api/permissions/permissions.module";
 import { ClinicScheduleModule } from "@api/schedule/clinic-schedule.module";
 import { SecretsModule } from "@api/secrets/secrets.module";
 
-// Owns no domain table beyond its own transcript: every tool answers through the service that
-// already answers the same question for a screen, so the assistant and the screen cannot disagree
-// about what a role may read.
 @Module({
   imports: [
     DatabaseModule,
@@ -66,8 +63,6 @@ import { SecretsModule } from "@api/secrets/secrets.module";
         log: LogChatProvider,
         openai: OpenAiChatProvider,
       ): ChatProvider => {
-        // `log` is the silent default, and its echo reads like a broken model rather than a
-        // provider that was never configured. Say which one answered, once, at boot.
         const provider = config.get("AI_PROVIDER", { infer: true }) === "openai" ? openai : log;
 
         new Logger("Assistant").log(
@@ -94,7 +89,6 @@ import { SecretsModule } from "@api/secrets/secrets.module";
     {
       provide: AI_READ_CLIENT,
       inject: [ConfigService],
-      // Its own two connections, so a slow report never holds one the screens are waiting on.
       useFactory: (config: ConfigService<Env, true>): Sql =>
         postgres(config.get("DATABASE_URL", { infer: true }), { max: 2, connect_timeout: 10 }),
     },

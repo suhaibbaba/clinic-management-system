@@ -28,13 +28,11 @@ export function SkeletonStatus(): JSX.Element {
   );
 }
 
-/** Data already on screen stays there; this says the next page of it is on its way. */
 export function RefreshBar({
   active,
   overlay = false,
 }: {
   readonly active: boolean;
-  /** Drawn over the top edge of a positioned parent, so it takes no space and moves nothing. */
   readonly overlay?: boolean;
 }): JSX.Element | null {
   const { t } = useTranslation();
@@ -62,7 +60,6 @@ const cellWidth = (index: number): string => CELL_WIDTHS[index % CELL_WIDTHS.len
 const endAligned = (align: Column<never>["align"]): boolean =>
   align === "numeric" || align === "end";
 
-/** The caller's own columns, so every bar sits at the width its data will occupy. */
 export function SkeletonTable<TRow>({
   columns,
   rows = 5,
@@ -152,7 +149,6 @@ export function SkeletonCard({ count = 3 }: { readonly count?: number }): JSX.El
   );
 }
 
-/** Mirrors `StatCard` inside the row that lays the real cards out. */
 export function SkeletonKpi({ count = 3 }: { readonly count?: number }): JSX.Element {
   return (
     <StatRow cards={count}>
@@ -164,8 +160,6 @@ export function SkeletonKpi({ count = 3 }: { readonly count?: number }): JSX.Ele
           aria-hidden="true"
           className="rounded-card border border-line bg-surface p-[18px_20px] shadow-card"
         >
-          {/* The same boxes the real card settles at: a 30px label chip, the figure's own
-              line, and one caption row. */}
           <Skeleton className="h-(--control-h-sm) w-28 rounded-field" />
           <Skeleton className="mt-2 h-8 w-1/2" />
           <Skeleton className="mt-[7px] h-[18px] w-3/5" />
@@ -223,7 +217,6 @@ const BLOCKS = [
   "start-1 end-1 top-[68%] h-[11%]",
 ] as const;
 
-/** The grid's own shape: an hour gutter beside one column of blocks per doctor. */
 export function SkeletonCalendarDay({ columns = 3 }: { readonly columns?: number }): JSX.Element {
   return (
     <div className="border border-line rounded-card bg-surface p-4 shadow-card">

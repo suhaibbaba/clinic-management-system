@@ -199,7 +199,6 @@ export class DoctorTimeOffService implements OnModuleInit {
       .where(this.scope.where(doctorTimeOff, actor.clinicId, eq(doctorTimeOff.id, id)));
   }
 
-  /** 404 for a doctor from another clinic, exactly as for one that does not exist. */
   private async requireDoctor(clinicId: string, doctorId: string): Promise<void> {
     await this.scope.findOneOrFail(doctors, clinicId, doctorId);
   }

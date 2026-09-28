@@ -31,8 +31,6 @@ type LookupRow = typeof lookupOptions.$inferSelect;
 
 export const LOOKUP_OPTIONS_ENTITY = "lookup_options";
 
-// Every row is the clinic's to rename, switch off or delete, built-in ones included: `is_system` is
-// a label the screen warns on, not a lock. A deleted code stops resolving; nothing is corrupted.
 @Injectable()
 export class LookupsService implements OnModuleInit {
   constructor(
@@ -53,8 +51,6 @@ export class LookupsService implements OnModuleInit {
     });
   }
 
-  // One cached bundle rather than a request per dropdown: a few kilobytes, and one response
-  // invalidated as a unit cannot leave two dropdowns disagreeing.
   async bundle(actor: AuthenticatedUser, query: ListLookupOptionsQuery): Promise<LookupBundle> {
     const filters: (SQL | undefined)[] = [];
 
@@ -186,8 +182,6 @@ export class LookupsService implements OnModuleInit {
     ] as LookupOption[];
   }
 
-  // Soft, because the code is still spoken for and the unique index keeps reserving it. Switching
-  // off leaves the name resolving; deleting takes it, and records fall back to the code.
   async remove(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.requireRow(actor.clinicId, id);
 
@@ -197,8 +191,6 @@ export class LookupsService implements OnModuleInit {
       .where(this.scope.where(lookupOptions, actor.clinicId, eq(lookupOptions.id, id)));
   }
 
-  // The Zod schemas accept any well-formed code — they cannot know what a clinic holds — so "is
-  // that a real appointment type" is answered here.
   async assertCode(clinicId: string, listKey: LookupListKey, code: string): Promise<void> {
     const [row] = await this.db
       .select({ id: lookupOptions.id })
@@ -219,8 +211,6 @@ export class LookupsService implements OnModuleInit {
     }
   }
 
-  // A procedure may not leave a tooth `healthy`: the state-only rows say so in their own
-  // `chartBehavior`, read from the row rather than a second hardcoded list.
   async assertChartOutcome(clinicId: string, code: string | null | undefined): Promise<void> {
     if (code === null || code === undefined || code === "") {
       return;
@@ -256,8 +246,6 @@ export class LookupsService implements OnModuleInit {
     }
   }
 
-  // What the printed documents use: a receipt says whatever this clinic calls `cash`, in the
-  // document's language.
   async labels(
     clinicId: string,
     listKey: LookupListKey,
@@ -276,7 +264,6 @@ export class LookupsService implements OnModuleInit {
     return new Map(rows.map((row) => [row.code, lookupLabel(row, language)]));
   }
 
-  /** Gives a brand-new clinic the built-in lists, so no dropdown starts empty. */
   async seedClinic(clinicId: string): Promise<void> {
     await ensureSystemLookups(this.db, clinicId);
   }
@@ -285,8 +272,6 @@ export class LookupsService implements OnModuleInit {
     return this.scope.findOneOrFail<LookupRow>(lookupOptions, clinicId, id);
   }
 
-  // Unique per list per clinic including against soft-deleted rows — a deleted row's code may still
-  // be sitting in an appointment.
   private async assertCodeIsFree(
     clinicId: string,
     listKey: LookupListKey,

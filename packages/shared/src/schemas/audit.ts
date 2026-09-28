@@ -2,11 +2,9 @@ import { z } from "zod";
 import { AUDIT_ACTIONS } from "@shared/enums";
 import { paginationQuerySchema } from "@shared/schemas/common";
 
-/** Immutable: there is no update or delete endpoint for this resource anywhere in the API. */
 export const auditLogEntrySchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
-  /** Null for actions performed by the system rather than a signed-in user. */
   userId: z.uuid().nullable(),
   action: z.enum(AUDIT_ACTIONS),
   entity: z.string(),
@@ -22,9 +20,7 @@ export const listAuditLogQuerySchema = paginationQuerySchema.extend({
   entityId: z.uuid().optional(),
   userId: z.uuid().optional(),
   action: z.enum(AUDIT_ACTIONS).optional(),
-  /** Inclusive lower bound on `createdAt`. */
   from: z.iso.datetime().optional(),
-  /** Exclusive upper bound on `createdAt`. */
   to: z.iso.datetime().optional(),
 });
 export type ListAuditLogQuery = z.infer<typeof listAuditLogQuerySchema>;

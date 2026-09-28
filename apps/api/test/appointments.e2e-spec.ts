@@ -20,8 +20,6 @@ import { auth, createTestContext, type TestClinic, type TestContext } from "@tes
 
 const TIME_ZONE = "Asia/Damascus";
 
-// Stepping a UTC date forward is wrong for three hours a day: at 22:00 UTC Sunday it is already
-// Monday in Damascus, so the fixture schedule missed and the suite went red every evening.
 function nextMonday(): string {
   let date = localDate(new Date(), TIME_ZONE);
 
@@ -62,8 +60,6 @@ describe("Appointments (e2e)", () => {
 
     fixtures = await seedClinicFixtures(context, clinic, tokens[USER_ROLE.ADMIN]);
 
-    // The clinic opens 09:00–17:00 on Monday, with the timezone the slot
-    // arithmetic is expressed in.
     await context.db
       .update(clinics)
       .set({
@@ -116,12 +112,10 @@ describe("Appointments (e2e)", () => {
 
       expect(body.closedReason).toBeNull();
       expect(body.slots[0]?.start).toBe("09:00");
-      // 30 minutes long, so the last start that still fits before 17:00.
       expect(body.slots.at(-1)?.start).toBe("16:30");
     });
 
     it("says the clinic is closed on a day it does not open", async () => {
-      // Tuesday: the clinic's weekly schedule has Monday only.
       const tuesday = localDate(
         new Date(new Date(`${monday}T12:00:00Z`).getTime() + 86_400_000),
         TIME_ZONE,
@@ -158,13 +152,9 @@ describe("Appointments (e2e)", () => {
 
         const body = response.json() as { closedReason: string; closedNote: string | null };
 
-        // Distinct from `clinic_closed`, which is the weekly pattern: reception
-        // has to be able to say *why* a normally-open Monday is shut.
         expect(body.closedReason).toBe("clinic_closure");
         expect(body.closedNote).toBe("عيد الفطر");
       } finally {
-        // In a `finally`: every test below books on this Monday, so a failed assertion here would
-        // leave the clinic shut and take the rest of the suite with it.
         await context.db.delete(clinicClosures).where(eq(clinicClosures.id, closure?.id ?? ""));
       }
     });
@@ -207,7 +197,6 @@ describe("Appointments (e2e)", () => {
       };
 
       expect((await slotAt("11:00"))?.available).toBe(false);
-      // Half-open ranges: an appointment ending at 11:30 does not block 11:30.
       expect((await slotAt("11:30"))?.available).toBe(true);
 
       await context.app.inject({
@@ -217,7 +206,6 @@ describe("Appointments (e2e)", () => {
         payload: { reason: "اعتذر المريض" },
       });
 
-      // The SQL constraint and `occupiesSlot` must agree about this.
       expect((await slotAt("11:00"))?.available).toBe(true);
     });
 
@@ -251,14 +239,11 @@ describe("Appointments (e2e)", () => {
       const overlapping = await book("09:15");
       expect(overlapping.statusCode).toBe(409);
 
-      // Back to back is not an overlap.
       const adjacent = await book("09:30");
       expect(adjacent.statusCode).toBe(201);
     });
 
     it("holds under two genuinely concurrent inserts", async () => {
-      // The check-then-act race a busy front desk hits. No service-level check can win it, which is
-      // why both requests are fired before either is awaited.
       const bothAtOnce = await Promise.all([book("13:00"), book("13:00")]);
 
       const codes = bothAtOnce.map((response) => response.statusCode).sort();
@@ -307,7 +292,6 @@ describe("Appointments (e2e)", () => {
       const created = await book("14:30");
       const id = (created.json() as { id: string }).id;
 
-      // confirmed → completed would let a no-show be marked as seen.
       const response = await context.app.inject({
         method: "PATCH",
         url: `/appointments/${id}/complete`,
@@ -384,8 +368,6 @@ describe("Appointments (e2e)", () => {
       const visit = response.json() as { id: string; patientId: string; complaint: string };
 
       expect(visit.patientId).toBe(patientId);
-      // The reason travels into the visit as the complaint, so the doctor does
-      // not retype what reception already wrote down.
       expect(visit.complaint).toBe("ألم في الضرس");
 
       const [row] = await context.db
@@ -454,7 +436,6 @@ describe("Appointments (e2e)", () => {
       expect(body.appointments.length).toBeGreaterThan(0);
       expect(body.appointments[0]?.patientName).toBe("مريض المواعيد");
       expect(body.appointments[0]?.doctorName).toBeTruthy();
-      // `endsAt` is derived, never stored.
       expect(body.appointments[0]?.endsAt).toBeTruthy();
     });
 

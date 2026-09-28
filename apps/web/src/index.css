@@ -6,8 +6,6 @@
 
 @import "./base.css";
 
-/* The sheet lives in the page, so print cannot drift from screen. Hiding is by `visibility`: the
-   sheet is nested inside `#root`, and `display: none` on an ancestor would take it too. */
 .print-sheet {
   display: none;
 }
@@ -30,8 +28,6 @@
     visibility: visible;
   }
 
-  /* Out of the app's layout entirely, so the sheet starts at the top left of
-     the page rather than wherever the tab panel happened to put it. */
   .print-root {
     position: absolute;
     top: 0;
@@ -62,8 +58,6 @@
   }
 
   .print-logo {
-    /* Browsers drop background graphics from print; a letterhead mark is content. Where a browser
-       refuses, the sheet still carries the clinic's name in text. */
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
@@ -119,7 +113,6 @@
   .print-table td {
     border: 0.5pt solid var(--color-paper-rule);
     padding: 2mm 3mm;
-    /* Logical, so the sheet mirrors correctly in Arabic. */
     text-align: start;
   }
 
@@ -129,7 +122,6 @@
     font-weight: 700;
   }
 
-  /* Never split a row across two sheets. */
   .print-table tr {
     break-inside: avoid;
   }

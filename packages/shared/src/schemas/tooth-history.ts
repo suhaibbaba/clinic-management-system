@@ -7,7 +7,6 @@ import { performedProcedureSchema } from "@shared/schemas/performed-procedures";
 export const toothHistorySchema = z.object({
   patientId: z.uuid(),
   tooth: z.number().int().refine(isFdiTooth, "Not a valid FDI tooth number"),
-  /** Each procedure carries only the marks that touch this tooth. */
   procedures: z.array(performedProcedureSchema),
   marks: z.array(chartMarkSchema),
 });

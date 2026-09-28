@@ -26,10 +26,8 @@ describe("Clinic logo (e2e)", () => {
   let storedObject: StoredObject | null;
   let storedIcon: (name: string) => StoredObject | null;
   let deleted: string[];
-  /** Clinics other specs left behind, hidden for the length of this one — see `beforeAll`. */
   let hidden: string[] = [];
 
-  /** The derived set lives under the logo's own key, so a stat tells the two apart by path. */
   const iconNameIn = (key: string): string | undefined => key.split("/icons/")[1];
   const isLogoKey = (key: string): boolean => iconNameIn(key) === undefined;
 
@@ -41,8 +39,6 @@ describe("Clinic logo (e2e)", () => {
       tokens[role] = await context.login(clinic.phones[role]);
     }
 
-    // Signing is offline; only the read-back of a stored object and the
-    // cleanup delete need a stand-in.
     storage = context.app.get(StorageService);
     storage.statObject = async (key: string): Promise<StoredObject | null> => {
       const icon = iconNameIn(key);
@@ -53,9 +49,6 @@ describe("Clinic logo (e2e)", () => {
       deleted.push(key);
     };
 
-    // `branding`, `manifest` and the icon redirect answer only where the deployment serves exactly
-    // one clinic. The specs share one database and nothing truncates between them, so whatever ran
-    // first would otherwise decide whether this one passes.
     const others = await context.db
       .select({ id: clinics.id })
       .from(clinics)
@@ -119,8 +112,6 @@ describe("Clinic logo (e2e)", () => {
 
       const upload = signed.json() as PresignClinicLogoResponse;
       expect(upload.maxSizeBytes).toBe(MAX_CLINIC_LOGO_BYTES);
-      // The key is the API's, built from the caller's own clinic — never the
-      // client's, and never inside a patient's folder.
       expect(upload.key).toMatch(new RegExp(`^clinic/${clinic.id}/branding/`));
       expect(upload.uploadUrl).toContain(upload.key);
 
@@ -131,7 +122,6 @@ describe("Clinic logo (e2e)", () => {
       expect(body.logoKey).toBe(upload.key);
       expect(body.logoUrl).toContain(upload.key);
 
-      // And it is there on the next read, for the sidebar to draw.
       const read = await context.app.inject({ method: "GET", url: "/clinic", headers: asAdmin() });
       expect((read.json() as Clinic).logoUrl).toContain(upload.key);
     });
@@ -145,7 +135,6 @@ describe("Clinic logo (e2e)", () => {
       await confirm(second);
 
       expect(deleted.filter(isLogoKey)).toEqual([first]);
-      // And the icons rendered from it, which are no longer a picture of anything.
       expect(deleted.filter((key) => !isLogoKey(key)).sort()).toEqual(
         CLINIC_ICONS.map((icon) => `${first}/icons/${icon.name}`).sort(),
       );
@@ -216,7 +205,6 @@ describe("Clinic logo (e2e)", () => {
       const branding = await context.app.inject({ method: "GET", url: "/clinic/branding" });
       expect((branding.json() as ClinicBranding).iconsAt).not.toBeNull();
 
-      // No token: a browser fetches a favicon and a manifest icon without one.
       const icon = await context.app.inject({ method: "GET", url: "/clinic/icon/favicon.ico" });
 
       expect(icon.statusCode).toBe(302);
@@ -224,7 +212,6 @@ describe("Clinic logo (e2e)", () => {
       expect(icon.headers["cache-control"]).toContain("max-age=");
     });
 
-    // The logo is still the clinic's; only its tab mark falls back to the product's.
     it("leaves the tab on the product mark while the set is missing", async () => {
       await uploadLogo();
 
@@ -297,15 +284,12 @@ describe("Clinic logo (e2e)", () => {
       const body = response.json() as ClinicManifest;
       const branding = await context.app.inject({ method: "GET", url: "/clinic/branding" });
 
-      // One resolution of the label: iOS reads the branding payload, Android reads this.
       expect(body.name).toBe((branding.json() as ClinicBranding).appName);
       expect(body.name).not.toBe("");
       expect(body.short_name.length).toBeLessThanOrEqual(MAX_APP_SHORT_NAME_LENGTH);
       expect(body).toMatchObject({ lang: "ar", dir: "rtl", display: "standalone", scope: "/" });
     });
 
-    // Chromium declines to install without a 192 and a 512, which is better than being handed an
-    // address that answers 404.
     it("offers no icons until a set has been rendered", async () => {
       await context.app.inject({ method: "DELETE", url: "/clinic/logo", headers: asAdmin() });
 
@@ -401,7 +385,6 @@ describe("Clinic logo (e2e)", () => {
       expect(icon.headers["location"]).toContain(`${appIcon}/icons/favicon.ico`);
     });
 
-    // The source did not change, so the set it rendered is still a picture of it.
     it("keeps the set when the logo changes underneath it", async () => {
       const { appIcon } = await uploadBoth();
 
@@ -429,7 +412,6 @@ describe("Clinic logo (e2e)", () => {
       expect(deleted).toContain(appIcon);
       expect(deleted).toHaveLength(1 + CLINIC_ICONS.length);
 
-      // Until the client re-renders, the tab is on the product mark.
       expect(
         (await context.app.inject({ method: "GET", url: "/clinic/icon/favicon.ico" })).statusCode,
       ).toBe(404);
@@ -469,8 +451,6 @@ describe("Clinic logo (e2e)", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    // The claim in the request body is not the file: what is checked on confirm is what the bytes
-    // turned out to be.
     it("refuses bytes that turned out not to be an image, and deletes them", async () => {
       const key = ((await presign()).json() as PresignClinicLogoResponse).key;
       storedObject = { sizeBytes: 40_000, mime: "application/zip" };
@@ -506,7 +486,6 @@ describe("Clinic logo (e2e)", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    /* A patient's X-ray is not the clinic's letterhead. */
     it("refuses a key from inside a patient folder", async () => {
       const response = await confirm(`clinic/${clinic.id}/patients/x/xray_panoramic/scan.png`);
 
@@ -542,7 +521,6 @@ describe("Clinic logo (e2e)", () => {
       },
     );
 
-    /* Every role draws the sidebar, so every role reads the logo. */
     it("lets every signed-in role read it", async () => {
       const key = ((await presign()).json() as PresignClinicLogoResponse).key;
       await confirm(key);
@@ -559,14 +537,11 @@ describe("Clinic logo (e2e)", () => {
     });
   });
 
-  /** Public because the sign-in screen has no token, and quiet unless the answer is a single clinic. */
   describe("the sign-in screen", () => {
     it("answers without a token", async () => {
       const response = await context.app.inject({ method: "GET", url: "/clinic/branding" });
 
       expect(response.statusCode).toBe(200);
-      // The tab mark and the home-screen label are read before anyone signs in, so they travel
-      // with the name and the logo — and nothing else does.
       expect(Object.keys(response.json() as ClinicBranding).sort()).toEqual([
         "appName",
         "iconsAt",
@@ -582,8 +557,6 @@ describe("Clinic logo (e2e)", () => {
     });
   });
 
-  // A logo is not medical data, and a URL that changed on every response is a URL no browser could
-  // ever reuse — which is the whole reason the rail used to flash on every page.
   describe("a URL a browser can cache", () => {
     const logoUrl = async (): Promise<string> => {
       const read = await context.app.inject({ method: "GET", url: "/clinic", headers: asAdmin() });
@@ -610,11 +583,9 @@ describe("Clinic logo (e2e)", () => {
       const cacheControl = new URL(await logoUrl()).searchParams.get("response-cache-control");
 
       expect(cacheControl).toMatch(/^public, max-age=\d+/);
-      // Inside the signature, so it cannot be stripped or forged on the way.
       expect(new URL(await logoUrl()).searchParams.get("X-Amz-SignedHeaders")).not.toBeNull();
     });
 
-    // The chrome is drawn from the session's own response, so nothing waits on a second request.
     it("travels with the session bootstrap", async () => {
       const response = await context.app.inject({ method: "GET", url: "/me", headers: asAdmin() });
       const profile = response.json() as { clinic: { name: unknown; logoUrl: string } };

@@ -9,7 +9,6 @@ import {
 } from "@shared/enums";
 import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
 
-/** Append-only like the ledgers: a failed message is a row saying so, never an absence. */
 export const notificationLogEntrySchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
@@ -19,7 +18,6 @@ export const notificationLogEntrySchema = z.object({
   vars: z.record(z.string(), z.string()),
   status: z.enum(NOTIFICATION_STATUSES),
   error: z.string().nullable(),
-  /** The appointment it is about, when it is about one. Drives reminder dedupe. */
   appointmentId: uuidSchema.nullable(),
   createdAt: z.iso.datetime(),
 });
@@ -32,17 +30,14 @@ export const listNotificationsQuerySchema = paginationQuerySchema.extend({
 export type ListNotificationsQuery = z.infer<typeof listNotificationsQuerySchema>;
 
 export const notificationSettingsSchema = z.object({
-  /** Master switch. Off means the whole module is inert, scheduler included. */
   enabled: z.boolean().default(true),
   channel: z.enum(NOTIFICATION_CHANNELS).default(NOTIFICATION_CHANNEL.SMS),
-  /** Per-reminder toggles: a clinic may want the day before but not the hour. */
   remind24h: z.boolean().default(true),
   remind2h: z.boolean().default(true),
   templates: z.record(z.string(), z.string()).default({}),
 });
 export type NotificationSettings = z.infer<typeof notificationSettingsSchema>;
 
-/** Arabic: the UI's English mode is for staff, and an SMS is not the UI. */
 export const DEFAULT_NOTIFICATION_TEMPLATES: Record<NotificationTemplate, string> = {
   [NOTIFICATION_TEMPLATE.BOOKING_OTP]:
     "رمز تأكيد حجزك في {clinic} هو {code}. صالح لمدة {minutes} دقائق.",
@@ -60,11 +55,9 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: Record<NotificationTemplate, string
     "حجزنا لك موعداً في {clinic} مع {doctor} يوم {date} الساعة {time}.",
   [NOTIFICATION_TEMPLATE.URGENT_DECLINED]:
     "بخصوص طلبك العاجل في {clinic}: {reason}. للاستفسار تواصل معنا.",
-  // Already written in full by the assistant and confirmed by a person; the template only frames it.
   [NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE]: "{body}",
 };
 
-/** Never throws: unreadable settings must not stop a reminder from going out. */
 export function notificationSettings(settings: unknown): NotificationSettings {
   const raw =
     typeof settings === "object" && settings !== null

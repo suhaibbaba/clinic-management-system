@@ -3,19 +3,14 @@ import { Icon } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
 import { parts, type TestIdProps } from "@ui/lib/testid";
 
-/** Within this many pixels of the end still counts as "at the bottom". */
 const AT_BOTTOM_SLACK = 56;
 
 export interface ChatThreadProps extends TestIdProps {
   readonly children: ReactNode;
-  /** The pill's words. The library holds no copy of its own. */
   readonly jumpLabel: string;
   readonly className?: string | undefined;
 }
 
-// Follows the answer as it arrives, and stops the moment somebody scrolls up to read something
-// further back — a thread that yanks itself down mid-sentence is unreadable. The pill is how they
-// get back, and it is the only thing that says the conversation moved on without them.
 export function ChatThread({
   children,
   jumpLabel,
@@ -43,8 +38,6 @@ export function ChatThread({
     }
   }, []);
 
-  // The content grows a token at a time, which fires no scroll event of its own. Guarded because
-  // jsdom has no ResizeObserver and a thread still has to render there.
   useEffect(() => {
     const node = content.current;
 

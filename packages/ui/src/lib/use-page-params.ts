@@ -6,7 +6,6 @@ export interface PageParams {
   readonly perPage: number;
   readonly setPage: (page: number) => void;
   readonly setPerPage: (perPage: number) => void;
-  /** What a changed filter calls: a narrower list has no page seven. */
   readonly resetPage: () => void;
 }
 
@@ -17,8 +16,6 @@ export function usePageParams(options: readonly number[] = PER_PAGE_OPTIONS): Pa
   const requested = Number.parseInt(params.get("perPage") ?? "", 10);
   const perPage = options.includes(requested) ? requested : DEFAULT_PER_PAGE;
 
-  // Every write goes through the updater form, never a captured copy: a filter that sets its own
-  // param and then resets the page would otherwise put the first write back.
   const write = (change: (next: URLSearchParams) => void): void => {
     setParams(
       (current) => {

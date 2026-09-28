@@ -12,11 +12,8 @@ export interface MoneyInputProps extends Omit<
   currency?: string | undefined;
 }
 
-/** Everything but digits, dropped as it is typed — an Arabic keypad's digits kept, not dropped. */
 const digitsOnly = (value: string): string => foldDigits(value).replace(/\D/g, "");
 
-// Refuses a decimal separator as it is typed: on a numeric keypad a stray `.` turns 6000 into 60.00
-// silently. `inputMode="numeric"`, since `decimal` puts that key on the pad.
 export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(function MoneyInput(
   { currency, className, onChange, ...props },
   ref,
@@ -28,8 +25,6 @@ export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(function
       ref={ref}
       data-part="money-input"
       {...(symbol !== "" && { suffix: symbol })}
-      // The digits read left to right whatever the page says; `Input` keeps the
-      // field's *alignment* with the page (see its own note).
       dir="ltr"
       inputMode="numeric"
       autoComplete="off"

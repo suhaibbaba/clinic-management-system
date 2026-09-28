@@ -70,8 +70,6 @@ describe("Translations (e2e)", () => {
     expect(rows.filter((row) => row.key === "labs.orders.title")).toHaveLength(1);
   });
 
-  // The shipped default has to keep moving with the deploy, so a reset removes the row rather than
-  // writing today's string into it.
   it("resets a key by dropping it out of the bundle", async () => {
     const response = await post("/translations/reset", tokens[USER_ROLE.ADMIN], {
       language: "ar",
@@ -110,8 +108,6 @@ describe("Translations (e2e)", () => {
       expect(saved.en).toMatchObject({ nav: { patients: "Clients" } });
     });
 
-    // Clearing the box is how the shipped wording comes back, so a blank value deletes the row
-    // rather than storing an empty label.
     it("treats a blank value as a reset", async () => {
       const response = await post("/translations/save", tokens[USER_ROLE.ADMIN], {
         items: [
@@ -138,8 +134,6 @@ describe("Translations (e2e)", () => {
       expect((saved.ar as { nav: { appointments: string } }).nav.appointments).toBe("الحجوزات");
     });
 
-    // Refused whole by the schema, before a row is written: the transaction behind it never starts,
-    // which is the same outcome the footer needs — all of it or none.
     it("writes none of the batch when one row is refused", async () => {
       const before = await bundle(tokens[USER_ROLE.ADMIN]);
 

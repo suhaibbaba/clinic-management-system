@@ -1,11 +1,5 @@
-/**
- * The `ai_read` views `query_data` may read: a staff member's view of the clinic, scoped to one
- * clinic by `app.clinic_id` inside every view. The migration is rendered from this list and a test
- * holds the two equal, so a column the model is told about is a column that exists.
- */
 export interface ReadColumn {
   readonly name: string;
-  /** The expression over the source alias `t` (and `c`, the clinic), when not `t.<name>`. */
   readonly sql?: string;
   readonly note?: string;
 }
@@ -14,9 +8,7 @@ export interface ReadView {
   readonly name: string;
   readonly description: string;
   readonly from: string;
-  /** Visit and treatment detail: readable only by a role that may read visits. */
   readonly clinical?: boolean;
-  /** Tables without soft delete are not filtered on it. */
   readonly softDeleted?: boolean;
   readonly joins?: string;
   readonly columns: readonly ReadColumn[];
@@ -24,13 +16,11 @@ export interface ReadView {
 
 export const READ_SCHEMA = "ai_read";
 
-/** Phone numbers never reach the model whole from here. */
 const last4 = (column: string): ReadColumn => ({
   name: `${column}_last4`,
   sql: `right(t.${column}, 4)`,
 });
 
-/** The clinic's own wall clock, so "per day" means the clinic's day. */
 const local = (column: string): ReadColumn => ({
   name: `${column}_local`,
   sql: `t.${column} AT TIME ZONE coalesce(nullif(c.settings ->> 'timezone', ''), 'Asia/Hebron')`,
@@ -292,7 +282,6 @@ export const CLINICAL_VIEWS = new Set(
   READ_VIEWS.filter((view) => view.clinical).map((view) => view.name),
 );
 
-/** The block the prompt carries: stable, so it sits in the cached prefix. */
 export function viewCatalogue(): string {
   return READ_VIEWS.map(
     (view) =>
@@ -301,7 +290,6 @@ export function viewCatalogue(): string {
   ).join("\n");
 }
 
-/** The migration's body. Views run with their owner's rights; `ai_reader` may read only them. */
 export function renderReadSchema(): string {
   const views = READ_VIEWS.map((view) => {
     const columns = view.columns
@@ -324,7 +312,6 @@ export function renderReadSchema(): string {
   });
 
   return [
-    // A role is cluster-wide: a second database on the same server finds it already there.
     [
       "DO $$ BEGIN",
       "  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'ai_reader') THEN",

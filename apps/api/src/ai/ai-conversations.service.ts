@@ -18,17 +18,11 @@ import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { aiConversations, aiMessages, aiProposals } from "@api/database/schema";
 
-/** Tool rows are the model's working: recorded, never replayed and never served. */
 const SERVED_ROLES = [AI_MESSAGE_ROLE.USER, AI_MESSAGE_ROLE.ASSISTANT];
 const REPLAYED_ROLES = [...SERVED_ROLES, AI_MESSAGE_ROLE.TOOL];
 
-/** A long listing replayed whole would crowd out the conversation it belongs to. */
 const REPLAY_MAX_CHARS = 4000;
 
-/**
- * The last two tool results, verbatim, so "and the one after him?" has the list it refers to;
- * older ones are dropped, oldest first, and the pair together stays under a budget.
- */
 const REPLAYED_RESULTS = 2;
 const REPLAY_BUDGET_CHARS = 6000;
 
@@ -68,9 +62,7 @@ function replayed(
         ...envelope,
         card_outcome: { status: outcome.status, ...(outcome.error && { error: outcome.error }) },
       });
-    } catch {
-      // Not ours to reshape; replayed as it was stored.
-    }
+    } catch {}
   }
 
   return text.length > REPLAY_MAX_CHARS
@@ -85,8 +77,6 @@ export interface AppendedMessage {
   readonly id: string;
 }
 
-// A conversation is the caller's own, admin included: it quotes back whatever that person was
-// allowed to read, and the role check that let them read it was theirs, not somebody else's.
 @Injectable()
 export class AiConversationsService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
@@ -115,9 +105,6 @@ export class AiConversationsService {
     return toPaginated(rows.map(toConversation), totals?.value ?? 0, query);
   }
 
-  // The thread as a person reads it. Tool rows are kept for the audit trail but never served: they
-  // are the model's working, and they carry records in a shape no screen checked. The one that
-  // drafted a proposal is served empty, as the place its confirmation card goes.
   async messages(actor: AuthenticatedUser, conversationId: string): Promise<AiMessage[]> {
     await this.requireOwn(actor, conversationId);
 
@@ -133,7 +120,6 @@ export class AiConversationsService {
             isNotNull(aiMessages.proposalId),
             isNotNull(aiMessages.view),
           ),
-          // A turn that failed leaves an empty assistant row carrying only its token cost.
           ne(aiMessages.content, ""),
         ),
       )
@@ -162,7 +148,6 @@ export class AiConversationsService {
     return toConversation(row);
   }
 
-  /** Soft delete, and its messages with it — nothing here is ever removed. */
   async softDelete(actor: AuthenticatedUser, conversationId: string): Promise<void> {
     await this.requireOwn(actor, conversationId);
 
@@ -190,7 +175,6 @@ export class AiConversationsService {
     return row?.loadedGroups ?? [];
   }
 
-  /** Adds groups to what the conversation keeps loaded; returns the whole set. */
   async loadGroups(conversationId: string, groups: readonly string[]): Promise<string[]> {
     const [row] = await this.db
       .update(aiConversations)
@@ -214,7 +198,6 @@ export class AiConversationsService {
       .limit(1);
 
     if (!row) {
-      // Somebody else's conversation is a 404, like another clinic's row: a 403 confirms it exists.
       throw new NotFoundException("Resource not found");
     }
 
@@ -283,11 +266,6 @@ export class AiConversationsService {
     return row;
   }
 
-  // What the model is shown of what came before: the last N turns, oldest first. Tool rows are
-  // left out — replaying one without the call that asked for it is not a valid transcript, and
-  // the answer it produced is already in the assistant row beside it.
-  // What the model worked with, replayed: its tool results, so an id found three messages ago is
-  // not looked up again, and each card's outcome, so it knows what a confirmation actually did.
   async history(conversationId: string, limit: number): Promise<ChatMessage[]> {
     const rows = (
       await this.db
@@ -305,7 +283,6 @@ export class AiConversationsService {
         .limit(limit)
     ).reverse();
 
-    // The cut can land inside a turn; a thread that opens on a tool result is one the model rejects.
     const first = rows.findIndex((row) => row.role === AI_MESSAGE_ROLE.USER);
     const kept = replayable(first === -1 ? [] : rows.slice(first));
     const outcomes = await this.cardOutcomes(kept);
@@ -380,8 +357,6 @@ export class AiConversationsService {
   }
 }
 
-// The first line of the question, which is what a person recognises the thread by. Renaming it is
-// an edit away.
 function titleFrom(message: string): string {
   const flattened = message.replace(/\s+/g, " ").trim();
 
@@ -397,8 +372,6 @@ const toConversation = (row: ConversationRow): AiConversation => ({
   updatedAt: row.updatedAt.toISOString(),
 });
 
-// A tool row is served only for what the page draws from it — a card, or a table — and never with
-// its envelope, which is what the model read.
 const toMessage = (row: MessageRow): AiMessage =>
   row.proposalId || row.view
     ? {

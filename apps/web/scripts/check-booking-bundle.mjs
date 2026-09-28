@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-// Measures what the browser actually downloads for `booking.html` — every script and modulepreload
-// it names, gzipped. Usage: node scripts/check-booking-bundle.mjs [--limit 100] [--target 80]
 import { gzipSync } from "node:zlib";
 import { readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
@@ -16,9 +14,7 @@ const arg = (name, fallback) => {
   return index === -1 ? fallback : Number(process.argv[index + 1]);
 };
 
-/** Fails the build. Set well above the target so it flags a regression, not a rounding. */
 const LIMIT_KB = arg("limit", 100);
-/** What the page is designed to weigh; reported, never enforced. */
 const TARGET_KB = arg("target", 80);
 
 const kb = (bytes) => bytes / 1024;
@@ -35,8 +31,6 @@ async function main() {
     process.exit(1);
   }
 
-  // Both the entry script and everything the page preloads: a module the
-  // browser is told to fetch before rendering is part of the page's weight.
   const references = [...html.matchAll(/(?:src|href)="([^"]+\.js)"/g)].map(([, path]) => path);
 
   if (references.length === 0) {

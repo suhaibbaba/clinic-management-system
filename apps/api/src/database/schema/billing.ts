@@ -23,12 +23,8 @@ const softDeleteColumn = { deletedAt: timestamp("deleted_at", { withTimezone: tr
 
 const currentEntries = sql`deleted_at is null and reverses_id is null and reversed_at is null`;
 
-// `numeric(10,2)`, read and written as a string — never a float. Signed: a reversing entry carries
-// the negative of what it cancels.
 const money = (name: string) => numeric(name, { precision: 10, scale: 2 });
 
-// Append-only. A wrong amount is cancelled by inserting its negative with `reverses_id` pointing
-// back, and the corrected amount is a new row.
 export const charges = pgTable(
   "charges",
   {
@@ -39,8 +35,6 @@ export const charges = pgTable(
     patientId: uuid("patient_id")
       .notNull()
       .references(() => patients.id),
-    // At most one charge per procedure is in force, enforced by `charges_procedure_uniq`. An
-    // amended procedure keeps all three rows. Null for a hand-raised charge.
     performedProcedureId: uuid("performed_procedure_id").references(() => performedProcedures.id),
     amount: money("amount").notNull(),
     discount: money("discount").notNull().default("0.00"),
@@ -59,8 +53,6 @@ export const charges = pgTable(
   ],
 );
 
-// `receipt_number` comes from `clinic_counters` in the same transaction, so the sequence is
-// gapless: a Postgres sequence would not roll back with it.
 export const payments = pgTable(
   "payments",
   {
@@ -72,15 +64,11 @@ export const payments = pgTable(
       .notNull()
       .references(() => patients.id),
     amount: money("amount").notNull(),
-    /** A `payment_method` lookup code — a clinic may add "شيك". */
     method: text("method").notNull(),
     note: text("note"),
-    /** Null on a reversal: it is documented by the receipt it cancels. */
     receiptNumber: integer("receipt_number"),
     reversesId: uuid("reverses_id"),
-    /** Back-pointer, set on the original when its reversal is written. */
     reversedAt: timestamp("reversed_at", { withTimezone: true }),
-    /** The user who took the money, kept apart from `created_by`. */
     receivedBy: uuid("received_by").references(() => users.id),
     ...auditColumns,
     ...softDeleteColumn,
@@ -93,8 +81,6 @@ export const payments = pgTable(
   ],
 );
 
-// Bumped with `UPDATE ... RETURNING` inside the payment's transaction: the row lock serialises
-// concurrent payments and a rollback gives the number back.
 export const clinicCounters = pgTable("clinic_counters", {
   clinicId: uuid("clinic_id")
     .primaryKey()

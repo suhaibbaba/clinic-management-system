@@ -12,15 +12,11 @@ export interface Letterhead {
   readonly address: string;
   readonly phone: string;
   readonly currency: string;
-  /** The clinic's own document language — never the reader's. */
   readonly language: DocumentLanguage;
-  /** Dates print in the clinic's zone, not the server's. */
   readonly timeZone: string;
   readonly logo: FetchedObject | null;
 }
 
-// One service, so a clinic's logo cannot appear on three sheets and not the fourth. Fetched per
-// document — a cache would hand out yesterday's mark on the day a clinic rebrands.
 @Injectable()
 export class LetterheadService {
   constructor(

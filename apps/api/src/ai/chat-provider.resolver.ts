@@ -5,8 +5,6 @@ import { OpenAiChatProvider } from "@api/ai/openai-chat.provider";
 import type { Env } from "@api/config/env.schema";
 import { SecretsService } from "@api/secrets/secrets.service";
 
-// A clinic that entered its own OpenAI key is answered on it, and billed for it; every other clinic
-// gets the provider the environment chose. Tests never leave that one, whatever a row says.
 @Injectable()
 export class ChatProviderResolver {
   constructor(

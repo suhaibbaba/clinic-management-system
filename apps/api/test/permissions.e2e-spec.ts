@@ -1,7 +1,6 @@
 import { ITEM_CATEGORY, ITEM_UNIT, USER_ROLE, type Permissions } from "@clinic/shared";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
-/** A capability the receptionist does not ship with, reached by one GET. */
 const AUDIT = { capability: "audit.list", url: "/audit-log" };
 
 describe("Permissions (e2e)", () => {
@@ -55,8 +54,6 @@ describe("Permissions (e2e)", () => {
     expect(response.statusCode).toBe(200);
     expect(body.capabilities.length).toBeGreaterThan(100);
     expect(body.capabilities.map((entry) => entry.key)).toContain(AUDIT.capability);
-    // Every capability is answered for every role — a switch with nothing behind it would draw
-    // itself off.
     for (const entry of body.roles) {
       expect(Object.keys(entry.allows)).toHaveLength(body.capabilities.length);
     }
@@ -144,8 +141,6 @@ describe("Permissions (e2e)", () => {
   });
 
   it("a grant is the whole answer — no service keeps a second role table behind the guard", async () => {
-    // Three stock movements are three endpoints with three permissions; the module used to check
-    // the role again on the way past, which made a granted switch do nothing at all.
     const item = await context.app.inject({
       method: "POST",
       url: "/inventory/items",
@@ -181,7 +176,6 @@ describe("Permissions (e2e)", () => {
 
     expect(admin.statusCode).toBe(400);
     expect(nonsense.statusCode).toBe(400);
-    // The switch the admin was denied changed nothing: they still hold it.
     expect(await reachesAuditLog(adminToken)).toBe(200);
   });
 });

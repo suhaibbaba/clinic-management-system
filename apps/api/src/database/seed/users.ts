@@ -18,8 +18,6 @@ export interface UpsertUserResult {
   readonly notes: readonly string[];
 }
 
-// Matched on either identifier, email winning, because matching on the phone alone missed when the
-// seeded numbers moved and the insert hit `users_email_uniq`. The drifted one is then rewritten.
 export async function upsertUser(
   db: Db,
   clinicId: string,
@@ -46,8 +44,6 @@ export async function upsertUser(
     matches[0];
 
   if (existing) {
-    // Accounts are unique system-wide, not per clinic, so an account in another clinic means the
-    // clinic lookup adopted the wrong row.
     if (existing.clinicId !== clinicId) {
       throw new Error(
         `The seed account ${account.email} already belongs to clinic ${existing.clinicId}, ` +

@@ -24,8 +24,6 @@ function sourceFiles(directory: string): string[] {
 
 const specificity = (key: string): number => key.indexOf("*");
 
-// Node picks the pattern with the longest literal prefix, then the longest suffix; a literal key
-// beats every pattern. Mirrored here so the test fails for the same reason a runtime import would.
 function resolve(specifier: string, map: Record<string, string | null>): string | null {
   if (specifier in map) {
     return map[specifier] ?? null;

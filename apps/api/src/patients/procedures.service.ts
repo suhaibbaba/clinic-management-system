@@ -108,8 +108,6 @@ export class ProceduresService implements OnModuleInit {
     return toProcedure(row, marks.get(row.id) ?? []);
   }
 
-  // `options.planItemId` is set only by the plan conversion, never from the body: a client may not
-  // staple a procedure onto an arbitrary plan item.
   async create(
     actor: AuthenticatedUser,
     input: CreatePerformedProcedureInput,
@@ -119,13 +117,10 @@ export class ProceduresService implements OnModuleInit {
     await this.requireDoctor(actor, input.doctorId);
 
     const catalogItem = await this.catalog.requirePriced(actor.clinicId, input.procedureId);
-    // Snapshot: a later catalog price change must never rewrite history.
     const price = input.price ?? catalogItem.defaultPrice;
 
     await this.assertMarksMatchSpecialty(actor.clinicId, catalogItem.specialtyId, input.chartMarks);
 
-    // One transaction: the procedure, its chart marks and its charge commit together, because a
-    // procedure without its charge is undetectable later.
     return this.db.transaction(async (tx) => {
       const [row] = await tx
         .insert(performedProcedures)
@@ -225,8 +220,6 @@ export class ProceduresService implements OnModuleInit {
         ? await this.replaceMarks(tx, actor, row.id, input.chartMarks)
         : ((await this.marksFor(actor.clinicId, [row.id])).get(row.id) ?? []);
 
-      // What is owed derives from price, discount and status, so a change to any re-bills — never
-      // an update: the charge in force is reversed and the new figure appended.
       const rebills =
         row.price !== existing.price ||
         row.discount !== existing.discount ||
@@ -249,8 +242,6 @@ export class ProceduresService implements OnModuleInit {
     });
   }
 
-  // The audit entry for the procedure itself is the interceptor's; a visit's delete calls
-  // `removeInTransaction` directly and records its procedures there.
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     const row = await this.patientAccess.requireRow<ProcedureRow>(actor, performedProcedures, id);
 
@@ -260,7 +251,6 @@ export class ProceduresService implements OnModuleInit {
     });
   }
 
-  /** Soft-deletes a procedure with its chart marks and reverses its charge; never checks payments. */
   async removeInTransaction(
     tx: DatabaseExecutor,
     actor: AuthenticatedUser,
@@ -285,7 +275,6 @@ export class ProceduresService implements OnModuleInit {
     });
   }
 
-  /** Marks are owned by their procedure, so a write replaces the whole set. */
   private async replaceMarks(
     tx: DatabaseExecutor,
     actor: AuthenticatedUser,
@@ -356,8 +345,6 @@ export class ProceduresService implements OnModuleInit {
     return grouped;
   }
 
-  // The specialty row decides which chart type a mark must match, so a tooth cannot be recorded
-  // against a skeleton — data-driven, not a branch on "dental".
   private async assertMarksMatchSpecialty(
     clinicId: string,
     specialtyId: string,

@@ -1,8 +1,5 @@
 import type { TimeRange } from "@clinic/shared";
 
-// Pure arithmetic on minutes from local midnight — no database, no clock — so reception and the
-// anonymous booking page get the same answer. Instants are the caller's problem.
-
 export interface BusyInterval {
   readonly startMinute: number;
   readonly endMinute: number;
@@ -23,38 +20,28 @@ export type ClosedReason =
   | "day_over";
 
 export interface SlotComputation {
-  /** Null when at least one slot is bookable. */
   readonly closedReason: ClosedReason | null;
-  /** Every slot in the day, taken ones included, so the grid can grey them. */
   readonly slots: readonly ComputedSlot[];
 }
 
 export interface SlotComputationInput {
-  /** The clinic's opening hours for this weekday. Empty means closed. */
   readonly clinicRanges: readonly TimeRange[];
-  /** The doctor's working hours for this weekday. Empty means not working. */
   readonly doctorRanges: readonly TimeRange[];
-  /** A dated clinic closure covers this day — shut whatever the weekday says. */
   readonly isClosed: boolean;
-  // Separate from `busy`: a slot lost to another patient may free up, one lost to an absence will
-  // not, and the answer reports which emptied the day.
   readonly timeOff: readonly BusyInterval[];
   readonly busy: readonly BusyInterval[];
   readonly durationMinutes: number;
   readonly stepMinutes: number;
-  /** The caller passes "now" for today — deciding what now is is not this module's business. */
   readonly notBeforeMinute?: number | undefined;
 }
 
 const MINUTES_PER_DAY = 24 * 60;
 
-/** `09:30` → 570. Assumes the `HH:MM` shape `timeOfDaySchema` already enforces. */
 export function toMinutes(time: string): number {
   const [hours = "0", minutes = "0"] = time.split(":");
   return Number(hours) * 60 + Number(minutes);
 }
 
-/** 570 → `09:30`. Clamped to the day so a rounding error cannot produce `24:30`. */
 export function toTimeOfDay(minute: number): string {
   const clamped = Math.max(0, Math.min(MINUTES_PER_DAY, Math.round(minute)));
   const hours = Math.floor(clamped / 60);
@@ -93,7 +80,6 @@ export function intersectRanges(
   return overlaps.sort((a, b) => a.start - b.start);
 }
 
-/** Half-open overlap, matching the database's `[)` ranges exactly. */
 const overlaps = (a: Interval, b: BusyInterval): boolean =>
   a.start < b.endMinute && b.startMinute < a.end;
 
@@ -132,8 +118,6 @@ export function computeDaySlots(input: SlotComputationInput): SlotComputation {
     }
   }
 
-  // Windows can overlap, so the same start is produced twice; de-duplicated on the way out rather
-  // than by pre-merging.
   const unique = new Map<number, ComputedSlot>();
   for (const slot of slots) {
     unique.set(slot.startMinute, slot);

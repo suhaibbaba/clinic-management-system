@@ -45,8 +45,6 @@ type MovementRow = typeof stockMovements.$inferSelect;
 
 export const STOCK_MOVEMENTS_ENTITY = "stock_movements";
 
-// Append-only: a mistake is the opposite entry, so quantity stays a plain `sum()`. Three methods
-// rather than one `type` field — three acts, three rules, a readable audit trail.
 @Injectable()
 export class StockMovementsService implements OnModuleInit {
   constructor(
@@ -98,8 +96,6 @@ export class StockMovementsService implements OnModuleInit {
     const where = and(eq(stockMovements.clinicId, actor.clinicId), ...filters);
     const { limit, offset } = toLimitOffset(query);
 
-    // Summed over the item's whole ledger before any filter: a window in the filtered query would
-    // count only the rows a type or date range let through.
     const ledger = this.db
       .select({
         id: stockMovements.id,
@@ -163,7 +159,6 @@ export class StockMovementsService implements OnModuleInit {
     );
   }
 
-  /** Buying stock. Positive, and priced — that is what a supplier statement totals. */
   async purchase(actor: AuthenticatedUser, input: PurchaseStockInput): Promise<StockMovement> {
     await this.items.requireRow(actor.clinicId, input.itemId);
 
@@ -183,8 +178,6 @@ export class StockMovementsService implements OnModuleInit {
     });
   }
 
-  // Stored negative — the sign is the type's, not the form's. The patient is read off the procedure
-  // rather than trusted from the request.
   async consume(actor: AuthenticatedUser, input: ConsumeStockInput): Promise<StockMovement> {
     await this.items.requireRow(actor.clinicId, input.itemId);
 
@@ -248,8 +241,6 @@ export class StockMovementsService implements OnModuleInit {
     });
   }
 
-  // Nothing leaves the shelf that is not on it: a use, or a correction taking stock off, stops at
-  // zero. A count found higher than recorded is the correction that adds.
   private async assertOnHand(clinicId: string, itemId: string, taking: string): Promise<void> {
     const [stock] = await this.db
       .select({ onHand: sql<string>`coalesce(sum(${stockMovements.quantity}), 0)::text` })
@@ -261,8 +252,6 @@ export class StockMovementsService implements OnModuleInit {
     }
   }
 
-  // The original keeps everything but a `reversed_at` back-pointer, so the sum needs no special
-  // case. `for update` makes two admins racing find it already set rather than double-correcting.
   async reverse(
     actor: AuthenticatedUser,
     id: string,

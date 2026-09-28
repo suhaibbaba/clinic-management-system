@@ -14,8 +14,6 @@ export const PLACEHOLDERS: Record<AiOutboundTarget, readonly string[]> = {
   [AI_OUTBOUND_TARGET.PATIENT_IDS]: COMMON_PLACEHOLDERS,
 };
 
-// Patient-facing, so Arabic like the notification defaults. Used when no model is configured and
-// when the model's draft fails validation — a person still reads every message before it goes.
 export const DEFAULT_TEMPLATES: Record<AiOutboundTarget, string> = {
   [AI_OUTBOUND_TARGET.OVERDUE_LABS]:
     "مرحباً {name}، نعتذر عن تأخر العمل المخبري الخاص بك في {clinic}. سنتواصل معك فور وصوله.",
@@ -33,8 +31,6 @@ export interface DraftedMessage {
   readonly text: string;
 }
 
-// One template per proposal, filled per patient on the server: the model phrases the message once
-// and never sees a recipient's name, number or balance.
 @Injectable()
 export class MessageDrafterService {
   private readonly logger = new Logger("Assistant");
@@ -65,7 +61,6 @@ export class MessageDrafterService {
     try {
       const provider = await this.providers.for(clinicId);
 
-      // The echo provider would phrase the prompt back at the patient.
       if (provider.name === "log") {
         return DEFAULT_TEMPLATES[target];
       }
@@ -118,13 +113,11 @@ const cleanTemplate = (text: string): string =>
     .replace(/^["'`«“]+|["'`»”]+$/g, "")
     .trim();
 
-/** Exported for the tests. A template is refused, not repaired: the default is always safe. */
 export function isValidTemplate(template: string, allowed: readonly string[]): boolean {
   if (template.length < 10 || template.length > DRAFT_MAX_LENGTH) {
     return false;
   }
 
-  // A link in a message nobody typed is how an injected instruction would phish a patient.
   if (/https?:\/\/|www\./i.test(template)) {
     return false;
   }

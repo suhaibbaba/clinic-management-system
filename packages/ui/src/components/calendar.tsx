@@ -15,13 +15,11 @@ export function dateLocale(language: string): Locale {
   return language.split("-")[0] === "ar" ? ar : enGB;
 }
 
-/** A date of birth: the years have to reach back past any living patient. */
 const FIRST_YEAR = 1900;
 
 type CalendarView = "days" | "months" | "years";
 
 interface DayState {
-  /** The cell's fill: a range band runs edge to edge, which the inset button cannot draw. */
   readonly cell?: string;
   readonly button: string;
 }
@@ -29,11 +27,8 @@ interface DayState {
 const DAY_STATES = {
   plain: { button: "text-ink hover:bg-inset" },
   muted: { button: "text-ink-faint" },
-  // Today is green wherever it is, so the chosen date and today never look alike: outlined on its
-  // own, filled when it is also the choice — where a dot under the number used to carry it.
   today: { button: "border-[1.5px] border-success-600 text-success-800 hover:bg-success-50" },
   selected: { button: "bg-primary-600 text-ink-inverse hover:bg-primary-700" },
-  // A darker green than the outline: white on the brighter ones falls short of 4.5:1 at this size.
   todaySelected: {
     button: cn(
       "bg-linear-to-br from-success-700 to-success-900 text-ink-inverse",
@@ -43,13 +38,11 @@ const DAY_STATES = {
   rangeMiddle: { cell: "bg-selected", button: "text-ink hover:bg-primary-200" },
 } satisfies Record<string, DayState>;
 
-// Inside a range the band is the fill and today cannot be green, so it keeps a green dot instead.
 const TODAY_DOT = cn(
   "after:absolute after:inset-x-0 after:bottom-1 after:mx-auto",
   'after:size-1 after:rounded-pill after:content-[""]',
 );
 
-/** Logical, so the start of a range is rounded on the side the reader comes from, in both scripts. */
 function rangeRounding(isStart: boolean, isEnd: boolean): string {
   if (isStart === isEnd) {
     return "rounded-control";
@@ -118,8 +111,6 @@ const CAPTION_BUTTON = cn(
   "text-value font-medium text-ink transition-colors duration-150 hover:bg-inset",
 );
 
-// A pill at the field's own height: a year or a month is a choice in a list, not a cell of the
-// month's grid, so it reads as a row of buttons with room around each value.
 const PERIOD_CELL = cn(
   "inline-flex h-(--control-h) w-full cursor-pointer items-center justify-center rounded-pill",
   "text-value tabular-nums transition-colors duration-150",
@@ -128,7 +119,6 @@ const PERIOD_CELL = cn(
 interface CalendarHeaderProps {
   readonly label: ReactNode;
   readonly zoomOut: { readonly label: string; readonly onClick: () => void } | null;
-  /** Absent where the page scrolls instead of stepping, as the years do. */
   readonly previous?: CalendarStep | undefined;
   readonly next?: CalendarStep | undefined;
 }
@@ -139,7 +129,6 @@ interface CalendarStep {
   readonly can: boolean;
 }
 
-/** Holds the arrow's place, so the caption stays centred without one. */
 const NAV_SPACER = <span aria-hidden="true" className="size-(--control-h-sm) shrink-0" />;
 
 function CalendarHeader({ label, zoomOut, previous, next }: CalendarHeaderProps): JSX.Element {
@@ -213,7 +202,6 @@ interface PeriodOption {
   readonly isCurrent: boolean;
 }
 
-/** The same inks as a day: chosen is filled, this year or month is green like today. */
 function periodInk(option: PeriodOption): string {
   if (option.isSelected) {
     return cn(
@@ -230,7 +218,6 @@ interface PeriodGridProps {
   readonly columns: 3 | 4;
   readonly options: readonly PeriodOption[];
   readonly onPick: (key: number) => void;
-  /** Scrolls instead of paging, opened on the chosen option. */
   readonly scrolls?: boolean | undefined;
 }
 
@@ -247,7 +234,6 @@ function PeriodGrid({
     const container = list.current;
     const chosen = container?.querySelector<HTMLElement>('[aria-current="true"]');
 
-    // `scrollTop`, not `scrollIntoView`: that would scroll the dialog behind the popover too.
     if (scrolls && container && chosen) {
       container.scrollTop = chosen.offsetTop - (container.clientHeight - chosen.clientHeight) / 2;
     }
@@ -288,7 +274,6 @@ export function Calendar(props: DayPickerProps): JSX.Element {
   const locale = dateLocale(i18n.language);
   const isRtl = i18n.language.split("-")[0] === "ar";
 
-  // Opens on the days, as every date picker does; the caption zooms out to months and years.
   const [view, setView] = useState<CalendarView>("days");
   const [month, goToMonth] = useState(() =>
     startOfMonth(props.month ?? props.defaultMonth ?? new Date()),
@@ -316,7 +301,6 @@ export function Calendar(props: DayPickerProps): JSX.Element {
         locale={locale}
         dir={isRtl ? "rtl" : "ltr"}
         components={{ DayButton: CalendarDayButton }}
-        // Explicit formatters: the default is locale-aware and would render Arabic-Indic digits.
         formatters={{
           formatDay: (date: Date) => String(date.getDate()),
           formatWeekdayName: (date: Date) => format(date, "EEEEEE", { locale }),
@@ -334,7 +318,6 @@ export function Calendar(props: DayPickerProps): JSX.Element {
             "relative inline-flex size-(--control-h-sm) cursor-pointer items-center justify-center",
             "text-value tabular-nums transition-colors duration-150",
           ),
-          // The ink is `dayInk`, one state at a time; the cell carries only the range's band.
           selected: "",
           today: "",
           outside: "",

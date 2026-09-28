@@ -55,14 +55,9 @@ export class AiController {
     private readonly conversations: AiConversationsService,
   ) {}
 
-  // Server-sent events over POST, so the question travels in a body rather than a URL somebody's
-  // proxy will log. The per-user hourly limit is checked here, before the stream exists: a refusal
-  // is an ordinary 429 whose `message` is the code the web resolves its Arabic from.
   @Post("chat")
   @Roles(...STAFF)
   @Capability("ai.chat")
-  // The per-user hourly ceiling is the real control; this one only stops a client hammering the
-  // route. The guard is named explicitly because none is registered globally.
   @UseGuards(ThrottlerGuard)
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   async chat(
@@ -70,8 +65,6 @@ export class AiController {
     @Body() body: ChatDto,
     @Res() reply: FastifyReply,
   ): Promise<void> {
-    // Everything that can answer with a status does so before the socket is hijacked: after that
-    // there is no response left to send, and an exception would leave the browser hanging.
     if (body.conversationId) {
       await this.conversations.requireOwn(actor, body.conversationId);
     }
@@ -91,15 +84,12 @@ export class AiController {
       "content-type": "text/event-stream; charset=utf-8",
       "cache-control": "no-cache, no-transform",
       connection: "keep-alive",
-      // nginx buffers a proxied response by default, which holds every token back to the end.
       "x-accel-buffering": "no",
     });
 
     let running = true;
     let conversationId = body.conversationId;
 
-    // A proxy with a 60 s idle limit would otherwise close a slow tool call mid-turn. A comment
-    // line is not a frame, so the page skips it.
     const heartbeat = setInterval(() => reply.raw.write(HEARTBEAT), HEARTBEAT_MS);
 
     reply.raw.on("close", () => {
@@ -112,7 +102,6 @@ export class AiController {
 
     try {
       for await (const event of this.agent.run(actor, body)) {
-        // A browser that walked away stops the loop; what ran up to here is already recorded.
         if (reply.raw.destroyed) {
           return;
         }
@@ -124,8 +113,6 @@ export class AiController {
         reply.raw.write(frame(event));
       }
     } catch (error) {
-      // Nothing may escape a hijacked reply: the exception filter has no response to write to, so
-      // the turn ends as a frame the page can render instead of a socket that never closes.
       this.logger.error(`The assistant stream failed: ${String(error)}`);
       reply.raw.write(frame({ type: AI_STREAM_EVENT.ERROR, code: AI_ERROR_CODE.FAILED }));
     } finally {

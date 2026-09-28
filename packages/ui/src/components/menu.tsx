@@ -68,8 +68,6 @@ export function MenuItem({
         "flex min-h-(--control-h) cursor-pointer select-none items-center gap-2 rounded-control px-3 py-2",
         "lg:min-h-(--control-h-sm)",
         "text-value outline-none transition-colors duration-150",
-        // Radix moves `data-highlighted` with both the pointer and the arrow
-        // keys, so hover and keyboard focus cannot drift apart.
         tone === "danger"
           ? "text-danger-700 data-highlighted:bg-danger-50"
           : "text-ink data-highlighted:bg-inset",
@@ -111,10 +109,8 @@ export function MenuSeparator(): JSX.Element {
 }
 
 export interface RowMenuProps extends TestIdProps {
-  /** Named for screen readers; the trigger is a glyph. */
   readonly label: string;
   readonly children: ReactNode;
-  /** `target` stands beside full-height buttons, as in a page header, at every width. */
   readonly size?: "row" | "target" | undefined;
 }
 

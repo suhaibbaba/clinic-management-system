@@ -24,8 +24,6 @@ type ItemRow = typeof inventoryItems.$inferSelect;
 
 export const INVENTORY_ITEMS_ENTITY = "inventory_items";
 
-// Half stored, half computed: name, category, unit and reorder level are columns; quantity, expiry
-// and the flags come from the ledger on every read.
 @Injectable()
 export class InventoryItemsService implements OnModuleInit {
   constructor(
@@ -49,8 +47,6 @@ export class InventoryItemsService implements OnModuleInit {
     });
   }
 
-  // `low` and `expiring` are applied after the stock is computed, not in SQL — no column holds
-  // those numbers — so with either one the whole filtered set is decorated and the page cut after.
   async list(
     actor: AuthenticatedUser,
     query: ListInventoryItemsQuery,
@@ -78,7 +74,6 @@ export class InventoryItemsService implements OnModuleInit {
     const select = this.db
       .select({ item: inventoryItems, supplierName: suppliers.name })
       .from(inventoryItems)
-      // An archived supplier is nobody's default any more; a movement keeps its name as history.
       .leftJoin(
         suppliers,
         and(eq(suppliers.id, inventoryItems.defaultSupplierId), isNull(suppliers.deletedAt)),
@@ -137,7 +132,6 @@ export class InventoryItemsService implements OnModuleInit {
     return item;
   }
 
-  /** The batch breakdown behind one item — derived, never stored. */
   async batches(actor: AuthenticatedUser, id: string): Promise<ItemBatches> {
     await this.requireRow(actor.clinicId, id);
 
@@ -154,7 +148,6 @@ export class InventoryItemsService implements OnModuleInit {
 
   async create(actor: AuthenticatedUser, input: CreateInventoryItemInput): Promise<InventoryItem> {
     await this.assertNameIsFree(actor.clinicId, input.name);
-    // Only codes on this clinic's own list — the schema cannot know them.
     await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ITEM_CATEGORY, input.category);
     await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.ITEM_UNIT, input.unit);
 
@@ -185,7 +178,6 @@ export class InventoryItemsService implements OnModuleInit {
     return toInventoryItem(row);
   }
 
-  /** The unit is absent deliberately: changing it would reinterpret every movement already recorded. */
   async update(
     actor: AuthenticatedUser,
     id: string,
@@ -229,7 +221,6 @@ export class InventoryItemsService implements OnModuleInit {
     return toInventoryItem(row);
   }
 
-  /** Soft delete. The ledger behind it is untouched and still adds up. */
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.requireRow(actor.clinicId, id);
 
@@ -239,7 +230,6 @@ export class InventoryItemsService implements OnModuleInit {
       .where(this.scope.where(inventoryItems, actor.clinicId, eq(inventoryItems.id, id)));
   }
 
-  /** Used by the movements service, which must not accept an item from elsewhere. */
   async requireRow(clinicId: string, id: string): Promise<ItemRow> {
     return this.scope.findOneOrFail<ItemRow>(inventoryItems, clinicId, id);
   }
@@ -290,8 +280,6 @@ export function toInventoryItem(row: ItemRow): InventoryItem {
     name: row.name,
     category: row.category,
     unit: row.unit,
-    // `numeric` comes back with its scale attached (`5.000`); a reorder level
-    // reads as a level, not as a measurement taken to the milligram.
     minQuantity: normalise(row.minQuantity),
     defaultSupplierId: row.defaultSupplierId,
     notes: row.notes,

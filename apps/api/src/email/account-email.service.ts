@@ -17,14 +17,11 @@ export interface AccountEmailRecipient {
 export interface ClinicLetterhead {
   readonly name: PersonName;
   readonly logoKey: string | null;
-  /** From clinic settings, which the admin already edits. Replies go here, not to the sender. */
   readonly email: string | null;
 }
 
 export interface IssuedToken {
-  /** Goes in the email, and nowhere else. */
   readonly token: string;
-  /** Goes in the database, so a stolen backup is not a set of live links. */
   readonly tokenHash: string;
   readonly expiresAt: Date;
 }
@@ -56,7 +53,6 @@ const COPY = {
   },
 } as const;
 
-/** The email carries the token; the database only ever sees this. */
 export const hashToken = (token: string): string =>
   createHash("sha256").update(token).digest("hex");
 
@@ -70,7 +66,6 @@ export class AccountEmailService {
     private readonly storage: StorageService,
   ) {}
 
-  /** A fresh token every time, so a resend silently retires the link sent before it. */
   issueToken(): IssuedToken {
     const token = randomBytes(32).toString("base64url");
     const hours = this.config.get("EMAIL_LINK_TTL_HOURS", { infer: true });

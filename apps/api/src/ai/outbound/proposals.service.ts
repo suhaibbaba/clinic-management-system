@@ -40,10 +40,6 @@ import { aiAuditLog, aiProposals } from "@api/database/schema";
 import { NotificationsService } from "@api/notifications/notifications.service";
 import { PermissionsService } from "@api/permissions/permissions.service";
 
-/**
- * The screen's read permission for each list a message can go to. Drafting to a list, and seeing
- * a proposal the automation drafted for one, both need it.
- */
 export const TARGET_READ_CAPABILITY: Record<AiOutboundTarget, string | null> = {
   [AI_OUTBOUND_TARGET.OVERDUE_LABS]: "lab-orders.overdue",
   [AI_OUTBOUND_TARGET.UNPAID_INVOICES]: "billing.list",
@@ -51,10 +47,8 @@ export const TARGET_READ_CAPABILITY: Record<AiOutboundTarget, string | null> = {
   [AI_OUTBOUND_TARGET.PATIENT_IDS]: null,
 };
 
-/** The `tool_name` of an outbound audit row. Not a tool: the model has no way to send. */
 export const OUTBOUND_AUDIT_TOOL = "send_proposal";
 
-/** A refusal with a code the web writes the Arabic for, and the status it is answered with. */
 export class OutboundError extends Error {
   constructor(
     readonly code: AiOutboundError,
@@ -89,7 +83,6 @@ export class ProposalsService {
     private readonly config: ConfigService<Env, true>,
   ) {}
 
-  /** From the chat. The proposal is the caller's own and waits a short while for their click. */
   async draftForUser(
     actor: AuthenticatedUser,
     conversationId: string,
@@ -111,7 +104,6 @@ export class ProposalsService {
     });
   }
 
-  /** From the daily automation. Nobody owns it, and it waits until the clinic's day is over. */
   async draftForRule(
     clinicId: string,
     rule: AiAutomationRule,
@@ -181,14 +173,12 @@ export class ProposalsService {
     return statusEvent(updated);
   }
 
-  /** The confirmation card's button. The capability was checked by the guard; the rest is here. */
   async send(actor: AuthenticatedUser, id: string): Promise<AiProposalStatusEvent> {
     await this.requireVisible(actor, id);
 
     return this.sendClaimed(actor.clinicId, id, actor.id);
   }
 
-  /** The automation's auto-send: the same checks and caps, with nobody pressing the button. */
   sendAsSystem(clinicId: string, id: string): Promise<AiProposalStatusEvent> {
     return this.sendClaimed(clinicId, id, null);
   }
@@ -277,9 +267,6 @@ export class ProposalsService {
     return statusEvent(done);
   }
 
-  // Under a per-clinic lock, so the daily cap is read and spent in one step: two cards pressed at
-  // once cannot each see room for themselves. The claim flips `draft` to `sending`, which is also
-  // what stops a double click from sending twice.
   private claim(clinicId: string, id: string, actorId: string | null): Promise<Claim> {
     return this.db.transaction(async (tx) => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`ai-outbound:${clinicId}`}))`);
@@ -315,7 +302,6 @@ export class ProposalsService {
       const clinic = await this.recipients.clinic(clinicId);
       const settings = aiAutomationSettings(clinic.settings);
 
-      // Settings may have tightened since the draft; the cap in force at the click is the one.
       if (row.recipientCount > recipientCap(settings, row)) {
         throw new OutboundError(AI_OUTBOUND_ERROR.RECIPIENT_CAP, HttpStatus.UNPROCESSABLE_ENTITY);
       }
@@ -381,7 +367,6 @@ export class ProposalsService {
       limit: input.cap,
     });
 
-    // Refused whole: sending to the first hundred of a longer list is a choice nobody made.
     if (resolved.overflow) {
       throw new OutboundError(AI_OUTBOUND_ERROR.RECIPIENT_CAP, HttpStatus.UNPROCESSABLE_ENTITY);
     }
@@ -429,15 +414,12 @@ export class ProposalsService {
       .limit(1);
 
     if (!row) {
-      // Somebody else's proposal is a 404, like somebody else's conversation.
       throw new NotFoundException("Resource not found");
     }
 
     return row;
   }
 
-  // The author's own, or the automation's — and of those only the lists this role may read: the
-  // unpaid-balances proposal quotes every debt, and a role kept off billing must not read it here.
   private async visibleTo(actor: AuthenticatedUser): Promise<SQL | undefined> {
     const readable: AiOutboundTarget[] = [];
 
@@ -452,7 +434,6 @@ export class ProposalsService {
       }
     }
 
-    // Messages only: an action is confirmed through its own route, which checks its own permission.
     return and(
       eq(aiProposals.clinicId, actor.clinicId),
       eq(aiProposals.kind, AI_PROPOSAL_KIND.MESSAGE),
@@ -505,7 +486,6 @@ function statusFilter(status: ListAiProposalsQuery["status"]): SQL | undefined {
   }
 }
 
-/** A draft past its time reads as expired whether or not anybody has tried it since. */
 const servedStatus = (row: ProposalRow): AiProposal["status"] =>
   row.status === AI_PROPOSAL_STATUS.DRAFT && row.expiresAt.getTime() <= Date.now()
     ? AI_PROPOSAL_STATUS.EXPIRED

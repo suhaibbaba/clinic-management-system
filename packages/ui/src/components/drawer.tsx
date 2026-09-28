@@ -11,15 +11,12 @@ import { parts, type TestIdProps } from "@ui/lib/testid";
 export interface DrawerProps extends TestIdProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Already-resolved title: a drawer usually names a record, not a screen. */
   title: ReactNode;
   descriptionKey: string;
   children: ReactNode;
   footer?: ReactNode | undefined;
 }
 
-// Auto-focus prevented as in `Modal`: a drawer opens to be read. No slide-in either — `translate-x`
-// is not mirrored in RTL, so it would animate from the wrong side; it fades instead.
 export function Drawer({
   open,
   onOpenChange,
@@ -82,7 +79,6 @@ export function Drawer({
           <Dialog.Description className="sr-only">{t(descriptionKey)}</Dialog.Description>
 
           <div {...part("body")} className="scroll-lane flex-1 overflow-y-auto px-4 py-4">
-            {/* As in `Modal`: a picker in here portals into the drawer. */}
             <DialogLayerProvider container={layer}>{children}</DialogLayerProvider>
           </div>
 

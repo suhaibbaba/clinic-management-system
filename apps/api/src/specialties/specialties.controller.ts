@@ -7,7 +7,6 @@ import { SpecialtiesService } from "@api/specialties/specialties.service";
 
 class ListSpecialtiesQueryDto extends createZodDto(listSpecialtiesQuerySchema) {}
 
-/** Readable by every role; no `@Roles(...)` needed. */
 @Controller("specialties")
 export class SpecialtiesController {
   constructor(private readonly specialtiesService: SpecialtiesService) {}

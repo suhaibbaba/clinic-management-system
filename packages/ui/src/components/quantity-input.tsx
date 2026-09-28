@@ -12,7 +12,6 @@ export function cleanQuantity(value: string): string {
   return foldDigits(value).replace(/\D/gu, "");
 }
 
-// `numeric`, not `decimal`: the pad then has no separator key to press by mistake.
 export const QuantityInput = forwardRef<HTMLInputElement, QuantityInputProps>(
   function QuantityInput({ className, onChange, ...props }, ref) {
     return (

@@ -34,14 +34,11 @@ class UpdateProcedureDto extends createZodDto(updatePerformedProcedureSchema) {}
 class ListProceduresQueryDto extends createZodDto(listPerformedProceduresQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// Recording a procedure is what makes a patient owe money, so every mutation is audited and hands
-// the billing seam an event.
 @Controller("performed-procedures")
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR, USER_ROLE.TECHNICIAN)
 export class ProceduresController {
   constructor(private readonly procedures: ProceduresService) {}
 
-  /** A technician's page is filtered to lab-linked rows inside the service. */
   @AiTool({
     group: "patients",
     description:

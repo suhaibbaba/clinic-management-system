@@ -32,7 +32,6 @@ import {
 } from "@test/helpers/test-app";
 import { staffName } from "@test/helpers/staff-name";
 
-/** A Thursday far enough out to stay bookable: Basel works Thursdays, Rasha does not. */
 function thursday(weeksAhead: number): string {
   const day = new Date();
   day.setUTCDate(day.getUTCDate() + ((11 - day.getUTCDay()) % 7 || 7) + weeksAhead * 7);
@@ -133,7 +132,6 @@ describe("Assistant plans (e2e)", () => {
     return row?.value ?? 0;
   };
 
-  /** Rasha works Basel's hours on `day`, both his patients move to her, and he is off. */
   const cover = (day: string, moves: { id: string; time: string | null }[]) => ({
     title: "رشا بتغطي باسل",
     steps: [
@@ -235,7 +233,6 @@ describe("Assistant plans (e2e)", () => {
 
     expect(result).toMatchObject({ status: "awaiting_user_confirmation", tier: "confirm" });
 
-    // The rehearsal kept nothing and told nobody.
     expect(await rows(doctorExtraHours, rasha)).toBe(0);
     expect(await rows(doctorTimeOff, basel)).toBe(0);
     expect((await doctorOf(first))?.doctorId).toBe(basel);
@@ -265,7 +262,6 @@ describe("Assistant plans (e2e)", () => {
     const first = await book(basel, patients[0] ?? "", day, "11:00");
     const second = await book(basel, patients[1] ?? "", day, "11:15");
 
-    // Both at 11:00 on Rasha: the second collides with the first, which the rehearsal has moved.
     const { result } = await tool(
       AI_TOOL.PROPOSE_PLAN,
       cover(day, [
@@ -287,7 +283,6 @@ describe("Assistant plans (e2e)", () => {
     const { result } = await tool(AI_TOOL.PROPOSE_PLAN, cover(day, [{ id: first, time: "12:00" }]));
     const id = result?.proposal_id ?? "";
 
-    // Somebody books Basel after the card was drafted: the time off would now collide.
     const late = await book(basel, patients[1] ?? "", day, "15:00");
 
     await confirm(id);
@@ -299,7 +294,6 @@ describe("Assistant plans (e2e)", () => {
     expect((await doctorOf(first))?.doctorId).toBe(rasha);
     expect(await rows(doctorTimeOff, basel)).toBe(0);
 
-    // The late patient moves too; continuing checks the time off again and runs it.
     await context.db.update(appointments).set({ doctorId: rasha }).where(eq(appointments.id, late));
 
     expect((await confirm(id, undefined, "continue")).statusCode).toBe(200);

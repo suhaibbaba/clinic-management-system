@@ -93,7 +93,6 @@ describe("Patients (e2e)", () => {
         headers: auth(otherToken),
       });
 
-      // Numbering restarts per clinic: the first patient of a fresh clinic is 1.
       expect((other.json() as { fileNumber: string }).fileNumber).toBe("00001");
     });
 
@@ -151,7 +150,6 @@ describe("Patients (e2e)", () => {
         headers: auth(otherToken),
       });
 
-      // 404, not 403: a 403 would confirm the id exists somewhere.
       expect(response.statusCode).toBe(404);
     });
   });
@@ -195,8 +193,6 @@ describe("Patients (e2e)", () => {
 
         const body = response.json() as Record<string, unknown>;
 
-        // The receptionist also gets the computed balance; the technician does
-        // not, because ROLES.md keeps financial data out of their responses.
         expect(Object.keys(body).sort()).toEqual(
           (role === USER_ROLE.RECEPTIONIST ? [...publicFields, "balance"] : publicFields).sort(),
         );
@@ -273,7 +269,6 @@ describe("Patients (e2e)", () => {
       });
       expect(asAdmin.statusCode).toBe(204);
 
-      // Soft delete: the row is gone from the API but still in the table.
       const afterDelete = await context.app.inject({
         method: "GET",
         url: `/patients/${id}`,
@@ -362,7 +357,6 @@ describe("Patients (e2e)", () => {
         phone: uniquePhone(),
       });
 
-      // Twice, so a filter that joined rather than tested existence would show this patient twice.
       for (const complaint of ["ألم", "متابعة"]) {
         const visit = await context.app.inject({
           method: "POST",

@@ -1,6 +1,5 @@
 export const LOOKUP_LIST = {
   TOOTH_STATE: "tooth_state",
-  /** The kinds of work a lab does. Prices stay per lab; the names are shared. */
   LAB_WORK_TYPE: "lab_work_type",
   LAB_MATERIAL: "lab_material",
   LAB_SHADE: "lab_shade",
@@ -29,7 +28,6 @@ export const LOOKUP_LIST_KEYS = [
 
 export const COLOURED_LOOKUP_LISTS: readonly LookupListKey[] = [LOOKUP_LIST.TOOTH_STATE];
 
-/** Lists named in English in both languages: units, stock categories and drugs, as a pack reads. */
 export const ENGLISH_ONLY_LOOKUP_LISTS: readonly LookupListKey[] = [
   LOOKUP_LIST.ITEM_UNIT,
   LOOKUP_LIST.ITEM_CATEGORY,
@@ -42,10 +40,7 @@ export type ToothArea = "crown" | "root" | "whole";
 
 export interface ToothChartBehaviour {
   readonly area: ToothArea;
-  /** Drawing the shape itself changes: an outline, a post, a retainer bar. */
   readonly shape?: "missing" | "implant" | "bridge";
-  // States a tooth can be in that no procedure produces — kept out of the catalogue's outcome
-  // field. Only built-in rows carry it; anything a clinic adds is something done to a tooth.
   readonly stateOnly?: boolean;
 }
 

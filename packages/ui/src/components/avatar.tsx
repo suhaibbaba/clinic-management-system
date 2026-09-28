@@ -7,7 +7,6 @@ export interface AvatarProps extends TestIdProps {
   readonly name: string;
   readonly tintKey?: string | undefined;
   readonly src?: string | null | undefined;
-  /** Edge length in pixels. Fixed, so the row does not reflow when a photo lands. */
   readonly size?: number | undefined;
   readonly className?: string | undefined;
 }
@@ -71,8 +70,6 @@ export function Avatar({
       alt=""
       width={size}
       height={size}
-      // `cover`, because a portrait cropped to a circle is what everyone
-      // expects of one; `contain` would letterbox a face inside a ring.
       fit="cover"
       fallback={
         <span

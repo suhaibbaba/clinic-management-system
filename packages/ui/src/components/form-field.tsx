@@ -11,7 +11,6 @@ export interface FormFieldProps extends TestIdProps {
   label: string;
   htmlFor: string;
   error?: FieldError | undefined;
-  /** Overrides the code-derived message when a rule needs specific wording. */
   errorKey?: string | undefined;
   hint?: string | undefined;
   hintValues?: Record<string, string | number> | undefined;
@@ -20,8 +19,6 @@ export interface FormFieldProps extends TestIdProps {
   children: ReactNode;
 }
 
-// Hint and error share a slot, so a field does not grow taller when it fails. The message comes
-// from the Zod issue code, never the schema's English text.
 export function FormField({
   label,
   htmlFor,
@@ -39,8 +36,6 @@ export function FormField({
   const messageKey =
     derived === "errors.validation.required" ? derived : error ? (errorKey ?? derived) : undefined;
   const errorId = `${htmlFor}-error`;
-  // Defaults to the control it labels, so every form in the app is addressable without a call site
-  // naming each field twice.
   const part = parts("form-field", testId ?? `${htmlFor}-field`);
 
   return (
@@ -52,8 +47,6 @@ export function FormField({
       >
         {t(label)}
         {required && (
-          // Decorative: the control itself carries `required`/`aria-required`,
-          // which is what a screen reader announces.
           <span {...part("required")} aria-hidden="true" className="ms-1 text-danger-600">
             *
           </span>

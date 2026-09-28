@@ -12,7 +12,6 @@ describe("sealing a clinic's provider key", () => {
     expect(open(KEY, sealed, "clinic-a:openai_api_key")).toBe("sk-live-abcdefghijklmnopqrstuvwxyz");
   });
 
-  // The clinic is authenticated data: a row copied into another clinic is unreadable there.
   it("refuses another clinic's context, a tampered value and another master key", () => {
     const sealed = seal(KEY, "a-whatsapp-token-value", "clinic-a:whatsapp_access_token");
     const flipped = Buffer.from(sealed.ciphertext, "base64");

@@ -31,8 +31,6 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics, doctors, users } from "@api/database/schema";
 import type { Env } from "@api/config/env.schema";
 
-// The loop: ask, run whatever the model asked for, ask again with the answers, until it stops
-// asking. The actor rides along untouched — nothing the model returns can change who is calling.
 @Injectable()
 export class AgentService {
   private readonly logger = new Logger("Assistant");
@@ -54,8 +52,6 @@ export class AgentService {
 
     const spent = { inputTokens: 0, outputTokens: 0 };
 
-    // A turn ends in `done` or `error`, never in silence: the page reports a stream that closes
-    // without either as a lost connection, which would be the wrong thing to tell the user.
     try {
       yield* this.turn(actor, conversation.id, request.message, spent);
     } catch (error) {
@@ -89,10 +85,8 @@ export class AgentService {
 
     const provider = await this.providers.for(actor.clinicId);
     const steps = this.config.get("AI_MAX_TOOL_STEPS", { infer: true });
-    // Per turn, preloaded from the conversation: a follow-up does not pay the load step again.
     const loaded = new Set(await this.conversations.loadedGroups(conversationId));
     let loads = 0;
-    // Once a table or card is drawn the answer beneath it is two lines, so its budget drops.
     let viewShown = false;
     let fullBudget = false;
 
@@ -122,7 +116,6 @@ export class AgentService {
           };
         }
       } catch (error) {
-        // Already logged with its cause by the provider; the user is told only what kind it was.
         if (!(error instanceof ChatProviderError)) {
           this.logger.error(`The agent loop failed: ${String(error)}`);
         }
@@ -137,11 +130,8 @@ export class AgentService {
         return;
       }
 
-      // Set by the `completed` chunk every provider ends with; a stream without one answered
-      // nothing, and an empty answer ends the turn rather than looping.
       const answer = completed ?? { text: "", toolCalls: [] };
 
-      // The short budget is for prose; a tool call it cut off is asked for again, in full, once.
       if (reduced && answer.truncated && answer.toolCalls.length > 0) {
         fullBudget = true;
         step -= 1;
@@ -160,7 +150,6 @@ export class AgentService {
 
       messages.push({ role: "assistant", content: answer.text, toolCalls: [...answer.toolCalls] });
 
-      // Loading tools is bookkeeping, not work: a step that only loaded does not count, up to a few.
       if (answer.toolCalls.every((call) => call.name === AI_TOOL.LOAD_TOOLS) && loads < MAX_LOADS) {
         loads += 1;
         step -= 1;
@@ -205,12 +194,10 @@ export class AgentService {
       }
     }
 
-    // The model kept asking for tools and never answered. Better a said-so than a silent stop.
     await this.record(actor, conversationId, "", spent);
     yield { type: AI_STREAM_EVENT.ERROR, code: AI_ERROR_CODE.STEP_LIMIT };
   }
 
-  // The schemas reach the model through the next request's `tools`; the result only names them.
   private async loadTools(
     conversationId: string,
     raw: string,
@@ -236,8 +223,6 @@ export class AgentService {
     });
   }
 
-  // Recorded even for a turn that failed: the tokens were spent, and the clinic's daily budget is
-  // a sum over these rows.
   private record(
     actor: AuthenticatedUser,
     conversationId: string,
@@ -252,7 +237,6 @@ export class AgentService {
     });
   }
 
-  /** Who is asking, from the database and never from the request or the model. */
   async context(actor: AuthenticatedUser): Promise<SystemPromptInput> {
     const [[clinic], [user], [doctor]] = await Promise.all([
       this.db
@@ -284,7 +268,6 @@ export class AgentService {
     return {
       clinicName: { ar: clinic?.nameAr ?? "", en: clinic?.nameEn ?? "" },
       user: { name, role: actor.role },
-      // A doctor's name is their user's name; the row only says that they are one.
       doctor: doctor ? { id: doctor.id, name } : null,
       today: localDate(new Date(), timeZone),
       ...clock(timeZone),
@@ -311,10 +294,8 @@ function clock(timeZone: string): { now: string; weekday: string } {
   return { now: `${read("hour")}:${read("minute")}`, weekday: read("weekday") };
 }
 
-/** The answer under a table or card: the headline and what to act on, no more. */
 const VIEW_REPLY_TOKENS = 200;
 
-/** How many steps that only loaded tools are free in one turn. */
 const MAX_LOADS = 3;
 
 const loadToolsSchema = z.object({ groups: z.array(z.enum(TOOL_GROUP_NAMES)).min(1) });

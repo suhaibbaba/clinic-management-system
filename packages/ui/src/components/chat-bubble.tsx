@@ -6,20 +6,14 @@ export type ChatAuthor = "user" | "assistant";
 
 export interface ChatBubbleProps extends TestIdProps {
   readonly author: ChatAuthor;
-  /** Shown in place of the body while the turn has produced no text yet. */
   readonly status?: ReactNode | undefined;
-  /** Draws the caret after the last word: the answer is still arriving. */
   readonly streaming?: boolean | undefined;
-  /** Sits under the body — the retry beside a failure, and nothing on a good turn. */
   readonly footer?: ReactNode | undefined;
   readonly tone?: "default" | "danger" | undefined;
   readonly className?: string | undefined;
   readonly children?: ReactNode;
 }
 
-// The question and the answer are not the same object: one is a short accent bubble that hugs its
-// text, the other a full-width card that will hold a table. `plaintext` on both, so a line that
-// starts in English inside an Arabic thread runs the way it was typed.
 export function ChatBubble({
   author,
   status,

@@ -32,8 +32,6 @@ export interface StoredObject {
   readonly mime: string | undefined;
 }
 
-// Bytes never touch the API: clients PUT to a presigned URL and read through a signed GET. Nothing
-// is ever public — branding is signed too, only for longer so a browser can cache it.
 @Injectable()
 export class StorageService implements OnApplicationShutdown {
   private readonly logger = new Logger(StorageService.name);
@@ -57,8 +55,6 @@ export class StorageService implements OnApplicationShutdown {
     this.client.destroy();
   }
 
-  // The clinic prefix makes a key inseparable from its tenant, so one from another clinic cannot be
-  // confirmed against this one; the uuid makes it unguessable.
   buildPatientObjectKey(input: {
     clinicId: string;
     patientId: string;
@@ -73,8 +69,6 @@ export class StorageService implements OnApplicationShutdown {
     return key.startsWith(`clinic/${clinicId}/patients/${patientId}/`);
   }
 
-  // Beside the patients prefix rather than inside it, so a patient-ownership check can never
-  // accidentally pass a branding key.
   buildClinicObjectKey(input: { clinicId: string; category: string; filename: string }): string {
     const safeName = sanitiseFilename(input.filename);
 
@@ -134,7 +128,6 @@ export class StorageService implements OnApplicationShutdown {
     return { url, expiresAt: new Date(signingDate.getTime() + ttl * 1000) };
   }
 
-  /** The confirm step uses this rather than trusting the size and content type a client claims. */
   async statObject(key: string): Promise<StoredObject | null> {
     try {
       const result = await this.client.send(
@@ -151,8 +144,6 @@ export class StorageService implements OnApplicationShutdown {
     }
   }
 
-  // For the one caller that needs bytes in-process, the PDF writer. Deliberately not general-
-  // purpose: a medical image must not travel through the API when a signed GET exists.
   async getObject(key: string): Promise<FetchedObject | null> {
     try {
       const result = await this.client.send(
@@ -170,19 +161,15 @@ export class StorageService implements OnApplicationShutdown {
     }
   }
 
-  // For an orphan — uploaded but never confirmed, or rejected on confirm. Never a live attachment:
-  // those are soft-deleted, so the object outlives the row.
   async deleteObject(key: string): Promise<void> {
     try {
       await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
     } catch (error: unknown) {
-      // Cleanup is best effort; a leftover object must not fail the request.
       this.logger.warn(`Failed to delete orphaned object ${key}: ${String(error)}`);
     }
   }
 }
 
-/** Strips anything that could escape the key prefix or confuse a header. */
 function sanitiseFilename(filename: string): string {
   return (
     filename

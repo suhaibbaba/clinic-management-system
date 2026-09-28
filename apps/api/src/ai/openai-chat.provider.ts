@@ -19,7 +19,6 @@ const MAX_CLINIC_CLIENTS = 50;
 type OpenAiMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 type OpenAiTool = OpenAI.Chat.Completions.ChatCompletionFunctionTool;
 
-// A partial call as it streams: the id and name arrive once, the arguments in fragments.
 interface PartialToolCall {
   id: string;
   name: string;
@@ -32,7 +31,6 @@ export class OpenAiChatProvider implements ChatProvider {
 
   private readonly logger = new Logger("Assistant");
   private client: OpenAI | undefined;
-  /** One client per clinic key, found by its digest so the map never holds a key as its index. */
   private readonly clinicClients = new Map<string, OpenAI>();
 
   constructor(private readonly config: ConfigService<Env, true>) {}
@@ -41,7 +39,6 @@ export class OpenAiChatProvider implements ChatProvider {
     return this.streamWith(() => this.openai(), request);
   }
 
-  /** The same provider on a clinic's own key, entered in its settings. */
   withKey(apiKey: string): ChatProvider {
     return {
       name: this.name,
@@ -57,12 +54,9 @@ export class OpenAiChatProvider implements ChatProvider {
     const ceiling = this.config.get("AI_MAX_OUTPUT_TOKENS", { infer: true });
 
     try {
-      // Inside the try: an unconfigured key is the likeliest failure of all, and thrown from
-      // outside it reached the user as `provider_unavailable` having logged nothing at all.
       const stream = await client().chat.completions.create({
         model: this.config.get("AI_MODEL", { infer: true }),
         max_completion_tokens: Math.min(request.maxOutputTokens ?? ceiling, ceiling),
-        // Anything but `none` is a 400 on Chat Completions once tools are attached (GPT-5.4 on).
         reasoning_effort: this.config.get("AI_REASONING_EFFORT", { infer: true }),
         messages: request.messages.map(toOpenAiMessage),
         ...(request.tools.length > 0 && { tools: request.tools.map(toOpenAiTool) }),
@@ -98,8 +92,6 @@ export class OpenAiChatProvider implements ChatProvider {
         }
       }
     } catch (error) {
-      // The provider's own words stay in the log: they quote the prompt back, which here is
-      // patient data.
       this.logger.error(
         `OpenAI request failed (model ${this.config.get("AI_MODEL", { infer: true })}): ${describe(error)}`,
       );
@@ -137,7 +129,6 @@ export class OpenAiChatProvider implements ChatProvider {
       return cached;
     }
 
-    // A replaced key leaves its client behind; the cap keeps that from growing without end.
     if (this.clinicClients.size >= MAX_CLINIC_CLIENTS) {
       const oldest = this.clinicClients.keys().next().value;
 
@@ -193,7 +184,6 @@ const toOpenAiTool = (tool: ChatRequest["tools"][number]): OpenAiTool => ({
   },
 });
 
-/** A rejected key and an exhausted quota are the admin's to fix; everything else is worth a retry. */
 export function classify(error: unknown): ChatProviderFailure {
   if (!(error instanceof OpenAI.APIError)) {
     return AI_ERROR_CODE.PROVIDER_UNAVAILABLE;
@@ -210,8 +200,6 @@ export function classify(error: unknown): ChatProviderFailure {
   return AI_ERROR_CODE.PROVIDER_UNAVAILABLE;
 }
 
-// Status, type and code name the failure — a rejected key, an unknown model, an exhausted quota —
-// which the message alone does not always do.
 function describe(error: unknown): string {
   if (error instanceof OpenAI.APIError) {
     const detail = [
@@ -227,6 +215,5 @@ function describe(error: unknown): string {
   return redactKeys(error instanceof Error ? `${error.name}: ${error.message}` : String(error));
 }
 
-/** A rejected key is quoted back in the error, and a clinic's key must not reach the log. */
 export const redactKeys = (text: string): string =>
   text.replace(/sk-[A-Za-z0-9_*.-]{4,}/g, "sk-<redacted>");

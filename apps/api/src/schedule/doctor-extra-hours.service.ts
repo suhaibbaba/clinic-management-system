@@ -18,7 +18,6 @@ type ExtraHoursRow = typeof doctorExtraHours.$inferSelect;
 
 export const DOCTOR_EXTRA_HOURS_ENTITY = "doctor_extra_hours";
 
-// The mirror of time off: every role reads, admin writes any, a doctor writes their own.
 @Injectable()
 export class DoctorExtraHoursService implements OnModuleInit {
   constructor(

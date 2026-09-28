@@ -8,7 +8,6 @@ export const treatmentPlanItemSchema = z.object({
   clinicId: z.uuid(),
   treatmentPlanId: z.uuid(),
   procedureId: z.uuid(),
-  /** Null means the plan's doctor. */
   performerDoctorId: z.uuid().nullable(),
   estimatedPrice: moneySchema,
   sortOrder: z.number().int().min(0),

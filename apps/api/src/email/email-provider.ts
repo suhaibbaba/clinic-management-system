@@ -6,19 +6,15 @@ import type { Env } from "@api/config/env.schema";
 export interface EmailAttachment {
   readonly filename: string;
   readonly content: Buffer;
-  /** Referenced from the HTML as `cid:<contentId>`, so the image travels with the message. */
   readonly contentId: string;
 }
 
 export interface OutboundEmail {
   readonly to: string;
-  /** Shown instead of the configured one. The address is not the clinic's to choose — see below. */
   readonly fromName?: string | undefined;
-  /** Where a reply goes. Needs no verification at all, which is why this is the clinic's own. */
   readonly replyTo?: string | undefined;
   readonly subject: string;
   readonly html: string;
-  /** What a client with images turned off, or a screen reader, reads instead. */
   readonly text: string;
   readonly attachments?: readonly EmailAttachment[] | undefined;
 }
@@ -49,7 +45,6 @@ export class ResendEmailProvider implements EmailProvider {
 
   private readonly resend: Resend;
   private readonly from: string;
-  /** The bare address out of `EMAIL_FROM`, so a display name can be put in front of it. */
   private readonly fromAddress: string;
 
   constructor(config: ConfigService<Env, true>) {

@@ -49,8 +49,6 @@ class SlugParamDto extends createZodDto(slugParamSchema) {}
 const tokenParamSchema = z.object({ token: z.string().min(10).max(400) });
 class TokenParamDto extends createZodDto(tokenParamSchema) {}
 
-// The clinic comes from the URL slug, never a body field; no response distinguishes a known phone
-// from an unknown one; writes are throttled per IP here and per phone in the service.
 @Controller("public/booking")
 @Public()
 @UseGuards(ThrottlerGuard)
@@ -75,7 +73,6 @@ export class BookingController {
     return this.booking.slots(params.clinicSlug, query);
   }
 
-  /** Five bookings a minute from one address is already a lot of families. */
   @Post(":clinicSlug")
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   book(@Param() params: SlugParamDto, @Body() body: CreateBookingDto): Promise<BookingReceipt> {
@@ -97,9 +94,6 @@ export class BookingController {
   verify(@Param() params: SlugParamDto, @Body() body: VerifyOtpDto): Promise<ManagedBooking> {
     return this.booking.verifyOtp(params.clinicSlug, body.token, body.code);
   }
-
-  // Deliberately not under `:clinicSlug`: mistyping the clinic and mistyping the token would give
-  // different errors, which is an oracle.
 
   @Get("manage/:token")
   @Throttle({ default: { limit: 30, ttl: 60_000 } })

@@ -7,12 +7,9 @@ import { testid, type TestIdProps } from "@ui/lib/testid";
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement>, TestIdProps {
   hasError?: boolean | undefined;
   adornment?: IconName | undefined;
-  /** Draws a clear button at the inline end; the caller decides what empty means. */
   onClear?: (() => void) | undefined;
   clearLabel?: string | undefined;
-  /** Sits at the inline end, inside the field — a currency symbol, a unit. */
   suffix?: ReactNode | undefined;
-  /** Names the shell for a product's own CSS — see the package README. */
   "data-part"?: string | undefined;
 }
 

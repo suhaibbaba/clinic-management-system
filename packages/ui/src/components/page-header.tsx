@@ -9,11 +9,8 @@ import { parts, type TestIdProps } from "@ui/lib/testid";
 export interface PageHeaderProps extends TestIdProps {
   title: string;
   subtitle?: string | undefined;
-  /** Acts on what is already here — save, print. Stays with the page it belongs to. */
   actions?: ReactNode | undefined;
-  /** Makes a new one. Rides in the top bar, where the reference puts it. */
   primaryAction?: ReactNode | undefined;
-  /** The reference's count chip: what this page is a list of, in figures. */
   count?: ReactNode | undefined;
 }
 
@@ -39,7 +36,6 @@ export function PageHeader({
       {hosted && createPortal(primaryAction, slot)}
 
       <div className="min-w-0">
-        {/* Blue rather than ink, as the reference sets every page's title. */}
         <h1 {...part("title")} className="text-title font-medium text-primary-900">
           {t(title)}
         </h1>
@@ -56,17 +52,12 @@ export function PageHeader({
           className="flex shrink-0 flex-col gap-2.5 sm:ms-auto sm:flex-row sm:items-center"
         >
           {(inRow !== undefined || actions !== undefined) && (
-            // Full width on a phone, hugging its content from `sm` up: a lone
-            // button floating at one edge of a narrow screen reads as debris.
             <div className="flex flex-col gap-2.5 [&>*]:w-full sm:flex-row sm:items-center sm:[&>*]:w-auto">
               {inRow}
               {actions}
             </div>
           )}
 
-          {/* Last, so it lands at the far edge from the title — the corner the reference puts the
-              count in. `self-start` because a count is not a control: stretched to the width of a
-              phone it reads as a banner. */}
           {count !== undefined && (
             <Badge tone="wash" plain className="shrink-0 self-start" {...part("count")}>
               {count}

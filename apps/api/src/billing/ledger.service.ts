@@ -46,17 +46,13 @@ interface LedgerLine {
 }
 
 export interface StatementOptions {
-  /** An admin's view: deleted payments stay on the page, outside the balance (ROLES.md rule 4). */
   readonly includeDeleted?: boolean;
 }
 
-// A balance is never stored: every read is a SQL aggregate, and reversing entries carry negative
-// amounts so they fall out of the same `sum()`.
 @Injectable()
 export class LedgerService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  /** A patient's balance as a SQL expression, for a `where` or an `order by` over many. */
   static balanceOf(clinicId: string, patientId: PgColumn | string): SQL {
     return sql`(
       coalesce((
@@ -109,10 +105,7 @@ export class LedgerService {
     };
   }
 
-  // What the clinic took and what it raised between two instants. A sum over the ledger like
-  // every other figure — there is no stored total to disagree with it.
   async totalsBetween(clinicId: string, from: Date, to: Date): Promise<PeriodTotals> {
-    // A raw `sql` template hands a Date to the driver unserialized, and postgres-js rejects it.
     const start = sql`${from.toISOString()}::timestamptz`;
     const end = sql`${to.toISOString()}::timestamptz`;
     const rows = await this.db.execute<{
@@ -147,7 +140,6 @@ export class LedgerService {
     };
   }
 
-  /** Balances for many patients at once, so a list is one query rather than N. */
   async balancesFor(clinicId: string, patientIds: readonly string[]): Promise<Map<string, Money>> {
     if (patientIds.length === 0) {
       return new Map();
@@ -177,8 +169,6 @@ export class LedgerService {
     return new Map([...rows].map((row) => [row.patient_id, normalise(row.balance)]));
   }
 
-  // A date range narrows the lines but not the arithmetic: anything before `from` is folded into an
-  // opening balance. Charges name the catalog procedure and nothing clinical.
   async statementFor(
     clinicId: string,
     patientId: string,
@@ -217,7 +207,6 @@ export class LedgerService {
           deletedByEn: users.nameEn,
         })
         .from(payments)
-        // A deleted row is never updated again, so its last editor is whoever deleted it.
         .leftJoin(users, eq(users.id, payments.updatedBy))
         .where(
           and(
@@ -307,7 +296,6 @@ export class LedgerService {
   }
 }
 
-/** Postgres hands back `numeric` as a string; normalise the scale for TS. */
 function normalise(value: string): Money {
   return formatMinorUnits(toMinorUnits(value));
 }

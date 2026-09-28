@@ -37,8 +37,6 @@ class DeclineWaitingListEntryDto extends createZodDto(declineWaitingListEntrySch
 class ListWaitingListQueryDto extends createZodDto(listWaitingListQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// ROLES.md: CRUD for admin and receptionist, R for a doctor, nothing for a technician — adding and
-// promoting is the front desk's job.
 @Controller("waiting-list")
 @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
 export class WaitingListController {
@@ -116,7 +114,6 @@ export class WaitingListController {
     return this.waitingList.promote(actor, params.id, body);
   }
 
-  /** Rang back, nothing decided — the one action that leaves the entry in the queue. */
   @AiTool({
     group: "appointments",
     description: "Record that a waiting-list patient was contacted. Waits on a card.",

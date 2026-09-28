@@ -101,7 +101,6 @@ import { upsertSeedClinic } from "@api/database/seed/upsert-clinic";
 import { upsertUser, type SeedAccount } from "@api/database/seed/users";
 
 export interface SeedOptions {
-  /** Overridden by the specs so a seeded scratch clinic cannot collide with the real one. */
   readonly slug?: string;
   readonly namePrefix?: string;
   readonly identifierPrefix?: string;
@@ -125,7 +124,6 @@ export interface SeedSummary {
 const DEFAULT_PATIENTS = 80;
 const DEFAULT_DAYS_BACK = 365;
 const DEFAULT_DAYS_FORWARD = 365;
-/** Fixed on purpose: the same clinic every rebuild, so a bug report can name a patient. */
 const DEFAULT_RANDOM_SEED = 20_260_914;
 
 export async function seedDatabase(db: Database, options: SeedOptions): Promise<SeedSummary> {
@@ -242,8 +240,6 @@ export async function seedDatabase(db: Database, options: SeedOptions): Promise<
     );
   }
 
-  // Decided before the diary is generated: a closure the calendar shades is a day the generator
-  // must not have booked into, and the clean absence must have nothing under it.
   const closureStart = addDays(today, 24);
   const closureDates = new Set([closureStart, addDays(closureStart, 1), addDays(closureStart, 2)]);
   const cleanTimeOffDate = nextWorkingDay(today, 12, closureDates);
@@ -583,8 +579,6 @@ async function writePrescriptions(
   return { prescriptions: chosen.length };
 }
 
-// Charges are never written here: `ChargesService` decides what is owed, and it is the same
-// instance the API uses, so "planned work is not billed" holds for the seed too.
 async function writeMoney(
   db: Database,
   ctx: WriteContext,
@@ -605,8 +599,6 @@ async function writeMoney(
     });
   }
 
-  // Two corrections: a price amended after the fact, which is a reversal and a new figure — the
-  // only way the ledger allows a number to change.
   const amended = ctx.rng.sample(procedures, 2);
   for (const procedure of amended) {
     await chargesService.onProcedureAmended(db, {
@@ -621,8 +613,6 @@ async function writeMoney(
     });
   }
 
-  // Dated with the work so a statement reads in the order it happened; `charges.created_at`
-  // defaults to now, which would put a year of history on one afternoon.
   for (const procedure of procedures) {
     await db
       .update(charges)
@@ -729,8 +719,6 @@ async function writeLabs(
       price: labWorkTypes.defaultPrice,
     });
 
-  // Newest first: work that is still at the lab belongs to the last few weeks, and a crown sent
-  // eleven months ago and never received would be a bug rather than a demo.
   const labWork = [...procedures]
     .filter((procedure) => procedure.needsLab)
     .sort((left, right) => right.performedAt.getTime() - left.performedAt.getTime())
@@ -1153,7 +1141,6 @@ async function upsertDoctor(
   return row.id;
 }
 
-/** Postgres takes at most 65535 bind parameters in one statement. */
 async function insertInChunks<T>(
   rows: readonly T[],
   insert: (chunk: T[]) => Promise<unknown>,
@@ -1165,8 +1152,6 @@ async function insertInChunks<T>(
   }
 }
 
-// A week or so apart after the last treatment, and never later than an hour ago: a receipt dated
-// next week is a payment that has not been taken.
 function paidAt(lastTreatment: Date, instalment: number, ctx: WriteContext): Date {
   const planned = earlier(lastTreatment, -(instalment * 7 + ctx.rng.int(0, 5)));
   const latest = new Date(ctx.now.getTime() - 3_600_000);

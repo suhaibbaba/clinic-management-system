@@ -1,7 +1,5 @@
 import { refreshCookieSecurity } from "@api/auth/refresh-cookie";
 
-// Both failures are silent — too strict and the browser drops the cookie without saying so, too
-// loose and a session token crosses a plain-http hop.
 describe("refreshCookieSecurity", () => {
   const base = {
     mode: "auto",
@@ -12,8 +10,6 @@ describe("refreshCookieSecurity", () => {
 
   describe("auto", () => {
     it("marks the cookie Secure in production", () => {
-      // Even when the request looks like plain http — inside the Docker network
-      // it always does, and nginx is the only thing that knows better.
       expect(refreshCookieSecurity({ ...base, production: true })).toEqual({
         secure: true,
         sameSite: "lax",
@@ -26,8 +22,6 @@ describe("refreshCookieSecurity", () => {
     });
 
     it("never lets a forwarded scheme talk production out of Secure", () => {
-      // `X-Forwarded-Proto` is a header, and a header can be written by anyone
-      // who can reach the deployment.
       expect(
         refreshCookieSecurity({ ...base, production: true, clientProtocol: "http" }).secure,
       ).toBe(true);

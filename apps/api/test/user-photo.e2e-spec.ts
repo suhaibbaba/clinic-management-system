@@ -29,11 +29,8 @@ describe("Staff photo (e2e)", () => {
       tokens[role] = await context.login(clinic.phones[role]);
     }
 
-    // The doctor row that makes the photographed user appear on `/doctors`.
     await seedClinicFixtures(context, clinic, tokens[USER_ROLE.ADMIN]);
 
-    // Signing is offline; only the read-back of a stored object and the
-    // cleanup delete need a stand-in.
     storage = context.app.get(StorageService);
     storage.statObject = async (): Promise<StoredObject | null> => storedObject;
     storage.deleteObject = async (key: string): Promise<void> => {
@@ -83,8 +80,6 @@ describe("Staff photo (e2e)", () => {
 
       const response = signed.json() as PresignUserPhotoResponse;
       expect(response.maxSizeBytes).toBe(MAX_USER_PHOTO_BYTES);
-      // The key is the API's, built from the caller's clinic and the person photographed, with one
-      // folder per member of staff so it can be checked against both.
       expect(response.key).toMatch(new RegExp(`^clinic/${clinic.id}/staff/${subject()}/`));
       expect(response.uploadUrl).toContain(response.key);
 
@@ -100,11 +95,9 @@ describe("Staff photo (e2e)", () => {
       const row = (list.json() as Paginated<User>).items.find((user) => user.id === subject());
 
       expect(row?.photoUrl).toContain(key);
-      // The stored key never leaves the API — what travels is a signed GET.
       expect(JSON.stringify(row)).not.toContain('"photoKey"');
     });
 
-    /* The face beside a name on the doctors list and in the calendar's columns. */
     it("reaches the doctors list, signed the same way", async () => {
       const key = await upload();
 
@@ -116,7 +109,6 @@ describe("Staff photo (e2e)", () => {
       expect(row?.user.photoUrl).toContain(key);
     });
 
-    /* Somebody's own photo, on their own profile — every role reads this one. */
     it("reaches the profile the owner sees", async () => {
       const key = await upload();
 
@@ -164,8 +156,6 @@ describe("Staff photo (e2e)", () => {
       expect((await presign({ sizeBytes: MAX_USER_PHOTO_BYTES + 1 })).statusCode).toBe(400);
     });
 
-    // The claim in the request body is not the file: what is checked on confirm is what the bytes
-    // turned out to be.
     it("refuses bytes that turned out not to be an image, and deletes them", async () => {
       const key = ((await presign()).json() as PresignUserPhotoResponse).key;
       storedObject = { sizeBytes: 40_000, mime: "application/zip" };
@@ -181,8 +171,6 @@ describe("Staff photo (e2e)", () => {
       expect((await confirm(key)).statusCode).toBe(400);
     });
 
-    // What one folder per member of staff buys: both keys belong to this clinic, and the second is
-    // still not this user's.
     it("refuses a key from another user's folder in the same clinic", async () => {
       const stranger = clinic.userIds[USER_ROLE.RECEPTIONIST];
       const key = ((await presign({}, stranger)).json() as PresignUserPhotoResponse).key;

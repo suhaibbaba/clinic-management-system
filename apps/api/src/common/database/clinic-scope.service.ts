@@ -9,13 +9,10 @@ export type ClinicScopedTable = PgTable & {
   deletedAt: PgColumn;
 };
 
-// The one place a `clinic_id` predicate is added, always from the verified token. Another clinic's
-// row is 404, not 403 — a 403 confirms the id exists somewhere.
 @Injectable()
 export class ClinicScopeService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  /** Every query against a scoped table must go through this. */
   where(table: ClinicScopedTable, clinicId: string, ...conditions: (SQL | undefined)[]): SQL {
     const scoped = and(eq(table.clinicId, clinicId), isNull(table.deletedAt), ...conditions);
 
@@ -27,7 +24,6 @@ export class ClinicScopeService {
     return scoped;
   }
 
-  /** Same predicate, but including soft-deleted rows (admin restore flows). */
   whereIncludingDeleted(
     table: ClinicScopedTable,
     clinicId: string,

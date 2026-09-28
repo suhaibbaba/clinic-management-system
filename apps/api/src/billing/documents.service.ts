@@ -45,7 +45,6 @@ export class DocumentsService {
     private readonly ledger: LedgerService,
   ) {}
 
-  /** A receipt reprints identically every time: it is built from the ledger. */
   async receipt(actor: AuthenticatedUser, paymentId: string): Promise<Buffer> {
     const [row] = await this.db
       .select()
@@ -60,7 +59,6 @@ export class DocumentsService {
     const payment = toPayment(row);
     const patient = await this.patientAccess.requirePatient(actor, payment.patientId);
     const clinic = await this.letterheads.load(actor.clinicId);
-    // The balance as this payment left it, not as it stands today: a reprint must not change.
     const ledger = await this.ledger.statementFor(actor.clinicId, payment.patientId, {});
     const balanceAfter =
       ledger.entries.find((entry) => entry.id === payment.id)?.runningBalance ??
@@ -144,8 +142,6 @@ export class DocumentsService {
     pdf.infoGrid([
       { label: text.patient, value: patient.fullName },
       { label: text.fileNumber, value: patient.fileNumber, ltr: true },
-      // A range stays left to right, or bidi swaps its two ends; "all entries until" reads in the
-      // sheet's own direction.
       {
         label: text.period,
         value: formatPeriod(statement, zone, text.all),
@@ -215,7 +211,6 @@ export class DocumentsService {
   }
 }
 
-// What a line is, and under it what was said about it: the note, or that it undoes another line.
 function describe(entry: StatementEntry, text: DocumentStrings["statement"]): Cell {
   if (entry.kind === LEDGER_ENTRY_KIND.PAYMENT) {
     const title = entry.isReversal

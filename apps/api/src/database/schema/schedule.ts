@@ -13,8 +13,6 @@ const softDeleteColumn = {
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 };
 
-// Whole days, so `date` rather than `timestamptz`: storing instants would make one row mean
-// different days for a server in UTC and a clinic in Ramallah.
 export const clinicClosures = pgTable(
   "clinic_closures",
   {
@@ -22,12 +20,9 @@ export const clinicClosures = pgTable(
     clinicId: uuid("clinic_id")
       .notNull()
       .references(() => clinics.id),
-    /** Inclusive. A single-day closure repeats the date in both columns. */
     startsOn: date("starts_on").notNull(),
-    /** Inclusive — the last day the clinic is shut, not the day it reopens. */
     endsOn: date("ends_on").notNull(),
     reason: text("reason").notNull(),
-    /** Repeats on the same day and month every year (see the shared schema). */
     isAnnual: boolean("is_annual").notNull().default(false),
     ...auditColumns,
     ...softDeleteColumn,
@@ -38,8 +33,6 @@ export const clinicClosures = pgTable(
   ],
 );
 
-// `timestamptz` because half of these are partial (14:00 at a conference); a whole day is local
-// midnight at each end. Half-open, matching an appointment's own block.
 export const doctorTimeOff = pgTable(
   "doctor_time_off",
   {
@@ -62,8 +55,6 @@ export const doctorTimeOff = pgTable(
   ],
 );
 
-// Hours a doctor works on one date beyond their weekly schedule — covering for a colleague, an
-// extra clinic day. Added to that weekday's hours by `AvailabilityService`, never a replacement.
 export const doctorExtraHours = pgTable(
   "doctor_extra_hours",
   {

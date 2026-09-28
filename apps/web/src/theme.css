@@ -1,78 +1,58 @@
-/* Abu-Obaid's layer. `@clinic/ui/styles/base.css` names every token and gives it a neutral default;
-   this file is the product's values on top, and the whole palette is `docs/design-reference.html`.
-   Scales are interpolated between the reference's stops; every stop the reference states is
-   reproduced exactly. Nothing outside this file and `theme.ts` names a colour, and `check:hex`
-   fails the build if it does. */
-
 @theme static {
-  /* Blue — the one action colour. 600 is the reference's `--blue`. */
   --color-primary-50: #f1f7fa;
-  --color-primary-100: #e1eef5; /* --blue-100 */
+  --color-primary-100: #e1eef5;
   --color-primary-200: #c8dfec;
   --color-primary-300: #a5c9de;
   --color-primary-500: #2e80a8;
-  --color-primary-600: #1b6f97; /* --blue */
-  --color-primary-700: #155b7d; /* --blue-700 */
+  --color-primary-600: #1b6f97;
+  --color-primary-700: #155b7d;
   --color-primary-800: #114d6a;
-  --color-primary-900: #0e3d55; /* --blue-900 */
-
-  /* Green — the logo's second colour. It is the focus ring, the "now" marker and success, never a
-     button fill: two filled accents on one page means neither answers "what do I press". */
+  --color-primary-900: #0e3d55;
   --color-success-50: #effaf6;
-  --color-success-100: #dcf3ec; /* --green-100 */
+  --color-success-100: #dcf3ec;
   --color-success-300: #a5e2cd;
   --color-success-400: #6dcfb1;
-  --color-success-500: #39ba97; /* --green */
+  --color-success-500: #39ba97;
   --color-success-600: #2ca886;
-  --color-success-700: #22987a; /* --green-700 */
+  --color-success-700: #22987a;
   --color-success-800: #1e7a62;
   --color-success-900: #0f7a5d;
 
-  /* Money owed, destructive actions, and the allergy flag. 600 is the reference's `--red-ink`. */
   --color-danger-50: #fef5f4;
-  --color-danger-100: #fbeae8; /* --red-bg */
+  --color-danger-100: #fbeae8;
   --color-danger-200: #fce8e6;
   --color-danger-500: #c4544a;
-  --color-danger-600: #b03a31; /* --red-ink */
+  --color-danger-600: #b03a31;
   --color-danger-700: #a03b31;
   --color-danger-800: #7a2720;
 
-  /* 700 is the reference's `--amber-ink`, 100 its `--amber-bg`. */
   --color-warning-50: #fdf8ec;
-  --color-warning-100: #fbf1da; /* --amber-bg */
+  --color-warning-100: #fbf1da;
   --color-warning-300: #e8cb83;
   --color-warning-500: #b98a1c;
-  --color-warning-700: #8f6206; /* --amber-ink */
+  --color-warning-700: #8f6206;
   --color-warning-800: #6e4b04;
 
-  /* Grey mixed towards the blue: 50 is the reference's `--bg`, 200 its `--line`, 700 its
-     `--ink-soft`, 900 its `--ink`. */
   --color-neutral-50: #f1f6f7;
   --color-neutral-100: #e9f0f2;
-  --color-neutral-200: #e0eaee; /* --line */
+  --color-neutral-200: #e0eaee;
   --color-neutral-300: #c9d8de;
   --color-neutral-400: #a3bac6;
   --color-neutral-500: #8fa6b0;
   --color-neutral-600: #5f7885;
-  --color-neutral-700: #4e6975; /* --ink-soft */
-  --color-neutral-900: #12303f; /* --ink */
+  --color-neutral-700: #4e6975;
+  --color-neutral-900: #12303f;
 }
 
-/* The surfaces the reference tints towards the blue. The rest of them — surface, canvas, inset,
-   the ink scale, the lines — are the base's, because they are already the palette above. */
 @theme static {
   --color-sunken: #eff3f5;
   --color-row-hover: #f7fbfa;
-  /* A table's head band, and the pill a zero balance recedes into. */
   --color-table-head: #f7fafb;
   --color-quiet-bg: #f0f5f6;
-  /* Quiet, but still read: at the reference's #7a929d a zero balance sat at 2.97 on its own pill. */
   --color-quiet-ink: #5a7280;
-  /* The rail is a shade lighter than white-on-tint, exactly as the reference draws it. */
   --color-rail: #fbfdfd;
 }
 
-/* Blue-tinted and soft: the reference's panels sit on the page rather than being cut out of it. */
 @theme static {
   --shadow-card: 0 12px 28px -18px rgb(27 111 151 / 0.35), 0 2px 6px -3px rgb(27 111 151 / 0.12);
   --shadow-card-hover: 0 18px 34px -18px rgb(27 111 151 / 0.45);
@@ -86,8 +66,6 @@
   --shadow-field-error-ring: 0 0 0 0.5px var(--color-danger-600), 0 0 0 3.5px rgb(176 58 49 / 0.15);
 }
 
-/* The three initials swatches the reference draws off-palette, and the label chip's wash. The other
-   three are the palette's own tints and come from the base. */
 @theme static {
   --color-tint-3-bg: #ede8f8;
   --color-tint-3-ink: #5b3ea6;
@@ -99,9 +77,6 @@
   --color-tag-to: #deeaf5;
 }
 
-/* The welcome banner's wash and the sticky note, both straight from the reference. They are the
-   only two places a surface is neither white nor the page ground, and neither is a library token —
-   no other product has this banner. */
 @theme static {
   --color-banner-from: #eaf7f2;
   --color-banner-mid: #e3eef6;
@@ -113,22 +88,15 @@
   --color-note-ink: #6e5d22;
   --color-note-meta: #7f6f30;
 
-  /* The bloom over the banner's wash. Held as a colour rather than baked into the gradient so the
-     one place a translucent green appears is still named here. */
   --color-banner-bloom: rgb(57 186 151 / 0.12);
 }
 
-/* A printed sheet is black on white paper; these are the only values that are not the screen
-   palette. A letterhead is the product's, not the library's. */
 @theme static {
   --color-paper: #ffffff;
   --color-paper-ink: #000000;
   --color-paper-rule: #444444;
 }
 
-/* The one place the single-accent rule does not reach: a tooth fill is data, not an action, and
-   nine conditions need more than one hue. Colour is never the only channel here. Dental, so it
-   belongs to this product's specialty and never to the library. */
 :root {
   --color-tooth-healthy: #f1f6f7;
   --color-tooth-healthy-line: #8fa6b0;
@@ -154,8 +122,6 @@
   --chart-guide: #e0eaee;
 }
 
-/* The indirection lets the same colours be utility classes and `var()` references inside SVG
-   attributes, while staying redefinable in a media query, which `@theme` cannot be. */
 @theme static {
   --color-chart-surface: var(--chart-surface);
   --color-chart-border: var(--chart-border);
@@ -163,8 +129,6 @@
   --color-chart-guide: var(--chart-guide);
 }
 
-/* There is no theme switch yet, so only the chart tokens are redefined; every fill moves up its own
-   scale rather than to a new hue. */
 @media (prefers-color-scheme: dark) {
   :root {
     --color-tooth-healthy: #2c4f5e;

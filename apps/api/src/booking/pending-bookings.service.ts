@@ -19,8 +19,6 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics } from "@api/database/schema";
 import { NotificationsService } from "@api/notifications/notifications.service";
 
-// The transition goes through `changeStatus` like every other. A message that fails to send never
-// fails the confirmation — a dead gateway must not block reception.
 @Injectable()
 export class PendingBookingsService {
   constructor(

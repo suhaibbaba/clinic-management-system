@@ -17,8 +17,6 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { appointments, clinics, patients } from "@api/database/schema";
 import { NotificationsService } from "@api/notifications/notifications.service";
 
-// The first attempt fails with 409 and who is affected; the caller returns having decided. Two
-// flags, because a practice rings three patients by hand and a cancellation cannot be undone.
 @Injectable()
 export class ScheduleConflictsService {
   constructor(
@@ -27,8 +25,6 @@ export class ScheduleConflictsService {
     private readonly notifications: NotificationsService,
   ) {}
 
-  // Every status that still occupies a slot, not only `confirmed` — the same set the exclusion
-  // constraint counts.
   async findConflicts(
     clinicId: string,
     window: { from: Date; to: Date },
@@ -52,8 +48,6 @@ export class ScheduleConflictsService {
           and(
             doctorId ? eq(appointments.doctorId, doctorId) : undefined,
             notInArray(appointments.status, [...APPOINTMENT_RELEASED_STATUSES]),
-            // One `sql` fragment, not `gt`: the left side is an expression, so drizzle cannot infer
-            // the parameter type and the driver fails at bind time.
             lt(appointments.startsAt, window.to),
             sql`${appointments.startsAt} + make_interval(mins => ${appointments.durationMinutes}) > ${window.from.toISOString()}::timestamptz`,
           ),
@@ -71,7 +65,6 @@ export class ScheduleConflictsService {
     }));
   }
 
-  /** The 409 body carries the list itself, not a count: the dialog that follows names the patients. */
   async assertClear(
     clinicId: string,
     window: { from: Date; to: Date },

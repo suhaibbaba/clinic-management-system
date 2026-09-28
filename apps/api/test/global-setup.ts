@@ -13,7 +13,6 @@ export default async function globalSetup(): Promise<void> {
     );
   }
 
-  // `onnotice` silences the "already exists, skipping" notices on re-runs.
   const client = postgres(databaseUrl, { max: 1, onnotice: () => {} });
 
   try {

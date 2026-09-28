@@ -8,7 +8,6 @@ import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
 import { AuditService } from "@api/audit/audit.service";
 import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
 
-// Compiling the graph queries nothing; the pool connects on its first query, which never comes.
 process.env["DATABASE_URL"] ??= "postgres://nobody:nothing@127.0.0.1:1/none";
 
 async function registry(): Promise<RouteToolRegistry> {
@@ -26,7 +25,6 @@ describe("tools generated from routes", () => {
     routes = await registry();
   });
 
-  // A newly decorated route is a visible diff here, with the tier it would ship on.
   it("is exactly the decorated routes, with their tiers", () => {
     expect(
       routes.list().map((tool) => `${tool.name} ${tool.verb} ${tool.risk ?? "read"} ${tool.group}`),

@@ -3,7 +3,6 @@ import type { HealthResponse, VersionResponse } from "@clinic/shared";
 import { Public } from "@api/common/decorators/public.decorator";
 import { HealthService } from "@api/health/health.service";
 
-/** Unauthenticated by design: container healthchecks call it. */
 @Controller("health")
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}

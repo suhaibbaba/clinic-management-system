@@ -5,7 +5,6 @@ import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export type BadgeTone = "neutral" | "success" | "warning" | "danger" | "info";
 
-/** The label chip that names what a figure counts — the reference's `.tag`, never a status. */
 export type BadgeVariant = BadgeTone | "wash";
 
 const TONES: Record<BadgeVariant, string> = {
@@ -14,7 +13,6 @@ const TONES: Record<BadgeVariant, string> = {
   warning: "bg-warning-100 text-warning-700",
   danger: "bg-danger-100 text-danger-600",
   info: "bg-primary-100 text-primary-600",
-  // The reference's `.tag`: the label that names what a KPI figure counts, or what a panel lists.
   wash: "tag-wash text-primary-900",
 };
 
@@ -23,15 +21,12 @@ const PILL_BOX = cn(
   "text-label font-normal",
 );
 
-/** One pill for the whole app: a status, a count, a filter — the same box in every one of them. */
 export const PILL_BASE = cn("pill-text", PILL_BOX);
 
 export interface BadgeProps extends TestIdProps {
   readonly tone?: BadgeVariant | undefined;
-  /** Drops the dot where the badge is already inside a coloured context, or leads with an icon. */
   readonly plain?: boolean | undefined;
   readonly icon?: IconName | undefined;
-  /** `2` lets a long label wrap once before it is cut; one line still draws the same pill. */
   readonly lines?: 1 | 2 | undefined;
   readonly className?: string | undefined;
   readonly children: ReactNode;
@@ -53,9 +48,6 @@ export function Badge({
     <span
       {...part()}
       className={cn(
-        // `pill-text` pins line-height 1 and outranks any utility, so a label that may wrap drops it
-        // and keeps its text token's own. A pill's height is the floor and half of it the corner:
-        // one line is unchanged, two read as a rounded box rather than a stretched capsule.
         wraps ? PILL_BOX : PILL_BASE,
         "min-w-0",
         wraps &&

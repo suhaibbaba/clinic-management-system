@@ -42,8 +42,6 @@ export class JwtAuthGuard implements CanActivate {
         secret: this.config.get("JWT_SECRET", { infer: true }),
       });
     } catch {
-      // Expired and malformed tokens are indistinguishable to the caller on
-      // purpose — the client refreshes on any 401 from a protected route.
       throw new UnauthorizedException("Invalid or expired access token");
     }
 

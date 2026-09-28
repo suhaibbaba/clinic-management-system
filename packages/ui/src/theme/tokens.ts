@@ -27,8 +27,6 @@ export type SurfaceToken =
   | "tag-from"
   | "tag-to";
 
-/** Six pairs for an initials avatar. The colour carries no meaning; it only keeps a person's
-    swatch the same on every screen. */
 export type TintToken = `tint-${1 | 2 | 3 | 4 | 5 | 6}-${"bg" | "ink"}`;
 
 export type ColorToken = PaletteToken | SurfaceToken | TintToken;
@@ -52,7 +50,6 @@ export type ShadowToken =
 export type TextToken =
   "micro" | "meta" | "label" | "value" | "nav" | "section" | "title" | "display" | "kpi" | "field";
 
-/** Two heights, and there is no third — a third is a change to these, never an inline value. */
 export type ControlToken = "h" | "h-sm";
 
 export type AnimationToken =

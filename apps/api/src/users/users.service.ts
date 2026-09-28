@@ -39,11 +39,8 @@ type UserRow = typeof users.$inferSelect;
 
 export const USERS_ENTITY = "users";
 
-// One folder per member of staff, so a key can be checked against the clinic that signed for it and
-// the person it is of — another user's folder is refused on confirm.
 const photoCategory = (userId: string): string => `staff/${userId}`;
 
-/** Columns safe to store in the audit trail and to return — never the hash. */
 const safeColumns = {
   id: users.id,
   clinicId: users.clinicId,
@@ -57,8 +54,6 @@ const safeColumns = {
   email: users.email,
   role: users.role,
   isActive: users.isActive,
-  // Not the hash — only whether there is one. A response never carries a credential, and the
-  // screen needs to know who is still waiting on their invitation.
   activated: sql<boolean>`${users.passwordHash} is not null`.as("activated"),
   photoKey: users.photoKey,
   createdAt: users.createdAt,
@@ -125,8 +120,6 @@ export class UsersService implements OnModuleInit {
   async findOne(actor: AuthenticatedUser, id: string): Promise<User> {
     const row = await this.findInClinicOrFail(actor.clinicId, id);
 
-    // This one reads the whole row rather than the safe columns, so the flag is derived here
-    // instead of in the select. The hash still never leaves `present`.
     return this.presentOne({ ...row, activated: row.passwordHash !== null });
   }
 
@@ -136,8 +129,6 @@ export class UsersService implements OnModuleInit {
     return this.presentOne(await this.insertUser(this.db, actor, input));
   }
 
-  // Transaction-composable, and the only insert into `users`: the doctors module creates an account
-  // and the profile that makes it usable in one go.
   async insertUser(
     executor: DatabaseExecutor,
     actor: AuthenticatedUser,
@@ -184,8 +175,6 @@ export class UsersService implements OnModuleInit {
       assertNotDoctorRole(input.role);
     }
 
-    // An admin who deactivates or demotes themselves would lock the clinic out
-    // of user management, so both are refused.
     if (id === actor.id) {
       if (input.isActive === false) {
         throw new BadRequestException("You cannot deactivate your own account");
@@ -217,7 +206,6 @@ export class UsersService implements OnModuleInit {
       throw new Error("Failed to update user");
     }
 
-    // A deactivated user must not keep a live session.
     if (input.isActive === false) {
       await this.tokenService.revokeAllForUser(id);
     }
@@ -225,8 +213,6 @@ export class UsersService implements OnModuleInit {
     return this.presentOne(row);
   }
 
-  // Every session for that user is revoked, and only the fact is audited — the password has no
-  // value that may be stored.
   async resetPassword(actor: AuthenticatedUser, id: string, newPassword: string): Promise<void> {
     const target = await this.findInClinicOrFail(actor.clinicId, id);
 
@@ -250,7 +236,6 @@ export class UsersService implements OnModuleInit {
     });
   }
 
-  /** Soft delete — nothing is ever hard-deleted (CLAUDE.md). */
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.findInClinicOrFail(actor.clinicId, id);
 
@@ -335,7 +320,6 @@ export class UsersService implements OnModuleInit {
     return this.presentOne(row);
   }
 
-  /** Shared with the doctors module: a doctor row must point at a real user. */
   async findInClinicOrFail(clinicId: string, id: string): Promise<UserRow> {
     return this.scope.findOneOrFail<UserRow>(users, clinicId, id);
   }
@@ -370,8 +354,6 @@ export class UsersService implements OnModuleInit {
     return Promise.all(rows.map((row) => this.presentOne(row)));
   }
 
-  // Phone and email are unique system-wide because login resolves them with no clinic hint, so this
-  // check deliberately spans clinics.
   private async assertIdentifiersAreFree(
     phone: string,
     email: string | null,
@@ -404,12 +386,10 @@ export class UsersService implements OnModuleInit {
   }
 }
 
-// `activated` is computed in the select rather than stored, so it is not a column to pick.
 export type SafeUserRow = Pick<UserRow, Exclude<keyof typeof safeColumns, "activated">> & {
   activated: boolean;
 };
 
-/** The parts as given and the full name joined from them — the only way a staff name is written. */
 export function staffNameColumns(
   firstName: PersonNameInput,
   lastName: PersonNameInput,
@@ -429,8 +409,6 @@ export function staffNameColumns(
   };
 }
 
-// The orphan guard: a `doctor` user with no `doctors` row can sign in and has no calendar, no
-// schedule and no place in any list. Only `POST /doctors` makes one, and it always writes both.
 function assertNotDoctorRole(role: UserRole): void {
   if (role === USER_ROLE.DOCTOR || role === USER_ROLE.VISITING_DOCTOR) {
     throw new BadRequestException("Create a doctor from the doctors screen, which makes both rows");

@@ -16,7 +16,6 @@ import { CapabilityRegistry } from "@api/permissions/capability-registry.service
 import type { PermissionsService } from "@api/permissions/permissions.service";
 import { EVAL_CASES, type EvalCase } from "@test/helpers/ai-eval-cases";
 
-// Compiling the graph queries nothing; the pool connects on its first query, which never comes.
 process.env["DATABASE_URL"] ??= "postgres://nobody:nothing@127.0.0.1:1/none";
 
 const ACTOR = {
@@ -25,7 +24,6 @@ const ACTOR = {
   role: USER_ROLE.ADMIN,
 };
 
-/** The real toolbox, each tool's body replaced: this is about routing and tiers, not data. */
 async function toolbox(): Promise<AiTool[]> {
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
 
@@ -61,7 +59,6 @@ const completed = (text: string, toolCalls: ChatToolCall[] = []): ChatChunk => (
   usage: { inputTokens: 1, outputTokens: 1 },
 });
 
-// The "model" replays what a good answer does: load the groups the question needs, call the tool.
 function scripted(evalCase: EvalCase): { provider: ChatProvider; requests: ChatRequest[] } {
   const requests: ChatRequest[] = [];
   const steps: ChatChunk[] = [
@@ -147,18 +144,16 @@ describe("the toolbox answers the 25 questions it is meant to", () => {
       for await (const _event of agent(provider, toolRunner).run(ACTOR, {
         message: evalCase.question,
       })) {
-        // drained
+        continue;
       }
 
       const tool = tools.find((candidate) => candidate.name === evalCase.tool);
       const answer = requests.at(-1)?.messages.at(-1);
 
-      // It exists, it ships on the tier expected, and the runner reached it once loaded.
       expect(tool?.risk ?? null).toBe(evalCase.tier satisfies AiRiskTier | null);
       expect(answer).toMatchObject({ role: "tool" });
       expect(answer?.content).toContain(`"ran":"${evalCase.tool}"`);
 
-      // A tool outside the core is not offered before its group is loaded.
       const first = offeredFirst[0]?.tools.map((definition) => definition.name) ?? [];
 
       expect(first.includes(evalCase.tool)).toBe(evalCase.groups.length === 0);

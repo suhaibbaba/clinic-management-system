@@ -10,7 +10,6 @@ import {
 } from "@test/helpers/test-app";
 import { staffName } from "@test/helpers/staff-name";
 
-/** Endpoints added so the web app can manage users and pick a specialty. */
 describe("Admin user management and specialties (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
@@ -36,8 +35,6 @@ describe("Admin user management and specialties (e2e)", () => {
 
   describe("PATCH /me", () => {
     it("lets anybody correct their own name and contact details", async () => {
-      // A unique address per run: identifiers are unique system-wide and this database outlives
-      // the suite that writes to it.
       const email = `me.${randomUUID()}@test.local`;
       const response = await context.app.inject({
         method: "PATCH",
@@ -50,7 +47,6 @@ describe("Admin user management and specialties (e2e)", () => {
       expect(response.statusCode).toBe(200);
       expect(body.name.ar).toBe("مؤيد كنعان");
       expect(body.email).toBe(email);
-      // The whole profile comes back, so the session the caller holds can be replaced with it.
       expect(body.role).toBe(USER_ROLE.TECHNICIAN);
     });
 
@@ -62,7 +58,6 @@ describe("Admin user management and specialties (e2e)", () => {
         payload: { role: USER_ROLE.ADMIN },
       });
 
-      // `role` is not a field of the schema at all, so the body carries nothing writable.
       expect(escalate.statusCode).toBe(400);
 
       const after = await context.app.inject({
@@ -140,7 +135,6 @@ describe("Admin user management and specialties (e2e)", () => {
       expect(withOld.statusCode).toBe(401);
       expect(withNew.statusCode).toBe(200);
 
-      // The session held before the reset must be dead.
       const refreshOld = await context.app.inject({
         method: "POST",
         url: "/auth/refresh",
@@ -149,7 +143,6 @@ describe("Admin user management and specialties (e2e)", () => {
       });
       expect(refreshOld.statusCode).toBe(401);
 
-      // Recorded as a fact, never as a value.
       const trail = await context.app.inject({
         method: "GET",
         url: `/audit-log?entityId=${userId}&limit=50`,

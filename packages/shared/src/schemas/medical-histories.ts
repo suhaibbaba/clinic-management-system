@@ -2,7 +2,6 @@ import { z } from "zod";
 
 const entryListSchema = z.array(z.string().trim().min(1).max(160)).max(50);
 
-/** Admin and doctor only; a technician gets the allergy flags below and nothing else (ROLES.md). */
 export const medicalHistorySchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
@@ -17,8 +16,6 @@ export const medicalHistorySchema = z.object({
 });
 export type MedicalHistory = z.infer<typeof medicalHistorySchema>;
 
-// ROLES.md allows a technician the allergy flag for safety and nothing else — no conditions,
-// medications, notes or pregnancy status.
 export const allergyFlagsSchema = z.object({
   patientId: z.uuid(),
   hasAllergies: z.boolean(),

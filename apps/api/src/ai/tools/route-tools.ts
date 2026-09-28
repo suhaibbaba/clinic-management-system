@@ -18,7 +18,6 @@ import { AuditService } from "@api/audit/audit.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
 
-/** What the assistant may never reach, however a route is decorated: it cannot widen itself. */
 const FORBIDDEN_AREAS = [
   "auth",
   "users",
@@ -33,26 +32,20 @@ const FORBIDDEN_AREAS = [
   "storage",
 ] as const;
 
-/** Uploads and exports: bytes and presigned URLs, never something to hand a model. */
 const FORBIDDEN_PATHS = /(presign|attachments|\.pdf|\/print|\/export|\/receipt|\/logo|\/photo)/;
 
 export interface RouteTool {
   readonly name: string;
   readonly group: ToolGroup;
   readonly description: string;
-  /** Null for a route open to everybody signed in, as its guard treats it. */
   readonly capability: string | null;
   readonly verb: string;
   readonly path: string;
-  /** Null for a read. */
   readonly risk: AiRiskTier | null;
-  /** The model-facing arguments: params, query and body in one object, overrides removed. */
   readonly schema: z.ZodObject;
-  /** Each part through the route's own schema; throws the ZodError a request would get. */
   parse(
     args: Record<string, unknown>,
   ): Record<"params" | "query" | "body", Record<string, unknown>>;
-  /** Validates each part with the route's own schema, then runs the handler as a request would. */
   invoke(actor: AuthenticatedUser, args: Record<string, unknown>): Promise<unknown>;
 }
 
@@ -72,13 +65,9 @@ const METHOD_NAMES: Record<number, string> = {
 
 type Handler = (...args: unknown[]) => unknown;
 
-/** A controller's class: all that is read of it is its name and its metadata. */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type -- Nest's own type for a class
 type ControllerClass = Function;
 
-// Every controller method that opted in with `@AiTool` becomes a tool: its schemas are the
-// route's own, its permission is the route's capability, and it runs through the handler — the
-// same validation, scoping and audit entry as the screen's request.
 @Injectable()
 export class RouteToolRegistry {
   private readonly logger = new Logger("Assistant");
@@ -268,7 +257,6 @@ export class RouteToolRegistry {
             .map((field) => [field, args[field]]),
         );
 
-        // The route's own schema, refinements and defaults included: what the pipe would do.
         values[part.source] = part.schema.parse(picked) as Record<string, unknown>;
       }
 
@@ -319,7 +307,6 @@ interface Invocation {
   readonly execution: ExecutionContext;
 }
 
-// The handler and the audit interceptor read the request through the context and nothing else.
 function syntheticContext(
   request: object,
   handler: Handler,

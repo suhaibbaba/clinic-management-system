@@ -1,8 +1,6 @@
 import { LetterheadService, type Letterhead } from "@api/billing/pdf/letterhead.service";
 import { RtlPdf } from "@api/billing/pdf/pdf-builder";
 
-// A receipt is a legal document with a clinic's name on it. Whatever stands in for a missing logo
-// has to be that name and nothing else — a stock mark would put somebody else's brand on it.
 describe("the printed letterhead", () => {
   const clinic = (over: Partial<Letterhead> = {}): Letterhead => ({
     name: "عيادة النور",
@@ -35,7 +33,6 @@ describe("the printed letterhead", () => {
 
     await service.draw(pdf, clinic(), "إيصال قبض", "#000056");
 
-    // The viewer's tab reads as the document, not as the blob's random name.
     expect(titles).toEqual(["إيصال قبض — #000056 — عيادة النور"]);
 
     expect(calls[0]).toMatchObject({

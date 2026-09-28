@@ -19,8 +19,6 @@ import { NotificationsService } from "@api/notifications/notifications.service";
 const HOUR = 3_600_000;
 const MINUTE = 60_000;
 
-// The job runs every five minutes, so a ten-minute window sees every appointment even if a run is
-// skipped — and seeing one twice costs nothing, the log being the dedupe.
 const WINDOW = 10 * MINUTE;
 
 interface Reminder {
@@ -34,8 +32,6 @@ const REMINDERS: readonly Reminder[] = [
   { template: NOTIFICATION_TEMPLATE.REMINDER_2H, leadMs: 2 * HOUR, setting: "remind2h" },
 ];
 
-// A held booking is a real `requested` appointment, so the same constraint blocks the slot; expiry
-// cancels with a reason rather than deleting. Both jobs are per-clinic and swallow their failures.
 @Injectable()
 export class RemindersScheduler {
   private readonly logger = new Logger(RemindersScheduler.name);
@@ -51,7 +47,6 @@ export class RemindersScheduler {
     await this.releaseExpiredHolds();
   }
 
-  /** Exposed for the tests, which drive the job rather than waiting for cron. */
   async sendReminders(): Promise<number> {
     const now = Date.now();
     let sent = 0;
@@ -80,8 +75,6 @@ export class RemindersScheduler {
         .where(
           and(
             isNull(appointments.deletedAt),
-            // Confirmed only. A `requested` booking is not a commitment yet,
-            // and reminding someone about a cancelled one is worse than silence.
             eq(appointments.status, APPOINTMENT_STATUS.CONFIRMED),
             gt(appointments.startsAt, from),
             lt(appointments.startsAt, to),

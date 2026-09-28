@@ -11,7 +11,6 @@ import {
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
-// A clinical record goes with its charge reversed, never deleted, and money taken for it keeps it.
 describe("Deleting visits and procedures (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;

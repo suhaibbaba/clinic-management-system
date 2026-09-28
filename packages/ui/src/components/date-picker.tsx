@@ -10,14 +10,11 @@ import { Popover } from "@ui/components/popover";
 import { cn } from "@ui/lib/cn";
 import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 
-/** The wire format everywhere: what the API takes and returns. */
 const ISO = "yyyy-MM-dd";
-/** What a person types and reads. Gregorian, Latin digits, day first. */
 const TYPED = "dd/MM/yyyy";
 
 export const toIsoDate = (date: Date): string => format(date, ISO);
 
-/** Parses the display format back to a date, rejecting `31/02/2026`. */
 export function parseTypedDate(value: string): Date | null {
   const parsed = parse(value, TYPED, new Date());
 
@@ -43,8 +40,6 @@ export interface DatePickerProps extends TestIdProps {
   readonly className?: string | undefined;
 }
 
-// Replaces `<input type="date">`, which showed `mm/dd/yyyy` to an Arabic clinic. Text commits only
-// when it parses, so `12/0` leaves the value alone and `31/02` is refused.
 export function DatePicker({
   id,
   value,
@@ -168,7 +163,6 @@ export function DatePicker({
         </Button>
       </div>
 
-      {/* Announces the current selection to a screen reader on open. */}
       <p className="sr-only">
         {selected ? format(selected, "PPP", { locale: dateLocale(i18n.language) }) : ""}
       </p>

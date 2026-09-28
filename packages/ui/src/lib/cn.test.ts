@@ -5,8 +5,6 @@ import { cn, FONT_SIZE_KEYS, LEADING_KEYS, RADIUS_KEYS } from "@ui/lib/cn";
 
 const theme = readFileSync(join(__dirname, "..", "styles", "base.css"), "utf8");
 
-// Deduped: a token redefined under a media query — the pointer step for `--control-h` and
-// `--text-field` — is still one token, and the registry only ever needs its name once.
 const tokensOf = (prefix: string): string[] => [
   ...new Set(
     [...theme.matchAll(new RegExp(`^\\s*--${prefix}-([a-z0-9-]+):`, "gm"))]
@@ -15,9 +13,6 @@ const tokensOf = (prefix: string): string[] => [
   ),
 ];
 
-// Every `--text-*` key is a font size tailwind-merge reads as a colour, dropping whichever class
-// came first — silently, and invisibly in review. A product cannot widen this: `TextToken` and
-// `RadiusToken` are closed unions, so an override supplies values and never new names.
 describe("cn", () => {
   it("keeps a text colour and a text size together", () => {
     const result = cn("bg-neutral-900 text-ink-inverse", "text-value");
@@ -31,8 +26,6 @@ describe("cn", () => {
     expect(cn(`text-ink-muted text-${size}`)).toContain(`text-${size}`);
   });
 
-  // The same blindness one token over: `rounded-card` and `rounded-pill` are both "unknown", so a
-  // component's own radius survived every override and a card came out as a pill.
   it("lets a caller override the radius a component sets", () => {
     expect(cn("skeleton rounded-pill", "rounded-card")).toContain("rounded-card");
     expect(cn("skeleton rounded-pill", "rounded-card")).not.toContain("rounded-pill");
@@ -47,8 +40,6 @@ describe("cn", () => {
     expect(cn("text-ink", "text-ink-muted")).toBe("text-ink-muted");
   });
 
-  // The registry is hand-written, so this is what stops base.css growing a token it never learns
-  // about: the failure is silent otherwise — the class is simply dropped.
   it.each([
     ["text", FONT_SIZE_KEYS],
     ["leading", LEADING_KEYS],

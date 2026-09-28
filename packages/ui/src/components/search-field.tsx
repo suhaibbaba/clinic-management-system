@@ -4,15 +4,12 @@ import { cn } from "@ui/lib/cn";
 import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 
 export interface SearchFieldProps extends InputHTMLAttributes<HTMLInputElement>, TestIdProps {
-  /** Names the field for screen readers; there is no visible label. */
   readonly label: string;
   readonly shortcut?: string | undefined;
   readonly onClear?: (() => void) | undefined;
   readonly clearLabel?: string | undefined;
 }
 
-// `type="search"` for the platform's clear button; its WebKit decoration is stripped because it
-// lands on the wrong side in RTL and duplicates the button beside it.
 export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(function SearchField(
   { label, shortcut, className, onClear, clearLabel, "data-testid": testId, ...props },
   ref,

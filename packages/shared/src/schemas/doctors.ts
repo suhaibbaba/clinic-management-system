@@ -28,21 +28,16 @@ export const doctorSchema = z.object({
     photoUrl: true,
   }),
   specialty: specialtySummarySchema,
-  /** A `visiting_doctor` account: an external doctor limited to the patients assigned to them. */
   isVisiting: z.boolean(),
 });
 export type Doctor = z.infer<typeof doctorSchema>;
 
-// No defaults here: a default survives `.partial()` and would silently rewrite a field the caller
-// never sent.
 const doctorWritableFields = {
   specialtyId: z.uuid(),
   weeklySchedule: weeklyScheduleSchema,
   defaultAppointmentDurationMinutes: appointmentDurationSchema,
 };
 
-// The staff account a doctor signs in with. No `role`: this endpoint only ever makes a doctor, and
-// a role field here would be a second place the answer could be wrong.
 export const newDoctorUserSchema = z.object({
   ...staffNameInputFields,
   phone: phoneSchema,
@@ -61,7 +56,6 @@ export const DOCTOR_USER_REF_MESSAGE = "Provide either userId or newUser";
 export const createDoctorSchema = z
   .object({
     ...doctorWritableFields,
-    /** An existing user in the caller's clinic; the API promotes them to the doctor role. */
     userId: z.uuid().optional(),
     newUser: newDoctorUserSchema.optional(),
     weeklySchedule: weeklyScheduleSchema.default([]),
@@ -78,8 +72,6 @@ export const updateDoctorSchema = z
   .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateDoctorInput = z.infer<typeof updateDoctorSchema>;
 
-// Added from where the doctor is needed — a plan item's performer — so no schedule and no password:
-// the account is activated later from the users screen, by invitation or a password set there.
 export const createVisitingDoctorSchema = z.object({
   ...staffNameInputFields,
   phone: phoneSchema,
@@ -88,8 +80,6 @@ export const createVisitingDoctorSchema = z.object({
 });
 export type CreateVisitingDoctorInput = z.infer<typeof createVisitingDoctorSchema>;
 
-// Separate from `updateDoctorSchema`: a doctor may edit their own schedule but nothing else about
-// their row (ROLES.md).
 export const updateDoctorScheduleSchema = z.object({
   weeklySchedule: weeklyScheduleSchema,
 });

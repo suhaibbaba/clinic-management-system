@@ -140,7 +140,6 @@ import { RouteToolRegistry, type RouteTool } from "@api/ai/tools/route-tools";
 
 type ActionKind = Exclude<AiProposalKind, typeof AI_PROPOSAL_KIND.MESSAGE>;
 
-/** What a `typed` card asks to be typed. In code: never in a row, and never in the model's context. */
 export const TYPED_PHRASES: Record<ActionKind, string> = {
   [AI_PROPOSAL_KIND.APPOINTMENT_CREATE]: "تأكيد حجز الموعد",
   [AI_PROPOSAL_KIND.APPOINTMENT_UPDATE]: "تأكيد تعديل الموعد",
@@ -170,7 +169,6 @@ const LARGE_CANCELLATION = 10;
 const EXCEEDS_BALANCE_FACTOR = 3;
 const NOTES_MAX_LENGTH = 2000;
 
-/** The statuses the assistant may set, and the endpoint whose permission each borrows. */
 const STATUS_CAPABILITY = {
   [APPOINTMENT_STATUS.CONFIRMED]: "appointments.confirm",
   [APPOINTMENT_STATUS.ARRIVED]: "appointments.arrived",
@@ -186,7 +184,6 @@ interface StatusPayload {
   readonly status: SettableStatus;
 }
 
-/** Small and reversible run at once; the rest wait on a card. */
 const AUTO_STATUSES: readonly SettableStatus[] = [
   APPOINTMENT_STATUS.ARRIVED,
   APPOINTMENT_STATUS.IN_PROGRESS,
@@ -237,7 +234,6 @@ const timeOffUpdateSchema = periodFields
   .refine(pairedTimes, TIMES_PAIRED);
 const closureSchema = periodFields.refine(orderedDates, DATES_ORDERED);
 
-/** The statuses the assistant may move a lab order to, and the endpoint each borrows. */
 const LAB_STATUS_CAPABILITY = {
   [LAB_ORDER_STATUS.SENT]: "lab-orders.send",
   [LAB_ORDER_STATUS.READY]: "lab-orders.ready",
@@ -343,9 +339,7 @@ interface PlanStepPayload {
   readonly tool: string;
   readonly args: Record<string, unknown>;
   readonly note?: string;
-  /** The fields the person fills in on the card. */
   readonly needs: readonly string[];
-  /** What the rehearsal prepared: run as is on the first click, or null to prepare at the click. */
   readonly prepared: unknown;
 }
 
@@ -356,7 +350,6 @@ interface PlanPayload {
 
 const REF = /^steps\[(\d+)\]\.id$/;
 
-/** A plan step's own refusal, carried to the card as an error code. */
 class PlanStepStopped extends Error {
   constructor(readonly stop: Stop) {
     super(`Plan step stopped: ${String(stop.forModel["status"])}`);
@@ -414,7 +407,6 @@ interface TimeOffUpdatePayload extends ConflictDecision {
   readonly startsAt: string;
   readonly endsAt: string;
   readonly reason: string | null;
-  /** Only a period that grew can have somebody new inside it. */
   readonly grew: boolean;
 }
 
@@ -438,7 +430,6 @@ const statusSchema = z.object({
   acknowledge: acknowledgeSchema,
 });
 
-/** A deterministic stop, told to the model as a result it relays — never retried around. */
 class Stop {
   constructor(readonly forModel: Record<string, unknown>) {}
 }
@@ -454,27 +445,19 @@ interface Executed {
 }
 
 interface ActionSpec<TSchema extends z.ZodType, TPayload> {
-  /** An `AiActionTool`, or a generated route write's name. */
   readonly tool: string;
-  /** Defaults to the hand-written tool's entry in `TOOL_GROUP`. */
   readonly group?: string;
   readonly kind: ActionKind;
   readonly description: string;
   readonly risk: AiRiskTier;
-  /**
-   * The endpoint this borrows its permission from; `capabilityFor` narrows it per call. Null only
-   * for a plan, whose every step is checked against its own.
-   */
   readonly capability: string | null;
   readonly capabilityFor?: (payload: NoInfer<TPayload>) => string;
   readonly schema: TSchema;
   prepare(actor: AuthenticatedUser, args: z.output<TSchema>): Promise<Draft<TPayload> | Stop>;
-  /** Raises the tier for what this call turned out to touch. It can never lower one. */
   readonly escalate?: (payload: NoInfer<TPayload>, settings: AiActionsSettings) => AiRiskTier;
   execute(actor: AuthenticatedUser, payload: NoInfer<TPayload>): Promise<Executed>;
 }
 
-/** The same spec with its payload type erased, so the registry holds one list. */
 interface Action {
   readonly tool: string;
   readonly kind: ActionKind;
@@ -489,9 +472,6 @@ interface Action {
 
 type ProposalRow = typeof aiProposals.$inferSelect;
 
-// Every action the assistant can take, and the one path each takes whether it runs inside the tool
-// call or on the card's button: the same domain service the screen calls, the same domain audit
-// entry, and the same permission, asked again at the click.
 @Injectable()
 export class AiActionsService {
   private readonly logger = new Logger("Assistant");
@@ -537,7 +517,6 @@ export class AiActionsService {
     return aiActionsSettings(row?.settings);
   }
 
-  // Merged in place under its own key, so an edit here cannot overwrite what sits beside it.
   async updateSettings(
     actor: AuthenticatedUser,
     input: AiActionsSettings,
@@ -554,7 +533,6 @@ export class AiActionsService {
     return this.settings(actor.clinicId);
   }
 
-  /** The strictest of the code's tier, the clinic's floor, and what this call touched. */
   static resolveTier(
     code: AiRiskTier,
     clinicFloor: AiRiskTier | undefined,
@@ -583,11 +561,6 @@ export class AiActionsService {
     return statusEvent(updated);
   }
 
-  /**
-   * The card's button. Everything is checked again at the click — author, status, expiry, the
-   * clinic's switch, the permission, the tier and the phrase — then the claim flips `draft` to
-   * `sending`, which is what stops a second click from running it twice.
-   */
   async confirm(
     actor: AuthenticatedUser,
     id: string,
@@ -648,7 +621,6 @@ export class AiActionsService {
     return statusEvent(done);
   }
 
-  /** Runs one action as the tool call, for the tier that needs nobody's click. */
   async runTool(
     action: Action,
     actor: AuthenticatedUser,
@@ -673,8 +645,6 @@ export class AiActionsService {
 
     const proposal = await this.draft(actor, conversationId, action, draft, tier);
 
-    // The id and the tier, never the summary: the person confirming reads it on the card, and the
-    // model is not to narrate an action as done.
     return new ProposalResult(proposal, {
       proposal_id: proposal.id,
       kind: proposal.kind,
@@ -759,7 +729,6 @@ export class AiActionsService {
         throw new OutboundError(AI_OUTBOUND_ERROR.EXPIRED, HttpStatus.CONFLICT);
       }
 
-      // "Continue from step N" takes a plan that stopped part-way; nothing else leaves `draft`.
       const resumable =
         resume && row.kind === AI_PROPOSAL_KIND.PLAN && row.status === AI_PROPOSAL_STATUS.FAILED;
 
@@ -779,7 +748,6 @@ export class AiActionsService {
         throw new ActionRefusal(AI_ACTION_ERROR.DISABLED, HttpStatus.FORBIDDEN);
       }
 
-      // The matrix may have changed since the draft; the one in force at the click decides.
       const capability = action.capabilityFor(row.payload);
 
       if (capability && !(await this.permissions.allows(actor.clinicId, actor.role, capability))) {
@@ -792,7 +760,6 @@ export class AiActionsService {
         action.escalate(row.payload, settings),
       );
 
-      // Raised since the draft: recorded, so the card re-reads it and asks for the phrase.
       if (tier !== row.tier) {
         await tx
           .update(aiProposals)
@@ -804,7 +771,6 @@ export class AiActionsService {
           .where(eq(aiProposals.id, id));
       }
 
-      // Exact, bar surrounding whitespace: a phrase that forgives typos is a button with extra steps.
       if (tier === AI_RISK_TIER.TYPED && typedPhrase?.trim() !== TYPED_PHRASES[action.kind]) {
         return { mismatch: true } as const;
       }
@@ -842,14 +808,12 @@ export class AiActionsService {
     const [row] = await this.db.select().from(aiProposals).where(this.ownedBy(actor, id)).limit(1);
 
     if (!row) {
-      // Somebody else's action is a 404, like somebody else's conversation.
       throw new NotFoundException("Resource not found");
     }
 
     return row;
   }
 
-  // The author's own: an action is confirmed by the person who asked for it, nobody else.
   private ownedBy(actor: AuthenticatedUser, id: string) {
     return and(
       eq(aiProposals.id, id),
@@ -1201,7 +1165,6 @@ export class AiActionsService {
             throw new BadRequestException("Nothing to cancel");
           }
 
-          // One link only makes sense for one appointment; several are listed on the card.
           return payload.appointmentIds.length === 1
             ? appointmentResult(last)
             : { result: null, audit: { entity: APPOINTMENTS_ENTITY, entityId: last.id } };
@@ -1985,7 +1948,6 @@ export class AiActionsService {
               );
             }),
           ),
-        // A plan runs step by step from the card, through `runPlan`; never as one execute.
         execute: () => Promise.reject(new BadRequestException("A plan runs from its card")),
       }),
 
@@ -2128,8 +2090,6 @@ export class AiActionsService {
     ];
   }
 
-  // What the audit interceptor does around a screen's request, done here because the assistant
-  // calls the service directly: snapshot before, snapshot after, one entry with both.
   private async audited<TResult extends { id: string }>(
     actor: AuthenticatedUser,
     entity: string,
@@ -2155,7 +2115,6 @@ export class AiActionsService {
     return result;
   }
 
-  // `AvailabilityService` decides; this only reads its answer for the one minute asked about.
   private async slot(
     actor: AuthenticatedUser,
     query: {
@@ -2231,7 +2190,6 @@ export class AiActionsService {
       }));
   }
 
-  // "The whole day": every appointment the clinic still has on one of the dates targeted.
   private async coversWholeDay(
     actor: AuthenticatedUser,
     targets: readonly CalendarAppointment[],
@@ -2266,7 +2224,6 @@ export class AiActionsService {
     return false;
   }
 
-  // Whole days run to midnight after `date_to`, the same window a closure's inclusive `endsOn` has.
   private async period(
     clinicId: string,
     args: {
@@ -2291,7 +2248,6 @@ export class AiActionsService {
       : new Stop({ status: "not_possible", reason: "ends_before_start" });
   }
 
-  /** Who is booked inside the period; a question for the user until they have said what to do. */
   private async periodConflicts(
     actor: AuthenticatedUser,
     window: { from: Date; to: Date },
@@ -2320,7 +2276,6 @@ export class AiActionsService {
     );
   }
 
-  // The card listed who would be affected; somebody booked since then was never shown to anybody.
   private async assertNoNewConflicts(
     actor: AuthenticatedUser,
     window: { from: Date; to: Date },
@@ -2334,8 +2289,6 @@ export class AiActionsService {
     }
   }
 
-  // A route's write, drafted and confirmed like every hand-written action: validated by the
-  // route's own schemas, summarised with names, and run through its handler on the click.
   private routeActions(): Action[] {
     return this.routes
       .list()
@@ -2379,7 +2332,6 @@ export class AiActionsService {
       );
   }
 
-  // Names for the ids a person recognises; every other field as sent, so the card hides nothing.
   private async routeSummary(
     actor: AuthenticatedUser,
     route: RouteTool,
@@ -2409,7 +2361,6 @@ export class AiActionsService {
     };
   }
 
-  /** A route call is found by the tool it carries: every one of them shares its kind. */
   private actionForRow(row: ProposalRow): Action | undefined {
     if (row.kind === AI_PROPOSAL_KIND.ROUTE_CALL) {
       const tool = (row.payload as Partial<RoutePayload> | null)?.tool;
@@ -2430,11 +2381,6 @@ export class AiActionsService {
     return action;
   }
 
-  /**
-   * Checks a plan without keeping anything: every step a permitted write with valid references;
-   * the steps before the first that waits on the person rehearsed through their real services
-   * inside a rolled-back transaction, each seeing the ones before it.
-   */
   private async proposePlan(
     actor: AuthenticatedUser,
     plan: z.output<typeof planSchema>,
@@ -2544,8 +2490,6 @@ export class AiActionsService {
             args: step.args,
             ...(step.note && { note: step.note }),
             needs: needs[index] ?? [],
-            // A step that points at an earlier one's row is prepared at the click, never from the
-            // rehearsal: the row it pointed at was rolled back.
             prepared: draft && refsIn(step.args).length === 0 ? draft.payload : null,
           } satisfies PlanStepPayload,
           summary: {
@@ -2567,10 +2511,6 @@ export class AiActionsService {
     };
   }
 
-  /**
-   * Runs a plan's steps from `from`, each in its own transaction: a clinic's day does not roll back
-   * six moves because the seventh found its slot taken. Progress lands on the card after each.
-   */
   async runPlan(
     actor: AuthenticatedUser,
     row: ProposalRow,
@@ -2633,8 +2573,6 @@ export class AiActionsService {
     return last ? { executed: last } : { failure: AI_ACTION_ERROR.FAILED };
   }
 
-  // Availability may have moved since the card was drawn: prepared again, and refused if what it
-  // would do is no longer what the person read.
   private async prepareAtClick(
     actor: AuthenticatedUser,
     action: Action,
@@ -2670,8 +2608,6 @@ export class AiActionsService {
       .where(eq(aiProposals.id, id));
   }
 
-  // Each step its own row beside the domain's entry; the plan's own row, written by `confirm`,
-  // carries the proposal id that links them.
   private async stepAudit(
     actor: AuthenticatedUser,
     row: ProposalRow,
@@ -2694,7 +2630,6 @@ export class AiActionsService {
     });
   }
 
-  /** A step not rehearsed — it waits on the person — is shown by the names its ids stand for. */
   private async describeStep(
     actor: AuthenticatedUser,
     args: Record<string, unknown>,
@@ -2751,8 +2686,6 @@ export class AiActionsService {
     );
   }
 
-  // For a booking step whose time is taken: what the doctor has free that day once the steps
-  // before it have happened — computed inside the same rehearsal, so it counts them.
   private async freeTimesAfter(
     actor: AuthenticatedUser,
     stop: Stop,
@@ -2798,7 +2731,6 @@ export class AiActionsService {
     };
   }
 
-  /** Booked appointments from now on, on the changed weekdays, that no longer fit the hours. */
   private async outsideHours(
     actor: AuthenticatedUser,
     doctorId: string,
@@ -2847,7 +2779,6 @@ export class AiActionsService {
     );
   }
 
-  /** Somebody not seen in two years is as likely a namesake as the person meant. */
   private async dormant(
     actor: AuthenticatedUser,
     patientId: string,
@@ -2924,7 +2855,6 @@ export class AiActionsService {
   }
 }
 
-/** A refusal at the click, answered with a status and the code the card writes the Arabic for. */
 export class ActionRefusal extends Error {
   constructor(
     readonly code: AiActionError,
@@ -2935,8 +2865,6 @@ export class ActionRefusal extends Error {
   }
 }
 
-// Type-erases one spec, and turns it into the tool the model calls. The payload is only ever one
-// this spec's own `prepare` wrote, so the cast back is to what went in.
 function defineAction<TSchema extends z.ZodType, TPayload>(
   spec: ActionSpec<TSchema, TPayload>,
 ): Action {
@@ -3019,7 +2947,6 @@ function domainFailure(kind: ActionKind, error: unknown): AiActionError {
   return AI_ACTION_ERROR.FAILED;
 }
 
-// Cancelling booked patients is not undone by anybody, so it asks for the phrase.
 const escalateConflict = (payload: ConflictDecision): AiRiskTier =>
   payload.onConflict === AI_SCHEDULE_CONFLICT_CHOICE.CANCEL && payload.conflictIds.length > 0
     ? AI_RISK_TIER.TYPED
@@ -3047,7 +2974,6 @@ const conflictSummary = (
       }
     : {};
 
-// Through the endpoint's own schema, so the card never shows a movement the screen would refuse.
 function parseMovement(args: z.output<typeof movementSchema>): MovementInput | Stop {
   const base = { itemId: args.item_id, quantity: args.quantity, reason: args.reason ?? null };
   const parsed = (() => {
@@ -3084,7 +3010,6 @@ function parseMovement(args: z.output<typeof movementSchema>): MovementInput | S
     : parsed;
 }
 
-/** A reversing entry, or one already reversed, is where the ledger stops. */
 function irreversible(
   row: { reversesId: string | null; reversedAt: Date | null } | undefined,
 ): Stop | null {
@@ -3106,7 +3031,6 @@ interface RoutePayload {
   readonly args: Record<string, unknown>;
 }
 
-// The clinic's switches and floors are kept per hand-written action; a generated one has none yet.
 const isDisabled = (settings: AiActionsSettings, tool: string): boolean =>
   (settings.disabled as readonly string[]).includes(tool);
 
@@ -3169,7 +3093,6 @@ const inputKind = (name: string): AiPlanInput["kind"] =>
 const issues = (error: z.ZodError): string[] =>
   error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`);
 
-/** Every step still waiting on a field has it among the inputs the card sent. */
 function planInputsGiven(row: ProposalRow, inputs: AiPlanInputs | undefined): boolean {
   const steps = (row.payload as unknown as PlanPayload).steps;
   const cards = (row.resolvedSummary as AiActionSummary | null)?.steps ?? [];
@@ -3181,7 +3104,6 @@ function planInputsGiven(row: ProposalRow, inputs: AiPlanInputs | undefined): bo
   );
 }
 
-// A step's own refusal as the card's error code: the plan's card says what stopped it.
 function planStepFailure(kind: ActionKind, error: unknown): AiActionError {
   if (error instanceof ActionRefusal) {
     return error.code;
@@ -3231,7 +3153,6 @@ const WEEKDAY_INDEX: Record<string, number> = {
   Sat: 6,
 };
 
-// The clinic's weekday and minute of the day, as `DaySchedule` counts them.
 function clockIn(timeZone: string, instant: Date): { weekday: number; minute: number } {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone,

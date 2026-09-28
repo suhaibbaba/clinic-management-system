@@ -9,20 +9,14 @@ import { testid, type TestIdProps } from "@ui/lib/testid";
 export interface ConfirmDialogProps extends TestIdProps {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
-  /** A key naming the thing, e.g. `visits.confirmDelete.title` with its date. */
   readonly title: string;
   readonly titleValues?: Record<string, string | number> | undefined;
-  /** Already worded: what goes with it, one line each. */
   readonly consequences?: readonly ReactNode[] | undefined;
   readonly confirmLabel?: string | undefined;
-  /** `primary` asks before something that adds, not removes: a payment, say. */
   readonly tone?: "danger" | "primary" | undefined;
-  /** Resolves to close; a rejection keeps the dialog open for the caller's own error. */
   readonly onConfirm: () => Promise<void>;
 }
 
-// One dialog for every destructive action, and for the few additions worth a second look. Nothing is focused on open, as with every dialog, so the
-// irreversible button is never what Enter reaches first; Escape cancels.
 export function ConfirmDialog({
   open,
   onOpenChange,
@@ -44,7 +38,6 @@ export function ConfirmDialog({
       await onConfirm();
       onOpenChange(false);
     } catch {
-      // The caller has already said why; the dialog stays for another try or a cancel.
     } finally {
       setBusy(false);
     }
@@ -107,7 +100,6 @@ export type ConfirmRequest = Pick<
   "title" | "titleValues" | "consequences" | "confirmLabel" | "tone" | "onConfirm"
 >;
 
-/** A destructive action asks through this: call `confirm`, render `dialog` once. */
 export function useConfirm(testId?: string): {
   readonly confirm: (request: ConfirmRequest) => void;
   readonly dialog: JSX.Element;

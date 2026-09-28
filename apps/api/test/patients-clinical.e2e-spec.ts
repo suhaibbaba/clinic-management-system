@@ -103,7 +103,6 @@ describe("Patient clinical records (e2e)", () => {
         },
       });
 
-      // The clinic's specialty charts teeth, so a body region is not storable.
       expect(response.statusCode).toBe(400);
     });
 
@@ -145,7 +144,6 @@ describe("Patient clinical records (e2e)", () => {
 
       expect((after.json() as { price: string }).price).toBe(price);
 
-      // Restore, so the price-sensitive assertions above stay order-independent.
       await context.app.inject({
         method: "PATCH",
         url: `/procedure-catalog/${fixtures.catalogId}`,
@@ -202,7 +200,6 @@ describe("Patient clinical records (e2e)", () => {
       });
 
       expect(response.statusCode).toBe(201);
-      // An examination or a cleaning leaves the tooth as it was.
       expect((response.json() as { chartOutcome: unknown }).chartOutcome).toBeNull();
     });
 
@@ -214,7 +211,6 @@ describe("Patient clinical records (e2e)", () => {
         payload: { chartOutcome: "healthy" },
       });
 
-      // `healthy` is a tooth state, never something a procedure produces.
       expect(response.statusCode).toBe(400);
     });
   });
@@ -358,7 +354,6 @@ describe("Patient clinical records (e2e)", () => {
 
       expect(procedure.planItemId).toBe(itemId);
       expect(procedure.patientId).toBe(patientId);
-      // The estimate carries over as the snapshot unless overridden.
       expect(procedure.price).toBe("60.00");
       expect(procedure.status).toBe("done");
 
@@ -377,8 +372,6 @@ describe("Patient clinical records (e2e)", () => {
         method: "POST",
         url: `/plan-items/${itemId}/convert`,
         headers: asDoctor(),
-        // Whole units on the way in; the column still stores two decimals, so
-        // the answer comes back at the stored scale.
         payload: { price: "75" },
       });
 

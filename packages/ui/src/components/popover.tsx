@@ -9,16 +9,11 @@ export interface PopoverProps extends TestIdProps {
   readonly onOpenChange: (open: boolean) => void;
   readonly anchor: ReactNode;
   readonly title: string;
-  // `false` is for a picker that appeared because somebody clicked the text field: moving focus
-  // there would swallow the first keystroke.
   readonly focusOnOpen?: boolean | undefined;
-  /** Sizing and padding only — the card's border, shadow and animation are the primitive's. */
   readonly className?: string | undefined;
   readonly children: ReactNode;
 }
 
-// One shape on every screen — it used to be a bottom sheet below `md`, a second primitive for one
-// question. The field anchors rather than triggers, so nothing opens it by accident.
 export function Popover({
   open,
   onOpenChange,
@@ -29,11 +24,7 @@ export function Popover({
   children,
   "data-testid": testId,
 }: PopoverProps): JSX.Element {
-  // Radix Dialog makes the body inert, so a popover portalled to `document.body` from inside one
-  // renders and ignores every click. Portalling into the dialog is a no-op elsewhere.
   const dialogLayer = useDialogLayer();
-  // Radix excludes a `Trigger` from its outside-click dismissal but not an `Anchor`, so without
-  // this a click in the field a picker hangs off closes the panel the same click means to use.
   const anchorRef = useRef<HTMLDivElement>(null);
 
   return (

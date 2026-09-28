@@ -35,9 +35,6 @@ const at = (date: string, time: string): string => {
   return instantFromLocal(date, Number(hours) * 60 + Number(minutes), TIME_ZONE).toISOString();
 };
 
-// Reception performed one action — "book this new patient in at ten" — so one thing has to succeed
-// or fail. The rollback case is the one that matters: a patient left behind by a booking that was
-// refused is a duplicate somebody has to find and clean up later.
 describe("Inline patient registration (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
@@ -100,7 +97,6 @@ describe("Inline patient registration (e2e)", () => {
     const registered = await findByPhone(phone);
     expect(registered).toHaveLength(1);
     expect(registered[0]?.id).toBe(appointment.patientId);
-    // Registered from a booking form, so the rest of the file is still to come.
     expect(registered[0]?.profileIncomplete).toBe(true);
   });
 
@@ -109,15 +105,12 @@ describe("Inline patient registration (e2e)", () => {
 
     const phone = uniquePhone();
 
-    // Same doctor, same minute: the exclusion constraint refuses it.
     const clash = await book("10:00", { newPatient: { ...nameParts("مريض مرفوض"), phone } });
 
     expect(clash.statusCode).toBe(409);
     expect(await findByPhone(phone)).toHaveLength(0);
   });
 
-  // The interceptor audits the appointment; a patient written inside the same transaction has no
-  // request of its own, so the registration writes its own entry — and rolls back with it.
   it("audits the registration alongside the appointment", async () => {
     const phone = uniquePhone();
 

@@ -38,8 +38,6 @@ type WaitingListRow = typeof waitingList.$inferSelect;
 
 export const WAITING_LIST_ENTITY = "waiting_list";
 
-// A queue, not a history. Promotion goes through `AppointmentsService.create`, so a slot taken
-// while the patient waited is refused with a 409.
 @Injectable()
 export class WaitingListService implements OnModuleInit {
   constructor(
@@ -100,8 +98,6 @@ export class WaitingListService implements OnModuleInit {
     const [rows, [totals]] = await Promise.all([
       this.entrySelect()
         .where(where)
-        // Urgent first, then longest waiting. The rank is data in
-        // `@clinic/shared` so the panel and this query cannot disagree.
         .orderBy(
           sql`case ${waitingList.priority}
                 when 'urgent' then ${WAITING_LIST_PRIORITY_RANK.urgent}
@@ -188,7 +184,6 @@ export class WaitingListService implements OnModuleInit {
     return this.findOne(actor, id);
   }
 
-  /** Rang back, nothing decided yet. The one step that leaves the entry in the queue. */
   async markContacted(actor: AuthenticatedUser, id: string): Promise<WaitingListEntry> {
     await this.requireTransition(actor, id, WAITING_LIST_STATUS.CONTACTED);
 
@@ -247,7 +242,6 @@ export class WaitingListService implements OnModuleInit {
     return entry;
   }
 
-  /** Closing without a booking. The reason is what the patient was told, so it is recorded. */
   async decline(
     actor: AuthenticatedUser,
     id: string,
@@ -294,12 +288,9 @@ export class WaitingListService implements OnModuleInit {
       priority: WAITING_LIST_PRIORITY.URGENT,
       source: WAITING_LIST_SOURCE.ONLINE,
       status: WAITING_LIST_STATUS.PENDING,
-      // No `created_by`: nobody on staff made this row, and naming one would be
-      // a lie in the audit trail.
     });
   }
 
-  /** How many strangers are waiting on a call back — the badge on the queue. */
   async openUrgentCount(clinicId: string, phone?: string): Promise<number> {
     const [row] = await this.db
       .select({ value: sql<number>`count(*)::int` })
@@ -374,8 +365,6 @@ export class WaitingListService implements OnModuleInit {
     }
   }
 
-  // The transition table is the only test, as it is for an appointment: a closed entry cannot be
-  // rung back, scheduled twice, or declined after it was booked.
   private async requireTransition(
     actor: AuthenticatedUser,
     id: string,

@@ -12,7 +12,6 @@ import { LedgerService } from "@api/billing/ledger.service";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import { charges, patients } from "@api/database/schema";
 
-/** What a procedure looks like to billing. No clinical fields cross this line. */
 export interface ProcedureBillingEvent {
   readonly clinicId: string;
   readonly patientId: string;
@@ -33,15 +32,10 @@ export function isBillable(status: PerformedProcedureStatus): boolean {
   return BILLABLE_STATUSES.includes(status);
 }
 
-// Every method takes the executor: a charge is only ever written in the same transaction as the
-// procedure that caused it, and a half-written pair has no repair path.
 @Injectable()
 export class ChargesService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  // Payments are not allocated to charges, so "paid towards" is read off the balance: if taking these
-  // charges away would leave the patient in credit, money was taken for them, and deleting would
-  // move it silently. The caller corrects with a reversal instead.
   async assertRemovable(
     tx: DatabaseExecutor,
     clinicId: string,
@@ -79,8 +73,6 @@ export class ChargesService {
     await this.insertCharge(tx, event);
   }
 
-  // Reverses the charge in force and inserts the new figure. Also the path off `planned`, which is
-  // why it inserts with nothing to reverse.
   async onProcedureAmended(tx: DatabaseExecutor, event: ProcedureBillingEvent): Promise<void> {
     await this.reverseCurrentCharge(tx, event.clinicId, event.performedProcedureId, event.actorId);
 
@@ -89,7 +81,6 @@ export class ChargesService {
     }
   }
 
-  /** A soft-deleted procedure is not owed: reverse it, never delete the row. */
   async onProcedureReversed(
     tx: DatabaseExecutor,
     event: Pick<ProcedureBillingEvent, "clinicId" | "performedProcedureId" | "actorId">,
@@ -123,16 +114,12 @@ export class ChargesService {
     });
   }
 
-  // The reversal carries the procedure id so it describes itself on a statement, and `reversed_at`
-  // is what keeps `charges_procedure_uniq` to one charge in force.
   private async reverseCurrentCharge(
     tx: DatabaseExecutor,
     clinicId: string,
     performedProcedureId: string,
     actorId: string,
   ): Promise<void> {
-    // Locked for the length of the transaction so two concurrent amendments
-    // cannot both decide they are the one reversing the same charge.
     const [existing] = await tx
       .select()
       .from(charges)
@@ -180,7 +167,6 @@ function currentChargePredicate(clinicId: string, performedProcedureId: string):
   return predicate;
 }
 
-/** `-0.00` is not a thing; everything else flips sign in minor units. */
 export function negate(amount: Money): Money {
   return formatMinorUnits(-toMinorUnits(amount));
 }

@@ -3,12 +3,10 @@ import { CHART_TYPES, USER_ROLES } from "@shared/enums";
 import { personNameSchema } from "@shared/schemas/person-name";
 
 export const PASSWORD_MIN_LENGTH = 8;
-/** Upper bound so a huge body can never turn into an expensive hash. */
 export const PASSWORD_MAX_LENGTH = 200;
 
 export const passwordSchema = z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH);
 
-/** One field for phone or email — the API decides which by matching. */
 export const loginSchema = z.object({
   identifier: z.string().trim().min(3).max(255),
   password: passwordSchema,
@@ -23,15 +21,12 @@ export type RefreshInput = z.infer<typeof refreshSchema>;
 export const logoutSchema = refreshSchema;
 export type LogoutInput = z.infer<typeof logoutSchema>;
 
-/** Somebody arriving from a link in their inbox: the token proves who they are, so there is no
- *  current password to give. */
 export const setPasswordSchema = z.object({
   token: z.string().min(16).max(256),
   password: passwordSchema,
 });
 export type SetPasswordInput = z.infer<typeof setPasswordSchema>;
 
-/** Always answered the same way, whether or not the address is known here. */
 export const forgotPasswordSchema = z.object({
   identifier: z.string().trim().min(3).max(255),
 });
@@ -48,18 +43,14 @@ export const changePasswordSchema = z
   });
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
-// Travels with the profile so the chrome — the rail's logo, the tab's title — is drawn on the
-// first render rather than after a second round trip to `/clinic`.
 export const sessionClinicSchema = z.object({
   name: personNameSchema,
   logoUrl: z.url().nullable(),
   chartTypes: z.array(z.enum(CHART_TYPES)),
-  /** ISO 3166-1 alpha-2, so every phone field starts on the clinic's own dialling code. */
   country: z.string(),
 });
 export type SessionClinic = z.infer<typeof sessionClinicSchema>;
 
-/** The caller's own profile — never includes the password hash. */
 export const authenticatedUserSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
@@ -76,8 +67,6 @@ export const authenticatedUserSchema = z.object({
 });
 export type AuthenticatedUserProfile = z.infer<typeof authenticatedUserSchema>;
 
-// The refresh token is deliberately absent — it is an httpOnly cookie, so an XSS on the web app
-// cannot read it.
 export const authTokensSchema = z.object({
   accessToken: z.string(),
   expiresIn: z.number().int().positive(),

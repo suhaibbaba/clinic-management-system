@@ -9,7 +9,6 @@ export interface Sealed {
   readonly authTag: string;
 }
 
-/** A value that cannot be read: a tampered row, a row moved between clinics, or a new master key. */
 export class SecretUnreadableError extends Error {
   constructor() {
     super("A stored secret could not be decrypted");
@@ -17,8 +16,6 @@ export class SecretUnreadableError extends Error {
   }
 }
 
-// `context` is authenticated but not encrypted — the clinic and kind the value belongs to, so a
-// ciphertext is only ever valid in the row it was written for.
 export function seal(masterKey: Buffer, plaintext: string, context: string): Sealed {
   const iv = randomBytes(IV_BYTES);
   const cipher = createCipheriv(ALGORITHM, masterKey, iv);

@@ -44,15 +44,12 @@ const auditColumns = {
   updatedBy: uuid("updated_by"),
 };
 
-// Every table here is a medical record, so all carry `deleted_at` — and that is what lets each go
-// through `ClinicScopeService`.
 const softDeleteColumn = {
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 };
 
 const liveRows = sql`deleted_at is null`;
 
-/** Money is `numeric(10, 2)`, read and written as a string — never a float. */
 const money = (name: string) => numeric(name, { precision: 10, scale: 2 });
 
 export const procedureCatalog = pgTable(
@@ -68,8 +65,6 @@ export const procedureCatalog = pgTable(
     code: text("code").notNull(),
     name: text("name").notNull(),
     defaultPrice: money("default_price").notNull(),
-    // A `tooth_state` lookup code for what this leaves on the chart, null for procedures that chart
-    // nothing — set per item rather than inferred from the name.
     chartOutcome: text("chart_outcome"),
     isActive: boolean("is_active").notNull().default(true),
     ...auditColumns,
@@ -93,7 +88,6 @@ export const patients = pgTable(
     firstName: text("first_name").notNull(),
     middleName: text("middle_name"),
     lastName: text("last_name").notNull(),
-    /** Written by the service from the parts above; everything that reads a name reads this. */
     fullName: text("full_name").notNull(),
     normalizedName: normalizedName("full_name"),
     phone: text("phone").notNull(),
@@ -115,7 +109,6 @@ export const patients = pgTable(
   ],
 );
 
-/** One row per patient. Admin and doctor only; technicians see allergies alone. */
 export const medicalHistories = pgTable(
   "medical_histories",
   {
@@ -193,8 +186,6 @@ export const treatmentPlans = pgTable(
   ],
 );
 
-// `estimated_price` is a quote and stays put; the price that bills is snapshotted onto the
-// performed procedure at conversion.
 export const treatmentPlanItems = pgTable(
   "treatment_plan_items",
   {
@@ -208,7 +199,6 @@ export const treatmentPlanItems = pgTable(
     procedureId: uuid("procedure_id")
       .notNull()
       .references(() => procedureCatalog.id),
-    /** Who is to do the work; null means the plan's doctor. */
     performerDoctorId: uuid("performer_doctor_id").references(() => doctors.id),
     estimatedPrice: money("estimated_price").notNull(),
     sortOrder: integer("sort_order").notNull().default(0),
@@ -223,8 +213,6 @@ export const treatmentPlanItems = pgTable(
   ],
 );
 
-// `price` is snapshotted from the catalog, and the charge derives from this row rather than from
-// the catalog.
 export const performedProcedures = pgTable(
   "performed_procedures",
   {
@@ -235,7 +223,6 @@ export const performedProcedures = pgTable(
     patientId: uuid("patient_id")
       .notNull()
       .references(() => patients.id),
-    /** Null when the work was recorded outside a visit, e.g. from a plan. */
     visitId: uuid("visit_id").references(() => visits.id),
     doctorId: uuid("doctor_id")
       .notNull()
@@ -265,8 +252,6 @@ export const performedProcedures = pgTable(
   ],
 );
 
-// `location` is a discriminated union keyed on `chart_type`, so a dental `{ tooth, surfaces }`
-// cannot be stored against a skeleton. `tooth` is duplicated to keep tooth history an index lookup.
 export const chartMarks = pgTable(
   "chart_marks",
   {
@@ -279,7 +264,6 @@ export const chartMarks = pgTable(
       .references(() => performedProcedures.id),
     chartType: chartTypeEnum("chart_type").notNull(),
     location: jsonb("location").$type<ToothLocation | BodyRegionLocation>().notNull(),
-    /** Denormalised from `location` for FDI charts; null for other specialties. */
     tooth: integer("tooth"),
     ...auditColumns,
     ...softDeleteColumn,
@@ -291,8 +275,6 @@ export const chartMarks = pgTable(
   ],
 );
 
-// The key never reaches a client: reads return a short-lived signed URL, and a receptionist
-// receives neither.
 export const attachments = pgTable(
   "attachments",
   {
@@ -304,7 +286,6 @@ export const attachments = pgTable(
       .notNull()
       .references(() => patients.id),
     visitId: uuid("visit_id").references(() => visits.id),
-    /** An `attachment_type` code, or null: the doctor reads what the image is. */
     type: text("type"),
     r2Key: text("r2_key").notNull(),
     filename: text("filename").notNull(),

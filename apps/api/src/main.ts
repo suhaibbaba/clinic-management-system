@@ -18,7 +18,6 @@ async function bootstrap(): Promise<void> {
 
   app.enableCors({
     origin: config.get("CORS_ORIGIN", { infer: true }),
-    // The refresh cookie must ride along on cross-origin calls.
     credentials: true,
   });
 

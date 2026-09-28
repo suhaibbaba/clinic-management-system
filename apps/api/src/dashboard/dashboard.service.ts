@@ -21,8 +21,6 @@ export class DashboardService {
   async summary(actor: AuthenticatedUser): Promise<DashboardSummary> {
     const date = await this.appointments.localToday(actor.clinicId);
 
-    // "R (own KPIs)": a doctor's dashboard is their day. One whose account has no `doctors` row
-    // gets the empty one rather than everybody's.
     const ownDoctorId = await this.access.ownDoctorId(actor);
     const unmatchedDoctor = actor.role === USER_ROLE.DOCTOR && ownDoctorId === null;
 
@@ -58,7 +56,6 @@ export class DashboardService {
       return undefined;
     }
 
-    // `limit: 1` — only the total is wanted, and the API returns it either way.
     const pending = await this.appointments.list(actor, {
       page: 1,
       limit: 1,

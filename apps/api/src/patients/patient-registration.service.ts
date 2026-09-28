@@ -15,12 +15,9 @@ import { patients } from "@api/database/schema";
 import type { PatientRow } from "@api/patients/patient-access.service";
 import { PATIENTS_ENTITY, toPublicView } from "@api/patients/patient-view";
 
-/** File numbers are zero-padded so they sort and read like a paper file. */
 const FILE_NUMBER_WIDTH = 5;
-/** Bounded retry when two receptionists register a patient at the same moment. */
 const FILE_NUMBER_ATTEMPTS = 5;
 
-/** What a form sends instead of a patient: an id, or the little it knows about a new one. */
 export interface PatientRef {
   readonly patientId?: string | undefined;
   readonly newPatient?: InlinePatientInput | undefined;
@@ -34,8 +31,6 @@ export class PatientRegistrationService {
     private readonly audit: AuditService,
   ) {}
 
-  // One transaction when the patient is new: a patient registered for an appointment that then
-  // clashes is a record nobody asked for, left behind on a form that failed.
   async withPatient<TResult>(
     actor: AuthenticatedUser,
     ref: PatientRef,
@@ -59,7 +54,6 @@ export class PatientRegistrationService {
     return write(this.db, patientId);
   }
 
-  /** The whole registration: the duplicate check, the file number and the audit entry. */
   async register(
     executor: DatabaseExecutor,
     actor: AuthenticatedUser,
@@ -114,8 +108,6 @@ export class PatientRegistrationService {
     }
   }
 
-  // Two concurrent registrations can read the same maximum; the unique index is the real guard.
-  // Each attempt is its own savepoint, or the first violation would poison the caller's transaction.
   async insertPatient(
     executor: DatabaseExecutor,
     actor: AuthenticatedUser,

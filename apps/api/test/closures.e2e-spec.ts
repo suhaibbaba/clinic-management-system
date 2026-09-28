@@ -30,7 +30,6 @@ import { auth, createTestContext, type TestClinic, type TestContext } from "@tes
 
 const TIME_ZONE = "Asia/Damascus";
 
-/** The next Monday in the clinic's own zone — see `appointments.e2e-spec`. */
 function nextMonday(): string {
   let date = localDate(new Date(), TIME_ZONE);
 
@@ -52,8 +51,6 @@ interface ConflictBody {
   appointments: { id: string; patientName: string }[];
 }
 
-// The availability assertions matter as much as the 409: a closure the settings screen records but
-// availability ignores puts a patient in front of a locked door.
 describe("Closures and time off (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
@@ -77,8 +74,6 @@ describe("Closures and time off (e2e)", () => {
       .update(clinics)
       .set({
         workingHours: [
-          // A split shift, 09:00–13:00 and 16:00–20:00: the case a single start/end pair cannot
-          // hold.
           {
             weekday: 1,
             ranges: [
@@ -91,8 +86,6 @@ describe("Closures and time off (e2e)", () => {
       })
       .where(eq(clinics.id, clinic.id));
 
-    // The doctor covers both shifts, so the intersection with the clinic's
-    // hours is the split day itself rather than a truncated version of it.
     await context.db
       .update(doctors)
       .set({
@@ -173,7 +166,6 @@ describe("Closures and time off (e2e)", () => {
       expect(closedReason).toBeNull();
       expect(starts).toContain("09:00");
       expect(starts).toContain("12:30");
-      // 13:00–16:00 is not a break inside a window, it is between two windows.
       expect(starts).not.toContain("13:00");
       expect(starts).not.toContain("15:30");
       expect(starts).toContain("16:00");
@@ -196,8 +188,6 @@ describe("Closures and time off (e2e)", () => {
     });
 
     it("closes every day of a multi-day closure, including its last one", async () => {
-      // The inclusive end is the mistake nobody notices until someone turns up
-      // on the day the clinic thought it had reopened.
       await createClosure({
         startsOn: addDays(monday, -1),
         endsOn: addDays(monday, 1),
@@ -221,7 +211,6 @@ describe("Closures and time off (e2e)", () => {
       const at9 = slots.find((slot) => slot.start === "09:00");
       const at16 = slots.find((slot) => slot.start === "16:00");
 
-      // The morning shift is untouched; the evening one is gone.
       expect(closedReason).toBeNull();
       expect(at9?.available).toBe(true);
       expect(at16?.available).toBe(false);
@@ -267,8 +256,6 @@ describe("Closures and time off (e2e)", () => {
       expect(response.statusCode).toBe(409);
       const body = response.json() as ConflictBody;
 
-      // The list, not a count: a dialog saying "3 appointments" with no way to
-      // see which three is a question nobody can answer.
       expect(body.error).toBe(SCHEDULE_CONFLICT_ERROR);
       expect(body.appointments).toHaveLength(1);
       expect(body.appointments[0]?.patientName).toBe("مريض الإغلاقات");
@@ -298,8 +285,6 @@ describe("Closures and time off (e2e)", () => {
         .from(appointments)
         .where(eq(appointments.id, appointmentId));
 
-      // Reception rings round and moves them by hand, which is what a practice
-      // with three patients it knows by name actually does.
       expect(row?.status).toBe("confirmed");
     });
 
@@ -330,8 +315,6 @@ describe("Closures and time off (e2e)", () => {
         .where(eq(appointments.id, appointmentId));
 
       expect(row?.status).toBe("cancelled");
-      // Points at the closure, so three weeks later the calendar can still say
-      // which one swept it away.
       expect(row?.cancelledReason).toBe(closureCancellationReason(result.item.id));
 
       const messages = await context.db
@@ -373,8 +356,6 @@ describe("Closures and time off (e2e)", () => {
     });
 
     it("accepts an absence that merely shares the day with an appointment", async () => {
-      // Overlap is of intervals, not of calendar days — getting that wrong would make every absence
-      // on a busy day need forcing.
       expect((await book("09:00")).statusCode).toBe(201);
 
       const response = await createTimeOff({
@@ -387,8 +368,6 @@ describe("Closures and time off (e2e)", () => {
     });
 
     it("counts an appointment that only ends inside the window", async () => {
-      // The appointment starts before the window and is still in the way, which a start-time-only
-      // comparison would miss.
       expect((await book("12:30")).statusCode).toBe(201);
 
       const response = await createTimeOff({
@@ -428,8 +407,6 @@ describe("Closures and time off (e2e)", () => {
     });
 
     it("refuses a doctor booking time off in someone else’s calendar", async () => {
-      // The doctor token owns `fixtures.doctorId`, so this is the same doctor —
-      // it must be allowed, which is the other half of the rule.
       const own = await context.app.inject({
         method: "POST",
         url: `/doctors/${fixtures.doctorId}/time-off`,
@@ -462,8 +439,6 @@ describe("Closures and time off (e2e)", () => {
         isAnnual: true,
       });
 
-      // "Every year from December 2026 to January 2027" has no meaning as a
-      // repeating rule — it would close the clinic forever.
       expect(response.statusCode).toBe(400);
     });
 
@@ -508,8 +483,6 @@ describe("Closures and time off (e2e)", () => {
       timeOff: { reason: string }[];
     };
 
-    // In the same response as the blocks: a grid that paints a normal Tuesday
-    // and shades it a moment later is a grid reception books into.
     expect(feed.closures.map((row) => row.reason)).toEqual(["عطلة"]);
     expect(feed.timeOff.map((row) => row.reason)).toEqual(["مؤتمر"]);
   });
