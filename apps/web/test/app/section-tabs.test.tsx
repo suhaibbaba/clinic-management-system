@@ -33,8 +33,6 @@ function handlers(role: UserRole) {
     "GET /labs": { status: 200, body: paginated([]) },
     "GET /lab-orders": { status: 200, body: paginated([]) },
     "GET /inventory/items": { status: 200, body: paginated([]) },
-    // The real shape (`inventoryAlertsSchema`): `low`, not `lowStock`. With the wrong key the alert
-    // cards read `low.length` off `undefined` and threw.
     "GET /inventory/alerts": {
       status: 200,
       body: { expiryWarningDays: 30, low: [], expiring: [], expired: [] },
@@ -43,8 +41,6 @@ function handlers(role: UserRole) {
   } as Record<string, MockResponse>;
 }
 
-// `MemoryRouter` keeps history in memory, so `window.location` never moves — and "the tab is in the
-// address" is the property under test.
 function LocationProbe(): JSX.Element {
   const { pathname, search } = useLocation();
 
@@ -68,8 +64,6 @@ async function render(role: UserRole, route: string): Promise<void> {
 
 const strip = async (name: string): Promise<HTMLElement> => screen.findByRole("tablist", { name });
 
-// What matters is that the tab is in the address: every panel here used to be a page somebody could
-// link to, and a tab in component state would break those links invisibly.
 describe("Appointments, as tabs", () => {
   it("opens on the calendar, with the booking queue beside it", async () => {
     await render(USER_ROLE.RECEPTIONIST, "/appointments");

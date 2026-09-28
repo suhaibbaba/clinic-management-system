@@ -1,9 +1,6 @@
 import type { ManagedBooking } from "@clinic/shared";
 import { bookingName } from "@web/booking/format";
 
-// An `.ics` is the one thing every phone understands and nothing is sent anywhere — a Google link
-// would tell Google when a named person has an appointment. Times are UTC, which cannot be misread.
-
 const stamp = (at: Date): string =>
   `${at.getUTCFullYear()}${pad(at.getUTCMonth() + 1)}${pad(at.getUTCDate())}T${pad(
     at.getUTCHours(),
@@ -11,7 +8,6 @@ const stamp = (at: Date): string =>
 
 const pad = (value: number): string => String(value).padStart(2, "0");
 
-/** Commas, semicolons and newlines are structural in an ICS line. */
 const escape = (value: string): string =>
   value.replace(/[\\;,]/g, (match) => `\\${match}`).replace(/\n/g, "\\n");
 
@@ -52,7 +48,5 @@ export function downloadIcs(booking: ManagedBooking, fileName = "appointment.ics
   link.click();
   link.remove();
 
-  // Revoked on the next tick: Safari has not finished reading the blob when
-  // `click()` returns.
   setTimeout(() => URL.revokeObjectURL(url), 1_000);
 }

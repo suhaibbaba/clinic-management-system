@@ -20,8 +20,6 @@ export interface TabsProps<TId extends string> extends TestIdProps {
   readonly className?: string | undefined;
 }
 
-// Not `SegmentedControl`, which is a radio group: that announces "one of these choices", right for
-// a filter and wrong for a set of panels.
 export function Tabs<TId extends string>({
   tabs,
   value,
@@ -39,12 +37,8 @@ export function Tabs<TId extends string>({
       role="tablist"
       aria-label={t(label)}
       className={cn(
-        // Separate pills with a gap, not a track: the reference's `.filters` row. A track would
-        // draw a grey bar across the page that the pills then have to fight.
         "flex items-center gap-2",
         "max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-        // iOS draws its scroll indicator inside the box's bottom edge whatever the CSS says; the
-        // padding keeps it under the pills rather than across them.
         "pb-2 sm:pb-0",
         "sm:inline-flex sm:flex-wrap sm:self-start sm:overflow-visible",
         className,
@@ -80,8 +74,6 @@ export function Tabs<TId extends string>({
                 data-part="tab-count"
                 {...testid(testId, `${tab.id}-count`)}
                 className={cn(
-                  // A declared lozenge, as the rail's badge is: one digit is a circle and three
-                  // do not spill. Its height is drawn, never a line-height's leftovers.
                   "pill-text inline-flex items-center h-4 min-w-4 justify-center rounded-pill px-1.5 text-micro font-medium",
                   "tabular-nums",
                   selected ? "bg-primary-900/25 text-ink-inverse" : "bg-inset text-ink-subtle",
@@ -122,13 +114,10 @@ export function TabPanel({
   );
 }
 
-// A tab in `useState` is a tab nobody can link to, and three things link here. The first tab is
-// written as no parameter, so the plain address keeps working.
 export function useTabParam<TId extends string>(
   param: string,
   ids: readonly TId[],
   fallback: TId,
-  /** Params the new panel has no use for — a page number belongs to the list it was counted in. */
   clears: readonly string[] = [],
 ): readonly [TId, (id: TId) => void] {
   const [params, setParams] = useSearchParams();

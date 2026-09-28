@@ -7,10 +7,8 @@ import { Popover } from "@ui/components/popover";
 import { cn } from "@ui/lib/cn";
 import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 
-/** `HH:mm`, 24-hour, Latin digits — the same shape the API stores. */
 const TIME = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-/** `21:30` → `9:30 PM`; anything that is not `HH:mm` comes back unchanged. */
 export function to12Hour(value: string): string {
   const match = TIME.exec(value);
   if (!match) {
@@ -22,7 +20,6 @@ export function to12Hour(value: string): string {
   return `${hour % 12 || 12}:${match[2]} ${period}`;
 }
 
-/** Quarter hours because that is how a clinic books; offering 09:07 invites a diary nobody can read. */
 export function timeSlots(from = "00:00", to = "23:45", stepMinutes = 15): readonly string[] {
   const minutes = (value: string): number => {
     const [h = "0", m = "0"] = value.split(":");
@@ -42,7 +39,6 @@ export function timeSlots(from = "00:00", to = "23:45", stepMinutes = 15): reado
   return slots;
 }
 
-// Scrolls the list itself, not the page, so the chosen time is in view when the list opens.
 function scrollToCurrent(list: HTMLUListElement | null): void {
   const current = list?.querySelector<HTMLElement>("[aria-current]");
   if (list && current) {
@@ -55,7 +51,6 @@ export interface TimePickerProps extends TestIdProps {
   readonly value: string;
   readonly onChange: (value: string) => void;
   readonly label: string;
-  /** Bounds the list — a clinic's opening hours, once appointments land. */
   readonly min?: string | undefined;
   readonly max?: string | undefined;
   readonly stepMinutes?: number | undefined;
@@ -64,8 +59,6 @@ export interface TimePickerProps extends TestIdProps {
   readonly className?: string | undefined;
 }
 
-// Pick-only: a typed time is how 9:07 and "930" reach a diary. A native `<select>` of 96 rows is a
-// full-screen wheel.
 export function TimePicker({
   id,
   value,

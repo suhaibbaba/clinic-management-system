@@ -1,5 +1,3 @@
-// Rendered on the server, so labels cannot come from the web app's i18n — and the language is the
-// clinic's setting, not the printer's.
 const AR = {
   common: {
     page: "صفحة {page} من {total}",
@@ -96,8 +94,6 @@ const AR = {
   },
 };
 
-// Typed as `typeof AR` so the compiler refuses a document string that exists in one language and
-// not the other.
 const EN: typeof AR = {
   common: {
     page: "Page {page} of {total}",

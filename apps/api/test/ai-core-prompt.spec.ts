@@ -7,7 +7,6 @@ import type { CapabilityRegistry } from "@api/permissions/capability-registry.se
 import type { PermissionsService } from "@api/permissions/permissions.service";
 import type { Database } from "@api/database/database.module";
 
-// Only the definitions are read here; no tool runs, so every collaborator is a stand-in.
 const standIn = new Proxy({}, { get: () => () => undefined });
 
 function runner(): ToolRunnerService {
@@ -16,7 +15,6 @@ function runner(): ToolRunnerService {
   const tools = construct(AiToolsService);
 
   const actions = construct(AiActionsService);
-  // No routes here: the ceiling is about the core set, which no generated tool belongs to.
   const routes = { list: () => [] };
 
   Object.assign(actions, { routes });
@@ -39,10 +37,8 @@ const prompt = systemPrompt({
   weekday: "Thursday",
 });
 
-/** A token is about four characters of this mix of English and JSON; close enough to watch drift. */
 const tokens = (text: string): number => Math.ceil(text.length / 4);
 
-/** Set from the first measurement (≈3,980): the point is that it does not creep. */
 const CORE_CEILING = 4300;
 
 describe("the request before any group is loaded", () => {

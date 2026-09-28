@@ -7,8 +7,6 @@ import {
   storedLanguage,
 } from "@web/i18n/language";
 
-// Three things together, and the third is the forgotten one: change the strings, remember the
-// choice, flip the document's direction.
 describe("language", () => {
   afterEach(async () => {
     window.localStorage.clear();
@@ -25,7 +23,6 @@ describe("language", () => {
     expect(storedLanguage()).toBe("en");
   });
 
-  // English is its own chunk: the strings must be there by the time the switch resolves.
   it("has the English strings once the switch resolves", async () => {
     await changeLanguage("en");
 
@@ -33,7 +30,6 @@ describe("language", () => {
   });
 
   it("keeps a clinic's override when the English file arrives after it", async () => {
-    // A fresh module, so English has not been fetched yet by an earlier test.
     vi.resetModules();
     const fresh = await import("@web/i18n");
     fresh.default.addResourceBundle(
@@ -62,7 +58,6 @@ describe("language", () => {
   it("restores the stored choice on the next boot", async () => {
     await changeLanguage("en");
 
-    // A fresh load: the document starts as the HTML shell left it.
     applyLanguageToDocument("ar");
     await initLanguage();
 

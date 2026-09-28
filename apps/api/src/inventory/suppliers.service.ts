@@ -20,8 +20,6 @@ type SupplierRow = typeof suppliers.$inferSelect;
 
 export const SUPPLIERS_ENTITY = "suppliers";
 
-// Never hard deleted — purchases point here, and a statement whose counterparty vanished is
-// unreadable. `is_active` is the everyday switch.
 @Injectable()
 export class SuppliersService implements OnModuleInit {
   constructor(
@@ -155,7 +153,6 @@ export class SuppliersService implements OnModuleInit {
     return toSupplier(row);
   }
 
-  /** Soft delete. Purchases already recorded against them stay as they are. */
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.requireRow(actor.clinicId, id);
 
@@ -165,13 +162,10 @@ export class SuppliersService implements OnModuleInit {
       .where(this.scope.where(suppliers, actor.clinicId, eq(suppliers.id, id)));
   }
 
-  /** Used by the items and movements services, which must not take one from elsewhere. */
   async requireRow(clinicId: string, id: string): Promise<SupplierRow> {
     return this.scope.findOneOrFail<SupplierRow>(suppliers, clinicId, id);
   }
 
-  // Purchases only, multiplied in SQL `numeric` so it never passes through a float. A purchase with
-  // no price contributes nothing rather than zeroing the line.
   private async summarise(
     clinicId: string,
     supplierIds: readonly string[],
@@ -248,8 +242,6 @@ export function toSupplier(row: SupplierRow): Supplier {
   };
 }
 
-// `quantity * unit_price` comes back with five decimals — three from the quantity, two from the
-// price — which is an artefact, not fractions anyone owes.
 export function toMoneyString(value: string): string {
   const negative = value.startsWith("-");
   const [whole = "0", fraction = ""] = (negative ? value.slice(1) : value).split(".");

@@ -10,11 +10,8 @@ import {
 } from "@test/helpers/test-app";
 import { staffName } from "@test/helpers/staff-name";
 
-/** The one the harness's `login` sends, so a created account can be signed into here. */
 const password = TEST_PASSWORD;
 
-// A doctor is an account and a profile, and neither half is any use alone. These assert that the
-// pair is written together and that there is no door left open to produce one without the other.
 describe("Doctor creation (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
@@ -74,7 +71,6 @@ describe("Doctor creation (e2e)", () => {
     expect(doctor.user.name).toEqual({ ar: "د. ليلى حداد", en: "Dr. Layla Haddad" });
     expect(doctor.weeklySchedule).toHaveLength(1);
 
-    // The account is real: it signs in, and it is a doctor.
     await expect(context.login(phone)).resolves.toEqual(expect.any(String));
 
     const [row] = await context.db.select().from(users).where(eq(users.id, doctor.userId));
@@ -93,8 +89,6 @@ describe("Doctor creation (e2e)", () => {
     expect(await staffMatching(phone)).toHaveLength(0);
   });
 
-  // The clash is raised inside the transaction, after the profile half is already lined up: what it
-  // proves is that a rejection there takes the whole request with it.
   it("rolls the profile back when the account is refused", async () => {
     const phone = uniquePhone();
 

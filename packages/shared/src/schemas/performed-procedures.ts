@@ -4,8 +4,6 @@ import { createChartMarkSchema, chartMarkSchema } from "@shared/schemas/chart-ma
 import { paginationQuerySchema } from "@shared/schemas/common";
 import { moneySchema, wholeMoneySchema } from "@shared/schemas/money";
 
-// `price` is a snapshot of the catalog price at the time, so a later catalog change never rewrites
-// history.
 export const performedProcedureSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
@@ -30,7 +28,6 @@ const procedureWritableFields = {
   visitId: z.uuid().nullish(),
   doctorId: z.uuid(),
   procedureId: z.uuid(),
-  /** Omitted on create, the catalog's current price is snapshotted instead. */
   price: wholeMoneySchema,
   discount: wholeMoneySchema,
   discountReason: z.string().trim().max(500).nullish(),
@@ -47,7 +44,6 @@ export const createPerformedProcedureSchema = z
     discount: wholeMoneySchema.default("0.00"),
     status: z.enum(PERFORMED_PROCEDURE_STATUSES).default("done"),
     performedAt: z.iso.datetime().optional(),
-    /** Chart marks are created with the procedure; they never exist alone. */
     chartMarks: z.array(createChartMarkSchema).max(32).default([]),
   })
   .refine(

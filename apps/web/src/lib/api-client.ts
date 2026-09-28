@@ -1,14 +1,10 @@
 import { authTokens } from "@web/lib/auth-tokens";
 import { ApiError, NetworkError } from "@web/lib/api-error";
 
-// Same-origin in every environment, which is also what lets the httpOnly refresh cookie ride along
-// without CORS credentials.
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
 const REFRESH_PATH = "/auth/refresh";
 
-// Shared by every request that hit a 401 at once, so a burst of parallel queries triggers exactly
-// one refresh.
 let refreshInFlight: Promise<boolean> | null = null;
 
 export interface RequestOptions {
@@ -51,7 +47,6 @@ async function send(path: string, options: RequestOptions): Promise<Response> {
     return await fetch(buildUrl(path, options.query), {
       method: options.method ?? "GET",
       headers,
-      // Sends the httpOnly refresh cookie on same-origin calls.
       credentials: "same-origin",
       ...(options.body !== undefined && { body: JSON.stringify(options.body) }),
       ...(options.signal && { signal: options.signal }),
@@ -77,7 +72,6 @@ async function refreshSession(): Promise<boolean> {
     } catch {
       return false;
     } finally {
-      // Cleared on the next tick so concurrent callers all observe this result.
       queueMicrotask(() => {
         refreshInFlight = null;
       });
@@ -95,8 +89,6 @@ async function parse<TResult>(response: Response): Promise<TResult> {
   return (await response.json()) as TResult;
 }
 
-// Refreshes once and replays the call; a second 401 ends the session and routes back to the login
-// screen.
 export async function apiRequest<TResult>(
   path: string,
   options: RequestOptions = {},
@@ -126,9 +118,6 @@ export async function apiRequest<TResult>(
   return parse<TResult>(response);
 }
 
-// A streamed response, kept apart from `apiRequest` because there is no body to parse and no
-// status to turn into a value: the caller reads frames off it. The refresh-once dance is the same,
-// and has to be — a long conversation outlives an access token.
 export async function apiStream(
   path: string,
   body: unknown,

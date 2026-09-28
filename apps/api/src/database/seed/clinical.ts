@@ -12,7 +12,6 @@ import {
 } from "@clinic/shared";
 import type { Rng } from "@api/database/seed/random";
 
-/** The FDI numbers a mouth of this age actually has. */
 export function teethFor(ageYears: number): readonly number[] {
   if (ageYears <= 6) {
     return FDI_DECIDUOUS_TEETH;
@@ -41,7 +40,6 @@ const DISCOUNT_REASONS: readonly string[] = [
   "مراجعة قديمة",
 ];
 
-/** A discount on roughly one procedure in twelve, which is what a practice actually gives. */
 export function discountFor(rng: Rng, price: number): { amount: string; reason: string | null } {
   if (!rng.bool(0.08)) {
     return { amount: "0.00", reason: null };
@@ -95,7 +93,6 @@ const PLAN_NOTES: readonly string[] = [
   "Extraction first, then an implant consultation after four weeks of healing. The patient asked for a written estimate to take to their insurer before committing to the implant stage.",
 ];
 
-/** Half the plans carry a note, some longer than a card's line. */
 export function planNotes(rng: Rng): string | null {
   return rng.bool(0.5) ? rng.pick(PLAN_NOTES) : null;
 }

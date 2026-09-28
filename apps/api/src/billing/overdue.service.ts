@@ -81,8 +81,6 @@ export class OverdueService {
     return toPaginated(items, rows[0]?.total ?? 0, query);
   }
 
-  // The list paginates, so the dashboard cannot add a page up: a page's subtotal presented as the
-  // clinic's debt is a wrong number on a financial screen.
   async total(clinicId: string, afterDays?: number): Promise<OverdueTotal> {
     const days = afterDays ?? (await this.overdueAfterDays(clinicId));
 

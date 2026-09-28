@@ -31,7 +31,6 @@ export class PermissionsService {
     return this.registry.get(capability)?.defaultRoles.includes(role) ?? false;
   }
 
-  /** Every capability with the answer for this role, for the screen that edits them. */
   async matrix(clinicId: string, role: UserRole): Promise<Record<string, boolean>> {
     if (role === USER_ROLE.ADMIN) {
       return Object.fromEntries(this.registry.all().map((entry) => [entry.key, true]));
@@ -53,8 +52,6 @@ export class PermissionsService {
     allowed: boolean,
     actorId: string,
   ): Promise<void> {
-    // Refused rather than quietly ignored: the guard would let the admin through anyway, and a
-    // stored row saying otherwise is a screen that shows something untrue about who can do what.
     if (role === USER_ROLE.ADMIN) {
       throw new BadRequestException(
         "The administrator holds every permission and cannot be edited",

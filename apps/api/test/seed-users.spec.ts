@@ -12,8 +12,6 @@ import { Rng } from "@api/database/seed/random";
 import { upsertUser, type SeedAccount } from "@api/database/seed/users";
 import { seedDatabase } from "@api/database/seed/seed-database";
 
-// Two things about the staff the seed writes: the accounts are the ones documented in .env.example,
-// and re-running never invents a second set of them.
 describe("the seeded staff", () => {
   jest.setTimeout(180_000);
 
@@ -46,8 +44,6 @@ describe("the seeded staff", () => {
       USER_ROLE.TECHNICIAN,
     ]);
 
-    // Every account carries both spellings, because a name is printed on a document in the
-    // clinic's language and shown on screen in the reader's.
     for (const account of ACCOUNTS) {
       expect(account.firstName.ar.length).toBeGreaterThan(0);
       expect(account.firstName.en.length).toBeGreaterThan(0);
@@ -64,7 +60,6 @@ describe("the seeded staff", () => {
     expect(junior).toBeDefined();
     expect(senior?.map((day) => day.weekday)).not.toEqual(junior?.map((day) => day.weekday));
 
-    // Neither of them works the day the clinic is shut.
     for (const schedule of DOCTOR_SCHEDULES) {
       expect(schedule.map((day) => day.weekday)).not.toContain(5);
     }
@@ -85,7 +80,6 @@ describe("the seeded staff", () => {
     expect(again).toEqual(first);
     expect(other).not.toEqual(first);
 
-    // Both spellings of one name, so the folded search has something to prove itself on.
     expect(first).toContain("أحمد خالد النابلسي");
     expect(first).toContain("احمد خالد النابلسي");
   });

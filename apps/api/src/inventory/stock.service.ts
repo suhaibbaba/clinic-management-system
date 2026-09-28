@@ -17,7 +17,6 @@ import { clinics } from "@api/database/schema";
 export interface ItemStock {
   readonly quantity: string;
   readonly batches: ItemBatch[];
-  /** Stock held against no batch at all — the rest of the quantity. */
   readonly unbatched: string;
   readonly nearestExpiry: string | null;
   readonly isExpiring: boolean;
@@ -33,13 +32,10 @@ const EMPTY: ItemStock = {
   isExpired: false,
 };
 
-// Computed on read from the movements — no quantity column to disagree. Batches go through the
-// shared `batchesRemaining` the drawer uses, and the queries are bounded by inflows, not history.
 @Injectable()
 export class StockService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  /** How many days ahead this clinic wants to be warned. Cheap, and per call. */
   async expiryWarningDays(clinicId: string): Promise<number> {
     const [row] = await this.db
       .select({ settings: clinics.settings })
@@ -50,8 +46,6 @@ export class StockService {
     return inventorySettings(row?.settings).expiryWarningDays;
   }
 
-  // `today` and `warningDays` are passed in so forty items ask the clinic for its settings once,
-  // and so a test can pin the date.
   async forItems(
     clinicId: string,
     itemIds: readonly string[],
@@ -132,8 +126,6 @@ export class StockService {
     return stock.get(itemId) ?? EMPTY;
   }
 
-  // Quantity is the sum of the movements, not of the batch remainders: where they disagree, the
-  // ledger's total is the honest number.
   private derive(
     inflows: readonly BatchInflow[],
     outflows: readonly BatchOutflow[],
@@ -173,8 +165,6 @@ export class StockService {
     return {
       quantity,
       batches,
-      // What the batch view cannot account for: unlabelled stock, and any
-      // amount the count has gone past. Never negative on the display side.
       unbatched: formatThousandths(Math.max(toThousandths(quantity) - held, 0)),
       nearestExpiry: nearestExpiry(remaining),
       isExpiring: batches.some((batch) => batch.isExpiring),
@@ -183,16 +173,13 @@ export class StockService {
   }
 }
 
-/** At or below the minimum, and the minimum is a level somebody actually set. */
 export const isLowStock = (quantity: string, minQuantity: string): boolean =>
   toThousandths(minQuantity) > 0 && compareQuantity(quantity, minQuantity) <= 0;
 
-/** Postgres returns `numeric` with its scale attached: `2.000`, `-0.500`. */
 export function normalise(value: string): string {
   return formatThousandths(toThousandths(value));
 }
 
-/** The clinic's own day, as a plain date — an expiry is a day, not an instant. */
 function isoDate(value: Date): string {
   return value.toISOString().slice(0, 10);
 }

@@ -4,43 +4,40 @@ import { Suspense, type JSX } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { ASSISTANT_ROLES } from "@web/app/navigation";
 import { AppLayout } from "@web/components/layout/app-layout";
-import { RequireAuth, RequireRole } from "@web/features/auth/guards";
-import { ForgotPasswordPage } from "@web/features/auth/forgot-password-page";
-import { LoginPage } from "@web/features/auth/login-page";
-import { SetPasswordPage } from "@web/features/auth/set-password-page";
-import { ClinicPage } from "@web/features/clinic/clinic-page";
-import { DashboardPage } from "@web/features/dashboard/dashboard-page";
-import { DoctorPage } from "@web/features/doctors/doctor-page";
-import { InventorySection } from "@web/features/inventory/inventory-section";
-import { ItemPage } from "@web/features/inventory/item-page";
-import { ShoppingListPage } from "@web/features/inventory/shopping-list-page";
-import { LabsSection } from "@web/features/labs/labs-section";
-import { LabPage } from "@web/features/labs/lab-page";
-import { PatientPage } from "@web/features/patients/patient-page";
-import { PATIENT_FILE_ROLES } from "@web/features/patients/permissions";
-import { PatientsPage } from "@web/features/patients/patients-page";
-import { ProfilePage } from "@web/features/profile/profile-page";
-import { SettingsSection } from "@web/features/settings/settings-section";
-import { UsersSection } from "@web/features/users/users-section";
+import { RequireAuth, RequireRole } from "@web/components/auth/guards";
+import { ForgotPasswordPage } from "@web/pages/auth/forgot-password-page";
+import { LoginPage } from "@web/pages/auth/login-page";
+import { SetPasswordPage } from "@web/pages/auth/set-password-page";
+import { ClinicPage } from "@web/pages/clinic/clinic-page";
+import { DashboardPage } from "@web/pages/dashboard/dashboard-page";
+import { DoctorPage } from "@web/pages/doctors/doctor-page";
+import { InventorySection } from "@web/pages/inventory/inventory-section";
+import { ItemPage } from "@web/pages/inventory/item-page";
+import { ShoppingListPage } from "@web/pages/inventory/shopping-list-page";
+import { LabsSection } from "@web/pages/labs/labs-section";
+import { LabPage } from "@web/pages/labs/lab-page";
+import { PatientPage } from "@web/pages/patients/patient-page";
+import { PATIENT_FILE_ROLES } from "@web/permissions/patients";
+import { PatientsPage } from "@web/pages/patients/patients-page";
+import { ProfilePage } from "@web/pages/profile/profile-page";
+import { SettingsSection } from "@web/pages/settings/settings-section";
+import { UsersSection } from "@web/pages/users/users-section";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 
 const AppointmentsSection = lazyPage(async () => ({
-  default: (await import("@web/features/appointments/appointments-section")).AppointmentsSection,
+  default: (await import("@web/pages/appointments/appointments-section")).AppointmentsSection,
 }));
 
-// Lazy: the markdown renderer is this screen's alone and has no business in the dashboard's chunk.
 const AssistantPage = lazyPage(async () => ({
-  default: (await import("@web/features/assistant/assistant-page")).AssistantPage,
+  default: (await import("@web/pages/assistant/assistant-page")).AssistantPage,
 }));
 
 const LookupsPage = lazyPage(async () => ({
-  default: (await import("@web/features/lookups/lookups-page")).LookupsPage,
+  default: (await import("@web/pages/lookups/lookups-page")).LookupsPage,
 }));
 
 const ADMIN_ONLY = [USER_ROLE.ADMIN] as const;
 
-// Mirrors `NAV_ITEMS`, because a hidden entry still reachable by typing its address is not hidden.
-// The API remains the real boundary.
 const PATIENTS = [
   USER_ROLE.ADMIN,
   USER_ROLE.DOCTOR,
@@ -50,13 +47,10 @@ const PATIENTS = [
 const APPOINTMENTS = PATIENTS;
 const LABS = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN] as const;
 const INVENTORY = [USER_ROLE.ADMIN, USER_ROLE.TECHNICIAN] as const;
-/** A doctor reaches their own page from the user menu; admin reaches any. */
 const DOCTOR_PAGE = [USER_ROLE.ADMIN, USER_ROLE.DOCTOR] as const;
 
-/** The dashboard is where a role that may not be somewhere is sent instead. */
 const HOME = "/dashboard";
 
-/** A retired address that carries its query on: an old `?tab=keys` still opens the keys. */
 function RedirectKeepingQuery({
   to,
   view,
@@ -87,8 +81,6 @@ export function AppRoutes(): JSX.Element {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      {/* Public by necessity: whoever opens these cannot sign in yet. One screen, two names — the
-          letter that sent them here is what decides which. */}
       <Route path="/activate/:token" element={<SetPasswordPage purpose="activate" />} />
       <Route path="/reset/:token" element={<SetPasswordPage purpose="reset" />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -104,8 +96,6 @@ export function AppRoutes(): JSX.Element {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
 
-        {/* Which tools answer is the API's decision; the guard only keeps out the one role the
-            assistant's endpoints refuse. */}
         <Route
           path="/assistant"
           element={
@@ -201,7 +191,6 @@ export function AppRoutes(): JSX.Element {
           }
         />
 
-        {/* Settings — the collapsed group at the foot of the sidebar. */}
         <Route
           path="/clinic"
           element={
@@ -226,8 +215,6 @@ export function AppRoutes(): JSX.Element {
             </RequireRole>
           }
         />
-        {/* Not admin-only, unlike the list it hangs off: ROLES.md lets a doctor edit their own
-            schedule, and the service is what refuses somebody else's. */}
         <Route
           path="/doctors/:id"
           element={
@@ -247,9 +234,6 @@ export function AppRoutes(): JSX.Element {
           }
         />
 
-        {/* The addresses this restructure retired */}
-        {/* Kept rather than dropped: somebody's browser still knows these, and landing on a
-            dashboard because a link rotted is worse than landing where the page went. */}
         <Route
           path="/appointments/pending"
           element={<Navigate to="/appointments?status=pending" replace />}

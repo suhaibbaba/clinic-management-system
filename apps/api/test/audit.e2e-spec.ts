@@ -54,8 +54,6 @@ describe("Audit log (e2e)", () => {
       url: "/users",
       headers: auth(adminToken),
       payload: {
-        // Staff names are bilingual and both halves are required; the Arabic
-        // is fixed here because these tests are about the audit trail.
         ...staffName("اسم عربي", english),
         phone: `+9944${Math.floor(Math.random() * 1_000_000_000)}`,
         password: "CreatedUser123!",
@@ -204,8 +202,6 @@ describe("Audit log (e2e)", () => {
   });
 
   describe("immutability", () => {
-    // Checked as admin: admin passes every role check, so a 404 here proves the
-    // route does not exist rather than that it was refused.
     it.each([
       ["POST", "/audit-log"],
       ["PATCH", "/audit-log"],

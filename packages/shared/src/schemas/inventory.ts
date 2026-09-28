@@ -11,9 +11,6 @@ import {
 } from "@shared/schemas/quantity";
 import { lookupCodeSchema } from "@shared/schemas/lookups";
 
-// An item's quantity is the sum of its movements, computed on read; a miscount is corrected by an
-// `adjust` that says why.
-
 export const supplierSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
@@ -28,7 +25,6 @@ export const supplierSchema = z.object({
 export type Supplier = z.infer<typeof supplierSchema>;
 
 export const supplierSummarySchema = supplierSchema.extend({
-  /** Total of every purchase from them, reversals included. */
   purchased: signedMoneySchema,
   itemCount: z.number().int().min(0),
 });
@@ -45,8 +41,6 @@ const supplierWritableFields = {
 export const createSupplierSchema = z.object(supplierWritableFields);
 export type CreateSupplierInput = z.infer<typeof createSupplierSchema>;
 
-// An update that changes nothing is a 400, not a no-op: Zod strips unknown keys, so a bad field
-// name would otherwise succeed silently.
 export const updateSupplierSchema = createSupplierSchema
   .partial()
   .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
@@ -63,7 +57,6 @@ export const inventoryItemSchema = z.object({
   clinicId: uuidSchema,
   name: z.string(),
   category: lookupCodeSchema,
-  /** Fixed for the item's life: it is what makes its movements summable. */
   unit: lookupCodeSchema,
   minQuantity: quantitySchema,
   defaultSupplierId: uuidSchema.nullable(),
@@ -75,10 +68,8 @@ export const inventoryItemSchema = z.object({
 export type InventoryItem = z.infer<typeof inventoryItemSchema>;
 
 export const inventoryItemRowSchema = inventoryItemSchema.extend({
-  /** `sum(quantity)` over every movement. Signed: a miscount can go below zero. */
   quantity: signedQuantitySchema,
   supplierName: z.string().nullable(),
-  /** At or below the minimum — and the minimum is above zero. */
   isLow: z.boolean(),
   isExpiring: z.boolean(),
   isExpired: z.boolean(),
@@ -120,17 +111,13 @@ export const stockMovementSchema = z.object({
   clinicId: uuidSchema,
   itemId: uuidSchema,
   type: z.enum(MOVEMENT_TYPES),
-  /** Signed: a purchase adds, a consumption subtracts, an adjustment does either. */
   quantity: signedQuantitySchema,
-  /** What one unit cost, on a purchase. Null everywhere else. */
   unitPrice: moneySchema.nullable(),
   expiryDate: isoDateSchema.nullable(),
   batchNo: z.string().nullable(),
   supplierId: uuidSchema.nullable(),
-  /** Set when stock was used on somebody — that is what puts it on their file. */
   patientId: uuidSchema.nullable(),
   performedProcedureId: uuidSchema.nullable(),
-  /** Required on an adjustment: a count that changed for no stated reason is noise. */
   reason: z.string().nullable(),
   reversesId: uuidSchema.nullable(),
   reversedAt: z.iso.datetime().nullable(),
@@ -144,7 +131,6 @@ export const stockMovementRowSchema = stockMovementSchema.extend({
   patientName: z.string().nullable(),
   procedureName: z.string().nullable(),
   createdByName: personNameSchema.nullable(),
-  /** What the item stood at immediately after this movement. */
   runningQuantity: signedQuantitySchema,
 });
 export type StockMovementRow = z.infer<typeof stockMovementRowSchema>;
@@ -179,7 +165,6 @@ export const adjustStockSchema = z.object({
 });
 export type AdjustStockInput = z.infer<typeof adjustStockSchema>;
 
-/** Admin only, and it writes the opposite entry rather than touching the original. */
 export const reverseMovementSchema = z.object({
   reason: z.string().trim().min(3).max(500),
 });
@@ -195,7 +180,6 @@ export const listMovementsQuerySchema = paginationQuerySchema.extend({
 });
 export type ListMovementsQuery = z.infer<typeof listMovementsQuerySchema>;
 
-/** One batch of an item and what is left of it — derived, never stored. */
 export const itemBatchSchema = z.object({
   batchNo: z.string().nullable(),
   expiryDate: isoDateSchema.nullable(),
@@ -210,7 +194,6 @@ export type ItemBatch = z.infer<typeof itemBatchSchema>;
 export const itemBatchesSchema = z.object({
   itemId: uuidSchema,
   quantity: signedQuantitySchema,
-  /** Stock held in batches nobody labelled — the remainder of the quantity. */
   unbatched: signedQuantitySchema,
   batches: z.array(itemBatchSchema),
 });
@@ -224,8 +207,6 @@ export const inventoryAlertsSchema = z.object({
 });
 export type InventoryAlerts = z.infer<typeof inventoryAlertsSchema>;
 
-// `min × 2 − current`: enough to clear the minimum and hold it again. A starting figure on a
-// printed sheet, not an order.
 export const shoppingListLineSchema = z.object({
   itemId: uuidSchema,
   name: z.string(),
@@ -252,7 +233,6 @@ export const supplierStatementLineSchema = z.object({
   unit: lookupCodeSchema,
   quantity: signedQuantitySchema,
   unitPrice: moneySchema.nullable(),
-  /** quantity × unit price, or null when the purchase carried no price. */
   total: signedMoneySchema.nullable(),
   batchNo: z.string().nullable(),
   isReversal: z.boolean(),
@@ -291,7 +271,6 @@ export function inventorySettings(settings: unknown): InventorySettings {
   return parsed.success ? parsed.data : { expiryWarningDays: 60 };
 }
 
-/** The one place the type of a movement decides what a form may carry. */
 export const movementInputFor = {
   [MOVEMENT_TYPE.PURCHASE]: purchaseStockSchema,
   [MOVEMENT_TYPE.CONSUME]: consumeStockSchema,

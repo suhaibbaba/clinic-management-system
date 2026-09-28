@@ -32,11 +32,8 @@ type AttachmentRow = typeof attachments.$inferSelect;
 
 export const ATTACHMENTS_ENTITY = "attachments";
 
-/** The storage folder of a file uploaded without a type. */
 const UNTYPED_CATEGORY = "files";
 
-// Bytes never pass through the API, and every read hands back a short-lived signed GET — nothing
-// here ever serialises an object key.
 @Injectable()
 export class AttachmentsService implements OnModuleInit {
   constructor(
@@ -56,8 +53,6 @@ export class AttachmentsService implements OnModuleInit {
         .where(this.scope.where(attachments, clinicId, eq(attachments.id, id)))
         .limit(1);
 
-      // The object key is audited: it identifies the file, and the audit log is
-      // admin-only. It is the one place it appears outside the service.
       return row ? { ...toAttachment(row), r2Key: row.r2Key } : null;
     });
   }
@@ -112,8 +107,6 @@ export class AttachmentsService implements OnModuleInit {
     };
   }
 
-  // The key is built here, never taken from the client, so an object can only land under this
-  // clinic and patient.
   async presignUpload(
     actor: AuthenticatedUser,
     patientId: string,
@@ -141,8 +134,6 @@ export class AttachmentsService implements OnModuleInit {
     };
   }
 
-  // Size and content type are read back from storage, so a client cannot understate a file it
-  // uploaded; anything outside the limits is deleted.
   async confirmUpload(
     actor: AuthenticatedUser,
     patientId: string,
@@ -208,8 +199,6 @@ export class AttachmentsService implements OnModuleInit {
     return toAttachment(row);
   }
 
-  // Soft delete only, and the object stays in the bucket: a medical image must remain recoverable
-  // by an admin.
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.patientAccess.requireRow<AttachmentRow>(actor, attachments, id);
     const now = new Date();
@@ -244,7 +233,6 @@ export class AttachmentsService implements OnModuleInit {
   }
 }
 
-/** The object key is stripped here — it never reaches a client. */
 export function toAttachment(row: AttachmentRow): Attachment {
   return {
     id: row.id,
@@ -262,7 +250,6 @@ export function toAttachment(row: AttachmentRow): Attachment {
   };
 }
 
-/** Storage reports the content type it stored; only the allow-list is accepted. */
 function assertAllowedMime(mime: string | undefined): AttachmentMime | null {
   const candidate = mime?.split(";")[0]?.trim();
 

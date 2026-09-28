@@ -30,15 +30,12 @@ export class QueryRefused extends Error {
 }
 
 export interface GuardedQuery {
-  /** The statement to run: re-printed from the parsed tree, with its limit clamped. */
   readonly sql: string;
   readonly clinical: boolean;
 }
 
 const VIEWS = new Set(READ_VIEWS.map((view) => view.name));
 
-// An allow-list, not a deny-list: `set_config` alone could move `app.clinic_id` under the views'
-// feet mid-query, and every role may call it.
 const FUNCTIONS = new Set([
   "count",
   "sum",
@@ -81,7 +78,6 @@ const FUNCTIONS = new Set([
 
 const SELECTS = new Set(["select", "union", "union all", "values", "with", "with recursive"]);
 
-/** Parses, checks and re-prints the model's SQL; refuses anything that is not a plain read. */
 export function guardQuery(sql: string): GuardedQuery {
   let statements: Statement[];
 
@@ -165,7 +161,6 @@ function isRead(statement: Statement): statement is SelectStatement {
   return SELECTS.has(statement.type);
 }
 
-// The outermost select is the result; a union or a VALUES list is wrapped so the clamp applies.
 function clampLimit(statement: SelectStatement): SelectStatement {
   if (statement.type === "with" || statement.type === "with recursive") {
     return { ...statement, in: clampLimit(statement.in as SelectStatement) } as SelectStatement;

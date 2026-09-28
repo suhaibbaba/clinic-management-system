@@ -41,8 +41,6 @@ class ConflictOptionsDto extends createZodDto(scheduleConflictOptionsSchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 class DoctorParamDto extends createZodDto(z.object({ doctorId: z.uuid() })) {}
 
-// Every role reads, admin writes any, a doctor writes their own — that check is ownership, so it
-// uses the same `AppointmentAccessService` rule as appointments.
 @Controller()
 export class DoctorTimeOffController {
   constructor(private readonly timeOff: DoctorTimeOffService) {}

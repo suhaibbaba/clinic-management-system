@@ -5,12 +5,9 @@ import { cn } from "@ui/lib/cn";
 import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export interface MoneyProps extends TestIdProps {
-  /** A `numeric(10,2)` string exactly as the API sent it — never a float. */
   readonly amount: string;
-  /** ISO-4217 from the clinic setting. Rendered as its symbol, never its code. */
   readonly currency?: string | undefined;
   readonly className?: string | undefined;
-  /** Colours a debt red and a credit green. Off for neutral ledger lines. */
   readonly signed?: boolean | undefined;
 }
 
@@ -39,8 +36,6 @@ export function Money({
         {formatWholeMoney(amount)}
         {symbol !== "" && (
           <>
-            {/* A non-breaking space, and a real character rather than a margin: a narrow column
-                must not split "150" from "$", and copying must yield both. */}
             {"\u00A0"}
             {symbol}
           </>

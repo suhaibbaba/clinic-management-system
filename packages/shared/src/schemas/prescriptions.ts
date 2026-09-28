@@ -3,7 +3,6 @@ import { paginationQuerySchema } from "@shared/schemas/common";
 
 export const prescriptionItemSchema = z.object({
   drug: z.string().trim().min(1).max(160),
-  // Optional: a prescription is often kept as a reminder of what was given and for how long.
   dose: z.string().trim().max(80).nullish(),
   frequency: z.string().trim().max(80).nullish(),
   duration: z.string().trim().min(1).max(80),
@@ -11,7 +10,6 @@ export const prescriptionItemSchema = z.object({
 });
 export type PrescriptionItem = z.infer<typeof prescriptionItemSchema>;
 
-/** Admin and doctor only; never included in a receptionist response. */
 export const prescriptionSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),

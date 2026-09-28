@@ -47,7 +47,6 @@ class ConvertPlanItemDto extends createZodDto(convertPlanItemSchema) {}
 class ListTreatmentPlansQueryDto extends createZodDto(listTreatmentPlansQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-/** Admin CRUD, doctor CRU, nothing for technician or receptionist (ROLES.md patients matrix). */
 @Controller("treatment-plans")
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
 export class TreatmentPlansController {
@@ -134,7 +133,6 @@ export class TreatmentPlansController {
   }
 }
 
-/** Plan items are addressed on their own so a client never has to know the plan. */
 @Controller("plan-items")
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
 export class PlanItemsController {
@@ -169,8 +167,6 @@ export class PlanItemsController {
     await this.plans.softDeleteItem(actor, params.id);
   }
 
-  // The row this writes is a performed procedure, not the plan item, so the audit entry is keyed by
-  // the response id rather than `:id`.
   @AiTool({
     group: "patients",
     description:

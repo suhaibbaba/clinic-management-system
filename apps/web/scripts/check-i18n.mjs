@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-// Fails the build on Arabic in `src` (comments stripped first) and on a key present in one locale
-// file and not the other. Plurals compare by base key, each side against its own CLDR categories.
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,23 +6,16 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(here, "..");
 const SRC = join(ROOT, "src");
-// The library's components render this app's words too, and the rule does not weaken by crossing a
-// package boundary: every one of them comes from a locale file.
 const UI_SRC = join(ROOT, "..", "..", "packages", "ui", "src");
-// Keys named in shared constants, e.g. a lookup list's label.
 const SHARED_SRC = join(ROOT, "..", "..", "packages", "shared", "src");
 
 const LOCALE_PAIRS = [join(SRC, "i18n", "locales"), join(SRC, "booking", "locales")];
 
-/** Arabic letters. Not the punctuation — see `ALLOWED_CHARS`. */
 const ARABIC_LETTER = /[ؠ-ي٠-٩ٮ-ۿ]/;
 
-// Typography rather than text: a comma between names is the same character whatever the sentence,
-// and no key would ever translate differently.
 const ALLOWED_CHARS = /[،؛؟۔]/g;
 
 // The escape hatch is a trailing `// i18n-allow: reason` — per line, so exempting one honorific
-// does not exempt the file.
 const PRAGMA = /\/\/\s*i18n-allow:\s*\S/;
 
 const failures = [];
@@ -37,21 +28,16 @@ function sources(directory) {
       return sources(path);
     }
 
-    // Tests and stories carry Arabic *data*, which is the point of them.
     return /\.tsx?$/.test(entry) && !/\.(test|stories)\.tsx?$/.test(entry) ? [path] : [];
   });
 }
 
-// Crude on purpose: a `//` inside a string blanks the rest of that line, which hides a violation
-// rather than inventing one.
 function withoutComments(source) {
   return source
     .replace(/\/\*[\s\S]*?\*\//g, (block) => block.replaceAll(/[^\n]/g, " "))
     .replace(/\/\/[^\n]*/g, "");
 }
 
-// From `Intl.PluralRules`, so the list cannot drift from what i18next selects at runtime — it reads
-// the same data.
 const PLURAL_CATEGORIES = Object.fromEntries(
   ["ar", "en"].map((language) => [
     language,
@@ -135,8 +121,6 @@ function checkParity(locales) {
     }
   }
 
-  // An English value still in Arabic is a key somebody added to both files and
-  // translated in neither, which the parity check alone cannot see.
   const untranslated = keysOf(en).filter((key) => {
     const value = key.split(".").reduce((node, part) => node?.[part], en);
 
@@ -148,20 +132,10 @@ function checkParity(locales) {
   }
 }
 
-// Keys the source cannot show whole. Each is verified by hand: a prefix here keeps every key under
-// it, so it stays as narrow as the code that builds it.
-const BUILT_ELSEWHERE = [
-  // The API names the columns and tiles of an assistant view (`apps/api/src/ai/tools/ai-views.ts`).
-  "assistant.view.columns.",
-  "assistant.view.stats.",
-  // `${topic.prefix}.title` and friends, from `assistant/suggestions.ts`.
-  "assistant.topics.",
-];
+const BUILT_ELSEWHERE = ["assistant.view.columns.", "assistant.view.stats.", "assistant.topics."];
 
 const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-// A key nothing refers to is a word an admin is asked to translate for a screen that no longer has
-// it. Whole keys are matched as string literals, and a built key keeps the family it is built from.
 function checkUsage() {
   const locales = join(SRC, "i18n", "locales");
   const where = relative(ROOT, locales).replaceAll("\\", "/");
@@ -170,8 +144,6 @@ function checkUsage() {
     .map((path) => readFileSync(path, "utf8"))
     .join("\n");
 
-  // Two segments or more, e.g. `permissions.capabilities.${key}`, name a family wherever they are
-  // built. One segment only counts inside `t(`: `appointments.${step}` is a permission, not a word.
   const built = [
     ...[...source.matchAll(/[`"']([A-Za-z][\w-]*(?:\.[\w-]+)+)\.(?:\$\{|[`"']\s*\+)/g)].map(
       (match) => ({ prefix: `${match[1]}.`, deep: true }),

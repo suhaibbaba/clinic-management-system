@@ -23,8 +23,6 @@ export const CLINIC_SECRETS_ENTITY = "clinic_secrets";
 
 type SecretRow = typeof clinicSecrets.$inferSelect;
 
-// Write-only from the outside: a value goes in through `update` and comes out only through the
-// resolvers below, to a provider, inside this process. Nothing here returns it to a caller.
 @Injectable()
 export class SecretsService {
   constructor(
@@ -57,8 +55,6 @@ export class SecretsService {
   }
 
   async update(actor: AuthenticatedUser, input: UpdateClinicSecretsInput): Promise<ClinicSecrets> {
-    // Held to the administrator whatever the permission matrix says: a key is the clinic's bill
-    // and its WhatsApp identity, not a screen to delegate.
     if (actor.role !== USER_ROLE.ADMIN) {
       throw new ForbiddenException("Insufficient role");
     }
@@ -122,7 +118,6 @@ export class SecretsService {
           throw new Error("Failed to store the secret");
         }
 
-        // The audit says which key changed and how it ends — never the value, old or new.
         await this.audit.record(
           {
             clinicId: actor.clinicId,
@@ -141,12 +136,10 @@ export class SecretsService {
     return this.status(actor.clinicId);
   }
 
-  /** The clinic's own OpenAI key, or null to fall back to the environment's. */
   openAiKey(clinicId: string): Promise<string | null> {
     return this.reveal(clinicId, CLINIC_SECRET_KIND.OPENAI_API_KEY);
   }
 
-  /** All three or nothing: half an account is not one to message patients through. */
   async whatsApp(clinicId: string): Promise<WhatsAppCredentials | null> {
     const [accessToken, phoneNumberId, templateName] = await Promise.all([
       this.reveal(clinicId, CLINIC_SECRET_KIND.WHATSAPP_ACCESS_TOKEN),
@@ -159,8 +152,6 @@ export class SecretsService {
       : null;
   }
 
-  // Throws `SecretUnreadableError` rather than falling back: a clinic that set its own account and
-  // silently sent from the platform's instead would be worse than a failure it can see.
   private async reveal(clinicId: string, kind: ClinicSecretKind): Promise<string | null> {
     const [row] = await this.db
       .select()

@@ -27,14 +27,11 @@ export class RolesGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest<RequestWithUser>();
 
-    // An endpoint with no `@Roles` is open to anybody signed in, as it always was, and carries no
-    // permission for a clinic to edit.
     if (!required || required.length === 0) {
       return true;
     }
 
     if (!user) {
-      // A @Roles() endpoint that is also @Public() is a wiring mistake.
       throw new ForbiddenException("Insufficient role");
     }
 

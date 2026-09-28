@@ -2,7 +2,6 @@ import type { PersonName, UserRole } from "@clinic/shared";
 import { viewCatalogue } from "@api/ai/query/catalogue";
 import { groupCatalogue } from "@api/ai/tools/tool-groups";
 
-/** Bumped whenever the wording below changes, so a stored conversation says what it was answered under. */
 export const SYSTEM_PROMPT_VERSION = 12;
 
 export interface PromptDoctor {
@@ -13,23 +12,16 @@ export interface PromptDoctor {
 export interface SystemPromptInput {
   readonly clinicName: PersonName;
   readonly user: { readonly name: PersonName; readonly role: UserRole };
-  /** The doctor row linked to the speaker, or null for anybody who is not a doctor. */
   readonly doctor: PromptDoctor | null;
-  /** The clinic's own date, `YYYY-MM-DD` — the server's is a different day for half the morning. */
   readonly today: string;
-  /** The clinic's wall clock, `HH:MM`, and the weekday in English. */
   readonly now: string;
   readonly weekday: string;
 }
 
-// A constant, not a row: an admin who can edit this can edit the scope guard and the rule that
-// makes tool output data rather than instructions (CLAUDE.md non-goal, spec PR 1).
 export function systemPrompt(input: SystemPromptInput): string {
   return [...RULES, "", ...actor(input)].join("\n");
 }
 
-// Identical for every speaker and every step, so the provider's prompt cache holds all of it; what
-// changes per speaker is appended after it.
 const RULES = [
   "You are the assistant of a clinic, working for a member of its staff. Your job is to get what",
   "they asked for done, correctly, with as few questions as possible.",

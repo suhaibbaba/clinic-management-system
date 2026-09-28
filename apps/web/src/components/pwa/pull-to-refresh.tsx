@@ -4,14 +4,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { checkForUpdate } from "@web/lib/service-worker";
-import { isStandalone } from "@web/lib/use-install-prompt";
+import { isStandalone } from "@web/hooks/shared/use-install-prompt";
+import { PULL_DAMPING, PULL_MAX, PULL_THRESHOLD } from "@web/constants/pwa";
 
-/** How far the finger travels, after damping, before letting go refreshes. */
-export const PULL_THRESHOLD = 64;
-const PULL_MAX = 96;
-const DAMPING = 0.5;
-
-/** A touch that starts inside something already scrolled down is that element's scroll, not a pull. */
 function scrolledAncestor(target: EventTarget | null): boolean {
   for (let node = target instanceof Element ? target : null; node; node = node.parentElement) {
     if (node.scrollTop > 0) {
@@ -22,11 +17,6 @@ function scrolledAncestor(target: EventTarget | null): boolean {
   return false;
 }
 
-/**
- * A home-screen app has no browser around it, so no pull-to-refresh of its own. Pulling down at the
- * top refetches what is on screen and asks for a newer build — never a reload, which would lose a
- * half-filled form.
- */
 export function PullToRefresh({
   enabled = isStandalone(),
 }: {
@@ -67,7 +57,10 @@ export function PullToRefresh({
         return;
       }
 
-      pulled.current = Math.min(Math.max(0, (touch.clientY - start.current) * DAMPING), PULL_MAX);
+      pulled.current = Math.min(
+        Math.max(0, (touch.clientY - start.current) * PULL_DAMPING),
+        PULL_MAX,
+      );
       setDistance(pulled.current);
     };
 

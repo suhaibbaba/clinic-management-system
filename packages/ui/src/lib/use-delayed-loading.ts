@@ -40,7 +40,6 @@ export function useDelayedLoading(isLoading: boolean): boolean {
   return visible;
 }
 
-/** A refetch of data already on screen: never a skeleton, only the inline indicator. */
 export const isRefetching = (query: QueryLike): boolean => query.isFetching && !query.isPending;
 
 export function useQueryLoading(query: QueryLike): QueryLoadingState {

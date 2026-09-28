@@ -19,7 +19,6 @@ type PrescriptionRow = typeof prescriptions.$inferSelect;
 
 export const PRESCRIPTIONS_ENTITY = "prescriptions";
 
-/** Admin and doctor only; never reaches a receptionist (ROLES.md field rules). */
 @Injectable()
 export class PrescriptionsService implements OnModuleInit {
   constructor(
@@ -156,7 +155,6 @@ export class PrescriptionsService implements OnModuleInit {
       .where(this.scope.where(prescriptions, actor.clinicId, eq(prescriptions.id, id)));
   }
 
-  // The foreign key only proves the visit exists somewhere; it must be this patient's, in this clinic.
   private async requireVisit(
     actor: AuthenticatedUser,
     visitId: string,

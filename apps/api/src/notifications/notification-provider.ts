@@ -9,8 +9,6 @@ export interface OutboundMessage {
   readonly body: string;
 }
 
-// One method, because that is all a WhatsApp API and an SMS gateway have in common. A provider
-// throws to fail; the service turns that into a `failed` row.
 export interface NotificationProvider {
   readonly name: string;
   send(message: OutboundMessage): Promise<void>;
@@ -18,8 +16,6 @@ export interface NotificationProvider {
 
 export const NOTIFICATION_PROVIDER = Symbol("NOTIFICATION_PROVIDER");
 
-// Not a stub: it is the correct provider wherever there is no gateway, and the message still
-// reaches `notifications_log`, so the OTP flow works end to end.
 @Injectable()
 export class LogNotificationProvider implements NotificationProvider {
   readonly name = "log";
@@ -33,8 +29,6 @@ export class LogNotificationProvider implements NotificationProvider {
   }
 }
 
-// `{ to, channel, body }` is the shape a local SMS gateway takes and a thin WhatsApp adapter would
-// expose. The timeout is not optional — a gateway that never answers would hold a booking open.
 @Injectable()
 export class HttpNotificationProvider implements NotificationProvider {
   readonly name = "http";
@@ -73,8 +67,6 @@ export class HttpNotificationProvider implements NotificationProvider {
       });
 
       if (!response.ok) {
-        // The body is read for the log, not for the caller: a gateway's error
-        // text is diagnostic and must never reach a patient's screen.
         const detail = await response.text().catch(() => "");
         throw new Error(`Gateway responded ${response.status}: ${detail.slice(0, 200)}`);
       }
@@ -91,7 +83,6 @@ export interface WhatsAppCredentials {
   readonly templateName: string;
 }
 
-/** All three or nothing: a half-configured account is not one to send patients' messages through. */
 export function whatsAppCredentials(config: ConfigService<Env, true>): WhatsAppCredentials | null {
   const accessToken = config.get("WHATSAPP_ACCESS_TOKEN", { infer: true });
   const phoneNumberId = config.get("WHATSAPP_PHONE_NUMBER_ID", { infer: true });
@@ -102,8 +93,6 @@ export function whatsAppCredentials(config: ConfigService<Env, true>): WhatsAppC
     : null;
 }
 
-// Meta refuses a template parameter with a newline, a tab or more than four spaces in a row, and
-// caps a body at 1024 characters.
 const WHATSAPP_PARAMETER_LIMIT = 1000;
 
 export function toWhatsAppParameter(body: string): string {
@@ -114,8 +103,6 @@ export function toWhatsAppParameter(body: string): string {
     .slice(0, WHATSAPP_PARAMETER_LIMIT);
 }
 
-// A business-initiated message has to be an approved template, so every body — a reminder or an
-// assistant's message alike — goes as the one body parameter of the clinic's utility template.
 @Injectable()
 export class WhatsAppNotificationProvider implements NotificationProvider {
   readonly name = "whatsapp";
@@ -134,9 +121,7 @@ export class WhatsAppNotificationProvider implements NotificationProvider {
     return this.sendWith(credentials, message);
   }
 
-  /** With a clinic's own account, entered in its settings, rather than the environment's. */
   async sendWith(credentials: WhatsAppCredentials, message: OutboundMessage): Promise<void> {
-    // Guessing a country for a local number would message a stranger somewhere else.
     if (!message.to.trim().startsWith("+")) {
       throw new Error("The number is not in international form");
     }

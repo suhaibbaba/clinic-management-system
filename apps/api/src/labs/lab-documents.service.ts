@@ -193,7 +193,6 @@ export class LabDocumentsService {
   }
 }
 
-/** Enough of the id to match a box to a record, short enough to read aloud. */
 const shortId = (id: string): string => id.slice(0, 8).toUpperCase();
 
 const firstName = (fullName: string): string => fullName.trim().split(/\s+/)[0] ?? fullName;

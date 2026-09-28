@@ -22,7 +22,6 @@ describe("applyDocumentIcon", () => {
     ]);
   });
 
-  // A browser holds a favicon well past any cache header, so a re-render has to move the address.
   it("moves the address when the set is rendered again", () => {
     applyDocumentIcon(AT);
     const before = hrefs("icon");
@@ -33,7 +32,6 @@ describe("applyDocumentIcon", () => {
     expect(hrefs("icon")[0]).toContain("2026-09-16");
   });
 
-  // A clinic that has uploaded no logo, and one whose logo predates the icons, both land here.
   it("leaves the product mark alone when there is no clinic set", () => {
     applyDocumentIcon(null);
 
@@ -41,7 +39,6 @@ describe("applyDocumentIcon", () => {
     expect(hrefs("apple-touch-icon")).toEqual([]);
   });
 
-  // Branding resolves after the first paint, so this runs twice on an ordinary load.
   it("replaces rather than accumulates when it runs again", () => {
     applyDocumentIcon(AT);
     applyDocumentIcon(AT);
@@ -73,7 +70,6 @@ describe("applyAppTitle", () => {
     expect(title()).toBe("Second");
   });
 
-  // Nothing is better than the product's name on a clinic's home screen.
   it("leaves no tag when there is no clinic to name", () => {
     applyAppTitle("Something");
     applyAppTitle("");

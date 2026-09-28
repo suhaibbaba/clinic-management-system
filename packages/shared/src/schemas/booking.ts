@@ -15,7 +15,6 @@ export const bookingSettingsSchema = z.object({
 });
 export type BookingSettings = z.infer<typeof bookingSettingsSchema>;
 
-/** Never throws: a malformed blob must read as "booking is off", not as a 500. */
 export function bookingSettings(settings: unknown): BookingSettings {
   const raw =
     typeof settings === "object" && settings !== null
@@ -39,10 +38,8 @@ export function bookingSettings(settings: unknown): BookingSettings {
 export const publicClinicSchema = z.object({
   name: personNameSchema,
   slug: z.string(),
-  /** Long-lived signed URL, so the booking page draws the mark from cache on a repeat visit. */
   logoUrl: z.url().nullable(),
   phone: z.string().nullable(),
-  /** The dialling code the page's phone picker starts on. */
   country: z.string(),
   address: z.string().nullable(),
   bookingEnabled: z.boolean(),
@@ -51,8 +48,6 @@ export const publicClinicSchema = z.object({
 });
 export type PublicClinic = z.infer<typeof publicClinicSchema>;
 
-// Not the internal `Doctor`: a stranger has no business with a user id, a weekly schedule or an
-// appointment duration.
 export const publicDoctorSchema = z.object({
   id: uuidSchema,
   name: personNameSchema,
@@ -68,15 +63,12 @@ export type PublicSlotsQuery = z.infer<typeof publicSlotsQuerySchema>;
 
 export const publicSlotsSchema = z.object({
   date: isoDateSchema,
-  /** Only bookable ones — a stranger has no use for a greyed grid. */
   slots: z.array(slotSchema.omit({ available: true })),
   closedReason: z.enum(["clinic_closure", "doctor_time_off"]).nullable(),
   closedNote: z.string().nullable(),
 });
 export type PublicSlots = z.infer<typeof publicSlotsSchema>;
 
-// The phone is the identity here, so it is held to the same international shape as a staff-entered
-// one — the page's picker composes it.
 export const bookingPhoneSchema = phoneSchema;
 
 export const createBookingSchema = z.object({
@@ -89,10 +81,7 @@ export const createBookingSchema = z.object({
 });
 export type CreateBookingInput = z.infer<typeof createBookingSchema>;
 
-// No patient id, no name, and no field that differs between a phone the clinic knows and one it
-// does not — which is what makes enumeration impossible. The `token` goes to the phone.
 export const bookingReceiptSchema = z.object({
-  /** Signed, opaque. Not a database id. */
   token: z.string(),
   status: z.enum(["pending_otp", "pending_confirmation"]),
   otpExpiresInSeconds: z.number().int().nullable(),
@@ -137,11 +126,9 @@ export const createUrgentRequestSchema = z.object({
   lastName: z.string().trim().min(BOOKING_NAME_LENGTH.min).max(BOOKING_NAME_LENGTH.max),
   phone: bookingPhoneSchema,
   complaint: z.string().trim().min(3).max(500),
-  /** Who they were looking at when they gave up on the times. */
   doctorId: uuidSchema.optional(),
 });
 export type CreateUrgentRequestInput = z.infer<typeof createUrgentRequestSchema>;
 
-/** Says nothing a stranger could learn from: the same body for a known phone and an unknown one. */
 export const urgentRequestReceiptSchema = z.object({ received: z.literal(true) });
 export type UrgentRequestReceipt = z.infer<typeof urgentRequestReceiptSchema>;

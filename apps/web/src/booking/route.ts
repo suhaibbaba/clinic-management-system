@@ -1,5 +1,3 @@
-// No router library: two routes, no nested layout. `/booking/manage/…` is deliberately narrow — the
-// dashboard owns the rest of `/booking/`, and a wider rule swallowed `/booking/pending`.
 export type BookingRoute =
   | { readonly kind: "book"; readonly slug: string }
   | { readonly kind: "manage"; readonly token: string; readonly slug: string | undefined }
@@ -34,8 +32,6 @@ export function parseRoute(pathname: string, search = ""): BookingRoute {
 
 const STORAGE_PREFIX = "clinic.booking.";
 
-// The token names the appointment, not the clinic: a `?clinic=` or what this browser remembered,
-// and the clinic's number where both are empty.
 function clinicSlugFor(token: string, search: string): string | undefined {
   const fromQuery = new URLSearchParams(search).get("clinic");
 
@@ -46,7 +42,6 @@ function clinicSlugFor(token: string, search: string): string | undefined {
   try {
     return window.localStorage.getItem(STORAGE_PREFIX + token) ?? undefined;
   } catch {
-    // Site data blocked. The page still cancels; it just cannot reschedule.
     return undefined;
   }
 }
@@ -54,7 +49,5 @@ function clinicSlugFor(token: string, search: string): string | undefined {
 export function rememberClinic(token: string, slug: string): void {
   try {
     window.localStorage.setItem(STORAGE_PREFIX + token, slug);
-  } catch {
-    // A refused write costs rescheduling from this device, nothing more.
-  }
+  } catch {}
 }

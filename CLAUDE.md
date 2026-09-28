@@ -38,7 +38,7 @@ rules, in short:
 
 ```
 apps/api    one Nest module per domain module
-apps/web    one feature folder per domain module, tests in apps/web/test
+apps/web    src/ by kind, then by feature; tests in apps/web/test mirroring src
 packages/shared   Zod schemas, types, enums, constants
 packages/ui       components, tokens, the theme contract
 ```
@@ -104,7 +104,14 @@ core · patients · billing · appointments · booking · notifications · labs 
 
 ## Frontend
 
-- Functional components, hooks, TanStack Query. Feature folders mirror the API modules.
+- Functional components, hooks, TanStack Query.
+- **`src/` is organised by kind, then by feature**, with the same feature name in every folder:
+  `pages/<feature>/` (a screen or tab), `components/<feature>/`, `hooks/<feature>/` (one hook per
+  file, `use-….ts`; cross-feature hooks in `hooks/shared/`), `queries/<feature>.ts` (TanStack hooks
+  and their keys), `api/<feature>.ts`, `permissions/<feature>.ts`, `constants/<feature>.ts`,
+  `lib/<feature>/` (plain helpers), `providers/` (context providers). `app/` is the shell and
+  `booking/` the separate public bundle. A file holds one kind: no hook, constant or helper exported
+  from a component. No `index.ts` barrels; import the exact file.
 - **RTL by default.** Gregorian dates, Arabic through i18n. `check:i18n` fails on an Arabic literal
   in a component and on a key missing from either locale.
 - Dropdowns read the clinic's lists through `useLookupOptions` / `useLookupLabels`, never a constant.
@@ -157,15 +164,13 @@ receptionist never receives an attachment URL. **Staff have a photo, patients do
 
 - **API** Jest against a real Postgres. Required: balance computation, slot availability and
   conflicts, permission boundaries per role, lab-order transitions, audit writes.
-- **Web** Vitest, all specs under `apps/web/test`, in three lanes:
-  - `pnpm test` — jsdom, the fast lane, everything that is logic or behaviour.
-  - `pnpm --filter @clinic/web test:browser` — `*.browser.test.tsx` in real Chromium, for what jsdom
-    cannot do: computed tokens, layout and geometry, focus, direction. A browser session will not
-    attach while jsdom runs beside it, so it is a separate step.
-  - the node lane for the dev proxy.
-- Every role's sidebar is asserted **as a whole list** — the failure that matters is an entry
-  appearing for somebody it was never meant for. Each route guard is asserted per role, and each
-  retired address is asserted to land on its replacement.
+- **Web** Vitest under `apps/web/test` (`pnpm test`: jsdom, plus a node lane for the dev proxy), and
+  only two kinds of test:
+  - **Security**: every role's sidebar asserted **as a whole list** (the failure that matters is an
+    entry appearing for somebody it was never meant for), each route guard per role, each retired
+    address landing on its replacement, fields a role must not see, and the session's tokens.
+  - **Logic** with no rendering: `lib/`, `hooks/`, `queries/`, `i18n/`.
+  No page, component, layout or browser-mode tests.
 - **Direction and spacing are still verified by a person on the sandbox.** A pull request that
   changes what a screen looks like carries screenshots in its description, in Arabic RTL, at the
   widths it touches. Screenshots are never committed.
@@ -201,10 +206,9 @@ commits (`feat(billing): ...`).
 
 ## Comments
 
-**Default: no comment.** Code explains itself through naming.
+**No comments.** Code explains itself through naming; rationale belongs in the pull request.
 
-A comment is allowed only for a non-obvious **why** that code cannot express — a workaround and its
-cause, a security, bidi or ledger invariant — or a one-line JSDoc on a shared or public utility.
-
-**Maximum three lines.** No narrative, no storytelling, no design rationale in code — that belongs in
-the pull request description. Never restate what the code already says.
+The only exception is a rule that would be dangerous to "tidy" away — a security invariant such as a
+request that must not carry the bearer token. One or two lines, and rare. Tool directives
+(`eslint-disable`, `@ts-expect-error`, `// i18n-allow:`, `// check-type-disable-next-line`) are not
+comments and stay. An intentionally ignored failure is an empty `catch {}`.

@@ -40,7 +40,6 @@ async function renderAs(role: UserRole, route = "/dashboard"): Promise<void> {
   mockApi(handlers(role));
 
   renderWithProviders(<AppRoutes />, { route });
-  // `findAll`: the dashboard's banner greets the same person the rail's footer names.
   await screen.findAllByText(`مستخدم ${role}`);
 }
 
@@ -51,14 +50,10 @@ const linkNames = (): string[] =>
     .getAllByRole("link")
     .map((link) => link.textContent?.trim() ?? "");
 
-// Each role's list is asserted whole: the failure that matters is an entry appearing for somebody
-// it was never meant for.
 describe("Sidebar navigation", () => {
   it("gives an admin every section, settings included", async () => {
     await renderAs(USER_ROLE.ADMIN);
 
-    // The settings group is a caption over rows rather than a disclosure, so its links are part of
-    // the rail's list and are asserted with the rest of it.
     expect(linkNames()).toEqual([
       ar.nav.dashboard,
       ar.nav.assistant,
@@ -78,7 +73,6 @@ describe("Sidebar navigation", () => {
       USER_ROLE.DOCTOR,
       [ar.nav.dashboard, ar.nav.assistant, ar.nav.patients, ar.nav.appointments, ar.nav.labs],
     ],
-    // No assistant: its endpoints refuse a visiting doctor, so the page would only ever fail.
     [USER_ROLE.VISITING_DOCTOR, [ar.nav.dashboard, ar.nav.patients, ar.nav.appointments]],
     [USER_ROLE.TECHNICIAN, [ar.nav.dashboard, ar.nav.assistant, ar.nav.labs, ar.nav.inventory]],
     [
@@ -114,8 +108,6 @@ describe("Sidebar navigation", () => {
   it("counts the unanswered online bookings beside the appointments row", async () => {
     await renderAs(USER_ROLE.RECEPTIONIST);
 
-    // Labelled rather than a bare digit, so the row reads as "appointments, 4 awaiting
-    // confirmation".
     const badge = await within(nav()).findByLabelText(
       ar.nav.waitingCount.replace("{{count}}", "4"),
     );
@@ -137,8 +129,6 @@ describe("The settings group", () => {
   it("lists its rows without a control in front of them", async () => {
     await renderAs(USER_ROLE.ADMIN);
 
-    // It used to be a disclosure. Five links worth showing do not need a button operated first,
-    // and the reference's rail has no control in it at all.
     expect(within(nav()).queryByRole("button")).not.toBeInTheDocument();
 
     for (const label of [ar.nav.clinic, ar.nav.users, ar.nav.lists, ar.nav.settingsPage]) {
@@ -147,8 +137,6 @@ describe("The settings group", () => {
   });
 });
 
-// `/clinic/lists` sits under `/clinic`, and a prefix test calls both current — two pills and two
-// `aria-current` rows. The longest match wins.
 describe("The current row", () => {
   it("marks the deepest section a URL belongs to, and only that one", async () => {
     await renderAs(USER_ROLE.ADMIN, "/clinic/lists");
@@ -184,8 +172,6 @@ describe("The current row", () => {
   });
 });
 
-// Hiding a link is not hiding a page: the address still resolves, so every section a role cannot
-// see redirects to one they always can.
 describe("Route guards", () => {
   it.each([
     [USER_ROLE.TECHNICIAN, "/patients"],
@@ -208,15 +194,12 @@ describe("Route guards", () => {
   ])("redirects %s away from %s and onto the dashboard", async (role, route) => {
     await renderAs(role, route);
 
-    // The dashboard's `<h1>` is the greeting, so the day's panel is what names the screen.
     expect(
       await screen.findByRole("region", { name: ar.dashboard.schedule.title }),
     ).toBeInTheDocument();
   });
 });
 
-// Doctors joined users, and four admin screens joined one settings page; the old addresses are
-// still in somebody's bookmarks.
 describe("Retired addresses", () => {
   it.each([
     ["/doctors", ar.nav.users, ar.nav.doctors],

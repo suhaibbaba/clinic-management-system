@@ -1,15 +1,10 @@
 import { z } from "zod";
 import { paginationQuerySchema, timeRangeSchema, uuidSchema } from "@shared/schemas/common";
 
-// A clinic closure is whole days for everybody; doctor time off is one person's and often part of a
-// day. Both are subtracted by `AvailabilityService`, the only place that decides.
-
 export const clinicClosureSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
-  /** Inclusive first closed day, as a local calendar date. */
   startsOn: z.iso.date(),
-  /** Inclusive last closed day. A one-day closure repeats the start. */
   endsOn: z.iso.date(),
   reason: z.string(),
   isAnnual: z.boolean(),
@@ -46,7 +41,6 @@ export const updateClinicClosureSchema = z
 export type UpdateClinicClosureInput = z.infer<typeof updateClinicClosureSchema>;
 
 export const listClinicClosuresQuerySchema = paginationQuerySchema.extend({
-  /** Inclusive window, both ends optional. Defaults to everything. */
   from: z.iso.date().optional(),
   to: z.iso.date().optional(),
 });
@@ -56,8 +50,6 @@ export const doctorTimeOffSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
   doctorId: uuidSchema,
-  // Half-open `[startsAt, endsAt)` like an appointment's block, whole days as local midnight to
-  // midnight — no `is_all_day` flag to disagree with them.
   startsAt: z.iso.datetime(),
   endsAt: z.iso.datetime(),
   reason: z.string(),
@@ -90,18 +82,13 @@ export const updateDoctorTimeOffSchema = z
 export type UpdateDoctorTimeOffInput = z.infer<typeof updateDoctorTimeOffSchema>;
 
 export const listDoctorTimeOffQuerySchema = paginationQuerySchema.extend({
-  /** Half-open instant window; rows overlapping it are returned. */
   from: z.iso.datetime().optional(),
   to: z.iso.datetime().optional(),
 });
 export type ListDoctorTimeOffQuery = z.infer<typeof listDoctorTimeOffQuerySchema>;
 
-// Two questions, not one: `force` writes it anyway, `cancelAppointments` cancels them — and only
-// the first is reversible.
 export const scheduleConflictOptionsSchema = z.object({
-  /** Write the row even though appointments fall inside it. */
   force: z.stringbool().default(false),
-  /** Also cancel those appointments, notifying each patient. */
   cancelAppointments: z.stringbool().default(false),
 });
 export type ScheduleConflictOptions = z.infer<typeof scheduleConflictOptionsSchema>;
@@ -116,8 +103,6 @@ export const conflictingAppointmentSchema = z.object({
 });
 export type ConflictingAppointment = z.infer<typeof conflictingAppointmentSchema>;
 
-// `error` is `schedule_conflict`, which is what the web app matches on — Arabic wording is resolved
-// on the front end by code.
 export const SCHEDULE_CONFLICT_ERROR = "schedule_conflict";
 
 export const scheduleConflictSchema = z.object({
@@ -149,7 +134,6 @@ export const closureCancellationReason = (closureId: string): string =>
 export const timeOffCancellationReason = (timeOffId: string): string =>
   `${TIME_OFF_CANCELLATION_PREFIX}${timeOffId}`;
 
-/** Hours a doctor works on one date beyond the weekly schedule, added to that day's hours. */
 export const doctorExtraHoursSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
@@ -170,7 +154,6 @@ export const createDoctorExtraHoursSchema = z.object({
 export type CreateDoctorExtraHoursInput = z.infer<typeof createDoctorExtraHoursSchema>;
 
 export const listDoctorExtraHoursQuerySchema = paginationQuerySchema.extend({
-  /** Inclusive local dates, both optional. */
   from: z.iso.date().optional(),
   to: z.iso.date().optional(),
 });

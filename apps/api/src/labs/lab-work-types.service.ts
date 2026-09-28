@@ -15,8 +15,6 @@ type WorkTypeRow = typeof labWorkTypes.$inferSelect;
 
 export const LAB_WORK_TYPES_ENTITY = "lab_work_types";
 
-// Rows hang off the lab, so the clinic scope check happens once, on the lab, and the table needs no
-// `clinic_id` of its own. An order copies the price it was placed at.
 @Injectable()
 export class LabWorkTypesService implements OnModuleInit {
   constructor(
@@ -139,8 +137,6 @@ export class LabWorkTypesService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      // 404 rather than 403 for another clinic's id, like everything else here:
-      // "not found" tells a caller nothing about what exists elsewhere.
       throw new NotFoundException("Resource not found");
     }
 

@@ -34,14 +34,11 @@ class ListAttachmentsQueryDto extends createZodDto(listAttachmentsQuerySchema) {
 class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// A receptionist is on neither controller: their responses must never carry an attachment key or
-// URL. Uploads are two steps so bytes never pass through the API.
 @Controller("patients/:patientId/attachments")
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
 export class PatientAttachmentsController {
   constructor(private readonly attachments: AttachmentsService) {}
 
-  /** Metadata only — a signed URL is minted per file on the single read. */
   @Get()
   list(
     @CurrentUser() actor: AuthenticatedUser,
@@ -51,7 +48,6 @@ export class PatientAttachmentsController {
     return this.attachments.list(actor, params.patientId, query);
   }
 
-  /** Step 1: a short-lived PUT URL under a key the API alone decides. */
   @Post("presign-upload")
   presignUpload(
     @CurrentUser() actor: AuthenticatedUser,

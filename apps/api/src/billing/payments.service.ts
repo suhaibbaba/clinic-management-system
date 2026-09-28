@@ -32,8 +32,6 @@ type PaymentRow = typeof payments.$inferSelect;
 
 export const PAYMENTS_ENTITY = "payments";
 
-// Append-only: never updated, never deleted. A mistake is an admin writing the opposite entry,
-// which leaves the receipt and its cancellation on the statement.
 @Injectable()
 export class PaymentsService implements OnModuleInit {
   constructor(
@@ -88,8 +86,6 @@ export class PaymentsService implements OnModuleInit {
     return toPayment(await this.scope.findOneOrFail<PaymentRow>(payments, actor.clinicId, id));
   }
 
-  // One transaction, so a receipt number is never handed out for a payment that then fails to
-  // commit.
   async create(actor: AuthenticatedUser, input: CreatePaymentInput): Promise<Payment> {
     await this.patientAccess.requirePatientId(actor, input.patientId);
     await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.PAYMENT_METHOD, input.method);
@@ -121,7 +117,6 @@ export class PaymentsService implements OnModuleInit {
     });
   }
 
-  // Kept, not removed: an admin still sees it on the statement, and the balance's `sum()` skips it.
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.db.transaction(async (tx) => {
       const [row] = await tx
@@ -145,8 +140,6 @@ export class PaymentsService implements OnModuleInit {
     });
   }
 
-  // The reversal takes no receipt number: a receipt series with entries nobody was handed cannot be
-  // reconciled.
   async reverse(
     actor: AuthenticatedUser,
     id: string,
@@ -200,7 +193,6 @@ export class PaymentsService implements OnModuleInit {
   }
 }
 
-// Read after the counter's row lock, so two payments at once cannot both fit the same balance.
 async function assertWithinBalance(
   tx: DatabaseExecutor,
   clinicId: string,
@@ -216,9 +208,6 @@ async function assertWithinBalance(
   }
 }
 
-// Not a Postgres sequence: `nextval` does not roll back, so a failed payment would burn a number. A
-// counter row rolls back, and its `UPDATE` row lock queues concurrent payments.
-/** Exported for the seed, which writes a year of receipts and must not invent the sequence. */
 export async function nextReceiptNumber(tx: DatabaseExecutor, clinicId: string): Promise<number> {
   await tx
     .insert(clinicCounters)

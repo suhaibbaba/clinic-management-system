@@ -11,8 +11,6 @@ export const POSTGRES_CLIENT = Symbol("POSTGRES_CLIENT");
 
 export type Database = PostgresJsDatabase<typeof schema>;
 
-// Services that must compose into a caller's transaction take this rather than injecting the
-// database: a charge and its procedure commit together.
 export type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 export type DatabaseExecutor = Database | Transaction;
 

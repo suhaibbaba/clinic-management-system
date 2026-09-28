@@ -45,8 +45,6 @@ class WorkTypeQueryDto extends createZodDto(
   z.object({ includeInactive: z.coerce.boolean().optional() }),
 ) {}
 
-// Admin CRUD, technician CRU, doctor read, receptionist nothing — no route lists them, so every
-// call is a 403. Deleting is admin-only: a lab carries a balance.
 @Controller("labs")
 export class LabsController {
   constructor(

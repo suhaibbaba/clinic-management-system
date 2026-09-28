@@ -2,7 +2,6 @@ import { USER_ROLE, USER_ROLES, type UserRole } from "@clinic/shared";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 import { staffName } from "@test/helpers/staff-name";
 
-/** Every endpoint ROLES.md restricts to admin, with the verb it is reached by. */
 const ADMIN_ONLY_ROUTES = [
   { method: "GET" as const, url: "/users" },
   { method: "POST" as const, url: "/users" },
@@ -177,7 +176,6 @@ describe("Authorization (e2e)", () => {
           phone: `+9955${Date.now().toString().slice(-8)}`,
           password: "InjectedPass123!",
           role: USER_ROLE.RECEPTIONIST,
-          // Not part of the schema, and never read from the body regardless.
           clinicId: otherClinic.id,
         },
       });
@@ -214,7 +212,6 @@ describe("Authorization (e2e)", () => {
         { weekday: 1, ranges: [{ start: "09:00", end: "12:00" }] },
       ]);
 
-      // A different doctor account in the same clinic must not reach this row.
       const otherDoctorToken = await context.login(otherClinic.phones[USER_ROLE.DOCTOR]);
       const foreign = await context.app.inject({
         method: "PATCH",

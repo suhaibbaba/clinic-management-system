@@ -38,7 +38,6 @@ import { SecretsModule } from "@api/secrets/secrets.module";
         const chosen = config.get("NOTIFICATIONS_PROVIDER", { infer: true });
         const logger = new Logger("Notifications");
 
-        // Tests reach real patients' numbers through fixtures, so no test run ever leaves `log`.
         if (config.get("NODE_ENV", { infer: true }) === "test") {
           return log;
         }

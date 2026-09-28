@@ -20,8 +20,6 @@ export const userRoleEnum = pgEnum("user_role", USER_ROLES);
 export const chartTypeEnum = pgEnum("chart_type", CHART_TYPES);
 export const auditActionEnum = pgEnum("audit_action", AUDIT_ACTIONS);
 
-// No foreign key on purpose: `users.clinic_id` references `clinics`, so constraining these would
-// make the two circular — and the first admin has nobody to attribute.
 const auditColumns = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -29,15 +27,12 @@ const auditColumns = {
   updatedBy: uuid("updated_by"),
 };
 
-/** Medical, financial and core records are only ever soft-deleted. */
 const softDeleteColumn = {
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 };
 
-/** Partial-index predicate: only live rows take part in a uniqueness rule. */
 const liveRows = sql`deleted_at is null`;
 
-/** The tenant. Every other table carries `clinic_id`. */
 export const clinics = pgTable(
   "clinics",
   {
@@ -45,21 +40,15 @@ export const clinics = pgTable(
     nameAr: text("name_ar").notNull(),
     nameEn: text("name_en").notNull(),
     slug: text("slug").notNull(),
-    /** R2 object key — never a public URL. */
     logoKey: text("logo_key"),
-    /** A square source for the icons, for a clinic whose logo is a wordmark. */
     appIconKey: text("app_icon_key"),
-    // The derived icons live under their source's own key, so their location cannot drift from the
-    // image they were rendered from; this only records that the set uploaded and verified.
     logoIconsAt: timestamp("logo_icons_at", { withTimezone: true }),
     phone: text("phone"),
     email: text("email"),
     address: text("address"),
     latitude: numeric("latitude", { precision: 9, scale: 6 }),
     longitude: numeric("longitude", { precision: 9, scale: 6 }),
-    /** ISO-4217. Money columns are `numeric(10,2)` and never floats. */
     currency: varchar("currency", { length: 3 }).notNull().default("USD"),
-    /** ISO 3166-1 alpha-2; the dialling code every phone field starts on. */
     country: varchar("country", { length: 2 }).notNull().default("PS"),
     workingHours: jsonb("working_hours").$type<WeeklySchedule>().notNull().default([]),
     settings: jsonb("settings").$type<Record<string, unknown>>().notNull().default({}),
@@ -69,7 +58,6 @@ export const clinics = pgTable(
   (table) => [uniqueIndex("clinics_slug_uniq").on(table.slug).where(liveRows)],
 );
 
-/** `code` is text, not a Postgres enum, so adding a specialty is data rather than a migration. */
 export const specialties = pgTable(
   "specialties",
   {
@@ -90,8 +78,6 @@ export const specialties = pgTable(
   ],
 );
 
-// Phone and email are unique system-wide, not per clinic: login takes an identifier with no clinic
-// hint, so a shared number would be ambiguous.
 export const users = pgTable(
   "users",
   {
@@ -103,21 +89,16 @@ export const users = pgTable(
     lastNameAr: text("last_name_ar").notNull(),
     firstNameEn: text("first_name_en").notNull(),
     lastNameEn: text("last_name_en").notNull(),
-    /** Written by the service from the parts above; everything that reads a name reads these. */
     nameAr: text("name_ar").notNull(),
     nameEn: text("name_en").notNull(),
     normalizedName: normalizedName("name_ar || ' ' || name_en"),
     phone: text("phone").notNull(),
     email: text("email"),
-    /** argon2id. Never selected into a response or an audit entry. */
     passwordHash: text("password_hash"),
-    /** A SHA-256 of the activation or reset token — the token itself is only ever in the email. */
     passwordTokenHash: text("password_token_hash"),
     passwordTokenExpiresAt: timestamp("password_token_expires_at", { withTimezone: true }),
     role: userRoleEnum("role").notNull(),
     isActive: boolean("is_active").notNull().default(true),
-    // The key and never a URL: what a client receives is a signed GET minted per response, so a
-    // photo cannot be handed on by copying a link out of JSON.
     photoKey: text("photo_key"),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
     ...auditColumns,
@@ -140,7 +121,6 @@ export const roleCapabilities = pgTable(
       .notNull()
       .references(() => clinics.id),
     role: userRoleEnum("role").notNull(),
-    /** Matches `CapabilityRegistry`, e.g. `patients.update`. */
     capability: text("capability").notNull(),
     allowed: boolean("allowed").notNull(),
     ...auditColumns,
@@ -163,7 +143,6 @@ export const doctors = pgTable(
     specialtyId: uuid("specialty_id")
       .notNull()
       .references(() => specialties.id),
-    /** Availability template. Free slots are computed, never stored. */
     weeklySchedule: jsonb("weekly_schedule").$type<WeeklySchedule>().notNull().default([]),
     defaultAppointmentDurationMinutes: integer("default_appointment_duration_minutes")
       .notNull()
@@ -178,8 +157,6 @@ export const doctors = pgTable(
   ],
 );
 
-// A SHA-256 digest, not argon2: 256 bits of CSPRNG entropy needs no hardening and refresh must stay
-// a cheap lookup. Operational data, so rows are purged rather than soft-deleted.
 export const refreshTokens = pgTable(
   "refresh_tokens",
   {
@@ -193,7 +170,6 @@ export const refreshTokens = pgTable(
     tokenHash: text("token_hash").notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     revokedAt: timestamp("revoked_at", { withTimezone: true }),
-    /** Set when rotation replaces this token; unconstrained to keep the chain simple. */
     replacedByTokenId: uuid("replaced_by_token_id"),
     ...auditColumns,
   },
@@ -203,8 +179,6 @@ export const refreshTokens = pgTable(
   ],
 );
 
-// Insert-only: no update or delete path exists in the API, so it carries `created_at` and the
-// acting `user_id` instead of the usual mutation columns.
 export const auditLog = pgTable(
   "audit_log",
   {
@@ -212,7 +186,6 @@ export const auditLog = pgTable(
     clinicId: uuid("clinic_id")
       .notNull()
       .references(() => clinics.id),
-    /** Null when the actor is the system (migrations, schedulers, seeding). */
     userId: uuid("user_id").references(() => users.id),
     action: auditActionEnum("action").notNull(),
     entity: text("entity").notNull(),

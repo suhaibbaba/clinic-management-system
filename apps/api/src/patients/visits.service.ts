@@ -24,7 +24,6 @@ type VisitRow = typeof visits.$inferSelect;
 
 export const VISITS_ENTITY = "visits";
 
-/** Visits are clinical: admin and doctor only (ROLES.md patients matrix). */
 @Injectable()
 export class VisitsService implements OnModuleInit {
   constructor(
@@ -142,8 +141,6 @@ export class VisitsService implements OnModuleInit {
     return toVisit(row);
   }
 
-  // All or nothing: one procedure with money against it keeps the whole visit. What goes with the
-  // visit is audited here, one entry each; the visit's own entry is the interceptor's.
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     const visit = await this.patientAccess.requireRow<VisitRow>(actor, visits, id);
     const procedureIds = (
@@ -208,7 +205,6 @@ export class VisitsService implements OnModuleInit {
     });
   }
 
-  /** A visit must reference a doctor in the same clinic. */
   private async requireDoctor(actor: AuthenticatedUser, doctorId: string): Promise<void> {
     const [row] = await this.db
       .select({ id: doctors.id })

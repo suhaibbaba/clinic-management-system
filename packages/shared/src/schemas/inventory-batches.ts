@@ -1,19 +1,14 @@
 import { addQuantity, formatThousandths, toThousandths } from "@shared/schemas/quantity";
 
-// Derived for the screen, never stored: the ledger is batch-agnostic, so batches assume oldest-
-// first (earliest expiry, else purchase date). `sum(quantity)` is unaffected.
 export interface BatchInflow {
   readonly batchNo: string | null;
   readonly expiryDate: string | null;
-  /** ISO datetime the stock arrived — the tiebreak, and the display date. */
   readonly receivedAt: string;
   readonly quantity: string;
 }
 
 export interface BatchOutflow {
-  /** Named batch, or `null` for the ordinary case where nobody wrote it down. */
   readonly batchNo: string | null;
-  /** Positive magnitude — the sign lives in the ledger, not here. */
   readonly quantity: string;
 }
 
@@ -22,14 +17,11 @@ export interface BatchRemaining {
   readonly expiryDate: string | null;
   readonly receivedAt: string;
   readonly quantity: string;
-  /** What is left of it under the assumption above. Never negative. */
   readonly remaining: string;
 }
 
-/** Sorts oldest first: earliest expiry, then earliest arrival. */
 const DRAIN_ORDER = (left: BatchInflow, right: BatchInflow): number => {
   if (left.expiryDate !== right.expiryDate) {
-    // A batch with no expiry cannot be the one going off next, so it waits.
     if (left.expiryDate === null) {
       return 1;
     }
@@ -74,8 +66,6 @@ export function batchesRemaining(
   const ordered = [...batches].sort(DRAIN_ORDER);
   const remaining = ordered.map((batch) => toThousandths(batch.quantity));
 
-  // Named first: a movement that says which box it came from is a fact, and
-  // facts must not be spent on the assumption's behalf.
   let unassigned = 0;
 
   for (const outflow of outflows) {
@@ -110,8 +100,6 @@ export function batchesRemaining(
   }));
 }
 
-// Earliest expiry still holding stock — computed from what is left, because a batch that is used up
-// cannot expire.
 export function nearestExpiry(batches: readonly BatchRemaining[]): string | null {
   const live = batches.filter(
     (batch) => batch.expiryDate !== null && toThousandths(batch.remaining) > 0,

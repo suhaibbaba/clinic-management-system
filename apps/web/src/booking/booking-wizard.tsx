@@ -21,7 +21,6 @@ import { bookingName } from "@web/booking/format";
 const byDate = (days: readonly { date: string; slots: unknown[] }[]) =>
   new Map(days.map((day) => [day.date, day.slots]));
 
-/** Days offered at once. Seven is a thumb-flick and covers "next Tuesday". */
 const VISIBLE_DAYS = 7;
 
 const OTP_ATTEMPTS = 3;
@@ -84,8 +83,6 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
     : DEFAULT_PHONE_COUNTRY;
   const chips = useMemo(() => dayChips(from, VISIBLE_DAYS, maxDaysAhead), [from, maxDaysAhead]);
 
-  // Fetching the whole strip is what lets a closed day render as a greyed chip, and gives the
-  // conflict path a `week.reload()` to offer.
   const week = useAsync(
     async () => {
       const days = await Promise.all(
@@ -141,8 +138,6 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
 
       setToken(receipt.token);
       setAttemptsLeft(OTP_ATTEMPTS);
-      // So the manage link, which carries no clinic, can still reschedule when
-      // it is opened on this phone — see `route.ts`.
       rememberClinic(receipt.token, slug);
 
       if (receipt.status === "pending_otp") {
@@ -384,8 +379,6 @@ export function BookingWizard({ slug }: { readonly slug: string }): JSX.Element 
               <Card data-testid="booking-summary" className="bg-primary-50 shadow-none">
                 <p className="text-label text-ink-muted">{t("details.summary")}</p>
                 <p className="mt-1 text-value font-medium text-ink">{bookingName(doctor?.name)}</p>
-                {/* The time hugs its content: as a block it aligned left inside an RTL card,
-                    stranding it on the far side of the box. */}
                 <p className="text-value text-ink">
                   <span dir="ltr" className="inline-block w-fit whitespace-nowrap tabular-nums">
                     {slot?.start}

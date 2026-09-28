@@ -28,21 +28,16 @@ export interface SendNotification {
   readonly to: string;
   readonly template: NotificationTemplate;
   readonly vars: Record<string, string>;
-  /** Overrides the clinic's configured channel; used by nothing yet. */
   readonly channel?: NotificationChannel | undefined;
-  /** The appointment it is about, when it is about one — the dedupe key. */
   readonly appointmentId?: string | undefined;
 }
 
 export interface SendResult {
   readonly id: string;
   readonly status: (typeof NOTIFICATION_STATUS)[keyof typeof NOTIFICATION_STATUS];
-  /** The rendered body. Returned for tests and the log, never for a patient. */
   readonly body: string;
 }
 
-// The log row is written before the provider is called, so a send that throws still leaves a trace;
-// a failure never reaches the caller; and clinic templates fall back to the shared Arabic defaults.
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
@@ -58,7 +53,6 @@ export class NotificationsService {
   async send(input: SendNotification): Promise<SendResult | null> {
     const settings = await this.settingsFor(input.clinicId);
 
-    // An assistant's plan being rehearsed sends nothing: it is about to be thrown away.
     if (!settings.enabled || inRehearsal()) {
       return null;
     }
@@ -85,7 +79,6 @@ export class NotificationsService {
 
     let result: SendResult = { id: row.id, status: NOTIFICATION_STATUS.QUEUED, body };
 
-    // Inside a plan the patient hears once it commits; a plan that fails sends nothing.
     await afterCommit(async () => {
       result = await this.dispatch(row.id, input, channel, body);
     });
@@ -122,8 +115,6 @@ export class NotificationsService {
     }
   }
 
-  // A clinic that entered its own WhatsApp account sends through it; everything else goes through
-  // the environment's provider. Inside the try, so an unreadable key is a `failed` row.
   private async deliver(clinicId: string, message: OutboundMessage): Promise<void> {
     if (
       message.channel === NOTIFICATION_CHANNEL.WHATSAPP &&
@@ -139,8 +130,6 @@ export class NotificationsService {
     return this.provider.send(message);
   }
 
-  // The reminder dedupe, and why there is no "sent markers" table. A `failed` row counts as sent:
-  // retrying against a dead gateway would deliver a pile at once when it recovered.
   async alreadySent(appointmentId: string, template: NotificationTemplate): Promise<boolean> {
     const [row] = await this.db
       .select({ id: notificationsLog.id })

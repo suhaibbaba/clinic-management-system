@@ -13,9 +13,6 @@ import {
   type BusyInterval,
 } from "@api/appointments/slots";
 
-// They run without a database or a clock because the module they cover has neither — which is the
-// whole reason it is a separate module.
-
 const nine = { start: "09:00", end: "17:00" };
 const morning = { start: "09:00", end: "12:00" };
 const afternoon = { start: "14:00", end: "17:00" };
@@ -42,7 +39,6 @@ describe("time of day", () => {
 
 describe("intersectRanges", () => {
   it("keeps only the time both sides are open", () => {
-    // A doctor starting at 08:00 in a clinic that opens at 09:00 starts at 09:00.
     expect(
       intersectRanges([{ start: "09:00", end: "17:00" }], [{ start: "08:00", end: "13:00" }]),
     ).toEqual([{ start: 540, end: 780 }]);
@@ -65,13 +61,12 @@ describe("computeDaySlots", () => {
     const { slots, closedReason } = computeDaySlots(base);
 
     expect(closedReason).toBeNull();
-    expect(slots).toHaveLength(16); // 09:00 → 16:30 inclusive, every 30 minutes
+    expect(slots).toHaveLength(16);
     expect(toTimeOfDay(slots[0]!.startMinute)).toBe("09:00");
     expect(toTimeOfDay(slots.at(-1)!.startMinute)).toBe("16:30");
   });
 
   it("never offers a slot that runs past closing", () => {
-    // 16:45 for a 30-minute appointment books fifteen minutes of an empty clinic.
     const { slots } = computeDaySlots({ ...base, stepMinutes: 15 });
 
     expect(slots.every((slot) => slot.endMinute <= toMinutes("17:00"))).toBe(true);
@@ -92,7 +87,6 @@ describe("computeDaySlots", () => {
   });
 
   it("treats a busy interval as half-open, exactly like the database", () => {
-    // 09:30–10:00 must not block 10:00, or every back-to-back day loses a slot.
     const { slots } = computeDaySlots({
       ...base,
       busy: [{ startMinute: toMinutes("09:30"), endMinute: toMinutes("10:00") }],
@@ -132,8 +126,6 @@ describe("computeDaySlots", () => {
   });
 
   it("says the clinic is closed rather than returning an empty day", () => {
-    // Four different answers to "can you fit me in?" that an empty array would
-    // render identically.
     expect(computeDaySlots({ ...base, clinicRanges: [] }).closedReason).toBe("clinic_closed");
     expect(computeDaySlots({ ...base, isClosed: true }).closedReason).toBe("clinic_closure");
     expect(computeDaySlots({ ...base, doctorRanges: [] }).closedReason).toBe("doctor_off");
@@ -142,14 +134,11 @@ describe("computeDaySlots", () => {
   it("is closed by a dated closure even when the weekday is a working one", () => {
     const closed = computeDaySlots({ ...base, isClosed: true });
 
-    // Not `clinic_closed`: that is the weekly pattern, and "we are shut on
-    // Fridays" and "we are shut for Eid" are different sentences on the phone.
     expect(closed.closedReason).toBe("clinic_closure");
     expect(closed.slots).toEqual([]);
   });
 
   it("subtracts a partial absence and leaves the rest of the day bookable", () => {
-    // 14:00–18:00 away: the morning still books, the afternoon does not.
     const { slots, closedReason } = computeDaySlots({
       ...base,
       timeOff: [{ startMinute: toMinutes("14:00"), endMinute: toMinutes("18:00") }],
@@ -170,8 +159,6 @@ describe("computeDaySlots", () => {
       timeOff: [{ startMinute: 0, endMinute: 24 * 60 }],
     });
 
-    // The clinic is open and another doctor may well have room, which is a
-    // different answer from "the diary is full".
     expect(away.closedReason).toBe("doctor_time_off");
     expect(away.slots.every((slot) => !slot.available)).toBe(true);
   });
@@ -183,7 +170,6 @@ describe("computeDaySlots", () => {
     });
 
     expect(closedReason).toBe("fully_booked");
-    // Still returned, so the grid can grey them rather than look shut.
     expect(slots.length).toBeGreaterThan(0);
   });
 
@@ -192,8 +178,6 @@ describe("computeDaySlots", () => {
   });
 
   it("says the day is over rather than calling the evening fully booked", () => {
-    // Anyone opening today after closing time sees this; "fully booked" would
-    // be a different and wrong claim about the same empty grid.
     const finished = computeDaySlots({ ...base, notBeforeMinute: toMinutes("23:00") });
 
     expect(finished.closedReason).toBe("day_over");
@@ -236,7 +220,6 @@ describe("time zone", () => {
   const DAMASCUS = "Asia/Damascus";
 
   it("maps a local wall-clock time to the right instant", () => {
-    // Damascus is UTC+3 in September.
     expect(instantFromLocal("2026-09-07", 9 * 60, DAMASCUS).toISOString()).toBe(
       "2026-09-07T06:00:00.000Z",
     );
@@ -250,8 +233,6 @@ describe("time zone", () => {
   });
 
   it("does not drift with the server’s own zone", () => {
-    // The same wall-clock time in two zones is two different instants: a server in UTC reading a
-    // Damascus 09:00 as its own is three hours out.
     const damascus = instantFromLocal("2026-09-07", 9 * 60, DAMASCUS);
     const utc = instantFromLocal("2026-09-07", 9 * 60, "UTC");
 
@@ -259,9 +240,9 @@ describe("time zone", () => {
   });
 
   it("reads the weekday a local date falls on", () => {
-    expect(localWeekday("2026-09-06", DAMASCUS)).toBe(0); // Sunday
+    expect(localWeekday("2026-09-06", DAMASCUS)).toBe(0);
     expect(localWeekday("2026-09-07", DAMASCUS)).toBe(1);
-    expect(localWeekday("2026-09-12", DAMASCUS)).toBe(6); // Saturday
+    expect(localWeekday("2026-09-12", DAMASCUS)).toBe(6);
   });
 
   it("walks days across a month boundary", () => {

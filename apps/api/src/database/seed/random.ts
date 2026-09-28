@@ -5,7 +5,6 @@ export class Rng {
     this.state = seed >>> 0;
   }
 
-  /** mulberry32 — small, fast, and good enough for choosing a name. */
   next(): number {
     this.state = (this.state + 0x6d2b79f5) >>> 0;
     let t = this.state;
@@ -14,7 +13,6 @@ export class Rng {
     return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
   }
 
-  /** Inclusive at both ends, which is how ranges are written below. */
   int(min: number, max: number): number {
     return min + Math.floor(this.next() * (max - min + 1));
   }
@@ -33,7 +31,6 @@ export class Rng {
     return value;
   }
 
-  /** Distinct members, or the whole list when it is shorter than `count`. */
   sample<T>(values: readonly T[], count: number): T[] {
     return this.shuffle(values).slice(0, count);
   }
@@ -49,7 +46,6 @@ export class Rng {
     return copy;
   }
 
-  /** A value weighted towards the low end — most patients have few visits, a handful have many. */
   skewedInt(min: number, max: number): number {
     return min + Math.floor(this.next() * this.next() * (max - min + 1));
   }

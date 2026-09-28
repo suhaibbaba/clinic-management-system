@@ -46,6 +46,4 @@ const merge = extendTailwindMerge({
   },
 });
 
-// Without the merge a caller's `w-64` and the component's `w-full` both survive and stylesheet
-// order decides, so a `className` override silently does nothing.
 export const cn = (...values: ClassValue[]): string => merge(clsx(values));

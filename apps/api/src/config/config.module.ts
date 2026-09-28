@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { validateEnv } from "@api/config/env.schema";
 
-/** Read values with `config.get('PORT', { infer: true })` for full type inference. */
 @Module({
   imports: [
     ConfigModule.forRoot({

@@ -6,8 +6,6 @@ import { cn } from "@clinic/ui/lib/cn";
 
 export type LogoSize = "chrome" | "print" | "login";
 
-// Fixed boxes, because the rail and the sign-in card must not resize around a clinic's own
-// artwork. `contain` fits a wide wordmark and a square badge alike.
 const SIZES: Record<LogoSize, { readonly width: number; readonly height: number }> = {
   chrome: { width: 212, height: 56 },
   print: { width: 160, height: 60 },
@@ -17,9 +15,7 @@ const SIZES: Record<LogoSize, { readonly width: number; readonly height: number 
 export interface LogoProps {
   size?: LogoSize | undefined;
   "data-testid"?: string | undefined;
-  /** The clinic's own uploaded logo. There is no bundled one — see `InitialMark`. */
   src?: string | null | undefined;
-  /** Supplies the letter the mark falls back to. */
   name?: PersonName | null | undefined;
   className?: string | undefined;
   alt?: string | undefined;
@@ -65,7 +61,6 @@ export function InitialMark({
       className="absolute inset-0 flex items-center justify-center"
     >
       <span
-        // The generated mark's initial is a fraction of its own box, which no fixed size can name.
         // check-type-disable-next-line
         style={{ width: size, height: size, fontSize: Math.round(size * 0.45) }}
         className={cn(

@@ -33,8 +33,6 @@ class ReversePaymentDto extends createZodDto(reversePaymentSchema) {}
 class ListPaymentsQueryDto extends createZodDto(listPaymentsQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// No update route for any role — a receipted amount is never edited. The matrix's delete cell is
-// `POST :id/reverse`, which leaves both entries on the statement.
 @Controller("payments")
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST)
 export class PaymentsController {

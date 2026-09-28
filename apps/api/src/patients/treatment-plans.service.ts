@@ -35,8 +35,6 @@ type PlanItemRow = typeof treatmentPlanItems.$inferSelect;
 export const TREATMENT_PLANS_ENTITY = "treatment_plans";
 export const TREATMENT_PLAN_ITEMS_ENTITY = "treatment_plan_items";
 
-// A plan item is a quote: it becomes real work once, through `convertItem`, and its
-// `estimated_price` is left alone so quote and charge stay separately readable.
 @Injectable()
 export class TreatmentPlansService implements OnModuleInit {
   constructor(
@@ -184,7 +182,6 @@ export class TreatmentPlansService implements OnModuleInit {
     return toPlan(row, items.get(row.id) ?? []);
   }
 
-  /** Soft-deletes the plan and the items that only exist inside it. */
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, id);
     const now = new Date();
@@ -275,8 +272,6 @@ export class TreatmentPlansService implements OnModuleInit {
       );
   }
 
-  // The price is re-snapshotted here. `planned → converted` is one-way, enforced by a partial
-  // unique index on `performed_procedures.plan_item_id`.
   async convertItem(
     actor: AuthenticatedUser,
     itemId: string,

@@ -2,16 +2,12 @@ import { useLayoutEffect, useRef, useState, type CSSProperties, type JSX } from 
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Icon, Ltr, SearchField } from "@clinic/ui";
-import { useSession } from "@web/features/auth/session";
-import { canOpenPatientFile } from "@web/features/patients/permissions";
-import { usePatients } from "@web/features/patients/queries";
-import { useDebounced } from "@web/lib/use-debounced";
+import { useSession } from "@web/providers/session";
+import { canOpenPatientFile } from "@web/permissions/patients";
+import { usePatients } from "@web/queries/patients";
+import { useDebounced } from "@web/hooks/shared/use-debounced";
 import { ellipsis } from "@web/i18n/ellipsis";
-
-const PATIENTS = "/patients";
-/** Enough to answer with, few enough to read without scrolling the bar's panel. */
-const SUGGESTIONS = 5;
-const MIN_TERM = 2;
+import { PATIENTS_PATH, SEARCH_MIN_TERM, SEARCH_SUGGESTIONS } from "@web/constants/layout";
 
 export function TopSearch(): JSX.Element {
   const { t } = useTranslation();
@@ -20,20 +16,21 @@ export function TopSearch(): JSX.Element {
   const [params, setParams] = useSearchParams();
   const { user } = useSession();
 
-  const onList = pathname === PATIENTS;
+  const onList = pathname === PATIENTS_PATH;
   const [typed, setTyped] = useState("");
   const [open, setOpen] = useState(false);
   const panelId = "top-search-results";
   const panel = useRef<HTMLDivElement>(null);
   const form = useRef<HTMLFormElement>(null);
-  // On a phone the field is a sliver between the bell and the burger, so the panel is pinned to the
-  // screen under the bar instead of to the field. Measured, because the bar's height is its own.
   const [under, setUnder] = useState(0);
 
   const term = onList ? (params.get("q") ?? "") : typed;
   const debounced = useDebounced(typed).trim();
-  const suggest = !onList && canOpenPatientFile(user?.role) && debounced.length >= MIN_TERM;
-  const results = usePatients({ search: debounced, limit: SUGGESTIONS }, { enabled: suggest });
+  const suggest = !onList && canOpenPatientFile(user?.role) && debounced.length >= SEARCH_MIN_TERM;
+  const results = usePatients(
+    { search: debounced, limit: SEARCH_SUGGESTIONS },
+    { enabled: suggest },
+  );
   const rows = results.data?.items ?? [];
   const total = results.data?.total ?? 0;
   const showing = suggest && open;
@@ -64,13 +61,13 @@ export function TopSearch(): JSX.Element {
 
   const toList = (): void => {
     setOpen(false);
-    navigate(term.trim() === "" ? PATIENTS : `${PATIENTS}?q=${encodeURIComponent(term)}`);
+    navigate(term.trim() === "" ? PATIENTS_PATH : `${PATIENTS_PATH}?q=${encodeURIComponent(term)}`);
   };
 
   const openFile = (id: string): void => {
     setOpen(false);
     setTyped("");
-    navigate(`${PATIENTS}/${id}`);
+    navigate(`${PATIENTS_PATH}/${id}`);
   };
 
   return (
@@ -78,8 +75,6 @@ export function TopSearch(): JSX.Element {
       ref={form}
       data-testid="top-search"
       role="search"
-      // Shares the bar's one row at every width. `w-full order-last` gave it a row of its own on a
-      // phone, which made the header two rows tall on every single page.
       className="relative min-w-0 flex-1 md:max-w-[520px]"
       onSubmit={(event) => {
         event.preventDefault();
@@ -88,8 +83,6 @@ export function TopSearch(): JSX.Element {
           toList();
         }
       }}
-      // The panel closes when the focus leaves the field and everything under it, so a click on a
-      // result is not cut off by a blur.
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) {
           setOpen(false);
@@ -106,7 +99,6 @@ export function TopSearch(): JSX.Element {
         aria-controls={panelId}
         onChange={(event) => write(event.target.value)}
         clearLabel={t("common.clear")}
-        // Empties the field and takes the panel with it — the panel is the term's answer.
         onClear={() => {
           write("");
           setOpen(false);
@@ -129,12 +121,8 @@ export function TopSearch(): JSX.Element {
           ref={panel}
           data-part="search-results"
           data-testid="top-search-results"
-          // The measurement travels as a variable, or an inline `top` would also win at `md`, where
-          // the panel hangs off the field again.
           style={{ "--panel-top": `${under}px` } as CSSProperties}
           className="fixed inset-x-4 top-(--panel-top) z-40 rounded-panel border border-line bg-surface p-1.5 shadow-float md:absolute md:inset-x-0 md:top-full md:mt-2"
-          // Safari gives a button no focus on mousedown, so the field's blur would close this panel
-          // before the click landed on anything. Keeping the focus in the field keeps it open.
           onMouseDown={(event) => event.preventDefault()}
         >
           {rows.length === 0 ? (

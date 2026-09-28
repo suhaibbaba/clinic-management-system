@@ -38,7 +38,6 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 export class LookupsController {
   constructor(private readonly lookups: LookupsService) {}
 
-  /** Every list, or one. The client caches the whole bundle. */
   @Get()
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST)
   bundle(
@@ -58,8 +57,6 @@ export class LookupsController {
     return this.lookups.create(actor, body);
   }
 
-  // Before `:id`, or Nest reads "reorder" as one. A `PATCH` on the collection: ten separate writes
-  // would let a refresh halfway leave a list nobody arranged.
   @Patch("reorder")
   @Roles(USER_ROLE.ADMIN)
   @Audit(LOOKUP_OPTIONS_ENTITY, AUDIT_ACTION.UPDATE)

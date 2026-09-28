@@ -30,8 +30,6 @@ describe("Attachments (e2e)", () => {
       phone: uniquePhone(),
     });
 
-    // Presigning is offline, so only the read-back of a stored object needs a
-    // stand-in: everything else runs against the real S3 client.
     storage = context.app.get(StorageService);
     storage.statObject = async (): Promise<StoredObject | null> => storedObject;
   });
@@ -98,7 +96,6 @@ describe("Attachments (e2e)", () => {
 
       expect(body.maxSizeBytes).toBe(MAX_ATTACHMENT_BYTES);
 
-      // The URL is signed, time-limited and scoped to this clinic and patient.
       expect(body.uploadUrl).toContain("X-Amz-Signature");
       expect(body.uploadUrl).toContain("X-Amz-Expires=300");
       expect(body.key).toMatch(

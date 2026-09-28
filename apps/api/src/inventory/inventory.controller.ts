@@ -59,8 +59,6 @@ class AdjustDto extends createZodDto(adjustStockSchema) {}
 class ReverseDto extends createZodDto(reverseMovementSchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// A receptionist is in no row of the matrix, so every call is a 403. A doctor reads all and writes
-// only a consumption — hence three routes, since a guard sees the route, not a body.
 @Controller("inventory")
 export class InventoryController {
   constructor(
@@ -70,7 +68,6 @@ export class InventoryController {
     private readonly documents: InventoryDocumentsService,
   ) {}
 
-  /** Before `:id`, or Nest reads "alerts" as an item id. */
   @Get("alerts")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   alerts(@CurrentUser() actor: AuthenticatedUser): Promise<InventoryAlerts> {
@@ -88,7 +85,6 @@ export class InventoryController {
     return this.reports.shoppingList(actor);
   }
 
-  /** The same list as paper. `@Header` rather than `@Res`: house style. */
   @Get("shopping-list.pdf")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Header("Content-Type", "application/pdf")
@@ -111,7 +107,6 @@ export class InventoryController {
     return this.movements.list(actor, query);
   }
 
-  /** Technician and admin (the service enforces it; the guard opens the door). */
   @Post("movements/purchase")
   @Roles(USER_ROLE.TECHNICIAN)
   @Audit(STOCK_MOVEMENTS_ENTITY, AUDIT_ACTION.CREATE)
@@ -177,7 +172,6 @@ export class InventoryController {
     return this.items.findOne(actor, params.id);
   }
 
-  /** What is left of each batch, oldest first. Derived — see `StockService`. */
   @AiTool({
     group: "inventory",
     description: "One item's batches with their expiry dates and what is left of each.",
@@ -237,7 +231,6 @@ export class InventoryController {
     return this.items.update(actor, params.id, body);
   }
 
-  /** Admin only — an item carries a ledger, and retiring it is not housekeeping. */
   @AiTool({
     group: "inventory",
     description: "Archive a stock item. Waits on a typed confirmation.",

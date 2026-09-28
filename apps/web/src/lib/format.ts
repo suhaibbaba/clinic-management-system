@@ -3,12 +3,9 @@ import { to12Hour } from "@clinic/ui";
 import i18n from "@web/i18n";
 import { clinicTimeZone } from "@web/lib/clinic-zone";
 
-// Two things are pinned in both languages: the Gregorian calendar, since `ar` selects the Islamic
-// one in some runtimes, and Latin digits.
 const dateLocale = (): string =>
   i18n.language.startsWith("en") ? "en-GB-u-ca-gregory-nu-latn" : "ar-SY-u-ca-gregory-nu-latn";
 
-// The Arabic locale interleaves RTL marks between the parts of a date; they survive into the DOM
 const stripBidiMarks = (value: string): string => value.replace(/[\u200e\u200f]/g, "");
 
 export function formatDateTime(iso: string): string {
@@ -48,8 +45,6 @@ export function dayAndDate(iso: string): { readonly weekday: string; readonly da
   };
 }
 
-// English in both languages: the region's Arabics name the months differently.
-/** A date block's parts in the clinic's zone: the day number, the month's short name, the year. */
 export function dayMonthYear(iso: string): {
   readonly day: string;
   readonly month: string;
@@ -67,7 +62,6 @@ export function dayMonthYear(iso: string): {
   return { day: read("day"), month: read("month"), year: read("year") };
 }
 
-/** `16 May 2026`, isolated: inside an Arabic sentence "1 Sep" would otherwise read "Sep 1". */
 export function shortDate(iso: string): string {
   const { day, month, year } = dayMonthYear(iso);
   return `\u2066${day} ${month} ${year}\u2069`;
@@ -82,7 +76,6 @@ export function formatClinicTime(iso: string): string {
   }).format(new Date(iso));
 }
 
-/** `26 Sep 2026 · 9:30 AM` in the clinic's zone: AM/PM in Latin in either language. */
 export function visitMoment(iso: string): string {
   return `${shortDate(iso)} · ${to12Hour(formatClinicTime(iso))}`;
 }
@@ -115,8 +108,6 @@ const MINUTE = 60_000;
 const HOUR = 3_600_000;
 const DAY = 86_400_000;
 
-// Relative, because what a conversation is worth is "this morning" rather than a timestamp. Past a
-// week it becomes a date: "٣٤ يوم" is a distance nobody can place on a calendar.
 export function formatRelativeTime(iso: string): string {
   const elapsed = Date.now() - new Date(iso).getTime();
   const days = Math.floor(elapsed / DAY);
@@ -140,12 +131,10 @@ export function formatRelativeTime(iso: string): string {
   return stripBidiMarks(relative.format(-Math.max(0, Math.floor(elapsed / MINUTE)), "minute"));
 }
 
-/** `<input type="date">` value → an inclusive ISO instant for the API. */
 export function startOfDayIso(value: string): string | undefined {
   return value ? new Date(`${value}T00:00:00`).toISOString() : undefined;
 }
 
-/** `<input type="date">` value → an exclusive ISO upper bound for the API. */
 export function endOfNextDayIso(value: string): string | undefined {
   if (!value) {
     return undefined;
@@ -156,8 +145,6 @@ export function endOfNextDayIso(value: string): string | undefined {
   return date.toISOString();
 }
 
-// The separator is punctuation, and Arabic's is not the Latin comma — `join(', ')` in an Arabic
-// sentence is the same mistake as the wrong script, only quieter.
 export function formatList(items: readonly string[]): string {
   return items.join(i18n.language.startsWith("en") ? ", " : "، ");
 }

@@ -126,9 +126,7 @@ export interface CatalogEntry {
   readonly name: string;
   readonly defaultPrice: string;
   readonly chartOutcome: ProcedureOutcome | null;
-  /** Minutes of chair time, which is what the appointment beside it is booked for. */
   readonly minutes: number;
-  /** Roughly how often it comes up, used to weight the generated history. */
   readonly weight: number;
   readonly needsLab?: boolean;
 }

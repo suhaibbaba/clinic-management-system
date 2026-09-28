@@ -67,7 +67,6 @@ export class AppointmentsController {
     return this.appointmentsService.calendar(actor, query);
   }
 
-  /** Free slots for a doctor on a date. Never stored, computed per request. */
   @Get("availability")
   availability(
     @CurrentUser() actor: AuthenticatedUser,
@@ -109,9 +108,6 @@ export class AppointmentsController {
   ): Promise<CalendarAppointment> {
     return this.appointmentsService.update(actor, params.id, body);
   }
-
-  // One endpoint per transition rather than `PATCH { status }`: it names the act for the audit
-  // trail, and cancelling can require its reason in the schema.
 
   @Patch(":id/confirm")
   @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR)
@@ -179,8 +175,6 @@ export class AppointmentsController {
     );
   }
 
-  // Doctor and admin only — a visit is a clinical record. The audit entry is on the appointment,
-  // which is the row this changes.
   @Post(":id/visit")
   @Roles(USER_ROLE.DOCTOR)
   @Audit(APPOINTMENTS_ENTITY, AUDIT_ACTION.UPDATE)

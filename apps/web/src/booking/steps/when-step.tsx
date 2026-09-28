@@ -23,8 +23,6 @@ export function WhenStep({
   readonly onDate: (date: string) => void;
   readonly selected: string | undefined;
   readonly onSelect: (slot: SlotOption) => void;
-  // The way out when the diary cannot help — offered loudly when the day is empty, quietly when it
-  // is not. Absent while rescheduling: they already have an appointment.
   readonly onUrgent?: (() => void) | undefined;
 }): JSX.Element {
   const byDate = new Map((week.data ?? []).map((day) => [day.date, day]));
@@ -39,7 +37,6 @@ export function WhenStep({
   return (
     <div data-testid="when-step" className="flex flex-col gap-4">
       <section data-testid="when-step-days" aria-label={t("when.daysLabel")}>
-        {/* Scrolls sideways: a week that wraps to two rows stops being a strip. */}
         <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
           {chips.map((chip) => {
             const known = byDate.has(chip.date);
@@ -58,8 +55,6 @@ export function WhenStep({
                   })}
                   onClick={() => onDate(chip.date)}
                   className={cx(
-                    // The three lines are `pill-text` each, so the `gap` is the whole of the
-                    // space between them rather than three type-scale line-heights.
                     "flex min-h-[72px] w-16 cursor-pointer flex-col items-center justify-center gap-2",
                     "rounded-panel border-[1.5px] px-2 transition-colors duration-150",
                     active
@@ -145,14 +140,10 @@ export function WhenStep({
         )}
       </section>
 
-      {/* Small and always there: somebody whose pain will not wait until Tuesday should not have to
-          find an empty day first. */}
       {onUrgent && (
         <button
           type="button"
           onClick={onUrgent}
-          // 18px of link on the one control somebody in pain reaches for. The padding grows the
-          // target; `-my-*` keeps the row where the layout put it.
           className="-my-3 cursor-pointer self-center px-3 py-3 text-label text-primary-700 underline underline-offset-4"
         >
           {t("urgent.link")}

@@ -30,8 +30,6 @@ class PaginationQueryDto extends createZodDto(paginationQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 class LabIdParamDto extends createZodDto(z.object({ labId: z.uuid() })) {}
 
-// Reversal is admin-only — the one operation that makes money appear to come back. The balance rule
-// lives in `LabLedgerService`, not in a second copy here.
 @Controller("labs/:labId")
 export class LabLedgerController {
   constructor(

@@ -9,7 +9,6 @@ import { SecretsService } from "@api/secrets/secrets.service";
 
 class UpdateSecretsDto extends createZodDto(updateClinicSecretsSchema) {}
 
-// Status and write, and no read: there is no endpoint that returns a stored value.
 @Controller("ai/secrets")
 export class SecretsController {
   constructor(private readonly secrets: SecretsService) {}

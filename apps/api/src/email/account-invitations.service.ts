@@ -84,12 +84,10 @@ export class AccountInvitationsService {
     await this.issueAndSend(
       { id: user.id, name: { ar: user.nameAr, en: user.nameEn }, email: user.email },
       user.clinicId,
-      // Somebody who never activated gets the letter that matches where they actually are.
       user.hasPassword ? "reset" : "activate",
     );
   }
 
-  /** Spends the token: it works once, and only before it expires. */
   async setPassword(token: string, password: string): Promise<void> {
     const [user] = await this.db
       .select({ id: users.id })
@@ -148,8 +146,6 @@ export class AccountInvitationsService {
       .set({ passwordTokenHash: issued.tokenHash, passwordTokenExpiresAt: issued.expiresAt })
       .where(eq(users.id, recipient.id));
 
-    // Written before sending: a letter that goes out against a token nobody stored is a link that
-    // cannot work, which is worse than one that was never sent.
     await this.email.send(
       purpose,
       { email: recipient.email, name: recipient.name },

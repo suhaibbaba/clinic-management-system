@@ -12,8 +12,6 @@ export interface BookingDetails {
   readonly reason: string;
 }
 
-// Checked against the same rules the booking DTO enforces, from the Zod-free module, so this page
-// saves a round trip without shipping the schema machinery.
 export function DetailsStep({
   details,
   onChange,
@@ -26,7 +24,6 @@ export function DetailsStep({
   readonly onChange: (details: BookingDetails) => void;
   readonly onSubmit: () => void;
   readonly busy: boolean;
-  /** The clinic's, whose code a local number is dialled under. */
   readonly country: PhoneCountry;
   readonly summary: JSX.Element;
 }): JSX.Element {
@@ -36,7 +33,6 @@ export function DetailsStep({
   const phoneError = isBookingPhone(joinPhone(country, details.phone) ?? "")
     ? undefined
     : t("details.phoneError");
-  // A number typed whole, from abroad, carries its own code.
   const typedWhole = /^\s*(\+|00)/.test(details.phone);
 
   const submit = (event: FormEvent): void => {
@@ -49,8 +45,6 @@ export function DetailsStep({
   };
 
   return (
-    // `noValidate`: the browser's own bubble is English and unstyled, and it
-    // would fire before the Arabic message below the field.
     <form data-testid="details-step" noValidate onSubmit={submit} className="flex flex-col gap-4">
       {summary}
 
@@ -66,8 +60,6 @@ export function DetailsStep({
         {...(!typedWhole && { prefix: dialCodeOf(country) })}
         label={t("details.phone")}
         name="phone"
-        // `tel` gives the phone's own keypad; `dir="ltr"` keeps a leading +
-        // and the digits in the order they were typed.
         type="tel"
         inputMode="tel"
         dir="ltr"

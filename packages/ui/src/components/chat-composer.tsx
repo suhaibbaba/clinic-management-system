@@ -11,26 +11,21 @@ import { Icon } from "@ui/components/icon";
 import { cn } from "@ui/lib/cn";
 import { parts, type TestIdProps } from "@ui/lib/testid";
 
-/** Five lines, then it scrolls: past that the thread above is what the writer has lost. */
 const MAX_ROWS = 5;
 
 export interface ChatComposerProps extends TestIdProps {
   readonly value: string;
   readonly onValueChange: (value: string) => void;
   readonly onSend: () => void;
-  /** Present while an answer is arriving; its absence is what makes the send button the only one. */
   readonly onStop?: (() => void) | undefined;
   readonly streaming?: boolean | undefined;
   readonly placeholder: string;
   readonly sendLabel: string;
   readonly stopLabel: string;
-  /** Sits above the field — the suggestion chips on an empty conversation. */
   readonly children?: ReactNode;
   readonly className?: string | undefined;
 }
 
-// Enter sends and Shift+Enter breaks the line, which is the convention every messaging app has
-// taught; a composer that needs the mouse to send is one nobody uses twice.
 export function ChatComposer({
   value,
   onValueChange,
@@ -47,7 +42,6 @@ export function ChatComposer({
   const part = parts("chat-composer", testId);
   const field = useRef<HTMLTextAreaElement>(null);
 
-  // Measured rather than counted: a wrapped line is a line, and `value.split("\n")` cannot see one.
   useLayoutEffect(() => {
     const node = field.current;
 

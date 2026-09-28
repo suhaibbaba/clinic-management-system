@@ -40,7 +40,6 @@ export function SuccessView({ booking }: { readonly booking: ManagedBooking }): 
   );
 }
 
-/** Manual-confirmation clinics: reception rings back, so say exactly that. */
 export function PendingView({ booking }: { readonly booking?: ManagedBooking }): JSX.Element {
   return (
     <div data-testid="booking-pending" className="booking-step flex flex-col gap-4">

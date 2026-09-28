@@ -39,9 +39,7 @@ export interface CalendarPlanInput {
   readonly doctors: readonly CalendarDoctor[];
   readonly patientCount: number;
   readonly catalog: readonly CatalogEntry[];
-  /** Dates the clinic is shut — the generator never books into them. */
   readonly closedDates: ReadonlySet<string>;
-  /** Instants a doctor is away, so the clean absence has nothing under it. */
   readonly timeOff: ReadonlyMap<string, readonly BusyInterval[]>;
   readonly daysBack: number;
   readonly daysForward: number;
@@ -69,8 +67,6 @@ const APPOINTMENT_TYPES: readonly string[] = ["checkup", "treatment", "followup"
 
 export function planAppointments(input: CalendarPlanInput): PlannedAppointment[] {
   const planned: PlannedAppointment[] = [];
-  // Per doctor and day, what the generator has already taken. `computeDaySlots` is pure, so the
-  // running list is what keeps the second appointment of a day off the first.
   const taken = new Map<string, BusyInterval[]>();
 
   for (let offset = -input.daysBack; offset <= input.daysForward; offset += 1) {

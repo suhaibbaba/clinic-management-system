@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-// One file names the type scale. A size or a line height written anywhere else is a value no token
-// audit can see, which is how a screen ends up with 11px content nobody chose.
 
 import { readdir, readFile } from "node:fs/promises";
 import { dirname, join, relative, resolve } from "node:path";
@@ -8,7 +6,6 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-/** Where the tokens are declared, and the print sheet, which is measured in points on paper. */
 const ALLOWED = new Set(["packages/ui/src/styles/base.css", "apps/web/src/index.css"]);
 
 const SEARCH = ["apps/web/src", "packages/ui/src", "packages/shared/src"];
@@ -19,23 +16,19 @@ const SIZE_NAMES = "micro|meta|label|value|section|heading|title|field|kpi";
 
 const RULES = [
   {
-    // `text-[11px]`, `text-[1.25rem]` — a size that belongs to one call site.
     pattern: /\btext-\[[^\]]*\]/g,
     say: "an arbitrary font size",
   },
   {
-    // `leading-6`, `leading-snug`, `leading-[18px]` — a line height off the scale.
     pattern:
       /\bleading-(?!(?:$|["'\s}])|(?:micro|meta|label|value|section|heading|title|field|kpi)\b)[a-z0-9[\]().-]+/g,
     say: "a line height off the scale",
   },
   {
-    // A raw declaration in CSS or a style object.
     pattern: /(?:^|[^-\w])(?:font-size|fontSize|line-height|lineHeight)\s*[:=]\s*(?!var\()/g,
     say: "a hardcoded font-size or line-height",
   },
   {
-    // A token that no longer exists, so a rename cannot leave a dead class behind.
     pattern: new RegExp(`\\btext-(?:nav|display)\\b|--text-(?:nav|display)\\b`, "g"),
     say: "a retired type token",
   },

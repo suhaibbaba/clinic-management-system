@@ -54,8 +54,6 @@ describe("Auth (e2e)", () => {
       });
       expect(typeof body.accessToken).toBe("string");
 
-      // The refresh token is set as an httpOnly cookie and must never appear
-      // in the body, so JavaScript on the page cannot read it.
       expect(body.refreshToken).toBeUndefined();
       const cookie = refreshCookie(response);
       expect(cookie?.httpOnly).toBe(true);
@@ -138,7 +136,6 @@ describe("Auth (e2e)", () => {
 
       expect(replay.statusCode).toBe(401);
 
-      // Reuse means the token leaked, so the replacement is revoked too.
       const afterReuse = await context.app.inject({
         method: "POST",
         url: "/auth/refresh",
@@ -203,7 +200,6 @@ describe("Auth (e2e)", () => {
 
       expect(first.statusCode).toBe(204);
       expect(second.statusCode).toBe(204);
-      // An empty value with a past expiry is how a cookie is deleted.
       expect(refreshCookie(first)?.value).toBe("");
 
       const refreshAfterLogout = await context.app.inject({
@@ -219,8 +215,6 @@ describe("Auth (e2e)", () => {
 
   describe("the refresh cookie", () => {
     it("is scoped to a path that covers the refresh endpoint through the proxy", async () => {
-      // The browser asks for `/api/auth/refresh`; the API only sees `/auth/refresh`. A cookie
-      // scoped to what the API sees is held and never sent.
       const path = refreshCookie(await login(clinic.phones[USER_ROLE.ADMIN]))?.path;
 
       expect(path).toBe("/");
@@ -233,8 +227,6 @@ describe("Auth (e2e)", () => {
     });
 
     it("is Secure when the proxy says the browser used https", async () => {
-      // `X-Forwarded-Proto` is only read because the adapter trusts proxies —
-      // the API's own hop is plain http in every deployment.
       const response = await context.app.inject({
         method: "POST",
         url: "/auth/login",
@@ -254,8 +246,6 @@ describe("Auth (e2e)", () => {
         payload: {},
       });
 
-      // A browser matches the deletion against name, path and domain: an
-      // attribute that differs leaves the original cookie in place.
       expect(refreshCookie(cleared)?.path).toBe(refreshCookie(loggedIn)?.path);
       expect(refreshCookie(cleared)?.sameSite).toBe(refreshCookie(loggedIn)?.sameSite);
     });

@@ -15,7 +15,6 @@ import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 class ChangePasswordDto extends createZodDto(changePasswordSchema) {}
 class UpdateOwnProfileDto extends createZodDto(updateOwnProfileSchema) {}
 
-/** No `@Roles(...)`: these only ever read or change the authenticated user's own row. */
 @Controller("me")
 export class MeController {
   constructor(
@@ -39,8 +38,6 @@ export class MeController {
     return this.authService.getProfile(actor);
   }
 
-  // Not audited: the trail stores old and new values, and a password has none that may be recorded.
-  // Every other session is revoked instead.
   @Post("change-password")
   @HttpCode(HttpStatus.NO_CONTENT)
   async changePassword(

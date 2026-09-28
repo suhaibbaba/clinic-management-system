@@ -9,8 +9,6 @@ import { PaymentsService } from "@api/billing/payments.service";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { PatientAccessService } from "@api/patients/patient-access.service";
 
-// `PatientAccessService` is provided here rather than imported: patients needs `ChargesService`,
-// and importing both ways would be a cycle.
 @Module({
   controllers: [PaymentsController, PatientBillingController, BillingController],
   providers: [

@@ -2,8 +2,6 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-// Two implementations of one rule — the script and the deploy's `awk` — so this runs both and
-// compares. Invoked, not imported, because invoking is what the deploy does.
 const ROOT = join(__dirname, "..", "..", "..");
 
 const run = (command: string, args: readonly string[]): string =>
@@ -36,7 +34,6 @@ describe("app version", () => {
     expect(fromScript()).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
-  /* The deploy falls back to this on a VPS with no node installed. */
   it("is the same number the deploy would work out in shell", () => {
     expect(fromShell()).toBe(fromScript());
   });

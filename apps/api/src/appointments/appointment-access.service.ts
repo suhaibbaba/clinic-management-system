@@ -7,8 +7,6 @@ import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { doctors } from "@api/database/schema";
 
-// ROLES.md: appointments are CRUD for admin and receptionist, CRU (own) for a doctor — "own" being
-// their `doctors` row. Defined once here. A visiting doctor's own is also all they may read.
 const HAS_OWN_CALENDAR: readonly string[] = [USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR];
 
 @Injectable()
@@ -32,8 +30,6 @@ export class AppointmentAccessService {
     return row?.id ?? null;
   }
 
-  // A doctor account with no `doctors` row is refused rather than waved through: it has no own
-  // calendar to manage.
   async requireOwnCalendar(actor: AuthenticatedUser, doctorId: string): Promise<void> {
     if (!HAS_OWN_CALENDAR.includes(actor.role)) {
       return;
@@ -46,7 +42,6 @@ export class AppointmentAccessService {
     }
   }
 
-  /** Narrows a read to the visiting doctor's own column; undefined for every other role. */
   async readableFilter(actor: AuthenticatedUser, doctorColumn: PgColumn): Promise<SQL | undefined> {
     if (actor.role !== USER_ROLE.VISITING_DOCTOR) {
       return undefined;

@@ -42,7 +42,6 @@ export class TranslationsService {
     }));
   }
 
-  /** Nested the way i18next takes a resource bundle, so the client merges it without walking it. */
   async bundle(user: AuthenticatedUser): Promise<TranslationBundle> {
     const rows = await this.list(user);
     const bundle = Object.fromEntries(
@@ -95,8 +94,6 @@ export class TranslationsService {
     };
   }
 
-  // One transaction: a footer that saved four of six rows would leave a screen nobody can reason
-  // about, and an empty string means "back to the default" rather than a blank label.
   async save(user: AuthenticatedUser, input: SaveTranslationOverridesInput): Promise<void> {
     await this.db.transaction(async (tx) => {
       for (const item of input.items) {
@@ -109,7 +106,6 @@ export class TranslationsService {
     });
   }
 
-  /** Resetting a key to the shipped default is removing the row, never writing the default in. */
   async reset(
     user: AuthenticatedUser,
     input: DeleteTranslationOverrideInput,
@@ -129,8 +125,6 @@ export class TranslationsService {
   }
 }
 
-// The key is validated against a strict pattern before it reaches here, so no segment can be
-// `__proto__` or `constructor`.
 function nest(target: Record<string, unknown>, key: string, value: string): void {
   const parts = key.split(".");
   let node = target;

@@ -40,7 +40,6 @@ export class MapLinkResolver {
     throw new UnprocessableEntityException("No coordinates could be read from that link");
   }
 
-  /** One redirect, header only. */
   private async hop(url: URL): Promise<string | null> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), MapLinkResolver.TIMEOUT_MS);

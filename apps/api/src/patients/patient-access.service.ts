@@ -18,8 +18,6 @@ import {
 
 export type PatientRow = typeof patients.$inferSelect;
 
-// A patient id from another clinic is 404, never 403 — a 403 would confirm the record exists
-// somewhere. A visiting doctor's unassigned patient is 404 for the same reason.
 @Injectable()
 export class PatientAccessService {
   constructor(
@@ -69,7 +67,6 @@ export class PatientAccessService {
     return patientId;
   }
 
-  /** A row that belongs to a patient, by id: 404 when that patient is not the actor's to open. */
   async requireRow<TRow extends Record<string, unknown> & { patientId: string }>(
     actor: AuthenticatedUser,
     table: ClinicScopedTable & { patientId: PgColumn },
@@ -84,10 +81,6 @@ export class PatientAccessService {
     return row;
   }
 
-  /**
-   * The predicate every patient-scoped query adds for a visiting doctor: an appointment, a plan or
-   * a plan item with them. Undefined for every other role, which sees the whole clinic.
-   */
   async assignedFilter(
     actor: AuthenticatedUser,
     patientIdColumn: PgColumn,
@@ -146,16 +139,12 @@ export class PatientAccessService {
     );
   }
 
-  // ROLES.md: admin and both doctors receive `PatientClinicalView`; receptionist and technician
-  // receive `PatientPublicView`.
   static seesClinicalData(role: UserRole): boolean {
     return (
       role === USER_ROLE.ADMIN || role === USER_ROLE.DOCTOR || role === USER_ROLE.VISITING_DOCTOR
     );
   }
 
-  // The matrix lists `balance` on `PatientPublicView`, but the field rules bar a technician from
-  // financial data — the narrower rule wins. A visiting doctor is not the clinic's to show accounts.
   static seesFinancialData(role: UserRole): boolean {
     return role !== USER_ROLE.TECHNICIAN && role !== USER_ROLE.VISITING_DOCTOR;
   }

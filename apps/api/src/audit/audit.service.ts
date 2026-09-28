@@ -20,8 +20,6 @@ export interface RecordAuditEntry {
 export class AuditService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  // Failures propagate: a mutation whose audit row cannot be written must not be reported as
-  // successful. `executor` lets an entry commit with the mutation it describes.
   async record(entry: RecordAuditEntry, executor: DatabaseExecutor = this.db): Promise<void> {
     await executor.insert(auditLog).values({
       clinicId: entry.clinicId,

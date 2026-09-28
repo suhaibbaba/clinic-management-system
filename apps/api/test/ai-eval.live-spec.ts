@@ -12,9 +12,6 @@ import { envSchema } from "@api/config/env.schema";
 import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
 import { EVAL_CASES } from "@test/helpers/ai-eval-cases";
 
-// `pnpm ai:eval:live`: the 25 questions against the real provider, printing the tool it chose.
-// Not in CI and not a pass/fail gate — a way to judge a model switch in one run.
-
 function loadRootEnv(): void {
   const file = join(__dirname, "..", "..", "..", ".env");
 
@@ -111,7 +108,6 @@ async function firstChoice(
       });
     }
 
-    // The report is the point of the run; jest's console would bury it in stack frames.
     process.stdout.write(
       [
         ...rows.map(

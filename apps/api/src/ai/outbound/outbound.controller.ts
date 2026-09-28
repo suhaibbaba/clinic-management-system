@@ -39,7 +39,6 @@ class ListProposalsQueryDto extends createZodDto(listAiProposalsQuerySchema) {}
 class ListOutboundQueryDto extends createZodDto(listAiOutboundQuerySchema) {}
 class AutomationSettingsDto extends createZodDto(aiAutomationSettingsSchema) {}
 
-/** Who ships able to send: the front desk. A clinic moves it in its permission matrix. */
 const SENDERS = [USER_ROLE.ADMIN, USER_ROLE.RECEPTIONIST] as const;
 
 @Controller("ai")
@@ -67,7 +66,6 @@ export class OutboundController {
     return this.proposals.get(actor, params.id);
   }
 
-  // The only way anything is sent. The model has no tool for it: a person presses the card.
   @Post("proposals/:id/send")
   @Roles(...SENDERS)
   @Capability("ai-outbound.send")
@@ -119,7 +117,6 @@ export class OutboundController {
   }
 }
 
-/** A refusal is the code as `message`, which the web resolves to Arabic like every other error. */
 async function refusals<T>(pending: Promise<T>): Promise<T> {
   try {
     return await pending;

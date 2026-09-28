@@ -98,7 +98,6 @@ export class ProcedureCatalogService implements OnModuleInit {
     actor: AuthenticatedUser,
     input: CreateProcedureCatalogItemInput,
   ): Promise<CatalogView> {
-    // Only codes on this clinic's own list — the schema cannot know them.
     await this.lookups.assertChartOutcome(actor.clinicId, input.chartOutcome);
 
     await this.requireSpecialty(actor, input.specialtyId);
@@ -238,7 +237,6 @@ function toCatalogItem(row: CatalogRow): ProcedureCatalogItem {
   };
 }
 
-/** Receptionists get names and prices only (ROLES.md core matrix). */
 function toRoleView(row: CatalogRow, role: UserRole): CatalogView {
   if (role === USER_ROLE.RECEPTIONIST) {
     return {

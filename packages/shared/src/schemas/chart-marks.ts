@@ -14,7 +14,6 @@ export const bodyRegionLocationSchema = z.object({
 });
 export type BodyRegionLocation = z.infer<typeof bodyRegionLocationSchema>;
 
-/** Discriminated so an FDI tooth can never be stored against a skeleton chart. */
 export const chartMarkLocationSchema = z.discriminatedUnion("chartType", [
   z.object({ chartType: z.literal(CHART_TYPE.TOOTH_FDI), location: toothLocationSchema }),
   z.object({ chartType: z.literal(CHART_TYPE.BODY_REGION), location: bodyRegionLocationSchema }),

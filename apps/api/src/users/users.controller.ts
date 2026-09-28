@@ -40,8 +40,6 @@ class IdParamDto extends createZodDto(idParamSchema) {}
 class PresignUserPhotoDto extends createZodDto(presignUserPhotoSchema) {}
 class ConfirmUserPhotoDto extends createZodDto(confirmUserPhotoSchema) {}
 
-// Admin only, every verb. No handler accepts a `clinicId` — it comes from the token, via
-// `ClinicScopeService`.
 @Controller("users")
 @Roles(USER_ROLE.ADMIN)
 export class UsersController {
@@ -88,7 +86,6 @@ export class UsersController {
     await this.invitations.invite(params.id, actor.clinicId, "activate");
   }
 
-  /** The emailed alternative to setting somebody's password for them. */
   @Post(":id/send-password-reset")
   @HttpCode(HttpStatus.NO_CONTENT)
   async sendPasswordReset(
@@ -98,8 +95,6 @@ export class UsersController {
     await this.invitations.invite(params.id, actor.clinicId, "reset");
   }
 
-  // Not `@Audit(...)`: a password has no value that may be stored, so the service writes an
-  // explicit "password was reset" entry instead.
   @Post(":id/reset-password")
   @HttpCode(HttpStatus.NO_CONTENT)
   async resetPassword(
@@ -120,7 +115,6 @@ export class UsersController {
     return this.usersService.presignPhoto(actor, params.id, body);
   }
 
-  /** Step 2: the bytes are read back from storage and the key is recorded. */
   @Post(":id/photo")
   @HttpCode(HttpStatus.OK)
   @Audit(USERS_ENTITY, AUDIT_ACTION.UPDATE)

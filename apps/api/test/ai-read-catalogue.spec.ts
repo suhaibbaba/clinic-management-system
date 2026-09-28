@@ -2,8 +2,6 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { READ_VIEWS, renderReadSchema } from "@api/ai/query/catalogue";
 
-// The newest migration that creates the views; 0029 was the first, and an applied one is never
-// rewritten, so a catalogue change lands as a new one that recreates them.
 const MIGRATION = join(__dirname, "..", "drizzle", "0043_ai_read_views.sql");
 const SNAPSHOT = join(__dirname, "..", "drizzle", "meta", "0043_snapshot.json");
 
@@ -11,8 +9,6 @@ interface Snapshot {
   readonly tables: Record<string, { name: string; columns: Record<string, unknown> }>;
 }
 
-// The views are what the model is told exists; the migration is what does. Rendered from one list
-// and held equal here — `WRITE_AI_READ=1` rewrites the migration after a catalogue change.
 describe("the ai_read catalogue", () => {
   it("is exactly the migration that creates it", () => {
     const rendered = `${renderReadSchema()}\n`;

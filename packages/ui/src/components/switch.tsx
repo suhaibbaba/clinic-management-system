@@ -7,13 +7,11 @@ export interface SwitchProps extends TestIdProps {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   label: string;
-  /** Drops the words where the text beside the switch already names what it does. */
   hideLabel?: boolean | undefined;
   disabled?: boolean | undefined;
   id?: string | undefined;
 }
 
-/** The knob is positioned with logical offsets, so it slides the correct way in RTL. */
 export function Switch({
   checked,
   onCheckedChange,
@@ -37,8 +35,6 @@ export function Switch({
       className={cn(
         "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full",
         "transition-colors duration-150",
-        // `after` rather than padding for the 44px target: padding would move the thumb's own
-        // anchor and grow the track with it.
         "after:absolute after:inset-x-0 after:top-1/2 after:h-(--control-h) after:-translate-y-1/2",
         'after:content-[""] lg:after:hidden',
         "disabled:cursor-not-allowed disabled:opacity-50",

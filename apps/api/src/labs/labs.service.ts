@@ -22,8 +22,6 @@ type LabRow = typeof labs.$inferSelect;
 
 export const LABS_ENTITY = "labs";
 
-// Never hard-deleted: its orders and payments are financial history. `is_active` keeps a lab out of
-// the pickers with its record and balance intact.
 @Injectable()
 export class LabsService implements OnModuleInit {
   constructor(
@@ -149,7 +147,6 @@ export class LabsService implements OnModuleInit {
     return toLab(row);
   }
 
-  /** Soft delete. The orders and the ledger stay exactly as they were. */
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.requireRow(actor.clinicId, id);
 
@@ -159,13 +156,10 @@ export class LabsService implements OnModuleInit {
       .where(this.scope.where(labs, actor.clinicId, eq(labs.id, id)));
   }
 
-  /** Used by the orders service, which must not accept a lab from elsewhere. */
   async requireRow(clinicId: string, id: string): Promise<LabRow> {
     return this.scope.findOneOrFail<LabRow>(labs, clinicId, id);
   }
 
-  // The SQL reads `LAB_ORDER_BILLABLE_STATUSES` rather than restating the rule. A `returned` order
-  // is in that list on purpose — the lab did the work.
   private async summarise(
     clinicId: string,
     labIds: readonly string[],
@@ -257,7 +251,6 @@ export function toLab(row: LabRow): Lab {
   };
 }
 
-/** Postgres returns `numeric` unpadded; money is always two decimals here. */
 function normalise(value: string): string {
   const [whole = "0", fraction = ""] = value.split(".");
 

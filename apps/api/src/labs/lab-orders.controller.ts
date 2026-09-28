@@ -55,8 +55,6 @@ class AttachmentParamsDto extends createZodDto(
   z.object({ id: z.uuid(), attachmentId: z.uuid() }),
 ) {}
 
-// A receptionist is in no row of the matrix, so every call is a 403. Transitions are one endpoint
-// per act, which is what makes the audit trail readable.
 @Controller("lab-orders")
 export class LabOrdersController {
   constructor(
@@ -79,7 +77,6 @@ export class LabOrdersController {
     return this.orders.list(actor, query);
   }
 
-  /** Before `:id`, or Nest reads "stages" as an order id. */
   @Get("stages")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   stages(
@@ -108,7 +105,6 @@ export class LabOrdersController {
     return this.orders.findOne(actor, params.id);
   }
 
-  /** The sheet that travels with the work. Patient's first name only. */
   @Get(":id/print")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Header("Content-Type", "application/pdf")
@@ -147,7 +143,6 @@ export class LabOrdersController {
     return this.orders.update(actor, params.id, body);
   }
 
-  /** Out of the door: the sheet is printed and the clinic now owes for it. */
   @Patch(":id/send")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(LAB_ORDERS_ENTITY, AUDIT_ACTION.UPDATE)
@@ -175,7 +170,6 @@ export class LabOrdersController {
     return this.orders.changeStatus(actor, params.id, LAB_ORDER_STATUS.RECEIVED);
   }
 
-  /** It is in the patient's mouth — which only the doctor can say. */
   @Patch(":id/fit")
   @Roles(USER_ROLE.DOCTOR)
   @Audit(LAB_ORDERS_ENTITY, AUDIT_ACTION.UPDATE)
@@ -194,7 +188,6 @@ export class LabOrdersController {
     return this.orders.changeStatus(actor, params.id, LAB_ORDER_STATUS.RETURNED, body.reason);
   }
 
-  /** Only reachable before the lab has started, which is why it is allowed. */
   @Patch(":id/cancel")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)
   @Audit(LAB_ORDERS_ENTITY, AUDIT_ACTION.UPDATE)
@@ -239,7 +232,6 @@ export class LabOrdersController {
     return this.attachments.presign(actor, params.id, body);
   }
 
-  // Named, because the derived `lab-orders.confirm` would read as confirming the order itself.
   @Post(":id/attachments")
   @Capability("lab-orders.confirmAttachment")
   @Roles(USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN)

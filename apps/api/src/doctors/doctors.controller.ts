@@ -66,7 +66,6 @@ export class DoctorsController {
     return this.doctorsService.create(actor, body);
   }
 
-  /** A visiting doctor, added from a treatment plan without leaving the patient's file. */
   @Post("visiting")
   @Roles(USER_ROLE.DOCTOR)
   @Audit(DOCTORS_ENTITY, AUDIT_ACTION.CREATE)

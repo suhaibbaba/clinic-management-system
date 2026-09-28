@@ -1,8 +1,6 @@
 import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { clinics, users } from "@api/database/schema/core";
 
-// The clinic's noticeboard. `author_id` is nullable and not cascaded: a note outlives the account
-// that wrote it, and losing the line because somebody left is worse than losing the attribution.
 export const clinicNotes = pgTable(
   "clinic_notes",
   {

@@ -54,8 +54,6 @@ import {
   patientView,
 } from "@api/ai/tools/ai-views";
 
-// The capability each tool borrows from the endpoint that already answers the same question. A
-// clinic that takes `billing.list` off its receptionists takes it off the assistant with it.
 const CAPABILITY = {
   PATIENT_TIMELINE: "timeline.list",
   PATIENT_BALANCE: "patient-billing.balance",
@@ -74,7 +72,6 @@ const DRAFT_TARGETS = [
 
 const dateSchema = z.iso.date();
 
-/** Enough to choose from; the rest is a count rather than a wall of times. */
 const SLOTS_PER_DAY = 40;
 
 const PERIOD = ["today", "this_week", "this_month", "last_month"] as const;
@@ -122,8 +119,6 @@ export class AiToolsService {
           doctor_id: z.uuid().optional(),
         }),
         run: async (actor, args) => {
-          // Another clinic's doctor, or an id the model made up, is a not_found rather than an
-          // empty day that reads as "no appointments".
           if (args.doctor_id) {
             await this.doctors.findOne(actor, args.doctor_id);
           }
@@ -261,8 +256,6 @@ export class AiToolsService {
             this.timeline.list(actor, args.patient_id, { page: 1, limit: TOOL_ROW_LIMIT }),
           ]);
 
-          // Absent rather than null where the role may not read it: a null is still an answer
-          // about somebody's debt (ROLES.md field rules).
           const balance = (await this.allows(actor, CAPABILITY.PATIENT_BALANCE))
             ? await this.ledger.balanceFor(actor.clinicId, args.patient_id)
             : undefined;
@@ -320,7 +313,6 @@ export class AiToolsService {
           const summary = {
             period: args.period,
             from,
-            // The range is half-open inside, so the day the caller sees is the last one counted.
             to: addDays(to, -1),
             ...totals,
             outstandingTotal: outstanding.total,
@@ -406,8 +398,6 @@ export class AiToolsService {
             { path: ["patient_ids"], message: "Required when target is patient_ids" },
           ),
         run: async (actor, args, context) => {
-          // Drafting to a group reads that group: a role that cannot list overdue balances cannot
-          // message everybody who has one.
           const read = TARGET_READ_CAPABILITY[args.target];
 
           if (read && !(await this.allows(actor, read))) {
@@ -420,8 +410,6 @@ export class AiToolsService {
             patientIds: args.patient_ids,
           });
 
-          // The count and the id, not the messages: the model has no use for the rendered text,
-          // and the person confirming reads it on the card.
           return new ProposalResult(proposal, {
             proposal_id: proposal.id,
             recipient_count: proposal.recipients.length,
@@ -433,8 +421,6 @@ export class AiToolsService {
     ];
   }
 
-  // A route's read, as its screen would get it — and phone numbers to their last four, as every
-  // hand-written read gives them: the model is answering, not dialling.
   private routeReads(): AiTool[] {
     return this.routes
       .list()
@@ -460,7 +446,6 @@ export class AiToolsService {
     range: { from: string; to: string },
     status?: (typeof APPOINTMENT_STATUSES)[number],
   ): Promise<number> {
-    // `limit: 1` — only the total is wanted, and the list returns it either way.
     const page = await this.appointments.list(actor, {
       page: 1,
       limit: 1,
@@ -471,8 +456,6 @@ export class AiToolsService {
     return page.total;
   }
 
-  // A visit date is clinical, so a receptionist's search does not carry one — the timeline they
-  // are served has the same hole in it (ROLES.md).
   private async lastVisits(
     actor: AuthenticatedUser,
     patients: readonly PatientView[],
@@ -513,8 +496,6 @@ export class AiToolsService {
     return clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE;
   }
 
-  // Resolved server-side against the clinic's own calendar: a model doing date arithmetic is a
-  // financial figure for the wrong month. `to` is exclusive.
   private async resolvePeriod(
     clinicId: string,
     period: Period,
@@ -528,7 +509,6 @@ export class AiToolsService {
       case "today":
         return { from: today, to: addDays(today, 1), timeZone };
       case "this_week": {
-        // Sunday, as `DaySchedule.weekday` counts it.
         const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 
         return { from: addDays(today, -weekday), to: addDays(today, 1), timeZone };
@@ -563,8 +543,6 @@ const toAppointmentSummary = (appointment: CalendarAppointment) => ({
   reason: appointment.reason,
 });
 
-// Whatever the role's own view carries and nothing more: the clinical view has the notes, the
-// public one does not, and neither is reshaped here.
 const toPatientSummary = (patient: PatientView) => ({
   ...patient,
   phone: maskPhone(patient.phone),

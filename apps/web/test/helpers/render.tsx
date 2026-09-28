@@ -5,13 +5,12 @@ import type { ReactElement } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { vi } from "vitest";
 import { ToastProvider } from "@clinic/ui";
-import { SessionProvider } from "@web/features/auth/session";
-import { lookupBundleKey } from "@web/features/lookups/queries";
-import { DocumentTitleProvider } from "@web/lib/document-title";
+import { SessionProvider } from "@web/providers/session";
+import { lookupBundleKey } from "@web/queries/lookups";
+import { DocumentTitleProvider } from "@web/providers/document-title";
 import { makeLookupBundle } from "@test/helpers/fixtures";
 import "@web/i18n";
 
-/** No retries and no caching between tests, so each one starts clean. */
 function createTestQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
@@ -24,8 +23,6 @@ function createTestQueryClient(): QueryClient {
 export interface RenderOptions {
   route?: string;
   withSession?: boolean;
-  // Every dropdown reads these, so the default is the set a clinic is seeded with — a component
-  // under test should not have to know its `<Select>` is fed by a query.
   lookups?: LookupBundle;
 }
 
@@ -35,8 +32,6 @@ export function renderWithProviders(
 ): RenderResult {
   const client = createTestQueryClient();
 
-  // As defaults rather than cache entries: the test client collects anything with no observer the
-  // moment it is written, and these are written before mount.
   for (const includeInactive of [false, true]) {
     client.setQueryDefaults(lookupBundleKey(includeInactive), {
       initialData: lookups,
@@ -73,8 +68,6 @@ export type RouteHandler = (request: {
   url: string;
 }) => MockResponse | Promise<MockResponse>;
 
-// The real api client runs on top of this, so the token handling and refresh-once-on-401 under test
-// are the shipped ones.
 export function mockApi(handlers: Record<string, RouteHandler | MockResponse>): {
   calls: { method: string; url: string; body: unknown }[];
 } {

@@ -27,8 +27,6 @@ type ClosureRow = typeof clinicClosures.$inferSelect;
 
 export const CLINIC_CLOSURES_ENTITY = "clinic_closures";
 
-// Read by every role, written by admin. The rule that makes it more than a list is in
-// `ScheduleConflictsService`: a closure over a booked day is refused first.
 @Injectable()
 export class ClinicClosuresService implements OnModuleInit {
   constructor(
@@ -187,8 +185,6 @@ export class ClinicClosuresService implements OnModuleInit {
       .where(this.scope.where(clinicClosures, actor.clinicId, eq(clinicClosures.id, id)));
   }
 
-  // `endsOn` is inclusive, so the window runs to midnight of the day after: a 16:00 appointment on
-  // the last closed day is inside it.
   private async windowFor(
     clinicId: string,
     startsOn: string,
@@ -213,8 +209,6 @@ export class ClinicClosuresService implements OnModuleInit {
   }
 }
 
-// An annual closure must sit inside one year: a range crossing new year has no meaning as a
-// repeating rule, and the day/month match cannot express it.
 function assertAnnualFitsOneYear(startsOn: string, endsOn: string, isAnnual: boolean): void {
   if (isAnnual && startsOn.slice(0, 4) !== endsOn.slice(0, 4)) {
     throw new BadRequestException("An annual closure must start and end in the same year");

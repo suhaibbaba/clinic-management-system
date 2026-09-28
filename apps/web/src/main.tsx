@@ -11,8 +11,6 @@ if (!container) {
   throw new Error("Root container #root is missing from index.html");
 }
 
-// Before the first render, so the app never paints Arabic-RTL for a frame and
-// then snaps to English-LTR.
 void initLanguage().then(() =>
   createRoot(container).render(
     <StrictMode>

@@ -6,7 +6,6 @@ export const timelineEntrySchema = z.object({
   id: z.uuid(),
   type: z.enum(TIMELINE_ENTRY_TYPES),
   occurredAt: z.iso.datetime(),
-  /** Short, already-resolved label; never a translated string. */
   title: z.string(),
   detail: z.record(z.string(), z.unknown()),
 });

@@ -7,8 +7,6 @@ export interface AsyncState<TData> {
   readonly reload: () => void;
 }
 
-// Not TanStack Query: four requests in this page's life, and a cached slot list is the wrong thing
-// to show. The `ignore` guard stops a slow response painting the wrong day's times.
 export function useAsync<TData>(
   load: () => Promise<TData>,
   deps: readonly unknown[],
@@ -45,8 +43,6 @@ export function useAsync<TData>(
     return () => {
       ignore = true;
     };
-    // `load` is deliberately not a dependency: the caller passes a fresh arrow every render, so
-    // depending on it would re-fetch forever.
   }, [...deps, enabled, nonce]);
 
   return { ...state, reload };

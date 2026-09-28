@@ -4,7 +4,6 @@
 @import "../theme.css";
 @import "../base.css";
 
-/* Kept here rather than inline so the reduced-motion rule in base.css can reach it. */
 @keyframes booking-fade-in {
   from {
     opacity: 0;

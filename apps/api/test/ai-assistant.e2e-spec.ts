@@ -22,9 +22,6 @@ const ROLES = [
   USER_ROLE.TECHNICIAN,
 ] as const;
 
-// Asserted as whole sets, not one membership at a time: the failure that matters is a tool
-// appearing for somebody it was never meant for.
-// A visiting doctor is not listed: the assistant's own endpoints refuse the role outright.
 const PERMITTED_TOOLS: Record<(typeof ROLES)[number], string[]> = {
   [USER_ROLE.ADMIN]: [
     AI_TOOL.GET_APPOINTMENTS,
@@ -125,8 +122,6 @@ describe("Clinic assistant (e2e)", () => {
       expect(allowed.sort()).toEqual([...PERMITTED_TOOLS[role]].sort());
     });
 
-    // Every key is one an endpoint declares, so a clinic editing its permission matrix moves the
-    // assistant with the screen.
     it("names only capabilities the route table knows", () => {
       const runner = context.app.get(ToolRunnerService);
 
@@ -160,8 +155,6 @@ describe("Clinic assistant (e2e)", () => {
     });
   });
 
-  // From the database, never the request: an admin asking for "my appointments" must not be
-  // answered with the clinic's whole day.
   describe("who is asking", () => {
     let doctorId: string;
 
@@ -222,7 +215,6 @@ describe("Clinic assistant (e2e)", () => {
       const own = await run(doctorId);
 
       expect(JSON.parse(own.content)).toMatchObject({ result: { items: [], truncated: false } });
-      // The page's copy: the day's calendar for that doctor, as the screen's own address.
       expect(aiViewSchema.parse(own.view)).toMatchObject({
         type: "table",
         rows: [],
@@ -274,7 +266,6 @@ describe("Clinic assistant (e2e)", () => {
       ]);
     });
 
-    // A reloaded thread redraws the table where the tool ran; the envelope the model read stays.
     it("serves a tool row's view, and never its envelope", async () => {
       const doctor = {
         id: clinic.userIds[USER_ROLE.DOCTOR],

@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-// The stack without Docker: `pnpm dev` runs both, `pnpm dev:api` the API alone. The same watch
-// setup as docker/dev-api.sh, with repo-relative paths. The database is yours to start.
 import { spawn, spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,7 +18,6 @@ function run(command, args, cwd = root) {
 
   children.push(child);
   child.on("exit", (code) => {
-    // One piece dying leaves a stack that looks up and answers nothing; stop the rest with it.
     if (code !== 0 && code !== null) {
       shutdown(code);
     }
@@ -39,7 +36,6 @@ process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
 
 if (target !== "web") {
-  // Blocking first build: node needs a complete dist before it starts.
   for (const pkg of ["@clinic/shared", "@clinic/api"]) {
     const build = spawnSync("pnpm", ["--filter", pkg, "build"], { cwd: root, stdio: "inherit" });
 
@@ -50,7 +46,6 @@ if (target !== "web") {
 
   run("pnpm", ["--filter", "@clinic/shared", "dev"]);
   run("pnpm", ["--filter", "@clinic/api", "dev"]);
-  // From apps/api, where the config module finds the root .env as ../../.env.
   run(
     "node",
     [

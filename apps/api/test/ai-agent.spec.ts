@@ -52,7 +52,6 @@ function completed(text: string, toolCalls: ChatToolCall[] = []): ChatChunk {
   return { type: "completed", text, toolCalls, usage: { inputTokens: 10, outputTokens: 5 } };
 }
 
-// One script per call: the loop calls the provider again after every round of tools.
 function scripted(scripts: ChatChunk[][]): {
   provider: ChatProvider;
   requests: ChatRequest[];
@@ -154,7 +153,6 @@ function harness(
     get: (key: keyof Env) => settings[key],
   } as unknown as ConfigService<Env, true>;
 
-  // The agent reads three rows directly, for the prompt: the clinic, the speaker, their doctor row.
   const rows = new Map<unknown, unknown[]>([
     [clinics, [{ nameAr: "عيادة", nameEn: "Clinic", settings: {} }]],
     [users, [{ nameAr: "سارة", nameEn: "Sara" }]],
@@ -217,7 +215,6 @@ describe("the agent loop", () => {
         role: AI_MESSAGE_ROLE.ASSISTANT,
         content: "عندك ٣ مواعيد",
         usage: { inputTokens: 10, outputTokens: 5 },
-        // The reply records which prompt answered it.
         promptVersion: SYSTEM_PROMPT_VERSION,
       },
     ]);
@@ -238,7 +235,6 @@ describe("the agent loop", () => {
     expect(toolRuns).toHaveLength(1);
     expect(toolRuns[0]?.call).toBe(call);
 
-    // The second request carries the call and its answer, so the model can read what came back.
     expect(requests[1]?.messages).toEqual(
       expect.arrayContaining([
         { role: "assistant", content: "", toolCalls: [call] },
@@ -252,8 +248,6 @@ describe("the agent loop", () => {
     });
   });
 
-  // The model writes the arguments and nothing else. Whoever it claims to be, the tool is run as
-  // the token's holder.
   it("runs tools as the caller, whatever the model puts in the arguments", async () => {
     const call: ChatToolCall = {
       id: "call_1",
@@ -306,7 +300,6 @@ describe("the agent loop", () => {
     });
   });
 
-  // The card is drawn from the frame and the tool row; the model only ever hears the id and a count.
   it("hands a drafted proposal to the card, and marks the row it was drafted on", async () => {
     const proposal: AiProposal = {
       id: "44444444-4444-4444-8444-444444444444",
@@ -351,8 +344,6 @@ describe("the agent loop", () => {
     expect(JSON.stringify(requests[1]?.messages)).not.toContain("مرحباً سمير");
   });
 
-  // Every way out of a turn is a terminal frame: the page reports a stream that closes without one
-  // as a lost connection.
   it("sends each tool's view as its own frame, once, and stores it on the tool row", async () => {
     const view: AiView = {
       type: "stats",
@@ -411,7 +402,6 @@ describe("the agent loop", () => {
     });
   });
 
-  // An admin should be told to check the key rather than to try again.
   it.each([AI_ERROR_CODE.PROVIDER_REJECTED, AI_ERROR_CODE.PROVIDER_QUOTA] as const)(
     "passes the provider failure's kind on as %s",
     async (code) => {
@@ -451,8 +441,6 @@ describe("who the assistant is speaking to", () => {
     });
   });
 
-  // The system prompt is the first message, and it carries the doctor's id, so "my appointments"
-  // has an id to pass that came from the server rather than from the model.
   it("tells the model the speaker's doctor_id", async () => {
     const { provider, requests } = scripted([[completed("تمام")]]);
     const { agent } = harness(provider, { doctorId: DOCTOR_ID });
@@ -514,7 +502,7 @@ describe("loading tools by group", () => {
       message: "والتانية؟",
       conversationId: CONVERSATION_ID,
     })) {
-      // drained
+      continue;
     }
 
     const fresh = harness(scripted([[completed("أهلا")]]).provider, {
@@ -572,7 +560,6 @@ describe("the reply budget", () => {
     await collect(agent);
 
     expect(requests.map((request) => request.maxOutputTokens)).toEqual([undefined, 200, undefined]);
-    // The cut call never ran.
     expect(toolRuns.map((run) => run.call.id)).toEqual(["call_read"]);
   });
 });
@@ -651,7 +638,6 @@ describe("the system prompt", () => {
     `);
   });
 
-  // The provider caches the longest identical prefix; the speaker goes last so that is all of it.
   it("keeps everything before the speaker identical for every speaker", () => {
     const doctor = systemPrompt({
       ...base,
@@ -670,5 +656,4 @@ describe("the system prompt", () => {
   });
 });
 
-/** The part of the prompt that changes per speaker, which is what the snapshots are about. */
 const actorLines = (prompt: string): string => prompt.slice(prompt.indexOf("The clinic is"));

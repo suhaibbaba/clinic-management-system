@@ -10,7 +10,7 @@ import { PullToRefresh } from "@web/components/pwa/pull-to-refresh";
 import { NotificationBell } from "@web/components/layout/notification-bell";
 import { TopSearch } from "@web/components/layout/top-search";
 import { UserMenu } from "@web/components/layout/user-menu";
-import { WorkspaceTopBarProvider } from "@web/components/layout/workspace-top-bar";
+import { WorkspaceTopBarProvider } from "@web/providers/workspace-top-bar";
 import { Button, Icon } from "@clinic/ui";
 import {
   activeNavItem,
@@ -22,15 +22,14 @@ import {
   type NavGroup,
   type NavItem,
 } from "@web/app/navigation";
-import { useSession } from "@web/features/auth/session";
-import { useTranslationBundle } from "@web/features/translations/queries";
-import { useApplyTranslationOverrides } from "@web/features/translations/use-translation-overrides";
-import { seesPendingBookings, usePendingBookingsCount } from "@web/features/booking/queries";
+import { useSession } from "@web/providers/session";
+import { useTranslationBundle } from "@web/queries/translations";
+import { useApplyTranslationOverrides } from "@web/hooks/translations/use-translation-overrides";
+import { usePendingBookingsCount } from "@web/queries/booking";
+import { seesPendingBookings } from "@web/permissions/booking";
 import { cn } from "@clinic/ui/lib/cn";
-import { useClinicLogo } from "@web/lib/use-clinic-logo";
-
-const PATIENTS = "/patients";
-const DASHBOARD = "/dashboard";
+import { useClinicLogo } from "@web/hooks/shared/use-clinic-logo";
+import { DASHBOARD_PATH, PATIENTS_PATH } from "@web/constants/layout";
 
 export function AppLayout(): JSX.Element {
   const overrides = useTranslationBundle(true);
@@ -42,7 +41,7 @@ export function AppLayout(): JSX.Element {
   const logoUrl = useClinicLogo(user?.clinicId, user?.clinic.logoUrl);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [actionSlot] = useState(createPageActionSlot);
-  const searchable = canReachNavItem(PATIENTS, user?.role);
+  const searchable = canReachNavItem(PATIENTS_PATH, user?.role);
 
   const groups = visibleNavGroups(user?.role);
   const settings = visibleSettingsItems(user?.role);
@@ -101,7 +100,6 @@ export function AppLayout(): JSX.Element {
         aria-label={t("nav.menu")}
       />
       {searchable && <TopSearch />}
-      {/* The reference's `.top-actions`: its own 9px pair, then the bar's 14px to the field. */}
       <div data-testid="app-topbar-actions" className="ms-auto flex items-center gap-[9px]">
         <NotificationBell />
         <span className="contents" ref={(host) => void host?.appendChild(actionSlot)} />
@@ -113,7 +111,6 @@ export function AppLayout(): JSX.Element {
     <PageActionSlotProvider value={isCompact ? null : actionSlot}>
       <PullToRefresh />
       <div data-testid="app-layout" className="flex min-h-full flex-col rail:flex-row">
-        {/* Desktop: a permanent rail. */}
         <aside
           data-testid="app-rail"
           className={cn(
@@ -123,10 +120,8 @@ export function AppLayout(): JSX.Element {
           )}
         >
           <div className="flex h-full flex-col px-[18px] pt-5 pb-[18px]">
-            {/* The logo on its own white plate, as the reference draws it — the rail's ground is a
-              tint, so a mark sitting straight on it has no edge. */}
             <Link
-              to={DASHBOARD}
+              to={DASHBOARD_PATH}
               aria-label={t("nav.backToDashboard")}
               data-testid="app-rail-brand"
               className="mb-[22px] block shrink-0 rounded-brand border border-line bg-surface px-4 py-3.5"
@@ -150,7 +145,7 @@ export function AppLayout(): JSX.Element {
           title={t("app.title")}
           brand={
             <Link
-              to={DASHBOARD}
+              to={DASHBOARD_PATH}
               aria-label={t("nav.backToDashboard")}
               data-testid="nav-drawer-brand"
               className="block rounded-control"

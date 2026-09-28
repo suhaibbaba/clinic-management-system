@@ -5,20 +5,15 @@ import { paginationQuerySchema, uuidSchema } from "@shared/schemas/common";
 import { signedMoneySchema, wholeMoneySchema } from "@shared/schemas/money";
 import { lookupCodeSchema } from "@shared/schemas/lookups";
 
-// Append-only: a correction is a new row carrying the negative of the original and pointing at it
-// through `reversesId`.
-
 export const chargeSchema = z.object({
   id: uuidSchema,
   clinicId: uuidSchema,
   patientId: uuidSchema,
-  /** The work that caused it; null for a charge raised by hand. */
   performedProcedureId: uuidSchema.nullable(),
   amount: signedMoneySchema,
   discount: signedMoneySchema,
   discountReason: z.string().nullable(),
   note: z.string().nullable(),
-  /** Set on a reversing entry: the charge this one cancels. */
   reversesId: uuidSchema.nullable(),
   createdAt: z.iso.datetime(),
 });
@@ -31,7 +26,6 @@ export const paymentSchema = z.object({
   amount: signedMoneySchema,
   method: lookupCodeSchema,
   note: z.string().nullable(),
-  /** Gapless per clinic; a reversal reuses no number of its own. */
   receiptNumber: z.number().int().positive().nullable(),
   reversesId: uuidSchema.nullable(),
   receivedBy: uuidSchema.nullable(),
@@ -39,11 +33,8 @@ export const paymentSchema = z.object({
 });
 export type Payment = z.infer<typeof paymentSchema>;
 
-/** Recording money taken in. The amount is always positive — see `reversePayment`. */
 export const createPaymentSchema = z.object({
   patientId: uuidSchema,
-  // Whole amounts on the way in (see `wholeMoneySchema`); the stored column and
-  // every read schema are unchanged.
   amount: wholeMoneySchema.refine(
     (value) => Number(value) > 0,
     "A payment must be greater than zero",
@@ -53,7 +44,6 @@ export const createPaymentSchema = z.object({
 });
 export type CreatePaymentInput = z.infer<typeof createPaymentSchema>;
 
-/** Admin-only. Writes the opposite entry rather than touching the original. */
 export const reversePaymentSchema = z.object({
   reason: z.string().trim().min(3).max(500),
 });
@@ -68,29 +58,22 @@ export const patientBalanceSchema = z.object({
   patientId: uuidSchema,
   charged: signedMoneySchema,
   paid: signedMoneySchema,
-  /** charged − paid. Positive means the patient owes the clinic. */
   balance: signedMoneySchema,
   lastPaymentAt: z.iso.datetime().nullable(),
 });
 export type PatientBalance = z.infer<typeof patientBalanceSchema>;
 
-// `description` carries no clinical detail beyond the procedure name: receptionists read statements
-// (ROLES.md).
 export const statementEntrySchema = z.object({
   id: uuidSchema,
   kind: z.enum(LEDGER_ENTRY_KINDS),
   occurredAt: z.iso.datetime(),
   description: z.string(),
-  /** Positive on a charge, negative on a payment — as it hits the balance. */
   amount: signedMoneySchema,
-  /** Balance after this line, oldest first. */
   runningBalance: signedMoneySchema,
   receiptNumber: z.number().int().positive().nullable(),
   isReversal: z.boolean(),
-  /** A payment an admin has already reversed: nothing more can be done to it. */
   isReversed: z.boolean(),
   note: z.string().nullable(),
-  /** Only on an admin's statement: a deleted payment, kept for the record, outside the balance. */
   deletedAt: z.iso.datetime().optional(),
   deletedBy: personNameSchema.optional(),
 });
@@ -100,7 +83,6 @@ export const statementSchema = z.object({
   patientId: uuidSchema,
   from: z.iso.datetime().nullable(),
   to: z.iso.datetime().nullable(),
-  /** Balance carried in from before `from`; zero when the range is open. */
   openingBalance: signedMoneySchema,
   closingBalance: signedMoneySchema,
   entries: z.array(statementEntrySchema),

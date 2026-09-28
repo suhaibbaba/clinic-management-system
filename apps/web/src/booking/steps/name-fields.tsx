@@ -17,7 +17,6 @@ export function NameFields({
   touched,
   onChange,
 }: {
-  /** `details` or `urgent`, for the testids. */
   readonly prefix: string;
   readonly value: BookingName;
   readonly touched: boolean;

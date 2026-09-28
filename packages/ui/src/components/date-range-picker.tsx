@@ -25,8 +25,6 @@ export interface DateRangePickerProps extends TestIdProps {
   readonly className?: string | undefined;
 }
 
-// The second click is always the end, so the pair cannot be inverted, and both dates are chosen
-// against the same visible month.
 export function DateRangePicker({
   id,
   value,
@@ -68,8 +66,6 @@ export function DateRangePicker({
             className,
           )}
         >
-          {/* The island isolates the digits; the span around it is the page's direction, so the
-              value sits at the inline start of an Arabic form rather than at its far left. */}
           <span {...part("value")} className="min-w-0 flex-1 truncate">
             {from || to ? (
               <Ltr className="truncate align-top tabular-nums">{dates}</Ltr>

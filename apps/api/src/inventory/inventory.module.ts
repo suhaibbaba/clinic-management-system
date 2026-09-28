@@ -11,8 +11,6 @@ import { StockService } from "@api/inventory/stock.service";
 import { SuppliersController } from "@api/inventory/suppliers.controller";
 import { SuppliersService } from "@api/inventory/suppliers.service";
 
-// `StockService` is the centre: every quantity, expiry and flag is computed from the ledger on
-// read. There is no quantity column in this module and must never be one.
 @Module({
   imports: [DatabaseModule, AuditModule],
   controllers: [InventoryController, SuppliersController],

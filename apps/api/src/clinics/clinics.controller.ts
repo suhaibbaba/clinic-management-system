@@ -36,12 +36,8 @@ import { Public } from "@api/common/decorators/public.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 
-// Short: the signed URL behind the redirect lasts days, so this only decides how often a browser
-// asks again after the clinic changes its logo.
 const ICON_MAX_AGE_SECONDS = 300;
 
-// Short as well: a clinic that renames itself should see the home screen follow within the hour,
-// and the document is a few hundred bytes.
 const MANIFEST_MAX_AGE_SECONDS = 300;
 
 class UpdateClinicDto extends createZodDto(updateClinicSchema) {}
@@ -64,9 +60,6 @@ export class ClinicsController {
     return this.clinicsService.branding();
   }
 
-  // Per clinic, because a home screen shows the clinic's name rather than the product's. Public
-  // and same-origin: a browser fetches a manifest without a token, and `start_url` is resolved
-  // against it.
   @Get("manifest.webmanifest")
   @Public()
   async manifest(@Res() reply: FastifyReply): Promise<void> {
@@ -76,9 +69,6 @@ export class ClinicsController {
       .send(await this.clinicsService.manifest());
   }
 
-  // The tab mark and the home-screen icons: public because a browser fetches a favicon and a
-  // manifest icon with no token, and a redirect rather than a proxy so the bytes still never pass
-  // through the API. The signed URL is window-stable, so the browser caches it like any image.
   @Get("icon/:name")
   @Public()
   async icon(@Param("name") name: string, @Res() reply: FastifyReply): Promise<void> {
@@ -105,8 +95,6 @@ export class ClinicsController {
     return this.clinicsService.update(actor, body);
   }
 
-  // Not audited and nothing is written: this only turns a link somebody pasted into two numbers,
-  // which they then choose to save or not. Admin-only because clinic settings are.
   @Post("location/resolve")
   @HttpCode(HttpStatus.OK)
   @Roles(USER_ROLE.ADMIN)
@@ -114,8 +102,6 @@ export class ClinicsController {
     return this.mapLinks.resolve(body.url);
   }
 
-  // Not audited: nothing has changed yet, and a signature the browser never uses leaves no trace
-  // worth keeping.
   @Post("logo/presign")
   @HttpCode(HttpStatus.OK)
   @Roles(USER_ROLE.ADMIN)
@@ -172,8 +158,6 @@ export class ClinicsController {
     return this.clinicsService.removeAppIcon(actor);
   }
 
-  // Its own step rather than part of either upload, because the set is re-rendered whenever the
-  // picture it comes from changes — including when removing the app icon falls back to the logo.
   @Post("branding/icons/presign")
   @HttpCode(HttpStatus.OK)
   @Roles(USER_ROLE.ADMIN)

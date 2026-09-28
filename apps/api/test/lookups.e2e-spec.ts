@@ -49,8 +49,6 @@ describe("Lookups (e2e)", () => {
   };
 
   describe("the built-in rows", () => {
-    // The migration's promise: the values the enum columns held are the codes of the rows that
-    // replaced them.
     it("seeds every list a new clinic needs, keyed by the old enum values", async () => {
       const response = await context.app.inject({
         method: "GET",
@@ -67,8 +65,6 @@ describe("Lookups (e2e)", () => {
       }
     });
 
-    // The exact values the columns held as Postgres enums — a code missing here is data that has
-    // quietly stopped resolving to a name.
     it.each([
       [LOOKUP_LIST.TOOTH_STATE, Object.values(TOOTH_STATE)],
       [LOOKUP_LIST.APPOINTMENT_TYPE, Object.values(APPOINTMENT_TYPE)],
@@ -80,7 +76,6 @@ describe("Lookups (e2e)", () => {
       const codes = (await list(listKey)).map((option) => option.code);
 
       expect(codes).toEqual(expect.arrayContaining([...values]));
-      // And each one resolves to something a person can read, in both languages.
       for (const option of await list(listKey)) {
         expect(option.nameAr).not.toBe("");
         expect(option.nameEn).not.toBe("");
@@ -96,7 +91,6 @@ describe("Lookups (e2e)", () => {
       expect(missing?.meta).toMatchObject({ chartBehavior: { shape: "missing" } });
     });
 
-    /** A built-in row is marked so the screen can warn, but nothing here refuses. */
     it("lets the clinic switch one off, and stops offering it", async () => {
       const [card] = (await list(LOOKUP_LIST.PAYMENT_METHOD)).filter(
         (option) => option.code === "card",
@@ -115,8 +109,6 @@ describe("Lookups (e2e)", () => {
         "card",
       );
 
-      // Reversible, and this is the half of the pair that keeps the name: a
-      // receipt written while it was off still reads "بطاقة".
       const back = await context.app.inject({
         method: "PATCH",
         url: `/lookups/${card?.id}`,
@@ -127,8 +119,6 @@ describe("Lookups (e2e)", () => {
       expect(back.statusCode).toBe(200);
     });
 
-    // In a clinic of its own: this one is destructive, and a shared fixture would make the tests
-    // above depend on run order.
     it("lets the clinic delete one, and stops accepting the code", async () => {
       const own = await context.createClinic();
       const admin = await context.login(own.phones[USER_ROLE.ADMIN]);
@@ -147,14 +137,11 @@ describe("Lookups (e2e)", () => {
         (await list(LOOKUP_LIST.PAYMENT_METHOD, admin)).map((option) => option.code),
       ).not.toContain("transfer");
 
-      // And this clinic only: one tenant emptying a list cannot empty another's.
       expect((await list(LOOKUP_LIST.PAYMENT_METHOD)).map((option) => option.code)).toContain(
         "transfer",
       );
     });
 
-    // `ensureSystemLookups` upserts on every migration and every new clinic, so if it touched
-    // anything but the system flag a clinic's deletions would come back on the next deploy.
     it("does not resurrect a retired built-in row on the next deploy", async () => {
       const own = await context.createClinic();
       const admin = await context.login(own.phones[USER_ROLE.ADMIN]);
@@ -174,7 +161,6 @@ describe("Lookups (e2e)", () => {
         payload: { isActive: false },
       });
 
-      // What a deploy does.
       await ensureSystemLookups(context.db, own.id);
 
       const after = await list(LOOKUP_LIST.ITEM_UNIT, admin);
@@ -182,7 +168,6 @@ describe("Lookups (e2e)", () => {
       expect(after.map((option) => option.code)).not.toContain("ml");
     });
 
-    /* The name is what people read; the code is what the application reads. */
     it("lets the clinic rename one", async () => {
       const [cash] = (await list(LOOKUP_LIST.PAYMENT_METHOD)).filter(
         (option) => option.code === "cash",

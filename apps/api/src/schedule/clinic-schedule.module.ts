@@ -12,8 +12,6 @@ import { DoctorTimeOffController } from "@api/schedule/doctor-time-off.controlle
 import { DoctorTimeOffService } from "@api/schedule/doctor-time-off.service";
 import { ScheduleConflictsService } from "@api/schedule/schedule-conflicts.service";
 
-// Separate from `AppointmentsModule` and importing it, because the dependency runs one way —
-// folding these controllers in would make it a cycle.
 @Module({
   imports: [DatabaseModule, AuditModule, AppointmentsModule, NotificationsModule],
   controllers: [ClinicClosuresController, DoctorTimeOffController, DoctorExtraHoursController],

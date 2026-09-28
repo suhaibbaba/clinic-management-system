@@ -56,8 +56,6 @@ describe("Inventory (e2e)", () => {
       phone: uniquePhone(),
     });
 
-    // The technician keeps the directory — ROLES.md gives them CRU on
-    // "Items & suppliers".
     const supplier = await context.app.inject({
       method: "POST",
       url: "/suppliers",
@@ -118,11 +116,9 @@ describe("Inventory (e2e)", () => {
 
       expect((await readItem(itemId)).quantity).toBe("0");
 
-      expect(
-        // Prices are whole units now (`wholeMoneySchema`); quantities are not,
-        // which is why the numbers below still carry fractions.
-        (await move("purchase", { itemId, quantity: "20", unitPrice: "4" })).statusCode,
-      ).toBe(201);
+      expect((await move("purchase", { itemId, quantity: "20", unitPrice: "4" })).statusCode).toBe(
+        201,
+      );
       expect((await move("consume", { itemId, quantity: "3" })).statusCode).toBe(201);
       expect(
         (await move("adjust", { itemId, quantity: "-2", reason: "جرد شهري" })).statusCode,
@@ -130,8 +126,6 @@ describe("Inventory (e2e)", () => {
 
       expect((await readItem(itemId)).quantity).toBe("15");
 
-      // The update endpoint has no quantity to take, so a client that tries is
-      // rejected by the schema rather than quietly ignored.
       const attempt = await context.app.inject({
         method: "PATCH",
         url: `/inventory/items/${itemId}`,
@@ -163,7 +157,6 @@ describe("Inventory (e2e)", () => {
       expect((reversal.json() as StockMovement).quantity).toBe("-10");
       expect((reversal.json() as StockMovement).reversesId).toBe(purchaseId);
 
-      // The purchase is undone, the consumption is not: 10 − 4 − 10.
       expect((await readItem(itemId)).quantity).toBe("-4");
     });
 
@@ -209,7 +202,6 @@ describe("Inventory (e2e)", () => {
         await move("consume", { itemId, quantity: "0.1" });
       }
 
-      // 0.1 added ten times is exactly 1 here, which it would not be in floats.
       expect((await readItem(itemId)).quantity).toBe("99");
     });
   });
@@ -235,7 +227,6 @@ describe("Inventory (e2e)", () => {
 
     it("requires a reason on an adjustment", async () => {
       const itemId = await createItem({ name: `أدوات ${uniquePhone()}` });
-      // Something on the shelf to take off: a correction cannot go below nothing.
       await move("purchase", { itemId, quantity: "3", unitPrice: "2" });
 
       const without = await move("adjust", { itemId, quantity: "-1" });
@@ -282,7 +273,6 @@ describe("Inventory (e2e)", () => {
         minQuantity: "5",
       });
 
-      // Bought first, expires last.
       await move("purchase", {
         itemId,
         quantity: "10",
@@ -312,7 +302,6 @@ describe("Inventory (e2e)", () => {
         ["B-LATE", "8"],
       ]);
 
-      // The soon-to-expire batch is empty, so nothing is expiring any more.
       const item = await readItem(itemId);
       expect(item.isExpiring).toBe(false);
       expect(item.nearestExpiry).toBe(inDays(400));
@@ -400,8 +389,6 @@ describe("Inventory (e2e)", () => {
     it("does not call an item low when it has no minimum set", async () => {
       const itemId = await createItem({ name: `بلا حد ${uniquePhone()}` });
 
-      // Nothing bought, nothing used: zero of something nobody set a level for
-      // is not a problem, it is an item that has never been stocked.
       expect((await readItem(itemId)).isLow).toBe(false);
     });
   });
@@ -476,8 +463,6 @@ describe("Inventory (e2e)", () => {
     });
     await move("purchase", { itemId, quantity: "20" });
 
-    // The doctor records what they used, at the chair. No patient id is sent:
-    // it is read off the procedure, so the two can never disagree.
     const consumed = await move(
       "consume",
       { itemId, quantity: "2", performedProcedureId },
@@ -518,7 +503,6 @@ describe("Inventory (e2e)", () => {
     expect(response.statusCode).toBe(200);
     const line = (response.json() as ShoppingList).lines.find((entry) => entry.itemId === itemId);
 
-    // 10 × 2 − 3.
     expect(line?.quantity).toBe("3");
     expect(line?.suggested).toBe("17");
   });
@@ -528,7 +512,6 @@ describe("Inventory (e2e)", () => {
 
     await move("purchase", { itemId, quantity: "10", unitPrice: "3", supplierId });
     await move("purchase", { itemId, quantity: "4", unitPrice: "3.00", supplierId });
-    // A purchase with no price still appears; it just adds nothing to the total.
     await move("purchase", { itemId, quantity: "1", supplierId });
 
     const response = await context.app.inject({
@@ -558,7 +541,6 @@ describe("Inventory (e2e)", () => {
     });
     await move("purchase", { itemId, quantity: "2", unitPrice: "5", supplierId: archivedId });
 
-    // ROLES.md: a technician has CRU on suppliers, no delete.
     const byTechnician = await context.app.inject({
       method: "DELETE",
       url: `/suppliers/${archivedId}`,

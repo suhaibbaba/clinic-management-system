@@ -1,6 +1,5 @@
 export interface EmailLayout {
   readonly clinicName: string;
-  /** Referenced as `cid:` so the mark survives the signed URL it was fetched from. */
   readonly logoContentId?: string | undefined;
   readonly heading: string;
   readonly body: readonly string[];
@@ -16,8 +15,6 @@ const escape = (value: string): string =>
       character,
   );
 
-// Hard-coded rather than read from the theme: an email is opened somewhere the app's stylesheet
-// will never reach, so the two cannot share a token. Kept to the brand's blue and a neutral ink.
 const INK = "#12303f";
 const MUTED = "#4e6975";
 const LINE = "#e0eaee";

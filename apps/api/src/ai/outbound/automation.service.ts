@@ -23,8 +23,6 @@ import type { Env } from "@api/config/env.schema";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { aiAutomationRuns, clinics } from "@api/database/schema";
 
-// What each rule asks the model to phrase. Fixed here, never taken from a row: the automation's
-// wording is not something a patient's data can steer.
 const RULE_INTENTS: Record<AiAutomationRule, string> = {
   [AI_OUTBOUND_TARGET.OVERDUE_LABS]:
     "Tell the patient their lab work is taking longer than expected, apologise, and say the " +
@@ -58,8 +56,6 @@ export class AutomationService {
     return aiAutomationSettings(row?.settings);
   }
 
-  // One key of the clinic's settings, merged in place, so an edit here cannot overwrite what the
-  // clinic page saved beside it.
   async updateSettings(
     actor: AuthenticatedUser,
     input: AiAutomationSettings,
@@ -76,11 +72,8 @@ export class AutomationService {
     return this.settings(actor.clinicId);
   }
 
-  // Hourly, so each clinic runs at its own local hour and a restart at nine loses nothing: the run
-  // record, not the clock, is what makes it once a day.
   @Cron(CronExpression.EVERY_HOUR)
   async tick(): Promise<void> {
-    // The suites drive `runClinic` themselves; a tick landing mid-suite would claim their day.
     if (this.config.get("NODE_ENV", { infer: true }) === "test") {
       return;
     }
@@ -104,7 +97,6 @@ export class AutomationService {
     }
   }
 
-  /** Every rule for one clinic and day. Exposed for the tests, which drive it without the clock. */
   async runClinic(
     clinicId: string,
     runDate: string,
@@ -112,7 +104,6 @@ export class AutomationService {
     const outcomes = {} as Record<AiAutomationRule, RunOutcome>;
 
     for (const rule of AI_AUTOMATION_RULES) {
-      // One clinic's broken rule must not stop the next rule, or the next clinic.
       try {
         outcomes[rule] = await this.runRule(clinicId, rule, runDate);
       } catch (error) {
@@ -132,8 +123,6 @@ export class AutomationService {
       return "off";
     }
 
-    // Claimed before anything is drafted. A second run finds the row and stops, whatever became
-    // of the first — a crash mid-send is never retried into a second message.
     const [run] = await this.db
       .insert(aiAutomationRuns)
       .values({ clinicId, rule, runDate })

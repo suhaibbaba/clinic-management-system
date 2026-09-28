@@ -3,10 +3,8 @@ import { isFdiTooth } from "@shared/constants/dental";
 import { paginationQuerySchema } from "@shared/schemas/common";
 import { lookupCodeSchema } from "@shared/schemas/lookups";
 
-/** Upload ceiling per file; CBCT volumes are the reason it is not smaller. */
 export const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024;
 
-/** Only formats the clinic actually stores — an allow-list, never a deny-list. */
 export const ALLOWED_ATTACHMENT_MIME_TYPES = [
   "image/jpeg",
   "image/png",
@@ -19,8 +17,6 @@ export const ALLOWED_ATTACHMENT_MIME_TYPES = [
 export const attachmentMimeSchema = z.enum(ALLOWED_ATTACHMENT_MIME_TYPES);
 export type AttachmentMime = z.infer<typeof attachmentMimeSchema>;
 
-// The R2 object key never leaves the API — callers get a short-lived signed URL, and a receptionist
-// gets neither (ROLES.md).
 export const attachmentSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
@@ -34,7 +30,6 @@ export const attachmentSchema = z.object({
   note: z.string().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
-  /** Short-lived, regenerated per request; absent in list responses. */
   downloadUrl: z.url().optional(),
   downloadUrlExpiresAt: z.iso.datetime().optional(),
 });
@@ -49,7 +44,6 @@ export const presignAttachmentUploadSchema = z.object({
 export type PresignAttachmentUploadInput = z.infer<typeof presignAttachmentUploadSchema>;
 
 export const presignAttachmentUploadResponseSchema = z.object({
-  /** Opaque to the client; it is echoed back on confirm. */
   key: z.string(),
   uploadUrl: z.url(),
   expiresAt: z.iso.datetime(),
@@ -57,7 +51,6 @@ export const presignAttachmentUploadResponseSchema = z.object({
 });
 export type PresignAttachmentUploadResponse = z.infer<typeof presignAttachmentUploadResponseSchema>;
 
-/** Size and MIME are read back from storage rather than trusted from this body. */
 export const confirmAttachmentUploadSchema = z.object({
   key: z.string().trim().min(1).max(512),
   type: lookupCodeSchema.nullish(),

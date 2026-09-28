@@ -5,8 +5,6 @@ import { DatabaseModule } from "@api/database/database.module";
 import { LookupsController } from "@api/lookups/lookups.controller";
 import { LookupsService } from "@api/lookups/lookups.service";
 
-// `@Global` because nearly every module checks a code against a list; it earns that by being a
-// leaf, depending only on the database and the audit registry.
 @Global()
 @Module({
   imports: [DatabaseModule, AuditModule],

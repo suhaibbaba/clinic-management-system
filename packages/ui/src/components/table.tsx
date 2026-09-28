@@ -18,28 +18,20 @@ import { testid, type TestIdProps } from "@ui/lib/testid";
 
 export interface Column<TRow> {
   readonly key: string;
-  /** i18n key for the header cell — the same string labels the mobile card. */
   readonly header: string;
-  /** Drawn beside the label on the mobile card, where each row answers what its value means. */
   readonly icon?: IconName | undefined;
   readonly render: (row: TRow) => ReactNode;
   readonly className?: string | undefined;
   readonly hideOnMobile?: boolean | undefined;
-  // The mirror image, for a field the wide shape folds into another cell. A column sets one or the
-  // other; both would declare a column that never renders.
   readonly hideOnDesktop?: boolean | undefined;
   readonly primary?: boolean | undefined;
   readonly actions?: boolean | undefined;
-  /** An actions column that is one small control, drawn at the end of the card's title row. */
   readonly besideTitleOnMobile?: boolean | undefined;
-  /** Numeric values: lining, tabular figures so columns of money line up. */
   readonly align?: "start" | "end" | "numeric" | undefined;
-  /** Makes the header a button that orders the list by this key; the table's `sort` says how. */
   readonly sortKey?: string | undefined;
 }
 
 export interface TableSort {
-  /** The column's `sortKey` the list is ordered by; null is the list's own order. */
   readonly key: string | null;
   readonly dir: "asc" | "desc";
   readonly onChange: (key: string | null, dir: "asc" | "desc") => void;
@@ -54,17 +46,9 @@ export interface TableProps<TRow> extends TestIdProps {
   empty?: ReactNode | undefined;
   pagination?: PaginationProps | undefined;
   onRowClick?: ((row: TRow) => void) | undefined;
-  /** Names a row for screen readers when the whole row is clickable. */
   rowLabel?: ((row: TRow) => string) | undefined;
-  // The reference's `.panel-head`: a title and its filters ride inside the panel, above the rule
-  // that starts the rows, rather than floating above the card with nothing holding them.
   header?: ReactNode | undefined;
-  /**
-   * `compact` sits inside another card: no box of its own, `--control-h-sm` rows, a sticky head,
-   * and it scrolls sideways on a phone rather than turning into cards.
-   */
   density?: "default" | "compact" | undefined;
-  /** Server-side ordering: the table draws the headers, the caller fetches in that order. */
   sort?: TableSort | undefined;
 }
 
@@ -72,29 +56,22 @@ export interface PaginationProps extends TestIdProps {
   page: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  /** Rows per page. Offered as a control only when `onPerPageChange` is given with it. */
   perPage?: number | undefined;
   perPageOptions?: readonly number[] | undefined;
   onPerPageChange?: ((perPage: number) => void) | undefined;
   className?: string | undefined;
 }
 
-/** What a list offers as its page sizes. A clinic's screen is a laptop or a phone, not a wall. */
 export const PER_PAGE_OPTIONS = [10, 25, 50, 100] as const;
 
-/** Every paged list opens at this size; the reader changes it per list through the URL. */
 export const DEFAULT_PER_PAGE = 10;
 
 const alignClass = (align: Column<never>["align"]): string =>
   align === "numeric" ? "text-end tabular-nums" : align === "end" ? "text-end" : "text-start";
 
-// End-alignment is a property of a column, and a card has no column: it pushed the balance to the
-// far side while the phone and age sat at the start. Only `tabular-nums` is kept.
 const cardAlignClass = (align: Column<never>["align"]): string =>
   align === "numeric" ? "text-start tabular-nums" : "text-start";
 
-// Both shapes read the same `columns` array, so a card's label is the header above it. Only one is
-// rendered — `md:hidden` left the duplicate in the document, read twice and with duplicate ids.
 export function Table<TRow>({
   columns,
   rows,
@@ -114,11 +91,8 @@ export function Table<TRow>({
   const compact = density === "compact";
   const isMobile = useIsMobile() && !compact;
   const showSkeleton = useDelayedLoading(isLoading);
-  // The skeleton outlives the load by its minimum on-screen time; drawing rows under it for that
-  // moment made the table grow and then snap back.
   const showRows = !isLoading && !showSkeleton;
 
-  // Every node a row owns hangs off one id, so a failing selector names the row it missed.
   const rowId = (row: TRow): string | undefined =>
     testId === undefined ? undefined : `${testId}-row-${rowKey(row)}`;
 
@@ -144,7 +118,6 @@ export function Table<TRow>({
       <>
         {header !== undefined && <PanelHead {...testid(testId, "header")}>{header}</PanelHead>}
 
-        {/* One card per row */}
         <div data-part="table-cards" {...testid(testId)} className="relative flex flex-col gap-3">
           <RefreshBar active={isRefreshing} overlay />
 
@@ -157,8 +130,6 @@ export function Table<TRow>({
 
           {showRows &&
             rows.map((row) => {
-              // Rendered up front: a row action is often conditional, and an empty actions block
-              // still draws its divider under nothing.
               const rowActions = actions?.render(row) ?? null;
 
               const shown = detail.filter((column) => {
@@ -191,13 +162,9 @@ export function Table<TRow>({
                     </div>
                   )}
 
-                  {/* No column gap: the row divider is drawn on the two cells, so a gap would break
-                      every hairline in the middle. The label pads its own end instead. */}
                   <dl
                     data-part="table-card-meta"
                     {...testid(rowId(row), "meta")}
-                    // `minmax(0, 1fr)`: a bare `1fr` never shrinks below its content, so one long
-                    // line — a note — would widen the card past the screen.
                     className="grid grid-cols-[minmax(5.5rem,auto)_minmax(0,1fr)]"
                   >
                     {shown.map((column, index) => (
@@ -206,11 +173,7 @@ export function Table<TRow>({
                           data-part="table-card-label"
                           {...testid(rowId(row), `${column.key}-label`)}
                           className={cn(
-                            // `pe-4` is the label's own end padding — without it a label wider than
-                            // its minimum runs straight into its value.
                             "py-2.5 pe-4 text-start text-label text-ink-muted",
-                            // The label carries the value's line height: different line boxes split
-                            // the row, and `items-baseline` breaks the hairline.
                             "leading-value",
                             index > 0 && "border-t border-line",
                           )}
@@ -268,8 +231,6 @@ export function Table<TRow>({
                   {body}
                 </div>
               ) : (
-                // An overlay button rather than one wrapped around the card: a row with actions
-                // nested a `<button>` in a `<button>`, and "edit" sometimes opened the supplier.
                 <div
                   key={rowKey(row)}
                   data-row
@@ -420,8 +381,6 @@ export function Table<TRow>({
   );
 }
 
-// Highest first is the question a column of figures is sorted to answer, so it comes first; a
-// third press returns the list to its own order.
 function SortButton({
   label,
   columnKey,
@@ -457,7 +416,6 @@ function SortButton({
       )}
     >
       {label}
-      {/* Both chevrons while the list keeps its own order, the one it runs in once sorted. */}
       <Icon
         name={active ? (sort.dir === "asc" ? "chevron-up" : "chevron-down") : "chevrons-up-down"}
         className={cn(
@@ -469,8 +427,6 @@ function SortButton({
   );
 }
 
-// On a phone the rows are separate cards, so the head cannot sit inside one; it becomes the row
-// above them, carrying the same spacing.
 function PanelHead({
   children,
   "data-testid": testId,
@@ -486,8 +442,6 @@ function PanelHead({
   );
 }
 
-// A size the list was given but the ladder does not offer still has to be shown — a control drawn
-// blank is worse than an odd rung.
 const sizes = (perPage: number, options: readonly number[]): number[] =>
   options.includes(perPage) ? [...options] : [...options, perPage].sort((a, b) => a - b);
 
@@ -538,7 +492,6 @@ export function Pagination({
       )}
       aria-label={t("pagination.label")}
     >
-      {/* The size of a page is the reader's: a laptop shows fifty rows where a phone shows ten. */}
       {perPage !== undefined && onPerPageChange !== undefined && (
         <label
           className={cn(
@@ -546,7 +499,6 @@ export function Pagination({
             isMobile && "order-last",
           )}
         >
-          {/* A phone has no room for the words beside the pager; they stay as the control's name. */}
           <span className={cn(isMobile && "sr-only")}>{t("pagination.perPage")}</span>
           <Select
             className="w-[5.5rem]"
@@ -561,8 +513,6 @@ export function Pagination({
         </label>
       )}
 
-      {/* A phone has no room for a row of numbers, so it names where the reader is and lets them
-          type where to go; a wider screen names the pages, which beats reading "page 1 of 2". */}
       <div
         data-part="pagination-pages"
         {...testid(testId, "pages")}
@@ -609,8 +559,6 @@ export function Pagination({
   );
 }
 
-// The draft is the field's own until Enter or blur; a number outside the list snaps back rather
-// than fetching a page that does not exist.
 function PageField({
   page,
   totalPages,
@@ -717,7 +665,6 @@ function PageButton({
   );
 }
 
-/** At most seven slots: the ends, the neighbours, and an ellipsis for whatever is skipped. */
 function pageWindow(page: number, totalPages: number): readonly (number | null)[] {
   const last = Math.max(totalPages, 1);
 

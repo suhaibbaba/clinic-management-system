@@ -1,8 +1,3 @@
-// Local wall-clock ↔ instants in the clinic's own zone, never the server's or the browser's; API
-// and calendar must agree to the minute. `Intl` does it, so no timezone library.
-
-// A fallback, not an assumption: every clinic carries its own `settings.timezone` and this is only
-// what a row with none reads as.
 export const DEFAULT_TIME_ZONE = "Asia/Hebron";
 
 const partsFormatter = new Map<string, Intl.DateTimeFormat>();
@@ -45,7 +40,6 @@ function localParts(instant: Date, timeZone: string): LocalParts {
     year: read("year"),
     month: read("month"),
     day: read("day"),
-    // `hour12: false` still renders midnight as 24 in some ICU versions.
     hour: read("hour") % 24,
     minute: read("minute"),
     second: read("second"),
@@ -75,7 +69,6 @@ export function instantFromLocal(isoDate: string, minuteOfDay: number, timeZone:
   return new Date(naive - offsetMinutes(firstGuess, timeZone) * 60_000);
 }
 
-/** Minutes from local midnight of `isoDate`. Negative before it, >1440 after. */
 export function minutesFromLocalMidnight(instant: Date, isoDate: string, timeZone: string): number {
   const midnight = instantFromLocal(isoDate, 0, timeZone);
 
@@ -88,7 +81,6 @@ export function localDate(instant: Date, timeZone: string): string {
   return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
-/** 0 = Sunday … 6 = Saturday, matching `DaySchedule.weekday`. */
 export function localWeekday(isoDate: string, timeZone: string): number {
   const noon = instantFromLocal(isoDate, 12 * 60, timeZone);
   const parts = localParts(noon, timeZone);

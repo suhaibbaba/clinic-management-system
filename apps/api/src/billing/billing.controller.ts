@@ -24,8 +24,6 @@ class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 class StatementQueryDto extends createZodDto(statementQuerySchema) {}
 class ListOverdueQueryDto extends createZodDto(listOverdueQuerySchema) {}
 
-// ROLES.md: admin, doctor and receptionist read; a technician never, and a statement carries the
-// catalog name without any clinical detail.
 @Controller("patients/:patientId")
 @Roles(USER_ROLE.DOCTOR, USER_ROLE.RECEPTIONIST)
 export class PatientBillingController {

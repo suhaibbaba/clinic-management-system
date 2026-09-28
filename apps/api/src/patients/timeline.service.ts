@@ -22,8 +22,6 @@ interface TimelineRow extends Record<string, unknown> {
   readonly detail: Record<string, unknown>;
 }
 
-// A `UNION ALL` in SQL rather than five queries merged in Node: the page has to be cut across the
-// merged stream, which taking 20 from each table cannot do.
 @Injectable()
 export class TimelineService {
   constructor(
@@ -91,7 +89,6 @@ export class TimelineService {
           where v.clinic_id = ${clinicId} and v.patient_id = ${patientId} and v.deleted_at is null`;
 
       case TIMELINE_ENTRY_TYPE.PROCEDURE:
-        // Money is cast to text so it never round-trips through a JSON number.
         return sql`
           select pp.id,
                  ${TIMELINE_ENTRY_TYPE.PROCEDURE}::text as type,
@@ -125,7 +122,6 @@ export class TimelineService {
           from attachments a
           where a.clinic_id = ${clinicId} and a.patient_id = ${patientId} and a.deleted_at is null`;
 
-      // Dated by the visit it was written at, so it sits beside that visit, not the day it was typed.
       case TIMELINE_ENTRY_TYPE.PRESCRIPTION:
         return sql`
           select pr.id,
@@ -157,8 +153,6 @@ export class TimelineService {
           where tp.clinic_id = ${clinicId} and tp.patient_id = ${patientId} and tp.deleted_at is null`;
 
       case TIMELINE_ENTRY_TYPE.LAB_ORDER:
-        // Dated by when the work was sent, falling back to drafted — the day it left the building
-        // is the day it started costing money. Money is cast to text, never a JSON number.
         return sql`
           select lo.id,
                  ${TIMELINE_ENTRY_TYPE.LAB_ORDER}::text as type,
@@ -181,8 +175,6 @@ export class TimelineService {
             and lo.deleted_at is null`;
 
       case TIMELINE_ENTRY_TYPE.SUPPLY:
-        // Only consumptions naming a patient, as a magnitude with its unit — the ledger stores it
-        // negative. No `--` comments here: the fragments are concatenated into one `union all`.
         return sql`
           select sm.id,
                  ${TIMELINE_ENTRY_TYPE.SUPPLY}::text as type,
@@ -226,7 +218,6 @@ export function allowedTypes(role: UserRole): TimelineEntryType[] {
         TIMELINE_ENTRY_TYPE.LAB_ORDER,
         TIMELINE_ENTRY_TYPE.SUPPLY,
       ];
-    // Clinical history without the clinic's accounts or its lab and supply work.
     case USER_ROLE.VISITING_DOCTOR:
       return [
         TIMELINE_ENTRY_TYPE.VISIT,

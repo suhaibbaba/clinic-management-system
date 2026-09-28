@@ -18,7 +18,6 @@ import { notificationName } from "@api/common/person-name";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { appointments, clinics, doctors, labOrders, patients, users } from "@api/database/schema";
 
-/** One patient to message, with the values their message is rendered from. */
 export interface Candidate {
   readonly patientId: string;
   readonly name: string;
@@ -28,24 +27,19 @@ export interface Candidate {
 
 export interface Resolved {
   readonly candidates: Candidate[];
-  /** True when there were more than `limit`: the caller refuses rather than sends to some. */
   readonly overflow: boolean;
 }
 
 export interface ResolveInput {
   readonly clinicId: string;
   readonly target: AiOutboundTarget;
-  /** The rule's threshold for the two overdue targets; ignored by the others. */
   readonly days: number;
   readonly patientIds?: readonly string[] | undefined;
-  /** The recipient cap. One more is fetched, to know whether there were more. */
   readonly limit: number;
 }
 
 const DAY_MS = 86_400_000;
 
-// Plain queries, no model: which patients a rule reaches is decided here, deterministically, and
-// the model is only ever asked how to phrase what they are sent. One message per patient.
 @Injectable()
 export class OutboundRecipientsService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
@@ -77,7 +71,6 @@ export class OutboundRecipientsService {
     }
   }
 
-  /** Lab work the lab promised at least `days` ago and has not delivered, one row per patient. */
   async overdueLabs(clinicId: string, days: number, limit: number): Promise<Candidate[]> {
     const cutoff = new Date(Date.now() - days * DAY_MS);
 
@@ -114,15 +107,12 @@ export class OutboundRecipientsService {
     }));
   }
 
-  // Not the overdue list's rule, which counts a never-paid balance from its first day: here some
-  // of what was charged at least `days` ago must still be uncovered by everything paid since.
   async unpaid(
     clinicId: string,
     days: number,
     limit: number,
     currency: string,
   ): Promise<Candidate[]> {
-    // A `Date` inside a raw `sql` template reaches postgres-js unserialized, and it rejects it.
     const cutoff = sql`${new Date(Date.now() - days * DAY_MS).toISOString()}::timestamptz`;
 
     const rows = await this.db.execute<UnpaidRow>(sql`
@@ -165,7 +155,6 @@ export class OutboundRecipientsService {
     }));
   }
 
-  /** Confirmed appointments on the clinic's own tomorrow, the earliest per patient. */
   async tomorrow(clinicId: string, timeZone: string, limit: number): Promise<Candidate[]> {
     const tomorrow = addDays(localDate(new Date(), timeZone), 1);
     const from = instantFromLocal(tomorrow, 0, timeZone);
@@ -223,7 +212,6 @@ export class OutboundRecipientsService {
     return candidates;
   }
 
-  /** Only this clinic's live patients: an id from anywhere else simply resolves to nobody. */
   async explicit(clinicId: string, patientIds: readonly string[]): Promise<Candidate[]> {
     if (patientIds.length === 0) {
       return [];

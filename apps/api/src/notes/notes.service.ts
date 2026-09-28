@@ -126,7 +126,6 @@ export class NotesService implements OnModuleInit {
     }
   }
 
-  /** Read back through the same join the list uses, so one write and one read never disagree. */
   private async readOne(actor: AuthenticatedUser, id: string): Promise<ClinicNote> {
     const [row] = await this.db
       .select({

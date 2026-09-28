@@ -35,8 +35,6 @@ class ActionsSettingsDto extends createZodDto(aiActionsSettingsSchema) {}
 
 const STAFF = [USER_ROLE.DOCTOR, USER_ROLE.TECHNICIAN, USER_ROLE.RECEPTIONIST] as const;
 
-// The card's routes for a proposed action. Whoever asked for it confirms it; the domain permission
-// the action borrows is asked again inside, at the click, on top of these.
 @Controller("ai")
 export class AiActionsController {
   constructor(private readonly actions: AiActionsService) {}
@@ -78,7 +76,6 @@ export class AiActionsController {
     return refusals(this.actions.confirm(actor, params.id, body.typedPhrase, body.inputs));
   }
 
-  /** "Continue from step N": the remaining steps of a plan that stopped, checked again first. */
   @Post("proposals/:id/continue")
   @Roles(...STAFF)
   @Capability("ai-actions.confirm")
@@ -103,7 +100,6 @@ export class AiActionsController {
   }
 }
 
-/** A refusal is the code as `message`, which the web resolves to Arabic like every other error. */
 async function refusals<T>(pending: Promise<T>): Promise<T> {
   try {
     return await pending;

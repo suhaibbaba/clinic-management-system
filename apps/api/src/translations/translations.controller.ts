@@ -26,8 +26,6 @@ class SaveTranslationsDto extends createZodDto(saveTranslationOverridesSchema) {
 export class TranslationsController {
   constructor(private readonly translations: TranslationsService) {}
 
-  // Every signed-in role reads the bundle: it is the wording of their own screens, and withholding
-  // it would leave them reading a different app from the admin who changed it. Only an admin writes.
   @Get()
   bundle(@CurrentUser() user: AuthenticatedUser): Promise<TranslationBundle> {
     return this.translations.bundle(user);
@@ -49,7 +47,6 @@ export class TranslationsController {
     return this.translations.upsert(user, body);
   }
 
-  // A screenful of edits in one request: the footer either saves them all or none of them.
   @Post("save")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -58,8 +55,6 @@ export class TranslationsController {
     return this.translations.save(user, body);
   }
 
-  // A reset is a delete of the row, not a write of the shipped string, so the default keeps moving
-  // with the deploy.
   @Post("reset")
   @Roles(USER_ROLE.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)

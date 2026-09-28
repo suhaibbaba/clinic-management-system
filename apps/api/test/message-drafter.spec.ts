@@ -45,7 +45,6 @@ describe("drafting a patient message", () => {
     expect(message?.text).toBe("مرحباً سمير، عليك 120 ₪ لدى عيادة الابتسامة.");
   });
 
-  // Prompt injection would arrive as a link or a placeholder the server never fills.
   it.each([
     ["a link", "مرحباً {name}، ادفع هنا https://evil.example"],
     ["an unknown placeholder", "مرحباً {name}، رقمك {phone}"],

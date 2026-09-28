@@ -6,8 +6,6 @@ const DICTIONARIES: Record<string, Dictionary> = { ar };
 
 export const BOOKING_LANGUAGE = "ar";
 
-// A missing key returns the key: a screen reading `otp.resendIn` is reported in a minute, where a
-// blank space ships.
 export function t(key: string, vars?: Record<string, string | number>): string {
   const value = key
     .split(".")

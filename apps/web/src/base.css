@@ -1,14 +1,7 @@
-/* The washes this product draws that no library component does — the rail's active row, the
-   dashboard's banner, the calendar's grid. Shared by both entries: the dashboard and the public
-   booking page. Two copies would drift, and the drift shows as a booking page that looks almost
-   like the app. Everything general — the page ground, the type, the focus ring, the skeleton —
-   is `@clinic/ui/styles/base.css`. */
-
 @utility nav-active-wash {
   background-image: linear-gradient(160deg, var(--color-primary-600), var(--color-primary-900));
 }
 
-/* The banner's ground: a green bloom over a blue-to-green wash, as the reference layers them. */
 @utility banner-wash {
   background-image:
     radial-gradient(600px 200px at 85% 0%, var(--color-banner-bloom), transparent 60%),
@@ -20,13 +13,10 @@
     );
 }
 
-/* Today's cell in the mini calendar — the rail's gradient turned a quarter. */
 @utility today-wash {
   background-image: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-900));
 }
 
-/* Hatching, not a fill: a fill is what an appointment is, and a block that reads as one is a block
-   somebody clicks looking for a patient. */
 .hatched {
   background-image: repeating-linear-gradient(
     45deg,

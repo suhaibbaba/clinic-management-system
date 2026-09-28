@@ -51,14 +51,10 @@ export class PatientsService implements OnModuleInit {
       filters.push(eq(patients.gender, query.gender));
     }
 
-    // Asked of the server, and only for roles served balances: honouring it for a technician would
-    // leak through the row count what the fields withhold.
     if (query.hasBalance && PatientAccessService.seesFinancialData(actor.role)) {
       filters.push(LedgerService.owesFilter(actor.clinicId, patients.id));
     }
 
-    // Attendance, not clinical content: who came in since a date. `exists` rather than a join, so a
-    // patient seen three times in the month is still one row.
     if (query.visitedSince) {
       filters.push(
         exists(
@@ -81,7 +77,6 @@ export class PatientsService implements OnModuleInit {
 
     if (query.search) {
       const pattern = `%${query.search.trim()}%`;
-      // Numbers are stored `+970599…` and typed `0599…`: compared on digits, less a trunk 0.
       const digits = query.search.replace(/\D/g, "").replace(/^0+/, "");
 
       filters.push(
@@ -138,7 +133,6 @@ export class PatientsService implements OnModuleInit {
     );
   }
 
-  /** The patient header, balance included — computed, never stored. */
   async findOne(actor: AuthenticatedUser, id: string): Promise<PatientView> {
     const row = await this.access.requirePatient(actor, id);
     const balance = PatientAccessService.seesFinancialData(actor.role)
@@ -148,8 +142,6 @@ export class PatientsService implements OnModuleInit {
     return toRoleView(row, actor.role, balance);
   }
 
-  // No duplicate-phone check here, unlike the inline form: a mother and her child share a handset,
-  // and this is the screen that exists for registering the second of them.
   async create(actor: AuthenticatedUser, input: CreatePatientInput): Promise<PatientView> {
     const row = await this.registration.insertPatient(this.db, actor, input);
 
@@ -202,7 +194,6 @@ export class PatientsService implements OnModuleInit {
     return toRoleView(row, actor.role);
   }
 
-  /** Soft delete — a medical record is never removed (CLAUDE.md). */
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     await this.scope.findOneOrFail<PatientRow>(patients, actor.clinicId, id);
 

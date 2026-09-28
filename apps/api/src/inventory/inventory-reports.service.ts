@@ -23,8 +23,6 @@ import { InventoryItemsService } from "@api/inventory/inventory-items.service";
 import { StockService } from "@api/inventory/stock.service";
 import { SuppliersService } from "@api/inventory/suppliers.service";
 
-// All three read the same computed stock as the items screen: one definition of "low" and one of
-// "expiring", in `StockService`.
 @Injectable()
 export class InventoryReportsService {
   constructor(
@@ -121,7 +119,6 @@ export class InventoryReportsService {
     const rows = await this.db
       .select({ item: inventoryItems, supplierName: suppliers.name })
       .from(inventoryItems)
-      // An archived supplier is nobody's default any more; a movement keeps its name as history.
       .leftJoin(
         suppliers,
         and(eq(suppliers.id, inventoryItems.defaultSupplierId), isNull(suppliers.deletedAt)),
@@ -139,7 +136,6 @@ export class InventoryReportsService {
   }
 }
 
-/** How short of its minimum an item is — the emptiest cupboard first. */
 function byUrgency(left: InventoryItemRow, right: InventoryItemRow): number {
   const shortfall = (item: InventoryItemRow): number =>
     toThousandths(item.minQuantity) - toThousandths(item.quantity);
@@ -147,7 +143,6 @@ function byUrgency(left: InventoryItemRow, right: InventoryItemRow): number {
   return shortfall(right) - shortfall(left);
 }
 
-/** Soonest to go off first — that is the order somebody works through them. */
 function byExpiry(left: InventoryItemRow, right: InventoryItemRow): number {
   return (left.nearestExpiry ?? "9999-12-31").localeCompare(right.nearestExpiry ?? "9999-12-31");
 }

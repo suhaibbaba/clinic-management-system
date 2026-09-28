@@ -20,7 +20,7 @@
     "apps/web": {
       "entry": ["src/booking/main.tsx", "scripts/*.mjs", "test/**/*.test.{ts,tsx}"],
       "project": ["src/**/*.{ts,tsx}", "test/**/*.{ts,tsx}", "vite/**/*.ts", "scripts/*.mjs"],
-      "ignoreDependencies": ["@fontsource/tajawal", "@vitest/browser"]
+      "ignoreDependencies": ["@fontsource/tajawal"]
     },
     "packages/shared": {
       "project": ["src/**/*.ts"]

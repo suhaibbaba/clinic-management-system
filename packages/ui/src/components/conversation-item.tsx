@@ -4,19 +4,14 @@ import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export interface ConversationItemProps extends TestIdProps {
   readonly title: string;
-  /** Already formatted by the caller — the library owns no locale. Left out under a day heading. */
   readonly timestamp?: string | undefined;
   readonly selected?: boolean | undefined;
-  /** The row's own address, so it opens in a new tab like any other link. */
   readonly href: string;
   readonly onSelect: () => void;
-  /** The kebab, supplied by the caller because its items are the caller's. */
   readonly trailing?: ReactNode | undefined;
   readonly className?: string | undefined;
 }
 
-// A real link with the router's behaviour layered on: a plain click stays in the app, and
-// ctrl/cmd/middle click opens the conversation in its own tab the way every other address does.
 function routerClick(onSelect: () => void) {
   return (event: MouseEvent<HTMLAnchorElement>): void => {
     if (
@@ -77,7 +72,6 @@ export function ConversationItem({
       {trailing !== undefined && (
         <div
           {...part("actions")}
-          // Always there for a keyboard, and out of the way of a pointer until the row is under it.
           className={cn(
             "absolute end-1.5 opacity-0 transition-opacity duration-150",
             "group-hover/row:opacity-100 focus-within:opacity-100",

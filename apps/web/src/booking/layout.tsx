@@ -11,7 +11,6 @@ export function PageShell({
   readonly clinicName: string | undefined;
   readonly logoUrl?: string | null;
   readonly children: ReactNode;
-  /** Sticks to the bottom of the viewport on a phone — the thumb is there. */
   readonly footer?: ReactNode;
 }): JSX.Element {
   const name = clinicName ?? t("page.title");
@@ -27,8 +26,6 @@ export function PageShell({
         data-testid="booking-header"
         className="flex items-center justify-center gap-2.5 px-4 py-5"
       >
-        {/* Only the clinic's own: with none there is the name alone, never a mark belonging to
-            somebody else. */}
         {logoUrl !== null && logoUrl !== undefined && (
           <Img src={logoUrl} alt="" width={32} height={32} priority data-testid="booking-logo" />
         )}
@@ -61,13 +58,10 @@ export function PageShell({
 
 const STEP_KEYS = ["steps.doctor", "steps.when", "steps.details", "steps.confirm"] as const;
 
-// The bars are `aria-hidden` decoration, so the sentence above them carries the fact and `aria-
-// live` announces the change.
 export function StepHeader({
   current,
   title,
 }: {
-  /** 1-based, so it reads the way the copy does. */
   readonly current: number;
   readonly title: string;
 }): JSX.Element {

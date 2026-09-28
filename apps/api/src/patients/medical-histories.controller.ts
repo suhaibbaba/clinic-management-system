@@ -21,8 +21,6 @@ import { AiTool } from "@api/ai/tools/route-tool.decorator";
 class UpdateMedicalHistoryDto extends createZodDto(updateMedicalHistorySchema) {}
 class PatientIdParamDto extends createZodDto(patientIdParamSchema) {}
 
-// One row per patient, so the route carries no history id and the audit entry is keyed by the
-// patient — the same shape as `PATCH /clinic`.
 @Controller("patients/:patientId")
 export class MedicalHistoriesController {
   constructor(private readonly medicalHistories: MedicalHistoriesService) {}

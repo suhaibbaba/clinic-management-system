@@ -24,8 +24,6 @@ const TIME_ZONE = "Asia/Damascus";
 const at = (date: string, minuteOfDay: number): string =>
   instantFromLocal(date, minuteOfDay, TIME_ZONE).toISOString();
 
-// The figures must agree with the pages the cards link to, and the response must be shaped by role
-// — a KPI is a fact about the clinic like any row.
 describe("Dashboard (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
@@ -61,8 +59,6 @@ describe("Dashboard (e2e)", () => {
 
     fixtures = await seedClinicFixtures(context, clinic, tokens[USER_ROLE.ADMIN]);
 
-    // Open every day, so "today" is always a working day whenever the suite
-    // happens to run — a Monday-only clinic would make this test a lottery.
     await context.db
       .update(clinics)
       .set({
@@ -93,8 +89,6 @@ describe("Dashboard (e2e)", () => {
       phone: uniquePhone(),
     });
 
-    // Booked out of order on purpose: the schedule is a reading of the day,
-    // so it has to come back in the order the day happens.
     for (const minute of [15 * 60, 10 * 60]) {
       const booked = await context.app.inject({
         method: "POST",
@@ -147,8 +141,6 @@ describe("Dashboard (e2e)", () => {
 
     const before = await summary(USER_ROLE.ADMIN);
 
-    // Never paid, so this patient is overdue the moment they are charged —
-    // no clock to wind forward.
     expect(before.overduePatients).toBeGreaterThanOrEqual(1);
     expect(Number(before.overdueTotal)).toBeGreaterThanOrEqual(250);
 
@@ -164,7 +156,6 @@ describe("Dashboard (e2e)", () => {
     expect(Number(before.overdueTotal)).toBeCloseTo(summed, 2);
     expect(before.overduePatients).toBe(items.length);
 
-    // And it moves with the ledger rather than with anything stored.
     const paid = await context.app.inject({
       method: "POST",
       url: "/payments",
@@ -203,7 +194,6 @@ describe("Dashboard (e2e)", () => {
 
     expect(procedure.statusCode).toBe(201);
 
-    // A part payment today: still owing, but not yet overdue.
     await context.app.inject({
       method: "POST",
       url: "/payments",
@@ -259,8 +249,6 @@ describe("Dashboard (e2e)", () => {
     expect(body.pendingBookings).toBeGreaterThanOrEqual(1);
   });
 
-  /* Role shaping — ROLES.md, applied to the response and not the rendering. */
-
   it("gives a technician no financial figure and no booking queue", async () => {
     const body = await summary(USER_ROLE.TECHNICIAN);
 
@@ -272,12 +260,9 @@ describe("Dashboard (e2e)", () => {
   it("gives a doctor their own day, and no overdue list they may not read", async () => {
     const body = await summary(USER_ROLE.DOCTOR);
 
-    // ROLES.md billing matrix: the overdue list is admin and reception only.
     expect(body).not.toHaveProperty("overdueTotal");
-    // Chasing unconfirmed bookings is front-desk work.
     expect(body).not.toHaveProperty("pendingBookings");
 
-    // "R (own KPIs)": every row it does carry is theirs.
     for (const entry of body.schedule) {
       expect(entry.doctorId).toBe(fixtures.doctorId);
     }

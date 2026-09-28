@@ -1,8 +1,6 @@
 import { USER_ROLE, type ClinicNote, type Paginated, type UserRole } from "@clinic/shared";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
-// The noticeboard is shared, so the interesting boundary is not "who may read it" — everyone may —
-// but "whose note is whose" (ROLES.md core matrix), plus the clinic scope every table carries.
 describe("Clinic notes (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
@@ -103,7 +101,6 @@ describe("Clinic notes (e2e)", () => {
 
     expect(theirs.items.map((note) => note.id)).not.toContain(mine.id);
 
-    // Another clinic's id is 404, not 403: a 403 confirms the row exists somewhere.
     const reach = await context.app.inject({
       method: "PATCH",
       url: `/notes/${mine.id}`,

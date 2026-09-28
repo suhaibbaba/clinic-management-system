@@ -58,7 +58,6 @@ const doctorColumns = {
   specialtyChartType: specialties.chartType,
 };
 
-/** Spelled out rather than derived: a mapped type over the columns loses which of them are nullable. */
 interface DoctorJoinedRow {
   id: string;
   clinicId: string;
@@ -153,8 +152,6 @@ export class DoctorsService implements OnModuleInit {
     return this.present(await this.findJoinedOrFail(actor.clinicId, id));
   }
 
-  // The account and the profile in one transaction: a doctor is both, and neither half is any use
-  // on its own. `newUser` creates the account here; `userId` links and promotes an existing one.
   async create(actor: AuthenticatedUser, input: CreateDoctorInput): Promise<Doctor> {
     const [specialty] = await this.db
       .select({ id: specialties.id })
@@ -200,8 +197,6 @@ export class DoctorsService implements OnModuleInit {
     return this.present(await this.findJoinedOrFail(actor.clinicId, created.id));
   }
 
-  // The specialty defaults to the creator's, then to the clinic's first: whoever adds a visitor from
-  // a plan is rarely thinking about which specialty they belong to.
   async createVisiting(
     actor: AuthenticatedUser,
     input: CreateVisitingDoctorInput,
@@ -266,8 +261,6 @@ export class DoctorsService implements OnModuleInit {
     return first.id;
   }
 
-  // Linking the rare case: an account that already exists takes the doctor role here rather than on
-  // the users screen, which refuses it — that refusal is what makes an orphan impossible.
   private async promoteToDoctor(
     executor: DatabaseExecutor,
     actor: AuthenticatedUser,
@@ -343,7 +336,6 @@ export class DoctorsService implements OnModuleInit {
     return this.present(await this.findJoinedOrFail(actor.clinicId, id));
   }
 
-  /** An admin may edit any schedule; a doctor only their own (ROLES.md). */
   async updateSchedule(
     actor: AuthenticatedUser,
     id: string,
@@ -363,8 +355,6 @@ export class DoctorsService implements OnModuleInit {
     return this.present(await this.findJoinedOrFail(actor.clinicId, id));
   }
 
-  // The account goes inactive with the profile, in the same transaction: a `doctor` user with no
-  // profile left is the orphan the create path exists to prevent, arrived at from the other end.
   async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
     const doctor = await this.scope.findOneOrFail<DoctorRow>(doctors, actor.clinicId, id);
 
@@ -410,8 +400,6 @@ export class DoctorsService implements OnModuleInit {
       .limit(1);
 
     if (!row) {
-      // Same 404 as a non-existent id: another clinic's id must not be
-      // distinguishable (ROLES.md global rule 1).
       await this.scope.findOneOrFail<DoctorRow>(doctors, clinicId, id);
       throw new Error("Doctor row is missing its user or specialty");
     }

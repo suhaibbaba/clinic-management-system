@@ -14,10 +14,8 @@ import { PermissionsService } from "@api/permissions/permissions.service";
 
 export const AI_READ_CLIENT = Symbol("AI_READ_CLIENT");
 
-/** Declared here, not by a route: it is the permission to ask the clinic's data a free question. */
 export const QUERY_CAPABILITY = "reports.list";
 
-/** The clinical views read what the visit screen reads, so they borrow its permission. */
 export const CLINICAL_CAPABILITY = "visits.findOne";
 
 const STATEMENT_TIMEOUT = "5s";
@@ -36,8 +34,6 @@ export interface QueryResult {
   readonly truncated: boolean;
 }
 
-// A second, small pool whose every query runs read-only as `ai_reader`, which may read the
-// `ai_read` views and nothing else; the views filter on `app.clinic_id`, set here per query.
 @Injectable()
 export class QueryDataService implements OnModuleInit, OnApplicationShutdown {
   constructor(
@@ -100,7 +96,6 @@ export class QueryDataService implements OnModuleInit, OnApplicationShutdown {
         throw new ToolRefusal(AI_TOOL_ERROR.QUERY_TIMEOUT);
       }
 
-      // Its own words are what the model needs to fix the query: they name a column, never data.
       if (isPostgresError(error)) {
         throw new ToolRefusal(AI_TOOL_ERROR.QUERY_ERROR, [error.message]);
       }
@@ -110,7 +105,6 @@ export class QueryDataService implements OnModuleInit, OnApplicationShutdown {
   }
 }
 
-/** The page draws the rows as they came; every column is text, labelled by its own name. */
 export function queryView(result: QueryResult): AiTableView {
   return {
     type: "table",
@@ -131,7 +125,6 @@ function isPostgresError(error: unknown): error is { code: string; message: stri
   );
 }
 
-// A `Date` walked as an object is `{}`; the model reads an instant, which the runner localises.
 function plain(row: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(
     Object.entries(row).map(([key, value]) => [

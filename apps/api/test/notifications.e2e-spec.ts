@@ -33,8 +33,6 @@ const TIME_ZONE = "Asia/Damascus";
 const HOUR = 3_600_000;
 const MINUTE = 60_000;
 
-// Stepping a UTC date forward is wrong for three hours a day: at 22:00 UTC Sunday it is already
-// Monday in Damascus, so the fixture schedule missed and the suite went red every evening.
 function nextMonday(): string {
   let date = localDate(new Date(), TIME_ZONE);
 
@@ -55,7 +53,6 @@ describe("Notifications and schedulers (e2e)", () => {
   let patientId: string;
   let monday: string;
 
-  /** Every appointment inserted here needs its own time; the constraint is real. */
   let slotCursor = 0;
   const nextSlot = (): string => {
     slotCursor += 1;
@@ -83,8 +80,6 @@ describe("Notifications and schedulers (e2e)", () => {
     },
   });
 
-  // Two appointments due for the same reminder are minutes apart, which one doctor cannot have: the
-  // overlap constraint is real, so a second reminder needs a second diary.
   async function createDoctor(): Promise<string> {
     const suffix = randomUUID().replaceAll("-", "").slice(0, 10);
 
@@ -240,8 +235,6 @@ describe("Notifications and schedulers (e2e)", () => {
         vars: { doctor: "د. سامي" },
       });
 
-      // `{branch}` stays visible: "في {branch}" is a bug somebody reports, where "في " looks fine
-      // and says nothing.
       expect(result?.body).toBe("موعدك مع د. سامي في {branch}");
     });
 
@@ -257,8 +250,6 @@ describe("Notifications and schedulers (e2e)", () => {
 
       expect(result?.status).toBe(NOTIFICATION_STATUS.FAILED);
 
-      // The row exists because it is written before the provider is called — a send that vanishes
-      // is the one failure the log exists to prevent.
       const [row] = await context.db
         .select({ status: notificationsLog.status, error: notificationsLog.error })
         .from(notificationsLog)
@@ -302,8 +293,6 @@ describe("Notifications and schedulers (e2e)", () => {
       });
 
       await scheduler.sendReminders();
-      // The job runs every five minutes against a ten-minute window, so it sees
-      // the same appointment again on the next tick — and must stay quiet.
       await scheduler.sendReminders();
       await scheduler.sendReminders();
 
@@ -312,8 +301,6 @@ describe("Notifications and schedulers (e2e)", () => {
 
       expect(forTomorrow.map((row) => row.template)).toEqual([NOTIFICATION_TEMPLATE.REMINDER_24H]);
       expect(forSoon.map((row) => row.template)).toEqual([NOTIFICATION_TEMPLATE.REMINDER_2H]);
-      // The Arabic spelling: a reminder is a text to a patient, not a screen
-      // with a language toggle on it.
       expect(forTomorrow[0]?.vars["doctor"]).toMatch(/^طبيب اختبار/);
       expect(forTomorrow[0]?.vars["time"]).toMatch(/^\d{2}:\d{2}$/);
     });
@@ -368,8 +355,6 @@ describe("Notifications and schedulers (e2e)", () => {
 
       await scheduler.sendReminders();
 
-      // A held booking is not a commitment yet, and reminding somebody about a
-      // cancelled appointment is worse than silence.
       expect(await logged(requested)).toHaveLength(0);
       expect(await logged(cancelled)).toHaveLength(0);
     });
@@ -415,8 +400,6 @@ describe("Notifications and schedulers (e2e)", () => {
         .from(appointments)
         .where(eq(appointments.id, appointmentId));
 
-      // Cancelled, not deleted: reception should be able to see that somebody
-      // tried to book and did not finish.
       expect(row?.status).toBe(APPOINTMENT_STATUS.CANCELLED);
       expect(row?.deletedAt).toBeNull();
       expect(row?.reason).toBe("انتهت مهلة تأكيد الحجز الإلكتروني");
@@ -475,8 +458,6 @@ describe("Notifications and schedulers (e2e)", () => {
         .from(appointments)
         .where(eq(appointments.id, appointmentId));
 
-      // There is no hold to expire when reception rings back — dropping these
-      // would delete the clinic's own to-do list.
       expect(row?.status).toBe(APPOINTMENT_STATUS.REQUESTED);
     });
   });
@@ -484,7 +465,6 @@ describe("Notifications and schedulers (e2e)", () => {
   describe("templates", () => {
     it("ships an Arabic default for every message the system sends", () => {
       for (const template of Object.values(NOTIFICATION_TEMPLATE)) {
-        // The assistant's message arrives written in full; its Arabic defaults are the drafter's.
         if (template === NOTIFICATION_TEMPLATE.ASSISTANT_MESSAGE) {
           continue;
         }

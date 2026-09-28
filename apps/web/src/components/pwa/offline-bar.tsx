@@ -2,8 +2,6 @@ import { Icon } from "@clinic/ui";
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 
-/** Nothing is cached but the shell, so offline means the screen cannot answer — say so once, in
- *  one place, rather than letting every panel fail on its own. */
 export function OfflineBar(): JSX.Element | null {
   const { t } = useTranslation();
   const [offline, setOffline] = useState(false);

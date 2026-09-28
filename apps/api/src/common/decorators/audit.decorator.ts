@@ -11,8 +11,6 @@ export interface AuditMetadata {
   readonly entityIdSource: AuditEntityIdSource;
 }
 
-// The interceptor snapshots the row before and after the handler, so the entity needs a loader in
-// `AuditSnapshotRegistry`.
 export const Audit = (
   entity: string,
   action: AuditAction,

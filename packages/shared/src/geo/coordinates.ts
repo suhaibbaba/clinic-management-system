@@ -3,11 +3,7 @@ export interface Coordinates {
   readonly longitude: string;
 }
 
-/** Six decimals is about 0.1 m; more is noise from a map's zoom level. */
-const round = (value: number): string =>
-  String(Number(value.toFixed(6)))
-    // `-0` is a coordinate nobody means.
-    .replace(/^-0$/, "0");
+const round = (value: number): string => String(Number(value.toFixed(6))).replace(/^-0$/, "0");
 
 const inRange = (latitude: number, longitude: number): boolean =>
   Number.isFinite(latitude) &&
@@ -54,6 +50,5 @@ export function parseCoordinates(value: string): Coordinates | null {
   return null;
 }
 
-/** Opens the pin in whatever the reader's device treats as a map. */
 export const mapsUrl = ({ latitude, longitude }: Coordinates): string =>
   `https://www.google.com/maps?q=${latitude},${longitude}`;

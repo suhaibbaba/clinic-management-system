@@ -7,8 +7,6 @@ import { FullPageMessage, PageShell } from "@web/booking/layout";
 import { ManagePage } from "@web/booking/manage-page";
 import { parseRoute } from "@web/booking/route";
 
-// Nothing here imports `@web/features`, `@web/components` or `@web/app` — an ESLint boundary rule
-// and a gzip budget in CI both fail if that changes.
 function BookingApp(): JSX.Element {
   const route = parseRoute(window.location.pathname, window.location.search);
 
@@ -33,8 +31,6 @@ if (!container) {
   throw new Error("Root container #root is missing from booking.html");
 }
 
-// The page is Arabic-only for now, and says so before the first paint rather
-// than after it (see `i18n.ts` for why this entry has no i18next).
 document.documentElement.lang = BOOKING_LANGUAGE;
 document.documentElement.dir = "rtl";
 

@@ -24,7 +24,5 @@ export function readBranding(scope: string): CachedBranding | null {
 export function writeBranding(scope: string, branding: CachedBranding): void {
   try {
     localStorage.setItem(PREFIX + scope, JSON.stringify(branding));
-  } catch {
-    // A private window refuses storage; nothing here is worth failing a page over.
-  }
+  } catch {}
 }

@@ -27,8 +27,6 @@ interface LedgerLine {
   readonly isReversal: boolean;
 }
 
-// An order counts from `sent` and stops only if `cancelled` — the billable list lives in
-// `@clinic/shared` so the chips, the screens and this agree. Nothing is stored.
 @Injectable()
 export class LabLedgerService {
   constructor(
@@ -126,8 +124,6 @@ export class LabLedgerService {
       ...orderRows.map((row) => ({
         id: row.id,
         kind: LAB_STATEMENT_ENTRY_KIND.ORDER,
-        // Billable means sent, so `sent_at` is the date of the debt. The
-        // fallback only matters for data written before this rule existed.
         occurredAt: row.sentAt ?? row.createdAt,
         amount: row.price,
         description: describeOrder(row.workTypeName, row.teeth),
@@ -188,7 +184,6 @@ function describeOrder(workTypeName: string | null, teeth: readonly number[]): s
   return teeth.length > 0 ? `${name} — ${teeth.join("، ")}` : name;
 }
 
-/** Postgres returns `numeric` unpadded; money is always two decimals here. */
 function normalise(value: string): string {
   const [whole = "0", fraction = ""] = value.split(".");
 

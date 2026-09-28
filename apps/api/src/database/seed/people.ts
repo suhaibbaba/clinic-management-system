@@ -111,7 +111,6 @@ const SPELLING_VARIANTS_FEMALE: readonly NameParts[] = [
   { firstName: "فاطمه", middleName: "سامي", lastName: "طوقان" },
 ];
 
-// Three names that a table column cannot hold, because the truncation has to be looked at.
 const LONG_NAMES: readonly NameParts[] = [
   {
     firstName: "عبد الرحمن",
@@ -127,7 +126,6 @@ export interface SeedPerson extends NameParts {
   readonly dateOfBirth: string;
   readonly phone: string;
   readonly address: string | null;
-  /** A file reception started and never finished — the list flags it. */
   readonly incomplete: boolean;
 }
 
@@ -184,7 +182,6 @@ export function buildPeople(rng: Rng, count: number, today: Date): SeedPerson[] 
   return people;
 }
 
-/** `+9705x…`, which is what every mobile in the West Bank starts with. */
 function palestinianMobile(rng: Rng, index: number): string {
   const prefix = rng.pick(["59", "56", "52"]);
   const serial = String(100_000 + index * 7 + rng.int(0, 6)).slice(-6);

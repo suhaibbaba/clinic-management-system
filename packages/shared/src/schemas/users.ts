@@ -7,26 +7,20 @@ import { personNameSchema, staffNameInputFields } from "@shared/schemas/person-n
 export const userSchema = z.object({
   id: z.uuid(),
   clinicId: z.uuid(),
-  /** First and last joined by the API; what every screen shows. */
   name: personNameSchema,
   firstName: personNameSchema,
   lastName: personNameSchema,
   phone: z.string(),
   email: z.string().nullable(),
-  /** False until they have chosen a password through the link they were sent. */
   activated: z.boolean(),
   role: z.enum(USER_ROLES),
   isActive: z.boolean(),
-  // Minted per response and expiring with the download TTL — the stored object key never leaves the
-  // API, so this is not writable.
   photoUrl: z.url().nullable(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
 export type User = z.infer<typeof userSchema>;
 
-// No defaults: one survives `.partial()` in `updateUserSchema` and would rewrite a field nobody
-// sent. `clinicId` comes from the caller's token, never the body.
 const userWritableFields = {
   ...staffNameInputFields,
   phone: phoneSchema,
@@ -53,8 +47,6 @@ export const updateUserSchema = z
   .refine((input) => Object.keys(input).length > 0, "At least one field must be provided");
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 
-/** What somebody may change about themselves: how they are named and how they are reached. Their
- *  role and whether the account is live are the admin's, on the users screen. */
 export const updateOwnProfileSchema = z
   .object({
     ...staffNameInputFields,
@@ -99,7 +91,6 @@ export const presignUserPhotoResponseSchema = z.object({
 });
 export type PresignUserPhotoResponse = z.infer<typeof presignUserPhotoResponseSchema>;
 
-/** Called once the client has PUT the object; the API reads the bytes back. */
 export const confirmUserPhotoSchema = z.object({
   key: z.string().trim().min(1).max(512),
 });

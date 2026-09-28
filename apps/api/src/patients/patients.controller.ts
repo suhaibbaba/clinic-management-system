@@ -34,8 +34,6 @@ class UpdatePatientDto extends createZodDto(updatePatientSchema) {}
 class ListPatientsQueryDto extends createZodDto(listPatientsQuerySchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// The response shape is chosen by role inside the service: a receptionist and a technician receive
-// `PatientPublicView`, never the clinical one.
 @Controller("patients")
 export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
@@ -82,7 +80,6 @@ export class PatientsController {
     return this.patientsService.update(actor, params.id, body);
   }
 
-  /** Soft delete, admin only (ROLES.md: only admin may delete). */
   @AiTool({
     group: "patients",
     description:

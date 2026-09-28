@@ -38,11 +38,8 @@ export const CLINICS_ENTITY = "clinics";
 
 const LOGO_CATEGORY = "branding";
 
-/** Derived, never stored: the icons are always under the key of the image they were rendered from. */
 const iconKey = (sourceKey: string, name: string): string => `${sourceKey}/icons/${name}`;
 
-/** A wordmark has no legible 16px form, so a clinic may supply a square to render the icons from. */
-/** Whatever a home screen should read, in the clinic's own document language. */
 function appName(row: { nameAr: string; nameEn: string; settings: unknown } | undefined): string {
   if (!row) {
     return "";
@@ -56,8 +53,6 @@ function appName(row: { nameAr: string; nameEn: string; settings: unknown } | un
 const iconSource = (row: { logoKey: string | null; appIconKey: string | null }): string | null =>
   row.appIconKey ?? row.logoKey;
 
-// `clinics` is the one table without a `clinic_id` — it is the tenant — so scoping is `id =
-// caller.clinicId` rather than `ClinicScopeService`.
 @Injectable()
 export class ClinicsService implements OnModuleInit {
   constructor(
@@ -74,8 +69,6 @@ export class ClinicsService implements OnModuleInit {
 
       const row = await this.findOwn(clinicId);
 
-      // The key is audited rather than the signed URL, which would make every entry unreadable
-      // once it expired.
       return row ? { ...toClinic(row), logoUrl: null } : null;
     });
   }
@@ -84,8 +77,6 @@ export class ClinicsService implements OnModuleInit {
     return this.withLogoUrl(await this.findOwnOrFail(actor.clinicId));
   }
 
-  // Answered only when this deployment serves exactly one clinic: with several, a stranger cannot
-  // say which they mean, and the same silence hides how many exist.
   async branding(): Promise<ClinicBranding> {
     const rows = await this.db
       .select({
@@ -113,8 +104,6 @@ export class ClinicsService implements OnModuleInit {
     };
   }
 
-  // A home screen shows one label, so the clinic's own document language picks it rather than the
-  // reader's — the same rule a printed sheet follows.
   async manifest(): Promise<ClinicManifest> {
     const rows = await this.db
       .select({
@@ -142,8 +131,6 @@ export class ClinicsService implements OnModuleInit {
       start_url: "/",
       scope: "/",
       display: "standalone",
-      // Installability wants a 192 and a 512; without a rendered set there are none to offer, and
-      // the browser declines to install rather than being handed a broken address.
       icons:
         version === undefined
           ? []
@@ -156,8 +143,6 @@ export class ClinicsService implements OnModuleInit {
     };
   }
 
-  // The same single-clinic rule as `branding`, for the same reason: a stranger asking a
-  // multi-clinic deployment for "the" tab mark has not named which one.
   async iconUrl(name: string): Promise<string | null> {
     const icon = clinicIcon(name);
 
@@ -185,8 +170,6 @@ export class ClinicsService implements OnModuleInit {
     return (await this.storage.createBrandingUrl(iconKey(source, icon.name))).url;
   }
 
-  // The key is built from the caller's own clinic id, never taken from the request, so an upload
-  // can only land under the clinic signing for it.
   async presignLogo(
     actor: AuthenticatedUser,
     input: PresignClinicLogoInput,
@@ -245,8 +228,6 @@ export class ClinicsService implements OnModuleInit {
     });
   }
 
-  // The icons belong to whichever image they were rendered from, so changing either picture drops
-  // the set and leaves the tab on the product mark until the client re-renders it.
   private async replaceSource(
     actor: AuthenticatedUser,
     existing: ClinicRow,
@@ -267,8 +248,6 @@ export class ClinicsService implements OnModuleInit {
       await this.discardSource(key);
     }
 
-    // An app icon arriving over a logo leaves the logo in place but retires the set rendered from
-    // it, which nothing above would have swept up.
     if (!unchanged && before !== null && !replaced.includes(before)) {
       await this.discardIcons(before);
     }
@@ -276,7 +255,6 @@ export class ClinicsService implements OnModuleInit {
     return this.withLogoUrl(row);
   }
 
-  /** Slots under the current source, so re-rendering is the same call whichever picture changed. */
   async presignIcons(actor: AuthenticatedUser): Promise<PresignClinicIconsResponse> {
     const row = await this.findOwnOrFail(actor.clinicId);
     const source = iconSource(row);
@@ -346,8 +324,6 @@ export class ClinicsService implements OnModuleInit {
     return this.withLogoUrl(row);
   }
 
-  // Size and type are read back from storage rather than trusted, and anything outside the limits
-  // is deleted instead of pointed at.
   private async verifyUploadedImage(key: string, clinicId: string): Promise<void> {
     if (!this.storage.isClinicKeyOwnedBy(key, clinicId, LOGO_CATEGORY)) {
       throw new BadRequestException("This key does not belong to this clinic");
@@ -369,8 +345,6 @@ export class ClinicsService implements OnModuleInit {
     }
   }
 
-  // All or nothing, and a logo may arrive with none: a browser that generated no icons still gets
-  // its logo and falls back to the product mark, but half a set is a failure the admin should see.
   private async inspectIcons(logoKey: string): Promise<"complete" | "none" | "partial"> {
     const stored = await Promise.all(
       CLINIC_ICONS.map(async (icon) => {
@@ -426,8 +400,6 @@ export class ClinicsService implements OnModuleInit {
     return row;
   }
 
-  // The stored key never leaves the API; the client gets a signed URL that is stable for a window,
-  // so the rail's logo is a cache hit on every page after the first.
   private async withLogoUrl(row: ClinicRow): Promise<Clinic> {
     const [logoUrl, appIconUrl] = await Promise.all([
       this.signLogo(row.logoKey),

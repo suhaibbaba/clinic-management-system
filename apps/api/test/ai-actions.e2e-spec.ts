@@ -26,7 +26,6 @@ import { PermissionsService } from "@api/permissions/permissions.service";
 import { createPatient, seedClinicFixtures, nameParts } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
-/** A Monday, the only day the test clinic and its doctor work, far enough out to stay bookable. */
 function monday(weeksAhead: number): string {
   const day = new Date();
   day.setUTCDate(day.getUTCDate() + ((8 - day.getUTCDay()) % 7 || 7) + weeksAhead * 7);
@@ -280,7 +279,6 @@ describe("Assistant actions (e2e)", () => {
 
       const id = result?.proposal_id ?? "";
 
-      // Somebody else's card is a 404, whoever they are.
       expect((await confirm(id, undefined, USER_ROLE.DOCTOR)).statusCode).toBe(404);
 
       const first = await confirm(id);
@@ -297,7 +295,6 @@ describe("Assistant actions (e2e)", () => {
       expect(second.json()).toMatchObject({ message: AI_OUTBOUND_ERROR.NOT_PENDING });
     });
 
-    // The reloaded thread draws the card the tool calls for, not a message's.
     it("serves the stored row with the tool that drafted it", async () => {
       const receptionist = actor(USER_ROLE.RECEPTIONIST);
       const conversations = context.app.get(AiConversationsService);
@@ -381,7 +378,6 @@ describe("Assistant actions (e2e)", () => {
     });
   });
 
-  // Each one is a question for the user, returned before any proposal exists.
   describe("sanity checks", () => {
     it("stops a payment above three times what the patient owes", async () => {
       const before = await proposalCount();
@@ -430,7 +426,6 @@ describe("Assistant actions (e2e)", () => {
         acknowledge: [AI_ACTION_CHECK.LARGE_CANCELLATION],
       });
 
-      // Two is more than the default of one.
       expect(drafted.result).toMatchObject({ tier: "typed" });
     });
 

@@ -5,7 +5,6 @@ import { cn } from "@ui/lib/cn";
 import { testid, type TestIdProps } from "@ui/lib/testid";
 
 interface FluidSizing {
-  /** CSS `aspect-ratio`, e.g. `"4/3"`. The box takes its width from the layout. */
   readonly aspectRatio: string;
   readonly width?: never;
   readonly height?: never;
@@ -21,13 +20,9 @@ interface ImgBase extends TestIdProps {
   readonly src: string | null | undefined;
   readonly alt: string;
   readonly className?: string | undefined;
-  /** `cover` crops to fill the reserved box; `contain` fits inside it. */
   readonly fit?: "cover" | "contain" | undefined;
-  /** Above the fold: eager and high priority, for the logo and nothing routine. */
   readonly priority?: boolean | undefined;
-  /** Drawn in the reserved box instead of the broken-image mark, at the same size. */
   readonly fallback?: ReactNode | undefined;
-  /** Names this box for a product's own CSS — see the package README. */
   readonly "data-part"?: string | undefined;
 }
 

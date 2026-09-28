@@ -33,7 +33,6 @@ export class MedicalHistoriesService implements OnModuleInit {
     });
   }
 
-  /** Returns an empty record rather than 404: every patient conceptually has a history. */
   async get(actor: AuthenticatedUser, patientId: string): Promise<MedicalHistory> {
     await this.patientAccess.requirePatientId(actor, patientId);
     const row = await this.findRow(actor.clinicId, patientId);
@@ -41,8 +40,6 @@ export class MedicalHistoriesService implements OnModuleInit {
     return row ? toMedicalHistory(row) : emptyHistory(actor.clinicId, patientId);
   }
 
-  // ROLES.md permits a technician the allergy flag for safety and nothing else — no conditions,
-  // medications, notes or pregnancy status.
   async allergyFlags(actor: AuthenticatedUser, patientId: string): Promise<AllergyFlags> {
     await this.patientAccess.requirePatientId(actor, patientId);
 
@@ -62,7 +59,6 @@ export class MedicalHistoriesService implements OnModuleInit {
     return { patientId, hasAllergies: allergies.length > 0, allergies };
   }
 
-  /** Upsert: the 1:1 row is created on first write. */
   async update(
     actor: AuthenticatedUser,
     patientId: string,

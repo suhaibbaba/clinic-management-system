@@ -20,15 +20,12 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
         {...testid(testId)}
         type={revealed ? "text" : "password"}
         {...props}
-        // After the spread: a caller's `suffix` must not replace the only way to read the field.
         {...(!disabled && {
           suffix: (
             <button
               type="button"
               data-part="password-reveal"
               {...testid(testId, "reveal")}
-              // Never submits the form it sits in, and never lands in the tab order between the
-              // field and the button somebody is heading for.
               tabIndex={-1}
               aria-pressed={revealed}
               aria-label={t(revealed ? "common.hidePassword" : "common.showPassword")}

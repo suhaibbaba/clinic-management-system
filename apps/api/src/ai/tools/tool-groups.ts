@@ -1,6 +1,5 @@
 import { AI_TOOL, type AiToolName } from "@clinic/shared";
 
-/** What each group is for, in one line: the prompt lists these before anything is loaded. */
 export const TOOL_GROUPS = {
   appointments: "booking, moving, cancelling and confirming appointments; free times",
   patients: "registering patients and adding notes to their file",
@@ -15,10 +14,8 @@ export type ToolGroup = keyof typeof TOOL_GROUPS;
 
 export const TOOL_GROUP_NAMES = Object.keys(TOOL_GROUPS) as [ToolGroup, ...ToolGroup[]];
 
-/** Sent on every request; everything else waits for `load_tools`. */
 export const CORE = "core";
 
-// One entry per tool, so a new tool is a type error here until it is placed.
 export const TOOL_GROUP: Record<AiToolName, ToolGroup | typeof CORE> = {
   [AI_TOOL.SEARCH_PATIENTS]: CORE,
   [AI_TOOL.GET_APPOINTMENTS]: CORE,
@@ -61,7 +58,6 @@ export const TOOL_GROUP: Record<AiToolName, ToolGroup | typeof CORE> = {
   [AI_TOOL.GET_FINANCIAL_SUMMARY]: "reports",
 };
 
-/** The groups' one-liners, stable for the prompt cache. */
 export function groupCatalogue(): string {
   return TOOL_GROUP_NAMES.map((group) => `${group} — ${TOOL_GROUPS[group]}`).join("\n");
 }

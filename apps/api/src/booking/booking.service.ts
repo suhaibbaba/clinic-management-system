@@ -54,7 +54,6 @@ import { StorageService } from "@api/storage/storage.service";
 const OTP_TTL_SECONDS = 5 * 60;
 const OTP_MAX_ATTEMPTS = 3;
 
-/** Postgres raises this when the overlap constraint rejects a row. */
 const EXCLUSION_VIOLATION = "23P01";
 
 const isOverlapConflict = (error: unknown): boolean => {
@@ -73,8 +72,6 @@ const isOverlapConflict = (error: unknown): boolean => {
   return false;
 };
 
-/** Digits only, so `0931 000 001` and `+963931000001` are not two people. */
-// Matched on digits alone, so a stored `+970 59…` and a typed `+97059…` are the same person.
 const phoneDigits = (phone: string): string => phone.replaceAll(/[^\d]/g, "");
 
 interface ClinicContext {
@@ -87,8 +84,6 @@ interface ClinicContext {
   readonly booking: BookingSettings;
 }
 
-// Nothing in a response may differ between a phone the clinic knows and one it has never seen —
-// otherwise a stranger walks a phone book and learns who is a patient here.
 @Injectable()
 export class BookingService {
   constructor(
@@ -117,7 +112,6 @@ export class BookingService {
     };
   }
 
-  /** Name and specialty. Not the weekly schedule — that is how the clinic runs. */
   async doctors(slug: string): Promise<PublicDoctor[]> {
     const clinic = await this.requireBookingEnabled(slug);
 
@@ -148,7 +142,6 @@ export class BookingService {
     }));
   }
 
-  /** Only bookable slots: a taken one on a public page says someone else has an appointment at ten. */
   async slots(slug: string, query: PublicSlotsQuery): Promise<PublicSlots> {
     const clinic = await this.requireBookingEnabled(slug);
     this.requireWithinWindow(clinic, `${query.date}T00:00:00.000Z`, { dateOnly: true });
@@ -187,8 +180,6 @@ export class BookingService {
 
     const open = await this.waitingList.openUrgentCount(clinic.id, phoneDigits(phone));
 
-    // Same cap as a booking, and the same wording: a stranger must not learn
-    // that it is their own number being limited.
     if (open >= clinic.booking.maxActivePerPhone) {
       throw new ForbiddenException("Booking is not available right now");
     }
@@ -393,8 +384,6 @@ export class BookingService {
     patientId: string,
     phone: string,
   ): Promise<void> {
-    // `randomInt` rather than `Math.random`: this is a credential, and a
-    // predictable one is no credential at all.
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
 
     await this.db.delete(bookingOtps).where(eq(bookingOtps.appointmentId, appointmentId));
@@ -420,8 +409,6 @@ export class BookingService {
     });
   }
 
-  // A known number is linked, an unknown one gets a minimal unverified record — and the response is
-  // identical, which is where enumeration would leak if it leaked anywhere.
   private async linkOrCreatePatient(
     clinicId: string,
     phone: string,
@@ -454,8 +441,6 @@ export class BookingService {
         lastName: name.lastName,
         fullName: joinPatientName(name),
         phone,
-        // No `created_by`: nobody on staff created this record, and attributing
-        // it to one would be a lie in the audit trail.
         notes: "أُنشئ من الحجز الإلكتروني — لم يُتحقق من الهوية بعد",
       })
       .returning({ id: patients.id });
@@ -476,8 +461,6 @@ export class BookingService {
     return String((row?.value ?? 0) + 1).padStart(5, "0");
   }
 
-  // Anti-abuse, worded exactly like a closed booking page: a stranger must not learn that this
-  // number is the one being limited.
   private async requireUnderActiveLimit(clinic: ClinicContext, phone: string): Promise<void> {
     const [row] = await this.db
       .select({ value: count() })
@@ -502,8 +485,6 @@ export class BookingService {
     return new Date(Date.now() + clinic.booking.minHoursBefore * 3_600_000);
   }
 
-  // Too soon and reception never sees it; too far and one stranger fills next spring. `dateOnly`
-  // relaxes the near end for the whole-day slots endpoint.
   private requireWithinWindow(
     clinic: ClinicContext,
     startsAt: string,
@@ -586,8 +567,6 @@ export class BookingService {
       .limit(1);
 
     if (!row) {
-      // Same exception a bad signature raises: a valid token for a deleted
-      // booking must not be distinguishable from a forged one.
       throw new UnauthorizedException("Invalid booking link");
     }
 
@@ -618,8 +597,6 @@ export class BookingService {
       throw new UnauthorizedException("Invalid booking link");
     }
 
-    // A cancelled booking's link is spent. Re-using it must not resurrect the
-    // appointment, and must not report anything about it either.
     if (!occupiesSlot(row.status) || row.status === APPOINTMENT_STATUS.COMPLETED) {
       throw new BadRequestException("This booking can no longer be changed");
     }
@@ -709,8 +686,6 @@ export class BookingService {
   }
 }
 
-// A digest, not argon2: the code is CSPRNG output and the three-attempt limit stops online
-// guessing. What matters is that the column never holds the code itself.
 export const hashCode = (code: string): string => createHash("sha256").update(code).digest("hex");
 
 function timeIn(timeZone: string, at: Date): string {

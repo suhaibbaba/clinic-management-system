@@ -5,8 +5,6 @@ interface Executor {
   execute(query: SQL): Promise<{ readonly length: number }>;
 }
 
-// The row half of the enums-to-lookups migration, keyed by the same codes the columns already held.
-// Idempotent on `(clinic_id, list_key, code)`; only `is_system` is forced.
 export async function ensureSystemLookups(db: Executor, clinicId?: string): Promise<number> {
   const rows = LOOKUP_LIST_KEYS.flatMap((listKey) =>
     SYSTEM_LOOKUPS[listKey].map((row, index) => ({
@@ -22,8 +20,6 @@ export async function ensureSystemLookups(db: Executor, clinicId?: string): Prom
 
   const values = sql.join(
     rows.map(
-      // Every column is cast: a `values` list is typed by its first row, a bare parameter arrives
-      // as text, and a `null` colour has no type at all.
       (row) => sql`(
         ${row.listKey}::text, ${row.code}::text, ${row.nameAr}::text, ${row.nameEn}::text,
         ${row.color}::text, ${row.sortOrder}::integer, ${row.meta}::jsonb
@@ -34,8 +30,6 @@ export async function ensureSystemLookups(db: Executor, clinicId?: string): Prom
 
   const scope = clinicId ? sql`where c.id = ${clinicId}` : sql``;
 
-  // One cross-join statement rather than a loop that can half-fail; `do update` touches only the
-  // system flag, so a renamed option survives the next deploy.
   const result = await db.execute(sql`
     insert into lookup_options
       (clinic_id, list_key, code, name_ar, name_en, color, sort_order, is_system, meta)

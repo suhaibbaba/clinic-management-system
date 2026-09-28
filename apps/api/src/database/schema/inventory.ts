@@ -25,15 +25,10 @@ const auditColumns = {
 
 const softDeleteColumn = { deletedAt: timestamp("deleted_at", { withTimezone: true }) };
 
-/** Money is `numeric(10, 2)`, read and written as a string — never a float. */
 const money = (name: string) => numeric(name, { precision: 10, scale: 2 });
 
-// Three decimals because half the units are continuous — 2.5 ml of anaesthetic is an ordinary
-// movement, and a float drifts over a few hundred of them.
 const quantity = (name: string) => numeric(name, { precision: 12, scale: 3 });
 
-// Soft-deleted because purchases point at them: a statement whose lines lose their supplier's name
-// is unreadable. `is_active` keeps one out of the pickers.
 export const suppliers = pgTable(
   "suppliers",
   {
@@ -53,8 +48,6 @@ export const suppliers = pgTable(
   (table) => [index("suppliers_clinic_idx").on(table.clinicId, table.name)],
 );
 
-// No quantity column: what is on the shelf is `sum(quantity)` over the movements. `unit` never
-// changes, or every movement already recorded is reinterpreted.
 export const inventoryItems = pgTable(
   "inventory_items",
   {
@@ -63,11 +56,9 @@ export const inventoryItems = pgTable(
       .notNull()
       .references(() => clinics.id),
     name: text("name").notNull(),
-    /** `item_category` and `item_unit` lookup codes, editable per clinic. */
     category: text("category").notNull(),
     unit: text("unit").notNull(),
     minQuantity: quantity("min_quantity").notNull().default("0"),
-    /** Who this is normally bought from — prefilled on a purchase, never forced. */
     defaultSupplierId: uuid("default_supplier_id").references(() => suppliers.id),
     notes: text("notes"),
     isActive: boolean("is_active").notNull().default(true),
@@ -80,8 +71,6 @@ export const inventoryItems = pgTable(
   ],
 );
 
-// Append-only; the sign carries the meaning and the service refuses one that disagrees with its
-// type. `patient_id` is nullable because most stock is used on nobody in particular.
 export const stockMovements = pgTable(
   "stock_movements",
   {
@@ -93,11 +82,8 @@ export const stockMovements = pgTable(
       .notNull()
       .references(() => inventoryItems.id),
     type: movementTypeEnum("type").notNull(),
-    /** Signed. The item's quantity is the sum of this column. */
     quantity: quantity("quantity").notNull(),
-    /** What one unit cost. Purchases only — it is what a statement totals. */
     unitPrice: money("unit_price"),
-    /** A plain date: a batch goes off on a day, not at an instant. */
     expiryDate: date("expiry_date"),
     batchNo: text("batch_no"),
     supplierId: uuid("supplier_id").references(() => suppliers.id),
@@ -114,9 +100,7 @@ export const stockMovements = pgTable(
     index("stock_movements_supplier_idx").on(table.clinicId, table.supplierId, table.createdAt),
     index("stock_movements_patient_idx").on(table.clinicId, table.patientId),
     index("stock_movements_procedure_idx").on(table.performedProcedureId),
-    /** The batch view: purchases with an expiry, oldest first. */
     index("stock_movements_expiry_idx").on(table.clinicId, table.itemId, table.expiryDate),
-    /** Finding the reversal that cancelled an entry, and refusing a second one. */
     index("stock_movements_reverses_idx").on(table.reversesId),
   ],
 );

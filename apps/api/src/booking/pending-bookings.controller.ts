@@ -21,8 +21,6 @@ class IdParamDto extends createZodDto(z.object({ id: uuidSchema })) {}
 const rejectBookingSchema = z.object({ reason: z.string().trim().min(3).max(300) });
 class RejectBookingDto extends createZodDto(rejectBookingSchema) {}
 
-// `requested` is itself the marker for "came from the public page" — reception's own bookings start
-// `confirmed`, so no extra column is needed.
 @Controller("appointments/pending-confirmation")
 @Roles(USER_ROLE.RECEPTIONIST)
 export class PendingBookingsController {

@@ -39,8 +39,6 @@ class ListClinicClosuresQueryDto extends createZodDto(listClinicClosuresQuerySch
 class ConflictOptionsDto extends createZodDto(scheduleConflictOptionsSchema) {}
 class IdParamDto extends createZodDto(idParamSchema) {}
 
-// Reading is open: a receptionist who cannot see Tuesday is shut will book into it. `force` and
-// `cancelAppointments` are query parameters — they answer a 409, they are not the closure.
 @Controller("clinic-closures")
 export class ClinicClosuresController {
   constructor(private readonly closures: ClinicClosuresService) {}

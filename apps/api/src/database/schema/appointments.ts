@@ -25,8 +25,6 @@ const softDeleteColumn = {
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 };
 
-// The end is not a column — `starts_at` plus `duration_minutes`. Overlap is prevented by the `gist`
-// exclusion constraint, the only thing that holds under concurrency.
 export const appointments = pgTable(
   "appointments",
   {
@@ -42,14 +40,11 @@ export const appointments = pgTable(
       .references(() => doctors.id),
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
     durationMinutes: integer("duration_minutes").notNull().default(30),
-    // An `appointment_type` lookup code, not an enum — a clinic adds one without a migration. The
-    // status beside it stays an enum: it drives the transition table.
     type: text("type").notNull().default("checkup"),
     status: appointmentStatusEnum("status").notNull().default("confirmed"),
     reason: text("reason"),
     notes: text("notes"),
     visitId: uuid("visit_id").references(() => visits.id),
-    /** Required when the status becomes `cancelled`, enforced in the service. */
     cancelledReason: text("cancelled_reason"),
     ...auditColumns,
     ...softDeleteColumn,
@@ -72,14 +67,10 @@ export const waitingList = pgTable(
     patientId: uuid("patient_id")
       .notNull()
       .references(() => patients.id),
-    /** Null when any doctor will do, which is most walk-ins. */
     doctorId: uuid("doctor_id").references(() => doctors.id),
-    /** The complaint. One field, whether reception typed it or the patient did. */
     reason: text("reason"),
     priority: waitingListPriorityEnum("priority").notNull().default("normal"),
     source: waitingListSourceEnum("source").notNull().default("reception"),
-    // A state machine rather than an editable list, so `resolved_at` is the consequence of reaching
-    // a terminal status rather than a second, separate truth.
     status: waitingListStatusEnum("status").notNull().default("pending"),
     declinedReason: text("declined_reason"),
     resolvedAt: timestamp("resolved_at", { withTimezone: true }),
@@ -89,11 +80,9 @@ export const waitingList = pgTable(
   },
   (table) => [
     index("waiting_list_clinic_idx").on(table.clinicId),
-    /** The panel reads the open queue; resolved rows are history. */
     index("waiting_list_open_idx")
       .on(table.clinicId, table.priority, table.createdAt)
       .where(sql`resolved_at is null and deleted_at is null`),
-    /** The badge counts what arrived online and nobody has answered. */
     index("waiting_list_source_status_idx").on(table.clinicId, table.source, table.status),
   ],
 );

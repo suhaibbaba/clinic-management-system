@@ -73,7 +73,6 @@ export interface ItemSeed {
   readonly unit: string;
   readonly minQuantity: string;
   readonly unitPrice: string;
-  /** Batches carry an expiry; a handpiece does not. */
   readonly perishable: boolean;
   readonly supplier: number;
 }

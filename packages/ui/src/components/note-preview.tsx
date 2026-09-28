@@ -7,15 +7,12 @@ import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 
 export interface NotePreviewProps extends TestIdProps {
   readonly text: string;
-  /** A key naming whose note it is, e.g. `treatmentPlans.notesOf` with the plan's title. */
   readonly title: string;
   readonly titleValues?: Record<string, string | number> | undefined;
-  /** `meta` inside a row whose own lines are meta-sized. */
   readonly size?: "value" | "meta" | undefined;
   readonly className?: string | undefined;
 }
 
-/** One line of a note; the rest opens in a dialog, so a long note never stretches its card. */
 export function NotePreview({
   text,
   title,
@@ -56,7 +53,6 @@ export function NotePreview({
         {...part("text")}
         className={cn(
           "min-w-0 flex-1 truncate text-ink-muted [unicode-bidi:plaintext]",
-          // Plaintext bidi would otherwise push an Arabic note to the far edge on an English page.
           "page-rtl:text-right page-ltr:text-left",
           size === "meta" ? "text-meta" : "text-value",
         )}

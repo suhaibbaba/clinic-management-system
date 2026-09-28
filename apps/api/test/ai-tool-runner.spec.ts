@@ -40,7 +40,6 @@ function harness(
         return Promise.resolve();
       },
     }),
-    // The clinic's time zone, read to localise results: none stored, so the default.
     select: () => ({
       from: () => ({ where: () => ({ limit: () => Promise.resolve([]) }) }),
     }),
@@ -129,7 +128,6 @@ describe("running a tool the model asked for", () => {
     ]);
   });
 
-  // The page draws the table; the model reads the result and nothing of the view.
   it("hands the view to the page and keeps it out of what the model reads", async () => {
     const view = {
       type: "stats" as const,
@@ -285,8 +283,6 @@ describe("running a tool the model asked for", () => {
     }
   });
 
-  // A renamed controller would turn a tool's capability into one nobody holds, locking the
-  // assistant out of it silently.
   it("refuses to boot when a tool names a capability no endpoint declares", () => {
     const { runner } = harness([echoTool("billing.renamed")], { knownCapabilities: [CAPABILITY] });
 

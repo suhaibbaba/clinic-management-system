@@ -14,8 +14,6 @@ import { StorageService } from "@api/storage/storage.service";
 
 type AttachmentRow = typeof labOrderAttachments.$inferSelect;
 
-// The key is built from the clinic and order, never taken from the client, and never leaves. It
-// lives under the patient's prefix — it is a picture of their mouth.
 @Injectable()
 export class LabOrderAttachmentsService {
   constructor(
@@ -66,8 +64,6 @@ export class LabOrderAttachmentsService {
     };
   }
 
-  // Size and type come back from storage, so a client cannot understate a file it has already put
-  // there; anything outside the limits is deleted.
   async confirm(
     actor: AuthenticatedUser,
     orderId: string,
@@ -136,7 +132,6 @@ export class LabOrderAttachmentsService {
       .where(and(eq(labOrderAttachments.id, id), eq(labOrderAttachments.labOrderId, orderId)));
   }
 
-  /** The key stays server-side; what goes out is a URL that expires. */
   private async withUrl(row: AttachmentRow): Promise<LabOrderAttachment> {
     const download = await this.storage.createDownloadUrl(row.r2Key, row.filename);
 

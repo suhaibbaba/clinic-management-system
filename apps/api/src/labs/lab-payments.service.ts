@@ -30,8 +30,6 @@ type PaymentRow = typeof labPayments.$inferSelect;
 
 export const LAB_PAYMENTS_ENTITY = "lab_payments";
 
-// Append-only, so the balance is a plain `sum()` and a reversal falls out of it. Technician
-// creates; admin creates and reverses, reversal being the one that makes money come back.
 @Injectable()
 export class LabPaymentsService implements OnModuleInit {
   constructor(
@@ -83,7 +81,6 @@ export class LabPaymentsService implements OnModuleInit {
 
   async create(actor: AuthenticatedUser, input: CreateLabPaymentInput): Promise<LabPayment> {
     await this.labsService.requireRow(actor.clinicId, input.labId);
-    // Only codes on this clinic's own list — the schema cannot know them.
     await this.lookups.assertCode(actor.clinicId, LOOKUP_LIST.PAYMENT_METHOD, input.method);
 
     const [row] = await this.db
@@ -107,8 +104,6 @@ export class LabPaymentsService implements OnModuleInit {
     return toLabPayment(row);
   }
 
-  // The original keeps only a `reversed_at` back-pointer, so both rows stay on the statement. `for
-  // update` stops two admins reversing the same payment twice.
   async reverse(
     actor: AuthenticatedUser,
     id: string,
@@ -195,5 +190,4 @@ export function toLabPayment(row: PaymentRow): LabPayment {
   };
 }
 
-/** Through minor units, never a float. */
 const negate = (amount: Money): Money => formatMinorUnits(-toMinorUnits(amount));

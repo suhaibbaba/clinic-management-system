@@ -11,8 +11,6 @@ import {
 
 const FONT_DIR = join(__dirname, "fonts");
 
-// Tajawal is the web app's face, so a printed page reads like the screen. Alef only fills the few
-// glyphs Tajawal lacks — the shekel sign among them.
 const FONTS = {
   regular: "Tajawal-Regular.ttf",
   medium: "Tajawal-Medium.ttf",
@@ -21,8 +19,6 @@ const FONTS = {
   fallbackBold: "Alef-Bold.ttf",
 } as const;
 
-// fontkit shapes the Arabic from the font's own tables. `liga` off: a Latin "fi" drawn as one glyph
-// copies out of the PDF as a character nobody typed.
 const EMBED_OPTIONS = { subset: true, features: { liga: false } } as const;
 
 export type Weight = "regular" | "medium" | "bold";
@@ -38,7 +34,6 @@ export const ACCENT_BAND: Colour = [0.918, 0.941, 0.957];
 export const A4 = { width: 595.28, height: 841.89 } as const;
 export const MARGIN = 42;
 
-/** A table cell: its line, and an optional muted line under it. */
 export interface Cell {
   readonly text: string;
   readonly sub?: string | undefined;
@@ -49,9 +44,7 @@ export interface Cell {
 export interface Column {
   readonly width: number;
   readonly header: string;
-  /** Numbers read better left-aligned even on an RTL sheet. */
   readonly align?: "start" | "end";
-  /** A column of figures, dates or codes: drawn left to right on either sheet. */
   readonly ltr?: boolean;
 }
 
@@ -87,8 +80,6 @@ export class RtlPdf {
     private readonly fonts: Fonts,
     private page: PDFPage,
     private cursor: number,
-    // Every position is expressed against `start`/`end` rather than left and right, so one flag
-    // turns the whole document round.
     private readonly pageDir: TextDirection,
     private readonly margin: number,
   ) {
@@ -148,7 +139,6 @@ export class RtlPdf {
     return this.right - this.left;
   }
 
-  /** Where a box of `width` sits against the start edge, or the end edge. */
   private xFor(
     width: number,
     align: "start" | "end" | "centre",
@@ -182,7 +172,6 @@ export class RtlPdf {
     return set.has(codePoint);
   }
 
-  /** A run split where the face lacks a glyph, in the order the pieces sit on the page. */
   private pieces(
     text: string,
     weight: Weight,
@@ -211,8 +200,6 @@ export class RtlPdf {
         continue;
       }
 
-      // fontkit reverses an Arabic run within one draw, not across two fonts, and not a piece
-      // with no Arabic in it — a bracket left alone beside the fallback's shekel sign.
       for (const segment of segments.reverse()) {
         out.push(
           hasRtlLetters(segment.text)
@@ -256,7 +243,6 @@ export class RtlPdf {
     return x - options.x;
   }
 
-  /** Word-wrapped lines no wider than `max`; the last one ends in an ellipsis if text is left over. */
   wrap(text: string, max: number, options: TextOptions & { lines?: number }): string[] {
     const limit = options.lines ?? Number.POSITIVE_INFINITY;
     const fits = (line: string): boolean =>
@@ -351,7 +337,6 @@ export class RtlPdf {
     this.cursor -= amount;
   }
 
-  /** Starts a new page when fewer than `height` points are left above the footer. */
   ensure(height: number, onBreak?: () => void): void {
     if (this.cursor - height >= this.margin + 18) {
       return;
@@ -372,14 +357,12 @@ export class RtlPdf {
         return await this.doc.embedJpg(bytes);
       }
     } catch {
-      // A file that says PNG and is not: same outcome as an unsupported type.
       return undefined;
     }
 
     return undefined;
   }
 
-  /** False when the bytes are not something pdf-lib can embed; the sheet then carries the name alone. */
   async image(bytes: Buffer, mime: string, size = 34): Promise<boolean> {
     const embedded = await this.embedImage(bytes, mime);
 
@@ -399,10 +382,6 @@ export class RtlPdf {
     return true;
   }
 
-  /**
-   * The clinic's mark and name at the start edge, the document's title at the end, a rule under
-   * both. `subtitle` is the title's second line — a receipt's number, a period.
-   */
   async letterhead(options: {
     name: string;
     address: string;
@@ -448,8 +427,6 @@ export class RtlPdf {
       y -= 18;
     }
 
-    // The address reads in the sheet's direction and the phone left to right, so each is its own
-    // line: joined, the bidi algorithm drops the number into the middle of an Arabic street.
     const contact: { text: string; dir: TextDirection }[] = [
       ...(options.address ? [{ text: options.address, dir: this.pageDir }] : []),
       ...(options.phone ? [{ text: options.phone, dir: "ltr" as const }] : []),
@@ -544,7 +521,6 @@ export class RtlPdf {
     this.cursor -= 2;
   }
 
-  /** Label over value, in a shaded block: the header of a statement or a receipt. */
   infoGrid(pairs: readonly InfoPair[], columns = 2): void {
     const pad = 12;
     const rowHeight = 34;
@@ -609,7 +585,6 @@ export class RtlPdf {
     const total = columns.reduce((sum, column) => sum + column.width, 0);
     const widths = columns.map((column) => (column.width / total) * this.width);
 
-    // Each column's span, from the start edge.
     const spans = widths.map((width, index) => {
       const before = widths.slice(0, index).reduce((sum, value) => sum + value, 0);
       return this.pageDir === "rtl"
@@ -719,7 +694,6 @@ export class RtlPdf {
     this.cursor -= 10;
   }
 
-  /** Totals against the end edge, the last one emphasised: a statement's closing figures. */
   totals(lines: readonly { label: string; value: string; strong?: boolean }[]): void {
     const width = Math.min(250, this.width);
     const from = this.pageDir === "rtl" ? this.left : this.right - width;
@@ -767,7 +741,6 @@ export class RtlPdf {
     this.cursor -= 8;
   }
 
-  /** The figure a receipt is for, large, in a band of its own. */
   amount(label: string, value: string, note?: string): void {
     const height = 54;
     this.ensure(height + 8);
@@ -813,16 +786,13 @@ export class RtlPdf {
     this.cursor -= height + 14;
   }
 
-  /** A line to sign on for each label, spread across the width. */
   signatures(labels: readonly string[]): void {
     const gap = 24;
-    // A line to sign on, not a rule across the page: no wider than a signature needs.
     const width = Math.min(220, (this.width - gap * (labels.length - 1)) / labels.length);
     this.ensure(44);
     const y = this.cursor - 26;
 
     labels.forEach((label, index) => {
-      // The first at the start edge, the last at the end, the rest spaced between.
       const step = labels.length > 1 ? (this.width - width) / (labels.length - 1) : 0;
       const from =
         this.pageDir === "rtl" ? this.right - width - index * step : this.left + index * step;
@@ -844,12 +814,10 @@ export class RtlPdf {
     this.cursor = y - 22;
   }
 
-  /** What the viewer's tab and title bar show, instead of the blob's random name. */
   title(value: string): void {
     this.doc.setTitle(value.replace(/[\u2066-\u2069]/gu, ""), { showInWindowTitleBar: true });
   }
 
-  /** Written on every page at save time, once the page count is known. */
   footer(label: (page: number, total: number) => string): void {
     this.footerLabel = label;
   }

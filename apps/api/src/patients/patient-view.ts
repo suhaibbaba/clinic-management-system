@@ -11,8 +11,6 @@ import { PatientAccessService } from "@api/patients/patient-access.service";
 
 export const PATIENTS_ENTITY = "patients";
 
-// Registered mid-flow and never finished — an appointment taken over the phone, an online booking.
-// Derived from the record rather than a column, so completing the file clears it by itself.
 const isProfileIncomplete = (row: PatientRow): boolean => missingProfileFields(row).length > 0;
 
 export function toClinicalView(row: PatientRow): PatientClinicalView {
@@ -59,7 +57,5 @@ export function toRoleView(row: PatientRow, role: UserRole, balance?: Money): Pa
     ? toClinicalView(row)
     : toPublicView(row);
 
-  // Absent rather than null for a technician: ROLES.md forbids financial
-  // patient data in their responses, and an explicit null is still a field.
   return balance === undefined ? view : { ...view, balance };
 }

@@ -3,9 +3,6 @@ import { sql } from "drizzle-orm";
 import { createPatient, uniquePhone, nameParts } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
-// A name is written down the way it was heard, so the search has to find it whichever way it was
-// typed. Both halves of that — the folding and the ranking — are asserted here, plus the fact that
-// the Postgres function and the TypeScript one still agree.
 describe("Arabic-aware search (e2e)", () => {
   let context: TestContext;
   let clinic: TestClinic;
@@ -16,7 +13,6 @@ describe("Arabic-aware search (e2e)", () => {
     fatima: "فاطمة عبد الرحمن",
     muhannad: "مهند سليم عودة",
     mahmoud: "محمود عودة",
-    /** Close enough to "محمود" to be a typo of it, and nothing like it as a substring. */
     muhammad: "محمد سليم",
   };
 
@@ -74,7 +70,6 @@ describe("Arabic-aware search (e2e)", () => {
     it("finds a taa marbuta written as a haa, and the other way round", async () => {
       expect(namesFrom(await search("فاطمه"))).toContain(names.fatima);
       expect(namesFrom(await search("فاطمة"))).toContain(names.fatima);
-      // The surname is the one reception actually files this way.
       expect(namesFrom(await search("محمود عوده"))).toContain(names.mahmoud);
     });
 
@@ -87,8 +82,6 @@ describe("Arabic-aware search (e2e)", () => {
     it("puts an exactly folded match above a fuzzy one", async () => {
       const items = namesFrom(await search("محمود"));
 
-      // Both are offered — the fuzzy one is a real possibility at the desk —
-      // but the name that was actually typed is not below a guess at it.
       expect(items).toContain(names.muhammad);
       expect(items.indexOf(names.mahmoud)).toBeLessThan(items.indexOf(names.muhammad));
     });
@@ -107,16 +100,12 @@ describe("Arabic-aware search (e2e)", () => {
     });
 
     it("does not fuzzy-match a phone number onto the wrong patient", async () => {
-      // A different last digit, not the digit 9: `uniquePhone` is random, and one run in ten ended
-      // with a 9 already, which made the "wrong" number the right one.
       const wrong = `${ahmadPhone.slice(0, -1)}${ahmadPhone.endsWith("9") ? "8" : "9"}`;
 
       expect(namesFrom(await search(wrong))).not.toContain(names.ahmad);
     });
   });
 
-  // The generated column is computed by Postgres and every query is folded in Node, so a change to
-  // one and not the other would silently stop matching.
   it("folds the same way in Postgres as it does in TypeScript", async () => {
     const cases = [
       "أحمد",
