@@ -32,6 +32,7 @@ export class QueryRefused extends Error {
 export interface GuardedQuery {
   readonly sql: string;
   readonly clinical: boolean;
+  readonly views: readonly string[];
 }
 
 const VIEWS = new Set(READ_VIEWS.map((view) => view.name));
@@ -100,19 +101,36 @@ export function guardQuery(sql: string): GuardedQuery {
     throw new QueryRefused(QUERY_REFUSAL.NOT_SELECT, statement.type);
   }
 
-  const ctes = new Set<string>();
+  let ctes = new Set<string>();
+  const views = new Set<string>();
   let clinical = false;
   let refusal: QueryRefused | undefined;
+
+  const scoped = (names: readonly string[], walkBody: () => void): void => {
+    const outer = ctes;
+    ctes = new Set(outer);
+    for (const name of names) {
+      ctes.add(name);
+    }
+    walkBody();
+    ctes = outer;
+  };
 
   const visitor = astVisitor((walk) => ({
     statement: (node) => {
       if (node.type === "with") {
-        for (const bound of node.bind) {
-          ctes.add(bound.alias.name);
-        }
+        scoped([], () => {
+          for (const bound of node.bind) {
+            visitor.statement(bound.statement);
+            ctes.add(bound.alias.name);
+          }
+          visitor.statement(node.in);
+        });
+        return;
       }
       if (node.type === "with recursive") {
-        ctes.add(node.alias.name);
+        scoped([node.alias.name], () => walk.super().statement(node));
+        return;
       }
       if (!isRead(node)) {
         refusal ??= new QueryRefused(QUERY_REFUSAL.NOT_SELECT, node.type);
@@ -136,6 +154,7 @@ export function guardQuery(sql: string): GuardedQuery {
       }
 
       clinical ||= CLINICAL_VIEWS.has(table.name);
+      views.add(table.name);
     },
     call: (call) => {
       const name = call.function.name.toLowerCase();
@@ -154,7 +173,7 @@ export function guardQuery(sql: string): GuardedQuery {
     throw refusal;
   }
 
-  return { sql: toSql.statement(clampLimit(statement)), clinical };
+  return { sql: toSql.statement(clampLimit(statement)), clinical, views: [...views] };
 }
 
 function isRead(statement: Statement): statement is SelectStatement {

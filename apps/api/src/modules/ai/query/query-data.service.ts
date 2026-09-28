@@ -1,4 +1,6 @@
 import { Inject, Injectable, type OnApplicationShutdown, type OnModuleInit } from "@nestjs/common";
+import { AppointmentAccessService } from "@api/modules/appointments/services/appointment-access.service";
+import { VIEW_CAPABILITIES } from "@api/modules/ai/query/catalogue";
 import { AI_TOOL_ERROR, USER_ROLE, type AiTableView, type AiToolError } from "@clinic/shared";
 import type { Sql } from "postgres";
 import {
@@ -40,6 +42,7 @@ export class QueryDataService implements OnModuleInit, OnApplicationShutdown {
     @Inject(AI_READ_CLIENT) private readonly client: Sql,
     private readonly permissions: PermissionsService,
     private readonly registry: CapabilityRegistry,
+    private readonly appointmentAccess: AppointmentAccessService,
   ) {}
 
   onModuleInit(): void {
@@ -57,6 +60,10 @@ export class QueryDataService implements OnModuleInit, OnApplicationShutdown {
   }
 
   async run(actor: AuthenticatedUser, sql: string): Promise<QueryResult> {
+    if (actor.role === USER_ROLE.VISITING_DOCTOR) {
+      throw new ToolRefusal(AI_TOOL_ERROR.QUERY_NOT_PERMITTED);
+    }
+
     let guarded: ReturnType<typeof guardQuery>;
 
     try {
@@ -75,11 +82,25 @@ export class QueryDataService implements OnModuleInit, OnApplicationShutdown {
       throw new ToolRefusal(AI_TOOL_ERROR.QUERY_CLINICAL_NOT_PERMITTED);
     }
 
+    for (const view of guarded.views) {
+      const capability = VIEW_CAPABILITIES.get(view);
+
+      if (
+        capability !== undefined &&
+        !(await this.permissions.allows(actor.clinicId, actor.role, capability))
+      ) {
+        throw new ToolRefusal(AI_TOOL_ERROR.QUERY_NOT_PERMITTED, [view]);
+      }
+    }
+
+    const ownDoctor = (await this.appointmentAccess.calendarScope(actor)) ?? "";
+
     try {
       const result = await this.client.begin("read only", async (tx) => {
         await tx`SET LOCAL ROLE ai_reader`;
         await tx.unsafe(`SET LOCAL statement_timeout = '${STATEMENT_TIMEOUT}'`);
         await tx`SELECT set_config('app.clinic_id', ${actor.clinicId}, true)`;
+        await tx`SELECT set_config('app.doctor_id', ${ownDoctor}, true)`;
 
         return tx.unsafe(guarded.sql);
       });

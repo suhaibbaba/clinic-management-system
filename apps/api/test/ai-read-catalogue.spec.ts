@@ -1,17 +1,17 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { READ_VIEWS, renderReadSchema } from "@api/modules/ai/query/catalogue";
+import { READ_VIEWS, renderReadSchemaReplacement } from "@api/modules/ai/query/catalogue";
 
-const MIGRATION = join(__dirname, "..", "drizzle", "0043_ai_read_views.sql");
-const SNAPSHOT = join(__dirname, "..", "drizzle", "meta", "0043_snapshot.json");
+const MIGRATION = join(__dirname, "..", "drizzle", "0047_ai_read_scoped.sql");
+const SNAPSHOT = join(__dirname, "..", "drizzle", "meta", "0047_snapshot.json");
 
 interface Snapshot {
   readonly tables: Record<string, { name: string; columns: Record<string, unknown> }>;
 }
 
 describe("the ai_read catalogue", () => {
-  it("is exactly the migration that creates it", () => {
-    const rendered = `${renderReadSchema()}\n`;
+  it("is exactly the latest migration that builds it", () => {
+    const rendered = `${renderReadSchemaReplacement()}\n`;
 
     if (process.env["WRITE_AI_READ"] === "1") {
       writeFileSync(MIGRATION, rendered);

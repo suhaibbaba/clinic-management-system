@@ -78,6 +78,26 @@ describe("what query_data will run", () => {
     ).toMatch(/LIMIT \(?200\)?/i);
   });
 
+  it("refuses a CTE that borrows a real table's name to read the table itself", () => {
+    expect(refusal("WITH patients AS (SELECT * FROM patients) SELECT * FROM patients")).toBe(
+      QUERY_REFUSAL.RELATION_NOT_ALLOWED,
+    );
+    expect(
+      refusal(
+        "SELECT * FROM (WITH pg_settings AS (SELECT 1 AS a) SELECT a FROM pg_settings) s, pg_settings",
+      ),
+    ).toBe(QUERY_REFUSAL.RELATION_NOT_ALLOWED);
+  });
+
+  it("names every view a query reads, so each can be held to its own permission", () => {
+    expect(
+      guardQuery(
+        "WITH paid AS (SELECT lab_id, sum(amount) AS total FROM ai_read.lab_payments GROUP BY lab_id) " +
+          "SELECT l.name, paid.total FROM ai_read.labs l JOIN paid ON paid.lab_id = l.id",
+      ).views,
+    ).toEqual(expect.arrayContaining(["lab_payments", "labs"]));
+  });
+
   it("refuses what it cannot parse", () => {
     expect(refusal("SELEC nonsense")).toBe(QUERY_REFUSAL.UNPARSEABLE);
   });

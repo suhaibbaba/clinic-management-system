@@ -330,6 +330,13 @@
       "when": 1790601999563,
       "tag": "0046_login_throttles",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1790604518383,
+      "tag": "0047_ai_read_scoped",
+      "breakpoints": true
     }
   ]
 }

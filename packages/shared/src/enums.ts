@@ -771,6 +771,7 @@ export const AI_TOOL_ERROR = {
   QUERY_RELATION_NOT_ALLOWED: "query_relation_not_allowed",
   QUERY_FUNCTION_NOT_ALLOWED: "query_function_not_allowed",
   QUERY_CLINICAL_NOT_PERMITTED: "query_clinical_not_permitted",
+  QUERY_NOT_PERMITTED: "query_not_permitted",
   QUERY_TIMEOUT: "query_timeout",
   QUERY_ERROR: "query_error",
   NOT_LOADED: "tool_not_loaded",
