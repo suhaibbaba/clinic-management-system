@@ -80,10 +80,6 @@ export function learnClinicOffset(startsAt: string, localLabel: string): void {
   clinicOffsetMinutes = offset;
 }
 
-export function resetClinicOffset(): void {
-  clinicOffsetMinutes = undefined;
-}
-
 const inClinicZone = (iso: string): Date => {
   const at = new Date(iso);
 

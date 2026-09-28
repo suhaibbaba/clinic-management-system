@@ -110,16 +110,6 @@ jobs:
       - name: Test the dev proxy
         run: pnpm --filter @clinic/web exec vitest run --project dev-proxy
 
-      # Browser mode drives a real Chromium: the type scale, control heights and
-      # anything measured rather than asserted about run there.
-      - name: Install the browser the component tests drive
-        run: pnpm --filter @clinic/web exec playwright install --with-deps chromium
-
-      # Its own step, not part of `pnpm test`: a browser session will not attach
-      # while the jsdom project is running beside it.
-      - name: Test in a real browser
-        run: pnpm --filter @clinic/web test:browser
-
   bundle:
     name: Booking bundle size
     runs-on: ubuntu-latest

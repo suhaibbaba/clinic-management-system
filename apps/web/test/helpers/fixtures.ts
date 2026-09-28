@@ -1,5 +1,4 @@
 import {
-  APPOINTMENT_STATUS,
   CHART_TYPE,
   LOOKUP_LIST_KEYS,
   SYSTEM_LOOKUPS,
@@ -9,7 +8,6 @@ import {
   PROCEDURE_OUTCOME,
   USER_ROLE,
   type AuthenticatedUserProfile,
-  type Attachment,
   type CalendarAppointment,
   type CalendarFeed,
   type DashboardSummary,
@@ -25,11 +23,9 @@ import {
   type LookupListKey,
   type LookupOption,
   type ToothHistory,
-  type TreatmentPlan,
   type TreatmentPlanItem,
   type User,
   type UserRole,
-  type Visit,
 } from "@clinic/shared";
 
 export const CLINIC_ID = "11111111-1111-4111-8111-111111111111";
@@ -345,23 +341,6 @@ export function makeToothHistory(
   };
 }
 
-export function makeVisit(overrides: Partial<Visit> = {}): Visit {
-  return {
-    id: "88888888-8888-4888-8888-888888888888",
-    clinicId: CLINIC_ID,
-    patientId: PATIENT_ID,
-    doctorId: DOCTOR_ID,
-    visitDate: "2026-02-01T09:00:00.000Z",
-    complaint: "ألم عند المضغ",
-    examination: "نخر عميق على السطح الإطباقي",
-    diagnosis: "التهاب لب سني عكوس",
-    notes: null,
-    createdAt: "2026-02-01T09:00:00.000Z",
-    updatedAt: "2026-02-01T09:00:00.000Z",
-    ...overrides,
-  };
-}
-
 export function makePlanItem(overrides: Partial<TreatmentPlanItem> = {}): TreatmentPlanItem {
   return {
     id: "99999999-9999-4999-8999-999999999999",
@@ -373,40 +352,6 @@ export function makePlanItem(overrides: Partial<TreatmentPlanItem> = {}): Treatm
     sortOrder: 0,
     status: "planned",
     notes: null,
-    createdAt: "2026-02-01T09:00:00.000Z",
-    updatedAt: "2026-02-01T09:00:00.000Z",
-    ...overrides,
-  };
-}
-
-export function makeTreatmentPlan(overrides: Partial<TreatmentPlan> = {}): TreatmentPlan {
-  return {
-    id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-    clinicId: CLINIC_ID,
-    patientId: PATIENT_ID,
-    doctorId: DOCTOR_ID,
-    title: "خطة معالجة لثوية",
-    status: "active",
-    notes: null,
-    createdAt: "2026-02-01T09:00:00.000Z",
-    updatedAt: "2026-02-01T09:00:00.000Z",
-    items: [makePlanItem()],
-    ...overrides,
-  };
-}
-
-export function makeAttachment(overrides: Partial<Attachment> = {}): Attachment {
-  return {
-    id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
-    clinicId: CLINIC_ID,
-    patientId: PATIENT_ID,
-    visitId: null,
-    type: "xray_periapical",
-    filename: "periapical-46.png",
-    mime: "image/png",
-    sizeBytes: 2048,
-    tooth: 46,
-    note: null,
     createdAt: "2026-02-01T09:00:00.000Z",
     updatedAt: "2026-02-01T09:00:00.000Z",
     ...overrides,
@@ -494,40 +439,6 @@ export function makePayment(overrides: Partial<Payment> = {}): Payment {
     reversesId: null,
     receivedBy: null,
     createdAt: "2026-09-01T10:00:00.000Z",
-    ...overrides,
-  };
-}
-
-export const APPOINTMENT_ID = "66666666-6666-4666-8666-666666666666";
-
-export function makeCalendarAppointment(
-  overrides: Partial<CalendarAppointment> = {},
-): CalendarAppointment {
-  const startsAt = overrides.startsAt ?? "2026-09-07T10:00:00.000Z";
-
-  return {
-    id: APPOINTMENT_ID,
-    clinicId: CLINIC_ID,
-    patientId: PATIENT_ID,
-    doctorId: DOCTOR_ID,
-    startsAt,
-    durationMinutes: 30,
-    endsAt: new Date(new Date(startsAt).getTime() + 30 * 60_000).toISOString(),
-    type: "checkup",
-    status: APPOINTMENT_STATUS.CONFIRMED,
-    reason: null,
-    notes: null,
-    visitId: null,
-    cancelledReason: null,
-    patientName: "أحمد خالد الحسن",
-    patientFirstName: "أحمد",
-    patientLastName: "الحسن",
-    patientPhone: "+963931000001",
-    patientFileNumber: "00001",
-    patientUnverified: false,
-    doctorName: { ar: "ليلى حداد", en: "Layla Haddad" },
-    createdAt: startsAt,
-    updatedAt: startsAt,
     ...overrides,
   };
 }

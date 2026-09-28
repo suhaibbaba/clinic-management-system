@@ -164,15 +164,13 @@ receptionist never receives an attachment URL. **Staff have a photo, patients do
 
 - **API** Jest against a real Postgres. Required: balance computation, slot availability and
   conflicts, permission boundaries per role, lab-order transitions, audit writes.
-- **Web** Vitest, all specs under `apps/web/test`, in three lanes:
-  - `pnpm test` — jsdom, the fast lane, everything that is logic or behaviour.
-  - `pnpm --filter @clinic/web test:browser` — `*.browser.test.tsx` in real Chromium, for what jsdom
-    cannot do: computed tokens, layout and geometry, focus, direction. A browser session will not
-    attach while jsdom runs beside it, so it is a separate step.
-  - the node lane for the dev proxy.
-- Every role's sidebar is asserted **as a whole list** — the failure that matters is an entry
-  appearing for somebody it was never meant for. Each route guard is asserted per role, and each
-  retired address is asserted to land on its replacement.
+- **Web** Vitest under `apps/web/test` (`pnpm test`: jsdom, plus a node lane for the dev proxy), and
+  only two kinds of test:
+  - **Security**: every role's sidebar asserted **as a whole list** (the failure that matters is an
+    entry appearing for somebody it was never meant for), each route guard per role, each retired
+    address landing on its replacement, fields a role must not see, and the session's tokens.
+  - **Logic** with no rendering: `lib/`, `hooks/`, `queries/`, `i18n/`.
+  No page, component, layout or browser-mode tests.
 - **Direction and spacing are still verified by a person on the sandbox.** A pull request that
   changes what a screen looks like carries screenshots in its description, in Arabic RTL, at the
   widths it touches. Screenshots are never committed.

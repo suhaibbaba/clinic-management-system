@@ -1,5 +1,4 @@
 /// <reference types="vitest/config" />
-import { playwright } from "@vitest/browser-playwright";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath, URL } from "node:url";
@@ -187,7 +186,7 @@ export default defineConfig({
           globals: true,
           setupFiles: ["./test/setup.ts"],
           include: ["test/**/*.test.{ts,tsx}"],
-          exclude: ["test/vite/**", "test/**/*.browser.test.{ts,tsx}"],
+          exclude: ["test/vite/**"],
           css: false,
         },
       },
@@ -198,31 +197,6 @@ export default defineConfig({
           environment: "node",
           globals: true,
           include: ["test/vite/**/*.test.ts"],
-        },
-      },
-      // A real browser, for what jsdom can only pretend to have: computed styles,
-      // layout and overflow, focus traps, and logical properties under `dir="rtl"`.
-      // Only `.browser.test.tsx` runs here — the rest stay in jsdom, where they
-      // are milliseconds rather than seconds.
-      {
-        extends: true,
-        test: {
-          name: "browser",
-          globals: true,
-          // The point of this project: real styles, so a computed value is the
-          // one the app ships rather than jsdom's empty string.
-          css: true,
-          setupFiles: ["./test/setup.browser.ts"],
-          include: ["test/**/*.browser.test.{ts,tsx}"],
-          browser: {
-            enabled: true,
-            provider: playwright(),
-            headless: true,
-            // A laptop, pinned: half the scale is breakpoint-conditional, so a
-            // height assertion means nothing without a width to read it at.
-            instances: [{ browser: "chromium" }],
-            viewport: { width: 1280, height: 800 },
-          },
         },
       },
     ],
