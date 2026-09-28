@@ -72,7 +72,7 @@ describe("Assistant lab and stock actions (e2e)", () => {
 
     patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
       ...nameParts("ليلى ناصر"),
-      phone: "0599000333",
+      phone: "+970599000333",
     });
 
     const lab = await context.app.inject({

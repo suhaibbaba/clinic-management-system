@@ -148,7 +148,7 @@ describe("Assistant schedule actions (e2e)", () => {
 
     patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
       ...nameParts("سمير خليل"),
-      phone: "0599000222",
+      phone: "+970599000222",
     });
   });
 

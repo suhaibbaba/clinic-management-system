@@ -146,7 +146,7 @@ describe("Deleting visits and procedures (e2e)", () => {
     const second = await newProcedure(patientId, visitId, 46);
     await pay(patientId, "60");
 
-    expect((await remove(`/visits/${visitId}`)).statusCode).toBe(409);
+    expect((await remove(`/visits/${visitId}`, USER_ROLE.ADMIN)).statusCode).toBe(409);
 
     const visit = await context.app.inject({
       method: "GET",
@@ -157,6 +157,14 @@ describe("Deleting visits and procedures (e2e)", () => {
     for (const procedureId of [first, second]) {
       expect((await chargesOf(procedureId)).every((row) => row.reversedAt === null)).toBe(true);
     }
+  });
+
+  it("keeps deleting a visit to an admin, not the doctor who wrote it", async () => {
+    const patientId = await newPatient();
+    const visitId = await newVisit(patientId);
+
+    expect((await remove(`/visits/${visitId}`, USER_ROLE.DOCTOR)).statusCode).toBe(403);
+    expect((await remove(`/visits/${visitId}`, USER_ROLE.ADMIN)).statusCode).toBe(204);
   });
 
   it("refuses a receptionist either delete", async () => {

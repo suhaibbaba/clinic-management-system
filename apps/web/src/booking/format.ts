@@ -1,4 +1,5 @@
-import { personName, type PersonName } from "@clinic/shared";
+import type { PersonName } from "@clinic/shared";
+import { personName } from "@shared/text/person-name";
 
 const DATE_LOCALE = "ar-SY-u-ca-gregory-nu-latn";
 

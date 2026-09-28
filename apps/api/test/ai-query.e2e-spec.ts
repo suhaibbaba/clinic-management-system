@@ -34,11 +34,11 @@ describe("query_data (e2e)", () => {
 
     await createPatient(context, await context.login(clinic.phones[USER_ROLE.RECEPTIONIST]), {
       ...nameParts("مريض هذه العيادة"),
-      phone: "0599000555",
+      phone: "+970599000555",
     });
     await createPatient(context, await context.login(other.phones[USER_ROLE.RECEPTIONIST]), {
       ...nameParts("مريض عيادة أخرى"),
-      phone: "0599000666",
+      phone: "+970599000666",
     });
   });
 

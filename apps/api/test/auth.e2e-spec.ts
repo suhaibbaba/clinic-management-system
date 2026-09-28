@@ -21,6 +21,10 @@ describe("Auth (e2e)", () => {
     await context.close();
   });
 
+  beforeEach(() => {
+    context.resetThrottle();
+  });
+
   const login = (identifier: string, password = TEST_PASSWORD) =>
     context.app.inject({
       method: "POST",

@@ -15,6 +15,8 @@ import {
   type PatientFixtures,
   nameParts,
 } from "@test/helpers/patient-fixtures";
+import { eq } from "drizzle-orm";
+import { labOrders } from "@api/database/schema";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 describe("Labs (e2e)", () => {
@@ -80,6 +82,10 @@ describe("Labs (e2e)", () => {
   }
 
   async function createOrder(overrides: Record<string, unknown> = {}): Promise<LabOrderRow> {
+    const { expectedAt, ...rest } = overrides;
+    const backdated =
+      typeof expectedAt === "string" && expectedAt < new Date().toISOString().slice(0, 10);
+
     const response = await context.app.inject({
       method: "POST",
       url: "/lab-orders",
@@ -92,13 +98,23 @@ describe("Labs (e2e)", () => {
         teeth: [26],
         material: "zirconia",
         shade: "A2",
-        ...overrides,
+        ...(backdated ? rest : overrides),
       },
     });
 
     expect(response.statusCode).toBe(201);
+    const order = response.json() as LabOrderRow;
 
-    return response.json() as LabOrderRow;
+    if (backdated) {
+      await context.db
+        .update(labOrders)
+        .set({ expectedAt: new Date(expectedAt) })
+        .where(eq(labOrders.id, order.id));
+
+      return { ...order, expectedAt: new Date(expectedAt).toISOString() };
+    }
+
+    return order;
   }
 
   const move = (

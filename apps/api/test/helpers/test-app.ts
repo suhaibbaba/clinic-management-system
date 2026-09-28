@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { Test } from "@nestjs/testing";
 import { type NestFastifyApplication } from "@nestjs/platform-fastify";
 import { ThrottlerStorage } from "@nestjs/throttler";
@@ -55,6 +55,17 @@ export async function createTestContext(): Promise<TestContext> {
 
   const db = app.get<Database>(DATABASE);
 
+  const clearThrottle = (): void => {
+    const storage = app.get<{
+      storage?: Map<string, unknown>;
+      timeoutIds?: Map<string, ReturnType<typeof setTimeout>[]>;
+    }>(ThrottlerStorage, { strict: false });
+
+    storage?.timeoutIds?.forEach((ids) => ids.forEach(clearTimeout));
+    storage?.timeoutIds?.clear();
+    storage?.storage?.clear();
+  };
+
   const context: TestContext = {
     app,
     db,
@@ -63,6 +74,7 @@ export async function createTestContext(): Promise<TestContext> {
       const response = await app.inject({
         method: "POST",
         url: "/auth/login",
+        headers: { "x-forwarded-for": `203.0.113.${randomInt(1, 255)}` },
         payload: { identifier: phone, password: TEST_PASSWORD },
       });
 
@@ -76,6 +88,9 @@ export async function createTestContext(): Promise<TestContext> {
     async createClinic(): Promise<TestClinic> {
       const passwordHash = await testPasswordHash();
       const suffix = randomUUID().replaceAll("-", "").slice(0, 10);
+      const phoneDigits = String(Number.parseInt(suffix.slice(0, 8), 16))
+        .padStart(10, "0")
+        .slice(-10);
 
       const [clinic] = await db
         .insert(clinics)
@@ -110,7 +125,7 @@ export async function createTestContext(): Promise<TestContext> {
       const phones = {} as Record<UserRole, string>;
 
       for (const [index, role] of USER_ROLES.entries()) {
-        const phone = `+99${suffix}${index}`;
+        const phone = `+99${phoneDigits}${index}`;
         const [user] = await db
           .insert(users)
           .values({
@@ -140,14 +155,11 @@ export async function createTestContext(): Promise<TestContext> {
     },
 
     resetThrottle(): void {
-      const storage = app.get<{ storage?: Map<string, unknown> }>(ThrottlerStorage, {
-        strict: false,
-      });
-
-      storage?.storage?.clear();
+      clearThrottle();
     },
 
     async close(): Promise<void> {
+      clearThrottle();
       await app.close();
       await moduleRef.get(POSTGRES_CLIENT, { strict: false })?.end?.({ timeout: 5 });
     },
