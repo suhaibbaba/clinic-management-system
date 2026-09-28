@@ -1,8 +1,15 @@
-import { LOOKUP_LIST, APPOINTMENT_STATUS, type CalendarAppointment } from "@clinic/shared";
+import {
+  APPOINTMENT_STATUS,
+  appointmentTimingError,
+  LOOKUP_LIST,
+  type AppointmentStatus,
+  occupiesSlot,
+  type CalendarAppointment,
+} from "@clinic/shared";
 import { formatTime, formatDate } from "@web/shared/lib/format";
 import { useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -11,6 +18,7 @@ import {
   Ltr,
   Modal,
   PersonName,
+  PhoneLink,
   Textarea,
   useToast,
 } from "@clinic/ui";
@@ -19,6 +27,7 @@ import { useSession } from "@web/shared/providers/session";
 import { useCancelAppointment, useConvertToVisit } from "@web/modules/appointments/queries";
 import { useAppointmentStep, type AppointmentStep } from "@web/shared/queries/appointments";
 import {
+  canBookAppointment,
   canCancelAppointment,
   canMoveAppointment,
   canOpenVisit,
@@ -31,18 +40,22 @@ import {
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
 import { ellipsis } from "@web/i18n/ellipsis";
+import { todayIso, toIsoDate } from "@web/shared/lib/dates";
+import { useNowMinute } from "@web/shared/hooks/use-now-minute";
 
 export interface AppointmentDrawerProps {
   readonly "data-testid"?: string | undefined;
   readonly appointment: CalendarAppointment | undefined;
   readonly onClose: () => void;
   readonly onEdit: (appointment: CalendarAppointment) => void;
+  readonly onRebook?: ((appointment: CalendarAppointment) => void) | undefined;
 }
 
 export function AppointmentDrawer({
   appointment,
   onClose,
   onEdit,
+  onRebook,
   "data-testid": testId = "appointment-drawer",
 }: AppointmentDrawerProps): JSX.Element | null {
   const { t } = useTranslation();
@@ -57,6 +70,7 @@ export function AppointmentDrawer({
 
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  useNowMinute();
 
   if (!appointment) {
     return null;
@@ -66,6 +80,24 @@ export function AppointmentDrawer({
   const style = APPOINTMENT_STATUS_STYLES[status];
   const mayOpenVisit = canOpenVisit(can);
   const may = (step: AppointmentStep): boolean => canMoveAppointment(can, step);
+  const startsAt = new Date(appointment.startsAt);
+  const onTime = (next: AppointmentStatus): boolean =>
+    appointmentTimingError(next, {
+      day: toIsoDate(startsAt),
+      today: todayIso(),
+      startsAt,
+      now: new Date(),
+    }) === null;
+  const attendanceOpen = onTime(APPOINTMENT_STATUS.ARRIVED);
+  const noShowOpen = onTime(APPOINTMENT_STATUS.NO_SHOW);
+  const attendanceHint =
+    status !== APPOINTMENT_STATUS.CONFIRMED && status !== APPOINTMENT_STATUS.ARRIVED
+      ? null
+      : !attendanceOpen
+        ? "appointments.attendance.fromDay"
+        : status === APPOINTMENT_STATUS.CONFIRMED && !noShowOpen && may("noShow")
+          ? "appointments.attendance.afterStart"
+          : null;
 
   const move = async (next: AppointmentStep, successKey: string): Promise<void> => {
     try {
@@ -100,6 +132,9 @@ export function AppointmentDrawer({
   };
 
   const busy = step.isPending || cancel.isPending || convert.isPending;
+  const editable = occupiesSlot(status) && status !== APPOINTMENT_STATUS.COMPLETED;
+  const cancellable = CANCELLABLE_STATUSES.includes(status) && canCancelAppointment(can);
+  const rebookable = !occupiesSlot(status) && onRebook !== undefined && canBookAppointment(can);
 
   return (
     <>
@@ -122,7 +157,7 @@ export function AppointmentDrawer({
               </Button>
             )}
 
-            {status === APPOINTMENT_STATUS.CONFIRMED && may("arrived") && (
+            {status === APPOINTMENT_STATUS.CONFIRMED && attendanceOpen && may("arrived") && (
               <Button
                 icon={<Icon name="user-plus" />}
                 data-testid={`${testId}-arrived`}
@@ -133,7 +168,7 @@ export function AppointmentDrawer({
               </Button>
             )}
 
-            {status === APPOINTMENT_STATUS.ARRIVED && mayOpenVisit && (
+            {status === APPOINTMENT_STATUS.ARRIVED && attendanceOpen && mayOpenVisit && (
               <Button
                 icon={<Icon name="stethoscope" />}
                 data-testid={`${testId}-open-visit`}
@@ -144,18 +179,22 @@ export function AppointmentDrawer({
               </Button>
             )}
 
-            {status === APPOINTMENT_STATUS.ARRIVED && !mayOpenVisit && may("start") && (
-              <Button
-                icon={<Icon name="activity" />}
-                data-testid={`${testId}-start`}
-                isLoading={busy}
-                onClick={() => void move("start", "appointments.updated")}
-              >
-                {t("appointments.actions.start")}
-              </Button>
-            )}
+            {status === APPOINTMENT_STATUS.ARRIVED &&
+              attendanceOpen &&
+              !mayOpenVisit &&
+              may("start") && (
+                <Button
+                  icon={<Icon name="activity" />}
+                  data-testid={`${testId}-start`}
+                  isLoading={busy}
+                  onClick={() => void move("start", "appointments.updated")}
+                >
+                  {t("appointments.actions.start")}
+                </Button>
+              )}
 
             {(status === APPOINTMENT_STATUS.IN_PROGRESS || status === APPOINTMENT_STATUS.ARRIVED) &&
+              attendanceOpen &&
               may("complete") && (
                 <Button
                   variant="secondary"
@@ -168,7 +207,7 @@ export function AppointmentDrawer({
                 </Button>
               )}
 
-            {status === APPOINTMENT_STATUS.CONFIRMED && may("noShow") && (
+            {status === APPOINTMENT_STATUS.CONFIRMED && noShowOpen && may("noShow") && (
               <Button
                 variant="secondary"
                 data-testid={`${testId}-no-show`}
@@ -176,18 +215,6 @@ export function AppointmentDrawer({
                 onClick={() => void move("noShow", "appointments.updated")}
               >
                 {t("appointments.actions.noShow")}
-              </Button>
-            )}
-
-            {CANCELLABLE_STATUSES.includes(status) && canCancelAppointment(can) && (
-              <Button
-                variant="ghost"
-                icon={<Icon name="x" />}
-                data-testid={`${testId}-cancel`}
-                disabled={busy}
-                onClick={() => setCancelOpen(true)}
-              >
-                {t("appointments.actions.cancel")}
               </Button>
             )}
           </div>
@@ -206,6 +233,12 @@ export function AppointmentDrawer({
             )}
           </div>
 
+          {attendanceHint && (
+            <p data-testid={`${testId}-attendance-hint`} className="text-meta text-ink-muted">
+              {t(attendanceHint)}
+            </p>
+          )}
+
           <dl
             data-testid={`${testId}-details`}
             className="grid grid-cols-2 gap-x-4 gap-y-3 text-value"
@@ -221,12 +254,20 @@ export function AppointmentDrawer({
             </Field>
             <Field label={t("appointments.patient")}>
               <span className="flex flex-wrap items-baseline gap-2">
-                <span>{appointment.patientName}</span>
+                <Link
+                  to={`/patients/${appointment.patientId}`}
+                  data-testid={`${testId}-open-file`}
+                  title={t("appointments.actions.openFile")}
+                  onClick={onClose}
+                  className="font-medium text-primary-600 hover:underline"
+                >
+                  {appointment.patientName}
+                </Link>
                 <Ltr className="tabular-nums text-ink-subtle">{appointment.patientFileNumber}</Ltr>
               </span>
             </Field>
             <Field label={t("patients.phone")}>
-              <Ltr className="tabular-nums">{appointment.patientPhone}</Ltr>
+              <PhoneLink value={appointment.patientPhone} data-testid={`${testId}-phone`} />
             </Field>
             {appointment.reason && (
               <Field wide label={t("appointments.reason")}>
@@ -245,29 +286,43 @@ export function AppointmentDrawer({
             )}
           </dl>
 
-          <div className="flex flex-wrap gap-2 border-t border-line pt-4">
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={<Icon name="edit" />}
-              data-testid={`${testId}-reschedule`}
-              onClick={() => onEdit(appointment)}
-            >
-              {t("appointments.actions.reschedule")}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={<Icon name="user" />}
-              data-testid={`${testId}-open-file`}
-              onClick={() => {
-                onClose();
-                navigate(`/patients/${appointment.patientId}`);
-              }}
-            >
-              {t("appointments.actions.openFile")}
-            </Button>
-          </div>
+          {(editable || cancellable || rebookable) && (
+            <div className="flex flex-wrap gap-2 border-t border-line pt-4">
+              {rebookable && (
+                <Button
+                  size="sm"
+                  icon={<Icon name="calendar" />}
+                  data-testid={`${testId}-rebook`}
+                  onClick={() => onRebook?.(appointment)}
+                >
+                  {t("appointments.actions.rebook")}
+                </Button>
+              )}
+              {editable && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={<Icon name="edit" />}
+                  data-testid={`${testId}-reschedule`}
+                  onClick={() => onEdit(appointment)}
+                >
+                  {t("appointments.actions.reschedule")}
+                </Button>
+              )}
+              {cancellable && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<Icon name="x" />}
+                  data-testid={`${testId}-cancel`}
+                  disabled={busy}
+                  onClick={() => setCancelOpen(true)}
+                >
+                  {t("appointments.actions.cancel")}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </Drawer>
 

@@ -46,6 +46,7 @@ export interface AppointmentFormModalProps {
   readonly defaults?:
     { readonly date?: string; readonly doctorId?: string; readonly startsAt?: string } | undefined;
   readonly waitingEntry?: WaitingListEntry | undefined;
+  readonly rebookFrom?: CalendarAppointment | undefined;
   readonly forPatient?: PickedPatient | undefined;
   readonly onBooked?: ((booked: { date: string; doctorId: string }) => void) | undefined;
 }
@@ -56,6 +57,7 @@ export function AppointmentFormModal({
   appointment,
   defaults,
   waitingEntry,
+  rebookFrom,
   forPatient,
   onBooked,
   "data-testid": testId = "appointment-form-modal",
@@ -107,6 +109,28 @@ export function AppointmentFormModal({
       return;
     }
 
+    if (rebookFrom) {
+      const originalDay = toIsoDate(new Date(rebookFrom.startsAt));
+
+      setPatient({
+        kind: "existing",
+        patient: {
+          id: rebookFrom.patientId,
+          fullName: rebookFrom.patientName,
+          phone: rebookFrom.patientPhone,
+          fileNumber: rebookFrom.patientFileNumber,
+        },
+      });
+      setDoctorId(rebookFrom.doctorId);
+      setDate(originalDay < todayIso() ? todayIso() : originalDay);
+      setStartsAt(null);
+      setDurationMinutes(String(rebookFrom.durationMinutes));
+      setType(rebookFrom.type);
+      setReason(rebookFrom.reason ?? "");
+      setNotes(rebookFrom.notes ?? "");
+      return;
+    }
+
     if (waitingEntry) {
       setPatient({
         kind: "existing",
@@ -130,7 +154,7 @@ export function AppointmentFormModal({
     setDurationMinutes("30");
     setType(APPOINTMENT_TYPE.CHECKUP);
     setNotes("");
-  }, [open, appointment, defaults, waitingEntry, forPatient]);
+  }, [open, appointment, defaults, waitingEntry, rebookFrom, forPatient]);
 
   const availability = useAvailability(
     {
@@ -143,8 +167,12 @@ export function AppointmentFormModal({
   );
 
   const ready = Boolean(doctorId && date);
+  const movedIntoPast = date < todayIso() && startsAt !== appointment?.startsAt;
   const canSubmit =
-    Boolean(startsAt) && Boolean(doctorId) && (isDraftComplete(patient) || Boolean(appointment));
+    Boolean(startsAt) &&
+    Boolean(doctorId) &&
+    !movedIntoPast &&
+    (isDraftComplete(patient) || Boolean(appointment));
 
   const submit = async (): Promise<void> => {
     if (!startsAt || !doctorId) {
@@ -204,7 +232,9 @@ export function AppointmentFormModal({
     ? "appointments.edit"
     : waitingEntry
       ? "appointments.waiting.schedule"
-      : "appointments.create";
+      : rebookFrom
+        ? "appointments.rebook"
+        : "appointments.create";
 
   return (
     <Modal
@@ -271,6 +301,7 @@ export function AppointmentFormModal({
               data-testid="appointment-field-date"
               label={t("appointments.date")}
               value={date}
+              min={todayIso()}
               onChange={(next) => {
                 setDate(next);
                 setStartsAt(null);
@@ -293,7 +324,7 @@ export function AppointmentFormModal({
               id="appointment-duration"
               data-testid="appointment-field-duration"
               value={durationMinutes}
-              options={["15", "30", "45", "60", "90"].map((value) => ({
+              options={durationChoices(durationMinutes).map((value) => ({
                 value,
                 label: t("appointments.durationMinutes", { count: Number(value) }),
               }))}
@@ -341,4 +372,10 @@ export function AppointmentFormModal({
       </div>
     </Modal>
   );
+}
+
+function durationChoices(current: string): string[] {
+  const choices = new Set(["15", "30", "45", "60", "90", current]);
+
+  return [...choices].filter((value) => Number(value) > 0).sort((a, b) => Number(a) - Number(b));
 }

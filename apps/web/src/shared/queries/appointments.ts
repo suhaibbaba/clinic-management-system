@@ -1,5 +1,11 @@
 import { CALENDAR_KEY, AVAILABILITY_KEY, WAITING_LIST_KEY } from "@web/shared/constants/query-keys";
-import { useQueryClient, useMutation, type UseQueryResult, useQuery } from "@tanstack/react-query";
+import {
+  useQueryClient,
+  useMutation,
+  type QueryClient,
+  type UseQueryResult,
+  useQuery,
+} from "@tanstack/react-query";
 import type { CalendarQuery, CalendarFeed } from "@clinic/shared";
 import { calendarApi } from "@web/shared/api/appointments";
 
@@ -24,6 +30,12 @@ export function useCalendar(query: CalendarQuery): UseQueryResult<CalendarFeed> 
     queryFn: () => calendarApi.calendar(query),
     placeholderData: (previous) => previous,
   });
+}
+
+export function prefetchCalendar(queryClient: QueryClient, query: CalendarQuery): void {
+  void queryClient
+    .query({ queryKey: [CALENDAR_KEY, query], queryFn: () => calendarApi.calendar(query) })
+    .catch(() => undefined);
 }
 
 export type AppointmentStep = "confirm" | "arrived" | "start" | "complete" | "noShow";

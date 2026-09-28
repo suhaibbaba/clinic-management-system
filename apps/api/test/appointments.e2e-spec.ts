@@ -1,5 +1,6 @@
 import {
   APPOINTMENT_STATUS,
+  APPOINTMENT_TIMING_ERROR,
   USER_ROLE,
   addDays,
   instantFromLocal,
@@ -17,6 +18,7 @@ import {
   nameParts,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
+import { moveIntoPast } from "@test/helpers/appointment-time";
 
 const TIME_ZONE = "Asia/Damascus";
 
@@ -272,6 +274,7 @@ describe("Appointments (e2e)", () => {
     it("walks confirmed → arrived → in progress → completed", async () => {
       const created = await book("14:00");
       const id = (created.json() as { id: string }).id;
+      await moveIntoPast(context.db, id);
 
       const move = (step: string) =>
         context.app.inject({
@@ -304,6 +307,7 @@ describe("Appointments (e2e)", () => {
     it("will not move an appointment out of a terminal state", async () => {
       const created = await book("16:00");
       const id = (created.json() as { id: string }).id;
+      await moveIntoPast(context.db, id);
 
       await context.app.inject({
         method: "PATCH",
@@ -318,6 +322,113 @@ describe("Appointments (e2e)", () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it("refuses attendance before the appointment's day", async () => {
+      const created = await book("17:00");
+      const id = (created.json() as { id: string }).id;
+
+      for (const step of ["arrived", "no-show"]) {
+        const response = await context.app.inject({
+          method: "PATCH",
+          url: `/appointments/${id}/${step}`,
+          headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+        });
+
+        expect(response.statusCode).toBe(400);
+      }
+
+      const arrived = await context.app.inject({
+        method: "PATCH",
+        url: `/appointments/${id}/arrived`,
+        headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+      });
+      expect((arrived.json() as { message: string }).message).toBe(
+        APPOINTMENT_TIMING_ERROR.DAY_NOT_REACHED,
+      );
+    });
+
+    it("refuses a no-show before the appointment time", async () => {
+      const created = await book("17:30");
+      const id = (created.json() as { id: string }).id;
+
+      const response = await context.app.inject({
+        method: "PATCH",
+        url: `/appointments/${id}/no-show`,
+        headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((response.json() as { message: string }).message).toBe(
+        APPOINTMENT_TIMING_ERROR.NOT_STARTED,
+      );
+    });
+
+    it("settles a past appointment as a no-show", async () => {
+      const created = await book("18:00");
+      const id = (created.json() as { id: string }).id;
+      await moveIntoPast(context.db, id);
+
+      const response = await context.app.inject({
+        method: "PATCH",
+        url: `/appointments/${id}/no-show`,
+        headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it("refuses booking or moving an appointment onto a day that has passed", async () => {
+      const past = addDays(monday, -14);
+      const created = await book("09:00");
+      const id = (created.json() as { id: string }).id;
+
+      const booked = await context.app.inject({
+        method: "POST",
+        url: "/appointments",
+        headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+        payload: {
+          patientId,
+          doctorId: fixtures.doctorId,
+          startsAt: at(past, "09:30"),
+          durationMinutes: 30,
+        },
+      });
+      expect(booked.statusCode).toBe(400);
+      expect((booked.json() as { message: string }).message).toBe(
+        APPOINTMENT_TIMING_ERROR.DAY_PASSED,
+      );
+
+      const moved = await context.app.inject({
+        method: "PATCH",
+        url: `/appointments/${id}`,
+        headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+        payload: { startsAt: at(past, "09:00") },
+      });
+      expect(moved.statusCode).toBe(400);
+      expect((moved.json() as { message: string }).message).toBe(
+        APPOINTMENT_TIMING_ERROR.DAY_PASSED,
+      );
+    });
+
+    it("still edits the notes of a past appointment without moving it", async () => {
+      const created = await book("09:30");
+      const id = (created.json() as { id: string }).id;
+      await moveIntoPast(context.db, id);
+
+      const [row] = await context.db
+        .select({ startsAt: appointments.startsAt })
+        .from(appointments)
+        .where(eq(appointments.id, id));
+
+      const response = await context.app.inject({
+        method: "PATCH",
+        url: `/appointments/${id}`,
+        headers: auth(tokens[USER_ROLE.RECEPTIONIST]),
+        payload: { startsAt: row?.startsAt.toISOString(), notes: "جاء متأخرًا" },
+      });
+
+      expect(response.statusCode).toBe(200);
     });
 
     it("requires a reason to cancel", async () => {
@@ -351,6 +462,7 @@ describe("Appointments (e2e)", () => {
     it("creates the visit and links both records", async () => {
       const created = await book("12:00", { reason: "ألم في الضرس" });
       const id = (created.json() as { id: string }).id;
+      await moveIntoPast(context.db, id);
 
       await context.app.inject({
         method: "PATCH",
@@ -382,6 +494,7 @@ describe("Appointments (e2e)", () => {
     it("refuses a second visit for one attendance", async () => {
       const created = await book("12:30");
       const id = (created.json() as { id: string }).id;
+      await moveIntoPast(context.db, id);
 
       await context.app.inject({
         method: "PATCH",

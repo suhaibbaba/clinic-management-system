@@ -16,6 +16,7 @@ import {
   nameParts,
 } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
+import { moveIntoPast } from "@test/helpers/appointment-time";
 
 const TIME_ZONE = "Asia/Damascus";
 
@@ -316,6 +317,7 @@ describe("Appointments permission boundaries (e2e)", () => {
   describe("convert to visit", () => {
     it("refuses a receptionist — a visit is a clinical record", async () => {
       const id = await bookAs(USER_ROLE.RECEPTIONIST, fixtures.doctorId, "13:00");
+      await moveIntoPast(context.db, id);
 
       await context.app.inject({
         method: "PATCH",

@@ -245,7 +245,7 @@ export function SkeletonWeekRows({
   return (
     <div className="overflow-x-auto rounded-card border border-line bg-surface shadow-card">
       <SkeletonStatus />
-      <div aria-hidden="true" className="grid min-w-max" style={columns}>
+      <div aria-hidden="true" className="grid" style={columns}>
         <span className="border-b border-line" />
         {Array.from({ length: days }, (_, day) => (
           <span key={day} className="flex flex-col gap-2 border-s border-b border-line px-3 py-3">

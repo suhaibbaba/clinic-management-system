@@ -2,10 +2,13 @@ import {
   APPOINTMENT_STATUS,
   WAITING_LIST_SOURCE,
   type CalendarAppointment,
+  type CalendarQuery,
+  type Doctor,
   type WaitingListEntry,
 } from "@clinic/shared";
 import { formatDate, formatWeekday } from "@web/shared/lib/format";
-import { useMemo, useState, type JSX } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -37,7 +40,6 @@ import { AppointmentDrawer } from "@web/modules/appointments/components/appointm
 import { AppointmentFormModal } from "@web/modules/appointments/components/appointment-form-modal";
 import { QUEUE_STEP_MINUTES } from "@web/modules/appointments/lib/calendar-time";
 import {
-  addDays,
   instantAt,
   nextWorkWeek,
   previousWorkWeek,
@@ -51,13 +53,20 @@ import {
   canManageWaitingList,
   seesWholeClinic,
 } from "@web/shared/permissions/appointments";
-import { useDayAvailability, useWaitingList } from "@web/modules/appointments/queries";
-import { useCalendar } from "@web/shared/queries/appointments";
+import {
+  prefetchDayAvailability,
+  useDayAvailability,
+  useWaitingList,
+} from "@web/modules/appointments/queries";
+import { useSettledValue } from "@web/modules/appointments/hooks/use-settled-value";
+import { openDaysOf, openWeekdays, stepOpenDay } from "@web/modules/appointments/lib/open-days";
+import { prefetchCalendar, useCalendar } from "@web/shared/queries/appointments";
 import { WaitingListPanel } from "@web/modules/appointments/components/waiting-list-panel";
 import { WeekView } from "@web/modules/appointments/components/week-view";
 import { useNowMinute } from "@web/shared/hooks/use-now-minute";
 import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { useIsMobile } from "@clinic/ui/lib/use-media-query";
+import { cn } from "@clinic/ui/lib/cn";
 import { CALENDAR_RANGES } from "@web/modules/appointments/constants";
 
 type Range = (typeof CALENDAR_RANGES)[number];
@@ -107,6 +116,7 @@ export function AppointmentsPage(): JSX.Element {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<CalendarAppointment | undefined>();
   const [scheduling, setScheduling] = useState<WaitingListEntry | undefined>();
+  const [rebooking, setRebooking] = useState<CalendarAppointment | undefined>();
   const [formDefaults, setFormDefaults] = useState<
     { date?: string; doctorId?: string; startsAt?: string } | undefined
   >();
@@ -124,14 +134,17 @@ export function AppointmentsPage(): JSX.Element {
   const effectiveDoctorId = wholeClinic ? doctorFilter : (ownDoctorId ?? "");
   const effectiveRange: Range = isMobile ? "day" : range;
 
-  const weekDays = workWeekDates(date, todayIso());
+  const open = openWeekdays(clinic.data?.workingHours);
+  const weekDays = openDaysOf(workWeekDates(date, todayIso()), open);
 
-  const calendar = useCalendar({
-    date,
+  const calendarQuery = (day: string): CalendarQuery => ({
+    date: day,
     range: effectiveRange,
-    ...(effectiveRange === "week" && { to: weekDays.at(-1) ?? date }),
+    ...(effectiveRange === "week" && { to: workWeekDates(day, todayIso()).at(-1) ?? day }),
     ...(effectiveDoctorId !== "" && { doctorId: effectiveDoctorId }),
   });
+
+  const calendar = useCalendar(calendarQuery(date));
 
   const waiting = useWaitingList({ limit: 1 });
 
@@ -143,18 +156,42 @@ export function AppointmentsPage(): JSX.Element {
   const { showSkeleton, isRefreshing } = useQueryLoading(calendar);
   const ready = !calendar.isPending && !calendar.isError && !doctors.isPending;
   const appointments = calendar.data?.appointments ?? [];
-  const closures = calendar.data?.closures ?? [];
-  const timeOff = calendar.data?.timeOff ?? [];
-  const closureToday = closures.find(
-    (closure) => closure.startsOn <= date && date <= closure.endsOn,
-  );
   const selected = appointments.find((entry) => entry.id === selectedId);
 
-  const columns = useMemo(() => {
+  const doctorsOf = (doctorId: string): readonly Doctor[] => {
     const all = doctors.data?.items ?? [];
 
-    return effectiveDoctorId === "" ? all : all.filter((doctor) => doctor.id === effectiveDoctorId);
-  }, [doctors.data, effectiveDoctorId]);
+    return doctorId === "" ? all : all.filter((doctor) => doctor.id === doctorId);
+  };
+  const columns = doctorsOf(effectiveDoctorId);
+
+  const queueShown = effectiveRange === "day" && !isMobile;
+  const availability = useDayAvailability(
+    date,
+    columns.map((doctor) => doctor.id),
+    QUEUE_STEP_MINUTES,
+    queueShown,
+  );
+
+  const settling = calendar.isPlaceholderData || availability.settling;
+  const shown = useSettledValue(
+    {
+      date,
+      range: effectiveRange,
+      doctorId: effectiveDoctorId,
+      feed: calendar.data,
+      availability: availability.byDoctor,
+    },
+    settling,
+  );
+  const shownDate = shown.date;
+  const shownDays = openDaysOf(workWeekDates(shownDate, todayIso()), open);
+  const shownColumns = doctorsOf(shown.doctorId);
+  const shownAppointments = shown.feed?.appointments ?? [];
+  const shownClosures = shown.feed?.closures ?? [];
+  const shownClosure = shownClosures.find(
+    (closure) => closure.startsOn <= shownDate && shownDate <= closure.endsOn,
+  );
 
   const todayStats = useMemo(() => {
     const ofToday = appointments.filter((entry) => {
@@ -183,36 +220,55 @@ export function AppointmentsPage(): JSX.Element {
     };
   }, [appointments]);
 
-  const step = (direction: -1 | 1): void => {
+  const stepFrom = (day: string, direction: -1 | 1): string => {
     if (effectiveRange !== "week") {
-      setDate(addDays(date, direction));
+      return stepOpenDay(day, direction, open);
+    }
+
+    return direction === 1 ? nextWorkWeek(day, todayIso()) : previousWorkWeek(day);
+  };
+
+  const step = (direction: -1 | 1): void => setDate(stepFrom(date, direction));
+
+  const queryClient = useQueryClient();
+  const neighbourKey = JSON.stringify([stepFrom(date, -1), stepFrom(date, 1)].map(calendarQuery));
+  const columnKey = columns.map((doctor) => doctor.id).join(",");
+
+  useEffect(() => {
+    if (settling) {
       return;
     }
 
-    setDate(direction === 1 ? nextWorkWeek(date, todayIso()) : previousWorkWeek(date));
-  };
+    for (const query of JSON.parse(neighbourKey) as CalendarQuery[]) {
+      prefetchCalendar(queryClient, query);
+
+      if (queueShown) {
+        prefetchDayAvailability(
+          queryClient,
+          query.date,
+          columnKey === "" ? [] : columnKey.split(","),
+          QUEUE_STEP_MINUTES,
+        );
+      }
+    }
+  }, [queryClient, neighbourKey, columnKey, queueShown, settling]);
 
   const openForm = (defaults?: { date?: string; doctorId?: string; startsAt?: string }): void => {
     setEditing(undefined);
     setScheduling(undefined);
+    setRebooking(undefined);
     setFormDefaults(defaults);
     setFormOpen(true);
   };
 
   const scheduleFromQueue = (entry: WaitingListEntry): void => {
     setEditing(undefined);
+    setRebooking(undefined);
     setFormDefaults({ date, ...(entry.doctorId && { doctorId: entry.doctorId }) });
     setScheduling(entry);
     setFormOpen(true);
   };
 
-  const queueShown = effectiveRange === "day" && !isMobile;
-  const availability = useDayAvailability(
-    date,
-    columns.map((doctor) => doctor.id),
-    QUEUE_STEP_MINUTES,
-    queueShown,
-  );
   const nowMinute = useNowMinute();
 
   const label =
@@ -399,48 +455,59 @@ export function AppointmentsPage(): JSX.Element {
             <SkeletonDayColumns columns={columns.length === 0 ? 2 : Math.min(columns.length, 3)} />
           ))}
 
-        <RefreshBar active={isRefreshing} />
+        {ready && (
+          <div
+            data-testid="appointments-view"
+            aria-busy={settling}
+            className={cn(
+              "relative flex flex-col transition-opacity duration-150",
+              settling && "pointer-events-none opacity-60",
+            )}
+          >
+            <RefreshBar active={isRefreshing} overlay />
 
-        {ready && effectiveRange === "week" && (
-          <WeekView
-            data-testid="appointments-week"
-            days={weekDays}
-            today={todayIso()}
-            doctors={columns.map((doctor) => ({ id: doctor.id, name: doctor.user.name }))}
-            appointments={appointments}
-            closures={closures}
-            onOpen={(appointment) => setSelectedId(appointment.id)}
-            onPickDay={(day) =>
-              setCalendarParams({ date: [day, todayIso()], view: ["day", "week"] })
-            }
-          />
-        )}
+            {shown.range === "week" && (
+              <WeekView
+                data-testid="appointments-week"
+                days={shownDays}
+                today={todayIso()}
+                doctors={shownColumns.map((doctor) => ({ id: doctor.id, name: doctor.user.name }))}
+                appointments={shownAppointments}
+                closures={shownClosures}
+                onOpen={(appointment) => setSelectedId(appointment.id)}
+                onPickDay={(day) =>
+                  setCalendarParams({ date: [day, todayIso()], view: ["day", "week"] })
+                }
+              />
+            )}
 
-        {ready && effectiveRange === "day" && isMobile && (
-          <AgendaList
-            data-testid="appointments-agenda"
-            appointments={appointments}
-            {...(closureToday && { closure: closureToday })}
-            onOpen={(appointment) => setSelectedId(appointment.id)}
-          />
-        )}
+            {shown.range === "day" && isMobile && (
+              <AgendaList
+                data-testid="appointments-agenda"
+                appointments={shownAppointments}
+                {...(shownClosure && { closure: shownClosure })}
+                onOpen={(appointment) => setSelectedId(appointment.id)}
+              />
+            )}
 
-        {ready && queueShown && (
-          <DayQueue
-            data-testid="appointments-day-queue"
-            date={date}
-            doctors={columns}
-            appointments={appointments}
-            availability={availability}
-            timeOff={timeOff}
-            {...(closureToday && { closure: closureToday })}
-            nowMinute={date === todayIso() ? nowMinute : null}
-            onOpen={(appointment) => setSelectedId(appointment.id)}
-            {...(mayBook && {
-              onPick: (doctorId, minute) =>
-                openForm({ date, doctorId, startsAt: instantAt(date, minute) }),
-            })}
-          />
+            {shown.range === "day" && !isMobile && (
+              <DayQueue
+                data-testid="appointments-day-queue"
+                date={shownDate}
+                doctors={shownColumns}
+                appointments={shownAppointments}
+                availability={shown.availability}
+                timeOff={shown.feed?.timeOff ?? []}
+                {...(shownClosure && { closure: shownClosure })}
+                nowMinute={shownDate === todayIso() ? nowMinute : null}
+                onOpen={(appointment) => setSelectedId(appointment.id)}
+                {...(mayBook && {
+                  onPick: (doctorId, minute) =>
+                    openForm({ date: shownDate, doctorId, startsAt: instantAt(shownDate, minute) }),
+                })}
+              />
+            )}
+          </div>
         )}
       </section>
 
@@ -451,9 +518,21 @@ export function AppointmentsPage(): JSX.Element {
         onEdit={(appointment) => {
           setSelectedId(null);
           setEditing(appointment);
+          setScheduling(undefined);
+          setRebooking(undefined);
           setFormDefaults(undefined);
           setFormOpen(true);
         }}
+        {...(mayBook && {
+          onRebook: (appointment: CalendarAppointment) => {
+            setSelectedId(null);
+            setEditing(undefined);
+            setScheduling(undefined);
+            setRebooking(appointment);
+            setFormDefaults(undefined);
+            setFormOpen(true);
+          },
+        })}
       />
 
       <AppointmentFormModal
@@ -464,9 +543,11 @@ export function AppointmentsPage(): JSX.Element {
           if (!next) {
             setEditing(undefined);
             setScheduling(undefined);
+            setRebooking(undefined);
           }
         }}
         appointment={editing}
+        rebookFrom={rebooking}
         defaults={formDefaults}
         waitingEntry={scheduling}
         onBooked={({ date: booked, doctorId: booking }) =>

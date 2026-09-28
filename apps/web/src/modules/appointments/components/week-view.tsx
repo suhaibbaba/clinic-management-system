@@ -72,7 +72,7 @@ export function WeekView({
       data-testid={testId}
       className="overflow-x-auto rounded-card border border-line bg-surface shadow-card"
     >
-      <div className="grid min-w-max" style={columns}>
+      <div className="grid" style={columns}>
         <span className="border-b border-line" aria-hidden="true" />
         {days.map((day) => {
           const closure = closureOn(day);
@@ -84,7 +84,7 @@ export function WeekView({
               data-testid={`${testId}-pick-${day}`}
               onClick={() => onPickDay(day)}
               className={cn(
-                "cursor-pointer border-s border-b border-line px-3 py-2.5 text-start",
+                "min-w-0 cursor-pointer border-s border-b border-line px-3 py-2.5 text-start",
                 "transition-colors duration-150 hover:bg-row-hover",
                 closure ? "bg-warning-50" : day === today && "bg-primary-50",
               )}
@@ -116,7 +116,7 @@ export function WeekView({
 
           return (
             <div key={doctor.id} className="contents" data-testid={`${testId}-doctor-${doctor.id}`}>
-              <div className="sticky start-0 z-10 flex flex-col gap-0.5 border-b border-line bg-surface px-3 py-2.5">
+              <div className="sticky start-0 z-10 flex min-w-0 flex-col gap-0.5 border-b border-line bg-surface px-3 py-2.5">
                 <PersonName
                   name={doctor.name}
                   className="truncate text-label font-medium text-ink"
@@ -137,7 +137,7 @@ export function WeekView({
                     key={day}
                     data-testid={`${testId}-cell-${doctor.id}-${day}`}
                     className={cn(
-                      "flex flex-col gap-1.5 border-s border-b border-line p-2",
+                      "flex min-w-0 flex-col gap-1.5 border-s border-b border-line p-2",
                       closed && "bg-sunken",
                     )}
                   >

@@ -846,6 +846,21 @@ export class AiActionsService {
             });
           }
 
+          const timing = await this.appointments.timingError(
+            actor.clinicId,
+            new Date(appointment.startsAt),
+            args.status,
+          );
+
+          if (timing) {
+            return new Stop({
+              status: "not_possible",
+              reason: timing,
+              starts_at: appointment.startsAt,
+              requested_status: args.status,
+            });
+          }
+
           const stop = await this.dormant(actor, appointment.patientId, args.acknowledge);
 
           return (

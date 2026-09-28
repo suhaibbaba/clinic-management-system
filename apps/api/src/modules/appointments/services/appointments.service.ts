@@ -11,13 +11,16 @@ import {
   addDays,
   APPOINTMENT_OPEN_STATUSES,
   APPOINTMENT_STATUS,
+  APPOINTMENT_TIMING_ERROR,
   APPOINTMENT_TYPE,
+  appointmentTimingError,
   canTransitionAppointment,
   instantFromLocal,
   localDate,
   LOOKUP_LIST,
   occupiesSlot,
   type AppointmentStatus,
+  type AppointmentTimingError,
   type CalendarAppointment,
   type CalendarFeed,
   type CalendarQuery,
@@ -228,6 +231,7 @@ export class AppointmentsService implements OnModuleInit {
     }
 
     await this.access.requireOwnCalendar(actor, input.doctorId);
+    await this.requireNotBeforeToday(actor.clinicId, new Date(input.startsAt));
 
     const duration = input.durationMinutes ?? (await this.defaultDuration(actor, input.doctorId));
 
@@ -278,6 +282,13 @@ export class AppointmentsService implements OnModuleInit {
       throw new BadRequestException("This appointment is closed and can no longer be moved");
     }
 
+    if (
+      input.startsAt !== undefined &&
+      new Date(input.startsAt).getTime() !== existing.startsAt.getTime()
+    ) {
+      await this.requireNotBeforeToday(actor.clinicId, new Date(input.startsAt));
+    }
+
     await this.insert(() =>
       this.db
         .update(appointments)
@@ -320,6 +331,12 @@ export class AppointmentsService implements OnModuleInit {
       throw new BadRequestException("A cancellation must state a reason");
     }
 
+    const timingError = await this.timingError(actor.clinicId, existing.startsAt, next);
+
+    if (timingError) {
+      throw new BadRequestException(timingError);
+    }
+
     await this.db
       .update(appointments)
       .set({
@@ -331,6 +348,30 @@ export class AppointmentsService implements OnModuleInit {
       .where(this.scope.where(appointments, actor.clinicId, eq(appointments.id, id)));
 
     return this.findOne(actor, id);
+  }
+
+  private async requireNotBeforeToday(clinicId: string, startsAt: Date): Promise<void> {
+    const timeZone = await clinicTimeZone(this.db, clinicId);
+
+    if (localDate(startsAt, timeZone) < localDate(new Date(), timeZone)) {
+      throw new BadRequestException(APPOINTMENT_TIMING_ERROR.DAY_PASSED);
+    }
+  }
+
+  async timingError(
+    clinicId: string,
+    startsAt: Date,
+    next: AppointmentStatus,
+  ): Promise<AppointmentTimingError | null> {
+    const timeZone = await clinicTimeZone(this.db, clinicId);
+    const now = new Date();
+
+    return appointmentTimingError(next, {
+      day: localDate(startsAt, timeZone),
+      today: localDate(now, timeZone),
+      startsAt,
+      now,
+    });
   }
 
   async convertToVisit(actor: AuthenticatedUser, id: string): Promise<Visit> {
