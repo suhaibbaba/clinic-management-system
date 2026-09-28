@@ -1,9 +1,9 @@
 import { AI_TOOL_ERROR, USER_ROLE } from "@clinic/shared";
 import type { Sql } from "postgres";
-import { QueryDataService } from "@api/ai/query/query-data.service";
-import { ToolRefusal } from "@api/ai/tools/ai-tool";
-import type { CapabilityRegistry } from "@api/permissions/capability-registry.service";
-import type { PermissionsService } from "@api/permissions/permissions.service";
+import { QueryDataService } from "@api/modules/ai/query/query-data.service";
+import { ToolRefusal } from "@api/modules/ai/tools/ai-tool";
+import type { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
+import type { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 
 const ACTOR = {
   id: "11111111-1111-4111-8111-111111111111",

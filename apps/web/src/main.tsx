@@ -4,7 +4,7 @@ import { App } from "@web/App";
 import "@web/i18n";
 import { initLanguage } from "@web/i18n/language";
 import "@web/index.css";
-import { registerServiceWorker } from "@web/lib/service-worker";
+import { registerServiceWorker } from "@web/shared/lib/service-worker";
 
 const container = document.getElementById("root");
 if (!container) {

@@ -11,7 +11,7 @@ import {
   toMinutes,
   toTimeOfDay,
   type BusyInterval,
-} from "@api/appointments/slots";
+} from "@api/modules/appointments/lib/slots";
 
 const nine = { start: "09:00", end: "17:00" };
 const morning = { start: "09:00", end: "12:00" };

@@ -1,10 +1,9 @@
 import type { ManagedBooking } from "@clinic/shared";
 import type { JSX } from "react";
-import { formatLongDate, formatTime } from "@web/booking/format";
+import { formatLongDate, formatTime, bookingName } from "@web/booking/format";
 import { t } from "@web/booking/i18n";
 import { downloadIcs } from "@web/booking/ics";
 import { Button, Card, cx } from "@web/booking/ui";
-import { bookingName } from "@web/booking/format";
 
 export function SuccessView({ booking }: { readonly booking: ManagedBooking }): JSX.Element {
   return (

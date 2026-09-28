@@ -1,0 +1,57 @@
+import { LEDGER_ENTRY_KIND } from "@clinic/shared";
+import { type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { Skeleton } from "@clinic/ui/components/skeleton";
+import { Money } from "@web/shared/components/money";
+import { usePatientBalance, useStatement } from "@web/modules/billing/queries";
+import { useClinic } from "@web/shared/queries/clinic";
+
+export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.Element {
+  const { t } = useTranslation();
+  const clinic = useClinic();
+  const balance = usePatientBalance(patientId);
+
+  const since = startOfToday();
+  const today = useStatement(patientId, { from: since });
+
+  const currency = clinic.data?.currency;
+  const dueToday = (today.data?.entries ?? [])
+    .filter((entry) => entry.kind === LEDGER_ENTRY_KIND.CHARGE)
+    .reduce((sum, entry) => sum + Math.round(Number(entry.amount) * 100), 0);
+
+  return (
+    <div data-testid="patient-balance-card" className="min-w-0">
+      <dt className="text-value text-ink-muted">{t("patients.balance")}</dt>
+      <dd className="mt-0.5 flex min-w-0 flex-wrap items-center gap-2 text-value text-ink">
+        {balance.isPending ? (
+          <Skeleton className="h-5 w-20" />
+        ) : (
+          <Money
+            amount={balance.data?.balance ?? "0.00"}
+            currency={currency}
+            signed
+            data-testid="patient-balance"
+            className="font-medium"
+          />
+        )}
+      </dd>
+      {dueToday > 0 && (
+        <p
+          data-testid="patient-due-today"
+          className="mt-1 flex flex-wrap items-center gap-x-1 text-meta font-medium text-warning-700"
+        >
+          <span className="size-1.5 shrink-0 rounded-pill bg-current" aria-hidden="true" />
+          {t("billing.dueToday")}:
+          <Money amount={(dueToday / 100).toFixed(2)} currency={currency} />
+        </p>
+      )}
+    </div>
+  );
+}
+
+function startOfToday(): string {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+
+  return date.toISOString();
+}

@@ -1,0 +1,30 @@
+import type { JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { ToothSwatch } from "@web/shared/components/tooth-swatch";
+import { useToothStates } from "@web/shared/hooks/use-tooth-states";
+
+export function ToothLegend(): JSX.Element {
+  const { t } = useTranslation();
+  const states = useToothStates();
+
+  return (
+    <ul
+      data-testid="tooth-legend"
+      className="flex flex-wrap gap-x-4 gap-y-2"
+      aria-label={t("chart.legend")}
+    >
+      {states.all.map(({ code, label, style }) => {
+        return (
+          <li
+            key={code}
+            data-testid={`tooth-legend-${code}`}
+            className="flex items-center gap-1.5 text-chart-text text-label"
+          >
+            <ToothSwatch style={style} />
+            {label}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}

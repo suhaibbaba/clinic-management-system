@@ -1,0 +1,175 @@
+import type { LabSummary } from "@clinic/shared";
+import { useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import {
+  Button,
+  EmptyState,
+  EntityCard,
+  EntityGrid,
+  Icon,
+  PageHeader,
+  PhoneLink,
+  SearchField,
+  StatCard,
+  StatRow,
+} from "@clinic/ui";
+import { RefreshBar, SkeletonCard, SkeletonKpi } from "@clinic/ui/components/skeleton";
+import { useClinic } from "@web/shared/queries/clinic";
+import { LabFormModal } from "@web/modules/labs/components/lab-form-modal";
+import { useLabs } from "@web/modules/labs/queries";
+import { canManageLabs } from "@web/shared/permissions/labs";
+import { useSession } from "@web/shared/providers/session";
+import { Money } from "@web/shared/components/money";
+import { useDebounced } from "@web/shared/hooks/use-debounced";
+import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
+
+export function LabsPage(): JSX.Element {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { can } = useSession();
+  const [search, setSearch] = useState("");
+  const [creating, setCreating] = useState(false);
+
+  const clinic = useClinic();
+  const debounced = useDebounced(search);
+  const labs = useLabs({ search: debounced, limit: 50, includeInactive: true });
+
+  const rows = labs.data?.items ?? [];
+  const { showSkeleton, isRefreshing } = useQueryLoading(labs);
+  const owed = rows.reduce((sum, lab) => sum + Number(lab.balance), 0);
+  const openOrders = rows.reduce((sum, lab) => sum + lab.openOrders, 0);
+
+  return (
+    <div data-testid="labs-page" className="flex flex-col gap-5">
+      <PageHeader
+        data-testid="labs-header"
+        title="labs.title"
+        subtitle="labs.subtitle"
+        {...(labs.data !== undefined && {
+          count: t("pagination.total", { total: labs.data.total }),
+        })}
+        primaryAction={
+          canManageLabs(can) ? (
+            <Button
+              icon={<Icon name="plus" />}
+              data-testid="labs-add"
+              onClick={() => setCreating(true)}
+            >
+              {t("labs.add")}
+            </Button>
+          ) : undefined
+        }
+      />
+
+      {showSkeleton && <SkeletonKpi count={2} />}
+
+      {!showSkeleton && rows.length > 0 && (
+        <StatRow data-testid="labs-kpis">
+          <StatCard
+            icon="money"
+            data-testid="labs-kpi-owed"
+            tone={owed > 0 ? "warning" : "success"}
+            label={t("labs.kpi.owed")}
+            value={<Money amount={owed.toFixed(2)} currency={clinic.data?.currency} />}
+            caption={t("labs.kpi.owedCaption")}
+          />
+          <StatCard
+            icon="clipboard"
+            data-testid="labs-kpi-open"
+            tone="primary"
+            label={t("labs.kpi.open")}
+            value={openOrders}
+            caption={t("labs.kpi.openCaption")}
+          />
+        </StatRow>
+      )}
+
+      <SearchField
+        data-testid="labs-search"
+        className="w-full min-w-0 sm:max-w-md"
+        label={t("labs.search")}
+        shortcut="/"
+        placeholder={t("labs.searchPlaceholder")}
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        clearLabel={t("common.clear")}
+        onClear={() => setSearch("")}
+      />
+
+      <RefreshBar active={isRefreshing} />
+
+      {showSkeleton && (
+        <EntityGrid>
+          <SkeletonCard count={4} />
+        </EntityGrid>
+      )}
+
+      {!labs.isPending && rows.length === 0 && (
+        <EmptyState
+          icon="clipboard"
+          data-testid="labs-empty"
+          title="labs.empty"
+          hint="labs.emptyHint"
+        />
+      )}
+
+      {!labs.isPending && rows.length > 0 && (
+        <EntityGrid data-testid="labs-grid">
+          {rows.map((lab) => (
+            <LabCard
+              key={lab.id}
+              lab={lab}
+              currency={clinic.data?.currency}
+              onOpen={() => void navigate(`/labs/${lab.id}`)}
+            />
+          ))}
+        </EntityGrid>
+      )}
+
+      <LabFormModal data-testid="labs-create-modal" open={creating} onOpenChange={setCreating} />
+    </div>
+  );
+}
+
+function LabCard({
+  lab,
+  currency,
+  onOpen,
+}: {
+  readonly lab: LabSummary;
+  readonly currency: string | undefined;
+  readonly onOpen: () => void;
+}): JSX.Element {
+  const { t } = useTranslation();
+  const balance = Number(lab.balance);
+
+  return (
+    <EntityCard
+      data-testid={`lab-card-${lab.id}`}
+      icon="clipboard"
+      title={lab.name}
+      {...(lab.contactPerson && { subtitle: lab.contactPerson })}
+      status={
+        lab.isActive
+          ? {
+              label: t(balance > 0 ? "labs.owing" : "labs.settled"),
+              tone: balance > 0 ? "warning" : "neutral",
+            }
+          : { label: t("labs.inactive"), tone: "neutral" }
+      }
+      meta={[
+        {
+          label: t("labs.card.balance"),
+          value: <Money amount={lab.balance} currency={currency} />,
+          ltr: true,
+        },
+        { label: t("labs.card.open"), value: lab.openOrders, ltr: true },
+        ...(lab.phone
+          ? [{ label: t("labs.card.phone"), value: <PhoneLink value={lab.phone} /> }]
+          : []),
+      ]}
+      action={{ label: t("labs.card.view"), onClick: onOpen }}
+    />
+  );
+}

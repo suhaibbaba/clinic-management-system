@@ -1,12 +1,12 @@
 import { AI_OUTBOUND_TARGET } from "@clinic/shared";
-import type { ChatProvider } from "@api/ai/chat-provider";
-import type { ChatProviderResolver } from "@api/ai/chat-provider.resolver";
+import type { ChatProvider } from "@api/modules/ai/lib/chat-provider";
+import type { ChatProviderResolver } from "@api/modules/ai/services/chat-provider.resolver";
 import {
   DEFAULT_TEMPLATES,
   isValidTemplate,
   MessageDrafterService,
   PLACEHOLDERS,
-} from "@api/ai/outbound/message-drafter.service";
+} from "@api/modules/ai/outbound/message-drafter.service";
 
 const CANDIDATE = {
   patientId: "11111111-1111-4111-8111-111111111111",

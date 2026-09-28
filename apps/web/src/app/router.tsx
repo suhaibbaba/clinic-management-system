@@ -1,39 +1,40 @@
 import { USER_ROLE } from "@clinic/shared";
-import { lazyPage } from "@web/lib/lazy-page";
+import { lazyPage } from "@web/shared/lib/lazy-page";
 import { Suspense, type JSX } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { ASSISTANT_ROLES } from "@web/app/navigation";
-import { AppLayout } from "@web/components/layout/app-layout";
-import { RequireAuth, RequireRole } from "@web/components/auth/guards";
-import { ForgotPasswordPage } from "@web/pages/auth/forgot-password-page";
-import { LoginPage } from "@web/pages/auth/login-page";
-import { SetPasswordPage } from "@web/pages/auth/set-password-page";
-import { ClinicPage } from "@web/pages/clinic/clinic-page";
-import { DashboardPage } from "@web/pages/dashboard/dashboard-page";
-import { DoctorPage } from "@web/pages/doctors/doctor-page";
-import { InventorySection } from "@web/pages/inventory/inventory-section";
-import { ItemPage } from "@web/pages/inventory/item-page";
-import { ShoppingListPage } from "@web/pages/inventory/shopping-list-page";
-import { LabsSection } from "@web/pages/labs/labs-section";
-import { LabPage } from "@web/pages/labs/lab-page";
-import { PatientPage } from "@web/pages/patients/patient-page";
-import { PATIENT_FILE_ROLES } from "@web/permissions/patients";
-import { PatientsPage } from "@web/pages/patients/patients-page";
-import { ProfilePage } from "@web/pages/profile/profile-page";
-import { SettingsSection } from "@web/pages/settings/settings-section";
-import { UsersSection } from "@web/pages/users/users-section";
+import { ASSISTANT_ROLES } from "@web/shared/lib/navigation";
+import { AppLayout } from "@web/app/layout/app-layout";
+import { RequireAuth, RequireRole } from "@web/modules/auth/components/guards";
+import { ForgotPasswordPage } from "@web/modules/auth/pages/forgot-password-page";
+import { LoginPage } from "@web/modules/auth/pages/login-page";
+import { SetPasswordPage } from "@web/modules/auth/pages/set-password-page";
+import { ClinicPage } from "@web/modules/clinic/pages/clinic-page";
+import { DashboardPage } from "@web/modules/dashboard/pages/dashboard-page";
+import { DoctorPage } from "@web/modules/doctors/pages/doctor-page";
+import { InventorySection } from "@web/modules/inventory/pages/inventory-section";
+import { ItemPage } from "@web/modules/inventory/pages/item-page";
+import { ShoppingListPage } from "@web/modules/inventory/pages/shopping-list-page";
+import { LabsSection } from "@web/modules/labs/pages/labs-section";
+import { LabPage } from "@web/modules/labs/pages/lab-page";
+import { PatientPage } from "@web/modules/patients/pages/patient-page";
+import { PATIENT_FILE_ROLES } from "@web/shared/permissions/patients";
+import { PatientsPage } from "@web/modules/patients/pages/patients-page";
+import { ProfilePage } from "@web/modules/profile/pages/profile-page";
+import { SettingsSection } from "@web/modules/settings/pages/settings-section";
+import { UsersSection } from "@web/modules/users/pages/users-section";
 import { Skeleton } from "@clinic/ui/components/skeleton";
 
 const AppointmentsSection = lazyPage(async () => ({
-  default: (await import("@web/pages/appointments/appointments-section")).AppointmentsSection,
+  default: (await import("@web/modules/appointments/pages/appointments-section"))
+    .AppointmentsSection,
 }));
 
 const AssistantPage = lazyPage(async () => ({
-  default: (await import("@web/pages/assistant/assistant-page")).AssistantPage,
+  default: (await import("@web/modules/assistant/pages/assistant-page")).AssistantPage,
 }));
 
 const LookupsPage = lazyPage(async () => ({
-  default: (await import("@web/pages/lookups/lookups-page")).LookupsPage,
+  default: (await import("@web/modules/lookups/pages/lookups-page")).LookupsPage,
 }));
 
 const ADMIN_ONLY = [USER_ROLE.ADMIN] as const;

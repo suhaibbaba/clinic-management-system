@@ -11,9 +11,9 @@ import {
   type UserRole,
 } from "@clinic/shared";
 import { eq } from "drizzle-orm";
-import { TYPED_PHRASES } from "@api/ai/actions/ai-actions.service";
-import { AiConversationsService } from "@api/ai/ai-conversations.service";
-import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
+import { TYPED_PHRASES } from "@api/modules/ai/actions/ai-actions.service";
+import { AiConversationsService } from "@api/modules/ai/services/ai-conversations.service";
+import { ToolRunnerService } from "@api/modules/ai/tools/tool-runner.service";
 import {
   appointments,
   clinics,

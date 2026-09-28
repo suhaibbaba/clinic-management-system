@@ -2,14 +2,13 @@ import type { ManagedBooking } from "@clinic/shared";
 import { APPOINTMENT_STATUS } from "@shared/enums";
 import { useMemo, useState, type JSX } from "react";
 import { bookingApi, failureKey } from "@web/booking/api";
-import { clinicDate, dayChips, learnClinicOffset } from "@web/booking/format";
+import { clinicDate, dayChips, learnClinicOffset, bookingName } from "@web/booking/format";
 import { t } from "@web/booking/i18n";
 import { FullPageMessage, PageShell } from "@web/booking/layout";
 import { BookingFacts } from "@web/booking/steps/success-view";
 import { WhenStep, type SlotOption } from "@web/booking/steps/when-step";
 import { Alert, Button, Card, Skeleton, cx } from "@web/booking/ui";
 import { useAsync } from "@web/booking/use-async";
-import { bookingName } from "@web/booking/format";
 
 const VISIBLE_DAYS = 7;
 

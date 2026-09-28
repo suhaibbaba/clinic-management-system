@@ -2,18 +2,23 @@ import { AI_TOOL, USER_ROLE, type AiRiskTier } from "@clinic/shared";
 import type { ConfigService } from "@nestjs/config";
 import { Test } from "@nestjs/testing";
 import { AppModule } from "@api/app.module";
-import { AgentService } from "@api/ai/agent.service";
-import type { AiConversationsService } from "@api/ai/ai-conversations.service";
-import type { ChatChunk, ChatProvider, ChatRequest, ChatToolCall } from "@api/ai/chat-provider";
-import type { ChatProviderResolver } from "@api/ai/chat-provider.resolver";
-import type { AiTool } from "@api/ai/tools/ai-tool";
-import { AiToolsService } from "@api/ai/tools/ai-tools.service";
-import { TOOL_GROUP_NAMES } from "@api/ai/tools/tool-groups";
-import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
+import { AgentService } from "@api/modules/ai/services/agent.service";
+import type { AiConversationsService } from "@api/modules/ai/services/ai-conversations.service";
+import type {
+  ChatChunk,
+  ChatProvider,
+  ChatRequest,
+  ChatToolCall,
+} from "@api/modules/ai/lib/chat-provider";
+import type { ChatProviderResolver } from "@api/modules/ai/services/chat-provider.resolver";
+import type { AiTool } from "@api/modules/ai/tools/ai-tool";
+import { AiToolsService } from "@api/modules/ai/tools/ai-tools.service";
+import { TOOL_GROUP_NAMES } from "@api/modules/ai/tools/tool-groups";
+import { ToolRunnerService } from "@api/modules/ai/tools/tool-runner.service";
 import type { Env } from "@api/config/env.schema";
 import type { Database } from "@api/database/database.module";
-import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
-import type { PermissionsService } from "@api/permissions/permissions.service";
+import { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
+import type { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { EVAL_CASES, type EvalCase } from "@test/helpers/ai-eval-cases";
 
 process.env["DATABASE_URL"] ??= "postgres://nobody:nothing@127.0.0.1:1/none";

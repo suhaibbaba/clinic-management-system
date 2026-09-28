@@ -1,0 +1,249 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  createUserSchema,
+  updateUserSchema,
+  USER_ROLE,
+  USER_ROLES,
+  type CreateUserInput,
+  type UpdateUserInput,
+  type User,
+} from "@clinic/shared";
+import { useEffect, type JSX } from "react";
+import { Controller, useForm, type UseFormRegister } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+import {
+  Button,
+  FormField,
+  Icon,
+  Input,
+  PasswordInput,
+  PhoneInput,
+  Select,
+  useToast,
+} from "@clinic/ui";
+import { useCreateUser, useUpdateUser } from "@web/modules/users/queries";
+import { StaffNameFields, type StaffNameValues } from "@web/shared/components/staff-name-fields";
+import { UserPhotoField } from "@web/modules/users/components/user-photo-field";
+import { errorMessageKey } from "@web/shared/lib/api-error";
+import { Modal } from "@clinic/ui/components/modal";
+
+interface UserFormModalProps {
+  "data-testid"?: string | undefined;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  user: User | null;
+}
+
+type FormValues = CreateUserInput & { password?: string };
+
+export function UserFormModal({
+  open,
+  onOpenChange,
+  user,
+  "data-testid": testId = "user-form-modal",
+}: UserFormModalProps): JSX.Element {
+  const { t } = useTranslation();
+  const toast = useToast();
+  const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
+  const isEdit = user !== null;
+
+  const {
+    watch,
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(isEdit ? updateUserSchema : createUserSchema) as never,
+  });
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    reset(
+      user
+        ? {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phone,
+            email: user.email,
+            role: user.role,
+            isActive: user.isActive,
+          }
+        : {
+            firstName: { ar: "", en: "" },
+            lastName: { ar: "", en: "" },
+            phone: "",
+            email: null,
+            isActive: true,
+            password: "",
+          },
+    );
+  }, [open, user, reset]);
+
+  const roleOptions = USER_ROLES.filter(
+    (role) => role !== USER_ROLE.VISITING_DOCTOR || user?.role === role,
+  ).map((role) => ({ value: role, label: t(`roles.${role}`) }));
+
+  const email = watch("email")?.trim() ?? "";
+
+  const onSubmit = handleSubmit(async (values) => {
+    try {
+      if (user) {
+        const body: UpdateUserInput = {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          phone: values.phone,
+          email: values.email ?? null,
+          role: values.role,
+        };
+        await updateUser.mutateAsync({ id: user.id, body });
+        toast.success("users.updated");
+      } else {
+        await createUser.mutateAsync(values as CreateUserInput);
+        toast.success("users.created");
+      }
+
+      onOpenChange(false);
+    } catch (error) {
+      toast.error(errorMessageKey(error));
+    }
+  });
+
+  return (
+    <Modal
+      data-testid={testId}
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEdit ? "users.edit" : "users.create"}
+      footer={
+        <>
+          <Button
+            icon={<Icon name="x" />}
+            variant="secondary"
+            data-testid={`${testId}-cancel`}
+            onClick={() => onOpenChange(false)}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            icon={<Icon name="check" />}
+            data-testid={`${testId}-save`}
+            form="user-form"
+            type="submit"
+            isLoading={isSubmitting}
+          >
+            {t("common.save")}
+          </Button>
+        </>
+      }
+    >
+      <form
+        id="user-form"
+        data-testid={`${testId}-form`}
+        className="flex flex-col gap-4"
+        onSubmit={onSubmit}
+        noValidate
+      >
+        {user && <UserPhotoField user={user} />}
+
+        <StaffNameFields
+          prefix="user"
+          register={register as unknown as UseFormRegister<StaffNameValues>}
+          errors={errors}
+        />
+
+        <FormField
+          label="users.phone"
+          htmlFor="user-phone"
+          error={errors.phone}
+          errorKey={errors.phone ? "errors.validation.invalidPhone" : undefined}
+        >
+          <Controller
+            name="phone"
+            control={control}
+            render={({ field }) => (
+              <PhoneInput
+                placeholder={t("common.placeholders.phone")}
+                id="user-phone"
+                data-testid="user-field-phone"
+                hasError={errors.phone !== undefined}
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
+          />
+        </FormField>
+
+        <FormField
+          label="users.email"
+          htmlFor="user-email"
+          optional
+          error={errors.email}
+          errorKey={errors.email ? "errors.validation.invalidEmail" : undefined}
+        >
+          <Input
+            placeholder={t("common.placeholders.email")}
+            adornment="mail"
+            id="user-email"
+            data-testid="user-field-email"
+            type="email"
+            hasError={errors.email !== undefined}
+            {...register("email", { setValueAs: (value: string) => (value === "" ? null : value) })}
+          />
+        </FormField>
+
+        <FormField label="users.role" htmlFor="user-role" error={errors.role}>
+          <Controller
+            name="role"
+            control={control}
+            render={({ field }) => (
+              <Select
+                id="user-role"
+                data-testid="user-field-role"
+                options={roleOptions}
+                placeholder={t("users.selectRole")}
+                hasError={errors.role !== undefined}
+                value={field.value ?? ""}
+                onBlur={field.onBlur}
+                onChange={(event) => field.onChange(event.target.value)}
+              />
+            )}
+          />
+        </FormField>
+
+        {!isEdit &&
+          (email ? (
+            <p
+              data-testid="user-will-be-invited"
+              className="rounded-panel border border-primary-200 bg-primary-50 px-3.5 py-2.5 text-label text-primary-900"
+            >
+              {t("users.willBeInvited", { email })}
+            </p>
+          ) : (
+            <FormField
+              label="users.password"
+              htmlFor="user-password"
+              hint="users.passwordNoEmail"
+              error={errors.password}
+              errorKey={errors.password ? "errors.validation.passwordMin" : undefined}
+            >
+              <PasswordInput
+                placeholder={t("common.placeholders.password")}
+                id="user-password"
+                data-testid="user-field-password"
+                autoComplete="new-password"
+                hasError={errors.password !== undefined}
+                {...register("password")}
+              />
+            </FormField>
+          ))}
+      </form>
+    </Modal>
+  );
+}

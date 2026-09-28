@@ -1,0 +1,52 @@
+import {
+  ITEM_CATEGORY,
+  compareQuantity,
+  quantityToNumber,
+  toThousandths,
+  type InventoryItemRow,
+} from "@clinic/shared";
+import type { BadgeTone } from "@clinic/ui/components/badge";
+import type { ProgressTone } from "@clinic/ui/components/progress-bar";
+
+const CATEGORY_TONES: Record<string, BadgeTone> = {
+  [ITEM_CATEGORY.MEDICATION]: "info",
+  [ITEM_CATEGORY.CONSUMABLE]: "neutral",
+  [ITEM_CATEGORY.TOOL]: "neutral",
+  [ITEM_CATEGORY.STERILIZATION]: "success",
+};
+
+export const categoryTone = (category: string): BadgeTone => CATEGORY_TONES[category] ?? "neutral";
+
+export function stockTone(item: InventoryItemRow): ProgressTone {
+  if (item.isLow) {
+    return "danger";
+  }
+
+  const minimum = toThousandths(item.minQuantity);
+
+  if (minimum > 0 && compareQuantity(item.quantity, doubled(item.minQuantity)) <= 0) {
+    return "warning";
+  }
+
+  return "primary";
+}
+
+export function stockScale(item: InventoryItemRow): { value: number; total: number } {
+  const minimum = toThousandths(item.minQuantity);
+  const quantity = Math.max(quantityToNumber(item.quantity), 0);
+
+  return minimum > 0
+    ? { value: quantity, total: (minimum / 1000) * 2 }
+    : { value: quantity, total: Math.max(quantity, 1) };
+}
+
+const doubled = (quantity: string): string => {
+  const thousandths = toThousandths(quantity) * 2;
+  const fraction = String(Math.abs(thousandths) % 1000)
+    .padStart(3, "0")
+    .replace(/0+$/, "");
+
+  return fraction === ""
+    ? String(Math.trunc(thousandths / 1000))
+    : `${Math.trunc(thousandths / 1000)}.${fraction}`;
+};

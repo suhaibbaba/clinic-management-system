@@ -1,0 +1,47 @@
+import { Button, Icon } from "@clinic/ui";
+import { type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { useInstallPrompt } from "@web/shared/hooks/use-install-prompt";
+
+export function InstallCard(): JSX.Element | null {
+  const { t } = useTranslation();
+  const { state, install } = useInstallPrompt();
+
+  if (state === "unavailable") {
+    return null;
+  }
+
+  return (
+    <div
+      data-testid="pwa-install-card"
+      className="mt-4 flex flex-col items-start gap-2 border-t border-line pt-4"
+    >
+      {state === "available" && (
+        <>
+          <p className="text-label text-ink-muted">{t("pwa.installHint")}</p>
+          <Button
+            icon={<Icon name="plus" />}
+            variant="secondary"
+            size="sm"
+            data-testid="pwa-install"
+            onClick={install}
+          >
+            {t("pwa.install")}
+          </Button>
+        </>
+      )}
+
+      {state === "manual" && (
+        <p data-testid="pwa-install-ios" className="text-label text-ink-muted">
+          {t("pwa.installIos")}
+        </p>
+      )}
+
+      {state === "installed" && (
+        <p data-testid="pwa-installed" className="text-label text-ink-muted">
+          {t("pwa.installed")}
+        </p>
+      )}
+    </div>
+  );
+}

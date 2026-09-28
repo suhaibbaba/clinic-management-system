@@ -1,0 +1,288 @@
+import {
+  ALLOWED_ATTACHMENT_MIME_TYPES,
+  MAX_ATTACHMENT_BYTES,
+  type Attachment,
+} from "@clinic/shared";
+import { useRef, useState, type ChangeEvent, type DragEvent, type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { Button, EmptyState, Icon, Img, Ltr, useConfirm, useToast } from "@clinic/ui";
+import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
+import { useSession } from "@web/shared/providers/session";
+import { canDeleteAttachment, canManageAttachments } from "@web/shared/permissions/patients";
+import {
+  useAttachment,
+  useDeleteAttachment,
+  usePatientAttachments,
+  useUploadAttachment,
+} from "@web/modules/patients/queries";
+import { errorMessageKey } from "@web/shared/lib/api-error";
+import { cn } from "@clinic/ui/lib/cn";
+import { formatDate } from "@web/shared/lib/format";
+import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
+import { ellipsis } from "@web/i18n/ellipsis";
+
+export function ImagingTab({ patientId }: { patientId: string }): JSX.Element {
+  const { can } = useSession();
+  const toast = useToast();
+
+  const attachments = usePatientAttachments(patientId);
+  const showSkeleton = useDelayedLoading(attachments.isPending);
+
+  const canUpload = canManageAttachments(can);
+  const canRemove = canDeleteAttachment(can);
+
+  return (
+    <div data-testid="imaging-tab" className="flex flex-col gap-4">
+      {canUpload && <UploadRow patientId={patientId} />}
+
+      {showSkeleton && (
+        <>
+          <SkeletonStatus />
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {[0, 1, 2, 3].map((tile) => (
+              <li key={tile} aria-hidden="true">
+                <Skeleton className="aspect-square w-full rounded-card" />
+                <Skeleton className="mt-2 h-3 w-2/3" />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {attachments.isError && (
+        <EmptyState
+          icon="alert"
+          data-testid="imaging-error"
+          title="errors.generic"
+          hint="imaging.loadFailed"
+        />
+      )}
+
+      {!attachments.isPending && attachments.data?.length === 0 && (
+        <EmptyState
+          icon="image"
+          data-testid="imaging-empty"
+          title="imaging.empty"
+          hint="imaging.emptyHint"
+        />
+      )}
+
+      {attachments.data && attachments.data.length > 0 && (
+        <ul
+          data-testid="imaging-grid"
+          className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+        >
+          {attachments.data.map((attachment) => (
+            <li key={attachment.id} data-testid={`imaging-item-${attachment.id}`}>
+              <ImageCard
+                attachment={attachment}
+                patientId={patientId}
+                canRemove={canRemove}
+                onError={(error) => toast.error(errorMessageKey(error))}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function UploadRow({ patientId }: { patientId: string }): JSX.Element {
+  const { t } = useTranslation();
+  const toast = useToast();
+  const upload = useUploadAttachment(patientId);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const [isOver, setIsOver] = useState(false);
+
+  const send = async (file: File): Promise<void> => {
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      toast.error("imaging.tooLarge");
+      return;
+    }
+
+    if (!ALLOWED_ATTACHMENT_MIME_TYPES.some((allowed) => allowed === file.type)) {
+      toast.error("imaging.unsupportedType");
+      return;
+    }
+
+    try {
+      await upload.mutateAsync({ file });
+      toast.success("imaging.uploaded");
+    } catch (error) {
+      toast.error(errorMessageKey(error));
+    }
+  };
+
+  const handleFile = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const file = event.target.files?.[0];
+
+    if (file) {
+      await send(file);
+    }
+
+    event.target.value = "";
+  };
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>): void => {
+    event.preventDefault();
+    setIsOver(false);
+
+    const file = event.dataTransfer.files.item(0);
+
+    if (file) {
+      void send(file);
+    }
+  };
+
+  return (
+    <div
+      data-testid="imaging-upload"
+      className="border border-line rounded-card bg-surface p-5 shadow-card"
+    >
+      <div
+        data-testid="imaging-dropzone"
+        onDragOver={(event) => {
+          event.preventDefault();
+          setIsOver(true);
+        }}
+        onDragLeave={() => setIsOver(false)}
+        onDrop={handleDrop}
+        className={cn(
+          "flex flex-col items-center gap-2 rounded-panel border-2 border-dashed px-4 py-8 text-center",
+          "transition-colors duration-150",
+          isOver ? "border-primary-500 bg-primary-50" : "border-line-strong bg-inset/40",
+        )}
+      >
+        <Icon name="upload" className="size-7 text-ink-subtle" />
+
+        <p className="text-value font-medium text-ink">{t("imaging.uploadTitle")}</p>
+        <p className="text-label text-ink-muted">{t("imaging.dropHint")}</p>
+
+        <input
+          ref={inputRef}
+          type="file"
+          data-testid="imaging-file-input"
+          className="sr-only"
+          accept={ALLOWED_ATTACHMENT_MIME_TYPES.join(",")}
+          onChange={(event) => void handleFile(event)}
+        />
+
+        <Button
+          className="mt-2"
+          data-testid="imaging-upload-button"
+          icon={<Icon name="upload" />}
+          isLoading={upload.isPending}
+          onClick={() => inputRef.current?.click()}
+        >
+          {upload.isPending ? ellipsis(t("imaging.uploading")) : t("imaging.upload")}
+        </Button>
+
+        <p className="mt-1 text-label text-ink-subtle">{t("imaging.uploadHint")}</p>
+      </div>
+    </div>
+  );
+}
+
+function ImageCard({
+  attachment,
+  patientId,
+  canRemove,
+  onError,
+}: {
+  attachment: Attachment;
+  patientId: string;
+  canRemove: boolean;
+  onError: (error: unknown) => void;
+}): JSX.Element {
+  const { t } = useTranslation();
+  const toast = useToast();
+  const { data, isPending } = useAttachment(attachment.id, true);
+  const remove = useDeleteAttachment(patientId);
+  const { confirm, dialog } = useConfirm("imaging-confirm-delete");
+
+  const isImage = attachment.mime.startsWith("image/");
+
+  const handleDelete = (): void =>
+    confirm({
+      title: "imaging.confirmDelete.title",
+      titleValues: { name: attachment.filename },
+      consequences: [t("imaging.confirmDelete.consequence")],
+      onConfirm: async () => {
+        try {
+          await remove.mutateAsync(attachment.id);
+          toast.success("imaging.deleted");
+        } catch (error) {
+          onError(error);
+          throw error;
+        }
+      },
+    });
+
+  return (
+    <figure
+      data-testid="imaging-card"
+      className="flex flex-col gap-1.5 border border-line rounded-card bg-surface shadow-card p-2"
+    >
+      {dialog}
+      <div className="flex aspect-square items-center justify-center overflow-hidden rounded-md bg-canvas">
+        {isPending && <Skeleton className="size-full rounded-none" />}
+
+        {data?.downloadUrl &&
+          (isImage ? (
+            <a
+              href={data.downloadUrl}
+              data-testid="imaging-card-open"
+              target="_blank"
+              rel="noreferrer"
+              className="size-full"
+            >
+              <Img
+                data-testid="imaging-card-image"
+                src={data.downloadUrl}
+                alt={attachment.filename}
+                aspectRatio="1/1"
+                className="size-full"
+              />
+            </a>
+          ) : (
+            <a
+              href={data.downloadUrl}
+              data-testid="imaging-card-open-file"
+              target="_blank"
+              rel="noreferrer"
+              className="px-2 text-center text-label text-primary-600 underline"
+            >
+              {t("chart.panel.openFile")}
+            </a>
+          ))}
+      </div>
+
+      <figcaption className="flex flex-col gap-1">
+        <span
+          data-testid="imaging-card-filename"
+          className="truncate text-label font-medium text-ink"
+          title={attachment.filename}
+        >
+          {attachment.filename}
+        </span>
+
+        <Ltr className="text-micro text-ink-muted">{formatDate(attachment.createdAt)}</Ltr>
+
+        {canRemove && (
+          <Button
+            icon={<Icon name="trash" />}
+            variant="quiet"
+            size="sm"
+            data-testid="imaging-card-delete"
+            disabled={remove.isPending}
+            onClick={handleDelete}
+          >
+            {t("common.delete")}
+          </Button>
+        )}
+      </figcaption>
+    </figure>
+  );
+}

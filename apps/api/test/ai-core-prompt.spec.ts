@@ -1,10 +1,10 @@
 import { AI_TOOL, USER_ROLE } from "@clinic/shared";
-import { AiActionsService } from "@api/ai/actions/ai-actions.service";
-import { systemPrompt } from "@api/ai/system-prompt";
-import { AiToolsService } from "@api/ai/tools/ai-tools.service";
-import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
-import type { CapabilityRegistry } from "@api/permissions/capability-registry.service";
-import type { PermissionsService } from "@api/permissions/permissions.service";
+import { AiActionsService } from "@api/modules/ai/actions/ai-actions.service";
+import { systemPrompt } from "@api/modules/ai/lib/system-prompt";
+import { AiToolsService } from "@api/modules/ai/tools/ai-tools.service";
+import { ToolRunnerService } from "@api/modules/ai/tools/tool-runner.service";
+import type { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
+import type { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import type { Database } from "@api/database/database.module";
 
 const standIn = new Proxy({}, { get: () => () => undefined });

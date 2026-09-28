@@ -7,8 +7,8 @@ import {
 import { Reflector } from "@nestjs/core";
 import { USER_ROLE, type UserRole } from "@clinic/shared";
 import { ROLES_KEY } from "@api/common/decorators/roles.decorator";
-import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
-import { PermissionsService } from "@api/permissions/permissions.service";
+import { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import type { RequestWithUser } from "@api/common/types/authenticated-user";
 
 @Injectable()
