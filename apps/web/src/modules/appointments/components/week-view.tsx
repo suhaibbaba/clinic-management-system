@@ -1,18 +1,18 @@
 import {
-  APPOINTMENT_STATUS,
   type CalendarAppointment,
   type ClinicClosure,
   type PersonName as PersonNameValue,
 } from "@clinic/shared";
-import { formatDate, formatTime, formatWeekday } from "@web/shared/lib/format";
+import { formatDate, formatWeekday } from "@web/shared/lib/format";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { EmptyState, Ltr, PersonName } from "@clinic/ui";
-import { APPOINTMENT_STATUS_STYLES } from "@web/shared/lib/appointment-status";
 import { WEEK_FREE_GAP_MINUTES } from "@web/modules/appointments/constants";
 import { instantAt, toIsoDate } from "@web/shared/lib/dates";
 import { cn } from "@clinic/ui/lib/cn";
-import { formatDuration } from "@web/shared/lib/duration";
+import { AppointmentLine } from "@web/modules/appointments/components/appointment-line";
+import { IdleGap } from "@web/modules/appointments/components/idle-gap";
+import { idleMinutesBefore, isReleased } from "@web/modules/appointments/lib/free-time";
 
 export interface WeekViewDoctor {
   readonly id: string;
@@ -29,13 +29,6 @@ export interface WeekViewProps {
   readonly onOpen: (appointment: CalendarAppointment) => void;
   readonly onPickDay: (date: string) => void;
 }
-
-const endOf = (appointment: CalendarAppointment): number =>
-  Date.parse(appointment.startsAt) + appointment.durationMinutes * 60_000;
-
-const released = (appointment: CalendarAppointment): boolean =>
-  appointment.status === APPOINTMENT_STATUS.CANCELLED ||
-  appointment.status === APPOINTMENT_STATUS.NO_SHOW;
 
 export function WeekView({
   days,
@@ -54,7 +47,7 @@ export function WeekView({
   const closureOn = (day: string): ClinicClosure | undefined =>
     closures.find((closure) => closure.startsOn <= day && day <= closure.endsOn);
   const booked = (list: readonly CalendarAppointment[]): number =>
-    list.filter((appointment) => !released(appointment)).length;
+    list.filter((appointment) => !isReleased(appointment)).length;
 
   const rows = doctors.filter(
     (doctor) =>
@@ -154,54 +147,16 @@ export function WeekView({
                       </li>
                     )}
                     {list.map((appointment, index) => {
-                      const previous = list
-                        .slice(0, index)
-                        .filter((entry) => !released(entry))
-                        .at(-1);
-                      const free =
-                        previous && !released(appointment)
-                          ? Math.round(
-                              (Date.parse(appointment.startsAt) - endOf(previous)) / 60_000,
-                            )
-                          : 0;
+                      const idle = idleMinutesBefore(list, index);
 
                       return (
                         <li key={appointment.id} className="flex flex-col gap-1.5">
-                          {free >= WEEK_FREE_GAP_MINUTES && (
-                            <span
-                              data-part="free"
-                              className="flex items-center gap-2 px-1 text-micro text-ink-muted"
-                            >
-                              <span
-                                aria-hidden="true"
-                                className="h-px flex-1 border-t border-dashed border-line-strong"
-                              />
-                              {t("appointments.freeGap", { duration: formatDuration(t, free) })}
-                              <span
-                                aria-hidden="true"
-                                className="h-px flex-1 border-t border-dashed border-line-strong"
-                              />
-                            </span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => onOpen(appointment)}
-                            data-appointment={appointment.id}
+                          {idle >= WEEK_FREE_GAP_MINUTES && <IdleGap minutes={idle} />}
+                          <AppointmentLine
                             data-testid={`${testId}-appointment-${appointment.id}`}
-                            aria-label={`${formatTime(appointment.startsAt)} — ${
-                              appointment.patientName
-                            } — ${t(`appointments.statuses.${appointment.status}`)}`}
-                            className={cn(
-                              "flex w-full cursor-pointer items-baseline gap-2 rounded-panel border px-2.5 py-1.5 text-start text-meta",
-                              "transition-shadow duration-150 hover:shadow-card",
-                              APPOINTMENT_STATUS_STYLES[appointment.status].block,
-                            )}
-                          >
-                            <Ltr className="shrink-0 font-medium tabular-nums">
-                              {formatTime(appointment.startsAt)}
-                            </Ltr>
-                            <span className="truncate">{appointment.patientName}</span>
-                          </button>
+                            appointment={appointment}
+                            onOpen={() => onOpen(appointment)}
+                          />
                         </li>
                       );
                     })}

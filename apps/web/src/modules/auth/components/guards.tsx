@@ -27,11 +27,26 @@ function BootSkeleton(): JSX.Element {
   }
 
   return (
-    <div data-testid="boot-skeleton" className="flex min-h-full flex-col gap-4 p-8">
+    <div data-testid="boot-skeleton" className="flex min-h-full flex-col rail:flex-row">
       <SkeletonStatus />
-      <Skeleton className="h-6 w-48" />
-      <Skeleton className="h-32 w-full rounded-card" />
-      <Skeleton className="h-32 w-full rounded-card" />
+      <div
+        aria-hidden="true"
+        className="hidden shrink-0 flex-col gap-3 border-e border-line bg-rail px-[18px] pt-5 rail:flex rail:h-dvh rail:w-[266px]"
+      >
+        <Skeleton className="mb-3 h-[70px] w-full rounded-brand" />
+        {Array.from({ length: 7 }, (_, item) => (
+          <Skeleton key={item} className="h-(--control-h) w-full rounded-control" />
+        ))}
+      </div>
+      <div
+        aria-hidden="true"
+        className="flex min-w-0 flex-1 flex-col gap-5 px-4 pt-4 rail:px-[34px] rail:pt-[26px]"
+      >
+        <Skeleton className="h-[70px] w-full rounded-card" />
+        <Skeleton className="h-6 w-48" />
+        <Skeleton className="h-32 w-full rounded-card" />
+        <Skeleton className="h-64 w-full rounded-card" />
+      </div>
     </div>
   );
 }

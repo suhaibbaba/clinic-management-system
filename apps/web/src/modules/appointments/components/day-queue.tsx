@@ -13,7 +13,8 @@ import { useTranslation } from "react-i18next";
 import { Avatar, Badge, Icon, Ltr, PersonName, usePersonName } from "@clinic/ui";
 import { cn } from "@clinic/ui/lib/cn";
 import { buildQueue, type QueueRow } from "@web/modules/appointments/lib/calendar-time";
-import { APPOINTMENT_STATUS_STYLES } from "@web/shared/lib/appointment-status";
+import { AppointmentLine } from "@web/modules/appointments/components/appointment-line";
+import { IdleGap } from "@web/modules/appointments/components/idle-gap";
 import { formatDuration } from "@web/shared/lib/duration";
 import { WEEK_FREE_GAP_MINUTES } from "@web/modules/appointments/constants";
 import { useLookupLabels } from "@web/shared/queries/lookups";
@@ -203,15 +204,21 @@ function QueueEntry({
   readonly onPick?: ((minute: number) => void) | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
+  const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
 
   if (row.kind === "appointment") {
     return (
-      <AppointmentCard
+      <AppointmentLine
+        data-testid={`appointment-card-${row.appointment.id}`}
         appointment={row.appointment}
-        start={row.start}
-        end={row.end}
-        overlaps={row.overlaps}
         onOpen={() => onOpen(row.appointment)}
+        title={`${range(row.start, row.end)} · ${typeLabel(row.appointment.type)}`}
+        trailing={
+          <>
+            {typeLabel(row.appointment.type)}
+            {row.overlaps && <Badge tone="warning">{t("appointments.queue.overlap")}</Badge>}
+          </>
+        }
       />
     );
   }
@@ -260,59 +267,6 @@ function QueueEntry({
     <div data-testid={`${testId}-free-${row.start}`} className={shape}>
       {content}
     </div>
-  );
-}
-
-function AppointmentCard({
-  appointment,
-  start,
-  end,
-  overlaps,
-  onOpen,
-}: {
-  readonly appointment: CalendarAppointment;
-  readonly start: number;
-  readonly end: number;
-  readonly overlaps: boolean;
-  readonly onOpen: () => void;
-}): JSX.Element {
-  const { t } = useTranslation();
-  const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
-  const status = t(`appointments.statuses.${appointment.status}`);
-
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      data-appointment={appointment.id}
-      data-testid={`appointment-card-${appointment.id}`}
-      aria-label={`${formatMinute(start)} — ${appointment.patientName} — ${status}`}
-      title={`${range(start, end)} · ${typeLabel(appointment.type)}`}
-      className={cn(
-        "flex w-full cursor-pointer items-baseline gap-2 rounded-panel border px-2.5 py-1.5 text-start text-meta",
-        "transition-shadow duration-150 hover:shadow-card",
-        APPOINTMENT_STATUS_STYLES[appointment.status].block,
-      )}
-    >
-      <Ltr className="shrink-0 font-medium tabular-nums">{formatMinute(start)}</Ltr>
-      <span className="truncate">{appointment.patientName}</span>
-      <span className="ms-auto flex shrink-0 items-center gap-1.5 text-micro opacity-80">
-        {typeLabel(appointment.type)}
-        {overlaps && <Badge tone="warning">{t("appointments.queue.overlap")}</Badge>}
-      </span>
-    </button>
-  );
-}
-
-function IdleGap({ minutes }: { readonly minutes: number }): JSX.Element {
-  const { t } = useTranslation();
-
-  return (
-    <span data-part="free" className="flex items-center gap-2 px-1 text-micro text-ink-muted">
-      <span aria-hidden="true" className="flex-1 border-t border-dashed border-line-strong" />
-      {t("appointments.freeGap", { duration: formatDuration(t, minutes) })}
-      <span aria-hidden="true" className="flex-1 border-t border-dashed border-line-strong" />
-    </span>
   );
 }
 

@@ -21,7 +21,12 @@ import {
   StatRow,
   usePersonName,
 } from "@clinic/ui";
-import { RefreshBar, SkeletonCalendarDay } from "@clinic/ui/components/skeleton";
+import {
+  RefreshBar,
+  SkeletonDayColumns,
+  SkeletonGroupedList,
+  SkeletonWeekRows,
+} from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/shared/providers/session";
 import { usePendingBookings } from "@web/shared/queries/booking";
 import { seesPendingBookings } from "@web/shared/permissions/booking";
@@ -136,6 +141,7 @@ export function AppointmentsPage(): JSX.Element {
   const onlineToday = usePendingBookings({ from: todayIso(), to: todayIso(), limit: 1 }, frontDesk);
 
   const { showSkeleton, isRefreshing } = useQueryLoading(calendar);
+  const ready = !calendar.isPending && !calendar.isError && !doctors.isPending;
   const appointments = calendar.data?.appointments ?? [];
   const closures = calendar.data?.closures ?? [];
   const timeOff = calendar.data?.timeOff ?? [];
@@ -268,7 +274,7 @@ export function AppointmentsPage(): JSX.Element {
           icon="calendar"
           data-testid="appointments-kpi-today"
           label={t("appointments.kpi.today")}
-          value={todayStats.total}
+          value={calendar.isPending ? "—" : todayStats.total}
           caption={formatDate(todayIso())}
         />
         <StatCard
@@ -276,14 +282,14 @@ export function AppointmentsPage(): JSX.Element {
           tone="success"
           data-testid="appointments-kpi-arrived"
           label={t("appointments.kpi.arrived")}
-          value={todayStats.attended}
+          value={calendar.isPending ? "—" : todayStats.attended}
         />
         <StatCard
           icon="clock"
           tone="warning"
           data-testid="appointments-kpi-remaining"
           label={t("appointments.kpi.remaining")}
-          value={todayStats.remaining}
+          value={calendar.isPending ? "—" : todayStats.remaining}
         />
         <StatCard
           icon="activity"
@@ -299,7 +305,7 @@ export function AppointmentsPage(): JSX.Element {
             data-testid="appointments-kpi-online-today"
             tone={(onlineToday.data?.total ?? 0) > 0 ? "warning" : "primary"}
             label={t("appointments.kpi.onlineToday")}
-            value={onlineToday.data?.total ?? 0}
+            value={onlineToday.data?.total ?? "—"}
             caption={t("appointments.kpi.onlineTodayCaption")}
           />
         )}
@@ -384,13 +390,18 @@ export function AppointmentsPage(): JSX.Element {
           />
         )}
 
-        {showSkeleton && (
-          <SkeletonCalendarDay columns={effectiveRange === "week" ? weekDays.length : 3} />
-        )}
+        {showSkeleton &&
+          (isMobile ? (
+            <SkeletonGroupedList />
+          ) : effectiveRange === "week" ? (
+            <SkeletonWeekRows days={weekDays.length} />
+          ) : (
+            <SkeletonDayColumns columns={columns.length === 0 ? 2 : Math.min(columns.length, 3)} />
+          ))}
 
         <RefreshBar active={isRefreshing} />
 
-        {!showSkeleton && !calendar.isError && effectiveRange === "week" && (
+        {ready && effectiveRange === "week" && (
           <WeekView
             data-testid="appointments-week"
             days={weekDays}
@@ -405,17 +416,16 @@ export function AppointmentsPage(): JSX.Element {
           />
         )}
 
-        {!showSkeleton && !calendar.isError && effectiveRange === "day" && isMobile && (
+        {ready && effectiveRange === "day" && isMobile && (
           <AgendaList
             data-testid="appointments-agenda"
             appointments={appointments}
             {...(closureToday && { closure: closureToday })}
             onOpen={(appointment) => setSelectedId(appointment.id)}
-            showDoctor={wholeClinic}
           />
         )}
 
-        {!showSkeleton && !calendar.isError && queueShown && (
+        {ready && queueShown && (
           <DayQueue
             data-testid="appointments-day-queue"
             date={date}

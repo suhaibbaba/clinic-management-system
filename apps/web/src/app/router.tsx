@@ -72,7 +72,15 @@ function RedirectKeepingQuery({
 
 function RouteChunk({ children }: { readonly children: JSX.Element }): JSX.Element {
   return (
-    <Suspense fallback={<Skeleton aria-hidden="true" className="h-[520px] w-full rounded-card" />}>
+    <Suspense
+      fallback={
+        <div aria-hidden="true" className="flex flex-col gap-5">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-32 w-full rounded-card" />
+          <Skeleton className="h-[360px] w-full rounded-card" />
+        </div>
+      }
+    >
       {children}
     </Suspense>
   );
