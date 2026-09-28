@@ -80,7 +80,6 @@ export function UserFormModal({
             phone: "",
             email: null,
             isActive: true,
-            password: "",
           },
     );
   }, [open, user, reset]);
@@ -119,6 +118,7 @@ export function UserFormModal({
       data-testid={testId}
       open={open}
       onOpenChange={onOpenChange}
+      size="lg"
       title={isEdit ? "users.edit" : "users.create"}
       footer={
         <>
@@ -239,7 +239,10 @@ export function UserFormModal({
                 data-testid="user-field-password"
                 autoComplete="new-password"
                 hasError={errors.password !== undefined}
-                {...register("password")}
+                {...register("password", {
+                  shouldUnregister: true,
+                  setValueAs: (value: string) => (value === "" ? undefined : value),
+                })}
               />
             </FormField>
           ))}
