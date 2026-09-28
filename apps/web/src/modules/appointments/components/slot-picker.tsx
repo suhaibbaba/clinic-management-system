@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Icon } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { cn } from "@clinic/ui/lib/cn";
+import { formatTime } from "@web/shared/lib/format";
 
 export interface SlotPickerProps {
   readonly availability: Availability | undefined;
@@ -74,7 +75,7 @@ export function SlotPicker({
                   "border-primary-600 bg-primary-600 text-ink-inverse hover:bg-primary-700",
               )}
             >
-              {slot.start}
+              {formatTime(slot.startsAt)}
             </button>
           );
         })}

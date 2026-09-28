@@ -224,6 +224,7 @@ export function canTransitionAppointment(from: AppointmentStatus, to: Appointmen
 export const APPOINTMENT_TIMING_ERROR = {
   DAY_NOT_REACHED: "appointment_day_not_reached",
   NOT_STARTED: "appointment_not_started",
+  DAY_PASSED: "appointment_day_passed",
 } as const;
 export type AppointmentTimingError =
   (typeof APPOINTMENT_TIMING_ERROR)[keyof typeof APPOINTMENT_TIMING_ERROR];

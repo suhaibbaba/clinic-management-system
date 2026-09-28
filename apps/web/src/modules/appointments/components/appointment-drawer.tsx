@@ -3,12 +3,13 @@ import {
   appointmentTimingError,
   LOOKUP_LIST,
   type AppointmentStatus,
+  occupiesSlot,
   type CalendarAppointment,
 } from "@clinic/shared";
 import { formatTime, formatDate } from "@web/shared/lib/format";
 import { useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -17,6 +18,7 @@ import {
   Ltr,
   Modal,
   PersonName,
+  PhoneLink,
   Textarea,
   useToast,
 } from "@clinic/ui";
@@ -127,6 +129,8 @@ export function AppointmentDrawer({
   };
 
   const busy = step.isPending || cancel.isPending || convert.isPending;
+  const editable = occupiesSlot(status) && status !== APPOINTMENT_STATUS.COMPLETED;
+  const cancellable = CANCELLABLE_STATUSES.includes(status) && canCancelAppointment(can);
 
   return (
     <>
@@ -209,18 +213,6 @@ export function AppointmentDrawer({
                 {t("appointments.actions.noShow")}
               </Button>
             )}
-
-            {CANCELLABLE_STATUSES.includes(status) && canCancelAppointment(can) && (
-              <Button
-                variant="ghost"
-                icon={<Icon name="x" />}
-                data-testid={`${testId}-cancel`}
-                disabled={busy}
-                onClick={() => setCancelOpen(true)}
-              >
-                {t("appointments.actions.cancel")}
-              </Button>
-            )}
           </div>
         }
       >
@@ -258,12 +250,20 @@ export function AppointmentDrawer({
             </Field>
             <Field label={t("appointments.patient")}>
               <span className="flex flex-wrap items-baseline gap-2">
-                <span>{appointment.patientName}</span>
+                <Link
+                  to={`/patients/${appointment.patientId}`}
+                  data-testid={`${testId}-open-file`}
+                  title={t("appointments.actions.openFile")}
+                  onClick={onClose}
+                  className="font-medium text-primary-600 hover:underline"
+                >
+                  {appointment.patientName}
+                </Link>
                 <Ltr className="tabular-nums text-ink-subtle">{appointment.patientFileNumber}</Ltr>
               </span>
             </Field>
             <Field label={t("patients.phone")}>
-              <Ltr className="tabular-nums">{appointment.patientPhone}</Ltr>
+              <PhoneLink value={appointment.patientPhone} data-testid={`${testId}-phone`} />
             </Field>
             {appointment.reason && (
               <Field wide label={t("appointments.reason")}>
@@ -282,29 +282,33 @@ export function AppointmentDrawer({
             )}
           </dl>
 
-          <div className="flex flex-wrap gap-2 border-t border-line pt-4">
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={<Icon name="edit" />}
-              data-testid={`${testId}-reschedule`}
-              onClick={() => onEdit(appointment)}
-            >
-              {t("appointments.actions.reschedule")}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={<Icon name="user" />}
-              data-testid={`${testId}-open-file`}
-              onClick={() => {
-                onClose();
-                navigate(`/patients/${appointment.patientId}`);
-              }}
-            >
-              {t("appointments.actions.openFile")}
-            </Button>
-          </div>
+          {(editable || cancellable) && (
+            <div className="flex flex-wrap gap-2 border-t border-line pt-4">
+              {editable && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={<Icon name="edit" />}
+                  data-testid={`${testId}-reschedule`}
+                  onClick={() => onEdit(appointment)}
+                >
+                  {t("appointments.actions.reschedule")}
+                </Button>
+              )}
+              {cancellable && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<Icon name="x" />}
+                  data-testid={`${testId}-cancel`}
+                  disabled={busy}
+                  onClick={() => setCancelOpen(true)}
+                >
+                  {t("appointments.actions.cancel")}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </Drawer>
 

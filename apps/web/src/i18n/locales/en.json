@@ -453,7 +453,8 @@
     },
     "appointment": {
       "dayNotReached": "This appointment's day has not come yet",
-      "notStarted": "A patient can be marked as not showing up only after the appointment time"
+      "notStarted": "A patient can be marked as not showing up only after the appointment time",
+      "dayPassed": "An appointment cannot be set on a day that has passed"
     }
   },
   "patients": {

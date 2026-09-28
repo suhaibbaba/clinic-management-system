@@ -11,6 +11,7 @@ import {
   addDays,
   APPOINTMENT_OPEN_STATUSES,
   APPOINTMENT_STATUS,
+  APPOINTMENT_TIMING_ERROR,
   APPOINTMENT_TYPE,
   appointmentTimingError,
   canTransitionAppointment,
@@ -230,6 +231,7 @@ export class AppointmentsService implements OnModuleInit {
     }
 
     await this.access.requireOwnCalendar(actor, input.doctorId);
+    await this.requireNotBeforeToday(actor.clinicId, new Date(input.startsAt));
 
     const duration = input.durationMinutes ?? (await this.defaultDuration(actor, input.doctorId));
 
@@ -278,6 +280,13 @@ export class AppointmentsService implements OnModuleInit {
 
     if (!occupiesSlot(existing.status) || existing.status === APPOINTMENT_STATUS.COMPLETED) {
       throw new BadRequestException("This appointment is closed and can no longer be moved");
+    }
+
+    if (
+      input.startsAt !== undefined &&
+      new Date(input.startsAt).getTime() !== existing.startsAt.getTime()
+    ) {
+      await this.requireNotBeforeToday(actor.clinicId, new Date(input.startsAt));
     }
 
     await this.insert(() =>
@@ -339,6 +348,14 @@ export class AppointmentsService implements OnModuleInit {
       .where(this.scope.where(appointments, actor.clinicId, eq(appointments.id, id)));
 
     return this.findOne(actor, id);
+  }
+
+  private async requireNotBeforeToday(clinicId: string, startsAt: Date): Promise<void> {
+    const timeZone = await clinicTimeZone(this.db, clinicId);
+
+    if (localDate(startsAt, timeZone) < localDate(new Date(), timeZone)) {
+      throw new BadRequestException(APPOINTMENT_TIMING_ERROR.DAY_PASSED);
+    }
   }
 
   async timingError(

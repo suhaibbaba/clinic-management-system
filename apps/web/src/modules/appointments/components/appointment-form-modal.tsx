@@ -143,8 +143,12 @@ export function AppointmentFormModal({
   );
 
   const ready = Boolean(doctorId && date);
+  const movedIntoPast = date < todayIso() && startsAt !== appointment?.startsAt;
   const canSubmit =
-    Boolean(startsAt) && Boolean(doctorId) && (isDraftComplete(patient) || Boolean(appointment));
+    Boolean(startsAt) &&
+    Boolean(doctorId) &&
+    !movedIntoPast &&
+    (isDraftComplete(patient) || Boolean(appointment));
 
   const submit = async (): Promise<void> => {
     if (!startsAt || !doctorId) {
@@ -271,6 +275,7 @@ export function AppointmentFormModal({
               data-testid="appointment-field-date"
               label={t("appointments.date")}
               value={date}
+              min={todayIso()}
               onChange={(next) => {
                 setDate(next);
                 setStartsAt(null);
