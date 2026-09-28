@@ -110,6 +110,9 @@ core · patients · billing · appointments · booking · notifications · labs 
   signed out); a public or costly route adds a tighter `@Throttle`. The client IP is trusted only
   past our own proxies (`TRUST_PROXY`). Sign-in locks an identifier for 15 minutes after five
   failures; a public route that sends a message caps sends per phone.
+- **The assistant never changes data unasked:** every action tool is tier `confirm` or stricter,
+  so the user approves each change on its card. A linked id (a visit, a procedure, a work type) is
+  checked to belong to the same patient, clinic or lab before it is stored.
 - Every list endpoint paginates, filters by query param, and is clinic-scoped automatically.
 - **Newest first by default** — every list, table and attachment list. A sort picker may offer
   other orders; its default is newest. Exceptions carry meaning: a calendar or queue by time, the

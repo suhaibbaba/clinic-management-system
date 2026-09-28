@@ -59,8 +59,81 @@ services:
         condition: service_healthy
     networks: [clinic]
 
+  # Nightly pg_dump, keeping the last 7 days. Set BACKUP_DIR to a host path so the dumps can be
+  # copied off the machine; unset, they stay in the `backups` volume.
+  # The script is inline rather than a mounted file so the backup schedule
+  # travels with the stack definition and needs no extra image.
+  backup:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ${BACKUP_DIR:-backups}:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # `$0` is set to a label so an argument appended by `docker compose run`
+    # lands in `$1` — that is how the on-demand `once` mode below is reached.
+    entrypoint:
+      - sh
+      - -c
+      - |
+        set -eu
+
+        dump() {
+          stamp=$$(date -u +%Y%m%d-%H%M%S)
+          file="/backups/clinic-$${stamp}.sql.gz"
+          echo "[backup] dumping to $${file}"
+          PGPASSWORD="$${POSTGRES_PASSWORD}" pg_dump \
+            --host=postgres --username="$${POSTGRES_USER}" --dbname="$${POSTGRES_DB}" \
+            --no-owner --no-privileges | gzip -9 > "$${file}.part"
+          mv "$${file}.part" "$${file}"
+          echo "[backup] wrote $$(du -h "$${file}" | cut -f1)"
+
+          # Retention: keep the last 7 days. Partial files from an interrupted
+          # dump are swept with them.
+          find /backups -name 'clinic-*.sql.gz*' -mtime +$${BACKUP_KEEP_DAYS:-7} \
+            -exec rm -f {} + || true
+        }
+
+        # `once` runs a single dump and exits — that is the on-demand backup
+        # documented in DEPLOY.md.
+        if [ "$${1:-}" = "once" ]; then
+          dump
+          exit 0
+        fi
+
+        at="$${BACKUP_AT_UTC:-02:15}"
+        hh=$${at%%:*}
+        mm=$${at##*:}
+        # Strip a leading zero: POSIX arithmetic reads "08" and "09" as invalid
+        # octal, which would take the loop down every night at eight or nine.
+        hh=$${hh#0}
+        mm=$${mm#0}
+        target=$$(( $${hh:-0} * 3600 + $${mm:-0} * 60 ))
+
+        echo "[backup] nightly at $${at} UTC, keeping $${BACKUP_KEEP_DAYS:-7} days"
+
+        while true; do
+          # The epoch is UTC-aligned, so this is seconds since UTC midnight —
+          # no date parsing, which busybox does not do reliably.
+          now=$$(( $$(date -u +%s) % 86400 ))
+          delay=$$(( target - now ))
+          if [ "$$delay" -le 0 ]; then
+            delay=$$(( delay + 86400 ))
+          fi
+
+          echo "[backup] next run in $${delay}s"
+          sleep "$$delay"
+
+          dump || echo "[backup] FAILED — will retry tomorrow"
+        done
+      - backup
+    networks: [clinic]
+
 volumes:
   postgres-data:
+  backups:
 
 networks:
   clinic:

@@ -137,8 +137,8 @@ describe("Assistant actions (e2e)", () => {
     });
   });
 
-  describe("an action that runs at once", () => {
-    it("marks an arrival, with the assistant's audit row and the domain's own entry", async () => {
+  describe("a change the assistant proposes", () => {
+    it("waits on the user for an arrival, then writes the assistant's and the domain's audit", async () => {
       const appointmentId = await book(monday(1), "10:00");
 
       const { result } = await tool(USER_ROLE.RECEPTIONIST, AI_TOOL.SET_APPOINTMENT_STATUS, {
@@ -146,7 +146,8 @@ describe("Assistant actions (e2e)", () => {
         status: "arrived",
       });
 
-      expect(result?.status).toBe("done");
+      expect(result).toMatchObject({ status: "awaiting_user_confirmation", tier: "confirm" });
+      expect((await confirm(result?.proposal_id ?? "")).statusCode).toBe(200);
 
       const [assistantRow] = await context.db
         .select()
@@ -174,30 +175,13 @@ describe("Assistant actions (e2e)", () => {
       expect(update?.newValue).toMatchObject({ status: "arrived" });
     });
 
-    it("waits on a card instead once the clinic raises its floor", async () => {
-      const appointmentId = await book(monday(1), "11:00");
-      const settings = await context.app.inject({
-        method: "PUT",
-        url: "/ai/actions/settings",
-        headers: auth(tokens[USER_ROLE.ADMIN]),
-        payload: { minTier: { [AI_TOOL.SET_APPOINTMENT_STATUS]: AI_RISK_TIER.CONFIRM } },
-      });
-
-      expect(settings.statusCode).toBe(200);
-
-      const { result } = await tool(USER_ROLE.RECEPTIONIST, AI_TOOL.SET_APPOINTMENT_STATUS, {
-        appointment_id: appointmentId,
-        status: "arrived",
+    it("waits on the user before adding a note to a patient's file", async () => {
+      const { result } = await tool(USER_ROLE.RECEPTIONIST, AI_TOOL.ADD_PATIENT_NOTE, {
+        patient_id: patientId,
+        note: "يفضّل المواعيد الصباحية",
       });
 
       expect(result).toMatchObject({ status: "awaiting_user_confirmation", tier: "confirm" });
-
-      await context.app.inject({
-        method: "PUT",
-        url: "/ai/actions/settings",
-        headers: auth(tokens[USER_ROLE.ADMIN]),
-        payload: {},
-      });
     });
 
     it("refuses a tool the clinic switched off", async () => {

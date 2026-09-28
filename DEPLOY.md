@@ -143,6 +143,29 @@ and the deploy's `git reset --hard` leaves it alone.
 `DATABASE_URL` embeds `POSTGRES_PASSWORD`; change both together or the API will
 not connect.
 
+#### A least-privilege database login (recommended)
+
+By default the API connects as the Postgres superuser that owns the schema. To run
+it as a login that can read and write rows but cannot change the schema or rewrite
+the audit log:
+
+1. Keep the owner for migrations — set `MIGRATION_DATABASE_URL` to what
+   `DATABASE_URL` is today.
+2. Set `APP_DATABASE_ROLE=clinic_app` and `APP_DATABASE_PASSWORD` (`openssl rand -hex 24`).
+3. Point `DATABASE_URL` at that login:
+   `postgres://clinic_app:<APP_DATABASE_PASSWORD>@postgres:5432/clinic`.
+
+On the next start the migrator creates or updates `clinic_app`, grants it
+read/write on every table, and revokes `UPDATE`, `DELETE` and `TRUNCATE` on
+`audit_log` and `ai_audit_log`. With the three variables unset nothing changes.
+
+#### Rate limits behind the proxy
+
+The API reads the client IP from `X-Forwarded-For`, trusting only the hops named in
+`TRUST_PROXY` (default: loopback and private networks — the host nginx and the web
+container). Leave it unless the API sits behind a proxy on a public address, then
+list that proxy's address or CIDR.
+
 ### nginx server blocks
 
 These belong to the **host** nginx, not to this stack. Add them alongside the

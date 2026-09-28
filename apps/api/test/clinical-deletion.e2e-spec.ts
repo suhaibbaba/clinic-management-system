@@ -82,6 +82,36 @@ describe("Deleting visits and procedures (e2e)", () => {
   const remove = (url: string, role: UserRole = USER_ROLE.DOCTOR) =>
     context.app.inject({ method: "DELETE", url, headers: as(role) });
 
+  it("refuses to file a procedure under another patient's visit", async () => {
+    const patientId = await newPatient();
+    const strangerVisit = await newVisit(await newPatient());
+
+    const created = await context.app.inject({
+      method: "POST",
+      url: "/performed-procedures",
+      headers: as(USER_ROLE.DOCTOR),
+      payload: {
+        ...procedurePayload({
+          patientId,
+          doctorId: fixtures.doctorId,
+          procedureId: fixtures.catalogId,
+          tooth: 36,
+        }),
+        visitId: strangerVisit,
+      },
+    });
+    expect(created.statusCode).toBe(400);
+
+    const procedureId = await newProcedure(patientId, await newVisit(patientId), 36);
+    const moved = await context.app.inject({
+      method: "PATCH",
+      url: `/performed-procedures/${procedureId}`,
+      headers: as(USER_ROLE.DOCTOR),
+      payload: { visitId: strangerVisit },
+    });
+    expect(moved.statusCode).toBe(400);
+  });
+
   it("reverses the charge of a deleted procedure, keeping the original row", async () => {
     const patientId = await newPatient();
     const procedureId = await newProcedure(patientId, await newVisit(patientId), 36);

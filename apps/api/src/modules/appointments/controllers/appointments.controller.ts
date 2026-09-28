@@ -46,6 +46,7 @@ export class AppointmentsController {
   ) {}
 
   @Get()
+  @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
   list(
     @CurrentUser() actor: AuthenticatedUser,
     @Query() query: ListAppointmentsQueryDto,
@@ -75,6 +76,7 @@ export class AppointmentsController {
       "One appointment by id, with its patient, doctor, time and status. Use after get_appointments when you need one row in full; not to list — use get_appointments.",
   })
   @Get(":id")
+  @Roles(USER_ROLE.RECEPTIONIST, USER_ROLE.DOCTOR, USER_ROLE.VISITING_DOCTOR)
   findOne(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,

@@ -166,7 +166,10 @@ export function OrderFormModal({
           doctorId: _doctorId,
           ...editable
         } = body;
-        await update.mutateAsync({ id: order.id, body: editable });
+        await update.mutateAsync({
+          id: order.id,
+          body: { ...editable, workTypeId: workTypeId === "" ? null : workTypeId },
+        });
       } else {
         await create.mutateAsync(body);
       }
