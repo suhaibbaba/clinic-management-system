@@ -122,7 +122,8 @@
     "waitingCount": "{{count}} بانتظار التأكيد",
     "settingsPage": "الإعدادات",
     "skipToContent": "تخطَّ إلى المحتوى",
-    "sidebar": "الشريط الجانبي"
+    "sidebar": "الشريط الجانبي",
+    "back": "رجوع إلى {{to}}"
   },
   "roles": {
     "admin": "مدير",

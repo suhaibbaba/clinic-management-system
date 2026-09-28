@@ -122,7 +122,8 @@
     "waitingCount": "{{count}} awaiting confirmation",
     "settingsPage": "Settings",
     "skipToContent": "Skip to content",
-    "sidebar": "Sidebar"
+    "sidebar": "Sidebar",
+    "back": "Back to {{to}}"
   },
   "roles": {
     "admin": "Admin",

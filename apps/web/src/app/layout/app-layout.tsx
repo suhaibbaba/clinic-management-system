@@ -2,6 +2,7 @@ import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { Logo } from "@web/shared/components/brand/logo";
+import { BackButton } from "@web/app/layout/back-button";
 import { NavDrawer } from "@web/app/layout/nav-drawer";
 import { createPageActionSlot, PageActionSlotProvider } from "@clinic/ui/lib/page-action-slot";
 import { useIsCompactLayout } from "@clinic/ui/lib/use-media-query";
@@ -99,6 +100,7 @@ export function AppLayout(): JSX.Element {
         icon={<Icon name="menu" />}
         aria-label={t("nav.menu")}
       />
+      <BackButton />
       {searchable && <TopSearch />}
       <div data-testid="app-topbar-actions" className="ms-auto flex items-center gap-[9px]">
         <NotificationBell />
