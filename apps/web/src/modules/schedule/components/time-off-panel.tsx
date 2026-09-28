@@ -24,7 +24,7 @@ import {
   useDoctorTimeOff,
 } from "@web/modules/schedule/queries";
 import { errorMessageKey } from "@web/shared/lib/api-error";
-import { formatClinicDate, formatClinicPeriod } from "@web/shared/lib/format";
+import { formatDate, formatPeriod } from "@web/shared/lib/format";
 
 export interface TimeOffPanelProps {
   readonly doctorId: string;
@@ -179,8 +179,8 @@ export function TimeOffPanel({ doctorId, canEdit }: TimeOffPanelProps): JSX.Elem
                   <span className="truncate text-value font-medium text-ink">{entry.reason}</span>
                   <Ltr className="text-label tabular-nums text-ink-muted">
                     {whole
-                      ? formatClinicDate(entry.startsAt)
-                      : formatClinicPeriod(entry.startsAt, entry.endsAt)}
+                      ? formatDate(entry.startsAt)
+                      : formatPeriod(entry.startsAt, entry.endsAt)}
                   </Ltr>
                 </span>
 

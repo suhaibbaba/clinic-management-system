@@ -1,4 +1,5 @@
 import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
+import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import {
   AI_OUTBOUND_TARGET,
   AI_RECIPIENT_CAP_MAX,
@@ -6,8 +7,6 @@ import {
   APPOINTMENT_STATUS,
   APPOINTMENT_STATUSES,
   addDays,
-  clinicScheduleSettings,
-  DEFAULT_TIME_ZONE,
   instantFromLocal,
   localDate,
   type CalendarAppointment,
@@ -24,7 +23,7 @@ import { OverdueService } from "@api/modules/billing/services/overdue.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DoctorsService } from "@api/modules/doctors/services/doctors.service";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { clinics, visits } from "@api/database/schema";
+import { visits } from "@api/database/schema";
 import { InventoryReportsService } from "@api/modules/inventory/services/inventory-reports.service";
 import { LabOrdersService } from "@api/modules/labs/services/lab-orders.service";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
@@ -493,21 +492,11 @@ export class AiToolsService {
     );
   }
 
-  private async timeZone(clinicId: string): Promise<string> {
-    const [row] = await this.db
-      .select({ settings: clinics.settings })
-      .from(clinics)
-      .where(eq(clinics.id, clinicId))
-      .limit(1);
-
-    return clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE;
-  }
-
   private async resolvePeriod(
     clinicId: string,
     period: Period,
   ): Promise<{ from: string; to: string; timeZone: string }> {
-    const timeZone = await this.timeZone(clinicId);
+    const timeZone = await clinicTimeZone(this.db, clinicId);
     const today = localDate(new Date(), timeZone);
     const [year = 0, month = 1, day = 1] = today.split("-").map(Number);
     const firstOfMonth = `${pad(year, 4)}-${pad(month, 2)}-01`;

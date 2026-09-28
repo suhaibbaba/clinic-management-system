@@ -7,7 +7,7 @@ import { cn } from "@clinic/ui/lib/cn";
 import { useSession } from "@web/shared/providers/session";
 import { outboundErrorKey } from "@web/modules/assistant/lib/messages";
 import { useProposal, useProposalAction } from "@web/modules/assistant/queries";
-import { formatClinicTime } from "@web/shared/lib/format";
+import { formatTime } from "@web/shared/lib/format";
 import { AI_PROPOSAL_STATUS_TONES, AI_SEND_CAPABILITY } from "@web/modules/assistant/constants";
 
 export interface ProposalCardProps {
@@ -135,7 +135,7 @@ export function ProposalCard({ id, initial }: ProposalCardProps): JSX.Element {
               {t("assistant.proposal.cancel")}
             </Button>
             <span className="ms-auto text-label text-ink-subtle">
-              {t("assistant.proposal.expiresAt", { time: formatClinicTime(data.expiresAt) })}
+              {t("assistant.proposal.expiresAt", { time: formatTime(data.expiresAt) })}
             </span>
           </>
         ) : (

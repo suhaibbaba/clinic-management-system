@@ -7,6 +7,7 @@ import {
   type PrescriptionItem,
   type Visit,
 } from "@clinic/shared";
+import { formatTime, dayMonthYear, formatDate, formatList } from "@web/shared/lib/format";
 import { useMemo, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -25,7 +26,6 @@ import {
   useToast,
 } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
-import { minutesOf, toTimeLabel } from "@web/shared/lib/dates";
 import { useSession } from "@web/shared/providers/session";
 import { useCurrency } from "@web/shared/queries/clinic";
 import { useDoctors } from "@web/shared/queries/doctors";
@@ -50,7 +50,6 @@ import {
 } from "@web/modules/patients/queries";
 import { VisitFormModal } from "@web/modules/patients/components/visits/visit-form-modal";
 import { errorMessageKey } from "@web/shared/lib/api-error";
-import { dayMonthYear, formatDate, formatList, shortDate } from "@web/shared/lib/format";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { VISIT_PROCEDURE_FORM_ID } from "@web/modules/patients/constants";
 
@@ -258,7 +257,7 @@ export function VisitsTab({
             : {
                 title: "visits.addTreatmentTitle",
                 titleValues: {
-                  date: shortDate(
+                  date: formatDate(
                     ordered.find((visit) => visit.id === procedureFor?.visitId)?.visitDate ??
                       new Date().toISOString(),
                   ),
@@ -313,7 +312,7 @@ export function VisitsTab({
         {...(pending?.kind === "visit"
           ? {
               title: "visits.confirmDelete.title",
-              titleValues: { date: shortDate(pending.visit.visitDate) },
+              titleValues: { date: formatDate(pending.visit.visitDate) },
               consequences: [
                 t("visits.confirmDelete.procedures", { count: pending.procedures }),
                 t("visits.confirmDelete.attachments"),
@@ -384,7 +383,7 @@ function VisitCard({
   onShowProcedures,
 }: VisitCardProps): JSX.Element {
   const { t } = useTranslation();
-  const time = toTimeLabel(minutesOf(visit.visitDate));
+  const time = formatTime(visit.visitDate);
 
   const fields = [
     { key: "complaint", label: "visits.complaint", value: visit.complaint, wide: false },
@@ -590,7 +589,7 @@ function ProceduresModal({
       open={visit !== null}
       onOpenChange={(open) => !open && onClose()}
       title="visits.proceduresTitle"
-      titleValues={{ date: visit ? shortDate(visit.visitDate) : "" }}
+      titleValues={{ date: visit ? formatDate(visit.visitDate) : "" }}
       size="lg"
     >
       <ul className="flex flex-col gap-2">

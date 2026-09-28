@@ -1,9 +1,8 @@
 import { BadRequestException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
+import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import {
   addDays,
-  clinicScheduleSettings,
   closureCancellationReason,
-  DEFAULT_TIME_ZONE,
   instantFromLocal,
   type ClinicClosure,
   type ClinicClosureResult,
@@ -13,14 +12,14 @@ import {
   type ScheduleConflictOptions,
   type UpdateClinicClosureInput,
 } from "@clinic/shared";
-import { and, asc, count, eq, gte, lte, type SQL } from "drizzle-orm";
+import { and, asc, count, eq, gte, lte, type SQL, desc } from "drizzle-orm";
 import { toClinicClosure } from "@api/common/lib/schedule-rows";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { clinicClosures, clinics } from "@api/database/schema";
+import { clinicClosures } from "@api/database/schema";
 import { ScheduleConflictsService } from "@api/modules/schedule/services/schedule-conflicts.service";
 import { CLINIC_CLOSURES_ENTITY } from "@api/common/constants/audit-entities";
 import { assertAnnualFitsOneYear, ClosureRow } from "@api/modules/schedule/lib/clinic-closures";
@@ -67,7 +66,7 @@ export class ClinicClosuresService implements OnModuleInit {
         .select()
         .from(clinicClosures)
         .where(where)
-        .orderBy(asc(clinicClosures.startsOn))
+        .orderBy(desc(clinicClosures.startsOn))
         .limit(limit)
         .offset(offset),
       this.db.select({ value: count() }).from(clinicClosures).where(where),
@@ -188,21 +187,11 @@ export class ClinicClosuresService implements OnModuleInit {
     startsOn: string,
     endsOn: string,
   ): Promise<{ from: Date; to: Date }> {
-    const zone = await this.timeZone(clinicId);
+    const zone = await clinicTimeZone(this.db, clinicId);
 
     return {
       from: instantFromLocal(startsOn, 0, zone),
       to: instantFromLocal(addDays(endsOn, 1), 0, zone),
     };
-  }
-
-  private async timeZone(clinicId: string): Promise<string> {
-    const [row] = await this.db
-      .select({ settings: clinics.settings })
-      .from(clinics)
-      .where(eq(clinics.id, clinicId))
-      .limit(1);
-
-    return clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE;
   }
 }

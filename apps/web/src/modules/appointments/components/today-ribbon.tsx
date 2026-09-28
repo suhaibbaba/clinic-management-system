@@ -1,10 +1,11 @@
 import { APPOINTMENT_STATUS, type CalendarAppointment } from "@clinic/shared";
+import { formatTime } from "@web/shared/lib/format";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Icon, Ltr, PersonName, useToast } from "@clinic/ui";
 import { useAppointmentStep } from "@web/shared/queries/appointments";
 import { APPOINTMENT_STATUS_STYLES } from "@web/shared/lib/appointment-status";
-import { minutesOf, toTimeLabel } from "@web/shared/lib/dates";
+import { minutesOf } from "@web/shared/lib/dates";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
 
@@ -88,7 +89,7 @@ export function TodayRibbon({
                     className="cursor-pointer text-start"
                   >
                     <Ltr className="text-value font-medium tabular-nums">
-                      {toTimeLabel(minutesOf(appointment.startsAt))}
+                      {formatTime(appointment.startsAt)}
                     </Ltr>
                     <span className="block truncate text-label font-medium">
                       {appointment.patientName}

@@ -1,4 +1,5 @@
 import { AUDIT_ACTIONS, type AuditAction, type AuditLogEntry } from "@clinic/shared";
+import { dayBounds } from "@web/shared/lib/dates";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -19,7 +20,7 @@ import {
 import { useAuditLog } from "@web/modules/audit/queries";
 import { ValueDiff } from "@web/modules/audit/components/value-diff";
 import { useUsers } from "@web/shared/queries/users";
-import { endOfNextDayIso, formatDateTime, startOfDayIso } from "@web/shared/lib/format";
+import { formatDateTime } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 import { AUDIT_ACTION_TONES, AUDIT_ENTITIES } from "@web/modules/audit/constants";
 
@@ -47,8 +48,7 @@ export function AuditPage(): JSX.Element {
     ...(entity !== "" && { entity }),
     ...(action !== "" && { action: action as AuditAction }),
     ...(userId !== "" && { userId }),
-    ...(startOfDayIso(from) && { from: startOfDayIso(from) }),
-    ...(endOfNextDayIso(to) && { to: endOfNextDayIso(to) }),
+    ...dayBounds(from, to),
   });
 
   const columns = useMemo<Column<AuditLogEntry>[]>(

@@ -9,7 +9,7 @@ import {
   type Paginated,
   type UpdateInventoryItemInput,
 } from "@clinic/shared";
-import { and, asc, eq, isNull, ne, sql, type SQL } from "drizzle-orm";
+import { and, eq, isNull, ne, sql, type SQL, desc } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
@@ -77,7 +77,7 @@ export class InventoryItemsService implements OnModuleInit {
         and(eq(suppliers.id, inventoryItems.defaultSupplierId), isNull(suppliers.deletedAt)),
       )
       .where(where)
-      .orderBy(asc(inventoryItems.name))
+      .orderBy(desc(inventoryItems.createdAt))
       .$dynamic();
 
     if (filtersOnStock) {

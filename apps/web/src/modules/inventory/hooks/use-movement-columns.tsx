@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Badge, type Column, Ltr, MenuItem, PersonName, RowMenu } from "@clinic/ui";
 import { cn } from "@clinic/ui/lib/cn";
 import { MovementDetails } from "@web/modules/inventory/components/movement-details";
-import { visitMoment } from "@web/shared/lib/format";
+import { formatDateTime } from "@web/shared/lib/format";
 import { MOVEMENT_TONES, movementLabel } from "@web/shared/lib/stock-movement";
 import { canReverseMovement } from "@web/shared/permissions/inventory";
 import { useSession } from "@web/shared/providers/session";
@@ -22,7 +22,7 @@ export function useMovementColumns(
       key: "date",
       header: "inventory.history.columns.date",
       primary: true,
-      render: (row) => <Ltr className="whitespace-nowrap">{visitMoment(row.createdAt)}</Ltr>,
+      render: (row) => <Ltr className="whitespace-nowrap">{formatDateTime(row.createdAt)}</Ltr>,
     },
     {
       key: "type",

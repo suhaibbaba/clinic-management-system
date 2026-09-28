@@ -9,6 +9,7 @@ export interface ListParams {
   readonly search: string;
   readonly debouncedSearch: string;
   readonly labId: string;
+  readonly status: string;
   readonly sort: LabOrderSortOption;
   readonly isDefaultSort: boolean;
   readonly setSearch: (value: string) => void;
@@ -19,6 +20,7 @@ export function useListParams(view: LabOrderView, resetPage: () => void): ListPa
   const [params, setParams] = useSearchParams();
   const search = params.get("q") ?? "";
   const labId = params.get("lab") ?? "";
+  const status = params.get("status") ?? "";
   const options = LAB_ORDER_SORT_OPTIONS[view];
   const fallback = options[0] as LabOrderSortOption;
   const requested = `${params.get("sort") ?? ""}-${params.get("dir") ?? ""}`;
@@ -51,6 +53,7 @@ export function useListParams(view: LabOrderView, resetPage: () => void): ListPa
     search,
     debouncedSearch: debouncedSearch.trim(),
     labId,
+    status,
     sort,
     isDefaultSort: sort === fallback,
     setSearch: (value) =>

@@ -1,9 +1,10 @@
 import { APPOINTMENT_STATUS, LOOKUP_LIST, type CalendarAppointment } from "@clinic/shared";
+import { formatMinute } from "@web/shared/lib/format";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Avatar, Badge, Icon, Ltr, usePersonName } from "@clinic/ui";
-import { minutesOf, toTimeLabel } from "@web/shared/lib/dates";
+import { minutesOf } from "@web/shared/lib/dates";
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/shared/lib/appointment-status";
 import { useLookupLabels } from "@web/shared/queries/lookups";
 import { cn } from "@clinic/ui/lib/cn";
@@ -67,7 +68,7 @@ export function ScheduleTimeline({
                   data-testid={`${testId}-time-${appointment.id}`}
                   className="text-label font-bold text-ink tabular-nums"
                 >
-                  {toTimeLabel(minute)}
+                  {formatMinute(minute)}
                 </Ltr>
 
                 {appointment.status === APPOINTMENT_STATUS.REQUESTED && (

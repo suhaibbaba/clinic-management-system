@@ -4,6 +4,7 @@ import {
   type PatientView,
   type StatementEntry,
 } from "@clinic/shared";
+import { dayBounds } from "@web/shared/lib/dates";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -34,7 +35,7 @@ import { useDeletePayment, usePatientBalance, useStatement } from "@web/modules/
 import { useClinic } from "@web/shared/queries/clinic";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
-import { endOfNextDayIso, formatDate, shortDate, startOfDayIso } from "@web/shared/lib/format";
+import { formatDate } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 const receiptLabel = (receiptNumber: number | null): string =>
@@ -77,8 +78,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
 
   const query = useMemo(
     () => ({
-      ...(startOfDayIso(from) && { from: startOfDayIso(from) as string }),
-      ...(endOfNextDayIso(to) && { to: endOfNextDayIso(to) as string }),
+      ...dayBounds(from, to),
     }),
     [from, to],
   );
@@ -108,7 +108,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
     {
       key: "date",
       header: "billing.columns.date",
-      render: (entry) => <Ltr className="whitespace-nowrap">{shortDate(entry.occurredAt)}</Ltr>,
+      render: (entry) => <Ltr className="whitespace-nowrap">{formatDate(entry.occurredAt)}</Ltr>,
     },
     {
       key: "description",
@@ -139,7 +139,7 @@ export function AccountTab({ patientId, patient }: AccountTabProps): JSX.Element
               className="w-full whitespace-nowrap text-meta text-ink-muted"
             >
               {t("billing.deletedBy")} <PersonName name={entry.deletedBy} /> ·{" "}
-              <Ltr>{shortDate(entry.deletedAt)}</Ltr>
+              <Ltr>{formatDate(entry.deletedAt)}</Ltr>
             </span>
           )}
         </span>

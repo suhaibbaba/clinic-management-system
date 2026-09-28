@@ -26,7 +26,8 @@ interface DayState {
 
 const DAY_STATES = {
   plain: { button: "text-ink hover:bg-inset" },
-  muted: { button: "text-ink-faint" },
+  outside: { button: "text-ink-subtle hover:bg-inset" },
+  disabled: { button: "cursor-not-allowed text-ink-faint line-through decoration-ink-faint" },
   today: { button: "border-[1.5px] border-success-600 text-success-800 hover:bg-success-50" },
   selected: { button: "bg-primary-600 text-ink-inverse hover:bg-primary-700" },
   todaySelected: {
@@ -55,7 +56,7 @@ function dayInk(modifiers: Modifiers): string {
   const isToday = modifiers["today"] === true;
 
   if (modifiers["disabled"] === true) {
-    return cn(DAY_STATES.muted.button, "rounded-control");
+    return cn(DAY_STATES.disabled.button, "rounded-control");
   }
 
   if (modifiers["range_middle"] === true) {
@@ -74,7 +75,7 @@ function dayInk(modifiers: Modifiers): string {
   }
 
   return cn(
-    modifiers["outside"] === true ? DAY_STATES.muted.button : DAY_STATES.plain.button,
+    modifiers["outside"] === true ? DAY_STATES.outside.button : DAY_STATES.plain.button,
     "rounded-control",
   );
 }
@@ -94,6 +95,9 @@ function CalendarDayButton({ day, modifiers, className, ...props }: DayButtonPro
       ref={ref}
       data-part="day-cell"
       data-testid={`calendar-day-${format(day.date, "yyyy-MM-dd")}`}
+      {...(modifiers["selected"] === true
+        ? { "data-initial-focus": "selected" }
+        : modifiers["today"] === true && { "data-initial-focus": "today" })}
       {...props}
       className={cn(className, dayInk(modifiers))}
     />

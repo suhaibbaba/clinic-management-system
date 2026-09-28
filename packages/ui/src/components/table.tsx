@@ -345,7 +345,18 @@ export function Table<TRow>({
                   data-part="table-body-row"
                   {...testid(rowId(row))}
                   {...(onRowClick && {
+                    tabIndex: 0,
+                    ...(rowLabel && { "aria-label": rowLabel(row) }),
                     onClick: () => onRowClick(row),
+                    onKeyDown: (event: KeyboardEvent<HTMLTableRowElement>) => {
+                      if (
+                        event.target === event.currentTarget &&
+                        (event.key === "Enter" || event.key === " ")
+                      ) {
+                        event.preventDefault();
+                        onRowClick(row);
+                      }
+                    },
                     className: "cursor-pointer transition-colors duration-150 hover:bg-row-hover",
                   })}
                   {...(!onRowClick && {

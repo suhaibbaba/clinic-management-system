@@ -5,7 +5,7 @@ import {
   type ListDoctorExtraHoursQuery,
   type Paginated,
 } from "@clinic/shared";
-import { asc, count, eq, gte, lte, type SQL } from "drizzle-orm";
+import { count, eq, gte, lte, type SQL, desc } from "drizzle-orm";
 import { AppointmentAccessService } from "@api/modules/appointments/services/appointment-access.service";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
@@ -61,7 +61,7 @@ export class DoctorExtraHoursService implements OnModuleInit {
         .select()
         .from(doctorExtraHours)
         .where(where)
-        .orderBy(asc(doctorExtraHours.date))
+        .orderBy(desc(doctorExtraHours.date))
         .limit(limit)
         .offset(offset),
       this.db.select({ value: count() }).from(doctorExtraHours).where(where),

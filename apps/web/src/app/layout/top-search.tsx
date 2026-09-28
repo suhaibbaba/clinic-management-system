@@ -124,6 +124,27 @@ export function TopSearch(): JSX.Element {
           style={{ "--panel-top": `${under}px` } as CSSProperties}
           className="fixed inset-x-4 top-(--panel-top) z-40 rounded-panel border border-line bg-surface p-1.5 shadow-float md:absolute md:inset-x-0 md:top-full md:mt-2"
           onMouseDown={(event) => event.preventDefault()}
+          onKeyDown={(event) => {
+            const buttons = [...(panel.current?.querySelectorAll("button") ?? [])];
+            const index = buttons.indexOf(event.target as HTMLButtonElement);
+            const field = form.current?.querySelector("input");
+
+            if (event.key === "Escape") {
+              event.preventDefault();
+              field?.focus();
+              setOpen(false);
+            } else if (event.key === "ArrowDown") {
+              event.preventDefault();
+              buttons[Math.min(index + 1, buttons.length - 1)]?.focus();
+            } else if (event.key === "ArrowUp") {
+              event.preventDefault();
+              if (index <= 0) {
+                field?.focus();
+              } else {
+                buttons[index - 1]?.focus();
+              }
+            }
+          }}
         >
           {rows.length === 0 ? (
             <p data-testid="top-search-empty" className="px-3 py-2 text-label text-ink-muted">

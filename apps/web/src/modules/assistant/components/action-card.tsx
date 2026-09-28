@@ -25,12 +25,7 @@ import { actionErrorKey, actionRefusalKey } from "@web/modules/assistant/lib/mes
 import { useAction, useActionDecision } from "@web/modules/assistant/queries";
 import { useLookupLabels } from "@web/shared/queries/lookups";
 import { clinicTimeZone } from "@web/shared/lib/clinic-zone";
-import {
-  formatClinicDate,
-  formatClinicPeriod,
-  formatClinicTime,
-  formatDate,
-} from "@web/shared/lib/format";
+import { formatDate, formatDateTime, formatPeriod, formatTime } from "@web/shared/lib/format";
 import { AI_ACTION_STATUS_TONES, AI_PLAN_STEP_TONES } from "@web/modules/assistant/constants";
 
 export interface ActionCardProps {
@@ -168,7 +163,7 @@ export function ActionCard({ id, initial, onRedraft }: ActionCardProps): JSX.Ele
               {t("assistant.action.cancel")}
             </Button>
             <span className="ms-auto text-label text-ink-subtle">
-              {t("assistant.proposal.expiresAt", { time: formatClinicTime(data.expiresAt) })}
+              {t("assistant.proposal.expiresAt", { time: formatTime(data.expiresAt) })}
             </span>
           </div>
         )}
@@ -304,7 +299,6 @@ function StepSummary({ summary }: { summary: AiActionStepSummary }): JSX.Element
   const currency = useCurrency();
   const methodLabel = useLookupLabels(LOOKUP_LIST.PAYMENT_METHOD);
   const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
-  const when = (iso: string): string => `${formatClinicDate(iso)} ${formatClinicTime(iso)}`;
 
   return (
     <dl
@@ -335,19 +329,17 @@ function StepSummary({ summary }: { summary: AiActionStepSummary }): JSX.Element
       )}
       {summary.previousStartsAt && summary.previousEndsAt && (
         <Row label={t("assistant.action.fields.previousPeriod")}>
-          <span dir="ltr">
-            {formatClinicPeriod(summary.previousStartsAt, summary.previousEndsAt)}
-          </span>
+          <span dir="ltr">{formatPeriod(summary.previousStartsAt, summary.previousEndsAt)}</span>
         </Row>
       )}
       {summary.previousStartsAt && !summary.previousEndsAt && (
         <Row label={t("assistant.action.fields.from")}>
-          <span dir="ltr">{when(summary.previousStartsAt)}</span>
+          <span dir="ltr">{formatDateTime(summary.previousStartsAt)}</span>
         </Row>
       )}
       {summary.startsAt && summary.endsAt && (
         <Row label={t("assistant.action.fields.period")}>
-          <span dir="ltr">{formatClinicPeriod(summary.startsAt, summary.endsAt)}</span>
+          <span dir="ltr">{formatPeriod(summary.startsAt, summary.endsAt)}</span>
         </Row>
       )}
       {summary.startsOn && summary.endsOn && (
@@ -367,7 +359,7 @@ function StepSummary({ summary }: { summary: AiActionStepSummary }): JSX.Element
               : "assistant.action.fields.when",
           )}
         >
-          <span dir="ltr">{when(summary.startsAt)}</span>
+          <span dir="ltr">{formatDateTime(summary.startsAt)}</span>
         </Row>
       )}
       {summary.status && (
@@ -445,7 +437,7 @@ function StepSummary({ summary }: { summary: AiActionStepSummary }): JSX.Element
       ))}
       {summary.recordedAt && (
         <Row label={t("assistant.action.fields.recordedAt")}>
-          <span dir="ltr">{when(summary.recordedAt)}</span>
+          <span dir="ltr">{formatDateTime(summary.recordedAt)}</span>
         </Row>
       )}
       {summary.reason && <Row label={t("assistant.action.fields.reason")}>{summary.reason}</Row>}
@@ -484,7 +476,7 @@ function StepSummary({ summary }: { summary: AiActionStepSummary }): JSX.Element
                 </span>
                 <PersonName name={appointment.doctorName} className="text-ink-muted" />
                 <span className="ms-auto text-ink-muted" dir="ltr">
-                  {when(appointment.startsAt)}
+                  {formatDateTime(appointment.startsAt)}
                 </span>
               </li>
             ))}

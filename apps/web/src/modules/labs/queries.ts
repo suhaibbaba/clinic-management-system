@@ -19,6 +19,7 @@ import {
   type UpdateLabOrderInput,
   type UpdateLabWorkTypeInput,
 } from "@clinic/shared";
+import type { ReturnLabOrderInput } from "@clinic/shared";
 import { labOrdersApi, labsApi } from "@web/modules/labs/api";
 import { uploadToStorage } from "@web/shared/lib/upload";
 
@@ -172,8 +173,8 @@ export function useLabOrderStep() {
 }
 
 export function useReturnLabOrder() {
-  return useLabMutation(({ id, reason }: { id: string; reason: string }) =>
-    labOrdersApi.returnToLab(id, reason),
+  return useLabMutation(({ id, ...body }: { id: string } & ReturnLabOrderInput) =>
+    labOrdersApi.returnToLab(id, body),
   );
 }
 

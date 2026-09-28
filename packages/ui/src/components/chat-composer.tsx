@@ -119,8 +119,8 @@ export function ChatComposer({
           <button
             type="button"
             {...part("send")}
-            onClick={submit}
-            disabled={empty}
+            onClick={() => !empty && submit()}
+            aria-disabled={empty || undefined}
             aria-label={sendLabel}
             title={sendLabel}
             className={cn(

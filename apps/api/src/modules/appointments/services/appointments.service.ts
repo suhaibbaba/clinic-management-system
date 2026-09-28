@@ -6,13 +6,12 @@ import {
   Injectable,
   type OnModuleInit,
 } from "@nestjs/common";
+import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import {
   addDays,
   APPOINTMENT_STATUS,
   APPOINTMENT_TYPE,
   canTransitionAppointment,
-  clinicScheduleSettings,
-  DEFAULT_TIME_ZONE,
   instantFromLocal,
   localDate,
   LOOKUP_LIST,
@@ -38,7 +37,6 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import {
   appointments,
   clinicClosures,
-  clinics,
   doctors,
   doctorTimeOff,
   patients,
@@ -103,7 +101,7 @@ export class AppointmentsService implements OnModuleInit {
       filters.push(eq(appointments.status, query.status));
     }
 
-    const timeZone = await this.timeZone(actor.clinicId);
+    const timeZone = await clinicTimeZone(this.db, actor.clinicId);
 
     if (query.from) {
       filters.push(gte(appointments.startsAt, instantFromLocal(query.from, 0, timeZone)));
@@ -152,7 +150,7 @@ export class AppointmentsService implements OnModuleInit {
   }
 
   async calendar(actor: AuthenticatedUser, query: CalendarQuery): Promise<CalendarFeed> {
-    const timeZone = await this.timeZone(actor.clinicId);
+    const timeZone = await clinicTimeZone(this.db, actor.clinicId);
     const from = calendarRangeStart(query.date, query.range);
     const to = calendarRangeEnd(from, query.range);
     const fromInstant = instantFromLocal(from, 0, timeZone);
@@ -459,16 +457,6 @@ export class AppointmentsService implements OnModuleInit {
   }
 
   async localToday(clinicId: string): Promise<string> {
-    return localDate(new Date(), await this.timeZone(clinicId));
-  }
-
-  private async timeZone(clinicId: string): Promise<string> {
-    const [row] = await this.db
-      .select({ settings: clinics.settings })
-      .from(clinics)
-      .where(eq(clinics.id, clinicId))
-      .limit(1);
-
-    return clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE;
+    return localDate(new Date(), await clinicTimeZone(this.db, clinicId));
   }
 }

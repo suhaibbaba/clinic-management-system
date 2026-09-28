@@ -23,7 +23,7 @@ import {
 import { useLookupLabels } from "@web/shared/queries/lookups";
 import { LAB_ORDER_STATUS_STYLES } from "@web/shared/lib/lab-order-status";
 import { usePatientTimeline } from "@web/modules/patients/queries";
-import { shortDate } from "@web/shared/lib/format";
+import { formatDate } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 import { TIMELINE_ENTRY_ICONS, TIMELINE_TYPE_FILTERS } from "@web/modules/patients/constants";
 type TypeFilter = (typeof TIMELINE_TYPE_FILTERS)[number];
@@ -63,7 +63,7 @@ export function TimelineTab({ patientId }: { readonly patientId: string }): JSX.
         icon: "calendar",
         render: (entry) => (
           <Ltr data-testid="timeline-row-date" className="tabular-nums text-ink-muted">
-            {shortDate(entry.occurredAt)}
+            {formatDate(entry.occurredAt)}
           </Ltr>
         ),
       },

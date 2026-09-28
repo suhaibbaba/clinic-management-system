@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { DialogLayerProvider } from "@ui/components/dialog-layer";
 import { cn } from "@ui/lib/cn";
 import { documentDirection } from "@ui/lib/direction";
+import { useReturnFocus } from "@ui/lib/return-focus";
 import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export interface ModalProps extends TestIdProps {
@@ -15,6 +16,9 @@ export interface ModalProps extends TestIdProps {
   children: ReactNode;
   footer?: ReactNode | undefined;
   size?: "md" | "lg" | "form" | undefined;
+  role?: "dialog" | "alertdialog" | undefined;
+  describedBy?: string | undefined;
+  onEnter?: (() => void) | undefined;
 }
 
 export function Modal({
@@ -26,10 +30,14 @@ export function Modal({
   children,
   footer,
   size = "md",
+  role = "dialog",
+  describedBy,
+  onEnter,
   "data-testid": testId,
 }: ModalProps): JSX.Element {
   const { t } = useTranslation();
   const [layer, setLayer] = useState<HTMLElement | null>(null);
+  useReturnFocus(open);
   const part = parts("modal", testId);
 
   return (
@@ -51,6 +59,19 @@ export function Modal({
             (event.currentTarget as HTMLElement | null)?.focus();
           }}
           tabIndex={-1}
+          role={role}
+          {...(describedBy !== undefined && { "aria-describedby": describedBy })}
+          onKeyDown={(event) => {
+            if (
+              onEnter !== undefined &&
+              event.key === "Enter" &&
+              !event.nativeEvent.isComposing &&
+              event.target === event.currentTarget
+            ) {
+              event.preventDefault();
+              onEnter();
+            }
+          }}
           dir={documentDirection()}
           className={cn(
             "fixed left-1/2 top-1/2 z-50 w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2",

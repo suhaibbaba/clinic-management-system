@@ -34,7 +34,10 @@ describe("availableSteps", () => {
   it("offers nothing on a finished or cancelled order", () => {
     expect(stepsFor(LAB_ORDER_STATUS.FITTED, USER_ROLE.ADMIN)).toEqual([]);
     expect(stepsFor(LAB_ORDER_STATUS.CANCELLED, USER_ROLE.ADMIN)).toEqual([]);
-    expect(stepsFor(LAB_ORDER_STATUS.RETURNED, USER_ROLE.TECHNICIAN)).toEqual(["send"]);
+  });
+
+  it("waits for the lab to mark returned work ready, never sends it twice", () => {
+    expect(stepsFor(LAB_ORDER_STATUS.RETURNED, USER_ROLE.TECHNICIAN)).toEqual(["ready"]);
   });
 
   it("allows a return only from the three statuses that have the work in hand", () => {

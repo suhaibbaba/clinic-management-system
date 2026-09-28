@@ -337,7 +337,7 @@ export function ClinicPage(): JSX.Element {
           data-testid="clinic-working-hours"
           className="border border-line rounded-card bg-surface shadow-card p-4"
         >
-          <p className="mb-3 text-value font-medium text-ink">{t("clinic.workingHours")}</p>
+          <h2 className="mb-3 text-value font-medium text-ink">{t("clinic.workingHours")}</h2>
           <WorkingHours
             value={workingHours}
             onChange={setWorkingHours}

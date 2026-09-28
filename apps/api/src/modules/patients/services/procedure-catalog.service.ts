@@ -5,7 +5,7 @@ import {
   type Paginated,
   type UpdateProcedureCatalogItemInput,
 } from "@clinic/shared";
-import { and, asc, eq, isNull, ne, or, sql, type SQL } from "drizzle-orm";
+import { and, eq, isNull, ne, or, sql, type SQL, desc } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
@@ -67,7 +67,7 @@ export class ProcedureCatalogService implements OnModuleInit {
         .select()
         .from(procedureCatalog)
         .where(where)
-        .orderBy(asc(procedureCatalog.name))
+        .orderBy(desc(procedureCatalog.createdAt))
         .limit(limit)
         .offset(offset),
       this.db

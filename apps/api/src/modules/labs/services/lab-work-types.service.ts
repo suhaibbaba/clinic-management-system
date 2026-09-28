@@ -4,7 +4,7 @@ import {
   type LabWorkType,
   type UpdateLabWorkTypeInput,
 } from "@clinic/shared";
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, desc } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { LabsService } from "@api/modules/labs/services/labs.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -53,7 +53,7 @@ export class LabWorkTypesService implements OnModuleInit {
           includeInactive ? undefined : eq(labWorkTypes.isActive, true),
         ),
       )
-      .orderBy(asc(labWorkTypes.name));
+      .orderBy(desc(labWorkTypes.createdAt));
 
     return rows.map(toWorkType);
   }

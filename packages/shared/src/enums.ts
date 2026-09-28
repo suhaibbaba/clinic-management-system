@@ -382,7 +382,7 @@ export const LAB_ORDER_STATUS_TRANSITIONS = {
   [LAB_ORDER_STATUS.READY]: [LAB_ORDER_STATUS.RECEIVED, LAB_ORDER_STATUS.RETURNED],
   [LAB_ORDER_STATUS.RECEIVED]: [LAB_ORDER_STATUS.FITTED, LAB_ORDER_STATUS.RETURNED],
   [LAB_ORDER_STATUS.FITTED]: [LAB_ORDER_STATUS.RETURNED],
-  [LAB_ORDER_STATUS.RETURNED]: [LAB_ORDER_STATUS.SENT],
+  [LAB_ORDER_STATUS.RETURNED]: [LAB_ORDER_STATUS.READY],
   [LAB_ORDER_STATUS.CANCELLED]: [],
 } as const satisfies Record<LabOrderStatus, readonly LabOrderStatus[]>;
 
@@ -401,7 +401,11 @@ export const LAB_ORDER_BILLABLE_STATUSES = [
 export const countsTowardLabBalance = (status: LabOrderStatus): boolean =>
   (LAB_ORDER_BILLABLE_STATUSES as readonly LabOrderStatus[]).includes(status);
 
-export const LAB_ORDER_AWAITING_STATUSES = [LAB_ORDER_STATUS.SENT, LAB_ORDER_STATUS.READY] as const;
+export const LAB_ORDER_AWAITING_STATUSES = [
+  LAB_ORDER_STATUS.SENT,
+  LAB_ORDER_STATUS.READY,
+  LAB_ORDER_STATUS.RETURNED,
+] as const;
 
 export const awaitingLab = (status: LabOrderStatus): boolean =>
   (LAB_ORDER_AWAITING_STATUSES as readonly LabOrderStatus[]).includes(status);
@@ -441,7 +445,7 @@ export const LAB_ORDER_DONE_STATUSES = [
 export const LAB_ORDER_VIEWS = ["open", "done"] as const;
 export type LabOrderView = (typeof LAB_ORDER_VIEWS)[number];
 
-export const LAB_ORDER_SORTS = ["due", "sent", "finished", "patient", "lab"] as const;
+export const LAB_ORDER_SORTS = ["created", "due", "sent", "finished", "patient", "lab"] as const;
 export type LabOrderSort = (typeof LAB_ORDER_SORTS)[number];
 
 export const ITEM_CATEGORY = {
@@ -953,6 +957,10 @@ export const PAYMENT_ERROR = {
   REVERSED: "payment_reversed",
 } as const satisfies Record<string, string>;
 export type PaymentError = EnumValue<typeof PAYMENT_ERROR>;
+
+export const LAB_ORDER_ERROR = {
+  EXPECTED_IN_PAST: "lab_order_expected_in_past",
+} as const satisfies Record<string, string>;
 
 export const STOCK_ERROR = {
   INSUFFICIENT: "insufficient_stock",

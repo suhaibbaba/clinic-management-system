@@ -1,10 +1,11 @@
-import { LAB_ORDER_STATUS, type LabOrderRow } from "@clinic/shared";
+import { LAB_ORDER_STATUS, countsTowardLabBalance, type LabOrderRow } from "@clinic/shared";
 import { useRef, useState, type ChangeEvent, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
   Badge,
   Button,
+  DatePicker,
   Drawer,
   Icon,
   Ltr,
@@ -29,8 +30,10 @@ import {
 import { availableSteps, canReturn } from "@web/modules/labs/lib/status";
 import { LAB_ORDER_STATUS_STYLES } from "@web/shared/lib/lab-order-status";
 import { errorMessageKey } from "@web/shared/lib/api-error";
-import { formatDate, formatDateTime } from "@web/shared/lib/format";
+import { formatDate } from "@web/shared/lib/format";
 import { cn } from "@clinic/ui/lib/cn";
+import { LABS_TAB_DONE } from "@web/modules/labs/constants";
+import { todayIso } from "@web/shared/lib/dates";
 
 export interface OrderDrawerProps {
   readonly "data-testid"?: string | undefined;
@@ -53,9 +56,11 @@ export function OrderDrawer({
 
   const step = useLabOrderStep();
   const returnToLab = useReturnLabOrder();
+  const { confirm, dialog } = useConfirm("lab-order-confirm-cancel");
 
   const [returning, setReturning] = useState(false);
   const [reason, setReason] = useState("");
+  const [expectedAt, setExpectedAt] = useState("");
 
   if (!order) {
     return null;
@@ -74,12 +79,43 @@ export function OrderDrawer({
     }
   };
 
+  const cancel = (): void =>
+    confirm({
+      title: "labs.order.confirmCancel.title",
+      titleValues: {
+        work: order.workTypeName ?? t("labs.orders.custom"),
+        patient: order.patientName,
+      },
+      consequences: [
+        t("labs.order.confirmCancel.moves"),
+        t("labs.order.confirmCancel.final"),
+        ...(countsTowardLabBalance(order.status) ? [t("labs.order.confirmCancel.balance")] : []),
+      ],
+      confirmLabel: "labs.actions.cancel",
+      onConfirm: async () => {
+        try {
+          await step.mutateAsync({ id: order.id, step: "cancel" });
+          toast.success("labs.order.cancelled", undefined, undefined, {
+            labelKey: "labs.order.viewCancelled",
+            onClick: () =>
+              navigate(
+                `/labs?${new URLSearchParams({ tab: LABS_TAB_DONE, status: LAB_ORDER_STATUS.CANCELLED, order: order.id }).toString()}`,
+              ),
+          });
+        } catch (error) {
+          toast.error(errorMessageKey(error));
+          throw error;
+        }
+      },
+    });
+
   const submitReturn = async (): Promise<void> => {
     try {
-      await returnToLab.mutateAsync({ id: order.id, reason: reason.trim() });
+      await returnToLab.mutateAsync({ id: order.id, reason: reason.trim(), expectedAt });
       toast.success("labs.order.returned");
       setReturning(false);
       setReason("");
+      setExpectedAt("");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -113,7 +149,7 @@ export function OrderDrawer({
                 variant={next.step === "cancel" ? "ghost" : "primary"}
                 data-testid={`${testId}-step-${next.step}`}
                 isLoading={busy}
-                onClick={() => void move(next)}
+                onClick={() => (next.step === "cancel" ? cancel() : void move(next))}
               >
                 {t(next.label)}
               </Button>
@@ -184,8 +220,6 @@ export function OrderDrawer({
             )}
           </dl>
 
-          <OrderHistory order={order} />
-
           <Attachments orderId={order.id} />
 
           <div className="flex flex-wrap gap-2 border-t border-line pt-4">
@@ -246,7 +280,7 @@ export function OrderDrawer({
               variant="danger"
               data-testid="lab-order-return-confirm"
               isLoading={returnToLab.isPending}
-              disabled={reason.trim().length < 3}
+              disabled={reason.trim().length < 3 || expectedAt === ""}
               onClick={() => void submitReturn()}
             >
               {t("labs.actions.return")}
@@ -265,42 +299,25 @@ export function OrderDrawer({
           value={reason}
           onChange={(event) => setReason(event.target.value)}
         />
+
+        <label
+          htmlFor="lab-return-expected"
+          className="mt-4 mb-1.5 block text-label font-medium text-ink"
+        >
+          {t("labs.order.returnExpected")}
+        </label>
+        <DatePicker
+          id="lab-return-expected"
+          data-testid="lab-order-return-expected"
+          label={t("labs.order.returnExpected")}
+          value={expectedAt}
+          min={todayIso()}
+          onChange={setExpectedAt}
+        />
       </Modal>
+
+      {dialog}
     </>
-  );
-}
-
-function OrderHistory({ order }: { readonly order: LabOrderRow }): JSX.Element {
-  const { t } = useTranslation();
-
-  const stamps: readonly { key: string; label: string; at: string }[] = [
-    { key: "created", label: "labs.order.history.created", at: order.createdAt },
-    ...(order.sentAt ? [{ key: "sent", label: "labs.order.history.sent", at: order.sentAt }] : []),
-    ...(order.receivedAt
-      ? [{ key: "received", label: "labs.order.history.received", at: order.receivedAt }]
-      : []),
-    ...(order.fittedAt
-      ? [{ key: "fitted", label: "labs.order.history.fitted", at: order.fittedAt }]
-      : []),
-  ];
-
-  return (
-    <section data-testid="lab-order-history" className="flex flex-col gap-2">
-      <h3 className="text-label font-semibold text-ink">{t("labs.order.history.title")}</h3>
-
-      <ol className="flex flex-col gap-2">
-        {stamps.map((stamp) => (
-          <li
-            key={stamp.key}
-            data-testid={`lab-order-history-${stamp.key}`}
-            className="flex items-baseline justify-between gap-3 text-label"
-          >
-            <span className="text-ink">{t(stamp.label)}</span>
-            <Ltr className="tabular-nums text-ink-muted">{formatDateTime(stamp.at)}</Ltr>
-          </li>
-        ))}
-      </ol>
-    </section>
   );
 }
 

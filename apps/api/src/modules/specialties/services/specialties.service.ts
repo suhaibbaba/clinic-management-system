@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { asc, count, eq, type SQL } from "drizzle-orm";
+import { count, eq, type SQL, desc } from "drizzle-orm";
 import { type ListSpecialtiesQuery, type Paginated, type Specialty } from "@clinic/shared";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
@@ -30,7 +30,7 @@ export class SpecialtiesService {
         .select()
         .from(specialties)
         .where(where)
-        .orderBy(asc(specialties.name))
+        .orderBy(desc(specialties.createdAt))
         .limit(limit)
         .offset(offset),
       this.db.select({ value: count() }).from(specialties).where(where),

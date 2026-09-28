@@ -129,3 +129,30 @@ const OFF_NAV_TITLES: Readonly<Record<string, string>> = {
 export function routeTitle(pathname: string): string | undefined {
   return OFF_NAV_TITLES[pathname] ?? activeNavItem(pathname)?.label;
 }
+
+export interface BackTarget {
+  readonly to: string;
+  readonly label: string;
+}
+
+const BACK_ROUTES: readonly (BackTarget & { readonly pattern: RegExp })[] = [
+  { pattern: /^\/patients\/[^/]+$/, to: "/patients", label: "nav.patients" },
+  { pattern: /^\/labs\/[^/]+$/, to: "/labs?tab=directory", label: "nav.labs" },
+  {
+    pattern: /^\/inventory\/(?:items\/[^/]+|shopping-list)$/,
+    to: "/inventory",
+    label: "nav.inventory",
+  },
+  { pattern: /^\/doctors\/[^/]+$/, to: "/users?view=doctors", label: "nav.users" },
+  { pattern: /^\/profile$/, to: "/dashboard", label: "nav.dashboard" },
+];
+
+export function backTarget(pathname: string, role: UserRole | undefined): BackTarget | undefined {
+  const route = BACK_ROUTES.find((candidate) => candidate.pattern.test(pathname));
+
+  if (route === undefined || !canReachNavItem(route.to.split("?")[0] ?? route.to, role)) {
+    return undefined;
+  }
+
+  return { to: route.to, label: route.label };
+}

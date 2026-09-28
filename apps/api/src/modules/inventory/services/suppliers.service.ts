@@ -7,7 +7,7 @@ import {
   type SupplierSummary,
   type UpdateSupplierInput,
 } from "@clinic/shared";
-import { and, asc, eq, isNull, ne, or, sql, type SQL } from "drizzle-orm";
+import { and, eq, isNull, ne, or, sql, type SQL, desc } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { arabicNameSearch } from "@api/common/database/arabic-search";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
@@ -64,7 +64,7 @@ export class SuppliersService implements OnModuleInit {
         .select()
         .from(suppliers)
         .where(where)
-        .orderBy(...(byName ? [byName.rank, byName.closeness] : []), asc(suppliers.name))
+        .orderBy(...(byName ? [byName.rank, byName.closeness] : []), desc(suppliers.createdAt))
         .limit(limit)
         .offset(offset),
       this.db

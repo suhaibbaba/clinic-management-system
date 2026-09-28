@@ -7,12 +7,12 @@ import {
   type Doctor,
   type DoctorTimeOff,
 } from "@clinic/shared";
+import { formatMinute } from "@web/shared/lib/format";
 import { Fragment, useEffect, useMemo, useRef, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, Badge, Icon, Ltr, PersonName, usePersonName } from "@clinic/ui";
 import { cn } from "@clinic/ui/lib/cn";
 import { buildQueue, type QueueRow } from "@web/modules/appointments/lib/calendar-time";
-import { toTimeLabel } from "@web/shared/lib/dates";
 import { APPOINTMENT_STATUS_STYLES, statusAccent } from "@web/shared/lib/appointment-status";
 import { useLookupLabels } from "@web/shared/queries/lookups";
 import { TONE_SURFACE } from "@clinic/ui/components/tone";
@@ -30,7 +30,7 @@ export interface DayQueueProps {
   readonly onPick?: ((doctorId: string, minute: number) => void) | undefined;
 }
 
-const range = (start: number, end: number): string => `${toTimeLabel(start)}–${toTimeLabel(end)}`;
+const range = (start: number, end: number): string => `${formatMinute(start)}–${formatMinute(end)}`;
 
 export function DayQueue({
   date,
@@ -252,7 +252,7 @@ function AppointmentCard({
       onClick={onOpen}
       data-appointment={appointment.id}
       data-testid={`appointment-card-${appointment.id}`}
-      aria-label={`${toTimeLabel(start)} — ${appointment.patientName} — ${status}`}
+      aria-label={`${formatMinute(start)} — ${appointment.patientName} — ${status}`}
       className={cn(
         "flex min-h-15 w-full cursor-pointer flex-col justify-center gap-0.5 rounded-panel border border-s-[3px] px-3 py-2 text-start",
         "transition-[box-shadow,translate] duration-150 hover:-translate-y-px hover:shadow-card",
@@ -284,7 +284,7 @@ function NowMarker({ minute }: { readonly minute: number }): JSX.Element {
   return (
     <li data-part="now" role="separator" className="flex items-center gap-2 py-0.5">
       <span className="pill-text inline-flex shrink-0 items-center gap-1 rounded-pill bg-success-600 px-2 py-0.5 text-micro font-medium text-ink-inverse">
-        {t("appointments.queue.now")} · <Ltr className="tabular-nums">{toTimeLabel(minute)}</Ltr>
+        {t("appointments.queue.now")} · <Ltr className="tabular-nums">{formatMinute(minute)}</Ltr>
       </span>
       <span aria-hidden="true" className="h-px flex-1 bg-success-500" />
     </li>

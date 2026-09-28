@@ -120,7 +120,10 @@
     "translations": "نصوص الواجهة",
     "users": "المستخدمون",
     "waitingCount": "{{count}} بانتظار التأكيد",
-    "settingsPage": "الإعدادات"
+    "settingsPage": "الإعدادات",
+    "skipToContent": "تخطَّ إلى المحتوى",
+    "sidebar": "الشريط الجانبي",
+    "back": "رجوع إلى {{to}}"
   },
   "roles": {
     "admin": "مدير",
@@ -449,6 +452,9 @@
     "pageFailed": {
       "title": "تعذّر فتح هذه الصفحة",
       "hint": "ربما حُدِّث التطبيق أو انقطع الاتصال أثناء التحميل. أعد تحميل الصفحة."
+    },
+    "labOrder": {
+      "expectedInPast": "لا يمكن أن يكون موعد التسليم في يوم مضى"
     }
   },
   "patients": {
@@ -1116,6 +1122,7 @@
       },
       "sortBy": "ترتيب حسب",
       "sort": {
+        "createdDesc": "الأحدث أولاً",
         "dueAsc": "الموعد، الأقرب أولاً",
         "dueDesc": "الموعد، الأبعد أولاً",
         "sentDesc": "تاريخ الإرسال، الأحدث أولاً",
@@ -1155,7 +1162,9 @@
       "emptyOpen": "لا توجد أعمال قيد التنفيذ",
       "emptyOpenHint": "يبقى الطلب هنا من لحظة إنشائه حتى تركيبه",
       "emptyFiltered": "لا توجد نتائج مطابقة",
-      "emptyDone": "لا توجد طلبات منتهية في هذه الفترة"
+      "emptyDone": "لا توجد طلبات منتهية في هذه الفترة",
+      "filterStatus": "الحالة",
+      "allStatuses": "كل الحالات"
     },
     "order": {
       "newTitle": "طلب عمل مخبري",
@@ -1165,6 +1174,7 @@
       "created": "تم إنشاء الطلب",
       "updated": "تم حفظ الطلب",
       "moved": "تم تحديث حالة الطلب",
+      "cancelled": "أُلغي الطلب ونُقل إلى الطلبات المنتهية",
       "returned": "أُعيد العمل إلى المختبر",
       "patient": "المريض",
       "lab": "المختبر",
@@ -1194,14 +1204,15 @@
       "returnDescription": "يُسجَّل السبب على الطلب ويبقى في سجله.",
       "returnReason": "سبب الإعادة",
       "returnReasonPlaceholder": "مثال: الـ Shade غير مطابق",
-      "history": {
-        "title": "سِجل الطلب",
-        "created": "أُنشئ",
-        "sent": "أُرسل",
-        "received": "استُلم",
-        "fitted": "رُكّب"
+      "confirmRemoveAttachment": "إزالة «{{name}}» من الطلب؟",
+      "confirmCancel": {
+        "title": "إلغاء طلب «{{work}}» للمريض {{patient}}؟",
+        "moves": "ينتقل الطلب إلى الطلبات المنتهية.",
+        "final": "لا يمكن إعادة فتح الطلب الملغى.",
+        "balance": "لن تُحتسب تكلفته في رصيد المختبر."
       },
-      "confirmRemoveAttachment": "إزالة «{{name}}» من الطلب؟"
+      "viewCancelled": "عرض الطلب",
+      "returnExpected": "موعد التسليم الجديد"
     },
     "section": {
       "label": "أقسام المختبرات",

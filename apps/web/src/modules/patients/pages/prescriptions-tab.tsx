@@ -27,7 +27,7 @@ import {
   usePatientVisits,
 } from "@web/modules/patients/queries";
 import { errorMessageKey } from "@web/shared/lib/api-error";
-import { shortDate, visitMoment } from "@web/shared/lib/format";
+import { formatDate, formatDateTime } from "@web/shared/lib/format";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 
 export const describeItem = (item: PrescriptionItem): string =>
@@ -194,7 +194,7 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
               icon="file"
               title={
                 visitDate
-                  ? `${t("prescriptions.visit")} ${visitMoment(visitDate)}`
+                  ? `${t("prescriptions.visit")} ${formatDateTime(visitDate)}`
                   : t("prescriptions.withoutVisit")
               }
               subtitle={`${t("prescriptions.writtenBy")}: ${doctorName(prescription.doctorId)}`}
@@ -262,7 +262,7 @@ export function PrescriptionsTab({ patientId }: { readonly patientId: string }):
         open={drugsEntry !== undefined}
         onOpenChange={(open) => !open && setDrugsFor(null)}
         title={drugsEntry?.visitDate ? "prescriptions.drugsOf" : "prescriptions.drugsTitle"}
-        titleValues={{ date: drugsEntry?.visitDate ? shortDate(drugsEntry.visitDate) : "" }}
+        titleValues={{ date: drugsEntry?.visitDate ? formatDate(drugsEntry.visitDate) : "" }}
         size="lg"
       >
         {drugsEntry && (

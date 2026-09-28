@@ -1,4 +1,4 @@
-import { CLINICAL_DELETE_ERROR, PAYMENT_ERROR, STOCK_ERROR } from "@clinic/shared";
+import { CLINICAL_DELETE_ERROR, LAB_ORDER_ERROR, PAYMENT_ERROR, STOCK_ERROR } from "@clinic/shared";
 
 export class ApiError extends Error {
   constructor(
@@ -20,6 +20,7 @@ export class NetworkError extends Error {
 
 const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [CLINICAL_DELETE_ERROR.HAS_PAYMENTS]: "errors.clinicalDelete.hasPayments",
+  [LAB_ORDER_ERROR.EXPECTED_IN_PAST]: "errors.labOrder.expectedInPast",
   [STOCK_ERROR.INSUFFICIENT]: "errors.stock.insufficient",
   [STOCK_ERROR.BELOW_ONE]: "errors.stock.belowOne",
   [PAYMENT_ERROR.EXCEEDS_BALANCE]: "errors.payment.exceedsBalance",

@@ -52,7 +52,7 @@ import { PlanItemFormModal } from "@web/modules/patients/components/treatment-pl
 import { PlanPrint } from "@web/modules/patients/components/treatment-plans/plan-print";
 import { planRemaining, planTotal } from "@web/modules/patients/lib/treatment-plans/plan-total";
 import { errorMessageKey } from "@web/shared/lib/api-error";
-import { shortDate } from "@web/shared/lib/format";
+import { formatDate } from "@web/shared/lib/format";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";
 import {
   PLAN_FULL_LIST_UP_TO,
@@ -226,7 +226,7 @@ export function TreatmentPlansTab({
               name: doctorName(item.performerDoctorId ?? plan.doctorId),
             })}
             {" · "}
-            <span data-testid="treatment-plan-item-date">{shortDate(item.createdAt)}</span>
+            <span data-testid="treatment-plan-item-date">{formatDate(item.createdAt)}</span>
           </p>
           {item.notes && (
             <NotePreview
@@ -376,7 +376,7 @@ export function TreatmentPlansTab({
                 className="flex-1"
                 icon="clipboard"
                 title={plan.title}
-                subtitle={`${t("treatmentPlans.responsibleDoctor")}: ${doctorName(plan.doctorId)} · ${shortDate(plan.createdAt)}`}
+                subtitle={`${t("treatmentPlans.responsibleDoctor")}: ${doctorName(plan.doctorId)} · ${formatDate(plan.createdAt)}`}
                 status={{
                   label: t(`treatmentPlans.planStatus.${plan.status}`),
                   tone: planTone(plan.status),

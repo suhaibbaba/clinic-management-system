@@ -32,22 +32,34 @@ export function Button({
   className,
   children,
   disabled,
+  onClick,
   ...rest
 }: ButtonProps): JSX.Element {
+  const inert = disabled === true || busy;
+
   return (
     <button
       type="button"
       className={cx(
         "pill-text inline-flex items-center min-h-(--control-h) cursor-pointer justify-center gap-2 rounded-control",
         "px-5 text-field font-medium transition-colors duration-150",
-        "disabled:cursor-not-allowed disabled:opacity-45",
+        "aria-disabled:cursor-not-allowed aria-disabled:opacity-45",
         BUTTON_VARIANTS[variant],
         full && "w-full",
         className,
       )}
-      disabled={disabled === true || busy}
+      {...(inert && { "aria-disabled": true })}
       {...(busy && { "aria-busy": true })}
       {...rest}
+      onClick={(event) => {
+        if (inert) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+
+        onClick?.(event);
+      }}
     >
       {busy && <Spinner />}
       {children}
