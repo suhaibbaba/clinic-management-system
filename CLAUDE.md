@@ -38,7 +38,7 @@ rules, in short:
 
 ```
 apps/api    one Nest module per domain module
-apps/web    one feature folder per domain module, tests in apps/web/test
+apps/web    src/ by kind, then by feature; tests in apps/web/test mirroring src
 packages/shared   Zod schemas, types, enums, constants
 packages/ui       components, tokens, the theme contract
 ```
@@ -104,7 +104,14 @@ core · patients · billing · appointments · booking · notifications · labs 
 
 ## Frontend
 
-- Functional components, hooks, TanStack Query. Feature folders mirror the API modules.
+- Functional components, hooks, TanStack Query.
+- **`src/` is organised by kind, then by feature**, with the same feature name in every folder:
+  `pages/<feature>/` (a screen or tab), `components/<feature>/`, `hooks/<feature>/` (one hook per
+  file, `use-….ts`; cross-feature hooks in `hooks/shared/`), `queries/<feature>.ts` (TanStack hooks
+  and their keys), `api/<feature>.ts`, `permissions/<feature>.ts`, `constants/<feature>.ts`,
+  `lib/<feature>/` (plain helpers), `providers/` (context providers). `app/` is the shell and
+  `booking/` the separate public bundle. A file holds one kind: no hook, constant or helper exported
+  from a component. No `index.ts` barrels; import the exact file.
 - **RTL by default.** Gregorian dates, Arabic through i18n. `check:i18n` fails on an Arabic literal
   in a component and on a key missing from either locale.
 - Dropdowns read the clinic's lists through `useLookupOptions` / `useLookupLabels`, never a constant.
@@ -201,10 +208,9 @@ commits (`feat(billing): ...`).
 
 ## Comments
 
-**Default: no comment.** Code explains itself through naming.
+**No comments.** Code explains itself through naming; rationale belongs in the pull request.
 
-A comment is allowed only for a non-obvious **why** that code cannot express — a workaround and its
-cause, a security, bidi or ledger invariant — or a one-line JSDoc on a shared or public utility.
-
-**Maximum three lines.** No narrative, no storytelling, no design rationale in code — that belongs in
-the pull request description. Never restate what the code already says.
+The only exception is a rule that would be dangerous to "tidy" away — a security invariant such as a
+request that must not carry the bearer token. One or two lines, and rare. Tool directives
+(`eslint-disable`, `@ts-expect-error`, `// i18n-allow:`, `// check-type-disable-next-line`) are not
+comments and stay. An intentionally ignored failure is an empty `catch {}`.
