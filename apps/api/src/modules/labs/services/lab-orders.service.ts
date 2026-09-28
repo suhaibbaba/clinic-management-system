@@ -45,7 +45,8 @@ import { LabWorkTypesService } from "@api/modules/labs/services/lab-work-types.s
 import { LabsService } from "@api/modules/labs/services/labs.service";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
 import { PatientRegistrationService } from "@api/modules/patients/services/patient-registration.service";
-import { LAB_ORDERS_ENTITY, OPEN_STATUSES } from "@api/modules/labs/constants";
+import { OPEN_STATUSES } from "@api/modules/labs/constants";
+import { LAB_ORDERS_ENTITY } from "@api/common/constants/audit-entities";
 import {
   toLabOrder,
   overdueFilter,

@@ -30,7 +30,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import { users } from "@api/database/schema";
 import { StorageService } from "@api/modules/storage/services/storage.service";
-import { USERS_ENTITY } from "@api/modules/users/constants";
+import { USERS_ENTITY } from "@api/common/constants/audit-entities";
 import {
   safeColumns,
   toAuditSnapshot,

@@ -1,16 +1,10 @@
-import {
-  useMutation,
-  useQueries,
-  useQuery,
-  useQueryClient,
-  type UseQueryResult,
-} from "@tanstack/react-query";
+import { useCalendarMutation } from "@web/shared/queries/appointments";
+import { WAITING_LIST_KEY, CALENDAR_KEY, AVAILABILITY_KEY } from "@web/shared/constants/query-keys";
+import { useQueries, useQuery, type UseQueryResult } from "@tanstack/react-query";
 import type {
   Availability,
   AvailabilityQuery,
   CalendarAppointment,
-  CalendarFeed,
-  CalendarQuery,
   CreateAppointmentInput,
   CreateWaitingListEntryInput,
   DeclineWaitingListEntryInput,
@@ -23,39 +17,12 @@ import type {
 } from "@clinic/shared";
 import { appointmentsApi, waitingListApi } from "@web/modules/appointments/api";
 
-export const CALENDAR_KEY = "appointments-calendar";
-export const AVAILABILITY_KEY = "appointments-availability";
-export const WAITING_LIST_KEY = "waiting-list";
-
-const CALENDAR_KEYS = [CALENDAR_KEY, AVAILABILITY_KEY, WAITING_LIST_KEY];
-
-function useCalendarMutation<TArgs, TResult>(mutationFn: (args: TArgs) => Promise<TResult>) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn,
-    onSuccess: () => {
-      for (const key of CALENDAR_KEYS) {
-        void queryClient.invalidateQueries({ queryKey: [key] });
-      }
-    },
-  });
-}
-
 export function useAppointments(
   query: Partial<ListAppointmentsQuery>,
 ): UseQueryResult<Paginated<CalendarAppointment>> {
   return useQuery({
     queryKey: [CALENDAR_KEY, "list", query],
     queryFn: () => appointmentsApi.list(query),
-    placeholderData: (previous) => previous,
-  });
-}
-
-export function useCalendar(query: CalendarQuery): UseQueryResult<CalendarFeed> {
-  return useQuery({
-    queryKey: [CALENDAR_KEY, query],
-    queryFn: () => appointmentsApi.calendar(query),
     placeholderData: (previous) => previous,
   });
 }
@@ -114,13 +81,6 @@ export const useCreateAppointment = () =>
 export const useUpdateAppointment = () =>
   useCalendarMutation(({ id, body }: { id: string; body: UpdateAppointmentInput }) =>
     appointmentsApi.update(id, body),
-  );
-
-export type AppointmentStep = "confirm" | "arrived" | "start" | "complete" | "noShow";
-
-export const useAppointmentStep = () =>
-  useCalendarMutation(({ id, step }: { id: string; step: AppointmentStep }) =>
-    appointmentsApi[step](id),
   );
 
 export const useCancelAppointment = () =>

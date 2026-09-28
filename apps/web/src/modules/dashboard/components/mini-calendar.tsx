@@ -2,8 +2,8 @@ import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Icon, Ltr, Widget } from "@clinic/ui";
-import { toIsoDate, todayIso } from "@web/modules/appointments/lib/calendar-time";
-import { useCalendar } from "@web/modules/appointments/queries";
+import { toIsoDate, todayIso } from "@web/shared/lib/dates";
+import { useCalendar } from "@web/shared/queries/appointments";
 import { cn } from "@clinic/ui/lib/cn";
 import { MINI_CALENDAR_WEEKDAYS } from "@web/modules/dashboard/constants";
 

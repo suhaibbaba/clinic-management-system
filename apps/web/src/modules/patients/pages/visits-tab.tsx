@@ -25,17 +25,13 @@ import {
   useToast,
 } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
-import { minutesOf, toTimeLabel } from "@web/modules/appointments/lib/calendar-time";
+import { minutesOf, toTimeLabel } from "@web/shared/lib/dates";
 import { useSession } from "@web/shared/providers/session";
-import { useCurrency } from "@web/modules/clinic/queries";
-import { useDoctors } from "@web/modules/doctors/queries";
+import { useCurrency } from "@web/shared/queries/clinic";
+import { useDoctors } from "@web/shared/queries/doctors";
 import { ConsumeForVisit } from "@web/modules/inventory/components/consume-for-visit";
-import { canConsumeStock } from "@web/modules/inventory/permissions";
-import {
-  canDeleteProcedure,
-  canDeleteVisit,
-  canSeePrices,
-} from "@web/modules/patients/permissions";
+import { canConsumeStock } from "@web/shared/permissions/inventory";
+import { canDeleteProcedure, canDeleteVisit, canSeePrices } from "@web/shared/permissions/patients";
 import { describeItem } from "@web/modules/patients/pages/prescriptions-tab";
 import {
   ProcedureForm,

@@ -9,8 +9,6 @@ import {
 import type { PatientRow } from "@api/modules/patients/lib/patient-access";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 
-export const PATIENTS_ENTITY = "patients";
-
 const isProfileIncomplete = (row: PatientRow): boolean => missingProfileFields(row).length > 0;
 
 export function toClinicalView(row: PatientRow): PatientClinicalView {

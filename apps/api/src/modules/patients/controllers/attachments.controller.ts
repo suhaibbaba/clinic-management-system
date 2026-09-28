@@ -20,7 +20,7 @@ import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { ATTACHMENTS_ENTITY } from "@api/modules/patients/constants";
+import { ATTACHMENTS_ENTITY } from "@api/common/constants/audit-entities";
 import { AttachmentsService } from "@api/modules/patients/services/attachments.service";
 import {
   PatientIdParamDto,

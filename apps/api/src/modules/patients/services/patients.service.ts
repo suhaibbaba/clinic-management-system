@@ -20,7 +20,8 @@ import { patients, visits } from "@api/database/schema";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { type PatientRow } from "@api/modules/patients/lib/patient-access";
 import { PatientRegistrationService } from "@api/modules/patients/services/patient-registration.service";
-import { PATIENTS_ENTITY, toClinicalView, toRoleView } from "@api/modules/patients/lib/patient-view";
+import { toClinicalView, toRoleView } from "@api/modules/patients/lib/patient-view";
+import { PATIENTS_ENTITY } from "@api/common/constants/audit-entities";
 
 @Injectable()
 export class PatientsService implements OnModuleInit {

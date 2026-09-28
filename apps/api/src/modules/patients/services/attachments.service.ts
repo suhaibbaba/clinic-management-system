@@ -25,8 +25,13 @@ import { attachments, visits } from "@api/database/schema";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { StorageService } from "@api/modules/storage/services/storage.service";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
-import { ATTACHMENTS_ENTITY, UNTYPED_CATEGORY } from "@api/modules/patients/constants";
-import { toAttachment, AttachmentRow, assertAllowedMime } from "@api/modules/patients/lib/attachments";
+import { UNTYPED_CATEGORY } from "@api/modules/patients/constants";
+import { ATTACHMENTS_ENTITY } from "@api/common/constants/audit-entities";
+import {
+  toAttachment,
+  AttachmentRow,
+  assertAllowedMime,
+} from "@api/modules/patients/lib/attachments";
 
 @Injectable()
 export class AttachmentsService implements OnModuleInit {

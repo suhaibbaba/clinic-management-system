@@ -16,9 +16,9 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { type Env } from "@api/config/env.schema";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinicSecrets } from "@api/database/schema";
-import { type WhatsAppCredentials } from "@api/modules/notifications/lib/notification-provider";
+import { type WhatsAppCredentials } from "@api/common/types/whatsapp";
 import { open, seal } from "@api/modules/secrets/lib/secret-cipher";
-import { CLINIC_SECRETS_ENTITY } from "@api/modules/secrets/constants";
+import { CLINIC_SECRETS_ENTITY } from "@api/common/constants/audit-entities";
 import { described, context, SecretRow } from "@api/modules/secrets/lib/secrets";
 
 @Injectable()

@@ -2,10 +2,10 @@ import { PageTitleProvider } from "@clinic/ui/lib/page-title";
 import { useEffect, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
-import { routeTitle } from "@web/app/navigation";
+import { routeTitle } from "@web/shared/lib/navigation";
 import { usePersonName } from "@clinic/ui/components/person-name";
 import { useSession } from "@web/shared/providers/session";
-import { useClinicBranding } from "@web/modules/clinic/queries";
+import { useClinicBranding } from "@web/shared/queries/clinic";
 
 export function documentTitle(page: string | undefined, clinic: string | undefined): string {
   return [page, clinic].filter((part) => part !== undefined && part.trim() !== "").join(" — ");

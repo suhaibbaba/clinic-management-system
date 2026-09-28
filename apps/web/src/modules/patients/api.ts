@@ -1,3 +1,4 @@
+import { listPatients } from "@web/shared/api/patients";
 import type {
   AllergyFlags,
   Attachment,
@@ -9,11 +10,9 @@ import type {
   CreateTreatmentPlanItemInput,
   CreateVisitInput,
   ListAttachmentsQuery,
-  ListPatientsQuery,
   ListTimelineQuery,
   Paginated,
   PatientClinicalView,
-  PatientView,
   PerformedProcedure,
   Prescription,
   PresignAttachmentUploadInput,
@@ -51,18 +50,7 @@ async function fetchAllPages<TItem>(
 }
 
 export const patientsApi = {
-  list: (query: Partial<ListPatientsQuery>): Promise<Paginated<PatientView>> =>
-    apiRequest("/patients", {
-      query: {
-        page: query.page,
-        limit: query.limit,
-        search: query.search,
-        hasBalance: query.hasBalance,
-        visitedSince: query.visitedSince,
-        sort: query.sort,
-        dir: query.dir,
-      },
-    }),
+  list: listPatients,
 
   create: (body: CreatePatientInput): Promise<PatientClinicalView> =>
     apiRequest("/patients", { method: "POST", body }),
@@ -195,20 +183,3 @@ export const patientsApi = {
       query: { page: query.page, limit: query.limit ?? 50, type: query.type },
     }),
 };
-
-// Not `apiRequest`: a presigned PUT must not carry the API's bearer token, and the body is the file
-export async function uploadToStorage(
-  uploadUrl: string,
-  body: Blob,
-  contentType: string = body.type,
-): Promise<void> {
-  const response = await fetch(uploadUrl, {
-    method: "PUT",
-    headers: { "content-type": contentType },
-    body,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Upload failed with status ${response.status}`);
-  }
-}

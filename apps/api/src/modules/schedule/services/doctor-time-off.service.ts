@@ -11,7 +11,7 @@ import {
 } from "@clinic/shared";
 import { and, asc, count, eq, gt, lt, type SQL } from "drizzle-orm";
 import { AppointmentAccessService } from "@api/modules/appointments/services/appointment-access.service";
-import { toDoctorTimeOff } from "@api/modules/appointments/lib/availability";
+import { toDoctorTimeOff } from "@api/common/lib/schedule-rows";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
@@ -19,7 +19,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { doctors, doctorTimeOff } from "@api/database/schema";
 import { ScheduleConflictsService } from "@api/modules/schedule/services/schedule-conflicts.service";
-import { DOCTOR_TIME_OFF_ENTITY } from "@api/modules/schedule/constants";
+import { DOCTOR_TIME_OFF_ENTITY } from "@api/common/constants/audit-entities";
 import { TimeOffRow } from "@api/modules/schedule/lib/doctor-time-off";
 
 @Injectable()

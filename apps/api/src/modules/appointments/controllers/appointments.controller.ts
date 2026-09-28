@@ -21,7 +21,7 @@ import {
   type Visit,
 } from "@clinic/shared";
 import { AvailabilityService } from "@api/modules/appointments/services/availability.service";
-import { APPOINTMENTS_ENTITY } from "@api/modules/appointments/constants";
+import { APPOINTMENTS_ENTITY } from "@api/common/constants/audit-entities";
 import { AppointmentsService } from "@api/modules/appointments/services/appointments.service";
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";

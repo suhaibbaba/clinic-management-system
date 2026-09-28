@@ -24,14 +24,18 @@ import {
   doctors,
   doctorTimeOff,
 } from "@api/database/schema";
-import { computeDaySlots, toTimeOfDay, type BusyInterval } from "@api/modules/appointments/lib/slots";
+import {
+  computeDaySlots,
+  toTimeOfDay,
+  type BusyInterval,
+} from "@api/modules/appointments/lib/slots";
 import { DEFAULT_STEP_MINUTES, MINUTES_PER_DAY } from "@api/modules/appointments/constants";
 import {
   DayAvailabilityContext,
   rangesFor,
   mergeRanges,
-  toClinicClosure,
 } from "@api/modules/appointments/lib/availability";
+import { toClinicClosure } from "@api/common/lib/schedule-rows";
 
 @Injectable()
 export class AvailabilityService {

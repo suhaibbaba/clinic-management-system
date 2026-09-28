@@ -18,8 +18,8 @@ import {
 } from "@clinic/ui";
 import { SkeletonCard, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/shared/providers/session";
-import { useDoctors } from "@web/modules/doctors/queries";
-import { canDeletePrescription, canWritePrescription } from "@web/modules/patients/permissions";
+import { useDoctors } from "@web/shared/queries/doctors";
+import { canDeletePrescription, canWritePrescription } from "@web/shared/permissions/patients";
 import { PrescriptionFormModal } from "@web/modules/patients/components/prescriptions/prescription-form-modal";
 import {
   useDeletePrescription,

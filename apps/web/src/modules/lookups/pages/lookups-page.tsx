@@ -22,14 +22,14 @@ import {
   useToast,
 } from "@clinic/ui";
 import { LookupOptionModal } from "@web/modules/lookups/components/lookup-option-modal";
-import { ToothSwatch } from "@web/modules/patients/components/chart/tooth-swatch";
-import { useToothStates } from "@web/modules/patients/hooks/use-tooth-states";
+import { ToothSwatch } from "@web/shared/components/tooth-swatch";
+import { useToothStates } from "@web/shared/hooks/use-tooth-states";
 import {
   useDeleteLookupOption,
   useLookupList,
   useReorderLookupOptions,
   useUpdateLookupOption,
-} from "@web/modules/lookups/queries";
+} from "@web/shared/queries/lookups";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
 

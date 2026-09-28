@@ -20,7 +20,7 @@ import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/da
 import { chartMarks, doctors, performedProcedures, specialties } from "@api/database/schema";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { ProcedureCatalogService } from "@api/modules/patients/services/procedure-catalog.service";
-import { PERFORMED_PROCEDURES_ENTITY } from "@api/modules/patients/constants";
+import { PERFORMED_PROCEDURES_ENTITY } from "@api/common/constants/audit-entities";
 import { toProcedure, ProcedureRow, toChartMark } from "@api/modules/patients/lib/procedures";
 
 @Injectable()

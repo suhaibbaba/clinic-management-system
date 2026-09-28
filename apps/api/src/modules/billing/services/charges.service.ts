@@ -8,8 +8,8 @@ import {
   ProcedureBillingEvent,
   isBillable,
   currentChargePredicate,
-  negate,
 } from "@api/modules/billing/lib/charges";
+import { negate } from "@api/common/lib/money";
 
 @Injectable()
 export class ChargesService {

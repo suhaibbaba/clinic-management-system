@@ -17,7 +17,7 @@ import {
 } from "@clinic/shared";
 import { desc, eq, sql, type SQL } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
-import { negate } from "@api/modules/billing/lib/charges";
+import { negate } from "@api/common/lib/money";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -25,7 +25,7 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { payments } from "@api/database/schema";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
-import { PAYMENTS_ENTITY } from "@api/modules/billing/constants";
+import { PAYMENTS_ENTITY } from "@api/common/constants/audit-entities";
 import {
   toPayment,
   PaymentRow,

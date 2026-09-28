@@ -4,10 +4,10 @@ import { Badge, type Column, Ltr, MenuItem, PersonName, RowMenu } from "@clinic/
 import { cn } from "@clinic/ui/lib/cn";
 import { MovementDetails } from "@web/modules/inventory/components/movement-details";
 import { visitMoment } from "@web/shared/lib/format";
-import { MOVEMENT_TONES, movementLabel } from "@web/modules/inventory/lib/display";
-import { canReverseMovement } from "@web/modules/inventory/permissions";
+import { MOVEMENT_TONES, movementLabel } from "@web/shared/lib/stock-movement";
+import { canReverseMovement } from "@web/shared/permissions/inventory";
 import { useSession } from "@web/shared/providers/session";
-import { useClinic } from "@web/modules/clinic/queries";
+import { useClinic } from "@web/shared/queries/clinic";
 
 export function useMovementColumns(
   onReverse: (row: StockMovementRow) => void,

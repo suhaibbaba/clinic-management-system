@@ -8,10 +8,10 @@ import {
 } from "@web/modules/patients/components/chart/add-procedure-form";
 import { SkeletonTimeline } from "@clinic/ui/components/skeleton";
 import { SurfaceSelector } from "@web/modules/patients/components/chart/surface-selector";
-import { type ToothSummary } from "@web/modules/patients/lib/chart/tooth-state";
-import { useToothStates } from "@web/modules/patients/hooks/use-tooth-states";
-import { canRecordProcedure, canSeePrices } from "@web/modules/patients/permissions";
-import { useClinic } from "@web/modules/clinic/queries";
+import { type ToothSummary } from "@web/shared/lib/tooth-state";
+import { useToothStates } from "@web/shared/hooks/use-tooth-states";
+import { canRecordProcedure, canSeePrices } from "@web/shared/permissions/patients";
+import { useClinic } from "@web/shared/queries/clinic";
 import { useSession } from "@web/shared/providers/session";
 import { useToothHistory } from "@web/modules/patients/queries";
 import { formatDate } from "@web/shared/lib/format";

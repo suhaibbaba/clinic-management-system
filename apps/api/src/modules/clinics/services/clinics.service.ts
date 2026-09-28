@@ -30,8 +30,15 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics } from "@api/database/schema";
 import { StorageService } from "@api/modules/storage/services/storage.service";
-import { CLINICS_ENTITY, LOGO_CATEGORY } from "@api/modules/clinics/constants";
-import { toClinic, appName, iconSource, iconKey, ClinicRow } from "@api/modules/clinics/lib/clinics";
+import { LOGO_CATEGORY } from "@api/modules/clinics/constants";
+import { CLINICS_ENTITY } from "@api/common/constants/audit-entities";
+import {
+  toClinic,
+  appName,
+  iconSource,
+  iconKey,
+  ClinicRow,
+} from "@api/modules/clinics/lib/clinics";
 
 @Injectable()
 export class ClinicsService implements OnModuleInit {

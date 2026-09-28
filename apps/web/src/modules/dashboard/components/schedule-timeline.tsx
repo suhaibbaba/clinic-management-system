@@ -3,9 +3,9 @@ import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Avatar, Badge, Icon, Ltr, usePersonName } from "@clinic/ui";
-import { minutesOf, toTimeLabel } from "@web/modules/appointments/lib/calendar-time";
-import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/modules/appointments/lib/status";
-import { useLookupLabels } from "@web/modules/lookups/queries";
+import { minutesOf, toTimeLabel } from "@web/shared/lib/dates";
+import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/shared/lib/appointment-status";
+import { useLookupLabels } from "@web/shared/queries/lookups";
 import { cn } from "@clinic/ui/lib/cn";
 import { SPENT_APPOINTMENT_STATUSES } from "@web/modules/dashboard/constants";
 

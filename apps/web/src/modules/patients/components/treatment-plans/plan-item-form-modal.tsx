@@ -13,9 +13,9 @@ import {
   useToast,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
-import { useCurrency } from "@web/modules/clinic/queries";
-import { doctorOptionLabel } from "@web/modules/doctors/lib/doctor-label";
-import { canAddVisitingDoctor } from "@web/modules/doctors/permissions";
+import { useCurrency } from "@web/shared/queries/clinic";
+import { doctorOptionLabel } from "@web/shared/lib/doctor-label";
+import { canAddVisitingDoctor } from "@web/shared/permissions/doctors";
 import { VisitingDoctorModal } from "@web/modules/doctors/components/visiting-doctor-modal";
 import { useAddPlanItem, useUpdatePlanItem } from "@web/modules/patients/queries";
 import { ellipsis } from "@web/i18n/ellipsis";

@@ -1,6 +1,11 @@
-import type { AiPlanStepStatus, AiProposalStatus, ClinicSecretKind } from "@clinic/shared";
+import {
+  type AiPlanStepStatus,
+  type AiProposalStatus,
+  type ClinicSecretKind,
+  AI_PROPOSAL_STATUS,
+  CLINIC_SECRET_KIND,
+} from "@clinic/shared";
 import type { BadgeTone } from "@clinic/ui";
-import { AI_PROPOSAL_STATUS, CLINIC_SECRET_KIND } from "@clinic/shared";
 
 export const SUGGESTIONS = [
   { key: "today", labelKey: "assistant.suggestions.today" },

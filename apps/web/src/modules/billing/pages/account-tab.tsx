@@ -26,12 +26,12 @@ import {
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
 import { downloadStatement, openReceipt } from "@web/modules/billing/lib/documents";
-import { Money } from "@web/modules/billing/components/money";
-import { canRecordPayment, canReversePayment } from "@web/modules/billing/permissions";
+import { Money } from "@web/shared/components/money";
+import { canRecordPayment, canReversePayment } from "@web/shared/permissions/billing";
 import { PaymentModal } from "@web/modules/billing/components/payment-modal";
 import { ReversePaymentModal } from "@web/modules/billing/components/reverse-payment-modal";
 import { useDeletePayment, usePatientBalance, useStatement } from "@web/modules/billing/queries";
-import { useClinic } from "@web/modules/clinic/queries";
+import { useClinic } from "@web/shared/queries/clinic";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
 import { endOfNextDayIso, formatDate, shortDate, startOfDayIso } from "@web/shared/lib/format";

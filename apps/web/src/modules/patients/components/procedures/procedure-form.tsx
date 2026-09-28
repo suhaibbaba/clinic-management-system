@@ -17,8 +17,8 @@ import {
   SurfaceSelector,
   type SelectableSurface,
 } from "@web/modules/patients/components/chart/surface-selector";
-import { canSeePrices } from "@web/modules/patients/permissions";
-import { useCurrency } from "@web/modules/clinic/queries";
+import { canSeePrices } from "@web/shared/permissions/patients";
+import { useCurrency } from "@web/shared/queries/clinic";
 import { ellipsis } from "@web/i18n/ellipsis";
 
 export type ProcedureFormValues = Omit<CreatePerformedProcedureInput, "patientId">;

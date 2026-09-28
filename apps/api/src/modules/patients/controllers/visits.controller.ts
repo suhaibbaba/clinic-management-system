@@ -15,7 +15,7 @@ import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { VISITS_ENTITY } from "@api/modules/patients/constants";
+import { VISITS_ENTITY } from "@api/common/constants/audit-entities";
 import { VisitsService } from "@api/modules/patients/services/visits.service";
 import { AiTool } from "@api/modules/ai/tools/route-tool.decorator";
 import {

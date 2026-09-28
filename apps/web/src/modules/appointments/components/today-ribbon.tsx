@@ -2,9 +2,9 @@ import { APPOINTMENT_STATUS, type CalendarAppointment } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Icon, Ltr, PersonName, useToast } from "@clinic/ui";
-import { useAppointmentStep } from "@web/modules/appointments/queries";
-import { APPOINTMENT_STATUS_STYLES } from "@web/modules/appointments/lib/status";
-import { minutesOf, toTimeLabel } from "@web/modules/appointments/lib/calendar-time";
+import { useAppointmentStep } from "@web/shared/queries/appointments";
+import { APPOINTMENT_STATUS_STYLES } from "@web/shared/lib/appointment-status";
+import { minutesOf, toTimeLabel } from "@web/shared/lib/dates";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
 

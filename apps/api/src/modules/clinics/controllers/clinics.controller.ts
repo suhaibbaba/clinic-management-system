@@ -22,7 +22,7 @@ import {
   type ResolvedLocation,
 } from "@clinic/shared";
 import { Audit } from "@api/common/decorators/audit.decorator";
-import { CLINICS_ENTITY } from "@api/modules/clinics/constants";
+import { CLINICS_ENTITY } from "@api/common/constants/audit-entities";
 import { ClinicsService } from "@api/modules/clinics/services/clinics.service";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { MapLinkResolver } from "@api/modules/clinics/services/map-link.resolver";

@@ -9,8 +9,8 @@ import { useEffect, type JSX } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Modal, MoneyInput, Select, Textarea, useToast } from "@clinic/ui";
-import { Money } from "@web/modules/billing/components/money";
-import { useLookupOptions } from "@web/modules/lookups/queries";
+import { Money } from "@web/shared/components/money";
+import { useLookupOptions } from "@web/shared/queries/lookups";
 import { usePayLab } from "@web/modules/labs/queries";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 

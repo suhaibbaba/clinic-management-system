@@ -15,7 +15,7 @@ import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { suppliers } from "@api/database/schema";
-import { SUPPLIERS_ENTITY } from "@api/modules/inventory/constants";
+import { SUPPLIERS_ENTITY } from "@api/common/constants/audit-entities";
 import { toSupplier, SupplierRow, toMoneyString } from "@api/modules/inventory/lib/suppliers";
 
 @Injectable()

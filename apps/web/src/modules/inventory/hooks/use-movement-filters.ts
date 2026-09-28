@@ -1,54 +1,32 @@
 import { MOVEMENT_TYPES, type MovementType } from "@clinic/shared";
-import { subMonths } from "date-fns";
 import { useSearchParams } from "react-router-dom";
-import { MOVEMENTS_DEFAULT_MONTHS } from "@web/modules/inventory/constants";
-import { toIsoDate } from "@web/modules/appointments/lib/calendar-time";
+import { useDateRangeParam, type DateRangeParam } from "@web/shared/hooks/use-date-range-param";
+import { putParam } from "@web/shared/lib/url-params";
 
-export interface MovementFilters {
+export interface MovementFilters extends DateRangeParam {
   readonly type: MovementType | undefined;
-  readonly from: string;
-  readonly to: string;
-  readonly isNarrowed: boolean;
   readonly setType: (value: string) => void;
-  readonly setRange: (from: string, to: string) => void;
 }
 
 export function useMovementFilters(): MovementFilters {
   const [params, setParams] = useSearchParams();
+  const range = useDateRangeParam();
   const rawType = params.get("type");
-  const from = params.get("from") ?? toIsoDate(subMonths(new Date(), MOVEMENTS_DEFAULT_MONTHS));
-  const to = params.get("to") ?? "";
-
-  const write = (change: (next: URLSearchParams) => void): void =>
-    setParams(
-      (current) => {
-        const next = new URLSearchParams(current);
-
-        change(next);
-        next.delete("page");
-
-        return next;
-      },
-      { replace: true },
-    );
 
   return {
+    ...range,
     type: MOVEMENT_TYPES.find((value) => value === rawType),
-    from,
-    to,
-    isNarrowed: from !== "" || to !== "",
     setType: (value) =>
-      write((next) => {
-        if (value === "") {
-          next.delete("type");
-        } else {
-          next.set("type", value);
-        }
-      }),
-    setRange: (nextFrom, nextTo) =>
-      write((next) => {
-        next.set("from", nextFrom);
-        next.set("to", nextTo);
-      }),
+      setParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+
+          putParam(next, "type", value);
+          next.delete("page");
+
+          return next;
+        },
+        { replace: true },
+      ),
   };
 }

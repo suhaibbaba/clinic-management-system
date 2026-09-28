@@ -1,3 +1,4 @@
+import { toQueryString } from "@web/shared/lib/query-string";
 import type {
   AdjustStockInput,
   ConsumeStockInput,
@@ -25,21 +26,9 @@ import type {
 } from "@clinic/shared";
 import { apiDownload, apiRequest } from "@web/shared/lib/api-client";
 
-const query = (params: Record<string, string | number | boolean | undefined>): string => {
-  const search = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") {
-      search.set(key, String(value));
-    }
-  }
-
-  return search.size > 0 ? `?${search.toString()}` : "";
-};
-
 export const inventoryApi = {
   items: (params: Partial<ListInventoryItemsQuery> = {}) =>
-    apiRequest<Paginated<InventoryItemRow>>(`/inventory/items${query(params)}`),
+    apiRequest<Paginated<InventoryItemRow>>(`/inventory/items${toQueryString(params)}`),
 
   item: (id: string) => apiRequest<InventoryItemRow>(`/inventory/items/${id}`),
 
@@ -52,10 +41,12 @@ export const inventoryApi = {
   batches: (id: string) => apiRequest<ItemBatches>(`/inventory/items/${id}/batches`),
 
   movements: (params: Partial<ListMovementsQuery> = {}) =>
-    apiRequest<Paginated<StockMovementRow>>(`/inventory/movements${query(params)}`),
+    apiRequest<Paginated<StockMovementRow>>(`/inventory/movements${toQueryString(params)}`),
 
   itemMovements: (id: string, params: Partial<ListMovementsQuery> = {}) =>
-    apiRequest<Paginated<StockMovementRow>>(`/inventory/items/${id}/movements${query(params)}`),
+    apiRequest<Paginated<StockMovementRow>>(
+      `/inventory/items/${id}/movements${toQueryString(params)}`,
+    ),
 
   purchase: (body: PurchaseStockInput) =>
     apiRequest<StockMovement>("/inventory/movements/purchase", { method: "POST", body }),
@@ -78,7 +69,7 @@ export const inventoryApi = {
 
 export const suppliersApi = {
   list: (params: Partial<ListSuppliersQuery> = {}) =>
-    apiRequest<Paginated<SupplierSummary>>(`/suppliers${query(params)}`),
+    apiRequest<Paginated<SupplierSummary>>(`/suppliers${toQueryString(params)}`),
 
   findOne: (id: string) => apiRequest<SupplierSummary>(`/suppliers/${id}`),
 
@@ -91,5 +82,5 @@ export const suppliersApi = {
   remove: (id: string) => apiRequest<void>(`/suppliers/${id}`, { method: "DELETE" }),
 
   statement: (id: string, params: StatementRangeQuery) =>
-    apiRequest<SupplierStatement>(`/suppliers/${id}/statement${query({ ...params })}`),
+    apiRequest<SupplierStatement>(`/suppliers/${id}/statement${toQueryString({ ...params })}`),
 };

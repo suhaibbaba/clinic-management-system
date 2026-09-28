@@ -1,5 +1,4 @@
-import { USER_ROLE } from "@clinic/shared";
-import type { UserRole } from "@clinic/shared";
+import { USER_ROLE, type UserRole } from "@clinic/shared";
 
 export const EDITABLE_ROLES = [
   USER_ROLE.DOCTOR,

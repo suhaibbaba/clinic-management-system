@@ -22,32 +22,28 @@ import {
 } from "@clinic/ui";
 import { RefreshBar, SkeletonCalendarDay } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/shared/providers/session";
-import { usePendingBookings } from "@web/modules/booking/queries";
-import { seesPendingBookings } from "@web/modules/booking/permissions";
-import { useClinic } from "@web/modules/clinic/queries";
-import { useDoctors } from "@web/modules/doctors/queries";
+import { usePendingBookings } from "@web/shared/queries/booking";
+import { seesPendingBookings } from "@web/shared/permissions/booking";
+import { useClinic } from "@web/shared/queries/clinic";
+import { useDoctors } from "@web/shared/queries/doctors";
 import { AgendaList } from "@web/modules/appointments/components/agenda-list";
 import { AppointmentDrawer } from "@web/modules/appointments/components/appointment-drawer";
 import { AppointmentFormModal } from "@web/modules/appointments/components/appointment-form-modal";
-import {
-  addDays,
-  instantAt,
-  QUEUE_STEP_MINUTES,
-  startOfWeek,
-  todayIso,
-} from "@web/modules/appointments/lib/calendar-time";
+import { QUEUE_STEP_MINUTES } from "@web/modules/appointments/lib/calendar-time";
+import { addDays, instantAt, startOfWeek, todayIso } from "@web/shared/lib/dates";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { DayQueue } from "@web/modules/appointments/components/day-queue";
 import {
   canBookAppointment,
   canManageWaitingList,
   seesWholeClinic,
-} from "@web/modules/appointments/permissions";
-import { useCalendar, useDayAvailability, useWaitingList } from "@web/modules/appointments/queries";
+} from "@web/shared/permissions/appointments";
+import { useDayAvailability, useWaitingList } from "@web/modules/appointments/queries";
+import { useCalendar } from "@web/shared/queries/appointments";
 import { TodayRibbon } from "@web/modules/appointments/components/today-ribbon";
 import { WaitingListPanel } from "@web/modules/appointments/components/waiting-list-panel";
 import { WeekView } from "@web/modules/appointments/components/week-view";
-import { useNowMinute } from "@web/modules/appointments/hooks/use-now-minute";
+import { useNowMinute } from "@web/shared/hooks/use-now-minute";
 import { dayAndDate, formatDate } from "@web/shared/lib/format";
 import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { useIsMobile } from "@clinic/ui/lib/use-media-query";

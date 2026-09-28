@@ -14,7 +14,7 @@ import {
   type UpdateClinicClosureInput,
 } from "@clinic/shared";
 import { and, asc, count, eq, gte, lte, type SQL } from "drizzle-orm";
-import { toClinicClosure } from "@api/modules/appointments/lib/availability";
+import { toClinicClosure } from "@api/common/lib/schedule-rows";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
@@ -22,7 +22,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinicClosures, clinics } from "@api/database/schema";
 import { ScheduleConflictsService } from "@api/modules/schedule/services/schedule-conflicts.service";
-import { CLINIC_CLOSURES_ENTITY } from "@api/modules/schedule/constants";
+import { CLINIC_CLOSURES_ENTITY } from "@api/common/constants/audit-entities";
 import { assertAnnualFitsOneYear, ClosureRow } from "@api/modules/schedule/lib/clinic-closures";
 
 @Injectable()

@@ -1,3 +1,9 @@
+import {
+  PATIENT_KEY,
+  PATIENTS_KEY,
+  BALANCE_KEY,
+  STATEMENT_KEY,
+} from "@web/shared/constants/query-keys";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   AllergyFlags,
@@ -10,11 +16,9 @@ import type {
   CreateTreatmentPlanItemInput,
   CreateVisitInput,
   ListAttachmentsQuery,
-  ListPatientsQuery,
   ListTimelineQuery,
   Paginated,
   PatientClinicalView,
-  PatientView,
   PerformedProcedure,
   Prescription,
   PresignAttachmentUploadInput,
@@ -29,32 +33,19 @@ import type {
   UpdateVisitInput,
   Visit,
 } from "@clinic/shared";
-import { BALANCE_KEY, STATEMENT_KEY } from "@web/modules/billing/queries";
-import { patientsApi, uploadToStorage } from "@web/modules/patients/api";
+import { patientsApi } from "@web/modules/patients/api";
+import { uploadToStorage } from "@web/shared/lib/upload";
 
-export const PATIENT_KEY = "patient";
 export const PATIENT_PROCEDURES_KEY = "patient-procedures";
 export const PATIENT_ALLERGIES_KEY = "patient-allergies";
 export const TOOTH_HISTORY_KEY = "tooth-history";
 export const CATALOG_KEY = "procedure-catalog";
-export const PATIENTS_KEY = "patients";
+
 export const PATIENT_VISITS_KEY = "patient-visits";
 export const PATIENT_PRESCRIPTIONS_KEY = "patient-prescriptions";
 export const PATIENT_PLANS_KEY = "patient-treatment-plans";
 export const PATIENT_ATTACHMENTS_KEY = "patient-attachments";
 export const PATIENT_TIMELINE_KEY = "patient-timeline";
-
-export function usePatients(
-  query: Partial<ListPatientsQuery>,
-  options: { readonly enabled?: boolean } = {},
-): UseQueryResult<Paginated<PatientView>> {
-  return useQuery({
-    queryKey: [PATIENTS_KEY, query],
-    queryFn: () => patientsApi.list(query),
-    enabled: options.enabled ?? true,
-    placeholderData: (previous) => previous,
-  });
-}
 
 export function useUpdatePatient(id: string) {
   const queryClient = useQueryClient();

@@ -1,23 +1,11 @@
-import type { CalendarAppointment, ListAppointmentsQuery, Paginated } from "@clinic/shared";
+import { listPendingBookings } from "@web/shared/api/booking";
+import type { CalendarAppointment } from "@clinic/shared";
 import { apiRequest } from "@web/shared/lib/api-client";
-
-const query = (params: Record<string, string | number | undefined>): string => {
-  const search = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") {
-      search.set(key, String(value));
-    }
-  }
-
-  return search.size > 0 ? `?${search.toString()}` : "";
-};
 
 const BASE = "/appointments/pending-confirmation";
 
 export const pendingBookingsApi = {
-  list: (params: Partial<ListAppointmentsQuery> = {}) =>
-    apiRequest<Paginated<CalendarAppointment>>(`${BASE}${query(params)}`),
+  list: listPendingBookings,
 
   confirm: (id: string) =>
     apiRequest<CalendarAppointment>(`${BASE}/${id}/confirm`, { method: "PATCH" }),

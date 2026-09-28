@@ -16,7 +16,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { appointments, clinics, patients } from "@api/database/schema";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
-import { timeIn } from "@api/modules/schedule/lib/schedule-conflicts";
+import { timeIn } from "@api/common/lib/time";
 
 @Injectable()
 export class ScheduleConflictsService {

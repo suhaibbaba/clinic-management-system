@@ -10,7 +10,7 @@ import { LabsService } from "@api/modules/labs/services/labs.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { labWorkTypes, labs } from "@api/database/schema";
-import { LAB_WORK_TYPES_ENTITY } from "@api/modules/labs/constants";
+import { LAB_WORK_TYPES_ENTITY } from "@api/common/constants/audit-entities";
 import { toWorkType, WorkTypeRow } from "@api/modules/labs/lib/lab-work-types";
 
 @Injectable()

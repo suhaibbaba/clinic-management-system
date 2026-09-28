@@ -22,7 +22,7 @@ import { AccountInvitationsService } from "@api/modules/email/services/account-i
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { USERS_ENTITY } from "@api/modules/users/constants";
+import { USERS_ENTITY } from "@api/common/constants/audit-entities";
 import { UsersService } from "@api/modules/users/services/users.service";
 import {
   ListUsersQueryDto,

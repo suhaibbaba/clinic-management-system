@@ -20,8 +20,8 @@ import {
   useTabParam,
   type Column,
 } from "@clinic/ui";
-import { useLookupLabels } from "@web/modules/lookups/queries";
-import { LAB_ORDER_STATUS_STYLES } from "@web/modules/labs/lib/status";
+import { useLookupLabels } from "@web/shared/queries/lookups";
+import { LAB_ORDER_STATUS_STYLES } from "@web/shared/lib/lab-order-status";
 import { usePatientTimeline } from "@web/modules/patients/queries";
 import { shortDate } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";

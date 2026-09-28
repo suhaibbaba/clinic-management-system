@@ -2,6 +2,36 @@
 import js from "@eslint/js";
 import prettier from "eslint-config-prettier";
 import tseslint from "typescript-eslint";
+import { readdirSync } from "node:fs";
+import { URL } from "node:url";
+
+const foldersIn = (path) =>
+  readdirSync(new URL(path, import.meta.url), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+
+const WEB_MODULES = foldersIn("./apps/web/src/modules");
+const API_MODULES = foldersIn("./apps/api/src/modules");
+const MODULE_PRIVATE = ["lib/*", "hooks/*", "api", "queries", "constants", "permissions"];
+
+const RELATIVE_PATTERN = {
+  group: ["../*", "./*"],
+  message: "Use the package alias instead of a relative path.",
+};
+
+const DASHBOARD_PATTERNS = [
+  RELATIVE_PATTERN,
+  {
+    group: ["@web/booking/*"],
+    message:
+      "The booking entry is a separate bundle; move anything shared out of it rather than importing from it.",
+  },
+  {
+    group: ["@ui/*"],
+    message:
+      "Import the library by its package name — @clinic/ui, @clinic/ui/components/… — never by its internal alias.",
+  },
+];
 
 /** Formatting is Prettier's job — `eslint-config-prettier` last, so no rule fights the formatter. */
 export default tseslint.config(
@@ -140,31 +170,78 @@ export default tseslint.config(
        booking entry either — a shared piece belongs in a shared place. */
     files: ["apps/web/src/!(booking)/**/*.{ts,tsx}", "apps/web/src/*.{ts,tsx}"],
     rules: {
+      "no-restricted-imports": ["error", { patterns: DASHBOARD_PATTERNS }],
+    },
+  },
+
+  ...WEB_MODULES.map((module) => ({
+    files: [`apps/web/src/modules/${module}/**/*.{ts,tsx}`],
+    rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
+            ...DASHBOARD_PATTERNS,
             {
-              group: ["../*", "./*"],
-              message: "Use the @web/… alias instead of a relative path.",
+              group: [
+                ...MODULE_PRIVATE.map((kind) => `@web/modules/*/${kind}`),
+                `!@web/modules/${module}/**`,
+                `!@web/modules/${module}/*`,
+              ],
+              message:
+                "Another module's lib, hooks, api, queries or constants are private to it. Move what both need into src/shared; only pages and components compose across modules.",
             },
             {
-              group: ["@web/booking/*"],
-              message:
-                "The booking entry is a separate bundle; move anything shared out of it rather than importing from it.",
+              group: ["@web/app/*"],
+              message: "A module does not reach into the app shell.",
             },
+          ],
+        },
+      ],
+    },
+  })),
+
+  {
+    files: ["apps/web/src/shared/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            ...DASHBOARD_PATTERNS,
             {
-              /* The package's own alias resolves here, because the app compiles its source. Using
-                 it would tie the app to the library's internal layout rather than its exports. */
-              group: ["@ui/*"],
-              message:
-                "Import the library by its package name — @clinic/ui, @clinic/ui/components/… — never by its internal alias.",
+              group: ["@web/modules/*", "@web/app/*"],
+              message: "src/shared sits below the modules and the app shell and imports neither.",
             },
           ],
         },
       ],
     },
   },
+
+  ...API_MODULES.map((module) => ({
+    files: [`apps/api/src/modules/${module}/**/*.ts`],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            RELATIVE_PATTERN,
+            {
+              group: [
+                "@api/modules/*/lib/*",
+                "@api/modules/*/constants",
+                `!@api/modules/${module}/**`,
+                `!@api/modules/${module}/*`,
+              ],
+              message:
+                "Another module's lib and constants are private to it. Move what both need into src/common; services, module files and dto compose across modules.",
+            },
+          ],
+        },
+      ],
+    },
+  })),
 
   {
     // Config files legitimately reference sibling paths, and `apps/web/vite/` runs in the Vite

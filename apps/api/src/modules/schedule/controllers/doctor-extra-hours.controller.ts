@@ -14,7 +14,7 @@ import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { DOCTOR_EXTRA_HOURS_ENTITY } from "@api/modules/schedule/constants";
+import { DOCTOR_EXTRA_HOURS_ENTITY } from "@api/common/constants/audit-entities";
 import { DoctorExtraHoursService } from "@api/modules/schedule/services/doctor-extra-hours.service";
 import { AiTool } from "@api/modules/ai/tools/route-tool.decorator";
 import {

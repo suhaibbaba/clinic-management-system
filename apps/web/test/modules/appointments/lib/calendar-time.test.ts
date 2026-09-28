@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { buildQueue } from "@web/modules/appointments/lib/calendar-time";
 import {
   addDays,
-  buildQueue,
   instantAt,
   minutesOf,
   startOfWeek,
   toTimeLabel,
   weekDates,
-} from "@web/modules/appointments/lib/calendar-time";
+} from "@web/shared/lib/dates";
 
 describe("calendar time", () => {
   it("labels minutes on a 12-hour clock", () => {

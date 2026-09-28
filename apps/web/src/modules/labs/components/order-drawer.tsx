@@ -15,10 +15,10 @@ import {
   useToast,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
-import { Money } from "@web/modules/billing/components/money";
-import { useClinic } from "@web/modules/clinic/queries";
+import { Money } from "@web/shared/components/money";
+import { useClinic } from "@web/shared/queries/clinic";
 import { openLabOrderSheet } from "@web/modules/labs/lib/documents";
-import { canCreateLabOrder } from "@web/modules/labs/permissions";
+import { canCreateLabOrder } from "@web/shared/permissions/labs";
 import {
   useDeleteLabOrderAttachment,
   useLabOrderAttachments,
@@ -26,7 +26,8 @@ import {
   useReturnLabOrder,
   useUploadLabOrderAttachment,
 } from "@web/modules/labs/queries";
-import { availableSteps, canReturn, LAB_ORDER_STATUS_STYLES } from "@web/modules/labs/lib/status";
+import { availableSteps, canReturn } from "@web/modules/labs/lib/status";
+import { LAB_ORDER_STATUS_STYLES } from "@web/shared/lib/lab-order-status";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { formatDate, formatDateTime } from "@web/shared/lib/format";
 import { cn } from "@clinic/ui/lib/cn";

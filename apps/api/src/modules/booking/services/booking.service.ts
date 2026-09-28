@@ -51,9 +51,9 @@ import {
   phoneDigits,
   isOverlapConflict,
   hashCode,
-  timeIn,
   ClinicContext,
 } from "@api/modules/booking/lib/booking";
+import { timeIn } from "@api/common/lib/time";
 import { OTP_TTL_SECONDS, OTP_MAX_ATTEMPTS } from "@api/modules/booking/constants";
 
 @Injectable()

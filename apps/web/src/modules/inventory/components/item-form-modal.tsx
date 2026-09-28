@@ -12,7 +12,7 @@ import {
   Textarea,
   useToast,
 } from "@clinic/ui";
-import { useLookupLabels, useLookupOptions } from "@web/modules/lookups/queries";
+import { useLookupLabels, useLookupOptions } from "@web/shared/queries/lookups";
 import { useCreateItem, useSuppliers, useUpdateItem } from "@web/modules/inventory/queries";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 

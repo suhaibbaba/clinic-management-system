@@ -18,7 +18,7 @@ import {
   useToast,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
-import { doctorOptionLabel } from "@web/modules/doctors/lib/doctor-label";
+import { doctorOptionLabel } from "@web/shared/lib/doctor-label";
 import { useCreateTreatmentPlan, useUpdateTreatmentPlan } from "@web/modules/patients/queries";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { errorMessageKey } from "@web/shared/lib/api-error";

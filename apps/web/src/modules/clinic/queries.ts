@@ -1,27 +1,14 @@
+import { CLINIC_KEY, BRANDING_KEY } from "@web/shared/queries/clinic";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   Clinic,
-  ClinicBranding,
   PresignClinicLogoInput,
   VersionResponse,
+  UpdateClinicInput,
 } from "@clinic/shared";
-import type { UpdateClinicInput } from "@clinic/shared";
 import { buildClinicIconSet } from "@web/modules/clinic/lib/logo-icons";
-import { clinicApi } from "@web/modules/clinic/api";
-import { uploadToStorage } from "@web/modules/patients/api";
-
-const CLINIC_KEY = "clinic";
-const BRANDING_KEY = "clinic-branding";
-
-export const BRANDING_SCOPE = "branding";
-
-export function useClinic(): UseQueryResult<Clinic> {
-  return useQuery({ queryKey: [CLINIC_KEY], queryFn: () => clinicApi.get() });
-}
-
-export function useCurrency(): string | undefined {
-  return useClinic().data?.currency;
-}
+import { clinicApi } from "@web/shared/api/clinic";
+import { uploadToStorage } from "@web/shared/lib/upload";
 
 export function useUpdateClinic() {
   const queryClient = useQueryClient();
@@ -34,16 +21,6 @@ export function useUpdateClinic() {
 
 export function useResolveLocation() {
   return useMutation({ mutationFn: (url: string) => clinicApi.resolveLocation(url), retry: false });
-}
-
-export function useClinicBranding(enabled = true): UseQueryResult<ClinicBranding> {
-  return useQuery({
-    queryKey: [BRANDING_KEY],
-    queryFn: () => clinicApi.branding(),
-    staleTime: Infinity,
-    retry: false,
-    enabled,
-  });
 }
 
 async function renderBrandingIcons(): Promise<Clinic> {

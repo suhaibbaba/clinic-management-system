@@ -1,7 +1,6 @@
+import { listUsers } from "@web/shared/api/users";
 import type {
   CreateUserInput,
-  ListUsersQuery,
-  Paginated,
   PresignUserPhotoInput,
   PresignUserPhotoResponse,
   ResetUserPasswordInput,
@@ -11,16 +10,7 @@ import type {
 import { apiRequest } from "@web/shared/lib/api-client";
 
 export const usersApi = {
-  list: (query: Partial<ListUsersQuery>): Promise<Paginated<User>> =>
-    apiRequest("/users", {
-      query: {
-        page: query.page,
-        limit: query.limit,
-        role: query.role,
-        search: query.search,
-        ...(query.isActive !== undefined && { isActive: query.isActive }),
-      },
-    }),
+  list: listUsers,
 
   create: (body: CreateUserInput): Promise<User> => apiRequest("/users", { method: "POST", body }),
 

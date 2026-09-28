@@ -1,9 +1,9 @@
+import { DOCTORS_KEY } from "@web/shared/constants/query-keys";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   CreateDoctorInput,
   CreateVisitingDoctorInput,
   Doctor,
-  ListDoctorsQuery,
   Paginated,
   Specialty,
   UpdateDoctorInput,
@@ -11,16 +11,7 @@ import type {
 } from "@clinic/shared";
 import { doctorsApi } from "@web/modules/doctors/api";
 
-const DOCTORS_KEY = "doctors";
 const SPECIALTIES_KEY = "specialties";
-
-export function useDoctors(query: Partial<ListDoctorsQuery>): UseQueryResult<Paginated<Doctor>> {
-  return useQuery({
-    queryKey: [DOCTORS_KEY, query],
-    queryFn: () => doctorsApi.list(query),
-    placeholderData: (previous) => previous,
-  });
-}
 
 export function useDoctor(id: string | undefined): UseQueryResult<Doctor> {
   return useQuery({

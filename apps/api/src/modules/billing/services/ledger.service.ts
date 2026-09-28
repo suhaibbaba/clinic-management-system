@@ -22,7 +22,8 @@ import {
   procedureCatalog,
   users,
 } from "@api/database/schema";
-import { normalise, PeriodTotals, StatementOptions, LedgerLine } from "@api/modules/billing/lib/ledger";
+import { PeriodTotals, StatementOptions, LedgerLine } from "@api/modules/billing/lib/ledger";
+import { normalise } from "@api/common/lib/money";
 
 @Injectable()
 export class LedgerService {

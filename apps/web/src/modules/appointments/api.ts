@@ -1,9 +1,9 @@
+import { calendarApi } from "@web/shared/api/appointments";
+import { toQueryString } from "@web/shared/lib/query-string";
 import type {
   Availability,
   AvailabilityQuery,
   CalendarAppointment,
-  CalendarFeed,
-  CalendarQuery,
   CreateAppointmentInput,
   CreateWaitingListEntryInput,
   DeclineWaitingListEntryInput,
@@ -17,27 +17,13 @@ import type {
 } from "@clinic/shared";
 import { apiRequest } from "@web/shared/lib/api-client";
 
-const query = (params: Record<string, string | number | boolean | undefined>): string => {
-  const search = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") {
-      search.set(key, String(value));
-    }
-  }
-
-  return search.size > 0 ? `?${search.toString()}` : "";
-};
-
 export const appointmentsApi = {
+  ...calendarApi,
   list: (params: Partial<ListAppointmentsQuery>) =>
-    apiRequest<Paginated<CalendarAppointment>>(`/appointments${query(params)}`),
-
-  calendar: (params: CalendarQuery) =>
-    apiRequest<CalendarFeed>(`/appointments/calendar${query({ ...params })}`),
+    apiRequest<Paginated<CalendarAppointment>>(`/appointments${toQueryString(params)}`),
 
   availability: (params: AvailabilityQuery) =>
-    apiRequest<Availability>(`/appointments/availability${query({ ...params })}`),
+    apiRequest<Availability>(`/appointments/availability${toQueryString({ ...params })}`),
 
   create: (body: CreateAppointmentInput) =>
     apiRequest<CalendarAppointment>("/appointments", { method: "POST", body }),
@@ -45,16 +31,6 @@ export const appointmentsApi = {
   update: (id: string, body: UpdateAppointmentInput) =>
     apiRequest<CalendarAppointment>(`/appointments/${id}`, { method: "PATCH", body }),
 
-  confirm: (id: string) =>
-    apiRequest<CalendarAppointment>(`/appointments/${id}/confirm`, { method: "PATCH" }),
-  arrived: (id: string) =>
-    apiRequest<CalendarAppointment>(`/appointments/${id}/arrived`, { method: "PATCH" }),
-  start: (id: string) =>
-    apiRequest<CalendarAppointment>(`/appointments/${id}/start`, { method: "PATCH" }),
-  complete: (id: string) =>
-    apiRequest<CalendarAppointment>(`/appointments/${id}/complete`, { method: "PATCH" }),
-  noShow: (id: string) =>
-    apiRequest<CalendarAppointment>(`/appointments/${id}/no-show`, { method: "PATCH" }),
   cancel: (id: string, reason: string) =>
     apiRequest<CalendarAppointment>(`/appointments/${id}/cancel`, {
       method: "PATCH",
@@ -67,7 +43,7 @@ export const appointmentsApi = {
 
 export const waitingListApi = {
   list: (params: Partial<ListWaitingListQuery>) =>
-    apiRequest<Paginated<WaitingListEntry>>(`/waiting-list${query(params)}`),
+    apiRequest<Paginated<WaitingListEntry>>(`/waiting-list${toQueryString(params)}`),
 
   create: (body: CreateWaitingListEntryInput) =>
     apiRequest<WaitingListEntry>("/waiting-list", { method: "POST", body }),

@@ -13,7 +13,7 @@ import {
   type ScheduleConflictOptions,
 } from "@clinic/shared";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
-import { AVAILABILITY_KEY, CALENDAR_KEY } from "@web/modules/appointments/queries";
+import { AVAILABILITY_KEY, CALENDAR_KEY } from "@web/shared/constants/query-keys";
 import { closuresApi, timeOffApi } from "@web/modules/schedule/api";
 import { ApiError } from "@web/shared/lib/api-error";
 

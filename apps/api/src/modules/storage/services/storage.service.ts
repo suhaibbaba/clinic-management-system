@@ -16,8 +16,8 @@ import {
   SignedDownload,
   StoredObject,
   isNotFound,
-  FetchedObject,
 } from "@api/modules/storage/lib/storage";
+import { FetchedObject } from "@api/common/types/storage";
 
 @Injectable()
 export class StorageService implements OnApplicationShutdown {

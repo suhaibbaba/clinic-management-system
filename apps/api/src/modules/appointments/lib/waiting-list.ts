@@ -1,15 +1,8 @@
 import { waitingList } from "@api/database/schema";
-import { minutesFromLocalMidnight, localDate, type WaitingListEntry } from "@clinic/shared";
+import { type WaitingListEntry } from "@clinic/shared";
 import { toOptionalPersonName } from "@api/common/person-name";
 
 export type WaitingListRow = typeof waitingList.$inferSelect;
-
-export function timeIn(timeZone: string, at: Date): string {
-  const minutes = minutesFromLocalMidnight(at, localDate(at, timeZone), timeZone);
-  const hours = Math.floor(minutes / 60);
-
-  return `${String(hours).padStart(2, "0")}:${String(Math.round(minutes % 60)).padStart(2, "0")}`;
-}
 
 export interface WaitingListJoinedRow {
   readonly entry: WaitingListRow;

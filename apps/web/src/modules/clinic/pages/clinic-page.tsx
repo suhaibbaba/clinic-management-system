@@ -26,16 +26,15 @@ import {
   useConfirm,
   useToast,
 } from "@clinic/ui";
-import { WorkingHours } from "@web/modules/schedule/components/working-hours";
+import { WorkingHours } from "@web/shared/components/working-hours";
 import { isShortMapLink, mapsUrl, parseCoordinates } from "@clinic/shared";
 import { SkeletonForm } from "@clinic/ui/components/skeleton";
 import { InstallCard } from "@web/shared/components/pwa/install-card";
 import { ClosuresPanel } from "@web/modules/schedule/components/closures-panel";
 import { useSession } from "@web/shared/providers/session";
 import { useApiVersion } from "@web/modules/clinic/queries";
-import { WEB_VERSION } from "@web/modules/clinic/constants";
+import { WEB_VERSION } from "@web/shared/constants/app";
 import {
-  useClinic,
   useRemoveAppIcon,
   useRemoveClinicLogo,
   useResolveLocation,
@@ -43,6 +42,7 @@ import {
   useUploadAppIcon,
   useUploadClinicLogo,
 } from "@web/modules/clinic/queries";
+import { useClinic } from "@web/shared/queries/clinic";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";

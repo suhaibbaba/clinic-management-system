@@ -17,7 +17,7 @@ import { notificationName } from "@api/common/person-name";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics } from "@api/database/schema";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
-import { timeIn } from "@api/modules/booking/lib/pending-bookings";
+import { timeIn } from "@api/common/lib/time";
 
 @Injectable()
 export class PendingBookingsService {

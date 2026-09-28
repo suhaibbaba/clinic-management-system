@@ -19,7 +19,7 @@ import {
 } from "@clinic/ui";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 import { useOutboundLog } from "@web/modules/assistant/queries";
-import { useUsers } from "@web/modules/users/queries";
+import { useUsers } from "@web/shared/queries/users";
 import { formatDateTime } from "@web/shared/lib/format";
 import { OUTBOUND_OUTCOMES } from "@web/modules/assistant/constants";
 type Outcome = (typeof OUTBOUND_OUTCOMES)[number];

@@ -19,14 +19,14 @@ import {
   useTabParam,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
-import { Money } from "@web/modules/billing/components/money";
-import { useClinic } from "@web/modules/clinic/queries";
+import { Money } from "@web/shared/components/money";
+import { useClinic } from "@web/shared/queries/clinic";
 import { downloadLabStatement } from "@web/modules/labs/lib/documents";
 import { LabFormModal } from "@web/modules/labs/components/lab-form-modal";
 import { LabOrdersTable } from "@web/modules/labs/components/lab-orders-table";
 import { LabPaymentModal } from "@web/modules/labs/components/lab-payment-modal";
 import { WorkTypeModal } from "@web/modules/labs/components/work-type-modal";
-import { canManageLabs, canPayLab } from "@web/modules/labs/permissions";
+import { canManageLabs, canPayLab } from "@web/shared/permissions/labs";
 import {
   useLab,
   useLabBalance,

@@ -16,7 +16,8 @@ import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { labOrders, labPayments, labWorkTypes } from "@api/database/schema";
 import { LabsService } from "@api/modules/labs/services/labs.service";
-import { normalise, LedgerLine, describeOrder } from "@api/modules/labs/lib/lab-ledger";
+import { normalise } from "@api/common/lib/money";
+import { LedgerLine, describeOrder } from "@api/modules/labs/lib/lab-ledger";
 
 @Injectable()
 export class LabLedgerService {

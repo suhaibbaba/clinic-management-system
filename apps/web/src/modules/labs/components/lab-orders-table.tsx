@@ -2,10 +2,10 @@ import type { LabOrderRow } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, EmptyState, Ltr, Table, type Column } from "@clinic/ui";
-import { Money } from "@web/modules/billing/components/money";
-import { useClinic } from "@web/modules/clinic/queries";
+import { Money } from "@web/shared/components/money";
+import { useClinic } from "@web/shared/queries/clinic";
 import { LAB_ORDER_FIELDS } from "@web/modules/labs/constants";
-import { LAB_ORDER_STATUS_STYLES } from "@web/modules/labs/lib/status";
+import { LAB_ORDER_STATUS_STYLES } from "@web/shared/lib/lab-order-status";
 import { formatDate } from "@web/shared/lib/format";
 
 export function LabOrdersTable({

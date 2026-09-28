@@ -1,9 +1,4 @@
-import {
-  type Money,
-  type PerformedProcedureStatus,
-  formatMinorUnits,
-  toMinorUnits,
-} from "@clinic/shared";
+import { type Money, type PerformedProcedureStatus } from "@clinic/shared";
 import { BILLABLE_STATUSES } from "@api/modules/billing/constants";
 import { type SQL, and, eq, isNull } from "drizzle-orm";
 import { charges } from "@api/database/schema";
@@ -38,8 +33,4 @@ export function currentChargePredicate(clinicId: string, performedProcedureId: s
   }
 
   return predicate;
-}
-
-export function negate(amount: Money): Money {
-  return formatMinorUnits(-toMinorUnits(amount));
 }

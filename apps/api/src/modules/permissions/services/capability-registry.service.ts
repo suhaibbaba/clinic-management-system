@@ -5,8 +5,8 @@ import { type UserRole } from "@clinic/shared";
 import { CAPABILITY_KEY } from "@api/common/decorators/capability.decorator";
 import { ROLES_KEY } from "@api/common/decorators/roles.decorator";
 import { IS_PUBLIC_KEY } from "@api/common/decorators/public.decorator";
-import { Capability, scopeOf, joinPath } from "@api/modules/permissions/lib/capability-registry";
-import { METHOD_NAMES } from "@api/modules/permissions/constants";
+import { Capability, scopeOf } from "@api/modules/permissions/lib/capability-registry";
+import { joinPath, METHOD_NAMES } from "@api/common/lib/routes";
 
 @Injectable()
 export class CapabilityRegistry implements OnApplicationBootstrap {

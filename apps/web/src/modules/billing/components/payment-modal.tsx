@@ -21,7 +21,7 @@ import {
   useToast,
 } from "@clinic/ui";
 import { openReceipt } from "@web/modules/billing/lib/documents";
-import { useLookupLabels, useLookupOptions } from "@web/modules/lookups/queries";
+import { useLookupLabels, useLookupOptions } from "@web/shared/queries/lookups";
 import { useCreatePayment } from "@web/modules/billing/queries";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { moneyText } from "@web/shared/lib/format";

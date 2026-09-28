@@ -1,11 +1,6 @@
 import { z } from "zod";
-import { EXCLUSION_VIOLATION } from "@api/modules/booking/constants";
-import {
-  type PersonName,
-  type BookingSettings,
-  minutesFromLocalMidnight,
-  localDate,
-} from "@clinic/shared";
+import { EXCLUSION_VIOLATION } from "@api/common/constants/postgres-errors";
+import { type PersonName, type BookingSettings } from "@clinic/shared";
 import { createHash } from "node:crypto";
 
 export const slugParamSchema = z.object({
@@ -48,10 +43,3 @@ export interface ClinicContext {
 }
 
 export const hashCode = (code: string): string => createHash("sha256").update(code).digest("hex");
-
-export function timeIn(timeZone: string, at: Date): string {
-  const minutes = minutesFromLocalMidnight(at, localDate(at, timeZone), timeZone);
-  const hours = Math.floor(minutes / 60);
-
-  return `${String(hours).padStart(2, "0")}:${String(Math.round(minutes % 60)).padStart(2, "0")}`;
-}

@@ -9,28 +9,11 @@ import type { BadgeTone } from "@clinic/ui/components/badge";
 import type { Can } from "@web/shared/providers/session";
 import type { LabOrderStep } from "@web/modules/labs/queries";
 
-export interface LabStatusStyle {
-  readonly tone: BadgeTone;
-  readonly label: string;
-}
-
-const style = (tone: BadgeTone, label: string): LabStatusStyle => ({ tone, label });
-
 export const LAB_ORDER_STAGE_TONES: Record<LabOrderStage, BadgeTone> = {
   [LAB_ORDER_STAGE.TO_SEND]: "neutral",
   [LAB_ORDER_STAGE.AT_LAB]: "info",
   [LAB_ORDER_STAGE.READY]: "warning",
   [LAB_ORDER_STAGE.TO_FIT]: "success",
-};
-
-export const LAB_ORDER_STATUS_STYLES: Record<LabOrderStatus, LabStatusStyle> = {
-  [LAB_ORDER_STATUS.DRAFT]: style("neutral", "labs.status.draft"),
-  [LAB_ORDER_STATUS.SENT]: style("info", "labs.status.sent"),
-  [LAB_ORDER_STATUS.READY]: style("warning", "labs.status.ready"),
-  [LAB_ORDER_STATUS.RECEIVED]: style("success", "labs.status.received"),
-  [LAB_ORDER_STATUS.FITTED]: style("neutral", "labs.status.fitted"),
-  [LAB_ORDER_STATUS.RETURNED]: style("danger", "labs.status.returned"),
-  [LAB_ORDER_STATUS.CANCELLED]: style("neutral", "labs.status.cancelled"),
 };
 
 interface StepDefinition {

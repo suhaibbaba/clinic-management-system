@@ -20,16 +20,13 @@ import {
   useToast,
   type Column,
 } from "@clinic/ui";
-import { toTimeLabel, minutesOf } from "@web/modules/appointments/lib/calendar-time";
+import { toTimeLabel, minutesOf } from "@web/shared/lib/dates";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
-import {
-  useConfirmBooking,
-  usePendingBookings,
-  useRejectBooking,
-} from "@web/modules/booking/queries";
-import { canConfirmBooking, canRejectBooking } from "@web/modules/booking/permissions";
+import { useConfirmBooking, useRejectBooking } from "@web/modules/booking/queries";
+import { usePendingBookings } from "@web/shared/queries/booking";
+import { canConfirmBooking, canRejectBooking } from "@web/shared/permissions/booking";
 import { useSession } from "@web/shared/providers/session";
-import { useClinic } from "@web/modules/clinic/queries";
+import { useClinic } from "@web/shared/queries/clinic";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { formatDate, formatDateTime } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";

@@ -13,25 +13,21 @@ import {
   Textarea,
   useToast,
 } from "@clinic/ui";
-import { useLookupLabels } from "@web/modules/lookups/queries";
+import { useLookupLabels } from "@web/shared/queries/lookups";
 import { useSession } from "@web/shared/providers/session";
-import {
-  useAppointmentStep,
-  useCancelAppointment,
-  useConvertToVisit,
-  type AppointmentStep,
-} from "@web/modules/appointments/queries";
+import { useCancelAppointment, useConvertToVisit } from "@web/modules/appointments/queries";
+import { useAppointmentStep, type AppointmentStep } from "@web/shared/queries/appointments";
 import {
   canCancelAppointment,
   canMoveAppointment,
   canOpenVisit,
-} from "@web/modules/appointments/permissions";
+} from "@web/shared/permissions/appointments";
 import {
   APPOINTMENT_STATUS_STYLES,
   CANCELLABLE_STATUSES,
   statusLabelKey,
-} from "@web/modules/appointments/lib/status";
-import { minutesOf, toTimeLabel } from "@web/modules/appointments/lib/calendar-time";
+} from "@web/shared/lib/appointment-status";
+import { minutesOf, toTimeLabel } from "@web/shared/lib/dates";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { formatDate } from "@web/shared/lib/format";
 import { cn } from "@clinic/ui/lib/cn";

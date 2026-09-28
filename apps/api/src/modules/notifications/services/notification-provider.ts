@@ -5,9 +5,9 @@ import {
   NotificationProvider,
   OutboundMessage,
   whatsAppCredentials,
-  WhatsAppCredentials,
   toWhatsAppParameter,
 } from "@api/modules/notifications/lib/notification-provider";
+import { WhatsAppCredentials } from "@api/common/types/whatsapp";
 
 @Injectable()
 export class LogNotificationProvider implements NotificationProvider {

@@ -22,21 +22,21 @@ import {
   usePersonName,
   useToast,
 } from "@clinic/ui";
-import { useDoctors } from "@web/modules/doctors/queries";
+import { useDoctors } from "@web/shared/queries/doctors";
 import {
   useAddToWaitingList,
   useContactWaitingEntry,
   useDeclineWaitingEntry,
   useWaitingList,
 } from "@web/modules/appointments/queries";
+import { PatientPicker } from "@web/shared/components/patient-picker";
 import {
   isDraftComplete,
-  PatientPicker,
   patientPhoneClash,
   toPatientRef,
   type PatientChoice,
   type PickedPatient,
-} from "@web/modules/appointments/components/patient-picker";
+} from "@web/shared/lib/patient-draft";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { formatDateTime } from "@web/shared/lib/format";
 import { WAITING_LIST_PRIORITY_TONES } from "@web/modules/appointments/constants";

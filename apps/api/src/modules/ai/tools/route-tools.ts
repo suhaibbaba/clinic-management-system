@@ -1,4 +1,5 @@
-import { Injectable, Logger, RequestMethod, type ExecutionContext } from "@nestjs/common";
+import { Injectable, Logger, type ExecutionContext } from "@nestjs/common";
+import { joinPath, METHOD_NAMES } from "@api/common/lib/routes";
 import {
   CUSTOM_ROUTE_ARGS_METADATA,
   METHOD_METADATA,
@@ -54,14 +55,6 @@ interface Part {
   readonly schema: z.ZodType;
   readonly keys: readonly string[];
 }
-
-const METHOD_NAMES: Record<number, string> = {
-  [RequestMethod.GET]: "GET",
-  [RequestMethod.POST]: "POST",
-  [RequestMethod.PUT]: "PUT",
-  [RequestMethod.DELETE]: "DELETE",
-  [RequestMethod.PATCH]: "PATCH",
-};
 
 type Handler = (...args: unknown[]) => unknown;
 
@@ -335,9 +328,3 @@ const snake = (value: string): string =>
     .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
     .replace(/-/g, "_")
     .toLowerCase();
-
-const joinPath = (...segments: string[]): string =>
-  `/${segments
-    .flatMap((segment) => segment.split("/"))
-    .filter(Boolean)
-    .join("/")}`;

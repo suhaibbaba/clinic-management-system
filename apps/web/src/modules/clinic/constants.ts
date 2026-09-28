@@ -1,5 +1,3 @@
-export const WEB_VERSION = __APP_VERSION__;
-
 export const CLINIC_LOGO_LABELS = {
   alt: "clinic.logo",
   placeholder: "clinic.logoPlaceholder",

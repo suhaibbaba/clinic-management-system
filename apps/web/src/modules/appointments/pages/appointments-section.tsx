@@ -4,8 +4,8 @@ import { AppointmentsPage } from "@web/modules/appointments/pages/appointments-p
 import { ConfirmedBookings } from "@web/modules/appointments/components/confirmed-bookings";
 import { useSession } from "@web/shared/providers/session";
 import { PendingBookingsPage } from "@web/modules/booking/pages/pending-bookings-page";
-import { usePendingBookingsCount } from "@web/modules/booking/queries";
-import { seesPendingBookings } from "@web/modules/booking/permissions";
+import { usePendingBookingsCount } from "@web/shared/queries/booking";
+import { seesPendingBookings } from "@web/shared/permissions/booking";
 import {
   APPOINTMENTS_VIEW_ALL,
   APPOINTMENTS_VIEW_CONFIRMED,

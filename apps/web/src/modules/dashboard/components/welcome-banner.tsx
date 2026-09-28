@@ -2,7 +2,7 @@ import type { CalendarAppointment } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { BannerIcon, Icon, Ltr, PersonName } from "@clinic/ui";
-import { minutesOf, toTimeLabel } from "@web/modules/appointments/lib/calendar-time";
+import { minutesOf, toTimeLabel } from "@web/shared/lib/dates";
 import { useSession } from "@web/shared/providers/session";
 import { dayAndDate } from "@web/shared/lib/format";
 

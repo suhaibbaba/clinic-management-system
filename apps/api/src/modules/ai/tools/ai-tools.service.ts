@@ -31,10 +31,17 @@ import { PatientAccessService } from "@api/modules/patients/services/patient-acc
 import { PatientsService } from "@api/modules/patients/services/patients.service";
 import { TimelineService } from "@api/modules/patients/services/timeline.service";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
-import { QUERY_CAPABILITY, QueryDataService, queryView } from "@api/modules/ai/query/query-data.service";
+import {
+  QUERY_CAPABILITY,
+  QueryDataService,
+  queryView,
+} from "@api/modules/ai/query/query-data.service";
 import { RouteToolRegistry } from "@api/modules/ai/tools/route-tools";
 import { AiActionsService } from "@api/modules/ai/actions/ai-actions.service";
-import { ProposalsService, TARGET_READ_CAPABILITY } from "@api/modules/ai/outbound/proposals.service";
+import {
+  ProposalsService,
+  TARGET_READ_CAPABILITY,
+} from "@api/modules/ai/outbound/proposals.service";
 import {
   capped,
   defineTool,

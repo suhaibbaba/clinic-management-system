@@ -30,8 +30,8 @@ import {
   useInviteUser,
   useSendPasswordReset,
   useUpdateUser,
-  useUsers,
 } from "@web/modules/users/queries";
+import { useUsers } from "@web/shared/queries/users";
 import { ResetPasswordModal } from "@web/modules/users/components/reset-password-modal";
 import { UserFormModal } from "@web/modules/users/components/user-form-modal";
 import { errorMessageKey } from "@web/shared/lib/api-error";

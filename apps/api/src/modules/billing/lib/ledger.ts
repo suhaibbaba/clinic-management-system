@@ -1,10 +1,4 @@
-import {
-  type Money,
-  type LedgerEntryKind,
-  type PersonName,
-  formatMinorUnits,
-  toMinorUnits,
-} from "@clinic/shared";
+import { type Money, type LedgerEntryKind, type PersonName } from "@clinic/shared";
 
 export interface PeriodTotals {
   readonly charged: Money;
@@ -28,8 +22,4 @@ export interface LedgerLine {
 
 export interface StatementOptions {
   readonly includeDeleted?: boolean;
-}
-
-export function normalise(value: string): Money {
-  return formatMinorUnits(toMinorUnits(value));
 }

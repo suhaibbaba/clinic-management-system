@@ -22,10 +22,7 @@ import {
   useToast,
 } from "@clinic/ui";
 import { useCreateUser, useUpdateUser } from "@web/modules/users/queries";
-import {
-  StaffNameFields,
-  type StaffNameValues,
-} from "@web/modules/users/components/staff-name-fields";
+import { StaffNameFields, type StaffNameValues } from "@web/shared/components/staff-name-fields";
 import { UserPhotoField } from "@web/modules/users/components/user-photo-field";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { Modal } from "@clinic/ui/components/modal";

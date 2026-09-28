@@ -29,8 +29,13 @@ import { StorageService } from "@api/modules/storage/services/storage.service";
 import { TokenService } from "@api/modules/auth/services/token.service";
 import { UsersService } from "@api/modules/users/services/users.service";
 import { doctors, specialties, users } from "@api/database/schema";
-import { DOCTORS_ENTITY } from "@api/modules/doctors/constants";
-import { DoctorRow, doctorColumns, DoctorJoinedRow, toDoctor } from "@api/modules/doctors/lib/doctors";
+import { DOCTORS_ENTITY } from "@api/common/constants/audit-entities";
+import {
+  DoctorRow,
+  doctorColumns,
+  DoctorJoinedRow,
+  toDoctor,
+} from "@api/modules/doctors/lib/doctors";
 
 @Injectable()
 export class DoctorsService implements OnModuleInit {

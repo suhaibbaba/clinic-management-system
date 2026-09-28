@@ -2,9 +2,9 @@ import { LOOKUP_LIST, type CalendarAppointment, type ClinicClosure } from "@clin
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, EmptyState, Icon, Ltr, PersonName } from "@clinic/ui";
-import { useLookupLabels } from "@web/modules/lookups/queries";
-import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/modules/appointments/lib/status";
-import { minutesOf, toTimeLabel } from "@web/modules/appointments/lib/calendar-time";
+import { useLookupLabels } from "@web/shared/queries/lookups";
+import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/shared/lib/appointment-status";
+import { minutesOf, toTimeLabel } from "@web/shared/lib/dates";
 import { cn } from "@clinic/ui/lib/cn";
 
 export interface AgendaListProps {

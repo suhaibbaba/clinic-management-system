@@ -20,7 +20,7 @@ import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinicNotes, users } from "@api/database/schema";
-import { CLINIC_NOTES_ENTITY } from "@api/modules/notes/constants";
+import { CLINIC_NOTES_ENTITY } from "@api/common/constants/audit-entities";
 import { toClinicNote, NoteRow } from "@api/modules/notes/lib/notes";
 
 @Injectable()

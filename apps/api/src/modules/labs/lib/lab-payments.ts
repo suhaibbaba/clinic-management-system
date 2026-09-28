@@ -1,5 +1,5 @@
 import { labPayments } from "@api/database/schema";
-import { type LabPayment, type Money, formatMinorUnits, toMinorUnits } from "@clinic/shared";
+import { type LabPayment } from "@clinic/shared";
 
 export type PaymentRow = typeof labPayments.$inferSelect;
 
@@ -16,5 +16,3 @@ export function toLabPayment(row: PaymentRow): LabPayment {
     createdAt: row.createdAt.toISOString(),
   };
 }
-
-export const negate = (amount: Money): Money => formatMinorUnits(-toMinorUnits(amount));

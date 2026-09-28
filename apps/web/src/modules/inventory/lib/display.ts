@@ -1,11 +1,9 @@
 import {
   ITEM_CATEGORY,
-  MOVEMENT_TYPE,
   compareQuantity,
   quantityToNumber,
   toThousandths,
   type InventoryItemRow,
-  type MovementType,
 } from "@clinic/shared";
 import type { BadgeTone } from "@clinic/ui/components/badge";
 import type { ProgressTone } from "@clinic/ui/components/progress-bar";
@@ -18,14 +16,6 @@ const CATEGORY_TONES: Record<string, BadgeTone> = {
 };
 
 export const categoryTone = (category: string): BadgeTone => CATEGORY_TONES[category] ?? "neutral";
-
-export const movementLabel = (type: MovementType): string => `inventory.movements.${type}`;
-
-export const MOVEMENT_TONES: Record<MovementType, BadgeTone> = {
-  [MOVEMENT_TYPE.PURCHASE]: "success",
-  [MOVEMENT_TYPE.CONSUME]: "info",
-  [MOVEMENT_TYPE.ADJUST]: "warning",
-};
 
 export function stockTone(item: InventoryItemRow): ProgressTone {
   if (item.isLow) {

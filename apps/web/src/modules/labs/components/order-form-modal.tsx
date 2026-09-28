@@ -14,15 +14,15 @@ import {
   useToast,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
+import { PatientPicker } from "@web/shared/components/patient-picker";
 import {
   isDraftComplete,
-  PatientPicker,
   patientPhoneClash,
   toPatientRef,
   type PatientChoice,
   type PickedPatient,
-} from "@web/modules/appointments/components/patient-picker";
-import { useDoctors } from "@web/modules/doctors/queries";
+} from "@web/shared/lib/patient-draft";
+import { useDoctors } from "@web/shared/queries/doctors";
 import {
   useCreateLabOrder,
   useLabWorkTypes,
@@ -31,7 +31,7 @@ import {
 } from "@web/modules/labs/queries";
 import { TeethField } from "@web/modules/labs/components/teeth-field";
 import { errorMessageKey } from "@web/shared/lib/api-error";
-import { useCurrency } from "@web/modules/clinic/queries";
+import { useCurrency } from "@web/shared/queries/clinic";
 
 export interface LabOrderDefaults {
   readonly patient?: PickedPatient | undefined;

@@ -11,7 +11,7 @@ import {
 } from "@nestjs/common";
 import { AUDIT_ACTION, USER_ROLE, type Paginated, type Payment } from "@clinic/shared";
 import { DocumentsService } from "@api/modules/billing/services/documents.service";
-import { PAYMENTS_ENTITY } from "@api/modules/billing/constants";
+import { PAYMENTS_ENTITY } from "@api/common/constants/audit-entities";
 import { PaymentsService } from "@api/modules/billing/services/payments.service";
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";

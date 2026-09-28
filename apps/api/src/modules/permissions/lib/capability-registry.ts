@@ -13,9 +13,3 @@ export const scopeOf = (controller: { name: string }): string =>
     .replace(/Controller$/, "")
     .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
     .toLowerCase();
-
-export const joinPath = (...segments: string[]): string =>
-  `/${segments
-    .flatMap((segment) => segment.split("/"))
-    .filter(Boolean)
-    .join("/")}`;

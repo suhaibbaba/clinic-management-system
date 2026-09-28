@@ -28,8 +28,16 @@ import { doctors, treatmentPlanItems, treatmentPlans } from "@api/database/schem
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { ProcedureCatalogService } from "@api/modules/patients/services/procedure-catalog.service";
 import { ProceduresService } from "@api/modules/patients/services/procedures.service";
-import { TREATMENT_PLANS_ENTITY, TREATMENT_PLAN_ITEMS_ENTITY } from "@api/modules/patients/constants";
-import { toPlan, toPlanItem, PlanRow, PlanItemRow } from "@api/modules/patients/lib/treatment-plans";
+import {
+  TREATMENT_PLANS_ENTITY,
+  TREATMENT_PLAN_ITEMS_ENTITY,
+} from "@api/common/constants/audit-entities";
+import {
+  toPlan,
+  toPlanItem,
+  PlanRow,
+  PlanItemRow,
+} from "@api/modules/patients/lib/treatment-plans";
 
 @Injectable()
 export class TreatmentPlansService implements OnModuleInit {

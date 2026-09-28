@@ -9,11 +9,6 @@ export interface SignedDownload {
   readonly expiresAt: Date;
 }
 
-export interface FetchedObject {
-  readonly bytes: Buffer;
-  readonly mime: string;
-}
-
 export interface StoredObject {
   readonly sizeBytes: number;
   readonly mime: string | undefined;

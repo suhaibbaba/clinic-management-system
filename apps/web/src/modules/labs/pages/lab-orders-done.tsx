@@ -1,7 +1,6 @@
-import { subMonths } from "date-fns";
+import { useDateRangeParam } from "@web/shared/hooks/use-date-range-param";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router-dom";
 import {
   DateRangePicker,
   EmptyState,
@@ -10,7 +9,6 @@ import {
   TotalBadge,
   usePageParams,
 } from "@clinic/ui";
-import { toIsoDate } from "@web/modules/appointments/lib/calendar-time";
 import { OrderDetails } from "@web/modules/labs/components/order-details";
 import { LabFilter, OrderSearch, SortSelect } from "@web/modules/labs/components/order-filters";
 import { useListParams } from "@web/modules/labs/hooks/use-list-params";
@@ -19,17 +17,14 @@ import { useOrderColumns } from "@web/modules/labs/hooks/use-order-columns";
 import { useLabOrders } from "@web/modules/labs/queries";
 import { endOfNextDayIso, startOfDayIso } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
-import { DONE_ORDERS_DEFAULT_MONTHS } from "@web/modules/labs/constants";
 
 export function LabOrdersDone(): JSX.Element {
   const { t } = useTranslation();
   const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
   const list = useListParams("done", resetPage);
-  const [params] = useSearchParams();
   const openOrder = useOpenOrder();
 
-  const from = params.get("from") ?? toIsoDate(subMonths(new Date(), DONE_ORDERS_DEFAULT_MONTHS));
-  const to = params.get("to") ?? "";
+  const { from, to, setRange } = useDateRangeParam();
 
   const orders = useLabOrders({
     view: "done",
@@ -64,12 +59,7 @@ export function LabOrdersDone(): JSX.Element {
           className="w-full sm:w-64"
           label={t("labs.orders.period")}
           value={{ from, to }}
-          onChange={(range) =>
-            list.write((next) => {
-              next.set("from", range.from);
-              next.set("to", range.to);
-            })
-          }
+          onChange={(range) => setRange(range.from, range.to)}
         />
         {orders.data !== undefined && (
           <TotalBadge

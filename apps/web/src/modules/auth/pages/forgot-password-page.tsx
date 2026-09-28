@@ -6,8 +6,8 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button, FormField, Icon, Input, PersonName } from "@clinic/ui";
 import { Logo } from "@web/shared/components/brand/logo";
-import { authApi } from "@web/modules/auth/api";
-import { BRANDING_SCOPE, useClinicBranding } from "@web/modules/clinic/queries";
+import { authApi } from "@web/shared/api/auth";
+import { BRANDING_SCOPE, useClinicBranding } from "@web/shared/queries/clinic";
 import { useClinicLogo } from "@web/shared/hooks/use-clinic-logo";
 import { ellipsis } from "@web/i18n/ellipsis";
 

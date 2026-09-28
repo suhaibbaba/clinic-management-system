@@ -17,13 +17,13 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Badge, Button, Icon, Input, Money, PersonName, PhoneLink } from "@clinic/ui";
 import { Skeleton } from "@clinic/ui/components/skeleton";
-import { statusLabelKey } from "@web/modules/appointments/lib/status";
-import { movementLabel } from "@web/modules/inventory/lib/display";
-import { LAB_ORDER_STATUS_STYLES } from "@web/modules/labs/lib/status";
-import { useCurrency } from "@web/modules/clinic/queries";
+import { statusLabelKey } from "@web/shared/lib/appointment-status";
+import { movementLabel } from "@web/shared/lib/stock-movement";
+import { LAB_ORDER_STATUS_STYLES } from "@web/shared/lib/lab-order-status";
+import { useCurrency } from "@web/shared/queries/clinic";
 import { actionErrorKey, actionRefusalKey } from "@web/modules/assistant/lib/messages";
 import { useAction, useActionDecision } from "@web/modules/assistant/queries";
-import { useLookupLabels } from "@web/modules/lookups/queries";
+import { useLookupLabels } from "@web/shared/queries/lookups";
 import { clinicTimeZone } from "@web/shared/lib/clinic-zone";
 import {
   formatClinicDate,

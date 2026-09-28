@@ -19,7 +19,7 @@ import { inventoryItems, suppliers } from "@api/database/schema";
 import { StockService } from "@api/modules/inventory/services/stock.service";
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
-import { INVENTORY_ITEMS_ENTITY } from "@api/modules/inventory/constants";
+import { INVENTORY_ITEMS_ENTITY } from "@api/common/constants/audit-entities";
 import { toInventoryItem, ItemRow, toItemRow } from "@api/modules/inventory/lib/inventory-items";
 
 @Injectable()

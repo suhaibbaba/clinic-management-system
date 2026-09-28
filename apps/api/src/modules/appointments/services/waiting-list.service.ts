@@ -32,8 +32,9 @@ import { clinics, doctors, patients, users, waitingList } from "@api/database/sc
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { PatientRegistrationService } from "@api/modules/patients/services/patient-registration.service";
-import { WAITING_LIST_ENTITY } from "@api/modules/appointments/constants";
-import { toWaitingListEntry, WaitingListRow, timeIn } from "@api/modules/appointments/lib/waiting-list";
+import { WAITING_LIST_ENTITY } from "@api/common/constants/audit-entities";
+import { toWaitingListEntry, WaitingListRow } from "@api/modules/appointments/lib/waiting-list";
+import { timeIn } from "@api/common/lib/time";
 
 @Injectable()
 export class WaitingListService implements OnModuleInit {

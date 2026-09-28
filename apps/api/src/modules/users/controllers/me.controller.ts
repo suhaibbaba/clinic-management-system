@@ -3,7 +3,7 @@ import { AUDIT_ACTION, type AuthenticatedUserProfile } from "@clinic/shared";
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { AuthService } from "@api/modules/auth/services/auth.service";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
-import { USERS_ENTITY } from "@api/modules/users/constants";
+import { USERS_ENTITY } from "@api/common/constants/audit-entities";
 import { UsersService } from "@api/modules/users/services/users.service";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { UpdateOwnProfileDto, ChangePasswordDto } from "@api/modules/users/dto/me.dto";

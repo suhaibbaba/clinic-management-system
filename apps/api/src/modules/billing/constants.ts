@@ -4,5 +4,3 @@ export const BILLABLE_STATUSES: readonly PerformedProcedureStatus[] = [
   PERFORMED_PROCEDURE_STATUS.IN_PROGRESS,
   PERFORMED_PROCEDURE_STATUS.DONE,
 ];
-
-export const PAYMENTS_ENTITY = "payments";

@@ -19,7 +19,7 @@ import {
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
 import { DoctorFormModal } from "@web/modules/doctors/components/doctor-form-modal";
-import { useDoctors } from "@web/modules/doctors/queries";
+import { useDoctors } from "@web/shared/queries/doctors";
 import { formatList } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 

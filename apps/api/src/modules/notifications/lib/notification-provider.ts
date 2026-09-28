@@ -1,3 +1,4 @@
+import { WhatsAppCredentials } from "@api/common/types/whatsapp";
 import { type NotificationChannel } from "@clinic/shared";
 import { ConfigService } from "@nestjs/config";
 import { type Env } from "@api/config/env.schema";
@@ -12,12 +13,6 @@ export interface OutboundMessage {
 export interface NotificationProvider {
   readonly name: string;
   send(message: OutboundMessage): Promise<void>;
-}
-
-export interface WhatsAppCredentials {
-  readonly accessToken: string;
-  readonly phoneNumberId: string;
-  readonly templateName: string;
 }
 
 export function whatsAppCredentials(config: ConfigService<Env, true>): WhatsAppCredentials | null {

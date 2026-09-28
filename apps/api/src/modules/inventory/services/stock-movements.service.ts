@@ -40,7 +40,7 @@ import {
 import { InventoryItemsService } from "@api/modules/inventory/services/inventory-items.service";
 import { normalise } from "@api/modules/inventory/lib/stock";
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
-import { STOCK_MOVEMENTS_ENTITY } from "@api/modules/inventory/constants";
+import { STOCK_MOVEMENTS_ENTITY } from "@api/common/constants/audit-entities";
 import { toMovement } from "@api/modules/inventory/lib/stock-movements";
 
 @Injectable()

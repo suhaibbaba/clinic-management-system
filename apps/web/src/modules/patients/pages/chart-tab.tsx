@@ -2,14 +2,14 @@ import { isDeciduousTooth, type PatientClinicalView } from "@clinic/shared";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { EmptyState, SegmentedControl, useToast } from "@clinic/ui";
-import { useDoctors } from "@web/modules/doctors/queries";
+import { useDoctors } from "@web/shared/queries/doctors";
 import type { Dentition } from "@web/modules/patients/lib/chart/fdi-layout";
 import type { NewProcedureInput } from "@web/modules/patients/components/chart/add-procedure-form";
 import { ToothChart, ToothChartSkeleton } from "@web/modules/patients/components/chart/tooth-chart";
 import { ToothLegend } from "@web/modules/patients/components/chart/tooth-legend";
 import { ToothPanel } from "@web/modules/patients/components/chart/tooth-panel";
-import { deriveToothSummaries, healthyTooth } from "@web/modules/patients/lib/chart/tooth-state";
-import { useToothStates } from "@web/modules/patients/hooks/use-tooth-states";
+import { deriveToothSummaries, healthyTooth } from "@web/shared/lib/tooth-state";
+import { useToothStates } from "@web/shared/hooks/use-tooth-states";
 import {
   useCreateProcedure,
   useProcedureCatalog,
@@ -20,7 +20,7 @@ import {
   OrderFormModal,
   type LabOrderDefaults,
 } from "@web/modules/labs/components/order-form-modal";
-import { canCreateLabOrder } from "@web/modules/labs/permissions";
+import { canCreateLabOrder } from "@web/shared/permissions/labs";
 import { ageInYears } from "@web/modules/patients/lib/age";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { useDelayedLoading } from "@clinic/ui/lib/use-delayed-loading";

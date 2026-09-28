@@ -18,10 +18,10 @@ import { InventoryAlertCards } from "@web/modules/inventory/components/alert-car
 import { ItemFormModal } from "@web/modules/inventory/components/item-form-modal";
 import { useInventoryColumns } from "@web/modules/inventory/hooks/use-inventory-columns";
 import { useInventoryFilters } from "@web/modules/inventory/hooks/use-inventory-filters";
-import { canManageInventory } from "@web/modules/inventory/permissions";
+import { canManageInventory } from "@web/shared/permissions/inventory";
 import { useSession } from "@web/shared/providers/session";
 import { useInventoryItems } from "@web/modules/inventory/queries";
-import { useLookupOptions } from "@web/modules/lookups/queries";
+import { useLookupOptions } from "@web/shared/queries/lookups";
 
 export function InventoryPage(): JSX.Element {
   const { t } = useTranslation();

@@ -1,7 +1,6 @@
 import type { TabDefinition } from "@clinic/ui";
-import type { MovementType } from "@clinic/shared";
+import { type MovementType, MOVEMENT_TYPE } from "@clinic/shared";
 import type { IconName } from "@clinic/ui/components/icon";
-import { MOVEMENT_TYPE } from "@clinic/shared";
 
 export const INVENTORY_TAB_STOCK = "stock";
 
@@ -24,8 +23,6 @@ export const MOVEMENT_ACTIONS: readonly MovementType[] = [
 export const UNBATCHED_ROW_KEY = "unbatched";
 
 export const ALERT_PREVIEW_COUNT = 2;
-
-export const MOVEMENTS_DEFAULT_MONTHS = 3;
 
 export type InventoryTab = typeof INVENTORY_TAB_STOCK | typeof INVENTORY_TAB_SUPPLIERS;
 

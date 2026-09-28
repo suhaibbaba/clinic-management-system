@@ -13,7 +13,7 @@ import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { LabDocumentsService } from "@api/modules/labs/services/lab-documents.service";
 import { LabLedgerService } from "@api/modules/labs/services/lab-ledger.service";
-import { LAB_PAYMENTS_ENTITY } from "@api/modules/labs/constants";
+import { LAB_PAYMENTS_ENTITY } from "@api/common/constants/audit-entities";
 import { LabPaymentsService } from "@api/modules/labs/services/lab-payments.service";
 import { AiTool } from "@api/modules/ai/tools/route-tool.decorator";
 import {

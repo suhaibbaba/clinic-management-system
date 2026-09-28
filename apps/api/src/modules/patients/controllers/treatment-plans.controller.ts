@@ -23,8 +23,11 @@ import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { PERFORMED_PROCEDURES_ENTITY } from "@api/modules/patients/constants";
-import { TREATMENT_PLAN_ITEMS_ENTITY, TREATMENT_PLANS_ENTITY } from "@api/modules/patients/constants";
+import { PERFORMED_PROCEDURES_ENTITY } from "@api/common/constants/audit-entities";
+import {
+  TREATMENT_PLAN_ITEMS_ENTITY,
+  TREATMENT_PLANS_ENTITY,
+} from "@api/common/constants/audit-entities";
 import { TreatmentPlansService } from "@api/modules/patients/services/treatment-plans.service";
 import { AiTool } from "@api/modules/ai/tools/route-tool.decorator";
 import {

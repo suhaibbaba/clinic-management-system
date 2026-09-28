@@ -6,7 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 import { vi } from "vitest";
 import { ToastProvider } from "@clinic/ui";
 import { SessionProvider } from "@web/shared/providers/session";
-import { lookupBundleKey } from "@web/modules/lookups/queries";
+import { lookupBundleKey } from "@web/shared/queries/lookups";
 import { DocumentTitleProvider } from "@web/shared/providers/document-title";
 import { makeLookupBundle } from "@test/helpers/fixtures";
 import "@web/i18n";

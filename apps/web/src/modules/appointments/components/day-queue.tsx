@@ -11,13 +11,10 @@ import { Fragment, useEffect, useMemo, useRef, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, Badge, Icon, Ltr, PersonName, usePersonName } from "@clinic/ui";
 import { cn } from "@clinic/ui/lib/cn";
-import {
-  buildQueue,
-  toTimeLabel,
-  type QueueRow,
-} from "@web/modules/appointments/lib/calendar-time";
-import { APPOINTMENT_STATUS_STYLES, statusAccent } from "@web/modules/appointments/lib/status";
-import { useLookupLabels } from "@web/modules/lookups/queries";
+import { buildQueue, type QueueRow } from "@web/modules/appointments/lib/calendar-time";
+import { toTimeLabel } from "@web/shared/lib/dates";
+import { APPOINTMENT_STATUS_STYLES, statusAccent } from "@web/shared/lib/appointment-status";
+import { useLookupLabels } from "@web/shared/queries/lookups";
 import { TONE_SURFACE } from "@clinic/ui/components/tone";
 
 export interface DayQueueProps {

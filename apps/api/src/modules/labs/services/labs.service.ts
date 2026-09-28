@@ -17,8 +17,9 @@ import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { labs } from "@api/database/schema";
-import { LABS_ENTITY } from "@api/modules/labs/constants";
-import { toLab, LabRow, normalise } from "@api/modules/labs/lib/labs";
+import { LABS_ENTITY } from "@api/common/constants/audit-entities";
+import { toLab, LabRow } from "@api/modules/labs/lib/labs";
+import { normalise } from "@api/common/lib/money";
 
 @Injectable()
 export class LabsService implements OnModuleInit {

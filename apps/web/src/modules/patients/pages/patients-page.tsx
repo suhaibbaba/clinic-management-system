@@ -23,17 +23,18 @@ import {
   useToast,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
-import { Money } from "@web/modules/billing/components/money";
-import { canSeeBilling } from "@web/modules/billing/permissions";
-import { useClinic } from "@web/modules/clinic/queries";
+import { Money } from "@web/shared/components/money";
+import { canSeeBilling } from "@web/shared/permissions/billing";
+import { useClinic } from "@web/shared/queries/clinic";
 import { PatientFormModal } from "@web/modules/patients/components/patient-form-modal";
 import {
   canCreatePatient,
   canDeletePatient,
   canEditPatient,
   seesClinicalPatientFields,
-} from "@web/modules/patients/permissions";
-import { useDeletePatient, usePatient, usePatients } from "@web/modules/patients/queries";
+} from "@web/shared/permissions/patients";
+import { useDeletePatient, usePatient } from "@web/modules/patients/queries";
+import { usePatients } from "@web/shared/queries/patients";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { ageInYears } from "@web/modules/patients/lib/age";
 import { cn } from "@clinic/ui/lib/cn";

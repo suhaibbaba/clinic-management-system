@@ -3,7 +3,7 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { personName } from "@clinic/shared";
 import { type Env } from "@api/config/env.schema";
-import { EMAIL_PROVIDER } from "@api/modules/email/constants";
+import { EMAIL_PROVIDER, COPY, LOGO_CONTENT_ID } from "@api/modules/email/constants";
 import { type EmailProvider } from "@api/modules/email/lib/email-provider";
 import { renderEmail } from "@api/modules/email/lib/email-template";
 import { StorageService } from "@api/modules/storage/services/storage.service";
@@ -14,7 +14,6 @@ import {
   AccountEmailRecipient,
   ClinicLetterhead,
 } from "@api/modules/email/lib/account-email";
-import { COPY, LOGO_CONTENT_ID } from "@api/modules/email/constants";
 
 @Injectable()
 export class AccountEmailService {

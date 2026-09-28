@@ -21,7 +21,7 @@ import { useListParams } from "@web/modules/labs/hooks/use-list-params";
 import { useOpenOrder } from "@web/modules/labs/hooks/use-open-order";
 import { useOrderColumns } from "@web/modules/labs/hooks/use-order-columns";
 import { OrderFormModal } from "@web/modules/labs/components/order-form-modal";
-import { canCreateLabOrder } from "@web/modules/labs/permissions";
+import { canCreateLabOrder } from "@web/shared/permissions/labs";
 import { useLabOrders, useLabOrderStages } from "@web/modules/labs/queries";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 import { useIsMobile } from "@clinic/ui/lib/use-media-query";

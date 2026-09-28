@@ -13,7 +13,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { procedureCatalog, specialties } from "@api/database/schema";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
-import { PROCEDURE_CATALOG_ENTITY } from "@api/modules/patients/constants";
+import { PROCEDURE_CATALOG_ENTITY } from "@api/common/constants/audit-entities";
 import {
   toCatalogItem,
   CatalogView,

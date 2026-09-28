@@ -3,7 +3,7 @@ import { DEFAULT_PHONE_COUNTRY, isPhoneCountry, joinPhone } from "@shared/consta
 import { BOOKING_CONFIRMATION_MODE } from "@shared/enums";
 import { useEffect, useMemo, useState, type JSX } from "react";
 import { BookingError, bookingApi, failureKey } from "@web/booking/api";
-import { dayChips, learnClinicOffset, todayIso } from "@web/booking/format";
+import { dayChips, learnClinicOffset, todayIso, bookingName } from "@web/booking/format";
 import { t } from "@web/booking/i18n";
 import { useClinicLogo } from "@web/booking/branding";
 import { FullPageMessage, PageShell, StepHeader } from "@web/booking/layout";
@@ -16,7 +16,6 @@ import { UrgentSentView, UrgentStep, type UrgentDetails } from "@web/booking/ste
 import { WhenStep, type SlotOption } from "@web/booking/steps/when-step";
 import { Alert, Button, Card, Skeleton } from "@web/booking/ui";
 import { useAsync } from "@web/booking/use-async";
-import { bookingName } from "@web/booking/format";
 
 const byDate = (days: readonly { date: string; slots: unknown[] }[]) =>
   new Map(days.map((day) => [day.date, day.slots]));

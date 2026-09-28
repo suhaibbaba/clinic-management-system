@@ -7,7 +7,7 @@ import {
 import { useEffect, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, FormField, Input, Ltr, Modal, useToast } from "@clinic/ui";
-import { useCreateLookupOption, useUpdateLookupOption } from "@web/modules/lookups/queries";
+import { useCreateLookupOption, useUpdateLookupOption } from "@web/shared/queries/lookups";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 
 export function LookupOptionModal({

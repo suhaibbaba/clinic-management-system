@@ -27,8 +27,8 @@ import {
   healthyTooth,
   type ToothStates,
   type ToothSummary,
-} from "@web/modules/patients/lib/chart/tooth-state";
-import { useToothStates } from "@web/modules/patients/hooks/use-tooth-states";
+} from "@web/shared/lib/tooth-state";
+import { useToothStates } from "@web/shared/hooks/use-tooth-states";
 import { cn } from "@clinic/ui/lib/cn";
 import { documentDirection } from "@clinic/ui/lib/direction";
 

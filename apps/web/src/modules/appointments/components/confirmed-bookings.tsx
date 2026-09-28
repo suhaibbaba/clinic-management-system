@@ -13,12 +13,12 @@ import {
   usePageParams,
   type Column,
 } from "@clinic/ui";
-import { minutesOf, toTimeLabel, todayIso } from "@web/modules/appointments/lib/calendar-time";
+import { minutesOf, toTimeLabel, todayIso } from "@web/shared/lib/dates";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { useAppointments } from "@web/modules/appointments/queries";
-import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/modules/appointments/lib/status";
-import { useClinic } from "@web/modules/clinic/queries";
-import { useLookupLabels } from "@web/modules/lookups/queries";
+import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/shared/lib/appointment-status";
+import { useClinic } from "@web/shared/queries/clinic";
+import { useLookupLabels } from "@web/shared/queries/lookups";
 import { formatDate } from "@web/shared/lib/format";
 
 export function ConfirmedBookings(): JSX.Element {

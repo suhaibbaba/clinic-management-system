@@ -14,7 +14,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { doctors, prescriptions, visits } from "@api/database/schema";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
-import { PRESCRIPTIONS_ENTITY } from "@api/modules/patients/constants";
+import { PRESCRIPTIONS_ENTITY } from "@api/common/constants/audit-entities";
 import { toPrescription, PrescriptionRow } from "@api/modules/patients/lib/prescriptions";
 
 @Injectable()

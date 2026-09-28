@@ -30,7 +30,7 @@ import {
 import { and, asc, eq, gt, gte, lt, lte, sql, type SQL } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { AppointmentAccessService } from "@api/modules/appointments/services/appointment-access.service";
-import { toClinicClosure, toDoctorTimeOff } from "@api/modules/appointments/lib/availability";
+import { toClinicClosure, toDoctorTimeOff } from "@api/common/lib/schedule-rows";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -47,9 +47,10 @@ import {
 } from "@api/database/schema";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { PatientRegistrationService } from "@api/modules/patients/services/patient-registration.service";
-import { toVisit } from "@api/modules/patients/lib/visits";
+import { toVisit } from "@api/common/lib/visits";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
-import { APPOINTMENTS_ENTITY, EXCLUSION_VIOLATION, DEADLOCK } from "@api/modules/appointments/constants";
+import { EXCLUSION_VIOLATION, DEADLOCK } from "@api/common/constants/postgres-errors";
+import { APPOINTMENTS_ENTITY } from "@api/common/constants/audit-entities";
 import {
   toAppointment,
   toCalendarAppointment,

@@ -1,3 +1,4 @@
+import { toQueryString } from "@web/shared/lib/query-string";
 import type {
   LabOrderStageCounts,
   LabOrderStageCountsQuery,
@@ -28,21 +29,9 @@ import type {
 } from "@clinic/shared";
 import { apiDownload, apiRequest } from "@web/shared/lib/api-client";
 
-const query = (params: Record<string, string | number | boolean | undefined>): string => {
-  const search = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") {
-      search.set(key, String(value));
-    }
-  }
-
-  return search.size > 0 ? `?${search.toString()}` : "";
-};
-
 export const labsApi = {
   list: (params: Partial<ListLabsQuery> = {}) =>
-    apiRequest<Paginated<LabSummary>>(`/labs${query(params)}`),
+    apiRequest<Paginated<LabSummary>>(`/labs${toQueryString(params)}`),
 
   findOne: (id: string) => apiRequest<LabSummary>(`/labs/${id}`),
 
@@ -52,7 +41,7 @@ export const labsApi = {
     apiRequest<Lab>(`/labs/${id}`, { method: "PATCH", body }),
 
   workTypes: (labId: string, includeInactive = false) =>
-    apiRequest<LabWorkType[]>(`/labs/${labId}/work-types${query({ includeInactive })}`),
+    apiRequest<LabWorkType[]>(`/labs/${labId}/work-types${toQueryString({ includeInactive })}`),
 
   createWorkType: (labId: string, body: CreateLabWorkTypeInput) =>
     apiRequest<LabWorkType>(`/labs/${labId}/work-types`, { method: "POST", body }),
@@ -63,13 +52,13 @@ export const labsApi = {
   balance: (labId: string) => apiRequest<LabBalance>(`/labs/${labId}/balance`),
 
   statement: (labId: string, params: StatementQuery) =>
-    apiRequest<LabStatement>(`/labs/${labId}/statement${query({ ...params })}`),
+    apiRequest<LabStatement>(`/labs/${labId}/statement${toQueryString({ ...params })}`),
 
   statementPdf: (labId: string, params: StatementQuery): Promise<Blob> =>
     apiDownload(`/labs/${labId}/statement.pdf`, { ...params }),
 
   payments: (labId: string, params: Partial<PaginationQuery> = {}) =>
-    apiRequest<Paginated<LabPayment>>(`/labs/${labId}/payments${query(params)}`),
+    apiRequest<Paginated<LabPayment>>(`/labs/${labId}/payments${toQueryString(params)}`),
 
   pay: (body: CreateLabPaymentInput) =>
     apiRequest<LabPayment>("/lab-payments", { method: "POST", body }),
@@ -80,12 +69,12 @@ export const labsApi = {
 
 export const labOrdersApi = {
   list: (params: Partial<ListLabOrdersQuery> = {}) =>
-    apiRequest<Paginated<LabOrderRow>>(`/lab-orders${query(params)}`),
+    apiRequest<Paginated<LabOrderRow>>(`/lab-orders${toQueryString(params)}`),
 
   overdue: () => apiRequest<LabOrderRow[]>("/lab-orders/overdue"),
 
   stages: (params: Partial<LabOrderStageCountsQuery> = {}) =>
-    apiRequest<LabOrderStageCounts>(`/lab-orders/stages${query(params)}`),
+    apiRequest<LabOrderStageCounts>(`/lab-orders/stages${toQueryString(params)}`),
 
   findOne: (id: string) => apiRequest<LabOrderRow>(`/lab-orders/${id}`),
 

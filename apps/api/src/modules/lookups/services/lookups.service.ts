@@ -25,8 +25,13 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { lookupOptions } from "@api/database/schema";
 import { ensureSystemLookups } from "@api/database/system-lookups";
-import { LOOKUP_OPTIONS_ENTITY } from "@api/modules/lookups/constants";
-import { toLookupOption, deriveCode, chartBehaviour, LookupRow } from "@api/modules/lookups/lib/lookups";
+import { LOOKUP_OPTIONS_ENTITY } from "@api/common/constants/audit-entities";
+import {
+  toLookupOption,
+  deriveCode,
+  chartBehaviour,
+  LookupRow,
+} from "@api/modules/lookups/lib/lookups";
 
 @Injectable()
 export class LookupsService implements OnModuleInit {

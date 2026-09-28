@@ -21,15 +21,11 @@ import {
   Textarea,
   useToast,
 } from "@clinic/ui";
-import {
-  PatientPicker,
-  type PatientChoice,
-  type PickedPatient,
-} from "@web/modules/appointments/components/patient-picker";
-import { useLookupLabels } from "@web/modules/lookups/queries";
+import { PatientPicker } from "@web/shared/components/patient-picker";
+import { type PatientChoice, type PickedPatient } from "@web/shared/lib/patient-draft";
+import { useLookupLabels } from "@web/shared/queries/lookups";
 import { useSession } from "@web/shared/providers/session";
-import { canPurchaseStock } from "@web/modules/inventory/permissions";
-import { mayRecord } from "@web/modules/inventory/permissions";
+import { canPurchaseStock, mayRecord } from "@web/shared/permissions/inventory";
 import {
   useAdjustStock,
   useConsumeStock,
@@ -37,7 +33,7 @@ import {
   useSuppliers,
 } from "@web/modules/inventory/queries";
 import { errorMessageKey } from "@web/shared/lib/api-error";
-import { useCurrency } from "@web/modules/clinic/queries";
+import { useCurrency } from "@web/shared/queries/clinic";
 
 export interface MovementModalProps {
   readonly "data-testid"?: string | undefined;

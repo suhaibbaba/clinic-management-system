@@ -18,24 +18,24 @@ import {
   usePersonName,
   useToast,
 } from "@clinic/ui";
-import { useDoctors } from "@web/modules/doctors/queries";
-import { useLookupOptions } from "@web/modules/lookups/queries";
+import { useDoctors } from "@web/shared/queries/doctors";
+import { useLookupOptions } from "@web/shared/queries/lookups";
 import {
   useAvailability,
   useCreateAppointment,
   usePromoteWaitingEntry,
   useUpdateAppointment,
 } from "@web/modules/appointments/queries";
+import { PatientPicker } from "@web/shared/components/patient-picker";
 import {
   isDraftComplete,
-  PatientPicker,
   patientPhoneClash,
   toPatientRef,
   type PatientChoice,
   type PickedPatient,
-} from "@web/modules/appointments/components/patient-picker";
+} from "@web/shared/lib/patient-draft";
 import { SlotPicker } from "@web/modules/appointments/components/slot-picker";
-import { toIsoDate, todayIso } from "@web/modules/appointments/lib/calendar-time";
+import { toIsoDate, todayIso } from "@web/shared/lib/dates";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 
 export interface AppointmentFormModalProps {

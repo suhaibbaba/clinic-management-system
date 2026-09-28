@@ -22,9 +22,8 @@ import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { LAB_WORK_TYPES_ENTITY } from "@api/modules/labs/constants";
+import { LAB_WORK_TYPES_ENTITY, LABS_ENTITY } from "@api/common/constants/audit-entities";
 import { LabWorkTypesService } from "@api/modules/labs/services/lab-work-types.service";
-import { LABS_ENTITY } from "@api/modules/labs/constants";
 import { LabsService } from "@api/modules/labs/services/labs.service";
 import { AiTool } from "@api/modules/ai/tools/route-tool.decorator";
 import {

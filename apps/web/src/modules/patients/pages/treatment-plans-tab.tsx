@@ -27,8 +27,8 @@ import {
 import { SkeletonCard, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { cn } from "@clinic/ui/lib/cn";
 import { useSession } from "@web/shared/providers/session";
-import { useClinic } from "@web/modules/clinic/queries";
-import { useDoctors } from "@web/modules/doctors/queries";
+import { useClinic } from "@web/shared/queries/clinic";
+import { useDoctors } from "@web/shared/queries/doctors";
 import {
   canAddPlanItem,
   canConvertPlanItem,
@@ -38,7 +38,7 @@ import {
   canEditPlan,
   canEditPlanItem,
   canSeePrices,
-} from "@web/modules/patients/permissions";
+} from "@web/shared/permissions/patients";
 import {
   useConvertPlanItem,
   useDeletePlanItem,

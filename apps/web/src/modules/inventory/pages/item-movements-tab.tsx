@@ -7,7 +7,7 @@ import { ReverseMovementModal } from "@web/modules/inventory/components/reverse-
 import { useMovementColumns } from "@web/modules/inventory/hooks/use-movement-columns";
 import { useMovementFilters } from "@web/modules/inventory/hooks/use-movement-filters";
 import { endOfNextDayIso, startOfDayIso } from "@web/shared/lib/format";
-import { movementLabel } from "@web/modules/inventory/lib/display";
+import { movementLabel } from "@web/shared/lib/stock-movement";
 import { useItemMovements } from "@web/modules/inventory/queries";
 
 export function ItemMovementsTab({ itemId }: { readonly itemId: string }): JSX.Element {

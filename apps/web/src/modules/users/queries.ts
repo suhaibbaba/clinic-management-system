@@ -1,26 +1,9 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
-import type {
-  CreateUserInput,
-  ListUsersQuery,
-  Paginated,
-  PresignUserPhotoInput,
-  UpdateUserInput,
-  User,
-} from "@clinic/shared";
+import { DOCTORS_KEY, USERS_KEY } from "@web/shared/constants/query-keys";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { CreateUserInput, PresignUserPhotoInput, UpdateUserInput, User } from "@clinic/shared";
 import { useSession } from "@web/shared/providers/session";
-import { uploadToStorage } from "@web/modules/patients/api";
+import { uploadToStorage } from "@web/shared/lib/upload";
 import { usersApi } from "@web/modules/users/api";
-
-const USERS_KEY = "users";
-const DOCTORS_KEY = "doctors";
-
-export function useUsers(query: Partial<ListUsersQuery>): UseQueryResult<Paginated<User>> {
-  return useQuery({
-    queryKey: [USERS_KEY, query],
-    queryFn: () => usersApi.list(query),
-    placeholderData: (previous) => previous,
-  });
-}
 
 export function useCreateUser() {
   const queryClient = useQueryClient();

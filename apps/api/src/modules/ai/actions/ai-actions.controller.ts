@@ -22,7 +22,7 @@ import {
 import { createZodDto } from "nestjs-zod";
 import { ActionRefusal, AiActionsService } from "@api/modules/ai/actions/ai-actions.service";
 import { OutboundError } from "@api/modules/ai/outbound/proposals.service";
-import { CLINICS_ENTITY } from "@api/modules/clinics/constants";
+import { CLINICS_ENTITY } from "@api/common/constants/audit-entities";
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { Capability } from "@api/common/decorators/capability.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";

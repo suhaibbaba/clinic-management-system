@@ -13,7 +13,7 @@ import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { doctorExtraHours, doctors } from "@api/database/schema";
-import { DOCTOR_EXTRA_HOURS_ENTITY } from "@api/modules/schedule/constants";
+import { DOCTOR_EXTRA_HOURS_ENTITY } from "@api/common/constants/audit-entities";
 import { toDoctorExtraHours, ExtraHoursRow } from "@api/modules/schedule/lib/doctor-extra-hours";
 
 @Injectable()

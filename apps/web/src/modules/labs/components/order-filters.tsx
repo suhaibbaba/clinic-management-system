@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import { SearchField, Select } from "@clinic/ui";
 import { LAB_ORDER_SORT_OPTIONS } from "@web/modules/labs/constants";
 import type { ListParams } from "@web/modules/labs/hooks/use-list-params";
-import { putParam, sortValue } from "@web/modules/labs/lib/list-params";
+import { sortValue } from "@web/modules/labs/lib/list-params";
+import { putParam } from "@web/shared/lib/url-params";
 import { useLabs } from "@web/modules/labs/queries";
 
 export function OrderSearch({ list }: { readonly list: ListParams }): JSX.Element {

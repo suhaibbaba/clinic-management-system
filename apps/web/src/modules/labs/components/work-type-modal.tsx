@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { Button, FormField, Input, Modal, MoneyInput, Switch, useToast } from "@clinic/ui";
 import { useCreateWorkType, useUpdateWorkType } from "@web/modules/labs/queries";
 import { errorMessageKey } from "@web/shared/lib/api-error";
-import { useCurrency } from "@web/modules/clinic/queries";
+import { useCurrency } from "@web/shared/queries/clinic";
 
 export function WorkTypeModal({
   open,

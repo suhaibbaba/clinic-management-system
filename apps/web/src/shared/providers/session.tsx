@@ -9,7 +9,7 @@ import {
   type JSX,
   type ReactNode,
 } from "react";
-import { authApi } from "@web/modules/auth/api";
+import { authApi } from "@web/shared/api/auth";
 import { restoreSession } from "@web/shared/lib/api-client";
 import { authTokens } from "@web/shared/lib/auth-tokens";
 

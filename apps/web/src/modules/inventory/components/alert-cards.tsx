@@ -3,7 +3,7 @@ import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, Icon, Ltr, Modal } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
-import { seesInventory } from "@web/modules/inventory/permissions";
+import { seesInventory } from "@web/shared/permissions/inventory";
 import { useInventoryAlerts } from "@web/modules/inventory/queries";
 import { cn } from "@clinic/ui/lib/cn";
 import { formatDate } from "@web/shared/lib/format";

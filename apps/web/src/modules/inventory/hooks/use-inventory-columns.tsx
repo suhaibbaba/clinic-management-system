@@ -3,7 +3,7 @@ import { Badge, type Column } from "@clinic/ui";
 import { ExpiryCell } from "@web/modules/inventory/components/expiry-cell";
 import { StockCell } from "@web/modules/inventory/components/stock-cell";
 import { categoryTone } from "@web/modules/inventory/lib/display";
-import { useLookupLabels } from "@web/modules/lookups/queries";
+import { useLookupLabels } from "@web/shared/queries/lookups";
 
 export function useInventoryColumns(): readonly Column<InventoryItemRow>[] {
   const categoryLabel = useLookupLabels(LOOKUP_LIST.ITEM_CATEGORY);

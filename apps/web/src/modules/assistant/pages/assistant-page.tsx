@@ -27,7 +27,12 @@ import { AssistantView } from "@web/modules/assistant/components/assistant-view"
 import { assistantApi } from "@web/modules/assistant/api";
 import { MarkdownMessage } from "@web/modules/assistant/components/markdown-message";
 import { ProposalCard } from "@web/modules/assistant/components/proposal-card";
-import { AI_SEND_CAPABILITY } from "@web/modules/assistant/constants";
+import {
+  AI_SEND_CAPABILITY,
+  SUGGESTIONS,
+  TOPICS,
+  ASSISTANT_SETTINGS_PATH,
+} from "@web/modules/assistant/constants";
 import { ConversationRail } from "@web/modules/assistant/components/conversation-rail";
 import { errorMessageKey, isKeyFailure, toolStatusKey } from "@web/modules/assistant/lib/messages";
 import {
@@ -40,17 +45,15 @@ import {
   useConversations,
   usePendingProposals,
 } from "@web/modules/assistant/queries";
-import { canReachNavItem } from "@web/app/navigation";
-import { useClinic } from "@web/modules/clinic/queries";
+import { canReachNavItem } from "@web/shared/lib/navigation";
+import { useClinic } from "@web/shared/queries/clinic";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { useSession } from "@web/shared/providers/session";
-import { SUGGESTIONS, TOPICS } from "@web/modules/assistant/constants";
 import { useAssistantStream } from "@web/modules/assistant/hooks/use-assistant-stream";
 import { useWorkspaceTopBar } from "@web/shared/providers/workspace-top-bar";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { cn } from "@clinic/ui/lib/cn";
 import { useDocumentTitle } from "@clinic/ui/lib/page-title";
-import { ASSISTANT_SETTINGS_PATH } from "@web/modules/assistant/constants";
 
 export function AssistantPage(): JSX.Element {
   const { t } = useTranslation();

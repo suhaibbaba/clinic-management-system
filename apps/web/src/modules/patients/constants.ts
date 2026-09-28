@@ -1,6 +1,10 @@
-import type { TimelineEntryType } from "@clinic/shared";
+import {
+  type TimelineEntryType,
+  TIMELINE_ENTRY_TYPE,
+  TIMELINE_ENTRY_TYPES,
+  TREATMENT_PLAN_STATUSES,
+} from "@clinic/shared";
 import type { IconName } from "@clinic/ui";
-import { TIMELINE_ENTRY_TYPE, TIMELINE_ENTRY_TYPES, TREATMENT_PLAN_STATUSES } from "@clinic/shared";
 
 export const PERMANENT_DENTITION_AGE = 13;
 

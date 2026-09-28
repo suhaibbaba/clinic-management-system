@@ -18,9 +18,9 @@ import {
   useToast,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
-import { Money } from "@web/modules/billing/components/money";
-import { useClinic } from "@web/modules/clinic/queries";
-import { canManageSuppliers } from "@web/modules/inventory/permissions";
+import { Money } from "@web/shared/components/money";
+import { useClinic } from "@web/shared/queries/clinic";
+import { canManageSuppliers } from "@web/shared/permissions/inventory";
 import { useDeleteSupplier, useSuppliers } from "@web/modules/inventory/queries";
 import { SupplierFormModal } from "@web/modules/inventory/components/supplier-form-modal";
 import { SupplierStatementPanel } from "@web/modules/inventory/components/supplier-statement";

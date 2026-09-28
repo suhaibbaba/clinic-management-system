@@ -1,5 +1,4 @@
-import type { PatientClinicalView } from "@clinic/shared";
-import { MOVEMENT_TYPE } from "@clinic/shared";
+import { type PatientClinicalView, MOVEMENT_TYPE } from "@clinic/shared";
 import { useMemo, type JSX } from "react";
 import { MovementModal } from "@web/modules/inventory/components/movement-modal";
 import { useInventoryItems } from "@web/modules/inventory/queries";

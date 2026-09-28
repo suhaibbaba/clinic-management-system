@@ -15,12 +15,12 @@ import {
   StatRow,
 } from "@clinic/ui";
 import { RefreshBar, SkeletonCard, SkeletonKpi } from "@clinic/ui/components/skeleton";
-import { useClinic } from "@web/modules/clinic/queries";
+import { useClinic } from "@web/shared/queries/clinic";
 import { LabFormModal } from "@web/modules/labs/components/lab-form-modal";
 import { useLabs } from "@web/modules/labs/queries";
-import { canManageLabs } from "@web/modules/labs/permissions";
+import { canManageLabs } from "@web/shared/permissions/labs";
 import { useSession } from "@web/shared/providers/session";
-import { Money } from "@web/modules/billing/components/money";
+import { Money } from "@web/shared/components/money";
 import { useDebounced } from "@web/shared/hooks/use-debounced";
 import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 

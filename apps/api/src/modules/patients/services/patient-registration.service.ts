@@ -12,7 +12,8 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
 import { patients } from "@api/database/schema";
 import { type PatientRow } from "@api/modules/patients/lib/patient-access";
-import { PATIENTS_ENTITY, toPublicView } from "@api/modules/patients/lib/patient-view";
+import { toPublicView } from "@api/modules/patients/lib/patient-view";
+import { PATIENTS_ENTITY } from "@api/common/constants/audit-entities";
 import { PatientRef, isUniqueViolation } from "@api/modules/patients/lib/patient-registration";
 import { FILE_NUMBER_ATTEMPTS, FILE_NUMBER_WIDTH } from "@api/modules/patients/constants";
 

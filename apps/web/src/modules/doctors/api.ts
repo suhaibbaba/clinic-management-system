@@ -1,8 +1,8 @@
+import { listDoctors } from "@web/shared/api/doctors";
 import type {
   CreateDoctorInput,
   CreateVisitingDoctorInput,
   Doctor,
-  ListDoctorsQuery,
   Paginated,
   Specialty,
   UpdateDoctorInput,
@@ -11,10 +11,7 @@ import type {
 import { apiRequest } from "@web/shared/lib/api-client";
 
 export const doctorsApi = {
-  list: (query: Partial<ListDoctorsQuery>): Promise<Paginated<Doctor>> =>
-    apiRequest("/doctors", {
-      query: { page: query.page, limit: query.limit, search: query.search },
-    }),
+  list: listDoctors,
 
   get: (id: string): Promise<Doctor> => apiRequest(`/doctors/${id}`),
 

@@ -38,8 +38,6 @@ export const LAB_ORDER_SORT_OPTIONS: Record<LabOrderView, readonly LabOrderSortO
   ],
 };
 
-export const DONE_ORDERS_DEFAULT_MONTHS = 3;
-
 export const LAB_PAGE_TABS = ["orders", "prices", "statement"] as const;
 
 export const LABS_TAB_ORDERS = "orders";

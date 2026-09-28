@@ -1,29 +1,7 @@
-import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
-import type { CalendarAppointment, ListAppointmentsQuery, Paginated } from "@clinic/shared";
+import { PENDING_BOOKINGS_KEY, CALENDAR_KEY } from "@web/shared/constants/query-keys";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { CalendarAppointment } from "@clinic/shared";
 import { pendingBookingsApi } from "@web/modules/booking/api";
-import { CALENDAR_KEY } from "@web/modules/appointments/queries";
-
-export const PENDING_BOOKINGS_KEY = "pending-bookings";
-
-export function usePendingBookings(
-  params: Partial<ListAppointmentsQuery> = {},
-  enabled = true,
-): UseQueryResult<Paginated<CalendarAppointment>> {
-  return useQuery({
-    queryKey: [PENDING_BOOKINGS_KEY, params],
-    queryFn: () => pendingBookingsApi.list(params),
-    placeholderData: (previous) => previous,
-    enabled,
-    refetchInterval: 60_000,
-    refetchOnWindowFocus: true,
-  });
-}
-
-export function usePendingBookingsCount(enabled = true): number {
-  const query = usePendingBookings({ limit: 1 }, enabled);
-
-  return query.data?.total ?? 0;
-}
 
 function usePendingMutation<TArgs>(mutationFn: (args: TArgs) => Promise<CalendarAppointment>) {
   const queryClient = useQueryClient();

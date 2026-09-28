@@ -16,12 +16,14 @@ import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { attachments, doctors, performedProcedures, visits } from "@api/database/schema";
-import { ATTACHMENTS_ENTITY } from "@api/modules/patients/constants";
+import {
+  ATTACHMENTS_ENTITY,
+  PERFORMED_PROCEDURES_ENTITY,
+  VISITS_ENTITY,
+} from "@api/common/constants/audit-entities";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
-import { PERFORMED_PROCEDURES_ENTITY } from "@api/modules/patients/constants";
 import { ProceduresService } from "@api/modules/patients/services/procedures.service";
-import { VISITS_ENTITY } from "@api/modules/patients/constants";
-import { toVisit, VisitRow } from "@api/modules/patients/lib/visits";
+import { toVisit, VisitRow } from "@api/common/lib/visits";
 
 @Injectable()
 export class VisitsService implements OnModuleInit {

@@ -88,13 +88,23 @@ import {
   type ToolAuditTarget,
 } from "@api/modules/ai/tools/ai-tool";
 import { AppointmentAccessService } from "@api/modules/appointments/services/appointment-access.service";
-import { APPOINTMENTS_ENTITY } from "@api/modules/appointments/constants";
+import {
+  APPOINTMENTS_ENTITY,
+  PAYMENTS_ENTITY,
+  DOCTORS_ENTITY,
+  STOCK_MOVEMENTS_ENTITY,
+  LAB_ORDERS_ENTITY,
+  LAB_PAYMENTS_ENTITY,
+  PATIENTS_ENTITY,
+  CLINIC_CLOSURES_ENTITY,
+  DOCTOR_TIME_OFF_ENTITY,
+  DOCTOR_EXTRA_HOURS_ENTITY,
+} from "@api/common/constants/audit-entities";
 import { AppointmentsService } from "@api/modules/appointments/services/appointments.service";
 import { AvailabilityService } from "@api/modules/appointments/services/availability.service";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { AuditService } from "@api/modules/audit/services/audit.service";
 import { LedgerService } from "@api/modules/billing/services/ledger.service";
-import { PAYMENTS_ENTITY } from "@api/modules/billing/constants";
 import { PaymentsService } from "@api/modules/billing/services/payments.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import type { Env } from "@api/config/env.schema";
@@ -111,26 +121,18 @@ import {
   stockMovements,
   visits,
 } from "@api/database/schema";
-import { DOCTORS_ENTITY } from "@api/modules/doctors/constants";
 import { DoctorsService } from "@api/modules/doctors/services/doctors.service";
-import { STOCK_MOVEMENTS_ENTITY } from "@api/modules/inventory/constants";
 import { StockMovementsService } from "@api/modules/inventory/services/stock-movements.service";
 import { InventoryItemsService } from "@api/modules/inventory/services/inventory-items.service";
 import { LabLedgerService } from "@api/modules/labs/services/lab-ledger.service";
-import { LAB_ORDERS_ENTITY } from "@api/modules/labs/constants";
 import { LabOrdersService } from "@api/modules/labs/services/lab-orders.service";
-import { LAB_PAYMENTS_ENTITY } from "@api/modules/labs/constants";
 import { LabPaymentsService } from "@api/modules/labs/services/lab-payments.service";
 import { LabsService } from "@api/modules/labs/services/labs.service";
-import { PATIENTS_ENTITY } from "@api/modules/patients/lib/patient-view";
 import { PatientsService } from "@api/modules/patients/services/patients.service";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
-import { CLINIC_CLOSURES_ENTITY } from "@api/modules/schedule/constants";
 import { ClinicClosuresService } from "@api/modules/schedule/services/clinic-closures.service";
-import { DOCTOR_TIME_OFF_ENTITY } from "@api/modules/schedule/constants";
 import { DoctorTimeOffService } from "@api/modules/schedule/services/doctor-time-off.service";
 import { ScheduleConflictsService } from "@api/modules/schedule/services/schedule-conflicts.service";
-import { DOCTOR_EXTRA_HOURS_ENTITY } from "@api/modules/schedule/constants";
 import { DoctorExtraHoursService } from "@api/modules/schedule/services/doctor-extra-hours.service";
 import { commitTogether, rehearse } from "@api/database/unit-of-work";
 import { RouteToolRegistry, type RouteTool } from "@api/modules/ai/tools/route-tools";

@@ -4,7 +4,12 @@ import { Test } from "@nestjs/testing";
 import { AppModule } from "@api/app.module";
 import { AgentService } from "@api/modules/ai/services/agent.service";
 import type { AiConversationsService } from "@api/modules/ai/services/ai-conversations.service";
-import type { ChatChunk, ChatProvider, ChatRequest, ChatToolCall } from "@api/modules/ai/lib/chat-provider";
+import type {
+  ChatChunk,
+  ChatProvider,
+  ChatRequest,
+  ChatToolCall,
+} from "@api/modules/ai/lib/chat-provider";
 import type { ChatProviderResolver } from "@api/modules/ai/services/chat-provider.resolver";
 import type { AiTool } from "@api/modules/ai/tools/ai-tool";
 import { AiToolsService } from "@api/modules/ai/tools/ai-tools.service";

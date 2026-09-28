@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { ToothSwatch } from "@web/modules/patients/components/chart/tooth-swatch";
-import { useToothStates } from "@web/modules/patients/hooks/use-tooth-states";
+import { ToothSwatch } from "@web/shared/components/tooth-swatch";
+import { useToothStates } from "@web/shared/hooks/use-tooth-states";
 
 export function ToothLegend(): JSX.Element {
   const { t } = useTranslation();

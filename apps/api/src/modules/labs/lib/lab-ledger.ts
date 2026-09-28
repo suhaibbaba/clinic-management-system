@@ -14,9 +14,3 @@ export function describeOrder(workTypeName: string | null, teeth: readonly numbe
 
   return teeth.length > 0 ? `${name} — ${teeth.join("، ")}` : name;
 }
-
-export function normalise(value: string): string {
-  const [whole = "0", fraction = ""] = value.split(".");
-
-  return `${whole}.${fraction.padEnd(2, "0").slice(0, 2)}`;
-}

@@ -21,10 +21,10 @@ import {
   Table,
   type Column,
 } from "@clinic/ui";
-import { activeNavItem, canReachNavItem } from "@web/app/navigation";
-import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/modules/appointments/lib/status";
+import { activeNavItem, canReachNavItem } from "@web/shared/lib/navigation";
+import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/shared/lib/appointment-status";
 import { useSession } from "@web/shared/providers/session";
-import { useCurrency } from "@web/modules/clinic/queries";
+import { useCurrency } from "@web/shared/queries/clinic";
 import { formatClinicDate, formatClinicTime } from "@web/shared/lib/format";
 
 type Row = Record<string, unknown>;

@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { Button, EmptyState, Icon, Img, Ltr, useConfirm, useToast } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { useSession } from "@web/shared/providers/session";
-import { canDeleteAttachment, canManageAttachments } from "@web/modules/patients/permissions";
+import { canDeleteAttachment, canManageAttachments } from "@web/shared/permissions/patients";
 import {
   useAttachment,
   useDeleteAttachment,

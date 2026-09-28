@@ -3,7 +3,7 @@ import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Ltr, ProgressBar } from "@clinic/ui";
 import { stockScale, stockTone } from "@web/modules/inventory/lib/display";
-import { useLookupLabels } from "@web/modules/lookups/queries";
+import { useLookupLabels } from "@web/shared/queries/lookups";
 
 export function StockCell({ item }: { readonly item: InventoryItemRow }): JSX.Element {
   const { t } = useTranslation();

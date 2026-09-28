@@ -2,9 +2,9 @@ import { LEDGER_ENTRY_KIND } from "@clinic/shared";
 import { type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "@clinic/ui/components/skeleton";
-import { Money } from "@web/modules/billing/components/money";
+import { Money } from "@web/shared/components/money";
 import { usePatientBalance, useStatement } from "@web/modules/billing/queries";
-import { useClinic } from "@web/modules/clinic/queries";
+import { useClinic } from "@web/shared/queries/clinic";
 
 export function PatientBalanceCard({ patientId }: { patientId: string }): JSX.Element {
   const { t } = useTranslation();

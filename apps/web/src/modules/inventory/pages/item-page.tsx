@@ -15,15 +15,14 @@ import {
   useTabParam,
 } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";
-import { useLookupLabels } from "@web/modules/lookups/queries";
+import { useLookupLabels } from "@web/shared/queries/lookups";
 import { categoryTone, stockTone } from "@web/modules/inventory/lib/display";
 import { ItemBatches } from "@web/modules/inventory/components/item-batches";
 import { ItemFormModal } from "@web/modules/inventory/components/item-form-modal";
 import { Quantity } from "@web/modules/inventory/components/quantity";
 import { ItemMovementsTab } from "@web/modules/inventory/pages/item-movements-tab";
 import { MovementModal } from "@web/modules/inventory/components/movement-modal";
-import { mayRecord } from "@web/modules/inventory/permissions";
-import { canManageInventory } from "@web/modules/inventory/permissions";
+import { mayRecord, canManageInventory } from "@web/shared/permissions/inventory";
 import { useInventoryItem, useItemBatches } from "@web/modules/inventory/queries";
 import { formatDate } from "@web/shared/lib/format";
 import { Skeleton, SkeletonKpi } from "@clinic/ui/components/skeleton";

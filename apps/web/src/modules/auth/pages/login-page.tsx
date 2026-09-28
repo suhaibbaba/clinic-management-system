@@ -4,7 +4,7 @@ import { useState, type JSX } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@web/shared/components/brand/logo";
-import { useClinicBranding, BRANDING_SCOPE } from "@web/modules/clinic/queries";
+import { useClinicBranding, BRANDING_SCOPE } from "@web/shared/queries/clinic";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Button, FormField, Icon, Input, PasswordInput, PersonName } from "@clinic/ui";
 import { useSession } from "@web/shared/providers/session";

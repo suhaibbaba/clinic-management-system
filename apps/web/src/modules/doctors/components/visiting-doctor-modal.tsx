@@ -9,10 +9,7 @@ import { Controller, useForm, type UseFormRegister } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button, FormField, Icon, Input, Modal, PhoneInput, useToast } from "@clinic/ui";
 import { useCreateVisitingDoctor } from "@web/modules/doctors/queries";
-import {
-  StaffNameFields,
-  type StaffNameValues,
-} from "@web/modules/users/components/staff-name-fields";
+import { StaffNameFields, type StaffNameValues } from "@web/shared/components/staff-name-fields";
 import { ellipsis } from "@web/i18n/ellipsis";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { EMPTY_VISITING_DOCTOR, VISITING_DOCTOR_FORM_ID } from "@web/modules/doctors/constants";

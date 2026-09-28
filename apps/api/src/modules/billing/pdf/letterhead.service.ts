@@ -6,7 +6,7 @@ import type { RtlPdf } from "@api/modules/billing/pdf/pdf-builder";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics } from "@api/database/schema";
 import { StorageService } from "@api/modules/storage/services/storage.service";
-import { type FetchedObject } from "@api/modules/storage/lib/storage";
+import { type FetchedObject } from "@api/common/types/storage";
 
 export interface Letterhead {
   readonly name: string;

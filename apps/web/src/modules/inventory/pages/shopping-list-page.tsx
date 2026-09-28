@@ -3,7 +3,7 @@ import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, EmptyState, Icon, Ltr, PageHeader, Table, type Column } from "@clinic/ui";
 import { inventoryApi } from "@web/modules/inventory/api";
-import { useLookupLabels } from "@web/modules/lookups/queries";
+import { useLookupLabels } from "@web/shared/queries/lookups";
 import { categoryTone } from "@web/modules/inventory/lib/display";
 import { useShoppingList } from "@web/modules/inventory/queries";
 import { formatDate } from "@web/shared/lib/format";

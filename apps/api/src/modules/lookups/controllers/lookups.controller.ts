@@ -15,7 +15,7 @@ import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { LOOKUP_OPTIONS_ENTITY } from "@api/modules/lookups/constants";
+import { LOOKUP_OPTIONS_ENTITY } from "@api/common/constants/audit-entities";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
 import {
   ListLookupsQueryDto,

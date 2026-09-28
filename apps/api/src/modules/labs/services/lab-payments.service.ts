@@ -22,8 +22,9 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { labPayments } from "@api/database/schema";
 import { LabsService } from "@api/modules/labs/services/labs.service";
 import { LookupsService } from "@api/modules/lookups/services/lookups.service";
-import { LAB_PAYMENTS_ENTITY } from "@api/modules/labs/constants";
-import { toLabPayment, negate, PaymentRow } from "@api/modules/labs/lib/lab-payments";
+import { LAB_PAYMENTS_ENTITY } from "@api/common/constants/audit-entities";
+import { toLabPayment, PaymentRow } from "@api/modules/labs/lib/lab-payments";
+import { negate } from "@api/common/lib/money";
 
 @Injectable()
 export class LabPaymentsService implements OnModuleInit {

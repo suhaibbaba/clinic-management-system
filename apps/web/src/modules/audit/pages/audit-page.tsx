@@ -18,7 +18,7 @@ import {
 } from "@clinic/ui";
 import { useAuditLog } from "@web/modules/audit/queries";
 import { ValueDiff } from "@web/modules/audit/components/value-diff";
-import { useUsers } from "@web/modules/users/queries";
+import { useUsers } from "@web/shared/queries/users";
 import { endOfNextDayIso, formatDateTime, startOfDayIso } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 import { AUDIT_ACTION_TONES, AUDIT_ENTITIES } from "@web/modules/audit/constants";

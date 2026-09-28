@@ -11,7 +11,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { AUDIT_ACTION, USER_ROLE, type Paginated, type WaitingListEntry } from "@clinic/shared";
-import { WAITING_LIST_ENTITY } from "@api/modules/appointments/constants";
+import { WAITING_LIST_ENTITY } from "@api/common/constants/audit-entities";
 import { WaitingListService } from "@api/modules/appointments/services/waiting-list.service";
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";

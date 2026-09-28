@@ -23,7 +23,7 @@ import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { InventoryReportsService } from "@api/modules/inventory/services/inventory-reports.service";
-import { SUPPLIERS_ENTITY } from "@api/modules/inventory/constants";
+import { SUPPLIERS_ENTITY } from "@api/common/constants/audit-entities";
 import { SuppliersService } from "@api/modules/inventory/services/suppliers.service";
 import { AiTool } from "@api/modules/ai/tools/route-tool.decorator";
 import {

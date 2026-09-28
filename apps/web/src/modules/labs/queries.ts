@@ -20,7 +20,7 @@ import {
   type UpdateLabWorkTypeInput,
 } from "@clinic/shared";
 import { labOrdersApi, labsApi } from "@web/modules/labs/api";
-import { uploadToStorage } from "@web/modules/patients/api";
+import { uploadToStorage } from "@web/shared/lib/upload";
 
 export const LABS_KEY = "labs";
 export const LAB_ORDERS_KEY = "lab-orders";

@@ -2,7 +2,7 @@ import type { LabOrderRow, LabOrderView } from "@clinic/shared";
 import { useTranslation } from "react-i18next";
 import { Badge, Ltr, type Column } from "@clinic/ui";
 import { useIsMobile } from "@clinic/ui/lib/use-media-query";
-import { Money } from "@web/modules/billing/components/money";
+import { Money } from "@web/shared/components/money";
 import {
   hasWhen,
   NextStep,
@@ -13,8 +13,8 @@ import {
 } from "@web/modules/labs/components/order-cells";
 import { LAB_ORDER_FIELDS } from "@web/modules/labs/constants";
 import { formatDate } from "@web/shared/lib/format";
-import { LAB_ORDER_STATUS_STYLES } from "@web/modules/labs/lib/status";
-import { useClinic } from "@web/modules/clinic/queries";
+import { LAB_ORDER_STATUS_STYLES } from "@web/shared/lib/lab-order-status";
+import { useClinic } from "@web/shared/queries/clinic";
 
 export function useOrderColumns(view: LabOrderView): readonly Column<LabOrderRow>[] {
   const { t } = useTranslation();

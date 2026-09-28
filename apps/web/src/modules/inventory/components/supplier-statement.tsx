@@ -18,9 +18,9 @@ import {
   Table,
   usePageParams,
 } from "@clinic/ui";
-import { useLookupLabels } from "@web/modules/lookups/queries";
-import { Money } from "@web/modules/billing/components/money";
-import { useClinic } from "@web/modules/clinic/queries";
+import { useLookupLabels } from "@web/shared/queries/lookups";
+import { Money } from "@web/shared/components/money";
+import { useClinic } from "@web/shared/queries/clinic";
 import { useSupplierStatement } from "@web/modules/inventory/queries";
 import { endOfNextDayIso, formatDate, startOfDayIso } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";

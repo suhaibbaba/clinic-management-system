@@ -14,10 +14,10 @@ import {
   Select,
   useToast,
 } from "@clinic/ui";
-import { WorkingHours } from "@web/modules/schedule/components/working-hours";
-import { useClinic } from "@web/modules/clinic/queries";
+import { WorkingHours } from "@web/shared/components/working-hours";
+import { useClinic } from "@web/shared/queries/clinic";
 import { useCreateDoctor, useSpecialties, useUpdateDoctor } from "@web/modules/doctors/queries";
-import { useUsers } from "@web/modules/users/queries";
+import { useUsers } from "@web/shared/queries/users";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import {
   DEFAULT_APPOINTMENT_DURATION,

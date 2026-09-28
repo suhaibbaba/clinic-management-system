@@ -28,10 +28,12 @@ import { CurrentUser } from "@api/common/decorators/current-user.decorator";
 import { Roles } from "@api/common/decorators/roles.decorator";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { InventoryDocumentsService } from "@api/modules/inventory/services/inventory-documents.service";
-import { INVENTORY_ITEMS_ENTITY } from "@api/modules/inventory/constants";
+import {
+  INVENTORY_ITEMS_ENTITY,
+  STOCK_MOVEMENTS_ENTITY,
+} from "@api/common/constants/audit-entities";
 import { InventoryItemsService } from "@api/modules/inventory/services/inventory-items.service";
 import { InventoryReportsService } from "@api/modules/inventory/services/inventory-reports.service";
-import { STOCK_MOVEMENTS_ENTITY } from "@api/modules/inventory/constants";
 import { StockMovementsService } from "@api/modules/inventory/services/stock-movements.service";
 import { AiTool } from "@api/modules/ai/tools/route-tool.decorator";
 import {

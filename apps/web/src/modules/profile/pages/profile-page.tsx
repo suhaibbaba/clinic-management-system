@@ -16,7 +16,7 @@ import {
   PhoneLink,
   useToast,
 } from "@clinic/ui";
-import { authApi } from "@web/modules/auth/api";
+import { authApi } from "@web/shared/api/auth";
 import { ProfileFormModal } from "@web/modules/profile/components/profile-form-modal";
 import { useSession } from "@web/shared/providers/session";
 import { ApiError, errorMessageKey } from "@web/shared/lib/api-error";

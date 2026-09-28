@@ -1,0 +1,268 @@
+import type { DaySchedule, TimeRange, WeeklySchedule } from "@clinic/shared";
+import * as Accordion from "@radix-ui/react-accordion";
+import { useMemo, type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import { Badge, Button, Icon, Ltr, Switch, TimePicker } from "@clinic/ui";
+import {
+  DEFAULT_RANGE,
+  daySummary,
+  rangesFor,
+  rangesOutsideBounds,
+  WEEKDAYS_FROM_SATURDAY,
+  withDay,
+} from "@web/shared/lib/week";
+import { cn } from "@clinic/ui/lib/cn";
+
+export interface WorkingHoursProps {
+  readonly value: WeeklySchedule;
+  readonly onChange: (value: WeeklySchedule) => void;
+  readonly disabled?: boolean | undefined;
+  readonly within?: WeeklySchedule | undefined;
+  readonly withinLabel?: string | undefined;
+  readonly idPrefix?: string | undefined;
+}
+
+export function WorkingHours({
+  value,
+  onChange,
+  disabled = false,
+  within,
+  withinLabel,
+  idPrefix = "hours",
+}: WorkingHoursProps): JSX.Element {
+  const { t } = useTranslation();
+
+  const replaceDay = (next: DaySchedule): void => onChange(withDay(value, next));
+
+  const outside = useMemo(() => {
+    if (!within) {
+      return new Set<number>();
+    }
+
+    return new Set(
+      WEEKDAYS_FROM_SATURDAY.filter(
+        (weekday) =>
+          rangesOutsideBounds(rangesFor(value, weekday), rangesFor(within, weekday)).length > 0,
+      ),
+    );
+  }, [value, within]);
+
+  return (
+    <Accordion.Root data-testid="working-hours" type="multiple" className="flex flex-col gap-2">
+      {WEEKDAYS_FROM_SATURDAY.map((weekday) => {
+        const day = { weekday, ranges: rangesFor(value, weekday) };
+        const isWorking = day.ranges.length > 0;
+        const weekdayName = t(`schedule.weekday.${weekday}`);
+
+        return (
+          <Accordion.Item
+            key={weekday}
+            value={String(weekday)}
+            data-testid={`hours-day-${weekday}`}
+            className="overflow-hidden rounded-panel bg-canvas"
+          >
+            <Accordion.Header>
+              <Accordion.Trigger
+                data-testid={`hours-day-${weekday}-trigger`}
+                className={cn(
+                  "flex min-h-(--control-h) w-full cursor-pointer items-center justify-between gap-2 px-3 py-2",
+                  "text-start transition-colors duration-150 hover:bg-inset",
+                  "group",
+                )}
+              >
+                <span className="flex w-0 min-w-0 grow items-center gap-2">
+                  <Icon
+                    name="chevron-down"
+                    className="shrink-0 text-ink-subtle transition-transform duration-150 group-data-[state=open]:rotate-180"
+                  />
+                  <span className="truncate text-value font-medium text-ink">{weekdayName}</span>
+                </span>
+
+                <span className="flex shrink-0 items-center gap-2">
+                  {outside.has(weekday) && (
+                    <span
+                      className="flex text-warning-700"
+                      aria-label={t("schedule.outsideBounds", { bounds: withinLabel ?? "" })}
+                    >
+                      <Icon name="alert" />
+                    </span>
+                  )}
+                  <Badge
+                    tone={isWorking ? "success" : "neutral"}
+                    data-testid={`hours-day-${weekday}-summary`}
+                  >
+                    {isWorking ? (
+                      <Ltr className="tabular-nums">{daySummary(day.ranges, "")}</Ltr>
+                    ) : (
+                      t("schedule.closed")
+                    )}
+                  </Badge>
+                </span>
+              </Accordion.Trigger>
+            </Accordion.Header>
+
+            <Accordion.Content className="overflow-hidden">
+              <div className="flex flex-col gap-3 border-t border-line px-3 py-3">
+                <Switch
+                  data-testid={`hours-day-${weekday}-working`}
+                  checked={isWorking}
+                  disabled={disabled}
+                  label={weekdayName}
+                  hideLabel
+                  onCheckedChange={(checked) =>
+                    replaceDay({ weekday, ranges: checked ? [{ ...DEFAULT_RANGE }] : [] })
+                  }
+                />
+
+                {isWorking && (
+                  <>
+                    {day.ranges.map((range, index) => (
+                      <RangeRow
+                        key={`${weekday}-${index}`}
+                        idPrefix={idPrefix}
+                        weekday={weekday}
+                        index={index}
+                        range={range}
+                        disabled={disabled}
+                        removable={day.ranges.length > 1}
+                        onChange={(next) =>
+                          replaceDay({
+                            weekday,
+                            ranges: day.ranges.map((item, position) =>
+                              position === index ? next : item,
+                            ),
+                          })
+                        }
+                        onRemove={() =>
+                          replaceDay({
+                            weekday,
+                            ranges: day.ranges.filter((_, position) => position !== index),
+                          })
+                        }
+                      />
+                    ))}
+
+                    {outside.has(weekday) && withinLabel !== undefined && (
+                      <p
+                        data-testid={`hours-day-${weekday}-warning`}
+                        className="text-label text-warning-700"
+                      >
+                        {t("schedule.outsideBounds", { bounds: withinLabel })}
+                      </p>
+                    )}
+
+                    {!disabled && (
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          icon={<Icon name="plus" />}
+                          size="sm"
+                          variant="secondary"
+                          data-testid={`hours-day-${weekday}-add-range`}
+                          onClick={() =>
+                            replaceDay({ weekday, ranges: [...day.ranges, { ...DEFAULT_RANGE }] })
+                          }
+                        >
+                          {t("schedule.addRange")}
+                        </Button>
+
+                        <Button
+                          icon={<Icon name="copy" />}
+                          size="sm"
+                          variant="ghost"
+                          data-testid={`hours-day-${weekday}-copy`}
+                          onClick={() => onChange(copyToOtherDays(value, day))}
+                        >
+                          {t("schedule.copyToOthers")}
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </Accordion.Content>
+          </Accordion.Item>
+        );
+      })}
+    </Accordion.Root>
+  );
+}
+
+interface RangeRowProps {
+  readonly idPrefix: string;
+  readonly weekday: number;
+  readonly index: number;
+  readonly range: TimeRange;
+  readonly disabled: boolean;
+  readonly removable: boolean;
+  readonly onChange: (range: TimeRange) => void;
+  readonly onRemove: () => void;
+}
+
+function RangeRow({
+  idPrefix,
+  weekday,
+  index,
+  range,
+  disabled,
+  removable,
+  onChange,
+  onRemove,
+}: RangeRowProps): JSX.Element {
+  const { t } = useTranslation();
+  const id = `${idPrefix}-${weekday}-${index}`;
+
+  return (
+    <div data-testid={`hours-range-${weekday}-${index}`} className="flex flex-wrap items-end gap-2">
+      <label className="flex flex-col gap-1 text-label text-ink-muted" htmlFor={`${id}-start`}>
+        {t("schedule.from")}
+        <TimePicker
+          id={`${id}-start`}
+          data-testid={`hours-range-${weekday}-${index}-start`}
+          label={t("schedule.from")}
+          className="w-36"
+          disabled={disabled}
+          value={range.start}
+          onChange={(start) => onChange({ ...range, start })}
+        />
+      </label>
+
+      <label className="flex flex-col gap-1 text-label text-ink-muted" htmlFor={`${id}-end`}>
+        {t("schedule.to")}
+        <TimePicker
+          id={`${id}-end`}
+          data-testid={`hours-range-${weekday}-${index}-end`}
+          label={t("schedule.to")}
+          className="w-36"
+          disabled={disabled}
+          min={range.start}
+          value={range.end}
+          onChange={(end) => onChange({ ...range, end })}
+        />
+      </label>
+
+      {!disabled && removable && (
+        <Button
+          icon={<Icon name="trash" />}
+          size="sm"
+          variant="quiet"
+          data-testid={`hours-range-${weekday}-${index}-remove`}
+          onClick={onRemove}
+        >
+          {t("schedule.removeRange")}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function copyToOtherDays(week: WeeklySchedule, source: DaySchedule): WeeklySchedule {
+  return WEEKDAYS_FROM_SATURDAY.reduce<WeeklySchedule>((week_, weekday) => {
+    const existing = rangesFor(week_, weekday);
+
+    if (weekday === source.weekday || existing.length === 0) {
+      return week_;
+    }
+
+    return withDay(week_, { weekday, ranges: source.ranges.map((range) => ({ ...range })) });
+  }, week);
+}

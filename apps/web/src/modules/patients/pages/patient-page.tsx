@@ -19,15 +19,15 @@ import {
 } from "@clinic/ui";
 import { Skeleton, SkeletonStatus } from "@clinic/ui/components/skeleton";
 import { AppointmentFormModal } from "@web/modules/appointments/components/appointment-form-modal";
-import { canBookAppointment } from "@web/modules/appointments/permissions";
+import { canBookAppointment } from "@web/shared/permissions/appointments";
 import { useSession } from "@web/shared/providers/session";
 import { AccountTab } from "@web/modules/billing/pages/account-tab";
 import { PatientBalanceCard } from "@web/modules/billing/components/patient-balance-card";
-import { canSeeBilling } from "@web/modules/billing/permissions";
+import { canSeeBilling } from "@web/shared/permissions/billing";
 import { ageInYears } from "@web/modules/patients/lib/age";
 import { AllergyBanner } from "@web/modules/patients/components/allergy-banner";
 import { PatientFormModal } from "@web/modules/patients/components/patient-form-modal";
-import { canDeletePatient, canEditPatient, canViewChart } from "@web/modules/patients/permissions";
+import { canDeletePatient, canEditPatient, canViewChart } from "@web/shared/permissions/patients";
 import { PrescriptionsTab } from "@web/modules/patients/pages/prescriptions-tab";
 import { useDeletePatient, usePatient } from "@web/modules/patients/queries";
 import { TimelineTab } from "@web/modules/patients/pages/timeline-tab";

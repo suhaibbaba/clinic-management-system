@@ -11,7 +11,7 @@ import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { medicalHistories } from "@api/database/schema";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
-import { MEDICAL_HISTORIES_ENTITY } from "@api/modules/patients/constants";
+import { MEDICAL_HISTORIES_ENTITY } from "@api/common/constants/audit-entities";
 import {
   toMedicalHistory,
   emptyHistory,

@@ -13,7 +13,7 @@ import { DATABASE, type Database } from "@api/database/database.module";
 import { appointments, clinics, doctors, patients, users } from "@api/database/schema";
 import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
 import { REMINDERS, WINDOW, MINUTE } from "@api/modules/notifications/constants";
-import { timeIn } from "@api/modules/notifications/lib/reminders.scheduler";
+import { timeIn } from "@api/common/lib/time";
 
 @Injectable()
 export class RemindersScheduler {

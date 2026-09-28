@@ -101,6 +101,9 @@ core · patients · billing · appointments · booking · notifications · labs 
   fragments, pure functions) and `constants.ts` (UPPER_CASE values only). A file holds one kind: a
   service file is its class and nothing else. A constant built from a module's own helpers lives with
   them in `lib/`, never in `constants.ts`, so the two never import each other.
+- **Modules compose through services, module files and dto only.** Another module's `lib/` and
+  `constants.ts` are private to it; what two modules need lives in `src/common/` (`lib/`,
+  `constants/` — audit entity names, Postgres error codes —, `types/`). ESLint enforces it.
 - DTOs are shared Zod schemas. Never duplicate validation.
 - `JwtAuthGuard` global; `@Roles(...)` per endpoint; object-level checks inside services.
 - Every list endpoint paginates, filters by query param, and is clinic-scoped automatically.
@@ -113,11 +116,16 @@ core · patients · billing · appointments · booking · notifications · labs 
 - Functional components, hooks, TanStack Query.
 - **`src/modules/<module>/` holds one domain, sorted by kind:** `pages/` (a screen or tab),
   `components/`, `hooks/` (one hook per file, `use-….ts`), `lib/` (plain helpers), and `api.ts`,
-  `queries.ts` (TanStack hooks and their keys), `permissions.ts`, `constants.ts`. What several
+  `queries.ts` (TanStack hooks and their keys), `constants.ts`. What several
   modules use lives in `src/shared/` with the same kinds (`components/`, `hooks/`, `lib/`,
-  `constants/`, `providers/`). `app/` is the shell, `i18n/` the locales, `booking/` the separate
-  public bundle. A file holds one kind: no hook, constant or helper exported from a component. No
-  `index.ts` barrels; import the exact file. The API's `src/modules/<module>/` mirrors the name.
+  `constants/`, `providers/`, `api/`, `queries/`, `permissions/`). `app/` is the shell (router,
+  providers, `app/layout/`), `i18n/` the locales, `booking/` the separate public bundle. A file
+  holds one kind: no hook, constant or helper exported from a component. No `index.ts` barrels;
+  import the exact file. The API's `src/modules/<module>/` mirrors the name.
+- **Layers only point down:** `app/` → `modules/` → `shared/`. A module may render another
+  module's `pages/` and `components/`; its `lib/`, `hooks/`, `api.ts`, `queries.ts` and
+  `constants.ts` are private. A helper, key or date window two modules need is written once in
+  `shared/`, never copied. ESLint enforces it.
 - **RTL by default.** Gregorian dates, Arabic through i18n. `check:i18n` fails on an Arabic literal
   in a component and on a key missing from either locale.
 - Dropdowns read the clinic's lists through `useLookupOptions` / `useLookupLabels`, never a constant.
@@ -125,7 +133,7 @@ core · patients · billing · appointments · booking · notifications · labs 
   bounced off — check the helper the route guard uses.
 - **A view somebody can reach is a view somebody can link to.** Tabs and filters live in the URL,
   never `useState`. A retired route redirects, it does not disappear.
-- **Navigation is one table.** `app/navigation.ts` lists sections and roles; the route guards are
+- **Navigation is one table.** `shared/lib/navigation.ts` lists sections and roles; the route guards are
   built from the same sets.
 - The top bar reads search-first, actions-last, in logical properties.
 
