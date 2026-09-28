@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   UnauthorizedException,
   type CanActivate,
@@ -10,6 +11,8 @@ import { JwtService } from "@nestjs/jwt";
 import { IS_PUBLIC_KEY } from "@api/common/decorators/public.decorator";
 import type { AccessTokenPayload, RequestWithUser } from "@api/common/types/authenticated-user";
 import type { Env } from "@api/config/env.schema";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { sessionState } from "@api/common/database/session-state";
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -17,6 +20,7 @@ export class JwtAuthGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService<Env, true>,
+    @Inject(DATABASE) private readonly db: Database,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -44,6 +48,16 @@ export class JwtAuthGuard implements CanActivate {
       });
     } catch {
       throw new UnauthorizedException("Invalid or expired access token");
+    }
+
+    const current = await sessionState(this.db, payload.sub);
+
+    if (
+      !current?.isActive ||
+      current.role !== payload.role ||
+      current.clinicId !== payload.clinicId
+    ) {
+      throw new UnauthorizedException("Account is no longer available");
     }
 
     request.user = {

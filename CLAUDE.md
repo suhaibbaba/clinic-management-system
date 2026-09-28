@@ -62,7 +62,10 @@ core · patients · billing · appointments · booking · notifications · labs 
 3. **Soft delete** for everything medical and financial, plus `created_by`/`updated_by`/
    `created_at`/`updated_at`.
 4. **Audit log** on every financial and medical mutation: user, time, entity, old and new value.
-   Immutable — no update or delete path.
+   Immutable — no update or delete path. The database enforces it with triggers (migration 0048):
+   the audit logs are append-only, a ledger row may change only its reversal and soft-delete
+   markers, and no medical or financial row is hard-deleted. Only a superuser setting
+   `session_replication_role = replica` (the seed, test clean-up) gets past them.
 5. **Charts** use FDI numbering (11–48, 51–85). `chart_marks` links a treatment to a location
    generically per specialty.
 6. **Public booking is anonymous.** No patient accounts; the phone number is the identity. Slots are

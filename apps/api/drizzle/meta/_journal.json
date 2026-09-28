@@ -337,6 +337,13 @@
       "when": 1790604518383,
       "tag": "0047_ai_read_scoped",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1790605181453,
+      "tag": "0048_immutable_records",
+      "breakpoints": true
     }
   ]
 }
