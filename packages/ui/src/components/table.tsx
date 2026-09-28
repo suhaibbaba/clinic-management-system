@@ -378,7 +378,16 @@ export function Table<TRow>({
                         column.className,
                       )}
                     >
-                      {column.render(row)}
+                      <div
+                        data-part="table-cell-content"
+                        className={cn(
+                          "max-w-(--cell-max)",
+                          column.align === "end" || column.align === "numeric" ? "ms-auto" : "",
+                          compact ? "truncate" : "[overflow-wrap:anywhere]",
+                        )}
+                      >
+                        {column.render(row)}
+                      </div>
                     </td>
                   ))}
                 </tr>

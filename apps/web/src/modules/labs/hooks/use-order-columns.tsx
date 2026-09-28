@@ -37,7 +37,7 @@ export function useOrderColumns(view: LabOrderView): readonly Column<LabOrderRow
     key: "lab",
     header: LAB_ORDER_FIELDS.lab.label,
     hideOnMobile: true,
-    render: (row) => <span className="whitespace-nowrap">{row.labName}</span>,
+    render: (row) => <span className="whitespace-pre-wrap">{row.labName}</span>,
   };
   const who: Column<LabOrderRow> = {
     key: "who",
