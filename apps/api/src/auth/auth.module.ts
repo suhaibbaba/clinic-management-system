@@ -1,9 +1,9 @@
 import { Global, Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
-import { AuthController } from "@api/auth/auth.controller";
-import { AuthService } from "@api/auth/auth.service";
-import { PasswordService } from "@api/auth/password.service";
-import { TokenService } from "@api/auth/token.service";
+import { AuthController } from "@api/auth/controllers/auth.controller";
+import { AuthService } from "@api/auth/services/auth.service";
+import { PasswordService } from "@api/auth/services/password.service";
+import { TokenService } from "@api/auth/services/token.service";
 
 @Global()
 @Module({

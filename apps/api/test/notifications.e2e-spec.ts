@@ -14,12 +14,10 @@ import {
 import { eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { appointments, clinics, doctors, notificationsLog, users } from "@api/database/schema";
-import {
-  NOTIFICATION_PROVIDER,
-  type NotificationProvider,
-} from "@api/notifications/notification-provider";
-import { NotificationsService } from "@api/notifications/notifications.service";
-import { RemindersScheduler } from "@api/notifications/reminders.scheduler";
+import { NOTIFICATION_PROVIDER } from "@api/notifications/constants";
+import { type NotificationProvider } from "@api/notifications/lib/notification-provider";
+import { NotificationsService } from "@api/notifications/services/notifications.service";
+import { RemindersScheduler } from "@api/notifications/services/reminders.scheduler";
 import {
   createPatient,
   seedClinicFixtures,

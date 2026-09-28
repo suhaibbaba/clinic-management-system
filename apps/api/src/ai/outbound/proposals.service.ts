@@ -37,8 +37,8 @@ import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import type { Env } from "@api/config/env.schema";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { aiAuditLog, aiProposals } from "@api/database/schema";
-import { NotificationsService } from "@api/notifications/notifications.service";
-import { PermissionsService } from "@api/permissions/permissions.service";
+import { NotificationsService } from "@api/notifications/services/notifications.service";
+import { PermissionsService } from "@api/permissions/services/permissions.service";
 
 export const TARGET_READ_CAPABILITY: Record<AiOutboundTarget, string | null> = {
   [AI_OUTBOUND_TARGET.OVERDUE_LABS]: "lab-orders.overdue",

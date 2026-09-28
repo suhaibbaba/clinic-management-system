@@ -25,9 +25,9 @@ import {
   type LabOrderStatus,
 } from "@clinic/shared";
 import { and, eq, isNull } from "drizzle-orm";
-import type { BusyInterval } from "@api/appointments/slots";
-import { ChargesService } from "@api/billing/charges.service";
-import { nextReceiptNumber } from "@api/billing/payments.service";
+import type { BusyInterval } from "@api/appointments/lib/slots";
+import { ChargesService } from "@api/billing/services/charges.service";
+import { nextReceiptNumber } from "@api/billing/lib/payments";
 import type { Database } from "@api/database/database.module";
 import {
   appointments,

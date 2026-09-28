@@ -27,7 +27,7 @@ import {
   labs,
   payments,
 } from "@api/database/schema";
-import { PermissionsService } from "@api/permissions/permissions.service";
+import { PermissionsService } from "@api/permissions/services/permissions.service";
 import {
   createPatient,
   seedClinicFixtures,

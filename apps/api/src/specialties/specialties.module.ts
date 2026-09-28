@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
-import { SpecialtiesController } from "@api/specialties/specialties.controller";
-import { SpecialtiesService } from "@api/specialties/specialties.service";
+import { SpecialtiesController } from "@api/specialties/controllers/specialties.controller";
+import { SpecialtiesService } from "@api/specialties/services/specialties.service";
 
 @Module({
   controllers: [SpecialtiesController],

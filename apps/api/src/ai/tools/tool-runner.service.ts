@@ -17,7 +17,7 @@ import {
   type AiToolName,
   type AiView,
 } from "@clinic/shared";
-import type { ChatToolCall, ChatToolDefinition } from "@api/ai/chat-provider";
+import type { ChatToolCall, ChatToolDefinition } from "@api/ai/lib/chat-provider";
 import { OutboundError } from "@api/ai/outbound/proposals.service";
 import { AiToolsService } from "@api/ai/tools/ai-tools.service";
 import { isVisible, TOOL_GROUP_NAMES } from "@api/ai/tools/tool-groups";
@@ -32,8 +32,8 @@ import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { aiAuditLog, clinics } from "@api/database/schema";
 import { eq } from "drizzle-orm";
-import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
-import { PermissionsService } from "@api/permissions/permissions.service";
+import { CapabilityRegistry } from "@api/permissions/services/capability-registry.service";
+import { PermissionsService } from "@api/permissions/services/permissions.service";
 
 const ALL_GROUPS: ReadonlySet<string> = new Set(TOOL_GROUP_NAMES);
 

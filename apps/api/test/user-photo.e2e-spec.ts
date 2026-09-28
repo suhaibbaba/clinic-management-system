@@ -10,7 +10,8 @@ import {
 } from "@clinic/shared";
 import { seedClinicFixtures } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
-import { StorageService, type StoredObject } from "@api/storage/storage.service";
+import { StorageService } from "@api/storage/services/storage.service";
+import { type StoredObject } from "@api/storage/lib/storage";
 
 describe("Staff photo (e2e)", () => {
   let context: TestContext;

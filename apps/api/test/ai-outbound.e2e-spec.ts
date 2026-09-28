@@ -14,7 +14,7 @@ import {
   type UserRole,
 } from "@clinic/shared";
 import { and, eq } from "drizzle-orm";
-import { AiConversationsService } from "@api/ai/ai-conversations.service";
+import { AiConversationsService } from "@api/ai/services/ai-conversations.service";
 import { OutboundError, ProposalsService } from "@api/ai/outbound/proposals.service";
 import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
@@ -25,7 +25,7 @@ import {
   clinicSecrets,
   notificationsLog,
 } from "@api/database/schema";
-import { PermissionsService } from "@api/permissions/permissions.service";
+import { PermissionsService } from "@api/permissions/services/permissions.service";
 import { createPatient, uniquePhone, nameParts } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 

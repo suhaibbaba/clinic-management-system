@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
-import { redactKeys } from "@api/ai/openai-chat.provider";
-import { open, seal, SecretUnreadableError } from "@api/secrets/secret-cipher";
+import { redactKeys } from "@api/ai/lib/openai-chat.provider";
+import { open, seal, SecretUnreadableError } from "@api/secrets/lib/secret-cipher";
 
 const KEY = randomBytes(32);
 

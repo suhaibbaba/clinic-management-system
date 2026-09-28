@@ -1,0 +1,659 @@
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  APPOINTMENT_STATUS,
+  APPOINTMENT_TYPE,
+  BOOKING_CONFIRMATION_MODE,
+  bookingSettings,
+  clinicScheduleSettings,
+  DEFAULT_TIME_ZONE,
+  joinPatientName,
+  localDate,
+  NOTIFICATION_TEMPLATE,
+  occupiesSlot,
+  type BookingReceipt,
+  type CreateBookingInput,
+  type CreateUrgentRequestInput,
+  type ManagedBooking,
+  type PublicClinic,
+  type PublicDoctor,
+  type PublicSlots,
+  type PublicSlotsQuery,
+  type UrgentRequestReceipt,
+} from "@clinic/shared";
+import { and, asc, count, eq, gte, isNull, sql } from "drizzle-orm";
+import { randomInt } from "node:crypto";
+import { AvailabilityService } from "@api/appointments/services/availability.service";
+import { WaitingListService } from "@api/appointments/services/waiting-list.service";
+import { BookingTokenService } from "@api/booking/services/booking-token.service";
+import { type Env } from "@api/config/env.schema";
+import { notificationName, toPersonName } from "@api/common/person-name";
+import { DATABASE, type Database } from "@api/database/database.module";
+import {
+  appointments,
+  bookingOtps,
+  clinics,
+  doctors,
+  patients,
+  specialties,
+  users,
+} from "@api/database/schema";
+import { NotificationsService } from "@api/notifications/services/notifications.service";
+import { StorageService } from "@api/storage/services/storage.service";
+import {
+  phoneDigits,
+  isOverlapConflict,
+  hashCode,
+  timeIn,
+  ClinicContext,
+} from "@api/booking/lib/booking";
+import { OTP_TTL_SECONDS, OTP_MAX_ATTEMPTS } from "@api/booking/constants";
+
+@Injectable()
+export class BookingService {
+  constructor(
+    @Inject(DATABASE) private readonly db: Database,
+    private readonly availability: AvailabilityService,
+    private readonly waitingList: WaitingListService,
+    private readonly tokens: BookingTokenService,
+    private readonly notifications: NotificationsService,
+    private readonly config: ConfigService<Env, true>,
+    private readonly storage: StorageService,
+  ) {}
+
+  async clinicBySlug(slug: string): Promise<PublicClinic> {
+    const clinic = await this.requireClinic(slug);
+
+    return {
+      name: clinic.name,
+      slug,
+      logoUrl: clinic.logoKey ? (await this.storage.createBrandingUrl(clinic.logoKey)).url : null,
+      phone: clinic.phone,
+      country: clinic.country,
+      address: null,
+      bookingEnabled: clinic.booking.enabled,
+      confirmationMode: clinic.booking.confirmationMode,
+      maxDaysAhead: clinic.booking.maxDaysAhead,
+    };
+  }
+
+  async doctors(slug: string): Promise<PublicDoctor[]> {
+    const clinic = await this.requireBookingEnabled(slug);
+
+    const rows = await this.db
+      .select({
+        id: doctors.id,
+        nameAr: users.nameAr,
+        nameEn: users.nameEn,
+        specialty: specialties.name,
+      })
+      .from(doctors)
+      .innerJoin(users, eq(users.id, doctors.userId))
+      .innerJoin(specialties, eq(specialties.id, doctors.specialtyId))
+      .where(
+        and(
+          eq(doctors.clinicId, clinic.id),
+          isNull(doctors.deletedAt),
+          eq(users.isActive, true),
+          isNull(users.deletedAt),
+        ),
+      )
+      .orderBy(asc(users.nameAr));
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: toPersonName(row.nameAr, row.nameEn),
+      specialty: row.specialty,
+    }));
+  }
+
+  async slots(slug: string, query: PublicSlotsQuery): Promise<PublicSlots> {
+    const clinic = await this.requireBookingEnabled(slug);
+    this.requireWithinWindow(clinic, `${query.date}T00:00:00.000Z`, { dateOnly: true });
+
+    const availability = await this.availability.forDay(clinic.id, {
+      doctorId: query.doctorId,
+      date: query.date,
+    });
+
+    const earliest = this.earliestBookable(clinic);
+
+    const slots = availability.slots
+      .filter((slot) => slot.available && new Date(slot.startsAt) >= earliest)
+      .map(({ start, end, startsAt }) => ({ start, end, startsAt }));
+
+    const dated =
+      availability.closedReason === "clinic_closure" ||
+      availability.closedReason === "doctor_time_off"
+        ? availability.closedReason
+        : null;
+
+    return {
+      date: query.date,
+      slots,
+      closedReason: dated,
+      closedNote: dated ? availability.closedNote : null,
+    };
+  }
+
+  async requestUrgent(
+    slug: string,
+    input: CreateUrgentRequestInput,
+  ): Promise<UrgentRequestReceipt> {
+    const clinic = await this.requireBookingEnabled(slug);
+    const { phone } = input;
+
+    const open = await this.waitingList.openUrgentCount(clinic.id, phoneDigits(phone));
+
+    if (open >= clinic.booking.maxActivePerPhone) {
+      throw new ForbiddenException("Booking is not available right now");
+    }
+
+    const patientId = await this.linkOrCreatePatient(clinic.id, phone, input);
+
+    await this.waitingList.createUrgentRequest(clinic.id, patientId, input);
+
+    await this.notifications.send({
+      clinicId: clinic.id,
+      to: phone,
+      template: NOTIFICATION_TEMPLATE.URGENT_RECEIVED,
+      vars: { clinic: notificationName(clinic.name) },
+    });
+
+    return { received: true };
+  }
+
+  async book(slug: string, input: CreateBookingInput): Promise<BookingReceipt> {
+    const clinic = await this.requireBookingEnabled(slug);
+    this.requireWithinWindow(clinic, input.startsAt);
+
+    await this.requireOfferedSlot(clinic, input.doctorId, input.startsAt);
+
+    const { phone } = input;
+    await this.requireUnderActiveLimit(clinic, phone);
+
+    const patientId = await this.linkOrCreatePatient(clinic.id, phone, input);
+    const duration = await this.durationFor(clinic.id, input.doctorId);
+
+    let appointmentId: string;
+
+    try {
+      const [row] = await this.db
+        .insert(appointments)
+        .values({
+          clinicId: clinic.id,
+          patientId,
+          doctorId: input.doctorId,
+          startsAt: new Date(input.startsAt),
+          durationMinutes: duration,
+          type: APPOINTMENT_TYPE.CHECKUP,
+          status: APPOINTMENT_STATUS.REQUESTED,
+          reason: input.reason ?? null,
+        })
+        .returning({ id: appointments.id });
+
+      if (!row) {
+        throw new Error("Failed to hold the slot");
+      }
+
+      appointmentId = row.id;
+    } catch (error) {
+      if (isOverlapConflict(error)) {
+        throw new BadRequestException("That time is no longer available");
+      }
+
+      throw error;
+    }
+
+    const holdExpiresAt = new Date(Date.now() + clinic.booking.holdMinutes * 60_000);
+    const token = this.tokens.sign(appointmentId);
+
+    if (clinic.booking.confirmationMode === BOOKING_CONFIRMATION_MODE.MANUAL) {
+      return {
+        token,
+        status: "pending_confirmation",
+        otpExpiresInSeconds: null,
+        holdExpiresAt: holdExpiresAt.toISOString(),
+      };
+    }
+
+    await this.issueOtp(clinic, appointmentId, patientId, phone);
+
+    return {
+      token,
+      status: "pending_otp",
+      otpExpiresInSeconds: OTP_TTL_SECONDS,
+      holdExpiresAt: holdExpiresAt.toISOString(),
+    };
+  }
+
+  async verifyOtp(slug: string, token: string, code: string): Promise<ManagedBooking> {
+    const clinic = await this.requireBookingEnabled(slug);
+    const appointmentId = this.tokens.verify(token);
+
+    const [otp] = await this.db
+      .select()
+      .from(bookingOtps)
+      .where(and(eq(bookingOtps.appointmentId, appointmentId), eq(bookingOtps.clinicId, clinic.id)))
+      .limit(1);
+
+    const invalid = new UnauthorizedException("That code is not valid");
+
+    if (!otp || otp.consumedAt || otp.expiresAt <= new Date() || otp.attempts >= OTP_MAX_ATTEMPTS) {
+      throw invalid;
+    }
+
+    if (otp.codeHash !== hashCode(code)) {
+      await this.db
+        .update(bookingOtps)
+        .set({ attempts: otp.attempts + 1 })
+        .where(eq(bookingOtps.id, otp.id));
+
+      throw invalid;
+    }
+
+    await this.db
+      .update(bookingOtps)
+      .set({ consumedAt: new Date() })
+      .where(eq(bookingOtps.id, otp.id));
+
+    await this.db
+      .update(appointments)
+      .set({ status: APPOINTMENT_STATUS.CONFIRMED, updatedAt: new Date() })
+      .where(and(eq(appointments.id, appointmentId), eq(appointments.clinicId, clinic.id)));
+
+    const booking = await this.loadManaged(clinic, appointmentId);
+
+    await this.notifications.send({
+      clinicId: clinic.id,
+      to: await this.phoneFor(appointmentId),
+      template: NOTIFICATION_TEMPLATE.BOOKING_CONFIRMED,
+      appointmentId,
+      vars: {
+        clinic: notificationName(clinic.name),
+        doctor: notificationName(booking.doctorName),
+        date: localDate(new Date(booking.startsAt), clinic.timeZone),
+        time: timeIn(clinic.timeZone, new Date(booking.startsAt)),
+        link: this.manageLink(token),
+      },
+    });
+
+    return booking;
+  }
+
+  async view(token: string): Promise<ManagedBooking> {
+    const appointmentId = this.tokens.verify(token);
+    const clinic = await this.clinicForAppointment(appointmentId);
+
+    return this.loadManaged(clinic, appointmentId);
+  }
+
+  async cancel(token: string, reason: string | undefined): Promise<ManagedBooking> {
+    const appointmentId = this.tokens.verify(token);
+    const clinic = await this.clinicForAppointment(appointmentId);
+    const existing = await this.requireOpen(clinic, appointmentId);
+
+    this.requireWithinWindow(clinic, existing.startsAt.toISOString());
+
+    await this.db
+      .update(appointments)
+      .set({
+        status: APPOINTMENT_STATUS.CANCELLED,
+        cancelledReason: reason?.trim() || "ألغى المريض الحجز عبر الرابط",
+        updatedAt: new Date(),
+      })
+      .where(eq(appointments.id, appointmentId));
+
+    await this.notifications.send({
+      clinicId: clinic.id,
+      to: await this.phoneFor(appointmentId),
+      template: NOTIFICATION_TEMPLATE.BOOKING_CANCELLED,
+      appointmentId,
+      vars: {
+        clinic: notificationName(clinic.name),
+        date: localDate(existing.startsAt, clinic.timeZone),
+        time: timeIn(clinic.timeZone, existing.startsAt),
+      },
+    });
+
+    return this.loadManaged(clinic, appointmentId);
+  }
+
+  async reschedule(token: string, startsAt: string): Promise<ManagedBooking> {
+    const appointmentId = this.tokens.verify(token);
+    const clinic = await this.clinicForAppointment(appointmentId);
+    const existing = await this.requireOpen(clinic, appointmentId);
+
+    this.requireWithinWindow(clinic, startsAt);
+    await this.requireOfferedSlot(clinic, existing.doctorId, startsAt, appointmentId);
+
+    try {
+      await this.db
+        .update(appointments)
+        .set({ startsAt: new Date(startsAt), updatedAt: new Date() })
+        .where(eq(appointments.id, appointmentId));
+    } catch (error) {
+      if (isOverlapConflict(error)) {
+        throw new BadRequestException("That time is no longer available");
+      }
+
+      throw error;
+    }
+
+    return this.loadManaged(clinic, appointmentId);
+  }
+
+  private async issueOtp(
+    clinic: ClinicContext,
+    appointmentId: string,
+    patientId: string,
+    phone: string,
+  ): Promise<void> {
+    const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
+
+    await this.db.delete(bookingOtps).where(eq(bookingOtps.appointmentId, appointmentId));
+
+    await this.db.insert(bookingOtps).values({
+      clinicId: clinic.id,
+      appointmentId,
+      patientId,
+      codeHash: hashCode(code),
+      expiresAt: new Date(Date.now() + OTP_TTL_SECONDS * 1000),
+    });
+
+    await this.notifications.send({
+      clinicId: clinic.id,
+      to: phone,
+      template: NOTIFICATION_TEMPLATE.BOOKING_OTP,
+      appointmentId,
+      vars: {
+        clinic: notificationName(clinic.name),
+        code,
+        minutes: String(OTP_TTL_SECONDS / 60),
+      },
+    });
+  }
+
+  private async linkOrCreatePatient(
+    clinicId: string,
+    phone: string,
+    name: { readonly firstName: string; readonly lastName: string },
+  ): Promise<string> {
+    const [existing] = await this.db
+      .select({ id: patients.id })
+      .from(patients)
+      .where(
+        and(
+          eq(patients.clinicId, clinicId),
+          isNull(patients.deletedAt),
+          sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') = ${phoneDigits(phone)}`,
+        ),
+      )
+      .limit(1);
+
+    if (existing) {
+      return existing.id;
+    }
+
+    const fileNumber = await this.nextFileNumber(clinicId);
+
+    const [created] = await this.db
+      .insert(patients)
+      .values({
+        clinicId,
+        fileNumber,
+        firstName: name.firstName,
+        lastName: name.lastName,
+        fullName: joinPatientName(name),
+        phone,
+        notes: "أُنشئ من الحجز الإلكتروني — لم يُتحقق من الهوية بعد",
+      })
+      .returning({ id: patients.id });
+
+    if (!created) {
+      throw new Error("Failed to create the patient");
+    }
+
+    return created.id;
+  }
+
+  private async nextFileNumber(clinicId: string): Promise<string> {
+    const [row] = await this.db
+      .select({ value: sql<number>`coalesce(max(${patients.fileNumber}::int), 0)::int` })
+      .from(patients)
+      .where(and(eq(patients.clinicId, clinicId), sql`${patients.fileNumber} ~ '^[0-9]+$'`));
+
+    return String((row?.value ?? 0) + 1).padStart(5, "0");
+  }
+
+  private async requireUnderActiveLimit(clinic: ClinicContext, phone: string): Promise<void> {
+    const [row] = await this.db
+      .select({ value: count() })
+      .from(appointments)
+      .innerJoin(patients, eq(patients.id, appointments.patientId))
+      .where(
+        and(
+          eq(appointments.clinicId, clinic.id),
+          isNull(appointments.deletedAt),
+          eq(appointments.status, APPOINTMENT_STATUS.REQUESTED),
+          gte(appointments.startsAt, new Date()),
+          sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') = ${phoneDigits(phone)}`,
+        ),
+      );
+
+    if ((row?.value ?? 0) >= clinic.booking.maxActivePerPhone) {
+      throw new ForbiddenException("Booking is not available right now");
+    }
+  }
+
+  private earliestBookable(clinic: ClinicContext): Date {
+    return new Date(Date.now() + clinic.booking.minHoursBefore * 3_600_000);
+  }
+
+  private requireWithinWindow(
+    clinic: ClinicContext,
+    startsAt: string,
+    options: { dateOnly?: boolean } = {},
+  ): void {
+    const at = new Date(startsAt);
+    const latest = new Date(Date.now() + clinic.booking.maxDaysAhead * 86_400_000);
+
+    if (at > latest) {
+      throw new BadRequestException("That date is too far ahead");
+    }
+
+    if (!options.dateOnly && at < this.earliestBookable(clinic)) {
+      throw new BadRequestException("That time is too soon to book online");
+    }
+  }
+
+  private async durationFor(clinicId: string, doctorId: string): Promise<number> {
+    const [row] = await this.db
+      .select({ duration: doctors.defaultAppointmentDurationMinutes })
+      .from(doctors)
+      .where(
+        and(eq(doctors.id, doctorId), eq(doctors.clinicId, clinicId), isNull(doctors.deletedAt)),
+      )
+      .limit(1);
+
+    if (!row) {
+      throw new BadRequestException("That doctor is not available");
+    }
+
+    return row.duration;
+  }
+
+  private async requireClinic(slug: string): Promise<ClinicContext> {
+    const [row] = await this.db
+      .select({
+        id: clinics.id,
+        nameAr: clinics.nameAr,
+        nameEn: clinics.nameEn,
+        logoKey: clinics.logoKey,
+        phone: clinics.phone,
+        country: clinics.country,
+        settings: clinics.settings,
+      })
+      .from(clinics)
+      .where(and(eq(clinics.slug, slug), isNull(clinics.deletedAt)))
+      .limit(1);
+
+    if (!row) {
+      throw new NotFoundException("Clinic not found");
+    }
+
+    return {
+      id: row.id,
+      name: toPersonName(row.nameAr, row.nameEn),
+      logoKey: row.logoKey,
+      phone: row.phone,
+      country: row.country,
+      timeZone: clinicScheduleSettings(row.settings).timezone || DEFAULT_TIME_ZONE,
+      booking: bookingSettings(row.settings),
+    };
+  }
+
+  private async requireBookingEnabled(slug: string): Promise<ClinicContext> {
+    const clinic = await this.requireClinic(slug);
+
+    if (!clinic.booking.enabled) {
+      throw new NotFoundException("Booking is not available right now");
+    }
+
+    return clinic;
+  }
+
+  private async clinicForAppointment(appointmentId: string): Promise<ClinicContext> {
+    const [row] = await this.db
+      .select({ slug: clinics.slug })
+      .from(appointments)
+      .innerJoin(clinics, eq(clinics.id, appointments.clinicId))
+      .where(and(eq(appointments.id, appointmentId), isNull(appointments.deletedAt)))
+      .limit(1);
+
+    if (!row) {
+      throw new UnauthorizedException("Invalid booking link");
+    }
+
+    return this.requireClinic(row.slug);
+  }
+
+  private async requireOpen(
+    clinic: ClinicContext,
+    appointmentId: string,
+  ): Promise<{ startsAt: Date; doctorId: string }> {
+    const [row] = await this.db
+      .select({
+        startsAt: appointments.startsAt,
+        status: appointments.status,
+        doctorId: appointments.doctorId,
+      })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.id, appointmentId),
+          eq(appointments.clinicId, clinic.id),
+          isNull(appointments.deletedAt),
+        ),
+      )
+      .limit(1);
+
+    if (!row) {
+      throw new UnauthorizedException("Invalid booking link");
+    }
+
+    if (!occupiesSlot(row.status) || row.status === APPOINTMENT_STATUS.COMPLETED) {
+      throw new BadRequestException("This booking can no longer be changed");
+    }
+
+    return { startsAt: row.startsAt, doctorId: row.doctorId };
+  }
+
+  private async requireOfferedSlot(
+    clinic: ClinicContext,
+    doctorId: string,
+    startsAt: string,
+    excludeAppointmentId?: string,
+  ): Promise<void> {
+    const at = new Date(startsAt);
+
+    const availability = await this.availability.forDay(clinic.id, {
+      doctorId,
+      date: localDate(at, clinic.timeZone),
+      ...(excludeAppointmentId === undefined ? {} : { excludeAppointmentId }),
+    });
+
+    const slot = availability.slots.find((candidate) => candidate.startsAt === at.toISOString());
+
+    if (!slot) {
+      throw new BadRequestException("That time is not offered");
+    }
+
+    if (!slot.available) {
+      throw new BadRequestException("That time is no longer available");
+    }
+  }
+
+  private async loadManaged(clinic: ClinicContext, appointmentId: string): Promise<ManagedBooking> {
+    const [row] = await this.db
+      .select({
+        status: appointments.status,
+        startsAt: appointments.startsAt,
+        durationMinutes: appointments.durationMinutes,
+        doctorNameAr: users.nameAr,
+        doctorNameEn: users.nameEn,
+      })
+      .from(appointments)
+      .innerJoin(doctors, eq(doctors.id, appointments.doctorId))
+      .innerJoin(users, eq(users.id, doctors.userId))
+      .where(
+        and(
+          eq(appointments.id, appointmentId),
+          eq(appointments.clinicId, clinic.id),
+          isNull(appointments.deletedAt),
+        ),
+      )
+      .limit(1);
+
+    if (!row) {
+      throw new UnauthorizedException("Invalid booking link");
+    }
+
+    return {
+      status: row.status,
+      startsAt: row.startsAt.toISOString(),
+      durationMinutes: row.durationMinutes,
+      doctorName: toPersonName(row.doctorNameAr, row.doctorNameEn),
+      clinicName: clinic.name,
+      clinicPhone: clinic.phone,
+      canModify:
+        occupiesSlot(row.status) &&
+        row.status !== APPOINTMENT_STATUS.COMPLETED &&
+        row.startsAt >= this.earliestBookable(clinic),
+    };
+  }
+
+  private async phoneFor(appointmentId: string): Promise<string> {
+    const [row] = await this.db
+      .select({ phone: patients.phone })
+      .from(appointments)
+      .innerJoin(patients, eq(patients.id, appointments.patientId))
+      .where(eq(appointments.id, appointmentId))
+      .limit(1);
+
+    return row?.phone ?? "";
+  }
+
+  private manageLink(token: string): string {
+    const base = this.config.get("PUBLIC_BASE_URL", { infer: true });
+
+    return `${base.replace(/\/$/, "")}/booking/manage/${token}`;
+  }
+}

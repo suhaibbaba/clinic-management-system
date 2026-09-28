@@ -1,4 +1,4 @@
-import { refreshCookieSecurity } from "@api/auth/refresh-cookie";
+import { refreshCookieSecurity } from "@api/auth/lib/refresh-cookie";
 
 describe("refreshCookieSecurity", () => {
   const base = {

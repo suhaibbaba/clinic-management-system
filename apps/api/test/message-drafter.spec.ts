@@ -1,6 +1,6 @@
 import { AI_OUTBOUND_TARGET } from "@clinic/shared";
-import type { ChatProvider } from "@api/ai/chat-provider";
-import type { ChatProviderResolver } from "@api/ai/chat-provider.resolver";
+import type { ChatProvider } from "@api/ai/lib/chat-provider";
+import type { ChatProviderResolver } from "@api/ai/services/chat-provider.resolver";
 import {
   DEFAULT_TEMPLATES,
   isValidTemplate,

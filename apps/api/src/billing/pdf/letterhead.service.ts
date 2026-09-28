@@ -5,7 +5,8 @@ import type { DocumentLanguage } from "@api/billing/pdf/document-strings";
 import type { RtlPdf } from "@api/billing/pdf/pdf-builder";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { clinics } from "@api/database/schema";
-import { StorageService, type FetchedObject } from "@api/storage/storage.service";
+import { StorageService } from "@api/storage/services/storage.service";
+import { type FetchedObject } from "@api/storage/lib/storage";
 
 export interface Letterhead {
   readonly name: string;

@@ -4,31 +4,31 @@ import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import {
   AttachmentsController,
   PatientAttachmentsController,
-} from "@api/patients/attachments.controller";
-import { AttachmentsService } from "@api/patients/attachments.service";
-import { MedicalHistoriesController } from "@api/patients/medical-histories.controller";
-import { MedicalHistoriesService } from "@api/patients/medical-histories.service";
-import { PatientAccessService } from "@api/patients/patient-access.service";
-import { PatientRegistrationService } from "@api/patients/patient-registration.service";
-import { PatientsController } from "@api/patients/patients.controller";
-import { PatientsService } from "@api/patients/patients.service";
-import { PrescriptionsController } from "@api/patients/prescriptions.controller";
-import { PrescriptionsService } from "@api/patients/prescriptions.service";
-import { ProcedureCatalogController } from "@api/patients/procedure-catalog.controller";
-import { ProcedureCatalogService } from "@api/patients/procedure-catalog.service";
-import { ProceduresController } from "@api/patients/procedures.controller";
-import { ProceduresService } from "@api/patients/procedures.service";
-import { TimelineController } from "@api/patients/timeline.controller";
-import { TimelineService } from "@api/patients/timeline.service";
-import { ToothHistoryController } from "@api/patients/tooth-history.controller";
-import { ToothHistoryService } from "@api/patients/tooth-history.service";
+} from "@api/patients/controllers/attachments.controller";
+import { AttachmentsService } from "@api/patients/services/attachments.service";
+import { MedicalHistoriesController } from "@api/patients/controllers/medical-histories.controller";
+import { MedicalHistoriesService } from "@api/patients/services/medical-histories.service";
+import { PatientAccessService } from "@api/patients/services/patient-access.service";
+import { PatientRegistrationService } from "@api/patients/services/patient-registration.service";
+import { PatientsController } from "@api/patients/controllers/patients.controller";
+import { PatientsService } from "@api/patients/services/patients.service";
+import { PrescriptionsController } from "@api/patients/controllers/prescriptions.controller";
+import { PrescriptionsService } from "@api/patients/services/prescriptions.service";
+import { ProcedureCatalogController } from "@api/patients/controllers/procedure-catalog.controller";
+import { ProcedureCatalogService } from "@api/patients/services/procedure-catalog.service";
+import { ProceduresController } from "@api/patients/controllers/procedures.controller";
+import { ProceduresService } from "@api/patients/services/procedures.service";
+import { TimelineController } from "@api/patients/controllers/timeline.controller";
+import { TimelineService } from "@api/patients/services/timeline.service";
+import { ToothHistoryController } from "@api/patients/controllers/tooth-history.controller";
+import { ToothHistoryService } from "@api/patients/services/tooth-history.service";
 import {
   PlanItemsController,
   TreatmentPlansController,
-} from "@api/patients/treatment-plans.controller";
-import { TreatmentPlansService } from "@api/patients/treatment-plans.service";
-import { VisitsController } from "@api/patients/visits.controller";
-import { VisitsService } from "@api/patients/visits.service";
+} from "@api/patients/controllers/treatment-plans.controller";
+import { TreatmentPlansService } from "@api/patients/services/treatment-plans.service";
+import { VisitsController } from "@api/patients/controllers/visits.controller";
+import { VisitsService } from "@api/patients/services/visits.service";
 
 @Module({
   imports: [BillingModule],

@@ -12,7 +12,7 @@ import {
 } from "@clinic/shared";
 import { and, count, eq } from "drizzle-orm";
 import { AiActionsService, TYPED_PHRASES } from "@api/ai/actions/ai-actions.service";
-import { AiConversationsService } from "@api/ai/ai-conversations.service";
+import { AiConversationsService } from "@api/ai/services/ai-conversations.service";
 import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
 import {
   aiAuditLog,
@@ -22,7 +22,7 @@ import {
   clinics,
   visits,
 } from "@api/database/schema";
-import { PermissionsService } from "@api/permissions/permissions.service";
+import { PermissionsService } from "@api/permissions/services/permissions.service";
 import { createPatient, seedClinicFixtures, nameParts } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 

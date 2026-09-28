@@ -27,7 +27,7 @@ import { createZodDto } from "nestjs-zod";
 import { AutomationService } from "@api/ai/outbound/automation.service";
 import { OutboundLogService } from "@api/ai/outbound/outbound-log.service";
 import { OutboundError, ProposalsService } from "@api/ai/outbound/proposals.service";
-import { CLINICS_ENTITY } from "@api/clinics/clinics.service";
+import { CLINICS_ENTITY } from "@api/clinics/constants";
 import { Audit } from "@api/common/decorators/audit.decorator";
 import { Capability } from "@api/common/decorators/capability.decorator";
 import { CurrentUser } from "@api/common/decorators/current-user.decorator";

@@ -1,14 +1,11 @@
 import { forwardRef, Global, Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { Env } from "@api/config/env.schema";
-import { AccountEmailService } from "@api/email/account-email.service";
-import {
-  EMAIL_PROVIDER,
-  LogEmailProvider,
-  ResendEmailProvider,
-  type EmailProvider,
-} from "@api/email/email-provider";
-import { AccountInvitationsService } from "@api/email/account-invitations.service";
+import { AccountEmailService } from "@api/email/services/account-email.service";
+import { EMAIL_PROVIDER } from "@api/email/constants";
+import { LogEmailProvider, ResendEmailProvider } from "@api/email/services/email-provider";
+import { type EmailProvider } from "@api/email/lib/email-provider";
+import { AccountInvitationsService } from "@api/email/services/account-invitations.service";
 import { AuthModule } from "@api/auth/auth.module";
 import { StorageModule } from "@api/storage/storage.module";
 

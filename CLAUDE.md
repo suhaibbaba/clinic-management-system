@@ -37,7 +37,7 @@ rules, in short:
 - **Infra** one small VPS. Keep the memory footprint low.
 
 ```
-apps/api    one Nest module per domain module
+apps/api    one Nest module per domain module, sorted by kind inside
 apps/web    src/ by kind, then by feature; tests in apps/web/test mirroring src
 packages/shared   Zod schemas, types, enums, constants
 packages/ui       components, tokens, the theme contract
@@ -95,6 +95,11 @@ core · patients · billing · appointments · booking · notifications · labs 
 ## Backend
 
 - `controller` (thin) → `service` (logic) → Drizzle. No business logic in controllers or schemas.
+- **A module folder is sorted by kind:** `<module>.module.ts` at its root, then `controllers/`,
+  `services/` (every `@Injectable`), `dto/<name>.dto.ts`, `lib/<name>.ts` (row types, mappers, SQL
+  fragments, pure functions) and `constants.ts` (UPPER_CASE values only). A file holds one kind: a
+  service file is its class and nothing else. A constant built from a module's own helpers lives with
+  them in `lib/`, never in `constants.ts`, so the two never import each other.
 - DTOs are shared Zod schemas. Never duplicate validation.
 - `JwtAuthGuard` global; `@Roles(...)` per endpoint; object-level checks inside services.
 - Every list endpoint paginates, filters by query param, and is clinic-scoped automatically.

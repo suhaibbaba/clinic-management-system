@@ -5,7 +5,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { AiModule } from "@api/ai/ai.module";
 import { AppointmentsModule } from "@api/appointments/appointments.module";
-import { AuditInterceptor } from "@api/audit/audit.interceptor";
+import { AuditInterceptor } from "@api/audit/services/audit.interceptor";
 import { AuditModule } from "@api/audit/audit.module";
 import { AuthModule } from "@api/auth/auth.module";
 import { BookingModule } from "@api/booking/booking.module";

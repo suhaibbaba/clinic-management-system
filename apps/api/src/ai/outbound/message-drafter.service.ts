@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { AI_OUTBOUND_TARGET, renderTemplate, type AiOutboundTarget } from "@clinic/shared";
-import { ChatProviderResolver } from "@api/ai/chat-provider.resolver";
+import { ChatProviderResolver } from "@api/ai/services/chat-provider.resolver";
 import type { Candidate } from "@api/ai/outbound/outbound-recipients.service";
 
 export const DRAFT_MAX_LENGTH = 600;

@@ -1,13 +1,16 @@
 import { Module } from "@nestjs/common";
-import { BillingController, PatientBillingController } from "@api/billing/billing.controller";
-import { ChargesService } from "@api/billing/charges.service";
-import { DocumentsService } from "@api/billing/documents.service";
-import { LedgerService } from "@api/billing/ledger.service";
-import { OverdueService } from "@api/billing/overdue.service";
-import { PaymentsController } from "@api/billing/payments.controller";
-import { PaymentsService } from "@api/billing/payments.service";
+import {
+  BillingController,
+  PatientBillingController,
+} from "@api/billing/controllers/billing.controller";
+import { ChargesService } from "@api/billing/services/charges.service";
+import { DocumentsService } from "@api/billing/services/documents.service";
+import { LedgerService } from "@api/billing/services/ledger.service";
+import { OverdueService } from "@api/billing/services/overdue.service";
+import { PaymentsController } from "@api/billing/controllers/payments.controller";
+import { PaymentsService } from "@api/billing/services/payments.service";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
-import { PatientAccessService } from "@api/patients/patient-access.service";
+import { PatientAccessService } from "@api/patients/services/patient-access.service";
 
 @Module({
   controllers: [PaymentsController, PatientBillingController, BillingController],

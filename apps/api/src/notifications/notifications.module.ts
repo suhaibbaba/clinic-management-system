@@ -6,13 +6,15 @@ import { DatabaseModule } from "@api/database/database.module";
 import {
   HttpNotificationProvider,
   LogNotificationProvider,
-  NOTIFICATION_PROVIDER,
   WhatsAppNotificationProvider,
+} from "@api/notifications/services/notification-provider";
+import { NOTIFICATION_PROVIDER } from "@api/notifications/constants";
+import {
   whatsAppCredentials,
   type NotificationProvider,
-} from "@api/notifications/notification-provider";
-import { NotificationsService } from "@api/notifications/notifications.service";
-import { RemindersScheduler } from "@api/notifications/reminders.scheduler";
+} from "@api/notifications/lib/notification-provider";
+import { NotificationsService } from "@api/notifications/services/notifications.service";
+import { RemindersScheduler } from "@api/notifications/services/reminders.scheduler";
 import { SecretsModule } from "@api/secrets/secrets.module";
 
 @Module({

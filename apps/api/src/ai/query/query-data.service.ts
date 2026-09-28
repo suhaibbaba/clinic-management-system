@@ -9,8 +9,8 @@ import {
 } from "@api/ai/query/query-guard";
 import { ToolRefusal } from "@api/ai/tools/ai-tool";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
-import { PermissionsService } from "@api/permissions/permissions.service";
+import { CapabilityRegistry } from "@api/permissions/services/capability-registry.service";
+import { PermissionsService } from "@api/permissions/services/permissions.service";
 
 export const AI_READ_CLIENT = Symbol("AI_READ_CLIENT");
 

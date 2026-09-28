@@ -1,7 +1,8 @@
 import { ATTACHMENT_TYPE, MAX_ATTACHMENT_BYTES, USER_ROLE, type UserRole } from "@clinic/shared";
 import { createPatient, uniquePhone, nameParts } from "@test/helpers/patient-fixtures";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
-import { StorageService, type StoredObject } from "@api/storage/storage.service";
+import { StorageService } from "@api/storage/services/storage.service";
+import { type StoredObject } from "@api/storage/lib/storage";
 
 describe("Attachments (e2e)", () => {
   let context: TestContext;

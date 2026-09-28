@@ -1,0 +1,404 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  type OnModuleInit,
+} from "@nestjs/common";
+import {
+  TREATMENT_PLAN_ITEM_STATUS,
+  type ConvertPlanItemInput,
+  type CreateTreatmentPlanInput,
+  type CreateTreatmentPlanItemInput,
+  type ListTreatmentPlansQuery,
+  type Paginated,
+  type PerformedProcedure,
+  type TreatmentPlan,
+  type TreatmentPlanItem,
+  type UpdateTreatmentPlanInput,
+  type UpdateTreatmentPlanItemInput,
+} from "@clinic/shared";
+import { asc, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
+import { AuditSnapshotRegistry } from "@api/audit/services/audit-snapshot.registry";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { doctors, treatmentPlanItems, treatmentPlans } from "@api/database/schema";
+import { PatientAccessService } from "@api/patients/services/patient-access.service";
+import { ProcedureCatalogService } from "@api/patients/services/procedure-catalog.service";
+import { ProceduresService } from "@api/patients/services/procedures.service";
+import { TREATMENT_PLANS_ENTITY, TREATMENT_PLAN_ITEMS_ENTITY } from "@api/patients/constants";
+import { toPlan, toPlanItem, PlanRow, PlanItemRow } from "@api/patients/lib/treatment-plans";
+
+@Injectable()
+export class TreatmentPlansService implements OnModuleInit {
+  constructor(
+    @Inject(DATABASE) private readonly db: Database,
+    private readonly scope: ClinicScopeService,
+    private readonly patientAccess: PatientAccessService,
+    private readonly catalog: ProcedureCatalogService,
+    private readonly procedures: ProceduresService,
+    private readonly auditSnapshots: AuditSnapshotRegistry,
+  ) {}
+
+  onModuleInit(): void {
+    this.auditSnapshots.register(TREATMENT_PLANS_ENTITY, async (id, clinicId) => {
+      const [row] = await this.db
+        .select()
+        .from(treatmentPlans)
+        .where(this.scope.where(treatmentPlans, clinicId, eq(treatmentPlans.id, id)))
+        .limit(1);
+
+      return row ? { ...toPlan(row) } : null;
+    });
+
+    this.auditSnapshots.register(TREATMENT_PLAN_ITEMS_ENTITY, async (id, clinicId) => {
+      const [row] = await this.db
+        .select()
+        .from(treatmentPlanItems)
+        .where(this.scope.where(treatmentPlanItems, clinicId, eq(treatmentPlanItems.id, id)))
+        .limit(1);
+
+      return row ? { ...toPlanItem(row) } : null;
+    });
+  }
+
+  async list(
+    actor: AuthenticatedUser,
+    query: ListTreatmentPlansQuery,
+  ): Promise<Paginated<TreatmentPlan>> {
+    const filters: (SQL | undefined)[] = [
+      await this.patientAccess.assignedFilter(actor, treatmentPlans.patientId),
+    ];
+
+    if (query.patientId) {
+      await this.patientAccess.requirePatientId(actor, query.patientId);
+      filters.push(eq(treatmentPlans.patientId, query.patientId));
+    }
+    if (query.status) {
+      filters.push(eq(treatmentPlans.status, query.status));
+    }
+
+    const where = this.scope.where(treatmentPlans, actor.clinicId, ...filters);
+    const { limit, offset } = toLimitOffset(query);
+
+    const [rows, [totals]] = await Promise.all([
+      this.db
+        .select()
+        .from(treatmentPlans)
+        .where(where)
+        .orderBy(desc(treatmentPlans.createdAt))
+        .limit(limit)
+        .offset(offset),
+      this.db
+        .select({ value: sql<number>`count(*)::int` })
+        .from(treatmentPlans)
+        .where(where),
+    ]);
+
+    const items = await this.itemsFor(
+      actor.clinicId,
+      rows.map((row) => row.id),
+    );
+
+    return toPaginated(
+      rows.map((row) => toPlan(row, items.get(row.id) ?? [])),
+      totals?.value ?? 0,
+      query,
+    );
+  }
+
+  async findOne(actor: AuthenticatedUser, id: string): Promise<TreatmentPlan> {
+    const row = await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, id);
+    const items = await this.itemsFor(actor.clinicId, [row.id]);
+
+    return toPlan(row, items.get(row.id) ?? []);
+  }
+
+  async create(actor: AuthenticatedUser, input: CreateTreatmentPlanInput): Promise<TreatmentPlan> {
+    await this.patientAccess.requirePatientId(actor, input.patientId);
+    await this.requireDoctor(actor, input.doctorId);
+
+    const [row] = await this.db
+      .insert(treatmentPlans)
+      .values({
+        clinicId: actor.clinicId,
+        patientId: input.patientId,
+        doctorId: input.doctorId,
+        title: input.title,
+        status: input.status,
+        notes: input.notes ?? null,
+        createdBy: actor.id,
+        updatedBy: actor.id,
+      })
+      .returning();
+
+    if (!row) {
+      throw new Error("Failed to create treatment plan");
+    }
+
+    const items: TreatmentPlanItem[] = [];
+    for (const item of input.items) {
+      items.push(await this.insertItem(actor, row.id, item));
+    }
+
+    return toPlan(row, items);
+  }
+
+  async update(
+    actor: AuthenticatedUser,
+    id: string,
+    input: UpdateTreatmentPlanInput,
+  ): Promise<TreatmentPlan> {
+    await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, id);
+
+    if (input.doctorId) {
+      await this.requireDoctor(actor, input.doctorId);
+    }
+
+    const [row] = await this.db
+      .update(treatmentPlans)
+      .set({
+        ...(input.doctorId !== undefined && { doctorId: input.doctorId }),
+        ...(input.title !== undefined && { title: input.title }),
+        ...(input.status !== undefined && { status: input.status }),
+        ...(input.notes !== undefined && { notes: input.notes ?? null }),
+        updatedAt: new Date(),
+        updatedBy: actor.id,
+      })
+      .where(this.scope.where(treatmentPlans, actor.clinicId, eq(treatmentPlans.id, id)))
+      .returning();
+
+    if (!row) {
+      throw new Error("Failed to update treatment plan");
+    }
+
+    const items = await this.itemsFor(actor.clinicId, [row.id]);
+    return toPlan(row, items.get(row.id) ?? []);
+  }
+
+  async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
+    await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, id);
+    const now = new Date();
+
+    await this.db
+      .update(treatmentPlans)
+      .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
+      .where(this.scope.where(treatmentPlans, actor.clinicId, eq(treatmentPlans.id, id)));
+
+    await this.db
+      .update(treatmentPlanItems)
+      .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
+      .where(
+        this.scope.where(
+          treatmentPlanItems,
+          actor.clinicId,
+          eq(treatmentPlanItems.treatmentPlanId, id),
+        ),
+      );
+  }
+
+  async addItem(
+    actor: AuthenticatedUser,
+    planId: string,
+    input: CreateTreatmentPlanItemInput,
+  ): Promise<TreatmentPlanItem> {
+    await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, planId);
+
+    return this.insertItem(actor, planId, input);
+  }
+
+  async updateItem(
+    actor: AuthenticatedUser,
+    itemId: string,
+    input: UpdateTreatmentPlanItemInput,
+  ): Promise<TreatmentPlanItem> {
+    const existing = await this.requireItem(actor, itemId);
+
+    if (existing.status === TREATMENT_PLAN_ITEM_STATUS.CONVERTED) {
+      throw new ConflictException("A converted plan item can no longer be edited");
+    }
+    if (input.procedureId) {
+      await this.catalog.requirePriced(actor.clinicId, input.procedureId);
+    }
+    if (input.performerDoctorId) {
+      await this.requireDoctor(actor, input.performerDoctorId);
+    }
+
+    const [row] = await this.db
+      .update(treatmentPlanItems)
+      .set({
+        ...(input.procedureId !== undefined && { procedureId: input.procedureId }),
+        ...(input.performerDoctorId !== undefined && {
+          performerDoctorId: input.performerDoctorId ?? null,
+        }),
+        ...(input.estimatedPrice !== undefined && { estimatedPrice: input.estimatedPrice }),
+        ...(input.sortOrder !== undefined && { sortOrder: input.sortOrder }),
+        ...(input.status !== undefined && { status: input.status }),
+        ...(input.notes !== undefined && { notes: input.notes ?? null }),
+        updatedAt: new Date(),
+        updatedBy: actor.id,
+      })
+      .where(
+        this.scope.where(treatmentPlanItems, actor.clinicId, eq(treatmentPlanItems.id, itemId)),
+      )
+      .returning();
+
+    if (!row) {
+      throw new Error("Failed to update treatment plan item");
+    }
+
+    return toPlanItem(row);
+  }
+
+  async softDeleteItem(actor: AuthenticatedUser, itemId: string): Promise<void> {
+    const existing = await this.requireItem(actor, itemId);
+
+    if (existing.status === TREATMENT_PLAN_ITEM_STATUS.CONVERTED) {
+      throw new ConflictException("A converted plan item can no longer be removed");
+    }
+
+    const now = new Date();
+    await this.db
+      .update(treatmentPlanItems)
+      .set({ deletedAt: now, updatedAt: now, updatedBy: actor.id })
+      .where(
+        this.scope.where(treatmentPlanItems, actor.clinicId, eq(treatmentPlanItems.id, itemId)),
+      );
+  }
+
+  async convertItem(
+    actor: AuthenticatedUser,
+    itemId: string,
+    input: ConvertPlanItemInput,
+  ): Promise<PerformedProcedure> {
+    const item = await this.requireItem(actor, itemId);
+
+    if (item.status !== TREATMENT_PLAN_ITEM_STATUS.PLANNED) {
+      throw new ConflictException(`A ${item.status} plan item cannot be converted`);
+    }
+
+    const plan = await this.patientAccess.requireRow<PlanRow>(
+      actor,
+      treatmentPlans,
+      item.treatmentPlanId,
+    );
+
+    const procedure = await this.procedures.create(
+      actor,
+      {
+        patientId: plan.patientId,
+        visitId: input.visitId ?? null,
+        doctorId: input.doctorId ?? item.performerDoctorId ?? plan.doctorId,
+        procedureId: item.procedureId,
+        price: input.price ?? item.estimatedPrice,
+        discount: "0.00",
+        status: "done",
+        ...(input.performedAt !== undefined && { performedAt: input.performedAt }),
+        chartMarks: [],
+      },
+      { planItemId: item.id },
+    );
+
+    await this.db
+      .update(treatmentPlanItems)
+      .set({
+        status: TREATMENT_PLAN_ITEM_STATUS.CONVERTED,
+        updatedAt: new Date(),
+        updatedBy: actor.id,
+      })
+      .where(
+        this.scope.where(treatmentPlanItems, actor.clinicId, eq(treatmentPlanItems.id, item.id)),
+      );
+
+    return procedure;
+  }
+
+  private async insertItem(
+    actor: AuthenticatedUser,
+    planId: string,
+    input: CreateTreatmentPlanItemInput,
+  ): Promise<TreatmentPlanItem> {
+    const catalogItem = await this.catalog.requirePriced(actor.clinicId, input.procedureId);
+
+    if (input.performerDoctorId) {
+      await this.requireDoctor(actor, input.performerDoctorId);
+    }
+
+    const [row] = await this.db
+      .insert(treatmentPlanItems)
+      .values({
+        clinicId: actor.clinicId,
+        treatmentPlanId: planId,
+        procedureId: input.procedureId,
+        performerDoctorId: input.performerDoctorId ?? null,
+        estimatedPrice: input.estimatedPrice ?? catalogItem.defaultPrice,
+        sortOrder: input.sortOrder,
+        notes: input.notes ?? null,
+        createdBy: actor.id,
+        updatedBy: actor.id,
+      })
+      .returning();
+
+    if (!row) {
+      throw new Error("Failed to create treatment plan item");
+    }
+
+    return toPlanItem(row);
+  }
+
+  private async requireItem(actor: AuthenticatedUser, itemId: string): Promise<PlanItemRow> {
+    const item = await this.scope.findOneOrFail<PlanItemRow>(
+      treatmentPlanItems,
+      actor.clinicId,
+      itemId,
+    );
+
+    await this.patientAccess.requireRow<PlanRow>(actor, treatmentPlans, item.treatmentPlanId);
+
+    return item;
+  }
+
+  private async itemsFor(
+    clinicId: string,
+    planIds: readonly string[],
+  ): Promise<Map<string, TreatmentPlanItem[]>> {
+    if (planIds.length === 0) {
+      return new Map();
+    }
+
+    const rows = await this.db
+      .select()
+      .from(treatmentPlanItems)
+      .where(
+        this.scope.where(
+          treatmentPlanItems,
+          clinicId,
+          inArray(treatmentPlanItems.treatmentPlanId, [...planIds]),
+        ),
+      )
+      .orderBy(asc(treatmentPlanItems.sortOrder));
+
+    const grouped = new Map<string, TreatmentPlanItem[]>();
+    for (const row of rows) {
+      const list = grouped.get(row.treatmentPlanId) ?? [];
+      list.push(toPlanItem(row));
+      grouped.set(row.treatmentPlanId, list);
+    }
+
+    return grouped;
+  }
+
+  private async requireDoctor(actor: AuthenticatedUser, doctorId: string): Promise<void> {
+    const [row] = await this.db
+      .select({ id: doctors.id })
+      .from(doctors)
+      .where(this.scope.where(doctors, actor.clinicId, eq(doctors.id, doctorId)))
+      .limit(1);
+
+    if (!row) {
+      throw new BadRequestException("Doctor not found in this clinic");
+    }
+  }
+}

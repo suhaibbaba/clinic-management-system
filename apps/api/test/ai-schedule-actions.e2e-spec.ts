@@ -12,7 +12,7 @@ import {
 } from "@clinic/shared";
 import { and, eq, isNull } from "drizzle-orm";
 import { TYPED_PHRASES } from "@api/ai/actions/ai-actions.service";
-import { AiConversationsService } from "@api/ai/ai-conversations.service";
+import { AiConversationsService } from "@api/ai/services/ai-conversations.service";
 import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
 import {
   aiProposals,

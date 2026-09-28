@@ -12,11 +12,11 @@ import { from, lastValueFrom } from "rxjs";
 import { z } from "zod";
 import { AI_ROUTE_TOOL, type AiToolOptions } from "@api/ai/tools/route-tool.decorator";
 import type { ToolGroup } from "@api/ai/tools/tool-groups";
-import { AuditInterceptor } from "@api/audit/audit.interceptor";
-import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
-import { AuditService } from "@api/audit/audit.service";
+import { AuditInterceptor } from "@api/audit/services/audit.interceptor";
+import { AuditSnapshotRegistry } from "@api/audit/services/audit-snapshot.registry";
+import { AuditService } from "@api/audit/services/audit.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
-import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
+import { CapabilityRegistry } from "@api/permissions/services/capability-registry.service";
 
 const FORBIDDEN_AREAS = [
   "auth",

@@ -6,8 +6,8 @@ import type { AiToolsService } from "@api/ai/tools/ai-tools.service";
 import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import type { Database } from "@api/database/database.module";
-import type { CapabilityRegistry } from "@api/permissions/capability-registry.service";
-import type { PermissionsService } from "@api/permissions/permissions.service";
+import type { CapabilityRegistry } from "@api/permissions/services/capability-registry.service";
+import type { PermissionsService } from "@api/permissions/services/permissions.service";
 
 const ACTOR: AuthenticatedUser = {
   id: "11111111-1111-4111-8111-111111111111",

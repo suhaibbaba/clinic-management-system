@@ -1,7 +1,7 @@
 import { AI_TOOL, AI_TOOL_ERROR, USER_ROLE, type UserRole } from "@clinic/shared";
-import { AiConversationsService } from "@api/ai/ai-conversations.service";
+import { AiConversationsService } from "@api/ai/services/ai-conversations.service";
 import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
-import { PermissionsService } from "@api/permissions/permissions.service";
+import { PermissionsService } from "@api/permissions/services/permissions.service";
 import { createPatient, nameParts } from "@test/helpers/patient-fixtures";
 import { createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 

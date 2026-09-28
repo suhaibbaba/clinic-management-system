@@ -4,9 +4,9 @@ import { Test } from "@nestjs/testing";
 import { AppModule } from "@api/app.module";
 import { AiTool } from "@api/ai/tools/route-tool.decorator";
 import { RouteToolRegistry } from "@api/ai/tools/route-tools";
-import { AuditSnapshotRegistry } from "@api/audit/audit-snapshot.registry";
-import { AuditService } from "@api/audit/audit.service";
-import { CapabilityRegistry } from "@api/permissions/capability-registry.service";
+import { AuditSnapshotRegistry } from "@api/audit/services/audit-snapshot.registry";
+import { AuditService } from "@api/audit/services/audit.service";
+import { CapabilityRegistry } from "@api/permissions/services/capability-registry.service";
 
 process.env["DATABASE_URL"] ??= "postgres://nobody:nothing@127.0.0.1:1/none";
 
