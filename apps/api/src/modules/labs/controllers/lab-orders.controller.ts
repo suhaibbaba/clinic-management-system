@@ -38,6 +38,7 @@ import {
   CreateLabOrderDto,
   UpdateLabOrderDto,
   ReturnLabOrderDto,
+  CancelLabOrderDto,
   PresignDto,
   ConfirmDto,
   AttachmentParamsDto,
@@ -173,13 +174,7 @@ export class LabOrdersController {
     @Param() params: IdParamDto,
     @Body() body: ReturnLabOrderDto,
   ): Promise<LabOrderRow> {
-    return this.orders.changeStatus(
-      actor,
-      params.id,
-      LAB_ORDER_STATUS.RETURNED,
-      body.reason,
-      body.expectedAt,
-    );
+    return this.orders.changeStatus(actor, params.id, LAB_ORDER_STATUS.RETURNED, body);
   }
 
   @Patch(":id/cancel")
@@ -188,8 +183,9 @@ export class LabOrdersController {
   cancel(
     @CurrentUser() actor: AuthenticatedUser,
     @Param() params: IdParamDto,
+    @Body() body: CancelLabOrderDto,
   ): Promise<LabOrderRow> {
-    return this.orders.changeStatus(actor, params.id, LAB_ORDER_STATUS.CANCELLED);
+    return this.orders.changeStatus(actor, params.id, LAB_ORDER_STATUS.CANCELLED, body);
   }
 
   @AiTool({

@@ -94,6 +94,7 @@ export const labOrders = pgTable(
     receivedAt: timestamp("received_at", { withTimezone: true }),
     fittedAt: timestamp("fitted_at", { withTimezone: true }),
     returnReason: text("return_reason"),
+    costKept: boolean("cost_kept").notNull().default(false),
     ...auditColumns,
     ...softDeleteColumn,
   },

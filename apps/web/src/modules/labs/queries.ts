@@ -167,8 +167,9 @@ export function useUpdateLabOrder() {
 export type LabOrderStep = "send" | "ready" | "receive" | "fit" | "cancel";
 
 export function useLabOrderStep() {
-  return useLabMutation(({ id, step }: { id: string; step: LabOrderStep }) =>
-    labOrdersApi[step === "cancel" ? "cancel" : step](id),
+  return useLabMutation(
+    ({ id, step, keepCost }: { id: string; step: LabOrderStep; keepCost?: boolean }) =>
+      step === "cancel" ? labOrdersApi.cancel(id, { keepCost }) : labOrdersApi[step](id),
   );
 }
 

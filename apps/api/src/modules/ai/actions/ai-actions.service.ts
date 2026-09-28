@@ -1482,12 +1482,9 @@ export class AiActionsService {
             AUDIT_ACTION.UPDATE,
             payload.labOrderId,
             () =>
-              this.labOrders.changeStatus(
-                actor,
-                payload.labOrderId,
-                payload.status,
-                payload.reason ?? undefined,
-              ),
+              this.labOrders.changeStatus(actor, payload.labOrderId, payload.status, {
+                reason: payload.reason ?? undefined,
+              }),
           );
 
           return { result: null, audit: { entity: LAB_ORDERS_ENTITY, entityId: order.id } };

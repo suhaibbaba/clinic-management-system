@@ -1,8 +1,9 @@
-import { useCallback, useId, useState, type JSX, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@ui/components/button";
 import { Icon } from "@ui/components/icon";
 import { Modal } from "@ui/components/modal";
+import { Switch } from "@ui/components/switch";
 import { cn } from "@ui/lib/cn";
 import { testid, type TestIdProps } from "@ui/lib/testid";
 
@@ -14,7 +15,8 @@ export interface ConfirmDialogProps extends TestIdProps {
   readonly consequences?: readonly ReactNode[] | undefined;
   readonly confirmLabel?: string | undefined;
   readonly tone?: "danger" | "primary" | undefined;
-  readonly onConfirm: () => Promise<void>;
+  readonly toggle?: { readonly label: string } | undefined;
+  readonly onConfirm: (choice: { readonly toggled: boolean }) => Promise<void>;
 }
 
 export function ConfirmDialog({
@@ -25,11 +27,19 @@ export function ConfirmDialog({
   consequences,
   confirmLabel,
   tone = "danger",
+  toggle,
   onConfirm,
   "data-testid": testId = "confirm-dialog",
 }: ConfirmDialogProps): JSX.Element {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
+  const [toggled, setToggled] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setToggled(false);
+    }
+  }, [open]);
   const consequencesId = useId();
   const hasConsequences = consequences !== undefined && consequences.length > 0;
 
@@ -41,7 +51,7 @@ export function ConfirmDialog({
     setBusy(true);
 
     try {
-      await onConfirm();
+      await onConfirm({ toggled });
       onOpenChange(false);
     } catch {
     } finally {
@@ -83,35 +93,44 @@ export function ConfirmDialog({
         </>
       }
     >
-      {hasConsequences ? (
-        <ul
-          id={consequencesId}
-          {...testid(testId, "consequences")}
-          className="flex flex-col gap-1.5"
-        >
-          {consequences.map((line, index) => (
-            <li key={index} className="flex items-start gap-2 text-value text-ink-muted">
-              <Icon
-                name={tone === "danger" ? "alert" : "info"}
-                className={cn(
-                  "mt-0.5 size-4 shrink-0",
-                  tone === "danger" ? "text-danger-600" : "text-primary-600",
-                )}
-              />
-              <span>{line}</span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <></>
-      )}
+      <div className="flex flex-col gap-4">
+        {hasConsequences && (
+          <ul
+            id={consequencesId}
+            {...testid(testId, "consequences")}
+            className="flex flex-col gap-1.5"
+          >
+            {consequences.map((line, index) => (
+              <li key={index} className="flex items-start gap-2 text-value text-ink-muted">
+                <Icon
+                  name={tone === "danger" ? "alert" : "info"}
+                  className={cn(
+                    "mt-0.5 size-4 shrink-0",
+                    tone === "danger" ? "text-danger-600" : "text-primary-600",
+                  )}
+                />
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {toggle !== undefined && (
+          <Switch
+            {...testid(testId, "toggle")}
+            checked={toggled}
+            onCheckedChange={setToggled}
+            disabled={busy}
+            label={t(toggle.label)}
+          />
+        )}
+      </div>
     </Modal>
   );
 }
 
 export type ConfirmRequest = Pick<
   ConfirmDialogProps,
-  "title" | "titleValues" | "consequences" | "confirmLabel" | "tone" | "onConfirm"
+  "title" | "titleValues" | "consequences" | "confirmLabel" | "tone" | "toggle" | "onConfirm"
 >;
 
 export function useConfirm(testId?: string): {
@@ -133,6 +152,7 @@ export function useConfirm(testId?: string): {
         consequences={request?.consequences}
         confirmLabel={request?.confirmLabel}
         tone={request?.tone}
+        toggle={request?.toggle}
         onConfirm={request?.onConfirm ?? (async () => undefined)}
       />
     ),

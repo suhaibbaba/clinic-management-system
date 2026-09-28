@@ -1,6 +1,6 @@
 import { ConflictException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
+import { billableOrder } from "@api/modules/labs/lib/lab-orders";
 import {
-  LAB_ORDER_BILLABLE_STATUSES,
   LAB_ORDER_AWAITING_STATUSES,
   type CreateLabInput,
   type Lab,
@@ -171,10 +171,6 @@ export class LabsService implements OnModuleInit {
       labIds.map((id) => sql`${id}::uuid`),
       sql`, `,
     );
-    const billable = sql.join(
-      LAB_ORDER_BILLABLE_STATUSES.map((status) => sql`${status}`),
-      sql`, `,
-    );
     const awaiting = sql.join(
       LAB_ORDER_AWAITING_STATUSES.map((status) => sql`${status}`),
       sql`, `,
@@ -192,7 +188,7 @@ export class LabsService implements OnModuleInit {
           coalesce((
             select sum(price) from lab_orders
             where clinic_id = ${clinicId} and lab_id = s.lab_id and deleted_at is null
-              and status in (${billable})
+              and ${billableOrder}
           ), 0)
           - coalesce((
             select sum(amount) from lab_payments

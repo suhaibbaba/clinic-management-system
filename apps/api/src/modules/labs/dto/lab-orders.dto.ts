@@ -5,6 +5,7 @@ import {
   listLabOrdersQuerySchema,
   labOrderStageCountsQuerySchema,
   returnLabOrderSchema,
+  cancelLabOrderSchema,
   idParamSchema,
   presignLabAttachmentSchema,
   confirmLabAttachmentSchema,
@@ -20,6 +21,8 @@ export class ListLabOrdersQueryDto extends createZodDto(listLabOrdersQuerySchema
 export class StageCountsQueryDto extends createZodDto(labOrderStageCountsQuerySchema) {}
 
 export class ReturnLabOrderDto extends createZodDto(returnLabOrderSchema) {}
+
+export class CancelLabOrderDto extends createZodDto(cancelLabOrderSchema) {}
 
 export class IdParamDto extends createZodDto(idParamSchema) {}
 

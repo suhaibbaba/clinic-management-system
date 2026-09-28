@@ -214,7 +214,7 @@ describe("Labs (e2e)", () => {
       ).toBe(400);
     });
 
-    it("cancels only before the lab has started", async () => {
+    it("cancels before the work is in hand, and returned work, but not after receiving", async () => {
       const draft = await createOrder();
       expect((await move(draft.id, "cancel")).statusCode).toBe(200);
 
@@ -329,6 +329,50 @@ describe("Labs (e2e)", () => {
       expect(Number((await balance()).owed)).toBe(Number(before.owed) + 120);
 
       await move(order.id, "cancel");
+      expect((await balance()).owed).toBe(before.owed);
+    });
+
+    it("keeps a cancelled order's cost when asked to", async () => {
+      const before = await balance();
+
+      const order = await createOrder({ workTypeId: bridgeId });
+      await move(order.id, "send");
+
+      const cancelled = await move(order.id, "cancel", USER_ROLE.ADMIN, { keepCost: true });
+
+      expect((cancelled.json() as LabOrderRow).costKept).toBe(true);
+      expect(Number((await balance()).owed)).toBe(Number(before.owed) + 120);
+    });
+
+    it("cancels returned work, dropping or keeping its cost", async () => {
+      const before = await balance();
+      const returned = async (): Promise<LabOrderRow> => {
+        const order = await createOrder({ workTypeId: bridgeId });
+        await move(order.id, "send");
+        await move(order.id, "ready");
+        await move(order.id, "return", USER_ROLE.ADMIN, {
+          reason: "لا يجلس",
+          expectedAt: "2030-01-15",
+        });
+        return order;
+      };
+
+      const dropped = await returned();
+      expect((await move(dropped.id, "cancel")).statusCode).toBe(200);
+      expect((await balance()).owed).toBe(before.owed);
+
+      const kept = await returned();
+      await move(kept.id, "cancel", USER_ROLE.ADMIN, { keepCost: true });
+      expect(Number((await balance()).owed)).toBe(Number(before.owed) + 120);
+    });
+
+    it("never charges a draft, whatever the cancel asks", async () => {
+      const before = await balance();
+
+      const draft = await createOrder({ workTypeId: bridgeId });
+      const cancelled = await move(draft.id, "cancel", USER_ROLE.ADMIN, { keepCost: true });
+
+      expect((cancelled.json() as LabOrderRow).costKept).toBe(false);
       expect((await balance()).owed).toBe(before.owed);
     });
 

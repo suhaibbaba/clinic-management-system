@@ -36,8 +36,8 @@ describe("availableSteps", () => {
     expect(stepsFor(LAB_ORDER_STATUS.CANCELLED, USER_ROLE.ADMIN)).toEqual([]);
   });
 
-  it("waits for the lab to mark returned work ready, never sends it twice", () => {
-    expect(stepsFor(LAB_ORDER_STATUS.RETURNED, USER_ROLE.TECHNICIAN)).toEqual(["ready"]);
+  it("lets returned work be marked ready or cancelled, never sent twice", () => {
+    expect(stepsFor(LAB_ORDER_STATUS.RETURNED, USER_ROLE.TECHNICIAN)).toEqual(["ready", "cancel"]);
   });
 
   it("allows a return only from the three statuses that have the work in hand", () => {

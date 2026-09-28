@@ -1177,10 +1177,13 @@
         "title": "Cancel the “{{work}}” order for {{patient}}?",
         "moves": "The order moves to finished orders.",
         "final": "A cancelled order cannot be reopened.",
-        "balance": "Its cost no longer counts toward the lab balance."
+        "balance": "Its cost comes off the lab's balance, unless you keep it.",
+        "keepCost": "Keep the cost on the lab's balance"
       },
       "viewCancelled": "View order",
-      "returnExpected": "New expected date"
+      "returnExpected": "New expected date",
+      "costKept": "Cost kept despite the cancellation",
+      "labBalance": "Lab balance"
     },
     "section": {
       "label": "Lab views",

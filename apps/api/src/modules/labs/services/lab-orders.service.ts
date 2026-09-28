@@ -6,7 +6,8 @@ import {
   NotFoundException,
   type OnModuleInit,
 } from "@nestjs/common";
-import { LAB_ORDER_ERROR, localDate } from "@clinic/shared";
+import { countsTowardLabBalance, LAB_ORDER_ERROR, localDate } from "@clinic/shared";
+import { type StatusChange } from "@api/modules/labs/lib/lab-orders";
 import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import {
   canTransitionLabOrder,
@@ -318,8 +319,7 @@ export class LabOrdersService implements OnModuleInit {
     actor: AuthenticatedUser,
     id: string,
     next: LabOrderStatus,
-    reason?: string,
-    expectedAt?: string,
+    { reason, expectedAt, keepCost = false }: StatusChange = {},
   ): Promise<LabOrderRow> {
     const existing = await this.requireRow(actor.clinicId, id);
 
@@ -354,6 +354,9 @@ export class LabOrdersService implements OnModuleInit {
           receivedAt: null,
           fittedAt: null,
           ...(expectedAt !== undefined && { expectedAt: new Date(expectedAt) }),
+        }),
+        ...(next === LAB_ORDER_STATUS.CANCELLED && {
+          costKept: keepCost && countsTowardLabBalance(existing.status),
         }),
         updatedAt: now,
         updatedBy: actor.id,
