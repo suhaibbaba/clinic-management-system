@@ -3,7 +3,6 @@ import { useSyncExternalStore, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { isUpdating, subscribeUpdating } from "@web/lib/service-worker";
 
-/** The page reloads itself once a newer build takes over; this says why before it happens. */
 export function UpdateBar(): JSX.Element | null {
   const { t } = useTranslation();
   const updating = useSyncExternalStore(subscribeUpdating, isUpdating, () => false);

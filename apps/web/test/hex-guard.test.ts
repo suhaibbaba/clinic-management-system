@@ -9,8 +9,6 @@ const run = promisify(execFile);
 const repoRoot = resolve(__dirname, "../../..");
 const checker = join(repoRoot, "scripts/check-hex.mjs");
 
-// A lint nobody has watched fail is a lint that may not be running. This plants a literal, proves
-// the checker rejects it, and takes it away again.
 describe("the hex-literal check", () => {
   let planted: string | null = null;
 
@@ -23,7 +21,6 @@ describe("the hex-literal check", () => {
 
   it.each([
     ["the app", "apps/web/src/hex-guard-fixture.tsx"],
-    // The library is where a stray colour hurts most: it cannot be themed away by any product.
     ["the library", "packages/ui/src/components/hex-guard-fixture.tsx"],
   ])("fails on a colour named inside %s", async (_where, fixture) => {
     planted = join(repoRoot, fixture);

@@ -27,8 +27,6 @@ export function ManagePage({
   slug,
 }: {
   readonly token: string;
-  /** Resolved by `route.ts`: the link's `?clinic=`, or what this browser
-   *  remembered when it made the booking. */
   readonly slug: string | undefined;
 }): JSX.Element {
   const managed = useAsync(() => bookingApi.managed(token), [token]);
@@ -193,8 +191,6 @@ export function ManagePage({
   );
 }
 
-// Without a clinic slug there is nothing to ask for slots with, so the panel offers the clinic's
-// phone number rather than a grid that can never fill.
 function ReschedulePanel({
   booking,
   slug,

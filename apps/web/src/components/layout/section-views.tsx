@@ -7,11 +7,9 @@ export interface SectionViewsProps<TId extends string> {
   readonly views: readonly TabDefinition<TId>[];
   readonly value: TId;
   readonly onChange: (id: TId) => void;
-  /** Names the switcher for a screen reader. */
   readonly label: string;
 }
 
-/** One page, several screens: tabs where they fit, a picker on a phone where four did not. */
 export function SectionViews<TId extends string>({
   views,
   value,

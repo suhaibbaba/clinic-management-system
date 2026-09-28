@@ -35,7 +35,5 @@ function read(slug: string): string | null {
 function write(slug: string, logoUrl: string | null): void {
   try {
     localStorage.setItem(KEY + slug, JSON.stringify({ logoUrl }));
-  } catch {
-    // A private window refuses storage; nothing here is worth failing a page over.
-  }
+  } catch {}
 }

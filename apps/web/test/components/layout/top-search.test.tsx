@@ -40,7 +40,6 @@ describe("The bar’s search, off the patients list", () => {
     expect(
       screen.getByRole("button", { name: ar.nav.searchAll.replace("{{count}}", "18") }),
     ).toBeVisible();
-    // Five at a time: the panel answers, the list is where the rest are.
     await waitFor(() => {
       expect(api.calls.some((call) => call.url.includes("limit=5"))).toBe(true);
     });

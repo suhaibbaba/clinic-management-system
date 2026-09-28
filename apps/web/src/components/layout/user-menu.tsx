@@ -13,23 +13,17 @@ import {
 } from "@clinic/ui/components/menu";
 import { Icon } from "@clinic/ui/components/icon";
 import { PersonName, usePersonName } from "@clinic/ui/components/person-name";
-import { WEB_VERSION } from "@web/features/clinic/api-version";
-import { changeLanguage, LANGUAGES, type Language } from "@web/i18n/language";
+import { WEB_VERSION } from "@web/constants/clinic";
+import { changeLanguage, LANGUAGES } from "@web/i18n/language";
 import { cn } from "@clinic/ui/lib/cn";
 import { Ltr } from "@clinic/ui/components/ltr";
-
-const LANGUAGE_LABELS: Record<Language, string> = {
-  ar: "العربية", // i18n-allow: a language is named in its own script, never translated
-  en: "English",
-};
+import { LANGUAGE_LABELS } from "@web/constants/layout";
 
 export interface UserMenuProps {
   readonly user: AuthenticatedUserProfile;
   readonly onLogout: () => void;
 }
 
-// The build number sits here because the settings screen that carries the full version panel is
-// admin-only, and a version is not a permission.
 export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
   const { t, i18n } = useTranslation();
   const displayName = usePersonName();
@@ -46,8 +40,6 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
           "hover:bg-primary-50 data-[state=open]:bg-primary-50",
         )}
       >
-        {/* Round and green, as the reference draws the rail's footer: this is the one avatar on the
-            page that is not a row in a list, so it does not take a list's rotating tint. */}
         <Avatar
           data-testid="user-menu-avatar"
           name={displayName(user.name)}
@@ -110,8 +102,6 @@ export function UserMenu({ user, onLogout }: UserMenuProps): JSX.Element {
 
         <MenuSeparator />
 
-        {/* Not a menu item: there is nothing to select, and making it one would put a version number
-            in the tab order between "sign out" and the edge. */}
         <p data-testid="user-menu-version" className="px-2 py-1.5 text-meta text-ink-subtle">
           <span>{t("clinic.version")}</span> <Ltr className="font-mono">v{WEB_VERSION}</Ltr>
         </p>

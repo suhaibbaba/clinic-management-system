@@ -10,7 +10,6 @@ const TABS = [
   { id: "billing", label: "patients.tabs.billing" },
 ] as const;
 
-// iOS draws a scroll indicator inside a scrolling strip's bottom edge; it must run under the pills.
 describe("a strip of tabs", () => {
   afterEach(async () => {
     await page.viewport(1280, 800);

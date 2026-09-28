@@ -6,8 +6,6 @@ import "@web/i18n";
 import ar from "@web/i18n/locales/ar.json";
 import { lazyPage } from "@web/lib/lazy-page";
 
-// Safari's "Importing a module script failed" left a white page: a page's code that no longer
-// loads, with nothing to catch it.
 describe("a page whose code fails to load", () => {
   const reload = vi.fn();
   const original = window.location;

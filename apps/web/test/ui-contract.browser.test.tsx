@@ -3,8 +3,6 @@ import { render } from "vitest-browser-react";
 import { describe, expect, it } from "vitest";
 import "@web/i18n";
 
-// The rules in CLAUDE.md that are about pixels rather than markup. jsdom lays nothing out and
-// resolves no custom property, so none of this can be asserted in the other project.
 const token = (name: string): number =>
   Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
 
@@ -19,8 +17,6 @@ const box = (testId: string): DOMRect => {
 };
 
 describe("a control is one of the two heights, never a third", () => {
-  // A chip is pressed and a badge is read, so they are not the same height: the chip is a target
-  // and takes the full one, the badge is a label and takes the compact one.
   it("gives a chip the target height and a badge the compact one", async () => {
     await render(
       <>
@@ -43,8 +39,6 @@ describe("a control is one of the two heights, never a third", () => {
       </>,
     );
 
-    // `sm` is the tall one below `lg` — a thumb does not shrink with the viewport — so both are
-    // on the scale, and neither is a value of its own.
     expect([token("--control-h"), token("--control-h-sm")]).toContain(box("md").height);
     expect([token("--control-h"), token("--control-h-sm")]).toContain(box("sm").height);
   });
@@ -68,7 +62,6 @@ describe("direction is a property of the page, not of a rule per component", () 
     const close = box("drawer-footer-close");
 
     expect(document.documentElement.dir).toBe("rtl");
-    // Hard against the footer's left edge, and nowhere near its right.
     expect(close.left - footer.left).toBeLessThan(24);
     expect(footer.right - close.right).toBeGreaterThan(24);
   });
@@ -102,7 +95,6 @@ describe("a value that outgrows its box truncates rather than escaping it", () =
       </div>,
     );
 
-    // The testid names the shell the value sits in, not the input itself.
     const shell = document.querySelector('[data-testid="name"]');
     const field = shell instanceof HTMLInputElement ? shell : shell?.querySelector("input");
 
@@ -110,8 +102,6 @@ describe("a value that outgrows its box truncates rather than escaping it", () =
       throw new Error("no input under the field's testid");
     }
 
-    // The text overflows its own scroll width, which is what an input does — what matters is that
-    // the box it sits in never grows past the 200px it was given.
     expect(field.getBoundingClientRect().width).toBeLessThanOrEqual(200);
   });
 });

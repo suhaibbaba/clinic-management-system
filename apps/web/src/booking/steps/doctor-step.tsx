@@ -6,7 +6,6 @@ import { Alert, Button, ChoiceCard, Skeleton } from "@web/booking/ui";
 import type { AsyncState } from "@web/booking/use-async";
 import { bookingName } from "@web/booking/format";
 
-/** The honorific is stripped in both languages, or every doctor is a circle with a D in it. */
 const initial = (name: string): string => {
   const stripped = name.replace(/^\s*(?:د\.|dr\.?)\s*/i, "").trim(); // i18n-allow: an honorific being matched in stored data, not text on screen
 

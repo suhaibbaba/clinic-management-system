@@ -10,7 +10,7 @@ import {
   rangesOutsideBounds,
   WEEKDAYS_FROM_SATURDAY,
   withDay,
-} from "@web/components/schedule/week";
+} from "@web/lib/schedule/week";
 import { cn } from "@clinic/ui/lib/cn";
 
 export interface WorkingHoursProps {
@@ -19,7 +19,6 @@ export interface WorkingHoursProps {
   readonly disabled?: boolean | undefined;
   readonly within?: WeeklySchedule | undefined;
   readonly withinLabel?: string | undefined;
-  /** Distinguishes the field ids when two of these are on one page. */
   readonly idPrefix?: string | undefined;
 }
 
@@ -71,8 +70,6 @@ export function WorkingHours({
                   "group",
                 )}
               >
-                {/* `flex-1` is `flex: 1 1 0%`, and a percentage basis with no definite width falls
-                    back to content size; `width: 0` with `grow` truncates. */}
                 <span className="flex w-0 min-w-0 grow items-center gap-2">
                   <Icon
                     name="chevron-down"
@@ -83,8 +80,6 @@ export function WorkingHours({
 
                 <span className="flex shrink-0 items-center gap-2">
                   {outside.has(weekday) && (
-                    // `Icon` is decorative by design, so the warning's words
-                    // live on the element around it.
                     <span
                       className="flex text-warning-700"
                       aria-label={t("schedule.outsideBounds", { bounds: withinLabel ?? "" })}
@@ -96,8 +91,6 @@ export function WorkingHours({
                     tone={isWorking ? "success" : "neutral"}
                     data-testid={`hours-day-${weekday}-summary`}
                   >
-                    {/* An LTR island: without it bidi hands the hyphens and middot to the Arabic
-                        paragraph and the summary renders back to front. */}
                     {isWorking ? (
                       <Ltr className="tabular-nums">{daySummary(day.ranges, "")}</Ltr>
                     ) : (
@@ -241,8 +234,6 @@ function RangeRow({
           label={t("schedule.to")}
           className="w-36"
           disabled={disabled}
-          // The end cannot precede the start, so the list starts there — the
-          // schema refuses an inverted range and this stops it being offered.
           min={range.start}
           value={range.end}
           onChange={(end) => onChange({ ...range, end })}

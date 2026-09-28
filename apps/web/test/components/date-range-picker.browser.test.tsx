@@ -3,8 +3,6 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import "@web/i18n";
 
-// The value is a truncating LTR island; an `inline-block` with `overflow: hidden` sits on its own
-// bottom edge, which lifted the dates above the middle of the field.
 describe("a date range field", () => {
   it("centres the chosen dates in the field", () => {
     render(

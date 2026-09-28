@@ -5,12 +5,8 @@ import { createServer, type ViteDevServer } from "vite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { apiProxy, cookieForInsecureOrigin } from "@web-vite/dev-proxy.ts";
 
-// The bug this exists for: `pnpm dev` against a remote https API signs in and every reload lands
-// back on login. The mock writes the attributes that cause it.
-
 const REFRESH_COOKIE = "clinic_refresh_token";
 
-/** What the deployed API's `Set-Cookie` looks like: https, behind nginx. */
 const UPSTREAM_SET_COOKIE = `${REFRESH_COOKIE}=refresh-token-value; Domain=clinic.example; Path=/auth; HttpOnly; SameSite=Lax; Secure`;
 
 interface Origin {
@@ -23,8 +19,6 @@ interface StoredCookie {
   readonly path: string;
 }
 
-// Strict about `Secure` on purpose: Chrome and Firefox make an exception for localhost, Safari does
-// not, and a clinic's laptop is not ours to choose.
 class CookieJar {
   private readonly cookies = new Map<string, StoredCookie>();
 
@@ -83,7 +77,6 @@ let upstream: Server;
 let vite: ViteDevServer;
 let devServerOrigin: string;
 
-/** The API as it is deployed: it sets a production cookie and demands it back. */
 function createUpstream(): Server {
   return createHttpServer((request, response) => {
     received.push({
@@ -102,8 +95,6 @@ function createUpstream(): Server {
     }
 
     if (request.url === "/auth/refresh") {
-      // No cookie is what a browser does when it never stored one, and the app's answer to the 401
-      // is the login screen — the symptom being tested.
       if (!request.headers.cookie?.includes(REFRESH_COOKIE)) {
         response.writeHead(401, { "content-type": "application/json" });
         response.end(JSON.stringify({ statusCode: 401, message: "Missing refresh token" }));
@@ -155,8 +146,6 @@ beforeAll(async () => {
     configFile: false,
     root: fileURLToPath(new URL("..", import.meta.url)),
     logLevel: "silent",
-    // The dev server is plain http, like `pnpm dev` on a laptop; the target
-    // stands in for a remote deployment behind TLS.
     server: {
       host: "127.0.0.1",
       port: 0,
@@ -187,13 +176,10 @@ describe("the dev proxy and the refresh cookie", () => {
     jar.store(login.setCookie, origin);
     expect(jar.header("/api/auth/refresh")).toContain(REFRESH_COOKIE);
 
-    // The reload: a new page, no memory, nothing but the cookie jar. The app
-    // asks for a fresh access token before it renders anything.
     const refresh = await request("/api/auth/refresh", jar);
 
     expect(refresh.status).toBe(200);
     expect(received.at(-1)?.cookie).toContain(REFRESH_COOKIE);
-    // The prefix belongs to the browser's origin, not to the API's routes.
     expect(received.at(-1)?.url).toBe("/auth/refresh");
   });
 
@@ -202,13 +188,10 @@ describe("the dev proxy and the refresh cookie", () => {
 
     await request("/api/auth/login", jar);
 
-    // Without this the API sees only its own hop and decides `Secure` from the wrong scheme.
     expect(received.at(-1)?.forwardedProto).toBe("http");
   });
 
   it("is the proxy that makes the cookie usable, not the target", async () => {
-    // The control: the upstream's own header is held for another host, refused for being `Secure`,
-    // and scoped to a path the browser never asks for.
     const untouched = new CookieJar();
     untouched.store([UPSTREAM_SET_COOKIE], { secure: false, host: "127.0.0.1" });
 

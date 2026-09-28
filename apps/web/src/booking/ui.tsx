@@ -7,11 +7,6 @@ import {
   type ReactNode,
 } from "react";
 
-// Not `@clinic/ui`: that library is Radix-backed, and one button from it pulls much of the
-// dashboard's dependency graph into an 80 KB budget.
-
-/** Joins class names. No `tailwind-merge` here — 6 KB to resolve conflicts
- *  this file simply does not create. */
 export const cx = (...parts: (string | false | undefined | null)[]): string =>
   parts.filter(Boolean).join(" ");
 
@@ -88,8 +83,6 @@ export function Card({
   );
 }
 
-// A real `<button>`, so it is tabbable, activates on Enter and Space, and announces itself as
-// pressed.
 export function ChoiceCard({
   selected,
   onClick,
@@ -99,7 +92,6 @@ export function ChoiceCard({
 }: {
   readonly selected: boolean;
   readonly onClick: () => void;
-  /** What a screen reader announces; the visible content can be richer. */
   readonly label: string;
   readonly children: ReactNode;
   readonly "data-testid"?: string | undefined;
@@ -135,8 +127,6 @@ export function Alert({
 }): JSX.Element {
   return (
     <p
-      // Announced when it appears: an error a screen reader never reads is an
-      // error the page did not report.
       role="status"
       data-testid={testId}
       className={cx(
@@ -153,8 +143,6 @@ export function Skeleton({ className }: { readonly className?: string }): JSX.El
   return <span aria-hidden className={cx("skeleton block rounded-panel", className)} />;
 }
 
-// The dashboard's `Img` in miniature — the wall keeps `@web/components` out of this bundle. Same
-// contract: a box reserved up front that every state fills, so no image moves the form under it.
 export function Img({
   src,
   alt,
@@ -213,12 +201,9 @@ export interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   readonly label: string;
   readonly error?: string | undefined;
   readonly hint?: string | undefined;
-  /** Fixed text before the box, left to right — a phone's dialling code. */
   readonly prefix?: string | undefined;
 }
 
-// 16px is not a style choice: iOS Safari zooms the page when a smaller field takes focus and never
-// zooms back.
 export function Field({
   label,
   error,
@@ -241,9 +226,6 @@ export function Field({
       className={cx(
         "min-h-(--control-h) w-full min-w-0 rounded-control border-[1.5px] bg-surface px-3 text-field text-ink",
         "placeholder:text-ink-subtle",
-        // `dir="ltr"` keeps the digits in order, but the alignment belongs to the page — by its
-        // own direction the field sat left of an Arabic form, under a label on the right.
-        // Beside a prefix it reads on from the code instead.
         prefix !== undefined
           ? "text-left"
           : rest.dir === "ltr"

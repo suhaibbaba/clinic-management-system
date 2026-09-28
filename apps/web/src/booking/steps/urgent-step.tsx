@@ -25,7 +25,6 @@ export function UrgentStep({
   readonly onSubmit: () => void;
   readonly onBack: () => void;
   readonly busy: boolean;
-  /** The clinic's, whose code a local number is dialled under. */
   readonly country: PhoneCountry;
 }): JSX.Element {
   const [touched, setTouched] = useState(false);
@@ -34,7 +33,6 @@ export function UrgentStep({
   const phoneError = isBookingPhone(joinPhone(country, details.phone) ?? "")
     ? undefined
     : t("details.phoneError");
-  // A number typed whole, from abroad, carries its own code.
   const typedWhole = /^\s*(\+|00)/.test(details.phone);
   const complaintError =
     details.complaint.trim().length >= 3 ? undefined : t("urgent.complaintError");
@@ -98,7 +96,6 @@ export function UrgentStep({
   );
 }
 
-/** No time, no queue position — the page must not imply either. */
 export function UrgentSentView(): JSX.Element {
   return (
     <div data-testid="urgent-sent" className="flex flex-col gap-4 text-center">

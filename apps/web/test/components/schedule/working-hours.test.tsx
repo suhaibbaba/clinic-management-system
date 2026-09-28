@@ -8,7 +8,7 @@ import {
   rangesOutsideBounds,
   WEEKDAYS_FROM_SATURDAY,
   weekFitsWithin,
-} from "@web/components/schedule/week";
+} from "@web/lib/schedule/week";
 import { WorkingHours } from "@web/components/schedule/working-hours";
 import "@web/i18n";
 import ar from "@web/i18n/locales/ar.json";
@@ -45,7 +45,6 @@ const day = (weekday: number): HTMLElement => screen.getByTestId(`hours-day-${we
 
 describe("the week, as arithmetic", () => {
   it("starts on Saturday without renumbering the days", () => {
-    // The order is a rendering decision; 0 is still Sunday everywhere else.
     expect(WEEKDAYS_FROM_SATURDAY).toEqual([6, 0, 1, 2, 3, 4, 5]);
   });
 
@@ -60,17 +59,13 @@ describe("the week, as arithmetic", () => {
 
     expect(rangesOutsideBounds([{ start: "10:00", end: "16:00" }], clinic)).toEqual([]);
     expect(rangesOutsideBounds([{ start: "08:00", end: "12:00" }], clinic)).toHaveLength(1);
-    // A day the clinic is shut: everything is outside, which is the answer a
-    // doctor rostered on a closed day needs.
     expect(rangesOutsideBounds([{ start: "10:00", end: "11:00" }], [])).toHaveLength(1);
   });
 
   it("spans a split shift with the half that contains it", () => {
-    // 16:30–18:00 fits inside the *second* clinic window, not the first.
     expect(
       weekFitsWithin([{ weekday: 0, ranges: [{ start: "16:30", end: "18:00" }] }], SPLIT),
     ).toBe(true);
-    // 14:00–15:00 falls in the gap between the two, so it fits neither.
     expect(
       weekFitsWithin([{ weekday: 0, ranges: [{ start: "14:00", end: "15:00" }] }], SPLIT),
     ).toBe(false);
@@ -101,8 +96,6 @@ describe("the working-hours accordion", () => {
     await userEvent.click(within(day(0)).getByRole("button"));
     await userEvent.click(within(day(0)).getByRole("button", { name: ar.schedule.addRange }));
 
-    // A day is a list of ranges and the gaps between them are the breaks —
-    // there is no separate "break" concept to get wrong.
     expect(within(day(0)).getAllByLabelText(ar.schedule.from)).toHaveLength(2);
   });
 
@@ -112,7 +105,6 @@ describe("the working-hours accordion", () => {
         initial={[
           { weekday: 0, ranges: [{ start: "08:00", end: "12:00" }] },
           { weekday: 1, ranges: [{ start: "09:00", end: "17:00" }] },
-          // Saturday is deliberately off and must stay off.
           { weekday: 6, ranges: [] },
         ]}
       />,
@@ -135,8 +127,6 @@ describe("the working-hours accordion", () => {
       />,
     );
 
-    // Flagged on the row, so it is visible without expanding the day — and it
-    // is a warning rather than a block, because moving a shift takes two edits.
     expect(within(day(0)).getByLabelText(/ساعات العيادة/)).toBeInTheDocument();
     expect(within(day(1)).queryByLabelText(/ساعات العيادة/)).not.toBeInTheDocument();
   });

@@ -4,8 +4,6 @@ import { page } from "vitest/browser";
 import { afterEach, describe, expect, it } from "vitest";
 import "@web/i18n";
 
-// Two cards on a narrow phone cut a label chip to "Open ord…". It now wraps once, at the label's
-// own line height rather than the one-line pill's.
 describe("a stat card's label chip", () => {
   afterEach(async () => {
     await page.viewport(1280, 800);

@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 import ar from "@web/i18n/locales/ar.json";
 import en from "@web/i18n/locales/en.json";
 
-// Arabic has no three-letter abbreviation — CLDR's `short` weekday is its `long` one — so a day is
-// shortened by dropping the article, never by cutting the word. `اثن` and `ثلا` are not words.
 const WEEKDAYS = [
   ["sun", "0"],
   ["mon", "1"],

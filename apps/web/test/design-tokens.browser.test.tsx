@@ -2,8 +2,6 @@ import { Button, Input } from "@clinic/ui";
 import { render } from "vitest-browser-react";
 import { describe, expect, it } from "vitest";
 
-// jsdom returns an empty string for a custom property and never lays anything out, so every
-// assertion here is one the other project cannot make.
 const token = (name: string): string =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
@@ -58,8 +56,6 @@ describe("a control's height is a token, not a value of its own", () => {
     return element.getBoundingClientRect();
   };
 
-  // `render` resolves once React has committed, so it is awaited before anything
-  // is measured — an unawaited one measures an element that is not there yet.
   it("draws a button at --control-h", async () => {
     await render(<Button data-testid="probe">حفظ</Button>);
 

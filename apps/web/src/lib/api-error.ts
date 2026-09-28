@@ -18,7 +18,6 @@ export class NetworkError extends Error {
   }
 }
 
-// Refusals the API names by code, where the status alone would only say "conflict".
 const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [CLINICAL_DELETE_ERROR.HAS_PAYMENTS]: "errors.clinicalDelete.hasPayments",
   [STOCK_ERROR.INSUFFICIENT]: "errors.stock.insufficient",

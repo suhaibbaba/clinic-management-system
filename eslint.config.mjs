@@ -46,6 +46,7 @@ export default tseslint.config(
       // keep implicit coercion out of the codebase.
       eqeqeq: ["error", "smart"],
       "no-console": ["warn", { allow: ["warn", "error"] }],
+      "no-empty": ["error", { allowEmptyCatch: true }],
     },
   },
 

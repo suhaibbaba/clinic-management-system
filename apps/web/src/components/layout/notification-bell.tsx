@@ -3,13 +3,14 @@ import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Icon, Menu, MenuContent, MenuItem, MenuTrigger, type IconName } from "@clinic/ui";
-import { useWaitingList } from "@web/features/appointments/queries";
-import { useSession } from "@web/features/auth/session";
-import { canSeeBilling } from "@web/features/billing/permissions";
-import { usePendingBookingsCount, seesPendingBookings } from "@web/features/booking/queries";
-import { useInventoryAlerts } from "@web/features/inventory/queries";
-import { useLabOrders } from "@web/features/labs/queries";
-import { usePatients } from "@web/features/patients/queries";
+import { useWaitingList } from "@web/queries/appointments";
+import { useSession } from "@web/providers/session";
+import { canSeeBilling } from "@web/permissions/billing";
+import { usePendingBookingsCount } from "@web/queries/booking";
+import { seesPendingBookings } from "@web/permissions/booking";
+import { useInventoryAlerts } from "@web/queries/inventory";
+import { useLabOrders } from "@web/queries/labs";
+import { usePatients } from "@web/queries/patients";
 import { cn } from "@clinic/ui/lib/cn";
 
 interface Waiting {
@@ -19,11 +20,6 @@ interface Waiting {
   readonly to: string;
 }
 
-/**
- * What is waiting, drawn from the counts the screens behind it already ask for. Every line is
- * gated by the permission that opens the screen it leads to, so nobody is told about a room they
- * cannot enter.
- */
 export function NotificationBell(): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();

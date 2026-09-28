@@ -1,7 +1,5 @@
 type Listener = () => void;
 
-// In memory only, never in localStorage or a script-readable cookie: a reload starts
-// unauthenticated and refreshes from the httpOnly cookie.
 let accessToken: string | null = null;
 
 const sessionEndedListeners = new Set<Listener>();

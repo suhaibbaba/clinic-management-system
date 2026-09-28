@@ -36,8 +36,6 @@ const type = async (
   }
 };
 
-// The auto-submit shipped broken — `'123456'.includes('')` is `true`, so the gap guard never let
-// anything through — and this is the test that caught it.
 describe("OTP input", () => {
   it("starts with the keyboard in the first box", () => {
     const { boxes } = renderStep();
@@ -81,8 +79,6 @@ describe("OTP input", () => {
     const { boxes } = renderStep();
 
     await type(user, boxes(), "12");
-    // Focus is in the third box, which is empty: backspace should go back
-    // rather than do nothing, which is what makes correcting a typo one key.
     await user.keyboard("{Backspace}");
 
     expect(boxes()[1]).toHaveFocus();

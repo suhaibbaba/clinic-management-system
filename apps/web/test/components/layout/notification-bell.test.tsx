@@ -82,7 +82,6 @@ describe("The bell", () => {
     );
     renderWithProviders(<AppRoutes />, { route: "/dashboard" });
 
-    // A technician has neither `pending-bookings.list` nor a balance in any response.
     await userEvent.click(await screen.findByRole("button", { name: ar.nav.notificationsEmpty }));
 
     expect(screen.queryByRole("menuitem", { name: /حجوزات إلكترونية/ })).not.toBeInTheDocument();

@@ -121,11 +121,9 @@ export function OtpStep({
       <fieldset className="border-0 p-0">
         <legend className="sr-only">{t("otp.inputLabel")}</legend>
 
-        {/* LTR: a code is read left to right in every language. */}
         <div dir="ltr" className="flex justify-between gap-2">
           {digits.map((digit, index) => (
             <input
-              // Positional and never reordered, so the index is the identity.
               key={index}
               data-testid={`otp-digit-${String(index)}`}
               ref={(element) => {
@@ -137,8 +135,6 @@ export function OtpStep({
               onPaste={onPaste}
               inputMode="numeric"
               autoComplete={index === 0 ? "one-time-code" : "off"}
-              // Not `maxLength={1}`: a paste into a box must reach onChange
-              // whole, or five of its six digits are silently dropped.
               aria-label={t("otp.digitLabel", { index: index + 1 })}
               className={cx(
                 "h-14 w-full min-w-0 rounded-control border bg-surface text-center",

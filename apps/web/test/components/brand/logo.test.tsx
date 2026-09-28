@@ -13,8 +13,6 @@ const boxOf = (container: HTMLElement): string => {
   return `${style.width}×${style.height}`;
 };
 
-// A bundled mark is one clinic's, and this product is sold to more than one. The test is the
-// absence: nothing to import means nothing to request.
 describe("no bundled artwork", () => {
   const SRC = join(__dirname, "..", "..");
 

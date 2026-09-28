@@ -23,8 +23,6 @@ const element = (testId: string): HTMLElement => {
   return found;
 };
 
-// On Windows the rail's scrollbar sat inside its padding, over the rows' inline-end edge. Measured
-// on a window short enough that the list overflows.
 describe("the rail's scrollbar", () => {
   afterEach(async () => {
     await page.viewport(1280, 800);
@@ -57,7 +55,6 @@ describe("the rail's scrollbar", () => {
 
     const box = lane.getBoundingClientRect();
     const barWidth = lane.offsetWidth - lane.clientWidth;
-    // Right to left, the bar is on the left.
     const barEnd = box.left + barWidth;
 
     expect(box.left).toBeLessThanOrEqual(rail.left + 1);
@@ -72,7 +69,6 @@ describe("the rail's scrollbar", () => {
   });
 });
 
-// Tablets get the phone's chrome, a 1024px landscape one included: the rail only from 1025px.
 describe("where the rail gives way to the drawer", () => {
   afterEach(async () => {
     await page.viewport(1280, 800);
@@ -112,8 +108,6 @@ describe("where the rail gives way to the drawer", () => {
   });
 });
 
-// The bar's sticky ground is opaque and above the page, so a first row flush against it lost the
-// top of its focus ring (2px ring, 2px offset). The gap people see stays 16px.
 describe("the page under the top bar", () => {
   afterEach(async () => {
     await page.viewport(1280, 800);

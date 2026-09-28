@@ -7,8 +7,6 @@ import type {
   UrgentRequestReceipt,
 } from "@clinic/shared";
 
-// Not `@web/lib/api-client`: every endpoint here is anonymous, and reusing it would drag the auth
-// module into a bundle that must stay small.
 const BASE = "/api/public/booking";
 
 export type BookingFailure =
@@ -32,11 +30,8 @@ export class BookingError extends Error {
   }
 }
 
-/** The call being made, because the same status means different things. */
 type Intent = "read" | "book" | "verify" | "manage";
 
-// Arabic copy is chosen here by code, never from the backend's message. A booking 400 reads as
-// "that time is gone" — the page only submits a slot the API just offered.
 function failureFor(status: number, intent: Intent): BookingFailure {
   if (status === 429) {
     return "throttled";

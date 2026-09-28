@@ -154,7 +154,7 @@ const BUILT_ELSEWHERE = [
   // The API names the columns and tiles of an assistant view (`apps/api/src/ai/tools/ai-views.ts`).
   "assistant.view.columns.",
   "assistant.view.stats.",
-  // `${topic.prefix}.title` and friends, from `assistant/suggestions.ts`.
+  // `${topic.prefix}.title` and friends, from `src/constants/assistant.ts`.
   "assistant.topics.",
 ];
 

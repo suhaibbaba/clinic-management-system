@@ -2,7 +2,7 @@ import { USER_ROLE, type LabSummary } from "@clinic/shared";
 import { screen } from "@testing-library/react";
 import { page } from "vitest/browser";
 import { afterEach, describe, expect, it } from "vitest";
-import { LabsPage } from "@web/features/labs/labs-page";
+import { LabsPage } from "@web/pages/labs/labs-page";
 import { authTokens } from "@web/lib/auth-tokens";
 import { makeClinic, makeProfile, paginated } from "@test/helpers/fixtures";
 import { mockApi, renderWithProviders } from "@test/helpers/render";
@@ -38,8 +38,6 @@ function renderDirectory(): void {
   );
 }
 
-// On a phone the cards ran past the screen's edge, a gutter on one side only, and a long name was
-// cut short beside its badge.
 describe("a grid of cards on a phone", () => {
   afterEach(async () => {
     await page.viewport(1280, 800);

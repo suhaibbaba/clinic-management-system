@@ -80,8 +80,6 @@ function routes(overrides: Record<string, RouteHandler | MockResponse> = {}) {
   };
 }
 
-// One digit per box with focus moving itself: `user.type(firstBox, '123456')` would put every
-// keystroke in the box it was handed.
 async function enterCode(user: ReturnType<typeof userEvent.setup>, code: string): Promise<void> {
   const boxes = await screen.findAllByRole("textbox", { name: /الرقم/ });
 
@@ -153,8 +151,6 @@ describe("Public booking wizard", () => {
   it("sends the patient back to fresh times when the slot is taken", async () => {
     const api = mockApi(
       routes({
-        // The slot went between choosing it and pressing confirm — which is
-        // exactly what the exclusion constraint answers with.
         [`POST /public/booking/${SLUG}`]: { status: 400, body: { message: "taken" } },
       }),
     );
@@ -200,7 +196,6 @@ describe("Public booking wizard", () => {
 
     await enterCode(user, "111111");
 
-    // The API's three-guess rule, reported: two left after the first miss.
     const alert = await screen.findByRole("status");
     expect(alert).toHaveTextContent("الرمز غير صحيح");
     expect(alert).toHaveTextContent("2");

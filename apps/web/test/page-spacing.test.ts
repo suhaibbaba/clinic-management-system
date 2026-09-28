@@ -16,11 +16,9 @@ function sources(directory: string): string[] {
   });
 }
 
-// The header's own margin is measured in `page-spacing.browser.test.tsx`; this is the sweep across
-// every page, which needs the sources rather than a render.
 describe("page spacing", () => {
   it("spaces every page's sections the same way", () => {
-    const offenders = sources(join(SRC, "features"))
+    const offenders = [...sources(join(SRC, "pages")), ...sources(join(SRC, "components"))]
       .filter((path) => readFileSync(path, "utf8").includes("<PageHeader"))
       .filter((path) => {
         const lines = readFileSync(path, "utf8").split("\n");

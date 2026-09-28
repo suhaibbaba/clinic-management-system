@@ -1,9 +1,8 @@
 import { useEffect } from "react";
-import { useClinicBranding } from "@web/features/clinic/queries";
+import { useClinicBranding } from "@web/queries/clinic";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
-/** What `index.html` declares, and what the tab falls back to when a clinic has no logo. */
 const PRODUCT_MARK = { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" } as const;
 
 const CLINIC_MARKS = [
@@ -13,14 +12,8 @@ const CLINIC_MARKS = [
 
 const MANAGED = "data-clinic-icon";
 
-/** iOS reads neither the manifest's name nor its icons; this is where its home-screen label comes
- *  from, and without it the label is the page title with the route still on the front. */
 const APPLE_TITLE = "apple-mobile-web-app-title";
 
-/**
- * Points the tab at the clinic's own mark, or back at the product's when it has none. The
- * endpoint is public and redirects to a window-stable signed URL, so the browser caches it.
- */
 export function applyDocumentIcon(iconsAt: string | null): void {
   for (const link of document.head.querySelectorAll(`link[${MANAGED}]`)) {
     link.remove();
@@ -37,8 +30,6 @@ export function applyDocumentIcon(iconsAt: string | null): void {
     return;
   }
 
-  // The generation time is in the address: a browser keeps a favicon long past any cache header,
-  // and only reaches for a new one when the URL it was told about has moved.
   const version = encodeURIComponent(iconsAt);
 
   for (const mark of CLINIC_MARKS) {
@@ -73,10 +64,6 @@ function managedLink(rel: string, type: string, href: string): HTMLLinkElement {
   return link;
 }
 
-/**
- * Renders nothing. Branding is public, cached for the session and shared with the sign-in screen,
- * so asking for it here costs one request whether or not anybody is signed in.
- */
 export function DocumentBranding(): null {
   const { data } = useClinicBranding();
   const iconsAt = data?.iconsAt ?? null;

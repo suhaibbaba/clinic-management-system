@@ -1,9 +1,7 @@
 import { personName, type PersonName } from "@clinic/shared";
 
-/** Gregorian, Arabic labels, Latin digits — the same choice the app makes. */
 const DATE_LOCALE = "ar-SY-u-ca-gregory-nu-latn";
 
-/** The Arabic locale interleaves bidi marks that reorder digits inside an LTR box. */
 const stripBidiMarks = (value: string): string => value.replace(/[\u200e\u200f]/g, "");
 
 const pad = (value: number): string => String(value).padStart(2, "0");
@@ -23,7 +21,6 @@ export function addDays(iso: string, days: number): string {
   return isoDate(date);
 }
 
-/** Whole days from today to `iso`, so the chips can stop at `maxDaysAhead`. */
 export function daysFromToday(iso: string): number {
   const from = new Date(`${todayIso()}T12:00:00`).getTime();
   const to = new Date(`${iso}T12:00:00`).getTime();
@@ -33,7 +30,6 @@ export function daysFromToday(iso: string): number {
 
 export interface DayChip {
   readonly date: string;
-  /** `الأحد`, or `اليوم` / `غداً` for the two the patient thinks of by name. */
   readonly label: string;
   readonly dayNumber: string;
   readonly monthLabel: string;
@@ -77,8 +73,6 @@ export function learnClinicOffset(startsAt: string, localLabel: string): void {
   const at = new Date(startsAt);
   const utc = at.getUTCHours() * 60 + at.getUTCMinutes();
 
-  // Normalised into (−720, 720]: a local time can be on the other side of
-  // midnight from UTC, which would otherwise read as a 23-hour offset.
   let offset = local - utc;
   if (offset > 720) offset -= 1440;
   if (offset < -720) offset += 1440;
@@ -104,7 +98,6 @@ export function formatTime(iso: string): string {
   return `${pad(at.getHours())}:${pad(at.getMinutes())}`;
 }
 
-/** `الأحد ٨ سبتمبر` — the way a date is said out loud, not `08/09/2026`. */
 export function formatLongDate(iso: string): string {
   return stripBidiMarks(
     inClinicZone(iso).toLocaleDateString(DATE_LOCALE, {
@@ -119,8 +112,6 @@ export function clinicDate(iso: string): string {
   return isoDate(inClinicZone(iso));
 }
 
-// The booking page has no language switcher, so this is `personName(name, 'ar')` with English as
-// the fallback.
 export function bookingName(name: PersonName | null | undefined): string {
   return personName(name, "ar");
 }

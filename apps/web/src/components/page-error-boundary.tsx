@@ -6,9 +6,6 @@ interface State {
   readonly failed: boolean;
 }
 
-// Without it one failing component unmounts the whole tree, and the reader gets a white page with
-// nothing to press.
-/** Shows a reload prompt in place of whatever beneath it failed to render or load. */
 export class PageErrorBoundary extends Component<{ readonly children: ReactNode }, State> {
   override state: State = { failed: false };
 

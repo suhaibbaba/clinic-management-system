@@ -8,8 +8,6 @@ const STORAGE_KEY = "clinic.language";
 const isLanguage = (value: string | null): value is Language =>
   value !== null && (LANGUAGES as readonly string[]).includes(value);
 
-// Wrapped because `localStorage` throws outright where site data is blocked, and that would take
-// the app down before the first render.
 export function storedLanguage(): Language | null {
   try {
     const value = window.localStorage.getItem(STORAGE_KEY);
@@ -19,8 +17,6 @@ export function storedLanguage(): Language | null {
   }
 }
 
-// On the document element rather than a React wrapper, because dialogs, drawers and toasts portal
-// to `document.body`, outside any wrapper.
 export function applyLanguageToDocument(language: string): void {
   const root = document.documentElement;
 
@@ -28,8 +24,6 @@ export function applyLanguageToDocument(language: string): void {
   root.dir = isRtl(language) ? "rtl" : "ltr";
 }
 
-// The document is updated first: the language change is what re-renders, and direction-relative
-// icons read `dir` as they render.
 export async function changeLanguage(language: Language): Promise<void> {
   await loadLanguage(language);
   applyLanguageToDocument(language);
@@ -37,13 +31,9 @@ export async function changeLanguage(language: Language): Promise<void> {
 
   try {
     window.localStorage.setItem(STORAGE_KEY, language);
-  } catch {
-    // A refused write costs the preference on the next load, nothing more.
-  }
+  } catch {}
 }
 
-// Awaited before the first paint, so the app never renders Arabic-RTL for a frame and then snaps to
-// English-LTR. A language whose chunk cannot be fetched falls back to Arabic rather than blocking.
 export async function initLanguage(): Promise<void> {
   const stored = storedLanguage() ?? DEFAULT_LANGUAGE;
   const language = await loadLanguage(stored).then(

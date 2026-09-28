@@ -2,7 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@web/i18n";
-import { PULL_THRESHOLD, PullToRefresh } from "@web/components/pwa/pull-to-refresh";
+import { PullToRefresh } from "@web/components/pwa/pull-to-refresh";
+import { PULL_THRESHOLD } from "@web/constants/pwa";
 import * as serviceWorker from "@web/lib/service-worker";
 
 function touch(type: string, clientY: number, target: EventTarget = document.body): void {
@@ -13,7 +14,6 @@ function touch(type: string, clientY: number, target: EventTarget = document.bod
   act(() => void target.dispatchEvent(event));
 }
 
-/** A pull that travels `distance` after damping. */
 function pull(distance: number, target?: EventTarget): void {
   touch("touchstart", 100, target);
   touch("touchmove", 100 + distance * 2, target);
