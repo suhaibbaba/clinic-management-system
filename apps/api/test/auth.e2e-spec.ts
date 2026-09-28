@@ -1,4 +1,4 @@
-import { USER_ROLE } from "@clinic/shared";
+import { AUTH_ERROR, USER_ROLE } from "@clinic/shared";
 import { REFRESH_COOKIE_NAME } from "@api/modules/auth/lib/refresh-cookie";
 import {
   auth,
@@ -75,6 +75,42 @@ describe("Auth (e2e)", () => {
       expect(wrongPassword.statusCode).toBe(401);
       expect(unknownUser.statusCode).toBe(401);
       expect(unknownUser.json().message).toBe(wrongPassword.json().message);
+    });
+
+    it("locks an identifier after five failures, even against the right password", async () => {
+      const other = await context.createClinic();
+      const phone = other.phones[USER_ROLE.TECHNICIAN];
+
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        expect((await login(phone, "NotThePassword1")).statusCode).toBe(401);
+      }
+
+      const locked = await login(phone);
+      expect(locked.statusCode).toBe(429);
+      expect(locked.json().message).toBe(AUTH_ERROR.LOCKED);
+    });
+
+    it("locks an unknown identifier the same way, so a lock reveals no account", async () => {
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        expect((await login("+97000000123")).statusCode).toBe(401);
+      }
+
+      expect((await login("+97000000123")).statusCode).toBe(429);
+    });
+
+    it("starts the count again after a successful login", async () => {
+      const other = await context.createClinic();
+      const phone = other.phones[USER_ROLE.RECEPTIONIST];
+
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        await login(phone, "NotThePassword1");
+      }
+      expect((await login(phone)).statusCode).toBe(200);
+
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        await login(phone, "NotThePassword1");
+      }
+      expect((await login(phone)).statusCode).toBe(200);
     });
 
     it("returns the error shape the frontend resolves by code", async () => {

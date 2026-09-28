@@ -443,6 +443,10 @@
     },
     "labOrder": {
       "expectedInPast": "The expected date cannot be in the past"
+    },
+    "tooMany": "Too many requests in a short time; wait a moment and try again",
+    "auth": {
+      "locked": "Too many wrong attempts. Try again in fifteen minutes."
     }
   },
   "patients": {

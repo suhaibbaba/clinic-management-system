@@ -1,8 +1,10 @@
 import { Controller, Get } from "@nestjs/common";
+import { SkipThrottle } from "@nestjs/throttler";
 import { type HealthResponse, type VersionResponse } from "@clinic/shared";
 import { Public } from "@api/common/decorators/public.decorator";
 import { HealthService } from "@api/modules/health/services/health.service";
 
+@SkipThrottle()
 @Controller("health")
 export class HealthController {
   constructor(private readonly healthService: HealthService) {}
@@ -14,6 +16,7 @@ export class HealthController {
   }
 }
 
+@SkipThrottle()
 @Controller("version")
 export class VersionController {
   constructor(private readonly healthService: HealthService) {}

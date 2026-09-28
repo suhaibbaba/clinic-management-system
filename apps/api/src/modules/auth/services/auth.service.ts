@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import { LoginThrottleService } from "@api/modules/auth/services/login-throttle.service";
 import { and, eq, isNull, like, sql } from "drizzle-orm";
 import {
   DEFAULT_PHONE_COUNTRY,
@@ -33,30 +34,30 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly storage: StorageService,
     private readonly permissions: PermissionsService,
+    private readonly loginThrottle: LoginThrottleService,
   ) {}
 
   async login(input: LoginInput): Promise<LoginResponse & IssuedSession> {
+    await this.loginThrottle.assertOpen(input.identifier);
+
     const user = await this.findByIdentifier(input.identifier);
-
-    if (!user) {
-      await this.burnTiming(input.password);
+    const refuse = async (): Promise<never> => {
+      await this.loginThrottle.recordFailure(input.identifier);
       throw new UnauthorizedException(INVALID_CREDENTIALS);
-    }
+    };
 
-    if (user.passwordHash === null) {
+    if (!user || user.passwordHash === null) {
       await this.burnTiming(input.password);
-      throw new UnauthorizedException(INVALID_CREDENTIALS);
+      return refuse();
     }
 
     const passwordMatches = await this.passwordService.verify(user.passwordHash, input.password);
 
-    if (!passwordMatches) {
-      throw new UnauthorizedException(INVALID_CREDENTIALS);
+    if (!passwordMatches || !user.isActive) {
+      return refuse();
     }
 
-    if (!user.isActive) {
-      throw new UnauthorizedException(INVALID_CREDENTIALS);
-    }
+    await this.loginThrottle.clear(input.identifier);
 
     await this.db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
 

@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -27,8 +29,9 @@ import {
   type PublicSlots,
   type PublicSlotsQuery,
   type UrgentRequestReceipt,
+  BOOKING_ERROR,
 } from "@clinic/shared";
-import { and, asc, count, eq, gte, isNull, sql } from "drizzle-orm";
+import { and, asc, count, eq, gt, gte, inArray, isNull, lt, sql } from "drizzle-orm";
 import { randomInt } from "node:crypto";
 import { AvailabilityService } from "@api/modules/appointments/services/availability.service";
 import { WaitingListService } from "@api/modules/appointments/services/waiting-list.service";
@@ -41,6 +44,7 @@ import {
   bookingOtps,
   clinics,
   doctors,
+  notificationsLog,
   patients,
   specialties,
   users,
@@ -54,7 +58,11 @@ import {
   ClinicContext,
 } from "@api/modules/booking/lib/booking";
 import { timeIn } from "@api/common/lib/time";
-import { OTP_TTL_SECONDS, OTP_MAX_ATTEMPTS } from "@api/modules/booking/constants";
+import {
+  MESSAGES_PER_PHONE_PER_HOUR,
+  OTP_MAX_ATTEMPTS,
+  OTP_TTL_SECONDS,
+} from "@api/modules/booking/constants";
 
 @Injectable()
 export class BookingService {
@@ -149,6 +157,7 @@ export class BookingService {
   ): Promise<UrgentRequestReceipt> {
     const clinic = await this.requireBookingEnabled(slug);
     const { phone } = input;
+    await this.requireMessageQuota(clinic.id, phone);
 
     const open = await this.waitingList.openUrgentCount(clinic.id, phoneDigits(phone));
 
@@ -178,6 +187,7 @@ export class BookingService {
 
     const { phone } = input;
     await this.requireUnderActiveLimit(clinic, phone);
+    await this.requireMessageQuota(clinic.id, phone);
 
     const patientId = await this.linkOrCreatePatient(clinic.id, phone, input);
     const duration = await this.durationFor(clinic.id, input.doctorId);
@@ -246,28 +256,50 @@ export class BookingService {
 
     const invalid = new UnauthorizedException("That code is not valid");
 
-    if (!otp || otp.consumedAt || otp.expiresAt <= new Date() || otp.attempts >= OTP_MAX_ATTEMPTS) {
+    if (!otp) {
       throw invalid;
     }
 
-    if (otp.codeHash !== hashCode(code)) {
-      await this.db
-        .update(bookingOtps)
-        .set({ attempts: otp.attempts + 1 })
-        .where(eq(bookingOtps.id, otp.id));
+    const [attempt] = await this.db
+      .update(bookingOtps)
+      .set({ attempts: sql`${bookingOtps.attempts} + 1` })
+      .where(
+        and(
+          eq(bookingOtps.id, otp.id),
+          isNull(bookingOtps.consumedAt),
+          gt(bookingOtps.expiresAt, new Date()),
+          lt(bookingOtps.attempts, OTP_MAX_ATTEMPTS),
+        ),
+      )
+      .returning({ id: bookingOtps.id });
 
+    if (!attempt || otp.codeHash !== hashCode(code)) {
       throw invalid;
     }
 
-    await this.db
+    const [consumed] = await this.db
       .update(bookingOtps)
       .set({ consumedAt: new Date() })
-      .where(eq(bookingOtps.id, otp.id));
+      .where(and(eq(bookingOtps.id, otp.id), isNull(bookingOtps.consumedAt)))
+      .returning({ id: bookingOtps.id });
 
-    await this.db
-      .update(appointments)
-      .set({ status: APPOINTMENT_STATUS.CONFIRMED, updatedAt: new Date() })
-      .where(and(eq(appointments.id, appointmentId), eq(appointments.clinicId, clinic.id)));
+    const [confirmed] = consumed
+      ? await this.db
+          .update(appointments)
+          .set({ status: APPOINTMENT_STATUS.CONFIRMED, updatedAt: new Date() })
+          .where(
+            and(
+              eq(appointments.id, appointmentId),
+              eq(appointments.clinicId, clinic.id),
+              eq(appointments.status, APPOINTMENT_STATUS.REQUESTED),
+            ),
+          )
+          .returning({ id: appointments.id })
+      : [];
+
+    if (!confirmed) {
+      throw invalid;
+    }
 
     const booking = await this.loadManaged(clinic, appointmentId);
 
@@ -379,6 +411,27 @@ export class BookingService {
         minutes: String(OTP_TTL_SECONDS / 60),
       },
     });
+  }
+
+  private async requireMessageQuota(clinicId: string, phone: string): Promise<void> {
+    const [row] = await this.db
+      .select({ value: sql<number>`count(*)::int` })
+      .from(notificationsLog)
+      .where(
+        and(
+          eq(notificationsLog.clinicId, clinicId),
+          eq(notificationsLog.to, phone),
+          inArray(notificationsLog.template, [
+            NOTIFICATION_TEMPLATE.BOOKING_OTP,
+            NOTIFICATION_TEMPLATE.URGENT_RECEIVED,
+          ]),
+          gt(notificationsLog.createdAt, sql`now() - interval '1 hour'`),
+        ),
+      );
+
+    if ((row?.value ?? 0) >= MESSAGES_PER_PHONE_PER_HOUR) {
+      throw new HttpException(BOOKING_ERROR.TOO_MANY_MESSAGES, HttpStatus.TOO_MANY_REQUESTS);
+    }
   }
 
   private async linkOrCreatePatient(

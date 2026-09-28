@@ -40,6 +40,7 @@ export class JwtAuthGuard implements CanActivate {
     try {
       payload = await this.jwtService.verifyAsync<AccessTokenPayload>(token, {
         secret: this.config.get("JWT_SECRET", { infer: true }),
+        algorithms: ["HS256"],
       });
     } catch {
       throw new UnauthorizedException("Invalid or expired access token");

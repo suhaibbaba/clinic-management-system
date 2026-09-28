@@ -8,6 +8,7 @@ import {
   Req,
   Res,
 } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import { ConfigService } from "@nestjs/config";
 import { type AuthTokens, type LoginResponse } from "@clinic/shared";
 import { type FastifyReply, type FastifyRequest } from "fastify";
@@ -37,6 +38,7 @@ export class AuthController {
   ) {}
 
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post("login")
   @HttpCode(HttpStatus.OK)
   async login(
@@ -50,6 +52,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Post("refresh")
   @HttpCode(HttpStatus.OK)
   async refresh(
@@ -87,6 +90,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 15 * 60_000 } })
   @Post("forgot-password")
   @HttpCode(HttpStatus.NO_CONTENT)
   async forgotPassword(@Body() body: ForgotPasswordDto): Promise<void> {
@@ -94,6 +98,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 15 * 60_000 } })
   @Post("set-password")
   @HttpCode(HttpStatus.NO_CONTENT)
   async setPassword(@Body() body: SetPasswordDto): Promise<void> {

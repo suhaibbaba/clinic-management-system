@@ -962,6 +962,14 @@ export const LAB_ORDER_ERROR = {
   EXPECTED_IN_PAST: "lab_order_expected_in_past",
 } as const satisfies Record<string, string>;
 
+export const AUTH_ERROR = {
+  LOCKED: "auth_locked",
+} as const satisfies Record<string, string>;
+
+export const BOOKING_ERROR = {
+  TOO_MANY_MESSAGES: "booking_too_many_messages",
+} as const satisfies Record<string, string>;
+
 export const STOCK_ERROR = {
   INSUFFICIENT: "insufficient_stock",
   BELOW_ONE: "stock_take_below_one",

@@ -4,6 +4,7 @@ import {
   DEFAULT_NOTIFICATION_TEMPLATES,
   NOTIFICATION_CHANNEL,
   NOTIFICATION_STATUS,
+  NOTIFICATION_TEMPLATE,
   notificationSettings,
   renderTemplate,
   type NotificationChannel,
@@ -53,7 +54,10 @@ export class NotificationsService {
         to: input.to,
         channel,
         template: input.template,
-        vars: input.vars,
+        vars:
+          input.template === NOTIFICATION_TEMPLATE.BOOKING_OTP
+            ? { ...input.vars, code: "••••••" }
+            : input.vars,
         status: NOTIFICATION_STATUS.QUEUED,
         appointmentId: input.appointmentId ?? null,
       })
