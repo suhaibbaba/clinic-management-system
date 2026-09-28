@@ -33,6 +33,7 @@ import { errorMessageKey } from "@web/shared/lib/api-error";
 import { formatDate, formatDateTime } from "@web/shared/lib/format";
 import { cn } from "@clinic/ui/lib/cn";
 import { LABS_TAB_DONE } from "@web/modules/labs/constants";
+import { todayIso } from "@web/shared/lib/dates";
 
 export interface OrderDrawerProps {
   readonly "data-testid"?: string | undefined;
@@ -312,6 +313,7 @@ export function OrderDrawer({
           data-testid="lab-order-return-expected"
           label={t("labs.order.returnExpected")}
           value={expectedAt}
+          min={todayIso()}
           onChange={setExpectedAt}
         />
       </Modal>

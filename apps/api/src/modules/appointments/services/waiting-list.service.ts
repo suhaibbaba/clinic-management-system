@@ -1,9 +1,8 @@
 import { BadRequestException, Inject, Injectable, type OnModuleInit } from "@nestjs/common";
+import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import {
   APPOINTMENT_TYPE,
   canTransitionWaitingListEntry,
-  clinicScheduleSettings,
-  DEFAULT_TIME_ZONE,
   localDate,
   NOTIFICATION_TEMPLATE,
   WAITING_LIST_PRIORITY,
@@ -227,7 +226,7 @@ export class WaitingListService implements OnModuleInit {
     const entry = await this.findOne(actor, id);
 
     if (input.notify) {
-      const timeZone = await this.timeZone(actor.clinicId);
+      const timeZone = await clinicTimeZone(this.db, actor.clinicId);
       const startsAt = new Date(appointment.startsAt);
 
       await this.notify(actor.clinicId, entry, NOTIFICATION_TEMPLATE.URGENT_SCHEDULED, {
@@ -402,15 +401,5 @@ export class WaitingListService implements OnModuleInit {
         ...vars,
       },
     });
-  }
-
-  private async timeZone(clinicId: string): Promise<string> {
-    const [row] = await this.db
-      .select({ settings: clinics.settings })
-      .from(clinics)
-      .where(eq(clinics.id, clinicId))
-      .limit(1);
-
-    return clinicScheduleSettings(row?.settings ?? {}).timezone || DEFAULT_TIME_ZONE;
   }
 }

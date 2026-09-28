@@ -437,6 +437,9 @@
     "pageFailed": {
       "title": "This page could not open",
       "hint": "The app may have been updated, or the connection dropped while loading. Reload the page."
+    },
+    "labOrder": {
+      "expectedInPast": "The expected date cannot be in the past"
     }
   },
   "patients": {

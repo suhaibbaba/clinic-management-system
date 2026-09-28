@@ -6,11 +6,10 @@ import {
   NotFoundException,
   type OnApplicationBootstrap,
 } from "@nestjs/common";
+import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import {
   AI_TOOL,
   AI_TOOL_ERROR,
-  clinicScheduleSettings,
-  DEFAULT_TIME_ZONE,
   type AiOutboundError,
   type AiProposal,
   type AiToolError,
@@ -30,8 +29,7 @@ import {
 } from "@api/modules/ai/tools/ai-tool";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
-import { aiAuditLog, clinics } from "@api/database/schema";
-import { eq } from "drizzle-orm";
+import { aiAuditLog } from "@api/database/schema";
 import { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 
@@ -197,7 +195,7 @@ export class ToolRunnerService implements OnApplicationBootstrap {
         envelope: {
           tool: tool.name,
           untrusted_clinic_data: true,
-          result: localizeInstants(outcome.data, await this.timeZone(actor.clinicId)),
+          result: localizeInstants(outcome.data, await clinicTimeZone(this.db, actor.clinicId)),
         },
         ...(outcome.proposal && { proposal: outcome.proposal }),
         ...(outcome.audit && { audit: outcome.audit }),
@@ -230,16 +228,6 @@ export class ToolRunnerService implements OnApplicationBootstrap {
 
       return { envelope: { tool: tool.name, error: AI_TOOL_ERROR.FAILED } };
     }
-  }
-
-  private async timeZone(clinicId: string): Promise<string> {
-    const [row] = await this.db
-      .select({ settings: clinics.settings })
-      .from(clinics)
-      .where(eq(clinics.id, clinicId))
-      .limit(1);
-
-    return clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE;
   }
 
   private permitted(actor: AuthenticatedUser, tool: AiTool): Promise<boolean> {

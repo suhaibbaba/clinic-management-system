@@ -6,6 +6,8 @@ import {
   NotFoundException,
   type OnModuleInit,
 } from "@nestjs/common";
+import { LAB_ORDER_ERROR, localDate } from "@clinic/shared";
+import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import {
   canTransitionLabOrder,
   LAB_ORDER_DONE_STATUSES,
@@ -205,6 +207,10 @@ export class LabOrdersService implements OnModuleInit {
       await this.requirePatient(actor.clinicId, input.patientId);
     }
 
+    if (input.expectedAt) {
+      await this.requireNotPast(actor.clinicId, input.expectedAt);
+    }
+
     const workType = input.workTypeId
       ? await this.workTypes.requireRow(actor.clinicId, input.workTypeId)
       : null;
@@ -273,6 +279,10 @@ export class LabOrdersService implements OnModuleInit {
       throw new ForbiddenException("A doctor may not set the price of lab work");
     }
 
+    if (input.expectedAt && input.expectedAt !== existing.expectedAt?.toISOString().slice(0, 10)) {
+      await this.requireNotPast(actor.clinicId, input.expectedAt);
+    }
+
     if (input.labId) {
       await this.labsService.requireRow(actor.clinicId, input.labId);
     }
@@ -325,6 +335,10 @@ export class LabOrdersService implements OnModuleInit {
       throw new BadRequestException("A return must state a reason");
     }
 
+    if (expectedAt !== undefined) {
+      await this.requireNotPast(actor.clinicId, expectedAt);
+    }
+
     const now = new Date();
 
     await this.db
@@ -356,6 +370,12 @@ export class LabOrdersService implements OnModuleInit {
       .update(labOrders)
       .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
       .where(this.scope.where(labOrders, actor.clinicId, eq(labOrders.id, id)));
+  }
+
+  private async requireNotPast(clinicId: string, date: string): Promise<void> {
+    if (date < localDate(new Date(), await clinicTimeZone(this.db, clinicId))) {
+      throw new BadRequestException(LAB_ORDER_ERROR.EXPECTED_IN_PAST);
+    }
   }
 
   async requireRow(clinicId: string, id: string): Promise<OrderRow> {

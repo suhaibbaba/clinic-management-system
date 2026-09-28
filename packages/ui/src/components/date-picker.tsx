@@ -36,6 +36,7 @@ export interface DatePickerProps extends TestIdProps {
   readonly onChange: (value: string) => void;
   readonly label: string;
   readonly disabled?: boolean | undefined;
+  readonly min?: string | undefined;
   readonly hasError?: boolean | undefined;
   readonly className?: string | undefined;
 }
@@ -46,6 +47,7 @@ export function DatePicker({
   onChange,
   label,
   disabled = false,
+  min,
   hasError = false,
   className,
   "data-testid": testId,
@@ -55,6 +57,8 @@ export function DatePicker({
   const id_ = testId ?? id;
   const part = parts("date-picker", id_);
   const selected = fromIsoDate(value);
+  const earliest = fromIsoDate(min);
+  const [outOfRange, setOutOfRange] = useState(false);
   const [typed, setTyped] = useState(() => (selected ? format(selected, TYPED) : ""));
 
   const display = selected ? format(selected, TYPED) : "";
@@ -62,10 +66,12 @@ export function DatePicker({
   if (value !== lastValue) {
     setLastValue(value);
     setTyped(display);
+    setOutOfRange(false);
   }
 
   const commit = (text: string): void => {
     setTyped(text);
+    setOutOfRange(false);
 
     if (text.trim() === "") {
       onChange("");
@@ -73,6 +79,11 @@ export function DatePicker({
     }
 
     const parsed = parseTypedDate(text);
+    if (parsed && min !== undefined && toIsoDate(parsed) < min) {
+      setOutOfRange(true);
+      return;
+    }
+
     if (parsed) {
       onChange(toIsoDate(parsed));
     }
@@ -86,7 +97,10 @@ export function DatePicker({
       title={label}
       {...part("popover")}
       anchor={
-        <div {...part()} className={cn(fieldShell({ hasError, disabled }), className)}>
+        <div
+          {...part()}
+          className={cn(fieldShell({ hasError: hasError || outOfRange, disabled }), className)}
+        >
           <input
             id={id}
             {...part("input")}
@@ -95,7 +109,7 @@ export function DatePicker({
             dir="ltr"
             autoComplete="off"
             disabled={disabled}
-            aria-invalid={hasError || undefined}
+            aria-invalid={hasError || outOfRange || undefined}
             placeholder={t("common.placeholders.date")}
             value={typed}
             onChange={(event) => commit(event.target.value)}
@@ -123,6 +137,7 @@ export function DatePicker({
       <Calendar
         mode="single"
         {...(selected && { selected, defaultMonth: selected })}
+        {...(earliest && { disabled: { before: earliest }, startMonth: earliest })}
         onSelect={(date: Date | undefined) => {
           if (date) {
             onChange(toIsoDate(date));

@@ -958,6 +958,10 @@ export const PAYMENT_ERROR = {
 } as const satisfies Record<string, string>;
 export type PaymentError = EnumValue<typeof PAYMENT_ERROR>;
 
+export const LAB_ORDER_ERROR = {
+  EXPECTED_IN_PAST: "lab_order_expected_in_past",
+} as const satisfies Record<string, string>;
+
 export const STOCK_ERROR = {
   INSUFFICIENT: "insufficient_stock",
   BELOW_ONE: "stock_take_below_one",

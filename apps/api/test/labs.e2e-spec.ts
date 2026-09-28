@@ -1,4 +1,5 @@
 import {
+  LAB_ORDER_ERROR,
   LAB_ORDER_STATUS,
   PAYMENT_METHOD,
   USER_ROLE,
@@ -177,6 +178,29 @@ describe("Labs (e2e)", () => {
 
       expect((await move(order.id, "send")).statusCode).toBe(400);
       expect((await move(order.id, "ready")).statusCode).toBe(200);
+    });
+
+    it("refuses an expected date that has already passed", async () => {
+      const order = await createOrder();
+      await move(order.id, "send");
+      await move(order.id, "ready");
+
+      const late = await move(order.id, "return", USER_ROLE.ADMIN, {
+        reason: "اللون لا يطابق",
+        expectedAt: "2020-01-15",
+      });
+
+      expect(late.statusCode).toBe(400);
+      expect((late.json() as { message: string }).message).toBe(LAB_ORDER_ERROR.EXPECTED_IN_PAST);
+
+      const draft = await context.app.inject({
+        method: "POST",
+        url: "/lab-orders",
+        headers: auth(tokens[USER_ROLE.DOCTOR]),
+        payload: { labId, patientId, doctorId: fixtures.doctorId, expectedAt: "2020-01-15" },
+      });
+
+      expect(draft.statusCode).toBe(400);
     });
 
     it("will not accept a return with no reason", async () => {

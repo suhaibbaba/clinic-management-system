@@ -8,6 +8,7 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common";
+import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import { ConfigService } from "@nestjs/config";
 import {
   addDays,
@@ -47,8 +48,6 @@ import {
   APPOINTMENT_TYPE,
   AUDIT_ACTION,
   canTransitionAppointment,
-  clinicScheduleSettings,
-  DEFAULT_TIME_ZONE,
   GENDERS,
   joinPatientName,
   instantFromLocal,
@@ -2197,7 +2196,7 @@ export class AiActionsService {
       return false;
     }
 
-    const timeZone = await this.timeZone(actor.clinicId);
+    const timeZone = await clinicTimeZone(this.db, actor.clinicId);
     const days = new Set(targets.map((target) => localDate(new Date(target.startsAt), timeZone)));
     const ids = new Set(targets.map((target) => target.id));
 
@@ -2232,7 +2231,7 @@ export class AiActionsService {
       time_to?: string | undefined;
     },
   ): Promise<{ from: Date; to: Date } | Stop> {
-    const zone = await this.timeZone(clinicId);
+    const zone = await clinicTimeZone(this.db, clinicId);
     const from = instantFromLocal(
       args.date_from,
       args.time_from ? minutes(args.time_from) : 0,
@@ -2736,7 +2735,7 @@ export class AiActionsService {
     schedule: WeeklySchedule,
     weekdays: readonly number[],
   ): Promise<CalendarAppointment[]> {
-    const zone = await this.timeZone(actor.clinicId);
+    const zone = await clinicTimeZone(this.db, actor.clinicId);
     const rows = await this.db
       .select({
         id: appointments.id,
@@ -2841,16 +2840,6 @@ export class AiActionsService {
       .orderBy(asc(lookupOptions.sortOrder));
 
     return rows.map((row) => row.code);
-  }
-
-  private async timeZone(clinicId: string): Promise<string> {
-    const [row] = await this.db
-      .select({ settings: clinics.settings })
-      .from(clinics)
-      .where(eq(clinics.id, clinicId))
-      .limit(1);
-
-    return clinicScheduleSettings(row?.settings).timezone || DEFAULT_TIME_ZONE;
   }
 }
 

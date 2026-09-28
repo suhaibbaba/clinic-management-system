@@ -23,6 +23,7 @@ import {
   type PickedPatient,
 } from "@web/shared/lib/patient-draft";
 import { useDoctors } from "@web/shared/queries/doctors";
+import { todayIso } from "@web/shared/lib/dates";
 import {
   useCreateLabOrder,
   useLabWorkTypes,
@@ -293,6 +294,7 @@ export function OrderFormModal({
               data-testid="lab-order-field-expected"
               label={t("labs.order.expected")}
               value={expectedAt}
+              min={todayIso()}
               onChange={setExpectedAt}
             />
           </FormField>
