@@ -1,0 +1,158 @@
+import { randomUUID } from "node:crypto";
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Injectable, Logger, type OnApplicationShutdown } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { type Env } from "@api/config/env.schema";
+import {
+  sanitiseFilename,
+  SignedUpload,
+  SignedDownload,
+  StoredObject,
+  isNotFound,
+  FetchedObject,
+} from "@api/modules/storage/lib/storage";
+
+@Injectable()
+export class StorageService implements OnApplicationShutdown {
+  private readonly logger = new Logger(StorageService.name);
+  private readonly client: S3Client;
+  private readonly bucket: string;
+
+  constructor(private readonly config: ConfigService<Env, true>) {
+    this.bucket = config.get("STORAGE_BUCKET", { infer: true });
+    this.client = new S3Client({
+      endpoint: config.get("STORAGE_ENDPOINT", { infer: true }),
+      region: config.get("STORAGE_REGION", { infer: true }),
+      forcePathStyle: config.get("STORAGE_FORCE_PATH_STYLE", { infer: true }),
+      credentials: {
+        accessKeyId: config.get("STORAGE_ACCESS_KEY_ID", { infer: true }),
+        secretAccessKey: config.get("STORAGE_SECRET_ACCESS_KEY", { infer: true }),
+      },
+    });
+  }
+
+  onApplicationShutdown(): void {
+    this.client.destroy();
+  }
+
+  buildPatientObjectKey(input: {
+    clinicId: string;
+    patientId: string;
+    category: string;
+    filename: string;
+  }): string {
+    const safeName = sanitiseFilename(input.filename);
+    return `clinic/${input.clinicId}/patients/${input.patientId}/${input.category}/${randomUUID()}-${safeName}`;
+  }
+
+  isKeyOwnedBy(key: string, clinicId: string, patientId: string): boolean {
+    return key.startsWith(`clinic/${clinicId}/patients/${patientId}/`);
+  }
+
+  buildClinicObjectKey(input: { clinicId: string; category: string; filename: string }): string {
+    const safeName = sanitiseFilename(input.filename);
+
+    return `clinic/${input.clinicId}/${input.category}/${randomUUID()}-${safeName}`;
+  }
+
+  isClinicKeyOwnedBy(key: string, clinicId: string, category: string): boolean {
+    return key.startsWith(`clinic/${clinicId}/${category}/`);
+  }
+
+  async createUploadUrl(key: string, mime: string): Promise<SignedUpload> {
+    const ttl = this.config.get("STORAGE_UPLOAD_URL_TTL_SECONDS", { infer: true });
+
+    const uploadUrl = await getSignedUrl(
+      this.client,
+      new PutObjectCommand({ Bucket: this.bucket, Key: key, ContentType: mime }),
+      { expiresIn: ttl },
+    );
+
+    return { key, uploadUrl, expiresAt: new Date(Date.now() + ttl * 1000) };
+  }
+
+  async createDownloadUrl(key: string, filename?: string): Promise<SignedDownload> {
+    const ttl = this.config.get("STORAGE_DOWNLOAD_URL_TTL_SECONDS", { infer: true });
+
+    const url = await getSignedUrl(
+      this.client,
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ...(filename && {
+          ResponseContentDisposition: `inline; filename="${sanitiseFilename(filename)}"`,
+        }),
+      }),
+      { expiresIn: ttl },
+    );
+
+    return { url, expiresAt: new Date(Date.now() + ttl * 1000) };
+  }
+
+  async createBrandingUrl(key: string): Promise<SignedDownload> {
+    const ttl = this.config.get("STORAGE_BRANDING_URL_TTL_SECONDS", { infer: true });
+    const window = this.config.get("STORAGE_BRANDING_URL_WINDOW_SECONDS", { infer: true });
+    const windowMs = window * 1000;
+    const signingDate = new Date(Math.floor(Date.now() / windowMs) * windowMs);
+
+    const url = await getSignedUrl(
+      this.client,
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        ResponseCacheControl: `public, max-age=${window}, immutable`,
+      }),
+      { expiresIn: ttl, signingDate },
+    );
+
+    return { url, expiresAt: new Date(signingDate.getTime() + ttl * 1000) };
+  }
+
+  async statObject(key: string): Promise<StoredObject | null> {
+    try {
+      const result = await this.client.send(
+        new HeadObjectCommand({ Bucket: this.bucket, Key: key }),
+      );
+
+      return { sizeBytes: result.ContentLength ?? 0, mime: result.ContentType };
+    } catch (error: unknown) {
+      if (isNotFound(error)) {
+        return null;
+      }
+
+      throw error;
+    }
+  }
+
+  async getObject(key: string): Promise<FetchedObject | null> {
+    try {
+      const result = await this.client.send(
+        new GetObjectCommand({ Bucket: this.bucket, Key: key }),
+      );
+      const bytes = await result.Body?.transformToByteArray();
+
+      return bytes ? { bytes: Buffer.from(bytes), mime: result.ContentType ?? "" } : null;
+    } catch (error: unknown) {
+      if (isNotFound(error)) {
+        return null;
+      }
+
+      throw error;
+    }
+  }
+
+  async deleteObject(key: string): Promise<void> {
+    try {
+      await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
+    } catch (error: unknown) {
+      this.logger.warn(`Failed to delete orphaned object ${key}: ${String(error)}`);
+    }
+  }
+}

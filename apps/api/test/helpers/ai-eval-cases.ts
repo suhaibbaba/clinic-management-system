@@ -1,5 +1,5 @@
 import { AI_TOOL, type AiRiskTier } from "@clinic/shared";
-import type { ToolGroup } from "@api/ai/tools/tool-groups";
+import type { ToolGroup } from "@api/modules/ai/tools/tool-groups";
 
 export interface EvalCase {
   readonly question: string;

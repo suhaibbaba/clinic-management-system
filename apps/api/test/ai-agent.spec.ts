@@ -12,19 +12,19 @@ import {
   type AiView,
 } from "@clinic/shared";
 import type { ConfigService } from "@nestjs/config";
-import { AgentService } from "@api/ai/services/agent.service";
-import { replayable } from "@api/ai/lib/ai-conversations";
-import { SYSTEM_PROMPT_VERSION, systemPrompt } from "@api/ai/lib/system-prompt";
-import type { AiConversationsService } from "@api/ai/services/ai-conversations.service";
-import type { ChatProviderResolver } from "@api/ai/services/chat-provider.resolver";
+import { AgentService } from "@api/modules/ai/services/agent.service";
+import { replayable } from "@api/modules/ai/lib/ai-conversations";
+import { SYSTEM_PROMPT_VERSION, systemPrompt } from "@api/modules/ai/lib/system-prompt";
+import type { AiConversationsService } from "@api/modules/ai/services/ai-conversations.service";
+import type { ChatProviderResolver } from "@api/modules/ai/services/chat-provider.resolver";
 import {
   ChatProviderError,
   type ChatChunk,
   type ChatProvider,
   type ChatRequest,
   type ChatToolCall,
-} from "@api/ai/lib/chat-provider";
-import type { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
+} from "@api/modules/ai/lib/chat-provider";
+import type { ToolRunnerService } from "@api/modules/ai/tools/tool-runner.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import type { Database } from "@api/database/database.module";
 import { clinics, doctors, users } from "@api/database/schema";

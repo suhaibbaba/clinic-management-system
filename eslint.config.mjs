@@ -101,10 +101,9 @@ export default tseslint.config(
             },
             {
               group: [
-                "@web/features/*",
-                "@web/components/*",
+                "@web/modules/*",
+                "@web/shared/*",
                 "@web/app/*",
-                "@web/lib/*",
                 "@web/i18n*",
                 "@web/App",
                 "@clinic/ui",

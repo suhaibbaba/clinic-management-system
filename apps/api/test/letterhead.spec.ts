@@ -1,5 +1,5 @@
-import { LetterheadService, type Letterhead } from "@api/billing/pdf/letterhead.service";
-import { RtlPdf } from "@api/billing/pdf/pdf-builder";
+import { LetterheadService, type Letterhead } from "@api/modules/billing/pdf/letterhead.service";
+import { RtlPdf } from "@api/modules/billing/pdf/pdf-builder";
 
 describe("the printed letterhead", () => {
   const clinic = (over: Partial<Letterhead> = {}): Letterhead => ({

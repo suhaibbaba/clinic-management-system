@@ -1,13 +1,13 @@
 import { ForbiddenException, NotFoundException } from "@nestjs/common";
 import { AI_TOOL, AI_TOOL_ERROR, USER_ROLE } from "@clinic/shared";
 import { z } from "zod";
-import { defineTool, Viewed, type AiTool } from "@api/ai/tools/ai-tool";
-import type { AiToolsService } from "@api/ai/tools/ai-tools.service";
-import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
+import { defineTool, Viewed, type AiTool } from "@api/modules/ai/tools/ai-tool";
+import type { AiToolsService } from "@api/modules/ai/tools/ai-tools.service";
+import { ToolRunnerService } from "@api/modules/ai/tools/tool-runner.service";
 import type { AuthenticatedUser } from "@api/common/types/authenticated-user";
 import type { Database } from "@api/database/database.module";
-import type { CapabilityRegistry } from "@api/permissions/services/capability-registry.service";
-import type { PermissionsService } from "@api/permissions/services/permissions.service";
+import type { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
+import type { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 
 const ACTOR: AuthenticatedUser = {
   id: "11111111-1111-4111-8111-111111111111",

@@ -10,7 +10,7 @@ import {
   localWeekday,
 } from "@clinic/shared";
 import { and, desc, eq, sql } from "drizzle-orm";
-import { hashCode } from "@api/booking/lib/booking";
+import { hashCode } from "@api/modules/booking/lib/booking";
 import {
   appointments,
   bookingOtps,

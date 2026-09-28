@@ -1,0 +1,326 @@
+import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it } from "vitest";
+import { AppRoutes } from "@web/app/router";
+import ar from "@web/i18n/locales/ar.json";
+import { authTokens } from "@web/shared/lib/auth-tokens";
+import { makePatient, makeProfile, paginated, PATIENT_ID } from "@test/helpers/fixtures";
+import { mockApi, renderWithProviders, type MockResponse } from "@test/helpers/render";
+import { choose } from "@test/select";
+
+const PATIENTS = [
+  makePatient(),
+  makePatient({
+    id: "11111111-2222-4333-8444-555555555555",
+    fileNumber: "00002",
+    fullName: "ليلى محمود العلي",
+    phone: "+963931000002",
+    address: "المالكي، دمشق",
+  }),
+];
+
+function handlers(role: UserRole, overrides: Record<string, MockResponse | unknown> = {}) {
+  return {
+    "POST /auth/refresh": { status: 200, body: { accessToken: "access", expiresIn: 900 } },
+    "GET /me": { status: 200, body: makeProfile({ role }) },
+    "GET /patients": { status: 200, body: paginated(PATIENTS) },
+    ...overrides,
+  } as Record<string, MockResponse>;
+}
+
+async function renderList(role: UserRole, overrides = {}, route = "/patients") {
+  authTokens.clear();
+  const api = mockApi(handlers(role, overrides));
+  renderWithProviders(<AppRoutes />, { route });
+  await screen.findByRole("heading", { name: ar.patients.title });
+  return api;
+}
+
+const PAGE_TWO = makePatient({
+  id: "11111111-2222-4333-8444-666666666666",
+  fileNumber: "00003",
+  fullName: "سامر حسن",
+});
+
+const searchCalls = (api: { calls: { url: string; method: string }[] }) =>
+  api.calls.filter((call) => call.method === "GET" && call.url.includes("/patients?"));
+
+describe("Patients list", () => {
+  beforeEach(() => {
+    authTokens.clear();
+  });
+
+  it("lists patients with their file number and phone", async () => {
+    await renderList(USER_ROLE.DOCTOR);
+
+    const row = (await screen.findByText(PATIENTS[0]!.fullName)).closest("tr");
+    expect(row).not.toBeNull();
+    expect(within(row!).getByText("00001")).toBeInTheDocument();
+    expect(within(row!).getByText("+963931000001")).toBeInTheDocument();
+  });
+
+  it("opens a file from the name, and keeps the row menu to editing and deleting", async () => {
+    await renderList(USER_ROLE.ADMIN);
+
+    const row = (await screen.findByText(PATIENTS[0]!.fullName)).closest("tr")!;
+    expect(
+      within(row).getByRole("link", { name: new RegExp(PATIENTS[0]!.fullName) }),
+    ).toHaveAttribute("href", `/patients/${PATIENTS[0]!.id}`);
+
+    await userEvent.click(within(row).getByRole("button", { name: ar.patients.rowMenu }));
+
+    expect((await screen.findAllByRole("menuitem")).map((item) => item.textContent)).toEqual([
+      ar.patients.edit,
+      ar.common.delete,
+    ]);
+  });
+
+  it("sorts by balance from its header: highest first, then lowest, asked of the server", async () => {
+    const api = await renderList(USER_ROLE.ADMIN);
+    await screen.findByText(PATIENTS[0]!.fullName);
+
+    const header = screen.getByRole("columnheader", { name: new RegExp(ar.patients.balance) });
+    const lastList = () => searchCalls(api).at(-1)?.url ?? "";
+
+    await userEvent.click(within(header).getByRole("button"));
+    await waitFor(() => expect(lastList()).toContain("sort=balance"));
+    expect(lastList()).toContain("dir=desc");
+    expect(header).toHaveAttribute("aria-sort", "descending");
+
+    await userEvent.click(within(header).getByRole("button"));
+    await waitFor(() => expect(lastList()).toContain("dir=asc"));
+    expect(header).toHaveAttribute("aria-sort", "ascending");
+  });
+
+  it("keeps the page on screen while the next one loads, and says it is updating", async () => {
+    const user = userEvent.setup();
+    let release: (() => void) | undefined;
+
+    await renderList(USER_ROLE.RECEPTIONIST, {
+      "GET /patients": ({ url }: { url: string }) =>
+        url.includes("page=2")
+          ? new Promise<MockResponse>((resolve) => {
+              release = () =>
+                resolve({
+                  status: 200,
+                  body: paginated([PAGE_TWO], { page: 2, total: 3, totalPages: 2 }),
+                });
+            })
+          : { status: 200, body: paginated(PATIENTS, { total: 3, totalPages: 2 }) },
+    });
+
+    await user.click(await screen.findByRole("button", { name: ar.pagination.next }));
+
+    expect(screen.getByText(PATIENTS[0]!.fullName)).toBeInTheDocument();
+    expect(await screen.findByText(ar.common.updating)).toBeInTheDocument();
+
+    release?.();
+    expect(await screen.findByText(PAGE_TWO.fullName)).toBeInTheDocument();
+  });
+
+  describe("search", () => {
+    it("searches on the server, not by filtering the page", async () => {
+      const api = await renderList(USER_ROLE.RECEPTIONIST);
+
+      await userEvent.type(screen.getByLabelText(ar.nav.search), "خالد");
+
+      await waitFor(() => {
+        expect(searchCalls(api).some((call) => call.url.includes("search="))).toBe(true);
+      });
+    });
+
+    it("debounces: a burst of typing is one request, not one per keystroke", async () => {
+      const api = await renderList(USER_ROLE.RECEPTIONIST);
+      const before = searchCalls(api).length;
+
+      await userEvent.type(screen.getByLabelText(ar.nav.search), "خالد");
+
+      await waitFor(() => {
+        expect(searchCalls(api).length).toBeGreaterThan(before);
+      });
+
+      await waitFor(() => {
+        expect(searchCalls(api).length - before).toBeLessThan(4);
+      });
+    });
+
+    it("tells the difference between an empty clinic and an empty search", async () => {
+      await renderList(USER_ROLE.RECEPTIONIST, {
+        "GET /patients": { status: 200, body: paginated([]) },
+      });
+
+      expect(await screen.findByText(ar.patients.empty)).toBeInTheDocument();
+
+      await userEvent.type(screen.getByLabelText(ar.nav.search), "لا-يوجد");
+
+      expect(await screen.findByText(ar.patients.noMatches)).toBeInTheDocument();
+    });
+  });
+
+  describe("columns by role (ROLES.md field-level security)", () => {
+    it("shows the clinical column to admin and doctor", async () => {
+      await renderList(USER_ROLE.DOCTOR);
+
+      expect(
+        await screen.findByRole("columnheader", { name: ar.patients.address }),
+      ).toBeInTheDocument();
+    });
+
+    it.each([[USER_ROLE.RECEPTIONIST, true]])(
+      "gives %s the public-view columns only",
+      async (role, withBalance) => {
+        await renderList(role as UserRole);
+
+        await screen.findByText(PATIENTS[0]!.fullName);
+
+        const headers = screen
+          .getAllByRole("columnheader")
+          .map((header) => header.textContent?.trim());
+
+        expect(headers).toEqual([
+          ar.patients.fullName,
+          ar.patients.phone,
+          ar.patients.age,
+          ...(withBalance ? [ar.patients.balance] : []),
+          ar.common.actions,
+        ]);
+        expect(screen.getAllByText(PATIENTS[0]!.fileNumber).length).toBeGreaterThan(0);
+
+        expect(screen.queryByText("المالكي، دمشق")).not.toBeInTheDocument();
+      },
+    );
+  });
+
+  describe("the owing filter", () => {
+    it("asks the server when the address arrives with it", async () => {
+      const api = await renderList(USER_ROLE.RECEPTIONIST, {}, "/patients?filter=balance");
+
+      await waitFor(() =>
+        expect(searchCalls(api).some((call) => call.url.includes("hasBalance=true"))).toBe(true),
+      );
+    });
+
+    it("puts it in the address when the segment is chosen, and takes it out again", async () => {
+      const api = await renderList(USER_ROLE.RECEPTIONIST);
+
+      await userEvent.click(screen.getByRole("radio", { name: new RegExp(ar.patients.owing) }));
+
+      await waitFor(() =>
+        expect(searchCalls(api).some((call) => call.url.includes("hasBalance=true"))).toBe(true),
+      );
+      expect(window.location.search).toBe("");
+
+      await userEvent.click(screen.getByRole("radio", { name: ar.common.all }));
+
+      await waitFor(() => {
+        const last = searchCalls(api).at(-1);
+        expect(last?.url).not.toContain("hasBalance");
+      });
+    });
+
+    it("is never offered to a role the API serves no balances to", async () => {
+      await renderList(USER_ROLE.DOCTOR);
+
+      expect(
+        screen.getByRole("radio", { name: new RegExp(ar.patients.owing) }),
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe("registering a patient", () => {
+    it("offers the action to the roles that may create one", async () => {
+      await renderList(USER_ROLE.RECEPTIONIST);
+
+      expect(screen.getAllByRole("button", { name: ar.patients.create }).length).toBeGreaterThan(0);
+    });
+
+    it("withdraws the action when the clinic has taken the permission away", async () => {
+      await renderList(USER_ROLE.RECEPTIONIST, {
+        "GET /me": {
+          status: 200,
+          body: makeProfile({ role: USER_ROLE.RECEPTIONIST, capabilities: ["patients.update"] }),
+        },
+      });
+
+      expect(screen.queryByRole("button", { name: ar.patients.create })).not.toBeInTheDocument();
+    });
+
+    it("sends what the form collected and opens the new file", async () => {
+      const created = makePatient({ id: PATIENT_ID, fullName: "سامر التلاوي" });
+
+      const api = await renderList(USER_ROLE.RECEPTIONIST, {
+        "POST /patients": { status: 201, body: created },
+        [`GET /patients/${PATIENT_ID}`]: { status: 200, body: created },
+        [`GET /patients/${PATIENT_ID}/allergy-flags`]: {
+          status: 200,
+          body: { patientId: PATIENT_ID, hasAllergies: false, allergies: [] },
+        },
+      });
+
+      await userEvent.click(screen.getAllByRole("button", { name: ar.patients.create })[0]!);
+
+      const dialog = await screen.findByRole("dialog");
+      await userEvent.type(within(dialog).getByLabelText(ar.patients.firstName), "سامر");
+      await userEvent.type(within(dialog).getByLabelText(ar.patients.lastName), "التلاوي");
+      await userEvent.type(within(dialog).getByLabelText(ar.patients.phone), "+963944123456");
+      await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
+
+      await waitFor(() => {
+        const call = api.calls.find(
+          (entry) => entry.method === "POST" && entry.url.endsWith("/patients"),
+        );
+        expect(call?.body).toMatchObject({
+          firstName: "سامر",
+          lastName: "التلاوي",
+          phone: "+963944123456",
+        });
+        expect(call?.body).not.toHaveProperty("fileNumber");
+      });
+    });
+
+    it("stores every number international: the clinic's code by default, another when picked", async () => {
+      const api = await renderList(USER_ROLE.RECEPTIONIST, {
+        "POST /patients": { status: 201, body: makePatient() },
+      });
+
+      await userEvent.click(screen.getAllByRole("button", { name: ar.patients.create })[0]!);
+
+      const dialog = await screen.findByRole("dialog");
+      await userEvent.type(within(dialog).getByLabelText(ar.patients.firstName), "سامر");
+      await userEvent.type(within(dialog).getByLabelText(ar.patients.lastName), "التلاوي");
+      await userEvent.type(within(dialog).getByLabelText(ar.patients.phone), "0599 123 456");
+      await choose(within(dialog).getByTestId("patient-field-whatsapp-country"), /\+962/);
+      await userEvent.type(
+        within(dialog).getByRole("textbox", { name: new RegExp(ar.patients.whatsapp) }),
+        "0791234567",
+      );
+      await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
+
+      await waitFor(() => {
+        const call = api.calls.find(
+          (entry) => entry.method === "POST" && entry.url.endsWith("/patients"),
+        );
+        expect(call?.body).toMatchObject({ phone: "+970599123456", whatsapp: "+962791234567" });
+      });
+    });
+
+    it("will not submit a patient with no name", async () => {
+      const api = await renderList(USER_ROLE.RECEPTIONIST);
+
+      await userEvent.click(screen.getAllByRole("button", { name: ar.patients.create })[0]!);
+
+      const dialog = await screen.findByRole("dialog");
+      await userEvent.type(within(dialog).getByLabelText(ar.patients.phone), "+963944123456");
+      await userEvent.click(within(dialog).getByRole("button", { name: ar.common.save }));
+
+      await waitFor(() => {
+        expect(within(dialog).getAllByRole("alert").length).toBeGreaterThan(0);
+      });
+
+      expect(
+        api.calls.some((entry) => entry.method === "POST" && entry.url.endsWith("/patients")),
+      ).toBe(false);
+    });
+  });
+});

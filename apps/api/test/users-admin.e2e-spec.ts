@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { USER_ROLE, type UserRole } from "@clinic/shared";
-import { REFRESH_COOKIE_NAME } from "@api/auth/lib/refresh-cookie";
+import { REFRESH_COOKIE_NAME } from "@api/modules/auth/lib/refresh-cookie";
 import {
   auth,
   createTestContext,

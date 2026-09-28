@@ -375,7 +375,7 @@ boundary, and every screen assumes it can be refused.
 
 ### Base components
 
-`apps/web/src/components/ui` holds the pieces every later feature reuses: `Button`, `Input`,
+`packages/ui` (`@clinic/ui`) holds the pieces every feature reuses: `Button`, `Input`,
 `Select`, `SearchField`, `Table` (with `Pagination`), `Modal`, `Drawer`,
 `ToastProvider`/`useToast`, `FormField`, `PageHeader`, `EmptyState`, `Badge`, `Switch`,
 `Card`, `StatCard`, `SegmentedControl`, `EntityCard`, `ProgressBar`, `Avatar` and `Icon`,

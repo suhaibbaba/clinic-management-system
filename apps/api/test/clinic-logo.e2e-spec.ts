@@ -15,8 +15,8 @@ import {
 import { and, inArray, isNull, ne } from "drizzle-orm";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 import { clinics } from "@api/database/schema/core";
-import { StorageService } from "@api/storage/services/storage.service";
-import { type StoredObject } from "@api/storage/lib/storage";
+import { StorageService } from "@api/modules/storage/services/storage.service";
+import { type StoredObject } from "@api/modules/storage/lib/storage";
 
 describe("Clinic logo (e2e)", () => {
   let context: TestContext;

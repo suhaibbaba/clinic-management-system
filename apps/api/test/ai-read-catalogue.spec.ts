@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { READ_VIEWS, renderReadSchema } from "@api/ai/query/catalogue";
+import { READ_VIEWS, renderReadSchema } from "@api/modules/ai/query/catalogue";
 
 const MIGRATION = join(__dirname, "..", "drizzle", "0043_ai_read_views.sql");
 const SNAPSHOT = join(__dirname, "..", "drizzle", "meta", "0043_snapshot.json");

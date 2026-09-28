@@ -37,8 +37,9 @@ rules, in short:
 - **Infra** one small VPS. Keep the memory footprint low.
 
 ```
-apps/api    one Nest module per domain module, sorted by kind inside
-apps/web    src/ by kind, then by feature; tests in apps/web/test mirroring src
+apps/api    src/modules/<module>/ — one Nest module per domain, sorted by kind inside
+apps/web    src/modules/<module>/ — one folder per domain, sorted by kind inside; src/shared/
+            for what several modules use; tests in apps/web/test mirroring src
 packages/shared   Zod schemas, types, enums, constants
 packages/ui       components, tokens, the theme contract
 ```
@@ -95,7 +96,7 @@ core · patients · billing · appointments · booking · notifications · labs 
 ## Backend
 
 - `controller` (thin) → `service` (logic) → Drizzle. No business logic in controllers or schemas.
-- **A module folder is sorted by kind:** `<module>.module.ts` at its root, then `controllers/`,
+- **`src/modules/<module>/` is sorted by kind:** `<module>.module.ts` at its root, then `controllers/`,
   `services/` (every `@Injectable`), `dto/<name>.dto.ts`, `lib/<name>.ts` (row types, mappers, SQL
   fragments, pure functions) and `constants.ts` (UPPER_CASE values only). A file holds one kind: a
   service file is its class and nothing else. A constant built from a module's own helpers lives with
@@ -110,13 +111,13 @@ core · patients · billing · appointments · booking · notifications · labs 
 ## Frontend
 
 - Functional components, hooks, TanStack Query.
-- **`src/` is organised by kind, then by feature**, with the same feature name in every folder:
-  `pages/<feature>/` (a screen or tab), `components/<feature>/`, `hooks/<feature>/` (one hook per
-  file, `use-….ts`; cross-feature hooks in `hooks/shared/`), `queries/<feature>.ts` (TanStack hooks
-  and their keys), `api/<feature>.ts`, `permissions/<feature>.ts`, `constants/<feature>.ts`,
-  `lib/<feature>/` (plain helpers), `providers/` (context providers). `app/` is the shell and
-  `booking/` the separate public bundle. A file holds one kind: no hook, constant or helper exported
-  from a component. No `index.ts` barrels; import the exact file.
+- **`src/modules/<module>/` holds one domain, sorted by kind:** `pages/` (a screen or tab),
+  `components/`, `hooks/` (one hook per file, `use-….ts`), `lib/` (plain helpers), and `api.ts`,
+  `queries.ts` (TanStack hooks and their keys), `permissions.ts`, `constants.ts`. What several
+  modules use lives in `src/shared/` with the same kinds (`components/`, `hooks/`, `lib/`,
+  `constants/`, `providers/`). `app/` is the shell, `i18n/` the locales, `booking/` the separate
+  public bundle. A file holds one kind: no hook, constant or helper exported from a component. No
+  `index.ts` barrels; import the exact file. The API's `src/modules/<module>/` mirrors the name.
 - **RTL by default.** Gregorian dates, Arabic through i18n. `check:i18n` fails on an Arabic literal
   in a component and on a key missing from either locale.
 - Dropdowns read the clinic's lists through `useLookupOptions` / `useLookupLabels`, never a constant.
@@ -174,7 +175,7 @@ receptionist never receives an attachment URL. **Staff have a photo, patients do
   - **Security**: every role's sidebar asserted **as a whole list** (the failure that matters is an
     entry appearing for somebody it was never meant for), each route guard per role, each retired
     address landing on its replacement, fields a role must not see, and the session's tokens.
-  - **Logic** with no rendering: `lib/`, `hooks/`, `queries/`, `i18n/`.
+  - **Logic** with no rendering: a module's `lib/`, `hooks/` and `queries.ts`, `shared/lib/`, `i18n/`.
   No page, component, layout or browser-mode tests.
 - **Direction and spacing are still verified by a person on the sandbox.** A pull request that
   changes what a screen looks like carries screenshots in its description, in Arabic RTL, at the

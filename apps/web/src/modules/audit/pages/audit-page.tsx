@@ -1,0 +1,226 @@
+import { AUDIT_ACTIONS, type AuditAction, type AuditLogEntry } from "@clinic/shared";
+import { useMemo, useState, type JSX } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  Badge,
+  Button,
+  Card,
+  DateRangePicker,
+  EmptyState,
+  Icon,
+  Modal,
+  PageHeader,
+  Select,
+  Table,
+  usePageParams,
+  usePersonName,
+  type Column,
+} from "@clinic/ui";
+import { useAuditLog } from "@web/modules/audit/queries";
+import { ValueDiff } from "@web/modules/audit/components/value-diff";
+import { useUsers } from "@web/modules/users/queries";
+import { endOfNextDayIso, formatDateTime, startOfDayIso } from "@web/shared/lib/format";
+import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
+import { AUDIT_ACTION_TONES, AUDIT_ENTITIES } from "@web/modules/audit/constants";
+
+export function AuditPage(): JSX.Element {
+  const { t } = useTranslation();
+
+  const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
+  const [entity, setEntity] = useState("");
+  const [action, setAction] = useState("");
+  const [userId, setUserId] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [selected, setSelected] = useState<AuditLogEntry | null>(null);
+
+  const users = useUsers({ limit: 100 });
+  const displayName = usePersonName();
+  const userNames = useMemo(
+    () => new Map((users.data?.items ?? []).map((user) => [user.id, displayName(user.name)])),
+    [users.data, displayName],
+  );
+
+  const query = useAuditLog({
+    page,
+    limit: perPage,
+    ...(entity !== "" && { entity }),
+    ...(action !== "" && { action: action as AuditAction }),
+    ...(userId !== "" && { userId }),
+    ...(startOfDayIso(from) && { from: startOfDayIso(from) }),
+    ...(endOfNextDayIso(to) && { to: endOfNextDayIso(to) }),
+  });
+
+  const columns = useMemo<Column<AuditLogEntry>[]>(
+    () => [
+      { key: "when", header: "audit.when", render: (row) => formatDateTime(row.createdAt) },
+      {
+        key: "user",
+        header: "audit.user",
+        render: (row) =>
+          row.userId === null ? t("audit.systemUser") : (userNames.get(row.userId) ?? row.userId),
+      },
+      {
+        key: "action",
+        header: "audit.action",
+        render: (row) => (
+          <Badge tone={AUDIT_ACTION_TONES[row.action]} data-testid="audit-action">
+            {t(`audit.actions.${row.action}`)}
+          </Badge>
+        ),
+      },
+      {
+        key: "entity",
+        header: "audit.entity",
+        primary: true,
+        render: (row) => t(`audit.entities.${row.entity}`, { defaultValue: row.entity }),
+      },
+      {
+        key: "changes",
+        header: "audit.changes",
+        actions: true,
+        render: (row) => (
+          <Button
+            icon={<Icon name="file" />}
+            size="sm"
+            variant="ghost"
+            data-testid="audit-view-changes"
+            onClick={() => setSelected(row)}
+          >
+            {t("audit.viewChanges")}
+          </Button>
+        ),
+      },
+    ],
+    [t, userNames],
+  );
+
+  const data = query.data;
+
+  return (
+    <div data-testid="audit-page" className="flex flex-col gap-5">
+      <PageHeader
+        data-testid="audit-header"
+        title="audit.title"
+        subtitle="audit.subtitle"
+        {...(query.data !== undefined && {
+          count: t("pagination.total", { total: query.data.total }),
+        })}
+      />
+
+      <Card
+        data-testid="audit-filters"
+        className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:items-end"
+      >
+        <Select
+          data-testid="audit-filter-entity"
+          className="w-full sm:w-44"
+          aria-label={t("audit.filterEntity")}
+          placeholder={t("common.all")}
+          options={AUDIT_ENTITIES.map((value) => ({
+            value,
+            label: t(`audit.entities.${value}`, { defaultValue: value }),
+          }))}
+          value={entity}
+          onChange={(event) => {
+            setEntity(event.target.value);
+            resetPage();
+          }}
+        />
+
+        <Select
+          data-testid="audit-filter-action"
+          className="w-full sm:w-40"
+          aria-label={t("audit.filterAction")}
+          placeholder={t("common.all")}
+          options={AUDIT_ACTIONS.map((value) => ({
+            value,
+            label: t(`audit.actions.${value}`),
+          }))}
+          value={action}
+          onChange={(event) => {
+            setAction(event.target.value);
+            resetPage();
+          }}
+        />
+
+        <Select
+          data-testid="audit-filter-user"
+          className="w-full sm:w-52"
+          aria-label={t("audit.filterUser")}
+          placeholder={t("common.all")}
+          options={(users.data?.items ?? []).map((user) => ({
+            value: user.id,
+            label: displayName(user.name),
+          }))}
+          value={userId}
+          onChange={(event) => {
+            setUserId(event.target.value);
+            resetPage();
+          }}
+        />
+
+        <label className="flex w-full flex-col gap-1 text-label text-ink-muted sm:w-auto">
+          {t("audit.period")}
+          <DateRangePicker
+            id="audit-period"
+            data-testid="audit-filter-period"
+            className="w-full sm:w-64"
+            label={t("audit.period")}
+            value={{ from, to }}
+            onChange={(range) => {
+              setFrom(range.from);
+              setTo(range.to);
+              resetPage();
+            }}
+          />
+        </label>
+      </Card>
+
+      <Table
+        data-testid="audit-table"
+        columns={columns}
+        rows={data?.items ?? []}
+        rowKey={(row) => row.id}
+        isLoading={query.isPending}
+        isRefreshing={isRefetching(query)}
+        empty={
+          <EmptyState
+            icon="clipboard"
+            data-testid="audit-empty"
+            title="audit.empty"
+            hint="audit.emptyHint"
+          />
+        }
+        {...(data && {
+          pagination: {
+            page: data.page,
+            totalPages: data.totalPages,
+            onPageChange: setPage,
+            perPage,
+            onPerPageChange: setPerPage,
+          },
+        })}
+      />
+
+      <Modal
+        data-testid="audit-changes-modal"
+        open={selected !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelected(null);
+          }
+        }}
+        size="lg"
+        title="audit.changesFor"
+        titleValues={{
+          entity: selected
+            ? t(`audit.entities.${selected.entity}`, { defaultValue: selected.entity })
+            : "",
+        }}
+      >
+        {selected && <ValueDiff oldValue={selected.oldValue} newValue={selected.newValue} />}
+      </Modal>
+    </div>
+  );
+}

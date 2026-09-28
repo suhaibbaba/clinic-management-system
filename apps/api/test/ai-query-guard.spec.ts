@@ -1,4 +1,4 @@
-import { guardQuery, QUERY_REFUSAL, QueryRefused } from "@api/ai/query/query-guard";
+import { guardQuery, QUERY_REFUSAL, QueryRefused } from "@api/modules/ai/query/query-guard";
 
 const refusal = (sql: string): string => {
   try {

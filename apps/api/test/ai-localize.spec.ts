@@ -1,4 +1,4 @@
-import { localizeInstants } from "@api/ai/tools/ai-tool";
+import { localizeInstants } from "@api/modules/ai/tools/ai-tool";
 
 describe("what the model reads of a time", () => {
   it("turns every UTC instant into the clinic's own wall clock, however deep", () => {

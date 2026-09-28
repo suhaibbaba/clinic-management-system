@@ -1,4 +1,4 @@
-import { autoDirection, isolateLtr, visualRuns } from "@api/billing/pdf/arabic-text";
+import { autoDirection, isolateLtr, visualRuns } from "@api/modules/billing/pdf/arabic-text";
 
 const drawn = (text: string, base: "rtl" | "ltr" = "rtl"): string =>
   visualRuns(text, base)

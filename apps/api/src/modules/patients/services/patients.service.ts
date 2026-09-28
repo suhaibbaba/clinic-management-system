@@ -1,0 +1,206 @@
+import { Inject, Injectable, type OnModuleInit } from "@nestjs/common";
+import {
+  joinPatientName,
+  type CreatePatientInput,
+  type Money,
+  type ListPatientsQuery,
+  type Paginated,
+  type PatientView,
+  type UpdatePatientInput,
+} from "@clinic/shared";
+import { and, asc, desc, eq, exists, gte, isNull, or, sql, type SQL } from "drizzle-orm";
+import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
+import { LedgerService } from "@api/modules/billing/services/ledger.service";
+import { arabicNameSearch } from "@api/common/database/arabic-search";
+import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
+import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
+import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
+import { DATABASE, type Database } from "@api/database/database.module";
+import { patients, visits } from "@api/database/schema";
+import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
+import { type PatientRow } from "@api/modules/patients/lib/patient-access";
+import { PatientRegistrationService } from "@api/modules/patients/services/patient-registration.service";
+import { PATIENTS_ENTITY, toClinicalView, toRoleView } from "@api/modules/patients/lib/patient-view";
+
+@Injectable()
+export class PatientsService implements OnModuleInit {
+  constructor(
+    @Inject(DATABASE) private readonly db: Database,
+    private readonly scope: ClinicScopeService,
+    private readonly ledger: LedgerService,
+    private readonly registration: PatientRegistrationService,
+    private readonly access: PatientAccessService,
+    private readonly auditSnapshots: AuditSnapshotRegistry,
+  ) {}
+
+  onModuleInit(): void {
+    this.auditSnapshots.register(PATIENTS_ENTITY, async (id, clinicId) => {
+      const [row] = await this.db
+        .select()
+        .from(patients)
+        .where(this.scope.where(patients, clinicId, eq(patients.id, id)))
+        .limit(1);
+
+      return row ? { ...toClinicalView(row) } : null;
+    });
+  }
+
+  async list(actor: AuthenticatedUser, query: ListPatientsQuery): Promise<Paginated<PatientView>> {
+    const filters: (SQL | undefined)[] = [await this.access.assignedFilter(actor, patients.id)];
+
+    if (query.gender) {
+      filters.push(eq(patients.gender, query.gender));
+    }
+
+    if (query.hasBalance && PatientAccessService.seesFinancialData(actor.role)) {
+      filters.push(LedgerService.owesFilter(actor.clinicId, patients.id));
+    }
+
+    if (query.visitedSince) {
+      filters.push(
+        exists(
+          this.db
+            .select({ present: sql`1` })
+            .from(visits)
+            .where(
+              and(
+                eq(visits.patientId, patients.id),
+                eq(visits.clinicId, actor.clinicId),
+                isNull(visits.deletedAt),
+                gte(visits.visitDate, new Date(query.visitedSince)),
+              ),
+            ),
+        ),
+      );
+    }
+
+    const byName = query.search ? arabicNameSearch(patients.normalizedName, query.search) : null;
+
+    if (query.search) {
+      const pattern = `%${query.search.trim()}%`;
+      const digits = query.search.replace(/\D/g, "").replace(/^0+/, "");
+
+      filters.push(
+        or(
+          byName?.match,
+          sql`${patients.phone} ilike ${pattern}`,
+          digits.length >= 3
+            ? sql`regexp_replace(${patients.phone}, '[^0-9]', '', 'g') like ${`%${digits}%`}`
+            : undefined,
+          sql`${patients.fileNumber} ilike ${pattern}`,
+        ),
+      );
+    }
+
+    const where = this.scope.where(patients, actor.clinicId, ...filters);
+    const { limit, offset } = toLimitOffset(query);
+    const balance = LedgerService.balanceOf(actor.clinicId, patients.id);
+    const byBalance =
+      query.sort === "balance" && PatientAccessService.seesFinancialData(actor.role)
+        ? query.dir === "asc"
+          ? asc(balance)
+          : desc(balance)
+        : null;
+
+    const [rows, [totals]] = await Promise.all([
+      this.db
+        .select()
+        .from(patients)
+        .where(where)
+        .orderBy(
+          ...(byBalance ? [byBalance] : []),
+          ...(byName ? [byName.rank, byName.closeness] : []),
+          desc(patients.createdAt),
+        )
+        .limit(limit)
+        .offset(offset),
+      this.db
+        .select({ value: sql<number>`count(*)::int` })
+        .from(patients)
+        .where(where),
+    ]);
+
+    const balances = PatientAccessService.seesFinancialData(actor.role)
+      ? await this.ledger.balancesFor(
+          actor.clinicId,
+          rows.map((row) => row.id),
+        )
+      : new Map<string, Money>();
+
+    return toPaginated(
+      rows.map((row) => toRoleView(row, actor.role, balances.get(row.id))),
+      totals?.value ?? 0,
+      query,
+    );
+  }
+
+  async findOne(actor: AuthenticatedUser, id: string): Promise<PatientView> {
+    const row = await this.access.requirePatient(actor, id);
+    const balance = PatientAccessService.seesFinancialData(actor.role)
+      ? (await this.ledger.balanceFor(actor.clinicId, row.id)).balance
+      : undefined;
+
+    return toRoleView(row, actor.role, balance);
+  }
+
+  async create(actor: AuthenticatedUser, input: CreatePatientInput): Promise<PatientView> {
+    const row = await this.registration.insertPatient(this.db, actor, input);
+
+    return toRoleView(row, actor.role);
+  }
+
+  async update(
+    actor: AuthenticatedUser,
+    id: string,
+    input: UpdatePatientInput,
+  ): Promise<PatientView> {
+    const current = await this.scope.findOneOrFail<PatientRow>(patients, actor.clinicId, id);
+    const name = {
+      firstName: input.firstName ?? current.firstName,
+      middleName: input.middleName === undefined ? current.middleName : input.middleName || null,
+      lastName: input.lastName ?? current.lastName,
+    };
+
+    const [row] = await this.db
+      .update(patients)
+      .set({
+        ...(input.firstName !== undefined ||
+        input.middleName !== undefined ||
+        input.lastName !== undefined
+          ? { ...name, fullName: joinPatientName(name) }
+          : {}),
+        ...(input.phone !== undefined && { phone: input.phone }),
+        ...(input.whatsapp !== undefined && { whatsapp: input.whatsapp ?? null }),
+        ...(input.dateOfBirth !== undefined && { dateOfBirth: input.dateOfBirth ?? null }),
+        ...(input.gender !== undefined && { gender: input.gender ?? null }),
+        ...(input.address !== undefined && { address: input.address ?? null }),
+        ...(input.nationalId !== undefined && { nationalId: input.nationalId ?? null }),
+        ...(input.emergencyContactName !== undefined && {
+          emergencyContactName: input.emergencyContactName ?? null,
+        }),
+        ...(input.emergencyContactPhone !== undefined && {
+          emergencyContactPhone: input.emergencyContactPhone ?? null,
+        }),
+        ...(input.notes !== undefined && { notes: input.notes ?? null }),
+        updatedAt: new Date(),
+        updatedBy: actor.id,
+      })
+      .where(this.scope.where(patients, actor.clinicId, eq(patients.id, id)))
+      .returning();
+
+    if (!row) {
+      throw new Error("Failed to update patient");
+    }
+
+    return toRoleView(row, actor.role);
+  }
+
+  async softDelete(actor: AuthenticatedUser, id: string): Promise<void> {
+    await this.scope.findOneOrFail<PatientRow>(patients, actor.clinicId, id);
+
+    await this.db
+      .update(patients)
+      .set({ deletedAt: new Date(), updatedAt: new Date(), updatedBy: actor.id })
+      .where(this.scope.where(patients, actor.clinicId, eq(patients.id, id)));
+  }
+}

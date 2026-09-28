@@ -1,6 +1,6 @@
 import { AI_ERROR_CODE } from "@clinic/shared";
 import OpenAI from "openai";
-import { classify } from "@api/ai/lib/openai-chat.provider";
+import { classify } from "@api/modules/ai/lib/openai-chat.provider";
 import { envSchema } from "@api/config/env.schema";
 
 const apiError = (status: number, code?: string): Error =>

@@ -4,12 +4,12 @@ import { AI_TOOL, USER_ROLE } from "@clinic/shared";
 import { ConfigService } from "@nestjs/config";
 import { Test } from "@nestjs/testing";
 import { AppModule } from "@api/app.module";
-import type { ChatMessage, ChatToolCall } from "@api/ai/lib/chat-provider";
-import { OpenAiChatProvider } from "@api/ai/services/openai-chat.provider";
-import { systemPrompt } from "@api/ai/lib/system-prompt";
-import { ToolRunnerService } from "@api/ai/tools/tool-runner.service";
+import type { ChatMessage, ChatToolCall } from "@api/modules/ai/lib/chat-provider";
+import { OpenAiChatProvider } from "@api/modules/ai/services/openai-chat.provider";
+import { systemPrompt } from "@api/modules/ai/lib/system-prompt";
+import { ToolRunnerService } from "@api/modules/ai/tools/tool-runner.service";
 import { envSchema } from "@api/config/env.schema";
-import { CapabilityRegistry } from "@api/permissions/services/capability-registry.service";
+import { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
 import { EVAL_CASES } from "@test/helpers/ai-eval-cases";
 
 function loadRootEnv(): void {

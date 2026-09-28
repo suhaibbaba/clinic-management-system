@@ -1,4 +1,4 @@
-import { PageErrorBoundary } from "@web/components/page-error-boundary";
+import { PageErrorBoundary } from "@web/shared/components/page-error-boundary";
 import type { JSX } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { AppProviders } from "@web/app/providers";

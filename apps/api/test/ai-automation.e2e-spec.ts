@@ -15,8 +15,8 @@ import {
   type UserRole,
 } from "@clinic/shared";
 import { and, eq } from "drizzle-orm";
-import { AutomationService } from "@api/ai/outbound/automation.service";
-import { OutboundRecipientsService } from "@api/ai/outbound/outbound-recipients.service";
+import { AutomationService } from "@api/modules/ai/outbound/automation.service";
+import { OutboundRecipientsService } from "@api/modules/ai/outbound/outbound-recipients.service";
 import {
   aiAuditLog,
   aiAutomationRuns,
@@ -27,7 +27,7 @@ import {
   labs,
   payments,
 } from "@api/database/schema";
-import { PermissionsService } from "@api/permissions/services/permissions.service";
+import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import {
   createPatient,
   seedClinicFixtures,

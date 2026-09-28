@@ -5,12 +5,12 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { useMemo, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { createQueryClient } from "@web/app/query-client";
-import { SessionProvider, useSession } from "@web/providers/session";
+import { SessionProvider, useSession } from "@web/shared/providers/session";
 import { isRtl } from "@web/i18n";
-import { OfflineBar } from "@web/components/pwa/offline-bar";
-import { UpdateBar } from "@web/components/pwa/update-bar";
-import { DocumentBranding } from "@web/lib/document-branding";
-import { DocumentTitleProvider } from "@web/providers/document-title";
+import { OfflineBar } from "@web/shared/components/pwa/offline-bar";
+import { UpdateBar } from "@web/shared/components/pwa/update-bar";
+import { DocumentBranding } from "@web/shared/lib/document-branding";
+import { DocumentTitleProvider } from "@web/shared/providers/document-title";
 import { abuObaidTheme } from "@web/theme";
 
 export function AppProviders({ children }: { children: ReactNode }): JSX.Element {

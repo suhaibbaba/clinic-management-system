@@ -2,11 +2,11 @@ import { Controller, Get } from "@nestjs/common";
 import { DiscoveryModule } from "@nestjs/core";
 import { Test } from "@nestjs/testing";
 import { AppModule } from "@api/app.module";
-import { AiTool } from "@api/ai/tools/route-tool.decorator";
-import { RouteToolRegistry } from "@api/ai/tools/route-tools";
-import { AuditSnapshotRegistry } from "@api/audit/services/audit-snapshot.registry";
-import { AuditService } from "@api/audit/services/audit.service";
-import { CapabilityRegistry } from "@api/permissions/services/capability-registry.service";
+import { AiTool } from "@api/modules/ai/tools/route-tool.decorator";
+import { RouteToolRegistry } from "@api/modules/ai/tools/route-tools";
+import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
+import { AuditService } from "@api/modules/audit/services/audit.service";
+import { CapabilityRegistry } from "@api/modules/permissions/services/capability-registry.service";
 
 process.env["DATABASE_URL"] ??= "postgres://nobody:nothing@127.0.0.1:1/none";
 
