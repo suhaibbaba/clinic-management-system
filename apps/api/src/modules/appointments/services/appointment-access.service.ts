@@ -1,5 +1,4 @@
 import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
-import { USER_ROLE } from "@clinic/shared";
 import { eq, sql, type SQL } from "drizzle-orm";
 import { type PgColumn } from "drizzle-orm/pg-core";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
@@ -42,7 +41,7 @@ export class AppointmentAccessService {
   }
 
   async readableFilter(actor: AuthenticatedUser, doctorColumn: PgColumn): Promise<SQL | undefined> {
-    if (actor.role !== USER_ROLE.VISITING_DOCTOR) {
+    if (!HAS_OWN_CALENDAR.includes(actor.role)) {
       return undefined;
     }
 

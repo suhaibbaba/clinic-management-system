@@ -379,11 +379,11 @@ describe("Inventory (e2e)", () => {
       };
 
       const first = await page(1);
-      expect(first.items.map((item) => item.id)).toEqual([firstLow]);
+      expect(first.items.map((item) => item.id)).toEqual([secondLow]);
       expect(first.total).toBe(2);
       expect(first.totalPages).toBe(2);
 
-      expect((await page(2)).items.map((item) => item.id)).toEqual([secondLow]);
+      expect((await page(2)).items.map((item) => item.id)).toEqual([firstLow]);
     });
 
     it("does not call an item low when it has no minimum set", async () => {

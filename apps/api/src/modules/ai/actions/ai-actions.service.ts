@@ -182,12 +182,6 @@ interface StatusPayload {
   readonly status: SettableStatus;
 }
 
-const AUTO_STATUSES: readonly SettableStatus[] = [
-  APPOINTMENT_STATUS.ARRIVED,
-  APPOINTMENT_STATUS.IN_PROGRESS,
-  APPOINTMENT_STATUS.COMPLETED,
-];
-
 const acknowledgeSchema = z
   .array(z.enum(AI_ACTION_CHECKS))
   .optional()
@@ -835,7 +829,7 @@ export class AiActionsService {
         tool: AI_TOOL.SET_APPOINTMENT_STATUS,
         kind: AI_PROPOSAL_KIND.APPOINTMENT_STATUS,
         description:
-          "Moves one appointment along: arrived, in_progress and completed run at once; confirmed and no_show wait on a card. Not for cancelling — cancel_appointments.",
+          "Moves one appointment along (arrived, in_progress, completed, confirmed, no_show). Waits on a card. Not for cancelling — cancel_appointments.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.SET_APPOINTMENT_STATUS],
         capability: STATUS_CAPABILITY[APPOINTMENT_STATUS.ARRIVED],
         capabilityFor: (payload) => STATUS_CAPABILITY[payload.status],
@@ -860,8 +854,6 @@ export class AiActionsService {
             }
           );
         },
-        escalate: (payload) =>
-          AUTO_STATUSES.includes(payload.status) ? AI_RISK_TIER.AUTO : AI_RISK_TIER.CONFIRM,
         execute: async (actor, payload) => {
           const appointment = await this.audited(
             actor,
@@ -879,7 +871,7 @@ export class AiActionsService {
         tool: AI_TOOL.ADD_PATIENT_NOTE,
         kind: AI_PROPOSAL_KIND.PATIENT_NOTE,
         description:
-          "Adds a dated note to a patient's file, in the user's words. Not for correcting their details — patients_update. Runs at once.",
+          "Adds a dated note to a patient's file, in the user's words. Not for correcting their details — patients_update. Waits on a card.",
         risk: AI_ACTION_BASE_TIER[AI_TOOL.ADD_PATIENT_NOTE],
         capability: "patients.update",
         schema: z.object({

@@ -42,6 +42,7 @@ import {
   labWorkTypes,
   labs,
   patients,
+  performedProcedures,
   users,
 } from "@api/database/schema";
 import { LabWorkTypesService } from "@api/modules/labs/services/lab-work-types.service";
@@ -220,6 +221,14 @@ export class LabOrdersService implements OnModuleInit {
       throw new BadRequestException("That work type belongs to another lab");
     }
 
+    if (input.performedProcedureId) {
+      if (!input.patientId) {
+        throw new BadRequestException("A procedure can only link a lab order for its own patient");
+      }
+
+      await this.requireProcedureOf(actor.clinicId, input.patientId, input.performedProcedureId);
+    }
+
     const teeth =
       input.teeth ??
       (input.performedProcedureId
@@ -287,8 +296,20 @@ export class LabOrdersService implements OnModuleInit {
     if (input.labId) {
       await this.labsService.requireRow(actor.clinicId, input.labId);
     }
-    if (input.workTypeId) {
-      await this.workTypes.requireRow(actor.clinicId, input.workTypeId);
+
+    const labId = input.labId ?? existing.labId;
+    const workTypeId = input.workTypeId === undefined ? existing.workTypeId : input.workTypeId;
+
+    if (workTypeId) {
+      const workType = await this.workTypes.requireRow(actor.clinicId, workTypeId);
+
+      if (workType.labId !== labId) {
+        throw new BadRequestException("That work type belongs to another lab");
+      }
+    }
+
+    if (input.performedProcedureId) {
+      await this.requireProcedureOf(actor.clinicId, existing.patientId, input.performedProcedureId);
     }
 
     await this.db
@@ -449,6 +470,29 @@ export class LabOrdersService implements OnModuleInit {
 
     if (!row) {
       throw new NotFoundException("Resource not found");
+    }
+  }
+
+  private async requireProcedureOf(
+    clinicId: string,
+    patientId: string,
+    procedureId: string,
+  ): Promise<void> {
+    const [procedure] = await this.db
+      .select({ id: performedProcedures.id })
+      .from(performedProcedures)
+      .where(
+        and(
+          eq(performedProcedures.id, procedureId),
+          eq(performedProcedures.clinicId, clinicId),
+          eq(performedProcedures.patientId, patientId),
+          isNull(performedProcedures.deletedAt),
+        ),
+      )
+      .limit(1);
+
+    if (!procedure) {
+      throw new BadRequestException("That procedure belongs to another patient");
     }
   }
 

@@ -10,6 +10,22 @@ export const envSchema = z.object({
     .string()
     .regex(/^postgres(ql)?:\/\/.+/, "DATABASE_URL must be a postgres:// connection string"),
 
+  MIGRATION_DATABASE_URL: z
+    .string()
+    .regex(
+      /^postgres(ql)?:\/\/.+/,
+      "MIGRATION_DATABASE_URL must be a postgres:// connection string",
+    )
+    .optional(),
+  APP_DATABASE_ROLE: z
+    .string()
+    .regex(/^[a-z_][a-z0-9_]{0,62}$/, "APP_DATABASE_ROLE must be a plain lowercase role name")
+    .optional(),
+  APP_DATABASE_PASSWORD: z
+    .string()
+    .min(16, "APP_DATABASE_PASSWORD must be at least 16 characters")
+    .optional(),
+
   DATABASE_POOL_MAX: z.coerce.number().int().positive().max(100).default(10),
 
   CORS_ORIGIN: z

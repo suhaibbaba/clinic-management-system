@@ -175,6 +175,39 @@ describe("Appointments permission boundaries (e2e)", () => {
     });
   });
 
+  describe("whose appointments a doctor reads", () => {
+    const read = (role: UserRole, url: string) =>
+      context.app.inject({ method: "GET", url, headers: auth(tokens[role]) });
+
+    it("shows a doctor their own calendar only, as ROLES.md asks", async () => {
+      const calendar = await read(
+        USER_ROLE.DOCTOR,
+        `/appointments/calendar?date=${monday}&range=day`,
+      );
+      const ids = (calendar.json() as { appointments: { id: string }[] }).appointments.map(
+        (row) => row.id,
+      );
+
+      expect(ids).toContain(ownAppointmentId);
+      expect(ids).not.toContain(otherDoctorAppointmentId);
+
+      expect(
+        (await read(USER_ROLE.DOCTOR, `/appointments/${otherDoctorAppointmentId}`)).statusCode,
+      ).toBe(404);
+      expect(
+        (await read(USER_ROLE.RECEPTIONIST, `/appointments/${otherDoctorAppointmentId}`))
+          .statusCode,
+      ).toBe(200);
+    });
+
+    it("keeps the appointment list from a technician, who reads the calendar only", async () => {
+      expect((await read(USER_ROLE.TECHNICIAN, "/appointments")).statusCode).toBe(403);
+      expect(
+        (await read(USER_ROLE.TECHNICIAN, `/appointments/${ownAppointmentId}`)).statusCode,
+      ).toBe(403);
+    });
+  });
+
   describe("writing appointments", () => {
     it("refuses a technician creating one", async () => {
       const response = await context.app.inject({

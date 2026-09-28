@@ -633,7 +633,7 @@ describe("Labs (e2e)", () => {
       }
       await move(fitted.id, "fit");
 
-      const open = await list(`view=open&labId=${listLabId}`);
+      const open = await list(`view=open&sort=due&labId=${listLabId}`);
       expect(open.items.map((row) => row.id)).toEqual([late.id, soon.id, draft.id, inClinic.id]);
 
       const counts = await context.app.inject({
@@ -680,6 +680,38 @@ describe("Labs (e2e)", () => {
 
       expect(order.teeth).toEqual([36]);
       expect(order.performedProcedureId).toBe(performedProcedureId);
+    });
+
+    it("refuses another patient's procedure", async () => {
+      const other = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
+        ...nameParts("مريض آخر"),
+        phone: uniquePhone(),
+      });
+      const procedure = await context.app.inject({
+        method: "POST",
+        url: "/performed-procedures",
+        headers: auth(tokens[USER_ROLE.DOCTOR]),
+        payload: procedurePayload({
+          patientId: other,
+          doctorId: fixtures.doctorId,
+          procedureId: fixtures.catalogId,
+          tooth: 36,
+        }),
+      });
+
+      const response = await context.app.inject({
+        method: "POST",
+        url: "/lab-orders",
+        headers: auth(tokens[USER_ROLE.DOCTOR]),
+        payload: {
+          labId,
+          patientId,
+          doctorId: fixtures.doctorId,
+          performedProcedureId: (procedure.json() as { id: string }).id,
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 });

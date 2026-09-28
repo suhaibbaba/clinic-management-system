@@ -10,14 +10,20 @@ import {
   type PerformedProcedure,
   type UpdatePerformedProcedureInput,
 } from "@clinic/shared";
-import { desc, eq, inArray, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { ChargesService } from "@api/modules/billing/services/charges.service";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
 import { toLimitOffset, toPaginated } from "@api/common/database/pagination";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database, type DatabaseExecutor } from "@api/database/database.module";
-import { chartMarks, doctors, performedProcedures, specialties } from "@api/database/schema";
+import {
+  chartMarks,
+  doctors,
+  performedProcedures,
+  specialties,
+  visits,
+} from "@api/database/schema";
 import { PatientAccessService } from "@api/modules/patients/services/patient-access.service";
 import { ProcedureCatalogService } from "@api/modules/patients/services/procedure-catalog.service";
 import { PERFORMED_PROCEDURES_ENTITY } from "@api/common/constants/audit-entities";
@@ -113,6 +119,10 @@ export class ProceduresService implements OnModuleInit {
     await this.patientAccess.requirePatientId(actor, input.patientId);
     await this.requireDoctor(actor, input.doctorId);
 
+    if (input.visitId) {
+      await this.requireVisitOf(actor.clinicId, input.patientId, input.visitId);
+    }
+
     const catalogItem = await this.catalog.requirePriced(actor.clinicId, input.procedureId);
     const price = input.price ?? catalogItem.defaultPrice;
 
@@ -170,6 +180,10 @@ export class ProceduresService implements OnModuleInit {
       performedProcedures,
       id,
     );
+
+    if (input.visitId) {
+      await this.requireVisitOf(actor.clinicId, existing.patientId, input.visitId);
+    }
 
     if (input.doctorId) {
       await this.requireDoctor(actor, input.doctorId);
@@ -370,6 +384,29 @@ export class ProceduresService implements OnModuleInit {
       throw new BadRequestException(
         `Chart marks must be of type ${specialty.chartType} for this specialty`,
       );
+    }
+  }
+
+  private async requireVisitOf(
+    clinicId: string,
+    patientId: string,
+    visitId: string,
+  ): Promise<void> {
+    const [visit] = await this.db
+      .select({ id: visits.id })
+      .from(visits)
+      .where(
+        and(
+          eq(visits.id, visitId),
+          eq(visits.clinicId, clinicId),
+          eq(visits.patientId, patientId),
+          isNull(visits.deletedAt),
+        ),
+      )
+      .limit(1);
+
+    if (!visit) {
+      throw new BadRequestException("That visit belongs to another patient");
     }
   }
 
