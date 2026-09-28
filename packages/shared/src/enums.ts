@@ -445,7 +445,7 @@ export const LAB_ORDER_DONE_STATUSES = [
 export const LAB_ORDER_VIEWS = ["open", "done"] as const;
 export type LabOrderView = (typeof LAB_ORDER_VIEWS)[number];
 
-export const LAB_ORDER_SORTS = ["due", "sent", "finished", "patient", "lab"] as const;
+export const LAB_ORDER_SORTS = ["created", "due", "sent", "finished", "patient", "lab"] as const;
 export type LabOrderSort = (typeof LAB_ORDER_SORTS)[number];
 
 export const ITEM_CATEGORY = {

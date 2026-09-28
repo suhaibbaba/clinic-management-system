@@ -1,48 +1,28 @@
 import { currencySymbol, formatWholeMoney } from "@clinic/shared";
-import { to12Hour } from "@clinic/ui";
 import i18n from "@web/i18n";
 import { clinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { minutesOf } from "@web/shared/lib/dates";
 
 const dateLocale = (): string =>
   i18n.language.startsWith("en") ? "en-GB-u-ca-gregory-nu-latn" : "ar-SY-u-ca-gregory-nu-latn";
 
 const stripBidiMarks = (value: string): string => value.replace(/[\u200e\u200f]/g, "");
 
-export function formatDateTime(iso: string): string {
-  return stripBidiMarks(
-    new Date(iso).toLocaleString(dateLocale(), {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-  );
-}
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
-export function formatDate(iso: string): string {
-  return stripBidiMarks(
-    new Date(iso).toLocaleDateString(dateLocale(), {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }),
-  );
-}
+const isolate = (value: string): string => `\u2066${value}\u2069`;
 
-export function dayAndDate(iso: string): { readonly weekday: string; readonly date: string } {
-  const at = new Date(iso);
+function partsOf(
+  iso: string,
+  options: Intl.DateTimeFormatOptions,
+  locale = "en-GB",
+): Intl.DateTimeFormatPart[] {
+  const dateOnly = DATE_ONLY.test(iso);
 
-  return {
-    weekday: stripBidiMarks(at.toLocaleDateString(dateLocale(), { weekday: "long" })),
-    date: stripBidiMarks(
-      at.toLocaleDateString(dateLocale(), {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }),
-    ),
-  };
+  return new Intl.DateTimeFormat(locale, {
+    ...options,
+    timeZone: dateOnly ? "UTC" : clinicTimeZone(),
+  }).formatToParts(new Date(dateOnly ? `${iso}T00:00:00Z` : iso));
 }
 
 export function dayMonthYear(iso: string): {
@@ -50,58 +30,54 @@ export function dayMonthYear(iso: string): {
   readonly month: string;
   readonly year: string;
 } {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: clinicTimeZone(),
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).formatToParts(new Date(iso));
+  const parts = partsOf(iso, { day: "numeric", month: "short", year: "numeric" }, "en-US");
   const read = (type: Intl.DateTimeFormatPartTypes): string =>
     stripBidiMarks(parts.find((part) => part.type === type)?.value ?? "");
 
   return { day: read("day"), month: read("month"), year: read("year") };
 }
 
-export function shortDate(iso: string): string {
+const dateText = (iso: string): string => {
   const { day, month, year } = dayMonthYear(iso);
-  return `\u2066${day} ${month} ${year}\u2069`;
+  return `${day} ${month} ${year}`;
+};
+
+const timeText = (iso: string): string => formatMinute(minutesOf(iso));
+
+export function formatDate(iso: string): string {
+  return isolate(dateText(iso));
 }
 
-export function formatClinicTime(iso: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: clinicTimeZone(),
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(new Date(iso));
+export function formatTime(iso: string): string {
+  return isolate(timeText(iso));
 }
 
-export function visitMoment(iso: string): string {
-  return `${shortDate(iso)} · ${to12Hour(formatClinicTime(iso))}`;
+export function formatDateTime(iso: string): string {
+  return isolate(`${dateText(iso)} · ${timeText(iso)}`);
 }
 
-export function formatClinicDate(iso: string): string {
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: clinicTimeZone(),
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date(iso));
-
-  const read = (type: Intl.DateTimeFormatPartTypes): string =>
-    parts.find((part) => part.type === type)?.value ?? "";
-
-  return `${read("day")}/${read("month")}/${read("year")}`;
+export function formatPeriod(startsAt: string, endsAt: string): string {
+  return dateText(startsAt) === dateText(endsAt)
+    ? isolate(`${dateText(startsAt)} · ${timeText(startsAt)} – ${timeText(endsAt)}`)
+    : isolate(
+        `${dateText(startsAt)} · ${timeText(startsAt)} – ${dateText(endsAt)} · ${timeText(endsAt)}`,
+      );
 }
 
-export function formatClinicPeriod(startsAt: string, endsAt: string): string {
-  const from = formatClinicDate(startsAt);
-  const to = formatClinicDate(endsAt);
-  const times = `${formatClinicTime(startsAt)} - ${formatClinicTime(endsAt)}`;
+export function formatWeekday(iso: string): string {
+  const weekday = partsOf(iso, { weekday: "long" }, dateLocale()).find(
+    (part) => part.type === "weekday",
+  );
 
-  return from === to
-    ? `${from} ${times}`
-    : `${from} ${formatClinicTime(startsAt)} - ${to} ${formatClinicTime(endsAt)}`;
+  return stripBidiMarks(weekday?.value ?? "");
+}
+
+export function formatMinute(minute: number): string {
+  const hours = Math.floor(minute / 60) % 24;
+  const minutes = Math.floor(minute % 60);
+  const marker = i18n.t(hours < 12 ? "common.clock.am" : "common.clock.pm");
+
+  return `${((hours + 11) % 12) + 1}:${String(minutes).padStart(2, "0")} ${marker}`;
 }
 
 const MINUTE = 60_000;
@@ -129,20 +105,6 @@ export function formatRelativeTime(iso: string): string {
   }
 
   return stripBidiMarks(relative.format(-Math.max(0, Math.floor(elapsed / MINUTE)), "minute"));
-}
-
-export function startOfDayIso(value: string): string | undefined {
-  return value ? new Date(`${value}T00:00:00`).toISOString() : undefined;
-}
-
-export function endOfNextDayIso(value: string): string | undefined {
-  if (!value) {
-    return undefined;
-  }
-
-  const date = new Date(`${value}T00:00:00`);
-  date.setDate(date.getDate() + 1);
-  return date.toISOString();
 }
 
 export function formatList(items: readonly string[]): string {

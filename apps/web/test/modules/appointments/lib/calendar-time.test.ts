@@ -1,21 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { buildQueue } from "@web/modules/appointments/lib/calendar-time";
-import {
-  addDays,
-  instantAt,
-  minutesOf,
-  startOfWeek,
-  toTimeLabel,
-  weekDates,
-} from "@web/shared/lib/dates";
+import { addDays, instantAt, minutesOf, startOfWeek, weekDates } from "@web/shared/lib/dates";
 
 describe("calendar time", () => {
-  it("labels minutes on a 12-hour clock", () => {
-    expect(toTimeLabel(7 * 60)).toBe("7:00 AM");
-    expect(toTimeLabel(9 * 60 + 30)).toBe("9:30 AM");
-    expect(toTimeLabel(22 * 60)).toBe("10:00 PM");
-  });
-
   describe("weeks", () => {
     it("snaps to Sunday, the way the API does", () => {
       expect(startOfWeek("2026-09-06")).toBe("2026-09-06");

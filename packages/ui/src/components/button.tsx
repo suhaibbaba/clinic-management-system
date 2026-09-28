@@ -60,6 +60,7 @@ export function Button({
         className,
       )}
       disabled={disabled === true || isLoading}
+      aria-busy={isLoading || undefined}
       {...props}
     >
       {isLoading && iconPosition === "start" && <Spinner {...part("spinner")} />}

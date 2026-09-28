@@ -9,7 +9,7 @@ import {
   type Paginated,
   type UpdateLabInput,
 } from "@clinic/shared";
-import { and, asc, eq, isNull, ne, sql, type SQL } from "drizzle-orm";
+import { and, eq, isNull, ne, sql, type SQL, desc } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { arabicNameSearch } from "@api/common/database/arabic-search";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
@@ -61,7 +61,7 @@ export class LabsService implements OnModuleInit {
         .select()
         .from(labs)
         .where(where)
-        .orderBy(...(byName ? [byName.rank, byName.closeness] : []), asc(labs.name))
+        .orderBy(...(byName ? [byName.rank, byName.closeness] : []), desc(labs.createdAt))
         .limit(limit)
         .offset(offset),
       this.db

@@ -4,7 +4,7 @@ import {
   type LabOrderAttachment,
   type PresignAttachmentUploadResponse,
 } from "@clinic/shared";
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, desc } from "drizzle-orm";
 import { type AuthenticatedUser } from "@api/common/types/authenticated-user";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { labOrderAttachments } from "@api/database/schema";
@@ -29,7 +29,7 @@ export class LabOrderAttachmentsService {
       .where(
         and(eq(labOrderAttachments.labOrderId, orderId), isNull(labOrderAttachments.deletedAt)),
       )
-      .orderBy(asc(labOrderAttachments.createdAt));
+      .orderBy(desc(labOrderAttachments.createdAt));
 
     return Promise.all(rows.map((row) => this.withUrl(row)));
   }

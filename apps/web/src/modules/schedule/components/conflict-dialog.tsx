@@ -2,7 +2,7 @@ import type { ConflictingAppointment } from "@clinic/shared";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Icon, Ltr, Modal } from "@clinic/ui";
-import { formatClinicDate, formatClinicTime } from "@web/shared/lib/format";
+import { formatDateTime } from "@web/shared/lib/format";
 
 export interface ConflictDialogProps {
   readonly "data-testid"?: string | undefined;
@@ -74,9 +74,7 @@ export function ConflictDialog({
               {appointment.patientName}
             </span>
             <span className="flex items-baseline gap-3 text-label text-ink-muted">
-              <Ltr className="tabular-nums">
-                {formatClinicDate(appointment.startsAt)} {formatClinicTime(appointment.startsAt)}
-              </Ltr>
+              <Ltr className="tabular-nums">{formatDateTime(appointment.startsAt)}</Ltr>
               <Ltr className="tabular-nums">{appointment.patientPhone}</Ltr>
             </span>
           </li>

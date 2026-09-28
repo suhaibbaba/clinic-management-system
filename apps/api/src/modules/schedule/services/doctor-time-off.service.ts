@@ -9,7 +9,7 @@ import {
   type ScheduleConflictOptions,
   type UpdateDoctorTimeOffInput,
 } from "@clinic/shared";
-import { and, asc, count, eq, gt, lt, type SQL } from "drizzle-orm";
+import { and, asc, count, eq, gt, lt, type SQL, desc } from "drizzle-orm";
 import { AppointmentAccessService } from "@api/modules/appointments/services/appointment-access.service";
 import { toDoctorTimeOff } from "@api/common/lib/schedule-rows";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
@@ -68,7 +68,7 @@ export class DoctorTimeOffService implements OnModuleInit {
         .select()
         .from(doctorTimeOff)
         .where(where)
-        .orderBy(asc(doctorTimeOff.startsAt))
+        .orderBy(desc(doctorTimeOff.startsAt))
         .limit(limit)
         .offset(offset),
       this.db.select({ value: count() }).from(doctorTimeOff).where(where),

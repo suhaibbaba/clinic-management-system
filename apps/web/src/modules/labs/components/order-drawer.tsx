@@ -30,7 +30,7 @@ import {
 import { availableSteps, canReturn } from "@web/modules/labs/lib/status";
 import { LAB_ORDER_STATUS_STYLES } from "@web/shared/lib/lab-order-status";
 import { errorMessageKey } from "@web/shared/lib/api-error";
-import { formatDate, formatDateTime } from "@web/shared/lib/format";
+import { formatDate } from "@web/shared/lib/format";
 import { cn } from "@clinic/ui/lib/cn";
 import { LABS_TAB_DONE } from "@web/modules/labs/constants";
 import { todayIso } from "@web/shared/lib/dates";
@@ -220,8 +220,6 @@ export function OrderDrawer({
             )}
           </dl>
 
-          <OrderHistory order={order} />
-
           <Attachments orderId={order.id} />
 
           <div className="flex flex-wrap gap-2 border-t border-line pt-4">
@@ -320,40 +318,6 @@ export function OrderDrawer({
 
       {dialog}
     </>
-  );
-}
-
-function OrderHistory({ order }: { readonly order: LabOrderRow }): JSX.Element {
-  const { t } = useTranslation();
-
-  const stamps: readonly { key: string; label: string; at: string }[] = [
-    { key: "created", label: "labs.order.history.created", at: order.createdAt },
-    ...(order.sentAt ? [{ key: "sent", label: "labs.order.history.sent", at: order.sentAt }] : []),
-    ...(order.receivedAt
-      ? [{ key: "received", label: "labs.order.history.received", at: order.receivedAt }]
-      : []),
-    ...(order.fittedAt
-      ? [{ key: "fitted", label: "labs.order.history.fitted", at: order.fittedAt }]
-      : []),
-  ];
-
-  return (
-    <section data-testid="lab-order-history" className="flex flex-col gap-2">
-      <h3 className="text-label font-semibold text-ink">{t("labs.order.history.title")}</h3>
-
-      <ol className="flex flex-col gap-2">
-        {stamps.map((stamp) => (
-          <li
-            key={stamp.key}
-            data-testid={`lab-order-history-${stamp.key}`}
-            className="flex items-baseline justify-between gap-3 text-label"
-          >
-            <span className="text-ink">{t(stamp.label)}</span>
-            <Ltr className="tabular-nums text-ink-muted">{formatDateTime(stamp.at)}</Ltr>
-          </li>
-        ))}
-      </ol>
-    </section>
   );
 }
 

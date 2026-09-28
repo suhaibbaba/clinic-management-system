@@ -1119,6 +1119,7 @@
       },
       "sortBy": "ترتيب حسب",
       "sort": {
+        "createdDesc": "الأحدث أولاً",
         "dueAsc": "الموعد، الأقرب أولاً",
         "dueDesc": "الموعد، الأبعد أولاً",
         "sentDesc": "تاريخ الإرسال، الأحدث أولاً",
@@ -1200,13 +1201,6 @@
       "returnDescription": "يُسجَّل السبب على الطلب ويبقى في سجله.",
       "returnReason": "سبب الإعادة",
       "returnReasonPlaceholder": "مثال: الـ Shade غير مطابق",
-      "history": {
-        "title": "سِجل الطلب",
-        "created": "أُنشئ",
-        "sent": "أُرسل",
-        "received": "استُلم",
-        "fitted": "رُكّب"
-      },
       "confirmRemoveAttachment": "إزالة «{{name}}» من الطلب؟",
       "confirmCancel": {
         "title": "إلغاء طلب «{{work}}» للمريض {{patient}}؟",

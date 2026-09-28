@@ -4,6 +4,7 @@ import {
   type SupplierStatementLine,
   type SupplierSummary,
 } from "@clinic/shared";
+import { dayBounds } from "@web/shared/lib/dates";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -22,7 +23,7 @@ import { useLookupLabels } from "@web/shared/queries/lookups";
 import { Money } from "@web/shared/components/money";
 import { useClinic } from "@web/shared/queries/clinic";
 import { useSupplierStatement } from "@web/modules/inventory/queries";
-import { endOfNextDayIso, formatDate, startOfDayIso } from "@web/shared/lib/format";
+import { formatDate } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 export function SupplierStatementPanel({
@@ -41,8 +42,7 @@ export function SupplierStatementPanel({
 
   const query = useMemo(
     () => ({
-      ...(startOfDayIso(from) && { from: startOfDayIso(from) as string }),
-      ...(endOfNextDayIso(to) && { to: endOfNextDayIso(to) as string }),
+      ...dayBounds(from, to),
     }),
     [from, to],
   );
@@ -50,7 +50,7 @@ export function SupplierStatementPanel({
   const statement = useSupplierStatement(supplier.id, query);
 
   const { page, perPage, setPage, setPerPage } = usePageParams();
-  const lines = statement.data?.lines ?? [];
+  const lines = [...(statement.data?.lines ?? [])].reverse();
   const pageLines = lines.slice((page - 1) * perPage, page * perPage);
 
   const columns: readonly Column<SupplierStatementLine>[] = [

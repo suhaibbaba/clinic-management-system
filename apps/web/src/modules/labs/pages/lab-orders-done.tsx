@@ -21,7 +21,7 @@ import { useListParams } from "@web/modules/labs/hooks/use-list-params";
 import { useOpenOrder } from "@web/modules/labs/hooks/use-open-order";
 import { useOrderColumns } from "@web/modules/labs/hooks/use-order-columns";
 import { useLabOrders } from "@web/modules/labs/queries";
-import { endOfNextDayIso, startOfDayIso } from "@web/shared/lib/format";
+import { dayBounds } from "@web/shared/lib/dates";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 export function LabOrdersDone(): JSX.Element {
@@ -31,6 +31,7 @@ export function LabOrdersDone(): JSX.Element {
   const openOrder = useOpenOrder();
 
   const { from, to, setRange } = useDateRangeParam();
+  const bounds = dayBounds(from, to);
   const status = LAB_ORDER_DONE_STATUSES.find((value) => value === list.status);
 
   const orders = useLabOrders({
@@ -41,8 +42,8 @@ export function LabOrdersDone(): JSX.Element {
     ...(list.labId !== "" && { labId: list.labId }),
     ...(status && { status }),
     ...(!list.isDefaultSort && { sort: list.sort.sort, dir: list.sort.dir }),
-    ...(startOfDayIso(from) && { finishedFrom: startOfDayIso(from) as string }),
-    ...(endOfNextDayIso(to) && { finishedTo: endOfNextDayIso(to) as string }),
+    ...(bounds.from && { finishedFrom: bounds.from }),
+    ...(bounds.to && { finishedTo: bounds.to }),
   });
   const columns = useOrderColumns("done");
   const rows = orders.data?.items ?? [];

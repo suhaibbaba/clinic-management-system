@@ -6,7 +6,7 @@ import { Button, FormField, Icon, Input, Modal, Select, Textarea, useToast } fro
 import { useSavePrescription } from "@web/modules/patients/queries";
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { ellipsis } from "@web/i18n/ellipsis";
-import { visitMoment } from "@web/shared/lib/format";
+import { formatDateTime } from "@web/shared/lib/format";
 
 interface PrescriptionFormModalProps {
   readonly "data-testid"?: string | undefined;
@@ -169,7 +169,7 @@ export function PrescriptionFormModal({
                 data-testid="prescription-field-visit"
                 options={visits.map((visit) => ({
                   value: visit.id,
-                  label: visitMoment(visit.visitDate),
+                  label: formatDateTime(visit.visitDate),
                 }))}
                 value={field.value ?? ""}
                 onBlur={field.onBlur}

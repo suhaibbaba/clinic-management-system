@@ -1,10 +1,10 @@
 import { LOOKUP_LIST, type CalendarAppointment, type ClinicClosure } from "@clinic/shared";
+import { formatTime } from "@web/shared/lib/format";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, EmptyState, Icon, Ltr, PersonName } from "@clinic/ui";
 import { useLookupLabels } from "@web/shared/queries/lookups";
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/shared/lib/appointment-status";
-import { minutesOf, toTimeLabel } from "@web/shared/lib/dates";
 import { cn } from "@clinic/ui/lib/cn";
 
 export interface AgendaListProps {
@@ -77,7 +77,7 @@ export function AgendaList({
               <span className="flex min-w-0 flex-1 flex-col gap-1">
                 <span className="flex items-center gap-2">
                   <Ltr className="text-value font-medium tabular-nums text-ink">
-                    {toTimeLabel(minutesOf(appointment.startsAt))}
+                    {formatTime(appointment.startsAt)}
                   </Ltr>
                   <Badge tone={style.tone} data-testid={`${testId}-status-${appointment.id}`}>
                     {t(statusLabelKey(appointment.status))}

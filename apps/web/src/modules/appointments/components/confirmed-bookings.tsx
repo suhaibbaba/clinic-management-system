@@ -1,4 +1,5 @@
 import { APPOINTMENT_STATUS, LOOKUP_LIST, type CalendarAppointment } from "@clinic/shared";
+import { formatTime, formatDate } from "@web/shared/lib/format";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -13,13 +14,12 @@ import {
   usePageParams,
   type Column,
 } from "@clinic/ui";
-import { minutesOf, toTimeLabel, todayIso } from "@web/shared/lib/dates";
+import { todayIso } from "@web/shared/lib/dates";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { useAppointments } from "@web/modules/appointments/queries";
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/shared/lib/appointment-status";
 import { useClinic } from "@web/shared/queries/clinic";
 import { useLookupLabels } from "@web/shared/queries/lookups";
-import { formatDate } from "@web/shared/lib/format";
 
 export function ConfirmedBookings(): JSX.Element {
   const { t } = useTranslation();
@@ -68,7 +68,7 @@ export function ConfirmedBookings(): JSX.Element {
       render: (row) => (
         <span className="flex flex-wrap items-center gap-2">
           <Ltr>{formatDate(row.startsAt)}</Ltr>
-          <Ltr className="font-medium tabular-nums">{toTimeLabel(minutesOf(row.startsAt))}</Ltr>
+          <Ltr className="font-medium tabular-nums">{formatTime(row.startsAt)}</Ltr>
         </span>
       ),
     },

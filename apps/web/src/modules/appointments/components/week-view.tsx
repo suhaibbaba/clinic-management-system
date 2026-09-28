@@ -1,12 +1,12 @@
 import { LOOKUP_LIST, type CalendarAppointment, type ClinicClosure } from "@clinic/shared";
+import { formatTime, formatDate } from "@web/shared/lib/format";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { EmptyState, Ltr } from "@clinic/ui";
 import { useLookupLabels } from "@web/shared/queries/lookups";
 import { APPOINTMENT_STATUS_STYLES } from "@web/shared/lib/appointment-status";
-import { minutesOf, toIsoDate, toTimeLabel, weekDates } from "@web/shared/lib/dates";
+import { toIsoDate, weekDates } from "@web/shared/lib/dates";
 import { cn } from "@clinic/ui/lib/cn";
-import { formatDate } from "@web/shared/lib/format";
 
 export interface WeekViewProps {
   readonly "data-testid"?: string | undefined;
@@ -97,7 +97,7 @@ export function WeekView({
                       onClick={() => onOpen(appointment)}
                       data-appointment={appointment.id}
                       data-testid={`${testId}-appointment-${appointment.id}`}
-                      aria-label={`${toTimeLabel(minutesOf(appointment.startsAt))} — ${
+                      aria-label={`${formatTime(appointment.startsAt)} — ${
                         appointment.patientName
                       } — ${t(`appointments.statuses.${appointment.status}`)}`}
                       className={cn(
@@ -107,7 +107,7 @@ export function WeekView({
                       )}
                     >
                       <Ltr className="text-meta font-medium tabular-nums">
-                        {toTimeLabel(minutesOf(appointment.startsAt))}
+                        {formatTime(appointment.startsAt)}
                       </Ltr>
                       <span className="block truncate text-meta">{appointment.patientName}</span>
                       <span className="block truncate text-micro opacity-80">

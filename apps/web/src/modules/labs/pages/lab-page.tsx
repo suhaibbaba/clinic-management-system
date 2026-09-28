@@ -1,4 +1,5 @@
 import type { LabStatementEntry, LabWorkType } from "@clinic/shared";
+import { dayBounds } from "@web/shared/lib/dates";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
@@ -34,7 +35,7 @@ import {
   useLabStatement,
   useLabWorkTypes,
 } from "@web/modules/labs/queries";
-import { endOfNextDayIso, formatDate, startOfDayIso } from "@web/shared/lib/format";
+import { formatDate } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 import { LAB_PAGE_TABS } from "@web/modules/labs/constants";
 
@@ -308,8 +309,7 @@ function StatementTab({
 
   const query = useMemo(
     () => ({
-      ...(startOfDayIso(from) && { from: startOfDayIso(from) as string }),
-      ...(endOfNextDayIso(to) && { to: endOfNextDayIso(to) as string }),
+      ...dayBounds(from, to),
     }),
     [from, to],
   );
@@ -399,7 +399,7 @@ function StatementTab({
       <Table
         data-testid="lab-statement-table"
         columns={columns}
-        rows={statement.data?.entries ?? []}
+        rows={[...(statement.data?.entries ?? [])].reverse()}
         rowKey={(row) => `${row.kind}-${row.id}`}
         isLoading={statement.isPending}
         isRefreshing={isRefetching(statement)}

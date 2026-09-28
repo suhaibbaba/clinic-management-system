@@ -4,6 +4,7 @@ import {
   type CalendarAppointment,
   type WaitingListEntry,
 } from "@clinic/shared";
+import { formatDate, formatWeekday } from "@web/shared/lib/format";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
@@ -44,7 +45,6 @@ import { TodayRibbon } from "@web/modules/appointments/components/today-ribbon";
 import { WaitingListPanel } from "@web/modules/appointments/components/waiting-list-panel";
 import { WeekView } from "@web/modules/appointments/components/week-view";
 import { useNowMinute } from "@web/shared/hooks/use-now-minute";
-import { dayAndDate, formatDate } from "@web/shared/lib/format";
 import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { useIsMobile } from "@clinic/ui/lib/use-media-query";
 import { CALENDAR_RANGES } from "@web/modules/appointments/constants";
@@ -199,7 +199,6 @@ export function AppointmentsPage(): JSX.Element {
   const nowMinute = useNowMinute();
 
   const weekStart = startOfWeek(date);
-  const longDay = dayAndDate(date);
 
   const label =
     effectiveRange === "week" ? (
@@ -210,8 +209,8 @@ export function AppointmentsPage(): JSX.Element {
       </>
     ) : queueShown ? (
       <>
-        <span>{longDay.weekday}</span>
-        <Ltr>{longDay.date}</Ltr>
+        <span>{formatWeekday(date)}</span>
+        <Ltr>{formatDate(date)}</Ltr>
       </>
     ) : (
       <Ltr>{formatDate(date)}</Ltr>

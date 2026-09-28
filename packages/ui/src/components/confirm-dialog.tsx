@@ -1,4 +1,4 @@
-import { useCallback, useState, type JSX, type ReactNode } from "react";
+import { useCallback, useId, useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@ui/components/button";
 import { Icon } from "@ui/components/icon";
@@ -30,8 +30,14 @@ export function ConfirmDialog({
 }: ConfirmDialogProps): JSX.Element {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
+  const consequencesId = useId();
+  const hasConsequences = consequences !== undefined && consequences.length > 0;
 
   const confirm = async (): Promise<void> => {
+    if (busy) {
+      return;
+    }
+
     setBusy(true);
 
     try {
@@ -50,6 +56,9 @@ export function ConfirmDialog({
       onOpenChange={(next) => !busy && onOpenChange(next)}
       title={title}
       titleValues={titleValues}
+      role="alertdialog"
+      describedBy={hasConsequences ? consequencesId : undefined}
+      onEnter={() => void confirm()}
       footer={
         <>
           <Button
@@ -66,6 +75,7 @@ export function ConfirmDialog({
             icon={<Icon name={tone === "danger" ? "trash" : "check"} />}
             {...testid(testId, "confirm")}
             isLoading={busy}
+            aria-keyshortcuts="Enter"
             onClick={() => void confirm()}
           >
             {t(confirmLabel ?? (tone === "danger" ? "common.deleteForever" : "common.confirm"))}
@@ -73,8 +83,12 @@ export function ConfirmDialog({
         </>
       }
     >
-      {consequences && consequences.length > 0 ? (
-        <ul {...testid(testId, "consequences")} className="flex flex-col gap-1.5">
+      {hasConsequences ? (
+        <ul
+          id={consequencesId}
+          {...testid(testId, "consequences")}
+          className="flex flex-col gap-1.5"
+        >
           {consequences.map((line, index) => (
             <li key={index} className="flex items-start gap-2 text-value text-ink-muted">
               <Icon

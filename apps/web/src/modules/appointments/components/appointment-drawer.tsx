@@ -1,4 +1,5 @@
 import { LOOKUP_LIST, APPOINTMENT_STATUS, type CalendarAppointment } from "@clinic/shared";
+import { formatTime, formatDate } from "@web/shared/lib/format";
 import { useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -27,9 +28,7 @@ import {
   CANCELLABLE_STATUSES,
   statusLabelKey,
 } from "@web/shared/lib/appointment-status";
-import { minutesOf, toTimeLabel } from "@web/shared/lib/dates";
 import { errorMessageKey } from "@web/shared/lib/api-error";
-import { formatDate } from "@web/shared/lib/format";
 import { cn } from "@clinic/ui/lib/cn";
 import { ellipsis } from "@web/i18n/ellipsis";
 
@@ -214,8 +213,7 @@ export function AppointmentDrawer({
             <Field label={t("appointments.date")}>{formatDate(appointment.startsAt)}</Field>
             <Field label={t("appointments.time")}>
               <Ltr className="tabular-nums">
-                {toTimeLabel(minutesOf(appointment.startsAt))} –{" "}
-                {toTimeLabel(minutesOf(appointment.endsAt))}
+                {formatTime(appointment.startsAt)} – {formatTime(appointment.endsAt)}
               </Ltr>
             </Field>
             <Field label={t("appointments.doctor")}>

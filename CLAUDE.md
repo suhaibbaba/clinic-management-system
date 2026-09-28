@@ -107,6 +107,9 @@ core · patients · billing · appointments · booking · notifications · labs 
 - DTOs are shared Zod schemas. Never duplicate validation.
 - `JwtAuthGuard` global; `@Roles(...)` per endpoint; object-level checks inside services.
 - Every list endpoint paginates, filters by query param, and is clinic-scoped automatically.
+- **Newest first by default** — every list, table and attachment list. A sort picker may offer
+  other orders; its default is newest. Exceptions carry meaning: a calendar or queue by time, the
+  waiting list by priority, an admin-ordered list by `sortOrder`, batches by expiry.
 - Money is `numeric(10,2)`, handled as strings. **Never float.**
 - Errors are `{ statusCode, message, error }`; Arabic wording is resolved on the front end by code.
 - Every schema change is a committed `drizzle-kit generate` migration. Never edit an applied one.
@@ -126,6 +129,9 @@ core · patients · billing · appointments · booking · notifications · labs 
   module's `pages/` and `components/`; its `lib/`, `hooks/`, `api.ts`, `queries.ts` and
   `constants.ts` are private. A helper, key or date window two modules need is written once in
   `shared/`, never copied. ESLint enforces it.
+- **One date and time format.** `shared/lib/format.ts` alone turns an instant into text, in the
+  clinic's time zone: `formatDate` "9 May 2026", `formatTime` "10:30 AM", `formatDateTime`
+  "9 May 2026 · 10:30 AM", `formatPeriod`. Never `toLocaleString` or a hand-joined date and time.
 - **RTL by default.** Gregorian dates, Arabic through i18n. `check:i18n` fails on an Arabic literal
   in a component and on a key missing from either locale.
 - Dropdowns read the clinic's lists through `useLookupOptions` / `useLookupLabels`, never a constant.
@@ -148,7 +154,9 @@ through its `className` or a `data-part`, never a fork.
   alone in a wide container (a textarea excepted). No form field or text block may stretch beyond
   its layout token on wide viewports.
 - **One confirmation:** every destructive action asks through `ConfirmDialog` / `useConfirm`, never
-  `window.confirm`; the title names the thing, the body says what goes with it.
+  `window.confirm`; the title names the thing, the body says what goes with it. It is an
+  `alertdialog` described by its consequences: Enter confirms, Tab cycles Cancel and Confirm, Esc
+  closes.
 - **Two control heights and no third:** `--control-h` for a target (field, button, chip),
   `--control-h-sm` for a compact row (tab, segment, table-row button, badge). A third is a token
   change.

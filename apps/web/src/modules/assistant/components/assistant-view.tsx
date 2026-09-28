@@ -25,7 +25,7 @@ import { activeNavItem, canReachNavItem } from "@web/shared/lib/navigation";
 import { APPOINTMENT_STATUS_STYLES, statusLabelKey } from "@web/shared/lib/appointment-status";
 import { useSession } from "@web/shared/providers/session";
 import { useCurrency } from "@web/shared/queries/clinic";
-import { formatClinicDate, formatClinicTime } from "@web/shared/lib/format";
+import { formatDate, formatTime } from "@web/shared/lib/format";
 
 type Row = Record<string, unknown>;
 
@@ -178,9 +178,9 @@ function useCell(): (column: AiViewColumn, value: unknown) => ReactNode {
 
     switch (column.kind) {
       case "date":
-        return <Ltr>{formatClinicDate(String(value))}</Ltr>;
+        return <Ltr>{formatDate(String(value))}</Ltr>;
       case "time":
-        return <Ltr>{formatClinicTime(String(value))}</Ltr>;
+        return <Ltr>{formatTime(String(value))}</Ltr>;
       case "money":
         return <Money amount={String(value)} currency={currency} />;
       case "number":
@@ -331,9 +331,7 @@ function ViewList({
                 </span>
               )}
               {item.date && (
-                <Ltr className="ms-auto text-label text-ink-subtle">
-                  {formatClinicDate(item.date)}
-                </Ltr>
+                <Ltr className="ms-auto text-label text-ink-subtle">{formatDate(item.date)}</Ltr>
               )}
             </li>
           ))}

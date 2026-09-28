@@ -12,7 +12,7 @@ import {
   type ScheduleConflictOptions,
   type UpdateClinicClosureInput,
 } from "@clinic/shared";
-import { and, asc, count, eq, gte, lte, type SQL } from "drizzle-orm";
+import { and, asc, count, eq, gte, lte, type SQL, desc } from "drizzle-orm";
 import { toClinicClosure } from "@api/common/lib/schedule-rows";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { ClinicScopeService } from "@api/common/database/clinic-scope.service";
@@ -66,7 +66,7 @@ export class ClinicClosuresService implements OnModuleInit {
         .select()
         .from(clinicClosures)
         .where(where)
-        .orderBy(asc(clinicClosures.startsOn))
+        .orderBy(desc(clinicClosures.startsOn))
         .limit(limit)
         .offset(offset),
       this.db.select({ value: count() }).from(clinicClosures).where(where),

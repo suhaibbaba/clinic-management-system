@@ -21,6 +21,7 @@ export const SORT_KEYS: Record<
   LabOrderSort,
   { readonly key: SQL | AnyColumn; readonly dir: "asc" | "desc" }
 > = {
+  created: { key: labOrders.createdAt, dir: "desc" },
   due: { key: dueAt, dir: "asc" },
   sent: { key: labOrders.sentAt, dir: "desc" },
   finished: { key: finishedAt, dir: "desc" },
@@ -29,12 +30,7 @@ export const SORT_KEYS: Record<
 };
 
 export function orderFor(query: ListLabOrdersQuery): SQL[] {
-  const sort =
-    query.sort ?? (query.view === "open" ? "due" : query.view === "done" ? "finished" : null);
-
-  if (sort === null) {
-    return [desc(labOrders.createdAt)];
-  }
+  const sort = query.sort ?? (query.view === "done" ? "finished" : "created");
 
   const { key, dir: fallback } = SORT_KEYS[sort];
   const dir = query.dir ?? fallback;

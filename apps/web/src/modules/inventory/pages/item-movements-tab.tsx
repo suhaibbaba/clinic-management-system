@@ -1,4 +1,5 @@
 import { MOVEMENT_TYPES, type StockMovementRow } from "@clinic/shared";
+import { dayBounds } from "@web/shared/lib/dates";
 import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { DateRangePicker, EmptyState, Select, Table, TotalBadge, usePageParams } from "@clinic/ui";
@@ -6,7 +7,6 @@ import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 import { ReverseMovementModal } from "@web/modules/inventory/components/reverse-movement-modal";
 import { useMovementColumns } from "@web/modules/inventory/hooks/use-movement-columns";
 import { useMovementFilters } from "@web/modules/inventory/hooks/use-movement-filters";
-import { endOfNextDayIso, startOfDayIso } from "@web/shared/lib/format";
 import { movementLabel } from "@web/shared/lib/stock-movement";
 import { useItemMovements } from "@web/modules/inventory/queries";
 
@@ -22,8 +22,7 @@ export function ItemMovementsTab({ itemId }: { readonly itemId: string }): JSX.E
       page,
       limit: perPage,
       ...(type && { type }),
-      ...(startOfDayIso(from) && { from: startOfDayIso(from) as string }),
-      ...(endOfNextDayIso(to) && { to: endOfNextDayIso(to) as string }),
+      ...dayBounds(from, to),
     }),
     [page, perPage, type, from, to],
   );

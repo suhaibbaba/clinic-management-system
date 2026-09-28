@@ -1,4 +1,5 @@
 import type { CalendarAppointment } from "@clinic/shared";
+import { formatTime, formatDate, formatDateTime } from "@web/shared/lib/format";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -20,7 +21,6 @@ import {
   useToast,
   type Column,
 } from "@clinic/ui";
-import { toTimeLabel, minutesOf } from "@web/shared/lib/dates";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { useConfirmBooking, useRejectBooking } from "@web/modules/booking/queries";
 import { usePendingBookings } from "@web/shared/queries/booking";
@@ -28,7 +28,6 @@ import { canConfirmBooking, canRejectBooking } from "@web/shared/permissions/boo
 import { useSession } from "@web/shared/providers/session";
 import { useClinic } from "@web/shared/queries/clinic";
 import { errorMessageKey } from "@web/shared/lib/api-error";
-import { formatDate, formatDateTime } from "@web/shared/lib/format";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
 
 export function PendingBookingsPage(): JSX.Element {
@@ -106,7 +105,7 @@ export function PendingBookingsPage(): JSX.Element {
       render: (row) => (
         <span className="flex flex-wrap items-center gap-2">
           <Ltr>{formatDate(row.startsAt)}</Ltr>
-          <Ltr className="font-medium tabular-nums">{toTimeLabel(minutesOf(row.startsAt))}</Ltr>
+          <Ltr className="font-medium tabular-nums">{formatTime(row.startsAt)}</Ltr>
         </span>
       ),
     },

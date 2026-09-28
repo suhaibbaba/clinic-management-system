@@ -1095,6 +1095,7 @@
       },
       "sortBy": "Sort by",
       "sort": {
+        "createdDesc": "Newest first",
         "dueAsc": "Due date, soonest first",
         "dueDesc": "Due date, latest first",
         "sentDesc": "Sent, newest first",
@@ -1168,13 +1169,6 @@
       "returnDescription": "The reason is recorded on the order and stays on its record.",
       "returnReason": "Reason",
       "returnReasonPlaceholder": "e.g. the shade does not match",
-      "history": {
-        "title": "Order history",
-        "created": "Created",
-        "sent": "Sent",
-        "received": "Received",
-        "fitted": "Fitted"
-      },
       "confirmRemoveAttachment": "Remove “{{name}}” from the order?",
       "confirmCancel": {
         "title": "Cancel the “{{work}}” order for {{patient}}?",

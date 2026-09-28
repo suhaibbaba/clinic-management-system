@@ -1,10 +1,10 @@
 import type { CalendarAppointment } from "@clinic/shared";
+import { minutesOf } from "@web/shared/lib/dates";
+import { formatMinute, formatDate, formatWeekday } from "@web/shared/lib/format";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { BannerIcon, Icon, Ltr, PersonName } from "@clinic/ui";
-import { minutesOf, toTimeLabel } from "@web/shared/lib/dates";
 import { useSession } from "@web/shared/providers/session";
-import { dayAndDate } from "@web/shared/lib/format";
 
 export interface WelcomeBannerProps {
   readonly date: string | undefined;
@@ -16,7 +16,6 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
   const { user } = useSession();
 
   const bounds = dayBounds(schedule);
-  const today = date === undefined ? null : dayAndDate(date);
 
   return (
     <section
@@ -47,12 +46,12 @@ export function WelcomeBanner({ date, schedule }: WelcomeBannerProps): JSX.Eleme
           data-testid="welcome-banner-date"
           className="mt-[5px] flex flex-wrap items-center gap-1.5 text-value text-banner-ink"
         >
-          {today === null ? (
+          {date === undefined ? (
             t("dashboard.subtitle")
           ) : (
             <>
-              <span>{today.weekday}</span>
-              <Ltr>{today.date}</Ltr>
+              <span>{formatWeekday(date)}</span>
+              <Ltr>{formatDate(date)}</Ltr>
             </>
           )}
         </p>
@@ -92,5 +91,5 @@ function dayBounds(
     .map((appointment) => minutesOf(appointment.startsAt))
     .sort((a, b) => a - b);
 
-  return { first: toTimeLabel(times[0]!), last: toTimeLabel(times.at(-1)!) };
+  return { first: formatMinute(times[0]!), last: formatMinute(times.at(-1)!) };
 }

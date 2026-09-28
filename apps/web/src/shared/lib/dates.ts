@@ -1,6 +1,5 @@
 import { minutesFromLocalMidnight, localDate, instantFromLocal } from "@clinic/shared";
 import { clinicTimeZone } from "@web/shared/lib/clinic-zone";
-import i18n from "@web/i18n";
 
 export const minutesOf = (iso: string): number => {
   const at = new Date(iso);
@@ -27,13 +26,12 @@ export function startOfWeek(isoDate: string): string {
 export const weekDates = (isoDate: string): string[] =>
   Array.from({ length: 7 }, (_, index) => addDays(startOfWeek(isoDate), index));
 
-export function toTimeLabel(minute: number): string {
-  const hours = Math.floor(minute / 60) % 24;
-  const minutes = Math.floor(minute % 60);
-  const marker = i18n.t(hours < 12 ? "common.clock.am" : "common.clock.pm");
-
-  return `${((hours + 11) % 12) + 1}:${String(minutes).padStart(2, "0")} ${marker}`;
-}
-
 export const instantAt = (isoDate: string, minute: number): string =>
   instantFromLocal(isoDate, minute, clinicTimeZone()).toISOString();
+
+export function dayBounds(from: string, to: string): { from?: string; to?: string } {
+  return {
+    ...(from !== "" && { from: instantAt(from, 0) }),
+    ...(to !== "" && { to: instantAt(addDays(to, 1), 0) }),
+  };
+}

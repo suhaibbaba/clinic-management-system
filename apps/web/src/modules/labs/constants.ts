@@ -24,6 +24,7 @@ export interface LabOrderSortOption {
 
 export const LAB_ORDER_SORT_OPTIONS: Record<LabOrderView, readonly LabOrderSortOption[]> = {
   open: [
+    { sort: "created", dir: "desc", label: "labs.orders.sort.createdDesc" },
     { sort: "due", dir: "asc", label: "labs.orders.sort.dueAsc" },
     { sort: "due", dir: "desc", label: "labs.orders.sort.dueDesc" },
     { sort: "sent", dir: "desc", label: "labs.orders.sort.sentDesc" },
