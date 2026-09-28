@@ -166,6 +166,11 @@ through its `className` or a `data-part`, never a fork.
   draws every input, select and picker trigger.
 - **A dialog focuses nothing when it opens**, and a picker opens on click, Enter, Space or
   ArrowDown — never on focus.
+- **Everything works from the keyboard.** A clickable row or card is a Tab stop that opens on
+  Enter or Space. Tabs and segmented controls are one Tab stop moved by the arrow keys (mirrored in
+  RTL), Home and End. A closing drawer or dialog returns focus to what opened it. A calendar opens
+  on its selected day. The shell starts with a skip-to-content link. An unavailable action is
+  `aria-disabled`, never `disabled`: it stays a Tab stop, reads as unavailable, and ignores presses.
 - `Select` is Radix's, not the platform's: a native `<select>` did nothing on iOS Safari and cannot
   be tested off the device.
 - **Use the shared control:** `<Money>`, `<MoneyInput>`, `<PersonName>`, `<PhoneLink>`,

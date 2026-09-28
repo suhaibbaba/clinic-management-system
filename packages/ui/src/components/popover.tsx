@@ -44,9 +44,22 @@ export function Popover({
               event.preventDefault();
             }
           }}
-          {...(!focusOnOpen && {
-            onOpenAutoFocus: (event: Event) => event.preventDefault(),
-          })}
+          onOpenAutoFocus={(event: Event) => {
+            if (!focusOnOpen) {
+              event.preventDefault();
+              return;
+            }
+
+            const content = event.currentTarget as HTMLElement | null;
+            const start =
+              content?.querySelector<HTMLElement>('[data-initial-focus="selected"]') ??
+              content?.querySelector<HTMLElement>("[data-initial-focus]");
+
+            if (start) {
+              event.preventDefault();
+              start.focus();
+            }
+          }}
           className={cn(
             "z-50 max-h-[min(32rem,var(--radix-popover-content-available-height))] overflow-y-auto",
             "rounded-card border border-line bg-surface p-3 shadow-float",

@@ -220,7 +220,10 @@ describe("Billing", () => {
       await userEvent.type(amount, "500");
 
       expect(await screen.findByText(ar.errors.payment.exceedsBalance)).toBeVisible();
-      expect(screen.getByTestId("account-payment-modal-save")).toBeDisabled();
+      expect(screen.getByTestId("account-payment-modal-save")).toHaveAttribute(
+        "aria-disabled",
+        "true",
+      );
     });
 
     it("says what the balance will be as the amount is typed, and continues to a summary", async () => {

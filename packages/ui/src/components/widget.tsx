@@ -27,13 +27,13 @@ export function Widget({
       )}
     >
       {title !== undefined && (
-        <h3
+        <h2
           {...part("title")}
           className="flex items-center justify-between gap-2 text-label font-semibold"
         >
           {title}
           {action}
-        </h3>
+        </h2>
       )}
       {children}
     </div>

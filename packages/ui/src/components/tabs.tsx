@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { PILL_BASE } from "@ui/components/badge";
 import { cn } from "@ui/lib/cn";
 import { Ltr } from "@ui/components/ltr";
+import { rovingKeyDown, rovingStop } from "@ui/lib/roving-focus";
 import { parts, testid, type TestIdProps } from "@ui/lib/testid";
 
 export interface TabDefinition<TId extends string> {
@@ -29,6 +30,8 @@ export function Tabs<TId extends string>({
   "data-testid": testId,
 }: TabsProps<TId>): JSX.Element {
   const { t } = useTranslation();
+  const ids = tabs.map((tab) => tab.id);
+  const stop = rovingStop(ids, value);
 
   return (
     <div
@@ -36,6 +39,7 @@ export function Tabs<TId extends string>({
       {...testid(testId)}
       role="tablist"
       aria-label={t(label)}
+      onKeyDown={(event) => rovingKeyDown(event, ids, value, onChange)}
       className={cn(
         "flex items-center gap-2",
         "max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
@@ -57,6 +61,8 @@ export function Tabs<TId extends string>({
             id={`tab-${tab.id}`}
             aria-selected={selected}
             aria-controls={`panel-${tab.id}`}
+            tabIndex={tab.id === stop ? 0 : -1}
+            data-roving
             onClick={() => onChange(tab.id)}
             className={cn(
               PILL_BASE,

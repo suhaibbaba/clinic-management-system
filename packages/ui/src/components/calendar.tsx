@@ -95,6 +95,9 @@ function CalendarDayButton({ day, modifiers, className, ...props }: DayButtonPro
       ref={ref}
       data-part="day-cell"
       data-testid={`calendar-day-${format(day.date, "yyyy-MM-dd")}`}
+      {...(modifiers["selected"] === true
+        ? { "data-initial-focus": "selected" }
+        : modifiers["today"] === true && { "data-initial-focus": "today" })}
       {...props}
       className={cn(className, dayInk(modifiers))}
     />

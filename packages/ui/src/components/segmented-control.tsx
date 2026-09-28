@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { PILL_BASE } from "@ui/components/badge";
 import { cn } from "@ui/lib/cn";
 import { Ltr } from "@ui/components/ltr";
+import { rovingKeyDown, rovingStop } from "@ui/lib/roving-focus";
 import { testid, type TestIdProps } from "@ui/lib/testid";
 
 export interface SegmentOption<TValue extends string> {
@@ -26,12 +27,16 @@ export function SegmentedControl<TValue extends string>({
   className,
   "data-testid": testId,
 }: SegmentedControlProps<TValue>): JSX.Element {
+  const values = options.map((option) => option.value);
+  const stop = rovingStop(values, value);
+
   return (
     <div
       data-part="segmented-control"
       {...testid(testId)}
       role="radiogroup"
       aria-label={label}
+      onKeyDown={(event) => rovingKeyDown(event, values, value, onChange)}
       className={cn("inline-flex max-w-full flex-wrap items-center gap-2", className)}
     >
       {options.map((option) => {
@@ -45,6 +50,8 @@ export function SegmentedControl<TValue extends string>({
             {...testid(testId, option.value)}
             role="radio"
             aria-checked={isSelected}
+            tabIndex={option.value === stop ? 0 : -1}
+            data-roving
             onClick={() => onChange(option.value)}
             className={cn(
               PILL_BASE,

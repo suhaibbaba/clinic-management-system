@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { DialogLayerProvider } from "@ui/components/dialog-layer";
 import { cn } from "@ui/lib/cn";
 import { documentDirection } from "@ui/lib/direction";
+import { useReturnFocus } from "@ui/lib/return-focus";
 import { parts, type TestIdProps } from "@ui/lib/testid";
 
 export interface ModalProps extends TestIdProps {
@@ -36,6 +37,7 @@ export function Modal({
 }: ModalProps): JSX.Element {
   const { t } = useTranslation();
   const [layer, setLayer] = useState<HTMLElement | null>(null);
+  useReturnFocus(open);
   const part = parts("modal", testId);
 
   return (

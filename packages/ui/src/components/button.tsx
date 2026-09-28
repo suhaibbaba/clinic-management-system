@@ -38,10 +38,12 @@ export function Button({
   disabled,
   children,
   type = "button",
+  onClick,
   "data-testid": testId,
   ...props
 }: ButtonProps): JSX.Element {
   const part = parts("button", testId);
+  const inert = disabled === true || isLoading;
 
   return (
     <button
@@ -52,16 +54,25 @@ export function Button({
         "whitespace-nowrap",
         "[transition:background-color_250ms_ease-in-out,border-color_250ms_ease-in-out,color_250ms_ease-in-out,scale_120ms_ease-out]",
         "active:scale-[0.98]",
-        "disabled:cursor-not-allowed disabled:border-transparent disabled:bg-inset",
-        "disabled:text-ink-subtle disabled:shadow-none",
-        "disabled:active:scale-100 disabled:hover:bg-inset disabled:hover:text-ink-subtle",
+        "aria-disabled:cursor-not-allowed aria-disabled:border-transparent aria-disabled:bg-inset",
+        "aria-disabled:text-ink-subtle aria-disabled:shadow-none",
+        "aria-disabled:active:scale-100 aria-disabled:hover:bg-inset aria-disabled:hover:text-ink-subtle",
         VARIANTS[variant],
         SIZES[size],
         className,
       )}
-      disabled={disabled === true || isLoading}
+      aria-disabled={inert || undefined}
       aria-busy={isLoading || undefined}
       {...props}
+      onClick={(event) => {
+        if (inert) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+
+        onClick?.(event);
+      }}
     >
       {isLoading && iconPosition === "start" && <Spinner {...part("spinner")} />}
       {!isLoading && iconPosition === "start" && icon}

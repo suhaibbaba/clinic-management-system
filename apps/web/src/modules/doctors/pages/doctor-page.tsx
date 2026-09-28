@@ -104,7 +104,7 @@ export function DoctorPage(): JSX.Element {
           data-testid="doctor-schedule"
           className="border border-line rounded-card bg-surface shadow-card p-4"
         >
-          <p className="mb-3 text-value font-medium text-ink">{t("doctors.schedule")}</p>
+          <h2 className="mb-3 text-value font-medium text-ink">{t("doctors.schedule")}</h2>
 
           <WorkingHours
             value={schedule}

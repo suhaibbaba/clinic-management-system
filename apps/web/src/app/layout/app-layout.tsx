@@ -110,8 +110,24 @@ export function AppLayout(): JSX.Element {
   return (
     <PageActionSlotProvider value={isCompact ? null : actionSlot}>
       <PullToRefresh />
+      <a
+        href="#main"
+        data-testid="skip-to-content"
+        onClick={(event) => {
+          event.preventDefault();
+          document.getElementById("main")?.focus();
+        }}
+        className={cn(
+          "sr-only focus:not-sr-only focus:fixed focus:top-3 focus:start-3 focus:z-[70]",
+          "focus:rounded-control focus:bg-surface focus:px-4 focus:py-2 focus:shadow-float",
+          "focus:text-label focus:font-medium focus:text-primary-700",
+        )}
+      >
+        {t("nav.skipToContent")}
+      </a>
       <div data-testid="app-layout" className="flex min-h-full flex-col rail:flex-row">
         <aside
+          aria-label={t("nav.sidebar")}
           data-testid="app-rail"
           className={cn(
             "z-30 hidden shrink-0 bg-rail rail:block rail:w-[266px]",
@@ -167,7 +183,12 @@ export function AppLayout(): JSX.Element {
 
         <div className="flex min-w-0 flex-1 flex-col">
           {workspace ? (
-            <main data-testid="app-main" className="flex h-dvh min-w-0 flex-1 flex-col">
+            <main
+              id="main"
+              tabIndex={-1}
+              data-testid="app-main"
+              className="flex h-dvh min-w-0 flex-1 flex-col outline-none"
+            >
               <WorkspaceTopBarProvider value={topBar}>
                 <PageErrorBoundary key={pathname}>
                   <Outlet />
@@ -180,8 +201,10 @@ export function AppLayout(): JSX.Element {
                 {topBar}
               </div>
               <main
+                id="main"
+                tabIndex={-1}
                 data-testid="app-main"
-                className="min-w-0 flex-1 px-4 pt-1 pb-10 rail:px-[34px] rail:pb-12"
+                className="min-w-0 flex-1 px-4 pt-1 pb-10 outline-none rail:px-[34px] rail:pb-12"
               >
                 <div className="w-full">
                   <PageErrorBoundary key={pathname}>
