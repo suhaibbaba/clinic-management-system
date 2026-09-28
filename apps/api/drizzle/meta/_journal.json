@@ -344,6 +344,13 @@
       "when": 1790605181453,
       "tag": "0048_immutable_records",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1790631944824,
+      "tag": "0049_login_codes",
+      "breakpoints": true
     }
   ]
 }

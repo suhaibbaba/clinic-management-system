@@ -4,14 +4,22 @@ import type {
   ForgotPasswordInput,
   LoginInput,
   LoginResponse,
+  RequestLoginCodeInput,
   SetPasswordInput,
   UpdateOwnProfileInput,
+  VerifyLoginCodeInput,
 } from "@clinic/shared";
 import { apiRequest } from "@web/shared/lib/api-client";
 
 export const authApi = {
   login: (body: LoginInput): Promise<LoginResponse> =>
     apiRequest("/auth/login", { method: "POST", body }),
+
+  requestLoginCode: (body: RequestLoginCodeInput): Promise<void> =>
+    apiRequest("/auth/login-code", { method: "POST", body }),
+
+  verifyLoginCode: (body: VerifyLoginCodeInput): Promise<LoginResponse> =>
+    apiRequest("/auth/login-code/verify", { method: "POST", body }),
 
   logout: (): Promise<void> => apiRequest("/auth/logout", { method: "POST", body: {} }),
 

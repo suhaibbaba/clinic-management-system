@@ -11,4 +11,10 @@ describe("errors read by code", () => {
       errorMessageKey(new ApiError(429, { message: "ThrottlerException: Too Many Requests" })),
     ).toBe("errors.tooMany");
   });
+
+  it("reads a refused sign-in code as its own message", () => {
+    expect(errorMessageKey(new ApiError(401, { message: AUTH_ERROR.CODE_INVALID }))).toBe(
+      "errors.auth.codeInvalid",
+    );
+  });
 });

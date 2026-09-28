@@ -25,4 +25,15 @@ export const COPY = {
   },
 } as const;
 
+export const LOGIN_CODE_COPY = {
+  subject: (clinic: string) => `رمز الدخول إلى ${clinic}`,
+  heading: "رمز الدخول",
+  body: (who: string, clinic: string, minutes: number) => [
+    `مرحباً ${who},`,
+    `استخدم هذا الرمز للدخول إلى حسابك في ${clinic}.`,
+    `الرمز صالح لمدة ${minutes} دقائق ولمرة واحدة فقط.`,
+  ],
+  footer: "إذا لم تطلب هذا الرمز، تجاهل هذه الرسالة — لا أحد يستطيع الدخول دونه.",
+} as const;
+
 export const EMAIL_PROVIDER = Symbol("EMAIL_PROVIDER");

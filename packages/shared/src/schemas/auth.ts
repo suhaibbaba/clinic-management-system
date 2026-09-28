@@ -32,6 +32,21 @@ export const forgotPasswordSchema = z.object({
 });
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 
+export const LOGIN_CODE_LENGTH = 6;
+
+export const loginCodeEmailSchema = z.string().trim().toLowerCase().max(255).pipe(z.email());
+
+export const requestLoginCodeSchema = z.object({
+  email: loginCodeEmailSchema,
+});
+export type RequestLoginCodeInput = z.infer<typeof requestLoginCodeSchema>;
+
+export const verifyLoginCodeSchema = z.object({
+  email: loginCodeEmailSchema,
+  code: z.string().trim().length(LOGIN_CODE_LENGTH).regex(/^\d+$/),
+});
+export type VerifyLoginCodeInput = z.infer<typeof verifyLoginCodeSchema>;
+
 export const changePasswordSchema = z
   .object({
     currentPassword: passwordSchema,

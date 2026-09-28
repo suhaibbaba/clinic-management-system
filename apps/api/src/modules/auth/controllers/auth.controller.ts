@@ -14,6 +14,7 @@ import { type AuthTokens, type LoginResponse } from "@clinic/shared";
 import { type FastifyReply, type FastifyRequest } from "fastify";
 import { AccountInvitationsService } from "@api/modules/email/services/account-invitations.service";
 import { AuthService } from "@api/modules/auth/services/auth.service";
+import { LoginCodeService } from "@api/modules/auth/services/login-code.service";
 import {
   clearRefreshCookie,
   readRefreshToken,
@@ -27,12 +28,15 @@ import {
   LogoutDto,
   ForgotPasswordDto,
   SetPasswordDto,
+  RequestLoginCodeDto,
+  VerifyLoginCodeDto,
 } from "@api/modules/auth/dto/auth.dto";
 
 @Controller("auth")
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly loginCodes: LoginCodeService,
     private readonly invitations: AccountInvitationsService,
     private readonly config: ConfigService<Env, true>,
   ) {}
@@ -46,6 +50,28 @@ export class AuthController {
     @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<LoginResponse> {
     const { refreshToken, ...response } = await this.authService.login(body);
+    setRefreshCookie(reply, this.config, refreshToken);
+
+    return response;
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 15 * 60_000 } })
+  @Post("login-code")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async requestLoginCode(@Body() body: RequestLoginCodeDto): Promise<void> {
+    await this.loginCodes.request(body.email);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post("login-code/verify")
+  @HttpCode(HttpStatus.OK)
+  async verifyLoginCode(
+    @Body() body: VerifyLoginCodeDto,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ): Promise<LoginResponse> {
+    const { refreshToken, ...response } = await this.authService.loginWithCode(body);
     setRefreshCookie(reply, this.config, refreshToken);
 
     return response;

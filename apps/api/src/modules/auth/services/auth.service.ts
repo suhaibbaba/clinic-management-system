@@ -1,7 +1,9 @@
 import { Inject, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { LoginThrottleService } from "@api/modules/auth/services/login-throttle.service";
+import { LoginCodeService } from "@api/modules/auth/services/login-code.service";
 import { and, eq, isNull, like, sql } from "drizzle-orm";
 import {
+  AUTH_ERROR,
   DEFAULT_PHONE_COUNTRY,
   normalizePhone,
   type AuthenticatedUserProfile,
@@ -11,6 +13,7 @@ import {
   type LoginResponse,
   type SessionClinic,
   type UserRole,
+  type VerifyLoginCodeInput,
 } from "@clinic/shared";
 import { PasswordService } from "@api/modules/auth/services/password.service";
 import { TokenService } from "@api/modules/auth/services/token.service";
@@ -35,6 +38,7 @@ export class AuthService {
     private readonly storage: StorageService,
     private readonly permissions: PermissionsService,
     private readonly loginThrottle: LoginThrottleService,
+    private readonly loginCodes: LoginCodeService,
   ) {}
 
   async login(input: LoginInput): Promise<LoginResponse & IssuedSession> {
@@ -59,11 +63,22 @@ export class AuthService {
 
     await this.loginThrottle.clear(input.identifier);
 
-    await this.db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
+    return this.startSession(user);
+  }
 
-    const tokens = await this.issueTokens(user);
+  async loginWithCode(input: VerifyLoginCodeInput): Promise<LoginResponse & IssuedSession> {
+    await this.loginThrottle.assertOpen(input.email);
 
-    return { ...tokens, user: await this.toProfile(user) };
+    const user = await this.loginCodes.consume(input.email, input.code);
+
+    if (!user?.isActive) {
+      await this.loginThrottle.recordFailure(input.email);
+      throw new UnauthorizedException(AUTH_ERROR.CODE_INVALID);
+    }
+
+    await this.loginThrottle.clear(input.email);
+
+    return this.startSession(user);
   }
 
   async refresh(presentedToken: string): Promise<IssuedSession> {
@@ -141,6 +156,14 @@ export class AuthService {
       .where(eq(users.id, actor.id));
 
     await this.tokenService.revokeAllForUser(actor.id);
+  }
+
+  private async startSession(user: UserRow): Promise<LoginResponse & IssuedSession> {
+    await this.db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
+
+    const tokens = await this.issueTokens(user);
+
+    return { ...tokens, user: await this.toProfile(user) };
   }
 
   private async issueTokens(user: UserRow): Promise<IssuedSession> {

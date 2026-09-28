@@ -1006,6 +1006,7 @@ export const LAB_ORDER_ERROR = {
 
 export const AUTH_ERROR = {
   LOCKED: "auth_locked",
+  CODE_INVALID: "auth_code_invalid",
 } as const satisfies Record<string, string>;
 
 export const BOOKING_ERROR = {

@@ -1,5 +1,10 @@
-import { AUTH_ERROR, USER_ROLE } from "@clinic/shared";
+import { AUTH_ERROR, USER_ROLE, type UserRole } from "@clinic/shared";
+import { eq, sql } from "drizzle-orm";
+import { loginCodes, loginThrottles, users } from "@api/database/schema";
 import { REFRESH_COOKIE_NAME } from "@api/modules/auth/lib/refresh-cookie";
+import { loginThrottleKey } from "@api/modules/auth/lib/login-throttle";
+import { EMAIL_PROVIDER } from "@api/modules/email/constants";
+import { type EmailProvider, type OutboundEmail } from "@api/modules/email/lib/email-provider";
 import {
   auth,
   createTestContext,
@@ -394,6 +399,205 @@ describe("Auth (e2e)", () => {
       });
 
       expect(response.statusCode).toBe(401);
+    });
+  });
+
+  describe("sign-in by email code", () => {
+    let sent: OutboundEmail[];
+
+    beforeEach(() => {
+      sent = [];
+      jest
+        .spyOn(context.app.get<EmailProvider>(EMAIL_PROVIDER), "send")
+        .mockImplementation((email) => {
+          sent.push(email);
+          return Promise.resolve();
+        });
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    const emailOf = async (codeClinic: TestClinic, role: UserRole): Promise<string> => {
+      const [row] = await context.db
+        .select({ email: users.email })
+        .from(users)
+        .where(eq(users.id, codeClinic.userIds[role]));
+
+      return row?.email ?? "";
+    };
+
+    const requestCode = (email: string) =>
+      context.app.inject({ method: "POST", url: "/auth/login-code", payload: { email } });
+
+    const verifyCode = (email: string, code: string) =>
+      context.app.inject({
+        method: "POST",
+        url: "/auth/login-code/verify",
+        payload: { email, code },
+      });
+
+    const codeSentTo = async (email: string): Promise<string> => {
+      for (let tries = 0; tries < 50; tries += 1) {
+        const message = sent.findLast((candidate) => candidate.to === email);
+        const code = message?.text.match(/^\d{6}$/m)?.[0];
+
+        if (code) {
+          return code;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+
+      throw new Error(`No sign-in code reached ${email}`);
+    };
+
+    const wrongCode = (code: string): string =>
+      String((Number(code) + 1) % 1_000_000).padStart(6, "0");
+
+    const allowResend = (email: string) =>
+      context.db
+        .update(loginCodes)
+        .set({ createdAt: sql`${loginCodes.createdAt} - interval '2 minutes'` })
+        .where(
+          eq(
+            loginCodes.userId,
+            sql`(select ${users.id} from ${users} where lower(${users.email}) = ${email})`,
+          ),
+        );
+
+    it("emails a code that signs in once, with the same session as a password", async () => {
+      const codeClinic = await context.createClinic();
+      const email = await emailOf(codeClinic, USER_ROLE.DOCTOR);
+
+      const requested = await requestCode(email.toUpperCase());
+      expect(requested.statusCode).toBe(204);
+
+      const code = await codeSentTo(email);
+      expect(JSON.stringify(sent)).not.toContain("http");
+
+      const signedIn = await verifyCode(email, code);
+      expect(signedIn.statusCode).toBe(200);
+      expect(signedIn.json()).toMatchObject({
+        user: { id: codeClinic.userIds[USER_ROLE.DOCTOR], clinicId: codeClinic.id },
+      });
+      expect(signedIn.json().refreshToken).toBeUndefined();
+      expect(refreshCookie(signedIn)?.httpOnly).toBe(true);
+
+      expect((await verifyCode(email, code)).statusCode).toBe(401);
+    });
+
+    it("answers an unknown email exactly like a known one and sends nothing", async () => {
+      const response = await requestCode("nobody.here@test.local");
+
+      expect(response.statusCode).toBe(204);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      expect(sent).toHaveLength(0);
+
+      const verified = await verifyCode("nobody.here@test.local", "123456");
+      expect(verified.statusCode).toBe(401);
+      expect(verified.json()).toMatchObject({ message: AUTH_ERROR.CODE_INVALID });
+    });
+
+    it("burns the code after five wrong tries, even when the sixth is right", async () => {
+      const codeClinic = await context.createClinic();
+      const email = await emailOf(codeClinic, USER_ROLE.TECHNICIAN);
+
+      await requestCode(email);
+      const code = await codeSentTo(email);
+
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        expect((await verifyCode(email, wrongCode(code))).statusCode).toBe(401);
+      }
+
+      expect((await verifyCode(email, code)).statusCode).toBe(429);
+
+      await context.db
+        .delete(loginThrottles)
+        .where(eq(loginThrottles.key, loginThrottleKey(email)));
+      expect((await verifyCode(email, code)).statusCode).toBe(401);
+    });
+
+    it("refuses an expired code", async () => {
+      const codeClinic = await context.createClinic();
+      const email = await emailOf(codeClinic, USER_ROLE.RECEPTIONIST);
+
+      await requestCode(email);
+      const code = await codeSentTo(email);
+
+      await context.db
+        .update(loginCodes)
+        .set({ expiresAt: new Date(Date.now() - 1000) })
+        .where(eq(loginCodes.userId, codeClinic.userIds[USER_ROLE.RECEPTIONIST]));
+
+      expect((await verifyCode(email, code)).statusCode).toBe(401);
+    });
+
+    it("holds a resend back for a minute, and a new code retires the old one", async () => {
+      const codeClinic = await context.createClinic();
+      const email = await emailOf(codeClinic, USER_ROLE.ADMIN);
+
+      await requestCode(email);
+      const first = await codeSentTo(email);
+
+      expect((await requestCode(email)).statusCode).toBe(204);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      expect(sent).toHaveLength(1);
+
+      await allowResend(email);
+      await requestCode(email);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      expect(sent).toHaveLength(2);
+      const second = await codeSentTo(email);
+
+      if (first !== second) {
+        expect((await verifyCode(email, first)).statusCode).toBe(401);
+      }
+      expect((await verifyCode(email, second)).statusCode).toBe(200);
+    });
+
+    it("sends at most five codes an hour to one account", async () => {
+      const codeClinic = await context.createClinic();
+      const email = await emailOf(codeClinic, USER_ROLE.DOCTOR);
+
+      for (let request = 0; request < 5; request += 1) {
+        await requestCode(email);
+        await codeSentTo(email);
+        await allowResend(email);
+        context.resetThrottle();
+      }
+
+      await requestCode(email);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      expect(sent).toHaveLength(5);
+    });
+
+    it("gives a deactivated account no code and no session", async () => {
+      const codeClinic = await context.createClinic();
+      const email = await emailOf(codeClinic, USER_ROLE.TECHNICIAN);
+
+      await requestCode(email);
+      const code = await codeSentTo(email);
+
+      await context.db
+        .update(users)
+        .set({ isActive: false })
+        .where(eq(users.id, codeClinic.userIds[USER_ROLE.TECHNICIAN]));
+
+      expect((await verifyCode(email, code)).statusCode).toBe(401);
+
+      sent = [];
+      await allowResend(email);
+      await requestCode(email);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      expect(sent).toHaveLength(0);
+    });
+
+    it("validates the email and the code shape", async () => {
+      expect((await requestCode("not-an-email")).statusCode).toBe(400);
+      expect((await verifyCode("someone@test.local", "12ab56")).statusCode).toBe(400);
+      expect((await verifyCode("someone@test.local", "12345")).statusCode).toBe(400);
     });
   });
 });

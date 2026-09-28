@@ -30,6 +30,7 @@ const CODED_MESSAGES: Readonly<Record<string, string>> = {
   [APPOINTMENT_TIMING_ERROR.NOT_STARTED]: "errors.appointment.notStarted",
   [APPOINTMENT_TIMING_ERROR.DAY_PASSED]: "errors.appointment.dayPassed",
   [AUTH_ERROR.LOCKED]: "errors.auth.locked",
+  [AUTH_ERROR.CODE_INVALID]: "errors.auth.codeInvalid",
   [CLINICAL_DELETE_ERROR.HAS_PAYMENTS]: "errors.clinicalDelete.hasPayments",
   [LAB_ORDER_ERROR.EXPECTED_IN_PAST]: "errors.labOrder.expectedInPast",
   [STOCK_ERROR.INSUFFICIENT]: "errors.stock.insufficient",
