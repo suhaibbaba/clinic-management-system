@@ -221,6 +221,39 @@ export function canTransitionAppointment(from: AppointmentStatus, to: Appointmen
   return (APPOINTMENT_STATUS_TRANSITIONS[from] as readonly AppointmentStatus[]).includes(to);
 }
 
+export const APPOINTMENT_TIMING_ERROR = {
+  DAY_NOT_REACHED: "appointment_day_not_reached",
+  NOT_STARTED: "appointment_not_started",
+} as const;
+export type AppointmentTimingError =
+  (typeof APPOINTMENT_TIMING_ERROR)[keyof typeof APPOINTMENT_TIMING_ERROR];
+
+export interface AppointmentTiming {
+  readonly day: string;
+  readonly today: string;
+  readonly startsAt: Date;
+  readonly now: Date;
+}
+
+export function appointmentTimingError(
+  next: AppointmentStatus,
+  { day, today, startsAt, now }: AppointmentTiming,
+): AppointmentTimingError | null {
+  if (next === APPOINTMENT_STATUS.NO_SHOW) {
+    return startsAt <= now ? null : APPOINTMENT_TIMING_ERROR.NOT_STARTED;
+  }
+
+  if (
+    next === APPOINTMENT_STATUS.ARRIVED ||
+    next === APPOINTMENT_STATUS.IN_PROGRESS ||
+    next === APPOINTMENT_STATUS.COMPLETED
+  ) {
+    return day <= today ? null : APPOINTMENT_TIMING_ERROR.DAY_NOT_REACHED;
+  }
+
+  return null;
+}
+
 export const APPOINTMENT_RELEASED_STATUSES = [
   APPOINTMENT_STATUS.CANCELLED,
   APPOINTMENT_STATUS.NO_SHOW,

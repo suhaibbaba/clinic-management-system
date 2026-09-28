@@ -1,4 +1,10 @@
-import { LOOKUP_LIST, APPOINTMENT_STATUS, type CalendarAppointment } from "@clinic/shared";
+import {
+  APPOINTMENT_STATUS,
+  appointmentTimingError,
+  LOOKUP_LIST,
+  type AppointmentStatus,
+  type CalendarAppointment,
+} from "@clinic/shared";
 import { formatTime, formatDate } from "@web/shared/lib/format";
 import { useState, type JSX, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,6 +37,8 @@ import {
 import { errorMessageKey } from "@web/shared/lib/api-error";
 import { cn } from "@clinic/ui/lib/cn";
 import { ellipsis } from "@web/i18n/ellipsis";
+import { todayIso, toIsoDate } from "@web/shared/lib/dates";
+import { useNowMinute } from "@web/shared/hooks/use-now-minute";
 
 export interface AppointmentDrawerProps {
   readonly "data-testid"?: string | undefined;
@@ -57,6 +65,7 @@ export function AppointmentDrawer({
 
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  useNowMinute();
 
   if (!appointment) {
     return null;
@@ -66,6 +75,24 @@ export function AppointmentDrawer({
   const style = APPOINTMENT_STATUS_STYLES[status];
   const mayOpenVisit = canOpenVisit(can);
   const may = (step: AppointmentStep): boolean => canMoveAppointment(can, step);
+  const startsAt = new Date(appointment.startsAt);
+  const onTime = (next: AppointmentStatus): boolean =>
+    appointmentTimingError(next, {
+      day: toIsoDate(startsAt),
+      today: todayIso(),
+      startsAt,
+      now: new Date(),
+    }) === null;
+  const attendanceOpen = onTime(APPOINTMENT_STATUS.ARRIVED);
+  const noShowOpen = onTime(APPOINTMENT_STATUS.NO_SHOW);
+  const attendanceHint =
+    status !== APPOINTMENT_STATUS.CONFIRMED && status !== APPOINTMENT_STATUS.ARRIVED
+      ? null
+      : !attendanceOpen
+        ? "appointments.attendance.fromDay"
+        : status === APPOINTMENT_STATUS.CONFIRMED && !noShowOpen && may("noShow")
+          ? "appointments.attendance.afterStart"
+          : null;
 
   const move = async (next: AppointmentStep, successKey: string): Promise<void> => {
     try {
@@ -122,7 +149,7 @@ export function AppointmentDrawer({
               </Button>
             )}
 
-            {status === APPOINTMENT_STATUS.CONFIRMED && may("arrived") && (
+            {status === APPOINTMENT_STATUS.CONFIRMED && attendanceOpen && may("arrived") && (
               <Button
                 icon={<Icon name="user-plus" />}
                 data-testid={`${testId}-arrived`}
@@ -133,7 +160,7 @@ export function AppointmentDrawer({
               </Button>
             )}
 
-            {status === APPOINTMENT_STATUS.ARRIVED && mayOpenVisit && (
+            {status === APPOINTMENT_STATUS.ARRIVED && attendanceOpen && mayOpenVisit && (
               <Button
                 icon={<Icon name="stethoscope" />}
                 data-testid={`${testId}-open-visit`}
@@ -144,18 +171,22 @@ export function AppointmentDrawer({
               </Button>
             )}
 
-            {status === APPOINTMENT_STATUS.ARRIVED && !mayOpenVisit && may("start") && (
-              <Button
-                icon={<Icon name="activity" />}
-                data-testid={`${testId}-start`}
-                isLoading={busy}
-                onClick={() => void move("start", "appointments.updated")}
-              >
-                {t("appointments.actions.start")}
-              </Button>
-            )}
+            {status === APPOINTMENT_STATUS.ARRIVED &&
+              attendanceOpen &&
+              !mayOpenVisit &&
+              may("start") && (
+                <Button
+                  icon={<Icon name="activity" />}
+                  data-testid={`${testId}-start`}
+                  isLoading={busy}
+                  onClick={() => void move("start", "appointments.updated")}
+                >
+                  {t("appointments.actions.start")}
+                </Button>
+              )}
 
             {(status === APPOINTMENT_STATUS.IN_PROGRESS || status === APPOINTMENT_STATUS.ARRIVED) &&
+              attendanceOpen &&
               may("complete") && (
                 <Button
                   variant="secondary"
@@ -168,7 +199,7 @@ export function AppointmentDrawer({
                 </Button>
               )}
 
-            {status === APPOINTMENT_STATUS.CONFIRMED && may("noShow") && (
+            {status === APPOINTMENT_STATUS.CONFIRMED && noShowOpen && may("noShow") && (
               <Button
                 variant="secondary"
                 data-testid={`${testId}-no-show`}
@@ -205,6 +236,12 @@ export function AppointmentDrawer({
               </Badge>
             )}
           </div>
+
+          {attendanceHint && (
+            <p data-testid={`${testId}-attendance-hint`} className="text-meta text-ink-muted">
+              {t(attendanceHint)}
+            </p>
+          )}
 
           <dl
             data-testid={`${testId}-details`}

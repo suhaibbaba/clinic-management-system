@@ -26,6 +26,7 @@ import {
 import { PermissionsService } from "@api/modules/permissions/services/permissions.service";
 import { createPatient, seedClinicFixtures, nameParts } from "@test/helpers/patient-fixtures";
 import { atClinic } from "@test/helpers/clinic-time";
+import { moveIntoPast } from "@test/helpers/appointment-time";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 function monday(weeksAhead: number): string {
@@ -142,6 +143,7 @@ describe("Assistant actions (e2e)", () => {
   describe("a change the assistant proposes", () => {
     it("waits on the user for an arrival, then writes the assistant's and the domain's audit", async () => {
       const appointmentId = await book(monday(1), "10:00");
+      await moveIntoPast(context.db, appointmentId);
 
       const { result } = await tool(USER_ROLE.RECEPTIONIST, AI_TOOL.SET_APPOINTMENT_STATUS, {
         appointment_id: appointmentId,
