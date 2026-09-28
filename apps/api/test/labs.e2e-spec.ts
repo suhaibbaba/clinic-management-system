@@ -160,20 +160,23 @@ describe("Labs (e2e)", () => {
       expect((await move(order.id, "receive")).statusCode).toBe(400);
     });
 
-    it("lets work come back from ready, received or fitted, and go out again", async () => {
+    it("sends returned work straight back to the lab, which marks it ready again", async () => {
       const order = await createOrder();
       await move(order.id, "send");
       await move(order.id, "ready");
 
       const returned = await move(order.id, "return", USER_ROLE.ADMIN, {
         reason: "اللون لا يطابق",
+        expectedAt: "2030-01-15",
       });
 
       expect(returned.statusCode).toBe(200);
       expect((returned.json() as LabOrderRow).returnReason).toBe("اللون لا يطابق");
+      expect((returned.json() as LabOrderRow).receivedAt).toBeNull();
+      expect((returned.json() as LabOrderRow).expectedAt?.slice(0, 10)).toBe("2030-01-15");
 
-      expect((await move(order.id, "ready")).statusCode).toBe(400);
-      expect((await move(order.id, "send")).statusCode).toBe(200);
+      expect((await move(order.id, "send")).statusCode).toBe(400);
+      expect((await move(order.id, "ready")).statusCode).toBe(200);
     });
 
     it("will not accept a return with no reason", async () => {
@@ -181,9 +184,10 @@ describe("Labs (e2e)", () => {
       await move(order.id, "send");
       await move(order.id, "ready");
 
-      expect((await move(order.id, "return", USER_ROLE.ADMIN, { reason: "" })).statusCode).toBe(
-        400,
-      );
+      expect(
+        (await move(order.id, "return", USER_ROLE.ADMIN, { reason: "", expectedAt: "2030-01-15" }))
+          .statusCode,
+      ).toBe(400);
     });
 
     it("cancels only before the lab has started", async () => {
@@ -310,7 +314,10 @@ describe("Labs (e2e)", () => {
       const order = await createOrder({ workTypeId: bridgeId });
       await move(order.id, "send");
       await move(order.id, "ready");
-      await move(order.id, "return", USER_ROLE.ADMIN, { reason: "لا يجلس" });
+      await move(order.id, "return", USER_ROLE.ADMIN, {
+        reason: "لا يجلس",
+        expectedAt: "2030-01-15",
+      });
 
       expect(Number((await balance()).owed)).toBe(Number(before.owed) + 120);
     });

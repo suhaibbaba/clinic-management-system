@@ -169,6 +169,7 @@ export type LabOrderStageCounts = z.infer<typeof labOrderStageCountsSchema>;
 
 export const returnLabOrderSchema = z.object({
   reason: z.string().trim().min(3).max(500),
+  expectedAt: isoDateSchema,
 });
 export type ReturnLabOrderInput = z.infer<typeof returnLabOrderSchema>;
 

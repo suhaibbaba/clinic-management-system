@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Badge,
   Button,
+  DatePicker,
   Drawer,
   Icon,
   Ltr,
@@ -58,6 +59,7 @@ export function OrderDrawer({
 
   const [returning, setReturning] = useState(false);
   const [reason, setReason] = useState("");
+  const [expectedAt, setExpectedAt] = useState("");
 
   if (!order) {
     return null;
@@ -108,10 +110,11 @@ export function OrderDrawer({
 
   const submitReturn = async (): Promise<void> => {
     try {
-      await returnToLab.mutateAsync({ id: order.id, reason: reason.trim() });
+      await returnToLab.mutateAsync({ id: order.id, reason: reason.trim(), expectedAt });
       toast.success("labs.order.returned");
       setReturning(false);
       setReason("");
+      setExpectedAt("");
     } catch (error) {
       toast.error(errorMessageKey(error));
     }
@@ -278,7 +281,7 @@ export function OrderDrawer({
               variant="danger"
               data-testid="lab-order-return-confirm"
               isLoading={returnToLab.isPending}
-              disabled={reason.trim().length < 3}
+              disabled={reason.trim().length < 3 || expectedAt === ""}
               onClick={() => void submitReturn()}
             >
               {t("labs.actions.return")}
@@ -296,6 +299,20 @@ export function OrderDrawer({
           placeholder={t("labs.order.returnReasonPlaceholder")}
           value={reason}
           onChange={(event) => setReason(event.target.value)}
+        />
+
+        <label
+          htmlFor="lab-return-expected"
+          className="mt-4 mb-1.5 block text-label font-medium text-ink"
+        >
+          {t("labs.order.returnExpected")}
+        </label>
+        <DatePicker
+          id="lab-return-expected"
+          data-testid="lab-order-return-expected"
+          label={t("labs.order.returnExpected")}
+          value={expectedAt}
+          onChange={setExpectedAt}
         />
       </Modal>
 

@@ -1179,7 +1179,8 @@
         "final": "A cancelled order cannot be reopened.",
         "balance": "Its cost no longer counts toward the lab balance."
       },
-      "viewCancelled": "View order"
+      "viewCancelled": "View order",
+      "returnExpected": "New expected date"
     },
     "section": {
       "label": "Lab views",

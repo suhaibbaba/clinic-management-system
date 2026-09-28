@@ -173,7 +173,13 @@ export class LabOrdersController {
     @Param() params: IdParamDto,
     @Body() body: ReturnLabOrderDto,
   ): Promise<LabOrderRow> {
-    return this.orders.changeStatus(actor, params.id, LAB_ORDER_STATUS.RETURNED, body.reason);
+    return this.orders.changeStatus(
+      actor,
+      params.id,
+      LAB_ORDER_STATUS.RETURNED,
+      body.reason,
+      body.expectedAt,
+    );
   }
 
   @Patch(":id/cancel")

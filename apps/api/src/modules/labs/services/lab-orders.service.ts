@@ -309,6 +309,7 @@ export class LabOrdersService implements OnModuleInit {
     id: string,
     next: LabOrderStatus,
     reason?: string,
+    expectedAt?: string,
   ): Promise<LabOrderRow> {
     const existing = await this.requireRow(actor.clinicId, id);
 
@@ -333,7 +334,13 @@ export class LabOrdersService implements OnModuleInit {
         ...(next === LAB_ORDER_STATUS.SENT && { sentAt: now, receivedAt: null, fittedAt: null }),
         ...(next === LAB_ORDER_STATUS.RECEIVED && { receivedAt: now }),
         ...(next === LAB_ORDER_STATUS.FITTED && { fittedAt: now }),
-        ...(next === LAB_ORDER_STATUS.RETURNED && { returnReason: reason?.trim() ?? null }),
+        ...(next === LAB_ORDER_STATUS.RETURNED && {
+          returnReason: reason?.trim() ?? null,
+          sentAt: now,
+          receivedAt: null,
+          fittedAt: null,
+          ...(expectedAt !== undefined && { expectedAt: new Date(expectedAt) }),
+        }),
         updatedAt: now,
         updatedBy: actor.id,
       })

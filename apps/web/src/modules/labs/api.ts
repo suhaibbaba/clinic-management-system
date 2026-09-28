@@ -1,5 +1,6 @@
 import { toQueryString } from "@web/shared/lib/query-string";
 import type {
+  ReturnLabOrderInput,
   LabOrderStageCounts,
   LabOrderStageCountsQuery,
   ConfirmLabAttachmentInput,
@@ -89,8 +90,8 @@ export const labOrdersApi = {
   receive: (id: string) =>
     apiRequest<LabOrderRow>(`/lab-orders/${id}/receive`, { method: "PATCH" }),
   fit: (id: string) => apiRequest<LabOrderRow>(`/lab-orders/${id}/fit`, { method: "PATCH" }),
-  returnToLab: (id: string, reason: string) =>
-    apiRequest<LabOrderRow>(`/lab-orders/${id}/return`, { method: "PATCH", body: { reason } }),
+  returnToLab: (id: string, body: ReturnLabOrderInput) =>
+    apiRequest<LabOrderRow>(`/lab-orders/${id}/return`, { method: "PATCH", body }),
   cancel: (id: string) => apiRequest<LabOrderRow>(`/lab-orders/${id}/cancel`, { method: "PATCH" }),
 
   attachments: (id: string) => apiRequest<LabOrderAttachment[]>(`/lab-orders/${id}/attachments`),

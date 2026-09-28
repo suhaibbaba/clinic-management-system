@@ -382,7 +382,7 @@ export const LAB_ORDER_STATUS_TRANSITIONS = {
   [LAB_ORDER_STATUS.READY]: [LAB_ORDER_STATUS.RECEIVED, LAB_ORDER_STATUS.RETURNED],
   [LAB_ORDER_STATUS.RECEIVED]: [LAB_ORDER_STATUS.FITTED, LAB_ORDER_STATUS.RETURNED],
   [LAB_ORDER_STATUS.FITTED]: [LAB_ORDER_STATUS.RETURNED],
-  [LAB_ORDER_STATUS.RETURNED]: [LAB_ORDER_STATUS.SENT],
+  [LAB_ORDER_STATUS.RETURNED]: [LAB_ORDER_STATUS.READY],
   [LAB_ORDER_STATUS.CANCELLED]: [],
 } as const satisfies Record<LabOrderStatus, readonly LabOrderStatus[]>;
 
@@ -401,7 +401,11 @@ export const LAB_ORDER_BILLABLE_STATUSES = [
 export const countsTowardLabBalance = (status: LabOrderStatus): boolean =>
   (LAB_ORDER_BILLABLE_STATUSES as readonly LabOrderStatus[]).includes(status);
 
-export const LAB_ORDER_AWAITING_STATUSES = [LAB_ORDER_STATUS.SENT, LAB_ORDER_STATUS.READY] as const;
+export const LAB_ORDER_AWAITING_STATUSES = [
+  LAB_ORDER_STATUS.SENT,
+  LAB_ORDER_STATUS.READY,
+  LAB_ORDER_STATUS.RETURNED,
+] as const;
 
 export const awaitingLab = (status: LabOrderStatus): boolean =>
   (LAB_ORDER_AWAITING_STATUSES as readonly LabOrderStatus[]).includes(status);
