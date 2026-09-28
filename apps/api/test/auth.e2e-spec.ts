@@ -113,6 +113,45 @@ describe("Auth (e2e)", () => {
       expect((await login(phone)).statusCode).toBe(200);
     });
 
+    it("ends a deactivated user's session at once, not when the access token expires", async () => {
+      const other = await context.createClinic();
+      const admin = await context.login(other.phones[USER_ROLE.ADMIN]);
+      const technician = await context.login(other.phones[USER_ROLE.TECHNICIAN]);
+      const me = () => context.app.inject({ method: "GET", url: "/me", headers: auth(technician) });
+
+      expect((await me()).statusCode).toBe(200);
+
+      const deactivated = await context.app.inject({
+        method: "PATCH",
+        url: `/users/${other.userIds[USER_ROLE.TECHNICIAN]}`,
+        headers: auth(admin),
+        payload: { isActive: false },
+      });
+      expect(deactivated.statusCode).toBe(200);
+
+      expect((await me()).statusCode).toBe(401);
+    });
+
+    it("stops a token issued before a role change", async () => {
+      const other = await context.createClinic();
+      const admin = await context.login(other.phones[USER_ROLE.ADMIN]);
+      const receptionist = await context.login(other.phones[USER_ROLE.RECEPTIONIST]);
+
+      await context.app.inject({
+        method: "PATCH",
+        url: `/users/${other.userIds[USER_ROLE.RECEPTIONIST]}`,
+        headers: auth(admin),
+        payload: { role: USER_ROLE.TECHNICIAN },
+      });
+
+      const stale = await context.app.inject({
+        method: "GET",
+        url: "/me",
+        headers: auth(receptionist),
+      });
+      expect(stale.statusCode).toBe(401);
+    });
+
     it("returns the error shape the frontend resolves by code", async () => {
       const response = await login(clinic.phones[USER_ROLE.ADMIN], "NotThePassword1");
 

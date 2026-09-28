@@ -5,6 +5,7 @@ import {
   Injectable,
   type OnModuleInit,
 } from "@nestjs/common";
+import { forgetSessionState } from "@api/common/database/session-state";
 import { and, count, desc, eq, ilike, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 import {
   ALLOWED_USER_PHOTO_MIME_TYPES,
@@ -192,6 +193,10 @@ export class UsersService implements OnModuleInit {
       await this.tokenService.revokeAllForUser(id);
     }
 
+    if (input.isActive !== undefined || input.role !== undefined) {
+      forgetSessionState(id);
+    }
+
     return this.presentOne(row);
   }
 
@@ -231,6 +236,7 @@ export class UsersService implements OnModuleInit {
       .where(this.scope.where(users, actor.clinicId, eq(users.id, id)));
 
     await this.tokenService.revokeAllForUser(id);
+    forgetSessionState(id);
   }
 
   async presignPhoto(
