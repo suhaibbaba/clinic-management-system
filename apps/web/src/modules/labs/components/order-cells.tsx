@@ -43,7 +43,7 @@ export function Work({
 
   return (
     <span className="flex min-w-0 flex-col gap-1">
-      <bdi className="whitespace-nowrap font-medium text-ink rtl:text-end">
+      <bdi className="font-medium text-ink rtl:text-end">
         {order.workTypeName ?? t("labs.orders.custom")}
       </bdi>
       {order.teeth.length > 0 && (
