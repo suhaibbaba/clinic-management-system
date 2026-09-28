@@ -31,6 +31,7 @@ import {
   type TestContext,
 } from "@test/helpers/test-app";
 import { staffName } from "@test/helpers/staff-name";
+import { atClinic } from "@test/helpers/clinic-time";
 
 function thursday(weeksAhead: number): string {
   const day = new Date();
@@ -82,7 +83,7 @@ describe("Assistant plans (e2e)", () => {
       payload: {
         patientId,
         doctorId,
-        startsAt: new Date(`${day}T${time}:00+03:00`).toISOString(),
+        startsAt: atClinic(day, time).toISOString(),
         durationMinutes: 30,
       },
     });
@@ -253,14 +254,14 @@ describe("Assistant plans (e2e)", () => {
     expect((await doctorOf(first))?.doctorId).toBe(rasha);
     expect((await doctorOf(second))?.doctorId).toBe(rasha);
     expect((await doctorOf(second))?.startsAt.toISOString()).toBe(
-      new Date(`${day}T10:30:00+03:00`).toISOString(),
+      atClinic(day, "10:30").toISOString(),
     );
   });
 
   it("names the step that cannot happen and the free times after the steps before it", async () => {
     const day = thursday(3);
     const first = await book(basel, patients[0] ?? "", day, "11:00");
-    const second = await book(basel, patients[1] ?? "", day, "11:15");
+    const second = await book(basel, patients[1] ?? "", day, "11:30");
 
     const { result } = await tool(
       AI_TOOL.PROPOSE_PLAN,
@@ -279,6 +280,7 @@ describe("Assistant plans (e2e)", () => {
   it("keeps the steps that ran when a later one fails, and continues once it can", async () => {
     const day = thursday(4);
     const first = await book(basel, patients[0] ?? "", day, "12:00");
+    const timeOffBefore = await rows(doctorTimeOff, basel);
 
     const { result } = await tool(AI_TOOL.PROPOSE_PLAN, cover(day, [{ id: first, time: "12:00" }]));
     const id = result?.proposal_id ?? "";
@@ -292,7 +294,7 @@ describe("Assistant plans (e2e)", () => {
       steps: ["done", "done", AI_ACTION_ERROR.SCHEDULE_CONFLICT],
     });
     expect((await doctorOf(first))?.doctorId).toBe(rasha);
-    expect(await rows(doctorTimeOff, basel)).toBe(0);
+    expect(await rows(doctorTimeOff, basel)).toBe(timeOffBefore);
 
     await context.db.update(appointments).set({ doctorId: rasha }).where(eq(appointments.id, late));
 
@@ -301,22 +303,23 @@ describe("Assistant plans (e2e)", () => {
       status: AI_PROPOSAL_STATUS.DONE,
       steps: ["done", "done", "done"],
     });
-    expect(await rows(doctorTimeOff, basel)).toBe(1);
+    expect(await rows(doctorTimeOff, basel)).toBe(timeOffBefore + 1);
   });
 
   it("asks the person for a time the model left open, and will not run without it", async () => {
     const day = thursday(5);
     const first = await book(basel, patients[0] ?? "", day, "09:00");
+    const extraHoursBefore = await rows(doctorExtraHours, rasha);
 
     const { result } = await tool(AI_TOOL.PROPOSE_PLAN, cover(day, [{ id: first, time: null }]));
     const id = result?.proposal_id ?? "";
 
     expect((await confirm(id)).statusCode).toBe(422);
-    expect(await rows(doctorExtraHours, rasha)).toBe(0);
+    expect(await rows(doctorExtraHours, rasha)).toBe(extraHoursBefore);
 
     expect((await confirm(id, { "1": { time: "11:30" } })).statusCode).toBe(200);
     expect((await doctorOf(first))?.startsAt.toISOString()).toBe(
-      new Date(`${day}T11:30:00+03:00`).toISOString(),
+      atClinic(day, "11:30").toISOString(),
     );
   });
 

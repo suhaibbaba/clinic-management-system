@@ -77,6 +77,7 @@ import {
 } from "@clinic/shared";
 import { and, asc, eq, gte, isNull, lt, max, ne, sql } from "drizzle-orm";
 import { z } from "zod";
+import { canonicalJson } from "@api/modules/ai/lib/canonical-json";
 import { OutboundError, statusEvent, toProposal } from "@api/modules/ai/outbound/proposals.service";
 import {
   ActionDone,
@@ -2544,7 +2545,12 @@ export class AiActionsService {
 
         last = executed;
         results[index] = executed.result?.id ?? executed.audit.entityId;
-        cards[index] = { ...card, status: "done", resultId: results[index] } as AiPlanStep;
+        cards[index] = {
+          ...card,
+          status: "done",
+          error: undefined,
+          resultId: results[index],
+        } as AiPlanStep;
         await this.stepAudit(actor, row, step.tool, "ok", started, executed.audit);
       } catch (error) {
         const failure = planStepFailure(action.kind, error);
@@ -2582,7 +2588,7 @@ export class AiActionsService {
     if (
       compared &&
       card &&
-      JSON.stringify(withoutSteps(draft.summary)) !== JSON.stringify(card.summary)
+      canonicalJson(withoutSteps(draft.summary)) !== canonicalJson(card.summary)
     ) {
       throw new ChangedSinceDraft();
     }

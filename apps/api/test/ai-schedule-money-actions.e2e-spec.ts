@@ -16,6 +16,7 @@ import { AiConversationsService } from "@api/modules/ai/services/ai-conversation
 import { ToolRunnerService } from "@api/modules/ai/tools/tool-runner.service";
 import {
   appointments,
+  charges,
   clinics,
   doctors,
   labPayments,
@@ -23,6 +24,7 @@ import {
   stockMovements,
 } from "@api/database/schema";
 import { createPatient, seedClinicFixtures, nameParts } from "@test/helpers/patient-fixtures";
+import { atClinic } from "@test/helpers/clinic-time";
 import { auth, createTestContext, type TestClinic, type TestContext } from "@test/helpers/test-app";
 
 function monday(weeksAhead: number): string {
@@ -115,6 +117,8 @@ describe("Assistant schedule and money corrections (e2e)", () => {
       ...nameParts("رامي عودة"),
       phone: "+970599000444",
     });
+
+    await context.db.insert(charges).values({ clinicId: clinic.id, patientId, amount: "1000.00" });
   });
 
   afterAll(async () => {
@@ -127,7 +131,7 @@ describe("Assistant schedule and money corrections (e2e)", () => {
       const appointmentId = await post(USER_ROLE.RECEPTIONIST, "/appointments", {
         patientId,
         doctorId,
-        startsAt: new Date(`${day}T15:00:00+03:00`).toISOString(),
+        startsAt: atClinic(day, "15:00").toISOString(),
         durationMinutes: 30,
       });
       const change = {
