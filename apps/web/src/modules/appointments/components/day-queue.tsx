@@ -13,9 +13,11 @@ import { useTranslation } from "react-i18next";
 import { Avatar, Badge, Icon, Ltr, PersonName, usePersonName } from "@clinic/ui";
 import { cn } from "@clinic/ui/lib/cn";
 import { buildQueue, type QueueRow } from "@web/modules/appointments/lib/calendar-time";
-import { APPOINTMENT_STATUS_STYLES, statusAccent } from "@web/shared/lib/appointment-status";
+import { AppointmentLine } from "@web/modules/appointments/components/appointment-line";
+import { IdleGap } from "@web/modules/appointments/components/idle-gap";
+import { formatDuration } from "@web/shared/lib/duration";
+import { WEEK_FREE_GAP_MINUTES } from "@web/modules/appointments/constants";
 import { useLookupLabels } from "@web/shared/queries/lookups";
-import { TONE_SURFACE } from "@clinic/ui/components/tone";
 
 export interface DayQueueProps {
   readonly "data-testid"?: string | undefined;
@@ -31,6 +33,33 @@ export interface DayQueueProps {
 }
 
 const range = (start: number, end: number): string => `${formatMinute(start)}–${formatMinute(end)}`;
+
+const released = (row: QueueRow): boolean =>
+  row.kind === "appointment" &&
+  (row.appointment.status === APPOINTMENT_STATUS.CANCELLED ||
+    row.appointment.status === APPOINTMENT_STATUS.NO_SHOW);
+
+function idleBefore(rows: readonly QueueRow[], index: number): number {
+  const row = rows[index];
+
+  if (row?.kind !== "appointment" || released(row)) {
+    return 0;
+  }
+
+  for (let back = index - 1; back >= 0; back -= 1) {
+    const previous = rows[back];
+
+    if (previous === undefined || previous.kind !== "appointment") {
+      return 0;
+    }
+
+    if (!released(previous)) {
+      return Math.max(0, row.start - previous.end);
+    }
+  }
+
+  return 0;
+}
 
 export function DayQueue({
   date,
@@ -134,6 +163,11 @@ export function DayQueue({
                     rows.map((row, index) => (
                       <Fragment key={`${row.kind}-${row.start}-${index}`}>
                         {index === nowIndex && <NowMarker minute={nowMinute ?? 0} />}
+                        {idleBefore(rows, index) >= WEEK_FREE_GAP_MINUTES && (
+                          <li>
+                            <IdleGap minutes={idleBefore(rows, index)} />
+                          </li>
+                        )}
                         <li>
                           <QueueEntry
                             row={row}
@@ -170,15 +204,21 @@ function QueueEntry({
   readonly onPick?: ((minute: number) => void) | undefined;
 }): JSX.Element {
   const { t } = useTranslation();
+  const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
 
   if (row.kind === "appointment") {
     return (
-      <AppointmentCard
+      <AppointmentLine
+        data-testid={`appointment-card-${row.appointment.id}`}
         appointment={row.appointment}
-        start={row.start}
-        end={row.end}
-        overlaps={row.overlaps}
         onOpen={() => onOpen(row.appointment)}
+        title={`${range(row.start, row.end)} · ${typeLabel(row.appointment.type)}`}
+        trailing={
+          <>
+            {typeLabel(row.appointment.type)}
+            {row.overlaps && <Badge tone="warning">{t("appointments.queue.overlap")}</Badge>}
+          </>
+        }
       />
     );
   }
@@ -202,8 +242,10 @@ function QueueEntry({
   const content = (
     <>
       <Icon name="plus" className="size-4 shrink-0" />
-      <span>{t("appointments.queue.free")}</span>
-      <Ltr className="tabular-nums">{range(row.start, row.end)}</Ltr>
+      <span className="truncate">
+        {t("appointments.freeGap", { duration: formatDuration(t, row.end - row.start) })}
+      </span>
+      <Ltr className="ms-auto shrink-0 tabular-nums">{range(row.start, row.end)}</Ltr>
     </>
   );
   const shape =
@@ -225,56 +267,6 @@ function QueueEntry({
     <div data-testid={`${testId}-free-${row.start}`} className={shape}>
       {content}
     </div>
-  );
-}
-
-function AppointmentCard({
-  appointment,
-  start,
-  end,
-  overlaps,
-  onOpen,
-}: {
-  readonly appointment: CalendarAppointment;
-  readonly start: number;
-  readonly end: number;
-  readonly overlaps: boolean;
-  readonly onOpen: () => void;
-}): JSX.Element {
-  const { t } = useTranslation();
-  const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
-  const cancelled = appointment.status === APPOINTMENT_STATUS.CANCELLED;
-  const status = t(`appointments.statuses.${appointment.status}`);
-
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      data-appointment={appointment.id}
-      data-testid={`appointment-card-${appointment.id}`}
-      aria-label={`${formatMinute(start)} — ${appointment.patientName} — ${status}`}
-      className={cn(
-        "flex min-h-15 w-full cursor-pointer flex-col justify-center gap-0.5 rounded-panel border border-s-[3px] px-3 py-2 text-start",
-        "transition-[box-shadow,translate] duration-150 hover:-translate-y-px hover:shadow-card",
-        TONE_SURFACE[APPOINTMENT_STATUS_STYLES[appointment.status].tone],
-        statusAccent(appointment.status),
-        cancelled && "bg-surface",
-      )}
-    >
-      <span className="flex items-center gap-1.5">
-        <span className={cn("truncate text-meta font-medium", cancelled && "line-through")}>
-          {appointment.patientName}
-        </span>
-        {overlaps && (
-          <Badge tone="warning" className="ms-auto shrink-0">
-            {t("appointments.queue.overlap")}
-          </Badge>
-        )}
-      </span>
-      <span className="truncate text-micro opacity-80">
-        <Ltr className="tabular-nums">{range(start, end)}</Ltr> · {typeLabel(appointment.type)}
-      </span>
-    </button>
   );
 }
 

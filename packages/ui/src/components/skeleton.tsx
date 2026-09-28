@@ -210,42 +210,112 @@ export function SkeletonTimeline({ entries = 4 }: { readonly entries?: number })
   );
 }
 
-const BLOCKS = [
-  "start-1 end-1 top-[8%] h-[12%]",
-  "start-1 end-1 top-[26%] h-[9%]",
-  "start-1 end-1 top-[44%] h-[16%]",
-  "start-1 end-1 top-[68%] h-[11%]",
-] as const;
+const LINE_COUNTS = [4, 3, 5, 2, 4, 3, 5] as const;
 
-export function SkeletonCalendarDay({ columns = 3 }: { readonly columns?: number }): JSX.Element {
+const lineCount = (index: number): number => LINE_COUNTS[index % LINE_COUNTS.length] ?? 3;
+
+function SkeletonLines({
+  count,
+  tall = false,
+}: {
+  readonly count: number;
+  readonly tall?: boolean;
+}) {
   return (
-    <div className="border border-line rounded-card bg-surface p-4 shadow-card">
+    <>
+      {Array.from({ length: count }, (_, line) => (
+        <Skeleton
+          key={line}
+          className={cn("w-full rounded-panel", tall ? "h-(--control-h)" : "h-(--control-h-sm)")}
+        />
+      ))}
+    </>
+  );
+}
+
+export function SkeletonWeekRows({
+  days,
+  rows = 2,
+}: {
+  readonly days: number;
+  readonly rows?: number;
+}): JSX.Element {
+  const columns = { gridTemplateColumns: `11rem repeat(${days}, minmax(10rem, 1fr))` };
+
+  return (
+    <div className="overflow-x-auto rounded-card border border-line bg-surface shadow-card">
       <SkeletonStatus />
+      <div aria-hidden="true" className="grid min-w-max" style={columns}>
+        <span className="border-b border-line" />
+        {Array.from({ length: days }, (_, day) => (
+          <span key={day} className="flex flex-col gap-2 border-s border-b border-line px-3 py-3">
+            <Skeleton className="h-3.5 w-16" />
+            <Skeleton className="h-3 w-24" />
+          </span>
+        ))}
 
-      <div aria-hidden="true" className="flex gap-3">
-        <div className="flex w-12 shrink-0 flex-col gap-6 pt-8">
-          {Array.from({ length: 6 }, (_, hour) => (
-            <Skeleton key={hour} className="h-3 w-10" />
-          ))}
-        </div>
-
-        <div
-          className="grid flex-1 gap-3"
-          style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
-        >
-          {Array.from({ length: columns }, (_, column) => (
-            <div key={column} className="flex flex-col gap-2">
-              <Skeleton className="h-4 w-24" />
-
-              <div className="relative h-72 rounded-panel bg-inset">
-                {BLOCKS.slice(0, 3 + (column % 2)).map((block) => (
-                  <Skeleton key={block} className={cn("absolute rounded-panel", block)} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        {Array.from({ length: rows }, (_, row) => (
+          <div key={row} className="contents">
+            <span className="flex flex-col gap-2 border-b border-line px-3 py-3">
+              <Skeleton className="h-3.5 w-24" />
+              <Skeleton className="h-3 w-12" />
+            </span>
+            {Array.from({ length: days }, (_, day) => (
+              <span key={day} className="flex flex-col gap-1.5 border-s border-b border-line p-2">
+                <SkeletonLines count={lineCount(row + day)} />
+              </span>
+            ))}
+          </div>
+        ))}
       </div>
+    </div>
+  );
+}
+
+export function SkeletonDayColumns({ columns = 2 }: { readonly columns?: number }): JSX.Element {
+  return (
+    <div className="overflow-hidden rounded-card border border-line bg-surface shadow-card">
+      <SkeletonStatus />
+      <div aria-hidden="true" className="flex min-w-max">
+        {Array.from({ length: columns }, (_, column) => (
+          <div
+            key={column}
+            className="flex min-w-60 flex-1 flex-col border-s border-line first:border-s-0"
+          >
+            <span className="flex items-center gap-2 border-b border-line px-3 py-2.5">
+              <Skeleton className="size-[26px]" />
+              <Skeleton className="h-3.5 w-24" />
+            </span>
+            <span className="flex flex-col gap-1.5 p-2">
+              <SkeletonLines count={lineCount(column) + 3} />
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function SkeletonGroupedList({ groups = 2 }: { readonly groups?: number }): JSX.Element {
+  return (
+    <div className="flex flex-col gap-4">
+      <SkeletonStatus />
+      {Array.from({ length: groups }, (_, group) => (
+        <div
+          key={group}
+          aria-hidden="true"
+          className="overflow-hidden rounded-card border border-line bg-surface shadow-card"
+        >
+          <span className="flex items-center gap-2 border-b border-line px-3 py-2.5">
+            <Skeleton className="size-[26px]" />
+            <Skeleton className="h-3.5 w-24" />
+            <Skeleton className="ms-auto h-3 w-10" />
+          </span>
+          <span className="flex flex-col gap-1.5 p-2">
+            <SkeletonLines count={lineCount(group)} tall />
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

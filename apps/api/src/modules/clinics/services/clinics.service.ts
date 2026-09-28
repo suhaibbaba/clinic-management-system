@@ -12,6 +12,7 @@ import {
   MAX_APP_SHORT_NAME_LENGTH,
   MAX_CLINIC_ICON_BYTES,
   MAX_CLINIC_LOGO_BYTES,
+  appointmentSettingsSchema,
   clinicIcon,
   type Clinic,
   type ClinicBranding,
@@ -284,6 +285,17 @@ export class ClinicsService implements OnModuleInit {
 
   async update(actor: AuthenticatedUser, input: UpdateClinicInput): Promise<Clinic> {
     await this.findOwnOrFail(actor.clinicId);
+
+    const appointmentsSettings = (input.settings as Record<string, unknown> | undefined)?.[
+      "appointments"
+    ];
+
+    if (
+      appointmentsSettings !== undefined &&
+      !appointmentSettingsSchema.strict().safeParse(appointmentsSettings).success
+    ) {
+      throw new BadRequestException("settings.appointments is invalid");
+    }
 
     const [row] = await this.db
       .update(clinics)

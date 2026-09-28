@@ -1,21 +1,43 @@
 import { describe, expect, it } from "vitest";
 import { buildQueue } from "@web/modules/appointments/lib/calendar-time";
-import { addDays, instantAt, minutesOf, startOfWeek, weekDates } from "@web/shared/lib/dates";
+import {
+  addDays,
+  instantAt,
+  minutesOf,
+  nextWorkWeek,
+  previousWorkWeek,
+  workWeekDates,
+} from "@web/shared/lib/dates";
 
 describe("calendar time", () => {
   describe("weeks", () => {
-    it("snaps to Sunday, the way the API does", () => {
-      expect(startOfWeek("2026-09-06")).toBe("2026-09-06");
-      expect(startOfWeek("2026-09-09")).toBe("2026-09-06");
-      expect(startOfWeek("2026-09-12")).toBe("2026-09-06");
+    it("runs from the start day through the coming Thursday", () => {
+      expect(workWeekDates("2026-09-28", "2026-09-28")).toEqual([
+        "2026-09-28",
+        "2026-09-29",
+        "2026-09-30",
+        "2026-10-01",
+      ]);
+      expect(workWeekDates("2026-10-01", "2026-09-28")).toEqual(["2026-10-01"]);
+      expect(workWeekDates("2026-10-02", "2026-09-28")).toHaveLength(7);
     });
 
-    it("lists seven consecutive days", () => {
-      const days = weekDates("2026-09-09");
+    it("stops a past week the day before today", () => {
+      expect(workWeekDates("2026-09-25", "2026-09-28")).toEqual([
+        "2026-09-25",
+        "2026-09-26",
+        "2026-09-27",
+      ]);
+    });
 
-      expect(days).toHaveLength(7);
-      expect(days[0]).toBe("2026-09-06");
-      expect(days.at(-1)).toBe("2026-09-12");
+    it("steps back and forth without skipping or repeating a day", () => {
+      const today = "2026-09-28";
+
+      expect(previousWorkWeek(today)).toBe("2026-09-25");
+      expect(previousWorkWeek("2026-09-25")).toBe("2026-09-18");
+      expect(nextWorkWeek("2026-09-18", today)).toBe("2026-09-25");
+      expect(nextWorkWeek("2026-09-25", today)).toBe(today);
+      expect(nextWorkWeek(today, today)).toBe("2026-10-02");
     });
 
     it("walks days across a month boundary", () => {
