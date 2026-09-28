@@ -1,24 +1,46 @@
-import { LOOKUP_LIST, type CalendarAppointment, type ClinicClosure } from "@clinic/shared";
-import { formatTime, formatDate } from "@web/shared/lib/format";
+import {
+  APPOINTMENT_STATUS,
+  type CalendarAppointment,
+  type ClinicClosure,
+  type PersonName as PersonNameValue,
+} from "@clinic/shared";
+import { formatDate, formatTime, formatWeekday } from "@web/shared/lib/format";
 import type { JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { EmptyState, Ltr } from "@clinic/ui";
-import { useLookupLabels } from "@web/shared/queries/lookups";
+import { EmptyState, Ltr, PersonName } from "@clinic/ui";
 import { APPOINTMENT_STATUS_STYLES } from "@web/shared/lib/appointment-status";
-import { toIsoDate, weekDates } from "@web/shared/lib/dates";
+import { WEEK_FREE_GAP_MINUTES } from "@web/modules/appointments/constants";
+import { instantAt, toIsoDate } from "@web/shared/lib/dates";
 import { cn } from "@clinic/ui/lib/cn";
+import { formatDuration } from "@web/shared/lib/duration";
+
+export interface WeekViewDoctor {
+  readonly id: string;
+  readonly name: PersonNameValue;
+}
 
 export interface WeekViewProps {
   readonly "data-testid"?: string | undefined;
-  readonly date: string;
+  readonly days: readonly string[];
+  readonly today: string;
+  readonly doctors: readonly WeekViewDoctor[];
   readonly appointments: readonly CalendarAppointment[];
   readonly closures?: readonly ClinicClosure[] | undefined;
   readonly onOpen: (appointment: CalendarAppointment) => void;
   readonly onPickDay: (date: string) => void;
 }
 
+const endOf = (appointment: CalendarAppointment): number =>
+  Date.parse(appointment.startsAt) + appointment.durationMinutes * 60_000;
+
+const released = (appointment: CalendarAppointment): boolean =>
+  appointment.status === APPOINTMENT_STATUS.CANCELLED ||
+  appointment.status === APPOINTMENT_STATUS.NO_SHOW;
+
 export function WeekView({
-  date,
+  days,
+  today,
+  doctors,
   appointments,
   closures = [],
   onOpen,
@@ -26,14 +48,20 @@ export function WeekView({
   "data-testid": testId = "week-view",
 }: WeekViewProps): JSX.Element {
   const { t } = useTranslation();
-  const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
-  const days = weekDates(date);
-  const today = toIsoDate(new Date());
 
+  const dayOf = (appointment: CalendarAppointment): string =>
+    toIsoDate(new Date(appointment.startsAt));
   const closureOn = (day: string): ClinicClosure | undefined =>
     closures.find((closure) => closure.startsOn <= day && day <= closure.endsOn);
+  const booked = (list: readonly CalendarAppointment[]): number =>
+    list.filter((appointment) => !released(appointment)).length;
 
-  if (appointments.length === 0 && closures.length === 0) {
+  const rows = doctors.filter(
+    (doctor) =>
+      doctors.length === 1 ||
+      appointments.some((appointment) => appointment.doctorId === doctor.id),
+  );
+  if (rows.length === 0 && closures.length === 0) {
     return (
       <EmptyState
         icon="calendar"
@@ -44,79 +72,142 @@ export function WeekView({
     );
   }
 
+  const columns = { gridTemplateColumns: `11rem repeat(${days.length}, minmax(10rem, 1fr))` };
+
   return (
     <div
       data-testid={testId}
-      className="overflow-x-auto border border-line rounded-card bg-surface shadow-card"
+      className="overflow-x-auto rounded-card border border-line bg-surface shadow-card"
     >
-      <div className="grid min-w-max grid-cols-7 divide-x divide-line rtl:divide-x-reverse">
+      <div className="grid min-w-max" style={columns}>
+        <span className="border-b border-line" aria-hidden="true" />
         {days.map((day) => {
-          const ofDay = appointments
-            .filter((entry) => toIsoDate(new Date(entry.startsAt)) === day)
-            .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
-
           const closure = closureOn(day);
 
           return (
-            <div
+            <button
               key={day}
-              data-testid={`${testId}-day-${day}`}
-              className={cn("min-w-40 flex-1", closure && "bg-sunken")}
+              type="button"
+              data-testid={`${testId}-pick-${day}`}
+              onClick={() => onPickDay(day)}
+              className={cn(
+                "cursor-pointer border-s border-b border-line px-3 py-2.5 text-start",
+                "transition-colors duration-150 hover:bg-row-hover",
+                closure ? "bg-warning-50" : day === today && "bg-primary-50",
+              )}
             >
-              <button
-                type="button"
-                data-testid={`${testId}-pick-${day}`}
-                onClick={() => onPickDay(day)}
+              <span
                 className={cn(
-                  "block w-full cursor-pointer border-b border-line px-3 py-2.5 text-center",
-                  "transition-colors duration-150 hover:bg-row-hover",
-                  closure ? "bg-warning-50" : day === today && "bg-primary-50",
+                  "block text-label font-medium",
+                  day === today ? "text-primary-700" : "text-ink",
                 )}
               >
-                <span
-                  className={cn(
-                    "block text-label font-medium",
-                    day === today ? "text-primary-700" : "text-ink",
-                  )}
-                >
-                  {formatDate(day)}
+                {formatWeekday(instantAt(day, 12 * 60))}
+              </span>
+              <span className="flex items-center justify-between gap-2 text-meta text-ink-muted">
+                <Ltr>{formatDate(day)}</Ltr>
+                <span className="truncate">
+                  {closure
+                    ? closure.reason
+                    : t("pagination.total", {
+                        total: booked(appointments.filter((entry) => dayOf(entry) === day)),
+                      })}
                 </span>
-                <span className="block truncate text-meta text-ink-muted">
-                  {closure ? closure.reason : t("pagination.total", { total: ofDay.length })}
+              </span>
+            </button>
+          );
+        })}
+
+        {rows.map((doctor) => {
+          const own = appointments.filter((appointment) => appointment.doctorId === doctor.id);
+
+          return (
+            <div key={doctor.id} className="contents" data-testid={`${testId}-doctor-${doctor.id}`}>
+              <div className="sticky start-0 z-10 flex flex-col gap-0.5 border-b border-line bg-surface px-3 py-2.5">
+                <PersonName
+                  name={doctor.name}
+                  className="truncate text-label font-medium text-ink"
+                />
+                <span className="text-meta text-ink-muted">
+                  {t("pagination.total", { total: booked(own) })}
                 </span>
-              </button>
-
-              <div className="flex flex-col gap-1.5 p-2">
-                {ofDay.map((appointment) => {
-                  const style = APPOINTMENT_STATUS_STYLES[appointment.status];
-
-                  return (
-                    <button
-                      key={appointment.id}
-                      type="button"
-                      onClick={() => onOpen(appointment)}
-                      data-appointment={appointment.id}
-                      data-testid={`${testId}-appointment-${appointment.id}`}
-                      aria-label={`${formatTime(appointment.startsAt)} — ${
-                        appointment.patientName
-                      } — ${t(`appointments.statuses.${appointment.status}`)}`}
-                      className={cn(
-                        "cursor-pointer rounded-panel border px-2 py-1.5 text-start",
-                        "transition-shadow duration-150 hover:shadow-card",
-                        style.block,
-                      )}
-                    >
-                      <Ltr className="text-meta font-medium tabular-nums">
-                        {formatTime(appointment.startsAt)}
-                      </Ltr>
-                      <span className="block truncate text-meta">{appointment.patientName}</span>
-                      <span className="block truncate text-micro opacity-80">
-                        {typeLabel(appointment.type)}
-                      </span>
-                    </button>
-                  );
-                })}
               </div>
+
+              {days.map((day) => {
+                const closed = closureOn(day) !== undefined;
+                const list = own
+                  .filter((appointment) => dayOf(appointment) === day)
+                  .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+
+                return (
+                  <ul
+                    key={day}
+                    data-testid={`${testId}-cell-${doctor.id}-${day}`}
+                    className={cn(
+                      "flex flex-col gap-1.5 border-s border-b border-line p-2",
+                      closed && "bg-sunken",
+                    )}
+                  >
+                    {list.length === 0 && (
+                      <li aria-hidden="true" className="px-2 py-1 text-meta text-ink-muted">
+                        —
+                      </li>
+                    )}
+                    {list.map((appointment, index) => {
+                      const previous = list
+                        .slice(0, index)
+                        .filter((entry) => !released(entry))
+                        .at(-1);
+                      const free =
+                        previous && !released(appointment)
+                          ? Math.round(
+                              (Date.parse(appointment.startsAt) - endOf(previous)) / 60_000,
+                            )
+                          : 0;
+
+                      return (
+                        <li key={appointment.id} className="flex flex-col gap-1.5">
+                          {free >= WEEK_FREE_GAP_MINUTES && (
+                            <span
+                              data-part="free"
+                              className="flex items-center gap-2 px-1 text-micro text-ink-muted"
+                            >
+                              <span
+                                aria-hidden="true"
+                                className="h-px flex-1 border-t border-dashed border-line-strong"
+                              />
+                              {t("appointments.freeGap", { duration: formatDuration(t, free) })}
+                              <span
+                                aria-hidden="true"
+                                className="h-px flex-1 border-t border-dashed border-line-strong"
+                              />
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => onOpen(appointment)}
+                            data-appointment={appointment.id}
+                            data-testid={`${testId}-appointment-${appointment.id}`}
+                            aria-label={`${formatTime(appointment.startsAt)} — ${
+                              appointment.patientName
+                            } — ${t(`appointments.statuses.${appointment.status}`)}`}
+                            className={cn(
+                              "flex w-full cursor-pointer items-baseline gap-2 rounded-panel border px-2.5 py-1.5 text-start text-meta",
+                              "transition-shadow duration-150 hover:shadow-card",
+                              APPOINTMENT_STATUS_STYLES[appointment.status].block,
+                            )}
+                          >
+                            <Ltr className="shrink-0 font-medium tabular-nums">
+                              {formatTime(appointment.startsAt)}
+                            </Ltr>
+                            <span className="truncate">{appointment.patientName}</span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                );
+              })}
             </div>
           );
         })}

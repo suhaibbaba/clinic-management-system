@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { AppointmentAccessService } from "@api/modules/appointments/services/appointment-access.service";
 import { AppointmentsController } from "@api/modules/appointments/controllers/appointments.controller";
 import { AppointmentsService } from "@api/modules/appointments/services/appointments.service";
+import { NoShowScheduler } from "@api/modules/appointments/services/no-show.scheduler";
 import { AvailabilityService } from "@api/modules/appointments/services/availability.service";
 import { WaitingListController } from "@api/modules/appointments/controllers/waiting-list.controller";
 import { WaitingListService } from "@api/modules/appointments/services/waiting-list.service";
@@ -19,6 +20,7 @@ import { PatientsModule } from "@api/modules/patients/patients.module";
     AppointmentAccessService,
     AppointmentsService,
     AvailabilityService,
+    NoShowScheduler,
     WaitingListService,
   ],
   exports: [AvailabilityService, AppointmentsService, AppointmentAccessService, WaitingListService],

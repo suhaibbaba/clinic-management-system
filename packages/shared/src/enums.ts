@@ -226,6 +226,13 @@ export const APPOINTMENT_RELEASED_STATUSES = [
   APPOINTMENT_STATUS.NO_SHOW,
 ] as const;
 
+export const APPOINTMENT_OPEN_STATUSES = [
+  APPOINTMENT_STATUS.REQUESTED,
+  APPOINTMENT_STATUS.CONFIRMED,
+  APPOINTMENT_STATUS.ARRIVED,
+  APPOINTMENT_STATUS.IN_PROGRESS,
+] as const;
+
 export const occupiesSlot = (status: AppointmentStatus): boolean =>
   !(APPOINTMENT_RELEASED_STATUSES as readonly AppointmentStatus[]).includes(status);
 

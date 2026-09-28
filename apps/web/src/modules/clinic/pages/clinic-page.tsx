@@ -27,7 +27,13 @@ import {
   useToast,
 } from "@clinic/ui";
 import { WorkingHours } from "@web/shared/components/working-hours";
-import { isShortMapLink, mapsUrl, parseCoordinates } from "@clinic/shared";
+import {
+  AUTO_NO_SHOW_DAYS,
+  appointmentSettings,
+  isShortMapLink,
+  mapsUrl,
+  parseCoordinates,
+} from "@clinic/shared";
 import { SkeletonForm } from "@clinic/ui/components/skeleton";
 import { InstallCard } from "@web/shared/components/pwa/install-card";
 import { ClosuresPanel } from "@web/modules/schedule/components/closures-panel";
@@ -75,6 +81,7 @@ export function ClinicPage(): JSX.Element {
     [i18n.language],
   );
   const [workingHours, setWorkingHours] = useState<WeeklySchedule>([]);
+  const [autoNoShowDays, setAutoNoShowDays] = useState<number>(AUTO_NO_SHOW_DAYS.DEFAULT);
 
   useEffect(() => {
     const data = clinic.data;
@@ -97,6 +104,7 @@ export function ClinicPage(): JSX.Element {
     setCurrency(isCurrency(data.currency) ? data.currency : CURRENCIES[0]);
     setCountry(isPhoneCountry(data.country) ? data.country : DEFAULT_PHONE_COUNTRY);
     setWorkingHours(data.workingHours);
+    setAutoNoShowDays(appointmentSettings(data.settings).autoNoShowDays);
     setClinicTimeZone(data);
   }, [clinic.data]);
 
@@ -137,6 +145,7 @@ export function ClinicPage(): JSX.Element {
         currency,
         country,
         workingHours,
+        settings: { ...clinic.data?.settings, appointments: { autoNoShowDays } },
       });
       void refreshProfile();
       toast.success("clinic.updated");
@@ -344,6 +353,43 @@ export function ClinicPage(): JSX.Element {
             disabled={!canEdit}
             idPrefix="clinic-hours"
           />
+        </section>
+
+        <section
+          data-testid="clinic-appointments"
+          className="border border-line rounded-card bg-surface shadow-card p-4"
+        >
+          <h2 className="mb-3 text-value font-medium text-ink">
+            {t("clinic.appointmentsSection")}
+          </h2>
+          <div className="max-w-(--field-max)">
+            <FormField
+              label="clinic.autoNoShowDays"
+              htmlFor="clinic-auto-no-show"
+              hint="clinic.autoNoShowHint"
+            >
+              <Input
+                id="clinic-auto-no-show"
+                data-testid="clinic-field-auto-no-show"
+                type="number"
+                inputMode="numeric"
+                min={AUTO_NO_SHOW_DAYS.MIN}
+                max={AUTO_NO_SHOW_DAYS.MAX}
+                step={1}
+                value={autoNoShowDays}
+                disabled={!canEdit}
+                onChange={(event) => {
+                  const next = Number.parseInt(event.target.value, 10);
+
+                  if (Number.isInteger(next)) {
+                    setAutoNoShowDays(
+                      Math.min(AUTO_NO_SHOW_DAYS.MAX, Math.max(AUTO_NO_SHOW_DAYS.MIN, next)),
+                    );
+                  }
+                }}
+              />
+            </FormField>
+          </div>
         </section>
 
         <section

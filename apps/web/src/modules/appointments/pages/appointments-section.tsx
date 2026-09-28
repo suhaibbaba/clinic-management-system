@@ -2,6 +2,8 @@ import type { JSX } from "react";
 import { TabPanel, Tabs, useTabParam, type TabDefinition } from "@clinic/ui";
 import { AppointmentsPage } from "@web/modules/appointments/pages/appointments-page";
 import { ConfirmedBookings } from "@web/modules/appointments/components/confirmed-bookings";
+import { OverdueAppointments } from "@web/modules/appointments/components/overdue-appointments";
+import { useAppointments } from "@web/modules/appointments/queries";
 import { useSession } from "@web/shared/providers/session";
 import { PendingBookingsPage } from "@web/modules/booking/pages/pending-bookings-page";
 import { usePendingBookingsCount } from "@web/shared/queries/booking";
@@ -9,26 +11,35 @@ import { seesPendingBookings } from "@web/shared/permissions/booking";
 import {
   APPOINTMENTS_VIEW_ALL,
   APPOINTMENTS_VIEW_CONFIRMED,
+  APPOINTMENTS_VIEW_OVERDUE,
   APPOINTMENTS_VIEW_PENDING,
 } from "@web/modules/appointments/constants";
 
 type AppointmentsTab =
   | typeof APPOINTMENTS_VIEW_ALL
   | typeof APPOINTMENTS_VIEW_PENDING
-  | typeof APPOINTMENTS_VIEW_CONFIRMED;
+  | typeof APPOINTMENTS_VIEW_CONFIRMED
+  | typeof APPOINTMENTS_VIEW_OVERDUE;
 
 export function AppointmentsSection(): JSX.Element {
   const { can } = useSession();
   const frontDesk = seesPendingBookings(can);
   const pendingCount = usePendingBookingsCount(frontDesk);
+  const overdueCount = useAppointments({ limit: 1, overdue: true }).data?.total ?? 0;
+  const overdueTab: TabDefinition<AppointmentsTab> = {
+    id: APPOINTMENTS_VIEW_OVERDUE,
+    label: "appointments.tabs.overdue",
+    count: overdueCount,
+  };
 
   const tabs: readonly TabDefinition<AppointmentsTab>[] = frontDesk
     ? [
         { id: APPOINTMENTS_VIEW_ALL, label: "appointments.tabs.all" },
         { id: APPOINTMENTS_VIEW_PENDING, label: "appointments.tabs.pending", count: pendingCount },
         { id: APPOINTMENTS_VIEW_CONFIRMED, label: "appointments.tabs.confirmed" },
+        overdueTab,
       ]
-    : [{ id: APPOINTMENTS_VIEW_ALL, label: "appointments.tabs.all" }];
+    : [{ id: APPOINTMENTS_VIEW_ALL, label: "appointments.tabs.all" }, overdueTab];
 
   const [active, setActive] = useTabParam<AppointmentsTab>(
     "status",
@@ -53,6 +64,7 @@ export function AppointmentsSection(): JSX.Element {
         {active === APPOINTMENTS_VIEW_ALL && <AppointmentsPage />}
         {active === APPOINTMENTS_VIEW_PENDING && <PendingBookingsPage />}
         {active === APPOINTMENTS_VIEW_CONFIRMED && <ConfirmedBookings />}
+        {active === APPOINTMENTS_VIEW_OVERDUE && <OverdueAppointments />}
       </TabPanel>
     </div>
   );

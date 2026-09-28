@@ -361,7 +361,10 @@
     "confirmRemoveAppIcon": {
       "title": "Remove the app icon?",
       "consequence": "Installed copies of the app go back to the default icon."
-    }
+    },
+    "appointmentsSection": "Appointments",
+    "autoNoShowDays": "Mark as no-show automatically after (days)",
+    "autoNoShowHint": "A confirmed appointment with no outcome recorded within this many days is marked no-show automatically"
   },
   "audit": {
     "title": "Audit log",
@@ -876,10 +879,6 @@
       "taken": "Taken",
       "day_over": "The day is over"
     },
-    "ribbon": {
-      "title": "Today's appointments",
-      "none": "Nothing left today"
-    },
     "kpi": {
       "today": "Today's appointments",
       "arrived": "Arrived",
@@ -921,7 +920,6 @@
       "closedOn": "The clinic is closed: {{reason}}"
     },
     "queue": {
-      "free": "Free",
       "offDuty": "Off duty",
       "overlap": "Overlapping",
       "now": "Now",
@@ -932,13 +930,25 @@
       "label": "Appointment views",
       "all": "All",
       "pending": "Awaiting confirmation",
-      "confirmed": "Confirmed"
+      "confirmed": "Confirmed",
+      "overdue": "Needs updating"
     },
     "confirmed": {
       "title": "Confirmed appointments",
       "subtitle": "Settled appointments from today onwards",
       "empty": "No confirmed appointments coming up",
       "emptyHint": "Every appointment you confirm appears here until its day"
+    },
+    "freeGap": "{{duration}} free",
+    "overdue": {
+      "title": "Appointments to update",
+      "subtitle": "Past appointments with no outcome recorded yet",
+      "autoNoShow_one": "Anything not updated within a day is marked no-show automatically",
+      "autoNoShow_other": "Anything not updated within {{count}} days is marked no-show automatically",
+      "status": "Status",
+      "attended": "Attended",
+      "empty": "Every appointment is up to date",
+      "emptyHint": "No past appointment is waiting for an outcome"
     }
   },
   "booking": {
@@ -2254,5 +2264,12 @@
       "cancelTypedAbove": "Typed confirmation to cancel more than",
       "cancelTypedAboveHint": "Cancelling more appointments than this at once needs the confirmation phrase typed."
     }
+  },
+  "duration": {
+    "minutes_one": "{{count}} minute",
+    "minutes_other": "{{count}} minutes",
+    "hours_one": "{{count}} hour",
+    "hours_other": "{{count}} hours",
+    "hoursAndMinutes": "{{hours}} and {{minutes}}"
   }
 }

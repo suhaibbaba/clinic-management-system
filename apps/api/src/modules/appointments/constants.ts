@@ -7,3 +7,5 @@ export const NO_DOCTOR_ID = "00000000-0000-0000-0000-000000000000";
 export const DEFAULT_STEP_MINUTES = 15;
 
 export const MINUTES_PER_DAY = 24 * 60;
+
+export const DAY_MS = 86_400_000;

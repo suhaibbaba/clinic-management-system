@@ -1,5 +1,6 @@
 import { minutesFromLocalMidnight, localDate, instantFromLocal } from "@clinic/shared";
 import { clinicTimeZone } from "@web/shared/lib/clinic-zone";
+import { WORK_WEEK_LAST_DAY } from "@web/shared/constants/dates";
 
 export const minutesOf = (iso: string): number => {
   const at = new Date(iso);
@@ -17,14 +18,37 @@ export function addDays(isoDate: string, days: number): string {
   return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
 }
 
-export function startOfWeek(isoDate: string): string {
+const weekdayOf = (isoDate: string): number => {
   const [year = 0, month = 1, day = 1] = isoDate.split("-").map(Number);
 
-  return addDays(isoDate, -new Date(Date.UTC(year, month - 1, day)).getUTCDay());
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+};
+
+export function workWeekEnd(start: string, today: string): string {
+  const end = addDays(start, (WORK_WEEK_LAST_DAY - weekdayOf(start) + 7) % 7);
+
+  return start < today && today <= end ? addDays(today, -1) : end;
 }
 
-export const weekDates = (isoDate: string): string[] =>
-  Array.from({ length: 7 }, (_, index) => addDays(startOfWeek(isoDate), index));
+export const workWeekDates = (start: string, today: string): string[] => {
+  const end = workWeekEnd(start, today);
+  const days: string[] = [];
+
+  for (let day = start; day <= end; day = addDays(day, 1)) {
+    days.push(day);
+  }
+
+  return days;
+};
+
+export const nextWorkWeek = (start: string, today: string): string =>
+  addDays(workWeekEnd(start, today), 1);
+
+export function previousWorkWeek(start: string): string {
+  const end = addDays(start, -1);
+
+  return addDays(end, -((weekdayOf(end) - WORK_WEEK_LAST_DAY - 1 + 7) % 7));
+}
 
 export const instantAt = (isoDate: string, minute: number): string =>
   instantFromLocal(isoDate, minute, clinicTimeZone()).toISOString();

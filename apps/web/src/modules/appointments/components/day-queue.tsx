@@ -13,9 +13,10 @@ import { useTranslation } from "react-i18next";
 import { Avatar, Badge, Icon, Ltr, PersonName, usePersonName } from "@clinic/ui";
 import { cn } from "@clinic/ui/lib/cn";
 import { buildQueue, type QueueRow } from "@web/modules/appointments/lib/calendar-time";
-import { APPOINTMENT_STATUS_STYLES, statusAccent } from "@web/shared/lib/appointment-status";
+import { APPOINTMENT_STATUS_STYLES } from "@web/shared/lib/appointment-status";
+import { formatDuration } from "@web/shared/lib/duration";
+import { WEEK_FREE_GAP_MINUTES } from "@web/modules/appointments/constants";
 import { useLookupLabels } from "@web/shared/queries/lookups";
-import { TONE_SURFACE } from "@clinic/ui/components/tone";
 
 export interface DayQueueProps {
   readonly "data-testid"?: string | undefined;
@@ -31,6 +32,33 @@ export interface DayQueueProps {
 }
 
 const range = (start: number, end: number): string => `${formatMinute(start)}–${formatMinute(end)}`;
+
+const released = (row: QueueRow): boolean =>
+  row.kind === "appointment" &&
+  (row.appointment.status === APPOINTMENT_STATUS.CANCELLED ||
+    row.appointment.status === APPOINTMENT_STATUS.NO_SHOW);
+
+function idleBefore(rows: readonly QueueRow[], index: number): number {
+  const row = rows[index];
+
+  if (row?.kind !== "appointment" || released(row)) {
+    return 0;
+  }
+
+  for (let back = index - 1; back >= 0; back -= 1) {
+    const previous = rows[back];
+
+    if (previous === undefined || previous.kind !== "appointment") {
+      return 0;
+    }
+
+    if (!released(previous)) {
+      return Math.max(0, row.start - previous.end);
+    }
+  }
+
+  return 0;
+}
 
 export function DayQueue({
   date,
@@ -134,6 +162,11 @@ export function DayQueue({
                     rows.map((row, index) => (
                       <Fragment key={`${row.kind}-${row.start}-${index}`}>
                         {index === nowIndex && <NowMarker minute={nowMinute ?? 0} />}
+                        {idleBefore(rows, index) >= WEEK_FREE_GAP_MINUTES && (
+                          <li>
+                            <IdleGap minutes={idleBefore(rows, index)} />
+                          </li>
+                        )}
                         <li>
                           <QueueEntry
                             row={row}
@@ -202,8 +235,10 @@ function QueueEntry({
   const content = (
     <>
       <Icon name="plus" className="size-4 shrink-0" />
-      <span>{t("appointments.queue.free")}</span>
-      <Ltr className="tabular-nums">{range(row.start, row.end)}</Ltr>
+      <span className="truncate">
+        {t("appointments.freeGap", { duration: formatDuration(t, row.end - row.start) })}
+      </span>
+      <Ltr className="ms-auto shrink-0 tabular-nums">{range(row.start, row.end)}</Ltr>
     </>
   );
   const shape =
@@ -243,7 +278,6 @@ function AppointmentCard({
 }): JSX.Element {
   const { t } = useTranslation();
   const typeLabel = useLookupLabels(LOOKUP_LIST.APPOINTMENT_TYPE);
-  const cancelled = appointment.status === APPOINTMENT_STATUS.CANCELLED;
   const status = t(`appointments.statuses.${appointment.status}`);
 
   return (
@@ -253,28 +287,32 @@ function AppointmentCard({
       data-appointment={appointment.id}
       data-testid={`appointment-card-${appointment.id}`}
       aria-label={`${formatMinute(start)} — ${appointment.patientName} — ${status}`}
+      title={`${range(start, end)} · ${typeLabel(appointment.type)}`}
       className={cn(
-        "flex min-h-15 w-full cursor-pointer flex-col justify-center gap-0.5 rounded-panel border border-s-[3px] px-3 py-2 text-start",
-        "transition-[box-shadow,translate] duration-150 hover:-translate-y-px hover:shadow-card",
-        TONE_SURFACE[APPOINTMENT_STATUS_STYLES[appointment.status].tone],
-        statusAccent(appointment.status),
-        cancelled && "bg-surface",
+        "flex w-full cursor-pointer items-baseline gap-2 rounded-panel border px-2.5 py-1.5 text-start text-meta",
+        "transition-shadow duration-150 hover:shadow-card",
+        APPOINTMENT_STATUS_STYLES[appointment.status].block,
       )}
     >
-      <span className="flex items-center gap-1.5">
-        <span className={cn("truncate text-meta font-medium", cancelled && "line-through")}>
-          {appointment.patientName}
-        </span>
-        {overlaps && (
-          <Badge tone="warning" className="ms-auto shrink-0">
-            {t("appointments.queue.overlap")}
-          </Badge>
-        )}
-      </span>
-      <span className="truncate text-micro opacity-80">
-        <Ltr className="tabular-nums">{range(start, end)}</Ltr> · {typeLabel(appointment.type)}
+      <Ltr className="shrink-0 font-medium tabular-nums">{formatMinute(start)}</Ltr>
+      <span className="truncate">{appointment.patientName}</span>
+      <span className="ms-auto flex shrink-0 items-center gap-1.5 text-micro opacity-80">
+        {typeLabel(appointment.type)}
+        {overlaps && <Badge tone="warning">{t("appointments.queue.overlap")}</Badge>}
       </span>
     </button>
+  );
+}
+
+function IdleGap({ minutes }: { readonly minutes: number }): JSX.Element {
+  const { t } = useTranslation();
+
+  return (
+    <span data-part="free" className="flex items-center gap-2 px-1 text-micro text-ink-muted">
+      <span aria-hidden="true" className="flex-1 border-t border-dashed border-line-strong" />
+      {t("appointments.freeGap", { duration: formatDuration(t, minutes) })}
+      <span aria-hidden="true" className="flex-1 border-t border-dashed border-line-strong" />
+    </span>
   );
 }
 

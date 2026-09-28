@@ -88,14 +88,26 @@ export const listAppointmentsQuerySchema = paginationQuerySchema.extend({
   status: z.enum(APPOINTMENT_STATUSES).optional(),
   from: isoDateSchema.optional(),
   to: isoDateSchema.optional(),
+  overdue: z.stringbool().optional(),
 });
 export type ListAppointmentsQuery = z.infer<typeof listAppointmentsQuerySchema>;
 
-export const calendarQuerySchema = z.object({
-  date: isoDateSchema,
-  range: z.enum(["day", "week", "month"]).default("day"),
-  doctorId: uuidSchema.optional(),
-});
+export const CALENDAR_MAX_DAYS = 31;
+
+export const calendarQuerySchema = z
+  .object({
+    date: isoDateSchema,
+    range: z.enum(["day", "week", "month"]).default("day"),
+    to: isoDateSchema.optional(),
+    doctorId: uuidSchema.optional(),
+  })
+  .refine(
+    (query) =>
+      query.to === undefined ||
+      (query.to >= query.date &&
+        Date.parse(query.to) - Date.parse(query.date) < CALENDAR_MAX_DAYS * 86_400_000),
+    { message: `to must fall within ${CALENDAR_MAX_DAYS} days on or after date`, path: ["to"] },
+  );
 export type CalendarQuery = z.infer<typeof calendarQuerySchema>;
 
 export const calendarFeedSchema = z.object({

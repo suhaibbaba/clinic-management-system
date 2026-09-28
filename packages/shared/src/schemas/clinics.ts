@@ -18,6 +18,29 @@ export function clinicScheduleSettings(settings: unknown): ClinicScheduleSetting
   return parsed.success ? parsed.data : { timezone: DEFAULT_TIME_ZONE };
 }
 
+export const AUTO_NO_SHOW_DAYS = { MIN: 1, MAX: 90, DEFAULT: 7 } as const;
+
+export const appointmentSettingsSchema = z.object({
+  autoNoShowDays: z
+    .number()
+    .int()
+    .min(AUTO_NO_SHOW_DAYS.MIN)
+    .max(AUTO_NO_SHOW_DAYS.MAX)
+    .default(AUTO_NO_SHOW_DAYS.DEFAULT),
+});
+export type AppointmentSettings = z.infer<typeof appointmentSettingsSchema>;
+
+export function appointmentSettings(settings: unknown): AppointmentSettings {
+  const raw =
+    typeof settings === "object" && settings !== null
+      ? (settings as Record<string, unknown>)["appointments"]
+      : undefined;
+
+  const parsed = appointmentSettingsSchema.safeParse(raw ?? {});
+
+  return parsed.success ? parsed.data : { autoNoShowDays: AUTO_NO_SHOW_DAYS.DEFAULT };
+}
+
 export const documentSettingsSchema = z.object({
   language: z.enum(["ar", "en"]).default("ar"),
 });

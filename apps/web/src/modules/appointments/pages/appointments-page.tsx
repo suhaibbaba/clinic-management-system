@@ -31,7 +31,14 @@ import { AgendaList } from "@web/modules/appointments/components/agenda-list";
 import { AppointmentDrawer } from "@web/modules/appointments/components/appointment-drawer";
 import { AppointmentFormModal } from "@web/modules/appointments/components/appointment-form-modal";
 import { QUEUE_STEP_MINUTES } from "@web/modules/appointments/lib/calendar-time";
-import { addDays, instantAt, startOfWeek, todayIso } from "@web/shared/lib/dates";
+import {
+  addDays,
+  instantAt,
+  nextWorkWeek,
+  previousWorkWeek,
+  todayIso,
+  workWeekDates,
+} from "@web/shared/lib/dates";
 import { setClinicTimeZone } from "@web/shared/lib/clinic-zone";
 import { DayQueue } from "@web/modules/appointments/components/day-queue";
 import {
@@ -41,7 +48,6 @@ import {
 } from "@web/shared/permissions/appointments";
 import { useDayAvailability, useWaitingList } from "@web/modules/appointments/queries";
 import { useCalendar } from "@web/shared/queries/appointments";
-import { TodayRibbon } from "@web/modules/appointments/components/today-ribbon";
 import { WaitingListPanel } from "@web/modules/appointments/components/waiting-list-panel";
 import { WeekView } from "@web/modules/appointments/components/week-view";
 import { useNowMinute } from "@web/shared/hooks/use-now-minute";
@@ -113,9 +119,12 @@ export function AppointmentsPage(): JSX.Element {
   const effectiveDoctorId = wholeClinic ? doctorFilter : (ownDoctorId ?? "");
   const effectiveRange: Range = isMobile ? "day" : range;
 
+  const weekDays = workWeekDates(date, todayIso());
+
   const calendar = useCalendar({
     date,
     range: effectiveRange,
+    ...(effectiveRange === "week" && { to: weekDays.at(-1) ?? date }),
     ...(effectiveDoctorId !== "" && { doctorId: effectiveDoctorId }),
   });
 
@@ -140,10 +149,6 @@ export function AppointmentsPage(): JSX.Element {
 
     return effectiveDoctorId === "" ? all : all.filter((doctor) => doctor.id === effectiveDoctorId);
   }, [doctors.data, effectiveDoctorId]);
-
-  const today = appointments.filter(
-    (entry) => entry.startsAt.slice(0, 10) === todayIso() || range === "day",
-  );
 
   const todayStats = useMemo(() => {
     const ofToday = appointments.filter((entry) => {
@@ -172,8 +177,14 @@ export function AppointmentsPage(): JSX.Element {
     };
   }, [appointments]);
 
-  const step = (direction: -1 | 1): void =>
-    setDate(addDays(date, effectiveRange === "week" ? direction * 7 : direction));
+  const step = (direction: -1 | 1): void => {
+    if (effectiveRange !== "week") {
+      setDate(addDays(date, direction));
+      return;
+    }
+
+    setDate(direction === 1 ? nextWorkWeek(date, todayIso()) : previousWorkWeek(date));
+  };
 
   const openForm = (defaults?: { date?: string; doctorId?: string; startsAt?: string }): void => {
     setEditing(undefined);
@@ -198,14 +209,12 @@ export function AppointmentsPage(): JSX.Element {
   );
   const nowMinute = useNowMinute();
 
-  const weekStart = startOfWeek(date);
-
   const label =
     effectiveRange === "week" ? (
       <>
-        <Ltr>{formatDate(weekStart)}</Ltr>
+        <Ltr>{formatDate(weekDays[0] ?? date)}</Ltr>
         <span>–</span>
-        <Ltr>{formatDate(addDays(weekStart, 6))}</Ltr>
+        <Ltr>{formatDate(weekDays.at(-1) ?? date)}</Ltr>
       </>
     ) : queueShown ? (
       <>
@@ -296,13 +305,6 @@ export function AppointmentsPage(): JSX.Element {
         )}
       </StatRow>
 
-      <TodayRibbon
-        data-testid="appointments-today-ribbon"
-        appointments={today}
-        onOpen={(appointment) => setSelectedId(appointment.id)}
-        canMark={mayBook}
-      />
-
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="flex items-center gap-2">
           <Button
@@ -382,14 +384,18 @@ export function AppointmentsPage(): JSX.Element {
           />
         )}
 
-        {showSkeleton && <SkeletonCalendarDay columns={effectiveRange === "week" ? 7 : 3} />}
+        {showSkeleton && (
+          <SkeletonCalendarDay columns={effectiveRange === "week" ? weekDays.length : 3} />
+        )}
 
         <RefreshBar active={isRefreshing} />
 
         {!showSkeleton && !calendar.isError && effectiveRange === "week" && (
           <WeekView
             data-testid="appointments-week"
-            date={date}
+            days={weekDays}
+            today={todayIso()}
+            doctors={columns.map((doctor) => ({ id: doctor.id, name: doctor.user.name }))}
             appointments={appointments}
             closures={closures}
             onOpen={(appointment) => setSelectedId(appointment.id)}

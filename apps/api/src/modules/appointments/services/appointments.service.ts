@@ -9,6 +9,7 @@ import {
 import { clinicTimeZone } from "@api/common/database/clinic-time-zone";
 import {
   addDays,
+  APPOINTMENT_OPEN_STATUSES,
   APPOINTMENT_STATUS,
   APPOINTMENT_TYPE,
   canTransitionAppointment,
@@ -26,7 +27,7 @@ import {
   type UpdateAppointmentInput,
   type Visit,
 } from "@clinic/shared";
-import { and, asc, eq, gt, gte, lt, lte, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, inArray, lt, lte, sql, type SQL } from "drizzle-orm";
 import { AuditSnapshotRegistry } from "@api/modules/audit/services/audit-snapshot.registry";
 import { AppointmentAccessService } from "@api/modules/appointments/services/appointment-access.service";
 import { toClinicClosure, toDoctorTimeOff } from "@api/common/lib/schedule-rows";
@@ -109,6 +110,12 @@ export class AppointmentsService implements OnModuleInit {
     if (query.to) {
       filters.push(lt(appointments.startsAt, instantFromLocal(addDays(query.to, 1), 0, timeZone)));
     }
+    if (query.overdue) {
+      filters.push(
+        inArray(appointments.status, [...APPOINTMENT_OPEN_STATUSES]),
+        lt(appointments.startsAt, instantFromLocal(localDate(new Date(), timeZone), 0, timeZone)),
+      );
+    }
 
     const where = this.scope.where(appointments, actor.clinicId, ...filters);
     const { limit, offset } = toLimitOffset(query);
@@ -116,7 +123,7 @@ export class AppointmentsService implements OnModuleInit {
     const [rows, [totals]] = await Promise.all([
       this.calendarSelect()
         .where(where)
-        .orderBy(asc(appointments.startsAt))
+        .orderBy(query.overdue ? desc(appointments.startsAt) : asc(appointments.startsAt))
         .limit(limit)
         .offset(offset),
       this.db
@@ -151,8 +158,8 @@ export class AppointmentsService implements OnModuleInit {
 
   async calendar(actor: AuthenticatedUser, query: CalendarQuery): Promise<CalendarFeed> {
     const timeZone = await clinicTimeZone(this.db, actor.clinicId);
-    const from = calendarRangeStart(query.date, query.range);
-    const to = calendarRangeEnd(from, query.range);
+    const from = query.to ? query.date : calendarRangeStart(query.date, query.range);
+    const to = query.to ? addDays(query.to, 1) : calendarRangeEnd(from, query.range);
     const fromInstant = instantFromLocal(from, 0, timeZone);
     const toInstant = instantFromLocal(to, 0, timeZone);
 

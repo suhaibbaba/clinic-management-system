@@ -115,12 +115,16 @@ describe("Appointments, as tabs", () => {
     ).toBeVisible();
   });
 
-  it("shows a doctor the calendar alone — the queue is front-desk work", async () => {
+  it("shows a doctor the calendar and what needs updating — the queue is front-desk work", async () => {
     await render(USER_ROLE.DOCTOR, "/appointments");
 
+    const tabs = await strip(ar.appointments.tabs.label);
+
     expect(
-      screen.queryByRole("tablist", { name: ar.appointments.tabs.label }),
-    ).not.toBeInTheDocument();
+      within(tabs)
+        .getAllByRole("tab")
+        .map((tab) => tab.textContent?.replace(/\d+/g, "").trim()),
+    ).toEqual([ar.appointments.tabs.all, ar.appointments.tabs.overdue]);
     expect(
       await screen.findByRole("heading", { name: ar.appointments.title, level: 1 }),
     ).toBeVisible();
