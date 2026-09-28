@@ -43,7 +43,7 @@ export const EVAL_CASES: readonly EvalCase[] = [
     question: "سمير وصل",
     groups: ["appointments"],
     tool: AI_TOOL.SET_APPOINTMENT_STATUS,
-    tier: "auto",
+    tier: "confirm",
   },
   {
     question: "في وقت فاضي عند د. رشا الخميس؟",
@@ -67,7 +67,7 @@ export const EVAL_CASES: readonly EvalCase[] = [
     question: "ضيف ملاحظة لملف سمير: بدو متابعة بعد أسبوع",
     groups: ["patients"],
     tool: AI_TOOL.ADD_PATIENT_NOTE,
-    tier: "auto",
+    tier: "confirm",
   },
   {
     question: "Write the prescription Dr. Basel dictated for Samir",

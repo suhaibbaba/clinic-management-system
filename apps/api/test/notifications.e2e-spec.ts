@@ -482,7 +482,7 @@ describe("Notifications and schedulers (e2e)", () => {
   });
 
   describe("booking messages", () => {
-    it("logs the OTP against the appointment it belongs to", async () => {
+    it("logs the OTP against its appointment, with the code itself masked", async () => {
       const startsAt = nextSlot();
 
       const response = await context.app.inject({
@@ -504,7 +504,7 @@ describe("Notifications and schedulers (e2e)", () => {
 
       expect(row?.template).toBe(NOTIFICATION_TEMPLATE.BOOKING_OTP);
       expect(row?.status).toBe(NOTIFICATION_STATUS.SENT);
-      expect(row?.vars["code"]).toMatch(/^\d{6}$/);
+      expect(row?.vars["code"]).toBe("••••••");
     });
   });
 });

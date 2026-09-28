@@ -36,19 +36,5 @@ export const joinPatientName = (parts: {
     .filter((part): part is string => typeof part === "string" && part !== "")
     .join(" ");
 
-export function personName(name: PersonName | null | undefined, language: string): string {
-  if (!name) {
-    return "";
-  }
-
-  const english = language.startsWith("en");
-  const ar = typeof name.ar === "string" ? name.ar : "";
-  const en = typeof name.en === "string" ? name.en : "";
-
-  const preferred = english ? en : ar;
-
-  return preferred.trim() !== "" ? preferred : english ? ar : en;
-}
-
 export const bothNames = (name: PersonName): string =>
   name.ar === name.en ? name.ar : `${name.ar} — ${name.en}`;

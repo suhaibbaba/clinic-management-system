@@ -112,7 +112,7 @@ describe("Assistant actions (e2e)", () => {
       .where(eq(clinics.id, clinic.id));
     patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
       ...nameParts("سمير خليل"),
-      phone: "0599000111",
+      phone: "+970599000111",
     });
   });
 
@@ -416,7 +416,7 @@ describe("Assistant actions (e2e)", () => {
     it("stops an action on a patient not seen for over two years", async () => {
       const dormantId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
         ...nameParts("ليلى عمر"),
-        phone: "0599000222",
+        phone: "+970599000222",
       });
 
       await context.db.insert(visits).values({
@@ -438,7 +438,7 @@ describe("Assistant actions (e2e)", () => {
       const { result } = await tool(USER_ROLE.RECEPTIONIST, AI_TOOL.CREATE_PATIENT, {
         first_name: "سمر",
         last_name: "خليل",
-        phone: "0599000111",
+        phone: "+970599000111",
       });
 
       expect(result).toMatchObject({ status: "sanity_check", check: "possible_duplicate" });

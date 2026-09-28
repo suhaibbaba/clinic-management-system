@@ -47,11 +47,7 @@ import { UsersModule } from "@api/modules/users/users.module";
         throttlers: [
           { ttl: 60_000, limit: config.get("THROTTLE_LIMIT_PER_MINUTE", { infer: true }) },
         ],
-        skipIf: () =>
-          !(
-            config.get("THROTTLE_ENABLED", { infer: true }) ??
-            config.get("NODE_ENV", { infer: true }) !== "test"
-          ),
+        skipIf: () => config.get("THROTTLE_ENABLED", { infer: true }) === false,
       }),
     }),
     AuthModule,

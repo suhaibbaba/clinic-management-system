@@ -45,7 +45,7 @@ Legend: **C** create · **R** read · **U** update · **D** soft-delete · — n
 |---|---|---|---|---|
 | Patient basic info (name, phone, dob, address) | CRUD | CRU | R | CRU |
 | Medical history & allergies | CRUD | CRU | R (allergy flags only) | — |
-| Visits (complaint, exam, diagnosis) | CRUD | CRUD (D blocked while payments cover its charges) | — | — |
+| Visits (complaint, exam, diagnosis) | CRUD (D blocked while payments cover its charges) | CRU | — | — |
 | Performed procedures & chart marks | CRUD | CRUD (D blocked while payments cover its charge) | R (lab-linked only) | — |
 | Treatment plans | CRUD | CRU | — | — |
 | Attachments / X-rays | CRUD | CRU | R (lab-linked only) | — |

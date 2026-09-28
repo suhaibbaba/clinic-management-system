@@ -9,7 +9,9 @@ import {
   localDate,
   localWeekday,
 } from "@clinic/shared";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { NotificationsService } from "@api/modules/notifications/services/notifications.service";
+import type { SendNotification } from "@api/modules/notifications/lib/notifications";
+import { and, eq, sql } from "drizzle-orm";
 import { hashCode } from "@api/modules/booking/lib/booking";
 import {
   appointments,
@@ -97,6 +99,13 @@ describe("Public booking (e2e)", () => {
 
   beforeAll(async () => {
     context = await createTestContext();
+
+    const notifications = context.app.get(NotificationsService);
+    const send = notifications.send.bind(notifications);
+    jest.spyOn(notifications, "send").mockImplementation((message) => {
+      sent.push(message);
+      return send(message);
+    });
     clinic = await context.createClinic();
 
     adminToken = await context.login(clinic.phones[USER_ROLE.ADMIN]);
@@ -139,20 +148,16 @@ describe("Public booking (e2e)", () => {
     });
   }
 
-  async function issuedCode(appointmentId: string): Promise<string> {
-    const [row] = await context.db
-      .select({ vars: notificationsLog.vars })
-      .from(notificationsLog)
-      .where(
-        and(
-          eq(notificationsLog.appointmentId, appointmentId),
-          eq(notificationsLog.template, NOTIFICATION_TEMPLATE.BOOKING_OTP),
-        ),
-      )
-      .orderBy(desc(notificationsLog.createdAt))
-      .limit(1);
+  const sent: SendNotification[] = [];
 
-    const code = row?.vars["code"];
+  function issuedCode(appointmentId: string): string {
+    const code = sent
+      .filter(
+        (message) =>
+          message.appointmentId === appointmentId &&
+          message.template === NOTIFICATION_TEMPLATE.BOOKING_OTP,
+      )
+      .at(-1)?.vars["code"];
 
     if (!code) {
       throw new Error(`No OTP was sent for appointment ${appointmentId}`);
@@ -178,7 +183,7 @@ describe("Public booking (e2e)", () => {
 
   async function confirmed(payload: Record<string, unknown> = {}): Promise<string> {
     const token = await held(payload);
-    const response = await verify(token, await issuedCode(appointmentIdOf(token)));
+    const response = await verify(token, issuedCode(appointmentIdOf(token)));
 
     expect(response.statusCode).toBe(200);
 
@@ -272,7 +277,7 @@ describe("Public booking (e2e)", () => {
     it("stores the code as a digest, never as the code", async () => {
       const token = await held();
       const appointmentId = appointmentIdOf(token);
-      const code = await issuedCode(appointmentId);
+      const code = issuedCode(appointmentId);
 
       const [otp] = await context.db
         .select()
@@ -289,7 +294,7 @@ describe("Public booking (e2e)", () => {
       const token = await held();
       const appointmentId = appointmentIdOf(token);
 
-      const response = await verify(token, await issuedCode(appointmentId));
+      const response = await verify(token, issuedCode(appointmentId));
 
       expect(response.statusCode).toBe(200);
       expect(response.json()).toMatchObject({
@@ -319,7 +324,7 @@ describe("Public booking (e2e)", () => {
 
     it("spends the code, so a replay does not confirm twice", async () => {
       const token = await held();
-      const code = await issuedCode(appointmentIdOf(token));
+      const code = issuedCode(appointmentIdOf(token));
 
       expect((await verify(token, code)).statusCode).toBe(200);
       expect((await verify(token, code)).statusCode).toBe(401);
@@ -328,7 +333,7 @@ describe("Public booking (e2e)", () => {
     it("burns the code after three wrong guesses", async () => {
       const token = await held();
       const appointmentId = appointmentIdOf(token);
-      const code = await issuedCode(appointmentId);
+      const code = issuedCode(appointmentId);
       const wrong = code === "000000" ? "111111" : "000000";
 
       for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -348,7 +353,7 @@ describe("Public booking (e2e)", () => {
     it("rejects a code that has expired, in the same words as a wrong one", async () => {
       const token = await held();
       const appointmentId = appointmentIdOf(token);
-      const code = await issuedCode(appointmentId);
+      const code = issuedCode(appointmentId);
 
       await context.db
         .update(bookingOtps)

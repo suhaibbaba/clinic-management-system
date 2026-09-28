@@ -113,7 +113,7 @@ describe("Assistant schedule and money corrections (e2e)", () => {
 
     patientId = await createPatient(context, tokens[USER_ROLE.RECEPTIONIST], {
       ...nameParts("رامي عودة"),
-      phone: "0599000444",
+      phone: "+970599000444",
     });
   });
 
