@@ -22,6 +22,11 @@ export const envSchema = z.object({
         .filter((origin) => origin.length > 0),
     ),
 
+  TRUST_PROXY: z.string().min(1).default("loopback, linklocal, uniquelocal"),
+
+  THROTTLE_ENABLED: z.stringbool().optional(),
+  THROTTLE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().max(100_000).default(600),
+
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "log", "debug", "verbose"]).default("log"),
 
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),

@@ -12,9 +12,8 @@ import {
   Post,
   Query,
   Res,
-  UseGuards,
 } from "@nestjs/common";
-import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
+import { Throttle } from "@nestjs/throttler";
 import { type FastifyReply } from "fastify";
 import {
   AI_ERROR_CODE,
@@ -53,7 +52,6 @@ export class AiController {
   @Post("chat")
   @Roles(...STAFF)
   @Capability("ai.chat")
-  @UseGuards(ThrottlerGuard)
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   async chat(
     @CurrentUser() actor: AuthenticatedUser,

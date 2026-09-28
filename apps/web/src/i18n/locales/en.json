@@ -443,6 +443,10 @@
     },
     "labOrder": {
       "expectedInPast": "The expected date cannot be in the past"
+    },
+    "tooMany": "Too many requests in a short time; wait a moment and try again",
+    "auth": {
+      "locked": "Too many wrong attempts. Try again in fifteen minutes."
     }
   },
   "patients": {
@@ -1177,10 +1181,16 @@
         "title": "Cancel the “{{work}}” order for {{patient}}?",
         "moves": "The order moves to finished orders.",
         "final": "A cancelled order cannot be reopened.",
-        "balance": "Its cost no longer counts toward the lab balance."
+        "balance": "Its cost comes off the lab's balance, unless you keep it.",
+        "keepCost": "Keep the cost on the lab's balance",
+        "reason": "Why is it cancelled?",
+        "reasonPlaceholder": "e.g. the patient decided not to go ahead"
       },
       "viewCancelled": "View order",
-      "returnExpected": "New expected date"
+      "returnExpected": "New expected date",
+      "costKept": "Cost kept despite the cancellation",
+      "labBalance": "Lab balance",
+      "cancelReason": "Cancellation reason"
     },
     "section": {
       "label": "Lab views",

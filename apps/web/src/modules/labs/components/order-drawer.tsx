@@ -91,10 +91,22 @@ export function OrderDrawer({
         t("labs.order.confirmCancel.final"),
         ...(countsTowardLabBalance(order.status) ? [t("labs.order.confirmCancel.balance")] : []),
       ],
+      note: {
+        label: "labs.order.confirmCancel.reason",
+        placeholder: "labs.order.confirmCancel.reasonPlaceholder",
+      },
+      ...(countsTowardLabBalance(order.status) && {
+        toggle: { label: "labs.order.confirmCancel.keepCost" },
+      }),
       confirmLabel: "labs.actions.cancel",
-      onConfirm: async () => {
+      onConfirm: async ({ toggled, note }) => {
         try {
-          await step.mutateAsync({ id: order.id, step: "cancel" });
+          await step.mutateAsync({
+            id: order.id,
+            step: "cancel",
+            reason: note,
+            keepCost: toggled,
+          });
           toast.success("labs.order.cancelled", undefined, undefined, {
             labelKey: "labs.order.viewCancelled",
             onClick: () =>
@@ -210,6 +222,18 @@ export function OrderDrawer({
             {order.instructions && (
               <Field wide label={t("labs.order.instructions")}>
                 {order.instructions}
+              </Field>
+            )}
+
+            {order.cancelReason && (
+              <Field wide label={t("labs.order.cancelReason")}>
+                {order.cancelReason}
+              </Field>
+            )}
+
+            {order.status === LAB_ORDER_STATUS.CANCELLED && order.costKept && (
+              <Field wide label={t("labs.order.labBalance")}>
+                {t("labs.order.costKept")}
               </Field>
             )}
 

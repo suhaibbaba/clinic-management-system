@@ -382,7 +382,7 @@ export const LAB_ORDER_STATUS_TRANSITIONS = {
   [LAB_ORDER_STATUS.READY]: [LAB_ORDER_STATUS.RECEIVED, LAB_ORDER_STATUS.RETURNED],
   [LAB_ORDER_STATUS.RECEIVED]: [LAB_ORDER_STATUS.FITTED, LAB_ORDER_STATUS.RETURNED],
   [LAB_ORDER_STATUS.FITTED]: [LAB_ORDER_STATUS.RETURNED],
-  [LAB_ORDER_STATUS.RETURNED]: [LAB_ORDER_STATUS.READY],
+  [LAB_ORDER_STATUS.RETURNED]: [LAB_ORDER_STATUS.READY, LAB_ORDER_STATUS.CANCELLED],
   [LAB_ORDER_STATUS.CANCELLED]: [],
 } as const satisfies Record<LabOrderStatus, readonly LabOrderStatus[]>;
 
@@ -960,6 +960,14 @@ export type PaymentError = EnumValue<typeof PAYMENT_ERROR>;
 
 export const LAB_ORDER_ERROR = {
   EXPECTED_IN_PAST: "lab_order_expected_in_past",
+} as const satisfies Record<string, string>;
+
+export const AUTH_ERROR = {
+  LOCKED: "auth_locked",
+} as const satisfies Record<string, string>;
+
+export const BOOKING_ERROR = {
+  TOO_MANY_MESSAGES: "booking_too_many_messages",
 } as const satisfies Record<string, string>;
 
 export const STOCK_ERROR = {

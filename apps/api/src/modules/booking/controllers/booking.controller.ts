@@ -1,15 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
-import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
 import {
   type BookingReceipt,
   type ManagedBooking,
@@ -33,7 +23,6 @@ import {
 
 @Controller("public/booking")
 @Public()
-@UseGuards(ThrottlerGuard)
 export class BookingController {
   constructor(private readonly booking: BookingService) {}
 

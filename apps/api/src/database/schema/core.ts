@@ -179,6 +179,13 @@ export const refreshTokens = pgTable(
   ],
 );
 
+export const loginThrottles = pgTable("login_throttles", {
+  key: text("key").primaryKey(),
+  failures: integer("failures").notNull().default(0),
+  windowStartedAt: timestamp("window_started_at", { withTimezone: true }).notNull().defaultNow(),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }),
+});
+
 export const auditLog = pgTable(
   "audit_log",
   {

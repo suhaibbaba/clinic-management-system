@@ -3,6 +3,9 @@ import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { ZodValidationPipe } from "nestjs-zod";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ThrottlerModule } from "@nestjs/throttler";
+import { ConfigService } from "@nestjs/config";
+import { RequestThrottlerGuard } from "@api/common/guards/request-throttler.guard";
+import { type Env } from "@api/config/env.schema";
 import { AiModule } from "@api/modules/ai/ai.module";
 import { AppointmentsModule } from "@api/modules/appointments/appointments.module";
 import { AuditInterceptor } from "@api/modules/audit/services/audit.interceptor";
@@ -38,7 +41,19 @@ import { UsersModule } from "@api/modules/users/users.module";
     AppConfigModule,
     DatabaseModule,
     ScheduleModule.forRoot(),
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<Env, true>) => ({
+        throttlers: [
+          { ttl: 60_000, limit: config.get("THROTTLE_LIMIT_PER_MINUTE", { infer: true }) },
+        ],
+        skipIf: () =>
+          !(
+            config.get("THROTTLE_ENABLED", { infer: true }) ??
+            config.get("NODE_ENV", { infer: true }) !== "test"
+          ),
+      }),
+    }),
     AuthModule,
     AuditModule,
     HealthModule,
@@ -69,6 +84,7 @@ import { UsersModule } from "@api/modules/users/users.module";
 
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: RequestThrottlerGuard },
 
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

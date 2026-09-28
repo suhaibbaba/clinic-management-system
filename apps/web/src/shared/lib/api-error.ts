@@ -1,4 +1,10 @@
-import { CLINICAL_DELETE_ERROR, LAB_ORDER_ERROR, PAYMENT_ERROR, STOCK_ERROR } from "@clinic/shared";
+import {
+  AUTH_ERROR,
+  CLINICAL_DELETE_ERROR,
+  LAB_ORDER_ERROR,
+  PAYMENT_ERROR,
+  STOCK_ERROR,
+} from "@clinic/shared";
 
 export class ApiError extends Error {
   constructor(
@@ -19,6 +25,7 @@ export class NetworkError extends Error {
 }
 
 const CODED_MESSAGES: Readonly<Record<string, string>> = {
+  [AUTH_ERROR.LOCKED]: "errors.auth.locked",
   [CLINICAL_DELETE_ERROR.HAS_PAYMENTS]: "errors.clinicalDelete.hasPayments",
   [LAB_ORDER_ERROR.EXPECTED_IN_PAST]: "errors.labOrder.expectedInPast",
   [STOCK_ERROR.INSUFFICIENT]: "errors.stock.insufficient",
@@ -51,6 +58,8 @@ export function errorMessageKey(error: unknown): string {
         return "errors.notFound";
       case 409:
         return "errors.conflict";
+      case 429:
+        return "errors.tooMany";
       default:
         return error.statusCode >= 500 ? "errors.server" : "errors.unknown";
     }

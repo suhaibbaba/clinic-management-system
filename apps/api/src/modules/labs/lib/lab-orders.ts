@@ -4,6 +4,7 @@ import {
   LAB_ORDER_STATUS,
   type ListLabOrdersQuery,
   LAB_ORDER_AWAITING_STATUSES,
+  LAB_ORDER_BILLABLE_STATUSES,
   type LabOrder,
   type LabOrderRow,
   type LabOrderSort,
@@ -12,6 +13,17 @@ import {
 import { toPersonName } from "@api/common/person-name";
 
 export type OrderRow = typeof labOrders.$inferSelect;
+
+export interface StatusChange {
+  readonly reason?: string | undefined;
+  readonly expectedAt?: string | undefined;
+  readonly keepCost?: boolean | undefined;
+}
+
+export const billableOrder: SQL = sql`(${labOrders.status} in (${sql.join(
+  LAB_ORDER_BILLABLE_STATUSES.map((status) => sql`${status}`),
+  sql`, `,
+)}) or (${labOrders.status} = ${LAB_ORDER_STATUS.CANCELLED} and ${labOrders.costKept}))`;
 
 export const finishedAt = sql`coalesce(${labOrders.fittedAt}, ${labOrders.updatedAt})`;
 
@@ -70,6 +82,8 @@ export function toLabOrder(row: OrderRow): LabOrder {
     receivedAt: row.receivedAt?.toISOString() ?? null,
     fittedAt: row.fittedAt?.toISOString() ?? null,
     returnReason: row.returnReason,
+    costKept: row.costKept,
+    cancelReason: row.cancelReason,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };

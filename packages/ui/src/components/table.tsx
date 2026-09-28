@@ -372,13 +372,22 @@ export function Table<TRow>({
                         onRowClick && { onClick: (event) => event.stopPropagation() })}
                       className={cn(
                         compact
-                          ? "h-(--control-h-sm) whitespace-nowrap px-3 py-1 align-middle"
+                          ? "h-(--control-h-sm) px-3 py-1 align-middle"
                           : "px-[18px] py-[13px] align-middle",
                         alignClass(column.align),
                         column.className,
                       )}
                     >
-                      {column.render(row)}
+                      <div
+                        data-part="table-cell-content"
+                        className={cn(
+                          "max-w-(--cell-max)",
+                          column.align === "end" || column.align === "numeric" ? "ms-auto" : "",
+                          compact ? "truncate" : "[overflow-wrap:anywhere]",
+                        )}
+                      >
+                        {column.render(row)}
+                      </div>
                     </td>
                   ))}
                 </tr>

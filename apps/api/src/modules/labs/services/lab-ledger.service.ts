@@ -1,8 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { billableOrder } from "@api/modules/labs/lib/lab-orders";
 import {
   addMoney,
   formatMinorUnits,
-  LAB_ORDER_BILLABLE_STATUSES,
   LAB_STATEMENT_ENTRY_KIND,
   subtractMoney,
   toMinorUnits,
@@ -12,7 +12,7 @@ import {
   type Money,
   type StatementQuery,
 } from "@clinic/shared";
-import { and, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { DATABASE, type Database } from "@api/database/database.module";
 import { labOrders, labPayments, labWorkTypes } from "@api/database/schema";
 import { LabsService } from "@api/modules/labs/services/labs.service";
@@ -29,11 +29,6 @@ export class LabLedgerService {
   async balanceFor(clinicId: string, labId: string): Promise<LabBalance> {
     await this.labsService.requireRow(clinicId, labId);
 
-    const billable = sql.join(
-      LAB_ORDER_BILLABLE_STATUSES.map((status) => sql`${status}`),
-      sql`, `,
-    );
-
     const rows = await this.db.execute<{
       owed: string;
       paid: string;
@@ -43,7 +38,7 @@ export class LabLedgerService {
         coalesce((
           select sum(price) from lab_orders
           where clinic_id = ${clinicId} and lab_id = ${labId} and deleted_at is null
-            and status in (${billable})
+            and ${billableOrder}
         ), 0)::text as owed,
         coalesce((
           select sum(amount) from lab_payments
@@ -97,7 +92,7 @@ export class LabLedgerService {
             eq(labOrders.clinicId, clinicId),
             eq(labOrders.labId, labId),
             isNull(labOrders.deletedAt),
-            inArray(labOrders.status, [...LAB_ORDER_BILLABLE_STATUSES]),
+            billableOrder,
           ),
         ),
       this.db
