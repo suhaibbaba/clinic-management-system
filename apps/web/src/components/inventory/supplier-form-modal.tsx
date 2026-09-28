@@ -13,6 +13,7 @@ import {
 } from "@clinic/ui";
 import { useCreateSupplier, useUpdateSupplier } from "@web/queries/inventory";
 import { errorMessageKey } from "@web/lib/api-error";
+import { capitalizeWords } from "@web/lib/inventory/capitalize-words";
 
 export function SupplierFormModal({
   open,
@@ -145,12 +146,5 @@ export function SupplierFormModal({
         />
       </div>
     </Modal>
-  );
-}
-
-export function capitalizeWords(value: string): string {
-  return value.replace(
-    /(^|[\s\-(])(\p{Ll})/gu,
-    (_, before: string, letter: string) => `${before}${letter.toUpperCase()}`,
   );
 }

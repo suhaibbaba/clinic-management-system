@@ -1,4 +1,4 @@
-import { USER_ROLE, type UserRole } from "@clinic/shared";
+import { MOVEMENT_TYPE, USER_ROLE, type MovementType, type UserRole } from "@clinic/shared";
 import type { Can } from "@web/providers/session";
 
 export const seesInventory = (role: UserRole | undefined): boolean =>
@@ -14,3 +14,10 @@ export const canPurchaseStock = (can: Can): boolean => can("inventory.purchase")
 export const canAdjustStock = (can: Can): boolean => can("inventory.adjust");
 
 export const canReverseMovement = (can: Can): boolean => can("inventory.reverse");
+
+export const mayRecord = (type: MovementType, can: Can): boolean =>
+  ({
+    [MOVEMENT_TYPE.PURCHASE]: canPurchaseStock,
+    [MOVEMENT_TYPE.CONSUME]: canConsumeStock,
+    [MOVEMENT_TYPE.ADJUST]: canAdjustStock,
+  })[type](can);

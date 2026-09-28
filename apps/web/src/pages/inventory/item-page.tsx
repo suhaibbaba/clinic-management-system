@@ -1,4 +1,4 @@
-import { LOOKUP_LIST, MOVEMENT_TYPE, type ItemBatch, type MovementType } from "@clinic/shared";
+import { LOOKUP_LIST, MOVEMENT_TYPE, type MovementType } from "@clinic/shared";
 import { useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
@@ -6,35 +6,30 @@ import {
   Badge,
   Button,
   Card,
-  type Column,
-  EmptyState,
   Ltr,
   MenuItem,
   RowMenu,
   SegmentedControl,
   StatCard,
   StatRow,
-  Table,
   useTabParam,
 } from "@clinic/ui";
 import { useSession } from "@web/providers/session";
 import { useLookupLabels } from "@web/queries/lookups";
 import { categoryTone, stockTone } from "@web/lib/inventory/display";
+import { ItemBatches } from "@web/components/inventory/item-batches";
 import { ItemFormModal } from "@web/components/inventory/item-form-modal";
-import { ItemMovements } from "@web/components/inventory/item-movements";
-import { MovementModal, mayRecord } from "@web/components/inventory/movement-modal";
+import { Quantity } from "@web/components/inventory/quantity";
+import { ItemMovementsTab } from "@web/pages/inventory/item-movements-tab";
+import { MovementModal } from "@web/components/inventory/movement-modal";
+import { mayRecord } from "@web/permissions/inventory";
 import { canManageInventory } from "@web/permissions/inventory";
 import { useInventoryItem, useItemBatches } from "@web/queries/inventory";
 import { formatDate } from "@web/lib/format";
 import { Skeleton, SkeletonKpi } from "@clinic/ui/components/skeleton";
 import { useQueryLoading } from "@clinic/ui/lib/use-delayed-loading";
 import { useIsMobile } from "@clinic/ui/lib/use-media-query";
-import {
-  ITEM_PAGE_TABS,
-  MOVEMENT_ACTIONS,
-  MOVEMENT_ACTION_ICONS,
-  UNBATCHED_ROW_KEY,
-} from "@web/constants/inventory";
+import { ITEM_PAGE_TABS, MOVEMENT_ACTIONS, MOVEMENT_ACTION_ICONS } from "@web/constants/inventory";
 
 type Tab = (typeof ITEM_PAGE_TABS)[number];
 
@@ -138,7 +133,7 @@ export function ItemPage(): JSX.Element {
       {tab === "overview" && showSkeleton && !row && (
         <>
           <SkeletonKpi count={3} />
-          <Batches batches={[]} unbatched="0" unit="" isLoading />
+          <ItemBatches batches={[]} unbatched="0" unit="" isLoading />
         </>
       )}
 
@@ -168,7 +163,7 @@ export function ItemPage(): JSX.Element {
             />
           </StatRow>
 
-          <Batches
+          <ItemBatches
             batches={batches.data?.batches ?? []}
             unbatched={batches.data?.unbatched ?? "0"}
             unit={unit}
@@ -184,7 +179,7 @@ export function ItemPage(): JSX.Element {
         </>
       )}
 
-      {tab === "movements" && <ItemMovements itemId={id} />}
+      {tab === "movements" && <ItemMovementsTab itemId={id} />}
 
       <MovementModal
         data-testid="movement-modal"
@@ -202,149 +197,5 @@ export function ItemPage(): JSX.Element {
         />
       )}
     </div>
-  );
-}
-
-function Quantity({ value, unit }: { readonly value: string; readonly unit: string }) {
-  return (
-    <span className="flex items-baseline gap-1.5">
-      <Ltr className="tabular-nums">{value}</Ltr>
-      <span className="text-label font-normal text-ink-muted">{unit}</span>
-    </span>
-  );
-}
-
-interface ShelfRow {
-  readonly key: string;
-  readonly batchNo: string | null;
-  readonly expiryDate: string | null;
-  readonly receivedAt: string | null;
-  readonly remaining: string;
-  readonly quantity: string | null;
-  readonly isExpired: boolean;
-  readonly isExpiring: boolean;
-}
-
-const byExpiry = (a: ItemBatch, b: ItemBatch): number =>
-  (a.expiryDate ?? "9999").localeCompare(b.expiryDate ?? "9999") ||
-  a.receivedAt.localeCompare(b.receivedAt);
-
-function Batches({
-  batches,
-  unbatched,
-  unit,
-  isLoading,
-}: {
-  readonly batches: readonly ItemBatch[];
-  readonly unbatched: string;
-  readonly unit: string;
-  readonly isLoading: boolean;
-}): JSX.Element {
-  const { t } = useTranslation();
-
-  const rows: ShelfRow[] = [
-    ...batches
-      .filter((batch) => Number(batch.remaining) > 0)
-      .sort(byExpiry)
-      .map((batch) => ({ ...batch, key: `${batch.batchNo ?? "none"}-${batch.receivedAt}` })),
-    ...(Number(unbatched) > 0
-      ? [
-          {
-            key: UNBATCHED_ROW_KEY,
-            batchNo: null,
-            expiryDate: null,
-            receivedAt: null,
-            remaining: unbatched,
-            quantity: null,
-            isExpired: false,
-            isExpiring: false,
-          },
-        ]
-      : []),
-  ];
-
-  const columns: readonly Column<ShelfRow>[] = [
-    {
-      key: "batch",
-      header: "inventory.batches.columns.batch",
-      primary: true,
-      render: (row) =>
-        row.batchNo ? (
-          <Ltr className="font-medium text-ink">{row.batchNo}</Ltr>
-        ) : (
-          <span className="text-ink-muted">
-            {t(
-              row.key === UNBATCHED_ROW_KEY
-                ? "inventory.batches.unbatched"
-                : "inventory.batches.unlabelled",
-            )}
-          </span>
-        ),
-    },
-    {
-      key: "expiry",
-      header: "inventory.batches.columns.expiry",
-      render: (row) =>
-        row.expiryDate ? (
-          <span className="flex flex-wrap items-center gap-1.5">
-            <Ltr className={row.isExpired ? "text-danger-600" : undefined}>
-              {formatDate(row.expiryDate)}
-            </Ltr>
-            {row.isExpired && <Badge tone="danger">{t("inventory.flags.expired")}</Badge>}
-            {row.isExpiring && <Badge tone="warning">{t("inventory.flags.expiring")}</Badge>}
-          </span>
-        ) : (
-          "—"
-        ),
-    },
-    {
-      key: "received",
-      header: "inventory.batches.columns.received",
-      hideOnMobile: true,
-      render: (row) => (row.receivedAt ? <Ltr>{formatDate(row.receivedAt)}</Ltr> : "—"),
-    },
-    {
-      key: "left",
-      header: "inventory.batches.columns.left",
-      render: (row) => (
-        <span className="flex flex-wrap items-baseline gap-x-1.5">
-          <Ltr className="font-medium tabular-nums text-ink">{row.remaining}</Ltr>
-          <span className="text-ink-muted">{unit}</span>
-          {row.quantity !== null && (
-            <span className="text-label text-ink-subtle">
-              {t("inventory.batches.of", { quantity: row.quantity })}
-            </span>
-          )}
-        </span>
-      ),
-    },
-  ];
-
-  return (
-    <section data-testid="item-batches" className="flex flex-col gap-3">
-      <div>
-        <h2 className="text-value font-medium text-ink">{t("inventory.batches.title")}</h2>
-        <p className="text-label text-ink-muted">{t("inventory.batches.hint")}</p>
-      </div>
-
-      <Table
-        data-testid="item-batches-table"
-        columns={columns}
-        rows={rows}
-        rowKey={(row) => row.key}
-        isLoading={isLoading}
-        empty={
-          <EmptyState
-            icon="package"
-            data-testid="item-batches-empty"
-            title="inventory.batches.empty"
-          />
-        }
-      />
-
-      {rows.length > 0 && (
-        <p className="text-label text-ink-subtle">{t("inventory.batches.assumption")}</p>
-      )}
-    </section>
   );
 }

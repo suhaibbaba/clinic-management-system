@@ -27,8 +27,9 @@ import {
   type PickedPatient,
 } from "@web/components/appointments/patient-picker";
 import { useLookupLabels } from "@web/queries/lookups";
-import { useSession, type Can } from "@web/providers/session";
-import { canAdjustStock, canConsumeStock, canPurchaseStock } from "@web/permissions/inventory";
+import { useSession } from "@web/providers/session";
+import { canPurchaseStock } from "@web/permissions/inventory";
+import { mayRecord } from "@web/permissions/inventory";
 import {
   useAdjustStock,
   useConsumeStock,
@@ -37,13 +38,6 @@ import {
 } from "@web/queries/inventory";
 import { errorMessageKey } from "@web/lib/api-error";
 import { useCurrency } from "@web/queries/clinic";
-
-export const mayRecord = (type: MovementType, can: Can): boolean =>
-  ({
-    [MOVEMENT_TYPE.PURCHASE]: canPurchaseStock,
-    [MOVEMENT_TYPE.CONSUME]: canConsumeStock,
-    [MOVEMENT_TYPE.ADJUST]: canAdjustStock,
-  })[type](can);
 
 export interface MovementModalProps {
   readonly "data-testid"?: string | undefined;

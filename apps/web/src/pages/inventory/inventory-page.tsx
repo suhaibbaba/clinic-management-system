@@ -1,178 +1,56 @@
-import { LOOKUP_LIST, type InventoryItemRow } from "@clinic/shared";
-import { useEffect, useMemo, useRef, useState, type JSX } from "react";
+import { LOOKUP_LIST } from "@clinic/shared";
+import { useMemo, useState, type JSX } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
-  Badge,
   Button,
   EmptyState,
   Icon,
-  Ltr,
   PageHeader,
-  ProgressBar,
   SearchField,
   Select,
   Table,
   TotalBadge,
-  type Column,
   usePageParams,
 } from "@clinic/ui";
-import { useSession } from "@web/providers/session";
-import { useLookupLabels, useLookupOptions } from "@web/queries/lookups";
-import { InventoryAlertCards } from "@web/components/inventory/alert-cards";
-import { categoryTone, stockScale, stockTone } from "@web/lib/inventory/display";
-import { ItemFormModal } from "@web/components/inventory/item-form-modal";
-import { canManageInventory } from "@web/permissions/inventory";
-import { useInventoryItems } from "@web/queries/inventory";
-import { formatDate } from "@web/lib/format";
-import { useDebounced } from "@web/hooks/shared/use-debounced";
 import { isRefetching } from "@clinic/ui/lib/use-delayed-loading";
-
-interface InventoryFilters {
-  readonly category?: string;
-  readonly low?: boolean;
-  readonly expiring?: boolean;
-}
+import { InventoryAlertCards } from "@web/components/inventory/alert-cards";
+import { ItemFormModal } from "@web/components/inventory/item-form-modal";
+import { useInventoryColumns } from "@web/hooks/inventory/use-inventory-columns";
+import { useInventoryFilters } from "@web/hooks/inventory/use-inventory-filters";
+import { canManageInventory } from "@web/permissions/inventory";
+import { useSession } from "@web/providers/session";
+import { useInventoryItems } from "@web/queries/inventory";
+import { useLookupOptions } from "@web/queries/lookups";
 
 export function InventoryPage(): JSX.Element {
   const { t } = useTranslation();
-  const categoryLabel = useLookupLabels(LOOKUP_LIST.ITEM_CATEGORY);
   const categoryOptions = useLookupOptions(LOOKUP_LIST.ITEM_CATEGORY);
   const { can } = useSession();
   const navigate = useNavigate();
-
   const { page, perPage, setPage, setPerPage, resetPage } = usePageParams();
-  const [params, setParams] = useSearchParams();
-  const search = params.get("q") ?? "";
-  const category = params.get("category") ?? "";
-  const low = params.get("low") === "1";
-  const expiring = params.get("expiring") === "1";
-  const openItem = (id: string): void => void navigate(`/inventory/items/${id}`);
+  const filters = useInventoryFilters(resetPage);
+  const { search, category, low, expiring, setSearch, setFilters } = filters;
+  const columns = useInventoryColumns();
   const [creating, setCreating] = useState(false);
 
-  const writeParams = (change: (next: URLSearchParams) => void): void =>
-    setParams(
-      (current) => {
-        const next = new URLSearchParams(current);
-
-        change(next);
-        next.delete("page");
-
-        return next;
-      },
-      { replace: true },
-    );
-
-  const setSearch = (value: string): void =>
-    setParams(
-      (current) => {
-        const next = new URLSearchParams(current);
-
-        if (value === "") {
-          next.delete("q");
-        } else {
-          next.set("q", value);
-        }
-
-        return next;
-      },
-      { replace: true },
-    );
-
-  const setFilters = (filters: InventoryFilters): void =>
-    writeParams((next) => {
-      for (const [key, value] of Object.entries(filters)) {
-        if (value === undefined) {
-          continue;
-        }
-        if (value === "" || value === false) {
-          next.delete(key);
-        } else {
-          next.set(key, value === true ? "1" : value);
-        }
-      }
-    });
-
-  const debounced = useDebounced(search);
-  const lastSearch = useRef(debounced);
-
-  useEffect(() => {
-    if (lastSearch.current !== debounced) {
-      lastSearch.current = debounced;
-      resetPage();
-    }
-  }, [debounced]);
+  const openItem = (id: string): void => void navigate(`/inventory/items/${id}`);
 
   const query = useMemo(
     () => ({
       page,
       limit: perPage,
-      ...(debounced.trim() !== "" && { search: debounced.trim() }),
+      ...(filters.debouncedSearch !== "" && { search: filters.debouncedSearch }),
       ...(category !== "" && { category }),
       ...(low && { low: true }),
       ...(expiring && { expiring: true }),
     }),
-    [page, perPage, debounced, category, low, expiring],
+    [page, perPage, filters.debouncedSearch, category, low, expiring],
   );
 
   const items = useInventoryItems(query);
   const rows = items.data?.items ?? [];
   const mayManage = canManageInventory(can);
-
-  const columns: readonly Column<InventoryItemRow>[] = [
-    {
-      key: "name",
-      header: "inventory.columns.item",
-      primary: true,
-      render: (row) => (
-        <span className="flex flex-col">
-          <bdi className="font-medium text-ink">{row.name}</bdi>
-          {row.supplierName && (
-            <span className="text-label text-ink-muted">{row.supplierName}</span>
-          )}
-        </span>
-      ),
-    },
-    {
-      key: "category",
-      header: "inventory.columns.category",
-      render: (row) => (
-        <Badge tone={categoryTone(row.category)} data-testid="inventory-category">
-          {categoryLabel(row.category)}
-        </Badge>
-      ),
-    },
-    {
-      key: "quantity",
-      header: "inventory.columns.quantity",
-      render: (row) => <StockCell item={row} />,
-    },
-    {
-      key: "expiry",
-      header: "inventory.columns.expiry",
-      hideOnMobile: true,
-      render: (row) =>
-        row.nearestExpiry ? (
-          <span className="flex flex-wrap items-center gap-1.5">
-            <Ltr className={row.isExpired ? "text-danger-600" : undefined}>
-              {formatDate(row.nearestExpiry)}
-            </Ltr>
-            {row.isExpired && (
-              <Badge tone="danger" data-testid="inventory-flag-expired">
-                {t("inventory.flags.expired")}
-              </Badge>
-            )}
-            {row.isExpiring && (
-              <Badge tone="warning" data-testid="inventory-flag-expiring">
-                {t("inventory.flags.expiring")}
-              </Badge>
-            )}
-          </span>
-        ) : (
-          "—"
-        ),
-    },
-  ];
 
   return (
     <div data-testid="inventory-page" className="flex flex-col gap-5">
@@ -295,40 +173,5 @@ export function InventoryPage(): JSX.Element {
         onOpenChange={setCreating}
       />
     </div>
-  );
-}
-
-function StockCell({ item }: { readonly item: InventoryItemRow }): JSX.Element {
-  const { t } = useTranslation();
-  const unitLabel = useLookupLabels(LOOKUP_LIST.ITEM_UNIT);
-  const scale = stockScale(item);
-
-  return (
-    <span data-testid="inventory-stock-cell" className="flex min-w-28 flex-col gap-1">
-      <span className="flex items-baseline gap-1.5">
-        <Ltr className="font-medium tabular-nums text-ink">{item.quantity}</Ltr>
-        <span className="text-label text-ink-muted">{unitLabel(item.unit)}</span>
-        {item.isLow && (
-          <Badge tone="danger" className="ms-auto" data-testid="inventory-flag-low">
-            {t("inventory.flags.low")}
-          </Badge>
-        )}
-      </span>
-
-      <ProgressBar
-        data-testid="inventory-stock-bar"
-        value={scale.value}
-        total={scale.total}
-        tone={stockTone(item)}
-        label={t("inventory.stockBar", {
-          quantity: item.quantity,
-          minimum: item.minQuantity,
-        })}
-      />
-
-      <span className="text-label text-ink-subtle">
-        {t("inventory.minimum")}: <Ltr>{item.minQuantity}</Ltr> {unitLabel(item.unit)}
-      </span>
-    </span>
   );
 }
