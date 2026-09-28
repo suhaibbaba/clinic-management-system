@@ -116,6 +116,7 @@ export function AppointmentsPage(): JSX.Element {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<CalendarAppointment | undefined>();
   const [scheduling, setScheduling] = useState<WaitingListEntry | undefined>();
+  const [rebooking, setRebooking] = useState<CalendarAppointment | undefined>();
   const [formDefaults, setFormDefaults] = useState<
     { date?: string; doctorId?: string; startsAt?: string } | undefined
   >();
@@ -255,12 +256,14 @@ export function AppointmentsPage(): JSX.Element {
   const openForm = (defaults?: { date?: string; doctorId?: string; startsAt?: string }): void => {
     setEditing(undefined);
     setScheduling(undefined);
+    setRebooking(undefined);
     setFormDefaults(defaults);
     setFormOpen(true);
   };
 
   const scheduleFromQueue = (entry: WaitingListEntry): void => {
     setEditing(undefined);
+    setRebooking(undefined);
     setFormDefaults({ date, ...(entry.doctorId && { doctorId: entry.doctorId }) });
     setScheduling(entry);
     setFormOpen(true);
@@ -515,9 +518,21 @@ export function AppointmentsPage(): JSX.Element {
         onEdit={(appointment) => {
           setSelectedId(null);
           setEditing(appointment);
+          setScheduling(undefined);
+          setRebooking(undefined);
           setFormDefaults(undefined);
           setFormOpen(true);
         }}
+        {...(mayBook && {
+          onRebook: (appointment: CalendarAppointment) => {
+            setSelectedId(null);
+            setEditing(undefined);
+            setScheduling(undefined);
+            setRebooking(appointment);
+            setFormDefaults(undefined);
+            setFormOpen(true);
+          },
+        })}
       />
 
       <AppointmentFormModal
@@ -528,9 +543,11 @@ export function AppointmentsPage(): JSX.Element {
           if (!next) {
             setEditing(undefined);
             setScheduling(undefined);
+            setRebooking(undefined);
           }
         }}
         appointment={editing}
+        rebookFrom={rebooking}
         defaults={formDefaults}
         waitingEntry={scheduling}
         onBooked={({ date: booked, doctorId: booking }) =>

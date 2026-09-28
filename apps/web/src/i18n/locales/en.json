@@ -860,7 +860,8 @@
       "cancel": "Cancel appointment",
       "openVisit": "Open a visit",
       "openFile": "Open the patient file",
-      "reschedule": "Edit appointment"
+      "reschedule": "Edit appointment",
+      "rebook": "Book again"
     },
     "cancel": {
       "title": "Cancel appointment",
@@ -958,7 +959,8 @@
     "attendance": {
       "fromDay": "Attendance is recorded from the appointment's day",
       "afterStart": "No show becomes available once the appointment time passes"
-    }
+    },
+    "rebook": "Book again"
   },
   "booking": {
     "pending": {

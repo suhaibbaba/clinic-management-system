@@ -27,6 +27,7 @@ import { useSession } from "@web/shared/providers/session";
 import { useCancelAppointment, useConvertToVisit } from "@web/modules/appointments/queries";
 import { useAppointmentStep, type AppointmentStep } from "@web/shared/queries/appointments";
 import {
+  canBookAppointment,
   canCancelAppointment,
   canMoveAppointment,
   canOpenVisit,
@@ -47,12 +48,14 @@ export interface AppointmentDrawerProps {
   readonly appointment: CalendarAppointment | undefined;
   readonly onClose: () => void;
   readonly onEdit: (appointment: CalendarAppointment) => void;
+  readonly onRebook?: ((appointment: CalendarAppointment) => void) | undefined;
 }
 
 export function AppointmentDrawer({
   appointment,
   onClose,
   onEdit,
+  onRebook,
   "data-testid": testId = "appointment-drawer",
 }: AppointmentDrawerProps): JSX.Element | null {
   const { t } = useTranslation();
@@ -131,6 +134,7 @@ export function AppointmentDrawer({
   const busy = step.isPending || cancel.isPending || convert.isPending;
   const editable = occupiesSlot(status) && status !== APPOINTMENT_STATUS.COMPLETED;
   const cancellable = CANCELLABLE_STATUSES.includes(status) && canCancelAppointment(can);
+  const rebookable = !occupiesSlot(status) && onRebook !== undefined && canBookAppointment(can);
 
   return (
     <>
@@ -282,8 +286,18 @@ export function AppointmentDrawer({
             )}
           </dl>
 
-          {(editable || cancellable) && (
+          {(editable || cancellable || rebookable) && (
             <div className="flex flex-wrap gap-2 border-t border-line pt-4">
+              {rebookable && (
+                <Button
+                  size="sm"
+                  icon={<Icon name="calendar" />}
+                  data-testid={`${testId}-rebook`}
+                  onClick={() => onRebook?.(appointment)}
+                >
+                  {t("appointments.actions.rebook")}
+                </Button>
+              )}
               {editable && (
                 <Button
                   variant="secondary"
