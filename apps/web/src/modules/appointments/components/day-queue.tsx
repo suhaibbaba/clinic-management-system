@@ -124,7 +124,7 @@ export function DayQueue({
       )}
 
       <div ref={scroller} className="relative max-h-[min(760px,75dvh)] overflow-auto">
-        <div className="flex min-w-max">
+        <div className="flex">
           {doctors.map((doctor) => {
             const queue = queues.get(doctor.id);
             const rows = queue?.rows ?? [];

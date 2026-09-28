@@ -18,7 +18,7 @@ export function addDays(isoDate: string, days: number): string {
   return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
 }
 
-const weekdayOf = (isoDate: string): number => {
+export const weekdayOf = (isoDate: string): number => {
   const [year = 0, month = 1, day = 1] = isoDate.split("-").map(Number);
 
   return new Date(Date.UTC(year, month - 1, day)).getUTCDay();

@@ -1,6 +1,6 @@
 import { useCalendarMutation } from "@web/shared/queries/appointments";
 import { WAITING_LIST_KEY, CALENDAR_KEY, AVAILABILITY_KEY } from "@web/shared/constants/query-keys";
-import { useQueries, useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useQueries, useQuery, type QueryClient, type UseQueryResult } from "@tanstack/react-query";
 import type {
   Availability,
   AvailabilityQuery,
@@ -41,27 +41,59 @@ export function useAvailability(
   });
 }
 
+export interface DayAvailability {
+  readonly byDoctor: ReadonlyMap<string, Availability>;
+  readonly settling: boolean;
+}
+
+const dayAvailabilityQuery = (
+  date: string,
+  doctorId: string,
+  stepMinutes: number,
+): AvailabilityQuery => ({ doctorId, date, durationMinutes: stepMinutes });
+
 export function useDayAvailability(
   date: string,
   doctorIds: readonly string[],
   stepMinutes: number,
   enabled: boolean,
-): ReadonlyMap<string, Availability> {
+): DayAvailability {
   return useQueries({
     queries: doctorIds.map((doctorId) => {
-      const query: AvailabilityQuery = { doctorId, date, durationMinutes: stepMinutes };
+      const query = dayAvailabilityQuery(date, doctorId, stepMinutes);
 
       return {
         queryKey: [AVAILABILITY_KEY, query],
         queryFn: () => appointmentsApi.availability(query),
+        placeholderData: (previous: Availability | undefined) => previous,
         enabled,
       };
     }),
-    combine: (results) =>
-      new Map(
+    combine: (results) => ({
+      byDoctor: new Map(
         results.flatMap((result) => (result.data ? [[result.data.doctorId, result.data]] : [])),
       ),
+      settling: enabled && results.some((result) => result.isPlaceholderData || result.isPending),
+    }),
   });
+}
+
+export function prefetchDayAvailability(
+  queryClient: QueryClient,
+  date: string,
+  doctorIds: readonly string[],
+  stepMinutes: number,
+): void {
+  for (const doctorId of doctorIds) {
+    const query = dayAvailabilityQuery(date, doctorId, stepMinutes);
+
+    void queryClient
+      .query({
+        queryKey: [AVAILABILITY_KEY, query],
+        queryFn: () => appointmentsApi.availability(query),
+      })
+      .catch(() => undefined);
+  }
 }
 
 export function useWaitingList(
